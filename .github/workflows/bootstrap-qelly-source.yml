@@ -28,11 +28,11 @@ jobs:
         run: |
           set -euo pipefail
           cat .bootstrap/source.part-*.b64 > /tmp/qelly-source.b64
-          base64 --decode /tmp/qelly-source.b64 > /tmp/qelly-source.zip
-          echo "e113fb8754a6b806002b5c8662af602ba33f2a74bd56e93da43ba6326cab6148  /tmp/qelly-source.zip" | sha256sum --check --strict
+          base64 --decode /tmp/qelly-source.b64 > /tmp/qelly-source.tar.xz
+          echo "079bbbecf3e9929c5218c6ce28c74d8ca2ab69789b720857628b1ec6446164f5  /tmp/qelly-source.tar.xz" | sha256sum --check --strict
           rm -rf /tmp/qelly-source
           mkdir -p /tmp/qelly-source
-          unzip -q /tmp/qelly-source.zip -d /tmp/qelly-source
+          tar -xJf /tmp/qelly-source.tar.xz -C /tmp/qelly-source
           test -d /tmp/qelly-source/QELLY_GITHUB_DEPLOYMENT_PREPARED_SOURCE
 
       - name: Replace bootstrap tree with verified Qelly source
