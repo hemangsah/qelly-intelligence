@@ -1,0 +1,70 @@
+name: Bootstrap verified Qelly source v2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.bootstrap2/READY'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: qelly-source-bootstrap-v2
+  cancel-in-progress: false
+
+jobs:
+  initialize-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out bootstrap commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reconstruct and verify prepared source
+        shell: bash
+        run: |
+          set -euo pipefail
+          : > /tmp/qelly-source.b64
+          for file in \
+            .bootstrap/payload-000.b64 \
+            .bootstrap/payload-001.b64 \
+            .bootstrap/payload-002.b64 \
+            .bootstrap/payload-003.b64 \
+            .bootstrap/payload-004.b64 \
+            .bootstrap/payload-005.b64 \
+            .bootstrap/payload-006.b64 \
+            .bootstrap/payload-007.b64 \
+            .bootstrap/payload-008.b64 \
+            .bootstrap/payload-009.b64 \
+            .bootstrap/payload-010.b64 \
+            .bootstrap/payload-013.b64 \
+            .bootstrap/payload-015.b64 \
+            .bootstrap/payload-017.b64 \
+            .bootstrap/payload-019.b64 \
+            .bootstrap2/segment-*.b64; do
+            test -f "$file"
+            cat "$file" >> /tmp/qelly-source.b64
+          done
+          base64 --decode /tmp/qelly-source.b64 > /tmp/qelly-source.tar.xz
+          echo "079bbbecf3e9929c5218c6ce28c74d8ca2ab69789b720857628b1ec6446164f5  /tmp/qelly-source.tar.xz" | sha256sum --check --strict
+          rm -rf /tmp/qelly-source
+          mkdir -p /tmp/qelly-source
+          tar -xJf /tmp/qelly-source.tar.xz -C /tmp/qelly-source
+          test -d /tmp/qelly-source/QELLY_GITHUB_DEPLOYMENT_PREPARED_SOURCE
+
+      - name: Replace bootstrap tree with verified Qelly source
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE=/tmp/qelly-source/QELLY_GITHUB_DEPLOYMENT_PREPARED_SOURCE
+          rsync -a --delete --exclude='.git/' "$SOURCE/" ./
+          rm -rf .bootstrap .bootstrap2
+          git config user.name "Qelly Release Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && { echo 'No source changes detected'; exit 0; }
+          git commit -m "feat: initialize Qelly Intelligence production foundation"
+          git push origin HEAD:main
