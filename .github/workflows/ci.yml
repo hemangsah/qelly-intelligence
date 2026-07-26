@@ -37,6 +37,8 @@ jobs:
         run: npm run typecheck
       - name: Lint and repository policy
         run: npm run lint
+      - name: Validate governed design foundations
+        run: npm run validate:design
       - name: Test
         run: npm test
       - name: Production build

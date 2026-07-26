@@ -1,0 +1,11 @@
+{
+  "name": "Qelly Governed Design System Generator",
+  "id": "qelly-governed-design-system-generator",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  }
+}

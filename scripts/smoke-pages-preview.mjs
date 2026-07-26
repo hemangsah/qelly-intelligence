@@ -46,6 +46,9 @@ try{
     ['assets/app.css',200,'text/css'],
     ['assets/app.js',200,'text/javascript'],
     ['assets/static-preview-api.mjs',200,'text/javascript'],
+    ['assets/persona-profiles.mjs',200,'text/javascript'],
+    ['assets/shell-foundations.mjs',200,'text/javascript'],
+    ['assets/qelly-foundations.css',200,'text/css'],
     ['assets/tokens.json',200,'application/json'],
     ['packages/accessibility/accessibility.mjs',200,'text/javascript'],
     ['packages/ui-primitives/primitives.mjs',200,'text/javascript'],
@@ -73,7 +76,7 @@ try{
     basePath,
     assets:expected.length,
     directNavigationFallback:true,
-    routes:['market','asset-rankings','asset/QI-CRYPTO-BTC','feature-universe','about-qelly','theme-personas','auth-login']
+    routes:['market','asset-rankings','asset/QI-CRYPTO-BTC','decision-provenance','feature-universe','about-qelly','theme-personas','auth-login']
   },null,2));
 }finally{
   await new Promise((resolve,reject)=>server.close((error)=>error?reject(error):resolve()));

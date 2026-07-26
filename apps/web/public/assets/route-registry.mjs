@@ -1,4 +1,4 @@
-export const routeDefinitions = [
+const routes = [
   { section:'Access', route:'auth-login', label:'Secure Login', icon:'↳', meta:'A1', public:true, anonymousOnly:true },
   { section:'Access', route:'auth-register', label:'Create Organization', icon:'＋', meta:'A1', public:true, anonymousOnly:true },
   { section:'Access', route:'auth-recovery', label:'Recover Account', icon:'↺', meta:'A4', public:true, anonymousOnly:true },
@@ -61,3 +61,50 @@ export const routeDefinitions = [
   { section:'Detail', route:'venue-detail', label:'Venue Detail', icon:'⌂', meta:'W5', hidden:true },
   { section:'Detail', route:'research-article', label:'Research Article', icon:'▤', meta:'W5', hidden:true }
 ];
+
+export const productDomains = [
+  { id:'home', label:'Home', shortLabel:'Home', icon:'Q', defaultRoute:'feature-universe', destinations:['Home','Product','Company','Learning'] },
+  { id:'markets', label:'Markets', shortLabel:'Markets', icon:'◫', defaultRoute:'market', destinations:['Markets','Discovery','Assets','Derivatives','Exchanges','Charts','Screener'] },
+  { id:'research', label:'Research', shortLabel:'Research', icon:'▤', defaultRoute:'news-research', destinations:['Research','News','Events','Learning'] },
+  { id:'workspaces', label:'Workspaces', shortLabel:'Work', icon:'▧', defaultRoute:'watchlist', destinations:['Portfolio','Watchlists','Alerts','Workspaces','Settings'] },
+  { id:'evidence', label:'Evidence', shortLabel:'Evidence', icon:'⌘', defaultRoute:'decision-provenance', destinations:['Decision Provenance','Evidence','Trust'] },
+  { id:'data', label:'Data plane', shortLabel:'Data', icon:'⌁', defaultRoute:'data-mesh', destinations:['Data Sources','Developer/API','Operations'] },
+  { id:'operations', label:'Operations', shortLabel:'Ops', icon:'◌', defaultRoute:'platform-readiness', destinations:['Operations','Security','Trust'] },
+  { id:'account', label:'Account', shortLabel:'Account', icon:'◎', defaultRoute:'account-session', destinations:['Settings','Workspaces','Team'] },
+  { id:'experience', label:'Experience', shortLabel:'Mode', icon:'◐', defaultRoute:'theme-personas', destinations:['Personas','Navigation','Accessibility'] }
+];
+
+const explicitDomain = {
+  'feature-universe':'home','about-qelly':'home',
+  market:'markets',rankings:'markets','asset-rankings':'markets','discovery-hub':'markets',search:'markets',categories:'markets','category-detail':'markets',venues:'markets','venue-detail':'markets','dex-discovery':'markets','global-charts':'markets',converter:'markets',asset:'markets','asset-intelligence':'markets','advanced-chart':'markets','live-markets':'markets',
+  'news-research':'research','research-article':'research','research-workspace':'research','research-history':'research','filing-workspace':'research','fundamentals-estimates':'research','event-calendar':'research','comparison-lab':'research',
+  watchlist:'workspaces','alert-center':'workspaces','notification-center':'workspaces','notification-schedules':'workspaces','screener-lab':'workspaces','formula-screener':'workspaces','portfolio-analytics':'workspaces','portfolio-attribution':'workspaces',onboarding:'workspaces','import-center':'workspaces',
+  'decision-provenance':'evidence','security-evidence':'evidence','trust-center':'evidence',
+  'data-mesh':'data','instrument-master':'data','timeseries-lab':'data','stream-operations':'data',
+  'secure-import-vault':'operations','delivery-operations':'operations','platform-readiness':'operations','secret-rotation':'operations','quarantine-review':'operations','staging-assurance':'operations','migration-center':'operations',observability:'operations','identity-access':'operations',
+  'auth-login':'account','auth-register':'account','auth-recovery':'account','account-session':'account','security-setup':'account','passkey-center':'account','account-recovery':'account',
+  'theme-personas':'experience','theme-lab':'experience'
+};
+
+const publicStoryRoutes = new Set(['feature-universe','about-qelly','theme-personas']);
+const researchRoutes = new Set(['news-research','research-article','research-workspace','research-history','filing-workspace','fundamentals-estimates','event-calendar','trust-center','decision-provenance']);
+const operationalRoutes = new Set(['secure-import-vault','delivery-operations','platform-readiness','secret-rotation','quarantine-review','staging-assurance','migration-center','observability','identity-access','data-mesh','instrument-master','timeseries-lab','stream-operations','security-evidence','theme-lab']);
+const accessRoutes = new Set(['auth-login','auth-register','auth-recovery','account-session','security-setup','passkey-center','account-recovery']);
+
+function routeKind(route){
+  if(publicStoryRoutes.has(route))return 'public-story';
+  if(researchRoutes.has(route))return 'research';
+  if(operationalRoutes.has(route))return 'operational';
+  if(accessRoutes.has(route))return 'access';
+  return 'analytical';
+}
+
+export const routeDefinitions = routes.map((item)=>({
+  ...item,
+  domain:explicitDomain[item.route]??'markets',
+  kind:routeKind(item.route)
+}));
+
+export function domainForRoute(route){
+  return routeDefinitions.find((item)=>item.route===route)?.domain??'markets';
+}

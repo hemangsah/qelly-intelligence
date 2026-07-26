@@ -33,9 +33,11 @@
     "typecheck": "node scripts/typecheck.mjs",
     "lint": "node scripts/lint.mjs",
     "env:check": "node scripts/env-check.mjs",
-    "check": "npm run typecheck && npm run lint && npm run env:check && npm run security:scan && npm test && npm run build && npm run build:frontend && npm run validate:product",
+    "check": "npm run typecheck && npm run lint && npm run validate:design && npm run env:check && npm run security:scan && npm test && npm run build && npm run build:frontend && npm run validate:product",
     "validate:product": "node scripts/product-validate.mjs",
-    "inventory:product": "node scripts/build-product-inventory.mjs"
+    "inventory:product": "node scripts/build-product-inventory.mjs",
+    "inventory:design": "node scripts/build-qelly-design-inventory.mjs",
+    "validate:design": "node scripts/validate-design-foundations.mjs"
   },
   "description": "Qelly Intelligence verifiable market intelligence platform and secure decision operating system.",
   "dependencies": {

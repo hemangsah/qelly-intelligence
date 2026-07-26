@@ -1,4 +1,6 @@
-# Qelly Part 22 Sovereign Experience validation
+# Qelly Part 22 Sovereign Experience validation — historical evidence
+
+This file records the earlier Part 22 package and is not a current-HEAD validation report. The canonical current report is [`QELLY_VALIDATION_REPORT.md`](QELLY_VALIDATION_REPORT.md).
 
 - Permanent burgundy gradient stored in `packages/design-tokens/brand-lock.json`.
 - Six behaviour-driven personas retained across all 47 routes.

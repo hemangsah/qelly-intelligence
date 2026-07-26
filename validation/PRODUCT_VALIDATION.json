@@ -1,12 +1,12 @@
 {
   "status": "product-validation-passed",
-  "generatedAt": "2026-07-26T06:16:49.782Z",
+  "generatedAt": "2026-07-26T11:17:30.502Z",
   "productVersion": "0.9.0-preview.1",
   "routes": 61,
   "apiContracts": 187,
   "contracts": 17,
   "schemas": 65,
-  "requiredFiles": 20,
+  "requiredFiles": 44,
   "checks": {
     "packageName": true,
     "version": true,

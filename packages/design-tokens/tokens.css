@@ -116,3 +116,68 @@
 :root[data-font-scale="110"]{--q-font-scale:1.1}
 :root[data-font-scale="120"]{--q-font-scale:1.2}
 @media (prefers-reduced-motion: reduce){:root{--q-motion:0ms}}
+
+/* Governed semantic, typography, chart, and interaction aliases. */
+:root{
+  --q-background:var(--q-canvas);
+  --q-surface-elevated:#FFFFFF;
+  --q-divider:#E4DADF;
+  --q-text-primary:var(--q-text);
+  --q-text-secondary:var(--q-muted);
+  --q-text-muted:#796A70;
+  --q-informational:#285D8F;
+  --q-evidence:#6B2D5C;
+  --q-fallback:#6941C6;
+  --q-selected:color-mix(in srgb,var(--q-accent) 12%,var(--q-surface));
+  --q-hovered:color-mix(in srgb,var(--q-accent) 7%,var(--q-surface));
+  --q-active:color-mix(in srgb,var(--q-accent) 16%,var(--q-surface));
+  --q-disabled:#8D8588;
+  --q-chart-grid:rgba(84,47,60,.13);
+  --q-chart-axis:#6C5A61;
+  --q-chart-tooltip:#23171B;
+  --q-chart-tooltip-text:#FFFFFF;
+  --q-font-display:"Manrope","Noto Sans Devanagari","Noto Sans",Inter,ui-sans-serif,system-ui,sans-serif;
+  --q-font-ui:Inter,"Noto Sans Devanagari","Noto Sans",ui-sans-serif,system-ui,sans-serif;
+  --q-font-quant:"IBM Plex Mono","JetBrains Mono","Noto Sans Mono",ui-monospace,SFMono-Regular,Consolas,monospace;
+  --q-duration-instant:0ms;
+  --q-duration-fast:120ms;
+  --q-duration-standard:180ms;
+  --q-duration-deliberate:320ms;
+  --q-duration-cinematic:680ms;
+}
+:root[data-theme="burgundy-night"],
+:root[data-theme="graphite-terminal"],
+:root[data-theme="midnight-research"]{
+  --q-surface-elevated:#2B2326;
+  --q-divider:#55464C;
+  --q-text-muted:#C7B9BE;
+  --q-positive:#61D99A;
+  --q-negative:#FF8A80;
+  --q-warning:#FFC46B;
+  --q-informational:#8EC5FF;
+  --q-evidence:#F39AC0;
+  --q-stale:#FFC46B;
+  --q-fallback:#C2A8FF;
+  --q-simulated:#C2A8FF;
+  --q-unavailable:#C0B8BB;
+  --q-chart-grid:rgba(239,220,227,.13);
+  --q-chart-axis:#C7B9BE;
+  --q-chart-tooltip:#F8F2F4;
+  --q-chart-tooltip-text:#180008;
+}
+:root[data-theme="high-contrast"]{
+  --q-surface-elevated:#FFFFFF;
+  --q-divider:#000000;
+  --q-text-muted:#222222;
+  --q-positive:#005A2A;
+  --q-negative:#A00000;
+  --q-warning:#6A3500;
+  --q-informational:#003E7E;
+  --q-evidence:#62002C;
+  --q-stale:#6A3500;
+  --q-fallback:#3B168F;
+  --q-simulated:#3B168F;
+  --q-unavailable:#333333;
+  --q-chart-grid:#666666;
+  --q-chart-axis:#000000;
+}

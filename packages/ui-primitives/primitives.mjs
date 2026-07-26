@@ -19,6 +19,44 @@ export function statusBadge(label, state = 'cached', detail = '') {
   return span;
 }
 
+const DATA_STATES=Object.freeze({
+  live:{label:'Live',symbol:'●',tone:'live'},
+  delayed:{label:'Delayed',symbol:'◷',tone:'delayed'},
+  estimated:{label:'Estimated',symbol:'≈',tone:'warning'},
+  derived:{label:'Derived',symbol:'ƒ',tone:'cached'},
+  demo:{label:'Demo · not live',symbol:'◇',tone:'demo'},
+  simulated:{label:'Simulated · not live',symbol:'◇',tone:'simulated'},
+  fallback:{label:'Fallback · not live',symbol:'↺',tone:'fallback'},
+  stale:{label:'Stale',symbol:'△',tone:'stale'},
+  unavailable:{label:'Unavailable',symbol:'—',tone:'unavailable'},
+  offline:{label:'Offline',symbol:'⌁',tone:'offline'},
+  error:{label:'Error',symbol:'!',tone:'error'},
+  positive:{label:'Positive',symbol:'↑',tone:'positive'},
+  negative:{label:'Negative',symbol:'↓',tone:'negative'},
+  warning:{label:'Warning',symbol:'△',tone:'warning'},
+  cached:{label:'Cached',symbol:'◫',tone:'cached'}
+});
+
+export function dataStateIndicator({state='unavailable',label='',detail=''}={}){
+  const definition=DATA_STATES[state]??DATA_STATES.unavailable;
+  const visibleLabel=label||definition.label;
+  const title=detail?`${visibleLabel}. ${detail}`:visibleLabel;
+  return `<span class="q-data-state q-data-state--${definition.tone}" data-symbol="${definition.symbol}" aria-label="${escapeHtml(title)}" ${detail?`title="${escapeHtml(title)}"`:''}>${escapeHtml(visibleLabel)}</span>`;
+}
+
+export function sourceDisclosure({
+  provider='Unavailable',
+  state='unavailable',
+  observedAt='Unavailable',
+  receivedAt='Unavailable',
+  confidence=null,
+  methodology='Not specified'
+}={}){
+  const numericConfidence=confidence==null?null:Math.max(0,Math.min(1,Number(confidence)));
+  const confidenceLabel=numericConfidence==null?'Confidence unavailable':`${Math.round(numericConfidence*100)}% confidence`;
+  return `<div class="q-source-disclosure">${dataStateIndicator({state})}<div class="q-source-disclosure__meta"><strong>${escapeHtml(provider)}</strong><small>Observed ${escapeHtml(observedAt)} · received ${escapeHtml(receivedAt)}</small><small>Method ${escapeHtml(methodology)}</small><span class="q-confidence-meter"><progress max="1" value="${numericConfidence??0}" aria-label="${escapeHtml(confidenceLabel)}"></progress><small>${escapeHtml(confidenceLabel)}</small></span></div></div>`;
+}
+
 export function toast(message, { tone = 'neutral', timeout = 3200 } = {}) {
   let stack = document.getElementById('qelly-toast-stack');
   if (!stack) {

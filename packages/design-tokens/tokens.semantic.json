@@ -1,6 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "version": "15.0.0",
+  "canonicalArtifact": "QELLY_DESIGN_TOKENS.json",
+  "governance": {
+    "modeCoverage": ["light", "dark", "high-contrast"],
+    "minimumContrastNormal": 4.5,
+    "minimumContrastLarge": 3,
+    "nonColorEncodingRequired": true
+  },
   "defaultTheme": "burgundy-command",
   "themes": {
     "burgundy-command": {

@@ -1,9 +1,62 @@
-const PERSONAS=[
-  {id:'burgundy-command',name:'Scalper Velocity',category:'High-frequency focus',glyph:'⚡',density:'Compact',motion:'Fast spring',description:'Dense market surfaces, sharper hierarchy and rapid visual feedback for intraday scanning.',best:['Live markets','Order-flow monitoring','Alerts','Watchlists'],accent:'#ff4f87'},
-  {id:'porcelain-burgundy',name:'Investor Compound',category:'Long-horizon clarity',glyph:'◔',density:'Comfortable',motion:'Calm glide',description:'Porcelain-white research surfaces with deepest burgundy framing for fundamentals and portfolio review.',best:['Portfolio analytics','Fundamentals','Filings','Research'],accent:'#8d1f48'},
-  {id:'burgundy-night',name:'Aggressive Alpha',category:'Momentum & conviction',glyph:'▲',density:'Dense',motion:'Kinetic',description:'Low-glare black-burgundy command mode with high-energy rose signals and decisive action surfaces.',best:['Advanced charts','Screeners','Rankings','Events'],accent:'#ff6b9b'},
-  {id:'graphite-terminal',name:'Quant Operator',category:'Systematic execution research',glyph:'ƒ',density:'Maximum',motion:'Precise',description:'Graphite data plane, monospaced financial rhythm and burgundy signals for systematic workflows.',best:['Formula screener','Data mesh','Streams','Observability'],accent:'#d64d7d'},
-  {id:'midnight-research',name:'Research Oracle',category:'Deep analysis',glyph:'◈',density:'Comfortable',motion:'Slow focus',description:'Midnight-plum canvas with warm merlot intelligence cues for long-form research and synthesis.',best:['Research workspace','News','Comparisons','Filing study'],accent:'#f17aa7'},
-  {id:'high-contrast',name:'Signal Access',category:'Accessibility-first',glyph:'◎',density:'Flexible',motion:'Reduced-ready',description:'Maximum legibility with black, white and burgundy. Built for keyboard, zoom and contrast resilience.',best:['All modules','Keyboard navigation','High zoom','Reduced motion'],accent:'#74002e'}
-];
-export async function renderThemePersonas(main,deps){const {pageHead,stateBanner,escapeHtml,toast,api}=deps;main.innerHTML=`<section class="q-page q-theme-persona-page">${pageHead('Sovereign Design OS · Persona themes','Choose how Qelly thinks with you','Themes are no longer decorative palettes. Each persona changes density, motion tempo, chart contrast, control emphasis and information rhythm while preserving the locked darkest-burgundy gradient.',`<button class="q-button q-button--ghost" data-action="reset-persona">Reset</button><button class="q-button q-button--primary" data-action="open-theme-lab">Open advanced controls</button>`)}${stateBanner()}<section class="q-brand-lock-banner"><div><p class="q-eyebrow">Permanent brand lock</p><h2>Darkest burgundy → merlot signal → porcelain white</h2><p>This gradient is the non-negotiable Qelly visual signature across every persona, product surface and future release.</p></div><div class="q-gradient-orbit"><span></span><span></span><span></span></div></section><div class="q-persona-grid">${PERSONAS.map((persona,index)=>`<article class="q-persona-card ${document.documentElement.dataset.theme===persona.id?'is-selected':''}" data-persona="${persona.id}" style="--persona-accent:${persona.accent}"><div class="q-persona-index">0${index+1}</div><div class="q-persona-glyph">${persona.glyph}</div><p class="q-eyebrow">${escapeHtml(persona.category)}</p><h2>${escapeHtml(persona.name)}</h2><p>${escapeHtml(persona.description)}</p><div class="q-persona-metrics"><span><small>Density</small><strong>${persona.density}</strong></span><span><small>Motion</small><strong>${persona.motion}</strong></span></div><div class="q-persona-best">${persona.best.map(item=>`<span>${escapeHtml(item)}</span>`).join('')}</div><button class="q-button q-button--persona" data-apply-persona="${persona.id}">${document.documentElement.dataset.theme===persona.id?'Active persona':'Activate persona'}</button></article>`).join('')}</div><section class="q-panel q-persona-comparison"><div class="q-panel-head"><div><h2>Theme behaviour matrix</h2><p>Typography, motion and information architecture change together.</p></div><span class="q-status q-status--cached">6 personas</span></div><div class="q-panel-body"><div class="q-persona-table"><div class="q-persona-table-head"><span>Persona</span><span>Primary use</span><span>Type rhythm</span><span>Motion</span><span>Contrast</span></div>${PERSONAS.map(p=>`<div><strong>${escapeHtml(p.name)}</strong><span>${escapeHtml(p.best.slice(0,2).join(' + '))}</span><span>${p.density}</span><span>${p.motion}</span><span>${p.id==='high-contrast'?'Maximum':p.id==='porcelain-burgundy'?'Editorial':'Institutional'}</span></div>`).join('')}</div></div></section></section>`;const apply=async(id)=>{document.documentElement.dataset.theme=id;const selector=document.getElementById('global-theme-selector');if(selector)selector.value=id;await api('/api/v1/preferences/layout',{method:'PUT',headers:{'If-Match-Revision':String(deps.state?.prefs?.revision??0)},body:JSON.stringify({theme:id})}).catch(()=>{});toast(`${PERSONAS.find(p=>p.id===id).name} activated`,{tone:'success'});deps.renderRoute?.();};main.querySelectorAll('[data-apply-persona]').forEach(button=>button.addEventListener('click',()=>apply(button.dataset.applyPersona)));main.querySelector('[data-action="open-theme-lab"]').addEventListener('click',()=>deps.navigate('theme-lab'));main.querySelector('[data-action="reset-persona"]').addEventListener('click',()=>apply('burgundy-command'));}
+import { PERSONA_PROFILES } from '../persona-profiles.mjs';
+
+const accents={
+  'burgundy-command':'#c44872',
+  'porcelain-burgundy':'#8e1d4b',
+  'burgundy-night':'#ec6b97',
+  'graphite-terminal':'#d45d8f',
+  'midnight-research':'#c44872',
+  'high-contrast':'#6b0031'
+};
+
+export async function renderThemePersonas(main,deps){
+  const {pageHead,stateBanner,escapeHtml,toast,applyPersona}=deps;
+  const current=document.documentElement.dataset.persona??document.documentElement.dataset.theme;
+  main.innerHTML=`<section class="q-page q-theme-persona-page">
+    ${pageHead(
+      'Qelly operating system · six governed personas',
+      'Choose how Qelly prioritises intelligence',
+      'Operating modes change density, default horizon, module priority, alert posture, motion, terminology and empty-state guidance. Required risk, source and provenance information remains visible.',
+      '<button class="q-button q-button--ghost" data-action="reset-persona">Safe reset</button><button class="q-button q-button--primary" data-action="preview-persona">Preview active mode</button>'
+    )}
+    ${stateBanner()}
+    <section class="q-brand-lock-banner">
+      <div><p class="q-eyebrow">Original Qelly identity</p><h2>Dark burgundy intelligence. Porcelain analytical clarity.</h2><p>The signature gradient remains consistent while each mode changes the operating hierarchy—not merely the color palette.</p></div>
+      <div class="q-gradient-orbit" aria-hidden="true"><span></span><span></span><span></span></div>
+    </section>
+    <div class="q-persona-grid">
+      ${PERSONA_PROFILES.map((persona,index)=>`<article class="q-persona-card ${current===persona.id?'is-selected':''}" data-persona="${persona.id}" style="--persona-accent:${accents[persona.id]}">
+        <div class="q-persona-index">0${index+1}</div>
+        <div class="q-persona-glyph" aria-hidden="true">${persona.glyph}</div>
+        <p class="q-eyebrow">${escapeHtml(persona.intent)}</p>
+        <h2>${escapeHtml(persona.name)}</h2>
+        <p>${escapeHtml(persona.safeGuidance)}</p>
+        <div class="q-persona-metrics">
+          <span><small>Density</small><strong>${escapeHtml(persona.density)}</strong></span>
+          <span><small>Default horizon</small><strong>${escapeHtml(persona.defaultTimeframe)}</strong></span>
+          <span><small>Motion</small><strong>${escapeHtml(persona.motion)}</strong></span>
+          <span><small>Alert posture</small><strong>${escapeHtml(persona.alertPosture)}</strong></span>
+        </div>
+        <div class="q-persona-best">${persona.modulePriority.slice(0,5).map((item)=>`<span>${escapeHtml(item)}</span>`).join('')}</div>
+        <button class="q-button q-button--persona" data-apply-persona="${persona.id}">${current===persona.id?'Active operating mode':'Activate mode'}</button>
+      </article>`).join('')}
+    </div>
+    <section class="q-panel q-persona-comparison">
+      <div class="q-panel-head"><div><h2>Governed behaviour matrix</h2><p>Mode changes are bounded; provenance, risk and truth labels never disappear.</p></div><span class="q-status q-status--cached">6 operating modes</span></div>
+      <div class="q-panel-body"><div class="q-persona-table">
+        <div class="q-persona-table-head"><span>Persona</span><span>Module priority</span><span>Default</span><span>Motion</span><span>Alert posture</span></div>
+        ${PERSONA_PROFILES.map((persona)=>`<div><strong>${escapeHtml(persona.name)}</strong><span>${escapeHtml(persona.modulePriority.slice(0,2).join(' + '))}</span><span>${escapeHtml(persona.defaultRoute)} · ${escapeHtml(persona.defaultTimeframe)}</span><span>${escapeHtml(persona.motion)}</span><span>${escapeHtml(persona.alertPosture)}</span></div>`).join('')}
+      </div></div>
+    </section>
+  </section>`;
+
+  const activate=async(id)=>{
+    await applyPersona(id);
+  };
+  main.querySelectorAll('[data-apply-persona]').forEach((button)=>button.addEventListener('click',()=>activate(button.dataset.applyPersona)));
+  main.querySelector('[data-action="reset-persona"]').addEventListener('click',()=>activate('burgundy-command'));
+  main.querySelector('[data-action="preview-persona"]').addEventListener('click',()=>{
+    const profile=PERSONA_PROFILES.find((persona)=>persona.id===current)??PERSONA_PROFILES[0];
+    toast(`${profile.name}: ${profile.modulePriority.join(', ')}`,{tone:'neutral'});
+  });
+}

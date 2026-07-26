@@ -1,8 +1,10 @@
 import { installAccessibility, announce, openDialog, closeDialog } from '../packages/accessibility/accessibility.mjs';
-import { button, toast, commandDialog, escapeHtml } from '../packages/ui-primitives/primitives.mjs';
+import { button, toast, commandDialog, dataStateIndicator, escapeHtml, sourceDisclosure } from '../packages/ui-primitives/primitives.mjs';
 import { QellyDataGrid } from '../packages/data-grid/data-grid.mjs';
 import { QellyChartShell } from '../packages/charting/chart-shell.mjs';
-import { routeDefinitions } from './route-registry.mjs';
+import { productDomains, routeDefinitions } from './route-registry.mjs';
+import { personaFor, personaPreferencePatch } from './persona-profiles.mjs';
+import { renderShellFoundations } from './shell-foundations.mjs';
 import { renderAssetIntelligence } from './routes/asset-intelligence.mjs';
 import { renderAdvancedChart } from './routes/advanced-chart.mjs';
 import { renderFundamentalsEstimates } from './routes/fundamentals-estimates.mjs';
@@ -44,7 +46,7 @@ import { renderDecisionProvenance } from './routes/decision-provenance.mjs';
 const runtimeConfig=Object.freeze({...window.__QELLY_CONFIG__});
 const staticVisualPreview=runtimeConfig.staticVisualPreview===true;
 const staticPreviewApi=staticVisualPreview?await import('./static-preview-api.mjs'):null;
-const staticPreviewRoutes=new Set(['market','asset-rankings','asset','feature-universe','about-qelly','theme-personas','auth-login','auth-register','auth-recovery']);
+const staticPreviewRoutes=new Set(['market','asset-rankings','asset','decision-provenance','feature-universe','about-qelly','theme-personas','auth-login','auth-register','auth-recovery']);
 const apiBaseUrl=String(runtimeConfig.apiBaseUrl??'').replace(/\/$/,'');
 const apiUrl=(path)=>apiBaseUrl?new URL(path,`${apiBaseUrl}/`).toString():path;
 
@@ -61,10 +63,11 @@ const state = {
   identity: null,
   streamSource: null,
   streamFrames: [],
-  authenticated: false
+  authenticated: false,
+  activeDomain: 'markets'
 };
 
-const defaultPreferences={theme:'burgundy-command',density:'comfortable',motion:'full',fontScale:1,radiusPx:14,customAccent:null,route:staticVisualPreview?'market':'auth-login',revision:1};
+const defaultPreferences={theme:'burgundy-command',density:'comfortable',motion:'full',fontScale:100,radiusPx:14,customAccent:null,route:staticVisualPreview?'market':'auth-login',revision:1};
 const anonymousOverview=staticVisualPreview
   ? {macro:[{label:'Preview',value:'Static visual',state:'simulated'},{label:'Data',value:'Deterministic demo',state:'simulated'},{label:'Backend',value:'Unavailable',state:'unavailable'},{label:'Execution',value:'Disabled',state:'unavailable'}]}
   : {macro:[{label:'Identity',value:'Sign in required',state:'cached'},{label:'Database',value:'Production foundation',state:'live'},{label:'Execution',value:'Disabled',state:'unavailable'}]};
@@ -123,15 +126,39 @@ function renderIdentityHeader() {
 
 function applyPreferences() {
   const root = document.documentElement;
+  const persona=personaFor(state.prefs.theme);
   root.dataset.theme = state.prefs.theme;
+  root.dataset.persona = persona.id;
   root.dataset.density = state.prefs.density;
   root.dataset.motion = state.prefs.motion;
   root.dataset.fontScale = String(state.prefs.fontScale);
+  root.dataset.timeframe = persona.defaultTimeframe;
+  root.dataset.alertPosture = persona.alertPosture;
+  root.dataset.modulePriority = persona.modulePriority.join(',');
   root.style.setProperty('--q-radius', `${state.prefs.radiusPx}px`);
   const selector=document.getElementById('global-theme-selector');
   if(selector)selector.value=state.prefs.theme;
   if (state.prefs.customAccent) root.style.setProperty('--q-accent', state.prefs.customAccent);
   else root.style.removeProperty('--q-accent');
+}
+
+async function applyPersona(id,{navigateToDefault=true}={}){
+  const persona=personaFor(id);
+  const patch={...personaPreferencePatch(id),customAccent:null};
+  state.prefs={...state.prefs,...patch};
+  applyPreferences();
+  renderNavigation();
+  if(!staticVisualPreview){
+    try{await persistPreference(patch);}
+    catch(error){toast(`Operating mode could not be saved: ${error.message}`,{tone:'danger'});}
+  }
+  toast(`${persona.name} operating mode active`,{tone:'success'});
+  if(navigateToDefault){
+    const target=staticVisualPreview&&!staticPreviewRoutes.has(persona.defaultRoute)?'market':persona.defaultRoute;
+    navigate(target);
+  }else if(state.route==='theme-lab'||state.route==='theme-personas'){
+    renderRoute();
+  }
 }
 
 function renderMacroStrip() {
@@ -141,14 +168,49 @@ function renderMacroStrip() {
 
 function renderNavigation() {
   const nav = document.getElementById('primary-nav');
+  const visibleRoutes=visibleRouteDefinitions();
+  const current=routeDefinitions.find((item)=>item.route===state.route);
+  if(current&&visibleRoutes.some((item)=>item.route===current.route))state.activeDomain=current.domain;
+  if(!visibleRoutes.some((item)=>item.domain===state.activeDomain))state.activeDomain=visibleRoutes[0]?.domain??'markets';
+  const domain=productDomains.find((item)=>item.id===state.activeDomain)??productDomains[0];
+  const domainRoutes=visibleRoutes.filter((item)=>item.domain===state.activeDomain);
   let currentSection = '';
-  const visibleRoutes=routeDefinitions.filter((item)=>!item.hidden && (staticVisualPreview?staticPreviewRoutes.has(item.route):(state.authenticated?!item.anonymousOnly:(item.public===true))));
-  nav.innerHTML = visibleRoutes.map((item) => {
+  nav.innerHTML = `<div class="q-nav-domain-context"><small>Product domain</small><strong>${escapeHtml(domain.label)}</strong><span>${escapeHtml(domain.destinations.join(' · '))}</span></div>${domainRoutes.map((item) => {
     const section = item.section !== currentSection ? `<div class="q-nav-section">${escapeHtml(item.section)}</div>` : '';
     currentSection = item.section;
     return `${section}<button class="q-nav-link ${state.route === item.route ? 'is-active' : ''}" data-route="${item.route}" aria-current="${state.route === item.route ? 'page' : 'false'}"><span class="q-nav-icon" aria-hidden="true">${item.icon}</span><span>${escapeHtml(item.label)}</span><span class="q-nav-meta">${staticVisualPreview?'STATIC':item.public===true?'PUBLIC':''}</span></button>`;
-  }).join('');
+  }).join('')}`;
   nav.querySelectorAll('[data-route]').forEach((element) => element.addEventListener('click', () => navigate(element.dataset.route)));
+  const shell=renderShellFoundations({
+    routeDefinitions,
+    productDomains,
+    visibleRoutes,
+    currentRoute:state.route,
+    activeDomain:state.activeDomain,
+    personaId:state.prefs?.theme??'burgundy-command',
+    staticVisualPreview,
+    onDomain:(domainId)=>{
+      state.activeDomain=domainId;
+      const selected=productDomains.find((item)=>item.id===domainId);
+      const target=visibleRoutes.find((item)=>item.route===selected?.defaultRoute)??visibleRoutes.find((item)=>item.domain===domainId);
+      if(target)navigate(target.route);
+    },
+    onRoute:navigate,
+    onPersona:(id)=>applyPersona(id),
+    onCompare:()=>navigateOrExplain('comparison-lab','Compare needs the unavailable workspace backend.'),
+    onWatchlist:()=>navigateOrExplain('watchlist','Watchlists need the unavailable workspace backend.'),
+    onExplain:()=>navigateOrExplain('decision-provenance','Decision Provenance needs the unavailable backend.')
+  });
+  state.activeDomain=shell.activeDomain;
+}
+
+function visibleRouteDefinitions(){
+  return routeDefinitions.filter((item)=>!item.hidden && (staticVisualPreview?staticPreviewRoutes.has(item.route):(state.authenticated?!item.anonymousOnly:(item.public===true))));
+}
+
+function navigateOrExplain(route,message){
+  if(staticVisualPreview&&!staticPreviewRoutes.has(route)){toast(`Static visual preview: ${message}`,{tone:'danger'});return;}
+  navigate(route);
 }
 
 function bindShell() {
@@ -170,14 +232,7 @@ function bindShell() {
     state.previewState = event.target.value;
     renderRoute();
   });
-  document.getElementById('global-theme-selector')?.addEventListener('change', async (event) => {
-    state.prefs.theme=event.target.value;
-    state.prefs.customAccent=null;
-    applyPreferences();
-    try { await persistPreference({theme:event.target.value,customAccent:null}); }
-    catch (error) { toast(`Theme could not be saved: ${error.message}`,{tone:'danger'}); }
-    if(state.route==='theme-lab')renderRoute();
-  });
+  document.getElementById('global-theme-selector')?.addEventListener('change', (event) => applyPersona(event.target.value,{navigateToDefault:false}));
   window.addEventListener('hashchange', resolveHash);
   window.addEventListener('keydown', (event) => {
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); openCommands(); }
@@ -197,6 +252,7 @@ function resolveHash() {
     ? definition&&staticPreviewRoutes.has(route)
     : definition&&((state.authenticated&&!definition.anonymousOnly)||(!state.authenticated&&definition.public===true));
   state.route=allowed?route:(staticVisualPreview?'market':state.authenticated?'discovery-hub':'auth-login');
+  state.activeDomain=(allowed?definition:routeDefinitions.find((item)=>item.route===state.route))?.domain??'markets';
   if (asset) state.asset = asset;
   renderNavigation();
   renderRoute();
@@ -220,6 +276,8 @@ async function renderRoute() {
   window.__qellyLiveMarketCleanup=null;
   if (state.streamSource) { state.streamSource.close(); state.streamSource = null; }
   const main = document.getElementById('main');
+  const definition=routeDefinitions.find((item)=>item.route===state.route);
+  main.dataset.pageKind=definition?.kind??'analytical';
   main.setAttribute('aria-busy', 'true');
   renderNavigation();
   try {
@@ -242,7 +300,7 @@ async function renderRoute() {
       case 'staging-assurance': await renderStagingAssurance(main,{api,pageHead,escapeHtml,toast,renderRoute}); break;
       case 'account-session': await renderAccountSession(main,{api,pageHead,escapeHtml,toast,onLoggedOut:()=>reloadApplication('auth-login'),onAuthenticated:reloadApplication}); break;
       case 'live-markets': await renderLiveMarkets(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
-      case 'theme-personas': await renderThemePersonas(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
+      case 'theme-personas': await renderThemePersonas(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,applyPersona}); break;
       case 'about-qelly': await renderAboutQelly(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
       case 'feature-universe': await renderFeatureUniverse(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
       case 'asset-intelligence': await renderAssetIntelligence(main,{api,pageHead,stateBanner,escapeHtml,QellyChartShell,QellyDataGrid,formatCompact,toast,navigate,asset:state.asset,openEvidence}); break;
@@ -306,7 +364,7 @@ function pageHead(eyebrow, title, description, actions = '') {
 }
 
 function stateBanner() {
-  if(staticVisualPreview)return '<div class="q-state-banner is-simulated"><span class="q-status q-status--simulated">Static visual preview</span><p>All values are deterministic demo data. The backend, persistence, providers, authentication and live services are unavailable.</p></div>';
+  if(staticVisualPreview)return `<div class="q-state-banner is-simulated">${dataStateIndicator({state:'demo',label:'Static visual preview',detail:'Deterministic demo data; not live.'})}<p>All values are deterministic demo data. The backend, persistence, providers, authentication and live services are unavailable.</p></div>`;
   if (state.previewState === 'default') return '';
   const copy = {
     partial:'Some modules are unavailable. Existing values retain their exact freshness and source states.',
@@ -315,7 +373,7 @@ function stateBanner() {
     simulated:'Every displayed market value is explicitly marked simulated.'
   }[state.previewState];
   if (!copy) return '';
-  return `<div class="q-state-banner ${state.previewState === 'simulated' ? 'is-simulated' : ''}"><span class="q-status q-status--${state.previewState === 'partial' ? 'unavailable' : state.previewState}">${state.previewState}</span><p>${escapeHtml(copy)}</p></div>`;
+  return `<div class="q-state-banner ${state.previewState === 'simulated' ? 'is-simulated' : ''}">${dataStateIndicator({state:state.previewState==='partial'?'unavailable':state.previewState,label:state.previewState})}<p>${escapeHtml(copy)}</p></div>`;
 }
 
 function effectiveFreshness(original) {
@@ -775,7 +833,7 @@ function openEvidence(title,value,footer='Evidence') {
 
 function openContext(data) {
   state.contextOpen=true;document.querySelector('.q-shell').classList.add('is-context-open');const drawer=document.getElementById('context-drawer');drawer.setAttribute('aria-hidden','false');
-  document.getElementById('context-content').innerHTML=`<div class="q-context-block"><h3>${escapeHtml(data.title??'Source details')}</h3><dl>${data.canonicalId?`<dt>Canonical</dt><dd>${escapeHtml(data.canonicalId)}</dd>`:''}<dt>Source</dt><dd>${escapeHtml(data.source??'N/A')}</dd><dt>Freshness</dt><dd><span class="q-status q-status--${escapeHtml(data.freshness??'unavailable')}">${escapeHtml(data.freshness??'unavailable')}</span></dd><dt>Observed</dt><dd>${escapeHtml(data.observedAt??'N/A')}</dd><dt>Received</dt><dd>${escapeHtml(data.receivedAt??'N/A')}</dd><dt>Confidence</dt><dd>${data.confidence==null?'N/A':`${Math.round(data.confidence*100)}%`}</dd><dt>Entitlement</dt><dd>${escapeHtml(data.entitlement??'N/A')}</dd></dl></div><div class="q-context-block"><h3>Quality and truth flags</h3><ul style="padding-left:18px;font-size:10px;line-height:1.7">${(data.flags??[]).map((flag)=>`<li>${escapeHtml(flag)}</li>`).join('')}</ul></div>`;
+  document.getElementById('context-content').innerHTML=`<div class="q-context-block"><h3>${escapeHtml(data.title??'Source details')}</h3>${sourceDisclosure({provider:data.source??'Unavailable',state:data.freshness??'unavailable',observedAt:data.observedAt??'Unavailable',receivedAt:data.receivedAt??'Unavailable',confidence:data.confidence,methodology:data.methodology??'Provider observation'})}<dl style="margin-top:14px">${data.canonicalId?`<dt>Canonical</dt><dd>${escapeHtml(data.canonicalId)}</dd>`:''}<dt>Entitlement</dt><dd>${escapeHtml(data.entitlement??'N/A')}</dd></dl></div><div class="q-context-block"><h3>Quality and truth flags</h3><ul style="padding-left:18px;font-size:12px;line-height:1.7">${(data.flags??[]).map((flag)=>`<li>${escapeHtml(flag)}</li>`).join('')}</ul></div>`;
   drawer.querySelector('button').focus();
 }
 function closeContext(){state.contextOpen=false;document.querySelector('.q-shell').classList.remove('is-context-open');document.getElementById('context-drawer').setAttribute('aria-hidden','true');}
