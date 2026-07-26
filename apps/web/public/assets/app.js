@@ -1,7 +1,7 @@
-import { installAccessibility, announce, openDialog, closeDialog } from '/packages/accessibility/accessibility.mjs';
-import { button, toast, commandDialog, escapeHtml } from '/packages/ui-primitives/primitives.mjs';
-import { QellyDataGrid } from '/packages/data-grid/data-grid.mjs';
-import { QellyChartShell } from '/packages/charting/chart-shell.mjs';
+import { installAccessibility, announce, openDialog, closeDialog } from '../packages/accessibility/accessibility.mjs';
+import { button, toast, commandDialog, escapeHtml } from '../packages/ui-primitives/primitives.mjs';
+import { QellyDataGrid } from '../packages/data-grid/data-grid.mjs';
+import { QellyChartShell } from '../packages/charting/chart-shell.mjs';
 import { routeDefinitions } from './route-registry.mjs';
 import { renderAssetIntelligence } from './routes/asset-intelligence.mjs';
 import { renderAdvancedChart } from './routes/advanced-chart.mjs';
@@ -41,13 +41,17 @@ import { renderQuarantineReview } from './routes/quarantine-review.mjs';
 import { renderStagingAssurance } from './routes/staging-assurance.mjs';
 import { renderDecisionProvenance } from './routes/decision-provenance.mjs';
 
-const apiBaseUrl=String(window.__QELLY_CONFIG__?.apiBaseUrl??'').replace(/\/$/,'');
+const runtimeConfig=Object.freeze({...window.__QELLY_CONFIG__});
+const staticVisualPreview=runtimeConfig.staticVisualPreview===true;
+const staticPreviewApi=staticVisualPreview?await import('./static-preview-api.mjs'):null;
+const staticPreviewRoutes=new Set(['market','asset-rankings','asset','feature-universe','about-qelly','theme-personas','auth-login','auth-register','auth-recovery']);
+const apiBaseUrl=String(runtimeConfig.apiBaseUrl??'').replace(/\/$/,'');
 const apiUrl=(path)=>apiBaseUrl?new URL(path,`${apiBaseUrl}/`).toString():path;
 
 const state = {
   route: 'market',
   asset: 'BTC',
-  previewState: 'default',
+  previewState: staticVisualPreview ? 'simulated' : 'default',
   prefs: null,
   config: null,
   overview: null,
@@ -60,11 +64,14 @@ const state = {
   authenticated: false
 };
 
-const defaultPreferences={theme:'burgundy-command',density:'comfortable',motion:'full',fontScale:1,radiusPx:14,customAccent:null,route:'auth-login',revision:1};
-const anonymousOverview={macro:[{label:'Identity',value:'Sign in required',state:'cached'},{label:'Database',value:'Production foundation',state:'live'},{label:'Execution',value:'Disabled',state:'unavailable'}]};
+const defaultPreferences={theme:'burgundy-command',density:'comfortable',motion:'full',fontScale:1,radiusPx:14,customAccent:null,route:staticVisualPreview?'market':'auth-login',revision:1};
+const anonymousOverview=staticVisualPreview
+  ? {macro:[{label:'Preview',value:'Static visual',state:'simulated'},{label:'Data',value:'Deterministic demo',state:'simulated'},{label:'Backend',value:'Unavailable',state:'unavailable'},{label:'Execution',value:'Disabled',state:'unavailable'}]}
+  : {macro:[{label:'Identity',value:'Sign in required',state:'cached'},{label:'Database',value:'Production foundation',state:'live'},{label:'Execution',value:'Disabled',state:'unavailable'}]};
 
 const api = async (path, options = {}) => {
   const method = String(options.method ?? 'GET').toUpperCase();
+  if(staticVisualPreview)return staticPreviewApi.staticPreviewRequest(path,{...options,method});
   const mutationHeaders = ['GET','HEAD','OPTIONS'].includes(method)||options.skipCsrf ? {} : {'X-Qelly-CSRF': state.config?.csrf?.token ?? ''};
   const {skipCsrf,...fetchOptions}=options;
   const response = await fetch(apiUrl(path), { ...fetchOptions, credentials:'include', headers:{'Content-Type':'application/json',...mutationHeaders,...(options.headers ?? {})} });
@@ -90,16 +97,26 @@ async function reloadApplication(targetRoute='account-session'){
 
 async function boot() {
   installAccessibility();
-  [state.config,state.tokens]=await Promise.all([api('/api/v1/config'),fetch('/assets/tokens.json').then((r)=>r.json())]);
+  [state.config,state.tokens]=await Promise.all([api('/api/v1/config'),fetch(new URL('./tokens.json',import.meta.url)).then((r)=>r.json())]);
   if(state.config.auth?.authenticated)await loadAuthenticatedState();
   else{state.authenticated=false;state.prefs={...defaultPreferences};state.overview=anonymousOverview;state.route=state.config.defaultRoute??'auth-login';}
-  renderIdentityHeader();applyPreferences();renderMacroStrip();renderNavigation();bindShell();resolveHash();
+  renderStaticPreviewChrome();renderIdentityHeader();applyPreferences();renderMacroStrip();renderNavigation();bindShell();resolveHash();
 }
 
+function renderStaticPreviewChrome(){
+  if(!staticVisualPreview)return;
+  const truthChip=document.querySelector('.q-truth-chip');
+  if(truthChip)truthChip.innerHTML='<span class="q-status q-status--simulated">STATIC VISUAL PREVIEW</span><span>Deterministic demo data · backend unavailable · no live services</span>';
+  const providerMini=document.querySelector('.q-provider-mini');
+  if(providerMini)providerMini.innerHTML='<span class="q-provider-pulse"></span><div><strong>Static visual preview</strong><small>Deterministic demo · not live</small></div>';
+  const stateSelector=document.getElementById('state-selector');
+  if(stateSelector){stateSelector.value='simulated';stateSelector.disabled=true;stateSelector.title='Static preview data is always simulated';}
+}
 
 function renderIdentityHeader() {
   const switcher = document.getElementById('workspace-switcher');
   if (!switcher) return;
+  if(staticVisualPreview){switcher.innerHTML='<span>Qelly Intelligence</span><strong>Static visual preview</strong><small>Backend unavailable · anonymous read-only</small>';return;}
   if(!state.identity){switcher.innerHTML='<span></span><strong>Qelly Secure Access</strong><small>Production platform foundation</small>';return;}
   switcher.innerHTML = `<span>${escapeHtml(state.identity.organization.name)}</span><strong>${escapeHtml(state.identity.workspace.name)}</strong><small>${escapeHtml(state.identity.mode)} · ${escapeHtml(state.identity.session.assurance)} assurance</small>`;
 }
@@ -125,11 +142,11 @@ function renderMacroStrip() {
 function renderNavigation() {
   const nav = document.getElementById('primary-nav');
   let currentSection = '';
-  const visibleRoutes=routeDefinitions.filter((item)=>!item.hidden && (state.authenticated?!item.anonymousOnly:(item.public===true)));
+  const visibleRoutes=routeDefinitions.filter((item)=>!item.hidden && (staticVisualPreview?staticPreviewRoutes.has(item.route):(state.authenticated?!item.anonymousOnly:(item.public===true))));
   nav.innerHTML = visibleRoutes.map((item) => {
     const section = item.section !== currentSection ? `<div class="q-nav-section">${escapeHtml(item.section)}</div>` : '';
     currentSection = item.section;
-    return `${section}<button class="q-nav-link ${state.route === item.route ? 'is-active' : ''}" data-route="${item.route}" aria-current="${state.route === item.route ? 'page' : 'false'}"><span class="q-nav-icon" aria-hidden="true">${item.icon}</span><span>${escapeHtml(item.label)}</span><span class="q-nav-meta">${item.public===true?'PUBLIC':''}</span></button>`;
+    return `${section}<button class="q-nav-link ${state.route === item.route ? 'is-active' : ''}" data-route="${item.route}" aria-current="${state.route === item.route ? 'page' : 'false'}"><span class="q-nav-icon" aria-hidden="true">${item.icon}</span><span>${escapeHtml(item.label)}</span><span class="q-nav-meta">${staticVisualPreview?'STATIC':item.public===true?'PUBLIC':''}</span></button>`;
   }).join('');
   nav.querySelectorAll('[data-route]').forEach((element) => element.addEventListener('click', () => navigate(element.dataset.route)));
 }
@@ -146,8 +163,8 @@ function bindShell() {
     event.currentTarget.setAttribute('aria-expanded', String(open));
   });
   document.getElementById('close-context').addEventListener('click', closeContext);
-  document.getElementById('theme-shortcut').addEventListener('click', () => navigate('theme-lab'));
-  document.getElementById('notification-button').addEventListener('click', () => navigate('notification-center'));
+  document.getElementById('theme-shortcut').addEventListener('click', () => navigate(staticVisualPreview?'theme-personas':'theme-lab'));
+  document.getElementById('notification-button').addEventListener('click', () => staticVisualPreview?toast('Static visual preview: notifications need the unavailable backend.',{tone:'danger'}):navigate('notification-center'));
   document.getElementById('command-button').addEventListener('click', openCommands);
   document.getElementById('state-selector').addEventListener('change', (event) => {
     state.previewState = event.target.value;
@@ -176,13 +193,21 @@ function resolveHash() {
   const value = location.hash.replace(/^#\/?/, '') || state.prefs?.route || 'market';
   const [route, asset] = value.split('/');
   const definition=routeDefinitions.find((item)=>item.route===route);
-  state.route=definition&&((state.authenticated&&!definition.anonymousOnly)||(!state.authenticated&&definition.public===true))?route:(state.authenticated?'discovery-hub':'auth-login');
+  const allowed=staticVisualPreview
+    ? definition&&staticPreviewRoutes.has(route)
+    : definition&&((state.authenticated&&!definition.anonymousOnly)||(!state.authenticated&&definition.public===true));
+  state.route=allowed?route:(staticVisualPreview?'market':state.authenticated?'discovery-hub':'auth-login');
   if (asset) state.asset = asset;
   renderNavigation();
   renderRoute();
 }
 
 function navigate(route, asset = null) {
+  if(staticVisualPreview&&!staticPreviewRoutes.has(route)){
+    toast('Static visual preview: this module needs the unavailable backend.',{tone:'danger'});
+    route='market';
+    asset=null;
+  }
   state.route = route;
   if (asset) state.asset = asset;
   const hash = `#/${route}${asset ? `/${asset}` : ''}`;
@@ -281,6 +306,7 @@ function pageHead(eyebrow, title, description, actions = '') {
 }
 
 function stateBanner() {
+  if(staticVisualPreview)return '<div class="q-state-banner is-simulated"><span class="q-status q-status--simulated">Static visual preview</span><p>All values are deterministic demo data. The backend, persistence, providers, authentication and live services are unavailable.</p></div>';
   if (state.previewState === 'default') return '';
   const copy = {
     partial:'Some modules are unavailable. Existing values retain their exact freshness and source states.',
@@ -293,8 +319,48 @@ function stateBanner() {
 }
 
 function effectiveFreshness(original) {
+  if(staticVisualPreview)return 'simulated';
   if (['stale','delayed','simulated'].includes(state.previewState)) return state.previewState;
   return original;
+}
+
+function publicMarketRows(items=[]) {
+  return items.map((item)=>({
+    id:item.canonicalId,
+    canonicalId:item.canonicalId,
+    symbol:item.symbol,
+    name:item.name,
+    assetClass:item.assetClass,
+    category:item.category,
+    currency:item.currency,
+    price:item.price,
+    change24h:item.change24h,
+    quoteVolume24h:item.quoteVolume24h,
+    volume24h:item.volume24h,
+    provider:item.source?.providerName??item.source?.provider??'Unavailable',
+    observedLabel:item.source?.observationTime??item.source?.observedAt??'Unavailable',
+    freshnessClass:item.source?.freshness??'unavailable',
+    qualityState:item.source?.qualityState??'unavailable'
+  }));
+}
+
+function marketColumns() {
+  return [
+    {key:'symbol',label:'Asset',width:190,render:(row)=>`<span class="q-source-cell"><strong>${escapeHtml(row.symbol)}</strong><small>${escapeHtml(row.name)}</small></span>`},
+    {key:'price',label:'Price',width:130,numeric:true,format:'currency'},
+    {key:'change24h',label:'24h',width:95,numeric:true,format:'change'},
+    {key:'quoteVolume24h',label:'Quote volume',width:145,numeric:true,render:(row)=>row.quoteVolume24h==null?'<span class="q-unavailable">N/A</span>':`<span class="q-number">${escapeHtml(formatCompact(row.quoteVolume24h))}</span>`},
+    {key:'category',label:'Category',width:190},
+    {key:'provider',label:'Source',width:220,format:'source'},
+    {key:'freshnessClass',label:'Freshness',width:125,format:'status'}
+  ];
+}
+
+function applyRowState(rows=[]) {
+  return rows.map((row)=>{
+    const freshnessClass=effectiveFreshness(row.freshnessClass);
+    return {...row,freshnessClass,qualityState:staticVisualPreview?'simulated-demo':freshnessClass===row.freshnessClass?row.qualityState:freshnessClass};
+  });
 }
 
 async function renderMarket(main) {
@@ -724,7 +790,7 @@ async function openContract(name) {
 
 function openCommands() {
   commandDialog([
-    ...routeDefinitions.filter((item)=>!item.hidden).map((item,index)=>({label:item.label,hint:index<9?`Alt ${index+1}`:'Command',run:()=>navigate(item.route)})),
+    ...routeDefinitions.filter((item)=>!item.hidden&&(!staticVisualPreview||staticPreviewRoutes.has(item.route))).map((item,index)=>({label:item.label,hint:index<9?`Alt ${index+1}`:'Command',run:()=>navigate(item.route)})),
     {label:'Open Bitcoin dossier',hint:'BTC',run:()=>navigate('asset','BTC')},
     {label:'Preview stale state',hint:'Validation',run:()=>{state.previewState='stale';document.getElementById('state-selector').value='stale';renderRoute();}},
     {label:'Reset preview state',hint:'Default',run:()=>{state.previewState='default';document.getElementById('state-selector').value='default';renderRoute();}}

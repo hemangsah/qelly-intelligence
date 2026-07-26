@@ -28,6 +28,8 @@
     "start:production": "NODE_ENV=production node src/server/server.mjs",
     "build": "node scripts/build.mjs",
     "build:frontend": "node scripts/build-frontend.mjs",
+    "validate:pages-preview": "node scripts/validate-pages-preview.mjs",
+    "smoke:pages-preview": "node scripts/smoke-pages-preview.mjs",
     "typecheck": "node scripts/typecheck.mjs",
     "lint": "node scripts/lint.mjs",
     "env:check": "node scripts/env-check.mjs",
