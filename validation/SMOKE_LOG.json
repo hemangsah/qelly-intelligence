@@ -1,0 +1,1627 @@
+{
+  "status": "smoke-passed",
+  "productVersion": "0.9.0-preview.1",
+  "legacyRelease": "27.0.0",
+  "requests": 259,
+  "checks": {
+    "publicMarketEvidence": true,
+    "decisionProvenanceGraph": true,
+    "productionPlatformFoundation": true,
+    "passkeys": true,
+    "encryptedMfa": true,
+    "recoveryCodes": true,
+    "s3CompatibleStorage": true,
+    "signedDelivery": true,
+    "outboundSsrfPolicy": true,
+    "accountRecovery": true,
+    "quarantineImports": true,
+    "platformReadiness": true,
+    "secretRotation": true,
+    "quarantineReview": true,
+    "stagingAssurance": true,
+    "concurrencyDrill": true,
+    "backupRestoreDrill": true,
+    "deliverySandbox": true,
+    "postgresParity": true,
+    "secureAuthContract": true,
+    "persistentJobs": true,
+    "sovereignBrandLock": true,
+    "liveMarketReadOnly": true,
+    "personaThemes": true,
+    "premiumMotion": true,
+    "dynamicCsrf": true,
+    "developmentIdentity": true,
+    "runtimeSchemas": true,
+    "stepUp": true,
+    "providerFailover": true,
+    "timeSeries": true,
+    "idempotency": true,
+    "resumableSse": true,
+    "scopedPreferences": true,
+    "revisionConflict": true,
+    "federatedSearch": true,
+    "savedDiscovery": true,
+    "assetIntelligence": true,
+    "technicalStudies": true,
+    "advancedChart": true,
+    "financialStatements": true,
+    "earningsEstimates": true,
+    "filingWorkspace": true,
+    "eventCalendar": true,
+    "comparisonLab": true,
+    "savedChartLayouts": true,
+    "watchlistCrud": true,
+    "alertRules": true,
+    "inAppNotifications": true,
+    "screeners": true,
+    "portfolioAnalytics": true,
+    "researchWorkspaces": true,
+    "onboarding": true,
+    "notificationSchedules": true,
+    "scheduleReplaySafety": true,
+    "formulaScreeners": true,
+    "portfolioAttribution": true,
+    "importStaging": true,
+    "researchVersionHistory": true,
+    "migrationContracts": true,
+    "recursiveAudit": true,
+    "observability": true,
+    "trustBoundary": true
+  },
+  "log": [
+    {
+      "method": "GET",
+      "pathname": "/api/v1/config",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/health",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/ready",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/public/providers",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/public/markets/overview",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/public/markets/assets?sort=change&direction=desc",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/public/markets/assets/QI-CRYPTO-BTC",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/public/markets/assets/QI-CRYPTO-BTC/candles?provider=fixture&interval=1h&limit=24",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/evidence/graphs",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/auth/status",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/production-foundation/status",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/platform/readiness",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/security/secret-protection/status",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/platform/assurance",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/platform/staging-manifest",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/secure-imports/quarantine",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/auth/mfa/status",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/auth/passkeys",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/storage/status",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/delivery/providers",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/delivery-attempts",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/jobs",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/production-notifications",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/contracts/production-platform-foundation",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/live-markets/catalog",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/live-markets/status",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/live-markets/candles?provider=fixture&symbol=BTCUSDT&interval=1m&limit=60",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/live-markets/ticker?provider=fixture&symbol=ETHUSDT",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/contracts/sovereign-live-markets",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/session/context",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/workspaces",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/sessions",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/devices",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/privacy/consents",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/privacy/data-inventory",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/market/overview",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/rankings",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/search?q=btc",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/search/suggestions?q=apple",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/assets/BTC",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/watchlist",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/providers/runtime",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/instruments/summary",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/instruments/search?q=gold",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/instruments/QI-TOKENIZED-QQQB",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/instruments/QI-TOKENIZED-QQQB/relationships",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/data-quality/incidents",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/preferences/layout",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/preferences/layout/inventory",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/schemas/coverage",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/contracts/identity-security",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/contracts/provider-runtime",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/contracts/instrument-master",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/contracts/entitlements",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/contracts/timeseries-streaming",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/contracts/observability",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/contracts/public-discovery-search",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/contracts/hardened-foundation-wave6",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/contracts/advanced-asset-intelligence",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/contracts/workspace-portfolio-research",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/contracts/onboarding-automation-attribution",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/contracts/release-a2-identity-import-delivery",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/contracts/release-a3-passkeys-storage-delivery",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/contracts/release-a4-recovery-quarantine-readiness",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/contracts/release-a5-platform-hardening",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/timeseries/summary",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/timeseries/QI-CRYPTO-BTC?interval=4h&limit=8",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/streams/catalog",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/streams/replay?channel=quotes&limit=10",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/observability/overview",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/observability/metrics",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/observability/traces?limit=20",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/observability/logs?limit=20",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/discovery/overview",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/discovery/rankings?assetClass=crypto&limit=5",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/discovery/categories",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/discovery/categories/smart-contract-platforms",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/discovery/venues",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/discovery/venues/venue-binance-fixture",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/discovery/dex",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/discovery/dex/dex-eth-usdc",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/discovery/global-charts",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/discovery/prediction-markets?category=Macro",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/discovery/news?topic=crypto",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/discovery/research?q=provider",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/discovery/research/research-provider-truth",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/discovery/methodologies",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/discovery/methodologies/freshness",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/discovery/coverage",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/discovery/status",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/discovery/saved",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/studies",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/QI-CRYPTO-BTC/overview",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/QI-CRYPTO-BTC/fundamentals",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/QI-CRYPTO-BTC/events",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/QI-EQUITY-AAPL/filings",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/QI-CRYPTO-BTC/peers",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/QI-CRYPTO-BTC/technicals?study=sma&length=20",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/QI-EQUITY-AAPL/chart?indicators=sma,ema,bollinger,macd,atr,stochastic",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/QI-EQUITY-AAPL/financials?frequency=annual",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/QI-EQUITY-AAPL/financials?frequency=quarterly",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/QI-EQUITY-AAPL/earnings",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/QI-EQUITY-AAPL/estimates",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/QI-EQUITY-AAPL/corporate-actions",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/QI-EQUITY-AAPL/event-calendar",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/QI-EQUITY-AAPL/filings/AAPL-10Q-2026Q2",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/layouts",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/workspace/watchlists",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/alerts/rules",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/notifications",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/screeners/catalog",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/screeners/saved",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/portfolio/overview",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/portfolio/holdings",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/portfolio/performance?range=1y",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/portfolio/risk",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/research/workspaces",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/onboarding/catalog",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/onboarding/profile",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/notification-schedules/catalog",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/notification-schedules",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/screeners/formulas/catalog",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/portfolio/attribution",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/imports/templates",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/imports",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/platform/migrations/plan",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/platform/migrations/status",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/audit",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/audit/verify",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/tokens.css",
+      "status": 200,
+      "contentType": "text/css; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/app.css",
+      "status": 200,
+      "contentType": "text/css; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/app.js",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/qelly-sovereign-v3.css",
+      "status": 200,
+      "contentType": "text/css; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/qelly-sovereign-motion.js",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/market/tradingview-live-chart.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/auth-login.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/auth-register.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/auth-recovery.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/account-session.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/passkey-center.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/account-recovery.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/delivery-operations.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/platform-readiness.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/secret-rotation.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/quarantine-review.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/staging-assurance.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/webauthn.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/live-markets.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/theme-personas.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/about-qelly.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/feature-universe.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/route-registry.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/workspace-watchlist.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/alert-center.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/notification-center.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/screener-lab.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/portfolio-analytics.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/research-workspace.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/asset-intelligence.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/advanced-chart.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/fundamentals-estimates.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/filing-workspace.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/event-calendar.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/comparison-lab.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/onboarding.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/notification-schedules.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/formula-screener.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/portfolio-attribution.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/import-center.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/research-history.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/migration-center.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/packages/data-grid/data-grid.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/evidence/explain-move",
+      "status": 201,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/evidence/explain-move",
+      "status": 201,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/evidence/graphs/graph-54fc033a-49c0-4a47-9229-7d467f50647f",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/evidence/graphs/graph-54fc033a-49c0-4a47-9229-7d467f50647f/traverse?depth=3",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/evidence/graphs/graph-54fc033a-49c0-4a47-9229-7d467f50647f/export",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/platform/assurance/concurrency",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/platform/assurance/backup-restore",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/platform/assurance/delivery-sandbox",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/schemas/coverage",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/access/evaluate",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/auth/step-up/simulate",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/access/evaluate",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/providers/execute",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/providers/execute",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/timeseries/query",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/timeseries/QI-CRYPTO-BTC/append",
+      "status": 400,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/timeseries/QI-CRYPTO-BTC/append",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/timeseries/QI-CRYPTO-BTC/append",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/stream/quotes?symbols=QI-CRYPTO-BTC,QI-CRYPTO-ETH&frames=4&intervalMs=10",
+      "status": 200,
+      "contentType": "text/event-stream; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/streams/replay?channel=quotes&resumeToken=eyJjaGFubmVsIjoicXVvdGVzIiwic2VxdWVuY2UiOjF9&limit=10",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "PUT",
+      "pathname": "/api/v1/preferences/layout",
+      "status": 400,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "PUT",
+      "pathname": "/api/v1/preferences/layout",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "PUT",
+      "pathname": "/api/v1/preferences/layout",
+      "status": 409,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/preferences/layout",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/search?q=BTC&types=asset",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/discovery/converter",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/discovery/saved/searches",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/discovery/saved/searches",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/QI-EQUITY-AAPL/overview",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/QI-CRYPTO-BTC/technicals?study=rsi&length=14",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/asset-intelligence/compare",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/QI-EQUITY-AAPL/chart?indicators=sma,ema,bollinger,macd,atr,stochastic",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/QI-EQUITY-AAPL/financials?frequency=annual",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/QI-EQUITY-AAPL/earnings",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/QI-EQUITY-AAPL/estimates",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/QI-EQUITY-AAPL/filings/AAPL-10Q-2026Q2",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/asset-intelligence/compare/series",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/asset-intelligence/compare/series",
+      "status": 400,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/asset-intelligence/layouts",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/asset-intelligence/layouts",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/asset-intelligence/layouts",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "DELETE",
+      "pathname": "/api/v1/asset-intelligence/layouts/chart-803ddcea-6071-4d99-9b5e-e441f71348e6",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/workspace/watchlists",
+      "status": 400,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/workspace/watchlists",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/workspace/watchlists",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/workspace/watchlists/watchlist-e9dc0fe1-b50e-4066-b21c-0ed7e0066dd1/items",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/workspace/watchlists/watchlist-e9dc0fe1-b50e-4066-b21c-0ed7e0066dd1",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/alerts/rules",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/alerts/evaluate",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/notifications?status=unread",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "PUT",
+      "pathname": "/api/v1/notifications/notification-2582b2ff-3535-4bfc-9755-a89e79a6db54/read",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/screeners/run",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/screeners/saved",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/portfolio/overview",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/portfolio/risk",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/research/workspaces",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/research/workspaces/research-84160adc-b8c1-47bc-9652-02d1218ea94b/items",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/research/workspaces/research-84160adc-b8c1-47bc-9652-02d1218ea94b",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "PUT",
+      "pathname": "/api/v1/onboarding/profile",
+      "status": 400,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "PUT",
+      "pathname": "/api/v1/onboarding/profile",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "PUT",
+      "pathname": "/api/v1/onboarding/profile",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/onboarding/complete",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/notification-schedules",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/notification-schedules",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/notification-schedules/run-due",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/notification-schedules/run-due",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/notifications",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/screeners/formulas/run",
+      "status": 400,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/screeners/formulas/run",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/portfolio/attribution?range=1y",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/imports/preview",
+      "status": 400,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/imports/preview",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/imports/commit",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/imports/commit",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/imports/import-7f55606d-93e7-410c-818e-3383a92596e3",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/research/workspaces/research-84160adc-b8c1-47bc-9652-02d1218ea94b/versions",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/research/workspaces/research-84160adc-b8c1-47bc-9652-02d1218ea94b/items",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/research/workspaces/research-84160adc-b8c1-47bc-9652-02d1218ea94b/versions",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/research/version-diff?workspaceId=research-84160adc-b8c1-47bc-9652-02d1218ea94b&left=research-version-0e9973d6-e458-4bf5-9128-3942a5cc99ff&right=research-version-eb5b0436-d57c-4138-b4ad-5c0d8d3ed655",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/research/workspaces/research-84160adc-b8c1-47bc-9652-02d1218ea94b/versions/research-version-0e9973d6-e458-4bf5-9128-3942a5cc99ff/restore",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/research/workspaces/research-84160adc-b8c1-47bc-9652-02d1218ea94b/versions/research-version-0e9973d6-e458-4bf5-9128-3942a5cc99ff/restore",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/platform/migrations/plan",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/platform/migrations/status",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/audit/verify",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/observability/overview",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/discovery/status",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "release": "1.2.7",
+  "routes": [
+    "/api/health",
+    "/api/ready",
+    "/api/config",
+    "/api/providers",
+    "/api/providers/status",
+    "/api/market/overview",
+    "/api/quotes",
+    "/api/stream/quotes",
+    "/api/assets/:symbol",
+    "/api/fx",
+    "/api/macro",
+    "/api/fred",
+    "/api/filings",
+    "/api/news",
+    "/api/identifiers/map",
+    "/api/paper/orders",
+    "/api/paper/orders/:id/cancel",
+    "/api/audit",
+    "/api/telemetry"
+  ]
+}

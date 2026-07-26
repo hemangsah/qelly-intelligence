@@ -1,2 +1,0 @@
-Qelly GitHub App contents-write verification.
-This probe is removed by the source initialization commit.

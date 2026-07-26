@@ -1,0 +1,7 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"qelly.financial-statements-response",
+  "type":"object",
+  "required":["canonicalId","available","statements","truth"],
+  "properties":{"canonicalId":{"type":"string"},"currency":{"type":"string"},"frequency":{"type":"string"},"available":{"type":"boolean"},"statements":{"type":"array"},"derived":{"type":"array"},"licensedProviderRequired":{"type":"boolean"},"truth":{"type":"object"}}
+}

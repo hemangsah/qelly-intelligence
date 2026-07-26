@@ -1,0 +1,13 @@
+{
+  "contractVersion": "2.0.0",
+  "status": "local-policy-engine-implemented-production-rights-gated",
+  "localEvaluationImplemented": true,
+  "productionLicensedPoliciesConfigured": false,
+  "decision": "deny-by-default",
+  "dimensions": ["tenant", "workspace", "user or service", "provider", "capability", "instrument or market", "territory", "user class", "delay class", "display", "storage", "derivation", "export", "redistribution"],
+  "decisionResult": ["allow", "deny", "allow-with-obligations"],
+  "obligations": ["show attribution", "show freshness", "show delay", "disable redistribution", "watermark development fixture", "retain audit", "limit retention", "aggregate only"],
+  "evaluation": "server-side before provider access and before each downstream use",
+  "localPolicy": "Only development-fixture read capabilities for internal local use are allowed. Redistribution and external export are denied.",
+  "implementation": "src/entitlements/entitlement-engine.mjs"
+}

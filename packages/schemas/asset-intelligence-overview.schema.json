@@ -1,0 +1,12 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://qelly.local/schemas/asset-intelligence-overview.schema.json",
+  "title":"Asset intelligence overview",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["canonicalId","symbol","name","assetClass","profile","quote","coverage","truth"],
+  "properties":{
+    "canonicalId":{"type":"string","pattern":"^QI-[A-Z0-9-]+$"},"symbol":{"type":"string"},"name":{"type":"string"},"assetClass":{"type":"string"},
+    "profile":{"type":"object"},"quote":{"type":"object"},"coverage":{"type":"object"},"truth":{"type":"object"}
+  }
+}

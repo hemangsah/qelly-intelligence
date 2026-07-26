@@ -1,0 +1,89 @@
+{
+  "freezeId": "QELLY-W0-FREEZE-2026-07-24",
+  "project": "Qelly Intelligence",
+  "owner": "Hemang Sah",
+  "referenceRelease": "1.2.7",
+  "referenceName": "Realtime Data Mesh Production Slice",
+  "referenceZip": "QELLY_PART12_7_REALTIME_DATA_MESH_PRODUCTION_SLICE.zip",
+  "sha256": "d9f50268018a518bf9f7a624786d5b271c6066c01c2294aca003d5a761e00240",
+  "expectedSha256": "d9f50268018a518bf9f7a624786d5b271c6066c01c2294aca003d5a761e00240",
+  "checksumVerified": true,
+  "baselineImmutable": true,
+  "applicationRoutes": [
+    "market",
+    "rankings",
+    "asset",
+    "portfolio",
+    "connections",
+    "data-mesh",
+    "trading",
+    "research",
+    "enterprise",
+    "theme-lab"
+  ],
+  "apiRoutes": [
+    "/api/health",
+    "/api/ready",
+    "/api/config",
+    "/api/providers",
+    "/api/providers/status",
+    "/api/market/overview",
+    "/api/quotes",
+    "/api/stream/quotes",
+    "/api/assets/:symbol",
+    "/api/fx",
+    "/api/macro",
+    "/api/fred",
+    "/api/filings",
+    "/api/news",
+    "/api/identifiers/map",
+    "/api/paper/orders",
+    "/api/paper/orders/:id/cancel",
+    "/api/audit",
+    "/api/telemetry"
+  ],
+  "themes": [
+    "burgundy-command",
+    "burgundy-night",
+    "porcelain-burgundy",
+    "graphite-terminal",
+    "midnight-research",
+    "high-contrast"
+  ],
+  "providerRegistry": {
+    "implementedExternalReadOnly": [
+      "coingecko",
+      "frankfurter",
+      "coinbase-public",
+      "kraken-public",
+      "world-bank",
+      "fred",
+      "sec-edgar",
+      "openfigi",
+      "gdelt"
+    ],
+    "localFallback": "qelly-fallback",
+    "planned": [
+      "polymarket"
+    ],
+    "externalDefault": false
+  },
+  "safety": {
+    "liveTrading": false,
+    "assetTransfers": false,
+    "withdrawals": false,
+    "privateKeys": false,
+    "recoveryPhrases": false,
+    "sseQuotes": "simulated"
+  },
+  "validation": {
+    "testsPassed": 25,
+    "testsFailed": 0,
+    "syntaxFilesChecked": 15,
+    "smokePassed": true,
+    "releaseCheckPassed": true,
+    "externalCallsPerformed": false
+  },
+  "truthBoundary": "Local production-oriented prototype/data-mesh slice; not production deployed.",
+  "frozenAt": "2026-07-24T00:00:00+05:30"
+}

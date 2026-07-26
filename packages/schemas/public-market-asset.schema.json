@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.example/schemas/public-market-asset.schema.json",
+  "title": "Qelly Public Market Asset",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["canonicalId", "symbol", "name", "assetClass", "currency", "price", "change24h", "source"],
+  "properties": {
+    "canonicalId": {"type": "string", "pattern": "^QI-"},
+    "symbol": {"type": "string", "minLength": 1},
+    "providerSymbol": {"type": "string"},
+    "name": {"type": "string", "minLength": 1},
+    "assetClass": {"const": "crypto"},
+    "category": {"type": "string"},
+    "currency": {"const": "USD"},
+    "price": {"type": ["number", "null"]},
+    "change24h": {"type": ["number", "null"]},
+    "open24h": {"type": ["number", "null"]},
+    "high24h": {"type": ["number", "null"]},
+    "low24h": {"type": ["number", "null"]},
+    "volume24h": {"type": ["number", "null"]},
+    "quoteVolume24h": {"type": ["number", "null"]},
+    "marketCap": {"type": "null"},
+    "marketCapDefinition": {"type": "string"},
+    "source": {"$ref": "public-market-source.schema.json"}
+  }
+}

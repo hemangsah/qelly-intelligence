@@ -1,0 +1,9 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://qelly.local/schemas/preference-inventory.schema.json",
+  "title":"Scoped preference inventory",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["storageVersion","scopeKey","scoped","revision","updatedAt"],
+  "properties":{"storageVersion":{"type":"integer"},"scopeKey":{"type":"string"},"scoped":{"const":true},"revision":{"type":"integer","minimum":0},"updatedAt":{"type":["string","null"]}}
+}

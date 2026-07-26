@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/passkey-registration-input.schema.json",
+  "title": "Passkey registration verification input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "challengeId",
+    "credential"
+  ],
+  "properties": {
+    "challengeId": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128
+    },
+    "credential": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "response"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 2048
+        },
+        "rawId": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "type": {
+          "type": "string",
+          "const": "public-key"
+        },
+        "transports": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "type": "string",
+            "maxLength": 32
+          }
+        },
+        "response": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "clientDataJSON",
+            "attestationObject"
+          ],
+          "properties": {
+            "clientDataJSON": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 16384
+            },
+            "attestationObject": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 65536
+            },
+            "transports": {
+              "type": "array",
+              "maxItems": 8,
+              "items": {
+                "type": "string",
+                "maxLength": 32
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

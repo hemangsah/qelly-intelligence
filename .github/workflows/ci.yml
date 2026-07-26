@@ -1,0 +1,79 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Scan repository for committed secrets
+        run: npm run security:scan
+      - name: Validate development environment and safety locks
+        run: npm run env:check
+      - name: Type and syntax check
+        run: npm run typecheck
+      - name: Lint and repository policy
+        run: npm run lint
+      - name: Test
+        run: npm test
+      - name: Production build
+        run: npm run build
+      - name: Validate current product contract
+        run: npm run validate:product
+      - name: Rebuild current product inventory
+        run: npm run inventory:product
+      - name: Full-stack smoke
+        run: npm run smoke
+      - name: Verify production identity isolation
+        run: NODE_ENV=production QELLY_DEVELOPMENT_IDENTITY_ENABLED=false node scripts/production-identity-check.mjs
+      - name: Release safety check
+        run: npm run release:check
+      - name: Upload validation evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: qelly-validation-${{ github.run_id }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            dist/BUILD_INFO.json
+            validation/PRODUCT_VALIDATION.json
+            validation/SMOKE_LOG.json
+            artifacts/QELLY_ROUTE_INVENTORY.json
+            artifacts/QELLY_API_INVENTORY.json
+            artifacts/QELLY_SOURCE_TREE.txt
+
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: high

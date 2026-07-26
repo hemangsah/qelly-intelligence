@@ -1,0 +1,20 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://qelly.example/schemas/evidence-node.schema.json",
+  "title":"Qelly Evidence Node",
+  "type":"object",
+  "additionalProperties":true,
+  "required":["nodeId","graphId","tenantId","workspaceId","type","label","classification","createdAt","revision","data"],
+  "properties":{
+    "nodeId":{"type":"string","pattern":"^node-"},
+    "graphId":{"type":"string","pattern":"^graph-"},
+    "tenantId":{"type":"string","minLength":1},
+    "workspaceId":{"type":"string","minLength":1},
+    "type":{"enum":["Asset","SourceRecord","ProviderObservation","NormalizedObservation","MarketMove","ResearchClaim","Hypothesis","Signal","AlertEvent","DecisionRecord","RiskAssessment","OutcomeRecord","ReviewRecord"]},
+    "label":{"type":"string","minLength":1,"maxLength":160},
+    "classification":{"enum":["public","workspace","restricted"]},
+    "createdAt":{"type":"string","format":"date-time"},
+    "revision":{"type":"integer","minimum":1},
+    "data":{"type":"object"}
+  }
+}

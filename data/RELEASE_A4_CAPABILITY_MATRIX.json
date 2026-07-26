@@ -1,0 +1,604 @@
+[
+  {
+    "id": "A4-001",
+    "area": "Identity and Security",
+    "capability": "Registration, login, logout and refresh",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Auth service and API routes"
+  },
+  {
+    "id": "A4-002",
+    "area": "Identity and Security",
+    "capability": "Signed HttpOnly cookie sessions",
+    "status": "implemented-local",
+    "evidence_or_boundary": "AuthService cookie issuance and tamper tests"
+  },
+  {
+    "id": "A4-003",
+    "area": "Identity and Security",
+    "capability": "Tenant-scoped organizations/workspaces",
+    "status": "implemented-local",
+    "evidence_or_boundary": "SQLite/PostgreSQL repositories"
+  },
+  {
+    "id": "A4-004",
+    "area": "Identity and Security",
+    "capability": "RBAC/ABAC and step-up boundaries",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Inherited identity security runtime"
+  },
+  {
+    "id": "A4-005",
+    "area": "Identity and Security",
+    "capability": "Session-derived CSRF",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Cookie identity APIs"
+  },
+  {
+    "id": "A4-006",
+    "area": "Identity and Security",
+    "capability": "Idempotent governed mutations",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Inherited idempotency store"
+  },
+  {
+    "id": "A4-007",
+    "area": "Identity and Security",
+    "capability": "Tamper-evident audit ledger",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Recursive hash-chain tests"
+  },
+  {
+    "id": "A4-008",
+    "area": "Identity and Security",
+    "capability": "Runtime JSON-schema validation",
+    "status": "implemented-local",
+    "evidence_or_boundary": "56 packaged request/response schemas"
+  },
+  {
+    "id": "A4-009",
+    "area": "Assurance",
+    "capability": "TOTP enrollment and confirmation",
+    "status": "implemented-local",
+    "evidence_or_boundary": "MfaService and frontend security setup"
+  },
+  {
+    "id": "A4-010",
+    "area": "Assurance",
+    "capability": "MFA secret encryption",
+    "status": "implemented-local",
+    "evidence_or_boundary": "AES-256-GCM SecretProtector; local key contract"
+  },
+  {
+    "id": "A4-011",
+    "area": "Assurance",
+    "capability": "Recovery code generation",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Hashed recovery codes"
+  },
+  {
+    "id": "A4-012",
+    "area": "Assurance",
+    "capability": "Recovery code atomic consumption",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Repository transaction and replay test"
+  },
+  {
+    "id": "A4-013",
+    "area": "Assurance",
+    "capability": "Recovery code regeneration",
+    "status": "implemented-local",
+    "evidence_or_boundary": "TOTP-gated API and account recovery UI"
+  },
+  {
+    "id": "A4-014",
+    "area": "Assurance",
+    "capability": "Passkey registration",
+    "status": "implemented-local",
+    "evidence_or_boundary": "WebAuthn ES256 none-attestation ceremony"
+  },
+  {
+    "id": "A4-015",
+    "area": "Assurance",
+    "capability": "Passkey authentication",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Signature verification and cookie session issuance"
+  },
+  {
+    "id": "A4-016",
+    "area": "Assurance",
+    "capability": "RP ID and origin validation",
+    "status": "implemented-local",
+    "evidence_or_boundary": "PasskeyService checks"
+  },
+  {
+    "id": "A4-017",
+    "area": "Assurance",
+    "capability": "Challenge expiry and single use",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Persistent auth challenges"
+  },
+  {
+    "id": "A4-018",
+    "area": "Assurance",
+    "capability": "Authenticator signature counter",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Counter verification/update"
+  },
+  {
+    "id": "A4-019",
+    "area": "Assurance",
+    "capability": "Passkey revocation",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Credential-specific DELETE endpoint"
+  },
+  {
+    "id": "A4-020",
+    "area": "Platform Persistence",
+    "capability": "SQLite development persistence",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Executed in automated tests"
+  },
+  {
+    "id": "A4-021",
+    "area": "Platform Persistence",
+    "capability": "PostgreSQL repository parity",
+    "status": "partial-contract",
+    "evidence_or_boundary": "A1-A3 repository methods and migrations"
+  },
+  {
+    "id": "A4-022",
+    "area": "Platform Persistence",
+    "capability": "PostgreSQL migrations",
+    "status": "partial-contract",
+    "evidence_or_boundary": "100-102 SQL migrations packaged"
+  },
+  {
+    "id": "A4-023",
+    "area": "Platform Persistence",
+    "capability": "Redis job signaling adapter",
+    "status": "partial-contract",
+    "evidence_or_boundary": "Production adapter packaged"
+  },
+  {
+    "id": "A4-024",
+    "area": "Platform Persistence",
+    "capability": "Persistent jobs and retries",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Worker and repository tests"
+  },
+  {
+    "id": "A4-025",
+    "area": "Platform Persistence",
+    "capability": "Dead-letter job state",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Job queue contract"
+  },
+  {
+    "id": "A4-026",
+    "area": "Platform Persistence",
+    "capability": "Backup and restore scripts",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Checksum-verified SQLite tooling"
+  },
+  {
+    "id": "A4-027",
+    "area": "Object Storage and Imports",
+    "capability": "Local object storage",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Content-addressed files with SHA-256"
+  },
+  {
+    "id": "A4-028",
+    "area": "Object Storage and Imports",
+    "capability": "S3-compatible adapter",
+    "status": "partial-contract",
+    "evidence_or_boundary": "AWS Signature V4 implementation and contract test"
+  },
+  {
+    "id": "A4-029",
+    "area": "Object Storage and Imports",
+    "capability": "Secure import metadata",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Tenant/workspace records"
+  },
+  {
+    "id": "A4-030",
+    "area": "Object Storage and Imports",
+    "capability": "Filename and size validation",
+    "status": "implemented-local",
+    "evidence_or_boundary": "10 MB boundary and normalization"
+  },
+  {
+    "id": "A4-031",
+    "area": "Object Storage and Imports",
+    "capability": "Malware test signature rejection",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Foundation scanner"
+  },
+  {
+    "id": "A4-032",
+    "area": "Object Storage and Imports",
+    "capability": "Storage status API",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Provider truth inspection"
+  },
+  {
+    "id": "A4-033",
+    "area": "Delivery",
+    "capability": "Persistent delivery jobs",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Email/webhook job types"
+  },
+  {
+    "id": "A4-034",
+    "area": "Delivery",
+    "capability": "Delivery-attempt history",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Repository-backed records"
+  },
+  {
+    "id": "A4-035",
+    "area": "Delivery",
+    "capability": "HMAC-signed webhook adapter",
+    "status": "implemented-local",
+    "evidence_or_boundary": "SHA-256 signature headers and test"
+  },
+  {
+    "id": "A4-036",
+    "area": "Delivery",
+    "capability": "Generic HTTP email adapter",
+    "status": "partial-contract",
+    "evidence_or_boundary": "Explicit authenticated provider interface"
+  },
+  {
+    "id": "A4-037",
+    "area": "Delivery",
+    "capability": "Local evidence sink",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Development-only sink"
+  },
+  {
+    "id": "A4-038",
+    "area": "Delivery",
+    "capability": "Delivery provider status API",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Truthful configured/disabled status"
+  },
+  {
+    "id": "A4-039",
+    "area": "Delivery",
+    "capability": "Worker operations UI",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Delivery Operations route"
+  },
+  {
+    "id": "A4-040",
+    "area": "Frontend",
+    "capability": "Passkey Center",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Responsive WebAuthn management screen"
+  },
+  {
+    "id": "A4-041",
+    "area": "Frontend",
+    "capability": "Account Recovery Controls",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Recovery consumption/regeneration screen"
+  },
+  {
+    "id": "A4-042",
+    "area": "Frontend",
+    "capability": "Delivery Operations",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Provider/storage/job inspection screen"
+  },
+  {
+    "id": "A4-043",
+    "area": "Frontend",
+    "capability": "Secure Import Vault",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Existing A2 import UI retained"
+  },
+  {
+    "id": "A4-044",
+    "area": "Frontend",
+    "capability": "Six operating personas",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Inherited Qelly persona system"
+  },
+  {
+    "id": "A4-045",
+    "area": "Frontend",
+    "capability": "Locked brand gradient",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Design token checksum and source"
+  },
+  {
+    "id": "A4-046",
+    "area": "Operations and Documentation",
+    "capability": "OpenAPI 3.1 inventory",
+    "status": "implemented-local",
+    "evidence_or_boundary": "161 path contracts"
+  },
+  {
+    "id": "A4-047",
+    "area": "Operations and Documentation",
+    "capability": "Route inventory",
+    "status": "implemented-local",
+    "evidence_or_boundary": "55 routes"
+  },
+  {
+    "id": "A4-048",
+    "area": "Operations and Documentation",
+    "capability": "API inventory",
+    "status": "implemented-local",
+    "evidence_or_boundary": "161 contracts"
+  },
+  {
+    "id": "A4-049",
+    "area": "Operations and Documentation",
+    "capability": "Contract inventory",
+    "status": "implemented-local",
+    "evidence_or_boundary": "15 machine-readable contracts"
+  },
+  {
+    "id": "A4-050",
+    "area": "Operations and Documentation",
+    "capability": "Schema inventory",
+    "status": "implemented-local",
+    "evidence_or_boundary": "56 JSON schemas"
+  },
+  {
+    "id": "A4-051",
+    "area": "Operations and Documentation",
+    "capability": "Docker Compose topology",
+    "status": "implemented-local",
+    "evidence_or_boundary": "PostgreSQL, Redis, MinIO, migration, API, worker"
+  },
+  {
+    "id": "A4-052",
+    "area": "Production Deferred",
+    "capability": "Production KMS integration",
+    "status": "partial-contract",
+    "evidence_or_boundary": "Envelope contract exists; no cloud KMS credentials"
+  },
+  {
+    "id": "A4-053",
+    "area": "Production Deferred",
+    "capability": "Live PostgreSQL execution",
+    "status": "blocked-by-service",
+    "evidence_or_boundary": "No PostgreSQL service in build environment"
+  },
+  {
+    "id": "A4-054",
+    "area": "Production Deferred",
+    "capability": "Live Redis execution",
+    "status": "blocked-by-service",
+    "evidence_or_boundary": "No Redis service in build environment"
+  },
+  {
+    "id": "A4-055",
+    "area": "Production Deferred",
+    "capability": "Live MinIO/S3 execution",
+    "status": "blocked-by-service",
+    "evidence_or_boundary": "Adapter tested without live service"
+  },
+  {
+    "id": "A4-056",
+    "area": "Production Deferred",
+    "capability": "External email delivery",
+    "status": "blocked-by-credentials",
+    "evidence_or_boundary": "Blocked by endpoint and credentials"
+  },
+  {
+    "id": "A4-057",
+    "area": "Production Deferred",
+    "capability": "External webhook transmission",
+    "status": "blocked-by-credentials",
+    "evidence_or_boundary": "Blocked by endpoint and signing-secret deployment"
+  },
+  {
+    "id": "A4-058",
+    "area": "Production Deferred",
+    "capability": "Full malware scanning provider",
+    "status": "partial-contract",
+    "evidence_or_boundary": "Only foundation signature scanner"
+  },
+  {
+    "id": "A4-059",
+    "area": "Production Deferred",
+    "capability": "Physical authenticator browser E2E",
+    "status": "partial-contract",
+    "evidence_or_boundary": "Synthetic ES256 ceremony tested; no hardware authenticator in CI"
+  },
+  {
+    "id": "A4-060",
+    "area": "Production Deferred",
+    "capability": "Cloud staging deployment",
+    "status": "blocked-by-credentials",
+    "evidence_or_boundary": "No cloud connector/credentials"
+  },
+  {
+    "id": "A4-061",
+    "area": "Production Deferred",
+    "capability": "Independent penetration test",
+    "status": "partial-contract",
+    "evidence_or_boundary": "Not performed"
+  },
+  {
+    "id": "A4-062",
+    "area": "Financial Safety",
+    "capability": "Live trading",
+    "status": "disabled-for-safety",
+    "evidence_or_boundary": "No route or enabling flag; explicitly false"
+  },
+  {
+    "id": "A4-063",
+    "area": "Financial Safety",
+    "capability": "Custody",
+    "status": "disabled-for-safety",
+    "evidence_or_boundary": "No route or enabling flag; explicitly false"
+  },
+  {
+    "id": "A4-064",
+    "area": "Financial Safety",
+    "capability": "Asset transfers",
+    "status": "disabled-for-safety",
+    "evidence_or_boundary": "No route or enabling flag; explicitly false"
+  },
+  {
+    "id": "A4-065",
+    "area": "Financial Safety",
+    "capability": "Withdrawals",
+    "status": "disabled-for-safety",
+    "evidence_or_boundary": "No route or enabling flag; explicitly false"
+  },
+  {
+    "id": "A4-066",
+    "area": "Financial Safety",
+    "capability": "Private keys",
+    "status": "disabled-for-safety",
+    "evidence_or_boundary": "No route or enabling flag; explicitly false"
+  },
+  {
+    "id": "A4-067",
+    "area": "Financial Safety",
+    "capability": "Recovery phrases",
+    "status": "disabled-for-safety",
+    "evidence_or_boundary": "No route or enabling flag; explicitly false"
+  },
+  {
+    "id": "A4-068",
+    "area": "Identity and Security",
+    "capability": "Non-enumerating account-recovery request",
+    "status": "implemented-local",
+    "evidence_or_boundary": "AccountRecoveryService and public recovery API"
+  },
+  {
+    "id": "A4-069",
+    "area": "Identity and Security",
+    "capability": "Expiring single-use recovery challenge",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Hashed challenge, expiry, attempt limit and consume transaction"
+  },
+  {
+    "id": "A4-070",
+    "area": "Identity and Security",
+    "capability": "Password reset with all-session revocation",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Repository transaction and audit evidence"
+  },
+  {
+    "id": "A4-071",
+    "area": "Identity and Security",
+    "capability": "Recovery replay and attempt-limit protection",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Focused A4 tests"
+  },
+  {
+    "id": "A4-072",
+    "area": "Network Security",
+    "capability": "Outbound HTTPS-only delivery policy",
+    "status": "implemented-local",
+    "evidence_or_boundary": "OutboundNetworkPolicy"
+  },
+  {
+    "id": "A4-073",
+    "area": "Network Security",
+    "capability": "Loopback/private/link-local/metadata destination blocking",
+    "status": "implemented-local",
+    "evidence_or_boundary": "DNS/IP checks and SSRF tests"
+  },
+  {
+    "id": "A4-074",
+    "area": "Network Security",
+    "capability": "Explicit origin allowlist contract",
+    "status": "implemented-local",
+    "evidence_or_boundary": "QELLY_OUTBOUND_ALLOWED_ORIGINS"
+  },
+  {
+    "id": "A4-075",
+    "area": "Secure Imports",
+    "capability": "Quarantine-before-release local object flow",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Quarantine directory, scan, atomic release"
+  },
+  {
+    "id": "A4-076",
+    "area": "Secure Imports",
+    "capability": "Known malware-test signature rejection",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Scanner contract and tests"
+  },
+  {
+    "id": "A4-077",
+    "area": "Operations",
+    "capability": "Consolidated platform readiness API",
+    "status": "implemented-local",
+    "evidence_or_boundary": "/api/v1/platform/readiness"
+  },
+  {
+    "id": "A4-078",
+    "area": "Frontend",
+    "capability": "Public Account Recovery screen",
+    "status": "implemented-local",
+    "evidence_or_boundary": "auth-recovery route"
+  },
+  {
+    "id": "A4-079",
+    "area": "Frontend",
+    "capability": "Platform Readiness operations screen",
+    "status": "implemented-local",
+    "evidence_or_boundary": "platform-readiness route"
+  },
+  {
+    "id": "A4-080",
+    "area": "Accessibility",
+    "capability": "All 57 routes desktop/mobile render coverage",
+    "status": "implemented-local",
+    "evidence_or_boundary": "114 Chromium renders, zero console errors"
+  },
+  {
+    "id": "A4-081",
+    "area": "Accessibility",
+    "capability": "Focused semantic and responsive checks",
+    "status": "implemented-local",
+    "evidence_or_boundary": "30/30 automated checks"
+  },
+  {
+    "id": "A4-082",
+    "area": "Production Deferred",
+    "capability": "Full external malware scanning engine",
+    "status": "partial-contract",
+    "evidence_or_boundary": "Foundation scanner only"
+  },
+  {
+    "id": "A4-083",
+    "area": "Production Deferred",
+    "capability": "Live cloud PostgreSQL/Redis/MinIO execution",
+    "status": "blocked-by-credentials",
+    "evidence_or_boundary": "Adapters and topology present; services unavailable in build workspace"
+  },
+  {
+    "id": "A4-084",
+    "area": "Production Deferred",
+    "capability": "Cloud KMS/HSM encryption provider",
+    "status": "partial-contract",
+    "evidence_or_boundary": "Local AES-GCM protector only"
+  },
+  {
+    "id": "A4-085",
+    "area": "Production Deferred",
+    "capability": "External SMTP/webhook sandbox verification",
+    "status": "blocked-by-credentials",
+    "evidence_or_boundary": "Adapters present; no credentials/endpoints"
+  },
+  {
+    "id": "A4-086",
+    "area": "Financial Safety",
+    "capability": "Live trading and custody",
+    "status": "disabled-for-safety",
+    "evidence_or_boundary": "No execution, custody, transfer or withdrawal routes"
+  }
+]

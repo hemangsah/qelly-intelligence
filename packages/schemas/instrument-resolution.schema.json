@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/instrument-resolution.schema.json",
+  "title": "Qelly Instrument Resolution",
+  "type": "object",
+  "required": ["input", "candidates", "resolved", "requiresReview", "revision"],
+  "properties": {
+    "input": {"type": "object"},
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["canonicalId", "name", "primarySymbol", "assetClass", "score", "reasons", "confidence"],
+        "properties": {
+          "canonicalId": {"type": "string", "pattern": "^QI-[A-Z0-9-]+$"},
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+        }
+      }
+    },
+    "resolved": {"type": ["object", "null"]},
+    "requiresReview": {"type": "boolean"},
+    "revision": {"type": "integer", "minimum": 1}
+  },
+  "additionalProperties": true
+}

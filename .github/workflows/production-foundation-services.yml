@@ -1,0 +1,63 @@
+name: Production Foundation Services
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-foundation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  postgres-redis-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: qelly
+          POSTGRES_USER: qelly
+          POSTGRES_PASSWORD: qelly-ci-password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U qelly -d qelly"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgres://qelly:qelly-ci-password@127.0.0.1:5432/qelly
+      REDIS_URL: redis://127.0.0.1:6379/0
+      QELLY_SESSION_SECRET: qelly-ci-session-secret-0000000000000000000001
+      QELLY_PASSWORD_PEPPER: qelly-ci-pepper
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Apply production migrations
+        run: npm run migrate
+      - name: Verify migration idempotency and checksum stability
+        run: npm run migrate
+      - name: Verify PostgreSQL, migration 105, Decision Provenance, and Redis jobs
+        run: node scripts/production-dependency-integration.mjs

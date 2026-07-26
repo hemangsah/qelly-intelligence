@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/timeseries-response.schema.json",
+  "title": "Qelly time-series query response",
+  "type": "object",
+  "required": ["canonicalId", "interval", "points", "page", "metadata"],
+  "properties": {
+    "canonicalId": {"type": "string", "pattern": "^QI-"},
+    "interval": {"enum": ["1h", "4h", "1d"]},
+    "points": {"type": "array", "items": {"$ref": "timeseries-point.schema.json"}},
+    "page": {"type": "object", "required": ["count", "total", "nextCursor"], "properties": {"count": {"type": "integer"}, "total": {"type": "integer"}, "nextCursor": {"type": ["string", "null"]}}, "additionalProperties": false},
+    "metadata": {"type": "object", "required": ["source", "providerId", "freshnessClass", "confidence", "qualityFlags", "entitlementClass", "methodologyVersion", "decimalEncoding", "timezone"]}
+  },
+  "additionalProperties": false
+}

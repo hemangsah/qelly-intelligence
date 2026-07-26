@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/timeseries-point.schema.json",
+  "title": "Qelly normalized OHLCV point",
+  "type": "object",
+  "required": ["at", "open", "high", "low", "close", "volume", "sequence", "providerId", "freshnessClass", "qualityFlags"],
+  "properties": {
+    "at": {"type": "string", "format": "date-time"},
+    "open": {"type": "string", "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$"},
+    "high": {"type": "string", "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$"},
+    "low": {"type": "string", "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$"},
+    "close": {"type": "string", "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$"},
+    "volume": {"type": "string", "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$"},
+    "sequence": {"type": "integer", "minimum": 1},
+    "providerId": {"type": "string", "minLength": 1},
+    "freshnessClass": {"enum": ["live", "delayed", "cached", "stale", "simulated", "unavailable"]},
+    "qualityFlags": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+  },
+  "additionalProperties": false
+}

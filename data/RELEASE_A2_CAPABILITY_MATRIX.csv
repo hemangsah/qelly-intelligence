@@ -1,0 +1,11 @@
+id,domain,capability,status,evidence,next
+A2-001,Identity,TOTP enrollment,implemented-local,src/production/mfa-service.mjs,KMS encryption
+A2-002,Identity,Recovery codes,implemented-local,src/production/mfa-service.mjs,Single-use consumption endpoint
+A2-003,Identity,Passkeys,partial-contract,packages/contracts/release-a2-identity-import-delivery.contract.json,WebAuthn ceremony
+A2-004,Imports,Content-addressed object storage,implemented-local,src/production/object-storage.mjs,S3 adapter
+A2-005,Imports,Malware signature rejection,implemented-local,src/production/object-storage.mjs,External scanner
+A2-006,Imports,Secure import metadata,implemented-local,src/production/sqlite-production-repository.mjs,PostgreSQL integration
+A2-007,Delivery,Email delivery local sink,implemented-local,src/production/delivery-service.mjs,SMTP provider
+A2-008,Delivery,Webhook delivery local sink,implemented-local,src/production/delivery-service.mjs,Signed external webhooks
+A2-009,Operations,SQLite backup restore,implemented-local,scripts/backup-production.mjs,Managed PostgreSQL backup
+A2-010,Safety,Live trading disabled,disabled-for-safety,src/server/route-manifest.mjs,Separate security review

@@ -1,0 +1,7 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"qelly.chart-layout-record",
+  "type":"object",
+  "required":["layoutId","userId","workspaceId","name","canonicalId","indicators","createdAt","revision"],
+  "properties":{"layoutId":{"type":"string"},"userId":{"type":"string"},"tenantId":{"type":"string"},"workspaceId":{"type":"string"},"name":{"type":"string"},"canonicalId":{"type":"string"},"range":{"type":"string"},"interval":{"type":"string"},"indicators":{"type":"array"},"panes":{"type":"array"},"createdAt":{"type":"string"},"revision":{"type":"integer"}}
+}

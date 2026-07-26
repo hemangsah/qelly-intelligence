@@ -1,0 +1,22 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "contract":"qelly-hardened-foundation-wave6",
+  "version":"18.0.0",
+  "status":"implemented-local-foundation-with-production-gates",
+  "hardening":{
+    "auditCanonicalization":{"algorithm":"recursive deterministic key ordering","nestedActorAndDetailsCovered":true,"checkpointSidecar":true,"productionWormStorage":false,"externalAnchoring":false},
+    "csrf":{"mode":"random session-bound local token","hardCodedToken":false,"sameSiteCookieSession":false,"productionAuthentication":false},
+    "schemaValidation":{"runtimeEnforcement":true,"engine":"dependency-free JSON Schema 2020-12 subset","remoteRefs":false,"productionValidatorRequired":true},
+    "preferences":{"scope":["user","tenant","workspace"],"optimisticRevision":true,"atomicPersistence":true,"distributedDatabase":false},
+    "persistence":{"recoverableQueues":true,"atomicRename":true,"localFileLock":true,"multiHostSafe":false},
+    "developmentIdentity":{"isolatedByEnvironment":true,"disabledWhenNodeEnvProduction":true,"productionIdentityImplemented":false}
+  },
+  "wave6":{
+    "implementedLocal":["asset profile","asset-class-aware metric fixtures","events fixtures","filing references","peer sets","cross-asset comparison","SMA","EMA","RSI","modular asset-intelligence frontend route"],
+    "contractOnly":["advanced candlestick charts","drawing tools","multi-pane studies","live filings","licensed statements","estimates","analyst revisions","ownership","corporate actions","semantic filing search"],
+    "forbidden":["investment advice","live orders","trading","transfers","withdrawals","private keys","recovery phrases"]
+  },
+  "apiEndpoints":[
+    "GET /api/v1/asset-intelligence/:id/overview","GET /api/v1/asset-intelligence/:id/fundamentals","GET /api/v1/asset-intelligence/:id/events","GET /api/v1/asset-intelligence/:id/filings","GET /api/v1/asset-intelligence/:id/peers","GET /api/v1/asset-intelligence/:id/technicals","GET /api/v1/asset-intelligence/studies","POST /api/v1/asset-intelligence/compare","GET /api/v1/schemas/coverage","GET /api/v1/preferences/layout/inventory"
+  ]
+}

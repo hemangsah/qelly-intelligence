@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en" data-theme="burgundy-command" data-density="comfortable" data-motion="full" data-font-scale="100">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Qelly Intelligence: verifiable public market intelligence, secure workspaces, explicit source evidence and safe degraded states">
+  <title>Qelly Intelligence · Verifiable Market Intelligence</title>
+  <link rel="stylesheet" href="/assets/tokens.css">
+  <link rel="stylesheet" href="/assets/app.css">
+  <link rel="stylesheet" href="/assets/qelly-sovereign-v2.css">
+  <link rel="stylesheet" href="/assets/qelly-sovereign-v3.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <div id="app" class="q-app">
+    <header class="q-global-strip" aria-label="Global market context">
+      <div class="q-brand-mark" aria-label="Qelly Intelligence home"><span>Q</span><strong>QELLY INTELLIGENCE</strong></div>
+      <div id="macro-strip" class="q-macro-strip" aria-live="polite"></div>
+      <div class="q-truth-chip"><span class="q-status q-status--live">READ ONLY</span><span>Public evidence · canonical assets · safe degraded mode</span></div>
+    </header>
+    <header class="q-command-bar">
+      <button id="rail-toggle" class="q-icon-button q-mobile-only" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+      <div id="workspace-switcher" class="q-workspace-switcher"><span>Qelly Labs</span><strong>Institutional Research</strong><small>Local security foundation</small></div>
+      <button id="command-button" class="q-command-trigger" aria-label="Open command palette" aria-keyshortcuts="Control+K Meta+K"><span>⌕</span><span>Search assets, routes and actions</span><kbd>Ctrl K</kbd></button>
+      <div class="q-command-actions">
+        <label class="q-state-control"><span>State</span><select id="state-selector" aria-label="Preview application state"><option value="default">Default</option><option value="loading">Loading</option><option value="empty">Empty</option><option value="partial">Partial</option><option value="error">Error</option><option value="offline">Offline</option><option value="stale">Stale</option><option value="delayed">Delayed</option><option value="simulated">Simulated</option></select></label>
+        <label class="q-state-control q-theme-control"><span>Theme</span><select id="global-theme-selector" aria-label="Select application theme"><option value="burgundy-command">Scalper Velocity</option><option value="porcelain-burgundy">Investor Compound</option><option value="burgundy-night">Aggressive Alpha</option><option value="graphite-terminal">Quant Operator</option><option value="midnight-research">Research Oracle</option><option value="high-contrast">Signal Access</option></select></label>
+        <button id="theme-shortcut" class="q-icon-button" aria-label="Open theme laboratory" title="Theme laboratory">◐</button>
+        <button id="notification-button" class="q-icon-button" aria-label="Notifications" title="Notifications">♢<span class="q-dot" aria-hidden="true"></span></button>
+        <div class="q-avatar" aria-label="Current Qelly account">QI</div>
+      </div>
+    </header>
+    <div class="q-shell">
+      <aside id="rail" class="q-rail" aria-label="Primary navigation">
+        <nav id="primary-nav"></nav>
+        <div class="q-rail-footer">
+          <div class="q-provider-mini"><span class="q-provider-pulse"></span><div><strong>Live data control</strong><small>Binance · CoinDCX · safe fallback</small></div></div>
+          <button id="collapse-rail" class="q-rail-collapse" aria-label="Collapse navigation">‹</button>
+        </div>
+      </aside>
+      <main id="main" tabindex="-1"></main>
+      <aside id="context-drawer" class="q-context-drawer" aria-label="Context and source inspector" aria-hidden="true">
+        <div class="q-context-head"><div><p class="q-eyebrow">Inspector</p><h2>Source context</h2></div><button id="close-context" class="q-icon-button" aria-label="Close source inspector">×</button></div>
+        <div id="context-content" class="q-context-content"></div>
+      </aside>
+    </div>
+  </div>
+  <script type="module" src="/assets/app.js"></script>
+  <script type="module" src="/assets/qelly-sovereign-motion.js"></script>
+</body>
+</html>

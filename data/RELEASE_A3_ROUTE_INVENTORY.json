@@ -1,0 +1,391 @@
+{
+  "release": "25.0.0",
+  "count": 55,
+  "items": [
+    {
+      "id": "R001",
+      "route": "auth-login",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R002",
+      "route": "auth-register",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R003",
+      "route": "account-session",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R004",
+      "route": "security-setup",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "A2"
+    },
+    {
+      "id": "R005",
+      "route": "passkey-center",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "A3"
+    },
+    {
+      "id": "R006",
+      "route": "account-recovery",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "A3"
+    },
+    {
+      "id": "R007",
+      "route": "secure-import-vault",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "A2"
+    },
+    {
+      "id": "R008",
+      "route": "delivery-operations",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "A3"
+    },
+    {
+      "id": "R009",
+      "route": "market",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R010",
+      "route": "rankings",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R011",
+      "route": "search",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R012",
+      "route": "asset",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R013",
+      "route": "watchlist",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R014",
+      "route": "theme-lab",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R015",
+      "route": "identity-access",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R016",
+      "route": "data-mesh",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R017",
+      "route": "instrument-master",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R018",
+      "route": "timeseries-lab",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R019",
+      "route": "stream-operations",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R020",
+      "route": "observability",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R021",
+      "route": "security-evidence",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R022",
+      "route": "discovery-hub",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R023",
+      "route": "asset-rankings",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R024",
+      "route": "categories",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R025",
+      "route": "category-detail",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R026",
+      "route": "venues",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R027",
+      "route": "venue-detail",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R028",
+      "route": "dex-discovery",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R029",
+      "route": "global-charts",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R030",
+      "route": "converter",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R031",
+      "route": "news-research",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R032",
+      "route": "research-article",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R033",
+      "route": "trust-center",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R034",
+      "route": "asset-intelligence",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R035",
+      "route": "advanced-chart",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R036",
+      "route": "fundamentals-estimates",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R037",
+      "route": "filing-workspace",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R038",
+      "route": "event-calendar",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R039",
+      "route": "comparison-lab",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R040",
+      "route": "alert-center",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R041",
+      "route": "notification-center",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R042",
+      "route": "screener-lab",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R043",
+      "route": "portfolio-analytics",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R044",
+      "route": "research-workspace",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R045",
+      "route": "onboarding",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R046",
+      "route": "notification-schedules",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R047",
+      "route": "formula-screener",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R048",
+      "route": "portfolio-attribution",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R049",
+      "route": "import-center",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R050",
+      "route": "research-history",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R051",
+      "route": "migration-center",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R052",
+      "route": "live-markets",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R053",
+      "route": "theme-personas",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R054",
+      "route": "about-qelly",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "R055",
+      "route": "feature-universe",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    }
+  ]
+}

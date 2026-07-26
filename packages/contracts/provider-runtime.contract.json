@@ -1,0 +1,52 @@
+{
+  "contractVersion": "2.0.0",
+  "status": "deterministic-local-runtime-implemented-production-gated",
+  "productionProvidersEnabled": false,
+  "localProviderRuntimeImplemented": true,
+  "boundary": "Part 15 implements a deterministic read-only provider runtime with three local fixture adapters. No external calls, production credentials, licensed redistribution, live streaming provider or distributed quota coordination is claimed.",
+  "adapterInterface": {
+    "methods": ["capabilities()", "health()", "search(request, context)", "quote(request, context)", "timeseries(request, context)", "stream(request, context)"],
+    "context": ["correlationId", "tenantId", "workspaceId", "entitlements", "deadlineMs", "credentialReference", "scenario"],
+    "resultMetadata": ["providerId", "observedAt", "receivedAt", "freshnessClass", "confidence", "qualityFlags", "entitlementClass", "costUnits"]
+  },
+  "runtimePolicies": {
+    "timeoutMs": 250,
+    "maxAttempts": 2,
+    "retry": "bounded jitter for retry-safe deterministic reads",
+    "circuitBreaker": {"failureThreshold": 3, "openMs": 30000},
+    "bulkhead": "four concurrent operations per provider in the local runtime",
+    "cache": "TTL + stale-while-revalidate window + last-known-good fallback",
+    "deduplication": true,
+    "quota": "local tenant and provider scoped token bucket",
+    "selection": ["primary", "secondary", "validation"]
+  },
+  "entitlementChecks": ["before fetch", "before storage", "before display", "before export", "before redistribution"],
+  "qualityScoreInputs": ["latency", "freshness", "coverage", "error rate", "revision rate", "cross-provider variance", "cost"],
+  "implementedInPart15": [
+    "provider capability registry",
+    "configuration states and opaque credential references",
+    "deadlines and timeout classification",
+    "bounded retry with jitter",
+    "circuit breaker",
+    "per-provider bulkhead",
+    "request deduplication",
+    "local quota enforcement",
+    "TTL cache and stale last-known-good fallback",
+    "latency, error, quality and cost accounting",
+    "automatic primary-to-secondary failover",
+    "deterministic contract fixtures",
+    "server-side entitlement evaluation",
+    "data-quality validation and incident recording"
+  ],
+  "implementedEndpoints": [
+    "GET /api/v1/providers/runtime",
+    "POST /api/v1/providers/execute",
+    "POST /api/v1/providers/:id/execute",
+    "GET /api/v1/providers/:id/diagnostics",
+    "POST /api/v1/entitlements/evaluate",
+    "GET /api/v1/data-quality/incidents",
+    "POST /api/v1/data-quality/overrides",
+    "GET /api/v1/stream/quotes"
+  ],
+  "deferred": ["production credentials", "distributed cache", "licensed provider validation", "live external streaming adapters", "distributed quota coordination", "provider billing settlement", "production maintenance and deprecation workflows"]
+}

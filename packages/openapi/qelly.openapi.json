@@ -1,0 +1,4198 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Qelly Intelligence API",
+    "version": "0.9.0-preview.1",
+    "description": "Verified preview API for secure identity, persisted workspaces and public read-only market intelligence. Provider fallback is explicitly labelled simulated or degraded. Live trading, custody, transfers, withdrawals, private keys and recovery phrases are absent."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:4480",
+      "description": "Local preview runtime"
+    }
+  ],
+  "paths": {
+    "/api/health": {
+      "get": {
+        "operationId": "health",
+        "summary": "Liveness and truth-boundary status",
+        "responses": {
+          "200": {
+            "description": "Service is alive"
+          }
+        }
+      }
+    },
+    "/api/ready": {
+      "get": {
+        "operationId": "ready",
+        "summary": "Dependency readiness",
+        "responses": {
+          "200": {
+            "description": "Ready"
+          },
+          "503": {
+            "description": "Dependency not ready"
+          }
+        }
+      }
+    },
+    "/api/v1/config": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/config",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/status": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/auth/status",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/register": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/auth/register",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "post": {
+        "operationId": "register",
+        "summary": "Register a user, organization and workspace",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthRegister"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/auth/login",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "post": {
+        "operationId": "login",
+        "summary": "Authenticate and issue a signed cookie session",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthLogin"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/auth/logout",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "post": {
+        "operationId": "logout",
+        "summary": "Revoke the current database session",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/auth/refresh",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "post": {
+        "operationId": "refreshSession",
+        "summary": "Rotate the current session",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/production-foundation/status": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/production-foundation/status",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/jobs": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/jobs",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/{id}": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/jobs/:id",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/notifications": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/jobs/notifications",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "post": {
+        "operationId": "queueNotification",
+        "summary": "Queue an in-app notification job",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationJob"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/production-notifications": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/production-notifications",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/live-markets/catalog": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/live-markets/catalog",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/live-markets/status": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/live-markets/status",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/live-markets/candles": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/live-markets/candles",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/live-markets/ticker": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/live-markets/ticker",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/session/context": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/session/context",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/workspaces",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/sessions": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/sessions",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/devices": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/devices",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/step-up/simulate": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/auth/step-up/simulate",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/access/evaluate": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/access/evaluate",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/privacy/consents": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/privacy/consents",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/privacy/data-inventory": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/privacy/data-inventory",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/market/overview": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/market/overview",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/rankings": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/rankings",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/search": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/search",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/search/suggestions": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/search/suggestions",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/assets/{id}": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/assets/:id",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/watchlist": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/watchlist",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/discovery/overview": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/discovery/overview",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/discovery/rankings": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/discovery/rankings",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/discovery/categories": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/discovery/categories",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/discovery/categories/{id}": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/discovery/categories/:id",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/discovery/venues": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/discovery/venues",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/discovery/venues/{id}": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/discovery/venues/:id",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/discovery/dex": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/discovery/dex",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/discovery/dex/{id}": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/discovery/dex/:id",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/discovery/global-charts": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/discovery/global-charts",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/discovery/prediction-markets": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/discovery/prediction-markets",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/discovery/converter": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/discovery/converter",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/discovery/news": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/discovery/news",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/discovery/research": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/discovery/research",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/discovery/research/{id}": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/discovery/research/:id",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/discovery/methodologies": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/discovery/methodologies",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/discovery/methodologies/{id}": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/discovery/methodologies/:id",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/discovery/coverage": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/discovery/coverage",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/discovery/status": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/discovery/status",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/discovery/saved": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/discovery/saved",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/discovery/saved/searches": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/discovery/saved/searches",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/discovery/saved/screens": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/discovery/saved/screens",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/discovery/saved/compare-tray": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/discovery/saved/compare-tray",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/providers/runtime": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/providers/runtime",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/providers/execute": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/providers/execute",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/providers/{id}/execute": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/providers/:id/execute",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/providers/{id}/diagnostics": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/providers/:id/diagnostics",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/entitlements/evaluate": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/entitlements/evaluate",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/instruments/summary": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/instruments/summary",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/instruments/search": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/instruments/search",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/instruments/resolve": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/instruments/resolve",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/instruments/{id}": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/instruments/:id",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/instruments/{id}/relationships": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/instruments/:id/relationships",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/data-quality/incidents": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/data-quality/incidents",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/data-quality/overrides": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/data-quality/overrides",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/preferences/layout": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/preferences/layout",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/preferences/layout/inventory": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/preferences/layout/inventory",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/contracts/{name}": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/contracts/:name",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/schemas/coverage": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/schemas/coverage",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/timeseries/summary": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/timeseries/summary",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/timeseries/query": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/timeseries/query",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/timeseries/{id}": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/timeseries/:id",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/timeseries/{id}/append": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/timeseries/:id/append",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/streams/catalog": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/streams/catalog",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/streams/replay": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/streams/replay",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/stream/quotes": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/stream/quotes",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/stream/provider-health": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/stream/provider-health",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/observability/overview": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/observability/overview",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/observability/metrics": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/observability/metrics",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/observability/traces": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/observability/traces",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/observability/logs": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/observability/logs",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/audit": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/audit",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/audit/verify": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/audit/verify",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/asset-intelligence/{id}/overview": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/asset-intelligence/:id/overview",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/asset-intelligence/{id}/fundamentals": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/asset-intelligence/:id/fundamentals",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/asset-intelligence/{id}/events": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/asset-intelligence/:id/events",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/asset-intelligence/{id}/filings": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/asset-intelligence/:id/filings",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/asset-intelligence/{id}/peers": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/asset-intelligence/:id/peers",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/asset-intelligence/{id}/technicals": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/asset-intelligence/:id/technicals",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/asset-intelligence/studies": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/asset-intelligence/studies",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/asset-intelligence/compare": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/asset-intelligence/compare",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/asset-intelligence/compare/series": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/asset-intelligence/compare/series",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/asset-intelligence/compare/snapshots": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/asset-intelligence/compare/snapshots",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/asset-intelligence/layouts": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/asset-intelligence/layouts",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/asset-intelligence/layouts/{id}": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/asset-intelligence/layouts/:id",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/asset-intelligence/{id}/chart": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/asset-intelligence/:id/chart",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/asset-intelligence/{id}/financials": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/asset-intelligence/:id/financials",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/asset-intelligence/{id}/earnings": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/asset-intelligence/:id/earnings",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/asset-intelligence/{id}/estimates": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/asset-intelligence/:id/estimates",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/asset-intelligence/{id}/corporate-actions": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/asset-intelligence/:id/corporate-actions",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/asset-intelligence/{id}/event-calendar": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/asset-intelligence/:id/event-calendar",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/asset-intelligence/{id}/filings/{filingId}": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/asset-intelligence/:id/filings/:filingId",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/watchlists": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/workspace/watchlists",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/watchlists/{id}": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/workspace/watchlists/:id",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/watchlists/{id}/items": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/workspace/watchlists/:id/items",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/watchlists/{id}/items/{canonicalId}": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/workspace/watchlists/:id/items/:canonicalId",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/alerts/rules": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/alerts/rules",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/alerts/rules/{id}": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/alerts/rules/:id",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/alerts/evaluate": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/alerts/evaluate",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/notifications": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/notifications",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/{id}/read": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/notifications/:id/read",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/read-all": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/notifications/read-all",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/screeners/catalog": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/screeners/catalog",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/screeners/run": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/screeners/run",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/screeners/saved": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/screeners/saved",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/screeners/saved/{id}": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/screeners/saved/:id",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/portfolio/overview": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/portfolio/overview",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/portfolio/holdings": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/portfolio/holdings",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/portfolio/performance": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/portfolio/performance",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/portfolio/risk": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/portfolio/risk",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/research/workspaces": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/research/workspaces",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/research/workspaces/{id}": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/research/workspaces/:id",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/research/workspaces/{id}/items": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/research/workspaces/:id/items",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/onboarding/catalog": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/onboarding/catalog",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/onboarding/profile": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/onboarding/profile",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/onboarding/complete": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/onboarding/complete",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/notification-schedules/catalog": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/notification-schedules/catalog",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/notification-schedules": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/notification-schedules",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/notification-schedules/{id}": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/notification-schedules/:id",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/notification-schedules/run-due": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/notification-schedules/run-due",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/screeners/formulas/catalog": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/screeners/formulas/catalog",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/screeners/formulas/run": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/screeners/formulas/run",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/portfolio/attribution": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/portfolio/attribution",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/imports/templates": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/imports/templates",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/imports": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/imports",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/imports/preview": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/imports/preview",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/imports/commit": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/imports/commit",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/imports/{id}": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/imports/:id",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/research/workspaces/{id}/versions": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/research/workspaces/:id/versions",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/research/workspaces/{id}/versions/{versionId}": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/research/workspaces/:id/versions/:versionId",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/research/workspaces/{id}/versions/{versionId}/restore": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/research/workspaces/:id/versions/:versionId/restore",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/research/version-diff": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/research/version-diff",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/migrations/plan": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/platform/migrations/plan",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/migrations/status": {
+      "get": {
+        "summary": "Qelly route contract: /api/v1/platform/migrations/status",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/mfa/status": {
+      "get": {
+        "summary": "Read MFA status",
+        "operationId": "get_api_v1_auth_mfa_status",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Accepted"
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization or CSRF proof failed"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/mfa/enroll": {
+      "post": {
+        "summary": "Begin TOTP enrollment",
+        "operationId": "post_api_v1_auth_mfa_enroll",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Accepted"
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization or CSRF proof failed"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/mfa/confirm": {
+      "post": {
+        "summary": "Confirm TOTP enrollment",
+        "operationId": "post_api_v1_auth_mfa_confirm",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Accepted"
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization or CSRF proof failed"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/mfa/disable": {
+      "post": {
+        "summary": "Disable TOTP factor",
+        "operationId": "post_api_v1_auth_mfa_disable",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Accepted"
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization or CSRF proof failed"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/mfa/recovery/consume": {
+      "post": {
+        "summary": "Consume a single-use recovery code",
+        "operationId": "post_api_v1_auth_mfa_recovery_consume",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Accepted"
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization or CSRF proof failed"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/mfa/recovery/regenerate": {
+      "post": {
+        "summary": "Regenerate recovery codes after TOTP proof",
+        "operationId": "post_api_v1_auth_mfa_recovery_regenerate",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Accepted"
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization or CSRF proof failed"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/passkeys": {
+      "get": {
+        "summary": "List current-user passkeys",
+        "operationId": "get_api_v1_auth_passkeys",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Accepted"
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization or CSRF proof failed"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/passkeys/register/options": {
+      "post": {
+        "summary": "Create a WebAuthn registration challenge",
+        "operationId": "post_api_v1_auth_passkeys_register_options",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Accepted"
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization or CSRF proof failed"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/passkeys/register/verify": {
+      "post": {
+        "summary": "Verify and persist a WebAuthn registration",
+        "operationId": "post_api_v1_auth_passkeys_register_verify",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Accepted"
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization or CSRF proof failed"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/passkeys/authenticate/options": {
+      "post": {
+        "summary": "Create a WebAuthn authentication challenge",
+        "operationId": "post_api_v1_auth_passkeys_authenticate_options",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Accepted"
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization or CSRF proof failed"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/passkeys/authenticate/verify": {
+      "post": {
+        "summary": "Verify WebAuthn authentication and issue a session",
+        "operationId": "post_api_v1_auth_passkeys_authenticate_verify",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Accepted"
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization or CSRF proof failed"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/passkeys/{id}": {
+      "delete": {
+        "summary": "Revoke a passkey credential",
+        "operationId": "delete_api_v1_auth_passkeys_id",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Accepted"
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization or CSRF proof failed"
+          }
+        }
+      }
+    },
+    "/api/v1/secure-imports": {
+      "get": {
+        "summary": "List secure imports",
+        "operationId": "get_api_v1_secure_imports",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Accepted"
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization or CSRF proof failed"
+          }
+        }
+      },
+      "post": {
+        "summary": "Scan and store a secure import",
+        "operationId": "post_secure_import",
+        "responses": {
+          "201": {
+            "description": "Stored"
+          },
+          "413": {
+            "description": "Too large"
+          },
+          "422": {
+            "description": "Malware signature detected"
+          }
+        }
+      }
+    },
+    "/api/v1/storage/status": {
+      "get": {
+        "summary": "Inspect object-storage adapter readiness",
+        "operationId": "get_api_v1_storage_status",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Accepted"
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization or CSRF proof failed"
+          }
+        }
+      }
+    },
+    "/api/v1/delivery/providers": {
+      "get": {
+        "summary": "Inspect delivery-provider readiness",
+        "operationId": "get_api_v1_delivery_providers",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Accepted"
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization or CSRF proof failed"
+          }
+        }
+      }
+    },
+    "/api/v1/delivery-attempts": {
+      "get": {
+        "summary": "List delivery attempts",
+        "operationId": "get_api_v1_delivery_attempts",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Accepted"
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization or CSRF proof failed"
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/delivery": {
+      "post": {
+        "summary": "Queue an email or signed-webhook delivery job",
+        "operationId": "post_api_v1_jobs_delivery",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Accepted"
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization or CSRF proof failed"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/recovery/request": {
+      "post": {
+        "operationId": "requestAccountRecovery",
+        "summary": "Create a non-enumerating account-recovery request",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountRecoveryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization or policy denial"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/recovery/status": {
+      "get": {
+        "operationId": "accountRecoveryStatus",
+        "summary": "Read account-recovery service status",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization or policy denial"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/recovery/reset": {
+      "post": {
+        "operationId": "resetRecoveredAccount",
+        "summary": "Consume a single-use recovery challenge, replace the password and revoke sessions",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountRecoveryReset"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization or policy denial"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/readiness": {
+      "get": {
+        "operationId": "platformReadiness",
+        "summary": "Inspect production-foundation runtime readiness and safety gates",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization or policy denial"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/security/secret-protection/status": {
+      "get": {
+        "summary": "Get secret protection status",
+        "operationId": "GetSecretProtectionStatus",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization denied"
+          }
+        }
+      }
+    },
+    "/api/v1/security/secret-protection/rewrap": {
+      "post": {
+        "summary": "Rewrap protected MFA secrets",
+        "operationId": "RewrapProtectedMfaSecrets",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization denied"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/secure-imports/quarantine": {
+      "get": {
+        "summary": "List quarantined secure imports",
+        "operationId": "ListQuarantinedSecureImports",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization denied"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create quarantined secure import",
+        "operationId": "CreateQuarantinedSecureImport",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization denied"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/secure-imports/{id}/rescan": {
+      "post": {
+        "summary": "Rescan and release quarantined import",
+        "operationId": "RescanAndReleaseQuarantinedImport",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization denied"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/secure-imports/{id}/quarantine": {
+      "delete": {
+        "summary": "Discard quarantined import",
+        "operationId": "DiscardQuarantinedImport",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization denied"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/assurance": {
+      "get": {
+        "summary": "Get platform assurance status",
+        "operationId": "GetPlatformAssuranceStatus",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization denied"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/assurance/concurrency": {
+      "post": {
+        "summary": "Run concurrency assurance exercise",
+        "operationId": "RunConcurrencyAssuranceExercise",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization denied"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/platform/assurance/backup-restore": {
+      "post": {
+        "summary": "Run backup restore assurance drill",
+        "operationId": "RunBackupRestoreAssuranceDrill",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization denied"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/platform/assurance/delivery-sandbox": {
+      "post": {
+        "summary": "Verify signed delivery sandbox",
+        "operationId": "VerifySignedDeliverySandbox",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization denied"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/platform/staging-manifest": {
+      "get": {
+        "summary": "Get staging deployment manifest",
+        "operationId": "GetStagingDeploymentManifest",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Authorization denied"
+          }
+        }
+      }
+    },
+    "/api/v1/public/providers": {
+      "get": {
+        "operationId": "publicProviders",
+        "summary": "Public provider capabilities, status and safety guardrails",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful read-only response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Canonical asset not found"
+          },
+          "503": {
+            "description": "Provider unavailable and no safe fallback"
+          }
+        }
+      }
+    },
+    "/api/v1/public/markets/overview": {
+      "get": {
+        "operationId": "publicMarketOverview",
+        "summary": "Canonical public market overview with source evidence",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful read-only response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicMarketOverview"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Canonical asset not found"
+          },
+          "503": {
+            "description": "Provider unavailable and no safe fallback"
+          }
+        }
+      }
+    },
+    "/api/v1/public/markets/assets": {
+      "get": {
+        "operationId": "publicMarketAssets",
+        "summary": "Search and sort canonical public market assets",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "rank",
+                "price",
+                "change",
+                "volume",
+                "symbol"
+              ]
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 250
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful read-only response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Canonical asset not found"
+          },
+          "503": {
+            "description": "Provider unavailable and no safe fallback"
+          }
+        }
+      }
+    },
+    "/api/v1/public/markets/assets/{id}": {
+      "get": {
+        "operationId": "publicMarketAsset",
+        "summary": "Public asset detail with definitions and source evidence",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Canonical Qelly ID or supported symbol"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful read-only response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicMarketAsset"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Canonical asset not found"
+          },
+          "503": {
+            "description": "Provider unavailable and no safe fallback"
+          }
+        }
+      }
+    },
+    "/api/v1/public/markets/assets/{id}/candles": {
+      "get": {
+        "operationId": "publicMarketCandles",
+        "summary": "Read-only candles from a documented provider or explicit fixture fallback",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Canonical Qelly ID or supported symbol"
+          },
+          {
+            "name": "provider",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "binance",
+                "coindcx",
+                "fixture"
+              ]
+            }
+          },
+          {
+            "name": "interval",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful read-only response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Canonical asset not found"
+          },
+          "503": {
+            "description": "Provider unavailable and no safe fallback"
+          }
+        }
+      }
+    },
+    "/api/v1/evidence/graphs": {
+      "get": {
+        "operationId": "listEvidenceGraphs",
+        "summary": "List tenant and workspace scoped decision evidence graphs",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Scoped graph summaries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "truthBoundary": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Evidence read permission required"
+          }
+        }
+      }
+    },
+    "/api/v1/evidence/explain-move": {
+      "post": {
+        "operationId": "explainMarketMove",
+        "summary": "Persist a source-to-decision provenance graph for a canonical public-market observation",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "X-Qelly-CSRF",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvidenceExplainMoveInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Persisted evidence graph",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidenceGraph"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or idempotency error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "CSRF or evidence write permission failure"
+          }
+        }
+      }
+    },
+    "/api/v1/evidence/graphs/{id}": {
+      "get": {
+        "operationId": "getEvidenceGraph",
+        "summary": "Read one complete decision evidence graph",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Complete graph",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidenceGraph"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Graph not found in active scope"
+          }
+        }
+      }
+    },
+    "/api/v1/evidence/graphs/{id}/traverse": {
+      "get": {
+        "operationId": "traverseEvidenceGraph",
+        "summary": "Traverse evidence upstream, downstream or in both directions",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "nodeId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "upstream",
+                "downstream",
+                "both"
+              ],
+              "default": "both"
+            }
+          },
+          {
+            "name": "depth",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5,
+              "default": 2
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Scoped traversal result"
+          },
+          "404": {
+            "description": "Graph or node not found"
+          }
+        }
+      }
+    },
+    "/api/v1/evidence/graphs/{id}/export": {
+      "get": {
+        "operationId": "exportEvidenceGraph",
+        "summary": "Export a checksum-bearing decision evidence package",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON evidence package with SHA-256 verification"
+          },
+          "404": {
+            "description": "Graph not found"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "qellySession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "qelly_session"
+      },
+      "csrf": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Qelly-CSRF"
+      }
+    },
+    "schemas": {
+      "AuthRegister": {
+        "$ref": "../schemas/auth-register-input.schema.json"
+      },
+      "AuthLogin": {
+        "$ref": "../schemas/auth-login-input.schema.json"
+      },
+      "NotificationJob": {
+        "$ref": "../schemas/notification-job-input.schema.json"
+      },
+      "AccountRecoveryRequest": {
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          }
+        }
+      },
+      "AccountRecoveryReset": {
+        "type": "object",
+        "required": [
+          "challengeId",
+          "code",
+          "newPassword"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "minLength": 8
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$"
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 12
+          }
+        }
+      },
+      "PublicMarketSource": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://qelly.example/schemas/public-market-source.schema.json",
+        "title": "Qelly Public Market Source Evidence",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "provider",
+          "providerName",
+          "observationTime",
+          "ingestionTime",
+          "freshness",
+          "qualityState",
+          "confidence",
+          "cacheState",
+          "degraded",
+          "entitlement"
+        ],
+        "properties": {
+          "provider": {
+            "type": "string",
+            "minLength": 1
+          },
+          "providerName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sourceUrl": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "attribution": {
+            "type": "string"
+          },
+          "observationTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ingestionTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "freshness": {
+            "type": "string"
+          },
+          "qualityState": {
+            "enum": [
+              "live-public",
+              "simulated",
+              "stale-last-known-good",
+              "unavailable"
+            ]
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "cacheState": {
+            "type": "string"
+          },
+          "degraded": {
+            "type": "boolean"
+          },
+          "fallbackReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "entitlement": {
+            "const": "public-read"
+          }
+        }
+      },
+      "PublicMarketAsset": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://qelly.example/schemas/public-market-asset.schema.json",
+        "title": "Qelly Public Market Asset",
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "canonicalId",
+          "symbol",
+          "name",
+          "assetClass",
+          "currency",
+          "price",
+          "change24h",
+          "source"
+        ],
+        "properties": {
+          "canonicalId": {
+            "type": "string",
+            "pattern": "^QI-"
+          },
+          "symbol": {
+            "type": "string",
+            "minLength": 1
+          },
+          "providerSymbol": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "assetClass": {
+            "const": "crypto"
+          },
+          "category": {
+            "type": "string"
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "price": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "change24h": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "open24h": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "high24h": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "low24h": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "volume24h": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "quoteVolume24h": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "marketCap": {
+            "type": "null"
+          },
+          "marketCapDefinition": {
+            "type": "string"
+          },
+          "source": {
+            "$ref": "public-market-source.schema.json"
+          }
+        }
+      },
+      "PublicMarketOverview": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://qelly.example/schemas/public-market-overview.schema.json",
+        "title": "Qelly Public Market Overview",
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "mode",
+          "truthBoundary",
+          "kpis",
+          "breadth",
+          "items",
+          "providerStatus",
+          "generatedAt"
+        ],
+        "properties": {
+          "mode": {
+            "enum": [
+              "live-public",
+              "mixed",
+              "simulated-fallback"
+            ]
+          },
+          "truthBoundary": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kpis": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "breadth": {
+            "type": "object",
+            "required": [
+              "advancers",
+              "decliners",
+              "unchanged"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "public-market-asset.schema.json"
+            }
+          },
+          "providerStatus": {
+            "type": "object"
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "correlationId": {
+            "type": "string"
+          }
+        }
+      },
+      "EvidenceExplainMoveInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "canonicalId"
+        ],
+        "properties": {
+          "canonicalId": {
+            "type": "string",
+            "pattern": "^QI-"
+          },
+          "thesis": {
+            "type": "string",
+            "maxLength": 1200
+          },
+          "consideredAction": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "horizon": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1500
+          }
+        }
+      },
+      "EvidenceNode": {
+        "type": "object",
+        "required": [
+          "nodeId",
+          "graphId",
+          "type",
+          "label",
+          "classification",
+          "createdAt",
+          "data"
+        ],
+        "properties": {
+          "nodeId": {
+            "type": "string"
+          },
+          "graphId": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "classification": {
+            "enum": [
+              "public",
+              "workspace",
+              "restricted"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "EvidenceEdge": {
+        "type": "object",
+        "required": [
+          "edgeId",
+          "graphId",
+          "type",
+          "fromNodeId",
+          "toNodeId",
+          "createdAt"
+        ],
+        "properties": {
+          "edgeId": {
+            "type": "string"
+          },
+          "graphId": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "fromNodeId": {
+            "type": "string"
+          },
+          "toNodeId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "evidence": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "EvidenceGraph": {
+        "type": "object",
+        "required": [
+          "graphId",
+          "title",
+          "canonicalId",
+          "nodes",
+          "edges",
+          "integrity",
+          "textAlternative",
+          "truthBoundary"
+        ],
+        "properties": {
+          "graphId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "canonicalId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvidenceNode"
+            }
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvidenceEdge"
+            }
+          },
+          "integrity": {
+            "type": "object"
+          },
+          "textAlternative": {
+            "type": "object"
+          },
+          "truthBoundary": {
+            "type": "string"
+          },
+          "idempotency": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

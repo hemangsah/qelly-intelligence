@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/converter-result.schema.json",
+  "title": "Non-Executable Converter Result",
+  "type": "object",
+  "required": ["conversionId", "from", "to", "fee", "slippage", "rate", "source", "observedAt", "receivedAt", "freshnessClass", "qualityFlags", "tradable"],
+  "properties": {
+    "conversionId": {"type": "string"},
+    "from": {"type": "object"},
+    "to": {"type": "object"},
+    "fee": {"type": "object"},
+    "slippage": {"type": "object"},
+    "rate": {"type": "string"},
+    "historicalAt": {"type": ["string", "null"]},
+    "source": {"type": "string"},
+    "observedAt": {"type": "string", "format": "date-time"},
+    "receivedAt": {"type": "string", "format": "date-time"},
+    "freshnessClass": {"const": "simulated"},
+    "qualityFlags": {"type": "array", "items": {"type": "string"}},
+    "tradable": {"const": false}
+  }
+}

@@ -1,0 +1,572 @@
+[
+  {
+    "id": "R001",
+    "route": "auth-login",
+    "label": "Secure Login",
+    "section": "Access",
+    "access": "public",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R002",
+    "route": "auth-register",
+    "label": "Create Organization",
+    "section": "Access",
+    "access": "public",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R003",
+    "route": "auth-recovery",
+    "label": "Recover Account",
+    "section": "Access",
+    "access": "public",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "A4"
+  },
+  {
+    "id": "R004",
+    "route": "account-session",
+    "label": "Session Center",
+    "section": "Account",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R005",
+    "route": "security-setup",
+    "label": "MFA Setup",
+    "section": "Account",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R006",
+    "route": "passkey-center",
+    "label": "Passkey Center",
+    "section": "Account",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "A3"
+  },
+  {
+    "id": "R007",
+    "route": "account-recovery",
+    "label": "Recovery Controls",
+    "section": "Account",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "A3"
+  },
+  {
+    "id": "R008",
+    "route": "secure-import-vault",
+    "label": "Secure Import Vault",
+    "section": "Operations",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R009",
+    "route": "delivery-operations",
+    "label": "Delivery Operations",
+    "section": "Operations",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "A3"
+  },
+  {
+    "id": "R010",
+    "route": "platform-readiness",
+    "label": "Platform Readiness",
+    "section": "Operations",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "A4"
+  },
+  {
+    "id": "R011",
+    "route": "live-markets",
+    "label": "Live Market Command",
+    "section": "Live",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R012",
+    "route": "theme-personas",
+    "label": "Theme Personas",
+    "section": "Experience",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R013",
+    "route": "feature-universe",
+    "label": "Feature Universe",
+    "section": "Experience",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R014",
+    "route": "about-qelly",
+    "label": "About Qelly",
+    "section": "Company",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R015",
+    "route": "discovery-hub",
+    "label": "Discovery Overview",
+    "section": "Discover",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R016",
+    "route": "asset-rankings",
+    "label": "Asset Rankings",
+    "section": "Discover",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R017",
+    "route": "search",
+    "label": "Universal Search",
+    "section": "Discover",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R018",
+    "route": "categories",
+    "label": "Categories",
+    "section": "Discover",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R019",
+    "route": "venues",
+    "label": "Venues",
+    "section": "Discover",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R020",
+    "route": "dex-discovery",
+    "label": "DEX Discovery",
+    "section": "Discover",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R021",
+    "route": "global-charts",
+    "label": "Global Charts",
+    "section": "Discover",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R022",
+    "route": "converter",
+    "label": "Converter",
+    "section": "Discover",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R023",
+    "route": "news-research",
+    "label": "News & Research",
+    "section": "Discover",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R024",
+    "route": "trust-center",
+    "label": "Trust Center",
+    "section": "Discover",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R025",
+    "route": "asset-intelligence",
+    "label": "Asset Intelligence",
+    "section": "Intelligence",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R026",
+    "route": "advanced-chart",
+    "label": "Advanced Chart Studio",
+    "section": "Intelligence",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R027",
+    "route": "fundamentals-estimates",
+    "label": "Fundamentals & Estimates",
+    "section": "Intelligence",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R028",
+    "route": "filing-workspace",
+    "label": "Filing Workspace",
+    "section": "Intelligence",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R029",
+    "route": "event-calendar",
+    "label": "Event Calendar",
+    "section": "Intelligence",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R030",
+    "route": "comparison-lab",
+    "label": "Comparison Lab",
+    "section": "Intelligence",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R031",
+    "route": "market",
+    "label": "Market Overview",
+    "section": "Intelligence",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R032",
+    "route": "rankings",
+    "label": "Legacy Rankings",
+    "section": "Intelligence",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R033",
+    "route": "asset",
+    "label": "Asset Dossier",
+    "section": "Workspace",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R034",
+    "route": "watchlist",
+    "label": "Watchlists",
+    "section": "Workspace",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R035",
+    "route": "alert-center",
+    "label": "Alert Rules",
+    "section": "Workspace",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R036",
+    "route": "notification-center",
+    "label": "Notifications",
+    "section": "Workspace",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R037",
+    "route": "screener-lab",
+    "label": "Screener Lab",
+    "section": "Workspace",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R038",
+    "route": "portfolio-analytics",
+    "label": "Portfolio Analytics",
+    "section": "Workspace",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R039",
+    "route": "research-workspace",
+    "label": "Research Workspace",
+    "section": "Workspace",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R040",
+    "route": "onboarding",
+    "label": "Guided Onboarding",
+    "section": "Workspace",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R041",
+    "route": "notification-schedules",
+    "label": "Notification Schedules",
+    "section": "Workspace",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R042",
+    "route": "formula-screener",
+    "label": "Formula Screener",
+    "section": "Workspace",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R043",
+    "route": "portfolio-attribution",
+    "label": "Portfolio Attribution",
+    "section": "Workspace",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R044",
+    "route": "import-center",
+    "label": "Import Center",
+    "section": "Workspace",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R045",
+    "route": "research-history",
+    "label": "Research History",
+    "section": "Workspace",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R046",
+    "route": "migration-center",
+    "label": "Migration Center",
+    "section": "Operations",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R047",
+    "route": "theme-lab",
+    "label": "Theme Laboratory",
+    "section": "Platform",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R048",
+    "route": "identity-access",
+    "label": "Identity & Access",
+    "section": "Control",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R049",
+    "route": "data-mesh",
+    "label": "Provider Runtime",
+    "section": "Control",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R050",
+    "route": "instrument-master",
+    "label": "Instrument Master",
+    "section": "Control",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R051",
+    "route": "timeseries-lab",
+    "label": "Time Series Lab",
+    "section": "Data Plane",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R052",
+    "route": "stream-operations",
+    "label": "Stream Operations",
+    "section": "Data Plane",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R053",
+    "route": "observability",
+    "label": "Observability Center",
+    "section": "Operations",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R054",
+    "route": "security-evidence",
+    "label": "Security Evidence",
+    "section": "Evidence",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R055",
+    "route": "category-detail",
+    "label": "Category Detail",
+    "section": "Detail",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R056",
+    "route": "venue-detail",
+    "label": "Venue Detail",
+    "section": "Detail",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  },
+  {
+    "id": "R057",
+    "route": "research-article",
+    "label": "Research Article",
+    "section": "Detail",
+    "access": "authenticated",
+    "release": "26.0.0",
+    "status": "implemented-local",
+    "introducedOrChanged": "inherited"
+  }
+]

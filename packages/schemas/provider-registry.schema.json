@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/provider-registry.schema.json",
+  "title": "Qelly Provider Registry Entry",
+  "type": "object",
+  "required": ["providerId", "displayName", "status", "selectionRole", "capabilities", "secretMaterialExposed", "breaker", "bulkhead", "quality", "metrics"],
+  "properties": {
+    "providerId": {"type": "string"},
+    "status": {"enum": ["enabled", "disabled", "planned", "deprecated"]},
+    "selectionRole": {"type": "string"},
+    "capabilities": {"type": "array", "items": {"type": "string"}},
+    "credentialReference": {"type": ["string", "null"]},
+    "secretMaterialExposed": {"const": false},
+    "breaker": {"type": "object"},
+    "bulkhead": {"type": "object"},
+    "quality": {"type": "object"},
+    "metrics": {"type": "object"}
+  },
+  "additionalProperties": true
+}

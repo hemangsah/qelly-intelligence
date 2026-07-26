@@ -1,0 +1,1153 @@
+{
+  "productVersion": "0.9.0-preview.1",
+  "generatedAt": "2026-07-25T16:12:53Z",
+  "method": "automated semantic, keyboard-entry and responsive regression; not an independent WCAG certification",
+  "routeCount": 19,
+  "viewportCount": 2,
+  "checks": 38,
+  "passed": 38,
+  "failed": 0,
+  "results": [
+    {
+      "route": "auth-login",
+      "viewport": "desktop",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": false,
+      "checks": {
+        "lang": "en",
+        "title": "Discovery Overview \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 63,
+        "reducedMotion": false
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "auth-register",
+      "viewport": "desktop",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": false,
+      "checks": {
+        "lang": "en",
+        "title": "Discovery Overview \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 63,
+        "reducedMotion": false
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "auth-recovery",
+      "viewport": "desktop",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": false,
+      "checks": {
+        "lang": "en",
+        "title": "Discovery Overview \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 63,
+        "reducedMotion": false
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "account-session",
+      "viewport": "desktop",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Session Center \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 67,
+        "reducedMotion": false
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "onboarding",
+      "viewport": "desktop",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Guided Onboarding \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 71,
+        "reducedMotion": false
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "discovery-hub",
+      "viewport": "desktop",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Discovery Overview \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 63,
+        "reducedMotion": false
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "live-markets",
+      "viewport": "desktop",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Live Market Command \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 83,
+        "reducedMotion": false
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "identity-access",
+      "viewport": "desktop",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Identity & Access \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 66,
+        "reducedMotion": false
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "security-evidence",
+      "viewport": "desktop",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Security Evidence \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 64,
+        "reducedMotion": false
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "security-setup",
+      "viewport": "desktop",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "MFA Setup \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 63,
+        "reducedMotion": false
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "secure-import-vault",
+      "viewport": "desktop",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Secure Import Vault \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 64,
+        "reducedMotion": false
+      },
+      "firstTabFocus": {
+        "tag": "INPUT",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "passkey-center",
+      "viewport": "desktop",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Passkey Center \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 63,
+        "reducedMotion": false
+      },
+      "firstTabFocus": {
+        "tag": "A",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "account-recovery",
+      "viewport": "desktop",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Recovery Controls \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 66,
+        "reducedMotion": false
+      },
+      "firstTabFocus": {
+        "tag": "INPUT",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "delivery-operations",
+      "viewport": "desktop",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Delivery Operations \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 67,
+        "reducedMotion": false
+      },
+      "firstTabFocus": {
+        "tag": "SELECT",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "platform-readiness",
+      "viewport": "desktop",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Platform Readiness \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 62,
+        "reducedMotion": false
+      },
+      "firstTabFocus": {
+        "tag": "A",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "secret-rotation",
+      "viewport": "desktop",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Secret Rotation \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 63,
+        "reducedMotion": false
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "quarantine-review",
+      "viewport": "desktop",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Quarantine Review \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 64,
+        "reducedMotion": false
+      },
+      "firstTabFocus": {
+        "tag": "INPUT",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "staging-assurance",
+      "viewport": "desktop",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Staging Assurance \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 65,
+        "reducedMotion": false
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "decision-provenance",
+      "viewport": "desktop",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Decision Provenance \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 71,
+        "reducedMotion": false
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "auth-login",
+      "viewport": "mobile",
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": false,
+      "checks": {
+        "lang": "en",
+        "title": "Discovery Overview \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 62,
+        "reducedMotion": true
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "auth-register",
+      "viewport": "mobile",
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": false,
+      "checks": {
+        "lang": "en",
+        "title": "Discovery Overview \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 62,
+        "reducedMotion": true
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "auth-recovery",
+      "viewport": "mobile",
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": false,
+      "checks": {
+        "lang": "en",
+        "title": "Discovery Overview \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 62,
+        "reducedMotion": true
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "account-session",
+      "viewport": "mobile",
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Session Center \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 66,
+        "reducedMotion": true
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "onboarding",
+      "viewport": "mobile",
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Guided Onboarding \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 70,
+        "reducedMotion": true
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "discovery-hub",
+      "viewport": "mobile",
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Discovery Overview \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 62,
+        "reducedMotion": true
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "live-markets",
+      "viewport": "mobile",
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Live Market Command \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 82,
+        "reducedMotion": true
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "identity-access",
+      "viewport": "mobile",
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Identity & Access \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 65,
+        "reducedMotion": true
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "security-evidence",
+      "viewport": "mobile",
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Security Evidence \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 63,
+        "reducedMotion": true
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "security-setup",
+      "viewport": "mobile",
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "MFA Setup \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 62,
+        "reducedMotion": true
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "secure-import-vault",
+      "viewport": "mobile",
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Secure Import Vault \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 63,
+        "reducedMotion": true
+      },
+      "firstTabFocus": {
+        "tag": "INPUT",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "passkey-center",
+      "viewport": "mobile",
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Passkey Center \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 62,
+        "reducedMotion": true
+      },
+      "firstTabFocus": {
+        "tag": "A",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "account-recovery",
+      "viewport": "mobile",
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Recovery Controls \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 65,
+        "reducedMotion": true
+      },
+      "firstTabFocus": {
+        "tag": "INPUT",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "delivery-operations",
+      "viewport": "mobile",
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Delivery Operations \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 66,
+        "reducedMotion": true
+      },
+      "firstTabFocus": {
+        "tag": "SELECT",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "platform-readiness",
+      "viewport": "mobile",
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Platform Readiness \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 61,
+        "reducedMotion": true
+      },
+      "firstTabFocus": {
+        "tag": "A",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "secret-rotation",
+      "viewport": "mobile",
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Secret Rotation \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 62,
+        "reducedMotion": true
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "quarantine-review",
+      "viewport": "mobile",
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Quarantine Review \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 63,
+        "reducedMotion": true
+      },
+      "firstTabFocus": {
+        "tag": "INPUT",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "staging-assurance",
+      "viewport": "mobile",
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Staging Assurance \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 64,
+        "reducedMotion": true
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    },
+    {
+      "route": "decision-provenance",
+      "viewport": "mobile",
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": true,
+      "checks": {
+        "lang": "en",
+        "title": "Decision Provenance \u00b7 Qelly Intelligence",
+        "skipLink": true,
+        "mainCount": 1,
+        "h1Count": 1,
+        "unlabeled": [],
+        "missingAlt": 0,
+        "positiveTabindex": 0,
+        "duplicateIds": [],
+        "overflow": 0,
+        "controls": 70,
+        "reducedMotion": true
+      },
+      "firstTabFocus": {
+        "tag": "BUTTON",
+        "id": null
+      },
+      "consoleErrors": [],
+      "criticalFailures": [],
+      "status": "passed"
+    }
+  ],
+  "status": "passed"
+}

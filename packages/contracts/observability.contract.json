@@ -1,0 +1,21 @@
+{
+  "contract": "qelly-observability",
+  "version": "1.0.0",
+  "release": "16.0.0",
+  "status": "implemented-local-foundation",
+  "signals": {
+    "metrics": ["HTTP request count", "status groups", "5xx error rate", "p50/p95/p99 latency", "provider quality and breaker state", "stream counters", "time-series inventory"],
+    "traces": ["trace ID", "correlation ID", "method", "route", "status", "duration", "service", "semantic HTTP attributes"],
+    "logs": ["timestamp", "level", "event", "service", "privacy-safe details"]
+  },
+  "dependencyHealth": ["identity runtime", "instrument master", "time-series store", "stream journal", "provider runtime", "audit ledger", "external telemetry export", "external providers"],
+  "sloCandidates": ["local API availability", "local API p95 latency", "stream gap-free delivery", "audit integrity"],
+  "privacy": {
+    "externalExport": false,
+    "secretValues": false,
+    "rawAuthenticationMaterial": false,
+    "retention": "bounded in-process ring buffers"
+  },
+  "authorization": "observability:read",
+  "productionDeferred": ["OpenTelemetry collector", "managed metrics backend", "central log archive", "distributed tracing", "paging and alert routing", "production SLO ownership", "capacity tests", "multi-region telemetry"]
+}

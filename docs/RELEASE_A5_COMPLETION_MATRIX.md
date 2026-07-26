@@ -1,0 +1,50 @@
+# Release A5 Completion Matrix
+
+Generated: 2026-07-25T13:44:18.744705Z
+
+## Frontend completed
+
+- 60 runnable frontend routes; three new A5 routes: Secret Rotation, Quarantine Review, Staging Assurance.
+- All 60 routes rendered at desktop and mobile: 120/120 passed, zero console errors, zero detected horizontal overflow.
+- 36/36 focused semantic, keyboard-entry, responsive, and reduced-motion checks passed.
+- Six operating personas, locked burgundy gradient, hybrid navigation, and inherited route behavior preserved.
+- A5 screens call real authenticated APIs and display ready, partial, deferred, error, empty, and loading boundaries.
+
+## Frontend remaining
+
+- Independent WCAG 2.2 AA audit plus NVDA, JAWS, VoiceOver, and TalkBack manual certification.
+- Firefox, Safari, physical mobile/tablet, 200% zoom, and 400% zoom certification.
+- Cloud staging deployment, CDN/SSR performance measurement, and hosted visual-regression service.
+- Native Figma-cloud publication requires an authenticated Figma integration.
+
+## Backend completed
+
+- 175 API contracts, 17 machine-readable contracts, and 59 JSON schemas.
+- 237/237 automated tests and 248/248 full-stack smoke requests passed.
+- Versioned AES-256-GCM keyring encryption, legacy-envelope compatibility, and audited MFA secret rewrap.
+- Manual quarantine, rescan/release, discard, deterministic local scanner, ClamAV adapter, and S3 quarantine contract.
+- HMAC-SHA256 delivery sandbox, concurrency/idempotency exercise, checksum backup/restore drill, and staging manifest.
+- Production fixture identity isolation, tenant scope, CSRF, idempotency, audit, and financial-safety locks retained.
+
+## Backend remaining
+
+- Execute PostgreSQL, Redis, MinIO/S3, ClamAV, KMS/HSM, email, and webhook integration tests in external staging.
+- Add automated key rotation through a real KMS and production scanner signature/freshness monitoring.
+- Run multi-host concurrency, load, stress, soak, chaos, PITR, disaster-recovery, and rollback exercises.
+- Complete independent penetration testing, privacy/compliance review, and production incident drills.
+
+## Measured totals
+
+- Frontend routes: 60
+- API contracts: 175
+- Contracts: 17
+- JSON schemas: 59
+- Automated tests: 237/237
+- Smoke requests: 248/248
+- Screen renders: 120/120
+- Accessibility checks: 36/36
+- Capability records: 101
+
+## Safety boundary
+
+Live trading, custody, transfers, withdrawals, private keys, seed phrases, and recovery phrases remain disabled. The staging files are deployment contracts, not evidence that external cloud infrastructure was provisioned.

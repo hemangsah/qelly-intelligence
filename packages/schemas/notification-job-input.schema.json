@@ -1,0 +1,14 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://qelly.local/schemas/notification-job-input.schema.json",
+  "title":"Qelly notification job request",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["title","body"],
+  "properties":{
+    "kind":{"type":"string","enum":["system","alert","research","provider","security","digest"]},
+    "title":{"type":"string","minLength":1,"maxLength":160},
+    "body":{"type":"string","minLength":1,"maxLength":4000},
+    "digest":{"type":"boolean"}
+  }
+}

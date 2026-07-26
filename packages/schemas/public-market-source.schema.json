@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.example/schemas/public-market-source.schema.json",
+  "title": "Qelly Public Market Source Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["provider", "providerName", "observationTime", "ingestionTime", "freshness", "qualityState", "confidence", "cacheState", "degraded", "entitlement"],
+  "properties": {
+    "provider": {"type": "string", "minLength": 1},
+    "providerName": {"type": "string", "minLength": 1},
+    "sourceUrl": {"type": ["string", "null"], "format": "uri"},
+    "attribution": {"type": "string"},
+    "observationTime": {"type": "string", "format": "date-time"},
+    "ingestionTime": {"type": "string", "format": "date-time"},
+    "freshness": {"type": "string"},
+    "qualityState": {"enum": ["live-public", "simulated", "stale-last-known-good", "unavailable"]},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "cacheState": {"type": "string"},
+    "degraded": {"type": "boolean"},
+    "fallbackReason": {"type": ["string", "null"]},
+    "entitlement": {"const": "public-read"}
+  }
+}

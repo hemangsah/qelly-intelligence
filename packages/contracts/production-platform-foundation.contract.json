@@ -1,0 +1,57 @@
+{
+  "contract": "qelly.production-platform-foundation",
+  "version": "23.0.0",
+  "releaseLabel": "Release A1",
+  "status": "implemented-local",
+  "capabilities": {
+    "authentication": {
+      "registration": true,
+      "passwordLogin": true,
+      "logout": true,
+      "sessionRotation": true,
+      "secureCookie": true,
+      "passwordHash": "scrypt",
+      "passkeys": "partial-contract",
+      "mfa": "partial-contract",
+      "accountRecovery": "deferred"
+    },
+    "persistence": {
+      "production": "postgresql-partial-contract",
+      "developmentTest": "sqlite",
+      "jsonStateMigration": "partial-contract",
+      "tenantAuthorization": true,
+      "databaseRls": "migration-contract"
+    },
+    "jobs": {
+      "production": "redis-signaled-persistent-database-jobs-partial-contract",
+      "developmentTest": "database queue",
+      "worker": true,
+      "notificationInApp": true,
+      "email": false,
+      "push": false,
+      "webhook": false
+    },
+    "operations": {
+      "health": true,
+      "readiness": true,
+      "migrationRunner": true,
+      "seedRunner": true,
+      "dockerCompose": true,
+      "observability": "in-process plus contract"
+    }
+  },
+  "security": {
+    "fixtureIdentityInProduction": false,
+    "rawPasswordsStored": false,
+    "rawSessionTokensStored": false,
+    "csrf": "session-derived",
+    "tenantIsolation": "application authorization implemented locally; PostgreSQL RLS is a deployment contract",
+    "liveTrading": false,
+    "transfers": false,
+    "withdrawals": false,
+    "privateKeys": false,
+    "recoveryPhrases": false
+  },
+  "truthBoundary": "PostgreSQL and Redis are required for production mode. SQLite and the database queue are explicit development/test adapters. Passkeys, MFA, email delivery, external object storage, licensed data and financial execution are not implemented in this release.",
+  "productionTarget": "PostgreSQL + Redis after live deployment integration validation"
+}

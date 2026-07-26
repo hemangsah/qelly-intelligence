@@ -1,0 +1,36 @@
+{
+  "contract":"qelly.release-a4.recovery-quarantine-readiness",
+  "version":"26.0.0",
+  "status":"implemented-local-production-foundation",
+  "accountRecovery":{
+    "request":"implemented-non-enumerating",
+    "challengeExpiryMinutes":15,
+    "maxAttempts":5,
+    "singleUse":true,
+    "passwordReset":true,
+    "sessionRevocation":true,
+    "externalDelivery":"adapter-dependent"
+  },
+  "outboundNetworkPolicy":{
+    "denyPrivateAddresses":true,
+    "denyLoopback":true,
+    "denyLinkLocal":true,
+    "denyMetadataHosts":true,
+    "httpsRequiredByDefault":true,
+    "originAllowlistSupported":true,
+    "redirectsBlocked":true
+  },
+  "secureImports":{
+    "localQuarantineBeforeRelease":true,
+    "s3ScanBeforeUpload":true,
+    "sha256Integrity":true,
+    "malwareScanner":"local-signature-foundation",
+    "productionScanner":"partial-contract"
+  },
+  "readiness":{
+    "runtimeEvidenceEndpoint":"/api/v1/platform/readiness",
+    "frontendRoute":"platform-readiness",
+    "cloudStaging":"deferred"
+  },
+  "safety":{"liveTrading":false,"custody":false,"transfers":false,"withdrawals":false,"privateKeys":false,"recoveryPhrases":false}
+}

@@ -1,0 +1,23 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://qelly.example/schemas/evidence-graph.schema.json",
+  "title":"Qelly Decision Provenance Graph",
+  "type":"object",
+  "additionalProperties":true,
+  "required":["graphId","tenantId","workspaceId","title","canonicalId","status","createdAt","updatedAt","nodes","edges","integrity","textAlternative","truthBoundary"],
+  "properties":{
+    "graphId":{"type":"string","pattern":"^graph-"},
+    "tenantId":{"type":"string","minLength":1},
+    "workspaceId":{"type":"string","minLength":1},
+    "title":{"type":"string","minLength":1},
+    "canonicalId":{"type":"string","pattern":"^QI-"},
+    "status":{"enum":["active","superseded","reviewed","closed"]},
+    "createdAt":{"type":"string","format":"date-time"},
+    "updatedAt":{"type":"string","format":"date-time"},
+    "truthBoundary":{"type":"string","minLength":1},
+    "nodes":{"type":"array","items":{"$ref":"evidence-node.schema.json"}},
+    "edges":{"type":"array","items":{"type":"object","required":["edgeId","graphId","type","fromNodeId","toNodeId","createdAt"],"properties":{"edgeId":{"type":"string","pattern":"^edge-"},"graphId":{"type":"string","pattern":"^graph-"},"type":{"enum":["sourced-from","normalized-from","reconciled-with","supports","contradicts","derived-from","triggered","affects","references","approved-by","supersedes","resulted-in","reviewed-by"]},"fromNodeId":{"type":"string","pattern":"^node-"},"toNodeId":{"type":"string","pattern":"^node-"},"createdAt":{"type":"string","format":"date-time"}}}},
+    "integrity":{"type":"object","required":["valid","nodeCount","edgeCount","orphanedEdgeIds"],"properties":{"valid":{"type":"boolean"},"nodeCount":{"type":"integer","minimum":0},"edgeCount":{"type":"integer","minimum":0},"orphanedEdgeIds":{"type":"array","items":{"type":"string"}}}},
+    "textAlternative":{"type":"object","required":["title","summary","steps"],"properties":{"title":{"type":"string"},"summary":{"type":"string"},"steps":{"type":"array","items":{"type":"string"}}}}
+  }
+}

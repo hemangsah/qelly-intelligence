@@ -1,0 +1,8 @@
+{
+  "liveTrading": false,
+  "assetTransfers": false,
+  "withdrawals": false,
+  "privateKeys": false,
+  "recoveryPhrases": false,
+  "sseQuotes": "simulated"
+}

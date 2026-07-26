@@ -1,0 +1,17 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "contract":"qelly-onboarding-automation-attribution",
+  "version":"21.0.0",
+  "status":"implemented-local-foundation",
+  "truthBoundary":"Deterministic local onboarding, manual schedule evaluation, safe formula screening, portfolio attribution, import staging, research snapshots and database migration planning. No production identity provisioning, external notification delivery, broker reconciliation or database migration execution.",
+  "capabilities":{
+    "onboarding":{"profile":true,"progress":true,"workspaceTemplates":true,"productionProvisioning":false,"externalProviderConnection":false},
+    "notificationScheduling":{"crud":true,"manualDueEvaluation":true,"inAppDelivery":true,"backgroundWorkers":false,"email":false,"sms":false,"push":false,"webhooks":false},
+    "formulaScreeners":{"safeParser":true,"arithmetic":true,"boundedFunctions":true,"dynamicCodeExecution":false,"distributedExecution":false},
+    "portfolioAttribution":{"holdingContribution":true,"assetClassContribution":true,"allocationSelectionApproximation":true,"brokerReconciliation":false,"investmentAdvice":false},
+    "imports":{"csvPreview":true,"validation":true,"localStaging":true,"productionMutation":false,"malwareScanning":false},
+    "researchVersions":{"manualCapture":true,"diff":true,"restore":true,"automaticSnapshots":false,"collaboration":false},
+    "databaseMigration":{"sqlContracts":true,"phasePlan":true,"statusApi":true,"execution":false,"rollbackRehearsal":false,"backupRestoreRehearsal":false}
+  },
+  "productionGates":["production-authentication","background-job-runner","external-notification-delivery","licensed-data","broker-reconciliation","file-upload-sandbox","production-database","secrets-manager","backup-and-restore","migration-rehearsal","financial-execution"]
+}

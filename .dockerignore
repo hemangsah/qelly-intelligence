@@ -1,0 +1,9 @@
+.git
+.github
+node_modules
+runtime
+preview
+validation
+*.zip
+*.sha256
+.DS_Store

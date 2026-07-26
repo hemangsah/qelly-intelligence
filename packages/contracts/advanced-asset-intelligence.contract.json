@@ -1,0 +1,18 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "contractId":"qelly.advanced-asset-intelligence",
+  "version":"19.0.0",
+  "status":"implemented-local-foundation",
+  "truthBoundary":{"externalProviders":false,"licensedFundamentals":false,"liveFilings":false,"liveEstimates":false,"investmentAdvice":false,"tradable":false},
+  "capabilities":{
+    "advancedChart":{"candlesticks":true,"volume":true,"multiPane":true,"comparison":true,"indicators":["SMA","EMA","Bollinger Bands","MACD","ATR","Stochastic"],"drawings":false,"replay":false,"realtime":false},
+    "financials":{"annual":true,"quarterly":true,"derivedMargins":true,"licensedStatements":false},
+    "earnings":{"history":true,"surprises":true,"consensusEstimates":true,"revisionBreadth":true,"liveAnalystFeed":false},
+    "corporateActions":{"dividends":true,"splits":true,"liveFeed":false},
+    "filingWorkspace":{"documentSections":true,"sectionSearch":true,"citations":true,"originalDocuments":false,"liveRegulatoryIngestion":false},
+    "eventCalendar":{"earnings":true,"corporateActions":true,"macroFixtures":true,"notifications":false,"calendarExport":false},
+    "comparisonLab":{"normalizedSeries":true,"crossAssetSnapshots":true,"maximumAssets":6},
+    "savedChartLayouts":{"workspaceScoped":true,"atomicLocalPersistence":true,"auditEvents":true,"cloudSync":false}
+  },
+  "productionGates":["licensed-market-and-fundamental-data","regulatory-document-ingestion","real-time-chart-stream","distributed-persistence","chart-drawing-engine","alert-delivery","financial-execution"]
+}

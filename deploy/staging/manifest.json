@@ -1,0 +1,36 @@
+{
+  "release": "27.0.0",
+  "name": "Qelly Intelligence Release A5 staging manifest",
+  "status": "deployment-contract",
+  "services": [
+    {"name":"web-api","image":"qelly-intelligence:27.0.0","replicas":2,"health":"/api/health","readiness":"/api/ready"},
+    {"name":"worker","image":"qelly-intelligence:27.0.0","command":["npm","run","worker"],"replicas":2},
+    {"name":"postgres","external":true,"required":true,"tls":true},
+    {"name":"redis","external":true,"required":true,"tls":true},
+    {"name":"s3-compatible-storage","external":true,"required":true,"serverSideEncryption":true},
+    {"name":"clamav","external":true,"required":true,"networkPolicy":"private-service-only"},
+    {"name":"kms","external":true,"required":true,"keyRotation":true},
+    {"name":"otel-collector","external":true,"required":true}
+  ],
+  "releaseGates": [
+    "database migrations",
+    "cross-tenant isolation",
+    "multi-instance idempotency",
+    "backup and restore exercise",
+    "malware scanner connectivity",
+    "outbound destination allowlist",
+    "external delivery sandbox",
+    "accessibility regression",
+    "performance budget",
+    "rollback evidence"
+  ],
+  "safety": {
+    "liveTrading": false,
+    "custody": false,
+    "transfers": false,
+    "withdrawals": false,
+    "privateKeys": false,
+    "recoveryPhrases": false
+  },
+  "truthBoundary": "This file is a staging deployment contract. It is not evidence that cloud resources are provisioned or that an external staging deployment has been executed."
+}

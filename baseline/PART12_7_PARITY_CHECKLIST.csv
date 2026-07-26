@@ -1,0 +1,11 @@
+Legacy Route,Legacy Name,Part 12.7 Evidence,Part 14 Status,Parity Gate,Live Trading Impact
+market,Market Overview,Runnable local route,implemented foundation,"Preserve source/freshness, route intent, keyboard access and safety boundary",None; live trading remains disabled
+rankings,Cross-Asset Rankings,Runnable local route,implemented foundation,"Preserve source/freshness, route intent, keyboard access and safety boundary",None; live trading remains disabled
+asset,Asset Intelligence Dossier,Runnable local route,implemented foundation,"Preserve source/freshness, route intent, keyboard access and safety boundary",None; live trading remains disabled
+portfolio,Portfolio Intelligence,Runnable local route,reference-only; migration deferred,"Preserve source/freshness, route intent, keyboard access and safety boundary",None; live trading remains disabled
+connections,Connections,Runnable local route,reference-only; migration deferred,"Preserve source/freshness, route intent, keyboard access and safety boundary",None; live trading remains disabled
+data-mesh,Data Mesh Control Center,Runnable local route,implemented foundation,"Preserve source/freshness, route intent, keyboard access and safety boundary",None; live trading remains disabled
+trading,Paper Trading Terminal,Runnable local route,reference-only; migration deferred,"Preserve source/freshness, route intent, keyboard access and safety boundary",None; live trading remains disabled
+research,Grounded Research,Runnable local route,reference-only; migration deferred,"Preserve source/freshness, route intent, keyboard access and safety boundary",None; live trading remains disabled
+enterprise,Enterprise Operations,Runnable local route,reference-only; migration deferred,"Preserve source/freshness, route intent, keyboard access and safety boundary",None; live trading remains disabled
+theme-lab,Theme and Workspace Laboratory,Runnable local route,implemented foundation,"Preserve source/freshness, route intent, keyboard access and safety boundary",None; live trading remains disabled

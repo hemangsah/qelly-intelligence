@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"SavedScreenerInput","type":"object","additionalProperties":false,"required":["name","definition"],"properties":{"name":{"type":"string","minLength":2,"maxLength":80},"definition":{"type":"object"}}}

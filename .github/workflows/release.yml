@@ -1,0 +1,54 @@
+name: Tagged Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Scan repository for committed secrets
+        run: npm run security:scan
+      - name: Test
+        run: npm test
+      - name: Build
+        run: npm run build
+      - name: Validate current product contract
+        run: npm run validate:product
+      - name: Rebuild current product inventory
+        run: npm run inventory:product
+      - name: Full-stack smoke
+        run: npm run smoke
+      - name: Release safety check
+        run: npm run release:check
+      - name: Package tracked source
+        shell: bash
+        run: |
+          archive="qelly-intelligence-${GITHUB_REF_NAME}.zip"
+          git archive --format=zip --prefix="qelly-intelligence-${GITHUB_REF_NAME}/" --output="$archive" "$GITHUB_SHA"
+          sha256sum "$archive" > "$archive.sha256"
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" qelly-intelligence-*.zip qelly-intelligence-*.sha256 --generate-notes --verify-tag

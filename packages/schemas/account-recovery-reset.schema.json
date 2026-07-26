@@ -1,0 +1,12 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"account-recovery-reset",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["challengeId","code","newPassword"],
+  "properties":{
+    "challengeId":{"type":"string","pattern":"^rcv_[a-f0-9]{32}$"},
+    "code":{"type":"string","pattern":"^[0-9]{6}$"},
+    "newPassword":{"type":"string","minLength":12,"maxLength":256}
+  }
+}

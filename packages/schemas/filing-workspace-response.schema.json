@@ -1,0 +1,7 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"qelly.filing-workspace-response",
+  "type":"object",
+  "required":["canonicalId","filingId","form","sections","document","truth"],
+  "properties":{"canonicalId":{"type":"string"},"filingId":{"type":"string"},"form":{"type":"string"},"filedAt":{"type":"string"},"periodEnd":{"type":"string"},"title":{"type":"string"},"sections":{"type":"array"},"document":{"type":"object"},"truth":{"type":"object"}}
+}

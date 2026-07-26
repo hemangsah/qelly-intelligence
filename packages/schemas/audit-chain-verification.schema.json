@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/audit-chain-verification.schema.json",
+  "title": "Qelly Audit Chain Verification",
+  "type": "object",
+  "required": ["valid", "records"],
+  "properties": {
+    "valid": {"type": "boolean"},
+    "records": {"type": "integer", "minimum": 0},
+    "headHash": {"type": "string"},
+    "invalidIndex": {"type": "integer", "minimum": 0},
+    "reason": {"type": "string"}
+  },
+  "additionalProperties": false
+}

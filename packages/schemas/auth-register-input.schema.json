@@ -1,0 +1,18 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://qelly.local/schemas/auth-register-input.schema.json",
+  "title":"Qelly production registration request",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["email","password","displayName","organizationName","workspaceName"],
+  "properties":{
+    "email":{"type":"string","minLength":5,"maxLength":254,"pattern":"^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"},
+    "password":{"type":"string","minLength":12,"maxLength":128},
+    "displayName":{"type":"string","minLength":2,"maxLength":80},
+    "organizationName":{"type":"string","minLength":2,"maxLength":120},
+    "workspaceName":{"type":"string","minLength":2,"maxLength":120},
+    "locale":{"type":"string","minLength":2,"maxLength":20},
+    "timezone":{"type":"string","minLength":1,"maxLength":80},
+    "baseCurrency":{"type":"string","pattern":"^[A-Z]{3}$"}
+  }
+}

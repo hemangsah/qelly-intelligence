@@ -1,0 +1,20 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile, readdir } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const readJson=async(relative)=>JSON.parse(await readFile(path.join(root,relative),'utf8'));
+
+test('Part 12.7 freeze checksum is verified and immutable', async()=>{const value=await readJson('baseline/PART12_7_FREEZE.json');assert.equal(value.checksumVerified,true);assert.equal(value.baselineImmutable,true);assert.equal(value.sha256,'d9f50268018a518bf9f7a624786d5b271c6066c01c2294aca003d5a761e00240');});
+test('Part 12.7 freeze retains ten legacy routes', async()=>{const value=await readJson('baseline/PART12_7_FREEZE.json');assert.equal(value.applicationRoutes.length,10);assert.ok(value.applicationRoutes.includes('theme-lab'));});
+test('Design token package has exactly six curated themes', async()=>{const value=await readJson('packages/design-tokens/tokens.semantic.json');assert.equal(Object.keys(value.themes).length,6);});
+test('Burgundy Command remains the default theme', async()=>{const value=await readJson('packages/design-tokens/tokens.semantic.json');assert.equal(value.defaultTheme,'burgundy-command');assert.equal(value.themes['burgundy-command'].chrome,'#2B0713');});
+test('Protected financial semantics cannot be omitted', async()=>{const value=await readJson('packages/design-tokens/tokens.semantic.json');for(const key of ['positive','negative','warning','critical','live','delayed','cached','stale','simulated','unavailable'])assert.ok(value.protectedSemantics[key]);assert.deepEqual(value.customizationGuard.protectedSemanticKeys,Object.keys(value.protectedSemantics));});
+test('Typography contract preserves readable body and table sizes', async()=>{const value=await readJson('packages/design-tokens/tokens.semantic.json');assert.ok(value.typography.bodyMinPx>=14);assert.ok(value.typography.tableMinPx>=13);assert.ok(value.typography.captionMinPx>=12);});
+test('Density contract exposes comfortable compact and terminal', async()=>{const value=await readJson('packages/design-tokens/tokens.semantic.json');assert.deepEqual(Object.keys(value.density),['comfortable','compact','terminal']);assert.ok(value.density.terminal.rowHeight>=32);});
+test('Motion contract includes a zero-duration reduced mode', async()=>{const value=await readJson('packages/design-tokens/tokens.semantic.json');assert.equal(value.motion.reduced.baseMs,0);});
+test('Theme profile schema locks protected semantics', async()=>{const value=await readJson('packages/design-tokens/theme-profile.schema.json');assert.equal(value.properties.protectedSemanticsLocked.const,true);assert.equal(value.properties.fontScale.minimum,.9);assert.equal(value.properties.fontScale.maximum,1.2);});
+test('All JSON schemas parse and declare draft 2020-12', async()=>{const files=(await readdir(path.join(root,'packages/schemas'))).filter((file)=>file.endsWith('.json'));assert.ok(files.length>=7);for(const file of files){const value=await readJson(`packages/schemas/${file}`);assert.equal(value.$schema,'https://json-schema.org/draft/2020-12/schema');}});
+test('Frontend source includes keyboard, reduced-motion and source-inspector evidence', async()=>{const [app,css,html]=await Promise.all([readFile(path.join(root,'apps/web/public/assets/app.js'),'utf8'),readFile(path.join(root,'apps/web/public/assets/app.css'),'utf8'),readFile(path.join(root,'apps/web/public/index.html'),'utf8')]);assert.ok((app+html).includes('Ctrl K'));assert.ok(html.includes('aria-keyshortcuts="Control+K Meta+K"'));assert.ok(app.includes('Source inspector'));assert.ok(css.includes('prefers-reduced-motion'));assert.ok(css.includes(':focus-visible'));});
+test('Frontend source has no external CDN or remote script dependency', async()=>{const html=await readFile(path.join(root,'apps/web/public/index.html'),'utf8');assert.equal(/https?:\/\//.test(html),false);assert.ok(html.includes('/assets/app.js'));});

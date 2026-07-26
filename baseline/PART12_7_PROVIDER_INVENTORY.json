@@ -1,0 +1,18 @@
+{
+  "implementedExternalReadOnly": [
+    "coingecko",
+    "frankfurter",
+    "coinbase-public",
+    "kraken-public",
+    "world-bank",
+    "fred",
+    "sec-edgar",
+    "openfigi",
+    "gdelt"
+  ],
+  "localFallback": "qelly-fallback",
+  "planned": [
+    "polymarket"
+  ],
+  "externalDefault": false
+}

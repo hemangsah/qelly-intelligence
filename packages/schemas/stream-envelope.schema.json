@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/stream-envelope.schema.json",
+  "title": "Qelly Stream Envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "channel",
+    "sequence",
+    "eventId",
+    "emittedAt",
+    "tenantId",
+    "workspaceId",
+    "freshnessClass",
+    "payload"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "channel": {
+      "type": "string"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "eventId": {
+      "type": "string"
+    },
+    "emittedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "tenantId": {
+      "type": "string"
+    },
+    "workspaceId": {
+      "type": "string"
+    },
+    "freshnessClass": {
+      "enum": [
+        "live",
+        "delayed",
+        "cached",
+        "stale",
+        "simulated",
+        "unavailable"
+      ]
+    },
+    "resumeToken": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "payload": {}
+  }
+}

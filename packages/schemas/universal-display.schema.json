@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/universal-display.schema.json",
+  "title": "Universal Display Value",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "canonicalEntityId",
+    "value",
+    "unit",
+    "source",
+    "observedAt",
+    "receivedAt",
+    "freshnessClass",
+    "confidence",
+    "qualityFlags",
+    "entitlementClass"
+  ],
+  "properties": {
+    "canonicalEntityId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "value": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "unit": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "currency": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1
+    },
+    "provider": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "venue": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "observedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "receivedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "freshnessClass": {
+      "enum": [
+        "live",
+        "delayed",
+        "cached",
+        "stale",
+        "simulated",
+        "unavailable"
+      ]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "qualityFlags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "entitlementClass": {
+      "type": "string"
+    },
+    "methodologyVersion": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

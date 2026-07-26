@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/observability-overview.schema.json",
+  "title": "Qelly local observability overview",
+  "type": "object",
+  "required": ["release", "mode", "dependencies", "slos", "metrics", "productionSloEnforcement", "externalTelemetryExport"],
+  "properties": {
+    "release": {"const": "16.0.0"},
+    "mode": {"const": "local-observability-foundation"},
+    "dependencies": {"type": "array", "items": {"type": "object", "required": ["id", "status", "mode"]}},
+    "slos": {"type": "array", "items": {"type": "object", "required": ["id", "target", "window", "actual", "status"]}},
+    "metrics": {"type": "object"},
+    "productionSloEnforcement": {"const": false},
+    "externalTelemetryExport": {"const": false}
+  },
+  "additionalProperties": false
+}

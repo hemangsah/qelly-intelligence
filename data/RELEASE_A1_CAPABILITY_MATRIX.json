@@ -1,0 +1,352 @@
+[
+  {
+    "capability_id": "A1-001",
+    "area": "Baseline",
+    "capability": "Part 22 full-stack checksum verified",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Verified SHA-256 d84c330...e4156 before modification."
+  },
+  {
+    "capability_id": "A1-002",
+    "area": "Baseline",
+    "capability": "Design atlases separated from runnable baseline",
+    "status": "implemented-local",
+    "evidence_or_boundary": "400/10,000-screen artifacts retained as design taxonomy only, not runtime proof."
+  },
+  {
+    "capability_id": "A1-003",
+    "area": "Defect",
+    "capability": "Expired fixture session renewal in local simulated mode",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Fixed inherited time-dependent failure without enabling fixture identity in production."
+  },
+  {
+    "capability_id": "A1-004",
+    "area": "Identity",
+    "capability": "User registration",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Database-backed registration creates user, organization, workspace, membership and signed cookie session."
+  },
+  {
+    "capability_id": "A1-005",
+    "area": "Identity",
+    "capability": "Password login",
+    "status": "implemented-local",
+    "evidence_or_boundary": "scrypt password verification; generic invalid-credential response."
+  },
+  {
+    "capability_id": "A1-006",
+    "area": "Identity",
+    "capability": "Secure logout",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Revokes database session and clears cookie."
+  },
+  {
+    "capability_id": "A1-007",
+    "area": "Identity",
+    "capability": "Session rotation",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Refresh endpoint revokes prior session and rotates signed cookie and CSRF."
+  },
+  {
+    "capability_id": "A1-008",
+    "area": "Identity",
+    "capability": "HttpOnly signed session cookie",
+    "status": "implemented-local",
+    "evidence_or_boundary": "SameSite=Lax, HttpOnly; Secure in NODE_ENV=production."
+  },
+  {
+    "capability_id": "A1-009",
+    "area": "Identity",
+    "capability": "Raw session token protection",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Only SHA-256 token hash is persisted."
+  },
+  {
+    "capability_id": "A1-010",
+    "area": "Identity",
+    "capability": "Password hashing",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Node scrypt with per-password salt and configurable pepper."
+  },
+  {
+    "capability_id": "A1-011",
+    "area": "Identity",
+    "capability": "Passkeys/WebAuthn",
+    "status": "partial-contract",
+    "evidence_or_boundary": "Architecture and future fields only; no ceremony endpoints."
+  },
+  {
+    "capability_id": "A1-012",
+    "area": "Identity",
+    "capability": "MFA and recovery",
+    "status": "partial-contract",
+    "evidence_or_boundary": "Deferred to a later dependency slice."
+  },
+  {
+    "capability_id": "A1-013",
+    "area": "Identity",
+    "capability": "Production fixture isolation",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Production-mode checks return 401 for no cookie and fixture headers."
+  },
+  {
+    "capability_id": "A1-014",
+    "area": "Tenancy",
+    "capability": "Organization/workspace persistence",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Transactional SQLite development adapter and PostgreSQL repository implementation."
+  },
+  {
+    "capability_id": "A1-015",
+    "area": "Tenancy",
+    "capability": "Tenant authorization",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Authenticated context is scoped to user membership, organization and workspace."
+  },
+  {
+    "capability_id": "A1-016",
+    "area": "Database",
+    "capability": "SQLite development/test adapter",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Explicitly rejected in production unless unsafe override is intentionally enabled."
+  },
+  {
+    "capability_id": "A1-017",
+    "area": "Database",
+    "capability": "PostgreSQL repository",
+    "status": "partial-contract",
+    "evidence_or_boundary": "Wire client, schema and repository implemented; no live PostgreSQL daemon was available in this environment."
+  },
+  {
+    "capability_id": "A1-018",
+    "area": "Database",
+    "capability": "PostgreSQL migrations",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Release A1 SQL migration packaged and syntax/manual review covered; live apply remains environment-dependent."
+  },
+  {
+    "capability_id": "A1-019",
+    "area": "Database",
+    "capability": "PostgreSQL RLS",
+    "status": "partial-contract",
+    "evidence_or_boundary": "Policies are migration contracts; dedicated application-role enforcement requires deployment validation."
+  },
+  {
+    "capability_id": "A1-020",
+    "area": "Database",
+    "capability": "JSON-state migration",
+    "status": "partial-contract",
+    "evidence_or_boundary": "Migration plan exists; inherited domain JSON stores are not all converted in A1."
+  },
+  {
+    "capability_id": "A1-021",
+    "area": "Jobs",
+    "capability": "Persistent job records",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Jobs persist transactionally in database with retry/dead-letter fields."
+  },
+  {
+    "capability_id": "A1-022",
+    "area": "Jobs",
+    "capability": "Redis-signaled production queue",
+    "status": "partial-contract",
+    "evidence_or_boundary": "RESP client and queue adapter implemented; no live Redis daemon was available for integration execution."
+  },
+  {
+    "capability_id": "A1-023",
+    "area": "Jobs",
+    "capability": "Database development queue",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Used for tests and offline simulation."
+  },
+  {
+    "capability_id": "A1-024",
+    "area": "Jobs",
+    "capability": "Worker process",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Reserves, completes, retries and dead-letters jobs."
+  },
+  {
+    "capability_id": "A1-025",
+    "area": "Notifications",
+    "capability": "In-app notification job",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Worker creates replay-safe notification records from queued jobs."
+  },
+  {
+    "capability_id": "A1-026",
+    "area": "Notifications",
+    "capability": "Email/push/webhook delivery",
+    "status": "missing",
+    "evidence_or_boundary": "No external delivery adapters enabled."
+  },
+  {
+    "capability_id": "A1-027",
+    "area": "Operations",
+    "capability": "Health endpoint",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Reports release, dependency modes and financial safety boundary."
+  },
+  {
+    "capability_id": "A1-028",
+    "area": "Operations",
+    "capability": "Readiness endpoint",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Returns 503 when configured dependencies are not ready."
+  },
+  {
+    "capability_id": "A1-029",
+    "area": "Operations",
+    "capability": "Migration runner",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Applies SQL migration files through PostgreSQL client when configured."
+  },
+  {
+    "capability_id": "A1-030",
+    "area": "Operations",
+    "capability": "Seed runner",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Creates initial production-foundation account from environment inputs."
+  },
+  {
+    "capability_id": "A1-031",
+    "area": "Operations",
+    "capability": "Docker Compose production simulation",
+    "status": "partial-contract",
+    "evidence_or_boundary": "PostgreSQL, Redis, migration, API and worker topology packaged; daemon execution unavailable here."
+  },
+  {
+    "capability_id": "A1-032",
+    "area": "Frontend",
+    "capability": "Secure login screen",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Responsive sovereign-burgundy authentication UI."
+  },
+  {
+    "capability_id": "A1-033",
+    "area": "Frontend",
+    "capability": "Registration and organization creation screen",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Creates account, organization and workspace."
+  },
+  {
+    "capability_id": "A1-034",
+    "area": "Frontend",
+    "capability": "Account session screen",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Shows authenticated principal, organization, workspace, session and safety state."
+  },
+  {
+    "capability_id": "A1-035",
+    "area": "Frontend",
+    "capability": "Authenticated/anonymous boot routing",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Anonymous users are directed to login; authenticated users retain existing routes."
+  },
+  {
+    "capability_id": "A1-036",
+    "area": "Security",
+    "capability": "Session-derived CSRF",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Required for cookie-authenticated mutations."
+  },
+  {
+    "capability_id": "A1-037",
+    "area": "Security",
+    "capability": "Tamper-evident audit integration",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Registration, login, logout, rotation and job queue events append to inherited recursive audit ledger."
+  },
+  {
+    "capability_id": "A1-038",
+    "area": "Security",
+    "capability": "Secrets vault/KMS/encryption at rest",
+    "status": "partial-contract",
+    "evidence_or_boundary": "Deployment architecture only; no cloud KMS integration."
+  },
+  {
+    "capability_id": "A1-039",
+    "area": "Safety",
+    "capability": "Live trading",
+    "status": "disabled-for-safety",
+    "evidence_or_boundary": "No live order endpoint."
+  },
+  {
+    "capability_id": "A1-040",
+    "area": "Safety",
+    "capability": "Transfers and withdrawals",
+    "status": "disabled-for-safety",
+    "evidence_or_boundary": "No transfer or withdrawal endpoint."
+  },
+  {
+    "capability_id": "A1-041",
+    "area": "Safety",
+    "capability": "Private keys and recovery phrases",
+    "status": "disabled-for-safety",
+    "evidence_or_boundary": "Not requested, stored or transmitted."
+  },
+  {
+    "capability_id": "A1-042",
+    "area": "Provider",
+    "capability": "Read-only public market data",
+    "status": "implemented-local",
+    "evidence_or_boundary": "Inherited Binance/CoinDCX public read-only adapters with deterministic fallback."
+  },
+  {
+    "capability_id": "A1-043",
+    "area": "Provider",
+    "capability": "Licensed data",
+    "status": "blocked-by-license",
+    "evidence_or_boundary": "No licensed feed credentials or redistribution rights configured."
+  },
+  {
+    "capability_id": "A1-044",
+    "area": "Testing",
+    "capability": "Automated regression suite",
+    "status": "implemented-local",
+    "evidence_or_boundary": "207/207 tests passed on finished source before packaging."
+  },
+  {
+    "capability_id": "A1-045",
+    "area": "Testing",
+    "capability": "Full-stack smoke",
+    "status": "implemented-local",
+    "evidence_or_boundary": "222/222 requests passed."
+  },
+  {
+    "capability_id": "A1-046",
+    "area": "Testing",
+    "capability": "Changed-route browser render",
+    "status": "implemented-local",
+    "evidence_or_boundary": "8/8 desktop/mobile renders passed with zero console errors."
+  },
+  {
+    "capability_id": "A1-047",
+    "area": "Accessibility",
+    "capability": "Changed and representative route regression",
+    "status": "implemented-local",
+    "evidence_or_boundary": "16/16 semantic, keyboard-entry and responsive checks passed; not independent certification."
+  },
+  {
+    "capability_id": "A1-048",
+    "area": "Performance",
+    "capability": "Load/stress/soak",
+    "status": "missing",
+    "evidence_or_boundary": "Not executed in A1; performance report documents measured local timings only."
+  },
+  {
+    "capability_id": "A1-049",
+    "area": "Deployment",
+    "capability": "Staging/production deployment",
+    "status": "blocked-by-credentials",
+    "evidence_or_boundary": "No cloud account or deployment target connected."
+  },
+  {
+    "capability_id": "A1-050",
+    "area": "GitHub",
+    "capability": "Direct remote push",
+    "status": "blocked-by-credentials",
+    "evidence_or_boundary": "Repository remains GitHub-ready; no connector or credentials available."
+  }
+]

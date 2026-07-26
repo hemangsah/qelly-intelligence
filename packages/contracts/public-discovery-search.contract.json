@@ -1,0 +1,108 @@
+{
+  "contract": "qelly-public-discovery-search",
+  "version": "1.0.0",
+  "release": "17.0.0",
+  "status": "implemented-local-foundation",
+  "truthBoundary": "All public discovery values are deterministic, delayed, cached or simulated fixture evidence. No external or licensed provider call is enabled.",
+  "capabilities": {
+    "overview": [
+      "global KPIs",
+      "cross-asset movers",
+      "category heatmap",
+      "news",
+      "events"
+    ],
+    "rankings": [
+      "cross-asset filters",
+      "asset-class filters",
+      "server sorting",
+      "cursor pagination",
+      "saved screens",
+      "compare tray"
+    ],
+    "search": [
+      "assets",
+      "categories",
+      "venues",
+      "DEX pairs",
+      "news",
+      "research",
+      "methodologies",
+      "commands",
+      "facets",
+      "suggestions"
+    ],
+    "discovery": [
+      "categories",
+      "category detail",
+      "venue ranking and detail",
+      "DEX discovery and pair detail",
+      "prediction markets",
+      "global charts"
+    ],
+    "content": [
+      "news hub",
+      "research collections",
+      "citation-bearing article detail"
+    ],
+    "trust": [
+      "methodology versions",
+      "coverage matrix",
+      "status components",
+      "incidents",
+      "security notices",
+      "attestations"
+    ],
+    "converter": [
+      "multi-asset rates",
+      "historical timestamp field",
+      "fee simulation",
+      "slippage simulation",
+      "non-executable result"
+    ]
+  },
+  "standards": {
+    "pagination": "opaque cursor, maximum 100 records",
+    "monetaryPrecision": "decimal-compatible strings at API boundaries where calculated",
+    "unavailableData": "null or unavailable, never fabricated zero",
+    "lineage": [
+      "source",
+      "observedAt",
+      "receivedAt",
+      "freshnessClass",
+      "qualityFlags",
+      "methodologyVersion where calculated"
+    ],
+    "searchRanking": "deterministic weighted text relevance with stable tie-breaking",
+    "mutations": "CSRF protected, tenant/workspace scoped, idempotent and audited"
+  },
+  "savedState": {
+    "persistence": "atomic local JSON",
+    "objects": [
+      "saved searches",
+      "saved screens",
+      "compare tray"
+    ],
+    "cloudSync": false
+  },
+  "productionDeferred": [
+    "external public search index",
+    "licensed exchange and market data",
+    "official prediction-market adapters",
+    "live DEX/on-chain ingestion",
+    "licensed news and filings feeds",
+    "production content rights and export rights",
+    "personalized public modules",
+    "production search relevance evaluation",
+    "production status and incident automation"
+  ],
+  "productionGates": {
+    "externalProvidersEnabled": false,
+    "licensedFeedsEnabled": false,
+    "liveTradingEnabled": false,
+    "transfersEnabled": false,
+    "withdrawalsEnabled": false,
+    "privateKeysEnabled": false,
+    "recoveryPhrasesEnabled": false
+  }
+}

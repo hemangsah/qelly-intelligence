@@ -1,0 +1,8 @@
+a11y server http://127.0.0.1:45383
+{
+  "productVersion": "0.9.0-preview.1",
+  "checks": 38,
+  "passed": 38,
+  "failed": 0,
+  "failures": []
+}

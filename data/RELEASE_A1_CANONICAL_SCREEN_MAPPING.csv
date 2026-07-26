@@ -1,0 +1,7 @@
+canonical_id,route,screen,mapping_status,notes
+Q-AUTH-001,auth-login,Secure Login,implemented,Release A1 route
+Q-AUTH-002,auth-register,Create Organization,implemented,Release A1 route
+Q-ACCOUNT-001,account-session,Account and Session,implemented,Release A1 route
+Q-ONBOARD-001,onboarding,Guided Onboarding,mapped,Inherited onboarding now behind production cookie identity
+Q-OPS-001,identity-access,Identity and Access,mapped,Inherited operations route
+Q-OPS-002,security-evidence,Security Evidence,mapped,Inherited audit/security route

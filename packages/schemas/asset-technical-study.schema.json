@@ -1,0 +1,13 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://qelly.local/schemas/asset-technical-study.schema.json",
+  "title":"Asset technical study response",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["canonicalId","study","parameters","points","truth"],
+  "properties":{
+    "canonicalId":{"type":"string","pattern":"^QI-[A-Z0-9-]+$"},"study":{"type":"object"},"parameters":{"type":"object"},
+    "points":{"type":"array","items":{"type":"object","required":["at","close","value"],"properties":{"at":{"type":"string","format":"date-time"},"close":{"type":"number"},"value":{"type":["number","null"]}},"additionalProperties":false}},
+    "truth":{"type":"object"}
+  }
+}

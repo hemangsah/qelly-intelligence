@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/audit-event.schema.json",
+  "title": "Qelly Audit Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eventId",
+    "eventType",
+    "occurredAt",
+    "actor",
+    "tenantId",
+    "workspaceId",
+    "correlationId",
+    "outcome",
+    "classification",
+    "details"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string"
+    },
+    "eventType": {
+      "type": "string"
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "actor": {
+      "type": "object",
+      "required": [
+        "type",
+        "id"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "user",
+            "service",
+            "system"
+          ]
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "tenantId": {
+      "type": "string"
+    },
+    "workspaceId": {
+      "type": "string"
+    },
+    "correlationId": {
+      "type": "string"
+    },
+    "outcome": {
+      "enum": [
+        "success",
+        "failure",
+        "denied"
+      ]
+    },
+    "classification": {
+      "enum": [
+        "public",
+        "internal",
+        "confidential",
+        "restricted"
+      ]
+    },
+    "details": {
+      "type": "object"
+    }
+  }
+}

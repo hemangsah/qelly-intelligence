@@ -1,0 +1,43 @@
+{
+  "contractVersion": "2.0.0",
+  "status": "persistent-local-foundation-implemented-production-gated",
+  "transactionalMasterImplemented": false,
+  "localAtomicPersistenceImplemented": true,
+  "productionReferenceDataImplemented": false,
+  "boundary": "Part 15 implements a persistent atomic-JSON canonical instrument foundation with change history and governed local mutations. It is not a production relational system of record and does not claim licensed reference-data completeness.",
+  "canonicalIdentity": {"prefix": "QI-", "immutableId": true, "symbolIsNotIdentity": true, "symbolHistoryRequired": true},
+  "entities": ["Instrument", "Venue", "TradingPair", "Issuer", "LegalEntity", "Chain", "Contract", "Currency", "Calendar", "CorporateAction", "TaxonomyNode", "Identifier"],
+  "relationships": ["underlying", "wrapped", "tokenized", "constituent", "tracks-index", "issuer", "derivative-of", "pair-base", "pair-quote", "share-class"],
+  "normalizationRules": ["currency ISO 4217 where applicable", "decimal strings for high precision", "timezone explicit", "venue MIC or governed Qelly code", "missing values remain null or unavailable", "identifier provenance retained"],
+  "implementedInPart15": [
+    "immutable QI canonical IDs",
+    "cross-asset taxonomy",
+    "venue master",
+    "trading-pair relationships",
+    "issuer and legal-entity references",
+    "corporate identifiers",
+    "simulated contract-address registry entry",
+    "underlying, tokenized, issuer, pair and index-tracking relationships",
+    "delisted-state field",
+    "symbol-change history",
+    "exchange calendars and market sessions",
+    "currency and precision master",
+    "geography, sector and industry fields",
+    "atomic persistence",
+    "revisioned change history",
+    "search, detail, relationships and deterministic resolution",
+    "high-assurance idempotent symbol and relationship governance endpoints"
+  ],
+  "implementedEndpoints": [
+    "GET /api/v1/instruments/summary",
+    "GET /api/v1/instruments/search",
+    "GET /api/v1/instruments/:canonicalId",
+    "GET /api/v1/instruments/:canonicalId/relationships",
+    "POST /api/v1/instruments/resolve",
+    "POST /api/v1/instruments/:canonicalId/symbol-history",
+    "POST /api/v1/instruments/:canonicalId/relationships"
+  ],
+  "plannedProductionPersistence": ["transactional relational store", "database constraints", "temporal tables or equivalent history", "outbox events", "review workflow for conflicts", "maker-checker approvals", "licensed reference-data feeds"],
+  "events": ["instrument.created.v1", "instrument.updated.v1", "symbol.changed.v1", "relationship.created.v1", "corporate-action.recorded.v1"],
+  "releaseGates": ["production duplicate detection", "symbol-history tests", "identifier conflict workflow", "corporate-action tests", "calendar and precision validation", "entitlement-aware export", "licensed-data rights review"]
+}

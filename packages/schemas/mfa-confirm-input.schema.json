@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://qelly.local/schemas/mfa-confirm-input.schema.json","title":"MFA confirmation input","type":"object","additionalProperties":false,"required":["code"],"properties":{"code":{"type":"string","pattern":"^[0-9]{6}$"}}}

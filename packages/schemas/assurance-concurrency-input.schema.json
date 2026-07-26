@@ -1,0 +1,9 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://qelly.local/schemas/assurance-concurrency-input.schema.json",
+  "title":"Assurance concurrency exercise input",
+  "type":"object",
+  "additionalProperties":false,
+  "properties":{"iterations":{"type":"integer","minimum":2,"maximum":64}},
+  "required":[]
+}

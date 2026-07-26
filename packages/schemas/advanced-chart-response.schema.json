@@ -1,0 +1,11 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"qelly.advanced-chart-response",
+  "type":"object",
+  "required":["canonicalId","bars","studies","panes","metadata","truth"],
+  "properties":{
+    "canonicalId":{"type":"string"},"symbol":{"type":"string"},"range":{"type":"string"},"interval":{"type":"string"},"adjusted":{"type":"boolean"},
+    "bars":{"type":"array","minItems":1,"items":{"type":"object","required":["at","open","high","low","close","volume"]}},
+    "studies":{"type":"object"},"panes":{"type":"array"},"capabilities":{"type":"object"},"metadata":{"type":"object"},"truth":{"type":"object"}
+  }
+}

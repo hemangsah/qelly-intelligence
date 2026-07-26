@@ -1,0 +1,1552 @@
+
+> qelly-intelligence@0.9.0-preview.1 check
+> npm run typecheck && npm run lint && npm run env:check && npm test && npm run build
+
+
+> qelly-intelligence@0.9.0-preview.1 typecheck
+> node scripts/typecheck.mjs
+
+{
+  "status": "typecheck-passed",
+  "files": 145
+}
+
+> qelly-intelligence@0.9.0-preview.1 lint
+> node scripts/lint.mjs
+
+{
+  "status": "lint-passed",
+  "files": 240
+}
+
+> qelly-intelligence@0.9.0-preview.1 env:check
+> node scripts/env-check.mjs
+
+{
+  "status": "environment-valid",
+  "production": false,
+  "publicMarketData": "configured-by-env-file",
+  "safetyFlags": "disabled"
+}
+
+> qelly-intelligence@0.9.0-preview.1 test
+> node --test tests/*.test.mjs
+
+TAP version 13
+# Subtest: identity contract declares local runtime implemented and production identity gated
+ok 1 - identity contract declares local runtime implemented and production identity gated
+  ---
+  duration_ms: 5.893403
+  type: 'test'
+  ...
+# Subtest: identity contract preserves passkey OIDC and MFA production architecture
+ok 2 - identity contract preserves passkey OIDC and MFA production architecture
+  ---
+  duration_ms: 2.732462
+  type: 'test'
+  ...
+# Subtest: authorization is tenant-aware deny-by-default RBAC plus ABAC
+ok 3 - authorization is tenant-aware deny-by-default RBAC plus ABAC
+  ---
+  duration_ms: 2.085147
+  type: 'test'
+  ...
+# Subtest: identity contract forbids browser secrets private keys and recovery phrases
+ok 4 - identity contract forbids browser secrets private keys and recovery phrases
+  ---
+  duration_ms: 1.019975
+  type: 'test'
+  ...
+# Subtest: identity contract identifies implemented endpoints and production-deferred endpoints
+ok 5 - identity contract identifies implemented endpoints and production-deferred endpoints
+  ---
+  duration_ms: 1.319177
+  type: 'test'
+  ...
+# Subtest: provider contract declares deterministic local runtime and external production disabled
+ok 6 - provider contract declares deterministic local runtime and external production disabled
+  ---
+  duration_ms: 0.740385
+  type: 'test'
+  ...
+# Subtest: provider runtime policies include timeout retry breaker bulkhead cache dedupe and quota
+ok 7 - provider runtime policies include timeout retry breaker bulkhead cache dedupe and quota
+  ---
+  duration_ms: 1.399877
+  type: 'test'
+  ...
+# Subtest: provider entitlements are checked at all downstream boundaries
+ok 8 - provider entitlements are checked at all downstream boundaries
+  ---
+  duration_ms: 1.968059
+  type: 'test'
+  ...
+# Subtest: instrument master treats symbol as mutable alias and QI ID as immutable
+ok 9 - instrument master treats symbol as mutable alias and QI ID as immutable
+  ---
+  duration_ms: 1.673294
+  type: 'test'
+  ...
+# Subtest: instrument master declares local atomic persistence without production reference-data claim
+ok 10 - instrument master declares local atomic persistence without production reference-data claim
+  ---
+  duration_ms: 1.975122
+  type: 'test'
+  ...
+# Subtest: instrument relationships cover cross-asset linkage
+ok 11 - instrument relationships cover cross-asset linkage
+  ---
+  duration_ms: 3.56637
+  type: 'test'
+  ...
+# Subtest: entitlement engine contract is server-side and deny by default
+ok 12 - entitlement engine contract is server-side and deny by default
+  ---
+  duration_ms: 1.049692
+  type: 'test'
+  ...
+# Subtest: all schemas parse as JSON Schema draft 2020-12
+ok 13 - all schemas parse as JSON Schema draft 2020-12
+  ---
+  duration_ms: 47.04977
+  type: 'test'
+  ...
+# Subtest: new Part 15 evidence schemas exist
+ok 14 - new Part 15 evidence schemas exist
+  ---
+  duration_ms: 4.44855
+  type: 'test'
+  ...
+# Subtest: universal display schema requires source freshness confidence and entitlement
+ok 15 - universal display schema requires source freshness confidence and entitlement
+  ---
+  duration_ms: 1.688825
+  type: 'test'
+  ...
+# Subtest: instrument schema requires canonical QI identifier
+ok 16 - instrument schema requires canonical QI identifier
+  ---
+  duration_ms: 1.522375
+  type: 'test'
+  ...
+# Subtest: Part 16 time-series contract requires canonical identity decimal strings UTC and governed mutation
+ok 17 - Part 16 time-series contract requires canonical identity decimal strings UTC and governed mutation
+  ---
+  duration_ms: 1.859666
+  type: 'test'
+  ...
+# Subtest: Part 16 streaming contract includes snapshot delta heartbeat replay resume and gap recovery
+ok 18 - Part 16 streaming contract includes snapshot delta heartbeat replay resume and gap recovery
+  ---
+  duration_ms: 0.618066
+  type: 'test'
+  ...
+# Subtest: Part 16 observability contract keeps telemetry local and production gates visible
+ok 19 - Part 16 observability contract keeps telemetry local and production gates visible
+  ---
+  duration_ms: 0.462593
+  type: 'test'
+  ...
+# Subtest: Part 16 evidence schemas exist
+ok 20 - Part 16 evidence schemas exist
+  ---
+  duration_ms: 1.731844
+  type: 'test'
+  ...
+# (node:29541) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: decision provenance store persists an integrity-valid source-to-decision chain
+ok 21 - decision provenance store persists an integrity-valid source-to-decision chain
+  ---
+  duration_ms: 39.678743
+  type: 'test'
+  ...
+# Subtest: decision provenance store enforces tenant and workspace isolation
+ok 22 - decision provenance store enforces tenant and workspace isolation
+  ---
+  duration_ms: 7.749825
+  type: 'test'
+  ...
+# Subtest: decision provenance API creates, reads, traverses and exports a governed package
+ok 23 - decision provenance API creates, reads, traverses and exports a governed package
+  ---
+  duration_ms: 223.679864
+  type: 'test'
+  ...
+# Subtest: frontend registers the Decision Provenance route and real API consumer
+ok 24 - frontend registers the Decision Provenance route and real API consumer
+  ---
+  duration_ms: 2.798014
+  type: 'test'
+  ...
+# Subtest: Part 12.7 freeze checksum is verified and immutable
+ok 25 - Part 12.7 freeze checksum is verified and immutable
+  ---
+  duration_ms: 6.780789
+  type: 'test'
+  ...
+# Subtest: Part 12.7 freeze retains ten legacy routes
+ok 26 - Part 12.7 freeze retains ten legacy routes
+  ---
+  duration_ms: 3.033819
+  type: 'test'
+  ...
+# Subtest: Design token package has exactly six curated themes
+ok 27 - Design token package has exactly six curated themes
+  ---
+  duration_ms: 2.475898
+  type: 'test'
+  ...
+# Subtest: Burgundy Command remains the default theme
+ok 28 - Burgundy Command remains the default theme
+  ---
+  duration_ms: 1.498569
+  type: 'test'
+  ...
+# Subtest: Protected financial semantics cannot be omitted
+ok 29 - Protected financial semantics cannot be omitted
+  ---
+  duration_ms: 2.847358
+  type: 'test'
+  ...
+# Subtest: Typography contract preserves readable body and table sizes
+ok 30 - Typography contract preserves readable body and table sizes
+  ---
+  duration_ms: 2.16179
+  type: 'test'
+  ...
+# Subtest: Density contract exposes comfortable compact and terminal
+ok 31 - Density contract exposes comfortable compact and terminal
+  ---
+  duration_ms: 2.020088
+  type: 'test'
+  ...
+# Subtest: Motion contract includes a zero-duration reduced mode
+ok 32 - Motion contract includes a zero-duration reduced mode
+  ---
+  duration_ms: 1.348287
+  type: 'test'
+  ...
+# Subtest: Theme profile schema locks protected semantics
+ok 33 - Theme profile schema locks protected semantics
+  ---
+  duration_ms: 3.583018
+  type: 'test'
+  ...
+# Subtest: All JSON schemas parse and declare draft 2020-12
+ok 34 - All JSON schemas parse and declare draft 2020-12
+  ---
+  duration_ms: 46.489905
+  type: 'test'
+  ...
+# Subtest: Frontend source includes keyboard, reduced-motion and source-inspector evidence
+ok 35 - Frontend source includes keyboard, reduced-motion and source-inspector evidence
+  ---
+  duration_ms: 3.099689
+  type: 'test'
+  ...
+# Subtest: Frontend source has no external CDN or remote script dependency
+ok 36 - Frontend source has no external CDN or remote script dependency
+  ---
+  duration_ms: 0.716069
+  type: 'test'
+  ...
+# (node:29573) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: recursive canonicalization detects nested actor tampering
+ok 37 - recursive canonicalization detects nested actor tampering
+  ---
+  duration_ms: 14.933674
+  type: 'test'
+  ...
+# Subtest: recursive canonicalization detects deeply nested details tampering
+ok 38 - recursive canonicalization detects deeply nested details tampering
+  ---
+  duration_ms: 6.916981
+  type: 'test'
+  ...
+# Subtest: audit checkpoint detects record truncation
+ok 39 - audit checkpoint detects record truncation
+  ---
+  duration_ms: 9.835314
+  type: 'test'
+  ...
+# Subtest: audit verification reports nested fields covered and checkpoint verified
+ok 40 - audit verification reports nested fields covered and checkpoint verified
+  ---
+  duration_ms: 6.228889
+  type: 'test'
+  ...
+# Subtest: two AtomicJsonStore instances serialize concurrent updates
+ok 41 - two AtomicJsonStore instances serialize concurrent updates
+  ---
+  duration_ms: 167.543131
+  type: 'test'
+  ...
+# Subtest: failed mutation releases file lock for another store instance
+ok 42 - failed mutation releases file lock for another store instance
+  ---
+  duration_ms: 21.597093
+  type: 'test'
+  ...
+# Subtest: preferences isolate records by user tenant and workspace
+ok 43 - preferences isolate records by user tenant and workspace
+  ---
+  duration_ms: 10.707738
+  type: 'test'
+  ...
+# Subtest: preference optimistic revision rejects stale writers
+ok 44 - preference optimistic revision rejects stale writers
+  ---
+  duration_ms: 10.034708
+  type: 'test'
+  ...
+# Subtest: preference inventory exposes scoped revision evidence
+ok 45 - preference inventory exposes scoped revision evidence
+  ---
+  duration_ms: 6.810834
+  type: 'test'
+  ...
+# Subtest: CSRF tokens are random stable within expiry and session bound
+ok 46 - CSRF tokens are random stable within expiry and session bound
+  ---
+  duration_ms: 0.888804
+  type: 'test'
+  ...
+# Subtest: CSRF verification safely rejects wrong-length tokens
+ok 47 - CSRF verification safely rejects wrong-length tokens
+  ---
+  duration_ms: 0.352072
+  type: 'test'
+  ...
+# Subtest: schema registry loads all local schemas and exposes enforcement coverage
+ok 48 - schema registry loads all local schemas and exposes enforcement coverage
+  ---
+  duration_ms: 16.010247
+  type: 'test'
+  ...
+# Subtest: runtime schema validator rejects extra preference properties
+ok 49 - runtime schema validator rejects extra preference properties
+  ---
+  duration_ms: 31.459233
+  type: 'test'
+  ...
+# Subtest: runtime schema validator accepts governed time-series append shape
+ok 50 - runtime schema validator accepts governed time-series append shape
+  ---
+  duration_ms: 24.467748
+  type: 'test'
+  ...
+# Subtest: asset intelligence overview preserves canonical ID and truth boundary
+ok 51 - asset intelligence overview preserves canonical ID and truth boundary
+  ---
+  duration_ms: 0.444185
+  type: 'test'
+  ...
+# Subtest: asset intelligence fundamentals remain asset-class aware
+ok 52 - asset intelligence fundamentals remain asset-class aware
+  ---
+  duration_ms: 0.238704
+  type: 'test'
+  ...
+# Subtest: local technical engine produces SMA EMA and RSI points
+ok 53 - local technical engine produces SMA EMA and RSI points
+  ---
+  duration_ms: 2.11569
+  type: 'test'
+  ...
+# Subtest: asset comparison de-duplicates and limits canonical IDs
+ok 54 - asset comparison de-duplicates and limits canonical IDs
+  ---
+  duration_ms: 0.3121
+  type: 'test'
+  ...
+# Subtest: Part 18 contract and modular frontend route are packaged
+ok 55 - Part 18 contract and modular frontend route are packaged
+  ---
+  duration_ms: 9.077865
+  type: 'test'
+  ...
+# Subtest: Part 18 regression remains available through random CSRF schema coverage and asset intelligence APIs
+ok 56 - Part 18 regression remains available through random CSRF schema coverage and asset intelligence APIs
+  ---
+  duration_ms: 169.0778
+  type: 'test'
+  ...
+# (node:29574) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: advanced chart produces deterministic OHLCV and explicit capabilities
+ok 57 - advanced chart produces deterministic OHLCV and explicit capabilities
+  ---
+  duration_ms: 4.113019
+  type: 'test'
+  ...
+# Subtest: advanced chart calculates six supported indicators
+ok 58 - advanced chart calculates six supported indicators
+  ---
+  duration_ms: 4.574614
+  type: 'test'
+  ...
+# Subtest: bollinger output maintains upper middle lower ordering
+ok 59 - bollinger output maintains upper middle lower ordering
+  ---
+  duration_ms: 1.465751
+  type: 'test'
+  ...
+# Subtest: MACD output includes line signal and histogram
+ok 60 - MACD output includes line signal and histogram
+  ---
+  duration_ms: 1.53372
+  type: 'test'
+  ...
+# Subtest: annual financials expose statements and derived margins
+ok 61 - annual financials expose statements and derived margins
+  ---
+  duration_ms: 0.367044
+  type: 'test'
+  ...
+# Subtest: quarterly financials preserve four periods and growth evidence
+ok 62 - quarterly financials preserve four periods and growth evidence
+  ---
+  duration_ms: 0.144495
+  type: 'test'
+  ...
+# Subtest: specialized non-equity statements remain unavailable rather than fabricated
+ok 63 - specialized non-equity statements remain unavailable rather than fabricated
+  ---
+  duration_ms: 0.164016
+  type: 'test'
+  ...
+# Subtest: earnings history carries actual estimate and surprise fields
+ok 64 - earnings history carries actual estimate and surprise fields
+  ---
+  duration_ms: 0.141581
+  type: 'test'
+  ...
+# Subtest: estimates expose bounded consensus and revision breadth
+ok 65 - estimates expose bounded consensus and revision breadth
+  ---
+  duration_ms: 0.323916
+  type: 'test'
+  ...
+# Subtest: corporate actions include dividend and split adjustment policy
+ok 66 - corporate actions include dividend and split adjustment policy
+  ---
+  duration_ms: 0.356889
+  type: 'test'
+  ...
+# Subtest: filing workspace index and detail preserve section citations
+ok 67 - filing workspace index and detail preserve section citations
+  ---
+  duration_ms: 0.283206
+  type: 'test'
+  ...
+# Subtest: unknown filing ID is rejected
+ok 68 - unknown filing ID is rejected
+  ---
+  duration_ms: 0.342479
+  type: 'test'
+  ...
+# Subtest: event calendar filters by event type and date window
+ok 69 - event calendar filters by event type and date window
+  ---
+  duration_ms: 6.700308
+  type: 'test'
+  ...
+# Subtest: comparison series rebases every asset to 100
+ok 70 - comparison series rebases every asset to 100
+  ---
+  duration_ms: 1.977113
+  type: 'test'
+  ...
+# Subtest: comparison snapshots omit unsupported valuation fields
+ok 71 - comparison snapshots omit unsupported valuation fields
+  ---
+  duration_ms: 0.177312
+  type: 'test'
+  ...
+# Subtest: chart layout store isolates layouts by workspace
+ok 72 - chart layout store isolates layouts by workspace
+  ---
+  duration_ms: 29.224439
+  type: 'test'
+  ...
+# Subtest: chart layout deletion is atomic and audited
+ok 73 - chart layout deletion is atomic and audited
+  ---
+  duration_ms: 29.809891
+  type: 'test'
+  ...
+# Subtest: comparison and chart-layout schemas enforce bounds and unknown fields
+ok 74 - comparison and chart-layout schemas enforce bounds and unknown fields
+  ---
+  duration_ms: 58.251297
+  type: 'test'
+  ...
+# Subtest: Part 19 contract declares implemented local slices and production gates
+ok 75 - Part 19 contract declares implemented local slices and production gates
+  ---
+  duration_ms: 1.254258
+  type: 'test'
+  ...
+# Subtest: five Part 19 modular frontend routes are packaged
+ok 76 - five Part 19 modular frontend routes are packaged
+  ---
+  duration_ms: 2.446856
+  type: 'test'
+  ...
+# Subtest: Part 19 server exposes advanced APIs and schema coverage
+ok 77 - Part 19 server exposes advanced APIs and schema coverage
+  ---
+  duration_ms: 172.552393
+  type: 'test'
+  ...
+# Subtest: Part 19 comparison API rejects duplicate IDs and returns normalized series
+ok 78 - Part 19 comparison API rejects duplicate IDs and returns normalized series
+  ---
+  duration_ms: 115.542242
+  type: 'test'
+  ...
+# Subtest: Part 19 saved chart layouts are idempotent persistent and deletable
+ok 79 - Part 19 saved chart layouts are idempotent persistent and deletable
+  ---
+  duration_ms: 129.600791
+  type: 'test'
+  ...
+# Subtest: filing detail API returns stable citation locators
+ok 80 - filing detail API returns stable citation locators
+  ---
+  duration_ms: 111.691568
+  type: 'test'
+  ...
+# (node:29595) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: workspace store seeds a scoped persistent watchlist
+ok 81 - workspace store seeds a scoped persistent watchlist
+  ---
+  duration_ms: 10.397092
+  type: 'test'
+  ...
+# Subtest: watchlist CRUD and item mutations are atomic and audited
+ok 82 - watchlist CRUD and item mutations are atomic and audited
+  ---
+  duration_ms: 53.036351
+  type: 'test'
+  ...
+# Subtest: watchlist rejects duplicate and unknown instruments
+ok 83 - watchlist rejects duplicate and unknown instruments
+  ---
+  duration_ms: 21.370807
+  type: 'test'
+  ...
+# Subtest: workspace state is isolated across workspace boundaries
+ok 84 - workspace state is isolated across workspace boundaries
+  ---
+  duration_ms: 12.790711
+  type: 'test'
+  ...
+# Subtest: alert evaluation creates in-app notifications and de-duplicates the same observation
+ok 85 - alert evaluation creates in-app notifications and de-duplicates the same observation
+  ---
+  duration_ms: 29.27068
+  type: 'test'
+  ...
+# Subtest: notification read state and read-all are persistent
+ok 86 - notification read state and read-all are persistent
+  ---
+  duration_ms: 22.435668
+  type: 'test'
+  ...
+# Subtest: alert-rule CRUD preserves delivery truth boundaries
+ok 87 - alert-rule CRUD preserves delivery truth boundaries
+  ---
+  duration_ms: 22.376364
+  type: 'test'
+  ...
+# Subtest: screener field catalog exposes typed local predicates
+ok 88 - screener field catalog exposes typed local predicates
+  ---
+  duration_ms: 0.894166
+  type: 'test'
+  ...
+# Subtest: screener runs multiple filters and preserves unavailable fields
+ok 89 - screener runs multiple filters and preserves unavailable fields
+  ---
+  duration_ms: 0.532178
+  type: 'test'
+  ...
+# Subtest: saved screener definitions are scoped and deletable
+ok 90 - saved screener definitions are scoped and deletable
+  ---
+  duration_ms: 27.697503
+  type: 'test'
+  ...
+# Subtest: portfolio overview reconciles holdings cash and total value
+ok 91 - portfolio overview reconciles holdings cash and total value
+  ---
+  duration_ms: 0.733532
+  type: 'test'
+  ...
+# Subtest: portfolio performance and risk remain deterministic non-advisory analytics
+ok 92 - portfolio performance and risk remain deterministic non-advisory analytics
+  ---
+  duration_ms: 1.021956
+  type: 'test'
+  ...
+# Subtest: research workspace CRUD and mixed evidence items are audited
+ok 93 - research workspace CRUD and mixed evidence items are audited
+  ---
+  duration_ms: 44.872252
+  type: 'test'
+  ...
+# Subtest: Part 20 request schemas enforce bounds and unknown-field rejection
+ok 94 - Part 20 request schemas enforce bounds and unknown-field rejection
+  ---
+  duration_ms: 12.336183
+  type: 'test'
+  ...
+# Subtest: Part 20 contract declares implemented workflows and production gates
+ok 95 - Part 20 contract declares implemented workflows and production gates
+  ---
+  duration_ms: 0.738502
+  type: 'test'
+  ...
+# Subtest: six Part 20 modular route files are packaged
+ok 96 - six Part 20 modular route files are packaged
+  ---
+  duration_ms: 2.831156
+  type: 'test'
+  ...
+# Subtest: GitHub repository, CI, container and security files are packaged
+ok 97 - GitHub repository, CI, container and security files are packaged
+  ---
+  duration_ms: 2.057479
+  type: 'test'
+  ...
+# Subtest: Part 20 server exposes workspace portfolio and research APIs
+ok 98 - Part 20 server exposes workspace portfolio and research APIs
+  ---
+  duration_ms: 184.304524
+  type: 'test'
+  ...
+# Subtest: Part 20 watchlist API is validated idempotent mutable and persistent
+ok 99 - Part 20 watchlist API is validated idempotent mutable and persistent
+  ---
+  duration_ms: 138.976742
+  type: 'test'
+  ...
+# Subtest: Part 20 alert and notification APIs evaluate, deliver in-app and persist read state
+ok 100 - Part 20 alert and notification APIs evaluate, deliver in-app and persist read state
+  ---
+  duration_ms: 158.452863
+  type: 'test'
+  ...
+# Subtest: Part 20 screener APIs run and save reusable definitions
+ok 101 - Part 20 screener APIs run and save reusable definitions
+  ---
+  duration_ms: 115.320835
+  type: 'test'
+  ...
+# Subtest: Part 20 research workspace API persists mixed evidence items
+ok 102 - Part 20 research workspace API persists mixed evidence items
+  ---
+  duration_ms: 128.848229
+  type: 'test'
+  ...
+# (node:29606) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: onboarding catalog exposes bounded local options and production gates
+ok 103 - onboarding catalog exposes bounded local options and production gates
+  ---
+  duration_ms: 0.763558
+  type: 'test'
+  ...
+# Subtest: onboarding profile is scoped, revisioned and completable
+ok 104 - onboarding profile is scoped, revisioned and completable
+  ---
+  duration_ms: 26.037617
+  type: 'test'
+  ...
+# Subtest: onboarding completion rejects materially incomplete profiles
+ok 105 - onboarding completion rejects materially incomplete profiles
+  ---
+  duration_ms: 3.447262
+  type: 'test'
+  ...
+# Subtest: notification schedules support CRUD and deterministic due evaluation
+ok 106 - notification schedules support CRUD and deterministic due evaluation
+  ---
+  duration_ms: 46.860903
+  type: 'test'
+  ...
+# Subtest: notification schedule validation rejects unsupported kinds and invalid times
+ok 107 - notification schedule validation rejects unsupported kinds and invalid times
+  ---
+  duration_ms: 2.324901
+  type: 'test'
+  ...
+# Subtest: formula engine evaluates bounded arithmetic without dynamic code
+ok 108 - formula engine evaluates bounded arithmetic without dynamic code
+  ---
+  duration_ms: 0.711974
+  type: 'test'
+  ...
+# Subtest: formula screener computes fields, filters and sorts deterministically
+ok 109 - formula screener computes fields, filters and sorts deterministically
+  ---
+  duration_ms: 0.699638
+  type: 'test'
+  ...
+# Subtest: portfolio attribution reconciles holding contributions and remains non-advisory
+ok 110 - portfolio attribution reconciles holding contributions and remains non-advisory
+  ---
+  duration_ms: 0.708842
+  type: 'test'
+  ...
+# Subtest: import preview validates templates and preserves production mutation boundary
+ok 111 - import preview validates templates and preserves production mutation boundary
+  ---
+  duration_ms: 0.908725
+  type: 'test'
+  ...
+# Subtest: import commit creates scoped audited staging batches only
+ok 112 - import commit creates scoped audited staging batches only
+  ---
+  duration_ms: 20.706373
+  type: 'test'
+  ...
+# Subtest: research versions capture, compare and restore workspace snapshots
+ok 113 - research versions capture, compare and restore workspace snapshots
+  ---
+  duration_ms: 47.253451
+  type: 'test'
+  ...
+# Subtest: research version lookup enforces workspace scope
+ok 114 - research version lookup enforces workspace scope
+  ---
+  duration_ms: 19.0795
+  type: 'test'
+  ...
+# Subtest: database migration service is plan-only with explicit operational gates
+ok 115 - database migration service is plan-only with explicit operational gates
+  ---
+  duration_ms: 0.280966
+  type: 'test'
+  ...
+# Subtest: Part 21 schemas reject unknown fields and unsafe formula shapes
+ok 116 - Part 21 schemas reject unknown fields and unsafe formula shapes
+  ---
+  duration_ms: 17.154842
+  type: 'test'
+  ...
+# Subtest: Part 21 contract and SQL migration contracts are packaged
+ok 117 - Part 21 contract and SQL migration contracts are packaged
+  ---
+  duration_ms: 0.754157
+  type: 'test'
+  ...
+# Subtest: seven Part 21 modular route files are packaged
+ok 118 - seven Part 21 modular route files are packaged
+  ---
+  duration_ms: 0.580108
+  type: 'test'
+  ...
+# Subtest: Part 21 server exposes all new API domains and current route inventory
+ok 119 - Part 21 server exposes all new API domains and current route inventory
+  ---
+  duration_ms: 169.93248
+  type: 'test'
+  ...
+# Subtest: Part 21 server mutations enforce CSRF, schemas, idempotency and notification replay safety
+ok 120 - Part 21 server mutations enforce CSRF, schemas, idempotency and notification replay safety
+  ---
+  duration_ms: 134.999873
+  type: 'test'
+  ...
+# (node:29617) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: Part 22 permanently locks the sovereign burgundy gradient and six persona themes
+ok 121 - Part 22 permanently locks the sovereign burgundy gradient and six persona themes
+  ---
+  duration_ms: 5.245002
+  type: 'test'
+  ...
+# Subtest: Part 22 live market service is public read-only and deterministic when live mode is disabled
+ok 122 - Part 22 live market service is public read-only and deterministic when live mode is disabled
+  ---
+  duration_ms: 3.280388
+  type: 'test'
+  ...
+# Subtest: Part 22 ticker summarizes candles without exposing order execution
+ok 123 - Part 22 ticker summarizes candles without exposing order execution
+  ---
+  duration_ms: 1.868576
+  type: 'test'
+  ...
+# Subtest: Part 22 chart adapter includes TradingView-compatible and local fallback renderers
+ok 124 - Part 22 chart adapter includes TradingView-compatible and local fallback renderers
+  ---
+  duration_ms: 5.53827
+  type: 'test'
+  ...
+# Subtest: Part 22 modular experience routes are packaged
+ok 125 - Part 22 modular experience routes are packaged
+  ---
+  duration_ms: 3.252278
+  type: 'test'
+  ...
+# Subtest: Part 22 motion system binds interactions once and preserves reduced motion
+ok 126 - Part 22 motion system binds interactions once and preserves reduced motion
+  ---
+  duration_ms: 0.588767
+  type: 'test'
+  ...
+# Subtest: Part 22 server exposes 47 routes, live market APIs and the sovereign contract
+ok 127 - Part 22 server exposes 47 routes, live market APIs and the sovereign contract
+  ---
+  duration_ms: 92.84886
+  type: 'test'
+  ...
+# (node:29628) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: public market service normalizes documented public ticker evidence
+ok 128 - public market service normalizes documented public ticker evidence
+  ---
+  duration_ms: 4.962578
+  type: 'test'
+  ...
+# Subtest: public market service labels deterministic fallback instead of calling it live
+ok 129 - public market service labels deterministic fallback instead of calling it live
+  ---
+  duration_ms: 10.48534
+  type: 'test'
+  ...
+# Subtest: public market launch APIs work without an authenticated session
+ok 130 - public market launch APIs work without an authenticated session
+  ---
+  duration_ms: 162.557864
+  type: 'test'
+  ...
+# Subtest: public launch frontend exposes market routes without release-only branding
+ok 131 - public launch frontend exposes market routes without release-only branding
+  ---
+  duration_ms: 3.507203
+  type: 'test'
+  ...
+# (node:29639) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: Release A1 password policy and scrypt verification are enforced
+ok 132 - Release A1 password policy and scrypt verification are enforced
+  ---
+  duration_ms: 248.675034
+  type: 'test'
+  ...
+# Subtest: Release A1 signed session cookies reject tampering
+ok 133 - Release A1 signed session cookies reject tampering
+  ---
+  duration_ms: 0.7867
+  type: 'test'
+  ...
+# Subtest: SQLite development repository creates tenant-scoped registration transaction
+ok 134 - SQLite development repository creates tenant-scoped registration transaction
+  ---
+  duration_ms: 110.034591
+  type: 'test'
+  ...
+# Subtest: persistent job queue is idempotent and worker creates one in-app notification
+ok 135 - persistent job queue is idempotent and worker creates one in-app notification
+  ---
+  duration_ms: 80.824488
+  type: 'test'
+  ...
+# Subtest: production mode rejects fixture identity and exposes public auth status
+ok 136 - production mode rejects fixture identity and exposes public auth status
+  ---
+  duration_ms: 153.33411
+  type: 'test'
+  ...
+# Subtest: production registration, cookie session, CSRF, rotation, jobs and logout work end to end
+ok 137 - production registration, cookie session, CSRF, rotation, jobs and logout work end to end
+  ---
+  duration_ms: 307.148446
+  type: 'test'
+  ...
+# Subtest: registration rejects duplicates and protected mutations reject missing CSRF
+ok 138 - registration rejects duplicates and protected mutations reject missing CSRF
+  ---
+  duration_ms: 270.468596
+  type: 'test'
+  ...
+# Subtest: Release A1 packages production contract, migrations, worker and auth routes
+ok 139 - Release A1 packages production contract, migrations, worker and auth routes
+  ---
+  duration_ms: 5.32779
+  type: 'test'
+  ...
+# (node:29646) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: A2 MFA enroll confirm and disable lifecycle
+ok 140 - A2 MFA enroll confirm and disable lifecycle
+  ---
+  duration_ms: 6.216864
+  type: 'test'
+  ...
+# Subtest: A2 object storage hashes and rejects malware signature
+ok 141 - A2 object storage hashes and rejects malware signature
+  ---
+  duration_ms: 12.927216
+  type: 'test'
+  ...
+# Subtest: A2 delivery attempts persist local sink evidence
+ok 142 - A2 delivery attempts persist local sink evidence
+  ---
+  duration_ms: 2.105976
+  type: 'test'
+  ...
+# Subtest: A2 manifest exposes new routes and version
+ok 143 - A2 manifest exposes new routes and version
+  ---
+  duration_ms: 2.145672
+  type: 'test'
+  ...
+# (node:29661) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: A3 encrypts MFA secrets and consumes recovery codes exactly once
+ok 144 - A3 encrypts MFA secrets and consumes recovery codes exactly once
+  ---
+  duration_ms: 7.132023
+  type: 'test'
+  ...
+# Subtest: A3 performs a full local ES256 passkey registration and authentication ceremony
+ok 145 - A3 performs a full local ES256 passkey registration and authentication ceremony
+  ---
+  duration_ms: 7.986276
+  type: 'test'
+  ...
+# Subtest: A3 passkey ceremonies reject mismatched origins
+ok 146 - A3 passkey ceremonies reject mismatched origins
+  ---
+  duration_ms: 2.365656
+  type: 'test'
+  ...
+# Subtest: A3 S3-compatible adapter emits SigV4 authorization and preserves content hash
+ok 147 - A3 S3-compatible adapter emits SigV4 authorization and preserves content hash
+  ---
+  duration_ms: 34.640341
+  type: 'test'
+  ...
+# Subtest: A3 signed webhook adapter transmits HMAC-verifiable payloads
+ok 148 - A3 signed webhook adapter transmits HMAC-verifiable payloads
+  ---
+  duration_ms: 10.938925
+  type: 'test'
+  ...
+# Subtest: A3 PostgreSQL repository contains A2 and A3 production parity methods
+ok 149 - A3 PostgreSQL repository contains A2 and A3 production parity methods
+  ---
+  duration_ms: 0.211617
+  type: 'test'
+  ...
+# Subtest: A3 migration uses repository-compatible prefixed PostgreSQL tables
+ok 150 - A3 migration uses repository-compatible prefixed PostgreSQL tables
+  ---
+  duration_ms: 6.116268
+  type: 'test'
+  ...
+# Subtest: A3 server exposes recovery, storage and delivery operations APIs
+ok 151 - A3 server exposes recovery, storage and delivery operations APIs
+  ---
+  duration_ms: 130.517018
+  type: 'test'
+  ...
+# Subtest: A3 production mode requires explicit object-storage and delivery decisions
+ok 152 - A3 production mode requires explicit object-storage and delivery decisions
+  ---
+  duration_ms: 59.998182
+  type: 'test'
+  ...
+# Subtest: A3 frontend registers passkey, recovery and delivery route modules
+ok 153 - A3 frontend registers passkey, recovery and delivery route modules
+  ---
+  duration_ms: 1.958435
+  type: 'test'
+  ...
+# (node:29672) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: A4 account recovery challenge resets password and revokes every active session
+ok 154 - A4 account recovery challenge resets password and revokes every active session
+  ---
+  duration_ms: 282.312787
+  type: 'test'
+  ...
+# Subtest: A4 recovery request is non-enumerating for unknown accounts
+ok 155 - A4 recovery request is non-enumerating for unknown accounts
+  ---
+  duration_ms: 1.031687
+  type: 'test'
+  ...
+# Subtest: A4 outbound policy blocks loopback private metadata and non-HTTPS targets
+ok 156 - A4 outbound policy blocks loopback private metadata and non-HTTPS targets
+  ---
+  duration_ms: 8.105654
+  type: 'test'
+  ...
+# Subtest: A4 local object storage quarantines before release and rejects malware signatures
+ok 157 - A4 local object storage quarantines before release and rejects malware signatures
+  ---
+  duration_ms: 13.779416
+  type: 'test'
+  ...
+# Subtest: A4 repositories expose recovery parity and migration contract
+ok 158 - A4 repositories expose recovery parity and migration contract
+  ---
+  duration_ms: 1.302233
+  type: 'test'
+  ...
+# Subtest: A4 server exposes public recovery and authenticated readiness surfaces
+ok 159 - A4 server exposes public recovery and authenticated readiness surfaces
+  ---
+  duration_ms: 322.209232
+  type: 'test'
+  ...
+# Subtest: A4 frontend registers recovery and readiness route modules
+ok 160 - A4 frontend registers recovery and readiness route modules
+  ---
+  duration_ms: 7.865913
+  type: 'test'
+  ...
+# (node:29683) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: A5 versioned keyring protects, reads, and rewraps envelopes without exposing key material
+ok 161 - A5 versioned keyring protects, reads, and rewraps envelopes without exposing key material
+  ---
+  duration_ms: 3.738714
+  type: 'test'
+  ...
+# Subtest: A5 secret rotation service rewraps stored MFA factors to configured active key
+ok 162 - A5 secret rotation service rewraps stored MFA factors to configured active key
+  ---
+  duration_ms: 3.501963
+  type: 'test'
+  ...
+# Subtest: A5 manual quarantine supports explicit rescan release and discard
+ok 163 - A5 manual quarantine supports explicit rescan release and discard
+  ---
+  duration_ms: 14.906938
+  type: 'test'
+  ...
+# Subtest: A5 ClamAV adapter declares INSTREAM provider boundary
+ok 164 - A5 ClamAV adapter declares INSTREAM provider boundary
+  ---
+  duration_ms: 0.450379
+  type: 'test'
+  ...
+# Subtest: A5 delivery sandbox verifies HMAC signatures without external transmission
+ok 165 - A5 delivery sandbox verifies HMAC signatures without external transmission
+  ---
+  duration_ms: 0.931917
+  type: 'test'
+  ...
+# Subtest: A5 assurance service exercises idempotent concurrency and checksum restore
+ok 166 - A5 assurance service exercises idempotent concurrency and checksum restore
+  ---
+  duration_ms: 67.31016
+  type: 'test'
+  ...
+# Subtest: A5 repositories expose secret and quarantine parity plus migration contract
+ok 167 - A5 repositories expose secret and quarantine parity plus migration contract
+  ---
+  duration_ms: 4.726171
+  type: 'test'
+  ...
+# Subtest: Inherited hardening surfaces remain available after public-market expansion
+ok 168 - Inherited hardening surfaces remain available after public-market expansion
+  ---
+  duration_ms: 354.710092
+  type: 'test'
+  ...
+# Subtest: A5 frontend registers secret rotation, quarantine review, and staging assurance
+ok 169 - A5 frontend registers secret rotation, quarantine review, and staging assurance
+  ---
+  duration_ms: 1.619941
+  type: 'test'
+  ...
+# Subtest: atomic JSON store seeds and persists updates
+ok 170 - atomic JSON store seeds and persists updates
+  ---
+  duration_ms: 21.616586
+  type: 'test'
+  ...
+# Subtest: atomic store queue recovers after rejected mutation
+ok 171 - atomic store queue recovers after rejected mutation
+  ---
+  duration_ms: 15.621557
+  type: 'test'
+  ...
+# Subtest: audit ledger creates and verifies a hash chain
+ok 172 - audit ledger creates and verifies a hash chain
+  ---
+  duration_ms: 19.232962
+  type: 'test'
+  ...
+# Subtest: audit ledger detects tampering
+ok 173 - audit ledger detects tampering
+  ---
+  duration_ms: 3.632388
+  type: 'test'
+  ...
+# Subtest: idempotency store replays same fingerprint and rejects conflicts
+ok 174 - idempotency store replays same fingerprint and rejects conflicts
+  ---
+  duration_ms: 0.561569
+  type: 'test'
+  ...
+# Subtest: token bucket denies once capacity is consumed
+ok 175 - token bucket denies once capacity is consumed
+  ---
+  duration_ms: 0.239464
+  type: 'test'
+  ...
+# Subtest: authorization denies tenant boundary mismatches
+ok 176 - authorization denies tenant boundary mismatches
+  ---
+  duration_ms: 0.334895
+  type: 'test'
+  ...
+# Subtest: authorization requires step-up for governed actions
+ok 177 - authorization requires step-up for governed actions
+  ---
+  duration_ms: 0.244592
+  type: 'test'
+  ...
+# Subtest: entitlement engine allows internal fixture reads with obligations
+ok 178 - entitlement engine allows internal fixture reads with obligations
+  ---
+  duration_ms: 0.367691
+  type: 'test'
+  ...
+# Subtest: entitlement engine denies redistribution and licensed classes
+ok 179 - entitlement engine denies redistribution and licensed classes
+  ---
+  duration_ms: 0.266171
+  type: 'test'
+  ...
+# Subtest: quality engine flags malformed quotes
+ok 180 - quality engine flags malformed quotes
+  ---
+  duration_ms: 0.364687
+  type: 'test'
+  ...
+# Subtest: quality reconciliation identifies divergence
+ok 181 - quality reconciliation identifies divergence
+  ---
+  duration_ms: 0.130298
+  type: 'test'
+  ...
+# Subtest: event inspection identifies duplicates and gaps
+ok 182 - event inspection identifies duplicates and gaps
+  ---
+  duration_ms: 0.108554
+  type: 'test'
+  ...
+# (node:29708) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: health exposes release safety locks and honest boundary
+ok 183 - health exposes release safety locks and honest boundary
+  ---
+  duration_ms: 186.028309
+  type: 'test'
+  ...
+# Subtest: health includes hardened browser headers and correlation ID
+ok 184 - health includes hardened browser headers and correlation ID
+  ---
+  duration_ms: 3.149711
+  type: 'test'
+  ...
+# Subtest: readiness separates local-ready from production-disabled dependencies
+ok 185 - readiness separates local-ready from production-disabled dependencies
+  ---
+  duration_ms: 3.101879
+  type: 'test'
+  ...
+# Subtest: config exposes thirty-six routes six themes and Wave 2/3/4/5/6/7 truth
+ok 186 - config exposes thirty-six routes six themes and Wave 2/3/4/5/6/7 truth
+  ---
+  duration_ms: 3.665705
+  type: 'test'
+  ...
+# Subtest: missing CSRF proof blocks unsafe requests
+ok 187 - missing CSRF proof blocks unsafe requests
+  ---
+  duration_ms: 20.078201
+  type: 'test'
+  ...
+# Subtest: local session context exposes tenant workspace role device and truth
+ok 188 - local session context exposes tenant workspace role device and truth
+  ---
+  duration_ms: 7.073315
+  type: 'test'
+  ...
+# Subtest: unknown local session is rejected
+ok 189 - unknown local session is rejected
+  ---
+  duration_ms: 3.772636
+  type: 'test'
+  ...
+# Subtest: workspace session device consent and privacy inventories are available
+ok 190 - workspace session device consent and privacy inventories are available
+  ---
+  duration_ms: 14.976803
+  type: 'test'
+  ...
+# Subtest: tenant boundary decisions deny cross-tenant access
+ok 191 - tenant boundary decisions deny cross-tenant access
+  ---
+  duration_ms: 3.566114
+  type: 'test'
+  ...
+# Subtest: governance action is denied before simulated step-up
+ok 192 - governance action is denied before simulated step-up
+  ---
+  duration_ms: 2.449714
+  type: 'test'
+  ...
+# Subtest: simulated step-up elevates local assurance with expiry and audit
+ok 193 - simulated step-up elevates local assurance with expiry and audit
+  ---
+  duration_ms: 6.531185
+  type: 'test'
+  ...
+# Subtest: governance action is allowed after simulated step-up
+ok 194 - governance action is allowed after simulated step-up
+  ---
+  duration_ms: 2.858386
+  type: 'test'
+  ...
+# Subtest: workspace switch persists in local identity state
+ok 195 - workspace switch persists in local identity state
+  ---
+  duration_ms: 7.524703
+  type: 'test'
+  ...
+# Subtest: optional consent can be updated and required consent cannot be denied
+ok 196 - optional consent can be updated and required consent cannot be denied
+  ---
+  duration_ms: 12.973103
+  type: 'test'
+  ...
+# Subtest: market overview retains deterministic source truth and null values
+ok 197 - market overview retains deterministic source truth and null values
+  ---
+  duration_ms: 1.745204
+  type: 'test'
+  ...
+# Subtest: rankings filtering and federated universal search preserve canonical IDs
+ok 198 - rankings filtering and federated universal search preserve canonical IDs
+  ---
+  duration_ms: 4.461559
+  type: 'test'
+  ...
+# Subtest: asset dossier and watchlist preserve Part 14 surface behavior
+ok 199 - asset dossier and watchlist preserve Part 14 surface behavior
+  ---
+  duration_ms: 8.381087
+  type: 'test'
+  ...
+# Subtest: provider registry has three enabled fixture adapters and disabled external references
+ok 200 - provider registry has three enabled fixture adapters and disabled external references
+  ---
+  duration_ms: 2.149257
+  type: 'test'
+  ...
+# Subtest: automatic provider execution returns entitlement quality and source metadata
+ok 201 - automatic provider execution returns entitlement quality and source metadata
+  ---
+  duration_ms: 6.858883
+  type: 'test'
+  ...
+# Subtest: automatic provider execution fails over from primary to secondary
+ok 202 - automatic provider execution fails over from primary to secondary
+  ---
+  duration_ms: 29.369774
+  type: 'test'
+  ...
+# Subtest: provider cache returns hit on repeated deterministic request
+ok 203 - provider cache returns hit on repeated deterministic request
+  ---
+  duration_ms: 7.006051
+  type: 'test'
+  ...
+# Subtest: provider runtime rejects write-like capabilities and redistribution
+ok 204 - provider runtime rejects write-like capabilities and redistribution
+  ---
+  duration_ms: 5.855519
+  type: 'test'
+  ...
+# Subtest: entitlement endpoint denies external redistribution explicitly
+ok 205 - entitlement endpoint denies external redistribution explicitly
+  ---
+  duration_ms: 2.277295
+  type: 'test'
+  ...
+# Subtest: instrument summary search detail relationships and resolution work
+ok 206 - instrument summary search detail relationships and resolution work
+  ---
+  duration_ms: 11.366054
+  type: 'test'
+  ...
+# Subtest: governed symbol mutation is idempotent and persisted atomically
+ok 207 - governed symbol mutation is idempotent and persisted atomically
+  ---
+  duration_ms: 10.654855
+  type: 'test'
+  ...
+# Subtest: idempotency key conflicts on changed payload
+ok 208 - idempotency key conflicts on changed payload
+  ---
+  duration_ms: 4.053063
+  type: 'test'
+  ...
+# Subtest: preferences require CSRF and persist validated design settings
+ok 209 - preferences require CSRF and persist validated design settings
+  ---
+  duration_ms: 9.394461
+  type: 'test'
+  ...
+# Subtest: preferences reject malformed custom accent
+ok 210 - preferences reject malformed custom accent
+  ---
+  duration_ms: 5.317738
+  type: 'test'
+  ...
+# Subtest: simulated SSE emits provider lineage entitlement and event quality
+ok 211 - simulated SSE emits provider lineage entitlement and event quality
+  ---
+  duration_ms: 829.341845
+  type: 'test'
+  ...
+# Subtest: audit ledger records mutations and verifies hash-chain integrity
+ok 212 - audit ledger records mutations and verifies hash-chain integrity
+  ---
+  duration_ms: 5.704348
+  type: 'test'
+  ...
+# Subtest: static application and modular packages are served
+ok 213 - static application and modular packages are served
+  ---
+  duration_ms: 4.309086
+  type: 'test'
+  ...
+# Subtest: contracts expose local implementation and production gates
+ok 214 - contracts expose local implementation and production gates
+  ---
+  duration_ms: 3.656753
+  type: 'test'
+  ...
+# Subtest: unknown APIs use standard errors and dangerous routes do not exist
+ok 215 - unknown APIs use standard errors and dangerous routes do not exist
+  ---
+  duration_ms: 4.563802
+  type: 'test'
+  ...
+# Subtest: Wave 4 readiness exposes persistent history stream journal and local observability
+ok 216 - Wave 4 readiness exposes persistent history stream journal and local observability
+  ---
+  duration_ms: 1.841335
+  type: 'test'
+  ...
+# Subtest: time-series summary and normalized query expose decimal strings and lineage
+ok 217 - time-series summary and normalized query expose decimal strings and lineage
+  ---
+  duration_ms: 18.275202
+  type: 'test'
+  ...
+# Subtest: time-series query supports cursor pagination and rejects bad interval
+ok 218 - time-series query supports cursor pagination and rejects bad interval
+  ---
+  duration_ms: 19.049582
+  type: 'test'
+  ...
+# Subtest: governed time-series append requires step-up idempotency and persists
+ok 219 - governed time-series append requires step-up idempotency and persists
+  ---
+  duration_ms: 60.246913
+  type: 'test'
+  ...
+# Subtest: stream catalog and replay expose bounded retention resume tokens and no production broker
+ok 220 - stream catalog and replay expose bounded retention resume tokens and no production broker
+  ---
+  duration_ms: 4.326313
+  type: 'test'
+  ...
+# Subtest: resumable SSE emits snapshot deltas heartbeats and monotonic sequences
+ok 221 - resumable SSE emits snapshot deltas heartbeats and monotonic sequences
+  ---
+  duration_ms: 123.46007
+  type: 'test'
+  ...
+# Subtest: observability endpoints expose local metrics traces logs dependencies and candidate SLOs
+ok 222 - observability endpoints expose local metrics traces logs dependencies and candidate SLOs
+  ---
+  duration_ms: 17.737005
+  type: 'test'
+  ...
+# Subtest: Wave 4 contracts are served and keep production infrastructure explicitly deferred
+ok 223 - Wave 4 contracts are served and keep production infrastructure explicitly deferred
+  ---
+  duration_ms: 3.593758
+  type: 'test'
+  ...
+# Subtest: Wave 5 discovery overview rankings and federated search expose public fixture evidence
+ok 224 - Wave 5 discovery overview rankings and federated search expose public fixture evidence
+  ---
+  duration_ms: 11.318352
+  type: 'test'
+  ...
+# Subtest: Wave 5 category venue DEX chart and prediction endpoints expose deep-link data
+ok 225 - Wave 5 category venue DEX chart and prediction endpoints expose deep-link data
+  ---
+  duration_ms: 4.684223
+  type: 'test'
+  ...
+# Subtest: Wave 5 converter is transparent and remains non-executable
+ok 226 - Wave 5 converter is transparent and remains non-executable
+  ---
+  duration_ms: 6.757322
+  type: 'test'
+  ...
+# Subtest: Wave 5 news research methodologies coverage and status expose citations and disabled production dependencies
+ok 227 - Wave 5 news research methodologies coverage and status expose citations and disabled production dependencies
+  ---
+  duration_ms: 6.463341
+  type: 'test'
+  ...
+# Subtest: Wave 5 saved searches screens and compare tray are governed idempotent persistent and audited
+ok 228 - Wave 5 saved searches screens and compare tray are governed idempotent persistent and audited
+  ---
+  duration_ms: 38.141331
+  type: 'test'
+  ...
+# Subtest: Wave 5 public discovery contract is served and production providers remain deferred
+ok 229 - Wave 5 public discovery contract is served and production providers remain deferred
+  ---
+  duration_ms: 2.245752
+  type: 'test'
+  ...
+# Subtest: time-series store seeds persistent normalized OHLCV history
+ok 230 - time-series store seeds persistent normalized OHLCV history
+  ---
+  duration_ms: 67.905802
+  type: 'test'
+  ...
+# Subtest: time-series aggregation and cursor pagination are deterministic
+ok 231 - time-series aggregation and cursor pagination are deterministic
+  ---
+  duration_ms: 30.778732
+  type: 'test'
+  ...
+# Subtest: time-series store rejects unsupported intervals and invalid OHLC
+ok 232 - time-series store rejects unsupported intervals and invalid OHLC
+  ---
+  duration_ms: 48.816906
+  type: 'test'
+  ...
+# Subtest: time-series append preserves monotonic sequence and persistence
+ok 233 - time-series append preserves monotonic sequence and persistence
+  ---
+  duration_ms: 94.544534
+  type: 'test'
+  ...
+# Subtest: stream gateway publishes, replays and resumes by token
+ok 234 - stream gateway publishes, replays and resumes by token
+  ---
+  duration_ms: 81.355897
+  type: 'test'
+  ...
+# Subtest: observability records bounded traces metrics logs and candidate SLOs
+ok 235 - observability records bounded traces metrics logs and candidate SLOs
+  ---
+  duration_ms: 0.882957
+  type: 'test'
+  ...
+# Subtest: Wave 5 deterministic universe spans public cross-asset discovery classes
+ok 236 - Wave 5 deterministic universe spans public cross-asset discovery classes
+  ---
+  duration_ms: 1.059263
+  type: 'test'
+  ...
+# Subtest: discovery overview declares fixture truth and carries universal display metadata
+ok 237 - discovery overview declares fixture truth and carries universal display metadata
+  ---
+  duration_ms: 0.491616
+  type: 'test'
+  ...
+# Subtest: rankings support cross-asset filters sorting and cursor pagination
+ok 238 - rankings support cross-asset filters sorting and cursor pagination
+  ---
+  duration_ms: 0.560367
+  type: 'test'
+  ...
+# Subtest: federated search weights exact symbols and supports type facets
+ok 239 - federated search weights exact symbols and supports type facets
+  ---
+  duration_ms: 0.912167
+  type: 'test'
+  ...
+# Subtest: search suggestions remain bounded and deep-linkable
+ok 240 - search suggestions remain bounded and deep-linkable
+  ---
+  duration_ms: 11.12329
+  type: 'test'
+  ...
+# Subtest: category venue and DEX detail preserve evidence and reject unknown records
+ok 241 - category venue and DEX detail preserve evidence and reject unknown records
+  ---
+  duration_ms: 1.515317
+  type: 'test'
+  ...
+# Subtest: global charts and prediction markets are methodology-bound and non-tradable
+ok 242 - global charts and prediction markets are methodology-bound and non-tradable
+  ---
+  duration_ms: 0.275419
+  type: 'test'
+  ...
+# Subtest: converter calculates transparent fee and slippage without execution claims
+ok 243 - converter calculates transparent fee and slippage without execution claims
+  ---
+  duration_ms: 0.520534
+  type: 'test'
+  ...
+# Subtest: news research methodology coverage and status preserve trust boundaries
+ok 244 - news research methodology coverage and status preserve trust boundaries
+  ---
+  duration_ms: 1.511906
+  type: 'test'
+  ...
+# Subtest: saved discovery state is tenant/workspace scoped atomic and audited
+ok 245 - saved discovery state is tenant/workspace scoped atomic and audited
+  ---
+  duration_ms: 47.290165
+  type: 'test'
+  ...
+1..245
+# tests 245
+# suites 0
+# pass 245
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4150.36487
+
+> qelly-intelligence@0.9.0-preview.1 build
+> node scripts/build.mjs
+
+(node:29757) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{
+  "status": "build-passed",
+  "output": "dist",
+  "coldStart": true,
+  "publicMarketFallbackVerified": true
+}

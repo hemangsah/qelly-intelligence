@@ -1,0 +1,33 @@
+.env
+.env.*
+!.env.example
+!.env.staging.example
+runtime/*.json
+runtime/*.ndjson
+!runtime/.gitkeep
+node_modules/
+.DS_Store
+
+runtime/*.sqlite
+runtime/*.sqlite-*
+runtime/objects/
+dist/
+coverage/
+
+# Generated evidence and local build artifacts
+screens/
+preview/
+validation/renders/
+*.zip
+*.pdf
+*.sha256
+backups/
+.tmp/
+.cache/
+.vercel/
+
+# Private key and certificate containers must be injected at runtime.
+*.key
+*.pem
+*.p12
+*.pfx

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/passkey-auth-options-input.schema.json",
+  "title": "Passkey authentication options input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "email"
+  ],
+  "properties": {
+    "email": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 254
+    }
+  }
+}

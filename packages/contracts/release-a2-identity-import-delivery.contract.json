@@ -1,0 +1,13 @@
+{
+  "contract":"release-a2-identity-import-delivery",
+  "version":"24.0.0",
+  "status":"implemented-local",
+  "capabilities":{
+    "mfa":{"totp":"implemented-local","recoveryCodes":"implemented-local","passkeys":"partial-contract"},
+    "secureImports":{"localObjectStorage":"implemented-local","contentAddressing":"implemented-local","malwareSignatureCheck":"implemented-local","s3":"partial-contract"},
+    "delivery":{"inApp":"implemented-local","email":"local-sink","webhook":"local-sink","externalProviders":"blocked-by-credentials"},
+    "operations":{"backupRestore":"implemented-local-sqlite","postgresBackup":"documented-contract"}
+  },
+  "safety":{"liveTrading":false,"transfers":false,"withdrawals":false,"privateKeys":false,"recoveryPhrases":false},
+  "truthBoundary":"TOTP, local object storage, local delivery sinks and SQLite backup/restore are runnable. Production KMS, passkeys, S3, SMTP/webhook credentials and live PostgreSQL/Redis deployment validation remain incomplete."
+}

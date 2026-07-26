@@ -1,0 +1,86 @@
+{
+  "contractVersion": "2.0.0",
+  "status": "local-foundation-implemented-production-gated",
+  "productionIdentityImplemented": false,
+  "localIdentityRuntimeImplemented": true,
+  "boundary": "Part 15 implements deterministic local tenant, workspace, role, attribute, session, device, consent, step-up and audit foundations. It does not perform production authentication, WebAuthn registration, email delivery, enterprise SSO or account recovery.",
+  "implementedLocalRuntime": [
+    "tenant and workspace context resolution",
+    "deny-by-default tenant-aware RBAC plus ABAC",
+    "resource and workspace boundary evaluation",
+    "local session inventory and revocation",
+    "local device trust records",
+    "simulated high-assurance step-up with expiry",
+    "purpose-specific consent records",
+    "privacy data inventory",
+    "hash-chained audit evidence",
+    "request correlation, CSRF proof, request limits and rate limiting"
+  ],
+  "authentication": {
+    "passkeys": {
+      "standard": "WebAuthn/FIDO2",
+      "requiredFor": ["passwordless sign-in", "step-up eligible sessions"],
+      "status": "production implementation deferred"
+    },
+    "oidc": {
+      "enterpriseSSO": true,
+      "pkceRequired": true,
+      "stateNonceRequired": true,
+      "status": "production implementation deferred"
+    },
+    "mfa": {
+      "methods": ["passkey", "TOTP", "security-key"],
+      "recoveryCodes": "hashed and one-time",
+      "status": "production implementation deferred; Part 15 step-up is explicitly simulated"
+    }
+  },
+  "authorization": {
+    "model": "tenant-aware RBAC + ABAC",
+    "roles": ["viewer", "analyst", "portfolio-manager", "trader-paper", "compliance-reviewer", "workspace-admin", "organization-admin"],
+    "attributes": ["tenantId", "workspaceId", "resourceOwnerId", "dataEntitlement", "environment", "riskTier", "deviceTrust", "sessionAssurance"],
+    "denyByDefault": true,
+    "serverSideOnly": true,
+    "localImplementation": "src/identity/authorization-engine.mjs"
+  },
+  "session": {
+    "inventory": true,
+    "revocation": true,
+    "trustedDevices": true,
+    "stepUpFor": ["permission changes", "security changes", "approval actions", "instrument governance", "data-quality overrides", "future live-risk actions"],
+    "cookie": ["HttpOnly", "Secure", "SameSite=Lax or stricter"],
+    "localStatus": "implemented without production cookies or authentication",
+    "productionStatus": "deferred"
+  },
+  "secretBoundary": {
+    "browserSecretsAllowed": false,
+    "privateKeysAllowed": false,
+    "recoveryPhrasesAllowed": false,
+    "providerSecrets": "server-side secret references only",
+    "productionSecretsConfigured": false
+  },
+  "middlewareOrder": ["correlation-id", "security-headers", "rate-limit", "csrf-proof", "authentication-context", "tenant-resolution", "authorization", "entitlement", "idempotency", "audit"],
+  "implementedEndpoints": [
+    "GET /api/v1/session/context",
+    "GET /api/v1/workspaces",
+    "POST /api/v1/workspaces/:id/switch",
+    "GET /api/v1/sessions",
+    "DELETE /api/v1/sessions/:id",
+    "GET /api/v1/devices",
+    "POST /api/v1/auth/step-up/simulate",
+    "POST /api/v1/access/evaluate",
+    "GET /api/v1/privacy/consents",
+    "PUT /api/v1/privacy/consents/:purpose",
+    "GET /api/v1/privacy/data-inventory",
+    "GET /api/v1/audit",
+    "GET /api/v1/audit/verify"
+  ],
+  "productionEndpointsDeferred": [
+    "POST /api/v1/auth/passkey/options",
+    "POST /api/v1/auth/passkey/verify",
+    "POST /api/v1/auth/oidc/start",
+    "POST /api/v1/auth/oidc/callback",
+    "POST /api/v1/auth/recovery"
+  ],
+  "events": ["session.revoked.v1", "workspace.switched.v1", "access.denied.v1", "stepup.simulated.completed.v1", "consent.updated.v1", "layout.preference.updated.v1"],
+  "releaseGates": ["production tenant isolation tests", "production authorization matrix tests", "production session revocation tests", "WebAuthn origin and RP validation", "secret scan", "threat-model review", "audit integrity tests", "privacy and legal review"]
+}

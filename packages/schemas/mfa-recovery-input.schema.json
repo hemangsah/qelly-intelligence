@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/mfa-recovery-input.schema.json",
+  "title": "MFA recovery code input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "code"
+  ],
+  "properties": {
+    "code": {
+      "type": "string",
+      "pattern": "^[A-Fa-f0-9]{6}-[A-Fa-f0-9]{6}$"
+    }
+  }
+}

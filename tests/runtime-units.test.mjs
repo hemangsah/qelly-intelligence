@@ -1,0 +1,30 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtemp, rm, readFile, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { AtomicJsonStore } from '../src/platform/json-store.mjs';
+import { AuditLedger } from '../src/security/audit-ledger.mjs';
+import { IdempotencyStore } from '../src/security/idempotency-store.mjs';
+import { TokenBucketLimiter } from '../src/security/rate-limiter.mjs';
+import { evaluateAccess } from '../src/identity/authorization-engine.mjs';
+import { EntitlementEngine } from '../src/entitlements/entitlement-engine.mjs';
+import { DataQualityEngine } from '../src/data-quality/quality-engine.mjs';
+
+let dir;
+test.before(async()=>{dir=await mkdtemp(path.join(os.tmpdir(),'qelly-part15-unit-'));});
+test.after(async()=>{await rm(dir,{recursive:true,force:true});});
+
+test('atomic JSON store seeds and persists updates',async()=>{const file=path.join(dir,'store.json');const store=new AtomicJsonStore(file,()=>({revision:1,items:[]}));assert.equal((await store.read()).revision,1);await store.update(v=>({...v,revision:2,items:['ok']}));assert.deepEqual(JSON.parse(await readFile(file,'utf8')).items,['ok']);});
+test('atomic store queue recovers after rejected mutation',async()=>{const file=path.join(dir,'recover.json');const store=new AtomicJsonStore(file,()=>({n:0}));await assert.rejects(()=>store.update(()=>{throw new Error('expected');}));const value=await store.update(v=>({n:v.n+1}));assert.equal(value.n,1);});
+test('audit ledger creates and verifies a hash chain',async()=>{const file=path.join(dir,'audit.ndjson');const ledger=new AuditLedger(file);await ledger.append({eventType:'one',actor:{type:'test',id:'1'}});await ledger.append({eventType:'two',actor:{type:'test',id:'1'}});const result=await ledger.verify();assert.equal(result.valid,true);assert.equal(result.records,2);});
+test('audit ledger detects tampering',async()=>{const file=path.join(dir,'tamper.ndjson');const ledger=new AuditLedger(file);await ledger.append({eventType:'one',actor:{type:'test',id:'1'}});const raw=await readFile(file,'utf8');await writeFile(file,raw.replace('one','changed'));const result=await ledger.verify();assert.equal(result.valid,false);assert.ok(result.reason);assert.equal(result.invalidIndex,0);});
+test('idempotency store replays same fingerprint and rejects conflicts',()=>{const store=new IdempotencyStore();const fp=store.fingerprint({a:1});store.put('abcdefgh',fp,{ok:true});assert.deepEqual(store.get('abcdefgh',fp),{ok:true});assert.throws(()=>store.get('abcdefgh',store.fingerprint({a:2})),e=>e.code==='idempotency_conflict');});
+test('token bucket denies once capacity is consumed',()=>{const limiter=new TokenBucketLimiter({capacity:2,refillPerSecond:0});assert.equal(limiter.consume('a').allowed,true);assert.equal(limiter.consume('a').allowed,true);assert.equal(limiter.consume('a').allowed,false);});
+test('authorization denies tenant boundary mismatches',()=>{const now=new Date();const context={session:{expiresAt:new Date(now.getTime()+60000).toISOString(),revokedAt:null,assurance:'high',stepUpExpiresAt:new Date(now.getTime()+60000).toISOString()},membership:{status:'active',roles:['organization-admin'],workspaceIds:['ws-1']},organization:{organizationId:'org-1'},workspace:{workspaceId:'ws-1'},device:{trust:'trusted-local-fixture'}};const result=evaluateAccess({action:'instrument:read',resource:{tenantId:'org-other'},context,now});assert.equal(result.allowed,false);assert.ok(result.reasons.includes('tenant-boundary-mismatch'));});
+test('authorization requires step-up for governed actions',()=>{const now=new Date();const context={session:{expiresAt:new Date(now.getTime()+60000).toISOString(),revokedAt:null,assurance:'medium',stepUpExpiresAt:null},membership:{status:'active',roles:['organization-admin'],workspaceIds:['ws-1']},organization:{organizationId:'org-1'},workspace:{workspaceId:'ws-1'},device:{trust:'trusted-local-fixture'}};const result=evaluateAccess({action:'instrument:govern',context,now});assert.equal(result.allowed,false);assert.ok(result.reasons.includes('step-up-required'));});
+test('entitlement engine allows internal fixture reads with obligations',()=>{const result=new EntitlementEngine().evaluate({tenantId:'o',workspaceId:'w',providerId:'p',capability:'quote'});assert.equal(result.allowed,true);assert.equal(result.decision,'allow-with-obligations');assert.ok(result.obligations.includes('show-attribution'));});
+test('entitlement engine denies redistribution and licensed classes',()=>{const engine=new EntitlementEngine();assert.equal(engine.evaluate({tenantId:'o',workspaceId:'w',providerId:'p',capability:'quote',use:'redistribution'}).allowed,false);assert.equal(engine.evaluate({tenantId:'o',workspaceId:'w',providerId:'p',capability:'quote',entitlementClass:'licensed'}).allowed,false);});
+test('quality engine flags malformed quotes',()=>{const result=new DataQualityEngine().validateQuote({value:'not-number'});assert.equal(result.valid,false);assert.ok(result.flags.some(f=>f.startsWith('missing:')));assert.ok(result.flags.includes('value:not-numeric'));});
+test('quality reconciliation identifies divergence',()=>{const result=new DataQualityEngine().reconcile([{value:'100'},{value:'110'}],0.02);assert.equal(result.status,'divergent');});
+test('event inspection identifies duplicates and gaps',()=>{const engine=new DataQualityEngine();assert.equal(engine.inspectEvent({eventId:'a',channel:'q',sequence:1}).valid,true);const second=engine.inspectEvent({eventId:'a',channel:'q',sequence:3});assert.equal(second.valid,false);assert.ok(second.flags.includes('event:duplicate'));assert.ok(second.flags.some(f=>f.startsWith('sequence:gap')));});

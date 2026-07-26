@@ -1,0 +1,37 @@
+{
+  "contract": "qelly-timeseries-streaming",
+  "version": "1.0.0",
+  "release": "16.0.0",
+  "status": "implemented-local-foundation",
+  "timeSeries": {
+    "identity": "canonical QI instrument IDs",
+    "baseInterval": "1h",
+    "derivedIntervals": ["1h", "4h", "1d"],
+    "precision": "decimal strings",
+    "timezone": "UTC",
+    "fields": ["at", "open", "high", "low", "close", "volume", "sequence", "providerId", "freshnessClass", "qualityFlags"],
+    "pagination": "opaque cursor with a maximum page size of 500",
+    "persistence": "atomic JSON local development evidence",
+    "governedMutation": {
+      "endpoint": "/api/v1/timeseries/:id/append",
+      "authorization": "timeseries:write",
+      "stepUp": true,
+      "idempotency": true,
+      "audit": true
+    }
+  },
+  "streaming": {
+    "transport": "Server-Sent Events",
+    "channels": ["quotes", "candles", "provider-health", "operations"],
+    "delivery": ["snapshot", "delta", "heartbeat"],
+    "ordering": "monotonic sequence per channel",
+    "resume": "opaque resume token",
+    "replay": "bounded persistent local event journal",
+    "gapDetection": true,
+    "gapRecovery": "request fresh snapshot when retention creates an unrecoverable gap",
+    "entitlementScoped": true,
+    "backpressure": "bounded frame counts and client limits in local runtime"
+  },
+  "universalDisplay": ["canonicalEntityId", "value", "unit", "provider/source", "observedAt", "receivedAt", "freshnessClass", "confidence", "qualityFlags", "entitlementClass", "methodologyVersion"],
+  "productionDeferred": ["distributed time-series database", "partitioned message broker", "cross-node ordering", "licensed historical completeness", "production stream fanout", "external provider streams", "production capacity and soak certification"]
+}

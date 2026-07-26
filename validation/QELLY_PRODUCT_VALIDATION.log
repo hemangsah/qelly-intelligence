@@ -1,0 +1,24 @@
+
+> qelly-intelligence@0.9.0-preview.1 validate:product
+> node scripts/product-validate.mjs
+
+{
+  "status": "product-validation-passed",
+  "generatedAt": "2026-07-25T16:07:12.090Z",
+  "productVersion": "0.9.0-preview.1",
+  "routes": 61,
+  "apiContracts": 185,
+  "schemas": 65,
+  "checks": {
+    "packageName": true,
+    "version": true,
+    "routes": true,
+    "publicApis": true,
+    "evidenceApis": true,
+    "dangerousAbsent": true,
+    "brand": true,
+    "evidenceIntegrity": true,
+    "truthLabels": true,
+    "schemas": true
+  }
+}

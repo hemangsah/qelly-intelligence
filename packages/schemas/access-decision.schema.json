@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/access-decision.schema.json",
+  "title": "Qelly Access Decision",
+  "type": "object",
+  "required": ["decision", "allowed", "action", "reasons", "obligations", "evaluatedAt", "policyVersion"],
+  "properties": {
+    "decision": {"enum": ["allow", "deny", "allow-with-obligations"]},
+    "allowed": {"type": "boolean"},
+    "action": {"type": "string", "minLength": 1},
+    "reasons": {"type": "array", "items": {"type": "string"}},
+    "obligations": {"type": "array", "items": {"type": "string"}},
+    "evaluatedAt": {"type": "string", "format": "date-time"},
+    "policyVersion": {"type": "string"}
+  },
+  "additionalProperties": true
+}

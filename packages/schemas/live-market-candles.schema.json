@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/live-market-candles.schema.json",
+  "title": "Qelly live market candle response",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["provider","requestedProvider","symbol","interval","points","summary","source","correlationId","guardrails"],
+  "properties": {
+    "provider": {"enum":["binance","coindcx","fixture"]},
+    "requestedProvider": {"enum":["binance","coindcx","fixture"]},
+    "symbol": {"type":"string","minLength":2,"maxLength":32},
+    "interval": {"type":"string","minLength":2,"maxLength":4},
+    "points": {"type":"array","minItems":2,"maxItems":1000,"items":{"type":"object","required":["time","open","high","low","close","volume"],"properties":{"time":{"type":"integer"},"open":{"type":"number"},"high":{"type":"number"},"low":{"type":"number"},"close":{"type":"number"},"volume":{"type":"number"},"closed":{"type":"boolean"}}}},
+    "source": {"type":"object","required":["name","providerId","attribution","mode","observedAt"],"properties":{"mode":{"enum":["live-public","simulated"]}}},
+    "guardrails": {"type":"object","required":["readOnly","publicMarketDataOnly","executionDisabled"],"properties":{"readOnly":{"const":true},"publicMarketDataOnly":{"const":true},"executionDisabled":{"const":true}}}
+  }
+}

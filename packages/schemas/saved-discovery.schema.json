@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/saved-discovery.schema.json",
+  "title": "Saved Discovery State",
+  "type": "object",
+  "required": ["version", "savedSearches", "savedScreens", "converterFavorites", "compareTray", "localPersistence", "cloudSync"],
+  "properties": {
+    "version": {"const": 1},
+    "savedSearches": {"type": "array"},
+    "savedScreens": {"type": "array"},
+    "converterFavorites": {"type": "array"},
+    "compareTray": {"type": "array"},
+    "localPersistence": {"const": true},
+    "cloudSync": {"const": false}
+  }
+}

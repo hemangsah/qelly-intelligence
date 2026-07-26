@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"WatchlistItemInput","type":"object","additionalProperties":false,"required":["canonicalId"],"properties":{"canonicalId":{"type":"string","minLength":3,"maxLength":80},"group":{"type":"string","maxLength":60},"note":{"type":"string","maxLength":400}}}

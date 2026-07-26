@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/provider-execution.schema.json",
+  "title": "Qelly Provider Execution Result",
+  "type": "object",
+  "required": ["data", "entitlement", "runtime"],
+  "properties": {
+    "data": {"type": "object"},
+    "entitlement": {"type": "object", "required": ["decision", "allowed", "obligations"]},
+    "runtime": {
+      "type": "object",
+      "required": ["providerId", "selectionRole", "attempt", "latencyMs", "cache", "quality", "correlationId", "costUnits"],
+      "properties": {
+        "providerId": {"type": "string"},
+        "selectionRole": {"enum": ["primary", "secondary", "validation"]},
+        "attempt": {"type": "integer", "minimum": 1},
+        "latencyMs": {"type": "number", "minimum": 0},
+        "cache": {"type": "string"},
+        "quality": {"type": "object"},
+        "correlationId": {"type": "string"},
+        "costUnits": {"type": "number", "minimum": 0}
+      }
+    }
+  },
+  "additionalProperties": true
+}

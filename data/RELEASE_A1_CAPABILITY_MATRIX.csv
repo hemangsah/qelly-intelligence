@@ -1,0 +1,51 @@
+capability_id,area,capability,status,evidence_or_boundary
+A1-001,Baseline,Part 22 full-stack checksum verified,implemented-local,Verified SHA-256 d84c330...e4156 before modification.
+A1-002,Baseline,Design atlases separated from runnable baseline,implemented-local,"400/10,000-screen artifacts retained as design taxonomy only, not runtime proof."
+A1-003,Defect,Expired fixture session renewal in local simulated mode,implemented-local,Fixed inherited time-dependent failure without enabling fixture identity in production.
+A1-004,Identity,User registration,implemented-local,"Database-backed registration creates user, organization, workspace, membership and signed cookie session."
+A1-005,Identity,Password login,implemented-local,scrypt password verification; generic invalid-credential response.
+A1-006,Identity,Secure logout,implemented-local,Revokes database session and clears cookie.
+A1-007,Identity,Session rotation,implemented-local,Refresh endpoint revokes prior session and rotates signed cookie and CSRF.
+A1-008,Identity,HttpOnly signed session cookie,implemented-local,"SameSite=Lax, HttpOnly; Secure in NODE_ENV=production."
+A1-009,Identity,Raw session token protection,implemented-local,Only SHA-256 token hash is persisted.
+A1-010,Identity,Password hashing,implemented-local,Node scrypt with per-password salt and configurable pepper.
+A1-011,Identity,Passkeys/WebAuthn,partial-contract,Architecture and future fields only; no ceremony endpoints.
+A1-012,Identity,MFA and recovery,partial-contract,Deferred to a later dependency slice.
+A1-013,Identity,Production fixture isolation,implemented-local,Production-mode checks return 401 for no cookie and fixture headers.
+A1-014,Tenancy,Organization/workspace persistence,implemented-local,Transactional SQLite development adapter and PostgreSQL repository implementation.
+A1-015,Tenancy,Tenant authorization,implemented-local,"Authenticated context is scoped to user membership, organization and workspace."
+A1-016,Database,SQLite development/test adapter,implemented-local,Explicitly rejected in production unless unsafe override is intentionally enabled.
+A1-017,Database,PostgreSQL repository,partial-contract,"Wire client, schema and repository implemented; no live PostgreSQL daemon was available in this environment."
+A1-018,Database,PostgreSQL migrations,implemented-local,Release A1 SQL migration packaged and syntax/manual review covered; live apply remains environment-dependent.
+A1-019,Database,PostgreSQL RLS,partial-contract,Policies are migration contracts; dedicated application-role enforcement requires deployment validation.
+A1-020,Database,JSON-state migration,partial-contract,Migration plan exists; inherited domain JSON stores are not all converted in A1.
+A1-021,Jobs,Persistent job records,implemented-local,Jobs persist transactionally in database with retry/dead-letter fields.
+A1-022,Jobs,Redis-signaled production queue,partial-contract,RESP client and queue adapter implemented; no live Redis daemon was available for integration execution.
+A1-023,Jobs,Database development queue,implemented-local,Used for tests and offline simulation.
+A1-024,Jobs,Worker process,implemented-local,"Reserves, completes, retries and dead-letters jobs."
+A1-025,Notifications,In-app notification job,implemented-local,Worker creates replay-safe notification records from queued jobs.
+A1-026,Notifications,Email/push/webhook delivery,missing,No external delivery adapters enabled.
+A1-027,Operations,Health endpoint,implemented-local,"Reports release, dependency modes and financial safety boundary."
+A1-028,Operations,Readiness endpoint,implemented-local,Returns 503 when configured dependencies are not ready.
+A1-029,Operations,Migration runner,implemented-local,Applies SQL migration files through PostgreSQL client when configured.
+A1-030,Operations,Seed runner,implemented-local,Creates initial production-foundation account from environment inputs.
+A1-031,Operations,Docker Compose production simulation,partial-contract,"PostgreSQL, Redis, migration, API and worker topology packaged; daemon execution unavailable here."
+A1-032,Frontend,Secure login screen,implemented-local,Responsive sovereign-burgundy authentication UI.
+A1-033,Frontend,Registration and organization creation screen,implemented-local,"Creates account, organization and workspace."
+A1-034,Frontend,Account session screen,implemented-local,"Shows authenticated principal, organization, workspace, session and safety state."
+A1-035,Frontend,Authenticated/anonymous boot routing,implemented-local,Anonymous users are directed to login; authenticated users retain existing routes.
+A1-036,Security,Session-derived CSRF,implemented-local,Required for cookie-authenticated mutations.
+A1-037,Security,Tamper-evident audit integration,implemented-local,"Registration, login, logout, rotation and job queue events append to inherited recursive audit ledger."
+A1-038,Security,Secrets vault/KMS/encryption at rest,partial-contract,Deployment architecture only; no cloud KMS integration.
+A1-039,Safety,Live trading,disabled-for-safety,No live order endpoint.
+A1-040,Safety,Transfers and withdrawals,disabled-for-safety,No transfer or withdrawal endpoint.
+A1-041,Safety,Private keys and recovery phrases,disabled-for-safety,"Not requested, stored or transmitted."
+A1-042,Provider,Read-only public market data,implemented-local,Inherited Binance/CoinDCX public read-only adapters with deterministic fallback.
+A1-043,Provider,Licensed data,blocked-by-license,No licensed feed credentials or redistribution rights configured.
+A1-044,Testing,Automated regression suite,implemented-local,207/207 tests passed on finished source before packaging.
+A1-045,Testing,Full-stack smoke,implemented-local,222/222 requests passed.
+A1-046,Testing,Changed-route browser render,implemented-local,8/8 desktop/mobile renders passed with zero console errors.
+A1-047,Accessibility,Changed and representative route regression,implemented-local,"16/16 semantic, keyboard-entry and responsive checks passed; not independent certification."
+A1-048,Performance,Load/stress/soak,missing,Not executed in A1; performance report documents measured local timings only.
+A1-049,Deployment,Staging/production deployment,blocked-by-credentials,No cloud account or deployment target connected.
+A1-050,GitHub,Direct remote push,blocked-by-credentials,Repository remains GitHub-ready; no connector or credentials available.

@@ -1,0 +1,72 @@
+feature_id,domain,feature,status,evidence,truth_boundary,test_evidence
+W4-TS-001,Time Series,Canonical QI identity,implemented,src/timeseries/timeseries-store.mjs,Local deterministic instruments only,wave4-runtime: persistent normalized OHLCV
+W4-TS-002,Time Series,Persistent normalized OHLCV history,implemented,runtime/timeseries-store.json via TimeSeriesStore,Atomic JSON; not production TSDB,server: summary and query
+W4-TS-003,Time Series,Decimal string precision,implemented,src/timeseries/timeseries-store.mjs,JavaScript generation; production decimal library deferred,contracts: decimal strings
+W4-TS-004,Time Series,UTC timestamp semantics,implemented,src/timeseries/timeseries-store.mjs,UTC only in this release,contracts: UTC
+W4-TS-005,Time Series,1h base interval,implemented,src/timeseries/timeseries-store.mjs,Fixture history anchored to release evidence,wave4-runtime
+W4-TS-006,Time Series,4h aggregation,implemented,aggregate(),Derived from 1h fixture history,wave4-runtime aggregation
+W4-TS-007,Time Series,1d aggregation,implemented,aggregate(),Derived from 1h fixture history,wave4-runtime summary
+W4-TS-008,Time Series,Range filtering,implemented,TimeSeriesStore.query,ISO timestamps required,server query coverage
+W4-TS-009,Time Series,Cursor pagination,implemented,TimeSeriesStore.query,Local index cursor; production opaque signing deferred,server cursor coverage
+W4-TS-010,Time Series,500 point page limit,implemented,TimeSeriesStore.query,Local process only,contract
+W4-TS-011,Time Series,Source and freshness lineage,implemented,query metadata and point fields,Fixture source only,server metadata coverage
+W4-TS-012,Time Series,Methodology versioning,implemented,qelly-timeseries-normalization-1.0.0,Single methodology version,server metadata coverage
+W4-TS-013,Time Series,Governed point append,implemented,POST /api/v1/timeseries/:id/append,Simulated local ingestion only,server governed append
+W4-TS-014,Time Series,OHLC validation,implemented,TimeSeriesStore.append,Basic bounds; exchange calendars deferred,wave4-runtime invalid OHLC
+W4-TS-015,Time Series,Idempotent ingestion,implemented,IdempotencyStore + endpoint,In-memory idempotency; distributed store deferred,server replay coverage
+W4-TS-016,Time Series,Audited ingestion,implemented,AuditLedger event timeseries.point.appended.v1,Local hash-chained evidence,server audit coverage
+W4-TS-017,Time Series,Production time-series database,deferred,packages/contracts/timeseries-streaming.contract.json,No distributed/managed TSDB,release safety
+W4-ST-001,Streaming,Channel catalog,implemented,StreamGateway.catalog,Four local channels,server catalog coverage
+W4-ST-002,Streaming,Quote snapshots,implemented,StreamGateway.quoteSnapshot,Deterministic local values,server SSE coverage
+W4-ST-003,Streaming,Quote deltas,implemented,StreamGateway.quoteDelta,"Deterministic drift, not live market data",server multi-frame SSE
+W4-ST-004,Streaming,Provider health channel,implemented,GET /api/v1/stream/provider-health,Local provider registry only,smoke
+W4-ST-005,Streaming,Monotonic per-channel sequence,implemented,StreamGateway.publish,Single-process ordering,server monotonic sequence
+W4-ST-006,Streaming,Event IDs,implemented,crypto.randomUUID,Local event journal,contract
+W4-ST-007,Streaming,Resume tokens,implemented,base64url channel/sequence token,Unsigned local token; production integrity deferred,wave4-runtime resume
+W4-ST-008,Streaming,Replay after sequence,implemented,GET /api/v1/streams/replay,Bounded local retention,server replay coverage
+W4-ST-009,Streaming,Replay by resume token,implemented,StreamGateway.replay,Bounded local retention,wave4-runtime resume
+W4-ST-010,Streaming,Gap detection,implemented,StreamGateway.replay + DataQualityEngine,Retention gap detection only,contract and unit coverage
+W4-ST-011,Streaming,Fresh snapshot recovery instruction,implemented,gapDetails.recovery,Client-triggered recovery,contract
+W4-ST-012,Streaming,Heartbeats,implemented,StreamGateway.heartbeat,Emitted every third local frame,server heartbeat coverage
+W4-ST-013,Streaming,SSE transport,implemented,server.mjs SSE routes,No WebSocket transport in Part 16,server content type coverage
+W4-ST-014,Streaming,Bounded client frames,implemented,frames query clamp 1..20,Development safety limit,server tests
+W4-ST-015,Streaming,Persistent local event journal,implemented,runtime/stream-journal.json,Atomic JSON; not production broker,server catalog/replay
+W4-ST-016,Streaming,Entitlement-scoped subscriptions,implemented,identity authorization per route,Local role fixtures,contract
+W4-ST-017,Streaming,Backpressure foundation,partial,bounded frames and connection counters,No distributed flow control,contract truth boundary
+W4-ST-018,Streaming,Distributed partitioned broker,deferred,packages/contracts/timeseries-streaming.contract.json,Not configured,release safety
+W4-OB-001,Observability,HTTP request counters,implemented,ObservabilityService,In-process bounded records,server metrics
+W4-OB-002,Observability,Status group metrics,implemented,ObservabilityService.metrics,In-process only,server metrics
+W4-OB-003,Observability,5xx error rate,implemented,ObservabilityService.metrics,Candidate local signal,server overview
+W4-OB-004,Observability,p50 p95 p99 latency,implemented,ObservabilityService.metrics,No histogram backend,wave4-runtime p95
+W4-OB-005,Observability,Correlation-aware traces,implemented,ObservabilityService.startRequest,Local server spans only,server traces
+W4-OB-006,Observability,Structured privacy-safe logs,implemented,ObservabilityService.log,No raw secrets or auth material,server logs
+W4-OB-007,Observability,Provider scorecard,implemented,ProviderRuntime.registry integration,Fixture provider metrics,frontend observability
+W4-OB-008,Observability,Stream metrics,implemented,StreamGateway.stats,Single-process counters,server metrics
+W4-OB-009,Observability,Time-series inventory metric,implemented,TimeSeriesStore.summary integration,Local store only,server overview
+W4-OB-010,Observability,Dependency health map,implemented,ObservabilityService.overview,Local declared dependencies,server overview
+W4-OB-011,Observability,API availability SLO candidate,implemented,ObservabilityService.overview,"Candidate only, not production commitment",server SLO coverage
+W4-OB-012,Observability,API p95 SLO candidate,implemented,ObservabilityService.overview,Candidate only,server SLO coverage
+W4-OB-013,Observability,Stream gap-free SLO candidate,implemented,ObservabilityService.overview,Candidate only,server SLO coverage
+W4-OB-014,Observability,Audit integrity SLO candidate,implemented,AuditLedger.verify integration,Candidate only,server overview
+W4-OB-015,Observability,External telemetry export,deferred,packages/contracts/observability.contract.json,No collector configured,contract test
+W4-OB-016,Observability,Production alert routing,deferred,packages/contracts/observability.contract.json,No pager/alert manager,contract
+W4-FE-001,Frontend,Time Series Laboratory route,implemented,apps/web/public/assets/app.js,Local fixture evidence,browser render
+W4-FE-002,Frontend,Instrument interval point controls,implemented,renderTimeSeriesLab,1h 4h 1d and bounded limits,browser render
+W4-FE-003,Frontend,Normalized chart rendering,implemented,QellyChartShell + API,Rendering foundation; advanced financial charting later,browser render
+W4-FE-004,Frontend,OHLCV data grid,implemented,QellyDataGrid,Client-rendered local result set,browser render
+W4-FE-005,Frontend,Series evidence panel,implemented,renderTimeSeriesLab,Local truth boundary shown,browser render
+W4-FE-006,Frontend,Stream Operations route,implemented,renderStreamOperations,Local SSE only,browser render
+W4-FE-007,Frontend,Live stream tape,implemented,EventSource client,Finite local frames,browser render
+W4-FE-008,Frontend,Pause resume stream control,implemented,renderStreamOperations,Client control only,browser render
+W4-FE-009,Frontend,Replay grid,implemented,renderStreamOperations,Bounded journal,browser render
+W4-FE-010,Frontend,Observability Center route,implemented,renderObservability,Local telemetry only,browser render
+W4-FE-011,Frontend,Dependency and SLO panels,implemented,renderObservability,Candidate SLOs,browser render
+W4-FE-012,Frontend,Provider scorecard,implemented,renderObservability,Fixture metrics,browser render
+W4-FE-013,Frontend,Trace and log tables,implemented,renderObservability,Bounded local records,browser render
+W4-FE-014,Frontend,Responsive Wave 4 routes,implemented,app.css Part 16 media rules,Desktop and 390x844 evidence,browser render
+W4-FE-015,Frontend,Reduced motion compatibility,implemented,existing Design OS controls,Existing Wave 1 foundation,design-system tests
+W4-SEC-001,Security,timeseries read authorization,implemented,identity fixtures and server require,Local roles,server coverage
+W4-SEC-002,Security,stream read authorization,implemented,identity fixtures and server require,Local roles,server coverage
+W4-SEC-003,Security,observability read authorization,implemented,identity fixtures and server require,Local roles,server coverage
+W4-SEC-004,Security,timeseries write step-up,implemented,authorization-engine high assurance,Simulated local step-up,server append coverage
+W4-SEC-005,Security,No live trading or dangerous routes,implemented,health safety and release-check,Live financial actions disabled,release-check

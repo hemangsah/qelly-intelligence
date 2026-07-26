@@ -1,0 +1,42 @@
+{
+  "version": "22.0.0",
+  "status": "implemented-optional-public-read-only-foundation",
+  "brandLock": {
+    "permanentGradient": true,
+    "tokenFile": "packages/design-tokens/brand-lock.json",
+    "personas": ["Scalper Velocity","Investor Compound","Aggressive Alpha","Quant Operator","Research Oracle","Signal Access"]
+  },
+  "charting": {
+    "interface": "TradingView Lightweight Charts compatible adapter",
+    "bundledAdvancedChartsLibrary": false,
+    "fallbackRenderer": "Qelly local SVG candlestick renderer",
+    "candles": true,
+    "volume": true,
+    "sma20": true,
+    "responsive": true,
+    "attributionRequired": true
+  },
+  "providers": {
+    "binance": {"publicRestCandles": true, "publicBrowserWebSocket": true, "privateAccountData": false, "trading": false},
+    "coindcx": {"publicRestCandles": true, "publicSocketContract": true, "privateAccountData": false, "trading": false},
+    "investingCom": {"publicApiIntegrated": false, "scraping": false, "optionalWidgetContractOnly": true},
+    "qellyFixture": {"deterministicFallback": true, "offline": true}
+  },
+  "experience": {
+    "motion": ["progressive reveal","magnetic controls","button ripple","route transition","card tilt","cursor aura","scroll progress","chart draw"],
+    "reducedMotion": true,
+    "aboutPage": true,
+    "featureUniverse": true,
+    "themePersonaPage": true,
+    "routes": 47
+  },
+  "guardrails": {
+    "readOnlyMarketData": true,
+    "liveTrading": false,
+    "transfers": false,
+    "withdrawals": false,
+    "privateKeys": false,
+    "recoveryPhrases": false,
+    "providerCredentialsInBrowser": false
+  }
+}

@@ -1,0 +1,68 @@
+id,area,capability,status,evidence_or_boundary
+A3-001,Identity and Security,"Registration, login, logout and refresh",implemented-local,Auth service and API routes
+A3-002,Identity and Security,Signed HttpOnly cookie sessions,implemented-local,AuthService cookie issuance and tamper tests
+A3-003,Identity and Security,Tenant-scoped organizations/workspaces,implemented-local,SQLite/PostgreSQL repositories
+A3-004,Identity and Security,RBAC/ABAC and step-up boundaries,implemented-local,Inherited identity security runtime
+A3-005,Identity and Security,Session-derived CSRF,implemented-local,Cookie identity APIs
+A3-006,Identity and Security,Idempotent governed mutations,implemented-local,Inherited idempotency store
+A3-007,Identity and Security,Tamper-evident audit ledger,implemented-local,Recursive hash-chain tests
+A3-008,Identity and Security,Runtime JSON-schema validation,implemented-local,56 packaged request/response schemas
+A3-009,Assurance,TOTP enrollment and confirmation,implemented-local,MfaService and frontend security setup
+A3-010,Assurance,MFA secret encryption,implemented-local,AES-256-GCM SecretProtector; local key contract
+A3-011,Assurance,Recovery code generation,implemented-local,Hashed recovery codes
+A3-012,Assurance,Recovery code atomic consumption,implemented-local,Repository transaction and replay test
+A3-013,Assurance,Recovery code regeneration,implemented-local,TOTP-gated API and account recovery UI
+A3-014,Assurance,Passkey registration,implemented-local,WebAuthn ES256 none-attestation ceremony
+A3-015,Assurance,Passkey authentication,implemented-local,Signature verification and cookie session issuance
+A3-016,Assurance,RP ID and origin validation,implemented-local,PasskeyService checks
+A3-017,Assurance,Challenge expiry and single use,implemented-local,Persistent auth challenges
+A3-018,Assurance,Authenticator signature counter,implemented-local,Counter verification/update
+A3-019,Assurance,Passkey revocation,implemented-local,Credential-specific DELETE endpoint
+A3-020,Platform Persistence,SQLite development persistence,implemented-local,Executed in automated tests
+A3-021,Platform Persistence,PostgreSQL repository parity,partial-contract,A1-A3 repository methods and migrations
+A3-022,Platform Persistence,PostgreSQL migrations,partial-contract,100-102 SQL migrations packaged
+A3-023,Platform Persistence,Redis job signaling adapter,partial-contract,Production adapter packaged
+A3-024,Platform Persistence,Persistent jobs and retries,implemented-local,Worker and repository tests
+A3-025,Platform Persistence,Dead-letter job state,implemented-local,Job queue contract
+A3-026,Platform Persistence,Backup and restore scripts,implemented-local,Checksum-verified SQLite tooling
+A3-027,Object Storage and Imports,Local object storage,implemented-local,Content-addressed files with SHA-256
+A3-028,Object Storage and Imports,S3-compatible adapter,partial-contract,AWS Signature V4 implementation and contract test
+A3-029,Object Storage and Imports,Secure import metadata,implemented-local,Tenant/workspace records
+A3-030,Object Storage and Imports,Filename and size validation,implemented-local,10 MB boundary and normalization
+A3-031,Object Storage and Imports,Malware test signature rejection,implemented-local,Foundation scanner
+A3-032,Object Storage and Imports,Storage status API,implemented-local,Provider truth inspection
+A3-033,Delivery,Persistent delivery jobs,implemented-local,Email/webhook job types
+A3-034,Delivery,Delivery-attempt history,implemented-local,Repository-backed records
+A3-035,Delivery,HMAC-signed webhook adapter,implemented-local,SHA-256 signature headers and test
+A3-036,Delivery,Generic HTTP email adapter,partial-contract,Explicit authenticated provider interface
+A3-037,Delivery,Local evidence sink,implemented-local,Development-only sink
+A3-038,Delivery,Delivery provider status API,implemented-local,Truthful configured/disabled status
+A3-039,Delivery,Worker operations UI,implemented-local,Delivery Operations route
+A3-040,Frontend,Passkey Center,implemented-local,Responsive WebAuthn management screen
+A3-041,Frontend,Account Recovery Controls,implemented-local,Recovery consumption/regeneration screen
+A3-042,Frontend,Delivery Operations,implemented-local,Provider/storage/job inspection screen
+A3-043,Frontend,Secure Import Vault,implemented-local,Existing A2 import UI retained
+A3-044,Frontend,Six operating personas,implemented-local,Inherited Qelly persona system
+A3-045,Frontend,Locked brand gradient,implemented-local,Design token checksum and source
+A3-046,Operations and Documentation,OpenAPI 3.1 inventory,implemented-local,161 path contracts
+A3-047,Operations and Documentation,Route inventory,implemented-local,55 routes
+A3-048,Operations and Documentation,API inventory,implemented-local,161 contracts
+A3-049,Operations and Documentation,Contract inventory,implemented-local,15 machine-readable contracts
+A3-050,Operations and Documentation,Schema inventory,implemented-local,56 JSON schemas
+A3-051,Operations and Documentation,Docker Compose topology,implemented-local,"PostgreSQL, Redis, MinIO, migration, API, worker"
+A3-052,Production Deferred,Production KMS integration,partial-contract,Envelope contract exists; no cloud KMS credentials
+A3-053,Production Deferred,Live PostgreSQL execution,blocked-by-service,No PostgreSQL service in build environment
+A3-054,Production Deferred,Live Redis execution,blocked-by-service,No Redis service in build environment
+A3-055,Production Deferred,Live MinIO/S3 execution,blocked-by-service,Adapter tested without live service
+A3-056,Production Deferred,External email delivery,blocked-by-credentials,Blocked by endpoint and credentials
+A3-057,Production Deferred,External webhook transmission,blocked-by-credentials,Blocked by endpoint and signing-secret deployment
+A3-058,Production Deferred,Full malware scanning provider,partial-contract,Only foundation signature scanner
+A3-059,Production Deferred,Physical authenticator browser E2E,partial-contract,Synthetic ES256 ceremony tested; no hardware authenticator in CI
+A3-060,Production Deferred,Cloud staging deployment,blocked-by-credentials,No cloud connector/credentials
+A3-061,Production Deferred,Independent penetration test,partial-contract,Not performed
+A3-062,Financial Safety,Live trading,disabled-for-safety,No route or enabling flag; explicitly false
+A3-063,Financial Safety,Custody,disabled-for-safety,No route or enabling flag; explicitly false
+A3-064,Financial Safety,Asset transfers,disabled-for-safety,No route or enabling flag; explicitly false
+A3-065,Financial Safety,Withdrawals,disabled-for-safety,No route or enabling flag; explicitly false
+A3-066,Financial Safety,Private keys,disabled-for-safety,No route or enabling flag; explicitly false
+A3-067,Financial Safety,Recovery phrases,disabled-for-safety,No route or enabling flag; explicitly false

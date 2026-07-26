@@ -1,0 +1,128 @@
+name: qelly-intelligence
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-qelly}
+      POSTGRES_USER: ${POSTGRES_USER:-qelly}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-qelly-local-change-me}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-qelly} -d ${POSTGRES_DB:-qelly}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes: [qelly-postgres:/var/lib/postgresql/data]
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes: [qelly-redis:/data]
+
+  minio:
+    image: minio/minio:latest
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-qelly}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-qelly-local-object-secret}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes: [qelly-minio:/data]
+
+  minio-init:
+    image: minio/mc:latest
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-qelly} ${MINIO_ROOT_PASSWORD:-qelly-local-object-secret} && mc mb --ignore-existing local/${S3_BUCKET:-qelly}"]
+    depends_on:
+      minio:
+        condition: service_healthy
+
+  migrate:
+    build: .
+    command: ["node", "scripts/migrate-production.mjs"]
+    environment: &qelly-env
+      # This compose file is an explicitly labelled local preview topology.
+      # Real deployments must use NODE_ENV=production and managed secrets.
+      NODE_ENV: development
+      QELLY_STRICT_PRODUCTION_DEPENDENCIES: "false"
+      DATABASE_URL: postgres://${POSTGRES_USER:-qelly}:${POSTGRES_PASSWORD:-qelly-local-change-me}@postgres:5432/${POSTGRES_DB:-qelly}
+      REDIS_URL: redis://redis:6379/0
+      QELLY_DATABASE_MODE: postgres
+      QELLY_JOB_QUEUE_MODE: redis
+      QELLY_PRODUCTION_FOUNDATION_ENABLED: "true"
+      QELLY_PRODUCTION_IDENTITY_ENABLED: "true"
+      QELLY_DEVELOPMENT_IDENTITY_ENABLED: "false"
+      QELLY_SESSION_SECRET: ${QELLY_SESSION_SECRET:-replace-with-at-least-32-random-characters}
+      QELLY_PASSWORD_PEPPER: ${QELLY_PASSWORD_PEPPER:-}
+      QELLY_SECRET_PROTECTION_KEY: ${QELLY_SECRET_PROTECTION_KEY:-replace-with-32-byte-base64-or-64-hex-key}
+      QELLY_WEBAUTHN_RP_ID: ${QELLY_WEBAUTHN_RP_ID:-localhost}
+      QELLY_WEBAUTHN_RP_NAME: Qelly Intelligence
+      QELLY_WEBAUTHN_ORIGINS: ${QELLY_WEBAUTHN_ORIGINS:-http://localhost:4480,http://127.0.0.1:4480}
+      QELLY_OBJECT_STORAGE_MODE: s3
+      QELLY_MALWARE_SCANNER_MODE: local-signature
+      S3_ENDPOINT: http://minio:9000
+      S3_BUCKET: ${S3_BUCKET:-qelly}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-qelly}
+      S3_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-qelly-local-object-secret}
+      S3_PATH_STYLE: "true"
+      QELLY_DELIVERY_MODE: ${QELLY_DELIVERY_MODE:-disabled}
+      QELLY_WEBHOOK_SIGNING_SECRET: ${QELLY_WEBHOOK_SIGNING_SECRET:-}
+      QELLY_EMAIL_API_URL: ${QELLY_EMAIL_API_URL:-}
+      QELLY_EMAIL_API_TOKEN: ${QELLY_EMAIL_API_TOKEN:-}
+      QELLY_LIVE_TRADING_ENABLED: "false"
+      QELLY_ASSET_TRANSFERS_ENABLED: "false"
+      QELLY_WITHDRAWALS_ENABLED: "false"
+      QELLY_PRIVATE_KEYS_ENABLED: "false"
+      QELLY_RECOVERY_PHRASES_ENABLED: "false"
+    depends_on:
+      postgres: {condition: service_healthy}
+
+  api:
+    build: .
+    command: ["node", "src/server/server.mjs"]
+    environment:
+      <<: *qelly-env
+      HOST: 0.0.0.0
+      PORT: 4480
+    ports: ["4480:4480"]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+      minio-init: {condition: service_completed_successfully}
+    volumes: [qelly-runtime:/app/runtime]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4480/api/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  worker:
+    build: .
+    command: ["node", "apps/worker/worker.mjs"]
+    environment:
+      <<: *qelly-env
+      QELLY_RUNTIME_DIR: /app/runtime
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+      minio-init: {condition: service_completed_successfully}
+    volumes: [qelly-runtime:/app/runtime]
+    restart: unless-stopped
+
+volumes:
+  qelly-postgres:
+  qelly-redis:
+  qelly-minio:
+  qelly-runtime:

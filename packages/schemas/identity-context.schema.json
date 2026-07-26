@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/identity-context.schema.json",
+  "title": "Tenant Identity Context",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "mode",
+    "userId",
+    "organizationId",
+    "workspaceId",
+    "roles",
+    "attributes",
+    "session",
+    "productionIdentityEnabled"
+  ],
+  "properties": {
+    "mode": {
+      "enum": [
+        "simulated-contract",
+        "authenticated"
+      ]
+    },
+    "userId": {
+      "type": "string"
+    },
+    "organizationId": {
+      "type": "string"
+    },
+    "workspaceId": {
+      "type": "string"
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "attributes": {
+      "type": "object"
+    },
+    "session": {
+      "type": "object",
+      "required": [
+        "id",
+        "assuranceLevel",
+        "deviceTrusted",
+        "stepUpRequired"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "assuranceLevel": {
+          "enum": [
+            "AAL1",
+            "AAL2",
+            "AAL3"
+          ]
+        },
+        "deviceTrusted": {
+          "type": "boolean"
+        },
+        "stepUpRequired": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "productionIdentityEnabled": {
+      "const": false
+    }
+  }
+}

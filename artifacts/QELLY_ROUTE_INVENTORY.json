@@ -1,0 +1,494 @@
+{
+  "productVersion": "0.9.0-preview.1",
+  "count": 61,
+  "items": [
+    {
+      "index": 1,
+      "route": "auth-login",
+      "label": "Secure Login",
+      "section": "Access",
+      "public": true,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 2,
+      "route": "auth-register",
+      "label": "Create Organization",
+      "section": "Access",
+      "public": true,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 3,
+      "route": "auth-recovery",
+      "label": "Recover Account",
+      "section": "Access",
+      "public": true,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 4,
+      "route": "account-session",
+      "label": "Session Center",
+      "section": "Account",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 5,
+      "route": "security-setup",
+      "label": "MFA Setup",
+      "section": "Account",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 6,
+      "route": "passkey-center",
+      "label": "Passkey Center",
+      "section": "Account",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 7,
+      "route": "account-recovery",
+      "label": "Recovery Controls",
+      "section": "Account",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 8,
+      "route": "secure-import-vault",
+      "label": "Secure Import Vault",
+      "section": "Operations",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 9,
+      "route": "delivery-operations",
+      "label": "Delivery Operations",
+      "section": "Operations",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 10,
+      "route": "platform-readiness",
+      "label": "Platform Readiness",
+      "section": "Operations",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 11,
+      "route": "secret-rotation",
+      "label": "Secret Rotation",
+      "section": "Security",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 12,
+      "route": "quarantine-review",
+      "label": "Quarantine Review",
+      "section": "Operations",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 13,
+      "route": "staging-assurance",
+      "label": "Staging Assurance",
+      "section": "Operations",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 14,
+      "route": "live-markets",
+      "label": "Live Market Command",
+      "section": "Live",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 15,
+      "route": "theme-personas",
+      "label": "Theme Personas",
+      "section": "Experience",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 16,
+      "route": "feature-universe",
+      "label": "Feature Universe",
+      "section": "Experience",
+      "public": true,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 17,
+      "route": "about-qelly",
+      "label": "About Qelly",
+      "section": "Company",
+      "public": true,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 18,
+      "route": "discovery-hub",
+      "label": "Discovery Overview",
+      "section": "Discover",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 19,
+      "route": "asset-rankings",
+      "label": "Asset Rankings",
+      "section": "Discover",
+      "public": true,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 20,
+      "route": "search",
+      "label": "Universal Search",
+      "section": "Discover",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 21,
+      "route": "categories",
+      "label": "Categories",
+      "section": "Discover",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 22,
+      "route": "venues",
+      "label": "Venues",
+      "section": "Discover",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 23,
+      "route": "dex-discovery",
+      "label": "DEX Discovery",
+      "section": "Discover",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 24,
+      "route": "global-charts",
+      "label": "Global Charts",
+      "section": "Discover",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 25,
+      "route": "converter",
+      "label": "Converter",
+      "section": "Discover",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 26,
+      "route": "news-research",
+      "label": "News & Research",
+      "section": "Discover",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 27,
+      "route": "trust-center",
+      "label": "Trust Center",
+      "section": "Discover",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 28,
+      "route": "asset-intelligence",
+      "label": "Asset Intelligence",
+      "section": "Intelligence",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 29,
+      "route": "advanced-chart",
+      "label": "Advanced Chart Studio",
+      "section": "Intelligence",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 30,
+      "route": "fundamentals-estimates",
+      "label": "Fundamentals & Estimates",
+      "section": "Intelligence",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 31,
+      "route": "filing-workspace",
+      "label": "Filing Workspace",
+      "section": "Intelligence",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 32,
+      "route": "event-calendar",
+      "label": "Event Calendar",
+      "section": "Intelligence",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 33,
+      "route": "comparison-lab",
+      "label": "Comparison Lab",
+      "section": "Intelligence",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 34,
+      "route": "market",
+      "label": "Market Overview",
+      "section": "Intelligence",
+      "public": true,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 35,
+      "route": "rankings",
+      "label": "Legacy Rankings",
+      "section": "Intelligence",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 36,
+      "route": "asset",
+      "label": "Asset Dossier",
+      "section": "Workspace",
+      "public": true,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 37,
+      "route": "watchlist",
+      "label": "Watchlists",
+      "section": "Workspace",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 38,
+      "route": "alert-center",
+      "label": "Alert Rules",
+      "section": "Workspace",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 39,
+      "route": "notification-center",
+      "label": "Notifications",
+      "section": "Workspace",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 40,
+      "route": "screener-lab",
+      "label": "Screener Lab",
+      "section": "Workspace",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 41,
+      "route": "portfolio-analytics",
+      "label": "Portfolio Analytics",
+      "section": "Workspace",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 42,
+      "route": "research-workspace",
+      "label": "Research Workspace",
+      "section": "Workspace",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 43,
+      "route": "onboarding",
+      "label": "Guided Onboarding",
+      "section": "Workspace",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 44,
+      "route": "notification-schedules",
+      "label": "Notification Schedules",
+      "section": "Workspace",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 45,
+      "route": "formula-screener",
+      "label": "Formula Screener",
+      "section": "Workspace",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 46,
+      "route": "portfolio-attribution",
+      "label": "Portfolio Attribution",
+      "section": "Workspace",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 47,
+      "route": "import-center",
+      "label": "Import Center",
+      "section": "Workspace",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 48,
+      "route": "research-history",
+      "label": "Research History",
+      "section": "Workspace",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 49,
+      "route": "migration-center",
+      "label": "Migration Center",
+      "section": "Operations",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 50,
+      "route": "theme-lab",
+      "label": "Theme Laboratory",
+      "section": "Platform",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 51,
+      "route": "identity-access",
+      "label": "Identity & Access",
+      "section": "Control",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 52,
+      "route": "data-mesh",
+      "label": "Provider Runtime",
+      "section": "Control",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 53,
+      "route": "instrument-master",
+      "label": "Instrument Master",
+      "section": "Control",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 54,
+      "route": "timeseries-lab",
+      "label": "Time Series Lab",
+      "section": "Data Plane",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 55,
+      "route": "stream-operations",
+      "label": "Stream Operations",
+      "section": "Data Plane",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 56,
+      "route": "observability",
+      "label": "Observability Center",
+      "section": "Operations",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 57,
+      "route": "decision-provenance",
+      "label": "Decision Provenance",
+      "section": "Evidence",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 58,
+      "route": "security-evidence",
+      "label": "Security Evidence",
+      "section": "Evidence",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 59,
+      "route": "category-detail",
+      "label": "Category Detail",
+      "section": "Detail",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 60,
+      "route": "venue-detail",
+      "label": "Venue Detail",
+      "section": "Detail",
+      "public": false,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 61,
+      "route": "research-article",
+      "label": "Research Article",
+      "section": "Detail",
+      "public": false,
+      "implementation": "runnable-route"
+    }
+  ]
+}

@@ -1,0 +1,1133 @@
+{
+  "release": "25.0.0",
+  "count": 161,
+  "items": [
+    {
+      "id": "API001",
+      "path": "/api/health",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API002",
+      "path": "/api/ready",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API003",
+      "path": "/api/v1/config",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API004",
+      "path": "/api/v1/auth/status",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API005",
+      "path": "/api/v1/auth/register",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API006",
+      "path": "/api/v1/auth/login",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API007",
+      "path": "/api/v1/auth/logout",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API008",
+      "path": "/api/v1/auth/refresh",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API009",
+      "path": "/api/v1/auth/mfa/status",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API010",
+      "path": "/api/v1/auth/mfa/enroll",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API011",
+      "path": "/api/v1/auth/mfa/confirm",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API012",
+      "path": "/api/v1/auth/mfa/disable",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API013",
+      "path": "/api/v1/auth/mfa/recovery/consume",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "A3"
+    },
+    {
+      "id": "API014",
+      "path": "/api/v1/auth/mfa/recovery/regenerate",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "A3"
+    },
+    {
+      "id": "API015",
+      "path": "/api/v1/auth/passkeys",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "A3"
+    },
+    {
+      "id": "API016",
+      "path": "/api/v1/auth/passkeys/register/options",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "A3"
+    },
+    {
+      "id": "API017",
+      "path": "/api/v1/auth/passkeys/register/verify",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "A3"
+    },
+    {
+      "id": "API018",
+      "path": "/api/v1/auth/passkeys/authenticate/options",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "A3"
+    },
+    {
+      "id": "API019",
+      "path": "/api/v1/auth/passkeys/authenticate/verify",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "A3"
+    },
+    {
+      "id": "API020",
+      "path": "/api/v1/auth/passkeys/:id",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "A3"
+    },
+    {
+      "id": "API021",
+      "path": "/api/v1/secure-imports",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API022",
+      "path": "/api/v1/storage/status",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "A3"
+    },
+    {
+      "id": "API023",
+      "path": "/api/v1/delivery/providers",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "A3"
+    },
+    {
+      "id": "API024",
+      "path": "/api/v1/delivery-attempts",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API025",
+      "path": "/api/v1/jobs/delivery",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API026",
+      "path": "/api/v1/production-foundation/status",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API027",
+      "path": "/api/v1/jobs",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API028",
+      "path": "/api/v1/jobs/:id",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API029",
+      "path": "/api/v1/jobs/notifications",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API030",
+      "path": "/api/v1/production-notifications",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API031",
+      "path": "/api/v1/live-markets/catalog",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API032",
+      "path": "/api/v1/live-markets/status",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API033",
+      "path": "/api/v1/live-markets/candles",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API034",
+      "path": "/api/v1/live-markets/ticker",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API035",
+      "path": "/api/v1/session/context",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API036",
+      "path": "/api/v1/workspaces",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API037",
+      "path": "/api/v1/sessions",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API038",
+      "path": "/api/v1/devices",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API039",
+      "path": "/api/v1/auth/step-up/simulate",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API040",
+      "path": "/api/v1/access/evaluate",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API041",
+      "path": "/api/v1/privacy/consents",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API042",
+      "path": "/api/v1/privacy/data-inventory",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API043",
+      "path": "/api/v1/market/overview",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API044",
+      "path": "/api/v1/rankings",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API045",
+      "path": "/api/v1/search",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API046",
+      "path": "/api/v1/search/suggestions",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API047",
+      "path": "/api/v1/assets/:id",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API048",
+      "path": "/api/v1/watchlist",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API049",
+      "path": "/api/v1/discovery/overview",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API050",
+      "path": "/api/v1/discovery/rankings",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API051",
+      "path": "/api/v1/discovery/categories",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API052",
+      "path": "/api/v1/discovery/categories/:id",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API053",
+      "path": "/api/v1/discovery/venues",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API054",
+      "path": "/api/v1/discovery/venues/:id",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API055",
+      "path": "/api/v1/discovery/dex",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API056",
+      "path": "/api/v1/discovery/dex/:id",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API057",
+      "path": "/api/v1/discovery/global-charts",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API058",
+      "path": "/api/v1/discovery/prediction-markets",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API059",
+      "path": "/api/v1/discovery/converter",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API060",
+      "path": "/api/v1/discovery/news",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API061",
+      "path": "/api/v1/discovery/research",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API062",
+      "path": "/api/v1/discovery/research/:id",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API063",
+      "path": "/api/v1/discovery/methodologies",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API064",
+      "path": "/api/v1/discovery/methodologies/:id",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API065",
+      "path": "/api/v1/discovery/coverage",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API066",
+      "path": "/api/v1/discovery/status",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API067",
+      "path": "/api/v1/discovery/saved",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API068",
+      "path": "/api/v1/discovery/saved/searches",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API069",
+      "path": "/api/v1/discovery/saved/screens",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API070",
+      "path": "/api/v1/discovery/saved/compare-tray",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API071",
+      "path": "/api/v1/providers/runtime",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API072",
+      "path": "/api/v1/providers/execute",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API073",
+      "path": "/api/v1/providers/:id/execute",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API074",
+      "path": "/api/v1/providers/:id/diagnostics",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API075",
+      "path": "/api/v1/entitlements/evaluate",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API076",
+      "path": "/api/v1/instruments/summary",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API077",
+      "path": "/api/v1/instruments/search",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API078",
+      "path": "/api/v1/instruments/resolve",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API079",
+      "path": "/api/v1/instruments/:id",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API080",
+      "path": "/api/v1/instruments/:id/relationships",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API081",
+      "path": "/api/v1/data-quality/incidents",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API082",
+      "path": "/api/v1/data-quality/overrides",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API083",
+      "path": "/api/v1/preferences/layout",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API084",
+      "path": "/api/v1/preferences/layout/inventory",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API085",
+      "path": "/api/v1/contracts/:name",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API086",
+      "path": "/api/v1/schemas/coverage",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API087",
+      "path": "/api/v1/timeseries/summary",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API088",
+      "path": "/api/v1/timeseries/query",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API089",
+      "path": "/api/v1/timeseries/:id",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API090",
+      "path": "/api/v1/timeseries/:id/append",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API091",
+      "path": "/api/v1/streams/catalog",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API092",
+      "path": "/api/v1/streams/replay",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API093",
+      "path": "/api/v1/stream/quotes",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API094",
+      "path": "/api/v1/stream/provider-health",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API095",
+      "path": "/api/v1/observability/overview",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API096",
+      "path": "/api/v1/observability/metrics",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API097",
+      "path": "/api/v1/observability/traces",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API098",
+      "path": "/api/v1/observability/logs",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API099",
+      "path": "/api/v1/audit",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API100",
+      "path": "/api/v1/audit/verify",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API101",
+      "path": "/api/v1/asset-intelligence/:id/overview",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API102",
+      "path": "/api/v1/asset-intelligence/:id/fundamentals",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API103",
+      "path": "/api/v1/asset-intelligence/:id/events",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API104",
+      "path": "/api/v1/asset-intelligence/:id/filings",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API105",
+      "path": "/api/v1/asset-intelligence/:id/peers",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API106",
+      "path": "/api/v1/asset-intelligence/:id/technicals",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API107",
+      "path": "/api/v1/asset-intelligence/studies",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API108",
+      "path": "/api/v1/asset-intelligence/compare",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API109",
+      "path": "/api/v1/asset-intelligence/compare/series",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API110",
+      "path": "/api/v1/asset-intelligence/compare/snapshots",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API111",
+      "path": "/api/v1/asset-intelligence/layouts",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API112",
+      "path": "/api/v1/asset-intelligence/layouts/:id",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API113",
+      "path": "/api/v1/asset-intelligence/:id/chart",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API114",
+      "path": "/api/v1/asset-intelligence/:id/financials",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API115",
+      "path": "/api/v1/asset-intelligence/:id/earnings",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API116",
+      "path": "/api/v1/asset-intelligence/:id/estimates",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API117",
+      "path": "/api/v1/asset-intelligence/:id/corporate-actions",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API118",
+      "path": "/api/v1/asset-intelligence/:id/event-calendar",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API119",
+      "path": "/api/v1/asset-intelligence/:id/filings/:filingId",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API120",
+      "path": "/api/v1/workspace/watchlists",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API121",
+      "path": "/api/v1/workspace/watchlists/:id",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API122",
+      "path": "/api/v1/workspace/watchlists/:id/items",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API123",
+      "path": "/api/v1/workspace/watchlists/:id/items/:canonicalId",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API124",
+      "path": "/api/v1/alerts/rules",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API125",
+      "path": "/api/v1/alerts/rules/:id",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API126",
+      "path": "/api/v1/alerts/evaluate",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API127",
+      "path": "/api/v1/notifications",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API128",
+      "path": "/api/v1/notifications/:id/read",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API129",
+      "path": "/api/v1/notifications/read-all",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API130",
+      "path": "/api/v1/screeners/catalog",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API131",
+      "path": "/api/v1/screeners/run",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API132",
+      "path": "/api/v1/screeners/saved",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API133",
+      "path": "/api/v1/screeners/saved/:id",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API134",
+      "path": "/api/v1/portfolio/overview",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API135",
+      "path": "/api/v1/portfolio/holdings",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API136",
+      "path": "/api/v1/portfolio/performance",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API137",
+      "path": "/api/v1/portfolio/risk",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API138",
+      "path": "/api/v1/research/workspaces",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API139",
+      "path": "/api/v1/research/workspaces/:id",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API140",
+      "path": "/api/v1/research/workspaces/:id/items",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API141",
+      "path": "/api/v1/onboarding/catalog",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API142",
+      "path": "/api/v1/onboarding/profile",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API143",
+      "path": "/api/v1/onboarding/complete",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API144",
+      "path": "/api/v1/notification-schedules/catalog",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API145",
+      "path": "/api/v1/notification-schedules",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API146",
+      "path": "/api/v1/notification-schedules/:id",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API147",
+      "path": "/api/v1/notification-schedules/run-due",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API148",
+      "path": "/api/v1/screeners/formulas/catalog",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API149",
+      "path": "/api/v1/screeners/formulas/run",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API150",
+      "path": "/api/v1/portfolio/attribution",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API151",
+      "path": "/api/v1/imports/templates",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API152",
+      "path": "/api/v1/imports",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API153",
+      "path": "/api/v1/imports/preview",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API154",
+      "path": "/api/v1/imports/commit",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API155",
+      "path": "/api/v1/imports/:id",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API156",
+      "path": "/api/v1/research/workspaces/:id/versions",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API157",
+      "path": "/api/v1/research/workspaces/:id/versions/:versionId",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API158",
+      "path": "/api/v1/research/workspaces/:id/versions/:versionId/restore",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API159",
+      "path": "/api/v1/research/version-diff",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API160",
+      "path": "/api/v1/platform/migrations/plan",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    },
+    {
+      "id": "API161",
+      "path": "/api/v1/platform/migrations/status",
+      "release": "25.0.0",
+      "status": "implemented-local",
+      "introducedOrChanged": "inherited"
+    }
+  ]
+}

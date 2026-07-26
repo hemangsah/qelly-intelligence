@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/provider-runtime.schema.json",
+  "title": "Provider Runtime Status",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "providerId",
+    "displayName",
+    "mode",
+    "capabilities",
+    "health",
+    "entitlement",
+    "credentialReference",
+    "quality",
+    "lastUpdatedAt"
+  ],
+  "properties": {
+    "providerId": {
+      "type": "string"
+    },
+    "displayName": {
+      "type": "string"
+    },
+    "mode": {
+      "enum": [
+        "fixture",
+        "read-only",
+        "planned",
+        "disabled"
+      ]
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "search",
+          "quote",
+          "timeseries",
+          "reference",
+          "news",
+          "filings",
+          "stream",
+          "mapping"
+        ]
+      }
+    },
+    "health": {
+      "enum": [
+        "healthy",
+        "degraded",
+        "disabled",
+        "planned"
+      ]
+    },
+    "entitlement": {
+      "enum": [
+        "development",
+        "public-read",
+        "licensed-required",
+        "unavailable"
+      ]
+    },
+    "credentialReference": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^(secret-ref:|null)"
+    },
+    "quality": {
+      "type": "object",
+      "required": [
+        "latencyMs",
+        "confidence",
+        "freshnessClass"
+      ],
+      "properties": {
+        "latencyMs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "freshnessClass": {
+          "enum": [
+            "live",
+            "delayed",
+            "cached",
+            "stale",
+            "simulated",
+            "unavailable"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "lastUpdatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

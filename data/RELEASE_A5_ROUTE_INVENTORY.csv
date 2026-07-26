@@ -1,0 +1,61 @@
+id,route,label,section,access,release,status,introducedOrChanged
+R001,auth-login,Secure Login,Access,public,27.0.0,implemented-local,inherited
+R002,auth-register,Create Organization,Access,public,27.0.0,implemented-local,inherited
+R003,auth-recovery,Recover Account,Access,public,27.0.0,implemented-local,A4
+R004,account-session,Session Center,Account,authenticated,27.0.0,implemented-local,inherited
+R005,security-setup,MFA Setup,Account,authenticated,27.0.0,implemented-local,inherited
+R006,passkey-center,Passkey Center,Account,authenticated,27.0.0,implemented-local,inherited
+R007,account-recovery,Recovery Controls,Account,authenticated,27.0.0,implemented-local,inherited
+R008,secure-import-vault,Secure Import Vault,Operations,authenticated,27.0.0,implemented-local,inherited
+R009,delivery-operations,Delivery Operations,Operations,authenticated,27.0.0,implemented-local,inherited
+R010,platform-readiness,Platform Readiness,Operations,authenticated,27.0.0,implemented-local,A4
+R011,secret-rotation,Secret Rotation,Security,authenticated,27.0.0,implemented-local,A5
+R012,quarantine-review,Quarantine Review,Operations,authenticated,27.0.0,implemented-local,A5
+R013,staging-assurance,Staging Assurance,Operations,authenticated,27.0.0,implemented-local,A5
+R014,live-markets,Live Market Command,Live,authenticated,27.0.0,implemented-local,inherited
+R015,theme-personas,Theme Personas,Experience,authenticated,27.0.0,implemented-local,inherited
+R016,feature-universe,Feature Universe,Experience,authenticated,27.0.0,implemented-local,inherited
+R017,about-qelly,About Qelly,Company,authenticated,27.0.0,implemented-local,inherited
+R018,discovery-hub,Discovery Overview,Discover,authenticated,27.0.0,implemented-local,inherited
+R019,asset-rankings,Asset Rankings,Discover,authenticated,27.0.0,implemented-local,inherited
+R020,search,Universal Search,Discover,authenticated,27.0.0,implemented-local,inherited
+R021,categories,Categories,Discover,authenticated,27.0.0,implemented-local,inherited
+R022,venues,Venues,Discover,authenticated,27.0.0,implemented-local,inherited
+R023,dex-discovery,DEX Discovery,Discover,authenticated,27.0.0,implemented-local,inherited
+R024,global-charts,Global Charts,Discover,authenticated,27.0.0,implemented-local,inherited
+R025,converter,Converter,Discover,authenticated,27.0.0,implemented-local,inherited
+R026,news-research,News & Research,Discover,authenticated,27.0.0,implemented-local,inherited
+R027,trust-center,Trust Center,Discover,authenticated,27.0.0,implemented-local,inherited
+R028,asset-intelligence,Asset Intelligence,Intelligence,authenticated,27.0.0,implemented-local,inherited
+R029,advanced-chart,Advanced Chart Studio,Intelligence,authenticated,27.0.0,implemented-local,inherited
+R030,fundamentals-estimates,Fundamentals & Estimates,Intelligence,authenticated,27.0.0,implemented-local,inherited
+R031,filing-workspace,Filing Workspace,Intelligence,authenticated,27.0.0,implemented-local,inherited
+R032,event-calendar,Event Calendar,Intelligence,authenticated,27.0.0,implemented-local,inherited
+R033,comparison-lab,Comparison Lab,Intelligence,authenticated,27.0.0,implemented-local,inherited
+R034,market,Market Overview,Intelligence,authenticated,27.0.0,implemented-local,inherited
+R035,rankings,Legacy Rankings,Intelligence,authenticated,27.0.0,implemented-local,inherited
+R036,asset,Asset Dossier,Workspace,authenticated,27.0.0,implemented-local,inherited
+R037,watchlist,Watchlists,Workspace,authenticated,27.0.0,implemented-local,inherited
+R038,alert-center,Alert Rules,Workspace,authenticated,27.0.0,implemented-local,inherited
+R039,notification-center,Notifications,Workspace,authenticated,27.0.0,implemented-local,inherited
+R040,screener-lab,Screener Lab,Workspace,authenticated,27.0.0,implemented-local,inherited
+R041,portfolio-analytics,Portfolio Analytics,Workspace,authenticated,27.0.0,implemented-local,inherited
+R042,research-workspace,Research Workspace,Workspace,authenticated,27.0.0,implemented-local,inherited
+R043,onboarding,Guided Onboarding,Workspace,authenticated,27.0.0,implemented-local,inherited
+R044,notification-schedules,Notification Schedules,Workspace,authenticated,27.0.0,implemented-local,inherited
+R045,formula-screener,Formula Screener,Workspace,authenticated,27.0.0,implemented-local,inherited
+R046,portfolio-attribution,Portfolio Attribution,Workspace,authenticated,27.0.0,implemented-local,inherited
+R047,import-center,Import Center,Workspace,authenticated,27.0.0,implemented-local,inherited
+R048,research-history,Research History,Workspace,authenticated,27.0.0,implemented-local,inherited
+R049,migration-center,Migration Center,Operations,authenticated,27.0.0,implemented-local,inherited
+R050,theme-lab,Theme Laboratory,Platform,authenticated,27.0.0,implemented-local,inherited
+R051,identity-access,Identity & Access,Control,authenticated,27.0.0,implemented-local,inherited
+R052,data-mesh,Provider Runtime,Control,authenticated,27.0.0,implemented-local,inherited
+R053,instrument-master,Instrument Master,Control,authenticated,27.0.0,implemented-local,inherited
+R054,timeseries-lab,Time Series Lab,Data Plane,authenticated,27.0.0,implemented-local,inherited
+R055,stream-operations,Stream Operations,Data Plane,authenticated,27.0.0,implemented-local,inherited
+R056,observability,Observability Center,Operations,authenticated,27.0.0,implemented-local,inherited
+R057,security-evidence,Security Evidence,Evidence,authenticated,27.0.0,implemented-local,inherited
+R058,category-detail,Category Detail,Detail,authenticated,27.0.0,implemented-local,inherited
+R059,venue-detail,Venue Detail,Detail,authenticated,27.0.0,implemented-local,inherited
+R060,research-article,Research Article,Detail,authenticated,27.0.0,implemented-local,inherited

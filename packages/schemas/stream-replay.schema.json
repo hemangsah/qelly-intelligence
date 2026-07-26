@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/stream-replay.schema.json",
+  "title": "Qelly stream replay response",
+  "type": "object",
+  "required": ["channel", "requestedAfterSequence", "currentSequence", "firstAvailableSequence", "gap", "items", "nextResumeToken"],
+  "properties": {
+    "channel": {"type": "string"},
+    "requestedAfterSequence": {"type": "integer", "minimum": 0},
+    "currentSequence": {"type": "integer", "minimum": 0},
+    "firstAvailableSequence": {"type": "integer", "minimum": 1},
+    "gap": {"type": "boolean"},
+    "gapDetails": {"type": ["object", "null"]},
+    "items": {"type": "array"},
+    "nextResumeToken": {"type": "string"}
+  },
+  "additionalProperties": false
+}

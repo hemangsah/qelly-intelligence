@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/discovery-search-response.schema.json",
+  "title": "Federated Discovery Search Response",
+  "type": "object",
+  "required": ["query", "items", "total", "nextCursor", "facets", "mode", "source", "observedAt", "receivedAt"],
+  "properties": {
+    "query": {"type": "string"},
+    "items": {"type": "array", "items": {"$ref": "#/$defs/result"}},
+    "total": {"type": "integer", "minimum": 0},
+    "nextCursor": {"type": ["string", "null"]},
+    "facets": {"type": "object"},
+    "mode": {"const": "federated-local-search-foundation"},
+    "source": {"type": "string"},
+    "observedAt": {"type": "string", "format": "date-time"},
+    "receivedAt": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {
+    "result": {
+      "type": "object",
+      "required": ["resultId", "type", "title", "subtitle", "route", "score", "entity"],
+      "properties": {
+        "resultId": {"type": "string"},
+        "type": {"enum": ["asset", "category", "venue", "dex", "news", "research", "methodology", "command"]},
+        "title": {"type": "string"},
+        "subtitle": {"type": "string"},
+        "route": {"type": "string"},
+        "score": {"type": "number"},
+        "entity": {"type": "object"}
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://qelly.local/schemas/timeseries-append-request.schema.json",
+  "title":"Governed time-series append request",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["at","open","high","low","close","volume"],
+  "properties":{
+    "at":{"type":"string","format":"date-time"},
+    "open":{"type":["string","number"]},"high":{"type":["string","number"]},"low":{"type":["string","number"]},"close":{"type":["string","number"]},"volume":{"type":["string","number"]},
+    "providerId":{"type":"string","minLength":1,"maxLength":128},
+    "freshnessClass":{"enum":["live","delayed","cached","stale","simulated","unavailable"]},
+    "qualityFlags":{"type":"array","items":{"type":"string"},"uniqueItems":true,"maxItems":32}
+  }
+}

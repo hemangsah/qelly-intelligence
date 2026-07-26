@@ -1,0 +1,32 @@
+import { AtomicJsonStore } from '../platform/json-store.mjs';
+
+const nowIso=()=>new Date().toISOString();
+const scopeKey=scope=>`${scope.userId}:${scope.tenantId}:${scope.workspaceId}`;
+const options={
+  goals:['market-research','portfolio-monitoring','quant-research','risk-oversight','provider-operations'],
+  assetClasses:['equity','crypto','fund','index','commodity','fx','fixed-income','prediction-market'],
+  regions:['india','united-states','europe','asia-pacific','global'],
+  experienceLevels:['beginner','intermediate','advanced','institutional'],
+  workspaceTemplates:[
+    {id:'institutional-research',name:'Institutional Research',description:'Discovery, asset intelligence, filings and evidence boards.'},
+    {id:'portfolio-monitoring',name:'Portfolio Monitoring',description:'Watchlists, alerts, attribution and risk.'},
+    {id:'quant-lab',name:'Quant Research Lab',description:'Screeners, formulas, time series and studies.'},
+    {id:'provider-operations',name:'Provider Operations',description:'Data quality, provider runtime and observability.'}
+  ],
+  providerInterests:['market-data','news','filings','fundamentals','brokerage','wallets'],
+  digestCadences:['off','daily','weekly']
+};
+const seed=()=>({version:1,profiles:{[scopeKey({userId:'user-hemang-local',tenantId:'org-qelly-labs',workspaceId:'ws-institutional-research'})]:{
+  userId:'user-hemang-local',tenantId:'org-qelly-labs',workspaceId:'ws-institutional-research',goals:['market-research','portfolio-monitoring'],assetClasses:['equity','crypto','fund','commodity'],regions:['india','united-states','global'],baseCurrency:'INR',experienceLevel:'advanced',workspaceTemplate:'institutional-research',providerInterests:['market-data','news','filings'],digestCadence:'daily',completedSteps:['goals','markets','profile','workspace'],completed:false,revision:1,createdAt:'2026-07-24T08:00:00.000Z',updatedAt:'2026-07-24T08:00:00.000Z'
+}},updatedAt:null});
+function uniqueAllowed(values,allowed,max=12){return [...new Set((values??[]).map(String))].filter(value=>allowed.includes(value)).slice(0,max);}
+function validateChoice(value,allowed,label){if(!allowed.includes(value))throw Object.assign(new Error(`${label} is invalid`),{status:400,code:`${label.replaceAll(' ','_')}_invalid`});return value;}
+export class OnboardingStore{
+  constructor({filePath,auditLedger}){this.store=new AtomicJsonStore(filePath,seed);this.auditLedger=auditLedger;}
+  catalog(){return {...options,productionIdentity:false,externalProviderConnections:false,liveFinancialActions:false};}
+  async get(scope){const data=await this.store.read();const profile=data.profiles[scopeKey(scope)]??{...scope,goals:[],assetClasses:[],regions:[],baseCurrency:'INR',experienceLevel:'intermediate',workspaceTemplate:'institutional-research',providerInterests:[],digestCadence:'off',completedSteps:[],completed:false,revision:0,createdAt:null,updatedAt:null};return {...profile,progressPct:Math.round(profile.completedSteps.length/6*100),catalogVersion:'21.0.0',cloudSync:false};}
+  async update(scope,input,correlationId){let record;await this.store.update(data=>{const key=scopeKey(scope);const current=data.profiles[key]??{...scope,goals:[],assetClasses:[],regions:[],baseCurrency:'INR',experienceLevel:'intermediate',workspaceTemplate:'institutional-research',providerInterests:[],digestCadence:'off',completedSteps:[],completed:false,revision:0,createdAt:nowIso()};if(input.goals!==undefined)current.goals=uniqueAllowed(input.goals,options.goals);if(input.assetClasses!==undefined)current.assetClasses=uniqueAllowed(input.assetClasses,options.assetClasses);if(input.regions!==undefined)current.regions=uniqueAllowed(input.regions,options.regions);if(input.baseCurrency!==undefined)current.baseCurrency=String(input.baseCurrency).toUpperCase().slice(0,3);if(input.experienceLevel!==undefined)current.experienceLevel=validateChoice(String(input.experienceLevel),options.experienceLevels,'experience level');if(input.workspaceTemplate!==undefined)current.workspaceTemplate=validateChoice(String(input.workspaceTemplate),options.workspaceTemplates.map(item=>item.id),'workspace template');if(input.providerInterests!==undefined)current.providerInterests=uniqueAllowed(input.providerInterests,options.providerInterests);if(input.digestCadence!==undefined)current.digestCadence=validateChoice(String(input.digestCadence),options.digestCadences,'digest cadence');const steps=[];if(current.goals.length)steps.push('goals');if(current.assetClasses.length&&current.regions.length)steps.push('markets');if(current.baseCurrency&&current.experienceLevel)steps.push('profile');if(current.workspaceTemplate)steps.push('workspace');if(current.providerInterests.length)steps.push('providers');if(current.digestCadence)steps.push('notifications');current.completedSteps=steps;current.revision+=1;current.updatedAt=nowIso();data.profiles[key]=current;data.updatedAt=current.updatedAt;record=structuredClone(current);return data;});await this.#audit('onboarding.profile.updated.v1',scope,correlationId,{revision:record.revision,completedSteps:record.completedSteps});return {...record,progressPct:Math.round(record.completedSteps.length/6*100),cloudSync:false};}
+  async complete(scope,correlationId){let record;await this.store.update(data=>{const key=scopeKey(scope);const current=data.profiles[key];if(!current||current.completedSteps.length<4)throw Object.assign(new Error('Complete goals, markets, profile and workspace before finishing onboarding'),{status:409,code:'onboarding_incomplete'});current.completed=true;current.completedAt=nowIso();current.revision+=1;current.updatedAt=current.completedAt;record=structuredClone(current);data.updatedAt=current.updatedAt;return data;});await this.#audit('onboarding.completed.v1',scope,correlationId,{revision:record.revision,workspaceTemplate:record.workspaceTemplate});return {...record,progressPct:Math.round(record.completedSteps.length/6*100),productionProvisioning:false};}
+  async reset(scope,correlationId){await this.store.update(data=>{delete data.profiles[scopeKey(scope)];data.updatedAt=nowIso();return data;});await this.#audit('onboarding.reset.v1',scope,correlationId,{});return {reset:true,scope,productionIdentityAffected:false};}
+  async #audit(eventType,scope,correlationId,details){await this.auditLedger?.append({eventType,correlationId,actor:{type:'user',id:scope.userId},tenantId:scope.tenantId,workspaceId:scope.workspaceId,details});}
+}

@@ -1,0 +1,11 @@
+
+> qelly-intelligence@0.9.0-preview.1 inventory:product
+> node scripts/build-product-inventory.mjs
+
+{
+  "status": "product-inventory-written",
+  "productVersion": "0.9.0-preview.1",
+  "routes": 61,
+  "apiContracts": 185,
+  "sourceFiles": 471
+}

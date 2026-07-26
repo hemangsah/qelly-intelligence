@@ -1,0 +1,12 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://qelly.local/schemas/auth-login-input.schema.json",
+  "title":"Qelly production login request",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["email","password"],
+  "properties":{
+    "email":{"type":"string","minLength":5,"maxLength":254},
+    "password":{"type":"string","minLength":1,"maxLength":128}
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/theme-profile.schema.json",
+  "title": "Qelly Theme Profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "baseTheme",
+    "density",
+    "motion",
+    "fontScale",
+    "protectedSemanticsLocked"
+  ],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "baseTheme": {
+      "enum": [
+        "burgundy-command",
+        "burgundy-night",
+        "porcelain-burgundy",
+        "graphite-terminal",
+        "midnight-research",
+        "high-contrast"
+      ]
+    },
+    "density": {
+      "enum": [
+        "comfortable",
+        "compact",
+        "terminal"
+      ]
+    },
+    "motion": {
+      "enum": [
+        "full",
+        "subtle",
+        "reduced"
+      ]
+    },
+    "fontScale": {
+      "type": "number",
+      "minimum": 0.9,
+      "maximum": 1.2
+    },
+    "radiusPx": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 20
+    },
+    "customAccent": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^#[0-9A-Fa-f]{6}$"
+    },
+    "protectedSemanticsLocked": {
+      "const": true
+    }
+  }
+}

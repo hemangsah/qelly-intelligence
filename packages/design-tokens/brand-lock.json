@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "22.0.0",
+  "brand": "Qelly Intelligence",
+  "lockStatus": "permanent-unless-founder-explicitly-revokes",
+  "signatureGradient": {
+    "css": "linear-gradient(132deg,#080003 0%,#180008 24%,#310011 52%,#5b0828 76%,#8e1d4b 100%)",
+    "stops": [
+      {"position": 0, "color": "#080003", "name": "Burgundy Black"},
+      {"position": 24, "color": "#180008", "name": "Burgundy Ink"},
+      {"position": 52, "color": "#310011", "name": "Burgundy Core"},
+      {"position": 76, "color": "#5B0828", "name": "Burgundy Signal"},
+      {"position": 100, "color": "#8E1D4B", "name": "Burgundy Bloom"}
+    ]
+  },
+  "permanentRules": [
+    "Global chrome and hero identity must preserve the signature gradient.",
+    "White and porcelain remain the primary analytical content surfaces.",
+    "Light text is required on burgundy, graphite and midnight surfaces.",
+    "Dark text is required on white, porcelain and soft-rose surfaces.",
+    "Positive, negative, warning, stale and simulated meanings cannot be recolored by personas.",
+    "Personas may tune density, motion, canvas and accent emphasis but cannot replace the Qelly gradient."
+  ],
+  "personas": [
+    {"id":"burgundy-command","name":"Scalper Velocity","intent":"Fast decoding and live-market scanning","density":0.92,"motion":1.12},
+    {"id":"porcelain-burgundy","name":"Investor Compound","intent":"Calm long-horizon analysis","density":1.08,"motion":0.86},
+    {"id":"burgundy-night","name":"Aggressive Alpha","intent":"Low-glare momentum and catalyst mode","density":0.88,"motion":1.18},
+    {"id":"graphite-terminal","name":"Quant Operator","intent":"Dense keyboard-first terminal mode","density":0.78,"motion":0.98},
+    {"id":"midnight-research","name":"Research Oracle","intent":"Deep-focus evidence and narrative mode","density":1.04,"motion":0.78},
+    {"id":"high-contrast","name":"Signal Access","intent":"Maximum legibility and reduced motion","density":1,"motion":0.25}
+  ]
+}

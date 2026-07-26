@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/passkey-authentication-input.schema.json",
+  "title": "Passkey authentication verification input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "challengeId",
+    "credential"
+  ],
+  "properties": {
+    "challengeId": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128
+    },
+    "credential": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "response"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 2048
+        },
+        "rawId": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "type": {
+          "type": "string",
+          "const": "public-key"
+        },
+        "response": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "clientDataJSON",
+            "authenticatorData",
+            "signature"
+          ],
+          "properties": {
+            "clientDataJSON": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 16384
+            },
+            "authenticatorData": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 16384
+            },
+            "signature": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 16384
+            },
+            "userHandle": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2048
+            }
+          }
+        }
+      }
+    }
+  }
+}

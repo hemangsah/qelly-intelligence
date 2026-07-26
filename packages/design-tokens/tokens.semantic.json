@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "15.0.0",
+  "defaultTheme": "burgundy-command",
+  "themes": {
+    "burgundy-command": {
+      "chrome": "#2B0713",
+      "chromeRaised": "#430D20",
+      "canvas": "#F7F3EF",
+      "surface": "#FFFFFF",
+      "surfaceAlt": "#F0E9E5",
+      "text": "#23171B",
+      "muted": "#6C5A61",
+      "border": "#D8CBCF",
+      "accent": "#7A183A",
+      "accentStrong": "#5A0F2A",
+      "focus": "#2B6CE6"
+    },
+    "burgundy-night": {
+      "chrome": "#19040B",
+      "chromeRaised": "#300916",
+      "canvas": "#120F10",
+      "surface": "#1D181A",
+      "surfaceAlt": "#271F22",
+      "text": "#F6ECEF",
+      "muted": "#BCAAB0",
+      "border": "#47373D",
+      "accent": "#C44872",
+      "accentStrong": "#EC6B97",
+      "focus": "#77A8FF"
+    },
+    "porcelain-burgundy": {
+      "chrome": "#5B0E29",
+      "chromeRaised": "#7A183A",
+      "canvas": "#FFFDFC",
+      "surface": "#FFFFFF",
+      "surfaceAlt": "#F8F0F2",
+      "text": "#29171E",
+      "muted": "#715F66",
+      "border": "#E6D6DB",
+      "accent": "#8A2147",
+      "accentStrong": "#67122F",
+      "focus": "#245EDB"
+    },
+    "graphite-terminal": {
+      "chrome": "#121416",
+      "chromeRaised": "#202428",
+      "canvas": "#0D0F11",
+      "surface": "#171A1D",
+      "surfaceAlt": "#22262A",
+      "text": "#EEF2F4",
+      "muted": "#A6B0B6",
+      "border": "#353C42",
+      "accent": "#B14D70",
+      "accentStrong": "#E06A93",
+      "focus": "#73A6FF"
+    },
+    "midnight-research": {
+      "chrome": "#101329",
+      "chromeRaised": "#171D3E",
+      "canvas": "#0D1020",
+      "surface": "#171A2F",
+      "surfaceAlt": "#202541",
+      "text": "#F0F3FF",
+      "muted": "#AEB6D5",
+      "border": "#353C62",
+      "accent": "#A3416B",
+      "accentStrong": "#D45D8F",
+      "focus": "#82A8FF"
+    },
+    "high-contrast": {
+      "chrome": "#000000",
+      "chromeRaised": "#111111",
+      "canvas": "#FFFFFF",
+      "surface": "#FFFFFF",
+      "surfaceAlt": "#F2F2F2",
+      "text": "#000000",
+      "muted": "#333333",
+      "border": "#000000",
+      "accent": "#6B0031",
+      "accentStrong": "#43001E",
+      "focus": "#005FCC"
+    }
+  },
+  "protectedSemantics": {
+    "positive": "#0A7A42",
+    "negative": "#B42318",
+    "warning": "#B15C00",
+    "critical": "#8B0000",
+    "live": "#0A7A42",
+    "delayed": "#9A5C00",
+    "cached": "#375A7F",
+    "stale": "#A14B00",
+    "simulated": "#6B4CC2",
+    "unavailable": "#737373"
+  },
+  "typography": {
+    "familySans": "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+    "familyMono": "\"IBM Plex Mono\", \"SFMono-Regular\", Consolas, monospace",
+    "bodyMinPx": 14,
+    "tableMinPx": 13,
+    "captionMinPx": 12,
+    "displayScale": [
+      12,
+      13,
+      14,
+      16,
+      18,
+      22,
+      28,
+      36
+    ]
+  },
+  "spacing": {
+    "1": 4,
+    "2": 8,
+    "3": 12,
+    "4": 16,
+    "5": 20,
+    "6": 24,
+    "8": 32,
+    "10": 40,
+    "12": 48
+  },
+  "radius": {
+    "sm": 6,
+    "md": 10,
+    "lg": 16,
+    "pill": 999
+  },
+  "density": {
+    "comfortable": {
+      "rowHeight": 46,
+      "controlHeight": 38,
+      "gap": 16
+    },
+    "compact": {
+      "rowHeight": 38,
+      "controlHeight": 34,
+      "gap": 12
+    },
+    "terminal": {
+      "rowHeight": 32,
+      "controlHeight": 30,
+      "gap": 8
+    }
+  },
+  "motion": {
+    "full": {
+      "fastMs": 120,
+      "baseMs": 180,
+      "slowMs": 280
+    },
+    "subtle": {
+      "fastMs": 90,
+      "baseMs": 130,
+      "slowMs": 180
+    },
+    "reduced": {
+      "fastMs": 0,
+      "baseMs": 0,
+      "slowMs": 0
+    }
+  },
+  "customizationGuard": {
+    "minContrastNormal": 4.5,
+    "minContrastLarge": 3,
+    "protectedSemanticKeys": [
+      "positive",
+      "negative",
+      "warning",
+      "critical",
+      "live",
+      "delayed",
+      "cached",
+      "stale",
+      "simulated",
+      "unavailable"
+    ],
+    "maxRadiusPx": 20,
+    "fontScaleRange": [
+      0.9,
+      1.2
+    ]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.local/schemas/layout-preference-input.schema.json",
+  "title": "Workspace Layout Preference Mutation Input",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "version": { "const": 1 },
+    "theme": { "enum": ["burgundy-command", "burgundy-night", "porcelain-burgundy", "graphite-terminal", "midnight-research", "high-contrast"] },
+    "density": { "enum": ["comfortable", "compact", "terminal"] },
+    "motion": { "enum": ["full", "subtle", "reduced"] },
+    "fontScale": { "type": "integer", "enum": [90, 100, 110, 120] },
+    "radiusPx": { "type": "integer", "minimum": 0, "maximum": 20 },
+    "customAccent": { "type": ["string", "null"], "pattern": "^#[0-9A-Fa-f]{6}$" },
+    "route": { "type": "string" },
+    "panels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "visible", "order"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "visible": { "type": "boolean" },
+          "order": { "type": "integer", "minimum": 0 },
+          "width": { "type": ["integer", "null"], "minimum": 240 }
+        }
+      }
+    }
+  }
+}

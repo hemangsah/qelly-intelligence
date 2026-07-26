@@ -1,0 +1,87 @@
+id,area,capability,status,evidence_or_boundary
+A4-001,Identity and Security,"Registration, login, logout and refresh",implemented-local,Auth service and API routes
+A4-002,Identity and Security,Signed HttpOnly cookie sessions,implemented-local,AuthService cookie issuance and tamper tests
+A4-003,Identity and Security,Tenant-scoped organizations/workspaces,implemented-local,SQLite/PostgreSQL repositories
+A4-004,Identity and Security,RBAC/ABAC and step-up boundaries,implemented-local,Inherited identity security runtime
+A4-005,Identity and Security,Session-derived CSRF,implemented-local,Cookie identity APIs
+A4-006,Identity and Security,Idempotent governed mutations,implemented-local,Inherited idempotency store
+A4-007,Identity and Security,Tamper-evident audit ledger,implemented-local,Recursive hash-chain tests
+A4-008,Identity and Security,Runtime JSON-schema validation,implemented-local,56 packaged request/response schemas
+A4-009,Assurance,TOTP enrollment and confirmation,implemented-local,MfaService and frontend security setup
+A4-010,Assurance,MFA secret encryption,implemented-local,AES-256-GCM SecretProtector; local key contract
+A4-011,Assurance,Recovery code generation,implemented-local,Hashed recovery codes
+A4-012,Assurance,Recovery code atomic consumption,implemented-local,Repository transaction and replay test
+A4-013,Assurance,Recovery code regeneration,implemented-local,TOTP-gated API and account recovery UI
+A4-014,Assurance,Passkey registration,implemented-local,WebAuthn ES256 none-attestation ceremony
+A4-015,Assurance,Passkey authentication,implemented-local,Signature verification and cookie session issuance
+A4-016,Assurance,RP ID and origin validation,implemented-local,PasskeyService checks
+A4-017,Assurance,Challenge expiry and single use,implemented-local,Persistent auth challenges
+A4-018,Assurance,Authenticator signature counter,implemented-local,Counter verification/update
+A4-019,Assurance,Passkey revocation,implemented-local,Credential-specific DELETE endpoint
+A4-020,Platform Persistence,SQLite development persistence,implemented-local,Executed in automated tests
+A4-021,Platform Persistence,PostgreSQL repository parity,partial-contract,A1-A3 repository methods and migrations
+A4-022,Platform Persistence,PostgreSQL migrations,partial-contract,100-102 SQL migrations packaged
+A4-023,Platform Persistence,Redis job signaling adapter,partial-contract,Production adapter packaged
+A4-024,Platform Persistence,Persistent jobs and retries,implemented-local,Worker and repository tests
+A4-025,Platform Persistence,Dead-letter job state,implemented-local,Job queue contract
+A4-026,Platform Persistence,Backup and restore scripts,implemented-local,Checksum-verified SQLite tooling
+A4-027,Object Storage and Imports,Local object storage,implemented-local,Content-addressed files with SHA-256
+A4-028,Object Storage and Imports,S3-compatible adapter,partial-contract,AWS Signature V4 implementation and contract test
+A4-029,Object Storage and Imports,Secure import metadata,implemented-local,Tenant/workspace records
+A4-030,Object Storage and Imports,Filename and size validation,implemented-local,10 MB boundary and normalization
+A4-031,Object Storage and Imports,Malware test signature rejection,implemented-local,Foundation scanner
+A4-032,Object Storage and Imports,Storage status API,implemented-local,Provider truth inspection
+A4-033,Delivery,Persistent delivery jobs,implemented-local,Email/webhook job types
+A4-034,Delivery,Delivery-attempt history,implemented-local,Repository-backed records
+A4-035,Delivery,HMAC-signed webhook adapter,implemented-local,SHA-256 signature headers and test
+A4-036,Delivery,Generic HTTP email adapter,partial-contract,Explicit authenticated provider interface
+A4-037,Delivery,Local evidence sink,implemented-local,Development-only sink
+A4-038,Delivery,Delivery provider status API,implemented-local,Truthful configured/disabled status
+A4-039,Delivery,Worker operations UI,implemented-local,Delivery Operations route
+A4-040,Frontend,Passkey Center,implemented-local,Responsive WebAuthn management screen
+A4-041,Frontend,Account Recovery Controls,implemented-local,Recovery consumption/regeneration screen
+A4-042,Frontend,Delivery Operations,implemented-local,Provider/storage/job inspection screen
+A4-043,Frontend,Secure Import Vault,implemented-local,Existing A2 import UI retained
+A4-044,Frontend,Six operating personas,implemented-local,Inherited Qelly persona system
+A4-045,Frontend,Locked brand gradient,implemented-local,Design token checksum and source
+A4-046,Operations and Documentation,OpenAPI 3.1 inventory,implemented-local,161 path contracts
+A4-047,Operations and Documentation,Route inventory,implemented-local,55 routes
+A4-048,Operations and Documentation,API inventory,implemented-local,161 contracts
+A4-049,Operations and Documentation,Contract inventory,implemented-local,15 machine-readable contracts
+A4-050,Operations and Documentation,Schema inventory,implemented-local,56 JSON schemas
+A4-051,Operations and Documentation,Docker Compose topology,implemented-local,"PostgreSQL, Redis, MinIO, migration, API, worker"
+A4-052,Production Deferred,Production KMS integration,partial-contract,Envelope contract exists; no cloud KMS credentials
+A4-053,Production Deferred,Live PostgreSQL execution,blocked-by-service,No PostgreSQL service in build environment
+A4-054,Production Deferred,Live Redis execution,blocked-by-service,No Redis service in build environment
+A4-055,Production Deferred,Live MinIO/S3 execution,blocked-by-service,Adapter tested without live service
+A4-056,Production Deferred,External email delivery,blocked-by-credentials,Blocked by endpoint and credentials
+A4-057,Production Deferred,External webhook transmission,blocked-by-credentials,Blocked by endpoint and signing-secret deployment
+A4-058,Production Deferred,Full malware scanning provider,partial-contract,Only foundation signature scanner
+A4-059,Production Deferred,Physical authenticator browser E2E,partial-contract,Synthetic ES256 ceremony tested; no hardware authenticator in CI
+A4-060,Production Deferred,Cloud staging deployment,blocked-by-credentials,No cloud connector/credentials
+A4-061,Production Deferred,Independent penetration test,partial-contract,Not performed
+A4-062,Financial Safety,Live trading,disabled-for-safety,No route or enabling flag; explicitly false
+A4-063,Financial Safety,Custody,disabled-for-safety,No route or enabling flag; explicitly false
+A4-064,Financial Safety,Asset transfers,disabled-for-safety,No route or enabling flag; explicitly false
+A4-065,Financial Safety,Withdrawals,disabled-for-safety,No route or enabling flag; explicitly false
+A4-066,Financial Safety,Private keys,disabled-for-safety,No route or enabling flag; explicitly false
+A4-067,Financial Safety,Recovery phrases,disabled-for-safety,No route or enabling flag; explicitly false
+A4-068,Identity and Security,Non-enumerating account-recovery request,implemented-local,AccountRecoveryService and public recovery API
+A4-069,Identity and Security,Expiring single-use recovery challenge,implemented-local,"Hashed challenge, expiry, attempt limit and consume transaction"
+A4-070,Identity and Security,Password reset with all-session revocation,implemented-local,Repository transaction and audit evidence
+A4-071,Identity and Security,Recovery replay and attempt-limit protection,implemented-local,Focused A4 tests
+A4-072,Network Security,Outbound HTTPS-only delivery policy,implemented-local,OutboundNetworkPolicy
+A4-073,Network Security,Loopback/private/link-local/metadata destination blocking,implemented-local,DNS/IP checks and SSRF tests
+A4-074,Network Security,Explicit origin allowlist contract,implemented-local,QELLY_OUTBOUND_ALLOWED_ORIGINS
+A4-075,Secure Imports,Quarantine-before-release local object flow,implemented-local,"Quarantine directory, scan, atomic release"
+A4-076,Secure Imports,Known malware-test signature rejection,implemented-local,Scanner contract and tests
+A4-077,Operations,Consolidated platform readiness API,implemented-local,/api/v1/platform/readiness
+A4-078,Frontend,Public Account Recovery screen,implemented-local,auth-recovery route
+A4-079,Frontend,Platform Readiness operations screen,implemented-local,platform-readiness route
+A4-080,Accessibility,All 57 routes desktop/mobile render coverage,implemented-local,"114 Chromium renders, zero console errors"
+A4-081,Accessibility,Focused semantic and responsive checks,implemented-local,30/30 automated checks
+A4-082,Production Deferred,Full external malware scanning engine,partial-contract,Foundation scanner only
+A4-083,Production Deferred,Live cloud PostgreSQL/Redis/MinIO execution,blocked-by-credentials,Adapters and topology present; services unavailable in build workspace
+A4-084,Production Deferred,Cloud KMS/HSM encryption provider,partial-contract,Local AES-GCM protector only
+A4-085,Production Deferred,External SMTP/webhook sandbox verification,blocked-by-credentials,Adapters present; no credentials/endpoints
+A4-086,Financial Safety,Live trading and custody,disabled-for-safety,"No execution, custody, transfer or withdrawal routes"

@@ -1,0 +1,16 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://qelly.example/schemas/evidence-explain-move-input.schema.json",
+  "title":"Qelly Explain Move Input",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["canonicalId"],
+  "properties":{
+    "canonicalId":{"type":"string","pattern":"^QI-","maxLength":100},
+    "thesis":{"type":"string","maxLength":1200},
+    "consideredAction":{"type":"string","minLength":1,"maxLength":80},
+    "horizon":{"type":"string","minLength":1,"maxLength":80},
+    "confidence":{"type":"number","minimum":0,"maximum":1},
+    "notes":{"type":"string","maxLength":1500}
+  }
+}

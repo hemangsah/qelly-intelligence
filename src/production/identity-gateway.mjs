@@ -1,0 +1,37 @@
+import { evaluateAccess } from '../identity/authorization-engine.mjs';
+
+export class IdentityGateway{
+  constructor({localIdentityService,productionAuthService=null,developmentEnabled=true,productionEnabled=false,localCsrfTokens}={}){
+    this.local=localIdentityService;this.production=productionAuthService;this.developmentEnabled=developmentEnabled;this.productionEnabled=productionEnabled;this.localCsrfTokens=localCsrfTokens;
+  }
+  async resolveRequest(request){
+    if(this.production){const resolved=await this.production.resolveRequest(request);if(resolved)return resolved;}
+    if(this.developmentEnabled){const provided=request.headers['x-qelly-session-id'];return {mode:'development-fixture',sessionKey:String(provided??'sess-local-primary').slice(0,128),sessionId:String(provided??'sess-local-primary').slice(0,128)};}
+    return {mode:'anonymous',sessionKey:null,sessionId:null};
+  }
+  async context(sessionKey){if(String(sessionKey??'').startsWith('prod:'))return this.production?.context(sessionKey)??null;if(!this.developmentEnabled)return null;return this.local.context(sessionKey);}
+  async require(sessionKey,action,resource={}){
+    if(String(sessionKey??'').startsWith('prod:')){
+      const context=await this.production.context(sessionKey);const result=evaluateAccess({action,resource,context});
+      if(!result.allowed)throw Object.assign(new Error(`Access denied: ${result.reasons.join(', ')}`),{status:403,code:'access_denied',details:result});
+      return {context,decision:result};
+    }
+    if(!this.developmentEnabled)throw Object.assign(new Error('Authentication required'),{status:401,code:'authentication_required'});
+    return this.local.require(sessionKey,action,resource);
+  }
+  async evaluate(sessionKey,action,resource={}){const context=await this.context(sessionKey);return evaluateAccess({action,resource,context});}
+  issueCsrf(sessionKey){if(String(sessionKey??'').startsWith('prod:'))return this.production.csrf(sessionKey);return this.developmentEnabled?this.localCsrfTokens.issue(sessionKey):null;}
+  async verifyCsrf(sessionKey,provided){if(String(sessionKey??'').startsWith('prod:'))return this.production.verifyCsrf(sessionKey,provided);return this.developmentEnabled&&this.localCsrfTokens.verify(sessionKey,provided);}
+  async listSessions(sessionKey){
+    if(String(sessionKey??'').startsWith('prod:')){const {context}=await this.require(sessionKey,'session:read');return (await this.production.repository.listSessions(context.user.userId)).map((row)=>({sessionId:row.session_id,createdAt:row.created_at,lastSeenAt:row.last_seen_at,expiresAt:row.expires_at,revokedAt:row.revoked_at,assurance:row.assurance,authenticationMethod:row.authentication_method,current:row.session_id===context.session.sessionId}));}
+    return this.local.listSessions(sessionKey);
+  }
+  async listDevices(sessionKey){if(String(sessionKey??'').startsWith('prod:')){const {context}=await this.require(sessionKey,'device:read').catch(()=>this.require(sessionKey,'session:read'));return [{deviceId:`cookie:${context.session.sessionId}`,label:'Authenticated browser session',trust:'trusted-authenticated',platform:'browser',lastSeenAt:context.session.lastSeenAt,revokedAt:context.session.revokedAt}];}return this.local.listDevices(sessionKey);}
+  async listWorkspaces(sessionKey){if(String(sessionKey??'').startsWith('prod:')){const {context}=await this.require(sessionKey,'workspace:read');return this.production.repository.listWorkspaces(context.user.userId,context.organization.organizationId);}return this.local.listWorkspaces(sessionKey);}
+  async switchWorkspace(sessionKey,workspaceId,correlationId){if(String(sessionKey??'').startsWith('prod:')){const {context}=await this.require(sessionKey,'workspace:switch',{tenantId:(await this.context(sessionKey)).organization.organizationId,workspaceId});const workspace=await this.production.repository.switchWorkspace(context.session.sessionId,workspaceId);await this.production.auditLedger?.append({eventType:'workspace.switched.v2',correlationId,actor:{type:'user',id:context.user.userId},tenantId:context.organization.organizationId,workspaceId,outcome:'success',details:{from:context.workspace.workspaceId,to:workspaceId,productionIdentity:true}});return workspace;}return this.local.switchWorkspace(sessionKey,workspaceId,correlationId);}
+  async revokeSession(sessionKey,targetSessionId,correlationId){if(String(sessionKey??'').startsWith('prod:')){const {context}=await this.require(sessionKey,'session:revoke');if(targetSessionId===context.session.sessionId)throw Object.assign(new Error('Use logout to revoke the active session'),{status:409,code:'self_revocation_blocked'});const target=(await this.production.repository.listSessions(context.user.userId)).find((item)=>item.session_id===targetSessionId);if(!target)throw Object.assign(new Error('Session not found'),{status:404,code:'session_not_found'});const revoked=await this.production.repository.revokeSession(targetSessionId,'user-revoked');await this.production.auditLedger?.append({eventType:'session.revoked.v2',correlationId,actor:{type:'user',id:context.user.userId},tenantId:context.organization.organizationId,workspaceId:context.workspace.workspaceId,outcome:'success',details:{targetSessionId}});return {sessionId:revoked.session_id,revokedAt:revoked.revoked_at};}return this.local.revokeSession(sessionKey,targetSessionId,correlationId);}
+  async simulateStepUp(sessionKey,correlationId){if(String(sessionKey??'').startsWith('prod:'))throw Object.assign(new Error('Simulated step-up is disabled for production identity'),{status:403,code:'simulation_disabled'});return this.local.simulateStepUp(sessionKey,correlationId);}
+  async listConsents(sessionKey){if(String(sessionKey??'').startsWith('prod:')){const {context}=await this.require(sessionKey,'privacy:read');return [{consentId:'essential',userId:context.user.userId,purpose:'essential-platform-operation',status:'granted',required:true,updatedAt:context.user.createdAt??context.session.createdAt}];}return this.local.listConsents(sessionKey);}
+  async updateConsent(sessionKey,purpose,status,correlationId){if(String(sessionKey??'').startsWith('prod:'))throw Object.assign(new Error('Production consent persistence is not included in Release A1'),{status:501,code:'consent_persistence_deferred'});return this.local.updateConsent(sessionKey,purpose,status,correlationId);}
+  async privacyInventory(sessionKey){if(String(sessionKey??'').startsWith('prod:')){const {context}=await this.require(sessionKey,'privacy:read');return {subjectId:context.user.userId,mode:'production-foundation-database-backed',categories:[{category:'account',fields:['email','displayName','locale','timezone','baseCurrency'],purpose:'identity and workspace operation',retention:'until deletion workflow completes'},{category:'security',fields:['hashed session token','IP hash','user agent','audit events'],purpose:'security and fraud prevention',retention:'security policy'}],excludes:['raw passwords','raw session tokens','private keys','recovery phrases','broker credentials']};}return this.local.privacyInventory(sessionKey);}
+}

@@ -1,0 +1,15 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"qelly.chart-layout-input",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["name","canonicalId"],
+  "properties":{
+    "name":{"type":"string","minLength":2,"maxLength":80},
+    "canonicalId":{"type":"string","minLength":2,"maxLength":64},
+    "range":{"type":"string","enum":["1m","3m","6m","1y","2y"]},
+    "interval":{"type":"string","enum":["1d"]},
+    "indicators":{"type":"array","maxItems":8,"uniqueItems":true,"items":{"type":"string","enum":["sma","ema","bollinger","macd","atr","stochastic"]}},
+    "panes":{"type":"array","maxItems":8,"items":{"type":"object"}}
+  }
+}

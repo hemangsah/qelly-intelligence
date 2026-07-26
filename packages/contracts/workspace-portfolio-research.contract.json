@@ -1,0 +1,17 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "contract":"qelly-workspace-portfolio-research",
+  "version":"20.0.0",
+  "status":"implemented-local-foundation",
+  "truthBoundary":"Deterministic local workspace, alerting, notification, screener, portfolio and research workflows. No external delivery, connected brokerage, live balances, order execution or production collaboration.",
+  "capabilities":{
+    "watchlists":{"crud":true,"groups":true,"notes":true,"tenantScoped":true,"cloudSync":false,"sharing":false},
+    "alerts":{"ruleCrud":true,"localEvaluation":true,"inAppDelivery":true,"email":false,"sms":false,"push":false,"webhooks":false},
+    "notifications":{"list":true,"readState":true,"readAll":true,"externalDelivery":false},
+    "screeners":{"fieldCatalog":true,"filterExecution":true,"savedDefinitions":true,"serverSideDistributedExecution":false,"licensedFundamentals":false},
+    "portfolio":{"holdings":true,"performance":true,"risk":true,"connectedAccounts":false,"brokerReconciliation":false,"tradable":false},
+    "researchWorkspaces":{"crud":true,"mixedItemTypes":true,"notes":true,"collaboration":false,"cloudSync":false},
+    "persistence":{"atomicLocalJson":true,"fileLocking":true,"auditEvents":true,"idempotentMutations":true,"distributedDatabase":false}
+  },
+  "productionGates":["production-authentication","external-notification-delivery","licensed-market-data","broker-connectivity","portfolio-reconciliation","collaboration-service","distributed-databases","financial-execution"]
+}

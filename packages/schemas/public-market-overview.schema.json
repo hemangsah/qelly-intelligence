@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.example/schemas/public-market-overview.schema.json",
+  "title": "Qelly Public Market Overview",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["mode", "truthBoundary", "kpis", "breadth", "items", "providerStatus", "generatedAt"],
+  "properties": {
+    "mode": {"enum": ["live-public", "mixed", "simulated-fallback"]},
+    "truthBoundary": {"type": "string", "minLength": 1},
+    "kpis": {"type": "array", "items": {"type": "object"}},
+    "breadth": {"type": "object", "required": ["advancers", "decliners", "unchanged"]},
+    "items": {"type": "array", "items": {"$ref": "public-market-asset.schema.json"}},
+    "providerStatus": {"type": "object"},
+    "generatedAt": {"type": "string", "format": "date-time"},
+    "correlationId": {"type": "string"}
+  }
+}
