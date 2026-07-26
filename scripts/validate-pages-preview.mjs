@@ -15,6 +15,8 @@ const requiredFiles=[
   'assets/persona-profiles.mjs',
   'assets/shell-foundations.mjs',
   'assets/qelly-foundations.css',
+  'assets/ui-rescue.css',
+  'assets/routes/asset-rankings.mjs',
   'assets/tokens.css',
   'assets/tokens.json',
   'packages/accessibility/accessibility.mjs',
@@ -113,6 +115,7 @@ assert(!/from\s+["']\/packages\//.test(app),'app.js contains root-relative packa
 assert(!/fetch\(["']\/assets\//.test(app),'app.js contains root-relative asset fetches');
 assert(app.includes("new URL('./tokens.json',import.meta.url)"),'app.js must resolve tokens relative to its module');
 assert(app.includes("import('./static-preview-api.mjs')"),'app.js is missing the local static preview adapter');
+assert(app.includes("import { renderAssetRankings as renderAssetRankingsRescue } from './routes/asset-rankings.mjs'"),'app.js is missing the Asset Rankings visual rescue route');
 
 const redirect=await readFile(path.join(output,'404.html'),'utf8');
 assert(redirect.includes(JSON.stringify(expectedBasePath)),'404.html is missing the repository-path redirect');

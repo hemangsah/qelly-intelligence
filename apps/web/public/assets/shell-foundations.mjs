@@ -15,7 +15,9 @@ export function renderShellFoundations({
   onPersona,
   onCompare,
   onWatchlist,
-  onExplain
+  onExplain,
+  onMenu,
+  onUnavailable
 }){
   const current=routeDefinitions.find((item)=>item.route===currentRoute)??visibleRoutes[0];
   const availableDomains=productDomains.filter((domain)=>visibleRoutes.some((route)=>route.domain===domain.id));
@@ -25,10 +27,25 @@ export function renderShellFoundations({
 
   const edge=document.getElementById('edge-dock');
   if(edge){
-    edge.innerHTML=`<div class="q-edge-dock__brand" aria-hidden="true">Q</div><div class="q-edge-dock__domains">${availableDomains.map((domain)=>`<button type="button" data-domain="${domain.id}" class="${domain.id===resolvedDomain?.id?'is-active':''}" aria-label="${escapeHtml(domain.label)}" aria-pressed="${domain.id===resolvedDomain?.id}"><span aria-hidden="true">${domain.icon}</span><small>${escapeHtml(domain.shortLabel)}</small></button>`).join('')}</div><div class="q-edge-dock__utilities"><button type="button" data-shell-action="compare" aria-label="Open compare tray"><span aria-hidden="true">⇆</span><small>Compare</small></button><button type="button" data-shell-action="explain" aria-label="Explain this move"><span aria-hidden="true">⌘</span><small>Explain</small></button></div>`;
+    const progressive=[
+      {id:'markets',label:'Markets',shortLabel:'Markets',icon:'⌁',route:'market',active:['market']},
+      {id:'asset-intelligence',label:'Asset Intelligence',shortLabel:'Assets',icon:'◉',route:'asset-rankings',active:['asset-rankings','asset']},
+      {id:'derivatives',label:'Derivatives',shortLabel:'Deriv.',icon:'Δ'},
+      {id:'research',label:'Research',shortLabel:'Research',icon:'⌘'},
+      {id:'portfolio',label:'Portfolio',shortLabel:'Portfolio',icon:'◫'},
+      {id:'decision-provenance',label:'Decision Provenance',shortLabel:'Evidence',icon:'✣',route:'decision-provenance',active:['decision-provenance']},
+      {id:'operations',label:'Operations',shortLabel:'Ops',icon:'⚙'},
+      {id:'trust',label:'Trust',shortLabel:'Trust',icon:'✓'}
+    ];
+    const domains=staticVisualPreview
+      ? progressive.map((item)=>`<button type="button" ${item.route?`data-preview-route="${item.route}"`:`data-preview-unavailable="${escapeHtml(item.label)}"`} class="${item.active?.includes(currentRoute)?'is-active':''}" aria-label="${escapeHtml(item.label)}${item.route?'':' — unavailable in the static visual preview'}" aria-pressed="${item.active?.includes(currentRoute)??false}" title="${escapeHtml(item.label)}${item.route?'':' · backend unavailable'}"><span aria-hidden="true">${item.icon}</span><small>${escapeHtml(item.shortLabel)}</small></button>`).join('')
+      : availableDomains.map((domain)=>`<button type="button" data-domain="${domain.id}" class="${domain.id===resolvedDomain?.id?'is-active':''}" aria-label="${escapeHtml(domain.label)}" aria-pressed="${domain.id===resolvedDomain?.id}"><span aria-hidden="true">${domain.icon}</span><small>${escapeHtml(domain.shortLabel)}</small></button>`).join('');
+    edge.innerHTML=`<div class="q-edge-dock__brand" aria-hidden="true">Q</div><div class="q-edge-dock__domains">${domains}</div><div class="q-edge-dock__utilities"><button type="button" data-shell-action="explain" aria-label="Explain this move"><span aria-hidden="true">✦</span><small>Explain</small></button><button type="button" data-shell-action="menu" aria-label="Open secondary navigation" aria-expanded="false"><span aria-hidden="true">☰</span><small>Menu</small></button></div>`;
     edge.querySelectorAll('[data-domain]').forEach((button)=>button.addEventListener('click',()=>onDomain(button.dataset.domain)));
-    edge.querySelector('[data-shell-action="compare"]')?.addEventListener('click',onCompare);
+    edge.querySelectorAll('[data-preview-route]').forEach((button)=>button.addEventListener('click',()=>onRoute(button.dataset.previewRoute)));
+    edge.querySelectorAll('[data-preview-unavailable]').forEach((button)=>button.addEventListener('click',()=>onUnavailable(button.dataset.previewUnavailable)));
     edge.querySelector('[data-shell-action="explain"]')?.addEventListener('click',onExplain);
+    edge.querySelector('[data-shell-action="menu"]')?.addEventListener('click',onMenu);
   }
 
   const ribbon=document.getElementById('persona-ribbon');
