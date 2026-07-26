@@ -101,6 +101,9 @@ assert(!/(?:secret|password|credential|token|database|postgres|redis|signing|pri
 const index=await readFile(path.join(output,'index.html'),'utf8');
 assert(index.includes(`<base href="${expectedBasePath}">`),'index.html is missing the repository base path');
 assert(!/(?:src|href)=["']\/(?!\/)/i.test(index.replace(`<base href="${expectedBasePath}">`,'')),'index.html contains root-relative asset references');
+assert(!/q-status--live[^>]*>READ ONLY/.test(index),'Static preview read-only state must not use a live-data tone');
+assert(!/Live data control/i.test(index),'Static preview must not claim a live data control');
+assert(index.includes('Data mode control'),'Static preview is missing the neutral data-mode control label');
 for(const match of index.matchAll(/(?:src|href)=["']\.\/([^"'?#]+)["']/g)){
   assert(nameSet.has(match[1]),`index.html references a missing asset: ${match[1]}`);
 }
