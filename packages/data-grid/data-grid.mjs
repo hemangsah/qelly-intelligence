@@ -1,4 +1,4 @@
-import { escapeHtml, statusBadge } from '../ui-primitives/primitives.mjs';
+import { dataStateIndicator, escapeHtml } from '../ui-primitives/primitives.mjs';
 
 export class QellyDataGrid {
   constructor(container, { columns, rows, caption = 'Data grid', rowKey = 'id', density = 'comfortable', selectable = true, onSelectionChange = () => {} }) {
@@ -80,7 +80,8 @@ function formatCell(row, column) {
   const value = row[column.key];
   if (column.format === 'status') {
     const state = row[column.stateKey ?? 'freshnessClass'] ?? 'cached';
-    return `<span class="q-status q-status--${escapeHtml(state)}">${escapeHtml(value)}</span>`;
+    const label=['simulated','demo','fallback'].includes(state)?'':value;
+    return dataStateIndicator({state,label});
   }
   if (column.format === 'change') {
     const number = Number(value);

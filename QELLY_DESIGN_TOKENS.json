@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "Qelly Intelligence governed design tokens",
+  "version": "1.0.0",
+  "status": "canonical",
+  "brand": {
+    "signatureGradient": "linear-gradient(132deg,#080003 0%,#180008 24%,#310011 52%,#5B0828 76%,#8E1D4B 100%)",
+    "palette": {
+      "burgundyBlack": "#080003",
+      "burgundyInk": "#180008",
+      "burgundyCore": "#310011",
+      "burgundySignal": "#5B0828",
+      "burgundyBloom": "#8E1D4B",
+      "porcelain": "#FBF7F4",
+      "softRose": "#F4E7EC",
+      "graphite": "#191416",
+      "white": "#FFFFFF"
+    },
+    "usage": "The gradient identifies Qelly chrome, public narrative transitions, and primary evidence moments. Analytical surfaces remain predominantly solid porcelain, white, graphite, or burgundy-black."
+  },
+  "modes": {
+    "light": {
+      "background": "#F7F3EF",
+      "surface": "#FFFFFF",
+      "surfaceElevated": "#FFFFFF",
+      "text": "#23171B",
+      "muted": "#6C5A61"
+    },
+    "dark": {
+      "background": "#120F10",
+      "surface": "#1D181A",
+      "surfaceElevated": "#2B2326",
+      "text": "#F8F2F4",
+      "muted": "#C7B9BE"
+    },
+    "highContrast": {
+      "background": "#FFFFFF",
+      "surface": "#FFFFFF",
+      "surfaceElevated": "#FFFFFF",
+      "text": "#000000",
+      "muted": "#222222"
+    }
+  },
+  "semanticTokens": {
+    "background": {"light":"#F7F3EF","dark":"#120F10","highContrast":"#FFFFFF","contrastRule":"Primary text must meet at least 7:1.","usage":"Application canvas."},
+    "surface": {"light":"#FFFFFF","dark":"#1D181A","highContrast":"#FFFFFF","contrastRule":"Primary text must meet at least 7:1.","usage":"Primary content plane."},
+    "surfaceElevated": {"light":"#FFFFFF","dark":"#2B2326","highContrast":"#FFFFFF","contrastRule":"Primary text must meet at least 7:1.","usage":"Drawers, menus, dialogs, and overlays."},
+    "border": {"light":"#D8CBCF","dark":"#55464C","highContrast":"#000000","contrastRule":"Interactive boundaries require an additional focus treatment.","usage":"Component boundaries."},
+    "divider": {"light":"#E4DADF","dark":"#55464C","highContrast":"#000000","contrastRule":"Never carries meaning alone.","usage":"Section and row separation."},
+    "primaryText": {"light":"#23171B","dark":"#F8F2F4","highContrast":"#000000","contrastRule":"At least 7:1 against the declared background.","usage":"Headings, body, and essential labels."},
+    "secondaryText": {"light":"#5F5056","dark":"#D5C8CD","highContrast":"#111111","contrastRule":"At least 4.5:1 against the declared background.","usage":"Supporting labels and descriptions."},
+    "mutedText": {"light":"#796A70","dark":"#C7B9BE","highContrast":"#222222","contrastRule":"At least 4.5:1 for essential content; otherwise decorative only.","usage":"Nonessential metadata."},
+    "positive": {"light":"#086B3A","dark":"#61D99A","highContrast":"#005A2A","contrastRule":"At least 4.5:1 and always paired with ↑, text, or pattern.","usage":"Favourable direction, never a recommendation."},
+    "negative": {"light":"#A51D16","dark":"#FF8A80","highContrast":"#A00000","contrastRule":"At least 4.5:1 and always paired with ↓, text, or pattern.","usage":"Adverse direction, never a recommendation."},
+    "warning": {"light":"#8A4600","dark":"#FFC46B","highContrast":"#6A3500","contrastRule":"At least 4.5:1 and paired with △ or explicit text.","usage":"Material caution."},
+    "informational": {"light":"#285D8F","dark":"#8EC5FF","highContrast":"#003E7E","contrastRule":"At least 4.5:1.","usage":"Neutral system information; never the primary brand."},
+    "evidence": {"light":"#6B2D5C","dark":"#F39AC0","highContrast":"#62002C","contrastRule":"At least 4.5:1.","usage":"Evidence, lineage, and provenance emphasis."},
+    "stale": {"light":"#8A4600","dark":"#FFC46B","highContrast":"#6A3500","contrastRule":"Paired with △ and an observed timestamp.","usage":"Past freshness threshold."},
+    "fallback": {"light":"#6941C6","dark":"#C2A8FF","highContrast":"#3B168F","contrastRule":"Paired with ↺ and a fallback reason.","usage":"Last-known-good or substitute source; never labelled live."},
+    "unavailable": {"light":"#5B5658","dark":"#C0B8BB","highContrast":"#333333","contrastRule":"Paired with an em dash and explanatory text.","usage":"No trustworthy value exists."},
+    "selected": {"light":"#F1DCE5","dark":"#4C1930","highContrast":"#E3E3E3","contrastRule":"Selection also uses aria-selected and a boundary.","usage":"Selected row, tab, or control."},
+    "focused": {"light":"#245EDB","dark":"#8EC5FF","highContrast":"#0037FF","contrastRule":"Minimum 3:1 focus-indicator contrast.","usage":"Keyboard focus ring only."},
+    "hovered": {"light":"#F8EEF2","dark":"#33272C","highContrast":"#E8E8E8","contrastRule":"Hover cannot be the sole access path.","usage":"Pointer preview state."},
+    "active": {"light":"#EED5DF","dark":"#55203A","highContrast":"#D8D8D8","contrastRule":"Must remain distinguishable from selected and disabled.","usage":"Pressed or current interaction."},
+    "disabled": {"light":"#8D8588","dark":"#91888C","highContrast":"#555555","contrastRule":"Disabled controls remain labelled and are not essential-only paths.","usage":"Unavailable interaction."},
+    "chartGrid": {"light":"rgba(84,47,60,0.13)","dark":"rgba(239,220,227,0.13)","highContrast":"#666666","contrastRule":"Grid is subordinate to marks and labels.","usage":"Chart grid lines."},
+    "chartAxes": {"light":"#6C5A61","dark":"#C7B9BE","highContrast":"#000000","contrastRule":"Axis labels meet 4.5:1 at essential sizes.","usage":"Axes and scale labels."},
+    "tooltip": {"light":"#23171B","dark":"#F8F2F4","highContrast":"#000000","contrastRule":"Tooltip text meets 7:1 against tooltip background.","usage":"Chart and data tooltip background."},
+    "sourceNode": {"light":"#285D8F","dark":"#8EC5FF","highContrast":"#003E7E","contrastRule":"Paired with the label Source.","usage":"Provenance source node."},
+    "observationNode": {"light":"#6B2D5C","dark":"#F39AC0","highContrast":"#62002C","contrastRule":"Paired with the label Observation.","usage":"Provider or normalized observation node."},
+    "transformationNode": {"light":"#6941C6","dark":"#C2A8FF","highContrast":"#3B168F","contrastRule":"Paired with the label Transformation.","usage":"Method or transformation node."},
+    "decisionNode": {"light":"#5B0828","dark":"#F6B1CA","highContrast":"#43001E","contrastRule":"Paired with the label Decision.","usage":"Considered decision node; does not imply execution."},
+    "riskNode": {"light":"#A51D16","dark":"#FF8A80","highContrast":"#A00000","contrastRule":"Paired with ! and the label Risk.","usage":"Risk assessment or contradiction node."},
+    "outcomeNode": {"light":"#086B3A","dark":"#61D99A","highContrast":"#005A2A","contrastRule":"Paired with the label Outcome and review status.","usage":"Observed outcome node."}
+  },
+  "typography": {
+    "families": {
+      "display": "\"Manrope\", \"Noto Sans Devanagari\", \"Noto Sans\", Inter, ui-sans-serif, system-ui, sans-serif",
+      "interface": "Inter, \"Noto Sans Devanagari\", \"Noto Sans\", ui-sans-serif, system-ui, sans-serif",
+      "quantitative": "\"IBM Plex Mono\", \"JetBrains Mono\", \"Noto Sans Mono\", ui-monospace, SFMono-Regular, Consolas, monospace"
+    },
+    "licensingBoundary": "No font binaries or external font requests are included. The stack uses installed open/system families and language-safe fallbacks.",
+    "features": ["tabular-nums","slashed-zero"],
+    "roles": {
+      "heroXL":{"minPx":52,"maxPx":120,"weight":500,"lineHeight":0.94,"family":"display"},
+      "heroL":{"minPx":42,"maxPx":88,"weight":500,"lineHeight":0.98,"family":"display"},
+      "display1":{"minPx":36,"maxPx":68,"weight":500,"lineHeight":1.0,"family":"display"},
+      "display2":{"minPx":30,"maxPx":52,"weight":500,"lineHeight":1.04,"family":"display"},
+      "display3":{"minPx":26,"maxPx":40,"weight":550,"lineHeight":1.08,"family":"display"},
+      "heading1":{"px":32,"weight":600,"lineHeight":1.15,"family":"display"},
+      "heading2":{"px":26,"weight":600,"lineHeight":1.2,"family":"display"},
+      "heading3":{"px":22,"weight":600,"lineHeight":1.25,"family":"display"},
+      "heading4":{"px":18,"weight":600,"lineHeight":1.3,"family":"interface"},
+      "heading5":{"px":16,"weight":600,"lineHeight":1.35,"family":"interface"},
+      "heading6":{"px":14,"weight":600,"lineHeight":1.4,"family":"interface"},
+      "subtitle":{"px":18,"weight":500,"lineHeight":1.5,"family":"interface"},
+      "bodyLarge":{"px":17,"weight":400,"lineHeight":1.65,"family":"interface"},
+      "body":{"px":16,"weight":400,"lineHeight":1.55,"family":"interface"},
+      "bodyCompact":{"px":14,"weight":400,"lineHeight":1.45,"family":"interface"},
+      "label":{"px":13,"weight":600,"lineHeight":1.3,"family":"interface"},
+      "caption":{"px":12,"weight":500,"lineHeight":1.4,"family":"interface"},
+      "micro":{"px":12,"weight":500,"lineHeight":1.3,"family":"interface"},
+      "tableHeader":{"px":13,"weight":600,"lineHeight":1.35,"family":"interface"},
+      "tableCell":{"px":13,"weight":400,"lineHeight":1.4,"family":"interface"},
+      "numericLarge":{"px":28,"weight":600,"lineHeight":1.1,"family":"quantitative"},
+      "numericNormal":{"px":14,"weight":500,"lineHeight":1.35,"family":"quantitative"},
+      "numericCompact":{"px":13,"weight":500,"lineHeight":1.3,"family":"quantitative"},
+      "monoMetadata":{"px":12,"weight":500,"lineHeight":1.45,"family":"quantitative"}
+    },
+    "wrapping": {
+      "financial": "nowrap with tabular numerals; expose the complete value in an accessible label or tooltip",
+      "assetName": "two-line wrap before ellipsis",
+      "providerName": "wrap at natural word boundaries; never split identifiers",
+      "identifier": "overflow-wrap:anywhere only inside bounded metadata panels"
+    }
+  },
+  "spacing": {"0":0,"1":4,"2":8,"3":12,"4":16,"5":20,"6":24,"8":32,"10":40,"12":48,"16":64,"20":80,"24":96},
+  "radius": {"none":0,"small":6,"medium":10,"large":16,"editorial":28,"pill":999},
+  "elevation": {
+    "flat":"none",
+    "raised":"0 8px 24px rgba(31,0,11,0.08)",
+    "overlay":"0 22px 64px rgba(8,0,3,0.22)",
+    "focus":"0 0 0 3px color-mix(in srgb,var(--q-focus) 36%,transparent)"
+  },
+  "breakpoints": {"mobileSmall":360,"mobile":390,"mobileLarge":430,"tabletPortrait":768,"tabletLandscape":1024,"laptop":1280,"desktop":1440,"wide":1728,"analyticalWide":1920},
+  "density": {
+    "comfortable":{"rowHeight":46,"controlHeight":38,"gap":16},
+    "compact":{"rowHeight":38,"controlHeight":34,"gap":12},
+    "terminal":{"rowHeight":32,"controlHeight":30,"gap":8}
+  }
+}

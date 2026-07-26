@@ -31,6 +31,16 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci --ignore-scripts
+      - name: Scan repository for committed secrets
+        run: npm run security:scan
+      - name: Type and syntax check
+        run: npm run typecheck
+      - name: Lint and repository policy
+        run: npm run lint
+      - name: Validate governed design foundations
+        run: npm run validate:design
+      - name: Test
+        run: npm test
       - name: Build static visual preview
         env:
           QELLY_STATIC_VISUAL_PREVIEW: 'true'

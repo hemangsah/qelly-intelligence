@@ -12,6 +12,9 @@ const requiredFiles=[
   'BUILD_INFO.json',
   'assets/app.js',
   'assets/static-preview-api.mjs',
+  'assets/persona-profiles.mjs',
+  'assets/shell-foundations.mjs',
+  'assets/qelly-foundations.css',
   'assets/tokens.css',
   'assets/tokens.json',
   'packages/accessibility/accessibility.mjs',
@@ -134,5 +137,5 @@ console.log(JSON.stringify({
   basePath:expectedBasePath,
   files:names.length,
   secretFindings:0,
-  routes:['market','asset-rankings','asset/QI-CRYPTO-BTC','feature-universe','about-qelly','theme-personas','auth-login']
+  routes:['market','asset-rankings','asset/QI-CRYPTO-BTC','decision-provenance','feature-universe','about-qelly','theme-personas','auth-login']
 },null,2));

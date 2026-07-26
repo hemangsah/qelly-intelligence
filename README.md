@@ -43,6 +43,8 @@ npm run security:scan   # redacting committed-secret scan
 npm test                # unit/integration/server tests
 npm run build           # creates dist/ and cold-starts it
 npm run build:frontend  # creates the static dist/frontend artifact
+npm run inventory:design # regenerates governed route/component/Figma matrices
+npm run validate:design  # validates tokens, shell, personas, and 411-frame contract
 npm run validate:product
 npm run smoke
 npm run inventory:product
@@ -83,6 +85,12 @@ The Node API and worker use separate persistent container images. Vercel is conf
 
 ## Evidence and reports
 
+- `QELLY_PRODUCT_ARCHITECTURE.md`
+- `QELLY_INFORMATION_ARCHITECTURE.md`
+- `QELLY_DESIGN_PRINCIPLES.md`
+- `QELLY_FRONTEND_ARCHITECTURE.md`
+- `QELLY_FIGMA_HANDOFF.md`
+- `QELLY_VALIDATION_REPORT.md`
 - `docs/QELLY_RECOVERY_LEDGER.md`
 - `docs/ARCHITECTURE.md`
 - `docs/DATA_PROVENANCE.md`

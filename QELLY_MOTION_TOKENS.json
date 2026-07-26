@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "Qelly Intelligence motion tokens",
+  "version": "1.0.0",
+  "durations": {
+    "instant": 0,
+    "fast": 120,
+    "standard": 180,
+    "deliberate": 320,
+    "cinematic": 680
+  },
+  "easing": {
+    "standard": "cubic-bezier(0.2,0,0,1)",
+    "enter": "cubic-bezier(0.16,1,0.3,1)",
+    "exit": "cubic-bezier(0.4,0,1,1)",
+    "linearData": "linear"
+  },
+  "approvedUsage": {
+    "navigation": {"duration":"fast","easing":"standard","purpose":"Preserve location and hierarchy."},
+    "stateChange": {"duration":"standard","easing":"standard","purpose":"Confirm a data or control state without layout shift."},
+    "drawer": {"duration":"deliberate","easing":"enter","purpose":"Reveal source or evidence context."},
+    "publicNarrative": {"duration":"cinematic","easing":"enter","purpose":"Connect adjacent propositions on public storytelling routes only."},
+    "dataUpdate": {"duration":"fast","easing":"linearData","purpose":"Signal freshness without implying causality."},
+    "riskEscalation": {"duration":"standard","easing":"standard","purpose":"Draw attention once; never loop."}
+  },
+  "prohibited": [
+    "Looping motion that carries no meaning",
+    "Cinematic transitions inside analytical workflows",
+    "Layout-shifting metric updates",
+    "Motion as the only indicator of state",
+    "Continuous animation that causes material CPU or GPU load"
+  ],
+  "reducedMotion": {
+    "mediaQuery": "prefers-reduced-motion: reduce",
+    "parallax": false,
+    "particles": false,
+    "loopingAnimation": false,
+    "transitionDurationMs": 0,
+    "meaningPreserved": true,
+    "focusVisibilityPreserved": true,
+    "chartInteractionPreserved": true
+  }
+}

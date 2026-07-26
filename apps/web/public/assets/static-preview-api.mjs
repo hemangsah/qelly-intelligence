@@ -1,6 +1,7 @@
 const OBSERVED_AT = '2025-01-15T12:00:00.000Z';
 const OBSERVED_UNIX = Math.floor(Date.parse(OBSERVED_AT) / 1000);
 const TRUTH_BOUNDARY = 'Deterministic demo observations for the Static visual preview. Backend services are unavailable; this data is not live.';
+const DEMO_GRAPH_ID = 'QELLY-DEMO-PROVENANCE-BTC-001';
 
 const DEMO_ASSETS = [
   ['QI-CRYPTO-BTC', 'BTC', 'Bitcoin', 'Store of value', 42500, 1.84, 18420000000],
@@ -130,7 +131,7 @@ function config() {
     productVersion: '0.9.0-preview.1',
     release: 'static-visual-preview',
     defaultRoute: 'market',
-    routes: ['market', 'asset-rankings', 'asset', 'feature-universe', 'about-qelly', 'theme-personas', 'auth-login', 'auth-register', 'auth-recovery'],
+    routes: ['market', 'asset-rankings', 'asset', 'decision-provenance', 'feature-universe', 'about-qelly', 'theme-personas', 'auth-login', 'auth-register', 'auth-recovery'],
     auth: {
       authenticated: false,
       mode: 'static-visual-preview',
@@ -147,6 +148,43 @@ function config() {
       liveData: false,
       limitations: 'Authentication, persistence, external providers, workers and infrastructure are unavailable.'
     }
+  };
+}
+
+function evidenceGraph(){
+  const nodes=[
+    {nodeId:'source-btc',type:'SourceRecord',label:'Qelly deterministic demo',classification:'demo-not-live',revision:1,data:{provider:'qelly-static-demo',observedAt:OBSERVED_AT,license:'bundled deterministic record'}},
+    {nodeId:'observation-btc',type:'ProviderObservation',label:'BTC demo price observation',classification:'demo-not-live',revision:1,data:{canonicalId:'QI-CRYPTO-BTC',price:42500,currency:'USD'}},
+    {nodeId:'normalization-btc',type:'NormalizedObservation',label:'Canonical BTC observation',classification:'derived-demo',revision:1,data:{canonicalId:'QI-CRYPTO-BTC',methodologyVersion:'static-preview-v1'}},
+    {nodeId:'move-btc',type:'MarketMove',label:'Deterministic 24h move',classification:'derived-demo',revision:1,data:{change24h:1.84,horizon:'24h',causality:'not established'}},
+    {nodeId:'hypothesis-btc',type:'Hypothesis',label:'Illustrative broad-risk hypothesis',classification:'user-assumption-demo',revision:1,data:{statement:'The move may reflect broad risk appetite.',uncertainty:'High'}},
+    {nodeId:'risk-btc',type:'RiskAssessment',label:'Evidence limitation',classification:'governance',revision:1,data:{risk:'Demo observations cannot support a live market decision.'}},
+    {nodeId:'decision-btc',type:'DecisionRecord',label:'Research further',classification:'demo-considered-action',revision:1,data:{action:'research-further',execution:'disabled'}}
+  ];
+  const edges=[
+    ['edge-1','source-btc','observation-btc','supports'],
+    ['edge-2','observation-btc','normalization-btc','derived from'],
+    ['edge-3','normalization-btc','move-btc','derived from'],
+    ['edge-4','move-btc','hypothesis-btc','considered in'],
+    ['edge-5','risk-btc','hypothesis-btc','contradicts'],
+    ['edge-6','hypothesis-btc','decision-btc','considered in'],
+    ['edge-7','risk-btc','decision-btc','affects']
+  ].map(([edgeId,fromNodeId,toNodeId,type])=>({edgeId,fromNodeId,toNodeId,type}));
+  return {
+    graphId:DEMO_GRAPH_ID,
+    title:'BTC demo observation → considered research action',
+    truthBoundary:'Static visual preview evidence package. All records are deterministic demo data, not live observations or financial advice.',
+    generatedAt:OBSERVED_AT,
+    nodes,
+    edges,
+    integrity:{valid:true,checksum:'demo-checksum-not-cryptographic'},
+    textAlternative:{steps:[
+      'Qelly deterministic demo supplied a fixed BTC observation.',
+      'The observation was normalized to QI-CRYPTO-BTC using static-preview-v1.',
+      'A 1.84% illustrative move was derived; causality was not established.',
+      'A broad-risk hypothesis was considered and explicitly limited by unavailable live evidence.',
+      'The only considered action is research further; execution is disabled.'
+    ]}
   };
 }
 
@@ -184,6 +222,19 @@ export async function staticPreviewRequest(path, options = {}) {
         attribution: 'Bundled static demo values · not live'
       }]
     };
+  }
+  if(pathname==='/api/v1/evidence/graphs'){
+    return clone({
+      total:1,
+      mode:'deterministic-demo',
+      persistence:'unavailable',
+      truthBoundary:'One deterministic demo evidence package. Persistence and authenticated workspace history are unavailable.',
+      items:[{graphId:DEMO_GRAPH_ID,title:'BTC demo observation → considered research action',generatedAt:OBSERVED_AT,state:'demo-not-live'}]
+    });
+  }
+  if(pathname===`/api/v1/evidence/graphs/${DEMO_GRAPH_ID}`)return clone(evidenceGraph());
+  if(pathname===`/api/v1/evidence/graphs/${DEMO_GRAPH_ID}/export`){
+    return clone({...evidenceGraph(),exportBoundary:'Demo export only. No live provider evidence or persistent audit record is included.'});
   }
 
   const candleMatch = pathname.match(/^\/api\/v1\/public\/markets\/assets\/([^/]+)\/candles$/);

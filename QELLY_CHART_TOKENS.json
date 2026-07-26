@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "Qelly Intelligence chart tokens",
+  "version": "1.0.0",
+  "background": {"light":"#FFFFFF","dark":"#1D181A","highContrast":"#FFFFFF"},
+  "grid": {"light":"rgba(84,47,60,0.13)","dark":"rgba(239,220,227,0.13)","highContrast":"#666666"},
+  "axis": {"light":"#6C5A61","dark":"#C7B9BE","highContrast":"#000000"},
+  "crosshair": {"light":"#5B0828","dark":"#F39AC0","highContrast":"#000000"},
+  "series": {
+    "primary":{"light":"#8E1D4B","dark":"#F39AC0","highContrast":"#000000","pattern":"solid"},
+    "secondary":{"light":"#285D8F","dark":"#8EC5FF","highContrast":"#444444","pattern":"dash"},
+    "positive":{"light":"#086B3A","dark":"#61D99A","highContrast":"#005A2A","pattern":"up-arrow"},
+    "negative":{"light":"#A51D16","dark":"#FF8A80","highContrast":"#A00000","pattern":"down-arrow"},
+    "estimated":{"light":"#8A4600","dark":"#FFC46B","highContrast":"#6A3500","pattern":"dot"},
+    "fallback":{"light":"#6941C6","dark":"#C2A8FF","highContrast":"#3B168F","pattern":"long-dash"}
+  },
+  "provenance": {
+    "source":"#285D8F",
+    "observation":"#6B2D5C",
+    "transformation":"#6941C6",
+    "risk":"#A51D16",
+    "decision":"#5B0828",
+    "outcome":"#086B3A"
+  },
+  "requirements": {
+    "fixedDimensions": true,
+    "title": true,
+    "description": true,
+    "currentRange": true,
+    "keyValues": true,
+    "textTableAlternative": true,
+    "source": true,
+    "observationTime": true,
+    "freshness": true,
+    "confidence": true,
+    "downloadWhenLicensed": true,
+    "nonColorEncoding": true
+  }
+}

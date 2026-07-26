@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="./assets/app.css">
   <link rel="stylesheet" href="./assets/qelly-sovereign-v2.css">
   <link rel="stylesheet" href="./assets/qelly-sovereign-v3.css">
+  <link rel="stylesheet" href="./assets/qelly-foundations.css">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
@@ -31,7 +32,10 @@
         <div class="q-avatar" aria-label="Current Qelly account">QI</div>
       </div>
     </header>
+    <nav id="persona-ribbon" class="q-persona-ribbon" aria-label="Qelly operating personas"></nav>
+    <div id="context-shelf" class="q-context-shelf"></div>
     <div class="q-shell">
+      <aside id="edge-dock" class="q-edge-dock" aria-label="Product domains"></aside>
       <aside id="rail" class="q-rail" aria-label="Primary navigation">
         <nav id="primary-nav"></nav>
         <div class="q-rail-footer">
@@ -45,6 +49,15 @@
         <div id="context-content" class="q-context-content"></div>
       </aside>
     </div>
+    <div id="compare-tray" class="q-compare-tray" aria-label="Persistent intelligence actions">
+      <span><strong>Compare tray</strong><small>No assets selected</small></span>
+      <div>
+        <button type="button" data-watchlist-open>Watchlist</button>
+        <button type="button" data-compare-open>Compare</button>
+        <button type="button" data-explain-open>Explain This Move</button>
+      </div>
+    </div>
+    <nav id="mobile-navigation" class="q-mobile-navigation" aria-label="Mobile navigation"></nav>
   </div>
   <script src="./qelly-config.js"></script>
   <script type="module" src="./assets/app.js"></script>
