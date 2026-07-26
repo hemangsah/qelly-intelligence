@@ -4,29 +4,24 @@
 
 **Preview deployable**
 
-The repository cold-installs, typechecks, lints, scans for committed secrets, runs 251 tests, builds, validates the current product contract, inventories the current source, and passes 259 full-stack smoke requests locally.
+The repository has separate static frontend, persistent API, persistent worker, and trusted operations artifacts. Production startup is strict and live-probed. No externally reachable preview URL is claimed until provider resources are provisioned and verified.
 
-The authoritative GitHub target is `hemangsah/qelly-intelligence` on `main`. A GitHub commit or successful workflow is claimed only when verified from the remote repository and GitHub Actions. No public application deployment URL is currently claimed.
+## Repository-side deployment baseline
 
-## Verified repository-side baseline
+- 61 application routes and 187 documented API contracts
+- PostgreSQL pooled application client and direct controlled migrator
+- checksum history, advisory migration lock, repeated-run safety, and one transaction per migration
+- migrations through `106_deployment_runtime_state.sql`
+- PostgreSQL identity, sessions, organizations, workspaces, portfolio metadata, watchlists, alerts, audit chain, and Decision Provenance persistence
+- TLS Redis, delayed jobs, exponential retry, dead letters, duplicate suppression, leases, restart recovery, heartbeat, and graceful worker shutdown
+- private S3 live probe, anonymous-list denial, quarantine/released prefixes, short-lived signed downloads, and deletion
+- live ClamAV `PING` readiness and fail-closed release
+- authenticated email health, exact-body webhook HMAC, timestamps, delivery IDs, replay policy, HTTPS allowlist, and SSRF defense
+- exact 32-byte keyring validation and recursive structured-log redaction
+- fail-closed strict API startup and deep `/api/ready`
+- Vercel static output at `dist/frontend`; no persistent workload is assigned to an ephemeral function
+- PostgreSQL `pg_dump`/`pg_restore` operations with checksum manifests and explicit restore confirmation
 
-- 61 registered application routes
-- 185 documented API contracts
-- 65 runtime JSON schemas
-- 17 served domain contracts
-- PostgreSQL migrations through `105_scope_a_decision_provenance.sql`
-- Redis job signalling adapter and persistent worker
-- private S3-compatible storage adapter
-- ClamAV, transactional-email, and signed-webhook boundaries
-- strict production readiness without silent local fallbacks
-- current CI, dependency review, CodeQL, container, and tagged-release workflows
+## External dependency state
 
-## Required external actions
-
-1. Protect `main` and require the verified GitHub Actions checks.
-2. Provision managed PostgreSQL, Redis, private S3-compatible storage, ClamAV, transactional email, and secure webhook destinations.
-3. Configure production session, encryption, delivery, and signing secrets through managed secret interfaces.
-4. Run migrations and target-environment integration tests.
-5. Deploy the API and worker to a persistent container platform and use Vercel only for compatible frontend/serverless workloads.
-6. Verify health, readiness, critical journeys, logs, monitoring, alerts, backup/restore, and rollback.
-7. Complete independent security, accessibility, privacy, provider-licensing, and legal gates.
+Managed PostgreSQL is the first unresolved dependency. Redis, persistent containers, S3, ClamAV, email, webhooks, secrets, frontend deployment, external verification, branch protection, and backup/restore evidence follow in that order.

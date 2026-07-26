@@ -27,7 +27,7 @@ Do not create a compatibility tag based on the historical internal release label
 
 ## Runtime deployment
 
-The backend requires a persistent container host such as Railway, Render, Fly.io, or an equivalent managed platform. Vercel may host static frontend delivery or a future serverless-compatible API adapter, but the current worker, Redis consumer, streaming routes, and ClamAV TCP integration must not be forced into ephemeral request functions.
+The backend requires a persistent container host. Vercel is configured to publish only the static `dist/frontend` artifact. The API, worker, Redis consumer, streaming routes, migrations, backup/restore jobs, and ClamAV TCP integration remain on container or managed infrastructure and must not be forced into ephemeral request functions.
 
 Before any public deployment:
 

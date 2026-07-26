@@ -71,7 +71,7 @@ const checks = {
   requiredFiles: missingFiles.length === 0,
   routes: routes.length === 61 && new Set(routes).size === routes.length,
   routeRegistry: routeNames.length === routes.length && routes.every((route) => routeNames.includes(route)),
-  apiContracts: apiRoutes.length === 185 && new Set(apiRoutes).size === apiRoutes.length,
+  apiContracts: apiRoutes.length === 187 && new Set(apiRoutes).size === apiRoutes.length,
   contracts: contracts.size === 17,
   publicApis: requiredPublic.every((route) => apiRoutes.includes(route)),
   evidenceApis: requiredEvidence.every((route) => apiRoutes.includes(route)),

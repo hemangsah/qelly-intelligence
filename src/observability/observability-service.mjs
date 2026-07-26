@@ -6,8 +6,25 @@ function percentile(values, p) {
   return sorted[Math.min(sorted.length-1, Math.max(0, Math.ceil((p/100)*sorted.length)-1))];
 }
 
+const SENSITIVE_KEY=/(?:authorization|cookie|secret|token|password|passphrase|pepper|private.?key|api.?key|access.?key|signature|credential|database.?url|redis.?url|connection.?string)/i;
+function redactString(value){
+  const text=String(value);
+  if(/^Bearer\s+/i.test(text))return '[REDACTED]';
+  try{const url=new URL(text);if(url.username||url.password){url.username='[REDACTED]';url.password='[REDACTED]';return url.toString();}}catch{}
+  return text
+    .replace(/\b((?:postgres(?:ql)?|redis|rediss|mysql|mongodb(?:\+srv)?|https?):\/\/)[^/\s:@]+:[^/\s@]+@/gi,'$1[REDACTED]:[REDACTED]@')
+    .replace(/(Bearer\s+)[A-Za-z0-9._~+/=-]+/gi,'$1[REDACTED]');
+}
+export function redactLogValue(value,key=''){
+  if(SENSITIVE_KEY.test(key))return '[REDACTED]';
+  if(typeof value==='string')return redactString(value);
+  if(Array.isArray(value))return value.map((item)=>redactLogValue(item));
+  if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([entryKey,entryValue])=>[entryKey,redactLogValue(entryValue,entryKey)]));
+  return value;
+}
+
 export class ObservabilityService {
-  constructor({ now = () => Date.now(), maxRecords = 500 } = {}) {
+  constructor({ now = () => Date.now(), maxRecords = 500, structuredOutput = process.env.NODE_ENV === 'production', output = console } = {}) {
     this.now = now;
     this.maxRecords = maxRecords;
     this.startedAt = this.now();
@@ -15,7 +32,11 @@ export class ObservabilityService {
     this.traces = [];
     this.logs = [];
     this.counters = new Map();
+    this.structuredOutput = structuredOutput;
+    this.output = output;
   }
+
+  setDeploymentMode({structuredOutput=true}={}){this.structuredOutput=Boolean(structuredOutput);}
 
   increment(name, value = 1) { this.counters.set(name,(this.counters.get(name)??0)+value); }
 
@@ -35,9 +56,10 @@ export class ObservabilityService {
   }
 
   log(level, event, details = {}) {
-    const record = { logId:crypto.randomUUID(), at:new Date(this.now()).toISOString(), level, event, service:'qelly-local-runtime', details };
+    const record = { logId:crypto.randomUUID(), at:new Date(this.now()).toISOString(), level, event, service:'qelly-runtime', details:redactLogValue(details) };
     this.logs.push(record); if(this.logs.length>this.maxRecords)this.logs.shift();
     this.increment(`logs.${level}`);
+    if(this.structuredOutput){const method=['error','warn'].includes(level)?level:'log';this.output?.[method]?.(JSON.stringify(record));}
     return record;
   }
 

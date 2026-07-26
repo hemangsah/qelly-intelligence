@@ -11,7 +11,10 @@ export class AuditLedger {
     this.filePath = filePath;
     this.checkpointPath = `${filePath}.checkpoint.json`;
     this.queue = Promise.resolve();
+    this.delegate = null;
   }
+
+  use(delegate) { this.delegate = delegate; return this; }
 
   async #records() {
     try {
@@ -33,6 +36,7 @@ export class AuditLedger {
   }
 
   async append(input) {
+    if (this.delegate) return this.delegate.append(input);
     this.queue = this.queue.catch(() => undefined).then(() => withLocalFileLock(this.filePath, async () => {
       await mkdir(path.dirname(this.filePath), { recursive: true });
       const records = await this.#records();
@@ -59,11 +63,17 @@ export class AuditLedger {
     return this.queue;
   }
 
-  async list(limit = 100) {
-    return (await this.#records()).slice(-Math.max(1, Math.min(Number(limit) || 100, 1000)));
+  async list(limit = 100, scope = null) {
+    if (this.delegate) return this.delegate.list(limit, scope);
+    const records = await this.#records();
+    const scoped = scope?.tenantId
+      ? records.filter((record) => record.tenantId === scope.tenantId && (!scope.workspaceId || record.workspaceId === scope.workspaceId))
+      : records;
+    return scoped.slice(-Math.max(1, Math.min(Number(limit) || 100, 1000)));
   }
 
   async verify() {
+    if (this.delegate) return this.delegate.verify();
     let records;
     try { records = await this.#records(); }
     catch (error) { return { valid: false, records: 0, invalidIndex: error.invalidIndex ?? null, reason: error.code ?? 'audit_read_failed' }; }

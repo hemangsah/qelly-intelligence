@@ -1,7 +1,7 @@
 area,capability,status,evidence,remaining_dependency
-Repository,"Cold install, checks and build",Implemented locally and tested,npm ci; typecheck 145 files; lint 240 files; build cold-start passed,Target-host verification
-Repository,Product validation and inventories,Implemented locally and tested,61 routes; 185 APIs; 65 schemas; source tree generated,None
-Identity,"Registration, login, logout and sessions",Implemented locally and tested,Automated tests and 259-request smoke suite,Production database execution
+Repository,"Cold install, checks and build",Implemented locally and tested,npm ci; typecheck 160 files; lint 252 files; build cold-start passed,Target-host verification
+Repository,Product validation and inventories,Implemented locally and tested,61 routes; 187 APIs; 65 schemas; 501-file source tree generated,None
+Identity,"Registration, login, logout and sessions",Implemented locally and tested,Automated tests and 260-request smoke suite,Production database execution
 Identity,"Passkeys, MFA and recovery",Implemented locally and tested,"WebAuthn, TOTP and replay-protected recovery tests",Physical authenticator and KMS validation
 Security,Tenant authorization and audit,Implemented locally and tested,"Cross-tenant, object-scope and audit integrity tests",Independent penetration test
 Storage,Quarantined imports,Implemented locally and tested,Quarantine and malware-signature tests,Live S3 and ClamAV
@@ -13,9 +13,9 @@ Markets,Deterministic fallback,Implemented locally and tested,"Explicit simulate
 Frontend,Public market overview,Implemented locally and tested,API-connected route and browser evidence,Live target-provider verification
 Frontend,Public rankings,Implemented locally and tested,Search/sort route using public API,Broader pagination and virtualization
 Frontend,Public asset detail,Implemented locally and tested,"Source evidence, definitions and candles",Broader sourced field coverage
-Portfolio,Portfolio analytics,Fixture-backed development mode,Inherited deterministic service and tests,Production account/import data
+Portfolio,Portfolio analytics,Implemented local analytics with production persistence,"Deterministic analytics tests; PostgreSQL portfolio metadata adapter",Target account/import data
 Research,Research workspace,Implemented locally and tested,Persistence and version-history tests,Collaboration and licensed content
-Evidence,Qelly Decision Provenance Graph,Implemented locally and tested,4 focused tests; 5 APIs; persisted scoped graph; accessible alternative; export,Production PostgreSQL runtime wiring and richer automatic workflow capture
-Deployment,Docker portable configuration,Implemented but deployment-dependent,"Dockerfile, Compose and runbooks",Authenticated host and managed services
-Deployment,Vercel deployment,Deferred,Current Node HTTP architecture requires adapter,Serverless route-handler migration
+Evidence,Qelly Decision Provenance Graph,Implemented locally and tested,4 focused tests; 5 APIs; local and PostgreSQL scoped graph; accessible alternative; export,Richer automatic workflow capture
+Deployment,Docker portable configuration,Implemented but deployment-dependent,"Separate API, worker and operations images; Compose; runbooks",Authenticated host and managed services
+Deployment,Vercel static frontend,Implemented but deployment-dependent,Standalone dist/frontend artifact and static Vercel manifest,Authenticated Vercel project and public API origin
 Safety,"Live trading, custody and transfers",Intentionally disabled,Routes absent; product validation confirms dangerous APIs absent,"Separate legal, security and operational approval"

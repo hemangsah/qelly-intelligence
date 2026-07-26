@@ -51,8 +51,8 @@ test('persistent job queue is idempotent and worker creates one in-app notificat
   }finally{repo.close();}
 });
 
-test('production mode rejects fixture identity and exposes public auth status',async()=>{
-  const dir=await temp();const started=await startServer({port:0,runtimePath:dir,environment:env({NODE_ENV:'production',QELLY_ALLOW_SQLITE_IN_PRODUCTION:'true',QELLY_ALLOW_DATABASE_QUEUE_IN_PRODUCTION:'true'})});const base=`http://${started.host}:${started.port}`;
+test('production identity gateway rejects fixture identity and exposes public auth status',async()=>{
+  const dir=await temp();const started=await startServer({port:0,runtimePath:dir,environment:env()});const base=`http://${started.host}:${started.port}`;
   try{
     let response=await fetch(base+'/api/v1/auth/status',{headers:{'X-Qelly-Session-Id':'sess-local-primary'}});assert.equal(response.status,200);assert.equal((await response.json()).authenticated,false);
     response=await fetch(base+'/api/v1/session/context',{headers:{'X-Qelly-Session-Id':'sess-local-primary'}});assert.equal(response.status,401);
@@ -62,7 +62,8 @@ test('production mode rejects fixture identity and exposes public auth status',a
 test('production registration, cookie session, CSRF, rotation, jobs and logout work end to end',async()=>{
   const dir=await temp();const started=await startServer({port:0,runtimePath:dir,environment:env()});const base=`http://${started.host}:${started.port}`;
   try{
-    const registration=await register(base);assert.equal(registration.response.status,201);assert.match(registration.cookie,/^qelly_session=/);assert.ok(registration.csrf);
+    const registration=await register(base);assert.equal(registration.response.status,201);assert.match(registration.cookie,/^qelly_session=/);assert.ok(registration.csrf);assert.equal(registration.body.registrationDelivery?.queued,true);
+    assert.ok((await started.runtime.jobQueue.list()).some((job)=>job.job_type==='notification.email'&&job.idempotency_key?.startsWith('registration-welcome:')));
     let response=await fetch(base+'/api/v1/session/context',{headers:{cookie:registration.cookie}});assert.equal(response.status,200);const context=await response.json();assert.equal(context.mode,'production-platform-foundation');assert.equal(context.organization.name,'Qelly Test Lab');
     response=await fetch(base+'/api/v1/jobs/notifications',{method:'POST',headers:{cookie:registration.cookie,'content-type':'application/json','x-qelly-csrf':registration.csrf,'idempotency-key':'api-notification-1'},body:JSON.stringify({title:'Release A1 ready',body:'Persistent job created'})});assert.equal(response.status,202);const queued=await response.json();
     const reserved=await started.runtime.jobQueue.reserve({workerId:'api-test-worker',types:['notification.inapp']});const result=await processJob(started.runtime,reserved);await started.runtime.jobQueue.complete(reserved.job_id,result);assert.equal(reserved.job_id,queued.job_id);

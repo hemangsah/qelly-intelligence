@@ -27,12 +27,16 @@
     "staging:health": "node scripts/staging-health-check.mjs",
     "start:production": "NODE_ENV=production node src/server/server.mjs",
     "build": "node scripts/build.mjs",
+    "build:frontend": "node scripts/build-frontend.mjs",
     "typecheck": "node scripts/typecheck.mjs",
     "lint": "node scripts/lint.mjs",
     "env:check": "node scripts/env-check.mjs",
-    "check": "npm run typecheck && npm run lint && npm run env:check && npm run security:scan && npm test && npm run build && npm run validate:product",
+    "check": "npm run typecheck && npm run lint && npm run env:check && npm run security:scan && npm test && npm run build && npm run build:frontend && npm run validate:product",
     "validate:product": "node scripts/product-validate.mjs",
     "inventory:product": "node scripts/build-product-inventory.mjs"
   },
-  "description": "Qelly Intelligence verifiable market intelligence platform and secure decision operating system."
+  "description": "Qelly Intelligence verifiable market intelligence platform and secure decision operating system.",
+  "dependencies": {
+    "pg": "8.22.0"
+  }
 }

@@ -10,7 +10,7 @@
 - **Inherited database:** SQLite local/test implementation plus PostgreSQL production repository and migrations.
 - **Inherited package manager:** npm.
 - **Cold inherited evidence:** 60 routes, 175 API contracts, 237 tests and 248 smoke requests.
-- **Current recovered product:** 61 meaningful application routes, 185 API contracts, 65 runtime schemas, 251 tests and 259 smoke requests.
+- **Current recovered product:** 61 meaningful application routes, 187 API contracts, 65 runtime schemas, 264 tests and 260 smoke requests.
 
 ## B. Genuine implementation state
 
@@ -19,8 +19,8 @@
 - Registration, login, logout, cookie sessions, CSRF and session rotation.
 - Tenant/workspace authorization, RBAC/ABAC, idempotency and tamper-evident audit.
 - Passkeys, TOTP MFA, recovery codes and non-enumerating account recovery.
-- SQLite persistence and migration chain; PostgreSQL repository and migration implementation.
-- Persistent jobs, retries, dead-letter state and notification-attempt records.
+- SQLite persistence for local/test use; pooled PostgreSQL application persistence plus a direct, locked, checksummed production migrator.
+- Persistent jobs, delayed promotion, bounded retry, dead-letter state, duplicate suppression, leases, restart recovery, worker heartbeats and notification-attempt records.
 - Quarantined uploads, deterministic malware-test rejection and local object storage.
 - Public read-only market overview, rankings, asset detail and candles with source, freshness, quality and fallback evidence.
 - A locally persisted, tenant-scoped Qelly Decision Provenance Graph with upstream/downstream traversal, conflict-aware evidence records, an accessible text alternative and checksum-bearing export.
@@ -28,9 +28,9 @@
 
 ### Implemented but deployment-dependent
 
-- PostgreSQL execution, Redis job signalling, S3-compatible storage, ClamAV, external email, signed webhooks and public-provider networking.
-- These have adapters or production contracts but require real target services, credentials and deployment evidence.
-- Decision Provenance has a PostgreSQL migration contract; the verified runtime in this workspace uses the local atomic store.
+- PostgreSQL, Redis job signalling, S3-compatible storage, ClamAV, external email, signed webhooks and public-provider networking require target services and credentials.
+- Their production adapters, strict environment checks, startup probes, readiness gates, integration tests and operational contracts are implemented; live external evidence remains pending.
+- Decision Provenance, portfolio metadata, workspace operations and the audit chain are wired to PostgreSQL in production mode.
 
 ### Fixture-backed development mode
 
@@ -88,7 +88,8 @@ Continue and refactor the inherited repository in place. The source is reusable:
 
 ## G. Deployment plan
 
-- **Immediate portable host:** Docker on Railway, Render, Fly.io or equivalent.
+- **Frontend host:** the generated `dist/frontend` static artifact on Vercel or an equivalent static host.
+- **Persistent workloads:** separate API, worker and trusted operations containers on Railway, Render, Fly.io or an equivalent container host.
 - **Database:** managed PostgreSQL.
 - **Storage:** managed S3-compatible object storage.
 - **Queue:** managed Redis or platform-compatible persistent jobs.
@@ -97,14 +98,14 @@ Continue and refactor the inherited repository in place. The source is reusable:
 - **CI:** GitHub Actions.
 - **Migrations:** run before API rollout.
 - **Rollback:** redeploy the previous image and use only backward-compatible migrations; restore a verified backup when necessary.
-- **Vercel:** requires a serverless route-handler migration; no Vercel deployment is claimed.
+- **Vercel:** static frontend only; no TCP scanner, worker, migrator, SSE server or persistent API process is assigned to a Vercel function.
 
 ## H. Production gates
 
 - Clean install, syntax/type check, lint, environment validation and cold build.
 - Full tests, authorization/tenancy checks, API contracts and critical browser journeys.
 - Public values real or explicitly unavailable/simulated.
-- PostgreSQL, storage and queue connections verified in the target environment.
+- PostgreSQL, Redis, storage, scanner, delivery and worker connections verified in the target environment.
 - Backup/restore and rollback exercised against target infrastructure.
 - No fake live labels or fixture identity in production.
 - No dangerous execution or custody routes.

@@ -41,14 +41,16 @@ jobs:
         run: npm test
       - name: Production build
         run: npm run build
+      - name: Standalone frontend build
+        run: QELLY_PUBLIC_API_BASE_URL=https://api.preview.invalid npm run build:frontend
       - name: Validate current product contract
         run: npm run validate:product
       - name: Rebuild current product inventory
         run: npm run inventory:product
       - name: Full-stack smoke
         run: npm run smoke
-      - name: Verify production identity isolation
-        run: NODE_ENV=production QELLY_DEVELOPMENT_IDENTITY_ENABLED=false node scripts/production-identity-check.mjs
+      - name: Verify database identity isolation
+        run: NODE_ENV=test QELLY_DEVELOPMENT_IDENTITY_ENABLED=false node scripts/production-identity-check.mjs
       - name: Release safety check
         run: npm run release:check
       - name: Upload validation evidence
@@ -60,6 +62,7 @@ jobs:
           retention-days: 14
           path: |
             dist/BUILD_INFO.json
+            dist/frontend/BUILD_INFO.json
             validation/PRODUCT_VALIDATION.json
             validation/SMOKE_LOG.json
             artifacts/QELLY_ROUTE_INVENTORY.json

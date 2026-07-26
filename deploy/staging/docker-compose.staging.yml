@@ -1,58 +1,36 @@
+name: qelly-preview-workloads
+
+# Externally managed PostgreSQL, Redis, S3, email, and private ClamAV are injected
+# through .env.preview. This file intentionally does not publish or emulate them.
 services:
-  postgres:
-    image: postgres:17-alpine
-    environment:
-      POSTGRES_DB: qelly
-      POSTGRES_USER: qelly
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U qelly -d qelly"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-  redis:
-    image: redis:7-alpine
-    command: ["redis-server", "--appendonly", "yes"]
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-  minio:
-    image: minio/minio:latest
-    command: server /data --console-address :9001
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?required}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?required}
-  clamav:
-    image: clamav/clamav:stable
   migrate:
-    build: ../..
-    command: ["npm", "run", "migrate"]
-    env_file: ../../.env.staging
-    depends_on:
-      postgres:
-        condition: service_healthy
-  api:
-    build: ../..
-    command: ["npm", "run", "serve"]
-    env_file: ../../.env.staging
-    ports: ["4480:4480"]
-    depends_on:
-      migrate:
-        condition: service_completed_successfully
-      redis:
-        condition: service_healthy
-      minio:
-        condition: service_started
-      clamav:
-        condition: service_started
+    build:
+      context: ../..
+      dockerfile: Dockerfile.ops
+    command: ["scripts/migrate-production.mjs"]
+    env_file: ../../.env.preview
+    restart: "no"
+
   worker:
-    build: ../..
-    command: ["npm", "run", "worker"]
-    env_file: ../../.env.staging
+    build:
+      context: ../..
+      dockerfile: Dockerfile.worker
+    env_file: ../../.env.preview
     depends_on:
       migrate:
         condition: service_completed_successfully
-      redis:
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    env_file: ../../.env.preview
+    ports:
+      - "4480:4480"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      worker:
         condition: service_healthy
+    restart: unless-stopped

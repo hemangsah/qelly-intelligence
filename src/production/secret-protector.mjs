@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { decodeKeyMaterial } from './deployment-environment.mjs';
 
 const b64url=(value)=>Buffer.from(value).toString('base64url');
 const unb64url=(value)=>Buffer.from(String(value),'base64url');
@@ -10,7 +11,7 @@ export class AesGcmSecretProtector{
       if(nodeEnv==='production')throw Object.assign(new Error('A production secret-protection key is required'),{code:'secret_protection_key_missing'});
       key='qelly-development-secret-protector-change-before-production-2026';
     }
-    this.key=derive(key);
+    this.key=nodeEnv==='production'?decodeKeyMaterial(key):derive(key);
     this.context=String(context);
     this.mode=nodeEnv==='production'?'aes-256-gcm-configured':'aes-256-gcm-development';
   }
@@ -40,8 +41,8 @@ export class VersionedKeyringSecretProtector{
     const normalized=new Map();
     for(const [keyId,value] of Object.entries(keys??{})){
       if(!/^[a-zA-Z0-9._-]{3,64}$/.test(keyId))throw Object.assign(new Error('Secret key ID is invalid'),{code:'secret_key_id_invalid'});
-      if(String(value??'').length<24)throw Object.assign(new Error(`Secret key ${keyId} must contain at least 24 characters`),{code:'secret_key_material_invalid'});
-      normalized.set(keyId,derive(value));
+      if(nodeEnv!=='production'&&String(value??'').length<24)throw Object.assign(new Error(`Secret key ${keyId} must contain at least 24 characters`),{code:'secret_key_material_invalid'});
+      normalized.set(keyId,nodeEnv==='production'?decodeKeyMaterial(value):derive(value));
     }
     if(!normalized.size){
       if(nodeEnv==='production')throw Object.assign(new Error('A production secret keyring is required'),{code:'secret_keyring_missing'});

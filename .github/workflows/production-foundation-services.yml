@@ -40,6 +40,7 @@ jobs:
           --health-retries 20
     env:
       DATABASE_URL: postgres://qelly:qelly-ci-password@127.0.0.1:5432/qelly
+      QELLY_MIGRATION_DATABASE_URL: postgres://qelly:qelly-ci-password@127.0.0.1:5432/qelly
       REDIS_URL: redis://127.0.0.1:6379/0
       QELLY_SESSION_SECRET: qelly-ci-session-secret-0000000000000000000001
       QELLY_PASSWORD_PEPPER: qelly-ci-pepper
@@ -59,5 +60,16 @@ jobs:
         run: npm run migrate
       - name: Verify migration idempotency and checksum stability
         run: npm run migrate
-      - name: Verify PostgreSQL, migration 105, Decision Provenance, and Redis jobs
+      - name: Verify migration status
+        run: npm run migrate -- --status
+      - name: Verify concurrent migration locking
+        shell: bash
+        run: |
+          npm run migrate &
+          first=$!
+          npm run migrate &
+          second=$!
+          wait "$first"
+          wait "$second"
+      - name: Verify PostgreSQL, migration 106, persisted domains, and Redis jobs
         run: node scripts/production-dependency-integration.mjs

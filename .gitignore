@@ -2,6 +2,8 @@
 .env.*
 !.env.example
 !.env.staging.example
+!.env.preview.example
+!.env.production.example
 runtime/*.json
 runtime/*.ndjson
 !runtime/.gitkeep
