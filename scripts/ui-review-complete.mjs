@@ -186,7 +186,7 @@ async function captureCompletionEvidence(browser){
     await implementation.page.waitForFunction(()=>document.activeElement?.id==='q-command-input');
     observed.checks.push({
       name:'command-palette-focus-and-capture',
-      passed:await commandInput.isFocused(),
+      passed:await commandInput.evaluate((element)=>document.activeElement===element),
       evidence:{focused:await implementation.page.evaluate(()=>document.activeElement?.id??null)}
     });
     await stabilize(implementation.page);
