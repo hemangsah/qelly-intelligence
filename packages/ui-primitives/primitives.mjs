@@ -114,7 +114,7 @@ export function commandDialog(commands) {
     if (event.key === 'Enter') { event.preventDefault(); select(active); }
   });
   dialog.querySelector('[data-close]').addEventListener('click', () => { closeDialog(dialog); dialog.remove(); });
-  draw(); openDialog(dialog);
+  draw(); openDialog(dialog); input.focus({ preventScroll:true });
 }
 
 export function escapeHtml(value) {
