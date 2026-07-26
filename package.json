@@ -30,7 +30,7 @@
     "build:frontend": "node scripts/build-frontend.mjs",
     "validate:pages-preview": "node scripts/validate-pages-preview.mjs",
     "smoke:pages-preview": "node scripts/smoke-pages-preview.mjs",
-    "ui:review": "node scripts/ui-review.mjs",
+    "ui:review": "node scripts/ui-review-orchestrator.mjs",
     "typecheck": "node scripts/typecheck.mjs",
     "lint": "node scripts/lint.mjs",
     "env:check": "node scripts/env-check.mjs",
