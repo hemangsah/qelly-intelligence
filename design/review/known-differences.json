@@ -1,0 +1,28 @@
+{
+  "status": "manual-review-complete-user-approval-pending",
+  "reviewCommit": "a729bb25729c024e855d5626bf5fb93894e8743b",
+  "estimatedDirectionalFidelityPercent": 86,
+  "critical": [],
+  "major": [
+    "At 1440×1000 the implementation chart is taller than the approved reference, so the institutional table begins just below the initial viewport while the reference exposes its table controls at the bottom of that viewport."
+  ],
+  "minor": [
+    "The implementation command shell is denser and the route title truncates in the compact shell region at some widths.",
+    "The repository typography stack is used instead of embedding an exact remote display font.",
+    "KPI sparklines, chart curvature, labels and deterministic fixture values are not pixel-identical to the standalone reference.",
+    "The wider institutional table truncates long provider copy in the visible source column before horizontal exploration.",
+    "Light mode is brighter and more analytical than the softer reference treatment.",
+    "Signal Access intentionally uses stronger outlines, 120% font scale and reduced motion.",
+    "The static preview has no dedicated Asset Rankings empty-state switch."
+  ],
+  "deliberate": [
+    "Truth-state language is stronger and explicitly states static visual preview, deterministic demo, backend unavailable, and no production trading or persistence.",
+    "Qelly provenance, source, confidence, freshness and evidence vocabulary are preserved beyond the standalone reference.",
+    "Mobile replaces the reference capture's clipped navigation overlay with a compact top bar and five-item bottom navigation.",
+    "Chart and ranking data are Qelly-specific deterministic observations rather than copied market data.",
+    "The table is deliberately wider and horizontally scrollable to preserve institutional columns and numeric alignment.",
+    "The approved HTML remains review-only, outside dist/frontend, and scheduled for removal before merge.",
+    "Production APIs, PostgreSQL, Redis, storage, ClamAV, email, webhooks, custody, execution and persistent mutations are not represented by the review build."
+  ],
+  "approvalGate": "DO NOT MERGE — USER VISUAL APPROVAL REQUIRED"
+}
