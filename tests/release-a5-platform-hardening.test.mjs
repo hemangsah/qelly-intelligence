@@ -32,7 +32,7 @@ test('A5 secret rotation service rewraps stored MFA factors to configured active
 
 test('A5 manual quarantine supports explicit rescan release and discard',async()=>{
  const root=await temp('qelly-a5-quarantine-');const storage=new LocalObjectStorage({root,scanner:new FoundationMalwareScanner()});
- const staged=await storage.quarantine({tenantId:'org',workspaceId:'ws',fileName:'review.csv',mimeType:'text/csv',content:Buffer.from('a,b\n1,2')});assert.equal(staged.status,'quarantined');assert.match(staged.key,/^\.quarantine\//);
+ const staged=await storage.quarantine({tenantId:'org',workspaceId:'ws',fileName:'review.csv',mimeType:'text/csv',content:Buffer.from('a,b\n1,2')});assert.equal(staged.status,'quarantined');assert.match(staged.key,/^quarantine\//);
  const released=await storage.rescan(staged.key,{fileName:staged.fileName,mimeType:staged.mimeType});assert.equal(released.status,'released');assert.equal((await storage.get(released.key)).content.toString(),'a,b\n1,2');
  const discard=await storage.quarantine({tenantId:'org',workspaceId:'ws',fileName:'discard.txt',content:Buffer.from('discard')});assert.equal((await storage.discard(discard.key)).status,'discarded');
  await rm(root,{recursive:true,force:true});

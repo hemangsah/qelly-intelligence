@@ -5,6 +5,7 @@ ENV HOST=0.0.0.0
 ENV PORT=4480
 ENV QELLY_DEVELOPMENT_IDENTITY_ENABLED=false
 COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --ignore-scripts
 COPY apps ./apps
 COPY baseline ./baseline
 COPY packages ./packages
@@ -16,5 +17,6 @@ COPY LICENSE NOTICE.md README.md SECURITY.md ./
 RUN mkdir -p /app/runtime && chown -R node:node /app
 USER node
 EXPOSE 4480
+STOPSIGNAL SIGTERM
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 CMD wget -qO- http://127.0.0.1:4480/api/ready || exit 1
 CMD ["node","src/server/server.mjs"]

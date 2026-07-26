@@ -24,4 +24,4 @@ export function serializeSessionCookie(value,{secure=true,maxAgeSeconds=8*60*60,
   if(secure)parts.push('Secure');
   return parts.join('; ');
 }
-export function clearSessionCookie({secure=true}={}){return serializeSessionCookie('',{secure,maxAgeSeconds:0});}
+export function clearSessionCookie({secure=true,sameSite='Lax'}={}){return serializeSessionCookie('',{secure,sameSite,maxAgeSeconds:0});}

@@ -42,7 +42,7 @@ test('A4 outbound policy blocks loopback private metadata and non-HTTPS targets'
 test('A4 local object storage quarantines before release and rejects malware signatures',async()=>{
   const root=await temp('qelly-a4-storage-');const storage=new LocalObjectStorage({root});
   const clean=await storage.put({tenantId:'org',workspaceId:'ws',fileName:'clean.csv',mimeType:'text/csv',content:Buffer.from('a,b\n1,2')});assert.equal(clean.status,'released');assert.equal(clean.quarantineStatus,'released');
-  const quarantine=await readdir(path.join(root,'.quarantine'));assert.equal(quarantine.length,0);
+  const quarantine=await readdir(path.join(root,'quarantine'));assert.equal(quarantine.length,0);
   await assert.rejects(()=>storage.put({tenantId:'org',workspaceId:'ws',fileName:'bad.txt',content:Buffer.from('EICAR-STANDARD-ANTIVIRUS-TEST-FILE')}),e=>e.code==='malware_detected');await rm(root,{recursive:true,force:true});
 });
 

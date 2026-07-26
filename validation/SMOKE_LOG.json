@@ -2,7 +2,7 @@
   "status": "smoke-passed",
   "productVersion": "0.9.0-preview.1",
   "legacyRelease": "27.0.0",
-  "requests": 259,
+  "requests": 260,
   "checks": {
     "publicMarketEvidence": true,
     "decisionProvenanceGraph": true,
@@ -851,6 +851,12 @@
     },
     {
       "method": "GET",
+      "pathname": "/qelly-config.js",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
       "pathname": "/assets/tokens.css",
       "status": 200,
       "contentType": "text/css; charset=utf-8"
@@ -1121,19 +1127,19 @@
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/evidence/graphs/graph-54fc033a-49c0-4a47-9229-7d467f50647f",
+      "pathname": "/api/v1/evidence/graphs/graph-16612385-63d1-4151-84b7-2d54e3147806",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/evidence/graphs/graph-54fc033a-49c0-4a47-9229-7d467f50647f/traverse?depth=3",
+      "pathname": "/api/v1/evidence/graphs/graph-16612385-63d1-4151-84b7-2d54e3147806/traverse?depth=3",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/evidence/graphs/graph-54fc033a-49c0-4a47-9229-7d467f50647f/export",
+      "pathname": "/api/v1/evidence/graphs/graph-16612385-63d1-4151-84b7-2d54e3147806/export",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
@@ -1355,7 +1361,7 @@
     },
     {
       "method": "DELETE",
-      "pathname": "/api/v1/asset-intelligence/layouts/chart-803ddcea-6071-4d99-9b5e-e441f71348e6",
+      "pathname": "/api/v1/asset-intelligence/layouts/chart-b528a933-4c14-4be5-9f46-e06b73395034",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
@@ -1379,13 +1385,13 @@
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/workspace/watchlists/watchlist-e9dc0fe1-b50e-4066-b21c-0ed7e0066dd1/items",
+      "pathname": "/api/v1/workspace/watchlists/watchlist-f000aab8-5810-4d01-8e19-3816affa8dd4/items",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/workspace/watchlists/watchlist-e9dc0fe1-b50e-4066-b21c-0ed7e0066dd1",
+      "pathname": "/api/v1/workspace/watchlists/watchlist-f000aab8-5810-4d01-8e19-3816affa8dd4",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
@@ -1409,7 +1415,7 @@
     },
     {
       "method": "PUT",
-      "pathname": "/api/v1/notifications/notification-2582b2ff-3535-4bfc-9755-a89e79a6db54/read",
+      "pathname": "/api/v1/notifications/notification-3b49f167-87a9-4621-809b-79c8a801ca32/read",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
@@ -1445,13 +1451,13 @@
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/research/workspaces/research-84160adc-b8c1-47bc-9652-02d1218ea94b/items",
+      "pathname": "/api/v1/research/workspaces/research-72d2ade8-ba51-4a5c-a0d8-a94ec7c89a73/items",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/research/workspaces/research-84160adc-b8c1-47bc-9652-02d1218ea94b",
+      "pathname": "/api/v1/research/workspaces/research-72d2ade8-ba51-4a5c-a0d8-a94ec7c89a73",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
@@ -1553,43 +1559,43 @@
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/imports/import-7f55606d-93e7-410c-818e-3383a92596e3",
+      "pathname": "/api/v1/imports/import-5a6a09be-b222-4e1b-9cae-124e383fba65",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/research/workspaces/research-84160adc-b8c1-47bc-9652-02d1218ea94b/versions",
+      "pathname": "/api/v1/research/workspaces/research-72d2ade8-ba51-4a5c-a0d8-a94ec7c89a73/versions",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/research/workspaces/research-84160adc-b8c1-47bc-9652-02d1218ea94b/items",
+      "pathname": "/api/v1/research/workspaces/research-72d2ade8-ba51-4a5c-a0d8-a94ec7c89a73/items",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/research/workspaces/research-84160adc-b8c1-47bc-9652-02d1218ea94b/versions",
+      "pathname": "/api/v1/research/workspaces/research-72d2ade8-ba51-4a5c-a0d8-a94ec7c89a73/versions",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/research/version-diff?workspaceId=research-84160adc-b8c1-47bc-9652-02d1218ea94b&left=research-version-0e9973d6-e458-4bf5-9128-3942a5cc99ff&right=research-version-eb5b0436-d57c-4138-b4ad-5c0d8d3ed655",
+      "pathname": "/api/v1/research/version-diff?workspaceId=research-72d2ade8-ba51-4a5c-a0d8-a94ec7c89a73&left=research-version-8fe2f0e9-a472-4223-892b-facfd6020219&right=research-version-498dc2cb-7fd9-4eb8-a511-898010810f2b",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/research/workspaces/research-84160adc-b8c1-47bc-9652-02d1218ea94b/versions/research-version-0e9973d6-e458-4bf5-9128-3942a5cc99ff/restore",
+      "pathname": "/api/v1/research/workspaces/research-72d2ade8-ba51-4a5c-a0d8-a94ec7c89a73/versions/research-version-8fe2f0e9-a472-4223-892b-facfd6020219/restore",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/research/workspaces/research-84160adc-b8c1-47bc-9652-02d1218ea94b/versions/research-version-0e9973d6-e458-4bf5-9128-3942a5cc99ff/restore",
+      "pathname": "/api/v1/research/workspaces/research-72d2ade8-ba51-4a5c-a0d8-a94ec7c89a73/versions/research-version-8fe2f0e9-a472-4223-892b-facfd6020219/restore",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },

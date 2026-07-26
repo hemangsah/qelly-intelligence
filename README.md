@@ -13,7 +13,7 @@ Live trading, custody, transfers, withdrawals, private-key collection and recove
 ## Runtime
 
 - Node.js 22 or later
-- Zero third-party npm runtime dependencies in the inherited implementation
+- Locked `pg` runtime dependency for pooled and direct PostgreSQL connections
 - SQLite for local development and tests
 - PostgreSQL repository and migrations for production
 - Redis signalling adapter for production jobs
@@ -42,6 +42,7 @@ npm run env:check       # environment and financial-safety validation
 npm run security:scan   # redacting committed-secret scan
 npm test                # unit/integration/server tests
 npm run build           # creates dist/ and cold-starts it
+npm run build:frontend  # creates the static dist/frontend artifact
 npm run validate:product
 npm run smoke
 npm run inventory:product
@@ -65,19 +66,20 @@ No private exchange credentials belong in frontend code.
 
 ## Decision Provenance Graph
 
-The Scope A flagship workflow is available at `#/decision-provenance`. It persists a tenant/workspace-scoped evidence chain from source record and provider observation through normalization, market movement, user hypothesis, risk assessment and considered decision. It supports upstream/downstream traversal, an accessible text alternative and a checksum-bearing export. The local runtime is tested; the PostgreSQL migration contract is included and target-environment repository execution remains deployment-dependent.
+The Scope A flagship workflow is available at `#/decision-provenance`. It persists a tenant/workspace-scoped evidence chain from source record and provider observation through normalization, market movement, user hypothesis, risk assessment and considered decision. It supports upstream/downstream traversal, an accessible text alternative and a checksum-bearing export. Local and PostgreSQL implementations are tested; target-environment execution remains deployment-dependent.
 
 ## Production configuration
 
-Use PostgreSQL, Redis and S3-compatible storage. Production mode also requires secure session and secret-protection keys. Run:
+Use `.env.preview.example` or `.env.production.example`. Strict deployment also requires PostgreSQL, TLS Redis, private S3, private ClamAV, external email, signed webhooks, an active worker, secure session and keyring material. Run migrations from the operations job before the API:
 
 ```bash
 NODE_ENV=production npm run env:check
 npm run migrate
+npm run migrate -- --status
 npm run start:production
 ```
 
-The existing Node HTTP architecture is immediately portable to Railway, Render, Fly.io or another container platform. A Vercel deployment requires a serverless route-handler adapter and has not been claimed as complete.
+The Node API and worker use separate persistent container images. Vercel is configured for the static `dist/frontend` artifact only; no worker, TCP scanner, migration, Redis consumer, SSE server, or persistent Node process is assigned to a Vercel function.
 
 ## Evidence and reports
 

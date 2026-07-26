@@ -41,6 +41,9 @@ import { renderQuarantineReview } from './routes/quarantine-review.mjs';
 import { renderStagingAssurance } from './routes/staging-assurance.mjs';
 import { renderDecisionProvenance } from './routes/decision-provenance.mjs';
 
+const apiBaseUrl=String(window.__QELLY_CONFIG__?.apiBaseUrl??'').replace(/\/$/,'');
+const apiUrl=(path)=>apiBaseUrl?new URL(path,`${apiBaseUrl}/`).toString():path;
+
 const state = {
   route: 'market',
   asset: 'BTC',
@@ -64,7 +67,7 @@ const api = async (path, options = {}) => {
   const method = String(options.method ?? 'GET').toUpperCase();
   const mutationHeaders = ['GET','HEAD','OPTIONS'].includes(method)||options.skipCsrf ? {} : {'X-Qelly-CSRF': state.config?.csrf?.token ?? ''};
   const {skipCsrf,...fetchOptions}=options;
-  const response = await fetch(path, { ...fetchOptions, credentials:'same-origin', headers:{'Content-Type':'application/json',...mutationHeaders,...(options.headers ?? {})} });
+  const response = await fetch(apiUrl(path), { ...fetchOptions, credentials:'include', headers:{'Content-Type':'application/json',...mutationHeaders,...(options.headers ?? {})} });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     const caught=new Error(body.error?.message ?? `Request failed (${response.status})`);caught.status=response.status;caught.code=body.error?.code;throw caught;
@@ -553,7 +556,7 @@ async function renderStreamOperations(main) {
   const renderTape=()=>{const tape=document.getElementById('stream-tape');tape.innerHTML=state.streamFrames.slice(-8).reverse().map((event)=>`<article class="q-stream-frame"><div><span class="q-status q-status--${event.eventType?.includes('heartbeat')?'cached':event.freshnessClass??'simulated'}">${event.eventType?.includes('heartbeat')?'heartbeat':event.freshnessClass??'event'}</span><strong>${escapeHtml(event.eventType??'stream event')}</strong></div><time>${new Date(event.emittedAt).toLocaleTimeString()}</time><small>${event.sequence?`sequence ${event.sequence} · `:''}${Array.isArray(event.payload)?`${event.payload.length} items`:'control frame'}</small></article>`).join('')||'<div class="q-empty-state"><div><h2>Awaiting first frame</h2><p>The local SSE connection is opening.</p></div></div>';};
   const connect=()=>{
     if(state.streamSource)state.streamSource.close();
-    const source=new EventSource('/api/v1/stream/quotes?frames=12&intervalMs=240');state.streamSource=source;let received=0;
+    const source=new EventSource(apiUrl('/api/v1/stream/quotes?frames=12&intervalMs=240'),{withCredentials:true});state.streamSource=source;let received=0;
     source.onopen=()=>{const badge=document.getElementById('stream-connection');if(badge){badge.textContent='connected';badge.className='q-status q-status--live';}};
     source.onmessage=()=>{};
     ['quotes.snapshot.v1','quotes.delta.v1','stream.heartbeat.v1'].forEach((name)=>source.addEventListener(name,(event)=>{const value=JSON.parse(event.data);state.streamFrames.push(value);received+=1;renderTape();if(value.sequence){document.getElementById('stream-event-count').textContent=value.sequence;document.getElementById('stream-last-sequence').textContent=`sequence ${value.sequence}`;}if(received>=10){source.close();state.streamSource=null;const badge=document.getElementById('stream-connection');if(badge){badge.textContent='captured';badge.className='q-status q-status--cached';}}}));
@@ -733,7 +736,7 @@ function openNotifications() {
 }
 
 async function testStream(){
-  try{const response=await fetch('/api/v1/stream/quotes?frames=3&intervalMs=20');const text=await response.text();const frames=text.split('\n').filter((entry)=>entry.startsWith('data: ')).map((entry)=>JSON.parse(entry.slice(6))).filter((frame)=>frame.sequence);const frame=frames.at(-1);toast(`Simulated stream received through sequence ${frame.sequence} with ${frames.length} frames`,{tone:'success'});}catch(error){toast(`Stream test failed: ${error.message}`,{tone:'danger'});}
+  try{const response=await fetch(apiUrl('/api/v1/stream/quotes?frames=3&intervalMs=20'),{credentials:'include'});const text=await response.text();const frames=text.split('\n').filter((entry)=>entry.startsWith('data: ')).map((entry)=>JSON.parse(entry.slice(6))).filter((frame)=>frame.sequence);const frame=frames.at(-1);toast(`Simulated stream received through sequence ${frame.sequence} with ${frames.length} frames`,{tone:'success'});}catch(error){toast(`Stream test failed: ${error.message}`,{tone:'danger'});}
 }
 
 async function persistPreference(patch) {

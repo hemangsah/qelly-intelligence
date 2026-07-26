@@ -1,39 +1,24 @@
 # Production Database Migration Contract
 
-## Purpose
+## Implemented execution boundary
 
-Part 21 documents a migration path from single-host JSON/NDJSON persistence to a production-oriented PostgreSQL foundation. The included SQL files are contracts for review and are never executed by the packaged runtime.
+`npm run migrate` is a controlled PostgreSQL operations command. In production it requires `QELLY_MIGRATION_DATABASE_URL`, obtains a stable advisory lock, verifies immutable SHA-256 migration checksums, and applies each pending migration and its history record in one transaction. A failure rolls back that migration. Repeated execution is safe. `--status`, `--check`, and `--dry-run` are read-only and do not create the migration-history table.
 
-## Proposed phases
+`npm run migrate -- --status` and `--check` report applied and pending migrations without applying pending SQL. API startup and frontend builds never invoke the migrator.
 
-1. **Foundation** — identities, organizations, workspaces, memberships, sessions and audit metadata.
-2. **Workspace state** — preferences, watchlists, alert rules, notifications, screeners, research workspaces, schedules, onboarding and imports.
-3. **Market data separation** — move time series, stream journals and high-volume observations to an appropriate time-series or analytical store.
-4. **Cutover** — dual-write verification, reconciliation, backup, restore rehearsal, staged traffic and rollback capability.
+## Current schema
 
-## Mandatory gates before execution
+Migrations 100–106 cover production identity, sessions, jobs, notifications, MFA, imports, delivery attempts, passkeys, recovery, Decision Provenance graphs/nodes/edges/exports, runtime JSONB state, portfolio metadata, and durable audit records.
 
-- Approved production schema and data-retention policy
-- Production identity and service-to-service authentication
-- Managed secrets and encryption keys
-- Tested database migrations and rollback scripts
-- Point-in-time recovery and restore rehearsal
-- Data reconciliation and checksum reports
-- Capacity, load, failure and concurrency testing
-- Data residency and privacy review
-- Monitoring, alerting, incident response and owner assignment
-- Independent security review
+The Part 21 contract tables in 001 and 002 remain for compatibility with prior migration history. Production runtime code uses the `qelly_*` tables introduced and extended by migrations 100–106.
 
-## Explicitly absent
+## Mandatory deployment gates
 
-- Database connection string
-- Migration runner
-- Production credentials
-- Automated schema execution
-- Data backfill job
-- Dual-write implementation
-- Production cutover
-- Backup or restore automation
-- Replication or failover
-
-Environment flags `QELLY_PRODUCTION_DATABASE_ENABLED` and `QELLY_MIGRATION_EXECUTION_ENABLED` remain `false` and are verified by the release gate.
+- direct migration endpoint and pooled application endpoint;
+- verified TLS and least-privilege provider credentials;
+- backup or managed snapshot before change;
+- checksum and advisory-lock verification;
+- repeated migration and status verification;
+- authentication, sessions, organization/workspace, portfolio, watchlist, alert, audit, and Decision Provenance tests;
+- tenant/workspace isolation, concurrency, rollback, backup, and isolated restore;
+- `/api/ready` reporting migration 106.

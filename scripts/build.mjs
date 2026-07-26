@@ -6,7 +6,7 @@ import { pathToFileURL, fileURLToPath } from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const out=path.join(root,'dist');
 await rm(out,{recursive:true,force:true});await mkdir(out,{recursive:true});
-const entries=['apps','src','packages','deploy','package.json','package-lock.json','.env.example','README.md','LICENSE','NOTICE.md','SECURITY.md','Dockerfile'];
+const entries=['apps','src','packages','deploy','scripts','package.json','package-lock.json','.env.example','.env.preview.example','.env.production.example','vercel.json','README.md','LICENSE','NOTICE.md','SECURITY.md','Dockerfile','Dockerfile.worker','Dockerfile.ops'];
 for(const rel of entries)await cp(path.join(root,rel),path.join(out,rel),{recursive:true});
 await mkdir(path.join(out,'runtime'),{recursive:true});await writeFile(path.join(out,'runtime','.gitkeep'),'');
 const buildInfo={product:'Qelly Intelligence',version:'0.9.0-preview.1',builtAt:new Date().toISOString(),artifact:'portable-node-runtime',entries};

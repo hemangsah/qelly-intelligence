@@ -7,12 +7,11 @@ import { legacyRelease, productVersion } from '../src/server/route-manifest.mjs'
 
 const runtimePath=await mkdtemp(path.join(os.tmpdir(),'qelly-release-a5-production-identity-'));
 const environment={...process.env,
-  NODE_ENV:'production',QELLY_PRODUCTION_FOUNDATION_ENABLED:'true',QELLY_PRODUCTION_IDENTITY_ENABLED:'true',QELLY_DEVELOPMENT_IDENTITY_ENABLED:'false',
-  QELLY_DATABASE_MODE:'sqlite',QELLY_ALLOW_SQLITE_IN_PRODUCTION:'true',QELLY_JOB_QUEUE_MODE:'database',QELLY_ALLOW_DATABASE_QUEUE_IN_PRODUCTION:'true',
+  NODE_ENV:'test',QELLY_DEPLOYMENT_ENVIRONMENT:'test',QELLY_PRODUCTION_FOUNDATION_ENABLED:'true',QELLY_PRODUCTION_IDENTITY_ENABLED:'true',QELLY_DEVELOPMENT_IDENTITY_ENABLED:'false',
+  QELLY_DATABASE_MODE:'sqlite',QELLY_JOB_QUEUE_MODE:'database',
   QELLY_SESSION_SECRET:'release-a5-production-identity-check-secret-0000001',QELLY_PASSWORD_PEPPER:'release-a5-production-check-pepper',
   QELLY_SECRET_PROTECTION_KEY:crypto.createHash('sha256').update('qelly-production-identity-test-key').digest('hex'),
-  QELLY_OBJECT_STORAGE_MODE:'local',QELLY_ALLOW_LOCAL_OBJECT_STORAGE_IN_PRODUCTION:'true',
-  QELLY_DELIVERY_MODE:'disabled',QELLY_ALLOW_LOCAL_DELIVERY_IN_PRODUCTION:'false'
+  QELLY_OBJECT_STORAGE_MODE:'local',QELLY_DELIVERY_MODE:'disabled'
 };
 const {server,host,port}=await startServer({port:0,runtimePath,environment});
 const base=`http://${host}:${port}`;

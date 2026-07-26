@@ -1,5 +1,7 @@
 .dockerignore
 .env.example
+.env.preview.example
+.env.production.example
 .env.staging.example
 .github/ISSUE_TEMPLATE/bug_report.yml
 .github/ISSUE_TEMPLATE/feature_request.yml
@@ -16,6 +18,8 @@ CODE_OF_CONDUCT.md
 CONTRIBUTING.md
 DESIGN_REBUILD_README.md
 Dockerfile
+Dockerfile.ops
+Dockerfile.worker
 FIGMA_HANDOFF.md
 LICENSE
 NOTICE.md
@@ -77,6 +81,7 @@ apps/web/public/assets/tokens.css
 apps/web/public/assets/tokens.json
 apps/web/public/assets/webauthn.mjs
 apps/web/public/index.html
+apps/web/public/qelly-config.js
 apps/worker/worker.mjs
 artifacts/QELLY_API_INVENTORY.csv
 artifacts/QELLY_API_INVENTORY.json
@@ -222,7 +227,10 @@ docs/adrs/ADR-025-A3-PASSKEYS-STORAGE-DELIVERY.md
 docs/adrs/ADR-025-A4-RECOVERY-QUARANTINE-READINESS.md
 docs/adrs/ADR-026-A5-PLATFORM-HARDENING.md
 docs/deployment/BACKUP_RESTORE_RUNBOOK.md
+docs/deployment/BRANCH_PROTECTION_RUNBOOK.md
+docs/deployment/DEPLOYMENT_DEPENDENCY_MAP.md
 docs/deployment/ENVIRONMENT_REFERENCE.md
+docs/deployment/PREVIEW_VERIFICATION_RUNBOOK.md
 docs/deployment/PRODUCTION_DEPENDENCY_POLICY.md
 docs/deployment/ROLLBACK_RUNBOOK.md
 docs/deployment/VERCEL_IMPORT_CHECKLIST.md
@@ -266,6 +274,7 @@ packages/migrations/102_release_a3_passkeys_storage_delivery.sql
 packages/migrations/103_release_a4_recovery_quarantine_network_policy.sql
 packages/migrations/104_release_a5_platform_hardening.sql
 packages/migrations/105_scope_a_decision_provenance.sql
+packages/migrations/106_deployment_runtime_state.sql
 packages/openapi/qelly.openapi.json
 packages/openapi/release-a1.openapi.json
 packages/openapi/release-a3.openapi.json
@@ -342,6 +351,7 @@ packages/ui-primitives/primitives.mjs
 scripts/accessibility-check.py
 scripts/backup-production.mjs
 scripts/browser-render.py
+scripts/build-frontend.mjs
 scripts/build-inventory.mjs
 scripts/build-part22-design-pdf.py
 scripts/build-product-inventory.mjs
@@ -356,6 +366,7 @@ scripts/capture-part22-all-personas.py
 scripts/env-check.mjs
 scripts/lint.mjs
 scripts/migrate-production.mjs
+scripts/postgres-cli.mjs
 scripts/product-validate.mjs
 scripts/production-dependency-integration.mjs
 scripts/production-identity-check.mjs
@@ -387,6 +398,7 @@ scripts/smoke.mjs
 scripts/staging-health-check.mjs
 scripts/typecheck.mjs
 scripts/validate.mjs
+scripts/worker-health-check.mjs
 src/asset-intelligence/advanced-asset-service.mjs
 src/asset-intelligence/asset-intelligence-service.mjs
 src/asset-intelligence/chart-layout-store.mjs
@@ -412,10 +424,12 @@ src/platform/json-store.mjs
 src/platform/local-file-lock.mjs
 src/platform/migration-plan-service.mjs
 src/portfolio/portfolio-service.mjs
+src/portfolio/postgres-portfolio-service.mjs
 src/production/account-recovery-service.mjs
 src/production/auth-service.mjs
 src/production/crypto-utils.mjs
 src/production/delivery-service.mjs
+src/production/deployment-environment.mjs
 src/production/identity-gateway.mjs
 src/production/job-queue.mjs
 src/production/mfa-service.mjs
@@ -424,6 +438,9 @@ src/production/object-storage.mjs
 src/production/passkey-service.mjs
 src/production/password-hasher.mjs
 src/production/platform-assurance-service.mjs
+src/production/postgres-audit-ledger.mjs
+src/production/postgres-document-store.mjs
+src/production/postgres-pool-client.mjs
 src/production/postgres-production-repository.mjs
 src/production/postgres-wire-client.mjs
 src/production/production-foundation.mjs
@@ -453,6 +470,7 @@ src/workspace/screener-service.mjs
 src/workspace/workspace-operations-store.mjs
 tests/contracts.test.mjs
 tests/decision-provenance.test.mjs
+tests/deployment-hardening.test.mjs
 tests/design-system.test.mjs
 tests/part18-hardening.test.mjs
 tests/part19-advanced-assets.test.mjs

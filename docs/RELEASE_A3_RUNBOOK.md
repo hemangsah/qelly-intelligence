@@ -33,4 +33,4 @@ Verify `/api/health` and `/api/ready`. Delivery defaults to disabled until an ex
 
 ## Backup/restore
 
-The packaged automated tool supports the SQLite development adapter. PostgreSQL deployments should use `pg_dump`, encrypted managed snapshots and a tested restore runbook.
+The operations image supports PostgreSQL `pg_dump` and checksum manifests. Use encrypted managed snapshots as well, and prove recovery through the isolated restore procedure in `docs/deployment/BACKUP_RESTORE_RUNBOOK.md`.

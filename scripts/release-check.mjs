@@ -38,7 +38,7 @@ const identity = spawnSync(process.execPath, ['scripts/production-identity-check
   encoding: 'utf8',
   env: {
     ...process.env,
-    NODE_ENV: 'production',
+    NODE_ENV: 'test',
     QELLY_DEVELOPMENT_IDENTITY_ENABLED: 'false'
   }
 });
@@ -62,7 +62,7 @@ const result = {
     && validation.schemas === schemas.length,
   smokeCurrent: smoke.status === 'smoke-passed'
     && smoke.productVersion === productVersion
-    && smoke.requests === 259,
+    && smoke.requests === 260,
   routeInventoryCurrent: routeInventory.productVersion === productVersion
     && routeInventory.count === routes.length,
   apiInventoryCurrent: apiInventory.productVersion === productVersion
@@ -85,7 +85,7 @@ const result = {
 const bad = Object.entries(result).filter(([, value]) => value === false || value == null);
 if (pkg.version !== productVersion
   || routes.length !== 61
-  || apiRoutes.length !== 185
+  || apiRoutes.length !== 187
   || contracts.size !== 17
   || schemas.length !== 65
   || bad.length) {
