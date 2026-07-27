@@ -1,6 +1,14 @@
-const THEMES=['Sovereign Obsidian','Porcelain Command','Graphite Terminal','Midnight Research','Kinetic Burgundy','Arctic Signal','Copper Ledger','Deep Space','Jade Quant','Ultraviolet Lab','Solarized Evidence','High Contrast','Aggressive Alpha'];
+const THEMES=['Sovereign Obsidian','Porcelain Signal','Crimson Vector','Obsidian Strike','White Heat','Ember Protocol','Arctic Quant','Emerald Conviction','Cobalt Circuit','Violet Oracle','Gold Dominion','Monochrome Ledger','Signal Access'];
 const APPEARANCES=['Dark','Light','OLED','High Contrast','System','Scheduled'];
 const PERSONAS=['Scalper Velocity','Investor Compound','Aggressive Alpha','Quant Operator','Research Oracle','Signal Access'];
+const PERSONA_MINDSETS={
+  'Scalper Velocity':['Precision Pulse','Rapid Tape','Microstructure Focus','Velocity Grid'],
+  'Investor Compound':['Foundation','Long Horizon','Compounding Calm','Preservation First'],
+  'Aggressive Alpha':['Focused Edge','Tactical Surge','Conviction Strike','Redline Apex'],
+  'Quant Operator':['Model Discipline','Signal Lab','Vector Engine','Statistical Focus'],
+  'Research Oracle':['Thesis Mode','Evidence Depth','Contradiction Review','Oracle Synthesis'],
+  'Signal Access':['Clear Focus','Calm Reading','High Contrast','Reduced Complexity']
+};
 const ALPHA_LEVELS=['Focused Edge','Tactical Surge','Conviction Strike','Redline Apex'];
 const ALPHA_PACKS=['Crimson Vector','Obsidian Strike','White Heat','Ember Protocol','Apex Monochrome','Scarlet Circuit'];
 const COLLECTIONS=['Appearance','Semantic Surfaces','Semantic Text','Semantic Interaction','Market Semantics','Chart Semantics','Table Semantics','Overlay Semantics','Persona','Mindset','Aggressive Alpha Intensity','Aggressive Alpha Packs','Accessibility','Responsive'];
@@ -24,12 +32,14 @@ for(const [name,values] of [['market/positive',{dark:'#35C98C',light:'#087A52',o
 for(const name of ['chart/background','chart/grid','chart/crosshair','chart/tooltip'])variable(collections[5],name,name.includes('background')?modes('canvas'):name.includes('grid')?modes('muted'):name.includes('tooltip')?modes('panel'):modes('accent'));
 for(const name of ['table/background','table/header','table/row-hover','table/row-selected'])variable(collections[6],name,name.includes('background')?modes('surface'):name.includes('header')?modes('panel'):modes('accent'));
 for(const name of ['overlay/dialog','overlay/drawer','overlay/popover','overlay/tooltip','overlay/command','overlay/bottom-sheet'])variable(collections[7],name,modes('panel'));
-stringVariable(collections[0],'appearance/mode',APPEARANCES);stringVariable(collections[8],'persona/active',PERSONAS);stringVariable(collections[9],'mindset/active',['Tape Scan','Quality Moat','Focused Edge','Factor Lab']);stringVariable(collections[10],'aggressive-alpha/intensity',ALPHA_LEVELS);stringVariable(collections[11],'aggressive-alpha/pack',ALPHA_PACKS);stringVariable(collections[12],'accessibility/profile',['Standard','Reduced Motion','High Contrast','Color Blind Safe']);floatVariable(collections[13],'responsive/viewport',[360,768,1280,1920]);
-for(const [index,name] of PAGES.entries()){const page=figma.createPage();page.name=name;if(index===0)board(page,'Qelly Theme Intelligence',THEMES);else if(index===1)board(page,'Appearance Modes',APPEARANCES);else if(index===2)board(page,'13 Curated Themes',THEMES);else if(index===3)board(page,'6 Personas · 24 Mindsets',PERSONAS.flatMap((p)=>[p+' / Mindset 1',p+' / Mindset 2',p+' / Mindset 3',p+' / Mindset 4']));else if(index===4)board(page,'Aggressive Alpha Intensity',ALPHA_LEVELS);else if(index===5)board(page,'Aggressive Alpha Visual Packs',ALPHA_PACKS);else board(page,name,['Desktop','Mobile','Dark','Light','OLED','High Contrast']);}
+stringVariable(collections[0],'appearance/mode',APPEARANCES);stringVariable(collections[8],'persona/active',PERSONAS);stringVariable(collections[9],'mindset/active',Object.values(PERSONA_MINDSETS).flat());stringVariable(collections[10],'aggressive-alpha/intensity',ALPHA_LEVELS);stringVariable(collections[11],'aggressive-alpha/pack',ALPHA_PACKS);stringVariable(collections[12],'accessibility/profile',['Standard','Reduced Motion','High Contrast','Color Blind Safe']);floatVariable(collections[13],'responsive/viewport',[360,768,1280,1920]);
+for(const [index,name] of PAGES.entries()){const page=figma.createPage();page.name=name;if(index===0)board(page,'Qelly Theme Intelligence',THEMES);else if(index===1)board(page,'Appearance Modes',APPEARANCES);else if(index===2)board(page,'13 Curated Themes',THEMES);else if(index===3)board(page,'6 Personas · 24 Mindsets',Object.entries(PERSONA_MINDSETS).flatMap(([persona,mindsets])=>mindsets.map((mindset)=>`${persona} / ${mindset}`)));else if(index===4)board(page,'Aggressive Alpha Intensity',ALPHA_LEVELS);else if(index===5)board(page,'Aggressive Alpha Visual Packs',ALPHA_PACKS);else board(page,name,['Desktop','Mobile','Dark','Light','OLED','High Contrast']);}
 figma.root.setPluginData('fontTarget','IBM Plex Sans Variable · all text and numeric roles');
 figma.root.setPluginData('gtEesti','inactive commercial licence gate');
 figma.root.setPluginData('themeCollections',String(COLLECTIONS.length));
 figma.root.setPluginData('themePages',String(PAGES.length));
+figma.root.setPluginData('themeFamilies',THEMES.join(' | '));
+figma.root.setPluginData('personaMindsets',JSON.stringify(PERSONA_MINDSETS));
 figma.currentPage=figma.root.children.find((page)=>page.name==='00 Theme Intelligence Overview')??figma.root.children[0];
 figma.viewport.scrollAndZoomIntoView(figma.currentPage.children);
-figma.closePlugin(`Qelly Theme Intelligence generated: ${COLLECTIONS.length} collections, ${PAGES.length} pages, 13 themes, 24 mindsets.`);
+figma.closePlugin(`Qelly Theme Intelligence generated: ${COLLECTIONS.length} collections, ${PAGES.length} pages, ${THEMES.length} themes, ${Object.values(PERSONA_MINDSETS).flat().length} mindsets.`);
