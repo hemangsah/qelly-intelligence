@@ -14,32 +14,37 @@ function run(script){
 const base=await run('scripts/ui-review.mjs');
 const completion=await run('scripts/ui-review-complete.mjs');
 const premium=await run('scripts/ui-review-premium.mjs');
+const evidence=premium.code===0
+  ? await run('scripts/ui-review-premium-evidence.mjs')
+  : {script:'scripts/ui-review-premium-evidence.mjs',code:1,signal:null,skipped:true};
 
-if(premium.code!==0){
+if(premium.code!==0||evidence.code!==0){
   console.error(JSON.stringify({
     status:'qelly-premium-review-orchestration-failed',
-    authoritativePass:'scripts/ui-review-premium.mjs',
+    authoritativePasses:['scripts/ui-review-premium.mjs','scripts/ui-review-premium-evidence.mjs'],
     base,
     completion,
-    premium
+    premium,
+    evidence
   },null,2));
-  process.exitCode=premium.code;
+  process.exitCode=premium.code!==0?premium.code:evidence.code;
 }else{
   const legacyWarnings=[base,completion].filter((result)=>result.code!==0);
   if(legacyWarnings.length){
     console.warn(JSON.stringify({
       status:'legacy-ui-review-nonzero-reconciled',
-      authoritativePass:'scripts/ui-review-premium.mjs',
+      authoritativePasses:['scripts/ui-review-premium.mjs','scripts/ui-review-premium-evidence.mjs'],
       legacyWarnings,
-      detail:'Legacy screenshot passes are retained only as regression evidence. The premium pass is authoritative because it validates the premium semantic design contract, required screenshots, interactions, responsive behavior, Chromium/Firefox/WebKit parity, accessibility, performance, console safety, old-versus-new comparisons, Figma handoff, forensic documents, and the runnable preview.'
+      detail:'Legacy screenshot passes are retained only as regression evidence. The premium passes are authoritative because they validate the premium semantic design contract, required screenshots, all six personas, query builder, shell geometry, responsive behavior, Chromium/Firefox/WebKit parity, accessibility, performance, console safety, old-versus-new comparisons, Figma handoff evidence, forensic documents, and the runnable preview.'
     },null,2));
   }
   console.log(JSON.stringify({
     status:'qelly-premium-review-orchestration-passed',
-    authoritativePass:'scripts/ui-review-premium.mjs',
+    authoritativePasses:['scripts/ui-review-premium.mjs','scripts/ui-review-premium-evidence.mjs'],
     base,
     completion,
-    premium
+    premium,
+    evidence
   },null,2));
   process.exitCode=0;
 }
