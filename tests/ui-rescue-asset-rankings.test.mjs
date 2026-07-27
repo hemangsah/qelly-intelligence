@@ -7,52 +7,86 @@ import { fileURLToPath } from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=(file)=>readFile(path.join(root,file),'utf8');
 
-test('Asset Rankings rescue retains the six required market signals',async()=>{
-  const route=await read('apps/web/public/assets/routes/asset-rankings.mjs');
-  const labels=[
-    'Global Market Cap',
-    '24h Volume',
-    'Open Interest',
-    'Liquidations',
-    'Funding Regime',
-    'Market Breadth'
-  ];
-  for(const label of labels)assert.match(route,new RegExp(`label:'${label}'`));
+test('premium reset uses neutral institutional foundations and rare gradients',async()=>{
+  const [foundation,assembly,rankings]=await Promise.all([
+    read('apps/web/public/assets/premium-foundations.css'),
+    read('apps/web/public/assets/qelly-premium-reset.css'),
+    read('apps/web/public/assets/premium-rankings.css')
+  ]);
+  for(const value of ['#070507','#0d0a0c','#121014','#171319','#1c171b','#5b0828','#8e1d4b'])assert.match(foundation,new RegExp(value,'i'));
+  assert.match(assembly,/premium-foundations\.css/);
+  assert.match(assembly,/premium-table\.css/);
+  assert.match(assembly,/premium-chart\.css/);
+  const gradients=(foundation.match(/linear-gradient/g)??[]).length+(rankings.match(/linear-gradient/g)??[]).length;
+  assert.ok(gradients<=2,`Expected at most two application gradients, found ${gradients}`);
+  assert.doesNotMatch(foundation,/radial-gradient/);
 });
 
-test('Asset Rankings rescue exposes the complete institutional table contract',async()=>{
-  const route=await read('apps/web/public/assets/routes/asset-rankings.mjs');
-  for(const label of ['Asset','Price','24h','7d','Volume','Market Cap','Funding','OI','Liquidation','Confidence','Source','Watchlist']){
-    assert.match(route,new RegExp(`label:'${label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}'`));
-  }
-  for(const interaction of ['data-mi-search','data-mi-density','data-mi-filter-toggle','data-mi-columns-toggle','data-mi-watch','data-mi-timeframe','data-mi-explain']){
-    assert.match(route,new RegExp(interaction));
-  }
+test('Asset Rankings uses realistic deterministic OHLC and table-first composition',async()=>{
+  const [data,route,chart]=await Promise.all([
+    read('apps/web/public/assets/routes/asset-rankings-data.mjs'),
+    read('apps/web/public/assets/routes/asset-rankings-premium.mjs'),
+    read('apps/web/public/assets/routes/asset-rankings-chart.mjs')
+  ]);
+  for(const field of ['open','high','low','close','volume','oi','funding'])assert.match(data,new RegExp(field));
+  assert.match(data,/regime/);
+  assert.match(data,/shock/);
+  assert.match(chart,/candlestick/);
+  assert.match(chart,/q-mi-crosshair/);
+  assert.match(chart,/q-mi-chart-tooltip/);
+  assert.ok(route.indexOf('tableMarkup')<route.indexOf('chartMarkup'),'Ranking table must be composed before the chart');
 });
 
-test('Static visual truth boundary remains explicit throughout the rescued surface',async()=>{
-  const route=await read('apps/web/public/assets/routes/asset-rankings.mjs');
-  assert.match(route,/Static visual preview · deterministic demo observations · backend unavailable · no production trading or persistence/);
-  assert.match(route,/Demo · not live/);
-  assert.match(route,/not a live explanation or investment advice/);
-  assert.match(route,/browser demo watchlist/);
+test('premium rankings expose Discovery Terminal Research and governed market columns',async()=>{
+  const [route,data,table]=await Promise.all([
+    read('apps/web/public/assets/routes/asset-rankings-premium.mjs'),
+    read('apps/web/public/assets/routes/asset-rankings-data.mjs'),
+    read('apps/web/public/assets/routes/asset-rankings-table.mjs')
+  ]);
+  for(const mode of ['discovery','terminal','research'])assert.match(route,new RegExp(`'${mode}'`));
+  for(const label of ['Rank','Watchlist','Asset','Price','1h','24h','7d','30d','Sparkline','Volume','Market Cap','FDV','Supply','Liquidity','Funding','OI','OI Change','Liquidation','Volatility','Confidence','Source','Freshness','Explain'])assert.match(data,new RegExp(`'${label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}'`));
+  for(const interaction of ['data-mi-search','data-mi-filter-toggle','data-mi-columns-toggle','data-mi-density-select','data-mi-watch','data-mi-explain','data-sort','data-mi-view'])assert.match(table,new RegExp(interaction));
 });
 
-test('Rescued shell implements progressive navigation and responsive market layout',async()=>{
-  const [shell,css,app,index]=await Promise.all([
+test('SVG icon registry replaces temporary glyph navigation',async()=>{
+  const [registry,shell,index]=await Promise.all([
+    read('apps/web/public/assets/icon-registry.mjs'),
     read('apps/web/public/assets/shell-foundations.mjs'),
-    read('apps/web/public/assets/ui-rescue.css'),
-    read('apps/web/public/assets/app.js'),
     read('apps/web/public/index.html')
   ]);
-  for(const label of ['Markets','Asset Intelligence','Derivatives','Research','Portfolio','Decision Provenance','Operations','Trust']){
-    assert.match(shell,new RegExp(`label:'${label}'`));
-  }
-  assert.match(css,/grid-template-columns:repeat\(6,minmax\(0,1fr\)\)/);
-  assert.match(css,/@media\(max-width:1280px\)/);
-  assert.match(css,/@media\(max-width:920px\)/);
-  assert.match(css,/@media\(max-width:620px\)/);
-  assert.match(css,/prefers-reduced-motion:reduce/);
-  assert.match(app,/renderAssetRankings/);
-  assert.match(index,/assets\/ui-rescue\.css/);
+  for(const name of ['explain','evidence','markets','derivatives','trust','discovery','terminal','research'])assert.match(registry,new RegExp(`${name}:`));
+  assert.match(shell,/icon\('explain'/);
+  assert.match(shell,/icon\('menu'/);
+  assert.doesNotMatch(shell,/[☰⚙✓✣⌁◉]/);
+  assert.match(index,/qelly-premium-reset\.css/);
+  assert.doesNotMatch(index,/>☰<|>⌕<|>◐<|>♢</);
+});
+
+test('static preview truth is compact and mobile is purpose-built',async()=>{
+  const [route,mobile]=await Promise.all([
+    read('apps/web/public/assets/routes/asset-rankings-premium.mjs'),
+    read('apps/web/public/assets/premium-mobile.css')
+  ]);
+  assert.match(route,/Static visual preview/);
+  assert.match(route,/Deterministic demo observations/);
+  assert.match(route,/backend unavailable/);
+  assert.match(route,/no production trading or persistence/);
+  assert.match(mobile,/q-mi-mobile-rankings/);
+  assert.match(mobile,/q-mi-mobile-row/);
+  assert.match(mobile,/safe-area-inset-bottom/);
+  assert.match(mobile,/q-mi-filter-sheet>section/);
+  assert.match(mobile,/q-mobile-navigation/);
+});
+
+test('research Figma motion and originality deliverables exist',async()=>{
+  const files=[
+    'design/research/REFERENCE_UI_FORENSICS.md','design/research/REFERENCE_COMPUTED_STYLES.json','design/research/REFERENCE_LAYOUT_METRICS.json','design/research/REFERENCE_MOTION_INVENTORY.json','design/research/REFERENCE_FEATURE_INVENTORY.csv','design/research/QELLY_SYNTHESIS_DECISIONS.md','design/review/VISUAL_FAILURE_REPORT.md','design/icons/QELLY_ICON_GUIDE.md','design/figma/QELLY_FIGMA_MASTER_SPEC.md','design/figma/QELLY_FIGMA_SCREEN_MATRIX.csv','design/figma/QELLY_FIGMA_COMPONENT_MATRIX.csv','design/figma/QELLY_DESIGN_REVIEW_CHECKLIST.md','QELLY_MOTION_SYSTEM.md','QELLY_MOTION_TOKENS.json'
+  ];
+  const contents=await Promise.all(files.map(read));
+  assert.ok(contents.every((value)=>value.length>20));
+  const figma=await read('figma-plugin/code.js');
+  assert.match(figma,/31 Handoff/);
+  assert.match(figma,/Qelly Premium Semantic/);
+  assert.match(figma,/MASTER_SCREENS/);
+  assert.doesNotMatch(figma,/EXPECTED_FRAME_COUNT/);
 });
