@@ -58,11 +58,17 @@ export function commandDialog(commands) {
   dialog.innerHTML=`<div class="q-command-shell"><header class="q-command-context"><div><span>Qelly Intelligence</span><strong>Search the workspace</strong></div><button type="button" class="q-command-close" data-close aria-label="Close command palette">${paletteIcon('command')}</button></header><label class="q-command-search" for="q-command-input">${paletteIcon('search')}<span class="sr-only">Search routes, assets and actions</span><input id="q-command-input" autocomplete="off" spellcheck="false" class="q-command-input" placeholder="Search assets, research, routes and actions"><kbd>Esc</kbd></label><div class="q-command-results" role="listbox" aria-label="Command results"></div><footer class="q-command-footer"><span><span><kbd>↑↓</kbd> Navigate</span><span><kbd>↵</kbd> Open</span></span><span data-command-count aria-live="polite"></span></footer></div>`;
   document.body.append(dialog);
   const input=dialog.querySelector('input');const results=dialog.querySelector('.q-command-results');const counter=dialog.querySelector('[data-command-count]');
-  let filtered=commands;let active=0;
-  const normalized=(item,index)=>({group:item.group??(item.kind==='asset'?'Assets':item.kind==='action'?'Actions':'Navigation'),kind:item.kind??'navigation',description:item.description??item.hint??'',shortcut:item.shortcut??(index<9?`⌥${index+1}`:''),...item});
+  let filtered=[];let active=0;
+  const normalized=(item,index)=>{
+    const inferredKind=item.kind??(/^Open Bitcoin|\basset\b|dossier/i.test(item.label)?'asset':/Preview|Reset|Export|Create|Toggle/i.test(item.label)?'action':'navigation');
+    const inferredGroup=item.group??(inferredKind==='asset'?'Assets':inferredKind==='action'?'Actions':'Navigation');
+    return {group:inferredGroup,kind:inferredKind,description:item.description??item.hint??(inferredKind==='asset'?'Open canonical asset intelligence':inferredKind==='action'?'Run a workspace action':'Open a Qelly destination'),shortcut:item.shortcut??(index<9?`⌥${index+1}`:''),...item};
+  };
   const draw=()=>{
     const query=input.value.trim().toLowerCase();
-    filtered=commands.map(normalized).filter((item)=>`${item.label} ${item.description} ${item.group}`.toLowerCase().includes(query));
+    const normalizedCommands=commands.map(normalized);
+    const matching=normalizedCommands.filter((item)=>`${item.label} ${item.description} ${item.group}`.toLowerCase().includes(query));
+    filtered=query?matching:[...matching.slice(0,3).map((item)=>({...item,group:'Recent',kind:'recent'})),...matching];
     active=Math.min(active,Math.max(0,filtered.length-1));
     const groups=new Map();for(const [index,item] of filtered.entries()){if(!groups.has(item.group))groups.set(item.group,[]);groups.get(item.group).push({item,index});}
     results.innerHTML=filtered.length?[...groups].map(([group,items])=>`<section class="q-command-group" aria-label="${escapeHtml(group)}"><div class="q-command-group-title">${escapeHtml(group)}</div>${items.map(({item,index})=>`<button type="button" role="option" aria-selected="${index===active}" class="q-command-item ${index===active?'is-active':''}" data-index="${index}"><span class="q-command-item-icon">${item.icon??paletteIcon(item.kind)}</span><span class="q-command-item-copy"><strong>${escapeHtml(item.label)}</strong><small>${escapeHtml(item.description)}</small></span>${item.shortcut?`<kbd class="q-command-shortcut">${escapeHtml(item.shortcut)}</kbd>`:''}</button>`).join('')}</section>`).join(''):'<div class="q-command-empty">No matching command. Try an asset, route or action.</div>';
