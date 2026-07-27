@@ -1,43 +1,25 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "name": "Qelly Intelligence motion tokens",
-  "version": "1.0.0",
-  "durations": {
-    "instant": 0,
-    "fast": 120,
-    "standard": 180,
-    "deliberate": 320,
-    "cinematic": 680
-  },
+  "name": "Qelly Intelligence premium motion tokens",
+  "version": "2.0.0-premium-reset",
+  "durations": {"instant":90,"fast":150,"standard":230,"deliberate":360,"cinematic":720},
   "easing": {
-    "standard": "cubic-bezier(0.2,0,0,1)",
-    "enter": "cubic-bezier(0.16,1,0.3,1)",
-    "exit": "cubic-bezier(0.4,0,1,1)",
-    "linearData": "linear"
+    "standard":"cubic-bezier(.2,.6,.2,1)",
+    "enter":"cubic-bezier(.16,1,.3,1)",
+    "exit":"cubic-bezier(.4,0,1,1)",
+    "emphasized":"cubic-bezier(.2,.9,.15,1)",
+    "linearTicker":"linear"
   },
   "approvedUsage": {
-    "navigation": {"duration":"fast","easing":"standard","purpose":"Preserve location and hierarchy."},
-    "stateChange": {"duration":"standard","easing":"standard","purpose":"Confirm a data or control state without layout shift."},
-    "drawer": {"duration":"deliberate","easing":"enter","purpose":"Reveal source or evidence context."},
-    "publicNarrative": {"duration":"cinematic","easing":"enter","purpose":"Connect adjacent propositions on public storytelling routes only."},
-    "dataUpdate": {"duration":"fast","easing":"linearData","purpose":"Signal freshness without implying causality."},
-    "riskEscalation": {"duration":"standard","easing":"standard","purpose":"Draw attention once; never loop."}
+    "dock":{"duration":"deliberate","easing":"enter","purpose":"Reveal domain navigation without shifting the market workspace."},
+    "commandPalette":{"duration":"standard","easing":"enter","purpose":"Preserve keyboard continuity."},
+    "drawer":{"duration":"deliberate","easing":"enter","purpose":"Reveal explanation and provenance context."},
+    "filterSheet":{"duration":"deliberate","easing":"enter","purpose":"Expose query controls on desktop and mobile."},
+    "tableHover":{"duration":"fast","easing":"standard","purpose":"Support scan position and keyboard focus."},
+    "chartTooltip":{"duration":"instant","easing":"standard","purpose":"Inspect one deterministic observation."},
+    "dataUpdate":{"duration":"fast","easing":"standard","purpose":"Flash once only when a value changes."},
+    "publicNarrative":{"duration":"cinematic","easing":"emphasized","purpose":"Reserved for future public/editorial routes."}
   },
-  "prohibited": [
-    "Looping motion that carries no meaning",
-    "Cinematic transitions inside analytical workflows",
-    "Layout-shifting metric updates",
-    "Motion as the only indicator of state",
-    "Continuous animation that causes material CPU or GPU load"
-  ],
-  "reducedMotion": {
-    "mediaQuery": "prefers-reduced-motion: reduce",
-    "parallax": false,
-    "particles": false,
-    "loopingAnimation": false,
-    "transitionDurationMs": 0,
-    "meaningPreserved": true,
-    "focusVisibilityPreserved": true,
-    "chartInteractionPreserved": true
-  }
+  "prohibited": ["Looping motion without meaning","Cinematic transitions inside terminal workflows","Layout-shifting metric updates","Motion as the only state cue","Continuous value animation","Scroll hijacking"],
+  "reducedMotion": {"mediaQuery":"prefers-reduced-motion: reduce","ticker":"stopped","parallax":false,"particles":false,"travel":"removed","meaningPreserved":true,"focusVisibilityPreserved":true,"chartInteractionPreserved":true}
 }
