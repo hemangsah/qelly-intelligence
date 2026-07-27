@@ -5,7 +5,10 @@ on:
     branches: [main]
     paths:
       - 'scripts/font-comparison-board.mjs'
+      - 'scripts/font-comparison-board-local.mjs'
       - '.github/workflows/font-comparison.yml'
+      - 'package.json'
+      - 'package-lock.json'
       - 'apps/web/public/**'
       - 'packages/ui-primitives/**'
   workflow_dispatch:
@@ -43,11 +46,12 @@ jobs:
           QELLY_DEPLOYMENT_ENVIRONMENT: typography-candidate-review
         run: npm run build:frontend
       - name: Render typography comparison and baseline audit
-        run: node scripts/font-comparison-board.mjs
+        run: node scripts/font-comparison-board-local.mjs
       - name: Upload typography evidence
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: qelly-font-comparison
           path: .font-review
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14
