@@ -65,7 +65,7 @@ function installLaunchers(){
   document.getElementById('global-theme-selector')?.addEventListener('change',(event)=>{
     const map={'burgundy-command':'scalper-velocity','porcelain-burgundy':'investor-compound','burgundy-night':'aggressive-alpha','graphite-terminal':'quant-operator','midnight-research':'research-oracle','high-contrast':'signal-access'};
     const persona=map[event.target.value];if(!persona)return;
-    const profile=PERSONAS.find((item)=>item.id===persona);const patch={persona,mindset:profile?.mindsets[0],...(persona==='aggressive-alpha'?{themeFamily:'aggressive-alpha'}:{})};
+    const profile=PERSONAS.find((item)=>item.id===persona);const patch={persona,mindset:profile?.mindsets[0],...(persona==='aggressive-alpha'?{themeFamily:'crimson-vector'}:{})};
     themeIntelligence.preview(patch);themeIntelligence.commit();localState.prefs={...localState.prefs,...preferencePatch(themeIntelligence.config)};
   });
 }
