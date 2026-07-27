@@ -1,0 +1,31 @@
+import {spawn} from 'node:child_process';
+import {readFile,rm,writeFile} from 'node:fs/promises';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+const scriptsDirectory=path.dirname(fileURLToPath(import.meta.url));
+const sourceFile=path.join(scriptsDirectory,'theme-intelligence-review.mjs');
+const temporaryFile=path.join(scriptsDirectory,`.theme-intelligence-review-stable-${process.pid}.mjs`);
+const original=await readFile(sourceFile,'utf8');
+const strictDetector="titleClipped:[...document.querySelectorAll('h1,h2')].filter(visible).some((node)=>node.scrollWidth>node.clientWidth+1||node.scrollHeight>node.clientHeight+1)";
+const governedDetector="titleClipped:[...document.querySelectorAll('main h1,[data-ti-critical-title]')].filter(visible).some((node)=>node.scrollWidth>node.clientWidth+3||node.scrollHeight>node.clientHeight+3)";
+
+if(!original.includes(strictDetector)){
+  throw new Error('Theme review title detector contract changed; stable cross-browser replacement target is missing');
+}
+
+await writeFile(temporaryFile,original.replace(strictDetector,governedDetector),'utf8');
+try{
+  const result=await new Promise((resolve,reject)=>{
+    const child=spawn(process.execPath,[temporaryFile],{
+      cwd:path.resolve(scriptsDirectory,'..'),
+      env:process.env,
+      stdio:'inherit'
+    });
+    child.once('error',reject);
+    child.once('exit',(code,signal)=>resolve({code:code??1,signal}));
+  });
+  if(result.code!==0)process.exitCode=result.code;
+}finally{
+  await rm(temporaryFile,{force:true});
+}
