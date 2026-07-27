@@ -6,8 +6,12 @@ const esc=(value)=>String(value??'').replace(/[&<>'"]/g,(character)=>({'&':'&amp
 const readHistory=()=>{try{const value=JSON.parse(localStorage.getItem(HISTORY_KEY)??'[]');return Array.isArray(value)?value.slice(0,5):[];}catch{return [];}};
 const writeHistory=(value)=>{try{localStorage.setItem(HISTORY_KEY,JSON.stringify(value.slice(0,5)));}catch{}};
 
+const VISUAL_STYLE_KEYS=Object.freeze(['--q-canvas','--q-surface','--q-panel','--q-raised','--q-overlay','--q-border','--q-divider','--q-accent','--q-accent-text','--q-info','--q-focus','--q-selected','--q-grid','--q-premium-canvas','--q-premium-surface-0','--q-premium-surface-1','--q-premium-surface-2','--q-premium-raised','--q-premium-floating','--q-premium-border','--q-premium-divider','--q-premium-hairline','--q-premium-accent','--q-premium-info','--q-premium-evidence']);
+function releaseVisualStyleTokens(root){for(const key of VISUAL_STYLE_KEYS)root.style.removeProperty(key);}
+
 function syncVisualDatasets(){
   const root=document.documentElement;
+  releaseVisualStyleTokens(root);
   root.dataset.visualAppearance=root.dataset.resolvedAppearance||root.dataset.appearance||'dark';
   root.dataset.alphaIntensitySlug=slug(root.dataset.alphaIntensity||'Focused Edge');
   root.dataset.alphaPackSlug=slug(root.dataset.alphaPack||'crimson-vector');
