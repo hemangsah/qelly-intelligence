@@ -7,9 +7,20 @@ import {THEME_FAMILIES,PERSONAS,ALPHA_INTENSITIES,ALPHA_PACKS,APPEARANCE_MODES,T
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=(file)=>readFile(path.join(root,file),'utf8');
+const REQUIRED_THEMES=['Sovereign Obsidian','Porcelain Signal','Crimson Vector','Obsidian Strike','White Heat','Ember Protocol','Arctic Quant','Emerald Conviction','Cobalt Circuit','Violet Oracle','Gold Dominion','Monochrome Ledger','Signal Access'];
+const REQUIRED_MINDSETS={
+  'scalper-velocity':['Precision Pulse','Rapid Tape','Microstructure Focus','Velocity Grid'],
+  'investor-compound':['Foundation','Long Horizon','Compounding Calm','Preservation First'],
+  'aggressive-alpha':['Focused Edge','Tactical Surge','Conviction Strike','Redline Apex'],
+  'quant-operator':['Model Discipline','Signal Lab','Vector Engine','Statistical Focus'],
+  'research-oracle':['Thesis Mode','Evidence Depth','Contradiction Review','Oracle Synthesis'],
+  'signal-access':['Clear Focus','Calm Reading','High Contrast','Reduced Complexity']
+};
 
-test('Theme Intelligence inventory is complete and IBM Plex remains locked',async()=>{
+test('Theme Intelligence inventory uses the exact approved identities and IBM Plex remains locked',async()=>{
   assert.deepEqual(THEME_INTELLIGENCE_COUNTS,{themes:13,personas:6,mindsets:24,alphaIntensities:4,alphaPacks:6,appearances:6});
+  assert.deepEqual(THEME_FAMILIES.map((item)=>item.name),REQUIRED_THEMES);
+  assert.deepEqual(Object.fromEntries(PERSONAS.map((item)=>[item.id,[...item.mindsets]])),REQUIRED_MINDSETS);
   assert.deepEqual(ALPHA_INTENSITIES,['Focused Edge','Tactical Surge','Conviction Strike','Redline Apex']);
   assert.deepEqual(ALPHA_PACKS.map((item)=>item.name),['Crimson Vector','Obsidian Strike','White Heat','Ember Protocol','Apex Monochrome','Scarlet Circuit']);
   const source=await read('apps/web/public/assets/theme-intelligence.mjs');
@@ -24,7 +35,7 @@ test('all curated palettes and Aggressive Alpha combinations pass contrast and s
     assert.equal(audit.passed,true,`${theme.id}/${appearance}`);assert.notEqual(audit.tokens.positive,audit.tokens.negative);
   }
   for(const alphaIntensity of ALPHA_INTENSITIES)for(const alphaPack of ALPHA_PACKS)for(const appearance of ['dark','light','oled','high-contrast']){
-    const config=migrateThemeConfig({themeFamily:'aggressive-alpha',persona:'aggressive-alpha',mindset:alphaIntensity,alphaIntensity,alphaPack:alphaPack.id,appearance});const audit=tokenContrastAudit(config);combinations++;
+    const config=migrateThemeConfig({themeFamily:'crimson-vector',persona:'aggressive-alpha',mindset:alphaIntensity,alphaIntensity,alphaPack:alphaPack.id,appearance});const audit=tokenContrastAudit(config);combinations++;
     assert.equal(audit.passed,true,`${alphaIntensity}/${alphaPack.id}/${appearance}`);assert.notEqual(audit.tokens.positive,audit.tokens.negative);
   }
   assert.equal(combinations,148);
@@ -45,9 +56,13 @@ test('custom accent validation cannot replace protected semantics',()=>{
   assert.equal(validateAccent('#35C98C').valid,false);
 });
 
-test('version migration recovers corrupt or legacy fields without changing font or market meaning',()=>{
+test('version migration preserves user intent while canonicalizing legacy identities',()=>{
   const legacy=migrateThemeConfig({version:1,theme:'porcelain-burgundy',customAccent:'broken',persona:'missing'});
-  assert.equal(legacy.version,2);assert.equal(legacy.themeFamily,'porcelain-command');assert.equal(legacy.appearance,'light');assert.equal(legacy.customAccent,null);
+  assert.equal(legacy.version,2);assert.equal(legacy.themeFamily,'porcelain-signal');assert.equal(legacy.appearance,'light');assert.equal(legacy.customAccent,null);
+  const migratedQuant=migrateThemeConfig({themeFamily:'graphite-terminal',persona:'quant-operator',mindset:'Factor Lab'});
+  assert.equal(migratedQuant.themeFamily,'obsidian-strike');assert.equal(migratedQuant.mindset,'Model Discipline');
+  const migratedAlpha=migrateThemeConfig({themeFamily:'aggressive-alpha',persona:'aggressive-alpha',mindset:'Redline Apex'});
+  assert.equal(migratedAlpha.themeFamily,'crimson-vector');assert.equal(migratedAlpha.mindset,'Redline Apex');
   const tokens=resolveTokens(legacy);assert.equal(tokens.fontFamily,'"Qelly IBM Plex Sans",Arial,"Helvetica Neue",sans-serif');assert.notEqual(tokens.positive,tokens.negative);
 });
 
@@ -57,7 +72,14 @@ test('Theme Studio has guarded import export overlays gallery and no hardcoded r
   assert.doesNotMatch(route,/#[0-9a-fA-F]{6}/,'route UI must consume semantic theme data rather than hardcoded colors');
   for(const surface of ['q-command-dialog','q-mi-chart-tooltip','q-mi-table-scroll','q-ti-drawer','role="tooltip"'])assert.match(css,new RegExp(surface.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
   assert.match(index,/theme-intelligence\.css/);assert.match(index,/data-theme-ready="false"/);assert.match(index,/ibm-plex-sans-variable\.woff2/);
-  assert.match(bootstrap,/renderThemeIntelligenceStudio/);assert.match(bootstrap,/themeIntelligence\.start/);assert.match(bootstrap,/stopImmediatePropagation/);
+  assert.match(bootstrap,/renderThemeIntelligenceStudio/);assert.match(bootstrap,/themeIntelligence\.start/);assert.match(bootstrap,/stopImmediatePropagation/);assert.match(bootstrap,/themeFamily:'crimson-vector'/);
+});
+
+test('cross-browser title line box remains non-clipping',async()=>{
+  const css=await read('apps/web/public/assets/theme-intelligence-studio.css');
+  assert.match(css,/\.q-ti-hero h1\{[^}]*line-height:1\.08/);
+  assert.match(css,/\.q-ti-page h1,\.q-ti-page h2\{overflow:visible/);
+  assert.doesNotMatch(css,/\.q-ti-hero h1\{[^}]*line-height:\.98/);
 });
 
 test('Figma generator contains governed Theme Intelligence collections and evidence pages',async()=>{
