@@ -57,7 +57,7 @@ export function tableMarkup(rows,view,{watchlist,escapeHtml}={}){
       ${COLUMN_DEFINITIONS.map(([key,label])=>`<label><input type="checkbox" data-mi-column="${key}" ${view.columns.has(key)?'checked':''}><span>${label}</span></label>`).join('')}
     </div>
     <div class="q-mi-filter-sheet" data-mi-filter-sheet aria-hidden="true">
-      <button class="q-mi-sheet-backdrop" type="button" data-mi-filter-close aria-label="Close filters"></button>
+      <button class="q-mi-sheet-backdrop" type="button" data-mi-filter-backdrop aria-label="Close filters"></button>
       <section role="dialog" aria-modal="true" aria-labelledby="q-mi-filter-title">
         <header><div><p>Query builder</p><h2 id="q-mi-filter-title">Filter rankings</h2></div><button type="button" data-mi-filter-close aria-label="Close filters">${icon('close')}</button></header>
         <label>Direction<select data-mi-direction><option value="all">All</option><option value="positive">Positive 24h</option><option value="negative">Negative 24h</option></select></label>
@@ -152,9 +152,10 @@ export function bindTable(root,{rows,view,watchlist,render,toast,onExplain}={}){
     render();
   }));
   const sheet=root.querySelector('[data-mi-filter-sheet]');
-  const toggleSheet=(open)=>{if(!sheet)return;sheet.classList.toggle('is-open',open);sheet.setAttribute('aria-hidden',String(!open));root.querySelector('[data-mi-filter-toggle]')?.setAttribute('aria-expanded',String(open));if(open)sheet.querySelector('select')?.focus();};
+  const toggleSheet=(open)=>{if(!sheet)return;sheet.classList.toggle('is-open',open);sheet.setAttribute('aria-hidden',String(!open));root.querySelector('[data-mi-filter-toggle]')?.setAttribute('aria-expanded',String(open));};
   root.querySelector('[data-mi-filter-toggle]')?.addEventListener('click',()=>toggleSheet(true));
-  root.querySelectorAll('[data-mi-filter-close]').forEach((button)=>button.addEventListener('click',()=>toggleSheet(false)));
+  root.querySelector('[data-mi-filter-close]')?.addEventListener('click',()=>toggleSheet(false));
+  root.querySelector('[data-mi-filter-backdrop]')?.addEventListener('click',()=>toggleSheet(false));
   root.querySelector('[data-mi-confidence]')?.addEventListener('input',(event)=>event.target.nextElementSibling.textContent=event.target.value);
   root.querySelector('[data-mi-filter-apply]')?.addEventListener('click',()=>{
     view.direction=root.querySelector('[data-mi-direction]').value;view.confidence=root.querySelector('[data-mi-confidence]').value;view.universe=root.querySelector('[data-mi-universe]').value;toggleSheet(false);render();
