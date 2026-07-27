@@ -6,6 +6,8 @@
   <meta name="color-scheme" content="light dark">
   <meta name="description" content="Qelly Intelligence: evidence-backed market discovery, derivatives context, research intelligence and decision provenance">
   <title>Qelly Intelligence · Verifiable Market Intelligence</title>
+  <link rel="preload" href="./assets/fonts/geist-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./assets/fonts/geist-mono-variable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="./assets/tokens.css">
   <link rel="stylesheet" href="./assets/app.css">
   <link rel="stylesheet" href="./assets/qelly-sovereign-v2.css">
@@ -34,28 +36,21 @@
         <div class="q-avatar" aria-label="Current Qelly account">QI</div>
       </div>
     </header>
-    <nav id="persona-ribbon" class="q-persona-ribbon" aria-label="Qelly operating personas"></nav>
-    <div id="context-shelf" class="q-context-shelf"></div>
+    <div id="persona-ribbon" class="q-persona-ribbon" aria-label="Operating persona ribbon"></div>
+    <div id="context-shelf" class="q-context-shelf" aria-label="Current product context"></div>
     <div class="q-shell">
       <aside id="edge-dock" class="q-edge-dock" aria-label="Product domains"></aside>
-      <aside id="rail" class="q-rail" aria-label="Primary navigation">
-        <nav id="primary-nav"></nav>
-        <div class="q-rail-footer">
-          <div class="q-provider-mini"><span class="q-provider-pulse"></span><div><strong>Data status</strong><small>Source · freshness · confidence</small></div></div>
-          <button id="collapse-rail" class="q-rail-collapse" aria-label="Close navigation"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="m14.5 5-7 7 7 7"/></svg></button>
-        </div>
+      <aside id="rail" class="q-rail" aria-label="Secondary navigation" aria-hidden="true">
+        <div class="q-rail-header"><button id="collapse-rail" class="q-icon-button" aria-label="Close navigation"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg></button></div>
+        <nav id="primary-nav" aria-label="Primary navigation"></nav>
+        <div class="q-rail-footer"><div class="q-provider-mini"><span class="q-provider-pulse"></span><div><strong>Provider runtime</strong><small>Connecting</small></div></div></div>
       </aside>
       <main id="main" tabindex="-1"></main>
-      <aside id="context-drawer" class="q-context-drawer" aria-label="Context and source inspector" aria-hidden="true">
-        <div class="q-context-head"><div><p class="q-eyebrow">Inspector</p><h2>Source context</h2></div><button id="close-context" class="q-icon-button" aria-label="Close source inspector"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
-        <div id="context-content" class="q-context-content"></div>
-      </aside>
+      <aside id="context-drawer" class="q-context-drawer" aria-label="Context drawer" aria-hidden="true"><button id="close-context" class="q-icon-button q-context-close" aria-label="Close context drawer"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button><div id="context-content"></div></aside>
     </div>
-    <div id="compare-tray" class="q-compare-tray" aria-label="Persistent intelligence actions"><span><strong>Compare tray</strong><small>No assets selected</small></span><div><button type="button" data-watchlist-open>Watchlist</button><button type="button" data-compare-open>Compare</button><button type="button" data-explain-open>Explain This Move</button></div></div>
+    <div id="compare-tray" class="q-compare-tray" aria-live="polite"></div>
     <nav id="mobile-navigation" class="q-mobile-navigation" aria-label="Mobile navigation"></nav>
   </div>
-  <script src="./qelly-config.js"></script>
   <script type="module" src="./assets/app.js"></script>
-  <script type="module" src="./assets/qelly-sovereign-motion.js"></script>
 </body>
 </html>
