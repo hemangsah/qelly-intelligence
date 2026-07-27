@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-27T00:00:00.000Z",
+  "measurementBoundary": "Observed public geometry ranges; not copied implementation values.",
+  "coinglass": {
+    "contentBehavior": "wide analytical canvas",
+    "navigation": "multi-level derivatives navigation",
+    "tableRowHeight": "approximately 34-44px",
+    "chartHeight": "varies by tool; large heatmaps coexist with dense controls",
+    "stickyBehavior": ["navigation", "table headers", "tool controls on selected pages"],
+    "mobile": "tool-specific stacking and horizontal data exploration"
+  },
+  "coinmarketcap": {
+    "contentBehavior": "centered discovery canvas with wide table",
+    "tableRowHeight": "approximately 48-64px on discovery rankings",
+    "tablePlacement": "primary surface close to top content",
+    "gutters": "responsive outer gutters with dense table interior",
+    "stickyBehavior": ["top navigation", "ranking table headings in long views"],
+    "mobile": "prioritized asset rows and progressive disclosure"
+  },
+  "worldquant": {
+    "contentBehavior": "large editorial sections with strong whitespace",
+    "sectionSpacing": "deliberate and substantially larger than terminal UI",
+    "grid": "asymmetric editorial composition",
+    "stickyBehavior": ["selective pinned or persistent public navigation"],
+    "mobile": "single-column narrative with preserved typography hierarchy"
+  },
+  "qellyPhase0": {
+    "tickerHeight": 28,
+    "commandHeight": 54,
+    "contextHeight": 38,
+    "dockWidth": 58,
+    "desktopMaxWidth": 1780,
+    "outerGutter": 22,
+    "panelRadius": 12,
+    "buttonRadius": 7,
+    "chipRadius": 5,
+    "tableRowCompact": 40,
+    "tableRowComfortable": 46,
+    "tableRowTerminal": 34,
+    "chartHeightDesktop": 310,
+    "chartHeightMobile": 245,
+    "mobileBreakpoints": [920,430,370],
+    "reviewViewports": ["360x800","390x844","430x932","768x1024","1024x768","1280x800","1440x1000","1728x1080","1920x1080","2560x1080"]
+  }
+}
