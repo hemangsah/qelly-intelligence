@@ -4,7 +4,7 @@
 
 Run the repository plugin in `figma-plugin/`. It generates 31 editable semantic pages, dark and warm-porcelain variables, radius and motion variables, text and paint styles, component definitions, variants, responsive desktop/mobile master frames and focused correction review boards.
 
-The target product typography is **Geist Sans Variable** for display/UI and **Geist Mono Variable** only for timestamps, identifiers, formulas, provenance and tabular evidence. The plugin attempts to load Geist from the local Figma environment and falls back to Inter only when Geist is unavailable; that fallback must be replaced or resolved before final Figma approval. No hosted Figma URL or exported frame is claimed by CI.
+The production typography target is **IBM Plex Sans Variable** for display, UI, body, tables, chart labels, controls and numeric evidence. The plugin attempts to load IBM Plex Sans from the local Figma environment and falls back to Inter only when IBM Plex Sans is unavailable; that fallback must be resolved before final Figma approval. **GT Eesti Pro Display and GT Eesti Pro Text are an inactive commercial reference** and must not be represented as active until Qelly owns an appropriate web licence and supplies licensed files. No hosted Figma URL or exported frame is claimed by CI.
 
 ## Pages
 
@@ -29,13 +29,16 @@ Every frame records viewport, task mode, data boundary, accessibility intent, re
 
 ## Typography system
 
-- Page title: 42–52px desktop, 32–38px tablet, 28–32px mobile; optical weight approximately 590; negative tracking.
-- Section title: 22–28px; weight 560–600.
-- Module title: 15–18px; weight 550–590.
+- One active family: IBM Plex Sans Variable.
+- Page title: 42–52px desktop, 32–38px tablet, 28–34px mobile; weight approximately 600; negative tracking.
+- Section title: 22–28px; weight 550–600.
+- Module title: 15–18px; weight 500–600.
 - Metrics: 20–38px with tabular lining numerals.
-- Body: 14.5–16px, weight 400–460, line height 1.45–1.6.
-- Table cells: 13–14px; headers 11.5–12.5px with uppercase used only when semantically useful.
+- Body: 14.5–16px, weight 400–450, line height 1.45–1.6.
+- Table cells: 13–14px; headers 11.5–12.5px in sentence case unless uppercase is semantically useful.
+- Timestamps, formulas, identifiers and tabular evidence remain IBM Plex Sans with tabular lining figures and slashed-zero support where available.
 - Avoid 700/800 as default hierarchy. Use scale, tone and spacing before weight.
+- GT Eesti activation requires a Qelly web licence, licensed WOFF2 files, licence limits and a new PR-only browser review.
 
 ## Surface and border system
 
@@ -77,10 +80,11 @@ Nested geometry is explicit: 20px palette → 12px search → 10px result → 8p
 - Mobile filter/column bottom sheet.
 - Floating dock and navigation drawer.
 - Compact truth status, six personas, provenance and Explain This Move patterns.
+- Semantic inline SVG icons remain the product icon system; the reference site's private icon font is not reused.
 
 ## Required correction review boards
 
-- Typography: rejected stack, Geist, Manrope, Plus Jakarta Sans and final Geist selection.
+- Typography: rejected stack, inactive GT Eesti commercial licence gate, IBM Plex Sans, Manrope, Plus Jakarta Sans and final IBM Plex Sans selection.
 - Hard bordered card versus tonal surface hierarchy.
 - 4/8/12/16/20/24 corner system.
 - Nested-radius examples.
