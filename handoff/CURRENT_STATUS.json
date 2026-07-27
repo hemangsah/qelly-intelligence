@@ -1,0 +1,28 @@
+{
+  "stage": "durable corrective source checkpoint",
+  "completed": [
+    "remote checkpoint audit",
+    "exact registry and mindset correction",
+    "semantic token resolver",
+    "Theme Studio correction",
+    "persistence and schema correction",
+    "Figma correction",
+    "tier-0 syntax/json/secret validation",
+    "complete corrective source archive"
+  ],
+  "failed": [],
+  "pending": [
+    "materialize corrective files into repository tree",
+    "GitHub workflows",
+    "final visual artifact",
+    "emergency handoff archive"
+  ],
+  "baseCheckpoint": "6b930614d09d9752f503bd4c4e1308923e435421",
+  "branch": "agent/ui-rescue-asset-rankings",
+  "pr": 11,
+  "main": "fc5a4257f1b4b7862b3dcdcfa41b20ef28b871b9",
+  "sourceArchiveSha256": "8e6e68643a487075bd18cf211ac0b7c9253d8a5e88852234b43075db85712ae5",
+  "lastCommand": "minimum safe checkpoint validation",
+  "nextCommand": "commit and fast-forward branch, then materialize corrected source",
+  "blockers": []
+}
