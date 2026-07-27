@@ -1,5 +1,3 @@
-@font-face{font-family:"Qelly Geist";src:url('./fonts/geist-variable.woff2') format('woff2-variations');font-style:normal;font-weight:100 900;font-display:block}
-@font-face{font-family:"Qelly Geist Mono";src:url('./fonts/geist-mono-variable.woff2') format('woff2-variations');font-style:normal;font-weight:100 900;font-display:block}
 :root{--q-font-display:var(--q-font-ui);--q-font-quant:var(--q-font-mono)}
 html[data-preview="static"] h1,html[data-preview="static"] h2,html[data-preview="static"] h3,html[data-preview="static"] h4,html[data-preview="static"] h5,html[data-preview="static"] h6,html[data-preview="static"] .q-brand-mark,html[data-preview="static"] .q-page-head{font-family:var(--q-font-ui)!important}
 .q-mi-page-head h1{min-height:1.12em;overflow:visible!important}
@@ -17,6 +15,7 @@ html[data-preview="static"] h1,html[data-preview="static"] h2,html[data-preview=
 .q-mi-mobile-row-main>.q-mi-icon-button{opacity:.66}.q-mi-mobile-row:hover .q-mi-mobile-row-main>.q-mi-icon-button,.q-mi-mobile-row:focus-within .q-mi-mobile-row-main>.q-mi-icon-button{opacity:1}
 
 @media(max-width:920px){
+  .q-mi-page-head h1{min-height:1.24em!important}
   .q-mi-table-toolbar{gap:12px!important}
   .q-mi-table-toolbar>div:first-child{width:100%!important;min-width:0!important}
   .q-mi-table-actions{display:grid!important;grid-template-columns:minmax(0,1fr) 40px 40px!important;gap:8px!important;width:100%!important;min-width:0!important}
