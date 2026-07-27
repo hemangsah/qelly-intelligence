@@ -12,6 +12,7 @@ on:
       - 'figma-theme-plugin/**'
       - 'design/figma/**'
       - 'scripts/theme-intelligence-review.mjs'
+      - 'scripts/theme-intelligence-review-stable.mjs'
       - 'scripts/theme-intelligence-review-complete.mjs'
       - 'tests/theme-intelligence.test.mjs'
       - '.github/workflows/theme-intelligence-review.yml'
@@ -88,7 +89,7 @@ jobs:
           set +e
           log=/tmp/qelly-theme-intelligence-render.log
           echo '=== BASE THEME REVIEW ===' > "$log"
-          node scripts/theme-intelligence-review.mjs >> "$log" 2>&1
+          node scripts/theme-intelligence-review-stable.mjs >> "$log" 2>&1
           code=$?
           if [ "$code" -eq 0 ]; then
             echo '=== COMPLETE THEME REVIEW ===' >> "$log"
