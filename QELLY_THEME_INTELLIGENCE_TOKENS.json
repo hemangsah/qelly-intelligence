@@ -1,0 +1,296 @@
+{
+  "schemaVersion": 2,
+  "typographyLock": "IBM Plex Sans Variable permanent canonical font · GT Eesti inactive licence gate",
+  "appearances": [
+    "dark",
+    "light",
+    "oled",
+    "high-contrast",
+    "system",
+    "scheduled"
+  ],
+  "themes": [
+    {
+      "id": "sovereign-obsidian",
+      "name": "Sovereign Obsidian",
+      "intent": "Canonical institutional Qelly"
+    },
+    {
+      "id": "porcelain-command",
+      "name": "Porcelain Command",
+      "intent": "Warm analytical light-first clarity"
+    },
+    {
+      "id": "graphite-terminal",
+      "name": "Graphite Terminal",
+      "intent": "Dense keyboard-first terminal"
+    },
+    {
+      "id": "midnight-research",
+      "name": "Midnight Research",
+      "intent": "Deep-focus evidence workspace"
+    },
+    {
+      "id": "kinetic-burgundy",
+      "name": "Kinetic Burgundy",
+      "intent": "Fast scanning with restrained energy"
+    },
+    {
+      "id": "arctic-signal",
+      "name": "Arctic Signal",
+      "intent": "Cool high-clarity monitoring"
+    },
+    {
+      "id": "copper-ledger",
+      "name": "Copper Ledger",
+      "intent": "Warm treasury and fundamentals"
+    },
+    {
+      "id": "deep-space",
+      "name": "Deep Space",
+      "intent": "Low-glare derivatives depth"
+    },
+    {
+      "id": "jade-quant",
+      "name": "Jade Quant",
+      "intent": "Systematic factor diagnostics"
+    },
+    {
+      "id": "ultraviolet-lab",
+      "name": "Ultraviolet Lab",
+      "intent": "Experimental model workspace"
+    },
+    {
+      "id": "solarized-evidence",
+      "name": "Solarized Evidence",
+      "intent": "Long-form reading and provenance"
+    },
+    {
+      "id": "high-contrast",
+      "name": "Signal Access",
+      "intent": "Maximum readability and reduced motion"
+    },
+    {
+      "id": "aggressive-alpha",
+      "name": "Aggressive Alpha",
+      "intent": "Catalyst and volatility intelligence"
+    }
+  ],
+  "personas": [
+    {
+      "id": "scalper-velocity",
+      "name": "Scalper Velocity",
+      "mindsets": [
+        "Tape Scan",
+        "Liquidation Hunt",
+        "Breakout Watch",
+        "Risk Reset"
+      ]
+    },
+    {
+      "id": "investor-compound",
+      "name": "Investor Compound",
+      "mindsets": [
+        "Quality Moat",
+        "Value Dislocation",
+        "Portfolio Health",
+        "Macro Patience"
+      ]
+    },
+    {
+      "id": "aggressive-alpha",
+      "name": "Aggressive Alpha",
+      "mindsets": [
+        "Focused Edge",
+        "Tactical Surge",
+        "Conviction Strike",
+        "Redline Apex"
+      ]
+    },
+    {
+      "id": "quant-operator",
+      "name": "Quant Operator",
+      "mindsets": [
+        "Factor Lab",
+        "Regime Diagnostics",
+        "Signal QA",
+        "Execution Hygiene"
+      ]
+    },
+    {
+      "id": "research-oracle",
+      "name": "Research Oracle",
+      "mindsets": [
+        "Evidence Map",
+        "Contradiction Scan",
+        "Catalyst Dossier",
+        "Thesis Review"
+      ]
+    },
+    {
+      "id": "signal-access",
+      "name": "Signal Access",
+      "mindsets": [
+        "Essential Signals",
+        "Risk First",
+        "Calm Navigation",
+        "Readable Focus"
+      ]
+    }
+  ],
+  "aggressiveAlpha": {
+    "intensities": [
+      "Focused Edge",
+      "Tactical Surge",
+      "Conviction Strike",
+      "Redline Apex"
+    ],
+    "visualPacks": [
+      {
+        "id": "crimson-vector",
+        "name": "Crimson Vector"
+      },
+      {
+        "id": "obsidian-strike",
+        "name": "Obsidian Strike"
+      },
+      {
+        "id": "white-heat",
+        "name": "White Heat"
+      },
+      {
+        "id": "ember-protocol",
+        "name": "Ember Protocol"
+      },
+      {
+        "id": "apex-monochrome",
+        "name": "Apex Monochrome"
+      },
+      {
+        "id": "scarlet-circuit",
+        "name": "Scarlet Circuit"
+      }
+    ]
+  },
+  "requiredTokens": [
+    "canvas",
+    "surface",
+    "surface-subtle",
+    "surface-panel",
+    "surface-raised",
+    "surface-elevated",
+    "surface-floating",
+    "surface-sunken",
+    "surface-inverse",
+    "surface-brand",
+    "surface-positive",
+    "surface-negative",
+    "surface-warning",
+    "surface-info",
+    "surface-evidence",
+    "text-primary",
+    "text-secondary",
+    "text-muted",
+    "text-disabled",
+    "text-inverse",
+    "text-brand",
+    "text-link",
+    "text-positive",
+    "text-negative",
+    "text-warning",
+    "text-info",
+    "text-evidence",
+    "border-subtle",
+    "border-default",
+    "border-strong",
+    "border-focus",
+    "border-selected",
+    "border-positive",
+    "border-negative",
+    "divider",
+    "control-bg",
+    "control-bg-hover",
+    "control-bg-active",
+    "control-bg-selected",
+    "control-bg-disabled",
+    "control-text",
+    "control-text-disabled",
+    "control-border",
+    "control-border-hover",
+    "control-border-active",
+    "focus-ring",
+    "selected-ring",
+    "hover-overlay",
+    "pressed-overlay",
+    "drag-overlay",
+    "market-positive",
+    "market-negative",
+    "market-neutral",
+    "market-warning",
+    "market-positive-muted",
+    "market-negative-muted",
+    "market-positive-pattern",
+    "market-negative-pattern",
+    "market-bid",
+    "market-ask",
+    "market-long",
+    "market-short",
+    "chart-bg",
+    "chart-plot",
+    "chart-grid-major",
+    "chart-grid-minor",
+    "chart-axis",
+    "chart-label",
+    "chart-crosshair",
+    "chart-tooltip-bg",
+    "chart-tooltip-text",
+    "chart-series-1",
+    "chart-series-2",
+    "chart-series-3",
+    "chart-series-4",
+    "chart-series-5",
+    "chart-series-6",
+    "chart-volume-positive",
+    "chart-volume-negative",
+    "chart-selection",
+    "table-bg",
+    "table-header-bg",
+    "table-header-text",
+    "table-row-bg",
+    "table-row-alt",
+    "table-row-hover",
+    "table-row-selected",
+    "table-cell-text",
+    "table-cell-muted",
+    "table-border",
+    "table-sticky-shadow",
+    "table-sort-indicator",
+    "overlay-scrim",
+    "overlay-bg",
+    "overlay-border",
+    "overlay-text",
+    "dialog-bg",
+    "drawer-bg",
+    "popover-bg",
+    "tooltip-bg",
+    "command-bg",
+    "bottom-sheet-bg",
+    "state-success",
+    "state-danger",
+    "state-warning",
+    "state-info",
+    "state-stale",
+    "state-delayed",
+    "state-simulated",
+    "state-unavailable",
+    "state-evidence",
+    "font-family",
+    "font-numeric",
+    "font-scale",
+    "font-feature-settings",
+    "motion-fast",
+    "motion-standard",
+    "motion-deliberate",
+    "motion-reduced"
+  ]
+}

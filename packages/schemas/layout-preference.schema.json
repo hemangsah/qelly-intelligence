@@ -1,101 +1,33 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://qelly.local/schemas/layout-preference.schema.json",
-  "title": "Workspace Layout Preference",
-  "type": "object",
-  "additionalProperties": false,
-  "required": [
-    "version",
-    "theme",
-    "density",
-    "motion",
-    "fontScale",
-    "radiusPx",
-    "route",
-    "panels"
-  ],
-  "properties": {
-    "version": {
-      "const": 1
-    },
-    "theme": {
-      "enum": [
-        "burgundy-command",
-        "burgundy-night",
-        "porcelain-burgundy",
-        "graphite-terminal",
-        "midnight-research",
-        "high-contrast"
-      ]
-    },
-    "density": {
-      "enum": [
-        "comfortable",
-        "compact",
-        "terminal"
-      ]
-    },
-    "motion": {
-      "enum": [
-        "full",
-        "subtle",
-        "reduced"
-      ]
-    },
-    "fontScale": {
-      "type": "integer",
-      "enum": [
-        90,
-        100,
-        110,
-        120
-      ]
-    },
-    "radiusPx": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 20
-    },
-    "customAccent": {
-      "type": [
-        "string",
-        "null"
-      ],
-      "pattern": "^#[0-9A-Fa-f]{6}$"
-    },
-    "route": {
-      "type": "string"
-    },
-    "panels": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": [
-          "id",
-          "visible",
-          "order"
-        ],
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "visible": {
-            "type": "boolean"
-          },
-          "order": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "width": {
-            "type": [
-              "integer",
-              "null"
-            ],
-            "minimum": 240
-          }
-        },
-        "additionalProperties": false
-      }
-    }
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://qelly.local/schemas/layout-preference.schema.json",
+  "title":"Workspace Layout and Theme Intelligence Preference",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["version","theme","appearance","themeFamily","persona","mindset","alphaIntensity","alphaPack","density","tableDensity","dataEmphasis","marketPalette","borderVisibility","selectedStrength","focusStyle","accentIntensity","motion","fontScale","radiusPx","customAccent","schedule","route","panels"],
+  "properties":{
+    "version":{"const":2},
+    "theme":{"enum":["burgundy-command","burgundy-night","porcelain-burgundy","graphite-terminal","midnight-research","high-contrast"]},
+    "appearance":{"enum":["dark","light","oled","high-contrast","system","scheduled"]},
+    "themeFamily":{"enum":["sovereign-obsidian","porcelain-command","graphite-terminal","midnight-research","kinetic-burgundy","arctic-signal","copper-ledger","deep-space","jade-quant","ultraviolet-lab","solarized-evidence","high-contrast","aggressive-alpha"]},
+    "persona":{"enum":["scalper-velocity","investor-compound","aggressive-alpha","quant-operator","research-oracle","signal-access"]},
+    "mindset":{"type":"string"},
+    "alphaIntensity":{"enum":["Focused Edge","Tactical Surge","Conviction Strike","Redline Apex"]},
+    "alphaPack":{"enum":["crimson-vector","obsidian-strike","white-heat","ember-protocol","apex-monochrome","scarlet-circuit"]},
+    "density":{"enum":["comfortable","compact","terminal"]},
+    "tableDensity":{"enum":["comfortable","compact","terminal"]},
+    "dataEmphasis":{"enum":["balanced","numbers","labels"]},
+    "marketPalette":{"enum":["semantic","color-blind"]},
+    "borderVisibility":{"enum":["minimal","subtle","strong"]},
+    "selectedStrength":{"enum":["subtle","medium","strong"]},
+    "focusStyle":{"enum":["ring","underline","high-visibility"]},
+    "accentIntensity":{"type":"integer","minimum":20,"maximum":100},
+    "motion":{"enum":["full","subtle","reduced"]},
+    "fontScale":{"type":"integer","enum":[90,100,110,120]},
+    "radiusPx":{"type":"integer","minimum":0,"maximum":20},
+    "customAccent":{"type":["string","null"],"pattern":"^#[0-9A-Fa-f]{6}$"},
+    "schedule":{"type":"object","required":["enabled","lightAt","darkAt","timezone","useSun","latitude","longitude"],"additionalProperties":false,"properties":{"enabled":{"type":"boolean"},"lightAt":{"type":"string"},"darkAt":{"type":"string"},"timezone":{"type":"string"},"useSun":{"type":"boolean"},"latitude":{"type":["number","null"]},"longitude":{"type":["number","null"]}}},
+    "route":{"type":"string"},
+    "panels":{"type":"array","items":{"type":"object","required":["id","visible","order"],"additionalProperties":false,"properties":{"id":{"type":"string"},"visible":{"type":"boolean"},"order":{"type":"integer","minimum":0},"width":{"type":["integer","null"],"minimum":240}}}}
   }
 }

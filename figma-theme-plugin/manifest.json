@@ -1,0 +1,8 @@
+{
+  "name":"Qelly Theme Intelligence Generator",
+  "id":"qelly-theme-intelligence-generator",
+  "api":"1.0.0",
+  "main":"code.js",
+  "editorType":["figma"],
+  "networkAccess":{"allowedDomains":["none"]}
+}

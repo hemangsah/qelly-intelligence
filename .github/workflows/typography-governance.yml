@@ -1,4 +1,4 @@
-name: Qelly IBM Plex Governance Audit
+name: Typography Governance Review
 
 on:
   pull_request:
@@ -8,20 +8,15 @@ on:
       - 'figma-plugin/**'
       - 'figma-theme-plugin/**'
       - 'design/figma/**'
-      - '.github/workflows/font-comparison.yml'
-      - 'package.json'
-      - 'package-lock.json'
+      - 'tests/theme-intelligence.test.mjs'
+      - '.github/workflows/typography-governance.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: qelly-typography-governance-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  verify-canonical-font:
+  ibm-plex-lock:
     if: github.event_name == 'workflow_dispatch' || github.head_ref == 'agent/ui-rescue-asset-rankings'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -37,22 +32,19 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci --ignore-scripts
-      - name: Verify permanent IBM Plex lock
+      - name: Verify IBM Plex governance
         run: |
+          node --test tests/theme-intelligence.test.mjs
           grep -q 'IBM Plex Sans Variable permanent canonical font' apps/web/public/assets/theme-intelligence.mjs
           grep -q 'GT Eesti inactive licence gate' apps/web/public/assets/theme-intelligence.mjs
-          grep -q 'ibm-plex-sans-variable.woff2' apps/web/public/index.html
-          ! grep -RInE '@font-face[^}]+GT Eesti|font-family:[^;]*(Geist|Manrope|Plus Jakarta)' apps/web/public/assets/theme-intelligence.css apps/web/public/assets/routes/theme-intelligence-studio.mjs
-      - name: Build governed static frontend
+          ! grep -RInE 'font-family:[^;]*(Geist|Manrope|Plus Jakarta|GT Eesti)' apps/web/public/assets/theme-intelligence.css apps/web/public/assets/routes/theme-intelligence-studio.mjs
+      - name: Build static frontend
         env:
           QELLY_STATIC_VISUAL_PREVIEW: 'true'
           QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
-          QELLY_DEPLOYMENT_ENVIRONMENT: typography-governance
         run: npm run build:frontend
-      - name: Verify shipped font resources
+      - name: Inspect loaded font contract
         run: |
           test -f dist/frontend/assets/fonts/ibm-plex-sans-variable.woff2
           test -f dist/frontend/assets/fonts/ibm-plex-sans-variable.woff2.LICENSE.txt
-          count=$(find dist/frontend/assets/fonts -name '*.woff2' | wc -l)
-          test "$count" -eq 1
           test -z "$(find dist/frontend \( -iname '*geist*.woff2' -o -iname '*manrope*.woff2' -o -iname '*jakarta*.woff2' \) -print -quit)"

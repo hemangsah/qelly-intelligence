@@ -1,31 +1,32 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://qelly.local/schemas/layout-preference-input.schema.json",
-  "title": "Workspace Layout Preference Mutation Input",
-  "type": "object",
-  "additionalProperties": false,
-  "properties": {
-    "version": { "const": 1 },
-    "theme": { "enum": ["burgundy-command", "burgundy-night", "porcelain-burgundy", "graphite-terminal", "midnight-research", "high-contrast"] },
-    "density": { "enum": ["comfortable", "compact", "terminal"] },
-    "motion": { "enum": ["full", "subtle", "reduced"] },
-    "fontScale": { "type": "integer", "enum": [90, 100, 110, 120] },
-    "radiusPx": { "type": "integer", "minimum": 0, "maximum": 20 },
-    "customAccent": { "type": ["string", "null"], "pattern": "^#[0-9A-Fa-f]{6}$" },
-    "route": { "type": "string" },
-    "panels": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["id", "visible", "order"],
-        "additionalProperties": false,
-        "properties": {
-          "id": { "type": "string" },
-          "visible": { "type": "boolean" },
-          "order": { "type": "integer", "minimum": 0 },
-          "width": { "type": ["integer", "null"], "minimum": 240 }
-        }
-      }
-    }
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://qelly.local/schemas/layout-preference-input.schema.json",
+  "title":"Workspace Layout and Theme Intelligence Preference Mutation Input",
+  "type":"object",
+  "additionalProperties":false,
+  "properties":{
+    "version":{"type":"integer","enum":[1,2]},
+    "theme":{"enum":["burgundy-command","burgundy-night","porcelain-burgundy","graphite-terminal","midnight-research","high-contrast"]},
+    "appearance":{"enum":["dark","light","oled","high-contrast","system","scheduled"]},
+    "themeFamily":{"enum":["sovereign-obsidian","porcelain-command","graphite-terminal","midnight-research","kinetic-burgundy","arctic-signal","copper-ledger","deep-space","jade-quant","ultraviolet-lab","solarized-evidence","high-contrast","aggressive-alpha"]},
+    "persona":{"enum":["scalper-velocity","investor-compound","aggressive-alpha","quant-operator","research-oracle","signal-access"]},
+    "mindset":{"type":"string","minLength":2,"maxLength":64},
+    "alphaIntensity":{"enum":["Focused Edge","Tactical Surge","Conviction Strike","Redline Apex"]},
+    "alphaPack":{"enum":["crimson-vector","obsidian-strike","white-heat","ember-protocol","apex-monochrome","scarlet-circuit"]},
+    "density":{"enum":["comfortable","compact","terminal"]},
+    "tableDensity":{"enum":["comfortable","compact","terminal"]},
+    "dataEmphasis":{"enum":["balanced","numbers","labels"]},
+    "marketPalette":{"enum":["semantic","color-blind"]},
+    "borderVisibility":{"enum":["minimal","subtle","strong"]},
+    "selectedStrength":{"enum":["subtle","medium","strong"]},
+    "focusStyle":{"enum":["ring","underline","high-visibility"]},
+    "accentIntensity":{"type":"integer","minimum":20,"maximum":100},
+    "motion":{"enum":["full","subtle","reduced"]},
+    "fontScale":{"type":"integer","enum":[90,100,110,120]},
+    "radiusPx":{"type":"integer","minimum":0,"maximum":20},
+    "customAccent":{"type":["string","null"],"pattern":"^#[0-9A-Fa-f]{6}$"},
+    "schedule":{"type":"object","additionalProperties":false,"properties":{"enabled":{"type":"boolean"},"lightAt":{"type":"string","pattern":"^([01]\\d|2[0-3]):[0-5]\\d$"},"darkAt":{"type":"string","pattern":"^([01]\\d|2[0-3]):[0-5]\\d$"},"timezone":{"type":"string","maxLength":64},"useSun":{"type":"boolean"},"latitude":{"type":["number","null"],"minimum":-90,"maximum":90},"longitude":{"type":["number","null"],"minimum":-180,"maximum":180}}},
+    "route":{"type":"string"},
+    "panels":{"type":"array","items":{"type":"object","required":["id","visible","order"],"additionalProperties":false,"properties":{"id":{"type":"string"},"visible":{"type":"boolean"},"order":{"type":"integer","minimum":0},"width":{"type":["integer","null"],"minimum":240}}}}
   }
 }
