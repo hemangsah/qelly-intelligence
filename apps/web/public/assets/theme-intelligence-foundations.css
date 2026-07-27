@@ -2,11 +2,14 @@
   --q-canvas:#070507;--q-surface:#0d0a0c;--q-panel:#131015;--q-raised:#1a151b;--q-overlay:#211a21;
   --q-text:#f8f4f6;--q-secondary:#c8bec4;--q-muted:#91858c;--q-border:#3a3036;--q-divider:#241e22;
   --q-accent:#a6285a;--q-accent-text:#fff;--q-positive:#35c98c;--q-negative:#ff6678;--q-warning:#f4b860;--q-info:#6fb8d8;--q-focus:#f2a5c1;--q-selected:#321421;--q-grid:#2a2227;
+  --q-tonal-border:rgba(255,255,255,.08);
   --q-font-display:"Qelly IBM Plex Sans",Arial,"Helvetica Neue",sans-serif;
   --q-font-text:"Qelly IBM Plex Sans",Arial,"Helvetica Neue",sans-serif;
   --q-font-mono:"Qelly IBM Plex Sans",Arial,"Helvetica Neue",sans-serif;
   --q-ti-transition:background-color 180ms ease,color 180ms ease,border-color 180ms ease,box-shadow 180ms ease;
 }
+html[data-appearance="light"]{--q-tonal-border:rgba(24,16,20,.08)}
+html[data-appearance="oled"]{--q-tonal-border:rgba(255,255,255,.07)}
 html[data-theme-ready="false"] body{visibility:hidden}
 html[data-theme-ready="true"] body{visibility:visible}
 html,body,.q-app,.q-shell,.q-main,.q-page{background:var(--q-canvas);color:var(--q-text);font-family:var(--q-font-text)!important}
@@ -48,4 +51,4 @@ html[data-theme-persona="aggressive-alpha"] .q-ti-alpha-signal,html[data-theme-f
 .q-dialog,.q-command-dialog,.q-drawer,.q-sheet,[role="dialog"],[data-popover]{background:var(--q-overlay)!important;color:var(--q-text)!important;border-color:var(--q-border)!important}
 .q-command-dialog::backdrop,.q-dialog::backdrop{background:color-mix(in srgb,var(--q-canvas) 78%,transparent)!important}.q-command-search,.q-command-item,.q-command-group{background:transparent!important;color:var(--q-text)!important}.q-command-item.is-active{background:var(--q-selected)!important}
 .q-mobile-navigation,.q-rail,.q-topbar,.q-macro-strip,.q-context-shelf{background:color-mix(in srgb,var(--q-surface) 94%,transparent)!important;border-color:var(--q-divider)!important;color:var(--q-text)!important}
-html:not([data-appearance="high-contrast"]):not([data-border-visibility="strong"]) :where([class*="card"],[class*="panel"],[class*="module"],[class*="pulse"],[class*="toolbar"],[class*="banner"],[class*="rail"],[class*="sheet"],[class*="drawer"]){border-color:color-mix(in srgb,var(--q-divider) 14%,transparent)!important}
+html:not([data-appearance="high-contrast"]):not([data-border-visibility="strong"]) :where([class*="card"],[class*="panel"],[class*="module"],[class*="pulse"],[class*="toolbar"],[class*="banner"],[class*="rail"],[class*="sheet"],[class*="drawer"]){border-color:var(--q-tonal-border)!important}
