@@ -33,7 +33,7 @@ test('font and surface artifact remains comprehensive',async()=>{
 test('state-based mobile sheet review has no arbitrary sleeps',async()=>{
   const [stable,orchestrator]=await Promise.all([read('scripts/ui-review-font-surface-stable.mjs'),read('scripts/ui-review-orchestrator.mjs')]);
   assert.ok(stable.includes("locator('[data-mi-filter-close]').last().click()"));
-  assert.ok(stable.includes("locator('[data-mi-filter-sheet]').waitFor({state:'hidden'})"));
+  assert.ok(stable.includes("locator('[data-mi-filter-sheet][aria-hidden=\"true\"]').waitFor({state:'attached'})"));
   assert.ok(stable.includes("locator('[data-mi-column-menu]:not([hidden])').waitFor({state:'visible'})"));
   assert.ok(!/waitForTimeout|setTimeout/.test(stable));
   assert.ok(orchestrator.includes('scripts/ui-review-font-surface-stable.mjs'));
