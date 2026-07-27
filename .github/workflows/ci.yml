@@ -39,8 +39,12 @@ jobs:
         run: npm run lint
       - name: Validate governed design foundations
         run: npm run validate:design
-      - name: Test
-        run: npm test
+      - name: Test with retained TAP log
+        shell: bash
+        run: |
+          mkdir -p validation
+          set -o pipefail
+          npm test 2>&1 | tee validation/QELLY_TEST.log
       - name: Production build
         run: npm run build
       - name: Standalone frontend build
@@ -65,6 +69,7 @@ jobs:
           path: |
             dist/BUILD_INFO.json
             dist/frontend/BUILD_INFO.json
+            validation/QELLY_TEST.log
             validation/PRODUCT_VALIDATION.json
             validation/SMOKE_LOG.json
             artifacts/QELLY_ROUTE_INVENTORY.json
