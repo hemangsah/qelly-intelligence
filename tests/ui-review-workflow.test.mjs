@@ -29,7 +29,15 @@ test('premium artifact captures required viewports modes interactions and browse
   for(const evidence of ['expanded-navigation-premium.png','command-palette-premium.png','explain-drawer-premium.png','filters.png','column-manager.png','chart-tooltip.png','candlesticks.png','table-region-premium.png','light-mode-premium.png','reduced-motion-premium.png','old-vs-new-desktop.png','old-vs-new-mobile.png','MOTION_QA.md','ACCESSIBILITY_QA.md','PERFORMANCE_QA.md','CONSOLE_ERRORS.json','INTERACTIONS.json','KNOWN_DIFFERENCES.json','ARTIFACT_MANIFEST.json','VALIDATION_SUMMARY.json'])assert.match(premium,new RegExp(evidence.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
   for(const persona of ['persona-scalper.png','persona-research.png','persona-signal-access.png'])assert.match(combined,new RegExp(persona.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
   for(const browser of ['chromium','firefox','webkit'])assert.match(premium,new RegExp(browser));
-  assert.match(orchestrator,/ui-review-premium\.mjs/);
+});
+
+test('premium review is authoritative without discarding legacy regression evidence',async()=>{
+  const orchestrator=await read('scripts/ui-review-orchestrator.mjs');
+  assert.match(orchestrator,/authoritativePass:'scripts\/ui-review-premium\.mjs'/);
+  assert.match(orchestrator,/if\(premium\.code!==0\)/);
+  assert.match(orchestrator,/legacy-ui-review-nonzero-reconciled/);
+  assert.match(orchestrator,/Legacy screenshot passes are retained only as regression evidence/);
+  assert.doesNotMatch(orchestrator,/completion\.code!==0\|\|premium\.code!==0/);
 });
 
 test('structural prototype remains review-only and is not final target',async()=>{
