@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "rejectedCommit": "03c63d73e6d92eb6376317337a50f329c201d134",
+  "scope": "Asset Rankings premium route",
+  "sourceAudit": {
+    "uiDeclaration": "Inter, Geist, IBM Plex Sans, Noto Sans Devanagari, system-ui, sans-serif",
+    "numericDeclaration": "IBM Plex Mono, Geist Mono, JetBrains Mono, ui-monospace, monospace",
+    "declaredFontFaces": 0,
+    "copiedWoffFiles": 0,
+    "pageTitle": {"fontSizePx": 34, "fontWeight": 600, "lineHeight": 1.04, "letterSpacingEm": -0.04},
+    "tableCell": {"fontSizePx": 12},
+    "numericCell": {"fontSizePx": 11},
+    "tableHeader": {"fontSizePx": 9, "fontWeight": 550, "textTransform": "uppercase", "letterSpacingEm": 0.055}
+  },
+  "selectedSystem": {
+    "ui": "Qelly Geist",
+    "mono": "Qelly Geist Mono",
+    "packageVersion": "5.2.8",
+    "license": "OFL-1.1",
+    "format": "WOFF2 variable",
+    "axes": {"ui": {"wght": [100, 900]}, "mono": {"wght": [100, 900]}},
+    "applicationFiles": ["assets/fonts/geist-variable.woff2", "assets/fonts/geist-mono-variable.woff2"],
+    "fontDisplay": "swap",
+    "externalRequests": 0
+  },
+  "browserEvidence": {
+    "generatedBy": "scripts/ui-review-font-surface.mjs",
+    "artifactPath": "reports/CURRENT_TYPOGRAPHY_COMPUTED.json",
+    "requiredFields": ["computedFamilies", "loadedFiles", "woff2Bytes", "usedWeights", "lineHeights", "letterSpacing", "numericFeatures", "fallbackActive", "fontLoadingLayoutShiftEntries"]
+  }
+}
