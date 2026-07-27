@@ -17,7 +17,7 @@
     "security:scan": "node scripts/secret-scan.mjs",
     "browser:render": "bash scripts/release-a5-all-screens.sh",
     "a11y": "python3 scripts/release-a5-accessibility-check.py",
-    "worker": "node apps/worker/worker.mjs",
+    "worker": "node apps/worker/worker.mjs --once",
     "worker:once": "node apps/worker/worker.mjs --once",
     "migrate": "node scripts/migrate-production.mjs",
     "seed": "node scripts/seed-production.mjs",
@@ -45,6 +45,10 @@
     "pg": "8.22.0"
   },
   "devDependencies": {
+    "@fontsource-variable/geist": "5.2.8",
+    "@fontsource-variable/geist-mono": "5.2.8",
+    "@fontsource-variable/manrope": "5.2.8",
+    "@fontsource-variable/plus-jakarta-sans": "5.2.8",
     "playwright": "^1.62.0",
     "pngjs": "^7.0.0"
   }
