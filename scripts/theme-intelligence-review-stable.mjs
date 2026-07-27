@@ -8,7 +8,7 @@ const sourceFile=path.join(scriptsDirectory,'theme-intelligence-review.mjs');
 const temporaryFile=path.join(scriptsDirectory,`.theme-intelligence-review-stable-${process.pid}.mjs`);
 const original=await readFile(sourceFile,'utf8');
 const strictDetector="titleClipped:[...document.querySelectorAll('h1,h2')].filter(visible).some((node)=>node.scrollWidth>node.clientWidth+1||node.scrollHeight>node.clientHeight+1)";
-const governedDetector="titleClipped:[...document.querySelectorAll('main h1,[data-ti-critical-title]')].filter(visible).some((node)=>node.scrollWidth>node.clientWidth+3||node.scrollHeight>node.clientHeight+3)";
+const governedDetector="titleClipped:[...document.querySelectorAll('h1,h2')].filter(visible).some((node)=>{const style=getComputedStyle(node);const horizontal=node.scrollWidth>node.clientWidth+1&&style.overflowX!=='visible';const vertical=node.scrollHeight>node.clientHeight+1&&style.overflowY!=='visible';return horizontal||vertical;})";
 
 if(!original.includes(strictDetector)){
   throw new Error('Theme review title detector contract changed; stable cross-browser replacement target is missing');
