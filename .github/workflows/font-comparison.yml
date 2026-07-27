@@ -18,7 +18,7 @@ permissions:
 
 concurrency:
   group: qelly-font-comparison-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   render-font-comparison:
@@ -68,5 +68,6 @@ jobs:
         with:
           name: qelly-font-comparison
           path: .font-review
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 14
