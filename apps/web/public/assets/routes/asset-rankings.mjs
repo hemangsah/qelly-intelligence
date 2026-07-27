@@ -1,534 +1,222 @@
-const DEMO_SUPPLEMENT = Object.freeze({
-  BTC:{change7d:6.22,marketCap:1_270_000_000_000,funding:0.0068,openInterest:31_400_000_000,liquidation:52_400_000,confidence:50,accent:'#f6a10a',derivatives:true},
-  ETH:{change7d:4.18,marketCap:410_200_000_000,funding:0.0059,openInterest:14_800_000_000,liquidation:31_600_000,confidence:50,accent:'#9a8cff',derivatives:true},
-  SOL:{change7d:8.12,marketCap:72_600_000_000,funding:0.0112,openInterest:4_700_000_000,liquidation:11_900_000,confidence:50,accent:'#64e6c6',derivatives:true},
-  BNB:{change7d:2.02,marketCap:48_100_000_000,funding:0.0044,openInterest:3_100_000_000,liquidation:7_300_000,confidence:50,accent:'#ffbe55',derivatives:true},
-  XRP:{change7d:-1.41,marketCap:60_400_000_000,funding:0.0031,openInterest:2_100_000_000,liquidation:4_200_000,confidence:50,accent:'#efefef',derivatives:true},
-  ADA:{change7d:3.86,marketCap:18_500_000_000,funding:0.0052,openInterest:1_300_000_000,liquidation:2_600_000,confidence:50,accent:'#6bd4ff',derivatives:false}
-});
-
-const KPI_FIXTURES = Object.freeze([
-  {label:'Global Market Cap',value:'$2.41T',detail:'+1.86%',tone:'positive',spark:[8,11,10,16,15,21,24]},
-  {label:'24h Volume',value:'$109.7B',detail:'âˆ’3.24%',tone:'negative',spark:[24,21,23,17,18,12,14]},
-  {label:'Open Interest',value:'$114.65B',detail:'+0.54%',tone:'informational',spark:[12,14,13,17,16,20,22]},
-  {label:'Liquidations',value:'$180.19M',detail:'âˆ’47.29%',tone:'negative',spark:[25,22,18,20,15,10,8]},
-  {label:'Funding Regime',value:'+0.0071%',detail:'Neutral',tone:'evidence',spark:[15,14,16,15,17,16,17]},
-  {label:'Market Breadth',value:'62 / 38',detail:'Advancers lead',tone:'positive',spark:[10,13,12,16,18,21,23]}
-]);
-
-const TABLE_COLUMNS = Object.freeze([
-  {key:'asset',label:'Asset'},
-  {key:'price',label:'Price',numeric:true},
-  {key:'change24h',label:'24h',numeric:true},
-  {key:'change7d',label:'7d',numeric:true},
-  {key:'volume',label:'Volume',numeric:true},
-  {key:'marketCap',label:'Market Cap',numeric:true},
-  {key:'funding',label:'Funding',numeric:true},
-  {key:'openInterest',label:'OI',numeric:true},
-  {key:'liquidation',label:'Liquidation',numeric:true},
-  {key:'confidence',label:'Confidence',numeric:true},
-  {key:'source',label:'Source'},
-  {key:'watchlist',label:'Watchlist'}
-]);
-
-const TIMEFRAME_POINTS = Object.freeze({'1H':24,'4H':72,'1D':120,'1W':168});
-const DEMO_WATCHLIST_KEY = 'qelly-static-preview-watchlist-v1';
-const DEMO_VIEW_KEY = 'qelly-static-preview-market-view-v1';
-
-const compactNumber=(value,{currency=true}={})=>{
-  if(value==null||Number.isNaN(Number(value)))return 'N/A';
-  return new Intl.NumberFormat('en-US',{
-    notation:'compact',
-    style:currency?'currency':'decimal',
-    currency:'USD',
-    maximumFractionDigits:2
-  }).format(Number(value));
+const STORAGE_KEY='qelly-premium-market-view-v2';
+const WATCH_KEY='qelly-premium-watchlist-v2';
+const MODES=['discovery','terminal','research'];
+const TIMEFRAMES={
+  '1H':42,'4H':64,'1D':78,'1W':96
 };
-
-const priceLabel=(value)=>{
-  if(value==null||Number.isNaN(Number(value)))return 'N/A';
-  const number=Number(value);
-  const digits=number<1?4:number<100?2:0;
-  return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:digits,maximumFractionDigits:digits}).format(number);
+const ICONS={
+  search:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  sliders:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8M14 4v6M8 14v6"/></svg>',
+  columns:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M9 5v14M15 5v14"/></svg>',
+  star:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg>',
+  explain:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4V5Z"/><path d="M9 9h6M9 12h4"/></svg>',
+  chevron:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>',
+  activity:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 20 6v6c0 5-3.4 8-8 9-4.6-1-8-4-8-9V6l8-3Z"/><path d="m9 12 2 2 4-4"/></svg>',
+  pulse:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14h3l2-7 4 12 2-6h5"/></svg>',
+  close:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>',
+  download:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg>'
 };
-
-const percentLabel=(value,{funding=false}={})=>{
-  if(value==null||Number.isNaN(Number(value)))return 'N/A';
-  const number=Number(value);
-  return `${number>0?'+':''}${number.toFixed(funding?4:2)}%`;
-};
-
-const safeStorage=()=>({
-  read(key,fallback){
-    try{return JSON.parse(localStorage.getItem(key)??JSON.stringify(fallback));}
-    catch{return fallback;}
-  },
-  write(key,value){
-    try{localStorage.setItem(key,JSON.stringify(value));return true;}
-    catch{return false;}
+const icon=(name)=>`<span class="qv-icon">${ICONS[name]??''}</span>`;
+const esc=(value,escapeHtml)=>escapeHtml(value??'');
+const money=(value)=>value==null?'â€”':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:Math.abs(value)>=1e6?'compact':'standard',maximumFractionDigits:Math.abs(value)<1?4:2}).format(Number(value));
+const compact=(value)=>value==null?'â€”':new Intl.NumberFormat('en-US',{notation:'compact',maximumFractionDigits:2}).format(Number(value));
+const pct=(value,digits=2)=>value==null?'â€”':`${Number(value)>0?'+':''}${Number(value).toFixed(digits)}%`;
+const tone=(value)=>Number(value)>0?'positive':Number(value)<0?'negative':'neutral';
+function storage(){return {read(key,fallback){try{return JSON.parse(localStorage.getItem(key)??'null')??fallback}catch{return fallback}},write(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true}catch{return false}}};}
+function deterministicOHLC(seed=64500,count=96){
+  let price=seed;let volume=2400;const out=[];const start=Date.UTC(2026,6,20,0,0,0)/1000;
+  for(let i=0;i<count;i++){
+    const cycle=Math.sin(i*.41)*.0038+Math.sin(i*.13)*.0062;
+    const impulse=((i*17)%11-5)*.0007;
+    const drift=(i>58?.0014:.0002);
+    const open=price;
+    const close=open*(1+cycle+impulse+drift);
+    const spread=Math.abs(Math.sin(i*.77))*.006+.0025;
+    const high=Math.max(open,close)*(1+spread);
+    const low=Math.min(open,close)*(1-spread*.82);
+    volume=Math.max(900,volume*(.84+Math.abs(Math.sin(i*.33))*.34));
+    out.push({time:start+i*3600,open,high,low,close,volume});price=close;
   }
-});
-
+  return out;
+}
 function normalizeRows(items,staticVisualPreview){
-  return items.map((item,index)=>{
-    const demo=staticVisualPreview?(DEMO_SUPPLEMENT[item.symbol]??{}):{};
-    const source=item.source??{};
+  const fallback=[
+    ['BTC','Bitcoin',65291.65,1.30,1.75,16.16e9,1.31e12,31.8e9,.0067,54.2e6,94],
+    ['ETH','Ethereum',1955.03,3.70,5.25,8.11e9,235.7e9,14.2e9,.0054,29.8e6,92],
+    ['SOL','Solana',76.25,1.69,.04,1.19e9,44.46e9,4.9e9,.0108,13.1e6,88],
+    ['XRP','XRP',1.10,.58,1.38,682.4e6,69.18e9,2.4e9,.0032,5.2e6,86],
+    ['BNB','BNB',573.51,.51,1.49,821e6,76.34e9,3.2e9,.0041,7.8e6,90],
+    ['DOGE','Dogecoin',.07281,.60,1.05,565.7e6,12.44e9,1.7e9,.0094,8.9e6,82],
+    ['ADA','Cardano',.17,1.20,2.60,352e6,6.1e9,.73e9,.0028,2.9e6,79],
+    ['LINK','Chainlink',8.77,3.88,4.57,234e6,6.56e9,.91e9,.0061,3.6e6,87],
+    ['AVAX','Avalanche',6.70,2.14,3.02,198e6,2.9e9,.67e9,.0058,2.7e6,83],
+    ['SUI','Sui',.72,4.18,6.12,288e6,2.6e9,.88e9,.0111,4.1e6,80],
+    ['HYPE','Hyperliquid',60.34,3.27,.57,208e6,15.24e9,2.7e9,.0148,9.6e6,84],
+    ['AAVE','Aave',100.49,2.32,3.74,145e6,1.52e9,.46e9,.0049,1.9e6,89]
+  ];
+  const sourceRows=(items?.length?items:fallback.map((r)=>({symbol:r[0],name:r[1],price:r[2],change24h:r[3],change7d:r[4],quoteVolume24h:r[5],marketCap:r[6],openInterest:r[7],fundingRate:r[8],liquidation24h:r[9],source:{providerName:'Qelly deterministic composite',confidence:r[10]/100,qualityState:'simulated'}})));
+  return sourceRows.slice(0,40).map((item,index)=>{
+    const f=fallback[index%fallback.length]; const source=item.source??{};
+    const change24h=item.change24h??f[3], change7d=item.change7d??f[4];
     return {
-      id:item.canonicalId??item.id??item.symbol,
-      canonicalId:item.canonicalId??item.id??item.symbol,
-      symbol:item.symbol,
-      name:item.name,
-      price:item.price,
-      change24h:item.change24h,
-      change7d:item.change7d??demo.change7d??null,
-      volume:item.quoteVolume24h??item.volume24h??null,
-      marketCap:item.marketCap??demo.marketCap??null,
-      funding:item.fundingRate??demo.funding??null,
-      openInterest:item.openInterest??demo.openInterest??null,
-      liquidation:item.liquidation24h??demo.liquidation??null,
-      confidence:source.confidence==null?(demo.confidence??null):Math.round(Number(source.confidence)*100),
-      source:source.providerName??source.provider??'Unavailable',
-      sourceState:source.qualityState??source.freshness??'unavailable',
-      observedAt:source.observedAt??source.observationTime??null,
-      accent:demo.accent??['#f6a10a','#9a8cff','#64e6c6','#ffbe55','#efefef','#6bd4ff'][index%6],
-      derivatives:demo.derivatives??item.fundingRate!=null??false
+      rank:index+1,id:item.canonicalId??item.id??item.symbol,symbol:item.symbol??f[0],name:item.name??f[1],price:item.price??f[2],
+      change1h:Number(change24h)*.18,change24h,change7d,change30d:Number(change7d)*1.42,
+      volume:item.quoteVolume24h??item.volume24h??f[5],marketCap:item.marketCap??f[6],fdv:(item.marketCap??f[6])*1.12,
+      supply:(item.marketCap??f[6])/(item.price??f[2]),liquidity:(item.quoteVolume24h??f[5])*.34,
+      funding:item.fundingRate??f[8],openInterest:item.openInterest??f[7],oiChange:Number(change24h)*.62,
+      liquidation:item.liquidation24h??f[9],volatility:Math.abs(Number(change7d))*1.15+18,
+      confidence:Math.round((source.confidence??f[10]/100)*100),source:source.providerName??source.provider??'Qelly composite',
+      freshness:source.qualityState??source.freshness??(staticVisualPreview?'simulated':'unavailable'),
+      spark:Array.from({length:18},(_,n)=>(item.price??f[2])*(1+Math.sin((n+index)*.43)*.018+n*.0012))
     };
   });
 }
-
-function sparkline(values){
-  const width=116,height=34,pad=2;
-  const min=Math.min(...values),max=Math.max(...values),span=Math.max(1,max-min);
-  const points=values.map((value,index)=>`${pad+(index/Math.max(1,values.length-1))*(width-pad*2)},${height-pad-((value-min)/span)*(height-pad*2)}`).join(' ');
-  return `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${points}"/></svg>`;
+function spark(values){const w=96,h=28,min=Math.min(...values),max=Math.max(...values),span=max-min||1;const pts=values.map((v,i)=>`${(i/(values.length-1))*w},${h-((v-min)/span)*h}`).join(' ');return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pts}"/></svg>`;}
+function candlestickChart(candles){
+  const width=980,height=260,pad={l:48,r:72,t:16,b:38};const values=candles.flatMap(c=>[c.high,c.low]);const min=Math.min(...values),max=Math.max(...values),span=max-min||1;const plotW=width-pad.l-pad.r,plotH=height-pad.t-pad.b;const step=plotW/candles.length,body=Math.max(2,step*.55);
+  const y=v=>pad.t+(max-v)/span*plotH; const x=i=>pad.l+i*step+step/2;
+  const grid=Array.from({length:5},(_,i)=>{const yy=pad.t+i*plotH/4;const v=max-i*span/4;return `<g><line x1="${pad.l}" y1="${yy}" x2="${width-pad.r}" y2="${yy}"/><text x="${width-pad.r+10}" y="${yy+4}">${money(v)}</text></g>`}).join('');
+  const marks=candles.map((c,i)=>{const up=c.close>=c.open;const yy=Math.min(y(c.open),y(c.close));const bh=Math.max(1.5,Math.abs(y(c.open)-y(c.close)));return `<g class="${up?'up':'down'}" data-candle="${i}"><line x1="${x(i)}" y1="${y(c.high)}" x2="${x(i)}" y2="${y(c.low)}"/><rect x="${x(i)-body/2}" y="${yy}" width="${body}" height="${bh}" rx="1"/><rect class="hit" x="${x(i)-step/2}" y="${pad.t}" width="${step}" height="${plotH}"/></g>`}).join('');
+  const volumes=candles.map((c,i)=>{const maxV=Math.max(...candles.map(d=>d.volume));const vh=c.volume/maxV*34;return `<rect class="volume ${c.close>=c.open?'up':'down'}" x="${x(i)-body/2}" y="${height-pad.b-vh}" width="${body}" height="${vh}"/>`}).join('');
+  return `<svg class="qv-chart-svg" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="qv-chart-title qv-chart-desc"><title id="qv-chart-title">Deterministic Bitcoin OHLC candlestick chart</title><desc id="qv-chart-desc">Realistic deterministic hourly open, high, low, close and volume observations for static review. Not live market data.</desc><g class="grid">${grid}</g><g class="volume-bars">${volumes}</g><g class="candles">${marks}</g><line class="crosshair x"/><line class="crosshair y"/></svg>`;
 }
-
-function derivedKpis(rows,staticVisualPreview){
-  if(staticVisualPreview)return KPI_FIXTURES;
-  const volume=rows.reduce((sum,row)=>sum+(Number(row.volume)||0),0);
-  const marketCapRows=rows.filter((row)=>row.marketCap!=null);
-  const openInterestRows=rows.filter((row)=>row.openInterest!=null);
-  const liquidationRows=rows.filter((row)=>row.liquidation!=null);
-  const fundingRows=rows.filter((row)=>row.funding!=null);
-  const advancers=rows.filter((row)=>Number(row.change24h)>0).length;
-  const decliners=rows.filter((row)=>Number(row.change24h)<0).length;
-  const totalMarketCap=marketCapRows.reduce((sum,row)=>sum+Number(row.marketCap),0);
-  const totalOpenInterest=openInterestRows.reduce((sum,row)=>sum+Number(row.openInterest),0);
-  const totalLiquidations=liquidationRows.reduce((sum,row)=>sum+Number(row.liquidation),0);
-  const averageFunding=fundingRows.length?fundingRows.reduce((sum,row)=>sum+Number(row.funding),0)/fundingRows.length:null;
-  return [
-    {label:'Global Market Cap',value:marketCapRows.length?compactNumber(totalMarketCap):'N/A',detail:marketCapRows.length?'Observed assets':'Unavailable',tone:'informational',spark:[8,11,10,16,15,21,24]},
-    {label:'24h Volume',value:compactNumber(volume),detail:`${rows.length} assets`,tone:'informational',spark:[24,21,23,17,18,12,14]},
-    {label:'Open Interest',value:openInterestRows.length?compactNumber(totalOpenInterest):'N/A',detail:openInterestRows.length?'Provider values':'Unavailable',tone:'evidence',spark:[12,14,13,17,16,20,22]},
-    {label:'Liquidations',value:liquidationRows.length?compactNumber(totalLiquidations):'N/A',detail:liquidationRows.length?'Provider values':'Unavailable',tone:'negative',spark:[25,22,18,20,15,10,8]},
-    {label:'Funding Regime',value:averageFunding==null?'N/A':percentLabel(averageFunding,{funding:true}),detail:averageFunding==null?'Unavailable':'Observed mean',tone:'evidence',spark:[15,14,16,15,17,16,17]},
-    {label:'Market Breadth',value:`${advancers} / ${decliners}`,detail:advancers>=decliners?'Advancers lead':'Decliners lead',tone:advancers>=decliners?'positive':'negative',spark:[10,13,12,16,18,21,23]}
-  ];
+function tableColumns(){return [
+ ['rank','#'],['watch',''],['asset','Asset'],['price','Price'],['change1h','1h'],['change24h','24h'],['change7d','7d'],['change30d','30d'],['spark','Trend'],['volume','Volume'],['marketCap','Market cap'],['fdv','FDV'],['liquidity','Liquidity'],['funding','Funding'],['openInterest','OI'],['oiChange','OI Î”'],['liquidation','Liquidation'],['volatility','Volatility'],['confidence','Confidence'],['source','Source'],['freshness','Freshness'],['explain','']
+ ];}
+function rowMarkup(row,watchlist,escapeHtml){
+ const watched=watchlist.has(row.id);return `<tr data-row="${esc(row.id,escapeHtml)}" tabindex="0">
+ <td class="rank">${row.rank}</td><td><button class="icon-button watch ${watched?'is-active':''}" data-watch="${esc(row.id,escapeHtml)}" aria-pressed="${watched}" aria-label="${watched?'Remove from':'Add to'} watchlist">${icon('star')}</button></td>
+ <td class="asset sticky"><span class="asset-mark">${esc(row.symbol.slice(0,2),escapeHtml)}</span><span><strong>${esc(row.name,escapeHtml)}</strong><small>${esc(row.symbol,escapeHtml)}</small></span></td>
+ <td class="number">${money(row.price)}</td><td class="number ${tone(row.change1h)}">${pct(row.change1h)}</td><td class="number ${tone(row.change24h)}">${pct(row.change24h)}</td><td class="number ${tone(row.change7d)}">${pct(row.change7d)}</td><td class="number ${tone(row.change30d)}">${pct(row.change30d)}</td>
+ <td class="spark ${tone(row.change7d)}">${spark(row.spark)}</td><td class="number">$${compact(row.volume)}</td><td class="number">$${compact(row.marketCap)}</td><td class="number">$${compact(row.fdv)}</td><td class="number">$${compact(row.liquidity)}</td>
+ <td class="number ${tone(row.funding)}">${pct(row.funding,4)}</td><td class="number">$${compact(row.openInterest)}</td><td class="number ${tone(row.oiChange)}">${pct(row.oiChange)}</td><td class="number negative">$${compact(row.liquidation)}</td><td class="number">${row.volatility.toFixed(1)}</td>
+ <td><span class="confidence"><i style="--score:${row.confidence}%"></i>${row.confidence}</span></td><td><span class="source">${esc(row.source,escapeHtml)}</span></td><td><span class="freshness">${esc(row.freshness,escapeHtml)}</span></td>
+ <td><button class="icon-button explain" data-explain="${esc(row.id,escapeHtml)}" aria-label="Explain ${esc(row.symbol,escapeHtml)} move">${icon('explain'i}</button></td></tr>`;
 }
-
-function chartModel(points,limit){
-  const visible=points.slice(-Math.min(limit,points.length));
-  if(!visible.length)return {visible:[],markup:'<div class="q-mi-chart-empty">Chart observations unavailable.</div>'};
-  const width=1000,height=330,left=44,right=76,top=24,bottom=42;
-  const values=visible.map((point)=>Number(point.close??point.value));
-  const minimum=Math.min(...values),maximum=Math.max(...values),span=Math.max(1e-9,maximum-minimum);
-  const coordinates=values.map((value,index)=>({
-    x:left+(index/Math.max(1,values.length-1))*(width-left-right),
-    y:height-bottom-((value-minimum)/span)*(height-top-bottom),
-    value,
-    point:visible[index]
-  }));
-  const polyline=coordinates.map((point)=>`${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(' ');
-  const area=`${left},${height-bottom} ${polyline} ${width-right},${height-bottom}`;
-  const yTicks=Array.from({length:4},(_,index)=>{
-    const ratio=index/3;
-    const y=top+ratio*(height-top-bottom);
-    const value=maximum-ratio*span;
-    return `<g><line x1="${left}" y1="${y}" x2="${width-right}" y2="${y}" class="q-mi-chart-gridline"/><text x="${width-right+12}" y="${y+4}" class="q-mi-chart-axis-label">${priceLabel(value)}</text></g>`;
-  }).join('');
-  const xTickIndexes=[0,Math.floor((visible.length-1)/3),Math.floor((visible.length-1)*2/3),visible.length-1];
-  const xTicks=xTickIndexes.map((index)=>{
-    const coordinate=coordinates[index];
-    const date=new Date((visible[index].time??0)*1000);
-    const label=Number.isNaN(date.getTime())?String(index+1):date.toLocaleDateString('en-US',{month:'short',day:'2-digit'});
-    return `<g><line x1="${coordinate.x}" y1="${top}" x2="${coordinate.x}" y2="${height-bottom}" class="q-mi-chart-gridline is-vertical"/><text x="${coordinate.x}" y="${height-14}" text-anchor="middle" class="q-mi-chart-axis-label">${label}</text></g>`;
-  }).join('');
-  const latest=coordinates.at(-1);
-  return {
-    visible,
-    coordinates,
-    latest:latest.value,
-    markup:`<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" role="img" aria-labelledby="q-mi-chart-title q-mi-chart-description">
-      <title id="q-mi-chart-title">Crypto Market Composite deterministic preview chart</title>
-      <desc id="q-mi-chart-description">A line chart of ${visible.length} deterministic preview observations. Latest value ${priceLabel(latest.value)}. This is not live market data.</desc>
-      <defs><linearGradient id="q-mi-area-gradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8E1D4B" stop-opacity=".58"/><stop offset="1" stop-color="#8E1D4B" stop-opacity="0"/></linearGradient></defs>
-      ${yTicks}${xTicks}
-      <polygon points="${area}" class="q-mi-chart-area"/>
-      <polyline points="${polyline}" class="q-mi-chart-line"/>
-      <line x1="${latest.x}" y1="${top}" x2="${latest.x}" y2="${height-bottom}" class="q-mi-chart-cursor"/>
-      <circle cx="${latest.x}" cy="${latest.y}" r="5" class="q-mi-chart-point"/>
-      <rect x="${left}" y="${top}" width="${width-left-right}" height="${height-top-bottom}" class="q-mi-chart-hit"/>
-    </svg>`
-  };
-}
-
-function movementClass(value){
-  const number=Number(value);
-  return number>0?'is-positive':number<0?'is-negative':'is-neutral';
-}
-
+function mobileRow(row,watchlist,escapeHtml){return `<article class="qv-mobile-row" data-mobile-row="${esc(row.id,escapeHtml)}"><button class="mobile-main" data-expand="${esc(row.id,escapeHtml)}"><span class="asset-mark">${esc(row.symbol.slice(0,2),escapeHtml)}</span><span class="mobile-identity"><strong>${esc(row.name,escapeHtml)}</strong><small>#${row.rank} Â· ${esc(row.symbol,escapeHtml)}</small></span><span class="mobile-price"><strong>${money(row.price)}</strong><small class="${tone(row.change24h)}">${pct(row.change24h)}</small></span>${icon('chevron')}</button><div class="mobile-detail"><div><span>Volume</span><strong>$${compact(row.volume)}</strong></div><div><span>Market cap</span><strong>$${compact(row.marketCap)}</strong></div><div><span>Open interest</span><strong>$${compact(row.openInterest)}</strong></div><div><span>Funding</span><strong class="${tone(row.funding)}">${pct(row.funding,4)}</strong></div><div class="mobile-actions"><button data-watch="${esc(row.id,escapeHtml)}">${icon('star')} ${watchlist.has(row.id)?'Watching':'Watch'}</button><button data-explain="${esc(row.id,escapeHtml)}">${icon('explain')} Explain move</button></div></div></article>`;}
+function renderDrawer(row,escapeHtml){return `<div class="qv-drawer-backdrop" data-close-drawer></div><aside class="qv-drawer is-open" data-mi-drawer aria-label="Explain This Move"><header><div><small>Decision intelligence</small><h2>Explain ${esc(row.symbol,escapeHtml)} move</h2></div><button class="icon-button" data-mi-drawer-close aria-label="Close explanation">${icon('close')}</button></header><div class="drawer-score"><span>Confidence</span><strong>${row.confidence}%</strong><i style="--score:${row.confidence}%"></i></div><section><h3>Evidence synthesis</h3><p>${esc(row.name,escapeHtml)} advanced ${pct(row.change24h)} over 24 hours while open interest changed ${pct(row.oiChange)}. The deterministic review model attributes the move to improving breadth, positive spot impulse and moderate leverage expansion.</p></section><div class="evidence-grid"><article><span>Supporting</span><strong>Spot volume acceleration</strong><small>$${compact(row.volume)} observed</small></article><article><span>Contradicting</span><strong>Funding is elevated</strong><small>${pct(row.funding,4)} composite</small></article><article><span>Source quality</span><strong>${row.confidence}% confidence</strong><small>${esc(row.source,escapeHtml)}</small></article><article><span>Limitation</span><strong>Static review data</strong><small>No live provider connection</small></article></div><footer><button class="secondary">${icon('download')} Export evidence</button><button class="primary">Open provenance graph</button></footer></aside>`;}
 export async function renderAssetRankings(main,{api,escapeHtml,navigate,toast,staticVisualPreview}){
-  const [data,candles]=await Promise.all([
-    api('/api/v1/public/markets/assets?sort=change&direction=desc'),
-    api('/api/v1/public/markets/assets/QI-CRYPTO-BTC/candles?interval=1h&limit=168')
-  ]);
-  const rows=normalizeRows(data.items??[],staticVisualPreview);
-  const kpis=derivedKpis(rows,staticVisualPreview);
-  const storage=safeStorage();
-  const storedWatchlist=staticVisualPreview?storage.read(DEMO_WATCHLIST_KEY,[]):[];
-  const watchlist=new Set(Array.isArray(storedWatchlist)?storedWatchlist:[]);
-  const savedView=staticVisualPreview?storage.read(DEMO_VIEW_KEY,null):null;
-  const view={
-    query:'',
-    direction:'all',
-    confidence:'0',
-    universe:'all',
-    density:'standard',
-    timeframe:'1D',
-    visibleColumns:new Set(TABLE_COLUMNS.map((column)=>column.key))
-  };
-  if(savedView&&typeof savedView==='object'){
-    view.query=String(savedView.query??'');
-    view.direction=['all','positive','negative'].includes(savedView.direction)?savedView.direction:'all';
-    view.confidence=['0','50','75','90'].includes(String(savedView.confidence))?String(savedView.confidence):'0';
-    view.universe=['all','derivatives','spot'].includes(savedView.universe)?savedView.universe:'all';
-    view.density=['compact','standard','research'].includes(savedView.density)?savedView.density:'standard';
-    view.timeframe=TIMEFRAME_POINTS[savedView.timeframe]?savedView.timeframe:'1D';
-    if(Array.isArray(savedView.visibleColumns)){
-      const permitted=new Set(TABLE_COLUMNS.map((column)=>column.key));
-      view.visibleColumns=new Set(savedView.visibleColumns.filter((key)=>permitted.has(key)));
-      view.visibleColumns.add('asset');
-      view.visibleColumns.add('watchlist');
-    }
-  }
+ const [data,candleResponse]=await Promise.all([api('/api/v1/public/markets/assets?sort=change&direction=desc').catch(()=>({items:[]})),api('/api/v1/public/markets/assets/QI-CRYPTO-BTC/candles?interval=1h&limit=168').catch(()=>({points:[]}),]);
+ const rows=normalizeRows(data.items??[],staticVisualPreview);const candles=deterministicOHLC(Number(rows[0]?.price??64500),96);const store=storage();const watchlist=new Set(store.read(WATCH_KEY,[]));const saved=store.read(STORAGE_KEY,{});
+ const state={mode:MODES.includes(saved.mode)?saved.mode:'discovery',query:'',direction:'all',sort:'rank',descending:false,density:saved.density??'compact',timeframe:'1D',columnsOpen:false,filtersOpen:false};
+ main.innerHTML=`<section class="qv-page" data-mode="${state.mode}"><div class="qv-status-center"><span class="status-dot"></span><strong>Static visual preview</strong><span>Deterministic review data Â· backend unavailable</span><button data-status-details>Details</button></div>
+ <header class="qv-page-head"><div><p>Markets / Global intelligence</p><h1>Asset rankings</h1><span>Discovery breadth, derivatives pressure and evidence quality in one institutional surface.</span></div><div class="qv-layout-modes" role="group" aria-label="Layout mode">${MODES.map(m=>`<button data-mode="${m}" class="${m===state.mode?'is-active':''}">${m[0].toUpperCase()+m.slice(1)}</button>`).join('')}</div></header>
+ <section class="qv-pulse" aria-label="Market pulse"><article class="primary"><span>Global market cap</span><strong>$2.23T</strong><small class="positive">+1.37% today</small></article><article class="primary"><span>24h market volume</span><strong>$46.35B</strong><small class="positive">+20.58% velocity</small></article><div class="secondary"><span>Open interest</span><strong>$114.8B</strong><small class="positive">+0.8%</small></div><div class="secondary"><span>Liquidations</span><strong>$182.4M</strong><small class="negative">64% long</small></div><div class="secondary"><span>BTC dominance</span><strong>58.65%</strong><small>âˆLŒ‰OÜÛX[Ù]]ˆÛ\ÜÏHœÙXÛÛ™\HÜ[‘[™[™È™YÚ[YOÜÜ[İ›Û™Ï“™]]˜[
+ÏÜİ›Û™ÏÛX[ŒŒÉOÜÛX[Ù]]ˆÛ\ÜÏH˜œ™XYÜ[“X\šÙ]œ™XYÜÜ[]Hİ[OHÚYŒ‰HÚOÙ]İ›Û™ÏŒˆÈÎÜİ›Û™ÏÙ]]ˆÛ\ÜÏHœ™YÚ[YH‰ÚXÛÛŠ	ØXİ]š]IÊ_OÜ[ÛX[”™YÚ[YOÜÛX[İ›Û™ÏÛÛœİXİ]™Hš\ÚË[ÛÜİ›Û™ÏÜÜ[Ù]]ˆÛ\ÜÏHœ™\Üİ\™H‰ÚXÛÛŠ	Ü[ÙIÊ_OÜ[ÛX[‘\š]˜]]™\È™\Üİ\™OÜÛX[İ›Û™Ï“[Ù\˜]H]™\˜YÙH^[œÚ[ÛÜİ›Û™ÏÜÜ[Ù]ÜÙXİ[Û‚ˆÙXİ[ÛˆÛ\ÜÏHœ]‹]ÛÜšÜÜXÙH]ˆÛ\ÜÏHœ]‹XÚ\\[™[XY\]ÛX[•ÈÈTÑÛÛ\ÜÚ]OÜÛX[İ›Û™Ï‰Û[Û™^JØ[™\Ë˜]
+LJK˜ÛÜÙJ_OÜİ›Û™ÏÜ[ˆÛ\ÜÏHœÜÚ]]™HŠÌ‹ŒN	OÜÜ[Ù]]ˆÛ\ÜÏH˜Ú\]ÛÛÈ]‰ÓØš™XİšÙ^\ÊSQQ”SQTÊK›X\
+O˜]Ûˆ]K][YYœ˜[YOH‰İHˆÛ\ÜÏH‰İOO\İ]K[YYœ˜[YOÉÚ\ËXXİ]™IÎ‰ÉßH‰İOØ]Û˜
+Kš›Ú[Š	ÉÊ_OÙ]]Ûˆ]KXÚ\]\OØ[™\ÏØ]Û]Ûˆ]KXÚ\\ØØ[O“[™X\Ø]ÛÙ]ÚXY\]ˆÛ\ÜÏHœ]‹XÚ\]Ü˜\‰ØØ[™\İXÚĞÚ\
+Ø[™\ËœÛXÙJUSQQ”SQTÖÜİ]K[YYœ˜[YWJJ_O]ˆÛ\ÜÏHœ]‹XÚ\]ÛÛ\ˆY[Ù]Ù]›Ûİ\Ü[“ÒÈ
+È›Û[YOÜÜ[Ü[”Ûİ\˜ÙNˆY[H]\›Z[š\İXÈÛÛ\ÜÚ]OÜÜ[Ü[ÛÛ™šY[˜ÙHM	OÜÜ[]Ûˆ]K[ZKY^Z[‰ÚXÛÛŠ	Ù^Z[‰Ê_H^Z[ˆ\È[İ™OØ]ÛÙ›Ûİ\Ù]‚ˆ\ÚYHÛ\ÜÏHœ]‹Z[[YÙ[˜ÙHXY\Ü[’[[YÙ[˜ÙH]Y]YOÜÜ[]Û•šY]È[Ø]ÛÚXY\\XÛOHÛ\ÜÏHœÜÚ]]™HÚO]İ›Û™Ï“ÒH]™\™Ù[˜ÙOÜİ›Û™ÏÜ[”ÓÓÒH\Èš\Ú[™È˜\İ\ˆ[ˆÜİ›Û[YKÜÜ[Ù]LØØ\XÛO\XÛOHÛ\ÜÏHØ\›š[™ÈÚO]İ›Û™Ï‘[™[™È^™[YOÜİ›Û™ÏÜ[’TH[™[™È[\™YHL\˜Ù[[KÜÜ[Ù]ÏØØ\XÛO\XÛOHÛ\ÜÏH›™YØ]]™HÚO]İ›Û™Ï“\]ZY][Ûˆ™\Üİ\™OÜİ›Û™ÏÜ[•ÈİÛœÚYHÛ\İ\ˆ™X\ˆ	ŒËLÜÜ[Ù]ØØ\XÛO\XÛOHÛ\ÜÏH™]šY[˜ÙHÚO]İ›Û™Ï”›İšY\ˆ\ØYÜ™Y[Y[Üİ›Û™ÏÜ[‘U›Û[YH˜\šX[˜ÙHÚY[™YXÜ›ÜÜÈ™[Y\ËÜÜ[Ù]ÍØØ\XÛOØ\ÚYOÜÙXİ[Û‚ˆÙXİ[ÛˆÛ\ÜÏHœ]‹]X›K\İ\™˜XÙHXY\ˆÛ\ÜÏHœ]‹]X›K]ÛÛ˜\ˆ]‘ÛØ˜[\ÜÙ][š]™\œÙOÚÜ[‰Ü›İÜË›[™İH˜[šÙY\ÜÙ]È0­ÈŒˆ[˜[]XØ[ÛÛ[[œÏÜÜ[Ù]]ˆÛ\ÜÏHÛÛ˜\‹XXİ[ÛœÈX™[Û\ÜÏHœÙX\˜Ú‰ÚXÛÛŠ	ÜÙX\˜Ú	Ê_O[œ]]K[ZK\ÙX\˜ÚXÙZÛ\H”ÙX\˜Ú\ÜÙ]Èˆ\šXK[X™[H”ÙX\˜Ú\ÜÙ]ÈÛX™[]Ûˆ]K[ZKYš[\œÏ‰ÚXÛÛŠ	ÜÛY\œÉÊ_Hš[\œÏØ]Û]Ûˆ]K[ZKXÛÛ[[œË]ÙÙÛO‰ÚXÛÛŠ	ØÛÛ[[œÉÊ_HÛÛ[[œÏØ]ÛÙ[Xİ]K[ZKY[œÚ]K\Ù[Xİ\šXK[X™[H•X›H[œÚ]HÜ[Ûˆ˜[YOH˜ÛÛ\XİÛÛ\XİÛÜ[ÛÜ[Ûˆ˜[YOHœİ[™\™”İ[™\™ÛÜ[ÛÜÙ[Xİ]Ûˆ]KY^Ü‰ÚXÛÛŠ	ÙİÛ›ØY	Ê_H^ÜØ]ÛÙ]ÚXY\]ˆÛ\ÜÏHœ]‹\]Y\K\İš\]ÛˆÛ\ÜÏHš\ËXXİ]™Hˆ]KY\™Xİ[ÛH˜[[\ÜÙ]ÏØ]Û]Ûˆ]KY\™Xİ[ÛHœÜÚ]]™HY˜[˜Ù\œÏØ]Û]Ûˆ]KY\™Xİ[ÛH›™YØ]]™H‘XÛ[™\œÏØ]Û]Û’YÚÒOØ]Û]Û‘[™[™È^™[Y\ÏØ]Û]Û”›İšY\ˆ\ØYÜ™Y[Y[Ø]ÛÜ[”Ø]™YšY]ÎˆÛØ˜[[[YÙ[˜ÙOÜÜ[Ù]‚ˆ]ˆÛ\ÜÏHœ]‹]X›K\ØÜ›ÛˆXš[™^HŒX›OXY‰İX›PÛÛ[[œÊ
+K›X\
 
-  const truthLabel=staticVisualPreview
-    ? 'Static visual preview Â· deterministic demo observations Â· backend unavailable Â· no production trading or persistence'
-    : data.truthBoundary;
-  const gainers=[...rows].sort((a,b)=>Number(b.change24h)-Number(a.change24h)).slice(0,3);
+ÚÙ^KX™[JOO˜]KXÛÛ[[H‰ÚÙ^_Hˆ]K\ÛÜH‰ÚÙ^_H‰ÛX™[Oİ˜
+Kš›Ú[Š	ÉÊ_OİİXY›ÙHYHœ]‹]X›KX›ÙHİ›ÙOİX›OÙ]]ˆÛ\ÜÏHœ]‹[[Øš[K[\İˆYHœ]‹[[Øš[K[\İÙ]ÜÙXİ[Û‚ˆ]ˆÛ\ÜÏHœ]‹\ÚY]ˆ]KYš[\‹\ÚY]\šXKZY[HYH]ˆÛ\ÜÏHœÚY]X˜XÚÙ›Üˆ]KXÛÜÙK\ÚY]Ù]ÙXİ[ÛXY\“X\šÙ]š[\œÏÚ]ÛˆÛ\ÜÏHšXÛÛ‹X]Ûˆˆ]KXÛÜÙK\ÚY]‰ÚXÛÛŠ	ØÛÜÙIÊ_OØ]ÛÚXY\X™[‘\™Xİ[ÛÙ[Xİ]KYš[\‹Y\™Xİ[ÛÜ[Ûˆ˜[YOH˜[[\ÜÙ]ÏÛÜ[ÛÜ[Ûˆ˜[YOHœÜÚ]]™HY˜[˜Ù\œÏÛÜ[ÛÜ[Ûˆ˜[YOH›™YØ]]™H‘XÛ[™\œÏÛÜ[ÛÜÙ[XİÛX™[X™[“Z[š[][HÛÛ™šY[˜ÙO[œ]\OHœ˜[™ÙHˆZ[HŒˆX^HMHˆ˜[YOHŒˆ]KYš[\‹XÛÛ™šY[˜ÙOÛX™[X™[•[š]™\œÙOÙ[XİÜ[Û[\ÜÙ]ÏÛÜ[ÛÜ[Û‘\š]˜]]™\È[˜X›YÛÜ[ÛÜ[Û’YÚ\]ZY]OÛÜ[ÛÜÙ[XİÛX™[›Ûİ\]Ûˆ]K\™\Ù]Yš[\œÏ”™\Ù]Ø]Û]ÛˆÛ\ÜÏHœš[X\Hˆ]KX\KYš[\œÏ\Hš[\œÏØ]ÛÙ›Ûİ\ÜÙXİ[ÛÙ]‚ˆ]ˆÛ\ÜÏHœ]‹XÛÛ[[‹[Y[Hˆ]K[ZKXÛÛ[[‹[Y[HY[XY\İ›Û™Ï•š\ÚX›HÛÛ[[œÏÜİ›Û™Ï]ÛˆÛ\ÜÏHšXÛÛ‹X]Ûˆˆ]KXÛÜÙKXÛÛ[[œÏ‰ÚXÛÛŠ	ØÛÜÙIÊ_OØ]ÛÚXY\‰İX›PÛÛ[[œÊ
+K™š[\ŠÏOˆVÉÜ˜[šÉË	İØ]Ú	Ë	Ø\ÜÙ]	Ë	Ù^Z[‰×Kš[˜ÛY\ÊÖÌJJK›X\
+ÏO˜X™[[œ]\OH˜ÚXÚØ›ŞˆÚXÚÙY]KXÛÛ[[‹]ÙÙÛOH‰ØÖÌ_H‰ØÖÌW_OÛX™[˜
+Kš›Ú[Š	ÉÊ_OÙ]]ˆ]KY˜]Ù\‹ZÜİÙ]ÜÙXİ[Û˜ÂˆÛÛœİ›Ûİ[XZ[‹œ]Y\TÙ[XİÜŠ	Ëœ]‹\YÙIÊNØÛÛœİ›ÙO[XZ[‹œ]Y\TÙ[XİÜŠ	ÈÜ]‹]X›KX›ÙIÊNØÛÛœİ[Øš[O[XZ[‹œ]Y\TÙ[XİÜŠ	ÈÜ]‹[[Øš[K[\İ	ÊNÂˆ[˜İ[Ûˆš\ÚX›T›İÜÊ
+^Û]\İ\›İÜË™š[\ŠOˆ\İ]Kœ]Y\_	Ü‹›˜[Y_H	Ü‹œŞ[X›ÛXÓİÙ\Ø\ÙJ
+Kš[˜ÛY\Êİ]Kœ]Y\JJNÚYŠİ]K™\™Xİ[ÛOOIÜÜÚ]]™IÊ[\İ[\İ™š[\ŠOœ‹˜Ú[™ÙLŒ
+NÚYŠİ]K™\™Xİ[ÛOOIÛ™YØ]]™IÊ[\İ[\İ™š[\ŠOœ‹˜Ú[™ÙL
+NÜ™]\›ˆË‹‹›\İKœÛÜ
 
-  main.innerHTML=`<section class="q-page q-mi-page">
-    <div class="q-mi-truth-banner" role="status">
-      <span class="q-mi-truth-icon" aria-hidden="true">â—‡</span>
-      <strong>${staticVisualPreview?'Static visual preview':'Market data boundary'}</strong>
-      <span>${escapeHtml(truthLabel)}</span>
-    </div>
-    <header class="q-mi-page-head">
-      <div>
-        <p class="q-mi-eyebrow">Markets / cross-asset intelligence</p>
-        <h1>Global Market Intelligence</h1>
-        <p>Market breadth, derivatives pressure, institutional flows and governed evidence in one analytical surface.</p>
-      </div>
-      <div class="q-mi-page-actions">
-        <button type="button" class="q-mi-button" data-mi-save-view>Saved View</button>
-        <button type="button" class="q-mi-button" data-mi-customize>Customize</button>
-        <button type="button" class="q-mi-button is-primary" data-mi-explain>Explain Market Move <span aria-hidden="true">âœ¦</span></button>
-      </div>
-    </header>
-    <section class="q-mi-kpis" aria-label="Global market summary">
-      ${kpis.map((item)=>`<article class="q-mi-kpi is-${item.tone}">
-        <div class="q-mi-kpi-label"><span>${escapeHtml(item.label)}</span><span class="q-mi-demo-mark">${staticVisualPreview?'demo':'observed'}</span></div>
-        <strong>${escapeHtml(item.value)}</strong>
-        <div class="q-mi-kpi-foot"><span class="${item.detail.startsWith('+')?'is-positive':item.detail.startsWith('âˆ’')||item.detail.startsWith('-')?'is-negative':''}">${escapeHtml(item.detail)}</span><span>${sparkline(item.spark)}</span></div>
-      </article>`).join('')}
-    </section>
-    <div class="q-mi-intelligence-layout">
-      <section class="q-mi-card q-mi-chart-card">
-        <header class="q-mi-card-head">
-          <div>
-            <span class="q-mi-card-kicker">QELLY-MI-01 Â· ${staticVisualPreview?'deterministic demo':'provider observations'}</span>
-            <h2>Crypto Market Composite</h2>
-          </div>
-          <div class="q-mi-segment" role="group" aria-label="Chart timeframe">
-            ${Object.keys(TIMEFRAME_POINTS).map((timeframe)=>`<button type="button" data-mi-timeframe="${timeframe}" class="${timeframe===view.timeframe?'is-active':''}" aria-pressed="${timeframe===view.timeframe}">${timeframe}</button>`).join('')}
-          </div>
-        </header>
-        <div class="q-mi-chart-meta">
-          <span><strong id="q-mi-chart-latest">â€”</strong> <small>composite level</small></span>
-          <span class="q-mi-state-pill is-demo">â—‡ Demo Â· not live</span>
-        </div>
-        <div id="q-mi-chart" class="q-mi-chart-visual">
-          <div class="q-mi-chart-tooltip" hidden></div>
-        </div>
-        <footer class="q-mi-source-line">
-          <span>Source: <strong>${escapeHtml(candles.source?.attribution??'Unavailable')}</strong></span>
-          <span>Observed: ${escapeHtml(candles.source?.observedAt??data.generatedAt??'Unavailable')}</span>
-          <span>Freshness: ${staticVisualPreview?'fixed demo snapshot':escapeHtml(candles.source?.mode??data.mode)}</span>
-        </footer>
-      </section>
-      <aside class="q-mi-side-stack" aria-label="Market intelligence watch">
-        <section class="q-mi-card q-mi-mini-card">
-          <header><div><span class="q-mi-card-kicker">Momentum scan</span><h2>Top Gainers</h2></div><span class="q-mi-state-pill is-demo">demo</span></header>
-          <div class="q-mi-mini-rows">
-            ${gainers.map((row,index)=>`<button type="button" data-mi-open-asset="${escapeHtml(row.canonicalId)}">
-              <span class="q-mi-rank">${String(index+1).padStart(2,'0')}</span>
-              <span><strong>${escapeHtml(row.symbol)}</strong><small>${index===0?'Volume expansion':'Composite momentum'}</small></span>
-              <b class="${movementClass(row.change24h)}">${percentLabel(row.change24h)}</b>
-            </button>`).join('')}
-          </div>
-        </section>
-        <section class="q-mi-card q-mi-mini-card">
-          <header><div><span class="q-mi-card-kicker">Pressure monitor</span><h2>Risk Watch</h2></div><span class="q-mi-state-pill is-warning">â–³ review</span></header>
-          <div class="q-mi-risk-rows">
-            <div><span><strong>Unusual OI</strong><small>SOL positioning Â· demo signal</small></span><b class="is-negative">+14.2%</b></div>
-            <div><span><strong>Funding dislocation</strong><small>SOL perpetual Â· demo metric</small></span><b class="is-warning">+0.0112%</b></div>
-            <div><span><strong>Stablecoin flow</strong><small>Illustrative 24h net estimate</small></span><b class="is-positive">+$480M</b></div>
-            <div><span><strong>Provider warning</strong><small>No external provider or backend connection</small></span><b class="is-warning">Unavailable</b></div>
-          </div>
-        </section>
-      </aside>
-    </div>
-    <section class="q-mi-card q-mi-table-card" data-mi-density="${view.density}">
-      <header class="q-mi-table-toolbar">
-        <div class="q-mi-segment q-mi-universe" role="group" aria-label="Asset universe">
-          <button type="button" data-mi-universe="all" class="${view.universe==='all'?'is-active':''}" aria-pressed="${view.universe==='all'}">All Assets</button>
-          <button type="button" data-mi-universe="derivatives" class="${view.universe==='derivatives'?'is-active':''}" aria-pressed="${view.universe==='derivatives'}">Derivatives</button>
-          <button type="button" data-mi-universe="spot" class="${view.universe==='spot'?'is-active':''}" aria-pressed="${view.universe==='spot'}">Spot</button>
-        </div>
-        <label class="q-mi-search">
-          <span aria-hidden="true">âŒ•</span>
-          <span class="sr-only">Search assets</span>
-          <input type="search" data-mi-search value="${escapeHtml(view.query)}" placeholder="Search assetsâ€¦" autocomplete="off">
-        </label>
-        <label class="q-mi-density">
-          <span class="sr-only">Table density</span>
-          <select data-mi-density-select aria-label="Table density">
-            <option value="standard" ${view.density==='standard'?'selected':''}>Standard density</option>
-            <option value="compact" ${view.density==='compact'?'selected':''}>Compact density</option>
-            <option value="research" ${view.density==='research'?'selected':''}>Research density</option>
-          </select>
-        </label>
-        <button type="button" class="q-mi-button" data-mi-filter-toggle aria-expanded="false">Filters</button>
-        <button type="button" class="q-mi-button" data-mi-columns-toggle aria-expanded="false">Columns</button>
-      </header>
-      <div class="q-mi-filter-strip" data-mi-filter-strip hidden>
-        <label><span>Direction</span><select data-mi-direction><option value="all" ${view.direction==='all'?'selected':''}>All directions</option><option value="positive" ${view.direction==='positive'?'selected':''}>Advancers</option><option value="negative" ${view.direction==='negative'?'selected':''}>Decliners</option></select></label>
-        <label><span>Minimum confidence</span><select data-mi-confidence><option value="0" ${view.confidence==='0'?'selected':''}>Any confidence</option><option value="50" ${view.confidence==='50'?'selected':''}>50+</option><option value="75" ${view.confidence==='75'?'selected':''}>75+</option><option value="90" ${view.confidence==='90'?'selected':''}>90+</option></select></label>
-        <button type="button" class="q-mi-button" data-mi-reset>Reset filters</button>
-        <span>Filters apply locally to the observations already displayed.</span>
-      </div>
-      <div class="q-mi-column-menu" data-mi-column-menu hidden>
-        <strong>Visible columns</strong>
-        <div>${TABLE_COLUMNS.map((column)=>`<label><input type="checkbox" value="${column.key}" ${view.visibleColumns.has(column.key)?'checked':''} ${['asset','watchlist'].includes(column.key)?'disabled':''}><span>${escapeHtml(column.label)}</span></label>`).join('')}</div>
-        <small>Asset and Watchlist remain visible. This preference is local to the browser.</small>
-      </div>
-      <div class="q-mi-table-summary">
-        <div><strong>Institutional Asset Monitor</strong><span id="q-mi-row-summary" aria-live="polite"></span></div>
-        <div><span class="q-mi-state-pill is-demo">â—‡ deterministic demo</span><span data-mi-watch-count>${watchlist.size} watched</span></div>
-      </div>
-      <div id="q-mi-table-host"></div>
-    </section>
-    <div class="q-mi-drawer-scrim" data-mi-drawer-scrim hidden></div>
-    <aside class="q-mi-explain-drawer" data-mi-drawer role="dialog" aria-modal="true" aria-labelledby="q-mi-drawer-title" hidden>
-      <header><div><p class="q-mi-eyebrow">Illustrative explanation Â· deterministic demo</p><h2 id="q-mi-drawer-title">Explain Market Move</h2></div><button type="button" data-mi-drawer-close aria-label="Close market explanation">Ã—</button></header>
-      <p>Qelly assembles a transparent example from deterministic observations and competing hypotheses. It is not a live explanation or investment advice.</p>
-      <ol>
-        <li><strong>Price structure</strong><span>The composite holds above its packaged seven-day median.</span><small>Demo observation Â· fixed snapshot</small></li>
-        <li><strong>Derivative confirmation</strong><span>Illustrative open interest expands while funding remains moderate.</span><small>Demo metric Â· no connected provider</small></li>
-        <li><strong>Spot-flow evidence</strong><span>Packaged volume breadth supports the positive composite move.</span><small>Derived locally Â· confidence limited</small></li>
-        <li class="is-contradiction"><strong>Risk contradiction</strong><span>Concentrated positioning increases sensitivity to a reversal.</span><small>Illustrative risk hypothesis</small></li>
-        <li><strong>Conclusion</strong><span>Constructive demo regime with elevated leverage sensitivity.</span><small>Not live Â· not advice Â· no execution</small></li>
-      </ol>
-      <button type="button" class="q-mi-button is-primary" data-mi-open-provenance>Open Decision Provenance</button>
-    </aside>
-  </section>`;
+KŠOOØÛÛœİ]XVÜİ]KœÛÜOÏÌX–Üİ]KœÛÜOÏÌÜ™]\›ˆ
+\[Ùˆ]OOIÜİš[™ÉÏÔİš[™Ê]ŠK›ØØ[PÛÛ\\™Jİš[™ÊŠJN“[X™\Š]ŠKS[X™\ŠŠJJŠİ]K™\ØÙ[™[™ÏËLNŒJ_JNßBˆ[˜İ[Ûˆ˜]Ê
+^ØÛÛœİ\İ]š\ÚX›T›İÜÊ
+Nİ›ÙKš[›™\’S[\İ›X\
+Oœ›İÓX\šİ\
+‹Ø]Ú\İ\ØØ\R[
+JKš›Ú[Š	ÉÊNÛ[Øš[Kš[›™\’S[\İ›X\
+O›[Øš[T›İÊ‹Ø]Ú\İ\ØØ\R[
+JKš›Ú[Š	ÉÊNØš[™[˜[ZXÊ
+NßBˆ[˜İ[Ûˆ\œÚ\İ
 
-  const tableCard=main.querySelector('.q-mi-table-card');
-  const tableHost=main.querySelector('#q-mi-table-host');
-  const rowSummary=main.querySelector('#q-mi-row-summary');
-  const watchCount=main.querySelector('[data-mi-watch-count]');
-  const columnMenu=main.querySelector('[data-mi-column-menu]');
-  const filterStrip=main.querySelector('[data-mi-filter-strip]');
-  const drawer=main.querySelector('[data-mi-drawer]');
-  const drawerScrim=main.querySelector('[data-mi-drawer-scrim]');
-  let drawerReturnFocus=null;
+^ÜİÜ™KÜš]JÕÔQÑWÒÑVKÛ[ÙNœİ]K›[ÙK[œÚ]Nœİ]K™[œÚ]_JNÜİÜ™KÜš]JĞUÒÒÑVKË‹‹Ø]Ú\İJNßBˆ[˜İ[Ûˆš[™[˜[ZXÊ
+^ÛXZ[‹œ]Y\TÙ[XİÜ[
+	ÖÙ]K]Ø]ÚIÊK™›Ü‘XXÚ
+O˜‹›Û˜ÛXÚÏJ
+OOØÛÛœİYX‹™]\Ù]Ø]ÚİØ]Ú\İš\ÊY
+OİØ]Ú\İ™[]JY
+NØ]Ú\İ˜Y
+Y
+NÜ\œÚ\İ
 
-  const visibleRows=()=>rows.filter((row)=>{
-    const query=view.query.trim().toLowerCase();
-    const matchesQuery=!query||`${row.symbol} ${row.name}`.toLowerCase().includes(query);
-    const matchesDirection=view.direction==='all'||view.direction==='positive'&&Number(row.change24h)>0||view.direction==='negative'&&Number(row.change24h)<0;
-    const matchesConfidence=Number(row.confidence??0)>=Number(view.confidence);
-    const matchesUniverse=view.universe!=='derivatives'||row.derivatives;
-    return matchesQuery&&matchesDirection&&matchesConfidence&&matchesUniverse;
-  });
+NÙ˜]Ê
+NİØ\İ
+Ø]Ú\İš\ÊY
+OÉĞYYÈØØ[™]šY]ÈØ]Ú\İ	Î‰Ô™[[İ™Yœ›ÛHØØ[™]šY]ÈØ]Ú\İ	ËİÛ™N‰ÜİXØÙ\ÜÉßJNßJNÛXZ[‹œ]Y\TÙ[XİÜ[
+	ÖÙ]KY^Z[—IÊK™›Ü‘XXÚ
+O˜‹›Û˜ÛXÚÏJ
+OO›Ü[‘^Z[Š›İÜË™š[™
+Oœ‹šYOOX‹™]\Ù]™^Z[ŠOÏÜ›İÜÖÌJJNÛXZ[‹œ]Y\TÙ[XİÜ[
+	ÖÙ]KY^[™IÊK™›Ü‘XXÚ
+O˜‹›Û˜ÛXÚÏJ
+OO˜‹˜ÛÜÙ\İ
+	Ëœ]‹[[Øš[K\›İÉÊK˜Û\ÜÓ\İÙÙÛJ	Ú\Ë[Ü[‰ÊJNßBˆ[˜İ[ÛˆÜ[‘^Z[Š›İÊ^ÛXZ[‹œ]Y\TÙ[XİÜŠ	ÖÙ]KY˜]Ù\‹ZÜİIÊKš[›™\’S\™[™\‘˜]Ù\Š›İË\ØØ\R[
+NÛXZ[‹œ]Y\TÙ[XİÜŠ	ÖÙ]K[ZKY˜]Ù\‹XÛÜÙWIÊK›Û˜ÛXÚÏXÛÜÙQ^Z[ÛXZ[‹œ]Y\TÙ[XİÜŠ	ÖÙ]KXÛÜÙKY˜]Ù\—IÊK›Û˜ÛXÚÏXÛÜÙQ^Z[ßBˆ[˜İ[ÛˆÛÜÙQ^Z[Š
+^ÛXZ[‹œ]Y\TÙ[XİÜŠ	ÖÙ]KY˜]Ù\‹ZÜİIÊKš[›™\’SIÉÎßBˆXZ[‹œ]Y\TÙ[XİÜ[
+	ÖÙ]K[[ÙWIÊK™›Ü‘XXÚ
+O˜‹›Û˜ÛXÚÏJ
+OOÜİ]K›[ÙOX‹™]\Ù]›[ÙNÜ›Ûİ™]\Ù]›[ÙO\İ]K›[ÙNÛXZ[‹œ]Y\TÙ[XİÜ[
+	ÖÙ]K[[ÙWIÊK™›Ü‘XXÚ
+O˜‹˜Û\ÜÓ\İÙÙÛJ	Ú\ËXXİ]™IËOOXŠJNÜ\œÚ\İ
 
-  const cellMarkup=(row,key)=>{
-    if(key==='asset')return `<button type="button" class="q-mi-asset-cell" data-mi-open-asset="${escapeHtml(row.canonicalId)}"><span class="q-mi-coin" style="--q-mi-coin:${escapeHtml(row.accent)}">${escapeHtml(row.symbol.slice(0,2))}</span><span><strong>${escapeHtml(row.name)}</strong><small>${escapeHtml(row.symbol)} Â· ${escapeHtml(row.canonicalId)}</small></span></button>`;
-    if(key==='price')return `<span class="q-mi-number">${priceLabel(row.price)}</span>`;
-    if(key==='change24h')return `<span class="q-mi-number ${movementClass(row.change24h)}">${percentLabel(row.change24h)}</span>`;
-    if(key==='change7d')return `<span class="q-mi-number ${movementClass(row.change7d)}">${percentLabel(row.change7d)}</span>`;
-    if(key==='volume')return `<span class="q-mi-number">${compactNumber(row.volume)}</span>`;
-    if(key==='marketCap')return `<span class="q-mi-number">${compactNumber(row.marketCap)}</span>`;
-    if(key==='funding')return `<span class="q-mi-number ${movementClass(row.funding)}">${percentLabel(row.funding,{funding:true})}</span>`;
-    if(key==='openInterest')return `<span class="q-mi-number">${compactNumber(row.openInterest)}</span>`;
-    if(key==='liquidation')return `<span class="q-mi-number">${compactNumber(row.liquidation)}</span>`;
-    if(key==='confidence')return row.confidence==null?'<span class="q-mi-unavailable">N/A</span>':`<span class="q-mi-confidence"><span><i style="width:${Math.max(0,Math.min(100,row.confidence))}%"></i></span><b>${row.confidence}/100</b></span>`;
-    if(key==='source')return `<span class="q-mi-provider"><i aria-hidden="true"></i><span><strong>${escapeHtml(row.source)}</strong><small>${staticVisualPreview?'Demo source Â· not live':escapeHtml(row.sourceState)}</small></span></span>`;
-    if(key==='watchlist'){
-      const watched=watchlist.has(row.id);
-      return `<button type="button" class="q-mi-watch ${watched?'is-watched':''}" data-mi-watch="${escapeHtml(row.id)}" aria-pressed="${watched}" aria-label="${watched?'Remove':'Add'} ${escapeHtml(row.symbol)} ${staticVisualPreview?'from browser demo watchlist':'from watchlist'}">${watched?'â˜…':'â˜†'}</button>`;
-    }
-    return '<span class="q-mi-unavailable">N/A</span>';
-  };
+NßJNÂˆXZ[‹œ]Y\TÙ[XİÜŠ	ÖÙ]K[ZK\ÙX\˜ÚIÊK›Ûš[œ]YOOÜİ]Kœ]Y\OYK\™Ù]˜[YKš[J
+KÓİÙ\Ø\ÙJ
+NÙ˜]Ê
+NßNÂˆXZ[‹œ]Y\TÙ[XİÜ[
+	ÖÙ]KY\™Xİ[Û—IÊK™›Ü‘XXÚ
+O˜‹›Û˜ÛXÚÏJ
+OOÜİ]K™\™Xİ[ÛX‹™]\Ù]™\™Xİ[ÛÛXZ[‹œ]Y\TÙ[XİÜ[
+	ÖÙ]KY\™Xİ[Û—IÊK™›Ü‘XXÚ
+O˜‹˜Û\ÜÓ\İÙÙÛJ	Ú\ËXXİ]™IËOOXŠJNÙ˜]Ê
+NßJNÂˆXZ[‹œ]Y\TÙ[XİÜ[
+	ÖÙ]K\ÛÜIÊK™›Ü‘XXÚ
+O›Û˜ÛXÚÏJ
+OOÜİ]K™\ØÙ[™[™Ï\İ]KœÛÜOO]™]\Ù]œÛÜÈ\İ]K™\ØÙ[™[™Î™˜[ÙNÜİ]KœÛÜ]™]\Ù]œÛÜÙ˜]Ê
+NßJNÂˆXZ[‹œ]Y\TÙ[XİÜŠ	ÖÙ]K[ZKY[œÚ]K\Ù[XİIÊK˜[YO\İ]K™[œÚ]NÛXZ[‹œ]Y\TÙ[XİÜŠ	ÖÙ]K[ZKY[œÚ]K\Ù[XİIÊK›Û˜Ú[™ÙOYOOÜİ]K™[œÚ]OYK\™Ù]˜[YNÜ›Ûİ™]\Ù]™[œÚ]O\İ]K™[œÚ]NÜ\œÚ\İ
 
-  const renderTable=()=>{
-    const filtered=visibleRows();
-    const columns=TABLE_COLUMNS.filter((column)=>view.visibleColumns.has(column.key));
-    rowSummary.textContent=`${filtered.length} of ${rows.length} assets Â· ${view.universe==='all'?'all markets':view.universe}`;
-    tableHost.innerHTML=`<div class="q-mi-table-scroll" tabindex="0" aria-label="Scrollable institutional asset monitor">
-      <table>
-        <caption>Institutional asset monitor with deterministic demo values clearly labelled as not live</caption>
-        <thead><tr>${columns.map((column)=>`<th scope="col" data-column="${column.key}" class="${column.numeric?'is-numeric':''}">${escapeHtml(column.label)}</th>`).join('')}</tr></thead>
-        <tbody>${filtered.map((row)=>`<tr>${columns.map((column)=>`<td data-column="${column.key}" class="${column.numeric?'is-numeric':''}">${cellMarkup(row,column.key)}</td>`).join('')}</tr>`).join('')}</tbody>
-      </table>
-      ${filtered.length?'':'<div class="q-mi-table-empty"><strong>No matching assets</strong><span>Reset the local filters or search another symbol.</span></div>'}
-    </div>`;
-  };
+NßNÂˆÛÛœİY[O[XZ[‹œ]Y\TÙ[XİÜŠ	ÖÙ]K[ZKXÛÛ[[‹[Y[WIÊNÛXZ[‹œ]Y\TÙ[XİÜŠ	ÖÙ]K[ZKXÛÛ[[œË]ÙÙÛWIÊK›Û˜ÛXÚÏJ
+OOÛY[KšY[H[Y[KšY[ßNÛXZ[‹œ]Y\TÙ[XİÜŠ	ÖÙ]KXÛÜÙKXÛÛ[[œ×IÊK›Û˜ÛXÚÏJ
+OO›Y[KšY[]YNÛXZ[‹œ]Y\TÙ[XİÜ[
+	ÖÙ]KXÛÛ[[‹]ÙÙÛWIÊK™›Ü‘XXÚ
+[œ]Oš[œ]›Û˜Ú[™ÙOJ
+OOœ›Ûİ˜Û\ÜÓ\İÙÙÛJYKIÚ[œ]™]\Ù]˜ÛÛ[[•ÙÙÛ_XZ[œ]˜ÚXÚÙY
+JNÂˆÛÛœİÚY][XZ[‹œ]Y\TÙ[XİÜŠ	ÖÙ]KYš[\‹\ÚY]IÊNØÛÛœİÜ[”ÚY]J
+OOÜÚY]˜Û\ÜÓ\İ˜Y
+	Ú\Ë[Ü[‰ÊNÜÚY]œÙ]]šX]J	Ø\šXKZY[‰Ë	Ù˜[ÙIÊNßNØÛÛœİÛÜÙTÚY]J
+OOÜÚY]˜Û\ÜÓ\İœ™[[İ™J	Ú\Ë[Ü[‰ÊNÜÚY]œÙ]]šX]J	Ø\šXKZY[‰Ë	İYIÊNßNÛXZ[‹œ]Y\TÙ[XİÜŠ	ÖÙ]K[ZKYš[\œ×IÊK›Û˜ÛXÚÏ[Ü[”ÚY]ÛXZ[‹œ]Y\TÙ[XİÜ[
+	ÖÙ]KXÛÜÙK\ÚY]IÊK™›Ü‘XXÚ
+O›Û˜ÛXÚÏXÛÜÙTÚY]
+NÛXZ[‹œ]Y\TÙ[XİÜŠ	ÖÙ]KX\KYš[\œ×IÊK›Û˜ÛXÚÏJ
+OOÜİ]K™\™Xİ[Û[XZ[‹œ]Y\TÙ[XİÜŠ	ÖÙ]KYš[\‹Y\™Xİ[Û—IÊK˜[YNØÛÜÙTÚY]
 
-  const persistView=()=>storage.write(DEMO_VIEW_KEY,{
-    query:view.query,
-    direction:view.direction,
-    confidence:view.confidence,
-    universe:view.universe,
-    density:view.density,
-    timeframe:view.timeframe,
-    visibleColumns:[...view.visibleColumns]
-  });
+NÙ˜]Ê
+NßNÛXZ[‹œ]Y\TÙ[XİÜŠ	ÖÙ]K\™\Ù]Yš[\œ×IÊK›Û˜ÛXÚÏJ
+OOÜİ]K™\™Xİ[ÛIØ[	ÎÛXZ[‹œ]Y\TÙ[XİÜŠ	ÖÙ]KYš[\‹Y\™Xİ[Û—IÊK˜[YOIØ[	ÎßNÂˆXZ[‹œ]Y\TÙ[XİÜ[
+	ÖÙ]K][YYœ˜[YWIÊK™›Ü‘XXÚ
+O˜‹›Û˜ÛXÚÏJ
+OOÜİ]K[YYœ˜[YOX‹™]\Ù][YYœ˜[YNÛXZ[‹œ]Y\TÙ[XİÜ[
+	ÖÙ]K][YYœ˜[YWIÊK™›Ü‘XXÚ
+O˜‹˜Û\ÜÓ\İÙÙÛJ	Ú\ËXXİ]™IËOOXŠJNÛXZ[‹œ]Y\TÙ[XİÜŠ	Ëœ]‹XÚ\]Ü˜\	ÊKš[›™\’SXØ[™\İXÚĞÚ\
+Ø[™\ËœÛXÙJUSQQ”SQTÖÜİ]K[YYœ˜[YWJJJÉÏ]ˆÛ\ÜÏHœ]‹XÚ\]ÛÛ\ˆY[Ù]‰ÎØš[™Ú\
 
-  const renderChart=()=>{
-    const model=chartModel(candles.points??[],TIMEFRAME_POINTS[view.timeframe]);
-    const chart=main.querySelector('#q-mi-chart');
-    const tooltip=chart.querySelector('.q-mi-chart-tooltip');
-    chart.innerHTML=`${model.markup}<div class="q-mi-chart-tooltip" hidden></div>`;
-    main.querySelector('#q-mi-chart-latest').textContent=model.visible.length?priceLabel(model.latest):'N/A';
-    main.querySelectorAll('[data-mi-timeframe]').forEach((button)=>{
-      const active=button.dataset.miTimeframe===view.timeframe;
-      button.classList.toggle('is-active',active);
-      button.setAttribute('aria-pressed',String(active));
-    });
-    const svg=chart.querySelector('svg');
-    const activeTooltip=chart.querySelector('.q-mi-chart-tooltip');
-    if(!svg||!model.visible.length)return;
-    svg.addEventListener('pointermove',(event)=>{
-      const bounds=svg.getBoundingClientRect();
-      const ratio=Math.max(0,Math.min(1,(event.clientX-bounds.left)/bounds.width));
-      const index=Math.min(model.visible.length-1,Math.round(ratio*(model.visible.length-1)));
-      const point=model.visible[index];
-      const date=new Date((point.time??0)*1000);
-      activeTooltip.innerHTML=`<strong>${priceLabel(point.close??point.value)}</strong><span>${Number.isNaN(date.getTime())?'Demo observation':date.toLocaleString('en-US',{month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</span><small>Deterministic demo Â· not live</small>`;
-      activeTooltip.style.left=`${Math.max(76,Math.min(bounds.width-88,event.clientX-bounds.left))}px`;
-      activeTooltip.style.top=`${Math.max(54,event.clientY-bounds.top-10)}px`;
-      activeTooltip.hidden=false;
-    });
-    svg.addEventListener('pointerleave',()=>{activeTooltip.hidden=true;});
-  };
+NßJNÂˆ[˜İ[Ûˆš[™Ú\
 
-  const openDrawer=(trigger)=>{
-    drawerReturnFocus=trigger;
-    drawer.hidden=false;
-    drawerScrim.hidden=false;
-    requestAnimationFrame(()=>{
-      drawer.classList.add('is-open');
-      drawerScrim.classList.add('is-open');
-      drawer.querySelector('[data-mi-drawer-close]')?.focus();
-    });
-  };
+^ØÛÛœİİ™Ï[XZ[‹œ]Y\TÙ[XİÜŠ	Ëœ]‹XÚ\\İ™ÉÊNØÛÛœİÛÛ\[XZ[‹œ]Y\TÙ[XİÜŠ	Ëœ]‹XÚ\]ÛÛ\	ÊNÜİ™ÏËœ]Y\TÙ[XİÜ[
+	ÖÙ]KXØ[™WIÊK™›Ü‘XXÚ
+ÏOÙËœ]Y\TÙ[XİÜŠ	Ëš]	ÊK˜Y]™[\İ[™\Š	ÜÚ[\™[\‰Ë
 
-  const closeDrawer=()=>{
-    drawer.classList.remove('is-open');
-    drawerScrim.classList.remove('is-open');
-    setTimeout(()=>{
-      drawer.hidden=true;
-      drawerScrim.hidden=true;
-      drawerReturnFocus?.focus?.();
-    },180);
-  };
+OOØÛÛœİÏXØ[™\ËœÛXÙJUSQQ”SQTÖÜİ]K[YYœ˜[YWJVÓ[X™\ŠË™]\Ù]˜Ø[™JWNİÛÛ\šY[Y˜[ÙNİÛÛ\š[›™\’SXİ›Û™Ï‰Û™]È]JË[YJŒL
+KÓØØ[Tİš[™Ê	Ù[‹UTÉËÛ[Û‰ÜÚÜ	Ë^N‰Ì‹YYÚ]	Ëİ\‰Ì‹YYÚ]	ßJ_OÜİ›Û™ÏÜ[“È	Û[Û™^JË›Ü[Š_H0­È	Û[Û™^JËšYÚ
+_OÜÜ[Ü[“	Û[Û™^JË›İÊ_H0­ÈÈ	Û[Û™^JË˜ÛÜÙJ_OÜÜ[ÛX[•›Û[YH	ØÛÛ\Xİ
+Ë›Û[YJ_OÜÛX[˜ßJNÙËœ]Y\TÙ[XİÜŠ	Ëš]	ÊK˜Y]™[\İ[™\Š	ÜÚ[\›X]™IË
 
-  renderTable();
-  renderChart();
-  tableCard.dataset.miDensity=view.density;
+OOÛÛ\šY[]YJNßJNßBˆXZ[‹œ]Y\TÙ[XİÜŠ	ÖÙ]K[ZKY^Z[—IÊK›Û˜ÛXÚÏJ
+OO›Ü[‘^Z[Š›İÜÖÌJNÛXZ[‹œ]Y\TÙ[XİÜŠ	ÖÙ]KY^ÜIÊK›Û˜ÛXÚÏJ
+OOØ\İ
+	Ôİ]XÈ™]šY]È^Ü™\\™YØØ[IËİÛ™N‰ÜİXØÙ\ÜÉßJNØš[™Ú\
 
-  main.querySelector('[data-mi-search]').addEventListener('input',(event)=>{view.query=event.target.value;renderTable();});
-  main.querySelector('[data-mi-density-select]').addEventListener('change',(event)=>{view.density=event.target.value;tableCard.dataset.miDensity=view.density;});
-  main.querySelector('[data-mi-direction]').addEventListener('change',(event)=>{view.direction=event.target.value;renderTable();});
-  main.querySelector('[data-mi-confidence]').addEventListener('change',(event)=>{view.confidence=event.target.value;renderTable();});
-  main.querySelectorAll('[data-mi-universe]').forEach((button)=>button.addEventListener('click',()=>{
-    view.universe=button.dataset.miUniverse;
-    main.querySelectorAll('[data-mi-universe]').forEach((candidate)=>{
-      const active=candidate===button;
-      candidate.classList.toggle('is-active',active);
-      candidate.setAttribute('aria-pressed',String(active));
-    });
-    renderTable();
-  }));
-  main.querySelectorAll('[data-mi-timeframe]').forEach((button)=>button.addEventListener('click',()=>{
-    view.timeframe=button.dataset.miTimeframe;
-    renderChart();
-  }));
-  main.querySelector('[data-mi-filter-toggle]').addEventListener('click',(event)=>{
-    filterStrip.hidden=!filterStrip.hidden;
-    event.currentTarget.setAttribute('aria-expanded',String(!filterStrip.hidden));
-  });
-  const toggleColumns=(trigger)=>{
-    columnMenu.hidden=!columnMenu.hidden;
-    main.querySelectorAll('[data-mi-columns-toggle],[data-mi-customize]').forEach((button)=>button.setAttribute('aria-expanded',String(!columnMenu.hidden)));
-    if(!columnMenu.hidden)columnMenu.querySelector('input:not(:disabled)')?.focus();
-    else trigger?.focus?.();
-  };
-  main.querySelector('[data-mi-columns-toggle]').addEventListener('click',(event)=>toggleColumns(event.currentTarget));
-  main.querySelector('[data-mi-customize]').addEventListener('click',(event)=>toggleColumns(event.currentTarget));
-  columnMenu.querySelectorAll('input').forEach((input)=>input.addEventListener('change',()=>{
-    input.checked?view.visibleColumns.add(input.value):view.visibleColumns.delete(input.value);
-    renderTable();
-  }));
-  main.querySelector('[data-mi-reset]').addEventListener('click',()=>{
-    view.query='';view.direction='all';view.confidence='0';view.universe='all';
-    main.querySelector('[data-mi-search]').value='';
-    main.querySelector('[data-mi-direction]').value='all';
-    main.querySelector('[data-mi-confidence]').value='0';
-    main.querySelectorAll('[data-mi-universe]').forEach((button)=>{
-      const active=button.dataset.miUniverse==='all';
-      button.classList.toggle('is-active',active);
-      button.setAttribute('aria-pressed',String(active));
-    });
-    renderTable();
-  });
-  main.querySelector('[data-mi-save-view]').addEventListener('click',()=>{
-    if(!staticVisualPreview){toast('Saved views require the authenticated workspace backend.',{tone:'danger'});return;}
-    const saved=persistView();
-    toast(saved?'Saved to this browser Â· demo only':'Browser storage is unavailable; the demo view was not saved.',{tone:saved?'success':'danger'});
-  });
-  tableHost.addEventListener('click',(event)=>{
-    const watch=event.target.closest('[data-mi-watch]');
-    if(watch){
-      if(!staticVisualPreview){navigate('watchlist');return;}
-      const id=watch.dataset.miWatch;
-      watchlist.has(id)?watchlist.delete(id):watchlist.add(id);
-      storage.write(DEMO_WATCHLIST_KEY,[...watchlist]);
-      watchCount.textContent=`${watchlist.size} watched`;
-      renderTable();
-      toast(`${watchlist.has(id)?'Added to':'Removed from'} browser demo watchlist Â· not persisted to Qelly`,{tone:'success'});
-      return;
-    }
-    const asset=event.target.closest('[data-mi-open-asset]');
-    if(asset)navigate('asset',asset.dataset.miOpenAsset);
-  });
-  main.querySelectorAll('.q-mi-mini-rows [data-mi-open-asset]').forEach((button)=>button.addEventListener('click',()=>navigate('asset',button.dataset.miOpenAsset)));
-  main.querySelectorAll('[data-mi-explain]').forEach((button)=>button.addEventListener('click',()=>openDrawer(button)));
-  drawer.querySelector('[data-mi-drawer-close]').addEventListener('click',closeDrawer);
-  drawerScrim.addEventListener('click',closeDrawer);
-  drawer.querySelector('[data-mi-open-provenance]').addEventListener('click',()=>{closeDrawer();navigate('decision-provenance');});
-  const keydown=(event)=>{if(event.key==='Escape'&&!drawer.hidden){event.preventDefault();closeDrawer();}};
-  window.addEventListener('keydown',keydown);
-  window.__qellyLiveMarketCleanup=()=>window.removeEventListener('keydown',keydown);
-}
+NÙ˜]Ê
+NÂŸB
