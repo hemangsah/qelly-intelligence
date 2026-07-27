@@ -1,0 +1,13 @@
+domain,component,variants,states,responsive,accessibility
+Shell,Slim edge dock,desktop compact,default hover active unavailable,hidden on mobile,labels and visible focus
+Navigation,Domain navigator,desktop drawer and mobile sheet,closed open active,drawer or bottom sheet,focus return and Escape
+Command,Global command search,desktop and mobile,default focus results empty,fluid width,labelled input and keyboard
+Market Pulse,Mixed market pulse,Discovery Terminal Research,default loading stale,grid to compact strip,non-color data states
+Table,Institutional rankings,comfortable compact terminal,sort filter selected stale,desktop table and mobile rows,semantic table keyboard and row alternative
+Chart,OHLC workspace,candlestick line area,loading empty error stale tooltip,desktop and touch chart,text summary and keyboard inspection
+Filter,Query builder,desktop drawer and mobile sheet,closed open applied error,bottom sheet on mobile,named fields and focus containment
+Columns,Column manager,compact menu,closed open minimum guard,floating desktop and mobile sheet,checkbox labels
+Evidence,Explain This Move,row chart regime portfolio,closed loading result error,drawer or bottom sheet,focus management and structured headings
+Provenance,Decision graph,graph and list,default active empty,responsive graph plus list,text alternative and keyboard
+Persona,Operating mode,six personas,preview active override reset,workspace control,not color-only
+Status,Compact truth center,live delayed stale demo fallback unavailable,default expanded,one-line to wrap,role status and text meaning
