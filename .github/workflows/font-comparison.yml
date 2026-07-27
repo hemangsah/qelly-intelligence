@@ -37,6 +37,10 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci --ignore-scripts
+      - name: Inventory locked variable-font packages
+        run: |
+          mkdir -p /tmp/qelly-font-evidence
+          find node_modules/@fontsource-variable -maxdepth 3 -type f \( -name '*.woff2' -o -name 'LICENSE' -o -name 'package.json' \) -print | sort | tee /tmp/qelly-font-evidence/package-files.txt
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Build current rejected static preview
@@ -46,12 +50,23 @@ jobs:
           QELLY_DEPLOYMENT_ENVIRONMENT: typography-candidate-review
         run: npm run build:frontend
       - name: Render typography comparison and baseline audit
-        run: node scripts/font-comparison-board-local.mjs
+        shell: bash
+        run: |
+          set +e
+          node scripts/font-comparison-board-local.mjs 2>&1 | tee /tmp/qelly-font-evidence/render.log
+          code=${PIPESTATUS[0]}
+          set -e
+          exit "$code"
+      - name: Collect comparison diagnostics
+        if: always()
+        run: |
+          mkdir -p .font-review/diagnostics
+          cp -f /tmp/qelly-font-evidence/* .font-review/diagnostics/ 2>/dev/null || true
       - name: Upload typography evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: qelly-font-comparison
           path: .font-review
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14
