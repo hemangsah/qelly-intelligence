@@ -1,0 +1,53 @@
+name: Qelly Typography Candidate Review
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/font-comparison-board.mjs'
+      - '.github/workflows/font-comparison.yml'
+      - 'apps/web/public/**'
+      - 'packages/ui-primitives/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qelly-font-comparison-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render-font-comparison:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'agent/ui-rescue-asset-rankings'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Build current rejected static preview
+        env:
+          QELLY_STATIC_VISUAL_PREVIEW: 'true'
+          QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
+          QELLY_DEPLOYMENT_ENVIRONMENT: typography-candidate-review
+        run: npm run build:frontend
+      - name: Render typography comparison and baseline audit
+        run: node scripts/font-comparison-board.mjs
+      - name: Upload typography evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-font-comparison
+          path: .font-review
+          if-no-files-found: error
+          retention-days: 14
