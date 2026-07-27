@@ -27,7 +27,10 @@ test('premium artifact captures required viewports modes interactions and browse
   for(const viewport of ['desktop-1440','desktop-1728','tablet-1024','tablet-768','mobile-390','mobile-430'])assert.match(premium,new RegExp(viewport));
   for(const mode of ['discovery-mode','terminal-mode','research-mode'])assert.match(premium,new RegExp(mode));
   for(const artifact of ['expanded-navigation-premium.png','command-palette-premium.png','explain-drawer-premium.png','filters.png','column-manager.png','chart-tooltip.png','candlesticks.png','table-region-premium.png','light-mode-premium.png','reduced-motion-premium.png','old-vs-new-desktop.png','old-vs-new-mobile.png','MOTION_QA.md','ACCESSIBILITY_QA.md','PERFORMANCE_QA.md','CONSOLE_ERRORS.json','INTERACTIONS.json','KNOWN_DIFFERENCES.json','ARTIFACT_MANIFEST.json','VALIDATION_SUMMARY.json'])assert.match(premium,new RegExp(artifact.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
-  for(const artifact of ['query-builder.png','master-frame-evidence.png','MASTER_FRAME_EVIDENCE.md','persona-scalper-velocity.png','persona-investor-compound.png','persona-aggressive-alpha.png','persona-quant-operator.png','persona-research-oracle.png','persona-signal-access.png'])assert.match(evidence,new RegExp(artifact.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+  for(const artifact of ['query-builder.png','master-frame-evidence.png','MASTER_FRAME_EVIDENCE.md'])assert.match(evidence,new RegExp(artifact.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+  for(const slug of ['scalper-velocity','investor-compound','aggressive-alpha','quant-operator','research-oracle','signal-access'])assert.match(evidence,new RegExp(`['\"]${slug}['\"]`));
+  assert.match(evidence,/personas\.map\(\(\[,slug\]\)=>`implementation\/persona-\$\{slug\}\.png`\)/);
+  assert.match(evidence,/`persona-\$\{slug\}\.png`/);
   for(const browser of ['chromium','firefox','webkit'])assert.match(premium,new RegExp(browser));
   assert.match(combined,/old-vs-new-desktop\.png/);
 });
