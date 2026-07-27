@@ -6,6 +6,7 @@
 @import url('./premium-polish.css');
 @import url('./premium-font-surface.css');
 @import url('./premium-font-surface-polish.css');
+@import url('./premium-font-worldquant-arkham.css');
 
 /* The correction keeps neutral surfaces dominant. Burgundy remains an identity and active-state accent.
    Visible gradients remain restricted to compact Qelly brand marks. */
