@@ -1,13 +1,21 @@
 domain,component,variants,states,responsive,accessibility
-Shell,Slim edge dock,desktop compact,default hover active unavailable,hidden on mobile,labels and visible focus
-Navigation,Domain navigator,desktop drawer and mobile sheet,closed open active,drawer or bottom sheet,focus return and Escape
-Command,Global command search,desktop and mobile,default focus results empty,fluid width,labelled input and keyboard
-Market Pulse,Mixed market pulse,Discovery Terminal Research,default loading stale,grid to compact strip,non-color data states
-Table,Institutional rankings,comfortable compact terminal,sort filter selected stale,desktop table and mobile rows,semantic table keyboard and row alternative
-Chart,OHLC workspace,candlestick line area,loading empty error stale tooltip,desktop and touch chart,text summary and keyboard inspection
-Filter,Query builder,desktop drawer and mobile sheet,closed open applied error,bottom sheet on mobile,named fields and focus containment
-Columns,Column manager,compact menu,closed open minimum guard,floating desktop and mobile sheet,checkbox labels
-Evidence,Explain This Move,row chart regime portfolio,closed loading result error,drawer or bottom sheet,focus management and structured headings
+Typography,Geist semantic type system,page section module metric body table metadata,loaded fallback review,desktop tablet mobile,scale tone line-height and numeric features
+Surface,Tonal neutral hierarchy,canvas base section panel interactive floating,dark light selected warning,mode variables,contrast and no color-only meaning
+Geometry,Continuous-corner system,4 6 8 10 12 14 16 20 24 28 pill,default nested floating,component-specific radii,visible focus separate from border
+Shell,Floating edge dock,desktop compact,default hover active unavailable,hidden on mobile,labels tooltips and visible focus
+Navigation,Domain navigator,desktop drawer and mobile sheet,closed open active,drawer or bottom sheet,focus return Escape and SVG labels
+Command,Command palette,desktop floating and mobile modal,default focus recent results empty,680-760 desktop fluid mobile,dialog focus trap arrows Enter Escape announcements
+Command,Command result,Recent Navigation Assets Actions,default hover selected disabled,stacked compact row,SVG icon title description shortcut and tonal selection
+Input,Search and select,search select range,default hover focus error disabled,44px touch and fluid width,label custom indicator visible focus no native appearance
+Market Pulse,Continuous metric rail,Discovery Terminal Research,default loading stale,desktop six cells mobile horizontal snap rail,non-color data states and readable labels
+Table,Institutional rankings,comfortable compact terminal,sort filter selected stale,desktop table and mobile rows,semantic table keyboard row alternative and evidence
+Table,Mobile asset row,collapsed expanded watched,default hover focus expanded,52-64px prioritized row,button labels non-color direction and expandable details
+Chart,OHLC workspace,candlestick line area,loading empty error stale tooltip,desktop and touch chart,text summary keyboard inspection and source footer
+Filter,Query builder,desktop drawer and mobile sheet,closed open applied error,bottom sheet on mobile,named fields focus containment and Escape
+Columns,Column manager,desktop tonal menu and mobile bottom sheet,closed open minimum guard,floating desktop full-width mobile sheet,checkbox labels and focus management
+Evidence,Explain This Move,row chart regime portfolio,closed loading result error,drawer or bottom sheet,focus management structured headings and source hierarchy
 Provenance,Decision graph,graph and list,default active empty,responsive graph plus list,text alternative and keyboard
 Persona,Operating mode,six personas,preview active override reset,workspace control,not color-only
 Status,Compact truth center,live delayed stale demo fallback unavailable,default expanded,one-line to wrap,role status and text meaning
+Motion,Overlay motion,palette drawer sheet dock,open close reduced,230ms standard and no-travel reduce,meaning preserved without animation
+Light mode,Warm porcelain system,canvas surface interactive floating,default selected warning,responsive parity,no mechanical inversion or pink haze
