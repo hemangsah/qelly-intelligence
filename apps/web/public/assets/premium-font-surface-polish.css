@@ -1,0 +1,26 @@
+/* Final focused correction overrides: mobile sheets, pulse rhythm and continuous controls. */
+.q-command-item[aria-selected="true"]{outline:0!important;border:0!important;box-shadow:none!important}
+.q-command-group+.q-command-group{margin-top:5px}
+.q-command-close:hover{background:rgba(255,255,255,.05);color:var(--q-premium-text)}
+.q-mi-table-actions button,.q-mi-table-actions select,.q-mi-search,.q-mi-chart-controls button,.q-mi-layout-modes button{transition:background-color var(--q-motion-fast) var(--q-ease-standard),color var(--q-motion-fast) var(--q-ease-standard),transform var(--q-motion-fast) var(--q-ease-standard),box-shadow var(--q-motion-fast) var(--q-ease-standard)}
+.q-mi-table-actions button:active,.q-mi-chart-controls button:active,.q-mi-layout-modes button:active{transform:scale(.98)}
+.q-mi-filter-sheet>section,.q-mi-drawer>section,.q-mi-column-menu{transition:transform var(--q-motion-standard) var(--q-ease-enter),opacity var(--q-motion-fast) var(--q-ease-standard)}
+.q-mi-mobile-row-main>button:first-child{border-radius:var(--q-radius-10)}
+.q-mi-mobile-row-main>button:first-child:hover{background:rgba(255,255,255,.025)}
+.q-mi-mobile-row-main>.q-mi-icon-button{opacity:.66}.q-mi-mobile-row:hover .q-mi-mobile-row-main>.q-mi-icon-button,.q-mi-mobile-row:focus-within .q-mi-mobile-row-main>.q-mi-icon-button{opacity:1}
+
+@media(max-width:920px){
+  .q-mi-column-menu{position:fixed!important;z-index:105!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;width:100%!important;max-height:min(82dvh,720px)!important;margin:0!important;padding:10px 14px calc(18px + env(safe-area-inset-bottom))!important;border:0!important;border-radius:var(--q-radius-24) var(--q-radius-24) 0 0!important;background:var(--q-surface-floating)!important;box-shadow:0 -28px 80px rgba(0,0,0,.38)!important;overflow:auto!important}
+  .q-mi-column-menu::before{content:"";display:block;width:42px;height:4px;margin:2px auto 10px;border-radius:var(--q-radius-pill);background:rgba(255,255,255,.16)}
+  .q-mi-column-menu header{position:sticky;top:-10px;z-index:2;padding:10px 0;background:var(--q-surface-floating)}
+  .q-mi-column-menu label{min-height:44px;padding:0 6px;border-bottom:1px solid var(--q-border-subtle)}
+  .q-mi-column-menu label:last-child{border-bottom:0}
+  .q-mi-market-pulse{overscroll-behavior-x:contain;scroll-padding-inline:14px}
+  .q-mi-market-pulse>.q-mi-kpi{box-shadow:none!important;background:var(--q-surface-section)!important}
+  .q-mi-breadth,.q-mi-regime,.q-mi-pressure{box-shadow:none!important;background:var(--q-surface-panel)!important}
+  .q-mi-breadth{display:grid!important;align-content:center!important}
+  .q-mi-regime,.q-mi-pressure{display:flex!important;align-items:center!important}
+  .q-mi-filter-sheet>section::before,.q-mi-drawer>section::before{content:"";display:block;width:42px;height:4px;margin:0 auto 10px;border-radius:var(--q-radius-pill);background:rgba(255,255,255,.16)}
+  .q-mi-filter-sheet>section,.q-mi-drawer>section{padding-top:10px!important}
+}
+@media(prefers-reduced-motion:reduce){.q-mi-filter-sheet>section,.q-mi-drawer>section,.q-mi-column-menu,.q-command-item{transition-duration:1ms!important;transform:none!important}}
