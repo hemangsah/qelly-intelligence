@@ -1,0 +1,14 @@
+reference,area,visible_pattern,problem_solved,qelly_interpretation,accessibility_improvement,provenance_improvement,licensing_status
+CoinGlass,Derivatives,Open interest views,See leverage participation,OI and OI Change in primary rankings table,Keyboard table and non-color change labels,Source freshness confidence and Explain action,Pattern only no data copied
+CoinGlass,Derivatives,Funding comparisons,See crowding and carry,Funding column and pressure monitor,Text values plus sign and semantic label,Method and provider boundary retained,Pattern only no chart skin copied
+CoinGlass,Liquidations,Timeframe and venue controls,Inspect forced-position pressure,Liquidation column and risk filter,Named controls and mobile bottom sheet,Estimated/demo boundary explicit,Pattern only no data copied
+CoinGlass,Heatmaps,Intensity and zoom,Locate risk concentration,Future Qelly derivatives phase documented,Text alternative required,Methodology and confidence required,Deferred separate draft PR
+CoinGlass,Options,OI volume strikes expiries,Understand options positioning,Architecture documented for later phase,Keyboard/list alternatives required,Provider and methodology required,Deferred separate draft PR
+CoinMarketCap,Discovery,Asset ranking table,Scan market universe,Primary 23-column Qelly table,Sticky semantics keyboard rows mobile list,Source freshness confidence per row,Pattern only no data or layout copied
+CoinMarketCap,Discovery,Trending and leaderboards,Find market attention,Saved views and query filters,Descriptive labels and persistent focus,Explain action connects evidence,Original Qelly views
+CoinMarketCap,Discovery,Column manager,Personalize scan surface,Visible-column manager and density modes,Checkbox labels and minimum-column guard,Truth columns cannot be silently removed in governed presets,Pattern only
+CoinMarketCap,Mobile,Prioritized asset rows,Use rankings on small screens,Expandable Qelly mobile rows,44px targets and structured details,Source and confidence preserved in expansion,Original responsive composition
+WorldQuant,Editorial,Large restrained statements,Communicate sophistication,Research mode and public-page direction,Zoom-safe typography and reduced motion,Evidence narrative remains factual,Pattern only no slogans copied
+WorldQuant,Motion,Deliberate section pacing,Create premium calm,Qelly formal motion tokens,Reduced-motion equivalent behavior,No evidence hidden by animation,Original timings and easing
+Qelly,Differentiation,Explain This Move,Understand evidence and contradiction,Drawer from row chart and intelligence modules,Focus management and close controls,Supporting contradicting source freshness confidence,Original Qelly capability
+Qelly,Differentiation,Decision Provenance,Preserve decision history,Global evidence domain and export path,List alternative and keyboard support,Typed nodes edges lineage and limitations,Original Qelly capability
