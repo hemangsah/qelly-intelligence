@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -26,6 +26,25 @@ for(const [directory,file] of runtimeFiles){
   const target=path.join(output,'packages',directory);
   await mkdir(target,{recursive:true});
   await cp(path.join(root,'packages',directory,file),path.join(target,file));
+}
+
+async function findVariableFont(packageName,preferred){
+  const filesRoot=path.join(root,'node_modules',packageName,'files');
+  const entries=await readdir(filesRoot);
+  const exact=entries.find((name)=>name===preferred);
+  const fallback=entries.find((name)=>name.endsWith('-latin-wght-normal.woff2'))??entries.find((name)=>name.endsWith('-wght-normal.woff2'));
+  if(!exact&&!fallback)throw new Error(`Variable WOFF2 missing for ${packageName}`);
+  return path.join(filesRoot,exact??fallback);
+}
+const fontOutput=path.join(output,'assets/fonts');
+await mkdir(fontOutput,{recursive:true});
+const fontCopies=[
+  ['@fontsource-variable/geist','geist-latin-wght-normal.woff2','geist-variable.woff2'],
+  ['@fontsource-variable/geist-mono','geist-mono-latin-wght-normal.woff2','geist-mono-variable.woff2']
+];
+for(const [packageName,preferred,target] of fontCopies){
+  await cp(await findVariableFont(packageName,preferred),path.join(fontOutput,target));
+  await cp(path.join(root,'node_modules',packageName,'LICENSE'),path.join(fontOutput,`${target}.LICENSE.txt`));
 }
 
 if(basePath!=='/'){
@@ -77,6 +96,7 @@ await writeFile(path.join(output,'BUILD_INFO.json'),`${JSON.stringify({
   basePath,
   staticVisualPreview,
   previewLabel:staticVisualPreview?'Static visual preview':null,
+  fonts:{ui:'Geist Variable',mono:'Geist Mono Variable',selfHosted:true,format:'woff2'},
   builtAt:new Date().toISOString()
 },null,2)}\n`);
-console.log(JSON.stringify({status:'frontend-build-passed',output:path.relative(root,output),apiBaseConfigured:Boolean(apiBaseUrl),basePath,staticVisualPreview},null,2));
+console.log(JSON.stringify({status:'frontend-build-passed',output:path.relative(root,output),apiBaseConfigured:Boolean(apiBaseUrl),basePath,staticVisualPreview,fonts:['geist-variable.woff2','geist-mono-variable.woff2']},null,2));
