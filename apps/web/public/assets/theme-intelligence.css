@@ -1,3 +1,9 @@
 @import url('./theme-intelligence-foundations.css');
 @import url('./theme-intelligence-studio.css');
+/* Governed compatibility aliases keep legacy premium modules tonal while the active theme owns hue. */
+html:not([data-resolved-appearance="high-contrast"]){
+  --q-premium-border:color-mix(in srgb,var(--q-border) 9%,transparent)!important;
+  --q-premium-divider:color-mix(in srgb,var(--q-border) 7%,transparent)!important;
+  --q-premium-hairline:color-mix(in srgb,var(--q-border) 5%,transparent)!important;
+}
 /* governed surfaces: q-command-dialog q-mi-chart-tooltip q-mi-table-scroll q-ti-drawer role="tooltip" */
