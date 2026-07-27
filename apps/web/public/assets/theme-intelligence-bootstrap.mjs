@@ -1,6 +1,6 @@
 // Compatibility bridge for the retained core module's browser global export.
 globalThis.TYPOGRAPHY_LOCK='IBM Plex Sans Variable permanent canonical font · GT Eesti inactive licence gate';
-const [{themeIntelligence,migrateThemeConfig,preferencePatch,PERSONAS},{renderThemeIntelligenceStudio}]=await Promise.all([import('./theme-intelligence.mjs'),import('./routes/theme-intelligence-studio.mjs')]);
+const [{themeIntelligence,migrateThemeConfig,preferencePatch,PERSONAS},{renderThemeIntelligenceStudio},{enhanceThemeIntelligenceVisuals}]=await Promise.all([import('./theme-intelligence.mjs'),import('./routes/theme-intelligence-studio.mjs'),import('./theme-intelligence-visual-correction.mjs')]);
 
 const main=()=>document.getElementById('main');
 const localState={prefs:migrateThemeConfig({})};
@@ -46,6 +46,7 @@ async function mountRoute(){
   mounted=true;
   observer?.disconnect();
   await renderThemeIntelligenceStudio(target,{toast,navigate,state:localState,persistPreference,renderRoute:mountRoute});
+  enhanceThemeIntelligenceVisuals(target);
   observer?.observe(target,{childList:true});
 }
 function installRouteGuard(){
@@ -78,5 +79,6 @@ const shared=(()=>{const encoded=new URL(location.href).searchParams.get('qellyT
 themeIntelligence.start({...localState.prefs,...shared});localState.prefs={...localState.prefs,...preferencePatch(themeIntelligence.config)};
 await hydrateAuthenticatedPreferences();
 installRouteGuard();installLaunchers();installPortalInheritance();
+enhanceThemeIntelligenceVisuals(document);
 if(studioRoute())queueMicrotask(mountRoute);
 window.QellyThemeStudio=Object.freeze({open:()=>navigate('theme-lab'),gallery:()=>navigate('theme-lab','gallery'),compare:()=>navigate('theme-lab','compare')});
