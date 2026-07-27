@@ -4,6 +4,7 @@
 @import url('./premium-chart.css');
 @import url('./premium-mobile.css');
 @import url('./premium-polish.css');
+@import url('./premium-font-surface.css');
 
-/* The premium reset intentionally uses neutral surfaces. Burgundy remains an identity accent.
-   Visible gradients are limited to the two compact Qelly brand marks above. */
+/* The correction keeps neutral surfaces dominant. Burgundy remains an identity and active-state accent.
+   Visible gradients remain restricted to compact Qelly brand marks. */
