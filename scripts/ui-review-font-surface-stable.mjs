@@ -8,7 +8,7 @@ const sourceFile=path.join(scriptsDirectory,'ui-review-font-surface.mjs');
 const temporaryFile=path.join(scriptsDirectory,`.ui-review-font-surface-stable-${process.pid}.mjs`);
 const original=await readFile(sourceFile,'utf8');
 const rejectedInteraction="await mobile.page.locator('[data-mi-filter-close]').first().click();await mobile.page.locator('[data-mi-columns-toggle]').click();await mobile.page.locator('[data-mi-column-menu]').waitFor();";
-const stableInteraction="await mobile.page.locator('[data-mi-filter-close]').last().click();await mobile.page.locator('[data-mi-filter-sheet]').waitFor({state:'hidden'});await mobile.page.locator('[data-mi-columns-toggle]').evaluate((button)=>button.click());await mobile.page.locator('[data-mi-column-menu]:not([hidden])').waitFor({state:'visible'});";
+const stableInteraction="await mobile.page.locator('[data-mi-filter-close]').last().click();await mobile.page.locator('[data-mi-filter-sheet][aria-hidden=\"true\"]').waitFor({state:'attached'});await mobile.page.locator('[data-mi-columns-toggle]').evaluate((button)=>button.click());await mobile.page.locator('[data-mi-column-menu]:not([hidden])').waitFor({state:'visible'});";
 if(!original.includes(rejectedInteraction))throw new Error('Font/surface mobile review interaction contract changed; update the stable state-based harness explicitly.');
 await writeFile(temporaryFile,original.replace(rejectedInteraction,stableInteraction),'utf8');
 try{
