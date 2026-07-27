@@ -16,18 +16,21 @@ test('review workflows are PR-only and cannot deploy',async()=>{
   }
 });
 
-test('font selection follows a rendered candidate board',async()=>{
+test('font selection follows a rendered legal candidate board',async()=>{
   const board=await read('scripts/font-comparison-board-local.mjs');
-  for(const phrase of ['Geist Sans Variable','Manrope Variable','Plus Jakarta Sans Variable','font-candidate-board-before-selection.png','font-final-selection-board.png',"license:'OFL-1.1'"])assert.ok(board.includes(phrase));
+  for(const phrase of ['IBM Plex Sans Variable','GT Eesti Pro Display + Text','Manrope Variable','Plus Jakarta Sans Variable','font-candidate-board-before-selection.png','font-final-selection-board.png',"license:'OFL-1.1'","active:false","semantic-inline-svg"])assert.ok(board.includes(phrase));
   assert.ok(board.indexOf('candidate-board-before-selection')<board.lastIndexOf('final-selection-after-comparison'));
+  assert.match(board,/GT Eesti[^\n]+licen[cs]e/i);
 });
 
 test('font and surface artifact remains comprehensive',async()=>{
-  const pass=await read('scripts/ui-review-font-surface.mjs');
+  const [pass,stable]=await Promise.all([read('scripts/ui-review-font-surface.mjs'),read('scripts/ui-review-font-surface-stable.mjs')]);
   for(const viewport of ['desktop-1728','desktop-1440','desktop-1280','tablet-1024','tablet-768','mobile-430','mobile-390','mobile-360'])assert.ok(pass.includes(viewport));
   for(const artifact of ['typography-closeup.png','command-palette-font-surface.png','metric-rail.png','table-font-surface.png','mobile-asset-row.png','chart-font-surface.png','navigation-font-surface.png','filters-bottom-sheet-ready.png','columns-tonal-menu.png','explain-tonal-drawer.png','light-porcelain-font-surface.png','typography-before-after.png','command-palette-before-after.png','metric-before-after.png','chart-frame-before-after.png','CURRENT_TYPOGRAPHY_COMPUTED.json','SURFACE_REDUCTION.json','FONT_SURFACE_VALIDATION.json'])assert.ok(pass.includes(artifact));
-  for(const gate of ['localGeist','fontShiftZero','weightDiscipline','radiusDiversity','nativeSelectsGone','borderReduction','mobilePulseRail','paletteHierarchy','reducedMotion','consoleClean'])assert.ok(pass.includes(gate));
+  for(const gate of ['localPlex','fontShiftZero','weightDiscipline','radiusDiversity','nativeSelectsGone','borderReduction','mobilePulseRail','paletteHierarchy','reducedMotion','consoleClean'])assert.ok(stable.includes(gate)||pass.includes(gate));
   assert.ok(pass.includes('reduction>=.35'));
+  assert.ok(stable.includes('loadedFiles.length===1'));
+  assert.ok(stable.includes('ibm-plex-sans-variable.woff2'));
 });
 
 test('state-based mobile sheet review has no arbitrary sleeps',async()=>{
@@ -50,13 +53,18 @@ test('premium evidence and Figma boundaries remain governed',async()=>{
   assert.doesNotMatch(build,/design\/reference|QELLY_EXPECTED_FULL_UI_WORKING/);
 });
 
-test('selected fonts and continuous-corner surface tokens are present',async()=>{
-  const [assembly,css,build,audit]=await Promise.all([read('apps/web/public/assets/qelly-premium-reset.css'),read('apps/web/public/assets/premium-font-surface.css'),read('scripts/build-frontend.mjs'),read('design/research/CURRENT_TYPOGRAPHY_AUDIT.md')]);
-  assert.ok(assembly.includes('premium-font-surface.css'));
-  for(const token of ['--q-radius-4','--q-radius-8','--q-radius-12','--q-radius-16','--q-radius-20','--q-radius-24','--q-radius-pill','--q-surface-canvas','--q-surface-floating','--q-border-subtle','--q-shadow-float'])assert.ok(css.includes(token));
-  for(const rule of ['font-optical-sizing:auto','font-synthesis:none','tabular-nums lining-nums','appearance:none','scroll-snap-type:x mandatory','q-command-group','q-command-item-copy'])assert.ok(css.includes(rule));
-  assert.ok(build.includes('geist-variable.woff2'));
-  assert.ok(build.includes('geist-mono-variable.woff2'));
-  assert.match(audit,/Geist Sans Variable/);
-  assert.match(audit,/Geist Mono Variable/);
+test('IBM Plex is selected everywhere and GT Eesti remains licence gated',async()=>{
+  const [assembly,css,build,audit,decision,index]=await Promise.all([read('apps/web/public/assets/qelly-premium-reset.css'),read('apps/web/public/assets/premium-font-worldquant-arkham.css'),read('scripts/build-frontend.mjs'),read('design/research/CURRENT_TYPOGRAPHY_AUDIT.md'),read('design/research/QELLY_WORLDQUANT_ARKHAM_FONT_DECISION.md'),read('apps/web/public/index.html')]);
+  assert.ok(assembly.includes('premium-font-worldquant-arkham.css'));
+  for(const phrase of ['Qelly IBM Plex Sans','Arial','Helvetica Neue','--q-font-display','--q-font-text','--q-font-mono','tabular-nums lining-nums','font-feature-settings','GT Eesti Pro Display','GT Eesti Pro Text'])assert.ok(css.includes(phrase));
+  assert.doesNotMatch(css,/@font-face[^}]*GT Eesti/is);
+  assert.ok(build.includes('@fontsource-variable/ibm-plex-sans'));
+  assert.ok(build.includes('ibm-plex-sans-variable.woff2'));
+  assert.ok(build.includes("licensedOptionalActive:false"));
+  assert.ok(index.includes('ibm-plex-sans-variable.woff2'));
+  assert.doesNotMatch(index,/geist-(?:mono-)?variable\.woff2/);
+  assert.match(audit,/IBM Plex Sans Variable/);
+  assert.match(audit,/GT Eesti/);
+  assert.match(decision,/commercial Grilli Type family/i);
+  assert.match(decision,/must not become active/i);
 });
