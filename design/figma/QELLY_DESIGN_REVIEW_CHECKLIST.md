@@ -3,13 +3,16 @@
 ## Typography
 
 - [ ] Candidate board was reviewed before the final family was selected.
-- [ ] Geist Sans Variable is the display/UI target and Geist Mono Variable appears only in evidence-grade metadata and numeric roles.
-- [ ] No more than two visible font families are used.
+- [ ] IBM Plex Sans Variable is the active display, UI, body, table, chart-label and numeric-evidence family.
+- [ ] GT Eesti Pro Display and Text remain inactive until Qelly owns an appropriate web licence and supplies licensed files.
+- [ ] No more than one active visible font family is used in the production website.
 - [ ] Page, section, module, metric, body, label, table and metadata roles are visibly distinct.
+- [ ] Tabular lining figures are used for prices, percentages, timestamps, identifiers and evidence values.
 - [ ] 700/800 weights are exceptional rather than routine.
 - [ ] Table cells are 13–14px and headers are 11.5–12.5px.
 - [ ] Uppercase and tracking are limited to useful compact labels.
-- [ ] Local WOFF2 loading creates no visible layout shift or external blocking request.
+- [ ] The single local IBM Plex Sans WOFF2 creates no layout shift or external blocking request.
+- [ ] Inter appears only as an unresolved local-Figma fallback, never as the intended product family.
 
 ## Visual direction and surfaces
 
@@ -37,7 +40,8 @@
 - [ ] There is no separate dated title bar or hard separator.
 - [ ] Search is integrated and has no bright pink rectangular outline.
 - [ ] Recent, Navigation, Assets and Actions groups are visible.
-- [ ] Every result has an SVG icon, title, description/category and shortcut chip.
+- [ ] Every result has a semantic SVG icon, title, description/category and shortcut chip.
+- [ ] The reference site's private icon font is not reused.
 - [ ] Selected rows use a soft tonal fill with no hard white outline.
 - [ ] Desktop width is 680–760px; mobile uses a fluid modal treatment.
 - [ ] Focus trap, Escape, arrows, Enter and result-count announcement work.
@@ -81,13 +85,13 @@
 - [ ] Table semantics and chart text summary remain intact.
 - [ ] Reduced motion removes travel and loops but preserves meaning.
 - [ ] Touch targets and zoom/reflow behavior are annotated.
-- [ ] Only selected variable WOFF2 ranges are shipped; candidate fonts remain review-only.
+- [ ] Only the selected IBM Plex Sans variable WOFF2 is shipped; candidate fonts remain review-only.
 - [ ] No expensive repeated masks, excessive blur or constant shadow repaint exists.
 
 ## Truth and originality
 
 - [ ] Static review state is stated once clearly.
 - [ ] No unsupported live, provider, persistence or execution claim exists.
-- [ ] No reference logo, copy, exact layout, proprietary data, chart skin, CSS or animation is reproduced.
+- [ ] No reference logo, copy, exact layout, proprietary data, chart skin, CSS, font file or animation is reproduced.
 - [ ] Generator-derived evidence is not described as a hosted Figma export.
 - [ ] Every generated master frame and correction board is opened and reviewed before a quality claim.
