@@ -53,6 +53,19 @@ test('premium evidence and Figma boundaries remain governed',async()=>{
   assert.doesNotMatch(build,/design\/reference|QELLY_EXPECTED_FULL_UI_WORKING/);
 });
 
+test('editable Figma handoff matches IBM Plex production typography',async()=>{
+  const [plugin,spec,checklist,matrix,alignment]=await Promise.all([read('figma-plugin/code.js'),read('design/figma/QELLY_FIGMA_MASTER_SPEC.md'),read('design/figma/QELLY_DESIGN_REVIEW_CHECKLIST.md'),read('design/figma/QELLY_FIGMA_COMPONENT_MATRIX.csv'),read('design/figma/QELLY_IBM_PLEX_ALIGNMENT.md')]);
+  for(const phrase of ["family:'IBM Plex Sans'",'IBM Plex Sans Variable','GT Eesti commercial licence gate','all text and numeric roles'])assert.ok(plugin.includes(phrase));
+  assert.doesNotMatch(plugin,/Geist Sans Variable|Geist Mono Variable|family:'Geist'/);
+  assert.match(spec,/IBM Plex Sans Variable/);
+  assert.match(spec,/inactive commercial reference/i);
+  assert.match(checklist,/IBM Plex Sans Variable is the active/);
+  assert.match(checklist,/GT Eesti Pro Display and Text remain inactive/);
+  assert.match(matrix,/Typography,IBM Plex Sans semantic type system/);
+  assert.match(alignment,/production website/i);
+  assert.match(alignment,/semantic inline SVG icons/i);
+});
+
 test('IBM Plex is selected everywhere and GT Eesti remains licence gated',async()=>{
   const [assembly,css,build,audit,decision,index]=await Promise.all([read('apps/web/public/assets/qelly-premium-reset.css'),read('apps/web/public/assets/premium-font-worldquant-arkham.css'),read('scripts/build-frontend.mjs'),read('design/research/CURRENT_TYPOGRAPHY_AUDIT.md'),read('design/research/QELLY_WORLDQUANT_ARKHAM_FONT_DECISION.md'),read('apps/web/public/index.html')]);
   assert.ok(assembly.includes('premium-font-worldquant-arkham.css'));
