@@ -39,8 +39,7 @@ async function findVariableFont(packageName,preferred){
 const fontOutput=path.join(output,'assets/fonts');
 await mkdir(fontOutput,{recursive:true});
 const fontCopies=[
-  ['@fontsource-variable/geist','geist-latin-wght-normal.woff2','geist-variable.woff2'],
-  ['@fontsource-variable/geist-mono','geist-mono-latin-wght-normal.woff2','geist-mono-variable.woff2']
+  ['@fontsource-variable/ibm-plex-sans','ibm-plex-sans-latin-wght-normal.woff2','ibm-plex-sans-variable.woff2']
 ];
 for(const [packageName,preferred,target] of fontCopies){
   await cp(await findVariableFont(packageName,preferred),path.join(fontOutput,target));
@@ -79,7 +78,7 @@ if(staticVisualPreview){
 (() => {
   const base=${JSON.stringify(basePath)};
   const relative=location.pathname.startsWith(base)?location.pathname.slice(base.length):'';
-  const route=relative.replace(/^\\/+|\\/+$/g,'');
+  const route=relative.replace(/^\\\/+|\\\/+$/g,'');
   const target=base+location.search+(route?'#/'+route:'');
   location.replace(target);
 })();
@@ -96,7 +95,16 @@ await writeFile(path.join(output,'BUILD_INFO.json'),`${JSON.stringify({
   basePath,
   staticVisualPreview,
   previewLabel:staticVisualPreview?'Static visual preview':null,
-  fonts:{ui:'Geist Variable',mono:'Geist Mono Variable',selfHosted:true,format:'woff2'},
+  fonts:{
+    ui:'IBM Plex Sans Variable',
+    evidence:'IBM Plex Sans Variable',
+    fallbacks:['Arial','Helvetica Neue','sans-serif'],
+    licensedOptional:['GT Eesti Pro Display','GT Eesti Pro Text'],
+    licensedOptionalActive:false,
+    iconSystem:'semantic-inline-svg',
+    selfHosted:true,
+    format:'woff2'
+  },
   builtAt:new Date().toISOString()
 },null,2)}\n`);
-console.log(JSON.stringify({status:'frontend-build-passed',output:path.relative(root,output),apiBaseConfigured:Boolean(apiBaseUrl),basePath,staticVisualPreview,fonts:['geist-variable.woff2','geist-mono-variable.woff2']},null,2));
+console.log(JSON.stringify({status:'frontend-build-passed',output:path.relative(root,output),apiBaseConfigured:Boolean(apiBaseUrl),basePath,staticVisualPreview,fonts:['ibm-plex-sans-variable.woff2']},null,2));
