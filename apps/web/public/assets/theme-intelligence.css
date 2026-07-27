@@ -6,6 +6,7 @@
 @import url('./theme-intelligence-visual-studio-gallery.css');
 @import url('./theme-intelligence-visual-interactions.css');
 @import url('./theme-intelligence-visual-final-fixes.css');
+@import url('./theme-intelligence-visual-manual-polish.css');
 /* Governed compatibility aliases keep legacy premium modules tonal while the active theme owns hue. */
 html:not([data-resolved-appearance="high-contrast"]){
   --q-premium-border:rgba(255,255,255,.09)!important;
