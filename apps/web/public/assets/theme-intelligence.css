@@ -13,4 +13,18 @@ html[data-resolved-appearance="light"]{
 }
 html:not([data-resolved-appearance="high-contrast"]):not([data-border-visibility="strong"]) :where([class*="card"],[class*="panel"],[class*="module"],[class*="pulse"],[class*="toolbar"],[class*="banner"],[class*="rail"],[class*="sheet"],[class*="drawer"]){border-color:rgba(255,255,255,.09)!important}
 html[data-resolved-appearance="light"]:not([data-border-visibility="strong"]) :where([class*="card"],[class*="panel"],[class*="module"],[class*="pulse"],[class*="toolbar"],[class*="banner"],[class*="rail"],[class*="sheet"],[class*="drawer"]){border-color:rgba(24,16,20,.09)!important}
+/* Theme Studio select controls use the active semantic surface and a CSS-drawn chevron; no native browser chrome leaks between themes. */
+.q-ti-page select{
+  -webkit-appearance:none!important;
+  appearance:none!important;
+  padding-inline-end:34px!important;
+  background-color:var(--q-surface)!important;
+  background-image:linear-gradient(45deg,transparent 50%,var(--q-muted) 50%),linear-gradient(135deg,var(--q-muted) 50%,transparent 50%)!important;
+  background-position:calc(100% - 15px) 50%,calc(100% - 10px) 50%!important;
+  background-size:5px 5px,5px 5px!important;
+  background-repeat:no-repeat!important;
+  color:var(--q-text)!important;
+}
+.q-ti-page select:focus-visible{outline:2px solid var(--q-focus)!important;outline-offset:2px!important;border-color:var(--q-focus)!important}
+@media(forced-colors:active){.q-ti-page select{background-image:none!important;forced-color-adjust:auto!important}}
 /* governed surfaces: q-command-dialog q-mi-chart-tooltip q-mi-table-scroll q-ti-drawer role="tooltip" */
