@@ -34,7 +34,7 @@ test('Asset Rankings uses realistic deterministic OHLC and table-first compositi
   assert.match(chart,/candlestick/);
   assert.match(chart,/q-mi-crosshair/);
   assert.match(chart,/q-mi-chart-tooltip/);
-  assert.ok(route.indexOf('tableMarkup')<route.indexOf('chartMarkup'),'Ranking table must be composed before the chart');
+  assert.ok(route.indexOf('${tableMarkup')<route.indexOf('${chartMarkup'),'Ranking table must be composed before the chart');
 });
 
 test('premium rankings expose Discovery Terminal Research and governed market columns',async()=>{
