@@ -1,3 +1,9 @@
+@font-face{font-family:"Qelly Geist";src:url('./fonts/geist-variable.woff2') format('woff2-variations');font-style:normal;font-weight:100 900;font-display:block}
+@font-face{font-family:"Qelly Geist Mono";src:url('./fonts/geist-mono-variable.woff2') format('woff2-variations');font-style:normal;font-weight:100 900;font-display:block}
+:root{--q-font-display:var(--q-font-ui);--q-font-quant:var(--q-font-mono)}
+html[data-preview="static"] h1,html[data-preview="static"] h2,html[data-preview="static"] h3,html[data-preview="static"] h4,html[data-preview="static"] h5,html[data-preview="static"] h6,html[data-preview="static"] .q-brand-mark,html[data-preview="static"] .q-page-head{font-family:var(--q-font-ui)!important}
+.q-mi-page-head h1{min-height:1.12em;overflow:visible!important}
+
 /* Final focused correction overrides: mobile sheets, pulse rhythm and continuous controls. */
 .q-command-item[aria-selected="true"]{outline:0!important;border:0!important;box-shadow:none!important}
 .q-command-group+.q-command-group{margin-top:5px}
