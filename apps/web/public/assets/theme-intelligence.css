@@ -1,5 +1,10 @@
 @import url('./theme-intelligence-foundations.css');
 @import url('./theme-intelligence-studio.css');
+@import url('./theme-intelligence-visual-tokens.css');
+@import url('./theme-intelligence-visual-palettes.css');
+@import url('./theme-intelligence-visual-studio-layout.css');
+@import url('./theme-intelligence-visual-studio-gallery.css');
+@import url('./theme-intelligence-visual-interactions.css');
 /* Governed compatibility aliases keep legacy premium modules tonal while the active theme owns hue. */
 html:not([data-resolved-appearance="high-contrast"]){
   --q-premium-border:rgba(255,255,255,.09)!important;
