@@ -1,28 +1,27 @@
 {
-  "status": "manual-review-complete-user-approval-pending",
-  "reviewCommit": "a729bb25729c024e855d5626bf5fb93894e8743b",
-  "estimatedDirectionalFidelityPercent": 86,
+  "status": "premium-reset-implemented-user-approval-pending",
+  "previousVisualDirection": "rejected",
+  "previousFidelityClaim": "withdrawn",
   "critical": [],
   "major": [
-    "At 1440×1000 the implementation chart is taller than the approved reference, so the institutional table begins just below the initial viewport while the reference exposes its table controls at the bottom of that viewport."
+    "Phase 0 implements the premium shell and Asset Rankings only. Deep Asset Intelligence, derivatives core, advanced derivatives, discovery expansion, public storytelling, portfolio, providers, and production readiness remain separate approval-gated phases.",
+    "The connected environment can provide an executable Figma generator and specification but cannot publish a hosted Figma file or prototype link into the user's account."
   ],
   "minor": [
-    "The implementation command shell is denser and the route title truncates in the compact shell region at some widths.",
-    "The repository typography stack is used instead of embedding an exact remote display font.",
-    "KPI sparklines, chart curvature, labels and deterministic fixture values are not pixel-identical to the standalone reference.",
-    "The wider institutional table truncates long provider copy in the visible source column before horizontal exploration.",
-    "Light mode is brighter and more analytical than the softer reference treatment.",
-    "Signal Access intentionally uses stronger outlines, 120% font scale and reduced motion.",
-    "The static preview has no dedicated Asset Rankings empty-state switch."
+    "The application uses a legal repository/system typography stack rather than guessing proprietary reference fonts.",
+    "Official reference screenshots may be blocked by bot protection, consent, geography, or network access; the artifact records failures instead of fabricating images.",
+    "The static review universe uses deterministic Qelly observations and does not reproduce proprietary market datasets.",
+    "Table virtualization architecture is preserved for later large-universe integration; the static review renders a bounded deterministic universe.",
+    "The light appearance is an analytical accessibility variant and not a full public-editorial redesign."
   ],
   "deliberate": [
-    "Truth-state language is stronger and explicitly states static visual preview, deterministic demo, backend unavailable, and no production trading or persistence.",
-    "Qelly provenance, source, confidence, freshness and evidence vocabulary are preserved beyond the standalone reference.",
-    "Mobile replaces the reference capture's clipped navigation overlay with a compact top bar and five-item bottom navigation.",
-    "Chart and ranking data are Qelly-specific deterministic observations rather than copied market data.",
-    "The table is deliberately wider and horizontally scrollable to preserve institutional columns and numeric alignment.",
-    "The approved HTML remains review-only, outside dist/frontend, and scheduled for removal before merge.",
-    "Production APIs, PostgreSQL, Redis, storage, ClamAV, email, webhooks, custody, execution and persistent mutations are not represented by the review build."
+    "Burgundy is limited to identity and selected emphasis while neutral surfaces dominate.",
+    "The ranking table precedes the chart and is the primary product surface.",
+    "Mobile uses prioritized expandable rows instead of a squeezed desktop table.",
+    "The chart uses realistic deterministic OHLC, volume, OI and funding rather than copied data or a synthetic sine wave.",
+    "One compact status center replaces repeated demo badges.",
+    "Source, freshness, confidence, provider disagreement, Explain This Move and Decision Provenance remain Qelly-specific differentiators.",
+    "The previous HTML is retained only as a structural prototype and is excluded from the compiled preview."
   ],
   "approvalGate": "DO NOT MERGE — USER VISUAL APPROVAL REQUIRED"
 }
