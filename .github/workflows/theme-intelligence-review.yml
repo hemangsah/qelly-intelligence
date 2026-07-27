@@ -14,6 +14,7 @@ on:
       - 'scripts/theme-intelligence-review.mjs'
       - 'scripts/theme-intelligence-review-stable.mjs'
       - 'scripts/theme-intelligence-review-complete.mjs'
+      - 'scripts/theme-intelligence-review-complete-stable.mjs'
       - 'tests/theme-intelligence.test.mjs'
       - '.github/workflows/theme-intelligence-review.yml'
   workflow_dispatch:
@@ -93,7 +94,7 @@ jobs:
           code=$?
           if [ "$code" -eq 0 ]; then
             echo '=== COMPLETE THEME REVIEW ===' >> "$log"
-            node scripts/theme-intelligence-review-complete.mjs >> "$log" 2>&1
+            node scripts/theme-intelligence-review-complete-stable.mjs >> "$log" 2>&1
             code=$?
           fi
           mkdir -p .theme-review/qelly-theme-intelligence-review/diagnostics
