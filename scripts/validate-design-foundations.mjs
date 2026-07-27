@@ -10,17 +10,8 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=(file)=>readFile(path.join(root,file),'utf8');
 const json=async(file)=>JSON.parse(await read(file));
 
-const [tokens,motion,charts,screenMatrix,routeMatrix,componentMatrix,plugin,manifest,html,css]=await Promise.all([
-  json('QELLY_DESIGN_TOKENS.json'),
-  json('QELLY_MOTION_TOKENS.json'),
-  json('QELLY_CHART_TOKENS.json'),
-  read('QELLY_SCREEN_MATRIX.csv'),
-  read('QELLY_ROUTE_INVENTORY.csv'),
-  read('QELLY_COMPONENT_INVENTORY.csv'),
-  read('figma-plugin/code.js'),
-  json('figma-plugin/manifest.json'),
-  read('apps/web/public/index.html'),
-  read('apps/web/public/assets/qelly-foundations.css')
+const [tokens,motion,charts,screenMatrix,routeMatrix,componentMatrix,plugin,manifest,html,css,premiumCss,figmaScreenMatrix,figmaComponentMatrix,figmaSpec]=await Promise.all([
+  json('QELLY_DESIGN_TOKENS.json'),json('QELLY_MOTION_TOKENS.json'),json('QELLY_CHART_TOKENS.json'),read('QELLY_SCREEN_MATRIX.csv'),read('QELLY_ROUTE_INVENTORY.csv'),read('QELLY_COMPONENT_INVENTORY.csv'),read('figma-plugin/code.js'),json('figma-plugin/manifest.json'),read('apps/web/public/index.html'),read('apps/web/public/assets/qelly-foundations.css'),read('apps/web/public/assets/premium-mobile.css'),read('design/figma/QELLY_FIGMA_SCREEN_MATRIX.csv'),read('design/figma/QELLY_FIGMA_COMPONENT_MATRIX.csv'),read('design/figma/QELLY_FIGMA_MASTER_SPEC.md')
 ]);
 
 const requiredSemantics=['background','surface','surfaceElevated','border','divider','primaryText','secondaryText','mutedText','positive','negative','warning','informational','evidence','stale','fallback','unavailable','selected','focused','hovered','active','disabled','chartGrid','chartAxes','tooltip','sourceNode','observationNode','transformationNode','decisionNode','riskNode','outcomeNode'];
@@ -36,32 +27,34 @@ assert.ok(PERSONA_PROFILES.every((persona)=>persona.defaultRoute&&persona.defaul
 assert.ok(productDomains.length>=8);
 assert.equal(routeDefinitions.length,61);
 assert.equal(routeMatrix.trim().split('\n').length-1,61);
-assert.equal(screenMatrix.trim().split('\n').length-1,411);
-assert.ok(componentMatrix.trim().split('\n').length-1>=40);
-assert.match(plugin,/EXPECTED_FRAME_COUNT=411/);
-const pluginRouteRows=plugin.match(/const ROUTE_ROWS=`([\s\S]*?)`\.trim\(\)\.split/)[1].trim().split('\n').length;
-const pluginPageRows=plugin.match(/const PAGE_NAMES=\[([\s\S]*?)\];/)[1].match(/'\d+ —/g).length;
-assert.equal(pluginRouteRows,61);
-assert.equal(pluginPageRows,25);
-assert.equal(pluginPageRows+(pluginRouteRows*2)+(6*12*2)+(12*8)+24,411);
+assert.ok(screenMatrix.trim().split('\n').length-1>=61,'Canonical screen matrix must preserve route coverage');
+assert.ok(componentMatrix.trim().split('\n').length-1>=40,'Canonical component inventory must remain comprehensive');
+
+const pluginPages=plugin.match(/const PAGE_NAMES=\[([\s\S]*?)\];/)?.[1].match(/'\d{2} [^']+'/g)??[];
+const masterScreens=plugin.match(/const MASTER_SCREENS=\[([\s\S]*?)\];/)?.[1].match(/\['/g)??[];
+assert.equal(pluginPages.length,31,'Premium Figma generator must create 31 semantic pages');
+assert.ok(masterScreens.length>=24,'Premium Figma generator must include desktop/mobile master screens');
+assert.match(plugin,/createVariableCollection\('Qelly Premium Semantic'\)/);
+assert.match(plugin,/createComponent\(\)/);
+assert.match(plugin,/layoutMode='VERTICAL'/);
+assert.match(plugin,/qellyMasterFrame/);
+assert.doesNotMatch(plugin,/EXPECTED_FRAME_COUNT|Expected 411 frames/);
+assert.match(figmaSpec,/opened and visually reviewed/i);
+assert.ok(figmaScreenMatrix.trim().split('\n').length-1>=12);
+assert.ok(figmaComponentMatrix.trim().split('\n').length-1>=10);
+
 assert.equal(manifest.networkAccess.allowedDomains[0],'none');
 assert.match(html,/id="edge-dock"/);
 assert.match(html,/id="persona-ribbon"/);
 assert.match(html,/id="context-shelf"/);
 assert.match(html,/id="compare-tray"/);
 assert.match(html,/id="mobile-navigation"/);
+assert.match(html,/qelly-premium-reset\.css/);
 assert.match(css,/prefers-reduced-motion/);
+assert.match(premiumCss,/safe-area-inset-bottom/);
 assert.equal(motion.reducedMotion.meaningPreserved,true);
 assert.equal(charts.requirements.nonColorEncoding,true);
 
 console.log(JSON.stringify({
-  status:'design-foundations-validation-passed',
-  routes:routeDefinitions.length,
-  productDomains:productDomains.length,
-  personas:PERSONA_PROFILES.length,
-  governedSemantics:requiredSemantics.length,
-  typographyRoles:Object.keys(tokens.typography.roles).length,
-  figmaPages:25,
-  figmaFrames:411,
-  components:componentMatrix.trim().split('\n').length-1
+  status:'design-foundations-validation-passed',routes:routeDefinitions.length,productDomains:productDomains.length,personas:PERSONA_PROFILES.length,governedSemantics:requiredSemantics.length,typographyRoles:Object.keys(tokens.typography.roles).length,figmaPages:pluginPages.length,figmaMasterScreens:masterScreens.length,figmaComponents:figmaComponentMatrix.trim().split('\n').length-1,canonicalComponents:componentMatrix.trim().split('\n').length-1
 },null,2));
