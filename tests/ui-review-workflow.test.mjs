@@ -20,24 +20,32 @@ test('UI review remains PR-only and cannot deploy',async()=>{
 });
 
 test('premium artifact captures required viewports modes interactions and browsers',async()=>{
-  const [premium,base,completion,orchestrator]=await Promise.all([
-    read('scripts/ui-review-premium.mjs'),read('scripts/ui-review.mjs'),read('scripts/ui-review-complete.mjs'),read('scripts/ui-review-orchestrator.mjs')
+  const [premium,evidence,base,completion,orchestrator]=await Promise.all([
+    read('scripts/ui-review-premium.mjs'),read('scripts/ui-review-premium-evidence.mjs'),read('scripts/ui-review.mjs'),read('scripts/ui-review-complete.mjs'),read('scripts/ui-review-orchestrator.mjs')
   ]);
-  const combined=[premium,base,completion,orchestrator].join('\n');
+  const combined=[premium,evidence,base,completion,orchestrator].join('\n');
   for(const viewport of ['desktop-1440','desktop-1728','tablet-1024','tablet-768','mobile-390','mobile-430'])assert.match(premium,new RegExp(viewport));
   for(const mode of ['discovery-mode','terminal-mode','research-mode'])assert.match(premium,new RegExp(mode));
-  for(const evidence of ['expanded-navigation-premium.png','command-palette-premium.png','explain-drawer-premium.png','filters.png','column-manager.png','chart-tooltip.png','candlesticks.png','table-region-premium.png','light-mode-premium.png','reduced-motion-premium.png','old-vs-new-desktop.png','old-vs-new-mobile.png','MOTION_QA.md','ACCESSIBILITY_QA.md','PERFORMANCE_QA.md','CONSOLE_ERRORS.json','INTERACTIONS.json','KNOWN_DIFFERENCES.json','ARTIFACT_MANIFEST.json','VALIDATION_SUMMARY.json'])assert.match(premium,new RegExp(evidence.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
-  for(const persona of ['persona-scalper.png','persona-research.png','persona-signal-access.png'])assert.match(combined,new RegExp(persona.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+  for(const artifact of ['expanded-navigation-premium.png','command-palette-premium.png','explain-drawer-premium.png','filters.png','column-manager.png','chart-tooltip.png','candlesticks.png','table-region-premium.png','light-mode-premium.png','reduced-motion-premium.png','old-vs-new-desktop.png','old-vs-new-mobile.png','MOTION_QA.md','ACCESSIBILITY_QA.md','PERFORMANCE_QA.md','CONSOLE_ERRORS.json','INTERACTIONS.json','KNOWN_DIFFERENCES.json','ARTIFACT_MANIFEST.json','VALIDATION_SUMMARY.json'])assert.match(premium,new RegExp(artifact.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+  for(const artifact of ['query-builder.png','master-frame-evidence.png','MASTER_FRAME_EVIDENCE.md','persona-scalper-velocity.png','persona-investor-compound.png','persona-aggressive-alpha.png','persona-quant-operator.png','persona-research-oracle.png','persona-signal-access.png'])assert.match(evidence,new RegExp(artifact.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
   for(const browser of ['chromium','firefox','webkit'])assert.match(premium,new RegExp(browser));
+  assert.match(combined,/old-vs-new-desktop\.png/);
 });
 
 test('premium review is authoritative without discarding legacy regression evidence',async()=>{
   const orchestrator=await read('scripts/ui-review-orchestrator.mjs');
-  assert.match(orchestrator,/authoritativePass:'scripts\/ui-review-premium\.mjs'/);
-  assert.match(orchestrator,/if\(premium\.code!==0\)/);
+  assert.match(orchestrator,/authoritativePasses:\['scripts\/ui-review-premium\.mjs','scripts\/ui-review-premium-evidence\.mjs'\]/);
+  assert.match(orchestrator,/premium\.code!==0\|\|evidence\.code!==0/);
   assert.match(orchestrator,/legacy-ui-review-nonzero-reconciled/);
   assert.match(orchestrator,/Legacy screenshot passes are retained only as regression evidence/);
   assert.doesNotMatch(orchestrator,/completion\.code!==0\|\|premium\.code!==0/);
+});
+
+test('premium evidence pass governs personas query builder shell and honest Figma boundary',async()=>{
+  const evidence=await read('scripts/ui-review-premium-evidence.mjs');
+  for(const phrase of ['all-six-personas','configured-query-builder','premium-shell-manual-contract','titleNotTruncated','tableInFirstScreen','previewMentions<=3','forbiddenGlyphs.length===0'])assert.match(evidence,new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+  assert.match(evidence,/not an export from a hosted Figma file/i);
+  assert.match(evidence,/Run `figma\/code\.js` inside Figma/);
 });
 
 test('structural prototype remains review-only and is not final target',async()=>{
