@@ -9,52 +9,33 @@ import { productDomains, routeDefinitions } from '../apps/web/public/assets/rout
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=(file)=>readFile(path.join(root,file),'utf8');
 const json=async(file)=>JSON.parse(await read(file));
-
-const [tokens,motion,charts,screenMatrix,routeMatrix,componentMatrix,plugin,manifest,html,css,premiumCss,figmaScreenMatrix,figmaComponentMatrix,figmaSpec]=await Promise.all([
-  json('QELLY_DESIGN_TOKENS.json'),json('QELLY_MOTION_TOKENS.json'),json('QELLY_CHART_TOKENS.json'),read('QELLY_SCREEN_MATRIX.csv'),read('QELLY_ROUTE_INVENTORY.csv'),read('QELLY_COMPONENT_INVENTORY.csv'),read('figma-plugin/code.js'),json('figma-plugin/manifest.json'),read('apps/web/public/index.html'),read('apps/web/public/assets/qelly-foundations.css'),read('apps/web/public/assets/premium-mobile.css'),read('design/figma/QELLY_FIGMA_SCREEN_MATRIX.csv'),read('design/figma/QELLY_FIGMA_COMPONENT_MATRIX.csv'),read('design/figma/QELLY_FIGMA_MASTER_SPEC.md')
+const [tokens,motion,charts,screenMatrix,routeMatrix,componentInventory,plugin,manifest,html,foundations,premiumMobile,fontSurface,fontPolish,assembly,primitive,build,packageJson,typographyAudit,typographyContract,figmaScreenMatrix,figmaComponentMatrix,figmaSpec,figmaChecklist,forensics,synthesis,reviewWorkflow,fontWorkflow,fontReview]=await Promise.all([
+  json('QELLY_DESIGN_TOKENS.json'),json('QELLY_MOTION_TOKENS.json'),json('QELLY_CHART_TOKENS.json'),read('QELLY_SCREEN_MATRIX.csv'),read('QELLY_ROUTE_INVENTORY.csv'),read('QELLY_COMPONENT_INVENTORY.csv'),read('figma-plugin/code.js'),json('figma-plugin/manifest.json'),read('apps/web/public/index.html'),read('apps/web/public/assets/qelly-foundations.css'),read('apps/web/public/assets/premium-mobile.css'),read('apps/web/public/assets/premium-font-surface.css'),read('apps/web/public/assets/premium-font-surface-polish.css'),read('apps/web/public/assets/qelly-premium-reset.css'),read('packages/ui-primitives/primitives.mjs'),read('scripts/build-frontend.mjs'),json('package.json'),read('design/research/CURRENT_TYPOGRAPHY_AUDIT.md'),json('design/research/CURRENT_TYPOGRAPHY_COMPUTED.json'),read('design/figma/QELLY_FIGMA_SCREEN_MATRIX.csv'),read('design/figma/QELLY_FIGMA_COMPONENT_MATRIX.csv'),read('design/figma/QELLY_FIGMA_MASTER_SPEC.md'),read('design/figma/QELLY_DESIGN_REVIEW_CHECKLIST.md'),read('design/research/REFERENCE_UI_FORENSICS.md'),read('design/research/QELLY_SYNTHESIS_DECISIONS.md'),read('.github/workflows/ui-review.yml'),read('.github/workflows/font-comparison.yml'),read('scripts/ui-review-font-surface.mjs')
 ]);
 
 const requiredSemantics=['background','surface','surfaceElevated','border','divider','primaryText','secondaryText','mutedText','positive','negative','warning','informational','evidence','stale','fallback','unavailable','selected','focused','hovered','active','disabled','chartGrid','chartAxes','tooltip','sourceNode','observationNode','transformationNode','decisionNode','riskNode','outcomeNode'];
-for(const key of requiredSemantics){
-  const token=tokens.semanticTokens[key];
-  assert.ok(token,`Missing semantic token: ${key}`);
-  for(const mode of ['light','dark','highContrast'])assert.ok(token[mode],`Missing ${mode} value for ${key}`);
-  assert.ok(token.contrastRule&&token.usage,`Missing governance for ${key}`);
-}
-assert.equal(Object.keys(tokens.typography.roles).length,24);
-assert.equal(PERSONA_PROFILES.length,6);
-assert.ok(PERSONA_PROFILES.every((persona)=>persona.defaultRoute&&persona.defaultTimeframe&&persona.modulePriority.length>=5));
-assert.ok(productDomains.length>=8);
-assert.equal(routeDefinitions.length,61);
-assert.equal(routeMatrix.trim().split('\n').length-1,61);
-assert.ok(screenMatrix.trim().split('\n').length-1>=61,'Canonical screen matrix must preserve route coverage');
-assert.ok(componentMatrix.trim().split('\n').length-1>=40,'Canonical component inventory must remain comprehensive');
+for(const key of requiredSemantics){const token=tokens.semanticTokens[key];assert.ok(token,`Missing semantic token: ${key}`);for(const mode of ['light','dark','highContrast'])assert.ok(token[mode],`Missing ${mode} value for ${key}`);assert.ok(token.contrastRule&&token.usage,`Missing governance for ${key}`);}
+assert.equal(Object.keys(tokens.typography.roles).length,24);assert.equal(PERSONA_PROFILES.length,6);assert.ok(PERSONA_PROFILES.every((persona)=>persona.defaultRoute&&persona.defaultTimeframe&&persona.modulePriority.length>=5));assert.ok(productDomains.length>=8);assert.equal(routeDefinitions.length,61);assert.equal(routeMatrix.trim().split('\n').length-1,61);assert.ok(screenMatrix.trim().split('\n').length-1>=61);assert.ok(componentInventory.trim().split('\n').length-1>=40);
 
 const pluginPages=plugin.match(/const PAGE_NAMES=\[([\s\S]*?)\];/)?.[1].match(/'\d{2} [^']+'/g)??[];
 const masterScreens=plugin.match(/const MASTER_SCREENS=\[([\s\S]*?)\];/)?.[1].match(/\['/g)??[];
-assert.equal(pluginPages.length,31,'Premium Figma generator must create 31 semantic pages');
-assert.ok(masterScreens.length>=24,'Premium Figma generator must include desktop/mobile master screens');
-assert.match(plugin,/createVariableCollection\('Qelly Premium Semantic'\)/);
-assert.match(plugin,/createComponent\(\)/);
-assert.match(plugin,/layoutMode='VERTICAL'/);
-assert.match(plugin,/qellyMasterFrame/);
-assert.doesNotMatch(plugin,/EXPECTED_FRAME_COUNT|Expected 411 frames/);
-assert.match(figmaSpec,/opened and visually reviewed/i);
-assert.ok(figmaScreenMatrix.trim().split('\n').length-1>=12);
-assert.ok(figmaComponentMatrix.trim().split('\n').length-1>=10);
+assert.equal(pluginPages.length,31,'Figma generator must preserve 31 semantic pages');assert.ok(masterScreens.length>=24,'Figma generator must preserve editable desktop/mobile master frames');
+for(const pattern of [/createVariableCollection\('Qelly Premium Semantic'\)/,/figma\.createComponent\(\)/,/combineAsVariants/,/layoutMode='VERTICAL'/,/qellyMasterFrame/,/Geist Sans Variable/,/Geist Mono Variable/,/radius\/tiny/,/radius\/floating/,/motion\/standard/,/Warm Porcelain/,/Command palette \/ Desktop \/ Tonal/,/Mobile row \/ Asset \/ Expandable/,/Bottom sheet \/ Filters and columns/,/Typography before \/ candidates \/ final/,/Hard borders → tonal hierarchy/,/Nested radius examples/,/Command palette current \/ new desktop \/ new mobile/])assert.match(plugin,pattern);
+assert.doesNotMatch(plugin,/EXPECTED_FRAME_COUNT|Expected 411 frames/);assert.doesNotMatch(plugin,/86% fidelity|Estimated directional fidelity/i);
+assert.match(figmaSpec,/Geist Sans Variable/);assert.match(figmaSpec,/continuous-corner/i);assert.match(figmaSpec,/Hard bordered card versus tonal surface/i);assert.match(figmaSpec,/opened and visually reviewed/i);assert.ok(figmaScreenMatrix.trim().split('\n').length-1>=12);assert.ok(figmaComponentMatrix.trim().split('\n').length-1>=18);assert.match(figmaChecklist,/Obvious bordered cards are reduced by at least 35%/);assert.match(figmaChecklist,/Recent, Navigation, Assets and Actions/);assert.match(figmaChecklist,/horizontal snap rail/);
 
-assert.equal(manifest.networkAccess.allowedDomains[0],'none');
-assert.match(html,/id="edge-dock"/);
-assert.match(html,/id="persona-ribbon"/);
-assert.match(html,/id="context-shelf"/);
-assert.match(html,/id="compare-tray"/);
-assert.match(html,/id="mobile-navigation"/);
-assert.match(html,/qelly-premium-reset\.css/);
-assert.match(css,/prefers-reduced-motion/);
-assert.match(premiumCss,/safe-area-inset-bottom/);
-assert.equal(motion.reducedMotion.meaningPreserved,true);
-assert.equal(charts.requirements.nonColorEncoding,true);
+for(const dependency of ['@fontsource-variable/geist','@fontsource-variable/geist-mono','@fontsource-variable/manrope','@fontsource-variable/plus-jakarta-sans'])assert.equal(packageJson.devDependencies[dependency],'5.2.8');
+for(const phrase of ['geist-variable.woff2','geist-mono-variable.woff2','LICENSE','fonts:{ui:\'Geist Variable\',mono:\'Geist Mono Variable\',selfHosted:true'])assert.match(build,new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+assert.match(typographyAudit,/rejected PR #11/);assert.match(typographyAudit,/Geist Sans Variable/);assert.match(typographyAudit,/Geist Mono Variable/);assert.equal(typographyContract.selectedSystem.ui,'Qelly Geist');assert.equal(typographyContract.selectedSystem.mono,'Qelly Geist Mono');assert.equal(typographyContract.selectedSystem.license,'OFL-1.1');assert.equal(typographyContract.selectedSystem.externalRequests,0);
 
-console.log(JSON.stringify({
-  status:'design-foundations-validation-passed',routes:routeDefinitions.length,productDomains:productDomains.length,personas:PERSONA_PROFILES.length,governedSemantics:requiredSemantics.length,typographyRoles:Object.keys(tokens.typography.roles).length,figmaPages:pluginPages.length,figmaMasterScreens:masterScreens.length,figmaComponents:figmaComponentMatrix.trim().split('\n').length-1,canonicalComponents:componentMatrix.trim().split('\n').length-1
-},null,2));
+for(const token of ['--q-type-page','--q-type-table','--q-radius-4','--q-radius-6','--q-radius-8','--q-radius-10','--q-radius-12','--q-radius-14','--q-radius-16','--q-radius-20','--q-radius-24','--q-radius-28','--q-radius-pill','--q-surface-canvas','--q-surface-base','--q-surface-section','--q-surface-panel','--q-surface-interactive','--q-surface-floating','--q-border-subtle','--q-border-default','--q-shadow-float'])assert.match(fontSurface,new RegExp(token));
+for(const rule of ['font-optical-sizing:auto','font-synthesis:none','tabular-nums lining-nums','appearance:none','scroll-snap-type:x mandatory','.q-command-group','.q-command-item-copy','.q-mi-table-scroll th','.q-mi-mobile-row'])assert.match(fontSurface,new RegExp(rule.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+assert.match(fontPolish,/q-mi-column-menu/);assert.match(fontPolish,/border-radius:var\(--q-radius-24\) var\(--q-radius-24\) 0 0/);assert.match(fontPolish,/q-command-item\[aria-selected="true"\]/);assert.match(assembly,/premium-font-surface\.css/);assert.match(assembly,/premium-font-surface-polish\.css/);
+
+for(const phrase of ['Recent','Navigation','Assets','Actions','q-command-item-icon','q-command-item-copy','q-command-shortcut','ArrowDown','ArrowUp','Enter','Escape'])assert.match(primitive,new RegExp(phrase));assert.doesNotMatch(fontSurface,/q-command-item\.is-active[^}]*border:[^0]/);assert.match(fontSurface,/dialog\.q-command-dialog\{width:min\(730px/);
+for(const gate of ['localGeist','fontShiftZero','weightDiscipline','radiusDiversity','highOpacityPanelBorders','nativeSelectsGone','borderReduction','mobilePulseRail','paletteHierarchy','reducedMotion','consoleClean'])assert.match(fontReview,new RegExp(gate));assert.match(fontReview,/reduction>=\.35/);for(const viewport of ['desktop-1728','desktop-1440','desktop-1280','tablet-1024','tablet-768','mobile-430','mobile-390','mobile-360'])assert.match(fontReview,new RegExp(viewport));
+
+assert.equal(manifest.networkAccess.allowedDomains[0],'none');for(const id of ['edge-dock','persona-ribbon','context-shelf','compare-tray','mobile-navigation'])assert.match(html,new RegExp(`id="${id}"`));assert.match(html,/qelly-premium-reset\.css/);assert.match(foundations,/prefers-reduced-motion/);assert.match(premiumMobile,/safe-area-inset-bottom/);assert.equal(motion.reducedMotion.meaningPreserved,true);assert.equal(charts.requirements.nonColorEncoding,true);
+assert.match(forensics,/original/i);assert.match(synthesis,/Qelly/i);for(const workflow of [reviewWorkflow,fontWorkflow]){assert.match(workflow,/pull_request:/);assert.doesNotMatch(workflow,/\n\s+push:/);assert.doesNotMatch(workflow,/deploy-pages|pages: write|id-token: write/);}
+
+console.log(JSON.stringify({status:'design-foundations-validation-passed',routes:routeDefinitions.length,productDomains:productDomains.length,personas:PERSONA_PROFILES.length,governedSemantics:requiredSemantics.length,typographyRoles:Object.keys(tokens.typography.roles).length,figmaPages:pluginPages.length,figmaMasterScreens:masterScreens.length,figmaComponents:figmaComponentMatrix.trim().split('\n').length-1,canonicalComponents:componentInventory.trim().split('\n').length-1,fontSystem:'Geist Sans Variable + Geist Mono Variable',radiusRoles:11,surfaceRoles:6,fontSurfaceGates:11},null,2));
