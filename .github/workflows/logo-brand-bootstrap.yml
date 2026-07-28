@@ -30,32 +30,66 @@ jobs:
           persist-credentials: true
           show-progress: false
 
-      - name: Fingerprint and structurally validate bounded chunks
+      - name: Fingerprint with durable fail-closed evidence
         shell: bash
         run: |
           set -Eeuo pipefail
           archive=/tmp/qelly-brand-bundle.tar.gz
           extract=/tmp/qelly-brand-bundle
+          actual_sha='unavailable'
+          decoded_bytes=0
+          failing_stage='initialization'
+          failure_handler() {
+            code=$?
+            line=${BASH_LINENO[0]:-unknown}
+            command=${BASH_COMMAND:-unknown}
+            set +e
+            mkdir -p design/brand
+            python - "$code" "$line" "$command" "$failing_stage" "$actual_sha" "$decoded_bytes" <<'PY'
+          import datetime,json,sys
+          code,line,command,stage,actual,size=sys.argv[1:]
+          record={
+            'result':'failed',
+            'branch':'feature/logo-first-brand-system',
+            'headBeforeRun':'${{ github.event.pull_request.head.sha || github.sha }}',
+            'exitCode':int(code),
+            'failingLine':line,
+            'failingCommand':command,
+            'failingStage':stage,
+            'decodedBytes':int(size),
+            'actualSha256':actual,
+            'staleRecordedSha256':'840d9910e193daa3d001436c0c44b556b010742d5e779fd072f6db7bce313558',
+            'recordedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            'partialProductSourceCommitted':False
+          }
+          open('design/brand/QELLY_BOOTSTRAP_STATUS.json','w').write(json.dumps(record,indent=2)+'\n')
+          PY
+            git config user.name 'Qelly Brand Automation'
+            git config user.email 'hemangsah@users.noreply.github.com'
+            git add design/brand/QELLY_BOOTSTRAP_STATUS.json
+            git commit -m 'chore(brand): retain exact prepared-source fingerprint failure' || true
+            git push origin HEAD:feature/logo-first-brand-system || true
+            exit "$code"
+          }
+          trap failure_handler ERR
+
+          failing_stage='base64-decode'
           cat .qelly-brand-bootstrap/chunk-* | tr -d '\r\n' | base64 --decode > "$archive"
+          actual_sha="$(sha256sum "$archive" | cut -d' ' -f1)"
+          decoded_bytes="$(stat -c%s "$archive")"
+
+          failing_stage='gzip-validation'
           gzip -t "$archive"
           rm -rf "$extract"
           mkdir -p "$extract"
+
+          failing_stage='safe-tar-inspection-and-extraction'
           python - "$archive" "$extract" <<'PY'
-          import hashlib,json,pathlib,sys,tarfile
+          import pathlib,sys,tarfile
           archive=pathlib.Path(sys.argv[1])
           destination=pathlib.Path(sys.argv[2]).resolve()
-          required={
-            'apps/web/public/assets/qelly-brand.mjs',
-            'scripts/generate-logo-assets.mjs',
-            'scripts/logo-brand-governance.mjs',
-            'scripts/logo-brand-review.mjs',
-            'tests/logo-brand-system.test.mjs',
-            'figma-brand-foundations/code.js'
-          }
-          files=[]
           with tarfile.open(archive,'r:gz') as tar:
-              members=tar.getmembers()
-              for member in members:
+              for member in tar.getmembers():
                   pure=pathlib.PurePosixPath(member.name)
                   parts=pure.parts
                   if pure.is_absolute() or '..' in parts or '.git' in parts:
@@ -66,24 +100,36 @@ jobs:
                   if resolved != destination and destination not in resolved.parents:
                       raise SystemExit(f'archive path escapes destination: {member.name}')
               tar.extractall(destination,filter='data')
-          for path in sorted(p for p in destination.rglob('*') if p.is_file()):
+          PY
+
+          failing_stage='required-file-verification'
+          required=(
+            apps/web/public/assets/qelly-brand.mjs
+            scripts/generate-logo-assets.mjs
+            scripts/logo-brand-governance.mjs
+            scripts/logo-brand-review.mjs
+            tests/logo-brand-system.test.mjs
+            figma-brand-foundations/code.js
+          )
+          for path in "${required[@]}"; do test -f "$extract/$path"; done
+
+          failing_stage='per-file-fingerprint'
+          python - "$archive" "$extract" "$actual_sha" "$decoded_bytes" <<'PY'
+          import hashlib,json,pathlib,sys
+          archive=pathlib.Path(sys.argv[1]); root=pathlib.Path(sys.argv[2]); actual=sys.argv[3]; size=int(sys.argv[4])
+          files=[]
+          for path in sorted(p for p in root.rglob('*') if p.is_file()):
               data=path.read_bytes()
-              relative=path.relative_to(destination).as_posix()
-              files.append({'path':relative,'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()})
-          present={item['path'] for item in files}
-          missing=sorted(required-present)
-          if missing:
-              raise SystemExit(json.dumps({'missingRequiredFiles':missing},indent=2))
-          data=archive.read_bytes()
+              files.append({'path':path.relative_to(root).as_posix(),'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()})
           record={
             'result':'verified',
             'branch':'feature/logo-first-brand-system',
             'headBeforeRun':'${{ github.event.pull_request.head.sha || github.sha }}',
             'transport':'bounded Base64 chunks chunk-00 through chunk-06',
-            'decodedBytes':len(data),
-            'actualSha256':hashlib.sha256(data).hexdigest(),
+            'decodedBytes':size,
+            'actualSha256':actual,
             'staleRecordedSha256':'840d9910e193daa3d001436c0c44b556b010742d5e779fd072f6db7bce313558',
-            'staleHashMatches':hashlib.sha256(data).hexdigest()=='840d9910e193daa3d001436c0c44b556b010742d5e779fd072f6db7bce313558',
+            'staleHashMatches':actual=='840d9910e193daa3d001436c0c44b556b010742d5e779fd072f6db7bce313558',
             'gzipValid':True,
             'tarMemberSafety':'passed',
             'requiredFilesPresent':True,
@@ -91,14 +137,11 @@ jobs:
             'files':files
           }
           pathlib.Path('design/brand').mkdir(parents=True,exist_ok=True)
-          pathlib.Path('design/brand/QELLY_BOOTSTRAP_STATUS.json').write_text(json.dumps(record,indent=2)+'\n',encoding='utf-8')
-          print(json.dumps({k:v for k,v in record.items() if k!='files'},indent=2))
+          pathlib.Path('design/brand/QELLY_BOOTSTRAP_STATUS.json').write_text(json.dumps(record,indent=2)+'\n')
           PY
 
-      - name: Commit durable fingerprint only
-        shell: bash
-        run: |
-          set -euo pipefail
+          trap - ERR
+          failing_stage='status-commit'
           git config user.name 'Qelly Brand Automation'
           git config user.email 'hemangsah@users.noreply.github.com'
           git add design/brand/QELLY_BOOTSTRAP_STATUS.json
