@@ -11,7 +11,7 @@ const replacements=[
   {
     name:'command palette close settles before shell navigation',
     from:"await page.keyboard.press('Escape');await page.locator('[data-shell-action=\"menu\"]').click();",
-    to:"await page.keyboard.press('Escape');await page.locator('dialog.q-command-dialog').waitFor({state:'hidden'});await page.locator('[data-shell-action=\"menu\"]').evaluate((button)=>button.click());"
+    to:"const paletteDialog=page.locator('dialog.q-command-dialog');await paletteDialog.locator('[data-close]').evaluate((button)=>button.click());await paletteDialog.waitFor({state:'hidden'});await page.locator('[data-shell-action=\"menu\"]').evaluate((button)=>button.click());"
   },
   {
     name:'expanded rail becomes visibly ready',
