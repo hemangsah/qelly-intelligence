@@ -35,6 +35,12 @@
 .qelly-product-preview__metric strong,.qelly-product-preview__row strong{color:var(--q-text,#fff)!important}
 .qelly-brand-auth p,.qelly-command-brand span{color:var(--q-secondary,var(--q-text))!important}
 
+/* Canonical dark mode keeps the complete hero and intelligence preview on governed dark surfaces. */
+html[data-preview="static"][data-resolved-appearance="dark"] .qelly-hero{background:linear-gradient(135deg,var(--q-surface),var(--q-panel))!important;color:var(--q-text)!important;border-color:var(--q-border)!important}
+html[data-preview="static"][data-resolved-appearance="dark"] .qelly-product-preview{background:var(--q-panel)!important;color:var(--q-text)!important;border-color:var(--q-border)!important}
+html[data-preview="static"][data-resolved-appearance="dark"] .qelly-product-preview__metric{background:var(--q-raised)!important;color:var(--q-text)!important;border:1px solid var(--q-divider)!important}
+html[data-preview="static"][data-resolved-appearance="dark"] .qelly-product-preview__chart{background:linear-gradient(180deg,color-mix(in srgb,var(--q-accent) 12%,var(--q-surface)),var(--q-surface))!important}
+
 /* Genuine porcelain daylight across the complete shell, not only the hero. */
 html[data-preview="static"][data-resolved-appearance="light"]{color-scheme:light!important;background:var(--q-canvas)!important}
 html[data-preview="static"][data-resolved-appearance="light"] body,

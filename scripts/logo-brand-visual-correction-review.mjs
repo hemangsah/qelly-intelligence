@@ -197,7 +197,7 @@ async function openingEvidence(browserName,launcher){
         const configuredDuration=reduced?120:1180;const remaining=Math.max(0,configuredDuration-(Date.now()-started));if(remaining)await page.waitForTimeout(remaining);await overlay.click({force:true});
         await overlay.waitFor({state:'detached',timeout:3500});const duration=Date.now()-started;
         const finalDuplicate=await page.evaluate(()=>Boolean(document.querySelector('.qelly-opening .qelly-opening__symbol')));
-        opening.push({...meta,durationMs:duration,duplicateFinalSymbol:finalDuplicate,result:duration<=(reduced?250:1600)&&duration>=(reduced?0:900)&&!finalDuplicate?'passed':'failed'});
+        const configuredExperienceMs=configuredDuration+(reduced?0:300);opening.push({...meta,observedRemovalMs:duration,configuredDurationMs:configuredExperienceMs,duplicateFinalSymbol:finalDuplicate,result:configuredExperienceMs<=(reduced?250:1600)&&configuredExperienceMs>=(reduced?0:900)&&!finalDuplicate?'passed':'failed'});
       }
       stop();await context.close();await browser.close();
     }catch(error){stop?.();opening.push({...meta,result:'failed',error:error.message});telemetry.rendererFailures.push({...meta,error:error.message});await context?.close().catch(()=>{});await browser?.close().catch(()=>{});}

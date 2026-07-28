@@ -28,6 +28,12 @@ test('desktop shell keeps one primary lockup and mobile retains the compact symb
   assert.match(css,/@media\(max-width:520px\)[\s\S]*\.q-brand-home \.q-brand-symbol\{display:block!important\}/);
 });
 
+test('theme bootstrap respects stored or shared appearance instead of reseeding dark defaults',async()=>{
+  const value=await source('apps/web/public/assets/theme-intelligence-bootstrap.mjs');
+  assert.match(value,/themeIntelligence\.start\(shared\)/);
+  assert.doesNotMatch(value,/themeIntelligence\.start\(\{\.\.\.localState\.prefs,\.\.\.shared\}\)/);
+});
+
 test('porcelain daylight overrides the complete static-preview shell',async()=>{
   const css=await source('apps/web/public/assets/qelly-brand-visual-correction.css');
   for(const selector of ['.q-global-strip','.q-command-bar','.q-context-shelf','.q-edge-dock','.q-rail','.q-mobile-navigation','.qelly-hero']){
@@ -62,6 +68,7 @@ test('final visual reviewer covers readable evidence and fail-closed measurement
   assert.match(reviewer,/page\.pdf/);
   assert.match(reviewer,/excessTrailingPx/);
   assert.match(reviewer,/navigationOverlapPx/);
+  assert.match(reviewer,/configuredExperienceMs/);
 });
 
 test('visual correction workflow cannot deploy or merge',async()=>{
