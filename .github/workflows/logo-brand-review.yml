@@ -1,0 +1,82 @@
+name: Qelly Logo Brand Review
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'apps/web/public/**'
+      - 'design/brand/**'
+      - 'figma-brand-foundations/**'
+      - 'scripts/logo-brand-*.mjs'
+      - 'tests/logo-brand-system.test.mjs'
+      - 'package.json'
+      - '.github/workflows/logo-brand-review.yml'
+permissions:
+  contents: read
+concurrency:
+  group: qelly-logo-brand-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  validate-render-package:
+    if: github.event.pull_request.head.ref == 'feature/logo-first-brand-system'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Install review browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Repository and brand validation
+        run: |
+          npm run env:check
+          npm run typecheck
+          npm run lint
+          npm test
+          npm run build
+          npm run validate:product
+          npm run inventory:product
+          npm run smoke
+          npm run release:check
+          npm run security:scan
+          npm run validate:brand
+          npm audit --audit-level=high
+          NODE_ENV=test QELLY_DEVELOPMENT_IDENTITY_ENABLED=false node scripts/production-identity-check.mjs
+          git diff --check
+      - name: Build static brand preview
+        env:
+          QELLY_STATIC_VISUAL_PREVIEW: 'true'
+          QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
+          QELLY_DEPLOYMENT_ENVIRONMENT: logo-brand-review
+        run: |
+          npm run build:frontend
+          npm run validate:pages-preview
+          npm run smoke:pages-preview
+      - name: Render browser and visual evidence
+        env:
+          QELLY_REVIEW_COMMIT: ${{ github.event.pull_request.head.sha }}
+        run: npm run review:brand
+      - name: Package exact review ZIP
+        run: |
+          cd .brand-review
+          zip -qr qelly-logo-first-brand-system-review.zip qelly-logo-first-brand-system-review
+          unzip -t qelly-logo-first-brand-system-review.zip
+          sha256sum qelly-logo-first-brand-system-review.zip > qelly-logo-first-brand-system-review.zip.sha256
+      - name: Upload logo-first review
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-logo-first-brand-system-review
+          path: |
+            .brand-review/qelly-logo-first-brand-system-review.zip
+            .brand-review/qelly-logo-first-brand-system-review.zip.sha256
+            .brand-review/qelly-logo-first-brand-system-review/14-reports
+          if-no-files-found: error
+          retention-days: 14
