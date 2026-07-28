@@ -1,15 +1,18 @@
 name: PR13 Visual Review Finalizer
 
 on:
-  push:
-    branches: [feature/logo-first-brand-system]
+  pull_request:
+    branches: [main]
+    types: [synchronize]
     paths: ['.github/workflows/pr13-visual-review-finalizer.yml']
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   finalize:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'feature/logo-first-brand-system'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
