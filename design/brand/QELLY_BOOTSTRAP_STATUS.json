@@ -1,0 +1,11 @@
+{
+  "result": "failed",
+  "branch": "feature/logo-first-brand-system",
+  "headBeforeRun": "69eeae9e8e58ebd5a30b1e1d413ca054ad6a44f3",
+  "exitCode": 1,
+  "failingLine": "43",
+  "failingCommand": "test \"$actual_sha\" = \"$EXPECTED_BUNDLE_SHA256\"",
+  "recordedAt": "2026-07-28T12:33:49.346451+00:00",
+  "partialProductSourceCommitted": false,
+  "nextAction": "diagnose this exact command only"
+}
