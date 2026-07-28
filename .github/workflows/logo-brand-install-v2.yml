@@ -1,0 +1,174 @@
+name: Qelly Logo Source Installer v2
+
+on:
+  pull_request:
+    branches: [main]
+    types: [synchronize]
+    paths:
+      - '.qelly-brand-install-v2/**'
+      - '.github/workflows/logo-brand-install-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: qelly-logo-source-install-v2-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  install-verify-commit:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'feature/logo-first-brand-system'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Check out exact logo branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: feature/logo-first-brand-system
+          fetch-depth: 0
+          persist-credentials: true
+          show-progress: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Verify every bounded transport blob
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/qelly-install-v2
+          mkdir -p /tmp/qelly-install-v2/raw /tmp/qelly-install-v2/source
+          python - <<'PY'
+          import base64,hashlib,json,pathlib,subprocess
+          manifest=json.loads(pathlib.Path('.qelly-brand-install-v2/transport-manifest.json').read_text())
+          archive=bytearray()
+          verified=[]
+          for index,item in enumerate(manifest['chunks']):
+              path=pathlib.Path(item['path'])
+              encoded=path.read_bytes()
+              git_blob=subprocess.check_output(['git','hash-object',str(path)],text=True).strip()
+              if git_blob!=item['base64GitBlobSha']:
+                  raise SystemExit(f'Git blob mismatch: {path}: {git_blob} != {item["base64GitBlobSha"]}')
+              if len(encoded)!=item['base64Bytes']:
+                  raise SystemExit(f'encoded byte mismatch: {path}')
+              raw=base64.b64decode(encoded,validate=False)
+              if len(raw)!=item['rawBytes']:
+                  raise SystemExit(f'raw byte mismatch: {path}')
+              raw_sha=hashlib.sha256(raw).hexdigest()
+              if raw_sha!=item['rawSha256']:
+                  raise SystemExit(f'raw SHA mismatch: {path}')
+              pathlib.Path(f'/tmp/qelly-install-v2/raw/{index:03d}.bin').write_bytes(raw)
+              archive.extend(raw)
+              verified.append({'path':str(path),'gitBlobSha':git_blob,'rawBytes':len(raw),'rawSha256':raw_sha})
+          archive=bytes(archive)
+          if len(archive)!=manifest['archiveBytes']:
+              raise SystemExit('archive byte count mismatch')
+          archive_sha=hashlib.sha256(archive).hexdigest()
+          if archive_sha!=manifest['archiveSha256']:
+              raise SystemExit(f'archive SHA mismatch: {archive_sha}')
+          pathlib.Path('/tmp/qelly-install-v2/qelly-logo-source.tar.gz').write_bytes(archive)
+          pathlib.Path('/tmp/qelly-install-v2/TRANSPORT_VERIFICATION.json').write_text(json.dumps({'result':'passed','archiveBytes':len(archive),'archiveSha256':archive_sha,'chunks':verified},indent=2)+'\n')
+          print(json.dumps({'result':'passed','archiveBytes':len(archive),'archiveSha256':archive_sha,'chunkCount':len(verified)},indent=2))
+          PY
+
+      - name: Safely extract and install the verified source tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import pathlib,tarfile
+          archive=pathlib.Path('/tmp/qelly-install-v2/qelly-logo-source.tar.gz')
+          destination=pathlib.Path('/tmp/qelly-install-v2/source').resolve()
+          with tarfile.open(archive,'r:gz') as tar:
+              members=tar.getmembers()
+              for member in members:
+                  pure=pathlib.PurePosixPath(member.name)
+                  if pure.is_absolute() or '..' in pure.parts or '.git' in pure.parts:
+                      raise SystemExit(f'unsafe archive path: {member.name}')
+                  if member.issym() or member.islnk() or member.isdev() or member.isfifo():
+                      raise SystemExit(f'unsafe archive member: {member.name}')
+                  resolved=(destination/member.name).resolve()
+                  if resolved!=destination and destination not in resolved.parents:
+                      raise SystemExit(f'archive escape: {member.name}')
+              tar.extractall(destination,filter='data')
+          PY
+          required=(
+            apps/web/public/assets/qelly-brand.mjs
+            apps/web/public/assets/qelly-brand.css
+            apps/web/public/assets/brand/qelly-logo-primary.svg
+            scripts/generate-logo-assets.mjs
+            scripts/logo-brand-governance.mjs
+            scripts/logo-brand-review.mjs
+            tests/logo-brand-system.test.mjs
+            design/brand/QELLY_LOGO_SOURCE_MANIFEST.json
+            figma-brand-foundations/code.js
+            .github/workflows/logo-brand-review.yml
+          )
+          for path in "${required[@]}"; do test -f "/tmp/qelly-install-v2/source/$path"; done
+          cp -a /tmp/qelly-install-v2/source/. .
+          rm -rf .qelly-brand-install-v2 .qelly-brand-bootstrap
+          rm -f .github/workflows/logo-brand-install-v2.yml .github/workflows/logo-brand-bootstrap.yml
+          rm -f design/brand/QELLY_BOOTSTRAP_STATUS.json design/brand/.tree-probe
+
+      - name: Install dependencies and regenerate deterministic raster assets
+        run: |
+          npm ci --ignore-scripts
+          npm run generate:brand-assets
+
+      - name: Verify every installed source file against its manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib,struct
+          manifest=json.loads(pathlib.Path('design/brand/QELLY_LOGO_SOURCE_MANIFEST.json').read_text())
+          failures=[]
+          for item in manifest['files']:
+              path=pathlib.Path(item['path'])
+              if not path.is_file():
+                  failures.append({'path':str(path),'error':'missing'});continue
+              data=path.read_bytes()
+              sha=hashlib.sha256(data).hexdigest()
+              blob=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+              if len(data)!=item['bytes'] or sha!=item['sha256'] or blob!=item['gitBlobSha']:
+                  failures.append({'path':str(path),'bytes':len(data),'sha256':sha,'gitBlobSha':blob})
+              dims=item.get('dimensions')
+              if dims and data[:8]==b'\x89PNG\r\n\x1a\n':
+                  actual=[struct.unpack('>I',data[16:20])[0],struct.unpack('>I',data[20:24])[0]]
+                  if actual!=dims: failures.append({'path':str(path),'dimensions':actual,'expectedDimensions':dims})
+          if failures: raise SystemExit(json.dumps({'failures':failures},indent=2))
+          pathlib.Path('design/brand/QELLY_SOURCE_INSTALLATION_VERIFICATION.json').write_text(json.dumps({'result':'passed','verifiedFiles':len(manifest['files']),'archiveSha256':'159d1aeb3a83106b5a9762dffa1095e9a9de918b0e3ff69cc76217c547c456cf'},indent=2)+'\n')
+          print(json.dumps({'result':'passed','verifiedFiles':len(manifest['files'])},indent=2))
+          PY
+
+      - name: Validate the coherent brand source before commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/web/public/assets/qelly-brand.mjs
+          node --check scripts/generate-logo-assets.mjs
+          node --check scripts/logo-brand-governance.mjs
+          node --check scripts/logo-brand-review.mjs
+          node --check figma-brand-foundations/code.js
+          node --test tests/logo-brand-system.test.mjs
+          npm run validate:brand
+          npm run security:scan
+          git diff --check
+          QELLY_STATIC_VISUAL_PREVIEW=true QELLY_PUBLIC_BASE_PATH=/qelly-intelligence/ QELLY_DEPLOYMENT_ENVIRONMENT=logo-brand-install npm run build:frontend
+          npm run validate:pages-preview
+          npm run smoke:pages-preview
+
+      - name: Commit and push the complete verified source installation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          git diff --cached --check
+          git config user.name 'Qelly Brand Automation'
+          git config user.email 'hemangsah@users.noreply.github.com'
+          git commit -m 'feat(brand): add official Qelly logo-first system'
+          git push origin HEAD:feature/logo-first-brand-system

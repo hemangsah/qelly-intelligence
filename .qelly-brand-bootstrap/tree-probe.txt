@@ -1,3 +1,0 @@
-Qelly logo source bootstrap tree probe
-Foundation: 239f6f0c7c663801662f4e5f940ca76fb6941bf1
-Created: 2026-07-28
