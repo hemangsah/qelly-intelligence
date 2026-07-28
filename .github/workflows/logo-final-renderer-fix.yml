@@ -1,0 +1,93 @@
+name: Qelly Logo Final Renderer Correction
+
+on:
+  pull_request:
+    branches: [main]
+    types: [synchronize]
+    paths:
+      - '.github/workflows/logo-final-renderer-fix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: qelly-logo-final-renderer-fix-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apply-final-renderer-correction:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'feature/logo-first-brand-system'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact logo branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: feature/logo-first-brand-system
+          fetch-depth: 0
+          persist-credentials: true
+          show-progress: false
+
+      - name: Apply safe-port and overflow correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_exact(path, old, new, count=1):
+              file=Path(path)
+              source=file.read_text()
+              found=source.count(old)
+              if found != count:
+                  raise SystemExit(f'{path}: expected {count} occurrence(s), found {found}: {old[:140]!r}')
+              file.write_text(source.replace(old,new))
+
+          renderer='scripts/logo-brand-review.mjs'
+          replace_exact(renderer, 'let serverPort = 4190;', 'let serverPort = 4173;')
+          replace_exact(renderer, '  const port = 4191;', '  const port = 4174;')
+          replace_exact(renderer,
+            "  await json(path.join(reportDir, 'LAYOUT_SHIFT_QA.json'), { threshold: clsThreshold, records: layoutShiftEvidence });\n  await json(path.join(reportDir, 'BROWSER_MATRIX.json'),",
+            "  await json(path.join(reportDir, 'LAYOUT_SHIFT_QA.json'), { threshold: clsThreshold, records: layoutShiftEvidence });\n  await json(path.join(reportDir, 'OVERFLOW_QA.json'), { threshold: overflowThreshold, records: metrics.map(({ browser, viewport, route, capture, overflow, overflowElements }) => ({ browser, viewport, route, capture, overflow, overflowElements, result: overflow <= overflowThreshold ? 'passed' : 'failed' })) });\n  await json(path.join(reportDir, 'BROWSER_MATRIX.json'),")
+
+          css='apps/web/public/assets/qelly-brand.css'
+          source=Path(css).read_text()
+          marker='.q-global-strip,.q-command-bar{box-sizing:border-box;max-width:100vw}\n#main{overflow-x:hidden;overflow-x:clip}\n'
+          if marker in source:
+              raise SystemExit('final overflow marker already present unexpectedly')
+          Path(css).write_text(source.rstrip()+'\n'+marker)
+
+          tests='tests/logo-brand-system.test.mjs'
+          replace_exact(tests,
+            "  assert.match(value, /holdOpening: !repeat/);",
+            "  assert.match(value, /holdOpening: !repeat/);\n  assert.match(value, /let serverPort = 4173/);\n  assert.match(value, /const port = 4174/);\n  assert.match(value, /OVERFLOW_QA\\.json/);")
+          replace_exact(tests,
+            "test('PWA assets and IBM Plex lock are preserved', async () => {",
+            "test('brand shell contains intentional edge bleed without document overflow', async () => {\n  const value = await source('apps/web/public/assets/qelly-brand.css');\n  assert.match(value, /\\.q-global-strip,\\.q-command-bar\\{box-sizing:border-box;max-width:100vw\\}/);\n  assert.match(value, /#main\\{overflow-x:hidden;overflow-x:clip\\}/);\n});\n\ntest('PWA assets and IBM Plex lock are preserved', async () => {")
+          PY
+
+      - name: Verify correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check scripts/logo-brand-review.mjs
+          node --check tests/logo-brand-system.test.mjs
+          node --test tests/logo-brand-system.test.mjs
+          grep -q 'let serverPort = 4173' scripts/logo-brand-review.mjs
+          grep -q 'const port = 4174' scripts/logo-brand-review.mjs
+          grep -q 'OVERFLOW_QA.json' scripts/logo-brand-review.mjs
+          grep -q '#main{overflow-x:hidden;overflow-x:clip}' apps/web/public/assets/qelly-brand.css
+          ! grep -q "waitUntil: 'networkidle'" scripts/logo-brand-review.mjs
+          git diff --check
+
+      - name: Commit permanent final correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add apps/web/public/assets/qelly-brand.css scripts/logo-brand-review.mjs tests/logo-brand-system.test.mjs
+          git diff --cached --check
+          git config user.name 'Qelly Brand Automation'
+          git config user.email 'hemangsah@users.noreply.github.com'
+          git commit -m 'fix(brand-review): use safe ports and contain page overflow'
+          git push origin HEAD:feature/logo-first-brand-system
