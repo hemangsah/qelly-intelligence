@@ -14,200 +14,85 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: qelly-logo-brand-source-bootstrap
   cancel-in-progress: true
 
 jobs:
-  install-validate-commit:
+  diagnose-prepared-bundle:
     if: github.event_name != 'pull_request' || github.head_ref == 'feature/logo-first-brand-system'
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 15
     steps:
       - name: Check out exact logo branch
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           ref: feature/logo-first-brand-system
-          fetch-depth: 0
-          persist-credentials: true
+          fetch-depth: 1
+          persist-credentials: false
+          show-progress: false
 
-      - name: Detect prepared source chunks
-        id: detect
+      - name: Build closed diagnostic record
+        id: diagnose
         shell: bash
         run: |
           set -euo pipefail
-          if compgen -G '.qelly-brand-bootstrap/chunk-*' >/dev/null; then
-            echo 'install=true' >> "$GITHUB_OUTPUT"
-            echo 'mode=base64' >> "$GITHUB_OUTPUT"
-          elif compgen -G '.qelly-brand-bootstrap/bin-*' >/dev/null; then
-            echo 'install=true' >> "$GITHUB_OUTPUT"
-            echo 'mode=binary' >> "$GITHUB_OUTPUT"
-          else
-            echo 'install=false' >> "$GITHUB_OUTPUT"
-            echo 'mode=none' >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Set up Node.js
-        if: steps.detect.outputs.install == 'true'
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version: '22'
-          cache: npm
-
-      - name: Assemble and validate prepared source bundle
-        if: steps.detect.outputs.install == 'true'
-        env:
-          CHUNK_MODE: ${{ steps.detect.outputs.mode }}
-        shell: bash
-        run: |
-          set -euo pipefail
+          mkdir -p .qelly-brand-diagnostic
           archive=/tmp/qelly-brand-bundle.tar.gz
-          extract=/tmp/qelly-brand-bundle
-          if [ "$CHUNK_MODE" = base64 ]; then
-            cat .qelly-brand-bootstrap/chunk-* | tr -d '\r\n' | base64 --decode > "$archive"
-          else
-            cat .qelly-brand-bootstrap/bin-* > "$archive"
-          fi
+          cat .qelly-brand-bootstrap/chunk-* | tr -d '\r\n' | base64 --decode > "$archive"
           actual_sha="$(sha256sum "$archive" | cut -d' ' -f1)"
           expected_sha='840d9910e193daa3d001436c0c44b556b010742d5e779fd072f6db7bce313558'
-          echo "QELLY_BUNDLE_BYTES=$(stat -c%s "$archive")"
-          echo "QELLY_BUNDLE_ACTUAL_SHA256=$actual_sha"
-          echo "QELLY_BUNDLE_EXPECTED_SHA256=$expected_sha"
-          test "$actual_sha" = "$expected_sha"
-          test -z "$(tar -tzf "$archive" | grep -E '(^/|(^|/)\.\.(/|$)|(^|/)\.git(/|$))' || true)"
-          rm -rf "$extract"
-          mkdir -p "$extract"
-          tar -xzf "$archive" -C "$extract"
-          test -f "$extract/apps/web/public/assets/qelly-brand.mjs"
-          test -f "$extract/scripts/generate-logo-assets.mjs"
-          test -f "$extract/scripts/logo-brand-governance.mjs"
-          test -f "$extract/scripts/logo-brand-review.mjs"
-          test -f "$extract/tests/logo-brand-system.test.mjs"
-          tar -tzf "$archive" | sort > /tmp/QELLY_PREPARED_BUNDLE_CONTENTS.txt
-          cp -a "$extract"/. .
-          rm -rf .qelly-brand-bootstrap
-          rm -f .github/workflows/logo-brand-bootstrap.yml
-
-      - name: Install locked dependencies
-        if: steps.detect.outputs.install == 'true'
-        run: npm ci --ignore-scripts
-
-      - name: Generate governed favicon and PWA assets
-        if: steps.detect.outputs.install == 'true'
-        run: npm run generate:brand-assets
-
-      - name: Create hash-verified source manifest
-        if: steps.detect.outputs.install == 'true'
-        env:
-          FOUNDATION_SHA: 239f6f0c7c663801662f4e5f940ca76fb6941bf1
-          BUNDLE_SHA256: 840d9910e193daa3d001436c0c44b556b010742d5e779fd072f6db7bce313558
-        shell: bash
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import hashlib, json, os, pathlib, struct, subprocess
-          root = pathlib.Path('.').resolve(); foundation = os.environ['FOUNDATION_SHA']
-          excluded={'.github/workflows/logo-brand-bootstrap.yml','design/brand/QELLY_LOGO_SOURCE_MANIFEST.json','design/brand/QELLY_LOGO_IMPLEMENTATION_STATUS.md'}
-          changed=set()
-          status=subprocess.check_output(['git','status','--porcelain=v1','-z']).decode()
-          for line in status.split('\0'):
-              if not line: continue
-              path=line[3:]
-              if ' -> ' in path: path=path.split(' -> ',1)[1]
-              if path.startswith('.qelly-brand-bootstrap/') or path in excluded: continue
-              if (root/path).is_file(): changed.add(path)
-          def purpose(path):
-              for prefix,label in [('apps/web/public/assets/brand/','official production logo asset'),('apps/web/public/assets/qelly-brand','runtime brand integration'),('apps/web/public/assets/routes/','logo-first product experience'),('apps/web/public/','web shell, icon or manifest integration'),('design/brand/','brand governance and handoff'),('figma-brand-foundations/','editable Figma brand foundations'),('scripts/','brand generation, validation or review automation'),('tests/','brand governance regression coverage'),('.github/workflows/','brand validation and visual review workflow'),('package','locked repository command integration')]:
-                  if path.startswith(prefix): return label
-              return 'logo-first integration source'
-          def png_dimensions(data):
-              return [struct.unpack('>I',data[16:20])[0],struct.unpack('>I',data[20:24])[0]] if data[:8]==b'\x89PNG\r\n\x1a\n' and len(data)>=24 else None
-          def ico_dimensions(data):
-              if len(data)<6 or data[:4]!=b'\x00\x00\x01\x00': return None
-              count=struct.unpack('<H',data[4:6])[0]; dims=[]; offset=6
-              for _ in range(count):
-                  if offset+16>len(data): break
-                  dims.append([data[offset] or 256,data[offset+1] or 256]); offset+=16
-              return dims
-          files=[]
-          for path in sorted(changed):
-              data=(root/path).read_bytes()
-              try: data.decode('utf-8'); kind='text'
-              except UnicodeDecodeError: kind='binary'
-              exists_before=subprocess.run(['git','cat-file','-e',f'{foundation}:{path}'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0
-              entry={'path':path,'purpose':purpose(path),'kind':kind,'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest(),'gitBlobSha':hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest(),'change':'updated' if exists_before else 'created','validationResult':'verified-worktree-and-git-blob','sourceProvenance':'prepared logo-first bundle reconstructed from the user-selected authoritative Qelly logo','authoritativeSelectedLogoRelationship':'preserves the approved burgundy Q ring and tail, trajectory curve, red and green nodes, and QELLY wordmark'}
-              dims=png_dimensions(data); ico=ico_dimensions(data)
-              if dims: entry['dimensions']=dims
-              if ico: entry['iconDimensions']=ico
-              files.append(entry)
-          manifest={'schemaVersion':1,'repository':'hemangsah/qelly-intelligence','branch':'feature/logo-first-brand-system','foundationCommit':foundation,'foundationTag':'qelly-design-foundation-v1','preparedBundleSha256':os.environ['BUNDLE_SHA256'],'selectedLogo':'user-supplied authoritative Qelly mark','ibmPlexLock':True,'manifestSelfExcludedFromRecursiveHash':True,'fileCount':len(files),'files':files}
-          out=root/'design/brand/QELLY_LOGO_SOURCE_MANIFEST.json'; out.parent.mkdir(parents=True,exist_ok=True); out.write_text(json.dumps(manifest,indent=2)+'\n')
-          (root/'design/brand/QELLY_LOGO_IMPLEMENTATION_STATUS.md').write_text('# Qelly Logo Implementation Status\n\n## Durable installation\n\n'+f'- Prepared bundle SHA-256: `{os.environ["BUNDLE_SHA256"]}`\n- Verified installed source files: `{len(files)}`\n- Missing intended files: `0` at installation stage\n- Failed files: `0`\n- Transport resolution: existing bounded Base64 chunks decoded as one verified byte stream; the one-large-payload method was not retried\n- Every installed file records byte size, SHA-256 and Git blob SHA in `QELLY_LOGO_SOURCE_MANIFEST.json`\n- Current durable source commit: resolved by the branch head after the coherent install commit\n- Next action: complete full repository, browser, workflow and review-artifact validation\n')
-          print(json.dumps({'installedFiles':len(files)},indent=2))
+          bytes="$(stat -c%s "$archive")"
+          gzip_valid=false
+          tar_valid=false
+          required_files=false
+          if gzip -t "$archive"; then gzip_valid=true; fi
+          if tar -tzf "$archive" > .qelly-brand-diagnostic/BUNDLE_CONTENTS.txt; then tar_valid=true; fi
+          if [ "$tar_valid" = true ]; then
+            if grep -qx 'apps/web/public/assets/qelly-brand.mjs' .qelly-brand-diagnostic/BUNDLE_CONTENTS.txt \
+              && grep -qx 'scripts/generate-logo-assets.mjs' .qelly-brand-diagnostic/BUNDLE_CONTENTS.txt \
+              && grep -qx 'scripts/logo-brand-governance.mjs' .qelly-brand-diagnostic/BUNDLE_CONTENTS.txt \
+              && grep -qx 'scripts/logo-brand-review.mjs' .qelly-brand-diagnostic/BUNDLE_CONTENTS.txt \
+              && grep -qx 'tests/logo-brand-system.test.mjs' .qelly-brand-diagnostic/BUNDLE_CONTENTS.txt; then
+              required_files=true
+            fi
+          fi
+          python - "$actual_sha" "$expected_sha" "$bytes" "$gzip_valid" "$tar_valid" "$required_files" <<'PY'
+          import json,sys
+          actual,expected,size,gzip_valid,tar_valid,required=sys.argv[1:]
+          record={
+            'branch':'feature/logo-first-brand-system',
+            'source':'bounded Base64 chunk-00 through chunk-06',
+            'decodedBytes':int(size),
+            'actualSha256':actual,
+            'recordedExpectedSha256':expected,
+            'hashMatches':actual==expected,
+            'gzipValid':gzip_valid=='true',
+            'tarValid':tar_valid=='true',
+            'requiredFilesPresent':required=='true'
+          }
+          open('.qelly-brand-diagnostic/INTEGRITY.json','w').write(json.dumps(record,indent=2)+'\n')
+          print(json.dumps(record,indent=2))
           PY
+          if [ "$actual_sha" = "$expected_sha" ] && [ "$gzip_valid" = true ] && [ "$tar_valid" = true ] && [ "$required_files" = true ]; then
+            echo 'passed=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'passed=false' >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Validate affected brand source before commit
-        if: steps.detect.outputs.install == 'true'
-        shell: bash
+      - name: Upload exact integrity diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-logo-prepared-bundle-diagnostic
+          path: .qelly-brand-diagnostic
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Fail closed on any mismatch
+        if: steps.diagnose.outputs.passed != 'true'
         run: |
-          set -euo pipefail
-          node --check apps/web/public/assets/qelly-brand.mjs
-          node --check apps/web/public/assets/routes/feature-universe.mjs
-          node --check scripts/generate-logo-assets.mjs
-          node --check scripts/logo-brand-governance.mjs
-          node --check scripts/logo-brand-review.mjs
-          node --check tests/logo-brand-system.test.mjs
-          node --check figma-brand-foundations/code.js
-          node --test tests/logo-brand-system.test.mjs
-          npm run validate:brand
-          git diff --check
-          npm run security:scan
-
-      - name: Build and validate static integration
-        if: steps.detect.outputs.install == 'true'
-        env:
-          QELLY_STATIC_VISUAL_PREVIEW: 'true'
-          QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
-          QELLY_DEPLOYMENT_ENVIRONMENT: logo-brand-bootstrap
-        run: |
-          npm run build:frontend
-          npm run validate:pages-preview
-          npm run smoke:pages-preview
-
-      - name: Commit coherent logo-first source
-        if: steps.detect.outputs.install == 'true'
-        id: commit
-        shell: bash
-        run: |
-          set -euo pipefail
-          git add -A
-          git diff --cached --check
-          git config user.name 'Qelly Brand Automation'
-          git config user.email 'hemangsah@users.noreply.github.com'
-          git commit -m 'feat(brand): add official Qelly logo-first system'
-          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-
-      - name: Fetch back and verify every committed source file
-        if: steps.detect.outputs.install == 'true'
-        env:
-          SOURCE_COMMIT: ${{ steps.commit.outputs.sha }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import hashlib,json,os,subprocess
-          manifest=json.load(open('design/brand/QELLY_LOGO_SOURCE_MANIFEST.json'))
-          commit=os.environ['SOURCE_COMMIT']; failures=[]
-          for item in manifest['files']:
-              data=subprocess.check_output(['git','show',f'{commit}:{item["path"]}'])
-              sha256=hashlib.sha256(data).hexdigest(); blob=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
-              if len(data)!=item['bytes'] or sha256!=item['sha256'] or blob!=item['gitBlobSha']: failures.append({'path':item['path'],'bytes':len(data),'sha256':sha256,'gitBlobSha':blob})
-          if failures: raise SystemExit(json.dumps({'verificationFailures':failures},indent=2))
-          print(json.dumps({'commit':commit,'verifiedFiles':len(manifest['files'])},indent=2))
-          PY
-
-      - name: Push one coherent source commit
-        if: steps.detect.outputs.install == 'true'
-        run: git push origin HEAD:feature/logo-first-brand-system
+          echo 'Prepared logo source bundle did not satisfy the recorded integrity contract.' >&2
+          exit 1
