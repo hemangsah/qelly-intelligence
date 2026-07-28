@@ -72,6 +72,9 @@ jobs:
           fi
           actual_sha="$(sha256sum "$archive" | cut -d' ' -f1)"
           expected_sha='840d9910e193daa3d001436c0c44b556b010742d5e779fd072f6db7bce313558'
+          echo "QELLY_BUNDLE_BYTES=$(stat -c%s "$archive")"
+          echo "QELLY_BUNDLE_ACTUAL_SHA256=$actual_sha"
+          echo "QELLY_BUNDLE_EXPECTED_SHA256=$expected_sha"
           test "$actual_sha" = "$expected_sha"
           test -z "$(tar -tzf "$archive" | grep -E '(^/|(^|/)\.\.(/|$)|(^|/)\.git(/|$))' || true)"
           rm -rf "$extract"
@@ -105,127 +108,43 @@ jobs:
           set -euo pipefail
           python - <<'PY'
           import hashlib, json, os, pathlib, struct, subprocess
-
-          root = pathlib.Path('.').resolve()
-          foundation = os.environ['FOUNDATION_SHA']
-          excluded = {
-              '.github/workflows/logo-brand-bootstrap.yml',
-              'design/brand/QELLY_LOGO_SOURCE_MANIFEST.json',
-              'design/brand/QELLY_LOGO_IMPLEMENTATION_STATUS.md',
-          }
-
-          def run(*args, text=True):
-              return subprocess.check_output(args, text=text)
-
-          changed = set()
-          for line in run('git','status','--porcelain=v1','-z').split('\0'):
-              if not line:
-                  continue
-              path = line[3:]
-              if ' -> ' in path:
-                  path = path.split(' -> ',1)[1]
-              if path.startswith('.qelly-brand-bootstrap/') or path in excluded:
-                  continue
-              absolute = root / path
-              if absolute.is_file():
-                  changed.add(path)
-
+          root = pathlib.Path('.').resolve(); foundation = os.environ['FOUNDATION_SHA']
+          excluded={'.github/workflows/logo-brand-bootstrap.yml','design/brand/QELLY_LOGO_SOURCE_MANIFEST.json','design/brand/QELLY_LOGO_IMPLEMENTATION_STATUS.md'}
+          changed=set()
+          status=subprocess.check_output(['git','status','--porcelain=v1','-z']).decode()
+          for line in status.split('\0'):
+              if not line: continue
+              path=line[3:]
+              if ' -> ' in path: path=path.split(' -> ',1)[1]
+              if path.startswith('.qelly-brand-bootstrap/') or path in excluded: continue
+              if (root/path).is_file(): changed.add(path)
           def purpose(path):
-              rules = [
-                  ('apps/web/public/assets/brand/', 'official production logo asset'),
-                  ('apps/web/public/assets/qelly-brand', 'runtime brand integration'),
-                  ('apps/web/public/assets/routes/', 'logo-first product experience'),
-                  ('apps/web/public/', 'web shell, icon or manifest integration'),
-                  ('design/brand/', 'brand governance and handoff'),
-                  ('figma-brand-foundations/', 'editable Figma brand foundations'),
-                  ('scripts/', 'brand generation, validation or review automation'),
-                  ('tests/', 'brand governance regression coverage'),
-                  ('.github/workflows/', 'brand validation and visual review workflow'),
-                  ('package', 'locked repository command integration'),
-              ]
-              for prefix, label in rules:
-                  if path.startswith(prefix):
-                      return label
+              for prefix,label in [('apps/web/public/assets/brand/','official production logo asset'),('apps/web/public/assets/qelly-brand','runtime brand integration'),('apps/web/public/assets/routes/','logo-first product experience'),('apps/web/public/','web shell, icon or manifest integration'),('design/brand/','brand governance and handoff'),('figma-brand-foundations/','editable Figma brand foundations'),('scripts/','brand generation, validation or review automation'),('tests/','brand governance regression coverage'),('.github/workflows/','brand validation and visual review workflow'),('package','locked repository command integration')]:
+                  if path.startswith(prefix): return label
               return 'logo-first integration source'
-
           def png_dimensions(data):
-              if data[:8] == b'\x89PNG\r\n\x1a\n' and len(data) >= 24:
-                  return [struct.unpack('>I', data[16:20])[0], struct.unpack('>I', data[20:24])[0]]
-              return None
-
+              return [struct.unpack('>I',data[16:20])[0],struct.unpack('>I',data[20:24])[0]] if data[:8]==b'\x89PNG\r\n\x1a\n' and len(data)>=24 else None
           def ico_dimensions(data):
-              if len(data) < 6 or data[:4] != b'\x00\x00\x01\x00':
-                  return None
-              count = struct.unpack('<H', data[4:6])[0]
-              dims=[]
-              offset=6
+              if len(data)<6 or data[:4]!=b'\x00\x00\x01\x00': return None
+              count=struct.unpack('<H',data[4:6])[0]; dims=[]; offset=6
               for _ in range(count):
-                  if offset+16 > len(data): break
-                  w=data[offset] or 256; h=data[offset+1] or 256
-                  dims.append([w,h]); offset += 16
+                  if offset+16>len(data): break
+                  dims.append([data[offset] or 256,data[offset+1] or 256]); offset+=16
               return dims
-
           files=[]
           for path in sorted(changed):
               data=(root/path).read_bytes()
-              try:
-                  data.decode('utf-8')
-                  kind='text'
-              except UnicodeDecodeError:
-                  kind='binary'
-              exists_before = subprocess.run(
-                  ['git','cat-file','-e',f'{foundation}:{path}'],
-                  stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL
-              ).returncode == 0
-              entry={
-                  'path':path,
-                  'purpose':purpose(path),
-                  'kind':kind,
-                  'bytes':len(data),
-                  'sha256':hashlib.sha256(data).hexdigest(),
-                  'gitBlobSha':hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest(),
-                  'change':'updated' if exists_before else 'created',
-                  'validationResult':'verified-worktree-and-git-blob',
-                  'sourceProvenance':'prepared logo-first bundle reconstructed from the user-selected authoritative Qelly logo',
-                  'authoritativeSelectedLogoRelationship':'preserves the approved burgundy Q ring and tail, trajectory curve, red and green nodes, and QELLY wordmark',
-              }
-              dims=png_dimensions(data)
+              try: data.decode('utf-8'); kind='text'
+              except UnicodeDecodeError: kind='binary'
+              exists_before=subprocess.run(['git','cat-file','-e',f'{foundation}:{path}'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0
+              entry={'path':path,'purpose':purpose(path),'kind':kind,'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest(),'gitBlobSha':hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest(),'change':'updated' if exists_before else 'created','validationResult':'verified-worktree-and-git-blob','sourceProvenance':'prepared logo-first bundle reconstructed from the user-selected authoritative Qelly logo','authoritativeSelectedLogoRelationship':'preserves the approved burgundy Q ring and tail, trajectory curve, red and green nodes, and QELLY wordmark'}
+              dims=png_dimensions(data); ico=ico_dimensions(data)
               if dims: entry['dimensions']=dims
-              ico=ico_dimensions(data)
               if ico: entry['iconDimensions']=ico
               files.append(entry)
-
-          manifest={
-              'schemaVersion':1,
-              'repository':'hemangsah/qelly-intelligence',
-              'branch':'feature/logo-first-brand-system',
-              'foundationCommit':foundation,
-              'foundationTag':'qelly-design-foundation-v1',
-              'preparedBundleSha256':os.environ['BUNDLE_SHA256'],
-              'selectedLogo':'user-supplied authoritative Qelly mark',
-              'ibmPlexLock':True,
-              'manifestSelfExcludedFromRecursiveHash':True,
-              'fileCount':len(files),
-              'files':files,
-          }
-          out=root/'design/brand/QELLY_LOGO_SOURCE_MANIFEST.json'
-          out.parent.mkdir(parents=True,exist_ok=True)
-          out.write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')
-
-          status=root/'design/brand/QELLY_LOGO_IMPLEMENTATION_STATUS.md'
-          status.write_text(
-              '# Qelly Logo Implementation Status\n\n'
-              '## Durable installation\n\n'
-              f'- Prepared bundle SHA-256: `{os.environ["BUNDLE_SHA256"]}`\n'
-              f'- Verified installed source files: `{len(files)}`\n'
-              '- Missing intended files: `0` at installation stage\n'
-              '- Failed files: `0`\n'
-              '- Transport resolution: existing bounded Base64 chunks decoded as one verified byte stream; the one-large-payload method was not retried\n'
-              '- Every installed file records byte size, SHA-256 and Git blob SHA in `QELLY_LOGO_SOURCE_MANIFEST.json`\n'
-              '- Current durable source commit: resolved by the branch head after the coherent install commit\n'
-              '- Next action: complete full repository, browser, workflow and review-artifact validation\n',
-              encoding='utf-8'
-          )
+          manifest={'schemaVersion':1,'repository':'hemangsah/qelly-intelligence','branch':'feature/logo-first-brand-system','foundationCommit':foundation,'foundationTag':'qelly-design-foundation-v1','preparedBundleSha256':os.environ['BUNDLE_SHA256'],'selectedLogo':'user-supplied authoritative Qelly mark','ibmPlexLock':True,'manifestSelfExcludedFromRecursiveHash':True,'fileCount':len(files),'files':files}
+          out=root/'design/brand/QELLY_LOGO_SOURCE_MANIFEST.json'; out.parent.mkdir(parents=True,exist_ok=True); out.write_text(json.dumps(manifest,indent=2)+'\n')
+          (root/'design/brand/QELLY_LOGO_IMPLEMENTATION_STATUS.md').write_text('# Qelly Logo Implementation Status\n\n## Durable installation\n\n'+f'- Prepared bundle SHA-256: `{os.environ["BUNDLE_SHA256"]}`\n- Verified installed source files: `{len(files)}`\n- Missing intended files: `0` at installation stage\n- Failed files: `0`\n- Transport resolution: existing bounded Base64 chunks decoded as one verified byte stream; the one-large-payload method was not retried\n- Every installed file records byte size, SHA-256 and Git blob SHA in `QELLY_LOGO_SOURCE_MANIFEST.json`\n- Current durable source commit: resolved by the branch head after the coherent install commit\n- Next action: complete full repository, browser, workflow and review-artifact validation\n')
           print(json.dumps({'installedFiles':len(files)},indent=2))
           PY
 
@@ -278,19 +197,14 @@ jobs:
         run: |
           set -euo pipefail
           python - <<'PY'
-          import hashlib, json, os, subprocess
-          manifest=json.load(open('design/brand/QELLY_LOGO_SOURCE_MANIFEST.json',encoding='utf-8'))
-          commit=os.environ['SOURCE_COMMIT']
-          failures=[]
+          import hashlib,json,os,subprocess
+          manifest=json.load(open('design/brand/QELLY_LOGO_SOURCE_MANIFEST.json'))
+          commit=os.environ['SOURCE_COMMIT']; failures=[]
           for item in manifest['files']:
-              path=item['path']
-              data=subprocess.check_output(['git','show',f'{commit}:{path}'])
-              sha256=hashlib.sha256(data).hexdigest()
-              blob=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
-              if len(data)!=item['bytes'] or sha256!=item['sha256'] or blob!=item['gitBlobSha']:
-                  failures.append({'path':path,'bytes':len(data),'sha256':sha256,'gitBlobSha':blob})
-          if failures:
-              raise SystemExit(json.dumps({'verificationFailures':failures},indent=2))
+              data=subprocess.check_output(['git','show',f'{commit}:{item["path"]}'])
+              sha256=hashlib.sha256(data).hexdigest(); blob=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+              if len(data)!=item['bytes'] or sha256!=item['sha256'] or blob!=item['gitBlobSha']: failures.append({'path':item['path'],'bytes':len(data),'sha256':sha256,'gitBlobSha':blob})
+          if failures: raise SystemExit(json.dumps({'verificationFailures':failures},indent=2))
           print(json.dumps({'commit':commit,'verifiedFiles':len(manifest['files'])},indent=2))
           PY
 
