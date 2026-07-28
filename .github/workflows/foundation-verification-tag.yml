@@ -1,0 +1,99 @@
+name: Qelly Foundation Verification and Annotated Tag
+
+on:
+  push:
+    branches: [chore/foundation-verification-tag]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+  pages: read
+
+concurrency:
+  group: qelly-foundation-verification-tag
+  cancel-in-progress: false
+
+jobs:
+  verify-and-tag:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Check out verification branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Install independent browser
+        run: npx playwright install --with-deps chromium
+      - name: Verify merged foundation, workflows and live Pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          sed -i 's/animations:getAnimations()/animations:document.getAnimations()/' scripts/foundation-verification-tag.mjs
+          node scripts/foundation-verification-tag.mjs
+      - name: Create or verify true annotated foundation tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: qelly-design-foundation-v1
+          TARGET: 239f6f0c7c663801662f4e5f940ca76fb6941bf1
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/qelly-tag-message.txt <<'EOF'
+          Qelly Design Foundation v1
+
+          Merged PR #11
+          Approved PR head: ca3d85898d6ce26dc4c2b2cda35b34e1810d2c1b
+          Merge commit: 239f6f0c7c663801662f4e5f940ca76fb6941bf1
+          Approved visual artifact SHA-256: 756841a7a9a3425413884b8954f6b5f5b689b888ec46e30313e8e0b775be99bf
+          IBM Plex Sans Variable permanently locked.
+          Theme Intelligence visual foundation approved 2026-07-28.
+
+          Foundation scope: 13 themes; six appearance modes; six personas; 24 mindsets; four Aggressive Alpha levels; six visual packs; Theme Studio; Theme Gallery; Asset Rankings desktop/mobile; chart, table and overlay semantics; command palette and mobile tooltip corrections; neutral porcelain light mode; Pages base-path validation.
+          EOF
+          git config user.name 'Qelly Foundation Automation'
+          git config user.email 'hemangsah@users.noreply.github.com'
+          git fetch origin main --tags
+          if git show-ref --verify --quiet "refs/tags/$TAG"; then
+            test "$(git cat-file -t "$TAG")" = tag
+            test "$(git rev-list -n 1 "$TAG")" = "$TARGET"
+          else
+            git tag -a "$TAG" "$TARGET" -F /tmp/qelly-tag-message.txt
+            git push origin "refs/tags/$TAG"
+          fi
+          mkdir -p foundation-verification
+          git cat-file tag "$TAG" > foundation-verification/annotated-tag-object.txt
+          test "$(git cat-file -t "$TAG")" = tag
+          test "$(git rev-list -n 1 "$TAG")" = "$TARGET"
+          grep -q '^Qelly Design Foundation v1$' foundation-verification/annotated-tag-object.txt
+          grep -q 'Approved PR head: ca3d85898d6ce26dc4c2b2cda35b34e1810d2c1b' foundation-verification/annotated-tag-object.txt
+          grep -q 'Approved visual artifact SHA-256: 756841a7a9a3425413884b8954f6b5f5b689b888ec46e30313e8e0b775be99bf' foundation-verification/annotated-tag-object.txt
+          node <<'NODE'
+          import {writeFile} from 'node:fs/promises';
+          const headers={Accept:'application/vnd.github+json',Authorization:`Bearer ${process.env.GITHUB_TOKEN}`,'X-GitHub-Api-Version':'2022-11-28'};
+          const get=async(path)=>{const response=await fetch(`https://api.github.com${path}`,{headers});const body=await response.json();if(!response.ok)throw new Error(`${response.status}: ${JSON.stringify(body)}`);return body;};
+          const ref=await get('/repos/hemangsah/qelly-intelligence/git/ref/tags/qelly-design-foundation-v1');
+          if(ref.object.type!=='tag')throw new Error(`Expected annotated tag object, got ${ref.object.type}`);
+          const tag=await get(`/repos/hemangsah/qelly-intelligence/git/tags/${ref.object.sha}`);
+          if(tag.object.type!=='commit'||tag.object.sha!=='239f6f0c7c663801662f4e5f940ca76fb6941bf1')throw new Error(`Tag target mismatch: ${JSON.stringify(tag.object)}`);
+          const required=['Qelly Design Foundation v1','Approved PR head: ca3d85898d6ce26dc4c2b2cda35b34e1810d2c1b','Approved visual artifact SHA-256: 756841a7a9a3425413884b8954f6b5f5b689b888ec46e30313e8e0b775be99bf','IBM Plex Sans Variable permanently locked.','Theme Intelligence visual foundation approved 2026-07-28.'];
+          for(const text of required)if(!tag.message.includes(text))throw new Error(`Tag annotation missing: ${text}`);
+          await writeFile('foundation-verification/tag-verification.json',`${JSON.stringify({result:'passed',ref:ref.ref,annotatedTagObjectSha:ref.object.sha,target:tag.object.sha,message:tag.message,tagger:tag.tagger},null,2)}\n`);
+          NODE
+      - name: Upload foundation verification evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-foundation-verification-tag
+          path: foundation-verification/
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 30
