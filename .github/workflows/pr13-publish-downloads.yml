@@ -1,0 +1,50 @@
+name: PR13 Publish Exact Review Downloads
+
+on:
+  push:
+    branches: [agent/pr13-final-artifact-inspection]
+    paths: ['.github/workflows/pr13-publish-downloads.yml']
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish-downloads:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: agent/pr13-final-artifact-inspection
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Extract exact validated downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: '8697274403'
+          EXPECTED_SHA: '07e4c3934b171e132e6a079402c7d04663c003eab7d7c55ded0ab7311b6db5dd'
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/pr13-downloads inspection/qelly-logo-first-brand-system-review.zip inspection/qelly-logo-compiled-preview.zip
+          mkdir -p /tmp/pr13-downloads/outer /tmp/pr13-downloads/inner
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${ARTIFACT_ID}/zip" > /tmp/pr13-downloads/wrapper.zip
+          unzip -q /tmp/pr13-downloads/wrapper.zip -d /tmp/pr13-downloads/outer
+          cp /tmp/pr13-downloads/outer/qelly-logo-first-brand-system-review.zip inspection/qelly-logo-first-brand-system-review.zip
+          actual=$(sha256sum inspection/qelly-logo-first-brand-system-review.zip | awk '{print $1}')
+          test "$actual" = "$EXPECTED_SHA"
+          unzip -q inspection/qelly-logo-first-brand-system-review.zip -d /tmp/pr13-downloads/inner
+          root=$(find /tmp/pr13-downloads/inner -mindepth 1 -maxdepth 1 -type d -print -quit)
+          test -d "$root/13-compiled-preview"
+          test -z "$(find "$root" -type f \( -iname '*.woff' -o -iname '*.woff2' -o -iname '*.ttf' -o -iname '*.otf' -o -iname '*.eot' \) -print -quit)"
+          (cd "$root/13-compiled-preview" && zip -qr "$GITHUB_WORKSPACE/inspection/qelly-logo-compiled-preview.zip" .)
+          unzip -t inspection/qelly-logo-compiled-preview.zip
+          sha256sum inspection/qelly-logo-first-brand-system-review.zip > inspection/qelly-logo-first-brand-system-review.zip.sha256
+          sha256sum inspection/qelly-logo-compiled-preview.zip > inspection/qelly-logo-compiled-preview.zip.sha256
+          printf 'Exact validated review ZIP from artifact %s and exact head 88aaec22470f1417db0b45509d4bf69bb0f44bb7.\n' "$ARTIFACT_ID" > inspection/DOWNLOADS_README.txt
+          git add -f inspection/qelly-logo-first-brand-system-review.zip inspection/qelly-logo-first-brand-system-review.zip.sha256 inspection/qelly-logo-compiled-preview.zip inspection/qelly-logo-compiled-preview.zip.sha256 inspection/DOWNLOADS_README.txt
+          git config user.name 'Qelly Artifact Inspection'
+          git config user.email 'hemangsah@users.noreply.github.com'
+          git commit -m 'docs(inspection): publish exact final PR13 review downloads'
+          git push origin HEAD:agent/pr13-final-artifact-inspection
