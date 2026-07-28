@@ -1,0 +1,292 @@
+{
+  "result": "passed",
+  "assetSizes": {
+    "primarySvgBytes": 1166,
+    "totalLogoAssetBytes": 11426,
+    "faviconIcoBytes": 981,
+    "pwaAssetBytes": 9473,
+    "socialPreviewBytes": 7707
+  },
+  "bundleDeltas": {
+    "foundationCommit": "239f6f0c7c663801662f4e5f940ca76fb6941bf1",
+    "currentJsBytes": 526089,
+    "foundationJsBytes": 518392,
+    "jsDeltaBytes": 7697,
+    "jsClassification": "acceptable/deliberate",
+    "currentCssBytes": 316383,
+    "foundationCssBytes": 308572,
+    "cssDeltaBytes": 7811,
+    "cssClassification": "acceptable/deliberate"
+  },
+  "opening": {
+    "fullMotionMs": 2682,
+    "reducedMotionMs": 1161,
+    "repeatSessionSuppressed": true
+  },
+  "webVitals": {
+    "fcpMs": {
+      "min": 108,
+      "max": 1068,
+      "average": 259.9259259259259
+    },
+    "lcpMs": {
+      "min": 308,
+      "max": 4907,
+      "average": 987.4444444444445
+    },
+    "cls": {
+      "max": 0,
+      "threshold": 0.01,
+      "measured": 30,
+      "unsupported": 24
+    },
+    "inpMs": {
+      "max": 344,
+      "status": "event-timing-observed"
+    }
+  },
+  "mainThread": {
+    "longTaskMsMax": 133,
+    "unsupportedSamples": 24,
+    "frameSamples": [
+      {
+        "samples": 60,
+        "averageMs": 21.808333333333334,
+        "maxMs": 33.40000000000009,
+        "framesOver25ms": 19,
+        "framesOver50ms": 0
+      },
+      {
+        "samples": 60,
+        "averageMs": 84.87466666666666,
+        "maxMs": 217.36000000000013,
+        "framesOver25ms": 52,
+        "framesOver50ms": 52
+      },
+      {
+        "samples": 60,
+        "averageMs": 43.7,
+        "maxMs": 143,
+        "framesOver25ms": 60,
+        "framesOver50ms": 2
+      }
+    ],
+    "memory": [
+      {
+        "browser": "chromium",
+        "viewport": "360x800",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "390x844",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "430x932",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "768x1024",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1024x768",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1728x1080",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1920x1080",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "390x844",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "768x1024",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "390x844",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "390x844",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x900",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x900",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x900",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x900",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x900",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      },
+      {
+        "browser": "chromium",
+        "viewport": "390x844",
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000
+      }
+    ]
+  },
+  "layout": {
+    "maxCls": 0,
+    "maxOverflowPx": 0
+  },
+  "classification": "acceptable/deliberate"
+}

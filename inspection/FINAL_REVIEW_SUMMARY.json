@@ -1,0 +1,1383 @@
+{
+  "source": {
+    "artifactId": 8697274403,
+    "workflowRunId": 30381481804,
+    "headSha": "88aaec22470f1417db0b45509d4bf69bb0f44bb7",
+    "wrapperDigest": "sha256:d67a53e4a2dbb180873123449d232d74e99375ecf72ba352fc2820cee02cdf5d",
+    "wrapperBytes": 77703271
+  },
+  "innerZip": {
+    "filename": "qelly-logo-first-brand-system-review.zip",
+    "sha256": "07e4c3934b171e132e6a079402c7d04663c003eab7d7c55ded0ab7311b6db5dd",
+    "bytes": 38855480,
+    "entryCount": 305,
+    "crcIntegrity": "passed"
+  },
+  "validation": {
+    "result": "passed",
+    "commit": "88aaec22470f1417db0b45509d4bf69bb0f44bb7",
+    "counts": {
+      "totalCaptures": 83,
+      "browserViewportCaptures": 27,
+      "expectedBrowserViewportCaptures": 27,
+      "openingCaptures": 9,
+      "themeDarkLightCaptures": 26,
+      "browsers": 3,
+      "viewports": 9
+    },
+    "gates": {
+      "rendererFailures": true,
+      "consoleClean": true,
+      "pageErrorsClean": true,
+      "resourcesClean": true,
+      "layoutShift": true,
+      "horizontalOverflow": true,
+      "browserMatrixComplete": true,
+      "openingEvidenceComplete": true,
+      "themeCompatibilityComplete": true,
+      "requiredGroupsComplete": true,
+      "compiledPreviewRunnable": true,
+      "ibmPlexLockedInTestedBuild": true,
+      "deliveryFontBinariesRemoved": true
+    },
+    "metrics": {
+      "maxCls": 0,
+      "maxOverflow": 0,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "failedResources": 0
+    },
+    "missingGroups": []
+  },
+  "performance": {
+    "result": "passed",
+    "assetSizes": {
+      "primarySvgBytes": 1166,
+      "totalLogoAssetBytes": 11426,
+      "faviconIcoBytes": 981,
+      "pwaAssetBytes": 9473,
+      "socialPreviewBytes": 7707
+    },
+    "bundleDeltas": {
+      "foundationCommit": "239f6f0c7c663801662f4e5f940ca76fb6941bf1",
+      "currentJsBytes": 526089,
+      "foundationJsBytes": 518392,
+      "jsDeltaBytes": 7697,
+      "jsClassification": "acceptable/deliberate",
+      "currentCssBytes": 316383,
+      "foundationCssBytes": 308572,
+      "cssDeltaBytes": 7811,
+      "cssClassification": "acceptable/deliberate"
+    },
+    "opening": {
+      "fullMotionMs": 2682,
+      "reducedMotionMs": 1161,
+      "repeatSessionSuppressed": true
+    },
+    "webVitals": {
+      "fcpMs": {
+        "min": 108,
+        "max": 1068,
+        "average": 259.9259259259259
+      },
+      "lcpMs": {
+        "min": 308,
+        "max": 4907,
+        "average": 987.4444444444445
+      },
+      "cls": {
+        "max": 0,
+        "threshold": 0.01,
+        "measured": 30,
+        "unsupported": 24
+      },
+      "inpMs": {
+        "max": 344,
+        "status": "event-timing-observed"
+      }
+    },
+    "mainThread": {
+      "longTaskMsMax": 133,
+      "unsupportedSamples": 24,
+      "frameSamples": [
+        {
+          "samples": 60,
+          "averageMs": 21.808333333333334,
+          "maxMs": 33.40000000000009,
+          "framesOver25ms": 19,
+          "framesOver50ms": 0
+        },
+        {
+          "samples": 60,
+          "averageMs": 84.87466666666666,
+          "maxMs": 217.36000000000013,
+          "framesOver25ms": 52,
+          "framesOver50ms": 52
+        },
+        {
+          "samples": 60,
+          "averageMs": 43.7,
+          "maxMs": 143,
+          "framesOver25ms": 60,
+          "framesOver50ms": 2
+        }
+      ],
+      "memory": [
+        {
+          "browser": "chromium",
+          "viewport": "360x800",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "390x844",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "430x932",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "768x1024",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "1024x768",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "1280x800",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "1440x1000",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "1728x1080",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "1920x1080",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "1440x1000",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "1440x1000",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "1440x1000",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "1440x1000",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "390x844",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "1440x1000",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "1440x1000",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "1440x1000",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "768x1024",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "390x844",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "1440x1000",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "1440x1000",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "1440x1000",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "390x844",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "1280x900",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "1280x900",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "1280x900",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "1280x900",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "1280x900",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "1440x1000",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        },
+        {
+          "browser": "chromium",
+          "viewport": "390x844",
+          "usedJSHeapSize": 10000000,
+          "totalJSHeapSize": 10000000,
+          "jsHeapSizeLimit": 3760000000
+        }
+      ]
+    },
+    "layout": {
+      "maxCls": 0,
+      "maxOverflowPx": 0
+    },
+    "classification": "acceptable/deliberate"
+  },
+  "browserMatrix": {
+    "browsers": [
+      "chromium",
+      "firefox",
+      "webkit"
+    ],
+    "viewports": [
+      "360x800",
+      "390x844",
+      "430x932",
+      "768x1024",
+      "1024x768",
+      "1280x800",
+      "1440x1000",
+      "1728x1080",
+      "1920x1080"
+    ],
+    "captures": [
+      {
+        "browser": "chromium",
+        "viewport": "360x800",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "chromium-360x800-homepage-dark",
+        "group": "browser-matrix",
+        "path": "09-mobile/chromium-360x800-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "390x844",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "chromium-390x844-homepage-dark",
+        "group": "browser-matrix",
+        "path": "09-mobile/chromium-390x844-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "430x932",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "chromium-430x932-homepage-dark",
+        "group": "browser-matrix",
+        "path": "09-mobile/chromium-430x932-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "768x1024",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "chromium-768x1024-homepage-dark",
+        "group": "browser-matrix",
+        "path": "04-homepage-hero/chromium-768x1024-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1024x768",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "chromium-1024x768-homepage-dark",
+        "group": "browser-matrix",
+        "path": "04-homepage-hero/chromium-1024x768-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "chromium-1280x800-homepage-dark",
+        "group": "browser-matrix",
+        "path": "04-homepage-hero/chromium-1280x800-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "chromium-1440x1000-homepage-dark",
+        "group": "browser-matrix",
+        "path": "04-homepage-hero/chromium-1440x1000-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1728x1080",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "chromium-1728x1080-homepage-dark",
+        "group": "browser-matrix",
+        "path": "04-homepage-hero/chromium-1728x1080-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1920x1080",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "chromium-1920x1080-homepage-dark",
+        "group": "browser-matrix",
+        "path": "04-homepage-hero/chromium-1920x1080-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "opening-full-motion-chromium",
+        "group": "opening",
+        "path": "03-opening-screen/opening-full-motion-chromium.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "opening-reduced-chromium",
+        "group": "opening",
+        "path": "03-opening-screen/opening-reduced-chromium.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "opening-repeat-session-chromium",
+        "group": "opening",
+        "path": "03-opening-screen/opening-repeat-session-chromium.png",
+        "required": true
+      },
+      {
+        "browser": "firefox",
+        "viewport": "360x800",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "firefox-360x800-homepage-dark",
+        "group": "browser-matrix",
+        "path": "09-mobile/firefox-360x800-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "firefox",
+        "viewport": "390x844",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "firefox-390x844-homepage-dark",
+        "group": "browser-matrix",
+        "path": "09-mobile/firefox-390x844-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "firefox",
+        "viewport": "430x932",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "firefox-430x932-homepage-dark",
+        "group": "browser-matrix",
+        "path": "09-mobile/firefox-430x932-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "firefox",
+        "viewport": "768x1024",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "firefox-768x1024-homepage-dark",
+        "group": "browser-matrix",
+        "path": "04-homepage-hero/firefox-768x1024-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "firefox",
+        "viewport": "1024x768",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "firefox-1024x768-homepage-dark",
+        "group": "browser-matrix",
+        "path": "04-homepage-hero/firefox-1024x768-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "firefox",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "firefox-1280x800-homepage-dark",
+        "group": "browser-matrix",
+        "path": "04-homepage-hero/firefox-1280x800-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "firefox",
+        "viewport": "1440x1000",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "firefox-1440x1000-homepage-dark",
+        "group": "browser-matrix",
+        "path": "04-homepage-hero/firefox-1440x1000-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "firefox",
+        "viewport": "1728x1080",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "firefox-1728x1080-homepage-dark",
+        "group": "browser-matrix",
+        "path": "04-homepage-hero/firefox-1728x1080-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "firefox",
+        "viewport": "1920x1080",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "firefox-1920x1080-homepage-dark",
+        "group": "browser-matrix",
+        "path": "04-homepage-hero/firefox-1920x1080-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "firefox",
+        "viewport": "1440x1000",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "opening-full-motion-firefox",
+        "group": "opening",
+        "path": "03-opening-screen/opening-full-motion-firefox.png",
+        "required": true
+      },
+      {
+        "browser": "firefox",
+        "viewport": "1440x1000",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "opening-reduced-firefox",
+        "group": "opening",
+        "path": "03-opening-screen/opening-reduced-firefox.png",
+        "required": true
+      },
+      {
+        "browser": "firefox",
+        "viewport": "1440x1000",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "opening-repeat-session-firefox",
+        "group": "opening",
+        "path": "03-opening-screen/opening-repeat-session-firefox.png",
+        "required": true
+      },
+      {
+        "browser": "webkit",
+        "viewport": "360x800",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "webkit-360x800-homepage-dark",
+        "group": "browser-matrix",
+        "path": "09-mobile/webkit-360x800-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "webkit",
+        "viewport": "390x844",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "webkit-390x844-homepage-dark",
+        "group": "browser-matrix",
+        "path": "09-mobile/webkit-390x844-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "webkit",
+        "viewport": "430x932",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "webkit-430x932-homepage-dark",
+        "group": "browser-matrix",
+        "path": "09-mobile/webkit-430x932-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "webkit",
+        "viewport": "768x1024",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "webkit-768x1024-homepage-dark",
+        "group": "browser-matrix",
+        "path": "04-homepage-hero/webkit-768x1024-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "webkit",
+        "viewport": "1024x768",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "webkit-1024x768-homepage-dark",
+        "group": "browser-matrix",
+        "path": "04-homepage-hero/webkit-1024x768-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "webkit",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "webkit-1280x800-homepage-dark",
+        "group": "browser-matrix",
+        "path": "04-homepage-hero/webkit-1280x800-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "webkit",
+        "viewport": "1440x1000",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "webkit-1440x1000-homepage-dark",
+        "group": "browser-matrix",
+        "path": "04-homepage-hero/webkit-1440x1000-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "webkit",
+        "viewport": "1728x1080",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "webkit-1728x1080-homepage-dark",
+        "group": "browser-matrix",
+        "path": "04-homepage-hero/webkit-1728x1080-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "webkit",
+        "viewport": "1920x1080",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "webkit-1920x1080-homepage-dark",
+        "group": "browser-matrix",
+        "path": "04-homepage-hero/webkit-1920x1080-homepage-dark.png",
+        "required": true
+      },
+      {
+        "browser": "webkit",
+        "viewport": "1440x1000",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "opening-full-motion-webkit",
+        "group": "opening",
+        "path": "03-opening-screen/opening-full-motion-webkit.png",
+        "required": true
+      },
+      {
+        "browser": "webkit",
+        "viewport": "1440x1000",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "opening-reduced-webkit",
+        "group": "opening",
+        "path": "03-opening-screen/opening-reduced-webkit.png",
+        "required": true
+      },
+      {
+        "browser": "webkit",
+        "viewport": "1440x1000",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "opening-repeat-session-webkit",
+        "group": "opening",
+        "path": "03-opening-screen/opening-repeat-session-webkit.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "route": "market",
+        "theme": "porcelain-signal",
+        "appearance": "light",
+        "capture": "homepage-light-desktop",
+        "group": "homepage",
+        "path": "04-homepage-hero/homepage-light-desktop.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "390x844",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "homepage-mobile-390",
+        "group": "homepage",
+        "path": "09-mobile/homepage-mobile-390.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "route": "market",
+        "theme": null,
+        "appearance": "dark",
+        "capture": "hero-product-preview-and-cta",
+        "group": "homepage",
+        "path": "04-homepage-hero/hero-product-preview-and-cta.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "route": "asset-rankings",
+        "theme": null,
+        "appearance": "dark",
+        "capture": "shell-expanded-desktop",
+        "group": "shell",
+        "path": "05-app-shell/shell-expanded-desktop.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "route": "asset-rankings",
+        "theme": null,
+        "appearance": "dark",
+        "capture": "shell-collapsed-desktop",
+        "group": "shell",
+        "path": "05-app-shell/shell-collapsed-desktop.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "768x1024",
+        "route": "asset-rankings",
+        "theme": null,
+        "appearance": "dark",
+        "capture": "shell-tablet",
+        "group": "shell",
+        "path": "05-app-shell/shell-tablet.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "390x844",
+        "route": "asset-rankings",
+        "theme": null,
+        "appearance": "dark",
+        "capture": "shell-mobile",
+        "group": "shell",
+        "path": "09-mobile/shell-mobile.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "route": "market",
+        "theme": null,
+        "appearance": "dark",
+        "capture": "command-palette-selected-unique-result",
+        "group": "command-palette",
+        "path": "05-app-shell/command-palette-selected-unique-result.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "route": "market",
+        "theme": null,
+        "appearance": "dark",
+        "capture": "theme-studio-desktop",
+        "group": "theme-studio",
+        "path": "08-theme-compatibility/theme-studio-desktop.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "route": "market",
+        "theme": null,
+        "appearance": "dark",
+        "capture": "theme-gallery-desktop",
+        "group": "theme-gallery",
+        "path": "08-theme-compatibility/theme-gallery-desktop.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "390x844",
+        "route": "market",
+        "theme": null,
+        "appearance": "dark",
+        "capture": "theme-studio-mobile",
+        "group": "theme-studio",
+        "path": "09-mobile/theme-studio-mobile.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x900",
+        "route": "auth-login",
+        "theme": null,
+        "appearance": "dark",
+        "capture": "auth-login",
+        "group": "product-state",
+        "path": "07-auth-loading-empty/auth-login.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x900",
+        "route": "market",
+        "theme": null,
+        "appearance": "dark",
+        "capture": "state-loading",
+        "group": "product-state",
+        "path": "07-auth-loading-empty/state-loading.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x900",
+        "route": "market",
+        "theme": null,
+        "appearance": "dark",
+        "capture": "state-empty",
+        "group": "product-state",
+        "path": "07-auth-loading-empty/state-empty.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x900",
+        "route": "market",
+        "theme": null,
+        "appearance": "dark",
+        "capture": "state-offline",
+        "group": "product-state",
+        "path": "07-auth-loading-empty/state-offline.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x900",
+        "route": "market",
+        "theme": null,
+        "appearance": "dark",
+        "capture": "state-error",
+        "group": "product-state",
+        "path": "07-auth-loading-empty/state-error.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1000",
+        "route": "asset-rankings",
+        "theme": null,
+        "appearance": "dark",
+        "capture": "asset-rankings-desktop",
+        "group": "product-foundation",
+        "path": "05-app-shell/asset-rankings-desktop.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "390x844",
+        "route": "asset-rankings",
+        "theme": null,
+        "appearance": "dark",
+        "capture": "asset-rankings-mobile",
+        "group": "product-foundation",
+        "path": "09-mobile/asset-rankings-mobile.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "dark",
+        "capture": "theme-sovereign-obsidian-dark",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-sovereign-obsidian-dark.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "sovereign-obsidian",
+        "appearance": "light",
+        "capture": "theme-sovereign-obsidian-light",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-sovereign-obsidian-light.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "porcelain-signal",
+        "appearance": "dark",
+        "capture": "theme-porcelain-signal-dark",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-porcelain-signal-dark.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "porcelain-signal",
+        "appearance": "light",
+        "capture": "theme-porcelain-signal-light",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-porcelain-signal-light.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "crimson-vector",
+        "appearance": "dark",
+        "capture": "theme-crimson-vector-dark",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-crimson-vector-dark.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "crimson-vector",
+        "appearance": "light",
+        "capture": "theme-crimson-vector-light",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-crimson-vector-light.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "obsidian-strike",
+        "appearance": "dark",
+        "capture": "theme-obsidian-strike-dark",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-obsidian-strike-dark.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "obsidian-strike",
+        "appearance": "light",
+        "capture": "theme-obsidian-strike-light",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-obsidian-strike-light.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "white-heat",
+        "appearance": "dark",
+        "capture": "theme-white-heat-dark",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-white-heat-dark.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "white-heat",
+        "appearance": "light",
+        "capture": "theme-white-heat-light",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-white-heat-light.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "ember-protocol",
+        "appearance": "dark",
+        "capture": "theme-ember-protocol-dark",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-ember-protocol-dark.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "ember-protocol",
+        "appearance": "light",
+        "capture": "theme-ember-protocol-light",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-ember-protocol-light.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "arctic-quant",
+        "appearance": "dark",
+        "capture": "theme-arctic-quant-dark",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-arctic-quant-dark.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "arctic-quant",
+        "appearance": "light",
+        "capture": "theme-arctic-quant-light",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-arctic-quant-light.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "emerald-conviction",
+        "appearance": "dark",
+        "capture": "theme-emerald-conviction-dark",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-emerald-conviction-dark.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "emerald-conviction",
+        "appearance": "light",
+        "capture": "theme-emerald-conviction-light",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-emerald-conviction-light.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "cobalt-circuit",
+        "appearance": "dark",
+        "capture": "theme-cobalt-circuit-dark",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-cobalt-circuit-dark.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "cobalt-circuit",
+        "appearance": "light",
+        "capture": "theme-cobalt-circuit-light",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-cobalt-circuit-light.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "violet-oracle",
+        "appearance": "dark",
+        "capture": "theme-violet-oracle-dark",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-violet-oracle-dark.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "violet-oracle",
+        "appearance": "light",
+        "capture": "theme-violet-oracle-light",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-violet-oracle-light.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "gold-dominion",
+        "appearance": "dark",
+        "capture": "theme-gold-dominion-dark",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-gold-dominion-dark.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "gold-dominion",
+        "appearance": "light",
+        "capture": "theme-gold-dominion-light",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-gold-dominion-light.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "monochrome-ledger",
+        "appearance": "dark",
+        "capture": "theme-monochrome-ledger-dark",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-monochrome-ledger-dark.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "monochrome-ledger",
+        "appearance": "light",
+        "capture": "theme-monochrome-ledger-light",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-monochrome-ledger-light.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "signal-access",
+        "appearance": "dark",
+        "capture": "theme-signal-access-dark",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-signal-access-dark.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "signal-access",
+        "appearance": "light",
+        "capture": "theme-signal-access-light",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-signal-access-light.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1280x800",
+        "route": "market",
+        "theme": "signal-access",
+        "appearance": "high-contrast",
+        "capture": "theme-signal-access-high-contrast",
+        "group": "theme-family",
+        "path": "08-theme-compatibility/theme-signal-access-high-contrast.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1100",
+        "route": "logo-board",
+        "capture": "logo-variant-and-small-size-board",
+        "group": "logo-system",
+        "path": "02-logo-system/logo-variant-and-small-size-board.png",
+        "required": true
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x1100",
+        "route": "asset-board",
+        "capture": "favicon-pwa-social-board",
+        "group": "favicon-pwa",
+        "path": "06-favicon-pwa/favicon-pwa-social-board.png",
+        "required": true
+      }
+    ]
+  },
+  "overflow": {
+    "threshold": 1,
+    "recordCount": 54,
+    "maxPx": 0,
+    "viewport360x800MaxPx": 0
+  },
+  "layoutShift": {
+    "threshold": 0.01,
+    "recordCount": 54,
+    "max": 0
+  },
+  "errors": {
+    "console": 0,
+    "resources": 0,
+    "page": 0,
+    "renderer": 0
+  },
+  "integrity": {
+    "checksumEntries": 271,
+    "checksumFailures": 0,
+    "manifestChecksumEntries": 271,
+    "manifestEntryRecords": 272,
+    "fontBinaries": [],
+    "pngCount": 101,
+    "brokenPngs": 0,
+    "blankPngs": 0,
+    "visualPdfPages": 20
+  },
+  "representativeFiles": [
+    {
+      "title": "Opening \u2014 full motion",
+      "path": "inspection/representative/01-opening-full-motion-chromium.png"
+    },
+    {
+      "title": "Opening \u2014 reduced motion",
+      "path": "inspection/representative/02-opening-reduced-chromium.png"
+    },
+    {
+      "title": "Opening \u2014 repeat session",
+      "path": "inspection/representative/03-opening-repeat-session-chromium.png"
+    },
+    {
+      "title": "Homepage \u2014 dark desktop",
+      "path": "inspection/representative/04-chromium-1440x1000-homepage-dark.png"
+    },
+    {
+      "title": "Homepage \u2014 light desktop",
+      "path": "inspection/representative/05-homepage-light-desktop.png"
+    },
+    {
+      "title": "Homepage \u2014 mobile",
+      "path": "inspection/representative/06-homepage-mobile-390.png"
+    },
+    {
+      "title": "Shell \u2014 expanded desktop",
+      "path": "inspection/representative/07-shell-expanded-desktop.png"
+    },
+    {
+      "title": "Shell \u2014 collapsed desktop",
+      "path": "inspection/representative/08-shell-collapsed-desktop.png"
+    },
+    {
+      "title": "Shell \u2014 mobile",
+      "path": "inspection/representative/09-shell-mobile.png"
+    },
+    {
+      "title": "Command palette",
+      "path": "inspection/representative/10-command-palette-selected-unique-result.png"
+    },
+    {
+      "title": "Authentication",
+      "path": "inspection/representative/13-auth-login.png"
+    },
+    {
+      "title": "Loading state",
+      "path": "inspection/representative/14-state-loading.png"
+    },
+    {
+      "title": "Empty state",
+      "path": "inspection/representative/15-state-empty.png"
+    },
+    {
+      "title": "Offline state",
+      "path": "inspection/representative/16-state-offline.png"
+    },
+    {
+      "title": "Recoverable error",
+      "path": "inspection/representative/17-state-error.png"
+    },
+    {
+      "title": "Theme Studio",
+      "path": "inspection/representative/18-theme-studio-desktop.png"
+    },
+    {
+      "title": "Theme Gallery",
+      "path": "inspection/representative/19-theme-gallery-desktop.png"
+    },
+    {
+      "title": "Asset Rankings \u2014 desktop",
+      "path": "inspection/representative/20-asset-rankings-desktop.png"
+    },
+    {
+      "title": "Asset Rankings \u2014 mobile",
+      "path": "inspection/representative/21-asset-rankings-mobile.png"
+    },
+    {
+      "title": "All approved theme families",
+      "path": "inspection/representative/22-all-theme-families-contact-sheet.jpg"
+    }
+  ]
+}

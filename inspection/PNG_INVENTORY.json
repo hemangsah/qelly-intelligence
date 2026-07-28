@@ -1,0 +1,709 @@
+[
+  {
+    "path": "07-auth-loading-empty/auth-login.png",
+    "width": 1280,
+    "height": 1807,
+    "variance": 1046.695760210355,
+    "bytes": 512371
+  },
+  {
+    "path": "07-auth-loading-empty/state-offline.png",
+    "width": 1280,
+    "height": 1324,
+    "variance": 3471.5658309261003,
+    "bytes": 654499
+  },
+  {
+    "path": "07-auth-loading-empty/state-loading.png",
+    "width": 1280,
+    "height": 1853,
+    "variance": 3865.794688860575,
+    "bytes": 635966
+  },
+  {
+    "path": "07-auth-loading-empty/state-empty.png",
+    "width": 1280,
+    "height": 1324,
+    "variance": 3564.0229220986366,
+    "bytes": 631821
+  },
+  {
+    "path": "07-auth-loading-empty/state-error.png",
+    "width": 1280,
+    "height": 1324,
+    "variance": 3521.441014011701,
+    "bytes": 642473
+  },
+  {
+    "path": "08-theme-compatibility/theme-porcelain-signal-light.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3936.1678731044135,
+    "bytes": 411350
+  },
+  {
+    "path": "08-theme-compatibility/theme-ember-protocol-dark.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3553.3124291499457,
+    "bytes": 401098
+  },
+  {
+    "path": "08-theme-compatibility/theme-sovereign-obsidian-dark.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3643.262176771959,
+    "bytes": 404067
+  },
+  {
+    "path": "08-theme-compatibility/theme-crimson-vector-light.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3465.8488004803658,
+    "bytes": 401456
+  },
+  {
+    "path": "08-theme-compatibility/theme-studio-desktop.png",
+    "width": 1440,
+    "height": 1382,
+    "variance": 282.3414520223935,
+    "bytes": 304795
+  },
+  {
+    "path": "08-theme-compatibility/theme-monochrome-ledger-light.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3644.085396885872,
+    "bytes": 403999
+  },
+  {
+    "path": "08-theme-compatibility/theme-arctic-quant-light.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3929.6752775510154,
+    "bytes": 411834
+  },
+  {
+    "path": "08-theme-compatibility/theme-signal-access-dark.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3878.8839924931526,
+    "bytes": 410830
+  },
+  {
+    "path": "08-theme-compatibility/theme-crimson-vector-dark.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3823.8405567010245,
+    "bytes": 409421
+  },
+  {
+    "path": "08-theme-compatibility/theme-monochrome-ledger-dark.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3550.7163374225297,
+    "bytes": 402157
+  },
+  {
+    "path": "08-theme-compatibility/theme-emerald-conviction-dark.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3460.8372412522635,
+    "bytes": 401652
+  },
+  {
+    "path": "08-theme-compatibility/theme-white-heat-light.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3380.088087062041,
+    "bytes": 401959
+  },
+  {
+    "path": "08-theme-compatibility/theme-ember-protocol-light.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3890.2728815873465,
+    "bytes": 411326
+  },
+  {
+    "path": "08-theme-compatibility/theme-obsidian-strike-dark.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3552.0650032758713,
+    "bytes": 399432
+  },
+  {
+    "path": "08-theme-compatibility/theme-cobalt-circuit-dark.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3463.216277102629,
+    "bytes": 401484
+  },
+  {
+    "path": "08-theme-compatibility/theme-signal-access-light.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3761.026621878147,
+    "bytes": 409827
+  },
+  {
+    "path": "08-theme-compatibility/theme-sovereign-obsidian-light.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3826.75301917394,
+    "bytes": 411118
+  },
+  {
+    "path": "08-theme-compatibility/theme-arctic-quant-dark.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3550.689060509205,
+    "bytes": 402204
+  },
+  {
+    "path": "08-theme-compatibility/theme-gallery-desktop.png",
+    "width": 1440,
+    "height": 3273,
+    "variance": 2887.764136056105,
+    "bytes": 566383
+  },
+  {
+    "path": "08-theme-compatibility/theme-violet-oracle-dark.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3379.176779091358,
+    "bytes": 399132
+  },
+  {
+    "path": "08-theme-compatibility/theme-gold-dominion-dark.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3465.6575185259185,
+    "bytes": 401922
+  },
+  {
+    "path": "08-theme-compatibility/theme-emerald-conviction-light.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3857.8124281167984,
+    "bytes": 412944
+  },
+  {
+    "path": "08-theme-compatibility/theme-white-heat-dark.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3552.0834037860236,
+    "bytes": 399429
+  },
+  {
+    "path": "08-theme-compatibility/theme-obsidian-strike-light.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3550.7648381988206,
+    "bytes": 402328
+  },
+  {
+    "path": "08-theme-compatibility/theme-signal-access-high-contrast.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3643.3299930493035,
+    "bytes": 403980
+  },
+  {
+    "path": "08-theme-compatibility/theme-cobalt-circuit-light.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3641.627617239952,
+    "bytes": 402772
+  },
+  {
+    "path": "08-theme-compatibility/theme-gold-dominion-light.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3465.851662596067,
+    "bytes": 401518
+  },
+  {
+    "path": "08-theme-compatibility/theme-porcelain-signal-dark.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3459.871572613716,
+    "bytes": 401470
+  },
+  {
+    "path": "08-theme-compatibility/theme-violet-oracle-light.png",
+    "width": 1280,
+    "height": 800,
+    "variance": 3878.6370404958725,
+    "bytes": 408646
+  },
+  {
+    "path": "03-opening-screen/opening-reduced-chromium.png",
+    "width": 1440,
+    "height": 1000,
+    "variance": 153.80000299215317,
+    "bytes": 23988
+  },
+  {
+    "path": "03-opening-screen/opening-full-motion-firefox.png",
+    "width": 1440,
+    "height": 1000,
+    "variance": 96.09030530850093,
+    "bytes": 19925
+  },
+  {
+    "path": "03-opening-screen/opening-reduced-firefox.png",
+    "width": 1440,
+    "height": 1000,
+    "variance": 153.15333519379297,
+    "bytes": 28006
+  },
+  {
+    "path": "03-opening-screen/opening-repeat-session-firefox.png",
+    "width": 1440,
+    "height": 1000,
+    "variance": 3668.474816521009,
+    "bytes": 783195
+  },
+  {
+    "path": "03-opening-screen/opening-full-motion-chromium.png",
+    "width": 1440,
+    "height": 1000,
+    "variance": 120.42348263661067,
+    "bytes": 23397
+  },
+  {
+    "path": "03-opening-screen/opening-full-motion-webkit.png",
+    "width": 1440,
+    "height": 1000,
+    "variance": 153.74247332413992,
+    "bytes": 27128
+  },
+  {
+    "path": "03-opening-screen/opening-repeat-session-chromium.png",
+    "width": 1440,
+    "height": 1000,
+    "variance": 3567.3019885619483,
+    "bytes": 584102
+  },
+  {
+    "path": "03-opening-screen/opening-repeat-session-webkit.png",
+    "width": 1440,
+    "height": 1000,
+    "variance": 4041.8062576850257,
+    "bytes": 664033
+  },
+  {
+    "path": "03-opening-screen/opening-reduced-webkit.png",
+    "width": 1440,
+    "height": 1000,
+    "variance": 153.74247332413992,
+    "bytes": 27128
+  },
+  {
+    "path": "04-homepage-hero/webkit-1920x1080-homepage-dark.png",
+    "width": 1920,
+    "height": 2479,
+    "variance": 3096.8629246354103,
+    "bytes": 894283
+  },
+  {
+    "path": "04-homepage-hero/hero-product-preview-and-cta.png",
+    "width": 1440,
+    "height": 1000,
+    "variance": 3764.5675233602524,
+    "bytes": 812667
+  },
+  {
+    "path": "04-homepage-hero/webkit-1280x800-homepage-dark.png",
+    "width": 1280,
+    "height": 2454,
+    "variance": 3022.1027244329453,
+    "bytes": 680366
+  },
+  {
+    "path": "04-homepage-hero/webkit-1728x1080-homepage-dark.png",
+    "width": 1728,
+    "height": 2479,
+    "variance": 3181.9960224429765,
+    "bytes": 830823
+  },
+  {
+    "path": "04-homepage-hero/chromium-1024x768-homepage-dark.png",
+    "width": 1024,
+    "height": 3065,
+    "variance": 2201.7410827080407,
+    "bytes": 591011
+  },
+  {
+    "path": "04-homepage-hero/webkit-1440x1000-homepage-dark.png",
+    "width": 1440,
+    "height": 2472,
+    "variance": 3078.244805455208,
+    "bytes": 746368
+  },
+  {
+    "path": "04-homepage-hero/chromium-1728x1080-homepage-dark.png",
+    "width": 1728,
+    "height": 2481,
+    "variance": 2939.4400292634964,
+    "bytes": 1012902
+  },
+  {
+    "path": "04-homepage-hero/homepage-light-desktop.png",
+    "width": 1440,
+    "height": 2474,
+    "variance": 2837.506857295831,
+    "bytes": 845820
+  },
+  {
+    "path": "04-homepage-hero/firefox-768x1024-homepage-dark.png",
+    "width": 768,
+    "height": 3342,
+    "variance": 2066.8862832784653,
+    "bytes": 668105
+  },
+  {
+    "path": "04-homepage-hero/firefox-1280x800-homepage-dark.png",
+    "width": 1280,
+    "height": 2459,
+    "variance": 2631.790116687616,
+    "bytes": 846277
+  },
+  {
+    "path": "04-homepage-hero/webkit-1024x768-homepage-dark.png",
+    "width": 1024,
+    "height": 3056,
+    "variance": 2351.95125635465,
+    "bytes": 587061
+  },
+  {
+    "path": "04-homepage-hero/chromium-1280x800-homepage-dark.png",
+    "width": 1280,
+    "height": 2459,
+    "variance": 2792.9126030007997,
+    "bytes": 623000
+  },
+  {
+    "path": "04-homepage-hero/firefox-1440x1000-homepage-dark.png",
+    "width": 1440,
+    "height": 2477,
+    "variance": 2477.7738391955695,
+    "bytes": 909720
+  },
+  {
+    "path": "04-homepage-hero/firefox-1728x1080-homepage-dark.png",
+    "width": 1728,
+    "height": 2483,
+    "variance": 2797.0162467161813,
+    "bytes": 1033218
+  },
+  {
+    "path": "04-homepage-hero/chromium-1920x1080-homepage-dark.png",
+    "width": 1920,
+    "height": 2481,
+    "variance": 2855.5993748108544,
+    "bytes": 1099029
+  },
+  {
+    "path": "04-homepage-hero/firefox-1920x1080-homepage-dark.png",
+    "width": 1920,
+    "height": 2482,
+    "variance": 2823.697128176689,
+    "bytes": 1066041
+  },
+  {
+    "path": "04-homepage-hero/chromium-1440x1000-homepage-dark.png",
+    "width": 1440,
+    "height": 2479,
+    "variance": 2878.781865855058,
+    "bytes": 853565
+  },
+  {
+    "path": "04-homepage-hero/chromium-768x1024-homepage-dark.png",
+    "width": 768,
+    "height": 3340,
+    "variance": 2185.4909267226853,
+    "bytes": 514422
+  },
+  {
+    "path": "04-homepage-hero/webkit-768x1024-homepage-dark.png",
+    "width": 768,
+    "height": 3339,
+    "variance": 2369.8307363788285,
+    "bytes": 516223
+  },
+  {
+    "path": "04-homepage-hero/firefox-1024x768-homepage-dark.png",
+    "width": 1024,
+    "height": 3061,
+    "variance": 2024.7693642775218,
+    "bytes": 737113
+  },
+  {
+    "path": "09-mobile/chromium-430x932-homepage-dark.png",
+    "width": 430,
+    "height": 3926,
+    "variance": 2253.5011970798173,
+    "bytes": 378526
+  },
+  {
+    "path": "09-mobile/firefox-360x800-homepage-dark.png",
+    "width": 360,
+    "height": 4151,
+    "variance": 1651.464301745097,
+    "bytes": 466953
+  },
+  {
+    "path": "09-mobile/webkit-430x932-homepage-dark.png",
+    "width": 430,
+    "height": 3925,
+    "variance": 2402.1176008184752,
+    "bytes": 370986
+  },
+  {
+    "path": "09-mobile/chromium-390x844-homepage-dark.png",
+    "width": 390,
+    "height": 3978,
+    "variance": 1545.0067166090012,
+    "bytes": 360132
+  },
+  {
+    "path": "09-mobile/chromium-360x800-homepage-dark.png",
+    "width": 360,
+    "height": 4138,
+    "variance": 2027.9673885901768,
+    "bytes": 358697
+  },
+  {
+    "path": "09-mobile/homepage-mobile-390.png",
+    "width": 390,
+    "height": 3978,
+    "variance": 1563.0568769375484,
+    "bytes": 364139
+  },
+  {
+    "path": "09-mobile/webkit-390x844-homepage-dark.png",
+    "width": 390,
+    "height": 3976,
+    "variance": 1738.696855167548,
+    "bytes": 337737
+  },
+  {
+    "path": "09-mobile/firefox-430x932-homepage-dark.png",
+    "width": 430,
+    "height": 3935,
+    "variance": 1889.3335793614388,
+    "bytes": 524507
+  },
+  {
+    "path": "09-mobile/shell-mobile.png",
+    "width": 390,
+    "height": 2972,
+    "variance": 119.48768550157547,
+    "bytes": 258684
+  },
+  {
+    "path": "09-mobile/asset-rankings-mobile.png",
+    "width": 390,
+    "height": 2971,
+    "variance": 119.58457299073537,
+    "bytes": 258577
+  },
+  {
+    "path": "09-mobile/firefox-390x844-homepage-dark.png",
+    "width": 390,
+    "height": 3987,
+    "variance": 1203.8537008364995,
+    "bytes": 481088
+  },
+  {
+    "path": "09-mobile/theme-studio-mobile.png",
+    "width": 390,
+    "height": 3296,
+    "variance": 122.49220011631648,
+    "bytes": 253091
+  },
+  {
+    "path": "09-mobile/webkit-360x800-homepage-dark.png",
+    "width": 360,
+    "height": 4137,
+    "variance": 2278.7244394222894,
+    "bytes": 322119
+  },
+  {
+    "path": "13-compiled-preview/apple-touch-icon.png",
+    "width": 180,
+    "height": 180,
+    "variance": 2560.4486105044684,
+    "bytes": 909
+  },
+  {
+    "path": "02-logo-system/logo-variant-and-small-size-board.png",
+    "width": 1440,
+    "height": 1271,
+    "variance": 4366.1160764495535,
+    "bytes": 127773
+  },
+  {
+    "path": "05-app-shell/shell-tablet.png",
+    "width": 768,
+    "height": 2965,
+    "variance": 97.07322825988133,
+    "bytes": 295042
+  },
+  {
+    "path": "05-app-shell/shell-collapsed-desktop.png",
+    "width": 1440,
+    "height": 1782,
+    "variance": 135.337407151858,
+    "bytes": 405080
+  },
+  {
+    "path": "05-app-shell/asset-rankings-desktop.png",
+    "width": 1440,
+    "height": 1782,
+    "variance": 135.28452775875726,
+    "bytes": 405638
+  },
+  {
+    "path": "05-app-shell/command-palette-selected-unique-result.png",
+    "width": 1440,
+    "height": 1000,
+    "variance": 177.89840759833655,
+    "bytes": 252907
+  },
+  {
+    "path": "05-app-shell/shell-expanded-desktop.png",
+    "width": 1440,
+    "height": 1781,
+    "variance": 102.32274289925893,
+    "bytes": 423860
+  },
+  {
+    "path": "06-favicon-pwa/qelly-social-preview.png",
+    "width": 1200,
+    "height": 630,
+    "variance": 1637.0031942923863,
+    "bytes": 7707
+  },
+  {
+    "path": "06-favicon-pwa/apple-touch-icon.png",
+    "width": 180,
+    "height": 180,
+    "variance": 2560.4486105044684,
+    "bytes": 909
+  },
+  {
+    "path": "06-favicon-pwa/favicon-pwa-social-board.png",
+    "width": 1440,
+    "height": 1440,
+    "variance": 804.4218522310257,
+    "bytes": 61534
+  },
+  {
+    "path": "13-compiled-preview/icons/qelly-512.png",
+    "width": 512,
+    "height": 512,
+    "variance": 2845.8031236131987,
+    "bytes": 3594
+  },
+  {
+    "path": "13-compiled-preview/icons/qelly-maskable-512.png",
+    "width": 512,
+    "height": 512,
+    "variance": 1494.173084239165,
+    "bytes": 3089
+  },
+  {
+    "path": "13-compiled-preview/icons/qelly-192.png",
+    "width": 192,
+    "height": 192,
+    "variance": 2832.23867414395,
+    "bytes": 970
+  },
+  {
+    "path": "13-compiled-preview/icons/qelly-32.png",
+    "width": 32,
+    "height": 32,
+    "variance": 678.8891844352087,
+    "bytes": 198
+  },
+  {
+    "path": "13-compiled-preview/icons/qelly-64.png",
+    "width": 64,
+    "height": 64,
+    "variance": 516.6629902919134,
+    "bytes": 332
+  },
+  {
+    "path": "13-compiled-preview/icons/qelly-16.png",
+    "width": 16,
+    "height": 16,
+    "variance": 1620.080094953378,
+    "bytes": 127
+  },
+  {
+    "path": "13-compiled-preview/icons/qelly-48.png",
+    "width": 48,
+    "height": 48,
+    "variance": 559.2103506525358,
+    "bytes": 254
+  },
+  {
+    "path": "13-compiled-preview/social/qelly-social-preview.png",
+    "width": 1200,
+    "height": 630,
+    "variance": 1637.0031942923863,
+    "bytes": 7707
+  },
+  {
+    "path": "06-favicon-pwa/icons/qelly-512.png",
+    "width": 512,
+    "height": 512,
+    "variance": 2845.8031236131987,
+    "bytes": 3594
+  },
+  {
+    "path": "06-favicon-pwa/icons/qelly-maskable-512.png",
+    "width": 512,
+    "height": 512,
+    "variance": 1494.173084239165,
+    "bytes": 3089
+  },
+  {
+    "path": "06-favicon-pwa/icons/qelly-192.png",
+    "width": 192,
+    "height": 192,
+    "variance": 2832.23867414395,
+    "bytes": 970
+  },
+  {
+    "path": "06-favicon-pwa/icons/qelly-32.png",
+    "width": 32,
+    "height": 32,
+    "variance": 678.8891844352087,
+    "bytes": 198
+  },
+  {
+    "path": "06-favicon-pwa/icons/qelly-64.png",
+    "width": 64,
+    "height": 64,
+    "variance": 516.6629902919134,
+    "bytes": 332
+  },
+  {
+    "path": "06-favicon-pwa/icons/qelly-16.png",
+    "width": 16,
+    "height": 16,
+    "variance": 1620.080094953378,
+    "bytes": 127
+  },
+  {
+    "path": "06-favicon-pwa/icons/qelly-48.png",
+    "width": 48,
+    "height": 48,
+    "variance": 559.2103506525358,
+    "bytes": 254
+  }
+]

@@ -1,0 +1,36 @@
+{
+  "result": "passed",
+  "commit": "88aaec22470f1417db0b45509d4bf69bb0f44bb7",
+  "counts": {
+    "totalCaptures": 83,
+    "browserViewportCaptures": 27,
+    "expectedBrowserViewportCaptures": 27,
+    "openingCaptures": 9,
+    "themeDarkLightCaptures": 26,
+    "browsers": 3,
+    "viewports": 9
+  },
+  "gates": {
+    "rendererFailures": true,
+    "consoleClean": true,
+    "pageErrorsClean": true,
+    "resourcesClean": true,
+    "layoutShift": true,
+    "horizontalOverflow": true,
+    "browserMatrixComplete": true,
+    "openingEvidenceComplete": true,
+    "themeCompatibilityComplete": true,
+    "requiredGroupsComplete": true,
+    "compiledPreviewRunnable": true,
+    "ibmPlexLockedInTestedBuild": true,
+    "deliveryFontBinariesRemoved": true
+  },
+  "metrics": {
+    "maxCls": 0,
+    "maxOverflow": 0,
+    "consoleErrors": 0,
+    "pageErrors": 0,
+    "failedResources": 0
+  },
+  "missingGroups": []
+}
