@@ -1,14 +1,14 @@
 {
   "result": "failed",
   "branch": "feature/logo-first-brand-system",
-  "headBeforeRun": "822a50955b1a458046c77d12a6fce6ccb20de473",
+  "headBeforeRun": "a1c17b2d55a61018fcc14f0eca742b87bb00aed8",
   "exitCode": 1,
-  "failingLine": "47",
-  "failingCommand": "gzip -t \"$archive\"",
-  "failingStage": "gzip-validation",
+  "failingLine": "59",
+  "failingCommand": "test \"$actual_sha\" = \"$EXPECTED_BUNDLE_SHA256\"",
+  "failingStage": "ordered-per-chunk-decode",
   "decodedBytes": 39489,
   "actualSha256": "8522a6f0691c1e827bf3b7043f19660c90da76001f51499d4eac32185e23fec9",
-  "staleRecordedSha256": "840d9910e193daa3d001436c0c44b556b010742d5e779fd072f6db7bce313558",
-  "recordedAt": "2026-07-28T12:40:56.588357+00:00",
+  "expectedSha256": "840d9910e193daa3d001436c0c44b556b010742d5e779fd072f6db7bce313558",
+  "recordedAt": "2026-07-28T12:43:59.918140+00:00",
   "partialProductSourceCommitted": false
 }
