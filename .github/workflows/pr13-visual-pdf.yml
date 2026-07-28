@@ -1,0 +1,54 @@
+name: PR13 Visual Evidence PDF
+
+on:
+  push:
+    branches: [agent/pr13-final-artifact-inspection]
+    paths: ['.github/workflows/pr13-visual-pdf.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  build-visual-pdf:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: agent/pr13-final-artifact-inspection
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Create multipage visual inspection PDF
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --quiet pillow reportlab
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          from reportlab.lib.pagesizes import A4, landscape
+          from reportlab.pdfgen import canvas
+          from reportlab.lib.utils import ImageReader
+          source=Path('inspection/representative')
+          images=sorted([p for p in source.iterdir() if p.suffix.lower() in {'.png','.jpg','.jpeg'}])
+          assert len(images)>=20, len(images)
+          output=Path('inspection/QELLY_PR13_FINAL_VISUAL_INSPECTION.pdf')
+          page=landscape(A4); pw,ph=page
+          c=canvas.Canvas(str(output),pagesize=page)
+          for image in images:
+              with Image.open(image) as im: iw,ih=im.size
+              title=image.stem.replace('-',' ')
+              margin=28; header=34
+              scale=min((pw-2*margin)/iw,(ph-2*margin-header)/ih)
+              w,h=iw*scale,ih*scale
+              c.setFont('Helvetica-Bold',13); c.drawString(margin,ph-margin-13,title)
+              c.drawImage(ImageReader(str(image)),(pw-w)/2,(ph-header-h)/2-4,width=w,height=h,preserveAspectRatio=True,anchor='c')
+              c.showPage()
+          c.save()
+          print({'pdf':str(output),'pages':len(images),'bytes':output.stat().st_size})
+          PY
+          git add -f inspection/QELLY_PR13_FINAL_VISUAL_INSPECTION.pdf
+          git config user.name 'Qelly Artifact Inspection'
+          git config user.email 'hemangsah@users.noreply.github.com'
+          git commit -m 'docs(inspection): add final PR13 visual inspection PDF'
+          git push origin HEAD:agent/pr13-final-artifact-inspection
