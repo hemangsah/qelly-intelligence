@@ -84,6 +84,17 @@ html[data-preview="static"][data-resolved-appearance="light"] .qelly-hero{backgr
 html[data-preview="static"][data-resolved-appearance="light"] .qelly-product-preview,
 html[data-preview="static"][data-resolved-appearance="light"] .qelly-product-preview__metric{background:#fff!important;color:var(--q-text)!important;border-color:var(--q-border)!important}
 
+/* The route-level Market Overview and state headers must also resolve to daylight. */
+html[data-preview="static"][data-resolved-appearance="light"] .q-page-head{background:linear-gradient(135deg,#fff,var(--q-surface))!important;color:var(--q-text)!important;border:1px solid var(--q-border)!important;box-shadow:0 18px 48px rgba(44,31,36,.09)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .q-page-head h1{color:var(--q-text)!important;text-shadow:none!important}
+html[data-preview="static"][data-resolved-appearance="light"] .q-page-head p{color:var(--q-secondary)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .q-page-head .q-eyebrow{color:var(--q-accent)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .q-page-head::before{border-color:color-mix(in srgb,var(--q-accent) 18%,transparent)!important;box-shadow:0 0 0 46px color-mix(in srgb,var(--q-accent) 3%,transparent),0 0 0 95px color-mix(in srgb,var(--q-accent) 2%,transparent)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .q-page-head::after{background:radial-gradient(ellipse,color-mix(in srgb,var(--q-accent) 10%,transparent),transparent 68%)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .q-page-head .q-button--primary{background:var(--q-accent)!important;color:#fff!important;border-color:var(--q-accent)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .q-page-head .q-button--ghost,
+html[data-preview="static"][data-resolved-appearance="light"] .q-page-head .q-button--secondary{background:var(--q-panel)!important;color:var(--q-text)!important;border-color:var(--q-border)!important}
+
 /* Cohesive authentication composition with both halves visible at a normal desktop viewport. */
 .q-auth-page{min-height:calc(100dvh - var(--q-shell-ticker,28px) - var(--q-shell-command,54px) - var(--q-shell-context,38px))!important;padding:clamp(18px,3vw,38px)!important;gap:clamp(20px,3vw,44px)!important;align-items:stretch!important}
 .q-auth-hero{min-height:0!important;height:auto!important;padding:clamp(28px,4vw,54px)!important;border-radius:28px 28px 82px 28px!important}
