@@ -31,51 +31,32 @@ jobs:
           ref: feature/logo-first-brand-system
           fetch-depth: 0
           persist-credentials: true
-      - name: Report exact base tree
-        run: |
-          echo "QELLY_BASE_COMMIT=$(git rev-parse HEAD)"
-          echo "QELLY_BASE_TREE=$(git rev-parse HEAD^{tree})"
-      - name: Detect source chunks
+      - name: Detect exact binary source chunks
         id: detect
         shell: bash
         run: |
-          if compgen -G '.qelly-brand-bootstrap/chunk-*' >/dev/null; then
+          if compgen -G '.qelly-brand-bootstrap/bin-*' >/dev/null; then
             echo 'install=true' >> "$GITHUB_OUTPUT"
           else
             echo 'install=false' >> "$GITHUB_OUTPUT"
           fi
-      - name: Persist exact base tree for atomic upload
-        if: steps.detect.outputs.install == 'false' && !hashFiles('.qelly-brand-bootstrap/base-tree.txt')
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p .qelly-brand-bootstrap
-          printf '%s\n' "$(git rev-parse HEAD^{tree})" > .qelly-brand-bootstrap/base-tree.txt
-          printf '%s\n' "$(git rev-parse HEAD)" > .qelly-brand-bootstrap/base-commit.txt
-          git add .qelly-brand-bootstrap/base-tree.txt .qelly-brand-bootstrap/base-commit.txt
-          git config user.name 'Qelly Brand Automation'
-          git config user.email 'hemangsah@users.noreply.github.com'
-          git commit -m 'chore(brand): record atomic upload base tree'
-          git push origin HEAD:feature/logo-first-brand-system
       - name: Set up Node.js
         if: steps.detect.outputs.install == 'true'
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
           cache: npm
-      - name: Decode and validate source bundle
+      - name: Assemble and validate source bundle
         if: steps.detect.outputs.install == 'true'
         shell: bash
         run: |
           set -euo pipefail
-          archive=/tmp/qelly-brand-bundle.tar.gz.b64
-          cat .qelly-brand-bootstrap/chunk-* > "$archive"
-          test "$(sha256sum "$archive" | cut -d' ' -f1)" = d6206c9e8d6ecd8013e16a3c08d273b1880e22ffc1b800261e880b7379ccccc3
+          archive=/tmp/qelly-brand-bundle.tar.gz
+          cat .qelly-brand-bootstrap/bin-* > "$archive"
+          test "$(sha256sum "$archive" | cut -d' ' -f1)" = 840d9910e193daa3d001436c0c44b556b010742d5e779fd072f6db7bce313558
           mkdir -p /tmp/qelly-brand-bundle
-          base64 -d "$archive" > /tmp/qelly-brand-bundle.tar.gz
-          test "$(sha256sum /tmp/qelly-brand-bundle.tar.gz | cut -d' ' -f1)" = 840d9910e193daa3d001436c0c44b556b010742d5e779fd072f6db7bce313558
-          test -z "$(tar -tzf /tmp/qelly-brand-bundle.tar.gz | grep -E '(^/|(^|/)\.\.(/|$))' || true)"
-          tar -xzf /tmp/qelly-brand-bundle.tar.gz -C /tmp/qelly-brand-bundle
+          test -z "$(tar -tzf "$archive" | grep -E '(^/|(^|/)\.\.(/|$))' || true)"
+          tar -xzf "$archive" -C /tmp/qelly-brand-bundle
           test -f /tmp/qelly-brand-bundle/apps/web/public/assets/qelly-brand.mjs
           test -f /tmp/qelly-brand-bundle/scripts/generate-logo-assets.mjs
           test -f /tmp/qelly-brand-bundle/scripts/logo-brand-governance.mjs
