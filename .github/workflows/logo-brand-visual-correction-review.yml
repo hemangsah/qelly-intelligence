@@ -107,6 +107,7 @@ jobs:
           node -e "const fs=require('fs');const p='.brand-visual-correction/qelly-logo-first-brand-system-visual-correction-review/17-visual-correction-reports/FINAL_VISUAL_CORRECTION_VALIDATION.json';const v=JSON.parse(fs.readFileSync(p));if(v.result!=='passed')process.exit(1);console.log(v)"
 
       - name: Upload final visual-correction review
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: qelly-logo-first-brand-system-visual-correction-review
@@ -119,7 +120,7 @@ jobs:
             .brand-visual-correction/qelly-logo-first-brand-system-visual-correction-review/17-visual-correction-reports
             .brand-visual-correction/qelly-logo-first-brand-system-visual-correction-review/16-human-readable-evidence
           include-hidden-files: true
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14
 
       - name: Publish isolated non-deployment inspection branch
