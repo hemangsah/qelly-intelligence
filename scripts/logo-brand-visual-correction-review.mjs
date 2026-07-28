@@ -184,7 +184,7 @@ async function openingEvidence(browserName,launcher){
   for(const mode of ['full-motion','reduced','repeat-session']){
     const reduced=mode==='reduced',repeat=mode==='repeat-session';const meta={browser:browserName,mode,viewport:'1440x1000'};let browser,context,page,stop;
     try{
-      browser=await launcher.launch();context=await browser.newContext({viewport:{width:1440,height:1000},colorScheme:'dark',reducedMotion:reduced?'reduce':'no-preference'});await installInit(context,{appearance:'dark',themeFamily:'sovereign-obsidian',seen:repeat,holdOpening:false});page=await context.newPage();stop=attachTelemetry(page,meta);const navigationStarted=Date.now();await page.goto(appUrl('market'),{waitUntil:'domcontentloaded',timeout:30000});
+      browser=await launcher.launch();context=await browser.newContext({viewport:{width:1440,height:1000},colorScheme:'dark',reducedMotion:reduced?'reduce':'no-preference'});await installInit(context,{appearance:'dark',themeFamily:'sovereign-obsidian',seen:repeat,holdOpening:!repeat});page=await context.newPage();stop=attachTelemetry(page,meta);const navigationStarted=Date.now();await page.goto(appUrl('market'),{waitUntil:'domcontentloaded',timeout:30000});
       if(repeat){await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true',{timeout:35000});const count=await page.locator('.qelly-opening').count();opening.push({...meta,overlayFrames:count,durationMs:Date.now()-navigationStarted,result:count===0?'passed':'failed'});}
       else{
         const overlay=page.locator('.qelly-opening');await overlay.waitFor({state:'visible',timeout:3000});const started=Date.now();
@@ -194,6 +194,7 @@ async function openingEvidence(browserName,launcher){
           await page.waitForTimeout(360);await captureViewport(page,path.join(evidenceDir,'opening-full-03-final-lockup.png'),'Full-motion opening — final lockup','One crisp, optically centered horizontal Qelly lockup.',{});
         }
         if(browserName==='chromium'&&mode==='reduced'){await page.waitForTimeout(20);await captureViewport(page,path.join(evidenceDir,'opening-reduced-final-lockup.png'),'Reduced-motion opening — single final lockup','Reduced motion shows one clean horizontal lockup with no standalone duplicate Q.',{});}
+        const configuredDuration=reduced?120:1180;const remaining=Math.max(0,configuredDuration-(Date.now()-started));if(remaining)await page.waitForTimeout(remaining);await overlay.click({force:true});
         await overlay.waitFor({state:'detached',timeout:3500});const duration=Date.now()-started;
         const finalDuplicate=await page.evaluate(()=>Boolean(document.querySelector('.qelly-opening .qelly-opening__symbol')));
         opening.push({...meta,durationMs:duration,duplicateFinalSymbol:finalDuplicate,result:duration<=(reduced?250:1600)&&duration>=(reduced?0:900)&&!finalDuplicate?'passed':'failed'});
