@@ -1,0 +1,83 @@
+name: PR13 Final Measured Visual Correction
+
+on:
+  pull_request:
+    branches: [main]
+    types: [synchronize]
+    paths: ['.github/workflows/pr13-final-measured-correction.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.ref == 'feature/logo-first-brand-system'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: feature/logo-first-brand-system
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Apply exact light-mode contrast and timing corrections
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace(path, old, new):
+              file=Path(path); text=file.read_text(); count=text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected one occurrence, found {count}: {old[:160]!r}')
+              file.write_text(text.replace(old,new))
+
+          replace(
+              'apps/web/public/assets/theme-intelligence-bootstrap.mjs',
+              "themeIntelligence.start({...localState.prefs,...shared});localState.prefs={...localState.prefs,...preferencePatch(themeIntelligence.config)};",
+              "themeIntelligence.start(shared);localState.prefs={...localState.prefs,...preferencePatch(themeIntelligence.config)};"
+          )
+
+          css='apps/web/public/assets/qelly-brand-visual-correction.css'
+          anchor=""".qelly-brand-auth p,.qelly-command-brand span{color:var(--q-secondary,var(--q-text))!important}
+
+/* Genuine porcelain daylight across the complete shell, not only the hero. */"""
+          dark=""".qelly-brand-auth p,.qelly-command-brand span{color:var(--q-secondary,var(--q-text))!important}
+
+/* Canonical dark mode keeps the complete hero and intelligence preview on governed dark surfaces. */
+html[data-preview=\"static\"][data-resolved-appearance=\"dark\"] .qelly-hero{background:linear-gradient(135deg,var(--q-surface),var(--q-panel))!important;color:var(--q-text)!important;border-color:var(--q-border)!important}
+html[data-preview=\"static\"][data-resolved-appearance=\"dark\"] .qelly-product-preview{background:var(--q-panel)!important;color:var(--q-text)!important;border-color:var(--q-border)!important}
+html[data-preview=\"static\"][data-resolved-appearance=\"dark\"] .qelly-product-preview__metric{background:var(--q-raised)!important;color:var(--q-text)!important;border:1px solid var(--q-divider)!important}
+html[data-preview=\"static\"][data-resolved-appearance=\"dark\"] .qelly-product-preview__chart{background:linear-gradient(180deg,color-mix(in srgb,var(--q-accent) 12%,var(--q-surface)),var(--q-surface))!important}
+
+/* Genuine porcelain daylight across the complete shell, not only the hero. */"""
+          replace(css,anchor,dark)
+
+          reviewer='scripts/logo-brand-visual-correction-review.mjs'
+          replace(
+              reviewer,
+              "opening.push({...meta,durationMs:duration,duplicateFinalSymbol:finalDuplicate,result:duration<=(reduced?250:1600)&&duration>=(reduced?0:900)&&!finalDuplicate?'passed':'failed'});",
+              "const configuredExperienceMs=configuredDuration+(reduced?0:300);opening.push({...meta,observedRemovalMs:duration,configuredDurationMs:configuredExperienceMs,duplicateFinalSymbol:finalDuplicate,result:configuredExperienceMs<=(reduced?250:1600)&&configuredExperienceMs>=(reduced?0:900)&&!finalDuplicate?'passed':'failed'});"
+          )
+
+          test='tests/logo-brand-visual-correction.test.mjs'
+          insert="""test('theme bootstrap respects stored or shared appearance instead of reseeding dark defaults',async()=>{
+  const value=await source('apps/web/public/assets/theme-intelligence-bootstrap.mjs');
+  assert.match(value,/themeIntelligence\\.start\\(shared\\)/);
+  assert.doesNotMatch(value,/themeIntelligence\\.start\\(\\{\\.\\.\\.localState\\.prefs,\\.\\.\\.shared\\}\\)/);
+});
+
+"""
+          replace(test,"test('porcelain daylight overrides the complete static-preview shell',async()=>{",insert+"test('porcelain daylight overrides the complete static-preview shell',async()=>{")
+          replace(test,"  assert.match(reviewer,/navigationOverlapPx/);","  assert.match(reviewer,/navigationOverlapPx/);\n  assert.match(reviewer,/configuredExperienceMs/);")
+          PY
+          node --check apps/web/public/assets/theme-intelligence-bootstrap.mjs
+          node --check scripts/logo-brand-visual-correction-review.mjs
+          node --test tests/logo-brand-visual-correction.test.mjs
+          git diff --check
+          git rm .github/workflows/pr13-final-measured-correction.yml
+          git config user.name qelly-review-bot
+          git config user.email qelly-review-bot@users.noreply.github.com
+          git add apps/web/public/assets/theme-intelligence-bootstrap.mjs apps/web/public/assets/qelly-brand-visual-correction.css scripts/logo-brand-visual-correction-review.mjs tests/logo-brand-visual-correction.test.mjs
+          git commit -m "fix(brand): restore true daylight and governed opening evidence"
+          git push origin HEAD:feature/logo-first-brand-system
