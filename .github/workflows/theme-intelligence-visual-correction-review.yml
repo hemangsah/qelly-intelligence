@@ -13,6 +13,7 @@ on:
       - 'figma-theme-plugin/**'
       - 'design/figma/**'
       - 'scripts/theme-intelligence-visual-correction-review.mjs'
+      - 'scripts/theme-intelligence-visual-correction-evidence-complete.mjs'
       - 'tests/theme-intelligence.test.mjs'
       - '.github/workflows/theme-intelligence-visual-correction-review.yml'
   workflow_dispatch:
@@ -84,6 +85,11 @@ jobs:
         env:
           QELLY_REVIEW_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node scripts/theme-intelligence-visual-correction-review.mjs
+      - name: Complete evidence matrix after manual artifact review
+        env:
+          QELLY_REVIEW_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+          QELLY_VISUAL_BASELINE_COMMIT: e572d04df8fc5e27c8693ff5e3238706b237e715
+        run: node scripts/theme-intelligence-visual-correction-evidence-complete.mjs
       - name: Package exact review ZIP
         shell: bash
         run: |
