@@ -3,6 +3,11 @@ name: Qelly Foundation Verification and Annotated Tag
 on:
   push:
     branches: [chore/foundation-verification-tag]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/foundation-verification-tag.mjs'
+      - '.github/workflows/foundation-verification-tag.yml'
   workflow_dispatch:
 
 permissions:
@@ -12,16 +17,18 @@ permissions:
 
 concurrency:
   group: qelly-foundation-verification-tag
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   verify-and-tag:
+    if: github.event_name != 'pull_request' || github.head_ref == 'chore/foundation-verification-tag'
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:
       - name: Check out verification branch
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
+          ref: chore/foundation-verification-tag
           fetch-depth: 0
           persist-credentials: true
       - name: Set up Node.js
@@ -34,12 +41,19 @@ jobs:
       - name: Install independent browser
         run: npx playwright install --with-deps chromium
       - name: Verify merged foundation, workflows and live Pages
+        id: verify
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
         run: |
+          set -o pipefail
           sed -i 's/animations:getAnimations()/animations:document.getAnimations()/' scripts/foundation-verification-tag.mjs
-          node scripts/foundation-verification-tag.mjs
+          node scripts/foundation-verification-tag.mjs 2>&1 | tee /tmp/qelly-foundation-verification.log
       - name: Create or verify true annotated foundation tag
+        id: tag
+        if: steps.verify.outcome == 'success'
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: qelly-design-foundation-v1
@@ -47,6 +61,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          exec > >(tee /tmp/qelly-foundation-tag.log) 2>&1
           cat > /tmp/qelly-tag-message.txt <<'EOF'
           Qelly Design Foundation v1
 
@@ -88,6 +103,49 @@ jobs:
           for(const text of required)if(!tag.message.includes(text))throw new Error(`Tag annotation missing: ${text}`);
           await writeFile('foundation-verification/tag-verification.json',`${JSON.stringify({result:'passed',ref:ref.ref,annotatedTagObjectSha:ref.object.sha,target:tag.object.sha,message:tag.message,tagger:tag.tagger},null,2)}\n`);
           NODE
+      - name: Record durable verification result
+        if: always()
+        env:
+          VERIFY_OUTCOME: ${{ steps.verify.outcome }}
+          TAG_OUTCOME: ${{ steps.tag.outcome }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          EVENT_NAME: ${{ github.event_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p foundation-verification design/handoff
+          cp /tmp/qelly-foundation-verification.log foundation-verification/verification.log 2>/dev/null || true
+          cp /tmp/qelly-foundation-tag.log foundation-verification/tag.log 2>/dev/null || true
+          node <<'NODE'
+          import {readFile,writeFile} from 'node:fs/promises';
+          const read=async(file)=>readFile(file,'utf8').catch(()=>null);
+          const result={
+            result:process.env.VERIFY_OUTCOME==='success'&&process.env.TAG_OUTCOME==='success'?'passed':'failed',
+            verifyOutcome:process.env.VERIFY_OUTCOME,
+            tagOutcome:process.env.TAG_OUTCOME||'skipped',
+            runId:Number(process.env.RUN_ID),
+            runAttempt:Number(process.env.RUN_ATTEMPT),
+            event:process.env.EVENT_NAME,
+            main:'239f6f0c7c663801662f4e5f940ca76fb6941bf1',
+            approvedHead:'ca3d85898d6ce26dc4c2b2cda35b34e1810d2c1b',
+            tag:'qelly-design-foundation-v1',
+            artifactSha256:'756841a7a9a3425413884b8954f6b5f5b689b888ec46e30313e8e0b775be99bf',
+            verificationLog:await read('foundation-verification/verification.log'),
+            tagLog:await read('foundation-verification/tag.log'),
+            tagVerification:JSON.parse(await read('foundation-verification/tag-verification.json')||'null')
+          };
+          await writeFile('design/handoff/QELLY_FOUNDATION_VERIFICATION_RESULT.json',`${JSON.stringify(result,null,2)}\n`);
+          const lines=['# Qelly Foundation Verification Result','',`- Result: **${result.result}**`,`- Workflow run: \`${result.runId}\` attempt \`${result.runAttempt}\``,`- Event: \`${result.event}\``,`- Foundation verification: \`${result.verifyOutcome}\``,`- Annotated tag operation: \`${result.tagOutcome}\``,`- Main: \`${result.main}\``,`- Approved PR head: \`${result.approvedHead}\``,`- Tag: \`${result.tag}\``,`- Artifact SHA-256: \`${result.artifactSha256}\``,`- PR #11 and main were not modified by this helper workflow.`];
+          await writeFile('design/handoff/QELLY_FOUNDATION_VERIFICATION_RESULT.md',`${lines.join('\n')}\n`);
+          NODE
+          git add design/handoff/QELLY_FOUNDATION_VERIFICATION_RESULT.*
+          if ! git diff --cached --quiet; then
+            git config user.name 'Qelly Foundation Automation'
+            git config user.email 'hemangsah@users.noreply.github.com'
+            git commit -m 'chore(foundation): record verification result [foundation-verification-result]'
+            git push origin HEAD:chore/foundation-verification-tag
+          fi
       - name: Upload foundation verification evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -97,3 +155,11 @@ jobs:
           if-no-files-found: error
           include-hidden-files: true
           retention-days: 30
+      - name: Enforce successful foundation gate
+        if: always()
+        env:
+          VERIFY_OUTCOME: ${{ steps.verify.outcome }}
+          TAG_OUTCOME: ${{ steps.tag.outcome }}
+        run: |
+          test "$VERIFY_OUTCOME" = success
+          test "$TAG_OUTCOME" = success
