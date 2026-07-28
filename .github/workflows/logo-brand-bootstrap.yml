@@ -1,8 +1,9 @@
 name: Qelly Logo Brand Source Bootstrap
 
 on:
-  push:
-    branches: [feature/logo-first-brand-system]
+  pull_request:
+    branches: [main]
+    types: [synchronize]
     paths:
       - '.qelly-brand-bootstrap/**'
       - '.github/workflows/logo-brand-bootstrap.yml'
@@ -12,11 +13,12 @@ permissions:
   contents: write
 
 concurrency:
-  group: qelly-logo-brand-source-bootstrap
+  group: qelly-logo-brand-source-fingerprint-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   fingerprint-prepared-source:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'feature/logo-first-brand-system'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -76,7 +78,7 @@ jobs:
           record={
             'result':'verified',
             'branch':'feature/logo-first-brand-system',
-            'headBeforeRun':'${{ github.sha }}',
+            'headBeforeRun':'${{ github.event.pull_request.head.sha || github.sha }}',
             'transport':'bounded Base64 chunks chunk-00 through chunk-06',
             'decodedBytes':len(data),
             'actualSha256':hashlib.sha256(data).hexdigest(),
