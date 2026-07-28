@@ -1,0 +1,70 @@
+/* Qelly Theme Intelligence final visual-correction layer.
+   Loaded after the preserved engine styles; no typography, semantic or production contract is replaced. */
+
+/* Final visual-correction layer: neutral daylight, family character and Alpha hierarchy. */
+:root{
+  --q-theme-radius:12px;--q-theme-shadow:0 14px 38px rgba(0,0,0,.16);
+  --q-alpha-space:1;--q-alpha-row-height:42px;--q-alpha-chart-height:310px;--q-alpha-radius:12px;--q-alpha-alert:1;
+}
+html[data-resolved-appearance="light"],html[data-visual-appearance="light"]{
+  --q-tonal-border:rgba(23,25,26,.10);
+  color-scheme:light;
+}
+html[data-resolved-appearance="light"] body,html[data-resolved-appearance="light"] .q-app,html[data-resolved-appearance="light"] .q-shell,html[data-resolved-appearance="light"] .q-main,html[data-resolved-appearance="light"] .q-page,
+html[data-visual-appearance="light"] body,html[data-visual-appearance="light"] .q-app,html[data-visual-appearance="light"] .q-shell,html[data-visual-appearance="light"] .q-main,html[data-visual-appearance="light"] .q-page{
+  background:var(--q-canvas)!important;background-image:none!important;color:var(--q-text)!important;
+}
+html[data-resolved-appearance="light"] :where(.q-panel,.q-card,.q-kpi,.q-mi-chart-card,.q-mi-table-card,.q-ti-preview-shell,.q-ti-theme-card),
+html[data-visual-appearance="light"] :where(.q-panel,.q-card,.q-kpi,.q-mi-chart-card,.q-mi-table-card,.q-ti-preview-shell,.q-ti-theme-card){
+  background:var(--q-panel)!important;background-image:none!important;box-shadow:0 8px 24px rgba(25,27,28,.055)!important;
+}
+html[data-resolved-appearance="light"] :where(.q-page-head,.q-ti-hero,.q-command-bar,.q-context-shelf,.q-mobile-navigation),
+html[data-visual-appearance="light"] :where(.q-page-head,.q-ti-hero,.q-command-bar,.q-context-shelf,.q-mobile-navigation){
+  background:var(--q-surface)!important;background-image:none!important;box-shadow:none!important;
+}
+html[data-resolved-appearance="light"] .q-global-strip,html[data-visual-appearance="light"] .q-global-strip{background:#17191a!important;color:#fff!important}
+html[data-resolved-appearance="light"] .q-mi-chart-grid line,html[data-visual-appearance="light"] .q-mi-chart-grid line{stroke:var(--q-grid)!important}
+html[data-resolved-appearance="light"] .q-mi-chart-area,html[data-visual-appearance="light"] .q-mi-chart-area{fill:color-mix(in srgb,var(--q-info) 8%,transparent)!important}
+html[data-resolved-appearance="light"] .q-ti-hero,html[data-visual-appearance="light"] .q-ti-hero{border-color:var(--q-divider)!important}
+
+html[data-theme-family="sovereign-obsidian"]{--q-theme-radius:12px;--q-theme-shadow:0 12px 34px rgba(0,0,0,.15)}
+html[data-theme-family="porcelain-signal"]{--q-theme-radius:16px;--q-theme-shadow:0 16px 38px rgba(41,35,29,.08)}
+html[data-theme-family="crimson-vector"]{--q-theme-radius:8px;--q-theme-shadow:8px 10px 0 color-mix(in srgb,var(--q-accent) 8%,transparent)}
+html[data-theme-family="obsidian-strike"]{--q-theme-radius:4px;--q-theme-shadow:none}
+html[data-theme-family="white-heat"]{--q-theme-radius:6px;--q-theme-shadow:0 8px 20px rgba(0,0,0,.06)}
+html[data-theme-family="ember-protocol"]{--q-theme-radius:10px;--q-theme-shadow:0 14px 34px rgba(76,43,20,.16)}
+html[data-theme-family="arctic-quant"]{--q-theme-radius:10px;--q-theme-shadow:0 14px 34px rgba(15,63,78,.14)}
+html[data-theme-family="emerald-conviction"]{--q-theme-radius:14px;--q-theme-shadow:0 16px 38px rgba(12,57,45,.14)}
+html[data-theme-family="cobalt-circuit"]{--q-theme-radius:5px;--q-theme-shadow:0 0 0 1px color-mix(in srgb,var(--q-info) 8%,transparent)}
+html[data-theme-family="violet-oracle"]{--q-theme-radius:14px;--q-theme-shadow:0 18px 42px rgba(45,25,76,.18)}
+html[data-theme-family="gold-dominion"]{--q-theme-radius:12px;--q-theme-shadow:0 15px 36px rgba(67,55,28,.15)}
+html[data-theme-family="monochrome-ledger"]{--q-theme-radius:3px;--q-theme-shadow:none}
+html[data-theme-family="signal-access"]{--q-theme-radius:6px;--q-theme-shadow:none}
+html :where(.q-panel,.q-card,.q-kpi,.q-mi-chart-card,.q-mi-table-card,.q-ti-preview-shell,.q-ti-theme-card,.q-dialog,.q-drawer){border-radius:var(--q-theme-radius)!important}
+html[data-theme-shadow="none"] :where(.q-panel,.q-card,.q-kpi,.q-mi-chart-card,.q-mi-table-card,.q-ti-preview-shell,.q-dialog){box-shadow:none!important}
+html[data-theme-shadow="editorial"] :where(.q-panel,.q-mi-chart-card,.q-mi-table-card){box-shadow:var(--q-theme-shadow)!important}
+html[data-theme-border="ledger"] :where(.q-panel,.q-mi-chart-card,.q-mi-table-card){border-style:solid!important;border-width:1px!important}
+html[data-theme-border="circuit"] :where(.q-panel,.q-mi-chart-card,.q-mi-table-card){border-color:color-mix(in srgb,var(--q-info) 24%,var(--q-divider))!important}
+html[data-theme-navigation="terminal"] :where(.q-rail button.is-active,.q-category-shelf button.is-active){border-radius:2px!important;box-shadow:inset 3px 0 0 var(--q-accent)!important}
+html[data-theme-navigation="capsule"] :where(.q-rail button.is-active,.q-category-shelf button.is-active){border-radius:999px!important}
+html[data-theme-navigation="boxed"] :where(.q-rail button.is-active,.q-category-shelf button.is-active){outline:2px solid var(--q-focus)!important;outline-offset:-2px!important}
+
+html[data-alpha-intensity-slug="focused-edge"]{--q-alpha-space:1;--q-alpha-row-height:42px;--q-alpha-chart-height:310px;--q-alpha-radius:12px;--q-alpha-alert:1}
+html[data-alpha-intensity-slug="tactical-surge"]{--q-alpha-space:.9;--q-alpha-row-height:38px;--q-alpha-chart-height:298px;--q-alpha-radius:9px;--q-alpha-alert:1.12}
+html[data-alpha-intensity-slug="conviction-strike"]{--q-alpha-space:.8;--q-alpha-row-height:34px;--q-alpha-chart-height:284px;--q-alpha-radius:7px;--q-alpha-alert:1.28}
+html[data-alpha-intensity-slug="redline-apex"]{--q-alpha-space:.68;--q-alpha-row-height:29px;--q-alpha-chart-height:266px;--q-alpha-radius:4px;--q-alpha-alert:1.48}
+html[data-theme-persona="aggressive-alpha"] .q-mi-page{gap:calc(12px * var(--q-alpha-space))!important}
+html[data-theme-persona="aggressive-alpha"] .q-mi-chart-stage{height:var(--q-alpha-chart-height)!important}
+html[data-theme-persona="aggressive-alpha"] .q-mi-table-scroll td{height:var(--q-alpha-row-height)!important;padding-block:calc(10px * var(--q-alpha-space))!important}
+html[data-theme-persona="aggressive-alpha"] :where(.q-mi-kpi,.q-mi-intelligence-module,.q-mi-chart-card,.q-mi-table-card){border-radius:var(--q-alpha-radius)!important}
+html[data-theme-persona="aggressive-alpha"] .q-mi-truth-banner{transform:scaleY(var(--q-alpha-alert));transform-origin:top;box-shadow:0 0 0 calc((var(--q-alpha-alert) - 1) * 8px) color-mix(in srgb,var(--q-warning) 12%,transparent)}
+html[data-alpha-intensity-slug="tactical-surge"] .q-mi-heat-strip{order:-1}
+html[data-alpha-intensity-slug="conviction-strike"] .q-mi-pressure,html[data-alpha-intensity-slug="conviction-strike"] .q-mi-regime{order:-2}
+html[data-alpha-intensity-slug="redline-apex"] .q-mi-truth-banner{order:-4;border-width:2px!important}
+html[data-alpha-intensity-slug="redline-apex"] .q-mi-pressure,html[data-alpha-intensity-slug="redline-apex"] .q-mi-regime{order:-3}
+html[data-alpha-intensity-slug="redline-apex"] .q-mi-chart-controls button{min-height:24px!important;padding-inline:5px!important}
+html[data-alpha-intensity-slug="redline-apex"] .q-mi-table-scroll{font-size:10px!important}
+html[data-theme-persona="aggressive-alpha"][data-alpha-pack="obsidian-strike"] :where(.q-button--primary,.q-button.is-active,[aria-selected="true"]){box-shadow:inset 3px 0 0 var(--q-accent)!important;background:color-mix(in srgb,var(--q-accent) 15%,var(--q-panel))!important}
+html[data-theme-persona="aggressive-alpha"][data-alpha-pack="ember-protocol"] .q-mi-chart-line{stroke:var(--q-warning)!important}
+html[data-theme-persona="aggressive-alpha"][data-alpha-pack="apex-monochrome"] :where(.q-button--primary,.q-button.is-active,[aria-selected="true"]){background:#E7E7E7!important;color:#080808!important}
+html[data-theme-persona="aggressive-alpha"][data-alpha-pack="scarlet-circuit"] .q-mi-chart-grid line{stroke:color-mix(in srgb,var(--q-info) 22%,var(--q-grid))!important}

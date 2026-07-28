@@ -1,0 +1,50 @@
+name: Typography Governance Review
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/web/public/**'
+      - 'figma-plugin/**'
+      - 'figma-theme-plugin/**'
+      - 'design/figma/**'
+      - 'tests/theme-intelligence.test.mjs'
+      - '.github/workflows/typography-governance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ibm-plex-lock:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'agent/ui-rescue-asset-rankings'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Verify IBM Plex governance
+        run: |
+          node --test tests/theme-intelligence.test.mjs
+          grep -q 'IBM Plex Sans Variable permanent canonical font' apps/web/public/assets/theme-intelligence.mjs
+          grep -q 'GT Eesti inactive licence gate' apps/web/public/assets/theme-intelligence.mjs
+          ! grep -RInE 'font-family:[^;]*(Geist|Manrope|Plus Jakarta|GT Eesti)' apps/web/public/assets/theme-intelligence.css apps/web/public/assets/routes/theme-intelligence-studio.mjs
+      - name: Build static frontend
+        env:
+          QELLY_STATIC_VISUAL_PREVIEW: 'true'
+          QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
+        run: npm run build:frontend
+      - name: Inspect loaded font contract
+        run: |
+          test -f dist/frontend/assets/fonts/ibm-plex-sans-variable.woff2
+          test -f dist/frontend/assets/fonts/ibm-plex-sans-variable.woff2.LICENSE.txt
+          test -z "$(find dist/frontend \( -iname '*geist*.woff2' -o -iname '*manrope*.woff2' -o -iname '*jakarta*.woff2' \) -print -quit)"

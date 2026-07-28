@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-27T00:00:00.000Z",
+  "method": "official public-page browser inspection",
+  "limitations": [
+    "The inspection environment did not expose full DevTools computed-style access for every hydrated or protected page.",
+    "Proprietary font names and variable-font axes are not guessed.",
+    "Values marked observed-range are visual measurements, not copied CSS declarations."
+  ],
+  "references": {
+    "coinglass": {
+      "status": "partially observed",
+      "fontFamily": "not claimed; sans-serif UI observed",
+      "bodySize": {"kind":"observed-range","value":"12-14px"},
+      "tableSize": {"kind":"observed-range","value":"12-13px"},
+      "weightPattern": "regular/medium dominant; stronger emphasis selective",
+      "numeric": "tabular, right-aligned behavior observed",
+      "textTransform": "compact labels frequently uppercase",
+      "notes": "Dense derivatives UI; exact computed declarations unavailable."
+    },
+    "coinmarketcap": {
+      "status": "partially observed",
+      "fontFamily": "not claimed; sans-serif product UI observed",
+      "bodySize": {"kind":"observed-range","value":"13-15px"},
+      "tableSize": {"kind":"observed-range","value":"13-14px"},
+      "weightPattern": "medium hierarchy with selective bold price/identity",
+      "numeric": "tabular, decimal-aligned scanning behavior observed",
+      "textTransform": "mixed case navigation and compact table headers",
+      "notes": "Ranking-table scanability observed; exact computed declarations unavailable."
+    },
+    "worldquant": {
+      "status": "partially observed",
+      "fontFamily": "not claimed; editorial sans-serif observed",
+      "bodySize": {"kind":"observed-range","value":"16-20px public editorial"},
+      "displaySize": {"kind":"observed-range","value":"48-96px depending on viewport"},
+      "weightPattern": "regular/medium dominant with restrained heavy display use",
+      "letterSpacing": "tight large display, normal editorial body",
+      "notes": "Editorial hierarchy observed; exact proprietary font and computed declarations unavailable."
+    }
+  },
+  "qellyDecision": {
+    "brandDisplay": "Inter/Geist-compatible legal system stack",
+    "application": "Inter, Geist, IBM Plex Sans, system-ui",
+    "quant": "IBM Plex Mono, Geist Mono, JetBrains Mono, ui-monospace",
+    "tableSize": "12px compact, 10px terminal, 13px accessible override",
+    "uiBody": "13-15px",
+    "publicEditorial": "17-20px",
+    "numeric": "tabular numerals and right alignment",
+    "devanagariSafe": true
+  }
+}

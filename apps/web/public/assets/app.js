@@ -42,6 +42,7 @@ import { renderSecretRotation } from './routes/secret-rotation.mjs';
 import { renderQuarantineReview } from './routes/quarantine-review.mjs';
 import { renderStagingAssurance } from './routes/staging-assurance.mjs';
 import { renderDecisionProvenance } from './routes/decision-provenance.mjs';
+import { renderAssetRankings as renderAssetRankingsRescue } from './routes/asset-rankings.mjs';
 
 const runtimeConfig=Object.freeze({...window.__QELLY_CONFIG__});
 const staticVisualPreview=runtimeConfig.staticVisualPreview===true;
@@ -69,7 +70,14 @@ const state = {
 
 const defaultPreferences={theme:'burgundy-command',density:'comfortable',motion:'full',fontScale:100,radiusPx:14,customAccent:null,route:staticVisualPreview?'market':'auth-login',revision:1};
 const anonymousOverview=staticVisualPreview
-  ? {macro:[{label:'Preview',value:'Static visual',state:'simulated'},{label:'Data',value:'Deterministic demo',state:'simulated'},{label:'Backend',value:'Unavailable',state:'unavailable'},{label:'Execution',value:'Disabled',state:'unavailable'}]}
+  ? {macro:[
+      {label:'BTC',value:'$64,466.72 · +1.84%',state:'simulated'},
+      {label:'ETH',value:'$3,412.21 · +0.92%',state:'simulated'},
+      {label:'Global OI',value:'$114.65B · +0.54%',state:'simulated'},
+      {label:'Liquidations',value:'$180.19M · −47.29%',state:'simulated'},
+      {label:'Breadth',value:'62 / 38',state:'simulated'},
+      {label:'Preview',value:'Demo observations only',state:'simulated'}
+    ]}
   : {macro:[{label:'Identity',value:'Sign in required',state:'cached'},{label:'Database',value:'Production foundation',state:'live'},{label:'Execution',value:'Disabled',state:'unavailable'}]};
 
 const api = async (path, options = {}) => {
@@ -108,12 +116,15 @@ async function boot() {
 
 function renderStaticPreviewChrome(){
   if(!staticVisualPreview)return;
+  document.documentElement.dataset.preview='static';
   const truthChip=document.querySelector('.q-truth-chip');
   if(truthChip)truthChip.innerHTML='<span class="q-status q-status--simulated">STATIC VISUAL PREVIEW</span><span>Deterministic demo data · backend unavailable · no live services</span>';
   const providerMini=document.querySelector('.q-provider-mini');
   if(providerMini)providerMini.innerHTML='<span class="q-provider-pulse"></span><div><strong>Static visual preview</strong><small>Deterministic demo · not live</small></div>';
   const stateSelector=document.getElementById('state-selector');
   if(stateSelector){stateSelector.value='simulated';stateSelector.disabled=true;stateSelector.title='Static preview data is always simulated';}
+  const personaLabel=document.querySelector('.q-theme-control span');
+  if(personaLabel)personaLabel.textContent='Persona';
 }
 
 function renderIdentityHeader() {
@@ -163,7 +174,8 @@ async function applyPersona(id,{navigateToDefault=true}={}){
 
 function renderMacroStrip() {
   const strip = document.getElementById('macro-strip');
-  strip.innerHTML = (state.overview?.macro??anonymousOverview.macro).map((item) => `<div class="q-macro-item"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.value)}</strong><span class="q-status q-status--${item.state}">${item.state}</span></div>`).join('');
+  const items=(state.overview?.macro??anonymousOverview.macro).map((item) => `<div class="q-macro-item"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.value)}</strong><span class="q-status q-status--${item.state}">${staticVisualPreview?'demo':item.state}</span></div>`).join('');
+  strip.innerHTML = `<div class="q-macro-track">${items}${items}</div>`;
 }
 
 function renderNavigation() {
@@ -174,6 +186,11 @@ function renderNavigation() {
   if(!visibleRoutes.some((item)=>item.domain===state.activeDomain))state.activeDomain=visibleRoutes[0]?.domain??'markets';
   const domain=productDomains.find((item)=>item.id===state.activeDomain)??productDomains[0];
   const domainRoutes=visibleRoutes.filter((item)=>item.domain===state.activeDomain);
+  if(staticVisualPreview){
+    const switcher=document.getElementById('workspace-switcher');
+    const title=current?.route==='asset-rankings'?'Global Market Intelligence':current?.label??'Qelly Intelligence';
+    if(switcher)switcher.innerHTML=`<span aria-hidden="true">Q</span><strong>${escapeHtml(title)}</strong><small>Static visual preview</small>`;
+  }
   let currentSection = '';
   nav.innerHTML = `<div class="q-nav-domain-context"><small>Product domain</small><strong>${escapeHtml(domain.label)}</strong><span>${escapeHtml(domain.destinations.join(' · '))}</span></div>${domainRoutes.map((item) => {
     const section = item.section !== currentSection ? `<div class="q-nav-section">${escapeHtml(item.section)}</div>` : '';
@@ -199,7 +216,9 @@ function renderNavigation() {
     onPersona:(id)=>applyPersona(id),
     onCompare:()=>navigateOrExplain('comparison-lab','Compare needs the unavailable workspace backend.'),
     onWatchlist:()=>navigateOrExplain('watchlist','Watchlists need the unavailable workspace backend.'),
-    onExplain:()=>navigateOrExplain('decision-provenance','Decision Provenance needs the unavailable backend.')
+    onExplain:()=>navigateOrExplain('decision-provenance','Decision Provenance needs the unavailable backend.'),
+    onMenu:()=>toggleSecondaryNavigation(),
+    onUnavailable:(label)=>toast(`Static visual preview: ${label} needs the unavailable backend.`,{tone:'danger'})
   });
   state.activeDomain=shell.activeDomain;
 }
@@ -213,19 +232,32 @@ function navigateOrExplain(route,message){
   navigate(route);
 }
 
+function toggleSecondaryNavigation(force){
+  const rail=document.getElementById('rail');
+  if(!rail)return false;
+  const open=typeof force==='boolean'?force:!rail.classList.contains('is-open');
+  rail.classList.toggle('is-open',open);
+  rail.classList.remove('is-mobile-open');
+  rail.setAttribute('aria-hidden',String(!open));
+  document.getElementById('rail-toggle')?.setAttribute('aria-expanded',String(open));
+  document.querySelector('[data-shell-action="menu"]')?.setAttribute('aria-expanded',String(open));
+  if(open)rail.querySelector('[data-route]')?.focus();
+  return open;
+}
+
 function bindShell() {
   const rail = document.getElementById('rail');
   const shell = document.querySelector('.q-shell');
-  document.getElementById('collapse-rail').addEventListener('click', () => {
-    state.railCollapsed = !state.railCollapsed;
-    rail.classList.toggle('is-collapsed', state.railCollapsed);
-  });
-  document.getElementById('rail-toggle').addEventListener('click', (event) => {
-    const open = rail.classList.toggle('is-mobile-open');
-    event.currentTarget.setAttribute('aria-expanded', String(open));
-  });
+  rail.setAttribute('aria-hidden','true');
+  document.getElementById('collapse-rail').addEventListener('click', () => toggleSecondaryNavigation(false));
+  document.getElementById('rail-toggle').addEventListener('click', () => toggleSecondaryNavigation());
   document.getElementById('close-context').addEventListener('click', closeContext);
-  document.getElementById('theme-shortcut').addEventListener('click', () => navigate(staticVisualPreview?'theme-personas':'theme-lab'));
+  document.getElementById('theme-shortcut').addEventListener('click', () => {
+    if(staticVisualPreview){
+      const next=state.prefs.theme==='porcelain-burgundy'?'burgundy-command':'porcelain-burgundy';
+      applyPersona(next,{navigateToDefault:false});
+    }else navigate('theme-lab');
+  });
   document.getElementById('notification-button').addEventListener('click', () => staticVisualPreview?toast('Static visual preview: notifications need the unavailable backend.',{tone:'danger'}):navigate('notification-center'));
   document.getElementById('command-button').addEventListener('click', openCommands);
   document.getElementById('state-selector').addEventListener('change', (event) => {
@@ -239,7 +271,7 @@ function bindShell() {
     if (event.altKey && /^[1-9]$/.test(event.key)) { event.preventDefault(); navigate(routeDefinitions[Number(event.key)-1].route); }
   });
   document.addEventListener('click', (event) => {
-    if (window.innerWidth <= 860 && !rail.contains(event.target) && !event.target.closest('#rail-toggle')) rail.classList.remove('is-mobile-open');
+    if(rail.classList.contains('is-open')&&!rail.contains(event.target)&&!event.target.closest('#rail-toggle')&&!event.target.closest('[data-shell-action="menu"]'))toggleSecondaryNavigation(false);
   });
   shell.classList.toggle('is-context-open', state.contextOpen);
 }
@@ -265,6 +297,7 @@ function navigate(route, asset = null) {
     asset=null;
   }
   state.route = route;
+  toggleSecondaryNavigation(false);
   if (asset) state.asset = asset;
   const hash = `#/${route}${asset ? `/${asset}` : ''}`;
   if (location.hash === hash) renderRoute(); else location.hash = hash;
@@ -322,7 +355,7 @@ async function renderRoute() {
       case 'research-article': await renderResearchArticle(main); break;
       case 'trust-center': await renderTrustCenter(main); break;
       case 'market': await renderMarket(main); break;
-      case 'rankings': await renderRankings(main); break;
+      case 'rankings': await renderLegacyRankings(main); break;
       case 'search': await renderSearch(main); break;
       case 'asset': await renderAsset(main); break;
       case 'watchlist': await renderWorkspaceWatchlist(main,{api,pageHead,stateBanner,escapeHtml,QellyDataGrid,toast,navigate,renderRoute}); break;
@@ -440,7 +473,11 @@ async function renderMarket(main) {
   main.querySelectorAll('[data-public-asset]').forEach((button)=>button.addEventListener('click',()=>navigate('asset',button.dataset.publicAsset)));
 }
 
-async function renderRankings(main) {
+async function renderRankings(main){
+  return renderAssetRankingsRescue(main,{api,escapeHtml,navigate,toast,staticVisualPreview});
+}
+
+async function renderLegacyRankings(main) {
   const data = await api('/api/v1/public/markets/assets?sort=change&direction=desc');
   const baseRows=publicMarketRows(data.items);
   main.innerHTML = `<section class="q-page">${pageHead('Public discovery','Asset Rankings','Search, sort and compare canonical public-market observations without hiding degraded or simulated states.',`<button class="q-button q-button--secondary" data-action="reset-filters">Reset</button><button class="q-button q-button--primary" data-action="export">Export evidence</button>`)}${stateBanner()}<div class="q-truth-callout"><span class="q-status q-status--${data.mode==='live-public'?'live':data.mode==='mixed'?'warning':'simulated'}">${escapeHtml(data.mode)}</span><p>${escapeHtml(data.truthBoundary)}</p></div><section class="q-panel"><div class="q-panel-head"><div><h2>Discovery controls</h2><p>Filters operate on canonical observations already returned by the public API</p></div></div><div class="q-panel-body"><div style="display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:10px"><label class="q-setting" style="padding:0;border:0"><span>Search</span><input id="ranking-query" type="search" placeholder="BTC, payments, Ethereum"></label><label class="q-setting" style="padding:0;border:0"><span>Quality</span><select id="ranking-freshness"><option value="">All states</option><option value="live">Live public</option><option value="stale">Stale public</option><option value="simulated">Simulated fallback</option></select></label><label class="q-setting" style="padding:0;border:0"><span>Direction</span><select id="ranking-change"><option value="all">All</option><option value="positive">Advancers</option><option value="negative">Decliners</option></select></label><label class="q-setting" style="padding:0;border:0"><span>Density</span><select id="ranking-density"><option value="comfortable">Comfortable</option><option value="compact">Compact</option><option value="terminal">Terminal</option></select></label></div></div></section><section class="q-panel" style="margin-top:var(--q-gap)"><div class="q-panel-head"><div><h2>Canonical public assets</h2><p id="ranking-summary">${data.total} matching instruments</p></div><span id="compare-count" class="q-status q-status--cached">0 selected</span></div><div id="ranking-grid"></div></section></section>`;

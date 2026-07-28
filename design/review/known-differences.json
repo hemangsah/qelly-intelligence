@@ -1,0 +1,27 @@
+{
+  "status": "premium-reset-implemented-user-approval-pending",
+  "previousVisualDirection": "rejected",
+  "previousFidelityClaim": "withdrawn",
+  "critical": [],
+  "major": [
+    "Phase 0 implements the premium shell and Asset Rankings only. Deep Asset Intelligence, derivatives core, advanced derivatives, discovery expansion, public storytelling, portfolio, providers, and production readiness remain separate approval-gated phases.",
+    "The connected environment can provide an executable Figma generator and specification but cannot publish a hosted Figma file or prototype link into the user's account."
+  ],
+  "minor": [
+    "The application uses a legal repository/system typography stack rather than guessing proprietary reference fonts.",
+    "Official reference screenshots may be blocked by bot protection, consent, geography, or network access; the artifact records failures instead of fabricating images.",
+    "The static review universe uses deterministic Qelly observations and does not reproduce proprietary market datasets.",
+    "Table virtualization architecture is preserved for later large-universe integration; the static review renders a bounded deterministic universe.",
+    "The light appearance is an analytical accessibility variant and not a full public-editorial redesign."
+  ],
+  "deliberate": [
+    "Burgundy is limited to identity and selected emphasis while neutral surfaces dominate.",
+    "The ranking table precedes the chart and is the primary product surface.",
+    "Mobile uses prioritized expandable rows instead of a squeezed desktop table.",
+    "The chart uses realistic deterministic OHLC, volume, OI and funding rather than copied data or a synthetic sine wave.",
+    "One compact status center replaces repeated demo badges.",
+    "Source, freshness, confidence, provider disagreement, Explain This Move and Decision Provenance remain Qelly-specific differentiators.",
+    "The previous HTML is retained only as a structural prototype and is excluded from the compiled preview."
+  ],
+  "approvalGate": "DO NOT MERGE — USER VISUAL APPROVAL REQUIRED"
+}

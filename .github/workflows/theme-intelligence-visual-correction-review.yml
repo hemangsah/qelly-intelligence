@@ -1,0 +1,112 @@
+name: Qelly Theme Intelligence Visual Correction Review
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'apps/web/public/**'
+      - 'src/server/preferences-store.mjs'
+      - 'packages/schemas/layout-preference*.json'
+      - 'packages/ui-primitives/**'
+      - 'figma-plugin/**'
+      - 'figma-theme-plugin/**'
+      - 'design/figma/**'
+      - 'scripts/theme-intelligence-visual-correction-review.mjs'
+      - 'scripts/theme-intelligence-visual-correction-evidence-complete.mjs'
+      - 'scripts/theme-intelligence-visual-correction-evidence-finalize.mjs'
+      - 'tests/theme-intelligence.test.mjs'
+      - '.github/workflows/theme-intelligence-visual-correction-review.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qelly-theme-visual-correction-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-render-package:
+    if: github.event_name == 'workflow_dispatch' || (github.event.pull_request.head.ref == 'agent/ui-rescue-asset-rankings' && github.event.pull_request.base.ref == 'main')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 110
+    steps:
+      - name: Check out visual-correction source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Install review browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Environment validation
+        run: npm run env:check
+      - name: Type and syntax validation
+        run: npm run typecheck
+      - name: Lint and repository policy
+        run: npm run lint
+      - name: Repository and Theme Intelligence tests
+        run: npm test
+      - name: Production build
+        run: npm run build
+      - name: Product contract validation
+        run: npm run validate:product
+      - name: Product inventory
+        run: npm run inventory:product
+      - name: Full-stack smoke
+        run: npm run smoke
+      - name: Release safety
+        run: npm run release:check
+      - name: Secret scan
+        run: npm run security:scan
+      - name: Production identity isolation
+        run: NODE_ENV=test QELLY_DEVELOPMENT_IDENTITY_ENABLED=false node scripts/production-identity-check.mjs
+      - name: Dependency audit
+        run: npm audit --audit-level=high
+      - name: Whitespace validation
+        run: git diff --check
+      - name: Build static visual preview
+        env:
+          QELLY_STATIC_VISUAL_PREVIEW: 'true'
+          QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
+          QELLY_DEPLOYMENT_ENVIRONMENT: theme-intelligence-visual-correction-review
+        run: npm run build:frontend
+      - name: Validate Pages base path and assets
+        run: npm run validate:pages-preview
+      - name: Smoke Pages direct navigation
+        run: npm run smoke:pages-preview
+      - name: Render independent correction evidence
+        env:
+          QELLY_REVIEW_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/theme-intelligence-visual-correction-review.mjs
+      - name: Complete and strictly finalize evidence matrix
+        env:
+          QELLY_REVIEW_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+          QELLY_VISUAL_BASELINE_COMMIT: e572d04df8fc5e27c8693ff5e3238706b237e715
+        shell: bash
+        run: |
+          node scripts/theme-intelligence-visual-correction-evidence-complete.mjs || node scripts/theme-intelligence-visual-correction-evidence-finalize.mjs
+      - name: Package exact review ZIP
+        shell: bash
+        run: |
+          cd .theme-visual-correction
+          zip -r -9 qelly-theme-intelligence-visual-correction-review.zip qelly-theme-intelligence-visual-correction-review
+          sha256sum qelly-theme-intelligence-visual-correction-review.zip > qelly-theme-intelligence-visual-correction-review.zip.sha256
+      - name: Upload independent visual-correction review
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-theme-intelligence-visual-correction-review
+          path: |
+            .theme-visual-correction/qelly-theme-intelligence-visual-correction-review/
+            .theme-visual-correction/qelly-theme-intelligence-visual-correction-review.zip
+            .theme-visual-correction/qelly-theme-intelligence-visual-correction-review.zip.sha256
+          if-no-files-found: error
+          retention-days: 30

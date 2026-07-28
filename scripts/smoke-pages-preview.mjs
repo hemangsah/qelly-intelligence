@@ -49,6 +49,8 @@ try{
     ['assets/persona-profiles.mjs',200,'text/javascript'],
     ['assets/shell-foundations.mjs',200,'text/javascript'],
     ['assets/qelly-foundations.css',200,'text/css'],
+    ['assets/ui-rescue.css',200,'text/css'],
+    ['assets/routes/asset-rankings.mjs',200,'text/javascript'],
     ['assets/tokens.json',200,'application/json'],
     ['packages/accessibility/accessibility.mjs',200,'text/javascript'],
     ['packages/ui-primitives/primitives.mjs',200,'text/javascript'],

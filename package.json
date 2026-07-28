@@ -30,6 +30,7 @@
     "build:frontend": "node scripts/build-frontend.mjs",
     "validate:pages-preview": "node scripts/validate-pages-preview.mjs",
     "smoke:pages-preview": "node scripts/smoke-pages-preview.mjs",
+    "ui:review": "node scripts/ui-review-orchestrator.mjs",
     "typecheck": "node scripts/typecheck.mjs",
     "lint": "node scripts/lint.mjs",
     "env:check": "node scripts/env-check.mjs",
@@ -42,5 +43,14 @@
   "description": "Qelly Intelligence verifiable market intelligence platform and secure decision operating system.",
   "dependencies": {
     "pg": "8.22.0"
+  },
+  "devDependencies": {
+    "@fontsource-variable/geist": "5.2.8",
+    "@fontsource-variable/geist-mono": "5.2.8",
+    "@fontsource-variable/ibm-plex-sans": "5.2.8",
+    "@fontsource-variable/manrope": "5.2.8",
+    "@fontsource-variable/plus-jakarta-sans": "5.2.8",
+    "playwright": "^1.62.0",
+    "pngjs": "^7.0.0"
   }
 }

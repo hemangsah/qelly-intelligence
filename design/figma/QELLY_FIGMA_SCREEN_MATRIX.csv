@@ -1,0 +1,13 @@
+page,screen,desktop,mobile,phase,status,review_required
+16 Public Home,Public Home,1440x1000,390x844,Phase 0,generated-editable,yes
+17 Market Overview,Market Overview,1440x1000,390x844,Phase 0,generated-editable,yes
+18 Asset Rankings,Asset Rankings,1440x1000,390x844,Phase 0,generated-editable,yes
+19 Asset Detail,BTC Asset Page,1440x1000,390x844,Phase 1,generated-architecture,yes
+20 Derivatives,Derivatives Overview,1440x1000,390x844,Phase 2,generated-architecture,yes
+20 Derivatives,Funding Monitor,1440x1000,390x844,Phase 2,generated-architecture,yes
+20 Derivatives,Liquidation Monitor,1440x1000,390x844,Phase 2,generated-architecture,yes
+13 Heatmaps,Liquidation Heatmap,1440x1000,390x844,Phase 3,generated-architecture,yes
+21 Options,Options Intelligence,1440x1000,390x844,Phase 3,generated-architecture,yes
+24 Research,Research Workspace,1440x1000,390x844,Phase 5,generated-architecture,yes
+25 Portfolio,Portfolio Intelligence,1440x1000,390x844,Phase 6,generated-architecture,yes
+14 Provenance,Decision Provenance,1440x1000,390x844,Phase 0,generated-editable,yes

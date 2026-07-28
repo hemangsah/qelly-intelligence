@@ -1,0 +1,12 @@
+.q-route-icon{display:block;width:16px;height:16px;fill:none;stroke:currentColor}
+.q-nav-icon{display:grid;place-items:center;flex:0 0 20px}
+.q-command-trigger>span:nth-child(2){min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.q-mobile-navigation .q-route-icon{width:18px;height:18px}
+@media(max-width:1180px){
+  .q-workspace-switcher{width:210px!important;min-width:210px!important}
+  .q-command-actions .q-state-control:not(.q-theme-control){display:none!important}
+  .q-command-trigger>span:nth-child(2){font-size:10px}
+}
+@media(max-width:920px){
+  .q-workspace-switcher{width:auto!important;min-width:0!important}
+}

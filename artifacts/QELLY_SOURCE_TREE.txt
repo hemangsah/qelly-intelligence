@@ -13,6 +13,7 @@
 .github/workflows/pages-preview.yml
 .github/workflows/production-foundation-services.yml
 .github/workflows/release.yml
+.github/workflows/ui-review.yml
 .gitignore
 CHECK_QELLY_WINDOWS.bat
 CODE_OF_CONDUCT.md
@@ -71,6 +72,7 @@ apps/web/public/assets/routes/account-session.mjs
 apps/web/public/assets/routes/advanced-chart.mjs
 apps/web/public/assets/routes/alert-center.mjs
 apps/web/public/assets/routes/asset-intelligence.mjs
+apps/web/public/assets/routes/asset-rankings.mjs
 apps/web/public/assets/routes/auth-login.mjs
 apps/web/public/assets/routes/auth-recovery.mjs
 apps/web/public/assets/routes/auth-register.mjs
@@ -106,6 +108,7 @@ apps/web/public/assets/shell-foundations.mjs
 apps/web/public/assets/static-preview-api.mjs
 apps/web/public/assets/tokens.css
 apps/web/public/assets/tokens.json
+apps/web/public/assets/ui-rescue.css
 apps/web/public/assets/webauthn.mjs
 apps/web/public/index.html
 apps/web/public/qelly-config.js
@@ -160,6 +163,8 @@ data/RELEASE_A5_ROUTE_INVENTORY.csv
 data/RELEASE_A5_ROUTE_INVENTORY.json
 deploy/staging/docker-compose.staging.yml
 deploy/staging/manifest.json
+design/reference/QELLY_EXPECTED_FULL_UI_WORKING.html
+design/reference/README.md
 docker-compose.yml
 docs/00_EXECUTIVE_RELEASE_SUMMARY.md
 docs/01_WAVE0_BASELINE_FREEZE_REPORT.md
@@ -429,6 +434,7 @@ scripts/smoke-pages-preview.mjs
 scripts/smoke.mjs
 scripts/staging-health-check.mjs
 scripts/typecheck.mjs
+scripts/ui-review.mjs
 scripts/validate-design-foundations.mjs
 scripts/validate-pages-preview.mjs
 scripts/validate.mjs
@@ -524,6 +530,8 @@ tests/release-a5-platform-hardening.test.mjs
 tests/runtime-units.test.mjs
 tests/secret-scan.test.mjs
 tests/server.test.mjs
+tests/ui-rescue-asset-rankings.test.mjs
+tests/ui-review-workflow.test.mjs
 tests/wave4-runtime.test.mjs
 tests/wave5-discovery.test.mjs
 validation/PRODUCT_VALIDATION.json

@@ -63,23 +63,13 @@ test('static preview exposes a deterministic evidence graph and still rejects mu
   assert.match(routeSource,/demo · not persisted/);
   assert.match(routeSource,/Backend unavailable/);
   assert.deepEqual(graph,repeated);
-  await assert.rejects(
-    staticPreviewRequest('/api/v1/evidence/explain-move',{method:'POST'}),
-    (error)=>error.code==='static_visual_preview_backend_unavailable'
-  );
+  await assert.rejects(staticPreviewRequest('/api/v1/evidence/explain-move',{method:'POST'}),(error)=>error.code==='static_visual_preview_backend_unavailable');
 });
 
 test('canonical design tokens cover every mode, typography role, and chart truth requirement',async()=>{
-  const [tokens,motion,charts]=await Promise.all([
-    json('QELLY_DESIGN_TOKENS.json'),
-    json('QELLY_MOTION_TOKENS.json'),
-    json('QELLY_CHART_TOKENS.json')
-  ]);
+  const [tokens,motion,charts]=await Promise.all([json('QELLY_DESIGN_TOKENS.json'),json('QELLY_MOTION_TOKENS.json'),json('QELLY_CHART_TOKENS.json')]);
   assert.equal(Object.keys(tokens.semanticTokens).length,30);
-  for(const token of Object.values(tokens.semanticTokens)){
-    assert.ok(token.light&&token.dark&&token.highContrast);
-    assert.ok(token.contrastRule&&token.usage);
-  }
+  for(const token of Object.values(tokens.semanticTokens)){assert.ok(token.light&&token.dark&&token.highContrast);assert.ok(token.contrastRule&&token.usage);}
   assert.equal(Object.keys(tokens.typography.roles).length,24);
   assert.equal(motion.reducedMotion.meaningPreserved,true);
   assert.equal(charts.requirements.textTableAlternative,true);
@@ -87,31 +77,29 @@ test('canonical design tokens cover every mode, typography role, and chart truth
 });
 
 test('governed shell has progressive desktop and mobile layers',async()=>{
-  const [html,css,shell]=await Promise.all([
-    read('apps/web/public/index.html'),
-    read('apps/web/public/assets/qelly-foundations.css'),
-    read('apps/web/public/assets/shell-foundations.mjs')
-  ]);
+  const [html,css,shell,premiumMobile]=await Promise.all([read('apps/web/public/index.html'),read('apps/web/public/assets/qelly-foundations.css'),read('apps/web/public/assets/shell-foundations.mjs'),read('apps/web/public/assets/premium-mobile.css')]);
   for(const id of ['edge-dock','persona-ribbon','context-shelf','compare-tray','mobile-navigation'])assert.match(html,new RegExp(`id="${id}"`));
   assert.match(shell,/visibleRoutes\.filter/);
   assert.match(shell,/data-shelf-route/);
-  assert.match(css,/@media\(max-width:920px\)/);
   assert.match(css,/prefers-reduced-motion/);
+  assert.match(premiumMobile,/@media\(max-width:920px\)/);
+  assert.match(premiumMobile,/safe-area-inset-bottom/);
 });
 
-test('Figma handoff and CSV matrix agree on 411 meaningful frames',async()=>{
-  const [plugin,manifest,matrix]=await Promise.all([
-    read('figma-plugin/code.js'),
-    json('figma-plugin/manifest.json'),
-    read('QELLY_SCREEN_MATRIX.csv')
+test('Figma handoff uses semantic editable masters instead of frame-count theater',async()=>{
+  const [plugin,manifest,screenMatrix,componentMatrix,spec]=await Promise.all([
+    read('figma-plugin/code.js'),json('figma-plugin/manifest.json'),read('design/figma/QELLY_FIGMA_SCREEN_MATRIX.csv'),read('design/figma/QELLY_FIGMA_COMPONENT_MATRIX.csv'),read('design/figma/QELLY_FIGMA_MASTER_SPEC.md')
   ]);
-  assert.match(plugin,/EXPECTED_FRAME_COUNT=411/);
-  const pluginRoutes=plugin.match(/const ROUTE_ROWS=`([\s\S]*?)`\.trim\(\)\.split/)[1].trim().split('\n').length;
-  const pluginPages=plugin.match(/const PAGE_NAMES=\[([\s\S]*?)\];/)[1].match(/'\d+ —/g).length;
-  assert.equal(pluginRoutes,61);
-  assert.equal(pluginPages,25);
-  assert.equal(pluginPages+(pluginRoutes*2)+(6*12*2)+(12*8)+24,411);
+  const pages=plugin.match(/const PAGE_NAMES=\[([\s\S]*?)\];/)[1].match(/'\d{2} [^']+'/g);
+  const masterScreens=plugin.match(/const MASTER_SCREENS=\[([\s\S]*?)\];/)[1].match(/\['/g);
+  assert.equal(pages.length,31);
+  assert.ok(masterScreens.length>=24);
+  assert.match(plugin,/createVariableCollection\('Qelly Premium Semantic'\)/);
+  assert.match(plugin,/createComponent\(\)/);
+  assert.match(plugin,/qellyMasterFrame/);
+  assert.doesNotMatch(plugin,/EXPECTED_FRAME_COUNT|Expected 411 frames/);
   assert.equal(manifest.networkAccess.allowedDomains[0],'none');
-  assert.equal(matrix.trim().split('\n').length-1,411);
-  for(const header of ['route','purpose','viewport','persona','state','source_requirements','backend_dependencies','interaction_notes','accessibility_notes','responsive_notes'])assert.match(matrix.split('\n')[0],new RegExp(`"${header}"`));
+  assert.ok(screenMatrix.trim().split('\n').length-1>=12);
+  assert.ok(componentMatrix.trim().split('\n').length-1>=10);
+  assert.match(spec,/opened and visually reviewed/i);
 });

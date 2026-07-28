@@ -1,0 +1,114 @@
+name: Qelly UI Rescue Review
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ui-rescue-review-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  visual-review:
+    name: Render and compare premium UI reset
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.head.ref == 'agent/ui-rescue-asset-rankings' &&
+      github.event.pull_request.base.ref == 'main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Check out source and rejected history
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Scan committed source
+        run: npm run security:scan
+
+      - name: Validate environment
+        run: npm run env:check
+
+      - name: Type and syntax check
+        run: npm run typecheck
+
+      - name: Lint and repository policy
+        run: npm run lint
+
+      - name: Validate design foundations
+        run: npm run validate:design
+
+      - name: Test
+        run: npm test
+
+      - name: Production build
+        run: npm run build
+
+      - name: Validate product contract
+        run: npm run validate:product
+
+      - name: Rebuild product inventory
+        run: npm run inventory:product
+
+      - name: Full-stack smoke
+        run: npm run smoke
+
+      - name: Verify production identity isolation
+        run: NODE_ENV=test QELLY_DEVELOPMENT_IDENTITY_ENABLED=false node scripts/production-identity-check.mjs
+
+      - name: Release safety check
+        run: npm run release:check
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+
+      - name: Check patch whitespace
+        run: git diff --check
+
+      - name: Build Static visual preview
+        env:
+          QELLY_STATIC_VISUAL_PREVIEW: 'true'
+          QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
+          QELLY_DEPLOYMENT_ENVIRONMENT: github-pages
+        run: npm run build:frontend
+
+      - name: Validate Pages artifact
+        run: npm run validate:pages-preview
+
+      - name: Smoke-test Pages paths
+        run: npm run smoke:pages-preview
+
+      - name: Render screenshots comparisons and reports
+        env:
+          QELLY_REVIEW_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+          QELLY_REJECTED_UI_COMMIT: 12e88b473004fbaa01dc7588951c763fdf2cb941
+        run: npm run ui:review
+
+      - name: Upload UI rescue review
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: qelly-ui-rescue-review
+          if-no-files-found: warn
+          retention-days: 14
+          path: .ui-review/qelly-ui-rescue-review

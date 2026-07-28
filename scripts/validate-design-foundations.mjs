@@ -9,59 +9,38 @@ import { productDomains, routeDefinitions } from '../apps/web/public/assets/rout
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=(file)=>readFile(path.join(root,file),'utf8');
 const json=async(file)=>JSON.parse(await read(file));
-
-const [tokens,motion,charts,screenMatrix,routeMatrix,componentMatrix,plugin,manifest,html,css]=await Promise.all([
-  json('QELLY_DESIGN_TOKENS.json'),
-  json('QELLY_MOTION_TOKENS.json'),
-  json('QELLY_CHART_TOKENS.json'),
-  read('QELLY_SCREEN_MATRIX.csv'),
-  read('QELLY_ROUTE_INVENTORY.csv'),
-  read('QELLY_COMPONENT_INVENTORY.csv'),
-  read('figma-plugin/code.js'),
-  json('figma-plugin/manifest.json'),
-  read('apps/web/public/index.html'),
-  read('apps/web/public/assets/qelly-foundations.css')
+const [tokens,motion,charts,screenMatrix,routeMatrix,componentInventory,plugin,manifest,html,foundations,premiumMobile,fontSurface,fontPolish,fontReference,assembly,primitive,build,packageJson,typographyAudit,typographyContract,fontDecision,figmaScreenMatrix,figmaComponentMatrix,figmaSpec,figmaChecklist,figmaAlignment,forensics,synthesis,reviewWorkflow,fontWorkflow,fontReview,fontReviewStable]=await Promise.all([
+  json('QELLY_DESIGN_TOKENS.json'),json('QELLY_MOTION_TOKENS.json'),json('QELLY_CHART_TOKENS.json'),read('QELLY_SCREEN_MATRIX.csv'),read('QELLY_ROUTE_INVENTORY.csv'),read('QELLY_COMPONENT_INVENTORY.csv'),read('figma-plugin/code.js'),json('figma-plugin/manifest.json'),read('apps/web/public/index.html'),read('apps/web/public/assets/qelly-foundations.css'),read('apps/web/public/assets/premium-mobile.css'),read('apps/web/public/assets/premium-font-surface.css'),read('apps/web/public/assets/premium-font-surface-polish.css'),read('apps/web/public/assets/premium-font-worldquant-arkham.css'),read('apps/web/public/assets/qelly-premium-reset.css'),read('packages/ui-primitives/primitives.mjs'),read('scripts/build-frontend.mjs'),json('package.json'),read('design/research/CURRENT_TYPOGRAPHY_AUDIT.md'),json('design/research/CURRENT_TYPOGRAPHY_COMPUTED.json'),read('design/research/QELLY_WORLDQUANT_ARKHAM_FONT_DECISION.md'),read('design/figma/QELLY_FIGMA_SCREEN_MATRIX.csv'),read('design/figma/QELLY_FIGMA_COMPONENT_MATRIX.csv'),read('design/figma/QELLY_FIGMA_MASTER_SPEC.md'),read('design/figma/QELLY_DESIGN_REVIEW_CHECKLIST.md'),read('design/figma/QELLY_IBM_PLEX_ALIGNMENT.md'),read('design/research/REFERENCE_UI_FORENSICS.md'),read('design/research/QELLY_SYNTHESIS_DECISIONS.md'),read('.github/workflows/ui-review.yml'),read('.github/workflows/font-comparison.yml'),read('scripts/ui-review-font-surface.mjs'),read('scripts/ui-review-font-surface-stable.mjs')
 ]);
 
 const requiredSemantics=['background','surface','surfaceElevated','border','divider','primaryText','secondaryText','mutedText','positive','negative','warning','informational','evidence','stale','fallback','unavailable','selected','focused','hovered','active','disabled','chartGrid','chartAxes','tooltip','sourceNode','observationNode','transformationNode','decisionNode','riskNode','outcomeNode'];
-for(const key of requiredSemantics){
-  const token=tokens.semanticTokens[key];
-  assert.ok(token,`Missing semantic token: ${key}`);
-  for(const mode of ['light','dark','highContrast'])assert.ok(token[mode],`Missing ${mode} value for ${key}`);
-  assert.ok(token.contrastRule&&token.usage,`Missing governance for ${key}`);
-}
-assert.equal(Object.keys(tokens.typography.roles).length,24);
-assert.equal(PERSONA_PROFILES.length,6);
-assert.ok(PERSONA_PROFILES.every((persona)=>persona.defaultRoute&&persona.defaultTimeframe&&persona.modulePriority.length>=5));
-assert.ok(productDomains.length>=8);
-assert.equal(routeDefinitions.length,61);
-assert.equal(routeMatrix.trim().split('\n').length-1,61);
-assert.equal(screenMatrix.trim().split('\n').length-1,411);
-assert.ok(componentMatrix.trim().split('\n').length-1>=40);
-assert.match(plugin,/EXPECTED_FRAME_COUNT=411/);
-const pluginRouteRows=plugin.match(/const ROUTE_ROWS=`([\s\S]*?)`\.trim\(\)\.split/)[1].trim().split('\n').length;
-const pluginPageRows=plugin.match(/const PAGE_NAMES=\[([\s\S]*?)\];/)[1].match(/'\d+ —/g).length;
-assert.equal(pluginRouteRows,61);
-assert.equal(pluginPageRows,25);
-assert.equal(pluginPageRows+(pluginRouteRows*2)+(6*12*2)+(12*8)+24,411);
-assert.equal(manifest.networkAccess.allowedDomains[0],'none');
-assert.match(html,/id="edge-dock"/);
-assert.match(html,/id="persona-ribbon"/);
-assert.match(html,/id="context-shelf"/);
-assert.match(html,/id="compare-tray"/);
-assert.match(html,/id="mobile-navigation"/);
-assert.match(css,/prefers-reduced-motion/);
-assert.equal(motion.reducedMotion.meaningPreserved,true);
-assert.equal(charts.requirements.nonColorEncoding,true);
+for(const key of requiredSemantics){const token=tokens.semanticTokens[key];assert.ok(token,`Missing semantic token: ${key}`);for(const mode of ['light','dark','highContrast'])assert.ok(token[mode],`Missing ${mode} value for ${key}`);assert.ok(token.contrastRule&&token.usage,`Missing governance for ${key}`);}
+assert.equal(Object.keys(tokens.typography.roles).length,24);assert.equal(PERSONA_PROFILES.length,6);assert.ok(PERSONA_PROFILES.every((persona)=>persona.defaultRoute&&persona.defaultTimeframe&&persona.modulePriority.length>=5));assert.ok(productDomains.length>=8);assert.equal(routeDefinitions.length,61);assert.equal(routeMatrix.trim().split('\n').length-1,61);assert.ok(screenMatrix.trim().split('\n').length-1>=61);assert.ok(componentInventory.trim().split('\n').length-1>=40);
 
-console.log(JSON.stringify({
-  status:'design-foundations-validation-passed',
-  routes:routeDefinitions.length,
-  productDomains:productDomains.length,
-  personas:PERSONA_PROFILES.length,
-  governedSemantics:requiredSemantics.length,
-  typographyRoles:Object.keys(tokens.typography.roles).length,
-  figmaPages:25,
-  figmaFrames:411,
-  components:componentMatrix.trim().split('\n').length-1
-},null,2));
+const pluginPages=plugin.match(/const PAGE_NAMES=\[([\s\S]*?)\];/)?.[1].match(/'\d{2} [^']+'/g)??[];
+const masterScreens=plugin.match(/const MASTER_SCREENS=\[([\s\S]*?)\];/)?.[1].match(/\['/g)??[];
+assert.equal(pluginPages.length,31,'Figma generator must preserve 31 semantic pages');assert.ok(masterScreens.length>=24,'Figma generator must preserve editable desktop/mobile master frames');
+for(const pattern of [/createVariableCollection\('Qelly Premium Semantic'\)/,/figma\.createComponent\(\)/,/combineAsVariants/,/layout:'VERTICAL'/,/qellyMasterFrame/,/Warm Porcelain/,/Command palette \/ Desktop \/ Tonal/,/Mobile row \/ Asset \/ Expandable/,/Bottom sheet \/ Filters and columns/,/Typography before \/ candidates \/ final/,/Hard borders → tonal hierarchy/,/Nested radius examples/,/Command palette current \/ new desktop \/ new mobile/])assert.match(plugin,pattern);
+assert.match(plugin,/figma\.loadFontAsync\(\{family:'IBM Plex Sans'/);assert.match(plugin,/IBM Plex Sans Variable/);assert.match(plugin,/GT Eesti commercial licence gate/);assert.match(plugin,/fontTarget','IBM Plex Sans Variable · all text and numeric roles/);assert.doesNotMatch(plugin,/Geist Sans Variable|Geist Mono Variable|family:'Geist'/);
+assert.match(plugin,/const RADII=\{tiny:4,tag:6,dense:8,control:10,compact:12,standard:14,module:16,floating:20,modal:24,media:28,pill:999\}/);assert.match(plugin,/Object\.entries\(RADII\)/);assert.match(plugin,/createVariable\(`radius\/\$\{name\}`/);assert.match(plugin,/\['instant',90\],\['fast',150\],\['standard',230\],\['deliberate',360\]/);
+assert.doesNotMatch(plugin,/EXPECTED_FRAME_COUNT|Expected 411 frames/);assert.doesNotMatch(plugin,/86% fidelity|Estimated directional fidelity/i);
+assert.match(figmaSpec,/IBM Plex Sans Variable/);assert.match(figmaSpec,/GT Eesti Pro Display and GT Eesti Pro Text are an inactive commercial reference/i);assert.doesNotMatch(figmaSpec,/target product typography is \*\*Geist/i);assert.match(figmaSpec,/continuous-corner/i);assert.match(figmaSpec,/Hard bordered card versus tonal surface/i);assert.match(figmaSpec,/opened and visually reviewed/i);assert.ok(figmaScreenMatrix.trim().split('\n').length-1>=12);assert.ok(figmaComponentMatrix.trim().split('\n').length-1>=18);assert.match(figmaComponentMatrix,/Typography,IBM Plex Sans semantic type system/);assert.doesNotMatch(figmaComponentMatrix,/Typography,Geist semantic type system/);assert.match(figmaChecklist,/IBM Plex Sans Variable is the active/);assert.match(figmaChecklist,/GT Eesti Pro Display and Text remain inactive/);assert.match(figmaChecklist,/Obvious bordered cards are reduced by at least 35%/);assert.match(figmaChecklist,/Recent, Navigation, Assets and Actions/);assert.match(figmaChecklist,/horizontal snap rail/);assert.match(figmaAlignment,/production website/i);assert.match(figmaAlignment,/Geist and Geist Mono are superseded/i);assert.match(figmaAlignment,/semantic inline SVG icons/i);
+
+for(const dependency of ['@fontsource-variable/ibm-plex-sans','@fontsource-variable/geist','@fontsource-variable/geist-mono','@fontsource-variable/manrope','@fontsource-variable/plus-jakarta-sans'])assert.equal(packageJson.devDependencies[dependency],'5.2.8');
+for(const phrase of ['ibm-plex-sans-variable.woff2','@fontsource-variable/ibm-plex-sans','LICENSE','IBM Plex Sans Variable','licensedOptionalActive:false','semantic-inline-svg'])assert.match(build,new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+assert.match(html,/ibm-plex-sans-variable\.woff2/);assert.doesNotMatch(html,/geist-(?:mono-)?variable\.woff2/);
+assert.match(typographyAudit,/IBM Plex Sans Variable/);assert.match(typographyAudit,/GT Eesti/);assert.equal(typographyContract.selectedSystem.ui,'Qelly IBM Plex Sans');assert.equal(typographyContract.selectedSystem.display,'Qelly IBM Plex Sans');assert.equal(typographyContract.selectedSystem.evidence,'Qelly IBM Plex Sans');assert.equal(typographyContract.selectedSystem.license,'OFL-1.1');assert.equal(typographyContract.selectedSystem.externalRequests,0);assert.equal(typographyContract.commercialReference.active,false);
+assert.match(fontDecision,/commercial Grilli Type family/i);assert.match(fontDecision,/semantic inline-SVG icon registry/i);assert.match(fontDecision,/must not become active/i);
+
+for(const token of ['--q-type-page','--q-type-table','--q-radius-4','--q-radius-6','--q-radius-8','--q-radius-10','--q-radius-12','--q-radius-14','--q-radius-16','--q-radius-20','--q-radius-24','--q-radius-28','--q-radius-pill','--q-surface-canvas','--q-surface-base','--q-surface-section','--q-surface-panel','--q-surface-interactive','--q-surface-floating','--q-border-subtle','--q-border-default','--q-shadow-float'])assert.match(fontSurface,new RegExp(token));
+for(const rule of ['font-optical-sizing:auto','font-synthesis:none','tabular-nums lining-nums','appearance:none','scroll-snap-type:x mandatory','.q-command-group','.q-command-item-copy','.q-mi-table-scroll th','.q-mi-mobile-row'])assert.match(fontSurface,new RegExp(rule.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+for(const phrase of ['Qelly IBM Plex Sans','Arial','Helvetica Neue','--q-font-display','--q-font-text','--q-font-mono','tabular-nums lining-nums','font-feature-settings','GT Eesti Pro Display','GT Eesti Pro Text'])assert.match(fontReference,new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+assert.doesNotMatch(fontReference,/@font-face[^}]*GT Eesti/is);assert.match(fontPolish,/q-mi-column-menu/);assert.match(fontPolish,/border-radius:var\(--q-radius-24\) var\(--q-radius-24\) 0 0/);assert.match(fontPolish,/q-command-item\[aria-selected="true"\]/);assert.match(assembly,/premium-font-worldquant-arkham\.css/);
+
+for(const phrase of ['Recent','Navigation','Assets','Actions','q-command-item-icon','q-command-item-copy','q-command-shortcut','ArrowDown','ArrowUp','Enter','Escape'])assert.match(primitive,new RegExp(phrase));assert.doesNotMatch(fontSurface,/q-command-item\.is-active[^}]*border:[^0]/);assert.match(fontSurface,/dialog\.q-command-dialog\{width:min\(730px/);
+for(const gate of ['fontShiftZero','weightDiscipline','radiusDiversity','highOpacityPanelBorders','nativeSelectsGone','borderReduction','mobilePulseRail','paletteHierarchy','reducedMotion','consoleClean'])assert.match(fontReview,new RegExp(gate));assert.match(fontReview,/reduction>=\.35/);assert.match(fontReviewStable,/localPlex/);assert.match(fontReviewStable,/loadedFiles\.length===1/);assert.match(fontReviewStable,/ibm-plex-sans-variable\.woff2/);for(const viewport of ['desktop-1728','desktop-1440','desktop-1280','tablet-1024','tablet-768','mobile-430','mobile-390','mobile-360'])assert.match(fontReview,new RegExp(viewport));
+
+assert.equal(manifest.networkAccess.allowedDomains[0],'none');for(const id of ['edge-dock','persona-ribbon','context-shelf','compare-tray','mobile-navigation'])assert.match(html,new RegExp(`id="${id}"`));assert.match(foundations,/prefers-reduced-motion/);assert.match(premiumMobile,/safe-area-inset-bottom/);assert.equal(motion.reducedMotion.meaningPreserved,true);assert.equal(charts.requirements.nonColorEncoding,true);
+assert.match(forensics,/original/i);assert.match(synthesis,/Qelly/i);for(const workflow of [reviewWorkflow,fontWorkflow]){assert.match(workflow,/pull_request:/);assert.doesNotMatch(workflow,/\n\s+push:/);assert.doesNotMatch(workflow,/deploy-pages|pages: write|id-token: write/);}
+
+console.log(JSON.stringify({status:'design-foundations-validation-passed',routes:routeDefinitions.length,productDomains:productDomains.length,personas:PERSONA_PROFILES.length,governedSemantics:requiredSemantics.length,typographyRoles:Object.keys(tokens.typography.roles).length,figmaPages:pluginPages.length,figmaMasterScreens:masterScreens.length,figmaComponents:figmaComponentMatrix.trim().split('\n').length-1,canonicalComponents:componentInventory.trim().split('\n').length-1,fontSystem:'IBM Plex Sans Variable',gtEestiCommercialReferenceActive:false,iconSystem:'semantic-inline-svg',radiusRoles:11,surfaceRoles:6,fontSurfaceGates:11},null,2));

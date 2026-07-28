@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 2,
+  "rejectedCommit": "03c63d73e6d92eb6376317337a50f329c201d134",
+  "scope": "Qelly full website and Asset Rankings premium route",
+  "sourceAudit": {
+    "userReference": ["GT Eesti Pro Display", "GT Eesti Pro Text", "IBM Plex Sans", "Arial", "Helvetica Neue", "sans-serif", "webflow-icons"],
+    "licensingBoundary": {
+      "gtEesti": "commercial web licence and licensed WOFF2 files required",
+      "ibmPlexSans": "SIL Open Font License 1.1",
+      "webflowIcons": "not reused; Qelly semantic inline SVG retained"
+    },
+    "previousProductFaces": ["Qelly Geist", "Qelly Geist Mono"]
+  },
+  "selectedSystem": {
+    "ui": "Qelly IBM Plex Sans",
+    "display": "Qelly IBM Plex Sans",
+    "text": "Qelly IBM Plex Sans",
+    "evidence": "Qelly IBM Plex Sans",
+    "packageVersion": "5.2.8",
+    "license": "OFL-1.1",
+    "format": "WOFF2 variable",
+    "axes": {"wght": [100, 700]},
+    "applicationFiles": ["assets/fonts/ibm-plex-sans-variable.woff2"],
+    "fontDisplay": "block",
+    "externalRequests": 0,
+    "fallbacks": ["Arial", "Helvetica Neue", "sans-serif"],
+    "numericFeatures": ["tabular-nums", "lining-nums", "zero"]
+  },
+  "commercialReference": {
+    "families": ["GT Eesti Pro Display", "GT Eesti Pro Text"],
+    "active": false,
+    "activationRequirements": ["Qelly web licence", "licensed WOFF2 files", "licence terms", "new PR-only browser review"]
+  },
+  "browserEvidence": {
+    "generatedBy": "scripts/ui-review-font-surface-stable.mjs",
+    "artifactPath": "reports/CURRENT_TYPOGRAPHY_COMPUTED.json",
+    "requiredFields": ["computedFamilies", "loadedFiles", "woff2Bytes", "usedWeights", "lineHeights", "letterSpacing", "numericFeatures", "fallbackActive", "fontLoadingLayoutShiftEntries"]
+  }
+}
