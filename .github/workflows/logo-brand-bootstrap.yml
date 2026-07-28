@@ -6,11 +6,6 @@ on:
     paths:
       - '.qelly-brand-bootstrap/**'
       - '.github/workflows/logo-brand-bootstrap.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - '.qelly-brand-bootstrap/**'
-      - '.github/workflows/logo-brand-bootstrap.yml'
   workflow_dispatch:
 
 permissions:
@@ -22,7 +17,6 @@ concurrency:
 
 jobs:
   install-validate-commit:
-    if: github.event_name != 'pull_request' || github.head_ref == 'feature/logo-first-brand-system'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
