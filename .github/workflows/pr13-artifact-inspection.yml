@@ -1,0 +1,213 @@
+name: PR13 Final Artifact Inspection
+
+on:
+  push:
+    branches: [agent/pr13-final-artifact-inspection]
+    paths: ['.github/workflows/pr13-artifact-inspection.yml']
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  inspect-final-artifact:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out inspection branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: agent/pr13-final-artifact-inspection
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Download and inspect exact final-head artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: '8697274403'
+          EXPECTED_HEAD: '88aaec22470f1417db0b45509d4bf69bb0f44bb7'
+          EXPECTED_WRAPPER_DIGEST: 'd67a53e4a2dbb180873123449d232d74e99375ecf72ba352fc2820cee02cdf5d'
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf inspection /tmp/pr13-artifact
+          mkdir -p inspection/representative /tmp/pr13-artifact/outer /tmp/pr13-artifact/inner
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${ARTIFACT_ID}" > /tmp/pr13-artifact/artifact-api.json
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${ARTIFACT_ID}/zip" > /tmp/pr13-artifact/wrapper.zip
+          unzip -q /tmp/pr13-artifact/wrapper.zip -d /tmp/pr13-artifact/outer
+          test -f /tmp/pr13-artifact/outer/qelly-logo-first-brand-system-review.zip
+          unzip -q /tmp/pr13-artifact/outer/qelly-logo-first-brand-system-review.zip -d /tmp/pr13-artifact/inner
+          python -m pip install --disable-pip-version-check --quiet pillow reportlab
+          python - <<'PY'
+          import hashlib, json, os, pathlib, shutil, subprocess, zipfile
+          from PIL import Image, ImageDraw, ImageFont, ImageStat
+          from reportlab.lib.pagesizes import A4, landscape
+          from reportlab.pdfgen import canvas
+          from reportlab.lib.utils import ImageReader
+
+          outer=pathlib.Path('/tmp/pr13-artifact/outer')
+          inner_zip=outer/'qelly-logo-first-brand-system-review.zip'
+          inner=pathlib.Path('/tmp/pr13-artifact/inner')
+          api=json.loads(pathlib.Path('/tmp/pr13-artifact/artifact-api.json').read_text())
+          meta=json.loads((outer/'qelly-logo-first-brand-system-review.zip.metadata.json').read_text())
+          sidecar=(outer/'qelly-logo-first-brand-system-review.zip.sha256').read_text().strip().split()[0]
+          sha=hashlib.sha256(inner_zip.read_bytes()).hexdigest()
+          assert sha==meta['sha256']==sidecar
+          assert api['workflow_run']['head_sha']==os.environ['EXPECTED_HEAD']
+          assert api['digest'].removeprefix('sha256:')==os.environ['EXPECTED_WRAPPER_DIGEST']
+          with zipfile.ZipFile(inner_zip) as z:
+              assert z.testzip() is None
+              zip_entries=len(z.infolist())
+          assert zip_entries==meta['entryCount']
+          roots=[p for p in inner.iterdir() if p.is_dir()]
+          assert len(roots)==1, roots
+          root=roots[0]
+          reports=root/'14-reports'
+          required=['VALIDATION_SUMMARY.json','PERFORMANCE_QA.json','BROWSER_MATRIX.json','OVERFLOW_QA.json','LAYOUT_SHIFT_QA.json','CONSOLE_ERRORS.json','FAILED_RESOURCES.json','PAGE_ERRORS.json','RENDERER_FAILURES.json','ARTIFACT_MANIFEST.json','SOURCE_INSTALLATION_MANIFEST.json']
+          for name in required: assert (reports/name).is_file(), name
+          validation=json.loads((reports/'VALIDATION_SUMMARY.json').read_text())
+          performance=json.loads((reports/'PERFORMANCE_QA.json').read_text())
+          browser=json.loads((reports/'BROWSER_MATRIX.json').read_text())
+          overflow=json.loads((reports/'OVERFLOW_QA.json').read_text())
+          layout=json.loads((reports/'LAYOUT_SHIFT_QA.json').read_text())
+          console=json.loads((reports/'CONSOLE_ERRORS.json').read_text())
+          resources=json.loads((reports/'FAILED_RESOURCES.json').read_text())
+          page_errors=json.loads((reports/'PAGE_ERRORS.json').read_text())
+          renderer=json.loads((reports/'RENDERER_FAILURES.json').read_text())
+          manifest=json.loads((reports/'ARTIFACT_MANIFEST.json').read_text())
+          assert validation['result']=='passed'
+          assert not console and not resources and not page_errors and not renderer
+          checksum_file=root/'15-checksums/SHA256SUMS.txt'
+          checksum_lines=[line for line in checksum_file.read_text().splitlines() if line.strip()]
+          failures=[]
+          for line in checksum_lines:
+              expected, rel=line.split('  ',1)
+              file=root/rel
+              actual=hashlib.sha256(file.read_bytes()).hexdigest() if file.is_file() else None
+              if actual!=expected: failures.append({'path':rel,'expected':expected,'actual':actual})
+          assert not failures, failures[:5]
+          font_ext={'.woff','.woff2','.ttf','.otf','.eot'}
+          font_binaries=[str(p.relative_to(root)) for p in root.rglob('*') if p.is_file() and p.suffix.lower() in font_ext]
+          assert not font_binaries, font_binaries
+          overflow_records=overflow.get('records',[])
+          mobile360=[r for r in overflow_records if r.get('viewport')=='360x800']
+          max360=max([r.get('overflow',0) for r in mobile360] or [0])
+          max_overflow=max([r.get('overflow',0) for r in overflow_records] or [0])
+          layout_records=layout.get('records',[])
+          max_cls=max([r.get('value',0) or 0 for r in layout_records] or [0])
+
+          pngs=list(root.rglob('*.png'))
+          inventory=[]
+          for p in pngs:
+              try:
+                  with Image.open(p) as im:
+                      im.load()
+                      stat=ImageStat.Stat(im.convert('RGB').resize((64,64)))
+                      variance=sum(stat.var)/3
+                      inventory.append({'path':str(p.relative_to(root)),'width':im.width,'height':im.height,'variance':variance,'bytes':p.stat().st_size})
+              except Exception as exc:
+                  inventory.append({'path':str(p.relative_to(root)),'error':str(exc)})
+          broken=[x for x in inventory if 'error' in x]
+          blank=[x for x in inventory if x.get('variance',999)<2]
+          assert not broken, broken
+          assert not blank, blank
+
+          def find_one(*terms):
+              candidates=[]
+              for p in pngs:
+                  low=str(p.relative_to(root)).lower()
+                  score=sum(1 for term in terms if term.lower() in low)
+                  if score==len(terms): candidates.append(p)
+              return sorted(candidates,key=lambda p:len(str(p)))[0] if candidates else None
+
+          selected=[]
+          specs=[
+            ('Opening — full motion',('opening-full-motion','chromium')),
+            ('Opening — reduced motion',('opening-reduced','chromium')),
+            ('Opening — repeat session',('opening-repeat-session','chromium')),
+            ('Homepage — dark desktop',('chromium-1440x1000-homepage-dark',)),
+            ('Homepage — light desktop',('homepage-light-desktop',)),
+            ('Homepage — mobile',('homepage-mobile-390',)),
+            ('Shell — expanded desktop',('shell-expanded-desktop',)),
+            ('Shell — collapsed desktop',('shell-collapsed-desktop',)),
+            ('Shell — mobile',('shell-mobile',)),
+            ('Command palette',('command-palette-selected-unique-result',)),
+            ('Logo system board',('logo-system-board',)),
+            ('Favicon and PWA board',('pwa-asset-board',)),
+            ('Authentication',('auth-login',)),
+            ('Loading state',('state-loading',)),
+            ('Empty state',('state-empty',)),
+            ('Offline state',('state-offline',)),
+            ('Recoverable error',('state-error',)),
+            ('Theme Studio',('theme-studio-desktop',)),
+            ('Theme Gallery',('theme-gallery-desktop',)),
+            ('Asset Rankings — desktop',('asset-rankings-desktop',)),
+            ('Asset Rankings — mobile',('asset-rankings-mobile',)),
+          ]
+          rep=pathlib.Path('inspection/representative')
+          for idx,(title,terms) in enumerate(specs,1):
+              p=find_one(*terms)
+              if p:
+                  dest=rep/f'{idx:02d}-{p.name}'
+                  shutil.copy2(p,dest)
+                  selected.append((title,dest))
+
+          theme_files=sorted([p for p in pngs if '/08-theme-compatibility/theme-' in '/'+str(p.relative_to(root)).replace('\\','/') and 'high-contrast' not in p.name])
+          if theme_files:
+              thumbs=[]
+              for p in theme_files:
+                  im=Image.open(p).convert('RGB'); im.thumbnail((360,225))
+                  card=Image.new('RGB',(380,265),'white'); card.paste(im,((380-im.width)//2,8))
+                  d=ImageDraw.Draw(card); d.text((12,238),p.stem,fill='black')
+                  thumbs.append(card)
+              cols=3; rows=(len(thumbs)+cols-1)//cols
+              sheet=Image.new('RGB',(cols*380,rows*265),(225,225,225))
+              for i,im in enumerate(thumbs): sheet.paste(im,((i%cols)*380,(i//cols)*265))
+              theme_sheet=rep/'22-all-theme-families-contact-sheet.jpg'; sheet.save(theme_sheet,quality=88)
+              selected.append(('All approved theme families',theme_sheet))
+
+          pdf=pathlib.Path('inspection/QELLY_PR13_FINAL_VISUAL_INSPECTION.pdf')
+          page=landscape(A4); c=canvas.Canvas(str(pdf),pagesize=page)
+          pw,ph=page
+          for title,img_path in selected:
+              with Image.open(img_path) as im: iw,ih=im.size
+              margin=28; title_h=34
+              scale=min((pw-2*margin)/iw,(ph-2*margin-title_h)/ih)
+              w,h=iw*scale,ih*scale
+              c.setFont('Helvetica-Bold',14); c.drawString(margin,ph-margin-14,title)
+              c.setFont('Helvetica',7); c.drawRightString(pw-margin,ph-margin-14,str(img_path.name))
+              c.drawImage(ImageReader(str(img_path)),(pw-w)/2,(ph-title_h-h)/2-4,width=w,height=h,preserveAspectRatio=True,anchor='c')
+              c.showPage()
+          c.save()
+
+          summary={
+            'source':{'artifactId':int(os.environ['ARTIFACT_ID']),'workflowRunId':api['workflow_run']['id'],'headSha':api['workflow_run']['head_sha'],'wrapperDigest':api['digest'],'wrapperBytes':api['size_in_bytes']},
+            'innerZip':{'filename':meta['filename'],'sha256':sha,'bytes':meta['bytes'],'entryCount':zip_entries,'crcIntegrity':meta['crcIntegrity']},
+            'validation':validation,
+            'performance':performance,
+            'browserMatrix':browser,
+            'overflow':{'threshold':overflow.get('threshold'),'recordCount':len(overflow_records),'maxPx':max_overflow,'viewport360x800MaxPx':max360},
+            'layoutShift':{'threshold':layout.get('threshold'),'recordCount':len(layout_records),'max':max_cls},
+            'errors':{'console':len(console),'resources':len(resources),'page':len(page_errors),'renderer':len(renderer)},
+            'integrity':{'checksumEntries':len(checksum_lines),'checksumFailures':len(failures),'manifestChecksumEntries':manifest.get('checksumEntries'),'manifestEntryRecords':len(manifest.get('entries',[])),'fontBinaries':font_binaries,'pngCount':len(pngs),'brokenPngs':len(broken),'blankPngs':len(blank),'visualPdfPages':len(selected)},
+            'representativeFiles':[{'title':title,'path':str(path)} for title,path in selected]
+          }
+          pathlib.Path('inspection/FINAL_REVIEW_SUMMARY.json').write_text(json.dumps(summary,indent=2)+'\n')
+          pathlib.Path('inspection/PNG_INVENTORY.json').write_text(json.dumps(inventory,indent=2)+'\n')
+          shutil.copy2(outer/'qelly-logo-first-brand-system-review.zip.metadata.json','inspection/')
+          shutil.copy2(outer/'qelly-logo-first-brand-system-review.zip.sha256','inspection/')
+          for name in required: shutil.copy2(reports/name,pathlib.Path('inspection')/name)
+          shutil.copy2(checksum_file,'inspection/SHA256SUMS.txt')
+          print('FINAL_SUMMARY='+json.dumps(summary,separators=(',',':')))
+          PY
+
+      - name: Commit inspection evidence to isolated branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add inspection
+          git diff --cached --check
+          git config user.name 'Qelly Artifact Inspection'
+          git config user.email 'hemangsah@users.noreply.github.com'
+          git commit -m 'docs(inspection): record final PR13 artifact integrity and visual board'
+          git push origin HEAD:agent/pr13-final-artifact-inspection
