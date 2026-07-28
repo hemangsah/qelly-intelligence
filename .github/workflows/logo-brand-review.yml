@@ -1,4 +1,5 @@
 name: Qelly Logo Brand Review
+
 on:
   pull_request:
     branches: [main]
@@ -11,45 +12,126 @@ on:
       - 'tests/logo-brand-system.test.mjs'
       - 'package.json'
       - '.github/workflows/logo-brand-review.yml'
+  workflow_dispatch:
+
 permissions:
   contents: read
+  actions: read
+
 concurrency:
-  group: qelly-logo-brand-review-${{ github.event.pull_request.number }}
+  group: qelly-logo-brand-review-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
+
 jobs:
   validate-render-package:
-    if: github.event.pull_request.head.ref == 'feature/logo-first-brand-system'
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'feature/logo-first-brand-system'
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 120
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Check out exact review source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
           cache: npm
+
       - name: Install locked dependencies
         run: npm ci --ignore-scripts
+
       - name: Install review browsers
         run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Inspect exact original renderer failure
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ORIGINAL_RUN_ID: '30364816898'
+          ORIGINAL_JOB_ID: '90293254601'
+        shell: bash
+        run: |
+          set -euo pipefail
+          target=/tmp/qelly-original-renderer-failure
+          rm -rf "$target"
+          mkdir -p "$target"
+          gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${ORIGINAL_RUN_ID}" > "$target/run.json"
+          gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/${ORIGINAL_JOB_ID}" > "$target/job.json"
+          gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/${ORIGINAL_JOB_ID}/logs" > "$target/raw.log"
+          python - <<'PY'
+          import json, os, pathlib, re
+          target=pathlib.Path('/tmp/qelly-original-renderer-failure')
+          raw=target.joinpath('raw.log').read_text(errors='replace')
+          clean=re.sub(r'\x1b\[[0-9;]*[A-Za-z]','',raw).replace('\r','')
+          lines=clean.splitlines()
+          candidates=[]
+          patterns=[r'##\[error\]',r'\bTimeoutError\b',r'\bError:',r'page\.goto:',r'locator\.',r'PerformanceObserver']
+          for index,line in enumerate(lines):
+              if any(re.search(pattern,line,re.I) for pattern in patterns):
+                  candidates.append(index)
+          first=candidates[0] if candidates else max(0,len(lines)-80)
+          start=max(0,first-35); end=min(len(lines),first+90)
+          excerpt='\n'.join(lines[start:end])+'\n'
+          target.joinpath('ORIGINAL_RENDERER_FAILURE.log').write_text(excerpt)
+          run=json.loads(target.joinpath('run.json').read_text())
+          job=json.loads(target.joinpath('job.json').read_text())
+          failed_steps=[step for step in job.get('steps',[]) if step.get('conclusion')=='failure']
+          first_line=lines[first] if lines else 'log unavailable'
+          lowered='\n'.join(lines[start:end]).lower()
+          classification='environment-or-unknown'
+          if 'networkidle' in lowered or 'page.goto' in lowered or 'navigation' in lowered: classification='navigation/readiness'
+          elif 'performanceobserver' in lowered or 'layout-shift' in lowered: classification='layout-shift-observer'
+          elif 'command' in lowered or 'dialog' in lowered or 'locator' in lowered: classification='selector/portal-interaction'
+          elif 'screenshot' in lowered: classification='screenshot'
+          browser=next((name for name in ('chromium','firefox','webkit') if name in lowered),None)
+          viewport_match=re.search(r'\b(360x800|390x844|430x932|768x1024|1024x768|1280x800|1440x1000|1728x1080|1920x1080)\b',lowered)
+          route_match=re.search(r'#/(market|asset-rankings|theme-lab(?:/gallery)?|auth-login)',lowered)
+          evidence={
+              'workflowRunId':int(os.environ['ORIGINAL_RUN_ID']),
+              'jobId':int(os.environ['ORIGINAL_JOB_ID']),
+              'event':run.get('event'),
+              'headSha':run.get('head_sha'),
+              'workflowConclusion':run.get('conclusion'),
+              'jobConclusion':job.get('conclusion'),
+              'failedStep':failed_steps[0].get('name') if failed_steps else None,
+              'exactFirstErrorLine':first_line,
+              'classification':classification,
+              'browserFromLog':browser,
+              'viewportFromLog':viewport_match.group(1) if viewport_match else None,
+              'routeFromLog':route_match.group(1) if route_match else None,
+              'contextStartLine':start+1,
+              'contextEndLine':end,
+              'source':'complete GitHub Actions job log downloaded with actions:read',
+              'honestLimit':'browser, viewport, or route is null when the failed renderer did not log that context before throwing'
+          }
+          target.joinpath('ORIGINAL_RENDERER_FAILURE.json').write_text(json.dumps(evidence,indent=2)+'\n')
+          print(json.dumps(evidence,indent=2))
+          PY
+
       - name: Repository and brand validation
         run: |
+          npm run generate:brand-assets
+          node --check scripts/logo-brand-review.mjs
           npm run env:check
           npm run typecheck
           npm run lint
+          npm run validate:design
           npm test
+          npm run validate:brand
           npm run build
           npm run validate:product
           npm run inventory:product
           npm run smoke
           npm run release:check
           npm run security:scan
-          npm run validate:brand
           npm audit --audit-level=high
           NODE_ENV=test QELLY_DEVELOPMENT_IDENTITY_ENABLED=false node scripts/production-identity-check.mjs
           git diff --check
+          test -z "$(find . -path './.git' -prune -o -name 'qelly-logo-first-brand-system-review.zip' -print -quit)"
+          git diff --exit-code -- apps/web/public/assets/fonts apps/web/public/index.html
+
       - name: Build static brand preview
         env:
           QELLY_STATIC_VISUAL_PREVIEW: 'true'
@@ -59,16 +141,43 @@ jobs:
           npm run build:frontend
           npm run validate:pages-preview
           npm run smoke:pages-preview
+
       - name: Render browser and visual evidence
         env:
-          QELLY_REVIEW_COMMIT: ${{ github.event.pull_request.head.sha }}
-        run: npm run review:brand
-      - name: Package exact review ZIP
+          QELLY_REVIEW_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+        shell: bash
         run: |
+          set -o pipefail
+          mkdir -p .brand-review/qelly-logo-first-brand-system-review/14-reports
+          npm run review:brand 2>&1 | tee .brand-review/qelly-logo-first-brand-system-review/14-reports/RENDERER_RUN.log
+
+      - name: Package exact review ZIP
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
           cd .brand-review
           zip -qr qelly-logo-first-brand-system-review.zip qelly-logo-first-brand-system-review
           unzip -t qelly-logo-first-brand-system-review.zip
           sha256sum qelly-logo-first-brand-system-review.zip > qelly-logo-first-brand-system-review.zip.sha256
+          python - <<'PY'
+          import hashlib,json,pathlib,zipfile
+          archive=pathlib.Path('qelly-logo-first-brand-system-review.zip')
+          with zipfile.ZipFile(archive) as value:
+              bad=value.testzip()
+              if bad: raise SystemExit(f'ZIP CRC failure: {bad}')
+              count=len(value.infolist())
+          metadata={
+              'filename':archive.name,
+              'sha256':hashlib.sha256(archive.read_bytes()).hexdigest(),
+              'bytes':archive.stat().st_size,
+              'entryCount':count,
+              'crcIntegrity':'passed'
+          }
+          pathlib.Path('qelly-logo-first-brand-system-review.zip.metadata.json').write_text(json.dumps(metadata,indent=2)+'\n')
+          print(json.dumps(metadata,indent=2))
+          PY
+
       - name: Upload logo-first review
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -77,6 +186,8 @@ jobs:
           path: |
             .brand-review/qelly-logo-first-brand-system-review.zip
             .brand-review/qelly-logo-first-brand-system-review.zip.sha256
-            .brand-review/qelly-logo-first-brand-system-review/14-reports
-          if-no-files-found: error
+            .brand-review/qelly-logo-first-brand-system-review.zip.metadata.json
+            .brand-review/qelly-logo-first-brand-system-review
+          include-hidden-files: true
+          if-no-files-found: warn
           retention-days: 14
