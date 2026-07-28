@@ -1,0 +1,83 @@
+name: Qelly Logo Brand Source Bootstrap
+
+on:
+  push:
+    branches: [feature/logo-first-brand-system]
+    paths:
+      - '.qelly-brand-bootstrap/qelly-brand-bundle.tar.gz.b64'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: qelly-logo-brand-source-bootstrap
+  cancel-in-progress: false
+
+jobs:
+  install-validate-commit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out exact logo branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: feature/logo-first-brand-system
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Decode and validate source bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive=.qelly-brand-bootstrap/qelly-brand-bundle.tar.gz.b64
+          test -s "$archive"
+          test "$(sha256sum "$archive" | cut -d' ' -f1)" = ca54976826d3e5ecd79c471ed3a4b0634c70f4de7fdc639f3b0d6bb423d7492c
+          mkdir -p /tmp/qelly-brand-bundle
+          base64 -d "$archive" > /tmp/qelly-brand-bundle.tar.gz
+          test "$(sha256sum /tmp/qelly-brand-bundle.tar.gz | cut -d' ' -f1)" = 469237e88b7fb3fa07429982ef19c3d8b21beb41c02e7ad9fc3865bc358cd76e
+          test -z "$(tar -tzf /tmp/qelly-brand-bundle.tar.gz | grep -E '(^/|(^|/)\.\.(/|$))' || true)"
+          tar -xzf /tmp/qelly-brand-bundle.tar.gz -C /tmp/qelly-brand-bundle
+          test -f /tmp/qelly-brand-bundle/apps/web/public/assets/qelly-brand.mjs
+          test -f /tmp/qelly-brand-bundle/scripts/logo-brand-governance.mjs
+          test -f /tmp/qelly-brand-bundle/scripts/logo-brand-review.mjs
+          cp -a /tmp/qelly-brand-bundle/. .
+          rm -rf .qelly-brand-bootstrap
+          rm -f .github/workflows/logo-brand-bootstrap.yml
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Validate affected source before commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/web/public/assets/qelly-brand.mjs
+          node --check apps/web/public/assets/routes/feature-universe.mjs
+          node --check scripts/logo-brand-governance.mjs
+          node --check scripts/logo-brand-review.mjs
+          node --check tests/logo-brand-system.test.mjs
+          node --check figma-brand-foundations/code.js
+          node --test tests/logo-brand-system.test.mjs
+          npm run validate:brand
+          git diff --check
+      - name: Build and validate static integration
+        env:
+          QELLY_STATIC_VISUAL_PREVIEW: 'true'
+          QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
+          QELLY_DEPLOYMENT_ENVIRONMENT: logo-brand-bootstrap
+        run: |
+          npm run build:frontend
+          npm run validate:pages-preview
+          npm run smoke:pages-preview
+      - name: Commit coherent logo-first source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          git diff --cached --check
+          git config user.name 'Qelly Brand Automation'
+          git config user.email 'hemangsah@users.noreply.github.com'
+          git commit -m 'feat(brand): add official Qelly logo-first system'
+          git push origin HEAD:feature/logo-first-brand-system
