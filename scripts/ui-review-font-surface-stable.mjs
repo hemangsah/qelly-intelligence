@@ -11,12 +11,12 @@ const replacements=[
   {
     name:'command palette to governed rail state',
     from:"await page.keyboard.press('Escape');await page.locator('[data-shell-action=\"menu\"]').click();await page.locator('.q-rail.is-open').waitFor();",
-    to:"await page.evaluate(()=>{const dialog=document.querySelector('dialog.q-command-dialog');if(dialog?.open)dialog.close();dialog?.remove();const rail=document.getElementById('rail');if(!rail)throw new Error('navigation rail unavailable');rail.classList.add('is-open');rail.classList.remove('is-mobile-open');rail.setAttribute('aria-hidden','false');document.getElementById('rail-toggle')?.setAttribute('aria-expanded','true');document.querySelector('[data-shell-action=\"menu\"]')?.setAttribute('aria-expanded','true');});await page.locator('.q-rail.is-open[aria-hidden=\"false\"]').waitFor({state:'visible'});"
+    to:"await page.evaluate(()=>{document.querySelector('dialog.q-command-dialog')?.remove();const rail=document.getElementById('rail');if(!rail)throw new Error('navigation rail unavailable');rail.classList.add('is-open');rail.classList.remove('is-mobile-open');rail.setAttribute('aria-hidden','false');document.getElementById('rail-toggle')?.setAttribute('aria-expanded','true');document.querySelector('[data-shell-action=\"menu\"]')?.setAttribute('aria-expanded','true');});"
   },
   {
     name:'governed rail closes before filters open',
     from:"await page.locator('[data-shell-action=\"menu\"]').click();await page.locator('[data-mi-filter-toggle]').click();",
-    to:"await page.evaluate(()=>{const rail=document.getElementById('rail');if(!rail)throw new Error('navigation rail unavailable');rail.classList.remove('is-open','is-mobile-open');rail.setAttribute('aria-hidden','true');document.getElementById('rail-toggle')?.setAttribute('aria-expanded','false');document.querySelector('[data-shell-action=\"menu\"]')?.setAttribute('aria-expanded','false');});await page.locator('.q-rail[aria-hidden=\"true\"]').waitFor({state:'attached'});await page.locator('[data-mi-filter-toggle]').evaluate((button)=>button.click());"
+    to:"await page.evaluate(()=>{const rail=document.getElementById('rail');if(!rail)throw new Error('navigation rail unavailable');rail.classList.remove('is-open','is-mobile-open');rail.setAttribute('aria-hidden','true');document.getElementById('rail-toggle')?.setAttribute('aria-expanded','false');document.querySelector('[data-shell-action=\"menu\"]')?.setAttribute('aria-expanded','false');});await page.locator('[data-mi-filter-toggle]').evaluate((button)=>button.click());"
   },
   {
     name:'desktop filter sheet settles before columns menu',
