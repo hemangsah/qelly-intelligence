@@ -4,7 +4,7 @@ on:
   push:
     branches: [feature/logo-first-brand-system]
     paths:
-      - '.qelly-brand-bootstrap/qelly-brand-bundle.tar.gz.b64'
+      - '.qelly-brand-bootstrap/**'
 
 permissions:
   contents: write
@@ -24,17 +24,32 @@ jobs:
           ref: feature/logo-first-brand-system
           fetch-depth: 0
           persist-credentials: true
+      - name: Report exact base tree
+        run: |
+          echo "QELLY_BASE_COMMIT=$(git rev-parse HEAD)"
+          echo "QELLY_BASE_TREE=$(git rev-parse HEAD^{tree})"
+      - name: Detect source chunks
+        id: detect
+        shell: bash
+        run: |
+          if compgen -G '.qelly-brand-bootstrap/chunk-*' >/dev/null; then
+            echo 'install=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'install=false' >> "$GITHUB_OUTPUT"
+          fi
       - name: Set up Node.js
+        if: steps.detect.outputs.install == 'true'
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
           cache: npm
       - name: Decode and validate source bundle
+        if: steps.detect.outputs.install == 'true'
         shell: bash
         run: |
           set -euo pipefail
-          archive=.qelly-brand-bootstrap/qelly-brand-bundle.tar.gz.b64
-          test -s "$archive"
+          archive=/tmp/qelly-brand-bundle.tar.gz.b64
+          cat .qelly-brand-bootstrap/chunk-* > "$archive"
           test "$(sha256sum "$archive" | cut -d' ' -f1)" = d6206c9e8d6ecd8013e16a3c08d273b1880e22ffc1b800261e880b7379ccccc3
           mkdir -p /tmp/qelly-brand-bundle
           base64 -d "$archive" > /tmp/qelly-brand-bundle.tar.gz
@@ -49,10 +64,13 @@ jobs:
           rm -rf .qelly-brand-bootstrap
           rm -f .github/workflows/logo-brand-bootstrap.yml
       - name: Install locked dependencies
+        if: steps.detect.outputs.install == 'true'
         run: npm ci --ignore-scripts
       - name: Generate governed favicon and PWA assets
+        if: steps.detect.outputs.install == 'true'
         run: npm run generate:brand-assets
       - name: Validate affected source before commit
+        if: steps.detect.outputs.install == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -67,6 +85,7 @@ jobs:
           npm run validate:brand
           git diff --check
       - name: Build and validate static integration
+        if: steps.detect.outputs.install == 'true'
         env:
           QELLY_STATIC_VISUAL_PREVIEW: 'true'
           QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
@@ -76,6 +95,7 @@ jobs:
           npm run validate:pages-preview
           npm run smoke:pages-preview
       - name: Commit coherent logo-first source
+        if: steps.detect.outputs.install == 'true'
         shell: bash
         run: |
           set -euo pipefail
