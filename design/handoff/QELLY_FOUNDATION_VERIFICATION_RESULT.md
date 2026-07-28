@@ -1,9 +1,9 @@
 # Qelly Foundation Verification Result
 
 - Result: **failed**
-- Workflow run: `30348561926` attempt `1`
-- Event: `push`
-- Foundation verification: `skipped`
+- Workflow run: `30348590023` attempt `1`
+- Event: `pull_request`
+- Foundation verification: `failure`
 - Annotated tag operation: `skipped`
 - Main: `239f6f0c7c663801662f4e5f940ca76fb6941bf1`
 - Approved PR head: `ca3d85898d6ce26dc4c2b2cda35b34e1810d2c1b`
