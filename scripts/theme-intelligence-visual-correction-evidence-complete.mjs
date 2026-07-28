@@ -1,7 +1,7 @@
 import {createHash} from 'node:crypto';
 import {execFile} from 'node:child_process';
 import {createServer} from 'node:http';
-import {mkdir,mkdtemp,readFile,readdir,rm,stat,writeFile} from 'node:fs/promises';
+import {mkdir,mkdtemp,readFile,readdir,rm,stat,symlink,writeFile} from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {promisify} from 'node:util';
@@ -40,6 +40,9 @@ async function buildBaseline(){
   const worktree=path.join(temporary,'worktree');
   try{
     await exec('git',['worktree','add','--detach',worktree,baselineCommit],{cwd:root,maxBuffer:20_000_000});
+    const lockedDependencies=path.join(root,'node_modules');
+    assert(await exists(lockedDependencies),'locked dependency tree is missing');
+    await symlink(lockedDependencies,path.join(worktree,'node_modules'),'dir');
     await exec(process.execPath,[path.join(worktree,'scripts/build-frontend.mjs')],{
       cwd:worktree,maxBuffer:20_000_000,
       env:{...process.env,QELLY_STATIC_VISUAL_PREVIEW:'true',QELLY_PUBLIC_BASE_PATH:beforeBase,QELLY_DEPLOYMENT_ENVIRONMENT:'theme-visual-before'}
@@ -125,7 +128,7 @@ try{
     await studio.page.evaluate(()=>document.querySelectorAll('.q-ti-controls details').forEach((item)=>{item.open=true;}));
     observed.studioDark=await shot(studio.page,path.join(studioDir,'theme-studio-desktop-dark.png'),{fullPage:true});
     const preview=studio.page.locator('.q-ti-preview-shell').first();assert(await preview.count(),'Theme Studio preview stage missing');
-    observed.studioPreview=await shot(studio.page,path.join(studioDir,'theme-studio-preview-stage.png'),{locator:'.q-ti-preview-shell'});
+    observed.studioPreview=path.join(studioDir,'theme-studio-preview-stage.png');await preview.screenshot({path:observed.studioPreview,animations:'disabled',scale:'css'});
     await apply(studio.page,{appearance:'light',themeFamily:'porcelain-signal',persona:'research-oracle'},'theme-lab');
     await studio.page.evaluate(()=>document.querySelectorAll('.q-ti-controls details').forEach((item)=>{item.open=true;}));
     observed.studioLight=await shot(studio.page,path.join(studioDir,'theme-studio-desktop-light.png'),{fullPage:true});
