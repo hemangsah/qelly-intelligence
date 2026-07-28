@@ -1,0 +1,79 @@
+name: Qelly Logo Compatibility Patch Installer v2
+
+on:
+  pull_request:
+    branches: [main]
+    types: [synchronize]
+    paths:
+      - '.github/workflows/logo-compat-install-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: qelly-logo-compat-install-v2-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apply-verified-compatibility-patch:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'feature/logo-first-brand-system'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact logo branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: feature/logo-first-brand-system
+          fetch-depth: 0
+          persist-credentials: true
+          show-progress: false
+
+      - name: Fetch and verify compact compatibility patch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/${GH_REPO}/git/blobs/b058bded5ce05d607b6a0869fbf9ca38742e6d1d" --jq .content | tr -d '\n' | base64 --decode > /tmp/qelly-compat-patch.py.gz
+          test "$(wc -c < /tmp/qelly-compat-patch.py.gz)" -eq 2789
+          test "$(sha256sum /tmp/qelly-compat-patch.py.gz | cut -d' ' -f1)" = 958e62ffca944258fe9af16f88c417677f1f937cd024e45a5353f8b02e9894b0
+          test "$(git hash-object /tmp/qelly-compat-patch.py.gz)" = b058bded5ce05d607b6a0869fbf9ca38742e6d1d
+          gzip -dc /tmp/qelly-compat-patch.py.gz > /tmp/qelly-compat-patch.py
+          python -m py_compile /tmp/qelly-compat-patch.py
+
+      - name: Apply exact compatibility correction
+        run: python /tmp/qelly-compat-patch.py
+
+      - name: Verify exact corrected files
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/web/public/assets/qelly-brand.mjs
+          node --check scripts/logo-brand-review.mjs
+          node --check tests/logo-brand-system.test.mjs
+          test "$(sha256sum apps/web/public/assets/qelly-brand.mjs | cut -d' ' -f1)" = cd9df25356f287c45f74c3bee35eae1b2a864ed3c84633bfbdb9aacf6116c317
+          test "$(sha256sum apps/web/public/assets/qelly-brand.css | cut -d' ' -f1)" = d7bb676cfc20109f0e971c0c54794a739804dbcffdec721e077bd85183517ac1
+          test "$(sha256sum scripts/logo-brand-review.mjs | cut -d' ' -f1)" = 484b558546f766d5e80f2d591fee9899b57fe4ce83947271cec318480b3ec659
+          test "$(sha256sum tests/logo-brand-system.test.mjs | cut -d' ' -f1)" = 9f2860b013dc7a47a513e47840dcf7077db24ef73ae27d8487a99cde8d883a7e
+          test "$(git hash-object apps/web/public/assets/qelly-brand.mjs)" = 2a5ede3a3420df5eef7f4b41d3b50f1b113db922
+          test "$(git hash-object apps/web/public/assets/qelly-brand.css)" = 30d3ee0597092ec3bb1cdeb54a4b56e0dcd5ef13
+          test "$(git hash-object scripts/logo-brand-review.mjs)" = 87f9d2c4189e89d3a378fdcbfa9912794e73a0e9
+          test "$(git hash-object tests/logo-brand-system.test.mjs)" = 0232e151e9eac4787d807b93d09b363db11b2c19
+          ! grep -q "waitUntil: 'networkidle'" scripts/logo-brand-review.mjs
+          grep -q 'width="304" height="84"' apps/web/public/assets/qelly-brand.mjs
+          grep -q 'qellyReviewHoldOpening' apps/web/public/assets/qelly-brand.mjs
+          node --test tests/logo-brand-system.test.mjs
+          git diff --check
+
+      - name: Commit verified compatibility correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add apps/web/public/assets/qelly-brand.mjs apps/web/public/assets/qelly-brand.css scripts/logo-brand-review.mjs tests/logo-brand-system.test.mjs
+          git diff --cached --check
+          git config user.name 'Qelly Brand Automation'
+          git config user.email 'hemangsah@users.noreply.github.com'
+          git commit -m 'fix(brand-review): eliminate logo layout shifts and cross-browser races'
+          git push origin HEAD:feature/logo-first-brand-system
