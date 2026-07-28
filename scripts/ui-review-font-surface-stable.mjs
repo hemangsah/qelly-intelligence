@@ -11,7 +11,7 @@ const replacements=[
   {
     name:'command palette close settles before shell navigation',
     from:"await page.keyboard.press('Escape');await page.locator('[data-shell-action=\"menu\"]').click();",
-    to:"await page.keyboard.press('Escape');await page.locator('dialog.q-command-dialog:not([open])').waitFor({state:'attached'});await page.locator('[data-shell-action=\"menu\"]').evaluate((button)=>button.click());"
+    to:"await page.keyboard.press('Escape');await page.locator('dialog.q-command-dialog').waitFor({state:'hidden'});await page.locator('[data-shell-action=\"menu\"]').evaluate((button)=>button.click());"
   },
   {
     name:'expanded rail becomes visibly ready',
@@ -21,17 +21,17 @@ const replacements=[
   {
     name:'rail closes before filters open',
     from:"await page.locator('[data-shell-action=\"menu\"]').click();await page.locator('[data-mi-filter-toggle]').click();",
-    to:"await page.locator('[data-shell-action=\"menu\"]').evaluate((button)=>button.click());await page.locator('.q-rail[aria-hidden=\"true\"]').waitFor({state:'attached'});await page.locator('[data-mi-filter-toggle]').evaluate((button)=>button.click());"
+    to:"await page.locator('[data-shell-action=\"menu\"]').evaluate((button)=>button.click());await page.locator('.q-rail').waitFor({state:'hidden'});await page.locator('[data-mi-filter-toggle]').evaluate((button)=>button.click());"
   },
   {
     name:'desktop filter sheet settles before columns menu',
     from:"await page.locator('[data-mi-filter-close]').first().click();await page.locator('[data-mi-columns-toggle]').click();await page.locator('[data-mi-column-menu]').waitFor();",
-    to:"await page.locator('[data-mi-filter-close]').last().click();await page.locator('[data-mi-filter-sheet][aria-hidden=\"true\"]').waitFor({state:'attached'});await page.locator('[data-mi-columns-toggle]').evaluate((button)=>button.click());await page.locator('[data-mi-column-menu]:not([hidden])').waitFor({state:'visible'});"
+    to:"await page.locator('[data-mi-filter-close]').last().click();await page.locator('[data-mi-filter-sheet]').waitFor({state:'hidden'});await page.locator('[data-mi-columns-toggle]').evaluate((button)=>button.click());await page.locator('[data-mi-column-menu]:not([hidden])').waitFor({state:'visible'});"
   },
   {
     name:'mobile filter sheet settles before columns menu',
     from:"await mobile.page.locator('[data-mi-filter-close]').first().click();await mobile.page.locator('[data-mi-columns-toggle]').click();await mobile.page.locator('[data-mi-column-menu]').waitFor();",
-    to:"await mobile.page.locator('[data-mi-filter-close]').last().click();await mobile.page.locator('[data-mi-filter-sheet][aria-hidden=\"true\"]').waitFor({state:'attached'});await mobile.page.locator('[data-mi-columns-toggle]').evaluate((button)=>button.click());await mobile.page.locator('[data-mi-column-menu]:not([hidden])').waitFor({state:'visible'});"
+    to:"await mobile.page.locator('[data-mi-filter-close]').last().click();await mobile.page.locator('[data-mi-filter-sheet]').waitFor({state:'hidden'});await mobile.page.locator('[data-mi-columns-toggle]').evaluate((button)=>button.click());await mobile.page.locator('[data-mi-column-menu]:not([hidden])').waitFor({state:'visible'});"
   },
   {
     name:'one governed IBM Plex resource',
