@@ -102,6 +102,7 @@ jobs:
         with:
           name: qelly-theme-intelligence-visual-correction-review
           path: |
+            .theme-visual-correction/qelly-theme-intelligence-visual-correction-review/
             .theme-visual-correction/qelly-theme-intelligence-visual-correction-review.zip
             .theme-visual-correction/qelly-theme-intelligence-visual-correction-review.zip.sha256
           if-no-files-found: error
