@@ -36,7 +36,7 @@ const openingEvidence = [];
 const layoutShiftEvidence = [];
 const sanitizedPreviewChecks = [];
 let server;
-let serverPort = 4190;
+let serverPort = 4173;
 
 const json = (file, value) => writeFile(file, `${JSON.stringify(value, null, 2)}\n`);
 const exists = async (file) => { try { await stat(file); return true; } catch { return false; } };
@@ -601,7 +601,7 @@ async function sanitizeCompiledPreview() {
 
 async function validateSanitizedCompiledPreview() {
   const preview = path.join(artifact, '13-compiled-preview');
-  const port = 4191;
+  const port = 4174;
   const previewServer = await startStaticServer(preview, port);
   const browser = await chromium.launch();
   const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, colorScheme: 'dark' });
@@ -734,6 +734,7 @@ async function execute() {
   await json(path.join(reportDir, 'FAILED_RESOURCES.json'), failedResources);
   await json(path.join(reportDir, 'PAGE_ERRORS.json'), pageErrors);
   await json(path.join(reportDir, 'LAYOUT_SHIFT_QA.json'), { threshold: clsThreshold, records: layoutShiftEvidence });
+  await json(path.join(reportDir, 'OVERFLOW_QA.json'), { threshold: overflowThreshold, records: metrics.map(({ browser, viewport, route, capture, overflow, overflowElements }) => ({ browser, viewport, route, capture, overflow, overflowElements, result: overflow <= overflowThreshold ? 'passed' : 'failed' })) });
   await json(path.join(reportDir, 'BROWSER_MATRIX.json'), { browsers: browsers.map(([name]) => name), viewports: viewports.map(([width, height]) => `${width}x${height}`), captures });
   await json(path.join(reportDir, 'RENDERER_FAILURES.json'), rendererFailures);
   await json(path.join(reportDir, 'OPENING_SCREEN_EVIDENCE.json'), openingEvidence);

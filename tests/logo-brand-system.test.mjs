@@ -26,6 +26,12 @@ test('brand runtime is session-aware and reduced-motion safe', async () => {
   assert.match(value, /qellyReviewHoldOpening/);
 });
 
+test('brand shell contains intentional edge bleed without document overflow', async () => {
+  const value = await source('apps/web/public/assets/qelly-brand.css');
+  assert.match(value, /\.q-global-strip,\.q-command-bar\{box-sizing:border-box;max-width:100vw\}/);
+  assert.match(value, /#main\{overflow-x:hidden;overflow-x:clip\}/);
+});
+
 test('PWA assets and IBM Plex lock are preserved', async () => {
   const index = await source('apps/web/public/index.html');
   const manifest = JSON.parse(await source('apps/web/public/manifest.webmanifest'));
@@ -47,6 +53,9 @@ test('brand renderer is deterministic, cross-browser and fail closed', async () 
   assert.match(value, /location\.hash = `#\/\$\{expectedRoute\}`/);
   assert.match(value, /overflowElements/);
   assert.match(value, /holdOpening: !repeat/);
+  assert.match(value, /let serverPort = 4173/);
+  assert.match(value, /const port = 4174/);
+  assert.match(value, /OVERFLOW_QA\.json/);
   assert.match(value, /captureOpening\(launcher, browserName, 'full-motion'\)/);
   assert.match(value, /captureOpening\(launcher, browserName, 'reduced'\)/);
   assert.match(value, /captureOpening\(launcher, browserName, 'repeat-session'\)/);

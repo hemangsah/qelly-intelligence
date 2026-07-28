@@ -62,3 +62,5 @@ html[data-theme-family="violet-oracle"] .qelly-hero::after{border-color:color-mi
 @media(max-width:900px){.qelly-hero__grid{grid-template-columns:1fr}.qelly-product-preview{min-width:0}.q-brand-home img{width:118px}.q-global-strip .q-brand-mark{max-width:128px}}
 @media(max-width:520px){.qelly-hero{width:100%;padding:1.15rem;border-radius:18px}.qelly-hero__metrics{grid-template-columns:1fr}.qelly-product-preview__metrics{grid-template-columns:1fr 1fr}.qelly-product-preview__metric:last-child{grid-column:1/-1}.qelly-product-preview__row span{min-width:0;overflow-wrap:anywhere}.qelly-hero__actions a{width:100%}.q-brand-home img{width:28px}.q-brand-home img[data-lockup]{display:none}.q-brand-home .q-brand-symbol{display:block}}
 @media(prefers-reduced-motion:reduce){.qelly-opening__symbol,.qelly-opening__wordmark,.qelly-opening__line{animation:none}.qelly-opening{transition:none}}
+.q-global-strip,.q-command-bar{box-sizing:border-box;max-width:100vw}
+#main{overflow-x:hidden;overflow-x:clip}
