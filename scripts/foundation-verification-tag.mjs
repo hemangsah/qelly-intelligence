@@ -66,23 +66,25 @@ for(const viewport of viewports){
     const metrics=await page.evaluate(()=>{
       const root=document.documentElement,body=document.body;
       const resources=performance.getEntriesByType('resource').map((entry)=>entry.name);
-      return {baseURI:document.baseURI,hash:location.hash,preview:root.dataset.preview,appearance:root.dataset.appearance,themeFamily:root.dataset.themeFamily,bodyFont:getComputedStyle(body).fontFamily,bodyBackground:getComputedStyle(body).backgroundColor,fontResources:resources.filter((url)=>/font|woff/i.test(url)),externalFontResources:resources.filter((url)=>/font|woff/i.test(url)&&new URL(url).origin!==location.origin),horizontalOverflow:Math.max(root.scrollWidth,body.scrollWidth)-innerWidth,layoutShift:(window.__qellyLayoutShifts??[]).reduce((sum,value)=>sum+value,0),title:document.title,text:body.innerText.slice(0,4000)};
+      const overflowingElements=[...document.querySelectorAll('body *')].map((element)=>{const rect=element.getBoundingClientRect(),style=getComputedStyle(element);return {tag:element.tagName.toLowerCase(),id:element.id,className:typeof element.className==='string'?element.className:String(element.className?.baseVal??''),left:Number(rect.left.toFixed(2)),right:Number(rect.right.toFixed(2)),width:Number(rect.width.toFixed(2)),scrollWidth:element.scrollWidth,clientWidth:element.clientWidth,display:style.display,position:style.position,overflowX:style.overflowX,minWidth:style.minWidth,maxWidth:style.maxWidth,marginLeft:style.marginLeft,marginRight:style.marginRight,transform:style.transform,outerHTML:element.outerHTML.slice(0,500)};}).filter((item)=>item.right>innerWidth+1||item.left< -1||item.scrollWidth>item.clientWidth+1).sort((a,b)=>Math.max(b.right-innerWidth,b.scrollWidth-b.clientWidth)-Math.max(a.right-innerWidth,a.scrollWidth-a.clientWidth)).slice(0,60);
+      return {baseURI:document.baseURI,hash:location.hash,preview:root.dataset.preview,appearance:root.dataset.appearance,themeFamily:root.dataset.themeFamily,bodyFont:getComputedStyle(body).fontFamily,bodyBackground:getComputedStyle(body).backgroundColor,fontResources:resources.filter((url)=>/font|woff/i.test(url)),externalFontResources:resources.filter((url)=>/font|woff/i.test(url)&&new URL(url).origin!==location.origin),horizontalOverflow:Math.max(root.scrollWidth,body.scrollWidth)-innerWidth,htmlScrollWidth:root.scrollWidth,bodyScrollWidth:body.scrollWidth,viewportWidth:innerWidth,layoutShift:(window.__qellyLayoutShifts??[]).reduce((sum,value)=>sum+value,0),title:document.title,text:body.innerText.slice(0,4000),overflowingElements};
     });
+    const dir=path.join(live,viewport.name);await mkdir(dir,{recursive:true});
+    const file=path.join(dir,`${route.name}.png`);await page.screenshot({path:file,fullPage:true});
+    if(metrics.horizontalOverflow>1)await writeFile(path.join(dir,`${route.name}-overflow.json`),`${JSON.stringify({key,metrics},null,2)}\n`,'utf8');
+    captures.push({key,file:path.relative(out,file).split(path.sep).join('/'),metrics});
     assert(metrics.baseURI.includes('/qelly-intelligence/'),`${key}: base path missing`);
     assert(metrics.preview==='static',`${key}: static-preview truth marker missing`);
     assert(/IBM Plex/i.test(metrics.bodyFont),`${key}: IBM Plex not computed (${metrics.bodyFont})`);
     assert(metrics.fontResources.some((url)=>url.includes('ibm-plex-sans-variable.woff2')),`${key}: IBM Plex WOFF2 not loaded`);
     assert(metrics.externalFontResources.length===0,`${key}: external font request`);
-    assert(metrics.horizontalOverflow<=1,`${key}: horizontal overflow ${metrics.horizontalOverflow}`);
+    assert(metrics.horizontalOverflow<=1,`${key}: horizontal overflow ${metrics.horizontalOverflow}; offenders ${JSON.stringify(metrics.overflowingElements.slice(0,8))}`);
     assert(metrics.layoutShift<=0.01,`${key}: layout shift ${metrics.layoutShift}`);
     if(route.name==='asset-rankings')assert(/Asset Rankings/i.test(metrics.text),`${key}: Asset Rankings not rendered`);
     if(route.name==='market')assert(/Market/i.test(metrics.text),`${key}: Market Overview not rendered`);
     if(route.name==='asset-dossier')assert(/BTC|Asset/i.test(metrics.text),`${key}: Asset Dossier not rendered`);
     if(route.name==='theme-studio')assert(/Theme Studio/i.test(metrics.text),`${key}: Theme Studio not rendered`);
     if(route.name==='theme-gallery')assert(/Theme Gallery/i.test(metrics.text),`${key}: Theme Gallery not rendered`);
-    const dir=path.join(live,viewport.name);await mkdir(dir,{recursive:true});
-    const file=path.join(dir,`${route.name}.png`);await page.screenshot({path:file,fullPage:true});
-    captures.push({key,file:path.relative(out,file).split(path.sep).join('/'),metrics});
     await page.close();
   }
   await context.close();
