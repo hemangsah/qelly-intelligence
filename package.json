@@ -38,7 +38,10 @@
     "validate:product": "node scripts/product-validate.mjs",
     "inventory:product": "node scripts/build-product-inventory.mjs",
     "inventory:design": "node scripts/build-qelly-design-inventory.mjs",
-    "validate:design": "node scripts/validate-design-foundations.mjs"
+    "validate:design": "node scripts/validate-design-foundations.mjs",
+    "validate:brand": "node scripts/logo-brand-governance.mjs",
+    "review:brand": "node scripts/logo-brand-review.mjs",
+    "generate:brand-assets": "node scripts/generate-logo-assets.mjs"
   },
   "description": "Qelly Intelligence verifiable market intelligence platform and secure decision operating system.",
   "dependencies": {

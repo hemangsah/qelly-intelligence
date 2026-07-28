@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "brand": "Qelly",
+  "authoritativeMark": "user-supplied selected Qelly logo",
+  "foundationTag": "qelly-design-foundation-v1",
+  "foundationCommit": "239f6f0c7c663801662f4e5f940ca76fb6941bf1",
+  "typography": {
+    "canonical": "Qelly IBM Plex Sans",
+    "status": "locked"
+  },
+  "color": {
+    "identityBurgundy": "#6F1838",
+    "deepBurgundy": "#461124",
+    "activeBurgundy": "#8C244A",
+    "softBurgundy": "#F3E7EB",
+    "trajectoryDark": "#17131A",
+    "trajectoryLight": "#D9CED2",
+    "decisionGreen": "#16A36A",
+    "decisionRed": "#D33B4A",
+    "porcelain": "#F8F5F2",
+    "nearBlack": "#171116"
+  },
+  "sizing": {
+    "safeAreaEm": 0.5,
+    "horizontalMinPx": 120,
+    "symbolMinPx": 16,
+    "appIconSafeZone": 0.72
+  },
+  "motion": {
+    "fullMs": 1180,
+    "repeatMs": 0,
+    "reducedMs": 120,
+    "easing": "cubic-bezier(.22,.8,.24,1)"
+  },
+  "placements": {
+    "heroMaxPx": 360,
+    "shellHorizontalPx": 152,
+    "shellSymbolPx": 28,
+    "faviconPx": [
+      16,
+      32,
+      48,
+      64
+    ]
+  }
+}
