@@ -1,0 +1,14 @@
+{
+  "result": "failed",
+  "branch": "feature/logo-first-brand-system",
+  "headBeforeRun": "5f04b343c0d5ae933574df9dc61fc8af834a0233",
+  "exitCode": 1,
+  "failingLine": "52",
+  "failingCommand": "test -f \"$chunk\"",
+  "failingStage": "ordered-per-chunk-decode",
+  "decodedBytes": 0,
+  "actualSha256": "unavailable",
+  "expectedSha256": "840d9910e193daa3d001436c0c44b556b010742d5e779fd072f6db7bce313558",
+  "recordedAt": "2026-07-28T14:01:50.131362+00:00",
+  "partialProductSourceCommitted": false
+}
