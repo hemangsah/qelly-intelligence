@@ -1,10 +1,10 @@
 # Qelly Foundation Verification Result
 
-- Result: **failed**
-- Workflow run: `30349333108` attempt `1`
+- Result: **passed**
+- Workflow run: `30349556583` attempt `1`
 - Event: `pull_request`
-- Foundation verification: `failure`
-- Annotated tag operation: `skipped`
+- Foundation verification: `success`
+- Annotated tag operation: `success`
 - Main: `239f6f0c7c663801662f4e5f940ca76fb6941bf1`
 - Approved PR head: `ca3d85898d6ce26dc4c2b2cda35b34e1810d2c1b`
 - Tag: `qelly-design-foundation-v1`
