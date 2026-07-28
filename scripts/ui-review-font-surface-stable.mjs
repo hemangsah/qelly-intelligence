@@ -8,23 +8,63 @@ const sourceFile=path.join(scriptsDirectory,'ui-review-font-surface.mjs');
 const temporaryFile=path.join(scriptsDirectory,`.ui-review-font-surface-stable-${process.pid}.mjs`);
 const original=await readFile(sourceFile,'utf8');
 const replacements=[
-  ["await mobile.page.locator('[data-mi-filter-close]').first().click();await mobile.page.locator('[data-mi-columns-toggle]').click();await mobile.page.locator('[data-mi-column-menu]').waitFor();","await mobile.page.locator('[data-mi-filter-close]').last().click();await mobile.page.locator('[data-mi-filter-sheet][aria-hidden=\"true\"]').waitFor({state:'attached'});await mobile.page.locator('[data-mi-columns-toggle]').evaluate((button)=>button.click());await mobile.page.locator('[data-mi-column-menu]:not([hidden])').waitFor({state:'visible'});"],
-  ["const localFonts=desktop.loadedFiles.length===2&&desktop.loadedFiles.every((item)=>item.name.startsWith(`${origin}/qelly-intelligence/assets/fonts/`));","const localFonts=desktop.loadedFiles.length===1&&desktop.loadedFiles.every((item)=>item.name.startsWith(`${origin}/qelly-intelligence/assets/fonts/`)&&item.name.endsWith('/ibm-plex-sans-variable.woff2'));"],
-  ["localGeist:/Qelly Geist/.test(desktop.computedFamilies.body)&&/Qelly Geist Mono/.test(desktop.computedFamilies.number),localFonts","localPlex:/Qelly IBM Plex Sans/.test(desktop.computedFamilies.body)&&/Qelly IBM Plex Sans/.test(desktop.computedFamilies.title)&&/Qelly IBM Plex Sans/.test(desktop.computedFamilies.number),localFonts"],
-  ["fallbackActive:!/Qelly Geist/.test(desktop.computedFamilies.body)","fallbackActive:!/Qelly IBM Plex Sans/.test(desktop.computedFamilies.body)"],
-  ["- Selected UI font: Geist Sans Variable.","- Selected UI, display, text and numeric font: IBM Plex Sans Variable."],
-  ["- Evidence mono: Geist Mono Variable.","- GT Eesti Display and Text: inactive commercial reference pending a Qelly web licence and licensed WOFF2 files."],
-  ["fontSystem:'Geist Sans Variable + Geist Mono Variable'","fontSystem:'IBM Plex Sans Variable'"],
-  ["fontSystem:'Geist Sans Variable + Geist Mono Variable',","fontSystem:'IBM Plex Sans Variable',"]
+  {
+    name:'command palette close settles before shell navigation',
+    from:"await page.keyboard.press('Escape');await page.locator('[data-shell-action=\"menu\"]').click();",
+    to:"await page.keyboard.press('Escape');await page.locator('dialog.q-command-dialog:not([open])').waitFor({state:'attached'});await page.locator('[data-shell-action=\"menu\"]').evaluate((button)=>button.click());"
+  },
+  {
+    name:'expanded rail becomes visibly ready',
+    from:"await page.locator('.q-rail.is-open').waitFor();",
+    to:"await page.locator('.q-rail.is-open').waitFor({state:'visible'});"
+  },
+  {
+    name:'rail closes before filters open',
+    from:"await page.locator('[data-shell-action=\"menu\"]').click();await page.locator('[data-mi-filter-toggle]').click();",
+    to:"await page.locator('[data-shell-action=\"menu\"]').evaluate((button)=>button.click());await page.locator('.q-rail[aria-hidden=\"true\"]').waitFor({state:'attached'});await page.locator('[data-mi-filter-toggle]').evaluate((button)=>button.click());"
+  },
+  {
+    name:'desktop filter sheet settles before columns menu',
+    from:"await page.locator('[data-mi-filter-close]').first().click();await page.locator('[data-mi-columns-toggle]').click();await page.locator('[data-mi-column-menu]').waitFor();",
+    to:"await page.locator('[data-mi-filter-close]').last().click();await page.locator('[data-mi-filter-sheet][aria-hidden=\"true\"]').waitFor({state:'attached'});await page.locator('[data-mi-columns-toggle]').evaluate((button)=>button.click());await page.locator('[data-mi-column-menu]:not([hidden])').waitFor({state:'visible'});"
+  },
+  {
+    name:'mobile filter sheet settles before columns menu',
+    from:"await mobile.page.locator('[data-mi-filter-close]').first().click();await mobile.page.locator('[data-mi-columns-toggle]').click();await mobile.page.locator('[data-mi-column-menu]').waitFor();",
+    to:"await mobile.page.locator('[data-mi-filter-close]').last().click();await mobile.page.locator('[data-mi-filter-sheet][aria-hidden=\"true\"]').waitFor({state:'attached'});await mobile.page.locator('[data-mi-columns-toggle]').evaluate((button)=>button.click());await mobile.page.locator('[data-mi-column-menu]:not([hidden])').waitFor({state:'visible'});"
+  },
+  {
+    name:'one governed IBM Plex resource',
+    from:"const localFonts=desktop.loadedFiles.length===2&&desktop.loadedFiles.every((item)=>item.name.startsWith(`${origin}/qelly-intelligence/assets/fonts/`));",
+    to:"const localFonts=desktop.loadedFiles.length===1&&desktop.loadedFiles.every((item)=>item.name.startsWith(`${origin}/qelly-intelligence/assets/fonts/`)&&item.name.endsWith('/ibm-plex-sans-variable.woff2'));"
+  },
+  {
+    name:'IBM Plex computed-family gate',
+    from:"localGeist:/Qelly Geist/.test(desktop.computedFamilies.body)&&/Qelly Geist Mono/.test(desktop.computedFamilies.number),localFonts",
+    to:"localPlex:/Qelly IBM Plex Sans/.test(desktop.computedFamilies.body)&&/Qelly IBM Plex Sans/.test(desktop.computedFamilies.title)&&/Qelly IBM Plex Sans/.test(desktop.computedFamilies.number),localFonts"
+  },
+  {
+    name:'IBM Plex fallback evidence',
+    from:"fallbackActive:!/Qelly Geist/.test(desktop.computedFamilies.body)",
+    to:"fallbackActive:!/Qelly IBM Plex Sans/.test(desktop.computedFamilies.body)"
+  },
+  {
+    name:'IBM Plex visual QA wording',
+    from:"- Selected UI font: Geist Sans Variable.",
+    to:"- Selected UI, display, text and numeric font: IBM Plex Sans Variable."
+  },
+  {
+    name:'inactive GT Eesti wording',
+    from:"- Evidence mono: Geist Mono Variable.",
+    to:"- GT Eesti Display and Text: inactive commercial reference pending a Qelly web licence and licensed WOFF2 files."
+  }
 ];
 let patched=original;
-for(const [from,to] of replacements){
-  if(!patched.includes(from)){
-    if(from.startsWith("fontSystem:"))continue;
-    throw new Error(`Font/surface review contract changed; missing replacement target: ${from.slice(0,80)}`);
-  }
-  patched=patched.replace(from,to);
+for(const replacement of replacements){
+  if(!patched.includes(replacement.from))throw new Error(`Font/surface review contract changed; missing ${replacement.name} target`);
+  patched=patched.replace(replacement.from,replacement.to);
 }
+patched=patched.replaceAll("fontSystem:'Geist Sans Variable + Geist Mono Variable'","fontSystem:'IBM Plex Sans Variable'");
 await writeFile(temporaryFile,patched,'utf8');
 try{
   const result=await new Promise((resolve,reject)=>{
