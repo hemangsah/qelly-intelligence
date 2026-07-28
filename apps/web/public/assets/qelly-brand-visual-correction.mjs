@@ -59,3 +59,4 @@ window.addEventListener('hashchange',()=>requestAnimationFrame(refresh));
 window.addEventListener('pageshow',refresh);
 root.dataset.brandVisualCorrectionReady='true';
 window.QellyBrandVisualCorrection=Object.freeze({refresh,reducedMotion,stateValues:[...stateValues]});
+// Exact final-head validation trigger; no product behavior changes below this line.
