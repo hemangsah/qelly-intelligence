@@ -1,10 +1,11 @@
 const root=document.documentElement;
 const asset=(name)=>new URL(`./brand/${name}`,import.meta.url).href;
-const appearance=()=>root.dataset.appearance||'dark';
+const appearance=()=>root.dataset.resolvedAppearance||root.dataset.appearance||'dark';
 const isLight=()=>appearance()==='light';
 const horizontalLogo=()=>asset(isLight()?'qelly-logo-light.svg':'qelly-logo-dark.svg');
 const symbolLogo=()=>asset(isLight()?'qelly-symbol.svg':'qelly-symbol-dark.svg');
 const esc=(value)=>String(value).replace(/[&<>"']/g,(ch)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+const blockingStates=new Set(['loading','empty','offline','error']);
 
 function installShellBrand(){
   const target=document.querySelector('.q-brand-mark');
@@ -23,8 +24,10 @@ function updateVariants(){
   document.querySelectorAll('.q-brand-symbol').forEach((node)=>node.src=symbolLogo());
   const opening=document.querySelector('.qelly-opening');
   if(opening){
-    opening.querySelector('.qelly-opening__symbol').src=symbolLogo();
-    opening.querySelector('.qelly-opening__wordmark').src=horizontalLogo();
+    const symbol=opening.querySelector('.qelly-opening__symbol');
+    const wordmark=opening.querySelector('.qelly-opening__wordmark');
+    if(symbol)symbol.src=symbolLogo();
+    if(wordmark)wordmark.src=horizontalLogo();
   }
 }
 function installOpening(){
@@ -33,10 +36,10 @@ function installOpening(){
   const seen=sessionStorage.getItem('qelly.brand.opening.v1')==='seen';
   if(seen)return;
   const overlay=document.createElement('div');
-  overlay.className='qelly-opening';
+  overlay.className=`qelly-opening ${reduced?'is-reduced':'is-full'}`;
   overlay.setAttribute('role','status');
   overlay.setAttribute('aria-label','Opening Qelly Intelligence');
-  overlay.innerHTML=`<div class="qelly-opening__inner"><img class="qelly-opening__symbol" width="84" height="84" src="${symbolLogo()}" alt=""><img class="qelly-opening__wordmark" width="304" height="84" src="${horizontalLogo()}" alt="Qelly"><span class="qelly-opening__line">Evidence before action</span></div>`;
+  overlay.innerHTML=`<div class="qelly-opening__inner"><img class="qelly-opening__symbol" width="84" height="84" src="${symbolLogo()}" alt="" aria-hidden="true"><img class="qelly-opening__wordmark" width="304" height="84" src="${horizontalLogo()}" alt="Qelly"><span class="qelly-opening__line">Evidence before action</span></div>`;
   document.body.prepend(overlay);
   sessionStorage.setItem('qelly.brand.opening.v1','seen');
   const duration=reduced?120:1180;
@@ -77,14 +80,16 @@ function heroMarkup(){
 }
 function installHero(){
   const main=document.getElementById('main');
+  const previewState=document.getElementById('state-selector')?.value;
   if(!main||!location.hash.match(/^#\/?market(?:$|[/?])/))return;
+  if(main.dataset.qellyStatePage||blockingStates.has(previewState))return;
   if(main.querySelector('[data-qelly-brand-hero]'))return;
   main.insertAdjacentHTML('afterbegin',heroMarkup());
 }
 function installAuthBrand(){
   const main=document.getElementById('main');
   if(!main||!/^#\/?auth-(login|register|recovery)/.test(location.hash))return;
-  const host=main.querySelector('.q-auth-shell,.q-auth-card,form')?.parentElement||main.firstElementChild;
+  const host=main.querySelector('.q-auth-card')||main.querySelector('.q-auth-shell,form')?.parentElement||main.firstElementChild;
   if(!host||host.querySelector('[data-qelly-auth-brand]'))return;
   const block=document.createElement('div');
   block.className='qelly-brand-auth';
@@ -126,6 +131,6 @@ installOpening();
 refresh();
 new MutationObserver(refresh).observe(document.documentElement,{childList:true,subtree:true});
 window.addEventListener('hashchange',()=>requestAnimationFrame(refresh));
-new MutationObserver(updateVariants).observe(root,{attributes:true,attributeFilter:['data-appearance','data-theme-family']});
+new MutationObserver(updateVariants).observe(root,{attributes:true,attributeFilter:['data-appearance','data-resolved-appearance','data-theme-family']});
 window.addEventListener('pageshow',updateVariants);
 root.dataset.brandReady='true';

@@ -1,0 +1,127 @@
+/* Qelly PR #13 final subjective visual correction.
+   Presentation only: logo geometry, typography, theme semantics and market colors remain engine-owned. */
+:root{
+  --q-brand-mobile-nav-height:64px;
+  --q-brand-mobile-clearance:calc(var(--q-brand-mobile-nav-height) + env(safe-area-inset-bottom));
+}
+
+/* One brand mark per context. Desktop uses the horizontal lockup; compact/mobile uses the symbol. */
+.q-brand-home .q-brand-symbol{display:none!important}
+.q-edge-dock__brand{display:none!important}
+.q-edge-dock{padding-top:12px!important}
+@media(max-width:520px){
+  .q-brand-home img[data-lockup]{display:none!important}
+  .q-brand-home .q-brand-symbol{display:block!important}
+}
+
+/* Opening: a symbol resolves into one final horizontal lockup. */
+.qelly-opening__inner{position:relative;display:grid!important;place-items:center;min-width:min(420px,88vw);min-height:180px;gap:0!important;text-align:center}
+.qelly-opening__symbol,.qelly-opening__wordmark{grid-area:1/1;will-change:transform,opacity;backface-visibility:hidden;transform-origin:center}
+.qelly-opening__line{grid-area:2/1;margin-top:16px;color:var(--q-secondary,var(--q-text-muted,#c3b8bd))!important;font-weight:650}
+.qelly-opening.is-full .qelly-opening__symbol{animation:qelly-symbol-to-lockup .62s cubic-bezier(.2,.75,.18,1) both!important}
+.qelly-opening.is-full .qelly-opening__wordmark{animation:qelly-lockup-resolve .46s .38s cubic-bezier(.16,1,.3,1) both!important}
+.qelly-opening.is-full .qelly-opening__line{animation:qelly-lockup-caption .32s .58s both!important}
+.qelly-opening.is-reduced .qelly-opening__symbol,.qelly-opening.is-reduced .qelly-opening__line{display:none!important}
+.qelly-opening.is-reduced .qelly-opening__wordmark{animation:none!important;opacity:1!important;transform:none!important;width:clamp(210px,38vw,304px)!important}
+@keyframes qelly-symbol-to-lockup{0%{opacity:0;transform:scale(.82) rotate(-7deg)}28%{opacity:1;transform:scale(1) rotate(0)}72%{opacity:1;transform:scale(.78)}100%{opacity:0;transform:scale(.68) translateX(-74px)}}
+@keyframes qelly-lockup-resolve{from{opacity:0;transform:translateX(18px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes qelly-lockup-caption{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+/* Supporting copy is available content, never disabled-looking copy. */
+.qelly-hero p{color:var(--q-secondary,var(--q-text,#f5f1f3))!important;font-weight:450}
+.qelly-hero .q-eyebrow{color:var(--q-focus,var(--q-accent))!important;font-weight:800!important}
+.qelly-hero__truth{color:var(--q-secondary,var(--q-text,#f5f1f3))!important;font-weight:550}
+.qelly-product-preview__metric small,.qelly-product-preview__row span,.qelly-product-preview__bar{color:var(--q-secondary,var(--q-text,#f5f1f3))!important}
+.qelly-product-preview__metric strong,.qelly-product-preview__row strong{color:var(--q-text,#fff)!important}
+.qelly-brand-auth p,.qelly-command-brand span{color:var(--q-secondary,var(--q-text))!important}
+
+/* Genuine porcelain daylight across the complete shell, not only the hero. */
+html[data-preview="static"][data-resolved-appearance="light"]{color-scheme:light!important;background:var(--q-canvas)!important}
+html[data-preview="static"][data-resolved-appearance="light"] body,
+html[data-preview="static"][data-resolved-appearance="light"] .q-app,
+html[data-preview="static"][data-resolved-appearance="light"] .q-shell,
+html[data-preview="static"][data-resolved-appearance="light"] #main{background:var(--q-canvas)!important;color:var(--q-text)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .q-global-strip{background:#eee7e9!important;color:var(--q-text)!important;border-color:var(--q-divider)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .q-global-strip .q-brand-mark,
+html[data-preview="static"][data-resolved-appearance="light"] .q-macro-item strong{color:var(--q-text)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .q-macro-item span:first-child,
+html[data-preview="static"][data-resolved-appearance="light"] .q-truth-chip{color:var(--q-secondary)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .q-truth-chip{background:var(--q-panel)!important;border-color:var(--q-border)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .q-command-bar,
+html[data-preview="static"][data-resolved-appearance="light"] .q-context-shelf{background:rgba(251,250,246,.97)!important;color:var(--q-text)!important;border-color:var(--q-divider)!important;box-shadow:0 5px 18px rgba(44,31,36,.06)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .q-workspace-switcher strong,
+html[data-preview="static"][data-resolved-appearance="light"] .q-breadcrumbs strong,
+html[data-preview="static"][data-resolved-appearance="light"] .q-breadcrumbs span[aria-current="page"]{color:var(--q-text)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .q-command-trigger,
+html[data-preview="static"][data-resolved-appearance="light"] .q-state-control select,
+html[data-preview="static"][data-resolved-appearance="light"] .q-category-shelf button:hover,
+html[data-preview="static"][data-resolved-appearance="light"] .q-category-shelf button.is-active{background:var(--q-panel)!important;color:var(--q-text)!important;border-color:var(--q-border)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .q-edge-dock,
+html[data-preview="static"][data-resolved-appearance="light"] .q-rail{background:var(--q-surface)!important;color:var(--q-text)!important;border-color:var(--q-divider)!important;box-shadow:18px 0 50px rgba(42,30,35,.12)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .q-edge-dock button,
+html[data-preview="static"][data-resolved-appearance="light"] .q-nav-link{color:var(--q-secondary)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .q-edge-dock button:hover,
+html[data-preview="static"][data-resolved-appearance="light"] .q-edge-dock button:focus-visible,
+html[data-preview="static"][data-resolved-appearance="light"] .q-edge-dock button.is-active,
+html[data-preview="static"][data-resolved-appearance="light"] .q-nav-link:hover,
+html[data-preview="static"][data-resolved-appearance="light"] .q-nav-link.is-active{background:var(--q-selected)!important;color:var(--q-text)!important;border-color:var(--q-border)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .q-rail-footer,
+html[data-preview="static"][data-resolved-appearance="light"] .q-nav-domain-context{border-color:var(--q-divider)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .q-provider-mini small,
+html[data-preview="static"][data-resolved-appearance="light"] .q-nav-section{color:var(--q-muted)!important}
+html[data-preview="static"][data-resolved-appearance="light"] :where(.q-panel,.q-kpi,.q-state-banner,.q-empty-state,.q-error-state,.q-dialog,.q-command-dialog,.q-context-drawer,.q-mi-table-card,.q-mi-chart-card,.q-mi-intelligence-module,.q-mi-market-pulse>*){background:var(--q-panel)!important;color:var(--q-text)!important;border-color:var(--q-border)!important}
+html[data-preview="static"][data-resolved-appearance="light"] :where(.q-panel-head,.q-source-line,.q-context-block,.q-command-input,.q-command-item:hover,.q-command-item.is-active,.q-skeleton){background:var(--q-raised)!important;color:var(--q-text)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .q-mobile-navigation{background:rgba(251,250,246,.98)!important;color:var(--q-text)!important;border-color:var(--q-divider)!important;box-shadow:0 -12px 36px rgba(42,30,35,.12)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .q-mobile-navigation button{color:var(--q-secondary)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .q-mobile-navigation button.is-active{background:var(--q-selected)!important;color:var(--q-text)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .qelly-hero{background:linear-gradient(135deg,#fff,var(--q-surface))!important;color:var(--q-text)!important;border-color:var(--q-border)!important}
+html[data-preview="static"][data-resolved-appearance="light"] .qelly-product-preview,
+html[data-preview="static"][data-resolved-appearance="light"] .qelly-product-preview__metric{background:#fff!important;color:var(--q-text)!important;border-color:var(--q-border)!important}
+
+/* Cohesive authentication composition with both halves visible at a normal desktop viewport. */
+.q-auth-page{min-height:calc(100dvh - var(--q-shell-ticker,28px) - var(--q-shell-command,54px) - var(--q-shell-context,38px))!important;padding:clamp(18px,3vw,38px)!important;gap:clamp(20px,3vw,44px)!important;align-items:stretch!important}
+.q-auth-hero{min-height:0!important;height:auto!important;padding:clamp(28px,4vw,54px)!important;border-radius:28px 28px 82px 28px!important}
+.q-auth-card{align-self:center!important;max-height:calc(100dvh - 176px);overflow:auto;scrollbar-gutter:stable;padding:clamp(24px,3vw,40px)!important}
+.q-auth-card>.qelly-brand-auth{margin-bottom:18px!important}
+.q-auth-card>.qelly-brand-auth img{width:min(204px,62vw)!important}
+.q-auth-form{margin-top:20px!important;gap:12px!important}
+.q-auth-footer{margin-top:16px!important;padding-top:14px!important}
+
+/* Validation states: priority first, compact geometry and dark-compatible skeleton tones. */
+#main[data-qelly-state-page] [data-qelly-brand-hero]{display:none!important}
+#main[data-qelly-state-page] .q-page{min-height:0!important;padding:clamp(18px,3vw,34px)!important}
+#main[data-qelly-state-page] .q-page-head{margin-bottom:18px!important}
+#main[data-qelly-state-page] .q-empty-state{min-height:min(420px,calc(100dvh - 250px))!important;place-items:start center!important;padding-top:clamp(18px,5vh,54px)!important}
+#main[data-qelly-state-page] .q-empty-state div{padding:22px!important}
+#main[data-qelly-state-page] .q-empty-state h2{font-size:clamp(22px,3vw,34px)!important;margin:8px 0!important}
+#main[data-qelly-state-page] .q-empty-state p{font-size:13px!important;color:var(--q-secondary)!important}
+#main[data-qelly-state-page="loading"] .q-skeleton-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important}
+#main[data-qelly-state-page="loading"] .q-skeleton{background:linear-gradient(90deg,var(--q-surface),var(--q-raised),var(--q-surface))!important;border:1px solid var(--q-divider)!important}
+#main[data-qelly-state-page="loading"] .q-skeleton.is-large{height:76px!important}
+#main[data-qelly-state-page="loading"] .q-dashboard-grid{grid-template-columns:1.4fr .6fr!important;gap:10px!important;margin-top:10px!important}
+#main[data-qelly-state-page="loading"] .q-dashboard-grid .q-skeleton{height:180px!important}
+#main[data-qelly-state-page="loading"] .q-dashboard-grid+span.q-skeleton{display:none!important}
+
+/* One mobile bottom clearance. The prior shell padding plus route/page minimum heights created the multi-screen tail. */
+@media(max-width:920px){
+  html,body,.q-app,.q-shell,#main{min-height:0!important}
+  .q-shell{padding-bottom:0!important}
+  #main{padding-bottom:calc(var(--q-brand-mobile-clearance) + 18px)!important;overflow-x:clip!important}
+  .q-mi-page{padding-bottom:18px!important;min-height:0!important}
+  .q-mobile-navigation{height:var(--q-brand-mobile-clearance)!important;min-height:var(--q-brand-mobile-clearance)!important;padding-bottom:env(safe-area-inset-bottom)!important}
+  .q-toast-stack{bottom:calc(var(--q-brand-mobile-clearance) + 10px)!important}
+  .q-mi-column-menu,.q-mi-filter-sheet>section,.q-mi-drawer>section{padding-bottom:calc(var(--q-brand-mobile-clearance) + 14px)!important}
+  .q-mi-chart-tooltip{max-width:calc(100vw - 24px)!important}
+  .q-auth-page{grid-template-columns:1fr!important;min-height:0!important;padding:14px!important}
+  .q-auth-hero{min-height:300px!important}
+  .q-auth-card{max-height:none!important;overflow:visible!important;width:100%!important}
+  #main[data-qelly-state-page] .q-empty-state{min-height:360px!important;padding-bottom:calc(var(--q-brand-mobile-clearance) + 10px)!important}
+}
+@media(max-width:560px){
+  #main[data-qelly-state-page="loading"] .q-skeleton-grid{grid-template-columns:1fr 1fr!important}
+  #main[data-qelly-state-page="loading"] .q-dashboard-grid{grid-template-columns:1fr!important}
+  #main[data-qelly-state-page="loading"] .q-dashboard-grid .q-skeleton:last-child{display:none!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .qelly-opening.is-full .qelly-opening__symbol,.qelly-opening.is-full .qelly-opening__wordmark,.qelly-opening.is-full .qelly-opening__line{animation:none!important}
+}
