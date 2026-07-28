@@ -184,10 +184,10 @@ async function openingEvidence(browserName,launcher){
   for(const mode of ['full-motion','reduced','repeat-session']){
     const reduced=mode==='reduced',repeat=mode==='repeat-session';const meta={browser:browserName,mode,viewport:'1440x1000'};let browser,context,page,stop;
     try{
-      browser=await launcher.launch();context=await browser.newContext({viewport:{width:1440,height:1000},colorScheme:'dark',reducedMotion:reduced?'reduce':'no-preference'});await installInit(context,{appearance:'dark',themeFamily:'sovereign-obsidian',seen:repeat,holdOpening:false});page=await context.newPage();stop=attachTelemetry(page,meta);const started=Date.now();await page.goto(appUrl('market'),{waitUntil:'domcontentloaded',timeout:30000});
-      if(repeat){await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true',{timeout:35000});const count=await page.locator('.qelly-opening').count();opening.push({...meta,overlayFrames:count,durationMs:Date.now()-started,result:count===0?'passed':'failed'});}
+      browser=await launcher.launch();context=await browser.newContext({viewport:{width:1440,height:1000},colorScheme:'dark',reducedMotion:reduced?'reduce':'no-preference'});await installInit(context,{appearance:'dark',themeFamily:'sovereign-obsidian',seen:repeat,holdOpening:false});page=await context.newPage();stop=attachTelemetry(page,meta);const navigationStarted=Date.now();await page.goto(appUrl('market'),{waitUntil:'domcontentloaded',timeout:30000});
+      if(repeat){await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true',{timeout:35000});const count=await page.locator('.qelly-opening').count();opening.push({...meta,overlayFrames:count,durationMs:Date.now()-navigationStarted,result:count===0?'passed':'failed'});}
       else{
-        const overlay=page.locator('.qelly-opening');await overlay.waitFor({state:'visible',timeout:3000});
+        const overlay=page.locator('.qelly-opening');await overlay.waitFor({state:'visible',timeout:3000});const started=Date.now();
         if(browserName==='chromium'&&mode==='full-motion'){
           await page.waitForTimeout(70);await captureViewport(page,path.join(evidenceDir,'opening-full-01-symbol.png'),'Full-motion opening — symbol','Opening begins with the approved Q symbol.',{});
           await page.waitForTimeout(390);await captureViewport(page,path.join(evidenceDir,'opening-full-02-transition.png'),'Full-motion opening — transition','Symbol resolves into the horizontal lockup without leaving two complete marks stacked.',{});
