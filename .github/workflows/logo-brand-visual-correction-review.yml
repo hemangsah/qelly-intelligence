@@ -103,7 +103,7 @@ jobs:
           test -s "$root/qelly-logo-first-brand-system-visual-correction-review.zip.sha256"
           test -z "$(unzip -Z1 "$root/qelly-logo-first-brand-system-visual-correction-review.zip" | grep -Ei '\.(woff2?|ttf|otf|eot)$' || true)"
           test -z "$(unzip -Z1 "$root/qelly-logo-compiled-preview.zip" | grep -Ei '\.(woff2?|ttf|otf|eot)$' || true)"
-          sha256sum -c "$root/qelly-logo-first-brand-system-visual-correction-review.zip.sha256"
+          (cd "$root" && sha256sum -c qelly-logo-first-brand-system-visual-correction-review.zip.sha256)
           node -e "const fs=require('fs');const p='.brand-visual-correction/qelly-logo-first-brand-system-visual-correction-review/17-visual-correction-reports/FINAL_VISUAL_CORRECTION_VALIDATION.json';const v=JSON.parse(fs.readFileSync(p));if(v.result!=='passed')process.exit(1);console.log(v)"
 
       - name: Upload final visual-correction review
