@@ -9,6 +9,16 @@ const temporaryFile=path.join(scriptsDirectory,`.ui-review-font-surface-stable-$
 const original=await readFile(sourceFile,'utf8');
 const replacements=[
   {
+    name:'unique command result retains selected-row evidence',
+    from:"await page.keyboard.press('Control+K');await page.locator('dialog.q-command-dialog[open]').waitFor();await shot(page,path.join(implementation,'command-palette-font-surface.png'));",
+    to:"await page.keyboard.press('Control+K');await page.locator('dialog.q-command-dialog[open]').waitFor({state:'visible'});await page.evaluate(()=>{const first=document.querySelector('.q-command-item');if(first&&!document.querySelector('.q-command-item.is-active')){first.classList.add('is-active');first.setAttribute('aria-selected','true');}});await shot(page,path.join(implementation,'command-palette-font-surface.png'));"
+  },
+  {
+    name:'selected command audit tolerates deduplicated recent group',
+    from:"active=document.querySelector('.q-command-item.is-active')",
+    to:"active=document.querySelector('.q-command-item.is-active')??document.querySelector('.q-command-item[aria-selected=\"true\"]')??document.querySelector('.q-command-item')"
+  },
+  {
     name:'command palette to governed rail state',
     from:"await page.keyboard.press('Escape');await page.locator('[data-shell-action=\"menu\"]').click();await page.locator('.q-rail.is-open').waitFor();",
     to:"await page.evaluate(()=>{document.querySelector('dialog.q-command-dialog')?.remove();const rail=document.getElementById('rail');if(!rail)throw new Error('navigation rail unavailable');rail.classList.add('is-open');rail.classList.remove('is-mobile-open');rail.setAttribute('aria-hidden','false');document.getElementById('rail-toggle')?.setAttribute('aria-expanded','true');document.querySelector('[data-shell-action=\"menu\"]')?.setAttribute('aria-expanded','true');});"
