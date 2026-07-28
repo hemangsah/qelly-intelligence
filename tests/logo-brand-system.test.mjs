@@ -21,6 +21,9 @@ test('brand runtime is session-aware and reduced-motion safe', async () => {
   assert.match(value, /prefers-reduced-motion/);
   assert.match(value, /qelly\.brand\.opening\.v1/);
   assert.match(value, /data-qelly-brand-hero/);
+  assert.match(value, /width="304" height="84"/);
+  assert.match(value, /width="84" height="84"/);
+  assert.match(value, /qellyReviewHoldOpening/);
 });
 
 test('PWA assets and IBM Plex lock are preserved', async () => {
@@ -40,6 +43,10 @@ test('brand renderer is deterministic, cross-browser and fail closed', async () 
   assert.match(value, /PerformanceObserver\.supportedEntryTypes/);
   assert.match(value, /layout-shift/);
   assert.match(value, /RENDERER_FAILURES\.json/);
+  assert.match(value, /applyReviewFlags/);
+  assert.match(value, /location\.hash = `#\/\$\{expectedRoute\}`/);
+  assert.match(value, /overflowElements/);
+  assert.match(value, /holdOpening: !repeat/);
   assert.match(value, /captureOpening\(launcher, browserName, 'full-motion'\)/);
   assert.match(value, /captureOpening\(launcher, browserName, 'reduced'\)/);
   assert.match(value, /captureOpening\(launcher, browserName, 'repeat-session'\)/);

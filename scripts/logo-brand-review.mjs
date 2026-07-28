@@ -111,14 +111,24 @@ function telemetryFor(page, meta) {
 }
 
 async function installReviewInit(context, options = {}) {
-  await context.addInitScript(({ seen, themeFamily, appearance, suppressOpening }) => {
+  await context.addInitScript(({ seen, themeFamily, appearance, suppressOpening, holdOpening }) => {
     if (seen) sessionStorage.setItem('qelly.brand.opening.v1', 'seen');
     if (themeFamily || appearance) {
       let saved = {};
       try { saved = JSON.parse(localStorage.getItem('qelly.theme-intelligence.v2') || '{}'); } catch {}
       localStorage.setItem('qelly.theme-intelligence.v2', JSON.stringify({ ...saved, ...(themeFamily ? { themeFamily } : {}), ...(appearance ? { appearance } : {}) }));
     }
-    if (suppressOpening) document.documentElement.dataset.qellyReviewSuppressOpening = 'true';
+    const applyReviewFlags = () => {
+      const html = document.documentElement;
+      if (!html) return false;
+      if (suppressOpening) html.dataset.qellyReviewSuppressOpening = 'true';
+      if (holdOpening) html.dataset.qellyReviewHoldOpening = 'true';
+      return true;
+    };
+    if (!applyReviewFlags()) {
+      const observer = new MutationObserver(() => { if (applyReviewFlags()) observer.disconnect(); });
+      observer.observe(document, { childList: true, subtree: true });
+    }
     window.__qellyReviewMetrics = {
       cls: 0, clsSupported: false, clsStatus: 'unsupported', clsEntries: 0,
       lcp: null, lcpSupported: false, longTaskMs: 0, longTaskCount: 0,
@@ -160,7 +170,7 @@ async function installReviewInit(context, options = {}) {
     }, 'eventTimingSupported');
   }, {
     seen: Boolean(options.seen), themeFamily: options.themeFamily || null,
-    appearance: options.appearance || null, suppressOpening: Boolean(options.suppressOpening)
+    appearance: options.appearance || null, suppressOpening: Boolean(options.suppressOpening), holdOpening: Boolean(options.holdOpening)
   });
 }
 
@@ -179,8 +189,18 @@ async function waitForAppReady(page, route, timeout = 25000) {
 }
 
 async function gotoReady(page, route, meta, options = {}) {
-  await page.goto(url(route), { waitUntil: 'domcontentloaded', timeout: options.navigationTimeout || 25000 });
-  await waitForAppReady(page, route, options.readinessTimeout || 25000);
+  const documentUrl = url(route).split('#')[0];
+  try {
+    await page.goto(documentUrl, { waitUntil: 'domcontentloaded', timeout: options.navigationTimeout || 25000 });
+  } catch (error) {
+    const recoverable = /interrupted by another navigation|Timeout 25000ms exceeded/.test(error.message || '');
+    if (!recoverable) throw error;
+  }
+  await page.evaluate((expectedRoute) => {
+    const current = location.hash.replace(/^#\/?/, '').split('/')[0] || '';
+    if (current !== expectedRoute) location.hash = `#/${expectedRoute}`;
+  }, route);
+  await waitForAppReady(page, route, options.readinessTimeout || 30000);
   if (options.suppressOpening !== false) {
     await page.evaluate(() => document.querySelector('.qelly-opening')?.remove());
     await page.waitForSelector('.qelly-opening', { state: 'detached', timeout: 3000 }).catch(() => {});
@@ -218,6 +238,17 @@ async function collectPageMetrics(page, meta, { frameSample = false } = {}) {
     const html = document.documentElement;
     const body = document.body;
     const overflow = Math.max(0, html.scrollWidth - html.clientWidth, body?.scrollWidth - html.clientWidth || 0);
+    const overflowElements = [...document.querySelectorAll('body *')].map((element) => {
+      const rect = element.getBoundingClientRect();
+      return {
+        tag: element.tagName.toLowerCase(), id: element.id || null,
+        className: String(element.className || '').slice(0, 180),
+        left: Math.round(rect.left * 100) / 100, right: Math.round(rect.right * 100) / 100,
+        width: Math.round(rect.width * 100) / 100,
+        scrollWidth: element.scrollWidth, clientWidth: element.clientWidth
+      };
+    }).filter((item) => item.right > html.clientWidth + 1 || item.left < -1 || item.scrollWidth > item.clientWidth + 1)
+      .sort((a, b) => (b.right - html.clientWidth) - (a.right - html.clientWidth)).slice(0, 20);
     const memory = performance.memory ? {
       usedJSHeapSize: performance.memory.usedJSHeapSize,
       totalJSHeapSize: performance.memory.totalJSHeapSize,
@@ -238,7 +269,7 @@ async function collectPageMetrics(page, meta, { frameSample = false } = {}) {
       longTaskSupported: Boolean(review.longTaskSupported),
       inp: review.eventDurationMax ?? null,
       inpSupported: Boolean(review.eventTimingSupported),
-      overflow,
+      overflow, overflowElements,
       resourceTransferBytes: resources.reduce((sum, entry) => sum + Number(entry.transferSize || 0), 0),
       resourceDecodedBytes: resources.reduce((sum, entry) => sum + Number(entry.decodedBodySize || 0), 0),
       memory,
@@ -339,10 +370,11 @@ async function captureOpening(launcher, browserName, mode) {
   try {
     browser = await launcher.launch();
     context = await browser.newContext({ viewport, colorScheme: 'dark', reducedMotion: reduced ? 'reduce' : 'no-preference' });
-    await installReviewInit(context, { seen: repeat, suppressOpening: false, themeFamily: 'sovereign-obsidian', appearance: 'dark' });
+    await installReviewInit(context, { seen: repeat, suppressOpening: false, holdOpening: !repeat, themeFamily: 'sovereign-obsidian', appearance: 'dark' });
     page = await context.newPage(); telemetry = telemetryFor(page, meta);
     const started = Date.now();
-    await page.goto(url('market'), { waitUntil: 'domcontentloaded', timeout: 25000 });
+    await page.goto(url('market').split('#')[0], { waitUntil: 'domcontentloaded', timeout: 25000 }).catch((error) => { if (!/interrupted by another navigation|Timeout 25000ms exceeded/.test(error.message || '')) throw error; });
+    await page.evaluate(() => { if (!location.hash.replace(/^#\/?/, '').startsWith('market')) location.hash = '#/market'; });
     if (repeat) {
       await waitForAppReady(page, 'market');
       const present = await page.locator('.qelly-opening').count();
@@ -355,6 +387,9 @@ async function captureOpening(launcher, browserName, mode) {
     await page.screenshot({ path: output, fullPage: false, timeout: 15000 });
     let removalMs = null;
     if (!repeat) {
+      const configuredDuration = reduced ? 120 : 1180;
+      await page.waitForTimeout(configuredDuration);
+      await page.locator('.qelly-opening').click({ force: true });
       await page.locator('.qelly-opening').waitFor({ state: 'detached', timeout: 3500 });
       removalMs = Date.now() - started;
       await waitForAppReady(page, 'market');

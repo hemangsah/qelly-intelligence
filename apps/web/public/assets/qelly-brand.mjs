@@ -10,12 +10,12 @@ function installShellBrand(){
   const target=document.querySelector('.q-brand-mark');
   if(target&&!target.dataset.brandInstalled){
     target.dataset.brandInstalled='true';
-    target.innerHTML=`<a class="q-brand-home" href="#/market" aria-label="Qelly Intelligence home"><img data-lockup src="${horizontalLogo()}" alt="Qelly"><img class="q-brand-symbol" src="${symbolLogo()}" alt="" aria-hidden="true"></a>`;
+    target.innerHTML=`<a class="q-brand-home" href="#/market" aria-label="Qelly Intelligence home"><img data-lockup width="304" height="84" src="${horizontalLogo()}" alt="Qelly"><img class="q-brand-symbol" width="84" height="84" src="${symbolLogo()}" alt="" aria-hidden="true"></a>`;
   }
   const avatar=document.querySelector('.q-avatar');
   if(avatar&&!avatar.dataset.brandInstalled){
     avatar.dataset.brandInstalled='true';
-    avatar.innerHTML=`<img class="q-brand-symbol" src="${symbolLogo()}" alt="">`;
+    avatar.innerHTML=`<img class="q-brand-symbol" width="84" height="84" src="${symbolLogo()}" alt="">`;
   }
 }
 function updateVariants(){
@@ -36,19 +36,20 @@ function installOpening(){
   overlay.className='qelly-opening';
   overlay.setAttribute('role','status');
   overlay.setAttribute('aria-label','Opening Qelly Intelligence');
-  overlay.innerHTML=`<div class="qelly-opening__inner"><img class="qelly-opening__symbol" src="${symbolLogo()}" alt=""><img class="qelly-opening__wordmark" src="${horizontalLogo()}" alt="Qelly"><span class="qelly-opening__line">Evidence before action</span></div>`;
+  overlay.innerHTML=`<div class="qelly-opening__inner"><img class="qelly-opening__symbol" width="84" height="84" src="${symbolLogo()}" alt=""><img class="qelly-opening__wordmark" width="304" height="84" src="${horizontalLogo()}" alt="Qelly"><span class="qelly-opening__line">Evidence before action</span></div>`;
   document.body.prepend(overlay);
   sessionStorage.setItem('qelly.brand.opening.v1','seen');
   const duration=reduced?120:1180;
   const finish=()=>{overlay.classList.add('is-leaving');setTimeout(()=>overlay.remove(),reduced?0:300)};
-  setTimeout(finish,duration);
+  const reviewHold=root.dataset.qellyReviewHoldOpening==='true';
+  if(!reviewHold)setTimeout(finish,duration);
   overlay.addEventListener('click',finish,{once:true});
 }
 function heroMarkup(){
   return `<section class="qelly-hero" data-qelly-brand-hero aria-labelledby="qelly-hero-title">
     <div class="qelly-hero__grid">
       <div>
-        <img class="qelly-hero__logo" src="${horizontalLogo()}" alt="Qelly">
+        <img class="qelly-hero__logo" width="304" height="84" src="${horizontalLogo()}" alt="Qelly">
         <p class="q-eyebrow">Verifiable market intelligence</p>
         <h1 id="qelly-hero-title">See the evidence behind every market signal.</h1>
         <p>Qelly unifies market structure, research context, source provenance and decision history in one governed intelligence workspace—without pretending simulated preview data is live.</p>
@@ -88,7 +89,7 @@ function installAuthBrand(){
   const block=document.createElement('div');
   block.className='qelly-brand-auth';
   block.dataset.qellyAuthBrand='true';
-  block.innerHTML=`<img src="${horizontalLogo()}" alt="Qelly"><p>Secure access to evidence-backed intelligence.</p>`;
+  block.innerHTML=`<img width="304" height="84" src="${horizontalLogo()}" alt="Qelly"><p>Secure access to evidence-backed intelligence.</p>`;
   host.prepend(block);
 }
 function installStateBrand(){
@@ -96,6 +97,8 @@ function installStateBrand(){
     if(node.querySelector('.qelly-state-brand'))return;
     const image=document.createElement('img');
     image.className='qelly-state-brand';
+    image.width=84;
+    image.height=84;
     image.src=symbolLogo();
     image.alt='';
     image.setAttribute('aria-hidden','true');
@@ -109,7 +112,7 @@ function installCommandBrand(){
   if(!commandInput)return;
   const row=document.createElement('div');
   row.className='qelly-command-brand';
-  row.innerHTML=`<img src="${horizontalLogo()}" alt="Qelly"><span>Command intelligence</span>`;
+  row.innerHTML=`<img width="304" height="84" src="${horizontalLogo()}" alt="Qelly"><span>Command intelligence</span>`;
   dialog.prepend(row);
 }
 function refresh(){
