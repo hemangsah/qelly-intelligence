@@ -5,13 +5,14 @@ on:
     branches: [main]
     types: [synchronize]
     paths: ['.github/workflows/pr13-final-measured-correction.yml']
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   apply:
-    if: github.event.pull_request.head.ref == 'feature/logo-first-brand-system'
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'feature/logo-first-brand-system'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
