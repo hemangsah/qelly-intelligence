@@ -35,13 +35,14 @@ jobs:
           set -euo pipefail
           archive=.qelly-brand-bootstrap/qelly-brand-bundle.tar.gz.b64
           test -s "$archive"
-          test "$(sha256sum "$archive" | cut -d' ' -f1)" = ca54976826d3e5ecd79c471ed3a4b0634c70f4de7fdc639f3b0d6bb423d7492c
+          test "$(sha256sum "$archive" | cut -d' ' -f1)" = d6206c9e8d6ecd8013e16a3c08d273b1880e22ffc1b800261e880b7379ccccc3
           mkdir -p /tmp/qelly-brand-bundle
           base64 -d "$archive" > /tmp/qelly-brand-bundle.tar.gz
-          test "$(sha256sum /tmp/qelly-brand-bundle.tar.gz | cut -d' ' -f1)" = 469237e88b7fb3fa07429982ef19c3d8b21beb41c02e7ad9fc3865bc358cd76e
+          test "$(sha256sum /tmp/qelly-brand-bundle.tar.gz | cut -d' ' -f1)" = 840d9910e193daa3d001436c0c44b556b010742d5e779fd072f6db7bce313558
           test -z "$(tar -tzf /tmp/qelly-brand-bundle.tar.gz | grep -E '(^/|(^|/)\.\.(/|$))' || true)"
           tar -xzf /tmp/qelly-brand-bundle.tar.gz -C /tmp/qelly-brand-bundle
           test -f /tmp/qelly-brand-bundle/apps/web/public/assets/qelly-brand.mjs
+          test -f /tmp/qelly-brand-bundle/scripts/generate-logo-assets.mjs
           test -f /tmp/qelly-brand-bundle/scripts/logo-brand-governance.mjs
           test -f /tmp/qelly-brand-bundle/scripts/logo-brand-review.mjs
           cp -a /tmp/qelly-brand-bundle/. .
@@ -49,12 +50,15 @@ jobs:
           rm -f .github/workflows/logo-brand-bootstrap.yml
       - name: Install locked dependencies
         run: npm ci --ignore-scripts
+      - name: Generate governed favicon and PWA assets
+        run: npm run generate:brand-assets
       - name: Validate affected source before commit
         shell: bash
         run: |
           set -euo pipefail
           node --check apps/web/public/assets/qelly-brand.mjs
           node --check apps/web/public/assets/routes/feature-universe.mjs
+          node --check scripts/generate-logo-assets.mjs
           node --check scripts/logo-brand-governance.mjs
           node --check scripts/logo-brand-review.mjs
           node --check tests/logo-brand-system.test.mjs
