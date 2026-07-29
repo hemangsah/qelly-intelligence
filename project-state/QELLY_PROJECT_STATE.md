@@ -16,7 +16,9 @@ Last updated: 2026-07-29
 - `qelly-brand-foundation-v1`: immutable annotated tag object `f8e02f013b353bc723bb68c9592fcab9e8b6357a`, target `94fbd4ff91c0d61f87e42724038f03fa5c36f97a`
 - PR #15: closed without merge; audit branch preserved
 - PR #16: closed without merge; feature branch preserved
-- Prompt 2: not executed
+- Prompt 2A Wave 0: completed on draft PR #19
+- Prompt 2B: not started
+- Prompt 3: not started
 
 ## Deployment truth
 
@@ -53,11 +55,16 @@ Last updated: 2026-07-29
 
 Durable repository state, exact commits, tags, workflow records and artifacts are authoritative. Registry presence or inventory count alone is not implementation or connectivity evidence.
 
-## Prompt 2A Wave 0 audit state — 2026-07-29T15:49:53+05:30
+## Prompt 2A Wave 0 audit state — 2026-07-29T18:51:00+05:30
 
 - Audit branch: `feature/prompt2-repository-gap-audit`
 - Draft PR: `#19`
 - Audited source head: `eafb11719e67135c7a6fa3b15e1170c5192e4771`
+- Latest fully validated Wave 0 head: `e2e2dd822e7811406ea5b220dbd033bfad75f09b`
+- Final Wave 0 workflow: `30456044354` — success
+- Browser matrix: 549 passed, 0 failed
+- Final artifact: `8725646367` / `ac8ef42c517f4e1adb684252c2a8370c8848a1c1ab4ca7fad0bae66e7dff36c1`
+- Separate truth-label hotfix: draft PR #20, unmerged
 - Product implementation: not started
 - Connected routes/providers: zero proven
 - Next implementation branch: `feature/calculator-and-indicator-foundation`, only after explicit approval
