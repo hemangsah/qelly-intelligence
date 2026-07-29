@@ -47,6 +47,7 @@ jobs:
           tar -xJf /tmp/qelly-prompt2a-project-state.tar.xz -C /tmp/qelly-prompt2a-expanded
           test -d /tmp/qelly-prompt2a-expanded/project-state
           cp -a /tmp/qelly-prompt2a-expanded/project-state/. project-state/
+          grep -rlZ 'PENDING_FINAL_AUDIT_COMMIT' project-state | xargs -0 -r sed -i "s/PENDING_FINAL_AUDIT_COMMIT/$EXPECTED_HEAD/g"
 
       - name: Validate generated registries
         shell: python
