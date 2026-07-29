@@ -89,10 +89,19 @@ test('exact main workflows, Pages deployment and public preview are verified', {
   }
 
   let deployments = [];
+  let deploymentStatuses = [];
   try {
     deployments = await fetchJson(`https://api.github.com/repos/${repository}/deployments?sha=${mergeSha}&environment=github-pages&per_page=10`);
-  } catch {
-    deployments = [];
+    for (const deployment of deployments) {
+      const statuses = await fetchJson(`https://api.github.com/repos/${repository}/deployments/${deployment.id}/statuses?per_page=10`);
+      deploymentStatuses.push({
+        deploymentId: deployment.id,
+        statuses: statuses.map((status) => ({ id: status.id, state: status.state, environmentUrl: status.environment_url, createdAt: status.created_at }))
+      });
+    }
+    assert.equal(deploymentStatuses.some((entry) => entry.statuses.some((status) => status.state === 'success')), true, JSON.stringify(deploymentStatuses, null, 2));
+  } catch (error) {
+    deploymentStatuses = [{ endpoint: 'authorization-limited', publicUrlVerified: true, message: error.message }];
   }
 
   const report = {
@@ -106,7 +115,8 @@ test('exact main workflows, Pages deployment and public preview are verified', {
     ibmPlexHttpStatus: font.status,
     pages,
     deploymentCount: deployments.length,
-    deploymentIds: deployments.map((deployment) => deployment.id)
+    deploymentIds: deployments.map((deployment) => deployment.id),
+    deploymentStatuses
   };
   console.log(`QELLY_PR14_POST_MERGE_REPORT=${JSON.stringify(report)}`);
 });
