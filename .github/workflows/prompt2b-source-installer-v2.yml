@@ -1,0 +1,107 @@
+name: Qelly Prompt 2B Source Installer v2
+
+on:
+  push:
+    branches: [feature/calculator-and-indicator-foundation]
+    paths:
+      - '.github/qelly-prompt2b-install-v2/READY'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: qelly-prompt2b-source-installer-v2
+  cancel-in-progress: false
+
+jobs:
+  install:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out exact source branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: feature/calculator-and-indicator-foundation
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+
+      - name: Verify every payload part and reconstruct patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { readFile, stat, writeFile } from 'node:fs/promises';
+          import { createHash } from 'node:crypto';
+          import { execFileSync } from 'node:child_process';
+          const manifest=JSON.parse(await readFile('.github/qelly-prompt2b-install-v2/manifest.json','utf8'));
+          const digest=(buffer)=>createHash('sha256').update(buffer).digest('hex');
+          const chunks=[];
+          for(const part of manifest.parts){
+            const buffer=await readFile(part.path);
+            const size=(await stat(part.path)).size;
+            const sha256=digest(buffer);
+            const blob=execFileSync('git',['hash-object',part.path],{encoding:'utf8'}).trim();
+            if(size!==part.bytes)throw new Error(`${part.path} byte-size mismatch: ${size} != ${part.bytes}`);
+            if(sha256!==part.sha256)throw new Error(`${part.path} SHA-256 mismatch: ${sha256} != ${part.sha256}`);
+            if(blob!==part.gitBlobSha)throw new Error(`${part.path} Git blob mismatch: ${blob} != ${part.gitBlobSha}`);
+            chunks.push(buffer);
+            console.log(JSON.stringify({path:part.path,size,sha256,blob}));
+          }
+          const encoded=Buffer.concat(chunks);
+          if(encoded.length!==manifest.payload.base64Bytes)throw new Error(`base64 bytes mismatch: ${encoded.length}`);
+          if(digest(encoded)!==manifest.payload.base64Sha256)throw new Error('base64 SHA-256 mismatch');
+          const gzip=Buffer.from(encoded.toString('ascii'),'base64');
+          if(gzip.length!==manifest.payload.gzipBytes)throw new Error(`gzip bytes mismatch: ${gzip.length}`);
+          if(digest(gzip)!==manifest.payload.gzipSha256)throw new Error('gzip SHA-256 mismatch');
+          await writeFile('/tmp/prompt2b-source.patch.gz',gzip);
+          NODE
+          gzip -dc /tmp/prompt2b-source.patch.gz > /tmp/prompt2b-source.patch
+          test "$(wc -c < /tmp/prompt2b-source.patch | tr -d ' ')" = "187523"
+          test "$(sha256sum /tmp/prompt2b-source.patch | cut -d' ' -f1)" = "778f0dc8739f4d0cf6d5eb5a8c12992b46757e36db76e4cf1b857636c5969d0d"
+          git apply --check /tmp/prompt2b-source.patch
+
+      - name: Install prepared Prompt 2B source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git apply /tmp/prompt2b-source.patch
+          changed=$(git diff --name-only -- '*.mjs' '*.js')
+          test -n "$changed"
+          while IFS= read -r file; do
+            test -f "$file" && node --check "$file"
+          done <<< "$changed"
+          node --test \
+            tests/calculation-engine.test.mjs \
+            tests/calculation-security.test.mjs \
+            tests/indicator-engine.test.mjs \
+            tests/saved-calculation-store.test.mjs
+
+      - name: Remove temporary transport and bootstrap files
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .github/qelly-prompt2b-install
+          rm -rf .github/qelly-prompt2b-install-v2
+          rm -f .github/workflows/prompt2b-start-gate.yml
+          rm -f .github/workflows/prompt2b-source-installer-v2.yml
+          test ! -e .github/qelly-prompt2b-install
+          test ! -e .github/qelly-prompt2b-install-v2
+          test ! -e .github/workflows/prompt2b-start-gate.yml
+          test ! -e .github/workflows/prompt2b-source-installer-v2.yml
+
+      - name: Commit one clean auditable source tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git status --short
+          git commit -m 'feat(prompt2b): install deterministic calculator and indicator foundation'
+          git push origin HEAD:feature/calculator-and-indicator-foundation
