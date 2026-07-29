@@ -1,0 +1,7 @@
+provider_id,provider_name,category,status,authorization,terms_verified,redistribution,credentials,notes
+qelly-local,Qelly deterministic local engine,local calculation,Implemented Deterministically,none,not-applicable,local-only,none,"Formula/provider foundation only"
+github-pages,GitHub Pages,static hosting,Pending post-merge verification,repository authorization,pending,public static assets,GitHub OAuth,"Must not be called connected backend production"
+market-provider-placeholder,Market data adapter registry,market data,Planned,provider-specific,pending,pending,not provisioned,"No provider is connected by this bootstrap"
+broker-placeholder,Broker adapter registry,broker,Planned,official OAuth/API,pending,read-only pending,not provisioned,"Trading scopes disabled"
+wallet-placeholder,Wallet adapter registry,wallet,Planned,official wallet interface,pending,read-only public address data,not provisioned,"No seed phrases or private keys"
+observability-placeholder,Observability backend,error reporting,Planned,service authorization,pending,no market-data redistribution,not provisioned,"Local redaction interface implemented"
