@@ -32,7 +32,7 @@ try {
   csrf = config.csrf.token;
   expect(config.productName === 'Qelly Intelligence' && config.productVersion === '0.9.0-preview.1', 'Qelly product identity invalid');
   expect(config.routes.length === 61 && config.apiRoutes.length === 187 && config.apiRoutes.includes('/api/v1/public/markets/overview'), 'route inventory invalid');
-  expect(config.waveStatus.part22 && config.schemaValidation.schemasLoaded === 65, 'schema and inherited capability evidence invalid');
+  expect(config.waveStatus.part22 && config.schemaValidation.schemasLoaded === 67, 'schema and inherited capability evidence invalid');
   expect(config.csrf.mode === 'random-session-bound-local-token' && csrf.length >= 32, 'session-bound CSRF evidence invalid');
   expect(config.developmentIdentity.enabled === true, 'development identity fixture should be enabled in local smoke');
 
@@ -86,7 +86,7 @@ try {
   expect(deliverySandbox.passed===true,'A5 delivery signature sandbox invalid');
 
   const coverage = (await request('/api/v1/schemas/coverage')).json();
-  expect(coverage.schemasLoaded === 65 && coverage.enforcedRoutes.length >= 18 && coverage.productionValidatorRequired, 'runtime schema coverage invalid');
+  expect(coverage.schemasLoaded === 67 && coverage.enforcedRoutes.length >= 18 && coverage.productionValidatorRequired, 'runtime schema coverage invalid');
 
   const denied = (await request('/api/v1/access/evaluate',{method:'POST',body:{action:'timeseries:write'}})).json();
   expect(!denied.allowed, 'time-series governance unexpectedly allowed before step-up');
