@@ -1,0 +1,6 @@
+feature_id,feature,status,evidence,blocker,next_action
+brand-logo-first-v1,Qelly logo-first visual system,Implemented and Validated,PR13 live head workflows and artifacts,Merge authorization SHA mismatch,Authorize exact live head then rerun guard
+brand-merge-main,Merge logo-first system to main,Blocked,Prompt1 exact-head guard,Approved SHA differs from live SHA,Explicitly authorize 6fabb1ac65d73cde25d1dca6d63a6685ef7d7e9a
+brand-foundation-tag,qelly-brand-foundation-v1,Planned,Prompt1 section 6,Blocked until verified merge,Create annotated immutable tag after post-merge verification
+brand-freeze,Visual foundation freeze on main,Planned,Prompt1 section 7,Blocked until verified merge,Implement on post-merge bootstrap branch
+public-beta-bootstrap,Public-beta foundation,Deferred,Prompt1 section 9,Blocked until verified merge,Create release branch and draft PR only after merge
