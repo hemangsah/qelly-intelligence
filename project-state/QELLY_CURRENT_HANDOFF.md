@@ -11,6 +11,7 @@ Last verified: `2026-07-29T11:01:00+05:30`
 - PR #13: open, draft, unmerged
 - Auto-merge: disabled
 - Guard checkpoint branch: `agent/pr13-prompt1-guard-blocked`
+- Guard checkpoint head before this handoff update: `db36be92e4ad21e86b8fd03f89773e5d6f5ad8c1`
 - Merge commit: not created
 - `qelly-brand-foundation-v1`: not created
 - Public-beta branch/PR: not created
@@ -38,6 +39,41 @@ Last verified: `2026-07-29T11:01:00+05:30`
    - changed files: `package.json`, `tools/qelly-final-visual-evidence-polish.mjs`
    - product compiled preview unchanged except `BUILD_INFO.json`
 7. A durable blocker comment was added to PR #13: comment ID `5113688107`.
+8. Fourteen governed state records were created on the checkpoint branch.
+
+## Checkpoint commits
+
+- `f8dfa132ceae320b9e7bb07e94eb49b702c5a5d2`
+- `a59f04cf9dbf66262c0120d48ff571023ba9e1f6`
+- `7a2cfff2a3eb6434b91647ab63c9ebea968cec7b`
+- `7f1e5d13d0d9a81b678f8e22e326de2397574db0`
+- `23540514834b9afdefdb593dac9ee108e0f27a96`
+- `210420fb8716c46ef2f032a169b2f051b5d76125`
+- `6b9b73c881d67e53d7adebd41e05c06e9e62f26d`
+- `c7a6209ef5f0ddf02503433609089fc76ee72ff9`
+- `54f193ca54564cc495f22ca715670adb3eb53dd8`
+- `c8c25aa515e788b347e6c297bbeefb9faa630caa`
+- `aef77fb113b719b3799ea608f69df8dfaec85b6e`
+- `4d3317baae29c5ccb60c72386bd454a82f42fe66`
+- `511d5c8f810d10df53a447eca610dc95db8e80d0`
+- `db36be92e4ad21e86b8fd03f89773e5d6f5ad8c1`
+
+## Files persisted
+
+- `QELLY_PROJECT_STATE.md`
+- `QELLY_CURRENT_HANDOFF.md`
+- `QELLY_DECISION_LOG.md`
+- `QELLY_PROGRESS_LEDGER.md`
+- `QELLY_FEATURE_STATUS.csv`
+- `QELLY_PROVIDER_REGISTRY.csv`
+- `QELLY_ROUTE_STATUS.csv`
+- `QELLY_API_INVENTORY.csv`
+- `QELLY_IMPLEMENTATION_MANIFEST.json`
+- `QELLY_VALIDATION_HISTORY.md`
+- `QELLY_KNOWN_LIMITATIONS.md`
+- `QELLY_RELEASE_MATRIX.md`
+- `QELLY_DATA_SOURCE_REGISTRY.md`
+- `QELLY_EXTERNAL_DEPENDENCY_REGISTER.md`
 
 ## Blocker
 
