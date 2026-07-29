@@ -46,5 +46,5 @@ try{
 const failures=records.filter(r=>r.textLength===0||r.overflow>1||r.font!=='loaded'||!r.truth||!r.executionDisabled||!r.noCustody||!r.fallbackRenderer||r.unexpectedConsoleErrors.length||r.pageErrors.length||r.failedRequiredResources.length);
 await mkdir('.prompt2a-closeout',{recursive:true});
 await writeFile('.prompt2a-closeout/FINAL_MAIN_BROWSER_MATRIX.json',JSON.stringify({schemaVersion:1,head:expected,scope:'affected live-markets truth route; broad 549-record regression retained from PR20 exact product tree',recordCount:records.length,passed:records.length-failures.length,failed:failures.length,expectedExternalFallbackRecords:records.filter(r=>r.expectedExternalErrors.length).length,records,failures},null,2)+'\n');
-console.log(JSON.stringify({records:records.length,failures:failures.length,expectedExternalFallbackRecords:records.filter(r=>r.expectedExternalErrors.length).length},null,2));
+console.log(JSON.stringify({records:records.length,failures:failures.length,expectedExternalFallbackRecords:records.filter(r=>r.expectedExternalErrors.length).length,failureSamples:failures.slice(0,3)},null,2));
 if(failures.length)process.exit(1);
