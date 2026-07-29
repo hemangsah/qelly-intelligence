@@ -14,7 +14,7 @@ const read=(file)=>readFile(path.join(root,file),'utf8');
 const json=async(file)=>JSON.parse(await read(file));
 
 test('every executable route has a governed domain and page-shell kind',()=>{
-  assert.equal(routeDefinitions.length,61);
+  assert.equal(routeDefinitions.length,66);
   assert.ok(productDomains.length>=8);
   const domains=new Set(productDomains.map((item)=>item.id));
   const kinds=new Set(['public-story','analytical','research','operational','access']);
