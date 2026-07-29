@@ -1,0 +1,2 @@
+provider_id,provider,capability,status,auth,licensing,last_verified,notes
+none-prompt1,None,Provider integrations,Deferred,None,Not assessed,2026-07-29,Prompt 1 does not connect providers; no live provider claims made
