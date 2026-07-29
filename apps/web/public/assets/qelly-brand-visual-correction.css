@@ -119,6 +119,11 @@ html[data-preview="static"][data-resolved-appearance="light"] .q-page-head .q-bu
 #main[data-qelly-state-page="loading"] .q-dashboard-grid .q-skeleton{height:180px!important}
 #main[data-qelly-state-page="loading"] .q-dashboard-grid+span.q-skeleton{display:none!important}
 
+/* Inactive fixed portals must leave both interaction and document geometry. */
+.q-mi-filter-sheet[aria-hidden="true"],
+.q-mi-drawer[aria-hidden="true"],
+.q-mi-column-menu[aria-hidden="true"]{display:none!important}
+
 /* One mobile bottom clearance. The prior shell padding plus route/page minimum heights created the multi-screen tail. */
 @media(max-width:920px){
   html,body,.q-app,.q-shell,#main{min-height:0!important}
