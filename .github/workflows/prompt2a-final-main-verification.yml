@@ -108,5 +108,6 @@ jobs:
         with:
           name: qelly-prompt2a-final-main-verification
           path: .prompt2a-closeout
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 14
