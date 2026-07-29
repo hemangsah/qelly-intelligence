@@ -1,0 +1,5 @@
+route_id,route,status,environment,evidence,notes
+market,#/market,Implemented and Validated,PR13 static review,Chromium Firefox WebKit evidence,Not merged to main because guard blocked
+asset-rankings,#/asset-rankings,Implemented and Validated,PR13 static review,18 mobile geometry records and retained browser matrix,Not merged to main because guard blocked
+auth,#/auth,Implemented and Validated,PR13 static review,Cohesive authentication screenshot and browser checks,Not merged to main because guard blocked
+state-pages,loading empty offline error,Implemented and Validated,PR13 static review,Settled state evidence,Not merged to main because guard blocked
