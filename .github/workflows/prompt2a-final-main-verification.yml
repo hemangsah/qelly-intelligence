@@ -72,8 +72,10 @@ jobs:
           git diff --check
           git checkout -
 
-      - name: Verify exact-main browser and theme matrix through Qelly runtime
-        run: EXPECTED_MAIN="$EXPECTED_MAIN" node scripts/prompt2a-final-main-browser.mjs
+      - name: Verify exact-main browser and theme matrix through compiled frontend
+        run: |
+          QELLY_PUBLIC_BASE_PATH=/ npm run build:frontend
+          EXPECTED_MAIN="$EXPECTED_MAIN" node scripts/prompt2a-final-main-browser.mjs
 
       - name: Verify exact-main push workflows and Pages deployment
         env:
