@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "payload": {
+    "base64Bytes": 59964,
+    "base64Sha256": "833e0655767beede653c62f7928e2e3ed7c2e1e389167f968af7cd54c7a1be42",
+    "gzipBytes": 44972,
+    "gzipSha256": "4bf181adf8dc496c84f43b36a7f9633d64c78320dcab0aaa949888d04c535221",
+    "patchBytes": 187523,
+    "patchSha256": "778f0dc8739f4d0cf6d5eb5a8c12992b46757e36db76e4cf1b857636c5969d0d"
+  },
+  "parts": [
+    {
+      "path": ".github/qelly-prompt2b-install-v2/part-00.b64",
+      "bytes": 10000,
+      "sha256": "fb174d66a2062f70ce1004c51d2eaf7e559f2be5c1bc5a174387e0351ca99c72",
+      "gitBlobSha": "91bdb1209e08990edb5b5c65de00e940fd41d583"
+    },
+    {
+      "path": ".github/qelly-prompt2b-install-v2/part-01.b64",
+      "bytes": 10000,
+      "sha256": "205a6521a1f62cf487aca514498aa53e69f7fcfdeaf19b99c5b32aedbf362f68",
+      "gitBlobSha": "6dd797ad7d97a2d6dc0acd9308a700ab4bdc3959"
+    },
+    {
+      "path": ".github/qelly-prompt2b-install-v2/part-02.b64",
+      "bytes": 10000,
+      "sha256": "bca3b564712b10dbdb1a9412dd105081d0a9164f0866b60d1039ff4303250c01",
+      "gitBlobSha": "869c0f51e1b918cc8cf1fe3b28fe1b3c1bb330d2"
+    },
+    {
+      "path": ".github/qelly-prompt2b-install-v2/part-03.b64",
+      "bytes": 10000,
+      "sha256": "d902ad1a8167c7e0e9326e75ebbcb33864a92bdc4eaf1b6b9049dc15bab0e331",
+      "gitBlobSha": "f8915e343bd4fae3335a89838bec5cd996fe051d"
+    },
+    {
+      "path": ".github/qelly-prompt2b-install-v2/part-04.b64",
+      "bytes": 10000,
+      "sha256": "c2149795ef0c7f01c2c9d14c3bf9fad57deaf06a6cc5af708b9b24d9107a0a6d",
+      "gitBlobSha": "0f3a5559f06046228f1c175c7fa1915fd5677f5f"
+    },
+    {
+      "path": ".github/qelly-prompt2b-install-v2/part-05.b64",
+      "bytes": 9964,
+      "sha256": "63a979191c023ddf96e7352de421c18fd7b4443d2f6e9b7b9feafbbda40a95ca",
+      "gitBlobSha": "6eaa4c4977b3b0b72692abf576962cda0bd172ee"
+    }
+  ]
+}
