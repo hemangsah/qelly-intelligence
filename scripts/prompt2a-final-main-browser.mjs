@@ -28,6 +28,7 @@ try{
       await page.waitForSelector('#live-provider',{state:'attached',timeout:20000});
       await page.evaluate(()=>{const select=document.querySelector('#live-provider');select.value='fixture';select.dispatchEvent(new Event('change',{bubbles:true}));});
       await page.waitForSelector('.q-live-fallback',{state:'attached',timeout:10000});
+      await page.evaluate(()=>document.fonts.ready);
       for(const appearance of themes){
         await page.evaluate((value)=>{localStorage.setItem('qelly-appearance',value);const root=document.documentElement;root.dataset.appearance=value;root.dataset.resolvedAppearance=value;},appearance);
         await page.waitForTimeout(60);
