@@ -31,8 +31,8 @@ try{
           await page.waitForFunction(()=>!document.querySelector('.qelly-opening:not([hidden])'),null,{timeout:5000}).catch(()=>{});
           if(route==='live-markets'){
             await page.waitForSelector('#live-provider',{state:'attached',timeout:20000});
-            await page.selectOption('#live-provider','fixture');
-            await page.waitForTimeout(250);
+            await page.evaluate(()=>{const select=document.querySelector('#live-provider');select.value='fixture';select.dispatchEvent(new Event('change',{bubbles:true}));});
+            await page.waitForTimeout(350);
           }else await page.waitForTimeout(100);
           const measurement=await page.evaluate(()=>{const html=document.documentElement,main=document.querySelector('#main');return {text:(main?.textContent||'').trim().length,overflow:Math.max(0,html.scrollWidth-html.clientWidth),font:document.fonts.status,appearance:html.dataset.resolvedAppearance||html.dataset.appearance||'',logo:Boolean(document.querySelector('.q-brand-lockup,.q-app-brand,img[src*="qelly"]'))};});
           const text=await page.locator('#main').textContent();
