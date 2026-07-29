@@ -1,0 +1,310 @@
+name: Qelly PR13 Post-Merge Audit PR
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  actions: read
+  deployments: read
+  pull-requests: read
+
+concurrency:
+  group: qelly-pr13-post-merge-audit-pr
+  cancel-in-progress: true
+
+env:
+  MERGE_SHA: 94fbd4ff91c0d61f87e42724038f03fa5c36f97a
+  APPROVED_HEAD: 6fabb1ac65d73cde25d1dca6d63a6685ef7d7e9a
+  PRE_MERGE_MAIN: 239f6f0c7c663801662f4e5f940ca76fb6941bf1
+  REVIEW_ZIP_SHA256: b2b10a6b80bb45cb10faf6173d39c4b2d9bb0893039da1b9936878189b1f492c
+  REVIEW_PDF_SHA256: 66d2d7cb656d25a8b6b7011bc6818c2f3f8db33ce7f051e95b2a35999b99a9c9
+  REVIEW_PREVIEW_SHA256: fa528379f1cc1ef4d4446aaf832b8e0d7b88e924b6c2f51ef17d73fc878ba39d
+
+jobs:
+  verify:
+    if: github.event.pull_request.head.ref == 'agent/pr13-post-merge-verification'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    steps:
+      - name: Check out isolated audit branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: agent/pr13-post-merge-verification
+          fetch-depth: 0
+          persist-credentials: true
+          show-progress: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install Chromium Firefox and WebKit
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Verify exact repository and merge guards
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main feature/logo-first-brand-system release/qelly-public-beta-v1 --tags --force
+          test "$(git rev-parse origin/main)" = "$MERGE_SHA"
+          test "$(git rev-parse origin/feature/logo-first-brand-system)" = "$APPROVED_HEAD"
+          test -z "$(git diff --name-only "$APPROVED_HEAD" "$MERGE_SHA")"
+          pr13=$(gh api repos/$GITHUB_REPOSITORY/pulls/13)
+          test "$(jq -r .merged "$pr13")" = true
+          test "$(jq -r .merge_commit_sha "$pr13")" = "$MERGE_SHA"
+          pr11=$(gh api repos/$GITHUB_REPOSITORY/pulls/11)
+          test "$(jq -r .merged "$pr11")" = true
+          test "$(jq -r .merge_commit_sha "$pr11")" = "$PRE_MERGE_MAIN"
+          design_target=$(git rev-parse 'refs/tags/qelly-design-foundation-v1^{}')
+          test "$design_target" = "$PRE_MERGE_MAIN"
+          rm -rf /tmp/qelly-main /tmp/qelly-beta post-merge-results qelly-pr13-post-merge-foundation-verification
+          git worktree add --detach /tmp/qelly-main "$MERGE_SHA"
+          git worktree add --detach /tmp/qelly-beta origin/release/qelly-public-beta-v1
+          mkdir -p post-merge-results qelly-pr13-post-merge-foundation-verification
+          cat > post-merge-results/PRE_MERGE_GUARD.md <<EOF
+          # Pre-Merge Guard
+
+          - Repository: \`$GITHUB_REPOSITORY\`
+          - Pre-merge main: \`$PRE_MERGE_MAIN\`
+          - Approved PR head: \`$APPROVED_HEAD\`
+          - Exact merge commit: \`$MERGE_SHA\`
+          - Expected-head guard: passed
+          - Approved-head/merge-result file differences: zero
+          - PR #11 and \`qelly-design-foundation-v1\`: unchanged
+          EOF
+          cat > post-merge-results/APPROVAL_RECORD.md <<EOF
+          # Approval Record
+
+          Hemang Sah explicitly approved PR #13 at exact head \`$APPROVED_HEAD\` and authorized the guarded merge. The selected Qelly logo geometry, IBM Plex Sans Variable, Theme Intelligence, 13 theme families and logo-first visual foundation are approved.
+
+          - Review ZIP SHA-256: \`$REVIEW_ZIP_SHA256\`
+          - Inspection PDF SHA-256: \`$REVIEW_PDF_SHA256\`
+          - Compiled preview SHA-256: \`$REVIEW_PREVIEW_SHA256\`
+          EOF
+          jq -n --arg pre "$PRE_MERGE_MAIN" --arg approved "$APPROVED_HEAD" --arg merge "$MERGE_SHA" '{result:"passed",pullRequest:13,preMergeMain:$pre,approvedHead:$approved,mergeCommit:$merge,mergeMethod:"merge commit",mergeTimestamp:"2026-07-29T06:03:04Z",expectedHeadGuard:true}' > post-merge-results/MERGE_RECORD.json
+          jq -n --arg approved "$APPROVED_HEAD" --arg merge "$MERGE_SHA" '{result:"passed",approvedHead:$approved,mergeCommit:$merge,treeComparison:"identical",changedFiles:[]}' > post-merge-results/MAIN_COMPARE_REPORT.json
+
+      - name: Verify exact-main push workflow conclusions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,subprocess,time
+          repo=os.environ['GITHUB_REPOSITORY']; sha=os.environ['MERGE_SHA']
+          required={'Continuous Integration','Container Build','Production Foundation Services','CodeQL'}
+          runs=[]
+          for _ in range(60):
+              data=json.loads(subprocess.check_output(['gh','api',f'repos/{repo}/actions/runs','-f',f'head_sha={sha}','-f','per_page=100'],text=True))
+              runs=data.get('workflow_runs',[])
+              by={r.get('name'):r for r in runs}
+              if required.issubset(by) and all(by[name].get('status')=='completed' for name in required): break
+              time.sleep(15)
+          normalized=[]
+          by={r.get('name'):r for r in runs}
+          for name in sorted(required):
+              r=by.get(name)
+              normalized.append({'workflow':name,'runId':r.get('id') if r else None,'event':r.get('event') if r else None,'headSha':r.get('head_sha') if r else None,'status':r.get('status') if r else 'missing','conclusion':r.get('conclusion') if r else 'missing','url':r.get('html_url') if r else None})
+          failed=[x for x in normalized if x['headSha']!=sha or x['conclusion']!='success']
+          report={'result':'passed' if not failed else 'failed','exactMainSha':sha,'runs':normalized,'failed':failed}
+          pathlib.Path('post-merge-results/POST_MERGE_WORKFLOW_MATRIX.json').write_text(json.dumps(report,indent=2)+'\n')
+          print(json.dumps(report,indent=2))
+          if failed: raise SystemExit(1)
+          PY
+
+      - name: Run complete exact-main repository gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/qelly-main
+          npm ci --ignore-scripts
+          npm run security:scan
+          npm run env:check
+          npm run typecheck
+          npm run lint
+          npm run validate:design
+          npm test
+          npm run validate:brand
+          npm run build
+          QELLY_PUBLIC_API_BASE_URL=https://api.preview.invalid npm run build:frontend
+          npm run validate:product
+          npm run inventory:product
+          npm run smoke
+          NODE_ENV=test QELLY_DEVELOPMENT_IDENTITY_ENABLED=false node scripts/production-identity-check.mjs
+          npm run release:check
+          npm audit --audit-level=high
+          git diff --check
+          jq -n --arg commit "$MERGE_SHA" '{result:"passed",commit:$commit,node:"22",secretScan:true,dependencyAudit:true,productionIdentityIsolation:true,releaseSafety:true}' > "$GITHUB_WORKSPACE/post-merge-results/REPOSITORY_GATE_SUMMARY.json"
+
+      - name: Run local three-browser route matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/qelly-main
+          QELLY_STATIC_VISUAL_PREVIEW=true QELLY_PUBLIC_BASE_PATH=/qelly-intelligence/ QELLY_DEPLOYMENT_ENVIRONMENT=post-merge npm run build:frontend
+          npm run validate:pages-preview
+          npm run smoke:pages-preview
+          cat > /tmp/qelly-browser-matrix.mjs <<'NODE'
+          import {chromium,firefox,webkit} from 'playwright';import {createServer} from 'node:http';import {readFile,stat,writeFile} from 'node:fs/promises';import path from 'node:path';
+          const root=path.resolve('dist/frontend'),port=4177,prefix='/qelly-intelligence/';const mime=p=>({'.html':'text/html','.mjs':'text/javascript','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon','.webmanifest':'application/manifest+json'}[path.extname(p)]||'application/octet-stream');
+          const server=createServer(async(req,res)=>{try{const u=new URL(req.url,`http://127.0.0.1:${port}`);let rel=u.pathname.startsWith(prefix)?u.pathname.slice(prefix.length):u.pathname.replace(/^\/+/, '');if(!rel||rel.endsWith('/'))rel+='index.html';let file=path.resolve(root,rel);if(!file.startsWith(root))throw new Error('forbidden');try{await stat(file)}catch{file=path.join(root,'index.html')}const data=await readFile(file);res.writeHead(200,{'content-type':mime(file),'cache-control':'no-store'});res.end(data)}catch(e){res.writeHead(500);res.end(e.message)}});await new Promise((r,j)=>{server.once('error',j);server.listen(port,'127.0.0.1',r)});
+          const launchers={chromium,firefox,webkit},routes=['market','asset-rankings','theme-lab','theme-lab/gallery'],viewports=[{width:360,height:800},{width:1440,height:1000}],records=[];
+          try{for(const [browserName,launcher] of Object.entries(launchers)){const browser=await launcher.launch();try{for(const viewport of viewports){for(const route of routes){const context=await browser.newContext({viewport,colorScheme:'dark'});await context.addInitScript(()=>{sessionStorage.setItem('qelly.brand.opening.v1','seen');localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({version:2,appearance:'dark',themeFamily:'sovereign-obsidian',persona:'quant-operator',mindset:'Model Discipline',motion:'reduced',fontScale:100}))});const page=await context.newPage(),consoleErrors=[],pageErrors=[],failedResources=[];page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text())});page.on('pageerror',e=>pageErrors.push(e.message));page.on('requestfailed',r=>failedResources.push(r.url()));page.on('response',r=>{if(r.status()>=400)failedResources.push(`${r.status()} ${r.url()}`)});await page.goto(`http://127.0.0.1:${port}${prefix}#/${route}`,{waitUntil:'domcontentloaded',timeout:35000});await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true'&&document.documentElement.dataset.brandReady==='true'&&document.getElementById('main')?.getAttribute('aria-busy')==='false',{timeout:35000});await page.evaluate(async()=>{await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))});const m=await page.evaluate(()=>({font:getComputedStyle(document.body).fontFamily,overflow:Math.max(0,document.documentElement.scrollWidth-document.documentElement.clientWidth,document.body.scrollWidth-document.documentElement.clientWidth),logo:[...document.images].some(i=>/qelly/i.test(i.src)&&i.complete&&i.naturalWidth>0),basePath:location.pathname,appReady:document.documentElement.dataset.appReady,brandReady:document.documentElement.dataset.brandReady}));const result=/IBM Plex Sans/i.test(m.font)&&m.overflow<=1&&m.logo&&m.basePath.includes('/qelly-intelligence/')&&consoleErrors.length===0&&pageErrors.length===0&&failedResources.length===0?'passed':'failed';records.push({browser:browserName,viewport:`${viewport.width}x${viewport.height}`,route,result,metrics:m,consoleErrors,pageErrors,failedResources});await context.close()}}}finally{await browser.close()}}}finally{await new Promise(r=>server.close(r))}
+          const failed=records.filter(r=>r.result!=='passed'),report={result:failed.length?'failed':'passed',commit:process.env.MERGE_SHA,cases:records.length,browsers:Object.keys(launchers),viewports:viewports.map(v=>`${v.width}x${v.height}`),routes,failed,records};await writeFile(path.join(process.env.GITHUB_WORKSPACE,'post-merge-results','BROWSER_SMOKE_MATRIX.json'),JSON.stringify(report,null,2)+'\n');if(failed.length)process.exit(1);
+          NODE
+          MERGE_SHA="$MERGE_SHA" node /tmp/qelly-browser-matrix.mjs
+
+      - name: Verify deployment and public URL truth
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,subprocess,time
+          repo=os.environ['GITHUB_REPOSITORY'];sha=os.environ['MERGE_SHA'];out=pathlib.Path('post-merge-results')
+          def gh(path): return json.loads(subprocess.check_output(['gh','api',path],text=True,stderr=subprocess.DEVNULL))
+          try: pages=gh(f'repos/{repo}/pages')
+          except Exception: pages=None
+          if not pages:
+              report={'result':'passed','active':False,'publicUrl':None,'deploymentCommit':None,'truthLabel':'no active GitHub Pages deployment','stagingPlan':'Use an authorized staging/Pages deployment only after release ownership and Prompt 3 gates are complete.'}
+              out.joinpath('DEPLOYMENT_STATE.md').write_text('# Deployment State\n\nNo active GitHub Pages deployment was reported. No public production claim is made. A governed staging deployment remains planned.\n')
+              out.joinpath('PUBLIC_URL_VALIDATION.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report,indent=2));raise SystemExit(0)
+          url=pages.get('html_url') or f'https://{repo.split("/")[0]}.github.io/{repo.split("/")[1]}/';deployment=status=None
+          for _ in range(60):
+              deps=gh(f'repos/{repo}/deployments?environment=github-pages&per_page=100');deployment=next((d for d in deps if d.get('sha')==sha),None)
+              if deployment:
+                  statuses=gh(f'repos/{repo}/deployments/{deployment["id"]}/statuses?per_page=20');status=statuses[0] if statuses else None
+                  if status and status.get('state') in {'success','failure','error','inactive'}:break
+              time.sleep(15)
+          if not deployment:
+              report={'result':'passed','active':True,'publicUrl':url,'deploymentCommit':None,'truthLabel':'existing static preview does not yet identify the merged foundation','stagingPlan':'Create an authorized exact-commit Pages/staging deployment before any release claim.'}
+              out.joinpath('DEPLOYMENT_STATE.md').write_text(f'# Deployment State\n\nAn existing Pages configuration reports `{url}`, but no deployment tied to `{sha}` was found. The site is not claimed as the verified merged foundation. A governed exact-commit deployment remains planned.\n')
+              out.joinpath('PUBLIC_URL_VALIDATION.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report,indent=2));raise SystemExit(0)
+          if not status or status.get('state')!='success': raise SystemExit(f'Exact Pages deployment did not succeed: {status}')
+          report={'result':'passed','active':True,'publicUrl':url,'deploymentCommit':sha,'deploymentId':deployment.get('id'),'deploymentStatus':'success','https':url.startswith('https://'),'truthLabel':'public static/read-only visual preview; not a connected full production product'}
+          out.joinpath('DEPLOYMENT_STATE.md').write_text(f'# Deployment State\n\n- Public URL: `{url}`\n- Exact deployment commit: `{sha}`\n- Status: success\n- Truth label: public static/read-only visual preview; not a connected full production product\n')
+          out.joinpath('PUBLIC_URL_VALIDATION.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report,indent=2))
+          PY
+
+      - name: Create or verify annotated brand tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'Qelly Foundation Automation'
+          git config user.email 'hemangsah@users.noreply.github.com'
+          git fetch origin --tags --force
+          if git rev-parse -q --verify refs/tags/qelly-brand-foundation-v1 >/dev/null; then
+            test "$(git cat-file -t refs/tags/qelly-brand-foundation-v1)" = tag
+            test "$(git rev-parse 'refs/tags/qelly-brand-foundation-v1^{}')" = "$MERGE_SHA"
+          else
+            git tag -a qelly-brand-foundation-v1 "$MERGE_SHA" -m "Qelly approved logo-first visual foundation
+
+Visual approval: Hemang Sah
+PR: #13
+Approved head: $APPROVED_HEAD
+Merge commit: $MERGE_SHA
+Review ZIP SHA-256: $REVIEW_ZIP_SHA256
+Inspection PDF SHA-256: $REVIEW_PDF_SHA256
+IBM Plex Sans Variable remains governed
+Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+Approved Qelly logo-first visual foundation."
+            git push origin refs/tags/qelly-brand-foundation-v1
+          fi
+          tag_object=$(git rev-parse refs/tags/qelly-brand-foundation-v1);target=$(git rev-parse 'refs/tags/qelly-brand-foundation-v1^{}')
+          jq -n --arg object "$tag_object" --arg target "$target" '{result:"passed",tag:"qelly-brand-foundation-v1",objectType:"tag",tagObjectSha:$object,targetSha:$target}' > post-merge-results/BRAND_TAG_RECORD.json
+
+      - name: Generate inventories and validate public-beta draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/qelly-beta
+          git switch -C release/qelly-public-beta-v1 origin/release/qelly-public-beta-v1
+          npm ci --ignore-scripts
+          node scripts/generate-public-beta-baseline.mjs
+          node --test tests/public-beta-foundation.test.mjs tests/brand-foundation-freeze.test.mjs
+          npm run security:scan
+          npm run env:check
+          npm run typecheck
+          npm run lint
+          npm run validate:design
+          npm test
+          npm run validate:brand
+          npm run build
+          npm run validate:product
+          npm run inventory:product
+          npm run smoke
+          NODE_ENV=test QELLY_DEVELOPMENT_IDENTITY_ENABLED=false node scripts/production-identity-check.mjs
+          npm run release:check
+          npm audit --audit-level=high
+          git diff --check
+          git add project-state/QELLY_ROUTE_STATUS.csv project-state/QELLY_API_INVENTORY.csv project-state/QELLY_IMPLEMENTATION_MANIFEST.json
+          if ! git diff --cached --quiet; then
+            git config user.name 'Qelly Foundation Automation';git config user.email 'hemangsah@users.noreply.github.com'
+            git commit -m 'docs(beta): generate executable baseline inventories'
+            git push origin HEAD:release/qelly-public-beta-v1
+          fi
+          beta_head=$(git rev-parse HEAD)
+          cp project-state/QELLY_ROUTE_STATUS.csv "$GITHUB_WORKSPACE/post-merge-results/ROUTE_INVENTORY.csv"
+          cp project-state/QELLY_API_INVENTORY.csv "$GITHUB_WORKSPACE/post-merge-results/API_INVENTORY.csv"
+          cp project-state/QELLY_FEATURE_STATUS.csv "$GITHUB_WORKSPACE/post-merge-results/FEATURE_STATUS.csv"
+          cp project-state/QELLY_PROVIDER_REGISTRY.csv "$GITHUB_WORKSPACE/post-merge-results/PROVIDER_REGISTRY.csv"
+          cp project-state/QELLY_KNOWN_LIMITATIONS.md "$GITHUB_WORKSPACE/post-merge-results/KNOWN_LIMITATIONS.md"
+          cp design/QELLY_BRAND_FOUNDATION_FREEZE.md "$GITHUB_WORKSPACE/post-merge-results/DESIGN_FREEZE.md"
+          cp docs/public-beta/PUBLIC_BETA_BOOTSTRAP.md "$GITHUB_WORKSPACE/post-merge-results/PUBLIC_BETA_BOOTSTRAP.md"
+          cp project-state/QELLY_IMPLEMENTATION_MANIFEST.json "$GITHUB_WORKSPACE/post-merge-results/QELLY_IMPLEMENTATION_MANIFEST.json"
+          jq -n --arg head "$beta_head" --arg base "$MERGE_SHA" '{result:"passed",branch:"release/qelly-public-beta-v1",baseSha:$base,headSha:$head,draftPullRequest:14}' > "$GITHUB_WORKSPACE/post-merge-results/PUBLIC_BETA_BRANCH_RECORD.json"
+          python - <<'PY'
+          import json,os,pathlib,subprocess,time
+          repo=os.environ['GITHUB_REPOSITORY'];sha=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip();required={'Continuous Integration','Container Build','Production Foundation Services','CodeQL'}
+          runs=[]
+          for _ in range(80):
+              data=json.loads(subprocess.check_output(['gh','api',f'repos/{repo}/actions/runs','-f',f'head_sha={sha}','-f','per_page=100'],text=True));runs=data.get('workflow_runs',[]);by={r.get('name'):r for r in runs}
+              if required.issubset(by) and all(by[n].get('status')=='completed' for n in required):break
+              time.sleep(15)
+          by={r.get('name'):r for r in runs};matrix=[{'workflow':n,'runId':by.get(n,{}).get('id'),'conclusion':by.get(n,{}).get('conclusion'),'headSha':by.get(n,{}).get('head_sha')} for n in sorted(required)];failed=[x for x in matrix if x['conclusion']!='success' or x['headSha']!=sha]
+          report={'result':'passed' if not failed else 'failed','headSha':sha,'runs':matrix,'failed':failed};pathlib.Path(os.environ['GITHUB_WORKSPACE'],'post-merge-results','PUBLIC_BETA_WORKFLOW_MATRIX.json').write_text(json.dumps(report,indent=2)+'\n')
+          if failed:raise SystemExit(json.dumps(report))
+          PY
+
+      - name: Package, checksum and persist final Prompt 1 evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq -n --arg merge "$MERGE_SHA" --arg approved "$APPROVED_HEAD" '{result:"passed",mergeCommit:$merge,approvedHead:$approved,guards:"passed",mainWorkflows:"passed",repositoryGates:"passed",browserMatrix:"passed",deploymentTruth:"passed",brandTag:"passed",publicBetaBootstrap:"passed"}' > post-merge-results/FINAL_PROMPT1_VERIFICATION.json
+          cp post-merge-results/* qelly-pr13-post-merge-foundation-verification/
+          (cd qelly-pr13-post-merge-foundation-verification && find . -type f ! -name SHA256SUMS.txt -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)
+          rm -f qelly-pr13-post-merge-foundation-verification.zip qelly-pr13-post-merge-foundation-verification.zip.sha256
+          zip -qr qelly-pr13-post-merge-foundation-verification.zip qelly-pr13-post-merge-foundation-verification
+          unzip -t qelly-pr13-post-merge-foundation-verification.zip
+          sha256sum qelly-pr13-post-merge-foundation-verification.zip > qelly-pr13-post-merge-foundation-verification.zip.sha256
+          test -z "$(unzip -Z1 qelly-pr13-post-merge-foundation-verification.zip | grep -Ei '\.(woff2?|ttf|otf|eot)$' || true)"
+          git add post-merge-results
+          git diff --cached --check
+          if ! git diff --cached --quiet; then
+            git config user.name 'Qelly Foundation Automation';git config user.email 'hemangsah@users.noreply.github.com'
+            git commit -m 'docs(verification): persist completed Prompt1 evidence'
+            git push origin HEAD:agent/pr13-post-merge-verification
+          fi
+
+      - name: Upload final post-merge verification package
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-pr13-post-merge-foundation-verification
+          path: |
+            qelly-pr13-post-merge-foundation-verification.zip
+            qelly-pr13-post-merge-foundation-verification.zip.sha256
+            post-merge-results
+          if-no-files-found: error
+          retention-days: 30
