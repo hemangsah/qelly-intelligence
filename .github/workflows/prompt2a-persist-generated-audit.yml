@@ -131,6 +131,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          for path in Path('project-state').iterdir():
+              if not path.is_file():
+                  continue
+              try:
+                  text = path.read_text(encoding='utf-8')
+              except UnicodeDecodeError:
+                  continue
+              normalized = '\n'.join(line.rstrip() for line in text.splitlines()).rstrip() + '\n'
+              path.write_text(normalized, encoding='utf-8')
+          PY
           rm -rf audit-input
           rm -f .github/workflows/prompt2a-persist-generated-audit.yml
           git config user.name 'qelly-audit-bot'
