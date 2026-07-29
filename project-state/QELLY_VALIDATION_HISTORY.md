@@ -32,6 +32,20 @@ Approval artifact:
 - approved-head to merge-result file differences: zero
 - post-merge workflow/browser/deployment evidence: pending completion by the Prompt 1 verification workflow
 
-## Public-beta bootstrap
+## Public-beta bootstrap correction history
+
+The first draft CI run identified two test-contract defects and one inherited exact-count contract:
+
+1. the brand-freeze test incorrectly expected the build-generated IBM Plex binary in the source tree;
+2. the negative evidence-envelope test reached timestamp validation before its intended identity assertion;
+3. product validation and smoke evidence still expected 65 schemas after adding two governed public-beta schemas.
+
+Corrections preserve strict validation:
+
+- IBM Plex source is verified through the locked package, build copier and index preload;
+- required source, lineage and entitlement are validated before timing fields;
+- product validation requires exactly 67 schemas and both public-beta schema filenames;
+- both smoke assertions require 67 loaded schemas;
+- the one-use patch workflow removed itself from the permanent tree.
 
 The branch must pass the complete repository test suite, brand-freeze tests, public-beta contract tests, generated-inventory reproducibility and security/release gates before review status can advance.
