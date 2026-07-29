@@ -1,13 +1,44 @@
 {
-  "schemaVersion": 1,
-  "generatedAt": "2026-07-29T12:29:42+05:30",
-  "sourceCommit": "9dbd7074c7ad8228612009748d2484ab8a790c05",
-  "foundationCommit": "94fbd4ff91c0d61f87e42724038f03fa5c36f97a",
-  "classificationPolicy": "Executable evidence controls status. Registry presence alone is not implementation or connectivity.",
+  "schemaVersion": 3,
+  "generatedAt": "2026-07-29T18:51:00+05:30",
+  "repository": "hemangsah/qelly-intelligence",
+  "startingMain": "26d2c9c453992b74dd3931d6b8b9489117d0b44c",
+  "sourceHead": "eafb11719e67135c7a6fa3b15e1170c5192e4771",
+  "finalAuditHead": "e2e2dd822e7811406ea5b220dbd033bfad75f09b",
+  "branch": "feature/prompt2-repository-gap-audit",
+  "draftPullRequest": 19,
+  "classificationPolicy": "Executable end-to-end evidence controls status. Route/schema/API/fixture/screenshot/registry presence is not completion.",
   "counts": {
+    "repositoryInventoryRows": 721,
     "routes": 61,
-    "apiReferences": 276,
-    "governedFoundationFiles": 9
+    "screens": 61,
+    "components": 40,
+    "frontendActions": 433,
+    "backendServices": 73,
+    "internalApis": 187,
+    "databaseEntities": 28,
+    "eventsWorkers": 22,
+    "providers": 28,
+    "externalHostTokens": 33,
+    "embeds": 1,
+    "redirectRecords": 2,
+    "formulas": 188,
+    "masterFeatures": 545,
+    "requestedFeatureGroups": 21,
+    "securityRisks": 11,
+    "testSubjects": 69
+  },
+  "routeStatusCounts": {
+    "STATIC_DEMO": 8,
+    "PARTIAL": 53
+  },
+  "featureStatusCounts": {
+    "IMPLEMENTED_DETERMINISTIC_LOCAL": 37,
+    "PLANNED": 343,
+    "DEFERRED": 5,
+    "IMPLEMENTED_CONNECTED": 1,
+    "PROTOTYPE": 63,
+    "PARTIAL": 96
   },
   "safety": {
     "realMoneyTrading": false,
@@ -17,51 +48,93 @@
     "seedPhraseCollection": false,
     "autonomousExecution": false
   },
-  "files": [
-    {
-      "path": "design/QELLY_BRAND_FOUNDATION_FREEZE.md",
-      "bytes": 2730,
-      "sha256": "03d9870090df4e43fe777cd9f83c982c6823d72efcbab602b93f712861360b42"
+  "validation": {
+    "bootstrapSourceHead": "eafb11719e67135c7a6fa3b15e1170c5192e4771",
+    "bootstrapWorkflowRun": 30441613550,
+    "bootstrapArtifactId": 8719693609,
+    "bootstrapArtifactSha256": "a3a798edd016ea28bb5174f089d9948fd51f0b23edb7d480d9bf57613483156b",
+    "finalWave0WorkflowRun": 30456044354,
+    "validatedHead": "e2e2dd822e7811406ea5b220dbd033bfad75f09b",
+    "browserMatrix": {
+      "routes": 61,
+      "browsers": 3,
+      "viewports": 3,
+      "records": 549,
+      "passed": 549,
+      "failed": 0
     },
-    {
-      "path": "config/public-beta.environments.json",
-      "bytes": 908,
-      "sha256": "665166b58b0266cc3281091a5f6be33ad7cc49a78d567d924b52af42c682bd36"
+    "retainedRepositoryGates": {
+      "total": 16,
+      "passed": 16,
+      "failed": 0
     },
-    {
-      "path": "config/public-beta.feature-flags.json",
-      "bytes": 1057,
-      "sha256": "d6bea4bffa9844f2124038da3e0f981e0b2db9186cb1cdf57721a7d1ce4ed4a3"
+    "standardExactHeadRuns": {
+      "ci": 30456043162,
+      "container": 30456043237,
+      "productionFoundation": 30456043270,
+      "codeql": 30456043152
     },
-    {
-      "path": "packages/schemas/public-beta-truth-state.schema.json",
-      "bytes": 453,
-      "sha256": "9b8d6b5b51a70fddf14382c40f8603dab861490a5f37a3cbda01735241918949"
-    },
-    {
-      "path": "packages/schemas/public-beta-evidence-metadata.schema.json",
-      "bytes": 1455,
-      "sha256": "6ef63098680c366a21681531ac2c7a4459b134234f70ba1ac1586c0cd211015b"
-    },
-    {
-      "path": "src/public-beta/truth-state.mjs",
-      "bytes": 2315,
-      "sha256": "08af26ffe7dd477ce89669b5ab7d52761d7f60bafcb04cf9f34a34cb5cb4ea13"
-    },
-    {
-      "path": "src/public-beta/provider-adapter.mjs",
-      "bytes": 2670,
-      "sha256": "3491d5d38e771a288f1ce972b6692aa984745a3a21864c89384fe7fdd4538e11"
-    },
-    {
-      "path": "src/public-beta/runtime-config.mjs",
-      "bytes": 1951,
-      "sha256": "aefed77609751f848137780ddee75cb005df053582145f21130267c840f63dda"
-    },
-    {
-      "path": "src/public-beta/observability.mjs",
-      "bytes": 1465,
-      "sha256": "6430c358d15d78bab2c6d33f981d7997190096ad98149ad69498b9b600134e33"
-    }
-  ]
+    "allFinalGatesPassed": true
+  },
+  "requiredNextPrompt": "project-state/QELLY_NEXT_PROMPT_2B.md",
+  "nextBranch": "feature/calculator-and-indicator-foundation",
+  "prompt2BStarted": false,
+  "mainModified": false,
+  "auditPrDraft": true,
+  "auditPrMerged": false,
+  "projectStateFiles": [
+    {"path":"project-state/PROMPT2A_LIVE_STARTING_STATE.json","bytes":3499,"sha256":"ac24b2b3300426eaa2076dd516da578076cc2ad5bb2382c6a6adae61de88d57d"},
+    {"path":"project-state/QELLY_API_INVENTORY.csv","bytes":93223,"sha256":"bd21ff9b150b754f6aec432c10dd149a8b70909761256b50af77a9bec3655e53"},
+    {"path":"project-state/QELLY_BACKEND_SERVICE_INVENTORY.csv","bytes":26953,"sha256":"82ace428d35afb7104a45292f13da225303777c33b3a122d717d5b4dbb690ea4"},
+    {"path":"project-state/QELLY_COMPONENT_INVENTORY.csv","bytes":13067,"sha256":"2d2ebcf009d1df5ab163605b5ca9d4ff5265052d4844fc2728aa6dae23bd2e3c"},
+    {"path":"project-state/QELLY_CURRENT_HANDOFF.md","bytes":4423,"sha256":"0a6bec6893555398666f2209d0ebe4237e2bd44b45758b2bcb0ed9a88eb5d89f"},
+    {"path":"project-state/QELLY_DATABASE_ENTITY_INVENTORY.csv","bytes":8639,"sha256":"81b4e7deebfbc9b65d3557b1d61e75cd48f06e82a8ad47e4b550d823c663a11b"},
+    {"path":"project-state/QELLY_DATA_LICENSE_REGISTER.csv","bytes":10612,"sha256":"b8935462c77e1e49cae52d0895f060d395740aede52b35abdd350c46e96c018b"},
+    {"path":"project-state/QELLY_DECISION_LOG.md","bytes":3875,"sha256":"6fec3a1d62331fdcf6db1cb11e16691b7a3593e1221fa1e57c8a13764e3e9e9c"},
+    {"path":"project-state/QELLY_DEPENDENCY_GRAPH.json","bytes":7743,"sha256":"c5a44197ee51961e0d200f4ade36fa75c780aed8416e9ba455a203e03c49e065"},
+    {"path":"project-state/QELLY_EMBED_REGISTRY.csv","bytes":1060,"sha256":"1708b28a6780c5f51adc0d748570c2d923a9e1921931da8438c9595457735de7"},
+    {"path":"project-state/QELLY_EVENT_WORKER_INVENTORY.csv","bytes":7620,"sha256":"16e81062d0d41aaee6e9a7024b9c7838939d009f8043ff19d1290b26a4e4882e"},
+    {"path":"project-state/QELLY_EXTERNAL_DEPENDENCY_REGISTER.csv","bytes":12698,"sha256":"ba951a385ee21862b853d8415de33ecff8ce6ef6502b3860ee4821e57339df29"},
+    {"path":"project-state/QELLY_FEATURE_GAP_MATRIX.csv","bytes":170878,"sha256":"d5993107a84be833cea58721d69bc9b03daf4afd4c00f472fc611f75ee9d0d16"},
+    {"path":"project-state/QELLY_FEATURE_STATUS.csv","bytes":23702,"sha256":"4144be2606433dc3409536eb54fa261bc205dd5957f72bd8982d84e0e25ae2e6"},
+    {"path":"project-state/QELLY_FORMULA_CATALOG.csv","bytes":63665,"sha256":"c0bf7f29800bd00cf74cccb4d60cbca33615d6a198bda4ebfa08e6d2657cfd66"},
+    {"path":"project-state/QELLY_FRONTEND_ACTION_INVENTORY.csv","bytes":181174,"sha256":"ae1476afb951eb4a1ad32b395e9cb8825e4b734378b7957bccdd22abce2ecbcb"},
+    {"path":"project-state/QELLY_IMPLEMENTATION_WAVES.md","bytes":3151,"sha256":"44b6f79533ef04e13f502fd512d717241d592aae2337b0e58914ecaf7afd6e84"},
+    {"path":"project-state/QELLY_KNOWN_LIMITATIONS.md","bytes":1625,"sha256":"57828bd52c4e93440de5c88cfeccbd4466362a046b26d2153f06a10754bc13a9"},
+    {"path":"project-state/QELLY_MASTER_FEATURE_UNIVERSE.csv","bytes":316677,"sha256":"f23ff0bb58d6603945bac2f8f6b7612ca4a6819b54dcef8e9c0d3d364ae67033"},
+    {"path":"project-state/QELLY_NEXT_PROMPT_2B.md","bytes":4294,"sha256":"25d349d1ee92afccb370066d9ed16ab296af801c91bf4d3842647d14052ca1fe"},
+    {"path":"project-state/QELLY_PROGRESS_LEDGER.md","bytes":4522,"sha256":"8a5b6cd325077bb238bd8fab54157fada0ebc03e6105e25e404eea072721a410"},
+    {"path":"project-state/QELLY_PROJECT_STATE.md","bytes":3523,"sha256":"312f25cef85d7d6c6ee7f64494af79a3cbc40d2368559f2cd035e814cef183a3"},
+    {"path":"project-state/QELLY_PROMPT2A_AUDIT_REPORT.md","bytes":6844,"sha256":"61407f78130547cbff73c394b6f8167202e74dcb65fe74b8ebc55ad750376392"},
+    {"path":"project-state/QELLY_PROMPT2B_STARTING_STATE.md","bytes":2078,"sha256":"01b1b835243a135d10a2b5c5705eb692aa88428db4aab7f8997ff86731f37ed2"},
+    {"path":"project-state/QELLY_PROVIDER_REGISTRY.csv","bytes":29034,"sha256":"da0669ba9d9faa3bed7b1ad774d5d8a0d53bf2e396469e752201ef9f7ace7d67"},
+    {"path":"project-state/QELLY_PUBLIC_API_CONFORMANCE.csv","bytes":6451,"sha256":"33ed5fd0c0c89fbf153ef3cc0551c22ca7da49dfec6b675c63593088bfb65798"},
+    {"path":"project-state/QELLY_REDIRECT_REGISTRY.csv","bytes":516,"sha256":"309303d6ec426ddd34bf398d54e62371aac07678cbda76b09e32365f38b14558"},
+    {"path":"project-state/QELLY_RELEASE_BLOCKERS.md","bytes":1424,"sha256":"b7661a83d46c5b60c0b64567f70dc0289ba2f771007bb68158e35f74e5a9e624"},
+    {"path":"project-state/QELLY_REPOSITORY_INVENTORY.csv","bytes":106324,"sha256":"581da5a1e0d56e2275f58f842525e231fd3b8ccd809df3eb69361afc7d69a77a"},
+    {"path":"project-state/QELLY_REQUESTED_FEATURE_STATUS.csv","bytes":12190,"sha256":"fa466bc6f5c0afd8a5f07afc29b7c0719594bd9c0f2b640e3e413cb7e1e91cfa"},
+    {"path":"project-state/QELLY_ROUTE_STATUS.csv","bytes":37037,"sha256":"67dfb047f4ad9064e767613cab02d0a6e8475f6b6d300e7d04e5617d59bbc7a8"},
+    {"path":"project-state/QELLY_SCREEN_INVENTORY.csv","bytes":27689,"sha256":"4e6bb85fe6b76c6f5afde75f3a121bd2ff5eec4066ee3f64992ce94c0f4787ed"},
+    {"path":"project-state/QELLY_SECURITY_RISK_REGISTER.csv","bytes":4893,"sha256":"f4b2d003b9d2a234da1a341143434b0fb897f850242b15935d5c4b0f22cddfb7"},
+    {"path":"project-state/QELLY_TEST_COVERAGE_MATRIX.csv","bytes":56984,"sha256":"cd85c9e2b777f6b529afcf82101c6229ba58106d472f053cbc7d2e7b3aaf36ae"},
+    {"path":"project-state/QELLY_VALIDATION_HISTORY.md","bytes":5505,"sha256":"11769d213ed55499d1f77a835a82472edd3cbc4ecb16cb02d86fa143bcbdf855"}
+  ],
+  "reviewArtifact": {
+    "githubArtifactId": 8725646367,
+    "githubArtifactDigest": "ac8ef42c517f4e1adb684252c2a8370c8848a1c1ab4ca7fad0bae66e7dff36c1",
+    "githubArtifactBytes": 777294,
+    "filename": "qelly-prompt2a-world-scale-gap-audit-and-implementation-blueprint.zip",
+    "sha256": "1d9c4c6b9cec171b5f8e74ba2853c94b098635d5009ca6e860f8d2f3b83c2dc9",
+    "bytes": 403270,
+    "entryCount": 73,
+    "crcVerified": true,
+    "internalChecksumCount": 52,
+    "zeroProhibitedFontBinaries": true
+  },
+  "separateHotfix": {
+    "pullRequest": 20,
+    "head": "97bcccec58dedfe491dc36321a17b584f5b196b4",
+    "draft": true,
+    "merged": false
+  }
 }

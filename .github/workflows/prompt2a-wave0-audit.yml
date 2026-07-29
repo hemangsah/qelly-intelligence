@@ -1,0 +1,133 @@
+name: Qelly Prompt 2A Wave 0 Audit
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'scripts/prompt2a-*.mjs'
+      - 'project-state/**'
+      - '.github/workflows/prompt2a-wave0-audit.yml'
+  workflow_dispatch:
+
+permissions: read-all
+
+concurrency:
+  group: qelly-prompt2a-wave0-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  final-wave0-audit:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'feature/prompt2-repository-gap-audit'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    steps:
+      - name: Check out exact audit head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install locked dependencies and browsers
+        run: |
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium firefox webkit
+
+      - name: Generate exact recursive repository evidence
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          QELLY_AUDIT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/prompt2a-wave0-bootstrap.mjs
+
+      - name: Validate every Wave 0 registry
+        env:
+          QELLY_AUDIT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/prompt2a-audit-validate.mjs
+
+      - name: Probe bounded official public API candidates
+        env:
+          QELLY_AUDIT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/prompt2a-provider-probe.mjs
+
+      - name: Build disconnected static review application
+        env:
+          QELLY_STATIC_VISUAL_PREVIEW: 'true'
+          QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
+        run: npm run build:frontend
+
+      - name: Audit all registered routes in Chromium Firefox and WebKit
+        id: browsers
+        continue-on-error: true
+        env:
+          QELLY_AUDIT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/prompt2a-browser-audit.mjs
+
+      - name: Run complete repository gates and retain results
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p .prompt2a-final/13-tests
+          report=.prompt2a-final/13-tests/REPOSITORY_VALIDATION_STATUS.tsv
+          printf 'gate\texit_code\n' > "$report"
+          run_gate(){ name="$1"; shift; set +e; "$@"; code=$?; set -e; printf '%s\t%s\n' "$name" "$code" >> "$report"; }
+          set -e
+          run_gate env-check npm run env:check
+          run_gate typecheck npm run typecheck
+          run_gate lint npm run lint
+          run_gate design-governance npm run validate:design
+          run_gate brand-governance npm run validate:brand
+          run_gate secret-scan npm run security:scan
+          run_gate tests npm test
+          run_gate production-build npm run build
+          run_gate frontend-build env QELLY_STATIC_VISUAL_PREVIEW=true QELLY_PUBLIC_BASE_PATH=/qelly-intelligence/ npm run build:frontend
+          run_gate product-validation npm run validate:product
+          run_gate product-inventory npm run inventory:product
+          run_gate full-stack-smoke npm run smoke
+          run_gate production-identity env NODE_ENV=test QELLY_DEVELOPMENT_IDENTITY_ENABLED=false node scripts/production-identity-check.mjs
+          run_gate release-check npm run release:check
+          run_gate dependency-audit npm audit --audit-level=high
+          run_gate git-diff-check git diff --check
+          cat "$report"
+
+      - name: Package exact Prompt 2A review artifact
+        if: always()
+        env:
+          QELLY_AUDIT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          QELLY_PR_NUMBER: ${{ github.event.pull_request.number || 19 }}
+        run: node scripts/prompt2a-package-artifact.mjs
+
+      - name: Upload complete Prompt 2A Wave 0 artifact
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-prompt2a-world-scale-gap-audit-and-implementation-blueprint
+          path: |
+            .prompt2a-final/qelly-prompt2a-world-scale-gap-audit-and-implementation-blueprint.zip
+            .prompt2a-final/qelly-prompt2a-world-scale-gap-audit-and-implementation-blueprint.zip.sha256
+            .prompt2a-final/qelly-prompt2a-world-scale-gap-audit-and-implementation-blueprint
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Enforce final Wave 0 gates
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs=require('fs');
+          const validation=JSON.parse(fs.readFileSync('.prompt2a-final/13-tests/AUDIT_OUTPUT_VALIDATION.json'));
+          if(validation.result!=='passed') throw new Error(JSON.stringify(validation.failures));
+          const browserFailures=JSON.parse(fs.readFileSync('.prompt2a-final/03-frontend/ROUTE_BROWSER_FAILURES.json'));
+          if(browserFailures.length) throw new Error(`browser failures: ${browserFailures.length}`);
+          NODE
+          failures=$(awk -F '\t' 'NR>1 && $2 != 0 {print $1 "=" $2}' .prompt2a-final/13-tests/REPOSITORY_VALIDATION_STATUS.tsv)
+          if [ -n "$failures" ]; then echo "$failures"; exit 1; fi
+          test "${{ steps.browsers.outcome }}" = success
