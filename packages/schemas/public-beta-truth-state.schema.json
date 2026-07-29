@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.example/schemas/public-beta-truth-state.schema.json",
+  "title": "Qelly Public Beta Truth State",
+  "type": "string",
+  "enum": [
+    "LIVE",
+    "DELAYED",
+    "CACHED",
+    "DETERMINISTIC_LOCAL",
+    "SIMULATED",
+    "ESTIMATED",
+    "EMBEDDED",
+    "UNAVAILABLE",
+    "STALE",
+    "PARTIAL",
+    "REQUIRES_AUTHORIZATION",
+    "REQUIRES_LICENSE",
+    "DEMO"
+  ]
+}
