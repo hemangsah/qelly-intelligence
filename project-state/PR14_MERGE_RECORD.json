@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "result": "passed",
+  "pullRequest": 14,
+  "title": "Qelly public-beta foundation",
+  "baseMain": "94fbd4ff91c0d61f87e42724038f03fa5c36f97a",
+  "approvedHead": "20e34c77add21d3d0c1f1db62949948e77768fea",
+  "mergeCommit": "46233298031372c51bb433229bd7f9d1aff70568",
+  "mergeTimestamp": "2026-07-29T08:26:52Z",
+  "mergeMethod": "merge commit",
+  "expectedHeadGuard": true,
+  "autoMergeEnabled": false,
+  "treeComparison": {
+    "status": "identical",
+    "changedFiles": 0
+  },
+  "scope": "public-beta architecture and governance foundations only",
+  "excludedClaims": [
+    "external providers connected",
+    "live trading enabled",
+    "custody enabled",
+    "deposits or withdrawals enabled",
+    "private-key or seed-phrase handling enabled",
+    "autonomous execution enabled",
+    "Prompt 2 product expansion completed"
+  ]
+}

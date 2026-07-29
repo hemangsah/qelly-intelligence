@@ -1,42 +1,80 @@
 # Qelly Validation History
 
-## PR #13 approved and merged foundation
+## PR #13 approved and merged brand foundation
 
 - Approved head: `6fabb1ac65d73cde25d1dca6d63a6685ef7d7e9a`
-- Merge/main: `94fbd4ff91c0d61f87e42724038f03fa5c36f97a`
+- Merge/main foundation: `94fbd4ff91c0d61f87e42724038f03fa5c36f97a`
 - Merge tree comparison: identical, zero file differences
 - Review ZIP SHA-256: `b2b10a6b80bb45cb10faf6173d39c4b2d9bb0893039da1b9936878189b1f492c`
 - Inspection PDF SHA-256: `66d2d7cb656d25a8b6b7011bc6818c2f3f8db33ce7f051e95b2a35999b99a9c9`
 - Compiled preview SHA-256: `fa528379f1cc1ef4d4446aaf832b8e0d7b88e924b6c2f51ef17d73fc878ba39d`
 
-## Exact-main push workflows
+## PR #14 public-beta foundation review and merge
 
-- Continuous Integration — run `30426913360` — success
-- Container Build — run `30426913315` — success
-- Production Foundation Services — run `30426913312` — success
-- CodeQL — run `30426913323` — success
+- Starting base: `94fbd4ff91c0d61f87e42724038f03fa5c36f97a`
+- Exact reviewed head: `20e34c77add21d3d0c1f1db62949948e77768fea`
+- Merge commit: `46233298031372c51bb433229bd7f9d1aff70568`
+- Merge timestamp: `2026-07-29T08:26:52Z`
+- Merge method: exact-head guarded merge commit
+- Approved-head/merge-result comparison: identical, zero file differences
+- Scope verdict: architecture and governance foundations only
 
-## Post-merge independent validation
+### Exact reviewed-head workflows
 
-- Complete exact-main repository gates: passed
-- Secret scan: passed
-- Dependency audit: passed
-- Production identity isolation: passed
-- Release safety: passed
-- Local browser matrix: 24/24 passed
-- Browsers: Chromium, Firefox, WebKit
-- Critical routes: market, Asset Rankings, Theme Studio, Theme Gallery
-- Viewports: 360×800 and 1440×1000
-- Console/page/resource failures: zero
-- Horizontal overflow: zero
-- IBM Plex and logo loading: passed
-- Public deployment and browser smoke: passed
+- Continuous Integration — run `30435329025` — success
+- Container Build — run `30435329090` — success
+- Production Foundation Services — run `30435326590` — success
+- CodeQL — run `30435329206` — success
 
-## Public-beta bootstrap validation
+### Exact main push workflows
 
-- Public-beta contract tests: passed
-- Brand-freeze governance tests: passed
-- Product validation: 61 routes, 187 API contracts, 17 contracts, 67 schemas
-- Full-stack smoke: 260 requests passed
-- Generated inventory: 61 routes and 276 API references
-- Exact final PR #14 workflow matrix: pending connector-authored final handoff head
+- Continuous Integration — run `30435545787` — success
+- Container Build — run `30435545830` — success
+- Production Foundation Services — run `30435545836` — success
+- CodeQL — run `30435545815` — success
+
+### Repository and product gates
+
+- dependency review: passed
+- secret scan: passed
+- environment and high-risk safety locks: passed
+- type and syntax checks: passed
+- lint and repository policy: passed
+- governed design foundations: passed
+- complete tests: passed
+- production build: passed
+- standalone frontend build: passed
+- product validation and inventory rebuild: passed
+- full-stack smoke: passed
+- database identity isolation: passed
+- release safety: passed
+
+### Deployment validation
+
+- Public URL: `https://hemangsah.github.io/qelly-intelligence/`
+- Deployment ID: `5654166920`
+- Successful status ID: `16077977388`
+- Environment URL: `https://hemangsah.github.io/qelly-intelligence/`
+- Public URL HTTP: 200
+- Manifest HTTP: 200
+- IBM Plex resource HTTP: 200
+- Truth label: static/read-only preview; no connected-backend claim
+
+## Public-beta inventory baseline
+
+- routes: 61
+- API references: 276
+- schemas: 67
+- server API contracts: 187
+- contract families: 17
+- truth states: 13
+
+Inventory presence is not proof of implementation or provider connectivity.
+
+## Administrative audit cleanup
+
+- PR #15: closed without merge; closure comment `5114979271`; branch preserved
+- PR #16: closed without merge; closure comment `5114983361`; zero changed files at closure; branch preserved
+- PR #17: temporary post-merge verification only; must be closed without merge after final closeout-main verification
+
+Prompt 2 and Prompt 3 have not been executed.
