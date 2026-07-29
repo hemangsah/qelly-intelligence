@@ -18,7 +18,8 @@ jobs:
     name: Render and compare premium UI reset
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      (github.event.pull_request.head.ref == 'agent/ui-rescue-asset-rankings' &&
+      ((github.event.pull_request.head.ref == 'agent/ui-rescue-asset-rankings' ||
+      github.event.pull_request.head.ref == 'feature/logo-first-brand-system') &&
       github.event.pull_request.base.ref == 'main')
     runs-on: ubuntu-latest
     timeout-minutes: 45

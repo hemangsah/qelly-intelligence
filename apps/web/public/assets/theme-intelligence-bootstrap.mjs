@@ -76,7 +76,7 @@ function installPortalInheritance(){
 }
 
 const shared=(()=>{const encoded=new URL(location.href).searchParams.get('qellyTheme');if(!encoded)return {};try{const value=encoded.replaceAll('-','+').replaceAll('_','/');return JSON.parse(decodeURIComponent(escape(atob(value+'='.repeat((4-value.length%4)%4)))));}catch{return {};}})();
-themeIntelligence.start({...localState.prefs,...shared});localState.prefs={...localState.prefs,...preferencePatch(themeIntelligence.config)};
+themeIntelligence.start(shared);localState.prefs={...localState.prefs,...preferencePatch(themeIntelligence.config)};
 await hydrateAuthenticatedPreferences();
 installRouteGuard();installLaunchers();installPortalInheritance();
 enhanceThemeIntelligenceVisuals(document);

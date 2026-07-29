@@ -28,7 +28,7 @@ concurrency:
 
 jobs:
   validate-and-render:
-    if: github.event_name == 'workflow_dispatch' || (github.event.pull_request.head.ref == 'agent/ui-rescue-asset-rankings' && github.event.pull_request.base.ref == 'main')
+    if: github.event_name == 'workflow_dispatch' || ((github.event.pull_request.head.ref == 'agent/ui-rescue-asset-rankings' || github.event.pull_request.head.ref == 'feature/logo-first-brand-system') && github.event.pull_request.base.ref == 'main')
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:

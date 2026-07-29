@@ -1,0 +1,607 @@
+{
+  "schemaVersion": 1,
+  "repository": "hemangsah/qelly-intelligence",
+  "branch": "feature/logo-first-brand-system",
+  "foundationCommit": "239f6f0c7c663801662f4e5f940ca76fb6941bf1",
+  "foundationTag": "qelly-design-foundation-v1",
+  "selectedLogo": "user-supplied authoritative Qelly mark",
+  "ibmPlexLock": true,
+  "transportResolution": "damaged archive transport rejected; source reconstructed directly as bounded, independently hashed repository files",
+  "fileCount": 44,
+  "files": [
+    {
+      "path": ".github/workflows/logo-brand-review.yml",
+      "purpose": "brand validation and visual review workflow",
+      "kind": "text",
+      "bytes": 3069,
+      "sha256": "e22c45b08c2354c3a13c4a9fa4488561079eb81bc9291b009448a22eecc7eb5d",
+      "gitBlobSha": "8e5c88349d31be5e0119bfbb7b104b3e1e591cc5",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "apps/web/public/apple-touch-icon.png",
+      "purpose": "web shell, favicon, PWA or social integration",
+      "kind": "binary",
+      "bytes": 909,
+      "sha256": "dd282fbf54fa48dde7b9a0d3d203faf673e24c22b9623eaf8716f710c9980de8",
+      "gitBlobSha": "129009c1d061a38b3d896e84b27c8cfc279ac805",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark",
+      "dimensions": [
+        180,
+        180
+      ]
+    },
+    {
+      "path": "apps/web/public/assets/brand/qelly-logo-compact.svg",
+      "purpose": "official production logo asset",
+      "kind": "text",
+      "bytes": 1166,
+      "sha256": "38f56654248bff1c0f18e7f734d046f90305a9170cf54f0b5296f220d8be4d57",
+      "gitBlobSha": "e5cddaae5f4ed14af3046d2c8ab0d22babd3dc43",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "apps/web/public/assets/brand/qelly-logo-dark.svg",
+      "purpose": "official production logo asset",
+      "kind": "text",
+      "bytes": 1154,
+      "sha256": "090eec8e5116f4889e0342b4b6d079c9b36c6d880a58f0d8f8f7f66cf3b6ba2d",
+      "gitBlobSha": "c231b970d06f6c4cda0d6fbbcd8af6a7f1a2001d",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "apps/web/public/assets/brand/qelly-logo-high-contrast.svg",
+      "purpose": "official production logo asset",
+      "kind": "text",
+      "bytes": 1190,
+      "sha256": "76c85e690c4801b610ab47a417a7bf5e8d26786914c0bc6665c08ae47fad9b35",
+      "gitBlobSha": "d2e4939555150ec6700a0910bd33df448d410c0e",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "apps/web/public/assets/brand/qelly-logo-light.svg",
+      "purpose": "official production logo asset",
+      "kind": "text",
+      "bytes": 1158,
+      "sha256": "7507c47ff33d741f2d52fb4644e0ab526db1aff0b39e35f335e490e11a2f2740",
+      "gitBlobSha": "ce9441027979194a6c13edb8ae0fb50e75ef2fa2",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "apps/web/public/assets/brand/qelly-logo-monochrome-dark.svg",
+      "purpose": "official production logo asset",
+      "kind": "text",
+      "bytes": 1174,
+      "sha256": "39214174b400bdfb88368afe0577b2b8d029f1381c417149fe3e5666e6fec3a8",
+      "gitBlobSha": "84689d27125e87120721f6b7d7afd93ac14f6718",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "apps/web/public/assets/brand/qelly-logo-monochrome-light.svg",
+      "purpose": "official production logo asset",
+      "kind": "text",
+      "bytes": 1178,
+      "sha256": "54235c9185409028ff9b22e4c48cd04c600921698c4a859e78600814de919e33",
+      "gitBlobSha": "0f47631e605dc28376bd544a4cf891c501e96fc7",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "apps/web/public/assets/brand/qelly-logo-primary.svg",
+      "purpose": "official production logo asset",
+      "kind": "text",
+      "bytes": 1166,
+      "sha256": "6ea8b2140c7a970ba18d03490d17aad8410c47cb1cf84283fdf67ab50c21b857",
+      "gitBlobSha": "b9437fc4d753b6efd691b47dbd8d027d643dfcbf",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "apps/web/public/assets/brand/qelly-symbol-dark.svg",
+      "purpose": "official production logo asset",
+      "kind": "text",
+      "bytes": 814,
+      "sha256": "e4d4634f8780e16f4ef0b78c3825ca28eafb9ed9448b7c58343e149edaefdeb2",
+      "gitBlobSha": "694d1ce3ac8fbab7c7ba40ae556ce2fba9f6e6c9",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "apps/web/public/assets/brand/qelly-symbol-monochrome.svg",
+      "purpose": "official production logo asset",
+      "kind": "text",
+      "bytes": 814,
+      "sha256": "39402b4ea1b625256d960f0039f817f23aea96beaa0155d526b2084eab496e42",
+      "gitBlobSha": "f9b07c530e933c4e1592cd9abe3a3412d34edbbf",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "apps/web/public/assets/brand/qelly-symbol-small.svg",
+      "purpose": "official production logo asset",
+      "kind": "text",
+      "bytes": 818,
+      "sha256": "88396cce7b20b740ae880447cbd61434ea11f8acd3cc67633ee91b1551ef4d0a",
+      "gitBlobSha": "44f8fbdb5108463375087de9ca26a0d436e085b3",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "apps/web/public/assets/brand/qelly-symbol.svg",
+      "purpose": "official production logo asset",
+      "kind": "text",
+      "bytes": 794,
+      "sha256": "a46ae780a0dcb52f2b4cfa0865b00117d027e52d722354a8f2c86985d0f7fa64",
+      "gitBlobSha": "dbf57fb4da9ca06f4a49f8b1c68f67d29ea8a043",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "apps/web/public/assets/qelly-brand.css",
+      "purpose": "runtime brand integration",
+      "kind": "text",
+      "bytes": 7311,
+      "sha256": "a916d50fac5e57e1d96e2e367a3108f170c2b3058e5dff67dcfd45e6308025f7",
+      "gitBlobSha": "d30bbe660beff68a51995629e9804c08019f2e97",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "apps/web/public/assets/qelly-brand.mjs",
+      "purpose": "runtime brand integration",
+      "kind": "text",
+      "bytes": 7387,
+      "sha256": "0b978f4d4e03592ae4963807fc55502e46ba20231ecd45a79820fc50f8897d8d",
+      "gitBlobSha": "07465a71ba32d427c79e3b0daa32bdd0190c6fa0",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "apps/web/public/favicon.ico",
+      "purpose": "web shell, favicon, PWA or social integration",
+      "kind": "binary",
+      "bytes": 981,
+      "sha256": "e69b1cbd5b12c53299145bc25732a15060bd3b24589059f91a5f7f03010a6c6d",
+      "gitBlobSha": "b3162353124ba194d5d51172cf85da014c3a568e",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark",
+      "iconDimensions": [
+        [
+          16,
+          16
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          48,
+          48
+        ],
+        [
+          64,
+          64
+        ]
+      ]
+    },
+    {
+      "path": "apps/web/public/favicon.svg",
+      "purpose": "web shell, favicon, PWA or social integration",
+      "kind": "text",
+      "bytes": 798,
+      "sha256": "6eff7c1256ea41e98cd08940421369347518aea2418d35052a10a7ef77e7fa40",
+      "gitBlobSha": "a3652dd8fd0d40f150115929791275caee95be52",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "apps/web/public/icons/qelly-16.png",
+      "purpose": "web shell, favicon, PWA or social integration",
+      "kind": "binary",
+      "bytes": 127,
+      "sha256": "18a95c0ede36777f28b085cc622f639ed7a5af79db12c3dc4ddb53c85b31babb",
+      "gitBlobSha": "ada02956cc7453fb307ff29b424d4c111b822790",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark",
+      "dimensions": [
+        16,
+        16
+      ]
+    },
+    {
+      "path": "apps/web/public/icons/qelly-192.png",
+      "purpose": "web shell, favicon, PWA or social integration",
+      "kind": "binary",
+      "bytes": 970,
+      "sha256": "cdbc28542e23328a4a060871da8c138155f3158c5e9a54a1bfd6ebdb0b70dc2c",
+      "gitBlobSha": "58bea29c654d064916d4aaf08dcfac2673de3807",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark",
+      "dimensions": [
+        192,
+        192
+      ]
+    },
+    {
+      "path": "apps/web/public/icons/qelly-32.png",
+      "purpose": "web shell, favicon, PWA or social integration",
+      "kind": "binary",
+      "bytes": 198,
+      "sha256": "8394c224409a539c3e3f47f99ea51d10a479e20df9c145236d625cdaeb5d0dfb",
+      "gitBlobSha": "407df516b681b546dec3f3690e68d816cc330c61",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark",
+      "dimensions": [
+        32,
+        32
+      ]
+    },
+    {
+      "path": "apps/web/public/icons/qelly-48.png",
+      "purpose": "web shell, favicon, PWA or social integration",
+      "kind": "binary",
+      "bytes": 254,
+      "sha256": "5be2a6be0b9ae7bd0c41f9d8fc3fb63c300c94f96616f7dba2d89be87fe2a67b",
+      "gitBlobSha": "b8705da79590fe03097f1ff42207abff14a1b4bc",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark",
+      "dimensions": [
+        48,
+        48
+      ]
+    },
+    {
+      "path": "apps/web/public/icons/qelly-512.png",
+      "purpose": "web shell, favicon, PWA or social integration",
+      "kind": "binary",
+      "bytes": 3594,
+      "sha256": "e20e77806645c03c1887b46e5dc88e85daf7147fa8cb4b3c86badda988f7d7be",
+      "gitBlobSha": "80c7c9ac43259ae4822c6924c8ee4f1b775ef76d",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark",
+      "dimensions": [
+        512,
+        512
+      ]
+    },
+    {
+      "path": "apps/web/public/icons/qelly-64.png",
+      "purpose": "web shell, favicon, PWA or social integration",
+      "kind": "binary",
+      "bytes": 332,
+      "sha256": "450db5d97489758f0b348841909f921747ead394945c022f4e8ea0ba3f29a157",
+      "gitBlobSha": "dce8eb983ba13b3f3e5b00db99cd7325f7a9e49c",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark",
+      "dimensions": [
+        64,
+        64
+      ]
+    },
+    {
+      "path": "apps/web/public/icons/qelly-maskable-512.png",
+      "purpose": "web shell, favicon, PWA or social integration",
+      "kind": "binary",
+      "bytes": 3089,
+      "sha256": "211745705d8f32683a576c6b6b55fa1273c918e2846ae1ee666b402694b207c3",
+      "gitBlobSha": "e23a8b65b3333b39068746e9d822997fbd8fcd51",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark",
+      "dimensions": [
+        512,
+        512
+      ]
+    },
+    {
+      "path": "apps/web/public/index.html",
+      "purpose": "web shell, favicon, PWA or social integration",
+      "kind": "text",
+      "bytes": 9286,
+      "sha256": "13a3d9154eb68ce8efeb550c55c81677e12a761b80be18a378cac459652d7b70",
+      "gitBlobSha": "660423530c0e0f3fce4a1d9d32c2d16d2737b183",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "apps/web/public/manifest.webmanifest",
+      "purpose": "web shell, favicon, PWA or social integration",
+      "kind": "text",
+      "bytes": 687,
+      "sha256": "0fc80ad50a324037d856f3c46b26ee97df9dcdc1d800c8467ae0d82ff0bf96e9",
+      "gitBlobSha": "62ecca477e4087a72700448c7965ade181119499",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "apps/web/public/safari-pinned-tab.svg",
+      "purpose": "web shell, favicon, PWA or social integration",
+      "kind": "text",
+      "bytes": 794,
+      "sha256": "281d35ba9fa20b0fe543ff4e1ac21768e5abd7fa72c52badf31001082b8997ce",
+      "gitBlobSha": "8668dabaedb6f193bd3087164952a5bc56fbdaf2",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "apps/web/public/social/qelly-social-preview.png",
+      "purpose": "web shell, favicon, PWA or social integration",
+      "kind": "binary",
+      "bytes": 7707,
+      "sha256": "8ed8ce084d1bbbca63844613a3f59cae6b9ecce84c58b57ed16bb233af6de0a3",
+      "gitBlobSha": "5e7962a8d3096f0a5bbeb87c051bff58519dba36",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark",
+      "dimensions": [
+        1200,
+        630
+      ]
+    },
+    {
+      "path": "design/brand/QELLY_BRAND_USAGE_GUIDE.md",
+      "purpose": "brand governance and handoff",
+      "kind": "text",
+      "bytes": 554,
+      "sha256": "331f2ab4a1e18940127c9bbfc0af8b8b71eb796fbdb320a1c5e7b270a5f042ae",
+      "gitBlobSha": "55c882037b04b828c6a80cffd0ac7da6292b0eed",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "design/brand/QELLY_LOGO_ACCESSIBILITY.md",
+      "purpose": "brand governance and handoff",
+      "kind": "text",
+      "bytes": 395,
+      "sha256": "676e8203ea91ede765f3d77e352e83a06eeae5933d6ec79459e84989131c9dc0",
+      "gitBlobSha": "ae84eec0e62169989f39ec63d5532f04f0f4b4a8",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "design/brand/QELLY_LOGO_IMPLEMENTATION_STATUS.md",
+      "purpose": "brand governance and handoff",
+      "kind": "text",
+      "bytes": 462,
+      "sha256": "f33f8b370876a95b963f7ec65241c952d10737f03d88a444be8f90e6aedeffff",
+      "gitBlobSha": "1e401c468fc7217d4b3094c5fb150b1e0f541de9",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "design/brand/QELLY_LOGO_MOTION_SPEC.md",
+      "purpose": "brand governance and handoff",
+      "kind": "text",
+      "bytes": 432,
+      "sha256": "ebd630958b6f8230dd63784a609d388c4b7f58a160e7abaccead64681c958e2b",
+      "gitBlobSha": "bce4fd270b2f13cc82e77498a8c6ae4b31ff18b3",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "design/brand/QELLY_LOGO_PHASE_BRIEF.md",
+      "purpose": "brand governance and handoff",
+      "kind": "text",
+      "bytes": 526,
+      "sha256": "a4948cbfa7277b7ade30bf3472a2d5f4508a2c9e5a14943fe1e96b809aee8c29",
+      "gitBlobSha": "cdcf7e9d29d3fa5032ae2f80a6848f9859897730",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "design/brand/QELLY_LOGO_STANDARD.md",
+      "purpose": "brand governance and handoff",
+      "kind": "text",
+      "bytes": 755,
+      "sha256": "8b219601faa491f8432c2a6b9aa6a24591a06d44defd4055056a18e4e98c9fb0",
+      "gitBlobSha": "d15ff1e5c8c84b377bf3c18e691b7241f01f7ef8",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "design/brand/QELLY_LOGO_TOKENS.json",
+      "purpose": "brand governance and handoff",
+      "kind": "text",
+      "bytes": 1046,
+      "sha256": "b74fc046d8f62d278939688f4f74a4a43fcef4937eca620629a9940f50015429",
+      "gitBlobSha": "037df507109e5758f7a185720a69fb92ee894c85",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "design/brand/QELLY_SELECTED_LOGO_AUDIT.md",
+      "purpose": "brand governance and handoff",
+      "kind": "text",
+      "bytes": 689,
+      "sha256": "245ff4c43ef084ed288ecc538182b422dc65fd76f25172d36664b9e95bac9bc9",
+      "gitBlobSha": "f732cc31136cd5d42fd67dbab4d17a5473d2dec9",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "figma-brand-foundations/README.md",
+      "purpose": "editable Figma brand foundations",
+      "kind": "text",
+      "bytes": 173,
+      "sha256": "9a314c62b549494634a1bd556c7a44e70dd7f05c9a43210ff1b8cab49fe2bd3e",
+      "gitBlobSha": "6132386875e498f7791b7ed27c4e268159ce59b5",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "figma-brand-foundations/code.js",
+      "purpose": "editable Figma brand foundations",
+      "kind": "text",
+      "bytes": 1980,
+      "sha256": "fdcbb38128732c327d3a59de9526b449413d82fb65068576d34f99c4e8110c2e",
+      "gitBlobSha": "0637c4e45afdab058a7f38eb0097ac6a7a0d9cb6",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "figma-brand-foundations/manifest.json",
+      "purpose": "editable Figma brand foundations",
+      "kind": "text",
+      "bytes": 185,
+      "sha256": "b1b990fc96b1432fdb7f51c35afed82593f860027ca6683b4e7bc58c974696f3",
+      "gitBlobSha": "c057f0bbaf54562322aa396441fd0f7f569cbb4d",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "package.json",
+      "purpose": "repository command integration",
+      "kind": "text",
+      "bytes": 2773,
+      "sha256": "f68f39bfa0da70211e0a3867c98b63dfb96956124945afcde9a2170c2b0435db",
+      "gitBlobSha": "61e942ffe7dadfa1b2b4b29c1a453fb64f4070fb",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "scripts/generate-logo-assets.mjs",
+      "purpose": "deterministic favicon and PWA asset generator",
+      "kind": "text",
+      "bytes": 5993,
+      "sha256": "294c46aabc3f5284a942d68f3ae1e3fc799f4a34e227fb5dde6a795d7f5e4630",
+      "gitBlobSha": "d55b4c4a1a25ef141ac366fc269bcac73d5d78af",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "scripts/logo-brand-governance.mjs",
+      "purpose": "brand validation and review automation",
+      "kind": "text",
+      "bytes": 3320,
+      "sha256": "3cd5c0afff473303251e386f189ef2080a00553ce7ef57766652892437154139",
+      "gitBlobSha": "6c3209aa235702f81e1a0bec6a3edb192f98210b",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "scripts/logo-brand-review.mjs",
+      "purpose": "brand validation and review automation",
+      "kind": "text",
+      "bytes": 11165,
+      "sha256": "614c374c6cbcf55fdf80c18f99e093697274be5b148c8a5168dd5be33f26f327",
+      "gitBlobSha": "43f1e4e5267bae5f76e2107b4a4578b79ad2ba63",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    },
+    {
+      "path": "tests/logo-brand-system.test.mjs",
+      "purpose": "brand governance regression coverage",
+      "kind": "text",
+      "bytes": 1489,
+      "sha256": "59881be15d8e82d35127cb071fa228c8f4c82d9c0d713ce2bfa22d219090993b",
+      "gitBlobSha": "11bd9f585cfa8aa6141768aba80e9f056a0d5a1b",
+      "change": "created-or-updated",
+      "validationResult": "locally generated and hash recorded",
+      "sourceProvenance": "direct reconstruction from user-selected authoritative Qelly logo and approved foundation",
+      "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
+    }
+  ],
+  "deletedTransportPaths": [
+    ".github/workflows/logo-brand-bootstrap.yml",
+    ".qelly-brand-bootstrap/chunk-00",
+    ".qelly-brand-bootstrap/chunk-01",
+    ".qelly-brand-bootstrap/chunk-02",
+    ".qelly-brand-bootstrap/chunk-03",
+    ".qelly-brand-bootstrap/chunk-04",
+    ".qelly-brand-bootstrap/chunk-05",
+    ".qelly-brand-bootstrap/chunk-06",
+    ".qelly-brand-bootstrap/tree-probe.txt",
+    "design/brand/QELLY_BOOTSTRAP_STATUS.json"
+  ]
+}

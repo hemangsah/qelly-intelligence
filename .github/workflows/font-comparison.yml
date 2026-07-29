@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   verify-canonical-font:
-    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'agent/ui-rescue-asset-rankings'
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'agent/ui-rescue-asset-rankings' || github.head_ref == 'feature/logo-first-brand-system'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:

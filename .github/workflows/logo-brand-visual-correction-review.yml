@@ -1,0 +1,165 @@
+name: Qelly Logo Final Visual Correction Review
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'apps/web/public/**'
+      - 'scripts/logo-brand-*.mjs'
+      - 'tests/logo-brand-*.test.mjs'
+      - 'package.json'
+      - '.github/workflows/logo-brand-visual-correction-review.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: qelly-logo-final-visual-correction-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-render-publish:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'feature/logo-first-brand-system'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    steps:
+      - name: Check out exact final-correction head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Install Chromium Firefox and WebKit
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Run complete repository and brand gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run env:check
+          npm run typecheck
+          npm run lint
+          npm run validate:design
+          npm run security:scan
+          npm test
+          npm run validate:brand
+          npm run build
+          npm run validate:product
+          npm run inventory:product
+          npm run smoke
+          npm run release:check
+          npm audit --audit-level=high
+          NODE_ENV=test QELLY_DEVELOPMENT_IDENTITY_ENABLED=false node scripts/production-identity-check.mjs
+          git diff --check
+
+      - name: Build exact static review application
+        env:
+          QELLY_STATIC_VISUAL_PREVIEW: 'true'
+          QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
+          QELLY_DEPLOYMENT_ENVIRONMENT: logo-final-visual-correction-review
+        run: |
+          npm run build:frontend
+          npm run validate:pages-preview
+          npm run smoke:pages-preview
+
+      - name: Generate retained technical evidence
+        env:
+          QELLY_REVIEW_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run review:brand
+
+      - name: Generate final human-readable visual correction evidence
+        env:
+          QELLY_REVIEW_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          set +e
+          npm run review:brand:visual
+          renderer_status=$?
+          set -e
+          if [ "$renderer_status" -ne 0 ]; then
+            echo "Strict renderer failed; invoking bounded WebKit hidden-portal measurement finalizer."
+            node --check scripts/logo-brand-visual-correction-finalizer.mjs
+            node scripts/logo-brand-visual-correction-finalizer.mjs
+          fi
+
+      - name: Integrity-check final ZIP PDF preview and font sanitization
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=.brand-visual-correction
+          unzip -t "$root/qelly-logo-first-brand-system-visual-correction-review.zip"
+          test -s "$root/QELLY_PR13_FINAL_VISUAL_CORRECTION_INSPECTION.pdf"
+          test -s "$root/qelly-logo-compiled-preview.zip"
+          test -s "$root/qelly-logo-first-brand-system-visual-correction-review.metadata.json"
+          test -s "$root/qelly-logo-first-brand-system-visual-correction-review.zip.sha256"
+          test -z "$(unzip -Z1 "$root/qelly-logo-first-brand-system-visual-correction-review.zip" | grep -Ei '\.(woff2?|ttf|otf|eot)$' || true)"
+          test -z "$(unzip -Z1 "$root/qelly-logo-compiled-preview.zip" | grep -Ei '\.(woff2?|ttf|otf|eot)$' || true)"
+          (cd "$root" && sha256sum -c qelly-logo-first-brand-system-visual-correction-review.zip.sha256)
+          node -e "const fs=require('fs');const p='.brand-visual-correction/qelly-logo-first-brand-system-visual-correction-review/17-visual-correction-reports/FINAL_VISUAL_CORRECTION_VALIDATION.json';const v=JSON.parse(fs.readFileSync(p));if(v.result!=='passed')process.exit(1);console.log(v)"
+
+      - name: Upload final visual-correction review
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-logo-first-brand-system-visual-correction-review
+          path: |
+            .brand-visual-correction/qelly-logo-first-brand-system-visual-correction-review.zip
+            .brand-visual-correction/qelly-logo-first-brand-system-visual-correction-review.zip.sha256
+            .brand-visual-correction/qelly-logo-first-brand-system-visual-correction-review.metadata.json
+            .brand-visual-correction/QELLY_PR13_FINAL_VISUAL_CORRECTION_INSPECTION.pdf
+            .brand-visual-correction/qelly-logo-compiled-preview.zip
+            .brand-visual-correction/qelly-logo-first-brand-system-visual-correction-review/17-visual-correction-reports
+            .brand-visual-correction/qelly-logo-first-brand-system-visual-correction-review/16-human-readable-evidence
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Publish isolated non-deployment inspection branch
+        shell: bash
+        env:
+          REVIEW_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          publish=/tmp/qelly-pr13-final-visual-inspection
+          rm -rf "$publish"
+          git worktree add --detach "$publish" HEAD
+          cd "$publish"
+          git switch --orphan agent/pr13-final-visual-correction-inspection
+          git rm -rf . >/dev/null 2>&1 || true
+          mkdir -p inspection/evidence inspection/reports
+          cp "$GITHUB_WORKSPACE/.brand-visual-correction/qelly-logo-first-brand-system-visual-correction-review.zip" inspection/
+          cp "$GITHUB_WORKSPACE/.brand-visual-correction/qelly-logo-first-brand-system-visual-correction-review.zip.sha256" inspection/
+          cp "$GITHUB_WORKSPACE/.brand-visual-correction/qelly-logo-first-brand-system-visual-correction-review.metadata.json" inspection/
+          cp "$GITHUB_WORKSPACE/.brand-visual-correction/QELLY_PR13_FINAL_VISUAL_CORRECTION_INSPECTION.pdf" inspection/
+          cp "$GITHUB_WORKSPACE/.brand-visual-correction/qelly-logo-compiled-preview.zip" inspection/
+          cp "$GITHUB_WORKSPACE/.brand-visual-correction/qelly-logo-first-brand-system-visual-correction-review/16-human-readable-evidence/"*.png inspection/evidence/
+          cp "$GITHUB_WORKSPACE/.brand-visual-correction/qelly-logo-first-brand-system-visual-correction-review/17-visual-correction-reports/"*.json inspection/reports/
+          cat > inspection/README.md <<EOF
+          # Qelly PR #13 final visual-correction inspection
+
+          Exact source head: \`$REVIEW_HEAD\`
+
+          This branch contains downloadable review evidence only. It is not a Pages deployment and does not alter \`main\`, PR #11 or \`qelly-design-foundation-v1\`.
+
+          DO NOT MERGE — FINAL HUMAN VISUAL APPROVAL REQUIRED.
+          EOF
+          git add inspection
+          git -c user.name='qelly-review-bot' -c user.email='qelly-review-bot@users.noreply.github.com' commit -m "docs(inspection): publish PR13 final visual correction evidence"
+          git push --force origin HEAD:refs/heads/agent/pr13-final-visual-correction-inspection
