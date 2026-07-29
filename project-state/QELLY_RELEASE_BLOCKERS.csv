@@ -1,0 +1,13 @@
+blocker_id,title,severity,evidence,target_wave,status,owner,source_commit
+RB-001,No production-connected provider,CRITICAL,All real provider status remains planned/partial/terms-blocked.,WAVE_1,OPEN,unassigned,26d2c9c453992b74dd3931d6b8b9489117d0b44c
+RB-002,Provider licensing and redistribution,CRITICAL,CoinDCX restricts third-party display/redistribution; Zerodha public display is restricted; other providers require plan-specific review.,WAVE_1,OPEN,unassigned,26d2c9c453992b74dd3931d6b8b9489117d0b44c
+RB-003,Route and action truth coverage,HIGH,61 routes exist but broad state/action/browser evidence is incomplete.,WAVE_1,OPEN,unassigned,26d2c9c453992b74dd3931d6b8b9489117d0b44c
+RB-004,Missing persistence entities,CRITICAL,"Connections, OAuth tokens, sync cursors, paper orders/fills, strategies/backtests, marketplace and community entities are absent.",WAVE_1-8,OPEN,unassigned,26d2c9c453992b74dd3931d6b8b9489117d0b44c
+RB-005,Production infrastructure,CRITICAL,"PostgreSQL, Redis, object storage, ClamAV, queues and observability are architectural/test foundations rather than deployed proof.",WAVE_1,OPEN,unassigned,26d2c9c453992b74dd3931d6b8b9489117d0b44c
+RB-006,Security completion,CRITICAL,"Endpoint permission/tenant matrices, OAuth token vault, production KMS and provider/webhook controls are incomplete.",WAVE_1,OPEN,unassigned,26d2c9c453992b74dd3931d6b8b9489117d0b44c
+RB-007,Effective-dated India rules,HIGH,"Tax, charges and scheme rates lack a governed effective-dated rule catalog.",WAVE_1,OPEN,unassigned,26d2c9c453992b74dd3931d6b8b9489117d0b44c
+RB-008,Live-market false-label hotfix,HIGH,Hard-coded illustrative watch cards were labelled live; draft hotfix PR #20 created.,HOTFIX,OPEN,unassigned,26d2c9c453992b74dd3931d6b8b9489117d0b44c
+RB-009,Dependency upgrades,MEDIUM,Six pre-existing Dependabot PRs remain open and require separate review.,MAINTENANCE,OPEN,unassigned,26d2c9c453992b74dd3931d6b8b9489117d0b44c
+RB-010,No GitHub release,LOW,Repository has immutable tags and deployments but no GitHub Releases record.,RELEASE,OPEN,unassigned,26d2c9c453992b74dd3931d6b8b9489117d0b44c
+RB-011,Branch protection visibility,MEDIUM,Audit token cannot prove all protection/ruleset enforcement; owner review required.,GOVERNANCE,OPEN,unassigned,26d2c9c453992b74dd3931d6b8b9489117d0b44c
+RB-012,Prompt 3 pending,CRITICAL,No connected public-beta release claim is permitted until Prompt 3 completes.,WAVE_9,OPEN,unassigned,26d2c9c453992b74dd3931d6b8b9489117d0b44c

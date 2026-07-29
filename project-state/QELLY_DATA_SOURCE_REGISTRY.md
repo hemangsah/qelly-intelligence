@@ -1,25 +1,37 @@
-# Qelly Data Source Registry
+# Qelly Data Source Registry — Prompt 2A Wave 0
 
-## Qelly deterministic static demo
+Audited base: `26d2c9c453992b74dd3931d6b8b9489117d0b44c`  
+Generated: `2026-07-29T16:55:00+05:30`
 
-- Provider ID: `qelly-static-demo`
-- State: `DEMO` / deterministic static
-- Public location: verified GitHub Pages deployment at exact foundation commit
-- Live market source: no
-- Backend connected: no
-- Entitlement: public static preview
-- Allowed use: visual and interaction demonstration
-- Prohibited claim: live market observation or executable decision support
+## Priority policy
 
-## Qelly deterministic local calculations
+1. deterministic local calculation;
+2. official public REST API;
+3. official public WebSocket;
+4. official free/demo tier;
+5. official RSS/Atom feed;
+6. official embed;
+7. user-authorized official provider API;
+8. paid/licensed provider only where unavoidable.
 
-- Provider ID: `qelly-local`
-- State: `DETERMINISTIC_LOCAL`
-- Connectivity: none required
-- Required evidence: formula version, inputs, units, rounding, timestamp and reference vectors
+## Repository truth
 
-## External providers
+- The public GitHub Pages product is a static/read-only visual preview.
+- Qelly local deterministic data and GitHub Pages are the only currently connected records.
+- Binance/CoinDCX live-market adapter source exists, but the feature flag defaults disabled and provider fallback may become explicitly simulated; this is `PARTIAL`, not connected product evidence.
+- No external broker, wallet, exchange, bank, news or production observability integration is connected.
+- Every future data observation must include source, observed-at, freshness, lineage, confidence, entitlement and truth-state metadata.
 
-No external market, broker, exchange, wallet, bank or observability provider is connected by Prompt 1. Future entries require official documentation, terms verification date, quota, authentication, attribution, redistribution rights, commercial-use boundary, health, last success, failure state and kill switch.
+## Core candidates
 
-Cached, delayed, stale, simulated, estimated and embedded sources must remain distinct from live data. Provider failure must never silently substitute fixture values.
+- SEC EDGAR: official US filings/XBRL, server-side fair-access ingestion.
+- Government and central-bank public data: source-specific licensing and effective-date controls.
+- OpenFIGI V3: optional identifier mapping, not a universal instrument-master license.
+- TradingView: official embed only, not native-data substitution.
+- User-authorized broker/wallet APIs: read-only first with server-side secret references, revocation and audit.
+
+## Rejected or quarantined
+
+- CoinDCX public display without written rights.
+- Yahoo Finance unofficial/reverse-engineered endpoints.
+- Browser scraping, hidden fixtures, silent fallback and APIs without timeout/retry/circuit-breaker, terms, source or freshness labels.

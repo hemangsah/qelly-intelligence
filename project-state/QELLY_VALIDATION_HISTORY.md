@@ -78,3 +78,34 @@ Inventory presence is not proof of implementation or provider connectivity.
 - PR #17: temporary post-merge verification only; must be closed without merge after final closeout-main verification
 
 Prompt 2 and Prompt 3 have not been executed.
+
+## Prompt 2A Wave 0 exact-head audit
+
+- Audited source head: `eafb11719e67135c7a6fa3b15e1170c5192e4771`
+- Workflow: `Qelly Prompt 2A Wave 0 Audit` run `30441613550` — success
+- Standard exact-head workflows: CI `30441616525` success; Container Build `30441619817` success; Production Foundation Services `30441613552` success; CodeQL `30441616414` success
+- Bootstrap artifact ID: `8719693609`
+- Bootstrap artifact SHA-256: `a3a798edd016ea28bb5174f089d9948fd51f0b23edb7d480d9bf57613483156b`
+- Internal bootstrap checksums: all passed
+- Validation gates: environment, typecheck, lint, design governance, brand governance, secret scan, unit/integration tests, production build, frontend build, product validation, product inventory, full-stack smoke, production identity, release check, dependency audit and git diff check — all exit code 0
+- Repository inventory: 721 files, 711 text, 10 binary; sanitized source snapshot contains zero font binaries
+- Prompt 2A classifications are conservative; validation success does not convert fixtures/contracts/routes into connected product features.
+- Branch protection read: HTTP 403 via Actions token; status unverified.
+
+## Prompt 2A final Wave 0 closure validation
+
+- Latest fully validated Wave 0 head: `e2e2dd822e7811406ea5b220dbd033bfad75f09b`
+- Qelly Prompt 2A Wave 0 Audit — run `30456044354` — success
+- Continuous Integration — run `30456043162` — success
+- Container Build — run `30456043237` — success
+- Production Foundation Services — run `30456043270` — success
+- CodeQL — run `30456043152` — success
+- Browser route matrix: 61 routes × 3 browsers × 3 viewports = 549 records; 549 passed; 0 failed
+- Registry validator: passed; 545 unique master features, 61 routes, 187 APIs, 28 providers and 188 formulas
+- Retained repository gates: 16/16 exit code 0
+- Review artifact ID: `8725646367`
+- GitHub artifact digest: `ac8ef42c517f4e1adb684252c2a8370c8848a1c1ab4ca7fad0bae66e7dff36c1`
+- Inner review ZIP SHA-256: `1d9c4c6b9cec171b5f8e74ba2853c94b098635d5009ca6e860f8d2f3b83c2dc9`
+- Internal checksum manifest: 52/52 passed; ZIP CRC passed; zero prohibited font binaries
+- The WebKit login-route failure in prior run `30452493946` was an audit-harness `innerText` false negative. The auditor now records `innerText` and `textContent` and uses standards-safe text fallback; product behavior was not changed.
+- Prompt 2B was not started. Audit PR #19 and hotfix PR #20 remain draft and unmerged. Main remains `26d2c9c453992b74dd3931d6b8b9489117d0b44c`.
