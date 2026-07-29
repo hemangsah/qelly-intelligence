@@ -2,38 +2,41 @@
 name: Qelly Prompt 2A Persist Generated Audit
 
 on:
-  push:
-    branches:
-      - feature/prompt2-repository-gap-audit
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
     paths:
       - 'audit-input/project-state.part-*.b64'
       - '.github/workflows/prompt2a-persist-generated-audit.yml'
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: prompt2a-persist-generated-audit
+  group: prompt2a-persist-generated-audit-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: false
 
 jobs:
   persist:
-    if: github.ref == 'refs/heads/feature/prompt2-repository-gap-audit'
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'feature/prompt2-repository-gap-audit'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - name: Check out exact staging head
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: true
 
       - name: Verify and reconstruct durable state
         shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
-          test "$GITHUB_REF" = 'refs/heads/feature/prompt2-repository-gap-audit'
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
           test "$(find audit-input -maxdepth 1 -name 'project-state.part-*.b64' -type f | wc -l)" -eq 10
           cat audit-input/project-state.part-*.b64 | base64 --decode > /tmp/qelly-prompt2a-project-state.tar.xz
           echo '6295a36649b4b1b2a1bbaa666ee4ad1167bbe228b67d2b00be0bbd0af9b62469  /tmp/qelly-prompt2a-project-state.tar.xz' | sha256sum -c -
