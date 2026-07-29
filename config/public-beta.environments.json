@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "environments": {
+    "local": {
+      "public": false,
+      "connectedProviders": false,
+      "realMoneyTrading": false,
+      "custody": false
+    },
+    "test": {
+      "public": false,
+      "connectedProviders": false,
+      "realMoneyTrading": false,
+      "custody": false
+    },
+    "preview": {
+      "public": false,
+      "connectedProviders": false,
+      "realMoneyTrading": false,
+      "custody": false
+    },
+    "staging": {
+      "public": false,
+      "connectedProviders": false,
+      "realMoneyTrading": false,
+      "custody": false
+    },
+    "production": {
+      "public": true,
+      "connectedProviders": false,
+      "realMoneyTrading": false,
+      "custody": false
+    }
+  },
+  "invariants": {
+    "privateKeyStorage": false,
+    "seedPhraseCollection": false,
+    "deposits": false,
+    "withdrawals": false,
+    "autonomousExecution": false
+  }
+}

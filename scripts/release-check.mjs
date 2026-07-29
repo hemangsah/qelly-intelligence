@@ -87,7 +87,7 @@ if (pkg.version !== productVersion
   || routes.length !== 61
   || apiRoutes.length !== 187
   || contracts.size !== 17
-  || schemas.length !== 65
+  || schemas.length !== 67
   || bad.length) {
   throw new Error(JSON.stringify({
     result,

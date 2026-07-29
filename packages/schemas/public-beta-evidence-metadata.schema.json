@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.example/schemas/public-beta-evidence-metadata.schema.json",
+  "title": "Qelly Public Beta Evidence Metadata",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "state",
+    "source",
+    "observedAt",
+    "retrievedAt",
+    "freshnessSeconds",
+    "lineageId",
+    "confidence",
+    "entitlement"
+  ],
+  "properties": {
+    "state": { "$ref": "public-beta-truth-state.schema.json" },
+    "source": { "type": "string", "minLength": 1 },
+    "sourceUrl": { "type": ["string", "null"], "format": "uri" },
+    "providerId": { "type": ["string", "null"] },
+    "observedAt": { "type": "string", "format": "date-time" },
+    "retrievedAt": { "type": "string", "format": "date-time" },
+    "freshnessSeconds": { "type": "integer", "minimum": 0 },
+    "timezone": { "type": "string", "default": "UTC" },
+    "currency": { "type": ["string", "null"] },
+    "unit": { "type": ["string", "null"] },
+    "instrumentId": { "type": ["string", "null"] },
+    "methodologyVersion": { "type": ["string", "null"] },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "entitlement": { "type": "string", "minLength": 1 },
+    "redistribution": { "type": ["string", "null"] },
+    "fallbackSource": { "type": ["string", "null"] },
+    "qualityWarning": { "type": ["string", "null"] },
+    "lineageId": { "type": "string", "minLength": 1 }
+  }
+}

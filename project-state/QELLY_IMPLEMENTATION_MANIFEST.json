@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-29T12:29:42+05:30",
+  "sourceCommit": "9dbd7074c7ad8228612009748d2484ab8a790c05",
+  "foundationCommit": "94fbd4ff91c0d61f87e42724038f03fa5c36f97a",
+  "classificationPolicy": "Executable evidence controls status. Registry presence alone is not implementation or connectivity.",
+  "counts": {
+    "routes": 61,
+    "apiReferences": 276,
+    "governedFoundationFiles": 9
+  },
+  "safety": {
+    "realMoneyTrading": false,
+    "custody": false,
+    "depositsWithdrawals": false,
+    "privateKeyStorage": false,
+    "seedPhraseCollection": false,
+    "autonomousExecution": false
+  },
+  "files": [
+    {
+      "path": "design/QELLY_BRAND_FOUNDATION_FREEZE.md",
+      "bytes": 2730,
+      "sha256": "03d9870090df4e43fe777cd9f83c982c6823d72efcbab602b93f712861360b42"
+    },
+    {
+      "path": "config/public-beta.environments.json",
+      "bytes": 908,
+      "sha256": "665166b58b0266cc3281091a5f6be33ad7cc49a78d567d924b52af42c682bd36"
+    },
+    {
+      "path": "config/public-beta.feature-flags.json",
+      "bytes": 1057,
+      "sha256": "d6bea4bffa9844f2124038da3e0f981e0b2db9186cb1cdf57721a7d1ce4ed4a3"
+    },
+    {
+      "path": "packages/schemas/public-beta-truth-state.schema.json",
+      "bytes": 453,
+      "sha256": "9b8d6b5b51a70fddf14382c40f8603dab861490a5f37a3cbda01735241918949"
+    },
+    {
+      "path": "packages/schemas/public-beta-evidence-metadata.schema.json",
+      "bytes": 1455,
+      "sha256": "6ef63098680c366a21681531ac2c7a4459b134234f70ba1ac1586c0cd211015b"
+    },
+    {
+      "path": "src/public-beta/truth-state.mjs",
+      "bytes": 2315,
+      "sha256": "08af26ffe7dd477ce89669b5ab7d52761d7f60bafcb04cf9f34a34cb5cb4ea13"
+    },
+    {
+      "path": "src/public-beta/provider-adapter.mjs",
+      "bytes": 2670,
+      "sha256": "3491d5d38e771a288f1ce972b6692aa984745a3a21864c89384fe7fdd4538e11"
+    },
+    {
+      "path": "src/public-beta/runtime-config.mjs",
+      "bytes": 1951,
+      "sha256": "aefed77609751f848137780ddee75cb005df053582145f21130267c840f63dda"
+    },
+    {
+      "path": "src/public-beta/observability.mjs",
+      "bytes": 1465,
+      "sha256": "6430c358d15d78bab2c6d33f981d7997190096ad98149ad69498b9b600134e33"
+    }
+  ]
+}
