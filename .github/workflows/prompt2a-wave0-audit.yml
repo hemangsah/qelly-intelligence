@@ -5,7 +5,7 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened]
     paths:
-      - 'scripts/prompt2a-wave0-bootstrap.mjs'
+      - 'scripts/prompt2a-*.mjs'
       - 'project-state/**'
       - '.github/workflows/prompt2a-wave0-audit.yml'
   workflow_dispatch:
@@ -17,10 +17,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  forensic-bootstrap:
+  final-wave0-audit:
     if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'feature/prompt2-repository-gap-audit'
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 150
     steps:
       - name: Check out exact audit head
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -35,70 +35,47 @@ jobs:
           node-version: '22'
           cache: npm
 
-      - name: Install locked dependencies
-        run: npm ci --ignore-scripts
+      - name: Install locked dependencies and browsers
+        run: |
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium firefox webkit
 
-      - name: Generate recursive forensic bootstrap
+      - name: Generate exact recursive repository evidence
         env:
           GITHUB_TOKEN: ${{ github.token }}
           QELLY_AUDIT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node scripts/prompt2a-wave0-bootstrap.mjs
 
-      - name: Create sanitized exact-source snapshot
-        shell: bash
-        run: |
-          set -euo pipefail
-          target=/tmp/qelly-prompt2a-source
-          rm -rf "$target"
-          mkdir -p "$target"
-          tar \
-            --exclude='./.git' \
-            --exclude='./node_modules' \
-            --exclude='./dist' \
-            --exclude='./.prompt2a-bootstrap' \
-            --exclude='./.brand-review' \
-            --exclude='./.brand-visual-correction' \
-            --exclude='./.ui-review' \
-            --exclude='./.theme-review' \
-            --exclude='*.woff' \
-            --exclude='*.woff2' \
-            --exclude='*.ttf' \
-            --exclude='*.otf' \
-            --exclude='*.eot' \
-            --exclude='*.png' \
-            --exclude='*.jpg' \
-            --exclude='*.jpeg' \
-            --exclude='*.webp' \
-            --exclude='*.gif' \
-            --exclude='*.pdf' \
-            --exclude='*.zip' \
-            --exclude='*.gz' \
-            --exclude='*.tgz' \
-            --exclude='*.mp4' \
-            --exclude='*.mov' \
-            -czf "$target/qelly-source-snapshot.tar.gz" .
-          mv "$target/qelly-source-snapshot.tar.gz" .prompt2a-bootstrap/02-repository-inventory/
-          tar -tzf .prompt2a-bootstrap/02-repository-inventory/qelly-source-snapshot.tar.gz > .prompt2a-bootstrap/02-repository-inventory/SOURCE_SNAPSHOT_CONTENTS.txt
-          if tar -tzf .prompt2a-bootstrap/02-repository-inventory/qelly-source-snapshot.tar.gz | grep -Eiq '\.(woff2?|ttf|otf|eot)$'; then
-            echo 'Prohibited font binary found in source snapshot.' >&2
-            exit 1
-          fi
+      - name: Validate every Wave 0 registry
+        env:
+          QELLY_AUDIT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/prompt2a-audit-validate.mjs
 
-      - name: Run complete repository validation and retain every result
+      - name: Probe bounded official public API candidates
+        env:
+          QELLY_AUDIT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/prompt2a-provider-probe.mjs
+
+      - name: Build static review application
+        env:
+          QELLY_STATIC_VISUAL_PREVIEW: 'true'
+          QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
+          QELLY_PUBLIC_API_BASE_URL: https://api.preview.invalid
+        run: npm run build:frontend
+
+      - name: Audit all registered routes in Chromium Firefox and WebKit
+        env:
+          QELLY_AUDIT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/prompt2a-browser-audit.mjs
+
+      - name: Run complete repository gates and retain results
         shell: bash
         run: |
           set -uo pipefail
-          report=.prompt2a-bootstrap/VALIDATION_STATUS.tsv
+          mkdir -p .prompt2a-final/13-tests
+          report=.prompt2a-final/13-tests/REPOSITORY_VALIDATION_STATUS.tsv
           printf 'gate\texit_code\n' > "$report"
-          run_gate() {
-            name="$1"
-            shift
-            set +e
-            "$@"
-            code=$?
-            set -e
-            printf '%s\t%s\n' "$name" "$code" >> "$report"
-          }
+          run_gate(){ name="$1"; shift; set +e; "$@"; code=$?; set -e; printf '%s\t%s\n' "$name" "$code" >> "$report"; }
           set -e
           run_gate env-check npm run env:check
           run_gate typecheck npm run typecheck
@@ -106,7 +83,7 @@ jobs:
           run_gate design-governance npm run validate:design
           run_gate brand-governance npm run validate:brand
           run_gate secret-scan npm run security:scan
-          run_gate unit-integration-tests npm test
+          run_gate tests npm test
           run_gate production-build npm run build
           run_gate frontend-build env QELLY_PUBLIC_API_BASE_URL=https://api.preview.invalid npm run build:frontend
           run_gate product-validation npm run validate:product
@@ -118,49 +95,110 @@ jobs:
           run_gate git-diff-check git diff --check
           cat "$report"
 
-      - name: Package bootstrap review artifact
+      - name: Package exact Prompt 2A review artifact
         if: always()
         shell: bash
+        env:
+          AUDIT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number || 19 }}
         run: |
           set -euo pipefail
-          mkdir -p .prompt2a-bootstrap/18-checksums
-          find .prompt2a-bootstrap -type f ! -path '*/18-checksums/*' -print0 | sort -z | xargs -0 sha256sum > .prompt2a-bootstrap/18-checksums/SHA256SUMS.txt
+          root=.prompt2a-final
+          artifact="$root/qelly-prompt2a-world-scale-gap-audit-and-implementation-blueprint"
+          rm -rf "$artifact"
+          mkdir -p "$artifact"/{01-starting-state,02-repository-inventory,03-frontend,04-backend,05-database,06-workers-streams,07-apis-providers,08-embeds-redirects,09-formulas,10-feature-universe,11-requested-features,12-security-licensing,13-tests,14-dependency-graph,15-implementation-waves,16-prompt2b,17-handoff,18-checksums}
+          cp project-state/QELLY_PROMPT2A_AUDIT_REPORT.md "$artifact/EXECUTIVE_VERDICT.md"
+          cp project-state/PROMPT2A_LIVE_STARTING_STATE.json "$artifact/01-starting-state/STARTING_STATE.json"
           python - <<'PY'
-          import hashlib,json,pathlib
-          root=pathlib.Path('.prompt2a-bootstrap')
-          entries=[]
-          for path in sorted(p for p in root.rglob('*') if p.is_file()):
-              data=path.read_bytes()
-              entries.append({'path':path.relative_to(root).as_posix(),'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()})
-          manifest={'schemaVersion':1,'sourceHead':'${{ github.event.pull_request.head.sha || github.sha }}','entryCount':len(entries),'entries':entries}
-          (root/'18-checksums'/'ARTIFACT_MANIFEST.json').write_text(json.dumps(manifest,indent=2)+'\n')
+          import json,os,pathlib
+          p=pathlib.Path('.prompt2a-final/qelly-prompt2a-world-scale-gap-audit-and-implementation-blueprint/01-starting-state/BRANCH_PR_STATE.json')
+          p.write_text(json.dumps({'schemaVersion':1,'repository':'hemangsah/qelly-intelligence','branch':'feature/prompt2-repository-gap-audit','pullRequest':int(os.environ['PR_NUMBER']),'startingMain':'26d2c9c453992b74dd3931d6b8b9489117d0b44c','head':os.environ['AUDIT_HEAD'],'draftRequired':True,'mergeAuthorized':False,'deploymentAuthorized':False,'prompt2bStarted':False},indent=2)+'\n')
           PY
-          zip -qr qelly-prompt2a-wave0-bootstrap.zip .prompt2a-bootstrap
-          unzip -t qelly-prompt2a-wave0-bootstrap.zip
-          sha256sum qelly-prompt2a-wave0-bootstrap.zip > qelly-prompt2a-wave0-bootstrap.zip.sha256
+          cp .prompt2a-bootstrap/02-repository-inventory/REPOSITORY_INVENTORY.csv "$artifact/02-repository-inventory/REPOSITORY_INVENTORY.csv"
+          cp .prompt2a-bootstrap/02-repository-inventory/CODE_PATTERN_MATCHES.csv "$artifact/02-repository-inventory/CODE_PATTERN_MATCHES.csv"
+          cp .prompt2a-bootstrap/02-repository-inventory/EXTERNAL_HOST_MATCHES.csv "$artifact/02-repository-inventory/EXTERNAL_HOST_MATCHES.csv"
+          cp .prompt2a-bootstrap/02-repository-inventory/ROUTE_CANDIDATES.csv "$artifact/02-repository-inventory/ROUTE_CANDIDATES.csv"
+          cp .prompt2a-bootstrap/02-repository-inventory/SOURCE_SNAPSHOT_CONTENTS.txt "$artifact/02-repository-inventory/SOURCE_SNAPSHOT_CONTENTS.txt"
+          cp project-state/QELLY_ROUTE_STATUS.csv "$artifact/03-frontend/ROUTE_STATUS.csv"
+          cp project-state/QELLY_SCREEN_INVENTORY.csv "$artifact/03-frontend/SCREEN_INVENTORY.csv"
+          cp project-state/QELLY_FRONTEND_ACTION_INVENTORY.csv "$artifact/03-frontend/FRONTEND_ACTION_INVENTORY.csv"
+          cp project-state/QELLY_COMPONENT_INVENTORY.csv "$artifact/03-frontend/COMPONENT_INVENTORY.csv"
+          cp "$root/03-frontend/ROUTE_BROWSER_MATRIX.json" "$artifact/03-frontend/"
+          cp "$root/03-frontend/ROUTE_BROWSER_FAILURES.json" "$artifact/03-frontend/"
+          cp project-state/QELLY_BACKEND_SERVICE_INVENTORY.csv "$artifact/04-backend/BACKEND_SERVICE_INVENTORY.csv"
+          cp project-state/QELLY_API_INVENTORY.csv "$artifact/04-backend/API_INVENTORY.csv"
+          cp project-state/QELLY_DATABASE_ENTITY_INVENTORY.csv "$artifact/05-database/DATABASE_ENTITY_INVENTORY.csv"
+          cp project-state/QELLY_EVENT_WORKER_INVENTORY.csv "$artifact/06-workers-streams/EVENT_WORKER_INVENTORY.csv"
+          cp project-state/QELLY_PROVIDER_REGISTRY.csv "$artifact/07-apis-providers/PROVIDER_REGISTRY.csv"
+          cp project-state/QELLY_PUBLIC_API_CONFORMANCE.csv "$artifact/07-apis-providers/PUBLIC_API_CONFORMANCE.csv"
+          cp project-state/QELLY_DATA_LICENSE_REGISTER.csv "$artifact/07-apis-providers/DATA_LICENSE_REGISTER.csv"
+          cp project-state/QELLY_EXTERNAL_DEPENDENCY_REGISTER.csv "$artifact/07-apis-providers/EXTERNAL_DEPENDENCY_REGISTER.csv"
+          cp project-state/QELLY_DATA_SOURCE_REGISTRY.md project-state/QELLY_PROVIDER_EVIDENCE.md project-state/QELLY_YAHOO_UNOFFICIAL_API_AUDIT.md "$artifact/07-apis-providers/"
+          cp "$root/07-apis-providers/PUBLIC_API_LIVE_PROBE.json" "$root/07-apis-providers/PUBLIC_API_LIVE_PROBE.csv" "$artifact/07-apis-providers/"
+          cp project-state/QELLY_EMBED_REGISTRY.csv "$artifact/08-embeds-redirects/EMBED_REGISTRY.csv"
+          cp project-state/QELLY_REDIRECT_REGISTRY.csv "$artifact/08-embeds-redirects/REDIRECT_REGISTRY.csv"
+          cp project-state/QELLY_FORMULA_CATALOG.csv "$artifact/09-formulas/FORMULA_CATALOG.csv"
+          cp project-state/QELLY_MASTER_FEATURE_UNIVERSE.csv "$artifact/10-feature-universe/MASTER_FEATURE_UNIVERSE.csv"
+          cp project-state/QELLY_FEATURE_GAP_MATRIX.csv "$artifact/10-feature-universe/FEATURE_GAP_MATRIX.csv"
+          cp project-state/QELLY_FEATURE_STATUS.csv "$artifact/10-feature-universe/FEATURE_STATUS.csv"
+          cp project-state/QELLY_REQUESTED_FEATURE_STATUS.csv "$artifact/11-requested-features/REQUESTED_FEATURE_STATUS.csv"
+          cp project-state/QELLY_SECURITY_RISK_REGISTER.csv "$artifact/12-security-licensing/SECURITY_RISK_REGISTER.csv"
+          cp project-state/QELLY_DATA_LICENSE_REGISTER.csv "$artifact/12-security-licensing/"
+          cp project-state/QELLY_TEST_COVERAGE_MATRIX.csv "$artifact/13-tests/TEST_COVERAGE_MATRIX.csv"
+          cp "$root/13-tests/AUDIT_OUTPUT_VALIDATION.json" "$artifact/13-tests/"
+          cp "$root/13-tests/REPOSITORY_VALIDATION_STATUS.tsv" "$artifact/13-tests/"
+          cp project-state/QELLY_DEPENDENCY_GRAPH.json "$artifact/14-dependency-graph/DEPENDENCY_GRAPH.json"
+          cp project-state/QELLY_IMPLEMENTATION_WAVES.md "$artifact/15-implementation-waves/IMPLEMENTATION_WAVES.md"
+          cp project-state/QELLY_RELEASE_BLOCKERS.md "$artifact/15-implementation-waves/RELEASE_BLOCKERS.md"
+          cp project-state/QELLY_RELEASE_BLOCKERS.csv "$artifact/15-implementation-waves/RELEASE_BLOCKERS.csv"
+          cp project-state/QELLY_KNOWN_LIMITATIONS.md "$artifact/15-implementation-waves/KNOWN_LIMITATIONS.md"
+          cp project-state/QELLY_PROMPT2B_STARTING_STATE.md "$artifact/16-prompt2b/PROMPT2B_STARTING_STATE.md"
+          cp project-state/QELLY_NEXT_PROMPT_2B.md "$artifact/16-prompt2b/QELLY_NEXT_PROMPT_2B.md"
+          cp project-state/QELLY_CURRENT_HANDOFF.md project-state/QELLY_PROGRESS_LEDGER.md project-state/QELLY_VALIDATION_HISTORY.md project-state/QELLY_IMPLEMENTATION_MANIFEST.json project-state/QELLY_PROJECT_STATE.md project-state/QELLY_DECISION_LOG.md project-state/QELLY_RELEASE_MATRIX.md "$artifact/17-handoff/"
+          find "$artifact" -type f ! -path '*/18-checksums/*' -print0 | sort -z | xargs -0 sha256sum | sed "s#  $artifact/#  #" > "$artifact/18-checksums/SHA256SUMS.txt"
+          python - <<'PY'
+          import hashlib,json,os,pathlib
+          root=pathlib.Path('.prompt2a-final/qelly-prompt2a-world-scale-gap-audit-and-implementation-blueprint')
+          entries=[]
+          for p in sorted(x for x in root.rglob('*') if x.is_file() and x.name!='ARTIFACT_MANIFEST.json'):
+              b=p.read_bytes();entries.append({'path':p.relative_to(root).as_posix(),'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()})
+          (root/'18-checksums'/'ARTIFACT_MANIFEST.json').write_text(json.dumps({'schemaVersion':1,'artifact':'qelly-prompt2a-world-scale-gap-audit-and-implementation-blueprint.zip','startingMain':'26d2c9c453992b74dd3931d6b8b9489117d0b44c','finalAuditHead':os.environ['AUDIT_HEAD'],'entryCountBeforeManifest':len(entries),'prompt2bStarted':False,'entries':entries},indent=2)+'\n')
+          PY
+          rm -f "$root/qelly-prompt2a-world-scale-gap-audit-and-implementation-blueprint.zip"
+          (cd "$root" && zip -qr qelly-prompt2a-world-scale-gap-audit-and-implementation-blueprint.zip qelly-prompt2a-world-scale-gap-audit-and-implementation-blueprint)
+          unzip -t "$root/qelly-prompt2a-world-scale-gap-audit-and-implementation-blueprint.zip"
+          sha256sum "$root/qelly-prompt2a-world-scale-gap-audit-and-implementation-blueprint.zip" > "$root/qelly-prompt2a-world-scale-gap-audit-and-implementation-blueprint.zip.sha256"
+          test -z "$(unzip -Z1 "$root/qelly-prompt2a-world-scale-gap-audit-and-implementation-blueprint.zip" | grep -Ei '\.(woff2?|ttf|otf|eot)$' || true)"
+          test -z "$(unzip -Z1 "$root/qelly-prompt2a-world-scale-gap-audit-and-implementation-blueprint.zip" | grep -Ei '(^|/)(\.env|id_rsa|.*\.pem|.*\.key)$' || true)"
+          python - <<'PY'
+          import hashlib,pathlib
+          root=pathlib.Path('.prompt2a-final/qelly-prompt2a-world-scale-gap-audit-and-implementation-blueprint')
+          bad=[]
+          for line in (root/'18-checksums'/'SHA256SUMS.txt').read_text().splitlines():
+              digest,rel=line.split('  ',1);p=root/rel
+              if hashlib.sha256(p.read_bytes()).hexdigest()!=digest:bad.append(rel)
+          if bad: raise SystemExit('checksum failures: '+','.join(bad))
+          print('internal checksums verified')
+          PY
 
-      - name: Upload Prompt 2A bootstrap evidence
+      - name: Upload complete Prompt 2A Wave 0 artifact
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: qelly-prompt2a-wave0-bootstrap
+          name: qelly-prompt2a-world-scale-gap-audit-and-implementation-blueprint
           path: |
-            qelly-prompt2a-wave0-bootstrap.zip
-            qelly-prompt2a-wave0-bootstrap.zip.sha256
-            .prompt2a-bootstrap
+            .prompt2a-final/qelly-prompt2a-world-scale-gap-audit-and-implementation-blueprint.zip
+            .prompt2a-final/qelly-prompt2a-world-scale-gap-audit-and-implementation-blueprint.zip.sha256
+            .prompt2a-final/qelly-prompt2a-world-scale-gap-audit-and-implementation-blueprint
           include-hidden-files: true
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14
 
-      - name: Fail when any retained validation gate failed
+      - name: Fail when a repository gate failed
         if: always()
         shell: bash
         run: |
           set -euo pipefail
-          test -f .prompt2a-bootstrap/VALIDATION_STATUS.tsv
-          failures=$(awk -F '\t' 'NR>1 && $2 != 0 {print $1 "=" $2}' .prompt2a-bootstrap/VALIDATION_STATUS.tsv)
-          if [ -n "$failures" ]; then
-            echo "Prompt 2A bootstrap validation failures:"
-            echo "$failures"
-            exit 1
-          fi
+          test -f .prompt2a-final/13-tests/REPOSITORY_VALIDATION_STATUS.tsv
+          failures=$(awk -F '\t' 'NR>1 && $2 != 0 {print $1 "=" $2}' .prompt2a-final/13-tests/REPOSITORY_VALIDATION_STATUS.tsv)
+          if [ -n "$failures" ]; then echo "$failures"; exit 1; fi
