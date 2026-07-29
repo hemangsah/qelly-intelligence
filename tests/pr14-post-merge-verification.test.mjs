@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 const repository = 'hemangsah/qelly-intelligence';
-const mergeSha = '46233298031372c51bb433229bd7f9d1aff70568';
+const mergeSha = '26d2c9c453992b74dd3931d6b8b9489117d0b44c';
 const publicUrl = 'https://hemangsah.github.io/qelly-intelligence/';
 const requiredWorkflows = new Set([
   'Continuous Integration',
@@ -53,7 +53,7 @@ async function resolveWorkflowMatrix() {
   return { matrix, runs: [] };
 }
 
-test('exact main workflows, Pages deployment and public preview are verified', { timeout: 650_000 }, async () => {
+test('exact final main workflows, Pages deployment and public preview are verified', { timeout: 650_000 }, async () => {
   const { matrix, runs } = await resolveWorkflowMatrix();
   assert.deepEqual(matrix.map((item) => item.workflow).sort(), [...requiredWorkflows].sort());
   assert.equal(matrix.every((item) => item.event === 'push'), true, JSON.stringify(matrix, null, 2));
@@ -118,5 +118,5 @@ test('exact main workflows, Pages deployment and public preview are verified', {
     deploymentIds: deployments.map((deployment) => deployment.id),
     deploymentStatuses
   };
-  console.log(`QELLY_PR14_POST_MERGE_REPORT=${JSON.stringify(report)}`);
+  console.log(`QELLY_PROMPT1_FINAL_MAIN_REPORT=${JSON.stringify(report)}`);
 });
