@@ -22,37 +22,57 @@ jobs:
     timeout-minutes: 60
     env:
       EXPECTED_BASE: 9cb98780893924ad26fbf4baaa9048e80a162b2c
-      EXPECTED_STAGING_HEAD: 67f452bb4694f9549182a53cf3b2aec97b32c2c4
+      EXPECTED_STAGING_HEAD: 2c5841b42e5451df3e27530ba654f2918612579f
     steps:
-      - name: Check out exact staging checkpoint
+      - name: Check out exact manifested staging checkpoint
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: true
 
-      - name: Verify ancestry and decode compressed staged patch
-        shell: bash
+      - name: Verify manifest, payload and ancestry
+        shell: python
         run: |
-          set -euo pipefail
-          test "$(git merge-base HEAD "$EXPECTED_BASE")" = "$EXPECTED_BASE"
-          test "$(git rev-parse HEAD^)" = "$EXPECTED_STAGING_HEAD"
-          mapfile -t parts < <(find .github/qelly-prompt2b-install-v2 -maxdepth 1 -type f -name 'part-*.b64' | sort)
-          test "${#parts[@]}" -eq 4
-          test "${parts[0]}" = '.github/qelly-prompt2b-install-v2/part-00.b64'
-          test "${parts[1]}" = '.github/qelly-prompt2b-install-v2/part-01.b64'
-          test "${parts[2]}" = '.github/qelly-prompt2b-install-v2/part-02.b64'
-          test "${parts[3]}" = '.github/qelly-prompt2b-install-v2/part-03.b64'
-          : > /tmp/qelly-prompt2b.patch.gz
-          for part in "${parts[@]}"; do base64 --decode "$part" >> /tmp/qelly-prompt2b.patch.gz; done
-          gzip --test /tmp/qelly-prompt2b.patch.gz
-          gzip --decompress --stdout /tmp/qelly-prompt2b.patch.gz > /tmp/qelly-prompt2b.patch
-          test -s /tmp/qelly-prompt2b.patch
-          sha256sum /tmp/qelly-prompt2b.patch | tee /tmp/PATCH_SHA256.txt
-          sha256sum /tmp/qelly-prompt2b.patch.gz | tee /tmp/PATCH_GZIP_SHA256.txt
-          grep -q '^diff --git ' /tmp/qelly-prompt2b.patch
+          from pathlib import Path
+          import base64, gzip, hashlib, json, subprocess
 
-      - name: Enforce patch scope and safety boundaries
+          def sha256(data): return hashlib.sha256(data).hexdigest()
+          def git_blob(data): return hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+          head=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          parent=subprocess.check_output(['git','rev-parse','HEAD^'],text=True).strip()
+          base=subprocess.check_output(['git','merge-base','HEAD','${{ env.EXPECTED_BASE }}'],text=True).strip()
+          if parent!='${{ env.EXPECTED_STAGING_HEAD }}': raise SystemExit(f'parent mismatch: {parent}')
+          if base!='${{ env.EXPECTED_BASE }}': raise SystemExit(f'base mismatch: {base}')
+
+          manifest_path=Path('.github/qelly-prompt2b-install-v2/manifest.json')
+          manifest=json.loads(manifest_path.read_text())
+          expected_paths=[f'.github/qelly-prompt2b-install-v2/part-{i:02d}.b64' for i in range(6)]
+          actual=[item['path'] for item in manifest['parts']]
+          if actual!=expected_paths: raise SystemExit(f'part order mismatch: {actual}')
+          combined=b''
+          for item in manifest['parts']:
+              data=Path(item['path']).read_bytes()
+              checks=(len(data)==item['bytes'],sha256(data)==item['sha256'],git_blob(data)==item['gitBlobSha'])
+              if not all(checks): raise SystemExit(f'part integrity failure: {item["path"]} {len(data)} {sha256(data)} {git_blob(data)}')
+              combined+=data
+          payload=manifest['payload']
+          if len(combined)!=payload['base64Bytes'] or sha256(combined)!=payload['base64Sha256']:
+              raise SystemExit('combined base64 integrity failure')
+          compressed=base64.b64decode(combined,validate=True)
+          if len(compressed)!=payload['gzipBytes'] or sha256(compressed)!=payload['gzipSha256']:
+              raise SystemExit('gzip integrity failure')
+          patch=gzip.decompress(compressed)
+          if len(patch)!=payload['patchBytes'] or sha256(patch)!=payload['patchSha256']:
+              raise SystemExit('patch integrity failure')
+          if not patch.startswith(b'diff --git '): raise SystemExit('decoded payload is not a git patch')
+          Path('/tmp/qelly-prompt2b.patch.gz').write_bytes(compressed)
+          Path('/tmp/qelly-prompt2b.patch').write_bytes(patch)
+          Path('/tmp/PATCH_SHA256.txt').write_text(payload['patchSha256']+'\n')
+          Path('/tmp/PATCH_GZIP_SHA256.txt').write_text(payload['gzipSha256']+'\n')
+          print(json.dumps({'head':head,'parent':parent,'parts':len(actual),'patchBytes':len(patch),'patchSha256':payload['patchSha256']},indent=2))
+
+      - name: Enforce Wave 1 patch scope and safety boundaries
         shell: python
         run: |
           from pathlib import Path, PurePosixPath
@@ -61,56 +81,35 @@ jobs:
           paths=[]
           for match in re.finditer(r'^diff --git a/(.+?) b/(.+?)$',patch,re.M):
               left,right=match.groups()
-              if left!=right:
-                  raise SystemExit(f'rename/copy not permitted: {left} -> {right}')
+              if left!=right: raise SystemExit(f'rename/copy not permitted: {left} -> {right}')
               pure=PurePosixPath(right)
-              if pure.is_absolute() or '..' in pure.parts or '.git' in pure.parts:
-                  raise SystemExit(f'unsafe path: {right}')
-              allowed=(
-                  right=='package.json' or
-                  right.startswith('apps/web/public/') or
-                  right.startswith('packages/calculation-contracts/') or
-                  right.startswith('packages/formulas/') or
-                  right.startswith('packages/indicators/') or
-                  right.startswith('packages/financial-rules/') or
-                  right.startswith('packages/schemas/') or
-                  right.startswith('src/calculations/') or
+              if pure.is_absolute() or '..' in pure.parts or '.git' in pure.parts: raise SystemExit(f'unsafe path: {right}')
+              allowed=(right=='package.json' or right.startswith('apps/web/public/') or
+                  right.startswith('packages/calculation-contracts/') or right.startswith('packages/formulas/') or
+                  right.startswith('packages/indicators/') or right.startswith('packages/financial-rules/') or
+                  right.startswith('packages/schemas/') or right.startswith('src/calculations/') or
                   right in {'src/server/runtime.mjs','src/server/server.mjs','src/server/route-manifest.mjs'} or
                   right in {'scripts/build-frontend.mjs','scripts/product-validate.mjs','scripts/release-check.mjs','scripts/smoke.mjs'} or
-                  right.startswith('tests/prompt2b-')
-              )
-              if not allowed:
-                  raise SystemExit(f'path outside Prompt 2B Wave 1 scope: {right}')
+                  right.startswith('tests/prompt2b-'))
+              if not allowed: raise SystemExit(f'path outside Prompt 2B Wave 1 scope: {right}')
               paths.append(right)
-          if not paths or len(paths)!=len(set(paths)):
-              raise SystemExit('empty or duplicate patch paths')
-          required={
-              'packages/calculation-contracts/calculation-contracts.mjs',
-              'packages/formulas/formula-engine.mjs',
-              'packages/indicators/indicator-engine.mjs',
-              'packages/financial-rules/india-rule-registry.mjs',
-              'src/calculations/calculation-service.mjs',
-              'src/calculations/calculation-store.mjs',
+          if not paths or len(paths)!=len(set(paths)): raise SystemExit('empty or duplicate patch paths')
+          required={'packages/calculation-contracts/calculation-contracts.mjs','packages/formulas/formula-engine.mjs',
+              'packages/indicators/indicator-engine.mjs','packages/financial-rules/india-rule-registry.mjs',
+              'src/calculations/calculation-service.mjs','src/calculations/calculation-store.mjs',
               'apps/web/public/assets/routes/calculator-indicator-foundation.mjs',
-              'tests/prompt2b-formula-indicator-foundation.test.mjs',
-              'tests/prompt2b-server-persistence-api.test.mjs'
-          }
+              'tests/prompt2b-formula-indicator-foundation.test.mjs','tests/prompt2b-server-persistence-api.test.mjs'}
           missing=sorted(required-set(paths))
-          if missing:
-              raise SystemExit(f'missing required source paths: {missing}')
-          forbidden=[
-              r'realMoneyTrading\s*:\s*true',r'custody\s*:\s*true',
-              r'depositsWithdrawals\s*:\s*true',r'privateKeyStorage\s*:\s*true',
-              r'seedPhraseCollection\s*:\s*true',r'autonomousExecution\s*:\s*true',
-              r'IMPLEMENTED_CONNECTED[^\n]*(?:market|broker|wallet|exchange)'
-          ]
+          if missing: raise SystemExit(f'missing required source paths: {missing}')
+          forbidden=[r'realMoneyTrading\s*:\s*true',r'custody\s*:\s*true',r'depositsWithdrawals\s*:\s*true',
+              r'privateKeyStorage\s*:\s*true',r'seedPhraseCollection\s*:\s*true',r'autonomousExecution\s*:\s*true',
+              r'IMPLEMENTED_CONNECTED[^\n]*(?:market|broker|wallet|exchange)']
           for pattern in forbidden:
-              if re.search(pattern,patch,re.I):
-                  raise SystemExit(f'forbidden capability/claim in patch: {pattern}')
+              if re.search(pattern,patch,re.I): raise SystemExit(f'forbidden capability/claim: {pattern}')
           Path('/tmp/PATCH_PATHS.txt').write_text('\n'.join(paths)+'\n')
-          print(f'verified {len(paths)} scoped patch paths')
+          print(f'verified {len(paths)} scoped source paths')
 
-      - name: Apply patch and verify source
+      - name: Apply patch and run focused source tests
         shell: bash
         run: |
           set -euo pipefail
@@ -159,18 +158,18 @@ jobs:
           npm run release:check
           npm audit --audit-level=high
 
-      - name: Record atomic source checkpoint and remove transports
+      - name: Commit source and remove every temporary transport
         shell: bash
         run: |
           set -euo pipefail
-          patch_sha=$(cut -d' ' -f1 /tmp/PATCH_SHA256.txt)
-          gzip_sha=$(cut -d' ' -f1 /tmp/PATCH_GZIP_SHA256.txt)
+          patch_sha=$(cat /tmp/PATCH_SHA256.txt)
+          gzip_sha=$(cat /tmp/PATCH_GZIP_SHA256.txt)
           paths=$(wc -l < /tmp/PATCH_PATHS.txt | tr -d ' ')
           cat >> project-state/QELLY_PROMPT2B_EXECUTION_LEDGER.md <<EOF
 
           ## Verified source installation
 
-          - Staging head: \`$EXPECTED_STAGING_HEAD\`
+          - Manifest staging head: \`$EXPECTED_STAGING_HEAD\`
           - Decoded patch SHA-256: \`$patch_sha\`
           - Compressed payload SHA-256: \`$gzip_sha\`
           - Scoped source paths: $paths
@@ -178,7 +177,7 @@ jobs:
           - Indicator definitions: at least 32
           - Core reference/property/persistence/API tests: passed
           - Complete repository gates: passed before commit
-          - Both transport directories and temporary start/installer workflows: removed in this commit
+          - All payload parts, manifest and temporary start/installer workflows: removed in this commit
           EOF
           rm -rf .github/qelly-prompt2b-install .github/qelly-prompt2b-install-v2
           rm -f .github/workflows/prompt2b-start-gate.yml .github/workflows/prompt2b-install-source.yml
