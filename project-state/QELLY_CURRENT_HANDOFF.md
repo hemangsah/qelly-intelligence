@@ -14,6 +14,7 @@ Last updated: 2026-07-29
 - `qelly-design-foundation-v1`: unchanged
 - `qelly-brand-foundation-v1`: annotated object `f8e02f013b353bc723bb68c9592fcab9e8b6357a`, target `94fbd4ff91c0d61f87e42724038f03fa5c36f97a`
 - Public-beta branch: `release/qelly-public-beta-v1`
+- Public-beta consolidation head before final connector handoff: `7db4a701cb45dccc58c9ee0fd5d4f42ebbb0d81b`
 - Draft public-beta PR: #14, open and unmerged
 - Prompt 2: not executed
 - Prompt 3: not executed
@@ -33,11 +34,12 @@ Last updated: 2026-07-29
 - 61 routes inventoried.
 - 276 API references inventoried and truthfully classified.
 - Nine governed foundation files checksummed.
+- Local public-beta repository and contract validation passed before final workflow triggering.
 - Real providers remain unconnected.
 - Real-money trading, custody, deposits, withdrawals, private-key storage, seed phrases and autonomous execution remain disabled.
 
 ## Next action
 
-Wait for every workflow on the exact final PR #14 handoff head to conclude successfully. Keep PR #14 draft and unmerged. After Prompt 1 is fully handed off, re-read the master pack and execute Prompt 2 only when explicitly instructed.
+This connector-authored handoff commit is the exact final PR #14 validation trigger. Wait for Continuous Integration, Container Build, Production Foundation Services and CodeQL to conclude successfully on its exact SHA. Keep PR #14 draft and unmerged. After Prompt 1 is fully handed off, re-read the master pack and execute Prompt 2 only when explicitly instructed.
 
 All safe progress has been persisted in the repository and recorded in the Qelly durable handoff files. The exact current head, completed work, remaining work, validation state and next action are documented. No continuation should rely solely on chat memory.
