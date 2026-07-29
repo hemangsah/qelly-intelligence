@@ -1,8 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { readFile, readdir } from 'node:fs/promises';
-import path from 'node:path';
+import { readFile } from 'node:fs/promises';
 
 const root = new URL('../', import.meta.url);
 const text = (relative) => readFile(new URL(relative, root), 'utf8');
@@ -25,13 +24,15 @@ test('approved primary and symbol geometry remain exact', async () => {
   }
 });
 
-test('IBM Plex remains the only governed application font', async () => {
+test('IBM Plex remains the governed application font source', async () => {
   const index = await text('apps/web/public/index.html');
-  assert.match(index, /ibm-plex-sans-variable\.woff2/);
+  const packageJson = JSON.parse(await text('package.json'));
+  const build = await text('scripts/build-frontend.mjs');
+  assert.match(index, /\.\/assets\/fonts\/ibm-plex-sans-variable\.woff2/);
   assert.doesNotMatch(index, /fonts\.googleapis|use\.typekit|Geist|Manrope|Plus Jakarta/i);
-  const fontDirectory = new URL('apps/web/public/assets/fonts/', root);
-  const fontFiles = (await readdir(fontDirectory)).filter((name) => /\.(woff2?|ttf|otf|eot)$/i.test(name));
-  assert.deepEqual(fontFiles, ['ibm-plex-sans-variable.woff2']);
+  assert.equal(packageJson.devDependencies['@fontsource-variable/ibm-plex-sans'], '5.2.8');
+  assert.match(build, /@fontsource-variable\/ibm-plex-sans/);
+  assert.match(build, /ibm-plex-sans-variable\.woff2/);
 });
 
 test('brand and semantic colors stay governed by approved source assets', async () => {
