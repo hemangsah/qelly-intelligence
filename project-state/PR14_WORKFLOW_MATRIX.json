@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "result": "passed",
+  "pullRequest": 14,
+  "baseMain": "94fbd4ff91c0d61f87e42724038f03fa5c36f97a",
+  "reviewedHead": "20e34c77add21d3d0c1f1db62949948e77768fea",
+  "mergeCommit": "46233298031372c51bb433229bd7f9d1aff70568",
+  "preMerge": [
+    {
+      "workflow": "Continuous Integration",
+      "runId": 30435329025,
+      "event": "pull_request",
+      "conclusion": "success"
+    },
+    {
+      "workflow": "Container Build",
+      "runId": 30435329090,
+      "event": "pull_request",
+      "conclusion": "success"
+    },
+    {
+      "workflow": "Production Foundation Services",
+      "runId": 30435326590,
+      "event": "pull_request",
+      "conclusion": "success"
+    },
+    {
+      "workflow": "CodeQL",
+      "runId": 30435329206,
+      "event": "pull_request",
+      "conclusion": "success"
+    }
+  ],
+  "postMergeMain": [
+    {
+      "workflow": "Continuous Integration",
+      "runId": 30435545787,
+      "event": "push",
+      "headSha": "46233298031372c51bb433229bd7f9d1aff70568",
+      "conclusion": "success"
+    },
+    {
+      "workflow": "Container Build",
+      "runId": 30435545830,
+      "event": "push",
+      "headSha": "46233298031372c51bb433229bd7f9d1aff70568",
+      "conclusion": "success"
+    },
+    {
+      "workflow": "Production Foundation Services",
+      "runId": 30435545836,
+      "event": "push",
+      "headSha": "46233298031372c51bb433229bd7f9d1aff70568",
+      "conclusion": "success"
+    },
+    {
+      "workflow": "CodeQL",
+      "runId": 30435545815,
+      "event": "push",
+      "headSha": "46233298031372c51bb433229bd7f9d1aff70568",
+      "conclusion": "success"
+    }
+  ],
+  "detailedGates": {
+    "dependencyReview": true,
+    "secretScan": true,
+    "environmentSafety": true,
+    "typeAndSyntax": true,
+    "lint": true,
+    "designGovernance": true,
+    "completeTests": true,
+    "productionBuild": true,
+    "frontendBuild": true,
+    "productValidation": true,
+    "inventoryRebuild": true,
+    "fullStackSmoke": true,
+    "databaseIdentityIsolation": true,
+    "releaseSafety": true
+  }
+}
