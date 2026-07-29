@@ -1,4 +1,5 @@
-import { mkdtemp, rm, writeFile, mkdir } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile, mkdir, readFile } from 'node:fs/promises';
+import { createServer } from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { chromium, firefox, webkit } from 'playwright';
@@ -6,8 +7,28 @@ import { startServer } from '../src/server/server.mjs';
 
 const expected=process.env.EXPECTED_MAIN;
 const runtimePath=await mkdtemp(path.join(os.tmpdir(),'qelly-prompt2a-final-main-'));
-const {server,host,port}=await startServer({port:0,runtimePath});
-const base=`http://${host}:${port}`;
+const backend=await startServer({port:0,runtimePath});
+const backendBase=`http://${backend.host}:${backend.port}`;
+const dist=path.resolve('dist/frontend');
+const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.woff2':'font/woff2','.webmanifest':'application/manifest+json','.ico':'image/x-icon'};
+const frontend=createServer(async(request,response)=>{
+  try{
+    const url=new URL(request.url,'http://127.0.0.1');
+    if(url.pathname.startsWith('/api/')){
+      const upstream=await fetch(`${backendBase}${url.pathname}${url.search}`,{headers:{accept:request.headers.accept||'application/json'}});
+      const body=Buffer.from(await upstream.arrayBuffer());
+      response.writeHead(upstream.status,{'content-type':upstream.headers.get('content-type')||'application/json','cache-control':'no-store'});response.end(body);return;
+    }
+    let relative=decodeURIComponent(url.pathname).replace(/^\/+/, '');
+    if(!relative||relative.endsWith('/'))relative+='index.html';
+    const candidate=path.join(dist,relative);
+    try{const body=await readFile(candidate);response.writeHead(200,{'content-type':mime[path.extname(candidate)]||'application/octet-stream','cache-control':'no-store'});response.end(body);}
+    catch{const body=await readFile(path.join(dist,'index.html'));response.writeHead(200,{'content-type':'text/html','cache-control':'no-store'});response.end(body);}
+  }catch(error){response.writeHead(500,{'content-type':'text/plain'});response.end(error.message);}
+});
+await new Promise(resolve=>frontend.listen(0,'127.0.0.1',resolve));
+const frontendAddress=frontend.address();
+const base=`http://127.0.0.1:${frontendAddress.port}`;
 const browsers=[['chromium',chromium],['firefox',firefox],['webkit',webkit]];
 const viewports=[[360,800],[390,844],[430,932],[768,1024],[1024,768],[1440,1000]];
 const themes=['dark','light','oled','high-contrast'];
@@ -20,11 +41,11 @@ try{
       const page=await context.newPage();
       const consoleErrors=[],pageErrors=[],failed=[];
       await page.route('https://unpkg.com/**',route=>route.abort('blockedbyclient'));
-      page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text())});
-      page.on('pageerror',e=>pageErrors.push(e.message));
-      page.on('requestfailed',r=>{if(r.url().startsWith(base))failed.push({url:r.url(),error:r.failure()?.errorText})});
+      page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text())});
+      page.on('pageerror',error=>pageErrors.push(error.message));
+      page.on('requestfailed',request=>{if(request.url().startsWith(base))failed.push({url:request.url(),error:request.failure()?.errorText})});
       await page.addInitScript(()=>sessionStorage.setItem('qelly.brand.opening.v1','seen'));
-      await page.goto(`${base}/#/live-markets`,{waitUntil:'commit',timeout:20000});
+      await page.goto(`${base}/#/live-markets`,{waitUntil:'domcontentloaded',timeout:20000});
       await page.waitForSelector('#live-provider',{state:'attached',timeout:20000});
       await page.evaluate(()=>{const select=document.querySelector('#live-provider');select.value='fixture';select.dispatchEvent(new Event('change',{bubbles:true}));});
       await page.waitForSelector('.q-live-fallback',{state:'attached',timeout:10000});
@@ -42,9 +63,13 @@ try{
     }
     await browser.close();
   }
-}finally{await new Promise(r=>server.close(r));await rm(runtimePath,{recursive:true,force:true});}
-const failures=records.filter(r=>r.textLength===0||r.overflow>1||r.font!=='loaded'||!r.truth||!r.executionDisabled||!r.noCustody||!r.fallbackRenderer||r.unexpectedConsoleErrors.length||r.pageErrors.length||r.failedRequiredResources.length);
+}finally{
+  await new Promise(resolve=>frontend.close(resolve));
+  await new Promise(resolve=>backend.server.close(resolve));
+  await rm(runtimePath,{recursive:true,force:true});
+}
+const failures=records.filter(record=>record.textLength===0||record.overflow>1||record.font!=='loaded'||!record.truth||!record.executionDisabled||!record.noCustody||!record.fallbackRenderer||record.unexpectedConsoleErrors.length||record.pageErrors.length||record.failedRequiredResources.length);
 await mkdir('.prompt2a-closeout',{recursive:true});
-await writeFile('.prompt2a-closeout/FINAL_MAIN_BROWSER_MATRIX.json',JSON.stringify({schemaVersion:1,head:expected,scope:'affected live-markets truth route; broad 549-record regression retained from PR20 exact product tree',recordCount:records.length,passed:records.length-failures.length,failed:failures.length,expectedExternalFallbackRecords:records.filter(r=>r.expectedExternalErrors.length).length,records,failures},null,2)+'\n');
-console.log(JSON.stringify({records:records.length,failures:failures.length,expectedExternalFallbackRecords:records.filter(r=>r.expectedExternalErrors.length).length,failureSamples:failures.slice(0,3)},null,2));
+await writeFile('.prompt2a-closeout/FINAL_MAIN_BROWSER_MATRIX.json',JSON.stringify({schemaVersion:1,head:expected,scope:'affected live-markets truth route on compiled frontend with same-origin local fixture API; broad 549-record regression retained from PR20 exact product tree',recordCount:records.length,passed:records.length-failures.length,failed:failures.length,expectedExternalFallbackRecords:records.filter(record=>record.expectedExternalErrors.length).length,records,failures},null,2)+'\n');
+console.log(JSON.stringify({records:records.length,failures:failures.length,expectedExternalFallbackRecords:records.filter(record=>record.expectedExternalErrors.length).length,failureSamples:failures.slice(0,3)},null,2));
 if(failures.length)process.exit(1);
