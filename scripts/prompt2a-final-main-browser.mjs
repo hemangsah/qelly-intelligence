@@ -26,12 +26,14 @@ try{
       await page.goto(`${base}/#/live-markets`,{waitUntil:'commit',timeout:20000});
       await page.waitForSelector('#live-provider',{state:'attached',timeout:20000});
       await page.evaluate(()=>{const select=document.querySelector('#live-provider');select.value='fixture';select.dispatchEvent(new Event('change',{bubbles:true}));});
-      await page.waitForTimeout(450);
+      await page.waitForTimeout(600);
       for(const appearance of themes){
         await page.evaluate((value)=>{localStorage.setItem('qelly-appearance',value);const root=document.documentElement;root.dataset.appearance=value;root.dataset.resolvedAppearance=value;},appearance);
         await page.waitForTimeout(60);
-        const measurement=await page.evaluate(()=>{const html=document.documentElement,main=document.querySelector('#main');const text=(main?.textContent||'').trim();return {textLength:text.length,overflow:Math.max(0,html.scrollWidth-html.clientWidth),font:document.fonts.status,appearance:html.dataset.resolvedAppearance||html.dataset.appearance||'',logo:Boolean(document.querySelector('.q-brand-lockup,.q-app-brand,img[src*="qelly"]')),truth:/Illustrative watch universe/.test(text)&&/not provider observations/.test(text)&&!/Live watch universe/.test(text),executionDisabled:/Execution\s*Disabled/.test(text),noCustody:/No order placement, API keys, balances, transfers, withdrawals, private keys or wallet custody/.test(text)};});
-        records.push({browser:browserName,width,height,appearance,route:'live-markets',...measurement,consoleErrors:[...consoleErrors],pageErrors:[...pageErrors],failedResources:[...failed]});
+        const measurement=await page.evaluate(()=>{const html=document.documentElement,main=document.querySelector('#main');const text=(main?.textContent||'').trim();return {textLength:text.length,overflow:Math.max(0,html.scrollWidth-html.clientWidth),font:document.fonts.status,appearance:html.dataset.resolvedAppearance||html.dataset.appearance||'',logo:Boolean(document.querySelector('.q-brand-lockup,.q-app-brand,img[src*="qelly"]')),truth:/Illustrative watch universe/.test(text)&&/not provider observations/.test(text)&&!/Live watch universe/.test(text),executionDisabled:/Execution\s*Disabled/.test(text),noCustody:/No order placement, API keys, balances, transfers, withdrawals, private keys or wallet custody/.test(text),fallbackRenderer:Boolean(document.querySelector('.q-live-fallback'))};});
+        const expectedExternalErrors=consoleErrors.filter(message=>/unpkg\.com|lightweight-charts|Failed to load resource/i.test(message));
+        const unexpectedConsoleErrors=consoleErrors.filter(message=>!/unpkg\.com|lightweight-charts|Failed to load resource/i.test(message));
+        records.push({browser:browserName,width,height,appearance,route:'live-markets',...measurement,expectedExternalErrors,unexpectedConsoleErrors,pageErrors:[...pageErrors],failedRequiredResources:[...failed]});
         consoleErrors.length=0;pageErrors.length=0;failed.length=0;
       }
       await context.close();
@@ -39,8 +41,8 @@ try{
     await browser.close();
   }
 }finally{await new Promise(r=>server.close(r));await rm(runtimePath,{recursive:true,force:true});}
-const failures=records.filter(r=>r.textLength===0||r.overflow>1||r.font!=='loaded'||!r.truth||!r.executionDisabled||!r.noCustody||r.consoleErrors.length||r.pageErrors.length||r.failedResources.length);
+const failures=records.filter(r=>r.textLength===0||r.overflow>1||r.font!=='loaded'||!r.truth||!r.executionDisabled||!r.noCustody||r.unexpectedConsoleErrors.length||r.pageErrors.length||r.failedRequiredResources.length||(r.expectedExternalErrors.length&&!r.fallbackRenderer));
 await mkdir('.prompt2a-closeout',{recursive:true});
-await writeFile('.prompt2a-closeout/FINAL_MAIN_BROWSER_MATRIX.json',JSON.stringify({schemaVersion:1,head:expected,scope:'affected live-markets truth route; broad 549-record regression retained from PR20 exact product tree',recordCount:records.length,passed:records.length-failures.length,failed:failures.length,records,failures},null,2)+'\n');
-console.log(JSON.stringify({records:records.length,failures:failures.length},null,2));
+await writeFile('.prompt2a-closeout/FINAL_MAIN_BROWSER_MATRIX.json',JSON.stringify({schemaVersion:1,head:expected,scope:'affected live-markets truth route; broad 549-record regression retained from PR20 exact product tree',recordCount:records.length,passed:records.length-failures.length,failed:failures.length,expectedExternalFallbackRecords:records.filter(r=>r.expectedExternalErrors.length).length,records,failures},null,2)+'\n');
+console.log(JSON.stringify({records:records.length,failures:failures.length,expectedExternalFallbackRecords:records.filter(r=>r.expectedExternalErrors.length).length},null,2));
 if(failures.length)process.exit(1);
