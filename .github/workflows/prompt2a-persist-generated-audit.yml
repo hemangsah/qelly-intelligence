@@ -1,0 +1,102 @@
+name: Qelly Prompt 2A Persist Generated Audit
+
+on:
+  push:
+    branches:
+      - feature/prompt2-repository-gap-audit
+    paths:
+      - audit-input/project-state.part-*.b64
+      - .github/workflows/prompt2a-persist-generated-audit.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prompt2a-persist-generated-audit
+  cancel-in-progress: false
+
+jobs:
+  persist:
+    if: github.ref == 'refs/heads/feature/prompt2-repository-gap-audit'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out exact staging head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Verify and reconstruct durable state
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/feature/prompt2-repository-gap-audit"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(find audit-input -maxdepth 1 -name 'project-state.part-*.b64' -type f | wc -l)" -eq 10
+          cat audit-input/project-state.part-*.b64 | base64 --decode > /tmp/qelly-prompt2a-project-state.tar.xz
+          echo "6295a36649b4b1b2a1bbaa666ee4ad1167bbe228b67d2b00be0bbd0af9b62469  /tmp/qelly-prompt2a-project-state.tar.xz" | sha256sum -c -
+          test -z "$(tar -tJf /tmp/qelly-prompt2a-project-state.tar.xz | grep -E '(^/|(^|/)\.\.(/|$))' || true)"
+          test -z "$(tar -tJf /tmp/qelly-prompt2a-project-state.tar.xz | grep -Ei '\.(woff2?|ttf|otf|eot)$' || true)"
+          rm -rf /tmp/qelly-prompt2a-expanded
+          mkdir -p /tmp/qelly-prompt2a-expanded
+          tar -xJf /tmp/qelly-prompt2a-project-state.tar.xz -C /tmp/qelly-prompt2a-expanded
+          test -d /tmp/qelly-prompt2a-expanded/project-state
+          cp -a /tmp/qelly-prompt2a-expanded/project-state/. project-state/
+
+      - name: Validate generated registries
+        shell: python
+        run: |
+          import csv
+          import json
+          from pathlib import Path
+
+          root = Path("project-state")
+          required = [
+              "QELLY_CURRENT_HANDOFF.md",
+              "QELLY_PROJECT_STATE.md",
+              "QELLY_PROGRESS_LEDGER.md",
+              "QELLY_PROMPT2A_AUDIT_REPORT.md",
+              "QELLY_MASTER_FEATURE_UNIVERSE.csv",
+              "QELLY_FEATURE_STATUS.csv",
+              "QELLY_ROUTE_STATUS.csv",
+              "QELLY_API_INVENTORY.csv",
+              "QELLY_PROVIDER_REGISTRY.csv",
+              "QELLY_FORMULA_CATALOG.csv",
+              "QELLY_DEPENDENCY_GRAPH.json",
+              "QELLY_IMPLEMENTATION_WAVES.md",
+              "QELLY_PROMPT2B_STARTING_STATE.md",
+              "QELLY_NEXT_PROMPT_2B.md",
+          ]
+          for name in required:
+              assert (root / name).is_file(), name
+
+          for path in root.glob("*.json"):
+              json.loads(path.read_text(encoding="utf-8"))
+
+          checks = [
+              ("QELLY_MASTER_FEATURE_UNIVERSE.csv", "feature_id", 545),
+              ("QELLY_FEATURE_STATUS.csv", "feature_id", 545),
+              ("QELLY_ROUTE_STATUS.csv", "route_id", 61),
+              ("QELLY_API_INVENTORY.csv", "api_id", 187),
+              ("QELLY_PROVIDER_REGISTRY.csv", "provider_id", 28),
+              ("QELLY_FORMULA_CATALOG.csv", "formula_id", 188),
+          ]
+          for name, key, expected in checks:
+              with (root / name).open(newline="", encoding="utf-8") as handle:
+                  rows = list(csv.DictReader(handle))
+              values = [row[key] for row in rows]
+              assert len(rows) == expected, (name, len(rows), expected)
+              assert len(values) == len(set(values)), name
+
+      - name: Persist one safe checkpoint and remove staging material
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf audit-input
+          rm -f .github/workflows/prompt2a-persist-generated-audit.yml
+          git config user.name "qelly-audit-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A project-state audit-input .github/workflows/prompt2a-persist-generated-audit.yml
+          git diff --cached --check
+          git commit -m "audit(prompt2a): persist Wave 0 registries and blueprint"
+          git push origin HEAD:feature/prompt2-repository-gap-audit
