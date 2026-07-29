@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-07-29T15:04:00+05:30",
+  "repository": "hemangsah/qelly-intelligence",
+  "authenticatedUser": "hemangsah",
+  "repositoryPermission": "admin",
+  "defaultBranch": "main",
+  "verifiedStartingMain": "26d2c9c453992b74dd3931d6b8b9489117d0b44c",
+  "recordedPrompt2Base": "26d2c9c453992b74dd3931d6b8b9489117d0b44c",
+  "mainComparison": "identical",
+  "workingBranch": "feature/prompt2-repository-gap-audit",
+  "branchCreatedFromExactMain": true,
+  "startingBranchHeadAfterBootstrap": "6e922eb8b1d94d5a46432d2543d124832a188026",
+  "openPullRequestsBeforeBranching": 0,
+  "auditPullRequestBeforeBranching": null,
+  "immutableTags": {
+    "qelly-design-foundation-v1": "239f6f0c7c663801662f4e5f940ca76fb6941bf1",
+    "qelly-brand-foundation-v1": "94fbd4ff91c0d61f87e42724038f03fa5c36f97a"
+  },
+  "pullRequestState": {
+    "13": "merged-closed",
+    "14": "merged-closed",
+    "15": "closed-unmerged",
+    "16": "closed-unmerged",
+    "17": "closed-unmerged",
+    "18": "merged-closed"
+  },
+  "recordedFinalMainValidation": {
+    "continuousIntegrationRun": 30436980597,
+    "containerBuildRun": 30436980346,
+    "productionFoundationServicesRun": 30436980171,
+    "codeqlRun": 30436980397,
+    "pagesDeployment": 5654431325,
+    "pagesStatus": 16078743136,
+    "result": "success"
+  },
+  "pendingLiveHarnessEvidence": [
+    "complete branch list",
+    "latest release endpoint",
+    "branch protection and rulesets",
+    "current workflow run listing",
+    "current Pages/deployment API listing"
+  ],
+  "safety": {
+    "mergeAuditPullRequest": false,
+    "markReady": false,
+    "autoMerge": false,
+    "deployAuditBranch": false,
+    "modifyMainDirectly": false,
+    "realMoneyTrading": false,
+    "custody": false,
+    "depositsWithdrawals": false,
+    "privateKeyStorage": false,
+    "seedPhraseCollection": false,
+    "autonomousExecution": false,
+    "prompt2BImplementation": false
+  },
+  "classificationPolicy": "Executable evidence controls status. Route names, schemas, mocks, screenshots, HTTP 200 responses and registry rows are not connectivity proof.",
+  "nextAction": "Open the required draft audit PR and use the read-only Wave 0 workflow to capture complete live GitHub state plus a sanitized exact-source snapshot for forensic analysis."
+}
