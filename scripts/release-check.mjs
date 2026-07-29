@@ -62,7 +62,7 @@ const result = {
     && validation.schemas === schemas.length,
   smokeCurrent: smoke.status === 'smoke-passed'
     && smoke.productVersion === productVersion
-    && smoke.requests === 260,
+    && smoke.requests === 279,
   routeInventoryCurrent: routeInventory.productVersion === productVersion
     && routeInventory.count === routes.length,
   apiInventoryCurrent: apiInventory.productVersion === productVersion
@@ -84,10 +84,10 @@ const result = {
 };
 const bad = Object.entries(result).filter(([, value]) => value === false || value == null);
 if (pkg.version !== productVersion
-  || routes.length !== 61
-  || apiRoutes.length !== 187
-  || contracts.size !== 17
-  || schemas.length !== 67
+  || routes.length !== 66
+  || apiRoutes.length !== 199
+  || contracts.size !== 18
+  || schemas.length !== 70
   || bad.length) {
   throw new Error(JSON.stringify({
     result,

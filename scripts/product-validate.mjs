@@ -32,6 +32,13 @@ const requiredFiles = [
   '.github/workflows/release.yml',
   '.github/workflows/codeql.yml',
   'packages/migrations/105_scope_a_decision_provenance.sql',
+  'packages/migrations/107_calculator_indicator_foundation.sql',
+  'packages/contracts/calculator-indicator-foundation.contract.json',
+  'apps/web/public/assets/calculation/formula-engine.mjs',
+  'apps/web/public/assets/calculation/indicator-engine.mjs',
+  'apps/web/public/assets/routes/calculator-center.mjs',
+  'apps/web/public/assets/routes/india-finance-center.mjs',
+  'apps/web/public/assets/routes/indicator-library.mjs',
   'docs/deployment/VERCEL_IMPORT_CHECKLIST.md',
   'docs/deployment/ENVIRONMENT_REFERENCE.md',
   'docs/deployment/PRODUCTION_DEPENDENCY_POLICY.md',
@@ -97,10 +104,10 @@ const checks = {
   packageName: pkg.name === 'qelly-intelligence',
   version: pkg.version === productVersion,
   requiredFiles: missingFiles.length === 0,
-  routes: routes.length === 61 && new Set(routes).size === routes.length,
+  routes: routes.length === 66 && new Set(routes).size === routes.length,
   routeRegistry: routeNames.length === routes.length && routes.every((route) => routeNames.includes(route)),
-  apiContracts: apiRoutes.length === 187 && new Set(apiRoutes).size === apiRoutes.length,
-  contracts: contracts.size === 17,
+  apiContracts: apiRoutes.length === 199 && new Set(apiRoutes).size === apiRoutes.length,
+  contracts: contracts.size === 18,
   publicApis: requiredPublic.every((route) => apiRoutes.includes(route)),
   evidenceApis: requiredEvidence.every((route) => apiRoutes.includes(route)),
   dangerousAbsent: dangerous.every((route) => !apiRoutes.includes(route)),
@@ -119,7 +126,7 @@ const checks = {
     'fallbackReason',
     'marketCap:null'
   ].every((value) => service.includes(value)),
-  schemas: schemas.length === 67 && requiredPublicBetaSchemas.every((name) => schemas.includes(name))
+  schemas: schemas.length === 70 && requiredPublicBetaSchemas.every((name) => schemas.includes(name))
 };
 const failed = Object.entries(checks).filter(([, value]) => !value);
 if (failed.length) {

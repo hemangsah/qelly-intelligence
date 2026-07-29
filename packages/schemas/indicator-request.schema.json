@@ -1,0 +1,12 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://qelly.example/schemas/indicator-request.schema.json",
+  "title":"Indicator request",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["indicatorId","inputs"],
+  "properties":{
+    "indicatorId":{"type":"string","minLength":1,"maxLength":128,"pattern":"^[a-z0-9-]+$"},
+    "inputs":{"type":"object","maxProperties":30}
+  }
+}

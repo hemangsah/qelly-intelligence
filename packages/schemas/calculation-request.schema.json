@@ -1,0 +1,15 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://qelly.example/schemas/calculation-request.schema.json",
+  "title":"Calculation request",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["formulaId","inputs"],
+  "properties":{
+    "formulaId":{"type":"string","minLength":1,"maxLength":128,"pattern":"^[a-z0-9-]+$"},
+    "inputs":{"type":"object","maxProperties":200},
+    "effectiveDate":{"type":"string","format":"date"},
+    "assumptions":{"type":"array","maxItems":50,"items":{"type":"string","maxLength":500}},
+    "sourceReferences":{"type":"array","maxItems":50,"items":{"type":"string","maxLength":1000}}
+  }
+}

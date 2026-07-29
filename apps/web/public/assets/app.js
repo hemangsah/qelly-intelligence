@@ -42,12 +42,17 @@ import { renderSecretRotation } from './routes/secret-rotation.mjs';
 import { renderQuarantineReview } from './routes/quarantine-review.mjs';
 import { renderStagingAssurance } from './routes/staging-assurance.mjs';
 import { renderDecisionProvenance } from './routes/decision-provenance.mjs';
+import { renderCalculatorCenter } from './routes/calculator-center.mjs';
+import { renderIndiaFinanceCenter } from './routes/india-finance-center.mjs';
+import { renderIndicatorLibrary } from './routes/indicator-library.mjs';
+import { renderFormulaLibrary } from './routes/formula-library.mjs';
+import { renderSavedCalculations } from './routes/saved-calculations.mjs';
 import { renderAssetRankings as renderAssetRankingsRescue } from './routes/asset-rankings.mjs';
 
 const runtimeConfig=Object.freeze({...window.__QELLY_CONFIG__});
 const staticVisualPreview=runtimeConfig.staticVisualPreview===true;
 const staticPreviewApi=staticVisualPreview?await import('./static-preview-api.mjs'):null;
-const staticPreviewRoutes=new Set(['market','asset-rankings','asset','decision-provenance','feature-universe','about-qelly','theme-personas','auth-login','auth-register','auth-recovery']);
+const staticPreviewRoutes=new Set(['market','asset-rankings','asset','decision-provenance','feature-universe','about-qelly','theme-personas','auth-login','auth-register','auth-recovery','calculator-center','india-finance','indicator-library','formula-library','saved-calculations']);
 const apiBaseUrl=String(runtimeConfig.apiBaseUrl??'').replace(/\/$/,'');
 const apiUrl=(path)=>apiBaseUrl?new URL(path,`${apiBaseUrl}/`).toString():path;
 
@@ -333,6 +338,11 @@ async function renderRoute() {
       case 'staging-assurance': await renderStagingAssurance(main,{api,pageHead,escapeHtml,toast,renderRoute}); break;
       case 'account-session': await renderAccountSession(main,{api,pageHead,escapeHtml,toast,onLoggedOut:()=>reloadApplication('auth-login'),onAuthenticated:reloadApplication}); break;
       case 'live-markets': await renderLiveMarkets(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
+      case 'calculator-center': await renderCalculatorCenter(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
+      case 'india-finance': await renderIndiaFinanceCenter(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
+      case 'indicator-library': await renderIndicatorLibrary(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
+      case 'formula-library': await renderFormulaLibrary(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
+      case 'saved-calculations': await renderSavedCalculations(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
       case 'theme-personas': await renderThemePersonas(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,applyPersona}); break;
       case 'about-qelly': await renderAboutQelly(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
       case 'feature-universe': await renderFeatureUniverse(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;

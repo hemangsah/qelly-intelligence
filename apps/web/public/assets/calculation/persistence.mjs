@@ -1,0 +1,20 @@
+const STORAGE_KEY='qelly.calculations.v1';
+const SCHEMA_VERSION=1;
+const MAX_ITEMS=250;
+const MAX_BYTES=1_000_000;
+const forbidden=new Set(['__proto__','prototype','constructor']);
+const safe=(value,depth=0)=>{if(depth>20)throw new Error('Saved calculation nesting is too deep');if(Array.isArray(value))return value.map(v=>safe(v,depth+1));if(value&&typeof value==='object'){const output={};for(const [key,item] of Object.entries(value)){if(forbidden.has(key))throw new Error(`Unsafe key rejected: ${key}`);output[key]=safe(item,depth+1);}return output;}if(['string','number','boolean'].includes(typeof value)||value==null)return value;throw new Error('Unsupported saved calculation value');};
+const read=()=>{try{const parsed=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{"schemaVersion":1,"items":[]}');return migrate(parsed);}catch{return {schemaVersion:SCHEMA_VERSION,items:[]};}};
+const write=(store)=>{const encoded=JSON.stringify(store);if(encoded.length>MAX_BYTES)throw new Error('Saved calculations exceed the local storage safety limit');localStorage.setItem(STORAGE_KEY,encoded);return store;};
+export const migrate=(input)=>{const clean=safe(input);if(clean.schemaVersion===SCHEMA_VERSION&&Array.isArray(clean.items))return {schemaVersion:SCHEMA_VERSION,items:clean.items.slice(0,MAX_ITEMS)};if(!clean.schemaVersion&&Array.isArray(clean))return {schemaVersion:SCHEMA_VERSION,items:clean.slice(0,MAX_ITEMS)};throw new Error('Unsupported saved calculation schema version');};
+export const listSavedCalculations=()=>read().items;
+export const saveCalculation=({name,result,notes=''})=>{const store=read(),item={id:crypto.randomUUID(),name:String(name||result?.formulaId||result?.indicatorId||'Calculation').slice(0,120),savedAt:new Date().toISOString(),schemaVersion:SCHEMA_VERSION,formulaVersion:result?.formulaVersion??null,indicatorVersion:result?.indicatorVersion??null,effectiveDate:result?.effectiveDate??null,result:safe(result),notes:String(notes).slice(0,2000),truthState:'IMPLEMENTED_DETERMINISTIC_LOCAL'};store.items=[item,...store.items].slice(0,MAX_ITEMS);write(store);return item;};
+export const removeSavedCalculation=(id)=>{const store=read();store.items=store.items.filter(item=>item.id!==id);write(store);};
+export const clearSavedCalculations=()=>write({schemaVersion:SCHEMA_VERSION,items:[]});
+export const exportSavedCalculations=()=>JSON.stringify(read(),null,2);
+export const importSavedCalculations=(text)=>{if(typeof text!=='string'||text.length>MAX_BYTES)throw new Error('Import exceeds the safety limit');const incoming=migrate(JSON.parse(text));write({schemaVersion:SCHEMA_VERSION,items:incoming.items.slice(0,MAX_ITEMS)});return incoming;};
+export const encodeShareState=(value)=>{const json=JSON.stringify(safe(value));if(json.length>6000)throw new Error('Share state is too large for a URL');const bytes=new TextEncoder().encode(json);let binary='';for(const byte of bytes)binary+=String.fromCharCode(byte);return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');};
+export const decodeShareState=(encoded)=>{if(typeof encoded!=='string'||encoded.length>12000)throw new Error('Share state is invalid');const normalized=encoded.replace(/-/g,'+').replace(/_/g,'/');const binary=atob(normalized);const bytes=Uint8Array.from(binary,char=>char.charCodeAt(0));return safe(JSON.parse(new TextDecoder().decode(bytes)));};
+export const safeCsvCell=(value)=>{const text=String(value??'').replace(/"/g,'""');const neutralized=/^[=+\-@\t\r]/.test(text)?`'${text}`:text;return `"${neutralized}"`;};
+export function resultToCsv(result){const rows=[['field','value']];const output=result?.outputs??{};for(const [key,value] of Object.entries(output)){if(Array.isArray(value)||value&&typeof value==='object')continue;rows.push([key,value]);}return rows.map(row=>row.map(safeCsvCell).join(',')).join('\n')+'\n';}
+export const persistenceMetadata=Object.freeze({schemaVersion:SCHEMA_VERSION,storage:'local-browser',cloudConnected:false,maxItems:MAX_ITEMS,maxBytes:MAX_BYTES});
