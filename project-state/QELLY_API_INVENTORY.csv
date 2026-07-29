@@ -1,0 +1,2 @@
+api_id,contract,status,connection_state,evidence,notes
+prompt1-no-api-change,Existing Qelly APIs and schemas,Preserved,Not reclassified,PR13 diff contains no API or schema changes,Full inventory deferred until public-beta bootstrap after merge
