@@ -1,4 +1,4 @@
-# Registered on the audit branch; this comment intentionally triggers the verifier.
+# One-use installer for the independently verified Prompt 2A Wave 0 registry payload.
 name: Qelly Prompt 2A Persist Generated Audit
 
 on:
@@ -6,8 +6,8 @@ on:
     branches:
       - feature/prompt2-repository-gap-audit
     paths:
-      - audit-input/project-state.part-*.b64
-      - .github/workflows/prompt2a-persist-generated-audit.yml
+      - 'audit-input/project-state.part-*.b64'
+      - '.github/workflows/prompt2a-persist-generated-audit.yml'
 
 permissions:
   contents: write
@@ -19,7 +19,8 @@ concurrency:
 jobs:
   persist:
     if: github.ref == 'refs/heads/feature/prompt2-repository-gap-audit'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - name: Check out exact staging head
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -31,11 +32,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$GITHUB_REF" = "refs/heads/feature/prompt2-repository-gap-audit"
+          test "$GITHUB_REF" = 'refs/heads/feature/prompt2-repository-gap-audit'
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           test "$(find audit-input -maxdepth 1 -name 'project-state.part-*.b64' -type f | wc -l)" -eq 10
           cat audit-input/project-state.part-*.b64 | base64 --decode > /tmp/qelly-prompt2a-project-state.tar.xz
-          echo "6295a36649b4b1b2a1bbaa666ee4ad1167bbe228b67d2b00be0bbd0af9b62469  /tmp/qelly-prompt2a-project-state.tar.xz" | sha256sum -c -
+          echo '6295a36649b4b1b2a1bbaa666ee4ad1167bbe228b67d2b00be0bbd0af9b62469  /tmp/qelly-prompt2a-project-state.tar.xz' | sha256sum -c -
           test -z "$(tar -tJf /tmp/qelly-prompt2a-project-state.tar.xz | grep -E '(^/|(^|/)\.\.(/|$))' || true)"
           test -z "$(tar -tJf /tmp/qelly-prompt2a-project-state.tar.xz | grep -Ei '\.(woff2?|ttf|otf|eot)$' || true)"
           rm -rf /tmp/qelly-prompt2a-expanded
@@ -51,43 +52,76 @@ jobs:
           import json
           from pathlib import Path
 
-          root = Path("project-state")
+          root = Path('project-state')
           required = [
-              "QELLY_CURRENT_HANDOFF.md",
-              "QELLY_PROJECT_STATE.md",
-              "QELLY_PROGRESS_LEDGER.md",
-              "QELLY_PROMPT2A_AUDIT_REPORT.md",
-              "QELLY_MASTER_FEATURE_UNIVERSE.csv",
-              "QELLY_FEATURE_STATUS.csv",
-              "QELLY_ROUTE_STATUS.csv",
-              "QELLY_API_INVENTORY.csv",
-              "QELLY_PROVIDER_REGISTRY.csv",
-              "QELLY_FORMULA_CATALOG.csv",
-              "QELLY_DEPENDENCY_GRAPH.json",
-              "QELLY_IMPLEMENTATION_WAVES.md",
-              "QELLY_PROMPT2B_STARTING_STATE.md",
-              "QELLY_NEXT_PROMPT_2B.md",
+              'PROMPT2A_LIVE_STARTING_STATE.json',
+              'QELLY_CURRENT_HANDOFF.md',
+              'QELLY_PROJECT_STATE.md',
+              'QELLY_DECISION_LOG.md',
+              'QELLY_PROGRESS_LEDGER.md',
+              'QELLY_PROMPT2A_AUDIT_REPORT.md',
+              'QELLY_MASTER_FEATURE_UNIVERSE.csv',
+              'QELLY_FEATURE_GAP_MATRIX.csv',
+              'QELLY_FEATURE_STATUS.csv',
+              'QELLY_REQUESTED_FEATURE_STATUS.csv',
+              'QELLY_ROUTE_STATUS.csv',
+              'QELLY_SCREEN_INVENTORY.csv',
+              'QELLY_FRONTEND_ACTION_INVENTORY.csv',
+              'QELLY_COMPONENT_INVENTORY.csv',
+              'QELLY_BACKEND_SERVICE_INVENTORY.csv',
+              'QELLY_API_INVENTORY.csv',
+              'QELLY_DATABASE_ENTITY_INVENTORY.csv',
+              'QELLY_EVENT_WORKER_INVENTORY.csv',
+              'QELLY_PROVIDER_REGISTRY.csv',
+              'QELLY_PUBLIC_API_CONFORMANCE.csv',
+              'QELLY_EMBED_REGISTRY.csv',
+              'QELLY_REDIRECT_REGISTRY.csv',
+              'QELLY_DATA_LICENSE_REGISTER.csv',
+              'QELLY_EXTERNAL_DEPENDENCY_REGISTER.csv',
+              'QELLY_FORMULA_CATALOG.csv',
+              'QELLY_TEST_COVERAGE_MATRIX.csv',
+              'QELLY_SECURITY_RISK_REGISTER.csv',
+              'QELLY_DEPENDENCY_GRAPH.json',
+              'QELLY_IMPLEMENTATION_WAVES.md',
+              'QELLY_RELEASE_BLOCKERS.md',
+              'QELLY_KNOWN_LIMITATIONS.md',
+              'QELLY_PROMPT2B_STARTING_STATE.md',
+              'QELLY_NEXT_PROMPT_2B.md',
+              'QELLY_IMPLEMENTATION_MANIFEST.json',
+              'QELLY_VALIDATION_HISTORY.md',
           ]
           for name in required:
               assert (root / name).is_file(), name
 
-          for path in root.glob("*.json"):
-              json.loads(path.read_text(encoding="utf-8"))
+          for path in root.glob('*.json'):
+              json.loads(path.read_text(encoding='utf-8'))
 
           checks = [
-              ("QELLY_MASTER_FEATURE_UNIVERSE.csv", "feature_id", 545),
-              ("QELLY_FEATURE_STATUS.csv", "feature_id", 545),
-              ("QELLY_ROUTE_STATUS.csv", "route_id", 61),
-              ("QELLY_API_INVENTORY.csv", "api_id", 187),
-              ("QELLY_PROVIDER_REGISTRY.csv", "provider_id", 28),
-              ("QELLY_FORMULA_CATALOG.csv", "formula_id", 188),
+              ('QELLY_MASTER_FEATURE_UNIVERSE.csv', 'feature_id', 545),
+              ('QELLY_FEATURE_STATUS.csv', 'feature_id', 41),
+              ('QELLY_ROUTE_STATUS.csv', 'route_id', 61),
+              ('QELLY_API_INVENTORY.csv', 'api_id', 187),
+              ('QELLY_PROVIDER_REGISTRY.csv', 'provider_id', 28),
+              ('QELLY_FORMULA_CATALOG.csv', 'formula_id', 188),
           ]
           for name, key, expected in checks:
-              with (root / name).open(newline="", encoding="utf-8") as handle:
+              with (root / name).open(newline='', encoding='utf-8') as handle:
                   rows = list(csv.DictReader(handle))
-              values = [row[key] for row in rows]
+              values = [row[key].strip() for row in rows]
               assert len(rows) == expected, (name, len(rows), expected)
-              assert len(values) == len(set(values)), name
+              assert all(values), f'{name}: blank {key}'
+              assert len(values) == len(set(values)), f'{name}: duplicate {key}'
+
+          master = list(csv.DictReader((root / 'QELLY_MASTER_FEATURE_UNIVERSE.csv').open(newline='', encoding='utf-8')))
+          allowed = {
+              'IMPLEMENTED_CONNECTED','IMPLEMENTED_DETERMINISTIC_LOCAL','IMPLEMENTED_EMBEDDED','PARTIAL',
+              'PROTOTYPE','MOCK','SIMULATED','ESTIMATED','DELAYED','CACHED','STALE','UNAVAILABLE',
+              'REQUIRES_AUTHORIZATION','REQUIRES_LICENSE','BLOCKED_INFRASTRUCTURE','BLOCKED_SECURITY',
+              'BLOCKED_REGULATION','BLOCKED_PROVIDER_TERMS','PLANNED','DEFERRED','DEPRECATED'
+          }
+          unknown = sorted({row['status'] for row in master} - allowed)
+          assert not unknown, unknown
+          assert not any('PENDING_FINAL_AUDIT_COMMIT' in path.read_text(encoding='utf-8', errors='ignore') for path in root.glob('*') if path.is_file()), 'pending final-audit placeholder remains'
 
       - name: Persist one safe checkpoint and remove staging material
         shell: bash
@@ -95,9 +129,9 @@ jobs:
           set -euo pipefail
           rm -rf audit-input
           rm -f .github/workflows/prompt2a-persist-generated-audit.yml
-          git config user.name "qelly-audit-bot"
-          git config user.email "actions@users.noreply.github.com"
+          git config user.name 'qelly-audit-bot'
+          git config user.email 'actions@users.noreply.github.com'
           git add -A project-state audit-input .github/workflows/prompt2a-persist-generated-audit.yml
           git diff --cached --check
-          git commit -m "audit(prompt2a): persist Wave 0 registries and blueprint"
+          git commit -m 'audit(prompt2a): persist Wave 0 registries and blueprint'
           git push origin HEAD:feature/prompt2-repository-gap-audit
