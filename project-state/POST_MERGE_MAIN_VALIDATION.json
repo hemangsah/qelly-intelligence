@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "result": "passed",
+  "verifiedMain": "46233298031372c51bb433229bd7f9d1aff70568",
+  "approvedPrHead": "20e34c77add21d3d0c1f1db62949948e77768fea",
+  "treeComparison": "identical",
+  "pushWorkflowMatrix": [
+    {
+      "workflow": "Continuous Integration",
+      "runId": 30435545787,
+      "event": "push",
+      "conclusion": "success"
+    },
+    {
+      "workflow": "Container Build",
+      "runId": 30435545830,
+      "event": "push",
+      "conclusion": "success"
+    },
+    {
+      "workflow": "Production Foundation Services",
+      "runId": 30435545836,
+      "event": "push",
+      "conclusion": "success"
+    },
+    {
+      "workflow": "CodeQL",
+      "runId": 30435545815,
+      "event": "push",
+      "conclusion": "success"
+    }
+  ],
+  "publicDeployment": {
+    "deploymentId": 5654166920,
+    "statusId": 16077977388,
+    "state": "success",
+    "environmentUrl": "https://hemangsah.github.io/qelly-intelligence/",
+    "createdAt": "2026-07-29T08:27:40Z",
+    "publicHttpStatus": 200,
+    "manifestHttpStatus": 200,
+    "ibmPlexHttpStatus": 200,
+    "truthLabel": "public static/read-only visual preview; not a connected full production product"
+  },
+  "repositoryGates": {
+    "dependencyAudit": true,
+    "secretScan": true,
+    "environmentSafety": true,
+    "typeAndSyntax": true,
+    "lint": true,
+    "designGovernance": true,
+    "completeTests": true,
+    "productionBuild": true,
+    "frontendBuild": true,
+    "productValidation": true,
+    "inventoryValidation": true,
+    "fullStackSmoke": true,
+    "identityIsolation": true,
+    "releaseSafety": true
+  },
+  "visualRegressionRisk": "none from PR14 scope; no application route or visual source file was added",
+  "prompt2Executed": false
+}
