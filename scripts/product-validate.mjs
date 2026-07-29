@@ -5,12 +5,16 @@ import { apiRoutes, contracts, productVersion, routes } from '../src/server/rout
 import { routeDefinitions } from '../apps/web/public/assets/route-registry.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const pkg = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
+const pkg = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8');
 const index = await readFile(path.join(root, 'apps/web/public/index.html'), 'utf8');
 const service = await readFile(path.join(root, 'src/markets/public-market-service.mjs'), 'utf8');
 const evidence = await readFile(path.join(root, 'src/evidence/decision-provenance-store.mjs'), 'utf8');
 const schemas = (await readdir(path.join(root, 'packages/schemas'))).filter((name) => name.endsWith('.json'));
 for (const file of schemas) JSON.parse(await readFile(path.join(root, 'packages/schemas', file), 'utf8'));
+const requiredPublicBetaSchemas = [
+  'public-beta-truth-state.schema.json',
+  'public-beta-evidence-metadata.schema.json'
+];
 
 const requiredFiles = [
   'package.json',
@@ -115,7 +119,7 @@ const checks = {
     'fallbackReason',
     'marketCap:null'
   ].every((value) => service.includes(value)),
-  schemas: schemas.length === 65
+  schemas: schemas.length === 67 && requiredPublicBetaSchemas.every((name) => schemas.includes(name))
 };
 const failed = Object.entries(checks).filter(([, value]) => !value);
 if (failed.length) {
