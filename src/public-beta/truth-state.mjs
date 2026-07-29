@@ -26,6 +26,9 @@ export function assertTruthState(value) {
 export function createEvidenceEnvelope(input) {
   if (!input || typeof input !== 'object') throw new TypeError('Evidence input must be an object.');
   const state = assertTruthState(input.state);
+  if (!input.source || !input.lineageId || !input.entitlement) {
+    throw new TypeError('source, lineageId and entitlement are required.');
+  }
   const observedAt = new Date(input.observedAt);
   const retrievedAt = new Date(input.retrievedAt);
   if (!Number.isFinite(observedAt.valueOf()) || !Number.isFinite(retrievedAt.valueOf())) {
@@ -35,9 +38,6 @@ export function createEvidenceEnvelope(input) {
   const confidence = Number(input.confidence);
   if (!Number.isFinite(confidence) || confidence < 0 || confidence > 1) {
     throw new RangeError('confidence must be between 0 and 1.');
-  }
-  if (!input.source || !input.lineageId || !input.entitlement) {
-    throw new TypeError('source, lineageId and entitlement are required.');
   }
   return Object.freeze({
     state,
