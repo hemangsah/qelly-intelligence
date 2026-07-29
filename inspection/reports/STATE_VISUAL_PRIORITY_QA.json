@@ -1,0 +1,50 @@
+{
+  "result": "passed",
+  "settleDelayMs": 850,
+  "records": [
+    {
+      "state": "loading",
+      "mainBusy": "false",
+      "routeOpacity": 1,
+      "routeTransform": "matrix(1, 0, 0, 1, 0, 0)",
+      "title": "Loading route",
+      "titleColor": "rgb(255, 255, 255)",
+      "actionAboveFold": true,
+      "skeletonBackground": "rgba(0, 0, 0, 0)",
+      "result": "passed"
+    },
+    {
+      "state": "empty",
+      "mainBusy": "false",
+      "routeOpacity": 1,
+      "routeTransform": "matrix(1, 0, 0, 1, 0, 0)",
+      "title": "Empty state",
+      "titleColor": "rgb(255, 255, 255)",
+      "actionAboveFold": true,
+      "skeletonBackground": null,
+      "result": "passed"
+    },
+    {
+      "state": "offline",
+      "mainBusy": "false",
+      "routeOpacity": 1,
+      "routeTransform": "matrix(1, 0, 0, 1, 0, 0)",
+      "title": "Workspace is offline.",
+      "titleColor": "rgb(255, 255, 255)",
+      "actionAboveFold": true,
+      "skeletonBackground": null,
+      "result": "passed"
+    },
+    {
+      "state": "error",
+      "mainBusy": "false",
+      "routeOpacity": 1,
+      "routeTransform": "matrix(1, 0, 0, 1, 0, 0)",
+      "title": "A provider contract failed validation.",
+      "titleColor": "rgb(255, 255, 255)",
+      "actionAboveFold": true,
+      "skeletonBackground": null,
+      "result": "passed"
+    }
+  ]
+}

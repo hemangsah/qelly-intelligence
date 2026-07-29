@@ -1,0 +1,21 @@
+{
+  "file": "qelly-logo-first-brand-system-visual-correction-review.zip",
+  "sha256": "a1a0af1f512795e2eed05f9b6e5ca753734350a034eaf0a4757ab4e8358ed4b9",
+  "sizeBytes": 73771529,
+  "entryCount": 391,
+  "pdf": {
+    "file": "QELLY_PR13_FINAL_VISUAL_CORRECTION_INSPECTION.pdf",
+    "sha256": "e590fc558388cae718ff070e6a47c0fb8674e8381cdf6cc2e95251e2eb4009b5",
+    "sizeBytes": 20005154
+  },
+  "compiledPreview": {
+    "file": "qelly-logo-compiled-preview.zip",
+    "sha256": "b3f36f2b3fe896d2dcf7e66925b200a81a3a27c57e489beeb232e07eccdbd841",
+    "sizeBytes": 297359
+  },
+  "commit": "253527c1adfdd90c2f447ebf079199ca01be3520",
+  "result": "passed",
+  "stateEvidenceRecaptured": true,
+  "repeatSessionEvidence": true,
+  "readableInspectionBoards": 63
+}

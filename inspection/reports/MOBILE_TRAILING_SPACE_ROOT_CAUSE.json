@@ -1,0 +1,1498 @@
+{
+  "result": "passed",
+  "productRootCause": "The original multi-screen mobile tail came from stacked shell/page minimum heights and duplicate bottom-clearance reservations around the fixed mobile navigation. The permanent correction removes those minimum heights, assigns one safe-area-aware clearance to #main, removes duplicate shell/page padding, and removes aria-hidden Asset Rankings filter, drawer and column-menu portals from document geometry.",
+  "measurementPolicy": "Document scroll height, last meaningful content bottom, excess trailing space, fixed-navigation overlap and horizontal overflow are measured for market and Asset Rankings at 360×800, 390×844 and 430×932 in Chromium, Firefox and WebKit.",
+  "final": {
+    "recordCount": 18,
+    "maxHorizontalOverflowPx": 0,
+    "maxTrailingSpacePx": 107,
+    "maxNavigationOverlapPx": 0
+  },
+  "records": [
+    {
+      "browser": "chromium",
+      "route": "market",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "appearance": "dark",
+      "themeFamily": "sovereign-obsidian",
+      "scrollHeight": 4163,
+      "lastMeaningfulBottom": 4090,
+      "excessTrailingPx": 73,
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "horizontalOverflowPx": 0,
+      "resolvedAppearance": "dark",
+      "requestedAppearance": "dark",
+      "fontFamily": "\"Qelly IBM Plex Sans\", Arial, \"Helvetica Neue\", sans-serif",
+      "fontStatus": "loaded",
+      "brandLockups": 1,
+      "intrinsicLogos": [
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "qelly-hero__logo",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        },
+        {
+          "className": "qelly-state-brand",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      ],
+      "fixedElements": [
+        {
+          "className": "skip-link",
+          "bottom": -36,
+          "top": -80
+        },
+        {
+          "className": "q-rail",
+          "bottom": 800,
+          "top": 75
+        },
+        {
+          "className": "q-mobile-navigation",
+          "bottom": 792,
+          "top": 728
+        },
+        {
+          "className": "q-cursor-aura",
+          "bottom": 800,
+          "top": 0
+        },
+        {
+          "className": "q-scroll-progress",
+          "bottom": 2,
+          "top": 0
+        }
+      ],
+      "result": "passed"
+    },
+    {
+      "browser": "chromium",
+      "route": "asset-rankings",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "appearance": "dark",
+      "themeFamily": "sovereign-obsidian",
+      "scrollHeight": 2560,
+      "lastMeaningfulBottom": 2453,
+      "excessTrailingPx": 107,
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "horizontalOverflowPx": 0,
+      "resolvedAppearance": "dark",
+      "requestedAppearance": "dark",
+      "fontFamily": "\"Qelly IBM Plex Sans\", Arial, \"Helvetica Neue\", sans-serif",
+      "fontStatus": "loaded",
+      "brandLockups": 1,
+      "intrinsicLogos": [
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        }
+      ],
+      "fixedElements": [
+        {
+          "className": "skip-link",
+          "bottom": -36,
+          "top": -80
+        },
+        {
+          "className": "q-rail",
+          "bottom": 800,
+          "top": 75
+        },
+        {
+          "className": "q-mobile-navigation",
+          "bottom": 792,
+          "top": 728
+        },
+        {
+          "className": "q-cursor-aura",
+          "bottom": 800,
+          "top": 0
+        },
+        {
+          "className": "q-scroll-progress",
+          "bottom": 2,
+          "top": 0
+        }
+      ],
+      "result": "passed"
+    },
+    {
+      "browser": "chromium",
+      "route": "market",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "appearance": "dark",
+      "themeFamily": "sovereign-obsidian",
+      "scrollHeight": 4003,
+      "lastMeaningfulBottom": 3939,
+      "excessTrailingPx": 64,
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "horizontalOverflowPx": 0,
+      "resolvedAppearance": "dark",
+      "requestedAppearance": "dark",
+      "fontFamily": "\"Qelly IBM Plex Sans\", Arial, \"Helvetica Neue\", sans-serif",
+      "fontStatus": "loaded",
+      "brandLockups": 1,
+      "intrinsicLogos": [
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "qelly-hero__logo",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        },
+        {
+          "className": "qelly-state-brand",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      ],
+      "fixedElements": [
+        {
+          "className": "skip-link",
+          "bottom": -36,
+          "top": -80
+        },
+        {
+          "className": "q-rail",
+          "bottom": 844,
+          "top": 75
+        },
+        {
+          "className": "q-mobile-navigation",
+          "bottom": 836,
+          "top": 772
+        },
+        {
+          "className": "q-cursor-aura",
+          "bottom": 844,
+          "top": 0
+        },
+        {
+          "className": "q-scroll-progress",
+          "bottom": 2,
+          "top": 0
+        }
+      ],
+      "result": "passed"
+    },
+    {
+      "browser": "chromium",
+      "route": "asset-rankings",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "appearance": "dark",
+      "themeFamily": "sovereign-obsidian",
+      "scrollHeight": 2540,
+      "lastMeaningfulBottom": 2433,
+      "excessTrailingPx": 107,
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "horizontalOverflowPx": 0,
+      "resolvedAppearance": "dark",
+      "requestedAppearance": "dark",
+      "fontFamily": "\"Qelly IBM Plex Sans\", Arial, \"Helvetica Neue\", sans-serif",
+      "fontStatus": "loaded",
+      "brandLockups": 1,
+      "intrinsicLogos": [
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        }
+      ],
+      "fixedElements": [
+        {
+          "className": "skip-link",
+          "bottom": -36,
+          "top": -80
+        },
+        {
+          "className": "q-rail",
+          "bottom": 844,
+          "top": 75
+        },
+        {
+          "className": "q-mobile-navigation",
+          "bottom": 836,
+          "top": 772
+        },
+        {
+          "className": "q-cursor-aura",
+          "bottom": 844,
+          "top": 0
+        },
+        {
+          "className": "q-scroll-progress",
+          "bottom": 2,
+          "top": 0
+        }
+      ],
+      "result": "passed"
+    },
+    {
+      "browser": "chromium",
+      "route": "market",
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "appearance": "dark",
+      "themeFamily": "sovereign-obsidian",
+      "scrollHeight": 3952,
+      "lastMeaningfulBottom": 3880,
+      "excessTrailingPx": 72,
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "horizontalOverflowPx": 0,
+      "resolvedAppearance": "dark",
+      "requestedAppearance": "dark",
+      "fontFamily": "\"Qelly IBM Plex Sans\", Arial, \"Helvetica Neue\", sans-serif",
+      "fontStatus": "loaded",
+      "brandLockups": 1,
+      "intrinsicLogos": [
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "qelly-hero__logo",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        },
+        {
+          "className": "qelly-state-brand",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      ],
+      "fixedElements": [
+        {
+          "className": "skip-link",
+          "bottom": -36,
+          "top": -80
+        },
+        {
+          "className": "q-rail",
+          "bottom": 932,
+          "top": 75
+        },
+        {
+          "className": "q-mobile-navigation",
+          "bottom": 924,
+          "top": 860
+        },
+        {
+          "className": "q-cursor-aura",
+          "bottom": 932,
+          "top": 0
+        },
+        {
+          "className": "q-scroll-progress",
+          "bottom": 2,
+          "top": 0
+        }
+      ],
+      "result": "passed"
+    },
+    {
+      "browser": "chromium",
+      "route": "asset-rankings",
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "appearance": "dark",
+      "themeFamily": "sovereign-obsidian",
+      "scrollHeight": 2530,
+      "lastMeaningfulBottom": 2423,
+      "excessTrailingPx": 107,
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "horizontalOverflowPx": 0,
+      "resolvedAppearance": "dark",
+      "requestedAppearance": "dark",
+      "fontFamily": "\"Qelly IBM Plex Sans\", Arial, \"Helvetica Neue\", sans-serif",
+      "fontStatus": "loaded",
+      "brandLockups": 1,
+      "intrinsicLogos": [
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        }
+      ],
+      "fixedElements": [
+        {
+          "className": "skip-link",
+          "bottom": -36,
+          "top": -80
+        },
+        {
+          "className": "q-rail",
+          "bottom": 932,
+          "top": 75
+        },
+        {
+          "className": "q-mobile-navigation",
+          "bottom": 924,
+          "top": 860
+        },
+        {
+          "className": "q-cursor-aura",
+          "bottom": 932,
+          "top": 0
+        },
+        {
+          "className": "q-scroll-progress",
+          "bottom": 2,
+          "top": 0
+        }
+      ],
+      "result": "passed"
+    },
+    {
+      "browser": "firefox",
+      "route": "market",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "appearance": "dark",
+      "themeFamily": "sovereign-obsidian",
+      "scrollHeight": 4175,
+      "lastMeaningfulBottom": 4102,
+      "excessTrailingPx": 73,
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "horizontalOverflowPx": 0,
+      "resolvedAppearance": "dark",
+      "requestedAppearance": "dark",
+      "fontFamily": "\"Qelly IBM Plex Sans\", Arial, \"Helvetica Neue\", sans-serif",
+      "fontStatus": "loaded",
+      "brandLockups": 1,
+      "intrinsicLogos": [
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 300
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 300
+        },
+        {
+          "className": "qelly-hero__logo",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        },
+        {
+          "className": "qelly-state-brand",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 300
+        }
+      ],
+      "fixedElements": [
+        {
+          "className": "skip-link",
+          "bottom": -35,
+          "top": -80
+        },
+        {
+          "className": "q-rail",
+          "bottom": 800,
+          "top": 75
+        },
+        {
+          "className": "q-mobile-navigation",
+          "bottom": 792,
+          "top": 728
+        },
+        {
+          "className": "q-cursor-aura",
+          "bottom": 800,
+          "top": 0
+        },
+        {
+          "className": "q-scroll-progress",
+          "bottom": 2,
+          "top": 0
+        }
+      ],
+      "result": "passed"
+    },
+    {
+      "browser": "firefox",
+      "route": "asset-rankings",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "appearance": "dark",
+      "themeFamily": "sovereign-obsidian",
+      "scrollHeight": 2562,
+      "lastMeaningfulBottom": 2455,
+      "excessTrailingPx": 107,
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "horizontalOverflowPx": 0,
+      "resolvedAppearance": "dark",
+      "requestedAppearance": "dark",
+      "fontFamily": "\"Qelly IBM Plex Sans\", Arial, \"Helvetica Neue\", sans-serif",
+      "fontStatus": "loaded",
+      "brandLockups": 1,
+      "intrinsicLogos": [
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 300
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 300
+        },
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        }
+      ],
+      "fixedElements": [
+        {
+          "className": "skip-link",
+          "bottom": -35,
+          "top": -80
+        },
+        {
+          "className": "q-rail",
+          "bottom": 800,
+          "top": 75
+        },
+        {
+          "className": "q-mobile-navigation",
+          "bottom": 792,
+          "top": 728
+        },
+        {
+          "className": "q-cursor-aura",
+          "bottom": 800,
+          "top": 0
+        },
+        {
+          "className": "q-scroll-progress",
+          "bottom": 2,
+          "top": 0
+        }
+      ],
+      "result": "passed"
+    },
+    {
+      "browser": "firefox",
+      "route": "market",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "appearance": "dark",
+      "themeFamily": "sovereign-obsidian",
+      "scrollHeight": 4011,
+      "lastMeaningfulBottom": 3938,
+      "excessTrailingPx": 73,
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "horizontalOverflowPx": 0,
+      "resolvedAppearance": "dark",
+      "requestedAppearance": "dark",
+      "fontFamily": "\"Qelly IBM Plex Sans\", Arial, \"Helvetica Neue\", sans-serif",
+      "fontStatus": "loaded",
+      "brandLockups": 1,
+      "intrinsicLogos": [
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 300
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 300
+        },
+        {
+          "className": "qelly-hero__logo",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        },
+        {
+          "className": "qelly-state-brand",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 300
+        }
+      ],
+      "fixedElements": [
+        {
+          "className": "skip-link",
+          "bottom": -35,
+          "top": -80
+        },
+        {
+          "className": "q-rail",
+          "bottom": 844,
+          "top": 75
+        },
+        {
+          "className": "q-mobile-navigation",
+          "bottom": 836,
+          "top": 772
+        },
+        {
+          "className": "q-cursor-aura",
+          "bottom": 844,
+          "top": 0
+        },
+        {
+          "className": "q-scroll-progress",
+          "bottom": 2,
+          "top": 0
+        }
+      ],
+      "result": "passed"
+    },
+    {
+      "browser": "firefox",
+      "route": "asset-rankings",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "appearance": "dark",
+      "themeFamily": "sovereign-obsidian",
+      "scrollHeight": 2542,
+      "lastMeaningfulBottom": 2435,
+      "excessTrailingPx": 107,
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "horizontalOverflowPx": 0,
+      "resolvedAppearance": "dark",
+      "requestedAppearance": "dark",
+      "fontFamily": "\"Qelly IBM Plex Sans\", Arial, \"Helvetica Neue\", sans-serif",
+      "fontStatus": "loaded",
+      "brandLockups": 1,
+      "intrinsicLogos": [
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 300
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 300
+        },
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        }
+      ],
+      "fixedElements": [
+        {
+          "className": "skip-link",
+          "bottom": -35,
+          "top": -80
+        },
+        {
+          "className": "q-rail",
+          "bottom": 844,
+          "top": 75
+        },
+        {
+          "className": "q-mobile-navigation",
+          "bottom": 836,
+          "top": 772
+        },
+        {
+          "className": "q-cursor-aura",
+          "bottom": 844,
+          "top": 0
+        },
+        {
+          "className": "q-scroll-progress",
+          "bottom": 2,
+          "top": 0
+        }
+      ],
+      "result": "passed"
+    },
+    {
+      "browser": "firefox",
+      "route": "market",
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "appearance": "dark",
+      "themeFamily": "sovereign-obsidian",
+      "scrollHeight": 3959,
+      "lastMeaningfulBottom": 3886,
+      "excessTrailingPx": 73,
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "horizontalOverflowPx": 0,
+      "resolvedAppearance": "dark",
+      "requestedAppearance": "dark",
+      "fontFamily": "\"Qelly IBM Plex Sans\", Arial, \"Helvetica Neue\", sans-serif",
+      "fontStatus": "loaded",
+      "brandLockups": 1,
+      "intrinsicLogos": [
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 300
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 300
+        },
+        {
+          "className": "qelly-hero__logo",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        },
+        {
+          "className": "qelly-state-brand",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 300
+        }
+      ],
+      "fixedElements": [
+        {
+          "className": "skip-link",
+          "bottom": -35,
+          "top": -80
+        },
+        {
+          "className": "q-rail",
+          "bottom": 932,
+          "top": 75
+        },
+        {
+          "className": "q-mobile-navigation",
+          "bottom": 924,
+          "top": 860
+        },
+        {
+          "className": "q-cursor-aura",
+          "bottom": 932,
+          "top": 0
+        },
+        {
+          "className": "q-scroll-progress",
+          "bottom": 2,
+          "top": 0
+        }
+      ],
+      "result": "passed"
+    },
+    {
+      "browser": "firefox",
+      "route": "asset-rankings",
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "appearance": "dark",
+      "themeFamily": "sovereign-obsidian",
+      "scrollHeight": 2532,
+      "lastMeaningfulBottom": 2425,
+      "excessTrailingPx": 107,
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "horizontalOverflowPx": 0,
+      "resolvedAppearance": "dark",
+      "requestedAppearance": "dark",
+      "fontFamily": "\"Qelly IBM Plex Sans\", Arial, \"Helvetica Neue\", sans-serif",
+      "fontStatus": "loaded",
+      "brandLockups": 1,
+      "intrinsicLogos": [
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 300
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 300
+        },
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 83
+        }
+      ],
+      "fixedElements": [
+        {
+          "className": "skip-link",
+          "bottom": -35,
+          "top": -80
+        },
+        {
+          "className": "q-rail",
+          "bottom": 932,
+          "top": 75
+        },
+        {
+          "className": "q-mobile-navigation",
+          "bottom": 924,
+          "top": 860
+        },
+        {
+          "className": "q-cursor-aura",
+          "bottom": 932,
+          "top": 0
+        },
+        {
+          "className": "q-scroll-progress",
+          "bottom": 2,
+          "top": 0
+        }
+      ],
+      "result": "passed"
+    },
+    {
+      "browser": "webkit",
+      "route": "market",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "appearance": "dark",
+      "themeFamily": "sovereign-obsidian",
+      "scrollHeight": 4161,
+      "lastMeaningfulBottom": 4084,
+      "excessTrailingPx": 77,
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "horizontalOverflowPx": 0,
+      "resolvedAppearance": "dark",
+      "requestedAppearance": "dark",
+      "fontFamily": "Qelly IBM Plex Sans, Arial, Helvetica Neue, sans-serif",
+      "fontStatus": "loaded",
+      "brandLockups": 1,
+      "intrinsicLogos": [
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 82
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "qelly-hero__logo",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 82
+        },
+        {
+          "className": "qelly-state-brand",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      ],
+      "fixedElements": [
+        {
+          "className": "skip-link",
+          "bottom": -36,
+          "top": -80
+        },
+        {
+          "className": "q-rail",
+          "bottom": 800,
+          "top": 75
+        },
+        {
+          "className": "q-mobile-navigation",
+          "bottom": 792,
+          "top": 728
+        },
+        {
+          "className": "q-cursor-aura",
+          "bottom": 800,
+          "top": 0
+        },
+        {
+          "className": "q-scroll-progress",
+          "bottom": 2,
+          "top": 0
+        }
+      ],
+      "result": "passed"
+    },
+    {
+      "browser": "webkit",
+      "route": "asset-rankings",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "appearance": "dark",
+      "themeFamily": "sovereign-obsidian",
+      "scrollHeight": 2558,
+      "lastMeaningfulBottom": 2451,
+      "excessTrailingPx": 107,
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "horizontalOverflowPx": 0,
+      "resolvedAppearance": "dark",
+      "requestedAppearance": "dark",
+      "fontFamily": "Qelly IBM Plex Sans, Arial, Helvetica Neue, sans-serif",
+      "fontStatus": "loaded",
+      "brandLockups": 1,
+      "intrinsicLogos": [
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 82
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 82
+        }
+      ],
+      "fixedElements": [
+        {
+          "className": "skip-link",
+          "bottom": -36,
+          "top": -80
+        },
+        {
+          "className": "q-rail",
+          "bottom": 800,
+          "top": 75
+        },
+        {
+          "className": "q-mobile-navigation",
+          "bottom": 792,
+          "top": 728
+        },
+        {
+          "className": "q-cursor-aura",
+          "bottom": 800,
+          "top": 0
+        },
+        {
+          "className": "q-scroll-progress",
+          "bottom": 2,
+          "top": 0
+        }
+      ],
+      "result": "passed"
+    },
+    {
+      "browser": "webkit",
+      "route": "market",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "appearance": "dark",
+      "themeFamily": "sovereign-obsidian",
+      "scrollHeight": 4000,
+      "lastMeaningfulBottom": 3924,
+      "excessTrailingPx": 76,
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "horizontalOverflowPx": 0,
+      "resolvedAppearance": "dark",
+      "requestedAppearance": "dark",
+      "fontFamily": "Qelly IBM Plex Sans, Arial, Helvetica Neue, sans-serif",
+      "fontStatus": "loaded",
+      "brandLockups": 1,
+      "intrinsicLogos": [
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 82
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "qelly-hero__logo",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 82
+        },
+        {
+          "className": "qelly-state-brand",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      ],
+      "fixedElements": [
+        {
+          "className": "skip-link",
+          "bottom": -36,
+          "top": -80
+        },
+        {
+          "className": "q-rail",
+          "bottom": 844,
+          "top": 75
+        },
+        {
+          "className": "q-mobile-navigation",
+          "bottom": 836,
+          "top": 772
+        },
+        {
+          "className": "q-cursor-aura",
+          "bottom": 844,
+          "top": 0
+        },
+        {
+          "className": "q-scroll-progress",
+          "bottom": 2,
+          "top": 0
+        }
+      ],
+      "result": "passed"
+    },
+    {
+      "browser": "webkit",
+      "route": "asset-rankings",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "appearance": "dark",
+      "themeFamily": "sovereign-obsidian",
+      "scrollHeight": 2538,
+      "lastMeaningfulBottom": 2431,
+      "excessTrailingPx": 107,
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "horizontalOverflowPx": 0,
+      "resolvedAppearance": "dark",
+      "requestedAppearance": "dark",
+      "fontFamily": "Qelly IBM Plex Sans, Arial, Helvetica Neue, sans-serif",
+      "fontStatus": "loaded",
+      "brandLockups": 1,
+      "intrinsicLogos": [
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 82
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 82
+        }
+      ],
+      "fixedElements": [
+        {
+          "className": "skip-link",
+          "bottom": -36,
+          "top": -80
+        },
+        {
+          "className": "q-rail",
+          "bottom": 844,
+          "top": 75
+        },
+        {
+          "className": "q-mobile-navigation",
+          "bottom": 836,
+          "top": 772
+        },
+        {
+          "className": "q-cursor-aura",
+          "bottom": 844,
+          "top": 0
+        },
+        {
+          "className": "q-scroll-progress",
+          "bottom": 2,
+          "top": 0
+        }
+      ],
+      "result": "passed"
+    },
+    {
+      "browser": "webkit",
+      "route": "market",
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "appearance": "dark",
+      "themeFamily": "sovereign-obsidian",
+      "scrollHeight": 3949,
+      "lastMeaningfulBottom": 3873,
+      "excessTrailingPx": 76,
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "horizontalOverflowPx": 0,
+      "resolvedAppearance": "dark",
+      "requestedAppearance": "dark",
+      "fontFamily": "Qelly IBM Plex Sans, Arial, Helvetica Neue, sans-serif",
+      "fontStatus": "loaded",
+      "brandLockups": 1,
+      "intrinsicLogos": [
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 82
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "qelly-hero__logo",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 82
+        },
+        {
+          "className": "qelly-state-brand",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      ],
+      "fixedElements": [
+        {
+          "className": "skip-link",
+          "bottom": -36,
+          "top": -80
+        },
+        {
+          "className": "q-rail",
+          "bottom": 932,
+          "top": 75
+        },
+        {
+          "className": "q-mobile-navigation",
+          "bottom": 924,
+          "top": 860
+        },
+        {
+          "className": "q-cursor-aura",
+          "bottom": 932,
+          "top": 0
+        },
+        {
+          "className": "q-scroll-progress",
+          "bottom": 2,
+          "top": 0
+        }
+      ],
+      "result": "passed"
+    },
+    {
+      "browser": "webkit",
+      "route": "asset-rankings",
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "appearance": "dark",
+      "themeFamily": "sovereign-obsidian",
+      "scrollHeight": 2528,
+      "lastMeaningfulBottom": 2421,
+      "excessTrailingPx": 107,
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "horizontalOverflowPx": 0,
+      "resolvedAppearance": "dark",
+      "requestedAppearance": "dark",
+      "fontFamily": "Qelly IBM Plex Sans, Arial, Helvetica Neue, sans-serif",
+      "fontStatus": "loaded",
+      "brandLockups": 1,
+      "intrinsicLogos": [
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 82
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "q-brand-symbol",
+          "width": "84",
+          "height": "84",
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        },
+        {
+          "className": "",
+          "width": "304",
+          "height": "84",
+          "naturalWidth": 300,
+          "naturalHeight": 82
+        }
+      ],
+      "fixedElements": [
+        {
+          "className": "skip-link",
+          "bottom": -36,
+          "top": -80
+        },
+        {
+          "className": "q-rail",
+          "bottom": 932,
+          "top": 75
+        },
+        {
+          "className": "q-mobile-navigation",
+          "bottom": 924,
+          "top": 860
+        },
+        {
+          "className": "q-cursor-aura",
+          "bottom": 932,
+          "top": 0
+        },
+        {
+          "className": "q-scroll-progress",
+          "bottom": 2,
+          "top": 0
+        }
+      ],
+      "result": "passed"
+    }
+  ]
+}

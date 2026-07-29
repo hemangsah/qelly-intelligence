@@ -1,0 +1,9 @@
+{
+  "fontReady": true,
+  "appearanceStable": true,
+  "fontFamilies": [
+    "\"Qelly IBM Plex Sans\", Arial, \"Helvetica Neue\", sans-serif",
+    "Qelly IBM Plex Sans, Arial, Helvetica Neue, sans-serif"
+  ],
+  "result": "passed"
+}

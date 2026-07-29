@@ -1,0 +1,93 @@
+{
+  "targets": {
+    "fullMotionMs": [
+      900,
+      1600
+    ],
+    "reducedMotionMs": [
+      0,
+      250
+    ],
+    "repeatSession": "skipped"
+  },
+  "records": [
+    {
+      "browser": "chromium",
+      "mode": "full-motion",
+      "viewport": "1440x1000",
+      "observedRemovalMs": 1993,
+      "configuredDurationMs": 1480,
+      "duplicateFinalSymbol": false,
+      "result": "passed"
+    },
+    {
+      "browser": "chromium",
+      "mode": "reduced",
+      "viewport": "1440x1000",
+      "observedRemovalMs": 224,
+      "configuredDurationMs": 120,
+      "duplicateFinalSymbol": false,
+      "result": "passed"
+    },
+    {
+      "browser": "chromium",
+      "mode": "repeat-session",
+      "viewport": "1440x1000",
+      "overlayFrames": 0,
+      "durationMs": 536,
+      "result": "passed"
+    },
+    {
+      "browser": "firefox",
+      "mode": "full-motion",
+      "viewport": "1440x1000",
+      "observedRemovalMs": 1576,
+      "configuredDurationMs": 1480,
+      "duplicateFinalSymbol": false,
+      "result": "passed"
+    },
+    {
+      "browser": "firefox",
+      "mode": "reduced",
+      "viewport": "1440x1000",
+      "observedRemovalMs": 170,
+      "configuredDurationMs": 120,
+      "duplicateFinalSymbol": false,
+      "result": "passed"
+    },
+    {
+      "browser": "firefox",
+      "mode": "repeat-session",
+      "viewport": "1440x1000",
+      "overlayFrames": 0,
+      "durationMs": 846,
+      "result": "passed"
+    },
+    {
+      "browser": "webkit",
+      "mode": "full-motion",
+      "viewport": "1440x1000",
+      "observedRemovalMs": 2011,
+      "configuredDurationMs": 1480,
+      "duplicateFinalSymbol": false,
+      "result": "passed"
+    },
+    {
+      "browser": "webkit",
+      "mode": "reduced",
+      "viewport": "1440x1000",
+      "observedRemovalMs": 256,
+      "configuredDurationMs": 120,
+      "duplicateFinalSymbol": false,
+      "result": "passed"
+    },
+    {
+      "browser": "webkit",
+      "mode": "repeat-session",
+      "viewport": "1440x1000",
+      "overlayFrames": 0,
+      "durationMs": 1151,
+      "result": "passed"
+    }
+  ]
+}

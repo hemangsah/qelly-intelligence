@@ -1,0 +1,203 @@
+{
+  "thresholdPx": 1,
+  "records": [
+    {
+      "browser": "chromium",
+      "route": "market",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "result": "passed"
+    },
+    {
+      "browser": "chromium",
+      "route": "asset-rankings",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "result": "passed"
+    },
+    {
+      "browser": "chromium",
+      "route": "market",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "result": "passed"
+    },
+    {
+      "browser": "chromium",
+      "route": "asset-rankings",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "result": "passed"
+    },
+    {
+      "browser": "chromium",
+      "route": "market",
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "result": "passed"
+    },
+    {
+      "browser": "chromium",
+      "route": "asset-rankings",
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "result": "passed"
+    },
+    {
+      "browser": "firefox",
+      "route": "market",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "result": "passed"
+    },
+    {
+      "browser": "firefox",
+      "route": "asset-rankings",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "result": "passed"
+    },
+    {
+      "browser": "firefox",
+      "route": "market",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "result": "passed"
+    },
+    {
+      "browser": "firefox",
+      "route": "asset-rankings",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "result": "passed"
+    },
+    {
+      "browser": "firefox",
+      "route": "market",
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "result": "passed"
+    },
+    {
+      "browser": "firefox",
+      "route": "asset-rankings",
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "result": "passed"
+    },
+    {
+      "browser": "webkit",
+      "route": "market",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "result": "passed"
+    },
+    {
+      "browser": "webkit",
+      "route": "asset-rankings",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "result": "passed"
+    },
+    {
+      "browser": "webkit",
+      "route": "market",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "result": "passed"
+    },
+    {
+      "browser": "webkit",
+      "route": "asset-rankings",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "result": "passed"
+    },
+    {
+      "browser": "webkit",
+      "route": "market",
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "result": "passed"
+    },
+    {
+      "browser": "webkit",
+      "route": "asset-rankings",
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "navigationHeight": 64,
+      "navigationOverlapPx": 0,
+      "result": "passed"
+    }
+  ]
+}

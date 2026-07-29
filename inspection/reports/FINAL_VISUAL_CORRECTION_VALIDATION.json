@@ -1,0 +1,30 @@
+{
+  "result": "passed",
+  "startingHead": "88aaec22470f1417db0b45509d4bf69bb0f44bb7",
+  "commit": "253527c1adfdd90c2f447ebf079199ca01be3520",
+  "gates": {
+    "retainedBrowserMatrix": true,
+    "opening": true,
+    "darkLight": true,
+    "contrast": true,
+    "mobileTrailing": true,
+    "horizontalOverflow": true,
+    "navigationOverlap": true,
+    "consoleClean": true,
+    "pageErrorsClean": true,
+    "resourcesClean": true,
+    "rendererClean": true,
+    "fontReady": true,
+    "appearanceStable": true,
+    "stateVisualPriority": true,
+    "repeatSessionEvidence": true,
+    "mobileRootCauseReported": true,
+    "readableInspection": true
+  },
+  "metrics": {
+    "maxHorizontalOverflowPx": 0,
+    "maxTrailingSpacePx": 107,
+    "maxNavigationOverlapPx": 0,
+    "mobileRecords": 18
+  }
+}
