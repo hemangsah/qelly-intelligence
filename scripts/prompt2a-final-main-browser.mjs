@@ -24,12 +24,13 @@ try{
         page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text())});
         page.on('pageerror',e=>pageErrors.push(e.message));
         page.on('requestfailed',r=>{if(r.url().startsWith(base))failed.push({url:r.url(),error:r.failure()?.errorText})});
-        await page.addInitScript((value)=>{localStorage.setItem('qelly-appearance',value);localStorage.setItem('qelly-opening-seen','true');},appearance);
+        await page.addInitScript((value)=>{localStorage.setItem('qelly-appearance',value);sessionStorage.setItem('qelly.brand.opening.v1','seen');},appearance);
         for(const route of routes){
           await page.goto(`${base}/#/${route}`,{waitUntil:'domcontentloaded',timeout:30000});
-          await page.waitForSelector('#main',{timeout:20000});
+          await page.waitForSelector('#main',{state:'attached',timeout:20000});
+          await page.waitForFunction(()=>!document.querySelector('.qelly-opening:not([hidden])'),null,{timeout:5000}).catch(()=>{});
           if(route==='live-markets'){
-            await page.waitForSelector('#live-provider',{timeout:20000});
+            await page.waitForSelector('#live-provider',{state:'attached',timeout:20000});
             await page.selectOption('#live-provider','fixture');
             await page.waitForTimeout(250);
           }else await page.waitForTimeout(100);
