@@ -22,7 +22,7 @@ jobs:
     timeout-minutes: 60
     env:
       EXPECTED_BASE: 9cb98780893924ad26fbf4baaa9048e80a162b2c
-      EXPECTED_STAGING_HEAD: 42010fde44d42af35821aa6ad84b5118ca9dc3d1
+      EXPECTED_STAGING_HEAD: 67f452bb4694f9549182a53cf3b2aec97b32c2c4
     steps:
       - name: Check out exact staging checkpoint
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -38,9 +38,11 @@ jobs:
           test "$(git merge-base HEAD "$EXPECTED_BASE")" = "$EXPECTED_BASE"
           test "$(git rev-parse HEAD^)" = "$EXPECTED_STAGING_HEAD"
           mapfile -t parts < <(find .github/qelly-prompt2b-install-v2 -maxdepth 1 -type f -name 'part-*.b64' | sort)
-          test "${#parts[@]}" -eq 2
+          test "${#parts[@]}" -eq 4
           test "${parts[0]}" = '.github/qelly-prompt2b-install-v2/part-00.b64'
           test "${parts[1]}" = '.github/qelly-prompt2b-install-v2/part-01.b64'
+          test "${parts[2]}" = '.github/qelly-prompt2b-install-v2/part-02.b64'
+          test "${parts[3]}" = '.github/qelly-prompt2b-install-v2/part-03.b64'
           : > /tmp/qelly-prompt2b.patch.gz
           for part in "${parts[@]}"; do base64 --decode "$part" >> /tmp/qelly-prompt2b.patch.gz; done
           gzip --test /tmp/qelly-prompt2b.patch.gz
