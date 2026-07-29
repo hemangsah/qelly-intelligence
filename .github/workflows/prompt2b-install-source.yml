@@ -1,0 +1,181 @@
+name: Qelly Prompt 2B Verified Source Installer
+
+on:
+  pull_request:
+    branches: [main]
+    types: [synchronize]
+    paths:
+      - '.github/workflows/prompt2b-install-source.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: qelly-prompt2b-source-installer-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  install:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'feature/calculator-and-indicator-foundation'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      EXPECTED_BASE: 9cb98780893924ad26fbf4baaa9048e80a162b2c
+      EXPECTED_STAGING_HEAD: 79faf2868856bee793680a52186e45cee8a7e0c8
+    steps:
+      - name: Check out exact staging checkpoint
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Verify ancestry and decode staged patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git merge-base HEAD "$EXPECTED_BASE")" = "$EXPECTED_BASE"
+          test "$(git rev-parse HEAD^)" = "$EXPECTED_STAGING_HEAD"
+          mapfile -t parts < <(find .github/qelly-prompt2b-install -maxdepth 1 -type f -name 'part-*.b64' | sort)
+          test "${#parts[@]}" -eq 4
+          test "${parts[0]}" = '.github/qelly-prompt2b-install/part-00.b64'
+          test "${parts[1]}" = '.github/qelly-prompt2b-install/part-01.b64'
+          test "${parts[2]}" = '.github/qelly-prompt2b-install/part-02.b64'
+          test "${parts[3]}" = '.github/qelly-prompt2b-install/part-03.b64'
+          cat "${parts[@]}" | base64 --decode > /tmp/qelly-prompt2b.patch
+          test -s /tmp/qelly-prompt2b.patch
+          sha256sum /tmp/qelly-prompt2b.patch | tee /tmp/PATCH_SHA256.txt
+          grep -q '^diff --git ' /tmp/qelly-prompt2b.patch
+
+      - name: Enforce patch scope and safety boundaries
+        shell: python
+        run: |
+          from pathlib import Path, PurePosixPath
+          import re, sys
+          patch=Path('/tmp/qelly-prompt2b.patch').read_text(encoding='utf-8')
+          paths=[]
+          for match in re.finditer(r'^diff --git a/(.+?) b/(.+?)$',patch,re.M):
+              left,right=match.groups()
+              if left!=right:
+                  raise SystemExit(f'rename/copy not permitted: {left} -> {right}')
+              pure=PurePosixPath(right)
+              if pure.is_absolute() or '..' in pure.parts or '.git' in pure.parts:
+                  raise SystemExit(f'unsafe path: {right}')
+              allowed=(
+                  right=='package.json' or
+                  right.startswith('apps/web/public/') or
+                  right.startswith('packages/calculation-contracts/') or
+                  right.startswith('packages/formulas/') or
+                  right.startswith('packages/indicators/') or
+                  right.startswith('packages/financial-rules/') or
+                  right.startswith('packages/schemas/') or
+                  right.startswith('src/calculations/') or
+                  right in {'src/server/runtime.mjs','src/server/server.mjs','src/server/route-manifest.mjs'} or
+                  right in {'scripts/build-frontend.mjs','scripts/product-validate.mjs','scripts/release-check.mjs','scripts/smoke.mjs'} or
+                  right.startswith('tests/prompt2b-')
+              )
+              if not allowed:
+                  raise SystemExit(f'path outside Prompt 2B Wave 1 scope: {right}')
+              paths.append(right)
+          if not paths or len(paths)!=len(set(paths)):
+              raise SystemExit('empty or duplicate patch paths')
+          required={
+              'packages/calculation-contracts/calculation-contracts.mjs',
+              'packages/formulas/formula-engine.mjs',
+              'packages/indicators/indicator-engine.mjs',
+              'packages/financial-rules/india-rule-registry.mjs',
+              'src/calculations/calculation-service.mjs',
+              'src/calculations/calculation-store.mjs',
+              'apps/web/public/assets/routes/calculator-indicator-foundation.mjs',
+              'tests/prompt2b-formula-indicator-foundation.test.mjs',
+              'tests/prompt2b-server-persistence-api.test.mjs'
+          }
+          missing=sorted(required-set(paths))
+          if missing:
+              raise SystemExit(f'missing required source paths: {missing}')
+          forbidden=[
+              r'private.?key',r'seed.?phrase',r'autonomous.?execution',r'real.?money.?trading',
+              r'custody.?enabled',r'withdrawals?.?enabled',r'IMPLEMENTED_CONNECTED.*(?:market|broker|wallet|exchange)'
+          ]
+          for pattern in forbidden:
+              if re.search(pattern,patch,re.I):
+                  raise SystemExit(f'forbidden capability/claim in patch: {pattern}')
+          Path('/tmp/PATCH_PATHS.txt').write_text('\n'.join(paths)+'\n')
+          print(f'verified {len(paths)} scoped patch paths')
+
+      - name: Apply patch and verify source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git apply --check /tmp/qelly-prompt2b.patch
+          git apply /tmp/qelly-prompt2b.patch
+          while IFS= read -r file; do
+            case "$file" in
+              *.mjs|*.js) node --check "$file" ;;
+              *.json) node -e 'JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"))' "$file" ;;
+            esac
+          done < /tmp/PATCH_PATHS.txt
+          node --test tests/prompt2b-formula-indicator-foundation.test.mjs tests/prompt2b-server-persistence-api.test.mjs
+          node --input-type=module <<'NODE'
+          import { formulaDefinitions } from './packages/formulas/formula-engine.mjs';
+          import { indicatorDefinitions } from './packages/indicators/indicator-engine.mjs';
+          if(formulaDefinitions().length < 36) throw new Error('formula catalog below 36');
+          if(indicatorDefinitions().length < 32) throw new Error('indicator catalog below 32');
+          console.log({formulas:formulaDefinitions().length,indicators:indicatorDefinitions().length});
+          NODE
+
+      - name: Install locked dependencies
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+
+      - name: Run complete repository gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run env:check
+          npm run typecheck
+          npm run lint
+          npm run validate:design
+          npm run validate:brand
+          npm run security:scan
+          npm test
+          npm run build
+          QELLY_STATIC_VISUAL_PREVIEW=true QELLY_PUBLIC_BASE_PATH=/qelly-intelligence/ npm run build:frontend
+          npm run validate:product
+          npm run inventory:product
+          npm run smoke
+          NODE_ENV=test QELLY_DEVELOPMENT_IDENTITY_ENABLED=false node scripts/production-identity-check.mjs
+          npm run release:check
+          npm audit --audit-level=high
+
+      - name: Record atomic source checkpoint and remove transports
+        shell: bash
+        run: |
+          set -euo pipefail
+          patch_sha=$(cut -d' ' -f1 /tmp/PATCH_SHA256.txt)
+          paths=$(wc -l < /tmp/PATCH_PATHS.txt | tr -d ' ')
+          cat >> project-state/QELLY_PROMPT2B_EXECUTION_LEDGER.md <<EOF
+
+          ## Verified source installation
+
+          - Staging head: \`$EXPECTED_STAGING_HEAD\`
+          - Decoded patch SHA-256: \`$patch_sha\`
+          - Scoped source paths: $paths
+          - Formula definitions: at least 36
+          - Indicator definitions: at least 32
+          - Core reference/property/persistence/API tests: passed
+          - Complete repository gates: passed before commit
+          - Transport chunks and temporary start/installer workflows: removed in this commit
+          EOF
+          rm -rf .github/qelly-prompt2b-install
+          rm -f .github/workflows/prompt2b-start-gate.yml .github/workflows/prompt2b-install-source.yml
+          git add -A
+          git diff --cached --check
+          git config user.name 'Qelly Wave 1 Automation'
+          git config user.email 'hemangsah@users.noreply.github.com'
+          git commit -m 'feat(prompt2b): install deterministic calculator and indicator foundation'
+          git push origin HEAD:feature/calculator-and-indicator-foundation
