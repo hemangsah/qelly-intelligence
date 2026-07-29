@@ -1,33 +1,15 @@
-# Qelly Known Limitations
+# Qelly Known Limitations — Prompt 2A Wave 0
 
-## Public deployment
+Generated: 2026-07-29T15:49:53+05:30
+Audited source head: `eafb11719e67135c7a6fa3b15e1170c5192e4771`
 
-The GitHub Pages URL is verified for public-beta foundation merge `46233298031372c51bb433229bd7f9d1aff70568`, deployment `5654166920`, with public URL, manifest and governed IBM Plex resource returning HTTP 200. It remains a public static/read-only visual preview. It does not prove authenticated backend services, persistence, connected external providers, custody or trading.
-
-## Static, deterministic and inventory data
-
-- Static-preview values are deterministic demo records, not live provider observations.
-- A visual route, source reference, contract file or registry row does not prove backend implementation or connectivity.
-- The API inventory contains 276 source references requiring executable verification before Connected classification.
-- The 61-route, 67-schema, 187-server-contract and 17-family counts describe repository inventory only.
-- Simulated, estimated, embedded, delayed, cached, stale, partial and unavailable states must remain visibly distinguishable.
-
-## Public-beta foundation
-
-- Provider adapter interfaces exist, but no market, broker, exchange, wallet, bank or observability provider is connected by Prompt 1.
-- Provider terms, quotas, authorization, attribution, redistribution and jurisdiction requirements require current official verification before implementation.
-- Observability events are defined and secret-redacted, but no production reporting sink is connected.
-- Environment-specific production configuration and credentials remain external.
-- Read-only connections, paper trading, marketplace, calculators, indicators and mega-quant capabilities remain Prompt 2 work.
-
-## Deliberately excluded
-
-- real-money trading;
-- custody;
-- deposits and withdrawals;
-- private-key or seed-phrase storage;
-- autonomous execution.
-
-## Remaining release program
-
-Prompt 2 is required for focused, dependency-ordered product implementation. Prompt 3 is required for exhaustive frontend/backend/database/security/provider audit, staging, operational readiness and any connected public-beta release claim.
+- GitHub Pages is a public static/read-only visual preview, not a connected full production product.
+- Runtime route count is 61; `WORKING_CONNECTED` count is 0. 8 routes are classified `STATIC_DEMO`; 53 are `PARTIAL`.
+- The repository exposes 187 internal API contracts, but contract presence/HTTP 200 does not prove production connectivity, authorization, persistence, tenancy or provider correctness.
+- The default/live-preview truth is compromised by misleading connected/live wording and realistic deterministic fixtures; a separate hotfix is required.
+- The public-provider adapters are disabled by default for governed public beta and have incomplete license/redistribution/geographic review.
+- No calculator center, India finance center, governed indicator library, paper trader, strategy builder, backtester, marketplace, read-only account connections, liquidation/order-flow/options/on-chain stack, community, Copilot or governed-agent runtime is complete.
+- Formula and rule records created in this audit are specifications only, not executable product features.
+- Branch protection could not be read through the Actions integration (HTTP 403); do not infer absence or presence.
+- Six pre-existing Dependabot PRs were open at evidence capture; an earlier connector search omitted them. No audit mutation touched those branches.
+- Real-money trading, custody, deposits/withdrawals, private-key/seed handling and autonomous execution remain deliberately disabled.

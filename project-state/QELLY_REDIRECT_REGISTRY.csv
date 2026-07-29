@@ -1,0 +1,3 @@
+redirect_id,type,source_file,line,target,allowlist,affiliate_disclosure,health_check,open_redirect_risk,status,source_commit
+REDIR-001,redirect-reference,src/production/delivery-service.mjs,29,dynamic/inspect-source,not proven,none,not implemented,review required,AUDIT_REQUIRED,eafb11719e67135c7a6fa3b15e1170c5192e4771
+REDIR-002,redirect-reference,src/production/object-storage.mjs,85,dynamic/inspect-source,not proven,none,not implemented,review required,AUDIT_REQUIRED,eafb11719e67135c7a6fa3b15e1170c5192e4771

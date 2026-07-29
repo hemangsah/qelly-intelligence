@@ -13,3 +13,8 @@
 | 2026-07-29 | Prompt 2A product implementation | not started | Deliberately not executed | Wave 0 scope boundary | Stop before Prompt 2B |
 | 2026-07-29 | Connected market providers | not started | Planned | No authorized integration test | Audit feasibility and terms only |
 | 2026-07-29 | Real-money execution and custody | disabled | Deliberately disabled | Runtime invariants and Prompt 2A safety boundary | Separate explicit program only |
+| 2026-07-29 | Prompt 2A draft PR | `#19` / `feature/prompt2-repository-gap-audit` | Draft, unmerged, Wave 0 only | Existing branch preserved; base `26d2c9c453992b74dd3931d6b8b9489117d0b44c` | Complete audit registries and review package |
+| 2026-07-29 | Prompt 2A exact-head forensic evidence | `eafb11719e67135c7a6fa3b15e1170c5192e4771` | Verified | Workflow `30441613550`; artifact digest `a3a798edd016ea28bb5174f089d9948fd51f0b23edb7d480d9bf57613483156b`; all 16 gates exit 0 | Persist generated audit |
+| 2026-07-29 | Prompt 2A feature reality | `eafb11719e67135c7a6fa3b15e1170c5192e4771` | Audit classification only | 61 routes; 187 internal APIs; 28 DB tables; zero connected product routes | Review blockers; do not start Prompt 2B |
+| 2026-07-29 | Prompt 2A provider/legal reality | `eafb11719e67135c7a6fa3b15e1170c5192e4771` | Blocked/authorization-gated | No production-connected provider; official candidates catalogued conservatively | Legal/conformance work in later waves |
+| 2026-07-29 | Prompt 2A product implementation | not started | Deliberately not executed | Wave 0 scope boundary | Prompt 2B only after explicit approval |

@@ -39,3 +39,12 @@
 - Verified the exact merged foundation is deployed at the GitHub Pages URL.
 - Classified the site as a public static/read-only visual preview, not a connected full production product.
 - Kept PR #14 draft and excluded Prompt 2 and Prompt 3 implementation.
+
+## 2026-07-29 — Prompt 2A Wave 0 decisions
+
+- Preserve all existing stable feature IDs and add new domain IDs without renumbering.
+- Classify zero runtime routes as production connected.
+- Treat “connected/live” preview wording and hard-coded market tape values as a high-severity truth defect requiring a separate draft hotfix.
+- Never silently replace provider failure with realistic fixture data on production-intended paths.
+- Keep provider candidates disabled/authorization-gated until official technical, terms, licensing, redistribution, commercial-use and geographic review passes.
+- Start Prompt 2B only with explicit owner instruction on `feature/calculator-and-indicator-foundation`; do not chain prompts automatically.
