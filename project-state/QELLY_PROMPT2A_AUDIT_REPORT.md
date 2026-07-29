@@ -1,18 +1,18 @@
 # Qelly Prompt 2A — World-Scale Repository Gap Audit and Implementation Blueprint
 
-Generated: 2026-07-29T15:49:53+05:30
+Updated: 2026-07-29T18:51:00+05:30
 Repository: `hemangsah/qelly-intelligence`
 Verified starting main: `26d2c9c453992b74dd3931d6b8b9489117d0b44c`
 Audited exact source head: `eafb11719e67135c7a6fa3b15e1170c5192e4771`
 Audit branch: `feature/prompt2-repository-gap-audit`
 Draft PR: `#19`
-Final audit head: `bedebf9478752126ffe9348b48a6e9ff8044637f`
+Latest fully validated Wave 0 head: `e2e2dd822e7811406ea5b220dbd033bfad75f09b`
 
 ## Executive verdict
 
 Qelly is a polished static/read-only visual preview with substantial local/test architecture, governance, persistence, identity, queue, evidence and design foundations. It is **not** a complete connected financial intelligence product. No runtime route is classified `WORKING_CONNECTED`; no external market-data, broker, exchange, wallet, bank, news or observability provider has production-connected evidence. Prompt 2A performed audit/registry work only.
 
-The most urgent truth defects are public/prototype wording that says “connected” or “live” and deterministic market values that can appear current. These findings must be fixed in a separate focused draft hotfix because Prompt 2A is an audit PR.
+The most urgent truth defects are public/prototype wording that says “connected” or “live” and deterministic market values that can appear current. A separate focused draft hotfix exists as PR #20; it remains draft and unmerged because Prompt 2A is an audit PR.
 
 ## Live starting state
 
@@ -89,7 +89,7 @@ Use `QELLY_IMPLEMENTATION_WAVES.md` and `QELLY_DEPENDENCY_GRAPH.json`. The first
 
 ## Validation
 
-All exact-head repository gates and CodeQL passed. The generated registries are validated for unique IDs, canonical statuses, CSV/JSON parseability and checksum integrity by the Prompt 2A audit validator. No test was weakened.
+All exact-head repository gates passed at `e2e2dd822e7811406ea5b220dbd033bfad75f09b`. Wave 0 workflow `30456044354`, CI `30456043162`, Container Build `30456043237`, Production Foundation Services `30456043270` and CodeQL `30456043152` succeeded. The 549-route/browser/viewport matrix passed with zero failures. The generated registries are validated for unique IDs, canonical statuses, CSV/JSON parseability and checksum integrity. Final artifact `8725646367` has GitHub digest `ac8ef42c517f4e1adb684252c2a8370c8848a1c1ab4ca7fad0bae66e7dff36c1`; the inner review ZIP SHA-256 is `1d9c4c6b9cec171b5f8e74ba2853c94b098635d5009ca6e860f8d2f3b83c2dc9` and all 52 internal checksums passed. No test was weakened.
 
 ## Scope statement
 
