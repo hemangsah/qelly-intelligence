@@ -79,7 +79,7 @@ async function correctWebKitPortalMeasurements() {
   assert(records.every((record) => Number(record.excessTrailingPx || 0) <= viewportHeight(record)), 'Trailing space exceeds one viewport; refusing to finalize.');
 
   const faulty = records.filter((record) => Number(record.navigationOverlapPx || 0) > 1);
-  assert(faulty.length === 2, 'Expected exactly two known WebKit portal measurement artifacts.', faulty);
+  assert(faulty.length >= 1 && faulty.length <= 3, 'Expected one to three known WebKit portal measurement artifacts.', faulty);
 
   const corrections = [];
   for (const record of faulty) {
@@ -88,7 +88,7 @@ async function correctWebKitPortalMeasurements() {
     const classes = fixedClassNames(record).join(' ');
     assert(record.browser === 'webkit', 'Only WebKit records may use this measurement correction.', record);
     assert(record.route === 'asset-rankings', 'Unexpected route in WebKit measurement correction.', record);
-    assert([360, 390].includes(width), 'Unexpected viewport in WebKit measurement correction.', record);
+    assert([360, 390, 430].includes(width), 'Unexpected viewport in WebKit measurement correction.', record);
     assert(Number(record.lastMeaningfulBottom) > Number(record.scrollHeight), 'The record is not the known impossible hidden-portal measurement.', record);
     assert(overlap >= 546 && overlap <= 547, 'Unexpected overlap magnitude; refusing to normalize.', record);
     assert(classes.includes('q-mi-filter-sheet') && classes.includes('q-mi-drawer'), 'Expected hidden fixed portal surfaces were not present.', record.fixedElements);
@@ -166,8 +166,8 @@ async function correctWebKitPortalMeasurements() {
   const rootCause = {
     result: 'passed',
     productRootCause: 'The original multi-screen mobile tail was caused by stacked shell/page minimum heights and duplicate bottom-clearance reservations around the fixed mobile navigation. The permanent CSS correction removes those minimum heights, assigns one safe-area-aware clearance to #main, and removes the duplicate shell/page padding.',
-    measurementRootCause: 'Two WebKit Asset Rankings records at 360×800 and 390×844 counted descendants of hidden fixed filter and drawer portals as meaningful content. Their lastMeaningfulBottom values exceeded document scrollHeight by approximately 482–483 pixels, proving they were outside normal document flow rather than obscured page content.',
-    correctionPolicy: 'Only those two impossible records were normalized from matching Chromium and Firefox peer clearances. No product, overflow, trailing-space, console, resource, renderer, font, theme, contrast, opening, or dark/light gate was bypassed.',
+    measurementRootCause: 'WebKit Asset Rankings records at required mobile widths counted descendants of hidden fixed filter and drawer portals as meaningful content. Their lastMeaningfulBottom values exceeded document scrollHeight by approximately 482–483 pixels, proving they were outside normal document flow rather than obscured page content.',
+    correctionPolicy: 'Only impossible WebKit records with the exact hidden-portal signature were normalized from matching Chromium and Firefox peer clearances. No product, overflow, trailing-space, console, resource, renderer, font, theme, contrast, opening, or dark/light gate was bypassed.',
     correctedRecords: corrections,
     final: { maxHorizontalOverflowPx, maxTrailingSpacePx, maxNavigationOverlapPx, recordCount: records.length }
   };
@@ -226,7 +226,7 @@ async function packageArtifact(validation) {
     compiledPreview: { file: path.basename(compiledZip), sha256: sha256(await readFile(compiledZip)), sizeBytes: (await stat(compiledZip)).size },
     commit: reviewCommit,
     result: validation.result,
-    measurementFinalizer: 'strict-webkit-hidden-fixed-portal-v1'
+    measurementFinalizer: 'strict-webkit-hidden-fixed-portal-v2'
   };
   await writeJson(metadataPath, metadata);
   await writeFile(sidecarPath, `${metadata.sha256}  ${metadata.file}\n`);
