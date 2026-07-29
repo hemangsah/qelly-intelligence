@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-29T11:01:00+05:30",
+  "repository": "hemangsah/qelly-intelligence",
+  "phase": "PROMPT_1_PRE_MERGE_GUARD",
+  "result": "blocked",
+  "main": "239f6f0c7c663801662f4e5f940ca76fb6941bf1",
+  "approvedHead": "75e39537e0ca6ba5eaf8fb688d0248fa63bd5614",
+  "liveHead": "6fabb1ac65d73cde25d1dca6d63a6685ef7d7e9a",
+  "checkpointBranch": "agent/pr13-prompt1-guard-blocked",
+  "classifications": {
+    "logoFirstVisualSystem": "Implemented and Validated",
+    "mergeToMain": "Blocked by Authorization",
+    "brandFoundationTag": "Planned",
+    "designFreezeOnMain": "Planned",
+    "publicBetaBootstrap": "Deferred",
+    "providerConnections": "Deferred"
+  },
+  "artifacts": {
+    "approved": {
+      "reviewZipSha256": "0144a294a5d057ee8919e4cea762ea8f4159f552a521d3e7a3c98cbb79273eee",
+      "sizeBytes": 74140620,
+      "entryCount": 386,
+      "checksumVerification": "349/349",
+      "sourceHead": "75e39537e0ca6ba5eaf8fb688d0248fa63bd5614"
+    },
+    "live": {
+      "reviewZipSha256": "b2b10a6b80bb45cb10faf6173d39c4b2d9bb0893039da1b9936878189b1f492c",
+      "sizeBytes": 73792804,
+      "entryCount": 391,
+      "checksumVerification": "354/354",
+      "sourceHead": "6fabb1ac65d73cde25d1dca6d63a6685ef7d7e9a"
+    }
+  },
+  "nextAction": "Obtain explicit authorization for exact live head 6fabb1ac65d73cde25d1dca6d63a6685ef7d7e9a, then rerun Prompt 1 guards."
+}
