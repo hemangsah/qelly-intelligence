@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   final-wave0-audit:
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'feature/prompt2-repository-gap-audit' || github.event.pull_request.head.ref == 'hotfix/live-market-demo-truth-label'
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'feature/prompt2-repository-gap-audit'
     runs-on: ubuntu-24.04
     timeout-minutes: 150
     steps:
@@ -100,7 +100,7 @@ jobs:
         if: always()
         env:
           QELLY_AUDIT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
-          QELLY_PR_NUMBER: ${{ github.event.pull_request.number || 20 }}
+          QELLY_PR_NUMBER: ${{ github.event.pull_request.number || 19 }}
         run: node scripts/prompt2a-package-artifact.mjs
 
       - name: Upload complete Prompt 2A Wave 0 artifact
