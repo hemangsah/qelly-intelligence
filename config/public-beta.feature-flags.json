@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "defaultState": "disabled",
+  "flags": {
+    "publicBetaTruthLabels": {
+      "state": "enabled",
+      "classification": "implemented-deterministically"
+    },
+    "providerAdapterRegistry": {
+      "state": "enabled",
+      "classification": "implemented-deterministically"
+    },
+    "betaReadinessDashboard": {
+      "state": "enabled",
+      "classification": "implemented-deterministically"
+    },
+    "connectedMarketProviders": {
+      "state": "disabled",
+      "classification": "planned"
+    },
+    "readOnlyConnections": {
+      "state": "disabled",
+      "classification": "planned"
+    },
+    "paperTrading": {
+      "state": "disabled",
+      "classification": "planned"
+    },
+    "realMoneyTrading": {
+      "state": "hard-disabled",
+      "classification": "deliberately-disabled"
+    },
+    "custody": {
+      "state": "hard-disabled",
+      "classification": "deliberately-disabled"
+    },
+    "depositsWithdrawals": {
+      "state": "hard-disabled",
+      "classification": "deliberately-disabled"
+    }
+  }
+}
