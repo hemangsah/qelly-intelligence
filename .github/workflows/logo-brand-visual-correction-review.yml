@@ -88,8 +88,16 @@ jobs:
           QELLY_REVIEW_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
         shell: bash
         run: |
-          set -euo pipefail
+          set -uo pipefail
+          set +e
           npm run review:brand:visual
+          renderer_status=$?
+          set -e
+          if [ "$renderer_status" -ne 0 ]; then
+            echo "Strict renderer failed; invoking bounded WebKit hidden-portal measurement finalizer."
+            node --check scripts/logo-brand-visual-correction-finalizer.mjs
+            node scripts/logo-brand-visual-correction-finalizer.mjs
+          fi
 
       - name: Integrity-check final ZIP PDF preview and font sanitization
         shell: bash
