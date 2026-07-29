@@ -1,0 +1,166 @@
+name: Qelly Prompt 2A Wave 0 Audit
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'scripts/prompt2a-wave0-bootstrap.mjs'
+      - 'project-state/**'
+      - '.github/workflows/prompt2a-wave0-audit.yml'
+  workflow_dispatch:
+
+permissions: read-all
+
+concurrency:
+  group: qelly-prompt2a-wave0-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  forensic-bootstrap:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'feature/prompt2-repository-gap-audit'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Check out exact audit head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Generate recursive forensic bootstrap
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          QELLY_AUDIT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/prompt2a-wave0-bootstrap.mjs
+
+      - name: Create sanitized exact-source snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          target=/tmp/qelly-prompt2a-source
+          rm -rf "$target"
+          mkdir -p "$target"
+          tar \
+            --exclude='./.git' \
+            --exclude='./node_modules' \
+            --exclude='./dist' \
+            --exclude='./.prompt2a-bootstrap' \
+            --exclude='./.brand-review' \
+            --exclude='./.brand-visual-correction' \
+            --exclude='./.ui-review' \
+            --exclude='./.theme-review' \
+            --exclude='*.woff' \
+            --exclude='*.woff2' \
+            --exclude='*.ttf' \
+            --exclude='*.otf' \
+            --exclude='*.eot' \
+            --exclude='*.png' \
+            --exclude='*.jpg' \
+            --exclude='*.jpeg' \
+            --exclude='*.webp' \
+            --exclude='*.gif' \
+            --exclude='*.pdf' \
+            --exclude='*.zip' \
+            --exclude='*.gz' \
+            --exclude='*.tgz' \
+            --exclude='*.mp4' \
+            --exclude='*.mov' \
+            -czf "$target/qelly-source-snapshot.tar.gz" .
+          mv "$target/qelly-source-snapshot.tar.gz" .prompt2a-bootstrap/02-repository-inventory/
+          tar -tzf .prompt2a-bootstrap/02-repository-inventory/qelly-source-snapshot.tar.gz > .prompt2a-bootstrap/02-repository-inventory/SOURCE_SNAPSHOT_CONTENTS.txt
+          if tar -tzf .prompt2a-bootstrap/02-repository-inventory/qelly-source-snapshot.tar.gz | grep -Eiq '\.(woff2?|ttf|otf|eot)$'; then
+            echo 'Prohibited font binary found in source snapshot.' >&2
+            exit 1
+          fi
+
+      - name: Run complete repository validation and retain every result
+        shell: bash
+        run: |
+          set -uo pipefail
+          report=.prompt2a-bootstrap/VALIDATION_STATUS.tsv
+          printf 'gate\texit_code\n' > "$report"
+          run_gate() {
+            name="$1"
+            shift
+            set +e
+            "$@"
+            code=$?
+            set -e
+            printf '%s\t%s\n' "$name" "$code" >> "$report"
+          }
+          set -e
+          run_gate env-check npm run env:check
+          run_gate typecheck npm run typecheck
+          run_gate lint npm run lint
+          run_gate design-governance npm run validate:design
+          run_gate brand-governance npm run validate:brand
+          run_gate secret-scan npm run security:scan
+          run_gate unit-integration-tests npm test
+          run_gate production-build npm run build
+          run_gate frontend-build env QELLY_PUBLIC_API_BASE_URL=https://api.preview.invalid npm run build:frontend
+          run_gate product-validation npm run validate:product
+          run_gate product-inventory npm run inventory:product
+          run_gate full-stack-smoke npm run smoke
+          run_gate production-identity env NODE_ENV=test QELLY_DEVELOPMENT_IDENTITY_ENABLED=false node scripts/production-identity-check.mjs
+          run_gate release-check npm run release:check
+          run_gate dependency-audit npm audit --audit-level=high
+          run_gate git-diff-check git diff --check
+          cat "$report"
+
+      - name: Package bootstrap review artifact
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .prompt2a-bootstrap/18-checksums
+          find .prompt2a-bootstrap -type f ! -path '*/18-checksums/*' -print0 | sort -z | xargs -0 sha256sum > .prompt2a-bootstrap/18-checksums/SHA256SUMS.txt
+          python - <<'PY'
+          import hashlib,json,pathlib
+          root=pathlib.Path('.prompt2a-bootstrap')
+          entries=[]
+          for path in sorted(p for p in root.rglob('*') if p.is_file()):
+              data=path.read_bytes()
+              entries.append({'path':path.relative_to(root).as_posix(),'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()})
+          manifest={'schemaVersion':1,'sourceHead':'${{ github.event.pull_request.head.sha || github.sha }}','entryCount':len(entries),'entries':entries}
+          (root/'18-checksums'/'ARTIFACT_MANIFEST.json').write_text(json.dumps(manifest,indent=2)+'\n')
+          PY
+          zip -qr qelly-prompt2a-wave0-bootstrap.zip .prompt2a-bootstrap
+          unzip -t qelly-prompt2a-wave0-bootstrap.zip
+          sha256sum qelly-prompt2a-wave0-bootstrap.zip > qelly-prompt2a-wave0-bootstrap.zip.sha256
+
+      - name: Upload Prompt 2A bootstrap evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-prompt2a-wave0-bootstrap
+          path: |
+            qelly-prompt2a-wave0-bootstrap.zip
+            qelly-prompt2a-wave0-bootstrap.zip.sha256
+            .prompt2a-bootstrap
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Fail when any retained validation gate failed
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f .prompt2a-bootstrap/VALIDATION_STATUS.tsv
+          failures=$(awk -F '\t' 'NR>1 && $2 != 0 {print $1 "=" $2}' .prompt2a-bootstrap/VALIDATION_STATUS.tsv)
+          if [ -n "$failures" ]; then
+            echo "Prompt 2A bootstrap validation failures:"
+            echo "$failures"
+            exit 1
+          fi
