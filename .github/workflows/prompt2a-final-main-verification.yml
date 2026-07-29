@@ -6,6 +6,7 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - '.github/workflows/prompt2a-final-main-verification.yml'
+      - 'scripts/prompt2a-final-main-browser.mjs'
       - 'project-state/**'
   workflow_dispatch:
 
@@ -24,12 +25,19 @@ jobs:
       EXPECTED_MAIN: ea16ac3ff71aae9c000772189e472e68cf876b44
       PUBLIC_URL: https://hemangsah.github.io/qelly-intelligence/
     steps:
-      - name: Check out exact verified main
+      - name: Check out exact verified main plus closeout verifier
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: ea16ac3ff71aae9c000772189e472e68cf876b44
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Verify branch ancestry and isolate product source
+        run: |
+          set -euo pipefail
+          test "$(git merge-base HEAD "$EXPECTED_MAIN")" = "$EXPECTED_MAIN"
+          changed=$(git diff --name-only "$EXPECTED_MAIN"...HEAD | grep -v '^\.github/workflows/prompt2a-final-main-verification.yml$' | grep -v '^scripts/prompt2a-final-main-browser.mjs$' | grep -v '^project-state/' || true)
+          test -z "$changed"
 
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
@@ -42,11 +50,10 @@ jobs:
           npm ci --ignore-scripts
           npx playwright install --with-deps chromium firefox webkit
 
-      - name: Verify exact main and complete repository gates
-        shell: bash
+      - name: Verify exact-main repository gates
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN"
+          git checkout --detach "$EXPECTED_MAIN"
           npm run env:check
           npm run typecheck
           npm run lint
@@ -63,38 +70,15 @@ jobs:
           npm run release:check
           npm audit --audit-level=high
           git diff --check
+          git checkout -
 
-      - name: Verify exact-main browser and theme matrix
-        shell: bash
-        run: |
-          set -euo pipefail
-          node --input-type=module <<'NODE'
-          import { readFile } from 'node:fs/promises';
-          import { createServer } from 'node:http';
-          import path from 'node:path';
-          import { chromium, firefox, webkit } from 'playwright';
-          const dist=path.resolve('dist/frontend');
-          const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.woff2':'font/woff2','.webmanifest':'application/manifest+json'};
-          const server=createServer(async(req,res)=>{const u=new URL(req.url,'http://127.0.0.1');let rel=decodeURIComponent(u.pathname).replace(/^\/qelly-intelligence\/?/,'');if(!rel||rel.endsWith('/'))rel+='index.html';let p=path.join(dist,rel);try{const b=await readFile(p);res.writeHead(200,{'content-type':mime[path.extname(p)]||'application/octet-stream'});res.end(b);}catch{const b=await readFile(path.join(dist,'index.html'));res.writeHead(200,{'content-type':'text/html'});res.end(b);}});
-          await new Promise(r=>server.listen(4174,'127.0.0.1',r));
-          const browsers=[['chromium',chromium],['firefox',firefox],['webkit',webkit]];
-          const viewports=[[360,800],[390,844],[430,932],[768,1024],[1024,768],[1440,1000]];
-          const routes=['feature-universe','market','asset-rankings','theme-personas','theme-lab','live-markets'];
-          const themes=['dark','light','oled','high-contrast'];
-          const records=[];
-          for(const [browserName,type] of browsers){const browser=await type.launch({headless:true});for(const [width,height] of viewports){const context=await browser.newContext({viewport:{width,height},reducedMotion:'reduce'});for(const appearance of themes){await context.addInitScript((value)=>{localStorage.setItem('qelly-appearance',value);localStorage.setItem('qelly-opening-seen','true');},appearance);const page=await context.newPage();const consoleErrors=[],pageErrors=[],failed=[];page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text())});page.on('pageerror',e=>pageErrors.push(e.message));page.on('requestfailed',r=>{if(r.url().startsWith('http://127.0.0.1'))failed.push({url:r.url(),error:r.failure()?.errorText})});for(const route of routes){await page.goto(`http://127.0.0.1:4174/qelly-intelligence/#/${route}`,{waitUntil:'domcontentloaded',timeout:20000});await page.waitForSelector('#main',{timeout:15000});await page.waitForTimeout(100);const m=await page.evaluate(()=>{const html=document.documentElement,main=document.querySelector('#main');const logo=document.querySelector('img[src*="qelly"],svg[aria-label*="Qelly" i],.q-brand-lockup');return {text:(main?.textContent||'').trim().length,overflow:Math.max(0,html.scrollWidth-html.clientWidth),font:document.fonts.status,logo:Boolean(logo),appearance:html.dataset.resolvedAppearance||html.dataset.appearance||''};});const truth=route!=='live-markets'||/Illustrative watch universe/.test(await page.locator('#main').textContent());records.push({browser:browserName,width,height,appearance,route,...m,truth,consoleErrors:[...consoleErrors],pageErrors:[...pageErrors],failedResources:[...failed]});consoleErrors.length=0;pageErrors.length=0;failed.length=0;}await page.close();}await context.close();}await browser.close();}
-          server.close();
-          const failures=records.filter(r=>r.text===0||r.overflow>1||r.font!=='loaded'||!r.truth||r.consoleErrors.length||r.pageErrors.length||r.failedResources.length);
-          await import('node:fs/promises').then(fs=>fs.mkdir('.prompt2a-closeout',{recursive:true}).then(()=>fs.writeFile('.prompt2a-closeout/FINAL_MAIN_BROWSER_MATRIX.json',JSON.stringify({head:process.env.EXPECTED_MAIN,records,failures},null,2)+'\n')));
-          console.log(JSON.stringify({records:records.length,failures:failures.length},null,2));
-          if(failures.length)process.exit(1);
-          NODE
+      - name: Verify exact-main browser and theme matrix through Qelly runtime
+        run: EXPECTED_MAIN="$EXPECTED_MAIN" node scripts/prompt2a-final-main-browser.mjs
 
       - name: Verify exact-main push workflows and Pages deployment
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-        shell: bash
         run: |
           set -euo pipefail
           mkdir -p .prompt2a-closeout
