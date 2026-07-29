@@ -1,15 +1,20 @@
-# Qelly Known Limitations — Prompt 2A Wave 0
+# Qelly Known Limitations — Prompt 2A Final Closeout
 
-Generated: 2026-07-29T15:49:53+05:30
-Audited source head: `eafb11719e67135c7a6fa3b15e1170c5192e4771`
+Updated: 2026-07-29
+Exact final Program A product main: `ea16ac3ff71aae9c000772189e472e68cf876b44`
 
 - GitHub Pages is a public static/read-only visual preview, not a connected full production product.
-- Runtime route count is 61; `WORKING_CONNECTED` count is 0. 8 routes are classified `STATIC_DEMO`; 53 are `PARTIAL`.
-- The repository exposes 187 internal API contracts, but contract presence/HTTP 200 does not prove production connectivity, authorization, persistence, tenancy or provider correctness.
-- The default/live-preview truth is compromised by misleading connected/live wording and realistic deterministic fixtures; a separate hotfix is required.
-- The public-provider adapters are disabled by default for governed public beta and have incomplete license/redistribution/geographic review.
-- No calculator center, India finance center, governed indicator library, paper trader, strategy builder, backtester, marketplace, read-only account connections, liquidation/order-flow/options/on-chain stack, community, Copilot or governed-agent runtime is complete.
-- Formula and rule records created in this audit are specifications only, not executable product features.
-- Branch protection could not be read through the Actions integration (HTTP 403); do not infer absence or presence.
-- Six pre-existing Dependabot PRs were open at evidence capture; an earlier connector search omitted them. No audit mutation touched those branches.
+- Runtime route count remains 61 at Prompt 2A closeout; production-connected product route count remains zero.
+- The repository exposes 187 internal API contracts, but contract presence or HTTP success does not prove production connectivity, authorization, persistence, tenancy or provider correctness.
+- The focused PR #20 truth defect is corrected: the static watch universe is now labelled illustrative/demo and no longer presents hard-coded prices or percentage moves as live observations.
+- Broader product-truth review remains mandatory whenever new routes, providers, estimates, fixtures or saved-state claims are introduced.
+- Public-provider adapters remain disabled by default for governed public beta and have incomplete licensing, attribution, caching, redistribution, commercial-use and geographic review.
+- CoinDCX public display remains blocked pending written authorization; Binance requires licensing review; Zerodha remains future user-authorized/read-only unless current terms permit more; TradingView remains embed-only; unofficial Yahoo Finance crumb/cookie flows are prohibited.
+- Production-connected external financial provider count remains zero.
+- Existing 188 formula records are specifications before Prompt 2B; they are not executable completion evidence by themselves.
+- No Quant Calculator Center, India Finance Center, governed technical-indicator library or saved-calculation product is complete until Prompt 2B code, tests, UI and evidence pass.
+- Local browser persistence may be implemented in Prompt 2B, but production cloud persistence must remain unavailable until deployed authentication/database evidence exists.
+- Branch-protection enforcement could not be read through the Actions integration (HTTP 403); do not infer absence or presence.
+- Six pre-existing Dependabot PRs remain outside this run and were not merged.
+- Prompt 2C and later waves remain unstarted.
 - Real-money trading, custody, deposits/withdrawals, private-key/seed handling and autonomous execution remain deliberately disabled.
