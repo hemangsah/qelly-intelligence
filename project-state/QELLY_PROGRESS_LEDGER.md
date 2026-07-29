@@ -6,14 +6,19 @@
 | 2026-07-29 | Logo-first foundation | `94fbd4ff91c0d61f87e42724038f03fa5c36f97a` | Implemented and verified | PR #13 guarded merge, main workflows and browser evidence | Frozen |
 | 2026-07-29 | Brand foundation tag | `qelly-brand-foundation-v1` | Implemented and verified | Annotated object `f8e02f013b353bc723bb68c9592fcab9e8b6357a` | Preserve immutably |
 | 2026-07-29 | Public-beta foundation | `46233298031372c51bb433229bd7f9d1aff70568` | Implemented and verified | PR #14 exact-head merge; reviewed-head and main push workflows; identical merge tree | Prompt 2 adoption later |
-| 2026-07-29 | GitHub Pages static preview | `46233298031372c51bb433229bd7f9d1aff70568` | Implemented and connected as static preview | Deployment `5654166920`, successful status `16077977388`, HTTP/resource probes | Keep truthful label |
-| 2026-07-29 | Public-beta truth/evidence model | PR #14/main | Implemented deterministically | 13-state vocabulary, schemas, modules and tests | Feature adoption in Prompt 2 |
-| 2026-07-29 | Provider adapter interface | PR #14/main | Implemented deterministically | Timeout, abort, health, kill-switch and evidence boundaries | Real adapters later |
-| 2026-07-29 | Runtime safety and flags | PR #14/main | Implemented deterministically | Config and tests | Preserve hard disables |
-| 2026-07-29 | Baseline inventories | PR #14/main | Implemented deterministically | 61 routes, 276 API references, 67 schemas, 187 server contracts, 17 families | Prompt 2 gap audit |
-| 2026-07-29 | Temporary audit PR #15 | `agent/pr13-post-merge-verification` | Administrative only; closed unmerged | Closure comment `5114979271`, durable outputs preserved | Branch retained |
-| 2026-07-29 | Temporary audit PR #16 | `feature/logo-first-brand-system` | Administrative only; closed unmerged | Zero changed files, closure comment `5114983361` | Feature branch retained |
-| 2026-07-29 | Prompt 1 final closeout | `chore/prompt1-final-closeout` | Documentation/state only | Merge and validation records, Prompt 2 starting state | Exact-head merge and final verification |
-| 2026-07-29 | Connected market providers | not started | Planned | No authorized integration test | Prompt 2/3 |
-| 2026-07-29 | Prompt 2 feature expansion | not started | Planned | Explicitly excluded from this run | Start only when instructed |
-| 2026-07-29 | Real-money execution and custody | disabled | Deliberately disabled | Runtime invariants | Separate explicit program only |
+| 2026-07-29 | Prompt 1 final closeout | `26d2c9c453992b74dd3931d6b8b9489117d0b44c` | Documentation/state only; verified | PR #18 merge; push workflows; Pages deployment `5654431325` | Prompt 2 exact base |
+| 2026-07-29 | GitHub Pages static preview | `26d2c9c453992b74dd3931d6b8b9489117d0b44c` | Implemented and connected as static preview | Deployment `5654431325`, successful status `16078743136`, public resource probes | Keep truthful label |
+| 2026-07-29 | Prompt 2A live-state guard | `feature/prompt2-repository-gap-audit` from `26d2c9c…` | Verified | Authenticated owner/admin, exact main identical, zero open PRs, immutable tags unchanged, audit branch absent before creation | Open draft audit PR |
+| 2026-07-29 | Prompt 2A forensic bootstrap | `4b2861604ff967d541bd6ce98d81f55ddae3e910` | Audit tooling only | Recursive scanner, read-only GitHub API collector, sanitized source snapshot workflow, starting-state record and durable handoff | Run exact-head workflow and download evidence |
+| 2026-07-29 | Prompt 2A product implementation | not started | Deliberately not executed | Wave 0 scope boundary | Stop before Prompt 2B |
+| 2026-07-29 | Connected market providers | not started | Planned | No authorized integration test | Audit feasibility and terms only |
+| 2026-07-29 | Real-money execution and custody | disabled | Deliberately disabled | Runtime invariants and Prompt 2A safety boundary | Separate explicit program only |
+| 2026-07-29 | Prompt 2A draft PR | `#19` / `feature/prompt2-repository-gap-audit` | Draft, unmerged, Wave 0 only | Existing branch preserved; base `26d2c9c453992b74dd3931d6b8b9489117d0b44c` | Complete audit registries and review package |
+| 2026-07-29 | Prompt 2A exact-head forensic evidence | `eafb11719e67135c7a6fa3b15e1170c5192e4771` | Verified | Workflow `30441613550`; artifact digest `a3a798edd016ea28bb5174f089d9948fd51f0b23edb7d480d9bf57613483156b`; all 16 gates exit 0 | Persist generated audit |
+| 2026-07-29 | Prompt 2A feature reality | `eafb11719e67135c7a6fa3b15e1170c5192e4771` | Audit classification only | 61 routes; 187 internal APIs; 28 DB tables; zero connected product routes | Review blockers; do not start Prompt 2B |
+| 2026-07-29 | Prompt 2A provider/legal reality | `eafb11719e67135c7a6fa3b15e1170c5192e4771` | Blocked/authorization-gated | No production-connected provider; official candidates catalogued conservatively | Legal/conformance work in later waves |
+| 2026-07-29 | Prompt 2A product implementation | not started | Deliberately not executed | Wave 0 scope boundary | Prompt 2B only after explicit approval |
+| 2026-07-29 | Prompt 2A final browser and repository audit | `e2e2dd822e7811406ea5b220dbd033bfad75f09b` | Verified audit evidence | Wave 0 `30456044354`; 549/549 browser checks; all 16 gates exit 0; CI `30456043162`; Container `30456043237`; Services `30456043270`; CodeQL `30456043152` | Persist closure; keep PR draft |
+| 2026-07-29 | Prompt 2A final review artifact | `e2e2dd822e7811406ea5b220dbd033bfad75f09b` | Checksum-verified | Artifact `8725646367`; digest `ac8ef42c517f4e1adb684252c2a8370c8848a1c1ab4ca7fad0bae66e7dff36c1`; inner ZIP `1d9c4c6b9cec171b5f8e74ba2853c94b098635d5009ca6e860f8d2f3b83c2dc9`; 52 internal checksums | Human review only |
+| 2026-07-29 | Truth-label hotfix | PR `#20` / `97bcccec58dedfe491dc36321a17b584f5b196b4` | Separate focused draft; unmerged | Static illustrative market values removed; standard workflows green | Review separately; do not auto-merge |
+| 2026-07-29 | Prompt 2B | not started | Deliberately not executed | Wave 0 stop boundary preserved | Start only after explicit approval and fresh verification |

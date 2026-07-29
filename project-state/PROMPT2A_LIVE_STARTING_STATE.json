@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-07-29T09:56:15.947Z",
+  "repository": "hemangsah/qelly-intelligence",
+  "authenticatedUser": "hemangsah",
+  "startingMain": "26d2c9c453992b74dd3931d6b8b9489117d0b44c",
+  "sourceHead": "eafb11719e67135c7a6fa3b15e1170c5192e4771",
+  "auditBranch": "feature/prompt2-repository-gap-audit",
+  "draftPullRequest": 19,
+  "openPullRequestsAtEvidenceCapture": [
+    {
+      "number": 19,
+      "draft": true,
+      "head": "feature/prompt2-repository-gap-audit",
+      "headSha": "eafb11719e67135c7a6fa3b15e1170c5192e4771",
+      "author": "hemangsah"
+    },
+    {
+      "number": 6,
+      "draft": false,
+      "head": "dependabot/github_actions/github/codeql-action/init-4187e74d05793876e9989daffde9c3e66b4acd07",
+      "headSha": "55be38767b56f3eada088a5ac5d9036aa8264297",
+      "author": "dependabot[bot]"
+    },
+    {
+      "number": 5,
+      "draft": false,
+      "head": "dependabot/github_actions/docker/login-action-4.5.1",
+      "headSha": "fcfed81fd0f7a127b879fc605fdacbd5a97b0c27",
+      "author": "dependabot[bot]"
+    },
+    {
+      "number": 4,
+      "draft": false,
+      "head": "dependabot/github_actions/docker/build-push-action-7.3.0",
+      "headSha": "a6b86e98760aff91ff5308b76f70b795285ec9be",
+      "author": "dependabot[bot]"
+    },
+    {
+      "number": 3,
+      "draft": false,
+      "head": "dependabot/github_actions/actions/upload-artifact-7.0.1",
+      "headSha": "f308ebea4e510524391e3f09348d6d1c1ad4bbd1",
+      "author": "dependabot[bot]"
+    },
+    {
+      "number": 2,
+      "draft": false,
+      "head": "dependabot/github_actions/github/codeql-action/analyze-4187e74d05793876e9989daffde9c3e66b4acd07",
+      "headSha": "552363b226ec22e281544c9293afa0e3fac2b7b7",
+      "author": "dependabot[bot]"
+    },
+    {
+      "number": 1,
+      "draft": false,
+      "head": "dependabot/github_actions/actions/setup-node-7.0.0",
+      "headSha": "b0ede897ed4e66e63be6d78efcdeb1132a9e2b5d",
+      "author": "dependabot[bot]"
+    }
+  ],
+  "dependabotOpenPullRequests": [
+    6,
+    5,
+    4,
+    3,
+    2,
+    1
+  ],
+  "tags": [
+    {
+      "name": "qelly-design-foundation-v1",
+      "target": "239f6f0c7c663801662f4e5f940ca76fb6941bf1"
+    },
+    {
+      "name": "qelly-brand-foundation-v1",
+      "target": "94fbd4ff91c0d61f87e42724038f03fa5c36f97a"
+    }
+  ],
+  "releases": 0,
+  "branches": 24,
+  "branchProtection": {
+    "status": 403,
+    "result": "UNVERIFIED_BY_ACTION_TOKEN",
+    "reason": "Resource not accessible by integration"
+  },
+  "rulesets": [],
+  "pages": {
+    "url": "https://hemangsah.github.io/qelly-intelligence/",
+    "source": {
+      "branch": "main",
+      "path": "/"
+    },
+    "buildType": "workflow",
+    "public": true
+  },
+  "latestDeployment": {
+    "id": 5654431325,
+    "sha": "26d2c9c453992b74dd3931d6b8b9489117d0b44c",
+    "environment": "github-pages"
+  },
+  "latestRelease": null,
+  "safety": {
+    "realMoneyTrading": false,
+    "custody": false,
+    "depositsWithdrawals": false,
+    "privateKeyStorage": false,
+    "seedPhraseCollection": false,
+    "autonomousExecution": false
+  },
+  "verificationNotes": [
+    "GitHub connector search initially omitted six open Dependabot pull requests; the read-only GitHub REST collector captured them and is authoritative for this audit snapshot.",
+    "Branch protection endpoint returned 403 to the read-only Actions integration; zero repository rulesets were visible. This is recorded as an unverified governance control, not assumed absent."
+  ]
+}
