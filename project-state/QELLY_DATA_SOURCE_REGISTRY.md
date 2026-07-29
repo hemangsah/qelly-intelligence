@@ -3,29 +3,23 @@
 ## Qelly deterministic static demo
 
 - Provider ID: `qelly-static-demo`
-- Classification: deterministic demo / simulated
-- Live: no
+- State: `DEMO` / deterministic static
+- Public location: verified GitHub Pages deployment at exact foundation commit
+- Live market source: no
 - Backend connected: no
-- Observation time: fixed inside the static artifact
 - Entitlement: public static preview
-- Redistribution: bundled deterministic records only
-- Fallback reason: external providers and persistent backend are unavailable
 - Allowed use: visual and interaction demonstration
 - Prohibited claim: live market observation or executable decision support
 
 ## Qelly deterministic local calculations
 
 - Provider ID: `qelly-local`
-- Classification: deterministic local
-- Live: not applicable
-- Source: versioned formula and user inputs
-- Required evidence: formula version, inputs, units, rounding, timestamp and test vectors
+- State: `DETERMINISTIC_LOCAL`
 - Connectivity: none required
+- Required evidence: formula version, inputs, units, rounding, timestamp and reference vectors
 
 ## External providers
 
-No external market, broker, exchange, wallet, bank or observability provider is connected by Prompt 1. Each future entry must record official documentation, terms verification date, quota, authentication, attribution, redistribution rights, commercial-use boundary, health, last success, failure state and kill switch.
+No external market, broker, exchange, wallet, bank or observability provider is connected by Prompt 1. Future entries require official documentation, terms verification date, quota, authentication, attribution, redistribution rights, commercial-use boundary, health, last success, failure state and kill switch.
 
-## Truth boundary
-
-Cached, delayed, stale, simulated, estimated and embedded sources must remain visibly and machine-readably distinct from live data. Provider failure must not silently substitute fixture values.
+Cached, delayed, stale, simulated, estimated and embedded sources must remain distinct from live data. Provider failure must never silently substitute fixture values.

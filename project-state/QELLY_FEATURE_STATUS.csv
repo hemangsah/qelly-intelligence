@@ -16,3 +16,4 @@ marketplace,EA and strategy marketplace,Planned,"No executable marketplace evide
 execution.real-money,Real-money trading,Deliberately Disabled,"Runtime safety invariant",deliberately-disabled,"Requires separate authorization"
 custody,Custody deposits and withdrawals,Deliberately Disabled,"Runtime safety invariant",deliberately-disabled,"Excluded from public beta"
 secrets.wallet,Private-key and seed-phrase storage,Deliberately Disabled,"Runtime safety invariant",deliberately-disabled,"Never request or store"
+deployment.github-pages,GitHub Pages static visual preview,Implemented and Connected,"Deployment 5652552201; exact commit and browser smoke",must-launch,"Public static/read-only preview; not connected full production"

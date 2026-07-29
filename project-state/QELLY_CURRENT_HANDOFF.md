@@ -6,35 +6,38 @@ Last updated: 2026-07-29
 
 - Pre-merge main: `239f6f0c7c663801662f4e5f940ca76fb6941bf1`
 - Approved PR #13 head: `6fabb1ac65d73cde25d1dca6d63a6685ef7d7e9a`
-- Merge commit/main foundation: `94fbd4ff91c0d61f87e42724038f03fa5c36f97a`
-- Merge method: merge commit
+- Merge commit/current main: `94fbd4ff91c0d61f87e42724038f03fa5c36f97a`
+- Merge method: merge commit with exact-head guard
 - Merge timestamp: `2026-07-29T06:03:04Z`
-- Public-beta branch base: `94fbd4ff91c0d61f87e42724038f03fa5c36f97a`
+- PR #13: merged and closed
+- PR #11: merged and unchanged
+- `qelly-design-foundation-v1`: unchanged
+- `qelly-brand-foundation-v1`: annotated object `f8e02f013b353bc723bb68c9592fcab9e8b6357a`, target `94fbd4ff91c0d61f87e42724038f03fa5c36f97a`
 - Public-beta branch: `release/qelly-public-beta-v1`
-- Prompt 2 status: not started
-- Prompt 3 status: not started
+- Draft public-beta PR: #14, open and unmerged
+- Prompt 2: not executed
+- Prompt 3: not executed
 
-## Completed work
+## Verified post-merge evidence
 
-1. PR #13 exact-head guards and replacement artifact were independently verified.
-2. Hemang Sah’s explicit visual approval was recorded.
-3. PR #13 was merged through `expected_head_sha=6fabb1ac65d73cde25d1dca6d63a6685ef7d7e9a`.
-4. The merge-result tree was compared with the approved PR tree; file differences were zero.
-5. The approved visual foundation was frozen by policy.
-6. Public-beta truth, evidence, environment, feature flag, provider adapter, observability and runtime safety contracts were added on this isolated branch.
-7. Durable project-state records and release planning were created.
+- Approved-head to merge-result tree: identical; zero file differences.
+- Main push workflows: Continuous Integration `30426913360`, Container Build `30426913315`, Production Foundation Services `30426913312`, CodeQL `30426913323`; all successful on exact main.
+- Exact-main local repository, secret, dependency, release and identity gates: passed.
+- Local browser smoke: 24/24 cases across Chromium, Firefox and WebKit, 360×800 and 1440×1000, four critical routes.
+- Public Pages deployment: success at `https://hemangsah.github.io/qelly-intelligence/`, exact commit `94fbd4ff91c0d61f87e42724038f03fa5c36f97a`.
+- Public browser smoke: passed across Chromium, Firefox and WebKit.
+- Post-merge verification ZIP produced with SHA-256 `30ccb98cb65a14b2aefe294d2a4b17ed000217f2a6288f9dc6aed0976ac3dcc8`, size `53,443 bytes`, entries `37`, internal checksums `35`, font binaries `0`.
 
-## Required before Prompt 2
+## Public-beta bootstrap
 
-- complete post-merge main workflow and browser verification;
-- verify deployment state and public URL truth;
-- create and verify annotated `qelly-brand-foundation-v1` at the exact verified main foundation;
-- finish baseline route/API/feature/provider inventories from executable repository evidence;
-- generate and verify `qelly-pr13-post-merge-foundation-verification.zip`;
-- keep the public-beta PR draft and unmerged.
+- 61 routes inventoried.
+- 276 API references inventoried and truthfully classified.
+- Nine governed foundation files checksummed.
+- Real providers remain unconnected.
+- Real-money trading, custody, deposits, withdrawals, private-key storage, seed phrases and autonomous execution remain disabled.
 
-## Safety boundary
+## Next action
 
-Real-money trading, custody, deposits, withdrawals, private-key storage, seed phrases and autonomous execution remain disabled. No capability may be classified as connected without a real authorized integration test.
+Wait for every workflow on the exact final PR #14 handoff head to conclude successfully. Keep PR #14 draft and unmerged. After Prompt 1 is fully handed off, re-read the master pack and execute Prompt 2 only when explicitly instructed.
 
-All safe progress must be persisted in the repository. No continuation should rely solely on chat memory.
+All safe progress has been persisted in the repository and recorded in the Qelly durable handoff files. The exact current head, completed work, remaining work, validation state and next action are documented. No continuation should rely solely on chat memory.

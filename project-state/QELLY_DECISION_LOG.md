@@ -32,3 +32,10 @@
 - Prompt 1 establishes the approved foundation and public-beta architecture only.
 - Prompt 2 implements focused product programs through reviewable draft PRs.
 - Prompt 3 performs the exhaustive audit and truthful staging/canary/public release process.
+
+## 2026-07-29 — Immutable brand checkpoint and deployment truth
+
+- Created annotated `qelly-brand-foundation-v1` object `f8e02f013b353bc723bb68c9592fcab9e8b6357a` targeting exact verified merge commit `94fbd4ff91c0d61f87e42724038f03fa5c36f97a`.
+- Verified the exact merged foundation is deployed at the GitHub Pages URL.
+- Classified the site as a public static/read-only visual preview, not a connected full production product.
+- Kept PR #14 draft and excluded Prompt 2 and Prompt 3 implementation.
