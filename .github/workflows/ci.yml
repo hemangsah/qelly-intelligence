@@ -109,7 +109,7 @@ jobs:
           persist-credentials: true
       - name: Guard exact parent and branch
         env:
-          EXPECTED_PARENT: bd41b5a1af44382c08a7afa67be0344e0365e060
+          EXPECTED_PARENT: b4d62c57e87c14faa12a671b2b61430b80e4f499
           LIVE_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
@@ -173,22 +173,12 @@ jobs:
           npm run inventory:product
           npm run smoke
           npm run release:check
-      - name: Remove temporary integrators and commit
+      - name: Commit only tested non-workflow closure files
         run: |
           set -euo pipefail
-          rm -f .github/workflows/prompt2b-closure-smoke-integration.yml
-          python3 - <<'PY'
-          from pathlib import Path
-          for file,marker in [
-            ('.github/workflows/ci.yml','  # BEGIN PROMPT2B_SMOKE_CLOSURE_INTEGRATOR\n'),
-            ('.github/workflows/prompt2b-wave1-review.yml','  # BEGIN PROMPT2B_SMOKE_CLOSURE_INTEGRATOR\n')
-          ]:
-              p=Path(file);s=p.read_text()
-              if marker in s:p.write_text(s.split(marker,1)[0].rstrip()+'\n')
-          PY
           git config user.name hemangsah
           git config user.email hemangsah.dn@gmail.com
-          git add -A
+          git add scripts/smoke.mjs scripts/release-check.mjs validation/PRODUCT_VALIDATION.json validation/SMOKE_LOG.json artifacts/QELLY_ROUTE_INVENTORY.json artifacts/QELLY_ROUTE_INVENTORY.csv artifacts/QELLY_API_INVENTORY.json artifacts/QELLY_API_INVENTORY.csv artifacts/QELLY_SOURCE_TREE.txt
           git diff --cached --check
           git commit -m "test(prompt2b): close fresh catalog and saved lifecycle smoke"
           git push origin HEAD:feature/calculator-and-indicator-foundation
