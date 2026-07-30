@@ -93,89 +93,58 @@ jobs:
       - name: Audit locked dependency graph
         run: npm audit --audit-level=high
 
-  # BEGIN PROMPT2B_HASH_ROUTE_INTEGRATOR
-  prompt2b-hash-route-integrate:
+  prompt2b-durable-materialize:
     if: github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'feature/calculator-and-indicator-foundation'
     permissions:
       contents: write
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
-      - name: Check out exact closure head
+      - name: Check out exact materialization head
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
           persist-credentials: true
-      - name: Guard exact parent
+      - name: Guard exact parent and live branch
         env:
-          EXPECTED_PARENT: 694ab30aa9db76ee0aa47338cd2942607513eccf
+          EXPECTED_PARENT: b887faf3ed9e43194c3ef64919464016b4c6b829
           LIVE_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD^)" = "$EXPECTED_PARENT"
           test "$(git rev-parse HEAD)" = "$LIVE_HEAD"
           test "$(git ls-remote origin refs/heads/feature/calculator-and-indicator-foundation | cut -f1)" = "$LIVE_HEAD"
-      - name: Patch query-safe routing into application shell
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('apps/web/public/assets/app.js');s=p.read_text()
-          def one(old,new):
-              global s
-              if s.count(old)!=1: raise SystemExit(f'expected one app anchor, found {s.count(old)}: {old[:100]}')
-              s=s.replace(old,new,1)
-          one("import { productDomains, routeDefinitions } from './route-registry.mjs';","import { productDomains, routeDefinitions } from './route-registry.mjs';\nimport { parseHashRoute } from './hash-route-state.mjs';")
-          one("  activeDomain: 'markets'\n};","  activeDomain: 'markets',\n  routeQuery: new URLSearchParams()\n};")
-          old="""function resolveHash() {
-  const value = location.hash.replace(/^#\/?/, '') || state.prefs?.route || 'market';
-  const [route, asset] = value.split('/');
-  const definition=routeDefinitions.find((item)=>item.route===route);
-  const allowed=staticVisualPreview
-    ? definition&&staticPreviewRoutes.has(route)
-    : definition&&((state.authenticated&&!definition.anonymousOnly)||(!state.authenticated&&definition.public===true));
-  state.route=allowed?route:(staticVisualPreview?'market':state.authenticated?'discovery-hub':'auth-login');
-  state.activeDomain=(allowed?definition:routeDefinitions.find((item)=>item.route===state.route))?.domain??'markets';
-  if (asset) state.asset = asset;
-  renderNavigation();
-  renderRoute();
-}"""
-          new="""function resolveHash() {
-  const parsed=parseHashRoute(location.hash,{fallback:state.prefs?.route||'market'});
-  const {route,asset,query}=parsed;
-  const definition=routeDefinitions.find((item)=>item.route===route);
-  const allowed=staticVisualPreview
-    ? definition&&staticPreviewRoutes.has(route)
-    : definition&&((state.authenticated&&!definition.anonymousOnly)||(!state.authenticated&&definition.public===true));
-  state.route=allowed?route:(staticVisualPreview?'market':state.authenticated?'discovery-hub':'auth-login');
-  state.activeDomain=(allowed?definition:routeDefinitions.find((item)=>item.route===state.route))?.domain??'markets';
-  state.routeQuery=query;
-  if (asset) state.asset = asset;
-  renderNavigation();
-  renderRoute();
-}"""
-          one(old,new)
-          one("  state.route = route;\n  toggleSecondaryNavigation(false);","  state.route = route;\n  state.routeQuery = new URLSearchParams();\n  toggleSecondaryNavigation(false);")
-          one("case 'calculator-detail': await renderCalculatorDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset}); break;","case 'calculator-detail': await renderCalculatorDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset,query:state.routeQuery}); break;")
-          one("case 'saved-calculation-detail': await renderSavedCalculationDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset}); break;","case 'saved-calculation-detail': await renderSavedCalculationDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset,query:state.routeQuery}); break;")
-          p.write_text(s)
-          PY
-          node --check apps/web/public/assets/app.js
-          node --test tests/hash-route-state.test.mjs tests/browser-saved-calculation-lifecycle.test.mjs
-      - name: Build and validate static route assets
+          test ! -f project-state/QELLY_PROMPT2B_MATERIALIZED.json
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Validate generators and focused closure contracts
         run: |
           set -euo pipefail
           npm ci --ignore-scripts
+          node --check scripts/build-prompt2b-final-governance.mjs
+          node --check scripts/build-prompt2b-durable-closure-state.mjs
+          node --check scripts/build-prompt2b-source-manifest.mjs
+          node --test tests/hash-route-state.test.mjs tests/browser-saved-calculation-lifecycle.test.mjs tests/calculation-service-parity.test.mjs tests/saved-calculation-lifecycle.test.mjs tests/saved-calculation-store.test.mjs
           QELLY_STATIC_VISUAL_PREVIEW=true QELLY_PUBLIC_BASE_PATH=/qelly-intelligence/ npm run build:frontend
           npm run validate:pages-preview
           npm run smoke:pages-preview
-      - name: Commit tested application patch only
+      - name: Generate and commit non-workflow durable records
         run: |
           set -euo pipefail
+          npm run inventory:design
+          node scripts/build-prompt2b-final-governance.mjs
+          node scripts/build-prompt2b-durable-closure-state.mjs
           git config user.name hemangsah
           git config user.email hemangsah.dn@gmail.com
-          git add apps/web/public/assets/app.js
+          git add QELLY_ROUTE_INVENTORY.csv QELLY_SCREEN_MATRIX.csv QELLY_COMPONENT_INVENTORY.csv project-state
           git diff --cached --check
-          git commit -m "fix(prompt2b): preserve detail IDs across shared-state URLs"
+          git commit -m "docs(prompt2b): materialize final governance and durable closure state"
+          node scripts/build-prompt2b-source-manifest.mjs
+          git add project-state/QELLY_PROMPT2B_SOURCE_MANIFEST.json
+          git diff --cached --check
+          git commit -m "docs(prompt2b): record fetched-back final source lineage"
           git push origin HEAD:feature/calculator-and-indicator-foundation
