@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: qelly-prompt2b-detail-route-integration
+  cancel-in-progress: false
+
 jobs:
   integrate:
     runs-on: ubuntu-24.04
@@ -21,38 +25,67 @@ jobs:
       - name: Guard exact parent
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = "867605c9ba0082cab74039bf3d0b77be492ca4e4"
+          test "$(git rev-parse HEAD^)" = "bade93c483c54a3bc88e790fbcd8268c9b85e7a9"
           test "$(git ls-remote origin refs/heads/feature/calculator-and-indicator-foundation | cut -f1)" = "$GITHUB_SHA"
-      - name: Integrate detail routes and extended engines
+      - name: Integrate and diagnose detail routes
         run: |
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
           def replace(path,old,new):
               p=Path(path);s=p.read_text()
-              if old not in s: raise SystemExit(f'guard not found in {path}: {old[:80]}')
+              if old not in s: raise SystemExit(f'guard not found in {path}: {old[:100]}')
               p.write_text(s.replace(old,new,1))
           for path in ['apps/web/public/assets/routes/calculator-center.mjs','apps/web/public/assets/routes/india-finance-center.mjs']:
-              p=Path(path);s=p.read_text();s=s.replace("../calculation/formula-engine.mjs","../calculation/formula-engine-extended.mjs");p.write_text(s)
+              p=Path(path);s=p.read_text();
+              if "../calculation/formula-engine.mjs" not in s: raise SystemExit(f'engine import guard failed: {path}')
+              p.write_text(s.replace("../calculation/formula-engine.mjs","../calculation/formula-engine-extended.mjs",1))
           replace('apps/web/public/assets/route-registry.mjs',"  { section:'Tools', route:'saved-calculations', label:'Saved Calculations', icon:icon('history'), meta:'W1', public:true },","  { section:'Tools', route:'saved-calculations', label:'Saved Calculations', icon:icon('history'), meta:'W1', public:true },\n  { section:'Detail', route:'formula-detail', label:'Formula Detail', icon:icon('formula'), meta:'W1', hidden:true, public:true },\n  { section:'Detail', route:'indicator-detail', label:'Indicator Detail', icon:icon('chart'), meta:'W1', hidden:true, public:true },\n  { section:'Detail', route:'calculator-detail', label:'Calculator Detail', icon:icon('calculator'), meta:'W1', hidden:true, public:true },\n  { section:'Detail', route:'saved-calculation-detail', label:'Saved Calculation Detail', icon:icon('history'), meta:'W1', hidden:true, public:true },")
           replace('apps/web/public/assets/route-registry.mjs',"  'calculator-center':'tools','india-finance':'tools','indicator-library':'tools','formula-library':'tools','saved-calculations':'tools',","  'calculator-center':'tools','india-finance':'tools','indicator-library':'tools','formula-library':'tools','saved-calculations':'tools','formula-detail':'tools','indicator-detail':'tools','calculator-detail':'tools','saved-calculation-detail':'tools',")
           replace('apps/web/public/assets/app.js',"import { renderSavedCalculations } from './routes/saved-calculations.mjs';","import { renderSavedCalculations } from './routes/saved-calculations.mjs';\nimport { renderFormulaDetail } from './routes/formula-detail.mjs';\nimport { renderIndicatorDetail } from './routes/indicator-detail.mjs';\nimport { renderCalculatorDetail } from './routes/calculator-detail.mjs';\nimport { renderSavedCalculationDetail } from './routes/saved-calculation-detail.mjs';")
           replace('apps/web/public/assets/app.js',"'formula-library','saved-calculations']);","'formula-library','saved-calculations','formula-detail','indicator-detail','calculator-detail','saved-calculation-detail']);")
           replace('apps/web/public/assets/app.js',"      case 'saved-calculations': await renderSavedCalculations(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;","      case 'saved-calculations': await renderSavedCalculations(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;\n      case 'formula-detail': await renderFormulaDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset}); break;\n      case 'indicator-detail': await renderIndicatorDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset}); break;\n      case 'calculator-detail': await renderCalculatorDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset}); break;\n      case 'saved-calculation-detail': await renderSavedCalculationDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset}); break;")
           PY
-          node --check apps/web/public/assets/app.js
-          node --check apps/web/public/assets/route-registry.mjs
-          for file in apps/web/public/assets/routes/{formula-detail,indicator-detail,calculator-detail,saved-calculation-detail,saved-calculations,formula-library,indicator-library,calculator-center,india-finance-center}.mjs; do node --check "$file"; done
-          node --test tests/fresh-formula-catalog.test.mjs tests/fresh-indicator-catalog.test.mjs tests/browser-saved-calculation-lifecycle.test.mjs tests/saved-calculation-lifecycle.test.mjs tests/saved-calculation-store.test.mjs
-          npm run inventory:product
-          npm run inventory:design
-      - name: Commit exact integration and remove one-use workflow
+          set +e
+          {
+            node --check apps/web/public/assets/app.js
+            node --check apps/web/public/assets/route-registry.mjs
+            for file in apps/web/public/assets/routes/{formula-detail,indicator-detail,calculator-detail,saved-calculation-detail,saved-calculations,formula-library,indicator-library,calculator-center,india-finance-center}.mjs; do node --check "$file"; done
+            node --test tests/fresh-formula-catalog.test.mjs tests/fresh-indicator-catalog.test.mjs tests/browser-saved-calculation-lifecycle.test.mjs tests/saved-calculation-lifecycle.test.mjs tests/saved-calculation-store.test.mjs
+            npm run inventory:product
+            npm run inventory:design
+          } > /tmp/prompt2b-detail.log 2>&1
+          status=$?
+          set -e
+          cat /tmp/prompt2b-detail.log
+          if [ "$status" -ne 0 ]; then
+            git checkout -- apps/web/public/assets/routes/calculator-center.mjs apps/web/public/assets/routes/india-finance-center.mjs apps/web/public/assets/route-registry.mjs apps/web/public/assets/app.js
+            git checkout -- project-state/QELLY_ROUTE_INVENTORY.csv project-state/QELLY_SCREEN_MATRIX.csv project-state/QELLY_PRODUCT_INVENTORY.json 2>/dev/null || true
+            {
+              echo '# Qelly Prompt 2B Detail Route Gate Failure'
+              echo
+              echo '- Exact workflow head: `'$GITHUB_SHA'`'
+              echo '- Detail-route product integration was not committed.'
+              echo '- One-use workflow removed after recording the complete gate log.'
+              echo
+              echo '```text'
+              cat /tmp/prompt2b-detail.log
+              echo '```'
+            } > project-state/QELLY_PROMPT2B_DETAIL_ROUTE_GATE_FAILURE.md
+          fi
+          echo "$status" > /tmp/prompt2b-detail.status
+      - name: Commit result and remove one-use workflow
         run: |
           set -euo pipefail
+          status=$(cat /tmp/prompt2b-detail.status)
           rm .github/workflows/prompt2b-detail-route-integration.yml
           git config user.name hemangsah
           git config user.email hemangsah.dn@gmail.com
           git add -A
           git diff --cached --check
-          git commit -m "feat(prompt2b): integrate complete calculator detail lifecycle"
+          if [ "$status" -eq 0 ]; then
+            git commit -m "feat(prompt2b): integrate complete calculator detail lifecycle"
+          else
+            git commit -m "test(prompt2b): record detail route integration blocker"
+          fi
           git push origin HEAD:feature/calculator-and-indicator-foundation
