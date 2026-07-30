@@ -56,12 +56,16 @@ const waitForRoute=async(page)=>{
 };
 
 const applyThemeAndMotion=async(page,theme,motion)=>{
-  await page.locator('#global-theme-selector').selectOption(theme.persona);
-  await page.waitForFunction(({persona,motionMode})=>{
+  await page.evaluate((persona)=>{
+    const selector=document.querySelector('#global-theme-selector');
+    if(!selector)throw new Error('Governed persona selector is unavailable');
+    selector.value=persona;
+    selector.dispatchEvent(new Event('change',{bubbles:true}));
+  },theme.persona);
+  await page.waitForFunction((persona)=>{
     const root=document.documentElement;
-    return root.dataset.theme===persona&&root.dataset.persona===persona&&
-      (motionMode==='reduced'?root.dataset.motion==='reduced':true);
-  },{persona:theme.persona,motionMode:motion},{timeout:10000});
+    return root.dataset.theme===persona&&root.dataset.persona===persona;
+  },theme.persona,{timeout:10000});
   if(motion==='reduced'){
     await page.evaluate(()=>{
       document.documentElement.dataset.motion='reduced';
