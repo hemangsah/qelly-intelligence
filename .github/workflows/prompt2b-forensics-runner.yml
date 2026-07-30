@@ -1,0 +1,61 @@
+name: Qelly Prompt 2B Forensics Runner
+
+on:
+  pull_request:
+    branches: [main]
+    types: [synchronize]
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: qelly-prompt2b-forensics-runner
+  cancel-in-progress: false
+
+jobs:
+  persist:
+    if: github.event.pull_request.head.ref == 'feature/calculator-and-indicator-foundation'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact PR head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
+          persist-credentials: true
+      - name: Guard ancestry and live branch
+        env:
+          EXPECTED_PARENT: 5e08bf00b2b10ca3c36b77acf9c754c9c42e1c91
+          BRANCH: feature/calculator-and-indicator-foundation
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = "$EXPECTED_PARENT"
+          test "$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)" = "$GITHUB_SHA"
+      - name: Download verified failed artifact and generate records
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api -H "Accept: application/vnd.github+json" "/repos/${GITHUB_REPOSITORY}/actions/artifacts/8736360914/zip" > /tmp/prompt2b-review.zip
+          python3 scripts/prompt2b-browser-forensics.py --artifact /tmp/prompt2b-review.zip --output project-state
+      - name: Commit forensic state and remove temporary runners
+        env:
+          BRANCH: feature/calculator-and-indicator-foundation
+        run: |
+          set -euo pipefail
+          test "$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)" = "$GITHUB_SHA"
+          rm .github/workflows/prompt2b-forensics-runner.yml
+          rm -f .github/workflows/prompt2b-browser-forensics-checkpoint.yml
+          git config user.name "Hemang Sah"
+          git config user.email "274469799+hemangsah@users.noreply.github.com"
+          git add project-state/QELLY_PROMPT2B_BROWSER_FAILURE_CLASSIFICATION.csv \
+                  project-state/QELLY_PROMPT2B_BROWSER_FAILURE_SUMMARY.md \
+                  project-state/QELLY_PROMPT2B_THEME_DIFFERENTIATION_REPORT.md \
+                  project-state/QELLY_PROMPT2B_ROUTE_ACTION_STATE_MATRIX.csv \
+                  project-state/QELLY_PROMPT2B_RUNNING_MEMORY.md \
+                  .github/workflows/prompt2b-forensics-runner.yml \
+                  .github/workflows/prompt2b-browser-forensics-checkpoint.yml
+          git commit -m "docs(prompt2b): persist complete browser failure forensics"
+          git push origin "HEAD:$BRANCH"
