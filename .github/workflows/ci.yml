@@ -109,7 +109,7 @@ jobs:
           persist-credentials: true
       - name: Guard exact parent and branch
         env:
-          EXPECTED_PARENT: ed0abd1f40c2bab9661ab9e0d0bb4db45253c4bd
+          EXPECTED_PARENT: bd41b5a1af44382c08a7afa67be0344e0365e060
           LIVE_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
@@ -159,8 +159,8 @@ jobs:
           one("deterministicCalculations:true,deterministicIndicators:true,indiaCustomCharges:true","deterministicCalculations:true,deterministicIndicators:true,freshCatalog:true,savedCalculationLifecycle:true,indiaCustomCharges:true")
           p.write_text(s)
           p=Path('scripts/release-check.mjs');s=p.read_text()
-          if s.count('&& smoke.requests === 279')!=1: raise SystemExit('release smoke denominator anchor missing')
-          p.write_text(s.replace('&& smoke.requests === 279','&& smoke.requests === 290',1))
+          if s.count('&& smoke.requests === 289')!=1: raise SystemExit('release smoke denominator anchor missing')
+          p.write_text(s.replace('&& smoke.requests === 289','&& smoke.requests === 290',1))
           PY
           node --check scripts/smoke.mjs
           node --check scripts/release-check.mjs
