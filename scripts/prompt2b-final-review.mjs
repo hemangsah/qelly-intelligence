@@ -39,6 +39,8 @@ const routes=['calculator-center','india-finance','indicator-library','formula-l
 const records=[];
 const failures=[];
 const screenshotManifest=[];
+const progressPath=path.join(output,'PROGRESS.json');
+const writeProgress=async(payload)=>writeFile(progressPath,JSON.stringify({head,updatedAt:new Date().toISOString(),completedRecords:records.length,failures:failures.length,...payload},null,2)+'\n');
 
 const shouldCapture=(browser,width,theme,motion,route)=>
   (browser==='chromium'&&width===1440&&motion==='full')||
@@ -162,8 +164,9 @@ try{
             }
           });
           for(const route of routes){
+            await writeProgress({phase:'attempting',browser:browserName,width,height,appearance:theme.label,persona:theme.persona,motion,route});
             const page=await context.newPage();
-            const consoleErrors=[];const pageErrors=[];const failedResources=[];
+            const consoleErrors=[];const pageErrors=[];const failedResources=[];const actionErrors=[];
             page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});
             page.on('pageerror',error=>pageErrors.push(error.message));
             page.on('requestfailed',request=>{if(request.url().startsWith('http://127.0.0.1'))failedResources.push({url:request.url(),error:request.failure()?.errorText??'unknown'});});
@@ -172,12 +175,31 @@ try{
             await waitForRoute(page);
             await applyThemeAndMotion(page,theme,motion);
             if(route==='calculator-center'){
-              await page.locator('[data-action="calculate"]').click();
-              await page.waitForFunction(()=>!document.querySelector('#result-primary')?.textContent?.includes('Ready for'),null,{timeout:10000});
+              try{
+                const action=page.locator('[data-action="calculate"]');
+                await action.waitFor({state:'visible',timeout:10000});
+                if(!await action.isEnabled())throw new Error('Calculator action is disabled');
+                const initial=await page.locator('#result-primary').textContent();
+                await action.click();
+                await page.waitForFunction((before)=>{
+                  const element=document.querySelector('#result-primary');
+                  const evidence=document.querySelector('#result-evidence');
+                  return Boolean(element)&&element.textContent!==before&&!element.textContent.includes('Ready for')&&Boolean(evidence?.textContent?.trim());
+                },initial,{timeout:10000});
+              }catch(error){actionErrors.push({action:'calculator-calculate',name:error.name,message:error.message});}
             }
             if(route==='indicator-library'){
-              await page.locator('[data-action="calculate"]').click();
-              await page.waitForFunction(()=>document.querySelector('#indicator-primary')?.textContent!=='Ready',null,{timeout:10000});
+              try{
+                const action=page.locator('[data-action="calculate"]');
+                await action.waitFor({state:'visible',timeout:10000});
+                if(!await action.isEnabled())throw new Error('Indicator action is disabled');
+                const initial=await page.locator('#indicator-primary').textContent();
+                await action.click();
+                await page.waitForFunction((before)=>{
+                  const element=document.querySelector('#indicator-primary');
+                  return Boolean(element)&&element.textContent!==before&&element.textContent!=='Ready';
+                },initial,{timeout:10000});
+              }catch(error){actionErrors.push({action:'indicator-calculate',name:error.name,message:error.message});}
             }
             await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
             const navClearance=await measureNavigationClearance(page);
@@ -212,7 +234,7 @@ try{
               if(current==='saved-calculations')return /browser/i.test(text)&&!/cloud save is connected/i.test(text);
               return /Formula/.test(text)&&/version/i.test(text);
             },route);
-            const record={browser:browserName,width,height,appearance:theme.label,persona:theme.persona,motion,route,loadMs:Number(loadMs.toFixed(2)),...metrics,navClearance,truth,consoleErrors,pageErrors,failedResources};
+            const record={browser:browserName,width,height,appearance:theme.label,persona:theme.persona,motion,route,loadMs:Number(loadMs.toFixed(2)),...metrics,navClearance,truth,consoleErrors,pageErrors,failedResources,actionErrors};
             const reasons=[];
             if(metrics.textLength<60)reasons.push('empty-content');
             if(metrics.overflowX>1)reasons.push(`horizontal-overflow:${metrics.overflowX}`);
@@ -228,6 +250,7 @@ try{
             if(consoleErrors.length)reasons.push(`console-errors:${consoleErrors.length}`);
             if(pageErrors.length)reasons.push(`page-errors:${pageErrors.length}`);
             if(failedResources.length)reasons.push(`failed-local-resources:${failedResources.length}`);
+            if(actionErrors.length)reasons.push(`action-errors:${actionErrors.length}`);
             records.push(record);
             if(reasons.length)failures.push({...record,reasons});
             if(shouldCapture(browserName,width,theme.label,motion,route)||reasons.length){
@@ -236,6 +259,7 @@ try{
               const bytes=await readFile(path.join(screenshots,name));
               screenshotManifest.push({name,bytes:bytes.length,sha256:sha256(bytes),browser:browserName,route,width,height,appearance:theme.label,persona:theme.persona,motion,failure:reasons.length>0,reasons});
             }
+            await writeProgress({phase:'completed',browser:browserName,width,height,appearance:theme.label,persona:theme.persona,motion,route,reasons,actionErrors});
             await page.close();
           }
           await context.close();
