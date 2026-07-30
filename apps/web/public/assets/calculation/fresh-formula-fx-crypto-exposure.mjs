@@ -1,0 +1,20 @@
+import {FreshFormulaError,finite,positive,nonNegative,nums,sum,mean,variance,stdev,covariance,quantile,normalCdf,normalPdf,combination,buildDefinition} from './fresh-formula-core.mjs';
+const ROWS=[["fresh-fx-cross-rate","FX Cross Rate","foreign-exchange","cross_rate",{"baseQuote":1.2,"crossQuote":0.8},1.4999999999999998],["fresh-fx-forward-points","FX Forward Points","foreign-exchange","forward_points",{"forwardRate":1.205,"spotRate":1.2,"pointSize":0.0001},50.00000000000115],["fresh-fx-pip-change","FX Pip Change","foreign-exchange","pip_change",{"entryRate":1.1,"exitRate":1.105,"pipSize":0.0001},49.999999999998934],["fresh-fx-position-notional","FX Position Notional","foreign-exchange","position_notional",{"units":100000,"price":1.2},120000.0],["fresh-token-market-cap","Token Market Capitalization","crypto-arithmetic","market_cap",{"price":2,"circulatingSupply":1000000},2000000],["fresh-token-fully-diluted-valuation","Token Fully Diluted Valuation","crypto-arithmetic","fdv",{"price":2,"maxSupply":2000000},4000000],["fresh-staking-reward-simple","Simple Staking Reward","crypto-arithmetic","staking_reward",{"principal":1000,"annualRate":0.08,"years":2},160.0],["fresh-validator-yield-net","Net Validator Yield","crypto-arithmetic","validator_yield",{"grossYield":0.1,"commissionRate":0.02,"operatingCostRate":0.01},0.07],["fresh-gross-exposure","Gross Exposure","position-exposure","gross_exposure",{"positions":[100,-40,60]},200],["fresh-net-exposure","Net Exposure","position-exposure","net_exposure",{"positions":[100,-40,60]},120],["fresh-exposure-to-equity","Exposure to Equity","position-exposure","exposure_ratio",{"exposure":150000,"equity":100000},1.5],["fresh-turnover-rate","Portfolio Turnover Rate","position-exposure","turnover",{"tradedValue":50000,"averagePortfolioValue":100000},0.5]];
+export const definitions=Object.freeze(ROWS.map(buildDefinition));
+const ids=new Set(definitions.map(x=>x.formulaId));
+export const owns=id=>ids.has(id);
+export const calculate=(spec,input)=>{switch(spec.operation){
+ case 'cross_rate':return positive(input.baseQuote,'baseQuote')/positive(input.crossQuote,'crossQuote');
+ case 'forward_points':return (positive(input.forwardRate,'forwardRate')-positive(input.spotRate,'spotRate'))/positive(input.pointSize,'pointSize');
+ case 'pip_change':return (positive(input.exitRate,'exitRate')-positive(input.entryRate,'entryRate'))/positive(input.pipSize,'pipSize');
+ case 'position_notional':return finite(input.units,'units')*positive(input.price,'price');
+ case 'market_cap':return nonNegative(input.price,'price')*nonNegative(input.circulatingSupply,'circulatingSupply');
+ case 'fdv':return nonNegative(input.price,'price')*nonNegative(input.maxSupply,'maxSupply');
+ case 'staking_reward':return nonNegative(input.principal,'principal')*finite(input.annualRate,'annualRate',{min:0})*positive(input.years,'years');
+ case 'validator_yield':return finite(input.grossYield,'grossYield')-finite(input.commissionRate,'commissionRate',{min:0})-finite(input.operatingCostRate,'operatingCostRate',{min:0});
+ case 'gross_exposure':return sum(nums(input.positions,'positions').map(Math.abs));
+ case 'net_exposure':return sum(nums(input.positions,'positions'));
+ case 'exposure_ratio':return finite(input.exposure,'exposure')/positive(input.equity,'equity');
+ case 'turnover':return nonNegative(input.tradedValue,'tradedValue')/positive(input.averagePortfolioValue,'averagePortfolioValue');
+ default:throw new FreshFormulaError('formula_unavailable',`Unsupported fresh operation: ${spec.operation}`,'formulaId');
+}};
