@@ -16,7 +16,7 @@
 .github/workflows/pages-preview.yml
 .github/workflows/production-foundation-services.yml
 .github/workflows/prompt2a-wave0-audit.yml
-.github/workflows/prompt2b-detail-route-integration.yml
+.github/workflows/prompt2b-closure-smoke-integration.yml
 .github/workflows/prompt2b-wave1-review.yml
 .github/workflows/release.yml
 .github/workflows/theme-intelligence-review.yml
@@ -583,6 +583,7 @@ project-state/QELLY_PROMPT2B_CATALOG_DENOMINATOR_RECONCILIATION.md
 project-state/QELLY_PROMPT2B_CATALOG_ID_RECONCILIATION.csv
 project-state/QELLY_PROMPT2B_EXECUTION_LEDGER.md
 project-state/QELLY_PROMPT2B_EXPANSION_SOURCE_BLOCKER.md
+project-state/QELLY_PROMPT2B_FIGMA_EXECUTION_CHECKLIST.md
 project-state/QELLY_PROMPT2B_FRESH_CATALOG_SCOPE.md
 project-state/QELLY_PROMPT2B_GITHUB_HYGIENE_REPORT.md
 project-state/QELLY_PROMPT2B_ROUTE_ACTION_STATE_MATRIX.csv
@@ -613,6 +614,7 @@ scripts/build-frontend.mjs
 scripts/build-inventory.mjs
 scripts/build-part22-design-pdf.py
 scripts/build-product-inventory.mjs
+scripts/build-prompt2b-final-governance.mjs
 scripts/build-qelly-design-inventory.mjs
 scripts/build-release-a1-pdf.py
 scripts/build-release-a5-artifacts.py
@@ -770,6 +772,7 @@ tests/brand-foundation-freeze.test.mjs
 tests/browser-saved-calculation-lifecycle.test.mjs
 tests/calculation-engine.test.mjs
 tests/calculation-security.test.mjs
+tests/calculation-service-parity.test.mjs
 tests/contracts.test.mjs
 tests/decision-provenance.test.mjs
 tests/deployment-hardening.test.mjs

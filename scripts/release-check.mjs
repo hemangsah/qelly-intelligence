@@ -64,7 +64,7 @@ const result = {
     && validation.schemas === schemas.length,
   smokeCurrent: smoke.status === 'smoke-passed'
     && smoke.productVersion === productVersion
-    && smoke.requests === 289,
+    && smoke.requests === 290,
   routeInventoryCurrent: routeInventory.productVersion === productVersion
     && routeInventory.count === routes.length,
   apiInventoryCurrent: apiInventory.productVersion === productVersion

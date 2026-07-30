@@ -31,8 +31,8 @@ try {
   const config = configResult.json();
   csrf = config.csrf.token;
   expect(config.productName === 'Qelly Intelligence' && config.productVersion === '0.9.0-preview.1', 'Qelly product identity invalid');
-  expect(config.routes.length === 66 && config.apiRoutes.length === 199 && config.apiRoutes.includes('/api/v1/public/markets/overview'), 'route inventory invalid');
-  expect(config.waveStatus.part22 && config.schemaValidation.schemasLoaded === 70, 'schema and inherited capability evidence invalid');
+  expect(config.routes.length === 70 && config.apiRoutes.length === 202 && config.apiRoutes.includes('/api/v1/public/markets/overview'), 'route inventory invalid');
+  expect(config.waveStatus.part22 && config.schemaValidation.schemasLoaded === 72, 'schema and inherited capability evidence invalid');
   expect(config.csrf.mode === 'random-session-bound-local-token' && csrf.length >= 32, 'session-bound CSRF evidence invalid');
   expect(config.developmentIdentity.enabled === true, 'development identity fixture should be enabled in local smoke');
 
@@ -70,6 +70,27 @@ try {
   expect(calculation.status==='success'&&Math.abs(calculation.outputs.cagrPercent-10)<1e-8&&calculation.truthState==='IMPLEMENTED_DETERMINISTIC_LOCAL','deterministic calculation API invalid');
   const indicator=(await request('/api/v1/indicators/run',{method:'POST',body:{indicatorId:'sma',inputs:{close:[1,2,3,4,5],period:3}}})).json();
   expect(indicator.status==='success'&&indicator.outputs.value.at(-1)===4,'deterministic indicator API invalid');
+  const freshCalculation=(await request('/api/v1/calculations/run',{method:'POST',body:{formulaId:'fresh-present-value',inputs:{futureValue:110,rate:0.1,periods:1}}})).json();
+expect(freshCalculation.status==='success'&&Math.abs(freshCalculation.outputs.value-100)<1e-8&&freshCalculation.truthState==='FRESH_REIMPLEMENTATION_2026','fresh formula API invalid');
+const freshIndicator=(await request('/api/v1/indicators/run',{method:'POST',body:{indicatorId:'fresh-price-momentum',inputs:{close:Array.from({length:30},(_,index)=>100+index),period:14}}})).json();
+expect(freshIndicator.status==='success'&&freshIndicator.outputs.value.at(-1)===14&&freshIndicator.truthState==='FRESH_REIMPLEMENTATION_2026','fresh indicator API invalid');
+const saved=(await request('/api/v1/calculations/saved',{method:'POST',status:201,body:{name:'Fresh PV smoke',result:freshCalculation,notes:'Prompt 2B lifecycle smoke',tags:['fresh','smoke'],favorite:true},headers:{'Idempotency-Key':'prompt2b-saved-create'}})).json();
+const savedList=(await request('/api/v1/calculations/saved?q=Fresh%20PV&favorite=true&sort=name-asc')).json();
+expect(savedList.items.some(item=>item.id===saved.id)&&savedList.persistence.schemaVersion===2,'saved calculation list invalid');
+const savedRead=(await request(`/api/v1/calculations/saved/${saved.id}`)).json();
+expect(savedRead.version===1&&savedRead.formulaVersion==='2.0.0'&&savedRead.revisions.length===1,'saved calculation read invalid');
+const savedUpdated=(await request(`/api/v1/calculations/saved/${saved.id}`,{method:'PATCH',body:{name:'Fresh PV updated',notes:'Updated smoke',tags:['fresh','updated'],favorite:false},headers:{'Idempotency-Key':'prompt2b-saved-update'}})).json();
+expect(savedUpdated.version===2&&savedUpdated.revisions.length===2&&savedUpdated.name==='Fresh PV updated','saved calculation update invalid');
+const duplicate=(await request(`/api/v1/calculations/saved/${saved.id}/duplicate`,{method:'POST',status:201,body:{name:'Fresh PV duplicate'},headers:{'Idempotency-Key':'prompt2b-saved-duplicate'}})).json();
+expect(duplicate.id!==saved.id&&duplicate.version===1&&duplicate.name==='Fresh PV duplicate','saved calculation duplicate invalid');
+const savedRevisions=(await request(`/api/v1/calculations/saved/${saved.id}/revisions`)).json();
+expect(savedRevisions.currentVersion===2&&savedRevisions.items.length===2,'saved calculation revisions invalid');
+const firstRevision=savedRevisions.items.find(item=>item.version===1);
+const savedRestored=(await request(`/api/v1/calculations/saved/${saved.id}/restore`,{method:'POST',body:{revisionId:firstRevision.revisionId},headers:{'Idempotency-Key':'prompt2b-saved-restore'}})).json();
+expect(savedRestored.version===3&&savedRestored.name==='Fresh PV smoke'&&savedRestored.revisions.length===3,'saved revision restore invalid');
+const duplicateDeleted=(await request(`/api/v1/calculations/saved/${duplicate.id}`,{method:'DELETE',headers:{'Idempotency-Key':'prompt2b-saved-delete-duplicate'}})).json();
+const originalDeleted=(await request(`/api/v1/calculations/saved/${saved.id}`,{method:'DELETE',headers:{'Idempotency-Key':'prompt2b-saved-delete-original'}})).json();
+expect(duplicateDeleted.deleted&&originalDeleted.deleted,'saved calculation delete invalid');
   const charges=(await request('/api/v1/india/charges',{method:'POST',body:{turnover:100000,brokerage:20,exchangeCharges:5,sebiCharges:1,gstRatePercent:18}})).json();
   expect(charges.truthState==='USER_ENTERED_CUSTOM_RATES'&&charges.total>0,'custom India charge API invalid');
 
@@ -93,7 +114,7 @@ try {
   expect(deliverySandbox.passed===true,'A5 delivery signature sandbox invalid');
 
   const coverage = (await request('/api/v1/schemas/coverage')).json();
-  expect(coverage.schemasLoaded === 70 && coverage.enforcedRoutes.length >= 18 && coverage.productionValidatorRequired, 'runtime schema coverage invalid');
+  expect(coverage.schemasLoaded === 72 && coverage.enforcedRoutes.length >= 18 && coverage.productionValidatorRequired, 'runtime schema coverage invalid');
 
   const denied = (await request('/api/v1/access/evaluate',{method:'POST',body:{action:'timeseries:write'}})).json();
   expect(!denied.allowed, 'time-series governance unexpectedly allowed before step-up');
@@ -264,9 +285,11 @@ try {
   const trust=(await request('/api/v1/discovery/status')).json();
   expect(!trust.safety.liveTrading && !trust.safety.externalProviders && !trust.productionDeployment,'trust boundary invalid');
 
+  const expectedRequests=290;
+  expect(log.length===expectedRequests,`request denominator mismatch: ${log.length} !== ${expectedRequests}`);
   const result={
-    status:'smoke-passed',productVersion:'0.9.0-preview.1',legacyRelease:'27.0.0',requests:log.length,
-    checks:{publicMarketEvidence:true,decisionProvenanceGraph:true,productionPlatformFoundation:true,passkeys:true,encryptedMfa:true,recoveryCodes:true,s3CompatibleStorage:true,signedDelivery:true,outboundSsrfPolicy:true,accountRecovery:true,quarantineImports:true,platformReadiness:true,secretRotation:true,quarantineReview:true,stagingAssurance:true,concurrencyDrill:true,backupRestoreDrill:true,deliverySandbox:true,postgresParity:true,secureAuthContract:true,persistentJobs:true,sovereignBrandLock:true,liveMarketReadOnly:true,personaThemes:true,premiumMotion:true,dynamicCsrf:true,developmentIdentity:true,runtimeSchemas:true,stepUp:true,providerFailover:true,timeSeries:true,idempotency:true,resumableSse:true,scopedPreferences:true,revisionConflict:true,federatedSearch:true,savedDiscovery:true,assetIntelligence:true,technicalStudies:true,advancedChart:true,financialStatements:true,earningsEstimates:true,filingWorkspace:true,eventCalendar:true,comparisonLab:true,savedChartLayouts:true,watchlistCrud:true,alertRules:true,inAppNotifications:true,screeners:true,portfolioAnalytics:true,researchWorkspaces:true,onboarding:true,notificationSchedules:true,scheduleReplaySafety:true,formulaScreeners:true,portfolioAttribution:true,importStaging:true,researchVersionHistory:true,migrationContracts:true,recursiveAudit:true,observability:true,trustBoundary:true,deterministicCalculations:true,deterministicIndicators:true,indiaCustomCharges:true},
+    status:'smoke-passed',productVersion:'0.9.0-preview.1',legacyRelease:'27.0.0',requests:log.length,requestDenominator:expectedRequests,
+    checks:{publicMarketEvidence:true,decisionProvenanceGraph:true,productionPlatformFoundation:true,passkeys:true,encryptedMfa:true,recoveryCodes:true,s3CompatibleStorage:true,signedDelivery:true,outboundSsrfPolicy:true,accountRecovery:true,quarantineImports:true,platformReadiness:true,secretRotation:true,quarantineReview:true,stagingAssurance:true,concurrencyDrill:true,backupRestoreDrill:true,deliverySandbox:true,postgresParity:true,secureAuthContract:true,persistentJobs:true,sovereignBrandLock:true,liveMarketReadOnly:true,personaThemes:true,premiumMotion:true,dynamicCsrf:true,developmentIdentity:true,runtimeSchemas:true,stepUp:true,providerFailover:true,timeSeries:true,idempotency:true,resumableSse:true,scopedPreferences:true,revisionConflict:true,federatedSearch:true,savedDiscovery:true,assetIntelligence:true,technicalStudies:true,advancedChart:true,financialStatements:true,earningsEstimates:true,filingWorkspace:true,eventCalendar:true,comparisonLab:true,savedChartLayouts:true,watchlistCrud:true,alertRules:true,inAppNotifications:true,screeners:true,portfolioAnalytics:true,researchWorkspaces:true,onboarding:true,notificationSchedules:true,scheduleReplaySafety:true,formulaScreeners:true,portfolioAttribution:true,importStaging:true,researchVersionHistory:true,migrationContracts:true,recursiveAudit:true,observability:true,trustBoundary:true,deterministicCalculations:true,deterministicIndicators:true,freshCatalog:true,savedCalculationLifecycle:true,indiaCustomCharges:true},
     log
   };
   await writeFile(path.join(root,'validation','SMOKE_LOG.json'),JSON.stringify(result,null,2)+'\n');
