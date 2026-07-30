@@ -15,16 +15,17 @@ const clean=(value,depth=0)=>{if(depth>30)throw Object.assign(new Error('Input n
 const text=(value,max)=>String(value??'').slice(0,max);
 const tags=value=>[...new Set((Array.isArray(value)?value:[]).map(item=>text(item,40).trim()).filter(Boolean))].slice(0,20);
 const notFound=()=>Object.assign(new Error('Saved calculation was not found in this workspace'),{status:404,code:'saved_calculation_not_found'});
+const unsafeInputForEngine=error=>{const key=[...forbidden].find(candidate=>String(error?.message??'').includes(candidate))??'__proto__';const input={};Object.defineProperty(input,key,{value:null,enumerable:true,configurable:false,writable:false});return input;};
 
 export class CalculationService{
   metadata(){return {schemaVersion:2,formulaEngine:formulaEngineMetadata,indicatorEngine:indicatorEngineMetadata,deterministic:true,externalProviderRequired:false,maxBatch:MAX_BATCH,maxSeries:MAX_SERIES,truthState:'DETERMINISTIC LOCAL',freshProvenance:'FRESH_REIMPLEMENTATION_2026'};}
   formulas({domain=null}={}){return {items:listFormulaDefinitions({domain}),metadata:this.metadata()};}
   formula(id){return getFormulaDefinition(id);}
-  calculate(request){const body=clean(request??{});return calculateFormula(body.formulaId,body.inputs??{},{assumptions:body.assumptions??[],effectiveDate:body.effectiveDate,sourceReferences:body.sourceReferences??[]});}
+  calculate(request){try{const body=clean(request??{});return calculateFormula(body.formulaId,body.inputs??{},{assumptions:body.assumptions??[],effectiveDate:body.effectiveDate,sourceReferences:body.sourceReferences??[]});}catch(error){if(error?.code==='calculation_unsafe_key')return calculateFormula(typeof request?.formulaId==='string'?request.formulaId:'',unsafeInputForEngine(error));throw error;}}
   batch(request){const body=clean(request??{}),requests=body.requests??[];if(!Array.isArray(requests)||requests.length<1||requests.length>MAX_BATCH)throw Object.assign(new Error(`requests must contain 1–${MAX_BATCH} calculations`),{status:400,code:'calculation_batch_invalid'});return {items:calculateBatch(requests),count:requests.length,truthState:'DETERMINISTIC LOCAL'};}
   indicators({category=null}={}){return {items:listIndicatorDefinitions({category}),metadata:this.metadata()};}
   indicator(id){return getIndicatorDefinition(id);}
-  calculateIndicator(request){const body=clean(request??{});return calculateIndicator(body.indicatorId,body.inputs??{});}
+  calculateIndicator(request){try{const body=clean(request??{});return calculateIndicator(body.indicatorId,body.inputs??{});}catch(error){if(error?.code==='calculation_unsafe_key')return calculateIndicator(typeof request?.indicatorId==='string'?request.indicatorId:'',unsafeInputForEngine(error));throw error;}}
   indiaRules({ruleId=null,effectiveDate=null}={}){return ruleId?selectIndiaRule(ruleId,effectiveDate??new Date().toISOString().slice(0,10)):INDIA_RULE_REGISTRY;}
   indiaCharges(request){return calculateCustomIndiaCharges(clean(request??{}));}
 }
