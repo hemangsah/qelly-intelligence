@@ -3,68 +3,107 @@
 Updated: 2026-07-30  
 Repository: `hemangsah/qelly-intelligence`
 
-## Authority and protected state
+## Authority and exact live guard
 
-- authenticated GitHub user: `hemangsah` (`274469799`), admin permission;
-- main/base SHA: `9cb98780893924ad26fbf4baaa9048e80a162b2c`;
-- protected exact evidence head: `1109d9daa828886209b62493fb168b4392daa79c`;
+- authenticated GitHub user: `hemangsah` (`274469799`), repository admin/push permission;
+- unchanged main/base SHA: `9cb98780893924ad26fbf4baaa9048e80a162b2c`;
 - branch: `feature/calculator-and-indicator-foundation`;
+- exact pre-reimplementation head: `24328b959b169713a63376823079b3c70cef28f1`;
 - PR #23: open, draft, unmerged and undeployed;
 - auto-merge: disabled;
-- no commit followed the recorded head before the exact-head run completed;
-- no PR comments, reviews or unresolved review threads.
+- PR changed files/commits at authorization start: 60/76;
+- no intervening commit was present before the fresh-reimplementation authorization checkpoint.
 
-## Exact-head gate
+## Preserved exact-head foundation
 
-Run `30540905856`, job `90865188027`, passed on `1109d9daa828886209b62493fb168b4392daa79c`.
+Run `30548547306`, job `90890969020`, passed on `24328b959b169713a63376823079b3c70cef28f1`.
 
-- browser: 1,080/1,080, zero browser/theme/performance failures, zero retries, zero forced clicks;
-- interaction: one trusted real click per action with post-action proof;
-- console/page/resource/overflow/navigation/blank-tail failures: zero;
+- browser: 1,080/1,080 records passed across Chromium, Firefox and WebKit;
+- browser/theme/performance failures: 0/0/0;
+- retries/forced clicks: 0/0;
 - accessibility: 36/36 route-viewport checks, representing 18 unique routes at desktop and mobile;
-- IBM Plex: exact locked compiled WOFF2 served; checker fails when absent;
-- static preview: generated and validated branch-locally;
-- all standard/specialist workflows on the same head: success or governed skip.
+- exact compiled IBM Plex provenance, branch-local static preview and complete current-foundation artifact passed;
+- all affected repository and specialist workflows succeeded or were governed skips.
 
-## Artifact identity
+Current-foundation artifact `8762663217`:
 
-- outer artifact ID `8759401573`;
-- outer bytes/SHA-256/entries/CRC: `27,259,903` / `323a123ab81945439eea11f9650e827a0e5b93fa9a0b31acafc183e7bef52f63` / `179` / passed;
-- inner review ZIP bytes/SHA-256/entries/CRC: `13,632,505` / `e4d524a5ea9856e4b50d33ce905853efe5e301eb59ba2c1ab31598bc03c2db80` / `176` / passed;
-- internal checksum manifest: 175 files, zero mismatches.
+- outer bytes/SHA-256/entries/CRC: `27,197,792` / `8cd20ee5a87e1badec1bbad65eb832764b3f620c0984921e2630d3cdae6a638b` / `179` / passed;
+- inner bytes/SHA-256/entries/CRC: `13,601,399` / `e8f3ca445403e316d9ddcda1e5bd6c4ea39be45cf6946ac4db14d15b3362c5ed` / `176` / passed;
+- 175 internal checksums, zero missing targets and zero mismatches.
 
-## Product counts and denominator
+## Fresh implementation authorization
 
-- installed: 50 formulas, 20 indicators;
-- expansion denominator: 101 additional formulas, 34 additional indicators;
-- potential accepted total: 151 formulas, 54 indicators;
-- runtime routes: 66; screen rows: 421;
-- Figma handoff: 61 routes, 411 frames; native/manual completion absent.
+The user explicitly authorized a **separately governed fresh reimplementation** of 101 additional formulas and 34 additional indicators.
 
-## Expansion blocker
+Mandatory identity: `FRESH_REIMPLEMENTATION_2026`.
 
-Status: **BLOCKED_SOURCE_UNRECOVERABLE**.
+- the new source is not the recovered original expansion;
+- historical missing-module hashes remain historical only and will not be assigned to new bytes;
+- new source modules, stable-ID records, vectors, hashes, Git blobs, lineage, manifests and artifact identities are required;
+- provider-dependent, order-book, liquidation, options-chain, on-chain, wallet, execution and custody capabilities remain excluded.
 
-Expected hashes:
+Historical missing identities retained only for audit:
 
-- formula `14d26b884b32549c6086ad76934ad5f913e90f53595bea4475b4a8f52670533c`;
-- indicator `158769fc7c972a88bad9c89ceea03d5c52c1f4a7f91662b746c71c8e939c4456`.
+- formula: `14d26b884b32549c6086ad76934ad5f913e90f53595bea4475b4a8f52670533c`;
+- indicator: `158769fc7c972a88bad9c89ceea03d5c52c1f4a7f91662b746c71c8e939c4456`.
 
-GitHub source/history, Actions artifacts, conversation files, Library, archives, handoffs, source-review references and checksum manifests were searched. Original expansion bytes and complete expansion stable-ID/vector lineage were not recovered. No substitute was created or installed.
+## Candidate governance checkpoint before source installation
 
-## Completion
+Current installed catalog remains 50 formulas and 20 indicators.
 
-- Qelly central estimate: 48% complete / 52% remaining, uncertainty ±4 points;
-- Prompt 2B central estimate: 59% complete / 41% remaining, uncertainty ±5 points.
+Fresh candidate catalogs prepared under new IDs:
 
-Higher completion is prevented by unrecovered expansion provenance, 50/151 and 20/54 installed catalog coverage, incomplete saved-calculation lifecycle and detail routes, source-lineage debt, 421/411 and 66/61 Figma mismatch, no native/manual Figma completion, undeployed production persistence/providers, and absence of the final post-expansion 18-section artifact.
+- formulas: exactly 101 unique `fresh-*` stable IDs; zero candidate ID collisions with the installed foundation by namespace and explicit registry check;
+- indicators: exactly 34 unique `fresh-*` stable IDs; zero candidate ID collisions with the installed foundation by namespace and explicit registry check;
+- aliases: empty at initial acceptance, so zero alias collisions;
+- external-provider-required candidates: zero;
+- later-wave candidates: zero.
 
-## Exact next action
+Pre-installation local validation:
 
-Recover and hash-match the original expansion bytes with complete stable IDs and vectors. If impossible, obtain explicit written authorization for a separately governed fresh implementation with new provenance and new hashes, then revalidate before installation. Do not continue dependent implementation until this resolves.
+- formula primary vectors: 101/101 passed;
+- formula deterministic repeats: 101/101 passed;
+- formula fuzz/perturbation cases: 1,111 executed successfully;
+- indicator reference executions: 34/34 passed;
+- indicator deterministic repeats: 34/34 passed;
+- indicator fuzz/perturbation cases: 340 executed successfully;
+- indicator output-length alignment: passed for every array output.
+
+New candidate byte identities:
+
+- fresh formula source SHA-256: `0efe98bf9d7b75f371a99d1ba328ea87e79a8187a6d45142394b2dae7fa0c550`;
+- fresh formula catalog SHA-256: `58f0233e3d80141d15ef57bb2b354e9004f6fd15a160044e00a5e8d605449f6f`;
+- fresh indicator source SHA-256: `91f3ccadba3a2d331d7cff44e8fbee8849d0c139c26aebf82ec2dca4263c00c3`;
+- fresh indicator catalog SHA-256: `17204e2bbf7646adb2092547acc6cb3041530b75e599adea999ed7ede989a6c7`.
+
+These are candidate identities pending GitHub installation, fetch-back verification, focused tests and final exact-head validation.
+
+## Current product and design counts
+
+- installed formulas/indicators before fresh source installation: 50/20;
+- potential accepted totals after complete validation: 151/54;
+- runtime/governed routes: 66;
+- governed screen rows: 421 through QF-0421;
+- canonical Figma handoff: 61 routes and 411 frames;
+- native/manual Figma completion: not yet complete;
+- feature branch deployment: none.
+
+## Current blockers and dependency order
+
+The historical recovery blocker is superseded only for new implementation authority; it is not erased from history. Remaining work must proceed in this order:
+
+1. commit fresh scope, stable-ID and provenance catalogs;
+2. install fresh formula/indicator source through small guarded commits;
+3. integrate engines and prove reference/property/fuzz/parity/performance/security;
+4. complete saved-calculation lifecycle and detail routes;
+5. reconcile lineage, APIs, schemas, migration, inventories and Figma mapping;
+6. generate and inspect the final branch-local preview;
+7. run all gates on one exact final head;
+8. generate the checksum-verified 18-section final artifact;
+9. generate `QELLY_NEXT_PROMPT_2C.md` only and stop.
 
 ## Prohibited actions
 
-Do not modify main, merge or mark PR #23 ready, enable auto-merge, deploy the branch, begin Prompt 2C, connect external financial providers, enable trading/custody/deposits/withdrawals/private-key/seed/autonomous execution, weaken tests or reconstruct source from hashes.
+Do not modify main, merge or mark PR #23 ready, enable auto-merge, deploy the branch, execute Prompt 2C, connect external financial providers, enable trading/custody/deposits/withdrawals/private-key/seed/broker/autonomous execution, use Base64 source transport, weaken tests or claim continuity with the lost expansion modules.
 
 All safe progress has been persisted in the repository and recorded in the Qelly durable handoff files. The exact current head, completed work, remaining work, validation state and next action are documented. No continuation should rely solely on chat memory.
