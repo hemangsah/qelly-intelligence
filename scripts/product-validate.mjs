@@ -33,12 +33,33 @@ const requiredFiles = [
   '.github/workflows/codeql.yml',
   'packages/migrations/105_scope_a_decision_provenance.sql',
   'packages/migrations/107_calculator_indicator_foundation.sql',
+  'packages/migrations/108_saved_calculation_lifecycle.sql',
   'packages/contracts/calculator-indicator-foundation.contract.json',
+  'packages/schemas/saved-calculation-input.schema.json',
+  'packages/schemas/saved-calculation-update.schema.json',
+  'packages/schemas/saved-calculation-restore.schema.json',
   'apps/web/public/assets/calculation/formula-engine.mjs',
+  'apps/web/public/assets/calculation/formula-engine-extended.mjs',
+  'apps/web/public/assets/calculation/fresh-formula-catalog.mjs',
   'apps/web/public/assets/calculation/indicator-engine.mjs',
+  'apps/web/public/assets/calculation/indicator-engine-extended.mjs',
+  'apps/web/public/assets/calculation/fresh-indicator-catalog.mjs',
+  'apps/web/public/assets/calculation/persistence.mjs',
   'apps/web/public/assets/routes/calculator-center.mjs',
   'apps/web/public/assets/routes/india-finance-center.mjs',
   'apps/web/public/assets/routes/indicator-library.mjs',
+  'apps/web/public/assets/routes/formula-library.mjs',
+  'apps/web/public/assets/routes/saved-calculations.mjs',
+  'apps/web/public/assets/routes/formula-detail.mjs',
+  'apps/web/public/assets/routes/indicator-detail.mjs',
+  'apps/web/public/assets/routes/calculator-detail.mjs',
+  'apps/web/public/assets/routes/saved-calculation-detail.mjs',
+  'src/calculations/saved-calculation-routes.mjs',
+  'tests/fresh-formula-catalog.test.mjs',
+  'tests/fresh-indicator-catalog.test.mjs',
+  'tests/calculation-service-parity.test.mjs',
+  'tests/browser-saved-calculation-lifecycle.test.mjs',
+  'tests/saved-calculation-lifecycle.test.mjs',
   'docs/deployment/VERCEL_IMPORT_CHECKLIST.md',
   'docs/deployment/ENVIRONMENT_REFERENCE.md',
   'docs/deployment/PRODUCTION_DEPENDENCY_POLICY.md',
@@ -92,6 +113,13 @@ const requiredEvidence = [
   '/api/v1/evidence/graphs/:id/traverse',
   '/api/v1/evidence/graphs/:id/export'
 ];
+const requiredSavedLifecycle = [
+  '/api/v1/calculations/saved',
+  '/api/v1/calculations/saved/:id',
+  '/api/v1/calculations/saved/:id/revisions',
+  '/api/v1/calculations/saved/:id/duplicate',
+  '/api/v1/calculations/saved/:id/restore'
+];
 const dangerous = [
   '/api/v1/orders',
   '/api/v1/transfers',
@@ -104,12 +132,13 @@ const checks = {
   packageName: pkg.name === 'qelly-intelligence',
   version: pkg.version === productVersion,
   requiredFiles: missingFiles.length === 0,
-  routes: routes.length === 66 && new Set(routes).size === routes.length,
+  routes: routes.length === 70 && new Set(routes).size === routes.length,
   routeRegistry: routeNames.length === routes.length && routes.every((route) => routeNames.includes(route)),
-  apiContracts: apiRoutes.length === 199 && new Set(apiRoutes).size === apiRoutes.length,
+  apiContracts: apiRoutes.length === 202 && new Set(apiRoutes).size === apiRoutes.length,
   contracts: contracts.size === 18,
   publicApis: requiredPublic.every((route) => apiRoutes.includes(route)),
   evidenceApis: requiredEvidence.every((route) => apiRoutes.includes(route)),
+  savedLifecycleApis: requiredSavedLifecycle.every((route) => apiRoutes.includes(route)),
   dangerousAbsent: dangerous.every((route) => !apiRoutes.includes(route)),
   brand: index.includes('Qelly Intelligence · Verifiable Market Intelligence') && !/Release A5/i.test(index),
   evidenceIntegrity: [
@@ -126,7 +155,7 @@ const checks = {
     'fallbackReason',
     'marketCap:null'
   ].every((value) => service.includes(value)),
-  schemas: schemas.length === 70 && requiredPublicBetaSchemas.every((name) => schemas.includes(name))
+  schemas: schemas.length === 72 && requiredPublicBetaSchemas.every((name) => schemas.includes(name))
 };
 const failed = Object.entries(checks).filter(([, value]) => !value);
 if (failed.length) {
