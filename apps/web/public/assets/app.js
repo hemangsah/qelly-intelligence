@@ -47,12 +47,16 @@ import { renderIndiaFinanceCenter } from './routes/india-finance-center.mjs';
 import { renderIndicatorLibrary } from './routes/indicator-library.mjs';
 import { renderFormulaLibrary } from './routes/formula-library.mjs';
 import { renderSavedCalculations } from './routes/saved-calculations.mjs';
+import { renderFormulaDetail } from './routes/formula-detail.mjs';
+import { renderIndicatorDetail } from './routes/indicator-detail.mjs';
+import { renderCalculatorDetail } from './routes/calculator-detail.mjs';
+import { renderSavedCalculationDetail } from './routes/saved-calculation-detail.mjs';
 import { renderAssetRankings as renderAssetRankingsRescue } from './routes/asset-rankings.mjs';
 
 const runtimeConfig=Object.freeze({...window.__QELLY_CONFIG__});
 const staticVisualPreview=runtimeConfig.staticVisualPreview===true;
 const staticPreviewApi=staticVisualPreview?await import('./static-preview-api.mjs'):null;
-const staticPreviewRoutes=new Set(['market','asset-rankings','asset','decision-provenance','feature-universe','about-qelly','theme-personas','auth-login','auth-register','auth-recovery','calculator-center','india-finance','indicator-library','formula-library','saved-calculations']);
+const staticPreviewRoutes=new Set(['market','asset-rankings','asset','decision-provenance','feature-universe','about-qelly','theme-personas','auth-login','auth-register','auth-recovery','calculator-center','india-finance','indicator-library','formula-library','saved-calculations','formula-detail','indicator-detail','calculator-detail','saved-calculation-detail']);
 const apiBaseUrl=String(runtimeConfig.apiBaseUrl??'').replace(/\/$/,'');
 const apiUrl=(path)=>apiBaseUrl?new URL(path,`${apiBaseUrl}/`).toString():path;
 
@@ -343,6 +347,10 @@ async function renderRoute() {
       case 'indicator-library': await renderIndicatorLibrary(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
       case 'formula-library': await renderFormulaLibrary(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
       case 'saved-calculations': await renderSavedCalculations(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
+      case 'formula-detail': await renderFormulaDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset}); break;
+      case 'indicator-detail': await renderIndicatorDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset}); break;
+      case 'calculator-detail': await renderCalculatorDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset}); break;
+      case 'saved-calculation-detail': await renderSavedCalculationDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset}); break;
       case 'theme-personas': await renderThemePersonas(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,applyPersona}); break;
       case 'about-qelly': await renderAboutQelly(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
       case 'feature-universe': await renderFeatureUniverse(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;

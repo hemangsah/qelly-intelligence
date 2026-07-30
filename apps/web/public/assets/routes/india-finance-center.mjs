@@ -1,4 +1,4 @@
-import { calculateFormula, listFormulaDefinitions } from '../calculation/formula-engine.mjs';
+import { calculateFormula, listFormulaDefinitions } from '../calculation/formula-engine-extended.mjs';
 import { INDIA_RULE_REGISTRY, selectIndiaRule, calculateCustomIndiaCharges } from '../calculation/india-rules.mjs';
 import { saveCalculation, resultToCsv } from '../calculation/persistence.mjs';
 

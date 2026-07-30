@@ -1,4 +1,4 @@
-import { calculateFormula, listFormulaDefinitions, formulaEngineMetadata } from '../calculation/formula-engine.mjs';
+import { calculateFormula, listFormulaDefinitions, formulaEngineMetadata } from '../calculation/formula-engine-extended.mjs';
 import { saveCalculation, encodeShareState, resultToCsv } from '../calculation/persistence.mjs';
 
 const EXAMPLES={

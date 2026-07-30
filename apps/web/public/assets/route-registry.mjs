@@ -70,6 +70,10 @@ const routes = [
   { section:'Tools', route:'indicator-library', label:'Indicator Library', icon:icon('chart'), meta:'W1', public:true },
   { section:'Tools', route:'formula-library', label:'Formula Library', icon:icon('formula'), meta:'W1', public:true },
   { section:'Tools', route:'saved-calculations', label:'Saved Calculations', icon:icon('history'), meta:'W1', public:true },
+  { section:'Detail', route:'formula-detail', label:'Formula Detail', icon:icon('formula'), meta:'W1', hidden:true, public:true },
+  { section:'Detail', route:'indicator-detail', label:'Indicator Detail', icon:icon('chart'), meta:'W1', hidden:true, public:true },
+  { section:'Detail', route:'calculator-detail', label:'Calculator Detail', icon:icon('calculator'), meta:'W1', hidden:true, public:true },
+  { section:'Detail', route:'saved-calculation-detail', label:'Saved Calculation Detail', icon:icon('history'), meta:'W1', hidden:true, public:true },
   { section:'Experience', route:'theme-personas', label:'Theme Personas', icon:icon('theme'), meta:'P22' },
   { section:'Experience', route:'feature-universe', label:'Feature Universe', icon:icon('spark'), meta:'P22' , public:true },
   { section:'Company', route:'about-qelly', label:'About Qelly', icon:icon('brand'), meta:'P22' , public:true },
@@ -134,7 +138,7 @@ export const productDomains = [
 
 const explicitDomain = {
   'feature-universe':'home','about-qelly':'home',
-  'calculator-center':'tools','india-finance':'tools','indicator-library':'tools','formula-library':'tools','saved-calculations':'tools',
+  'calculator-center':'tools','india-finance':'tools','indicator-library':'tools','formula-library':'tools','saved-calculations':'tools','formula-detail':'tools','indicator-detail':'tools','calculator-detail':'tools','saved-calculation-detail':'tools',
   market:'markets',rankings:'markets','asset-rankings':'markets','discovery-hub':'markets',search:'markets',categories:'markets','category-detail':'markets',venues:'markets','venue-detail':'markets','dex-discovery':'markets','global-charts':'markets',converter:'markets',asset:'markets','asset-intelligence':'markets','advanced-chart':'markets','live-markets':'markets',
   'news-research':'research','research-article':'research','research-workspace':'research','research-history':'research','filing-workspace':'research','fundamentals-estimates':'research','event-calendar':'research','comparison-lab':'research',
   watchlist:'workspaces','alert-center':'workspaces','notification-center':'workspaces','notification-schedules':'workspaces','screener-lab':'workspaces','formula-screener':'workspaces','portfolio-analytics':'workspaces','portfolio-attribution':'workspaces',onboarding:'workspaces','import-center':'workspaces',
