@@ -25,6 +25,8 @@ const required = [
   'SECURITY.md',
   'CONTRIBUTING.md',
   'packages/migrations/105_scope_a_decision_provenance.sql',
+  'packages/migrations/107_calculator_indicator_foundation.sql',
+  'packages/migrations/108_saved_calculation_lifecycle.sql',
   'docs/deployment/VERCEL_IMPORT_CHECKLIST.md',
   'docs/deployment/ENVIRONMENT_REFERENCE.md',
   'docs/deployment/PRODUCTION_DEPENDENCY_POLICY.md',
@@ -62,7 +64,7 @@ const result = {
     && validation.schemas === schemas.length,
   smokeCurrent: smoke.status === 'smoke-passed'
     && smoke.productVersion === productVersion
-    && smoke.requests === 279,
+    && smoke.requests === 289,
   routeInventoryCurrent: routeInventory.productVersion === productVersion
     && routeInventory.count === routes.length,
   apiInventoryCurrent: apiInventory.productVersion === productVersion
@@ -84,10 +86,10 @@ const result = {
 };
 const bad = Object.entries(result).filter(([, value]) => value === false || value == null);
 if (pkg.version !== productVersion
-  || routes.length !== 66
-  || apiRoutes.length !== 199
+  || routes.length !== 70
+  || apiRoutes.length !== 202
   || contracts.size !== 18
-  || schemas.length !== 70
+  || schemas.length !== 72
   || bad.length) {
   throw new Error(JSON.stringify({
     result,
