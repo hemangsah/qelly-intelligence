@@ -8,6 +8,7 @@ import { validatePreference } from './preferences-store.mjs';
 import { createRuntime as buildRuntime } from './runtime.mjs';
 import { release, productVersion, routes, apiRoutes, contracts } from './route-manifest.mjs';
 import { initializeProductionFoundation, productionFoundationHealth } from '../production/production-foundation.mjs';
+import { handleSavedCalculationRequest } from '../calculations/saved-calculation-routes.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '../..');
@@ -133,9 +134,7 @@ export function createServer({runtime=createRuntime(defaultRuntimeDir)}={}){
 
       if(!sid && url.pathname.startsWith('/api/v1/') && !isPublicApiPath(url.pathname)) return error(response,401,'session_required','A session header is required when development identity is disabled',id);
 
-      if(request.method==='GET' && url.pathname==='/api/v1/calculations/saved') { const {scope}=await scopedContext(runtime,sid,'workspace:read'); return json(response,200,{items:await runtime.savedCalculationStore.list(scope),persistence:{mode:'local-runtime-file',productionCloudConnected:false}},id); }
-      if(request.method==='POST' && url.pathname==='/api/v1/calculations/saved') { const body=await bodyJson(request,1_000_000); runtime.schemaRegistry.validate('saved-calculation-input',body,{status:400,code:'request_schema_invalid'}); const {scope}=await scopedContext(runtime,sid,'workspace:write'); const result=await idempotent(runtime,request,body,()=>runtime.savedCalculationStore.save({...scope,name:body.name,result:body.result,notes:body.notes,correlationId:id})); return json(response,201,result,id); }
-      if(request.method==='DELETE' && /^\/api\/v1\/calculations\/saved\/[^/]+$/.test(url.pathname)) { const {scope}=await scopedContext(runtime,sid,'workspace:write'); const savedId=decodeURIComponent(url.pathname.split('/').at(-1)); const result=await idempotent(runtime,request,{savedId},()=>runtime.savedCalculationStore.remove({...scope,id:savedId,correlationId:id})); return json(response,200,result,id); }
+      if(await handleSavedCalculationRequest({request,response,url,id,runtime,sid,json,bodyJson,scopedContext,idempotent})) return;
 
       if(request.method==='GET' && url.pathname==='/api/v1/evidence/graphs') {
         const {scope}=await scopedContext(runtime,sid,'evidence:read');
