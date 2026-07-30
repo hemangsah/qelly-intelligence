@@ -14,7 +14,7 @@ const read=(file)=>readFile(path.join(root,file),'utf8');
 const json=async(file)=>JSON.parse(await read(file));
 
 test('every executable route has a governed domain and page-shell kind',()=>{
-  assert.equal(routeDefinitions.length,66);
+  assert.equal(routeDefinitions.length,70);
   assert.ok(productDomains.length>=8);
   const domains=new Set(productDomains.map((item)=>item.id));
   const kinds=new Set(['public-story','analytical','research','operational','access']);
@@ -93,7 +93,7 @@ test('Figma handoff uses semantic editable masters instead of frame-count theate
   const pages=plugin.match(/const PAGE_NAMES=\[([\s\S]*?)\];/)[1].match(/'\d{2} [^']+'/g);
   const masterScreens=plugin.match(/const MASTER_SCREENS=\[([\s\S]*?)\];/)[1].match(/\['/g);
   assert.equal(pages.length,31);
-  assert.ok(masterScreens.length>=24);
+  assert.ok(masterScreens.length>=42);
   assert.match(plugin,/createVariableCollection\('Qelly Premium Semantic'\)/);
   assert.match(plugin,/createComponent\(\)/);
   assert.match(plugin,/qellyMasterFrame/);
