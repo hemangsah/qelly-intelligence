@@ -25,16 +25,14 @@ jobs:
       - name: Guard exact parent
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = "2656fe17bc87d1456ce62abbf7b3c5224bca14d2"
+          test "$(git rev-parse HEAD^)" = "beca47f7354ab8c24b7dee9889f2a76b821557f6"
           test "$(git ls-remote origin refs/heads/feature/calculator-and-indicator-foundation | cut -f1)" = "$GITHUB_SHA"
-      - name: Reconcile generator validator and browser persistence
+      - name: Reconcile and diagnose governance gates
         run: |
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
-          plugin=Path('figma-plugin/code.js')
-          source=plugin.read_text()
-          marker="\n];\nconst rgb="
+          plugin=Path('figma-plugin/code.js');source=plugin.read_text();marker="\n];\nconst rgb="
           if marker not in source: raise SystemExit('Figma master-screen array marker not found')
           additions=""",
           ['26 Quant Workbench','Calculator Center','desktop',1440,1000,'Research'],['29 Mobile','Calculator Center','mobile',390,844,'Research'],
@@ -46,42 +44,63 @@ jobs:
           ['26 Quant Workbench','Calculator Detail','desktop',1440,1000,'Research'],['29 Mobile','Calculator Detail','mobile',390,844,'Research'],
           ['26 Quant Workbench','Saved Calculations','desktop',1440,1000,'Research'],['29 Mobile','Saved Calculations','mobile',390,844,'Research'],
           ['26 Quant Workbench','Saved Calculation Detail','desktop',1440,1000,'Research'],['29 Mobile','Saved Calculation Detail','mobile',390,844,'Research']"""
-          source=source.replace(marker,additions+marker,1)
-          plugin.write_text(source)
-
-          validator=Path('scripts/validate-design-foundations.mjs')
-          source=validator.read_text()
-          source=source.replace('assert.equal(routeDefinitions.length,66);assert.equal(routeMatrix.trim().split(\'\\n\').length-1,66);assert.ok(screenMatrix.trim().split(\'\\n\').length-1>=421);','assert.equal(routeDefinitions.length,70);assert.equal(routeMatrix.trim().split(\'\\n\').length-1,70);assert.equal(screenMatrix.trim().split(\'\\n\').length-1,429);')
-          source=source.replace("assert.ok(masterScreens.length>=24,'Figma generator must preserve editable desktop/mobile master frames');","assert.ok(masterScreens.length>=42,'Figma generator must preserve editable desktop/mobile master frames including Prompt 2B centers and details');")
-          validator.write_text(source)
-
-          persistence=Path('apps/web/public/assets/calculation/persistence.mjs')
-          source=persistence.read_text()
+          plugin.write_text(source.replace(marker,additions+marker,1))
+          validator=Path('scripts/validate-design-foundations.mjs');source=validator.read_text()
+          old="assert.equal(routeDefinitions.length,66);assert.equal(routeMatrix.trim().split('\\n').length-1,66);assert.ok(screenMatrix.trim().split('\\n').length-1>=421);"
+          new="assert.equal(routeDefinitions.length,70);assert.equal(routeMatrix.trim().split('\\n').length-1,70);assert.equal(screenMatrix.trim().split('\\n').length-1,429);"
+          if old not in source: raise SystemExit('design count assertion guard not found')
+          source=source.replace(old,new,1)
+          old="assert.ok(masterScreens.length>=24,'Figma generator must preserve editable desktop/mobile master frames');"
+          new="assert.ok(masterScreens.length>=42,'Figma generator must preserve editable desktop/mobile master frames including Prompt 2B centers and details');"
+          if old not in source: raise SystemExit('Figma master assertion guard not found')
+          validator.write_text(source.replace(old,new,1))
+          persistence=Path('apps/web/public/assets/calculation/persistence.mjs');source=persistence.read_text()
           old="export const getSavedCalculation=savedId=>safe(read().items[indexOf(read(),savedId)]);"
           new="export const getSavedCalculation=savedId=>{const store=read();return safe(store.items[indexOf(store,savedId)]);};"
           if old not in source: raise SystemExit('browser persistence get guard not found')
           persistence.write_text(source.replace(old,new,1))
           PY
-          node --check figma-plugin/code.js
-          node --check scripts/validate-design-foundations.mjs
-          node --check apps/web/public/assets/calculation/persistence.mjs
-      - name: Build exact inventories and governance records
+          set +e
+          {
+            node --check figma-plugin/code.js
+            node --check scripts/validate-design-foundations.mjs
+            node --check apps/web/public/assets/calculation/persistence.mjs
+            npm run inventory:design
+            node scripts/build-prompt2b-final-governance.mjs
+            npm run validate:design
+            node --test tests/fresh-formula-catalog.test.mjs tests/fresh-indicator-catalog.test.mjs tests/calculation-service-parity.test.mjs tests/browser-saved-calculation-lifecycle.test.mjs tests/saved-calculation-lifecycle.test.mjs tests/saved-calculation-store.test.mjs
+          } > /tmp/prompt2b-governance.log 2>&1
+          status=$?
+          set -e
+          cat /tmp/prompt2b-governance.log
+          if [ "$status" -ne 0 ]; then
+            git checkout -- figma-plugin/code.js scripts/validate-design-foundations.mjs apps/web/public/assets/calculation/persistence.mjs QELLY_ROUTE_INVENTORY.csv QELLY_SCREEN_MATRIX.csv QELLY_COMPONENT_INVENTORY.csv 2>/dev/null || true
+            rm -f project-state/QELLY_PROMPT2B_FRESH_FORMULA_REGISTRY.csv project-state/QELLY_PROMPT2B_FRESH_INDICATOR_REGISTRY.csv project-state/QELLY_PROMPT2B_FRESH_CATALOG.json project-state/QELLY_PROMPT2B_FRESH_SOURCE_PROVENANCE.json project-state/QELLY_PROMPT2B_FIGMA_ROUTE_FRAME_MAP.csv project-state/QELLY_PROMPT2B_FIGMA_PARITY_REPORT.md project-state/QELLY_PROMPT2B_COMPONENT_STATE_MATRIX.csv
+            {
+              echo '# Qelly Prompt 2B Final Governance Gate Failure'
+              echo
+              echo '- Exact workflow head: `'$GITHUB_SHA'`'
+              echo '- Generator/validator integration was not committed.'
+              echo '- One-use workflow removed after recording the complete log.'
+              echo
+              echo '```text'
+              cat /tmp/prompt2b-governance.log
+              echo '```'
+            } > project-state/QELLY_PROMPT2B_FINAL_GOVERNANCE_GATE_FAILURE.md
+          fi
+          echo "$status" > /tmp/prompt2b-governance.status
+      - name: Commit result and remove one-use workflow
         run: |
           set -euo pipefail
-          npm run inventory:design
-          node scripts/build-prompt2b-final-governance.mjs
-          npm run validate:design
-      - name: Run complete focused numerical lifecycle and parity gates
-        run: |
-          set -euo pipefail
-          node --test tests/fresh-formula-catalog.test.mjs tests/fresh-indicator-catalog.test.mjs tests/calculation-service-parity.test.mjs tests/browser-saved-calculation-lifecycle.test.mjs tests/saved-calculation-lifecycle.test.mjs tests/saved-calculation-store.test.mjs
-      - name: Commit exact governance and remove one-use workflow
-        run: |
-          set -euo pipefail
+          status=$(cat /tmp/prompt2b-governance.status)
           rm .github/workflows/prompt2b-final-governance-integration.yml
           git config user.name hemangsah
           git config user.email hemangsah.dn@gmail.com
           git add -A
           git diff --cached --check
-          git commit -m "docs(prompt2b): reconcile fresh lineage and Figma governance"
+          if [ "$status" -eq 0 ]; then
+            git commit -m "docs(prompt2b): reconcile fresh lineage and Figma governance"
+          else
+            git commit -m "test(prompt2b): record final governance blocker"
+          fi
           git push origin HEAD:feature/calculator-and-indicator-foundation
