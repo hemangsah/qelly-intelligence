@@ -57,7 +57,7 @@ try:
             cookie_header = raw_cookie.split(';',1)[0]; parsed_cookie=SimpleCookie(); parsed_cookie.load(raw_cookie)
             for route_key, route_path, auth in routes:
                 context=browser.new_context(viewport=viewport,reduced_motion='reduce' if vname=='mobile' else 'no-preference')
-                context.add_init_script("""seed=>{sessionStorage.setItem('qelly.brand.opening.v1','seen');localStorage.setItem('qelly.calculations.v1',JSON.stringify(seed));}""", SAVED_SEED)
+                context.add_init_script("sessionStorage.setItem('qelly.brand.opening.v1','seen');localStorage.setItem('qelly.calculations.v1'," + json.dumps(json.dumps(SAVED_SEED)) + ');')
                 if auth:
                     for morsel in parsed_cookie.values(): context.add_cookies([{'name':morsel.key,'value':morsel.value,'domain':'qelly.test','path':'/'}])
                 page=context.new_page(); errors=[]
