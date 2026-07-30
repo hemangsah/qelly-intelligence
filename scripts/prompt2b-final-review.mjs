@@ -159,7 +159,7 @@ try{
                 textLength:(main?.textContent??'').trim().length,
                 overflowX:Math.max(0,root.scrollWidth-root.clientWidth),documentHeight:root.scrollHeight,contentBottom,excessTrailingSpace:excess,
                 fontStatus:document.fonts.status,theme:root.dataset.theme??'',persona:root.dataset.persona??'',resolvedAppearance:root.dataset.resolvedAppearance??root.dataset.appearance??'',motion:root.dataset.motion??'',
-                semanticTokens:{canvas:style.getPropertyValue('--q-surface-canvas').trim()||style.getPropertyValue('--q-background').trim(),surface:style.getPropertyValue('--q-surface').trim(),text:style.getPropertyValue('--q-text').trim(),focus:style.getPropertyValue('--q-focus').trim(),positive:style.getPropertyValue('--q-positive').trim(),negative:style.getPropertyValue('--q-negative').trim(),chartGrid:style.getPropertyValue('--q-chart-grid').trim()},
+                semanticPalette:{canvas:style.getPropertyValue('--q-surface-canvas').trim()||style.getPropertyValue('--q-background').trim(),surface:style.getPropertyValue('--q-surface').trim(),text:style.getPropertyValue('--q-text').trim(),focus:style.getPropertyValue('--q-focus').trim(),positive:style.getPropertyValue('--q-positive').trim(),negative:style.getPropertyValue('--q-negative').trim(),chartGrid:style.getPropertyValue('--q-chart-grid').trim()},
                 bodyBackground:getComputedStyle(body).backgroundColor,
                 logo:Boolean(document.querySelector('.q-brand-lockup,.q-app-brand,.q-brand-mark,img[src*="qelly"],svg[aria-label*="Qelly" i]')),
                 unlabeledControls:unlabeled,cls:Number(window.__qellyCLS??0),headingCount:document.querySelectorAll('h1,h2,h3').length,tableCount:document.querySelectorAll('table').length,
@@ -232,7 +232,7 @@ const performanceFailures=performanceCases.filter(item=>item.status!=='success'|
 const themePairs=[];
 for(const browser of browserTypes.map(([name])=>name))for(const route of routes){
   const samples=Object.fromEntries(themes.map(theme=>[theme.label,records.find(item=>item.browser===browser&&item.route===route&&item.width===1440&&item.motion==='full'&&item.appearance===theme.label)]));
-  const signatures=Object.fromEntries(Object.entries(samples).map(([label,item])=>[label,item?JSON.stringify({body:item.bodyBackground,tokens:item.semanticTokens,theme:item.theme}):null]));
+  const signatures=Object.fromEntries(Object.entries(samples).map(([label,item])=>[label,item?JSON.stringify({body:item.bodyBackground,palette:item.semanticPalette,theme:item.theme}):null]));
   const distinct=new Set(Object.values(signatures).filter(Boolean)).size;
   themePairs.push({browser,route,signatures,distinct,allApplied:Object.values(samples).every(Boolean),different:distinct===themes.length});
 }
