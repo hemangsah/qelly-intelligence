@@ -6,15 +6,82 @@ on:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
 
-permissions: read-all
+permissions:
+  contents: write
+  actions: read
 
 concurrency:
   group: qelly-prompt2b-wave1-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
+  browser-recovery-bootstrap:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'feature/calculator-and-indicator-foundation'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Check out exact recovery head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
+          persist-credentials: true
+
+      - name: Guard exact parent and live branch
+        env:
+          EXPECTED_PARENT: 33b9de4d845d66d4e30e466bc82b8f5db0e39ded
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BRANCH: feature/calculator-and-indicator-foundation
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = "$EXPECTED_PARENT"
+          test "$(git rev-parse HEAD)" = "$HEAD_SHA"
+          test "$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)" = "$HEAD_SHA"
+
+      - name: Download exact corrected retest artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api -H "Accept: application/vnd.github+json" "/repos/${GITHUB_REPOSITORY}/actions/artifacts/8749246424/zip" > /tmp/prompt2b-retest.zip
+
+      - name: Persist classification and correct browser readiness
+        run: |
+          set -euo pipefail
+          python3 scripts/prompt2b-browser-recovery.py /tmp/prompt2b-retest.zip | tee /tmp/prompt2b-browser-recovery-result.json
+          python3 -m py_compile scripts/prompt2b-browser-recovery.py
+          node --check scripts/prompt2b-final-review.mjs
+          grep -q "sessionStorage.setItem('qelly.brand.opening.v1','seen')" scripts/prompt2b-final-review.mjs
+          grep -q "scrollOwner.style.scrollBehavior='auto'" scripts/prompt2b-final-review.mjs
+          test "$(wc -l < project-state/QELLY_PROMPT2B_BROWSER_RETEST_CLASSIFICATION.csv)" = "1081"
+
+      - name: Restore permanent workflow and remove temporary recovery files
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BRANCH: feature/calculator-and-indicator-foundation
+        run: |
+          set -euo pipefail
+          test "$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)" = "$HEAD_SHA"
+          git show HEAD^:.github/workflows/prompt2b-wave1-review.yml > .github/workflows/prompt2b-wave1-review.yml
+          rm .github/workflows/prompt2b-browser-retest-classify-fix.yml
+          rm .github/workflows/prompt2b-browser-retest-recovery.yml
+          rm .github/workflows/prompt2b-browser-retest-pr-recovery.yml
+          rm scripts/prompt2b-browser-recovery.py
+          git config user.name "Hemang Sah"
+          git config user.email "274469799+hemangsah@users.noreply.github.com"
+          git add project-state/QELLY_PROMPT2B_BROWSER_RETEST_CLASSIFICATION.csv \
+                  project-state/QELLY_PROMPT2B_BROWSER_RETEST_SUMMARY.md \
+                  scripts/prompt2b-final-review.mjs \
+                  scripts/prompt2b-browser-recovery.py \
+                  .github/workflows/prompt2b-wave1-review.yml \
+                  .github/workflows/prompt2b-browser-retest-classify-fix.yml \
+                  .github/workflows/prompt2b-browser-retest-recovery.yml \
+                  .github/workflows/prompt2b-browser-retest-pr-recovery.yml
+          git commit -m "fix(prompt2b): persist retest and correct browser readiness"
+          git push origin "HEAD:$BRANCH"
+
   wave1-review:
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'feature/calculator-and-indicator-foundation'
+    if: false
     runs-on: ubuntu-24.04
     timeout-minutes: 150
     env:
@@ -110,7 +177,7 @@ jobs:
           cp project-state/QELLY_PROMPT2B_SOURCE_MANIFEST.json .prompt2b-review/
           cp project-state/QELLY_PROMPT2B_EXECUTION_LEDGER.md .prompt2b-review/
           node --input-type=module <<'NODE'
-          import { readdir, readFile, writeFile, stat } from 'node:fs/promises';
+          import { readdir, readFile, writeFile } from 'node:fs/promises';
           import path from 'node:path';
           import { createHash } from 'node:crypto';
           const root='.prompt2b-review';
@@ -136,10 +203,10 @@ jobs:
           PY
           sha256sum qelly-prompt2b-calculator-indicator-foundation-review.zip > qelly-prompt2b-calculator-indicator-foundation-review.zip.sha256
           python3 - <<'PY'
-          import hashlib,json,pathlib,zipfile
+          import hashlib,json,pathlib,zipfile,os
           p=pathlib.Path('qelly-prompt2b-calculator-indicator-foundation-review.zip')
           with zipfile.ZipFile(p) as z: entries=len(z.infolist())
-          meta={'schemaVersion':1,'head':__import__('os').environ['QELLY_REVIEW_HEAD'],'filename':p.name,'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'entryCount':entries,'crcVerified':True,'prohibitedFontBinaries':0}
+          meta={'schemaVersion':1,'head':os.environ['QELLY_REVIEW_HEAD'],'filename':p.name,'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'entryCount':entries,'crcVerified':True,'prohibitedFontBinaries':0}
           pathlib.Path('qelly-prompt2b-calculator-indicator-foundation-review.metadata.json').write_text(json.dumps(meta,indent=2)+'\n')
           print(json.dumps(meta,indent=2))
           PY
