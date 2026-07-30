@@ -25,9 +25,9 @@ jobs:
       - name: Guard exact parent
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = "898644c2a1d81515b4c13ec6c7c975d259101125"
+          test "$(git rev-parse HEAD^)" = "8f006a3e665c95bc33523ae94d282d567519ccbd"
           test "$(git ls-remote origin refs/heads/feature/calculator-and-indicator-foundation | cut -f1)" = "$GITHUB_SHA"
-      - name: Integrate saved lifecycle router
+      - name: Integrate and diagnose focused gates
         run: |
           set -euo pipefail
           python3 - <<'PY'
@@ -41,22 +41,42 @@ jobs:
           start=source.index("      if(request.method==='GET' && url.pathname==='/api/v1/calculations/saved')")
           end=source.index("\n\n      if(request.method==='GET' && url.pathname==='/api/v1/evidence/graphs')",start)
           replacement="      if(await handleSavedCalculationRequest({request,response,url,id,runtime,sid,json,bodyJson,scopedContext,idempotent})) return;"
-          source=source[:start]+replacement+source[end:]
-          path.write_text(source)
+          path.write_text(source[:start]+replacement+source[end:])
           PY
           node --check src/server/server.mjs
           node --check src/calculations/saved-calculation-routes.mjs
-      - name: Run focused numerical and persistence tests
+          set +e
+          node --test tests/fresh-formula-catalog.test.mjs tests/fresh-indicator-catalog.test.mjs tests/saved-calculation-store.test.mjs tests/saved-calculation-lifecycle.test.mjs > /tmp/prompt2b-focused.log 2>&1
+          status=$?
+          set -e
+          cat /tmp/prompt2b-focused.log
+          if [ "$status" -ne 0 ]; then
+            git checkout -- src/server/server.mjs
+            {
+              echo '# Qelly Prompt 2B Focused Gate Failure'
+              echo
+              echo '- Exact workflow head: `'$GITHUB_SHA'`'
+              echo '- Server integration was not committed.'
+              echo '- One-use workflow removed after recording the complete focused-test log.'
+              echo
+              echo '```text'
+              cat /tmp/prompt2b-focused.log
+              echo '```'
+            } > project-state/QELLY_PROMPT2B_FOCUSED_GATE_FAILURE.md
+          fi
+          echo "$status" > /tmp/prompt2b-focused.status
+      - name: Commit result and remove one-use workflow
         run: |
           set -euo pipefail
-          node --test tests/fresh-formula-catalog.test.mjs tests/fresh-indicator-catalog.test.mjs tests/saved-calculation-store.test.mjs tests/saved-calculation-lifecycle.test.mjs
-      - name: Commit guarded integration and remove one-use workflow
-        run: |
-          set -euo pipefail
+          status=$(cat /tmp/prompt2b-focused.status)
           rm .github/workflows/prompt2b-fresh-server-integration.yml
           git config user.name hemangsah
           git config user.email hemangsah.dn@gmail.com
-          git add src/server/server.mjs .github/workflows/prompt2b-fresh-server-integration.yml
+          git add -A
           git diff --cached --check
-          git commit -m "feat(prompt2b): expose saved calculation lifecycle API"
+          if [ "$status" -eq 0 ]; then
+            git commit -m "feat(prompt2b): expose saved calculation lifecycle API"
+          else
+            git commit -m "test(prompt2b): record focused integration blocker"
+          fi
           git push origin HEAD:feature/calculator-and-indicator-foundation
