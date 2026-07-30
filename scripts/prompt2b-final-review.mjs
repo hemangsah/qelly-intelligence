@@ -52,6 +52,7 @@ const waitForRoute=async(page)=>{
     return main&&main.getAttribute('aria-busy')==='false'&&main.childElementCount>0&&(main.textContent??'').trim().length>60;
   },null,{timeout:30000});
   await page.evaluate(async()=>{await document.fonts?.ready;});
+  await page.waitForFunction(()=>!document.querySelector('.qelly-opening'),null,{timeout:5000});
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
 };
 
@@ -85,31 +86,64 @@ const measureNavigationClearance=async(page)=>page.evaluate(async()=>{
   const main=document.querySelector('#main');
   const navigation=document.querySelector('#mobile-navigation');
   if(!main||!navigation||getComputedStyle(navigation).position!=='fixed'||getComputedStyle(navigation).display==='none'){
-    return {supported:false,obscured:0,navHeight:0,clearance:null,focusClearance:null};
+    return {supported:false,obscured:0,navHeight:0,clearance:null,focusClearance:null,scrollOwner:'none'};
   }
-  const sentinel=document.createElement('button');
-  sentinel.type='button';
-  sentinel.textContent='End of route review';
+  const sentinel=document.createElement('div');
+  sentinel.tabIndex=-1;
   sentinel.dataset.reviewEnd='true';
-  sentinel.style.cssText='display:block;width:1px;height:1px;padding:0;margin:0;border:0;opacity:.001;';
+  sentinel.setAttribute('aria-hidden','true');
+  sentinel.style.cssText='display:block;inline-size:1px;block-size:1px;padding:0;margin:0;border:0;opacity:.001;';
   main.append(sentinel);
-  sentinel.scrollIntoView({block:'end'});
-  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-  sentinel.focus({preventScroll:false});
+  const scrollingElement=document.scrollingElement||document.documentElement;
+  const scrollOwner=(()=>{
+    let node=sentinel.parentElement;
+    while(node&&node!==document.body&&node!==document.documentElement){
+      const style=getComputedStyle(node);
+      if(/auto|scroll|overlay/.test(style.overflowY)&&node.scrollHeight>node.clientHeight+1)return node;
+      node=node.parentElement;
+    }
+    return scrollingElement;
+  })();
+  const ownerName=scrollOwner===scrollingElement?'document':`${scrollOwner.tagName.toLowerCase()}${scrollOwner.id?`#${scrollOwner.id}`:''}${scrollOwner.classList.length?`.${[...scrollOwner.classList].join('.')}`:''}`;
+  const previousRootBehavior=document.documentElement.style.scrollBehavior;
+  const previousOwnerBehavior=scrollOwner.style.scrollBehavior;
+  document.documentElement.style.scrollBehavior='auto';
+  scrollOwner.style.scrollBehavior='auto';
+  const maxScroll=()=>Math.max(0,scrollOwner.scrollHeight-(scrollOwner===scrollingElement?innerHeight:scrollOwner.clientHeight));
+  const settle=async(target)=>{
+    for(let attempt=0;attempt<60;attempt++){
+      scrollOwner.scrollTop=target;
+      await new Promise(resolve=>requestAnimationFrame(resolve));
+      if(Math.abs(scrollOwner.scrollTop-target)<=1)return true;
+    }
+    return false;
+  };
+  const target=maxScroll();
+  const settled=await settle(target);
+  sentinel.focus({preventScroll:true});
   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
   const navRect=navigation.getBoundingClientRect();
   const sentinelRect=sentinel.getBoundingClientRect();
   const candidates=[...main.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),a[href]')]
     .filter(element=>!navigation.contains(element)&&getComputedStyle(element).visibility!=='hidden'&&getComputedStyle(element).display!=='none');
+  const lastAction=candidates.at(-1)??null;
+  if(lastAction){
+    lastAction.focus({preventScroll:true});
+    await new Promise(resolve=>requestAnimationFrame(resolve));
+  }
+  const finalNavRect=navigation.getBoundingClientRect();
+  const lastRect=lastAction?.getBoundingClientRect?.()??null;
   const obscured=candidates.filter(element=>{
     const rect=element.getBoundingClientRect();
-    return rect.width>0&&rect.height>0&&rect.top<innerHeight&&rect.bottom>navRect.top+1;
+    return rect.width>0&&rect.height>0&&rect.top<innerHeight&&rect.bottom>finalNavRect.top+1;
   }).length;
   const clearance=navRect.top-sentinelRect.bottom;
-  const activeRect=document.activeElement?.getBoundingClientRect?.();
-  const focusClearance=activeRect?navRect.top-activeRect.bottom:null;
+  const focusClearance=lastRect?finalNavRect.top-lastRect.bottom:null;
+  const actualScroll=scrollOwner.scrollTop;
   sentinel.remove();
-  return {supported:true,obscured,navHeight:navRect.height,clearance,focusClearance};
+  document.documentElement.style.scrollBehavior=previousRootBehavior;
+  scrollOwner.style.scrollBehavior=previousOwnerBehavior;
+  return {supported:true,obscured,navHeight:finalNavRect.height,clearance,focusClearance,scrollOwner:ownerName,targetScroll:target,actualScroll,settled,lastAction:lastAction?.outerHTML?.slice(0,180)??null};
 });
 
 try{
@@ -120,7 +154,7 @@ try{
         for(const motion of motions){
           const context=await browser.newContext({viewport:{width,height},reducedMotion:motion==='reduced'?'reduce':'no-preference',colorScheme:theme.colorScheme,acceptDownloads:true});
           await context.addInitScript(()=>{
-            localStorage.setItem('qelly-opening-seen','true');
+            sessionStorage.setItem('qelly.brand.opening.v1','seen');
             localStorage.removeItem('qelly.calculations.v1');
             window.__qellyCLS=0;
             if('PerformanceObserver' in window){
