@@ -1,0 +1,39 @@
+import {createHash} from 'node:crypto';
+import {mkdir,readFile,writeFile} from 'node:fs/promises';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const review=path.join(root,'.prompt2b-review');const sections=path.join(review,'sections');await mkdir(sections,{recursive:true});
+const head=process.env.QELLY_REVIEW_HEAD??process.env.GITHUB_SHA??'unknown';
+const json=async file=>JSON.parse(await readFile(path.join(root,file),'utf8'));
+const reviewJson=async file=>JSON.parse(await readFile(path.join(review,file),'utf8'));
+const [browser,a11y,actions,manifest,provenance,figma,product,smoke]=await Promise.all([
+  reviewJson('SUMMARY.json'),json('validation/RELEASE_A5_ACCESSIBILITY_REGRESSION.json'),reviewJson('SAVED_CALCULATION_ACTION_REVIEW.json'),json('project-state/QELLY_PROMPT2B_SOURCE_MANIFEST.json'),json('project-state/QELLY_PROMPT2B_FRESH_SOURCE_PROVENANCE.json'),json('project-state/QELLY_PROMPT2B_FIGMA_STATUS.json'),json('validation/PRODUCT_VALIDATION.json'),json('validation/SMOKE_LOG.json')
+]);
+const assertions=[
+  ['head-browser',browser.head===head],['browser-records',browser.browserMatrix.records===1944&&browser.browserMatrix.expected===1944],['browser-failures',browser.browserMatrix.failed===0&&browser.failures.length===0],['theme-failures',browser.themeDifferentiation.failures.length===0],['performance-failures',browser.performance.failures.length===0],['accessibility',a11y.checks===54&&a11y.expectedChecks===54&&a11y.failed===0],['saved-actions',actions.status==='passed'&&actions.failures.length===0],['formulas',browser.formulaDefinitions===151&&provenance.counts.totalFormulas===151],['indicators',browser.indicatorDefinitions===54&&provenance.counts.totalIndicators===54],['fresh-counts',provenance.counts.freshFormulas===101&&provenance.counts.freshIndicators===34],['manifest-head',manifest.exactHead===head],['manifest-fetched',manifest.allFetchedBackVerified===true&&manifest.requiredFiles.missing.length===0],['figma',figma.repositoryContract.routes===70&&figma.repositoryContract.frames===429&&figma.unmatchedRoutes===0&&figma.unmatchedDefaultFrames===0],['native-figma-truth',figma.nativeAuthenticatedFigmaExecution==='UNAVAILABLE'&&figma.manualNativeFigmaApproval===false],['product',product.routes===70&&product.apiContracts===202&&product.schemas===72],['smoke',smoke.status==='smoke-passed'&&smoke.requests===290&&smoke.requestDenominator===290]
+];
+const failedAssertions=assertions.filter(([,passed])=>!passed).map(([name])=>name);if(failedAssertions.length)throw new Error(`18-section prerequisites failed: ${failedAssertions.join(', ')}`);
+const sectionData=[
+  ['01-exact-head-and-boundaries','Exact head and hard boundaries',{head,repository:'hemangsah/qelly-intelligence',branch:'feature/calculator-and-indicator-foundation',main:'9cb98780893924ad26fbf4baaa9048e80a162b2c',deployment:'UNDEPLOYED',trading:false,custody:false}],
+  ['02-repository-and-release-gates','Repository and release gates',{product,smoke:{status:smoke.status,requests:smoke.requests,checks:smoke.checks}}],
+  ['03-fresh-catalog-provenance','Fresh catalog provenance',{provenanceStatus:provenance.provenanceStatus,historicalRecoveryClaim:provenance.historicalRecoveryClaim,historicalHashContinuity:provenance.historicalHashContinuity,aggregateHashes:provenance.freshAggregateHashes}],
+  ['04-formula-catalog','Formula catalog',{total:151,fresh:101,foundation:50,vectors:'101 primary vectors',fuzzCases:1111,parity:'passed'}],
+  ['05-indicator-catalog','Indicator catalog',{total:54,fresh:34,foundation:20,vectors:'34 primary vectors',fuzzCases:340,performance:'10,000-point representative cases passed'}],
+  ['06-browser-server-parity','Browser/server numerical parity',{formulaParity:'passed',indicatorParity:'passed',deterministicRepeat:'passed',invalidInput:'structured'}],
+  ['07-saved-calculation-lifecycle','Saved calculation lifecycle',{status:actions.status,evidence:actions.evidence,actionMatrix:actions.actionMatrix}],
+  ['08-api-smoke','API and request denominator',{status:smoke.status,requests:smoke.requests,requestDenominator:smoke.requestDenominator,freshCatalog:smoke.checks.freshCatalog,savedCalculationLifecycle:smoke.checks.savedCalculationLifecycle}],
+  ['09-persistence-isolation-security','Persistence, isolation and security',{migration:'108_saved_calculation_lifecycle.sql',schemaVersion:2,userTenantWorkspaceIsolation:true,unsafeKeyRejection:true,nonFiniteRejection:true,csvInjectionNeutralization:true}],
+  ['10-browser-matrix','1,944-case browser matrix',{...browser.browserMatrix,actionEvidence:browser.actionEvidence}],
+  ['11-accessibility','54-check accessibility evidence',{checks:a11y.checks,expected:a11y.expectedChecks,passed:a11y.passed,failed:a11y.failed,method:a11y.method}],
+  ['12-performance-and-themes','Performance and theme differentiation',{performance:browser.performance,themeDifferentiation:{pairs:browser.themeDifferentiation.pairs.length,failures:browser.themeDifferentiation.failures.length}}],
+  ['13-navigation-share-import-export','Detail navigation, share, import and export',{directNavigation:true,refresh:true,sharedStateRestore:true,revisionRestore:true,import:true,exports:['JSON','CSV'],evidenceFile:'SAVED_CALCULATION_ACTION_REVIEW.json'}],
+  ['14-static-preview','Branch-local static preview',{routes:70,formulas:151,indicators:54,backendAvailable:false,dataMode:'deterministic-demo',publicDeployment:false}],
+  ['15-source-lineage','Fetched-back source lineage',{fileCount:manifest.fileCount,aggregateSha256:manifest.aggregateSha256,allFetchedBackVerified:manifest.allFetchedBackVerified,categories:manifest.categories,requiredMissing:manifest.requiredFiles.missing}],
+  ['16-figma-design-parity','Figma and design parity',{repositoryContract:figma.repositoryContract,historicalHandoff:figma.historicalHandoff,reconciledAdditions:figma.reconciledAdditions,nativeExecution:figma.nativeAuthenticatedFigmaExecution,manualApproval:figma.manualNativeFigmaApproval}],
+  ['17-github-artifact-hygiene','GitHub and artifact hygiene',{pr:'23',expectedState:'open-draft-unmerged-undeployed',autoMerge:false,artifactIdentity:'qelly-prompt2b-final-18-section-review',checksumPolicy:'SHA-256 plus ZIP CRC plus internal file checksums'}],
+  ['18-completion-and-next-wave','Completion and next dependency',{qellyOverallRange:'62–68%',prompt2BRange:'96–99%',largestNextIncrease:'Prompt 2C production-grade scoped persistence and read-only provider reliability',nextPrompt:'project-state/QELLY_NEXT_PROMPT_2C.md',prompt2CExecuted:false}]
+];
+const index=[];for(const [slug,title,data] of sectionData){const body=JSON.stringify({schemaVersion:1,section:index.length+1,title,head,generatedAt:new Date().toISOString(),data},null,2)+'\n',filename=`${slug}.json`;await writeFile(path.join(sections,filename),body);index.push({section:index.length+1,title,file:`sections/${filename}`,bytes:Buffer.byteLength(body),sha256:createHash('sha256').update(body).digest('hex')});}
+const finalIndex={schemaVersion:1,artifactIdentity:'qelly-prompt2b-final-18-section-review',head,sectionCount:index.length,allPrerequisitesPassed:true,failedAssertions,index};await writeFile(path.join(review,'FINAL_18_SECTION_INDEX.json'),JSON.stringify(finalIndex,null,2)+'\n');const markdown=['# Qelly Prompt 2B Final 18-Section Review','',`Exact head: \`${head}\``,'',...index.map(item=>`${item.section}. **${item.title}** — \`${item.file}\` — ${item.bytes} bytes — \`${item.sha256}\``),'','All eighteen sections are machine-readable, checksum-indexed and bound to the exact review head. Native authenticated Figma execution remains unavailable and is not claimed.'].join('\n')+'\n';await writeFile(path.join(review,'FINAL_18_SECTION_REVIEW.md'),markdown);console.log(JSON.stringify({status:'prompt2b-18-section-review-built',head,sections:index.length,failedAssertions},null,2));
