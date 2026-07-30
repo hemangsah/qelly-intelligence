@@ -4,6 +4,7 @@ from http.cookies import SimpleCookie
 from playwright.sync_api import sync_playwright
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+INDEX = (ROOT / 'apps/web/public/index.html').read_text()
 runtime = tempfile.mkdtemp(prefix='qelly-a5-a11y-')
 launcher = r'''
 import { startServer } from './src/server/server.mjs';
@@ -68,8 +69,12 @@ try:
                 errors = []
                 page.on('console', lambda msg, target=errors: target.append(msg.text) if msg.type == 'error' else None)
                 page.on('pageerror', lambda exc, target=errors: target.append(str(exc)))
+                page.on('response', lambda response, target=errors: target.append(f'HTTP {response.status} {response.url}') if response.status >= 400 else None)
+                page.on('requestfailed', lambda request, target=errors: target.append(f'Request failed {request.url}: {request.failure}'))
                 def proxy(route_obj, is_auth=auth, current_route=route):
                     parsed = urlsplit(route_obj.request.url)
+                    if parsed.netloc == 'qelly.test' and parsed.path == '/' and route_obj.request.resource_type == 'document':
+                        route_obj.fulfill(status=200, headers={'Content-Type': 'text/html; charset=utf-8'}, body=INDEX); return
                     if not is_auth and parsed.path == '/api/v1/config':
                         with urllib.request.urlopen(base + '/api/v1/config', timeout=20) as config_response:
                             public_config = json.loads(config_response.read().decode('utf-8'))
