@@ -26,25 +26,18 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
-
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
           cache: npm
-
       - name: Install locked dependencies and browser engines
         run: |
           set -euo pipefail
           npm ci --ignore-scripts
-          python3 -m pip install --disable-pip-version-check --no-cache-dir --only-binary=:all: \
-            playwright==1.61.0 \
-            pyee==13.0.1 \
-            greenlet==3.5.3 \
-            typing-extensions==4.16.0
+          python3 -m pip install --disable-pip-version-check --no-cache-dir --only-binary=:all: playwright==1.61.0 pyee==13.0.1 greenlet==3.5.3 typing-extensions==4.16.0
           python3 -m pip check
           npx playwright install --with-deps chromium firefox webkit
-
       - name: Verify installed source manifest
         run: |
           set -euo pipefail
@@ -53,16 +46,10 @@ jobs:
           import { execFileSync } from 'node:child_process';
           const manifest=JSON.parse(await readFile('project-state/QELLY_PROMPT2B_SOURCE_MANIFEST.json','utf8'));
           const failures=[];
-          for(const file of manifest.files){
-            const size=(await stat(file.path)).size;
-            const blob=execFileSync('git',['hash-object',file.path],{encoding:'utf8'}).trim();
-            if(size!==file.bytes||blob!==file.gitBlobSha)failures.push({path:file.path,expectedBytes:file.bytes,actualBytes:size,expectedBlob:file.gitBlobSha,actualBlob:blob});
-          }
+          for(const file of manifest.files){const size=(await stat(file.path)).size;const blob=execFileSync('git',['hash-object',file.path],{encoding:'utf8'}).trim();if(size!==file.bytes||blob!==file.gitBlobSha)failures.push({path:file.path,expectedBytes:file.bytes,actualBytes:size,expectedBlob:file.gitBlobSha,actualBlob:blob});}
           if(manifest.files.length!==manifest.fileCount)failures.push({manifestCount:manifest.files.length,declared:manifest.fileCount});
-          console.log(JSON.stringify({verified:manifest.files.length-failures.length,failures},null,2));
-          if(failures.length)process.exit(1);
+          console.log(JSON.stringify({verified:manifest.files.length-failures.length,failures},null,2));if(failures.length)process.exit(1);
           NODE
-
       - name: Run repository, formula, security and release gates
         run: |
           set -euo pipefail
@@ -86,13 +73,11 @@ jobs:
           npm run release:check
           npm audit --audit-level=high
           git diff --check
-
       - name: Run Chromium Firefox WebKit accessibility and performance matrix
         run: |
           set -euo pipefail
           node scripts/prompt2b-final-review.mjs
           npm run a11y
-
       - name: Create font-free runnable compiled preview
         run: |
           set -euo pipefail
@@ -101,43 +86,27 @@ jobs:
           find .prompt2b-review/compiled-preview -type f \( -iname '*.woff' -o -iname '*.woff2' -o -iname '*.ttf' -o -iname '*.otf' \) -delete
           cat > .prompt2b-review/compiled-preview/README.md <<'EOF'
           # Qelly Prompt 2B compiled preview
-
-          This is the exact disconnected static build used by the browser matrix. Serve this directory with any static HTTP server and open the generated `index.html` under the `/qelly-intelligence/` base path.
-
-          Governed font binaries are intentionally excluded from the downloadable review artifact. The repository and validated build retain IBM Plex Sans Variable; the review copy falls back to the declared system stack when those binary files are absent.
-
-          No external financial provider, broker, exchange, wallet, trading, custody or cloud-save service is connected.
+          This is the exact disconnected static build used by the browser matrix under `/qelly-intelligence/`. Governed font binaries are excluded from the downloadable copy. No external financial provider, broker, exchange, wallet, trading, custody or cloud-save service is connected.
           EOF
           if find .prompt2b-review -type f \( -iname '*.woff' -o -iname '*.woff2' -o -iname '*.ttf' -o -iname '*.otf' \) | grep -q .; then exit 1; fi
-
       - name: Package and integrity-check review artifact
         run: |
           set -euo pipefail
           cp project-state/QELLY_PROMPT2B_SOURCE_MANIFEST.json .prompt2b-review/
           cp project-state/QELLY_PROMPT2B_EXECUTION_LEDGER.md .prompt2b-review/
           node --input-type=module <<'NODE'
-          import { readdir, readFile, writeFile } from 'node:fs/promises';
-          import path from 'node:path';
-          import { createHash } from 'node:crypto';
-          const root='.prompt2b-review';
-          const walk=async dir=>{const out=[];for(const entry of await readdir(dir,{withFileTypes:true})){const full=path.join(dir,entry.name);if(entry.isDirectory())out.push(...await walk(full));else out.push(full);}return out;};
-          const files=(await walk(root)).sort();
-          const checks=[];
-          for(const file of files){const body=await readFile(file);checks.push({path:path.relative(root,file).replaceAll('\\','/'),bytes:body.length,sha256:createHash('sha256').update(body).digest('hex')});}
-          await writeFile(path.join(root,'CHECKSUMS.json'),JSON.stringify({schemaVersion:1,head:process.env.QELLY_REVIEW_HEAD,files:checks},null,2)+'\n');
+          import { readdir, readFile, writeFile } from 'node:fs/promises';import path from 'node:path';import { createHash } from 'node:crypto';const root='.prompt2b-review';const walk=async dir=>{const out=[];for(const entry of await readdir(dir,{withFileTypes:true})){const full=path.join(dir,entry.name);if(entry.isDirectory())out.push(...await walk(full));else out.push(full);}return out;};const files=(await walk(root)).sort(),checks=[];for(const file of files){const body=await readFile(file);checks.push({path:path.relative(root,file).replaceAll('\\','/'),bytes:body.length,sha256:createHash('sha256').update(body).digest('hex')});}await writeFile(path.join(root,'CHECKSUMS.json'),JSON.stringify({schemaVersion:1,head:process.env.QELLY_REVIEW_HEAD,files:checks},null,2)+'\n');
           NODE
           python3 - <<'PY'
-          import pathlib, zipfile
-          root=pathlib.Path('.prompt2b-review')
-          target=pathlib.Path('qelly-prompt2b-calculator-indicator-foundation-review.zip')
+          import pathlib,zipfile
+          root=pathlib.Path('.prompt2b-review');target=pathlib.Path('qelly-prompt2b-calculator-indicator-foundation-review.zip')
           with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as archive:
               for file in sorted(root.rglob('*')):
                   if file.is_file(): archive.write(file,file.relative_to(root.parent).as_posix())
           with zipfile.ZipFile(target) as archive:
               bad=archive.testzip()
               if bad: raise SystemExit(f'CRC failed: {bad}')
-              names=archive.namelist()
-              prohibited=[name for name in names if name.lower().endswith(('.woff','.woff2','.ttf','.otf'))]
+              prohibited=[name for name in archive.namelist() if name.lower().endswith(('.woff','.woff2','.ttf','.otf'))]
               if prohibited: raise SystemExit(f'font binaries prohibited: {prohibited}')
           PY
           sha256sum qelly-prompt2b-calculator-indicator-foundation-review.zip > qelly-prompt2b-calculator-indicator-foundation-review.zip.sha256
@@ -146,10 +115,8 @@ jobs:
           p=pathlib.Path('qelly-prompt2b-calculator-indicator-foundation-review.zip')
           with zipfile.ZipFile(p) as z: entries=len(z.infolist())
           meta={'schemaVersion':1,'head':os.environ['QELLY_REVIEW_HEAD'],'filename':p.name,'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'entryCount':entries,'crcVerified':True,'prohibitedFontBinaries':0}
-          pathlib.Path('qelly-prompt2b-calculator-indicator-foundation-review.metadata.json').write_text(json.dumps(meta,indent=2)+'\n')
-          print(json.dumps(meta,indent=2))
+          pathlib.Path('qelly-prompt2b-calculator-indicator-foundation-review.metadata.json').write_text(json.dumps(meta,indent=2)+'\n');print(json.dumps(meta,indent=2))
           PY
-
       - name: Upload complete Prompt 2B Wave 1 review
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -163,3 +130,89 @@ jobs:
           include-hidden-files: true
           if-no-files-found: warn
           retention-days: 14
+
+  # BEGIN PROMPT2B_HASH_ROUTE_INTEGRATOR
+  hash-route-integrate:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'feature/calculator-and-indicator-foundation'
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact closure head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Guard exact parent
+        env:
+          EXPECTED_PARENT: b9cbf09a04cb285a3d5573e68bb9e3ba733b2fd9
+          LIVE_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = "$EXPECTED_PARENT"
+          test "$(git rev-parse HEAD)" = "$LIVE_HEAD"
+          test "$(git ls-remote origin refs/heads/feature/calculator-and-indicator-foundation | cut -f1)" = "$LIVE_HEAD"
+      - name: Patch query-safe routing into application shell
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('apps/web/public/assets/app.js');s=p.read_text()
+          def one(old,new):
+              global s
+              if s.count(old)!=1: raise SystemExit(f'expected one app anchor, found {s.count(old)}: {old[:100]}')
+              s=s.replace(old,new,1)
+          one("import { productDomains, routeDefinitions } from './route-registry.mjs';","import { productDomains, routeDefinitions } from './route-registry.mjs';\nimport { parseHashRoute } from './hash-route-state.mjs';")
+          one("  activeDomain: 'markets'\n};","  activeDomain: 'markets',\n  routeQuery: new URLSearchParams()\n};")
+          old="""function resolveHash() {
+            const value = location.hash.replace(/^#\/?/, '') || state.prefs?.route || 'market';
+            const [route, asset] = value.split('/');
+            const definition=routeDefinitions.find((item)=>item.route===route);
+            const allowed=staticVisualPreview
+              ? definition&&staticPreviewRoutes.has(route)
+              : definition&&((state.authenticated&&!definition.anonymousOnly)||(!state.authenticated&&definition.public===true));
+            state.route=allowed?route:(staticVisualPreview?'market':state.authenticated?'discovery-hub':'auth-login');
+            state.activeDomain=(allowed?definition:routeDefinitions.find((item)=>item.route===state.route))?.domain??'markets';
+            if (asset) state.asset = asset;
+            renderNavigation();
+            renderRoute();
+          }"""
+          new="""function resolveHash() {
+            const {route,asset,query}=parseHashRoute(location.hash,{fallback:state.prefs?.route||'market'});
+            const definition=routeDefinitions.find((item)=>item.route===route);
+            const allowed=staticVisualPreview
+              ? definition&&staticPreviewRoutes.has(route)
+              : definition&&((state.authenticated&&!definition.anonymousOnly)||(!state.authenticated&&definition.public===true));
+            state.route=allowed?route:(staticVisualPreview?'market':state.authenticated?'discovery-hub':'auth-login');
+            state.activeDomain=(allowed?definition:routeDefinitions.find((item)=>item.route===state.route))?.domain??'markets';
+            state.routeQuery=query;
+            if (asset) state.asset = asset;
+            renderNavigation();
+            renderRoute();
+          }"""
+          one(old,new)
+          one("  state.route = route;\n  toggleSecondaryNavigation(false);","  state.route = route;\n  state.routeQuery = new URLSearchParams();\n  toggleSecondaryNavigation(false);")
+          one("case 'calculator-detail': await renderCalculatorDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset}); break;","case 'calculator-detail': await renderCalculatorDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset,query:state.routeQuery}); break;")
+          one("case 'saved-calculation-detail': await renderSavedCalculationDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset}); break;","case 'saved-calculation-detail': await renderSavedCalculationDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset,query:state.routeQuery}); break;")
+          p.write_text(s)
+          PY
+          node --check apps/web/public/assets/app.js
+          node --test tests/hash-route-state.test.mjs tests/browser-saved-calculation-lifecycle.test.mjs
+      - name: Build and validate static route assets
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts
+          QELLY_STATIC_VISUAL_PREVIEW=true QELLY_PUBLIC_BASE_PATH=/qelly-intelligence/ npm run build:frontend
+          npm run validate:pages-preview
+          npm run smoke:pages-preview
+      - name: Commit tested application patch only
+        run: |
+          set -euo pipefail
+          git config user.name hemangsah
+          git config user.email hemangsah.dn@gmail.com
+          git add apps/web/public/assets/app.js
+          git diff --cached --check
+          git commit -m "fix(prompt2b): preserve detail IDs across shared-state URLs"
+          git push origin HEAD:feature/calculator-and-indicator-foundation
