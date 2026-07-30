@@ -4,7 +4,6 @@ from http.cookies import SimpleCookie
 from playwright.sync_api import sync_playwright
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-INDEX = (ROOT / 'apps/web/public/index.html').read_text().replace('<head>', '<head><base href="https://qelly.test/">')
 runtime = tempfile.mkdtemp(prefix='qelly-a5-a11y-')
 launcher = r'''
 import { startServer } from './src/server/server.mjs';
@@ -97,8 +96,7 @@ try:
                 page.route('**/*', proxy)
                 failures = []; checks = {}; focus = None
                 try:
-                    page.goto(f'about:blank#/{route}')
-                    page.set_content(INDEX, wait_until='load', timeout=30000)
+                    page.goto(f'https://qelly.test/#/{route}', wait_until='load', timeout=30000)
                     page.wait_for_selector('main#main h1', timeout=15000)
                     page.wait_for_timeout(180)
                     checks = page.evaluate(EVALUATE)
