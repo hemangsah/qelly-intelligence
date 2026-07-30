@@ -1,6 +1,5 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import cryptoModule from 'node:crypto';
 
 class LocalStorageMock{
   constructor(){this.map=new Map();}
@@ -10,7 +9,7 @@ class LocalStorageMock{
   clear(){this.map.clear();}
 }
 globalThis.localStorage=new LocalStorageMock();
-globalThis.crypto=globalThis.crypto??cryptoModule.webcrypto;
+assert.equal(typeof globalThis.crypto?.randomUUID,'function','Node runtime must expose Web Crypto randomUUID');
 const persistence=await import('../apps/web/public/assets/calculation/persistence.mjs');
 const result=value=>({formulaId:'fresh-present-value',formulaVersion:'2.0.0',effectiveDate:'2026-07-30',outputs:{value},evidence:{provenanceStatus:'FRESH_REIMPLEMENTATION_2026'}});
 
