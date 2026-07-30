@@ -25,18 +25,17 @@ test('service exposes truthful reconciled totals and fresh provenance',()=>{
 test('browser and server formula adapters are byte-stable JSON parity for 101 vectors',()=>{
   for(const definition of freshFormulaDefinitions){
     const request={formulaId:definition.formulaId,inputs:definition.referenceVector.inputs};
-    const browser=browserFormula(request.formulaId,request.inputs,{calculatedAt:at});
     const server=service.calculate(request);
-    const normalizedServer={...server,calculatedAt:browser.calculatedAt};
-    assert.deepEqual(normalizedServer,browser,definition.formulaId);
+    const browser=browserFormula(request.formulaId,request.inputs,{calculatedAt:server.calculatedAt});
+    assert.deepEqual(server,browser,definition.formulaId);
   }
 });
 
 test('browser and server indicator adapters are JSON parity for 34 vectors',()=>{
   for(const definition of freshIndicatorDefinitions){
     const inputs=definition.referenceVector.inputs;
-    const browser=browserIndicator(definition.indicatorId,inputs,{calculatedAt:at});
     const server=service.calculateIndicator({indicatorId:definition.indicatorId,inputs});
+    const browser=browserIndicator(definition.indicatorId,inputs,{calculatedAt:server.calculatedAt??at});
     const normalizedServer={...server,calculatedAt:browser.calculatedAt};
     assert.deepEqual(normalizedServer,browser,definition.indicatorId);
   }
