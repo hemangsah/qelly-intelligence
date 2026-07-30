@@ -1,0 +1,59 @@
+name: Qelly Prompt 2B Fresh Server Integration
+
+on:
+  push:
+    branches: [feature/calculator-and-indicator-foundation]
+    paths: [.github/workflows/prompt2b-fresh-server-integration.yml]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: qelly-prompt2b-fresh-server-integration
+  cancel-in-progress: false
+
+jobs:
+  integrate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: true
+      - name: Guard exact parent
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = "f7e4d959b1222dd257e1e606cefc38ca2c7011ac"
+          test "$(git ls-remote origin refs/heads/feature/calculator-and-indicator-foundation | cut -f1)" = "$GITHUB_SHA"
+      - name: Integrate saved lifecycle router
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          path=Path('src/server/server.mjs')
+          source=path.read_text()
+          anchor="import { initializeProductionFoundation, productionFoundationHealth } from '../production/production-foundation.mjs';"
+          addition=anchor+"\nimport { handleSavedCalculationRequest } from '../calculations/saved-calculation-routes.mjs';"
+          if anchor not in source or 'handleSavedCalculationRequest' in source: raise SystemExit('server import guard failed')
+          source=source.replace(anchor,addition,1)
+          start=source.index("      if(request.method==='GET' && url.pathname==='/api/v1/calculations/saved')")
+          end=source.index("\n\n      if(request.method==='GET' && url.pathname==='/api/v1/evidence/graphs')",start)
+          replacement="      if(await handleSavedCalculationRequest({request,response,url,id,runtime,sid,json,bodyJson,scopedContext,idempotent})) return;"
+          path.write_text(source[:start]+replacement+source[end:])
+          PY
+          node --check src/server/server.mjs
+          node --check src/calculations/saved-calculation-routes.mjs
+          node --test tests/fresh-formula-catalog.test.mjs tests/fresh-indicator-catalog.test.mjs tests/saved-calculation-store.test.mjs tests/saved-calculation-lifecycle.test.mjs
+      - name: Commit guarded integration and remove one-use workflow
+        run: |
+          set -euo pipefail
+          rm .github/workflows/prompt2b-fresh-server-integration.yml
+          rm -f project-state/QELLY_PROMPT2B_FOCUSED_GATE_FAILURE.md
+          git config user.name hemangsah
+          git config user.email hemangsah.dn@gmail.com
+          git add -A
+          git diff --cached --check
+          git commit -m "feat(prompt2b): expose saved calculation lifecycle API"
+          git push origin HEAD:feature/calculator-and-indicator-foundation
