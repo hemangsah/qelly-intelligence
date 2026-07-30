@@ -5,6 +5,9 @@ from playwright.sync_api import sync_playwright
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 INDEX = (ROOT / 'apps/web/public/index.html').read_text()
+COMPILED_FONT = ROOT / 'dist/frontend/assets/fonts/ibm-plex-sans-variable.woff2'
+if not COMPILED_FONT.is_file():
+    raise RuntimeError('Locked compiled IBM Plex Sans font is missing; run the frontend build before accessibility validation')
 runtime = tempfile.mkdtemp(prefix='qelly-a5-a11y-')
 launcher = r'''
 import { startServer } from './src/server/server.mjs';
@@ -75,6 +78,8 @@ try:
                     parsed = urlsplit(route_obj.request.url)
                     if parsed.netloc == 'qelly.test' and parsed.path == '/' and route_obj.request.resource_type == 'document':
                         route_obj.fulfill(status=200, headers={'Content-Type': 'text/html; charset=utf-8'}, body=INDEX); return
+                    if parsed.netloc == 'qelly.test' and parsed.path == '/assets/fonts/ibm-plex-sans-variable.woff2':
+                        route_obj.fulfill(status=200, headers={'Content-Type': 'font/woff2', 'Cache-Control': 'no-store'}, path=str(COMPILED_FONT)); return
                     if not is_auth and parsed.path == '/api/v1/config':
                         with urllib.request.urlopen(base + '/api/v1/config', timeout=20) as config_response:
                             public_config = json.loads(config_response.read().decode('utf-8'))
