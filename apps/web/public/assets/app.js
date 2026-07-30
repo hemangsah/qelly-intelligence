@@ -3,6 +3,7 @@ import { button, toast, commandDialog, dataStateIndicator, escapeHtml, sourceDis
 import { QellyDataGrid } from '../packages/data-grid/data-grid.mjs';
 import { QellyChartShell } from '../packages/charting/chart-shell.mjs';
 import { productDomains, routeDefinitions } from './route-registry.mjs';
+import { parseHashRoute } from './hash-route-state.mjs';
 import { personaFor, personaPreferencePatch } from './persona-profiles.mjs';
 import { renderShellFoundations } from './shell-foundations.mjs';
 import { renderAssetIntelligence } from './routes/asset-intelligence.mjs';
@@ -74,7 +75,8 @@ const state = {
   streamSource: null,
   streamFrames: [],
   authenticated: false,
-  activeDomain: 'markets'
+  activeDomain: 'markets',
+  routeQuery: new URLSearchParams()
 };
 
 const defaultPreferences={theme:'burgundy-command',density:'comfortable',motion:'full',fontScale:100,radiusPx:14,customAccent:null,route:staticVisualPreview?'market':'auth-login',revision:1};
@@ -286,14 +288,14 @@ function bindShell() {
 }
 
 function resolveHash() {
-  const value = location.hash.replace(/^#\/?/, '') || state.prefs?.route || 'market';
-  const [route, asset] = value.split('/');
+  const {route,asset,query}=parseHashRoute(location.hash,{fallback:state.prefs?.route||'market'});
   const definition=routeDefinitions.find((item)=>item.route===route);
   const allowed=staticVisualPreview
     ? definition&&staticPreviewRoutes.has(route)
     : definition&&((state.authenticated&&!definition.anonymousOnly)||(!state.authenticated&&definition.public===true));
   state.route=allowed?route:(staticVisualPreview?'market':state.authenticated?'discovery-hub':'auth-login');
   state.activeDomain=(allowed?definition:routeDefinitions.find((item)=>item.route===state.route))?.domain??'markets';
+  state.routeQuery=query;
   if (asset) state.asset = asset;
   renderNavigation();
   renderRoute();
@@ -306,6 +308,7 @@ function navigate(route, asset = null) {
     asset=null;
   }
   state.route = route;
+  state.routeQuery = new URLSearchParams();
   toggleSecondaryNavigation(false);
   if (asset) state.asset = asset;
   const hash = `#/${route}${asset ? `/${asset}` : ''}`;
@@ -349,8 +352,8 @@ async function renderRoute() {
       case 'saved-calculations': await renderSavedCalculations(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
       case 'formula-detail': await renderFormulaDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset}); break;
       case 'indicator-detail': await renderIndicatorDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset}); break;
-      case 'calculator-detail': await renderCalculatorDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset}); break;
-      case 'saved-calculation-detail': await renderSavedCalculationDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset}); break;
+      case 'calculator-detail': await renderCalculatorDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset,query:state.routeQuery}); break;
+      case 'saved-calculation-detail': await renderSavedCalculationDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset,query:state.routeQuery}); break;
       case 'theme-personas': await renderThemePersonas(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,applyPersona}); break;
       case 'about-qelly': await renderAboutQelly(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
       case 'feature-universe': await renderFeatureUniverse(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
