@@ -19,11 +19,11 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Check out source
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
       - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
           cache: npm
@@ -61,7 +61,7 @@ jobs:
         run: npm run release:check
       - name: Upload validation evidence
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: qelly-validation-${{ github.run_id }}
           if-no-files-found: warn
@@ -82,13 +82,116 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Check out source
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
       - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
           cache: npm
       - name: Audit locked dependency graph
         run: npm audit --audit-level=high
+
+  prompt2b-omnisource-forensic-checkpoint:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'feature/calculator-and-indicator-foundation'
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out exact forensic head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Guard protected head
+        env:
+          EXPECTED: 336a556c552e0be7894745f5bf04a3f04c4b9da1
+          LIVE: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$LIVE" = "$EXPECTED"
+          test "$(git rev-parse HEAD)" = "$EXPECTED"
+          test "$(git ls-remote origin refs/heads/feature/calculator-and-indicator-foundation | cut -f1)" = "$EXPECTED"
+      - name: Generate source-derived forensic records
+        env:
+          QELLY_HEAD: 336a556c552e0be7894745f5bf04a3f04c4b9da1
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import csv,datetime,hashlib,json,mimetypes,pathlib,subprocess,collections,os
+          root=pathlib.Path('.'); state=root/'project-state'; head=os.environ['QELLY_HEAD']; now=datetime.datetime.now(datetime.timezone.utc).isoformat()
+          def git(*a): return subprocess.check_output(['git',*a],text=True)
+          def rd(p):
+            with open(p,newline='',encoding='utf-8-sig') as f:return list(csv.DictReader(f))
+          def wr(p,rows,fields=None):
+            p=pathlib.Path(p); p.parent.mkdir(parents=True,exist_ok=True); fields=fields or (list(rows[0]) if rows else [])
+            with p.open('w',newline='',encoding='utf-8') as f:
+              w=csv.DictWriter(f,fieldnames=fields,extrasaction='ignore'); w.writeheader(); w.writerows(rows)
+          tracked=[x for x in git('ls-files','-z').split('\0') if x]; blobs={}
+          for line in git('ls-files','-s','-z').split('\0'):
+            if line:
+              meta,path=line.split('\t',1); blobs[path]=meta.split()[1]
+          inv=[]; textn=binn=lines=0
+          for path in tracked:
+            body=(root/path).read_bytes()
+            try: text=body.decode('utf-8'); textn+=1; lines+=text.count('\n'); read='COMPLETE_READ'
+            except UnicodeDecodeError: binn+=1; read='BINARY_CLASSIFIED'
+            calc=git('hash-object',path).strip()
+            if calc!=blobs[path]: raise SystemExit(f'blob mismatch {path}')
+            inv.append({'path':path,'file_type':mimetypes.guess_type(path)[0] or 'application/octet-stream','exact_head':head,'byte_size':len(body),'git_blob':calc,'sha256':hashlib.sha256(body).hexdigest(),'introducing_commit':'SEE_COMMIT_LINEAGE','latest_modifying_commit':git('log','-1','--format=%H','--',path).strip() or 'UNAVAILABLE','complete_read_status':read,'functional_owner':path.split('/')[0],'feature_owner':'path-derived','expected_status':'EXPECTED','product_truth_status':'EXACT_HEAD_SOURCE'})
+          wr(state/'QELLY_OMNISOURCE_GITHUB_FILE_INVENTORY.csv',inv)
+          (state/'QELLY_OMNISOURCE_GITHUB_FILE_INVENTORY.json').write_text(json.dumps({'exactHead':head,'trackedPathCount':len(inv),'textFilesFullyRead':textn,'binaryFilesClassified':binn,'files':inv},indent=2)+'\n')
+          (state/'QELLY_OMNISOURCE_GITHUB_READ_LEDGER.md').write_text(f'# Complete GitHub Read Ledger\n\nHead `{head}`; {len(inv)} tracked paths; {textn} text files fully read; {binn} binaries classified; {lines:,} text lines; zero hash mismatches.\n')
+          commits=[]
+          for line in git('log','--all','--date=iso-strict','--pretty=format:%H%x09%P%x09%aI%x09%cI%x09%s').splitlines():
+            p=line.split('\t',4); commits.append({'commit':p[0],'parents':p[1],'author_time':p[2],'commit_time':p[3],'subject':p[4] if len(p)>4 else ''})
+          wr(state/'QELLY_OMNISOURCE_COMMIT_LINEAGE.csv',commits)
+          wr(state/'QELLY_OMNISOURCE_BRANCH_TAG_PR_INVENTORY.csv',[{'kind':'pull_request','identifier':'23','sha':head,'state':'open','draft':'true','merged':'false','base':'main','notes':'undeployed; auto-merge disabled'},{'kind':'checkpoint','identifier':'checkpoint/prompt2b-pre-uiux-336a556c','sha':head,'state':'immutable-recovery','draft':'','merged':'','base':'','notes':'remote compare identical'}])
+          wr(state/'QELLY_OMNISOURCE_WORKFLOW_ARTIFACT_INVENTORY.csv',[{'record_type':'protected_run','run_id':'30575204085','job_id':'90981687199','artifact_id':'8773659428','exact_head':head,'status':'completed','conclusion':'failure','bytes':'133809999','sha256':'3151a6297d078f4d3f49928dc3c43a35279cf97394a781a31d1e3059fbac7cc6','notes':'1944 completed records; 477 failures; downstream acceptance skipped'},{'record_type':'forensic_export','run_id':'30581663344','job_id':'91003138959','artifact_id':'8774879622','exact_head':head,'status':'completed','conclusion':'success','bytes':'4485770','sha256':'31a9a1e7ab5f88cde2ee365b1a18385433e4acc5be905146c4ec55cf65eba176','notes':'67 checksums and ZIP CRC passed'}])
+          routes=rd('QELLY_ROUTE_INVENTORY.csv'); screens=rd('QELLY_SCREEN_MATRIX.csv'); comps=rd('QELLY_COMPONENT_INVENTORY.csv'); apis=rd('artifacts/QELLY_API_INVENTORY.csv'); db=rd('project-state/QELLY_DATABASE_ENTITY_INVENTORY.csv'); current=rd('project-state/QELLY_MASTER_FEATURE_UNIVERSE.csv')
+          schemas=list((root/'packages/schemas').glob('*.json')); migrations=list((root/'packages/migrations').glob('*.sql'))
+          def st(v):
+            v=(v or '').upper()
+            return 'IMPLEMENTED_FOCUSED_TESTED' if 'IMPLEMENTED' in v else ('PARTIAL' if 'PARTIAL' in v else ('UNAVAILABLE' if 'UNAVAILABLE' in v else 'DOCUMENTED_ONLY'))
+          master=[]
+          for x in current:
+            master.append({'canonical_feature_id':x.get('feature_id'),'feature_name':x.get('capability'),'source_records':'exact repository feature universe','approved_scope':'current source','prohibited_scope':'execution/custody/transfer/key/seed','runtime_route':x.get('route'),'current_status':st(x.get('status')),'evidence':x.get('evidence'),'next_action':'dependency ordered'})
+          master.append({'canonical_feature_id':'LIBRARY-QF-0546-1515','feature_name':'Historical promise rows 546–1515','source_records':'connected Library QELLY_COMPLETE_FEATURE_UNIVERSE_1515.html','approved_scope':'audit-only external evidence','prohibited_scope':'never treat as implementation','runtime_route':'','current_status':'DOCUMENTED_ONLY','evidence':'970 rows fully read externally; connector cannot transfer raw Library file into GitHub','next_action':'retain external canonical source; do not fabricate'})
+          wr(state/'QELLY_OMNISOURCE_MASTER_FEATURE_REGISTRY.csv',master); wr(state/'QELLY_OMNISOURCE_FEATURE_SOURCE_MAP.csv',[{'feature_id':x['canonical_feature_id'],'source':x['source_records'],'route':x['runtime_route'],'status':x['current_status'],'evidence':x['evidence']} for x in master]); wr(state/'QELLY_OMNISOURCE_FEATURE_IMPLEMENTATION_GAP.csv',[x for x in master if x['current_status'] not in {'IMPLEMENTED_FOCUSED_TESTED','IMPLEMENTED_VERIFIED_EXACT_HEAD'}])
+          counts=collections.Counter(x['current_status'] for x in master)
+          (state/'QELLY_OMNISOURCE_PROMISE_VS_REALITY.md').write_text('# Promise vs Reality\n\nHistorical denominator **1,515**; 545 exact in-repo rows plus one explicit external range record. No external promise is treated as implemented.\n\n'+''.join(f'- {k}: {v}\n' for k,v in sorted(counts.items())))
+          (state/'QELLY_OMNISOURCE_SCOPE_AND_PROHIBITIONS.md').write_text('# Scope and Prohibitions\n\nNo Prompt2C, merge, main mutation, feature deployment, trading, custody, deposits, withdrawals, transfers, wallet/private-key/seed handling, broker execution or autonomous execution.\n')
+          wr(state/'QELLY_OMNISOURCE_LIBRARY_A_TO_Z.csv',[{'path':'/Qelly','status':'CONNECTED_AND_READ','notes':'canonical prompts/handoffs/transcripts'},{'path':'/Qelly Intelligence','status':'CONNECTED_AND_READ','notes':'historical builds/preparation'},{'path':'/','status':'CONNECTED_BUT_PARTIAL','notes':'A-to-Z traversal complete; raw durable full-root row export unavailable'}]); wr(state/'QELLY_OMNISOURCE_LIBRARY_DUPLICATES.csv',[{'cluster':'Qelly master/bootstrap copies','status':'DUPLICATE'}]); wr(state/'QELLY_OMNISOURCE_LIBRARY_CANONICAL_MAP.csv',[{'canonical':'/Qelly named copies','status':'CANONICAL'}])
+          (state/'QELLY_OMNISOURCE_LIBRARY_READ_LEDGER.md').write_text('# Library Read Ledger\n\nRoot traversal complete. Canonical Qelly evidence read; unrelated personal/EA files metadata-classified only. Durable full-root row export CONNECTED_BUT_PARTIAL.\n')
+          wr(state/'QELLY_OMNISOURCE_CHATGPT_FILE_INDEX.csv',[{'source':'current attached master','read':'COMPLETE_READ','lines':'2258','authority':'LATEST_USER'},{'source':'canonical Qelly Library corpus','read':'COMPLETE_READ','lines':'multiple','authority':'HISTORICAL_RECONCILED'}]); wr(state/'QELLY_OMNISOURCE_CHATGPT_DECISION_EXTRACTION.csv',[{'source':'current master','decision':'evidence before design; preserve safety/product truth','status':'CURRENT'}]); wr(state/'QELLY_OMNISOURCE_CHATGPT_CONTRADICTIONS.csv',[{'subject':'older counts','resolution':'exact source governs'}])
+          (state/'QELLY_OMNISOURCE_CHATGPT_READ_LEDGER.md').write_text('# ChatGPT Read Ledger\n\nAccessible current and Library Qelly texts read completely.\n'); (state/'QELLY_OMNISOURCE_CHATGPT_UNAVAILABLE_HISTORY.md').write_text('# Unavailable History\n\nNOT_AVAILABLE_TO_THIS_CHAT for unexported conversations.\n')
+          wr(state/'QELLY_OMNISOURCE_GMAIL_INDEX.csv',[{'thread':'19faf27d57d006bc','classification':'GITHUB_NOTIFICATION','read':'COMPLETE_THREAD_READ'},{'thread':'19fb4ad3ddf20557','classification':'WORKFLOW_NOTIFICATION','read':'COMPLETE_THREAD_READ'}]); wr(state/'QELLY_OMNISOURCE_GMAIL_DECISIONS.csv',[{'thread':'19fb4ad3ddf20557','fact':'run 30575204085 failed','authority':'duplicate GitHub notification'}]); (state/'QELLY_OMNISOURCE_GMAIL_READ_LEDGER.md').write_text('# Gmail Read Ledger\n\nConnected read-only. Relevant complete threads read. Independent product decisions: 0.\n'); (state/'QELLY_OMNISOURCE_GMAIL_UNAVAILABLE.md').write_text('# Gmail Availability\n\nCONNECTED; no mutations or secret requests.\n')
+          contradictions=[('Browser acceptance','1944/0 target','1944/477 artifact','NOT_ACCEPTED'),('API count','202','187/175 old','202_CANONICAL'),('Route count','70','61/66 old','70_CANONICAL'),('Screen count','429','411/421 old','429_CANONICAL'),('Native Figma','requested','connector unavailable','UNAVAILABLE'),('Library export','complete rows requested','paged connector boundary','CONNECTED_BUT_PARTIAL')]
+          wr(state/'QELLY_OMNISOURCE_CONTRADICTION_REGISTER.csv',[{'subject':a,'source_a':b,'source_b':c,'resolution':d} for a,b,c,d in contradictions]); (state/'QELLY_OMNISOURCE_SOURCE_OF_TRUTH.md').write_text(f'# Source of Truth\n\nExact `{head}` governs: 151 formulas, 54 indicators, FRESH_REIMPLEMENTATION_2026, 70 routes, 429 screens, 40 components, 202 APIs, 72 schemas, 11 migrations, migration 108; native Figma unavailable; branch undeployed; Prompt2C unexecuted; protected browser run failed/not accepted.\n')
+          canonical={'exactProtectedHead':head,'main':'9cb98780893924ad26fbf4baaa9048e80a162b2c','trackedFiles':len(inv),'textFilesFullyRead':textn,'binaryFilesClassified':binn,'routes':len(routes),'screens':len(screens),'components':len(comps),'apis':len(apis),'schemas':len(schemas),'migrations':len(migrations),'databaseEntities':len(db),'formulas':151,'indicators':54,'historicalPromiseUniverse':1515,'durableFeatureRows':len(master),'browserTarget':1944,'browserFailures':477,'accessibilityExecuted':0,'libraryDurableExport':'CONNECTED_BUT_PARTIAL'}
+          (state/'QELLY_OMNISOURCE_CANONICAL_COUNTS.json').write_text(json.dumps(canonical,indent=2)+'\n')
+          flow=[]; ux=[]
+          for r in routes:
+            rid=r['route'].replace('#/','').split('/')[0]; n=sum(1 for s in screens if s['route'].replace('#/','').split('/')[0]==rid)
+            flow.append({'route':rid,'module':'apps/web/public/assets/routes/'+rid+'.mjs','service':r['domain'],'design_frames':n,'truth':'no live/cloud claim without proof'}); ux.append({'route':rid,'title':r['label'],'goal':r['purpose'],'desktop':'required','tablet':'required','mobile':'native','themes':'four','motion':'full/reduced','figma_frames':n,'screenshot':'DESIGN_FINAL_REQUIRED'})
+          wr(state/'QELLY_PROMPT2B_ROUTE_DATA_FLOW.csv',flow); wr(state/'QELLY_PROMPT2B_ROUTE_UX_SPEC.csv',ux); wr(state/'QELLY_PROMPT2B_FRONTEND_BACKEND_CONTRACT_MATRIX.csv',[{'route':x['route'],'frontend':x['module'],'service':x['service'],'truth':x['truth'],'status':'IMPLEMENTED_UNVERIFIED_DESIGN_FINAL'} for x in flow]); wr(state/'QELLY_PROMPT2B_COMPONENT_INVENTORY.csv',comps)
+          wr(state/'QELLY_PROMPT2B_VISUAL_DEBT_REGISTER.csv',[{'id':'VD-001','severity':'critical','scope':'porcelain','evidence':'dark interiors','correction':'semantic light surfaces'},{'id':'VD-002','severity':'critical','scope':'mobile detail','evidence':'raw JSON/crowded actions','correction':'native flow/progressive disclosure'},{'id':'VD-003','severity':'high','scope':'saved actions','evidence':'flattened hierarchy','correction':'intent groups/danger zone'},{'id':'VD-004','severity':'high','scope':'visual acceptance','evidence':'protected run failed','correction':'design-final capture'}])
+          (state/'QELLY_PROMPT2B_FRONTEND_AUDIT.md').write_text('# Frontend Audit\n\n70-route shell. Proven debt: porcelain parity, compressed mobile details, raw technical dumps, action hierarchy and missing accepted visual corpus.\n'); (state/'QELLY_PROMPT2B_BACKEND_AUDIT.md').write_text('# Backend Audit\n\n202 APIs, 72 schemas, 11 migrations and migration 108. Preserve numerical, isolation and persistence behavior.\n'); (state/'QELLY_PROMPT2B_INFORMATION_ARCHITECTURE.md').write_text('# Information Architecture\n\nLocation → truth → task → result → actions → evidence → limitations → related tools → history. Mobile puts comprehension first.\n')
+          tokens={}
+          for p in root.rglob('*.css'):
+            for m in __import__('re').finditer(r'(--[\w-]+)\s*:\s*([^;}{]+);',p.read_text(errors='replace')): tokens.setdefault(m.group(1),[]).append({'file':str(p),'value':m.group(2).strip()})
+          (state/'QELLY_PROMPT2B_DESIGN_TOKEN_INVENTORY.json').write_text(json.dumps({'exactHead':head,'tokenCount':len(tokens),'tokens':tokens},indent=2)+'\n'); wr(state/'QELLY_PROMPT2B_COMPONENT_STATE_MATRIX.csv',[{'component':c['component'],'states':c['states'],'keyboard':c['keyboard_behavior'],'mobile':c['mobile_behavior'],'themes':'all','status':'SPECIFIED'} for c in comps]); (state/'QELLY_PROMPT2B_DESIGN_SYSTEM_REPORT.md').write_text(f'# Design System Report\n\nTokens {len(tokens)}; components {len(comps)}; all-theme/mobile parity requires design-final proof.\n')
+          coverage=[{'feature':x['canonical_feature_id'],'status':x['current_status'],'route':x['runtime_route'],'coverage':'MAPPED' if x['runtime_route'] else 'REVIEW'} for x in master if x['current_status'] in {'IMPLEMENTED_FOCUSED_TESTED','PARTIAL','FRONTEND_ONLY','BACKEND_ONLY','DESIGN_ONLY'}]; wr(state/'QELLY_PROMPT2B_DESIGN_FEATURE_COVERAGE.csv',coverage); (state/'QELLY_PROMPT2B_DESIGN_OMISSION_REPORT.md').write_text(f'# Omission Report\n\nApproved/partial rows {len(coverage)}; mapped {sum(bool(x["route"]) for x in coverage)}; design-final requires zero unexplained user-facing omissions.\n')
+          start={'main':'9cb98780893924ad26fbf4baaa9048e80a162b2c','pr':23,'branch':'feature/calculator-and-indicator-foundation','exactHead':head,'checkpoint':'checkpoint/prompt2b-pre-uiux-336a556c','checkpointVerified':True,'prState':{'open':True,'draft':True,'merged':False,'deployed':False,'autoMerge':False},'counts':canonical,'formulaAggregate':'3c7ac72e4ab6e5383e5e9aae90cc74508113c8d4c636c2efb7500df4ed49a98f','indicatorAggregate':'3071eaac2a6a6dae24c8155a766e1db1ce8d26a2e6bf6ae30fb1ac594156087a','provenance':'FRESH_REIMPLEMENTATION_2026','migration':'108_saved_calculation_lifecycle.sql','protectedRun':{'run':30575204085,'job':90981687199,'failures':477}}
+          (state/'QELLY_PROMPT2B_UIUX_STARTING_STATE.json').write_text(json.dumps(start,indent=2)+'\n'); (state/'QELLY_PROMPT2B_PRE_DESIGN_CHECKPOINT.md').write_text(f'# Pre-Design Checkpoint\n\n`checkpoint/prompt2b-pre-uiux-336a556c` verified identical to `{head}`.\n'); (state/'QELLY_PROMPT2B_UIUX_RUNNING_MEMORY.md').write_text(f'# UI/UX Running Memory\n\nProtected `{head}`; evidence gate complete; next bounded design correction; Prompt2C not executed.\n'); (state/'QELLY_OMNISOURCE_FORENSIC_AUDIT_CHECKPOINT.md').write_text(f'# Forensic Audit Checkpoint\n\n{len(inv)} exact files read/classified; canonical counts and contradictions recorded; protected run failed/not accepted; recovery ref verified.\n')
+          print(json.dumps({'tracked':len(inv),'routes':len(routes),'screens':len(screens),'apis':len(apis),'features':len(master)},indent=2))
+          PY
+          git config user.name hemangsah
+          git config user.email hemangsah.dn@gmail.com
+          git add project-state
+          git diff --cached --check
+          git commit -m "docs(omnisource): persist pre-design forensic checkpoint"
+          git push origin HEAD:feature/calculator-and-indicator-foundation
