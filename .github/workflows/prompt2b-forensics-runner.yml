@@ -27,12 +27,14 @@ jobs:
           persist-credentials: true
       - name: Guard ancestry and live branch
         env:
-          EXPECTED_PARENT: 5e08bf00b2b10ca3c36b77acf9c754c9c42e1c91
+          EXPECTED_PARENT: 9f1b4eae5c1e9150cf278e1ff5e82c0bb90c3a36
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
           BRANCH: feature/calculator-and-indicator-foundation
         run: |
           set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
           test "$(git rev-parse HEAD^)" = "$EXPECTED_PARENT"
-          test "$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)" = "$GITHUB_SHA"
+          test "$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)" = "$EXPECTED_HEAD"
       - name: Download verified failed artifact and generate records
         env:
           GH_TOKEN: ${{ github.token }}
@@ -42,10 +44,11 @@ jobs:
           python3 scripts/prompt2b-browser-forensics.py --artifact /tmp/prompt2b-review.zip --output project-state
       - name: Commit forensic state and remove temporary runners
         env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
           BRANCH: feature/calculator-and-indicator-foundation
         run: |
           set -euo pipefail
-          test "$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)" = "$GITHUB_SHA"
+          test "$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)" = "$EXPECTED_HEAD"
           rm .github/workflows/prompt2b-forensics-runner.yml
           rm -f .github/workflows/prompt2b-browser-forensics-checkpoint.yml
           git config user.name "Hemang Sah"
