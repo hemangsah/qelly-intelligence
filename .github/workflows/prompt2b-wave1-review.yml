@@ -1,228 +1,258 @@
-name: Qelly Prompt 2B Final Review
-
+name: Qelly Prompt 2B Controlled Fast Track
 on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
   workflow_dispatch:
-
 permissions: read-all
-
 concurrency:
-  group: qelly-prompt2b-final-${{ github.event.pull_request.number || github.ref }}
+  group: qelly-prompt2b-fast-track-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
-
+env:
+  QELLY_REVIEW_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+  QELLY_REVIEW_BRANCH: ${{ github.event.pull_request.head.ref || github.ref_name }}
+  QELLY_FAST_TRACK_MODE_FILE: project-state/QELLY_PROMPT2B_FAST_TRACK_MODE.json
 jobs:
-  closure-materialize:
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'feature/calculator-and-indicator-foundation'
-    permissions:
-      contents: write
-    runs-on: ubuntu-24.04
-    timeout-minutes: 35
-    steps:
-      - name: Check out exact closure head
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
-          persist-credentials: true
-      - name: Detect completed materialization
-        id: state
-        run: |
-          if [ -f project-state/QELLY_PROMPT2B_MATERIALIZED.json ]; then echo "skip=true" >> "$GITHUB_OUTPUT"; else echo "skip=false" >> "$GITHUB_OUTPUT"; fi
-      - name: Guard first materialization parent
-        if: steps.state.outputs.skip != 'true'
-        env:
-          EXPECTED_PARENT: 4c6ca5c9069bd62850b374b63ba3d94b6e25de00
-          LIVE_HEAD: ${{ github.event.pull_request.head.sha }}
-        run: |
-          set -euo pipefail
-          test "$(git rev-parse HEAD^)" = "$EXPECTED_PARENT"
-          test "$(git rev-parse HEAD)" = "$LIVE_HEAD"
-          test "$(git ls-remote origin refs/heads/feature/calculator-and-indicator-foundation | cut -f1)" = "$LIVE_HEAD"
-      - name: Set up Node.js
-        if: steps.state.outputs.skip != 'true'
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version: '22'
-          cache: npm
-      - name: Validate closure source before materialization
-        if: steps.state.outputs.skip != 'true'
-        run: |
-          set -euo pipefail
-          npm ci --ignore-scripts
-          node --check apps/web/public/assets/app.js
-          node --check scripts/prompt2b-final-review.mjs
-          node --check scripts/prompt2b-saved-action-review.mjs
-          node --check scripts/build-prompt2b-final-governance.mjs
-          node --check scripts/build-prompt2b-source-manifest.mjs
-          node --check scripts/build-prompt2b-durable-closure-state.mjs
-          node --check scripts/build-prompt2b-18-section-review.mjs
-          node --check scripts/validate-pages-preview.mjs
-          node --check scripts/smoke-pages-preview.mjs
-          python3 -m py_compile scripts/release-a5-accessibility-check.py
-          node --test tests/hash-route-state.test.mjs tests/browser-saved-calculation-lifecycle.test.mjs tests/calculation-service-parity.test.mjs tests/saved-calculation-lifecycle.test.mjs tests/saved-calculation-store.test.mjs
-          QELLY_STATIC_VISUAL_PREVIEW=true QELLY_PUBLIC_BASE_PATH=/qelly-intelligence/ npm run build:frontend
-          npm run validate:pages-preview
-          npm run smoke:pages-preview
-      - name: Generate and commit durable closure records
-        if: steps.state.outputs.skip != 'true'
-        run: |
-          set -euo pipefail
-          npm run inventory:design
-          node scripts/build-prompt2b-final-governance.mjs
-          node scripts/build-prompt2b-durable-closure-state.mjs
-          git config user.name hemangsah
-          git config user.email hemangsah.dn@gmail.com
-          git add QELLY_ROUTE_INVENTORY.csv QELLY_SCREEN_MATRIX.csv QELLY_COMPONENT_INVENTORY.csv project-state
-          git diff --cached --check
-          git commit -m "docs(prompt2b): materialize final governance and durable closure state"
-          node scripts/build-prompt2b-source-manifest.mjs
-          git add project-state/QELLY_PROMPT2B_SOURCE_MANIFEST.json
-          git diff --cached --check
-          git commit -m "docs(prompt2b): record fetched-back final source lineage"
-          git push origin HEAD:feature/calculator-and-indicator-foundation
-      - name: Confirm no-op materializer state
-        if: steps.state.outputs.skip == 'true'
-        run: |
-          set -euo pipefail
-          node -e "const x=require('./project-state/QELLY_PROMPT2B_MATERIALIZED.json');if(x.browserTarget!==1944||x.accessibilityTarget!==54)process.exit(1);console.log(x)"
-
-  final-review:
+  plan:
     if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'feature/calculator-and-indicator-foundation'
     runs-on: ubuntu-24.04
-    timeout-minutes: 180
-    env:
-      QELLY_REVIEW_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+    timeout-minutes: 10
+    outputs:
+      mode: ${{ steps.plan.outputs.mode }}
+      browser_matrix: ${{ steps.plan.outputs.browser_matrix }}
+      a11y_matrix: ${{ steps.plan.outputs.a11y_matrix }}
+      browser_cases: ${{ steps.plan.outputs.browser_cases }}
+      a11y_checks: ${{ steps.plan.outputs.a11y_checks }}
     steps:
-      - name: Check out exact final head
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          fetch-depth: 0
-          persist-credentials: false
-      - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version: '22'
-          cache: npm
-      - name: Install locked dependencies and browser engines
-        run: |
-          set -euo pipefail
-          npm ci --ignore-scripts
-          python3 -m pip install --disable-pip-version-check --no-cache-dir --only-binary=:all: playwright==1.61.0 pyee==13.0.1 greenlet==3.5.3 typing-extensions==4.16.0
-          python3 -m pip check
-          npx playwright install --with-deps chromium firefox webkit
-      - name: Rebuild exact-head governance and source lineage
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: '${{ env.QELLY_REVIEW_HEAD }}', fetch-depth: 0, persist-credentials: false}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: '22', cache: npm}
+      - id: plan
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD"
-          npm run inventory:design
-          node scripts/build-prompt2b-final-governance.mjs
-          node scripts/build-prompt2b-durable-closure-state.mjs
-          node scripts/build-prompt2b-source-manifest.mjs
-          node --input-type=module <<'NODE'
-          import {createHash} from 'node:crypto';import {execFileSync} from 'node:child_process';import {readFile,stat} from 'node:fs/promises';
-          const manifest=JSON.parse(await readFile('project-state/QELLY_PROMPT2B_SOURCE_MANIFEST.json','utf8')),failures=[];
-          for(const file of manifest.files){const body=await readFile(file.path),size=(await stat(file.path)).size,sha=createHash('sha256').update(body).digest('hex'),blob=execFileSync('git',['hash-object','-w',file.path],{encoding:'utf8'}).trim(),fetched=execFileSync('git',['cat-file','blob',blob]);if(size!==file.bytes||sha!==file.sha256||blob!==file.gitBlobSha||Buffer.compare(body,fetched)!==0)failures.push({path:file.path,size,sha,blob});}
-          console.log(JSON.stringify({head:manifest.exactHead,fileCount:manifest.fileCount,aggregateSha256:manifest.aggregateSha256,allFetchedBackVerified:manifest.allFetchedBackVerified,failures},null,2));if(manifest.exactHead!==process.env.QELLY_REVIEW_HEAD||manifest.files.length!==manifest.fileCount||!manifest.allFetchedBackVerified||manifest.requiredFiles.missing.length||failures.length)process.exit(1);
-          NODE
-      - name: Run every repository numerical persistence isolation security design and release gate
+          test "$(git ls-remote origin refs/heads/$QELLY_REVIEW_BRANCH | cut -f1)" = "$QELLY_REVIEW_HEAD"
+          node --check scripts/prompt2b-fasttrack-plan.mjs
+          node scripts/prompt2b-fasttrack-plan.mjs
+  prepare:
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: '${{ env.QELLY_REVIEW_HEAD }}', fetch-depth: 0, persist-credentials: false}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: '22', cache: npm}
+      - id: frontend-cache
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        with: {path: dist/frontend, key: 'qelly-prompt2b-frontend-${{ runner.os }}-${{ env.QELLY_REVIEW_HEAD }}'}
+      - run: npm ci --ignore-scripts
+      - name: Validate fast-track contracts
         run: |
           set -euo pipefail
-          npm run env:check
-          npm run typecheck
-          npm run lint
-          npm run validate:design
-          npm run validate:brand
-          npm run security:scan
+          for file in scripts/prompt2b-fasttrack-plan.mjs scripts/prompt2b-prepared-build.mjs scripts/prompt2b-browser-shard.mjs scripts/prompt2b-browser-aggregate.mjs scripts/prompt2b-fasttrack/browser-contract.mjs scripts/prompt2b-fasttrack/browser-helpers.mjs scripts/prompt2b-saved-action-review.mjs scripts/prompt2b-acceptance-verify.mjs scripts/build-prompt2b-18-section-review.mjs; do node --check "$file"; done
+          python3 -m py_compile scripts/prompt2b_fasttrack_a11y_contract.py scripts/prompt2b-a11y-shard.py scripts/prompt2b-a11y-aggregate.py scripts/prompt2b-final-package.py
+          python3 -m json.tool project-state/QELLY_PROMPT2B_FAST_TRACK_MODE.json >/dev/null
+          python3 -m json.tool project-state/QELLY_PROMPT2B_HISTORICAL_EVIDENCE_CLASSIFICATION.json >/dev/null
+          node scripts/prompt2b-fasttrack-plan.mjs
+      - name: Focused non-browser gates
+        if: needs.plan.outputs.mode == 'focused'
+        run: |
+          set -euo pipefail
+          node --test tests/hash-route-state.test.mjs tests/browser-saved-calculation-lifecycle.test.mjs tests/calculation-service-parity.test.mjs tests/saved-calculation-lifecycle.test.mjs tests/saved-calculation-store.test.mjs tests/calculation-engine.test.mjs tests/calculation-security.test.mjs tests/fresh-formula-catalog.test.mjs tests/fresh-indicator-catalog.test.mjs tests/indicator-engine.test.mjs
+          npm run validate:design && npm run validate:brand && npm run security:scan
+      - name: Complete acceptance non-browser gates
+        if: needs.plan.outputs.mode == 'acceptance'
+        run: |
+          set -euo pipefail
+          npm run env:check && npm run typecheck && npm run lint && npm run validate:design && npm run validate:brand && npm run security:scan
           npm test
           node --test tests/calculation-engine.test.mjs tests/calculation-security.test.mjs tests/fresh-formula-catalog.test.mjs tests/fresh-indicator-catalog.test.mjs tests/calculation-service-parity.test.mjs tests/indicator-engine.test.mjs tests/hash-route-state.test.mjs tests/browser-saved-calculation-lifecycle.test.mjs tests/saved-calculation-lifecycle.test.mjs tests/saved-calculation-store.test.mjs
-          npm run build
-          QELLY_STATIC_VISUAL_PREVIEW=true QELLY_PUBLIC_BASE_PATH=/qelly-intelligence/ npm run build:frontend
-          npm run validate:pages-preview
-          npm run smoke:pages-preview
-          npm run validate:product
-          npm run inventory:product
-          npm run smoke
+          npm run build && npm run validate:product && npm run inventory:product && npm run smoke
           NODE_ENV=test QELLY_DEVELOPMENT_IDENTITY_ENABLED=false node scripts/production-identity-check.mjs
-          npm run release:check
-          npm audit --audit-level=high
+          npm run release:check && npm audit --audit-level=high
+      - if: steps.frontend-cache.outputs.cache-hit != 'true'
+        run: QELLY_STATIC_VISUAL_PREVIEW=true QELLY_PUBLIC_BASE_PATH=/qelly-intelligence/ npm run build:frontend
+      - run: |
+          set -euo pipefail
+          npm run validate:pages-preview && npm run smoke:pages-preview
+          node scripts/prompt2b-prepared-build.mjs create
+          node scripts/prompt2b-prepared-build.mjs verify
+          test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD"
+          test "$(git ls-remote origin refs/heads/$QELLY_REVIEW_BRANCH | cut -f1)" = "$QELLY_REVIEW_HEAD"
           git diff --check
-      - name: Run exact 1944 browser and performance matrix
-        run: |
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-prompt2b-prepared-${{ env.QELLY_REVIEW_HEAD }}
+          path: |
+            dist/frontend
+            prompt2b-prepared/PREPARED_BUILD.json
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+  browser_shard:
+    needs: [plan, prepare]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      max-parallel: 27
+      matrix: ${{ fromJSON(needs.plan.outputs.browser_matrix) }}
+    env:
+      QELLY_BROWSER: ${{ matrix.browser }}
+      QELLY_ROUTE: ${{ matrix.route }}
+      QELLY_SHARD_OUTPUT: .prompt2b-shard
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: '${{ env.QELLY_REVIEW_HEAD }}', fetch-depth: 0, persist-credentials: false}
+      - run: mkdir -p ".prompt2b-shard/$QELLY_BROWSER--$QELLY_ROUTE" && printf '{"head":"%s","status":"initialized"}\n' "$QELLY_REVIEW_HEAD" > ".prompt2b-shard/$QELLY_BROWSER--$QELLY_ROUTE/BOOTSTRAP.json"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: '22', cache: npm}
+      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        with: {path: ~/.cache/ms-playwright, key: 'qelly-prompt2b-node-playwright-${{ runner.os }}-${{ hashFiles(''package-lock.json'') }}-${{ matrix.browser }}'}
+      - run: npm ci --ignore-scripts && npx playwright install --with-deps "$QELLY_BROWSER"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {name: 'qelly-prompt2b-prepared-${{ env.QELLY_REVIEW_HEAD }}', path: .}
+      - run: |
           set -euo pipefail
-          node scripts/prompt2b-final-review.mjs
-      - name: Run exact 54-check accessibility matrix
-        run: |
+          test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD"
+          test "$(git ls-remote origin refs/heads/$QELLY_REVIEW_BRANCH | cut -f1)" = "$QELLY_REVIEW_HEAD"
+          node scripts/prompt2b-prepared-build.mjs verify
+          node scripts/prompt2b-browser-shard.mjs
+      - if: always()
+        run: test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD" && test "$(git ls-remote origin refs/heads/$QELLY_REVIEW_BRANCH | cut -f1)" = "$QELLY_REVIEW_HEAD"
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with: {name: 'qelly-prompt2b-browser-${{ matrix.browser }}-${{ matrix.route }}-${{ env.QELLY_REVIEW_HEAD }}', path: .prompt2b-shard, include-hidden-files: true, if-no-files-found: error, retention-days: 30}
+  a11y_shard:
+    needs: [plan, prepare]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      max-parallel: 27
+      matrix: ${{ fromJSON(needs.plan.outputs.a11y_matrix) }}
+    env:
+      QELLY_A11Y_ROUTE: ${{ matrix.route }}
+      QELLY_A11Y_OUTPUT: .prompt2b-a11y-shard
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: '${{ env.QELLY_REVIEW_HEAD }}', fetch-depth: 0, persist-credentials: false}
+      - run: mkdir -p ".prompt2b-a11y-shard/$QELLY_A11Y_ROUTE" && printf '{"head":"%s","status":"initialized"}\n' "$QELLY_REVIEW_HEAD" > ".prompt2b-a11y-shard/$QELLY_A11Y_ROUTE/BOOTSTRAP.json"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: '22', cache: npm}
+      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        with: {path: ~/.cache/ms-playwright, key: 'qelly-prompt2b-python-playwright-${{ runner.os }}-1.61.0-chromium'}
+      - run: |
+          npm ci --ignore-scripts
+          python3 -m pip install --disable-pip-version-check --no-cache-dir --only-binary=:all: playwright==1.61.0 pyee==13.0.1 greenlet==3.5.3 typing-extensions==4.16.0
+          python3 -m pip check
+          python3 -m playwright install --with-deps chromium
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {name: 'qelly-prompt2b-prepared-${{ env.QELLY_REVIEW_HEAD }}', path: .}
+      - run: |
           set -euo pipefail
-          npm run a11y
-      - name: Run complete saved action navigation import export and share review
-        run: |
-          set -euo pipefail
-          node scripts/prompt2b-saved-action-review.mjs
-      - name: Build and verify complete 18-section final review
-        run: |
-          set -euo pipefail
-          node scripts/build-prompt2b-18-section-review.mjs
-          node --input-type=module <<'NODE'
-          import {readFile} from 'node:fs/promises';
-          const summary=JSON.parse(await readFile('.prompt2b-review/SUMMARY.json','utf8')),a11y=JSON.parse(await readFile('validation/RELEASE_A5_ACCESSIBILITY_REGRESSION.json','utf8')),actions=JSON.parse(await readFile('.prompt2b-review/SAVED_CALCULATION_ACTION_REVIEW.json','utf8')),index=JSON.parse(await readFile('.prompt2b-review/FINAL_18_SECTION_INDEX.json','utf8'));
-          const ok=summary.head===process.env.QELLY_REVIEW_HEAD&&summary.browserMatrix.records===1944&&summary.browserMatrix.failed===0&&summary.performance.failures.length===0&&summary.themeDifferentiation.failures.length===0&&a11y.checks===54&&a11y.failed===0&&actions.status==='passed'&&index.sectionCount===18&&index.allPrerequisitesPassed;
-          console.log(JSON.stringify({head:summary.head,browser:summary.browserMatrix,a11y:{checks:a11y.checks,failed:a11y.failed},actions:actions.status,sections:index.sectionCount},null,2));if(!ok)process.exit(1);
-          NODE
-      - name: Create font-free runnable final static preview
-        run: |
-          set -euo pipefail
-          mkdir -p .prompt2b-review/compiled-preview .prompt2b-review/evidence
-          cp -a dist/frontend/. .prompt2b-review/compiled-preview/
-          find .prompt2b-review/compiled-preview -type f \( -iname '*.woff' -o -iname '*.woff2' -o -iname '*.ttf' -o -iname '*.otf' \) -delete
-          cp project-state/QELLY_PROMPT2B_SOURCE_MANIFEST.json project-state/QELLY_PROMPT2B_FRESH_SOURCE_PROVENANCE.json project-state/QELLY_PROMPT2B_FRESH_FORMULA_REGISTRY.csv project-state/QELLY_PROMPT2B_FRESH_INDICATOR_REGISTRY.csv project-state/QELLY_PROMPT2B_FIGMA_STATUS.json project-state/QELLY_PROMPT2B_FIGMA_ROUTE_FRAME_MAP.csv project-state/QELLY_PROMPT2B_COMPLETION_SCORECARD.md project-state/QELLY_NEXT_PROMPT_2C.md .prompt2b-review/evidence/
-          cp validation/PRODUCT_VALIDATION.json validation/SMOKE_LOG.json validation/RELEASE_A5_ACCESSIBILITY_REGRESSION.json .prompt2b-review/evidence/
-          cat > .prompt2b-review/compiled-preview/README.md <<'EOF'
-          # Qelly Prompt 2B final compiled preview
-          Exact disconnected branch-local static build covering the 70-route contract. Font binaries are intentionally excluded from this downloadable copy. Backend, external providers, trading, custody and cloud persistence are unavailable.
-          EOF
-          if find .prompt2b-review -type f \( -iname '*.woff' -o -iname '*.woff2' -o -iname '*.ttf' -o -iname '*.otf' \) | grep -q .; then exit 1; fi
-      - name: Package checksum and CRC verified final artifact
-        run: |
-          set -euo pipefail
-          node --input-type=module <<'NODE'
-          import {createHash} from 'node:crypto';import {readdir,readFile,writeFile} from 'node:fs/promises';import path from 'node:path';
-          const root='.prompt2b-review';const walk=async dir=>{const out=[];for(const entry of await readdir(dir,{withFileTypes:true})){const full=path.join(dir,entry.name);if(entry.isDirectory())out.push(...await walk(full));else out.push(full);}return out;};const files=(await walk(root)).filter(file=>!file.endsWith('CHECKSUMS.json')).sort(),checks=[];for(const file of files){const body=await readFile(file);checks.push({path:path.relative(root,file).replaceAll('\\','/'),bytes:body.length,sha256:createHash('sha256').update(body).digest('hex')});}await writeFile(path.join(root,'CHECKSUMS.json'),JSON.stringify({schemaVersion:2,head:process.env.QELLY_REVIEW_HEAD,fileCount:checks.length,files:checks},null,2)+'\n');
-          NODE
-          python3 - <<'PY'
-          import hashlib,json,os,pathlib,zipfile
-          root=pathlib.Path('.prompt2b-review');target=pathlib.Path('qelly-prompt2b-final-18-section-review.zip')
-          checks=json.loads((root/'CHECKSUMS.json').read_text());missing=[];mismatches=[]
-          for item in checks['files']:
-              file=root/item['path']
-              if not file.is_file(): missing.append(item['path']);continue
-              body=file.read_bytes()
-              if len(body)!=item['bytes'] or hashlib.sha256(body).hexdigest()!=item['sha256']: mismatches.append(item['path'])
-          if missing or mismatches: raise SystemExit(f'checksum verification failed missing={missing} mismatches={mismatches}')
-          with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as archive:
-              for file in sorted(root.rglob('*')):
-                  if file.is_file(): archive.write(file,file.relative_to(root.parent).as_posix())
-          with zipfile.ZipFile(target) as archive:
-              bad=archive.testzip();entries=len(archive.infolist());names=archive.namelist()
-              if bad: raise SystemExit(f'CRC failed: {bad}')
-              prohibited=[name for name in names if name.lower().endswith(('.woff','.woff2','.ttf','.otf'))]
-              if prohibited: raise SystemExit(f'font binaries prohibited: {prohibited}')
-          summary=json.loads((root/'SUMMARY.json').read_text());a11y=json.loads(pathlib.Path('validation/RELEASE_A5_ACCESSIBILITY_REGRESSION.json').read_text());index=json.loads((root/'FINAL_18_SECTION_INDEX.json').read_text())
-          meta={'schemaVersion':2,'artifactIdentity':'qelly-prompt2b-final-18-section-review','head':os.environ['QELLY_REVIEW_HEAD'],'filename':target.name,'bytes':target.stat().st_size,'sha256':hashlib.sha256(target.read_bytes()).hexdigest(),'entryCount':entries,'crcVerified':True,'internalChecksumCount':checks['fileCount'],'missingChecksumTargets':missing,'checksumMismatches':mismatches,'browserRecords':summary['browserMatrix']['records'],'browserFailures':summary['browserMatrix']['failed'],'accessibilityChecks':a11y['checks'],'accessibilityFailures':a11y['failed'],'sectionCount':index['sectionCount'],'prohibitedFontBinaries':0}
-          pathlib.Path('qelly-prompt2b-final-18-section-review.metadata.json').write_text(json.dumps(meta,indent=2)+'\n');pathlib.Path('qelly-prompt2b-final-18-section-review.zip.sha256').write_text(meta['sha256']+'  '+target.name+'\n');print(json.dumps(meta,indent=2))
-          PY
-      - name: Upload complete Prompt 2B final review
-        if: always()
+          test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD"
+          test "$(git ls-remote origin refs/heads/$QELLY_REVIEW_BRANCH | cut -f1)" = "$QELLY_REVIEW_HEAD"
+          node scripts/prompt2b-prepared-build.mjs verify
+          python3 scripts/prompt2b-a11y-shard.py
+      - if: always()
+        run: test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD" && test "$(git ls-remote origin refs/heads/$QELLY_REVIEW_BRANCH | cut -f1)" = "$QELLY_REVIEW_HEAD"
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with: {name: 'qelly-prompt2b-a11y-${{ matrix.route }}-${{ env.QELLY_REVIEW_HEAD }}', path: .prompt2b-a11y-shard, include-hidden-files: true, if-no-files-found: error, retention-days: 30}
+  browser_aggregate:
+    needs: [plan, prepare, browser_shard]
+    if: always() && needs.plan.result == 'success' && needs.prepare.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: '${{ env.QELLY_REVIEW_HEAD }}', fetch-depth: 0, persist-credentials: false}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: '22', cache: npm}
+      - run: npm ci --ignore-scripts
+      - continue-on-error: true
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {pattern: 'qelly-prompt2b-browser-*-${{ env.QELLY_REVIEW_HEAD }}', path: .prompt2b-shards, merge-multiple: true}
+      - run: node scripts/prompt2b-browser-aggregate.mjs
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with: {name: 'qelly-prompt2b-browser-aggregate-${{ env.QELLY_REVIEW_HEAD }}', path: .prompt2b-review, include-hidden-files: true, if-no-files-found: error, retention-days: 30}
+  a11y_aggregate:
+    needs: [plan, prepare, a11y_shard]
+    if: always() && needs.plan.result == 'success' && needs.prepare.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: '${{ env.QELLY_REVIEW_HEAD }}', fetch-depth: 0, persist-credentials: false}
+      - continue-on-error: true
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {pattern: 'qelly-prompt2b-a11y-*-${{ env.QELLY_REVIEW_HEAD }}', path: .prompt2b-a11y-shards, merge-multiple: true}
+      - run: python3 scripts/prompt2b-a11y-aggregate.py
+      - if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: qelly-prompt2b-final-18-section-review
+          name: qelly-prompt2b-a11y-aggregate-${{ env.QELLY_REVIEW_HEAD }}
+          path: |
+            .prompt2b-a11y-review
+            validation/RELEASE_A5_ACCESSIBILITY_REGRESSION.json
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
+  focused_gate:
+    needs: [plan, prepare, browser_aggregate, a11y_aggregate]
+    if: always() && needs.plan.outputs.mode == 'focused'
+    runs-on: ubuntu-24.04
+    steps:
+      - run: |
+          printf '{"head":"%s","mode":"focused","browserCases":%s,"accessibilityChecks":%s,"prepare":"%s","browserAggregate":"%s","a11yAggregate":"%s","acceptanceClaim":false}\n' "$QELLY_REVIEW_HEAD" '${{ needs.plan.outputs.browser_cases }}' '${{ needs.plan.outputs.a11y_checks }}' '${{ needs.prepare.result }}' '${{ needs.browser_aggregate.result }}' '${{ needs.a11y_aggregate.result }}' > QELLY_PROMPT2B_FOCUSED_GATE.json
+          test '${{ needs.prepare.result }}' = success
+          test '${{ needs.browser_aggregate.result }}' = success
+          test '${{ needs.a11y_aggregate.result }}' = success
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with: {name: 'qelly-prompt2b-focused-gate-${{ env.QELLY_REVIEW_HEAD }}', path: QELLY_PROMPT2B_FOCUSED_GATE.json, if-no-files-found: error, retention-days: 30}
+  acceptance:
+    needs: [plan, prepare, browser_aggregate, a11y_aggregate]
+    if: always() && needs.plan.outputs.mode == 'acceptance' && needs.prepare.result == 'success' && needs.browser_aggregate.result == 'success' && needs.a11y_aggregate.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: '${{ env.QELLY_REVIEW_HEAD }}', fetch-depth: 0, persist-credentials: false}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: '22', cache: npm}
+      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        with: {path: ~/.cache/ms-playwright, key: 'qelly-prompt2b-node-playwright-${{ runner.os }}-${{ hashFiles(''package-lock.json'') }}-chromium'}
+      - run: npm ci --ignore-scripts && npx playwright install --with-deps chromium
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {name: 'qelly-prompt2b-prepared-${{ env.QELLY_REVIEW_HEAD }}', path: .}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {name: 'qelly-prompt2b-browser-aggregate-${{ env.QELLY_REVIEW_HEAD }}', path: .prompt2b-review}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {name: 'qelly-prompt2b-a11y-aggregate-${{ env.QELLY_REVIEW_HEAD }}', path: .}
+      - run: |
+          set -euo pipefail
+          node scripts/prompt2b-prepared-build.mjs verify
+          node scripts/prompt2b-acceptance-verify.mjs matrix
+          node scripts/prompt2b-saved-action-review.mjs
+          node scripts/build-prompt2b-18-section-review.mjs
+          node scripts/prompt2b-acceptance-verify.mjs final
+          python3 scripts/prompt2b-final-package.py
+          test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD"
+          test "$(git ls-remote origin refs/heads/$QELLY_REVIEW_BRANCH | cut -f1)" = "$QELLY_REVIEW_HEAD"
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-prompt2b-final-18-section-review-${{ env.QELLY_REVIEW_HEAD }}
           path: |
             qelly-prompt2b-final-18-section-review.zip
             qelly-prompt2b-final-18-section-review.zip.sha256
             qelly-prompt2b-final-18-section-review.metadata.json
             .prompt2b-review
           include-hidden-files: true
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 30
