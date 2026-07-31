@@ -1,1 +1,153 @@
-PLACEHOLDER
+/* Qelly Prompt 2B — world-class UI/UX convergence layer
+   Shared presentation only. Numerical, persistence, API and schema behavior are unchanged. */
+:root{
+  --q-wc-reading:72ch;
+  --q-wc-touch:44px;
+  --q-wc-radius-xs:8px;
+  --q-wc-radius-sm:12px;
+  --q-wc-radius-md:16px;
+  --q-wc-radius-lg:22px;
+  --q-wc-shadow-sm:0 1px 2px color-mix(in srgb,var(--q-chrome) 8%,transparent),0 8px 24px color-mix(in srgb,var(--q-chrome) 6%,transparent);
+  --q-wc-shadow-md:0 1px 2px color-mix(in srgb,var(--q-chrome) 10%,transparent),0 18px 48px color-mix(in srgb,var(--q-chrome) 9%,transparent);
+  --q-wc-hairline:color-mix(in srgb,var(--q-border) 72%,transparent);
+  --q-wc-accent-soft:color-mix(in srgb,var(--q-accent) 9%,var(--q-surface));
+  --q-wc-positive-soft:color-mix(in srgb,var(--q-positive) 10%,var(--q-surface));
+  --q-wc-negative-soft:color-mix(in srgb,var(--q-negative) 9%,var(--q-surface));
+  --q-wc-info-soft:color-mix(in srgb,var(--q-cached) 10%,var(--q-surface));
+}
+html{scroll-padding-top:118px;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
+body{overflow-x:hidden}
+#main{container-type:inline-size;isolation:isolate;padding-inline:clamp(14px,2.2vw,38px);padding-block-start:clamp(18px,2vw,30px);padding-block-end:max(76px,calc(62px + env(safe-area-inset-bottom,0px)))}
+#main>*{min-width:0}
+.q-page{max-width:1640px}
+.q-page>*,.q-panel>*,.q-panel-body>*,.q-dashboard-grid>*,.q-calculator-body>*{min-width:0}
+.q-page-head{padding-bottom:18px;border-bottom:1px solid var(--q-wc-hairline);margin-bottom:clamp(18px,2vw,26px)}
+.q-page-head h1{max-width:24ch;text-wrap:balance}
+.q-page-head p{max-width:var(--q-wc-reading);text-wrap:pretty}
+.q-eyebrow{display:inline-flex;align-items:center;gap:7px}
+.q-eyebrow:before{content:"";inline-size:18px;block-size:2px;border-radius:999px;background:var(--q-accent)}
+.q-button,.q-icon-button,.q-command-trigger,.q-nav-link,.q-calculator-list-item,.q-state-control select,input,select,textarea{min-height:var(--q-wc-touch)}
+.q-button{border-radius:var(--q-wc-radius-xs);padding-inline:15px;transition:border-color .16s ease,background-color .16s ease,box-shadow .16s ease,transform .16s ease}
+.q-button:not(:disabled):active{transform:translateY(1px)}
+.q-button--primary{box-shadow:0 8px 20px color-mix(in srgb,var(--q-accent) 22%,transparent)}
+.q-button--primary:hover{box-shadow:0 10px 26px color-mix(in srgb,var(--q-accent) 30%,transparent)}
+.q-icon-button{min-width:var(--q-wc-touch);border-radius:var(--q-wc-radius-xs)}
+.q-panel,.q-kpi,.q-saved-card,.q-result-priority,.q-context-block{border-color:var(--q-wc-hairline);box-shadow:var(--q-wc-shadow-sm)}
+.q-panel{border-radius:var(--q-wc-radius-md);overflow:clip}
+.q-panel-head{min-height:58px;padding:15px 18px}
+.q-panel-head h2{font-size:15px;letter-spacing:-.012em}
+.q-panel-body{padding:clamp(15px,1.7vw,22px)}
+.q-kpi{border-radius:var(--q-wc-radius-md);padding:18px;min-height:126px}
+.q-kpi-value{font-variant-numeric:tabular-nums}
+.q-state-banner{border-radius:var(--q-wc-radius-sm);padding:13px 15px;align-items:flex-start}
+.q-status{min-height:22px;padding-inline:8px}
+.q-grid-scroll{overscroll-behavior:contain;scrollbar-gutter:stable}
+.q-data-grid th,.q-data-grid td{padding-inline:12px}
+.q-data-grid tbody tr:focus-within,.q-data-grid tbody tr:hover{background:color-mix(in srgb,var(--q-accent) 4%,var(--q-surface))}
+.q-setting input:not([type="range"]):not([type="color"]),.q-setting textarea,.q-calculator-inputs textarea,.q-india-finance-page textarea,.q-indicator-page textarea{border-radius:var(--q-wc-radius-sm);line-height:1.6}
+.q-setting input:focus,.q-setting textarea:focus,.q-calculator-inputs textarea:focus,.q-india-finance-page textarea:focus,.q-indicator-page textarea:focus{border-color:var(--q-accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--q-accent) 13%,transparent)}
+.q-worldclass-context{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;margin:0 0 18px;padding:14px 16px;border:1px solid var(--q-wc-hairline);border-radius:var(--q-wc-radius-md);background:linear-gradient(135deg,var(--q-surface),var(--q-wc-accent-soft));box-shadow:var(--q-wc-shadow-sm)}
+.q-worldclass-context__main{display:grid;gap:9px;min-width:0}
+.q-worldclass-breadcrumb{display:flex;align-items:center;flex-wrap:wrap;gap:7px;color:var(--q-muted);font-size:10px;font-weight:700;letter-spacing:.035em;text-transform:uppercase}
+.q-worldclass-breadcrumb a{text-decoration:none;color:inherit;border-radius:5px;padding:2px 3px}
+.q-worldclass-breadcrumb a:hover,.q-worldclass-breadcrumb a:focus-visible{color:var(--q-accent);background:color-mix(in srgb,var(--q-accent) 8%,transparent)}
+.q-worldclass-breadcrumb span[aria-hidden]{opacity:.55}
+.q-worldclass-purpose{margin:0;max-width:82ch;color:var(--q-text);font-size:12px;line-height:1.55;text-wrap:pretty}
+.q-worldclass-truth{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.q-worldclass-truth-chip{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:4px 9px;border:1px solid var(--q-wc-hairline);border-radius:999px;background:var(--q-surface);font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.q-worldclass-truth-chip:before{content:"";inline-size:6px;block-size:6px;border-radius:50%;background:var(--q-cached)}
+.q-worldclass-truth-chip[data-tone="deterministic"]:before{background:var(--q-positive)}
+.q-worldclass-truth-chip[data-tone="user"]:before{background:var(--q-delayed)}
+.q-worldclass-truth-chip[data-tone="unavailable"]:before{background:var(--q-unavailable)}
+.q-worldclass-truth-chip[data-tone="simulated"]:before{background:var(--q-simulated)}
+.q-worldclass-context__aside{display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;justify-content:flex-end;max-width:410px}
+.q-worldclass-related{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.q-worldclass-related a{display:inline-flex;align-items:center;min-height:34px;padding:5px 10px;border:1px solid var(--q-wc-hairline);border-radius:999px;background:var(--q-surface);font-size:10px;font-weight:700;text-decoration:none}
+.q-worldclass-related a:hover,.q-worldclass-related a:focus-visible{border-color:var(--q-accent);color:var(--q-accent)}
+.q-worldclass-method{position:relative}
+.q-worldclass-method summary{list-style:none;display:inline-flex;align-items:center;min-height:34px;padding:5px 10px;border:1px solid var(--q-wc-hairline);border-radius:999px;background:var(--q-surface);font-size:10px;font-weight:800;cursor:pointer}
+.q-worldclass-method summary::-webkit-details-marker{display:none}
+.q-worldclass-method[open] summary{border-color:var(--q-accent);color:var(--q-accent)}
+.q-worldclass-method__panel{position:absolute;right:0;top:42px;z-index:34;width:min(390px,calc(100vw - 32px));padding:14px;border:1px solid var(--q-wc-hairline);border-radius:var(--q-wc-radius-sm);background:var(--q-surface);box-shadow:var(--q-wc-shadow-md)}
+.q-worldclass-method__panel dl{display:grid;grid-template-columns:92px 1fr;gap:8px 10px;margin:0;font-size:11px;line-height:1.45}
+.q-worldclass-method__panel dt{color:var(--q-muted);font-weight:700}
+.q-worldclass-method__panel dd{margin:0;overflow-wrap:anywhere}
+.q-calculator-page,.q-india-finance-page,.q-indicator-page,.q-formula-library-page,.q-saved-calculations-page,.q-formula-detail-page,.q-indicator-detail-page,.q-calculator-detail-page,.q-saved-detail-page{display:grid;gap:var(--q-gap)}
+.q-calculator-layout{grid-template-columns:minmax(260px,310px) minmax(0,1fr);gap:clamp(16px,2vw,26px)}
+.q-calculator-catalog{top:118px;border-radius:var(--q-wc-radius-md)}
+.q-calculator-list-item{min-height:58px;border-radius:var(--q-wc-radius-sm);padding:12px 14px}
+.q-calculator-list-item.is-active{background:linear-gradient(90deg,var(--q-wc-accent-soft),var(--q-surface));box-shadow:inset 3px 0 0 var(--q-accent),var(--q-wc-shadow-sm)}
+.q-calculator-body{grid-template-columns:minmax(270px,.84fr) minmax(360px,1.16fr);gap:clamp(16px,2vw,26px)}
+.q-calculator-results{position:relative}
+.q-result-priority{border-radius:var(--q-wc-radius-md);background:linear-gradient(145deg,var(--q-wc-accent-soft),var(--q-surface));box-shadow:var(--q-wc-shadow-md)}
+.q-result-priority h3{font-variant-numeric:tabular-nums}
+.q-result-actions,.q-calculator-actions{display:flex;gap:8px;align-items:center}
+.q-methodology pre,.q-calculator-results pre,.q-saved-card pre,.q-india-finance-page pre{border-radius:var(--q-wc-radius-sm);background:color-mix(in srgb,var(--q-surface-alt) 82%,var(--q-canvas));scrollbar-gutter:stable}
+.q-india-grid{gap:clamp(16px,2vw,26px)}
+.q-saved-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:18px}
+.q-saved-card{border-radius:var(--q-wc-radius-md);padding:20px;transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease}
+.q-saved-card:hover{border-color:color-mix(in srgb,var(--q-accent) 42%,var(--q-border));box-shadow:var(--q-wc-shadow-md);transform:translateY(-1px)}
+.q-indicator-mini-chart{border-radius:var(--q-wc-radius-md);background:linear-gradient(180deg,var(--q-surface-alt),var(--q-surface))}
+.q-spark-bars span{min-width:3px;background:linear-gradient(180deg,var(--q-positive),var(--q-accent))}
+.q-formula-detail-page .q-panel,.q-indicator-detail-page .q-panel,.q-calculator-detail-page .q-panel,.q-saved-detail-page .q-panel{scroll-margin-top:126px}
+html[data-preview-state="loading"] #main .q-panel-body{position:relative;overflow:hidden}
+html[data-preview-state="loading"] #main .q-panel-body:after{content:"Loading current evidence…";display:grid;place-items:center;min-height:92px;border-radius:var(--q-wc-radius-sm);background:linear-gradient(90deg,var(--q-surface-alt),var(--q-wc-accent-soft),var(--q-surface-alt));background-size:220% 100%;font-size:11px;font-weight:700;color:var(--q-muted);animation:q-wc-shimmer 1.6s linear infinite}
+html[data-preview-state="offline"] .q-worldclass-context{border-left:4px solid var(--q-unavailable)}
+html[data-preview-state="error"] .q-worldclass-context{border-left:4px solid var(--q-negative)}
+html[data-preview-state="stale"] .q-worldclass-context{border-left:4px solid var(--q-stale)}
+@keyframes q-wc-shimmer{to{background-position:-220% 0}}
+@container (max-width:900px){
+  .q-worldclass-context{grid-template-columns:1fr}
+  .q-worldclass-context__aside,.q-worldclass-related{justify-content:flex-start;max-width:none}
+  .q-worldclass-method__panel{left:0;right:auto}
+  .q-calculator-layout,.q-calculator-body{grid-template-columns:1fr}
+  .q-calculator-catalog{position:static;max-height:none}
+  .q-calculator-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:900px){
+  .q-command-bar{gap:9px;padding-inline:10px}
+  .q-workspace-switcher{min-width:0;flex:1}
+  .q-workspace-switcher small{display:none}
+  .q-command-trigger{order:3;flex-basis:100%;max-width:none}
+  .q-command-actions{gap:6px}
+  .q-state-control{min-height:40px}
+  #main{padding-inline:clamp(12px,3vw,22px)}
+  .q-page-head{display:grid;grid-template-columns:1fr}
+  .q-page-actions{justify-content:flex-start}
+  .q-dashboard-grid,.q-kpi-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:680px){
+  :root{--q-wc-touch:46px}
+  html{scroll-padding-top:82px}
+  #main{padding-top:14px;padding-bottom:max(108px,calc(92px + env(safe-area-inset-bottom,0px)))}
+  .q-global-strip{height:30px;padding-inline:10px}.q-brand-mark{min-width:0}.q-brand-mark strong{font-size:9px}.q-macro-strip{display:none}.q-truth-chip>span:last-child{display:none}
+  .q-command-bar{top:30px;height:auto;min-height:56px;flex-wrap:wrap;padding-block:8px}
+  .q-command-trigger{height:42px}.q-command-trigger kbd{display:none}.q-command-actions .q-state-control{display:none}
+  .q-page-head h1{font-size:clamp(25px,8vw,34px)}
+  .q-page-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}.q-page-actions .q-button{width:100%}
+  .q-worldclass-context{padding:13px;gap:12px;border-radius:var(--q-wc-radius-sm)}
+  .q-worldclass-related a,.q-worldclass-method summary{min-height:40px}
+  .q-worldclass-method{width:100%}.q-worldclass-method summary{width:100%;justify-content:center}.q-worldclass-method__panel{position:static;width:100%;margin-top:8px}
+  .q-worldclass-method__panel dl{grid-template-columns:1fr}.q-worldclass-method__panel dt{margin-top:4px}
+  .q-dashboard-grid,.q-kpi-grid,.q-india-grid{grid-template-columns:1fr}
+  .q-calculator-list{grid-template-columns:1fr}
+  .q-calculator-list-item{min-height:64px}
+  .q-result-actions,.q-calculator-actions{display:grid;grid-template-columns:1fr 1fr}.q-result-actions .q-button,.q-calculator-actions .q-button{width:100%}
+  .q-saved-grid{grid-template-columns:1fr}
+  .q-saved-card{padding:16px}
+  .q-panel-head{align-items:flex-start;flex-direction:column}
+  .q-grid-scroll{max-height:none;overflow:auto}
+  .q-data-grid table{font-size:12px}
+  .q-mobile-navigation a,.q-mobile-navigation button{min-width:48px;min-height:48px}
+}
+@media(max-width:420px){
+  .q-page-actions,.q-result-actions,.q-calculator-actions{grid-template-columns:1fr}
+  .q-worldclass-truth{display:grid;grid-template-columns:1fr 1fr}.q-worldclass-truth-chip{white-space:normal;line-height:1.25}
+  .q-kpi{min-height:108px}
+}
+@media(prefers-reduced-motion:reduce){
+  .q-button,.q-panel,.q-saved-card,.q-calculator-list-item,.q-worldclass-context{transition:none!important;animation:none!important;transform:none!important}
+  html{scroll-behavior:auto}
+}
+html[data-appearance="high-contrast"] .q-worldclass-context,html[data-appearance="high-contrast"] .q-panel,html[data-appearance="high-contrast"] .q-saved-card{border-width:2px;box-shadow:none}
+html[data-appearance="light"] .q-worldclass-context{background:linear-gradient(135deg,#fff,color-mix(in srgb,var(--q-accent) 6%,#fff))}
