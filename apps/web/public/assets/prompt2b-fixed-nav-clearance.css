@@ -1,0 +1,6 @@
+/* Prompt 2B fixed-navigation clearance.
+   Native scroll-to-element and keyboard focus must stop above the governed mobile navigation. */
+@media(max-width:920px){
+  html,body{scroll-padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+  #main :is(button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),a[href]){scroll-margin-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+}
