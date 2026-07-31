@@ -1,8 +1,21 @@
 {
   "schemaVersion": 1,
-  "mode": "focused",
-  "checkpoint": "e514d4c8adfd4c3405d570ff9de923ebf88d65c0",
-  "purpose": "Validate the stable one-click geometry and normalized assertion signatures on the exact affected indicator-detail shards before returning to the immutable full acceptance matrix.",
+  "mode": "acceptance",
+  "checkpoint": "3469e21bbb7fda993faa1ae6ee0d291b915c78b5",
+  "purpose": "Run the immutable complete exact-head acceptance matrix after the corrected indicator-detail focused gate passed 216/216 browser cases and 2/2 accessibility checks with zero failures, retries or forced clicks.",
+  "priorFocusedGate": {
+    "head": "3469e21bbb7fda993faa1ae6ee0d291b915c78b5",
+    "runId": 30629827664,
+    "browserCases": 216,
+    "browserPassed": 216,
+    "browserFailed": 0,
+    "accessibilityChecks": 2,
+    "accessibilityPassed": 2,
+    "accessibilityFailed": 0,
+    "retries": 0,
+    "forcedClicks": 0,
+    "status": "PASSED_FOCUSED_NOT_ACCEPTANCE"
+  },
   "focus": {
     "browserShards": [
       { "browser": "chromium", "route": "indicator-detail" },
