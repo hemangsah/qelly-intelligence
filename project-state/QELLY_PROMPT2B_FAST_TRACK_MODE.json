@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "mode": "focused",
+  "checkpoint": "4a733ae29c499a8be3dc6751ad95ec97e1b969df",
+  "purpose": "Validate the new durable shard harness on representative action, navigation-clearance and long-content routes before the immutable full acceptance matrix.",
+  "focus": {
+    "browserShards": [
+      { "browser": "chromium", "route": "calculator-center" },
+      { "browser": "chromium", "route": "formula-library" },
+      { "browser": "chromium", "route": "saved-calculation-detail" },
+      { "browser": "firefox", "route": "calculator-center" },
+      { "browser": "firefox", "route": "formula-library" },
+      { "browser": "firefox", "route": "saved-calculation-detail" },
+      { "browser": "webkit", "route": "calculator-center" },
+      { "browser": "webkit", "route": "formula-library" },
+      { "browser": "webkit", "route": "saved-calculation-detail" }
+    ],
+    "a11yRoutes": [
+      "calculator-center",
+      "formula-library",
+      "saved-calculation-detail"
+    ]
+  },
+  "acceptanceContract": {
+    "browserShards": 27,
+    "casesPerBrowserShard": 72,
+    "browserCases": 1944,
+    "accessibilityShards": 27,
+    "checksPerAccessibilityShard": 2,
+    "accessibilityChecks": 54,
+    "failFast": false,
+    "retries": 0,
+    "forcedClicks": 0
+  }
+}
