@@ -54,7 +54,6 @@ jobs:
           npm run validate:brand
           mv baseline-src ../qelly-baseline-src
           npm run security:scan
-          mv ../qelly-baseline-src baseline-src
           npm test
           npm run build
           QELLY_STATIC_VISUAL_PREVIEW=true QELLY_PUBLIC_BASE_PATH=/qelly-intelligence/ npm run build:frontend
@@ -66,6 +65,7 @@ jobs:
           npm run release:check
           npm audit --audit-level=high
           git diff --check
+          mv ../qelly-baseline-src baseline-src
       - name: Build accepted baseline frontend
         working-directory: baseline-src
         run: QELLY_STATIC_VISUAL_PREVIEW=true QELLY_PUBLIC_BASE_PATH=/qelly-intelligence/ npm run build:frontend
