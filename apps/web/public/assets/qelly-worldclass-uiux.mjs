@@ -98,10 +98,37 @@ const renderGovernedFrame=async()=>{
   delete root.dataset.worldclassOverlay;
   return false;
 };
+
+const themeStudioControlLabels={
+  '[data-ti-schedule="lightAt"]':'Light appearance start time',
+  '[data-ti-schedule="darkAt"]':'Dark appearance start time',
+  '[data-ti-schedule="latitude"]':'Latitude',
+  '[data-ti-schedule="longitude"]':'Longitude',
+  '[data-ti-accent]':'Custom accent colour',
+  '[data-ti-range="accentIntensity"]':'Accent intensity',
+  '[data-ti-select="persona"]':'Persona',
+  '[data-ti-select="mindset"]':'Mindset',
+  '[data-ti-select="alphaIntensity"]':'Aggressive Alpha level',
+  '[data-ti-select="alphaPack"]':'Visual pack',
+  '[data-ti-select="tableDensity"]':'Table density',
+  '[data-ti-select="dataEmphasis"]':'Data emphasis',
+  '[data-ti-select="marketPalette"]':'Market palette',
+  '[data-ti-select="borderVisibility"]':'Borders',
+  '[data-ti-select="selectedStrength"]':'Selected state',
+  '[data-ti-select="focusStyle"]':'Focus style',
+  '[data-ti-select="motion"]':'Motion'
+};
+const enhanceThemeStudioControls=()=>{
+  for(const [selector,label] of Object.entries(themeStudioControlLabels)){
+    main.querySelector(selector)?.setAttribute('aria-label',label);
+  }
+};
+
 const enhance=async()=>{
   if(!main||main.getAttribute('aria-busy')==='true'||!main.firstElementChild)return;
   if(await renderGovernedFrame())return;
   const {route}=parseHash();
+  if(route==='theme-lab')enhanceThemeStudioControls();
   const definition=routeByKey.get(route)??{route,label:route.replaceAll('-',' '),domain:domainForRoute(route),kind:'analytical'};
   if(main.dataset.worldclassRoute===route&&main.querySelector(':scope > .q-worldclass-context'))return;
   main.querySelector(':scope > .q-worldclass-context')?.remove();
