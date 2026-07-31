@@ -23,7 +23,7 @@ jobs:
           persist-credentials: true
       - name: Guard protected source and apply exact harness correction
         env:
-          EXPECTED_HEAD: 336a556c552e0be7894745f5bf04a3f04c4b9da1
+          EXPECTED_HEAD: cb85761b3ff9928aae8cfdada9f4be67985de97c
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
