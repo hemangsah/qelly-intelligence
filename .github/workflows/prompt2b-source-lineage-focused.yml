@@ -1,0 +1,50 @@
+name: Qelly Prompt 2B Exact Source Lineage Focused Review
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+permissions: read-all
+concurrency:
+  group: qelly-prompt2b-source-lineage-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+env:
+  QELLY_REVIEW_HEAD: ${{ github.event.pull_request.head.sha }}
+  QELLY_REVIEW_BRANCH: ${{ github.event.pull_request.head.ref }}
+jobs:
+  source-lineage-focused:
+    if: github.event.pull_request.head.ref == 'feature/calculator-and-indicator-foundation'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: '${{ env.QELLY_REVIEW_HEAD }}', fetch-depth: 0, persist-credentials: false}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: '22', cache: npm}
+      - name: Guard exact head and validate generator
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD"
+          test "$(git ls-remote origin refs/heads/$QELLY_REVIEW_BRANCH | cut -f1)" = "$QELLY_REVIEW_HEAD"
+          npm ci --ignore-scripts
+          node --check scripts/build-prompt2b-source-manifest.mjs
+          node --check scripts/build-prompt2b-18-section-review.mjs
+          node scripts/build-prompt2b-source-manifest.mjs
+          node --input-type=module <<'NODE'
+          import {readFile} from 'node:fs/promises';
+          const manifest=JSON.parse(await readFile('project-state/QELLY_PROMPT2B_SOURCE_MANIFEST.json','utf8'));
+          if(manifest.exactHead!==process.env.QELLY_REVIEW_HEAD) throw new Error(`manifest-head:${manifest.exactHead}`);
+          if(manifest.baseMain!=='9cb98780893924ad26fbf4baaa9048e80a162b2c') throw new Error('base-main');
+          if(manifest.allFetchedBackVerified!==true) throw new Error('fetched-back');
+          if(manifest.requiredFiles.missing.length!==0) throw new Error('required-missing');
+          if(manifest.fileCount<113) throw new Error(`file-count:${manifest.fileCount}`);
+          console.log(JSON.stringify({status:'passed',head:manifest.exactHead,fileCount:manifest.fileCount,aggregateSha256:manifest.aggregateSha256,missing:0},null,2));
+          NODE
+          git diff --check
+          test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD"
+          test "$(git ls-remote origin refs/heads/$QELLY_REVIEW_BRANCH | cut -f1)" = "$QELLY_REVIEW_HEAD"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-prompt2b-source-lineage-focused-${{ env.QELLY_REVIEW_HEAD }}
+          path: project-state/QELLY_PROMPT2B_SOURCE_MANIFEST.json
+          if-no-files-found: error
+          retention-days: 30
