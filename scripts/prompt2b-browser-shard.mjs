@@ -101,7 +101,7 @@ try {
           reasons.push(`case-exception:${error?.name ?? 'Error'}`);
         }
         const uniqueReasons = [...new Set(reasons)].sort();
-        const failureSignature = uniqueReasons.length ? sha256(Buffer.from(JSON.stringify({ browserName, routeKey, width, height, appearance: theme.label, motion, reasons: uniqueReasons, exceptions: exceptions.map(item => ({ name: item.name, message: item.message })) }))) : null;
+        const failureSignature = uniqueReasons.length ? sha256(Buffer.from(JSON.stringify({ reasons: uniqueReasons, exceptions: exceptions.map(item => ({ name: item.name, message: item.message })) }))) : null;
         const screenshotNeeded = uniqueReasons.length > 0 || shouldCaptureRepresentative(width, theme.label, motion);
         if (screenshotNeeded && page) {
           const file = path.join(screenshotsDir, `${safeCase}.png`);
