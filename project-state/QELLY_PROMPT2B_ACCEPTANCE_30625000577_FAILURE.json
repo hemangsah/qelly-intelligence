@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "repository": "hemangsah/qelly-intelligence",
+  "pullRequest": 23,
+  "testedHead": "e514d4c8adfd4c3405d570ff9de923ebf88d65c0",
+  "runId": 30625000577,
+  "workflow": "Qelly Prompt 2B Controlled Fast Track",
+  "status": "FAILED_FRESH_STRUCTURED_EVIDENCE",
+  "browserAggregateArtifact": {
+    "artifactId": 8791198669,
+    "filename": "qelly-prompt2b-browser-aggregate-e514d4c8adfd4c3405d570ff9de923ebf88d65c0",
+    "bytes": 185131131,
+    "sha256": "c91011fd7a384f7d307a2c160d95638dfa963586ef7401ac939f9bbbdd0a7262",
+    "entries": 445,
+    "zipCrc": "CLEAN",
+    "exactHeadMatched": true
+  },
+  "accessibilityAggregateArtifact": {
+    "artifactId": 8791100979,
+    "sha256": "9e062482c8e366c514c894f802ece675a371eb5b926bc815d81a0a757d82eac1",
+    "checks": 54,
+    "failed": 0
+  },
+  "browserMatrix": {
+    "expected": 1944,
+    "records": 1944,
+    "passed": 1856,
+    "failed": 88,
+    "retries": 0,
+    "forcedClicks": 0,
+    "performanceFailures": 0,
+    "themeFailures": 0
+  },
+  "failureReconciliation": {
+    "normalizedRootCauses": 1,
+    "assertion": "indicator-detail-save trusted pointer proof missing",
+    "classification": "TEST_HARNESS_TIMING",
+    "route": "indicator-detail",
+    "motions": ["full"],
+    "browsers": {"chromium": 36, "firefox": 16, "webkit": 36},
+    "themes": {"dark": 22, "porcelain-light": 22, "oled": 22, "high-contrast": 22},
+    "firstFailingCase": "chromium|indicator-detail|360x800|dark|full",
+    "lastFailingCase": "webkit|indicator-detail|1920x1080|high-contrast|full",
+    "reducedMotionIndicatorDetail": "108/108 PASSED",
+    "allOtherRoutes": "PASSED",
+    "evidence": "The target was visible, enabled and unobstructed. The route reveal and magnetic full-motion geometry continued moving between the absolute pre-click hit-test and mouse-up, so the proof listener received no click event. The save handler, numerical catalog, persistence data and reduced-motion path were not defective."
+  },
+  "corrections": [
+    {
+      "commit": "f7f3d288a7ee807d57576a95f9071d272c491575",
+      "type": "HARNESS_ONLY",
+      "change": "Require stable action geometry, align pointer without clicking, and perform exactly one trusted mouse down/up with no retry or force."
+    },
+    {
+      "commit": "c1d8bd6110894da5458c2e001107c294dc7e5e40",
+      "type": "HARNESS_ONLY",
+      "change": "Normalize failure signatures from assertion reasons and exception name/message only, excluding case dimensions."
+    }
+  ],
+  "immutableRefs": [
+    "recovery/prompt2b-pre-indicator-action-e514d4c8",
+    "evidence/prompt2b-acceptance-30625000577-e514d4c8"
+  ],
+  "preserved": {
+    "formulas": 151,
+    "indicators": 54,
+    "formulaAggregateSha256": "3c7ac72e4ab6e5383e5e9aae90cc74508113c8d4c636c2efb7500df4ed49a98f",
+    "indicatorAggregateSha256": "3071eaac2a6a6dae24c8155a766e1db1ce8d26a2e6bf6ae30fb1ac594156087a",
+    "routes": 70,
+    "governedScreens": 429,
+    "apiContracts": 202,
+    "schemas": 72,
+    "smokeRequests": 290,
+    "migration": 108
+  },
+  "nextAction": "Run the three corrected indicator-detail browser shards and two indicator-detail accessibility checks. If zero-failure, restore acceptance mode and execute the complete immutable 1944-browser and 54-accessibility gate."
+}
