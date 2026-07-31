@@ -64,16 +64,51 @@ export const applyThemeAndMotion = async (page, theme, motion) => {
   await page.evaluate(async () => { await document.fonts?.ready; });
   await twoFrames(page);
 };
+const waitForStableActionBox = async (page, action, selector, actionName) => {
+  let previous = null;
+  let stableFrames = 0;
+  let largestDelta = 0;
+  for (let sample = 1; sample <= 90; sample += 1) {
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(resolve)));
+    const box = await action.boundingBox();
+    if (!box) throw new Error(`No box for ${selector}`);
+    if (previous) {
+      const delta = Math.max(
+        Math.abs(box.x - previous.x), Math.abs(box.y - previous.y),
+        Math.abs(box.width - previous.width), Math.abs(box.height - previous.height)
+      );
+      largestDelta = Math.max(largestDelta, delta);
+      stableFrames = delta <= .25 ? stableFrames + 1 : 0;
+      if (stableFrames >= 4) return { box, samples: sample, stableFrames, largestDelta: Number(largestDelta.toFixed(3)) };
+    }
+    previous = box;
+  }
+  throw new Error(`${actionName} action box did not stabilize`);
+};
 export const clickTrustedAction = async (page, selector, actionName) => {
   const action = page.locator(selector);
   await action.waitFor({ state: 'visible', timeout: 10000 });
   if (!await action.isEnabled()) throw new Error(`${actionName} action is disabled`);
   await action.evaluate(element => element.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' }));
+  const initialStability = await waitForStableActionBox(page, action, selector, actionName);
+  let x = initialStability.box.x + initialStability.box.width / 2;
+  let y = initialStability.box.y + initialStability.box.height / 2;
+  await page.mouse.move(x, y);
+  const hoverStability = await waitForStableActionBox(page, action, selector, actionName);
+  x = hoverStability.box.x + hoverStability.box.width / 2;
+  y = hoverStability.box.y + hoverStability.box.height / 2;
+  await page.mouse.move(x, y);
   await twoFrames(page);
-  const box = await action.boundingBox();
-  if (!box) throw new Error(`No box for ${selector}`);
-  const x = box.x + box.width / 2;
-  const y = box.y + box.height / 2;
+  const finalBox = await action.boundingBox();
+  if (!finalBox) throw new Error(`No box for ${selector}`);
+  const finalX = finalBox.x + finalBox.width / 2;
+  const finalY = finalBox.y + finalBox.height / 2;
+  if (Math.abs(finalX - x) > .25 || Math.abs(finalY - y) > .25) {
+    x = finalX;
+    y = finalY;
+    await page.mouse.move(x, y);
+    await twoFrames(page);
+  }
   const hit = await page.evaluate(({ x, y, selector }) => {
     const target = document.querySelector(selector);
     const at = document.elementFromPoint(x, y);
@@ -97,7 +132,8 @@ export const clickTrustedAction = async (page, selector, actionName) => {
     document.addEventListener('click', handler, true);
     window.__qellyReviewActionCleanup = () => document.removeEventListener('click', handler, true);
   }, { selector, actionName, token });
-  await page.mouse.click(x, y, { button: 'left', clickCount: 1 });
+  await page.mouse.down({ button: 'left' });
+  await page.mouse.up({ button: 'left' });
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(resolve)));
   const proof = await page.evaluate(token => {
     const raw = document.documentElement.getAttribute('data-qelly-review-action');
@@ -112,7 +148,7 @@ export const clickTrustedAction = async (page, selector, actionName) => {
     }
   }, token);
   if (!proof?.isTrusted) throw new Error(`${actionName} trusted pointer proof missing`);
-  return { selector, actionName, token, isTrusted: true, clickCount: 1, forced: false, hit };
+  return { selector, actionName, token, isTrusted: true, clickCount: 1, forced: false, hit, stability: { initial: initialStability, hover: hoverStability } };
 };
 export const performRouteAction = async (page, key) => {
   if (key === 'calculator-center') {
