@@ -1,0 +1,56 @@
+name: Qelly Prompt 2B Failure Diagnostic Audit
+
+on:
+  push:
+    branches:
+      - audit/prompt2b-failure-recovery-eb559adb
+
+permissions: read-all
+
+concurrency:
+  group: qelly-prompt2b-diagnostic-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  diagnose-exact-matrix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      QELLY_REVIEW_HEAD: ${{ github.sha }}
+    steps:
+      - name: Check out exact audit head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies and browser engines
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium firefox webkit
+      - name: Build exact disconnected frontend
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD"
+          QELLY_STATIC_VISUAL_PREVIEW=true QELLY_PUBLIC_BASE_PATH=/qelly-intelligence/ npm run build:frontend
+          npm run validate:pages-preview
+          npm run smoke:pages-preview
+      - name: Run unchanged 1944-case matrix with incremental diagnostics
+        run: |
+          set -euo pipefail
+          node scripts/prompt2b-failure-diagnostic.mjs
+      - name: Upload complete diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-prompt2b-failure-diagnostic-eb559adb
+          path: .prompt2b-review
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
