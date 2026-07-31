@@ -1,33 +1,33 @@
 {
   "schemaVersion": 1,
-  "mode": "acceptance",
-  "checkpoint": "4a700270857542cdfcc03e6a74626651ea232430",
-  "purpose": "Run the complete immutable pre-design acceptance matrix after the saved-calculation lifecycle, compact share payload, quoted CSV assertion and affected route checks completed with zero failures, retries or forced clicks.",
-  "priorFocusedGate": {
-    "head": "4a700270857542cdfcc03e6a74626651ea232430",
-    "controlledRunId": 30640195602,
-    "savedActionRunId": 30640195491,
-    "savedActionJobId": 91187879204,
-    "savedActionArtifactId": 8797095609,
-    "browserCases": 72,
-    "browserPassed": 72,
+  "mode": "focused",
+  "checkpoint": "a3a9b0f049c4a62f1710db1b29eb90bc6f778059",
+  "purpose": "Validate exact-head source-lineage materialization after the complete 1,944-browser, 54-accessibility and 19-action evidence passed but the final 18-section package was blocked by an ancestor-bound committed manifest.",
+  "priorAcceptanceEvidence": {
+    "head": "a3a9b0f049c4a62f1710db1b29eb90bc6f778059",
+    "runId": 30641398074,
+    "browserArtifactId": 8798416642,
+    "accessibilityArtifactId": 8797870765,
+    "retainedFinalArtifactId": 8798436317,
+    "browserCases": 1944,
+    "browserPassed": 1944,
     "browserFailed": 0,
-    "accessibilityChecks": 2,
-    "accessibilityPassed": 2,
+    "accessibilityChecks": 54,
+    "accessibilityPassed": 54,
     "accessibilityFailed": 0,
     "savedActionEvidence": 19,
     "savedActionFailures": 0,
     "retries": 0,
     "forcedClicks": 0,
     "specialistWorkflows": "ALL_GREEN",
-    "status": "PASSED_FOCUSED_NOT_ACCEPTANCE"
+    "status": "GREEN_MATRIX_ACCEPTANCE_BLOCKED_BY_MANIFEST_HEAD_PACKAGING_DEFECT"
   },
   "focus": {
     "browserShards": [
-      { "browser": "chromium", "route": "saved-calculation-detail" }
+      { "browser": "chromium", "route": "calculator-center" }
     ],
     "a11yRoutes": [
-      "saved-calculation-detail"
+      "calculator-center"
     ]
   },
   "acceptanceContract": {
