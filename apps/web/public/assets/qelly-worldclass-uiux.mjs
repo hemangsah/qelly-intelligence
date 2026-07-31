@@ -53,8 +53,54 @@ const relationLinks=(current,domain,preferred=[])=>{
   return keys.map(key=>{const item=routeByKey.get(key);return `<a href="${hrefFor(key)}">${escapeHtml(item?.label??key.replaceAll('-',' '))}</a>`;}).join('');
 };
 const currentState=()=>document.querySelector('#state-selector')?.value??'default';
-const enhance=()=>{
+
+let governedCatalogPromise;
+const governedCatalog=()=>governedCatalogPromise??=fetch(new URL('./qelly-governed-screen-catalog.json',import.meta.url)).then(response=>{if(!response.ok)throw new Error(`Governed screen catalog unavailable: ${response.status}`);return response.json();});
+const governedRecord=async frameId=>(await governedCatalog()).records.find(item=>item.frame_id===frameId);
+const renderDesignFrame=async frameId=>{
+  if(!frameId||main.dataset.worldclassFrame===frameId)return false;
+  const record=await governedRecord(frameId);
+  if(!record||record.route!=='design-system')throw new Error(`Unknown governed design frame: ${frameId}`);
+  main.dataset.worldclassFrame=frameId;
+  main.dataset.worldclassRoute='theme-personas';
+  main.innerHTML=`<article class="q-page q-worldclass-showcase" data-worldclass-frame="${escapeHtml(frameId)}">
+    <section class="q-worldclass-context" aria-label="Governed design-system context"><div class="q-worldclass-context__main"><nav class="q-worldclass-breadcrumb" aria-label="Breadcrumb"><a href="#/feature-universe">Qelly</a><span aria-hidden="true">/</span><a href="#/theme-personas">Design system</a><span aria-hidden="true">/</span><span aria-current="page">${escapeHtml(frameId)}</span></nav><p class="q-worldclass-purpose">${escapeHtml(record.purpose)}</p><div class="q-worldclass-truth"><span class="q-worldclass-truth-chip" data-tone="deterministic">Governed foundation</span><span class="q-worldclass-truth-chip" data-tone="user">${escapeHtml(record.viewport)}</span></div></div></section>
+    <header class="q-page-head"><div><p class="q-eyebrow">${escapeHtml(record.page)}</p><h1>${escapeHtml(record.frame_name)}</h1><p>${escapeHtml(record.purpose)}</p></div></header>
+    <section class="q-dashboard-grid"><article class="q-panel"><div class="q-panel-head"><h2>Source and truth</h2><span class="q-status q-status--live">runtime mapped</span></div><div class="q-panel-body"><p>${escapeHtml(record.source_requirements)}</p><div class="q-state-banner"><strong>${escapeHtml(record.state)}</strong><p>Text, icon and theme-safe colour encode state without changing product truth.</p></div><div class="q-worldclass-truth"><span class="q-worldclass-truth-chip" data-tone="deterministic">${escapeHtml(record.viewport)}</span><span class="q-worldclass-truth-chip" data-tone="user">${escapeHtml(record.persona)}</span></div></div></article>
+      <article class="q-panel"><div class="q-panel-head"><h2>Interaction and accessibility</h2></div><div class="q-panel-body"><dl class="q-definition-grid"><dt>Interaction</dt><dd>${escapeHtml(record.interaction_notes)}</dd><dt>Responsive</dt><dd>${escapeHtml(record.responsive_notes)}</dd><dt>Accessibility</dt><dd>${escapeHtml(record.accessibility_notes)}</dd><dt>Backend</dt><dd>${escapeHtml(record.backend_dependencies)}</dd></dl></div></article></section>
+    <section class="q-panel"><div class="q-panel-head"><h2>Runtime component specimen</h2><span class="q-status q-status--cached">${escapeHtml(frameId)}</span></div><div class="q-panel-body"><div class="q-kpi-grid"><article class="q-kpi"><span>Primary evidence</span><strong>Verified</strong><small>Source, freshness and confidence remain visible.</small></article><article class="q-kpi"><span>Interaction</span><strong>44+ px</strong><small>Keyboard, pointer and touch behavior stay aligned.</small></article><article class="q-kpi"><span>Responsive</span><strong>9 viewports</strong><small>Native recomposition without horizontal dependence.</small></article><article class="q-kpi"><span>Motion</span><strong>Reduced ready</strong><small>Active targets never move during activation.</small></article></div><div class="q-page-actions"><button class="q-button q-button--primary" type="button">Primary action</button><button class="q-button" type="button">Secondary action</button><button class="q-icon-button" aria-label="Inspect evidence" type="button">i</button></div></div></section>
+  </article>`;
+  root.dataset.worldclassReady='true';
+  return true;
+};
+const renderOverlayFrame=async frameId=>{
+  if(!frameId)return false;
+  const record=await governedRecord(frameId);
+  if(!record||record.route!=='global-overlay')throw new Error(`Unknown governed overlay frame: ${frameId}`);
+  document.querySelectorAll('dialog[data-worldclass-overlay]').forEach(item=>item.remove());
+  const dialog=document.createElement('dialog');
+  dialog.className='q-dialog q-worldclass-overlay';
+  dialog.dataset.worldclassOverlay=frameId;
+  dialog.setAttribute('aria-labelledby',`${frameId}-title`);
+  dialog.innerHTML=`<div class="q-context-head"><div><p class="q-eyebrow">${escapeHtml(record.page)}</p><h2 id="${escapeHtml(frameId)}-title">${escapeHtml(record.frame_name)}</h2></div><button type="button" class="q-icon-button" aria-label="Close governed overlay">×</button></div><div class="q-panel-body"><p>${escapeHtml(record.purpose)}</p><div class="q-worldclass-truth"><span class="q-worldclass-truth-chip" data-tone="user">${escapeHtml(record.state)}</span><span class="q-worldclass-truth-chip" data-tone="deterministic">Runtime overlay</span></div><dl class="q-definition-grid"><dt>Source</dt><dd>${escapeHtml(record.source_requirements)}</dd><dt>Interaction</dt><dd>${escapeHtml(record.interaction_notes)}</dd><dt>Responsive</dt><dd>${escapeHtml(record.responsive_notes)}</dd><dt>Accessibility</dt><dd>${escapeHtml(record.accessibility_notes)}</dd><dt>Backend</dt><dd>${escapeHtml(record.backend_dependencies)}</dd></dl><div class="q-page-actions"><button type="button" class="q-button q-button--primary">Review current evidence</button><button type="button" class="q-button">Secondary action</button></div></div>`;
+  dialog.querySelector('[aria-label="Close governed overlay"]').addEventListener('click',()=>dialog.close());
+  document.body.append(dialog);
+  dialog.showModal();
+  root.dataset.worldclassOverlay=frameId;
+  return true;
+};
+const renderGovernedFrame=async()=>{
+  const {route,query}=parseHash();
+  const designFrame=query.get('designFrame'),overlayFrame=query.get('overlayFrame');
+  if(route==='theme-personas'&&designFrame)return renderDesignFrame(designFrame);
+  if(overlayFrame)return renderOverlayFrame(overlayFrame);
+  delete main.dataset.worldclassFrame;
+  delete root.dataset.worldclassOverlay;
+  return false;
+};
+const enhance=async()=>{
   if(!main||main.getAttribute('aria-busy')==='true'||!main.firstElementChild)return;
+  if(await renderGovernedFrame())return;
   const {route}=parseHash();
   const definition=routeByKey.get(route)??{route,label:route.replaceAll('-',' '),domain:domainForRoute(route),kind:'analytical'};
   if(main.dataset.worldclassRoute===route&&main.querySelector(':scope > .q-worldclass-context'))return;
@@ -101,8 +147,8 @@ const enhance=()=>{
   root.dataset.previewState=currentState();
 };
 let queued=false;
-const schedule=()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;enhance();});};
+const schedule=()=>{if(queued)return;queued=true;queueMicrotask(async()=>{queued=false;try{await enhance();}catch(error){console.error('Qelly world-class frame rendering failed',error);}});};
 new MutationObserver(schedule).observe(main,{childList:true,subtree:false,attributes:true,attributeFilter:['aria-busy']});
-window.addEventListener('hashchange',()=>{delete main.dataset.worldclassRoute;schedule();});
+window.addEventListener('hashchange',()=>{delete main.dataset.worldclassRoute;delete main.dataset.worldclassFrame;document.querySelectorAll('dialog[data-worldclass-overlay]').forEach(item=>item.remove());schedule();});
 document.querySelector('#state-selector')?.addEventListener('change',()=>{delete main.dataset.worldclassRoute;schedule();});
 schedule();
