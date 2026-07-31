@@ -1,30 +1,29 @@
 {
   "schemaVersion": 1,
-  "mode": "acceptance",
-  "checkpoint": "3ee3a67d1a6a80d3b5ac3723474c8a2adf438bc6",
-  "purpose": "Run the immutable complete exact-head acceptance matrix after the magnetic-coordinate correction passed all 216 affected browser cases and both indicator-detail accessibility checks with zero failures, retries or forced clicks.",
-  "priorFocusedGate": {
-    "head": "3ee3a67d1a6a80d3b5ac3723474c8a2adf438bc6",
-    "runId": 30631953341,
-    "browserCases": 216,
-    "browserPassed": 216,
+  "mode": "focused",
+  "checkpoint": "98663fd41bd9d2dc51fbe548ff3e9d01f8190865",
+  "purpose": "Validate the saved-calculation direct-refresh fixture correction on the affected route before one new complete immutable 1,944-browser and 54-accessibility acceptance matrix.",
+  "priorAcceptanceEvidence": {
+    "head": "98663fd41bd9d2dc51fbe548ff3e9d01f8190865",
+    "runId": 30632528652,
+    "browserCases": 1944,
+    "browserPassed": 1944,
     "browserFailed": 0,
-    "accessibilityChecks": 2,
-    "accessibilityPassed": 2,
+    "accessibilityChecks": 54,
+    "accessibilityPassed": 54,
     "accessibilityFailed": 0,
+    "savedActionStatus": "FAILED_FIXTURE_RESET_ON_RELOAD",
     "retries": 0,
     "forcedClicks": 0,
     "specialistWorkflows": "ALL_GREEN",
-    "status": "PASSED_FOCUSED_NOT_ACCEPTANCE"
+    "status": "GREEN_MATRIX_ACCEPTANCE_BLOCKED_BY_ONE_FIXTURE_DEFECT"
   },
   "focus": {
     "browserShards": [
-      { "browser": "chromium", "route": "indicator-detail" },
-      { "browser": "firefox", "route": "indicator-detail" },
-      { "browser": "webkit", "route": "indicator-detail" }
+      { "browser": "chromium", "route": "saved-calculation-detail" }
     ],
     "a11yRoutes": [
-      "indicator-detail"
+      "saved-calculation-detail"
     ]
   },
   "acceptanceContract": {
