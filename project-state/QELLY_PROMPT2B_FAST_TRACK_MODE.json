@@ -1,24 +1,16 @@
 {
   "schemaVersion": 1,
-  "mode": "acceptance",
-  "checkpoint": "4a733ae29c499a8be3dc6751ad95ec97e1b969df",
-  "purpose": "Run the immutable final exact-head acceptance matrix after the focused 648-case browser and 6-check accessibility correction gate completed with zero failures.",
+  "mode": "focused",
+  "checkpoint": "e514d4c8adfd4c3405d570ff9de923ebf88d65c0",
+  "purpose": "Validate the stable one-click geometry and normalized assertion signatures on the exact affected indicator-detail shards before returning to the immutable full acceptance matrix.",
   "focus": {
     "browserShards": [
-      { "browser": "chromium", "route": "calculator-center" },
-      { "browser": "chromium", "route": "formula-library" },
-      { "browser": "chromium", "route": "saved-calculation-detail" },
-      { "browser": "firefox", "route": "calculator-center" },
-      { "browser": "firefox", "route": "formula-library" },
-      { "browser": "firefox", "route": "saved-calculation-detail" },
-      { "browser": "webkit", "route": "calculator-center" },
-      { "browser": "webkit", "route": "formula-library" },
-      { "browser": "webkit", "route": "saved-calculation-detail" }
+      { "browser": "chromium", "route": "indicator-detail" },
+      { "browser": "firefox", "route": "indicator-detail" },
+      { "browser": "webkit", "route": "indicator-detail" }
     ],
     "a11yRoutes": [
-      "calculator-center",
-      "formula-library",
-      "saved-calculation-detail"
+      "indicator-detail"
     ]
   },
   "acceptanceContract": {
