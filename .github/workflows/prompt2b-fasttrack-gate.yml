@@ -1,0 +1,303 @@
+name: Qelly Prompt 2B Controlled Fast-Track Gate
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Diagnostic retains failures; acceptance requires zero failures
+        required: true
+        default: acceptance
+        type: choice
+        options: [diagnostic, acceptance]
+
+permissions: read-all
+concurrency:
+  group: qelly-prompt2b-fasttrack-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+env:
+  QELLY_REVIEW_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+  QELLY_FASTTRACK_MODE: ${{ inputs.mode || 'acceptance' }}
+
+jobs:
+  prepare:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'feature/calculator-and-indicator-foundation'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: '${{ env.QELLY_REVIEW_HEAD }}', fetch-depth: 0, persist-credentials: false}
+      - name: Guard exact head
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD"
+          test "$(git ls-remote origin refs/heads/feature/calculator-and-indicator-foundation | cut -f1)" = "$QELLY_REVIEW_HEAD"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: '22', cache: npm}
+      - name: Locked repository and product gates
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts
+          node --check scripts/prompt2b-fasttrack.mjs
+          python3 -m py_compile scripts/prompt2b-a11y-shard.py scripts/release-a5-accessibility-check.py
+          npm run env:check
+          npm run typecheck
+          npm run lint
+          npm run validate:design
+          npm run validate:brand
+          npm run security:scan
+          npm test
+          npm run build
+          QELLY_STATIC_VISUAL_PREVIEW=true QELLY_PUBLIC_BASE_PATH=/qelly-intelligence/ npm run build:frontend
+          npm run validate:pages-preview
+          npm run smoke:pages-preview
+          npm run validate:product
+          npm run inventory:product
+          npm run smoke
+          NODE_ENV=test QELLY_DEVELOPMENT_IDENTITY_ENABLED=false node scripts/production-identity-check.mjs
+          npm run release:check
+          npm audit --audit-level=high
+          git diff --check
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-prompt2b-fasttrack-build
+          path: dist/frontend
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
+  browser-shards:
+    needs: prepare
+    if: needs.prepare.result == 'success'
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+        route: [calculator-center, india-finance, formula-library, formula-detail, indicator-library, indicator-detail, calculator-detail, saved-calculations, saved-calculation-detail]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      QELLY_BROWSER: ${{ matrix.browser }}
+      QELLY_ROUTE_KEY: ${{ matrix.route }}
+      QELLY_SHARD_ID: ${{ matrix.browser }}-${{ matrix.route }}
+      QELLY_SHARD_OUTPUT: .prompt2b-fasttrack/browser/${{ matrix.browser }}-${{ matrix.route }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: '${{ env.QELLY_REVIEW_HEAD }}', fetch-depth: 1, persist-credentials: false}
+      - name: Guard exact head
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD"
+          test "$(git ls-remote origin refs/heads/feature/calculator-and-indicator-foundation | cut -f1)" = "$QELLY_REVIEW_HEAD"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: '22', cache: npm}
+      - uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809
+        with:
+          path: ~/.cache/ms-playwright
+          key: qelly-playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - run: npm ci --ignore-scripts
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {name: qelly-prompt2b-fasttrack-build, path: dist/frontend}
+      - name: Install selected browser
+        run: npx playwright install --with-deps "$QELLY_BROWSER"
+      - name: Run 72-case exact-head shard
+        run: node scripts/prompt2b-fasttrack.mjs browser-shard
+      - name: Upload shard evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-prompt2b-browser-${{ matrix.browser }}-${{ matrix.route }}
+          path: .prompt2b-fasttrack/browser/${{ matrix.browser }}-${{ matrix.route }}
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 30
+
+  accessibility-shards:
+    needs: prepare
+    if: needs.prepare.result == 'success'
+    strategy:
+      fail-fast: false
+      matrix: {index: [0, 1, 2, 3, 4, 5, 6, 7, 8]}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      QELLY_A11Y_SHARD_INDEX: ${{ matrix.index }}
+      QELLY_A11Y_SHARD_ID: a11y-${{ matrix.index }}
+      QELLY_A11Y_OUTPUT_ROOT: .prompt2b-fasttrack/a11y/a11y-${{ matrix.index }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: '${{ env.QELLY_REVIEW_HEAD }}', fetch-depth: 1, persist-credentials: false}
+      - name: Guard exact head
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD"
+          test "$(git ls-remote origin refs/heads/feature/calculator-and-indicator-foundation | cut -f1)" = "$QELLY_REVIEW_HEAD"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: '22', cache: npm}
+      - uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809
+        with:
+          path: ~/.cache/ms-playwright
+          key: qelly-playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - run: |
+          npm ci --ignore-scripts
+          python3 -m pip install --disable-pip-version-check --no-cache-dir --only-binary=:all: playwright==1.61.0 pyee==13.0.1 greenlet==3.5.3 typing-extensions==4.16.0
+          python3 -m pip check
+          npx playwright install --with-deps chromium
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {name: qelly-prompt2b-fasttrack-build, path: dist/frontend}
+      - name: Run six-check accessibility shard
+        run: python3 scripts/prompt2b-a11y-shard.py
+      - name: Upload accessibility evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-prompt2b-a11y-${{ matrix.index }}
+          path: .prompt2b-fasttrack/a11y/a11y-${{ matrix.index }}
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 30
+
+  browser-aggregate:
+    needs: [prepare, browser-shards]
+    if: always() && needs.prepare.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: '${{ env.QELLY_REVIEW_HEAD }}', fetch-depth: 1, persist-credentials: false}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: '22', cache: npm}
+      - run: |
+          test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD"
+          npm ci --ignore-scripts
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {pattern: qelly-prompt2b-browser-*, path: .prompt2b-fasttrack/downloaded-browser}
+      - run: node scripts/prompt2b-fasttrack.mjs aggregate-browser
+      - name: Stage aggregate
+        if: always()
+        run: |
+          mkdir -p .prompt2b-fasttrack/browser-aggregate-output
+          if [ -d .prompt2b-review ]; then cp -a .prompt2b-review/. .prompt2b-fasttrack/browser-aggregate-output/; fi
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-prompt2b-browser-aggregate
+          path: .prompt2b-fasttrack/browser-aggregate-output
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
+
+  accessibility-aggregate:
+    needs: [prepare, accessibility-shards]
+    if: always() && needs.prepare.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: '${{ env.QELLY_REVIEW_HEAD }}', fetch-depth: 1, persist-credentials: false}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: '22', cache: npm}
+      - run: |
+          test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD"
+          npm ci --ignore-scripts
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {pattern: qelly-prompt2b-a11y-*, path: .prompt2b-fasttrack/downloaded-a11y}
+      - run: node scripts/prompt2b-fasttrack.mjs aggregate-a11y
+      - name: Stage aggregate
+        if: always()
+        run: |
+          mkdir -p .prompt2b-fasttrack/accessibility-aggregate-output
+          cp .prompt2b-review/ACCESSIBILITY_SHARD_SUMMARY.json .prompt2b-review/ACCESSIBILITY_CHECK_INDEX.csv validation/RELEASE_A5_ACCESSIBILITY_REGRESSION.json .prompt2b-fasttrack/accessibility-aggregate-output/
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-prompt2b-accessibility-aggregate
+          path: .prompt2b-fasttrack/accessibility-aggregate-output
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
+
+  design-preparation:
+    needs: prepare
+    if: needs.prepare.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: '${{ env.QELLY_REVIEW_HEAD }}', fetch-depth: 1, persist-credentials: false}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: '22', cache: npm}
+      - name: Build non-mutating design preparation
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD"
+          npm ci --ignore-scripts
+          npm run inventory:design
+          mkdir -p .prompt2b-fasttrack/design-preparation
+          cp QELLY_ROUTE_INVENTORY.csv QELLY_SCREEN_MATRIX.csv QELLY_COMPONENT_INVENTORY.csv QELLY_FIGMA_HANDOFF.md .prompt2b-fasttrack/design-preparation/
+          cp project-state/QELLY_PROMPT2B_FIGMA_ROUTE_FRAME_MAP.csv project-state/QELLY_PROMPT2B_FIGMA_STATUS.json project-state/QELLY_PROMPT2B_ROUTE_ACTION_STATE_MATRIX.csv project-state/QELLY_PROMPT2B_COMPONENT_STATE_MATRIX.csv .prompt2b-fasttrack/design-preparation/
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib
+          root=pathlib.Path('.prompt2b-fasttrack/design-preparation');files=[]
+          for file in sorted(root.iterdir()):
+              if file.is_file():
+                  body=file.read_bytes();files.append({'path':file.name,'bytes':len(body),'sha256':hashlib.sha256(body).hexdigest()})
+          (root/'MANIFEST.json').write_text(json.dumps({'schemaVersion':1,'exactHead':os.environ['QELLY_REVIEW_HEAD'],'status':'NON_MUTATING_PREPARATION_ONLY','files':files},indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-prompt2b-design-preparation
+          path: .prompt2b-fasttrack/design-preparation
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
+
+  immutable-gate:
+    needs: [prepare, browser-aggregate, accessibility-aggregate, design-preparation]
+    if: needs.prepare.result == 'success' && needs.browser-aggregate.result == 'success' && needs.accessibility-aggregate.result == 'success' && needs.design-preparation.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: '${{ env.QELLY_REVIEW_HEAD }}', fetch-depth: 1, persist-credentials: false}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: '22', cache: npm}
+      - run: |
+          test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD"
+          test "$(git ls-remote origin refs/heads/feature/calculator-and-indicator-foundation | cut -f1)" = "$QELLY_REVIEW_HEAD"
+          npm ci --ignore-scripts
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {name: qelly-prompt2b-browser-aggregate, path: .prompt2b-review}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {name: qelly-prompt2b-accessibility-aggregate, path: .prompt2b-fasttrack/accessibility-aggregate}
+      - name: Verify immutable 1944 plus 54 gate
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFile} from 'node:fs/promises';
+          const browser=JSON.parse(await readFile('.prompt2b-review/BROWSER_SHARD_SUMMARY.json','utf8'));
+          const a11y=JSON.parse(await readFile('.prompt2b-fasttrack/accessibility-aggregate/ACCESSIBILITY_SHARD_SUMMARY.json','utf8'));
+          const g=browser.counter.global,i=browser.counter.integrity;
+          const ok=browser.head===process.env.QELLY_REVIEW_HEAD&&g.expected===1944&&g.records===1944&&g.passed===1944&&g.failed===0&&g.skipped===0&&i.checksumMissing===0&&i.checksumMismatches===0&&a11y.exactHead===process.env.QELLY_REVIEW_HEAD&&a11y.checks===54&&a11y.passed===54&&a11y.failed===0;
+          console.log(JSON.stringify({head:browser.head,browser:g,integrity:i,a11y:{head:a11y.exactHead,checks:a11y.checks,passed:a11y.passed,failed:a11y.failed}},null,2));
+          if(!ok)process.exit(1);
+          NODE
+      - name: Saved actions and static preview acceptance
+        run: |
+          node scripts/prompt2b-saved-action-review.mjs
+          QELLY_STATIC_VISUAL_PREVIEW=true QELLY_PUBLIC_BASE_PATH=/qelly-intelligence/ npm run build:frontend
+          npm run validate:pages-preview
+          npm run smoke:pages-preview
+      - name: Stage immutable evidence
+        run: |
+          mkdir -p .prompt2b-fasttrack/immutable-gate
+          cp .prompt2b-review/BROWSER_SHARD_SUMMARY.json .prompt2b-review/COUNTER_RECONCILIATION.json .prompt2b-review/FAILURE_SIGNATURES.json .prompt2b-review/SHA256SUMS.txt .prompt2b-review/SAVED_CALCULATION_ACTION_REVIEW.json .prompt2b-fasttrack/immutable-gate/
+          cp .prompt2b-fasttrack/accessibility-aggregate/ACCESSIBILITY_SHARD_SUMMARY.json .prompt2b-fasttrack/immutable-gate/
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-prompt2b-immutable-pre-design-gate
+          path: .prompt2b-fasttrack/immutable-gate
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
