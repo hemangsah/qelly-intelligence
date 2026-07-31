@@ -2,6 +2,7 @@ import {createHash} from 'node:crypto';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import './build-prompt2b-source-manifest.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const review=path.join(root,'.prompt2b-review');const sections=path.join(review,'sections');await mkdir(sections,{recursive:true});
