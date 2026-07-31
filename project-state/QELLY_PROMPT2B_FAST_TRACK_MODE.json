@@ -1,20 +1,21 @@
 {
   "schemaVersion": 1,
-  "mode": "focused",
-  "checkpoint": "1580d0631f4e313a2a889f66b9e7965b60eaa8fc",
-  "purpose": "Validate the magnetic-coordinate product correction on the exact three indicator-detail browser shards and the indicator-detail accessibility route before returning to the immutable complete acceptance matrix.",
-  "priorAcceptanceGate": {
-    "head": "1580d0631f4e313a2a889f66b9e7965b60eaa8fc",
-    "runId": 30630295319,
-    "browserCases": 1944,
-    "browserPassed": 1943,
-    "browserFailed": 1,
-    "accessibilityChecks": 54,
-    "accessibilityPassed": 54,
+  "mode": "acceptance",
+  "checkpoint": "3ee3a67d1a6a80d3b5ac3723474c8a2adf438bc6",
+  "purpose": "Run the immutable complete exact-head acceptance matrix after the magnetic-coordinate correction passed all 216 affected browser cases and both indicator-detail accessibility checks with zero failures, retries or forced clicks.",
+  "priorFocusedGate": {
+    "head": "3ee3a67d1a6a80d3b5ac3723474c8a2adf438bc6",
+    "runId": 30631953341,
+    "browserCases": 216,
+    "browserPassed": 216,
+    "browserFailed": 0,
+    "accessibilityChecks": 2,
+    "accessibilityPassed": 2,
     "accessibilityFailed": 0,
     "retries": 0,
     "forcedClicks": 0,
-    "status": "FAILED_ONE_PRODUCT_MOTION_HIT_TARGET"
+    "specialistWorkflows": "ALL_GREEN",
+    "status": "PASSED_FOCUSED_NOT_ACCEPTANCE"
   },
   "focus": {
     "browserShards": [
