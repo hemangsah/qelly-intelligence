@@ -1,0 +1,177 @@
+name: Qelly World-Class UIUX Figma All-Screens Review
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+permissions: read-all
+concurrency:
+  group: qelly-worldclass-uiux-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+env:
+  QELLY_REVIEW_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+  QELLY_BASELINE_HEAD: 07598e934eca635d590364ca96d7b96e812c767e
+jobs:
+  prepare:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'feature/calculator-and-indicator-foundation'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    steps:
+      - name: Check out exact design head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: "${{ env.QELLY_REVIEW_HEAD }}", fetch-depth: 0, persist-credentials: false}
+      - name: Check out accepted baseline
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: checkpoint/prompt2b-pre-worldclass-uiux-07598e9, path: baseline-src, fetch-depth: 1, persist-credentials: false}
+      - name: Guard exact heads
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD"
+          test "$(git -C baseline-src rev-parse HEAD)" = "$QELLY_BASELINE_HEAD"
+          test "$(git ls-remote origin refs/heads/feature/calculator-and-indicator-foundation | cut -f1)" = "$QELLY_REVIEW_HEAD"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: '22', cache: npm}
+      - name: Install locked dependencies
+        run: |
+          npm ci --ignore-scripts
+          cp -a node_modules baseline-src/node_modules
+          npx playwright install --with-deps chromium
+      - name: Validate world-class sources
+        run: |
+          node --check apps/web/public/assets/qelly-worldclass-uiux.mjs
+          node --check scripts/build-qelly-worldclass-design-program.mjs
+          node --check scripts/capture-qelly-worldclass-screens.mjs
+          node --check scripts/package-qelly-worldclass-review.mjs
+          grep -q 'qelly-worldclass-uiux.css' apps/web/public/index.html
+          grep -q 'qelly-worldclass-uiux.mjs' apps/web/public/index.html
+      - name: Run complete repository and design gates
+        run: |
+          set -euo pipefail
+          npm run env:check
+          npm run typecheck
+          npm run lint
+          npm run validate:design
+          npm run validate:brand
+          npm run security:scan
+          npm test
+          npm run build
+          QELLY_STATIC_VISUAL_PREVIEW=true QELLY_PUBLIC_BASE_PATH=/qelly-intelligence/ npm run build:frontend
+          npm run validate:pages-preview
+          npm run smoke:pages-preview
+          npm run validate:product
+          npm run inventory:product
+          npm run smoke
+          npm run release:check
+          npm audit --audit-level=high
+          git diff --check
+      - name: Build accepted baseline frontend
+        working-directory: baseline-src
+        run: QELLY_STATIC_VISUAL_PREVIEW=true QELLY_PUBLIC_BASE_PATH=/qelly-intelligence/ npm run build:frontend
+      - name: Generate deterministic design preparation
+        run: node scripts/build-qelly-worldclass-design-program.mjs
+      - name: Stage prepared capture inputs
+        run: |
+          mkdir -p .qelly-worldclass-prepared/current .qelly-worldclass-prepared/baseline
+          cp -a dist/frontend .qelly-worldclass-prepared/current/frontend
+          cp -a baseline-src/dist/frontend .qelly-worldclass-prepared/baseline/frontend
+          cp -a .qelly-worldclass-design .qelly-worldclass-prepared/design
+          cp QELLY_SCREEN_MATRIX.csv .qelly-worldclass-prepared/
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-worldclass-prepared-${{ env.QELLY_REVIEW_HEAD }}
+          path: .qelly-worldclass-prepared
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+  capture:
+    needs: prepare
+    if: needs.prepare.result == 'success'
+    strategy:
+      fail-fast: false
+      matrix: {shard: [0,1,2,3,4,5,6,7,8]}
+    name: capture-${{ matrix.shard }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      QELLY_CAPTURE_SHARD_INDEX: ${{ matrix.shard }}
+      QELLY_CAPTURE_SHARD_COUNT: 9
+      QELLY_CAPTURE_OUTPUT: .qelly-worldclass-capture/shard-${{ matrix.shard }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: "${{ env.QELLY_REVIEW_HEAD }}", fetch-depth: 1, persist-credentials: false}
+      - name: Guard immutable design head
+        run: |
+          test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD"
+          test "$(git ls-remote origin refs/heads/feature/calculator-and-indicator-foundation | cut -f1)" = "$QELLY_REVIEW_HEAD"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: '22', cache: npm}
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with: {path: ~/.cache/ms-playwright, key: "qelly-worldclass-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}"}
+      - name: Install locked capture runtime
+        run: |
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {name: "qelly-worldclass-prepared-${{ env.QELLY_REVIEW_HEAD }}", path: .qelly-worldclass-prepared}
+      - name: Capture governed real-runtime screens
+        env:
+          QELLY_CURRENT_DIST: .qelly-worldclass-prepared/current/frontend
+          QELLY_BASELINE_DIST: .qelly-worldclass-prepared/baseline/frontend
+        run: node scripts/capture-qelly-worldclass-screens.mjs
+      - name: Upload durable capture shard
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-worldclass-capture-${{ matrix.shard }}-${{ env.QELLY_REVIEW_HEAD }}
+          path: .qelly-worldclass-capture/shard-${{ matrix.shard }}
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
+  aggregate-and-package:
+    needs: [prepare,capture]
+    if: always() && needs.prepare.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: "${{ env.QELLY_REVIEW_HEAD }}", fetch-depth: 1, persist-credentials: false}
+      - name: Guard immutable design head
+        run: |
+          test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD"
+          test "$(git ls-remote origin refs/heads/feature/calculator-and-indicator-foundation | cut -f1)" = "$QELLY_REVIEW_HEAD"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: '22', cache: npm}
+      - name: Install locked packaging runtime
+        run: |
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {name: "qelly-worldclass-prepared-${{ env.QELLY_REVIEW_HEAD }}", path: .qelly-worldclass-prepared}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: qelly-worldclass-capture-*-${{ env.QELLY_REVIEW_HEAD }}
+          path: .qelly-worldclass-captures
+      - name: Aggregate 429 screens and generate every design deliverable
+        env:
+          QELLY_CAPTURE_DOWNLOADS: .qelly-worldclass-captures
+          QELLY_WORLDCLASS_DESIGN: .qelly-worldclass-prepared/design
+          QELLY_CURRENT_DIST: .qelly-worldclass-prepared/current/frontend
+          QELLY_WORLDCLASS_REVIEW: .qelly-worldclass-review
+        run: node scripts/package-qelly-worldclass-review.mjs
+      - name: Verify complete all-screen and artifact contract
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFile} from 'node:fs/promises';
+          const s=JSON.parse(await readFile('.qelly-worldclass-review/WORLDCLASS_REVIEW_SUMMARY.json','utf8'));
+          const m=JSON.parse(await readFile('.qelly-worldclass-review/manifests/qelly-screenshot-manifest.json','utf8'));
+          const c=JSON.parse(await readFile('.qelly-worldclass-review/manifests/qelly-review-checksums.json','utf8'));
+          const ok=s.exactHead===process.env.QELLY_REVIEW_HEAD&&s.screenRows===429&&s.capturedRows===429&&s.missingRows===0&&s.duplicateRows===0&&s.failedRows===0&&s.finalReview.crcVerified&&m.capturedRows===429&&m.missingRows===0&&m.duplicateRows===0&&c.missingTargets.length===0&&c.mismatches.length===0;
+          console.log(JSON.stringify({head:s.exactHead,screens:s.capturedRows,finalReview:s.finalReview,checks:c.fileCount},null,2));if(!ok)process.exit(1);
+          NODE
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-prompt2b-uiux-figma-all-screens-review-${{ env.QELLY_REVIEW_HEAD }}
+          path: .qelly-worldclass-review
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
