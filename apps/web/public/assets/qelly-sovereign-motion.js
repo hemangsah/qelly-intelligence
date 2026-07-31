@@ -44,6 +44,14 @@ function bindReveal(item, observer, index) {
     const py = event.clientY - rect.top;
     item.style.setProperty('--pointer-x', `${px}px`);
     item.style.setProperty('--pointer-y', `${py}px`);
+    const interactive = event.target instanceof Element
+      ? event.target.closest('button,a,input,select,textarea,[role="button"],[role="link"],[data-action]')
+      : null;
+    if (interactive && item.contains(interactive)) {
+      item.style.setProperty('--tilt-x', '0deg');
+      item.style.setProperty('--tilt-y', '0deg');
+      return;
+    }
     if (prefersReduced() || item.closest('.q-data-grid')) return;
     const rx = ((py / Math.max(rect.height, 1)) - .5) * -1.3;
     const ry = ((px / Math.max(rect.width, 1)) - .5) * 1.3;
