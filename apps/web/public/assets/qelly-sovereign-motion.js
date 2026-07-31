@@ -63,8 +63,12 @@ function bindMagnetic(button) {
   button.addEventListener('pointermove', (event) => {
     if (prefersReduced()) return;
     const rect = button.getBoundingClientRect();
-    const x = (event.clientX - rect.left - rect.width / 2) * .075;
-    const y = (event.clientY - rect.top - rect.height / 2) * .075;
+    const currentX = Number.parseFloat(button.style.getPropertyValue('--magnet-x')) || 0;
+    const currentY = Number.parseFloat(button.style.getPropertyValue('--magnet-y')) || 0;
+    const baseCenterX = rect.left - currentX + rect.width / 2;
+    const baseCenterY = rect.top - currentY + rect.height / 2;
+    const x = (event.clientX - baseCenterX) * .075;
+    const y = (event.clientY - baseCenterY) * .075;
     button.style.setProperty('--magnet-x', `${x}px`);
     button.style.setProperty('--magnet-y', `${y}px`);
   }, { passive: true });
