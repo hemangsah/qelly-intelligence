@@ -52,7 +52,9 @@ jobs:
           npm run lint
           npm run validate:design
           npm run validate:brand
+          mv baseline-src ../qelly-baseline-src
           npm run security:scan
+          mv ../qelly-baseline-src baseline-src
           npm test
           npm run build
           QELLY_STATIC_VISUAL_PREVIEW=true QELLY_PUBLIC_BASE_PATH=/qelly-intelligence/ npm run build:frontend
