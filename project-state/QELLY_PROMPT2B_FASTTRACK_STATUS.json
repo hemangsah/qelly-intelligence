@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "repository": "hemangsah/qelly-intelligence",
+  "branch": "feature/calculator-and-indicator-foundation",
+  "pullRequest": 23,
+  "baseMain": "9cb98780893924ad26fbf4baaa9048e80a162b2c",
+  "fastTrackStartingHead": "4a733ae29c499a8be3dc6751ad95ec97e1b969df",
+  "protectedHead": "4a733ae29c499a8be3dc6751ad95ec97e1b969df",
+  "recoveryRef": "recovery/prompt2b-pre-design-4a733ae",
+  "evidenceRef": "evidence/prompt2b-run-30586896812-cb85761b",
+  "historicalRun": {
+    "runId": 30586896812,
+    "jobId": 91020348079,
+    "producerHead": "cb85761b3ff9928aae8cfdada9f4be67985de97c",
+    "artifactId": 8778077242,
+    "artifactSha256": "9c43f18c4411520cb146e2882090ffc3d3cf643fb659ee43b603509aa16021e9",
+    "attempts": 1944,
+    "passed": 1515,
+    "failed": 429,
+    "perCaseEvidence": "NOT_RETAINED"
+  },
+  "freshPreFastTrackEvidence": {
+    "runId": 30606919952,
+    "jobId": 91081006265,
+    "artifactId": 8784954275,
+    "artifactSha256": "e35ce8234cf42addcf1bdbda5b7b34ef4cb18d1954a365b57a0ae3f93116f538",
+    "artifactBytes": 121609680,
+    "artifactEntries": 507,
+    "zipCrc": "clean",
+    "records": 1944,
+    "passed": 1520,
+    "failed": 424,
+    "reasonCounts": {
+      "fixed-nav-clearance": 265,
+      "action-errors:1": 243,
+      "overlap": 84
+    },
+    "actionErrorCounts": {
+      "trusted-action-observation-timeout": 195,
+      "obstructed-saved-update": 24,
+      "obstructed-calculator-detail-calculate": 24
+    },
+    "themeFailures": 0,
+    "performanceFailures": 0
+  },
+  "canonicalDenominators": {
+    "formulas": 151,
+    "freshFormulas": 101,
+    "indicators": 54,
+    "freshIndicators": 34,
+    "routes": 70,
+    "governedScreens": 429,
+    "apiContracts": 202,
+    "schemas": 72,
+    "smokeRequests": 290,
+    "migration": 108,
+    "browserCases": 1944,
+    "browserShards": 27,
+    "browserCasesPerShard": 72,
+    "accessibilityChecks": 54,
+    "accessibilityShards": 9
+  },
+  "protectedAggregates": {
+    "formulaSha256": "3c7ac72e4ab6e5383e5e9aae90cc74508113c8d4c636c2efb7500df4ed49a98f",
+    "indicatorSha256": "3071eaac2a6a6dae24c8155a766e1db1ce8d26a2e6bf6ae30fb1ac594156087a",
+    "freshProvenance": "FRESH_REIMPLEMENTATION_2026"
+  },
+  "ci": {
+    "runId": 30606919936,
+    "status": "success",
+    "validateJob": 91081006250,
+    "dependencyReviewJob": 91081006283,
+    "uploadValidationEvidence": "success",
+    "packagingDefect": "RESOLVED_BEFORE_FASTTRACK_MUTATION"
+  },
+  "phase": "FASTTRACK_INSTRUMENTATION_PREPARED",
+  "browserShardsComplete": 0,
+  "browserShardsTotal": 27,
+  "accessibilityShardsComplete": 0,
+  "accessibilityShardsTotal": 9,
+  "uiUxAuthorization": "BLOCKED_UNTIL_IMMUTABLE_GATE_GREEN",
+  "figmaState": "DETERMINISTIC_FIGMA_READY_ONLY_NATIVE_FIGMA_UNAVAILABLE",
+  "staticPreviewState": "BRANCH_LOCAL_VALIDATED_PRE_FASTTRACK",
+  "deploymentState": "UNDEPLOYED",
+  "blocker": "Fresh sharded exact-head evidence has not yet completed.",
+  "nextAction": "Commit the instrumented shard runner, accessibility wrapper, aggregators and canonical workflow; run the diagnostic 27+9 shard matrix; correct only fresh proven signatures; then run acceptance mode on one frozen head."
+}
