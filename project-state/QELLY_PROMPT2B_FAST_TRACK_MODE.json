@@ -1,19 +1,24 @@
 {
   "schemaVersion": 1,
-  "mode": "focused",
-  "checkpoint": "c398eb5193fc7c7b8709ae996f3dfa1fda85688c",
-  "purpose": "Validate the interactive-panel tilt correction on Indicator Detail after one Chromium full-motion case proved that a parent panel transform could move a visible save control away from its trusted pointer coordinate.",
-  "priorAcceptanceEvidence": {
-    "head": "c398eb5193fc7c7b8709ae996f3dfa1fda85688c",
-    "runId": 30646101713,
-    "failedShard": "chromium--indicator-detail",
-    "failedCaseId": "chromium|indicator-detail|1280x800|dark|full",
-    "failureSignature": "ede689bed26c73b2a62a2c60ba01bd0ed697ca232575c0537ae0e34d3b5be53d",
-    "rootCause": "PRODUCT_INTERACTION_MOTION_DEFECT",
+  "mode": "acceptance",
+  "checkpoint": "a155128d60ef646b479b926f5957ccf24fec1315",
+  "purpose": "Run one complete immutable pre-design acceptance matrix after the Indicator Detail interactive-panel correction passed all 216 affected browser cases and both accessibility checks on Chromium, Firefox and WebKit with zero failures, retries or forced clicks.",
+  "priorFocusedGate": {
+    "head": "a155128d60ef646b479b926f5957ccf24fec1315",
+    "runId": 30648759663,
+    "browserAggregateArtifactId": 8800670841,
+    "accessibilityAggregateArtifactId": 8800556282,
+    "focusedGateArtifactId": 8800674125,
+    "browserCases": 216,
+    "browserPassed": 216,
+    "browserFailed": 0,
+    "accessibilityChecks": 2,
+    "accessibilityPassed": 2,
+    "accessibilityFailed": 0,
     "retries": 0,
     "forcedClicks": 0,
     "specialistWorkflows": "ALL_GREEN",
-    "status": "FAILED_ONE_INTERACTIVE_PANEL_TILT_CASE"
+    "status": "PASSED_FOCUSED_NOT_ACCEPTANCE"
   },
   "focus": {
     "browserShards": [
