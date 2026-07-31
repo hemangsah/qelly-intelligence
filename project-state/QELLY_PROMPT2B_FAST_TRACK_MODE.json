@@ -1,22 +1,26 @@
 {
   "schemaVersion": 1,
-  "mode": "focused",
-  "checkpoint": "98663fd41bd9d2dc51fbe548ff3e9d01f8190865",
-  "purpose": "Validate the saved-calculation direct-refresh fixture correction on the affected route before one new complete immutable 1,944-browser and 54-accessibility acceptance matrix.",
-  "priorAcceptanceEvidence": {
-    "head": "98663fd41bd9d2dc51fbe548ff3e9d01f8190865",
-    "runId": 30632528652,
-    "browserCases": 1944,
-    "browserPassed": 1944,
+  "mode": "acceptance",
+  "checkpoint": "4a700270857542cdfcc03e6a74626651ea232430",
+  "purpose": "Run the complete immutable pre-design acceptance matrix after the saved-calculation lifecycle, compact share payload, quoted CSV assertion and affected route checks completed with zero failures, retries or forced clicks.",
+  "priorFocusedGate": {
+    "head": "4a700270857542cdfcc03e6a74626651ea232430",
+    "controlledRunId": 30640195602,
+    "savedActionRunId": 30640195491,
+    "savedActionJobId": 91187879204,
+    "savedActionArtifactId": 8797095609,
+    "browserCases": 72,
+    "browserPassed": 72,
     "browserFailed": 0,
-    "accessibilityChecks": 54,
-    "accessibilityPassed": 54,
+    "accessibilityChecks": 2,
+    "accessibilityPassed": 2,
     "accessibilityFailed": 0,
-    "savedActionStatus": "FAILED_FIXTURE_RESET_ON_RELOAD",
+    "savedActionEvidence": 19,
+    "savedActionFailures": 0,
     "retries": 0,
     "forcedClicks": 0,
     "specialistWorkflows": "ALL_GREEN",
-    "status": "GREEN_MATRIX_ACCEPTANCE_BLOCKED_BY_ONE_FIXTURE_DEFECT"
+    "status": "PASSED_FOCUSED_NOT_ACCEPTANCE"
   },
   "focus": {
     "browserShards": [
