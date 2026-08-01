@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-01T18:54:00+05:30",
+  "repository": "hemangsah/qelly-intelligence",
+  "prompt2BHead": "17eeadac4c510cc3c312185e86b0ac5907f3789b",
+  "prompt2CReleaseHead": "603cece3091dc59cfb72680914e7056b40058022",
+  "recoveryBranch": "recovery/qelly-final-pre-activation-315d4ff",
+  "supabase": {
+    "project": "ssdgfgqnjlwzkgukzeef",
+    "region": "ap-south-1",
+    "status": "ACTIVE_HEALTHY",
+    "plan": "free",
+    "migrationsApplied": 2,
+    "rls": "10/10",
+    "twoUserIsolation": "PASS"
+  },
+  "visualEvidence": {
+    "sourceArtifacts": 9,
+    "sourceScreens": 429,
+    "sourceCrcFailures": 0,
+    "sourceDigestMismatches": 0,
+    "pdf": "QELLY_COMPLETE_FRONTEND_ALL_SCREENS_MASTER.pdf",
+    "pdfPages": 436,
+    "pdfBookmarks": 590,
+    "pdfSha256": "9f47138a1d43237dca01bef907aa48b158405d1d00e86953bfb9e9f28bbbf0b6",
+    "pdfStructuralIssues": 0
+  },
+  "publicDeployment": {
+    "status": "BLOCKED_EXTERNAL_AUTHORIZATION",
+    "githubPagesFallback": "https://hemangsah.github.io/qelly-intelligence/",
+    "githubPagesExactReleaseVerified": false,
+    "cloudflarePagesUrl": null,
+    "qellyReleaseJsonVerified": false
+  },
+  "providers": {
+    "binance": "IMPLEMENTED_FOCUSED_TESTED_NOT_DEPLOYED",
+    "coinbaseExchange": "IMPLEMENTED_FOCUSED_TESTED_NOT_DEPLOYED",
+    "ecb": "IMPLEMENTED_FOCUSED_TESTED_NOT_DEPLOYED"
+  },
+  "linkedin": {
+    "packageSha256": "be0fbb7acf996c5eb3c9c3884d9e718a3cd5598e96f8383f192dca06ca09da62",
+    "publication": "BLOCKED_OFFICIAL_PUBLISHING_CAPABILITY"
+  },
+  "immediateBlocker": "Authorize the official Cloudflare OAuth/dashboard connection so Pages Free project and deployment actions become available."
+}

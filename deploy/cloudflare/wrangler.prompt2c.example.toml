@@ -1,0 +1,18 @@
+name = "qelly-global-public-beta"
+main = "../../apps/edge/prompt2c-worker.mjs"
+compatibility_date = "2026-08-01"
+workers_dev = true
+
+[vars]
+QELLY_RELEASE_SHA = "SET_BY_RELEASE_AUTOMATION"
+QELLY_ALLOWED_ORIGINS = "https://qelly-global-public-beta.pages.dev,https://hemangsah.github.io"
+QELLY_PUBLIC_HOSTNAME = "qelly-global-public-beta.pages.dev"
+QELLY_PUBLIC_SUPABASE_URL = ""
+QELLY_FEEDBACK_REST_URL = ""
+
+# Add these only through the official Cloudflare dashboard or Wrangler secret store:
+# QELLY_TURNSTILE_SECRET_KEY
+# QELLY_SUPABASE_SERVICE_ROLE_KEY
+#
+# Do not place passwords, database URLs, raw tokens, private keys or recovery codes here.
+# The pages.dev name is a truthful preferred candidate, not a claimed reservation.

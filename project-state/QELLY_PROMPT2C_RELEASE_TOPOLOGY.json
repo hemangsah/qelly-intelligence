@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-01T11:26:00Z",
+  "repository": "hemangsah/qelly-intelligence",
+  "developmentBranch": "feature/prompt2c-global-public-beta",
+  "stackedBaseBranch": "feature/calculator-and-indicator-foundation",
+  "releaseBranch": "release/qelly-global-public-beta",
+  "prompt2BClosureParent": "17eeadac4c510cc3c312185e86b0ac5907f3789b",
+  "publicFallbackUrl": "https://hemangsah.github.io/qelly-intelligence/",
+  "preferredAuthorizedPlatform": "Cloudflare Pages/Workers",
+  "deploymentMode": "github-pages-deterministic-local-only-fallback",
+  "cloudMode": "local-only",
+  "authentication": "EXTERNAL_AUTHORIZATION_REQUIRED",
+  "cloudSync": "EXTERNAL_AUTHORIZATION_REQUIRED",
+  "turnstile": "EXTERNAL_AUTHORIZATION_REQUIRED",
+  "linkedinPublication": "LINKEDIN_PUBLICATION_AUTHORIZATION_REQUIRED",
+  "noSpend": {
+    "paidPlan": false,
+    "paymentMethod": false,
+    "billableOverages": false,
+    "domainPurchase": false
+  },
+  "updateRule": "The release branch must fast-forward to the exact validated stacked-PR head. No release-only product commits are permitted."
+}

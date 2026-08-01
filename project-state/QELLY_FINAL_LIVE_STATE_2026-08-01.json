@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-01T18:36:00+05:30",
+  "repository": "hemangsah/qelly-intelligence",
+  "topology": {
+    "main": "9cb98780893924ad26fbf4baaa9048e80a162b2c",
+    "prompt2BHead": "17eeadac4c510cc3c312185e86b0ac5907f3789b",
+    "prompt2CImplementationHead": "603cece3091dc59cfb72680914e7056b40058022",
+    "prompt2CCloseoutHead": "28de1520a594f7c2f773e002875f8b39a3e4282a",
+    "resolved315d4ff": "315d4ff5a06121315c1e4e65fe934db05007c615",
+    "recoveryBranch": "recovery/qelly-final-pre-activation-315d4ff",
+    "releaseBranch": "release/qelly-global-public-beta",
+    "releaseBranchHead": "603cece3091dc59cfb72680914e7056b40058022",
+    "pullRequest23": "OPEN_DRAFT_UNMERGED",
+    "pullRequest25": "OPEN_DRAFT_UNMERGED",
+    "mainModified": false,
+    "autoMerge": false
+  },
+  "githubPages": {
+    "continuityUrl": "https://hemangsah.github.io/qelly-intelligence/",
+    "exactReleaseVerified": false,
+    "failedReleaseRun": 30698534885,
+    "failedFeatureRun": 30698890145,
+    "newestObservedRun": 30698891720,
+    "status": "BLOCKED_EXTERNAL_ENVIRONMENT_AUTHORIZATION"
+  },
+  "cloudflarePages": {
+    "status": "BLOCKED_EXTERNAL_AUTHORIZATION",
+    "reason": "Cloudflare Pages actions are not exposed to the current official tool runtime; Wrangler is unavailable and no credential is requested.",
+    "requiredAction": "Authorize the official Cloudflare connection/OAuth so Pages project and deployment actions become available.",
+    "paidPlanEnabled": false,
+    "paymentMethodAttachedByProgram": false,
+    "domainPurchased": false
+  },
+  "supabase": {
+    "project": "ssdgfgqnjlwzkgukzeef",
+    "region": "ap-south-1",
+    "status": "ACTIVE_HEALTHY",
+    "organizationPlan": "free",
+    "databaseEngine": "PostgreSQL 17",
+    "migrations": [
+      {"version": "20260801130701", "name": "qelly_final_live_activation_v1", "status": "APPLIED"},
+      {"name": "qelly_final_live_performance_indexes", "status": "APPLIED"}
+    ],
+    "tables": 10,
+    "rlsEnabledTables": 10,
+    "policies": 27,
+    "triggers": 10,
+    "privateFunctions": 7,
+    "anonymousTablePrivileges": 0,
+    "authenticatedProviderCachePrivileges": 0,
+    "twoUserIsolation": {
+      "result": "PASS",
+      "readDenied": true,
+      "insertDenied": true,
+      "updateDenied": true,
+      "deleteDenied": true,
+      "sameUserBootstrap": true,
+      "sameUserCreateRenameUpdateDeleteRestore": true,
+      "revisionCount": 5,
+      "syncQueue": true,
+      "accountDeletionRequest": true,
+      "testUsersPersisted": 0,
+      "testRowsPersisted": 0
+    },
+    "authCodeInstalled": true,
+    "emailVerificationJourneyLiveVerified": false,
+    "recoveryJourneyLiveVerified": false,
+    "sessionRefreshJourneyLiveVerified": false,
+    "authBlocker": "Final deployed redirect URL and external email/browser interaction are unavailable until Cloudflare deployment authorization."
+  },
+  "pdf": {
+    "filename": "QELLY_COMPLETE_FRONTEND_ALL_SCREENS_MASTER.pdf",
+    "pages": 436,
+    "governedScreens": 429,
+    "bookmarks": 590,
+    "bytes": 74431779,
+    "sha256": "9f47138a1d43237dca01bef907aa48b158405d1d00e86953bfb9e9f28bbbf0b6",
+    "embeddedManifest": true,
+    "missingScreens": 0,
+    "duplicateScreens": 0,
+    "wrongRoutes": 0,
+    "fallbackCaptures": 0,
+    "blankOrCorruptPages": 0,
+    "structuralIssues": 0,
+    "sourceVisualHead": "17eeadac4c510cc3c312185e86b0ac5907f3789b",
+    "acceptedReleaseShaRecorded": "603cece3091dc59cfb72680914e7056b40058022"
+  },
+  "linkedin": {
+    "packageStatus": "READY",
+    "publicationStatus": "BLOCKED_OFFICIAL_PUBLISHING_CAPABILITY",
+    "reason": "The connected LinkedIn capability supports professional lookup only and exposes no publishing action."
+  },
+  "safety": {
+    "trading": false,
+    "custody": false,
+    "deposits": false,
+    "withdrawals": false,
+    "transfers": false,
+    "walletSigning": false,
+    "privateKeys": false,
+    "seedPhrases": false,
+    "autonomousInvestmentDecisions": false,
+    "personalizedFinancialAdvice": false,
+    "secretsCommitted": false
+  },
+  "immediateNextAction": "Authorize the official Cloudflare connection/OAuth so Cloudflare Pages Free actions can deploy the exact accepted release and return a truthful pages.dev URL."
+}

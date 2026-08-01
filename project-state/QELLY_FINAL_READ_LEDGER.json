@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-01T18:04:00+05:30",
+  "masterFile": {
+    "name": "QELLY_ONE_LAKH_WORD_ABSOLUTE_FINAL_BUILD_DEPLOY_ALL_SCREENS_PDF_MASTER.txt",
+    "bytes": 776154,
+    "lines": 4880,
+    "sha256": "3e65d9aa598267c7e077ac5d60a1f4727acc01fdd1a88acd4175e500a91a154c"
+  },
+  "launcherFile": {
+    "name": "QELLY_ONE_LAKH_WORD_MASTER_LAUNCHER.txt",
+    "bytes": 1954,
+    "lines": 15,
+    "sha256": "8133892ca76302abf3c741abccb71697ab32912f7d811c82ef5b854792bd36bd"
+  },
+  "reads": [
+    {
+      "read": 1,
+      "mode": "literal-first-line-to-final-line",
+      "verifiedLines": 4880,
+      "verifiedSha256": "3e65d9aa598267c7e077ac5d60a1f4727acc01fdd1a88acd4175e500a91a154c",
+      "inventory": {"routeContracts":70,"featureContracts":103,"finalTestGates":77,"finalArtifacts":61,"deepEvidenceLedgers":321}
+    },
+    {
+      "read": 2,
+      "mode": "dependency-graph",
+      "dependencyOrder": [
+        "reconcile live GitHub, Gmail, Cloudflare and Supabase state",
+        "create immutable recovery references and durable ledgers",
+        "freeze newest safe exact head without rewriting accepted Prompt 2B or Prompt 2C",
+        "activate Cloudflare Pages Free or repair GitHub Pages fallback",
+        "verify public qelly-release.json exact accepted release SHA",
+        "reconcile existing Supabase project and apply safe migrations",
+        "verify Auth, RLS, two-user isolation, synchronization, saved lifecycle and data rights",
+        "verify deployed provider truth and degraded states",
+        "verify security, privacy, accessibility, performance, SEO, PWA and rollback",
+        "capture every governed and production screen from final compiled runtime",
+        "generate and verify one master PDF",
+        "persist final evidence and publish LinkedIn only through official authorization"
+      ]
+    },
+    {
+      "read": 3,
+      "mode": "safety-product-truth-free-tier-exact-topology",
+      "prohibitions": [
+        "no passwords, PATs, raw OAuth tokens, Supabase service-role keys, Cloudflare tokens, SSH keys, 2FA or recovery codes",
+        "no paid plan, payment method, paid overage or domain purchase",
+        "no trading, custody, deposits, withdrawals, transfers, wallet signing, broker or exchange execution or autonomous investment decisions",
+        "do not merge PR 23 or PR 25, do not modify main, do not rewrite accepted Prompt 2B or Prompt 2C",
+        "do not claim live deployment, database, RLS, providers, PDF completeness or LinkedIn publication without exact runtime evidence"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-01T10:10:00Z",
+  "repository": "hemangsah/qelly-intelligence",
+  "main": {
+    "sha": "9cb98780893924ad26fbf4baaa9048e80a162b2c",
+    "changed": false
+  },
+  "prompt2B": {
+    "pullRequest": 23,
+    "state": "open",
+    "draft": true,
+    "merged": false,
+    "base": "main",
+    "branch": "feature/calculator-and-indicator-foundation",
+    "validatedProductUiHead": "0887636b5ca6f99db73090abb0a45d13c600c3d4",
+    "documentationClosureHead": "17eeadac4c510cc3c312185e86b0ac5907f3789b",
+    "commitsAfterClosure": 0,
+    "branchMatchesClosureHead": true,
+    "autoMergeEnabled": false,
+    "preservedEvidence": {
+      "formulas": "151/151",
+      "indicators": "54/54",
+      "routes": "70/70",
+      "governedScreens": "429/429",
+      "browser": "1944/1944",
+      "accessibility": "54/54",
+      "savedLifecycle": "19/19"
+    }
+  },
+  "prompt2C": {
+    "branch": "feature/prompt2c-global-public-beta",
+    "startingSha": "17eeadac4c510cc3c312185e86b0ac5907f3789b",
+    "stackedBase": "feature/calculator-and-indicator-foundation",
+    "status": "implementation_in_progress",
+    "cloudflare": "EXTERNAL_AUTHORIZATION_REQUIRED",
+    "supabase": "EXTERNAL_AUTHORIZATION_REQUIRED",
+    "linkedin": "LINKEDIN_PUBLICATION_AUTHORIZATION_REQUIRED",
+    "githubPagesFallback": "preserved"
+  },
+  "boundaries": {
+    "trading": false,
+    "custody": false,
+    "deposits": false,
+    "withdrawals": false,
+    "transfers": false,
+    "privateKeys": false,
+    "seedPhrases": false,
+    "brokerExecution": false,
+    "exchangeExecution": false,
+    "walletSigning": false,
+    "autonomousInvestmentDecisions": false,
+    "personalizedFinancialAdvice": false,
+    "paidPlan": false,
+    "paymentMethod": false,
+    "billableOverages": false
+  }
+}
