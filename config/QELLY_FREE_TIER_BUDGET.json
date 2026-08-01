@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "verifiedOn": "2026-08-01",
+  "policy": {
+    "paidPlanAllowed": false,
+    "paymentMethodAllowed": false,
+    "billableOveragesAllowed": false,
+    "domainPurchaseAllowed": false,
+    "spendCapDisableAllowed": false,
+    "nearLimitBehavior": [
+      "warn administrator",
+      "prefer bounded cache",
+      "preserve deterministic local features",
+      "suspend nonessential writes",
+      "show truthful capacity state"
+    ]
+  },
+  "services": {
+    "cloudflarePagesFree": {
+      "buildsPerMonth": 500,
+      "concurrentBuilds": 1,
+      "filesPerSite": 20000,
+      "maximumSingleAssetBytes": 26214400,
+      "staticAssetRequests": "unlimited",
+      "source": "Cloudflare Pages limits, verified 2026-08-01"
+    },
+    "cloudflareWorkersFree": {
+      "requestsPerDay": 100000,
+      "source": "Cloudflare Pages Functions pricing, verified 2026-08-01"
+    },
+    "cloudflareTurnstileFree": {
+      "widgets": 20,
+      "hostnamesPerWidget": 10,
+      "challenges": "unlimited",
+      "source": "Cloudflare Turnstile plans, verified 2026-08-01"
+    },
+    "supabaseFree": {
+      "activeProjects": 2,
+      "databaseBytes": 524288000,
+      "monthlyActiveUsers": 50000,
+      "egressBytes": 5368709120,
+      "cachedEgressBytes": 5368709120,
+      "storageBytes": 1073741824,
+      "edgeFunctionInvocations": 500000,
+      "realtimeMessages": 2000000,
+      "realtimePeakConnections": 200,
+      "inactivityPauseDays": 7,
+      "automaticBackups": false,
+      "source": "Supabase pricing and billing documentation, verified 2026-08-01"
+    },
+    "githubActions": {
+      "limit": "account-plan-dependent",
+      "action": "read current repository billing usage; do not hard-code a potentially stale allowance"
+    }
+  },
+  "thresholds": {
+    "warningRatio": 0.7,
+    "degradedRatio": 0.85,
+    "stopNonessentialWritesRatio": 0.95
+  }
+}
