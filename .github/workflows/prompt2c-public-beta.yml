@@ -46,6 +46,20 @@ jobs:
         run: npm run lint
       - name: Validate governed design foundations
         run: npm run validate:design
+      - name: Prompt 2C foundation tests
+        run: node --test tests/prompt2c-foundation.test.mjs
+      - name: Prompt 2C migration tests
+        run: node --test tests/prompt2c-migration.test.mjs
+      - name: Prompt 2C public-surface tests
+        run: node --test tests/prompt2c-public-surface.test.mjs
+      - name: Prompt 2C Supabase adapter tests
+        run: node --test tests/prompt2c-supabase-adapter.test.mjs
+      - name: Prompt 2C official-provider tests
+        run: node --test tests/prompt2c-official-providers.test.mjs
+      - name: Prompt 2C telemetry tests
+        run: node --test tests/prompt2c-telemetry.test.mjs
+      - name: Prompt 2C edge cloud API tests
+        run: node --test tests/prompt2c-edge-cloud-api.test.mjs
       - name: Run complete test suite
         run: npm test
       - name: Build backend and frontend
