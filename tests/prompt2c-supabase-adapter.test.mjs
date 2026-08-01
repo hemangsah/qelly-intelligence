@@ -18,7 +18,7 @@ test('sign-up uses an allowlisted redirect and never persists passwords',async()
   assert.equal(result.verificationRequired,true);
   assert.equal(requestBody.email,'user@example.com');
   assert.equal(adapter.session(),null);
-  assert.throws(()=>adapter.signUp({email:'user@example.com',password:'x',redirectTo:'https://evil.example/callback'}));
+  await assert.rejects(adapter.signUp({email:'user@example.com',password:'x',redirectTo:'https://evil.example/callback'}),/redirect_not_allowlisted/);
 });
 
 test('sign-in persists only the provider session and authenticated RLS requests use bearer token',async()=>{
