@@ -20,10 +20,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Check out exact source
+      - name: Check out exact source with ancestry
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+          fetch-depth: 0
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
@@ -34,8 +35,9 @@ jobs:
       - name: Verify Prompt 2B immutable parent
         shell: bash
         run: |
+          git cat-file -e 17eeadac4c510cc3c312185e86b0ac5907f3789b^{commit}
           git merge-base --is-ancestor 17eeadac4c510cc3c312185e86b0ac5907f3789b HEAD
-          test "$(git rev-parse feature/calculator-and-indicator-foundation 2>/dev/null || true)" = "" || true
+          test "$(git merge-base 17eeadac4c510cc3c312185e86b0ac5907f3789b HEAD)" = "17eeadac4c510cc3c312185e86b0ac5907f3789b"
       - name: Scan repository for committed secrets
         run: npm run security:scan
       - name: Type and syntax check
@@ -90,10 +92,11 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Check out exact source
+      - name: Check out exact source with ancestry
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+          fetch-depth: 0
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
