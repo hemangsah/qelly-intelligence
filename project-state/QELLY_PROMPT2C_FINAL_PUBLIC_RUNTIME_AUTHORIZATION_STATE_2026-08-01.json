@@ -1,157 +1,140 @@
 {
-  "schemaVersion": 1,
-  "recordedAt": "2026-08-01T14:40:57Z",
-  "recordedAtAsiaKolkata": "2026-08-01T20:10:57+05:30",
+  "schemaVersion": 2,
+  "recordedAt": "2026-08-01T14:58:00Z",
   "masterCommand": {
     "filename": "QELLY_PROMPT_2C_FINAL_CLOUDFLARE_DEPLOYMENT_AUTH_PUBLIC_RUNTIME_PDF_LINKEDIN_MASTER.txt",
     "lines": 548,
     "sha256": "a9e95146227a2a0aa00a413c566b12ff717b95b05bf818f1ceacd05f28922a82",
-    "completeRead": true
+    "completeReadBeforeMutation": true
   },
   "repository": {
     "name": "hemangsah/qelly-intelligence",
-    "defaultBranch": "main",
     "mainSha": "9cb98780893924ad26fbf4baaa9048e80a162b2c",
-    "prompt2BPullRequest": 23,
-    "prompt2BState": "OPEN_DRAFT_UNMERGED",
-    "prompt2BHead": "17eeadac4c510cc3c312185e86b0ac5907f3789b",
-    "prompt2CPullRequest": 25,
-    "prompt2CState": "OPEN_DRAFT_MERGEABLE_UNMERGED",
-    "featureBranch": "feature/prompt2c-global-public-beta",
-    "verifiedFeatureHeadBeforeThisRecord": "81798b39aab960d163fb1fd34bb9060ef98aade6",
-    "commitsAfterVerifiedFeatureHeadBeforeThisRecord": 0,
-    "filesChangedAfterVerifiedFeatureHeadBeforeThisRecord": 0,
+    "prompt2B": {"pullRequest": 23, "state": "OPEN_DRAFT_UNMERGED", "head": "17eeadac4c510cc3c312185e86b0ac5907f3789b"},
+    "prompt2C": {"pullRequest": 25, "state": "OPEN_DRAFT_MERGEABLE_UNMERGED", "lastValidatedImplementationAndActivationEvidenceHead": "81798b39aab960d163fb1fd34bb9060ef98aade6"},
     "releaseBranch": "release/qelly-global-public-beta",
     "acceptedReleaseSha": "603cece3091dc59cfb72680914e7056b40058022",
-    "releaseBranchVerifiedExact": true,
-    "autoMerge": false,
+    "releaseBranchStillExact": true,
     "mainModified": false,
-    "pullRequestsMergedOrMarkedReady": false
+    "pullRequestsMergedOrMarkedReady": false,
+    "autoMerge": false
   },
-  "cloudflare": {
-    "status": "CLOUDFLARE_PAGES_OFFICIAL_AUTHORIZATION_REQUIRED",
-    "officialPagesActionsAvailable": false,
-    "apiToolNamespaceAvailable": false,
-    "wranglerInstalled": false,
-    "wranglerInstallAttempt": "FAILED_INTERNAL_PACKAGE_GATEWAY_404",
-    "browserAutomationCliAvailable": false,
-    "publicPluginSearchResult": "NO_INSTALLABLE_CLOUDFLARE_PLUGIN_RETURNED",
-    "projectCreated": false,
-    "deploymentCreated": false,
-    "pagesDevUrlVerified": false,
-    "paymentMethodAttached": false,
-    "paidOveragesEnabled": false,
-    "domainPurchased": false,
-    "requiredNormalAuthorization": [
-      "Open Cloudflare dashboard through the user's normal authenticated browser session.",
-      "Open Workers & Pages and create or connect a Pages project using the GitHub OAuth integration.",
-      "Authorize repository hemangsah/qelly-intelligence without supplying any raw token to Qelly or ChatGPT.",
-      "Set production branch to release/qelly-global-public-beta.",
-      "Use npm ci --ignore-scripts && npm run build:frontend and output directory dist/frontend.",
-      "Keep the project on Pages Free with no payment method or paid overages.",
-      "Expose the resulting official Pages project/deployment actions to the connected Cloudflare capability so exact-SHA deployment and verification can continue."
+  "freshDeltaVerification": {
+    "commitsAfter81798BeforeEvidenceRecords": 0,
+    "filesAfter81798BeforeEvidenceRecords": 0,
+    "evidenceOnlyCommitsAddedDuringContinuation": true,
+    "runtimeFilesChangedDuringContinuation": 0,
+    "secretsCommitted": false
+  },
+  "hosting": {
+    "cloudflare": {
+      "status": "CLOUDFLARE_PAGES_OFFICIAL_AUTHORIZATION_REQUIRED",
+      "officialPagesProjectActionsAvailable": false,
+      "officialPagesDeploymentActionsAvailable": false,
+      "wranglerAvailable": false,
+      "wranglerInstallResult": "FAILED_INTERNAL_PACKAGE_GATEWAY_404",
+      "pagesProjectCreated": false,
+      "pagesDevUrlVerified": false,
+      "paymentMethodAttached": false,
+      "paidOveragesEnabled": false,
+      "domainPurchased": false
+    },
+    "githubPagesFallback": {
+      "status": "GITHUB_PAGES_ENVIRONMENT_OR_SOURCE_AUTHORIZATION_REQUIRED",
+      "releaseRunRerun": 30698534885,
+      "validationJob": {"id": 91379973092, "conclusion": "success"},
+      "deploymentJob": {"id": 91379972997, "conclusion": "failure", "runnerSteps": 0},
+      "verifierJob": {"id": 91379973012, "conclusion": "failure", "expectedReleaseSha": "603cece3091dc59cfb72680914e7056b40058022", "attempts": 30},
+      "latestFeaturePushRun": 30704347842,
+      "latestFeaturePushValidationJob": {"id": 91380765040, "conclusion": "success"},
+      "latestFeaturePushDeploymentJob": {"id": 91380822952, "conclusion": "failure", "runnerSteps": 0},
+      "latestFeaturePushVerifierJob": {"id": 91380822938, "conclusion": "failure"},
+      "exactPublicReleaseVerified": false
+    }
+  },
+  "acceptedReleaseRuntimeAudit": {
+    "status": "ACCEPTED_RELEASE_PUBLIC_RUNTIME_WIRING_REQUIRED",
+    "finding": "The accepted release is a validated deterministic local fallback, not the full live Auth, synchronization and provider runtime required by the continuation master.",
+    "evidence": [
+      "The release workflow builds with QELLY_STATIC_VISUAL_PREVIEW=true, QELLY_CLOUD_MODE=local-only, QELLY_ENABLE_AUTH=false, QELLY_ENABLE_CLOUD_SYNC=false and QELLY_ENABLE_LIVE_PROVIDERS=false.",
+      "The release verifier requires cloudMode=local-only and authentication=false.",
+      "The public-surface test explicitly asserts authentication:false, cloudSync:false and liveProviders:false.",
+      "scripts/build-frontend.mjs overwrites qelly-config.js with a minimal static runtime object and does not inject Supabase URL, publishable key or capability flags.",
+      "The browser registration and login routes call custom /api/v1/auth/register and /api/v1/auth/login APIs plus /api/v1/config and /api/v1/session/context.",
+      "apps/edge/prompt2c-worker.mjs exposes health, status, feedback, account export, account deletion and sync-operation routes, but not the browser Auth/config/session/preferences/market/provider routes used by the existing UI.",
+      "The existing Supabase project has zero Edge Functions, so no alternate deployed API currently supplies those routes."
+    ],
+    "consequence": "Normal Cloudflare OAuth can authorize hosting, but it cannot by itself make the exact 603cece release pass the commanded signup, confirmation, login, logout, recovery, refresh, browser sync and deployed provider gates.",
+    "runtimeChangeMade": false,
+    "reasonNoRuntimeChangeMade": "The user required exact deployment of 603cece and prohibited rebuilding completed Prompt 2C work. A wiring change would alter the accepted release and requires separate explicit release authorization.",
+    "smallestTechnicalContinuation": [
+      "Authorize a narrowly scoped public-runtime wiring delta on the Prompt 2C branch without touching Prompt 2B or deterministic formulas/screens.",
+      "Wire existing SupabasePublicBetaAdapter journeys into the browser or implement equivalent authenticated edge endpoints.",
+      "Provide a deployable Cloudflare Pages Functions or Worker routing layer for Auth/config/session/sync/provider APIs and static assets.",
+      "Inject only public Supabase URL/publishable key and exact public URL through the official build environment; keep private values in secret storage.",
+      "Add exact-head public tests that require authentication=true, cloudSync=true and liveProviders=true rather than the current local-only assertions.",
+      "Validate the new release head, then advance the release branch only through an explicit release decision."
     ]
-  },
-  "githubPagesFallback": {
-    "status": "GITHUB_PAGES_ENVIRONMENT_AUTHORIZATION_REQUIRED",
-    "sourceRun": 30698534885,
-    "rerunFailedJobsRequested": true,
-    "validationJob": {
-      "id": 91379973092,
-      "conclusion": "success"
-    },
-    "deploymentJob": {
-      "id": 91379972997,
-      "conclusion": "failure",
-      "runnerSteps": 0,
-      "logArtifactAvailable": false,
-      "interpretation": "github-pages environment or Pages source policy rejected the exact release branch before runner execution"
-    },
-    "externalVerifierJob": {
-      "id": 91379973012,
-      "conclusion": "failure",
-      "publicUrl": "https://hemangsah.github.io/qelly-intelligence/",
-      "expectedReleaseSha": "603cece3091dc59cfb72680914e7056b40058022",
-      "startedAt": "2026-08-01T14:34:41Z",
-      "completedAt": "2026-08-01T14:39:42Z",
-      "configuredAttempts": 30,
-      "exactReleaseIdentityVerified": false
-    },
-    "publicDeploymentClaimed": false
   },
   "supabase": {
     "project": "ssdgfgqnjlwzkgukzeef",
     "region": "ap-south-1",
     "status": "ACTIVE_HEALTHY",
     "plan": "free",
-    "databaseVersion": "17.6.1.155",
     "migrations": [
       {"version": "20260801130701", "name": "qelly_final_live_activation_v1"},
       {"version": "20260801131043", "name": "qelly_final_live_performance_indexes"}
     ],
     "tables": 10,
     "rlsEnabledTables": 10,
-    "persistedRowsAcrossQellyTables": 0,
+    "rowsAcrossQellyTables": 0,
+    "edgeFunctions": 0,
     "migrationDriftDetected": false,
-    "securityAdvisor": "INFO_ONLY_PROVIDER_CACHE_HAS_NO_POLICY_BY_INTENTIONAL_DENY_ALL_DESIGN",
-    "performanceAdvisor": "INFO_ONLY_UNUSED_INDEXES_EXPECTED_ON_EMPTY_NEW_PROJECT",
-    "destructiveSchemaWorkRepeated": false,
+    "destructiveWorkRepeated": false,
     "newProjectCreated": false
   },
-  "predeploymentPdf": {
-    "filename": "QELLY_COMPLETE_FRONTEND_ALL_SCREENS_MASTER.pdf",
-    "preserved": true,
-    "pages": 436,
-    "governedScreens": 429,
-    "bytes": 74431779,
-    "sha256": "9f47138a1d43237dca01bef907aa48b158405d1d00e86953bfb9e9f28bbbf0b6",
-    "overwritten": false
+  "artifacts": {
+    "predeploymentPdf": {"filename": "QELLY_COMPLETE_FRONTEND_ALL_SCREENS_MASTER.pdf", "preserved": true, "pages": 436, "governedScreens": 429, "bytes": 74431779, "sha256": "9f47138a1d43237dca01bef907aa48b158405d1d00e86953bfb9e9f28bbbf0b6", "overwritten": false},
+    "publicRuntimePdf": {"filename": "QELLY_COMPLETE_FRONTEND_ALL_SCREENS_MASTER_PUBLIC_RUNTIME.pdf", "generated": false, "reason": "No exact public runtime exists and required Auth/sync/provider wiring is absent from the accepted release; live screens are not fabricated."},
+    "linkedinPackage": {"filename": "QELLY_PROMPT2C_LINKEDIN_LAUNCH_PACKAGE.zip", "sha256": "be0fbb7acf996c5eb3c9c3884d9e718a3cd5598e96f8383f192dca06ca09da62", "ready": true, "published": false}
   },
-  "publicRuntimePdf": {
-    "requiredFilename": "QELLY_COMPLETE_FRONTEND_ALL_SCREENS_MASTER_PUBLIC_RUNTIME.pdf",
-    "generated": false,
-    "reason": "A truthful public-runtime PDF requires an externally reachable exact-SHA deployment plus verified Auth, sync and provider runtime screens. Those preconditions are not met and are not fabricated."
-  },
-  "linkedin": {
-    "officialPublishingActionAvailable": false,
-    "connectedCapability": "professional profile lookup only",
-    "published": false,
-    "packageFilename": "QELLY_PROMPT2C_LINKEDIN_LAUNCH_PACKAGE.zip",
-    "packageSha256": "be0fbb7acf996c5eb3c9c3884d9e718a3cd5598e96f8383f192dca06ca09da62",
-    "status": "LINKEDIN_PUBLICATION_AUTHORIZATION_REQUIRED_AFTER_PUBLIC_URL_VERIFICATION"
-  },
-  "scorecard": [
-    {"area":"Qelly overall","range":"84-89%","method":"weighted accepted product, implementation, live database and public activation evidence","numerator":"Prompt 2B accepted, Prompt 2C validated, Supabase activated, predeployment PDF verified","denominator":"globally reachable full-stack beta, public Auth/sync/providers, public-runtime PDF and LinkedIn publication","evidence":"17eeadac; 603cece; 81798b39; Supabase project ssdgfgqnjlwzkgukzeef","uncertainty":"external hosting and browser journeys remain unexecuted","blocker":"Cloudflare Pages official authorization","nextAction":"connect one Pages Free project through normal Cloudflare dashboard/GitHub OAuth"},
-    {"area":"Prompt 2B","range":"100%","method":"accepted denominator completion","numerator":"151 formulas, 54 indicators, 429 screens and accepted lifecycle/browser evidence","denominator":"authorized Prompt 2B scope","evidence":"17eeadac4c510cc3c312185e86b0ac5907f3789b","uncertainty":"none material for implementation","blocker":"none","nextAction":"preserve"},
-    {"area":"Prompt 2C implementation","range":"90-94%","method":"validated production foundations divided by full implemented-and-activated program","numerator":"frontend/backend/auth/sync/provider/security/database code and exact-head tests","denominator":"same capabilities deployed and externally verified","evidence":"603cece release; 81798b39 feature validation","uncertainty":"public runtime behavior","blocker":"hosting authorization","nextAction":"deploy exact release SHA"},
-    {"area":"Prompt 2C activation","range":"48-58%","method":"live mandatory gates passed divided by all activation gates","numerator":"live database, migrations, RLS and transactional isolation","denominator":"hosting, release identity, Auth, browser sync, providers, rollback, public-runtime PDF and publication","evidence":"Supabase live state plus workflow 30698534885 rerun","uncertainty":"public edge and browser behavior","blocker":"Cloudflare Pages authorization","nextAction":"authorize Pages Free"},
-    {"area":"frontend","range":"97-99% code; 0% exact public runtime","method":"validated compiled frontend versus exact public deployment","numerator":"accepted governed UI and production shell","denominator":"same exact release globally served with live states","evidence":"436-page predeployment PDF and exact-head validation","uncertainty":"live device/Auth states","blocker":"deployment","nextAction":"deploy and capture only activation delta"},
-    {"area":"backend","range":"86-92% code; 0% deployed","method":"edge/API contracts versus running public services","numerator":"typed API, validation, rate limits and protected routes","denominator":"deployed endpoints with real bindings","evidence":"603cece tests","uncertainty":"live latency and quotas","blocker":"deployment","nextAction":"deploy then verify health and protected APIs"},
-    {"area":"database","range":"96-99% live","method":"schema, migrations, policy and live-project verification","numerator":"10 tables, two migrations, RLS 10/10 and zero drift","denominator":"required Prompt 2C database scope plus operational browser proof","evidence":"ssdgfgqnjlwzkgukzeef ACTIVE_HEALTHY","uncertainty":"normal future production load","blocker":"none for schema","nextAction":"preserve and use after deployment"},
-    {"area":"live Auth journeys","range":"0%","method":"verified public journeys divided by signup, confirmation, login, logout, recovery and refresh","numerator":"0 publicly executed journeys","denominator":"6 mandatory journeys plus expiry/revocation","evidence":"no public callback URL exists","uncertainty":"email delivery and redirect behavior","blocker":"public URL and Supabase Auth dashboard redirect configuration","nextAction":"configure redirects after Pages URL exists"},
-    {"area":"RLS","range":"98-100% database; browser repeat pending","method":"live policy coverage and transactional denial matrix","numerator":"RLS 10/10 and cross-tenant read/insert/update/delete denial","denominator":"database plus repeated deployed-browser/API isolation","evidence":"live Supabase project","uncertainty":"public JWT/browser path","blocker":"deployment/Auth","nextAction":"repeat through deployed API"},
-    {"area":"cloud sync","range":"88-94% code; 0% public browser","method":"sync engine and database readiness versus real public browser journeys","numerator":"opt-in, queue, conflicts and persistence foundations","denominator":"live create/reopen/rename/update/duplicate/delete/revisions/restore across browser sessions","evidence":"validated code and live tables","uncertainty":"network races","blocker":"deployment/Auth","nextAction":"run public-browser sync matrix"},
-    {"area":"providers","range":"88-94% adapters; 0% deployed verification","method":"official adapters versus deployed responses and failure states","numerator":"Binance, Coinbase Exchange and ECB adapters with truth metadata","denominator":"live/fresh/cached/stale/unavailable/rate-limit verification","evidence":"603cece provider tests","uncertainty":"current regional upstream behavior","blocker":"deployment","nextAction":"verify from deployed environment"},
-    {"area":"security","range":"94-98% code/database; live host pending","method":"implemented controls and live database posture versus deployed headers/abuse checks","numerator":"secret scan, RLS, least privilege, CSP/CORS/validation contracts","denominator":"public host, Turnstile and endpoint abuse verification","evidence":"validation green; Supabase advisor has INFO only","uncertainty":"host configuration","blocker":"deployment","nextAction":"run live header and abuse matrix"},
-    {"area":"accessibility","range":"100% preserved governed corpus; public activation screens pending","method":"accepted automated corpus plus new runtime screen requirement","numerator":"54/54 accepted checks and 429 governed screens","denominator":"accepted corpus plus public Auth/account/provider screens","evidence":"17eeadac visual artifacts","uncertainty":"new public runtime screens","blocker":"deployment","nextAction":"capture and test activation delta only"},
-    {"area":"performance","range":"90-95% predeployment; public measurement pending","method":"validated build and database indexes versus public field/lab measurements","numerator":"build validation and performance indexes","denominator":"deployed page and API measurements","evidence":"exact-head validation; INFO-only unused indexes on empty DB","uncertainty":"edge/network behavior","blocker":"deployment","nextAction":"measure deployed routes"},
-    {"area":"SEO/PWA","range":"92-97% artifacts; public verification pending","method":"compiled metadata/service-worker artifacts versus public crawl/install behavior","numerator":"robots, sitemap, manifest, legal/support and offline shell","denominator":"public canonical/OG/service-worker/offline checks","evidence":"603cece public-surface tests","uncertainty":"public hostname","blocker":"deployment","nextAction":"verify on pages.dev"},
-    {"area":"deployment","range":"0% verified","method":"exact public release identity","numerator":"0 reachable exact-SHA deployments","denominator":"one verified Pages Free primary plus continuity fallback","evidence":"deployment job 91379972997 failed before steps; verifier 91379973012 failed","uncertainty":"Cloudflare project availability/name","blocker":"official Cloudflare Pages authorization","nextAction":"connect Pages project via normal OAuth/dashboard"},
-    {"area":"free-tier sustainability","range":"90-95% design; hosting project not created","method":"free-tier controls and no-cost state versus running quotas","numerator":"Supabase Free, no payment, no paid overages, quota governance code","denominator":"live Cloudflare Pages Free and measured usage","evidence":"Supabase Free and no billable resource created","uncertainty":"actual public traffic","blocker":"hosting authorization","nextAction":"create Pages Free project only"},
-    {"area":"predeployment PDF","range":"100%","method":"integrity-verified accepted evidence artifact","numerator":"436 pages, 429 governed screens, checksum and manifest pass","denominator":"predeployment PDF contract","evidence":"SHA-256 9f47138a1d43237dca01bef907aa48b158405d1d00e86953bfb9e9f28bbbf0b6","uncertainty":"none material","blocker":"none","nextAction":"preserve unchanged"},
-    {"area":"public-runtime PDF","range":"0% generated; correctly gated","method":"truthful live-screen denominator","numerator":"0 public-runtime captures","denominator":"accepted corpus plus required deployed activation screens","evidence":"no exact public deployment","uncertainty":"future page count and URL","blocker":"deployment/Auth/provider gates","nextAction":"generate only after live verification"},
-    {"area":"LinkedIn package/publication","range":"100% package; 0% publication","method":"ready assets versus official published posts","numerator":"verified launch package","denominator":"founder and document posts publicly reachable","evidence":"package SHA-256 be0fbb7acf996c5eb3c9c3884d9e718a3cd5598e96f8383f192dca06ca09da62","uncertainty":"final live URL and platform publishing access","blocker":"public deployment, then LinkedIn publishing capability","nextAction":"update URL and publish only after exact release verification"}
+  "blockers": [
+    {"code": "CLOUDFLARE_PAGES_OFFICIAL_AUTHORIZATION_REQUIRED", "type": "normal_external_authorization", "nextAction": "Connect one Pages Free project through the authenticated Cloudflare dashboard and official GitHub OAuth integration, with no payment method, paid overages or domain purchase."},
+    {"code": "ACCEPTED_RELEASE_PUBLIC_RUNTIME_WIRING_REQUIRED", "type": "technical_release_delta", "nextAction": "Explicitly authorize a narrowly scoped Prompt 2C public-runtime wiring commit and subsequent validated release-head advancement; exact 603cece must remain preserved as the deterministic fallback."},
+    {"code": "GITHUB_PAGES_ENVIRONMENT_OR_SOURCE_AUTHORIZATION_REQUIRED", "type": "fallback_authorization", "nextAction": "Allow the release branch in the github-pages environment and confirm Pages uses GitHub Actions."},
+    {"code": "LINKEDIN_PUBLICATION_AUTHORIZATION_REQUIRED_AFTER_LIVE_URL", "type": "publishing_authorization", "nextAction": "Expose an official LinkedIn publishing action only after the public URL and claims pass."}
   ],
-  "safety": {
-    "secretsRequestedOrCommitted": false,
-    "rawCredentialsRequested": false,
-    "tradingEnabled": false,
-    "custodyEnabled": false,
-    "transfersEnabled": false,
-    "walletSigningEnabled": false,
-    "brokerOrExchangeExecutionEnabled": false,
-    "mainModified": false,
-    "pullRequestsMerged": false
+  "scorecard": {
+    "QellyOverall": "82-87%",
+    "Prompt2B": "100%",
+    "Prompt2CImplementation": "86-91% full-runtime; 100% deterministic fallback contract",
+    "Prompt2CActivation": "45-55%",
+    "frontend": "97-99% governed/deterministic; public cloud wiring incomplete",
+    "backend": "82-88% components; public route integration incomplete",
+    "database": "96-99% live",
+    "liveAuthJourneys": "0%",
+    "RLS": "98-100% database; deployed-browser repeat pending",
+    "cloudSync": "88-94% engine/database; 0% public browser",
+    "providers": "88-94% adapters; 0% deployed route verification",
+    "security": "94-98% code/database; live host pending",
+    "accessibility": "100% preserved corpus; activation screens pending",
+    "performance": "90-95% predeployment; public measurement pending",
+    "SEO_PWA": "92-97% artifacts; public verification pending",
+    "deployment": "0% exact public release verified",
+    "freeTierSustainability": "90-95% design; Pages project absent",
+    "predeploymentPdf": "100%",
+    "publicRuntimePdf": "0% correctly gated",
+    "linkedinPackage": "100%",
+    "linkedinPublication": "0%",
+    "globalReadiness": "88-93% deterministic; 45-55% cloud",
+    "productionReadiness": "80-86% foundations; 0% exact public activation"
   },
-  "exactNextAction": "Authorize one Cloudflare Pages Free project through the normal Cloudflare dashboard and GitHub OAuth connection for hemangsah/qelly-intelligence, production branch release/qelly-global-public-beta, without a domain purchase, payment method, paid overages or raw credentials."
+  "safety": {
+    "rawCredentialsRequested": false,
+    "secretsCommitted": false,
+    "mainModified": false,
+    "pullRequestsMerged": false,
+    "tradingCustodyTransfersWalletSigningOrExecutionEnabled": false
+  },
+  "exactNextDecision": "Two authorizations are required, not one: normal Cloudflare Pages OAuth/dashboard authorization and explicit permission for a narrowly scoped Prompt 2C public-runtime wiring/release delta. Without the second, exact 603cece can only be deployed truthfully as a local-only deterministic fallback and cannot pass the commanded Auth, sync or provider gates."
 }
