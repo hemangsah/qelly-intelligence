@@ -1,30 +1,25 @@
 {
-  "name": "Qelly Intelligence",
+  "id": "./",
+  "name": "Qelly Global Public Beta",
   "short_name": "Qelly",
-  "description": "Evidence-backed market intelligence and decision provenance.",
-  "start_url": "./#/market",
+  "description": "Read-only, local-first quantitative calculations, indicators and verifiable market intelligence.",
+  "start_url": "./#/market?source=pwa",
   "scope": "./",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#171116",
   "theme_color": "#6F1838",
+  "categories": ["finance", "productivity", "education"],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {"name": "Formula Library", "short_name": "Formulas", "url": "./#/formula-library?source=pwa"},
+    {"name": "Indicator Library", "short_name": "Indicators", "url": "./#/indicator-library?source=pwa"},
+    {"name": "Calculator Center", "short_name": "Calculators", "url": "./#/calculator-center?source=pwa"},
+    {"name": "Saved Calculations", "short_name": "Saved", "url": "./#/saved-calculations?source=pwa"}
+  ],
   "icons": [
-    {
-      "src": "./icons/qelly-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "./icons/qelly-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "./icons/qelly-maskable-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
+    {"src": "./icons/qelly-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "./icons/qelly-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "./icons/qelly-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
   ]
 }
