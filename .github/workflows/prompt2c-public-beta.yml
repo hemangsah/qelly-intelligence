@@ -1,4 +1,4 @@
-name: Qelly Prompt 2C Global Public Beta
+name: Qelly Prompt 2C Public Runtime
 
 on:
   pull_request:
@@ -11,25 +11,26 @@ permissions:
   contents: read
 
 concurrency:
-  group: prompt2c-public-beta-${{ github.ref }}
+  group: prompt2c-public-runtime-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   validate:
-    name: Validate exact Prompt 2C head
+    name: Validate exact Prompt 2C public-runtime head
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with: {persist-credentials: false, fetch-depth: 0}
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with: {node-version: '22', cache: npm}
       - run: npm ci --ignore-scripts
-      - name: Verify immutable Prompt 2B parent
+      - name: Verify immutable Prompt 2B parent and deterministic fallback
         run: |
           git cat-file -e 17eeadac4c510cc3c312185e86b0ac5907f3789b^{commit}
           git merge-base --is-ancestor 17eeadac4c510cc3c312185e86b0ac5907f3789b HEAD
           test "$(git merge-base 17eeadac4c510cc3c312185e86b0ac5907f3789b HEAD)" = "17eeadac4c510cc3c312185e86b0ac5907f3789b"
+          git cat-file -e 603cece3091dc59cfb72680914e7056b40058022^{commit}
       - run: npm run security:scan
       - run: npm run typecheck
       - run: npm run lint
@@ -43,102 +44,83 @@ jobs:
           node --test tests/prompt2c-official-providers.test.mjs
           node --test tests/prompt2c-telemetry.test.mjs
           node --test tests/prompt2c-edge-cloud-api.test.mjs
+          node --test tests/prompt2c-public-runtime.test.mjs
       - run: npm test
-      - name: Build and validate exact-head artifact
-        env:
-          QELLY_STATIC_VISUAL_PREVIEW: 'true'
-          QELLY_PROMPT2C_PUBLIC_BETA: 'true'
-          QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
-          QELLY_DEPLOYMENT_ENVIRONMENT: preview
-          QELLY_CLOUD_MODE: local-only
-          QELLY_ENABLE_AUTH: 'false'
-          QELLY_ENABLE_CLOUD_SYNC: 'false'
-          QELLY_ENABLE_LIVE_PROVIDERS: 'false'
-          QELLY_ENABLE_FEEDBACK_WRITES: 'false'
+      - name: Check Pages Functions modules
         run: |
-          RELEASE_SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+          node --check functions/_lib/runtime.js
+          node --check functions/_lib/auth.js
+          node --check functions/_lib/data.js
+          node --check functions/_lib/providers.js
+          node --check 'functions/api/v1/[[path]].js'
+          node --check functions/_middleware.js
+          node --check apps/web/public/assets/qelly-auth-callback.mjs
+          node --check apps/web/public/assets/qelly-cloud-sync.mjs
+      - name: Build exact public-runtime artifact
+        env:
+          QELLY_STATIC_VISUAL_PREVIEW: 'false'
+          QELLY_PROMPT2C_PUBLIC_BETA: 'true'
+          QELLY_REQUIRE_PUBLIC_RUNTIME: 'true'
+          QELLY_PUBLIC_BASE_PATH: /
+          QELLY_PUBLIC_SITE_URL: https://qelly-runtime.example
+          QELLY_PUBLIC_API_BASE_URL: ''
+          QELLY_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_public_key_1234567890
+          QELLY_PUBLIC_RELEASE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          QELLY_DEPLOYMENT_ENVIRONMENT: acceptance
+          QELLY_ENABLE_AUTH: 'true'
+          QELLY_ENABLE_CLOUD_SYNC: 'true'
+          QELLY_ENABLE_LIVE_PROVIDERS: 'true'
+          QELLY_ENABLE_FEEDBACK_WRITES: 'true'
+        run: |
           npm run build
           npm run build:frontend
-          printf '{"releaseSha":"%s","workflowRun":"%s","deployedAt":null,"mode":"validated-github-pages-public-beta-fallback","cloudMode":"local-only","authentication":false,"cloudSync":false,"liveProviders":false,"protectedWrites":false,"fallbackUrl":"https://hemangsah.github.io/qelly-intelligence/"}\n' "${RELEASE_SHA}" "${GITHUB_RUN_ID}" > dist/frontend/qelly-release.json
-          npm run validate:pages-preview
-          npm run smoke:pages-preview
-          GITHUB_SHA="${RELEASE_SHA}" node scripts/validate-prompt2c-public-beta.mjs
+          node scripts/validate-prompt2c-public-runtime.mjs
           mkdir -p dist/release-evidence
-          cp dist/frontend/qelly-release.json dist/release-evidence/QELLY_PROMPT2C_RELEASE_MANIFEST.json
-          find dist/frontend -type f -print0 | sort -z | xargs -0 sha256sum > dist/release-evidence/QELLY_PROMPT2C_FRONTEND_SHA256.txt
-
-  deploy-fallback:
-    name: Deploy deterministic GitHub Pages fallback
-    if: >-
-      github.event_name == 'push' &&
-      (github.ref == 'refs/heads/feature/prompt2c-global-public-beta' ||
-       github.ref == 'refs/heads/release/qelly-global-public-beta')
-    needs: validate
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions: {contents: read, pages: write, id-token: write}
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with: {persist-credentials: false, fetch-depth: 0}
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with: {node-version: '22', cache: npm}
-      - run: npm ci --ignore-scripts
-      - name: Build release branch artifact
-        env:
-          QELLY_STATIC_VISUAL_PREVIEW: 'true'
-          QELLY_PROMPT2C_PUBLIC_BETA: 'true'
-          QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
-          QELLY_DEPLOYMENT_ENVIRONMENT: preview
-          QELLY_CLOUD_MODE: local-only
-          QELLY_ENABLE_AUTH: 'false'
-          QELLY_ENABLE_CLOUD_SYNC: 'false'
-          QELLY_ENABLE_LIVE_PROVIDERS: 'false'
-          QELLY_ENABLE_FEEDBACK_WRITES: 'false'
-        run: |
-          npm run build:frontend
-          printf '{"releaseSha":"%s","workflowRun":"%s","deployedAt":"%s","mode":"github-pages-public-beta-fallback","cloudMode":"local-only","authentication":false,"cloudSync":false,"liveProviders":false,"protectedWrites":false,"fallbackUrl":"https://hemangsah.github.io/qelly-intelligence/"}\n' "${GITHUB_SHA}" "${GITHUB_RUN_ID}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > dist/frontend/qelly-release.json
-          npm run validate:pages-preview
-          node scripts/validate-prompt2c-public-beta.mjs
-      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
-      - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
-        with: {path: dist/frontend}
-      - name: Deploy exact-head fallback
-        id: deployment
-        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+          cp dist/frontend/qelly-release.json dist/release-evidence/QELLY_PROMPT2C_PUBLIC_RUNTIME_RELEASE.json
+          find dist/frontend functions -type f -print0 | sort -z | xargs -0 sha256sum > dist/release-evidence/QELLY_PROMPT2C_PUBLIC_RUNTIME_SHA256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qelly-prompt2c-public-runtime-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            dist/frontend
+            dist/release-evidence
+            functions
+          if-no-files-found: error
+          retention-days: 14
 
   verify-public:
-    name: Verify globally reachable exact-head public beta
+    name: Verify externally deployed exact runtime when URL is authorized
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/release/qelly-global-public-beta' &&
+      vars.QELLY_PUBLIC_RUNTIME_URL != ''
     needs: validate
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
-      - name: Verify HTTPS, identity, assets and representative routes
+      - name: Verify HTTPS, exact release, capabilities and critical public routes
         env:
-          PUBLIC_URL: https://hemangsah.github.io/qelly-intelligence/
-          RELEASE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          PUBLIC_URL: ${{ vars.QELLY_PUBLIC_RUNTIME_URL }}
+          RELEASE_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
+          case "${PUBLIC_URL}" in https://*) ;; *) echo "HTTPS public URL required"; exit 1;; esac
           DEPLOYED=false
-          for attempt in $(seq 1 30); do
-            if curl --fail --silent --location --max-time 20 "${PUBLIC_URL}qelly-release.json?verify=${RELEASE_SHA}-${attempt}" -o /tmp/release.json; then
+          for attempt in $(seq 1 36); do
+            if curl --fail --silent --location --max-time 20 "${PUBLIC_URL%/}/qelly-release.json?verify=${RELEASE_SHA}-${attempt}" -o /tmp/release.json; then
               test "$(node -p "JSON.parse(require('fs').readFileSync('/tmp/release.json','utf8')).releaseSha")" != "${RELEASE_SHA}" || { DEPLOYED=true; break; }
             fi
             sleep 10
           done
           test "${DEPLOYED}" = true
-          test "$(node -p "JSON.parse(require('fs').readFileSync('/tmp/release.json','utf8')).cloudMode")" = local-only
-          test "$(node -p "JSON.parse(require('fs').readFileSync('/tmp/release.json','utf8')).authentication")" = false
-          for path in '' robots.txt sitemap.xml prompt2c-sw.js manifest.webmanifest legal/beta.html legal/risk.html legal/privacy.html legal/terms.html support.html assets/app.js assets/route-registry.mjs; do
-            curl --fail --silent --location --max-time 20 "${PUBLIC_URL}${path}" -o "/tmp/public-$(echo "${path:-index}" | tr '/' '-')"
+          test "$(node -p "JSON.parse(require('fs').readFileSync('/tmp/release.json','utf8')).authentication")" = true
+          test "$(node -p "JSON.parse(require('fs').readFileSync('/tmp/release.json','utf8')).cloudSync")" = true
+          test "$(node -p "JSON.parse(require('fs').readFileSync('/tmp/release.json','utf8')).liveProviders")" = true
+          for path in '' qelly-config.js robots.txt sitemap.xml manifest.webmanifest auth/callback.html legal/privacy.html support.html api/v1/health api/v1/readiness api/v1/config; do
+            curl --fail --silent --location --max-time 20 "${PUBLIC_URL%/}/${path}" -o "/tmp/public-$(echo "${path:-index}" | tr '/' '-')"
           done
-          grep -F 'prompt2c-public-beta.mjs' /tmp/public-index
-          grep -F 'Disallow: /api/' /tmp/public-robots.txt
-          grep -F 'QELLY GLOBAL PUBLIC BETA' /tmp/public-legal-privacy.html
-          grep -F 'Protected feedback submission is not active' /tmp/public-support.html
-          for route in market formula-library indicator-library calculator-center india-finance saved-calculations formula-detail indicator-detail calculator-detail saved-calculation-detail; do
-            curl --fail --silent --location --max-time 20 "${PUBLIC_URL}#/${route}" -o "/tmp/route-${route}.html"
-            grep -F 'id="app"' "/tmp/route-${route}.html"
-          done
+          grep -F 'id="app"' /tmp/public-index
+          grep -F '"authentication":true' /tmp/public-qelly-config.js
+          grep -F '"cloudSync":true' /tmp/public-qelly-config.js
+          grep -F '"liveProviders":true' /tmp/public-qelly-config.js
