@@ -46,6 +46,7 @@ jobs:
           node --test tests/prompt2c-edge-cloud-api.test.mjs
           node --test tests/prompt2c-public-runtime.test.mjs
           node --test tests/prompt2c-public-runtime-hardening.test.mjs
+          node --test tests/prompt2c-csp-startup-regression.test.mjs
       - name: Run complete repository suite with exact failure manifest
         id: repository-suite
         shell: bash
@@ -88,6 +89,8 @@ jobs:
           node --check functions/_middleware.js
           node --check apps/web/public/assets/qelly-auth-callback.mjs
           node --check apps/web/public/assets/qelly-cloud-sync.mjs
+          node --check apps/web/public/assets/qelly-app-ready.mjs
+          node --check apps/web/public/assets/qelly-prepaint-bootstrap.js
       - name: Build exact public-runtime artifact
         env:
           QELLY_STATIC_VISUAL_PREVIEW: 'false'
@@ -122,37 +125,112 @@ jobs:
           retention-days: 14
 
   verify-public:
-    name: Verify externally deployed exact runtime when URL is authorized
+    name: Verify externally deployed exact runtime
     if: >-
       github.event_name == 'push' &&
-      github.ref == 'refs/heads/release/qelly-global-public-beta' &&
-      vars.QELLY_PUBLIC_RUNTIME_URL != ''
+      github.ref == 'refs/heads/release/qelly-global-public-beta'
     needs: validate
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 20
+    env:
+      PUBLIC_URL: https://qelly-intelligence.pages.dev
+      RELEASE_SHA: ${{ github.sha }}
+      FALLBACK_SHA: 603cece3091dc59cfb72680914e7056b40058022
+      SUPABASE_PROJECT_REF: ssdgfgqnjlwzkgukzeef
     steps:
-      - name: Verify HTTPS, exact release, capabilities and critical public routes
-        env:
-          PUBLIC_URL: ${{ vars.QELLY_PUBLIC_RUNTIME_URL }}
-          RELEASE_SHA: ${{ github.sha }}
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with: {persist-credentials: false, fetch-depth: 1}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with: {node-version: '22', cache: npm}
+      - run: npm ci --ignore-scripts
+      - name: Wait for production and verify release identity, config and critical routes
+        shell: bash
         run: |
           set -euo pipefail
           case "${PUBLIC_URL}" in https://*) ;; *) echo "HTTPS public URL required"; exit 1;; esac
+          mkdir -p dist/live-public-verification/http
           DEPLOYED=false
           for attempt in $(seq 1 36); do
-            if curl --fail --silent --location --max-time 20 "${PUBLIC_URL%/}/qelly-release.json?verify=${RELEASE_SHA}-${attempt}" -o /tmp/release.json; then
-              test "$(node -p "JSON.parse(require('fs').readFileSync('/tmp/release.json','utf8')).releaseSha")" != "${RELEASE_SHA}" || { DEPLOYED=true; break; }
+            if curl --fail --silent --show-error --location --max-time 20 "${PUBLIC_URL%/}/qelly-release.json?verify=${RELEASE_SHA}-${attempt}" -o dist/live-public-verification/http/release.json; then
+              actual="$(node -p "JSON.parse(require('fs').readFileSync('dist/live-public-verification/http/release.json','utf8')).releaseSha")"
+              if [ "${actual}" = "${RELEASE_SHA}" ]; then DEPLOYED=true; break; fi
+              echo "Waiting for ${RELEASE_SHA}; observed ${actual}"
             fi
             sleep 10
           done
           test "${DEPLOYED}" = true
-          test "$(node -p "JSON.parse(require('fs').readFileSync('/tmp/release.json','utf8')).authentication")" = true
-          test "$(node -p "JSON.parse(require('fs').readFileSync('/tmp/release.json','utf8')).cloudSync")" = true
-          test "$(node -p "JSON.parse(require('fs').readFileSync('/tmp/release.json','utf8')).liveProviders")" = true
-          for path in '' qelly-config.js robots.txt sitemap.xml manifest.webmanifest auth/callback.html legal/privacy.html support.html api/v1/health api/v1/readiness api/v1/config; do
-            curl --fail --silent --location --max-time 20 "${PUBLIC_URL%/}/${path}" -o "/tmp/public-$(echo "${path:-index}" | tr '/' '-')"
+          node <<'NODE'
+          const fs=require('node:fs');
+          const release=JSON.parse(fs.readFileSync('dist/live-public-verification/http/release.json','utf8'));
+          if(release.releaseSha!==process.env.RELEASE_SHA)throw new Error(`release_sha_mismatch_${release.releaseSha}`);
+          if(release.fallbackReleaseSha!==process.env.FALLBACK_SHA)throw new Error(`fallback_sha_mismatch_${release.fallbackReleaseSha}`);
+          for(const key of ['authentication','cloudSync','liveProviders','protectedWrites'])if(release[key]!==true)throw new Error(`capability_disabled_${key}`);
+          NODE
+          for path in '' qelly-config.js BUILD_INFO.json robots.txt sitemap.xml manifest.webmanifest auth/callback.html legal/privacy.html support.html api/v1/health api/v1/readiness api/v1/config api/v1/providers/status 'api/v1/providers/binance?symbol=BTCUSDT' 'api/v1/providers/coinbase?symbol=BTC-USD' 'api/v1/providers/ecb?symbol=EUR'; do
+            safe="$(echo "${path:-index}" | tr '/?=&' '----')"
+            curl --fail --silent --show-error --location --max-time 30 -D "dist/live-public-verification/http/${safe}.headers" "${PUBLIC_URL%/}/${path}" -o "dist/live-public-verification/http/${safe}.body"
           done
-          grep -F 'id="app"' /tmp/public-index
-          grep -F '"authentication":true' /tmp/public-qelly-config.js
-          grep -F '"cloudSync":true' /tmp/public-qelly-config.js
-          grep -F '"liveProviders":true' /tmp/public-qelly-config.js
+          grep -F 'id="app"' dist/live-public-verification/http/index.body
+          node <<'NODE'
+          const fs=require('node:fs');
+          const vm=require('node:vm');
+          const source=fs.readFileSync('dist/live-public-verification/http/qelly-config.js.body','utf8');
+          const sandbox={window:{}};
+          vm.runInNewContext(source,sandbox,{timeout:1000});
+          const config=sandbox.window.__QELLY_CONFIG__||{};
+          const key=String(config.supabase?.publishableKey||'');
+          const validModern=/^sb_publishable_[A-Za-z0-9_-]{20,}$/.test(key);
+          const parts=key.split('.');
+          const validLegacy=parts.length===3&&parts.every(part=>/^[A-Za-z0-9_-]+$/.test(part)&&part.length>=16)&&key.length>=100;
+          const evidence={releaseSha:config.releaseSha,releaseMatches:config.releaseSha===process.env.RELEASE_SHA,publicSiteUrl:config.publicSiteUrl,staticVisualPreview:config.staticVisualPreview,capabilities:config.capabilities,supabaseUrl:config.supabase?.url,keyShape:{present:key.length>0,length:key.length,equalsProjectReference:key===process.env.SUPABASE_PROJECT_REF,modernPublishablePrefix:key.startsWith('sb_publishable_'),legacyJwtShape:parts.length===3,valid:validModern||validLegacy}};
+          fs.writeFileSync('dist/live-public-verification/config-redacted.json',JSON.stringify(evidence,null,2));
+          if(!evidence.releaseMatches)throw new Error('generated_config_release_mismatch');
+          if(config.publicSiteUrl!==process.env.PUBLIC_URL)throw new Error(`generated_site_url_mismatch_${config.publicSiteUrl}`);
+          if(config.staticVisualPreview!==false)throw new Error('static_preview_enabled');
+          if(key===process.env.SUPABASE_PROJECT_REF)throw new Error('supabase_project_reference_used_as_publishable_key');
+          if(!(validModern||validLegacy))throw new Error('invalid_supabase_publishable_key_shape');
+          for(const capability of ['authentication','cloudSync','liveProviders','protectedWrites'])if(config.capabilities?.[capability]!==true)throw new Error(`generated_capability_disabled_${capability}`);
+          NODE
+      - name: Verify public browser startup under deployed CSP
+        shell: bash
+        run: |
+          npx playwright install --with-deps chromium
+          node <<'NODE'
+          const fs=require('node:fs');
+          const {chromium}=require('playwright');
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const context=await browser.newContext({viewport:{width:1440,height:1000},serviceWorkers:'block'});
+            const page=await context.newPage();
+            const pageErrors=[],requestFailures=[],consoleErrors=[],failingResponses=[];
+            page.on('pageerror',error=>pageErrors.push({name:error.name,message:error.message,stack:error.stack}));
+            page.on('requestfailed',request=>requestFailures.push({url:request.url(),resourceType:request.resourceType(),failure:request.failure()}));
+            page.on('console',message=>{if(message.type()==='error')consoleErrors.push({text:message.text(),location:message.location()});});
+            page.on('response',response=>{if(response.status()>=400)failingResponses.push({url:response.url(),status:response.status(),resourceType:response.request().resourceType(),contentType:response.headers()['content-type']||null});});
+            const response=await page.goto(process.env.PUBLIC_URL,{waitUntil:'domcontentloaded',timeout:45000});
+            await page.waitForTimeout(13000);
+            const dom=await page.evaluate(()=>{const main=document.querySelector('#main'),app=document.querySelector('.q-app');return {title:document.title,appReady:document.documentElement.dataset.appReady||null,themeReady:document.documentElement.dataset.themeReady||null,brandReady:document.documentElement.dataset.brandReady||null,appExists:Boolean(document.querySelector('#app')),mainChildCount:main?.childElementCount??null,mainText:(main?.innerText||'').slice(0,3000),bodyText:(document.body?.innerText||'').slice(0,3000),appVisibility:app?getComputedStyle(app).visibility:null,background:getComputedStyle(document.body).backgroundColor,configPresent:Boolean(window.__QELLY_CONFIG__),publicBetaStatus:window.__QELLY_PUBLIC_BETA_STATUS__||null,startupFailure:Boolean(document.querySelector('.q-startup-failure')),inlineScriptCount:[...document.scripts].filter(script=>!script.src&&script.textContent.trim()).length};});
+            const evidence={url:page.url(),navigationStatus:response?.status()??null,dom,pageErrors,requestFailures,consoleErrors,failingResponses};
+            fs.writeFileSync('dist/live-public-verification/browser-evidence.json',JSON.stringify(evidence,null,2));
+            await page.screenshot({path:'dist/live-public-verification/homepage.png',fullPage:true});
+            await browser.close();
+            if(evidence.navigationStatus!==200)throw new Error(`homepage_status_${evidence.navigationStatus}`);
+            if(dom.appReady!=='true')throw new Error(`app_not_ready_${dom.appReady}`);
+            if(dom.themeReady!=='true')throw new Error(`theme_not_ready_${dom.themeReady}`);
+            if(dom.appVisibility!=='visible')throw new Error(`app_not_visible_${dom.appVisibility}`);
+            if(!dom.appExists||!(dom.mainChildCount>0))throw new Error('main_route_not_rendered');
+            if(dom.startupFailure)throw new Error('startup_failure_screen_rendered');
+            if(dom.inlineScriptCount!==0)throw new Error(`inline_script_count_${dom.inlineScriptCount}`);
+            if(pageErrors.length)throw new Error(`page_errors_${JSON.stringify(pageErrors)}`);
+            const cspErrors=consoleErrors.filter(entry=>/content security policy|refused to execute inline|violates.*script-src/i.test(entry.text));
+            if(cspErrors.length)throw new Error(`csp_console_errors_${JSON.stringify(cspErrors)}`);
+          })().catch(error=>{console.error(error);process.exit(1);});
+          NODE
+      - name: Upload deployed runtime verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qelly-live-public-verification-${{ github.sha }}
+          path: dist/live-public-verification
+          if-no-files-found: error
+          retention-days: 14
