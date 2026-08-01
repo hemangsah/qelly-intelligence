@@ -6,6 +6,7 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const output=path.join(root,'dist/frontend');
 const apiBaseUrl=String(process.env.QELLY_PUBLIC_API_BASE_URL??'').trim().replace(/\/$/,'');
 const staticVisualPreview=process.env.QELLY_STATIC_VISUAL_PREVIEW==='true';
+const prompt2cPublicBeta=process.env.QELLY_PROMPT2C_PUBLIC_BETA==='true';
 const rawBasePath=String(process.env.QELLY_PUBLIC_BASE_PATH??'/').trim();
 const basePath=rawBasePath==='/'?'/':`/${rawBasePath.replace(/^\/+|\/+$/g,'')}/`;
 if(!/^\/(?:[A-Za-z0-9._~-]+\/)*$/.test(basePath)||basePath.includes('//')||basePath.includes('\\'))throw new Error('QELLY_PUBLIC_BASE_PATH must be a safe absolute path ending in /');
@@ -46,11 +47,14 @@ for(const [packageName,preferred,target] of fontCopies){
   await cp(path.join(root,'node_modules',packageName,'LICENSE'),path.join(fontOutput,`${target}.LICENSE.txt`));
 }
 
-if(basePath!=='/'){
-  const indexPath=path.join(output,'index.html');
-  const index=await readFile(indexPath,'utf8');
-  await writeFile(indexPath,index.replace('<head>',`<head>\n  <base href="${basePath}">`));
+const indexPath=path.join(output,'index.html');
+let index=await readFile(indexPath,'utf8');
+if(basePath!=='/')index=index.replace('<head>',`<head>\n  <base href="${basePath}">`);
+if(prompt2cPublicBeta){
+  if(!index.includes('prompt2c-public-beta.css'))index=index.replace('</head>','  <link rel="stylesheet" href="./assets/prompt2c-public-beta.css">\n</head>');
+  if(!index.includes('prompt2c-public-beta.mjs'))index=index.replace('</body>','  <script type="module" src="./assets/prompt2c-public-beta.mjs"></script>\n</body>');
 }
+await writeFile(indexPath,index);
 
 const runtimeConfig=staticVisualPreview
   ? {
@@ -94,6 +98,9 @@ await writeFile(path.join(output,'BUILD_INFO.json'),`${JSON.stringify({
   apiBaseConfigured:Boolean(apiBaseUrl),
   basePath,
   staticVisualPreview,
+  prompt2cPublicBeta,
+  publicBetaMode:prompt2cPublicBeta?'QELLY GLOBAL PUBLIC BETA':null,
+  connectedCapabilitiesActivated:false,
   previewLabel:staticVisualPreview?'Static visual preview':null,
   fonts:{
     ui:'IBM Plex Sans Variable',
@@ -107,4 +114,4 @@ await writeFile(path.join(output,'BUILD_INFO.json'),`${JSON.stringify({
   },
   builtAt:new Date().toISOString()
 },null,2)}\n`);
-console.log(JSON.stringify({status:'frontend-build-passed',output:path.relative(root,output),apiBaseConfigured:Boolean(apiBaseUrl),basePath,staticVisualPreview,fonts:['ibm-plex-sans-variable.woff2']},null,2));
+console.log(JSON.stringify({status:'frontend-build-passed',output:path.relative(root,output),apiBaseConfigured:Boolean(apiBaseUrl),basePath,staticVisualPreview,prompt2cPublicBeta,fonts:['ibm-plex-sans-variable.woff2']},null,2));
