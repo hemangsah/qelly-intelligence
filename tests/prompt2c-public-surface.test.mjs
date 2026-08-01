@@ -18,7 +18,10 @@ test('offline shell excludes API and private account state',async()=>{
   const serviceWorker=await read('apps/web/public/prompt2c-sw.js');
   assert.match(serviceWorker,/\/api\//);
   assert.match(serviceWorker,/auth\|account\|saved-calculations/);
-  assert.doesNotMatch(serviceWorker,/SHELL=.*\/api\//s);
+  const shellDeclaration=serviceWorker.match(/const SHELL=(\[[^;]+\]);/)?.[1]||'';
+  assert.ok(shellDeclaration,'offline shell declaration is present');
+  assert.doesNotMatch(shellDeclaration,/\/api\//);
+  assert.doesNotMatch(shellDeclaration,/auth|account|saved-calculations|secure-import|quarantine|delivery-operations/i);
 });
 
 test('public policy pages disclose beta, privacy and financial risk boundaries',async()=>{
