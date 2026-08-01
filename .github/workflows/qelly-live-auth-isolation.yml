@@ -20,11 +20,18 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npx playwright install --with-deps chromium
       - name: Run temporary-mail Auth, cloud lifecycle and tenant isolation
+        id: live_auth
+        continue-on-error: true
         run: node forensics/qelly-live-auth-isolation-v2-runner.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: qelly-live-auth-isolation-150025b-v2
+          name: qelly-live-auth-isolation-150025b-v3
           path: dist/live-auth-isolation
           if-no-files-found: error
           retention-days: 3
+      - name: Surface retrievable forensic outcome
+        if: always()
+        run: |
+          echo "QELLY_LIVE_AUTH_OUTCOME=${{ steps.live_auth.outcome }}"
+          exit 1
