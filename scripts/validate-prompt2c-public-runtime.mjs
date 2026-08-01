@@ -1,4 +1,4 @@
-import {readFile,readdir,stat} from 'node:fs/promises';
+import {readFile,readdir} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -9,7 +9,8 @@ const readJson=async(name)=>JSON.parse(await readFile(path.join(dist,name),'utf8
 const release=await readJson('qelly-release.json'),build=await readJson('BUILD_INFO.json'),routes=await readJson('_routes.json');
 const configSource=await readFile(path.join(dist,'qelly-config.js'),'utf8');
 const callback=await readFile(path.join(dist,'auth/callback.html'),'utf8');
-const functionSource=await readFile(path.join(root,'functions/api/v1/[[path]].js'),'utf8');
+const functionFiles=['functions/api/v1/[[path]].js','functions/_lib/runtime.js','functions/_lib/auth.js','functions/_lib/data.js','functions/_lib/providers.js','functions/_middleware.js'];
+const functionSource=(await Promise.all(functionFiles.map(file=>readFile(path.join(root,file),'utf8')))).join('\n');
 
 if(!/^[0-9a-f]{40}$/i.test(expected))throw new Error('QELLY_PUBLIC_RELEASE_SHA must be an exact 40-character SHA');
 if(release.releaseSha!==expected)throw new Error('Release identity does not match exact runtime head');
@@ -32,4 +33,4 @@ for(const file of await walk(dist)){
   const text=await readFile(file,'utf8');
   if(/QELLY_SUPABASE_SERVICE_ROLE_KEY|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/.test(text))throw new Error(`Private secret marker found in compiled asset: ${path.relative(dist,file)}`);
 }
-console.log(JSON.stringify({status:'qelly-public-runtime-artifact-valid',releaseSha:expected,files:(await walk(dist)).length,architecture:build.runtimeArchitecture,capabilities:{authentication:release.authentication,cloudSync:release.cloudSync,liveProviders:release.liveProviders}},null,2));
+console.log(JSON.stringify({status:'qelly-public-runtime-artifact-valid',releaseSha:expected,files:(await walk(dist)).length,functions:functionFiles.length,architecture:build.runtimeArchitecture,capabilities:{authentication:release.authentication,cloudSync:release.cloudSync,liveProviders:release.liveProviders}},null,2));
