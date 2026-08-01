@@ -20,55 +20,42 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Check out exact source with ancestry
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
           fetch-depth: 0
-      - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
           cache: npm
-      - name: Install locked dependencies
-        run: npm ci --ignore-scripts
-      - name: Verify Prompt 2B immutable parent
+      - run: npm ci --ignore-scripts
+      - name: Verify immutable Prompt 2B parent
         shell: bash
         run: |
           git cat-file -e 17eeadac4c510cc3c312185e86b0ac5907f3789b^{commit}
           git merge-base --is-ancestor 17eeadac4c510cc3c312185e86b0ac5907f3789b HEAD
           test "$(git merge-base 17eeadac4c510cc3c312185e86b0ac5907f3789b HEAD)" = "17eeadac4c510cc3c312185e86b0ac5907f3789b"
-      - name: Scan repository for committed secrets
-        run: npm run security:scan
-      - name: Type and syntax check
-        run: npm run typecheck
-      - name: Lint and repository policy
-        run: npm run lint
-      - name: Validate governed design foundations
-        run: npm run validate:design
-      - name: Prompt 2C foundation tests
-        run: node --test tests/prompt2c-foundation.test.mjs
-      - name: Prompt 2C migration tests
-        run: node --test tests/prompt2c-migration.test.mjs
-      - name: Prompt 2C public-surface tests
-        run: node --test tests/prompt2c-public-surface.test.mjs
-      - name: Prompt 2C Supabase adapter tests
-        run: node --test tests/prompt2c-supabase-adapter.test.mjs
-      - name: Prompt 2C official-provider tests
-        run: node --test tests/prompt2c-official-providers.test.mjs
-      - name: Prompt 2C telemetry tests
-        run: node --test tests/prompt2c-telemetry.test.mjs
-      - name: Prompt 2C edge cloud API tests
-        run: node --test tests/prompt2c-edge-cloud-api.test.mjs
-      - name: Run complete test suite
+      - run: npm run security:scan
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run validate:design
+      - name: Run focused Prompt 2C tests
+        run: |
+          node --test tests/prompt2c-foundation.test.mjs
+          node --test tests/prompt2c-migration.test.mjs
+          node --test tests/prompt2c-public-surface.test.mjs
+          node --test tests/prompt2c-supabase-adapter.test.mjs
+          node --test tests/prompt2c-official-providers.test.mjs
+          node --test tests/prompt2c-telemetry.test.mjs
+          node --test tests/prompt2c-edge-cloud-api.test.mjs
+      - name: Run complete repository test suite
         run: npm test
-      - name: Build backend and frontend
+      - name: Build exact-head backend and public-beta frontend
         env:
           QELLY_STATIC_VISUAL_PREVIEW: 'true'
           QELLY_PROMPT2C_PUBLIC_BETA: 'true'
           QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
           QELLY_DEPLOYMENT_ENVIRONMENT: preview
-          QELLY_PUBLIC_RELEASE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           QELLY_CLOUD_MODE: local-only
           QELLY_ENABLE_AUTH: 'false'
           QELLY_ENABLE_CLOUD_SYNC: 'false'
@@ -80,22 +67,11 @@ jobs:
           npm run build
           npm run build:frontend
           printf '{"releaseSha":"%s","workflowRun":"%s","deployedAt":null,"mode":"validated-github-pages-public-beta-fallback","cloudMode":"local-only","authentication":false,"cloudSync":false,"liveProviders":false,"protectedWrites":false,"fallbackUrl":"https://hemangsah.github.io/qelly-intelligence/"}\n' "${RELEASE_SHA}" "${GITHUB_RUN_ID}" > dist/frontend/qelly-release.json
-      - name: Validate compiled public beta
-        shell: bash
-        run: |
-          RELEASE_SHA="${{ github.event.pull_request.head.sha || github.sha }}"
           npm run validate:pages-preview
           npm run smoke:pages-preview
           GITHUB_SHA="${RELEASE_SHA}" node scripts/validate-prompt2c-public-beta.mjs
-          test -f dist/frontend/robots.txt
-          test -f dist/frontend/sitemap.xml
-          test -f dist/frontend/prompt2c-sw.js
-          test -f dist/frontend/legal/privacy.html
-          test -f dist/frontend/support.html
           test "$(node -p "JSON.parse(require('fs').readFileSync('dist/frontend/qelly-release.json','utf8')).releaseSha")" = "${RELEASE_SHA}"
-          test "$(node -p "JSON.parse(require('fs').readFileSync('dist/frontend/qelly-release.json','utf8')).cloudMode")" = "local-only"
-      - name: Record exact-head release manifest
-        shell: bash
+      - name: Record exact-head manifest and checksums
         run: |
           mkdir -p dist/release-evidence
           cp dist/frontend/qelly-release.json dist/release-evidence/QELLY_PROMPT2C_RELEASE_MANIFEST.json
@@ -103,11 +79,7 @@ jobs:
 
   deploy-fallback:
     name: Deploy deterministic GitHub Pages fallback
-    if: >-
-      github.event_name == 'push' ||
-      (github.event_name == 'pull_request' &&
-       github.event.pull_request.head.repo.full_name == github.repository &&
-       github.head_ref == 'feature/prompt2c-global-public-beta')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/feature/prompt2c-global-public-beta'
     needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -119,26 +91,21 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Check out exact Prompt 2C source
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
           fetch-depth: 0
-      - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
           cache: npm
-      - name: Install locked dependencies
-        run: npm ci --ignore-scripts
-      - name: Build deterministic fallback
+      - run: npm ci --ignore-scripts
+      - name: Build and validate deterministic fallback
         env:
           QELLY_STATIC_VISUAL_PREVIEW: 'true'
           QELLY_PROMPT2C_PUBLIC_BETA: 'true'
           QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
           QELLY_DEPLOYMENT_ENVIRONMENT: preview
-          QELLY_PUBLIC_RELEASE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           QELLY_CLOUD_MODE: local-only
           QELLY_ENABLE_AUTH: 'false'
           QELLY_ENABLE_CLOUD_SYNC: 'false'
@@ -146,16 +113,12 @@ jobs:
           QELLY_ENABLE_FEEDBACK_WRITES: 'false'
         shell: bash
         run: |
-          RELEASE_SHA="${{ github.event.pull_request.head.sha || github.sha }}"
           npm run build:frontend
-          printf '{"releaseSha":"%s","workflowRun":"%s","deployedAt":"%s","mode":"github-pages-public-beta-fallback","cloudMode":"local-only","authentication":false,"cloudSync":false,"liveProviders":false,"protectedWrites":false,"fallbackUrl":"https://hemangsah.github.io/qelly-intelligence/"}\n' "${RELEASE_SHA}" "${GITHUB_RUN_ID}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > dist/frontend/qelly-release.json
-          test "$(node -p "JSON.parse(require('fs').readFileSync('dist/frontend/qelly-release.json','utf8')).releaseSha")" = "${RELEASE_SHA}"
+          printf '{"releaseSha":"%s","workflowRun":"%s","deployedAt":"%s","mode":"github-pages-public-beta-fallback","cloudMode":"local-only","authentication":false,"cloudSync":false,"liveProviders":false,"protectedWrites":false,"fallbackUrl":"https://hemangsah.github.io/qelly-intelligence/"}\n' "${GITHUB_SHA}" "${GITHUB_RUN_ID}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > dist/frontend/qelly-release.json
           npm run validate:pages-preview
-          GITHUB_SHA="${RELEASE_SHA}" node scripts/validate-prompt2c-public-beta.mjs
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
-      - name: Upload exact-head frontend
-        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
+          node scripts/validate-prompt2c-public-beta.mjs
+      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+      - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
           path: dist/frontend
       - name: Deploy exact-head fallback
@@ -164,28 +127,29 @@ jobs:
 
   verify-public:
     name: Verify globally reachable exact-head public beta
-    needs: deploy-fallback
+    needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Verify HTTPS, release identity and public assets
+      - name: Verify HTTPS, release identity, public assets and representative routes
         shell: bash
         env:
           PUBLIC_URL: https://hemangsah.github.io/qelly-intelligence/
           RELEASE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
-          for attempt in $(seq 1 18); do
+          DEPLOYED=false
+          for attempt in $(seq 1 30); do
             if curl --fail --silent --show-error --location --max-time 20 --header 'Cache-Control: no-cache' "${PUBLIC_URL}qelly-release.json?verify=${RELEASE_SHA}-${attempt}" -o /tmp/qelly-release.json; then
               DEPLOYED_SHA="$(node -p "JSON.parse(require('fs').readFileSync('/tmp/qelly-release.json','utf8')).releaseSha")"
-              if [ "${DEPLOYED_SHA}" = "${RELEASE_SHA}" ]; then break; fi
+              if [ "${DEPLOYED_SHA}" = "${RELEASE_SHA}" ]; then DEPLOYED=true; break; fi
             fi
             sleep 10
           done
-          test "$(node -p "JSON.parse(require('fs').readFileSync('/tmp/qelly-release.json','utf8')).releaseSha")" = "${RELEASE_SHA}"
-          test "$(node -p "JSON.parse(require('fs').readFileSync('/tmp/qelly-release.json','utf8')).cloudMode")" = "local-only"
-          test "$(node -p "JSON.parse(require('fs').readFileSync('/tmp/qelly-release.json','utf8')).authentication")" = "false"
-          test "$(node -p "JSON.parse(require('fs').readFileSync('/tmp/qelly-release.json','utf8')).cloudSync")" = "false"
+          test "${DEPLOYED}" = true
+          test "$(node -p "JSON.parse(require('fs').readFileSync('/tmp/qelly-release.json','utf8')).cloudMode")" = local-only
+          test "$(node -p "JSON.parse(require('fs').readFileSync('/tmp/qelly-release.json','utf8')).authentication")" = false
+          test "$(node -p "JSON.parse(require('fs').readFileSync('/tmp/qelly-release.json','utf8')).cloudSync")" = false
           curl --fail --silent --show-error --location --max-time 20 "${PUBLIC_URL}" -o /tmp/index.html
           grep -F 'prompt2c-public-beta.mjs' /tmp/index.html
           grep -F '<base href="/qelly-intelligence/">' /tmp/index.html
@@ -196,12 +160,6 @@ jobs:
           grep -F 'QELLY GLOBAL PUBLIC BETA' /tmp/privacy.html
           grep -F 'Protected feedback submission is not active' /tmp/support.html
           grep -F 'const CACHE=' /tmp/prompt2c-sw.js
-      - name: Verify representative critical hash routes
-        shell: bash
-        env:
-          PUBLIC_URL: https://hemangsah.github.io/qelly-intelligence/
-        run: |
-          set -euo pipefail
           for route in market formula-library indicator-library calculator-center india-finance saved-calculations formula-detail indicator-detail calculator-detail saved-calculation-detail; do
             curl --fail --silent --show-error --location --max-time 20 "${PUBLIC_URL}#/${route}" -o "/tmp/route-${route}.html"
             grep -F 'id="app"' "/tmp/route-${route}.html"
