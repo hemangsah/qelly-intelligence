@@ -7,20 +7,17 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   diagnose:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Fetch sanitized provider inventory
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Fetch and print sanitized provider inventory
         run: |
           node <<'NODE'
           (async()=>{
-            const result={observedAt:new Date().toISOString(),provider:'Mail.tm',endpoint:'/domains?page=1',status:null,contentType:null,topLevelType:null,keys:[],collectionField:null,collectionLength:0,activeCount:0,sampleObjectKeys:[],totalItems:null,error:null};
+            const result={observedAt:new Date().toISOString(),provider:'Mail.tm',status:null,contentType:null,topLevelType:null,keys:[],collectionField:null,collectionLength:0,activeCount:0,sampleObjectKeys:[],totalItems:null,error:null};
             try{
               const response=await fetch('https://api.mail.tm/domains?page=1',{headers:{Accept:'application/json','User-Agent':'Qelly-Auth-Forensics/1.0'},signal:AbortSignal.timeout(30000)});
               result.status=response.status;result.contentType=response.headers.get('content-type');
@@ -31,14 +28,12 @@ jobs:
                 result.collectionField='top-level-array';result.collectionLength=data.length;result.activeCount=data.filter(x=>x?.isActive!==false).length;result.sampleObjectKeys=data[0]&&typeof data[0]==='object'?Object.keys(data[0]).sort():[];
               }else if(data&&typeof data==='object'){
                 result.keys=Object.keys(data).sort();
-                const candidates=['hydra:member','member','items','domains'];
-                for(const field of candidates){if(Array.isArray(data[field])){result.collectionField=field;const list=data[field];result.collectionLength=list.length;result.activeCount=list.filter(x=>x?.isActive!==false).length;result.sampleObjectKeys=list[0]&&typeof list[0]==='object'?Object.keys(list[0]).sort():[];break;}}
+                for(const field of ['hydra:member','member','items','domains'])if(Array.isArray(data[field])){result.collectionField=field;const list=data[field];result.collectionLength=list.length;result.activeCount=list.filter(x=>x?.isActive!==false).length;result.sampleObjectKeys=list[0]&&typeof list[0]==='object'?Object.keys(list[0]).sort():[];break;}
                 result.totalItems=data['hydra:totalItems']??data.totalItems??null;
               }
               if(!response.ok)result.error=`http_${response.status}`;
             }catch(error){result.error=String(error?.message||error).replace(/https?:\/\/\S+/g,'[URL_REDACTED]').slice(0,300);}
-            const lines=['## Temporary mail provider diagnostic','',`Observed: \`${result.observedAt}\``,`Provider: \`${result.provider}\``,'',`- HTTP status: \`${result.status??'unresolved'}\`` ,`- content type: \`${result.contentType??'unresolved'}\`` ,`- top-level type: \`${result.topLevelType??'unresolved'}\`` ,`- response keys: \`${result.keys.join(', ')||'none'}\`` ,`- collection field: \`${result.collectionField??'none'}\`` ,`- collection length: \`${result.collectionLength}\`` ,`- active domains: \`${result.activeCount}\`` ,`- total items: \`${result.totalItems??'unresolved'}\`` ,`- sample object keys: \`${result.sampleObjectKeys.join(', ')||'none'}\`` ,`- error: \`${result.error??'none'}\`` ,'','No domain names, mailbox addresses, credentials, messages or tokens were logged. No Supabase or Qelly user was created by this diagnostic.'];
-            const response=await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/issues/25/comments`,{method:'POST',headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'},body:JSON.stringify({body:lines.join('\n')})});
-            if(!response.ok)throw new Error(`comment_failed_${response.status}_${await response.text()}`);
-          })().catch(error=>{console.error(error);process.exit(1)});
+            console.log(`QELLY_TEMP_MAIL_DIAGNOSTIC=${JSON.stringify(result)}`);
+            throw new Error('intentional_diagnostic_failure_for_log_retrieval');
+          })().catch(error=>{console.error(error.message);process.exit(1)});
           NODE
