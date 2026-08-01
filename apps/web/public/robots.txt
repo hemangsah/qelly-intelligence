@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /auth/
+Disallow: /account/
+Disallow: /saved-calculations/
+Disallow: /secure-import/
+Disallow: /quarantine-review/
+Disallow: /delivery-operations/
+Sitemap: https://hemangsah.github.io/qelly-intelligence/sitemap.xml
