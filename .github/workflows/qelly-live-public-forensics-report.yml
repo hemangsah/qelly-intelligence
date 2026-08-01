@@ -1,0 +1,152 @@
+name: Qelly Live Public Forensics Report
+
+on:
+  push:
+    branches: [forensics/qelly-pages-blank-20260802]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PUBLIC_URL: https://qelly-intelligence.pages.dev
+      EXPECTED_RELEASE_SHA: 5213928ee8035dc1912fc81501f312f1d119026c
+      EXPECTED_FALLBACK_SHA: 603cece3091dc59cfb72680914e7056b40058022
+      SUPABASE_PROJECT_REF: ssdgfgqnjlwzkgukzeef
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: |
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium
+      - name: Probe and create redacted report
+        run: |
+          mkdir -p dist/live-forensics-report
+          node <<'NODE'
+          const fs=require('node:fs');
+          const vm=require('node:vm');
+          const {chromium}=require('playwright');
+          const base=process.env.PUBLIC_URL.replace(/\/$/,'');
+          const timeout=(ms)=>AbortSignal.timeout(ms);
+          const result={observedAt:new Date().toISOString(),publicUrl:base,expectedReleaseSha:process.env.EXPECTED_RELEASE_SHA,expectedFallbackSha:process.env.EXPECTED_FALLBACK_SHA,http:{},release:null,config:null,browser:{}};
+          async function get(name,path){
+            try{
+              const response=await fetch(`${base}/${path}`,{redirect:'follow',cache:'no-store',signal:timeout(30000),headers:{Accept:'*/*','User-Agent':'Qelly-Live-Forensics/1.0'}});
+              const text=await response.text();
+              result.http[name]={status:response.status,contentType:response.headers.get('content-type'),cacheControl:response.headers.get('cache-control'),xQellyRelease:response.headers.get('x-qelly-release'),url:response.url,bytes:Buffer.byteLength(text)};
+              return {response,text};
+            }catch(error){result.http[name]={error:String(error.message||error)};return {response:null,text:''};}
+          }
+          (async()=>{
+            const index=await get('index','');
+            const release=await get('release','qelly-release.json?forensics=report');
+            const configJs=await get('configJs','qelly-config.js?forensics=report');
+            await get('buildInfo','BUILD_INFO.json?forensics=report');
+            await get('routes','_routes.json?forensics=report');
+            const apiConfig=await get('apiConfig','api/v1/config?forensics=report');
+            await get('apiHealth','api/v1/health?forensics=report');
+            await get('apiReadiness','api/v1/readiness?forensics=report');
+            await get('providerStatus','api/v1/providers/status?forensics=report');
+            try{
+              const parsed=JSON.parse(release.text);
+              result.release={releaseSha:parsed.releaseSha,fallbackReleaseSha:parsed.fallbackReleaseSha,authentication:parsed.authentication,cloudSync:parsed.cloudSync,liveProviders:parsed.liveProviders,protectedWrites:parsed.protectedWrites,publicSiteUrl:parsed.publicSiteUrl,mode:parsed.mode,releaseMatches:parsed.releaseSha===process.env.EXPECTED_RELEASE_SHA,fallbackMatches:parsed.fallbackReleaseSha===process.env.EXPECTED_FALLBACK_SHA};
+            }catch(error){result.release={parseError:String(error.message||error),bodyPrefix:release.text.slice(0,120)};}
+            try{
+              const sandbox={window:{}};
+              vm.runInNewContext(configJs.text,sandbox,{timeout:1000});
+              const cfg=sandbox.window.__QELLY_CONFIG__||{};
+              const key=String(cfg.supabase?.publishableKey||'');
+              result.config={releaseSha:cfg.releaseSha,releaseMatches:cfg.releaseSha===process.env.EXPECTED_RELEASE_SHA,deploymentStage:cfg.deploymentStage,publicSiteUrl:cfg.publicSiteUrl,apiBaseUrl:cfg.apiBaseUrl,staticVisualPreview:cfg.staticVisualPreview,dataMode:cfg.dataMode,capabilities:cfg.capabilities,supabaseUrl:cfg.supabase?.url,keyShape:{present:key.length>0,length:key.length,equalsProjectReference:key===process.env.SUPABASE_PROJECT_REF,modernPublishablePrefix:key.startsWith('sb_publishable_'),legacyJwtShape:key.split('.').length===3}};
+            }catch(error){result.config={parseError:String(error.message||error),bodyPrefix:configJs.text.slice(0,120)};}
+            try{
+              const parsed=JSON.parse(apiConfig.text);
+              result.apiConfig={release:parsed.release,defaultRoute:parsed.defaultRoute,auth:parsed.auth,cloud:parsed.cloud,runtime:{releaseSha:parsed.runtime?.releaseSha,environment:parsed.runtime?.environment,capabilities:parsed.runtime?.capabilities,publicSiteUrl:parsed.runtime?.publicSiteUrl,supabaseUrl:parsed.runtime?.supabaseUrl}};
+            }catch(error){result.apiConfig={parseError:String(error.message||error),bodyPrefix:apiConfig.text.slice(0,160)};}
+            const browser=await chromium.launch({headless:true});
+            const context=await browser.newContext({viewport:{width:1440,height:1000},serviceWorkers:'block'});
+            const page=await context.newPage();
+            const consoleEvents=[],pageErrors=[],requestFailures=[],responses=[];
+            page.on('console',m=>consoleEvents.push({type:m.type(),text:m.text(),location:m.location()}));
+            page.on('pageerror',e=>pageErrors.push({name:e.name,message:e.message,stack:e.stack}));
+            page.on('requestfailed',r=>requestFailures.push({url:r.url(),resourceType:r.resourceType(),failure:r.failure()}));
+            page.on('response',r=>{if(r.status()>=400)responses.push({url:r.url(),status:r.status(),contentType:r.headers()['content-type']||null,resourceType:r.request().resourceType()});});
+            try{
+              const nav=await page.goto(base,{waitUntil:'domcontentloaded',timeout:45000});
+              result.browser.navigation={status:nav?.status()??null,contentType:nav?.headers()['content-type']||null};
+              await page.waitForTimeout(8000);
+            }catch(error){result.browser.navigationError=String(error.message||error);}
+            try{
+              result.browser.dom=await page.evaluate(()=>({title:document.title,appReady:document.documentElement.dataset.appReady||null,themeReady:document.documentElement.dataset.themeReady||null,brandReady:document.documentElement.dataset.brandReady||null,appExists:Boolean(document.querySelector('#app')),mainChildCount:document.querySelector('#main')?.childElementCount??null,mainText:(document.querySelector('#main')?.innerText||'').slice(0,2000),bodyText:(document.body?.innerText||'').slice(0,3000),appVisibility:document.querySelector('.q-app')?getComputedStyle(document.querySelector('.q-app')).visibility:null,background:getComputedStyle(document.body).backgroundColor,configPresent:Boolean(window.__QELLY_CONFIG__),publicBetaStatus:window.__QELLY_PUBLIC_BETA_STATUS__||null}));
+            }catch(error){result.browser.domError=String(error.message||error);}
+            result.browser.pageErrors=pageErrors;
+            result.browser.requestFailures=requestFailures;
+            result.browser.failingResponses=responses;
+            result.browser.console=consoleEvents.filter(e=>['error','warning'].includes(e.type));
+            await page.screenshot({path:'dist/live-forensics-report/homepage.png',fullPage:true}).catch(()=>{});
+            await browser.close();
+            fs.writeFileSync('dist/live-forensics-report/result.json',JSON.stringify(result,null,2));
+          })().catch(error=>{result.runnerError=String(error.stack||error);fs.writeFileSync('dist/live-forensics-report/result.json',JSON.stringify(result,null,2));});
+          NODE
+      - name: Post redacted verdict to PR 25
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs');
+          const result=JSON.parse(fs.readFileSync('dist/live-forensics-report/result.json','utf8'));
+          const esc=(v)=>String(v??'').replace(/`/g,"'").replace(/sb_publishable_[A-Za-z0-9_-]+/g,'[REDACTED_PUBLISHABLE_KEY]');
+          const lines=[];
+          lines.push('## Live Cloudflare Pages forensic verdict');
+          lines.push('');
+          lines.push(`Observed: \`${esc(result.observedAt)}\``);
+          lines.push(`Forensic branch only: \`${process.env.GITHUB_SHA}\`; accepted/release refs were not changed.`);
+          lines.push('');
+          lines.push('### HTTP and release identity');
+          for(const name of ['index','release','configJs','apiConfig','apiHealth','apiReadiness','providerStatus']){
+            const x=result.http?.[name]||{};
+            lines.push(`- ${name}: status \`${esc(x.status??x.error)}\`, content type \`${esc(x.contentType)}\`, X-Qelly-Release \`${esc(x.xQellyRelease)}\``);
+          }
+          lines.push(`- release SHA exact: \`${Boolean(result.release?.releaseMatches)}\``);
+          lines.push(`- fallback SHA exact: \`${Boolean(result.release?.fallbackMatches)}\``);
+          lines.push(`- capability flags: auth=\`${esc(result.release?.authentication)}\`, sync=\`${esc(result.release?.cloudSync)}\`, providers=\`${esc(result.release?.liveProviders)}\`, writes=\`${esc(result.release?.protectedWrites)}\``);
+          lines.push('');
+          lines.push('### Generated configuration');
+          const k=result.config?.keyShape||{};
+          lines.push(`- config release exact: \`${Boolean(result.config?.releaseMatches)}\``);
+          lines.push(`- site URL: \`${esc(result.config?.publicSiteUrl)}\``);
+          lines.push(`- static preview: \`${esc(result.config?.staticVisualPreview)}\``);
+          lines.push(`- publishable key present: \`${Boolean(k.present)}\`; length: \`${esc(k.length)}\`; equals project reference: \`${Boolean(k.equalsProjectReference)}\`; modern publishable prefix: \`${Boolean(k.modernPublishablePrefix)}\`; legacy JWT shape: \`${Boolean(k.legacyJwtShape)}\``);
+          lines.push('');
+          lines.push('### Chromium startup');
+          lines.push(`- navigation: \`${esc(result.browser?.navigation?.status??result.browser?.navigationError)}\``);
+          const d=result.browser?.dom||{};
+          lines.push(`- appReady=\`${esc(d.appReady)}\`, themeReady=\`${esc(d.themeReady)}\`, brandReady=\`${esc(d.brandReady)}\`, visibility=\`${esc(d.appVisibility)}\`, mainChildCount=\`${esc(d.mainChildCount)}\``);
+          lines.push(`- main text: ${esc(d.mainText).slice(0,600)||'[empty]'}`);
+          lines.push(`- page errors: \`${(result.browser?.pageErrors||[]).length}\`; request failures: \`${(result.browser?.requestFailures||[]).length}\`; failing responses: \`${(result.browser?.failingResponses||[]).length}\``);
+          for(const e of (result.browser?.pageErrors||[]).slice(0,5))lines.push(`  - page error: \`${esc(e.message).slice(0,500)}\``);
+          for(const e of (result.browser?.requestFailures||[]).slice(0,8))lines.push(`  - request failed: \`${esc(e.url)}\` — \`${esc(e.failure?.errorText||e.failure)}\``);
+          for(const e of (result.browser?.failingResponses||[]).slice(0,8))lines.push(`  - response: \`${esc(e.status)} ${esc(e.url)}\` — \`${esc(e.contentType)}\``);
+          for(const e of (result.browser?.console||[]).slice(0,8))lines.push(`  - console ${esc(e.type)}: \`${esc(e.text).slice(0,500)}\``);
+          const body=lines.join('\n');
+          const response=await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/issues/25/comments`,{method:'POST',headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'},body:JSON.stringify({body})});
+          if(!response.ok)throw new Error(`comment_failed_${response.status}_${await response.text()}`);
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qelly-live-public-forensics-report-${{ github.sha }}
+          path: dist/live-forensics-report
+          if-no-files-found: error
+          retention-days: 7
