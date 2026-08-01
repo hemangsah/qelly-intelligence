@@ -99,7 +99,7 @@ jobs:
           QELLY_PUBLIC_SUPABASE_URL: https://example.supabase.co
           QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_public_key_1234567890
           QELLY_PUBLIC_RELEASE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-          QELLY_DEPLOYMENT_ENVIRONMENT: acceptance
+          QELLY_DEPLOYMENT_ENVIRONMENT: preview
           QELLY_ENABLE_AUTH: 'true'
           QELLY_ENABLE_CLOUD_SYNC: 'true'
           QELLY_ENABLE_LIVE_PROVIDERS: 'true'
