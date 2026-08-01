@@ -12,8 +12,10 @@ test('Cloudflare public runtime contains no CSP-blocked inline JavaScript',async
     read('apps/web/public/assets/qelly-app-ready.mjs'),
     read('apps/web/public/assets/qelly-prepaint-bootstrap.js')
   ]);
-  assert.match(headers,/script-src 'self'/);
-  assert.doesNotMatch(headers,/script-src[^\n]*'unsafe-inline'/);
+  const csp=headers.match(/Content-Security-Policy:\s*([^\n]+)/)?.[1]||'';
+  const scriptDirective=csp.split(';').map((directive)=>directive.trim()).find((directive)=>directive.startsWith('script-src '))||'';
+  assert.equal(scriptDirective,"script-src 'self'");
+  assert.doesNotMatch(scriptDirective,/'unsafe-inline'/);
   const hardened=hardenIndexHtml(source);
   const inline=[...hardened.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
     .filter((match)=>!/(?:^|\s)src\s*=/.test(match[1])&&match[2].trim());
