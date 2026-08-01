@@ -1,9 +1,9 @@
 {
   "id": "./",
-  "name": "Qelly Global Public Beta",
+  "name": "Qelly Intelligence",
   "short_name": "Qelly",
-  "description": "Read-only, local-first quantitative calculations, indicators and verifiable market intelligence.",
-  "start_url": "./#/market?source=pwa",
+  "description": "Qelly Global Public Beta: read-only, local-first quantitative calculations, indicators and verifiable market intelligence.",
+  "start_url": "./#/market",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
