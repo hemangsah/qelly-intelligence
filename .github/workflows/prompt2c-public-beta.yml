@@ -65,8 +65,9 @@ jobs:
       - name: Build backend and frontend
         env:
           QELLY_STATIC_VISUAL_PREVIEW: 'true'
+          QELLY_PROMPT2C_PUBLIC_BETA: 'true'
           QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
-          QELLY_DEPLOYMENT_ENVIRONMENT: github-pages-public-beta-fallback
+          QELLY_DEPLOYMENT_ENVIRONMENT: preview
           QELLY_PUBLIC_RELEASE_SHA: ${{ github.sha }}
           QELLY_CLOUD_MODE: local-only
           QELLY_ENABLE_AUTH: 'false'
@@ -83,6 +84,7 @@ jobs:
         run: |
           npm run validate:pages-preview
           npm run smoke:pages-preview
+          node scripts/validate-prompt2c-public-beta.mjs
           test -f dist/frontend/robots.txt
           test -f dist/frontend/sitemap.xml
           test -f dist/frontend/prompt2c-sw.js
@@ -126,8 +128,9 @@ jobs:
       - name: Build deterministic fallback
         env:
           QELLY_STATIC_VISUAL_PREVIEW: 'true'
+          QELLY_PROMPT2C_PUBLIC_BETA: 'true'
           QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
-          QELLY_DEPLOYMENT_ENVIRONMENT: github-pages-public-beta-fallback
+          QELLY_DEPLOYMENT_ENVIRONMENT: preview
           QELLY_PUBLIC_RELEASE_SHA: ${{ github.sha }}
           QELLY_CLOUD_MODE: local-only
           QELLY_ENABLE_AUTH: 'false'
@@ -139,6 +142,8 @@ jobs:
           npm run build:frontend
           printf '{"releaseSha":"%s","workflowRun":"%s","deployedAt":"%s","mode":"github-pages-public-beta-fallback","cloudMode":"local-only","authentication":false,"cloudSync":false,"liveProviders":false,"protectedWrites":false,"fallbackUrl":"https://hemangsah.github.io/qelly-intelligence/"}\n' "${GITHUB_SHA}" "${GITHUB_RUN_ID}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > dist/frontend/qelly-release.json
           test "$(node -p "JSON.parse(require('fs').readFileSync('dist/frontend/qelly-release.json','utf8')).releaseSha")" = "${GITHUB_SHA}"
+          npm run validate:pages-preview
+          node scripts/validate-prompt2c-public-beta.mjs
       - name: Configure GitHub Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - name: Upload exact-head frontend
