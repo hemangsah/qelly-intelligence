@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-01T18:58:00+05:30",
+  "artifacts": [
+    {
+      "name": "QELLY_COMPLETE_FRONTEND_ALL_SCREENS_MASTER.pdf",
+      "location": "conversation artifact",
+      "bytes": 74431779,
+      "sha256": "9f47138a1d43237dca01bef907aa48b158405d1d00e86953bfb9e9f28bbbf0b6",
+      "pages": 436,
+      "status": "VERIFIED"
+    },
+    {
+      "name": "QELLY_COMPLETE_FRONTEND_ALL_SCREENS_MANIFEST.json",
+      "location": "embedded in PDF and conversation artifact",
+      "records": 429,
+      "status": "VERIFIED"
+    },
+    {
+      "name": "QELLY_COMPLETE_FRONTEND_ALL_SCREENS_SHA256.txt",
+      "location": "conversation artifact",
+      "status": "VERIFIED"
+    },
+    {
+      "name": "QELLY_COMPLETE_FRONTEND_ALL_SCREENS_CONTACT_SHEET.png",
+      "location": "conversation inspection evidence",
+      "pagesSampled": [1,2,7,8,100,200,300,436],
+      "status": "VISUALLY_INSPECTED"
+    },
+    {
+      "name": "QELLY_PROMPT2C_LINKEDIN_LAUNCH_PACKAGE.zip",
+      "location": "prior conversation delivery",
+      "sha256": "be0fbb7acf996c5eb3c9c3884d9e718a3cd5598e96f8383f192dca06ca09da62",
+      "status": "READY_NOT_PUBLISHED"
+    }
+  ]
+}
