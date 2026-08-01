@@ -1,0 +1,124 @@
+name: Qelly Prompt 2C Global Public Beta
+
+on:
+  pull_request:
+    branches: [feature/calculator-and-indicator-foundation]
+  push:
+    branches: [feature/prompt2c-global-public-beta]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prompt2c-public-beta-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate exact Prompt 2C head
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out exact source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Verify Prompt 2B immutable parent
+        shell: bash
+        run: |
+          git merge-base --is-ancestor 17eeadac4c510cc3c312185e86b0ac5907f3789b HEAD
+          test "$(git rev-parse feature/calculator-and-indicator-foundation 2>/dev/null || true)" = "" || true
+      - name: Scan repository for committed secrets
+        run: npm run security:scan
+      - name: Type and syntax check
+        run: npm run typecheck
+      - name: Lint and repository policy
+        run: npm run lint
+      - name: Validate governed design foundations
+        run: npm run validate:design
+      - name: Run complete test suite
+        run: npm test
+      - name: Build backend and frontend
+        env:
+          QELLY_STATIC_VISUAL_PREVIEW: 'true'
+          QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
+          QELLY_DEPLOYMENT_ENVIRONMENT: github-pages-public-beta-fallback
+          QELLY_PUBLIC_RELEASE_SHA: ${{ github.sha }}
+          QELLY_CLOUD_MODE: local-only
+          QELLY_ENABLE_AUTH: 'false'
+          QELLY_ENABLE_CLOUD_SYNC: 'false'
+          QELLY_ENABLE_LIVE_PROVIDERS: 'false'
+          QELLY_ENABLE_FEEDBACK_WRITES: 'false'
+        run: |
+          npm run build
+          npm run build:frontend
+      - name: Validate compiled public beta
+        run: |
+          npm run validate:pages-preview
+          npm run smoke:pages-preview
+          test -f dist/frontend/robots.txt
+          test -f dist/frontend/sitemap.xml
+          test -f dist/frontend/prompt2c-sw.js
+          test -f dist/frontend/legal/privacy.html
+          test -f dist/frontend/support.html
+      - name: Record exact-head release manifest
+        shell: bash
+        run: |
+          mkdir -p dist/release-evidence
+          printf '{"releaseSha":"%s","workflowRun":"%s","mode":"github-pages-public-beta-fallback","cloudMode":"local-only","auth":false,"cloudSync":false,"liveProviders":false,"protectedWrites":false}\n' "${GITHUB_SHA}" "${GITHUB_RUN_ID}" > dist/release-evidence/QELLY_PROMPT2C_RELEASE_MANIFEST.json
+          find dist/frontend -type f -print0 | sort -z | xargs -0 sha256sum > dist/release-evidence/QELLY_PROMPT2C_FRONTEND_SHA256.txt
+
+  deploy-fallback:
+    name: Deploy deterministic GitHub Pages fallback
+    if: github.event_name == 'push' && github.ref == 'refs/heads/feature/prompt2c-global-public-beta'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out exact source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Build deterministic fallback
+        env:
+          QELLY_STATIC_VISUAL_PREVIEW: 'true'
+          QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
+          QELLY_DEPLOYMENT_ENVIRONMENT: github-pages-public-beta-fallback
+          QELLY_PUBLIC_RELEASE_SHA: ${{ github.sha }}
+          QELLY_CLOUD_MODE: local-only
+          QELLY_ENABLE_AUTH: 'false'
+          QELLY_ENABLE_CLOUD_SYNC: 'false'
+          QELLY_ENABLE_LIVE_PROVIDERS: 'false'
+          QELLY_ENABLE_FEEDBACK_WRITES: 'false'
+        run: npm run build:frontend
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+      - name: Upload exact-head frontend
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
+        with:
+          path: dist/frontend
+      - name: Deploy exact-head fallback
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
