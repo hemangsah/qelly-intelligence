@@ -1,0 +1,87 @@
+name: Qelly Live Fast Verifier
+
+on:
+  push:
+    branches: [forensics/qelly-pages-blank-20260802]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PROD: https://qelly-intelligence.pages.dev
+      PREVIEW: https://a92d8185.qelly-intelligence.pages.dev
+      EXPECTED: 30e803f631e5ae01dc2a8e6227988dd72af5dd5a
+      FALLBACK: 603cece3091dc59cfb72680914e7056b40058022
+      PROJECT_REF: ssdgfgqnjlwzkgukzeef
+    steps:
+      - name: Fetch redacted runtime evidence
+        shell: bash
+        run: |
+          mkdir -p evidence
+          for target in PROD PREVIEW; do
+            base="${!target}"
+            key="$(echo "$target" | tr A-Z a-z)"
+            for item in 'index:' 'release:qelly-release.json' 'config:qelly-config.js' 'api_config:api/v1/config' 'health:api/v1/health' 'readiness:api/v1/readiness' 'providers:api/v1/providers/status'; do
+              name="${item%%:*}"; path="${item#*:}"
+              curl -fsSL --max-time 30 -D "evidence/${key}_${name}.headers" -o "evidence/${key}_${name}.body" "${base%/}/${path}?fast-verifier=${GITHUB_SHA}" || true
+            done
+            browser="$(command -v google-chrome || command -v chromium || true)"
+            if [ -n "$browser" ]; then
+              timeout 45s "$browser" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --disable-background-networking --disable-component-update --disable-sync --no-first-run --virtual-time-budget=15000 --dump-dom "$base" > "evidence/${key}_dom.html" 2> "evidence/${key}_browser.log" || true
+              timeout 45s "$browser" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --disable-background-networking --disable-component-update --disable-sync --no-first-run --virtual-time-budget=15000 --screenshot="evidence/${key}.png" --window-size=1440,1000 "$base" >> "evidence/${key}_browser.log" 2>&1 || true
+            fi
+          done
+      - name: Build and post redacted verdict
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs');
+          const vm=require('node:vm');
+          const clean=v=>String(v??'').replace(/sb_publishable_[A-Za-z0-9_-]+/g,'[REDACTED_PUBLISHABLE_KEY]').replace(/`/g,"'");
+          const read=p=>{try{return fs.readFileSync(p,'utf8')}catch{return ''}};
+          const status=headers=>headers.match(/^HTTP\/\S+\s+(\d+)/m)?.[1]||'unresolved';
+          const ctype=headers=>headers.match(/^content-type:\s*([^\r\n]+)/mi)?.[1]||'unresolved';
+          const lines=['## Live Cloudflare fast verifier','',`Observed from GitHub-hosted runner at \`${new Date().toISOString()}\``,''];
+          for(const target of ['prod','preview']){
+            lines.push(`### ${target}`);
+            for(const item of ['index','release','config','api_config','health','readiness','providers']){
+              const h=read(`evidence/${target}_${item}.headers`);
+              lines.push(`- ${item}: HTTP \`${status(h)}\`, content type \`${clean(ctype(h))}\``);
+            }
+            let release={}; try{release=JSON.parse(read(`evidence/${target}_release.body`))}catch(e){release={parseError:e.message,bodyPrefix:read(`evidence/${target}_release.body`).slice(0,120)}}
+            lines.push(`- release SHA: \`${clean(release.releaseSha)}\`; exact=\`${release.releaseSha===process.env.EXPECTED}\``);
+            lines.push(`- fallback SHA: \`${clean(release.fallbackReleaseSha)}\`; exact=\`${release.fallbackReleaseSha===process.env.FALLBACK}\``);
+            lines.push(`- flags: auth=\`${clean(release.authentication)}\`, sync=\`${clean(release.cloudSync)}\`, providers=\`${clean(release.liveProviders)}\`, writes=\`${clean(release.protectedWrites)}\``);
+            let cfg={}; try{const sandbox={window:{}};vm.runInNewContext(read(`evidence/${target}_config.body`),sandbox,{timeout:1000});cfg=sandbox.window.__QELLY_CONFIG__||{}}catch(e){cfg={parseError:e.message}}
+            const key=String(cfg.supabase?.publishableKey||'');
+            lines.push(`- config SHA: \`${clean(cfg.releaseSha)}\`; exact=\`${cfg.releaseSha===process.env.EXPECTED}\`; site=\`${clean(cfg.publicSiteUrl)}\`; static preview=\`${clean(cfg.staticVisualPreview)}\``);
+            lines.push(`- key shape: present=\`${key.length>0}\`, length=\`${key.length}\`, equals project ref=\`${key===process.env.PROJECT_REF}\`, modern prefix=\`${key.startsWith('sb_publishable_')}\`, legacy JWT=\`${key.split('.').length===3}\``);
+            const dom=read(`evidence/${target}_dom.html`);
+            const attr=n=>dom.match(new RegExp(`${n}="([^"]*)"`))?.[1]||'unresolved';
+            const main=dom.match(/<main[^>]*id="main"[^>]*>([\s\S]*?)<\/main>/i)?.[1]||'';
+            const text=main.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,900);
+            lines.push(`- browser DOM bytes=\`${Buffer.byteLength(dom)}\`; appReady=\`${attr('data-app-ready')}\`; themeReady=\`${attr('data-theme-ready')}\`; brandReady=\`${attr('data-brand-ready')}\`; startup failure=\`${dom.includes('q-startup-failure')}\``);
+            lines.push(`- main text: ${clean(text)||'[empty]'}`);
+            const blog=read(`evidence/${target}_browser.log`).split('\n').filter(x=>/error|refused|blocked|csp|mime|failed/i.test(x)).slice(-8);
+            for(const entry of blog) lines.push(`  - browser log: \`${clean(entry).slice(0,700)}\``);
+            lines.push('');
+          }
+          (async()=>{
+            const response=await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/issues/25/comments`,{method:'POST',headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'},body:JSON.stringify({body:lines.join('\n')})});
+            if(!response.ok)throw new Error(`comment_failed_${response.status}_${await response.text()}`);
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qelly-live-fast-verifier-${{ github.sha }}
+          path: evidence
+          if-no-files-found: error
+          retention-days: 7
