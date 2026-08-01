@@ -18,7 +18,7 @@ jobs:
   validate:
     name: Validate exact Prompt 2C public-runtime head
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with: {persist-credentials: false, fetch-depth: 0}
@@ -45,7 +45,39 @@ jobs:
           node --test tests/prompt2c-telemetry.test.mjs
           node --test tests/prompt2c-edge-cloud-api.test.mjs
           node --test tests/prompt2c-public-runtime.test.mjs
-      - run: npm test
+          node --test tests/prompt2c-public-runtime-hardening.test.mjs
+      - name: Run complete repository suite with exact failure manifest
+        id: repository-suite
+        shell: bash
+        run: |
+          set +e
+          mkdir -p dist/test-diagnostics
+          : > dist/test-diagnostics/QELLY_FAILING_TEST_FILES.txt
+          failures=0
+          for file in tests/*.test.mjs; do
+            echo "::group::${file}"
+            node --test "${file}"
+            status=$?
+            echo "::endgroup::"
+            if [ "${status}" -ne 0 ]; then
+              echo "${file}" | tee -a dist/test-diagnostics/QELLY_FAILING_TEST_FILES.txt
+              failures=$((failures + 1))
+            fi
+          done
+          printf '{"head":"%s","failingFiles":%s}\n' "${GITHUB_SHA}" "${failures}" > dist/test-diagnostics/QELLY_TEST_DIAGNOSTIC_SUMMARY.json
+          if [ "${failures}" -ne 0 ]; then
+            echo "Failing test files:"
+            cat dist/test-diagnostics/QELLY_FAILING_TEST_FILES.txt
+            exit 1
+          fi
+      - name: Upload repository test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qelly-prompt2c-test-diagnostics-${{ github.event.pull_request.head.sha || github.sha }}
+          path: dist/test-diagnostics
+          if-no-files-found: error
+          retention-days: 7
       - name: Check Pages Functions modules
         run: |
           node --check functions/_lib/runtime.js
