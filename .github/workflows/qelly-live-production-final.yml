@@ -1,0 +1,98 @@
+name: Qelly Live Production Final Verification
+
+on:
+  push:
+    branches: [forensics/qelly-pages-blank-20260802]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PUBLIC_URL: https://qelly-intelligence.pages.dev
+      RELEASE_SHA: 150025b9662404e5f98cd397c74c5d8be386460c
+      FALLBACK_SHA: 603cece3091dc59cfb72680914e7056b40058022
+      SUPABASE_PROJECT_REF: ssdgfgqnjlwzkgukzeef
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false, fetch-depth: 1}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: '22', cache: npm}
+      - run: npm ci --ignore-scripts
+      - name: Verify exact release, SEO, Functions and providers
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist/final-live/http
+          for attempt in $(seq 1 18); do
+            curl --fail --silent --show-error --location --max-time 20 "${PUBLIC_URL}/qelly-release.json?final=${attempt}" -o /tmp/release.json || true
+            actual="$(node -e "try{process.stdout.write(JSON.parse(require('fs').readFileSync('/tmp/release.json','utf8')).releaseSha||'')}catch{}")"
+            [ "$actual" = "$RELEASE_SHA" ] && break
+            sleep 10
+          done
+          cp /tmp/release.json dist/final-live/http/release.json
+          for path in '' qelly-config.js BUILD_INFO.json robots.txt sitemap.xml manifest.webmanifest auth/callback.html legal/privacy.html support.html api/v1/health api/v1/readiness api/v1/config api/v1/providers/status 'api/v1/providers/binance?symbol=BTCUSDT' 'api/v1/providers/coinbase?symbol=BTC-USD' 'api/v1/providers/ecb?symbol=EUR'; do
+            safe="$(echo "${path:-index}" | tr '/?=&' '----')"
+            curl --fail --silent --show-error --location --max-time 30 -D "dist/final-live/http/${safe}.headers" "${PUBLIC_URL}/${path}" -o "dist/final-live/http/${safe}.body"
+          done
+          node <<'NODE'
+          const fs=require('node:fs'),vm=require('node:vm'),root='dist/final-live/http/';
+          const read=n=>fs.readFileSync(root+n,'utf8'),parse=n=>JSON.parse(read(n));
+          const release=parse('release.json');
+          if(release.releaseSha!==process.env.RELEASE_SHA||release.fallbackReleaseSha!==process.env.FALLBACK_SHA)throw new Error('release_identity_invalid');
+          for(const key of ['authentication','cloudSync','liveProviders','protectedWrites'])if(release[key]!==true)throw new Error(`release_capability_${key}`);
+          const sandbox={window:{}};vm.runInNewContext(read('qelly-config.js.body'),sandbox,{timeout:1000});const config=sandbox.window.__QELLY_CONFIG__||{};
+          const key=String(config.supabase?.publishableKey||''),parts=key.split('.'),modern=/^sb_publishable_[A-Za-z0-9_-]{20,}$/.test(key),legacy=parts.length===3&&parts.every(x=>/^[A-Za-z0-9_-]+$/.test(x)&&x.length>=16)&&key.length>=100;
+          if(config.releaseSha!==process.env.RELEASE_SHA||config.publicSiteUrl!==process.env.PUBLIC_URL||config.staticVisualPreview!==false||key===process.env.SUPABASE_PROJECT_REF||!(modern||legacy))throw new Error('generated_config_invalid');
+          const index=read('index.body'),privacy=read('legal-privacy.html.body'),support=read('support.html.body'),robots=read('robots.txt.body'),sitemap=read('sitemap.xml.body'),indexHeaders=read('index.headers');
+          if(!index.includes(`<link rel="canonical" href="${process.env.PUBLIC_URL}/">`)||!index.includes(`<meta property="og:url" content="${process.env.PUBLIC_URL}/">`))throw new Error('root_seo_invalid');
+          for(const [name,text] of Object.entries({index,privacy,support,robots,sitemap}))if(text.includes('hemangsah.github.io/qelly-intelligence'))throw new Error(`legacy_origin_${name}`);
+          if(!robots.includes(`Sitemap: ${process.env.PUBLIC_URL}/sitemap.xml`)||!sitemap.includes(`<loc>${process.env.PUBLIC_URL}/</loc>`))throw new Error('discovery_identity_invalid');
+          if(!/cache-control:\s*public, max-age=0, must-revalidate, no-transform/i.test(indexHeaders))throw new Error('no_transform_missing');
+          if(!privacy.includes('public beta uses Supabase Free Postgres and Auth')||!support.includes('Production authentication and protected feedback APIs are active'))throw new Error('public_truth_copy_invalid');
+          const health=parse('api-v1-health.body'),readiness=parse('api-v1-readiness.body'),catalog=parse('api-v1-providers-status.body');
+          if(health.status!=='ok'||health.releaseSha!==process.env.RELEASE_SHA||readiness.ready!==true||catalog.providers?.length!==3)throw new Error('runtime_status_invalid');
+          const providers={binance:parse('api-v1-providers-binance-symbol-BTCUSDT.body'),coinbase:parse('api-v1-providers-coinbase-symbol-BTC-USD.body'),ecb:parse('api-v1-providers-ecb-symbol-EUR.body')};
+          const expected={binance:'binance',coinbase:'coinbase-exchange-public',ecb:'ecb-reference-rates'};
+          for(const [name,value] of Object.entries(providers)){
+            if(value.provider!==expected[name])throw new Error(`provider_id_${name}`);
+            for(const field of ['truthState','ingestionTime','freshness','quality','confidence','cache'])if(value[field]===undefined)throw new Error(`provider_field_${name}_${field}`);
+            if(!['live_provider','delayed_provider','cached_provider','stale_provider','unavailable'].includes(value.truthState))throw new Error(`provider_truth_${name}_${value.truthState}`);
+          }
+          if(providers.binance.truthState==='unavailable'&&!providers.binance.fallbackReason)throw new Error('binance_unavailable_without_reason');
+          if(!providers.coinbase.data||providers.coinbase.confidence<=0)throw new Error('coinbase_data_invalid');
+          if(!providers.ecb.data?.rates||providers.ecb.confidence<=0)throw new Error('ecb_data_invalid');
+          const redacted={releaseSha:release.releaseSha,fallbackReleaseSha:release.fallbackReleaseSha,capabilities:{authentication:release.authentication,cloudSync:release.cloudSync,liveProviders:release.liveProviders,protectedWrites:release.protectedWrites},config:{releaseSha:config.releaseSha,publicSiteUrl:config.publicSiteUrl,staticVisualPreview:config.staticVisualPreview,supabaseUrl:config.supabase?.url,keyShape:{present:key.length>0,length:key.length,equalsProjectReference:key===process.env.SUPABASE_PROJECT_REF,modernPrefix:key.startsWith('sb_publishable_'),legacyJwtShape:parts.length===3,valid:modern||legacy}},seo:{canonical:true,openGraph:true,robots:true,sitemap:true,legacyOrigins:0,noTransform:true},health,readiness,providers:Object.fromEntries(Object.entries(providers).map(([name,p])=>[name,{truthState:p.truthState,observationTime:p.observationTime,ingestionTime:p.ingestionTime,freshness:p.freshness,quality:p.quality,confidence:p.confidence,attribution:p.attribution,license:p.license,fallbackReason:p.fallbackReason,cache:p.cache}]))};
+          fs.writeFileSync('dist/final-live/runtime-redacted.json',JSON.stringify(redacted,null,2));
+          NODE
+      - name: Verify production browser without critical errors
+        run: |
+          npx playwright install --with-deps chromium
+          node <<'NODE'
+          const fs=require('node:fs'),{chromium}=require('playwright');
+          (async()=>{
+            const browser=await chromium.launch({headless:true}),context=await browser.newContext({viewport:{width:1440,height:1000},serviceWorkers:'block'}),page=await context.newPage();
+            const pageErrors=[],requestFailures=[],consoleErrors=[],failingResponses=[];
+            page.on('pageerror',e=>pageErrors.push({name:e.name,message:e.message,stack:e.stack}));
+            page.on('requestfailed',r=>requestFailures.push({url:r.url(),resourceType:r.resourceType(),failure:r.failure()}));
+            page.on('console',m=>{if(m.type()==='error')consoleErrors.push({text:m.text(),location:m.location()});});
+            page.on('response',r=>{if(r.status()>=400)failingResponses.push({url:r.url(),status:r.status(),resourceType:r.request().resourceType(),contentType:r.headers()['content-type']||null});});
+            const response=await page.goto(process.env.PUBLIC_URL,{waitUntil:'domcontentloaded',timeout:45000});await page.waitForTimeout(13000);
+            const dom=await page.evaluate(()=>{const main=document.querySelector('#main'),app=document.querySelector('.q-app');return{title:document.title,appReady:document.documentElement.dataset.appReady||null,themeReady:document.documentElement.dataset.themeReady||null,brandReady:document.documentElement.dataset.brandReady||null,appExists:Boolean(document.querySelector('#app')),mainChildCount:main?.childElementCount??null,mainText:(main?.innerText||'').slice(0,3000),appVisibility:app?getComputedStyle(app).visibility:null,background:getComputedStyle(document.body).backgroundColor,configPresent:Boolean(window.__QELLY_CONFIG__),publicBetaStatus:window.__QELLY_PUBLIC_BETA_STATUS__||null,startupFailure:Boolean(document.querySelector('.q-startup-failure')),inlineScriptCount:[...document.scripts].filter(s=>!s.src&&s.textContent.trim()).length,cloudflareAnalyticsInjected:[...document.scripts].some(s=>s.src.includes('static.cloudflareinsights.com'))};});
+            const evidence={url:page.url(),navigationStatus:response?.status()??null,dom,pageErrors,requestFailures,consoleErrors,failingResponses};
+            fs.writeFileSync('dist/final-live/browser-evidence.json',JSON.stringify(evidence,null,2));await page.screenshot({path:'dist/final-live/homepage.png',fullPage:true});await browser.close();
+            if(evidence.navigationStatus!==200||dom.appReady!=='true'||dom.themeReady!=='true'||dom.brandReady!=='true'||dom.appVisibility!=='visible'||!dom.appExists||!(dom.mainChildCount>0)||dom.startupFailure||dom.inlineScriptCount!==0)throw new Error(`browser_state_invalid_${JSON.stringify(dom)}`);
+            if(pageErrors.length||requestFailures.length||consoleErrors.length||failingResponses.length)throw new Error(`browser_errors_${JSON.stringify({pageErrors,requestFailures,consoleErrors,failingResponses})}`);
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qelly-final-live-verification-150025b
+          path: dist/final-live
+          if-no-files-found: error
+          retention-days: 14
