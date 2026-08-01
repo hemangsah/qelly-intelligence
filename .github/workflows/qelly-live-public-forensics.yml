@@ -1,0 +1,194 @@
+name: Qelly Live Public Forensics
+
+on:
+  push:
+    branches: [forensics/qelly-pages-blank-20260802]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: Probe deployed Cloudflare Pages runtime
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PUBLIC_URL: https://qelly-intelligence.pages.dev
+      EXPECTED_RELEASE_SHA: 5213928ee8035dc1912fc81501f312f1d119026c
+      EXPECTED_FALLBACK_SHA: 603cece3091dc59cfb72680914e7056b40058022
+      SUPABASE_PROJECT_REF: ssdgfgqnjlwzkgukzeef
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install forensic browser dependency
+        run: |
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium
+
+      - name: Capture HTTP, DNS, headers, manifests and API evidence
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p dist/live-forensics/http
+          date -u +'%Y-%m-%dT%H:%M:%SZ' > dist/live-forensics/observed-at.txt
+          getent ahosts qelly-intelligence.pages.dev > dist/live-forensics/dns.txt 2>&1 || true
+
+          fetch_path() {
+            name="$1"
+            path="$2"
+            curl --silent --show-error --location --max-time 30 \
+              --dump-header "dist/live-forensics/http/${name}.headers.txt" \
+              --output "dist/live-forensics/http/${name}.body" \
+              --write-out 'http_code=%{http_code}\ncontent_type=%{content_type}\nremote_ip=%{remote_ip}\nurl_effective=%{url_effective}\ntime_total=%{time_total}\nsize_download=%{size_download}\n' \
+              "${PUBLIC_URL%/}/${path}" > "dist/live-forensics/http/${name}.meta.txt" 2> "dist/live-forensics/http/${name}.stderr.txt" || true
+          }
+
+          fetch_path index ''
+          fetch_path release 'qelly-release.json?forensics=5213928'
+          fetch_path config_js 'qelly-config.js?forensics=5213928'
+          fetch_path build_info 'BUILD_INFO.json?forensics=5213928'
+          fetch_path routes '_routes.json?forensics=5213928'
+          fetch_path api_config 'api/v1/config?forensics=5213928'
+          fetch_path api_health 'api/v1/health?forensics=5213928'
+          fetch_path api_readiness 'api/v1/readiness?forensics=5213928'
+          fetch_path provider_status 'api/v1/providers/status?forensics=5213928'
+          fetch_path robots 'robots.txt?forensics=5213928'
+          fetch_path sitemap 'sitemap.xml?forensics=5213928'
+          fetch_path manifest 'manifest.webmanifest?forensics=5213928'
+
+      - name: Parse release and generated runtime configuration without exposing key values
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs');
+          const vm=require('node:vm');
+          const path=require('node:path');
+          const out={expectedReleaseSha:process.env.EXPECTED_RELEASE_SHA,expectedFallbackSha:process.env.EXPECTED_FALLBACK_SHA};
+          try{
+            const release=JSON.parse(fs.readFileSync('dist/live-forensics/http/release.body','utf8'));
+            out.release={...release,releaseMatches:release.releaseSha===process.env.EXPECTED_RELEASE_SHA,fallbackMatches:release.fallbackReleaseSha===process.env.EXPECTED_FALLBACK_SHA};
+          }catch(error){out.releaseParseError=String(error.message||error);}
+          try{
+            const source=fs.readFileSync('dist/live-forensics/http/config_js.body','utf8');
+            const sandbox={window:{}};
+            vm.runInNewContext(source,sandbox,{timeout:1000});
+            const config=sandbox.window.__QELLY_CONFIG__||{};
+            const key=String(config.supabase?.publishableKey||'');
+            out.config={
+              schemaVersion:config.schemaVersion,
+              productMode:config.productMode,
+              deploymentStage:config.deploymentStage,
+              releaseSha:config.releaseSha,
+              releaseMatches:config.releaseSha===process.env.EXPECTED_RELEASE_SHA,
+              publicSiteUrl:config.publicSiteUrl,
+              apiBaseUrl:config.apiBaseUrl,
+              staticVisualPreview:config.staticVisualPreview,
+              dataMode:config.dataMode,
+              capabilities:config.capabilities,
+              supabaseUrl:config.supabase?.url,
+              publishableKeyShape:{
+                present:key.length>0,
+                length:key.length,
+                equalsProjectReference:key===process.env.SUPABASE_PROJECT_REF,
+                modernPublishablePrefix:key.startsWith('sb_publishable_'),
+                legacyJwtShape:key.split('.').length===3
+              }
+            };
+          }catch(error){out.configParseError=String(error.message||error);}
+          for(const name of ['api_config','api_health','api_readiness','provider_status','build_info','routes']){
+            try{out[name]=JSON.parse(fs.readFileSync(`dist/live-forensics/http/${name}.body`,'utf8'));}
+            catch(error){out[`${name}ParseError`]=String(error.message||error);}
+          }
+          fs.writeFileSync('dist/live-forensics/parsed-runtime.json',JSON.stringify(out,null,2));
+          NODE
+
+      - name: Run real Chromium startup and network probe
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs');
+          const {chromium}=require('playwright');
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const context=await browser.newContext({viewport:{width:1440,height:1000},serviceWorkers:'block'});
+            const page=await context.newPage();
+            const evidence={url:process.env.PUBLIC_URL,expectedReleaseSha:process.env.EXPECTED_RELEASE_SHA,console:[],pageErrors:[],requestFailures:[],responses:[],navigation:null,dom:null};
+            page.on('console',msg=>evidence.console.push({type:msg.type(),text:msg.text(),location:msg.location()}));
+            page.on('pageerror',error=>evidence.pageErrors.push({name:error.name,message:error.message,stack:error.stack}));
+            page.on('requestfailed',request=>evidence.requestFailures.push({url:request.url(),method:request.method(),resourceType:request.resourceType(),failure:request.failure()}));
+            page.on('response',response=>{
+              const request=response.request();
+              evidence.responses.push({url:response.url(),status:response.status(),contentType:response.headers()['content-type']||null,resourceType:request.resourceType(),fromServiceWorker:response.fromServiceWorker()});
+            });
+            try{
+              const response=await page.goto(process.env.PUBLIC_URL,{waitUntil:'domcontentloaded',timeout:45000});
+              evidence.navigation={status:response?.status()??null,headers:response?await response.allHeaders():null};
+              await page.waitForTimeout(8000);
+            }catch(error){evidence.navigationError={name:error.name,message:error.message,stack:error.stack};}
+            try{
+              evidence.dom=await page.evaluate(()=>({
+                title:document.title,
+                htmlAttributes:Object.fromEntries([...document.documentElement.attributes].map(a=>[a.name,a.value])),
+                bodyText:document.body?.innerText?.slice(0,20000)||'',
+                appExists:Boolean(document.querySelector('#app')),
+                mainExists:Boolean(document.querySelector('#main')),
+                mainChildCount:document.querySelector('#main')?.childElementCount??null,
+                mainText:document.querySelector('#main')?.innerText?.slice(0,10000)||'',
+                appVisibility:document.querySelector('.q-app')?getComputedStyle(document.querySelector('.q-app')).visibility:null,
+                appDisplay:document.querySelector('.q-app')?getComputedStyle(document.querySelector('.q-app')).display:null,
+                background:getComputedStyle(document.body).backgroundColor,
+                scripts:[...document.scripts].map(s=>({src:s.src||null,type:s.type||null})),
+                styles:[...document.querySelectorAll('link[rel="stylesheet"]')].map(l=>l.href),
+                configPresent:Boolean(window.__QELLY_CONFIG__),
+                publicBetaStatus:window.__QELLY_PUBLIC_BETA_STATUS__||null
+              }));
+            }catch(error){evidence.domError={name:error.name,message:error.message};}
+            await page.screenshot({path:'dist/live-forensics/homepage.png',fullPage:true}).catch(error=>{evidence.screenshotError=String(error.message||error);});
+            fs.writeFileSync('dist/live-forensics/browser-evidence.json',JSON.stringify(evidence,null,2));
+            await browser.close();
+          })().catch(error=>{fs.writeFileSync('dist/live-forensics/browser-runner-error.txt',String(error.stack||error));process.exitCode=0;});
+          NODE
+
+      - name: Produce compact forensic verdict
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs');
+          const read=(p)=>{try{return JSON.parse(fs.readFileSync(p,'utf8'));}catch{return null;}};
+          const parsed=read('dist/live-forensics/parsed-runtime.json')||{};
+          const browser=read('dist/live-forensics/browser-evidence.json')||{};
+          const failed=(browser.responses||[]).filter(r=>r.status>=400);
+          const verdict={
+            observedAt:fs.readFileSync('dist/live-forensics/observed-at.txt','utf8').trim(),
+            releaseMatches:parsed.release?.releaseMatches??false,
+            fallbackMatches:parsed.release?.fallbackMatches??false,
+            configReleaseMatches:parsed.config?.releaseMatches??false,
+            publishableKeyShape:parsed.config?.publishableKeyShape??null,
+            navigation:browser.navigation??browser.navigationError??null,
+            dom:browser.dom??browser.domError??null,
+            pageErrors:browser.pageErrors??[],
+            requestFailures:browser.requestFailures??[],
+            failingResponses:failed,
+            consoleErrors:(browser.console||[]).filter(x=>['error','warning'].includes(x.type))
+          };
+          fs.writeFileSync('dist/live-forensics/VERDICT.json',JSON.stringify(verdict,null,2));
+          console.log(JSON.stringify(verdict,null,2));
+          NODE
+
+      - name: Upload live forensic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qelly-live-public-forensics-20260802-${{ github.sha }}
+          path: dist/live-forensics
+          if-no-files-found: error
+          retention-days: 7
