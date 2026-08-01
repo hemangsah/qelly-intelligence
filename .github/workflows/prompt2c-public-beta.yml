@@ -59,10 +59,13 @@ jobs:
           QELLY_ENABLE_CLOUD_SYNC: 'false'
           QELLY_ENABLE_LIVE_PROVIDERS: 'false'
           QELLY_ENABLE_FEEDBACK_WRITES: 'false'
+        shell: bash
         run: |
           npm run build
           npm run build:frontend
+          printf '{"releaseSha":"%s","workflowRun":"%s","deployedAt":null,"mode":"validated-github-pages-public-beta-fallback","cloudMode":"local-only","authentication":false,"cloudSync":false,"liveProviders":false,"protectedWrites":false,"fallbackUrl":"https://hemangsah.github.io/qelly-intelligence/"}\n' "${GITHUB_SHA}" "${GITHUB_RUN_ID}" > dist/frontend/qelly-release.json
       - name: Validate compiled public beta
+        shell: bash
         run: |
           npm run validate:pages-preview
           npm run smoke:pages-preview
@@ -71,11 +74,13 @@ jobs:
           test -f dist/frontend/prompt2c-sw.js
           test -f dist/frontend/legal/privacy.html
           test -f dist/frontend/support.html
+          test "$(node -p "JSON.parse(require('fs').readFileSync('dist/frontend/qelly-release.json','utf8')).releaseSha")" = "${GITHUB_SHA}"
+          test "$(node -p "JSON.parse(require('fs').readFileSync('dist/frontend/qelly-release.json','utf8')).cloudMode")" = "local-only"
       - name: Record exact-head release manifest
         shell: bash
         run: |
           mkdir -p dist/release-evidence
-          printf '{"releaseSha":"%s","workflowRun":"%s","mode":"github-pages-public-beta-fallback","cloudMode":"local-only","auth":false,"cloudSync":false,"liveProviders":false,"protectedWrites":false}\n' "${GITHUB_SHA}" "${GITHUB_RUN_ID}" > dist/release-evidence/QELLY_PROMPT2C_RELEASE_MANIFEST.json
+          cp dist/frontend/qelly-release.json dist/release-evidence/QELLY_PROMPT2C_RELEASE_MANIFEST.json
           find dist/frontend -type f -print0 | sort -z | xargs -0 sha256sum > dist/release-evidence/QELLY_PROMPT2C_FRONTEND_SHA256.txt
 
   deploy-fallback:
@@ -115,7 +120,11 @@ jobs:
           QELLY_ENABLE_CLOUD_SYNC: 'false'
           QELLY_ENABLE_LIVE_PROVIDERS: 'false'
           QELLY_ENABLE_FEEDBACK_WRITES: 'false'
-        run: npm run build:frontend
+        shell: bash
+        run: |
+          npm run build:frontend
+          printf '{"releaseSha":"%s","workflowRun":"%s","deployedAt":"%s","mode":"github-pages-public-beta-fallback","cloudMode":"local-only","authentication":false,"cloudSync":false,"liveProviders":false,"protectedWrites":false,"fallbackUrl":"https://hemangsah.github.io/qelly-intelligence/"}\n' "${GITHUB_SHA}" "${GITHUB_RUN_ID}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > dist/frontend/qelly-release.json
+          test "$(node -p "JSON.parse(require('fs').readFileSync('dist/frontend/qelly-release.json','utf8')).releaseSha")" = "${GITHUB_SHA}"
       - name: Configure GitHub Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - name: Upload exact-head frontend
