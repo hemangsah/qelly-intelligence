@@ -1,0 +1,15 @@
+sequence,area,before,after,evidence,status,next_action
+1,master-read,unread,three complete passes and durable ledger,QELLY_FINAL_READ_LEDGER.json,COMPLETE,preserve
+2,git-topology,short 315d4ff unresolved,315d4ff5a06121315c1e4e65fe934db05007c615 resolved and recovery branch created,recovery/qelly-final-pre-activation-315d4ff,COMPLETE,preserve
+3,gmail,notifications unreviewed,latest feature and release deployment failures reconciled,runs 30698890145 and 30698534885,COMPLETE,preserve
+4,supabase-project,recorded only,ACTIVE_HEALTHY ap-south-1 Free verified,project ssdgfgqnjlwzkgukzeef,COMPLETE,monitor quotas
+5,database,zero tables and migrations,10 tables and two migrations applied,migration 20260801130701 plus performance indexes,COMPLETE,preserve checksums
+6,rls,not activated,10 of 10 tables RLS with 27 policies,live catalog verification,COMPLETE,advisor checks
+7,tenant-isolation,code tests only,two-user transactional read insert update delete matrix PASS,rolled-back live database test,COMPLETE,repeat through browser after deployment
+8,lifecycle,local only plus contracts,live DB create rename update soft-delete restore five revisions sync queue deletion request PASS,rolled-back live database test,PARTIAL_BROWSER,run live browser E2E
+9,pdf,no single final master,436-page PDF with 429 governed screenshots and 590 bookmarks,SHA256 9f47138a1d43237dca01bef907aa48b158405d1d00e86953bfb9e9f28bbbf0b6,COMPLETE_CURRENT_CORPUS,recapture only after deployed UI delta
+10,cloudflare,installed label only,no official Pages actions exposed to runtime,tool discovery and Wrangler failure,BLOCKED_EXTERNAL_AUTHORIZATION,authorize official Cloudflare OAuth connection
+11,github-pages,continuity URL only,release and feature deploy jobs fail before runner,runs 30698534885 and 30698890145,BLOCKED_EXTERNAL_ENVIRONMENT_AUTHORIZATION,keep continuity fallback
+12,auth-email,adapter and live schema,redirect and email browser journeys await final public URL,auth.users bootstrap plus no deployed URL,BLOCKED_DEPENDENCY,deploy then run six journeys
+13,providers,tested adapters,no deployed environment verification,Prompt2C provider tests,BLOCKED_DEPENDENCY,deploy edge runtime
+14,linkedin,ready package,no publishing action exposed,LinkedIn connector capability,BLOCKED_DEPENDENCY,deploy then authorize official publishing
