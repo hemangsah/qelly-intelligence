@@ -34,6 +34,11 @@ function ensureAmbientLayers() {
 
 function bindReveal(item, observer, index) {
   if (item.dataset.motionBound === 'true') return;
+  if (root.dataset.preview === 'static') {
+    item.dataset.motionBound = 'true';
+    item.classList.add('q-motion-item', 'q-pointer-card', 'is-inview');
+    return;
+  }
   item.dataset.motionBound = 'true';
   item.classList.add('q-motion-item', 'q-pointer-card');
   item.style.setProperty('--reveal-delay', `${Math.min(index % 9, 8) * 38}ms`);
