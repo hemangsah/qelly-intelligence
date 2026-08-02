@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUtc": "2026-08-02T14:03:14.025930+00:00",
+  "repository": "hemangsah/qelly-intelligence",
+  "github": {
+    "main": "9cb98780893924ad26fbf4baaa9048e80a162b2c",
+    "pr23": {"state": "open", "draft": true, "merged": false, "head": "17eeadac4c510cc3c312185e86b0ac5907f3789b"},
+    "pr25": {"state": "open", "draft": true, "merged": false, "head": "150025b9662404e5f98cd397c74c5d8be386460c"},
+    "pr26": {"state": "open", "draft": true, "merged": false, "head": "98a88d76bbba1017a40012aa2790213af6af485a"},
+    "releaseBranch": {"name": "release/qelly-global-public-beta", "sha": "98a88d76bbba1017a40012aa2790213af6af485a"},
+    "checkpoint": {"name": "checkpoint/prompt2c-production-restoration-98a88d", "sha": "98a88d76bbba1017a40012aa2790213af6af485a"},
+    "deterministicFallback": "603cece3091dc59cfb72680914e7056b40058022",
+    "commitClassificationAfter614f6ed": [
+      {"sha": "ba4c19d455c5958804150ee280c36f12b44d4039", "kind": "product_runtime_corrective", "accidental": false},
+      {"sha": "f9b5083704199d02234611cc8f5b1430ae6d6118", "kind": "workflow_only", "accidental": false},
+      {"sha": "f516e442a7450b08c861c4139cf671a6a5e08f4b", "kind": "workflow_only", "accidental": false},
+      {"sha": "3414e5050816d71f57750f1ffd668e0991e8be76", "kind": "build_configuration_corrective", "accidental": false},
+      {"sha": "090e8dbd3f47837b28a66fef00c94926d5b1941c", "kind": "product_runtime_corrective", "accidental": false},
+      {"sha": "2562c63f68d6426879a578b87212bc0a2f102589", "kind": "product_runtime_corrective", "accidental": false},
+      {"sha": "7104b3aaa4bb0177310cf95a48fa948d06c4fae0", "kind": "workflow_only_no_patch_job", "accidental": false},
+      {"sha": "98a88d76bbba1017a40012aa2790213af6af485a", "kind": "workflow_cleanup", "accidental": false}
+    ],
+    "accidentalProductCommitsFound": 0
+  },
+  "cloudflare": {
+    "project": "qelly-intelligence",
+    "publicUrl": "https://qelly-intelligence.pages.dev",
+    "authoritativeReleaseSha": "98a88d76bbba1017a40012aa2790213af6af485a",
+    "analyticsEffectiveState": "disabled_verified_at_edge",
+    "cloudflareInsightsInjected": false,
+    "beaconRequestObserved": false,
+    "relatedCspViolationObserved": false,
+    "cspScriptSrc": "'self'",
+    "cspWeakened": false,
+    "releaseManifestExact": true,
+    "fallbackExact": true,
+    "canonicalProbe": {
+      "run": 30750855606,
+      "job": 91504532276,
+      "artifactId": 8834393831,
+      "artifactBytes": 871042,
+      "artifactSha256": "49490f4113ed2d1982bd775edc538927cc96ca7373306df5b7b0078bdb82abda",
+      "runtimeVerification": "passed",
+      "overallRunRedReason": "post_verification_pr_comment_script_ERR_AMBIGUOUS_MODULE_SYNTAX"
+    }
+  },
+  "publicRuntime": {
+    "releaseSha": "98a88d76bbba1017a40012aa2790213af6af485a",
+    "fallbackSha": "603cece3091dc59cfb72680914e7056b40058022",
+    "health": "ok",
+    "readiness": true,
+    "anonymousAuthenticated": false,
+    "protectedRouteStatus": 401,
+    "browserProbes": {"marketDesktop": "passed", "authMobile": "passed", "formulaMobile": "passed", "horizontalOverflowFailures": 0, "consoleErrors": 0, "pageErrors": 0, "apiFailures": 0},
+    "providers": {"coinbase": "live", "ecb": "live", "binance": "unavailable_truthful"}
+  },
+  "supabase": {
+    "project": "ssdgfgqnjlwzkgukzeef",
+    "region": "ap-south-1",
+    "status": "ACTIVE_HEALTHY",
+    "migrations": ["20260801130701 qelly_final_live_activation_v1", "20260801131043 qelly_final_live_performance_indexes"],
+    "tables": 10,
+    "rlsTables": 10,
+    "policies": 27,
+    "authUsersAfterCleanup": 0,
+    "authSessionsAfterCleanup": 0,
+    "applicationRowsAfterCleanup": 0,
+    "schemaChanged": false,
+    "rlsChanged": false,
+    "freshAuthRun": {
+      "run": 30751019280,
+      "job": 91504957788,
+      "artifactId": 8834446497,
+      "artifactBytes": 405088,
+      "artifactSha256": "a0e6c810acea91b5d56bb8f0f73fd97d88c85c121ab8e434388607a23f073132",
+      "registrationReached": true,
+      "confirmationEmailSent": true,
+      "implicitVerificationReached": true,
+      "observedReferer": "http://localhost:3000",
+      "productionCallbackAccepted": false,
+      "cloudMatrixStarted": false,
+      "isolationMatrixStarted": false
+    }
+  },
+  "vercel": {"state": "VERCEL_NOT_USED", "projects": 0},
+  "blocker": {
+    "code": "SUPABASE_AUTH_URL_CONFIGURATION_REQUIRED",
+    "onlyRemainingImmediateAccountSideBlocker": true,
+    "dashboardPath": "Supabase Dashboard → project ssdgfgqnjlwzkgukzeef → Authentication → URL Configuration",
+    "siteUrl": "https://qelly-intelligence.pages.dev",
+    "redirectUrls": ["https://qelly-intelligence.pages.dev/auth/callback.html", "https://qelly-intelligence.pages.dev/auth/callback.html?flow=recovery"],
+    "removeLocalhostFromProduction": true,
+    "broadWildcardAllowed": false,
+    "connectedWriteActionAvailable": false
+  },
+  "pdf": {
+    "predeployment": {"filename": "QELLY_COMPLETE_FRONTEND_ALL_SCREENS_MASTER.pdf", "pages": 436, "sha256": "9f47138a1d43237dca01bef907aa48b158405d1d00e86953bfb9e9f28bbbf0b6", "preserved": true},
+    "publicRuntime": {"filename": "QELLY_COMPLETE_FRONTEND_ALL_SCREENS_MASTER_PUBLIC_RUNTIME.pdf", "generated": false, "reason": "Mandatory live Auth, cloud synchronization and deployed tenant-isolation gates have not passed."}
+  },
+  "nextAction": "Apply the exact Supabase hosted Auth URL configuration and reply done; then rerun the prepared disposable two-user Auth/cloud/isolation workflow."
+}
