@@ -8,6 +8,20 @@
     node.tabIndex=-1;
     return node;
   };
+  const currentRoute=()=>location.hash.replace(/^#\/?/,'').split('?')[0].split('/')[0]||'market';
+  const enforceProductBoundary=()=>{
+    if(document.documentElement.dataset.productSurface!=='production')return;
+    const main=document.getElementById('main');
+    if(!main)return;
+    for(const context of main.querySelectorAll(':scope > .q-worldclass-context')){
+      if(context.dataset.qellyProductBoundary!=='suppressed'){
+        context.replaceChildren();
+        conceal(context);
+        context.dataset.qellyProductBoundary='suppressed';
+      }
+    }
+    if(main.querySelector(':scope > .q-worldclass-context[data-qelly-product-boundary="suppressed"]'))main.dataset.worldclassRoute=currentRoute();
+  };
   const protectCommandBindings=()=>{
     const header=document.querySelector('.q-command-bar,.q-product-header');
     if(!header||header.dataset.qellyBindingProtection==='true')return;
@@ -69,6 +83,7 @@
     conceal(ensure('nav','mobile-navigation'));
     ensure('main','main',shell).removeAttribute('aria-hidden');
     protectCommandBindings();
+    enforceProductBoundary();
     document.querySelector('.q-global-strip')?.setAttribute('hidden','');
     document.querySelector('.q-product-account')?.setAttribute('aria-label','Open Qelly account');
     document.documentElement.dataset.shellCompat='ready';
@@ -76,5 +91,6 @@
   };
   install();
   new MutationObserver(()=>queueMicrotask(install)).observe(document.documentElement,{childList:true,subtree:true});
+  window.addEventListener('hashchange',()=>queueMicrotask(install));
   window.addEventListener('pageshow',install);
 })();
