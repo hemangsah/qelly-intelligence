@@ -1,11 +1,37 @@
 (()=>{
   let installing=false;
+  const compatibilityIds=['rail-toggle','command-button','state-selector','global-theme-selector','notification-button','theme-shortcut'];
   const conceal=(node)=>{
     if(!node)return node;
     node.hidden=true;
     node.setAttribute('aria-hidden','true');
     node.tabIndex=-1;
     return node;
+  };
+  const protectCommandBindings=()=>{
+    const header=document.querySelector('.q-command-bar,.q-product-header');
+    if(!header||header.dataset.qellyBindingProtection==='true')return;
+    const descriptor=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');
+    if(!descriptor?.get||!descriptor?.set)return;
+    Object.defineProperty(header,'innerHTML',{
+      configurable:true,
+      get(){return descriptor.get.call(this);},
+      set(value){
+        const fragment=document.createDocumentFragment();
+        for(const id of compatibilityIds){
+          const node=document.getElementById(id);
+          if(node&&this.contains(node))fragment.append(node);
+        }
+        descriptor.set.call(this,value);
+        if(fragment.childNodes.length){
+          const host=conceal(document.createElement('div'));
+          host.dataset.qellyShellCompatibility='preserved';
+          host.append(fragment);
+          this.prepend(host);
+        }
+      }
+    });
+    header.dataset.qellyBindingProtection='true';
   };
   const install=()=>{
     if(installing)return;
@@ -42,6 +68,7 @@
     conceal(ensure('div','compare-tray'));
     conceal(ensure('nav','mobile-navigation'));
     ensure('main','main',shell).removeAttribute('aria-hidden');
+    protectCommandBindings();
     document.querySelector('.q-global-strip')?.setAttribute('hidden','');
     document.querySelector('.q-product-account')?.setAttribute('aria-label','Open Qelly account');
     document.documentElement.dataset.shellCompat='ready';
