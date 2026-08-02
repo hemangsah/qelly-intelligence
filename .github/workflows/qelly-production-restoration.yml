@@ -16,9 +16,9 @@ concurrency:
 
 jobs:
   validate:
-    name: Validate product, calculations and responsive browser matrix
+    name: Validate product, calculations and build
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -63,7 +63,7 @@ jobs:
           node --check 'functions/api/v1/[[path]].js'
           node --check scripts/finalize-public-runtime.mjs
           node --check scripts/harden-cloudflare-index.mjs
-          node --check scripts/validate-production-restoration-browser.mjs
+          node --check scripts/validate-production-restoration-case.mjs
       - name: Build exact connected public runtime
         shell: bash
         env:
@@ -86,12 +86,92 @@ jobs:
           mkdir -p dist/production-restoration-evidence
           npm run build:frontend 2>&1 | tee dist/production-restoration-evidence/frontend-build.log
           node scripts/validate-prompt2c-public-runtime.mjs 2>&1 | tee dist/production-restoration-evidence/runtime-validation.log
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-      - name: Run built-product browser matrix
+          cp dist/frontend/qelly-release.json dist/production-restoration-evidence/qelly-release.json
+          printf '{"headSha":"%s","baseSha":"150025b9662404e5f98cd397c74c5d8be386460c","fallbackSha":"603cece3091dc59cfb72680914e7056b40058022","workflowRun":"%s"}\n' "${GITHUB_SHA}" "${GITHUB_RUN_ID}" > dist/production-restoration-evidence/manifest.json
+          find dist/production-restoration-evidence -type f -print0 | sort -z | xargs -0 sha256sum > dist/production-restoration-evidence/SHA256SUMS.txt
+      - name: Upload exact built runtime
+        uses: actions/upload-artifact@v4
+        with:
+          name: qelly-restoration-build-${{ github.sha }}
+          path: dist/frontend
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload build evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: qelly-restoration-build-evidence-${{ github.sha }}
+          path: dist/production-restoration-evidence
+          if-no-files-found: error
+          retention-days: 14
+
+  browser:
+    name: Browser ${{ matrix.case }} ${{ matrix.width }}x${{ matrix.height }}
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - case: market-home
+            width: 320
+            height: 800
+            hash: '#/market'
+          - case: market-home
+            width: 768
+            height: 1024
+            hash: '#/market'
+          - case: market-home
+            width: 1440
+            height: 1000
+            hash: '#/market'
+          - case: position-size-calculator
+            width: 360
+            height: 900
+            hash: '#/calculator-detail/position-size'
+          - case: position-size-calculator
+            width: 1024
+            height: 900
+            hash: '#/calculator-detail/position-size'
+          - case: position-size-calculator
+            width: 1440
+            height: 1000
+            hash: '#/calculator-detail/position-size'
+          - case: auth-login
+            width: 390
+            height: 844
+            hash: '#/auth-login'
+          - case: protected-route-gate
+            width: 390
+            height: 844
+            hash: '#/account-session'
+          - case: system-status
+            width: 1280
+            height: 900
+            hash: '#/status'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - uses: actions/download-artifact@v4
+        with:
+          name: qelly-restoration-build-${{ github.sha }}
+          path: dist/frontend
+      - run: npx playwright install --with-deps chromium
+      - name: Verify bounded browser case
         shell: bash
         env:
           QELLY_RESTORATION_URL: http://127.0.0.1:4173
+          QELLY_BROWSER_CASE: ${{ matrix.case }}
+          QELLY_BROWSER_WIDTH: ${{ matrix.width }}
+          QELLY_BROWSER_HEIGHT: ${{ matrix.height }}
+          QELLY_BROWSER_HASH: ${{ matrix.hash }}
         run: |
           set -euo pipefail
           python3 -m http.server 4173 --directory dist/frontend > /tmp/qelly-restoration-server.log 2>&1 &
@@ -101,21 +181,12 @@ jobs:
             curl --fail --silent http://127.0.0.1:4173/ >/dev/null && break
             sleep 1
           done
-          node scripts/validate-production-restoration-browser.mjs
-      - name: Create restoration manifest
-        if: always()
-        shell: bash
-        run: |
-          mkdir -p dist/production-restoration-evidence
-          cp -r dist/production-restoration-browser dist/production-restoration-evidence/browser 2>/dev/null || true
-          cp dist/frontend/qelly-release.json dist/production-restoration-evidence/qelly-release.json 2>/dev/null || true
-          printf '{"headSha":"%s","baseSha":"150025b9662404e5f98cd397c74c5d8be386460c","fallbackSha":"603cece3091dc59cfb72680914e7056b40058022","workflowRun":"%s"}\n' "${GITHUB_SHA}" "${GITHUB_RUN_ID}" > dist/production-restoration-evidence/manifest.json
-          find dist/production-restoration-evidence -type f -print0 | sort -z | xargs -0 sha256sum > dist/production-restoration-evidence/SHA256SUMS.txt
-      - name: Upload restoration evidence
+          node scripts/validate-production-restoration-case.mjs
+      - name: Upload browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: qelly-production-restoration-${{ github.sha }}
-          path: dist/production-restoration-evidence
+          name: qelly-browser-${{ matrix.case }}-${{ matrix.width }}x${{ matrix.height }}-${{ github.sha }}
+          path: dist/production-restoration-browser/${{ matrix.case }}-${{ matrix.width }}x${{ matrix.height }}
           if-no-files-found: error
           retention-days: 14
