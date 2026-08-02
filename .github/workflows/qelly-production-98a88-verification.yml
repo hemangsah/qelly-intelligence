@@ -3,6 +3,8 @@ name: Qelly Production 98a88 Verification
 on:
   push:
     branches: [forensics/qelly-production-98a88-verify]
+  pull_request:
+    branches: [feature/prompt2c-production-ui-defect-sweep]
 
 permissions:
   contents: read
