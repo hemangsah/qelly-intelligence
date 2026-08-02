@@ -116,6 +116,38 @@ try{
     if(await page.locator('.q-calculation-result').count()<1)throw new Error('formula_worked_example_missing');
     const technical=page.locator('.q-formula-detail-page details').first();
     if(await technical.evaluate((node)=>node.open))throw new Error('formula_technical_reference_open_by_default');
+    const layout=page.locator('.q-formula-detail-page .q-calculator-layout');
+    const guide=page.locator('.q-formula-detail-page .q-responsive-table');
+    await layout.waitFor();
+    await guide.waitFor();
+    if(width>=1200){
+      const geometry=await page.evaluate(()=>{
+        const layout=document.querySelector('.q-formula-detail-page .q-calculator-layout');
+        const methodology=layout?.children?.[0];
+        const example=layout?.children?.[1];
+        const guide=document.querySelector('.q-formula-detail-page .q-responsive-table');
+        const guidanceCell=guide?.querySelector('tbody tr td:last-child');
+        const rows=[...(guide?.querySelectorAll('tbody tr')||[])];
+        const layoutBox=layout?.getBoundingClientRect(),methodologyBox=methodology?.getBoundingClientRect(),exampleBox=example?.getBoundingClientRect(),guideBox=guide?.getBoundingClientRect(),guidanceBox=guidanceCell?.getBoundingClientRect();
+        return{
+          columns:layout?getComputedStyle(layout).gridTemplateColumns:null,
+          methodologyWidth:methodologyBox?.width||0,
+          exampleWidth:exampleBox?.width||0,
+          guidanceCellWidth:guidanceBox?.width||0,
+          maxRowHeight:rows.length?Math.max(...rows.map((row)=>row.getBoundingClientRect().height)):0,
+          guideClientWidth:guide?.clientWidth||0,
+          guideScrollWidth:guide?.scrollWidth||0,
+          guideContained:Boolean(guideBox&&methodologyBox&&guideBox.left>=methodologyBox.left-1&&guideBox.right<=methodologyBox.right+1),
+          layoutWidth:layoutBox?.width||0
+        };
+      });
+      if(geometry.methodologyWidth<600)throw new Error(`formula_methodology_too_narrow_${geometry.methodologyWidth}`);
+      if(geometry.exampleWidth<340)throw new Error(`formula_example_too_narrow_${geometry.exampleWidth}`);
+      if(geometry.guidanceCellWidth<200)throw new Error(`formula_guidance_column_too_narrow_${geometry.guidanceCellWidth}`);
+      if(geometry.maxRowHeight>130)throw new Error(`formula_input_rows_overcompressed_${geometry.maxRowHeight}`);
+      if(!geometry.guideContained)throw new Error('formula_input_guide_not_contained');
+      if(geometry.guideScrollWidth>geometry.guideClientWidth+2)throw new Error(`formula_input_guide_scrolls_on_desktop_${geometry.guideScrollWidth}_${geometry.guideClientWidth}`);
+    }
   }else if(name==='indicator-library'){
     await page.getByRole('heading',{name:'Indicators',exact:true}).waitFor();
     await page.getByRole('heading',{name:'Start with a familiar indicator'}).waitFor();
