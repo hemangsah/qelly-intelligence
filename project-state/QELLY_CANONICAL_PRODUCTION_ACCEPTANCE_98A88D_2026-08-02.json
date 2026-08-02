@@ -1,0 +1,85 @@
+{
+  "status": "passed",
+  "observedAtUtc": "2026-08-02T13:52:52.139Z",
+  "repository": "hemangsah/qelly-intelligence",
+  "publicUrl": "https://qelly-intelligence.pages.dev",
+  "acceptedCorrectiveSha": "98a88d76bbba1017a40012aa2790213af6af485a",
+  "observedReleaseSha": "98a88d76bbba1017a40012aa2790213af6af485a",
+  "fallbackReleaseSha": "603cece3091dc59cfb72680914e7056b40058022",
+  "checkpoint": "checkpoint/prompt2c-production-restoration-98a88d",
+  "releaseBranch": "release/qelly-global-public-beta",
+  "releaseBranchExact": true,
+  "cloudflare": {
+    "mode": "cloudflare-pages-public-runtime",
+    "health": "ok",
+    "ready": true,
+    "authentication": true,
+    "cloudSync": true,
+    "liveProviders": true,
+    "protectedWrites": true,
+    "publishableKeyShape": "sb_publishable",
+    "publishableKeyLength": 46
+  },
+  "providers": {
+    "coinbase": {
+      "truthState": "live",
+      "attribution": "Coinbase Exchange public market data"
+    },
+    "ecb": {
+      "truthState": "live",
+      "attribution": "European Central Bank euro foreign exchange reference rates"
+    },
+    "binance": {
+      "truthState": "unavailable",
+      "simulated": false
+    }
+  },
+  "authBoundary": {
+    "anonymousAuthenticated": false,
+    "protectedRouteStatus": 401,
+    "protectedRouteErrorCode": "authentication_required"
+  },
+  "browser": {
+    "cases": ["market-desktop", "auth-mobile", "formula-mobile"],
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "apiFailures": 0,
+    "horizontalOverflow": false,
+    "prohibitedCopy": 0,
+    "legacyChrome": 0
+  },
+  "validation": {
+    "restorationRun": 30750473851,
+    "validationJob": 91503516823,
+    "previewGateRun": 30750473852,
+    "previewGateJob": 91503516898,
+    "canonicalProbeRun": 30750855606,
+    "canonicalProbeJob": 91504532276,
+    "buildArtifactId": 8834276987,
+    "buildArtifactSha256": "8eff23a41a183485c0adfcb83d1ff4f3c009036fc4fa2b890318baec218d56f8",
+    "previewEvidenceArtifactId": 8834277061,
+    "canonicalEvidenceArtifactId": 8834393831,
+    "canonicalEvidenceSha256": "49490f4113ed2d1982bd775edc538927cc96ca7373306df5b7b0078bdb82abda",
+    "repositoryTests": 446,
+    "browserCases": 20
+  },
+  "governance": {
+    "mainChanged": false,
+    "pr23DraftUnmerged": true,
+    "pr25DraftUnmerged": true,
+    "pr26DraftUnmerged": true,
+    "numericalEngineChanged": false,
+    "supabaseSchemaChanged": false,
+    "rlsChanged": false,
+    "socialMediaWorkstream": "removed",
+    "vercelDeploymentWork": "not_used"
+  },
+  "remainingGates": [
+    "hosted Supabase production Auth URL configuration",
+    "live registration confirmation login logout refresh expiry and recovery",
+    "live cloud synchronization lifecycle",
+    "deployed two-user tenant isolation and cleanup",
+    "final public quality and accessibility acceptance",
+    "final public-runtime master PDF"
+  ]
+}
