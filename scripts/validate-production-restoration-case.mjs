@@ -22,7 +22,7 @@ const provider=(id,providerName,state,data,error=null)=>({provider:id,name:provi
 const overview={generatedAt:ingestedAt,market:[{label:'BTC · Coinbase',value:'$64,820.12',state:'live',provider:'coinbase',observedAt,ingestedAt,attribution:'Coinbase Exchange'},{label:'BTC · Binance',value:'Unavailable',state:'unavailable',provider:'binance',observedAt:null,ingestedAt,attribution:'Binance'}],referenceRates:{label:'ECB reference rates',count:31,state:'live',provider:'ecb',observedAt,ingestedAt,attribution:'European Central Bank'},providers:{coinbase:provider('coinbase','Coinbase Exchange','live',{price:64820.12}),ecb:provider('ecb','European Central Bank','live',{rates:{USD:1.08,INR:92.4}}),binance:provider('binance','Binance','unavailable',null,{code:'upstream_restricted',message:'Binance is unavailable from this deployment region.'})},deterministicLocal:true,execution:false};
 const config={productName:'Qelly Intelligence',productVersion:'0.9.0-preview.1',release:'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',defaultRoute:'market',csrf:{header:'X-Qelly-CSRF',token:null,mode:'unavailable-until-authenticated'},auth:{authenticated:false,backendAvailable:true,productionIdentityEnabled:true,mode:'supabase-auth-cloudflare-facade'},cloud:{available:true,syncAvailable:true,providerRuntime:true},runtime:{releaseSha:'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',publicSiteUrl:base,capabilities:{authentication:true,cloudSync:true,liveProviders:true,protectedWrites:true}},states:[],liveTrading:false};
 const responseFor=(url)=>{const path=new URL(url).pathname;if(path==='/api/v1/config')return[200,config];if(path==='/api/v1/market/overview')return[200,overview];if(path==='/api/v1/auth/status')return[200,{authenticated:false,context:null}];if(path==='/api/v1/health')return[200,{status:'ok',releaseSha:config.release,deterministicLocal:true,authentication:true,cloudSync:true,liveProviders:true,trading:false,custody:false,transfers:false}];if(path==='/api/v1/readiness')return[200,{ready:true,dependencies:{supabase:'configured',auth:'configured',rls:'required',providers:'configured'},releaseSha:config.release}];if(path==='/api/v1/providers/status')return[200,{providers:[{id:'coinbase',name:'Coinbase Exchange',state:'live',description:'Public spot quotes'},{id:'ecb',name:'European Central Bank',state:'live',description:'Official reference rates'},{id:'binance',name:'Binance',state:'unavailable',description:'Unavailable in this region'}],releaseSha:config.release}];return[401,{error:{code:'authentication_required',message:'Authentication is required'}}];};
-const prohibited=['QELLY GLOBAL PUBLIC BETA','VALIDATION STATE','Unable to render this route','Retry foundation route','AUTHENTICATION DEMO','LOCAL DEMONSTRATION IDENTITY BOUNDARY','STATE: DEFAULT','Secure identity foundation','Network · online','Authentication · active','Cloud sync · opt-in available'];
+const prohibited=['QELLY GLOBAL PUBLIC BETA','VALIDATION STATE','Unable to render this route','Retry foundation route','AUTHENTICATION DEMO','LOCAL DEMONSTRATION IDENTITY BOUNDARY','STATE: DEFAULT','Secure identity foundation','Network · online','Authentication · active','Cloud sync · opt-in available','Input JSON'];
 const delay=(ms)=>new Promise((resolve)=>setTimeout(resolve,ms));
 const collectEvidence=(page)=>page.evaluate((blocked)=>{
   const bodyText=document.body?.innerText||'';
@@ -80,6 +80,16 @@ try{
     await page.getByText('Coinbase Exchange',{exact:true}).first().waitFor();
     await page.getByText('European Central Bank',{exact:true}).first().waitFor();
     await page.getByText('Binance is unavailable from this deployment region.').waitFor();
+  }else if(name==='calculator-center'){
+    await page.getByRole('heading',{name:'Calculators',exact:true}).waitFor();
+    await page.getByRole('heading',{name:'Start with a proven calculation'}).waitFor();
+    await page.getByLabel('Search calculators').waitFor();
+    const cards=page.locator('.q-calculator-card');
+    if(await cards.count()<6)throw new Error('calculator_catalog_incomplete');
+    const position=page.locator('[data-calculator-id="position-size"]').first();
+    await position.waitFor();
+    const href=await position.getAttribute('href');
+    if(!href?.includes('#/calculator-detail/position-size'))throw new Error('calculator_detail_link_invalid');
   }else if(name==='position-size-calculator'){
     await page.waitForSelector('[data-structured-field][name="accountValue"]');
     await page.getByText('Account value',{exact:true}).waitFor();
