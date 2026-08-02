@@ -11,6 +11,12 @@ const slug=`${name}-${width}x${height}`;
 const output=new URL(`../dist/production-restoration-browser/${slug}/`,import.meta.url);
 await mkdir(output,{recursive:true});
 
+const delay=(ms)=>new Promise((resolve)=>setTimeout(resolve,ms));
+const hardTimeout=setTimeout(async()=>{
+  await writeFile(new URL('stage.json',output),JSON.stringify({stage:'hard-timeout',name,width,height,hash},null,2)).catch(()=>{});
+  process.exit(124);
+},90000);
+
 const observedAt='2026-08-02T04:00:00.000Z';
 const ingestedAt='2026-08-02T04:00:02.000Z';
 const provider=(id,providerName,state,data,error=null)=>({provider:id,name:providerName,truthState:state,data,error,observedAt,ingestedAt,attribution:providerName,source:{name:providerName,mode:state==='live'?'live-public':state}});
@@ -77,21 +83,23 @@ try{
   if(consoleErrors.length)throw new Error(`console_errors_${consoleErrors.join('|')}`);
   result={status:'passed',name,width,height,hash,evidence,screenshots:[`${slug}-viewport.png`,`${slug}-providers.png`],pageErrors,consoleErrors,requestFailures};
   await writeFile(new URL('result.json',output),JSON.stringify(result,null,2));
-  await stage('capturing');
-  await page.screenshot({path:screenshotPath(`${slug}-viewport.png`),fullPage:false,animations:'disabled',caret:'hide',timeout:15000});
-  const providers=page.locator('.q-market-provider-grid').first();
-  await providers.scrollIntoViewIfNeeded();
-  await providers.screenshot({path:screenshotPath(`${slug}-providers.png`),animations:'disabled',caret:'hide',timeout:15000});
+  await stage('capturing-top');
+  await page.screenshot({path:screenshotPath(`${slug}-viewport.png`),fullPage:false,animations:'disabled',caret:'hide',timeout:12000});
+  await stage('scrolling-providers');
+  await page.locator('.q-market-provider-grid').first().scrollIntoViewIfNeeded({timeout:12000});
+  await stage('capturing-providers');
+  await page.screenshot({path:screenshotPath(`${slug}-providers.png`),fullPage:false,animations:'disabled',caret:'hide',timeout:12000});
   await stage('complete');
 }catch(error){
   const evidence=page?await evidenceFor(page).catch(()=>null):null;
   result={status:'failed',name,width,height,hash,error:error.message,evidence,pageErrors,consoleErrors,requestFailures};
-  if(page)await page.screenshot({path:screenshotPath(`${slug}-failure.png`),fullPage:false,animations:'disabled',caret:'hide',timeout:8000}).catch(()=>{});
+  if(page)await page.screenshot({path:screenshotPath(`${slug}-failure.png`),fullPage:false,animations:'disabled',caret:'hide',timeout:6000}).catch(()=>{});
   await writeFile(new URL('result.json',output),JSON.stringify(result,null,2));
   await stage('failed',{error:error.message});
 }finally{
-  await context?.close().catch(()=>{});
-  await browser?.close().catch(()=>{});
+  await Promise.race([context?.close().catch(()=>{}),delay(3000)]);
+  await Promise.race([browser?.close().catch(()=>{}),delay(3000)]);
+  clearTimeout(hardTimeout);
 }
 await writeFile(new URL('result.md',output),`# Qelly Market Browser Case — ${slug}\n\n- Status: ${result.status}\n- Route: ${hash}\n- Viewport: ${width} × ${height}\n${result.error?`- Error: ${result.error}\n`:''}`);
 console.log(JSON.stringify(result,null,2));
