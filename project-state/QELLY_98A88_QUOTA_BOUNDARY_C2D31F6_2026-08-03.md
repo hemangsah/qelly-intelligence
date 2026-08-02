@@ -29,6 +29,20 @@ Workflow trigger commit: `c2d31f6b6c0d572a1b0c516310b17364b123025b`
 The only content change was the controlled run marker `2026-08-02T19:00:02Z`.
 The accepted quota-safe runner remained unchanged at commit `cb14cd72318920c8f13d8d18043818889fb192bc`.
 
+## GitHub Actions evidence
+
+- Workflow run ID: `30762425943`
+- Job ID: `91535243300`
+- Run duration: 2 minutes 13 seconds
+- Artifact ID: `8837893651`
+- Artifact name: `qelly-live-auth-isolation-98a88d7`
+- Artifact bytes: `827753`
+- Artifact SHA-256: `cbcdc549f18f7f5fe000004d963479e5e78da2e2b6d4d18419283c6d7f37bf68`
+- ZIP CRC: clean
+- Artifact files: `result.json`, `cleanup-user-ids.json`, `user-a-registration.png`, `user-a-confirmation.png`, `user-a-account.png`, `user-b-registration.png`
+- Redacted result blocker: `429`
+- Artifact recorded exact expected release, fallback, capability flags and browser-safe key shape before Auth execution.
+
 ## Fresh production evidence
 
 User A synthetic identity:
