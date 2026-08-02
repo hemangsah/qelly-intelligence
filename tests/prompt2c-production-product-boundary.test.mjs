@@ -56,16 +56,15 @@ test('calculator defaults to structured fields while preserving advanced JSON',a
 });
 
 test('production redirects are exact and contain no localhost or trailing bracket',async()=>{
-  const files=await Promise.all([
-    read('apps/web/public/assets/routes/auth-register.mjs'),
-    read('apps/web/public/assets/routes/auth-recovery.mjs'),
-    read('apps/web/public/assets/qelly-auth-callback.mjs'),
-    read('scripts/build-frontend.mjs')
-  ]);
-  const combined=files.join('\n');
+  const backend=await read('functions/_lib/auth.js');
+  const callback=await read('apps/web/public/assets/qelly-auth-callback.mjs');
+  const build=await read('scripts/build-frontend.mjs');
+  const combined=[backend,callback,build].join('\n');
   assert.doesNotMatch(combined,/http:\/\/localhost:3000\]?/);
-  assert.match(combined,/auth\/callback\.html/);
-  assert.match(combined,/flow=recovery/);
+  assert.match(backend,/\$\{config\.publicSiteUrl\}\/auth\/callback\.html/);
+  assert.match(backend,/\$\{publicRuntimeConfig\(env,request\.url\)\.publicSiteUrl\}\/auth\/callback\.html\?flow=recovery/);
+  assert.doesNotMatch(backend,/auth\/callback\.html\]/);
+  assert.doesNotMatch(callback,/localhost/);
 });
 
 test('public API defaults signed-out users to the market product',async()=>{
