@@ -1,6 +1,13 @@
 (()=>{
   let installing=false;
   const compatibilityIds=['rail-toggle','command-button','state-selector','global-theme-selector','notification-button','theme-shortcut'];
+  const providerIds=new Map([
+    ['coinbase exchange','coinbase'],
+    ['coinbase','coinbase'],
+    ['european central bank','ecb'],
+    ['ecb','ecb'],
+    ['binance','binance']
+  ]);
   const conceal=(node)=>{
     if(!node)return node;
     node.hidden=true;
@@ -21,6 +28,10 @@
       }
     }
     if(main.querySelector(':scope > .q-worldclass-context[data-qelly-product-boundary="suppressed"]'))main.dataset.worldclassRoute=currentRoute();
+    for(const card of main.querySelectorAll('.q-market-provider[data-provider]')){
+      const canonical=providerIds.get(String(card.dataset.provider||'').trim().toLowerCase());
+      if(canonical)card.dataset.provider=canonical;
+    }
   };
   const protectCommandBindings=()=>{
     const header=document.querySelector('.q-command-bar,.q-product-header');
