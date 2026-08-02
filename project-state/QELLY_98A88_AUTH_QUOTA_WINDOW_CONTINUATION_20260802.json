@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-08-02T17:12:00Z",
+  "repository": "hemangsah/qelly-intelligence",
+  "productSha": "98a88d76bbba1017a40012aa2790213af6af485a",
+  "fallbackSha": "603cece3091dc59cfb72680914e7056b40058022",
+  "mainSha": "9cb98780893924ad26fbf4baaa9048e80a162b2c",
+  "prs": {
+    "23": {"state":"open","draft":true,"merged":false},
+    "25": {"state":"open","draft":true,"merged":false},
+    "26": {"state":"open","draft":true,"merged":false,"headSha":"98a88d76bbba1017a40012aa2790213af6af485a"}
+  },
+  "freshRetry": {
+    "workflowCommit": "8d55b85cf2eb82fa8aef72f6e0200b10f440b661",
+    "runId": 30758124849,
+    "jobId": 91523762844,
+    "artifactId": 8836582074,
+    "artifactBytes": 405070,
+    "artifactSha256": "cc94b6d134ace79a0e51010014e87b75239a5541467558f935b4f089c59eb8b0",
+    "observedAtUtc": "2026-08-02T17:06:46.570Z",
+    "releaseIdentityPassed": true,
+    "fallbackIdentityPassed": true,
+    "capabilitiesPassed": true,
+    "publishableKeyShapePassed": true,
+    "signupStatus": 429,
+    "blocker": "over_email_send_rate_limit",
+    "requestedRedirect": "https://qelly-intelligence.pages.dev/auth/callback.html",
+    "localhostObserved": false
+  },
+  "postRunCleanup": {
+    "authUsers": 0,
+    "authSessions": 0,
+    "profiles": 0,
+    "workspaces": 0,
+    "workspaceMembers": 0,
+    "savedCalculations": 0,
+    "revisions": 0,
+    "syncOperations": 0,
+    "feedback": 0,
+    "deletionRequests": 0,
+    "auditEvents": 0,
+    "providerCache": 0,
+    "syntheticUsers": []
+  },
+  "quotaSafeRunner": {
+    "commit": "cb14cd72318920c8f13d8d18043818889fb192bc",
+    "userBDelayMs": 65000,
+    "recoveryDelayMs": 3900000,
+    "secretsPersistedBetweenRuns": false,
+    "productFilesChanged": false,
+    "rlsChanged": false,
+    "cspChanged": false
+  },
+  "nextExecution": {
+    "scheduledLocal": "2026-08-02T23:20:00+05:30",
+    "scheduledUtc": "2026-08-02T17:50:00Z",
+    "requiredWorkflowTimeoutMinutes": 110,
+    "singlePushOnly": true,
+    "pullRequestTriggerAllowed": false
+  }
+}
