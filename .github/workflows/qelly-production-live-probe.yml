@@ -1,0 +1,87 @@
+name: Qelly production live probe
+
+on:
+  push:
+    branches: [forensics/qelly-production-live-98a88d-20260802]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --check scripts/validate-cloudflare-preview.mjs
+      - run: npx playwright install --with-deps chromium
+      - name: Verify canonical production runtime
+        id: verify
+        continue-on-error: true
+        env:
+          QELLY_PREVIEW_URL: https://qelly-intelligence.pages.dev
+          QELLY_EXPECTED_HEAD_SHA: 98a88d76bbba1017a40012aa2790213af6af485a
+          QELLY_PREVIEW_MAX_WAIT_MS: 720000
+        run: |
+          set -o pipefail
+          mkdir -p dist/qelly-production-live-evidence
+          node scripts/validate-cloudflare-preview.mjs 2>&1 | tee dist/qelly-production-live-evidence/run.log
+          status=${PIPESTATUS[0]}
+          if [ -d dist/cloudflare-preview-evidence ]; then
+            cp -a dist/cloudflare-preview-evidence/. dist/qelly-production-live-evidence/
+          fi
+          echo "exit_code=${status}" >> "$GITHUB_OUTPUT"
+      - name: Upload redacted production evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qelly-production-live-98a88d76bbba1017a40012aa2790213af6af485a
+          path: dist/qelly-production-live-evidence
+          if-no-files-found: error
+          retention-days: 30
+      - name: Post redacted verdict to PR 26
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXIT_CODE: ${{ steps.verify.outputs.exit_code }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const path='dist/qelly-production-live-evidence/result.json';
+          let result={status:Number(process.env.EXIT_CODE||1)===0?'passed':'failed'};
+          if(fs.existsSync(path)){
+            try{result=JSON.parse(fs.readFileSync(path,'utf8'));}catch{}
+          }
+          const compact={
+            status:result.status||'failed',
+            base:result.base||'https://qelly-intelligence.pages.dev',
+            expectedSha:'98a88d76bbba1017a40012aa2790213af6af485a',
+            observedReleaseSha:result.observedReleaseSha||null,
+            fallbackReleaseSha:result.fallbackReleaseSha||null,
+            health:result.health?.status||null,
+            ready:result.readiness?.ready??null,
+            providers:Array.isArray(result.providers)?result.providers.map(x=>x.id):[],
+            browserCases:Array.isArray(result.browserEvidence)?result.browserEvidence.map(x=>({name:x.name,errors:(x.pageErrors?.length||0)+(x.consoleErrors?.length||0)+(x.apiFailures?.length||0),overflow:x.visual?.horizontalOverflow??null})):[],
+            error:result.error||null,
+            runId:process.env.RUN_ID
+          };
+          const body=`## Canonical production live probe — ${compact.status}\n\n\`\`\`json\n${JSON.stringify(compact,null,2)}\n\`\`\`\n\nEvidence artifact: \`qelly-production-live-98a88d76bbba1017a40012aa2790213af6af485a\`. No credential or secret value is included.`;
+          const response=await fetch('https://api.github.com/repos/hemangsah/qelly-intelligence/issues/26/comments',{method:'POST',headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'},body:JSON.stringify({body})});
+          if(!response.ok)throw new Error(`comment_failed_${response.status}`);
+          NODE
+      - name: Enforce verdict
+        if: always()
+        env:
+          EXIT_CODE: ${{ steps.verify.outputs.exit_code }}
+        run: test "${EXIT_CODE:-1}" = "0"
