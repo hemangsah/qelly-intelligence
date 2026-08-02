@@ -3,6 +3,7 @@ const cache=new Map();
 let restoring=false;
 let reconciling=false;
 let scheduled=false;
+let pending=false;
 let authState=null;
 let authRequest=null;
 const routeKey=()=>location.hash.replace(/^#\/?/,'').split('?')[0].split('/')[0]||'market';
@@ -48,12 +49,17 @@ const normalizeProviderIds=(root)=>{
 };
 const framingSentinels=()=>document.documentElement.dataset.productSurface==='production'?[]:[...main.children].filter((node)=>node.matches?.('.q-worldclass-context'));
 const scheduleReconcile=()=>{
-  if(scheduled)return;
+  if(scheduled){pending=true;return;}
   scheduled=true;
   queueMicrotask(()=>{
     scheduled=false;
     void reconcile();
   });
+};
+const releasePending=()=>{
+  if(!pending)return;
+  pending=false;
+  setTimeout(scheduleReconcile,0);
 };
 const replaceProductContent=(route,node)=>{
   if(!node)return;
@@ -84,8 +90,8 @@ const accessGate=(route)=>{
   return section;
 };
 const reconcile=async()=>{
-  if(!main||restoring){scheduleReconcile();return;}
-  if(reconciling){scheduleReconcile();return;}
+  if(!main)return;
+  if(restoring||reconciling){pending=true;return;}
   reconciling=true;
   try{
     const route=routeKey(),selector=selectorFor(route);
@@ -118,6 +124,7 @@ const reconcile=async()=>{
     replaceProductContent(route,preserved);
   }finally{
     reconciling=false;
+    releasePending();
   }
 };
 if(main){
