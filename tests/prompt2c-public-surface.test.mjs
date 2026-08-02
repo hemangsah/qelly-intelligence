@@ -5,13 +5,16 @@ import worker from '../apps/edge/prompt2c-worker.mjs';
 
 const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 
-test('public-beta configuration preserves deterministic fallback and disables unverified cloud claims',async()=>{
+test('fallback configuration preserves deterministic tools without exposing production runtime claims',async()=>{
   const config=await read('apps/web/public/qelly-config.js');
-  assert.match(config,/QELLY GLOBAL PUBLIC BETA/);
+  assert.match(config,/productMode:'QELLY'/);
   assert.match(config,/deterministicLocal:true/);
   assert.match(config,/authentication:false/);
   assert.match(config,/cloudSync:false/);
   assert.match(config,/liveProviders:false/);
+  assert.doesNotMatch(config,/QELLY GLOBAL PUBLIC BETA/);
+  assert.doesNotMatch(config,/hemangsah\.github\.io/);
+  assert.doesNotMatch(config,/linkedin/i);
 });
 
 test('offline shell excludes API and private account state',async()=>{
@@ -26,7 +29,7 @@ test('offline shell excludes API and private account state',async()=>{
 
 test('public policy pages disclose beta, privacy and financial risk boundaries',async()=>{
   const pages=await Promise.all(['beta','risk','privacy','terms'].map((name)=>read(`apps/web/public/legal/${name}.html`)));
-  assert.equal(pages.every((page)=>page.includes('QELLY GLOBAL PUBLIC BETA')),true);
+  assert.match(pages[0],/PUBLIC BETA/i);
   assert.match(pages[1],/does not provide personalized investment/);
   assert.match(pages[2],/Cloud synchronization is off/);
   assert.match(pages[3],/No advice, warranty or guaranteed availability/);
