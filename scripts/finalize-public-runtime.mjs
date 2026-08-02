@@ -5,6 +5,15 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const output=path.join(root,'dist/frontend');
 const legacyPublicOrigin='https://hemangsah.github.io/qelly-intelligence';
+const prohibitedPrimaryCopy=[
+  'QELLY GLOBAL PUBLIC BETA',
+  'VALIDATION STATE',
+  'Retry foundation route',
+  'AUTHENTICATION DEMO',
+  'LOCAL DEMONSTRATION IDENTITY BOUNDARY',
+  'STATE: DEFAULT',
+  'Secure identity foundation'
+];
 
 const cleanSiteUrl=(value)=>{
   const url=new URL(String(value||''));
@@ -14,6 +23,7 @@ const cleanSiteUrl=(value)=>{
 
 export function rewritePublicIdentity(source,{siteUrl,file}){
   let text=String(source).replaceAll(legacyPublicOrigin,siteUrl);
+  if(file==='qelly-config.js')text=text.replaceAll('QELLY GLOBAL PUBLIC BETA','QELLY');
   if(file==='index.html'){
     const canonical=`<link rel="canonical" href="${siteUrl}/">`;
     const social=[
@@ -37,20 +47,37 @@ export async function finalizePublicRuntime({environment=process.env}={}){
   const required=environment.QELLY_REQUIRE_PUBLIC_RUNTIME==='true';
   if(!required)return {status:'public-runtime-finalizer-skipped'};
   const siteUrl=cleanSiteUrl(environment.QELLY_PUBLIC_SITE_URL);
-  const files=['index.html','legal/beta.html','legal/risk.html','legal/privacy.html','legal/terms.html','support.html','sitemap.xml','robots.txt','manifest.webmanifest'];
-  for(const file of files){
+  const identityFiles=['index.html','qelly-config.js','legal/beta.html','legal/risk.html','legal/privacy.html','legal/terms.html','support.html','sitemap.xml','robots.txt','manifest.webmanifest'];
+  for(const file of identityFiles){
     const target=path.join(output,file),source=await readFile(target,'utf8');
     await writeFile(target,rewritePublicIdentity(source,{siteUrl,file}));
   }
-  const checks=await Promise.all(files.map(async(file)=>[file,await readFile(path.join(output,file),'utf8')]));
+  const checks=await Promise.all(identityFiles.map(async(file)=>[file,await readFile(path.join(output,file),'utf8')]));
   for(const [file,text] of checks){
     if(text.includes(legacyPublicOrigin))throw new Error(`Legacy public origin remains in ${file}`);
   }
+  const primaryFiles=[
+    'index.html',
+    'qelly-config.js',
+    'assets/prompt2c-public-beta.mjs',
+    'assets/routes/auth-login.mjs',
+    'assets/routes/auth-register.mjs',
+    'assets/routes/auth-recovery.mjs',
+    'assets/routes/calculator-detail.mjs'
+  ];
+  for(const file of primaryFiles){
+    const text=await readFile(path.join(output,file),'utf8');
+    for(const phrase of prohibitedPrimaryCopy){
+      if(text.includes(phrase))throw new Error(`Prohibited production copy ${JSON.stringify(phrase)} remains in ${file}`);
+    }
+  }
   const index=checks.find(([file])=>file==='index.html')[1];
   if(!index.includes(`<link rel="canonical" href="${siteUrl}/">`)||!index.includes(`<meta property="og:url" content="${siteUrl}/">`))throw new Error('Production canonical/Open Graph identity is incomplete');
+  const generatedConfig=checks.find(([file])=>file==='qelly-config.js')[1];
+  if(!generatedConfig.includes('QELLY')||generatedConfig.includes('QELLY GLOBAL PUBLIC BETA'))throw new Error('Generated production product identity is incorrect');
   const headers=await readFile(path.join(output,'_headers'),'utf8');
   if(!/Cache-Control:\s*public, max-age=0, must-revalidate, no-transform/.test(headers))throw new Error('Public HTML must prevent unsolicited edge transformation');
-  return {status:'public-runtime-finalized',siteUrl,files:files.length,legacyOrigins:0};
+  return {status:'public-runtime-finalized',siteUrl,files:identityFiles.length,legacyOrigins:0,prohibitedPrimaryCopy:0};
 }
 
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
