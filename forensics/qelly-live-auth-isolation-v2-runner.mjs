@@ -3,10 +3,12 @@ import {pathToFileURL} from 'node:url';
 import path from 'node:path';
 
 const sourcePath=path.resolve('forensics/qelly-live-auth-isolation.mjs');
-const outputPath=path.resolve('forensics/.generated-qelly-live-auth-isolation-v3.mjs');
+const outputPath=path.resolve('forensics/.generated-qelly-live-auth-isolation-98a88.mjs');
 let source=await readFile(sourcePath,'utf8');
+source=source.replace("const EXPECTED_RELEASE='150025b9662404e5f98cd397c74c5d8be386460c';","const EXPECTED_RELEASE='98a88d76bbba1017a40012aa2790213af6af485a';");
 source=source.replace("domains?.['hydra:member']||[]","Array.isArray(domains)?domains:(domains?.['hydra:member']||domains?.member||domains?.items||domains?.domains||[])");
 source=source.replace("listing?.['hydra:member']||[]","Array.isArray(listing)?listing:(listing?.['hydra:member']||listing?.member||listing?.items||listing?.messages||[])");
 source=source.replace("const before=(await mailFetch('/messages?page=1',{token:user.mailbox.token}))?.['hydra:member']||[];","const beforeCollection=await mailFetch('/messages?page=1',{token:user.mailbox.token});\n  const before=Array.isArray(beforeCollection)?beforeCollection:(beforeCollection?.['hydra:member']||beforeCollection?.member||beforeCollection?.items||beforeCollection?.messages||[]);");
+if(!source.includes("const EXPECTED_RELEASE='98a88d76bbba1017a40012aa2790213af6af485a';"))throw new Error('expected_release_patch_failed');
 await writeFile(outputPath,source);
 await import(pathToFileURL(outputPath).href);
