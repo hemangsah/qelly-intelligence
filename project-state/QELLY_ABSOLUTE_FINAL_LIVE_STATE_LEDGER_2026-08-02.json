@@ -1,0 +1,101 @@
+{
+  "observedAtUtc": "2026-08-02T03:04:36.053248+00:00",
+  "repository": "hemangsah/qelly-intelligence",
+  "topology": {
+    "mainSha": "9cb98780893924ad26fbf4baaa9048e80a162b2c",
+    "prompt2B": {
+      "pr": 23,
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "headSha": "17eeadac4c510cc3c312185e86b0ac5907f3789b"
+    },
+    "prompt2C": {
+      "pr": 25,
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "headSha": "150025b9662404e5f98cd397c74c5d8be386460c"
+    },
+    "releaseBranch": {
+      "name": "release/qelly-global-public-beta",
+      "sha": "150025b9662404e5f98cd397c74c5d8be386460c"
+    },
+    "checkpoint": {
+      "name": "checkpoint/prompt2c-public-runtime-150025b",
+      "sha": "150025b9662404e5f98cd397c74c5d8be386460c"
+    },
+    "fallbackSha": "603cece3091dc59cfb72680914e7056b40058022",
+    "autoMergeEnabled": false
+  },
+  "canonicalGate": {
+    "runId": 30715389847,
+    "validationJobId": 91409986845,
+    "validationConclusion": "success",
+    "artifact": {
+      "id": 8823173218,
+      "bytes": 477398,
+      "sha256": "590b3118e3e1a9ff6f9b55d1ed1bdf475a3fbe9abfc9d65bf49a5f38066774bc",
+      "expired": false
+    }
+  },
+  "cloudflare": {
+    "project": "qelly-intelligence",
+    "publicUrl": "https://qelly-intelligence.pages.dev",
+    "productionBranch": "release/qelly-global-public-beta",
+    "deploymentId": "cd20f2a9-1ff6-46b4-ae23-bc4df9d873bf",
+    "deployedSha": "150025b9662404e5f98cd397c74c5d8be386460c",
+    "plan": "Free",
+    "directAccountApiAvailable": false,
+    "strongestEvidence": [
+      "Cloudflare GitHub integration",
+      "GitHub-hosted external verifier"
+    ]
+  },
+  "supabase": {
+    "projectRef": "ssdgfgqnjlwzkgukzeef",
+    "status": "ACTIVE_HEALTHY",
+    "region": "ap-south-1",
+    "migrations": [
+      "20260801130701 qelly_final_live_activation_v1",
+      "20260801131043 qelly_final_live_performance_indexes"
+    ],
+    "tables": 10,
+    "rlsEnabled": 10,
+    "policies": 27,
+    "triggers": 9,
+    "privateFunctions": 7,
+    "authUsers": 0,
+    "authSessions": 0,
+    "applicationRows": 0,
+    "providerCacheRows": 0,
+    "modernPublishableKeyPresent": true,
+    "publishableKeyPersistedInLedger": false,
+    "schemaChanged": false,
+    "rlsChanged": false
+  },
+  "authUrlGate": {
+    "status": "SUPABASE_AUTH_URL_CONFIGURATION_REQUIRED",
+    "observedLocalhostEvidence": true,
+    "requiredSiteUrl": "https://qelly-intelligence.pages.dev",
+    "requiredRedirectUrls": [
+      "https://qelly-intelligence.pages.dev/auth/callback.html",
+      "https://qelly-intelligence.pages.dev/auth/callback.html?flow=recovery"
+    ],
+    "broadProductionWildcardAllowed": false,
+    "connectedWriteActionAvailable": false
+  },
+  "vercel": {
+    "projects": 0,
+    "state": "VERCEL_NOT_USED"
+  },
+  "pdf": {
+    "predeploymentFilename": "QELLY_COMPLETE_FRONTEND_ALL_SCREENS_MASTER.pdf",
+    "predeploymentPages": 436,
+    "predeploymentSha256": "9f47138a1d43237dca01bef907aa48b158405d1d00e86953bfb9e9f28bbbf0b6",
+    "publicRuntimeGenerated": false,
+    "publicRuntimeGate": "production Auth, sync and deployed isolation"
+  },
+  "nextAction": "Set the exact hosted Supabase Site URL and two exact redirect URLs, save, then rerun the prepared production Auth/sync/isolation matrix.",
+  "secretsStored": false
+}
