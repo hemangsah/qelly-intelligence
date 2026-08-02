@@ -1,6 +1,8 @@
 const main=document.getElementById('main');
 const cache=new Map();
 let restoring=false;
+let reconciling=false;
+let scheduled=false;
 let authState=null;
 let authRequest=null;
 const routeKey=()=>location.hash.replace(/^#\/?/,'').split('?')[0].split('/')[0]||'market';
@@ -40,10 +42,19 @@ const normalizeProviderIds=(root)=>{
   ]);
   root?.querySelectorAll?.('.q-market-provider').forEach((card)=>{
     const name=card.querySelector('h3')?.textContent?.trim().toLowerCase();
-    if(aliases.has(name))card.dataset.provider=aliases.get(name);
+    const canonical=aliases.get(name);
+    if(canonical&&card.dataset.provider!==canonical)card.dataset.provider=canonical;
   });
 };
-const framingSentinels=()=>[...main.children].filter((node)=>node.matches?.('.q-worldclass-context'));
+const framingSentinels=()=>document.documentElement.dataset.productSurface==='production'?[]:[...main.children].filter((node)=>node.matches?.('.q-worldclass-context'));
+const scheduleReconcile=()=>{
+  if(scheduled)return;
+  scheduled=true;
+  queueMicrotask(()=>{
+    scheduled=false;
+    void reconcile();
+  });
+};
 const replaceProductContent=(route,node)=>{
   if(!node)return;
   const sentinels=framingSentinels().filter((sentinel)=>sentinel!==node);
@@ -54,7 +65,10 @@ const replaceProductContent=(route,node)=>{
   main.replaceChildren(...sentinels,node);
   main.dataset.qellyProductHome=route==='market'?'ready':main.dataset.qellyProductHome||'';
   main.setAttribute('aria-busy','false');
-  queueMicrotask(()=>{restoring=false;});
+  queueMicrotask(()=>{
+    restoring=false;
+    scheduleReconcile();
+  });
 };
 const ownMain=(route,node)=>{
   if(!node||node.parentElement!==main)return;
@@ -70,36 +84,48 @@ const accessGate=(route)=>{
   return section;
 };
 const reconcile=async()=>{
-  if(!main||restoring)return;
-  const route=routeKey(),selector=selectorFor(route);
-  if(!selector)return;
-  const current=main.querySelector(selector);
-  if(current){
-    normalizeProviderIds(current);
-    cache.set(route,current);
-    ownMain(route,current);
-    return;
+  if(!main||restoring){scheduleReconcile();return;}
+  if(reconciling){scheduleReconcile();return;}
+  reconciling=true;
+  try{
+    const route=routeKey(),selector=selectorFor(route);
+    if(!selector)return;
+    const current=main.querySelector(selector);
+    if(current){
+      normalizeProviderIds(current);
+      cache.set(route,current);
+      ownMain(route,current);
+      return;
+    }
+    if(protectedRoutes.has(route)){
+      const authenticated=await resolveAuthentication();
+      if(route!==routeKey()||authenticated)return;
+      const resolved=main.querySelector(selector);
+      if(resolved){
+        cache.set(route,resolved);
+        ownMain(route,resolved);
+        return;
+      }
+      const gate=cache.get(route)||accessGate(route);
+      cache.set(route,gate);
+      replaceProductContent(route,gate);
+      document.title=`Sign in to continue · ${protectedRoutes.get(route)} · Qelly Intelligence`;
+      return;
+    }
+    const preserved=cache.get(route);
+    if(!preserved)return;
+    normalizeProviderIds(preserved);
+    replaceProductContent(route,preserved);
+  }finally{
+    reconciling=false;
   }
-  if(protectedRoutes.has(route)){
-    const authenticated=await resolveAuthentication();
-    if(route!==routeKey()||authenticated)return;
-    const gate=cache.get(route)||accessGate(route);
-    cache.set(route,gate);
-    replaceProductContent(route,gate);
-    document.title=`Sign in to continue · ${protectedRoutes.get(route)} · Qelly Intelligence`;
-    return;
-  }
-  const preserved=cache.get(route);
-  if(!preserved)return;
-  normalizeProviderIds(preserved);
-  replaceProductContent(route,preserved);
 };
 if(main){
-  new MutationObserver(()=>{void reconcile();}).observe(main,{childList:true,subtree:false});
+  new MutationObserver(scheduleReconcile).observe(main,{childList:true,subtree:false});
   window.addEventListener('hashchange',()=>{
     authState=null;
     authRequest=null;
-    queueMicrotask(()=>{void reconcile();});
+    scheduleReconcile();
   });
-  for(const delay of [0,100,300,800,1600,3000])setTimeout(()=>{void reconcile();},delay);
+  for(const delay of [0,100,300,800,1600,3000])setTimeout(scheduleReconcile,delay);
 }
