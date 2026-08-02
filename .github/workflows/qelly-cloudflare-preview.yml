@@ -3,6 +3,8 @@ name: Qelly Cloudflare Preview Gate
 on:
   push:
     branches: [feature/prompt2c-production-ui-defect-sweep]
+  pull_request:
+    branches: [feature/prompt2c-global-public-beta]
   workflow_dispatch:
 
 permissions:
@@ -34,14 +36,14 @@ jobs:
       - name: Verify deployed Cloudflare edge
         env:
           QELLY_PREVIEW_URL: https://feature-prompt2c-production.qelly-intelligence.pages.dev
-          QELLY_EXPECTED_HEAD_SHA: ${{ github.sha }}
+          QELLY_EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           QELLY_PREVIEW_MAX_WAIT_MS: '720000'
         run: node scripts/validate-cloudflare-preview.mjs
       - name: Upload live preview evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: qelly-cloudflare-preview-${{ github.sha }}
+          name: qelly-cloudflare-preview-${{ github.event.pull_request.head.sha || github.sha }}
           path: dist/cloudflare-preview-evidence
           if-no-files-found: error
           retention-days: 14
