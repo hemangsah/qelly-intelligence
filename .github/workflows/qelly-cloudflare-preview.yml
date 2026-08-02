@@ -1,8 +1,6 @@
 name: Qelly Cloudflare Preview Gate
 
 on:
-  push:
-    branches: [feature/prompt2c-production-ui-defect-sweep]
   pull_request:
     branches: [feature/prompt2c-global-public-beta]
   workflow_dispatch:
