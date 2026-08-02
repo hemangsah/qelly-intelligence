@@ -126,6 +126,12 @@ const enhanceThemeStudioControls=()=>{
 
 const enhance=async()=>{
   if(!main||main.getAttribute('aria-busy')==='true'||!main.firstElementChild)return;
+  if(root.dataset.productSurface==='production'){
+    main.querySelectorAll(':scope > .q-worldclass-context').forEach((context)=>context.remove());
+    main.dataset.worldclassRoute=parseHash().route;
+    root.dataset.worldclassReady='true';
+    return;
+  }
   if(await renderGovernedFrame())return;
   const {route}=parseHash();
   if(route==='theme-lab')enhanceThemeStudioControls();

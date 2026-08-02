@@ -1,0 +1,36 @@
+/* Final keyboard-only skip-link pattern that remains absent from stitched full-page captures. */
+html[data-product-surface="production"] .skip-link {
+  position: fixed !important;
+  top: 12px !important;
+  left: 12px !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: 2000 !important;
+}
+
+html[data-product-surface="production"] .skip-link:focus-visible {
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 10px 14px !important;
+  overflow: visible !important;
+  clip: auto !important;
+  clip-path: none !important;
+  white-space: normal !important;
+  border: 1px solid var(--q-product-accent-strong) !important;
+  border-radius: 8px !important;
+  background: var(--q-product-surface) !important;
+  color: var(--q-product-text) !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,.28) !important;
+}

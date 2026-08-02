@@ -1,9 +1,12 @@
+const qellyPublicBase=new URL('./',location.href).href;
 window.__QELLY_CONFIG__=Object.freeze({
   apiBaseUrl:'',
-  deploymentStage:'github-pages-public-beta-fallback',
-  productMode:'QELLY GLOBAL PUBLIC BETA',
-  publicBaseUrl:'https://hemangsah.github.io/qelly-intelligence/',
+  deploymentStage:'static-fallback',
+  productMode:'QELLY',
+  publicBaseUrl:qellyPublicBase,
+  publicSiteUrl:location.origin,
   releaseSha:'runtime-injected-by-release-workflow',
+  staticVisualPreview:true,
   capabilities:Object.freeze({
     deterministicLocal:true,
     authentication:false,
@@ -14,8 +17,7 @@ window.__QELLY_CONFIG__=Object.freeze({
   }),
   externalAuthorization:Object.freeze({
     cloudflare:'required',
-    supabase:'required',
-    linkedinPublishing:'required'
+    supabase:'required'
   })
 });
 
@@ -28,12 +30,11 @@ window.__QELLY_CONFIG__=Object.freeze({
   };
   ensureMeta('link[rel="canonical"]',{tag:'link',rel:'canonical',href:config.publicBaseUrl});
   ensureMeta('meta[property="og:type"]',{property:'og:type',content:'website'});
-  ensureMeta('meta[property="og:title"]',{property:'og:title',content:'Qelly Global Public Beta · Verifiable Market Intelligence'});
-  ensureMeta('meta[property="og:description"]',{property:'og:description',content:'151 deterministic formulas, 54 indicators and local-first saved calculations with explicit data provenance and safe degraded modes.'});
+  ensureMeta('meta[property="og:title"]',{property:'og:title',content:'Qelly Intelligence · Verifiable Market Intelligence'});
+  ensureMeta('meta[property="og:description"]',{property:'og:description',content:'Evidence-backed market observations, 151 deterministic formulas, 54 indicators and local-first saved calculations.'});
   ensureMeta('meta[property="og:url"]',{property:'og:url',content:config.publicBaseUrl});
-  ensureMeta('meta[property="og:image"]',{property:'og:image',content:new URL('social/qelly-social-preview.png',config.publicBaseUrl).href});
-  ensureMeta('meta[name="twitter:card"]',{name:'twitter:card',content:'summary_large_image'});
+  ensureMeta('meta[name="twitter:card"]',{name:'twitter:card',content:'summary'});
   ensureMeta('meta[name="robots"]',{name:'robots',content:'index,follow,max-image-preview:large'});
-  const stylesheet=document.createElement('link');stylesheet.rel='stylesheet';stylesheet.href='./assets/prompt2c-public-beta.css';document.head.append(stylesheet);
-  const script=document.createElement('script');script.type='module';script.src='./assets/prompt2c-public-beta.mjs';document.head.append(script);
+  if(!document.querySelector('link[href$="prompt2c-public-beta.css"]')){const stylesheet=document.createElement('link');stylesheet.rel='stylesheet';stylesheet.href='./assets/prompt2c-public-beta.css';document.head.append(stylesheet);}
+  if(!document.querySelector('script[src$="prompt2c-public-beta.mjs"]')){const script=document.createElement('script');script.type='module';script.src='./assets/prompt2c-public-beta.mjs';document.head.append(script);}
 })();

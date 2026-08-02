@@ -1,0 +1,374 @@
+/* Human-facing indicator library and methodology detail surfaces. */
+html[data-product-surface="production"] .q-indicator-detail-page {
+  width: min(1480px,100%);
+  margin: 0 auto;
+  padding: clamp(24px,4vw,56px) clamp(16px,3vw,44px) 80px;
+}
+
+html[data-product-surface="production"] .q-indicator-detail-grid {
+  position: static !important;
+  inset: auto !important;
+  display: grid !important;
+  grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr) !important;
+  gap: 20px !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin-top: 24px !important;
+  align-items: start !important;
+  transform: none !important;
+}
+
+html[data-product-surface="production"] .q-indicator-methodology,
+html[data-product-surface="production"] .q-indicator-sample {
+  position: static !important;
+  inset: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  transform: none !important;
+  align-self: start !important;
+}
+
+html[data-product-surface="production"] .q-indicator-methodology .q-panel-body,
+html[data-product-surface="production"] .q-indicator-sample .q-panel-body {
+  position: static !important;
+  width: auto !important;
+  min-width: 0 !important;
+  padding: clamp(18px,2.4vw,28px) !important;
+}
+
+html[data-product-surface="production"] .q-method-card-grid {
+  position: static !important;
+  display: grid !important;
+  grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  gap: 12px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+html[data-product-surface="production"] .q-method-card {
+  position: static !important;
+  inset: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  grid-template-columns: none !important;
+  gap: 0 !important;
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  min-height: 150px;
+  margin: 0 !important;
+  border: 1px solid var(--q-product-line);
+  border-radius: 14px;
+  background: var(--q-product-surface-2);
+  padding: 17px;
+  text-align: left !important;
+  transform: none !important;
+  overflow: hidden;
+}
+
+html[data-product-surface="production"] .q-method-card>span,
+html[data-product-surface="production"] .q-method-card>strong,
+html[data-product-surface="production"] .q-method-card>p {
+  position: static !important;
+  inset: auto !important;
+  float: none !important;
+  display: block !important;
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  transform: none !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  overflow-wrap: anywhere;
+  word-break: normal !important;
+  white-space: normal !important;
+}
+
+html[data-product-surface="production"] .q-method-card>span,
+html[data-product-surface="production"] .q-indicator-value-grid span {
+  color: var(--q-product-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .065em;
+  text-transform: uppercase;
+}
+
+html[data-product-surface="production"] .q-method-card>strong {
+  margin: 10px 0 0 !important;
+  color: var(--q-product-text);
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+html[data-product-surface="production"] .q-method-card>p {
+  margin: 12px 0 0 !important;
+  color: var(--q-product-muted);
+  font-size: 13px;
+  line-height: 1.48;
+}
+
+html[data-product-surface="production"] .q-indicator-parameters,
+html[data-product-surface="production"] .q-indicator-limits {
+  position: static !important;
+  width: auto !important;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--q-product-line);
+}
+
+html[data-product-surface="production"] .q-indicator-subhead h3 {
+  margin: 3px 0 0;
+  color: var(--q-product-text);
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+html[data-product-surface="production"] .q-indicator-parameters dl {
+  position: static !important;
+  display: grid !important;
+  gap: 0;
+  width: auto !important;
+  margin: 16px 0 0;
+  border: 1px solid var(--q-product-line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+html[data-product-surface="production"] .q-indicator-parameters dl>div {
+  position: static !important;
+  display: grid !important;
+  grid-template-columns: minmax(130px,.42fr) minmax(0,1fr) !important;
+  gap: 16px;
+  width: auto !important;
+  padding: 13px 15px;
+  background: var(--q-product-surface-2);
+}
+
+html[data-product-surface="production"] .q-indicator-parameters dl>div+div {
+  border-top: 1px solid var(--q-product-line);
+}
+
+html[data-product-surface="production"] .q-indicator-parameters dt {
+  color: var(--q-product-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+html[data-product-surface="production"] .q-indicator-parameters dd {
+  margin: 0;
+  color: var(--q-product-text);
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+html[data-product-surface="production"] .q-indicator-limits>p {
+  margin: 14px 0 0;
+  color: var(--q-product-muted);
+  line-height: 1.62;
+}
+
+html[data-product-surface="production"] .q-indicator-value-grid {
+  position: static !important;
+  display: grid !important;
+  grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+  gap: 12px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+html[data-product-surface="production"] .q-indicator-value-grid>div {
+  position: static !important;
+  min-width: 0;
+  border: 1px solid var(--q-product-line);
+  border-radius: 13px;
+  background: var(--q-product-surface-2);
+  padding: 16px;
+}
+
+html[data-product-surface="production"] .q-indicator-value-grid strong {
+  display: block;
+  margin-top: 10px;
+  color: var(--q-product-text);
+  font-size: 20px;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+html[data-product-surface="production"] .q-indicator-chart {
+  position: static !important;
+  width: auto !important;
+  min-width: 0 !important;
+  margin-top: 18px;
+  border: 1px solid var(--q-product-line);
+  border-radius: 15px;
+  background: linear-gradient(180deg,var(--q-product-surface-2),var(--q-product-surface));
+  padding: 20px;
+  transform: none !important;
+}
+
+html[data-product-surface="production"] .q-indicator-chart .q-spark-bars {
+  display: flex !important;
+  align-items: flex-end !important;
+  gap: 4px;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 190px;
+  border-bottom: 1px solid var(--q-product-line);
+  padding-top: 10px;
+}
+
+html[data-product-surface="production"] .q-indicator-chart .q-spark-bars>span {
+  min-width: 3px;
+  flex: 1;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(180deg,var(--q-product-accent-strong),var(--q-product-accent));
+  opacity: .84;
+}
+
+html[data-product-surface="production"] .q-indicator-chart>p {
+  margin: 12px 0 0;
+  color: var(--q-product-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+html[data-product-surface="production"] .q-indicator-exact-table {
+  position: static !important;
+  width: auto !important;
+  min-width: 0 !important;
+  margin-top: 18px;
+  max-height: 410px;
+  overflow: auto;
+  border: 1px solid var(--q-product-line);
+  border-radius: 13px;
+  transform: none !important;
+}
+
+html[data-product-surface="production"] .q-indicator-exact-table .q-table {
+  min-width: 520px;
+}
+
+html[data-product-surface="production"] .q-technical-details {
+  position: static !important;
+  width: auto !important;
+  min-width: 0 !important;
+  margin-top: 22px;
+  border: 1px solid var(--q-product-line);
+  border-radius: 12px;
+  background: var(--q-product-surface-2);
+  overflow: hidden;
+}
+
+html[data-product-surface="production"] .q-technical-details summary {
+  cursor: pointer;
+  padding: 14px 16px;
+  color: var(--q-product-text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+html[data-product-surface="production"] .q-technical-details pre {
+  max-height: 340px;
+  margin: 0;
+  overflow: auto;
+  border-top: 1px solid var(--q-product-line);
+  background: var(--q-product-surface);
+  color: var(--q-product-muted);
+  padding: 16px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 1050px) {
+  html[data-product-surface="production"] .q-indicator-detail-grid {
+    grid-template-columns: minmax(0,1fr) !important;
+  }
+
+  html[data-product-surface="production"] .q-indicator-methodology,
+  html[data-product-surface="production"] .q-indicator-sample {
+    grid-column: 1 !important;
+  }
+
+  html[data-product-surface="production"] .q-indicator-sample {
+    grid-row: auto !important;
+  }
+}
+
+@media (max-width: 620px) {
+  html[data-product-surface="production"] .q-indicator-detail-page {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 16px;
+    padding-right: 16px;
+    overflow: visible !important;
+  }
+
+  html[data-product-surface="production"] .q-indicator-detail-page>.q-state-banner {
+    position: static !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    grid-template-columns: none !important;
+    gap: 10px !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 14px 16px !important;
+    transform: none !important;
+    overflow: visible !important;
+  }
+
+  html[data-product-surface="production"] .q-indicator-detail-page>.q-state-banner>.q-status,
+  html[data-product-surface="production"] .q-indicator-detail-page>.q-state-banner>p {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    transform: none !important;
+    writing-mode: horizontal-tb !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    word-break: normal !important;
+  }
+
+  html[data-product-surface="production"] .q-indicator-detail-page>.q-state-banner>p {
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+  }
+
+  html[data-product-surface="production"] .q-method-card-grid,
+  html[data-product-surface="production"] .q-indicator-value-grid {
+    grid-template-columns: minmax(0,1fr) !important;
+  }
+
+  html[data-product-surface="production"] .q-method-card {
+    min-height: 0;
+  }
+
+  html[data-product-surface="production"] .q-indicator-parameters dl>div {
+    grid-template-columns: minmax(0,1fr) !important;
+    gap: 6px;
+  }
+
+  html[data-product-surface="production"] .q-indicator-chart .q-spark-bars {
+    height: 150px;
+  }
+
+  html[data-product-surface="production"] .q-indicator-sample {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    order: 2 !important;
+  }
+}
