@@ -1,0 +1,32 @@
+name: Qelly Absolute-Final Auth URL Probe
+
+on:
+  push:
+    branches: [forensics/qelly-absolute-final-acceptance-20260802]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-auth-url:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Probe production confirmation destination
+        run: node forensics/qelly-auth-url-probe.mjs
+      - name: Upload secret-safe probe evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qelly-absolute-final-auth-url-probe
+          path: dist/qelly-auth-url-probe
+          if-no-files-found: error
+          retention-days: 3
