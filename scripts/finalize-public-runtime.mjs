@@ -5,6 +5,7 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const output=path.join(root,'dist/frontend');
 const legacyPublicOrigin='https://hemangsah.github.io/qelly-intelligence';
+const productionPolishLink='<link rel="stylesheet" href="./assets/qelly-production-polish.css">';
 const prohibitedPrimaryCopy=[
   'QELLY GLOBAL PUBLIC BETA',
   'VALIDATION STATE',
@@ -43,6 +44,7 @@ export function rewritePublicIdentity(source,{siteUrl,file}){
     ].join('\n  ');
     if(!text.includes('rel="canonical"'))text=text.replace('</title>',`</title>\n  ${social}`);
     else text=text.replace(/<link rel="canonical"[^>]*>/,canonical);
+    if(!text.includes(productionPolishLink))text=text.replace('</head>',`  ${productionPolishLink}\n</head>`);
   }
   return text;
 }
@@ -100,11 +102,12 @@ export async function finalizePublicRuntime({environment=process.env}={}){
   }
   const index=checks.find(([file])=>file==='index.html')[1];
   if(!index.includes(`<link rel="canonical" href="${siteUrl}/">`)||!index.includes(`<meta property="og:url" content="${siteUrl}/">`))throw new Error('Production canonical/Open Graph identity is incomplete');
+  if(!index.includes(productionPolishLink))throw new Error('Production polish stylesheet is not loaded after runtime hardening');
   const generatedConfig=checks.find(([file])=>file==='qelly-config.js')[1];
   if(!generatedConfig.includes('QELLY')||generatedConfig.includes('QELLY GLOBAL PUBLIC BETA'))throw new Error('Generated production product identity is incorrect');
   const headers=await readFile(path.join(output,'_headers'),'utf8');
   if(!/Cache-Control:\s*public, max-age=0, must-revalidate, no-transform/.test(headers))throw new Error('Public HTML must prevent unsolicited edge transformation');
-  return {status:'public-runtime-finalized',siteUrl,files:identityFiles.length,runtimeAssets:runtimeAssets.length,legacyOrigins:0,prohibitedPrimaryCopy:0};
+  return {status:'public-runtime-finalized',siteUrl,files:identityFiles.length,runtimeAssets:runtimeAssets.length,legacyOrigins:0,prohibitedPrimaryCopy:0,productionPolish:true};
 }
 
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
