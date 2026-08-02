@@ -20,14 +20,8 @@
     if(document.documentElement.dataset.productSurface!=='production')return;
     const main=document.getElementById('main');
     if(!main)return;
-    for(const context of main.querySelectorAll(':scope > .q-worldclass-context')){
-      if(context.dataset.qellyProductBoundary!=='suppressed'){
-        context.replaceChildren();
-        conceal(context);
-        context.dataset.qellyProductBoundary='suppressed';
-      }
-    }
-    if(main.querySelector(':scope > .q-worldclass-context[data-qelly-product-boundary="suppressed"]'))main.dataset.worldclassRoute=currentRoute();
+    for(const context of main.querySelectorAll(':scope > .q-worldclass-context'))context.remove();
+    main.dataset.worldclassRoute=currentRoute();
     for(const card of main.querySelectorAll('.q-market-provider[data-provider]')){
       const canonical=providerIds.get(String(card.dataset.provider||'').trim().toLowerCase());
       if(canonical)card.dataset.provider=canonical;
