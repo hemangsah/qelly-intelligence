@@ -56,13 +56,15 @@ if(prompt2cPublicBeta){
   const productStyles=[
     '  <link rel="stylesheet" href="./assets/prompt2c-public-beta.css">',
     '  <link rel="stylesheet" href="./assets/qelly-production-polish.css">',
-    '  <link rel="stylesheet" href="./assets/qelly-indicator-product.css">'
+    '  <link rel="stylesheet" href="./assets/qelly-indicator-product.css">',
+    '  <link rel="stylesheet" href="./assets/qelly-final-a11y-polish.css">'
   ].join('\n');
   if(!index.includes('prompt2c-public-beta.css'))index=index.replace('</head>',`${productStyles}\n</head>`);
   else{
     const missing=[];
     if(!index.includes('qelly-production-polish.css'))missing.push('  <link rel="stylesheet" href="./assets/qelly-production-polish.css">');
     if(!index.includes('qelly-indicator-product.css'))missing.push('  <link rel="stylesheet" href="./assets/qelly-indicator-product.css">');
+    if(!index.includes('qelly-final-a11y-polish.css'))missing.push('  <link rel="stylesheet" href="./assets/qelly-final-a11y-polish.css">');
     if(missing.length)index=index.replace('</head>',`${missing.join('\n')}\n</head>`);
   }
   if(!index.includes('prompt2c-public-beta.mjs'))index=index.replace('</body>','  <script type="module" src="./assets/prompt2c-public-beta.mjs"></script>\n</body>');
