@@ -56,11 +56,13 @@ jobs:
           node --check apps/web/public/assets/routes/auth-login.mjs
           node --check apps/web/public/assets/routes/auth-register.mjs
           node --check apps/web/public/assets/routes/auth-recovery.mjs
+          node --check apps/web/public/assets/routes/calculator-center.mjs
           node --check apps/web/public/assets/routes/calculator-detail.mjs
           node --check apps/web/public/assets/routes/formula-detail.mjs
           node --check apps/web/public/assets/calculation/formula-input-contracts.mjs
           node --check apps/web/public/assets/calculation/formula-engine-extended.mjs
           node --check 'functions/api/v1/[[path]].js'
+          node --check scripts/build-frontend.mjs
           node --check scripts/finalize-public-runtime.mjs
           node --check scripts/harden-cloudflare-index.mjs
           node --check scripts/validate-production-restoration-case.mjs
@@ -125,6 +127,14 @@ jobs:
             width: 1440
             height: 1000
             hash: '#/market'
+          - case: calculator-center
+            width: 390
+            height: 844
+            hash: '#/calculator-center'
+          - case: calculator-center
+            width: 1440
+            height: 1000
+            hash: '#/calculator-center'
           - case: position-size-calculator
             width: 360
             height: 900
