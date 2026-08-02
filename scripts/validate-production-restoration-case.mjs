@@ -98,6 +98,24 @@ try{
     await page.getByRole('button',{name:'Calculate',exact:true}).click();
     await page.waitForSelector('.q-calculation-result');
     if(await page.locator('.q-calculation-result').count()<1)throw new Error('calculation_outputs_missing');
+  }else if(name==='formula-library'){
+    await page.getByRole('heading',{name:'Formulas',exact:true}).waitFor();
+    await page.getByRole('heading',{name:'Understand the method before calculating'}).waitFor();
+    await page.getByLabel('Search formulas').waitFor();
+    const cards=page.locator('.q-formula-card');
+    if(await cards.count()<6)throw new Error('formula_catalog_incomplete');
+    const position=page.locator('[data-formula-id="position-size"]').first();
+    await position.waitFor();
+    const href=await position.getAttribute('href');
+    if(!href?.includes('#/formula-detail/position-size'))throw new Error('formula_detail_link_invalid');
+  }else if(name==='formula-detail'){
+    await page.waitForSelector('.q-formula-detail-page');
+    await page.getByRole('heading',{name:'Worked calculation'}).waitFor();
+    await page.getByText('Assumptions',{exact:true}).waitFor();
+    await page.getByRole('button',{name:'Use calculator'}).waitFor();
+    if(await page.locator('.q-calculation-result').count()<1)throw new Error('formula_worked_example_missing');
+    const technical=page.locator('.q-formula-detail-page details').first();
+    if(await technical.evaluate((node)=>node.open))throw new Error('formula_technical_reference_open_by_default');
   }else if(name==='indicator-library'){
     await page.getByRole('heading',{name:'Indicators',exact:true}).waitFor();
     await page.getByRole('heading',{name:'Start with a familiar indicator'}).waitFor();
