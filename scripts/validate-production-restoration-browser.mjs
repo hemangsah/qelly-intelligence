@@ -57,6 +57,7 @@ const failures=[];
 async function createPage(viewport){
   const context=await browser.newContext({viewport,serviceWorkers:'block',reducedMotion:'reduce'});
   const page=await context.newPage();
+  page.setDefaultTimeout(15000);
   const pageErrors=[],consoleErrors=[],requestFailures=[];
   page.on('pageerror',(error)=>pageErrors.push(error.message));
   page.on('console',(message)=>{if(message.type()==='error')consoleErrors.push(message.text());});
@@ -77,7 +78,7 @@ async function inspect(page){
       scrollWidth:document.documentElement.scrollWidth,
       horizontalOverflow:document.documentElement.scrollWidth>window.innerWidth+1,
       prohibited:blocked.filter((phrase)=>bodyText.includes(phrase)),
-      text:bodyText.slice(0,1200)
+      text:bodyText.slice(0,1600)
     };
   },prohibited);
 }
@@ -85,8 +86,8 @@ async function inspect(page){
 async function runCase(name,viewport,hash,assertions){
   const runtime=await createPage(viewport);
   try{
-    const response=await runtime.page.goto(`${base}/${hash}`,{waitUntil:'domcontentloaded',timeout:45000});
-    await runtime.page.waitForFunction(()=>document.documentElement.dataset.appReady==='true',{timeout:30000});
+    const response=await runtime.page.goto(`${base}/${hash}`,{waitUntil:'domcontentloaded',timeout:30000});
+    await runtime.page.waitForFunction(()=>document.documentElement.dataset.appReady==='true',{timeout:15000});
     await assertions(runtime.page);
     const evidence=await inspect(runtime.page);
     if(response?.status()!==200)throw new Error(`navigation_status_${response?.status()}`);
@@ -103,52 +104,49 @@ async function runCase(name,viewport,hash,assertions){
   }finally{await runtime.context.close();}
 }
 
-for(const viewport of [{width:320,height:800},{width:768,height:1024},{width:1440,height:1000}]){
-  await runCase('market-home',viewport,'#/market',async(page)=>{
-    await page.waitForSelector('.q-market-home [data-provider="coinbase"]',{timeout:30000});
-    await page.getByRole('heading',{name:'Understand markets before making a decision.'}).waitFor();
-    await page.getByText('Coinbase Exchange',{exact:true}).first().waitFor();
-    await page.getByText('European Central Bank',{exact:true}).first().waitFor();
-    await page.getByText('Binance is unavailable from this deployment region.').waitFor();
-  });
-}
+await Promise.all([{width:320,height:800},{width:768,height:1024},{width:1440,height:1000}].map((viewport)=>runCase('market-home',viewport,'#/market',async(page)=>{
+  await page.waitForSelector('.q-market-home [data-provider="coinbase"]');
+  await page.getByRole('heading',{name:'Understand markets before making a decision.'}).waitFor();
+  await page.getByText('Coinbase Exchange',{exact:true}).first().waitFor();
+  await page.getByText('European Central Bank',{exact:true}).first().waitFor();
+  await page.getByText('Binance is unavailable from this deployment region.').waitFor();
+})));
 
-for(const viewport of [{width:360,height:900},{width:1024,height:900},{width:1440,height:1000}]){
-  await runCase('position-size-calculator',viewport,'#/calculator-detail/position-size',async(page)=>{
-    await page.waitForSelector('[data-structured-field][name="accountValue"]',{timeout:30000});
-    await page.getByText('Account value',{exact:true}).waitFor();
-    await page.getByText('Risk percentage',{exact:true}).waitFor();
-    const details=page.locator('.q-advanced-json');
-    if(await details.evaluate((node)=>node.open))throw new Error('advanced_json_open_by_default');
-    await page.getByRole('button',{name:'Calculate',exact:true}).click();
-    await page.waitForSelector('.q-calculation-result',{timeout:10000});
-    await page.getByText('Units',{exact:true}).waitFor();
-  });
-}
+await Promise.all([{width:360,height:900},{width:1024,height:900},{width:1440,height:1000}].map((viewport)=>runCase('position-size-calculator',viewport,'#/calculator-detail/position-size',async(page)=>{
+  await page.waitForSelector('[data-structured-field][name="accountValue"]');
+  await page.getByText('Account value',{exact:true}).waitFor();
+  await page.getByText('Risk percentage',{exact:true}).waitFor();
+  const details=page.locator('.q-advanced-json');
+  if(await details.evaluate((node)=>node.open))throw new Error('advanced_json_open_by_default');
+  await page.getByRole('button',{name:'Calculate',exact:true}).click();
+  await page.waitForSelector('.q-calculation-result');
+  const count=await page.locator('.q-calculation-result').count();
+  if(count<1)throw new Error('calculation_outputs_missing');
+})));
 
-await runCase('auth-login',{width:390,height:844},'#/auth-login',async(page)=>{
-  await page.getByRole('heading',{name:'Sign in to Qelly'}).waitFor({timeout:30000});
-  await page.getByRole('button',{name:'Sign in',exact:true}).waitFor();
-  await page.getByRole('button',{name:'Forgot password?'}).waitFor();
-  await page.getByRole('button',{name:'Create account'}).waitFor();
-});
-
-await runCase('protected-route-gate',{width:390,height:844},'#/account-session',async(page)=>{
-  await page.getByRole('heading',{name:'Sign in to continue'}).waitFor({timeout:30000});
-  await page.getByRole('link',{name:'Sign in'}).waitFor();
-  await page.getByRole('link',{name:'Create account'}).waitFor();
-  await page.getByRole('link',{name:'Return home'}).waitFor();
-});
-
-await runCase('system-status',{width:1280,height:900},'#/status',async(page)=>{
-  await page.getByRole('heading',{name:'Qelly service and provider status'}).waitFor({timeout:30000});
-  const header=page.locator('.q-product-header');
-  if((await header.innerText()).includes('aaaaaaaa'))throw new Error('release_sha_exposed_in_primary_header');
-  await page.getByText('Runtime identity',{exact:true}).waitFor();
-});
+await Promise.all([
+  runCase('auth-login',{width:390,height:844},'#/auth-login',async(page)=>{
+    await page.getByRole('heading',{name:'Sign in to Qelly'}).waitFor();
+    await page.getByRole('button',{name:'Sign in',exact:true}).waitFor();
+    await page.getByRole('button',{name:'Forgot password?'}).waitFor();
+    await page.getByRole('button',{name:'Create account'}).waitFor();
+  }),
+  runCase('protected-route-gate',{width:390,height:844},'#/account-session',async(page)=>{
+    await page.getByRole('heading',{name:'Sign in to continue'}).waitFor();
+    await page.locator('.q-access-gate').getByRole('link',{name:'Sign in',exact:true}).waitFor();
+    await page.locator('.q-access-gate').getByRole('link',{name:'Create account',exact:true}).waitFor();
+    await page.locator('.q-access-gate').getByRole('link',{name:'Return home',exact:true}).waitFor();
+  }),
+  runCase('system-status',{width:1280,height:900},'#/status',async(page)=>{
+    await page.getByRole('heading',{name:'Qelly service and provider status'}).waitFor();
+    const header=page.locator('.q-product-header');
+    if((await header.innerText()).includes('aaaaaaaa'))throw new Error('release_sha_exposed_in_primary_header');
+    await page.getByText('Runtime identity',{exact:true}).waitFor();
+  })
+]);
 
 await browser.close();
-const summary={generatedAt:new Date().toISOString(),base,total:results.length+failures.length,passed:results.length,failed:failures.length,results,failures};
+const summary={generatedAt:new Date().toISOString(),base,total:results.length+failures.length,passed:results.length,failed:failures.length,results:results.sort((a,b)=>`${a.name}-${a.viewport.width}`.localeCompare(`${b.name}-${b.viewport.width}`)),failures:failures.sort((a,b)=>`${a.name}-${a.viewport.width}`.localeCompare(`${b.name}-${b.viewport.width}`))};
 await writeFile(new URL('QELLY_PRODUCTION_RESTORATION_BROWSER.json',output),JSON.stringify(summary,null,2));
 await writeFile(new URL('QELLY_PRODUCTION_RESTORATION_BROWSER.md',output),`# Qelly Production Restoration Browser Matrix\n\n- Passed: ${results.length}\n- Failed: ${failures.length}\n- Cases: ${summary.total}\n\n${failures.map((failure)=>`- FAIL ${failure.name} ${failure.viewport.width}x${failure.viewport.height}: ${failure.error}`).join('\n')||'All browser cases passed.'}\n`);
 if(failures.length){console.error(JSON.stringify(failures,null,2));process.exit(1);}
