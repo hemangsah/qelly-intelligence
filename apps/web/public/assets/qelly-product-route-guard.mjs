@@ -43,14 +43,22 @@ const normalizeProviderIds=(root)=>{
     if(aliases.has(name))card.dataset.provider=aliases.get(name);
   });
 };
-const ownMain=(route,node)=>{
-  if(!node||node.parentElement!==main)return;
-  if(main.childElementCount===1&&main.firstElementChild===node)return;
+const framingSentinels=()=>[...main.children].filter((node)=>node.matches?.('.q-worldclass-context'));
+const replaceProductContent=(route,node)=>{
+  if(!node)return;
+  const sentinels=framingSentinels().filter((sentinel)=>sentinel!==node);
+  const existing=[...main.children];
+  const allowed=new Set([...sentinels,node]);
+  if(node.parentElement===main&&existing.every((child)=>allowed.has(child))&&existing.includes(node))return;
   restoring=true;
-  main.replaceChildren(node);
+  main.replaceChildren(...sentinels,node);
   main.dataset.qellyProductHome=route==='market'?'ready':main.dataset.qellyProductHome||'';
   main.setAttribute('aria-busy','false');
   queueMicrotask(()=>{restoring=false;});
+};
+const ownMain=(route,node)=>{
+  if(!node||node.parentElement!==main)return;
+  replaceProductContent(route,node);
 };
 const accessGate=(route)=>{
   const destination=protectedRoutes.get(route)||'this workspace';
@@ -77,21 +85,14 @@ const reconcile=async()=>{
     if(route!==routeKey()||authenticated)return;
     const gate=cache.get(route)||accessGate(route);
     cache.set(route,gate);
-    restoring=true;
-    main.replaceChildren(gate);
-    main.setAttribute('aria-busy','false');
+    replaceProductContent(route,gate);
     document.title=`Sign in to continue · ${protectedRoutes.get(route)} · Qelly Intelligence`;
-    queueMicrotask(()=>{restoring=false;});
     return;
   }
   const preserved=cache.get(route);
   if(!preserved)return;
-  restoring=true;
   normalizeProviderIds(preserved);
-  main.replaceChildren(preserved);
-  main.dataset.qellyProductHome=route==='market'?'ready':main.dataset.qellyProductHome||'';
-  main.setAttribute('aria-busy','false');
-  queueMicrotask(()=>{restoring=false;});
+  replaceProductContent(route,preserved);
 };
 if(main){
   new MutationObserver(()=>{void reconcile();}).observe(main,{childList:true,subtree:false});
