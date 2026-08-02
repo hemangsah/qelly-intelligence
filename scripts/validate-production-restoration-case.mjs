@@ -140,6 +140,23 @@ try{
     await page.getByRole('button',{name:'Sign in',exact:true}).waitFor();
     await page.getByRole('button',{name:'Forgot password?'}).waitFor();
     await page.getByRole('button',{name:'Create account'}).waitFor();
+  }else if(name==='auth-register'){
+    await page.getByRole('heading',{name:'Save your Qelly work securely.'}).waitFor();
+    await page.getByRole('heading',{name:'Get started'}).waitFor();
+    await page.getByLabel('Full name').waitFor();
+    await page.getByLabel('Email').waitFor();
+    await page.getByLabel('Password').waitFor();
+    const create=page.getByRole('button',{name:'Create account',exact:true});
+    await create.waitFor();
+    if(await create.isDisabled())throw new Error('registration_action_disabled');
+    if(await page.locator('input[name="accepted"]').count()!==1)throw new Error('registration_consent_missing');
+  }else if(name==='auth-recovery'){
+    await page.getByRole('heading',{name:'Reset your Qelly password.'}).waitFor();
+    await page.getByRole('heading',{name:'Send a recovery link'}).waitFor();
+    await page.getByLabel('Email').waitFor();
+    const send=page.getByRole('button',{name:'Send recovery link'});
+    await send.waitFor();
+    if(await send.isDisabled())throw new Error('recovery_request_action_disabled');
   }else if(name==='protected-route-gate'){
     await page.getByRole('heading',{name:'Sign in to continue'}).waitFor();
     const gate=page.locator('.q-access-gate');
