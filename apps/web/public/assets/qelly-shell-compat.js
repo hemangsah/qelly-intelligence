@@ -28,8 +28,28 @@
     html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table :is(th,td):nth-child(2){width:13%}
     html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table :is(th,td):nth-child(3){width:18%}
     html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table :is(th,td):nth-child(4){width:47%}
-    @media(max-width:1180px){html[data-product-surface="production"] .q-formula-detail-page .q-calculator-layout{grid-template-columns:minmax(0,1fr)!important}}
-    @media(max-width:560px){html[data-product-surface="production"] .q-product-system{display:none!important}html[data-product-surface="production"] .q-product-account{flex:1}html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table table{min-width:620px}}
+    @media(max-width:1180px){
+      html[data-product-surface="production"] .q-formula-detail-page .q-calculator-layout{display:flex!important;flex-direction:column!important;grid-template-columns:none!important;gap:16px!important;height:auto!important;min-height:0!important;overflow:visible!important}
+      html[data-product-surface="production"] .q-formula-detail-page .q-calculator-layout>.q-panel{position:static!important;inset:auto!important;display:block!important;width:100%!important;max-width:none!important;margin:0!important;transform:none!important;visibility:visible!important;opacity:1!important;float:none!important}
+      html[data-product-surface="production"] .q-formula-detail-page .q-calculator-layout>.q-panel+.q-panel{margin-top:0!important}
+    }
+    @media(max-width:560px){
+      html[data-product-surface="production"] .q-product-system{display:none!important}
+      html[data-product-surface="production"] .q-product-account{flex:1}
+      html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table{overflow:visible;scrollbar-gutter:auto;border:0;background:transparent}
+      html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table table,html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table tbody{display:block;width:100%;min-width:0!important}
+      html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table thead{display:none}
+      html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table tbody{display:grid;gap:10px}
+      html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table tbody tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px;border:1px solid var(--q-product-line);border-radius:11px;background:color-mix(in srgb,var(--q-product-surface-2) 62%,var(--q-product-surface));padding:13px}
+      html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table tbody :is(th,td){display:block;width:auto!important;border:0!important;padding:0!important;min-width:0}
+      html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table tbody th{grid-column:1/-1;padding-bottom:9px!important;border-bottom:1px solid var(--q-product-line)!important;font-size:14px}
+      html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table tbody td{color:var(--q-product-text);font-size:13px}
+      html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table tbody td::before{display:block;margin-bottom:3px;color:var(--q-product-muted);font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+      html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table tbody td:nth-child(2)::before{content:"Type"}
+      html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table tbody td:nth-child(3)::before{content:"Unit"}
+      html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table tbody td:nth-child(4){grid-column:1/-1;padding-top:9px!important;border-top:1px solid var(--q-product-line)!important;color:var(--q-product-muted)}
+      html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table tbody td:nth-child(4)::before{content:"Guidance"}
+    }
   `;
   const conceal=(node)=>{
     if(!node)return node;
