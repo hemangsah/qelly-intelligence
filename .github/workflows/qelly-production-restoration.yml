@@ -187,6 +187,14 @@ jobs:
             width: 390
             height: 844
             hash: '#/auth-login'
+          - case: auth-register
+            width: 390
+            height: 844
+            hash: '#/auth-register'
+          - case: auth-recovery
+            width: 390
+            height: 844
+            hash: '#/auth-recovery'
           - case: protected-route-gate
             width: 390
             height: 844
