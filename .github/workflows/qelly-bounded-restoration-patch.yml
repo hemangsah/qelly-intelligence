@@ -44,7 +44,6 @@ jobs:
             if old not in s:
               raise SystemExit(f'missing Prompt2C patch anchor: {old[:80]}')
             s=s.replace(old,new,1)
-          # The two no-main exits occur once in each route renderer.
           old="const main=document.getElementById('main');if(!main){rendering=false;return;}"
           if s.count(old)!=2:
             raise SystemExit(f'unexpected render exit count: {s.count(old)}')
@@ -78,3 +77,5 @@ jobs:
           git add apps/web/public/assets/prompt2c-public-beta.mjs apps/web/public/assets/prompt2c-public-beta.css apps/web/public/assets/qelly-worldclass-uiux.mjs
           git commit -m 'fix: close production route and visual restoration defects'
           git push origin HEAD:feature/prompt2c-production-ui-defect-sweep
+
+# Trigger commit follows workflow creation so GitHub executes this bounded job.
