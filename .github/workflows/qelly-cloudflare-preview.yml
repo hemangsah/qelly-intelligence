@@ -1,0 +1,47 @@
+name: Qelly Cloudflare Preview Gate
+
+on:
+  push:
+    branches: [feature/prompt2c-production-ui-defect-sweep]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qelly-cloudflare-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    name: Verify exact Cloudflare preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Validate preview verifier
+        run: node --check scripts/validate-cloudflare-preview.mjs
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+      - name: Verify deployed Cloudflare edge
+        env:
+          QELLY_PREVIEW_URL: https://feature-prompt2c-production.qelly-intelligence.pages.dev
+          QELLY_EXPECTED_HEAD_SHA: ${{ github.sha }}
+          QELLY_PREVIEW_MAX_WAIT_MS: '720000'
+        run: node scripts/validate-cloudflare-preview.mjs
+      - name: Upload live preview evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qelly-cloudflare-preview-${{ github.sha }}
+          path: dist/cloudflare-preview-evidence
+          if-no-files-found: error
+          retention-days: 14
