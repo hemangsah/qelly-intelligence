@@ -42,7 +42,7 @@ const collectEvidence=(page)=>page.evaluate((blocked)=>{
     scrollWidth:document.documentElement.scrollWidth,
     horizontalOverflow:document.documentElement.scrollWidth>window.innerWidth+1,
     prohibited:blocked.filter((phrase)=>bodyText.includes(phrase)),
-    text:bodyText.slice(0,2000),
+    text:bodyText.slice(0,2200),
     visual:{
       visibleLegacy,
       skipVisible:visible(skip),
@@ -98,6 +98,25 @@ try{
     await page.getByRole('button',{name:'Calculate',exact:true}).click();
     await page.waitForSelector('.q-calculation-result');
     if(await page.locator('.q-calculation-result').count()<1)throw new Error('calculation_outputs_missing');
+  }else if(name==='indicator-library'){
+    await page.getByRole('heading',{name:'Indicators',exact:true}).waitFor();
+    await page.getByRole('heading',{name:'Start with a familiar indicator'}).waitFor();
+    await page.getByLabel('Search indicators').waitFor();
+    const cards=page.locator('.q-indicator-card');
+    if(await cards.count()<6)throw new Error('indicator_catalog_incomplete');
+    const rsi=page.locator('[data-indicator-id="rsi"]').first();
+    await rsi.waitFor();
+    const href=await rsi.getAttribute('href');
+    if(!href?.includes('#/indicator-detail/rsi'))throw new Error('indicator_detail_link_invalid');
+  }else if(name==='indicator-detail'){
+    await page.waitForSelector('.q-indicator-detail-page');
+    await page.getByRole('heading',{name:'How this study works'}).waitFor();
+    await page.getByRole('heading',{name:'What the result does not prove'}).waitFor();
+    await page.waitForSelector('.q-indicator-chart .q-spark-bars');
+    await page.waitForSelector('.q-indicator-exact-table tbody tr');
+    const technical=page.locator('.q-technical-details');
+    if(await technical.evaluate((node)=>node.open))throw new Error('technical_evidence_open_by_default');
+    if(await page.locator('.q-indicator-value-grid strong').count()<3)throw new Error('indicator_summary_incomplete');
   }else if(name==='auth-login'){
     await page.getByRole('heading',{name:'Sign in to Qelly'}).waitFor();
     await page.getByRole('button',{name:'Sign in',exact:true}).waitFor();
