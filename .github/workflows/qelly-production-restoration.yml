@@ -59,6 +59,8 @@ jobs:
           node --check apps/web/public/assets/routes/calculator-center.mjs
           node --check apps/web/public/assets/routes/calculator-detail.mjs
           node --check apps/web/public/assets/routes/formula-detail.mjs
+          node --check apps/web/public/assets/routes/indicator-library.mjs
+          node --check apps/web/public/assets/routes/indicator-detail.mjs
           node --check apps/web/public/assets/calculation/formula-input-contracts.mjs
           node --check apps/web/public/assets/calculation/formula-engine-extended.mjs
           node --check 'functions/api/v1/[[path]].js'
@@ -147,6 +149,22 @@ jobs:
             width: 1440
             height: 1000
             hash: '#/calculator-detail/position-size'
+          - case: indicator-library
+            width: 390
+            height: 844
+            hash: '#/indicator-library'
+          - case: indicator-library
+            width: 1440
+            height: 1000
+            hash: '#/indicator-library'
+          - case: indicator-detail
+            width: 390
+            height: 844
+            hash: '#/indicator-detail/rsi'
+          - case: indicator-detail
+            width: 1440
+            height: 1000
+            hash: '#/indicator-detail/rsi'
           - case: auth-login
             width: 390
             height: 844
