@@ -1,5 +1,24 @@
+const recoveryMessage=(error)=>{
+  if(error?.status===429)return'Too many recovery emails were requested. Wait before trying again.';
+  if(!navigator.onLine)return'You are offline. Reconnect before requesting recovery.';
+  return'Qelly could not send the recovery email. Try again shortly.';
+};
+
 export async function renderAuthRecovery(main,{api,toast,navigate}){
-  main.innerHTML=`<section class="q-auth-page"><div class="q-auth-hero"><div><p class="q-eyebrow">Provider-managed recovery</p><h1>Recover access without a parallel password system.</h1><p>Supabase sends a single-use recovery link to the verified email address. Qelly receives the provider session through its allowlisted callback and never stores recovery tokens in local storage.</p></div><div class="q-auth-proof-grid"><article><strong>Single use</strong><span>Provider recovery link</span></article><article><strong>Allowlisted</strong><span>Exact callback origin</span></article><article><strong>Global logout</strong><span>Sessions revoked after reset</span></article></div></div><div class="q-auth-card"><div><p class="q-eyebrow">Recovery request</p><h2>Send a secure recovery link</h2><p class="q-muted-copy">The response is intentionally generic and does not reveal whether an address is registered.</p></div><form class="q-auth-form" data-request><label>Email<input name="email" type="email" autocomplete="email" required></label><button class="q-button q-button--primary">Send recovery link</button><p class="q-form-error" role="alert" data-request-status></p></form><div class="q-auth-footer"><span>Remembered your credentials?</span><button class="q-button q-button--ghost" type="button" data-login>Return to login</button></div></div></section>`;
-  main.querySelector('[data-login]').onclick=()=>navigate('auth-login');
-  main.querySelector('[data-request]').onsubmit=async event=>{event.preventDefault();const status=main.querySelector('[data-request-status]'),button=event.submitter;status.textContent='';button.disabled=true;try{const email=new FormData(event.currentTarget).get('email');await api('/api/v1/auth/recovery/request',{method:'POST',body:JSON.stringify({email}),skipCsrf:true});status.textContent='If the account exists, a recovery link has been sent. Open it on this device to set a new password.';toast('Recovery request accepted',{tone:'success'});}catch(error){status.textContent=error.message;toast(error.message,{tone:'danger'});}finally{button.disabled=false;}};
+  main.innerHTML=`<section class="q-auth-page" data-production-auth="true">
+    <div class="q-auth-hero"><div><p class="q-eyebrow">Account recovery</p><h1>Reset your Qelly password.</h1><p>Enter your account email. If it is registered, Qelly will send a single-use recovery link to the allowlisted public callback.</p></div><div class="q-auth-proof-grid"><article><strong>Private</strong><span>Generic response</span></article><article><strong>Single use</strong><span>Expiring recovery link</span></article><article><strong>Protected</strong><span>Sessions revoked after reset</span></article></div></div>
+    <div class="q-auth-card"><div><p class="q-eyebrow">Forgot password?</p><h2>Send a recovery link</h2><p class="q-muted-copy">For privacy, the response will not reveal whether an email is registered.</p></div>
+      <form class="q-auth-form" data-request novalidate><label>Email<input name="email" type="email" inputmode="email" autocomplete="username" required placeholder="you@example.com" aria-describedby="recovery-status"></label><button class="q-button q-button--primary" data-recovery-submit>Send recovery link</button><p id="recovery-status" class="q-form-error" role="alert" aria-live="polite" data-request-status></p></form>
+      <div class="q-auth-footer"><span>Remembered your password?</span><button class="q-button q-button--ghost" type="button" data-login>Sign in</button><button class="q-button q-button--ghost" type="button" data-home>Return home</button></div>
+    </div>
+  </section>`;
+  main.querySelector('[data-login]').addEventListener('click',()=>navigate('auth-login'));
+  main.querySelector('[data-home]').addEventListener('click',()=>navigate('market'));
+  const form=main.querySelector('[data-request]'),status=main.querySelector('[data-request-status]');
+  form.addEventListener('submit',async(event)=>{
+    event.preventDefault();status.textContent='';if(!form.reportValidity())return;
+    const button=main.querySelector('[data-recovery-submit]');button.disabled=true;button.textContent='Sending…';form.setAttribute('aria-busy','true');
+    try{const email=new FormData(form).get('email');await api('/api/v1/auth/recovery/request',{method:'POST',body:JSON.stringify({email}),skipCsrf:true});form.innerHTML=`<div class="q-auth-confirmation" role="status"><strong>Check your email</strong><p>If an account exists for that address, a recovery link has been sent. Open it on this device to choose a new password.</p></div><button class="q-button q-button--primary" type="button" data-recovery-login>Return to sign in</button>`;form.querySelector('[data-recovery-login]').addEventListener('click',()=>navigate('auth-login'));toast('Recovery request accepted',{tone:'success'});}
+    catch(error){status.textContent=recoveryMessage(error);toast(status.textContent,{tone:'danger'});button.disabled=false;button.textContent='Send recovery link';form.removeAttribute('aria-busy');}
+  });
 }
