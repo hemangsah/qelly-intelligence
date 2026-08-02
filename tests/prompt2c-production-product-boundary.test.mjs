@@ -93,20 +93,48 @@ test('calculator defaults to structured fields while preserving advanced JSON',a
   assert.doesNotMatch(source,/engine \$\{result\.engineVersion\}/);
 });
 
+test('indicator library is a human-facing study catalog',async()=>{
+  const source=await read('apps/web/public/assets/routes/indicator-library.mjs');
+  assert.match(source,/Search indicators/);
+  assert.match(source,/Start with a familiar indicator/);
+  assert.match(source,/indicator-detail/);
+  assert.match(source,/required data/i);
+  assert.doesNotMatch(source,/parameters \(JSON\)/i);
+  assert.doesNotMatch(source,/calculateIndicator/);
+  assert.doesNotMatch(source,/<textarea/);
+});
+
+test('indicator detail prioritizes methodology, visual evidence and exact values',async()=>{
+  const source=await read('apps/web/public/assets/routes/indicator-detail.mjs');
+  assert.match(source,/How this study works/);
+  assert.match(source,/Interpretation boundary/);
+  assert.match(source,/q-indicator-chart/);
+  assert.match(source,/q-indicator-exact-table/);
+  assert.match(source,/Advanced technical evidence/);
+  assert.match(source,/calculateIndicator\(definition\.indicatorId/);
+  assert.doesNotMatch(source,/Parameters<\/h3><pre/);
+  assert.doesNotMatch(source,/Reference evidence[\s\S]*JSON\.stringify\(\{inputs,result\}/);
+});
+
 test('production polish loads after product styles and suppresses legacy visual layers',async()=>{
-  const [build,polish,browser]=await Promise.all([
+  const [build,polish,indicators,browser]=await Promise.all([
     read('scripts/build-frontend.mjs'),
     read('apps/web/public/assets/qelly-production-polish.css'),
+    read('apps/web/public/assets/qelly-indicator-product.css'),
     read('scripts/validate-production-restoration-case.mjs')
   ]);
   const productStyle=build.indexOf('prompt2c-public-beta.css');
   const polishStyle=build.indexOf('qelly-production-polish.css');
-  assert.ok(productStyle>=0&&polishStyle>productStyle,{productStyle,polishStyle});
+  const indicatorStyle=build.indexOf('qelly-indicator-product.css');
+  assert.ok(productStyle>=0&&polishStyle>productStyle&&indicatorStyle>polishStyle,{productStyle,polishStyle,indicatorStyle});
   assert.match(polish,/q-worldclass-context\[data-qelly-product-boundary="suppressed"\]/);
   assert.match(polish,/q-scroll-progress/);
   assert.match(polish,/skip-link:focus-visible/);
   assert.match(polish,/q-panel-head/);
   assert.match(polish,/q-product-system/);
+  assert.match(indicators,/q-indicator-detail-grid/);
+  assert.match(indicators,/q-spark-bars/);
+  assert.match(indicators,/q-technical-details/);
   assert.match(browser,/legacy_chrome_visible_/);
   assert.match(browser,/skip_link_visible_without_keyboard_focus/);
   assert.match(browser,/calculator_panel_header_too_bright_/);
