@@ -24,10 +24,44 @@ const config={productName:'Qelly Intelligence',productVersion:'0.9.0-preview.1',
 const responseFor=(url)=>{const path=new URL(url).pathname;if(path==='/api/v1/config')return[200,config];if(path==='/api/v1/market/overview')return[200,overview];if(path==='/api/v1/auth/status')return[200,{authenticated:false,context:null}];if(path==='/api/v1/health')return[200,{status:'ok',releaseSha:config.release,deterministicLocal:true,authentication:true,cloudSync:true,liveProviders:true,trading:false,custody:false,transfers:false}];if(path==='/api/v1/readiness')return[200,{ready:true,dependencies:{supabase:'configured',auth:'configured',rls:'required',providers:'configured'},releaseSha:config.release}];if(path==='/api/v1/providers/status')return[200,{providers:[{id:'coinbase',name:'Coinbase Exchange',state:'live',description:'Public spot quotes'},{id:'ecb',name:'European Central Bank',state:'live',description:'Official reference rates'},{id:'binance',name:'Binance',state:'unavailable',description:'Unavailable in this region'}],releaseSha:config.release}];return[401,{error:{code:'authentication_required',message:'Authentication is required'}}];};
 const prohibited=['QELLY GLOBAL PUBLIC BETA','VALIDATION STATE','Unable to render this route','Retry foundation route','AUTHENTICATION DEMO','LOCAL DEMONSTRATION IDENTITY BOUNDARY','STATE: DEFAULT','Secure identity foundation','Network · online','Authentication · active','Cloud sync · opt-in available'];
 const delay=(ms)=>new Promise((resolve)=>setTimeout(resolve,ms));
+const collectEvidence=(page)=>page.evaluate((blocked)=>{
+  const bodyText=document.body?.innerText||'';
+  const visible=(element)=>{if(!element)return false;const style=getComputedStyle(element),box=element.getBoundingClientRect();return style.display!=='none'&&style.visibility!=='hidden'&&Number(style.opacity)>0&&box.width>0&&box.height>0&&box.bottom>0&&box.right>0;};
+  const color=(element)=>element?getComputedStyle(element).backgroundColor:null;
+  const luminance=(value)=>{const numbers=String(value||'').match(/[\d.]+/g)?.slice(0,3).map(Number);if(!numbers||numbers.length<3)return null;return .2126*numbers[0]+.7152*numbers[1]+.0722*numbers[2];};
+  const legacySelectors=['.q-worldclass-context','#context-shelf','#persona-ribbon','#edge-dock','#rail','#compare-tray','#mobile-navigation','.q-global-strip','.q-scroll-progress'];
+  const visibleLegacy=legacySelectors.filter((selector)=>[...document.querySelectorAll(selector)].some(visible));
+  const skip=document.querySelector('.skip-link'),main=document.getElementById('main'),panelHead=document.querySelector('.q-panel-head'),productSystem=document.querySelector('.q-product-system'),recovery=document.querySelector('[data-recovery]');
+  const panelHeadColor=color(panelHead),appearance=document.documentElement.dataset.appearance||'dark';
+  return{
+    title:document.title,
+    route:location.hash,
+    appReady:document.documentElement.dataset.appReady,
+    productSurface:document.documentElement.dataset.productSurface,
+    viewport:window.innerWidth,
+    scrollWidth:document.documentElement.scrollWidth,
+    horizontalOverflow:document.documentElement.scrollWidth>window.innerWidth+1,
+    prohibited:blocked.filter((phrase)=>bodyText.includes(phrase)),
+    text:bodyText.slice(0,2000),
+    visual:{
+      visibleLegacy,
+      skipVisible:visible(skip),
+      skipFocusVisible:Boolean(skip?.matches(':focus-visible')),
+      mainOutlineStyle:main?getComputedStyle(main).outlineStyle:null,
+      mainBoxShadow:main?getComputedStyle(main).boxShadow:null,
+      panelHeadColor,
+      panelHeadLuminance:luminance(panelHeadColor),
+      panelHeadDarkSurface:appearance==='light'||appearance==='porcelain'||panelHead==null||luminance(panelHeadColor)<90,
+      productSystemVisible:visible(productSystem),
+      recoveryDisabled:Boolean(recovery?.disabled),
+      recoveryBackground:color(recovery)
+    }
+  };
+},prohibited);
 
 let browser,context,page;
 const pageErrors=[],consoleErrors=[],requestFailures=[];
-let result;
+let result,screenshot=`${slug}.png`;
 try{
   browser=await chromium.launch({headless:true});
   context=await browser.newContext({viewport:{width,height},serviceWorkers:'block',reducedMotion:'reduce'});
@@ -71,18 +105,24 @@ try{
     await page.getByText('Runtime identity',{exact:true}).waitFor();
   }else throw new Error(`unknown_browser_case_${name}`);
 
-  const evidence=await page.evaluate((blocked)=>{const bodyText=document.body?.innerText||'';return{title:document.title,route:location.hash,appReady:document.documentElement.dataset.appReady,productSurface:document.documentElement.dataset.productSurface,viewport:window.innerWidth,scrollWidth:document.documentElement.scrollWidth,horizontalOverflow:document.documentElement.scrollWidth>window.innerWidth+1,prohibited:blocked.filter((phrase)=>bodyText.includes(phrase)),text:bodyText.slice(0,2000)};},prohibited);
+  const evidence=await collectEvidence(page);
   if(response?.status()!==200)throw new Error(`navigation_status_${response?.status()}`);
   if(evidence.horizontalOverflow)throw new Error(`horizontal_overflow_${evidence.scrollWidth}_${evidence.viewport}`);
   if(evidence.prohibited.length)throw new Error(`prohibited_copy_${evidence.prohibited.join('|')}`);
+  if(evidence.visual.visibleLegacy.length)throw new Error(`legacy_chrome_visible_${evidence.visual.visibleLegacy.join('|')}`);
+  if(evidence.visual.skipVisible&&!evidence.visual.skipFocusVisible)throw new Error('skip_link_visible_without_keyboard_focus');
+  if(evidence.visual.mainOutlineStyle&&evidence.visual.mainOutlineStyle!=='none')throw new Error(`main_focus_outline_${evidence.visual.mainOutlineStyle}`);
+  if(name==='position-size-calculator'&&!evidence.visual.panelHeadDarkSurface)throw new Error(`calculator_panel_header_too_bright_${evidence.visual.panelHeadLuminance}`);
+  if(width<=560&&evidence.visual.productSystemVisible)throw new Error('mobile_technical_status_visible');
+  if(name==='auth-login'&&evidence.visual.recoveryDisabled)throw new Error('recovery_action_disabled');
   if(pageErrors.length)throw new Error(`page_errors_${pageErrors.join('|')}`);
   if(consoleErrors.length)throw new Error(`console_errors_${consoleErrors.join('|')}`);
-  const screenshot=`${slug}.png`;
   await page.screenshot({path:fileURLToPath(new URL(screenshot,output)),fullPage:true,timeout:30000});
   result={status:'passed',name,width,height,hash,evidence,screenshot,pageErrors,consoleErrors,requestFailures};
 }catch(error){
-  const evidence=page?await page.evaluate((blocked)=>{const bodyText=document.body?.innerText||'';return{title:document.title,route:location.hash,appReady:document.documentElement.dataset.appReady,productSurface:document.documentElement.dataset.productSurface,viewport:window.innerWidth,scrollWidth:document.documentElement.scrollWidth,horizontalOverflow:document.documentElement.scrollWidth>window.innerWidth+1,prohibited:blocked.filter((phrase)=>bodyText.includes(phrase)),text:bodyText.slice(0,2000)};},prohibited).catch(()=>null):null;
-  result={status:'failed',name,width,height,hash,error:error.message,evidence,pageErrors,consoleErrors,requestFailures};
+  const evidence=page?await collectEvidence(page).catch(()=>null):null;
+  if(page)await page.screenshot({path:fileURLToPath(new URL(screenshot,output)),fullPage:true,timeout:15000}).catch(()=>{screenshot=null;});
+  result={status:'failed',name,width,height,hash,error:error.message,evidence,screenshot,pageErrors,consoleErrors,requestFailures};
 }finally{
   if(context)await Promise.race([context.close().catch(()=>{}),delay(3000)]);
   if(browser)await Promise.race([browser.close().catch(()=>{}),delay(3000)]);
