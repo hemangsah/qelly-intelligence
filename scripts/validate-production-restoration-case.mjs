@@ -1,4 +1,5 @@
 import {mkdir,writeFile} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
 import {chromium} from 'playwright';
 
 const base=String(process.env.QELLY_RESTORATION_URL||'http://127.0.0.1:4173').replace(/\/$/,'');
@@ -77,7 +78,7 @@ try{
   if(pageErrors.length)throw new Error(`page_errors_${pageErrors.join('|')}`);
   if(consoleErrors.length)throw new Error(`console_errors_${consoleErrors.join('|')}`);
   const screenshot=`${slug}.png`;
-  await page.screenshot({path:new URL(screenshot,output),fullPage:true,timeout:30000});
+  await page.screenshot({path:fileURLToPath(new URL(screenshot,output)),fullPage:true,timeout:30000});
   result={status:'passed',name,width,height,hash,evidence,screenshot,pageErrors,consoleErrors,requestFailures};
 }catch(error){
   const evidence=page?await page.evaluate((blocked)=>{const bodyText=document.body?.innerText||'';return{title:document.title,route:location.hash,appReady:document.documentElement.dataset.appReady,productSurface:document.documentElement.dataset.productSurface,viewport:window.innerWidth,scrollWidth:document.documentElement.scrollWidth,horizontalOverflow:document.documentElement.scrollWidth>window.innerWidth+1,prohibited:blocked.filter((phrase)=>bodyText.includes(phrase)),text:bodyText.slice(0,2000)};},prohibited).catch(()=>null):null;
