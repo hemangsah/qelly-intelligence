@@ -45,6 +45,7 @@ jobs:
         run: |
           node --test tests/prompt2c-production-product-boundary.test.mjs
           node --test tests/prompt2c-formula-presentation-contracts.test.mjs
+          node --test tests/prompt2c-product-catalogs.test.mjs
       - name: Run complete repository suite
         run: npm test
       - name: Check changed runtime modules
@@ -58,6 +59,7 @@ jobs:
           node --check apps/web/public/assets/routes/auth-recovery.mjs
           node --check apps/web/public/assets/routes/calculator-center.mjs
           node --check apps/web/public/assets/routes/calculator-detail.mjs
+          node --check apps/web/public/assets/routes/formula-library.mjs
           node --check apps/web/public/assets/routes/formula-detail.mjs
           node --check apps/web/public/assets/routes/indicator-library.mjs
           node --check apps/web/public/assets/routes/indicator-detail.mjs
@@ -149,6 +151,22 @@ jobs:
             width: 1440
             height: 1000
             hash: '#/calculator-detail/position-size'
+          - case: formula-library
+            width: 390
+            height: 844
+            hash: '#/formula-library'
+          - case: formula-library
+            width: 1440
+            height: 1000
+            hash: '#/formula-library'
+          - case: formula-detail
+            width: 390
+            height: 844
+            hash: '#/formula-detail/position-size'
+          - case: formula-detail
+            width: 1440
+            height: 1000
+            hash: '#/formula-detail/position-size'
           - case: indicator-library
             width: 390
             height: 844
