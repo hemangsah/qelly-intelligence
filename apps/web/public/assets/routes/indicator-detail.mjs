@@ -1,4 +1,5 @@
 import {calculateIndicator,getIndicatorDefinition} from '../calculation/indicator-engine-extended.mjs';
+import {createIndicatorSampleInputs} from '../calculation/indicator-sample-contracts.mjs';
 import {saveCalculation,encodeShareState,resultToCsv} from '../calculation/persistence.mjs';
 
 const download=(name,content,type)=>{const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(url),0);};
@@ -17,20 +18,25 @@ const primarySeries=(outputs={})=>{
 export async function renderIndicatorDetail(main,{pageHead,escapeHtml,toast,navigate,id}){
   let definition;
   try{definition=getIndicatorDefinition(id);}catch{navigate('indicator-library');return;}
-  const inputs=definition.referenceVector?.inputs??null;
-  const result=inputs?calculateIndicator(definition.indicatorId,inputs,{calculatedAt:'2026-07-30T00:00:00.000Z'}):null;
+  const hasGovernedReference=Boolean(definition.referenceVector?.inputs);
+  const inputs=definition.referenceVector?.inputs??createIndicatorSampleInputs(definition);
+  const result=calculateIndicator(definition.indicatorId,inputs,{calculatedAt:'2026-07-30T00:00:00.000Z'});
   const [seriesName,series]=primarySeries(result?.outputs??{});
   const close=Array.isArray(inputs?.close)?inputs.close:[];
   const available=(series??[]).map((value,index)=>({value,index})).filter((item)=>item.value!=null&&Number.isFinite(Number(item.value)));
   const latest=available.at(-1);
-  const warmup=Math.max(0,(series??[]).findIndex((value)=>value!=null));
+  const firstAvailable=(series??[]).findIndex((value)=>value!=null);
+  const warmup=firstAvailable<0?series?.length??0:firstAvailable;
   const recent=available.slice(-24).map((item)=>Number(item.value));
   const minimum=recent.length?Math.min(...recent):null,maximum=recent.length?Math.max(...recent):null,range=minimum==null?1:(maximum-minimum||1);
   const start=Math.max(0,Math.max(close.length,series?.length??0)-12);
-  const parameterEntries=Object.entries(definition.parameters??{});
+  const parameterEntries=Object.entries(result?.outputs?.parameters??definition.parameters??{});
+  const methodDescription=definition.referenceMethod??definition.reference??'A deterministic technical-analysis study using user-provided market history.';
   const technicalEvidence={
     indicatorId:definition.indicatorId,
     version:definition.version,
+    sampleSource:hasGovernedReference?'governed reference vector':'presentation-only deterministic OHLCV contract',
+    sampleObservationCount:close.length,
     provenanceStatus:definition.provenanceStatus,
     referenceVectorStatus:definition.referenceVectorStatus,
     propertyTestStatus:definition.propertyTestStatus,
@@ -44,12 +50,12 @@ export async function renderIndicatorDetail(main,{pageHead,escapeHtml,toast,navi
   };
 
   main.innerHTML=`<section class="q-page q-indicator-detail-page">
-    ${pageHead('Indicator methodology',definition.name,definition.referenceMethod??'A deterministic technical-analysis study using user-provided market history.',`<button class="q-button q-button--secondary" data-action="library">Back to indicators</button>`)}
+    ${pageHead('Indicator methodology',definition.name,methodDescription,`<button class="q-button q-button--secondary" data-action="library">Back to indicators</button>`)}
     <div class="q-state-banner is-simulated"><span class="q-status q-status--simulated">USER-PROVIDED MARKET HISTORY</span><p>This study uses only the fields listed below. It does not infer order-book, liquidation, options-chain or on-chain data.</p></div>
 
     <section class="q-indicator-detail-grid">
       <article class="q-panel q-indicator-methodology">
-        <div class="q-panel-head"><div><p class="q-eyebrow">${escapeHtml(titleCase(definition.category))}</p><h2>How this study works</h2><p>${escapeHtml(definition.referenceMethod??'Deterministic technical-analysis methodology.')}</p></div></div>
+        <div class="q-panel-head"><div><p class="q-eyebrow">${escapeHtml(titleCase(definition.category))}</p><h2>How this study works</h2><p>${escapeHtml(methodDescription)}</p></div></div>
         <div class="q-panel-body">
           <div class="q-method-card-grid">
             <article class="q-method-card"><span>Required data</span><strong>${escapeHtml(definition.requiredFields.join(', '))}</strong><p>Provide these fields in oldest-to-newest order.</p></article>
@@ -68,11 +74,11 @@ export async function renderIndicatorDetail(main,{pageHead,escapeHtml,toast,navi
       <article class="q-panel q-indicator-sample">
         <div class="q-panel-head"><div><p class="q-eyebrow">Deterministic sample evidence</p><h2>${latest?`${escapeHtml(titleCase(seriesName))}: ${escapeHtml(fmt(latest.value))}`:'Insufficient history'}</h2><p>${available.length} available observations · ${warmup} warm-up positions</p></div><span class="q-status q-status--simulated">LOCAL</span></div>
         <div class="q-panel-body">
-          <div class="q-indicator-value-grid"><div><span>Latest value</span><strong>${latest?escapeHtml(fmt(latest.value)):'—'}</strong></div><div><span>Recent range</span><strong>${minimum==null?'—':`${escapeHtml(fmt(minimum))}–${escapeHtml(fmt(maximum))}`}</strong></div><div><span>Reference observations</span><strong>${Math.max(close.length,series?.length??0)}</strong></div></div>
+          <div class="q-indicator-value-grid"><div><span>Latest value</span><strong>${latest?escapeHtml(fmt(latest.value)):'—'}</strong></div><div><span>Recent range</span><strong>${minimum==null?'—':`${escapeHtml(fmt(minimum))}–${escapeHtml(fmt(maximum))}`}</strong></div><div><span>Sample observations</span><strong>${Math.max(close.length,series?.length??0)}</strong></div></div>
           <div class="q-indicator-chart" role="img" aria-label="Recent ${escapeHtml(definition.name)} sample values">
-            ${recent.length?`<div class="q-spark-bars">${recent.map((value)=>`<span style="height:${Math.max(6,((value-minimum)/range)*100)}%" title="${escapeHtml(fmt(value))}"></span>`).join('')}</div><p>Recent sample range ${escapeHtml(fmt(minimum))}–${escapeHtml(fmt(maximum))}. Exact values appear below.</p>`:'<p>Insufficient reference history for a visual sample.</p>'}
+            ${recent.length?`<div class="q-spark-bars">${recent.map((value)=>`<span style="height:${Math.max(6,((value-minimum)/range)*100)}%" title="${escapeHtml(fmt(value))}"></span>`).join('')}</div><p>Recent sample range ${escapeHtml(fmt(minimum))}–${escapeHtml(fmt(maximum))}. Exact values appear below.</p>`:'<p>Insufficient sample history for a visual result.</p>'}
           </div>
-          <div class="q-table-shell q-indicator-exact-table"><table class="q-table"><thead><tr><th>Observation</th><th>Close</th><th>${escapeHtml(titleCase(seriesName??'Indicator'))}</th></tr></thead><tbody>${Array.from({length:Math.max(0,Math.max(close.length,series?.length??0)-start)},(_,offset)=>{const index=start+offset;return`<tr><td>${index+1}</td><td>${escapeHtml(fmt(close[index]))}</td><td>${escapeHtml(fmt(series?.[index]))}</td></tr>`;}).join('')||'<tr><td colspan="3">No reference values available</td></tr>'}</tbody></table></div>
+          <div class="q-table-shell q-indicator-exact-table"><table class="q-table"><thead><tr><th>Observation</th><th>Close</th><th>${escapeHtml(titleCase(seriesName??'Indicator'))}</th></tr></thead><tbody>${Array.from({length:Math.max(0,Math.max(close.length,series?.length??0)-start)},(_,offset)=>{const index=start+offset;return`<tr><td>${index+1}</td><td>${escapeHtml(fmt(close[index]))}</td><td>${escapeHtml(fmt(series?.[index]))}</td></tr>`;}).join('')||'<tr><td colspan="3">No sample values available</td></tr>'}</tbody></table></div>
           <div class="q-actions"><button class="q-button q-button--secondary" data-action="save" ${result?.status==='success'?'':'disabled'}>Save sample</button><button class="q-button q-button--ghost" data-action="csv" ${result?.status==='success'?'':'disabled'}>Export CSV</button><button class="q-button q-button--ghost" data-action="share">Copy share link</button></div>
           <details class="q-technical-details"><summary>Advanced technical evidence</summary><pre>${escapeHtml(JSON.stringify(technicalEvidence,null,2))}</pre></details>
         </div>
