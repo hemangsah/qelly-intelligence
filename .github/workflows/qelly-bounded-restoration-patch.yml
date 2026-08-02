@@ -1,0 +1,80 @@
+name: Qelly bounded restoration patch
+
+on:
+  push:
+    branches: [feature/prompt2c-production-ui-defect-sweep]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.head_commit.message == 'chore: run bounded restoration patch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: feature/prompt2c-production-ui-defect-sweep
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Apply evidence-backed production fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          js=Path('apps/web/public/assets/prompt2c-public-beta.mjs')
+          s=js.read_text()
+          replacements=[
+            ("let rendering=false;", "let renderingRoute=null;"),
+            ("function providerCard(name,result){", "function providerCard(id,name,result){"),
+            ('data-provider="${escapeHtml(name.toLowerCase())}"', 'data-provider="${escapeHtml(id)}"'),
+            ("${providerCard('Coinbase Exchange',coinbase)}${providerCard('European Central Bank',ecb)}${providerCard('Binance',binance)}", "${providerCard('coinbase','Coinbase Exchange',coinbase)}${providerCard('ecb','European Central Bank',ecb)}${providerCard('binance','Binance',binance)}"),
+            ("async function renderMarketHomepage(){\n  if(rendering)return;rendering=true;", "async function renderMarketHomepage(){\n  if(renderingRoute==='market')return;renderingRoute='market';"),
+            ("  document.title='Qelly Intelligence · Market intelligence';\n  rendering=false;\n}", "  document.title='Qelly Intelligence · Market intelligence';\n  if(renderingRoute==='market')renderingRoute=null;\n}"),
+            ("async function renderStatusPage(){\n  if(rendering)return;rendering=true;", "async function renderStatusPage(){\n  if(renderingRoute==='status')return;renderingRoute='status';"),
+            ("  document.title='System status · Qelly Intelligence';rendering=false;\n}", "  document.title='System status · Qelly Intelligence';if(renderingRoute==='status')renderingRoute=null;\n}"),
+            ('<section class="q-access-gate">', '<section class="q-access-gate" data-qelly-destination="${escapeHtml(route)}">'),
+            ("const main=document.getElementById('main');if(!main||rendering)return;\n  const route=routeFromHash();", "const main=document.getElementById('main');if(!main)return;\n  const route=routeFromHash();\n  if(renderingRoute===route)return;"),
+            ("function install(){\n  if(!initialHash||initialHash==='#/'||initialHash==='#')location.hash='#/market';", "function install(){\n  document.addEventListener('keydown',(event)=>{if(event.key==='Tab')document.documentElement.dataset.keyboardNavigation='true';},true);\n  document.addEventListener('pointerdown',()=>{delete document.documentElement.dataset.keyboardNavigation;},true);\n  if(!initialHash||initialHash==='#/'||initialHash==='#')location.hash='#/market';")
+          ]
+          for old,new in replacements:
+            if old not in s:
+              raise SystemExit(f'missing Prompt2C patch anchor: {old[:80]}')
+            s=s.replace(old,new,1)
+          # The two no-main exits occur once in each route renderer.
+          old="const main=document.getElementById('main');if(!main){rendering=false;return;}"
+          if s.count(old)!=2:
+            raise SystemExit(f'unexpected render exit count: {s.count(old)}')
+          s=s.replace(old,"const main=document.getElementById('main');if(!main){renderingRoute=null;return;}")
+          if 'rendering)' in s or 'rendering=' in s:
+            raise SystemExit('legacy global rendering lock remains')
+          js.write_text(s)
+
+          css=Path('apps/web/public/assets/prompt2c-public-beta.css')
+          c=css.read_text()
+          anchor='html[data-product-surface="production"] .q-app{min-width:0;overflow-x:clip}\n'
+          addition='''html[data-product-surface="production"] .q-worldclass-context,html[data-product-surface="production"] .q-scroll-progress{display:none!important}\nhtml[data-product-surface="production"] .skip-link{top:12px!important;transform:translateY(-220%);transition:transform .14s ease}\nhtml[data-product-surface="production"][data-keyboard-navigation="true"] .skip-link:focus{transform:translateY(0)}\nhtml[data-product-surface="production"] .q-auth-secondary-link{width:max-content!important;border:0!important;background:transparent!important;color:var(--q-product-accent-strong)!important;padding:6px 0!important;text-decoration:underline;text-underline-offset:4px;opacity:1!important;box-shadow:none!important}\nhtml[data-product-surface="production"] .q-structured-calculator .q-panel,html[data-product-surface="production"] .q-calculator-detail-page .q-panel{background:var(--q-product-surface)!important;color:var(--q-product-text)!important;border-color:var(--q-product-line)!important;box-shadow:var(--q-product-shadow)!important}\nhtml[data-product-surface="production"] .q-structured-calculator .q-panel-head,html[data-product-surface="production"] .q-calculator-detail-page .q-panel-head{background:var(--q-product-surface-2)!important;color:var(--q-product-text)!important;border-color:var(--q-product-line)!important;box-shadow:none!important}\nhtml[data-product-surface="production"] .q-structured-calculator .q-panel-body,html[data-product-surface="production"] .q-calculator-detail-page .q-panel-body{background:var(--q-product-surface)!important;color:var(--q-product-text)!important}\n'''
+          if addition not in c:
+            if anchor not in c: raise SystemExit('missing CSS insertion anchor')
+            c=c.replace(anchor,anchor+addition,1)
+          old='.q-product-system,.q-product-account{flex:1;justify-content:center}.q-product-search{grid-row:2}'
+          new='.q-product-system{display:none!important}.q-product-account{flex:1;justify-content:center}.q-product-search{grid-row:2}'
+          if old not in c: raise SystemExit('missing mobile status anchor')
+          c=c.replace(old,new,1)
+          css.write_text(c)
+          PY
+          node --check apps/web/public/assets/prompt2c-public-beta.mjs
+          node --check apps/web/public/assets/qelly-worldclass-uiux.mjs
+          git diff --check
+      - name: Commit bounded patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name qelly-restoration-bot
+          git config user.email qelly-restoration-bot@users.noreply.github.com
+          git add apps/web/public/assets/prompt2c-public-beta.mjs apps/web/public/assets/prompt2c-public-beta.css apps/web/public/assets/qelly-worldclass-uiux.mjs
+          git commit -m 'fix: close production route and visual restoration defects'
+          git push origin HEAD:feature/prompt2c-production-ui-defect-sweep
