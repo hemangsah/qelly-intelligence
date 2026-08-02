@@ -50,6 +50,9 @@ jobs:
       - name: Check changed runtime modules
         run: |
           node --check apps/web/public/assets/prompt2c-public-beta.mjs
+          node --check apps/web/public/assets/qelly-brand.mjs
+          node --check apps/web/public/assets/qelly-shell-compat.js
+          node --check apps/web/public/assets/qelly-product-route-guard.mjs
           node --check apps/web/public/assets/routes/auth-login.mjs
           node --check apps/web/public/assets/routes/auth-register.mjs
           node --check apps/web/public/assets/routes/auth-recovery.mjs
@@ -58,6 +61,8 @@ jobs:
           node --check apps/web/public/assets/calculation/formula-input-contracts.mjs
           node --check apps/web/public/assets/calculation/formula-engine-extended.mjs
           node --check 'functions/api/v1/[[path]].js'
+          node --check scripts/finalize-public-runtime.mjs
+          node --check scripts/harden-cloudflare-index.mjs
           node --check scripts/validate-production-restoration-browser.mjs
       - name: Build exact connected public runtime
         shell: bash
