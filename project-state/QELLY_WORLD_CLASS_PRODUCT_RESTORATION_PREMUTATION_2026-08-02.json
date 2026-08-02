@@ -1,0 +1,56 @@
+{
+  "timestampUtc": "2026-08-02T04:55:00Z",
+  "readGate": {
+    "reads": 3,
+    "linesPerRead": 1916,
+    "sha256": "4a7570a96758354269653d108c6fb879cd5ac68dbb4fa4168955705593283206"
+  },
+  "repository": "hemangsah/qelly-intelligence",
+  "topology": {
+    "main": "9cb98780893924ad26fbf4baaa9048e80a162b2c",
+    "pr23": {"state":"open","draft":true,"merged":false,"head":"17eeadac4c510cc3c312185e86b0ac5907f3789b"},
+    "pr25": {"state":"open","draft":true,"merged":false,"head":"150025b9662404e5f98cd397c74c5d8be386460c"},
+    "prompt2cFeature": "150025b9662404e5f98cd397c74c5d8be386460c",
+    "release": "150025b9662404e5f98cd397c74c5d8be386460c",
+    "checkpoint": "150025b9662404e5f98cd397c74c5d8be386460c",
+    "fallback": "603cece3091dc59cfb72680914e7056b40058022",
+    "correctiveBranch": "feature/prompt2c-production-ui-defect-sweep"
+  },
+  "cloudflare": {
+    "project":"qelly-intelligence",
+    "url":"https://qelly-intelligence.pages.dev",
+    "deploymentId":"cd20f2a9-1ff6-46b4-ae23-bc4df9d873bf"
+  },
+  "supabase": {
+    "project":"ssdgfgqnjlwzkgukzeef",
+    "status":"ACTIVE_HEALTHY",
+    "region":"ap-south-1",
+    "plan":"Free",
+    "migrations":["20260801130701 qelly_final_live_activation_v1","20260801131043 qelly_final_live_performance_indexes"],
+    "tables":10,
+    "rlsEnabled":10,
+    "policies":27,
+    "triggers":9,
+    "privateFunctions":7,
+    "currentRows":{"authUsers":1,"authSessions":1,"profiles":1,"workspaces":1,"members":0,"savedCalculations":0,"savedRevisions":0,"syncOperations":0,"providerCache":0,"feedback":0,"deletionRequests":0,"auditEvents":0},
+    "remainingIdentityClassification":"synthetic-qelly-url-verification",
+    "securityAdvisors":["auth_leaked_password_protection","rls_enabled_no_policy:qelly_provider_cache"]
+  },
+  "vercel":"VERCEL_NOT_USED",
+  "authProbeRuns":[
+    {"run":30730042036,"result":"localhost-redirect"},
+    {"run":30730126986,"result":"localhost-redirect"},
+    {"run":30730133922,"result":"email-rate-limit-429"}
+  ],
+  "rootCauses":[
+    "production operations banner injected globally",
+    "QA state controls exposed in base HTML",
+    "signed-out default route is auth-login",
+    "login copy exposes foundation/development language",
+    "calculator JSON is primary UI",
+    "authentication errors are caught as generic render failures",
+    "public providers are not surfaced on signed-out homepage",
+    "hosted Supabase confirmation redirect remains localhost"
+  ],
+  "constraints":{"modifyMain":false,"mergePr23":false,"mergePr25":false,"markReady":false,"weakenRls":false,"recreateSupabase":false,"deployVercel":false,"socialMedia":false,"changeNumericalEnginesWithoutEvidence":false}
+}
