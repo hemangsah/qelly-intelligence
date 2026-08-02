@@ -41,11 +41,12 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run validate:design
-      - name: Run production-boundary and formula-contract tests
+      - name: Run production-boundary and calculation-contract tests
         run: |
           node --test tests/prompt2c-production-product-boundary.test.mjs
           node --test tests/prompt2c-formula-presentation-contracts.test.mjs
           node --test tests/prompt2c-product-catalogs.test.mjs
+          node --test tests/prompt2c-indicator-sample-contracts.test.mjs
       - name: Run complete repository suite
         run: npm test
       - name: Check changed runtime modules
@@ -63,6 +64,7 @@ jobs:
           node --check apps/web/public/assets/routes/formula-detail.mjs
           node --check apps/web/public/assets/routes/indicator-library.mjs
           node --check apps/web/public/assets/routes/indicator-detail.mjs
+          node --check apps/web/public/assets/calculation/indicator-sample-contracts.mjs
           node --check apps/web/public/assets/calculation/formula-input-contracts.mjs
           node --check apps/web/public/assets/calculation/formula-engine-extended.mjs
           node --check 'functions/api/v1/[[path]].js'
@@ -70,6 +72,7 @@ jobs:
           node --check scripts/finalize-public-runtime.mjs
           node --check scripts/harden-cloudflare-index.mjs
           node --check scripts/validate-production-restoration-case.mjs
+          node --check scripts/validate-production-market-browser.mjs
       - name: Build exact connected public runtime
         shell: bash
         env:
@@ -235,7 +238,11 @@ jobs:
             curl --fail --silent http://127.0.0.1:4173/ >/dev/null && break
             sleep 1
           done
-          node scripts/validate-production-restoration-case.mjs
+          if [ "${QELLY_BROWSER_CASE}" = "market-home" ]; then
+            node scripts/validate-production-market-browser.mjs
+          else
+            node scripts/validate-production-restoration-case.mjs
+          fi
       - name: Upload browser evidence
         if: always()
         uses: actions/upload-artifact@v4
