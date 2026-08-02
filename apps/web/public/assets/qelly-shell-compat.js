@@ -16,7 +16,20 @@
     html[data-product-surface="production"] .q-auth-secondary-link{justify-self:start!important;width:auto!important;min-height:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;padding:0!important;color:var(--q-product-muted)!important;opacity:1!important;cursor:pointer}
     html[data-product-surface="production"] .skip-link{top:0;transform:translateY(-160%);transition:transform .16s ease}
     html[data-product-surface="production"] .skip-link:focus,html[data-product-surface="production"] .skip-link:focus-visible{top:12px;transform:translateY(0)}
-    @media(max-width:560px){html[data-product-surface="production"] .q-product-system{display:none!important}html[data-product-surface="production"] .q-product-account{flex:1}}
+    html[data-product-surface="production"] .q-formula-detail-page .q-calculator-layout{grid-template-columns:minmax(620px,1.25fr) minmax(360px,.75fr)!important;gap:clamp(18px,2.5vw,32px)!important;align-items:start}
+    html[data-product-surface="production"] .q-formula-detail-page .q-calculator-layout>.q-panel{min-width:0}
+    html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table{max-width:100%;overflow:auto;border:1px solid var(--q-product-line);border-radius:12px;background:color-mix(in srgb,var(--q-product-surface-2) 58%,var(--q-product-surface));scrollbar-gutter:stable}
+    html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table table{width:100%;min-width:680px;table-layout:fixed;border-collapse:collapse}
+    html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table th,html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table td{padding:12px 14px;border-bottom:1px solid var(--q-product-line);vertical-align:top;text-align:left;overflow-wrap:anywhere;word-break:normal}
+    html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table thead th{background:var(--q-product-surface-2);color:var(--q-product-muted);font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+    html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table tbody th{color:var(--q-product-text);font-weight:650}
+    html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table tbody tr:last-child>*{border-bottom:0}
+    html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table :is(th,td):nth-child(1){width:22%}
+    html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table :is(th,td):nth-child(2){width:13%}
+    html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table :is(th,td):nth-child(3){width:18%}
+    html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table :is(th,td):nth-child(4){width:47%}
+    @media(max-width:1180px){html[data-product-surface="production"] .q-formula-detail-page .q-calculator-layout{grid-template-columns:minmax(0,1fr)!important}}
+    @media(max-width:560px){html[data-product-surface="production"] .q-product-system{display:none!important}html[data-product-surface="production"] .q-product-account{flex:1}html[data-product-surface="production"] .q-formula-detail-page .q-responsive-table table{min-width:620px}}
   `;
   const conceal=(node)=>{
     if(!node)return node;
