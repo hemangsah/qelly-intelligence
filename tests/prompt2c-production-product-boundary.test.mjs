@@ -72,6 +72,17 @@ test('signed-out protected routes own a dedicated access gate',async()=>{
   assert.match(guard,/Return home/);
 });
 
+test('calculator center is a human-facing structured tool catalog',async()=>{
+  const source=await read('apps/web/public/assets/routes/calculator-center.mjs');
+  assert.match(source,/Search calculators/);
+  assert.match(source,/Start with a proven calculation/);
+  assert.match(source,/calculator-detail/);
+  assert.match(source,/structured inputs/i);
+  assert.doesNotMatch(source,/Input JSON/);
+  assert.doesNotMatch(source,/calculateFormula/);
+  assert.doesNotMatch(source,/<textarea/);
+});
+
 test('calculator defaults to structured fields while preserving advanced JSON',async()=>{
   const source=await read('apps/web/public/assets/routes/calculator-detail.mjs');
   assert.match(source,/Structured inputs/);
