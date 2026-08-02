@@ -73,6 +73,7 @@ jobs:
           node --check scripts/harden-cloudflare-index.mjs
           node --check scripts/validate-production-restoration-case.mjs
           node --check scripts/validate-production-market-browser.mjs
+          node --check scripts/validate-production-indicator-browser.mjs
       - name: Build exact connected public runtime
         shell: bash
         env:
@@ -240,6 +241,8 @@ jobs:
           done
           if [ "${QELLY_BROWSER_CASE}" = "market-home" ]; then
             node scripts/validate-production-market-browser.mjs
+          elif [ "${QELLY_BROWSER_CASE}" = "indicator-detail" ]; then
+            node scripts/validate-production-indicator-browser.mjs
           else
             node scripts/validate-production-restoration-case.mjs
           fi
