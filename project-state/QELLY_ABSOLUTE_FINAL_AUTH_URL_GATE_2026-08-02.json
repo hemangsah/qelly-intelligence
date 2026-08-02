@@ -1,0 +1,55 @@
+{
+  "observedAtUtc": "2026-08-02T03:06:36.147Z",
+  "publicUrl": "https://qelly-intelligence.pages.dev",
+  "releaseSha": "150025b9662404e5f98cd397c74c5d8be386460c",
+  "probe": {
+    "workflow": "Qelly Absolute-Final Auth URL Probe",
+    "runId": 30730042036,
+    "jobId": 91448588511,
+    "forensicHeadSha": "4ef319033d3af8d9e9a2feefb0b9fac8403c19d6",
+    "registrationStatus": 202,
+    "verificationRequired": true,
+    "confirmationMailReceived": true,
+    "verificationStatus": 303,
+    "sessionAccessTokenPresent": true,
+    "sessionRefreshTokenPresent": true,
+    "observedRedirectOrigin": "http://localhost:3000",
+    "observedRedirectPath": "/",
+    "expectedRedirectOrigin": "https://qelly-intelligence.pages.dev",
+    "expectedRedirectPath": "/auth/callback.html",
+    "callbackCorrect": false,
+    "mailboxDeleted": true
+  },
+  "artifact": {
+    "id": 8827638320,
+    "bytes": 670,
+    "sha256": "a44c10dbf39270edbaf48c2ef1ea5af89144b4ec5277812d8880c66c95265128",
+    "expired": false,
+    "expiresAt": "2026-08-05T03:06:47Z"
+  },
+  "cleanup": {
+    "authUsers": 0,
+    "authSessions": 0,
+    "profiles": 0,
+    "workspaces": 0,
+    "workspaceMembers": 0,
+    "savedCalculations": 0,
+    "savedRevisions": 0,
+    "syncOperations": 0,
+    "feedback": 0,
+    "accountDeletionRequests": 0,
+    "auditEvents": 0,
+    "providerCache": 0
+  },
+  "blocker": {
+    "code": "SUPABASE_AUTH_URL_CONFIGURATION_REQUIRED",
+    "connectedWriteActionAvailable": false,
+    "siteUrl": "https://qelly-intelligence.pages.dev",
+    "redirectUrls": [
+      "https://qelly-intelligence.pages.dev/auth/callback.html",
+      "https://qelly-intelligence.pages.dev/auth/callback.html?flow=recovery"
+    ],
+    "broadProductionWildcardAllowed": false
+  },
+  "secretsStored": false
+}
