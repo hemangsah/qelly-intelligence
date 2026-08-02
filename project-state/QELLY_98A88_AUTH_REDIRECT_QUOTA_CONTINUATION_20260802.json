@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUtc": "2026-08-02T16:49:57Z",
+  "repository": "hemangsah/qelly-intelligence",
+  "product": {
+    "mainSha": "9cb98780893924ad26fbf4baaa9048e80a162b2c",
+    "authoritativeProductionSha": "98a88d76bbba1017a40012aa2790213af6af485a",
+    "deterministicFallbackSha": "603cece3091dc59cfb72680914e7056b40058022",
+    "productSourceChanged": false,
+    "rlsChanged": false,
+    "cspChanged": false
+  },
+  "pullRequests": {
+    "23": {"state": "open", "draft": true, "merged": false},
+    "25": {"state": "open", "draft": true, "merged": false},
+    "26": {"state": "open", "draft": true, "merged": false, "headSha": "98a88d76bbba1017a40012aa2790213af6af485a"}
+  },
+  "supabase": {
+    "projectId": "ssdgfgqnjlwzkgukzeef",
+    "confirmationRedirect": {
+      "signupReferer": "https://qelly-intelligence.pages.dev/auth/callback.html",
+      "verifyReferer": "https://qelly-intelligence.pages.dev/auth/callback.html",
+      "verifyStatus": 303,
+      "localhostObservedInFreshAcceptedFlow": false,
+      "passed": true
+    },
+    "bootstrap": {
+      "profileCount": 1,
+      "workspaceCount": 1,
+      "workspaceName": "My Qelly Workspace",
+      "ownerRoleDerivedFromWorkspaceOwnerId": true
+    },
+    "blocker": {
+      "code": "over_email_send_rate_limit",
+      "httpStatus": 429,
+      "classification": "external_supabase_inbuilt_smtp_quota",
+      "productFailure": false
+    },
+    "cleanup": {
+      "authUsers": 0,
+      "authSessions": 0,
+      "profiles": 0,
+      "workspaces": 0,
+      "workspaceMembers": 0,
+      "savedCalculations": 0,
+      "revisions": 0,
+      "syncOperations": 0,
+      "feedback": 0,
+      "deletionRequests": 0,
+      "auditEvents": 0,
+      "providerCache": 0
+    }
+  },
+  "evidence": {
+    "authRunId": 30757224014,
+    "authJobId": 91521371179,
+    "authArtifactId": 8836311618,
+    "authArtifactBytes": 827753,
+    "authArtifactSha256": "2f5cdae4ea93b89d46a849e723ad47444335c4236d0c04e4bd5997dcabb0acc0",
+    "canonicalPublicRunId": 30750855606,
+    "correctiveValidationRunId": 30750473851
+  },
+  "forensicContinuation": {
+    "branch": "forensics/qelly-live-auth-98a88",
+    "parserFixCommit": "85e687aa7f74da617de1452a51996b3239d7d786",
+    "manualOnlyWorkflowCommit": "ac2876d204ac375a2cc3bff137b830dc6d62e390",
+    "quotaSerializedRunnerCommit": "b15699ce95c608aae46480deb4fd31237d43f426",
+    "duplicateTriggersDisabled": true,
+    "signupSpacingSeconds": 65,
+    "recoverySpacingSeconds": 65,
+    "scheduledResumeUtc": "2026-08-02T17:59:56Z"
+  },
+  "completed": {
+    "confirmationRedirect": true,
+    "registrationAndConfirmationUserA": true,
+    "profileBootstrap": true,
+    "workspaceBootstrap": true,
+    "fullAuthLifecycle": false,
+    "recovery": false,
+    "liveCloudSync": false,
+    "deployedIsolation": false,
+    "accountExportDeletion": false,
+    "finalPublicRuntimePdf": false
+  },
+  "nextAction": "After the SMTP quota window clears, execute exactly one quota-serialized Auth/cloud/isolation run, clean all synthetic users and rows, then complete final public gates and generate the public-runtime PDF only if every mandatory live gate passes."
+}
