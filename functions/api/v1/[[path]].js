@@ -8,6 +8,11 @@ const configResponse=async(request,env)=>{
   return responseJson(request,env,{productName:'Qelly Intelligence',productVersion:'0.9.0-preview.1',release:runtime.releaseSha,defaultRoute:'market',csrf:{header:'X-Qelly-CSRF',token:context?csrf:null,mode:context?'double-submit-cookie':'unavailable-until-authenticated'},auth:{authenticated:Boolean(context),backendAvailable:true,productionIdentityEnabled:true,mode:'supabase-auth-cloudflare-facade'},cloud:{available:true,syncAvailable:true,providerRuntime:true},runtime,states:['default','loading','empty','partial','error','offline','stale','delayed','simulated','mobile','reduced-motion','high-contrast'],liveTrading:false},200,{cookies:[...(session?.cookies||[]),...(context?[cookie(CSRF_COOKIE,csrf,{httpOnly:false,maxAge:60*60*8,sameSite:'Strict'})]:[])]});
 };
 
+const publicTruthState=(state)=>({live_provider:'live',cached_provider:'live',delayed_provider:'delayed',stale_provider:'stale',unavailable:'unavailable',live:'live',delayed:'delayed',stale:'stale'}[String(state||'')]||'unavailable');
+const publicProviderEnvelope=(result,provider)=>{
+  const sourceProvider=String(result?.provider||provider),sourceTruthState=String(result?.truthState||'unavailable');
+  return {...result,provider,sourceProvider,truthState:publicTruthState(sourceTruthState),sourceTruthState,observedAt:result?.observedAt??result?.observationTime??null,ingestedAt:result?.ingestedAt??result?.ingestionTime??new Date().toISOString()};
+};
 const publicMarketOverview=async(context)=>{
   const {request,env}=context;
   const settled=await Promise.allSettled([
@@ -15,13 +20,13 @@ const publicMarketOverview=async(context)=>{
     providerResult(context,'coinbase','quote','BTC-USD',{}),
     providerResult(context,'ecb','fx-reference-rates','EUR',{})
   ]);
-  const normalized=(entry,provider)=>entry.status==='fulfilled'?entry.value:{provider,truthState:'unavailable',data:null,error:{code:'provider_unavailable',message:'Provider is temporarily unavailable'},observedAt:null,ingestedAt:new Date().toISOString(),attribution:provider};
+  const normalized=(entry,provider)=>publicProviderEnvelope(entry.status==='fulfilled'?entry.value:{provider,truthState:'unavailable',data:null,error:{code:'provider_unavailable',message:'Provider is temporarily unavailable'},observedAt:null,ingestedAt:new Date().toISOString(),attribution:provider},provider);
   const [binance,coinbase,ecb]=[normalized(settled[0],'binance'),normalized(settled[1],'coinbase'),normalized(settled[2],'ecb')];
-  const quote=(result,label)=>({label,value:result.data?.price!=null?`$${Number(result.data.price).toLocaleString('en-US',{maximumFractionDigits:2})}`:'Unavailable',state:result.truthState,provider:result.provider,observedAt:result.observedAt??result.data?.observedAt??null,ingestedAt:result.ingestedAt??null,attribution:result.attribution??label});
+  const quote=(result,label)=>({label,value:result.data?.price!=null?`$${Number(result.data.price).toLocaleString('en-US',{maximumFractionDigits:2})}`:'Unavailable',state:result.truthState,provider:result.provider,observedAt:result.observedAt,ingestedAt:result.ingestedAt,attribution:result.attribution??label});
   return responseJson(request,env,{
     generatedAt:new Date().toISOString(),
     market:[quote(coinbase,'Coinbase Exchange'),quote(binance,'Binance')],
-    referenceRates:{label:'ECB reference rates',count:ecb.data?.rates?Object.keys(ecb.data.rates).length:0,state:ecb.truthState,provider:'ecb',observedAt:ecb.observedAt??ecb.data?.observedAt??null,ingestedAt:ecb.ingestedAt??null,attribution:ecb.attribution??'European Central Bank'},
+    referenceRates:{label:'ECB reference rates',count:ecb.data?.rates?Object.keys(ecb.data.rates).length:0,state:ecb.truthState,provider:'ecb',observedAt:ecb.observedAt,ingestedAt:ecb.ingestedAt,attribution:ecb.attribution??'European Central Bank'},
     providers:{binance,coinbase,ecb},
     deterministicLocal:true,
     execution:false
@@ -54,4 +59,4 @@ export async function route(context){
 
 export async function onRequest(context){const started=Date.now(),request=context.request;try{return await route(context);}catch(error){return errorResponse(request,context.env,error);}finally{try{console.log(JSON.stringify({event:'qelly_public_runtime_request',correlationId:correlationId(request),method:request.method,path:new URL(request.url).pathname,status:'completed',durationMs:Date.now()-started,bodyLogged:false}));}catch{}}}
 export {publicRuntimeConfig} from '../../_lib/runtime.js';
-export const __test=Object.freeze({route,stableUuid,validateJwtClaims,...__dataTest});
+export const __test=Object.freeze({route,stableUuid,validateJwtClaims,publicTruthState,publicProviderEnvelope,...__dataTest});
