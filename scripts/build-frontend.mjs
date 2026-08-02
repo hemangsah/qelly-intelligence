@@ -53,9 +53,18 @@ for(const [packageName,preferred,target] of [['@fontsource-variable/ibm-plex-san
 const indexPath=path.join(output,'index.html');let index=await readFile(indexPath,'utf8');
 if(basePath!=='/')index=index.replace('<head>',`<head>\n  <base href="${basePath}">`);
 if(prompt2cPublicBeta){
-  const productStyles='  <link rel="stylesheet" href="./assets/prompt2c-public-beta.css">\n  <link rel="stylesheet" href="./assets/qelly-production-polish.css">';
+  const productStyles=[
+    '  <link rel="stylesheet" href="./assets/prompt2c-public-beta.css">',
+    '  <link rel="stylesheet" href="./assets/qelly-production-polish.css">',
+    '  <link rel="stylesheet" href="./assets/qelly-indicator-product.css">'
+  ].join('\n');
   if(!index.includes('prompt2c-public-beta.css'))index=index.replace('</head>',`${productStyles}\n</head>`);
-  else if(!index.includes('qelly-production-polish.css'))index=index.replace(/(\s*<link rel="stylesheet" href="\.\/assets\/prompt2c-public-beta\.css">)/,`$1\n  <link rel="stylesheet" href="./assets/qelly-production-polish.css">`);
+  else{
+    const missing=[];
+    if(!index.includes('qelly-production-polish.css'))missing.push('  <link rel="stylesheet" href="./assets/qelly-production-polish.css">');
+    if(!index.includes('qelly-indicator-product.css'))missing.push('  <link rel="stylesheet" href="./assets/qelly-indicator-product.css">');
+    if(missing.length)index=index.replace('</head>',`${missing.join('\n')}\n</head>`);
+  }
   if(!index.includes('prompt2c-public-beta.mjs'))index=index.replace('</body>','  <script type="module" src="./assets/prompt2c-public-beta.mjs"></script>\n</body>');
 }
 await writeFile(indexPath,index);
