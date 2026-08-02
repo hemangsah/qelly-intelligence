@@ -1,7 +1,9 @@
 name: Qelly Live Auth Isolation 98a88
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [forensics/qelly-live-auth-98a88]
+    paths: [.github/workflows/qelly-live-auth-isolation.yml]
 
 permissions:
   contents: read
