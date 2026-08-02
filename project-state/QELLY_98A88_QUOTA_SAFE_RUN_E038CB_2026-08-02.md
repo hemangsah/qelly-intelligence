@@ -23,7 +23,7 @@
 
 Before triggering the run, exact SQL returned zero disposable Auth users, zero disposable sessions and zero rows in all Qelly application/provider tables.
 
-## Fresh accepted checkpoint
+## Fresh accepted confirmation checkpoint
 
 Supabase Auth logs at `2026-08-02T17:50:01Z–17:50:07Z` prove:
 
@@ -35,15 +35,34 @@ Supabase Auth logs at `2026-08-02T17:50:01Z–17:50:07Z` prove:
 - verification referer: `https://qelly-intelligence.pages.dev/auth/callback.html`;
 - localhost observed in the fresh flow: no.
 
-Current controlled state at the first checkpoint:
+The accepted user bootstrapped exactly one profile and one workspace.
 
-- disposable Auth users: 1;
-- confirmed users: 1;
-- profiles: 1;
-- workspaces: 1;
-- saved calculations/revisions/sync operations: 0.
+## Hosted SMTP boundary
 
-The runner is intentionally waiting 65 seconds before creating user B and later waits 3,900,000 ms before recovery to remain outside the built-in SMTP rolling quota. Do not launch another run or delete the active controlled identity while this workflow is running.
+After the intentional 65-second spacing, user B signup at `2026-08-02T17:51:25Z` returned:
+
+- HTTP `429`;
+- error code `over_email_send_rate_limit`;
+- requested referer `https://qelly-intelligence.pages.dev/auth/callback.html`;
+- localhost observed: no.
+
+This proves the hosted project currently allows fewer than the three Auth emails needed for the complete matrix in a single rolling window. It is an external built-in SMTP quota boundary, not a redirect, RLS, CSP or product defect. Auth confirmation was not disabled and no burst retry or secret request was performed.
+
+## Exact cleanup
+
+The only committed synthetic identity was:
+
+- user ID `b4caa743-5dc5-42fd-826a-21bd0904586f`;
+- synthetic address `qelly-user-a-msc3i44l-4f9e27f6@web-library.net`.
+
+It was deleted by exact ID and exact address. Post-cleanup SQL returned zero:
+
+- disposable Auth users and sessions;
+- profiles, workspaces and workspace members;
+- saved calculations and revisions;
+- sync operations;
+- feedback and deletion requests;
+- audit events and provider cache rows.
 
 ## Remaining gates
 
@@ -54,6 +73,7 @@ The runner is intentionally waiting 65 seconds before creating user B and later 
 - direct and API cross-tenant isolation;
 - recovery redirect/password update;
 - account export/deletion;
-- exact cleanup;
 - final authenticated quality sweep;
 - public-runtime PDF, manifests, checksums and scorecard.
+
+A later controlled run must begin outside the latest successful confirmation-email rolling window and must not overlap another Auth verifier.
