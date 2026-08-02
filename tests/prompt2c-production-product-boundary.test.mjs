@@ -45,6 +45,33 @@ test('normal production routes exclude QA and demo language',async()=>{
   assert.doesNotMatch(sources[0],/>State<\/span>/);
 });
 
+test('shell compatibility executes after brand correction and before app bootstrap',async()=>{
+  const index=await read('apps/web/public/index.html');
+  const brand=index.indexOf('src="./assets/qelly-brand-visual-correction.mjs"');
+  const compat=index.indexOf('src="./assets/qelly-shell-compat.js"');
+  const app=index.indexOf('src="./assets/app.js"');
+  assert.ok(brand>=0&&compat>brand&&app>compat,{brand,compat,app});
+  const bridge=await read('apps/web/public/assets/qelly-shell-compat.js');
+  for(const id of ['rail','collapse-rail','rail-toggle','close-context','theme-shortcut','notification-button','command-button','state-selector','global-theme-selector'])assert.match(bridge,new RegExp(`['\"]${id}['\"]`));
+});
+
+test('static-preview branding is removed from production product mode',async()=>{
+  const brand=await read('apps/web/public/assets/qelly-brand.mjs');
+  assert.match(brand,/productionProduct/);
+  assert.match(brand,/staticVisualPreview===false/);
+  assert.match(brand,/\[data-qelly-brand-hero\],\[data-qelly-auth-brand\]/);
+  assert.match(brand,/node\.remove\(\)/);
+});
+
+test('signed-out protected routes own a dedicated access gate',async()=>{
+  const guard=await read('apps/web/public/assets/qelly-product-route-guard.mjs');
+  assert.match(guard,/account-session/);
+  assert.match(guard,/Sign in to continue/);
+  assert.match(guard,/qelly\.returnTo/);
+  assert.match(guard,/api\/v1\/auth\/status/);
+  assert.match(guard,/Return home/);
+});
+
 test('calculator defaults to structured fields while preserving advanced JSON',async()=>{
   const source=await read('apps/web/public/assets/routes/calculator-detail.mjs');
   assert.match(source,/Structured inputs/);
@@ -65,6 +92,14 @@ test('production redirects are exact and contain no localhost or trailing bracke
   assert.match(backend,/\$\{publicRuntimeConfig\(env,request\.url\)\.publicSiteUrl\}\/auth\/callback\.html\?flow=recovery/);
   assert.doesNotMatch(backend,/auth\/callback\.html\]/);
   assert.doesNotMatch(callback,/localhost/);
+});
+
+test('generated runtime finalizer rejects internal product copy',async()=>{
+  const finalizer=await read('scripts/finalize-public-runtime.mjs');
+  assert.match(finalizer,/prohibitedPrimaryCopy/);
+  assert.match(finalizer,/QELLY GLOBAL PUBLIC BETA/);
+  assert.match(finalizer,/Prohibited production copy/);
+  assert.match(finalizer,/generatedConfig\.includes\('QELLY GLOBAL PUBLIC BETA'\)/);
 });
 
 test('public API defaults signed-out users to the market product',async()=>{
