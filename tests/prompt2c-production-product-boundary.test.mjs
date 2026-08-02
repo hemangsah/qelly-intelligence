@@ -82,6 +82,26 @@ test('calculator defaults to structured fields while preserving advanced JSON',a
   assert.doesNotMatch(source,/engine \$\{result\.engineVersion\}/);
 });
 
+test('production polish loads after product styles and suppresses legacy visual layers',async()=>{
+  const [build,polish,browser]=await Promise.all([
+    read('scripts/build-frontend.mjs'),
+    read('apps/web/public/assets/qelly-production-polish.css'),
+    read('scripts/validate-production-restoration-case.mjs')
+  ]);
+  const productStyle=build.indexOf('prompt2c-public-beta.css');
+  const polishStyle=build.indexOf('qelly-production-polish.css');
+  assert.ok(productStyle>=0&&polishStyle>productStyle,{productStyle,polishStyle});
+  assert.match(polish,/q-worldclass-context\[data-qelly-product-boundary="suppressed"\]/);
+  assert.match(polish,/q-scroll-progress/);
+  assert.match(polish,/skip-link:focus-visible/);
+  assert.match(polish,/q-panel-head/);
+  assert.match(polish,/q-product-system/);
+  assert.match(browser,/legacy_chrome_visible_/);
+  assert.match(browser,/skip_link_visible_without_keyboard_focus/);
+  assert.match(browser,/calculator_panel_header_too_bright_/);
+  assert.match(browser,/mobile_technical_status_visible/);
+});
+
 test('production redirects are exact and contain no localhost or trailing bracket',async()=>{
   const backend=await read('functions/_lib/auth.js');
   const callback=await read('apps/web/public/assets/qelly-auth-callback.mjs');
