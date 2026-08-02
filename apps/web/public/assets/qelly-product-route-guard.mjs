@@ -43,6 +43,15 @@ const normalizeProviderIds=(root)=>{
     if(aliases.has(name))card.dataset.provider=aliases.get(name);
   });
 };
+const ownMain=(route,node)=>{
+  if(!node||node.parentElement!==main)return;
+  if(main.childElementCount===1&&main.firstElementChild===node)return;
+  restoring=true;
+  main.replaceChildren(node);
+  main.dataset.qellyProductHome=route==='market'?'ready':main.dataset.qellyProductHome||'';
+  main.setAttribute('aria-busy','false');
+  queueMicrotask(()=>{restoring=false;});
+};
 const accessGate=(route)=>{
   const destination=protectedRoutes.get(route)||'this workspace';
   sessionStorage.setItem('qelly.returnTo',route);
@@ -57,7 +66,12 @@ const reconcile=async()=>{
   const route=routeKey(),selector=selectorFor(route);
   if(!selector)return;
   const current=main.querySelector(selector);
-  if(current){normalizeProviderIds(current);cache.set(route,current);return;}
+  if(current){
+    normalizeProviderIds(current);
+    cache.set(route,current);
+    ownMain(route,current);
+    return;
+  }
   if(protectedRoutes.has(route)){
     const authenticated=await resolveAuthentication();
     if(route!==routeKey()||authenticated)return;
