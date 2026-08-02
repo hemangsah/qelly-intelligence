@@ -1,0 +1,76 @@
+{
+  "status": "blocked_by_hosted_supabase_url_configuration",
+  "observedAtUtc": "2026-08-02T13:57:38Z",
+  "repository": "hemangsah/qelly-intelligence",
+  "publicUrl": "https://qelly-intelligence.pages.dev",
+  "acceptedCorrectiveSha": "98a88d76bbba1017a40012aa2790213af6af485a",
+  "checkpoint": "checkpoint/prompt2c-production-restoration-98a88d",
+  "supabaseProject": "ssdgfgqnjlwzkgukzeef",
+  "authEvidence": {
+    "registrations": 2,
+    "confirmationEmailsSent": true,
+    "verificationHttpStatus": 303,
+    "implicitSessionsIssued": true,
+    "observedRedirect": "http://localhost:3000",
+    "expectedConfirmationRedirect": "https://qelly-intelligence.pages.dev/auth/callback.html",
+    "expectedRecoveryRedirect": "https://qelly-intelligence.pages.dev/auth/callback.html?flow=recovery",
+    "callbackCorrect": false,
+    "syntheticUserIds": [
+      "72bff1f0-87e7-433d-b2ba-b89b609b4947",
+      "137091f8-a606-480f-85e5-d860e57a18ee"
+    ]
+  },
+  "cleanup": {
+    "completed": true,
+    "authUsers": 0,
+    "authSessions": 0,
+    "qellyProfiles": 0,
+    "qellyWorkspaces": 0,
+    "qellyWorkspaceMembers": 0,
+    "qellySavedCalculations": 0,
+    "qellySavedCalculationRevisions": 0,
+    "qellySyncOperations": 0,
+    "qellyFeedback": 0,
+    "qellyAccountDeletionRequests": 0,
+    "qellyAuditEvents": 0,
+    "qellyProviderCache": 0
+  },
+  "databaseGovernance": {
+    "schemaChanged": false,
+    "migrationChanged": false,
+    "triggerChanged": false,
+    "policyChanged": false,
+    "rlsChanged": false,
+    "tables": 10,
+    "rlsEnabledTables": 10
+  },
+  "requiredDashboardAction": {
+    "path": "Supabase Dashboard → project ssdgfgqnjlwzkgukzeef → Authentication → URL Configuration",
+    "siteUrl": "https://qelly-intelligence.pages.dev",
+    "redirectUrls": [
+      "https://qelly-intelligence.pages.dev/auth/callback.html",
+      "https://qelly-intelligence.pages.dev/auth/callback.html?flow=recovery"
+    ],
+    "broadProductionWildcardAllowed": false
+  },
+  "connectedWriteActionAvailable": false,
+  "deferredUntilResolved": [
+    "production registration confirmation callback",
+    "login invalid-login logout session restore refresh and expiry",
+    "password recovery request callback and reset",
+    "profile and workspace bootstrap",
+    "cloud synchronization lifecycle",
+    "deployed two-user cross-tenant denial matrix",
+    "synthetic identity and data cleanup verification",
+    "final public quality and accessibility acceptance",
+    "QELLY_COMPLETE_FRONTEND_ALL_SCREENS_MASTER_PUBLIC_RUNTIME.pdf"
+  ],
+  "governance": {
+    "mainChanged": false,
+    "pr23MergedOrReady": false,
+    "pr25MergedOrReady": false,
+    "pr26MergedOrReady": false,
+    "socialMediaWorkstream": "removed",
+    "vercelDeploymentWork": "not_used"
+  }
+}
