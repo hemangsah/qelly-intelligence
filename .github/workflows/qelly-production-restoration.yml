@@ -60,6 +60,7 @@ jobs:
           node --check 'functions/api/v1/[[path]].js'
           node --check scripts/validate-production-restoration-browser.mjs
       - name: Build exact connected public runtime
+        shell: bash
         env:
           QELLY_STATIC_VISUAL_PREVIEW: 'false'
           QELLY_PROMPT2C_PUBLIC_BETA: 'true'
@@ -76,9 +77,10 @@ jobs:
           QELLY_ENABLE_LIVE_PROVIDERS: 'true'
           QELLY_ENABLE_FEEDBACK_WRITES: 'true'
         run: |
-          npm run build
-          npm run build:frontend
-          node scripts/validate-prompt2c-public-runtime.mjs
+          set -euo pipefail
+          mkdir -p dist/production-restoration-evidence
+          npm run build:frontend 2>&1 | tee dist/production-restoration-evidence/frontend-build.log
+          node scripts/validate-prompt2c-public-runtime.mjs 2>&1 | tee dist/production-restoration-evidence/runtime-validation.log
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run built-product browser matrix
