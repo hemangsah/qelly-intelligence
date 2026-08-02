@@ -1,0 +1,150 @@
+/* Final production-only visual boundary. Historical review and validation layers remain available outside product mode. */
+html[data-product-surface="production"] .q-worldclass-context[data-qelly-product-boundary="suppressed"],
+html[data-product-surface="production"] .q-worldclass-context:empty,
+html[data-product-surface="production"] .q-scroll-progress,
+html[data-product-surface="production"] #context-shelf,
+html[data-product-surface="production"] #persona-ribbon,
+html[data-product-surface="production"] #edge-dock,
+html[data-product-surface="production"] #rail,
+html[data-product-surface="production"] #compare-tray,
+html[data-product-surface="production"] #mobile-navigation,
+html[data-product-surface="production"] .q-global-strip {
+  display: none !important;
+  min-height: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-product-surface="production"] .skip-link {
+  top: -120px !important;
+  left: 12px !important;
+  z-index: 2000 !important;
+}
+
+html[data-product-surface="production"] .skip-link:focus:not(:focus-visible) {
+  top: -120px !important;
+}
+
+html[data-product-surface="production"] .skip-link:focus-visible {
+  top: 12px !important;
+}
+
+html[data-product-surface="production"] #main:focus,
+html[data-product-surface="production"] #main:focus-visible {
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-product-surface="production"] .q-panel {
+  overflow: hidden;
+  border-color: var(--q-product-line) !important;
+  background: var(--q-product-surface) !important;
+  box-shadow: var(--q-product-shadow) !important;
+}
+
+html[data-product-surface="production"] .q-panel-head {
+  min-height: 76px;
+  padding: 18px 20px !important;
+  border-bottom: 1px solid var(--q-product-line) !important;
+  background-color: var(--q-product-surface-2) !important;
+  background-image: linear-gradient(180deg,
+    color-mix(in srgb, var(--q-product-surface-2) 90%, var(--q-product-surface)),
+    var(--q-product-surface)) !important;
+  color: var(--q-product-text) !important;
+}
+
+html[data-product-surface="production"] .q-panel-head h2 {
+  margin: 2px 0 0;
+  color: var(--q-product-text) !important;
+  font-size: 18px !important;
+  line-height: 1.22;
+}
+
+html[data-product-surface="production"] .q-panel-head p:not(.q-eyebrow) {
+  margin: 5px 0 0;
+  color: var(--q-product-muted) !important;
+  font-size: 13px !important;
+  line-height: 1.45;
+}
+
+html[data-product-surface="production"] .q-calculator-detail-page .q-state-banner {
+  align-items: center;
+  min-height: 58px;
+  padding: 14px 18px;
+  border-color: var(--q-product-line);
+  background: var(--q-product-surface);
+}
+
+html[data-product-surface="production"] .q-calculator-detail-page .q-state-banner p {
+  color: var(--q-product-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+html[data-product-surface="production"] .q-structured-field small {
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+html[data-product-surface="production"] .q-auth-secondary-link {
+  width: max-content;
+  min-height: 36px;
+  margin-top: 2px;
+  padding: 5px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--q-product-accent-strong);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  opacity: 1;
+}
+
+html[data-product-surface="production"] .q-auth-secondary-link:hover {
+  color: var(--q-product-text);
+}
+
+html[data-product-surface="production"] .q-auth-secondary-link:disabled {
+  color: var(--q-product-muted);
+  background: transparent;
+  text-decoration: none;
+}
+
+html[data-product-surface="production"] .q-auth-proof-grid span {
+  margin-top: 6px;
+  line-height: 1.45;
+  word-spacing: normal;
+}
+
+@media (max-width: 560px) {
+  html[data-product-surface="production"] .q-product-system {
+    display: none !important;
+  }
+
+  html[data-product-surface="production"] .q-product-actions {
+    display: block;
+    width: 100%;
+  }
+
+  html[data-product-surface="production"] .q-product-account {
+    width: 100%;
+    min-height: 42px;
+    justify-content: center;
+    flex: none;
+  }
+
+  html[data-product-surface="production"] .q-auth-page {
+    padding-top: 32px;
+  }
+
+  html[data-product-surface="production"] .q-auth-card {
+    padding: 24px !important;
+  }
+}
