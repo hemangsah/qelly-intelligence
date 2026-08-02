@@ -12,7 +12,8 @@ test('product route ownership retains the hidden world-class framing sentinel',(
 });
 
 test('market, status and access-gate ownership share the stable replacement path',()=>{
-  assert.match(source,/replaceProductContent\(route,current\)/);
+  assert.match(source,/ownMain\(route,current\)/);
+  assert.match(source,/const ownMain=\(route,node\)=>\{[\s\S]*replaceProductContent\(route,node\)/);
   assert.match(source,/replaceProductContent\(route,gate\)/);
   assert.match(source,/replaceProductContent\(route,preserved\)/);
   assert.equal((source.match(/new MutationObserver/g)||[]).length,1);
