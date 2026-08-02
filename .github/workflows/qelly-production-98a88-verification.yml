@@ -1,0 +1,47 @@
+name: Qelly Production 98a88 Verification
+
+on:
+  push:
+    branches: [forensics/qelly-production-98a88-verify]
+
+permissions:
+  contents: read
+
+jobs:
+  verify-production:
+    name: Verify exact public production runtime
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Validate verifier source
+        run: node --check scripts/validate-cloudflare-preview.mjs
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Verify production edge, Functions, providers and product UI
+        shell: bash
+        env:
+          QELLY_PREVIEW_URL: https://qelly-intelligence.pages.dev
+          QELLY_EXPECTED_HEAD_SHA: 98a88d76bbba1017a40012aa2790213af6af485a
+          QELLY_PREVIEW_MAX_WAIT_MS: '900000'
+        run: |
+          set -euo pipefail
+          mkdir -p dist/production-98a88-evidence
+          node scripts/validate-cloudflare-preview.mjs 2>&1 | tee dist/production-98a88-evidence/run.log
+          cp -R dist/cloudflare-preview-evidence/. dist/production-98a88-evidence/
+      - name: Upload production evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qelly-production-verification-98a88d7
+          path: dist/production-98a88-evidence
+          if-no-files-found: error
+          retention-days: 30
