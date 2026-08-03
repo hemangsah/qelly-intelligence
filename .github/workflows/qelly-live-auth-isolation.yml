@@ -12,7 +12,7 @@ concurrency:
   group: qelly-live-auth-isolation-98a88
   cancel-in-progress: false
 
-# controlled-run-marker: 2026-08-03T06:02:30Z-custom-smtp-single-attempt
+# controlled-run-marker: 2026-08-03T06:17:00Z-google-app-password-single-preflight
 jobs:
   verify:
     name: Verify production Auth, cloud and tenant isolation
