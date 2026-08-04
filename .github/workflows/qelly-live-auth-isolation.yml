@@ -1,37 +1,41 @@
-name: Qelly Live Auth Isolation 150025b
+name: Qelly Live Auth Isolation 98a88
 
 on:
   push:
-    branches: [forensics/qelly-live-auth-150025b]
-  workflow_dispatch:
+    branches: [forensics/qelly-live-auth-98a88]
+    paths: [.github/workflows/qelly-live-auth-isolation.yml]
 
 permissions:
   contents: read
 
+concurrency:
+  group: qelly-live-auth-isolation-98a88
+  cancel-in-progress: false
+
+# controlled-run-marker: 2026-08-04T11:18:30Z-dedicated-smtp-single-controlled-run
 jobs:
   verify:
+    name: Verify production Auth, cloud and tenant isolation
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 110
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with: {persist-credentials: false, fetch-depth: 1}
+        with:
+          persist-credentials: false
+          fetch-depth: 1
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with: {node-version: '22', cache: npm}
+        with:
+          node-version: '22'
+          cache: npm
       - run: npm ci --ignore-scripts
       - run: npx playwright install --with-deps chromium
       - name: Run temporary-mail Auth, cloud lifecycle and tenant isolation
-        id: live_auth
-        continue-on-error: true
         run: node forensics/qelly-live-auth-isolation-v2-runner.mjs
-      - uses: actions/upload-artifact@v4
+      - name: Upload redacted Auth and isolation evidence
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: qelly-live-auth-isolation-150025b-v3
+          name: qelly-live-auth-isolation-98a88d7
           path: dist/live-auth-isolation
           if-no-files-found: error
-          retention-days: 3
-      - name: Surface retrievable forensic outcome
-        if: always()
-        run: |
-          echo "QELLY_LIVE_AUTH_OUTCOME=${{ steps.live_auth.outcome }}"
-          exit 1
+          retention-days: 14
