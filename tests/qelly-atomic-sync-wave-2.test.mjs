@@ -69,8 +69,7 @@ test('sync push makes one Supabase RPC request for the entire batch',async()=>{
       replayed:false
     }),{status:200,headers:{'content-type':'application/json'}});
   });
-  const request=pushRequest();
-  const response=await handleData({request,env},'sync/push',[], 'POST',session,qelly);
+  const response=await handleData({request:pushRequest(),env},'sync/push',[],'POST',session,qelly);
   const body=await response.json();
   assert.equal(response.status,200);
   assert.equal(body.applied,1);
@@ -104,6 +103,18 @@ test('sync push rejects oversized batches before any Supabase request',async()=>
     handleData({request:pushRequest(items),env},'sync/push',[],'POST',session,qelly),
     error=>error?.code==='sync_batch_size_invalid'
   );
+  assert.equal(calls,0);
+});
+
+test('sync push rejects idempotency keys outside 8 to 128 characters without truncating',async()=>{
+  let calls=0;
+  const env=baseEnv(async()=>{calls+=1;throw new Error('must not call Supabase');});
+  for(const key of ['short',`q${'x'.repeat(128)}`]){
+    await assert.rejects(
+      handleData({request:pushRequest([savedItem()],key),env},'sync/push',[],'POST',session,qelly),
+      error=>error?.code==='idempotency_key_required'
+    );
+  }
   assert.equal(calls,0);
 });
 
@@ -143,6 +154,13 @@ test('migration enforces server-side payload hashing and least-privilege RPC exe
   assert.match(sql,/idempotency_key_reused_with_different_request/i);
   assert.match(sql,/revoke all on function[\s\S]*from public, anon, service_role/i);
   assert.match(sql,/grant execute on function[\s\S]*to authenticated/i);
+});
+
+test('authenticated clients cannot directly mutate sync-operation evidence',async()=>{
+  const sql=await readFile(new URL('../packages/migrations/20260805013400_qelly_sync_operation_evidence_lockdown.sql',import.meta.url),'utf8');
+  assert.match(sql,/revoke all privileges on table public\.qelly_sync_operations[\s\S]*from anon, authenticated/i);
+  assert.match(sql,/grant select on table public\.qelly_sync_operations[\s\S]*to authenticated/i);
+  assert.doesNotMatch(sql,/grant\s+(insert|update|delete)/i);
 });
 
 test('browser pull follows cursors and the migration is not auto-applied',async()=>{
