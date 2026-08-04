@@ -65,7 +65,9 @@ export async function flushCloudQueue(api){
   const conflicts=[];
   let flushed=0;
   let replayedBatches=0;
-  for(const batch of queue){
+
+  for(let index=0;index<queue.length;index+=1){
+    const batch=queue[index];
     try{
       const result=await pushBatch(api,batch);
       flushed+=result.applied||0;
@@ -77,9 +79,13 @@ export async function flushCloudQueue(api){
       writeMeta(meta);
     }catch(error){
       remaining.push(batch);
-      if(error.status===401||error.status===403)break;
+      if(error.status===401||error.status===403){
+        remaining.push(...queue.slice(index+1));
+        break;
+      }
     }
   }
+
   writeQueue(remaining);
   return {flushed,remaining:remaining.length,offline:false,conflicts,replayedBatches};
 }
@@ -102,6 +108,7 @@ export async function pullCloudToLocal(api,{importSavedCalculations}){
   let cursor=null;
   let pulledAt=null;
   let pages=0;
+
   do{
     if(pages>=MAX_PULL_PAGES)throw Object.assign(new Error('Cloud pull exceeded the supported page limit'),{code:'cloud_pull_page_limit'});
     const result=await pullPage(api,cursor);
