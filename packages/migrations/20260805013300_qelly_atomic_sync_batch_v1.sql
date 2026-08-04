@@ -1,6 +1,5 @@
 -- Qelly atomic cloud synchronization batch v1.
--- This migration is committed only; it must be reviewed and tested on an isolated
--- Supabase branch before any production application.
+-- Commit-only migration: test on an isolated Supabase branch before production.
 
 create table if not exists qelly_private.sync_batches (
   id uuid primary key default extensions.gen_random_uuid(),
@@ -33,9 +32,10 @@ alter table public.qelly_sync_operations
 do $$
 begin
   if not exists (
-    select 1 from pg_constraint
-    where conrelid = 'public.qelly_sync_operations'::regclass
-      and conname = 'qelly_sync_operations_request_hash_check'
+    select 1
+      from pg_constraint
+     where conrelid = 'public.qelly_sync_operations'::regclass
+       and conname = 'qelly_sync_operations_request_hash_check'
   ) then
     alter table public.qelly_sync_operations
       add constraint qelly_sync_operations_request_hash_check
@@ -43,9 +43,10 @@ begin
   end if;
 
   if not exists (
-    select 1 from pg_constraint
-    where conrelid = 'public.qelly_sync_operations'::regclass
-      and conname = 'qelly_sync_operations_result_check'
+    select 1
+      from pg_constraint
+     where conrelid = 'public.qelly_sync_operations'::regclass
+       and conname = 'qelly_sync_operations_result_check'
   ) then
     alter table public.qelly_sync_operations
       add constraint qelly_sync_operations_result_check
@@ -70,6 +71,7 @@ declare
   v_actor uuid := auth.uid();
   v_workspace_role text;
   v_opt_in boolean;
+  v_server_hash text;
   v_batch qelly_private.sync_batches%rowtype;
   v_item jsonb;
   v_record jsonb;
@@ -107,7 +109,7 @@ begin
   end if;
 
   if p_request_hash !~ '^[0-9a-f]{64}$' then
-    raise exception 'request_hash_invalid' using errcode = '22023';
+    raise exception 'client_request_hash_invalid' using errcode = '22023';
   end if;
 
   if jsonb_typeof(p_items) is distinct from 'array' then
@@ -120,8 +122,8 @@ begin
 
   if exists (
     select 1
-    from jsonb_array_elements(p_items) item
-    group by item ->> 'id'
+      from jsonb_array_elements(p_items) as t(value)
+     group by value ->> 'id'
     having count(*) > 1
   ) then
     raise exception 'sync_duplicate_calculation_id' using errcode = '22023';
@@ -129,12 +131,26 @@ begin
 
   if exists (
     select 1
-    from jsonb_array_elements(p_items) item
-    group by item ->> 'operationId'
+      from jsonb_array_elements(p_items) as t(value)
+     group by value ->> 'operationId'
     having count(*) > 1
   ) then
     raise exception 'sync_duplicate_operation_id' using errcode = '22023';
   end if;
+
+  v_server_hash := encode(
+    extensions.digest(
+      convert_to(
+        jsonb_build_object(
+          'workspaceId', p_workspace_id,
+          'items', p_items
+        )::text,
+        'UTF8'
+      ),
+      'sha256'
+    ),
+    'hex'
+  );
 
   select qelly_private.workspace_role(p_workspace_id, v_actor)
     into v_workspace_role;
@@ -162,7 +178,7 @@ begin
     v_actor,
     p_workspace_id,
     p_idempotency_key,
-    p_request_hash,
+    v_server_hash,
     'processing'
   )
   on conflict (owner_id, idempotency_key) do nothing;
@@ -179,19 +195,20 @@ begin
   end if;
 
   if v_batch.workspace_id is distinct from p_workspace_id
-     or v_batch.request_hash is distinct from p_request_hash then
+     or v_batch.request_hash is distinct from v_server_hash then
     raise exception 'idempotency_key_reused_with_different_request' using errcode = '22023';
   end if;
 
   if v_batch.status = 'completed' then
     return v_batch.result || jsonb_build_object(
       'batchId', v_batch.id,
+      'requestHash', v_server_hash,
       'replayed', true
     );
   end if;
 
   for v_item in
-    select value from jsonb_array_elements(p_items)
+    select value from jsonb_array_elements(p_items) as t(value)
   loop
     if jsonb_typeof(v_item) is distinct from 'object' then
       raise exception 'sync_item_must_be_object' using errcode = '22023';
@@ -200,7 +217,7 @@ begin
     begin
       v_id := nullif(v_item ->> 'id', '')::uuid;
       v_operation_id := nullif(v_item ->> 'operationId', '')::uuid;
-    exception when invalid_text_representation then
+    exception when others then
       raise exception 'sync_uuid_invalid' using errcode = '22023';
     end;
 
@@ -211,7 +228,7 @@ begin
     if v_item ? 'baseRevision' and v_item -> 'baseRevision' <> 'null'::jsonb then
       begin
         v_base_revision := (v_item ->> 'baseRevision')::integer;
-      exception when invalid_text_representation or numeric_value_out_of_range then
+      exception when others then
         raise exception 'sync_base_revision_invalid' using errcode = '22023';
       end;
       if v_base_revision < 0 then
@@ -246,7 +263,7 @@ begin
     begin
       v_client_updated_at := nullif(v_record ->> 'client_updated_at', '')::timestamptz;
       v_deleted_at := nullif(v_record ->> 'deleted_at', '')::timestamptz;
-    exception when invalid_datetime_format or datetime_field_overflow then
+    exception when others then
       raise exception 'sync_record_timestamp_invalid' using errcode = '22023';
     end;
 
@@ -258,7 +275,7 @@ begin
      for update;
 
     if found then
-      if v_prior_hash is distinct from p_request_hash then
+      if v_prior_hash is distinct from v_server_hash then
         raise exception 'operation_id_reused_with_different_request' using errcode = '22023';
       end if;
       v_item_result := coalesce(v_prior_result, '{}'::jsonb);
@@ -316,11 +333,12 @@ begin
           jsonb_build_object(
             'batchId', v_batch.id,
             'title', v_title,
-            'clientUpdatedAt', v_client_updated_at
+            'clientUpdatedAt', v_client_updated_at,
+            'clientRequestHash', p_request_hash
           ),
           'conflict',
           'revision_conflict',
-          p_request_hash,
+          v_server_hash,
           v_item_result
         );
 
@@ -367,10 +385,14 @@ begin
           null,
           'create',
           v_base_revision,
-          jsonb_build_object('batchId', v_batch.id, 'title', v_title),
+          jsonb_build_object(
+            'batchId', v_batch.id,
+            'title', v_title,
+            'clientRequestHash', p_request_hash
+          ),
           'conflict',
           'remote_record_missing',
-          p_request_hash,
+          v_server_hash,
           v_item_result
         );
 
@@ -432,11 +454,12 @@ begin
       jsonb_build_object(
         'batchId', v_batch.id,
         'title', v_title,
-        'clientUpdatedAt', v_client_updated_at
+        'clientUpdatedAt', v_client_updated_at,
+        'clientRequestHash', p_request_hash
       ),
       'applied',
       now(),
-      p_request_hash,
+      v_server_hash,
       v_item_result
     );
 
@@ -446,6 +469,7 @@ begin
 
   v_response := jsonb_build_object(
     'batchId', v_batch.id,
+    'requestHash', v_server_hash,
     'results', v_results,
     'applied', v_applied,
     'conflicts', v_conflicts,
