@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-08-04T11:24:00Z",
+  "repository": "hemangsah/qelly-intelligence",
+  "protectedTopology": {
+    "mainSha": "9cb98780893924ad26fbf4baaa9048e80a162b2c",
+    "productionReleaseBranch": "release/qelly-global-public-beta",
+    "productionReleaseSha": "98a88d76bbba1017a40012aa2790213af6af485a",
+    "productionCheckpoint": "checkpoint/prompt2c-production-restoration-98a88d",
+    "productionCheckpointSha": "98a88d76bbba1017a40012aa2790213af6af485a",
+    "fallbackSha": "603cece3091dc59cfb72680914e7056b40058022",
+    "prs": {
+      "23": {"state": "open", "draft": true, "merged": false},
+      "25": {"state": "open", "draft": true, "merged": false},
+      "26": {"state": "open", "draft": true, "merged": false},
+      "33": {"state": "open", "draft": true, "merged": false}
+    }
+  },
+  "controlledAttempt": {
+    "forensicBranch": "forensics/qelly-live-auth-98a88",
+    "obsoleteDelayRemovalCommit": "1bbc00f7cdff9a2ea9e9a5da43493247d41bd849",
+    "triggerCommit": "c24a66690c89ae958c36864decca3849793d56c1",
+    "workflowRunId": 30904310573,
+    "jobId": 91975682964,
+    "jobDurationSeconds": 47,
+    "artifactId": 8890391529,
+    "artifactName": "qelly-live-auth-isolation-98a88d7",
+    "artifactBytes": 405070,
+    "artifactSha256": "1325872549811ec16f65c0858fa8347b054976f2d0ab29a89d55fd2882c950ea",
+    "artifactEntries": 3,
+    "artifactZipCrcClean": true,
+    "duplicateAttemptIssued": false
+  },
+  "runtimeEvidence": {
+    "publicUrl": "https://qelly-intelligence.pages.dev",
+    "releaseShaVerified": true,
+    "fallbackShaVerified": true,
+    "authenticationCapability": true,
+    "cloudSyncCapability": true,
+    "liveProvidersCapability": true,
+    "protectedWritesCapability": true,
+    "publishableKeyModernShape": true,
+    "publishableKeyEqualsProjectReference": false,
+    "requestedCallback": "https://qelly-intelligence.pages.dev/auth/callback.html",
+    "localhostObserved": false
+  },
+  "smtpOutcome": {
+    "signupStatus": 500,
+    "errorClass": "535 5.7.8 Authentication failed",
+    "deliveryProved": false,
+    "confirmationReceived": false,
+    "retryStopped": true,
+    "terminalBlocker": "DEDICATED_TRANSACTIONAL_SMTP_PROVIDER_AUTHENTICATION_REQUIRED"
+  },
+  "cleanup": {
+    "authUsers": 0,
+    "authSessions": 0,
+    "qellyProfiles": 0,
+    "qellyWorkspaces": 0,
+    "qellyWorkspaceMembers": 0,
+    "qellySavedCalculations": 0,
+    "qellySavedCalculationRevisions": 0,
+    "qellySyncOperations": 0,
+    "qellyFeedback": 0,
+    "qellyAccountDeletionRequests": 0,
+    "qellyAuditEvents": 0,
+    "qellyProviderCache": 0,
+    "disposableAuthIdentityPresent": false,
+    "disposableMailboxDeletionProved": false,
+    "disposableMailboxLimitation": "The runner lost the mailbox handle when signup failed before returning the user object. Mailbox credentials were intentionally not persisted, so remote deletion cannot be proved after process exit."
+  },
+  "supabase": {
+    "projectId": "ssdgfgqnjlwzkgukzeef",
+    "region": "ap-south-1",
+    "status": "ACTIVE_HEALTHY",
+    "migrations": [
+      "20260801130701 qelly_final_live_activation_v1",
+      "20260801131043 qelly_final_live_performance_indexes"
+    ],
+    "publicTables": 10,
+    "rlsEnabledTables": 10,
+    "publicPolicyCount": 27,
+    "securityAdvisorInfo": ["public.qelly_provider_cache has RLS enabled with no client policy; retained as intentional server-only deny-all"],
+    "performanceAdvisorInfoCount": 5
+  },
+  "vercel": {
+    "state": "VERCEL_NOT_USED",
+    "projectCount": 0,
+    "deploymentActionTaken": false
+  },
+  "readiness": {
+    "protectedTopologyPercent": 100,
+    "supabaseStaticStateAndCleanupPercent": 100,
+    "smtpDeliveryPercent": 0,
+    "liveAuthRecoveryPercent": 0,
+    "cloudLifecyclePercent": 0,
+    "deployedTenantIsolationPercent": 0,
+    "publicRuntimePdfPercent": 0
+  },
+  "nextOwnerAction": "Correct the dedicated SMTP provider authentication configuration directly in the existing Supabase project without sharing any secret in chat. After a fresh Auth configuration reload is visible, authorize exactly one new disposable delivery preflight."
+}
