@@ -144,7 +144,10 @@ test('browser queue splits local work into bounded atomic batches',()=>{
 });
 
 test('migration enforces server-side payload hashing and least-privilege RPC execution',async()=>{
-  const sql=await readFile(new URL('../packages/migrations/20260805013300_qelly_atomic_sync_batch_v1.sql',import.meta.url),'utf8');
+  const [sql,indexSql]=await Promise.all([
+    readFile(new URL('../packages/migrations/20260805013300_qelly_atomic_sync_batch_v1.sql',import.meta.url),'utf8'),
+    readFile(new URL('../packages/migrations/20260805013500_qelly_sync_batch_workspace_index.sql',import.meta.url),'utf8')
+  ]);
   assert.match(sql,/create table if not exists qelly_private\.sync_batches/i);
   assert.match(sql,/security definer/i);
   assert.match(sql,/set search_path\s*=\s*''/i);
@@ -154,16 +157,52 @@ test('migration enforces server-side payload hashing and least-privilege RPC exe
   assert.match(sql,/idempotency_key_reused_with_different_request/i);
   assert.match(sql,/revoke all on function[\s\S]*from public, anon, service_role/i);
   assert.match(sql,/grant execute on function[\s\S]*to authenticated/i);
+  assert.match(indexSql,/qelly_sync_batches_workspace_idx[\s\S]*sync_batches\(workspace_id\)/i);
 });
 
 test('authenticated clients cannot directly mutate sync-operation evidence',async()=>{
-  const sql=await readFile(new URL('../packages/migrations/20260805013400_qelly_sync_operation_evidence_lockdown.sql',import.meta.url),'utf8');
-  assert.match(sql,/revoke all privileges on table public\.qelly_sync_operations[\s\S]*from anon, authenticated/i);
-  assert.match(sql,/grant select on table public\.qelly_sync_operations[\s\S]*to authenticated/i);
-  assert.doesNotMatch(sql,/grant\s+(insert|update|delete)/i);
+  const [lockdown,cleanup]=await Promise.all([
+    readFile(new URL('../packages/migrations/20260805013400_qelly_sync_operation_evidence_lockdown.sql',import.meta.url),'utf8'),
+    readFile(new URL('../packages/migrations/20260805013600_qelly_sync_operation_policy_cleanup.sql',import.meta.url),'utf8')
+  ]);
+  assert.match(lockdown,/revoke all privileges on table public\.qelly_sync_operations[\s\S]*from anon, authenticated/i);
+  assert.match(lockdown,/grant select on table public\.qelly_sync_operations[\s\S]*to authenticated/i);
+  assert.doesNotMatch(lockdown,/grant\s+(insert|update|delete)/i);
+  for(const policy of ['qelly_sync_own_insert','qelly_sync_own_update','qelly_sync_own_delete']){
+    assert.match(cleanup,new RegExp(`drop policy if exists ${policy}`,'i'));
+  }
+  assert.match(cleanup,/create policy qelly_sync_own_select[\s\S]*owner_id=\(select auth\.uid\(\)\)/i);
 });
 
-test('browser pull follows cursors and the migration is not auto-applied',async()=>{
+test('clean provisioning transitions policy dependencies before migration 111 drops the public helper',async()=>{
+  const [transition,hardening,migrator]=await Promise.all([
+    readFile(new URL('../packages/migrations/110a_qelly_private_workspace_role_policy_transition.sql',import.meta.url),'utf8'),
+    readFile(new URL('../packages/migrations/111_qelly_final_live_activation_hardening.sql',import.meta.url),'utf8'),
+    readFile(new URL('../scripts/migrate-production.mjs',import.meta.url),'utf8')
+  ]);
+  assert.match(transition,/create or replace function qelly_private\.workspace_role/i);
+  for(const policy of [
+    'qelly_workspaces_member_select',
+    'qelly_members_visible',
+    'qelly_members_owner_insert',
+    'qelly_members_owner_update',
+    'qelly_members_owner_delete',
+    'qelly_saved_member_select',
+    'qelly_revisions_member_select',
+    'qelly_audit_member_select'
+  ]){
+    assert.match(transition,new RegExp(`drop policy if exists ${policy}`,'i'));
+  }
+  assert.match(transition,/to_regprocedure\('public\.qelly_workspace_role\(uuid,uuid\)'\)/i);
+  assert.match(hardening,/drop function if exists public\.qelly_workspace_role\(uuid,uuid\)/i);
+  assert.match(migrator,/filter\(\(name\) => \/\^\\d\+\.\*\\\.sql\$\/[\s\S]*\.sort\(\)/);
+  assert.deepEqual(
+    ['110_prompt2c_revision_trigger_order.sql','110a_qelly_private_workspace_role_policy_transition.sql','111_qelly_final_live_activation_hardening.sql'].sort(),
+    ['110_prompt2c_revision_trigger_order.sql','110a_qelly_private_workspace_role_policy_transition.sql','111_qelly_final_live_activation_hardening.sql']
+  );
+});
+
+test('browser pull follows cursors and migrations are never auto-applied by the client',async()=>{
   const [client,migrator]=await Promise.all([
     readFile(new URL('../apps/web/public/assets/qelly-cloud-sync.mjs',import.meta.url),'utf8'),
     readFile(new URL('../scripts/migrate-production.mjs',import.meta.url),'utf8')
