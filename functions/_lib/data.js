@@ -201,8 +201,8 @@ export async function handleData(context,path,segments,method,session,qelly){
   if(path==='sync/push'&&method==='POST'){
     await requireCsrf(request);
     const body=await jsonBody(request);
-    const key=cleanText(request.headers.get('idempotency-key'),128);
-    if(key.length<8)throw new HttpError(400,'idempotency_key_required','A valid Idempotency-Key header is required');
+    const key=String(request.headers.get('idempotency-key')||'').trim();
+    if(key.length<8||key.length>128)throw new HttpError(400,'idempotency_key_required','A valid Idempotency-Key header between 8 and 128 characters is required');
     const rawItems=Array.isArray(body.items)?body.items:[];
     if(rawItems.length<1||rawItems.length>MAX_SYNC_BATCH_ITEMS)throw new HttpError(400,'sync_batch_size_invalid',`Cloud synchronization accepts 1 to ${MAX_SYNC_BATCH_ITEMS} records per atomic batch`);
     const items=await atomicSyncItems(rawItems,body,key,qelly);
