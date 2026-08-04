@@ -105,9 +105,15 @@ export async function route(context){
   if(path==='config'&&method==='GET')return configResponse(request,env);
   if(path==='health'&&method==='GET'){
     const runtime=publicRuntimeConfig(env,request.url);
-    return responseJson(request,env,{status:'ok',releaseSha:runtime.releaseSha,deterministicLocal:true,authentication:runtime.capabilities.authentication,cloudSync:runtime.capabilities.cloudSync,liveProviders:runtime.capabilities.liveProviders,providerRights:'restricted',trading:false,custody:false,transfers:false});
+    return responseJson(request,env,{status:'ok',scope:'process-and-static-runtime',releaseSha:runtime.releaseSha,deterministicLocal:true,authenticationConfigured:runtime.capabilities.authentication,cloudSyncConfigured:runtime.capabilities.cloudSync,liveProvidersConfigured:runtime.capabilities.liveProviders,providerRights:'restricted',trading:false,custody:false,transfers:false});
   }
-  if(path==='readiness'&&method==='GET')return responseJson(request,env,{ready:true,dependencies:{supabase:'configured',auth:'configured',rls:'required',providers:'restricted_by_rights_review'},releaseSha:publicRuntimeConfig(env,request.url).releaseSha});
+  if(path==='readiness'&&method==='GET')return responseJson(request,env,{
+    ready:false,
+    status:'not_proven',
+    reason:'End-to-end Auth delivery, RLS isolation and provider freshness canaries are not yet complete.',
+    dependencies:{supabase:'configured_not_canaried',auth:'smtp_delivery_blocked',rls:'required_not_live_proven',providers:'restricted_by_rights_review'},
+    releaseSha:publicRuntimeConfig(env,request.url).releaseSha
+  },503);
   const auth=await handleAuth(context,path,method);
   if(auth)return auth;
   if(path==='providers/status'&&method==='GET'){
@@ -132,10 +138,7 @@ export async function route(context){
   if(path==='session/context'&&method==='GET')return responseJson(request,env,qelly,200,{cookies:session.cookies});
   if(path==='preferences/layout'&&method==='GET')return responseJson(request,env,{theme:'burgundy-command',density:'comfortable',motion:'full',fontScale:100,radiusPx:14,customAccent:null,route:'market',revision:1});
   if(path==='preferences/layout'&&['PATCH','PUT'].includes(method))return responseJson(request,env,{revision:1,persisted:false,storage:'browser-local'});
-  if(path==='production-foundation/status'&&method==='GET')return responseJson(request,env,{ready:true,dependencies:{database:{driver:'Supabase PostgreSQL + RLS',ok:true},jobs:{driver:'Cloudflare request lifecycle',ok:true},auth:{driver:'Supabase Auth',ok:true},providers:{driver:'Cloudflare provider facade',ok:true}}});
   if(path==='sessions'&&method==='GET')return responseJson(request,env,{scope:'current-session-only',items:[{sessionId:`supabase-${session.user.id.slice(0,8)}`,authenticationMethod:'supabase-email-password',expiresAt:new Date(Number(session.claims.exp)*1000).toISOString(),current:true,revokedAt:null}]});
-  if(path==='jobs'&&method==='GET')return responseJson(request,env,{items:[]});
-  if(path==='production-notifications'&&method==='GET')return responseJson(request,env,{items:[]});
   const data=await handleData(context,path,segments,method,session,qelly);
   if(data)return data;
   throw new HttpError(404,'route_not_found','API route was not found');
@@ -144,10 +147,11 @@ export async function route(context){
 export async function onRequest(context){
   const started=Date.now();
   const request=context.request;
-  try{return await route(context);}
-  catch(error){return errorResponse(request,context.env,error);}
+  let response;
+  try{response=await route(context);return response;}
+  catch(error){response=errorResponse(request,context.env,error);return response;}
   finally{
-    try{console.log(JSON.stringify({event:'qelly_public_runtime_request',correlationId:correlationId(request),method:request.method,path:new URL(request.url).pathname,status:'completed',durationMs:Date.now()-started,bodyLogged:false}));}catch{}
+    try{console.log(JSON.stringify({event:'qelly_public_runtime_request',correlationId:correlationId(request),method:request.method,path:new URL(request.url).pathname,status:response?.status??500,durationMs:Date.now()-started,bodyLogged:false}));}catch{}
   }
 }
 
