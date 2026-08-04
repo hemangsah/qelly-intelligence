@@ -4,7 +4,7 @@ import path from 'node:path';
 
 const sourcePath=path.resolve('forensics/qelly-live-auth-isolation.mjs');
 const outputPath=path.resolve('forensics/.generated-qelly-live-auth-isolation-98a88.mjs');
-const RECOVERY_QUOTA_DELAY_MS=3_900_000;
+const RECOVERY_PROVIDER_SPACING_MS=0;
 let source=await readFile(sourcePath,'utf8');
 source=source.replace("const EXPECTED_RELEASE='150025b9662404e5f98cd397c74c5d8be386460c';","const EXPECTED_RELEASE='98a88d76bbba1017a40012aa2790213af6af485a';");
 source=source.replace("domains?.['hydra:member']||[]","Array.isArray(domains)?domains:(domains?.['hydra:member']||domains?.member||domains?.items||domains?.domains||[])");
@@ -18,11 +18,11 @@ source=source.replace(
 );
 source=source.replace(
   "results.auth.lifecycle=await verifyAuthLifecycle(runtime,a);\n    results.auth.recovery=await verifyRecovery(runtime,a);\n    results.cloud.userA=await verifyCloudLifecycle(a);\n    results.isolation=await verifyIsolation(runtime,a,b);",
-  `results.auth.lifecycle=await verifyAuthLifecycle(runtime,a);\n    results.cloud.userA=await verifyCloudLifecycle(a);\n    results.isolation=await verifyIsolation(runtime,a,b);\n    results.auth.recoveryQuotaWaitMs=${RECOVERY_QUOTA_DELAY_MS};\n    await delay(${RECOVERY_QUOTA_DELAY_MS});\n    results.auth.recovery=await verifyRecovery(runtime,a);`
+  `results.auth.lifecycle=await verifyAuthLifecycle(runtime,a);\n    results.cloud.userA=await verifyCloudLifecycle(a);\n    results.isolation=await verifyIsolation(runtime,a,b);\n    results.auth.recoveryProviderSpacingMs=${RECOVERY_PROVIDER_SPACING_MS};\n    await delay(${RECOVERY_PROVIDER_SPACING_MS});\n    results.auth.recovery=await verifyRecovery(runtime,a);`
 );
 if(!source.includes("const EXPECTED_RELEASE='98a88d76bbba1017a40012aa2790213af6af485a';"))throw new Error('expected_release_patch_failed');
 if(!source.includes(".replace(/[\\]),.;]+$/,''"))throw new Error('mail_link_normalization_patch_failed');
 if(!source.includes("await delay(65000);\n    const createdB"))throw new Error('signup_serialization_patch_failed');
-if(!source.includes(`results.auth.recoveryQuotaWaitMs=${RECOVERY_QUOTA_DELAY_MS};\n    await delay(${RECOVERY_QUOTA_DELAY_MS});\n    results.auth.recovery`))throw new Error('recovery_quota_window_patch_failed');
+if(!source.includes(`results.auth.recoveryProviderSpacingMs=${RECOVERY_PROVIDER_SPACING_MS};\n    await delay(${RECOVERY_PROVIDER_SPACING_MS});\n    results.auth.recovery`))throw new Error('recovery_provider_spacing_patch_failed');
 await writeFile(outputPath,source);
 await import(pathToFileURL(outputPath).href);
