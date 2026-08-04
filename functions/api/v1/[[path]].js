@@ -101,7 +101,7 @@ export async function route(context){
   const segments=path.split('/').filter(Boolean);
   const method=request.method.toUpperCase();
   if(method==='OPTIONS')return new Response(null,{status:204,headers:{...SECURITY_HEADERS,...corsHeaders(request,env),'Access-Control-Allow-Methods':'GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS','Access-Control-Allow-Headers':'Content-Type,X-Qelly-CSRF,Idempotency-Key,X-Correlation-Id','Access-Control-Max-Age':'600'}});
-  requireOrigin(request,env);
+  if(request.headers.get('origin'))requireOrigin(request,env);
   if(path==='config'&&method==='GET')return configResponse(request,env);
   if(path==='health'&&method==='GET'){
     const runtime=publicRuntimeConfig(env,request.url);
