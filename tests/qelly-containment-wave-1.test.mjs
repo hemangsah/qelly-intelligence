@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {providerCatalog,providerResult,__providerTest} from '../functions/_lib/providers.js';
 import {__test as apiTest} from '../functions/api/v1/[[path]].js';
 
@@ -88,4 +89,17 @@ test('public config declares unsupported production capabilities as disabled',as
     multiSessionManagement:false
   });
   assert.ok(body.states.includes('cached'));
+});
+
+test('login and passkey-center surfaces cannot call passkey APIs',async()=>{
+  const [login,center]=await Promise.all([
+    readFile(new URL('../apps/web/public/assets/routes/auth-login.mjs',import.meta.url),'utf8'),
+    readFile(new URL('../apps/web/public/assets/routes/passkey-center.mjs',import.meta.url),'utf8')
+  ]);
+  for(const source of [login,center]){
+    assert.doesNotMatch(source,/\/api\/v1\/auth\/passkeys/);
+    assert.doesNotMatch(source,/navigator\.credentials\.(get|create)/);
+  }
+  assert.match(login,/Passkey sign-in unavailable/);
+  assert.match(center,/Passkeys are unavailable/);
 });
