@@ -14,7 +14,7 @@ const configResponse=async(request,env)=>{
     release:runtime.releaseSha,
     defaultRoute:'market',
     csrf:{header:'X-Qelly-CSRF',token:context?csrf:null,mode:context?'double-submit-cookie':'unavailable-until-authenticated'},
-    auth:{authenticated:Boolean(context),backendAvailable:true,productionIdentityEnabled:true,mode:'supabase-auth-cloudflare-facade'},
+    auth:{authenticated:Boolean(context),backendAvailable:true,productionIdentityEnabled:true,emailDeliveryAvailable:runtime.capabilities.emailDelivery,registrationAvailable:runtime.capabilities.emailDelivery,recoveryAvailable:runtime.capabilities.emailDelivery,mode:'supabase-auth-cloudflare-facade'},
     cloud:{available:true,syncAvailable:true,providerRuntime:true},
     capabilityTruth:{passkeys:false,mfa:false,research:false,persistentJobs:false,productionNotifications:false,multiSessionManagement:false},
     providerRights:{binance:'blocked_pending_redistribution_rights',coinbase:'blocked_pending_written_end_user_display_permission',ecb:'conditionally_approved_attributed_reference_data'},
@@ -105,7 +105,7 @@ export async function route(context){
   if(path==='config'&&method==='GET')return configResponse(request,env);
   if(path==='health'&&method==='GET'){
     const runtime=publicRuntimeConfig(env,request.url);
-    return responseJson(request,env,{status:'ok',scope:'process-and-static-runtime',releaseSha:runtime.releaseSha,deterministicLocal:true,authenticationConfigured:runtime.capabilities.authentication,cloudSyncConfigured:runtime.capabilities.cloudSync,liveProvidersConfigured:runtime.capabilities.liveProviders,providerRights:'restricted',trading:false,custody:false,transfers:false});
+    return responseJson(request,env,{status:'ok',scope:'process-and-static-runtime',releaseSha:runtime.releaseSha,deterministicLocal:true,authenticationConfigured:runtime.capabilities.authentication,emailDeliveryConfigured:runtime.capabilities.emailDelivery,cloudSyncConfigured:runtime.capabilities.cloudSync,liveProvidersConfigured:runtime.capabilities.liveProviders,providerRights:'restricted',trading:false,custody:false,transfers:false});
   }
   if(path==='readiness'&&method==='GET')return responseJson(request,env,{
     ready:false,
@@ -114,6 +114,8 @@ export async function route(context){
     dependencies:{supabase:'configured_not_canaried',auth:'smtp_delivery_blocked',rls:'required_not_live_proven',providers:'restricted_by_rights_review'},
     releaseSha:publicRuntimeConfig(env,request.url).releaseSha
   },503);
+  const authRuntime=publicRuntimeConfig(env,request.url);
+  if(!authRuntime.capabilities.emailDelivery&&method==='POST'&&['auth/register','auth/recovery/request'].includes(path))throw new HttpError(503,'auth_email_delivery_unavailable','Account creation and email recovery are temporarily unavailable until transactional email delivery is proven.',{retryable:false});
   const auth=await handleAuth(context,path,method);
   if(auth)return auth;
   if(path==='providers/status'&&method==='GET'){
