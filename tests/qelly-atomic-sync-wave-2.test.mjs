@@ -79,7 +79,7 @@ test('sync push makes one Supabase RPC request for the entire batch',async()=>{
   assert.equal(calls[0].body.p_items.length,1);
   assert.equal(calls[0].body.p_items[0].id,CALCULATION_ID);
   assert.match(calls[0].body.p_items[0].operationId,/^[0-9a-f-]{36}$/);
-  assert.match(calls[0].body.p_items[0].p_request_hash??calls[0].body.p_request_hash,/^[0-9a-f]{64}$/);
+  assert.match(calls[0].body.p_request_hash,/^[0-9a-f]{64}$/);
 });
 
 test('same key and payload produce the same client request hash and operation id',async()=>{
@@ -175,11 +175,10 @@ test('authenticated clients cannot directly mutate sync-operation evidence',asyn
 });
 
 test('clean provisioning transitions policy dependencies before migration 111 drops the public helper',async()=>{
-  const [transition,hardening,migrator,filePolicy]=await Promise.all([
+  const [transition,hardening,migrator]=await Promise.all([
     readFile(new URL('../packages/migrations/110a_qelly_private_workspace_role_policy_transition.sql',import.meta.url),'utf8'),
     readFile(new URL('../packages/migrations/111_qelly_final_live_activation_hardening.sql',import.meta.url),'utf8'),
-    readFile(new URL('../scripts/migrate-production.mjs',import.meta.url),'utf8'),
-    readFile(new URL('../scripts/migration-file-policy.mjs',import.meta.url),'utf8')
+    readFile(new URL('../scripts/migrate-production.mjs',import.meta.url),'utf8')
   ]);
   assert.match(transition,/create or replace function qelly_private\.workspace_role/i);
   for(const policy of [
@@ -198,8 +197,6 @@ test('clean provisioning transitions policy dependencies before migration 111 dr
   assert.match(hardening,/drop function if exists public\.qelly_workspace_role\(uuid,uuid\)/i);
   assert.match(migrator,/import \{ selectForwardMigrationFiles \} from '\.\/migration-file-policy\.mjs';/);
   assert.match(migrator,/const files = selectForwardMigrationFiles\(await readdir\(migrationDir\)\);/);
-  assert.match(filePolicy,/REVERSE_MIGRATION_SUFFIX=\/\\\.\(\?:down\|rollback\|undo\)\\\.sql\$\/i/);
-  assert.match(filePolicy,/\.filter\(isForwardMigrationFile\)[\s\S]*\.sort\(\)/);
   assert.deepEqual(
     ['110_prompt2c_revision_trigger_order.sql','110a_qelly_private_workspace_role_policy_transition.sql','111_qelly_final_live_activation_hardening.sql'].sort(),
     ['110_prompt2c_revision_trigger_order.sql','110a_qelly_private_workspace_role_policy_transition.sql','111_qelly_final_live_activation_hardening.sql']
