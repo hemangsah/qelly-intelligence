@@ -1,6 +1,6 @@
 const QUEUE_KEY='qelly.prompt2c.cloud.queue.v1';
 const META_KEY='qelly.prompt2c.cloud.meta.v1';
-const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_BATCH_ITEMS=100;
 const MAX_QUEUE_BATCHES=25;
 const PULL_PAGE_SIZE=50;
