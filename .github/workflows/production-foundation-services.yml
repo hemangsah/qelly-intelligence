@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 20
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgres:17-alpine
         env:
           POSTGRES_DB: qelly
           POSTGRES_USER: qelly
@@ -56,6 +56,8 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci --ignore-scripts
+      - name: Install Supabase PostgreSQL compatibility scaffold
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f tests/db/qelly_supabase_pg17_stub.sql
       - name: Apply production migrations
         run: npm run migrate
       - name: Verify migration idempotency and checksum stability
