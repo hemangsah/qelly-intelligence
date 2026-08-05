@@ -2,6 +2,7 @@ import { icon } from './icon-registry.mjs';
 import { personaFor } from './persona-profiles.mjs';
 
 const escapeHtml=(value)=>String(value??'').replace(/[&<>'"]/g,(character)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
+const officialSymbol=new URL('./brand/qelly-symbol.svg',import.meta.url).href;
 
 const previewDomains=Object.freeze([
   {id:'home',label:'Home',shortLabel:'Home',icon:'home',route:'feature-universe',active:['feature-universe']},
@@ -33,7 +34,7 @@ export function renderShellFoundations({
     const domains=staticVisualPreview
       ? previewDomains.map((item)=>`<button type="button" ${item.route?`data-preview-route="${item.route}"`:`data-preview-unavailable="${escapeHtml(item.label)}"`} class="${item.active?.includes(currentRoute)?'is-active':''}" aria-label="${escapeHtml(item.label)}${item.route?'':' — backend unavailable in static preview'}" aria-pressed="${item.active?.includes(currentRoute)??false}" title="${escapeHtml(item.label)}${item.route?'':' · backend unavailable'}"><span>${icon(item.icon,{size:18})}</span><small>${escapeHtml(item.shortLabel)}</small></button>`).join('')
       : availableDomains.map((domain)=>`<button type="button" data-domain="${domain.id}" class="${domain.id===resolvedDomain?.id?'is-active':''}" aria-label="${escapeHtml(domain.label)}" aria-pressed="${domain.id===resolvedDomain?.id}"><span>${icon(routeIcon(domain.defaultRoute),{size:18})}</span><small>${escapeHtml(domain.shortLabel)}</small></button>`).join('');
-    edge.innerHTML=`<div class="q-edge-dock__brand" aria-hidden="true">Q</div><div class="q-edge-dock__domains">${domains}</div><div class="q-edge-dock__utilities"><button type="button" data-shell-action="explain" aria-label="Explain this move"><span>${icon('explain',{size:18})}</span><small>Explain</small></button><button type="button" data-shell-action="menu" aria-label="Open domain navigation" aria-expanded="false"><span>${icon('menu',{size:18})}</span><small>Menu</small></button></div>`;
+    edge.innerHTML=`<a class="q-edge-dock__brand" href="#/feature-universe" aria-label="Qelly Intelligence home" data-qelly-official-brand="true"><img src="${officialSymbol}" alt="" width="42" height="42" decoding="async" aria-hidden="true"></a><div class="q-edge-dock__domains">${domains}</div><div class="q-edge-dock__utilities"><button type="button" data-shell-action="explain" aria-label="Explain this move"><span>${icon('explain',{size:18})}</span><small>Explain</small></button><button type="button" data-shell-action="menu" aria-label="Open domain navigation" aria-expanded="false"><span>${icon('menu',{size:18})}</span><small>Menu</small></button></div>`;
     edge.querySelectorAll('[data-domain]').forEach((button)=>button.addEventListener('click',()=>onDomain(button.dataset.domain)));
     edge.querySelectorAll('[data-preview-route]').forEach((button)=>button.addEventListener('click',()=>onRoute(button.dataset.previewRoute)));
     edge.querySelectorAll('[data-preview-unavailable]').forEach((button)=>button.addEventListener('click',()=>onUnavailable(button.dataset.previewUnavailable)));
