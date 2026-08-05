@@ -138,7 +138,7 @@ const PUBLIC_MARKET_ASSETS=Object.freeze([
     fallbackReason:'Public provider redistribution rights are not approved; governed deterministic observations are shown instead.',
     entitlement:'public-read-only-demo'
   }
-}))));
+})));
 
 const publicMarketAsset=(value)=>{
   const decoded=decodeURIComponent(String(value||'')).toUpperCase();
