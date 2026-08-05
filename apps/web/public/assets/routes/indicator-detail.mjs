@@ -51,7 +51,7 @@ export async function renderIndicatorDetail(main,{pageHead,escapeHtml,toast,navi
 
   main.innerHTML=`<section class="q-page q-indicator-detail-page">
     ${pageHead('Indicator methodology',definition.name,methodDescription,`<button class="q-button q-button--secondary" data-action="library">Back to indicators</button>`)}
-    <div class="q-state-banner is-simulated"><span class="q-status q-status--simulated">USER-PROVIDED MARKET HISTORY</span><p>This study uses only the fields listed below. It does not infer order-book, liquidation, options-chain or on-chain data.</p></div>
+    <div class="q-state-banner is-simulated"><span class="q-status q-status--simulated">DETERMINISTIC · USER-PROVIDED MARKET HISTORY</span><p>This study uses only the fields listed below. It does not infer order-book, liquidation, options-chain or on-chain data.</p></div>
 
     <section class="q-indicator-detail-grid">
       <article class="q-panel q-indicator-methodology">
