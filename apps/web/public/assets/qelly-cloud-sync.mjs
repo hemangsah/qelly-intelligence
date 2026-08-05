@@ -43,6 +43,17 @@ const readMeta=()=>{
 const writeMeta=(value)=>localStorage.setItem(META_KEY,JSON.stringify(value));
 const localItemsForCloud=(items)=>items.filter(item=>UUID.test(String(item.id||'')));
 const chunks=(items,size)=>Array.from({length:Math.ceil(items.length/size)},(_,index)=>items.slice(index*size,(index+1)*size));
+const scopedBaseRevisions=(items,source)=>{
+  const revisions={};
+  const available=source&&typeof source==='object'?source:{};
+  for(const item of Array.isArray(items)?items:[]){
+    const id=String(item?.id||'');
+    if(!UUID.test(id)||!Object.prototype.hasOwnProperty.call(available,id))continue;
+    const revision=Number(available[id]);
+    if(Number.isInteger(revision)&&revision>=1)revisions[id]=revision;
+  }
+  return revisions;
+};
 const finiteCount=(value)=>Number.isFinite(Number(value))&&Number(value)>0?Math.floor(Number(value)):0;
 const boundedPageItems=(rawItems,remainingRevisionRows)=>{
   let remaining=Math.max(0,Math.floor(Number(remainingRevisionRows)||0));
@@ -83,7 +94,7 @@ export function queueCloudPush(items){
     id:crypto.randomUUID(),
     createdAt:new Date().toISOString(),
     items:batchItems,
-    baseRevisions
+    baseRevisions:scopedBaseRevisions(batchItems,baseRevisions)
   }));
   const queue=readQueue();
   if(queue.length+entries.length>MAX_QUEUE_BATCHES)throw queueCapacityError(queue.length,entries.length);
@@ -225,4 +236,4 @@ export function installCloudResume(api,onResult=()=>{}){
   return ()=>window.removeEventListener('online',listener);
 }
 
-export const __cloudSyncTest=Object.freeze({chunks,localItemsForCloud,boundedPageItems,MAX_BATCH_ITEMS,MAX_QUEUE_BATCHES,PULL_PAGE_SIZE,MAX_PULL_PAGES,MAX_PULL_REVISION_ROWS_TOTAL});
+export const __cloudSyncTest=Object.freeze({chunks,localItemsForCloud,scopedBaseRevisions,boundedPageItems,MAX_BATCH_ITEMS,MAX_QUEUE_BATCHES,PULL_PAGE_SIZE,MAX_PULL_PAGES,MAX_PULL_REVISION_ROWS_TOTAL});
