@@ -17,7 +17,7 @@ test('public market provider envelopes expose canonical identities while preserv
 test('public truth states remain bounded and truthful',()=>{
   const vectors=new Map([
     ['live_provider','live'],
-    ['cached_provider','live'],
+    ['cached_provider','cached'],
     ['delayed_provider','delayed'],
     ['stale_provider','stale'],
     ['unavailable','unavailable'],

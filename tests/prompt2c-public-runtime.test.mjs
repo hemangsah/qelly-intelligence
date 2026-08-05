@@ -115,39 +115,44 @@ test('login establishes HttpOnly Supabase session cookies and never returns toke
   assert.equal(calls.some(call=>call.url.pathname==='/auth/v1/user'),true);
 });
 
-test('RLS sync push derives owner and workspace from verified JWT context',async()=>{
+test('atomic RLS sync push derives owner and workspace from verified JWT context',async()=>{
   const calls=[],token=jwt(),runtimeEnv={...env(),__fetch:coreSupabaseFetch(calls,{
-    'GET /rest/v1/qelly_saved_calculations?select=id&workspace_id=eq.22222222-2222-4222-8222-222222222222&deleted_at=is.null':()=>jsonResponse([]),
-    'GET /rest/v1/qelly_sync_operations?select=id&status=in.%28pending%2Cconflict%29':()=>jsonResponse([]),
-    'GET /rest/v1/qelly_saved_calculations?select=id%2Ccurrent_revision%2Cupdated_at&id=eq.33333333-3333-4333-8333-333333333333&limit=1':()=>jsonResponse([]),
-    'POST /rest/v1/qelly_sync_operations?on_conflict=owner_id%2Cclient_operation_id':()=>jsonResponse([{}]),
-    'POST /rest/v1/qelly_saved_calculations?on_conflict=id':()=>jsonResponse([{id:'33333333-3333-4333-8333-333333333333',current_revision:1}]),
-    'PATCH /rest/v1/qelly_sync_operations?owner_id=eq.11111111-1111-4111-8111-111111111111&client_operation_id=eq.':()=>jsonResponse([])
+    'POST /rest/v1/rpc/qelly_sync_push_batch':()=>jsonResponse({
+      batchId:'44444444-4444-4444-8444-444444444444',
+      results:[{id:'33333333-3333-4333-8333-333333333333',status:'applied',cloudRevision:1}],
+      applied:1,
+      conflicts:0,
+      replayed:false
+    })
   })};
   const csrf='csrf-test-token';
-  const item={id:'33333333-3333-4333-8333-333333333333',name:'BTC model',version:1,updatedAt:new Date().toISOString(),result:{formulaId:'kelly-criterion',inputs:{p:.55,b:1.2},outputs:{fraction:.175}},notes:'',tags:[],favorite:false,revisions:[]};
+  const item={id:'33333333-3333-4333-8333-333333333333',name:'BTC model',version:1,updatedAt:'2026-08-05T00:00:00.000Z',result:{formulaId:'kelly-criterion',inputs:{p:.55,b:1.2},outputs:{fraction:.175}},notes:'',tags:[],favorite:false,revisions:[]};
   const request=new Request('https://qelly-runtime.test/api/v1/sync/push',{method:'POST',headers:{Origin:'https://qelly-runtime.test','Content-Type':'application/json','X-Qelly-CSRF':csrf,'Idempotency-Key':'qelly-sync-test-123','Cookie':`qelly_sb_access=${encodeURIComponent(token)}; qelly_sb_refresh=refresh; qelly_csrf=${csrf}`},body:JSON.stringify({items:[{...item,ownerId:'attacker',workspaceId:'attacker'}],baseRevisions:{}})});
   const response=await onRequest({request,env:runtimeEnv,params:{path:['sync','push']},waitUntil(){}});
   assert.equal(response.status,200);
-  const savedCall=calls.find(call=>call.init.method==='POST'&&call.url.pathname==='/rest/v1/qelly_saved_calculations');
-  assert.equal(savedCall.body.owner_id,userId);
-  assert.equal(savedCall.body.workspace_id,workspaceId);
-  assert.equal(savedCall.body.owner_id==='attacker',false);
+  const rpcCalls=calls.filter(call=>call.init.method==='POST'&&call.url.pathname==='/rest/v1/rpc/qelly_sync_push_batch');
+  assert.equal(rpcCalls.length,1);
+  const payload=rpcCalls[0].body;
+  assert.equal(payload.p_workspace_id,workspaceId);
+  assert.equal(payload.p_items.length,1);
+  assert.equal(payload.p_items[0].record.owner_id,userId);
+  assert.equal(payload.p_items[0].record.workspace_id,workspaceId);
+  assert.notEqual(payload.p_items[0].record.owner_id,'attacker');
+  assert.notEqual(payload.p_items[0].record.workspace_id,'attacker');
+  assert.equal(calls.some(call=>call.url.pathname==='/rest/v1/qelly_saved_calculations'&&call.init.method==='POST'),false);
 });
 
-test('deployed provider facade returns provenance, timestamps, confidence and live cache state',async()=>{
-  const calls=[],token=jwt(),runtimeEnv={...env(),__fetch:coreSupabaseFetch(calls,{
-    'GET /api/v3/ticker/24hr?symbol=BTCUSDT':()=>jsonResponse({closeTime:Date.now(),lastPrice:'65000.10',openPrice:'64000',highPrice:'66000',lowPrice:'63000',volume:'100',quoteVolume:'6500000'})
-  })};
-  const request=new Request('https://qelly-runtime.test/api/v1/providers/binance?capability=quote&symbol=BTCUSDT',{headers:{Cookie:`qelly_sb_access=${encodeURIComponent(token)}; qelly_sb_refresh=refresh`}});
+test('blocked crypto provider facade returns rights reason without an upstream network call',async()=>{
+  const calls=[],runtimeEnv={...env(),__fetch:coreSupabaseFetch(calls)};
+  const request=new Request('https://qelly-runtime.test/api/v1/providers/binance?capability=quote&symbol=BTCUSDT');
   const response=await onRequest({request,env:runtimeEnv,params:{path:['providers','binance']},waitUntil(){}});
   assert.equal(response.status,200);
   const body=await response.json();
-  assert.equal(body.truthState,'live_provider');
-  assert.equal(body.provider,'binance-spot-public');
-  assert.equal(body.confidence,.98);
+  assert.equal(calls.length,0);
+  assert.equal(body.truthState,'unavailable');
+  assert.equal(body.provider,'binance');
+  assert.equal(body.confidence,0);
   assert.equal(body.cache.hit,false);
-  assert.ok(body.observationTime);
-  assert.ok(body.ingestionTime);
-  assert.match(body.attribution,/Binance/);
+  assert.equal(body.fallbackReason,'provider_redistribution_rights_not_verified');
+  assert.equal(body.termsState,'blocked_pending_redistribution_rights');
 });
