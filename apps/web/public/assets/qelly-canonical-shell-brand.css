@@ -1,0 +1,85 @@
+/* Canonical top-left shell branding.
+   Route and identity renderers may update workspace context copy, but the Qelly
+   lockup remains the same governed brand asset on every destination. */
+.q-workspace-switcher[data-qelly-canonical-brand="true"]{
+  min-width:228px;
+  display:grid;
+  grid-template-columns:minmax(96px,116px) minmax(0,1fr);
+  column-gap:10px;
+  align-items:center;
+  color:inherit;
+}
+.q-workspace-switcher[data-qelly-canonical-brand="true"]>.q-workspace-brand-home{
+  display:flex;
+  align-items:center;
+  min-width:0;
+  color:inherit;
+  text-decoration:none;
+  border-radius:8px;
+}
+.q-workspace-switcher[data-qelly-canonical-brand="true"]>.q-workspace-brand-home img{
+  display:block;
+  width:116px;
+  max-width:100%;
+  height:auto;
+  max-height:36px;
+  aspect-ratio:304/84;
+  object-fit:contain;
+  object-position:left center;
+}
+.q-workspace-switcher[data-qelly-canonical-brand="true"]>.q-workspace-context{
+  min-width:0;
+  display:grid;
+  gap:2px;
+}
+.q-workspace-switcher[data-qelly-canonical-brand="true"]>.q-workspace-context strong,
+.q-workspace-switcher[data-qelly-canonical-brand="true"]>.q-workspace-context small{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.q-workspace-switcher[data-qelly-canonical-brand="true"]>.q-workspace-context strong{
+  font-size:12px;
+  line-height:1.2;
+}
+.q-workspace-switcher[data-qelly-canonical-brand="true"]>.q-workspace-context small{
+  font-size:9px;
+  color:var(--q-muted);
+}
+/* Neutralize the former generated QL tile during the mutation microtask in
+   which route code has replaced the inner markup but the brand observer has
+   not yet restored the canonical lockup. */
+.q-workspace-switcher[data-qelly-canonical-brand="true"]>span,
+.q-workspace-switcher[data-qelly-canonical-brand="true"]>span::after{
+  display:none!important;
+  content:none!important;
+}
+@media(max-width:920px){
+  .q-workspace-switcher[data-qelly-canonical-brand="true"]{
+    min-width:132px;
+    grid-template-columns:minmax(92px,108px);
+  }
+  .q-workspace-switcher[data-qelly-canonical-brand="true"]>.q-workspace-context{display:none}
+  .q-workspace-switcher[data-qelly-canonical-brand="true"]>.q-workspace-brand-home img{width:108px}
+}
+@media(max-width:520px){
+  .q-workspace-switcher[data-qelly-canonical-brand="true"]{
+    min-width:38px;
+    width:38px;
+    grid-template-columns:38px;
+  }
+  .q-workspace-switcher[data-qelly-canonical-brand="true"]>.q-workspace-brand-home{
+    width:38px;
+    height:38px;
+    overflow:hidden;
+  }
+  .q-workspace-switcher[data-qelly-canonical-brand="true"]>.q-workspace-brand-home img{
+    width:138px;
+    max-width:none;
+    height:38px;
+    max-height:38px;
+    object-fit:cover;
+    object-position:left center;
+  }
+}
