@@ -17,8 +17,12 @@ test('readiness remains not proven until end-to-end canaries exist',async()=>{
   assert.equal(response.status,503);
   assert.equal(body.ready,false);
   assert.equal(body.status,'not_proven');
-  assert.equal(body.dependencies.auth,'smtp_delivery_blocked');
-  assert.equal(body.dependencies.providers,'restricted_by_rights_review');
+  assert.equal(body.dependencies.auth,'email_delivery_fail_closed');
+  assert.equal(body.dependencies.providers,'restricted_and_freshness_not_proven');
+  assert.equal(body.checks.authEmail.configured,false);
+  assert.equal(body.checks.authEmail.proven,false);
+  assert.equal(body.checks.providerFreshness.proven,false);
+  assert.equal(JSON.stringify(body).includes('smtp_delivery_blocked'),false);
 });
 
 test('placeholder job, notification and foundation-ready routes are absent',async()=>{
