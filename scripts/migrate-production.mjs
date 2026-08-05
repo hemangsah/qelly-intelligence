@@ -3,6 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { PostgresDirectClient } from '../src/production/postgres-pool-client.mjs';
+import { selectForwardMigrationFiles } from './migration-file-policy.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const migrationDir = path.join(root, 'packages/migrations');
@@ -20,7 +21,7 @@ const withoutOuterTransaction = (sql) => sql
   .replace(/(^|\n)\s*BEGIN;\s*(?=\n)/i, '$1')
   .replace(/\n\s*COMMIT;\s*$/i, '\n');
 
-const files = (await readdir(migrationDir)).filter((name) => /^\d+.*\.sql$/.test(name)).sort();
+const files = selectForwardMigrationFiles(await readdir(migrationDir));
 const migrations = await Promise.all(files.map(async (file) => {
   const sql = await readFile(path.join(migrationDir, file), 'utf8');
   return { file, sql, checksum: checksumOf(sql) };
