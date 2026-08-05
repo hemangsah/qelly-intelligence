@@ -44,7 +44,7 @@ test('canonical Qelly logo is used in the global strip and edge dock',async()=>{
     read('apps/web/public/assets/shell-foundations.mjs'),
     read('apps/web/public/assets/qelly-brand-visual-correction.mjs')
   ]);
-  assert.match(index,/class="q-brand-home"[^>]+qelly-logo-primary\.svg/);
+  assert.match(index,/<a class="q-brand-home"[^>]*>\s*<img[^>]+qelly-logo-primary\.svg/);
   assert.doesNotMatch(index,/class="q-brand-mark"[^>]*><span>Q<\/span>/);
   assert.match(shell,/new URL\('\.\/brand\/qelly-symbol\.svg'/);
   assert.match(shell,/data-qelly-official-brand="true"/);
