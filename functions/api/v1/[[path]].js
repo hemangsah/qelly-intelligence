@@ -1,5 +1,6 @@
 import {CSRF_COOKIE,HttpError,SECURITY_HEADERS,bootstrapContext,cookie,correlationId,corsHeaders,enforceRateLimit,errorResponse,parseCookies,publicRuntimeConfig,requireOrigin,responseJson,resolveSession,stableUuid,validateJwtClaims} from '../../_lib/runtime.js';
 import {handleAuth} from '../../_lib/auth.js';
+import {handleGovernance} from '../../_lib/governance.js';
 import {handleData,__dataTest} from '../../_lib/data.js';
 import {providerCatalog,providerResult} from '../../_lib/providers.js';
 
@@ -141,6 +142,8 @@ export async function route(context){
   if(path==='preferences/layout'&&method==='GET')return responseJson(request,env,{theme:'burgundy-command',density:'comfortable',motion:'full',fontScale:100,radiusPx:14,customAccent:null,route:'market',revision:1});
   if(path==='preferences/layout'&&['PATCH','PUT'].includes(method))return responseJson(request,env,{revision:1,persisted:false,storage:'browser-local'});
   if(path==='sessions'&&method==='GET')return responseJson(request,env,{scope:'current-session-only',items:[{sessionId:`supabase-${session.user.id.slice(0,8)}`,authenticationMethod:'supabase-email-password',expiresAt:new Date(Number(session.claims.exp)*1000).toISOString(),current:true,revokedAt:null}]});
+  const governance=await handleGovernance(context,path,method,session,qelly);
+  if(governance)return governance;
   const data=await handleData(context,path,segments,method,session,qelly);
   if(data)return data;
   throw new HttpError(404,'route_not_found','API route was not found');
