@@ -1,6 +1,7 @@
 const root=document.documentElement;
 const stateValues=new Set(['loading','empty','offline','error']);
 const productSymbolAsset=new URL('./brand/qelly-symbol.svg',import.meta.url).href;
+const primaryLogoAsset=new URL('./brand/qelly-logo-primary.svg',import.meta.url).href;
 
 function reducedMotion(){
   return matchMedia('(prefers-reduced-motion: reduce)').matches||root.dataset.motion==='reduced'||root.dataset.motion==='none';
@@ -39,10 +40,42 @@ function correctStateComposition(){
   }else delete main.dataset.qellyStatePage;
 }
 
+function officialImage(element,{compact=false}={}){
+  if(!element)return null;
+  let image=element.querySelector('img');
+  if(!image){
+    element.replaceChildren();
+    image=document.createElement('img');
+    element.append(image);
+  }
+  image.src=compact?productSymbolAsset:primaryLogoAsset;
+  image.alt='';
+  image.decoding='async';
+  image.setAttribute('aria-hidden','true');
+  image.dataset.qellyOfficialMark='true';
+  image.width=compact?42:181;
+  image.height=compact?42:50;
+  return image;
+}
+
 function correctShellBranding(){
-  document.querySelector('.q-edge-dock__brand')?.setAttribute('hidden','');
-  const home=document.querySelector('.q-brand-home');
-  home?.setAttribute('data-qelly-primary-lockup','true');
+  const globalBrand=document.querySelector('.q-brand-home,[data-qelly-primary-lockup]');
+  if(globalBrand){
+    globalBrand.dataset.qellyPrimaryLockup='true';
+    officialImage(globalBrand);
+  }
+  const edgeBrand=document.querySelector('.q-edge-dock__brand');
+  if(edgeBrand){
+    edgeBrand.removeAttribute('hidden');
+    edgeBrand.dataset.qellyOfficialBrand='true';
+    edgeBrand.setAttribute('aria-label','Qelly Intelligence home');
+    officialImage(edgeBrand,{compact:true});
+  }
+  document.querySelectorAll('.q-edge-dock__brand').forEach((brand)=>{
+    for(const node of [...brand.childNodes]){
+      if(node.nodeType===Node.TEXT_NODE&&node.textContent?.trim())node.remove();
+    }
+  });
   document.querySelector('.q-avatar')?.setAttribute('data-qelly-functional-symbol','account');
 }
 
@@ -85,4 +118,3 @@ window.addEventListener('hashchange',()=>requestAnimationFrame(refresh));
 window.addEventListener('pageshow',refresh);
 root.dataset.brandVisualCorrectionReady='true';
 window.QellyBrandVisualCorrection=Object.freeze({refresh,reducedMotion,stateValues:[...stateValues]});
-// Final exact-head matrix trigger after deterministic opening evidence correction.
