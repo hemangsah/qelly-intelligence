@@ -47,6 +47,8 @@ jobs:
           QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
           QELLY_DEPLOYMENT_ENVIRONMENT: github-pages
         run: npm run build:frontend
+      - name: Remove Cloudflare-only controls
+        run: node scripts/sanitize-pages-artifact.mjs
       - name: Validate compiled artifact
         run: npm run validate:pages-preview
       - name: Smoke-test repository-path serving
