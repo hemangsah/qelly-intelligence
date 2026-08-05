@@ -8,4 +8,4 @@ export const isForwardMigrationFile=(name)=>{
 
 export const selectForwardMigrationFiles=(names)=>[...names]
   .filter(isForwardMigrationFile)
-  .sort((left,right)=>left.localeCompare(right,'en'));
+  .sort();
