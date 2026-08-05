@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {readFile,readdir} from 'node:fs/promises';
 import {evaluateDecision,normalizeDecisionInput} from '../apps/web/public/assets/qelly-decision-engine.mjs';
+import {migrationProfileForFile,normalizeMigrationProfile,selectMigrationFiles} from '../scripts/migration-file-policy.mjs';
 
 const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 
@@ -63,11 +64,33 @@ test('static preview build restores the validator-compatible truth contract',asy
   assert.match(build,/CF_PAGES_COMMIT_SHA\?\?process\.env\.GITHUB_SHA\?\?process\.env\.QELLY_PUBLIC_RELEASE_SHA/);
 });
 
-test('foundation integration installs the Supabase compatibility layer before migrations',async()=>{
+test('migration profiles separate incompatible platform and Supabase schemas',async()=>{
+  const names=await readdir(new URL('../packages/migrations/',import.meta.url));
+  const platform=selectMigrationFiles(names,'platform');
+  const supabase=selectMigrationFiles(names,'supabase');
+  assert.equal(platform.at(-1),'108_saved_calculation_lifecycle.sql');
+  assert.equal(supabase[0],'109_prompt2c_global_public_beta.sql');
+  assert.equal(platform.includes('109_prompt2c_global_public_beta.sql'),false);
+  assert.equal(supabase.includes('108_saved_calculation_lifecycle.sql'),false);
+  assert.equal(supabase.includes('110_prompt2c_global_public_beta.down.sql'),false);
+  assert.equal(migrationProfileForFile('110a_qelly_private_workspace_role_policy_transition.sql'),'supabase');
+  assert.equal(normalizeMigrationProfile(undefined),'platform');
+  assert.throws(()=>normalizeMigrationProfile(undefined,{production:true}),error=>error?.code==='migration_profile_required');
+});
+
+test('foundation integration runs only the explicit platform migration profile',async()=>{
   const workflow=await read('.github/workflows/production-foundation-services.yml');
   assert.match(workflow,/postgres:17-alpine/);
-  const scaffold=workflow.indexOf('qelly_supabase_pg17_stub.sql');
-  const migrate=workflow.indexOf('Apply production migrations');
-  assert.ok(scaffold>=0&&migrate>scaffold,{scaffold,migrate});
-  assert.match(workflow,/psql "\$DATABASE_URL" -v ON_ERROR_STOP=1/);
+  assert.match(workflow,/QELLY_MIGRATION_PROFILE: platform/);
+  assert.match(workflow,/Apply platform migrations/);
+  assert.doesNotMatch(workflow,/qelly_supabase_pg17_stub\.sql/);
+});
+
+test('production migrator rejects profile mixing, rollback files and unmanaged replays',async()=>{
+  const source=await read('scripts/migrate-production.mjs');
+  assert.match(source,/selectMigrationFiles\(await readdir\(migrationDir\),profile\)/);
+  assert.match(source,/migration_profile_mismatch/);
+  assert.match(source,/migration_history_bootstrap_required/);
+  assert.match(source,/qelly-controlled-migrator-v3:\$\{profile\}/);
+  assert.doesNotMatch(source,/filter\(\(name\) => \/\^\\d\+\.\*\\\.sql\$\//);
 });
