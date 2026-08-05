@@ -2,7 +2,7 @@ import {decisionAssets,evaluateDecision} from './qelly-decision-engine.mjs';
 
 const config=window.__QELLY_CONFIG__||{};
 const staticPreview=config.staticVisualPreview===true;
-const officialSymbol=new URL('./brand/qelly-symbol.svg',import.meta.url).href;
+const officialPrimary=new URL('./brand/qelly-logo-primary.svg',import.meta.url).href;
 const main=document.getElementById('main');
 const publicRoutes=new Set(['market','asset-rankings','asset','formula-library','indicator-library','calculator-center','saved-calculations','decision-provenance']);
 const failureCopy=['unable to render this route','authentication is required','retry foundation route','foundation route failed'];
@@ -22,7 +22,7 @@ function installStaticHeader(){
   document.documentElement.dataset.qellyRecoveryShell='static-preview';
   const header=document.createElement('header');
   header.className='q-recovery-header';
-  header.innerHTML=`<a class="q-recovery-brand" href="#/market" aria-label="Qelly Intelligence home"><img src="${officialSymbol}" width="42" height="42" alt=""><span><strong>Qelly</strong><small>Market intelligence</small></span></a><nav aria-label="Preview navigation"><a href="#/market">Markets</a><a href="#/asset-rankings">Rankings</a><a href="#/market?view=decision-maker" data-qelly-decision-link>Decision Maker</a><a href="#/formula-library">Formulas</a><a href="#/indicator-library">Indicators</a><a href="#/calculator-center">Calculators</a></nav><div class="q-recovery-header__actions">${previewBadge()}<a href="https://qelly-intelligence.pages.dev" rel="noopener">Open live site</a></div>`;
+  header.innerHTML=`<a class="q-recovery-brand" href="#/market" aria-label="Qelly Intelligence home"><img src="${officialPrimary}" width="152" height="42" alt="Qelly"></a><nav aria-label="Preview navigation"><a href="#/market">Markets</a><a href="#/asset-rankings">Rankings</a><a href="#/market?view=decision-maker" data-qelly-decision-link>Decision Maker</a><a href="#/formula-library">Formulas</a><a href="#/indicator-library">Indicators</a><a href="#/calculator-center">Calculators</a></nav><div class="q-recovery-header__actions">${previewBadge()}<a href="https://qelly-intelligence.pages.dev" rel="noopener">Open live site</a></div>`;
   document.querySelector('.q-app')?.prepend(header);
 }
 
@@ -110,10 +110,21 @@ function renderRankingsRecovery(){
   rendering=false;
 }
 
+function renderMarketRecovery(message){
+  if(!main)return;
+  rendering=true;
+  main.dataset.qellyRecoveryOwner='market';
+  main.setAttribute('aria-busy','false');
+  main.innerHTML=`<section class="q-recovery-page q-market-recovery"><header><div><p>Markets · safe degraded mode</p><h1>Market overview</h1><span>The public market service is temporarily unavailable. Qelly has replaced the failed route with one deterministic, read-only recovery surface.</span></div>${previewBadge()}</header><div class="q-recovery-notice"><strong>No authentication is required for this public route.</strong><span>${escapeHtml(message||'Retry the governed public market request. No trade, custody or personalized recommendation is available.')}</span></div><div class="q-recovery-table" role="table" aria-label="Deterministic public market recovery"><div role="row" class="is-head"><span>Asset</span><span>Price</span><span>24h</span><span>Evidence</span><span>Action</span></div>${demoAssets.slice(0,4).map(([symbol,name,price,change,evidence])=>`<div role="row"><span><strong>${symbol}</strong><small>${name}</small></span><span>${price}</span><span>${change}</span><span>${evidence}/100</span><span><a href="#/market?view=decision-maker">Analyze</a></span></div>`).join('')}</div><div class="q-recovery-actions"><a href="#/market" data-qelly-market-retry>Retry market overview</a><a href="#/asset-rankings">Open rankings</a><a href="#/market?view=decision-maker">Open Decision Maker</a></div></section>`;
+  document.title='Market Overview · Qelly Intelligence';
+  main.querySelector('[data-qelly-market-retry]')?.addEventListener('click',(event)=>{event.preventDefault();delete main.dataset.qellyRecoveryOwner;location.reload();});
+  rendering=false;
+}
+
 function renderPublicRecovery(route,message){
   if(!main)return;
   if(route==='asset-rankings'){renderRankingsRecovery();return;}
-  if(route==='market'){location.hash='#/market?view=decision-maker';return;}
+  if(route==='market'){renderMarketRecovery(message);return;}
   rendering=true;
   main.dataset.qellyRecoveryOwner=route;
   main.setAttribute('aria-busy','false');
@@ -155,4 +166,4 @@ new MutationObserver(schedule).observe(document.documentElement,{childList:true,
 window.addEventListener('hashchange',()=>{if(main)delete main.dataset.qellyRecoveryOwner;schedule();});
 window.addEventListener('pageshow',schedule);
 for(const delay of [0,100,350,900,1800,3500])setTimeout(schedule,delay);
-window.QellyPublicRecovery=Object.freeze({reconcile,renderDecisionMaker,evaluateDecision});
+window.QellyPublicRecovery=Object.freeze({reconcile,renderDecisionMaker,renderMarketRecovery,evaluateDecision});
