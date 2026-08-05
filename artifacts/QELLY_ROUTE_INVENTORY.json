@@ -1,6 +1,6 @@
 {
   "productVersion": "0.9.0-preview.1",
-  "count": 61,
+  "count": 70,
   "items": [
     {
       "index": 1,
@@ -116,6 +116,78 @@
     },
     {
       "index": 15,
+      "route": "calculator-center",
+      "label": "Quant Calculator Center",
+      "section": "Tools",
+      "public": true,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 16,
+      "route": "india-finance",
+      "label": "India Finance & SIP",
+      "section": "Tools",
+      "public": true,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 17,
+      "route": "indicator-library",
+      "label": "Indicator Library",
+      "section": "Tools",
+      "public": true,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 18,
+      "route": "formula-library",
+      "label": "Formula Library",
+      "section": "Tools",
+      "public": true,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 19,
+      "route": "saved-calculations",
+      "label": "Saved Calculations",
+      "section": "Tools",
+      "public": true,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 20,
+      "route": "formula-detail",
+      "label": "Formula Detail",
+      "section": "Detail",
+      "public": true,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 21,
+      "route": "indicator-detail",
+      "label": "Indicator Detail",
+      "section": "Detail",
+      "public": true,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 22,
+      "route": "calculator-detail",
+      "label": "Calculator Detail",
+      "section": "Detail",
+      "public": true,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 23,
+      "route": "saved-calculation-detail",
+      "label": "Saved Calculation Detail",
+      "section": "Detail",
+      "public": true,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 24,
       "route": "theme-personas",
       "label": "Theme Personas",
       "section": "Experience",
@@ -123,7 +195,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 16,
+      "index": 25,
       "route": "feature-universe",
       "label": "Feature Universe",
       "section": "Experience",
@@ -131,7 +203,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 17,
+      "index": 26,
       "route": "about-qelly",
       "label": "About Qelly",
       "section": "Company",
@@ -139,7 +211,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 18,
+      "index": 27,
       "route": "discovery-hub",
       "label": "Discovery Overview",
       "section": "Discover",
@@ -147,7 +219,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 19,
+      "index": 28,
       "route": "asset-rankings",
       "label": "Asset Rankings",
       "section": "Discover",
@@ -155,7 +227,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 20,
+      "index": 29,
       "route": "search",
       "label": "Universal Search",
       "section": "Discover",
@@ -163,7 +235,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 21,
+      "index": 30,
       "route": "categories",
       "label": "Categories",
       "section": "Discover",
@@ -171,7 +243,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 22,
+      "index": 31,
       "route": "venues",
       "label": "Venues",
       "section": "Discover",
@@ -179,7 +251,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 23,
+      "index": 32,
       "route": "dex-discovery",
       "label": "DEX Discovery",
       "section": "Discover",
@@ -187,7 +259,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 24,
+      "index": 33,
       "route": "global-charts",
       "label": "Global Charts",
       "section": "Discover",
@@ -195,7 +267,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 25,
+      "index": 34,
       "route": "converter",
       "label": "Converter",
       "section": "Discover",
@@ -203,7 +275,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 26,
+      "index": 35,
       "route": "news-research",
       "label": "News & Research",
       "section": "Discover",
@@ -211,7 +283,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 27,
+      "index": 36,
       "route": "trust-center",
       "label": "Trust Center",
       "section": "Discover",
@@ -219,7 +291,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 28,
+      "index": 37,
       "route": "asset-intelligence",
       "label": "Asset Intelligence",
       "section": "Intelligence",
@@ -227,7 +299,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 29,
+      "index": 38,
       "route": "advanced-chart",
       "label": "Advanced Chart Studio",
       "section": "Intelligence",
@@ -235,7 +307,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 30,
+      "index": 39,
       "route": "fundamentals-estimates",
       "label": "Fundamentals & Estimates",
       "section": "Intelligence",
@@ -243,7 +315,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 31,
+      "index": 40,
       "route": "filing-workspace",
       "label": "Filing Workspace",
       "section": "Intelligence",
@@ -251,7 +323,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 32,
+      "index": 41,
       "route": "event-calendar",
       "label": "Event Calendar",
       "section": "Intelligence",
@@ -259,7 +331,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 33,
+      "index": 42,
       "route": "comparison-lab",
       "label": "Comparison Lab",
       "section": "Intelligence",
@@ -267,7 +339,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 34,
+      "index": 43,
       "route": "market",
       "label": "Market Overview",
       "section": "Intelligence",
@@ -275,7 +347,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 35,
+      "index": 44,
       "route": "rankings",
       "label": "Legacy Rankings",
       "section": "Intelligence",
@@ -283,7 +355,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 36,
+      "index": 45,
       "route": "asset",
       "label": "Asset Dossier",
       "section": "Workspace",
@@ -291,7 +363,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 37,
+      "index": 46,
       "route": "watchlist",
       "label": "Watchlists",
       "section": "Workspace",
@@ -299,7 +371,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 38,
+      "index": 47,
       "route": "alert-center",
       "label": "Alert Rules",
       "section": "Workspace",
@@ -307,7 +379,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 39,
+      "index": 48,
       "route": "notification-center",
       "label": "Notifications",
       "section": "Workspace",
@@ -315,7 +387,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 40,
+      "index": 49,
       "route": "screener-lab",
       "label": "Screener Lab",
       "section": "Workspace",
@@ -323,7 +395,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 41,
+      "index": 50,
       "route": "portfolio-analytics",
       "label": "Portfolio Analytics",
       "section": "Workspace",
@@ -331,7 +403,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 42,
+      "index": 51,
       "route": "research-workspace",
       "label": "Research Workspace",
       "section": "Workspace",
@@ -339,7 +411,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 43,
+      "index": 52,
       "route": "onboarding",
       "label": "Guided Onboarding",
       "section": "Workspace",
@@ -347,7 +419,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 44,
+      "index": 53,
       "route": "notification-schedules",
       "label": "Notification Schedules",
       "section": "Workspace",
@@ -355,7 +427,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 45,
+      "index": 54,
       "route": "formula-screener",
       "label": "Formula Screener",
       "section": "Workspace",
@@ -363,7 +435,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 46,
+      "index": 55,
       "route": "portfolio-attribution",
       "label": "Portfolio Attribution",
       "section": "Workspace",
@@ -371,7 +443,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 47,
+      "index": 56,
       "route": "import-center",
       "label": "Import Center",
       "section": "Workspace",
@@ -379,7 +451,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 48,
+      "index": 57,
       "route": "research-history",
       "label": "Research History",
       "section": "Workspace",
@@ -387,7 +459,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 49,
+      "index": 58,
       "route": "migration-center",
       "label": "Migration Center",
       "section": "Operations",
@@ -395,7 +467,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 50,
+      "index": 59,
       "route": "theme-lab",
       "label": "Theme Laboratory",
       "section": "Platform",
@@ -403,7 +475,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 51,
+      "index": 60,
       "route": "identity-access",
       "label": "Identity & Access",
       "section": "Control",
@@ -411,7 +483,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 52,
+      "index": 61,
       "route": "data-mesh",
       "label": "Provider Runtime",
       "section": "Control",
@@ -419,7 +491,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 53,
+      "index": 62,
       "route": "instrument-master",
       "label": "Instrument Master",
       "section": "Control",
@@ -427,7 +499,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 54,
+      "index": 63,
       "route": "timeseries-lab",
       "label": "Time Series Lab",
       "section": "Data Plane",
@@ -435,7 +507,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 55,
+      "index": 64,
       "route": "stream-operations",
       "label": "Stream Operations",
       "section": "Data Plane",
@@ -443,7 +515,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 56,
+      "index": 65,
       "route": "observability",
       "label": "Observability Center",
       "section": "Operations",
@@ -451,7 +523,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 57,
+      "index": 66,
       "route": "decision-provenance",
       "label": "Decision Provenance",
       "section": "Evidence",
@@ -459,7 +531,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 58,
+      "index": 67,
       "route": "security-evidence",
       "label": "Security Evidence",
       "section": "Evidence",
@@ -467,7 +539,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 59,
+      "index": 68,
       "route": "category-detail",
       "label": "Category Detail",
       "section": "Detail",
@@ -475,7 +547,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 60,
+      "index": 69,
       "route": "venue-detail",
       "label": "Venue Detail",
       "section": "Detail",
@@ -483,7 +555,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 61,
+      "index": 70,
       "route": "research-article",
       "label": "Research Article",
       "section": "Detail",

@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "repository": "hemangsah/qelly-intelligence",
+  "pullRequest": 23,
+  "testedHead": "1580d0631f4e313a2a889f66b9e7965b60eaa8fc",
+  "runId": 30630295319,
+  "workflow": "Qelly Prompt 2B Controlled Fast Track",
+  "status": "FAILED_ONE_PRODUCT_MOTION_HIT_TARGET",
+  "browserAggregateArtifact": {
+    "artifactId": 8793381548,
+    "bytes": 93807978,
+    "sha256": "9b9137a1387b722a34916a05df2ea238b6056e28c66d151ae646605dfb12d09b",
+    "entries": 283,
+    "zipCrc": "CLEAN",
+    "internalChecksumCount": 282,
+    "missingChecksumTargets": 0,
+    "checksumMismatches": 0,
+    "exactHeadMatched": true
+  },
+  "accessibilityAggregateArtifact": {
+    "artifactId": 8793190319,
+    "bytes": 9860,
+    "sha256": "dfb0827ddf921b44839601385660f90b8556906685c92cfdd875c834eb58b9da",
+    "checks": 54,
+    "passed": 54,
+    "failed": 0,
+    "exactHeadMatched": true
+  },
+  "browserMatrix": {
+    "expected": 1944,
+    "records": 1944,
+    "passed": 1943,
+    "failed": 1,
+    "shards": 27,
+    "missingShards": 0,
+    "missingCases": 0,
+    "duplicateCases": 0,
+    "checksumFailures": 0,
+    "retries": 0,
+    "forcedClicks": 0,
+    "performanceFailures": 0,
+    "themeFailures": 0
+  },
+  "failure": {
+    "caseId": "webkit|indicator-detail|768x1024|dark|full",
+    "signature": "ede689bed26c73b2a62a2c60ba01bd0ed697ca232575c0537ae0e34d3b5be53d",
+    "message": "Obstructed action [data-action=save]; hit=SECTION.q-calculator-layout",
+    "classification": "PRODUCT_MOTION_HIT_TESTING",
+    "route": "indicator-detail",
+    "browser": "webkit",
+    "viewport": "768x1024",
+    "theme": "dark",
+    "motion": "full",
+    "screenshot": "screenshots/webkit--indicator-detail--webkit-indicator-detail-768x1024-dark-full.png",
+    "trace": "traces/webkit--indicator-detail--webkit-indicator-detail-768x1024-dark-full.zip",
+    "evidence": "The save button was visible, enabled and initially unobstructed. Its magnetic pointermove calculation used getBoundingClientRect after the prior transform, making the next displacement self-referential. WebKit moved the button away after final pointer alignment, so elementFromPoint resolved the parent section. This was not a numerical, persistence, route, theme, accessibility or save-handler defect."
+  },
+  "correction": {
+    "commit": "263c61a33283afd34b10cd7ec9d51751ad9af0a2",
+    "path": "apps/web/public/assets/qelly-sovereign-motion.js",
+    "type": "MINIMAL_PRODUCT_MOTION_FIX",
+    "change": "Reconstruct the untransformed button center from the current magnetic offset before calculating the next offset.",
+    "retriesAdded": 0,
+    "forcedClicksAdded": 0,
+    "timeoutsInflated": false,
+    "numericalBehaviorChanged": false
+  },
+  "immutableRefs": [
+    "recovery/prompt2b-pre-magnetic-fix-1580d063",
+    "evidence/prompt2b-acceptance-30630295319-1580d063"
+  ],
+  "preserved": {
+    "formulas": 151,
+    "indicators": 54,
+    "formulaAggregateSha256": "3c7ac72e4ab6e5383e5e9aae90cc74508113c8d4c636c2efb7500df4ed49a98f",
+    "indicatorAggregateSha256": "3071eaac2a6a6dae24c8155a766e1db1ce8d26a2e6bf6ae30fb1ac594156087a",
+    "routes": 70,
+    "governedScreens": 429,
+    "apiContracts": 202,
+    "schemas": 72,
+    "smokeRequests": 290,
+    "migration": 108
+  },
+  "nextAction": "Run the three indicator-detail browser shards and two indicator-detail accessibility checks on the correction head. If green, restore acceptance mode and rerun the complete immutable 1944-browser and 54-accessibility gate."
+}

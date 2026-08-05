@@ -16,7 +16,7 @@ const queue=new ProductionJobQueue({repository,redisUrl:process.env.REDIS_URL,mo
 try{
   const db=await repository.health(),redis=await queue.health();
   if(!db.ok||!redis.ok)throw new Error(`Dependencies are unhealthy: ${JSON.stringify({db,redis})}`);
-  if(db.latestMigration!=='106_deployment_runtime_state.sql')throw new Error(`Expected migration 106, received ${db.latestMigration}`);
+  if(db.latestMigration!=='108_saved_calculation_lifecycle.sql')throw new Error(`Expected migration 108, received ${db.latestMigration}`);
   const registration=await repository.createRegistration({
     email:`integration-${suffix}@qelly.test`,passwordHash:await hashPassword('Integration!Password1'),displayName:'Integration User',
     organizationName:`Integration Org ${suffix}`,organizationSlug:`integration-org-${suffix}`,workspaceName:'Integration Workspace',workspaceSlug:'integration'

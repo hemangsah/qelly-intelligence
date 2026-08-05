@@ -42,7 +42,8 @@ const backendForRoute=(route)=>{
     operations:'Identity, storage, scanner, worker, observability, delivery, or readiness services.',
     account:'Identity and session services.',
     experience:'Layout preference service; visual fallback remains local.',
-    home:'Public content; optional read-only market service.'
+    home:'Public content; optional read-only market service.',
+    tools:'Deterministic local calculation, indicator, evidence, and optional authenticated persistence services.'
   }[route.domain];
   return domain??'Declared route contract.';
 };
@@ -159,7 +160,8 @@ overlays.forEach((name,index)=>add({
   responsive_notes:'Sheet or full-width drawer on mobile; anchored panel or dialog on desktop.'
 }));
 
-if(screenRows.length!==411)throw new Error(`Expected 411 screen-matrix rows, received ${screenRows.length}`);
+const expectedScreenRows=pageNames.length+routeDefinitions.length*2+PERSONA_PROFILES.length*priorityRoutes.length*2+priorityRoutes.length*states.length+overlays.length;
+if(screenRows.length!==expectedScreenRows)throw new Error(`Expected ${expectedScreenRows} screen-matrix rows, received ${screenRows.length}`);
 
 const components=[
   ['Button','default hover active pressed focus selected loading disabled error warning success','Enter/Space','full-width option'],

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-30T19:21:40.030Z",
+  "exactHead": "5d1479f7c2db2e3b4cffdd47282c8af96cdae3ec",
+  "repositoryContract": {
+    "routes": 70,
+    "frames": 429,
+    "lastFrameId": "QF-0429",
+    "defaultResponsiveMappings": 140
+  },
+  "historicalHandoff": {
+    "routes": 61,
+    "frames": 411,
+    "status": "SUPERSEDED_HISTORICAL_BASELINE"
+  },
+  "preFreshRepository": {
+    "routes": 66,
+    "frames": 421,
+    "status": "SUPERSEDED"
+  },
+  "reconciledAdditions": {
+    "routes": 9,
+    "defaultFrames": 18,
+    "routeIds": [
+      "calculator-center",
+      "india-finance",
+      "indicator-library",
+      "formula-library",
+      "saved-calculations",
+      "formula-detail",
+      "indicator-detail",
+      "calculator-detail",
+      "saved-calculation-detail"
+    ]
+  },
+  "unmatchedRoutes": 0,
+  "unmatchedDefaultFrames": 0,
+  "deterministicRepositoryGenerator": "AVAILABLE_AND_VALIDATED",
+  "nativeAuthenticatedFigmaExecution": "UNAVAILABLE",
+  "manualNativeFigmaApproval": false,
+  "claimBoundary": "No authenticated Figma connector exists in this execution environment; native execution and manual Figma approval are not claimed."
+}

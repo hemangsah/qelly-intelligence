@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-01T15:40:00Z",
+  "master": "QELLY_PROMPT_2C_EXPLICIT_PUBLIC_RUNTIME_WIRING_AND_CLOUDFLARE_RELEASE_MASTER.txt",
+  "repository": "hemangsah/qelly-intelligence",
+  "verifiedBeforeMutation": {
+    "main": "9cb98780893924ad26fbf4baaa9048e80a162b2c",
+    "prompt2B": {"pr": 23, "head": "17eeadac4c510cc3c312185e86b0ac5907f3789b", "state": "OPEN_DRAFT_UNMERGED"},
+    "prompt2C": {"pr": 25, "head": "48345ad58185011a5288f5dc62accaab9d106b79", "state": "OPEN_DRAFT_MERGEABLE_UNMERGED"},
+    "commitsAfterEvidenceHead": 0,
+    "filesAfterEvidenceHead": 0,
+    "releaseBranch": "release/qelly-global-public-beta",
+    "releaseSha": "603cece3091dc59cfb72680914e7056b40058022",
+    "fallbackPreserved": true,
+    "autoMerge": false,
+    "mainModified": false
+  },
+  "supabase": {
+    "project": "ssdgfgqnjlwzkgukzeef",
+    "url": "https://ssdgfgqnjlwzkgukzeef.supabase.co",
+    "status": "ACTIVE_HEALTHY",
+    "region": "ap-south-1",
+    "migrations": [
+      {"version": "20260801130701", "name": "qelly_final_live_activation_v1"},
+      {"version": "20260801131043", "name": "qelly_final_live_performance_indexes"}
+    ],
+    "migrationDrift": 0,
+    "newProjectCreated": false
+  },
+  "hosting": {
+    "cloudflarePagesActionsAvailable": false,
+    "cloudflareProjectCreated": false,
+    "publicDeploymentVerified": false
+  },
+  "selectedArchitecture": {
+    "option": "B",
+    "name": "Cloudflare API facade preserving /api/v1 contracts",
+    "identityProvider": "Supabase Auth only",
+    "sessionModel": "Supabase access/refresh tokens in Secure HttpOnly SameSite cookies; CSRF double-submit token",
+    "dataModel": "User JWT forwarded to Supabase PostgREST so existing RLS remains authoritative",
+    "providers": "Cloudflare Pages Function proxies official public Binance, Coinbase Exchange and ECB endpoints",
+    "reason": "Smallest frontend delta, no duplicate Auth system, no custom password storage, and no browser service-role credential."
+  },
+  "mutationAuthorized": true,
+  "secretsRequestedOrCommitted": false
+}

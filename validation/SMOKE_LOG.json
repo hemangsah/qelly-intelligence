@@ -2,7 +2,8 @@
   "status": "smoke-passed",
   "productVersion": "0.9.0-preview.1",
   "legacyRelease": "27.0.0",
-  "requests": 260,
+  "requests": 290,
+  "requestDenominator": 290,
   "checks": {
     "publicMarketEvidence": true,
     "decisionProvenanceGraph": true,
@@ -66,7 +67,12 @@
     "migrationContracts": true,
     "recursiveAudit": true,
     "observability": true,
-    "trustBoundary": true
+    "trustBoundary": true,
+    "deterministicCalculations": true,
+    "deterministicIndicators": true,
+    "freshCatalog": true,
+    "savedCalculationLifecycle": true,
+    "indiaCustomCharges": true
   },
   "log": [
     {
@@ -90,6 +96,42 @@
     {
       "method": "GET",
       "pathname": "/api/v1/public/providers",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/calculations/metadata",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/calculations/formulas",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/calculations/formulas/cagr",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/indicators",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/indicators/rsi",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/india/rules",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
@@ -456,6 +498,12 @@
     {
       "method": "GET",
       "pathname": "/api/v1/contracts/release-a5-platform-hardening",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/contracts/calculator-indicator-foundation",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
@@ -1109,12 +1157,150 @@
     },
     {
       "method": "GET",
+      "pathname": "/assets/calculation/formula-engine.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/calculation/indicator-engine.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/calculation/persistence.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/calculation/india-rules.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/calculator-center.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/india-finance-center.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/indicator-library.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/formula-library.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/assets/routes/saved-calculations.mjs",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "method": "GET",
       "pathname": "/packages/data-grid/data-grid.mjs",
       "status": 200,
       "contentType": "text/javascript; charset=utf-8"
     },
     {
       "method": "POST",
+      "pathname": "/api/v1/calculations/run",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/indicators/run",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/calculations/run",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/indicators/run",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/calculations/saved",
+      "status": 201,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/calculations/saved?q=Fresh%20PV&favorite=true&sort=name-asc",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/calculations/saved/bc30132f-9c39-4e5d-9512-4f2c02209179",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "PATCH",
+      "pathname": "/api/v1/calculations/saved/bc30132f-9c39-4e5d-9512-4f2c02209179",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/calculations/saved/bc30132f-9c39-4e5d-9512-4f2c02209179/duplicate",
+      "status": 201,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/v1/calculations/saved/bc30132f-9c39-4e5d-9512-4f2c02209179/revisions",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/calculations/saved/bc30132f-9c39-4e5d-9512-4f2c02209179/restore",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "DELETE",
+      "pathname": "/api/v1/calculations/saved/f3f10807-da9a-4f24-b633-3b79a3aa12f3",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "DELETE",
+      "pathname": "/api/v1/calculations/saved/bc30132f-9c39-4e5d-9512-4f2c02209179",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/v1/india/charges",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
       "pathname": "/api/v1/evidence/explain-move",
       "status": 201,
       "contentType": "application/json; charset=utf-8"
@@ -1127,19 +1313,19 @@
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/evidence/graphs/graph-0b29bc21-10fc-4802-a92a-c9ab16e6363f",
+      "pathname": "/api/v1/evidence/graphs/graph-97cfd910-2794-40f1-a384-2c9ebd352863",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/evidence/graphs/graph-0b29bc21-10fc-4802-a92a-c9ab16e6363f/traverse?depth=3",
+      "pathname": "/api/v1/evidence/graphs/graph-97cfd910-2794-40f1-a384-2c9ebd352863/traverse?depth=3",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/evidence/graphs/graph-0b29bc21-10fc-4802-a92a-c9ab16e6363f/export",
+      "pathname": "/api/v1/evidence/graphs/graph-97cfd910-2794-40f1-a384-2c9ebd352863/export",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
@@ -1361,7 +1547,7 @@
     },
     {
       "method": "DELETE",
-      "pathname": "/api/v1/asset-intelligence/layouts/chart-1492a5bd-0bcf-4663-bc76-ecee1efbbe87",
+      "pathname": "/api/v1/asset-intelligence/layouts/chart-3990f348-233e-4ba4-96fa-833858136102",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
@@ -1385,13 +1571,13 @@
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/workspace/watchlists/watchlist-9d4def7a-af3f-4bbc-af31-450db209cba5/items",
+      "pathname": "/api/v1/workspace/watchlists/watchlist-3b7e7aa4-428a-43c9-8c35-82a44bf2c882/items",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/workspace/watchlists/watchlist-9d4def7a-af3f-4bbc-af31-450db209cba5",
+      "pathname": "/api/v1/workspace/watchlists/watchlist-3b7e7aa4-428a-43c9-8c35-82a44bf2c882",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
@@ -1415,7 +1601,7 @@
     },
     {
       "method": "PUT",
-      "pathname": "/api/v1/notifications/notification-ea318095-2cd7-4f3e-bda9-de4c110ec47e/read",
+      "pathname": "/api/v1/notifications/notification-744dba97-e6ac-42f1-8aef-6fae39d870b4/read",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
@@ -1451,13 +1637,13 @@
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/research/workspaces/research-9f36bd96-9d82-4ea6-959e-b8f01bc9aba3/items",
+      "pathname": "/api/v1/research/workspaces/research-20dc8229-3400-468d-99e5-d9a84bac8cb4/items",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/research/workspaces/research-9f36bd96-9d82-4ea6-959e-b8f01bc9aba3",
+      "pathname": "/api/v1/research/workspaces/research-20dc8229-3400-468d-99e5-d9a84bac8cb4",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
@@ -1559,43 +1745,43 @@
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/imports/import-e291a5df-0137-4fc4-8ea9-a1cbe30c107e",
+      "pathname": "/api/v1/imports/import-b886681f-f04d-4505-afa7-9c6171d37b7f",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/research/workspaces/research-9f36bd96-9d82-4ea6-959e-b8f01bc9aba3/versions",
+      "pathname": "/api/v1/research/workspaces/research-20dc8229-3400-468d-99e5-d9a84bac8cb4/versions",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/research/workspaces/research-9f36bd96-9d82-4ea6-959e-b8f01bc9aba3/items",
+      "pathname": "/api/v1/research/workspaces/research-20dc8229-3400-468d-99e5-d9a84bac8cb4/items",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/research/workspaces/research-9f36bd96-9d82-4ea6-959e-b8f01bc9aba3/versions",
+      "pathname": "/api/v1/research/workspaces/research-20dc8229-3400-468d-99e5-d9a84bac8cb4/versions",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/research/version-diff?workspaceId=research-9f36bd96-9d82-4ea6-959e-b8f01bc9aba3&left=research-version-97f62200-2a38-46f1-b5d9-7a352b72e38c&right=research-version-0274c077-6620-4d5f-8bcf-973a467be62b",
+      "pathname": "/api/v1/research/version-diff?workspaceId=research-20dc8229-3400-468d-99e5-d9a84bac8cb4&left=research-version-f2163e33-38cf-4444-b00b-233886198f80&right=research-version-5d4e2e5b-4576-4a79-b64c-ecc0cfe91a2e",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/research/workspaces/research-9f36bd96-9d82-4ea6-959e-b8f01bc9aba3/versions/research-version-97f62200-2a38-46f1-b5d9-7a352b72e38c/restore",
+      "pathname": "/api/v1/research/workspaces/research-20dc8229-3400-468d-99e5-d9a84bac8cb4/versions/research-version-f2163e33-38cf-4444-b00b-233886198f80/restore",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/research/workspaces/research-9f36bd96-9d82-4ea6-959e-b8f01bc9aba3/versions/research-version-97f62200-2a38-46f1-b5d9-7a352b72e38c/restore",
+      "pathname": "/api/v1/research/workspaces/research-20dc8229-3400-468d-99e5-d9a84bac8cb4/versions/research-version-f2163e33-38cf-4444-b00b-233886198f80/restore",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },

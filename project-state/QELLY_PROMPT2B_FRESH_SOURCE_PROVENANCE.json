@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-30T19:21:40.030Z",
+  "exactHead": "5d1479f7c2db2e3b4cffdd47282c8af96cdae3ec",
+  "repository": "hemangsah/qelly-intelligence",
+  "provenanceStatus": "FRESH_REIMPLEMENTATION_2026",
+  "historicalRecoveryClaim": false,
+  "historicalHashContinuity": false,
+  "historicalMissingHashes": {
+    "formula": "14d26b884b32549c6086ad76934ad5f913e90f53595bea4475b4a8f52670533c",
+    "indicator": "158769fc7c972a88bad9c89ceea03d5c52c1f4a7f91662b746c71c8e939c4456",
+    "reused": false
+  },
+  "freshAggregateHashes": {
+    "formula": "3c7ac72e4ab6e5383e5e9aae90cc74508113c8d4c636c2efb7500df4ed49a98f",
+    "indicator": "3071eaac2a6a6dae24c8155a766e1db1ce8d26a2e6bf6ae30fb1ac594156087a"
+  },
+  "counts": {
+    "freshFormulas": 101,
+    "freshIndicators": 34,
+    "totalFormulas": 151,
+    "totalIndicators": 54
+  },
+  "engineMetadata": {
+    "formula": {
+      "engineVersion": "extended-2.0.0",
+      "definitionCount": 151,
+      "foundationDefinitionCount": 50,
+      "freshDefinitionCount": 101,
+      "deterministic": true,
+      "externalProviderRequired": false,
+      "calculationPrecision": 12,
+      "displayPrecision": 6,
+      "freshProvenance": "FRESH_REIMPLEMENTATION_2026",
+      "historicalHashContinuity": false
+    },
+    "indicator": {
+      "version": "extended-2.0.0",
+      "definitionCount": 54,
+      "foundationDefinitionCount": 20,
+      "freshDefinitionCount": 34,
+      "deterministic": true,
+      "externalProviderRequired": false,
+      "freshProvenance": "FRESH_REIMPLEMENTATION_2026",
+      "historicalHashContinuity": false
+    }
+  },
+  "formulaSources": [
+    "apps/web/public/assets/calculation/fresh-formula-core.mjs",
+    "apps/web/public/assets/calculation/fresh-formula-tvm-loans-fixed.mjs",
+    "apps/web/public/assets/calculation/fresh-formula-returns-portfolio.mjs",
+    "apps/web/public/assets/calculation/fresh-formula-risk-statistics.mjs",
+    "apps/web/public/assets/calculation/fresh-formula-regression-derivatives.mjs",
+    "apps/web/public/assets/calculation/fresh-formula-fx-crypto-exposure.mjs",
+    "apps/web/public/assets/calculation/fresh-formula-utilities.mjs",
+    "apps/web/public/assets/calculation/fresh-formula-catalog.mjs",
+    "apps/web/public/assets/calculation/formula-engine-extended.mjs"
+  ],
+  "indicatorSources": [
+    "apps/web/public/assets/calculation/fresh-indicator-catalog.mjs",
+    "apps/web/public/assets/calculation/indicator-engine-extended.mjs"
+  ]
+}

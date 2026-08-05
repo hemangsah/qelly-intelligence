@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-07-31T09:45:00Z",
+  "repository": "hemangsah/qelly-intelligence",
+  "pullRequest": 23,
+  "checkpoint": "4a733ae29c499a8be3dc6751ad95ec97e1b969df",
+  "boundedHistoricalRetrieval": {
+    "attemptsAuthorized": 1,
+    "attemptsPerformed": 1,
+    "jobLogRequest": {
+      "runId": 30586896812,
+      "jobId": 91020348079,
+      "head": "cb85761b3ff9928aae8cfdada9f4be67985de97c",
+      "classification": "CONNECTOR_RESPONSE_UNREADABLE",
+      "explanation": "The GitHub connector returned a response resource for the decoded job log, but the response body could not be exposed as readable text. No second archaeology attempt is authorized or claimed."
+    }
+  },
+  "historicalEvidence": {
+    "runId": 30586896812,
+    "jobId": 91020348079,
+    "artifactId": 8778077242,
+    "artifactDigest": "sha256:9c43f18c4411520cb146e2882090ffc3d3cf643fb659ee43b603509aa16021e9",
+    "artifactBytes": 125939131,
+    "head": "cb85761b3ff9928aae8cfdada9f4be67985de97c",
+    "status": "HISTORICAL_AGGREGATE_ONLY",
+    "missingEvidence": [
+      {
+        "evidence": "complete per-case assertion JSONL",
+        "classification": "NEVER_GENERATED",
+        "claim": "not recovered"
+      },
+      {
+        "evidence": "one trace archive for every historical failing case",
+        "classification": "NEVER_GENERATED",
+        "claim": "not recovered"
+      },
+      {
+        "evidence": "complete historical job log through the connected interface",
+        "classification": "CONNECTOR_RESPONSE_UNREADABLE",
+        "claim": "not recovered"
+      },
+      {
+        "evidence": "historical aggregate counters and retained screenshots",
+        "classification": "RETRIEVED_PARTIAL",
+        "claim": "preserved only as aggregate diagnostic evidence"
+      }
+    ],
+    "truthBoundary": "The old run is retained as historical aggregate evidence. It is not used to claim reconstruction of every historical failure and is not acceptance evidence."
+  },
+  "freshReplacementEvidence": {
+    "currentDiagnosticRun": 30606919952,
+    "currentDiagnosticArtifact": 8784954275,
+    "head": "4a733ae29c499a8be3dc6751ad95ec97e1b969df",
+    "records": 1944,
+    "failures": 424,
+    "failureFamilies": {
+      "fixed-nav-clearance": 265,
+      "action-errors": 243,
+      "overlap": 84
+    },
+    "status": "FRESH_AGGREGATE_DIAGNOSTIC_NOT_ACCEPTANCE",
+    "nextEvidenceContract": "Immediate fsynced JSONL after every case, 27 exact-head browser shards, parallel accessibility shards, failure screenshots, failure traces, SHA-256 manifests and denominator reconciliation."
+  },
+  "immutableRefs": [
+    {
+      "ref": "recovery/prompt2b-pre-design-4a733ae",
+      "sha": "4a733ae29c499a8be3dc6751ad95ec97e1b969df",
+      "verification": "remote compare identical"
+    },
+    {
+      "ref": "evidence/prompt2b-run-30586896812-cb85761b",
+      "sha": "cb85761b3ff9928aae8cfdada9f4be67985de97c",
+      "verification": "remote compare identical"
+    }
+  ],
+  "classifications": [
+    "API_NOT_EXPOSED",
+    "CONNECTOR_RESPONSE_UNREADABLE",
+    "NOT_RETAINED",
+    "NEVER_GENERATED",
+    "RETRIEVED_PARTIAL"
+  ],
+  "unusedClassifications": [
+    {
+      "classification": "API_NOT_EXPOSED",
+      "reason": "The connector did expose a decoded-log action, so the bounded failure was unreadability rather than absence of an API action."
+    },
+    {
+      "classification": "NOT_RETAINED",
+      "reason": "The artifact remains retained; the missing per-case evidence was not generated rather than later deleted."
+    }
+  ]
+}

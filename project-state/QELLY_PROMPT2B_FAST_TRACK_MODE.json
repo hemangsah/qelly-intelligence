@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "mode": "acceptance",
+  "checkpoint": "a155128d60ef646b479b926f5957ccf24fec1315",
+  "purpose": "Run one complete immutable pre-design acceptance matrix after the Indicator Detail interactive-panel correction passed all 216 affected browser cases and both accessibility checks on Chromium, Firefox and WebKit with zero failures, retries or forced clicks.",
+  "priorFocusedGate": {
+    "head": "a155128d60ef646b479b926f5957ccf24fec1315",
+    "runId": 30648759663,
+    "browserAggregateArtifactId": 8800670841,
+    "accessibilityAggregateArtifactId": 8800556282,
+    "focusedGateArtifactId": 8800674125,
+    "browserCases": 216,
+    "browserPassed": 216,
+    "browserFailed": 0,
+    "accessibilityChecks": 2,
+    "accessibilityPassed": 2,
+    "accessibilityFailed": 0,
+    "retries": 0,
+    "forcedClicks": 0,
+    "specialistWorkflows": "ALL_GREEN",
+    "status": "PASSED_FOCUSED_NOT_ACCEPTANCE"
+  },
+  "focus": {
+    "browserShards": [
+      { "browser": "chromium", "route": "indicator-detail" },
+      { "browser": "firefox", "route": "indicator-detail" },
+      { "browser": "webkit", "route": "indicator-detail" }
+    ],
+    "a11yRoutes": [
+      "indicator-detail"
+    ]
+  },
+  "acceptanceContract": {
+    "browserShards": 27,
+    "casesPerBrowserShard": 72,
+    "browserCases": 1944,
+    "accessibilityShards": 27,
+    "checksPerAccessibilityShard": 2,
+    "accessibilityChecks": 54,
+    "failFast": false,
+    "retries": 0,
+    "forcedClicks": 0
+  }
+}

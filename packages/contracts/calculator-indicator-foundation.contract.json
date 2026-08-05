@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qelly.example/contracts/calculator-indicator-foundation.contract.json",
+  "title": "Qelly Calculator and Indicator Foundation Contract",
+  "type": "object",
+  "required": ["version", "truthBoundary", "formulas", "indicators", "persistence", "security"],
+  "properties": {
+    "version": {"const": "1.0.0"},
+    "truthBoundary": {"const": "Deterministic formulas and indicators require no external financial provider. Local and server-runtime persistence are not production cloud connectivity."},
+    "formulas": {
+      "type": "object",
+      "required": ["canonicalEngine", "versioned", "evidenceRequired", "externalProviderRequired"],
+      "properties": {
+        "canonicalEngine": {"const": "apps/web/public/assets/calculation/formula-engine.mjs"},
+        "versioned": {"const": true},
+        "evidenceRequired": {"const": true},
+        "externalProviderRequired": {"const": false}
+      }
+    },
+    "indicators": {
+      "type": "object",
+      "required": ["canonicalEngine", "inputSource", "alignment", "externalProviderRequired"],
+      "properties": {
+        "canonicalEngine": {"const": "apps/web/public/assets/calculation/indicator-engine.mjs"},
+        "inputSource": {"const": "user-provided-or-lawfully-obtained-OHLCV"},
+        "alignment": {"const": "oldest-to-newest-same-length-null-warmup"},
+        "externalProviderRequired": {"const": false}
+      }
+    },
+    "persistence": {
+      "type": "object",
+      "required": ["browser", "serverRuntime", "productionCloud"],
+      "properties": {
+        "browser": {"const": "IMPLEMENTED_DETERMINISTIC_LOCAL"},
+        "serverRuntime": {"const": "PARTIAL_LOCAL_FILE_ADAPTER"},
+        "productionCloud": {"const": "UNAVAILABLE_UNTIL_DEPLOYED_AND_PROVEN"}
+      }
+    },
+    "security": {
+      "type": "object",
+      "required": ["prototypePollutionRejected", "csvFormulaInjectionNeutralized", "inputLimits", "noSecrets", "noPersonalizedAdvice"],
+      "properties": {
+        "prototypePollutionRejected": {"const": true},
+        "csvFormulaInjectionNeutralized": {"const": true},
+        "inputLimits": {"const": true},
+        "noSecrets": {"const": true},
+        "noPersonalizedAdvice": {"const": true}
+      }
+    }
+  },
+  "examples": [{
+    "version": "1.0.0",
+    "truthBoundary": "Deterministic formulas and indicators require no external financial provider. Local and server-runtime persistence are not production cloud connectivity.",
+    "formulas": {"canonicalEngine": "apps/web/public/assets/calculation/formula-engine.mjs", "versioned": true, "evidenceRequired": true, "externalProviderRequired": false},
+    "indicators": {"canonicalEngine": "apps/web/public/assets/calculation/indicator-engine.mjs", "inputSource": "user-provided-or-lawfully-obtained-OHLCV", "alignment": "oldest-to-newest-same-length-null-warmup", "externalProviderRequired": false},
+    "persistence": {"browser": "IMPLEMENTED_DETERMINISTIC_LOCAL", "serverRuntime": "PARTIAL_LOCAL_FILE_ADAPTER", "productionCloud": "UNAVAILABLE_UNTIL_DEPLOYED_AND_PROVEN"},
+    "security": {"prototypePollutionRejected": true, "csvFormulaInjectionNeutralized": true, "inputLimits": true, "noSecrets": true, "noPersonalizedAdvice": true}
+  }]
+}

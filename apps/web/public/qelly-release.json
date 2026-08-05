@@ -1,0 +1,12 @@
+{
+  "releaseSha": "source-unbuilt",
+  "workflowRun": null,
+  "deployedAt": null,
+  "mode": "source",
+  "cloudMode": "local-only",
+  "authentication": false,
+  "cloudSync": false,
+  "liveProviders": false,
+  "protectedWrites": false,
+  "fallbackUrl": "https://hemangsah.github.io/qelly-intelligence/"
+}

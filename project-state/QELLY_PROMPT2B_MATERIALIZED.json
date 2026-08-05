@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "materializedAt": "2026-07-30T19:21:40.116Z",
+  "sourceSnapshotHead": "5d1479f7c2db2e3b4cffdd47282c8af96cdae3ec",
+  "formulas": 151,
+  "indicators": 54,
+  "routes": 70,
+  "frames": 429,
+  "browserTarget": 1944,
+  "accessibilityTarget": 54,
+  "artifactIdentity": "qelly-prompt2b-final-18-section-review",
+  "nativeFigma": "UNAVAILABLE",
+  "prompt2CExecuted": false
+}

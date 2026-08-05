@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 2,
+  "recordedAt": "2026-08-01T14:58:00Z",
+  "masterCommand": {
+    "filename": "QELLY_PROMPT_2C_FINAL_CLOUDFLARE_DEPLOYMENT_AUTH_PUBLIC_RUNTIME_PDF_LINKEDIN_MASTER.txt",
+    "lines": 548,
+    "sha256": "a9e95146227a2a0aa00a413c566b12ff717b95b05bf818f1ceacd05f28922a82",
+    "completeReadBeforeMutation": true
+  },
+  "repository": {
+    "name": "hemangsah/qelly-intelligence",
+    "mainSha": "9cb98780893924ad26fbf4baaa9048e80a162b2c",
+    "prompt2B": {"pullRequest": 23, "state": "OPEN_DRAFT_UNMERGED", "head": "17eeadac4c510cc3c312185e86b0ac5907f3789b"},
+    "prompt2C": {"pullRequest": 25, "state": "OPEN_DRAFT_MERGEABLE_UNMERGED", "lastValidatedImplementationAndActivationEvidenceHead": "81798b39aab960d163fb1fd34bb9060ef98aade6"},
+    "releaseBranch": "release/qelly-global-public-beta",
+    "acceptedReleaseSha": "603cece3091dc59cfb72680914e7056b40058022",
+    "releaseBranchStillExact": true,
+    "mainModified": false,
+    "pullRequestsMergedOrMarkedReady": false,
+    "autoMerge": false
+  },
+  "freshDeltaVerification": {
+    "commitsAfter81798BeforeEvidenceRecords": 0,
+    "filesAfter81798BeforeEvidenceRecords": 0,
+    "evidenceOnlyCommitsAddedDuringContinuation": true,
+    "runtimeFilesChangedDuringContinuation": 0,
+    "secretsCommitted": false
+  },
+  "hosting": {
+    "cloudflare": {
+      "status": "CLOUDFLARE_PAGES_OFFICIAL_AUTHORIZATION_REQUIRED",
+      "officialPagesProjectActionsAvailable": false,
+      "officialPagesDeploymentActionsAvailable": false,
+      "wranglerAvailable": false,
+      "wranglerInstallResult": "FAILED_INTERNAL_PACKAGE_GATEWAY_404",
+      "pagesProjectCreated": false,
+      "pagesDevUrlVerified": false,
+      "paymentMethodAttached": false,
+      "paidOveragesEnabled": false,
+      "domainPurchased": false
+    },
+    "githubPagesFallback": {
+      "status": "GITHUB_PAGES_ENVIRONMENT_OR_SOURCE_AUTHORIZATION_REQUIRED",
+      "releaseRunRerun": 30698534885,
+      "validationJob": {"id": 91379973092, "conclusion": "success"},
+      "deploymentJob": {"id": 91379972997, "conclusion": "failure", "runnerSteps": 0},
+      "verifierJob": {"id": 91379973012, "conclusion": "failure", "expectedReleaseSha": "603cece3091dc59cfb72680914e7056b40058022", "attempts": 30},
+      "latestFeaturePushRun": 30704347842,
+      "latestFeaturePushValidationJob": {"id": 91380765040, "conclusion": "success"},
+      "latestFeaturePushDeploymentJob": {"id": 91380822952, "conclusion": "failure", "runnerSteps": 0},
+      "latestFeaturePushVerifierJob": {"id": 91380822938, "conclusion": "failure"},
+      "exactPublicReleaseVerified": false
+    }
+  },
+  "acceptedReleaseRuntimeAudit": {
+    "status": "ACCEPTED_RELEASE_PUBLIC_RUNTIME_WIRING_REQUIRED",
+    "finding": "The accepted release is a validated deterministic local fallback, not the full live Auth, synchronization and provider runtime required by the continuation master.",
+    "evidence": [
+      "The release workflow builds with QELLY_STATIC_VISUAL_PREVIEW=true, QELLY_CLOUD_MODE=local-only, QELLY_ENABLE_AUTH=false, QELLY_ENABLE_CLOUD_SYNC=false and QELLY_ENABLE_LIVE_PROVIDERS=false.",
+      "The release verifier requires cloudMode=local-only and authentication=false.",
+      "The public-surface test explicitly asserts authentication:false, cloudSync:false and liveProviders:false.",
+      "scripts/build-frontend.mjs overwrites qelly-config.js with a minimal static runtime object and does not inject Supabase URL, publishable key or capability flags.",
+      "The browser registration and login routes call custom /api/v1/auth/register and /api/v1/auth/login APIs plus /api/v1/config and /api/v1/session/context.",
+      "apps/edge/prompt2c-worker.mjs exposes health, status, feedback, account export, account deletion and sync-operation routes, but not the browser Auth/config/session/preferences/market/provider routes used by the existing UI.",
+      "The existing Supabase project has zero Edge Functions, so no alternate deployed API currently supplies those routes."
+    ],
+    "consequence": "Normal Cloudflare OAuth can authorize hosting, but it cannot by itself make the exact 603cece release pass the commanded signup, confirmation, login, logout, recovery, refresh, browser sync and deployed provider gates.",
+    "runtimeChangeMade": false,
+    "reasonNoRuntimeChangeMade": "The user required exact deployment of 603cece and prohibited rebuilding completed Prompt 2C work. A wiring change would alter the accepted release and requires separate explicit release authorization.",
+    "smallestTechnicalContinuation": [
+      "Authorize a narrowly scoped public-runtime wiring delta on the Prompt 2C branch without touching Prompt 2B or deterministic formulas/screens.",
+      "Wire existing SupabasePublicBetaAdapter journeys into the browser or implement equivalent authenticated edge endpoints.",
+      "Provide a deployable Cloudflare Pages Functions or Worker routing layer for Auth/config/session/sync/provider APIs and static assets.",
+      "Inject only public Supabase URL/publishable key and exact public URL through the official build environment; keep private values in secret storage.",
+      "Add exact-head public tests that require authentication=true, cloudSync=true and liveProviders=true rather than the current local-only assertions.",
+      "Validate the new release head, then advance the release branch only through an explicit release decision."
+    ]
+  },
+  "supabase": {
+    "project": "ssdgfgqnjlwzkgukzeef",
+    "region": "ap-south-1",
+    "status": "ACTIVE_HEALTHY",
+    "plan": "free",
+    "migrations": [
+      {"version": "20260801130701", "name": "qelly_final_live_activation_v1"},
+      {"version": "20260801131043", "name": "qelly_final_live_performance_indexes"}
+    ],
+    "tables": 10,
+    "rlsEnabledTables": 10,
+    "rowsAcrossQellyTables": 0,
+    "edgeFunctions": 0,
+    "migrationDriftDetected": false,
+    "destructiveWorkRepeated": false,
+    "newProjectCreated": false
+  },
+  "artifacts": {
+    "predeploymentPdf": {"filename": "QELLY_COMPLETE_FRONTEND_ALL_SCREENS_MASTER.pdf", "preserved": true, "pages": 436, "governedScreens": 429, "bytes": 74431779, "sha256": "9f47138a1d43237dca01bef907aa48b158405d1d00e86953bfb9e9f28bbbf0b6", "overwritten": false},
+    "publicRuntimePdf": {"filename": "QELLY_COMPLETE_FRONTEND_ALL_SCREENS_MASTER_PUBLIC_RUNTIME.pdf", "generated": false, "reason": "No exact public runtime exists and required Auth/sync/provider wiring is absent from the accepted release; live screens are not fabricated."},
+    "linkedinPackage": {"filename": "QELLY_PROMPT2C_LINKEDIN_LAUNCH_PACKAGE.zip", "sha256": "be0fbb7acf996c5eb3c9c3884d9e718a3cd5598e96f8383f192dca06ca09da62", "ready": true, "published": false}
+  },
+  "blockers": [
+    {"code": "CLOUDFLARE_PAGES_OFFICIAL_AUTHORIZATION_REQUIRED", "type": "normal_external_authorization", "nextAction": "Connect one Pages Free project through the authenticated Cloudflare dashboard and official GitHub OAuth integration, with no payment method, paid overages or domain purchase."},
+    {"code": "ACCEPTED_RELEASE_PUBLIC_RUNTIME_WIRING_REQUIRED", "type": "technical_release_delta", "nextAction": "Explicitly authorize a narrowly scoped Prompt 2C public-runtime wiring commit and subsequent validated release-head advancement; exact 603cece must remain preserved as the deterministic fallback."},
+    {"code": "GITHUB_PAGES_ENVIRONMENT_OR_SOURCE_AUTHORIZATION_REQUIRED", "type": "fallback_authorization", "nextAction": "Allow the release branch in the github-pages environment and confirm Pages uses GitHub Actions."},
+    {"code": "LINKEDIN_PUBLICATION_AUTHORIZATION_REQUIRED_AFTER_LIVE_URL", "type": "publishing_authorization", "nextAction": "Expose an official LinkedIn publishing action only after the public URL and claims pass."}
+  ],
+  "scorecard": {
+    "QellyOverall": "82-87%",
+    "Prompt2B": "100%",
+    "Prompt2CImplementation": "86-91% full-runtime; 100% deterministic fallback contract",
+    "Prompt2CActivation": "45-55%",
+    "frontend": "97-99% governed/deterministic; public cloud wiring incomplete",
+    "backend": "82-88% components; public route integration incomplete",
+    "database": "96-99% live",
+    "liveAuthJourneys": "0%",
+    "RLS": "98-100% database; deployed-browser repeat pending",
+    "cloudSync": "88-94% engine/database; 0% public browser",
+    "providers": "88-94% adapters; 0% deployed route verification",
+    "security": "94-98% code/database; live host pending",
+    "accessibility": "100% preserved corpus; activation screens pending",
+    "performance": "90-95% predeployment; public measurement pending",
+    "SEO_PWA": "92-97% artifacts; public verification pending",
+    "deployment": "0% exact public release verified",
+    "freeTierSustainability": "90-95% design; Pages project absent",
+    "predeploymentPdf": "100%",
+    "publicRuntimePdf": "0% correctly gated",
+    "linkedinPackage": "100%",
+    "linkedinPublication": "0%",
+    "globalReadiness": "88-93% deterministic; 45-55% cloud",
+    "productionReadiness": "80-86% foundations; 0% exact public activation"
+  },
+  "safety": {
+    "rawCredentialsRequested": false,
+    "secretsCommitted": false,
+    "mainModified": false,
+    "pullRequestsMerged": false,
+    "tradingCustodyTransfersWalletSigningOrExecutionEnabled": false
+  },
+  "exactNextDecision": "Two authorizations are required, not one: normal Cloudflare Pages OAuth/dashboard authorization and explicit permission for a narrowly scoped Prompt 2C public-runtime wiring/release delta. Without the second, exact 603cece can only be deployed truthfully as a local-only deterministic fallback and cannot pass the commanded Auth, sync or provider gates."
+}

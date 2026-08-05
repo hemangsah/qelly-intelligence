@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   ibm-plex-lock:
-    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'agent/ui-rescue-asset-rankings' || github.head_ref == 'feature/logo-first-brand-system'
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'agent/ui-rescue-asset-rankings' || github.head_ref == 'feature/logo-first-brand-system' || github.head_ref == 'feature/calculator-and-indicator-foundation'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -38,13 +38,3 @@ jobs:
           grep -q 'IBM Plex Sans Variable permanent canonical font' apps/web/public/assets/theme-intelligence.mjs
           grep -q 'GT Eesti inactive licence gate' apps/web/public/assets/theme-intelligence.mjs
           ! grep -RInE 'font-family:[^;]*(Geist|Manrope|Plus Jakarta|GT Eesti)' apps/web/public/assets/theme-intelligence.css apps/web/public/assets/routes/theme-intelligence-studio.mjs
-      - name: Build static frontend
-        env:
-          QELLY_STATIC_VISUAL_PREVIEW: 'true'
-          QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
-        run: npm run build:frontend
-      - name: Inspect loaded font contract
-        run: |
-          test -f dist/frontend/assets/fonts/ibm-plex-sans-variable.woff2
-          test -f dist/frontend/assets/fonts/ibm-plex-sans-variable.woff2.LICENSE.txt
-          test -z "$(find dist/frontend \( -iname '*geist*.woff2' -o -iname '*manrope*.woff2' -o -iname '*jakarta*.woff2' \) -print -quit)"

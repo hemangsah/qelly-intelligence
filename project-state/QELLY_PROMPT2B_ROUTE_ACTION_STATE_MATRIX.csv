@@ -1,0 +1,10 @@
+matrix_id,route,route_path,state_or_action,expected_truth,automated_evidence,status
+P2B-001,calculator-center,calculator-center,calculate,deterministic local no personalized advice,prompt2b-final-review.mjs,PENDING_EXACT_FINAL_RUN
+P2B-002,india-finance,india-finance,effective-date and unavailable-rule states,user-entered or versioned rule truth,prompt2b-final-review.mjs,PENDING_EXACT_FINAL_RUN
+P2B-003,indicator-library,indicator-library,calculate,user-provided OHLCV no external indicator API,prompt2b-final-review.mjs,PENDING_EXACT_FINAL_RUN
+P2B-004,formula-library,formula-library,search and open detail,151 versioned formulas,prompt2b-final-review.mjs,PENDING_EXACT_FINAL_RUN
+P2B-005,saved-calculations,saved-calculations,search filter sort import export clear,browser-local cloud unavailable,prompt2b-saved-action-review.mjs,PENDING_EXACT_FINAL_RUN
+P2B-006,formula-detail,formula-detail/fresh-present-value,save share open calculator,FRESH_REIMPLEMENTATION_2026 no historical continuity,prompt2b-final-review.mjs,PENDING_EXACT_FINAL_RUN
+P2B-007,indicator-detail,indicator-detail/fresh-price-momentum,save export share,user OHLCV only no implied unavailable datasets,prompt2b-final-review.mjs,PENDING_EXACT_FINAL_RUN
+P2B-008,calculator-detail,calculator-detail/fresh-present-value,calculate save export share restore shared inputs,no provider broker or execution,prompt2b-saved-action-review.mjs,PENDING_EXACT_FINAL_RUN
+P2B-009,saved-calculation-detail,saved-calculation-detail/prompt2b-review-saved,reopen rename update duplicate delete revisions restore export share save shared copy,local or shared read-only explicit,prompt2b-saved-action-review.mjs,PENDING_EXACT_FINAL_RUN

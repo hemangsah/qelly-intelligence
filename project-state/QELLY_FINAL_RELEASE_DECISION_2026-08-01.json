@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-01T19:00:00+05:30",
+  "acceptedPublicReleaseSha": "603cece3091dc59cfb72680914e7056b40058022",
+  "releaseBranch": "release/qelly-global-public-beta",
+  "releaseBranchHead": "603cece3091dc59cfb72680914e7056b40058022",
+  "featureBranchContainsPostReleaseDatabaseAndEvidenceCommits": true,
+  "releaseBranchMoved": false,
+  "reason": "Do not change the accepted deployable release identity until post-release migration/evidence commits complete repository validation and an authorized deployment platform is available.",
+  "databaseMigrationSourceCommits": [
+    "e505e0b796481778c3261f738f4dfac30b59a674",
+    "6c90e5bf189ac17ef56cffdafa092c6ca68ff38f"
+  ],
+  "nextReleaseDecision": "After exact-head CI succeeds and Cloudflare authorization exists, freeze either the validated existing release SHA or a separately validated newer release head; never deploy an ambiguous SHA."
+}

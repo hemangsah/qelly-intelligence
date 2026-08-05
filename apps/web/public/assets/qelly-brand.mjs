@@ -4,8 +4,8 @@ const appearance=()=>root.dataset.resolvedAppearance||root.dataset.appearance||'
 const isLight=()=>appearance()==='light';
 const horizontalLogo=()=>asset(isLight()?'qelly-logo-light.svg':'qelly-logo-dark.svg');
 const symbolLogo=()=>asset(isLight()?'qelly-symbol.svg':'qelly-symbol-dark.svg');
-const esc=(value)=>String(value).replace(/[&<>"']/g,(ch)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
 const blockingStates=new Set(['loading','empty','offline','error']);
+const productionProduct=()=>root.dataset.productSurface==='production'||window.__QELLY_CONFIG__?.staticVisualPreview===false;
 
 function installShellBrand(){
   const target=document.querySelector('.q-brand-mark');
@@ -79,6 +79,7 @@ function heroMarkup(){
   </section>`;
 }
 function installHero(){
+  if(productionProduct())return;
   const main=document.getElementById('main');
   const previewState=document.getElementById('state-selector')?.value;
   if(!main||!location.hash.match(/^#\/?market(?:$|[/?])/))return;
@@ -87,6 +88,7 @@ function installHero(){
   main.insertAdjacentHTML('afterbegin',heroMarkup());
 }
 function installAuthBrand(){
+  if(productionProduct())return;
   const main=document.getElementById('main');
   if(!main||!/^#\/?auth-(login|register|recovery)/.test(location.hash))return;
   const host=main.querySelector('.q-auth-card')||main.querySelector('.q-auth-shell,form')?.parentElement||main.firstElementChild;
@@ -120,10 +122,17 @@ function installCommandBrand(){
   row.innerHTML=`<img width="304" height="84" src="${horizontalLogo()}" alt="Qelly"><span>Command intelligence</span>`;
   dialog.prepend(row);
 }
+function enforceProductionBoundary(){
+  if(!productionProduct())return;
+  document.querySelectorAll('[data-qelly-brand-hero],[data-qelly-auth-brand]').forEach((node)=>node.remove());
+}
 function refresh(){
   installShellBrand();
-  installHero();
-  installAuthBrand();
+  enforceProductionBoundary();
+  if(!productionProduct()){
+    installHero();
+    installAuthBrand();
+  }
   installStateBrand();
   installCommandBrand();
 }

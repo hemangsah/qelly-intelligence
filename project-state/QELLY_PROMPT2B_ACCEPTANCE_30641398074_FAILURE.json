@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "repository": "hemangsah/qelly-intelligence",
+  "branch": "feature/calculator-and-indicator-foundation",
+  "pr": 23,
+  "head": "a3a9b0f049c4a62f1710db1b29eb90bc6f778059",
+  "runId": 30641398074,
+  "conclusion": "failure",
+  "classification": "GOVERNANCE_PACKAGING_DEFECT",
+  "productDefect": false,
+  "harnessDefect": true,
+  "matrix": {
+    "browser": {
+      "artifactId": 8798416642,
+      "outerBytes": 91299683,
+      "outerSha256": "b335fee53c90da366d876eec2cfc26c4c6dde5f798e85cb8f8e61fd79f22daa0",
+      "zipEntries": 281,
+      "zipCrc": "PASSED",
+      "records": 1944,
+      "expected": 1944,
+      "passed": 1944,
+      "failed": 0,
+      "shards": 27,
+      "checksumTargets": 280,
+      "missing": 0,
+      "duplicates": 0,
+      "unexpected": 0,
+      "checksumMissingTargets": 0,
+      "checksumMismatches": 0,
+      "retries": 0,
+      "forcedClicks": 0
+    },
+    "accessibility": {
+      "artifactId": 8797870765,
+      "outerBytes": 9934,
+      "outerSha256": "1c1c0a6f2147b90078af918fb9c690d8ba627e61d76865a82807df705633b9d5",
+      "zipEntries": 8,
+      "zipCrc": "PASSED",
+      "checks": 54,
+      "expectedChecks": 54,
+      "passed": 54,
+      "failed": 0,
+      "checksumTargets": 6,
+      "missingChecks": 0,
+      "duplicateChecks": 0,
+      "checksumMissingTargets": 0,
+      "checksumMismatches": 0,
+      "retries": 0,
+      "forcedClicks": 0
+    },
+    "savedLifecycle": {
+      "status": "passed",
+      "evidenceRecords": 19,
+      "failures": 0,
+      "retries": 0,
+      "forcedClicks": 0
+    }
+  },
+  "retainedFinalArtifact": {
+    "artifactId": 8798436317,
+    "outerBytes": 91310179,
+    "outerSha256": "4933dc15afe27af691f62f48dd2b6f8aeecfecb28208365de746f80c8418bfe6",
+    "zipEntries": 282,
+    "zipCrc": "PASSED",
+    "containsFinalInnerPackage": false,
+    "containsFinal18SectionIndex": false
+  },
+  "rootCause": {
+    "failedAssertion": "manifest-head",
+    "committedManifestHead": "31aa42e6f7b1bd80d3cc894ff4a7b6cdf08cd7ab",
+    "acceptanceHead": "a3a9b0f049c4a62f1710db1b29eb90bc6f778059",
+    "explanation": "The 18-section builder required the committed source manifest exactHead to equal the current workflow head. The manifest was correctly fetched-back and checksum-verified but was generated on an ancestor. Because committing a refreshed manifest changes HEAD, an exact-current-head manifest must be materialized inside the immutable workflow checkout before the 18-section build."
+  },
+  "correction": "The 18-section builder now imports the deterministic source-manifest generator before reading prerequisites, producing exact-head fetched-back lineage in the workflow worktree without mutating the branch.",
+  "preservedInvariants": {
+    "formulas": 151,
+    "indicators": 54,
+    "provenance": "FRESH_REIMPLEMENTATION_2026",
+    "formulaSha256": "3c7ac72e4ab6e5383e5e9aae90cc74508113c8d4c636c2efb7500df4ed49a98f",
+    "indicatorSha256": "3071eaac2a6a6dae24c8155a766e1db1ce8d26a2e6bf6ae30fb1ac594156087a",
+    "routes": 70,
+    "screens": 429,
+    "apiContracts": 202,
+    "schemas": 72,
+    "smokeRequests": 290,
+    "migration": 108
+  },
+  "nextAction": "Run an exact-head focused source-lineage materialization gate, then restore acceptance mode and run one complete immutable 1,944-browser and 54-accessibility matrix."
+}
