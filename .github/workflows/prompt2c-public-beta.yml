@@ -141,8 +141,8 @@ jobs:
           fetch_route 'api/v1/readiness' '503'
           fetch_route 'api/v1/config' '200'
           fetch_route 'api/v1/providers/status' '200'
-          fetch_route 'api/v1/providers/binance?symbol=BTCUSDT' '503'
-          fetch_route 'api/v1/providers/coinbase?symbol=BTC-USD' '503'
+          fetch_route 'api/v1/providers/binance?symbol=BTCUSDT' '200'
+          fetch_route 'api/v1/providers/coinbase?symbol=BTC-USD' '200'
           fetch_route 'api/v1/providers/ecb?symbol=EUR' '200,503'
 
           grep -F 'id="app"' dist/live-public-verification/http/index.body
@@ -156,11 +156,25 @@ jobs:
           const build = readJson('BUILD_INFO.json.body');
           const health = readJson('api-v1-health.body');
           const readiness = readJson('api-v1-readiness.body');
+          const binance = readJson('api-v1-providers-binance-symbol-BTCUSDT.body');
+          const coinbase = readJson('api-v1-providers-coinbase-symbol-BTC-USD.body');
+
           if (release.releaseSha !== process.env.RELEASE_SHA) throw new Error(`release_sha_mismatch_${release.releaseSha}`);
           if (build.releaseSha !== process.env.RELEASE_SHA) throw new Error(`build_sha_mismatch_${build.releaseSha}`);
           if (health.releaseSha !== process.env.RELEASE_SHA || health.status !== 'ok') throw new Error('health_identity_mismatch');
           if (readiness.releaseSha && readiness.releaseSha !== process.env.RELEASE_SHA) throw new Error('readiness_identity_mismatch');
           if (readiness.ready !== false || readiness.status !== 'not_proven') throw new Error(`readiness_truth_invalid_${JSON.stringify(readiness)}`);
+
+          for (const [expectedProvider, payload, expectedTerms] of [
+            ['binance', binance, 'blocked_pending_redistribution_rights'],
+            ['coinbase', coinbase, 'blocked_pending_written_end_user_display_permission']
+          ]) {
+            if (payload.provider !== expectedProvider) throw new Error(`${expectedProvider}_identity_invalid`);
+            if (payload.truthState !== 'unavailable' || payload.data !== null || payload.confidence !== 0) {
+              throw new Error(`${expectedProvider}_availability_truth_invalid_${JSON.stringify(payload)}`);
+            }
+            if (payload.termsState !== expectedTerms) throw new Error(`${expectedProvider}_terms_state_invalid_${payload.termsState}`);
+          }
 
           const source = fs.readFileSync(`${base}/qelly-config.js.body`, 'utf8');
           const sandbox = { window: {} };
@@ -177,7 +191,8 @@ jobs:
             capabilities: config.capabilities,
             supabaseUrl: config.supabase?.url,
             keyShape: { present: key.length > 0, equalsProjectReference: key === process.env.SUPABASE_PROJECT_REF, valid: validModern || validLegacy },
-            readiness
+            readiness,
+            blockedProviders: { binance, coinbase }
           };
           fs.writeFileSync('dist/live-public-verification/config-redacted.json', JSON.stringify(evidence, null, 2));
           if (config.releaseSha !== process.env.RELEASE_SHA) throw new Error('generated_config_release_mismatch');
