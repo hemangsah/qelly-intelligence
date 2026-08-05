@@ -3,6 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { PostgresDirectClient } from '../src/production/postgres-pool-client.mjs';
+import { assertSafeMigrationBootstrap, migrationBootstrapState } from './migration-bootstrap-policy.mjs';
 import { selectForwardMigrationFiles } from './migration-file-policy.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -36,18 +37,64 @@ try {
     await client.query('SELECT pg_advisory_lock($1::bigint)', [advisoryLockId]);
     lockHeld = true;
     await client.query(`SET statement_timeout TO ${migrationStatementTimeoutMs}`);
-    await client.query(`CREATE TABLE IF NOT EXISTS qelly_migration_history(
+  }
+
+  const bootstrapProbe = await client.query(`
+    WITH managed_objects AS (
+      SELECT
+        'relation'::text AS kind,
+        format('%I.%I', namespace.nspname, relation.relname) AS identity
+      FROM pg_class relation
+      JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace
+      WHERE relation.relkind IN ('r','p','v','m','S')
+        AND (
+          (namespace.nspname = 'public'
+            AND left(relation.relname, 6) = 'qelly_'
+            AND relation.relname <> 'qelly_migration_history')
+          OR namespace.nspname = 'qelly_private'
+        )
+      UNION ALL
+      SELECT
+        'function'::text AS kind,
+        format(
+          '%I.%I(%s)',
+          namespace.nspname,
+          routine.proname,
+          pg_get_function_identity_arguments(routine.oid)
+        ) AS identity
+      FROM pg_proc routine
+      JOIN pg_namespace namespace ON namespace.oid = routine.pronamespace
+      WHERE (
+        (namespace.nspname = 'public' AND left(routine.proname, 6) = 'qelly_')
+        OR namespace.nspname = 'qelly_private'
+      )
+    )
+    SELECT
+      to_regclass('public.qelly_migration_history')::text AS history_table,
+      COALESCE(
+        json_agg(
+          json_build_object('kind', kind, 'identity', identity)
+          ORDER BY kind, identity
+        ),
+        '[]'::json
+      ) AS managed_objects
+    FROM managed_objects
+  `);
+  const bootstrap = migrationBootstrapState(bootstrapProbe.rows[0]);
+  assertSafeMigrationBootstrap(bootstrap);
+
+  if (mode === 'apply' && !bootstrap.historyTable) {
+    await client.query(`CREATE TABLE public.qelly_migration_history(
       migration_id text PRIMARY KEY,
       checksum text NOT NULL,
       applied_at timestamptz NOT NULL DEFAULT now(),
       runtime text NOT NULL
     )`);
   }
-  const historyTable = mode === 'apply'
-    ? 'qelly_migration_history'
-    : (await client.query(`SELECT to_regclass('public.qelly_migration_history') AS relation`)).rows[0]?.relation;
+
+  const historyTable = bootstrap.historyTable || (mode === 'apply' ? 'qelly_migration_history' : null);
   const history = historyTable
-    ? await client.query('SELECT migration_id,checksum,applied_at FROM qelly_migration_history ORDER BY migration_id')
+    ? await client.query('SELECT migration_id,checksum,applied_at FROM public.qelly_migration_history ORDER BY migration_id')
     : { rows: [] };
   const prior = new Map(history.rows.map((row) => [row.migration_id, row]));
   const drift = migrations.filter(({ file, checksum }) => prior.has(file) && prior.get(file).checksum !== checksum);
@@ -62,6 +109,8 @@ try {
       applied: migrations.length - pending.length,
       pending: pending.map((item) => item.file),
       latestApplied: history.rows.at(-1)?.migration_id ?? null,
+      migrationHistoryPresent: Boolean(bootstrap.historyTable),
+      managedObjectCount: bootstrap.managedObjects.length,
       lockAcquired: false,
       databaseMutated: false
     }, null, 2));
@@ -71,7 +120,7 @@ try {
       await client.transaction(async () => {
         await client.query(withoutOuterTransaction(migration.sql));
         await client.query(
-          'INSERT INTO qelly_migration_history(migration_id,checksum,runtime) VALUES($1,$2,$3)',
+          'INSERT INTO public.qelly_migration_history(migration_id,checksum,runtime) VALUES($1,$2,$3)',
           [migration.file, migration.checksum, 'qelly-controlled-migrator-v2']
         );
       });
@@ -83,6 +132,8 @@ try {
       applied,
       total: migrations.length,
       latestApplied: migrations.at(-1)?.file ?? null,
+      migrationHistoryCreated: !bootstrap.historyTable,
+      managedObjectCountBeforeApply: bootstrap.managedObjects.length,
       repeatedSafe: applied.length === 0,
       lockAcquired: true,
       transactionBoundary: 'one-transaction-per-migration'
