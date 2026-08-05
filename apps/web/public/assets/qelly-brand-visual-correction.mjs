@@ -1,5 +1,6 @@
 const root=document.documentElement;
 const stateValues=new Set(['loading','empty','offline','error']);
+const productSymbolAsset=new URL('./brand/qelly-symbol.svg',import.meta.url).href;
 
 function reducedMotion(){
   return matchMedia('(prefers-reduced-motion: reduce)').matches||root.dataset.motion==='reduced'||root.dataset.motion==='none';
@@ -45,11 +46,36 @@ function correctShellBranding(){
   document.querySelector('.q-avatar')?.setAttribute('data-qelly-functional-symbol','account');
 }
 
+function correctProductHeaderBrand(){
+  const brand=document.querySelector('.q-product-brand');
+  const mark=brand?.querySelector('.q-product-brand__mark');
+  if(!brand||!mark)return;
+  let image=mark;
+  if(mark.tagName!=='IMG'){
+    image=document.createElement('img');
+    image.className=mark.className;
+    mark.replaceWith(image);
+  }
+  image.src=productSymbolAsset;
+  image.alt='';
+  image.width=38;
+  image.height=38;
+  image.decoding='async';
+  image.setAttribute('aria-hidden','true');
+  image.dataset.qellyOfficialMark='true';
+  image.style.setProperty('box-sizing','border-box');
+  image.style.setProperty('object-fit','contain');
+  image.style.setProperty('padding','3px');
+  image.style.setProperty('background','#f8f5f2');
+  brand.dataset.qellyOfficialBrand='true';
+}
+
 function refresh(){
   correctOpening();
   correctAuthComposition();
   correctStateComposition();
   correctShellBranding();
+  correctProductHeaderBrand();
 }
 
 refresh();
