@@ -3,7 +3,6 @@
 
 \echo 'QELLY_DB_ACCEPTANCE_BEGIN'
 
--- Structural RLS and privilege assertions.
 select qelly_test.assert_true(
   coalesce((
     select bool_and(c.relrowsecurity)
@@ -50,8 +49,6 @@ select qelly_test.assert_true(
   'atomic sync RPC execution boundary must be authenticated-only'
 );
 
--- Create two real-looking disposable Auth identities. The hardened bootstrap
--- trigger must provision one profile and one workspace for each identity.
 insert into auth.users(id,email,raw_user_meta_data) values
   ('11111111-1111-4111-8111-111111111111','one@example.invalid','{"display_name":"User One"}'::jsonb),
   ('22222222-2222-4222-8222-222222222222','two@example.invalid','{"display_name":"User Two"}'::jsonb);
@@ -70,7 +67,6 @@ from public.qelly_workspaces
 where owner_id='11111111-1111-4111-8111-111111111111'::uuid
 \gset u1_
 
--- User one sees only their own identity and workspace.
 select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
 set role authenticated;
 
@@ -87,8 +83,6 @@ select qelly_test.assert_true(
   'user one must see exactly one workspace'
 );
 
--- Consent must be written only through the governance RPC and create three
--- immutable evidence events.
 select public.qelly_set_cloud_sync_consent(true,'2026-08-01','2026-08-01');
 select qelly_test.assert_true(
   (select cloud_sync_opt_in from public.qelly_profiles where user_id=auth.uid()) is true,
@@ -112,7 +106,6 @@ select qelly_test.expect_denied(
   'consent evidence must not be browser-deletable'
 );
 
--- Exercise the atomic sync RPC against the migrated database, including replay.
 select qelly_test.assert_true(
   (
     public.qelly_sync_push_batch(
@@ -166,13 +159,15 @@ select qelly_test.assert_true(
   'deletion request RPC must create requested evidence'
 );
 select qelly_test.expect_denied(
-  'select public.qelly_complete_account_deletion(''' :'deletion_request_id' '''::uuid,''{}''::jsonb)',
+  format(
+    'select public.qelly_complete_account_deletion(%L::uuid,''{}''::jsonb)',
+    :'deletion_request_id'
+  ),
   'authenticated callers must not complete deletion evidence'
 );
 
 reset role;
 
--- User two cannot see user one's cloud records or governance evidence.
 select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false);
 set role authenticated;
 select qelly_test.assert_true(
@@ -193,7 +188,6 @@ select qelly_test.assert_true(
 );
 reset role;
 
--- FK-driven Auth deletion must pseudonymize, not erase, append-only evidence.
 delete from auth.users where id='11111111-1111-4111-8111-111111111111'::uuid;
 
 select qelly_test.assert_true(
@@ -226,7 +220,6 @@ select qelly_test.assert_true(
   'service role completion must append a distinct completed event'
 );
 
--- Emit compact evidence inventory for the workflow artifact.
 \echo 'QELLY_DB_ACCEPTANCE_INVENTORY'
 select n.nspname as schema_name,c.relname as table_name,c.relrowsecurity as rls_enabled
 from pg_class c
