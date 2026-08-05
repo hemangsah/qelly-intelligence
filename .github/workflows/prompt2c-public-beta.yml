@@ -89,6 +89,7 @@ jobs:
           deployed=false
           for attempt in $(seq 1 36); do
             status="$(curl --silent --show-error --location --max-time 20 \
+              -H 'Cache-Control: no-cache' \
               -o dist/live-public-verification/http/release.json \
               -w '%{http_code}' \
               "${PUBLIC_URL%/}/qelly-release.json?verify=${RELEASE_SHA}-${attempt}")"
@@ -113,11 +114,15 @@ jobs:
             path="$1"
             expected="$2"
             safe="$(echo "${path:-index}" | tr '/?=&' '----')"
+            separator='?'
+            case "${path}" in *\?*) separator='&' ;; esac
+            url="${PUBLIC_URL%/}/${path}${separator}verify=${RELEASE_SHA}"
             status="$(curl --silent --show-error --location --max-time 30 \
+              -H 'Cache-Control: no-cache' \
               -D "dist/live-public-verification/http/${safe}.headers" \
               -o "dist/live-public-verification/http/${safe}.body" \
               -w '%{http_code}' \
-              "${PUBLIC_URL%/}/${path}")"
+              "${url}")"
             case ",${expected}," in
               *",${status},"*) ;;
               *)
@@ -215,7 +220,7 @@ jobs:
             const consoleErrors = [];
             page.on('pageerror', error => pageErrors.push({ name: error.name, message: error.message }));
             page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text()); });
-            const response = await page.goto(process.env.PUBLIC_URL, { waitUntil: 'domcontentloaded', timeout: 45000 });
+            const response = await page.goto(`${process.env.PUBLIC_URL}?verify=${process.env.RELEASE_SHA}`, { waitUntil: 'domcontentloaded', timeout: 45000 });
             await page.waitForTimeout(13000);
             const dom = await page.evaluate(() => {
               const main = document.querySelector('#main');
