@@ -1,14 +1,26 @@
 const QUEUE_KEY='qelly.prompt2c.cloud.queue.v1';
 const META_KEY='qelly.prompt2c.cloud.meta.v1';
-const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_BATCH_ITEMS=100;
+const MAX_QUEUE_BATCHES=25;
 const PULL_PAGE_SIZE=50;
 const MAX_PULL_PAGES=100;
 const MAX_PULL_REVISION_ROWS_TOTAL=5000;
 
 const safeParse=(value,fallback)=>{try{return JSON.parse(value??'')??fallback;}catch{return fallback;}};
-const readQueue=()=>safeParse(localStorage.getItem(QUEUE_KEY),[]);
-const writeQueue=(value)=>localStorage.setItem(QUEUE_KEY,JSON.stringify(value.slice(-25)));
+const readQueue=()=>{
+  const value=safeParse(localStorage.getItem(QUEUE_KEY),[]);
+  return Array.isArray(value)?value:[];
+};
+const queueCapacityError=(current,incoming)=>Object.assign(
+  new Error(`Offline cloud queue capacity reached (${current}/${MAX_QUEUE_BATCHES} batches). Reconnect and synchronize before queuing ${incoming} additional batch${incoming===1?'':'es'}.`),
+  {code:'cloud_queue_capacity_exceeded',currentBatches:current,incomingBatches:incoming,maxBatches:MAX_QUEUE_BATCHES}
+);
+const writeQueue=(value,{allowOverflow=false}={})=>{
+  if(!Array.isArray(value))throw Object.assign(new Error('Offline cloud queue is invalid'),{code:'cloud_queue_invalid'});
+  if(value.length>MAX_QUEUE_BATCHES&&!allowOverflow)throw queueCapacityError(value.length,0);
+  localStorage.setItem(QUEUE_KEY,JSON.stringify(value));
+};
 const defaultMeta=()=>({
   baseRevisions:{},
   lastSyncAt:null,
@@ -74,14 +86,16 @@ export function queueCloudPush(items){
     baseRevisions
   }));
   const queue=readQueue();
-  queue.push(...entries);
-  writeQueue(queue);
+  if(queue.length+entries.length>MAX_QUEUE_BATCHES)throw queueCapacityError(queue.length,entries.length);
+  writeQueue([...queue,...entries]);
   return {
     queued:eligible.length,
     skipped:items.length-eligible.length,
     batchId:entries[0]?.id??null,
     batchIds:entries.map(entry=>entry.id),
-    batches:entries.length
+    batches:entries.length,
+    queuedBatches:queue.length+entries.length,
+    queueCapacity:MAX_QUEUE_BATCHES
   };
 }
 
@@ -121,8 +135,8 @@ export async function flushCloudQueue(api){
     }
   }
 
-  writeQueue(remaining);
-  return {flushed,remaining:remaining.length,offline:false,conflicts,replayedBatches};
+  writeQueue(remaining,{allowOverflow:true});
+  return {flushed,remaining:remaining.length,offline:false,conflicts,replayedBatches,queueOverCapacity:remaining.length>MAX_QUEUE_BATCHES};
 }
 
 export async function pushLocalToCloud(api,items){
@@ -211,4 +225,4 @@ export function installCloudResume(api,onResult=()=>{}){
   return ()=>window.removeEventListener('online',listener);
 }
 
-export const __cloudSyncTest=Object.freeze({chunks,localItemsForCloud,boundedPageItems,MAX_BATCH_ITEMS,PULL_PAGE_SIZE,MAX_PULL_PAGES,MAX_PULL_REVISION_ROWS_TOTAL});
+export const __cloudSyncTest=Object.freeze({chunks,localItemsForCloud,boundedPageItems,MAX_BATCH_ITEMS,MAX_QUEUE_BATCHES,PULL_PAGE_SIZE,MAX_PULL_PAGES,MAX_PULL_REVISION_ROWS_TOTAL});
