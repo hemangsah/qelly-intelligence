@@ -74,6 +74,7 @@ jobs:
             packages/migrations/20260805013600_qelly_sync_operation_policy_cleanup.sql
             packages/migrations/20260805030000_qelly_auth_rls_governance_wave_3.sql
             packages/migrations/20260805030100_qelly_provider_cache_explicit_deny.sql
+            packages/migrations/20260805030200_qelly_private_rpc_implementations.sql
           )
           : > artifacts/02-migration-replay.log
           for migration in "${migrations[@]}"; do
@@ -82,12 +83,19 @@ jobs:
               2>&1 | tee -a artifacts/02-migration-replay.log
           done
 
+      - name: Validate private privileged RPC boundary
+        run: |
+          psql -X -v ON_ERROR_STOP=1 \
+            -f tests/db/qelly_private_rpc_boundary_acceptance.sql \
+            2>&1 | tee artifacts/03-rpc-boundary.log
+          grep -F 'QELLY_PRIVATE_RPC_BOUNDARY_PASS' artifacts/03-rpc-boundary.log
+
       - name: Run two-user RLS and governance acceptance
         run: |
           psql -X -v ON_ERROR_STOP=1 \
             -f tests/db/qelly_auth_rls_pg17_acceptance.sql \
-            2>&1 | tee artifacts/03-acceptance.log
-          grep -F 'QELLY_DB_ACCEPTANCE_PASS' artifacts/03-acceptance.log
+            2>&1 | tee artifacts/04-acceptance.log
+          grep -F 'QELLY_DB_ACCEPTANCE_PASS' artifacts/04-acceptance.log
 
       - name: Capture final database inventory
         if: always()
@@ -102,7 +110,7 @@ jobs:
             psql -X -P pager=off -c "select schemaname,tablename,policyname,roles,cmd from pg_policies where tablename like 'qelly_%' order by 1,2,3;"
             echo 'FUNCTION_PRIVILEGES'
             psql -X -P pager=off -c "select routine_schema,routine_name,security_type from information_schema.routines where routine_schema in ('public','qelly_private') and routine_name like 'qelly_%' order by 1,2;"
-          } > artifacts/04-final-inventory.log 2>&1 || true
+          } > artifacts/05-final-inventory.log 2>&1 || true
 
       - name: Upload database acceptance evidence
         if: always()
