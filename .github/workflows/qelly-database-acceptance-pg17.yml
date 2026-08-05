@@ -1,0 +1,114 @@
+name: Qelly Database Acceptance PG17
+
+on:
+  push:
+    branches:
+      - agent/qelly-auth-rls-governance-wave-3
+    paths:
+      - '.github/workflows/qelly-database-acceptance-pg17.yml'
+      - 'packages/migrations/**'
+      - 'tests/db/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qelly-database-acceptance-pg17-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  migrate-and-accept:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: qelly_acceptance
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d qelly_acceptance"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: qelly_acceptance
+      PGSSLMODE: disable
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+          psql --version
+
+      - name: Create Supabase-compatible PG17 acceptance scaffold
+        run: |
+          mkdir -p artifacts
+          psql -X -v ON_ERROR_STOP=1 \
+            -f tests/db/qelly_supabase_pg17_stub.sql \
+            2>&1 | tee artifacts/01-stub.log
+
+      - name: Replay exact Qelly migration lineage
+        run: |
+          set -euo pipefail
+          migrations=(
+            packages/migrations/109_prompt2c_global_public_beta.sql
+            packages/migrations/110_prompt2c_revision_trigger_order.sql
+            packages/migrations/110a_qelly_private_workspace_role_policy_transition.sql
+            packages/migrations/111_qelly_final_live_activation_hardening.sql
+            packages/migrations/112_qelly_final_live_performance_indexes.sql
+            packages/migrations/20260805013300_qelly_atomic_sync_batch_v1.sql
+            packages/migrations/20260805013400_qelly_sync_operation_evidence_lockdown.sql
+            packages/migrations/20260805013500_qelly_sync_batch_workspace_index.sql
+            packages/migrations/20260805013600_qelly_sync_operation_policy_cleanup.sql
+            packages/migrations/20260805030000_qelly_auth_rls_governance_wave_3.sql
+            packages/migrations/20260805030100_qelly_provider_cache_explicit_deny.sql
+          )
+          : > artifacts/02-migration-replay.log
+          for migration in "${migrations[@]}"; do
+            echo "APPLY ${migration}" | tee -a artifacts/02-migration-replay.log
+            psql -X -v ON_ERROR_STOP=1 -f "${migration}" \
+              2>&1 | tee -a artifacts/02-migration-replay.log
+          done
+
+      - name: Run two-user RLS and governance acceptance
+        run: |
+          psql -X -v ON_ERROR_STOP=1 \
+            -f tests/db/qelly_auth_rls_pg17_acceptance.sql \
+            2>&1 | tee artifacts/03-acceptance.log
+          grep -F 'QELLY_DB_ACCEPTANCE_PASS' artifacts/03-acceptance.log
+
+      - name: Capture final database inventory
+        if: always()
+        run: |
+          {
+            echo 'HEAD_SHA=${{ github.sha }}'
+            echo 'POSTGRES_VERSION'
+            psql -X -Atc 'select version();'
+            echo 'RLS_TABLES'
+            psql -X -P pager=off -c "select n.nspname as schema_name,c.relname as table_name,c.relrowsecurity as rls_enabled from pg_class c join pg_namespace n on n.oid=c.relnamespace where c.relkind='r' and c.relname like 'qelly_%' order by 1,2;"
+            echo 'POLICIES'
+            psql -X -P pager=off -c "select schemaname,tablename,policyname,roles,cmd from pg_policies where tablename like 'qelly_%' order by 1,2,3;"
+            echo 'FUNCTION_PRIVILEGES'
+            psql -X -P pager=off -c "select routine_schema,routine_name,security_type from information_schema.routines where routine_schema in ('public','qelly_private') and routine_name like 'qelly_%' order by 1,2;"
+          } > artifacts/04-final-inventory.log 2>&1 || true
+
+      - name: Upload database acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qelly-pg17-database-acceptance-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 30
