@@ -50,11 +50,12 @@ test('forbidden CORS origin returns a typed error instead of throwing from error
   assert.equal((await response.json()).error.code,'cors_origin_forbidden');
 });
 
-test('Auth callback transfers provider tokens into server cookies without browser persistence',async()=>{
+test('Auth callback exchanges one-time code into server cookies without browser persistence',async()=>{
   const source=await read('apps/web/public/assets/qelly-auth-callback.mjs');
-  assert.match(source,/\/api\/v1\/auth\/session/);
+  assert.match(source,/\/api\/v1\/auth\/callback/);
   assert.match(source,/X-Qelly-CSRF/);
-  assert.doesNotMatch(source,/localStorage|sessionStorage/);
+  assert.match(source,/JSON\.stringify\(\{code,state,nonce,flow\}\)/);
+  assert.doesNotMatch(source,/location\.hash|access_token|refresh_token|localStorage|sessionStorage/);
 });
 
 test('cloud lifecycle remains explicit opt-in and conflict preserving',async()=>{

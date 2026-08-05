@@ -141,16 +141,19 @@ test('production polish loads after product styles and suppresses legacy visual 
   assert.match(browser,/mobile_technical_status_visible/);
 });
 
-test('production redirects are exact and contain no localhost or trailing bracket',async()=>{
+test('production PKCE redirects are exact and contain no localhost or trailing bracket',async()=>{
   const backend=await read('functions/_lib/auth.js');
   const callback=await read('apps/web/public/assets/qelly-auth-callback.mjs');
   const build=await read('scripts/build-frontend.mjs');
   const combined=[backend,callback,build].join('\n');
   assert.doesNotMatch(combined,/http:\/\/localhost:3000\]?/);
-  assert.match(backend,/\$\{config\.publicSiteUrl\}\/auth\/callback\.html/);
-  assert.match(backend,/\$\{publicRuntimeConfig\(env,request\.url\)\.publicSiteUrl\}\/auth\/callback\.html\?flow=recovery/);
+  assert.match(backend,/new URL\('\/auth\/callback\.html',`\$\{config\.publicSiteUrl\}\/`\)/);
+  assert.match(backend,/redirect\.searchParams\.set\('flow',transaction\.flow\)/);
+  assert.match(backend,/redirect\.searchParams\.set\('state',transaction\.state\)/);
+  assert.match(backend,/redirect\.searchParams\.set\('nonce',transaction\.nonce\)/);
+  assert.match(backend,/callbackRedirect\(publicRuntimeConfig\(env,request\.url\),transaction\)/);
   assert.doesNotMatch(backend,/auth\/callback\.html\]/);
-  assert.doesNotMatch(callback,/localhost/);
+  assert.doesNotMatch(callback,/location\.hash|access_token|refresh_token|localhost/);
 });
 
 test('generated runtime finalizer rejects internal product copy',async()=>{
