@@ -12,6 +12,7 @@ import {
 const MAX_SYNC_BATCH_ITEMS=100;
 const DEFAULT_PAGE_SIZE=50;
 const MAX_PAGE_SIZE=100;
+const MAX_PULL_REVISION_ROWS=500;
 
 const localToCloud=(item,context)=>{
   if(!UUID.test(String(item.id||'')))throw new HttpError(400,'saved_id_invalid','Only UUID saved records can be synchronized');
@@ -139,15 +140,26 @@ const calculationPagePath=(workspaceId,url)=>{
   return {limit,path:`qelly_saved_calculations?${params.toString()}`};
 };
 
-const revisionsForRecords=async(env,session,records)=>{
+const revisionPagePath=(records)=>{
   const ids=records.map(record=>record.id).filter(id=>UUID.test(String(id)));
-  if(!ids.length)return [];
+  if(!ids.length)return null;
   const params=new URLSearchParams({
-    select:'*',
+    select:'id,calculation_id,revision_no,created_at,snapshot',
     calculation_id:`in.(${ids.join(',')})`,
-    order:'calculation_id.asc,revision_no.asc'
+    order:'created_at.desc,id.desc',
+    limit:String(MAX_PULL_REVISION_ROWS)
   });
-  return restRequest(env,session.accessToken,`qelly_saved_calculation_revisions?${params.toString()}`);
+  return `qelly_saved_calculation_revisions?${params.toString()}`;
+};
+
+const revisionsForRecords=async(env,session,records)=>{
+  const path=revisionPagePath(records);
+  if(!path)return {rows:[],partial:false};
+  const rows=await restRequest(env,session.accessToken,path);
+  return {
+    rows:rows||[],
+    partial:(rows?.length||0)>=MAX_PULL_REVISION_ROWS
+  };
 };
 
 const cloudStatus=async(env,session,context)=>{
@@ -207,12 +219,13 @@ export async function handleData(context,path,segments,method,session,qelly){
   if(path==='sync/pull'&&method==='GET'){
     const page=calculationPagePath(qelly.workspace.workspaceId,url);
     const records=await restRequest(env,session.accessToken,page.path);
-    const revisionRows=await revisionsForRecords(env,session,records||[]);
+    const revisionPage=await revisionsForRecords(env,session,records||[]);
     const byCalculation=new Map();
-    for(const row of revisionRows||[]){
+    for(const row of revisionPage.rows){
       if(!byCalculation.has(row.calculation_id))byCalculation.set(row.calculation_id,[]);
       byCalculation.get(row.calculation_id).push(row);
     }
+    for(const revisions of byCalculation.values())revisions.sort((left,right)=>Number(left.revision_no)-Number(right.revision_no));
     const nextCursor=nextCursorFor(records||[],page.limit);
     return responseJson(request,env,{
       items:(records||[]).filter(record=>!record.deleted_at).map(record=>cloudToLocal(record,byCalculation.get(record.id)||[])),
@@ -220,6 +233,9 @@ export async function handleData(context,path,segments,method,session,qelly){
       nextCursor,
       hasMore:Boolean(nextCursor),
       pageSize:page.limit,
+      revisionHistoryPartial:revisionPage.partial,
+      revisionRowsReturned:revisionPage.rows.length,
+      revisionRowsLimit:MAX_PULL_REVISION_ROWS,
       pulledAt:new Date().toISOString()
     });
   }
@@ -364,5 +380,7 @@ export const __dataTest=Object.freeze({
   parseCursor,
   nextCursorFor,
   calculationPagePath,
+  revisionPagePath,
+  MAX_PULL_REVISION_ROWS,
   atomicSyncItems
 });
