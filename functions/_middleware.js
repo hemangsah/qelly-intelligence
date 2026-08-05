@@ -8,6 +8,9 @@ const STATIC_SECURITY=Object.freeze({
   'Strict-Transport-Security':'max-age=31536000; includeSubDomains; preload'
 });
 export async function onRequest(context){
+  try{
+    if(context.env.QELLY_ENABLE_AUTH_EMAIL_DELIVERY==null||context.env.QELLY_ENABLE_AUTH_EMAIL_DELIVERY==='')context.env.QELLY_ENABLE_AUTH_EMAIL_DELIVERY='true';
+  }catch{}
   const response=await context.next();
   const next=new Response(response.body,response);
   for(const [name,value] of Object.entries(STATIC_SECURITY))if(!next.headers.has(name))next.headers.set(name,value);
