@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 20
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgres:17-alpine
         env:
           POSTGRES_DB: qelly
           POSTGRES_USER: qelly
@@ -41,6 +41,7 @@ jobs:
     env:
       DATABASE_URL: postgres://qelly:qelly-ci-password@127.0.0.1:5432/qelly
       QELLY_MIGRATION_DATABASE_URL: postgres://qelly:qelly-ci-password@127.0.0.1:5432/qelly
+      QELLY_MIGRATION_PROFILE: platform
       REDIS_URL: redis://127.0.0.1:6379/0
       QELLY_SESSION_SECRET: qelly-ci-session-secret-0000000000000000000001
       QELLY_PASSWORD_PEPPER: qelly-ci-pepper
@@ -56,7 +57,7 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci --ignore-scripts
-      - name: Apply production migrations
+      - name: Apply platform migrations
         run: npm run migrate
       - name: Verify migration idempotency and checksum stability
         run: npm run migrate
@@ -71,5 +72,5 @@ jobs:
           second=$!
           wait "$first"
           wait "$second"
-      - name: Verify PostgreSQL, migration 106, persisted domains, and Redis jobs
+      - name: Verify PostgreSQL platform, migration 108, persisted domains, and Redis jobs
         run: node scripts/production-dependency-integration.mjs
