@@ -50,6 +50,37 @@ const publicProviderEnvelope=(result,provider)=>{
   };
 };
 
+const readinessSnapshot=(runtime)=>{
+  const authState=runtime.capabilities.emailDelivery
+    ?'email_delivery_configured_not_end_to_end_proven'
+    :'email_delivery_fail_closed';
+  const checks={
+    supabase:{required:true,configured:true,proven:false,state:'configured_not_live_canaried'},
+    authEmail:{required:true,configured:runtime.capabilities.emailDelivery,proven:false,state:authState},
+    rlsIsolation:{required:true,configured:true,proven:false,state:'required_not_live_proven'},
+    providerFreshness:{required:true,configured:runtime.capabilities.liveProviders,proven:false,state:'restricted_and_freshness_not_proven'}
+  };
+  return {
+    ready:false,
+    status:'not_proven',
+    reason:'Production readiness remains fail-closed until required end-to-end canaries and policy evidence pass.',
+    checks,
+    dependencies:{
+      supabase:checks.supabase.state,
+      auth:checks.authEmail.state,
+      rls:checks.rlsIsolation.state,
+      providers:checks.providerFreshness.state
+    },
+    capabilities:{
+      authentication:runtime.capabilities.authentication,
+      emailDelivery:runtime.capabilities.emailDelivery,
+      cloudSync:runtime.capabilities.cloudSync,
+      liveProviders:runtime.capabilities.liveProviders
+    },
+    releaseSha:runtime.releaseSha
+  };
+};
+
 const publicMarketOverview=async(context)=>{
   const {request,env}=context;
   const settled=await Promise.allSettled([
@@ -107,13 +138,10 @@ export async function route(context){
     const runtime=publicRuntimeConfig(env,request.url);
     return responseJson(request,env,{status:'ok',scope:'process-and-static-runtime',releaseSha:runtime.releaseSha,deterministicLocal:true,authenticationConfigured:runtime.capabilities.authentication,emailDeliveryConfigured:runtime.capabilities.emailDelivery,cloudSyncConfigured:runtime.capabilities.cloudSync,liveProvidersConfigured:runtime.capabilities.liveProviders,providerRights:'restricted',trading:false,custody:false,transfers:false});
   }
-  if(path==='readiness'&&method==='GET')return responseJson(request,env,{
-    ready:false,
-    status:'not_proven',
-    reason:'End-to-end Auth delivery, RLS isolation and provider freshness canaries are not yet complete.',
-    dependencies:{supabase:'configured_not_canaried',auth:'smtp_delivery_blocked',rls:'required_not_live_proven',providers:'restricted_by_rights_review'},
-    releaseSha:publicRuntimeConfig(env,request.url).releaseSha
-  },503);
+  if(path==='readiness'&&method==='GET'){
+    const runtime=publicRuntimeConfig(env,request.url);
+    return responseJson(request,env,readinessSnapshot(runtime),503);
+  }
   const authRuntime=publicRuntimeConfig(env,request.url);
   if(!authRuntime.capabilities.emailDelivery&&method==='POST'&&['auth/register','auth/recovery/request'].includes(path))throw new HttpError(503,'auth_email_delivery_unavailable','Account creation and email recovery are temporarily unavailable until transactional email delivery is proven.',{retryable:false});
   const auth=await handleAuth(context,path,method);
@@ -158,4 +186,4 @@ export async function onRequest(context){
 }
 
 export {publicRuntimeConfig} from '../../_lib/runtime.js';
-export const __test=Object.freeze({route,stableUuid,validateJwtClaims,publicTruthState,publicProviderEnvelope,...__dataTest});
+export const __test=Object.freeze({route,stableUuid,validateJwtClaims,publicTruthState,publicProviderEnvelope,readinessSnapshot,...__dataTest});
