@@ -1,0 +1,141 @@
+name: Apply Auth Email Fail-Closed Hotfix V3
+
+on:
+  push:
+    branches:
+      - agent/qelly-auth-email-fail-closed
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: agent/qelly-auth-email-fail-closed
+          fetch-depth: 0
+      - name: Apply exact source transformations
+        shell: bash
+        run: |
+          set -euo pipefail
+          python <<'PY'
+          from pathlib import Path
+          from textwrap import dedent
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text()
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected one match, found {count}')
+              p.write_text(text.replace(old, new, 1))
+
+          replace_once('scripts/build-frontend.mjs',
+              "  authentication:!staticVisualPreview&&asBool(process.env.QELLY_ENABLE_AUTH,requirePublicRuntime),\n  cloudSync:",
+              "  authentication:!staticVisualPreview&&asBool(process.env.QELLY_ENABLE_AUTH,requirePublicRuntime),\n  emailDelivery:!staticVisualPreview&&asBool(process.env.QELLY_ENABLE_AUTH_EMAIL_DELIVERY,false),\n  cloudSync:")
+          replace_once('scripts/build-frontend.mjs',
+              "  authentication:capabilities.authentication,\n  cloudSync:",
+              "  authentication:capabilities.authentication,\n  emailDelivery:capabilities.emailDelivery,\n  cloudSync:")
+          replace_once('scripts/build-frontend.mjs',
+              "connectedCapabilitiesActivated:capabilities.authentication&&capabilities.cloudSync&&capabilities.liveProviders,",
+              "connectedCapabilitiesActivated:capabilities.authentication&&capabilities.emailDelivery&&capabilities.cloudSync&&capabilities.liveProviders,")
+
+          replace_once('functions/_lib/runtime.js',
+              "      authentication:bool(env.QELLY_ENABLE_AUTH,true),\n      cloudSync:",
+              "      authentication:bool(env.QELLY_ENABLE_AUTH,true),\n      emailDelivery:bool(env.QELLY_ENABLE_AUTH_EMAIL_DELIVERY,false),\n      cloudSync:")
+
+          replace_once('functions/api/v1/[[path]].js',
+              "    auth:{authenticated:Boolean(context),backendAvailable:true,productionIdentityEnabled:true,mode:'supabase-auth-cloudflare-facade'},",
+              "    auth:{authenticated:Boolean(context),backendAvailable:true,productionIdentityEnabled:true,emailDeliveryAvailable:runtime.capabilities.emailDelivery,registrationAvailable:runtime.capabilities.emailDelivery,recoveryAvailable:runtime.capabilities.emailDelivery,mode:'supabase-auth-cloudflare-facade'},")
+          replace_once('functions/api/v1/[[path]].js',
+              "authenticationConfigured:runtime.capabilities.authentication,cloudSyncConfigured:",
+              "authenticationConfigured:runtime.capabilities.authentication,emailDeliveryConfigured:runtime.capabilities.emailDelivery,cloudSyncConfigured:")
+          replace_once('functions/api/v1/[[path]].js',
+              "  const auth=await handleAuth(context,path,method);",
+              "  const authRuntime=publicRuntimeConfig(env,request.url);\n  if(!authRuntime.capabilities.emailDelivery&&method==='POST'&&['auth/register','auth/recovery/request'].includes(path))throw new HttpError(503,'auth_email_delivery_unavailable','Account creation and email recovery are temporarily unavailable until transactional email delivery is proven.',{retryable:false});\n  const auth=await handleAuth(context,path,method);")
+
+          register_guard = dedent("""\
+            if(window.__QELLY_CONFIG__?.capabilities?.emailDelivery!==true){
+              main.innerHTML=`<section class="q-auth-page" data-production-auth="unavailable"><div class="q-auth-hero"><div><p class="q-eyebrow">Account availability</p><h1>Account creation is temporarily unavailable.</h1><p>Transactional email delivery has not been proven, so Qelly is not accepting registration requests. No account information has been submitted. Public markets and deterministic local tools remain available.</p></div></div><div class="q-auth-card"><div><p class="q-eyebrow">Fail-closed protection</p><h2>Email confirmation is unavailable</h2><p class="q-muted-copy">Registration will reopen only after a dedicated transactional email provider is configured and a production confirmation flow passes.</p></div><div class="q-auth-footer"><button class="q-button q-button--ghost" type="button" data-login>Sign in to an existing account</button><button class="q-button q-button--primary" type="button" data-home>Return home</button></div></div></section>`;
+              main.querySelector('[data-login]').addEventListener('click',()=>navigate('auth-login'));
+              main.querySelector('[data-home]').addEventListener('click',()=>navigate('market'));
+              return;
+            }
+          """)
+          replace_once('apps/web/public/assets/routes/auth-register.mjs',
+              "export async function renderAuthRegister(main,{api,toast,navigate,onAuthenticated}){\n  main.innerHTML=",
+              "export async function renderAuthRegister(main,{api,toast,navigate,onAuthenticated}){\n" + register_guard + "  main.innerHTML=")
+
+          recovery_guard = dedent("""\
+            if(window.__QELLY_CONFIG__?.capabilities?.emailDelivery!==true){
+              main.innerHTML=`<section class="q-auth-page" data-production-auth="unavailable"><div class="q-auth-hero"><div><p class="q-eyebrow">Account recovery</p><h1>Email recovery is temporarily unavailable.</h1><p>No recovery request will be sent until transactional email delivery is proven. This prevents misleading success messages and repeated provider failures.</p></div></div><div class="q-auth-card"><div><p class="q-eyebrow">Fail-closed protection</p><h2>Recovery delivery is unavailable</h2><p class="q-muted-copy">Existing users can still return to sign in. Public markets and deterministic local tools remain available.</p></div><div class="q-auth-footer"><button class="q-button q-button--ghost" type="button" data-login>Return to sign in</button><button class="q-button q-button--primary" type="button" data-home>Return home</button></div></div></section>`;
+              main.querySelector('[data-login]').addEventListener('click',()=>navigate('auth-login'));
+              main.querySelector('[data-home]').addEventListener('click',()=>navigate('market'));
+              return;
+            }
+          """)
+          replace_once('apps/web/public/assets/routes/auth-recovery.mjs',
+              "export async function renderAuthRecovery(main,{api,toast,navigate}){\n  main.innerHTML=",
+              "export async function renderAuthRecovery(main,{api,toast,navigate}){\n" + recovery_guard + "  main.innerHTML=")
+
+          Path('tests/auth-email-fail-closed.test.mjs').write_text(dedent("""\
+            import test from 'node:test';
+            import assert from 'node:assert/strict';
+            import { publicRuntimeConfig } from '../functions/_lib/runtime.js';
+            import { onRequest } from '../functions/api/v1/[[path]].js';
+
+            const environment=(overrides={})=>({
+              QELLY_PUBLIC_SITE_URL:'https://qelly.example',
+              QELLY_PUBLIC_SUPABASE_URL:'https://project.supabase.co',
+              QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'sb_publishable_abcdefghijklmnopqrstuvwxyz123456',
+              QELLY_ALLOWED_ORIGINS:'https://qelly.example',
+              QELLY_ENABLE_AUTH:'true',
+              ...overrides
+            });
+
+            test('transactional email delivery is fail-closed unless explicitly enabled',()=>{
+              assert.equal(publicRuntimeConfig(environment()).capabilities.authentication,true);
+              assert.equal(publicRuntimeConfig(environment()).capabilities.emailDelivery,false);
+              assert.equal(publicRuntimeConfig(environment({QELLY_ENABLE_AUTH_EMAIL_DELIVERY:'true'})).capabilities.emailDelivery,true);
+            });
+
+            for(const [path,body] of [
+              ['auth/register',{displayName:'Test User',email:'test@example.com',password:'StrongPassword!123'}],
+              ['auth/recovery/request',{email:'test@example.com'}]
+            ]){
+              test(`${path} rejects before any Supabase email request when delivery is unproven`,async()=>{
+                let upstreamCalls=0;
+                const env=environment({__fetch:async()=>{upstreamCalls+=1;throw new Error('upstream must not be called');}});
+                const request=new Request(`https://qelly.example/api/v1/${path}`,{method:'POST',headers:{Origin:'https://qelly.example','Content-Type':'application/json'},body:JSON.stringify(body)});
+                const response=await onRequest({request,env,params:{path:path.split('/')}});
+                assert.equal(response.status,503);
+                const payload=await response.json();
+                assert.equal(payload.error.code,'auth_email_delivery_unavailable');
+                assert.equal(payload.error.retryable,false);
+                assert.equal(upstreamCalls,0);
+              });
+            }
+          """))
+          PY
+      - name: Validate syntax and focused tests
+        run: |
+          npm ci --ignore-scripts
+          node --check scripts/build-frontend.mjs
+          node --check functions/_lib/runtime.js
+          node --check 'functions/api/v1/[[path]].js'
+          node --check apps/web/public/assets/routes/auth-register.mjs
+          node --check apps/web/public/assets/routes/auth-recovery.mjs
+          node --test tests/auth-email-fail-closed.test.mjs
+      - name: Commit source-only hotfix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'qelly-release-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add scripts/build-frontend.mjs functions/_lib/runtime.js 'functions/api/v1/[[path]].js' apps/web/public/assets/routes/auth-register.mjs apps/web/public/assets/routes/auth-recovery.mjs tests/auth-email-fail-closed.test.mjs
+          git commit -m 'Fail closed when Auth email delivery is unproven'
+          git push origin HEAD:agent/qelly-auth-email-fail-closed
