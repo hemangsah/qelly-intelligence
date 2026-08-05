@@ -26,7 +26,8 @@ test('public recovery catches the exact broken route states from the reported sc
   assert.match(source,/view=decision-maker/);
   assert.match(source,/qelly-symbol\.svg/);
   assert.match(source,/MutationObserver/);
-  assert.doesNotMatch(source,/placeOrder|executeTrade|wallet\.sign|personalized advice/i);
+  assert.doesNotMatch(source,/placeOrder|executeTrade|wallet\.sign/i);
+  assert.match(source,/No execution\. No personalized advice\./i);
 });
 
 test('static preview receives one compact recovery shell and official decision navigation',async()=>{
