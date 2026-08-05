@@ -7,6 +7,12 @@ const registrationMessage=(error)=>{
 };
 
 export async function renderAuthRegister(main,{api,toast,navigate,onAuthenticated}){
+if(window.__QELLY_CONFIG__?.capabilities?.emailDelivery!==true){
+  main.innerHTML=`<section class="q-auth-page" data-production-auth="unavailable"><div class="q-auth-hero"><div><p class="q-eyebrow">Account availability</p><h1>Account creation is temporarily unavailable.</h1><p>Transactional email delivery has not been proven, so Qelly is not accepting registration requests. No account information has been submitted. Public markets and deterministic local tools remain available.</p></div></div><div class="q-auth-card"><div><p class="q-eyebrow">Fail-closed protection</p><h2>Email confirmation is unavailable</h2><p class="q-muted-copy">Registration will reopen only after a dedicated transactional email provider is configured and a production confirmation flow passes.</p></div><div class="q-auth-footer"><button class="q-button q-button--ghost" type="button" data-login>Sign in to an existing account</button><button class="q-button q-button--primary" type="button" data-home>Return home</button></div></div></section>`;
+  main.querySelector('[data-login]').addEventListener('click',()=>navigate('auth-login'));
+  main.querySelector('[data-home]').addEventListener('click',()=>navigate('market'));
+  return;
+}
   main.innerHTML=`<section class="q-auth-page" data-production-auth="true">
     <div class="q-auth-hero"><div><p class="q-eyebrow">Create an account</p><h1>Save your Qelly work securely.</h1><p>Create a private workspace for saved calculations, revision history and optional cloud synchronization. Public markets and local tools remain available without registration.</p></div><ol class="q-auth-steps"><li><b>1</b><span>Create account</span></li><li><b>2</b><span>Confirm email</span></li><li><b>3</b><span>Open workspace</span></li></ol></div>
     <div class="q-auth-card"><div><p class="q-eyebrow">Qelly account</p><h2>Get started</h2><p class="q-muted-copy">Use an email you can access. We will send one confirmation link before the account becomes active.</p></div>

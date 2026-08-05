@@ -25,6 +25,7 @@ const releaseSha=String(process.env.QELLY_PUBLIC_RELEASE_SHA??process.env.CF_PAG
 const capabilities={
   deterministicLocal:true,
   authentication:!staticVisualPreview&&asBool(process.env.QELLY_ENABLE_AUTH,requirePublicRuntime),
+  emailDelivery:!staticVisualPreview&&asBool(process.env.QELLY_ENABLE_AUTH_EMAIL_DELIVERY,false),
   cloudSync:!staticVisualPreview&&asBool(process.env.QELLY_ENABLE_CLOUD_SYNC,requirePublicRuntime),
   liveProviders:!staticVisualPreview&&asBool(process.env.QELLY_ENABLE_LIVE_PROVIDERS,requirePublicRuntime),
   protectedWrites:!staticVisualPreview&&asBool(process.env.QELLY_ENABLE_FEEDBACK_WRITES,requirePublicRuntime),
@@ -111,6 +112,7 @@ const releaseIdentity={
   mode:staticVisualPreview?'deterministic-local-fallback':'cloudflare-pages-public-runtime',
   cloudMode:staticVisualPreview?'local-only':'supabase-cloudflare-facade',
   authentication:capabilities.authentication,
+  emailDelivery:capabilities.emailDelivery,
   cloudSync:capabilities.cloudSync,
   liveProviders:capabilities.liveProviders,
   protectedWrites:capabilities.protectedWrites,
@@ -124,7 +126,7 @@ await writeFile(path.join(output,'BUILD_INFO.json'),`${JSON.stringify({
   product:'Qelly Intelligence',version:'0.9.0-preview.1',artifact:'static-frontend-with-pages-functions',
   apiBaseConfigured:Boolean(apiBaseUrl),basePath,staticVisualPreview,prompt2cPublicBeta,
   publicBetaMode:prompt2cPublicBeta?'QELLY GLOBAL PUBLIC BETA':null,
-  connectedCapabilitiesActivated:capabilities.authentication&&capabilities.cloudSync&&capabilities.liveProviders,
+  connectedCapabilitiesActivated:capabilities.authentication&&capabilities.emailDelivery&&capabilities.cloudSync&&capabilities.liveProviders,
   releaseSha,buildTimestamp,functionsRoot:'functions',runtimeArchitecture:'cloudflare-api-facade-supabase-auth-rls',
   fonts:{ui:'IBM Plex Sans Variable',evidence:'IBM Plex Sans Variable',fallbacks:['Arial','Helvetica Neue','sans-serif'],licensedOptional:['GT Eesti Pro Display','GT Eesti Pro Text'],licensedOptionalActive:false,iconSystem:'semantic-inline-svg',selfHosted:true,format:'woff2'}
 },null,2)}\n`);

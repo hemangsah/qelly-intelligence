@@ -69,6 +69,7 @@ export function publicRuntimeConfig(env,requestUrl='https://qelly.invalid/'){
     }),
     capabilities:Object.freeze({
       authentication:bool(env.QELLY_ENABLE_AUTH,true),
+      emailDelivery:bool(env.QELLY_ENABLE_AUTH_EMAIL_DELIVERY,false),
       cloudSync:bool(env.QELLY_ENABLE_CLOUD_SYNC,true),
       liveProviders:bool(env.QELLY_ENABLE_LIVE_PROVIDERS,true),
       protectedWrites:bool(env.QELLY_ENABLE_FEEDBACK_WRITES,true),

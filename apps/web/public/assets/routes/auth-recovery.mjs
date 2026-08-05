@@ -5,6 +5,12 @@ const recoveryMessage=(error)=>{
 };
 
 export async function renderAuthRecovery(main,{api,toast,navigate}){
+if(window.__QELLY_CONFIG__?.capabilities?.emailDelivery!==true){
+  main.innerHTML=`<section class="q-auth-page" data-production-auth="unavailable"><div class="q-auth-hero"><div><p class="q-eyebrow">Account recovery</p><h1>Email recovery is temporarily unavailable.</h1><p>No recovery request will be sent until transactional email delivery is proven. This prevents misleading success messages and repeated provider failures.</p></div></div><div class="q-auth-card"><div><p class="q-eyebrow">Fail-closed protection</p><h2>Recovery delivery is unavailable</h2><p class="q-muted-copy">Existing users can still return to sign in. Public markets and deterministic local tools remain available.</p></div><div class="q-auth-footer"><button class="q-button q-button--ghost" type="button" data-login>Return to sign in</button><button class="q-button q-button--primary" type="button" data-home>Return home</button></div></div></section>`;
+  main.querySelector('[data-login]').addEventListener('click',()=>navigate('auth-login'));
+  main.querySelector('[data-home]').addEventListener('click',()=>navigate('market'));
+  return;
+}
   main.innerHTML=`<section class="q-auth-page" data-production-auth="true">
     <div class="q-auth-hero"><div><p class="q-eyebrow">Account recovery</p><h1>Reset your Qelly password.</h1><p>Enter your account email. If it is registered, Qelly will send a single-use recovery link to the allowlisted public callback.</p></div><div class="q-auth-proof-grid"><article><strong>Private</strong><span>Generic response</span></article><article><strong>Single use</strong><span>Expiring recovery link</span></article><article><strong>Protected</strong><span>Sessions revoked after reset</span></article></div></div>
     <div class="q-auth-card"><div><p class="q-eyebrow">Forgot password?</p><h2>Send a recovery link</h2><p class="q-muted-copy">For privacy, the response will not reveal whether an email is registered.</p></div>
