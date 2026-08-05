@@ -55,7 +55,7 @@ export function publicRuntimeConfig(env,requestUrl='https://qelly.invalid/'){
   return Object.freeze({
     schemaVersion:1,
     environment:String(env.QELLY_DEPLOYMENT_ENVIRONMENT||'cloudflare-pages-production'),
-    releaseSha:String(env.QELLY_PUBLIC_RELEASE_SHA||env.CF_PAGES_COMMIT_SHA||'unresolved'),
+    releaseSha:String(env.CF_PAGES_COMMIT_SHA||env.QELLY_PUBLIC_RELEASE_SHA||'unresolved'),
     publicSiteUrl,
     supabaseUrl,
     supabasePublishableKey,
