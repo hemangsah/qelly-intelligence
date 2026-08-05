@@ -4,14 +4,49 @@ const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]
 const MAX_BATCH_ITEMS=100;
 const PULL_PAGE_SIZE=50;
 const MAX_PULL_PAGES=100;
+const MAX_PULL_REVISION_ROWS_TOTAL=5000;
 
 const safeParse=(value,fallback)=>{try{return JSON.parse(value??'')??fallback;}catch{return fallback;}};
 const readQueue=()=>safeParse(localStorage.getItem(QUEUE_KEY),[]);
 const writeQueue=(value)=>localStorage.setItem(QUEUE_KEY,JSON.stringify(value.slice(-25)));
-const readMeta=()=>safeParse(localStorage.getItem(META_KEY),{baseRevisions:{},lastSyncAt:null});
+const defaultMeta=()=>({
+  baseRevisions:{},
+  lastSyncAt:null,
+  revisionHistoryPartial:false,
+  revisionRowsReturned:0,
+  revisionRowsImported:0,
+  revisionRowsDropped:0,
+  revisionRowsLimitPerPage:0,
+  revisionRowsLimitTotal:MAX_PULL_REVISION_ROWS_TOTAL,
+  revisionPagesPartial:0
+});
+const readMeta=()=>{
+  const stored=safeParse(localStorage.getItem(META_KEY),{});
+  return {
+    ...defaultMeta(),
+    ...(stored&&typeof stored==='object'?stored:{}),
+    baseRevisions:stored?.baseRevisions&&typeof stored.baseRevisions==='object'?stored.baseRevisions:{}
+  };
+};
 const writeMeta=(value)=>localStorage.setItem(META_KEY,JSON.stringify(value));
 const localItemsForCloud=(items)=>items.filter(item=>UUID.test(String(item.id||'')));
 const chunks=(items,size)=>Array.from({length:Math.ceil(items.length/size)},(_,index)=>items.slice(index*size,(index+1)*size));
+const finiteCount=(value)=>Number.isFinite(Number(value))&&Number(value)>0?Math.floor(Number(value)):0;
+const boundedPageItems=(rawItems,remainingRevisionRows)=>{
+  let remaining=Math.max(0,Math.floor(Number(remainingRevisionRows)||0));
+  let accepted=0;
+  let dropped=0;
+  const items=(Array.isArray(rawItems)?rawItems:[]).map(item=>{
+    const revisions=Array.isArray(item?.revisions)?item.revisions:[];
+    const keep=Math.min(revisions.length,remaining);
+    const bounded=keep?revisions.slice(-keep):[];
+    accepted+=bounded.length;
+    dropped+=revisions.length-bounded.length;
+    remaining-=bounded.length;
+    return {...item,revisions:bounded};
+  });
+  return {items,accepted,dropped};
+};
 
 export function pendingCloudOperations(){return readQueue().length;}
 export function cloudMeta(){return readMeta();}
@@ -108,12 +143,26 @@ export async function pullCloudToLocal(api,{importSavedCalculations}){
   let cursor=null;
   let pulledAt=null;
   let pages=0;
+  let revisionHistoryPartial=false;
+  let revisionRowsReturned=0;
+  let revisionRowsImported=0;
+  let revisionRowsDropped=0;
+  let revisionRowsLimitPerPage=0;
+  let revisionPagesPartial=0;
 
   do{
     if(pages>=MAX_PULL_PAGES)throw Object.assign(new Error('Cloud pull exceeded the supported page limit'),{code:'cloud_pull_page_limit'});
     const result=await pullPage(api,cursor);
-    items.push(...(result.items||[]));
+    const pagePartial=Boolean(result.revisionHistoryPartial);
+    const bounded=boundedPageItems(result.items,MAX_PULL_REVISION_ROWS_TOTAL-revisionRowsImported);
+    items.push(...bounded.items);
     deleted.push(...(result.deleted||[]));
+    revisionRowsReturned+=finiteCount(result.revisionRowsReturned);
+    revisionRowsImported+=bounded.accepted;
+    revisionRowsDropped+=bounded.dropped;
+    revisionRowsLimitPerPage=Math.max(revisionRowsLimitPerPage,finiteCount(result.revisionRowsLimit));
+    if(pagePartial)revisionPagesPartial+=1;
+    revisionHistoryPartial=revisionHistoryPartial||pagePartial||bounded.dropped>0;
     pulledAt=result.pulledAt||pulledAt;
     cursor=result.nextCursor||null;
     pages+=1;
@@ -123,9 +172,30 @@ export async function pullCloudToLocal(api,{importSavedCalculations}){
   const summary=importSavedCalculations(JSON.stringify(payload),{merge:true});
   const meta=readMeta();
   for(const item of items)meta.baseRevisions[item.id]=item.baseCloudRevision||item.version||1;
-  meta.lastSyncAt=pulledAt||new Date().toISOString();
+  Object.assign(meta,{
+    lastSyncAt:pulledAt||new Date().toISOString(),
+    revisionHistoryPartial,
+    revisionRowsReturned,
+    revisionRowsImported,
+    revisionRowsDropped,
+    revisionRowsLimitPerPage,
+    revisionRowsLimitTotal:MAX_PULL_REVISION_ROWS_TOTAL,
+    revisionPagesPartial
+  });
   writeMeta(meta);
-  return {summary,deleted,pulledAt:meta.lastSyncAt,pages};
+  return {
+    summary,
+    deleted,
+    pulledAt:meta.lastSyncAt,
+    pages,
+    revisionHistoryPartial,
+    revisionRowsReturned,
+    revisionRowsImported,
+    revisionRowsDropped,
+    revisionRowsLimitPerPage,
+    revisionRowsLimitTotal:MAX_PULL_REVISION_ROWS_TOTAL,
+    revisionPagesPartial
+  };
 }
 
 export async function synchronizeCloud(api,items,helpers){
@@ -141,4 +211,4 @@ export function installCloudResume(api,onResult=()=>{}){
   return ()=>window.removeEventListener('online',listener);
 }
 
-export const __cloudSyncTest=Object.freeze({chunks,localItemsForCloud,MAX_BATCH_ITEMS,PULL_PAGE_SIZE,MAX_PULL_PAGES});
+export const __cloudSyncTest=Object.freeze({chunks,localItemsForCloud,boundedPageItems,MAX_BATCH_ITEMS,PULL_PAGE_SIZE,MAX_PULL_PAGES,MAX_PULL_REVISION_ROWS_TOTAL});
