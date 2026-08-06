@@ -29,18 +29,21 @@ test('decision support is deterministic and separates evidence from inference',(
 });
 
 test('decision support UI names assumptions, source quality, invalidation and execution boundaries',async()=>{
-  const [route,engine,brandCorrection,index,fontGovernance]=await Promise.all([
+  const [route,engine,brandCorrection,index,fontGovernance,build]=await Promise.all([
     read('apps/web/public/assets/routes/decision-provenance.mjs'),
     read('apps/web/public/assets/qelly-decision-engine.mjs'),
     read('apps/web/public/assets/qelly-brand-visual-correction.mjs'),
     read('apps/web/public/index.html'),
-    read('apps/web/public/assets/qelly-font-governance.css')
+    read('apps/web/public/assets/qelly-font-governance.css'),
+    read('scripts/build-frontend.mjs')
   ]);
   for(const phrase of ['User-assessed evidence confidence','Invalidation condition','Observed facts','Scenario observations','Missing information','Source quality','Methodology','considered-not-executed'])assert.match(route,new RegExp(phrase));
   for(const field of ['sourceQuality','sourceRecords','observedFacts','derivedMetrics','inferences','assumptions','uncertainty','missingInformation','methodology','decisionRecord'])assert.match(engine,new RegExp(field));
   assert.match(brandCorrection,/qelly-symbol\.svg/);
   assert.match(brandCorrection,/correctWorkspaceSwitcherBrand/);
   assert.match(index,/qelly-font-governance\.css/);
-  assert.match(index,/ibm-plex-sans-variable\.woff2/);
+  assert.doesNotMatch(index,/rel=["']preload["'][^>]*ibm-plex-sans-variable\.woff2/i);
+  assert.match(fontGovernance,/ibm-plex-sans-variable\.woff2/);
   assert.match(fontGovernance,/IBM Plex Sans Variable/);
+  assert.match(build,/ibm-plex-sans-variable\.woff2/);
 });
