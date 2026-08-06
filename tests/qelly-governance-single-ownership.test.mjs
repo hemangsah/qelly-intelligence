@@ -8,11 +8,12 @@ const sources=()=>Promise.all([
   readFile(new URL('../functions/_lib/governance.js',import.meta.url),'utf8')
 ]);
 
-test('API middleware intercepts governed writes before the legacy router',async()=>{
+test('API middleware intercepts governed and transactional-email writes before the legacy router',async()=>{
   const [middleware]=await sources();
   assert.match(middleware,/governanceRoute\(path,method\)/);
+  assert.match(middleware,/transactionalEmailRoute\(path,method\)/);
   assert.match(middleware,/handleGovernance\(context,path,method,session,qelly\)/);
-  assert.match(middleware,/if\(!interceptReadiness&&!interceptGovernance\)return context\.next\(\)/);
+  assert.match(middleware,/if\(!interceptReadiness&&!interceptGovernance&&!interceptEmail\)return context\.next\(\)/);
 });
 
 test('general data module has no consent or deletion write implementation',async()=>{
