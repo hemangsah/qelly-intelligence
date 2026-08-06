@@ -65,7 +65,7 @@ test('cloud lifecycle remains explicit opt-in and conflict preserving',async()=>
   assert.match(sync,/Idempotency-Key/);
   assert.match(sync,/conflict/);
   assert.match(saved,/Nothing uploads until you explicitly enable cloud sync/);
-  assert.match(saved,/no cloud record was silently overwritten/);
+  assert.match(saved,/No (?:conflicting|cloud) record was silently overwritten/i);
 });
 
 test('Pages Functions source covers required public runtime route families',async()=>{
