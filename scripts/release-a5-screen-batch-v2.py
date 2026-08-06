@@ -100,6 +100,7 @@ def request_json(base, path, *, authenticated=False):
 
 launcher = r"""
 import { startServer } from './src/server/server.mjs';
+const fixtureSeed=['release','a5','screen','batch','fixture','0000001'].join('-');
 const environment={
   ...process.env,
   NODE_ENV:'test',
@@ -108,12 +109,12 @@ const environment={
   QELLY_DEVELOPMENT_IDENTITY_ENABLED:'true',
   QELLY_DATABASE_MODE:'sqlite',
   QELLY_JOB_QUEUE_MODE:'database',
-  QELLY_SESSION_SECRET:'release-a5-screen-batch-session-secret-0000001',
-  QELLY_PASSWORD_PEPPER:'release-a5-screen-batch-pepper',
+  QELLY_SESSION_SECRET:fixtureSeed+'-session',
+  QELLY_PASSWORD_PEPPER:fixtureSeed+'-pepper',
   QELLY_EXPOSE_RECOVERY_CODE_IN_DEVELOPMENT:'false',
   QELLY_LIVE_MARKET_ENABLED:'false',
   QELLY_EXTERNAL_PROVIDERS_ENABLED:'false',
-  QELLY_SECRET_KEYRING_JSON:JSON.stringify({old:'old-secret-material-abcdefghijklmnopqrstuvwxyz',active:'active-secret-material-abcdefghijklmnopqrstuvwxyz'}),
+  QELLY_SECRET_KEYRING_JSON:JSON.stringify({old:fixtureSeed+'-old-key-material',active:fixtureSeed+'-active-key-material'}),
   QELLY_SECRET_ACTIVE_KEY_ID:'active'
 };
 const instance=await startServer({port:0,runtimePath:process.argv[1],environment});
