@@ -43,7 +43,7 @@ test('CSV parser handles quoted values, semicolon decimals and accounting negati
 
 test('Qelly Verify product is local-only and preserves the evidence-first boundary',async()=>{
   const source=await read('apps/web/public/assets/qelly-verify-product.mjs');
-  for(const phrase of ['Put your strategy through evidence, not belief','Upload','Validate','Analyze','Decide','No live AI model','No execution','No personalized'])assert.match(source,new RegExp(phrase,'i'));
+  for(const phrase of ['Put your strategy through evidence, not belief','Upload','Validate','Analyze','Decide','No live AI model','order execution','personalized financial recommendation'])assert.match(source,new RegExp(phrase,'i'));
   assert.match(source,/MAX_FILE_BYTES=5\*1024\*1024/);
   assert.match(source,/data-verify-export/);
   assert.match(source,/local-only prototype/i);
