@@ -24,15 +24,17 @@ test('approved primary and symbol geometry remain exact', async () => {
   }
 });
 
-test('IBM Plex remains the governed application font source', async () => {
+test('IBM Plex remains governed and is materialized only at build time', async () => {
   const index = await text('apps/web/public/index.html');
   const packageJson = JSON.parse(await text('package.json'));
   const build = await text('scripts/build-frontend.mjs');
-  assert.match(index, /\.\/assets\/fonts\/ibm-plex-sans-variable\.woff2/);
+  assert.doesNotMatch(index, /ibm-plex-sans-variable\.woff2/);
   assert.doesNotMatch(index, /fonts\.googleapis|use\.typekit|Geist|Manrope|Plus Jakarta/i);
   assert.equal(packageJson.devDependencies['@fontsource-variable/ibm-plex-sans'], '5.2.8');
   assert.match(build, /@fontsource-variable\/ibm-plex-sans/);
   assert.match(build, /ibm-plex-sans-variable\.woff2/);
+  assert.match(build, /const ibmPlexPreload=/);
+  assert.match(build, /Source shell must not reference generated IBM Plex asset before build/);
 });
 
 test('brand and semantic colors stay governed by approved source assets', async () => {

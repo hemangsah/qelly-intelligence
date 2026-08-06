@@ -52,6 +52,10 @@ for(const [packageName,preferred,target] of [['@fontsource-variable/ibm-plex-san
 }
 
 const indexPath=path.join(output,'index.html');let index=await readFile(indexPath,'utf8');
+const ibmPlexPreload='  <link rel="preload" href="./assets/fonts/ibm-plex-sans-variable.woff2" as="font" type="font/woff2" crossorigin>';
+if(index.includes('ibm-plex-sans-variable.woff2'))throw new Error('Source shell must not reference generated IBM Plex asset before build');
+if(!index.includes('</head>'))throw new Error('Source shell is missing </head>');
+index=index.replace('</head>',`${ibmPlexPreload}\n</head>`);
 if(basePath!=='/')index=index.replace('<head>',`<head>\n  <base href="${basePath}">`);
 if(prompt2cPublicBeta){
   const productStyles=[
