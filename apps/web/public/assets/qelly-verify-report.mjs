@@ -19,8 +19,9 @@ function fnv1a(value){
 export async function fingerprintSource(source){
   const normalized=normalizedSource(source);
   if(globalThis.crypto?.subtle&&globalThis.TextEncoder){
-    const digest=await globalThis.crypto.subtle.digest('SHA-256',new TextEncoder().encode(normalized));
-    return freeze({algorithm:'SHA-256',value:[...new Uint8Array(digest)].map(byte=>byte.toString(16).padStart(2,'0')).join(''),normalizedBytes:new TextEncoder().encode(normalized).byteLength});
+    const encoded=new TextEncoder().encode(normalized);
+    const digest=await globalThis.crypto.subtle.digest('SHA-256',encoded);
+    return freeze({algorithm:'SHA-256',value:[...new Uint8Array(digest)].map(byte=>byte.toString(16).padStart(2,'0')).join(''),normalizedBytes:encoded.byteLength});
   }
   return freeze({algorithm:'FNV-1A-32-FALLBACK',value:fnv1a(normalized),normalizedBytes:normalized.length});
 }
@@ -148,8 +149,7 @@ export async function composeStrategyEvidenceReport({analysis,validation,sourceT
       sequenceSeedBoundary:'Derived deterministically from uploaded P&L values.',
       numericalReproducibility:'Identical normalized input and engine version produce identical numerical analysis; generation metadata may differ.',
       methodologyRoute:'#/market?view=evidence-methodology'
-    }),
-    rawAnalysis:analysis
+    })
   });
 }
 
