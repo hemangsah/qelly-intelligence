@@ -1,3 +1,5 @@
+import './qelly-verify-bootstrap.mjs';
+
 (()=>{
   let installing=false;
   const compatibilityIds=['rail-toggle','command-button','state-selector','global-theme-selector','notification-button','theme-shortcut'];
