@@ -32,10 +32,17 @@ test('brand shell contains intentional edge bleed without document overflow', as
   assert.match(value, /#main\{overflow-x:hidden;overflow-x:clip\}/);
 });
 
-test('PWA assets and IBM Plex lock are preserved', async () => {
-  const index = await source('apps/web/public/index.html');
+test('PWA assets and IBM Plex build-time font lock are preserved', async () => {
+  const [index,fontGovernance,build] = await Promise.all([
+    source('apps/web/public/index.html'),
+    source('apps/web/public/assets/qelly-font-governance.css'),
+    source('scripts/build-frontend.mjs')
+  ]);
   const manifest = JSON.parse(await source('apps/web/public/manifest.webmanifest'));
-  assert.match(index, /ibm-plex-sans-variable\.woff2/);
+  assert.doesNotMatch(index,/rel=["']preload["'][^>]*ibm-plex-sans-variable\.woff2/i);
+  assert.match(index,/qelly-font-governance\.css/);
+  assert.match(fontGovernance,/ibm-plex-sans-variable\.woff2/);
+  assert.match(build,/ibm-plex-sans-variable\.woff2/);
   assert.match(index, /qelly-brand\.css/);
   assert.match(index, /qelly-brand\.mjs/);
   assert.ok(manifest.icons.some((item) => item.purpose === 'maskable'));
