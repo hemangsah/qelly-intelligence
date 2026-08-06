@@ -55,7 +55,7 @@ test('governance writes are intercepted before the legacy route handler',async()
 test('non-governed API routes continue through the existing handler',async()=>{
   let nextCalls=0;
   const request=new Request('https://qelly-middleware.test/api/v1/health');
-  const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response('next',{status:204});}});
+  const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response(null,{status:204});}});
   assert.equal(nextCalls,1);
   assert.equal(response.status,204);
 });
