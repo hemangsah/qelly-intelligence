@@ -175,13 +175,14 @@ test('authenticated clients cannot directly mutate sync-operation evidence',asyn
 });
 
 test('clean provisioning transitions policy dependencies before migration 111 drops the public helper',async()=>{
-  const [transition,hardening,migrator]=await Promise.all([
+  const [transition,hardening,migrator,policy]=await Promise.all([
     readFile(new URL('../packages/migrations/110a_qelly_private_workspace_role_policy_transition.sql',import.meta.url),'utf8'),
     readFile(new URL('../packages/migrations/111_qelly_final_live_activation_hardening.sql',import.meta.url),'utf8'),
-    readFile(new URL('../scripts/migrate-production.mjs',import.meta.url),'utf8')
+    readFile(new URL('../scripts/migrate-production.mjs',import.meta.url),'utf8'),
+    readFile(new URL('../scripts/migration-file-policy.mjs',import.meta.url),'utf8')
   ]);
   assert.match(transition,/create or replace function qelly_private\.workspace_role/i);
-  for(const policy of [
+  for(const policyName of [
     'qelly_workspaces_member_select',
     'qelly_members_visible',
     'qelly_members_owner_insert',
@@ -191,11 +192,13 @@ test('clean provisioning transitions policy dependencies before migration 111 dr
     'qelly_revisions_member_select',
     'qelly_audit_member_select'
   ]){
-    assert.match(transition,new RegExp(`drop policy if exists ${policy}`,'i'));
+    assert.match(transition,new RegExp(`drop policy if exists ${policyName}`,'i'));
   }
   assert.match(transition,/to_regprocedure\('public\.qelly_workspace_role\(uuid,uuid\)'\)/i);
   assert.match(hardening,/drop function if exists public\.qelly_workspace_role\(uuid,uuid\)/i);
-  assert.match(migrator,/filter\(\(name\) => \/\^\\d\+\.\*\\\.sql\$\/[\s\S]*\.sort\(\)/);
+  assert.match(migrator,/selectMigrationFiles\(await readdir\(migrationDir\),profile\)/);
+  assert.match(policy,/REVERSE_SUFFIX/);
+  assert.match(policy,/number<=108\?'platform':'supabase'/);
   assert.deepEqual(
     ['110_prompt2c_revision_trigger_order.sql','110a_qelly_private_workspace_role_policy_transition.sql','111_qelly_final_live_activation_hardening.sql'].sort(),
     ['110_prompt2c_revision_trigger_order.sql','110a_qelly_private_workspace_role_policy_transition.sql','111_qelly_final_live_activation_hardening.sql']
@@ -209,5 +212,6 @@ test('browser pull follows cursors and migrations are never auto-applied by the 
   ]);
   assert.match(client,/do\s*\{[\s\S]*result\.nextCursor[\s\S]*\}\s*while\(cursor\)/);
   assert.match(migrator,/QELLY_MIGRATION_DATABASE_URL is required in production/);
+  assert.match(migrator,/migration_profile_mismatch/);
   assert.doesNotMatch(client,/qelly_sync_push_batch/);
 });

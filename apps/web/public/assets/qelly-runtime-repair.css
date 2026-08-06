@@ -1,0 +1,322 @@
+/* Qelly runtime repair layer.
+   Loaded last to preserve the canonical brand, public-route recovery and accessible feature-universe contrast. */
+
+[hidden]{display:none!important}
+
+.q-global-strip .q-brand-home{
+  display:inline-flex!important;
+  align-items:center;
+  justify-content:flex-start;
+  flex:0 0 auto;
+  width:clamp(122px,12vw,172px);
+  min-width:122px;
+  height:28px;
+  padding:0 6px;
+  border-radius:7px;
+  background:#f8f5f2;
+  text-decoration:none;
+  overflow:hidden;
+}
+.q-global-strip .q-brand-home img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  object-position:left center;
+}
+.q-global-strip>.q-brand-mark:not(.q-brand-home){display:none!important}
+
+.q-edge-dock__brand{
+  display:grid!important;
+  place-items:center;
+  width:44px!important;
+  height:44px!important;
+  min-height:44px!important;
+  margin:8px auto 10px!important;
+  padding:3px!important;
+  border:1px solid color-mix(in srgb,#6f1838 34%,transparent)!important;
+  border-radius:12px!important;
+  background:#f8f5f2!important;
+  box-shadow:0 7px 18px rgba(0,0,0,.2)!important;
+  color:transparent!important;
+  font-size:0!important;
+  line-height:0!important;
+  overflow:hidden!important;
+  text-decoration:none!important;
+}
+.q-edge-dock__brand::before,.q-edge-dock__brand::after{content:none!important;display:none!important}
+.q-edge-dock__brand img{
+  display:block!important;
+  width:38px!important;
+  height:38px!important;
+  max-width:38px!important;
+  object-fit:contain!important;
+  filter:none!important;
+  opacity:1!important;
+}
+
+.q-feature-universe{
+  display:grid;
+  gap:22px;
+  color:var(--q-text,#f8f5f2);
+}
+.q-feature-universe .q-page-head{
+  min-height:0!important;
+  margin-bottom:0!important;
+  padding-bottom:18px!important;
+}
+.q-feature-universe .q-page-head h1,
+.q-feature-universe .q-page-head p{
+  color:var(--q-text,#f8f5f2)!important;
+  opacity:1!important;
+}
+.q-universe-hero{
+  position:relative!important;
+  display:grid!important;
+  grid-template-columns:minmax(190px,260px) minmax(0,1fr)!important;
+  gap:20px!important;
+  align-items:stretch!important;
+  min-height:0!important;
+  height:auto!important;
+  max-height:none!important;
+  padding:22px!important;
+  border:1px solid color-mix(in srgb,var(--q-accent,#8a1f49) 45%,var(--q-border,#4a3840))!important;
+  border-radius:22px!important;
+  background:
+    radial-gradient(circle at 78% 20%,color-mix(in srgb,var(--q-accent,#8a1f49) 26%,transparent),transparent 38%),
+    linear-gradient(145deg,#171217,#0d1011)!important;
+  box-shadow:0 18px 48px rgba(0,0,0,.24)!important;
+  overflow:hidden!important;
+}
+.q-universe-hero::before{
+  content:"";
+  position:absolute;
+  inset:auto -80px -130px auto;
+  width:310px;
+  height:310px;
+  border:1px solid rgba(164,49,91,.35);
+  border-radius:50%;
+  pointer-events:none;
+}
+.q-universe-core{
+  position:relative!important;
+  z-index:1;
+  display:grid!important;
+  grid-template-columns:72px 1fr!important;
+  grid-template-rows:auto auto!important;
+  gap:3px 14px!important;
+  align-content:center!important;
+  min-height:180px!important;
+  padding:20px!important;
+  border:1px solid rgba(255,255,255,.11)!important;
+  border-radius:18px!important;
+  background:rgba(248,245,242,.96)!important;
+  color:#24161c!important;
+  box-shadow:0 12px 30px rgba(0,0,0,.22)!important;
+}
+.q-universe-core img{
+  grid-row:1/3;
+  align-self:center;
+  width:72px!important;
+  height:72px!important;
+  object-fit:contain!important;
+}
+.q-universe-core strong{
+  align-self:end;
+  font-size:clamp(38px,4vw,64px)!important;
+  line-height:.92!important;
+  color:#6f1838!important;
+  opacity:1!important;
+}
+.q-universe-core small{
+  align-self:start;
+  color:#55424a!important;
+  font-size:12px!important;
+  font-weight:700!important;
+  letter-spacing:.04em!important;
+  text-transform:uppercase!important;
+  opacity:1!important;
+}
+.q-universe-journey{
+  position:relative;
+  z-index:1;
+  display:grid!important;
+  grid-template-columns:repeat(5,minmax(118px,1fr))!important;
+  gap:10px!important;
+  align-items:stretch!important;
+}
+.q-universe-node{
+  position:static!important;
+  transform:none!important;
+  inset:auto!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+  align-items:flex-start!important;
+  min-height:112px!important;
+  padding:16px!important;
+  border:1px solid rgba(255,255,255,.14)!important;
+  border-radius:16px!important;
+  background:rgba(23,18,23,.88)!important;
+  color:#fff!important;
+  text-align:left!important;
+  box-shadow:none!important;
+}
+.q-universe-node:hover,.q-universe-node:focus-visible{
+  border-color:#b74972!important;
+  background:#281720!important;
+  box-shadow:0 0 0 3px rgba(183,73,114,.19)!important;
+}
+.q-universe-node strong{
+  color:#fff!important;
+  font-size:15px!important;
+  opacity:1!important;
+  text-transform:none!important;
+}
+.q-universe-node span{
+  margin-top:5px!important;
+  color:#d9cbd1!important;
+  font-size:11px!important;
+  opacity:1!important;
+}
+.q-universe-clusters{display:grid!important;gap:18px!important}
+.q-universe-cluster{
+  display:grid!important;
+  grid-template-columns:minmax(230px,290px) minmax(0,1fr)!important;
+  gap:22px!important;
+  align-items:start!important;
+  padding:22px!important;
+  border:1px solid color-mix(in srgb,var(--q-border,#4a3840) 86%,transparent)!important;
+  border-radius:22px!important;
+  background:linear-gradient(135deg,#111516,#0d1011)!important;
+  color:#f8f5f2!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.17)!important;
+  overflow:hidden!important;
+}
+.q-universe-cluster>header{
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:14px!important;
+  min-width:0!important;
+  padding:2px 0!important;
+  background:transparent!important;
+}
+.q-universe-cluster>header>div{min-width:0!important}
+.q-universe-cluster>header>div>span{
+  display:inline-block!important;
+  margin-bottom:10px!important;
+  color:#c53d70!important;
+  font-size:11px!important;
+  font-weight:800!important;
+  letter-spacing:.08em!important;
+  opacity:1!important;
+}
+.q-universe-cluster h2{
+  margin:4px 0 10px!important;
+  color:#fff!important;
+  font-size:clamp(24px,2vw,34px)!important;
+  line-height:1.05!important;
+  opacity:1!important;
+}
+.q-universe-cluster header p{
+  margin:0!important;
+  color:#bcaeb4!important;
+  line-height:1.55!important;
+  opacity:1!important;
+}
+.q-universe-cluster .q-eyebrow{color:#d44c7d!important;font-size:10px!important}
+.q-universe-cluster .q-icon-button{
+  flex:0 0 auto!important;
+  border-color:rgba(255,255,255,.18)!important;
+  background:#23171d!important;
+  color:#fff!important;
+}
+.q-universe-route-grid{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:10px!important;
+}
+.q-universe-route-grid>button{
+  display:grid!important;
+  align-content:center!important;
+  justify-items:start!important;
+  min-height:94px!important;
+  padding:15px!important;
+  border:1px solid #4a3740!important;
+  border-radius:15px!important;
+  background:#1b1519!important;
+  color:#fff!important;
+  text-align:left!important;
+  box-shadow:none!important;
+  opacity:1!important;
+}
+.q-universe-route-grid>button:hover,.q-universe-route-grid>button:focus-visible{
+  border-color:#b74972!important;
+  background:#281820!important;
+  transform:translateY(-1px)!important;
+  box-shadow:0 8px 20px rgba(0,0,0,.23),0 0 0 3px rgba(183,73,114,.14)!important;
+}
+.q-universe-route-grid>button>span{
+  margin-bottom:8px!important;
+  color:#df5f8e!important;
+  font-size:10px!important;
+  font-weight:800!important;
+  opacity:1!important;
+}
+.q-universe-route-grid>button>strong{
+  color:#fff!important;
+  font-size:13px!important;
+  font-weight:750!important;
+  line-height:1.28!important;
+  text-transform:capitalize!important;
+  opacity:1!important;
+}
+.q-universe-route-grid>button>small{
+  margin-top:8px!important;
+  color:#c7b8be!important;
+  font-size:10px!important;
+  opacity:1!important;
+}
+.q-feature-universe .q-capability-ribbon .q-panel-body{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:12px!important;
+}
+.q-feature-universe .q-capability-ribbon .q-panel-body>div{
+  padding:14px!important;
+  border:1px solid color-mix(in srgb,var(--q-border,#4a3840) 80%,transparent)!important;
+  border-radius:13px!important;
+  background:color-mix(in srgb,var(--q-surface,#171217) 94%,var(--q-accent,#8a1f49))!important;
+}
+.q-feature-universe .q-capability-ribbon span{color:#d44c7d!important;opacity:1!important}
+.q-feature-universe .q-capability-ribbon strong{color:var(--q-text,#f8f5f2)!important;opacity:1!important}
+
+#main[data-qelly-recovery-owner]>.q-route-error,
+#main[data-qelly-recovery-owner]>[data-route-error],
+#main[data-qelly-recovery-owner]>.q-placeholder,
+#main[data-qelly-recovery-owner]>.q-error-state{display:none!important}
+.q-market-recovery{max-width:1180px!important;margin-inline:auto!important}
+.q-market-recovery>header{background:linear-gradient(135deg,#25121b,#7b1740)!important}
+.q-market-recovery .q-recovery-notice{border-color:rgba(183,73,114,.4)!important}
+
+@media(max-width:1180px){
+  .q-universe-journey{grid-template-columns:repeat(3,minmax(130px,1fr))!important}
+  .q-universe-route-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:840px){
+  .q-global-strip .q-brand-home{width:128px;min-width:128px}
+  .q-universe-hero,.q-universe-cluster{grid-template-columns:1fr!important}
+  .q-universe-core{min-height:132px!important}
+  .q-feature-universe .q-capability-ribbon .q-panel-body{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:560px){
+  .q-universe-hero,.q-universe-cluster{padding:15px!important;border-radius:16px!important}
+  .q-universe-journey,.q-universe-route-grid,.q-feature-universe .q-capability-ribbon .q-panel-body{grid-template-columns:1fr!important}
+  .q-universe-node{min-height:78px!important}
+  .q-universe-route-grid>button{min-height:82px!important}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .q-universe-route-grid>button,.q-universe-node{transition:none!important;transform:none!important}
+}

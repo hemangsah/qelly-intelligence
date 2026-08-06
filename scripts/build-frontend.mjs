@@ -21,7 +21,7 @@ if(requirePublicRuntime&&supabasePublishableKey.length<20)throw new Error('QELLY
 if(staticVisualPreview&&(apiBaseUrl||requirePublicRuntime))throw new Error('Static visual preview cannot enable the connected public runtime');
 
 const buildTimestamp=new Date().toISOString();
-const releaseSha=String(process.env.QELLY_PUBLIC_RELEASE_SHA??process.env.CF_PAGES_COMMIT_SHA??process.env.GITHUB_SHA??'unresolved');
+const releaseSha=String(process.env.CF_PAGES_COMMIT_SHA??process.env.GITHUB_SHA??process.env.QELLY_PUBLIC_RELEASE_SHA??'unresolved');
 const capabilities={
   deterministicLocal:true,
   authentication:!staticVisualPreview&&asBool(process.env.QELLY_ENABLE_AUTH,requirePublicRuntime),
@@ -72,20 +72,20 @@ if(prompt2cPublicBeta){
 }
 await writeFile(indexPath,index);
 
-const runtimeConfig={
+const connectedRuntimeConfig={
   schemaVersion:1,
   productMode:prompt2cPublicBeta?'QELLY GLOBAL PUBLIC BETA':'QELLY',
-  deploymentStage:staticVisualPreview?'static-preview':String(process.env.QELLY_DEPLOYMENT_ENVIRONMENT??'cloudflare-pages-production'),
+  deploymentStage:String(process.env.QELLY_DEPLOYMENT_ENVIRONMENT??'cloudflare-pages-production'),
   releaseSha,
   buildTimestamp,
   basePath,
   publicSiteUrl,
   publicBaseUrl:publicSiteUrl,
   apiBaseUrl,
-  staticVisualPreview,
-  previewLabel:staticVisualPreview?'Static visual preview':null,
-  dataMode:staticVisualPreview?'deterministic-demo':'public-runtime',
-  backendAvailable:!staticVisualPreview,
+  staticVisualPreview:false,
+  previewLabel:null,
+  dataMode:'public-runtime',
+  backendAvailable:true,
   supabase:Object.freeze({url:supabaseUrl,publishableKey:supabasePublishableKey}),
   capabilities:Object.freeze(capabilities),
   supportUrl:publicSiteUrl?`${publicSiteUrl}/support.html`:'./support.html',
@@ -96,6 +96,15 @@ const runtimeConfig={
     terms:publicSiteUrl?`${publicSiteUrl}/legal/terms.html`:'./legal/terms.html'
   })
 };
+const runtimeConfig=staticVisualPreview?{
+  apiBaseUrl:'',
+  deploymentStage:'github-pages',
+  basePath,
+  staticVisualPreview:true,
+  previewLabel:'Static visual preview',
+  dataMode:'deterministic-demo',
+  backendAvailable:false
+}:connectedRuntimeConfig;
 await writeFile(path.join(output,'qelly-config.js'),`window.__QELLY_CONFIG__=Object.freeze(${JSON.stringify(runtimeConfig)});\n`);
 
 if(staticVisualPreview){
@@ -123,7 +132,7 @@ await writeFile(path.join(output,'qelly-release.json'),`${JSON.stringify(release
 await writeFile(path.join(output,'_routes.json'),`${JSON.stringify({version:1,include:['/api/*'],exclude:[]},null,2)}\n`);
 
 await writeFile(path.join(output,'BUILD_INFO.json'),`${JSON.stringify({
-  product:'Qelly Intelligence',version:'0.9.0-preview.1',artifact:'static-frontend-with-pages-functions',
+  product:'Qelly Intelligence',version:'0.9.0-preview.1',artifact:staticVisualPreview?'static-frontend':'static-frontend-with-pages-functions',
   apiBaseConfigured:Boolean(apiBaseUrl),basePath,staticVisualPreview,prompt2cPublicBeta,
   publicBetaMode:prompt2cPublicBeta?'QELLY GLOBAL PUBLIC BETA':null,
   connectedCapabilitiesActivated:capabilities.authentication&&capabilities.emailDelivery&&capabilities.cloudSync&&capabilities.liveProviders,

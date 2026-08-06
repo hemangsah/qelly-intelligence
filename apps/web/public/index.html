@@ -41,12 +41,14 @@
   <link rel="stylesheet" href="./assets/qelly-brand.css">
   <link rel="stylesheet" href="./assets/qelly-brand-visual-correction.css">
   <link rel="stylesheet" href="./assets/qelly-worldclass-uiux.css">
+  <link rel="stylesheet" href="./assets/qelly-public-recovery.css">
+  <link rel="stylesheet" href="./assets/qelly-runtime-repair.css">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
   <div id="app" class="q-app">
     <header class="q-global-strip" aria-label="Market context">
-      <div class="q-brand-mark" aria-label="Qelly Intelligence home"><span>Q</span><strong>QELLY INTELLIGENCE</strong></div>
+      <a class="q-brand-home" href="#/feature-universe" aria-label="Qelly Intelligence home" data-qelly-primary-lockup="true"><img src="./assets/brand/qelly-logo-primary.svg" width="181" height="50" alt="Qelly"></a>
       <div id="macro-strip" class="q-macro-strip" aria-live="polite"></div>
       <div class="q-truth-chip"><span class="q-status q-status--cached">READ ONLY</span><span>Source evidence · safe degraded mode</span></div>
     </header>
@@ -90,6 +92,7 @@
   <script type="module" src="./assets/app.js"></script>
   <script type="module" src="./assets/qelly-product-route-guard.mjs"></script>
   <script type="module" src="./assets/qelly-worldclass-uiux.mjs"></script>
+  <script type="module" src="./assets/qelly-public-recovery.mjs"></script>
   <script type="module">
     const root=document.documentElement;
     const main=document.getElementById('main');
