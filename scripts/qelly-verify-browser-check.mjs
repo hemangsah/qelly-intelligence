@@ -6,16 +6,45 @@ const baseUrl=String(process.env.QELLY_VERIFY_BASE_URL||'http://127.0.0.1:4173')
 const output=path.resolve(process.env.QELLY_VERIFY_EVIDENCE_DIR||'dist/qelly-verify-browser');
 await mkdir(output,{recursive:true});
 
+async function routeDiagnostics(page){
+  return page.evaluate(()=>{
+    const main=document.getElementById('main');
+    return {
+      href:location.href,
+      hash:location.hash,
+      readyState:document.readyState,
+      appReady:document.documentElement.dataset.appReady||null,
+      productSurface:document.documentElement.dataset.productSurface||null,
+      shellCompat:document.documentElement.dataset.shellCompat||null,
+      bootstrapState:window.__QELLY_VERIFY_ROUTE__?JSON.parse(JSON.stringify(window.__QELLY_VERIFY_ROUTE__)):null,
+      bootstrapApi:typeof window.QellyVerifyBootstrap?.schedule,
+      verifyApi:typeof window.QellyVerify?.render,
+      mainOwner:main?.dataset.qellyVerifyOwner||null,
+      mainBusy:main?.getAttribute('aria-busy')||null,
+      mainText:main?.textContent?.replace(/\s+/g,' ').trim().slice(0,1200)||null,
+      verifyLinks:[...document.querySelectorAll('[data-qelly-verify-link]')].map(link=>({href:link.getAttribute('href'),text:link.textContent?.trim()}))
+    };
+  });
+}
+
 async function inspect({name,viewport,reducedMotion='no-preference'}){
   const browser=await chromium.launch({headless:true});
   const context=await browser.newContext({viewport,reducedMotion,serviceWorkers:'block',acceptDownloads:false});
   const page=await context.newPage();
   const pageErrors=[];
   const consoleErrors=[];
-  page.on('pageerror',error=>pageErrors.push({name:error.name,message:error.message}));
+  page.on('pageerror',error=>pageErrors.push({name:error.name,message:error.message,stack:error.stack||null}));
   page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});
   const response=await page.goto(`${baseUrl}/#/market?view=qelly-verify`,{waitUntil:'domcontentloaded',timeout:45000});
-  await page.waitForSelector('[data-qelly-verify-surface]',{state:'visible',timeout:30000});
+  try{
+    await page.waitForSelector('[data-qelly-verify-surface]',{state:'visible',timeout:30000});
+  }catch(error){
+    const diagnostics=await routeDiagnostics(page);
+    await page.screenshot({path:path.join(output,`${name}-route-failure.png`),fullPage:true});
+    await writeFile(path.join(output,`${name}-route-failure.json`),JSON.stringify({diagnostics,pageErrors,consoleErrors,error:{name:error.name,message:error.message}},null,2));
+    await browser.close();
+    throw Object.assign(new Error(`${name}_verify_route_unavailable_${JSON.stringify(diagnostics)}`),{cause:error});
+  }
   const analysisRequests=[];
   const observe=request=>{if(request.method()!=='GET'&&request.method()!=='HEAD')analysisRequests.push({method:request.method(),url:request.url()});};
   page.on('request',observe);
