@@ -17,7 +17,12 @@ fi
 for ((start=0; start<ROUTE_COUNT; start+=BATCH_SIZE)); do
   end=$((start+BATCH_SIZE))
   if [ "$end" -gt "$ROUTE_COUNT" ]; then end="$ROUTE_COUNT"; fi
-  python3 "$ROOT/scripts/release-a5-screen-batch.py" "$start" "$end"
+  batch_manifest="$OUT/$(printf 'batch-%03d-%03d.json' "$start" "$end")"
+  if ! python3 "$ROOT/scripts/release-a5-screen-batch.py" "$start" "$end"; then
+    echo "Browser evidence batch ${start}:${end} failed. Diagnostic manifest follows:" >&2
+    if [ -f "$batch_manifest" ]; then cat "$batch_manifest" >&2; fi
+    exit 1
+  fi
 done
 python3 "$ROOT/scripts/release-a5-screen-aggregate.py"
 python3 "$ROOT/scripts/release-a5-screen-package.py"
