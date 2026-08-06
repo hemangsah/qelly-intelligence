@@ -70,17 +70,25 @@ try:
             for auth_mode in (False,True):
                 context=browser.new_context(viewport=viewport,device_scale_factor=1,reduced_motion='reduce')
                 if auth_mode:
-                    for morsel in parsed_cookie.values(): context.add_cookies([{'name':morsel.key,'value':morsel.value,'domain':'qelly.test','path':'/'}])
+                    for morsel in parsed_cookie.values(): context.add_cookies([{'name':morsel.key,'value':morsel.value,'domain':'qelly.test','path':'/','secure':True,'sameSite':'Lax'}])
                 contexts[auth_mode]=context
             for d in defs:
                 route=d['route']; authenticated=route not in public_routes; context=contexts[authenticated]
                 page=context.new_page(); errors=[]
                 page.on('console',lambda msg,e=errors:e.append({'type':'console','text':msg.text}) if msg.type=='error' else None)
                 page.on('pageerror',lambda exc,e=errors:e.append({'type':'pageerror','text':str(exc)}))
+                page.on('requestfailed',lambda request,e=errors:e.append({'type':'requestfailed','url':request.url,'method':request.method,'failure':request.failure}))
+                page.on('response',lambda response,e=errors:e.append({'type':'http','status':response.status,'url':response.url}) if response.status>=400 else None)
                 def proxy(route_obj):
                     auth=authenticated
                     current_route=route
                     parsed=urlsplit(route_obj.request.url)
+                    if parsed.netloc=='qelly.test' and parsed.path in ('/','/index.html'):
+                        route_obj.fulfill(status=200,headers={
+                            'Content-Type':'text/html; charset=utf-8',
+                            'Cache-Control':'no-store',
+                            'X-Content-Type-Options':'nosniff'
+                        },body=INDEX);return
                     if parsed.netloc=='qelly.test':
                         asset=local_public_file(parsed.path)
                         if asset is not None:
@@ -114,12 +122,12 @@ try:
                         rh={k:v for k,v in exc.headers.items() if k.lower() not in {'content-encoding','transfer-encoding','connection','content-length','set-cookie'}}
                         route_obj.fulfill(status=exc.code,headers=rh,body=exc.read())
                     except Exception as exc:
-                        route_obj.fulfill(status=502,headers={'Content-Type':'application/json'},body=json.dumps({'error':'proxy_failed','message':str(exc)}))
+                        route_obj.fulfill(status=502,headers={'Content-Type':'application/json'},body=json.dumps({'error':'proxy_failed','target':target,'message':str(exc)}))
                 page.route('**/*',proxy)
                 started=time.time(); heading=None; overflow=None; page_height=None; status='passed'; target=OUT/f'{route}__{vname}.png'
                 try:
-                    page.goto(f'about:blank#/{route}'); page.set_content(INDEX,wait_until='domcontentloaded',timeout=20000)
-                    page.wait_for_selector('main#main h1',timeout=15000); page.wait_for_timeout(300)
+                    page.goto(f'https://qelly.test/#/{route}',wait_until='domcontentloaded',timeout=20000)
+                    page.wait_for_selector('main#main h1',timeout=15000); page.wait_for_timeout(500)
                     heading=page.locator('main#main h1').first.text_content(); overflow=page.evaluate('document.documentElement.scrollWidth-document.documentElement.clientWidth')
                     page_height=page.evaluate('document.documentElement.scrollHeight')
                     if overflow>2 or errors: status='failed'
