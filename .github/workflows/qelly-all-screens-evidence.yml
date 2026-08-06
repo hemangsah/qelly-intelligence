@@ -19,14 +19,18 @@ on:
   schedule:
     - cron: '*/5 * * * *'
   deployment_status:
+  issue_comment:
+    types: [created]
 permissions:
   contents: read
 concurrency:
-  group: qelly-all-screens-${{ github.event.pull_request.number || github.event.deployment.id || github.ref }}
+  group: qelly-all-screens-${{ github.event.pull_request.number || github.event.deployment.id || github.event.issue.number || github.ref }}
   cancel-in-progress: true
 jobs:
   capture-and-package:
-    if: github.event_name != 'deployment_status' || github.event.deployment_status.state == 'success'
+    if: >-
+      (github.event_name != 'deployment_status' || github.event.deployment_status.state == 'success') &&
+      (github.event_name != 'issue_comment' || github.event.comment.body == '/capture-all-screens')
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     env:
