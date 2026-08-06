@@ -72,10 +72,10 @@ const boundedPageItems=(rawItems,remainingRevisionRows)=>{
   });
   return {items,accepted,dropped};
 };
-const transferStatus=({offline=false,remaining=0,conflicts=[],failedBatches=[]}={})=>{
+const transferStatus=({offline=false,remaining=0,conflicts=[],failedBatches=[],flushed=0}={})=>{
   if(conflicts.length)return'conflict';
   if(offline)return'queued';
-  if(failedBatches.length)return remaining?'partial':'failed';
+  if(failedBatches.length)return Number(flushed)>0?'partial':'failed';
   if(remaining)return'queued';
   return'complete';
 };
