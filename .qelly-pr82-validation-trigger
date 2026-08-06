@@ -1,0 +1,3 @@
+Qelly PR #82 validation trigger
+Purpose: request independent Cloudflare preview and exact-head evidence workflow execution.
+No runtime configuration or credential is contained here.
