@@ -1,0 +1,81 @@
+name: Qelly Verify Browser Acceptance
+
+on:
+  pull_request:
+    branches: [main, release/qelly-global-public-beta]
+    paths:
+      - 'apps/web/public/assets/qelly-verify-*'
+      - 'apps/web/public/index.html'
+      - 'apps/web/public/prompt2c-sw.js'
+      - 'scripts/qelly-verify-browser-check.mjs'
+      - 'tests/qelly-verify-prototype.test.mjs'
+      - '.github/workflows/qelly-verify-browser.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/public/assets/qelly-verify-*'
+      - 'apps/web/public/index.html'
+      - 'apps/web/public/prompt2c-sw.js'
+      - 'scripts/qelly-verify-browser-check.mjs'
+      - 'tests/qelly-verify-prototype.test.mjs'
+      - '.github/workflows/qelly-verify-browser.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qelly-verify-browser-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-acceptance:
+    name: Verify desktop and mobile strategy workflow
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out exact source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Run Qelly Verify engine tests
+        run: node --test tests/qelly-verify-prototype.test.mjs
+      - name: Build frontend
+        env:
+          QELLY_PUBLIC_API_BASE_URL: https://api.preview.invalid
+        run: npm run build:frontend
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Serve compiled frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 --directory dist/frontend > /tmp/qelly-verify-server.log 2>&1 &
+          echo $! > /tmp/qelly-verify-server.pid
+          for attempt in $(seq 1 30); do
+            if curl --silent --fail http://127.0.0.1:4173/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/qelly-verify-server.log
+          exit 1
+      - name: Validate Qelly Verify in browser
+        env:
+          QELLY_VERIFY_BASE_URL: http://127.0.0.1:4173
+          QELLY_VERIFY_EVIDENCE_DIR: dist/qelly-verify-browser
+        run: node scripts/qelly-verify-browser-check.mjs
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: qelly-verify-browser-${{ github.run_id }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            dist/qelly-verify-browser
+            /tmp/qelly-verify-server.log
