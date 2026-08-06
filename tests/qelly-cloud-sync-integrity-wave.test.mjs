@@ -87,6 +87,7 @@ test('offline and failed transfers remain queued with explicit outcomes',async()
 
   setOnline(true);
   const failed=await flushCloudQueue(async()=>{throw Object.assign(new Error('provider unavailable'),{status:503,code:'provider_unavailable'});});
+  assert.equal(failed.status,'failed');
   assert.equal(failed.flushed,0);
   assert.equal(failed.remaining,1);
   assert.equal(failed.failedBatches.length,1);
