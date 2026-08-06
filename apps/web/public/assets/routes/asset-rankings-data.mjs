@@ -1,6 +1,6 @@
-const OBSERVED_AT='2026-07-27T00:00:00.000Z';
+export const DEMO_OBSERVED_AT='2026-07-27T00:00:00.000Z';
 
-const ASSETS=Object.freeze([
+const DEMO_ASSETS=Object.freeze([
   ['QI-CRYPTO-BTC','BTC','Bitcoin',65291.65,0.22,1.30,1.75,8.42,16.16e9,1.31e12,1.34e12,19.88e6,31.8e9,.0067,1.42,54.2e6,41.8,94],
   ['QI-CRYPTO-ETH','ETH','Ethereum',1955.03,0.31,3.70,5.25,11.42,8.11e9,235.7e9,237.4e9,120.6e6,14.2e9,.0054,2.28,29.8e6,48.2,92],
   ['QI-CRYPTO-SOL','SOL','Solana',176.25,-0.18,1.69,.04,6.16,3.19e9,84.46e9,101.2e9,479.2e6,4.9e9,.0108,3.11,13.1e6,57.4,88],
@@ -23,27 +23,21 @@ export const COLUMN_DEFINITIONS=Object.freeze([
   ['rank','Rank'],['watchlist','Watchlist'],['asset','Asset'],['price','Price'],['change1h','1h'],['change24h','24h'],['change7d','7d'],['change30d','30d'],['sparkline','Sparkline'],['volume','Volume'],['marketCap','Market Cap'],['fdv','FDV'],['supply','Supply'],['liquidity','Liquidity'],['funding','Funding'],['openInterest','OI'],['oiChange','OI Change'],['liquidation','Liquidation'],['volatility','Volatility'],['confidence','Confidence'],['source','Source'],['freshness','Freshness'],['explain','Explain']
 ]);
 
-export function deterministicRows(apiItems=[]){
-  const bySymbol=new Map((apiItems??[]).map((item)=>[item.symbol,item]));
-  return ASSETS.map((record,index)=>{
+export function demonstrationRows(){
+  return DEMO_ASSETS.map((record,index)=>{
     const [id,symbol,name,price,change1h,change24h,change7d,change30d,volume,marketCap,fdv,supply,openInterest,funding,oiChange,liquidation,volatility,confidence]=record;
-    const api=bySymbol.get(symbol)??{};
-    const source=api.source??{};
-    const resolvedPrice=Number(api.price??price);
-    const resolvedVolume=Number(api.quoteVolume24h??api.volume24h??volume);
-    const resolvedMarketCap=Number(api.marketCap??marketCap);
     return {
-      rank:index+1,id:api.canonicalId??api.id??id,symbol,name:api.name??name,price:resolvedPrice,
-      change1h,change24h:Number(api.change24h??change24h),change7d,change30d,
-      volume:resolvedVolume,marketCap:resolvedMarketCap,fdv,supply,liquidity:resolvedVolume*.38,
-      funding:Number(api.fundingRate??funding),openInterest:Number(api.openInterest??openInterest),oiChange,
-      liquidation:Number(api.liquidation24h??liquidation),volatility,confidence:Math.round(Number(source.confidence??confidence/100)*100),
-      source:source.providerName??source.provider??'Qelly deterministic composite',freshness:source.qualityState??source.freshness??'simulated',
-      observedAt:source.observedAt??source.observationTime??OBSERVED_AT,
-      sparkline:Array.from({length:22},(_,point)=>resolvedPrice*(1+Math.sin((point+index)*.47)*.018+Math.cos((point*3+index)*.13)*.008+point*.0007))
+      rank:index+1,id,symbol,name,price,change1h,change24h,change7d,change30d,volume,marketCap,fdv,supply,
+      liquidity:volume*.38,funding,openInterest,oiChange,liquidation,volatility,confidence,
+      source:'Qelly deterministic demonstration',freshness:'demonstration',observedAt:DEMO_OBSERVED_AT,evidenceState:'DEMONSTRATION',
+      sparkline:Array.from({length:22},(_,point)=>price*(1+Math.sin((point+index)*.47)*.018+Math.cos((point*3+index)*.13)*.008+point*.0007))
     };
   });
 }
+
+// Compatibility export. Provider observations are intentionally ignored here so
+// a live field can never be blended into an otherwise simulated row.
+export function deterministicRows(_apiItems=[]){return demonstrationRows();}
 
 function seededNoise(index,seed){
   const value=Math.sin((index+1)*(12.9898+seed*.031))*43758.5453;
@@ -77,4 +71,4 @@ export const money=(value,{compact=false}={})=>value==null?'—':new Intl.Number
 export const compactNumber=(value)=>value==null?'—':new Intl.NumberFormat('en-US',{notation:'compact',maximumFractionDigits:2}).format(Number(value));
 export const percent=(value,digits=2)=>value==null?'—':`${Number(value)>0?'+':''}${Number(value).toFixed(digits)}%`;
 export const tone=(value)=>Number(value)>0?'is-positive':Number(value)<0?'is-negative':'is-neutral';
-export const observedAt=OBSERVED_AT;
+export const observedAt=DEMO_OBSERVED_AT;
