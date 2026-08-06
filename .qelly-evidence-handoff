@@ -1,0 +1,4 @@
+Qelly exact-head evidence handoff
+Target: PR #80 head aa5720cdc9927b94e4562f5077edadcdf50619c8
+Purpose: request independent Cloudflare preview completion and exact-head GitHub evidence execution.
+No runtime configuration or credential is contained here.
