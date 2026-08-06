@@ -6,6 +6,17 @@ const baseUrl=String(process.env.QELLY_VERIFY_BASE_URL||'http://127.0.0.1:4173')
 const output=path.resolve(process.env.QELLY_VERIFY_EVIDENCE_DIR||'dist/qelly-verify-browser');
 await mkdir(output,{recursive:true});
 
+const generatedAt='2026-08-06T00:00:00.000Z';
+const apiFixture=(pathname)=>{
+  if(pathname==='/api/v1/config')return {auth:{authenticated:false},defaultRoute:'market',csrf:{token:''},capabilities:{authentication:false,cloudSync:false,liveProviders:false,protectedWrites:false}};
+  if(pathname==='/api/v1/auth/status')return {authenticated:false};
+  if(pathname==='/api/v1/market/overview')return {market:[],providers:{},referenceRates:{count:0,state:'simulated'},generatedAt};
+  if(pathname==='/api/v1/public/markets/overview')return {items:[],kpis:[],breadth:{advancers:0,decliners:0},providerStatus:{provider:'Browser fixture',status:'simulated',lastSuccessAt:null,cacheEntries:0},mode:'simulated',truthBoundary:'Deterministic browser acceptance fixture.',generatedAt};
+  if(pathname.includes('/candles'))return {points:[],source:{attribution:'Browser fixture',observedAt:generatedAt,mode:'simulated'}};
+  if(pathname==='/api/v1/public/providers')return {providers:[]};
+  return {};
+};
+
 async function routeDiagnostics(page){
   return page.evaluate(()=>{
     const main=document.getElementById('main');
@@ -31,6 +42,10 @@ async function inspect({name,viewport,reducedMotion='no-preference'}){
   const browser=await chromium.launch({headless:true});
   const context=await browser.newContext({viewport,reducedMotion,serviceWorkers:'block',acceptDownloads:false});
   const page=await context.newPage();
+  await page.route('https://api.preview.invalid/**',async(route)=>{
+    const url=new URL(route.request().url());
+    await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(apiFixture(url.pathname))});
+  });
   const pageErrors=[];
   const consoleErrors=[];
   page.on('pageerror',error=>pageErrors.push({name:error.name,message:error.message,stack:error.stack||null}));
