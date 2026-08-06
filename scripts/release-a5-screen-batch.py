@@ -1,10 +1,11 @@
-import json, pathlib, subprocess, tempfile, time, shutil, urllib.request, urllib.error, sys
-from urllib.parse import urlsplit
+import json, pathlib, subprocess, tempfile, time, shutil, urllib.request, urllib.error, sys, mimetypes
+from urllib.parse import urlsplit, unquote
 from http.cookies import SimpleCookie
 from playwright.sync_api import sync_playwright
 
 ROOT=pathlib.Path(__file__).resolve().parents[1]
-INDEX=(ROOT/'apps/web/public/index.html').read_text().replace('<head>','<head><base href="https://qelly.test/">')
+PUBLIC_ROOT=(ROOT/'apps/web/public').resolve()
+INDEX=(PUBLIC_ROOT/'index.html').read_text().replace('<head>','<head><base href="https://qelly.test/">')
 OUT=ROOT/'preview'/'release-a5-all-screens'; OUT.mkdir(parents=True,exist_ok=True)
 start=int(sys.argv[1]); end=int(sys.argv[2])
 if start<0 or end<=start: raise SystemExit(f'invalid screen range {start}:{end}')
@@ -13,6 +14,38 @@ route_json=subprocess.check_output(['node','--input-type=module','-e',"import {r
 defs_all=json.loads(route_json)
 if end>len(defs_all): raise SystemExit(f'screen range {start}:{end} exceeds route registry size {len(defs_all)}')
 defs=defs_all[start:end]
+
+MIME_OVERRIDES={
+    '.css':'text/css; charset=utf-8',
+    '.js':'application/javascript; charset=utf-8',
+    '.mjs':'application/javascript; charset=utf-8',
+    '.json':'application/json; charset=utf-8',
+    '.webmanifest':'application/manifest+json; charset=utf-8',
+    '.html':'text/html; charset=utf-8',
+    '.svg':'image/svg+xml',
+    '.png':'image/png',
+    '.jpg':'image/jpeg',
+    '.jpeg':'image/jpeg',
+    '.webp':'image/webp',
+    '.ico':'image/x-icon',
+    '.woff':'font/woff',
+    '.woff2':'font/woff2'
+}
+
+def local_public_file(request_path):
+    relative=unquote(request_path).lstrip('/')
+    if not relative:
+        return None
+    candidate=(PUBLIC_ROOT/relative).resolve()
+    try:
+        candidate.relative_to(PUBLIC_ROOT)
+    except ValueError:
+        return None
+    return candidate if candidate.is_file() else None
+
+def content_type(path):
+    return MIME_OVERRIDES.get(path.suffix.lower()) or mimetypes.guess_type(path.name)[0] or 'application/octet-stream'
+
 launcher=r"""
 import { startServer } from './src/server/server.mjs';
 const environment={...process.env,NODE_ENV:'test',QELLY_PRODUCTION_FOUNDATION_ENABLED:'true',QELLY_PRODUCTION_IDENTITY_ENABLED:'true',QELLY_DEVELOPMENT_IDENTITY_ENABLED:'false',QELLY_DATABASE_MODE:'sqlite',QELLY_JOB_QUEUE_MODE:'database',QELLY_SESSION_SECRET:'release-a5-screen-batch-session-secret-0000001',QELLY_PASSWORD_PEPPER:'release-a5-screen-batch-pepper',QELLY_EXPOSE_RECOVERY_CODE_IN_DEVELOPMENT:'true',QELLY_LIVE_MARKET_ENABLED:'false',QELLY_EXTERNAL_PROVIDERS_ENABLED:'false',QELLY_SECRET_KEYRING_JSON:JSON.stringify({old:'old-secret-material-abcdefghijklmnopqrstuvwxyz',active:'active-secret-material-abcdefghijklmnopqrstuvwxyz'}),QELLY_SECRET_ACTIVE_KEY_ID:'active'};
@@ -48,6 +81,14 @@ try:
                     auth=authenticated
                     current_route=route
                     parsed=urlsplit(route_obj.request.url)
+                    if parsed.netloc=='qelly.test':
+                        asset=local_public_file(parsed.path)
+                        if asset is not None:
+                            route_obj.fulfill(status=200,headers={
+                                'Content-Type':content_type(asset),
+                                'Cache-Control':'no-store',
+                                'X-Content-Type-Options':'nosniff'
+                            },body=asset.read_bytes());return
                     if not auth and parsed.path=='/api/v1/config':
                         with urllib.request.urlopen(base+'/api/v1/config',timeout=20) as config_response:
                             public_config=json.loads(config_response.read().decode('utf-8'))
@@ -87,8 +128,9 @@ try:
                     errors.append({'type':'render','text':str(exc)}); status='failed'
                     try: page.screenshot(path=str(target),full_page=True,animations='disabled')
                     except: pass
-                results.append({'route':route,'label':d['label'],'section':d['section'],'public':route in public_routes,'authenticatedFixture':authenticated,'evidenceBoundary':'governed-local-test-runtime','viewport':vname,'dimensions':viewport,'pageHeightPx':page_height,'heading':heading,'overflowPx':overflow,'consoleErrors':errors,'status':status,'elapsedMs':round((time.time()-started)*1000),'file':str(target.relative_to(ROOT))})
-                print(json.dumps({'route':route,'viewport':vname,'status':status,'pageHeightPx':page_height,'elapsedMs':results[-1]['elapsedMs']}),flush=True)
+                result={'route':route,'label':d['label'],'section':d['section'],'public':route in public_routes,'authenticatedFixture':authenticated,'evidenceBoundary':'governed-local-test-runtime','viewport':vname,'dimensions':viewport,'pageHeightPx':page_height,'heading':heading,'overflowPx':overflow,'consoleErrors':errors,'status':status,'elapsedMs':round((time.time()-started)*1000),'file':str(target.relative_to(ROOT))}
+                results.append(result)
+                print(json.dumps({'route':route,'viewport':vname,'status':status,'pageHeightPx':page_height,'overflowPx':overflow,'errors':errors,'elapsedMs':result['elapsedMs']}),flush=True)
                 page.close()
             for c in contexts.values(): c.close()
         browser.close()
