@@ -1,4 +1,6 @@
 import {analyzeTrades,parseTradeCsv,sampleTradeCsv} from './qelly-verify-engine.mjs';
+import {QELLY_VERIFY_METHODOLOGY,QELLY_VERIFY_METHODOLOGY_VERSION,QELLY_VERIFY_REPORT_SCHEMA} from './qelly-verify-methodology.mjs';
+import {composeStrategyEvidenceReport} from './qelly-verify-report.mjs';
 
 const main=document.getElementById('main');
 const MAX_FILE_BYTES=5*1024*1024;
@@ -6,203 +8,102 @@ let rendering=false;
 let scheduled=false;
 let current=null;
 
-const escapeHtml=(value)=>String(value??'').replace(/[&<>'"]/g,(character)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
-const routeState=()=>{
-  const raw=location.hash.replace(/^#\/?/,'');
-  const [path,query='']=raw.split('?');
-  return {route:path.split('/')[0]||'market',params:new URLSearchParams(query)};
-};
-const verifyActive=()=>{const {route,params}=routeState();return route==='market'&&params.get('view')==='qelly-verify';};
+const escapeHtml=value=>String(value??'').replace(/[&<>'"]/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
+const routeState=()=>{const raw=location.hash.replace(/^#\/?/,'');const [path,query='']=raw.split('?');return{route:path.split('/')[0]||'market',params:new URLSearchParams(query)};};
+const viewActive=view=>{const {route,params}=routeState();return route==='market'&&params.get('view')===view;};
+const verifyActive=()=>viewActive('qelly-verify');
+const methodologyActive=()=>viewActive('evidence-methodology');
 const number=(value,digits=2)=>value==null?'—':new Intl.NumberFormat(undefined,{maximumFractionDigits:digits}).format(Number(value));
-const percent=(value)=>value==null?'—':`${number(value)}%`;
+const percent=value=>value==null?'—':`${number(value)}%`;
 const download=(name,content,type)=>{const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(url),500);};
-const scoreTone=(value,inverted=false)=>{
-  const score=inverted?100-Number(value):Number(value);
-  return score>=70?'strong':score>=45?'mixed':'weak';
-};
+const scoreTone=(value,inverted=false)=>{const score=inverted?100-Number(value):Number(value);return score>=70?'strong':score>=45?'mixed':'weak';};
 
 function installNavigation(){
   const targets=[document.querySelector('.q-product-nav'),document.querySelector('.q-recovery-header nav')].filter(Boolean);
   for(const nav of targets){
-    if(nav.querySelector('[data-qelly-verify-link]'))continue;
-    const link=document.createElement('a');
-    link.href='#/market?view=qelly-verify';
-    link.dataset.qellyVerifyLink='true';
-    link.textContent='Verify';
-    const first=nav.querySelector('a');
-    if(first)nav.insertBefore(link,first);else nav.append(link);
+    if(!nav.querySelector('[data-qelly-verify-link]')){const link=document.createElement('a');link.href='#/market?view=qelly-verify';link.dataset.qellyVerifyLink='true';link.textContent='Verify';const first=nav.querySelector('a');if(first)nav.insertBefore(link,first);else nav.append(link);}
+    if(!nav.querySelector('[data-qelly-methodology-link]')){const link=document.createElement('a');link.href='#/market?view=evidence-methodology';link.dataset.qellyMethodologyLink='true';link.textContent='Evidence';const verify=nav.querySelector('[data-qelly-verify-link]');verify?.insertAdjacentElement('afterend',link);if(!verify)nav.append(link);}
   }
   document.querySelectorAll('[data-qelly-verify-link]').forEach(link=>link.classList.toggle('is-active',verifyActive()));
+  document.querySelectorAll('[data-qelly-methodology-link]').forEach(link=>link.classList.toggle('is-active',methodologyActive()));
 }
 
 function enhanceHomepage(){
-  if(verifyActive())return;
+  if(verifyActive()||methodologyActive())return;
   const {route,params}=routeState();
   if(route!=='market'||params.size)return;
-  const home=main?.querySelector('.q-market-home');
-  const hero=home?.querySelector('.q-market-hero');
+  const home=main?.querySelector('.q-market-home');const hero=home?.querySelector('.q-market-hero');
   if(!home||!hero||home.dataset.qellyVerifyAligned==='true')return;
   home.dataset.qellyVerifyAligned='true';
-  const kicker=hero.querySelector('.q-market-kicker');
-  const heading=hero.querySelector('h1');
-  const description=hero.querySelector('.q-market-hero__copy>p:not(.q-market-kicker)');
-  const actions=hero.querySelector('.q-market-hero__actions');
+  const kicker=hero.querySelector('.q-market-kicker');const heading=hero.querySelector('h1');const description=hero.querySelector('.q-market-hero__copy>p:not(.q-market-kicker)');const actions=hero.querySelector('.q-market-hero__actions');
   if(kicker)kicker.textContent='Qelly Verify · Strategy intelligence';
   if(heading)heading.textContent='Quantitative intelligence for disciplined market decisions.';
   if(description)description.textContent='Validate strategy evidence, measure drawdown and robustness, stress trade sequences and estimate a constrained capital-allocation range through one auditable decision workflow.';
-  if(actions){
-    actions.innerHTML='<a class="q-button q-button--primary" href="#/market?view=qelly-verify">Analyze a strategy</a><a class="q-button q-button--secondary" href="./support.html">Request a demo</a>';
-  }
-  const search=hero.querySelector('.q-market-hero__search');
-  if(search)search.hidden=true;
-  const capabilities=document.createElement('section');
-  capabilities.className='q-verify-home-capabilities';
-  capabilities.setAttribute('aria-label','Qelly decision-intelligence capabilities');
-  capabilities.innerHTML=`
+  if(actions)actions.innerHTML='<a class="q-button q-button--primary" href="#/market?view=qelly-verify">Analyze a strategy</a><a class="q-button q-button--secondary" href="#/market?view=evidence-methodology">Review the methodology</a>';
+  const search=hero.querySelector('.q-market-hero__search');if(search)search.hidden=true;
+  const capabilities=document.createElement('section');capabilities.className='q-verify-home-capabilities';capabilities.setAttribute('aria-label','Qelly decision-intelligence capabilities');capabilities.innerHTML=`
     <article><span>01</span><h2>Validate the edge</h2><p>Inspect expectancy, profit concentration, sample sufficiency and internal stability.</p></article>
-    <article><span>02</span><h2>Understand the regime</h2><p>Connect strategy evidence to changing volatility, liquidity and market context as the platform develops.</p></article>
+    <article><span>02</span><h2>Understand the regime</h2><p>Keep regime dependency explicitly unassessed until point-in-time context is supplied.</p></article>
     <article><span>03</span><h2>Allocate capital</h2><p>Use constrained fractional-Kelly research ranges rather than aggressive full-Kelly exposure.</p></article>
-    <article><span>04</span><h2>Control portfolio risk</h2><p>Make drawdown, sequence risk, limitations and critical warnings visible before deployment.</p></article>`;
-  hero.insertAdjacentElement('afterend',capabilities);
-  document.title='Qelly Intelligence · Quantitative decision intelligence';
+    <article><span>04</span><h2>Control portfolio risk</h2><p>Make drawdown, sequence risk, limitations and failure conditions visible before deployment.</p></article>`;
+  hero.insertAdjacentElement('afterend',capabilities);document.title='Qelly Intelligence · Quantitative decision intelligence';
 }
 
-function shell(report=null,validation=null,sourceName='No file selected'){
+function verifyShell(evidence=null,validation=null,sourceName='No file selected'){
   return `<section class="q-verify-page" data-qelly-verify-surface>
-    <header class="q-verify-hero">
-      <div class="q-verify-hero__copy"><p class="q-verify-kicker">Qelly Verify · Strategy Intelligence Report</p><h1>Put your strategy through evidence, not belief.</h1><p>Upload an MT5 trade-history export or structured trade CSV. Qelly validates the rows, measures performance and drawdown, tests trade-order sensitivity and produces an auditable prototype report.</p><div class="q-verify-flow" aria-label="Qelly Verify workflow"><span>Upload</span><i>→</i><span>Validate</span><i>→</i><span>Analyze</span><i>→</i><span>Decide</span></div></div>
-      <aside class="q-verify-boundary"><strong>Local-only prototype</strong><p>Your file is processed in this browser and is not uploaded. No live AI model, order execution or personalized financial recommendation is active.</p><dl><div><dt>Data transfer</dt><dd>None</dd></div><div><dt>Method</dt><dd>Deterministic</dd></div><div><dt>Execution</dt><dd>Disabled</dd></div></dl></aside>
-    </header>
-    <section class="q-verify-workspace">
-      <article class="q-verify-upload-card">
-        <div><p class="q-verify-kicker">Step 1 · Strategy evidence</p><h2>Upload a trade CSV</h2><p>Required: a numeric <code>pnl</code>, <code>profit</code> or <code>net_profit</code> column. Optional fields include symbol, side, entry time, exit time and fees.</p></div>
-        <label class="q-verify-dropzone" data-verify-dropzone><input type="file" accept=".csv,.txt,text/csv,text/plain" data-verify-file><span class="q-verify-dropzone__icon" aria-hidden="true">⇧</span><strong>Choose or drop a CSV file</strong><small>Maximum 5 MB · up to 100,000 trade rows · processed locally</small></label>
-        <div class="q-verify-upload-actions"><button type="button" class="q-button q-button--secondary" data-verify-sample>Run governed sample</button><button type="button" class="q-button q-button--ghost" data-verify-download-sample>Download sample CSV</button>${report?'<button type="button" class="q-button q-button--ghost" data-verify-reset>Clear report</button>':''}</div>
-        <p class="q-verify-file-state" role="status" aria-live="polite" data-verify-status>${escapeHtml(sourceName)}</p>
-      </article>
-      ${reportMarkup(report,validation)}
-    </section>
+    <header class="q-verify-hero"><div class="q-verify-hero__copy"><p class="q-verify-kicker">Qelly Verify · Strategy Intelligence Report</p><h1>Put your strategy through evidence, not belief.</h1><p>Upload an MT5 trade-history export or structured trade CSV. Qelly validates rows, measures performance and observed risk, tests trade-order sensitivity and produces a versioned evidence report.</p><div class="q-verify-flow" aria-label="Qelly Verify workflow"><span>Upload</span><i>→</i><span>Validate</span><i>→</i><span>Analyze</span><i>→</i><span>Decide</span></div><p class="q-verify-method-link"><a href="#/market?view=evidence-methodology">Read the public evidence methodology</a></p></div>
+      <aside class="q-verify-boundary"><strong>Local-only evidence workflow</strong><p>Your file is processed in this browser and is not uploaded. No live AI model, order execution or personalized financial recommendation is active.</p><dl><div><dt>Data transfer</dt><dd>None</dd></div><div><dt>Method</dt><dd>${escapeHtml(QELLY_VERIFY_METHODOLOGY_VERSION)}</dd></div><div><dt>Execution</dt><dd>Disabled</dd></div></dl></aside></header>
+    <section class="q-verify-workspace"><article class="q-verify-upload-card"><div><p class="q-verify-kicker">Step 1 · Strategy evidence</p><h2>Upload a trade CSV</h2><p>Required: a numeric <code>pnl</code>, <code>profit</code> or <code>net_profit</code> column. Optional fields include symbol, side, entry time, exit time and fees.</p></div><label class="q-verify-dropzone" data-verify-dropzone><input type="file" accept=".csv,.txt,text/csv,text/plain" data-verify-file><span class="q-verify-dropzone__icon" aria-hidden="true">⇧</span><strong>Choose or drop a CSV file</strong><small>Maximum 5 MB · up to 100,000 trade rows · processed locally</small></label><div class="q-verify-upload-actions"><button type="button" class="q-button q-button--secondary" data-verify-sample>Run governed sample</button><button type="button" class="q-button q-button--ghost" data-verify-download-sample>Download sample CSV</button>${evidence?'<button type="button" class="q-button q-button--ghost" data-verify-reset>Clear report</button>':''}</div><p class="q-verify-file-state" role="status" aria-live="polite" data-verify-status>${escapeHtml(sourceName)}</p></article>${reportMarkup(evidence,validation)}</section>
   </section>`;
 }
 
-function scoreCard(label,entry,{inverted=false,detail='' }={}){
-  if(!entry)return'';
-  const tone=scoreTone(entry.value,inverted);
-  return `<article class="q-verify-score is-${tone}"><div><span>${escapeHtml(label)}</span><strong>${number(entry.value,0)}</strong><small>${escapeHtml(entry.band)}</small></div><div class="q-verify-score__track" aria-label="${escapeHtml(label)} ${number(entry.value,0)} out of 100"><i style="width:${Math.max(0,Math.min(100,entry.value))}%"></i></div><p>${escapeHtml(detail)}</p></article>`;
-}
+function scoreCard(label,entry,{inverted=false,detail=''}={}){if(!entry)return'';const tone=scoreTone(entry.value,inverted);return `<article class="q-verify-score is-${tone}"><div><span>${escapeHtml(label)}</span><strong>${number(entry.value,0)}</strong><small>${escapeHtml(entry.band)}</small></div><div class="q-verify-score__track" aria-label="${escapeHtml(label)} ${number(entry.value,0)} out of 100"><i style="width:${Math.max(0,Math.min(100,entry.value))}%"></i></div><p>${escapeHtml(detail)}</p></article>`;}
+const stateList=items=>`<ul class="q-verify-state-list">${items.map(item=>`<li><span class="q-verify-state is-${item.state.toLowerCase().replaceAll(' ','-')}">${escapeHtml(item.state)}</span><div><strong>${escapeHtml(item.label)}</strong><p>${escapeHtml(item.detail)}</p></div></li>`).join('')}</ul>`;
 
-function reportMarkup(report,validation){
-  if(!report)return `<section class="q-verify-empty"><div aria-hidden="true">Q</div><h2>Your evidence report will appear here</h2><p>Start with a CSV or the governed sample. Qelly will not fabricate missing trades, market regimes or execution assumptions.</p></section>`;
-  const performance=report.performance;
-  const allocation=report.allocation;
+function reportMarkup(evidence,validation){
+  if(!evidence)return `<section class="q-verify-empty"><div aria-hidden="true">Q</div><h2>Your evidence report will appear here</h2><p>Start with a CSV or the governed sample. Qelly will not fabricate missing trades, market regimes, execution assumptions or out-of-sample evidence.</p></section>`;
+  const analysis=evidence.rawAnalysis;const performance=evidence.performance;const allocation=evidence.allocationResearch;const posture=evidence.executiveSummary.posture;
   return `<section class="q-verify-report" aria-live="polite">
-    <header class="q-verify-report__head"><div><p class="q-verify-kicker">Generated evidence package</p><h2>${escapeHtml(report.sourceName)}</h2><p>${report.sample.trades} valid trades · ${validation.invalidRows} rejected row${validation.invalidRows===1?'':'s'} · ${escapeHtml(validation.detectedPnlColumn)} used as P&amp;L</p></div><div><span class="q-verify-truth">${escapeHtml(report.truthState)}</span><button type="button" class="q-button q-button--primary" data-verify-export>Export evidence JSON</button></div></header>
-    <section class="q-verify-validation"><div><strong>${validation.validRows}</strong><span>Valid rows</span></div><div><strong>${validation.invalidRows}</strong><span>Rejected rows</span></div><div><strong>${escapeHtml(validation.delimiter)}</strong><span>Delimiter</span></div><div><strong>${Object.keys(validation.detectedFields).length}</strong><span>Fields mapped</span></div></section>
-    <section class="q-verify-score-grid">
-      ${scoreCard('Strategy Quality',report.scores.strategyQuality,{detail:'Composite of expectancy, profit factor, drawdown, consistency and sample sufficiency.'})}
-      ${scoreCard('Robustness',report.scores.robustness,{detail:'Internal evidence score using sample size, half-sample stability, concentration and losing streak.'})}
-      ${scoreCard('Overfitting Risk',report.scores.overfittingRisk,{inverted:true,detail:'Heuristic warning score. Higher means the uploaded sample requires more external validation.'})}
-    </section>
-    <section class="q-verify-metrics" aria-label="Strategy evidence metrics">
-      <article><span>Net P&amp;L</span><strong>${number(performance.netProfit)}</strong><small>Uploaded P&amp;L units</small></article>
-      <article><span>Expectancy</span><strong>${number(performance.expectancy)}</strong><small>Average per trade</small></article>
-      <article><span>Profit factor</span><strong>${performance.profitFactor==null?'∞':number(performance.profitFactor)}</strong><small>Gross profit ÷ gross loss</small></article>
-      <article><span>Win rate</span><strong>${percent(performance.winRate)}</strong><small>${report.sample.wins} wins · ${report.sample.losses} losses</small></article>
-      <article><span>Max drawdown</span><strong>${number(performance.maxDrawdown)}</strong><small>Observed P&amp;L drawdown</small></article>
-      <article><span>Stress drawdown</span><strong>${number(report.stress.stressMaxDrawdown)}</strong><small>95th-percentile reordered sequence</small></article>
-      <article><span>Payoff ratio</span><strong>${number(performance.payoffRatio)}</strong><small>Average win ÷ average loss</small></article>
-      <article><span>Top-3 concentration</span><strong>${percent(performance.topThreeConcentration)}</strong><small>Share of absolute outcome</small></article>
-    </section>
-    <section class="q-verify-analysis-grid">
-      <article class="q-verify-panel"><p class="q-verify-kicker">Capital discipline</p><h3>Constrained Kelly research range</h3><div class="q-verify-allocation"><strong>${percent(allocation.constrainedFractionalKellyLow)}–${percent(allocation.constrainedFractionalKellyHigh)}</strong><span>of capital per independent risk unit</span></div><dl><div><dt>Raw Kelly estimate</dt><dd>${percent(allocation.rawKelly)}</dd></div><div><dt>Default constraint</dt><dd>10%–25% of raw Kelly</dd></div><div><dt>Hard prototype cap</dt><dd>5%</dd></div></dl><p>This is a sample-derived research range, not a personalized position-size recommendation.</p></article>
-      <article class="q-verify-panel"><p class="q-verify-kicker">Stability evidence</p><h3>First half versus second half</h3><dl><div><dt>First-half expectancy</dt><dd>${number(performance.firstHalfExpectancy)}</dd></div><div><dt>Second-half expectancy</dt><dd>${number(performance.secondHalfExpectancy)}</dd></div><div><dt>Longest observed loss streak</dt><dd>${performance.longestLosingStreak}</dd></div><div><dt>95% sequence loss streak</dt><dd>${report.stress.stressLosingStreak}</dd></div></dl><p>Internal stability is necessary but cannot replace out-of-sample or walk-forward validation.</p></article>
-    </section>
-    <section class="q-verify-evidence-grid"><article><p class="q-verify-kicker">Critical warnings</p><h3>What requires attention</h3><ul>${report.warnings.map(item=>`<li>${escapeHtml(item)}</li>`).join('')}</ul></article><article><p class="q-verify-kicker">Method limitations</p><h3>What Qelly cannot conclude</h3><ul>${report.limitations.map(item=>`<li>${escapeHtml(item)}</li>`).join('')}</ul></article></section>
+    <header class="q-verify-report__head"><div><p class="q-verify-kicker">Qelly Strategy Evidence Report</p><h2>${escapeHtml(evidence.source.name)}</h2><p>${evidence.sample.trades} valid trades · ${validation.invalidRows} rejected · report ${escapeHtml(evidence.reportId)}</p></div><div><span class="q-verify-truth">${escapeHtml(evidence.truthState)}</span><button type="button" class="q-button q-button--primary" data-verify-export>Export evidence JSON</button><button type="button" class="q-button q-button--ghost" data-verify-print>Print report</button></div></header>
+    <nav class="q-verify-report-nav" aria-label="Evidence report sections"><a href="#qv-summary">Summary</a><a href="#qv-data">Data</a><a href="#qv-performance">Performance</a><a href="#qv-risk">Risk</a><a href="#qv-coverage">Coverage</a><a href="#qv-provenance">Provenance</a></nav>
+    <section id="qv-summary" class="q-verify-executive is-${escapeHtml(posture.tone)}"><div><p class="q-verify-kicker">Executive evidence posture</p><h3>${escapeHtml(posture.label)}</h3><p>${escapeHtml(posture.statement)}</p></div><aside><strong>Primary warning</strong><p>${escapeHtml(evidence.executiveSummary.primaryWarning)}</p></aside></section>
+    <section id="qv-data" class="q-verify-validation"><div><strong>${validation.validRows}</strong><span>Valid rows</span></div><div><strong>${validation.invalidRows}</strong><span>Rejected rows</span></div><div><strong>${percent(evidence.dataQuality.usableRowRate)}</strong><span>Usable-row rate</span></div><div><strong>${Object.keys(validation.detectedFields).length}</strong><span>Fields mapped</span></div></section>
+    <section class="q-verify-data-notes"><h3>Data-quality observations</h3><ul>${evidence.dataQuality.issues.map(item=>`<li>${escapeHtml(item)}</li>`).join('')}</ul></section>
+    <section class="q-verify-score-grid">${scoreCard('Strategy Quality',evidence.scores.strategyQuality,{detail:QELLY_VERIFY_METHODOLOGY.scoreDisclosure.strategyQuality})}${scoreCard('Robustness',evidence.scores.robustness,{detail:QELLY_VERIFY_METHODOLOGY.scoreDisclosure.robustness})}${scoreCard('Overfitting Risk',evidence.scores.overfittingRisk,{inverted:true,detail:QELLY_VERIFY_METHODOLOGY.scoreDisclosure.overfittingRisk})}</section>
+    <section id="qv-performance" class="q-verify-metrics" aria-label="Strategy evidence metrics"><article><span>Net P&amp;L</span><strong>${number(performance.netProfit)}</strong><small>Uploaded P&amp;L units</small></article><article><span>Expectancy</span><strong>${number(performance.expectancy)}</strong><small>Average per trade</small></article><article><span>Profit factor</span><strong>${performance.profitFactor==null?'∞':number(performance.profitFactor)}</strong><small>Gross profit ÷ gross loss</small></article><article><span>Win rate</span><strong>${percent(performance.winRate)}</strong><small>${evidence.sample.wins} wins · ${evidence.sample.losses} losses</small></article><article><span>Max drawdown</span><strong>${number(performance.maxDrawdown)}</strong><small>Observed P&amp;L drawdown</small></article><article><span>Stress drawdown</span><strong>${number(evidence.sequenceStress.stressMaxDrawdown)}</strong><small>95th-percentile reordered sequence</small></article><article><span>Payoff ratio</span><strong>${number(performance.payoffRatio)}</strong><small>Average win ÷ average loss</small></article><article><span>Top-3 concentration</span><strong>${percent(performance.topThreeConcentration)}</strong><small>Share of absolute outcome</small></article></section>
+    <section id="qv-risk" class="q-verify-analysis-grid"><article class="q-verify-panel"><p class="q-verify-kicker">Capital discipline · HEURISTIC</p><h3>Constrained Kelly research range</h3><div class="q-verify-allocation"><strong>${percent(allocation.constrainedFractionalKellyLow)}–${percent(allocation.constrainedFractionalKellyHigh)}</strong><span>of capital per independent risk unit</span></div><dl><div><dt>Raw Kelly estimate</dt><dd>${percent(allocation.rawKelly)}</dd></div><div><dt>Default constraint</dt><dd>10%–25% of raw Kelly</dd></div><div><dt>Hard prototype cap</dt><dd>5%</dd></div></dl><p>${escapeHtml(allocation.boundary)}</p></article><article class="q-verify-panel"><p class="q-verify-kicker">Stability · HEURISTIC</p><h3>First half versus second half</h3><dl><div><dt>First-half expectancy</dt><dd>${number(performance.firstHalfExpectancy)}</dd></div><div><dt>Second-half expectancy</dt><dd>${number(performance.secondHalfExpectancy)}</dd></div><div><dt>Observed loss streak</dt><dd>${performance.longestLosingStreak}</dd></div><div><dt>95% sequence loss streak</dt><dd>${evidence.sequenceStress.stressLosingStreak}</dd></div></dl><p>${escapeHtml(evidence.internalStability.boundary)}</p></article></section>
+    <section class="q-verify-evidence-grid"><article><p class="q-verify-kicker">Critical warnings</p><h3>What requires attention</h3><ul>${evidence.warnings.map(item=>`<li>${escapeHtml(item)}</li>`).join('')}</ul></article><article><p class="q-verify-kicker">Failure conditions</p><h3>What blocks stronger interpretation</h3><ul>${evidence.failureConditions.map(item=>`<li>${escapeHtml(item)}</li>`).join('')}</ul></article></section>
+    <section id="qv-coverage" class="q-verify-coverage"><article><p class="q-verify-kicker">Evidence coverage</p><h3>Computed and heuristic outputs</h3>${stateList(evidence.evidenceCoverage.computed)}</article><article><p class="q-verify-kicker">Evidence gaps</p><h3>Explicitly not assessed</h3>${stateList(evidence.evidenceCoverage.notAssessed)}</article></section>
+    <section id="qv-provenance" class="q-verify-provenance"><div><p class="q-verify-kicker">Reproducibility</p><h3>Evidence provenance</h3><dl><div><dt>Input fingerprint</dt><dd><code>${escapeHtml(evidence.source.fingerprint.algorithm)}:${escapeHtml(evidence.source.fingerprint.value)}</code></dd></div><div><dt>Report schema</dt><dd>${escapeHtml(evidence.schema)}</dd></div><div><dt>Methodology</dt><dd>${escapeHtml(evidence.methodologyVersion)}</dd></div><div><dt>Engine</dt><dd>${escapeHtml(evidence.engineVersion)}</dd></div><div><dt>Generated</dt><dd>${escapeHtml(evidence.generatedAt)}</dd></div></dl></div><aside><strong>Interpretation boundary</strong><p>${escapeHtml(evidence.executiveSummary.conclusionBoundary)}</p><a href="#/market?view=evidence-methodology">Open complete methodology</a></aside></section>
     ${validation.invalidExamples.length?`<details class="q-verify-invalid"><summary>Review rejected rows</summary><ol>${validation.invalidExamples.map(item=>`<li>Row ${item.row}: ${escapeHtml(item.reason)}</li>`).join('')}</ol></details>`:''}
-    <footer class="q-verify-report__footer"><strong>Prototype deployment posture: human validation required.</strong><span>Next production layers: out-of-sample testing, walk-forward analysis, Monte Carlo distribution stress, transaction-cost sensitivity and strategy-version comparison.</span></footer>
+    <footer class="q-verify-report__footer"><strong>Human validation remains required.</strong><span>Numerical reproducibility does not prove external validity, live readiness or future performance.</span></footer>
   </section>`;
+}
+
+function methodologyMarkup(){
+  const methodology=QELLY_VERIFY_METHODOLOGY;
+  return `<section class="q-verify-page q-methodology-page" data-qelly-methodology-surface><header class="q-verify-hero"><div class="q-verify-hero__copy"><p class="q-verify-kicker">Evidence · Public methodology</p><h1>Every conclusion needs an evidence state.</h1><p>${escapeHtml(methodology.purpose)}</p><div class="q-verify-flow"><span>COMPUTED</span><i>·</i><span>HEURISTIC</span><i>·</i><span>NOT ASSESSED</span><i>·</i><span>BOUNDARY</span></div></div><aside class="q-verify-boundary"><strong>${escapeHtml(methodology.version)}</strong><p>Versioned methodology for the local Qelly Verify prototype.</p><dl><div><dt>Report schema</dt><dd>${escapeHtml(QELLY_VERIFY_REPORT_SCHEMA)}</dd></div><div><dt>Personalized advice</dt><dd>None</dd></div><div><dt>Execution</dt><dd>Disabled</dd></div></dl></aside></header>
+    <section class="q-methodology-principles"><p class="q-verify-kicker">Governing principles</p><h2>Evidence before prediction</h2><ol>${methodology.governingPrinciples.map(item=>`<li>${escapeHtml(item)}</li>`).join('')}</ol></section>
+    <section class="q-methodology-classes">${methodology.evidenceClasses.map(entry=>`<article><span class="q-verify-state is-${entry.state}">${escapeHtml(entry.label)}</span><p>${escapeHtml(entry.description)}</p></article>`).join('')}</section>
+    <section class="q-methodology-modules"><header><p class="q-verify-kicker">Current modules</p><h2>What the prototype calculates</h2></header>${methodology.modules.map(entry=>`<article id="method-${entry.id}"><div><span class="q-verify-state is-${entry.state}">${escapeHtml(entry.state.toUpperCase())}</span><h3>${escapeHtml(entry.label)}</h3><p>${escapeHtml(entry.description)}</p></div><ul>${entry.limitations.map(item=>`<li>${escapeHtml(item)}</li>`).join('')}</ul></article>`).join('')}</section>
+    <section class="q-methodology-not-assessed"><header><p class="q-verify-kicker">Evidence gaps</p><h2>What Qelly does not infer</h2><p>These areas remain unavailable until the required independent data and validation design are supplied.</p></header>${stateList(methodology.notAssessed.map(entry=>({state:'NOT ASSESSED',label:entry.label,detail:entry.description})))}</section>
+    <section class="q-methodology-scores"><p class="q-verify-kicker">Score disclosure</p><h2>Transparent prototype weights</h2><dl><div><dt>Strategy Quality</dt><dd>${escapeHtml(methodology.scoreDisclosure.strategyQuality)}</dd></div><div><dt>Robustness</dt><dd>${escapeHtml(methodology.scoreDisclosure.robustness)}</dd></div><div><dt>Overfitting Risk</dt><dd>${escapeHtml(methodology.scoreDisclosure.overfittingRisk)}</dd></div></dl></section>
+    <section class="q-verify-provenance"><div><p class="q-verify-kicker">Reproducibility</p><h3>Versioned evidence packages</h3><ul>${Object.values(methodology.reproducibility).map(item=>`<li>${escapeHtml(item)}</li>`).join('')}</ul></div><aside><strong>Use the methodology</strong><p>Generate a local report, inspect every unassessed area and export the versioned evidence package.</p><a class="q-button q-button--primary" href="#/market?view=qelly-verify">Analyze a strategy</a></aside></section></section>`;
 }
 
 function bind(){
-  const input=main?.querySelector('[data-verify-file]');
-  const dropzone=main?.querySelector('[data-verify-dropzone]');
-  input?.addEventListener('change',()=>{const file=input.files?.[0];if(file)analyzeFile(file);});
-  dropzone?.addEventListener('dragover',event=>{event.preventDefault();dropzone.classList.add('is-dragging');});
-  dropzone?.addEventListener('dragleave',()=>dropzone.classList.remove('is-dragging'));
-  dropzone?.addEventListener('drop',event=>{event.preventDefault();dropzone.classList.remove('is-dragging');const file=event.dataTransfer?.files?.[0];if(file)analyzeFile(file);});
-  main?.querySelector('[data-verify-sample]')?.addEventListener('click',()=>analyzeText(sampleTradeCsv(),'Qelly governed strategy sample.csv'));
-  main?.querySelector('[data-verify-download-sample]')?.addEventListener('click',()=>download('qelly-verify-sample.csv',sampleTradeCsv(),'text/csv'));
-  main?.querySelector('[data-verify-reset]')?.addEventListener('click',()=>{current=null;renderVerify();});
-  main?.querySelector('[data-verify-export]')?.addEventListener('click',()=>{
-    if(!current)return;
-    download(`qelly-verify-evidence-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify({validation:current.validation,report:current.report},null,2),'application/json');
-  });
+  const input=main?.querySelector('[data-verify-file]');const dropzone=main?.querySelector('[data-verify-dropzone]');
+  input?.addEventListener('change',()=>{const file=input.files?.[0];if(file)analyzeFile(file);});dropzone?.addEventListener('dragover',event=>{event.preventDefault();dropzone.classList.add('is-dragging');});dropzone?.addEventListener('dragleave',()=>dropzone.classList.remove('is-dragging'));dropzone?.addEventListener('drop',event=>{event.preventDefault();dropzone.classList.remove('is-dragging');const file=event.dataTransfer?.files?.[0];if(file)analyzeFile(file);});
+  main?.querySelector('[data-verify-sample]')?.addEventListener('click',()=>analyzeText(sampleTradeCsv(),'Qelly governed strategy sample.csv'));main?.querySelector('[data-verify-download-sample]')?.addEventListener('click',()=>download('qelly-verify-sample.csv',sampleTradeCsv(),'text/csv'));main?.querySelector('[data-verify-reset]')?.addEventListener('click',()=>{current=null;renderVerify();});main?.querySelector('[data-verify-export]')?.addEventListener('click',()=>{if(current?.evidence)download(`qelly-strategy-evidence-${current.evidence.reportId}.json`,JSON.stringify(current.evidence,null,2),'application/json');});main?.querySelector('[data-verify-print]')?.addEventListener('click',()=>window.print());
 }
 
-async function analyzeFile(file){
-  const status=main?.querySelector('[data-verify-status]');
-  if(!file)return;
-  if(file.size>MAX_FILE_BYTES){if(status)status.textContent='File rejected: the 5 MB local-analysis limit was exceeded.';return;}
-  if(status)status.textContent=`Reading ${file.name} locally…`;
-  main?.setAttribute('aria-busy','true');
-  try{await analyzeText(await file.text(),file.name);}
-  catch(error){renderError(error,file.name);}
-  finally{main?.setAttribute('aria-busy','false');}
-}
+async function analyzeFile(file){const status=main?.querySelector('[data-verify-status]');if(!file)return;if(file.size>MAX_FILE_BYTES){if(status)status.textContent='File rejected: the 5 MB local-analysis limit was exceeded.';return;}if(status)status.textContent=`Reading ${file.name} locally…`;main?.setAttribute('aria-busy','true');try{await analyzeText(await file.text(),file.name);}catch(error){renderError(error,file.name);}finally{main?.setAttribute('aria-busy','false');}}
+async function analyzeText(sourceText,sourceName){await new Promise(resolve=>setTimeout(resolve,0));try{const parsed=parseTradeCsv(sourceText);const analysis=analyzeTrades(parsed.trades,{sourceName});const evidence=await composeStrategyEvidenceReport({analysis,validation:parsed.validation,sourceText,sourceName});current={validation:parsed.validation,analysis,evidence};renderVerify();}catch(error){renderError(error,sourceName);}}
+function renderError(error,sourceName){current=null;renderVerify();const status=main?.querySelector('[data-verify-status]');if(status){status.classList.add('is-error');status.textContent=`${sourceName}: ${error?.message||'The file could not be analyzed.'}`;}}
 
-async function analyzeText(text,sourceName){
-  await new Promise(resolve=>setTimeout(resolve,0));
-  try{
-    const parsed=parseTradeCsv(text);
-    const report=analyzeTrades(parsed.trades,{sourceName});
-    current={validation:parsed.validation,report};
-    renderVerify();
-  }catch(error){renderError(error,sourceName);}
-}
-
-function renderError(error,sourceName){
-  current=null;
-  renderVerify();
-  const status=main?.querySelector('[data-verify-status]');
-  if(status){status.classList.add('is-error');status.textContent=`${sourceName}: ${error?.message||'The file could not be analyzed.'}`;}
-}
-
-export function renderVerify(){
-  if(!main)return;
-  rendering=true;
-  main.dataset.qellyVerifyOwner='true';
-  main.setAttribute('aria-busy','false');
-  main.innerHTML=shell(current?.report,current?.validation,current?.report?.sourceName);
-  bind();
-  document.title='Qelly Verify · Strategy Intelligence Report';
-  installNavigation();
-  main.focus({preventScroll:true});
-  rendering=false;
-}
-
-function reconcile(){
-  scheduled=false;
-  if(rendering||!main)return;
-  installNavigation();
-  if(verifyActive()){
-    if(main.dataset.qellyVerifyOwner!=='true')renderVerify();
-    return;
-  }
-  if(main.dataset.qellyVerifyOwner==='true'){
-    delete main.dataset.qellyVerifyOwner;
-    current=null;
-    return;
-  }
-  enhanceHomepage();
-}
-
+export function renderVerify(){if(!main)return;rendering=true;main.dataset.qellyVerifyOwner='true';main.setAttribute('aria-busy','false');main.innerHTML=verifyShell(current?.evidence,current?.validation,current?.evidence?.source?.name);bind();document.title='Qelly Verify · Strategy Evidence Report';installNavigation();main.focus({preventScroll:true});rendering=false;}
+export function renderMethodology(){if(!main)return;rendering=true;main.dataset.qellyVerifyOwner='methodology';main.setAttribute('aria-busy','false');main.innerHTML=methodologyMarkup();document.title='Qelly Evidence Methodology';installNavigation();main.focus({preventScroll:true});rendering=false;}
+function reconcile(){scheduled=false;if(rendering||!main)return;installNavigation();if(verifyActive()){if(main.dataset.qellyVerifyOwner!=='true'||!main.querySelector('[data-qelly-verify-surface]'))renderVerify();return;}if(methodologyActive()){if(main.dataset.qellyVerifyOwner!=='methodology'||!main.querySelector('[data-qelly-methodology-surface]'))renderMethodology();return;}if(main.dataset.qellyVerifyOwner){delete main.dataset.qellyVerifyOwner;current=null;return;}enhanceHomepage();}
 function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(reconcile);}
-
-installNavigation();
-schedule();
-if(main)new MutationObserver(schedule).observe(main,{childList:true,subtree:true});
-new MutationObserver(schedule).observe(document.documentElement,{childList:true,subtree:true});
-window.addEventListener('hashchange',schedule);
-window.addEventListener('pageshow',schedule);
-for(const delay of [80,250,700,1600])setTimeout(schedule,delay);
-window.QellyVerify=Object.freeze({render:renderVerify,analyzeTrades,parseTradeCsv,sampleTradeCsv});
+installNavigation();schedule();if(main)new MutationObserver(schedule).observe(main,{childList:true,subtree:true});new MutationObserver(schedule).observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('hashchange',schedule);window.addEventListener('pageshow',schedule);for(const delay of [80,250,700,1600])setTimeout(schedule,delay);
+window.QellyVerify=Object.freeze({render:renderVerify,renderMethodology,analyzeTrades,parseTradeCsv,sampleTradeCsv,composeStrategyEvidenceReport,methodology:QELLY_VERIFY_METHODOLOGY});
