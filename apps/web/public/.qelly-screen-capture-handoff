@@ -1,0 +1,4 @@
+Qelly all-screen evidence handoff
+Requested: 2026-08-07
+Purpose: trigger an independent Cloudflare preview completion event so the exact-main screenshot workflow can execute.
+This marker is temporary and contains no runtime configuration or credential.
