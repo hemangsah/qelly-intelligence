@@ -16,6 +16,8 @@ on:
   push:
     branches: [main, release/qelly-global-public-beta]
   workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
 permissions:
   contents: read
 concurrency:
