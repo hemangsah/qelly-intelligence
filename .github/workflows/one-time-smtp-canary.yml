@@ -1,0 +1,70 @@
+name: One-time Qelly SMTP canary
+
+on:
+  push:
+    branches:
+      - release/qelly-global-public-beta
+    paths:
+      - .github/workflows/one-time-smtp-canary.yml
+
+permissions:
+  contents: read
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PUBLIC_URL: https://qelly-intelligence.pages.dev
+    steps:
+      - name: Wait for the exact production release
+        shell: bash
+        run: |
+          set -euo pipefail
+          ready=false
+          for attempt in $(seq 1 48); do
+            actual="$(curl --silent --show-error --location --max-time 20 -H 'Cache-Control: no-cache' "${PUBLIC_URL}/qelly-release.json?canary=${GITHUB_SHA}-${attempt}" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).releaseSha||''))")"
+            if [ "${actual}" = "${GITHUB_SHA}" ]; then
+              ready=true
+              break
+            fi
+            sleep 10
+          done
+          test "${ready}" = true
+
+      - name: Verify registration is open
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --silent --show-error --location --max-time 30 -H 'Cache-Control: no-cache' "${PUBLIC_URL}/api/v1/config?canary=${GITHUB_SHA}" > config.json
+          node -e "const c=require('./config.json');if(c.auth?.registrationAvailable!==true||c.auth?.emailDeliveryAvailable!==true)process.exit(1)"
+
+      - name: Submit one controlled signup
+        shell: bash
+        run: |
+          set -euo pipefail
+          CANARY_EMAIL="hemangsah.dn+qelly-smtp-canary-${GITHUB_RUN_ID}@gmail.com"
+          CANARY_PASSWORD="QellyCanary!${GITHUB_RUN_ID}Aa9"
+          export CANARY_EMAIL CANARY_PASSWORD
+          node -e "require('fs').writeFileSync('request.json',JSON.stringify({displayName:'Qelly SMTP Canary',organizationName:'Qelly',workspaceName:'SMTP Canary',baseCurrency:'USD',timezone:'Asia/Kolkata',email:process.env.CANARY_EMAIL,password:process.env.CANARY_PASSWORD}))"
+          status="$(curl --silent --show-error --location --max-time 60 -o response.json -w '%{http_code}' -X POST "${PUBLIC_URL}/api/v1/auth/register" -H 'Content-Type: application/json' --data-binary @request.json)"
+          rm -f request.json
+          cat response.json
+          case "${status}" in
+            201|202) ;;
+            *) echo "Unexpected HTTP ${status}"; exit 1 ;;
+          esac
+          node -e "const r=require('./response.json');if(r.accepted!==true)process.exit(1)"
+          printf '%s\n' "${CANARY_EMAIL}" > canary-email.txt
+
+      - name: Upload redacted canary evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qelly-smtp-canary-${{ github.run_id }}
+          path: |
+            config.json
+            response.json
+            canary-email.txt
+          if-no-files-found: warn
+          retention-days: 3
