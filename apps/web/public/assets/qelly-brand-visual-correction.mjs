@@ -79,6 +79,32 @@ function correctShellBranding(){
   document.querySelector('.q-avatar')?.setAttribute('data-qelly-functional-symbol','account');
 }
 
+function correctWorkspaceSwitcherBrand(){
+  const switcher=document.getElementById('workspace-switcher');
+  const isStatic=root.dataset.preview==='static'||window.__QELLY_CONFIG__?.staticVisualPreview===true;
+  if(!switcher||!isStatic)return;
+  let mark=switcher.firstElementChild;
+  if(!mark||mark.tagName!=='SPAN'){
+    mark=document.createElement('span');
+    switcher.prepend(mark);
+  }
+  mark.classList.add('q-workspace-switcher__official-mark');
+  mark.setAttribute('aria-hidden','true');
+  const existing=mark.querySelector('img[data-qelly-official-mark="true"]');
+  if(existing?.src===productSymbolAsset)return;
+  mark.replaceChildren();
+  const image=document.createElement('img');
+  image.src=productSymbolAsset;
+  image.alt='';
+  image.width=32;
+  image.height=32;
+  image.decoding='async';
+  image.setAttribute('aria-hidden','true');
+  image.dataset.qellyOfficialMark='true';
+  mark.append(image);
+  switcher.dataset.qellyOfficialBrand='true';
+}
+
 function correctProductHeaderBrand(){
   const brand=document.querySelector('.q-product-brand');
   const mark=brand?.querySelector('.q-product-brand__mark');
@@ -108,6 +134,7 @@ function refresh(){
   correctAuthComposition();
   correctStateComposition();
   correctShellBranding();
+  correctWorkspaceSwitcherBrand();
   correctProductHeaderBrand();
 }
 
