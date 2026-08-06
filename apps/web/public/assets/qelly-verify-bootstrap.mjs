@@ -27,7 +27,8 @@ const handoff=()=>{
   scheduled=false;
   if(!state.requested||typeof window.QellyVerify?.render!=='function')return;
   const main=document.getElementById('main');
-  if(main?.dataset.qellyVerifyOwner==='true')return;
+  const surface=main?.querySelector('[data-qelly-verify-surface]');
+  if(main?.dataset.qellyVerifyOwner==='true'&&surface)return;
   history.replaceState(null,'','#/market?view=qelly-verify');
   window.QellyVerify.render();
 };
