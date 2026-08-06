@@ -143,7 +143,7 @@ test('server revision query is bounded, minimal and newest first',()=>{
 
 test('saved calculations UI does not issue unconditional cloud success messages',async()=>{
   const source=await readFile(new URL('../apps/web/public/assets/routes/saved-calculations.mjs',import.meta.url),'utf8');
-  assert.match(source,/Cloud upload is queued while offline/);
+  assert.match(source,/Cloud \$\{verb\} is queued while offline/);
   assert.match(source,/failedBatches/);
   assert.match(source,/PARTIAL REVISION WINDOW/);
   assert.match(source,/removeSavedCalculation\}\)\)/);
