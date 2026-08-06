@@ -73,8 +73,9 @@ test('IBM Plex is selected everywhere and GT Eesti remains licence gated',async(
   assert.doesNotMatch(css,/@font-face[^}]*GT Eesti/is);
   assert.ok(build.includes('@fontsource-variable/ibm-plex-sans'));
   assert.ok(build.includes('ibm-plex-sans-variable.woff2'));
+  assert.ok(build.includes('const ibmPlexPreload='));
   assert.ok(build.includes("licensedOptionalActive:false"));
-  assert.ok(index.includes('ibm-plex-sans-variable.woff2'));
+  assert.ok(!index.includes('ibm-plex-sans-variable.woff2'));
   assert.doesNotMatch(index,/geist-(?:mono-)?variable\.woff2/);
   assert.match(audit,/IBM Plex Sans Variable/);
   assert.match(audit,/GT Eesti/);

@@ -67,11 +67,12 @@ test('version migration preserves user intent while canonicalizing legacy identi
 });
 
 test('Theme Studio has guarded import export overlays gallery and no hardcoded route palette',async()=>{
-  const [route,css,index,bootstrap]=await Promise.all([read('apps/web/public/assets/routes/theme-intelligence-studio.mjs'),read('apps/web/public/assets/theme-intelligence.css'),read('apps/web/public/index.html'),read('apps/web/public/assets/theme-intelligence-bootstrap.mjs')]);
+  const [route,css,index,bootstrap,build]=await Promise.all([read('apps/web/public/assets/routes/theme-intelligence-studio.mjs'),read('apps/web/public/assets/theme-intelligence.css'),read('apps/web/public/index.html'),read('apps/web/public/assets/theme-intelligence-bootstrap.mjs'),read('scripts/build-frontend.mjs')]);
   for(const phrase of ['Theme Studio','Theme Gallery','Apply','Cancel','Reset','data-ti-overlay','importPreset','alphaIntensity','alphaPack'])assert.match(route,new RegExp(phrase));
   assert.doesNotMatch(route,/#[0-9a-fA-F]{6}/,'route UI must consume semantic theme data rather than hardcoded colors');
   for(const surface of ['q-command-dialog','q-mi-chart-tooltip','q-mi-table-scroll','q-ti-drawer','role="tooltip"'])assert.match(css,new RegExp(surface.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
-  assert.match(index,/theme-intelligence\.css/);assert.match(index,/data-theme-ready="false"/);assert.match(index,/ibm-plex-sans-variable\.woff2/);
+  assert.match(index,/theme-intelligence\.css/);assert.match(index,/data-theme-ready="false"/);assert.doesNotMatch(index,/ibm-plex-sans-variable\.woff2/);
+  assert.match(build,/const ibmPlexPreload=/);assert.match(build,/ibm-plex-sans-variable\.woff2/);
   assert.match(bootstrap,/renderThemeIntelligenceStudio/);assert.match(bootstrap,/themeIntelligence\.start/);assert.match(bootstrap,/stopImmediatePropagation/);assert.match(bootstrap,/themeFamily:'crimson-vector'/);
 });
 
