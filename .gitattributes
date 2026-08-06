@@ -1,2 +1,3 @@
 # Preserve byte-governed brand vectors across Windows and Unix checkouts.
+# Evidence workflows validate these normalized bytes on every PR synchronization.
 apps/web/public/assets/brand/*.svg text eol=lf
