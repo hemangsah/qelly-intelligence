@@ -13,7 +13,7 @@ const pushNotice=(result,verb='upload')=>{
   const flushed=Number(result?.flushed)||0;
   const conflicts=result?.conflicts?.length||0;
   const failures=result?.failedBatches?.length||0;
-  if(conflicts)return {tone:'danger',message:`${conflicts} cloud conflict${conflicts===1?'':'s'} require manual review. No conflicting record was overwritten.`};
+  if(conflicts)return {tone:'danger',message:`${conflicts} cloud conflict${conflicts===1?'':'s'} require manual review. No conflicting record was silently overwritten.`};
   if(result?.offline)return {tone:'neutral',message:`Cloud ${verb} is queued while offline. ${remaining} batch${remaining===1?'':'es'} remain safely stored in this browser.`};
   if(failures&&flushed)return {tone:'neutral',message:`${flushed} record${flushed===1?'':'s'} transferred; ${remaining} batch${remaining===1?'':'es'} remain queued after ${failures} failed attempt${failures===1?'':'s'}.`};
   if(failures)return {tone:'danger',message:`Cloud ${verb} did not complete. ${remaining} batch${remaining===1?'':'es'} remain safely queued for retry.`};
