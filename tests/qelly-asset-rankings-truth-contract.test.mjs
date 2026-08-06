@@ -22,7 +22,7 @@ test('Asset Rankings visibly discloses unassessed provider agreement and demonst
   assert.match(source,/Provider agreement<\/h2><\/div><span>Not assessed/);
   assert.match(source,/Values are not live market observations/);
   assert.doesNotMatch(source,/4 sources/);
-  assert.doesNotMatch(source(/High agreement/));
+  assert.doesNotMatch(source,/High agreement/);
 });
 
 test('Asset Rankings restores deep-link search and functional evidence controls',async()=>{
