@@ -8,15 +8,39 @@ const cloudCopy=(state)=>{
   if(!state.optIn)return `<span class="q-status q-status--cached">OPT-IN OFF</span><p>${state.cloudRecordCount||0} cloud records · ${state.queuedLocalBatches||0} queued local batches. Nothing uploads until you explicitly enable cloud sync.</p>`;
   return `<span class="q-status q-status--live">CLOUD OPT-IN ACTIVE</span><p>${state.cloudRecordCount||0} cloud records · ${state.pendingOperationCount||0} server operations · ${state.queuedLocalBatches||0} offline batches · last sync ${cloudMeta().lastSyncAt?new Date(cloudMeta().lastSyncAt).toLocaleString():'never'}.</p>`;
 };
+const pushNotice=(result,verb='upload')=>{
+  const remaining=Number(result?.remaining)||0;
+  const flushed=Number(result?.flushed)||0;
+  const conflicts=result?.conflicts?.length||0;
+  const failures=result?.failedBatches?.length||0;
+  if(conflicts)return {tone:'danger',message:`${conflicts} cloud conflict${conflicts===1?'':'s'} require manual review. No conflicting record was overwritten.`};
+  if(result?.offline)return {tone:'neutral',message:`Cloud ${verb} is queued while offline. ${remaining} batch${remaining===1?'':'es'} remain safely stored in this browser.`};
+  if(failures&&flushed)return {tone:'neutral',message:`${flushed} record${flushed===1?'':'s'} transferred; ${remaining} batch${remaining===1?'':'es'} remain queued after ${failures} failed attempt${failures===1?'':'s'}.`};
+  if(failures)return {tone:'danger',message:`Cloud ${verb} did not complete. ${remaining} batch${remaining===1?'':'es'} remain safely queued for retry.`};
+  if(remaining)return {tone:'neutral',message:`Cloud ${verb} is incomplete. ${remaining} batch${remaining===1?'':'es'} remain safely queued.`};
+  if(flushed)return {tone:'success',message:`${flushed} record${flushed===1?'':'s'} transferred to the cloud workspace.`};
+  return {tone:'neutral',message:'No eligible local records required cloud upload.'};
+};
+const pullNotice=(result)=>{
+  const imported=Number(result?.summary?.imported)||0;
+  const deleted=Number(result?.deletedApplied)||0;
+  if(result?.revisionHistoryPartial)return {tone:'neutral',message:`Cloud records downloaded: ${imported} imported, ${deleted} local deletion${deleted===1?'':'s'} applied. Revision history is bounded and may be partial.`};
+  return {tone:'success',message:`Cloud records downloaded: ${imported} imported and ${deleted} local deletion${deleted===1?'':'s'} applied.`};
+};
+const syncNotice=(result)=>{
+  if(result?.pull)return pullNotice(result.pull);
+  return pushNotice(result?.push||result,'synchronization');
+};
 
 export async function renderSavedCalculations(main,{api,pageHead,escapeHtml,toast,navigate}){
   let filters={query:'',tag:null,favorite:null,sort:'updated-desc'},cloud=null,busy=false,disposeResume=()=>{};
   const refreshCloud=async()=>{if(!api)return;try{cloud=await cloudStatus(api);}catch(error){cloud={authenticated:false,error:error.message};}render();};
-  const action=async(label,handler)=>{if(busy)return;busy=true;render();try{await handler();toast(label,{tone:'success'});}catch(error){toast(error.message,{tone:'danger'});}finally{busy=false;await refreshCloud();}};
+  const action=async(handler)=>{if(busy)return;busy=true;render();try{const outcome=await handler();if(outcome?.message)toast(outcome.message,{tone:outcome.tone||'neutral'});}catch(error){toast(error.message,{tone:'danger'});}finally{busy=false;await refreshCloud();}};
   const render=()=>{
     let items=[];try{items=listSavedCalculations(filters);}catch(error){main.innerHTML=`<section class="q-page">${pageHead('Local persistence error','Saved Calculations','The browser storage record could not be read safely. No data was silently replaced.')}<div class="q-state-banner is-error"><span class="q-status q-status--unavailable">UNAVAILABLE</span><p>${escapeHtml(error.message)}</p></div></section>`;return;}
-    const all=listSavedCalculations(),tags=[...new Set(all.flatMap(item=>item.tags))].sort();
-    const cloudControls=api?`<section class="q-panel"><div class="q-panel-head"><div><h2>Optional encrypted cloud workspace</h2><p>Supabase Auth identity, HttpOnly session cookies and database RLS protect each tenant. Local mode remains the default.</p></div><div class="q-actions">${cloud?.authenticated?`<button class="q-button q-button--secondary" data-cloud-opt>${cloud?.optIn?'Disable opt-in':'Enable opt-in'}</button>`:''}<button class="q-button q-button--ghost" data-cloud-download ${!cloud?.authenticated||busy?'disabled':''}>Download</button><button class="q-button q-button--ghost" data-cloud-upload ${!cloud?.authenticated||!cloud?.optIn||busy?'disabled':''}>Upload</button><button class="q-button q-button--primary" data-cloud-sync ${!cloud?.authenticated||!cloud?.optIn||busy?'disabled':''}>Synchronize</button></div></div><div class="q-panel-body"><div class="q-state-banner ${cloud?.optIn?'is-live':'is-simulated'}">${cloudCopy(cloud)}</div><p class="q-muted-copy">Uploads are explicit. Conflicts stop automatic overwrite and remain visible for manual resolution. Non-UUID imported records stay local until re-saved.</p></div></section>`:'';
+    const all=listSavedCalculations(),tags=[...new Set(all.flatMap(item=>item.tags))].sort(),meta=cloudMeta();
+    const historyWarning=meta.revisionHistoryPartial?`<div class="q-state-banner is-simulated" data-cloud-history-warning><span class="q-status q-status--warning">PARTIAL REVISION WINDOW</span><p>The latest ${meta.revisionRowsImported||0} revision snapshots were imported within a ${meta.revisionRowsLimitTotal||0}-snapshot browser safety ceiling. Older cloud history remains stored remotely and is not presented as complete.</p></div>`:'';
+    const cloudControls=api?`<section class="q-panel"><div class="q-panel-head"><div><h2>Optional encrypted cloud workspace</h2><p>Supabase Auth identity, HttpOnly session cookies and database RLS protect each tenant. Local mode remains the default.</p></div><div class="q-actions">${cloud?.authenticated?`<button class="q-button q-button--secondary" data-cloud-opt>${cloud?.optIn?'Disable opt-in':'Enable opt-in'}</button>`:''}<button class="q-button q-button--ghost" data-cloud-download ${!cloud?.authenticated||busy?'disabled':''}>Download</button><button class="q-button q-button--ghost" data-cloud-upload ${!cloud?.authenticated||!cloud?.optIn||busy?'disabled':''}>Upload</button><button class="q-button q-button--primary" data-cloud-sync ${!cloud?.authenticated||!cloud?.optIn||busy?'disabled':''}>Synchronize</button></div></div><div class="q-panel-body"><div class="q-state-banner ${cloud?.optIn?'is-live':'is-simulated'}">${cloudCopy(cloud)}</div>${historyWarning}<p class="q-muted-copy">Uploads are explicit. Conflicts stop automatic overwrite and remain visible for manual resolution. Offline batches are never silently discarded. Non-UUID imported records stay local until re-saved.</p></div></section>`:'';
     main.innerHTML=`<section class="q-page q-saved-calculations-page">
       ${pageHead('Local-first revision lifecycle','Saved Calculations','Reopen, rename, duplicate, revise, restore, import, export and optionally synchronize calculations.',`<button class="q-button q-button--primary" data-action="new">New calculation</button>`)}
       <div class="q-state-banner is-simulated"><span class="q-status q-status--simulated">DETERMINISTIC LOCAL</span><p>Schema v${persistenceMetadata.schemaVersion} · revision history enabled · local tools remain available offline.</p></div>
@@ -33,12 +57,18 @@ export async function renderSavedCalculations(main,{api,pageHead,escapeHtml,toas
     main.querySelectorAll('[data-open]').forEach(button=>button.addEventListener('click',()=>navigate('saved-calculation-detail',button.dataset.open)));main.querySelectorAll('[data-reopen]').forEach(button=>button.addEventListener('click',()=>{const item=all.find(candidate=>candidate.id===button.dataset.reopen);if(item?.result?.formulaId)navigate('calculator-detail',item.result.formulaId);else if(item?.result?.indicatorId)navigate('indicator-detail',item.result.indicatorId);else toast('This record has no executable formula or indicator ID',{tone:'danger'});}));
     main.querySelectorAll('[data-remove]').forEach(button=>button.addEventListener('click',()=>{if(confirm('Remove this saved calculation?')){removeSavedCalculation(button.dataset.remove);toast('Saved calculation removed',{tone:'success'});render();}}));
     main.querySelector('#saved-import')?.addEventListener('change',async event=>{const file=event.target.files?.[0];if(!file)return;try{const summary=importSavedCalculations(await file.text());toast(`${summary.imported} calculation${summary.imported===1?'':'s'} imported`,{tone:'success'});render();}catch(error){toast(`Import rejected: ${error.message}`,{tone:'danger'});}});
-    main.querySelector('[data-cloud-opt]')?.addEventListener('click',()=>action(cloud?.optIn?'Cloud synchronization disabled':'Cloud synchronization enabled',()=>setCloudOptIn(api,!cloud?.optIn)));
-    main.querySelector('[data-cloud-upload]')?.addEventListener('click',()=>action('Local calculations uploaded',async()=>{const result=await pushLocalToCloud(api,all);if(result.conflicts?.length)throw new Error(`${result.conflicts.length} cloud conflict(s) require download and manual review`);}));
-    main.querySelector('[data-cloud-download]')?.addEventListener('click',()=>action('Cloud calculations downloaded',()=>pullCloudToLocal(api,{importSavedCalculations})));
-    main.querySelector('[data-cloud-sync]')?.addEventListener('click',()=>action('Cloud synchronization complete',async()=>{const result=await synchronizeCloud(api,all,{importSavedCalculations});if(result.conflicts?.length)throw new Error(`${result.conflicts.length} conflict(s) detected; no cloud record was silently overwritten`);}));
+    main.querySelector('[data-cloud-opt]')?.addEventListener('click',()=>action(async()=>{const enabled=await setCloudOptIn(api,!cloud?.optIn);return {tone:'success',message:enabled?'Cloud synchronization enabled':'Cloud synchronization disabled'};}));
+    main.querySelector('[data-cloud-upload]')?.addEventListener('click',()=>action(async()=>pushNotice(await pushLocalToCloud(api,all),'upload')));
+    main.querySelector('[data-cloud-download]')?.addEventListener('click',()=>action(async()=>pullNotice(await pullCloudToLocal(api,{importSavedCalculations,removeSavedCalculation}))));
+    main.querySelector('[data-cloud-sync]')?.addEventListener('click',()=>action(async()=>syncNotice(await synchronizeCloud(api,all,{importSavedCalculations,removeSavedCalculation}))));
   };
   render();
-  if(api){disposeResume=installCloudResume(api,result=>{if(result.flushed)toast(`${result.flushed} queued cloud operation(s) resumed`,{tone:'success'});refreshCloud();});await refreshCloud();}
+  if(api){
+    disposeResume=installCloudResume(api,result=>{
+      if(result.flushed||result.failedBatches?.length||result.offline){const notice=pushNotice(result,'resume');toast(notice.message,{tone:notice.tone});}
+      refreshCloud();
+    });
+    await refreshCloud();
+  }
   return ()=>disposeResume();
 }
