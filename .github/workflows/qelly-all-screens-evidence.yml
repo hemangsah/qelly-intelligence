@@ -14,7 +14,7 @@ on:
       - 'package-lock.json'
       - '.github/workflows/qelly-all-screens-evidence.yml'
   push:
-    branches: [release/qelly-global-public-beta]
+    branches: [main, release/qelly-global-public-beta]
   workflow_dispatch:
 permissions:
   contents: read
