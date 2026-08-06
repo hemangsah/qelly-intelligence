@@ -8,33 +8,53 @@ import {validateRuntimeConvergence,waitForCloudflareRuntimeConvergence} from '..
 const sha='54356505fec0d4c09a5d0bcaec5c49b966197f26';
 const old='a10dcf0b1b045481234587e1bb14639c2c2009e8';
 
-const response=(status,payload)=>new Response(JSON.stringify(payload),{status,headers:{'Content-Type':'application/json'}});
+const jsonResponse=(status,payload)=>new Response(JSON.stringify(payload),{status,headers:{'Content-Type':'application/json'}});
+const scriptResponse=(releaseSha)=>new Response(`window.__QELLY_CONFIG__=Object.freeze({releaseSha:'${releaseSha}',deploymentStage:'global-public-beta'});`,{status:200,headers:{'Content-Type':'application/javascript'}});
 
-test('runtime convergence rejects a mixed static/functions rollout',()=>{
-  const result=validateRuntimeConvergence({
-    targetSha:sha,
-    releaseStatus:200,
-    healthStatus:200,
-    readinessStatus:503,
-    release:{releaseSha:sha},
-    health:{status:'ok',releaseSha:sha},
-    readiness:{ready:false,status:'not_proven',releaseSha:old}
-  });
+const completeInput=(overrides={})=>({
+  targetSha:sha,
+  releaseStatus:200,
+  buildStatus:200,
+  browserConfigStatus:200,
+  apiConfigStatus:200,
+  healthStatus:200,
+  readinessStatus:503,
+  release:{releaseSha:sha},
+  build:{releaseSha:sha},
+  browserConfig:{releaseSha:sha},
+  apiConfig:{runtime:{releaseSha:sha}},
+  health:{status:'ok',releaseSha:sha},
+  readiness:{ready:false,status:'not_proven',releaseSha:sha},
+  ...overrides
+});
+
+test('runtime convergence rejects a mixed release rollout',()=>{
+  const result=validateRuntimeConvergence(completeInput({readiness:{ready:false,status:'not_proven',releaseSha:old}}));
   assert.equal(result.converged,false);
-  assert.deepEqual(result.checks,{release:true,health:true,readiness:false});
+  assert.deepEqual(result.checks,{
+    release:true,
+    build:true,
+    browserConfig:true,
+    apiConfig:true,
+    health:true,
+    readiness:false
+  });
   assert.equal(result.observed.readinessSha,old);
 });
 
-test('runtime convergence waits until release, health and readiness share one SHA',async()=>{
+test('runtime convergence waits until all six surfaces share one SHA',async()=>{
   const outputDir=await mkdtemp(path.join(os.tmpdir(),'qelly-runtime-convergence-'));
   const logs=[];
   let readinessCalls=0;
   const fetchImpl=async(url)=>{
-    if(url.includes('qelly-release.json'))return response(200,{releaseSha:sha});
-    if(url.includes('/health'))return response(200,{status:'ok',releaseSha:sha});
+    if(url.includes('qelly-release.json'))return jsonResponse(200,{releaseSha:sha});
+    if(url.includes('BUILD_INFO.json'))return jsonResponse(200,{releaseSha:sha});
+    if(url.includes('qelly-config.js'))return scriptResponse(sha);
+    if(url.includes('/api/v1/config'))return jsonResponse(200,{runtime:{releaseSha:sha}});
+    if(url.includes('/health'))return jsonResponse(200,{status:'ok',releaseSha:sha});
     if(url.includes('/readiness')){
       readinessCalls+=1;
-      return response(503,{ready:false,status:'not_proven',releaseSha:readinessCalls===1?old:sha});
+      return jsonResponse(503,{ready:false,status:'not_proven',releaseSha:readinessCalls===1?old:sha});
     }
     throw new Error(`Unexpected URL ${url}`);
   };
@@ -53,6 +73,9 @@ test('runtime convergence waits until release, health and readiness share one SH
     assert.equal(logs[0].status,'waiting-for-cloudflare-runtime-convergence');
     assert.equal(logs[1].status,'cloudflare-runtime-converged');
     assert.equal(JSON.parse(await readFile(path.join(outputDir,'release.json'),'utf8')).releaseSha,sha);
+    assert.equal(JSON.parse(await readFile(path.join(outputDir,'build-convergence.json'),'utf8')).releaseSha,sha);
+    assert.match(await readFile(path.join(outputDir,'browser-config-convergence.js'),'utf8'),new RegExp(sha));
+    assert.equal(JSON.parse(await readFile(path.join(outputDir,'api-config-convergence.json'),'utf8')).runtime.releaseSha,sha);
     assert.equal(JSON.parse(await readFile(path.join(outputDir,'health-convergence.json'),'utf8')).releaseSha,sha);
     assert.equal(JSON.parse(await readFile(path.join(outputDir,'readiness-convergence.json'),'utf8')).releaseSha,sha);
   }finally{
