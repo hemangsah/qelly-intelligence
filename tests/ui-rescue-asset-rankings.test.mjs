@@ -68,9 +68,10 @@ test('static preview truth is compact and mobile is purpose-built',async()=>{
     read('apps/web/public/assets/premium-mobile.css')
   ]);
   assert.match(route,/Static visual preview/);
-  assert.match(route,/Deterministic demo observations/);
+  assert.match(route,/fixed scenario observations/);
   assert.match(route,/backend unavailable/);
-  assert.match(route,/no production trading or persistence/);
+  assert.match(route,/no live provider blending/);
+  assert.match(route,/no trading or persistence/);
   assert.match(mobile,/q-mi-mobile-rankings/);
   assert.match(mobile,/q-mi-mobile-row/);
   assert.match(mobile,/safe-area-inset-bottom/);
