@@ -16,27 +16,20 @@ on:
   push:
     branches: [main, release/qelly-global-public-beta]
   workflow_dispatch:
-  schedule:
-    - cron: '*/5 * * * *'
-  deployment_status:
-  issue_comment:
-    types: [created]
 permissions:
   contents: read
 concurrency:
-  group: qelly-all-screens-${{ github.event.pull_request.number || github.event.deployment.id || github.event.issue.number || github.ref }}
+  group: qelly-all-screens-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
   capture-and-package:
-    if: >-
-      (github.event_name != 'deployment_status' || github.event.deployment_status.state == 'success') &&
-      (github.event_name != 'issue_comment' || github.event.comment.body == '/capture-all-screens' ||
-      (github.actor == 'cloudflare-workers-and-pages[bot]' && contains(github.event.comment.body, 'Deploy successful!')))
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     env:
-      QELLY_SCREEN_EVIDENCE_SHA: ${{ github.event.deployment.sha || github.event.pull_request.head.sha || github.sha }}
+      QELLY_SCREEN_EVIDENCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       QELLY_SCREEN_BATCH_SIZE: '10'
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: 'utf-8'
     steps:
       - name: Checkout exact evidence head
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -61,6 +54,15 @@ jobs:
         run: |
           python -m pip install --disable-pip-version-check playwright pillow
           python -m playwright install --with-deps chromium
+          chromium_path="$(python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as playwright:
+              print(playwright.chromium.executable_path)
+          PY
+          )"
+          test -x "$chromium_path"
+          sudo ln -sf "$chromium_path" /usr/bin/chromium
+          /usr/bin/chromium --version
       - name: Validate source before browser capture
         run: |
           npm run env:check
@@ -72,17 +74,23 @@ jobs:
           npm run build:frontend
       - name: Capture every registered route at desktop and mobile widths
         run: npm run browser:all
+      - name: Validate accessibility and responsive interaction contracts
+        run: |
+          npm run a11y
+          cp validation/RELEASE_A5_ACCESSIBILITY_REGRESSION.json preview/release-a5-all-screens/accessibility-regression.json
+          python -X utf8 scripts/release-a5-screen-package.py
       - name: Verify screenshot and archive contract
         run: |
           node --input-type=module <<'NODE'
           import {readFile,readdir,stat} from 'node:fs/promises';
           const manifest=JSON.parse(await readFile('preview/release-a5-all-screens/manifest.json','utf8'));
+          const accessibility=JSON.parse(await readFile('preview/release-a5-all-screens/accessibility-regression.json','utf8'));
           const files=await readdir('preview/release-a5-all-screens');
           const pngs=files.filter(name=>name.endsWith('.png'));
           const archives=(await readdir('preview')).filter(name=>/^QELLY_ALL_SCREENS_[0-9a-f]{12}\.zip$/.test(name));
           const archiveSize=archives.length===1?(await stat(`preview/${archives[0]}`)).size:0;
-          const ok=manifest.status==='passed'&&manifest.renderCount===manifest.expectedRenderCount&&pngs.length===manifest.expectedRenderCount&&manifest.failed===0&&manifest.missing.length===0&&archives.length===1&&archiveSize>0;
-          console.log(JSON.stringify({routeCount:manifest.routeCount,renderCount:manifest.renderCount,pngs:pngs.length,archives,archiveSize,status:manifest.status},null,2));
+          const ok=manifest.status==='passed'&&manifest.routeCount===70&&manifest.renderCount===140&&manifest.expectedRenderCount===140&&pngs.length===140&&manifest.failed===0&&manifest.missing.length===0&&accessibility.status==='passed'&&archives.length===1&&archiveSize>0;
+          console.log(JSON.stringify({routeCount:manifest.routeCount,renderCount:manifest.renderCount,pngs:pngs.length,accessibilityChecks:accessibility.checks,accessibilityStatus:accessibility.status,archives,archiveSize,status:manifest.status},null,2));
           if(!ok)process.exit(1);
           NODE
       - name: Upload complete or diagnostic screen evidence
@@ -94,6 +102,7 @@ jobs:
             preview/QELLY_ALL_SCREENS_*.zip
             preview/release-a5-all-screens
             preview/RELEASE_A5_ALL_SCREENS_LOG.json
+            validation/RELEASE_A5_ACCESSIBILITY_REGRESSION.json
           include-hidden-files: true
           if-no-files-found: warn
           retention-days: 30
