@@ -1,36 +1,53 @@
-const VERIFY_HASH=/^#\/(?:qelly-verify|market\?[^#]*\bview=qelly-verify(?:&|$))/i;
-const state=window.__QELLY_VERIFY_ROUTE__??{requested:false,initialHash:location.hash,lastIntent:'none'};
+const VIEW_PATTERNS=Object.freeze({
+  verify:/^#\/(?:qelly-verify|market\?[^#]*\bview=qelly-verify(?:&|$))/i,
+  methodology:/^#\/(?:evidence-methodology|market\?[^#]*\bview=evidence-methodology(?:&|$))/i
+});
+const state=window.__QELLY_VERIFY_ROUTE__??{requested:false,requestedView:null,initialHash:location.hash,lastIntent:'none'};
 window.__QELLY_VERIFY_ROUTE__=state;
 
-const matchesVerify=(value)=>VERIFY_HASH.test(String(value||''));
-const setRequested=(requested,intent)=>{
-  state.requested=Boolean(requested);
+const viewFor=value=>{
+  const candidate=String(value||'');
+  if(VIEW_PATTERNS.verify.test(candidate))return'verify';
+  if(VIEW_PATTERNS.methodology.test(candidate))return'methodology';
+  return null;
+};
+const matchesVerify=value=>viewFor(value)==='verify';
+const matchesMethodology=value=>viewFor(value)==='methodology';
+const setRequested=(view,intent)=>{
+  state.requested=Boolean(view);
+  state.requestedView=view||null;
   state.lastIntent=String(intent||'unknown');
 };
 
-if(matchesVerify(location.hash))setRequested(true,'initial-url');
+const initialView=viewFor(location.hash);
+if(initialView)setRequested(initialView,'initial-url');
 
-document.addEventListener('click',(event)=>{
+document.addEventListener('click',event=>{
   const link=event.target.closest?.('a[href^="#/"]');
   if(!link)return;
-  const href=link.getAttribute('href')||'';
-  setRequested(matchesVerify(href),matchesVerify(href)?'verify-link':'navigation-link');
+  const view=viewFor(link.getAttribute('href')||'');
+  setRequested(view,view?`${view}-link`:'navigation-link');
 },{capture:true});
 
 window.addEventListener('hashchange',()=>{
-  if(matchesVerify(location.hash))setRequested(true,'hash');
-  else if(state.lastIntent==='navigation-link')setRequested(false,'hash-navigation');
+  const view=viewFor(location.hash);
+  if(view)setRequested(view,'hash');
+  else if(state.lastIntent==='navigation-link')setRequested(null,'hash-navigation');
 });
 
 let scheduled=false;
 const handoff=()=>{
   scheduled=false;
-  if(!state.requested||typeof window.QellyVerify?.render!=='function')return;
+  if(!state.requested)return;
+  const view=state.requestedView||'verify';
+  const method=view==='methodology'?'renderMethodology':'render';
+  if(typeof window.QellyVerify?.[method]!=='function')return;
   const main=document.getElementById('main');
-  const surface=main?.querySelector('[data-qelly-verify-surface]');
-  if(main?.dataset.qellyVerifyOwner==='true'&&surface)return;
-  history.replaceState(null,'','#/market?view=qelly-verify');
-  window.QellyVerify.render();
+  const owner=view==='methodology'?'methodology':'true';
+  const selector=view==='methodology'?'[data-qelly-methodology-surface]':'[data-qelly-verify-surface]';
+  if(main?.dataset.qellyVerifyOwner===owner&&main.querySelector(selector))return;
+  history.replaceState(null,'',view==='methodology'?'#/market?view=evidence-methodology':'#/market?view=qelly-verify');
+  window.QellyVerify[method]();
 };
 const schedule=()=>{
   if(scheduled)return;
@@ -42,4 +59,4 @@ new MutationObserver(schedule).observe(document.documentElement,{childList:true,
 window.addEventListener('pageshow',schedule);
 for(const delay of [0,60,180,500,1200,2500])setTimeout(schedule,delay);
 
-window.QellyVerifyBootstrap=Object.freeze({state,matchesVerify,schedule});
+window.QellyVerifyBootstrap=Object.freeze({state,viewFor,matchesVerify,matchesMethodology,schedule});
