@@ -8,6 +8,11 @@ const defaultOutput=path.join(repositoryRoot,'dist/live-public-verification/http
 const sleep=(milliseconds)=>new Promise((resolve)=>setTimeout(resolve,milliseconds));
 const exactSha=(value,target)=>String(value||'')===String(target||'');
 const apiConfigSha=(payload)=>payload?.runtime?.releaseSha??payload?.releaseSha??null;
+const boundedInteger=(value,{name,min=1,max=100}={})=>{
+  const parsed=Number(value);
+  if(!Number.isInteger(parsed)||parsed<min||parsed>max)throw new Error(`${name||'value'} must be an integer between ${min} and ${max}`);
+  return parsed;
+};
 
 export function parseGeneratedBrowserConfig(source){
   const sandbox={window:{}};
@@ -61,6 +66,13 @@ export function validateRuntimeConvergence({
   });
 }
 
+export function advanceConvergenceStability({converged}={},stableSamples=0,requiredStableSamples=2){
+  const required=boundedInteger(requiredStableSamples,{name:'requiredStableSamples',min:1,max:10});
+  const previous=boundedInteger(stableSamples,{name:'stableSamples',min:0,max:required});
+  const next=converged?Math.min(required,previous+1):0;
+  return Object.freeze({stableSamples:next,requiredStableSamples:required,complete:next>=required});
+}
+
 async function fetchText(fetchImpl,url,file,{timeoutMs=20_000}={}){
   let response;
   try{
@@ -86,6 +98,7 @@ export async function waitForCloudflareRuntimeConvergence({
   releaseSha=process.env.RELEASE_SHA,
   attempts=36,
   intervalMs=10_000,
+  requiredStableSamples=Number(process.env.QELLY_CONVERGENCE_STABLE_SAMPLES||2),
   fetchImpl=globalThis.fetch,
   outputDir=defaultOutput,
   log=console.log
@@ -93,10 +106,14 @@ export async function waitForCloudflareRuntimeConvergence({
   if(!/^https:\/\//.test(String(publicUrl||'')))throw new Error('PUBLIC_URL must be a safe HTTPS URL');
   if(!/^[0-9a-f]{40}$/i.test(String(releaseSha||'')))throw new Error('RELEASE_SHA must be a full Git commit SHA');
   if(typeof fetchImpl!=='function')throw new Error('A fetch implementation is required');
+  const totalAttempts=boundedInteger(attempts,{name:'attempts',min:1,max:360});
+  const stableRequired=boundedInteger(requiredStableSamples,{name:'requiredStableSamples',min:1,max:10});
+  if(!Number.isFinite(Number(intervalMs))||Number(intervalMs)<0)throw new Error('intervalMs must be a non-negative number');
   await mkdir(outputDir,{recursive:true});
   const base=String(publicUrl).replace(/\/$/,'');
+  let stableSamples=0;
 
-  for(let attempt=1;attempt<=attempts;attempt++){
+  for(let attempt=1;attempt<=totalAttempts;attempt++){
     const suffix=`verify=${releaseSha}-${attempt}`;
     const [release,build,browserConfigSource,apiConfig,health,readiness]=await Promise.all([
       fetchJson(fetchImpl,`${base}/qelly-release.json?${suffix}`,path.join(outputDir,'release.json')),
@@ -124,14 +141,20 @@ export async function waitForCloudflareRuntimeConvergence({
       health:health.payload,
       readiness:readiness.payload
     });
-    if(result.converged){
-      log(JSON.stringify({status:'cloudflare-runtime-converged',attempt,...result.observed}));
-      return result;
+    const stability=advanceConvergenceStability(result,stableSamples,stableRequired);
+    stableSamples=stability.stableSamples;
+    if(stability.complete){
+      log(JSON.stringify({status:'cloudflare-runtime-stably-converged',attempt,stableSamples,requiredStableSamples:stableRequired,...result.observed}));
+      return Object.freeze({...result,...stability});
     }
-    log(JSON.stringify({status:'waiting-for-cloudflare-runtime-convergence',attempt,targetSha:releaseSha,...result.observed}));
-    if(attempt<attempts)await sleep(intervalMs);
+    if(result.converged){
+      log(JSON.stringify({status:'cloudflare-runtime-stable-sample',attempt,stableSamples,requiredStableSamples:stableRequired,targetSha:releaseSha,...result.observed}));
+    }else{
+      log(JSON.stringify({status:'waiting-for-cloudflare-runtime-convergence',attempt,stableSamples,requiredStableSamples:stableRequired,targetSha:releaseSha,...result.observed}));
+    }
+    if(attempt<totalAttempts)await sleep(Number(intervalMs));
   }
-  throw new Error(`Cloudflare runtime did not converge to ${releaseSha} after ${attempts} attempts`);
+  throw new Error(`Cloudflare runtime did not remain converged to ${releaseSha} for ${stableRequired} consecutive samples after ${totalAttempts} attempts`);
 }
 
 const invokedPath=process.argv[1]?pathToFileURL(path.resolve(process.argv[1])).href:'';
