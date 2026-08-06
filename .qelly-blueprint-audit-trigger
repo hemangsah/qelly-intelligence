@@ -1,0 +1,4 @@
+Qelly blueprint audit trigger
+Requested: 2026-08-07
+Purpose: trigger independent Cloudflare/GitHub integration validation for PR #80.
+No runtime configuration or credential is contained here.
