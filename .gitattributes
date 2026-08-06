@@ -1,0 +1,2 @@
+# Preserve byte-governed brand vectors across Windows and Unix checkouts.
+apps/web/public/assets/brand/*.svg text eol=lf

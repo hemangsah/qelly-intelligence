@@ -10,6 +10,7 @@ on:
       - 'tests/**'
       - 'package.json'
       - 'package-lock.json'
+      - '.gitattributes'
       - '.github/workflows/qelly-all-screens-windows.yml'
   push:
     branches: [main]
@@ -26,6 +27,7 @@ jobs:
     env:
       QELLY_SCREEN_EVIDENCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       QELLY_SCREEN_BATCH_SIZE: '10'
+      QELLY_SQLITE_PATH: ':memory:'
       PYTHONUTF8: '1'
       PYTHONIOENCODING: 'utf-8'
     steps:
