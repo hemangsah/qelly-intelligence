@@ -132,6 +132,9 @@ export async function renderAssetRankings(main,{escapeHtml,navigate,toast,static
   const view=initialView();
   const watchlist=new Set(safeStorage.read(WATCH_KEY,[]));
   let returnFocus=null;
+  main.__qellyAssetRankingsKeyboard?.abort?.();
+  const keyboardController=new AbortController();
+  main.__qellyAssetRankingsKeyboard=keyboardController;
   const save=()=>{
     safeStorage.write(VIEW_KEY,{mode:view.mode,chartMode:view.chartMode,timeframe:view.timeframe,density:view.density,columns:[...view.columns]});
     safeStorage.write(WATCH_KEY,[...watchlist]);
@@ -179,7 +182,12 @@ export async function renderAssetRankings(main,{escapeHtml,navigate,toast,static
       if(event.key==='ArrowDown'){event.preventDefault();row.nextElementSibling?.focus();}
       if(event.key==='ArrowUp'){event.preventDefault();row.previousElementSibling?.focus();}
     });
-    main.addEventListener('keydown',(event)=>{if(event.key==='Escape'&&main.querySelector('[data-mi-drawer].is-open')){event.preventDefault();closeDrawer();}},{once:true});
   };
+  main.addEventListener('keydown',(event)=>{
+    if(event.key==='Escape'&&main.querySelector('[data-mi-drawer].is-open')){
+      event.preventDefault();
+      closeDrawer();
+    }
+  },{signal:keyboardController.signal});
   render();
 }
