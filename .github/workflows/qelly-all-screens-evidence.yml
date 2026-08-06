@@ -30,7 +30,8 @@ jobs:
   capture-and-package:
     if: >-
       (github.event_name != 'deployment_status' || github.event.deployment_status.state == 'success') &&
-      (github.event_name != 'issue_comment' || github.event.comment.body == '/capture-all-screens')
+      (github.event_name != 'issue_comment' || github.event.comment.body == '/capture-all-screens' ||
+      (github.actor == 'cloudflare-workers-and-pages[bot]' && contains(github.event.comment.body, 'Deploy successful!')))
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     env:
