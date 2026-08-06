@@ -1,0 +1,5 @@
+Qelly final blueprint validation marker
+Target branch: agent/qelly-blueprint-complete-audit-20260807
+Purpose: force the independent Cloudflare preview integration to rebuild the frozen audit head.
+Created: 2026-08-07
+Contains no runtime configuration or credential.
