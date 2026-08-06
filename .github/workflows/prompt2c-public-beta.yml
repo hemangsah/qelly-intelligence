@@ -81,31 +81,8 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci --ignore-scripts
-      - name: Wait for exact Cloudflare release
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p dist/live-public-verification/http
-          deployed=false
-          for attempt in $(seq 1 36); do
-            status="$(curl --silent --show-error --location --max-time 20 \
-              -H 'Cache-Control: no-cache' \
-              -o dist/live-public-verification/http/release.json \
-              -w '%{http_code}' \
-              "${PUBLIC_URL%/}/qelly-release.json?verify=${RELEASE_SHA}-${attempt}")"
-            if [ "${status}" = '200' ]; then
-              actual="$(node -p "JSON.parse(require('fs').readFileSync('dist/live-public-verification/http/release.json','utf8')).releaseSha")"
-              if [ "${actual}" = "${RELEASE_SHA}" ]; then
-                deployed=true
-                break
-              fi
-              echo "Waiting for ${RELEASE_SHA}; observed ${actual}"
-            else
-              echo "Release probe returned HTTP ${status}"
-            fi
-            sleep 10
-          done
-          test "${deployed}" = true
+      - name: Wait for complete Cloudflare runtime convergence
+        run: node scripts/wait-for-cloudflare-runtime-convergence.mjs
       - name: Capture and validate critical routes
         shell: bash
         run: |
