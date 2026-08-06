@@ -54,6 +54,15 @@ jobs:
         run: |
           python -m pip install --disable-pip-version-check playwright pillow
           python -m playwright install --with-deps chromium
+          chromium_path="$(python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as playwright:
+              print(playwright.chromium.executable_path)
+          PY
+          )"
+          test -x "$chromium_path"
+          sudo ln -sf "$chromium_path" /usr/bin/chromium
+          /usr/bin/chromium --version
       - name: Validate source before browser capture
         run: |
           npm run env:check
