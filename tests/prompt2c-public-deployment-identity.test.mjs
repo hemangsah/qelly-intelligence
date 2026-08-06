@@ -24,12 +24,14 @@ test('public headers preserve strict CSP and prevent unsolicited edge transforma
   assert.doesNotMatch(csp,/static\.cloudflareinsights\.com/);
 });
 
-test('activated privacy and support copy no longer claims cloud authorization is pending',async()=>{
+test('public copy identifies the active edge runtime without overstating authenticated readiness',async()=>{
   const [privacy,support]=await Promise.all([read('apps/web/public/legal/privacy.html'),read('apps/web/public/support.html')]);
-  assert.match(privacy,/public beta uses Supabase Free Postgres and Auth/);
+  assert.match(privacy,/authenticated production lifecycle remains fail-closed/i);
   assert.match(privacy,/Optional Cloudflare Web Analytics is not required/);
   assert.doesNotMatch(privacy,/must be updated when a real cloud provider is activated/);
-  assert.match(support,/Production authentication and protected feedback APIs are active/);
+  assert.match(support,/protected account feedback is not yet production-proven/i);
+  assert.match(support,/Registration and recovery remain fail-closed/i);
+  assert.doesNotMatch(support,/Production authentication and protected feedback APIs are active/i);
   assert.doesNotMatch(support,/cloud endpoint are authorized/);
   assert.doesNotMatch(support,/Cloud protected writes require authorization/);
 });
