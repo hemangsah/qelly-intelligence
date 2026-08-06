@@ -1,15 +1,53 @@
-import json, pathlib, subprocess, tempfile, time, shutil, urllib.request, urllib.error, sys
-from urllib.parse import urlsplit
+import json, pathlib, subprocess, tempfile, time, shutil, urllib.request, urllib.error, sys, mimetypes
+from urllib.parse import urlsplit, unquote
 from http.cookies import SimpleCookie
 from playwright.sync_api import sync_playwright
 
 ROOT=pathlib.Path(__file__).resolve().parents[1]
-INDEX=(ROOT/'apps/web/public/index.html').read_text().replace('<head>','<head><base href="https://qelly.test/">')
+PUBLIC_ROOT=(ROOT/'apps/web/public').resolve()
+INDEX=(PUBLIC_ROOT/'index.html').read_text().replace('<head>','<head><base href="https://qelly.test/">')
 OUT=ROOT/'preview'/'release-a5-all-screens'; OUT.mkdir(parents=True,exist_ok=True)
 start=int(sys.argv[1]); end=int(sys.argv[2])
-runtime=tempfile.mkdtemp(prefix=f'qelly-a4-screens-{start}-{end}-')
+if start<0 or end<=start: raise SystemExit(f'invalid screen range {start}:{end}')
+runtime=tempfile.mkdtemp(prefix=f'qelly-a5-screens-{start}-{end}-')
 route_json=subprocess.check_output(['node','--input-type=module','-e',"import {routeDefinitions} from './apps/web/public/assets/route-registry.mjs'; console.log(JSON.stringify(routeDefinitions));"],cwd=ROOT,text=True)
-defs_all=json.loads(route_json); defs=defs_all[start:end]
+defs_all=json.loads(route_json)
+if end>len(defs_all): raise SystemExit(f'screen range {start}:{end} exceeds route registry size {len(defs_all)}')
+defs=defs_all[start:end]
+
+MIME_OVERRIDES={
+    '.css':'text/css; charset=utf-8',
+    '.js':'application/javascript; charset=utf-8',
+    '.mjs':'application/javascript; charset=utf-8',
+    '.json':'application/json; charset=utf-8',
+    '.webmanifest':'application/manifest+json; charset=utf-8',
+    '.html':'text/html; charset=utf-8',
+    '.svg':'image/svg+xml',
+    '.png':'image/png',
+    '.jpg':'image/jpeg',
+    '.jpeg':'image/jpeg',
+    '.webp':'image/webp',
+    '.ico':'image/x-icon',
+    '.woff':'font/woff',
+    '.woff2':'font/woff2'
+}
+CRITICAL_RESOURCE_TYPES={'document','script','stylesheet','font','image'}
+RENDER_FAILURE_HEADINGS={'Unable to render this route.','Route unavailable'}
+
+def local_public_file(request_path):
+    relative=unquote(request_path).lstrip('/')
+    if not relative:
+        return None
+    candidate=(PUBLIC_ROOT/relative).resolve()
+    try:
+        candidate.relative_to(PUBLIC_ROOT)
+    except ValueError:
+        return None
+    return candidate if candidate.is_file() else None
+
+def content_type(path):
+    return MIME_OVERRIDES.get(path.suffix.lower()) or mimetypes.guess_type(path.name)[0] or 'application/octet-stream'
+
 launcher=r"""
 import { startServer } from './src/server/server.mjs';
 const environment={...process.env,NODE_ENV:'test',QELLY_PRODUCTION_FOUNDATION_ENABLED:'true',QELLY_PRODUCTION_IDENTITY_ENABLED:'true',QELLY_DEVELOPMENT_IDENTITY_ENABLED:'false',QELLY_DATABASE_MODE:'sqlite',QELLY_JOB_QUEUE_MODE:'database',QELLY_SESSION_SECRET:'release-a5-screen-batch-session-secret-0000001',QELLY_PASSWORD_PEPPER:'release-a5-screen-batch-pepper',QELLY_EXPOSE_RECOVERY_CODE_IN_DEVELOPMENT:'true',QELLY_LIVE_MARKET_ENABLED:'false',QELLY_EXTERNAL_PROVIDERS_ENABLED:'false',QELLY_SECRET_KEYRING_JSON:JSON.stringify({old:'old-secret-material-abcdefghijklmnopqrstuvwxyz',active:'active-secret-material-abcdefghijklmnopqrstuvwxyz'}),QELLY_SECRET_ACTIVE_KEY_ID:'active'};
@@ -28,23 +66,51 @@ try:
     viewports=[('desktop',{'width':1440,'height':1000}),('mobile',{'width':390,'height':844})]
     results=[]
     with sync_playwright() as p:
-        browser=p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--disable-dev-shm-usage','--disable-gpu'])
+        browser=p.chromium.launch(headless=True,args=['--no-sandbox','--disable-dev-shm-usage','--disable-gpu'])
         for vname,viewport in viewports:
             contexts={}
             for auth_mode in (False,True):
                 context=browser.new_context(viewport=viewport,device_scale_factor=1,reduced_motion='reduce')
                 if auth_mode:
-                    for morsel in parsed_cookie.values(): context.add_cookies([{'name':morsel.key,'value':morsel.value,'domain':'qelly.test','path':'/'}])
+                    for morsel in parsed_cookie.values(): context.add_cookies([{'name':morsel.key,'value':morsel.value,'domain':'qelly.test','path':'/','secure':True,'sameSite':'Lax'}])
                 contexts[auth_mode]=context
             for d in defs:
                 route=d['route']; authenticated=route not in public_routes; context=contexts[authenticated]
-                page=context.new_page(); errors=[]
-                page.on('console',lambda msg,e=errors:e.append({'type':'console','text':msg.text}) if msg.type=='error' else None)
+                page=context.new_page(); errors=[]; observations=[]
+                def on_console(msg):
+                    if msg.type!='error': return
+                    item={'type':'console','text':msg.text}
+                    if msg.text.startswith('Failed to load resource:'): observations.append(item)
+                    else: errors.append(item)
+                def on_request_failed(request):
+                    errors.append({'type':'requestfailed','resourceType':request.resource_type,'url':request.url,'method':request.method,'failure':request.failure})
+                def on_response(response):
+                    if response.status<400: return
+                    item={'type':'http','resourceType':response.request.resource_type,'status':response.status,'url':response.url}
+                    if response.request.resource_type in CRITICAL_RESOURCE_TYPES: errors.append(item)
+                    else: observations.append(item)
+                page.on('console',on_console)
                 page.on('pageerror',lambda exc,e=errors:e.append({'type':'pageerror','text':str(exc)}))
+                page.on('requestfailed',on_request_failed)
+                page.on('response',on_response)
                 def proxy(route_obj):
                     auth=authenticated
                     current_route=route
                     parsed=urlsplit(route_obj.request.url)
+                    if parsed.netloc=='qelly.test' and parsed.path in ('/','/index.html'):
+                        route_obj.fulfill(status=200,headers={
+                            'Content-Type':'text/html; charset=utf-8',
+                            'Cache-Control':'no-store',
+                            'X-Content-Type-Options':'nosniff'
+                        },body=INDEX);return
+                    if parsed.netloc=='qelly.test':
+                        asset=local_public_file(parsed.path)
+                        if asset is not None:
+                            route_obj.fulfill(status=200,headers={
+                                'Content-Type':content_type(asset),
+                                'Cache-Control':'no-store',
+                                'X-Content-Type-Options':'nosniff'
+                            },body=asset.read_bytes());return
                     if not auth and parsed.path=='/api/v1/config':
                         with urllib.request.urlopen(base+'/api/v1/config',timeout=20) as config_response:
                             public_config=json.loads(config_response.read().decode('utf-8'))
@@ -70,25 +136,29 @@ try:
                         rh={k:v for k,v in exc.headers.items() if k.lower() not in {'content-encoding','transfer-encoding','connection','content-length','set-cookie'}}
                         route_obj.fulfill(status=exc.code,headers=rh,body=exc.read())
                     except Exception as exc:
-                        route_obj.fulfill(status=502,headers={'Content-Type':'application/json'},body=json.dumps({'error':'proxy_failed','message':str(exc)}))
+                        route_obj.fulfill(status=502,headers={'Content-Type':'application/json'},body=json.dumps({'error':'proxy_failed','target':target,'message':str(exc)}))
                 page.route('**/*',proxy)
-                started=time.time(); heading=None; overflow=None; status='passed'; target=OUT/f'{route}__{vname}.png'
+                started=time.time(); heading=None; overflow=None; page_height=None; status='passed'; target=OUT/f'{route}__{vname}.png'
                 try:
-                    page.goto(f'about:blank#/{route}'); page.set_content(INDEX,wait_until='domcontentloaded',timeout=20000)
-                    page.wait_for_selector('main#main h1',timeout=15000); page.wait_for_timeout(180)
+                    page.goto(f'https://qelly.test/#/{route}',wait_until='domcontentloaded',timeout=20000)
+                    page.wait_for_selector('main#main h1',timeout=15000); page.wait_for_timeout(500)
                     heading=page.locator('main#main h1').first.text_content(); overflow=page.evaluate('document.documentElement.scrollWidth-document.documentElement.clientWidth')
+                    page_height=page.evaluate('document.documentElement.scrollHeight')
+                    if not heading or heading.strip() in RENDER_FAILURE_HEADINGS:
+                        errors.append({'type':'semantic','text':f'Invalid route heading: {heading!r}'})
                     if overflow>2 or errors: status='failed'
-                    page.screenshot(path=str(target),full_page=False,animations='disabled')
+                    page.screenshot(path=str(target),full_page=True,animations='disabled')
                 except Exception as exc:
                     errors.append({'type':'render','text':str(exc)}); status='failed'
-                    try: page.screenshot(path=str(target),full_page=False,animations='disabled')
+                    try: page.screenshot(path=str(target),full_page=True,animations='disabled')
                     except: pass
-                results.append({'route':route,'label':d['label'],'section':d['section'],'viewport':vname,'dimensions':viewport,'heading':heading,'overflowPx':overflow,'consoleErrors':errors,'status':status,'elapsedMs':round((time.time()-started)*1000),'file':str(target.relative_to(ROOT))})
-                print(json.dumps({'route':route,'viewport':vname,'status':status,'elapsedMs':results[-1]['elapsedMs']}),flush=True)
+                result={'route':route,'label':d['label'],'section':d['section'],'public':route in public_routes,'authenticatedFixture':authenticated,'evidenceBoundary':'governed-local-test-runtime','viewport':vname,'dimensions':viewport,'pageHeightPx':page_height,'heading':heading,'overflowPx':overflow,'consoleErrors':errors,'networkObservations':observations,'status':status,'elapsedMs':round((time.time()-started)*1000),'file':str(target.relative_to(ROOT))}
+                results.append(result)
+                print(json.dumps({'route':route,'viewport':vname,'status':status,'pageHeightPx':page_height,'overflowPx':overflow,'errors':errors,'observations':observations,'elapsedMs':result['elapsedMs']}),flush=True)
                 page.close()
             for c in contexts.values(): c.close()
         browser.close()
-    batch={'start':start,'end':end,'routeCount':len(defs),'renderCount':len(results),'results':results}
+    batch={'start':start,'end':end,'routeCount':len(defs),'registryRouteCount':len(defs_all),'renderCount':len(results),'results':results}
     (OUT/f'batch-{start:03d}-{end:03d}.json').write_text(json.dumps(batch,indent=2)+'\n')
     if any(x['status']!='passed' for x in results): raise SystemExit(1)
 finally:

@@ -2,10 +2,7 @@ import {
   HttpError,
   UUID,
   cleanText,
-  clearSessionCookies,
-  fetcher,
   jsonBody,
-  publicRuntimeConfig,
   requireCsrf,
   responseJson,
   restRequest,
@@ -195,18 +192,6 @@ export async function handleData(context,path,segments,method,session,qelly){
 
   if(path==='cloud/status'&&method==='GET')return responseJson(request,env,await cloudStatus(env,session,qelly));
 
-  if(path==='cloud/opt-in'&&method==='POST'){
-    await requireCsrf(request);
-    const body=await jsonBody(request);
-    const enabled=Boolean(body.enabled);
-    await restRequest(env,session.accessToken,`qelly_profiles?user_id=eq.${session.user.id}`,{
-      method:'PATCH',
-      body:{cloud_sync_opt_in:enabled},
-      prefer:'return=representation'
-    });
-    return responseJson(request,env,{enabled});
-  }
-
   if(path==='sync/push'&&method==='POST'){
     await requireCsrf(request);
     const body=await jsonBody(request);
@@ -377,28 +362,6 @@ export async function handleData(context,path,segments,method,session,qelly){
       revisions,
       pending
     });
-  }
-
-  if(path==='account/delete'&&method==='POST'){
-    await requireCsrf(request);
-    await restRequest(env,session.accessToken,'qelly_account_deletion_requests?on_conflict=owner_id',{
-      method:'POST',
-      body:{owner_id:session.user.id,status:'requested',requested_at:new Date().toISOString()},
-      prefer:'resolution=merge-duplicates,return=representation'
-    });
-    let identityDeleted=false;
-    if(env.QELLY_SUPABASE_SERVICE_ROLE_KEY){
-      const config=publicRuntimeConfig(env,request.url);
-      const response=await fetcher(env)(`${config.supabaseUrl}/auth/v1/admin/users/${session.user.id}`,{
-        method:'DELETE',
-        headers:{
-          apikey:env.QELLY_SUPABASE_SERVICE_ROLE_KEY,
-          Authorization:`Bearer ${env.QELLY_SUPABASE_SERVICE_ROLE_KEY}`
-        }
-      });
-      identityDeleted=response.ok;
-    }
-    return responseJson(request,env,{requested:true,identityDeleted,status:identityDeleted?'completed':'requested'},202,{cookies:clearSessionCookies()});
   }
 
   return null;
