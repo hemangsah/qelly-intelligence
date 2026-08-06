@@ -25,10 +25,16 @@ test('approved primary and symbol geometry remain exact', async () => {
 });
 
 test('IBM Plex remains the governed application font source', async () => {
-  const index = await text('apps/web/public/index.html');
+  const [index,fontGovernance] = await Promise.all([
+    text('apps/web/public/index.html'),
+    text('apps/web/public/assets/qelly-font-governance.css')
+  ]);
   const packageJson = JSON.parse(await text('package.json'));
   const build = await text('scripts/build-frontend.mjs');
-  assert.match(index, /\.\/assets\/fonts\/ibm-plex-sans-variable\.woff2/);
+  assert.doesNotMatch(index,/rel=["']preload["'][^>]*ibm-plex-sans-variable\.woff2/i);
+  assert.match(index,/qelly-font-governance\.css/);
+  assert.match(fontGovernance,/ibm-plex-sans-variable\.woff2/);
+  assert.match(fontGovernance,/IBM Plex Sans Variable/);
   assert.doesNotMatch(index, /fonts\.googleapis|use\.typekit|Geist|Manrope|Plus Jakarta/i);
   assert.equal(packageJson.devDependencies['@fontsource-variable/ibm-plex-sans'], '5.2.8');
   assert.match(build, /@fontsource-variable\/ibm-plex-sans/);
