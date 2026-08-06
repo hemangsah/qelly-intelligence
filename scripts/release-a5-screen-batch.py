@@ -31,6 +31,8 @@ MIME_OVERRIDES={
     '.woff':'font/woff',
     '.woff2':'font/woff2'
 }
+CRITICAL_RESOURCE_TYPES={'document','script','stylesheet','font','image'}
+RENDER_FAILURE_HEADINGS={'Unable to render this route.','Route unavailable'}
 
 def local_public_file(request_path):
     relative=unquote(request_path).lstrip('/')
@@ -74,11 +76,23 @@ try:
                 contexts[auth_mode]=context
             for d in defs:
                 route=d['route']; authenticated=route not in public_routes; context=contexts[authenticated]
-                page=context.new_page(); errors=[]
-                page.on('console',lambda msg,e=errors:e.append({'type':'console','text':msg.text}) if msg.type=='error' else None)
+                page=context.new_page(); errors=[]; observations=[]
+                def on_console(msg):
+                    if msg.type!='error': return
+                    item={'type':'console','text':msg.text}
+                    if msg.text.startswith('Failed to load resource:'): observations.append(item)
+                    else: errors.append(item)
+                def on_request_failed(request):
+                    errors.append({'type':'requestfailed','resourceType':request.resource_type,'url':request.url,'method':request.method,'failure':request.failure})
+                def on_response(response):
+                    if response.status<400: return
+                    item={'type':'http','resourceType':response.request.resource_type,'status':response.status,'url':response.url}
+                    if response.request.resource_type in CRITICAL_RESOURCE_TYPES: errors.append(item)
+                    else: observations.append(item)
+                page.on('console',on_console)
                 page.on('pageerror',lambda exc,e=errors:e.append({'type':'pageerror','text':str(exc)}))
-                page.on('requestfailed',lambda request,e=errors:e.append({'type':'requestfailed','url':request.url,'method':request.method,'failure':request.failure}))
-                page.on('response',lambda response,e=errors:e.append({'type':'http','status':response.status,'url':response.url}) if response.status>=400 else None)
+                page.on('requestfailed',on_request_failed)
+                page.on('response',on_response)
                 def proxy(route_obj):
                     auth=authenticated
                     current_route=route
@@ -130,15 +144,17 @@ try:
                     page.wait_for_selector('main#main h1',timeout=15000); page.wait_for_timeout(500)
                     heading=page.locator('main#main h1').first.text_content(); overflow=page.evaluate('document.documentElement.scrollWidth-document.documentElement.clientWidth')
                     page_height=page.evaluate('document.documentElement.scrollHeight')
+                    if not heading or heading.strip() in RENDER_FAILURE_HEADINGS:
+                        errors.append({'type':'semantic','text':f'Invalid route heading: {heading!r}'})
                     if overflow>2 or errors: status='failed'
                     page.screenshot(path=str(target),full_page=True,animations='disabled')
                 except Exception as exc:
                     errors.append({'type':'render','text':str(exc)}); status='failed'
                     try: page.screenshot(path=str(target),full_page=True,animations='disabled')
                     except: pass
-                result={'route':route,'label':d['label'],'section':d['section'],'public':route in public_routes,'authenticatedFixture':authenticated,'evidenceBoundary':'governed-local-test-runtime','viewport':vname,'dimensions':viewport,'pageHeightPx':page_height,'heading':heading,'overflowPx':overflow,'consoleErrors':errors,'status':status,'elapsedMs':round((time.time()-started)*1000),'file':str(target.relative_to(ROOT))}
+                result={'route':route,'label':d['label'],'section':d['section'],'public':route in public_routes,'authenticatedFixture':authenticated,'evidenceBoundary':'governed-local-test-runtime','viewport':vname,'dimensions':viewport,'pageHeightPx':page_height,'heading':heading,'overflowPx':overflow,'consoleErrors':errors,'networkObservations':observations,'status':status,'elapsedMs':round((time.time()-started)*1000),'file':str(target.relative_to(ROOT))}
                 results.append(result)
-                print(json.dumps({'route':route,'viewport':vname,'status':status,'pageHeightPx':page_height,'overflowPx':overflow,'errors':errors,'elapsedMs':result['elapsedMs']}),flush=True)
+                print(json.dumps({'route':route,'viewport':vname,'status':status,'pageHeightPx':page_height,'overflowPx':overflow,'errors':errors,'observations':observations,'elapsedMs':result['elapsedMs']}),flush=True)
                 page.close()
             for c in contexts.values(): c.close()
         browser.close()
