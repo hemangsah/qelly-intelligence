@@ -109,3 +109,12 @@ test('accessibility evidence uses deterministic explicit-header identity and sep
   assert.match(harness,/else: observations\.append\(item\)/);
   assert.match(harness,/'networkObservations':observations/);
 });
+
+test('accessibility route proxy exposes only one positional Playwright handler argument',async()=>{
+  const harness=await read('scripts/release-a5-accessibility-check.py');
+  assert.match(harness,/is_authenticated=auth\s+current_route=route_key\s+def proxy\(route_obj\):/s);
+  assert.doesNotMatch(harness,/def proxy\(route_obj,is_auth=auth,current_route=route_key\)/);
+  assert.match(harness,/if not is_authenticated and parsed\.path=='\/api\/v1\/config'/);
+  assert.match(harness,/if not is_authenticated and parsed\.path=='\/api\/v1\/auth\/status'/);
+  assert.match(harness,/if is_authenticated: headers\['X-Qelly-Session-Id'\]=SESSION_ID/);
+});
