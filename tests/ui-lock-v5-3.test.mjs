@@ -53,7 +53,8 @@ test('V5.3 preserves evidence and safety boundaries', async () => {
     text('apps/web/public/assets/qelly-ui-lock-v5-3.css')
   ]);
   assert.match(lock, /no order entry, live execution, custody, wallet signing, deposits, withdrawals, private keys or recovery phrases/i);
-  assert.match(runtime, /data-v53-evidence-adjacent/);
+  assert.match(runtime, /dataset\.v53EvidenceAdjacent/);
+  assert.match(css, /data-v53-evidence-adjacent/);
   assert.match(css, /q-source-line/);
   assert.match(css, /prefers-reduced-motion:reduce/);
   assert.doesNotMatch(`${runtime}\n${css}`, /place order|execute trade|connect wallet|deposit funds|withdraw funds|buy now|sell now/i);
