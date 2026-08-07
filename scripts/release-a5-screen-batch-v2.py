@@ -13,8 +13,13 @@ from urllib.parse import unquote, urlsplit
 from playwright.sync_api import sync_playwright
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-PUBLIC_ROOT = (ROOT / 'apps/web/public').resolve()
-INDEX = (PUBLIC_ROOT / 'index.html').read_text().replace(
+PUBLIC_ROOT = (ROOT / 'dist/frontend').resolve()
+INDEX_PATH = PUBLIC_ROOT / 'index.html'
+if not INDEX_PATH.is_file():
+    raise SystemExit(
+        'built frontend is missing; run npm run build:frontend before screen capture'
+    )
+INDEX = INDEX_PATH.read_text().replace(
     '<head>', '<head><base href="https://qelly.test/">', 1
 )
 OUT = ROOT / 'preview' / 'release-a5-all-screens'
@@ -54,7 +59,7 @@ route_json = subprocess.check_output(
         'node',
         '--input-type=module',
         '-e',
-        "import {routeDefinitions} from './apps/web/public/assets/route-registry.mjs'; console.log(JSON.stringify(routeDefinitions));",
+        "import {routeDefinitions} from './dist/frontend/assets/route-registry.mjs'; console.log(JSON.stringify(routeDefinitions));",
     ],
     cwd=ROOT,
     text=True,
