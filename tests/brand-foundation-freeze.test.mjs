@@ -7,10 +7,11 @@ const root = new URL('../', import.meta.url);
 const text = (relative) => readFile(new URL(relative, root), 'utf8');
 const bytes = (relative) => readFile(new URL(relative, root));
 const gitBlobSha = (value) => createHash('sha1').update(`blob ${value.length}\0`).update(value).digest('hex');
+const canonicalTextBytes = (value) => Buffer.from(value.toString('utf8').replace(/\r\n/g,'\n'),'utf8');
 
 test('approved primary and symbol geometry remain exact', async () => {
-  const primary = await bytes('apps/web/public/assets/brand/qelly-logo-primary.svg');
-  const symbol = await bytes('apps/web/public/assets/brand/qelly-symbol.svg');
+  const primary = canonicalTextBytes(await bytes('apps/web/public/assets/brand/qelly-logo-primary.svg'));
+  const symbol = canonicalTextBytes(await bytes('apps/web/public/assets/brand/qelly-symbol.svg'));
   assert.equal(gitBlobSha(primary), 'b9437fc4d753b6efd691b47dbd8d027d643dfcbf');
   assert.equal(gitBlobSha(symbol), 'dbf57fb4da9ca06f4a49f8b1c68f67d29ea8a043');
   const primaryText = primary.toString('utf8');
