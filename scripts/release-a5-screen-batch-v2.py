@@ -13,8 +13,13 @@ from urllib.parse import unquote, urlsplit
 from playwright.sync_api import sync_playwright
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-PUBLIC_ROOT = (ROOT / 'apps/web/public').resolve()
-INDEX = (PUBLIC_ROOT / 'index.html').read_text().replace(
+PUBLIC_ROOT = (ROOT / 'dist/frontend').resolve()
+INDEX_PATH = PUBLIC_ROOT / 'index.html'
+if not INDEX_PATH.is_file():
+    raise SystemExit(
+        'built frontend missing; run npm run build:frontend before browser evidence'
+    )
+INDEX = INDEX_PATH.read_text().replace(
     '<head>', '<head><base href="https://qelly.test/">', 1
 )
 OUT = ROOT / 'preview' / 'release-a5-all-screens'
@@ -407,6 +412,11 @@ try:
                         f'{EXPECTED_ORIGIN}/#/{route_name}',
                         wait_until='domcontentloaded',
                         timeout=30000,
+                    )
+                    page.wait_for_function(
+                        '(expected) => document.title === expected',
+                        arg=expected_title,
+                        timeout=20000,
                     )
                     page.wait_for_selector('main#main h1', timeout=20000)
                     page.wait_for_function(
