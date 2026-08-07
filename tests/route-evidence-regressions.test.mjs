@@ -94,3 +94,18 @@ test('accessibility evidence validates the built frontend and exact route identi
   assert.match(harness,/location\.hash\.split\('\?'\)\[0\]===expectedHash/);
   assert.match(harness,/document\.fonts\?\.ready/);
 });
+
+test('accessibility evidence uses deterministic explicit-header identity and separates API observations from critical resource failures',async()=>{
+  const harness=await read('scripts/release-a5-accessibility-check.py');
+  assert.match(harness,/SESSION_ID='sess-local-primary'/);
+  assert.match(harness,/QELLY_PRODUCTION_IDENTITY_ENABLED:'false'/);
+  assert.match(harness,/QELLY_DEVELOPMENT_IDENTITY_ENABLED:'true'/);
+  assert.match(harness,/QELLY_DEVELOPMENT_IDENTITY_EXPLICIT_HEADER_ONLY:'true'/);
+  assert.match(harness,/headers\['X-Qelly-Session-Id'\]=SESSION_ID/);
+  assert.doesNotMatch(harness,/api\/v1\/auth\/register/);
+  assert.doesNotMatch(harness,/SimpleCookie/);
+  assert.match(harness,/CRITICAL_RESOURCE_TYPES=\{'document','script','stylesheet','font','image'\}/);
+  assert.match(harness,/if response\.request\.resource_type in CRITICAL_RESOURCE_TYPES: errors\.append\(item\)/);
+  assert.match(harness,/else: observations\.append\(item\)/);
+  assert.match(harness,/'networkObservations':observations/);
+});
