@@ -1,6 +1,5 @@
 import json, mimetypes, pathlib, subprocess, tempfile, time, shutil, urllib.request, urllib.error
 from urllib.parse import unquote, urlsplit
-from http.cookies import SimpleCookie
 from playwright.sync_api import sync_playwright
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -8,7 +7,9 @@ PUBLIC_ROOT = (ROOT / 'dist/frontend').resolve()
 INDEX_PATH = PUBLIC_ROOT / 'index.html'
 if not INDEX_PATH.is_file():
     raise RuntimeError('Built frontend is missing; run the frontend build before accessibility validation')
-INDEX = INDEX_PATH.read_text()
+INDEX = INDEX_PATH.read_text().replace('<head>', '<head><base href="https://qelly.test/">', 1)
+SESSION_ID='sess-local-primary'
+CRITICAL_RESOURCE_TYPES={'document','script','stylesheet','font','image'}
 MIME_OVERRIDES={'.css':'text/css; charset=utf-8','.js':'application/javascript; charset=utf-8','.mjs':'application/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.webmanifest':'application/manifest+json; charset=utf-8','.html':'text/html; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.ico':'image/x-icon','.woff':'font/woff','.woff2':'font/woff2'}
 
 def local_public_file(request_path):
@@ -22,12 +23,20 @@ def local_public_file(request_path):
 def content_type(path):
     return MIME_OVERRIDES.get(path.suffix.lower()) or mimetypes.guess_type(path.name)[0] or 'application/octet-stream'
 
+def request_json(base,path,authenticated=False):
+    headers={'Accept':'application/json'}
+    if authenticated: headers['X-Qelly-Session-Id']=SESSION_ID
+    request=urllib.request.Request(base+path,headers=headers)
+    with urllib.request.urlopen(request,timeout=20) as response:
+        return json.loads(response.read().decode('utf-8'))
+
 route_json=subprocess.check_output(['node','--input-type=module','-e',"import {routeDefinitions} from './dist/frontend/assets/route-registry.mjs'; console.log(JSON.stringify(routeDefinitions));"],cwd=ROOT,text=True)
 route_labels={item['route']:item['label'] for item in json.loads(route_json)}
 runtime=tempfile.mkdtemp(prefix='qelly-a5-a11y-')
 launcher=r'''
 import { startServer } from './src/server/server.mjs';
-const environment={...process.env,NODE_ENV:'test',QELLY_PRODUCTION_FOUNDATION_ENABLED:'true',QELLY_PRODUCTION_IDENTITY_ENABLED:'true',QELLY_DEVELOPMENT_IDENTITY_ENABLED:'false',QELLY_DATABASE_MODE:'sqlite',QELLY_JOB_QUEUE_MODE:'database',QELLY_SESSION_SECRET:'release-a5-a11y-session-secret-0000000000001',QELLY_PASSWORD_PEPPER:'release-a5-a11y-pepper',QELLY_SECRET_KEYRING_JSON:JSON.stringify({old:'old-secret-material-abcdefghijklmnopqrstuvwxyz',active:'active-secret-material-abcdefghijklmnopqrstuvwxyz'}),QELLY_SECRET_ACTIVE_KEY_ID:'active'};
+const fixtureSeed=['release','a5','accessibility','fixture','0000001'].join('-');
+const environment={...process.env,NODE_ENV:'test',QELLY_PRODUCTION_FOUNDATION_ENABLED:'true',QELLY_PRODUCTION_IDENTITY_ENABLED:'false',QELLY_DEVELOPMENT_IDENTITY_ENABLED:'true',QELLY_DEVELOPMENT_IDENTITY_EXPLICIT_HEADER_ONLY:'true',QELLY_DATABASE_MODE:'sqlite',QELLY_JOB_QUEUE_MODE:'database',QELLY_SESSION_SECRET:fixtureSeed+'-session',QELLY_PASSWORD_PEPPER:fixtureSeed+'-pepper',QELLY_EXPOSE_RECOVERY_CODE_IN_DEVELOPMENT:'false',QELLY_LIVE_MARKET_ENABLED:'false',QELLY_EXTERNAL_PROVIDERS_ENABLED:'false',QELLY_SECRET_KEYRING_JSON:JSON.stringify({old:fixtureSeed+'-old-key-material',active:fixtureSeed+'-active-key-material'}),QELLY_SECRET_ACTIVE_KEY_ID:'active'};
 const x=await startServer({port:0,runtimePath:process.argv[1],environment});
 console.log(JSON.stringify({host:x.host,port:x.port}));
 process.on('SIGTERM',()=>x.server.close(()=>process.exit(0)));setInterval(()=>{},1000);
@@ -46,6 +55,12 @@ try:
     line=proc.stdout.readline().strip()
     if not line: raise RuntimeError(proc.stderr.read())
     info=json.loads(line); base=f"http://127.0.0.1:{info['port']}"; print('a11y server',base,flush=True)
+    anonymous_config=request_json(base,'/api/v1/config')
+    authenticated_config=request_json(base,'/api/v1/config',authenticated=True)
+    authenticated_status=request_json(base,'/api/v1/auth/status',authenticated=True)
+    if anonymous_config.get('auth',{}).get('authenticated') is not False: raise RuntimeError('anonymous accessibility preflight did not remain anonymous')
+    if authenticated_config.get('auth',{}).get('authenticated') is not True: raise RuntimeError('authenticated accessibility preflight failed /api/v1/config')
+    if authenticated_status.get('authenticated') is not True: raise RuntimeError('authenticated accessibility preflight failed /api/v1/auth/status')
     routes=[
         ('auth-login','auth-login',False),('auth-register','auth-register',False),('auth-recovery','auth-recovery',False),
         ('account-session','account-session',True),('onboarding','onboarding',True),('discovery-hub','discovery-hub',True),
@@ -65,23 +80,28 @@ try:
     with sync_playwright() as p:
         browser=p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--disable-dev-shm-usage'])
         for vname,viewport in viewports:
-            stamp=int(time.time()*1000)
-            payload=json.dumps({'email':f'a11y-{vname}-{stamp}@qelly.local','password':'Qelly-A11y-Foundation-2026!','displayName':'Accessibility Validator','organizationName':f'Accessibility Org {vname} {stamp}','workspaceName':'Accessible Workspace','locale':'en-US','timezone':'UTC','baseCurrency':'USD'}).encode()
-            req=urllib.request.Request(base+'/api/v1/auth/register',data=payload,headers={'Content-Type':'application/json'},method='POST')
-            with urllib.request.urlopen(req,timeout=20) as response:
-                if response.status!=201: raise RuntimeError(f'registration failed: {response.status}')
-                raw_cookie=response.headers.get('Set-Cookie')
-            cookie_header=raw_cookie.split(';',1)[0]; parsed_cookie=SimpleCookie(); parsed_cookie.load(raw_cookie)
             for route_key,route_path,auth in routes:
                 context=browser.new_context(viewport=viewport,reduced_motion='reduce' if vname=='mobile' else 'no-preference')
                 context.add_init_script("sessionStorage.setItem('qelly.brand.opening.v1','seen');localStorage.setItem('qelly.calculations.v1',"+json.dumps(json.dumps(SAVED_SEED))+');')
-                if auth:
-                    for morsel in parsed_cookie.values(): context.add_cookies([{'name':morsel.key,'value':morsel.value,'domain':'qelly.test','path':'/'}])
-                page=context.new_page(); errors=[]
-                page.on('console',lambda msg,target=errors: target.append(msg.text) if msg.type=='error' else None)
-                page.on('pageerror',lambda exc,target=errors: target.append(str(exc)))
-                page.on('response',lambda response,target=errors: target.append(f'HTTP {response.status} {response.url}') if response.status>=400 else None)
-                page.on('requestfailed',lambda request,target=errors: target.append(f'Request failed {request.url}: {request.failure}'))
+                page=context.new_page(); errors=[]; observations=[]
+                def on_console(message):
+                    if message.type!='error': return
+                    item={'type':'console','text':message.text}
+                    if message.text.startswith('Failed to load resource:'): observations.append(item)
+                    else: errors.append(item)
+                def on_request_failed(request):
+                    item={'type':'requestfailed','resourceType':request.resource_type,'url':request.url,'failure':request.failure}
+                    if request.resource_type in CRITICAL_RESOURCE_TYPES: errors.append(item)
+                    else: observations.append(item)
+                def on_response(response):
+                    if response.status<400: return
+                    item={'type':'http','resourceType':response.request.resource_type,'status':response.status,'url':response.url}
+                    if response.request.resource_type in CRITICAL_RESOURCE_TYPES: errors.append(item)
+                    else: observations.append(item)
+                page.on('console',on_console)
+                page.on('pageerror',lambda exc,target=errors: target.append({'type':'pageerror','text':str(exc)}))
+                page.on('response',on_response)
+                page.on('requestfailed',on_request_failed)
                 def proxy(route_obj,is_auth=auth,current_route=route_key):
                     parsed=urlsplit(route_obj.request.url)
                     if parsed.netloc=='qelly.test' and parsed.path in ('/','/index.html') and route_obj.request.resource_type=='document':
@@ -91,16 +111,15 @@ try:
                         if asset is not None:
                             route_obj.fulfill(status=200,headers={'Content-Type':content_type(asset),'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'},body=asset.read_bytes()); return
                     if not is_auth and parsed.path=='/api/v1/config':
-                        with urllib.request.urlopen(base+'/api/v1/config',timeout=20) as config_response: public_config=json.loads(config_response.read().decode('utf-8'))
-                        public_config.setdefault('auth',{})['authenticated']=False; public_config['defaultRoute']=current_route
+                        public_config=dict(anonymous_config); public_config['auth']={**public_config.get('auth',{}),'authenticated':False}; public_config['defaultRoute']=current_route
                         route_obj.fulfill(status=200,headers={'Content-Type':'application/json; charset=utf-8'},body=json.dumps(public_config)); return
                     if not is_auth and parsed.path=='/api/v1/auth/status':
-                        route_obj.fulfill(status=200,headers={'Content-Type':'application/json; charset=utf-8'},body=json.dumps({'authenticated':False,'mode':'production-cookie','productionFoundation':{'developmentIdentityEnabled':False}})); return
+                        route_obj.fulfill(status=200,headers={'Content-Type':'application/json; charset=utf-8'},body=json.dumps({'authenticated':False,'mode':'anonymous-test-runtime','productionFoundation':{'developmentIdentityEnabled':True}})); return
                     if parsed.netloc=='unpkg.com': route_obj.fulfill(status=200,headers={'Content-Type':'application/javascript'},body='window.LightweightCharts=window.LightweightCharts||undefined;'); return
                     if parsed.path.startswith('/api/v1/stream/'): route_obj.fulfill(status=200,headers={'Content-Type':'text/event-stream'},body='event: stream.heartbeat.v1\ndata: {"status":"a11y"}\n\n'); return
                     target=base+parsed.path+('?' + parsed.query if parsed.query else ''); data=route_obj.request.post_data.encode() if route_obj.request.post_data else None
-                    headers={k:v for k,v in route_obj.request.headers.items() if k.lower() not in {'host','content-length','accept-encoding','connection','origin','referer'}}
-                    if is_auth: headers['Cookie']=cookie_header
+                    headers={k:v for k,v in route_obj.request.headers.items() if k.lower() not in {'host','content-length','accept-encoding','connection','origin','referer','cookie','x-qelly-session-id'}}
+                    if is_auth: headers['X-Qelly-Session-Id']=SESSION_ID
                     request=urllib.request.Request(target,data=data,headers=headers,method=route_obj.request.method)
                     try:
                         with urllib.request.urlopen(request,timeout=20) as proxied: route_obj.fulfill(status=proxied.status,headers={k:v for k,v in proxied.headers.items() if k.lower() not in {'content-encoding','transfer-encoding','connection','content-length','set-cookie'}},body=proxied.read())
@@ -125,8 +144,9 @@ try:
                     if checks['fontStatus']!='loaded': failures.append('font')
                     if focus['tag'] in (None,'BODY','HTML'): failures.append('keyboard-entry')
                     if errors: failures.append('console-errors')
-                except Exception as exc: failures=['render-failure']; errors.append(str(exc))
-                results.append({'route':route_key,'path':route_path,'viewport':vname,'dimensions':viewport,'authenticated':auth,'expectedTitle':expected_title,'expectedHash':expected_hash,'checks':checks,'firstTabFocus':focus,'consoleErrors':errors,'criticalFailures':failures,'status':'passed' if not failures else 'failed'}); context.close()
+                except Exception as exc:
+                    failures=['render-failure']; errors.append({'type':'render','text':str(exc),'title':page.title(),'hash':page.evaluate("location.hash.split('?')[0]"),'ariaBusy':page.locator('main#main').get_attribute('aria-busy')})
+                results.append({'route':route_key,'path':route_path,'viewport':vname,'dimensions':viewport,'authenticated':auth,'expectedTitle':expected_title,'expectedHash':expected_hash,'checks':checks,'firstTabFocus':focus,'consoleErrors':errors,'networkObservations':observations,'criticalFailures':failures,'status':'passed' if not failures else 'failed'}); context.close()
         browser.close()
     failed=[item for item in results if item['status']=='failed']; expected_checks=54
     if len(results)!=expected_checks: failed.append({'route':'denominator','criticalFailures':[f'{len(results)}/{expected_checks}'],'status':'failed'})
