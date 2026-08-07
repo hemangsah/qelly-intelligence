@@ -17,6 +17,13 @@ test('saved detail hash parser preserves encoded identifiers and query',()=>{
   assert.equal(parsed.query.get('state'),'encoded-value');
 });
 
+test('legacy quant calculator hash resolves to canonical calculator center',()=>{
+  const parsed=parseHashRoute('#/quant-calculator?state=legacy');
+  assert.equal(parsed.route,'calculator-center');
+  assert.equal(parsed.asset,null);
+  assert.equal(parsed.query.get('state'),'legacy');
+});
+
 test('hash parser uses deterministic fallback without contaminating asset',()=>{
   const parsed=parseHashRoute('',{fallback:'market'});
   assert.deepEqual({route:parsed.route,asset:parsed.asset,query:parsed.query.toString()},{route:'market',asset:null,query:''});
