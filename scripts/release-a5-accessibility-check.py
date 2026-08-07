@@ -102,7 +102,9 @@ try:
                 page.on('pageerror',lambda exc,target=errors: target.append({'type':'pageerror','text':str(exc)}))
                 page.on('response',on_response)
                 page.on('requestfailed',on_request_failed)
-                def proxy(route_obj,is_auth=auth,current_route=route_key):
+                is_authenticated=auth
+                current_route=route_key
+                def proxy(route_obj):
                     parsed=urlsplit(route_obj.request.url)
                     if parsed.netloc=='qelly.test' and parsed.path in ('/','/index.html') and route_obj.request.resource_type=='document':
                         route_obj.fulfill(status=200,headers={'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'},body=INDEX); return
@@ -110,16 +112,16 @@ try:
                         asset=local_public_file(parsed.path)
                         if asset is not None:
                             route_obj.fulfill(status=200,headers={'Content-Type':content_type(asset),'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'},body=asset.read_bytes()); return
-                    if not is_auth and parsed.path=='/api/v1/config':
+                    if not is_authenticated and parsed.path=='/api/v1/config':
                         public_config=dict(anonymous_config); public_config['auth']={**public_config.get('auth',{}),'authenticated':False}; public_config['defaultRoute']=current_route
                         route_obj.fulfill(status=200,headers={'Content-Type':'application/json; charset=utf-8'},body=json.dumps(public_config)); return
-                    if not is_auth and parsed.path=='/api/v1/auth/status':
+                    if not is_authenticated and parsed.path=='/api/v1/auth/status':
                         route_obj.fulfill(status=200,headers={'Content-Type':'application/json; charset=utf-8'},body=json.dumps({'authenticated':False,'mode':'anonymous-test-runtime','productionFoundation':{'developmentIdentityEnabled':True}})); return
                     if parsed.netloc=='unpkg.com': route_obj.fulfill(status=200,headers={'Content-Type':'application/javascript'},body='window.LightweightCharts=window.LightweightCharts||undefined;'); return
                     if parsed.path.startswith('/api/v1/stream/'): route_obj.fulfill(status=200,headers={'Content-Type':'text/event-stream'},body='event: stream.heartbeat.v1\ndata: {"status":"a11y"}\n\n'); return
                     target=base+parsed.path+('?' + parsed.query if parsed.query else ''); data=route_obj.request.post_data.encode() if route_obj.request.post_data else None
                     headers={k:v for k,v in route_obj.request.headers.items() if k.lower() not in {'host','content-length','accept-encoding','connection','origin','referer','cookie','x-qelly-session-id'}}
-                    if is_auth: headers['X-Qelly-Session-Id']=SESSION_ID
+                    if is_authenticated: headers['X-Qelly-Session-Id']=SESSION_ID
                     request=urllib.request.Request(target,data=data,headers=headers,method=route_obj.request.method)
                     try:
                         with urllib.request.urlopen(request,timeout=20) as proxied: route_obj.fulfill(status=proxied.status,headers={k:v for k,v in proxied.headers.items() if k.lower() not in {'content-encoding','transfer-encoding','connection','content-length','set-cookie'}},body=proxied.read())
