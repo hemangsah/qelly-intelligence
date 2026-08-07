@@ -1,0 +1,103 @@
+{
+  "name": "ui-lock-v5-3",
+  "version": "5.3.0",
+  "status": "locked-for-implementation",
+  "designArtifact": {
+    "name": "QELLY_UIUX_V5_3_INSTITUTIONAL_DENSITY_LOCK_CANDIDATE.zip",
+    "sha256": "e077489ba482f0df9258a14c0074adb1bc9eee02d4740b7fb683fdf7df3b2855",
+    "editableSvgCount": 2605
+  },
+  "shell": {
+    "layers": [
+      "system-strip",
+      "command-bar",
+      "navigation-rail",
+      "context-bar",
+      "analytical-workspace",
+      "intelligence-inspector",
+      "activity-tray"
+    ],
+    "desktop": {
+      "defaultRailMode": "compact",
+      "inspectorMode": "adjacent",
+      "maximumPrimaryAnalyticalTasks": 3
+    },
+    "tablet": {
+      "maximumPrimaryAnalyticalTasks": 2,
+      "inspectorMode": "drawer"
+    },
+    "mobile": {
+      "maximumPrimaryAnalyticalTasks": 1,
+      "inspectorMode": "bottom-sheet"
+    }
+  },
+  "evidenceEnvelope": {
+    "fields": [
+      "source",
+      "observedAt",
+      "ingestedAt",
+      "freshness",
+      "confidence",
+      "coverage",
+      "method",
+      "assumptions",
+      "contradictions",
+      "limitations",
+      "version",
+      "auditId"
+    ],
+    "missingEvidencePolicy": "preserve-missing-never-synthesize",
+    "qualityColorPolicy": "neutral-non-directional"
+  },
+  "truthStates": [
+    "loading",
+    "partial",
+    "fresh",
+    "stale",
+    "delayed",
+    "estimated",
+    "user-entered",
+    "derived",
+    "simulated",
+    "missing",
+    "conflicting",
+    "degraded",
+    "permission-limited",
+    "error"
+  ],
+  "themeIntelligence": {
+    "themeFamilies": 13,
+    "personas": 6,
+    "mindsets": 24,
+    "densities": ["comfortable", "compact", "terminal"],
+    "motion": ["full", "subtle", "reduced"],
+    "protectedMarketSemantics": true
+  },
+  "accessibility": {
+    "keyboardRequired": true,
+    "focusVisibleRequired": true,
+    "reducedMotionEquivalentRequired": true,
+    "highContrastRequired": true,
+    "zoom200Required": true,
+    "nonColorTruthCuesRequired": true
+  },
+  "safety": {
+    "readOnlyIntelligence": true,
+    "liveTrading": false,
+    "orderEntry": false,
+    "custody": false,
+    "walletSigning": false,
+    "deposits": false,
+    "withdrawals": false,
+    "privateKeys": false,
+    "recoveryPhrases": false,
+    "historicalPaperAnalytics": "simulation-only"
+  },
+  "compatibility": {
+    "governedRouteCount": 70,
+    "featureRemovalAllowed": false,
+    "legacyRouteAliasesPreserved": true,
+    "frontendOverlay": "qelly-ui-lock-v5-3",
+    "preferenceStore": "layout-preference-v2-compatible"
+  }
+}

@@ -1,0 +1,305 @@
+/* Qelly Intelligence — UI_LOCK_V5_3 institutional-density overlay.
+   Additive over UI_LOCK_V5. Preserves route, evidence, theme, accessibility and safety contracts. */
+
+:root{
+  --q-v53-system-h:24px;
+  --q-v53-command-h:40px;
+  --q-v53-context-h:30px;
+  --q-v53-rail-w:68px;
+  --q-v53-inspector-w:360px;
+  --q-v53-gap:10px;
+  --q-v53-gap-tight:6px;
+  --q-v53-r-control:8px;
+  --q-v53-r-data:10px;
+  --q-v53-r-panel:14px;
+  --q-v53-r-sheet:20px;
+  --q-v53-text-body:12px;
+  --q-v53-text-small:11px;
+  --q-v53-text-meta:9px;
+  --q-v53-shadow-panel:0 10px 34px rgb(4 2 4 / .18);
+  --q-v53-shadow-float:0 20px 64px rgb(4 2 4 / .30);
+}
+
+html[data-ui-lock-v5-3="active"] body{
+  background:
+    radial-gradient(980px 520px at 84% -8%,color-mix(in srgb,var(--q-accent,#6f1838) 10%,transparent),transparent 68%),
+    var(--q-canvas,var(--q-color-bg,#0b080a));
+}
+
+/* Seven-layer terminal shell: compact but readable. */
+html[data-ui-lock-v5-3="active"] .q-global-strip{
+  height:var(--q-v53-system-h);
+  min-height:var(--q-v53-system-h);
+  padding-inline:10px;
+  gap:12px;
+  font-size:10px;
+}
+
+html[data-ui-lock-v5-3="active"] .q-brand-home img{
+  width:auto;
+  height:20px;
+  max-width:118px;
+}
+
+html[data-ui-lock-v5-3="active"] .q-macro-strip{gap:12px}
+html[data-ui-lock-v5-3="active"] .q-macro-item,
+html[data-ui-lock-v5-3="active"] .q-macro-item strong{font-size:10px}
+html[data-ui-lock-v5-3="active"] .q-truth-chip{font-size:9px;gap:6px}
+
+html[data-ui-lock-v5-3="active"] .q-command-bar{
+  top:var(--q-v53-system-h);
+  height:var(--q-v53-command-h);
+  min-height:var(--q-v53-command-h);
+  margin:4px 6px 0;
+  padding:0 8px;
+  gap:8px;
+  border-radius:12px;
+  box-shadow:0 8px 28px rgb(4 2 4 / .18);
+  backdrop-filter:blur(20px) saturate(116%);
+  -webkit-backdrop-filter:blur(20px) saturate(116%);
+}
+
+html[data-ui-lock-v5-3="active"] .q-workspace-switcher{
+  min-width:178px;
+  column-gap:7px;
+}
+html[data-ui-lock-v5-3="active"] .q-workspace-switcher span{width:26px;height:26px;border-radius:7px}
+html[data-ui-lock-v5-3="active"] .q-workspace-switcher strong{font-size:11px}
+html[data-ui-lock-v5-3="active"] .q-workspace-switcher small{font-size:9px}
+html[data-ui-lock-v5-3="active"] .q-command-trigger{height:30px;min-height:30px;border-radius:8px;padding-inline:10px;font-size:11px}
+html[data-ui-lock-v5-3="active"] .q-command-trigger kbd{font-size:9px}
+html[data-ui-lock-v5-3="active"] .q-icon-button,
+html[data-ui-lock-v5-3="active"] .q-avatar{width:30px;height:30px;min-width:30px}
+
+html[data-ui-lock-v5-3="active"] .q-context-shelf{
+  min-height:var(--q-v53-context-h);
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:3px 10px;
+  font-size:10px;
+  border-block:1px solid color-mix(in srgb,var(--q-border,#5a3445) 58%,transparent);
+  background:color-mix(in srgb,var(--q-surface,#0e0a0d) 94%,transparent);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+}
+
+html[data-ui-lock-v5-3="active"] .q-shell{
+  min-height:calc(100vh - (var(--q-v53-system-h) + var(--q-v53-command-h) + var(--q-v53-context-h) + 4px));
+  gap:0;
+}
+html[data-ui-lock-v5-3="active"] .q-shell:has(.q-rail.is-collapsed){grid-template-columns:var(--q-v53-rail-w) minmax(0,1fr)}
+html[data-ui-lock-v5-3="active"] .q-shell.is-context-open:has(.q-rail.is-collapsed){grid-template-columns:var(--q-v53-rail-w) minmax(0,1fr) var(--q-v53-inspector-w)}
+
+html[data-ui-lock-v5-3="active"] .q-rail{
+  top:calc(var(--q-v53-system-h) + var(--q-v53-command-h) + var(--q-v53-context-h) + 4px);
+  height:calc(100vh - (var(--q-v53-system-h) + var(--q-v53-command-h) + var(--q-v53-context-h) + 4px));
+  margin:6px 0 6px 6px;
+  border-radius:12px;
+  box-shadow:var(--q-v53-shadow-panel);
+}
+html[data-ui-lock-v5-3="active"] .q-rail.is-collapsed{width:var(--q-v53-rail-w)}
+html[data-ui-lock-v5-3="active"] .q-rail nav{padding:8px 6px;gap:2px}
+html[data-ui-lock-v5-3="active"] .q-nav-link{height:34px;border-radius:8px;font-size:11px;padding-inline:8px}
+html[data-ui-lock-v5-3="active"] .q-nav-icon{font-size:13px}
+html[data-ui-lock-v5-3="active"] .q-rail.is-collapsed .q-nav-link{height:38px}
+html[data-ui-lock-v5-3="active"] .q-rail-footer{padding:8px}
+
+/* Workspace: less card padding, more analytical canvas. */
+html[data-ui-lock-v5-3="active"] #main{
+  padding:14px clamp(10px,1.3vw,20px) 58px;
+  background:
+    radial-gradient(700px 420px at 96% 0,color-mix(in srgb,var(--q-accent,#6f1838) 4%,transparent),transparent 70%),
+    var(--q-canvas);
+}
+html[data-ui-lock-v5-3="active"] .q-page{max-width:none}
+html[data-ui-lock-v5-3="active"] .q-page-head{gap:14px;margin-bottom:12px;min-height:52px}
+html[data-ui-lock-v5-3="active"] .q-page-head h1{font-size:clamp(22px,2.2vw,30px);margin:3px 0 5px}
+html[data-ui-lock-v5-3="active"] .q-page-head p{font-size:var(--q-v53-text-body);line-height:1.45}
+html[data-ui-lock-v5-3="active"] .q-eyebrow{font-size:9px!important;letter-spacing:.12em}
+html[data-ui-lock-v5-3="active"] .q-page-actions{gap:6px}
+html[data-ui-lock-v5-3="active"] .q-button{min-height:32px;border-radius:8px;padding-inline:10px;font-size:11px}
+
+html[data-ui-lock-v5-3="active"] :where(.q-panel,.q-card,.q-research-card,.q-kpi,.q-ti-control-group,.q-ti-theme-card,.q-ti-compare-panel){
+  border-radius:var(--q-v53-r-panel);
+  box-shadow:0 1px 0 rgb(255 255 255 / .012),var(--q-v53-shadow-panel);
+}
+html[data-ui-lock-v5-3="active"] .q-panel-head{padding:10px 12px;gap:10px}
+html[data-ui-lock-v5-3="active"] .q-panel-head h2{font-size:12px}
+html[data-ui-lock-v5-3="active"] .q-panel-head p{font-size:10px}
+html[data-ui-lock-v5-3="active"] .q-panel-body{padding:12px}
+html[data-ui-lock-v5-3="active"] .q-dashboard-grid,
+html[data-ui-lock-v5-3="active"] .q-dashboard-stack,
+html[data-ui-lock-v5-3="active"] .q-ti-layout{gap:var(--q-v53-gap)}
+
+html[data-ui-lock-v5-3="active"] .q-kpi-grid{gap:8px;margin-bottom:10px}
+html[data-ui-lock-v5-3="active"] .q-kpi{min-height:96px;padding:12px}
+html[data-ui-lock-v5-3="active"] .q-kpi-label{font-size:9px}
+html[data-ui-lock-v5-3="active"] .q-kpi-value{font-size:21px;margin:8px 0 5px}
+html[data-ui-lock-v5-3="active"] .q-kpi-meta{font-size:10px}
+
+/* Data surfaces: denser rows, readable type, explicit numerical alignment. */
+html[data-ui-lock-v5-3="active"] .q-data-grid table{font-size:12px}
+html[data-ui-lock-v5-3="active"] .q-data-grid th{height:32px;font-size:10px;letter-spacing:.035em}
+html[data-ui-lock-v5-3="active"] .q-data-grid td{font-size:12px}
+html[data-ui-lock-v5-3="active"] .q-source-line{padding:8px 10px;gap:9px;font-size:10px}
+html[data-ui-lock-v5-3="active"] :where(.q-record-row,.q-notification-item,.q-setting,.q-ti-field){border-radius:var(--q-v53-r-control)}
+html[data-ui-lock-v5-3="active"] :where(.q-status,.q-capability,.q-chip,.q-badge){font-size:9px;line-height:1.25}
+
+/* Evidence adjacency and Intelligence Inspector. */
+html[data-ui-lock-v5-3="active"] .q-context-drawer{
+  top:calc(var(--q-v53-system-h) + var(--q-v53-command-h) + var(--q-v53-context-h) + 4px);
+  height:calc(100vh - (var(--q-v53-system-h) + var(--q-v53-command-h) + var(--q-v53-context-h) + 4px));
+  width:var(--q-v53-inspector-w);
+  margin:6px 6px 6px 0;
+  border:1px solid color-mix(in srgb,var(--q-border,#5a3445) 70%,transparent);
+  border-radius:var(--q-v53-r-panel);
+  box-shadow:var(--q-v53-shadow-float);
+}
+html[data-ui-lock-v5-3="active"] .q-context-head{padding:12px 14px}
+html[data-ui-lock-v5-3="active"] .q-context-head h2{font-size:14px}
+html[data-ui-lock-v5-3="active"] .q-context-content{padding:10px}
+html[data-ui-lock-v5-3="active"] .q-context-block{
+  margin-bottom:8px;
+  padding:10px;
+  border-radius:10px;
+  background:color-mix(in srgb,var(--q-surface-alt,#151015) 78%,transparent);
+  box-shadow:none;
+}
+html[data-ui-lock-v5-3="active"] .q-context-block h3{font-size:11px}
+html[data-ui-lock-v5-3="active"] .q-context-block dl{font-size:10px;grid-template-columns:96px minmax(0,1fr);gap:6px}
+html[data-ui-lock-v5-3="active"] [data-v53-evidence-adjacent="true"]{
+  border-color:color-mix(in srgb,var(--q-accent,#6f1838) 22%,var(--q-border,#5a3445));
+}
+
+/* Curvature is analytical, not decorative: tighter fields and trajectories. */
+html[data-ui-lock-v5-3="active"] :where(.q-page-head,.q-ti-hero,.q-mi-hero,.q-public-hero,.q-hero)::before{
+  width:min(27vw,390px);
+  right:-5%;
+  top:-62%;
+  opacity:.42;
+}
+html[data-ui-lock-v5-3="active"] :where(.q-page-head,.q-ti-hero,.q-mi-hero,.q-public-hero,.q-hero)::after{
+  width:min(19vw,270px);
+  right:5%;
+  top:-34%;
+  opacity:.28;
+}
+html[data-ui-lock-v5-3="active"] :where(svg path[data-series],svg [data-qelly-trajectory],.q-v5-animated-path){stroke-linecap:round;stroke-linejoin:round}
+
+/* Existing Compare tray becomes the governed activity/action tray; functionality is preserved. */
+html[data-ui-lock-v5-3="active"] .q-compare-tray{
+  min-height:40px;
+  padding:6px 10px;
+  margin:0 6px 6px;
+  border:1px solid color-mix(in srgb,var(--q-border,#5a3445) 68%,transparent);
+  border-radius:12px;
+  background:color-mix(in srgb,var(--q-surface,#0e0a0d) 94%,transparent);
+  box-shadow:0 12px 38px rgb(4 2 4 / .20);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+html[data-ui-lock-v5-3="active"] .q-compare-tray strong{font-size:10px}
+html[data-ui-lock-v5-3="active"] .q-compare-tray small{font-size:9px}
+html[data-ui-lock-v5-3="active"] .q-compare-tray button{min-height:28px;font-size:10px;border-radius:8px}
+
+/* Market pilot uplift. */
+html[data-ui-lock-v5-3="active"] .q-live-command-deck,
+html[data-ui-lock-v5-3="active"] .q-v5-market-ribbon,
+html[data-ui-lock-v5-3="active"] .q-v5-evidence-ribbon,
+html[data-ui-lock-v5-3="active"] .q-live-layout,
+html[data-ui-lock-v5-3="active"] .q-market-tape{margin-inline:0}
+html[data-ui-lock-v5-3="active"] .q-live-command-deck{padding:12px 14px;gap:10px;border-radius:var(--q-v53-r-panel)}
+html[data-ui-lock-v5-3="active"] .q-v5-market-ribbon{gap:6px}
+html[data-ui-lock-v5-3="active"] .q-v5-market-metric{padding:9px 10px;border-radius:10px}
+html[data-ui-lock-v5-3="active"] .q-v5-market-metric span{font-size:9px}
+html[data-ui-lock-v5-3="active"] .q-v5-market-metric strong{font-size:15px;margin-top:4px}
+html[data-ui-lock-v5-3="active"] .q-v5-evidence-cell{padding:8px 9px}
+html[data-ui-lock-v5-3="active"] .q-v5-evidence-cell span{font-size:9px}
+html[data-ui-lock-v5-3="active"] .q-v5-evidence-cell strong{font-size:10px;margin-top:3px}
+html[data-ui-lock-v5-3="active"] .q-live-chart-shell{min-height:560px;border-radius:var(--q-v53-r-panel)}
+
+/* Theme Studio uses three continuous zones instead of card-wall geometry. */
+html[data-ui-lock-v5-3="active"] .q-ti-controls,
+html[data-ui-lock-v5-3="active"] .q-ti-preview-shell,
+html[data-ui-lock-v5-3="active"] .q-ti-drawer,
+html[data-ui-lock-v5-3="active"] .q-ti-modal{border-radius:var(--q-v53-r-panel)}
+html[data-ui-lock-v5-3="active"] .q-ti-control-group{border-radius:10px}
+
+/* Responsive contract: tablet <= two analytical columns; mobile = one task + evidence sheet. */
+@media(max-width:1180px){
+  html[data-ui-lock-v5-3="active"] .q-shell.is-context-open:has(.q-rail.is-collapsed){grid-template-columns:var(--q-v53-rail-w) minmax(0,1fr)}
+  html[data-ui-lock-v5-3="active"] .q-context-drawer{
+    position:fixed;
+    z-index:120;
+    right:8px;
+    top:74px;
+    bottom:8px;
+    height:auto;
+    width:min(390px,calc(100vw - 90px));
+  }
+  html[data-ui-lock-v5-3="active"] .q-dashboard-grid{grid-template-columns:minmax(0,1fr)}
+  html[data-ui-lock-v5-3="active"] .q-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+@media(max-width:720px){
+  :root{--q-v53-system-h:24px;--q-v53-command-h:42px;--q-v53-context-h:0px}
+  html[data-ui-lock-v5-3="active"] .q-global-strip{padding-inline:8px}
+  html[data-ui-lock-v5-3="active"] .q-brand-home{display:none}
+  html[data-ui-lock-v5-3="active"] .q-truth-chip span:last-child{display:none}
+  html[data-ui-lock-v5-3="active"] .q-command-bar{margin:4px 4px 0;padding-inline:6px;border-radius:10px}
+  html[data-ui-lock-v5-3="active"] .q-workspace-switcher{min-width:0;max-width:120px}
+  html[data-ui-lock-v5-3="active"] .q-workspace-switcher small{display:none}
+  html[data-ui-lock-v5-3="active"] .q-command-trigger span:nth-child(2){font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  html[data-ui-lock-v5-3="active"] .q-context-shelf{display:none}
+  html[data-ui-lock-v5-3="active"] #main{padding:10px 8px 116px}
+  html[data-ui-lock-v5-3="active"] .q-page-head{display:grid;gap:8px}
+  html[data-ui-lock-v5-3="active"] .q-page-head h1{font-size:22px}
+  html[data-ui-lock-v5-3="active"] .q-page-actions{justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px}
+  html[data-ui-lock-v5-3="active"] .q-kpi-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px}
+  html[data-ui-lock-v5-3="active"] .q-kpi{min-height:84px;padding:10px}
+  html[data-ui-lock-v5-3="active"] .q-panel-head{padding:9px 10px}
+  html[data-ui-lock-v5-3="active"] .q-panel-body{padding:10px}
+  html[data-ui-lock-v5-3="active"] .q-context-drawer{
+    position:fixed;
+    inset:auto 0 0 0;
+    z-index:180;
+    width:100%;
+    height:min(72vh,620px);
+    margin:0;
+    border-radius:20px 20px 0 0;
+    border-inline:0;
+    border-bottom:0;
+  }
+  html[data-ui-lock-v5-3="active"] .q-compare-tray{
+    position:fixed;
+    z-index:110;
+    left:6px;
+    right:6px;
+    bottom:58px;
+    margin:0;
+    min-height:44px;
+  }
+  html[data-ui-lock-v5-3="active"] .q-compare-tray>span small{display:none}
+  html[data-ui-lock-v5-3="active"] .q-compare-tray button{min-height:30px;padding-inline:8px}
+  html[data-ui-lock-v5-3="active"] .q-v5-evidence-ribbon{grid-template-columns:1fr 1fr}
+  html[data-ui-lock-v5-3="active"] .q-live-chart-shell{min-height:420px}
+}
+
+@media(max-width:390px){
+  html[data-ui-lock-v5-3="active"] .q-command-trigger kbd{display:none}
+  html[data-ui-lock-v5-3="active"] .q-kpi-grid{grid-template-columns:minmax(0,1fr)}
+  html[data-ui-lock-v5-3="active"] .q-compare-tray>div{display:flex;overflow-x:auto;max-width:70vw}
+}
+
+@media(prefers-reduced-motion:reduce){
+  html[data-ui-lock-v5-3="active"] *,
+  html[data-ui-lock-v5-3="active"] *::before,
+  html[data-ui-lock-v5-3="active"] *::after{
+    animation-duration:.001ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.001ms!important;
+    transition-delay:0ms!important;
+    scroll-behavior:auto!important;
+  }
+}

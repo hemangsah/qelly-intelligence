@@ -36,9 +36,16 @@ function renderField(field,escapeHtml){
   return `<label class="q-structured-field ${type==='array'||type==='object'?'is-wide':''}" for="${id}"><span class="q-structured-field__label"><span>${escapeHtml(label)}</span><span class="q-structured-field__meta">${escapeHtml(meta)}</span></span>${control}<small>${escapeHtml(description)}${schema.minimum!=null||schema.maximum!=null?` Allowed range: ${schema.minimum??'any'} to ${schema.maximum??'any'}.`:''}</small><small class="q-structured-field__error" data-field-error="${escapeHtml(key)}" aria-live="polite"></small></label>`;
 }
 
+function renderSelectionRequired(main,{pageHead,escapeHtml,navigate,id}){
+  const detail=id?`The current route context “${id}” does not resolve to a governed calculator formula.`:'No calculator formula identifier is present in this route.';
+  main.innerHTML=`<section class="q-page q-calculator-detail-page">${pageHead('Deterministic calculator','Calculator Detail','Select a governed calculator before entering inputs or producing deterministic outputs.')}<div class="q-state-banner"><span class="q-status q-status--unavailable">SELECTION REQUIRED</span><p>${escapeHtml(detail)} Qelly does not invent a calculator selection or redirect silently.</p></div><section class="q-panel"><div class="q-panel-head"><div><p class="q-eyebrow">No calculator selected</p><h2>Choose a calculator from the governed center</h2><p>This registered detail route remains visible without implying that another formula was selected.</p></div></div><div class="q-panel-body"><button class="q-button q-button--primary" data-action="center">Open calculator center</button></div></section></section>`;
+  main.querySelector('[data-action="center"]').addEventListener('click',()=>navigate('calculator-center'));
+}
+
 export async function renderCalculatorDetail(main,{pageHead,escapeHtml,toast,navigate,id,query}){
+  if(!id){renderSelectionRequired(main,{pageHead,escapeHtml,navigate,id});return;}
   let definition;
-  try{definition=getFormulaDefinition(id);}catch{navigate('calculator-center');return;}
+  try{definition=getFormulaDefinition(id);}catch{renderSelectionRequired(main,{pageHead,escapeHtml,navigate,id});return;}
   const reference=structuredClone(definition.referenceVector?.inputs??{});
   let initialInputs=structuredClone(reference),sharedState=false,sharedError='';
   const encoded=query?.get?.('state');

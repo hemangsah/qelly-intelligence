@@ -19,6 +19,14 @@ export function statusBadge(label, state = 'cached', detail = '') {
   return span;
 }
 
+export function kpiCard(label, value) {
+  return `<article class="q-kpi"><div class="q-kpi-label">${escapeHtml(label)}</div><div class="q-kpi-value">${escapeHtml(value??'—')}</div></article>`;
+}
+
+// The legacy application shell still resolves kpiCard as an unqualified global.
+// Keep the implementation owned by this shared primitive module until that shell is decomposed.
+globalThis.kpiCard ??= kpiCard;
+
 const DATA_STATES=Object.freeze({
   live:{label:'Live',symbol:'●',tone:'live'},delayed:{label:'Delayed',symbol:'◷',tone:'delayed'},estimated:{label:'Estimated',symbol:'≈',tone:'warning'},derived:{label:'Derived',symbol:'ƒ',tone:'cached'},demo:{label:'Demo · not live',symbol:'◇',tone:'demo'},simulated:{label:'Simulated · not live',symbol:'◇',tone:'simulated'},fallback:{label:'Fallback · not live',symbol:'↺',tone:'fallback'},stale:{label:'Stale',symbol:'△',tone:'stale'},unavailable:{label:'Unavailable',symbol:'—',tone:'unavailable'},offline:{label:'Offline',symbol:'⌁',tone:'offline'},error:{label:'Error',symbol:'!',tone:'error'},positive:{label:'Positive',symbol:'↑',tone:'positive'},negative:{label:'Negative',symbol:'↓',tone:'negative'},warning:{label:'Warning',symbol:'△',tone:'warning'},cached:{label:'Cached',symbol:'◫',tone:'cached'}
 });
