@@ -77,27 +77,35 @@ const activityItem=(label,value,state='')=>`<span class="q-terminal-activity__it
 export function renderTerminalShellState(model,root=document){
   const context=root.getElementById?.('shell-context-contract');
   if(context){
-    const markup=[
-      contextToken(model.context.type,model.context.object),
-      contextToken('Time',model.context.timeframe),
-      contextToken('Source',model.context.source),
-      contextToken('Freshness',model.context.freshness,model.context.freshness==='Simulated'?'simulated':''),
-      contextToken('Confidence',model.context.confidence)
-    ].join('');
-    if(context.innerHTML!==markup)context.innerHTML=markup;
+    const values=[model.context.type,model.context.object,model.context.timeframe,model.context.source,model.context.freshness,model.context.confidence];
+    const signature=JSON.stringify(values);
+    if(context.dataset.shellContextSignature!==signature){
+      context.innerHTML=[
+        contextToken(model.context.type,model.context.object),
+        contextToken('Time',model.context.timeframe),
+        contextToken('Source',model.context.source),
+        contextToken('Freshness',model.context.freshness,model.context.freshness==='Simulated'?'simulated':''),
+        contextToken('Confidence',model.context.confidence)
+      ].join('');
+      context.dataset.shellContextSignature=signature;
+    }
     context.dataset.contextType=model.context.type;
   }
   const activity=root.getElementById?.('shell-activity-contract');
   if(activity){
-    const markup=[
-      activityItem('Safety','READ ONLY','safe'),
-      activityItem('Session',model.system.session),
-      activityItem('Providers',model.system.providers),
-      activityItem('Jobs',model.system.jobs),
-      activityItem('Notifications',model.system.notifications),
-      activityItem('Release',model.system.release)
-    ].join('');
-    if(activity.innerHTML!==markup)activity.innerHTML=markup;
+    const values=['READ ONLY',model.system.session,model.system.providers,model.system.jobs,model.system.notifications,model.system.release];
+    const signature=JSON.stringify(values);
+    if(activity.dataset.shellActivitySignature!==signature){
+      activity.innerHTML=[
+        activityItem('Safety','READ ONLY','safe'),
+        activityItem('Session',model.system.session),
+        activityItem('Providers',model.system.providers),
+        activityItem('Jobs',model.system.jobs),
+        activityItem('Notifications',model.system.notifications),
+        activityItem('Release',model.system.release)
+      ].join('');
+      activity.dataset.shellActivitySignature=signature;
+    }
     activity.title=`${model.system.workspace} · ${model.system.timezone} · ${model.system.environment}`;
   }
   const drawer=root.getElementById?.('context-drawer');
@@ -136,12 +144,14 @@ function refreshInspectorTabs(root=document){
     'Related decisions':/decision/.test(text),
     Audit:/audit|version|hash|correlation/.test(text)
   };
-  const markup=inspectorTabs.map((label)=>{
+  const signature=inspectorTabs.map((label)=>`${label}:${availability[label]===true?'1':'0'}`).join('|');
+  if(tablist.dataset.inspectorSignature===signature)return;
+  tablist.innerHTML=inspectorTabs.map((label)=>{
     const enabled=availability[label]===true;
     const selected=label==='Evidence';
     return `<button type="button" role="tab" aria-selected="${selected}" ${enabled?'':`aria-disabled="true" disabled title="No ${html(label.toLowerCase())} payload is available for the current evidence object"`} class="${selected?'is-active':''}">${html(label)}</button>`;
   }).join('');
-  if(tablist.innerHTML!==markup)tablist.innerHTML=markup;
+  tablist.dataset.inspectorSignature=signature;
 }
 
 const runtimeConfig=()=>typeof window==='undefined'?{}:{...(window.__QELLY_CONFIG__??{})};
