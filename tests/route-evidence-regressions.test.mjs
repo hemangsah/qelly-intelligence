@@ -78,3 +78,19 @@ test('discovery KPI helper is owned by the shared escaped UI primitive contract'
   assert.match(primitives,/globalThis\.kpiCard \?\?= kpiCard/);
   assert.match(app,/data\.kpis\.map\(\(item\)=>kpiCard\(item\.label,item\.value\)\)/);
 });
+
+test('accessibility evidence validates the built frontend and exact route identity before sampling',async()=>{
+  const harness=await read('scripts/release-a5-accessibility-check.py');
+  assert.match(harness,/PUBLIC_ROOT = \(ROOT \/ 'dist\/frontend'\)\.resolve\(\)/);
+  assert.match(harness,/INDEX_PATH = PUBLIC_ROOT \/ 'index\.html'/);
+  assert.doesNotMatch(harness,/apps\/web\/public\/index\.html/);
+  assert.doesNotMatch(harness,/COMPILED_FONT/);
+  assert.match(harness,/dist\/frontend\/assets\/route-registry\.mjs/);
+  assert.match(harness,/asset=local_public_file\(parsed\.path\)/);
+  assert.match(harness,/expected_title=f"\{route_labels\[route_key\]\} · Qelly Intelligence"/);
+  assert.match(harness,/expected_hash=f'#\/\{route_path\}'/);
+  assert.match(harness,/page\.wait_for_function/);
+  assert.match(harness,/document\.title===expectedTitle/);
+  assert.match(harness,/location\.hash\.split\('\?'\)\[0\]===expectedHash/);
+  assert.match(harness,/document\.fonts\?\.ready/);
+});
