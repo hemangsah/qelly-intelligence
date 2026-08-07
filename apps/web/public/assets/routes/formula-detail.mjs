@@ -5,14 +5,21 @@ const copy=async text=>{await navigator.clipboard?.writeText(text);};
 const humanize=(value)=>String(value??'').replace(/([a-z0-9])([A-Z])/g,'$1 $2').replace(/[-_]+/g,' ').replace(/^./,(character)=>character.toUpperCase());
 const contractRows=(schema={})=>Object.entries(schema.properties||{}).map(([key,value])=>`<tr><th>${humanize(value.title||key)}</th><td>${value.type||'value'}</td><td>${value.unit||value.units||'Formula-specific'}</td><td>${value.description||'Documented input'}</td></tr>`).join('');
 
+const renderSelectionRequired=(main,{pageHead,navigate,reason})=>{
+  main.innerHTML=`<section class="q-page q-formula-detail-page">${pageHead('Quantitative methodology','Formula Detail','Select a formula to inspect its governed methodology, assumptions, inputs, worked example and version evidence.')}<div class="q-state-banner is-empty"><span class="q-status q-status--cached">SELECTION REQUIRED</span><p>${reason}</p></div><section class="q-panel"><div class="q-panel-head"><div><h2>No formula selected</h2><p>Choose a formula from the library to open its deterministic methodology detail.</p></div></div><div class="q-panel-body"><button class="q-button q-button--primary" data-action="library">Open formula library</button></div></section></section>`;
+  main.querySelector('[data-action="library"]').addEventListener('click',()=>navigate('formula-library'));
+};
+
 export async function renderFormulaDetail(main,{pageHead,escapeHtml,toast,navigate,id}){
   if(!id){
-    main.innerHTML=`<section class="q-page q-formula-detail-page">${pageHead('Quantitative methodology','Formula Detail','Select a formula to inspect its governed methodology, assumptions, inputs, worked example and version evidence.')}<div class="q-state-banner is-empty"><span class="q-status q-status--cached">SELECTION REQUIRED</span><p>No formula identifier is present in this route. Qelly does not invent a formula selection.</p></div><section class="q-panel"><div class="q-panel-head"><div><h2>No formula selected</h2><p>Choose a formula from the library to open its deterministic methodology detail.</p></div></div><div class="q-panel-body"><button class="q-button q-button--primary" data-action="library">Open formula library</button></div></section></section>`;
-    main.querySelector('[data-action="library"]').addEventListener('click',()=>navigate('formula-library'));
+    renderSelectionRequired(main,{pageHead,navigate,reason:'No formula identifier is present in this route. Qelly does not invent a formula selection.'});
     return;
   }
   let definition;
-  try{definition=getFormulaDefinition(id);}catch{navigate('formula-library');return;}
+  try{definition=getFormulaDefinition(id);}catch{
+    renderSelectionRequired(main,{pageHead,navigate,reason:'The current route context does not resolve to a governed formula. Qelly does not substitute another formula or redirect silently.'});
+    return;
+  }
   const reference=definition.referenceVector?.inputs??null;
   const result=reference?calculateFormula(definition.formulaId,reference,{calculatedAt:'2026-07-30T00:00:00.000Z'}):null;
   main.innerHTML=`<section class="q-page q-formula-detail-page">
