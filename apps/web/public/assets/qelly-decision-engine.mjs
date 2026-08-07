@@ -16,7 +16,7 @@ const METHOD=Object.freeze({
   version:'2.0.0',
   type:'deterministic-explainable-framework',
   formula:'momentum×0.34 + liquidity×0.20 + scenario-profile-quality×0.22 + user-confidence-adjustment + scenario-move-adjustment + horizon-adjustment − volatility-risk-penalty',
-  boundary:'Fixed demonstration profiles only. No live provider observations, prediction model, personalized suitability assessment, order execution, custody or wallet signing.'
+  boundary:'Not live AI. Fixed demonstration profiles only. No live provider observations, prediction model, personalized suitability assessment, order execution, custody or wallet signing.'
 });
 
 const stableId=(value)=>{
