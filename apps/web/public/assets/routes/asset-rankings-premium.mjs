@@ -91,7 +91,7 @@ function intelligenceMarkup(rows,mode){
 }
 
 function statusCenter(staticVisualPreview){
-  return `<div class="q-mi-truth-banner" role="status"><span class="q-mi-status-dot"></span><strong>Deterministic demonstration</strong><span>${staticVisualPreview?'Static visual preview · ':''}fixed scenario observations · no live provider blending · no trading or persistence</span><button type="button" data-mi-status-detail>Review boundary</button></div>`;
+  return `<div class="q-mi-truth-banner" role="status"><span class="q-mi-status-dot"></span><strong>Deterministic demonstration</strong><span>${staticVisualPreview?'Static visual preview · backend unavailable · ':''}fixed scenario observations · no live provider blending · no trading or persistence</span><button type="button" data-mi-status-detail>Review boundary</button></div>`;
 }
 
 function drawerMarkup(){
