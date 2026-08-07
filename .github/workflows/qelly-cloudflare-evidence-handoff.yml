@@ -1,0 +1,116 @@
+name: Qelly Cloudflare Evidence Handoff
+on:
+  issue_comment:
+    types: [created]
+permissions:
+  contents: read
+  pull-requests: read
+concurrency:
+  group: qelly-cloudflare-evidence-${{ github.event.issue.number }}
+  cancel-in-progress: true
+jobs:
+  exact-pr-evidence:
+    if: >-
+      github.event.issue.pull_request &&
+      github.actor == 'cloudflare-workers-and-pages[bot]' &&
+      contains(github.event.comment.body, 'Deploy successful!')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      QELLY_SCREEN_BATCH_SIZE: '10'
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: 'utf-8'
+    steps:
+      - name: Resolve exact pull-request head
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.issue.pull_request.url }}
+        run: |
+          set -euo pipefail
+          sha="$(curl --fail --silent --show-error \
+            -H 'Accept: application/vnd.github+json' \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "$PR_URL" | jq -r '.head.sha')"
+          test "$sha" != null
+          test "${#sha}" -eq 40
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+      - name: Checkout exact pull-request head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ steps.pr.outputs.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Guard exact pull-request head
+        run: test "$(git rev-parse HEAD)" = "${{ steps.pr.outputs.sha }}"
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Install browser evidence runtime
+        run: |
+          python -m pip install --disable-pip-version-check playwright pillow
+          python -m playwright install --with-deps chromium
+          chromium_path="$(python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as playwright:
+              print(playwright.chromium.executable_path)
+          PY
+          )"
+          test -x "$chromium_path"
+          sudo ln -sf "$chromium_path" /usr/bin/chromium
+      - name: Validate source and production build
+        run: |
+          npm run env:check
+          npm run typecheck
+          npm run lint
+          npm run validate:design
+          npm run security:scan
+          npm test
+          npm run build:frontend
+      - name: Capture all registered screens
+        env:
+          QELLY_SCREEN_EVIDENCE_SHA: ${{ steps.pr.outputs.sha }}
+        run: npm run browser:all
+      - name: Run accessibility regression and rebuild archive
+        env:
+          QELLY_SCREEN_EVIDENCE_SHA: ${{ steps.pr.outputs.sha }}
+        run: |
+          npm run a11y
+          cp validation/RELEASE_A5_ACCESSIBILITY_REGRESSION.json preview/release-a5-all-screens/accessibility-regression.json
+          python -X utf8 scripts/release-a5-screen-package.py
+      - name: Verify final evidence contract
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFile,readdir,stat} from 'node:fs/promises';
+          const manifest=JSON.parse(await readFile('preview/release-a5-all-screens/manifest.json','utf8'));
+          const accessibility=JSON.parse(await readFile('preview/release-a5-all-screens/accessibility-regression.json','utf8'));
+          const files=await readdir('preview/release-a5-all-screens');
+          const pngs=files.filter(name=>name.endsWith('.png'));
+          const archives=(await readdir('preview')).filter(name=>/^QELLY_ALL_SCREENS_[0-9a-f]{12}\.zip$/.test(name));
+          const archiveSize=archives.length===1?(await stat(`preview/${archives[0]}`)).size:0;
+          const valid=manifest.status==='passed'&&manifest.routeCount===70&&manifest.renderCount===140&&manifest.expectedRenderCount===140&&manifest.failed===0&&manifest.missing.length===0&&pngs.length===140&&accessibility.status==='passed'&&archives.length===1&&archiveSize>0;
+          console.log(JSON.stringify({manifest,accessibilityStatus:accessibility.status,pngCount:pngs.length,archives,archiveSize},null,2));
+          if(!valid)process.exit(1);
+          NODE
+      - name: Upload complete or diagnostic exact-head evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-blueprint-evidence-${{ steps.pr.outputs.sha }}
+          path: |
+            preview/QELLY_ALL_SCREENS_*.zip
+            preview/release-a5-all-screens
+            preview/RELEASE_A5_ALL_SCREENS_LOG.json
+            validation/RELEASE_A5_ACCESSIBILITY_REGRESSION.json
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 30
