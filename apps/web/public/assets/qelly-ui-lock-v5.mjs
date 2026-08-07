@@ -19,6 +19,16 @@ function markRouteEntry(){
   });
 }
 
+function cancelLegacyRouteAnimation(){
+  if(!main)return;
+  // qelly-sovereign-motion.js historically animates #main for 610ms with blur/scale.
+  // V5 owns route travel, so cancel only animations whose direct target is #main.
+  // Descendant chart/reveal animations remain untouched.
+  requestAnimationFrame(()=>{
+    main.getAnimations({subtree:false}).forEach((animation)=>animation.cancel());
+  });
+}
+
 function refreshScrolledState(){
   if(!commandBar)return;
   commandBar.dataset.v5Scrolled=window.scrollY>10?'true':'false';
@@ -38,9 +48,9 @@ function annotateAnalyticalCurves(scope=document){
 }
 
 function protectSemanticMotion(){
-  const prefersReduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  root.dataset.v5ReducedMotion=prefersReduced?'true':'false';
-  if(prefersReduced)root.dataset.motion='reduced';
+  // Do not rewrite the user's Theme Intelligence motion preference.
+  // OS reduced-motion is honored independently by CSS media queries and reduceMotion().
+  root.dataset.v5ReducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches?'true':'false';
 }
 
 function refresh(){
@@ -54,6 +64,7 @@ window.addEventListener('hashchange',()=>{
   if(lastHash===location.hash)return;
   lastHash=location.hash;
   markRouteEntry();
+  cancelLegacyRouteAnimation();
   requestAnimationFrame(refresh);
 });
 
@@ -70,3 +81,4 @@ if(main){
 
 refresh();
 markRouteEntry();
+cancelLegacyRouteAnimation();
