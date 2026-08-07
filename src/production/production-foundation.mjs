@@ -24,7 +24,7 @@ export async function initializeProductionFoundation(runtime,{runtimeDir,environ
   runtime.observability?.setDeploymentMode?.({structuredOutput:environment.NODE_ENV==='production'});
   const productionIdentityEnabled=truthy(environment.QELLY_PRODUCTION_IDENTITY_ENABLED,false);
   const developmentIdentityEnabled=truthy(environment.QELLY_DEVELOPMENT_IDENTITY_ENABLED,environment.NODE_ENV!=='production')&&environment.NODE_ENV!=='production';
-  const explicitDevelopmentSession=truthy(environment.QELLY_DEVELOPMENT_IDENTITY_EXPLICIT_HEADER_ONLY,environment.NODE_ENV==='test');
+  const explicitDevelopmentSession=truthy(environment.QELLY_DEVELOPMENT_IDENTITY_EXPLICIT_HEADER_ONLY,false);
   const foundationEnabled=truthy(environment.QELLY_PRODUCTION_FOUNDATION_ENABLED,true);
   let repository=null,authService=null,jobQueue=null,initializationError=null;
   if(foundationEnabled){
