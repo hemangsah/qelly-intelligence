@@ -28,3 +28,10 @@ test('registered formula detail preserves a truthful empty route when no formula
   assert.match(route,/Qelly does not invent a formula selection/);
   assert.match(route,/Open formula library/);
 });
+
+test('unresolved formula context stays on formula detail instead of silently redirecting',async()=>{
+  const route=await read('apps/web/public/assets/routes/formula-detail.mjs');
+  assert.match(route,/catch\{\s*renderSelectionRequired/);
+  assert.match(route,/does not resolve to a governed formula/);
+  assert.match(route,/does not substitute another formula or redirect silently/);
+});
