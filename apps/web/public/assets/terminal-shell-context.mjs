@@ -24,14 +24,16 @@ const shortSha=(value)=>{
 };
 const titleCase=(value)=>clean(value).replace(/[-_]+/g,' ').replace(/\b\w/g,(letter)=>letter.toUpperCase());
 const html=(value)=>String(value??'').replace(/[&<>'"]/g,(character)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
+const routeContextType=(route)=>{
+  if(route?.route?.startsWith('portfolio-'))return 'Portfolio';
+  return CONTEXT_TYPE_BY_DOMAIN[route?.domain??'home']??titleCase(route?.kind??'Workspace');
+};
 
 export function deriveTerminalShellState({hash='',rootDataset={},config={},identity=null,staticVisualPreview=false}={}){
   const parsed=parseHashRoute(hash,{fallback:'market'});
   const route=routeDefinitions.find((item)=>item.route===parsed.route)??routeDefinitions.find((item)=>item.route==='market');
   const shell=identity?.shell??{};
   const asset=parsed.asset??null;
-  const domain=route?.domain??'home';
-  const contextType=CONTEXT_TYPE_BY_DOMAIN[domain]??titleCase(route?.kind??'Workspace');
   const evidence=staticVisualPreview
     ? {source:'Qelly deterministic demonstration',freshness:'Simulated',confidence:'Not assessed'}
     : {source:'Panel-owned evidence',freshness:'Inspect panel',confidence:'Inspect evidence'};
@@ -42,7 +44,7 @@ export function deriveTerminalShellState({hash='',rootDataset={},config={},ident
   const authenticated=Boolean(identity);
   return Object.freeze({
     context:Object.freeze({
-      type:contextType,
+      type:routeContextType(route),
       object:asset??route?.label??'Qelly',
       timeframe:clean(rootDataset.timeframe,'Route default'),
       source:evidence.source,
@@ -64,7 +66,7 @@ export function deriveTerminalShellState({hash='',rootDataset={},config={},ident
     policy:Object.freeze({
       requiredEvidenceFields:shell.evidencePolicy?.requiredFields??[],
       contradictionsFirstClass:shell.evidencePolicy?.contradictionsFirstClass===true,
-      secretsSerialized:shell.safety?.secretsSerialized===true
+      sensitiveMaterialExposed:shell.safety?.secretsSerialized===true
     })
   });
 }

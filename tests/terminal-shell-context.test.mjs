@@ -52,7 +52,7 @@ test('terminal shell derives typed route context without inventing production ev
   assert.equal(model.system.baseCurrency,'INR');
   assert.equal(model.system.readOnly,true);
   assert.equal(model.policy.contradictionsFirstClass,true);
-  assert.equal(model.policy.secretsSerialized,false);
+  assert.equal(model.policy.sensitiveMaterialExposed,false);
 });
 
 test('static preview shell remains explicit demonstration evidence',()=>{
@@ -63,6 +63,11 @@ test('static preview shell remains explicit demonstration evidence',()=>{
   assert.equal(model.context.confidence,'Not assessed');
   assert.equal(model.system.session,'Anonymous');
   assert.equal(model.system.providers,'Unavailable');
+});
+
+test('portfolio routes preserve portfolio context instead of generic workspace context',()=>{
+  const model=deriveTerminalShellState({hash:'#/portfolio-analytics'});
+  assert.equal(model.context.type,'Portfolio');
 });
 
 test('legacy calculator alias resolves into the governed quant-model shell context',()=>{
