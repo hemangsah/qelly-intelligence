@@ -35,3 +35,46 @@ test('unresolved formula context stays on formula detail instead of silently red
   assert.match(route,/does not resolve to a governed formula/);
   assert.match(route,/does not substitute another formula or redirect silently/);
 });
+
+test('registered indicator detail preserves route identity without inventing a selection',async()=>{
+  const route=await read('apps/web/public/assets/routes/indicator-detail.mjs');
+  assert.match(route,/if\(!id\)\{renderSelectionRequired/);
+  assert.match(route,/catch\{renderSelectionRequired/);
+  assert.match(route,/SELECTION REQUIRED/);
+  assert.match(route,/Qelly does not invent an indicator selection or redirect silently/);
+  assert.match(route,/Open indicator library/);
+  assert.doesNotMatch(route,/catch\{navigate\('indicator-library'\)/);
+});
+
+test('registered calculator detail preserves route identity without inventing a formula',async()=>{
+  const route=await read('apps/web/public/assets/routes/calculator-detail.mjs');
+  assert.match(route,/if\(!id\)\{renderSelectionRequired/);
+  assert.match(route,/catch\{renderSelectionRequired/);
+  assert.match(route,/Calculator Detail/);
+  assert.match(route,/Qelly does not invent a calculator selection or redirect silently/);
+  assert.match(route,/Open calculator center/);
+  assert.doesNotMatch(route,/catch\{navigate\('calculator-center'\)/);
+});
+
+test('saved calculation detail preserves bare route identity and valid shared-state restoration',async()=>{
+  const route=await read('apps/web/public/assets/routes/saved-calculation-detail.mjs');
+  assert.match(route,/if\(!encoded\)\{renderSelectionRequired/);
+  assert.match(route,/Saved Calculation Detail/);
+  assert.match(route,/Qelly does not invent a saved record selection or redirect silently/);
+  assert.match(route,/Open saved calculations/);
+  assert.match(route,/decodeShareState\(encoded\)/);
+  assert.match(route,/sharedMode=true/);
+  assert.doesNotMatch(route,/if\(!encoded\)\{navigate\('saved-calculations'\)/);
+});
+
+test('discovery KPI helper is owned by the shared escaped UI primitive contract',async()=>{
+  const [primitives,app]=await Promise.all([
+    read('packages/ui-primitives/primitives.mjs'),
+    read('apps/web/public/assets/app.js')
+  ]);
+  assert.match(primitives,/export function kpiCard\(label, value\)/);
+  assert.match(primitives,/q-kpi-label.*escapeHtml\(label\)/s);
+  assert.match(primitives,/q-kpi-value.*escapeHtml\(value\?\?'—'\)/s);
+  assert.match(primitives,/globalThis\.kpiCard \?\?= kpiCard/);
+  assert.match(app,/data\.kpis\.map\(\(item\)=>kpiCard\(item\.label,item\.value\)\)/);
+});
