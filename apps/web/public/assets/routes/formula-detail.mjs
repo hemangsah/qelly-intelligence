@@ -6,6 +6,11 @@ const humanize=(value)=>String(value??'').replace(/([a-z0-9])([A-Z])/g,'$1 $2').
 const contractRows=(schema={})=>Object.entries(schema.properties||{}).map(([key,value])=>`<tr><th>${humanize(value.title||key)}</th><td>${value.type||'value'}</td><td>${value.unit||value.units||'Formula-specific'}</td><td>${value.description||'Documented input'}</td></tr>`).join('');
 
 export async function renderFormulaDetail(main,{pageHead,escapeHtml,toast,navigate,id}){
+  if(!id){
+    main.innerHTML=`<section class="q-page q-formula-detail-page">${pageHead('Quantitative methodology','Formula Detail','Select a formula to inspect its governed methodology, assumptions, inputs, worked example and version evidence.')}<div class="q-state-banner is-empty"><span class="q-status q-status--cached">SELECTION REQUIRED</span><p>No formula identifier is present in this route. Qelly does not invent a formula selection.</p></div><section class="q-panel"><div class="q-panel-head"><div><h2>No formula selected</h2><p>Choose a formula from the library to open its deterministic methodology detail.</p></div></div><div class="q-panel-body"><button class="q-button q-button--primary" data-action="library">Open formula library</button></div></section></section>`;
+    main.querySelector('[data-action="library"]').addEventListener('click',()=>navigate('formula-library'));
+    return;
+  }
   let definition;
   try{definition=getFormulaDefinition(id);}catch{navigate('formula-library');return;}
   const reference=definition.referenceVector?.inputs??null;
