@@ -20,6 +20,14 @@ test('screen evidence authenticates through an explicit local fixture identity',
   assert.match(harness,/authenticated evidence preflight failed \/api\/v1\/auth\/status/);
 });
 
+test('screen evidence captures the built frontend and waits for target route identity',async()=>{
+  const harness=await read('scripts/release-a5-screen-batch-v2.py');
+  assert.match(harness,/PUBLIC_ROOT = \(ROOT \/ 'dist\/frontend'\)\.resolve\(\)/);
+  assert.match(harness,/built frontend missing; run npm run build:frontend before browser evidence/);
+  assert.match(harness,/\(expected\) => document\.title === expected/);
+  assert.match(harness,/arg=expected_title/);
+});
+
 test('every screenshot must prove route identity rather than only render a heading',async()=>{
   const harness=await read('scripts/release-a5-screen-batch-v2.py');
   assert.match(harness,/expected_title = f"\{definition\['label'\]\} · Qelly Intelligence"/);
