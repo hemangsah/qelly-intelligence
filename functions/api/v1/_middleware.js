@@ -12,10 +12,12 @@ import {
 import {handleGovernance} from '../../_lib/governance.js';
 import {safeBaseCurrency,safeTimezone} from '../../_lib/profile-preferences.js';
 import {readinessSnapshot} from '../../_lib/readiness.js';
+import {buildShellContext} from '../../_lib/shell-context.js';
 
 const pathFor=(request)=>new URL(request.url).pathname.replace(/^\/api\/v1\/?/,'').replace(/\/$/,'');
 const governanceRoute=(path,method)=>method==='POST'&&(path==='cloud/opt-in'||path==='account/delete');
 const transactionalEmailRoute=(path,method)=>method==='POST'&&(path==='auth/register'||path==='auth/recovery/request');
+const shellContextRoute=(path,method)=>method==='GET'&&path==='session/context';
 
 export async function onRequest(context){
   const {request,env}=context;
@@ -24,7 +26,8 @@ export async function onRequest(context){
   const interceptReadiness=path==='readiness'&&method==='GET';
   const interceptGovernance=governanceRoute(path,method);
   const interceptEmail=transactionalEmailRoute(path,method);
-  if(!interceptReadiness&&!interceptGovernance&&!interceptEmail)return context.next();
+  const interceptShellContext=shellContextRoute(path,method);
+  if(!interceptReadiness&&!interceptGovernance&&!interceptEmail&&!interceptShellContext)return context.next();
 
   const started=Date.now();
   let response;
@@ -55,6 +58,12 @@ export async function onRequest(context){
     const session=await resolveSession(request,env,{required:true});
     await enforceRateLimit(env,`user:${session.user.id}:${path}`);
     const qelly=await bootstrapContext(env,session);
+
+    if(interceptShellContext){
+      response=responseJson(request,env,{...qelly,shell:buildShellContext(qelly,runtime)},200,{cookies:session.cookies});
+      return response;
+    }
+
     response=await handleGovernance(context,path,method,session,qelly);
     if(response)return response;
     response=await context.next();
@@ -77,4 +86,4 @@ export async function onRequest(context){
   }
 }
 
-export const __middlewareTest=Object.freeze({pathFor,governanceRoute,transactionalEmailRoute,readinessSnapshot});
+export const __middlewareTest=Object.freeze({pathFor,governanceRoute,transactionalEmailRoute,shellContextRoute,readinessSnapshot});

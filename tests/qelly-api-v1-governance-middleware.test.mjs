@@ -84,6 +84,12 @@ test('registration preferences are validated before the existing Auth handler ru
   assert.equal(validResponse.status,202);
 });
 
+test('session context is now owned by the governed shell middleware contract',()=>{
+  assert.equal(__middlewareTest.shellContextRoute('session/context','GET'),true);
+  assert.equal(__middlewareTest.shellContextRoute('session/context','POST'),false);
+  assert.equal(__middlewareTest.shellContextRoute('health','GET'),false);
+});
+
 test('non-governed API routes continue through the existing handler',async()=>{
   let nextCalls=0;
   const request=new Request('https://qelly-middleware.test/api/v1/health');
@@ -92,7 +98,7 @@ test('non-governed API routes continue through the existing handler',async()=>{
   assert.equal(response.status,204);
 });
 
-test('middleware source owns governed and transactional email paths',async()=>{
+test('middleware source owns governed, shell-context and transactional email paths',async()=>{
   const source=await readFile(new URL('../functions/api/v1/_middleware.js',import.meta.url),'utf8');
   assert.equal(__middlewareTest.governanceRoute('cloud/opt-in','POST'),true);
   assert.equal(__middlewareTest.governanceRoute('account/delete','POST'),true);
@@ -103,5 +109,6 @@ test('middleware source owns governed and transactional email paths',async()=>{
   assert.match(source,/readinessSnapshot/);
   assert.match(source,/safeBaseCurrency/);
   assert.match(source,/safeTimezone/);
-  assert.match(source,/if\(!interceptReadiness&&!interceptGovernance&&!interceptEmail\)return context\.next\(\)/);
+  assert.match(source,/buildShellContext/);
+  assert.match(source,/if\(!interceptReadiness&&!interceptGovernance&&!interceptEmail&&!interceptShellContext\)return context\.next\(\)/);
 });

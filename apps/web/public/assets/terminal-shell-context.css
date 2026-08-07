@@ -1,0 +1,66 @@
+/* Qelly Terminal OS Phase 3 shell contract presentation.
+ * Uses semantic/theme tokens only; no route-owned palette or execution affordance.
+ */
+.q-terminal-context{
+  margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:1px;min-width:0;
+  border:1px solid var(--q-divider);background:var(--q-surface);overflow:hidden
+}
+.q-terminal-context__token{
+  min-width:0;display:grid;grid-template-columns:auto;gap:1px;padding:4px 8px;
+  border-left:1px solid var(--q-divider);white-space:nowrap
+}
+.q-terminal-context__token:first-child{border-left:0}
+.q-terminal-context__token small,.q-terminal-activity__item small{
+  color:var(--q-muted);font-size:.625rem;line-height:1;text-transform:uppercase;letter-spacing:.055em
+}
+.q-terminal-context__token strong,.q-terminal-activity__item strong{
+  max-width:160px;overflow:hidden;text-overflow:ellipsis;color:var(--q-text);font:600 .6875rem/1.15 var(--q-font-text,var(--q-font-ui))
+}
+.q-terminal-context__token.is-simulated strong{color:var(--q-simulated)}
+
+.q-compare-tray{
+  min-height:38px;padding:4px 6px 4px 10px;border-radius:4px
+}
+.q-terminal-activity{
+  min-width:0;display:flex;align-items:center;gap:0;overflow-x:auto;scrollbar-width:none
+}
+.q-terminal-activity::-webkit-scrollbar{display:none}
+.q-terminal-activity__item{
+  min-width:max-content;display:grid;gap:1px;padding:3px 10px;border-left:1px solid color-mix(in srgb,currentColor 15%,transparent)
+}
+.q-terminal-activity__item:first-child{border-left:0;padding-left:2px}
+.q-terminal-activity__item strong{color:inherit}
+.q-terminal-activity__item.is-safe strong{color:var(--q-positive)}
+.q-terminal-activity-actions{display:flex;align-items:center;gap:4px;flex:0 0 auto}
+.q-terminal-activity-actions button{border-radius:4px!important;padding:6px 9px!important}
+
+.q-intelligence-inspector-tabs{
+  display:flex;gap:0;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--q-divider);background:var(--q-surface)
+}
+.q-intelligence-inspector-tabs::-webkit-scrollbar{display:none}
+.q-intelligence-inspector-tabs button{
+  flex:0 0 auto;min-height:30px;padding:5px 8px;border:0;border-right:1px solid var(--q-divider);
+  border-radius:0!important;background:transparent!important;color:var(--q-muted)!important;font-size:.6875rem!important
+}
+.q-intelligence-inspector-tabs button.is-active{
+  color:var(--q-text)!important;box-shadow:inset 0 -2px 0 var(--q-accent)
+}
+.q-intelligence-inspector-tabs button:disabled{opacity:.45;cursor:not-allowed}
+
+@media(max-width:1320px){
+  .q-terminal-context__token:nth-child(n+4){display:none}
+  .q-terminal-activity__item:nth-child(n+5){display:none}
+}
+@media(max-width:1040px){
+  .q-terminal-context__token:nth-child(n+3){display:none}
+  .q-terminal-activity__item:nth-child(n+4){display:none}
+}
+@media(max-width:920px){
+  .q-terminal-context{margin-left:0;flex:1;border:0;background:transparent}
+  .q-terminal-context__token{padding-inline:7px}
+  .q-terminal-context__token:first-child{display:grid}
+  .q-terminal-context__token:nth-child(n+2){display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .q-terminal-context,.q-terminal-activity,.q-intelligence-inspector-tabs{scroll-behavior:auto}
+}
