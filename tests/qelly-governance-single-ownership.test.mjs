@@ -12,8 +12,9 @@ test('API middleware intercepts governed and transactional-email writes before t
   const [middleware]=await sources();
   assert.match(middleware,/governanceRoute\(path,method\)/);
   assert.match(middleware,/transactionalEmailRoute\(path,method\)/);
+  assert.match(middleware,/shellContextRoute\(path,method\)/);
   assert.match(middleware,/handleGovernance\(context,path,method,session,qelly\)/);
-  assert.match(middleware,/if\(!interceptReadiness&&!interceptGovernance&&!interceptEmail\)return context\.next\(\)/);
+  assert.match(middleware,/if\(!interceptReadiness&&!interceptGovernance&&!interceptEmail&&!interceptShellContext\)return context\.next\(\)/);
 });
 
 test('general data module has no consent or deletion write implementation',async()=>{
