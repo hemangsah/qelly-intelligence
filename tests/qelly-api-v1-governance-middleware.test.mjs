@@ -52,6 +52,35 @@ test('governance writes are intercepted before the legacy route handler',async()
   }
 });
 
+test('registration preferences are validated before the existing Auth handler runs when email delivery is enabled',async()=>{
+  const enabled=environment({QELLY_ENABLE_AUTH_EMAIL_DELIVERY:'true'});
+  for(const payload of [
+    {baseCurrency:'XYZ',timezone:'UTC'},
+    {baseCurrency:'USD',timezone:'Not/A_Real_Zone'},
+    {baseCurrency:'USD'}
+  ]){
+    let nextCalls=0;
+    const request=new Request('https://qelly-middleware.test/api/v1/auth/register',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
+    const response=await onRequest({request,env:enabled,next:async()=>{nextCalls+=1;return new Response('accepted',{status:202});}});
+    assert.equal(nextCalls,0);
+    assert.equal(response.status,400);
+  }
+
+  let nextCalls=0;
+  const validRequest=new Request('https://qelly-middleware.test/api/v1/auth/register',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({baseCurrency:'INR',timezone:'Asia/Kolkata'})});
+  const validResponse=await onRequest({request:validRequest,env:enabled,next:async()=>{nextCalls+=1;return new Response('accepted',{status:202});}});
+  assert.equal(nextCalls,1);
+  assert.equal(validResponse.status,202);
+});
+
+test('registration remains delegated to the existing fail-closed Auth handler while email delivery is disabled',async()=>{
+  let nextCalls=0;
+  const request=new Request('https://qelly-middleware.test/api/v1/auth/register',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({})});
+  const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response('legacy-auth-boundary',{status:503});}});
+  assert.equal(nextCalls,1);
+  assert.equal(response.status,503);
+});
+
 test('non-governed API routes continue through the existing handler',async()=>{
   let nextCalls=0;
   const request=new Request('https://qelly-middleware.test/api/v1/health');
@@ -60,12 +89,16 @@ test('non-governed API routes continue through the existing handler',async()=>{
   assert.equal(response.status,204);
 });
 
-test('middleware source owns governed paths and uses durable evidence module',async()=>{
+test('middleware source owns governed paths and registration preference validation',async()=>{
   const source=await readFile(new URL('../functions/api/v1/_middleware.js',import.meta.url),'utf8');
   assert.equal(__middlewareTest.governanceRoute('cloud/opt-in','POST'),true);
   assert.equal(__middlewareTest.governanceRoute('account/delete','POST'),true);
   assert.equal(__middlewareTest.governanceRoute('cloud/opt-in','GET'),false);
+  assert.equal(__middlewareTest.registrationRoute('auth/register','POST'),true);
+  assert.equal(__middlewareTest.registrationRoute('auth/register','GET'),false);
   assert.match(source,/handleGovernance/);
   assert.match(source,/readinessSnapshot/);
-  assert.match(source,/if\(!interceptReadiness&&!interceptGovernance\)return context\.next\(\)/);
+  assert.match(source,/safeBaseCurrency/);
+  assert.match(source,/safeTimezone/);
+  assert.match(source,/if\(!interceptReadiness&&!interceptGovernance&&!interceptRegistration\)return context\.next\(\)/);
 });

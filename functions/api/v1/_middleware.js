@@ -1,4 +1,5 @@
 import {
+  HttpError,
   bootstrapContext,
   correlationId,
   enforceRateLimit,
@@ -9,10 +10,12 @@ import {
   responseJson
 } from '../../_lib/runtime.js';
 import {handleGovernance} from '../../_lib/governance.js';
+import {safeBaseCurrency,safeTimezone} from '../../_lib/profile-preferences.js';
 import {readinessSnapshot} from '../../_lib/readiness.js';
 
 const pathFor=(request)=>new URL(request.url).pathname.replace(/^\/api\/v1\/?/,'').replace(/\/$/,'');
 const governanceRoute=(path,method)=>method==='POST'&&(path==='cloud/opt-in'||path==='account/delete');
+const registrationRoute=(path,method)=>path==='auth/register'&&method==='POST';
 
 export async function onRequest(context){
   const {request,env}=context;
@@ -20,7 +23,8 @@ export async function onRequest(context){
   const method=request.method.toUpperCase();
   const interceptReadiness=path==='readiness'&&method==='GET';
   const interceptGovernance=governanceRoute(path,method);
-  if(!interceptReadiness&&!interceptGovernance)return context.next();
+  const interceptRegistration=registrationRoute(path,method);
+  if(!interceptReadiness&&!interceptGovernance&&!interceptRegistration)return context.next();
 
   const started=Date.now();
   let response;
@@ -29,6 +33,20 @@ export async function onRequest(context){
     if(interceptReadiness){
       const runtime=publicRuntimeConfig(env,request.url);
       response=responseJson(request,env,readinessSnapshot(runtime),503);
+      return response;
+    }
+
+    if(interceptRegistration){
+      const runtime=publicRuntimeConfig(env,request.url);
+      if(runtime.capabilities.emailDelivery){
+        const body=await request.clone().json().catch(()=>{throw new HttpError(400,'invalid_json','Request body must be valid JSON');});
+        if(!body?.baseCurrency||!body?.timezone){
+          throw new HttpError(400,'profile_preferences_required','Base currency and timezone are required');
+        }
+        safeBaseCurrency(body.baseCurrency);
+        safeTimezone(body.timezone);
+      }
+      response=await context.next();
       return response;
     }
 
@@ -57,4 +75,4 @@ export async function onRequest(context){
   }
 }
 
-export const __middlewareTest=Object.freeze({pathFor,governanceRoute,readinessSnapshot});
+export const __middlewareTest=Object.freeze({pathFor,governanceRoute,registrationRoute,readinessSnapshot});
