@@ -63,7 +63,7 @@ test('production verifier fetches build, generated config and API config before 
   assert.match(source,/apiConfig:apiConfigStatus===200/);
 });
 
-test('Cloudflare evidence handoff accepts current check runs and historical comment edits without weakening guards',async()=>{
+test('Cloudflare evidence handoff verifies current check runs authoritatively and retains historical comment guards',async()=>{
   const source=await readFile(new URL('../.github/workflows/qelly-cloudflare-evidence-handoff.yml',import.meta.url),'utf8');
   assert.match(source,/issue_comment:\s*\n\s*types:\s*\[created, edited\]/);
   assert.match(source,/check_run:\s*\n\s*types:\s*\[completed\]/);
@@ -71,10 +71,14 @@ test('Cloudflare evidence handoff accepts current check runs and historical comm
   assert.match(source,/contains\(github\.event\.comment\.body, 'Deploy successful!'\)/);
   assert.match(source,/github\.event\.check_run\.name == 'Cloudflare Pages'/);
   assert.match(source,/github\.event\.check_run\.conclusion == 'success'/);
-  assert.match(source,/github\.event\.check_run\.app\.slug == 'cloudflare-workers-and-pages'/);
-  assert.match(source,/contains\(github\.event\.check_run\.output\.summary, 'Deploy successful!'\)/);
-  assert.match(source,/CHECK_RUN_SHA:/);
-  assert.match(source,/test "\$sha" = "\$CHECK_RUN_SHA"/);
+  assert.match(source,/CHECK_RUN_URL:/);
+  assert.match(source,/check_json="\$\(api_get "\$CHECK_RUN_URL"\)"/);
+  assert.match(source,/\.app\.slug/);
+  assert.match(source,/cloudflare-workers-and-pages/);
+  assert.match(source,/\.output\.summary \| type == "string" and contains\("Deploy successful!"\)/);
+  assert.match(source,/commits\/\$sha\/pulls/);
+  assert.match(source,/select\(\.state == "open" and \.head\.sha == \$sha\)/);
+  assert.match(source,/test "\$current_sha" = "\$sha"/);
   assert.match(source,/ref: \$\{\{ steps\.pr\.outputs\.sha \}\}/);
   assert.match(source,/Guard exact pull-request head/);
   assert.match(source,/git rev-parse HEAD/);
