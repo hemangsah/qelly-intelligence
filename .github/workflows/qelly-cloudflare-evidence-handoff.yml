@@ -1,7 +1,7 @@
 name: Qelly Cloudflare Evidence Handoff
 on:
   issue_comment:
-    types: [created]
+    types: [created, edited]
 permissions:
   contents: read
   pull-requests: read
