@@ -10,6 +10,7 @@ const collapseButton=document.getElementById('collapse-rail');
 const DESKTOP_QUERY='(min-width: 1280px)';
 const RAIL_PREF='qelly.ui-lock-v5-3.rail';
 const REFINEMENT_STYLESHEET=new URL('./qelly-v53-visible-refinement.css',import.meta.url).href;
+const FAMILY_RUNTIME=new URL('./qelly-v53-family-harmonization.mjs',import.meta.url).href;
 
 root.dataset.uiLockV53='active';
 root.dataset.uiLockV53Approved='2026-08-08';
@@ -23,6 +24,18 @@ function activateVisibleRefinement(){
   link.href=REFINEMENT_STYLESHEET;
   link.dataset.qellyV53Refinement='active';
   document.head.append(link);
+}
+
+async function activateFamilyHarmonization(){
+  if(root.dataset.v53FamilyRuntimeRequested==='true')return;
+  root.dataset.v53FamilyRuntimeRequested='true';
+  try{
+    await import(FAMILY_RUNTIME);
+    root.dataset.v53FamilyRuntime='active';
+  }catch(error){
+    root.dataset.v53FamilyRuntime='unavailable';
+    console.error('Qelly V5.3 family harmonization failed to load',error);
+  }
 }
 
 function annotateNavLinks(scope=document){
@@ -107,5 +120,6 @@ if(main){
 }
 
 activateVisibleRefinement();
+void activateFamilyHarmonization();
 applyCompactRailDefault();
 refresh();
