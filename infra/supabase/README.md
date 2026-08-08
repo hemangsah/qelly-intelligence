@@ -8,13 +8,16 @@ Qelly Verify preserves the browser-local raw-data contract defined by the produc
 
 The backend stores only derived evidence reports, browser-computed SHA-256 source fingerprints, report integrity hashes, revision metadata, and workspace ownership metadata. All exposed functions require JWT authentication and use the caller's Supabase identity so database RLS remains authoritative; they do not use a service-role bypass.
 
+Verify runtime v3 strictly reconstructs sealed evidence from an allow-list of expected scalar/aggregate fields instead of copying caller-supplied analysis objects wholesale. Database triggers separately enforce the governed report shape, payload-size limits, current methodology/engine/source versions, browser-local metadata and deterministic sequence-stress contract.
+
 The deterministic local engine currently covers internal historical-sample diagnostics and a seeded 500-permutation trade-order sequence stress. This is not generative Monte Carlo. Out-of-sample validation, true walk-forward validation, parameter-search correction, regime dependency, transaction-cost sensitivity, execution sensitivity, portfolio interaction, and live degradation remain NOT ASSESSED unless separately implemented and validated.
 
 ## Layout
 
 - `migrations/20260808_qelly_verify_assessment_persistence_v1.sql` — workspace-scoped Verify assessments, immutable revisions, RLS and raw-data prohibitions.
 - `migrations/20260808_qelly_verify_contract_validation_v1.sql` — report/version/fingerprint/browser-local/sequence-stress contract validation.
-- `functions/qelly-verify-runtime/index.ts` — seals already-derived browser-local Verify analysis into governed evidence packages.
+- `migrations/20260808_qelly_verify_payload_shape_hardening_v1.sql` — strict report shape, payload-size, governed-version and bounded-text-array validation.
+- `functions/qelly-verify-runtime/index.ts` — v3 governed sealer for already-derived browser-local Verify analysis using strict field allow-lists.
 - `functions/qelly-workspace-api/index.ts` — caller-scoped workspace CRUD; Verify assessments writable and Verify revisions read-only.
 - `functions/qelly-workspace-search/index.ts` — RLS-visible workspace search including saved Verify metadata.
 - `functions/qelly-account-export/index.ts` — RLS-visible account export including Verify reports/revisions but no raw trade rows.
