@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-const API_REVISION="qelly-workspace-search-2026-08-08-v2";
+const API_REVISION="qelly-workspace-search-2026-08-08-v3";
 const headers={"content-type":"application/json; charset=utf-8","cache-control":"no-store","x-content-type-options":"nosniff"};
 const response=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers});
 const fail=(status:number,code:string,message:string)=>response({status:"error",code,message,apiRevision:API_REVISION},status);
@@ -23,4 +23,4 @@ Deno.serve(async(req:Request)=>{try{if(req.method!=="POST")return fail(405,"meth
  {kind:"saved_view",items:views.map((x:any)=>({id:x.id,label:x.name,secondary:`${x.view_type} · ${x.route_id}`,route:x.route_id,updatedAt:x.updated_at}))},
  {kind:"portfolio",items:portfolios.map((x:any)=>({id:x.id,label:x.name,secondary:`${x.source_kind} · ${x.base_currency}`,route:"portfolio-analytics",updatedAt:x.updated_at}))},
  {kind:"instrument",items:instruments.map((x:any)=>({id:x.id,label:x.symbol,secondary:[x.display_name,x.asset_class,x.venue,x.currency].filter(Boolean).join(" · "),route:"asset-intelligence",canonicalKey:x.canonical_key}))}
- ].filter(g=>g.items.length);return response({status:"success",query:q,workspaceId,groups,total:groups.reduce((s,g)=>s+g.items.length,0),truthBoundary:"Search returns only records visible under the authenticated user's RLS scope plus active canonical instruments. Qelly Verify search exposes saved derived evidence metadata only; no raw trade rows, market values or AI relevance scores are synthesized.",apiRevision:API_REVISION});}catch(error){return fail(500,"search_runtime_error",error instanceof Error?error.message:"Search failed safely");}});
+ ].filter(g=>g.items.length);return response({status:"success",query:q,workspaceId,groups,total:groups.reduce((s,g)=>s+g.items.length,0),truthBoundary:"Search returns only records visible under the authenticated user's RLS scope plus active canonical instruments. Qelly Verify search exposes saved derived evidence metadata only; no raw trade rows, market values or AI relevance scores are synthesized.",apiRevision:API_REVISION});}catch(_error){return fail(500,"search_runtime_error","Workspace search failed safely");}});
