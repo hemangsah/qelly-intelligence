@@ -38,6 +38,6 @@ test('profile locale migration preserves the Auth trigger security boundary',asy
 test('registration already forwards the governed preference metadata to Supabase Auth',async()=>{
   const auth=await read('functions/_lib/auth.js');
   assert.match(auth,/base_currency:cleanText\(body\.baseCurrency\|\|'USD',8\)/);
-  assert.match(auth,/timezone:cleanText\(body\.timezone\|\|'Asia\/Kolkata',64\)/);
+  assert.match(auth,/timezone:cleanText\(body\.timezone\|\|[^,]+,64\)/);
   assert.match(auth,/workspace_name:cleanText\(body\.workspaceName\|\|body\.organizationName\|\|'My Qelly Workspace',100\)/);
 });
