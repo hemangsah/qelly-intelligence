@@ -92,7 +92,7 @@ jobs:
             if(pageErrors.length||criticalRequestFailures.length||criticalConsoleErrors.length||failingResponses.length)throw new Error(`critical_browser_errors_${JSON.stringify({pageErrors,criticalRequestFailures,criticalConsoleErrors,failingResponses})}`);
           })().catch(e=>{console.error(e);process.exit(1)});
           NODE
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: qelly-live-production-verification-v2-92f277f

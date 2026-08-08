@@ -227,7 +227,7 @@ jobs:
           NODE
       - name: Upload deployed runtime verification evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: qelly-live-public-verification-${{ github.sha }}
           path: dist/live-public-verification
