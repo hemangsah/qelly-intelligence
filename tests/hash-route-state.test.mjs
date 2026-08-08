@@ -21,3 +21,10 @@ test('hash parser uses deterministic fallback without contaminating asset',()=>{
   const parsed=parseHashRoute('',{fallback:'market'});
   assert.deepEqual({route:parsed.route,asset:parsed.asset,query:parsed.query.toString()},{route:'market',asset:null,query:''});
 });
+
+test('legacy quant-calculator deep links resolve to the canonical calculator center',()=>{
+  const parsed=parseHashRoute('#/quant-calculator?source=legacy');
+  assert.equal(parsed.route,'calculator-center');
+  assert.equal(parsed.asset,null);
+  assert.equal(parsed.query.get('source'),'legacy');
+});
