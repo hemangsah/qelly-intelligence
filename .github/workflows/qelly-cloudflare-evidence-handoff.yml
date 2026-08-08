@@ -2,18 +2,31 @@ name: Qelly Cloudflare Evidence Handoff
 on:
   issue_comment:
     types: [created, edited]
+  check_run:
+    types: [completed]
 permissions:
   contents: read
   pull-requests: read
 concurrency:
-  group: qelly-cloudflare-evidence-${{ github.event.issue.number }}
+  group: qelly-cloudflare-evidence-${{ github.event.issue.number || github.event.check_run.pull_requests[0].number || github.run_id }}
   cancel-in-progress: true
 jobs:
   exact-pr-evidence:
     if: >-
-      github.event.issue.pull_request &&
-      github.actor == 'cloudflare-workers-and-pages[bot]' &&
-      contains(github.event.comment.body, 'Deploy successful!')
+      (
+        github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request &&
+        github.actor == 'cloudflare-workers-and-pages[bot]' &&
+        contains(github.event.comment.body, 'Deploy successful!')
+      ) ||
+      (
+        github.event_name == 'check_run' &&
+        github.event.check_run.name == 'Cloudflare Pages' &&
+        github.event.check_run.conclusion == 'success' &&
+        github.event.check_run.app.slug == 'cloudflare-workers-and-pages' &&
+        github.event.check_run.pull_requests[0] != null &&
+        contains(github.event.check_run.output.summary, 'Deploy successful!')
+      )
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     env:
@@ -25,7 +38,8 @@ jobs:
         id: pr
         env:
           GH_TOKEN: ${{ github.token }}
-          PR_URL: ${{ github.event.issue.pull_request.url }}
+          PR_URL: ${{ github.event_name == 'check_run' && github.event.check_run.pull_requests[0].url || github.event.issue.pull_request.url }}
+          CHECK_RUN_SHA: ${{ github.event_name == 'check_run' && github.event.check_run.head_sha || '' }}
         run: |
           set -euo pipefail
           sha="$(curl --fail --silent --show-error \
@@ -35,6 +49,9 @@ jobs:
             "$PR_URL" | jq -r '.head.sha')"
           test "$sha" != null
           test "${#sha}" -eq 40
+          if [ -n "$CHECK_RUN_SHA" ]; then
+            test "$sha" = "$CHECK_RUN_SHA"
+          fi
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
       - name: Checkout exact pull-request head
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
