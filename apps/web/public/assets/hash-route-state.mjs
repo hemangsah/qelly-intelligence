@@ -1,10 +1,15 @@
+const ROUTE_ALIASES=Object.freeze({
+  'quant-calculator':'calculator-center'
+});
+
 export function parseHashRoute(hash,{fallback='market'}={}){
   const raw=String(hash??'').replace(/^#\/?/,'')||fallback;
   const queryIndex=raw.indexOf('?');
   const pathPart=queryIndex>=0?raw.slice(0,queryIndex):raw;
   const queryText=queryIndex>=0?raw.slice(queryIndex+1):'';
   const segments=pathPart.split('/').filter(Boolean);
-  const route=decodeURIComponent(segments.shift()??fallback);
+  const parsedRoute=decodeURIComponent(segments.shift()??fallback);
+  const route=ROUTE_ALIASES[parsedRoute]??parsedRoute;
   const asset=segments.length?decodeURIComponent(segments.join('/')):null;
   return {route,asset,query:new URLSearchParams(queryText),queryText};
 }
