@@ -82,7 +82,7 @@ jobs:
           test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD"
           test "$(git ls-remote origin refs/heads/$QELLY_REVIEW_BRANCH | cut -f1)" = "$QELLY_REVIEW_HEAD"
           git diff --check
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: qelly-prompt2b-prepared-${{ env.QELLY_REVIEW_HEAD }}
           path: |
@@ -123,7 +123,7 @@ jobs:
       - if: always()
         run: test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD" && test "$(git ls-remote origin refs/heads/$QELLY_REVIEW_BRANCH | cut -f1)" = "$QELLY_REVIEW_HEAD"
       - if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with: {name: 'qelly-prompt2b-browser-${{ matrix.browser }}-${{ matrix.route }}-${{ env.QELLY_REVIEW_HEAD }}', path: .prompt2b-shard, include-hidden-files: true, if-no-files-found: error, retention-days: 30}
   a11y_shard:
     needs: [plan, prepare]
@@ -160,7 +160,7 @@ jobs:
       - if: always()
         run: test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD" && test "$(git ls-remote origin refs/heads/$QELLY_REVIEW_BRANCH | cut -f1)" = "$QELLY_REVIEW_HEAD"
       - if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with: {name: 'qelly-prompt2b-a11y-${{ matrix.route }}-${{ env.QELLY_REVIEW_HEAD }}', path: .prompt2b-a11y-shard, include-hidden-files: true, if-no-files-found: error, retention-days: 30}
   browser_aggregate:
     needs: [plan, prepare, browser_shard]
@@ -178,7 +178,7 @@ jobs:
         with: {pattern: 'qelly-prompt2b-browser-*-${{ env.QELLY_REVIEW_HEAD }}', path: .prompt2b-shards, merge-multiple: true}
       - run: node scripts/prompt2b-browser-aggregate.mjs
       - if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with: {name: 'qelly-prompt2b-browser-aggregate-${{ env.QELLY_REVIEW_HEAD }}', path: .prompt2b-review, include-hidden-files: true, if-no-files-found: error, retention-days: 30}
   a11y_aggregate:
     needs: [plan, prepare, a11y_shard]
@@ -193,7 +193,7 @@ jobs:
         with: {pattern: 'qelly-prompt2b-a11y-*-${{ env.QELLY_REVIEW_HEAD }}', path: .prompt2b-a11y-shards, merge-multiple: true}
       - run: python3 scripts/prompt2b-a11y-aggregate.py
       - if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: qelly-prompt2b-a11y-aggregate-${{ env.QELLY_REVIEW_HEAD }}
           path: |
@@ -213,7 +213,7 @@ jobs:
           test '${{ needs.browser_aggregate.result }}' = success
           test '${{ needs.a11y_aggregate.result }}' = success
       - if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with: {name: 'qelly-prompt2b-focused-gate-${{ env.QELLY_REVIEW_HEAD }}', path: QELLY_PROMPT2B_FOCUSED_GATE.json, if-no-files-found: error, retention-days: 30}
   acceptance:
     needs: [plan, prepare, browser_aggregate, a11y_aggregate]
@@ -245,7 +245,7 @@ jobs:
           test "$(git rev-parse HEAD)" = "$QELLY_REVIEW_HEAD"
           test "$(git ls-remote origin refs/heads/$QELLY_REVIEW_BRANCH | cut -f1)" = "$QELLY_REVIEW_HEAD"
       - if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: qelly-prompt2b-final-18-section-review-${{ env.QELLY_REVIEW_HEAD }}
           path: |

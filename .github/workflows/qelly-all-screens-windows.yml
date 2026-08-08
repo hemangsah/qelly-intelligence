@@ -120,7 +120,7 @@ jobs:
           Write-Host "Archive: $($archives[0].FullName) ($($archives[0].Length) bytes)"
       - name: Upload complete Windows evidence
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: qelly-complete-all-screens-windows-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: |
