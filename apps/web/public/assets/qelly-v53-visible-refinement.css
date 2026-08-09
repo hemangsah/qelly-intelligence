@@ -1,0 +1,294 @@
+/* Qelly Intelligence — V5.3 visible refinement layer.
+   Additive presentation-only polish after UI_LOCK_V5_3.
+   No route, data, evidence, auth, execution or persistence semantics are changed. */
+
+:root{
+  --q-v53r-hairline:color-mix(in srgb,var(--q-border,#5a3445) 58%,transparent);
+  --q-v53r-highlight:color-mix(in srgb,var(--q-accent,#6f1838) 26%,transparent);
+  --q-v53r-highlight-soft:color-mix(in srgb,var(--q-accent,#6f1838) 10%,transparent);
+  --q-v53r-panel-top:color-mix(in srgb,var(--q-surface-alt,#151015) 94%,white 1%);
+  --q-v53r-grid:color-mix(in srgb,var(--q-border,#5a3445) 16%,transparent);
+  --q-v53r-depth:0 18px 60px rgb(4 2 4 / .22);
+  --q-v53r-depth-soft:0 10px 34px rgb(4 2 4 / .16);
+}
+
+html[data-ui-lock-v5-3="active"] #main{
+  position:relative;
+  isolation:isolate;
+  background:
+    radial-gradient(760px 460px at 94% -5%,var(--q-v53r-highlight-soft),transparent 72%),
+    radial-gradient(620px 420px at 18% 105%,color-mix(in srgb,var(--q-accent,#6f1838) 5%,transparent),transparent 75%),
+    linear-gradient(var(--q-v53r-grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--q-v53r-grid) 1px,transparent 1px),
+    var(--q-canvas,var(--q-color-bg,#0b080a));
+  background-size:auto,auto,44px 44px,44px 44px,auto;
+}
+
+html[data-ui-lock-v5-3="active"] #main::before{
+  content:"";
+  position:fixed;
+  inset:calc(var(--q-v53-system-h) + var(--q-v53-command-h) + var(--q-v53-context-h) + 4px) 0 0 var(--q-v53-rail-w);
+  pointer-events:none;
+  z-index:-1;
+  background:linear-gradient(115deg,transparent 0 56%,color-mix(in srgb,var(--q-accent,#6f1838) 3%,transparent) 56% 58%,transparent 58% 100%);
+  opacity:.7;
+}
+
+html[data-ui-lock-v5-3="active"] .q-page-head{
+  position:relative;
+  overflow:hidden;
+  padding:2px 2px 9px;
+  border-bottom:1px solid var(--q-v53r-hairline);
+}
+html[data-ui-lock-v5-3="active"] .q-page-head::after{
+  content:"";
+  position:absolute;
+  left:0;
+  bottom:-1px;
+  width:min(180px,28vw);
+  height:2px;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--q-accent,#6f1838),transparent);
+  opacity:.78;
+}
+
+html[data-ui-lock-v5-3="active"] :where(.q-panel,.q-card,.q-research-card,.q-kpi,.q-ti-control-group,.q-ti-theme-card,.q-ti-compare-panel){
+  border-color:var(--q-v53r-hairline);
+  background:
+    linear-gradient(180deg,var(--q-v53r-panel-top),color-mix(in srgb,var(--q-surface,#0e0a0d) 97%,transparent));
+  box-shadow:0 1px 0 rgb(255 255 255 / .018),var(--q-v53r-depth-soft);
+}
+html[data-ui-lock-v5-3="active"] :where(.q-panel,.q-card,.q-research-card,.q-kpi,.q-ti-theme-card){
+  transition:border-color 160ms ease,box-shadow 180ms ease,transform 180ms cubic-bezier(.16,1,.3,1);
+}
+html[data-ui-lock-v5-3="active"] :where(.q-panel,.q-card,.q-research-card,.q-kpi,.q-ti-theme-card):hover{
+  border-color:color-mix(in srgb,var(--q-accent,#6f1838) 28%,var(--q-border,#5a3445));
+  box-shadow:0 1px 0 rgb(255 255 255 / .022),0 16px 48px rgb(4 2 4 / .20);
+}
+
+html[data-ui-lock-v5-3="active"] [data-v53-evidence-adjacent="true"]{
+  position:relative;
+  overflow:hidden;
+}
+html[data-ui-lock-v5-3="active"] [data-v53-evidence-adjacent="true"]::before{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:2px;
+  background:linear-gradient(180deg,var(--q-accent,#6f1838),transparent 76%);
+  opacity:.72;
+  pointer-events:none;
+}
+
+/* Shell refinement: make control hierarchy legible without increasing chrome. */
+html[data-ui-lock-v5-3="active"] .q-command-bar{
+  border:1px solid color-mix(in srgb,var(--q-border,#5a3445) 72%,transparent);
+  background:color-mix(in srgb,var(--q-surface,#0e0a0d) 91%,transparent);
+  box-shadow:0 1px 0 rgb(255 255 255 / .024),0 14px 44px rgb(4 2 4 / .20);
+}
+html[data-ui-lock-v5-3="active"] .q-command-trigger{
+  border-color:color-mix(in srgb,var(--q-border,#5a3445) 74%,transparent);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--q-surface-alt,#151015) 94%,white 1%),color-mix(in srgb,var(--q-surface,#0e0a0d) 94%,transparent));
+}
+html[data-ui-lock-v5-3="active"] .q-command-trigger:focus-visible,
+html[data-ui-lock-v5-3="active"] .q-icon-button:focus-visible,
+html[data-ui-lock-v5-3="active"] .q-button:focus-visible{
+  outline:2px solid color-mix(in srgb,var(--q-accent,#6f1838) 82%,white 18%);
+  outline-offset:2px;
+}
+html[data-ui-lock-v5-3="active"] .q-context-shelf{
+  box-shadow:inset 0 -1px 0 rgb(255 255 255 / .012);
+}
+html[data-ui-lock-v5-3="active"] .q-rail{
+  border-color:color-mix(in srgb,var(--q-border,#5a3445) 66%,transparent);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--q-surface,#0e0a0d) 98%,transparent),color-mix(in srgb,var(--q-canvas,#0b080a) 97%,transparent));
+}
+html[data-ui-lock-v5-3="active"] .q-nav-link[aria-current="page"],
+html[data-ui-lock-v5-3="active"] .q-nav-link.is-active{
+  box-shadow:inset 2px 0 0 var(--q-accent,#6f1838),inset 0 0 0 1px color-mix(in srgb,var(--q-accent,#6f1838) 18%,transparent);
+  background:linear-gradient(90deg,color-mix(in srgb,var(--q-accent,#6f1838) 15%,transparent),color-mix(in srgb,var(--q-accent,#6f1838) 5%,transparent));
+}
+
+/* Market Command: visually unmistakable workstation with chart-first hierarchy. */
+html[data-ui-lock-v5-3="active"][data-v53-route="market"] #main,
+html[data-ui-lock-v5-3="active"][data-v53-route="market-overview"] #main{
+  background:
+    radial-gradient(980px 520px at 72% -12%,color-mix(in srgb,var(--q-accent,#6f1838) 13%,transparent),transparent 70%),
+    linear-gradient(var(--q-v53r-grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--q-v53r-grid) 1px,transparent 1px),
+    var(--q-canvas,var(--q-color-bg,#0b080a));
+  background-size:auto,40px 40px,40px 40px,auto;
+}
+html[data-ui-lock-v5-3="active"] .q-live-command-deck{
+  position:relative;
+  overflow:hidden;
+  border:1px solid color-mix(in srgb,var(--q-accent,#6f1838) 22%,var(--q-border,#5a3445));
+  background:
+    radial-gradient(500px 180px at 92% 0,color-mix(in srgb,var(--q-accent,#6f1838) 14%,transparent),transparent 68%),
+    linear-gradient(180deg,color-mix(in srgb,var(--q-surface-alt,#151015) 96%,transparent),color-mix(in srgb,var(--q-surface,#0e0a0d) 96%,transparent));
+  box-shadow:var(--q-v53r-depth);
+}
+html[data-ui-lock-v5-3="active"] .q-live-command-deck::after{
+  content:"";
+  position:absolute;
+  width:280px;
+  aspect-ratio:1;
+  right:-138px;
+  top:-174px;
+  border:1px solid color-mix(in srgb,var(--q-accent,#6f1838) 22%,transparent);
+  border-radius:50%;
+  box-shadow:0 0 0 44px color-mix(in srgb,var(--q-accent,#6f1838) 2.8%,transparent),0 0 0 88px color-mix(in srgb,var(--q-accent,#6f1838) 1.7%,transparent);
+  pointer-events:none;
+}
+html[data-ui-lock-v5-3="active"] .q-v5-market-metric{
+  position:relative;
+  overflow:hidden;
+  border:1px solid var(--q-v53r-hairline);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--q-surface-alt,#151015) 88%,transparent),color-mix(in srgb,var(--q-canvas,#0b080a) 72%,transparent));
+}
+html[data-ui-lock-v5-3="active"] .q-v5-market-metric::before{
+  content:"";
+  position:absolute;
+  inset:0 0 auto;
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--q-accent,#6f1838),transparent);
+  opacity:.65;
+}
+html[data-ui-lock-v5-3="active"] .q-live-chart-shell{
+  position:relative;
+  overflow:hidden;
+  border:1px solid color-mix(in srgb,var(--q-border,#5a3445) 72%,transparent);
+  background:
+    radial-gradient(680px 360px at 66% 18%,color-mix(in srgb,var(--q-accent,#6f1838) 7%,transparent),transparent 72%),
+    linear-gradient(color-mix(in srgb,var(--q-border,#5a3445) 12%,transparent) 1px,transparent 1px),
+    linear-gradient(90deg,color-mix(in srgb,var(--q-border,#5a3445) 12%,transparent) 1px,transparent 1px),
+    color-mix(in srgb,var(--q-canvas,#0b080a) 93%,var(--q-surface,#0e0a0d));
+  background-size:auto,36px 36px,36px 36px,auto;
+  box-shadow:inset 0 1px 0 rgb(255 255 255 / .018),var(--q-v53r-depth);
+}
+html[data-ui-lock-v5-3="active"] .q-live-chart-shell::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(120deg,transparent 0 54%,color-mix(in srgb,var(--q-accent,#6f1838) 3.8%,transparent) 54% 55%,transparent 55% 100%);
+}
+html[data-ui-lock-v5-3="active"] .q-v5-evidence-ribbon{
+  border:1px solid var(--q-v53r-hairline);
+  border-radius:12px;
+  overflow:hidden;
+  background:color-mix(in srgb,var(--q-surface,#0e0a0d) 91%,transparent);
+}
+html[data-ui-lock-v5-3="active"] .q-v5-evidence-cell{
+  border-inline-end:1px solid var(--q-v53r-hairline);
+}
+html[data-ui-lock-v5-3="active"] .q-v5-evidence-cell:last-child{border-inline-end:0}
+
+/* Intelligence Inspector: evidence feels attached to the decision surface, not like a generic drawer. */
+html[data-ui-lock-v5-3="active"] .q-context-drawer{
+  overflow:hidden;
+  background:
+    linear-gradient(180deg,color-mix(in srgb,var(--q-surface-alt,#151015) 97%,transparent),color-mix(in srgb,var(--q-canvas,#0b080a) 98%,transparent));
+}
+html[data-ui-lock-v5-3="active"] .q-context-drawer::before{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:2px;
+  background:linear-gradient(180deg,var(--q-accent,#6f1838),transparent 64%);
+  opacity:.8;
+}
+html[data-ui-lock-v5-3="active"] .q-context-head{
+  border-bottom:1px solid var(--q-v53r-hairline);
+  background:linear-gradient(90deg,var(--q-v53r-highlight-soft),transparent 68%);
+}
+html[data-ui-lock-v5-3="active"] .q-context-block{
+  border:1px solid color-mix(in srgb,var(--q-border,#5a3445) 48%,transparent);
+}
+
+/* Theme Studio: selected family and live preview receive stronger spatial distinction. */
+html[data-ui-lock-v5-3="active"] .q-ti-layout{
+  align-items:start;
+}
+html[data-ui-lock-v5-3="active"] .q-ti-preview-shell{
+  position:relative;
+  overflow:hidden;
+  border:1px solid color-mix(in srgb,var(--q-accent,#6f1838) 20%,var(--q-border,#5a3445));
+  box-shadow:var(--q-v53r-depth);
+}
+html[data-ui-lock-v5-3="active"] .q-ti-preview-shell::before{
+  content:"LIVE PREVIEW";
+  position:absolute;
+  top:9px;
+  right:10px;
+  z-index:2;
+  padding:3px 7px;
+  border:1px solid color-mix(in srgb,var(--q-accent,#6f1838) 36%,var(--q-border,#5a3445));
+  border-radius:999px;
+  background:color-mix(in srgb,var(--q-canvas,#0b080a) 78%,transparent);
+  color:var(--q-text-muted,#a98d99);
+  font-size:8px;
+  font-weight:700;
+  letter-spacing:.11em;
+}
+html[data-ui-lock-v5-3="active"] .q-ti-theme-card[aria-pressed="true"],
+html[data-ui-lock-v5-3="active"] .q-ti-theme-card.is-active,
+html[data-ui-lock-v5-3="active"] .q-ti-theme-card.is-selected{
+  border-color:color-mix(in srgb,var(--q-accent,#6f1838) 72%,white 5%);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--q-accent,#6f1838) 18%,transparent),0 18px 48px rgb(4 2 4 / .22);
+  transform:translateY(-1px);
+}
+html[data-ui-lock-v5-3="active"] .q-ti-control-group:focus-within{
+  border-color:color-mix(in srgb,var(--q-accent,#6f1838) 34%,var(--q-border,#5a3445));
+}
+
+/* Activity tray becomes quieter until the user interacts with it. */
+html[data-ui-lock-v5-3="active"] .q-compare-tray{
+  border-color:color-mix(in srgb,var(--q-border,#5a3445) 58%,transparent);
+  background:color-mix(in srgb,var(--q-surface,#0e0a0d) 88%,transparent);
+}
+html[data-ui-lock-v5-3="active"] .q-compare-tray:focus-within,
+html[data-ui-lock-v5-3="active"] .q-compare-tray:hover{
+  border-color:color-mix(in srgb,var(--q-accent,#6f1838) 25%,var(--q-border,#5a3445));
+}
+
+/* Light families retain the same hierarchy without muddy dark shadows. */
+html[data-ui-lock-v5-3="active"][data-appearance="light"]{
+  --q-v53r-depth:0 20px 54px rgb(55 27 40 / .10);
+  --q-v53r-depth-soft:0 8px 28px rgb(55 27 40 / .08);
+  --q-v53r-grid:color-mix(in srgb,var(--q-border,#d9cbd1) 24%,transparent);
+}
+html[data-ui-lock-v5-3="active"][data-appearance="light"] #main::before{opacity:.35}
+
+@media (max-width:1279px){
+  html[data-ui-lock-v5-3="active"] #main::before{display:none}
+  html[data-ui-lock-v5-3="active"] .q-live-chart-shell{min-height:480px}
+}
+
+@media (max-width:767px){
+  html[data-ui-lock-v5-3="active"] #main{
+    background:
+      radial-gradient(460px 260px at 94% -2%,var(--q-v53r-highlight-soft),transparent 72%),
+      var(--q-canvas,var(--q-color-bg,#0b080a));
+    background-size:auto;
+  }
+  html[data-ui-lock-v5-3="active"] .q-page-head{padding-bottom:8px}
+  html[data-ui-lock-v5-3="active"] .q-page-head::after{width:104px}
+  html[data-ui-lock-v5-3="active"] :where(.q-panel,.q-card,.q-research-card,.q-kpi,.q-ti-theme-card):hover{transform:none}
+  html[data-ui-lock-v5-3="active"] .q-v5-market-ribbon{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  html[data-ui-lock-v5-3="active"] .q-v5-market-metric{min-width:0}
+  html[data-ui-lock-v5-3="active"] .q-live-chart-shell{min-height:390px;background-size:auto,30px 30px,30px 30px,auto}
+  html[data-ui-lock-v5-3="active"] .q-v5-evidence-ribbon{overflow-x:auto;scroll-snap-type:x proximity}
+  html[data-ui-lock-v5-3="active"] .q-v5-evidence-cell{min-width:142px;scroll-snap-align:start}
+  html[data-ui-lock-v5-3="active"] .q-ti-preview-shell::before{top:7px;right:7px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  html[data-ui-lock-v5-3="active"] :where(.q-panel,.q-card,.q-research-card,.q-kpi,.q-ti-theme-card){transition:none!important}
+  html[data-ui-lock-v5-3="active"] .q-ti-theme-card[aria-pressed="true"],
+  html[data-ui-lock-v5-3="active"] .q-ti-theme-card.is-active,
+  html[data-ui-lock-v5-3="active"] .q-ti-theme-card.is-selected{transform:none}
+}

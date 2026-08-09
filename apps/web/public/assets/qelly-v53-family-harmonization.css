@@ -1,0 +1,170 @@
+/* Qelly Intelligence — V5.3 semantic family harmonization.
+   Additive, read-only presentation layer. It consumes existing DOM and truth states. */
+
+:root{
+  --q-v53-family-accent:var(--q-accent,#6f1838);
+  --q-v53-family-line:color-mix(in srgb,var(--q-border,#5a3445) 58%,transparent);
+  --q-v53-family-soft:color-mix(in srgb,var(--q-v53-family-accent) 8%,transparent);
+  --q-v53-family-font:var(--q-font-ui,"IBM Plex Sans Variable","IBM Plex Sans",Arial,sans-serif);
+}
+
+html[data-v53-family-harmonization="active"] :where(
+  .q-kpi strong,.q-v5-market-metric strong,.q-metric strong,.q-stat strong,.q-score strong,
+  .q-verify-score strong,.q-verify-metrics strong,.q-verify-validation strong,.q-ti-metric strong,
+  td[data-type="number"],.q-number,.q-value,.q-price,.q-percent
+){
+  font-family:var(--q-v53-family-font)!important;
+  font-variant-numeric:tabular-nums lining-nums;
+  font-feature-settings:"tnum" 1,"lnum" 1;
+}
+html[data-v53-family-harmonization="active"] :where(code,pre,kbd,.q-code,.q-hash,.q-formula-expression){
+  font-variant-numeric:tabular-nums lining-nums;
+}
+
+html[data-v53-family="market-command"]{--q-v53-family-accent:var(--q-accent,#8f244b)}
+html[data-v53-family="research-evidence"]{--q-v53-family-accent:color-mix(in srgb,var(--q-accent,#6f1838) 68%,#7f6ee7 32%)}
+html[data-v53-family="portfolio-risk"]{--q-v53-family-accent:color-mix(in srgb,var(--q-accent,#6f1838) 70%,#d49a49 30%)}
+html[data-v53-family="quant-verify"]{--q-v53-family-accent:color-mix(in srgb,var(--q-accent,#6f1838) 72%,#3e8fb4 28%)}
+html[data-v53-family="theme-security"]{--q-v53-family-accent:color-mix(in srgb,var(--q-accent,#6f1838) 76%,#a469d6 24%)}
+html[data-v53-family="operations-public"]{--q-v53-family-accent:color-mix(in srgb,var(--q-accent,#6f1838) 82%,#6b8196 18%)}
+
+html[data-v53-family-harmonization="active"] #main[data-v53-primary-task="true"] :where(.q-panel,.q-card,.q-research-card,.q-kpi){
+  border-color:color-mix(in srgb,var(--q-v53-family-accent) 18%,var(--q-v53-family-line));
+}
+html[data-v53-family-harmonization="active"] #main[data-v53-primary-task="true"] :where(.q-page-head,.q-panel-head,h2,h3){
+  text-wrap:balance;
+}
+html[data-v53-family-harmonization="active"] #main[data-v53-primary-task="true"] :where(.q-source-line,.q-evidence,.q-methodology,[data-provenance],[data-source]){
+  position:relative;
+  z-index:1;
+}
+html[data-v53-family-harmonization="active"] [data-v53-evidence-adjacent="true"]{
+  border-inline-start-color:color-mix(in srgb,var(--q-v53-family-accent) 42%,var(--q-v53-family-line));
+}
+
+/* Research + evidence: keep citations and contradiction context visually adjacent. */
+html[data-v53-family="research-evidence"] #main :where(.q-research-card,.q-panel,[data-evidence]){
+  background:
+    linear-gradient(180deg,color-mix(in srgb,var(--q-surface-alt,#151015) 96%,var(--q-v53-family-soft)),var(--q-surface,#0e0a0d));
+}
+html[data-v53-family="research-evidence"] #main :where(.q-source-line,.q-evidence,.q-methodology){
+  border-inline-start:2px solid color-mix(in srgb,var(--q-v53-family-accent) 55%,transparent);
+  padding-inline-start:10px;
+}
+
+/* Portfolio/risk: compress summary signals before supporting detail. */
+html[data-v53-family="portfolio-risk"] #main :where(.q-kpi-grid,.q-metric-grid,.q-summary-grid){
+  gap:8px;
+}
+html[data-v53-family="portfolio-risk"] #main :where(.q-kpi,.q-metric,.q-stat){
+  min-height:0;
+}
+
+/* Quant + Verify: dense reproducibility and report anatomy without consumer-sized hero blocks. */
+html[data-v53-family="quant-verify"] #main :where(.q-formula-card,.q-indicator-card,.q-calculator-card){
+  border-color:color-mix(in srgb,var(--q-v53-family-accent) 22%,var(--q-v53-family-line));
+}
+html[data-v53-family-harmonization="active"] .q-verify-page[data-v53-product-family="qelly-verify"]{
+  max-width:1540px;
+  padding-top:clamp(18px,2.4vw,34px);
+}
+html[data-v53-family-harmonization="active"] .q-verify-page[data-v53-product-family="qelly-verify"] .q-verify-hero{
+  grid-template-columns:minmax(0,1.45fr) minmax(280px,.55fr);
+  gap:clamp(18px,3vw,42px);
+  padding:clamp(22px,3.2vw,46px) 0;
+}
+html[data-v53-family-harmonization="active"] .q-verify-page[data-v53-product-family="qelly-verify"] .q-verify-hero h1{
+  font-size:clamp(34px,4.4vw,66px);
+  line-height:1;
+}
+html[data-v53-family-harmonization="active"] .q-verify-page[data-v53-product-family="qelly-verify"] :where(.q-verify-score-grid,.q-verify-metrics,.q-verify-validation){
+  gap:9px;
+}
+html[data-v53-family-harmonization="active"] .q-verify-page[data-v53-product-family="qelly-verify"] :where(.q-verify-report,.q-verify-panel,.q-verify-evidence-grid>article){
+  border-color:color-mix(in srgb,var(--q-v53-family-accent) 24%,var(--q-v53-family-line));
+}
+
+/* Theme/security: retain distinct families while keeping evidence and focus hierarchy consistent. */
+html[data-v53-family="theme-security"] #main :where(.q-ti-control-group,.q-ti-theme-card,.q-context-block){
+  outline-color:color-mix(in srgb,var(--q-v53-family-accent) 34%,transparent);
+}
+html[data-v53-family="theme-security"] #main :where(button,a,input,select,textarea):focus-visible{
+  outline:2px solid color-mix(in srgb,var(--q-v53-family-accent) 78%,white 12%);
+  outline-offset:2px;
+}
+
+/* Operations/public: quiet chrome, explicit state/evidence priority. */
+html[data-v53-family="operations-public"] #main :where(.q-status,.q-truth-chip,.q-provider-mini){
+  font-variant-numeric:tabular-nums lining-nums;
+}
+
+/* Decorate existing cloud/sync states only; no lifecycle is invented here. */
+html[data-v53-family-harmonization="active"] [data-v53-cloud-presentation="existing-state"]{
+  border-inline-start:2px solid var(--q-v53-family-line);
+}
+html[data-v53-family-harmonization="active"] [data-v53-cloud-lifecycle="ready"]{--q-v53-cloud:#49a978}
+html[data-v53-family-harmonization="active"] [data-v53-cloud-lifecycle="pending"]{--q-v53-cloud:#c99a4b}
+html[data-v53-family-harmonization="active"] [data-v53-cloud-lifecycle="partial"],
+html[data-v53-family-harmonization="active"] [data-v53-cloud-lifecycle="stale"]{--q-v53-cloud:#d77e54}
+html[data-v53-family-harmonization="active"] [data-v53-cloud-lifecycle="conflict"],
+html[data-v53-family-harmonization="active"] [data-v53-cloud-lifecycle="unavailable"]{--q-v53-cloud:#c85a67}
+html[data-v53-family-harmonization="active"] [data-v53-cloud-lifecycle="offline"]{--q-v53-cloud:#8a7f86}
+html[data-v53-family-harmonization="active"] [data-v53-cloud-presentation="existing-state"][data-v53-cloud-lifecycle]:not([data-v53-cloud-lifecycle="unknown"]){
+  border-inline-start-color:var(--q-v53-cloud);
+}
+
+/* Required responsive proof modes. Mobile is task-first with evidence as a sheet, not desktop squeezed down. */
+@media (max-width:360px){
+  html[data-v53-family-harmonization="active"] #main{--q-v53-mobile-pad:10px}
+  html[data-v53-family-harmonization="active"] :where(.q-kpi-grid,.q-metric-grid,.q-summary-grid){grid-template-columns:1fr!important}
+}
+@media (min-width:361px) and (max-width:390px){
+  html[data-v53-family-harmonization="active"] #main{--q-v53-mobile-pad:12px}
+}
+@media (min-width:391px) and (max-width:430px){
+  html[data-v53-family-harmonization="active"] #main{--q-v53-mobile-pad:14px}
+}
+@media (max-width:430px){
+  html[data-v53-family-harmonization="active"] .q-verify-page[data-v53-product-family="qelly-verify"] .q-verify-hero{grid-template-columns:1fr}
+  html[data-v53-family-harmonization="active"] .q-verify-page[data-v53-product-family="qelly-verify"] .q-verify-hero h1{font-size:clamp(32px,11vw,48px)}
+  html[data-v53-family-harmonization="active"] .q-context-drawer[aria-hidden="false"]{
+    top:auto;
+    bottom:0;
+    width:100%;
+    max-width:none;
+    max-height:min(72vh,620px);
+    border-radius:18px 18px 0 0;
+  }
+}
+@media (min-width:431px) and (max-width:768px){
+  html[data-v53-family-harmonization="active"] :where(.q-kpi-grid,.q-metric-grid,.q-summary-grid){grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (min-width:769px) and (max-width:1024px){
+  html[data-v53-family-harmonization="active"] #main{--q-v53-workspace-density:tablet}
+  html[data-v53-family-harmonization="active"] .q-verify-page[data-v53-product-family="qelly-verify"] .q-verify-hero{grid-template-columns:1fr}
+}
+@media (min-width:1280px){
+  html[data-v53-family-harmonization="active"] #main{--q-v53-workspace-density:desktop-1280}
+}
+@media (min-width:1440px){
+  html[data-v53-family-harmonization="active"] #main{--q-v53-workspace-density:desktop-1440}
+}
+@media (min-width:1728px){
+  html[data-v53-family-harmonization="active"] #main{--q-v53-workspace-density:desktop-1728}
+}
+@media (min-width:1920px){
+  html[data-v53-family-harmonization="active"] #main{--q-v53-workspace-density:desktop-1920}
+}
+
+@media (prefers-contrast:more){
+  html[data-v53-family-harmonization="active"] :where(.q-panel,.q-card,.q-research-card,.q-kpi,[data-v53-cloud-presentation="existing-state"]){
+    border-color:currentColor;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  html[data-v53-family-harmonization="active"] :where(.q-panel,.q-card,.q-research-card,.q-kpi,.q-ti-theme-card,.q-context-drawer){
+    transition:none!important;
+    animation:none!important;
+    scroll-behavior:auto!important;
+  }
+}
