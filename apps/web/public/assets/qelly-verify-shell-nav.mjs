@@ -2,6 +2,7 @@ const PRIMARY_ID='qelly-verify-shell-primary';
 const SHELF_VERIFY='qelly-verify-shell-shelf-verify';
 const SHELF_METHOD='qelly-verify-shell-shelf-methodology';
 const ROOT_STATE='qellyVerifySubview';
+const shelfDisplayState=new WeakMap();
 
 const routeState=()=>{
   const raw=location.hash.replace(/^#\/?/,'');
@@ -50,9 +51,26 @@ function ensurePrimary(view){
   }
 }
 
+function exposeShelf(shelf){
+  if(!shelfDisplayState.has(shelf))shelfDisplayState.set(shelf,{value:shelf.style.getPropertyValue('display'),priority:shelf.style.getPropertyPriority('display')});
+  shelf.style.setProperty('display','flex','important');
+  shelf.dataset.qellyVerifyDiscoverability='active';
+}
+
+function restoreShelf(){
+  const shelf=document.querySelector('#context-shelf .q-category-shelf');
+  if(!shelf||!shelfDisplayState.has(shelf))return;
+  const previous=shelfDisplayState.get(shelf);
+  if(previous.value)shelf.style.setProperty('display',previous.value,previous.priority);
+  else shelf.style.removeProperty('display');
+  delete shelf.dataset.qellyVerifyDiscoverability;
+  shelfDisplayState.delete(shelf);
+}
+
 function ensureShelf(view){
   const shelf=document.querySelector('#context-shelf .q-category-shelf');
   if(!shelf)return;
+  exposeShelf(shelf);
   let verify=document.getElementById(SHELF_VERIFY);
   if(!verify){
     verify=document.createElement('button');
@@ -69,8 +87,9 @@ function ensureShelf(view){
     method.type='button';
     method.id=SHELF_METHOD;
     method.dataset.qellyMethodologyLink='shelf';
+    method.textContent='Evidence';
     method.setAttribute('aria-label','Evidence Methodology');
-    method.innerHTML='Evidence <span class="q-verify-methodology-long" aria-hidden="true">Methodology</span>';
+    method.title='Evidence Methodology';
     method.addEventListener('click',()=>navigate('evidence-methodology'));
   }
   if(shelf.firstElementChild!==verify)shelf.prepend(verify);
@@ -89,6 +108,7 @@ function updateBreadcrumb(view){
 
 function clearShellLinks(){
   delete document.documentElement.dataset[ROOT_STATE];
+  restoreShelf();
   document.getElementById(PRIMARY_ID)?.remove();
   document.getElementById(SHELF_VERIFY)?.remove();
   document.getElementById(SHELF_METHOD)?.remove();
