@@ -26,6 +26,11 @@ test('production SEO is origin-aware and exposes only real HTTP resources',()=>{
   assert.match(robots,/Sitemap: https:\/\/qelly\.example\/sitemap\.xml/);
   assert.match(robots,/Disallow: \/api\//);
   assert.match(robots,/Disallow: \/auth\//);
+  assert.match(robots,/Disallow: \/account\//);
+  assert.match(robots,/Disallow: \/saved-calculations\//);
+  assert.match(robots,/Disallow: \/secure-import\//);
+  assert.match(robots,/Disallow: \/quarantine-review\//);
+  assert.match(robots,/Disallow: \/delivery-operations\//);
 
   const sitemap=renderSitemap(production);
   assert.equal((sitemap.match(/<url>/g)||[]).length,1+seoStaticResources.length);
@@ -69,6 +74,7 @@ test('repository integration keeps SEO host-neutral until the trusted build orig
   const robots=await readFile(path.join(repositoryRoot,'apps/web/public/robots.txt'),'utf8');
   const sitemap=await readFile(path.join(repositoryRoot,'apps/web/public/sitemap.xml'),'utf8');
   assert.doesNotMatch(robots,/hemangsah\.github\.io|qelly-intelligence\.pages\.dev/);
+  for(const privatePath of ['/api/','/auth/','/account/','/saved-calculations/','/secure-import/','/quarantine-review/','/delivery-operations/']) assert.match(robots,new RegExp(`Disallow: ${privatePath.replaceAll('/','\\/')}`));
   assert.doesNotMatch(sitemap,/hemangsah\.github\.io|qelly-intelligence\.pages\.dev/);
 
   const fontGovernance=await readFile(path.join(repositoryRoot,'apps/web/public/assets/qelly-font-governance.css'),'utf8');

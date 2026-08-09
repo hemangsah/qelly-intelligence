@@ -108,6 +108,11 @@ export function renderRobots(options={}){
     'Allow: /',
     'Disallow: /api/',
     'Disallow: /auth/',
+    'Disallow: /account/',
+    'Disallow: /saved-calculations/',
+    'Disallow: /secure-import/',
+    'Disallow: /quarantine-review/',
+    'Disallow: /delivery-operations/',
     `Sitemap: ${context.publicUrl('sitemap.xml')}`,
     ''
   ].join('\n');
