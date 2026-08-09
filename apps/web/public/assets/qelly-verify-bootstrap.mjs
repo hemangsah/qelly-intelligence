@@ -21,6 +21,15 @@ const setRequested=(view,intent)=>{
 const normalizeNavigationMarkers=()=>{
   document.querySelectorAll('[data-qelly-verify-link="true"]').forEach(link=>{link.dataset.qellyVerifyLink='verify';});
   document.querySelectorAll('[data-qelly-methodology-link]').forEach(link=>{link.dataset.qellyVerifyLink='methodology';});
+  const primary=document.getElementById('primary-nav');
+  if(primary&&!primary.querySelector('[data-qelly-verify-link="verify"]')){
+    const link=document.createElement('a');
+    link.href='#/qelly-verify';
+    link.dataset.qellyVerifyLink='verify';
+    link.textContent='Verify';
+    const methodology=primary.querySelector('[data-qelly-verify-link="methodology"],[data-qelly-methodology-link]');
+    if(methodology)primary.insertBefore(link,methodology);else primary.prepend(link);
+  }
 };
 
 const initialView=viewFor(location.hash);
