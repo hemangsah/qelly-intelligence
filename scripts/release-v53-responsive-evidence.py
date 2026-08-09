@@ -17,6 +17,9 @@ REPRESENTATIVE_ROUTES=[
     'screener-lab','theme-lab','theme-personas','identity-access','import-center',
     'data-mesh','observability','decision-provenance','formula-library','trust-center'
 ]
+COMPACT_HEADER_ROUTES={
+    'market','advanced-chart','research-workspace','screener-lab','portfolio-analytics','decision-provenance'
+}
 VIEWPORTS=[
     ('phone-360',360,800),('phone-390',390,844),('phone-430',430,932),
     ('tablet-768',768,1024),('tablet-1024',1024,768),
@@ -64,15 +67,27 @@ def generated_runner():
 
     probe_anchor="                    if not heading or heading.strip() in RENDER_FAILURE_HEADINGS:"
     probe_code="""                    layout_probe = page.evaluate(\"\"\"() => {
+                      const bounds=(node)=>{
+                        if(!node)return null;
+                        const box=node.getBoundingClientRect();
+                        const style=getComputedStyle(node);
+                        return {
+                          left:Math.round(box.left),
+                          right:Math.round(box.right),
+                          width:Math.round(box.width),
+                          height:Math.round(box.height),
+                          viewportWidth:Math.round(innerWidth),
+                          visible:box.width>0&&box.height>0&&style.display!=='none'&&style.visibility!=='hidden'
+                        };
+                      };
                       const head=document.querySelector('.q-page-head');
-                      if(!head)return {pageHead:null};
-                      const box=head.getBoundingClientRect();
-                      return {pageHead:{
-                        left:Math.round(box.left),
-                        right:Math.round(box.right),
-                        width:Math.round(box.width),
-                        viewportWidth:Math.round(innerWidth)
-                      }};
+                      const content=head?.querySelector(':scope > div:first-child')||head?.querySelector('h1')||null;
+                      const actions=head?.querySelector('.q-page-actions')||null;
+                      return {
+                        pageHead:bounds(head),
+                        pageHeadContent:bounds(content),
+                        pageActions:bounds(actions)
+                      };
                     }\"\"\")
                     if route_name == 'market':
                         market_probe = page.evaluate(\"\"\"() => {
@@ -144,6 +159,31 @@ def contact_sheet(viewport,items):
     return str(path.relative_to(ROOT))
 
 
+def outside_viewport(bounds):
+    if not bounds or not bounds.get('visible'): return False
+    left=bounds.get('left')
+    right=bounds.get('right')
+    viewport_width=bounds.get('viewportWidth')
+    return (
+        left is None or right is None or viewport_width is None or
+        left < -HEADER_BOUNDARY_TOLERANCE_PX or
+        right > viewport_width + HEADER_BOUNDARY_TOLERANCE_PX
+    )
+
+
+def boundary_failure(route,viewport,metric,bounds,probe):
+    return {
+        'route':route,
+        'viewport':viewport,
+        'metric':metric,
+        'leftPx':bounds.get('left') if bounds else None,
+        'rightPx':bounds.get('right') if bounds else None,
+        'viewportWidthPx':bounds.get('viewportWidth') if bounds else None,
+        'tolerancePx':HEADER_BOUNDARY_TOLERANCE_PX,
+        'probe':probe
+    }
+
+
 def main():
     if not (ROOT/'dist/frontend/index.html').is_file():
         raise SystemExit('built frontend missing; run npm run build:frontend first')
@@ -177,27 +217,12 @@ def main():
         if item.get('status')!='passed' or (item.get('overflowPx') or 0)>2 or not (ROOT/item['file']).is_file():
             failures.append(item)
         probe=item.get('layoutProbe') or {}
-        page_head=probe.get('pageHead')
-        if page_head:
-            left=page_head.get('left')
-            right=page_head.get('right')
-            viewport_width=page_head.get('viewportWidth')
-            outside=(
-                left is None or right is None or viewport_width is None or
-                left < -HEADER_BOUNDARY_TOLERANCE_PX or
-                right > viewport_width + HEADER_BOUNDARY_TOLERANCE_PX
-            )
-            if outside:
-                layout_failures.append({
-                    'route':route,
-                    'viewport':viewport,
-                    'metric':'pageHeadViewportBounds',
-                    'leftPx':left,
-                    'rightPx':right,
-                    'viewportWidthPx':viewport_width,
-                    'tolerancePx':HEADER_BOUNDARY_TOLERANCE_PX,
-                    'probe':probe
-                })
+        if route in COMPACT_HEADER_ROUTES and outside_viewport(probe.get('pageHead')):
+            layout_failures.append(boundary_failure(route,viewport,'compactPageHeadViewportBounds',probe.get('pageHead'),probe))
+        for key,metric in (('pageHeadContent','pageHeadContentViewportBounds'),('pageActions','pageActionsViewportBounds')):
+            bounds=probe.get(key)
+            if outside_viewport(bounds):
+                layout_failures.append(boundary_failure(route,viewport,metric,bounds,probe))
         if route=='market' and viewport.startswith('phone-'):
             measured=probe.get('kpiToHost')
             if measured is None or measured>MOBILE_MARKET_MAX_SECTION_GAP_PX:
@@ -215,7 +240,7 @@ def main():
         sheets[viewport]=contact_sheet(viewport,items)
     passed=len(results)==len(expected) and not missing_pairs and not failures and not layout_failures
     manifest={
-        'schemaVersion':3,
+        'schemaVersion':4,
         'evidenceHead':os.getenv('QELLY_V53_EVIDENCE_SHA','local'),
         'boundary':'governed local test runtime; exact compiled frontend; no production user data',
         'canonicalRouteCount':len(definitions),
@@ -224,6 +249,7 @@ def main():
         'renderCount':len(results),
         'expectedRenderCount':len(expected),
         'routes':REPRESENTATIVE_ROUTES,
+        'compactHeaderRoutes':sorted(COMPACT_HEADER_ROUTES),
         'viewports':[{'name':name,'width':width,'height':height} for name,width,height in VIEWPORTS],
         'missing':missing_pairs,
         'failureCount':len(failures),
