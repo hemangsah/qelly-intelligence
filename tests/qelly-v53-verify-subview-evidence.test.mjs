@@ -17,8 +17,8 @@ test('Qelly Verify remains two governed Market subviews, not canonical routes',a
   assert.equal(routes.length,70);
   assert.equal(routes.includes('qelly-verify'),false);
   assert.equal(routes.includes('evidence-methodology'),false);
-  assert.match(bootstrap,/#\/\(\?:qelly-verify\|market\\\?[^#]*\\bview=qelly-verify/);
-  assert.match(bootstrap,/#\/\(\?:evidence-methodology\|market\\\?[^#]*\\bview=evidence-methodology/);
+  assert.ok(bootstrap.includes('verify:/^#\\/(?:qelly-verify|market\\?[^#]*\\bview=qelly-verify(?:&|$))/i'));
+  assert.ok(bootstrap.includes('methodology:/^#\\/(?:evidence-methodology|market\\?[^#]*\\bview=evidence-methodology(?:&|$))/i'));
   assert.match(bootstrap,/#\/market\?view=qelly-verify/);
   assert.match(bootstrap,/#\/market\?view=evidence-methodology/);
 });
