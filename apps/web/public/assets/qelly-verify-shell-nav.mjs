@@ -60,7 +60,6 @@ function ensureShelf(view){
     verify.dataset.qellyVerifyLink='shelf';
     verify.textContent='Qelly Verify';
     verify.addEventListener('click',()=>navigate('qelly-verify'));
-    shelf.append(verify);
   }
   let method=document.getElementById(SHELF_METHOD);
   if(!method){
@@ -70,8 +69,9 @@ function ensureShelf(view){
     method.dataset.qellyMethodologyLink='shelf';
     method.textContent='Evidence Methodology';
     method.addEventListener('click',()=>navigate('evidence-methodology'));
-    shelf.append(method);
   }
+  if(shelf.firstElementChild!==verify)shelf.prepend(verify);
+  if(verify.nextElementSibling!==method)shelf.insertBefore(method,verify.nextElementSibling);
   verify.classList.toggle('is-active',view==='qelly-verify');
   method.classList.toggle('is-active',view==='evidence-methodology');
   verify.setAttribute('aria-current',view==='qelly-verify'?'page':'false');
