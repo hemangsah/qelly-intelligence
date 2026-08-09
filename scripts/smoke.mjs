@@ -31,7 +31,7 @@ try {
   const config = configResult.json();
   csrf = config.csrf.token;
   expect(config.productName === 'Qelly Intelligence' && config.productVersion === '0.9.0-preview.1', 'Qelly product identity invalid');
-  expect(config.routes.length === 70 && config.apiRoutes.length === 202 && config.apiRoutes.includes('/api/v1/public/markets/overview'), 'route inventory invalid');
+  expect(config.routes.length === 71 && config.apiRoutes.length === 202 && config.apiRoutes.includes('/api/v1/public/markets/overview'), 'route inventory invalid');
   expect(config.waveStatus.part22 && config.schemaValidation.schemasLoaded === 72, 'schema and inherited capability evidence invalid');
   expect(config.csrf.mode === 'random-session-bound-local-token' && csrf.length >= 32, 'session-bound CSRF evidence invalid');
   expect(config.developmentIdentity.enabled === true, 'development identity fixture should be enabled in local smoke');
