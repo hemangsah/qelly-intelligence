@@ -1,6 +1,7 @@
 const PRIMARY_ID='qelly-verify-shell-primary';
 const SHELF_VERIFY='qelly-verify-shell-shelf-verify';
 const SHELF_METHOD='qelly-verify-shell-shelf-methodology';
+const ROOT_STATE='qellyVerifySubview';
 
 const routeState=()=>{
   const raw=location.hash.replace(/^#\/?/,'');
@@ -59,6 +60,7 @@ function ensureShelf(view){
     verify.id=SHELF_VERIFY;
     verify.dataset.qellyVerifyLink='shelf';
     verify.textContent='Qelly Verify';
+    verify.setAttribute('aria-label','Qelly Verify');
     verify.addEventListener('click',()=>navigate('qelly-verify'));
   }
   let method=document.getElementById(SHELF_METHOD);
@@ -67,7 +69,8 @@ function ensureShelf(view){
     method.type='button';
     method.id=SHELF_METHOD;
     method.dataset.qellyMethodologyLink='shelf';
-    method.textContent='Evidence Methodology';
+    method.setAttribute('aria-label','Evidence Methodology');
+    method.innerHTML='Evidence <span class="q-verify-methodology-long" aria-hidden="true">Methodology</span>';
     method.addEventListener('click',()=>navigate('evidence-methodology'));
   }
   if(shelf.firstElementChild!==verify)shelf.prepend(verify);
@@ -85,6 +88,7 @@ function updateBreadcrumb(view){
 }
 
 function clearShellLinks(){
+  delete document.documentElement.dataset[ROOT_STATE];
   document.getElementById(PRIMARY_ID)?.remove();
   document.getElementById(SHELF_VERIFY)?.remove();
   document.getElementById(SHELF_METHOD)?.remove();
@@ -96,6 +100,8 @@ function install(){
   const {route}=routeState();
   if(route!=='market'){clearShellLinks();return;}
   const view=activeView();
+  if(view)document.documentElement.dataset[ROOT_STATE]=view;
+  else delete document.documentElement.dataset[ROOT_STATE];
   ensurePrimary(view);
   ensureShelf(view);
   updateBreadcrumb(view);
