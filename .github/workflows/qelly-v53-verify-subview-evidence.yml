@@ -1,10 +1,11 @@
-name: Qelly V5.3 Verify Subview Evidence
+name: Qelly V5.4 Verify Route Evidence
 on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
     paths:
       - 'apps/web/public/index.html'
+      - 'apps/web/public/assets/route-registry.mjs'
       - 'apps/web/public/assets/qelly-verify-*.mjs'
       - 'apps/web/public/assets/qelly-verify*.css'
       - 'scripts/release-a5-screen-batch-v2.py'
@@ -17,10 +18,10 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: qelly-v53-verify-subviews-${{ github.event.pull_request.number || github.ref }}
+  group: qelly-v54-verify-route-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
-  verify-subview-evidence:
+  verify-route-evidence:
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     env:
@@ -69,9 +70,9 @@ jobs:
           npm run security:scan
           npm test
           npm run build:frontend
-      - name: Capture Verify and Evidence subviews at all nine widths
+      - name: Capture canonical Verify and methodology evidence at all nine widths
         run: python -X utf8 scripts/release-v53-verify-subview-evidence.py
-      - name: Verify subview evidence manifest
+      - name: Verify route evidence manifest
         run: |
           node --input-type=module <<'NODE'
           import {readFile,readdir} from 'node:fs/promises';
@@ -84,16 +85,16 @@ jobs:
           const sheets=rootFiles.filter(name=>name.startsWith('contact-sheet-')&&name.endsWith('.jpg'));
           const required=['360','390','430','768','1024','1280','1440','1728','1920'];
           const dimensions=manifest.viewports.map(item=>String(item.width));
-          const subviews=new Set(manifest.subviews.map(item=>item.id));
-          const ok=manifest.status==='passed'&&manifest.canonicalRouteCount===70&&manifest.canonicalRoute==='market'&&manifest.subviewCount===2&&manifest.viewportCount===9&&manifest.renderCount===18&&manifest.expectedRenderCount===18&&manifest.failureCount===0&&manifest.missing.length===0&&manifest.aliasNormalized===true&&pngs.length===18&&sheets.length===9&&subviews.has('qelly-verify')&&subviews.has('evidence-methodology')&&required.every(width=>dimensions.includes(width));
-          console.log(JSON.stringify({status:manifest.status,canonicalRouteCount:manifest.canonicalRouteCount,canonicalRoute:manifest.canonicalRoute,subviewCount:manifest.subviewCount,viewportCount:manifest.viewportCount,renderCount:manifest.renderCount,pngs:pngs.length,contactSheets:sheets.length,aliasNormalized:manifest.aliasNormalized,dimensions},null,2));
+          const surfaces=new Set(manifest.surfaces.map(item=>item.id));
+          const ok=manifest.status==='passed'&&manifest.canonicalRouteCount===71&&manifest.canonicalRoute==='qelly-verify'&&manifest.methodologyHostRoute==='market'&&manifest.surfaceCount===2&&manifest.viewportCount===9&&manifest.renderCount===18&&manifest.expectedRenderCount===18&&manifest.failureCount===0&&manifest.missing.length===0&&manifest.aliasNormalized===true&&pngs.length===18&&sheets.length===9&&surfaces.has('qelly-verify')&&surfaces.has('evidence-methodology')&&required.every(width=>dimensions.includes(width));
+          console.log(JSON.stringify({status:manifest.status,canonicalRouteCount:manifest.canonicalRouteCount,canonicalRoute:manifest.canonicalRoute,methodologyHostRoute:manifest.methodologyHostRoute,surfaceCount:manifest.surfaceCount,viewportCount:manifest.viewportCount,renderCount:manifest.renderCount,pngs:pngs.length,contactSheets:sheets.length,aliasNormalized:manifest.aliasNormalized,dimensions},null,2));
           if(!ok)process.exit(1);
           NODE
-      - name: Upload Verify subview evidence
+      - name: Upload Verify route evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: qelly-v53-verify-subviews-${{ env.QELLY_V53_VERIFY_EVIDENCE_SHA }}
+          name: qelly-v54-verify-route-${{ env.QELLY_V53_VERIFY_EVIDENCE_SHA }}
           path: preview/v53-verify-subview-evidence
           include-hidden-files: true
           if-no-files-found: warn
