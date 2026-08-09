@@ -4,12 +4,21 @@ const WAVE3_STYLESHEET=new URL('../qelly-v54-decision-provenance.css',import.met
 const activateWave3Stylesheet=()=>{if(!document.querySelector('link[data-qelly-v54-decision-provenance="wave3"]')){const link=document.createElement('link');link.rel='stylesheet';link.href=WAVE3_STYLESHEET;link.dataset.qellyV54DecisionProvenance='wave3';document.head.append(link);}document.documentElement.dataset.v54DecisionProvenance='wave3';};
 
 const downloadJson=(filename,value)=>{const blob=new Blob([JSON.stringify(value,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const anchor=document.createElement('a');anchor.href=url;anchor.download=filename;anchor.click();setTimeout(()=>URL.revokeObjectURL(url),500);};
-const tone=(type)=>({SourceRecord:'cached',ProviderObservation:'live',NormalizedObservation:'cached',MarketMove:'warning',Hypothesis:'partial',DecisionRecord:'cached',RiskAssessment:'unavailable',Asset:'live'}[type]??'cached');
-const nodeTone=(node,isDemo)=>isDemo?'simulated':tone(node.type);
+const tone=(type)=>({SourceRecord:'cached',ProviderObservation:'cached',NormalizedObservation:'cached',MarketMove:'warning',Hypothesis:'partial',DecisionRecord:'cached',RiskAssessment:'unavailable',Asset:'cached'}[type]??'cached');
+const nodeTone=(node,{isDemo=false,isCaptureFixture=false}={})=>{if(isDemo||isCaptureFixture)return'simulated';const states=[node?.data?.qualityState,node?.data?.freshness,node?.data?.cacheState].map((value)=>String(value??'').toLowerCase());if(node?.data?.degraded||node?.data?.fallbackReason||states.some((value)=>value.includes('simulat')||value.includes('fallback')))return'simulated';if(states.some((value)=>value.includes('stale')))return'stale';if(states.some((value)=>value.includes('delay')))return'delayed';if(states.some((value)=>value.includes('partial')))return'partial';if(states.some((value)=>value==='live'||value==='fresh-live'))return'live';return tone(node?.type);};
 const options=(values,current)=>values.map(([value,label])=>`<option value="${value}" ${value===current?'selected':''}>${label}</option>`).join('');
 const listMarkup=(items,escapeHtml,{ordered=false,empty='None recorded.'}={})=>{const tag=ordered?'ol':'ul';return `<${tag}>${items.length?items.map((item)=>`<li>${escapeHtml(item)}</li>`).join(''):`<li>${escapeHtml(empty)}</li>`}</${tag}>`;};
 const graphValue=(value)=>typeof value==='object'&&value!==null?JSON.stringify(value):String(value??'—');
 const defaultGraphNodeId=(graph)=>graph?.nodes?.find((node)=>node.type==='DecisionRecord')?.nodeId??graph?.nodes?.[0]?.nodeId??null;
+const isGovernedCaptureFixture=()=>globalThis.location?.hostname==='qelly.test';
+
+async function ensureGovernedCaptureGraph(listing,api,result){
+  if(!isGovernedCaptureFixture()||listing.items?.length)return listing;
+  try{
+    await api('/api/v1/evidence/explain-move',{method:'POST',headers:{'Idempotency-Key':'qelly-wave3-provenance-capture-v1'},body:JSON.stringify({canonicalId:result.input.assetId,consideredAction:'monitor-with-conditions',horizon:result.input.horizon,confidence:result.input.evidenceConfidence/100,thesis:'Governed local screenshot fixture for Decision Provenance traversal validation.',notes:'Local screenshot evidence fixture only. External providers and execution remain disabled; this is not production user data.'})});
+    return await api('/api/v1/evidence/graphs');
+  }catch{return listing;}
+}
 
 function decisionControls(result,isDemo,escapeHtml){
   return `<section class="q-panel q-decision-maker-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Qelly Intelligence · explainable decision support</p><h2>AI Decision Maker · evidence mode</h2><p>Convert a human hypothesis into an auditable research posture. ${isDemo?'This surface runs a deterministic explainable framework over fixed scenario profiles; no live AI model or live market feed is running.':'The output remains decision support and requires human verification.'}</p></div><span class="q-status q-status--${isDemo?'simulated':'cached'}">${isDemo?'deterministic preview':'human in control'}</span></div><div class="q-panel-body">
@@ -45,17 +54,19 @@ function analysisAuditMarkup(result,escapeHtml){
   <section class="q-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Methodology</p><h2>${escapeHtml(result.methodology.id)} · v${escapeHtml(result.methodology.version)}</h2><p>${escapeHtml(result.methodology.formula)}</p></div><span class="q-status q-status--cached">versioned</span></div><div class="q-panel-body q-stack">${componentRows}<div class="q-truth-callout is-compact"><span class="q-status q-status--unavailable">boundary</span><p>${escapeHtml(result.methodology.boundary)}</p></div></div></section>`;
 }
 
-function graphMarkup(graph,isDemo,escapeHtml,selectedNodeId){
+function graphMarkup(graph,{isDemo=false,isCaptureFixture=false}={},escapeHtml,selectedNodeId){
   if(!graph)return `<section class="q-panel"><div class="q-panel-body"><div class="q-empty"><h2>No persisted evidence package yet</h2><p>Backend unavailable. Backend persistence is unavailable in this mode. Run an analysis above; this surface supports considered decisions only.</p></div></div></section>`;
   const nodes=graph.nodes??[],edges=graph.edges??[];
   const selected=nodes.find((node)=>node.nodeId===selectedNodeId)??nodes.find((node)=>node.type==='DecisionRecord')??nodes[0]??null;
   if(!selected)return `<section class="q-panel"><div class="q-panel-body"><div class="q-empty"><h2>No evidence records in this graph</h2><p>The graph package is present but contains no traversable records.</p></div></div></section>`;
+  const truthFlags={isDemo,isCaptureFixture};
+  const nonProduction=isDemo||isCaptureFixture;
   const nodeIndex=new Map(nodes.map((node)=>[node.nodeId,node]));
   const connected=edges.filter((edge)=>edge.fromNodeId===selected.nodeId||edge.toNodeId===selected.nodeId);
   const details=Object.entries(selected.data??{});
   const selectedIndex=Math.max(0,nodes.findIndex((node)=>node.nodeId===selected.nodeId));
   const selectedTabId=`q-provenance-node-${selectedIndex}`;
-  const nodeButtons=nodes.map((node,index)=>`<button type="button" role="tab" id="q-provenance-node-${index}" class="q-provenance-node${node.nodeId===selected.nodeId?' is-selected':''}" data-provenance-node="${escapeHtml(node.nodeId)}" aria-selected="${node.nodeId===selected.nodeId?'true':'false'}" aria-controls="q-provenance-focus" tabindex="${node.nodeId===selected.nodeId?'0':'-1'}"><span class="q-provenance-node__meta"><span class="q-status q-status--${nodeTone(node,isDemo)}">${escapeHtml(node.type)}</span><small>r${escapeHtml(String(node.revision))}</small></span><strong>${escapeHtml(node.label)}</strong><small>${escapeHtml(node.classification)}</small></button>`).join('');
+  const nodeButtons=nodes.map((node,index)=>`<button type="button" role="tab" id="q-provenance-node-${index}" class="q-provenance-node${node.nodeId===selected.nodeId?' is-selected':''}" data-provenance-node="${escapeHtml(node.nodeId)}" aria-selected="${node.nodeId===selected.nodeId?'true':'false'}" aria-controls="q-provenance-focus" tabindex="${node.nodeId===selected.nodeId?'0':'-1'}"><span class="q-provenance-node__meta"><span class="q-status q-status--${nodeTone(node,truthFlags)}">${escapeHtml(node.type)}</span><small>r${escapeHtml(String(node.revision))}</small></span><strong>${escapeHtml(node.label)}</strong><small>${escapeHtml(node.classification)}</small></button>`).join('');
   const relationButtons=connected.length?connected.map((edge)=>{
     const outbound=edge.fromNodeId===selected.nodeId;
     const counterpartId=outbound?edge.toNodeId:edge.fromNodeId;
@@ -64,26 +75,30 @@ function graphMarkup(graph,isDemo,escapeHtml,selectedNodeId){
     return `<button type="button" class="q-provenance-relation" data-provenance-related-node="${escapeHtml(counterpartId)}" aria-controls="q-provenance-focus" aria-label="Traverse ${escapeHtml(edge.type)} relationship to ${escapeHtml(counterpartLabel)}"><span class="q-provenance-relation__direction">${outbound?'outbound':'inbound'}</span><strong>${escapeHtml(edge.type)}</strong><span>${outbound?'→':'←'} ${escapeHtml(counterpartLabel)}</span><small>${escapeHtml(counterpart?.type??'record')}</small></button>`;
   }).join(''):`<div class="q-provenance-no-relations"><strong>No governed relationships</strong><p>This record is isolated in the current evidence package.</p></div>`;
   const detailMarkup=details.length?`<dl class="q-provenance-detail-grid">${details.map(([key,value])=>`<div><dt>${escapeHtml(key)}</dt><dd>${escapeHtml(graphValue(value))}</dd></div>`).join('')}</dl>`:`<p class="q-provenance-empty-detail">No additional record payload is attached.</p>`;
-  const allRelationships=edges.length?edges.map((edge)=>{const from=nodeIndex.get(edge.fromNodeId),to=nodeIndex.get(edge.toNodeId);return `<div class="q-record-row"><span><strong>${escapeHtml(from?.label??edge.fromNodeId)}</strong><small>${escapeHtml(edge.type)} → ${escapeHtml(to?.label??edge.toNodeId)}</small></span><span class="q-status q-status--${isDemo?'simulated':'cached'}">${isDemo?'demo link':'linked'}</span></div>`;}).join(''):`<div class="q-empty"><h3>No relationships recorded</h3><p>The graph contains records but no governed edges.</p></div>`;
-  return `<section class="q-panel q-provenance-explorer" data-provenance-explorer><div class="q-panel-head"><div><p class="q-eyebrow">Evidence graph · traversal mode</p><h2>${escapeHtml(graph.title)}</h2><p>${escapeHtml(graph.truthBoundary)}</p></div><span class="q-status q-status--${isDemo?'simulated':graph.integrity?.valid?'live':'unavailable'}">${isDemo?'demo structure':graph.integrity?.valid?'integrity valid':'integrity unavailable'}</span></div><div class="q-panel-body q-provenance-panel-body">
+  const allRelationships=edges.length?edges.map((edge)=>{const from=nodeIndex.get(edge.fromNodeId),to=nodeIndex.get(edge.toNodeId);return `<div class="q-record-row"><span><strong>${escapeHtml(from?.label??edge.fromNodeId)}</strong><small>${escapeHtml(edge.type)} → ${escapeHtml(to?.label??edge.toNodeId)}</small></span><span class="q-status q-status--${nonProduction?'simulated':'cached'}">${isCaptureFixture?'fixture link':isDemo?'demo link':'linked'}</span></div>`;}).join(''):`<div class="q-empty"><h3>No relationships recorded</h3><p>The graph contains records but no governed edges.</p></div>`;
+  const graphStatus=isCaptureFixture?'governed local fixture':isDemo?'demo structure':graph.integrity?.valid?'integrity valid':'integrity unavailable';
+  const graphTone=nonProduction?'simulated':graph.integrity?.valid?'live':'unavailable';
+  return `<section class="q-panel q-provenance-explorer" data-provenance-explorer><div class="q-panel-head"><div><p class="q-eyebrow">Evidence graph · traversal mode</p><h2>${escapeHtml(graph.title)}</h2><p>${escapeHtml(graph.truthBoundary)}</p></div><span class="q-status q-status--${graphTone}">${graphStatus}</span></div><div class="q-panel-body q-provenance-panel-body">
     <div class="q-provenance-workbench">
       <nav class="q-provenance-node-navigator" aria-label="Evidence graph records"><div class="q-provenance-column-head"><span>Records</span><strong>${nodes.length}</strong></div><div class="q-provenance-node-list" role="tablist" aria-label="Evidence graph records">${nodeButtons}</div><p class="q-provenance-keyboard-hint">Use Tab to enter the graph. Arrow keys move between records.</p></nav>
-      <article class="q-provenance-focus" id="q-provenance-focus" role="tabpanel" aria-labelledby="${selectedTabId}" data-provenance-focus aria-live="polite" aria-atomic="true"><div class="q-provenance-focus__head"><div><p class="q-eyebrow">Selected record</p><h3>${escapeHtml(selected.label)}</h3></div><span class="q-status q-status--${nodeTone(selected,isDemo)}">${escapeHtml(selected.type)}</span></div><div class="q-provenance-record-meta"><span>${escapeHtml(selected.classification)}</span><span>Revision ${escapeHtml(String(selected.revision))}</span><span>${escapeHtml(selected.nodeId)}</span></div>${detailMarkup}</article>
+      <article class="q-provenance-focus" id="q-provenance-focus" role="tabpanel" aria-labelledby="${selectedTabId}" data-provenance-focus aria-live="polite" aria-atomic="true"><div class="q-provenance-focus__head"><div><p class="q-eyebrow">Selected record</p><h3>${escapeHtml(selected.label)}</h3></div><span class="q-status q-status--${nodeTone(selected,truthFlags)}">${escapeHtml(selected.type)}</span></div><div class="q-provenance-record-meta"><span>${escapeHtml(selected.classification)}</span><span>Revision ${escapeHtml(String(selected.revision))}</span><span>${escapeHtml(selected.nodeId)}</span></div>${detailMarkup}</article>
       <aside class="q-provenance-relations" aria-label="Relationships for selected record"><div class="q-provenance-column-head"><span>Connected evidence</span><strong>${connected.length}</strong></div><div class="q-provenance-relation-list">${relationButtons}</div></aside>
     </div>
-    <div class="q-provenance-context-ribbon" data-provenance-context aria-live="polite"><span class="q-status q-status--${nodeTone(selected,isDemo)}">${escapeHtml(selected.type)}</span><strong>${escapeHtml(selected.label)}</strong><small>${connected.length} governed relationship${connected.length===1?'':'s'} · revision ${escapeHtml(String(selected.revision))}</small></div>
+    <div class="q-provenance-context-ribbon" data-provenance-context aria-live="polite"><span class="q-status q-status--${nodeTone(selected,truthFlags)}">${escapeHtml(selected.type)}</span><strong>${escapeHtml(selected.label)}</strong><small>${connected.length} governed relationship${connected.length===1?'':'s'} · revision ${escapeHtml(String(selected.revision))}</small></div>
   </div></section>
-  <section class="q-panel q-provenance-relationships-audit"><div class="q-panel-head"><div><h2>Governed relationships</h2><p>Every edge points to an existing record. Missing or orphaned evidence must remain visible.</p></div><span class="q-status q-status--${isDemo?'simulated':'cached'}">${edges.length} relationships</span></div><div class="q-panel-body q-stack">${allRelationships}</div></section>
+  <section class="q-panel q-provenance-relationships-audit"><div class="q-panel-head"><div><h2>Governed relationships</h2><p>Every edge points to an existing record. Missing or orphaned evidence must remain visible.</p></div><span class="q-status q-status--${nonProduction?'simulated':'cached'}">${edges.length} relationships</span></div><div class="q-panel-body q-stack">${allRelationships}</div></section>
   <section class="q-panel"><div class="q-panel-head"><div><h2>Accessible text alternative</h2><p>The full relationship remains usable without the visual graph.</p></div></div><div class="q-panel-body"><ol>${(graph.textAlternative?.steps??[]).map((step)=>`<li>${escapeHtml(step)}</li>`).join('')}</ol></div></section>`;
 }
 
 export async function renderDecisionProvenance(main,deps){
   activateWave3Stylesheet();
   const {api,pageHead,stateBanner,escapeHtml,toast,renderRoute,navigate}=deps;
-  const listing=await api('/api/v1/evidence/graphs');
+  let result=evaluateDecision();
+  let listing=await api('/api/v1/evidence/graphs');
+  listing=await ensureGovernedCaptureGraph(listing,api,result);
   const graph=listing.items?.[0]?await api(`/api/v1/evidence/graphs/${encodeURIComponent(listing.items[0].graphId)}`):null;
   const isDemo=listing.mode==='deterministic-demo';
-  let result=evaluateDecision();
+  const isCaptureFixture=isGovernedCaptureFixture()&&Boolean(graph);
   let selectedNodeId=defaultGraphNodeId(graph);
 
   const bindGraph=()=>{
@@ -92,7 +107,7 @@ export async function renderDecisionProvenance(main,deps){
     const activate=(nodeId,{focus=true}={})=>{
       if(!graph.nodes?.some((node)=>node.nodeId===nodeId))return;
       selectedNodeId=nodeId;
-      stack.innerHTML=graphMarkup(graph,isDemo,escapeHtml,selectedNodeId);
+      stack.innerHTML=graphMarkup(graph,{isDemo,isCaptureFixture},escapeHtml,selectedNodeId);
       bindGraph();
       if(focus)requestAnimationFrame(()=>Array.from(stack.querySelectorAll('[data-provenance-node]')).find((button)=>button.dataset.provenanceNode===selectedNodeId)?.focus());
     };
@@ -114,10 +129,13 @@ export async function renderDecisionProvenance(main,deps){
   };
 
   const draw=()=>{
+    const truthLabel=isCaptureFixture?'local fixture · no production data':isDemo?'demo · not persisted · not live':'workspace evidence';
+    const truthTone=isCaptureFixture||isDemo?'simulated':'cached';
+    const truthText=isCaptureFixture?`${listing.truthBoundary} This graph was created only inside the governed screenshot runtime to exercise provenance traversal; external providers and execution are disabled.`:listing.truthBoundary;
     main.innerHTML=`<section class="q-page q-decision-provenance-page">${pageHead('Explainable decision intelligence','Qelly AI Decision Support','Analyze a market hypothesis, separate evidence from inference, expose contradictions and preserve the path to a human decision.',`<button class="q-button q-button--secondary" data-action="market">Open market</button><button class="q-button q-button--secondary" data-action="export-decision">Export analysis</button><button class="q-button q-button--primary" data-action="export-graph" ${graph?'':'disabled'}>Export provenance</button>`)}${stateBanner()}
-      <div class="q-truth-callout"><span class="q-status q-status--${isDemo?'simulated':'cached'}">${isDemo?'demo · not persisted · not live':'workspace evidence'}</span><p>${escapeHtml(listing.truthBoundary)}</p></div>
+      <div class="q-truth-callout"><span class="q-status q-status--${truthTone}">${truthLabel}</span><p>${escapeHtml(truthText)}</p></div>
       <div class="q-kpi-grid"><article class="q-kpi"><div class="q-kpi-label">Research posture</div><div class="q-kpi-value">${escapeHtml(result.posture)}</div><div class="q-kpi-meta"><span>${escapeHtml(result.asset.symbol)} · ${escapeHtml(result.input.horizon)}</span><span class="q-status q-status--cached">score ${result.score}</span></div></article><article class="q-kpi"><div class="q-kpi-label">User-assessed confidence</div><div class="q-kpi-value">${result.input.evidenceConfidence}%</div><div class="q-kpi-meta"><span>${escapeHtml(result.confidenceBand)} band</span><span class="q-status q-status--warning">assumption</span></div></article><article class="q-kpi"><div class="q-kpi-label">Source quality</div><div class="q-kpi-value">${result.sourceQuality.composite}</div><div class="q-kpi-meta"><span>demo package</span><span class="q-status q-status--warning">freshness unavailable</span></div></article><article class="q-kpi"><div class="q-kpi-label">Execution</div><div class="q-kpi-value">Off</div><div class="q-kpi-meta"><span>decision support only</span><span class="q-status q-status--unavailable">disabled</span></div></article></div>
-      <div class="q-decision-graph-stack">${graphMarkup(graph,isDemo,escapeHtml,selectedNodeId)}</div>
+      <div class="q-decision-graph-stack">${graphMarkup(graph,{isDemo,isCaptureFixture},escapeHtml,selectedNodeId)}</div>
       ${decisionControls(result,isDemo,escapeHtml)}
       ${analysisAuditMarkup(result,escapeHtml)}
     </section>`;
