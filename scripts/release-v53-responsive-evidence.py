@@ -24,6 +24,7 @@ VIEWPORTS=[
     ('desktop-1728',1728,1080),('desktop-1920',1920,1080),
 ]
 MOBILE_MARKET_MAX_SECTION_GAP_PX=96
+HEADER_BOUNDARY_TOLERANCE_PX=2
 
 
 def route_definitions():
@@ -62,8 +63,19 @@ def generated_runner():
     source=source.replace(init_anchor,init_replacement,1)
 
     probe_anchor="                    if not heading or heading.strip() in RENDER_FAILURE_HEADINGS:"
-    probe_code="""                    if route_name == 'market':
-                        layout_probe = page.evaluate(\"\"\"() => {
+    probe_code="""                    layout_probe = page.evaluate(\"\"\"() => {
+                      const head=document.querySelector('.q-page-head');
+                      if(!head)return {pageHead:null};
+                      const box=head.getBoundingClientRect();
+                      return {pageHead:{
+                        left:Math.round(box.left),
+                        right:Math.round(box.right),
+                        width:Math.round(box.width),
+                        viewportWidth:Math.round(innerWidth)
+                      }};
+                    }\"\"\")
+                    if route_name == 'market':
+                        market_probe = page.evaluate(\"\"\"() => {
                           const sample=(selector)=>{
                             const node=document.querySelector(selector);
                             if(!node)return null;
@@ -97,6 +109,7 @@ def generated_runner():
                             hostToShell:host&&shell?Math.round(shell.top-host.top):null
                           };
                         }\"\"\")
+                        layout_probe.update(market_probe)
                     if not heading or heading.strip() in RENDER_FAILURE_HEADINGS:"""
     if probe_anchor not in source:
         raise SystemExit('responsive evidence source anchor missing: layout probe evaluation')
@@ -163,8 +176,29 @@ def main():
         if not item: continue
         if item.get('status')!='passed' or (item.get('overflowPx') or 0)>2 or not (ROOT/item['file']).is_file():
             failures.append(item)
+        probe=item.get('layoutProbe') or {}
+        page_head=probe.get('pageHead')
+        if page_head:
+            left=page_head.get('left')
+            right=page_head.get('right')
+            viewport_width=page_head.get('viewportWidth')
+            outside=(
+                left is None or right is None or viewport_width is None or
+                left < -HEADER_BOUNDARY_TOLERANCE_PX or
+                right > viewport_width + HEADER_BOUNDARY_TOLERANCE_PX
+            )
+            if outside:
+                layout_failures.append({
+                    'route':route,
+                    'viewport':viewport,
+                    'metric':'pageHeadViewportBounds',
+                    'leftPx':left,
+                    'rightPx':right,
+                    'viewportWidthPx':viewport_width,
+                    'tolerancePx':HEADER_BOUNDARY_TOLERANCE_PX,
+                    'probe':probe
+                })
         if route=='market' and viewport.startswith('phone-'):
-            probe=item.get('layoutProbe') or {}
             measured=probe.get('kpiToHost')
             if measured is None or measured>MOBILE_MARKET_MAX_SECTION_GAP_PX:
                 layout_failures.append({
@@ -181,7 +215,7 @@ def main():
         sheets[viewport]=contact_sheet(viewport,items)
     passed=len(results)==len(expected) and not missing_pairs and not failures and not layout_failures
     manifest={
-        'schemaVersion':2,
+        'schemaVersion':3,
         'evidenceHead':os.getenv('QELLY_V53_EVIDENCE_SHA','local'),
         'boundary':'governed local test runtime; exact compiled frontend; no production user data',
         'canonicalRouteCount':len(definitions),
@@ -196,6 +230,7 @@ def main():
         'layoutFailureCount':len(layout_failures),
         'layoutFailures':layout_failures,
         'marketMobileMaxSectionGapPx':MOBILE_MARKET_MAX_SECTION_GAP_PX,
+        'headerBoundaryTolerancePx':HEADER_BOUNDARY_TOLERANCE_PX,
         'contactSheets':sheets,
         'status':'passed' if passed else 'failed',
         'renders':[by[pair] for pair in expected if pair in by]
