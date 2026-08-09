@@ -23,6 +23,18 @@ test('Wave 1 is limited to audited flagship routes and preserves Theme Studio',a
   assert.equal(css.includes('data-v53-route="theme-personas"'),false);
 });
 
+test('legacy Sovereign full-bleed hero geometry is reset on compact flagship headers',async()=>{
+  const css=await read(CSS);
+  assert.match(css,/\.q-page-head\{[^}]*min-height:0!important/);
+  assert.match(css,/\.q-page-head\{[^}]*margin:0 0 8px!important/);
+  assert.match(css,/\.q-page-head\{[^}]*width:auto!important/);
+  assert.match(css,/\.q-page-head\{[^}]*background:none!important/);
+  assert.match(css,/\.q-page-head\{[^}]*color:var\(--q-text\)!important/);
+  assert.match(css,/\.q-page-head h1\{[^}]*color:var\(--q-text\)!important/);
+  assert.match(css,/\.q-page-head p\{color:var\(--q-muted\)!important\}/);
+  assert.doesNotMatch(css,/\.q-page-head\{[^}]*margin:-/);
+});
+
 test('Market and Advanced Chart receive compact workstation geometry',async()=>{
   const css=await read(CSS);
   assert.match(css,/data-v53-route="market"[\s\S]*grid-template-columns:minmax\(0,2\.1fr\)/);
