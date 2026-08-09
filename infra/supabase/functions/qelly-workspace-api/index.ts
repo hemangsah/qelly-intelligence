@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const SOURCE_REVISION="qelly-supabase-workspace-api-2026-08-08-v2";
+const SOURCE_REVISION="qelly-supabase-workspace-api-2026-08-08-v3";
 const headers={"content-type":"application/json; charset=utf-8","cache-control":"no-store","x-content-type-options":"nosniff"};
 const response=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers});
 const fail=(status:number,code:string,message:string,details:unknown=null)=>response({status:"error",code,message,details,apiRevision:SOURCE_REVISION},status);
@@ -36,6 +36,7 @@ const RESOURCES:Record<string,ResourceSpec>={
 };
 function specFor(resource:unknown){const key=text(resource,80);const spec=RESOURCES[key];if(!spec)throw Object.assign(new Error("Unknown resource"),{status:404,code:"resource_not_found"});return {key,spec};}
 function sanitizeData(input:any,spec:ResourceSpec){if(!input||typeof input!=="object"||Array.isArray(input))throw Object.assign(new Error("data must be an object"),{status:400,code:"invalid_data"});const out:Record<string,unknown>={};for(const [key,value] of Object.entries(input)){if(!spec.fields.includes(key))throw Object.assign(new Error(`Field is not writable: ${key}`),{status:400,code:"field_not_writable"});out[key]=value;}return out;}
+function safeCaughtFailure(error:any){const code=typeof error?.code==="string"?error.code:"workspace_api_error";if(code==="resource_not_found")return fail(404,code,"Unknown workspace resource");if(code==="invalid_data")return fail(400,code,"data must be an object");if(code==="field_not_writable")return fail(400,code,"Request contains a non-writable field");return fail(500,"workspace_api_error","Workspace API request failed safely");}
 
 Deno.serve(async(req:Request)=>{
  try{
@@ -70,5 +71,5 @@ Deno.serve(async(req:Request)=>{
     const id=url.searchParams.get("id");if(!id)return fail(400,"id_required","id query parameter is required");const {error}=await client.from(spec.table).delete().eq("id",id);if(error)return fail(400,"delete_failed","Resource deletion failed safely",{resource:key,code:error.code});return response({status:"success",resource:key,deleted:true,id,apiRevision:SOURCE_REVISION});
   }
   return fail(405,"method_not_allowed","Use GET, POST, PATCH or DELETE");
- }catch(error:any){return fail(error?.status??500,error?.code??"workspace_api_error",error instanceof Error?error.message:String(error));}
+ }catch(error:any){return safeCaughtFailure(error);}
 });
