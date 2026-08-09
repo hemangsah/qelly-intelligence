@@ -39,6 +39,10 @@ test('current shell exposes Verify and Evidence through native navigation primit
   assert.match(shell,/class="q-nav-link" data-qelly-verify-link="shell"/);
   assert.match(shell,/class="q-nav-link" data-qelly-methodology-link="shell"/);
   assert.match(shell,/#\/market\?view=\$\{view\}/);
+  assert.match(shell,/shelf\.style\.setProperty\('display','flex','important'\)/);
+  assert.match(shell,/shelf\.style\.removeProperty\('display'\)/);
+  assert.match(shell,/method\.textContent='Evidence'/);
+  assert.match(shell,/method\.setAttribute\('aria-label','Evidence Methodology'\)/);
   assert.match(shell,/shelf\.firstElementChild!==verify/);
   assert.match(shell,/shelf\.insertBefore\(method,verify\.nextElementSibling\)/);
   assert.match(shell,/MutationObserver/);
