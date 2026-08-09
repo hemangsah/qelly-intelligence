@@ -1,0 +1,16 @@
+drop index if exists public.qelly_dashboard_revisions_workspace_idx;
+drop index if exists public.qelly_data_quality_instrument_idx;
+drop index if exists public.qelly_data_quality_provider_idx;
+drop index if exists public.qelly_data_quality_series_idx;
+drop index if exists public.qelly_decision_revisions_workspace_idx;
+drop index if exists public.qelly_notification_delivery_event_idx;
+drop index if exists public.qelly_portfolio_positions_workspace_idx;
+drop index if exists public.qelly_provenance_edges_to_node_idx;
+drop index if exists public.qelly_research_revisions_workspace_idx;
+drop index if exists public.qelly_runtime_jobs_workspace_idx;
+drop index if exists public.qelly_theme_revisions_workspace_idx;
+drop index if exists public.qelly_theme_schedules_preset_idx;
+drop index if exists public.qelly_timeseries_series_provider_idx;
+drop index if exists public.qelly_verify_revisions_owner_idx;
+drop index if exists public.qelly_watchlist_items_workspace_idx;
+drop index if exists public.qelly_comments_parent_idx;

@@ -6,6 +6,22 @@ const registrationMessage=(error)=>{
   return'Qelly could not create the account. Try again shortly.';
 };
 
+const browserTimezone=()=>{
+  try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';}
+  catch{return'UTC';}
+};
+
+const suggestedCurrency=()=>{
+  const locale=String(navigator.language||'en-US').toUpperCase();
+  if(locale.includes('-IN'))return'INR';
+  if(locale.includes('-GB'))return'GBP';
+  if(locale.includes('-SG'))return'SGD';
+  if(locale.includes('-AE'))return'AED';
+  if(locale.includes('-JP'))return'JPY';
+  if(/-(DE|FR|IT|ES|NL|IE|PT|AT|BE|FI|GR)/.test(locale))return'EUR';
+  return'USD';
+};
+
 export async function renderAuthRegister(main,{api,toast,navigate,onAuthenticated}){
 if(window.__QELLY_CONFIG__?.capabilities?.emailDelivery!==true){
   main.innerHTML=`<section class="q-auth-page" data-production-auth="unavailable"><div class="q-auth-hero"><div><p class="q-eyebrow">Account availability</p><h1>Account creation is temporarily unavailable.</h1><p>Transactional email delivery has not been proven, so Qelly is not accepting registration requests. No account information has been submitted. Public markets and deterministic local tools remain available.</p></div></div><div class="q-auth-card"><div><p class="q-eyebrow">Fail-closed protection</p><h2>Email confirmation is unavailable</h2><p class="q-muted-copy">Registration will reopen only after a dedicated transactional email provider is configured and a production confirmation flow passes.</p></div><div class="q-auth-footer"><button class="q-button q-button--ghost" type="button" data-login>Sign in to an existing account</button><button class="q-button q-button--primary" type="button" data-home>Return home</button></div></div></section>`;
@@ -21,10 +37,11 @@ if(window.__QELLY_CONFIG__?.capabilities?.emailDelivery!==true){
         <label>Email<input name="email" type="email" inputmode="email" required autocomplete="username" placeholder="you@example.com"></label>
         <label class="q-password-field">Password<input name="password" type="password" required minlength="12" autocomplete="new-password" placeholder="Create a strong password" aria-describedby="password-help register-error"><button class="q-password-toggle" type="button" data-password-toggle aria-pressed="false">Show</button></label>
         <p id="password-help" class="q-muted-copy">Use at least 12 characters with uppercase, lowercase, a number and a symbol.</p>
+        <label>Base currency<select name="baseCurrency" required aria-describedby="currency-help"><option value="USD">USD — US Dollar</option><option value="INR">INR — Indian Rupee</option><option value="EUR">EUR — Euro</option><option value="GBP">GBP — Pound Sterling</option><option value="SGD">SGD — Singapore Dollar</option><option value="AED">AED — UAE Dirham</option><option value="JPY">JPY — Japanese Yen</option></select></label>
+        <p id="currency-help" class="q-muted-copy">Used for workspace display only. It does not enable trading, custody or currency conversion.</p>
         <input name="organizationName" type="hidden" value="Personal Qelly">
         <input name="workspaceName" type="hidden" value="My Qelly Workspace">
-        <input name="baseCurrency" type="hidden" value="USD">
-        <input name="timezone" type="hidden" value="Asia/Kolkata">
+        <input name="timezone" type="hidden" value="UTC">
         <label class="q-auth-consent"><input name="accepted" type="checkbox" required><span>I agree to the <a href="./legal/terms.html" target="_blank" rel="noopener">Terms</a> and acknowledge the <a href="./legal/privacy.html" target="_blank" rel="noopener">Privacy notice</a>.</span></label>
         <button class="q-button q-button--primary" type="submit" data-create>Create account</button>
         <p id="register-error" class="q-form-error" role="alert" aria-live="polite"></p>
@@ -33,6 +50,8 @@ if(window.__QELLY_CONFIG__?.capabilities?.emailDelivery!==true){
     </div>
   </section>`;
   const form=main.querySelector('#register-form'),error=main.querySelector('#register-error'),password=form.elements.password;
+  form.elements.timezone.value=browserTimezone();
+  form.elements.baseCurrency.value=suggestedCurrency();
   main.querySelector('[data-login]').addEventListener('click',()=>navigate('auth-login'));
   main.querySelector('[data-home]').addEventListener('click',()=>navigate('market'));
   main.querySelector('[data-password-toggle]').addEventListener('click',(event)=>{const visible=password.type==='text';password.type=visible?'password':'text';event.currentTarget.textContent=visible?'Show':'Hide';event.currentTarget.setAttribute('aria-pressed',String(!visible));password.focus();});
@@ -41,6 +60,7 @@ if(window.__QELLY_CONFIG__?.capabilities?.emailDelivery!==true){
     const submit=main.querySelector('[data-create]');submit.disabled=true;submit.textContent='Creating account…';form.setAttribute('aria-busy','true');
     try{
       const data=Object.fromEntries(new FormData(form));delete data.accepted;
+      data.timezone=browserTimezone();
       const result=await api('/api/v1/auth/register',{method:'POST',body:JSON.stringify(data),skipCsrf:true});
       if(result.verificationRequired){
         form.innerHTML=`<div class="q-auth-confirmation" role="status"><strong>Check your email</strong><p>We sent a confirmation link to the address you entered. Open it on this device to activate your account, then return to Qelly and sign in.</p></div><button class="q-button q-button--primary" type="button" data-confirm-login>Continue to sign in</button>`;

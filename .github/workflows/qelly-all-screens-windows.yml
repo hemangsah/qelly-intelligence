@@ -1,0 +1,132 @@
+name: Qelly Complete All-Screens Evidence Windows
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'apps/web/public/**'
+      - 'scripts/release-a5-*'
+      - 'src/server/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/qelly-all-screens-windows.yml'
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: qelly-all-screens-windows-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  capture-and-package-windows:
+    runs-on: windows-2025
+    timeout-minutes: 120
+    env:
+      QELLY_SCREEN_EVIDENCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      QELLY_SCREEN_BATCH_SIZE: '10'
+      QELLY_SQLITE_PATH: ':memory:'
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: 'utf-8'
+    steps:
+      - name: Checkout exact evidence head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Guard exact evidence head
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ((git rev-parse HEAD).Trim() -ne $env:QELLY_SCREEN_EVIDENCE_SHA) {
+            throw 'Exact evidence head mismatch'
+          }
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Install locked application dependencies
+        run: npm ci --ignore-scripts
+      - name: Install isolated browser evidence runtime
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python -m pip install --disable-pip-version-check playwright pillow
+          if ($LASTEXITCODE -ne 0) { throw 'Python browser dependencies failed to install' }
+          python -m playwright install chromium
+          if ($LASTEXITCODE -ne 0) { throw 'Chromium failed to install' }
+      - name: Validate exact source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $commands = @(
+            'npm run env:check',
+            'npm run typecheck',
+            'npm run lint',
+            'npm run validate:design',
+            'npm run security:scan',
+            'npm test',
+            'npm run build:frontend'
+          )
+          foreach ($command in $commands) {
+            Write-Host "::group::$command"
+            Invoke-Expression $command
+            $code = $LASTEXITCODE
+            Write-Host '::endgroup::'
+            if ($code -ne 0) { throw "Validation command failed ($code): $command" }
+          }
+      - name: Capture every registered route at desktop and mobile widths
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $routeCount = [int](node --input-type=module -e "import {routeDefinitions} from './apps/web/public/assets/route-registry.mjs'; process.stdout.write(String(routeDefinitions.length));")
+          if ($LASTEXITCODE -ne 0 -or $routeCount -lt 1) { throw 'Invalid route count' }
+          $out = Join-Path $PWD 'preview/release-a5-all-screens'
+          if (Test-Path $out) { Remove-Item -Recurse -Force $out }
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          $captureLog = Join-Path $out 'windows-capture.log'
+          $batchSize = [int]$env:QELLY_SCREEN_BATCH_SIZE
+          for ($start = 0; $start -lt $routeCount; $start += $batchSize) {
+            $end = [Math]::Min($start + $batchSize, $routeCount)
+            Write-Host "Capturing route batch $start..$end"
+            python -X utf8 scripts/release-a5-screen-batch.py $start $end 2>&1 | Tee-Object -FilePath $captureLog -Append
+            if ($LASTEXITCODE -ne 0) { throw "Screen batch $start..$end failed" }
+          }
+          python -X utf8 scripts/release-a5-screen-aggregate.py 2>&1 | Tee-Object -FilePath $captureLog -Append
+          if ($LASTEXITCODE -ne 0) { throw 'Screen aggregation failed' }
+          python -X utf8 scripts/release-a5-screen-package.py 2>&1 | Tee-Object -FilePath $captureLog -Append
+          if ($LASTEXITCODE -ne 0) { throw 'Screen packaging failed' }
+      - name: Verify exact screenshot archive
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $manifest = Get-Content 'preview/release-a5-all-screens/manifest.json' -Raw -Encoding utf8 | ConvertFrom-Json
+          $pngCount = (Get-ChildItem 'preview/release-a5-all-screens' -Filter '*.png').Count
+          $archives = @(Get-ChildItem 'preview' -Filter 'QELLY_ALL_SCREENS_*.zip')
+          if ($manifest.status -ne 'passed') { throw 'Manifest did not pass' }
+          if ([int]$manifest.routeCount -ne 70) { throw "Expected 70 routes, received $($manifest.routeCount)" }
+          if ([int]$manifest.renderCount -ne 140 -or [int]$manifest.expectedRenderCount -ne 140) { throw 'Expected 140 route-viewport renders' }
+          if ([int]$manifest.failed -ne 0 -or $manifest.missing.Count -ne 0) { throw 'Screen evidence contains failed or missing renders' }
+          if ($pngCount -ne 140) { throw "Expected 140 PNG files, received $pngCount" }
+          if ($archives.Count -ne 1 -or $archives[0].Length -le 0) { throw 'Exact screenshot ZIP is missing or empty' }
+          Write-Host ($manifest | ConvertTo-Json -Depth 4)
+          Write-Host "Archive: $($archives[0].FullName) ($($archives[0].Length) bytes)"
+      - name: Upload complete Windows evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-complete-all-screens-windows-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: |
+            preview/QELLY_ALL_SCREENS_*.zip
+            preview/release-a5-all-screens
+            preview/RELEASE_A5_ALL_SCREENS_LOG.json
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 30

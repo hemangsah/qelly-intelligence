@@ -1,0 +1,256 @@
+/* Qelly Intelligence — UI_LOCK_V5 frontend foundation
+   Approved 2026-08-07. This layer modernizes geometry, depth and motion without
+   deleting or bypassing existing product, evidence, accessibility or theme contracts. */
+
+:root{
+  --q-v5-r-micro:6px;
+  --q-v5-r-control:10px;
+  --q-v5-r-data:14px;
+  --q-v5-r-panel:18px;
+  --q-v5-r-sheet:24px;
+  --q-v5-r-pill:999px;
+  --q-v5-motion-instant:120ms;
+  --q-v5-motion-fast:180ms;
+  --q-v5-motion-standard:280ms;
+  --q-v5-motion-spatial:420ms;
+  --q-v5-spring:cubic-bezier(.16,1,.3,1);
+  --q-v5-ease:cubic-bezier(.22,.61,.36,1);
+  --q-v5-shadow-panel:0 16px 48px rgb(8 4 7 / .22);
+  --q-v5-shadow-float:0 22px 70px rgb(8 4 7 / .34);
+  --q-v5-orbit:color-mix(in srgb,var(--q-accent,#6f1838) 42%,transparent);
+  --q-v5-orbit-soft:color-mix(in srgb,var(--q-accent,#6f1838) 20%,transparent);
+}
+
+html[data-ui-lock-v5="active"]{
+  scroll-behavior:smooth;
+}
+
+html[data-ui-lock-v5="active"] body{
+  background:
+    radial-gradient(1200px 680px at 82% -12%,color-mix(in srgb,var(--q-accent,#6f1838) 12%,transparent),transparent 64%),
+    var(--q-canvas,var(--q-color-bg,#0b080a));
+}
+
+/* Floating global command surface. */
+html[data-ui-lock-v5="active"] .q-command-bar{
+  position:sticky;
+  top:8px;
+  z-index:70;
+  margin:8px 10px 0;
+  border-radius:var(--q-v5-r-panel);
+  border-color:color-mix(in srgb,var(--q-border,#5a3445) 72%,transparent);
+  box-shadow:0 12px 46px rgb(5 3 5 / .20);
+  backdrop-filter:blur(18px) saturate(118%);
+  -webkit-backdrop-filter:blur(18px) saturate(118%);
+  transition:
+    transform var(--q-v5-motion-fast) var(--q-v5-spring),
+    box-shadow var(--q-v5-motion-standard) var(--q-v5-ease),
+    border-color var(--q-v5-motion-fast) ease,
+    background-color var(--q-v5-motion-fast) ease;
+}
+
+html[data-ui-lock-v5="active"] .q-command-bar[data-v5-scrolled="true"]{
+  box-shadow:var(--q-v5-shadow-float);
+  transform:translateY(-1px);
+}
+
+html[data-ui-lock-v5="active"] .q-command-trigger,
+html[data-ui-lock-v5="active"] .q-icon-button,
+html[data-ui-lock-v5="active"] .q-button,
+html[data-ui-lock-v5="active"] button,
+html[data-ui-lock-v5="active"] select,
+html[data-ui-lock-v5="active"] input,
+html[data-ui-lock-v5="active"] textarea{
+  transition:
+    transform var(--q-v5-motion-fast) var(--q-v5-spring),
+    background-color var(--q-v5-motion-fast) ease,
+    border-color var(--q-v5-motion-fast) ease,
+    box-shadow var(--q-v5-motion-fast) ease,
+    opacity var(--q-v5-motion-fast) ease;
+}
+
+html[data-ui-lock-v5="active"] :where(.q-command-trigger,.q-icon-button,.q-button,button):not(:disabled):active{
+  transform:scale(.985);
+}
+
+/* Continuous shell geometry. */
+html[data-ui-lock-v5="active"] :where(.q-panel,.q-card,.q-research-card,.q-kpi,.q-ti-control-group,.q-ti-theme-card,.q-ti-compare-panel){
+  border-radius:var(--q-v5-r-panel);
+  box-shadow:0 1px 0 rgb(255 255 255 / .015),var(--q-v5-shadow-panel);
+  transition:
+    transform var(--q-v5-motion-standard) var(--q-v5-spring),
+    border-color var(--q-v5-motion-fast) ease,
+    box-shadow var(--q-v5-motion-standard) var(--q-v5-ease),
+    background-color var(--q-v5-motion-fast) ease;
+}
+
+html[data-ui-lock-v5="active"] :where(.q-panel,.q-research-card,.q-ti-theme-card):hover{
+  transform:translateY(-2px);
+  border-color:color-mix(in srgb,var(--q-accent,#6f1838) 38%,var(--q-border,#5a3445));
+}
+
+html[data-ui-lock-v5="active"] :where(.q-context-drawer,.q-ti-drawer,.q-ti-modal,.q-command-dialog){
+  border-radius:var(--q-v5-r-sheet);
+  box-shadow:var(--q-v5-shadow-float);
+}
+
+html[data-ui-lock-v5="active"] .q-context-drawer{
+  margin:8px 8px 8px 0;
+  height:calc(100% - 16px);
+}
+
+html[data-ui-lock-v5="active"] .q-rail{
+  margin:8px 0 8px 8px;
+  height:calc(100% - 16px);
+  border-radius:var(--q-v5-r-panel);
+  overflow:hidden;
+}
+
+html[data-ui-lock-v5="active"] #primary-nav :where(a,button),
+html[data-ui-lock-v5="active"] .q-edge-dock :where(a,button){
+  border-radius:var(--q-v5-r-control);
+}
+
+html[data-ui-lock-v5="active"] #primary-nav :where(a,button)[aria-current="page"],
+html[data-ui-lock-v5="active"] #primary-nav :where(a,button).is-active{
+  background:linear-gradient(90deg,
+    color-mix(in srgb,var(--q-accent,#6f1838) 84%,transparent),
+    color-mix(in srgb,var(--q-accent,#6f1838) 26%,transparent));
+}
+
+/* Page-level curved spatial field: semantic macro geometry rather than card decoration. */
+html[data-ui-lock-v5="active"] :where(.q-page-head,.q-ti-hero,.q-mi-hero,.q-public-hero,.q-hero){
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  border-radius:0 0 var(--q-v5-r-sheet) var(--q-v5-r-sheet);
+}
+
+html[data-ui-lock-v5="active"] :where(.q-page-head,.q-ti-hero,.q-mi-hero,.q-public-hero,.q-hero)::before,
+html[data-ui-lock-v5="active"] :where(.q-page-head,.q-ti-hero,.q-mi-hero,.q-public-hero,.q-hero)::after{
+  content:"";
+  position:absolute;
+  pointer-events:none;
+  z-index:-1;
+  border:1px solid var(--q-v5-orbit);
+  border-radius:50%;
+  width:min(36vw,520px);
+  aspect-ratio:1;
+  right:-8%;
+  top:-54%;
+  opacity:.52;
+  transform:rotate(-8deg);
+}
+
+html[data-ui-lock-v5="active"] :where(.q-page-head,.q-ti-hero,.q-mi-hero,.q-public-hero,.q-hero)::after{
+  width:min(25vw,360px);
+  right:3%;
+  top:-28%;
+  opacity:.34;
+  border-color:var(--q-v5-orbit-soft);
+}
+
+/* Evidence-first modules remain dense; only hierarchy and rhythm change. */
+html[data-ui-lock-v5="active"] .q-kpi{
+  border-radius:var(--q-v5-r-data);
+}
+
+html[data-ui-lock-v5="active"] :where(.q-status,.q-capability,.q-chip,.q-badge){
+  border-radius:var(--q-v5-r-pill);
+}
+
+html[data-ui-lock-v5="active"] :where(.q-record-row,.q-notification-item,.q-setting,.q-ti-field){
+  border-radius:var(--q-v5-r-control);
+}
+
+/* Theme Studio: fewer hard boxes, stronger continuous workspace anatomy. */
+html[data-ui-lock-v5="active"] .q-ti-layout{
+  gap:12px;
+}
+
+html[data-ui-lock-v5="active"] .q-ti-controls{
+  border-radius:var(--q-v5-r-sheet);
+}
+
+html[data-ui-lock-v5="active"] .q-ti-preview-shell{
+  border-radius:var(--q-v5-r-sheet);
+  overflow:hidden;
+  box-shadow:var(--q-v5-shadow-float);
+}
+
+html[data-ui-lock-v5="active"] .q-ti-theme-card{
+  overflow:hidden;
+}
+
+html[data-ui-lock-v5="active"] .q-ti-theme-card::after{
+  content:"";
+  position:absolute;
+  width:150px;
+  aspect-ratio:1;
+  border:1px solid color-mix(in srgb,var(--q-accent,#6f1838) 26%,transparent);
+  border-radius:50%;
+  right:-72px;
+  top:-82px;
+  pointer-events:none;
+  opacity:.42;
+}
+
+html[data-ui-lock-v5="active"] .q-ti-chart-line,
+html[data-ui-lock-v5="active"] .q-mi-chart path,
+html[data-ui-lock-v5="active"] .q-chart path{
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+/* Route transitions use opacity and small spatial travel only; never hide truth states. */
+html[data-ui-lock-v5="active"] #main[data-v5-route-enter="true"] > *{
+  animation:q-v5-route-enter var(--q-v5-motion-standard) var(--q-v5-spring) both;
+}
+
+@keyframes q-v5-route-enter{
+  from{opacity:.38;transform:translateY(8px) scale(.997)}
+  to{opacity:1;transform:none}
+}
+
+/* Subtle curved trajectory animation for SVG analytical lines explicitly opted in by class. */
+html[data-ui-lock-v5="active"][data-motion="full"] :where(.q-ti-chart-line,.q-v5-animated-path){
+  stroke-dasharray:1600;
+  stroke-dashoffset:1600;
+  animation:q-v5-path-draw 900ms var(--q-v5-spring) forwards;
+}
+
+@keyframes q-v5-path-draw{to{stroke-dashoffset:0}}
+
+/* Tablet/mobile are task-specific rather than compressed terminal replicas. */
+@media(max-width:1024px){
+  html[data-ui-lock-v5="active"] .q-command-bar{margin-inline:8px;border-radius:var(--q-v5-r-data)}
+  html[data-ui-lock-v5="active"] .q-rail{margin-left:6px}
+  html[data-ui-lock-v5="active"] :where(.q-page-head,.q-ti-hero,.q-mi-hero,.q-public-hero,.q-hero)::before{width:430px;right:-210px;top:-230px}
+}
+
+@media(max-width:640px){
+  html[data-ui-lock-v5="active"] .q-command-bar{top:6px;margin:6px;border-radius:var(--q-v5-r-data)}
+  html[data-ui-lock-v5="active"] :where(.q-panel,.q-ti-control-group,.q-ti-theme-card){border-radius:var(--q-v5-r-data)}
+  html[data-ui-lock-v5="active"] :where(.q-context-drawer,.q-ti-drawer,.q-command-dialog){border-radius:var(--q-v5-r-sheet) var(--q-v5-r-sheet) 0 0}
+  html[data-ui-lock-v5="active"] :where(.q-page-head,.q-ti-hero,.q-mi-hero,.q-public-hero,.q-hero)::before{width:330px;right:-190px;top:-175px}
+  html[data-ui-lock-v5="active"] :where(.q-page-head,.q-ti-hero,.q-mi-hero,.q-public-hero,.q-hero)::after{width:220px;right:-84px;top:-94px}
+}
+
+/* Accessibility: complete motion parity, not merely slower movement. */
+@media(prefers-reduced-motion:reduce){
+  html[data-ui-lock-v5="active"]{scroll-behavior:auto}
+  html[data-ui-lock-v5="active"] *,
+  html[data-ui-lock-v5="active"] *::before,
+  html[data-ui-lock-v5="active"] *::after{
+    scroll-behavior:auto!important;
+    animation-duration:.001ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.001ms!important;
+    transition-delay:0ms!important;
+  }
+  html[data-ui-lock-v5="active"] #main[data-v5-route-enter="true"] > *,
+  html[data-ui-lock-v5="active"] :where(.q-panel,.q-research-card,.q-ti-theme-card):hover,
+  html[data-ui-lock-v5="active"] .q-command-bar[data-v5-scrolled="true"]{
+    transform:none!important;
+  }
+}
