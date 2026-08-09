@@ -23,6 +23,7 @@ VIEWPORTS=[
     ('desktop-1280',1280,800),('desktop-1440',1440,1000),
     ('desktop-1728',1728,1080),('desktop-1920',1920,1080),
 ]
+MOBILE_MARKET_MAX_SECTION_GAP_PX=96
 
 
 def route_definitions():
@@ -53,6 +54,59 @@ def generated_runner():
     source,count=pattern.subn(replacement,source,count=1)
     if count!=1:
         raise SystemExit('responsive evidence source anchor missing: viewport list')
+
+    init_anchor="                page_height = None\n                status = 'passed'"
+    init_replacement="                page_height = None\n                layout_probe = None\n                status = 'passed'"
+    if init_anchor not in source:
+        raise SystemExit('responsive evidence source anchor missing: layout probe init')
+    source=source.replace(init_anchor,init_replacement,1)
+
+    probe_anchor="                    if not heading or heading.strip() in RENDER_FAILURE_HEADINGS:"
+    probe_code="""                    if route_name == 'market':
+                        layout_probe = page.evaluate(\"\"\"() => {
+                          const sample=(selector)=>{
+                            const node=document.querySelector(selector);
+                            if(!node)return null;
+                            const box=node.getBoundingClientRect();
+                            const style=getComputedStyle(node);
+                            return {
+                              selector,
+                              top:Math.round(box.top+scrollY),
+                              bottom:Math.round(box.bottom+scrollY),
+                              height:Math.round(box.height),
+                              display:style.display,
+                              position:style.position,
+                              alignSelf:style.alignSelf,
+                              minHeight:style.minHeight,
+                              heightCss:style.height,
+                              marginTop:style.marginTop,
+                              paddingTop:style.paddingTop,
+                              gridTemplateRows:style.gridTemplateRows
+                            };
+                          };
+                          const kpi=sample('.q-kpi-grid');
+                          const dashboard=sample('.q-dashboard-grid');
+                          const host=sample('#market-chart');
+                          const shell=sample('#market-chart .q-chart-shell');
+                          const stack=sample('.q-dashboard-grid .q-stack');
+                          return {
+                            kpi,dashboard,host,shell,stack,
+                            kpiToDashboard:kpi&&dashboard?Math.round(dashboard.top-kpi.bottom):null,
+                            kpiToHost:kpi&&host?Math.round(host.top-kpi.bottom):null,
+                            kpiToShell:kpi&&shell?Math.round(shell.top-kpi.bottom):null,
+                            hostToShell:host&&shell?Math.round(shell.top-host.top):null
+                          };
+                        }\"\"\")
+                    if not heading or heading.strip() in RENDER_FAILURE_HEADINGS:"""
+    if probe_anchor not in source:
+        raise SystemExit('responsive evidence source anchor missing: layout probe evaluation')
+    source=source.replace(probe_anchor,probe_code,1)
+
+    result_anchor="                    'pageHeightPx': page_height,\n                    'heading': heading,"
+    result_replacement="                    'pageHeightPx': page_height,\n                    'layoutProbe': layout_probe,\n                    'heading': heading,"
+    if result_anchor not in source:
+        raise SystemExit('responsive evidence source anchor missing: layout probe result')
+    source=source.replace(result_anchor,result_replacement,1)
     GENERATED.write_text(source,encoding='utf-8')
 
 
@@ -103,17 +157,31 @@ def main():
     expected=[(route,name) for route in REPRESENTATIVE_ROUTES for name,_,_ in VIEWPORTS]
     missing_pairs=[{'route':route,'viewport':viewport} for route,viewport in expected if (route,viewport) not in by]
     failures=[]
+    layout_failures=[]
     for route,viewport in expected:
         item=by.get((route,viewport))
         if not item: continue
         if item.get('status')!='passed' or (item.get('overflowPx') or 0)>2 or not (ROOT/item['file']).is_file():
             failures.append(item)
+        if route=='market' and viewport.startswith('phone-'):
+            probe=item.get('layoutProbe') or {}
+            measured=probe.get('kpiToShell')
+            if measured is None or measured>MOBILE_MARKET_MAX_SECTION_GAP_PX:
+                layout_failures.append({
+                    'route':route,
+                    'viewport':viewport,
+                    'metric':'kpiToShell',
+                    'measuredPx':measured,
+                    'maximumPx':MOBILE_MARKET_MAX_SECTION_GAP_PX,
+                    'probe':probe
+                })
     sheets={}
     for viewport,_,_ in VIEWPORTS:
         items=[by[(route,viewport)] for route in REPRESENTATIVE_ROUTES if (route,viewport) in by]
         sheets[viewport]=contact_sheet(viewport,items)
+    passed=len(results)==len(expected) and not missing_pairs and not failures and not layout_failures
     manifest={
-        'schemaVersion':1,
+        'schemaVersion':2,
         'evidenceHead':os.getenv('QELLY_V53_EVIDENCE_SHA','local'),
         'boundary':'governed local test runtime; exact compiled frontend; no production user data',
         'canonicalRouteCount':len(definitions),
@@ -125,12 +193,15 @@ def main():
         'viewports':[{'name':name,'width':width,'height':height} for name,width,height in VIEWPORTS],
         'missing':missing_pairs,
         'failureCount':len(failures),
+        'layoutFailureCount':len(layout_failures),
+        'layoutFailures':layout_failures,
+        'marketMobileMaxSectionGapPx':MOBILE_MARKET_MAX_SECTION_GAP_PX,
         'contactSheets':sheets,
-        'status':'passed' if len(results)==len(expected) and not missing_pairs and not failures else 'failed',
+        'status':'passed' if passed else 'failed',
         'renders':[by[pair] for pair in expected if pair in by]
     }
     (OUT/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')
-    print(json.dumps({key:manifest[key] for key in ('canonicalRouteCount','representativeRouteCount','viewportCount','renderCount','expectedRenderCount','failureCount','status')},indent=2))
+    print(json.dumps({key:manifest[key] for key in ('canonicalRouteCount','representativeRouteCount','viewportCount','renderCount','expectedRenderCount','failureCount','layoutFailureCount','status')},indent=2))
     if manifest['status']!='passed':
         raise SystemExit(1)
 
