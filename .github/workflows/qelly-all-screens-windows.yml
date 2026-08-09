@@ -111,10 +111,10 @@ jobs:
           $pngCount = (Get-ChildItem 'preview/release-a5-all-screens' -Filter '*.png').Count
           $archives = @(Get-ChildItem 'preview' -Filter 'QELLY_ALL_SCREENS_*.zip')
           if ($manifest.status -ne 'passed') { throw 'Manifest did not pass' }
-          if ([int]$manifest.routeCount -ne 70) { throw "Expected 70 routes, received $($manifest.routeCount)" }
-          if ([int]$manifest.renderCount -ne 140 -or [int]$manifest.expectedRenderCount -ne 140) { throw 'Expected 140 route-viewport renders' }
+          if ([int]$manifest.routeCount -ne 71) { throw "Expected 71 routes, received $($manifest.routeCount)" }
+          if ([int]$manifest.renderCount -ne 142 -or [int]$manifest.expectedRenderCount -ne 142) { throw 'Expected 142 route-viewport renders' }
           if ([int]$manifest.failed -ne 0 -or $manifest.missing.Count -ne 0) { throw 'Screen evidence contains failed or missing renders' }
-          if ($pngCount -ne 140) { throw "Expected 140 PNG files, received $pngCount" }
+          if ($pngCount -ne 142) { throw "Expected 142 PNG files, received $pngCount" }
           if ($archives.Count -ne 1 -or $archives[0].Length -le 0) { throw 'Exact screenshot ZIP is missing or empty' }
           Write-Host ($manifest | ConvertTo-Json -Depth 4)
           Write-Host "Archive: $($archives[0].FullName) ($($archives[0].Length) bytes)"

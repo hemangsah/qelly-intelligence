@@ -89,7 +89,7 @@ jobs:
           const pngs=files.filter(name=>name.endsWith('.png'));
           const archives=(await readdir('preview')).filter(name=>/^QELLY_ALL_SCREENS_[0-9a-f]{12}\.zip$/.test(name));
           const archiveSize=archives.length===1?(await stat(`preview/${archives[0]}`)).size:0;
-          const ok=manifest.status==='passed'&&manifest.routeCount===70&&manifest.renderCount===140&&manifest.expectedRenderCount===140&&pngs.length===140&&manifest.failed===0&&manifest.missing.length===0&&accessibility.status==='passed'&&archives.length===1&&archiveSize>0;
+          const ok=manifest.status==='passed'&&manifest.routeCount===71&&manifest.renderCount===142&&manifest.expectedRenderCount===142&&pngs.length===142&&manifest.failed===0&&manifest.missing.length===0&&accessibility.status==='passed'&&archives.length===1&&archiveSize>0;
           console.log(JSON.stringify({routeCount:manifest.routeCount,renderCount:manifest.renderCount,pngs:pngs.length,accessibilityChecks:accessibility.checks,accessibilityStatus:accessibility.status,archives,archiveSize,status:manifest.status},null,2));
           if(!ok)process.exit(1);
           NODE

@@ -27,7 +27,7 @@
     "staging:health": "node scripts/staging-health-check.mjs",
     "start:production": "NODE_ENV=production node src/server/server.mjs",
     "build": "node scripts/build.mjs",
-    "build:frontend": "node scripts/build-frontend.mjs && node scripts/harden-cloudflare-index.mjs && node scripts/finalize-public-runtime.mjs",
+    "build:frontend": "node scripts/build-frontend.mjs && node scripts/harden-cloudflare-index.mjs && node scripts/finalize-public-runtime.mjs && node scripts/finalize-public-seo.mjs",
     "validate:pages-preview": "node scripts/validate-pages-preview.mjs",
     "smoke:pages-preview": "node scripts/smoke-pages-preview.mjs",
     "ui:review": "node scripts/ui-review-orchestrator.mjs",

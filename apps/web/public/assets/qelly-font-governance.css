@@ -13,6 +13,7 @@
 }
 html,body,button,input,select,textarea{
   font-family:var(--q-font-ui)!important;
+  font-variant-numeric:tabular-nums lining-nums;
 }
 h1,h2,h3,h4,h5,h6,.q-brand-mark,.q-page-head{
   font-family:var(--q-font-display)!important;
