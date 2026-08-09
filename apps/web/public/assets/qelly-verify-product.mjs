@@ -10,7 +10,7 @@ let current=null;
 
 const escapeHtml=value=>String(value??'').replace(/[&<>'"]/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
 const routeState=()=>{const raw=location.hash.replace(/^#\/?/,'');const [path,query='']=raw.split('?');return{route:path.split('/')[0]||'market',params:new URLSearchParams(query)};};
-const viewActive=view=>{const {route,params}=routeState();return route==='market'&&params.get('view')===view;};
+const viewActive=view=>{const {route,params}=routeState();if(view==='qelly-verify'&&route==='qelly-verify')return true;return route==='market'&&params.get('view')===view;};
 const verifyActive=()=>viewActive('qelly-verify');
 const methodologyActive=()=>viewActive('evidence-methodology');
 const number=(value,digits=2)=>value==null?'—':new Intl.NumberFormat(undefined,{maximumFractionDigits:digits}).format(Number(value));
@@ -21,7 +21,7 @@ const scoreTone=(value,inverted=false)=>{const score=inverted?100-Number(value):
 function installNavigation(){
   const targets=[document.querySelector('.q-product-nav'),document.querySelector('.q-recovery-header nav')].filter(Boolean);
   for(const nav of targets){
-    if(!nav.querySelector('[data-qelly-verify-link]')){const link=document.createElement('a');link.href='#/market?view=qelly-verify';link.dataset.qellyVerifyLink='true';link.textContent='Verify';const first=nav.querySelector('a');if(first)nav.insertBefore(link,first);else nav.append(link);}
+    if(!nav.querySelector('[data-qelly-verify-link]')){const link=document.createElement('a');link.href='#/qelly-verify';link.dataset.qellyVerifyLink='true';link.textContent='Verify';const first=nav.querySelector('a');if(first)nav.insertBefore(link,first);else nav.append(link);}
     if(!nav.querySelector('[data-qelly-methodology-link]')){const link=document.createElement('a');link.href='#/market?view=evidence-methodology';link.dataset.qellyMethodologyLink='true';link.textContent='Evidence';const verify=nav.querySelector('[data-qelly-verify-link]');verify?.insertAdjacentElement('afterend',link);if(!verify)nav.append(link);}
   }
   document.querySelectorAll('[data-qelly-verify-link]').forEach(link=>link.classList.toggle('is-active',verifyActive()));
@@ -39,7 +39,7 @@ function enhanceHomepage(){
   if(kicker)kicker.textContent='Qelly Verify · Strategy intelligence';
   if(heading)heading.textContent='Quantitative intelligence for disciplined market decisions.';
   if(description)description.textContent='Validate strategy evidence, measure drawdown and robustness, stress trade sequences and estimate a constrained capital-allocation range through one auditable decision workflow.';
-  if(actions)actions.innerHTML='<a class="q-button q-button--primary" href="#/market?view=qelly-verify">Analyze a strategy</a><a class="q-button q-button--secondary" href="#/market?view=evidence-methodology">Review the methodology</a><a class="q-button q-button--ghost" href="./support.html">Request a demo</a>';
+  if(actions)actions.innerHTML='<a class="q-button q-button--primary" href="#/qelly-verify">Analyze a strategy</a><a class="q-button q-button--secondary" href="#/market?view=evidence-methodology">Review the methodology</a><a class="q-button q-button--ghost" href="./support.html">Request a demo</a>';
   const search=hero.querySelector('.q-market-hero__search');if(search)search.hidden=true;
   const capabilities=document.createElement('section');capabilities.className='q-verify-home-capabilities';capabilities.setAttribute('aria-label','Qelly decision-intelligence capabilities');capabilities.innerHTML=`
     <article><span>01</span><h2>Validate the edge</h2><p>Inspect expectancy, profit concentration, sample sufficiency and internal stability.</p></article>
@@ -88,7 +88,7 @@ function methodologyMarkup(){
     <section class="q-methodology-modules"><header><p class="q-verify-kicker">Current modules</p><h2>What the prototype calculates</h2></header>${methodology.modules.map(entry=>`<article id="method-${entry.id}"><div><span class="q-verify-state is-${entry.state}">${escapeHtml(entry.state.toUpperCase())}</span><h3>${escapeHtml(entry.label)}</h3><p>${escapeHtml(entry.description)}</p></div><ul>${entry.limitations.map(item=>`<li>${escapeHtml(item)}</li>`).join('')}</ul></article>`).join('')}</section>
     <section class="q-methodology-not-assessed"><header><p class="q-verify-kicker">Evidence gaps</p><h2>What Qelly does not infer</h2><p>These areas remain unavailable until the required independent data and validation design are supplied.</p></header>${stateList(methodology.notAssessed.map(entry=>({state:'NOT ASSESSED',label:entry.label,detail:entry.description})))}</section>
     <section class="q-methodology-scores"><p class="q-verify-kicker">Score disclosure</p><h2>Transparent prototype weights</h2><dl><div><dt>Strategy Quality</dt><dd>${escapeHtml(methodology.scoreDisclosure.strategyQuality)}</dd></div><div><dt>Robustness</dt><dd>${escapeHtml(methodology.scoreDisclosure.robustness)}</dd></div><div><dt>Overfitting Risk</dt><dd>${escapeHtml(methodology.scoreDisclosure.overfittingRisk)}</dd></div></dl></section>
-    <section class="q-verify-provenance"><div><p class="q-verify-kicker">Reproducibility</p><h3>Versioned evidence packages</h3><ul>${Object.values(methodology.reproducibility).map(item=>`<li>${escapeHtml(item)}</li>`).join('')}</ul></div><aside><strong>Use the methodology</strong><p>Generate a local report, inspect every unassessed area and export the versioned evidence package.</p><a class="q-button q-button--primary" href="#/market?view=qelly-verify">Analyze a strategy</a></aside></section></section>`;
+    <section class="q-verify-provenance"><div><p class="q-verify-kicker">Reproducibility</p><h3>Versioned evidence packages</h3><ul>${Object.values(methodology.reproducibility).map(item=>`<li>${escapeHtml(item)}</li>`).join('')}</ul></div><aside><strong>Use the methodology</strong><p>Generate a local report, inspect every unassessed area and export the versioned evidence package.</p><a class="q-button q-button--primary" href="#/qelly-verify">Analyze a strategy</a></aside></section></section>`;
 }
 
 function bind(){
@@ -101,7 +101,7 @@ async function analyzeFile(file){const status=main?.querySelector('[data-verify-
 async function analyzeText(sourceText,sourceName){await new Promise(resolve=>setTimeout(resolve,0));try{const parsed=parseTradeCsv(sourceText);const analysis=analyzeTrades(parsed.trades,{sourceName});const evidence=await composeStrategyEvidenceReport({analysis,validation:parsed.validation,sourceText,sourceName});current={validation:parsed.validation,evidence};renderVerify();}catch(error){renderError(error,sourceName);}}
 function renderError(error,sourceName){current=null;renderVerify();const status=main?.querySelector('[data-verify-status]');if(status){status.classList.add('is-error');status.textContent=`${sourceName}: ${error?.message||'The file could not be analyzed.'}`;}}
 
-export function renderVerify(){if(!main)return;rendering=true;main.dataset.qellyVerifyOwner='true';main.setAttribute('aria-busy','false');main.innerHTML=verifyShell(current?.evidence,current?.validation,current?.evidence?.source?.name);bind();document.title='Qelly Verify · Strategy Evidence Report';installNavigation();main.focus({preventScroll:true});rendering=false;}
+export function renderVerify(){if(!main)return;rendering=true;main.dataset.qellyVerifyOwner='true';main.setAttribute('aria-busy','false');main.innerHTML=verifyShell(current?.evidence,current?.validation,current?.evidence?.source?.name);bind();document.title='Qelly Verify · Qelly Intelligence';installNavigation();main.focus({preventScroll:true});rendering=false;}
 export function renderMethodology(){if(!main)return;rendering=true;main.dataset.qellyVerifyOwner='methodology';main.setAttribute('aria-busy','false');main.innerHTML=methodologyMarkup();document.title='Qelly Evidence Methodology';installNavigation();main.focus({preventScroll:true});rendering=false;}
 function reconcile(){scheduled=false;if(rendering||!main)return;installNavigation();if(verifyActive()){if(main.dataset.qellyVerifyOwner!=='true'||!main.querySelector('[data-qelly-verify-surface]'))renderVerify();return;}if(methodologyActive()){if(main.dataset.qellyVerifyOwner!=='methodology'||!main.querySelector('[data-qelly-methodology-surface]'))renderMethodology();return;}if(main.dataset.qellyVerifyOwner){delete main.dataset.qellyVerifyOwner;current=null;return;}enhanceHomepage();}
 function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(reconcile);}
