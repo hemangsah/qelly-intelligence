@@ -165,12 +165,12 @@ def main():
             failures.append(item)
         if route=='market' and viewport.startswith('phone-'):
             probe=item.get('layoutProbe') or {}
-            measured=probe.get('kpiToShell')
+            measured=probe.get('kpiToHost')
             if measured is None or measured>MOBILE_MARKET_MAX_SECTION_GAP_PX:
                 layout_failures.append({
                     'route':route,
                     'viewport':viewport,
-                    'metric':'kpiToShell',
+                    'metric':'kpiToHost',
                     'measuredPx':measured,
                     'maximumPx':MOBILE_MARKET_MAX_SECTION_GAP_PX,
                     'probe':probe

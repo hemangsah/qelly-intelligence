@@ -8,6 +8,7 @@ const contextDrawer=document.getElementById('context-drawer');
 const compareTray=document.getElementById('compare-tray');
 const collapseButton=document.getElementById('collapse-rail');
 const DESKTOP_QUERY='(min-width: 1280px)';
+const REDUCED_MOTION_QUERY='(prefers-reduced-motion: reduce)';
 const RAIL_PREF='qelly.ui-lock-v5-3.rail';
 const REFINEMENT_STYLESHEET=new URL('./qelly-v53-visible-refinement.css',import.meta.url).href;
 const FAMILY_RUNTIME=new URL('./qelly-v53-family-harmonization.mjs',import.meta.url).href;
@@ -36,6 +37,16 @@ async function activateFamilyHarmonization(){
     root.dataset.v53FamilyRuntime='unavailable';
     console.error('Qelly V5.3 family harmonization failed to load',error);
   }
+}
+
+function reducedMotionActive(){
+  return root.dataset.motion==='reduced'||matchMedia(REDUCED_MOTION_QUERY).matches;
+}
+
+function revealReducedMotionContent(scope=document){
+  if(!reducedMotionActive())return;
+  scope.querySelectorAll?.('.q-motion-item:not(.is-inview)').forEach((item)=>item.classList.add('is-inview'));
+  root.dataset.v53ReducedMotionReveal='immediate';
 }
 
 function annotateNavLinks(scope=document){
@@ -102,6 +113,7 @@ function refresh(scope=document){
   annotateShell();
   annotateNavLinks(scope);
   annotateEvidence(scope);
+  revealReducedMotionContent(scope);
   markRoute();
 }
 
@@ -109,14 +121,17 @@ collapseButton?.addEventListener('click',()=>requestAnimationFrame(persistRailPr
 matchMedia(DESKTOP_QUERY).addEventListener?.('change',()=>{
   if(storedRailPreference()===null)applyCompactRailDefault();
 });
+const reducedMotionMedia=matchMedia(REDUCED_MOTION_QUERY);
+reducedMotionMedia.addEventListener?.('change',()=>requestAnimationFrame(()=>revealReducedMotionContent(document)));
 window.addEventListener('hashchange',()=>requestAnimationFrame(()=>refresh(main||document)));
 
 if(main){
   const observer=new MutationObserver((mutations)=>{
-    if(!mutations.some((mutation)=>mutation.type==='childList'&&mutation.addedNodes.length))return;
+    const relevant=mutations.some((mutation)=>(mutation.type==='childList'&&mutation.addedNodes.length)||mutation.type==='attributes');
+    if(!relevant)return;
     requestAnimationFrame(()=>refresh(main));
   });
-  observer.observe(main,{childList:true,subtree:true});
+  observer.observe(main,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
 }
 
 activateVisibleRefinement();
