@@ -90,6 +90,13 @@ function annotateNavLinks(scope=document){
   });
 }
 
+function annotateDecisionProvenanceControls(scope=document){
+  const confidence=scope.querySelector?.('input[name="evidenceConfidence"]');
+  const scenario=scope.querySelector?.('input[name="scenarioMove"]');
+  if(confidence&&!confidence.getAttribute('aria-label'))confidence.setAttribute('aria-label','User-assessed evidence confidence');
+  if(scenario&&!scenario.getAttribute('aria-label'))scenario.setAttribute('aria-label','Scenario move');
+}
+
 function annotateEvidence(scope=document){
   scope.querySelectorAll?.('.q-panel,.q-card,.q-research-card').forEach((panel)=>{
     const hasEvidence=Boolean(panel.querySelector('.q-source-line,[data-evidence],[data-source],[data-provenance],.q-evidence,.q-methodology'));
@@ -144,6 +151,7 @@ function markRoute(){
 function refresh(scope=document){
   annotateShell();
   annotateNavLinks(scope);
+  annotateDecisionProvenanceControls(scope);
   annotateEvidence(scope);
   revealReducedMotionContent(scope);
   markRoute();
