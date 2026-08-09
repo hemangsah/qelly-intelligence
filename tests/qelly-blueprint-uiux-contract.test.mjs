@@ -7,7 +7,7 @@ import {APPEARANCE_MODES,FONT_STACK,THEME_FAMILIES} from '../apps/web/public/ass
 const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 
 test('blueprint route inventory is complete and route identifiers are unique',()=>{
-  assert.equal(routeDefinitions.length,70);
+  assert.equal(routeDefinitions.length,71);
   const routes=routeDefinitions.map((item)=>item.route);
   assert.equal(new Set(routes).size,routes.length);
   assert.ok(routeDefinitions.every((item)=>item.label&&item.section&&item.route));

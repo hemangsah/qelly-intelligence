@@ -189,10 +189,10 @@ for (const phrase of ["import { parseHashRoute } from './hash-route-state.mjs'",
 assert(!/from\s+["']\/packages\//.test(app), 'app.js contains root-relative package imports');
 
 const routeRegistry = await import(`${pathToFileURL(path.join(output, 'assets/route-registry.mjs')).href}?review=${Date.now()}`);
-assert(routeRegistry.routeDefinitions.length === 70, 'Static preview route registry must contain exactly 70 routes');
+assert(routeRegistry.routeDefinitions.length === 71, 'Static preview route registry must contain exactly 71 routes');
 const routeIds = new Set(routeRegistry.routeDefinitions.map(item => item.route));
-for (const route of ['calculator-center', 'india-finance', 'indicator-library', 'formula-library', 'saved-calculations', 'formula-detail', 'indicator-detail', 'calculator-detail', 'saved-calculation-detail']) {
-  assert(routeIds.has(route), `Missing Prompt 2B route ${route}`);
+for (const route of ['qelly-verify', 'calculator-center', 'india-finance', 'indicator-library', 'formula-library', 'saved-calculations', 'formula-detail', 'indicator-detail', 'calculator-detail', 'saved-calculation-detail']) {
+  assert(routeIds.has(route), `Missing public/static route ${route}`);
 }
 
 const formulaEngine = await import(`${pathToFileURL(path.join(output, 'assets/calculation/formula-engine-extended.mjs')).href}?review=${Date.now()}`);
@@ -260,7 +260,7 @@ console.log(JSON.stringify({
   output: path.relative(root, output),
   basePath: expectedBasePath,
   files: names.length,
-  routeCount: 70,
+  routeCount: 71,
   formulaCount: 151,
   indicatorCount: 54,
   detailRoutes: 4,

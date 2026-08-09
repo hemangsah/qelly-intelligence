@@ -77,7 +77,7 @@ jobs:
           const sheets=files.filter(name=>name.startsWith('contact-sheet-')&&name.endsWith('.jpg'));
           const required=['360','390','430','768','1024','1280','1440','1728','1920'];
           const dimensions=manifest.viewports.map(item=>String(item.width));
-          const ok=manifest.status==='passed'&&manifest.canonicalRouteCount===70&&manifest.representativeRouteCount===15&&manifest.viewportCount===9&&manifest.renderCount===135&&manifest.expectedRenderCount===135&&manifest.failureCount===0&&manifest.missing.length===0&&pngs.length===135&&sheets.length===9&&required.every(width=>dimensions.includes(width));
+          const ok=manifest.status==='passed'&&manifest.canonicalRouteCount===71&&manifest.representativeRouteCount===15&&manifest.viewportCount===9&&manifest.renderCount===135&&manifest.expectedRenderCount===135&&manifest.failureCount===0&&manifest.missing.length===0&&pngs.length===135&&sheets.length===9&&required.every(width=>dimensions.includes(width));
           console.log(JSON.stringify({status:manifest.status,canonicalRouteCount:manifest.canonicalRouteCount,representativeRouteCount:manifest.representativeRouteCount,viewportCount:manifest.viewportCount,renderCount:manifest.renderCount,pngs:pngs.length,contactSheets:sheets.length,dimensions},null,2));
           if(!ok)process.exit(1);
           NODE

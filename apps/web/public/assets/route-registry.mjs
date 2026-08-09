@@ -117,6 +117,7 @@ const routes = [
   { section:'Data Plane', route:'stream-operations', label:'Stream Operations', icon:icon('stream'), meta:'W4' },
   { section:'Operations', route:'observability', label:'Observability Center', icon:icon('activity'), meta:'W4' },
   { section:'Evidence', route:'decision-provenance', label:'Decision Provenance', icon:icon('evidence'), meta:'Scope A' },
+  { section:'Evidence', route:'qelly-verify', label:'Qelly Verify', icon:icon('check'), meta:'V5.4', public:true },
   { section:'Evidence', route:'security-evidence', label:'Security Evidence', icon:icon('security'), meta:'W2' },
   { section:'Detail', route:'category-detail', label:'Category Detail', icon:icon('categories'), meta:'W5', hidden:true },
   { section:'Detail', route:'venue-detail', label:'Venue Detail', icon:icon('venue'), meta:'W5', hidden:true },
@@ -129,7 +130,7 @@ export const productDomains = [
   { id:'tools', label:'Calculators', shortLabel:'Tools', icon:icon('calculator'), defaultRoute:'calculator-center', destinations:['Quant calculators','India finance','Indicators','Formula library','Saved calculations'] },
   { id:'research', label:'Research', shortLabel:'Research', icon:icon('research'), defaultRoute:'news-research', destinations:['Research','News','Events','Learning'] },
   { id:'workspaces', label:'Workspaces', shortLabel:'Work', icon:icon('portfolio'), defaultRoute:'watchlist', destinations:['Portfolio','Watchlists','Alerts','Workspaces','Settings'] },
-  { id:'evidence', label:'Evidence', shortLabel:'Evidence', icon:icon('evidence'), defaultRoute:'decision-provenance', destinations:['Decision Provenance','Evidence','Trust'] },
+  { id:'evidence', label:'Evidence', shortLabel:'Evidence', icon:icon('evidence'), defaultRoute:'decision-provenance', destinations:['Decision Provenance','Qelly Verify','Evidence','Trust'] },
   { id:'data', label:'Data plane', shortLabel:'Data', icon:icon('data'), defaultRoute:'data-mesh', destinations:['Data Sources','Developer/API','Operations'] },
   { id:'operations', label:'Operations', shortLabel:'Ops', icon:icon('status'), defaultRoute:'platform-readiness', destinations:['Operations','Security','Trust'] },
   { id:'account', label:'Account', shortLabel:'Account', icon:icon('identity'), defaultRoute:'account-session', destinations:['Settings','Workspaces','Team'] },
@@ -142,7 +143,7 @@ const explicitDomain = {
   market:'markets',rankings:'markets','asset-rankings':'markets','discovery-hub':'markets',search:'markets',categories:'markets','category-detail':'markets',venues:'markets','venue-detail':'markets','dex-discovery':'markets','global-charts':'markets',converter:'markets',asset:'markets','asset-intelligence':'markets','advanced-chart':'markets','live-markets':'markets',
   'news-research':'research','research-article':'research','research-workspace':'research','research-history':'research','filing-workspace':'research','fundamentals-estimates':'research','event-calendar':'research','comparison-lab':'research',
   watchlist:'workspaces','alert-center':'workspaces','notification-center':'workspaces','notification-schedules':'workspaces','screener-lab':'workspaces','formula-screener':'workspaces','portfolio-analytics':'workspaces','portfolio-attribution':'workspaces',onboarding:'workspaces','import-center':'workspaces',
-  'decision-provenance':'evidence','security-evidence':'evidence','trust-center':'evidence',
+  'decision-provenance':'evidence','qelly-verify':'evidence','security-evidence':'evidence','trust-center':'evidence',
   'data-mesh':'data','instrument-master':'data','timeseries-lab':'data','stream-operations':'data',
   'secure-import-vault':'operations','delivery-operations':'operations','platform-readiness':'operations','secret-rotation':'operations','quarantine-review':'operations','staging-assurance':'operations','migration-center':'operations',observability:'operations','identity-access':'operations',
   'auth-login':'account','auth-register':'account','auth-recovery':'account','account-session':'account','security-setup':'account','passkey-center':'account','account-recovery':'account',
@@ -150,7 +151,7 @@ const explicitDomain = {
 };
 
 const publicStoryRoutes = new Set(['feature-universe','about-qelly','theme-personas']);
-const researchRoutes = new Set(['news-research','research-article','research-workspace','research-history','filing-workspace','fundamentals-estimates','event-calendar','trust-center','decision-provenance']);
+const researchRoutes = new Set(['news-research','research-article','research-workspace','research-history','filing-workspace','fundamentals-estimates','event-calendar','trust-center','decision-provenance','qelly-verify']);
 const operationalRoutes = new Set(['secure-import-vault','delivery-operations','platform-readiness','secret-rotation','quarantine-review','staging-assurance','migration-center','observability','identity-access','data-mesh','instrument-master','timeseries-lab','stream-operations','security-evidence','theme-lab']);
 const accessRoutes = new Set(['auth-login','auth-register','auth-recovery','account-session','security-setup','passkey-center','account-recovery']);
 

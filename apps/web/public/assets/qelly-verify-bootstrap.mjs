@@ -45,9 +45,10 @@ const handoff=()=>{
   const main=document.getElementById('main');
   const owner=view==='methodology'?'methodology':'true';
   const selector=view==='methodology'?'[data-qelly-methodology-surface]':'[data-qelly-verify-surface]';
-  if(main?.dataset.qellyVerifyOwner===owner&&main.querySelector(selector))return;
-  history.replaceState(null,'',view==='methodology'?'#/market?view=evidence-methodology':'#/market?view=qelly-verify');
-  window.QellyVerify[method]();
+  const canonicalHash=view==='methodology'?'#/market?view=evidence-methodology':'#/qelly-verify';
+  if(location.hash!==canonicalHash)history.replaceState(null,'',canonicalHash);
+  if(!(main?.dataset.qellyVerifyOwner===owner&&main.querySelector(selector)))window.QellyVerify[method]();
+  if(view==='verify')document.title='Qelly Verify · Qelly Intelligence';
 };
 const schedule=()=>{
   if(scheduled)return;

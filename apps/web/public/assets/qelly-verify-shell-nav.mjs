@@ -1,4 +1,5 @@
 const PRIMARY_ID='qelly-verify-shell-primary';
+const PRIMARY_VERIFY='qelly-verify-shell-primary-verify';
 const SHELF_VERIFY='qelly-verify-shell-shelf-verify';
 const SHELF_METHOD='qelly-verify-shell-shelf-methodology';
 const CONTEXT_VERIFY='qelly-verify-worldclass-verify';
@@ -15,13 +16,14 @@ const routeState=()=>{
 
 const activeView=()=>{
   const {route,params}=routeState();
+  if(route==='qelly-verify')return'qelly-verify';
   if(route!=='market')return null;
   const view=params.get('view');
   return view==='qelly-verify'||view==='evidence-methodology'?view:null;
 };
 
 const navigate=(view)=>{
-  const target=`#/market?view=${view}`;
+  const target=view==='qelly-verify'?'#/qelly-verify':`#/market?view=${view}`;
   if(location.hash===target){window.QellyVerifyBootstrap?.schedule?.();return;}
   location.hash=target;
 };
@@ -35,22 +37,35 @@ function ensurePrimary(view){
     group.id=PRIMARY_ID;
     group.dataset.qellyVerifyShellNav='primary';
     group.innerHTML=`<div class="q-nav-section">Strategy evidence</div>
-      <button type="button" class="q-nav-link" data-qelly-verify-link="shell" aria-current="false"><span class="q-nav-icon" aria-hidden="true">V</span><span>Qelly Verify</span><span class="q-nav-meta">SUBVIEW</span></button>
+      <button type="button" id="${PRIMARY_VERIFY}" class="q-nav-link" data-qelly-verify-link="shell" aria-current="false"><span class="q-nav-icon" aria-hidden="true">V</span><span>Qelly Verify</span><span class="q-nav-meta">PUBLIC</span></button>
       <button type="button" class="q-nav-link" data-qelly-methodology-link="shell" aria-current="false"><span class="q-nav-icon" aria-hidden="true">E</span><span>Evidence Methodology</span><span class="q-nav-meta">PUBLIC</span></button>`;
-    group.querySelector('[data-qelly-verify-link]')?.addEventListener('click',()=>navigate('qelly-verify'));
+    group.querySelector('[data-qelly-verify-link="shell"]')?.addEventListener('click',()=>navigate('qelly-verify'));
     group.querySelector('[data-qelly-methodology-link]')?.addEventListener('click',()=>navigate('evidence-methodology'));
     nav.append(group);
   }
-  const verify=group.querySelector('[data-qelly-verify-link]');
+  const canonicalVerify=nav.querySelector('[data-route="qelly-verify"]');
+  const fallbackVerify=group.querySelector('[data-qelly-verify-link="shell"]');
+  if(canonicalVerify){
+    canonicalVerify.dataset.qellyVerifyLink='shell';
+    canonicalVerify.classList.toggle('is-active',view==='qelly-verify');
+    canonicalVerify.setAttribute('aria-current',view==='qelly-verify'?'page':'false');
+    fallbackVerify?.setAttribute('hidden','');
+    fallbackVerify?.setAttribute('aria-hidden','true');
+    fallbackVerify?.setAttribute('tabindex','-1');
+  }else{
+    fallbackVerify?.removeAttribute('hidden');
+    fallbackVerify?.removeAttribute('aria-hidden');
+    fallbackVerify?.removeAttribute('tabindex');
+    fallbackVerify?.classList.toggle('is-active',view==='qelly-verify');
+    fallbackVerify?.setAttribute('aria-current',view==='qelly-verify'?'page':'false');
+  }
   const method=group.querySelector('[data-qelly-methodology-link]');
-  verify?.classList.toggle('is-active',view==='qelly-verify');
   method?.classList.toggle('is-active',view==='evidence-methodology');
-  verify?.setAttribute('aria-current',view==='qelly-verify'?'page':'false');
   method?.setAttribute('aria-current',view==='evidence-methodology'?'page':'false');
   const market=nav.querySelector('[data-route="market"]');
-  if(market){
-    market.classList.toggle('is-active',!view);
-    market.setAttribute('aria-current',view?'false':'page');
+  if(market&&view==='evidence-methodology'){
+    market.classList.remove('is-active');
+    market.setAttribute('aria-current','false');
   }
 }
 
@@ -116,7 +131,7 @@ function ensureWorldclassContext(view){
   if(!verify){
     verify=document.createElement('a');
     verify.id=CONTEXT_VERIFY;
-    verify.href='#/market?view=qelly-verify';
+    verify.href='#/qelly-verify';
     verify.dataset.qellyVerifyLink='worldclass';
     verify.textContent='Qelly Verify';
     verify.setAttribute('aria-label','Qelly Verify');
@@ -165,13 +180,14 @@ function clearShellLinks(){
   clearShelfControls();
   clearWorldclassControls();
   document.getElementById(PRIMARY_ID)?.remove();
+  document.querySelector('#primary-nav [data-route="qelly-verify"]')?.removeAttribute('data-qelly-verify-link');
 }
 
 let scheduled=false;
 function install(){
   scheduled=false;
   const {route}=routeState();
-  if(route!=='market'){clearShellLinks();return;}
+  if(route!=='market'&&route!=='qelly-verify'){clearShellLinks();return;}
   const view=activeView();
   if(view)document.documentElement.dataset[ROOT_STATE]=view;
   else delete document.documentElement.dataset[ROOT_STATE];

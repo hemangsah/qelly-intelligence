@@ -34,25 +34,26 @@ test('visible refinement strengthens the governed high-value surfaces', async ()
   assert.match(css, /data-v53-evidence-adjacent="true"/);
 });
 
-test('current 70-route registry is covered exactly once by V5.3 semantic families', async () => {
+test('current 71-route registry is covered exactly once by V5.3 semantic families', async () => {
   const [{ ROUTE_FAMILIES, FAMILY_ROUTE_COUNT, routeFamilyFor }, registry] = await Promise.all([
     import(new URL('../apps/web/public/assets/qelly-v53-family-harmonization.mjs', import.meta.url)),
     read(ROUTES)
   ]);
   const registered=[...registry.matchAll(/route:'([^']+)'/g)].map((match)=>match[1]);
   const mapped=Object.values(ROUTE_FAMILIES).flat();
-  assert.equal(registered.length,70);
-  assert.equal(FAMILY_ROUTE_COUNT,70);
-  assert.equal(new Set(mapped).size,70);
+  assert.equal(registered.length,71);
+  assert.equal(FAMILY_ROUTE_COUNT,71);
+  assert.equal(new Set(mapped).size,71);
   assert.deepEqual([...new Set(mapped)].sort(),[...new Set(registered)].sort());
   for(const route of registered)assert.notEqual(routeFamilyFor(route),'unmapped',`unmapped V5.3 route: ${route}`);
 });
 
-test('Qelly Verify stays real without inventing a 71st canonical route', async () => {
+test('Qelly Verify is canonical while retaining the existing governed product surface', async () => {
   const [registry, familyRuntime, verifyCss, verifyRuntime] = await Promise.all([
     read(ROUTES), read(FAMILY_RUNTIME), read('apps/web/public/assets/qelly-verify.css'), read('apps/web/public/assets/qelly-verify-product.mjs')
   ]);
-  assert.doesNotMatch(registry,/route:'qelly-verify'/);
+  assert.match(registry,/route:'qelly-verify'/);
+  assert.match(familyRuntime,/'quant-verify'.*qelly-verify/s);
   assert.match(familyRuntime,/\.q-verify-page/);
   assert.match(familyRuntime,/data.*qelly-verify|qelly-verify/s);
   assert.match(verifyCss,/\.q-verify-page/);
