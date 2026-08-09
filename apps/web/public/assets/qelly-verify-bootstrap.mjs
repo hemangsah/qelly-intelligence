@@ -61,8 +61,13 @@ const schedule=()=>{
   scheduled=true;
   requestAnimationFrame(handoff);
 };
+const observe=()=>{
+  normalizeNavigationMarkers();
+  schedule();
+};
 
-new MutationObserver(schedule).observe(document.documentElement,{childList:true,subtree:true});
+normalizeNavigationMarkers();
+new MutationObserver(observe).observe(document.documentElement,{childList:true,subtree:true});
 window.addEventListener('pageshow',schedule);
 for(const delay of [0,60,180,500,1200,2500])setTimeout(schedule,delay);
 
