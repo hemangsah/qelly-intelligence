@@ -18,6 +18,10 @@ const setRequested=(view,intent)=>{
   state.requestedView=view||null;
   state.lastIntent=String(intent||'unknown');
 };
+const normalizeNavigationMarkers=()=>{
+  document.querySelectorAll('[data-qelly-verify-link="true"]').forEach(link=>{link.dataset.qellyVerifyLink='verify';});
+  document.querySelectorAll('[data-qelly-methodology-link]').forEach(link=>{link.dataset.qellyVerifyLink='methodology';});
+};
 
 const initialView=viewFor(location.hash);
 if(initialView)setRequested(initialView,'initial-url');
@@ -38,6 +42,7 @@ window.addEventListener('hashchange',()=>{
 let scheduled=false;
 const handoff=()=>{
   scheduled=false;
+  normalizeNavigationMarkers();
   if(!state.requested)return;
   const view=state.requestedView||'verify';
   const method=view==='methodology'?'renderMethodology':'render';
@@ -48,6 +53,7 @@ const handoff=()=>{
   const canonicalHash=view==='methodology'?'#/market?view=evidence-methodology':'#/qelly-verify';
   if(location.hash!==canonicalHash)history.replaceState(null,'',canonicalHash);
   if(!(main?.dataset.qellyVerifyOwner===owner&&main.querySelector(selector)))window.QellyVerify[method]();
+  normalizeNavigationMarkers();
   if(view==='verify')document.title='Qelly Verify · Qelly Intelligence';
 };
 const schedule=()=>{
