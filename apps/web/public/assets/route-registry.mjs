@@ -168,3 +168,7 @@ export const routeDefinitions = routes.map((item)=>({
   domain:explicitDomain[item.route]??'markets',
   kind:routeKind(item.route)
 }));
+
+export function domainForRoute(route){
+  return routeDefinitions.find((item)=>item.route===route)?.domain??'markets';
+}
