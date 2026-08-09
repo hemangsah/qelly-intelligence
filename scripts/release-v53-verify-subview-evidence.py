@@ -132,19 +132,28 @@ def generated_runner(scenario):
                       }};
                       const main=document.getElementById('main');
                       const shelf=document.querySelector('#context-shelf .q-category-shelf');
-                      const shelfVerify=document.querySelector('#context-shelf [data-qelly-verify-link]');
-                      const shelfMethodology=document.querySelector('#context-shelf [data-qelly-methodology-link]');
+                      const shelfVerify=document.querySelector('#context-shelf [data-qelly-verify-link="shelf"]');
+                      const shelfMethodology=document.querySelector('#context-shelf [data-qelly-methodology-link="shelf"]');
+                      const related=document.querySelector('#main .q-worldclass-context .q-worldclass-related');
+                      const contextVerify=document.querySelector('#main .q-worldclass-context [data-qelly-verify-link="worldclass"]');
+                      const contextMethodology=document.querySelector('#main .q-worldclass-context [data-qelly-methodology-link="worldclass"]');
                       return {{
                         owner:main?.dataset.qellyVerifyOwner??null,
                         surface:Boolean(document.querySelector({selector!r})),
                         mainText:main?.innerText??'',
-                        primaryVerify:Boolean(document.querySelector('#primary-nav [data-qelly-verify-link]')),
-                        primaryMethodology:Boolean(document.querySelector('#primary-nav [data-qelly-methodology-link]')),
+                        shellMode:innerWidth<=920?'shelf':'worldclass',
+                        primaryVerify:Boolean(document.querySelector('#primary-nav [data-qelly-verify-link="shell"]')),
+                        primaryMethodology:Boolean(document.querySelector('#primary-nav [data-qelly-methodology-link="shell"]')),
                         shelfVerify:Boolean(shelfVerify),
                         shelfMethodology:Boolean(shelfMethodology),
                         shelfBounds:bounds(shelf),
                         shelfVerifyBounds:bounds(shelfVerify),
                         shelfMethodologyBounds:bounds(shelfMethodology),
+                        contextVerify:Boolean(contextVerify),
+                        contextMethodology:Boolean(contextMethodology),
+                        contextBounds:bounds(related),
+                        contextVerifyBounds:bounds(contextVerify),
+                        contextMethodologyBounds:bounds(contextMethodology),
                         hero:bounds(document.querySelector('.q-verify-hero')),
                         heroCopy:bounds(document.querySelector('.q-verify-hero__copy')),
                         boundary:bounds(document.querySelector('.q-verify-boundary'))
@@ -157,16 +166,31 @@ def generated_runner(scenario):
                     for required_text in {required}:
                         if required_text not in (subview_probe.get('mainText') or ''):
                             errors.append({{'type':'subview-boundary','text':f"Required boundary text missing: {{required_text}}"}})
-                    for key in ('primaryVerify','primaryMethodology','shelfVerify','shelfMethodology'):
+                    for key in ('primaryVerify','primaryMethodology'):
                         if not subview_probe.get(key):
-                            errors.append({{'type':'subview-discoverability','text':f"Missing governed shell discoverability marker: {{key}}"}})
-                    shelf_bounds=subview_probe.get('shelfBounds')
-                    for key in ('shelfVerifyBounds','shelfMethodologyBounds'):
+                            errors.append({{'type':'subview-discoverability','text':f"Missing governed primary-navigation marker: {{key}}"}})
+                    if subview_probe.get('shellMode') == 'shelf':
+                        for key in ('shelfVerify','shelfMethodology'):
+                            if not subview_probe.get(key):
+                                errors.append({{'type':'subview-discoverability','text':f"Missing governed mobile/tablet shelf marker: {{key}}"}})
+                        container_bounds=subview_probe.get('shelfBounds')
+                        control_keys=('shelfVerifyBounds','shelfMethodologyBounds')
+                        surface_name='shelf'
+                    else:
+                        for key in ('contextVerify','contextMethodology'):
+                            if not subview_probe.get(key):
+                                errors.append({{'type':'subview-discoverability','text':f"Missing governed desktop context marker: {{key}}"}})
+                        container_bounds=subview_probe.get('contextBounds')
+                        control_keys=('contextVerifyBounds','contextMethodologyBounds')
+                        surface_name='worldclass context'
+                    if not container_bounds or not container_bounds.get('visible'):
+                        errors.append({{'type':'subview-discoverability','text':f"Active governed {{surface_name}} container is not visible: {{container_bounds}}"}})
+                    for key in control_keys:
                         control_bounds=subview_probe.get(key)
                         if not control_bounds or not control_bounds.get('visible'):
-                            errors.append({{'type':'subview-discoverability','text':f"Governed shelf control is not visible: {{key}}"}})
-                        elif shelf_bounds and shelf_bounds.get('visible') and (control_bounds.get('left',0)<shelf_bounds.get('left',0)-2 or control_bounds.get('right',0)>shelf_bounds.get('right',0)+2):
-                            errors.append({{'type':'subview-discoverability','text':f"Governed shelf control is outside the visible shelf viewport: {{key}} {{control_bounds}} shelf={{shelf_bounds}}"}})
+                            errors.append({{'type':'subview-discoverability','text':f"Governed {{surface_name}} control is not visible: {{key}}"}})
+                        elif container_bounds and container_bounds.get('visible') and (control_bounds.get('left',0)<container_bounds.get('left',0)-2 or control_bounds.get('right',0)>container_bounds.get('right',0)+2):
+                            errors.append({{'type':'subview-discoverability','text':f"Governed {{surface_name}} control is outside the visible container: {{key}} {{control_bounds}} container={{container_bounds}}"}})
                     for key in ('heroCopy','boundary'):
                         bounds=subview_probe.get(key)
                         if bounds and bounds.get('visible') and (bounds.get('left',0)<-2 or bounds.get('right',0)>bounds.get('viewportWidth',0)+2):
