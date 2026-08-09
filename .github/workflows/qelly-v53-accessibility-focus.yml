@@ -75,7 +75,7 @@ jobs:
           const files=await readdir(root);
           const zoomPngs=files.filter(name=>name.endsWith('__zoom200.png'));
           const colorPngs=files.filter(name=>name==='market__color-blind.png');
-          const ok=manifest.status==='passed'&&manifest.canonicalRouteCount===70&&manifest.zoomRouteCount===6&&manifest.failureCount===0&&zoomPngs.length===6&&colorPngs.length===1&&manifest.colorBlind?.status==='passed';
+          const ok=manifest.status==='passed'&&manifest.canonicalRouteCount===71&&manifest.zoomRouteCount===6&&manifest.failureCount===0&&zoomPngs.length===6&&colorPngs.length===1&&manifest.colorBlind?.status==='passed';
           console.log(JSON.stringify({status:manifest.status,canonicalRouteCount:manifest.canonicalRouteCount,zoomRouteCount:manifest.zoomRouteCount,failureCount:manifest.failureCount,colorBlindStatus:manifest.colorBlind?.status,zoomPngs:zoomPngs.length,colorPngs:colorPngs.length},null,2));
           if(!ok)process.exit(1);
           NODE
