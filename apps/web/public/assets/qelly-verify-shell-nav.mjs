@@ -1,7 +1,10 @@
 const PRIMARY_ID='qelly-verify-shell-primary';
 const SHELF_VERIFY='qelly-verify-shell-shelf-verify';
 const SHELF_METHOD='qelly-verify-shell-shelf-methodology';
+const CONTEXT_VERIFY='qelly-verify-worldclass-verify';
+const CONTEXT_METHOD='qelly-verify-worldclass-methodology';
 const ROOT_STATE='qellyVerifySubview';
+const MOBILE_SHELL_QUERY='(max-width: 920px)';
 const shelfDisplayState=new WeakMap();
 
 const routeState=()=>{
@@ -100,6 +103,57 @@ function ensureShelf(view){
   method.setAttribute('aria-current',view==='evidence-methodology'?'page':'false');
 }
 
+function clearShelfControls(){
+  restoreShelf();
+  document.getElementById(SHELF_VERIFY)?.remove();
+  document.getElementById(SHELF_METHOD)?.remove();
+}
+
+function ensureWorldclassContext(view){
+  const related=document.querySelector('#main .q-worldclass-context .q-worldclass-related');
+  if(!related)return;
+  let verify=document.getElementById(CONTEXT_VERIFY);
+  if(!verify){
+    verify=document.createElement('a');
+    verify.id=CONTEXT_VERIFY;
+    verify.href='#/market?view=qelly-verify';
+    verify.dataset.qellyVerifyLink='worldclass';
+    verify.textContent='Qelly Verify';
+    verify.setAttribute('aria-label','Qelly Verify');
+  }
+  let method=document.getElementById(CONTEXT_METHOD);
+  if(!method){
+    method=document.createElement('a');
+    method.id=CONTEXT_METHOD;
+    method.href='#/market?view=evidence-methodology';
+    method.dataset.qellyMethodologyLink='worldclass';
+    method.textContent='Evidence';
+    method.setAttribute('aria-label','Evidence Methodology');
+    method.title='Evidence Methodology';
+  }
+  if(related.firstElementChild!==verify)related.prepend(verify);
+  if(verify.nextElementSibling!==method)related.insertBefore(method,verify.nextElementSibling);
+  verify.classList.toggle('is-active',view==='qelly-verify');
+  method.classList.toggle('is-active',view==='evidence-methodology');
+  verify.setAttribute('aria-current',view==='qelly-verify'?'page':'false');
+  method.setAttribute('aria-current',view==='evidence-methodology'?'page':'false');
+}
+
+function clearWorldclassControls(){
+  document.getElementById(CONTEXT_VERIFY)?.remove();
+  document.getElementById(CONTEXT_METHOD)?.remove();
+}
+
+function updateResponsiveDiscoverability(view){
+  if(matchMedia(MOBILE_SHELL_QUERY).matches){
+    clearWorldclassControls();
+    ensureShelf(view);
+    return;
+  }
+  clearShelfControls();
+  ensureWorldclassContext(view);
+}
+
 function updateBreadcrumb(view){
   if(!view)return;
   const current=document.querySelector('#context-shelf .q-breadcrumbs [aria-current="page"]');
@@ -108,10 +162,9 @@ function updateBreadcrumb(view){
 
 function clearShellLinks(){
   delete document.documentElement.dataset[ROOT_STATE];
-  restoreShelf();
+  clearShelfControls();
+  clearWorldclassControls();
   document.getElementById(PRIMARY_ID)?.remove();
-  document.getElementById(SHELF_VERIFY)?.remove();
-  document.getElementById(SHELF_METHOD)?.remove();
 }
 
 let scheduled=false;
@@ -123,7 +176,7 @@ function install(){
   if(view)document.documentElement.dataset[ROOT_STATE]=view;
   else delete document.documentElement.dataset[ROOT_STATE];
   ensurePrimary(view);
-  ensureShelf(view);
+  updateResponsiveDiscoverability(view);
   updateBreadcrumb(view);
 }
 function schedule(){
@@ -132,6 +185,8 @@ function schedule(){
   requestAnimationFrame(install);
 }
 
+const responsiveShell=matchMedia(MOBILE_SHELL_QUERY);
+responsiveShell.addEventListener?.('change',schedule);
 new MutationObserver(schedule).observe(document.documentElement,{childList:true,subtree:true});
 window.addEventListener('hashchange',schedule);
 window.addEventListener('pageshow',schedule);
