@@ -19,15 +19,17 @@ VIEWPORTS=[
 SCENARIOS=[
     {
         'id':'qelly-verify',
-        'inputHash':'#/qelly-verify',
-        'canonicalHash':'#/market?view=qelly-verify',
-        'title':'Qelly Verify · Strategy Evidence Report',
+        'hostRoute':'qelly-verify',
+        'inputHash':'#/market?view=qelly-verify',
+        'canonicalHash':'#/qelly-verify',
+        'title':'Qelly Verify · Qelly Intelligence',
         'selector':'[data-qelly-verify-surface]',
         'owner':'true',
         'requiredText':['Local-only prototype evidence workflow','Data transfer','Execution','Disabled'],
     },
     {
         'id':'evidence-methodology',
+        'hostRoute':'market',
         'inputHash':'#/evidence-methodology',
         'canonicalHash':'#/market?view=evidence-methodology',
         'title':'Qelly Evidence Methodology',
@@ -48,7 +50,7 @@ def route_definitions():
 
 def replace_once(source,old,new,label):
     if old not in source:
-        raise SystemExit(f'verify subview evidence source anchor missing: {label}')
+        raise SystemExit(f'verify route evidence source anchor missing: {label}')
     return source.replace(old,new,1)
 
 
@@ -74,7 +76,7 @@ def generated_runner(scenario):
     )+'    ]'
     source,count=pattern.subn(replacement,source,count=1)
     if count!=1:
-        raise SystemExit('verify subview evidence source anchor missing: viewport list')
+        raise SystemExit('verify route evidence source anchor missing: viewport list')
 
     source=replace_once(
         source,
@@ -160,7 +162,7 @@ def generated_runner(scenario):
                       }};
                     }}""")
                     if not subview_probe.get('surface'):
-                        errors.append({{'type':'subview-contract','text':'Expected governed subview surface was not rendered'}})
+                        errors.append({{'type':'subview-contract','text':'Expected governed Verify/evidence surface was not rendered'}})
                     if subview_probe.get('owner') != {owner!r}:
                         errors.append({{'type':'subview-contract','text':f"Expected Qelly Verify owner {owner!r}, received {{subview_probe.get('owner')!r}}"}})
                     for required_text in {required}:
@@ -236,26 +238,26 @@ def main():
     if not (ROOT/'dist/frontend/index.html').is_file():
         raise SystemExit('built frontend missing; run npm run build:frontend first')
     definitions=route_definitions()
-    if len(definitions)!=70:
+    if len(definitions)!=71:
         raise SystemExit(f'canonical route count changed unexpectedly: {len(definitions)}')
     index={item['route']:position for position,item in enumerate(definitions)}
+    if 'qelly-verify' not in index:
+        raise SystemExit('canonical Qelly Verify route missing')
     if 'market' not in index:
         raise SystemExit('canonical Market route missing')
-    forbidden={scenario['id'] for scenario in SCENARIOS}
-    canonical={item['route'] for item in definitions}
-    if canonical & forbidden:
-        raise SystemExit(f'Qelly Verify subviews must not become canonical routes: {sorted(canonical & forbidden)}')
+    if 'evidence-methodology' in index:
+        raise SystemExit('Evidence Methodology must remain a governed Market subview')
 
     if OUT.exists(): shutil.rmtree(OUT)
     OUT.mkdir(parents=True)
     results=[]
-    market_index=index['market']
     for scenario in SCENARIOS:
         scenario_out=OUT/scenario['id']
         scenario_out.mkdir(parents=True,exist_ok=True)
         generated=generated_runner(scenario)
+        position=index[scenario['hostRoute']]
         try:
-            subprocess.run([sys.executable,str(generated),str(market_index),str(market_index+1)],cwd=ROOT,check=True)
+            subprocess.run([sys.executable,str(generated),str(position),str(position+1)],cwd=ROOT,check=True)
         finally:
             generated.unlink(missing_ok=True)
         parts=sorted(scenario_out.glob('batch-*.json'))
@@ -265,7 +267,7 @@ def main():
 
     by={(item['route'],item['viewport']):item for item in results}
     expected=[(scenario['id'],name) for scenario in SCENARIOS for name,_,_ in VIEWPORTS]
-    missing=[{'subview':subview,'viewport':viewport} for subview,viewport in expected if (subview,viewport) not in by]
+    missing=[{'surface':surface,'viewport':viewport} for surface,viewport in expected if (surface,viewport) not in by]
     failures=[]
     for pair in expected:
         item=by.get(pair)
@@ -280,26 +282,27 @@ def main():
     alias_normalized=all(by[pair].get('resolvedHash')==next(item['canonicalHash'] for item in SCENARIOS if item['id']==pair[0]) for pair in expected if pair in by)
     passed=len(results)==len(expected) and not missing and not failures and alias_normalized
     manifest={
-        'schemaVersion':1,
+        'schemaVersion':2,
         'evidenceHead':os.getenv('QELLY_V53_VERIFY_EVIDENCE_SHA','local'),
         'boundary':'governed local browser evidence; no production user data; no execution',
         'canonicalRouteCount':len(definitions),
-        'canonicalRoute':'market',
-        'subviewCount':len(SCENARIOS),
+        'canonicalRoute':'qelly-verify',
+        'methodologyHostRoute':'market',
+        'surfaceCount':len(SCENARIOS),
         'viewportCount':len(VIEWPORTS),
         'renderCount':len(results),
         'expectedRenderCount':len(expected),
         'failureCount':len(failures),
         'missing':missing,
         'aliasNormalized':alias_normalized,
-        'subviews':[{key:value for key,value in item.items() if key!='requiredText'} for item in SCENARIOS],
+        'surfaces':[{key:value for key,value in item.items() if key!='requiredText'} for item in SCENARIOS],
         'viewports':[{'name':name,'width':width,'height':height} for name,width,height in VIEWPORTS],
         'contactSheets':sheets,
         'status':'passed' if passed else 'failed',
         'renders':[by[pair] for pair in expected if pair in by]
     }
     (OUT/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')
-    print(json.dumps({key:manifest[key] for key in ('canonicalRouteCount','canonicalRoute','subviewCount','viewportCount','renderCount','expectedRenderCount','failureCount','aliasNormalized','status')},indent=2))
+    print(json.dumps({key:manifest[key] for key in ('canonicalRouteCount','canonicalRoute','methodologyHostRoute','surfaceCount','viewportCount','renderCount','expectedRenderCount','failureCount','aliasNormalized','status')},indent=2))
     if manifest['status']!='passed':
         raise SystemExit(1)
 
