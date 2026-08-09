@@ -11,6 +11,7 @@ const DESKTOP_QUERY='(min-width: 1280px)';
 const REDUCED_MOTION_QUERY='(prefers-reduced-motion: reduce)';
 const RAIL_PREF='qelly.ui-lock-v5-3.rail';
 const REFINEMENT_STYLESHEET=new URL('./qelly-v53-visible-refinement.css',import.meta.url).href;
+const POSTMERGE_STYLESHEET=new URL('./qelly-post-v53-convergence.css',import.meta.url).href;
 const FAMILY_RUNTIME=new URL('./qelly-v53-family-harmonization.mjs',import.meta.url).href;
 const COLOR_BLIND_MARKET_TOKENS=Object.freeze({positive:'#168AAD',negative:'#D1495B',warning:'#F3A712'});
 
@@ -18,6 +19,7 @@ root.dataset.uiLockV53='active';
 root.dataset.uiLockV53Approved='2026-08-08';
 root.dataset.uiLockV53DesignSha='e077489ba482f0df9258a14c0074adb1bc9eee02d4740b7fb683fdf7df3b2855';
 root.dataset.uiLockV53Refinement='2026-08-09';
+root.dataset.v53PostmergeConvergence='wave1';
 
 function activateVisibleRefinement(){
   if(document.querySelector('link[data-qelly-v53-refinement="active"]'))return;
@@ -25,6 +27,15 @@ function activateVisibleRefinement(){
   link.rel='stylesheet';
   link.href=REFINEMENT_STYLESHEET;
   link.dataset.qellyV53Refinement='active';
+  document.head.append(link);
+}
+
+function activatePostMergeConvergence(){
+  if(document.querySelector('link[data-qelly-v53-postmerge="wave1"]'))return;
+  const link=document.createElement('link');
+  link.rel='stylesheet';
+  link.href=POSTMERGE_STYLESHEET;
+  link.dataset.qellyV53Postmerge='wave1';
   document.head.append(link);
 }
 
@@ -175,6 +186,7 @@ if(main){
 }
 
 activateVisibleRefinement();
+activatePostMergeConvergence();
 void activateFamilyHarmonization();
 void activateThemePreferenceBridge();
 applyCompactRailDefault();
