@@ -124,20 +124,27 @@ def generated_runner(scenario):
                         const style=getComputedStyle(node);
                         return {{
                           left:Math.round(box.left),right:Math.round(box.right),
+                          top:Math.round(box.top),bottom:Math.round(box.bottom),
                           width:Math.round(box.width),height:Math.round(box.height),
                           viewportWidth:Math.round(innerWidth),
                           visible:box.width>0&&box.height>0&&style.display!=='none'&&style.visibility!=='hidden'
                         }};
                       }};
                       const main=document.getElementById('main');
+                      const shelf=document.querySelector('#context-shelf .q-category-shelf');
+                      const shelfVerify=document.querySelector('#context-shelf [data-qelly-verify-link]');
+                      const shelfMethodology=document.querySelector('#context-shelf [data-qelly-methodology-link]');
                       return {{
                         owner:main?.dataset.qellyVerifyOwner??null,
                         surface:Boolean(document.querySelector({selector!r})),
                         mainText:main?.innerText??'',
                         primaryVerify:Boolean(document.querySelector('#primary-nav [data-qelly-verify-link]')),
                         primaryMethodology:Boolean(document.querySelector('#primary-nav [data-qelly-methodology-link]')),
-                        shelfVerify:Boolean(document.querySelector('#context-shelf [data-qelly-verify-link]')),
-                        shelfMethodology:Boolean(document.querySelector('#context-shelf [data-qelly-methodology-link]')),
+                        shelfVerify:Boolean(shelfVerify),
+                        shelfMethodology:Boolean(shelfMethodology),
+                        shelfBounds:bounds(shelf),
+                        shelfVerifyBounds:bounds(shelfVerify),
+                        shelfMethodologyBounds:bounds(shelfMethodology),
                         hero:bounds(document.querySelector('.q-verify-hero')),
                         heroCopy:bounds(document.querySelector('.q-verify-hero__copy')),
                         boundary:bounds(document.querySelector('.q-verify-boundary'))
@@ -153,6 +160,13 @@ def generated_runner(scenario):
                     for key in ('primaryVerify','primaryMethodology','shelfVerify','shelfMethodology'):
                         if not subview_probe.get(key):
                             errors.append({{'type':'subview-discoverability','text':f"Missing governed shell discoverability marker: {{key}}"}})
+                    shelf_bounds=subview_probe.get('shelfBounds')
+                    for key in ('shelfVerifyBounds','shelfMethodologyBounds'):
+                        control_bounds=subview_probe.get(key)
+                        if not control_bounds or not control_bounds.get('visible'):
+                            errors.append({{'type':'subview-discoverability','text':f"Governed shelf control is not visible: {{key}}"}})
+                        elif shelf_bounds and shelf_bounds.get('visible') and (control_bounds.get('left',0)<shelf_bounds.get('left',0)-2 or control_bounds.get('right',0)>shelf_bounds.get('right',0)+2):
+                            errors.append({{'type':'subview-discoverability','text':f"Governed shelf control is outside the visible shelf viewport: {{key}} {{control_bounds}} shelf={{shelf_bounds}}"}})
                     for key in ('heroCopy','boundary'):
                         bounds=subview_probe.get(key)
                         if bounds and bounds.get('visible') and (bounds.get('left',0)<-2 or bounds.get('right',0)>bounds.get('viewportWidth',0)+2):
