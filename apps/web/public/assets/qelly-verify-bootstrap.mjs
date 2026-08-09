@@ -18,19 +18,6 @@ const setRequested=(view,intent)=>{
   state.requestedView=view||null;
   state.lastIntent=String(intent||'unknown');
 };
-const normalizeNavigationMarkers=()=>{
-  document.querySelectorAll('[data-qelly-verify-link="true"]').forEach(link=>{link.dataset.qellyVerifyLink='verify';});
-  document.querySelectorAll('[data-qelly-methodology-link]').forEach(link=>{link.dataset.qellyVerifyLink='methodology';});
-  const primary=document.getElementById('primary-nav');
-  if(primary&&!primary.querySelector('[data-qelly-verify-link="verify"]')){
-    const link=document.createElement('a');
-    link.href='#/qelly-verify';
-    link.dataset.qellyVerifyLink='verify';
-    link.textContent='Verify';
-    const methodology=primary.querySelector('[data-qelly-verify-link="methodology"],[data-qelly-methodology-link]');
-    if(methodology)primary.insertBefore(link,methodology);else primary.prepend(link);
-  }
-};
 
 const initialView=viewFor(location.hash);
 if(initialView)setRequested(initialView,'initial-url');
@@ -51,7 +38,6 @@ window.addEventListener('hashchange',()=>{
 let scheduled=false;
 const handoff=()=>{
   scheduled=false;
-  normalizeNavigationMarkers();
   if(!state.requested)return;
   const view=state.requestedView||'verify';
   const method=view==='methodology'?'renderMethodology':'render';
@@ -62,7 +48,6 @@ const handoff=()=>{
   const canonicalHash=view==='methodology'?'#/market?view=evidence-methodology':'#/qelly-verify';
   if(location.hash!==canonicalHash)history.replaceState(null,'',canonicalHash);
   if(!(main?.dataset.qellyVerifyOwner===owner&&main.querySelector(selector)))window.QellyVerify[method]();
-  normalizeNavigationMarkers();
   if(view==='verify')document.title='Qelly Verify · Qelly Intelligence';
 };
 const schedule=()=>{
@@ -70,13 +55,8 @@ const schedule=()=>{
   scheduled=true;
   requestAnimationFrame(handoff);
 };
-const observe=()=>{
-  normalizeNavigationMarkers();
-  schedule();
-};
 
-normalizeNavigationMarkers();
-new MutationObserver(observe).observe(document.documentElement,{childList:true,subtree:true});
+new MutationObserver(schedule).observe(document.documentElement,{childList:true,subtree:true});
 window.addEventListener('pageshow',schedule);
 for(const delay of [0,60,180,500,1200,2500])setTimeout(schedule,delay);
 
