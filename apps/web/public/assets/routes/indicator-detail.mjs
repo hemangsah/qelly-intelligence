@@ -15,9 +15,16 @@ const primarySeries=(outputs={})=>{
   return arrays.find(([key])=>['value','macd','middle','k','rsi','atr','vwap'].includes(key))??arrays[0]??[null,[]];
 };
 
+function renderSelectionRequired(main,{pageHead,escapeHtml,navigate,id}){
+  const detail=id?`The current route context “${id}” does not resolve to a governed indicator definition.`:'No indicator identifier is present in this route.';
+  main.innerHTML=`<section class="q-page q-indicator-detail-page">${pageHead('Indicator methodology','Indicator Detail','Select a governed indicator before inspecting methodology or deterministic sample evidence.')}<div class="q-state-banner"><span class="q-status q-status--unavailable">SELECTION REQUIRED</span><p>${escapeHtml(detail)} Qelly does not invent an indicator selection or redirect silently.</p></div><section class="q-panel"><div class="q-panel-head"><div><p class="q-eyebrow">No indicator selected</p><h2>Choose an indicator from the governed library</h2><p>This registered detail route remains visible without implying that another indicator was selected.</p></div></div><div class="q-panel-body"><button class="q-button q-button--primary" data-action="library">Open indicator library</button></div></section></section>`;
+  main.querySelector('[data-action="library"]').addEventListener('click',()=>navigate('indicator-library'));
+}
+
 export async function renderIndicatorDetail(main,{pageHead,escapeHtml,toast,navigate,id}){
+  if(!id){renderSelectionRequired(main,{pageHead,escapeHtml,navigate,id});return;}
   let definition;
-  try{definition=getIndicatorDefinition(id);}catch{navigate('indicator-library');return;}
+  try{definition=getIndicatorDefinition(id);}catch{renderSelectionRequired(main,{pageHead,escapeHtml,navigate,id});return;}
   const hasGovernedReference=Boolean(definition.referenceVector?.inputs);
   const inputs=definition.referenceVector?.inputs??createIndicatorSampleInputs(definition);
   const result=calculateIndicator(definition.indicatorId,inputs,{calculatedAt:'2026-07-30T00:00:00.000Z'});

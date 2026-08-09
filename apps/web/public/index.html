@@ -12,7 +12,6 @@
   <link rel="apple-touch-icon" href="./apple-touch-icon.png">
   <link rel="mask-icon" href="./safari-pinned-tab.svg" color="#6F1838">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="preload" href="./assets/fonts/ibm-plex-sans-variable.woff2" as="font" type="font/woff2" crossorigin>
   <script>
   (()=>{
     const root=document.documentElement;
@@ -45,6 +44,10 @@
   <link rel="stylesheet" href="./assets/qelly-verify.css">
   <link rel="stylesheet" href="./assets/qelly-verify-evidence.css">
   <link rel="stylesheet" href="./assets/qelly-runtime-repair.css">
+  <link rel="stylesheet" href="./assets/qelly-font-governance.css">
+  <link rel="stylesheet" href="./assets/qelly-ui-lock-v5.css">
+  <link rel="stylesheet" href="./assets/qelly-ui-lock-v5-markets.css">
+  <link rel="stylesheet" href="./assets/qelly-ui-lock-v5-3.css">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
@@ -96,6 +99,8 @@
   <script type="module" src="./assets/qelly-worldclass-uiux.mjs"></script>
   <script type="module" src="./assets/qelly-public-recovery.mjs"></script>
   <script type="module" src="./assets/qelly-verify-product.mjs"></script>
+  <script type="module" src="./assets/qelly-ui-lock-v5.mjs"></script>
+  <script type="module" src="./assets/qelly-ui-lock-v5-3.mjs"></script>
   <script type="module">
     const root=document.documentElement;
     const main=document.getElementById('main');
@@ -109,7 +114,7 @@
     window.addEventListener('error',reveal,{once:true});
     window.addEventListener('unhandledrejection',reveal,{once:true});
     try{
-      await Promise.all([document.fonts?.load('400 1em "Qelly IBM Plex Sans"')??Promise.resolve(),routeReady]);
+      await Promise.all([document.fonts?.ready??Promise.resolve(),routeReady]);
       await new Promise((resolve)=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
     }finally{reveal();}
   </script>

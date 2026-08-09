@@ -1,8 +1,8 @@
-# Qelly Sovereign Experience - Design Rebuild
+# Qelly Sovereign Experience - Design Rebuild Reference
 
-The Part 22 design rebuild permanently locks the deepest-burgundy gradient and replaces generic dashboard styling with a modular market-intelligence language.
+The Part 22 design rebuild established the deepest-burgundy gradient and a modular market-intelligence language as a governed reference baseline. It is not an irreversible visual approval: later product constitutions, token specifications, route inventories and acceptance gates may supersede this reference through the governed change process.
 
-## Locked identity
+## Governed reference identity
 
 - Burgundy black `#080003`
 - Burgundy ink `#180008`
@@ -25,13 +25,23 @@ The Part 22 design rebuild permanently locks the deepest-burgundy gradient and r
 
 ## Persona taxonomy
 
-Scalper Velocity, Investor Compound, Aggressive Alpha, Quant Operator, Research Oracle and Signal Access are market-behaviour profiles rather than arbitrary colour skins. Every persona preserves the locked gradient and protected financial semantics.
+Scalper Velocity, Investor Compound, Aggressive Alpha, Quant Operator, Research Oracle and Signal Access are market-behaviour profiles rather than arbitrary colour skins. Every persona preserves protected financial semantics while the visual treatment remains subject to the governed design and acceptance gates.
 
-## Review artifacts
+## Current governed route baseline
 
-- 47 routes
+- 70 registered routes
+- Canonical route inventory is authoritative for current route identity and evidence coverage
+- Required all-screens evidence covers desktop and mobile for every registered route
+
+## Historical Part 22 review artifacts
+
+The original Part 22 review package predates the current 70-route inventory and recorded:
+
+- 47 routes at that historical review point
 - 6 personas
 - 282 actual application captures
 - 293-page design PDF
 - Editable Figma generator
 - Working Node-backed website
+
+These historical artifact counts are provenance, not the current acceptance baseline.

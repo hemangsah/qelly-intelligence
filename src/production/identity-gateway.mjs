@@ -1,12 +1,12 @@
 import { evaluateAccess } from '../identity/authorization-engine.mjs';
 
 export class IdentityGateway{
-  constructor({localIdentityService,productionAuthService=null,developmentEnabled=true,productionEnabled=false,localCsrfTokens}={}){
-    this.local=localIdentityService;this.production=productionAuthService;this.developmentEnabled=developmentEnabled;this.productionEnabled=productionEnabled;this.localCsrfTokens=localCsrfTokens;
+  constructor({localIdentityService,productionAuthService=null,developmentEnabled=true,productionEnabled=false,localCsrfTokens,explicitDevelopmentSession=false}={}){
+    this.local=localIdentityService;this.production=productionAuthService;this.developmentEnabled=developmentEnabled;this.productionEnabled=productionEnabled;this.localCsrfTokens=localCsrfTokens;this.explicitDevelopmentSession=explicitDevelopmentSession;
   }
   async resolveRequest(request){
     if(this.production){const resolved=await this.production.resolveRequest(request);if(resolved)return resolved;}
-    if(this.developmentEnabled){const provided=request.headers['x-qelly-session-id'];return {mode:'development-fixture',sessionKey:String(provided??'sess-local-primary').slice(0,128),sessionId:String(provided??'sess-local-primary').slice(0,128)};}
+    if(this.developmentEnabled){const provided=request.headers['x-qelly-session-id'];if(this.explicitDevelopmentSession&&!provided)return {mode:'anonymous',sessionKey:null,sessionId:null};const sessionId=String(provided??'sess-local-primary').slice(0,128);return {mode:'development-fixture',sessionKey:sessionId,sessionId};}
     return {mode:'anonymous',sessionKey:null,sessionId:null};
   }
   async context(sessionKey){if(String(sessionKey??'').startsWith('prod:'))return this.production?.context(sessionKey)??null;if(!this.developmentEnabled)return null;return this.local.context(sessionKey);}

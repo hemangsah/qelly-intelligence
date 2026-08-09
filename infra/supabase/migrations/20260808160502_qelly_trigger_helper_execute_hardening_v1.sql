@@ -1,0 +1,9 @@
+revoke execute on function qelly_private.prevent_workspace_owner_reassignment() from public;
+revoke execute on function qelly_private.prepare_research_revision() from public;
+revoke execute on function qelly_private.capture_research_revision() from public;
+revoke execute on function qelly_private.prepare_decision_revision() from public;
+revoke execute on function qelly_private.capture_decision_revision() from public;
+revoke execute on function qelly_private.prepare_dashboard_layout_revision() from public;
+revoke execute on function qelly_private.capture_dashboard_layout_revision() from public;
+revoke execute on function qelly_private.prepare_theme_preset_revision() from public;
+revoke execute on function qelly_private.capture_theme_preset_revision() from public;

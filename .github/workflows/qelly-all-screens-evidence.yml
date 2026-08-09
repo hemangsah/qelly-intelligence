@@ -1,0 +1,108 @@
+name: Qelly Complete All-Screens Evidence
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'apps/web/public/**'
+      - 'functions/**'
+      - 'packages/**'
+      - 'scripts/release-a5-*'
+      - 'src/server/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/qelly-all-screens-evidence.yml'
+  push:
+    branches: [main, release/qelly-global-public-beta]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: qelly-all-screens-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  capture-and-package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      QELLY_SCREEN_EVIDENCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      QELLY_SCREEN_BATCH_SIZE: '10'
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: 'utf-8'
+    steps:
+      - name: Checkout exact evidence head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Guard exact evidence head
+        run: test "$(git rev-parse HEAD)" = "$QELLY_SCREEN_EVIDENCE_SHA"
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Install locked application dependencies
+        run: npm ci --ignore-scripts
+      - name: Install isolated visual evidence runtime
+        run: |
+          python -m pip install --disable-pip-version-check playwright pillow
+          python -m playwright install --with-deps chromium
+          chromium_path="$(python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as playwright:
+              print(playwright.chromium.executable_path)
+          PY
+          )"
+          test -x "$chromium_path"
+          sudo ln -sf "$chromium_path" /usr/bin/chromium
+          /usr/bin/chromium --version
+      - name: Validate source before browser capture
+        run: |
+          npm run env:check
+          npm run typecheck
+          npm run lint
+          npm run validate:design
+          npm run security:scan
+          npm test
+          npm run build:frontend
+      - name: Capture every registered route at desktop and mobile widths
+        run: npm run browser:all
+      - name: Validate accessibility and responsive interaction contracts
+        run: |
+          npm run a11y
+          cp validation/RELEASE_A5_ACCESSIBILITY_REGRESSION.json preview/release-a5-all-screens/accessibility-regression.json
+          python -X utf8 scripts/release-a5-screen-package.py
+      - name: Verify screenshot and archive contract
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFile,readdir,stat} from 'node:fs/promises';
+          const manifest=JSON.parse(await readFile('preview/release-a5-all-screens/manifest.json','utf8'));
+          const accessibility=JSON.parse(await readFile('preview/release-a5-all-screens/accessibility-regression.json','utf8'));
+          const files=await readdir('preview/release-a5-all-screens');
+          const pngs=files.filter(name=>name.endsWith('.png'));
+          const archives=(await readdir('preview')).filter(name=>/^QELLY_ALL_SCREENS_[0-9a-f]{12}\.zip$/.test(name));
+          const archiveSize=archives.length===1?(await stat(`preview/${archives[0]}`)).size:0;
+          const ok=manifest.status==='passed'&&manifest.routeCount===70&&manifest.renderCount===140&&manifest.expectedRenderCount===140&&pngs.length===140&&manifest.failed===0&&manifest.missing.length===0&&accessibility.status==='passed'&&archives.length===1&&archiveSize>0;
+          console.log(JSON.stringify({routeCount:manifest.routeCount,renderCount:manifest.renderCount,pngs:pngs.length,accessibilityChecks:accessibility.checks,accessibilityStatus:accessibility.status,archives,archiveSize,status:manifest.status},null,2));
+          if(!ok)process.exit(1);
+          NODE
+      - name: Upload complete or diagnostic screen evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-complete-all-screens-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: |
+            preview/QELLY_ALL_SCREENS_*.zip
+            preview/release-a5-all-screens
+            preview/RELEASE_A5_ALL_SCREENS_LOG.json
+            validation/RELEASE_A5_ACCESSIBILITY_REGRESSION.json
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 30

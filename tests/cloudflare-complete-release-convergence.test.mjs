@@ -62,3 +62,38 @@ test('production verifier fetches build, generated config and API config before 
   assert.match(source,/browserConfig:browserConfigStatus===200/);
   assert.match(source,/apiConfig:apiConfigStatus===200/);
 });
+
+test('Cloudflare evidence handoff verifies PR checks, no-ops main deployments, and retains exact-head guards',async()=>{
+  const source=await readFile(new URL('../.github/workflows/qelly-cloudflare-evidence-handoff.yml',import.meta.url),'utf8');
+  assert.match(source,/issue_comment:\s*\n\s*types:\s*\[created, edited\]/);
+  assert.match(source,/check_run:\s*\n\s*types:\s*\[completed\]/);
+  assert.match(source,/github\.actor == 'cloudflare-workers-and-pages\[bot\]'/);
+  assert.match(source,/contains\(github\.event\.comment\.body, 'Deploy successful!'\)/);
+  assert.match(source,/github\.event\.check_run\.name == 'Cloudflare Pages'/);
+  assert.match(source,/github\.event\.check_run\.conclusion == 'success'/);
+  assert.match(source,/CHECK_RUN_URL:/);
+  assert.match(source,/check_json="\$\(api_get "\$CHECK_RUN_URL"\)"/);
+  assert.match(source,/\.app\.slug/);
+  assert.match(source,/cloudflare-workers-and-pages/);
+  assert.match(source,/\.output\.summary \| type == "string" and contains\("Deploy successful!"\)/);
+  assert.match(source,/commits\/\$sha\/pulls/);
+  assert.match(source,/select\(\.state == "open" and \.head\.sha == \$sha\)/);
+  assert.match(source,/Verified Cloudflare deployment has no open pull request; exact-PR evidence is intentionally not applicable\./);
+  assert.match(source,/Verified Cloudflare deployment belongs to a closed pull request; exact-PR evidence is intentionally not applicable\./);
+  assert.match(source,/echo "eligible=false" >> "\$GITHUB_OUTPUT"/);
+  assert.match(source,/echo "eligible=true" >> "\$GITHUB_OUTPUT"/);
+  assert.doesNotMatch(source,/test -n "\$pr_url"/);
+  assert.match(source,/test "\$current_sha" = "\$sha"/);
+  assert.match(source,/if: steps\.pr\.outputs\.eligible == 'true'\s*\n\s*uses: actions\/checkout/);
+  assert.match(source,/ref: \$\{\{ steps\.pr\.outputs\.sha \}\}/);
+  assert.match(source,/Guard exact pull-request head/);
+  assert.match(source,/git rev-parse HEAD/);
+  assert.match(source,/Capture all registered screens\s*\n\s*if: steps\.pr\.outputs\.eligible == 'true'/);
+  assert.match(source,/manifest\.routeCount===70&&manifest\.renderCount===140&&manifest\.expectedRenderCount===140/);
+  assert.match(source,/accessibility\.status==='passed'/);
+  assert.match(source,/always\(\) && steps\.pr\.outputs\.eligible == 'true'/);
+  assert.match(source,/contents: read/);
+  assert.match(source,/pull-requests: read/);
+  assert.doesNotMatch(source,/contents:\s*write|pull-requests:\s*write|deployments:\s*write/);
+  assert.doesNotMatch(source,/\bwrangler\b|cloudflare\/pages-action|gh\s+pr\s+merge|\/merge\b/);
+});

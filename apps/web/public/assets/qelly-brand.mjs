@@ -6,49 +6,21 @@ const horizontalLogo=()=>asset(isLight()?'qelly-logo-light.svg':'qelly-logo-dark
 const symbolLogo=()=>asset(isLight()?'qelly-symbol.svg':'qelly-symbol-dark.svg');
 const blockingStates=new Set(['loading','empty','offline','error']);
 const productionProduct=()=>root.dataset.productSurface==='production'||window.__QELLY_CONFIG__?.staticVisualPreview===false;
-const escapeHtml=(value)=>String(value??'').replace(/[&<>'"]/g,(character)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
-
-function installCanonicalShellStyles(){
-  if(document.querySelector('link[data-qelly-canonical-shell-brand]'))return;
-  const link=document.createElement('link');
-  link.rel='stylesheet';
-  link.href=new URL('./qelly-canonical-shell-brand.css',import.meta.url).href;
-  link.dataset.qellyCanonicalShellBrand='true';
-  document.head.append(link);
-}
 
 function installShellBrand(){
   const target=document.querySelector('.q-brand-mark');
-  if(target&&!target.querySelector('.q-brand-home')){
+  if(target&&!target.dataset.brandInstalled){
+    target.dataset.brandInstalled='true';
     target.innerHTML=`<a class="q-brand-home" href="#/market" aria-label="Qelly Intelligence home"><img data-lockup width="304" height="84" src="${horizontalLogo()}" alt="Qelly"><img class="q-brand-symbol" width="84" height="84" src="${symbolLogo()}" alt="" aria-hidden="true"></a>`;
   }
-  if(target)target.dataset.brandInstalled='true';
   const avatar=document.querySelector('.q-avatar');
-  if(avatar&&!avatar.querySelector('.q-brand-symbol')){
+  if(avatar&&!avatar.dataset.brandInstalled){
+    avatar.dataset.brandInstalled='true';
     avatar.innerHTML=`<img class="q-brand-symbol" width="84" height="84" src="${symbolLogo()}" alt="">`;
   }
-  if(avatar)avatar.dataset.brandInstalled='true';
 }
-
-function workspaceContext(target){
-  const title=target.querySelector('[data-qelly-workspace-title],strong')?.textContent?.trim();
-  const subtitle=target.querySelector('[data-qelly-workspace-subtitle],small')?.textContent?.trim();
-  return {
-    title:title||'Market intelligence',
-    subtitle:subtitle||'Evidence-backed research and calculation'
-  };
-}
-
-function installWorkspaceBrand(){
-  const target=document.getElementById('workspace-switcher');
-  if(!target||target.querySelector('[data-qelly-workspace-lockup]'))return;
-  const context=workspaceContext(target);
-  target.dataset.qellyCanonicalBrand='true';
-  target.innerHTML=`<a class="q-workspace-brand-home" href="#/market" aria-label="Qelly Intelligence home"><img data-qelly-workspace-lockup data-lockup width="304" height="84" src="${horizontalLogo()}" alt="Qelly"></a><div class="q-workspace-context" data-qelly-workspace-context><strong data-qelly-workspace-title>${escapeHtml(context.title)}</strong><small data-qelly-workspace-subtitle>${escapeHtml(context.subtitle)}</small></div>`;
-}
-
 function updateVariants(){
-  document.querySelectorAll('img[data-lockup]').forEach((node)=>node.src=horizontalLogo());
+  document.querySelectorAll('.q-brand-home img[data-lockup]').forEach((node)=>node.src=horizontalLogo());
   document.querySelectorAll('.q-brand-symbol').forEach((node)=>node.src=symbolLogo());
   const opening=document.querySelector('.qelly-opening');
   if(opening){
@@ -155,9 +127,7 @@ function enforceProductionBoundary(){
   document.querySelectorAll('[data-qelly-brand-hero],[data-qelly-auth-brand]').forEach((node)=>node.remove());
 }
 function refresh(){
-  installCanonicalShellStyles();
   installShellBrand();
-  installWorkspaceBrand();
   enforceProductionBoundary();
   if(!productionProduct()){
     installHero();
@@ -166,7 +136,6 @@ function refresh(){
   installStateBrand();
   installCommandBrand();
 }
-installCanonicalShellStyles();
 installOpening();
 refresh();
 new MutationObserver(refresh).observe(document.documentElement,{childList:true,subtree:true});
@@ -174,5 +143,3 @@ window.addEventListener('hashchange',()=>requestAnimationFrame(refresh));
 new MutationObserver(updateVariants).observe(root,{attributes:true,attributeFilter:['data-appearance','data-resolved-appearance','data-theme-family']});
 window.addEventListener('pageshow',updateVariants);
 root.dataset.brandReady='true';
-
-export const __qellyBrandTest=Object.freeze({workspaceContext});

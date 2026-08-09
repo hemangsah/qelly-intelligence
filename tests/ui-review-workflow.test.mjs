@@ -67,14 +67,16 @@ test('editable Figma handoff matches IBM Plex production typography',async()=>{
 });
 
 test('IBM Plex is selected everywhere and GT Eesti remains licence gated',async()=>{
-  const [assembly,css,build,audit,decision,index]=await Promise.all([read('apps/web/public/assets/qelly-premium-reset.css'),read('apps/web/public/assets/premium-font-worldquant-arkham.css'),read('scripts/build-frontend.mjs'),read('design/research/CURRENT_TYPOGRAPHY_AUDIT.md'),read('design/research/QELLY_WORLDQUANT_ARKHAM_FONT_DECISION.md'),read('apps/web/public/index.html')]);
+  const [assembly,css,build,audit,decision,index,fontGovernance]=await Promise.all([read('apps/web/public/assets/qelly-premium-reset.css'),read('apps/web/public/assets/premium-font-worldquant-arkham.css'),read('scripts/build-frontend.mjs'),read('design/research/CURRENT_TYPOGRAPHY_AUDIT.md'),read('design/research/QELLY_WORLDQUANT_ARKHAM_FONT_DECISION.md'),read('apps/web/public/index.html'),read('apps/web/public/assets/qelly-font-governance.css')]);
   assert.ok(assembly.includes('premium-font-worldquant-arkham.css'));
   for(const phrase of ['Qelly IBM Plex Sans','Arial','Helvetica Neue','--q-font-display','--q-font-text','--q-font-mono','tabular-nums lining-nums','font-feature-settings','GT Eesti Pro Display','GT Eesti Pro Text'])assert.ok(css.includes(phrase));
   assert.doesNotMatch(css,/@font-face[^}]*GT Eesti/is);
   assert.ok(build.includes('@fontsource-variable/ibm-plex-sans'));
   assert.ok(build.includes('ibm-plex-sans-variable.woff2'));
   assert.ok(build.includes("licensedOptionalActive:false"));
-  assert.ok(index.includes('ibm-plex-sans-variable.woff2'));
+  assert.doesNotMatch(index,/rel=["']preload["'][^>]*ibm-plex-sans-variable\.woff2/i);
+  assert.ok(index.includes('qelly-font-governance.css'));
+  assert.ok(fontGovernance.includes('ibm-plex-sans-variable.woff2'));
   assert.doesNotMatch(index,/geist-(?:mono-)?variable\.woff2/);
   assert.match(audit,/IBM Plex Sans Variable/);
   assert.match(audit,/GT Eesti/);
