@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const API_REVISION="qelly-revision-restore-2026-08-08-v2";
+const API_REVISION="qelly-revision-restore-2026-08-08-v3";
 const headers={"content-type":"application/json; charset=utf-8","cache-control":"no-store","x-content-type-options":"nosniff"};
 const response=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers});
 const fail=(status:number,code:string,message:string,details:unknown=null)=>response({status:"error",code,message,details,apiRevision:API_REVISION},status);
@@ -23,4 +23,4 @@ Deno.serve(async(req:Request)=>{try{
  const revisionField=config.revisionField??"revision_no";let revisionQuery=client.from(config.revisionTable).select("*").eq(config.parentKey,parentId);if(config.workspaceOnRevision)revisionQuery=revisionQuery.eq("workspace_id",workspaceId);if(typeof body?.revisionId==="string")revisionQuery=revisionQuery.eq("id",body.revisionId);else if(Number.isInteger(Number(body?.revisionNo))&&Number(body.revisionNo)>0)revisionQuery=revisionQuery.eq(revisionField,Number(body.revisionNo));else return fail(400,"revision_required","revisionId or positive revisionNo is required");const {data:revision,error:revisionError}=await revisionQuery.single();if(revisionError||!revision)return fail(404,"revision_not_found","The requested revision is not visible in this workspace");
  const snapshot=revision.snapshot;if(!snapshot||typeof snapshot!=="object"||Array.isArray(snapshot))return fail(409,"revision_snapshot_invalid","Stored revision snapshot is invalid");const patch=cleanPatch(config.map(snapshot));const {data:restored,error:updateError}=await client.from(config.parentTable).update(patch).eq("id",parentId).select("*").single();if(updateError)return fail(400,"restore_failed","Revision restore was rejected safely",{code:updateError.code});
  return response({status:"success",kind,id:parentId,restoredFrom:{revisionId:revision.id,revisionNo:revision[revisionField]},item:restored,newRevision:restored?.current_revision??null,truthBoundary:"Restore creates a new current revision through Qelly's existing revision triggers; it does not erase historical revisions or bypass workspace permissions. Qelly Verify restore operates only on derived evidence reports and hashes, never raw trade rows.",apiRevision:API_REVISION});
- }catch(error){return fail(500,"revision_restore_error","Revision restore failed safely",{message:error instanceof Error?error.message:String(error)});}});
+ }catch(_error){return fail(500,"revision_restore_error","Revision restore failed safely");}});

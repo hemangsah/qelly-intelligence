@@ -1,0 +1,16 @@
+create index if not exists qelly_dashboard_revisions_workspace_idx on public.qelly_dashboard_layout_revisions(workspace_id);
+create index if not exists qelly_data_quality_instrument_idx on public.qelly_data_quality_events(instrument_id);
+create index if not exists qelly_data_quality_provider_idx on public.qelly_data_quality_events(provider_id);
+create index if not exists qelly_data_quality_series_idx on public.qelly_data_quality_events(series_id);
+create index if not exists qelly_decision_revisions_workspace_idx on public.qelly_decision_revisions(workspace_id);
+create index if not exists qelly_notification_delivery_event_idx on public.qelly_notification_deliveries(alert_event_id);
+create index if not exists qelly_portfolio_positions_workspace_idx on public.qelly_portfolio_positions(workspace_id);
+create index if not exists qelly_provenance_edges_to_node_idx on public.qelly_provenance_edges(to_node_id);
+create index if not exists qelly_research_revisions_workspace_idx on public.qelly_research_project_revisions(workspace_id);
+create index if not exists qelly_runtime_jobs_workspace_idx on public.qelly_runtime_jobs(workspace_id);
+create index if not exists qelly_theme_revisions_workspace_idx on public.qelly_theme_preset_revisions(workspace_id);
+create index if not exists qelly_theme_schedules_preset_idx on public.qelly_theme_schedules(preset_id);
+create index if not exists qelly_timeseries_series_provider_idx on public.qelly_timeseries_series(provider_id);
+create index if not exists qelly_verify_revisions_owner_idx on public.qelly_verify_assessment_revisions(owner_id);
+create index if not exists qelly_watchlist_items_workspace_idx on public.qelly_watchlist_items(workspace_id);
+create index if not exists qelly_comments_parent_idx on public.qelly_workspace_comments(parent_comment_id);
