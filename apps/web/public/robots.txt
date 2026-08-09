@@ -1,3 +1,4 @@
+# Host-neutral fallback. Connected builds replace this file from QELLY_PUBLIC_SITE_URL.
 User-agent: *
 Allow: /
 Disallow: /api/
@@ -7,4 +8,3 @@ Disallow: /saved-calculations/
 Disallow: /secure-import/
 Disallow: /quarantine-review/
 Disallow: /delivery-operations/
-Sitemap: https://hemangsah.github.io/qelly-intelligence/sitemap.xml
