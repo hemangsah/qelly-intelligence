@@ -5,7 +5,7 @@ export const ROUTE_FAMILIES=Object.freeze({
   'market-command':Object.freeze(['live-markets','advanced-chart','market','rankings','asset','asset-intelligence','asset-rankings','discovery-hub','search','categories','category-detail','venues','venue-detail','dex-discovery','global-charts','converter','timeseries-lab','stream-operations','instrument-master']),
   'research-evidence':Object.freeze(['news-research','research-article','research-workspace','research-history','filing-workspace','fundamentals-estimates','event-calendar','comparison-lab']),
   'portfolio-risk':Object.freeze(['watchlist','alert-center','notification-center','notification-schedules','screener-lab','formula-screener','portfolio-analytics','portfolio-attribution','onboarding','import-center']),
-  'quant-verify':Object.freeze(['calculator-center','india-finance','indicator-library','formula-library','saved-calculations','formula-detail','indicator-detail','calculator-detail','saved-calculation-detail']),
+  'quant-verify':Object.freeze(['calculator-center','india-finance','indicator-library','formula-library','saved-calculations','formula-detail','indicator-detail','calculator-detail','saved-calculation-detail','qelly-verify']),
   'theme-security':Object.freeze(['theme-personas','theme-lab','identity-access','security-setup','passkey-center','account-recovery','account-session','auth-login','auth-register','auth-recovery','secret-rotation','security-evidence']),
   'operations-public':Object.freeze(['secure-import-vault','delivery-operations','platform-readiness','quarantine-review','staging-assurance','migration-center','data-mesh','observability','decision-provenance','feature-universe','about-qelly','trust-center'])
 });
