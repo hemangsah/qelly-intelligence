@@ -7,6 +7,7 @@ const CSS='apps/web/public/assets/qelly-post-v53-convergence.css';
 const RUNTIME='apps/web/public/assets/qelly-ui-lock-v5-3.mjs';
 const ROUTES='apps/web/public/assets/route-registry.mjs';
 const RESPONSIVE='scripts/release-v53-responsive-evidence.py';
+const PORTFOLIO='apps/web/public/assets/routes/portfolio-analytics.mjs';
 const FLAGSHIPS=['market','advanced-chart','research-workspace','screener-lab','portfolio-analytics','decision-provenance'];
 
 test('post-V5.3 Wave 1 is explicitly activated by the governed V5.3 runtime',async()=>{
@@ -74,11 +75,18 @@ test('mobile flagship summaries use horizontal task rails rather than stacked KP
   assert.match(css,/prefers-reduced-motion:reduce/);
 });
 
+test('Portfolio exposes broker state as a disabled boundary, not an action',async()=>{
+  const source=await read(PORTFOLIO);
+  assert.match(source,/Broker connections disabled/);
+  assert.match(source,/disabled aria-disabled="true"/);
+  assert.doesNotMatch(source,/>Connect broker</);
+});
+
 test('Wave 1 does not alter canonical route count or introduce prohibited controls',async()=>{
-  const [css,runtime,registry]=await Promise.all([read(CSS),read(RUNTIME),read(ROUTES)]);
+  const [css,runtime,registry,portfolio]=await Promise.all([read(CSS),read(RUNTIME),read(ROUTES),read(PORTFOLIO)]);
   const routes=[...registry.matchAll(/route:'([^']+)'/g)].map(match=>match[1]);
   assert.equal(routes.length,70);
-  const source=`${css}\n${runtime}`.toLowerCase();
+  const source=`${css}\n${runtime}\n${portfolio}`.toLowerCase();
   for(const phrase of ['place order','execute trade','buy now','sell now','connect wallet','private key','recovery phrase','withdraw funds','deposit funds']){
     assert.equal(source.includes(phrase),false,`forbidden control phrase: ${phrase}`);
   }
