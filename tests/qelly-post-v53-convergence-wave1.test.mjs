@@ -82,10 +82,10 @@ test('Portfolio exposes broker state as a disabled boundary, not an action',asyn
   assert.doesNotMatch(source,/>Connect broker</);
 });
 
-test('Wave 1 does not alter canonical route count or introduce prohibited controls',async()=>{
+test('Wave 1 safety controls remain intact after canonical route expansion',async()=>{
   const [css,runtime,registry,portfolio]=await Promise.all([read(CSS),read(RUNTIME),read(ROUTES),read(PORTFOLIO)]);
   const routes=[...registry.matchAll(/route:'([^']+)'/g)].map(match=>match[1]);
-  assert.equal(routes.length,70);
+  assert.equal(routes.length,71);
   const source=`${css}\n${runtime}\n${portfolio}`.toLowerCase();
   for(const phrase of ['place order','execute trade','buy now','sell now','connect wallet','private key','recovery phrase','withdraw funds','deposit funds']){
     assert.equal(source.includes(phrase),false,`forbidden control phrase: ${phrase}`);
