@@ -39,6 +39,8 @@ test('current shell exposes Verify and Evidence through native navigation primit
   assert.match(shell,/class="q-nav-link" data-qelly-verify-link="shell"/);
   assert.match(shell,/class="q-nav-link" data-qelly-methodology-link="shell"/);
   assert.match(shell,/#\/market\?view=\$\{view\}/);
+  assert.match(shell,/shelf\.firstElementChild!==verify/);
+  assert.match(shell,/shelf\.insertBefore\(method,verify\.nextElementSibling\)/);
   assert.match(shell,/MutationObserver/);
   const productPosition=index.indexOf('./assets/qelly-verify-product.mjs');
   const shellPosition=index.indexOf('./assets/qelly-verify-shell-nav.mjs');
@@ -55,6 +57,9 @@ test('dedicated evidence harness adds 18 subview renders without changing existi
   assert.match(script,/Qelly Verify subviews must not become canonical routes/);
   assert.match(script,/primaryVerify/);
   assert.match(script,/shelfMethodology/);
+  assert.match(script,/shelfVerifyBounds/);
+  assert.match(script,/shelfMethodologyBounds/);
+  assert.match(script,/outside the visible shelf viewport/);
   assert.match(script,/aliasNormalized/);
   assert.match(workflow,/manifest\.canonicalRouteCount===70/);
   assert.match(workflow,/manifest\.renderCount===18/);
