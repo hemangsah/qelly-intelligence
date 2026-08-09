@@ -1,4 +1,5 @@
 const PRIMARY_ID='qelly-verify-shell-primary';
+const PRIMARY_VERIFY='qelly-verify-shell-primary-verify';
 const SHELF_VERIFY='qelly-verify-shell-shelf-verify';
 const SHELF_METHOD='qelly-verify-shell-shelf-methodology';
 const CONTEXT_VERIFY='qelly-verify-worldclass-verify';
@@ -30,21 +31,33 @@ const navigate=(view)=>{
 function ensurePrimary(view){
   const nav=document.getElementById('primary-nav');
   if(!nav)return;
-  const canonicalVerify=nav.querySelector('[data-route="qelly-verify"]');
-  if(canonicalVerify){
-    canonicalVerify.dataset.qellyVerifyLink='shell';
-    canonicalVerify.classList.toggle('is-active',view==='qelly-verify');
-    canonicalVerify.setAttribute('aria-current',view==='qelly-verify'?'page':'false');
-  }
   let group=document.getElementById(PRIMARY_ID);
   if(!group){
     group=document.createElement('div');
     group.id=PRIMARY_ID;
     group.dataset.qellyVerifyShellNav='primary';
     group.innerHTML=`<div class="q-nav-section">Strategy evidence</div>
+      <button type="button" id="${PRIMARY_VERIFY}" class="q-nav-link" data-qelly-verify-link="shell" aria-current="false"><span class="q-nav-icon" aria-hidden="true">V</span><span>Qelly Verify</span><span class="q-nav-meta">PUBLIC</span></button>
       <button type="button" class="q-nav-link" data-qelly-methodology-link="shell" aria-current="false"><span class="q-nav-icon" aria-hidden="true">E</span><span>Evidence Methodology</span><span class="q-nav-meta">PUBLIC</span></button>`;
+    group.querySelector('[data-qelly-verify-link="shell"]')?.addEventListener('click',()=>navigate('qelly-verify'));
     group.querySelector('[data-qelly-methodology-link]')?.addEventListener('click',()=>navigate('evidence-methodology'));
     nav.append(group);
+  }
+  const canonicalVerify=nav.querySelector('[data-route="qelly-verify"]');
+  const fallbackVerify=group.querySelector('[data-qelly-verify-link="shell"]');
+  if(canonicalVerify){
+    canonicalVerify.dataset.qellyVerifyLink='shell';
+    canonicalVerify.classList.toggle('is-active',view==='qelly-verify');
+    canonicalVerify.setAttribute('aria-current',view==='qelly-verify'?'page':'false');
+    fallbackVerify?.setAttribute('hidden','');
+    fallbackVerify?.setAttribute('aria-hidden','true');
+    fallbackVerify?.setAttribute('tabindex','-1');
+  }else{
+    fallbackVerify?.removeAttribute('hidden');
+    fallbackVerify?.removeAttribute('aria-hidden');
+    fallbackVerify?.removeAttribute('tabindex');
+    fallbackVerify?.classList.toggle('is-active',view==='qelly-verify');
+    fallbackVerify?.setAttribute('aria-current',view==='qelly-verify'?'page':'false');
   }
   const method=group.querySelector('[data-qelly-methodology-link]');
   method?.classList.toggle('is-active',view==='evidence-methodology');
