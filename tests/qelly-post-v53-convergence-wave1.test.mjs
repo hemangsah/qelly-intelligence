@@ -6,6 +6,7 @@ const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 const CSS='apps/web/public/assets/qelly-post-v53-convergence.css';
 const RUNTIME='apps/web/public/assets/qelly-ui-lock-v5-3.mjs';
 const ROUTES='apps/web/public/assets/route-registry.mjs';
+const RESPONSIVE='scripts/release-v53-responsive-evidence.py';
 const FLAGSHIPS=['market','advanced-chart','research-workspace','screener-lab','portfolio-analytics','decision-provenance'];
 
 test('post-V5.3 Wave 1 is explicitly activated by the governed V5.3 runtime',async()=>{
@@ -33,6 +34,18 @@ test('legacy Sovereign full-bleed hero geometry is reset on compact flagship hea
   assert.match(css,/\.q-page-head h1\{[^}]*color:var\(--q-text\)!important/);
   assert.match(css,/\.q-page-head p\{color:var\(--q-muted\)!important\}/);
   assert.doesNotMatch(css,/\.q-page-head\{[^}]*margin:-/);
+});
+
+test('responsive evidence rejects clipped content without banning legitimate full-bleed decoration',async()=>{
+  const script=await read(RESPONSIVE);
+  for(const route of FLAGSHIPS)assert.ok(script.includes(`'${route}'`),`responsive compact-header set missing ${route}`);
+  assert.match(script,/COMPACT_HEADER_ROUTES=/);
+  assert.match(script,/pageHeadContent/);
+  assert.match(script,/pageActions/);
+  assert.match(script,/compactPageHeadViewportBounds/);
+  assert.match(script,/pageHeadContentViewportBounds/);
+  assert.match(script,/pageActionsViewportBounds/);
+  assert.match(script,/HEADER_BOUNDARY_TOLERANCE_PX=2/);
 });
 
 test('Market and Advanced Chart receive compact workstation geometry',async()=>{
