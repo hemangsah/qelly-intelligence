@@ -12,6 +12,7 @@ const REDUCED_MOTION_QUERY='(prefers-reduced-motion: reduce)';
 const RAIL_PREF='qelly.ui-lock-v5-3.rail';
 const REFINEMENT_STYLESHEET=new URL('./qelly-v53-visible-refinement.css',import.meta.url).href;
 const FAMILY_RUNTIME=new URL('./qelly-v53-family-harmonization.mjs',import.meta.url).href;
+const COLOR_BLIND_MARKET_TOKENS=Object.freeze({positive:'#168AAD',negative:'#D1495B',warning:'#F3A712'});
 
 root.dataset.uiLockV53='active';
 root.dataset.uiLockV53Approved='2026-08-08';
@@ -36,6 +37,37 @@ async function activateFamilyHarmonization(){
   }catch(error){
     root.dataset.v53FamilyRuntime='unavailable';
     console.error('Qelly V5.3 family harmonization failed to load',error);
+  }
+}
+
+async function activateThemePreferenceBridge(){
+  if(root.dataset.v53ThemePreferenceBridgeRequested==='true')return;
+  root.dataset.v53ThemePreferenceBridgeRequested='true';
+  try{
+    const {themeIntelligence}=await import('./theme-intelligence.mjs');
+    const applyPalette=(snapshot=themeIntelligence.snapshot())=>{
+      const palette=snapshot?.config?.marketPalette||'semantic';
+      root.dataset.marketPalette=palette;
+      if(palette!=='color-blind')return;
+      const aliases={
+        '--q-positive':COLOR_BLIND_MARKET_TOKENS.positive,
+        '--q-negative':COLOR_BLIND_MARKET_TOKENS.negative,
+        '--q-warning':COLOR_BLIND_MARKET_TOKENS.warning,
+        '--q-premium-positive':COLOR_BLIND_MARKET_TOKENS.positive,
+        '--q-premium-negative':COLOR_BLIND_MARKET_TOKENS.negative,
+        '--q-premium-warning':COLOR_BLIND_MARKET_TOKENS.warning,
+        '--q-market-positive':COLOR_BLIND_MARKET_TOKENS.positive,
+        '--q-market-negative':COLOR_BLIND_MARKET_TOKENS.negative,
+        '--q-market-warning':COLOR_BLIND_MARKET_TOKENS.warning
+      };
+      for(const [name,value] of Object.entries(aliases))root.style.setProperty(name,value);
+    };
+    applyPalette(themeIntelligence.snapshot());
+    themeIntelligence.subscribe(applyPalette);
+    root.dataset.v53ThemePreferenceBridge='active';
+  }catch(error){
+    root.dataset.v53ThemePreferenceBridge='unavailable';
+    console.error('Qelly V5.3 Theme Intelligence preference bridge failed to load',error);
   }
 }
 
@@ -136,5 +168,6 @@ if(main){
 
 activateVisibleRefinement();
 void activateFamilyHarmonization();
+void activateThemePreferenceBridge();
 applyCompactRailDefault();
 refresh();

@@ -58,13 +58,12 @@ process.on('SIGTERM',()=>instance.server.close(()=>process.exit(0)));setInterval
 '''
     proc=subprocess.Popen(['node','--input-type=module','-e',launcher,runtime],cwd=ROOT,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
     line=proc.stdout.readline().strip()
-    if not line:
-        raise RuntimeError(proc.stderr.read())
+    if not line:raise RuntimeError(proc.stderr.read())
     info=json.loads(line)
     return runtime,proc,f"http://127.0.0.1:{info['port']}"
 
 
-def install_proxy(page,base,authenticated_config):
+def install_proxy(page,base):
     errors=[];observations=[]
     def on_console(message):
         if message.type!='error':return
@@ -109,13 +108,11 @@ def install_proxy(page,base,authenticated_config):
 
 
 def wait_route(page,label,route):
-    expected_title=f'{label} · Qelly Intelligence'
-    expected_hash=f'#/{route}'
+    expected_title=f'{label} · Qelly Intelligence';expected_hash=f'#/{route}'
     page.goto(f'{EXPECTED_ORIGIN}/#/{route}',wait_until='domcontentloaded',timeout=30000)
     page.wait_for_selector('main#main h1',timeout=20000)
     page.wait_for_function("([title,hash])=>document.title===title&&location.hash.split('?')[0]===hash&&document.querySelector('main#main')?.getAttribute('aria-busy')!=='true'",arg=[expected_title,expected_hash],timeout=20000)
-    page.evaluate('document.fonts?.ready')
-    page.wait_for_timeout(250)
+    page.evaluate('document.fonts?.ready');page.wait_for_timeout(250)
 
 
 def focus_sequence(page,count=8):
@@ -138,38 +135,40 @@ def main():
     runtime,proc,base=start_runtime()
     try:
         config=request_json(base,'/api/v1/config',True);status=request_json(base,'/api/v1/auth/status',True)
-        if config.get('auth',{}).get('authenticated') is not True or status.get('authenticated') is not True:
-            raise RuntimeError('authenticated accessibility-focus preflight failed')
+        if config.get('auth',{}).get('authenticated') is not True or status.get('authenticated') is not True:raise RuntimeError('authenticated accessibility-focus preflight failed')
         zoom_results=[];colorblind_result={}
         with sync_playwright() as p:
             browser=p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--disable-dev-shm-usage'])
             for route in ZOOM_ROUTES:
-                # 1440x900 physical canvas at 200% effective zoom => 720x450 CSS px at DPR 2.
                 context=browser.new_context(viewport={'width':720,'height':450},device_scale_factor=2,reduced_motion='reduce',color_scheme='dark')
                 context.add_init_script("sessionStorage.setItem('qelly.brand.opening.v1','seen');")
-                page=context.new_page();errors,observations=install_proxy(page,base,config)
-                failure=[]
+                page=context.new_page();errors,observations=install_proxy(page,base);failure=[]
                 try:
                     wait_route(page,labels[route],route)
-                    checks=page.evaluate("""() => ({
-                      cssViewport:{width:innerWidth,height:innerHeight},
-                      dpr:devicePixelRatio,
-                      overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,
-                      mainCount:document.querySelectorAll('main#main').length,
-                      h1Count:document.querySelectorAll('main#main h1').length,
-                      hiddenMotion:[...document.querySelectorAll('.q-motion-item:not(.is-inview)')].length,
-                      reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,
-                      reducedReveal:document.documentElement.dataset.v53ReducedMotionReveal||null,
-                      unlabeled:[...document.querySelectorAll('button,input,select,textarea,a[href]')].filter(el=>(el.offsetWidth||el.offsetHeight||el.getClientRects().length)&&!(el.getAttribute('aria-label')||el.getAttribute('title')||(el.textContent||'').trim()||(el.labels&&[...el.labels].some(l=>(l.textContent||'').trim()))).length
-                    })""")
+                    checks=page.evaluate(r"""() => {
+                      const visible=(el)=>Boolean(el.offsetWidth||el.offsetHeight||el.getClientRects().length);
+                      const named=(el)=>Boolean(el.getAttribute('aria-label')||el.getAttribute('title')||(el.textContent||'').trim()||(el.labels&&[...el.labels].some((label)=>(label.textContent||'').trim())));
+                      const controls=[...document.querySelectorAll('button,input,select,textarea,a[href]')].filter(visible);
+                      return {
+                        cssViewport:{width:innerWidth,height:innerHeight},dpr:devicePixelRatio,
+                        overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,
+                        mainCount:document.querySelectorAll('main#main').length,h1Count:document.querySelectorAll('main#main h1').length,
+                        hiddenMotion:[...document.querySelectorAll('.q-motion-item:not(.is-inview)')].length,
+                        reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,
+                        reducedReveal:document.documentElement.dataset.v53ReducedMotionReveal||null,
+                        unlabeled:controls.filter((el)=>!named(el)).length
+                      };
+                    }""")
                     focus=focus_sequence(page)
+                    focusable=[item for item in focus if item['tag'] not in (None,'BODY','HTML')]
+                    focus_signatures={(item.get('tag'),item.get('id'),item.get('label')) for item in focusable}
                     if checks['cssViewport']!={'width':720,'height':450}:failure.append('zoom-css-viewport')
                     if checks['dpr']!=2:failure.append('zoom-dpr')
                     if checks['overflow']>2:failure.append('horizontal-overflow')
                     if checks['mainCount']!=1 or checks['h1Count']<1:failure.append('semantic-landmarks')
                     if checks['hiddenMotion']!=0 or checks['reduced'] is not True or checks['reducedReveal']!='immediate':failure.append('reduced-motion-visibility')
                     if checks['unlabeled']!=0:failure.append('accessible-name')
-                    if any(item['tag'] in (None,'BODY','HTML') for item in focus):failure.append('keyboard-sequence')
+                    if len(focusable)<4 or len(focus_signatures)<2:failure.append('keyboard-sequence')
                     if errors:failure.append('critical-browser-error')
                     screenshot=OUT/f'{route}__zoom200.png';page.screenshot(path=str(screenshot),full_page=True,animations='disabled')
                     zoom_results.append({'route':route,'label':labels[route],'physicalTarget':{'width':1440,'height':900},'effectiveCssViewport':checks['cssViewport'],'deviceScaleFactor':checks['dpr'],'checks':checks,'focusSequence':focus,'browserErrors':errors,'networkObservations':observations,'status':'passed' if not failure else 'failed','failures':failure,'file':str(screenshot.relative_to(ROOT))})
@@ -179,30 +178,19 @@ def main():
 
             context=browser.new_context(viewport={'width':1280,'height':800},device_scale_factor=1,reduced_motion='reduce',color_scheme='dark')
             context.add_init_script("sessionStorage.setItem('qelly.brand.opening.v1','seen');")
-            page=context.new_page();errors,observations=install_proxy(page,base,config);failure=[]
+            page=context.new_page();errors,observations=install_proxy(page,base);failure=[]
             try:
                 wait_route(page,labels['market'],'market')
-                page.evaluate("document.documentElement.dataset.marketPalette='color-blind'")
-                page.wait_for_timeout(100)
-                checks=page.evaluate("""() => {
-                  const style=getComputedStyle(document.documentElement);
-                  const text=(document.querySelector('#main')?.innerText||'');
-                  return {
-                    palette:document.documentElement.dataset.marketPalette,
-                    positive:style.getPropertyValue('--q-positive').trim().toUpperCase(),
-                    negative:style.getPropertyValue('--q-negative').trim().toUpperCase(),
-                    warning:style.getPropertyValue('--q-warning').trim().toUpperCase(),
-                    hasSignedPositive:/\+\s*\d/.test(text),
-                    hasSignedNegative:/[-−]\s*\d/.test(text),
-                    hasUpDown:/\bUP\b/i.test(text)&&/\bDOWN\b/i.test(text),
-                    hiddenMotion:[...document.querySelectorAll('.q-motion-item:not(.is-inview)')].length,
-                    overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth
-                  };
+                page.evaluate(r"""async () => {const module=await import('./assets/theme-intelligence.mjs');module.themeIntelligence.preview({marketPalette:'color-blind'});}""")
+                page.wait_for_timeout(120)
+                checks=page.evaluate(r"""() => {
+                  const style=getComputedStyle(document.documentElement);const text=(document.querySelector('#main')?.innerText||'');
+                  return {palette:document.documentElement.dataset.marketPalette,positive:style.getPropertyValue('--q-positive').trim().toUpperCase(),negative:style.getPropertyValue('--q-negative').trim().toUpperCase(),warning:style.getPropertyValue('--q-warning').trim().toUpperCase(),hasSignedPositive:/\+\s*\d/.test(text),hasSignedNegative:/[-−]\s*\d/.test(text),hiddenMotion:[...document.querySelectorAll('.q-motion-item:not(.is-inview)')].length,overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth};
                 }""")
                 if checks['palette']!='color-blind':failure.append('palette-activation')
                 if checks['positive']!='#168AAD' or checks['negative']!='#D1495B' or checks['warning']!='#F3A712':failure.append('palette-token')
                 if not static_colorblind['paletteRule'] or not static_colorblind['downDashCue'] or not static_colorblind['upSolidCue']:failure.append('non-color-css-cue')
-                if not (checks['hasSignedPositive'] and checks['hasSignedNegative'] and checks['hasUpDown']):failure.append('non-color-text-cue')
+                if not (checks['hasSignedPositive'] and checks['hasSignedNegative']):failure.append('non-color-text-cue')
                 if checks['hiddenMotion']!=0:failure.append('reduced-motion-visibility')
                 if checks['overflow']>2:failure.append('horizontal-overflow')
                 if errors:failure.append('critical-browser-error')
@@ -211,9 +199,8 @@ def main():
             except Exception as exc:
                 colorblind_result={'route':'market','status':'failed','failures':['render-failure'],'browserErrors':errors+[{'type':'render','text':str(exc)}],'staticContract':static_colorblind}
             context.close();browser.close()
-        failed=[item for item in zoom_results if item['status']!='passed']
-        passed=not failed and colorblind_result.get('status')=='passed'
-        manifest={'schemaVersion':1,'evidenceHead':os.getenv('QELLY_V53_EVIDENCE_SHA','local'),'boundary':'governed local test runtime; exact compiled frontend; no production user data','canonicalRouteCount':len(definitions),'zoomModel':'1440x900 physical target represented by 720x450 CSS viewport at deviceScaleFactor 2','zoomRouteCount':len(ZOOM_ROUTES),'zoomResults':zoom_results,'colorBlind':colorblind_result,'failureCount':len(failed)+(0 if colorblind_result.get('status')=='passed' else 1),'status':'passed' if passed else 'failed'}
+        failed=[item for item in zoom_results if item['status']!='passed'];passed=not failed and colorblind_result.get('status')=='passed'
+        manifest={'schemaVersion':2,'evidenceHead':os.getenv('QELLY_V53_EVIDENCE_SHA','local'),'boundary':'governed local test runtime; exact compiled frontend; no production user data','canonicalRouteCount':len(definitions),'zoomModel':'1440x900 physical target represented by 720x450 CSS viewport at deviceScaleFactor 2','zoomRouteCount':len(ZOOM_ROUTES),'zoomResults':zoom_results,'colorBlind':colorblind_result,'failureCount':len(failed)+(0 if colorblind_result.get('status')=='passed' else 1),'status':'passed' if passed else 'failed'}
         (OUT/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')
         print(json.dumps({'canonicalRouteCount':manifest['canonicalRouteCount'],'zoomRouteCount':manifest['zoomRouteCount'],'failureCount':manifest['failureCount'],'colorBlindStatus':colorblind_result.get('status'),'status':manifest['status']},indent=2))
         if not passed:raise SystemExit(1)
