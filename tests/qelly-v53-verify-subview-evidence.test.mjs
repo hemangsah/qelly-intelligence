@@ -32,19 +32,23 @@ test('Verify product retains explicit local-only and execution-disabled boundari
   assert.match(product,/Human validation remains required/);
 });
 
-test('current shell exposes Verify and Evidence through native navigation primitives',async()=>{
+test('current shell exposes Verify and Evidence through responsive native navigation primitives',async()=>{
   const [shell,index]=await Promise.all([read(SHELL),read(INDEX)]);
   assert.match(shell,/document\.getElementById\('primary-nav'\)/);
   assert.match(shell,/#context-shelf \.q-category-shelf/);
+  assert.match(shell,/#main \.q-worldclass-context \.q-worldclass-related/);
+  assert.match(shell,/MOBILE_SHELL_QUERY='\(max-width: 920px\)'/);
   assert.match(shell,/class="q-nav-link" data-qelly-verify-link="shell"/);
   assert.match(shell,/class="q-nav-link" data-qelly-methodology-link="shell"/);
+  assert.match(shell,/verify\.dataset\.qellyVerifyLink='worldclass'/);
+  assert.match(shell,/method\.dataset\.qellyMethodologyLink='worldclass'/);
   assert.match(shell,/#\/market\?view=\$\{view\}/);
   assert.match(shell,/shelf\.style\.setProperty\('display','flex','important'\)/);
   assert.match(shell,/shelf\.style\.removeProperty\('display'\)/);
   assert.match(shell,/method\.textContent='Evidence'/);
   assert.match(shell,/method\.setAttribute\('aria-label','Evidence Methodology'\)/);
-  assert.match(shell,/shelf\.firstElementChild!==verify/);
-  assert.match(shell,/shelf\.insertBefore\(method,verify\.nextElementSibling\)/);
+  assert.match(shell,/related\.firstElementChild!==verify/);
+  assert.match(shell,/responsiveShell\.addEventListener\?\.\('change',schedule\)/);
   assert.match(shell,/MutationObserver/);
   const productPosition=index.indexOf('./assets/qelly-verify-product.mjs');
   const shellPosition=index.indexOf('./assets/qelly-verify-shell-nav.mjs');
@@ -60,10 +64,12 @@ test('dedicated evidence harness adds 18 subview renders without changing existi
   assert.match(script,/canonical route count changed unexpectedly/);
   assert.match(script,/Qelly Verify subviews must not become canonical routes/);
   assert.match(script,/primaryVerify/);
-  assert.match(script,/shelfMethodology/);
+  assert.match(script,/shellMode:innerWidth<=920\?'shelf':'worldclass'/);
   assert.match(script,/shelfVerifyBounds/);
   assert.match(script,/shelfMethodologyBounds/);
-  assert.match(script,/outside the visible shelf viewport/);
+  assert.match(script,/contextVerifyBounds/);
+  assert.match(script,/contextMethodologyBounds/);
+  assert.match(script,/outside the visible container/);
   assert.match(script,/aliasNormalized/);
   assert.match(workflow,/manifest\.canonicalRouteCount===70/);
   assert.match(workflow,/manifest\.renderCount===18/);
