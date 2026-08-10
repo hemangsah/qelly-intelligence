@@ -1,0 +1,67 @@
+name: Qelly V5.3 Activation Contract Evidence
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'apps/web/public/assets/qelly-ui-lock-v5-3.css'
+      - 'apps/web/public/assets/qelly-ui-lock-v5-3.mjs'
+      - 'apps/web/public/assets/qelly-v53-visible-refinement.css'
+      - 'apps/web/public/assets/qelly-post-v53-convergence.css'
+      - 'scripts/qelly-v53-activation-audit.mjs'
+      - 'scripts/qelly-v53-activation-browser-evidence.mjs'
+      - 'tests/qelly-v53-activation-contract.test.mjs'
+      - '.github/workflows/qelly-v53-activation-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  activation-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run activation contract unit gates
+        run: node --test tests/qelly-v53-activation-contract.test.mjs
+
+      - name: Capture source activation inventory
+        run: node scripts/qelly-v53-activation-audit.mjs > qelly-v53-activation-audit.json
+
+      - name: Capture computed-style activation evidence
+        run: node scripts/qelly-v53-activation-browser-evidence.mjs > qelly-v53-activation-browser-evidence.json
+
+      - name: Publish evidence summary
+        shell: bash
+        run: |
+          echo '## Qelly V5.3 activation contract' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Product activation semantics changed: **no**' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Current runtime attribute: `data-ui-lock-v53="active"`' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Legacy broad CSS attribute: `data-ui-lock-v5-3="active"`' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Global activation decision: **hold pending visual convergence evidence**' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Browser evidence: synthetic CSS-only computed-style probe; no production data or provider calls.' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload activation evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: qelly-v53-activation-contract-${{ github.sha }}
+          path: |
+            qelly-v53-activation-audit.json
+            qelly-v53-activation-browser-evidence.json
+          if-no-files-found: error
+          retention-days: 30
