@@ -1,0 +1,84 @@
+/* Qelly Intelligence — post-V5.4 Formula/Quant progressive density.
+   Presentation only: all formula definitions and solver semantics remain unchanged. */
+html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-formula-center-page{
+  display:grid;
+  gap:14px;
+}
+html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-calculator-featured{min-width:0}
+html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-calculator-section-head{
+  display:flex;
+  align-items:end;
+  justify-content:space-between;
+  gap:16px;
+  margin:0 0 10px;
+}
+html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-calculator-section-head h2{margin:3px 0 4px;font-size:clamp(16px,1.7vw,22px)}
+html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-calculator-section-head p{margin:0;color:var(--q-muted,var(--q-text-muted));font-size:11px}
+html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-calculator-card-grid.is-featured{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-calculator-card-grid.is-featured .q-formula-card{min-height:0}
+html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-formula-library-disclosure{
+  border:1px solid color-mix(in srgb,var(--q-border,#5a3445) 72%,transparent);
+  border-radius:14px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--q-surface-alt,#151015) 94%,transparent),color-mix(in srgb,var(--q-surface,#0e0a0d) 97%,transparent));
+  box-shadow:0 10px 34px rgb(4 2 4 / .14);
+  overflow:hidden;
+}
+html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-formula-library-disclosure>summary{
+  min-height:78px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  padding:14px 16px;
+  cursor:pointer;
+  list-style:none;
+}
+html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-formula-library-disclosure>summary::-webkit-details-marker{display:none}
+html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-formula-library-disclosure>summary:focus-visible{
+  outline:2px solid color-mix(in srgb,var(--q-accent,#6f1838) 82%,white 18%);
+  outline-offset:-3px;
+}
+html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-formula-library-disclosure__copy{display:grid;gap:3px;min-width:0}
+html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-formula-library-disclosure__copy>strong{font-size:15px}
+html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-formula-library-disclosure__copy>small{color:var(--q-muted,var(--q-text-muted));font-size:10px}
+html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-formula-library-disclosure__action{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  flex:0 0 auto;
+  color:var(--q-accent,#6f1838);
+  font-size:11px;
+  font-weight:800;
+}
+html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-formula-library-disclosure__action span{transition:transform 160ms ease}
+html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-formula-library-disclosure[open] .q-formula-library-disclosure__action span{transform:rotate(180deg)}
+html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-formula-library-disclosure[open]>summary{border-bottom:1px solid color-mix(in srgb,var(--q-border,#5a3445) 58%,transparent)}
+html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-formula-library-disclosure .q-calculator-browser{padding:14px 16px 18px}
+@media(max-width:1100px){
+  html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-calculator-card-grid.is-featured{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:680px){
+  html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-formula-center-page{gap:11px}
+  html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-calculator-card-grid.is-featured{
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    scroll-snap-type:x proximity;
+    padding-bottom:5px;
+  }
+  html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-calculator-card-grid.is-featured .q-formula-card{
+    flex:0 0 min(82vw,310px);
+    scroll-snap-align:start;
+  }
+  html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-formula-library-disclosure>summary{min-height:72px;padding:12px}
+  html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-formula-library-disclosure__action{font-size:0}
+  html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-formula-library-disclosure__action span{font-size:14px}
+  html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-formula-library-disclosure .q-calculator-browser{padding:12px}
+}
+@media(prefers-reduced-motion:reduce){
+  html[data-ui-lock-v5-3="active"][data-v53-route="formula-library"] .q-formula-library-disclosure__action span{transition:none}
+}
