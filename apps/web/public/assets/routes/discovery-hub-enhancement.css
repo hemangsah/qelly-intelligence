@@ -1,0 +1,83 @@
+/* Discovery Hub progressive density. Scoped to the route enhancement owner only. */
+@media (max-width:768px){
+  #main[data-discovery-hub-enhanced="active"] .q-kpi-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+  #main[data-discovery-hub-enhanced="active"] .q-kpi{
+    min-height:96px!important;
+    padding:12px!important;
+  }
+  #main[data-discovery-hub-enhanced="active"] .q-kpi-value{
+    margin:8px 0 6px!important;
+    font-size:20px!important;
+  }
+  #main[data-discovery-hub-enhanced="active"] .q-kpi-meta{
+    gap:5px!important;
+    font-size:9px!important;
+  }
+  #main[data-discovery-hub-enhanced="active"] .q-dashboard-grid{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  #main[data-discovery-hub-enhanced="active"] .q-discovery-card-grid{
+    display:grid!important;
+    grid-template-columns:none!important;
+    grid-auto-flow:column!important;
+    grid-auto-columns:minmax(250px,78vw)!important;
+    gap:8px!important;
+    max-width:100%!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    overscroll-behavior-inline:contain;
+    scroll-snap-type:x proximity;
+    scrollbar-width:thin;
+    padding:12px!important;
+  }
+  #main[data-discovery-hub-enhanced="active"] .q-discovery-card-grid .q-category-card{
+    min-height:116px;
+    scroll-snap-align:start;
+  }
+  #main[data-discovery-hub-enhanced="active"] .q-discovery-three{
+    display:grid!important;
+    grid-template-columns:none!important;
+    grid-auto-flow:column!important;
+    grid-auto-columns:minmax(270px,86vw)!important;
+    align-items:start!important;
+    gap:10px!important;
+    max-width:100%!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    overscroll-behavior-inline:contain;
+    scroll-snap-type:x proximity;
+    scrollbar-width:thin;
+  }
+  #main[data-discovery-hub-enhanced="active"] .q-discovery-three > .q-panel{
+    min-width:0!important;
+    scroll-snap-align:start;
+  }
+  #main[data-discovery-hub-enhanced="active"] .q-discovery-three .q-panel-body{
+    padding:12px!important;
+  }
+  #main[data-discovery-hub-enhanced="active"] .q-news-card,
+  #main[data-discovery-hub-enhanced="active"] .q-probability-card{
+    padding:10px!important;
+  }
+  #main[data-discovery-hub-enhanced="active"] .q-page > section.q-panel:last-child .q-dependency-grid{
+    display:grid!important;
+    grid-template-columns:none!important;
+    grid-template-rows:repeat(2,minmax(0,1fr))!important;
+    grid-auto-flow:column!important;
+    grid-auto-columns:minmax(245px,78vw)!important;
+    gap:8px!important;
+    max-width:100%!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    overscroll-behavior-inline:contain;
+    scroll-snap-type:x proximity;
+    scrollbar-width:thin;
+  }
+  #main[data-discovery-hub-enhanced="active"] .q-page > section.q-panel:last-child .q-dependency-card{
+    min-height:76px;
+    scroll-snap-align:start;
+  }
+}
