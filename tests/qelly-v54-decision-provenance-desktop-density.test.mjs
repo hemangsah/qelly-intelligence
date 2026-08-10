@@ -10,6 +10,7 @@ test('Decision Provenance desktop audit panels use route-owned independent rows'
   assert.match(css,new RegExp(`${owner}\\.q-decision-provenance-page>\\.q-decision-maker-panel\\+\\.q-panel\\{grid-column:1\\/-1;align-self:start\\}`));
   assert.match(css,new RegExp(`${owner}\\.q-decision-provenance-page>\\.q-decision-maker-panel\\+\\.q-panel\\+\\.q-panel,[\\s\\S]*?grid-column:span 6;align-self:start`));
   assert.match(css,new RegExp(`${owner}\\.q-decision-provenance-page>\\.q-panel\\+\\.q-panel\\{margin-top:0\\}`));
+  assert.match(css,new RegExp(`@media\\(min-width:861px\\) and \\(max-width:1180px\\)[\\s\\S]*${owner}\\.q-decision-provenance-page>\\.q-decision-maker-panel\\+\\.q-panel\\+\\.q-panel,[\\s\\S]*?grid-column:1\\/-1`));
 });
 
 test('Desktop density override does not create global panel or legacy activation rules',()=>{
