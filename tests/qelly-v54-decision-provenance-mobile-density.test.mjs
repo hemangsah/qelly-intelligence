@@ -26,14 +26,15 @@ test('Decision Provenance uses mobile evidence rails instead of serial card wall
 });
 
 test('Secondary audit panels are bounded mobile evidence sheets without global panel changes',()=>{
-  assert.match(css,/\.q-decision-maker-panel~\.q-panel>\.q-panel-body\{[\s\S]*?max-height:min\(58dvh,500px\)/);
-  assert.match(css,/\.q-decision-maker-panel~\.q-panel>\.q-panel-body\{[\s\S]*?overflow:auto/);
-  assert.match(css,/\.q-decision-maker-panel~\.q-panel \.q-kpi-grid\{[\s\S]*?overflow-x:auto/);
-  assert.match(css,/\.q-decision-maker-panel~\.q-panel \.q-kpi\{[\s\S]*?scroll-snap-align:start/);
-  assert.doesNotMatch(css,/@media\(max-width:860px\)[\s\S]*?\.q-panel>\.q-panel-body\{[\s\S]{0,120}max-height:min\(58dvh,500px\)/);
+  assert.match(css,/\.q-decision-provenance-page \.q-decision-maker-panel~\.q-panel>\.q-panel-body\{[\s\S]*?max-height:min\(58dvh,500px\)/);
+  assert.match(css,/\.q-decision-provenance-page \.q-decision-maker-panel~\.q-panel>\.q-panel-body\{[\s\S]*?overflow:auto/);
+  assert.match(css,/\.q-decision-provenance-page \.q-decision-maker-panel~\.q-panel \.q-kpi-grid\{[\s\S]*?overflow-x:auto/);
+  assert.match(css,/\.q-decision-provenance-page \.q-decision-maker-panel~\.q-panel \.q-kpi\{[\s\S]*?scroll-snap-align:start/);
+  assert.doesNotMatch(css,/(?:^|\n)\s*\.q-panel>\.q-panel-body\{[^}]*max-height:min\(58dvh,500px\)/);
+  assert.doesNotMatch(css,/(?:^|\n)\s*\.q-decision-maker-panel~\.q-panel>\.q-panel-body\{[^}]*max-height:min\(58dvh,500px\)/);
 });
 
 test('Mobile density does not hide provenance evidence or weaken reduced-motion handling',()=>{
-  assert.doesNotMatch(css,/\.q-decision-maker-panel~\.q-panel[^\{]*\{[^}]*display:none/);
+  assert.doesNotMatch(css,/\.q-decision-provenance-page \.q-decision-maker-panel~\.q-panel[^\{]*\{[^}]*display:none/);
   assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
 });

@@ -69,9 +69,9 @@
   .q-decision-graph-stack>.q-panel:last-child .q-panel-body{max-height:300px;overflow:auto;overscroll-behavior:contain}
   .q-decision-provenance-page .q-decision-evidence-grid{display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;padding:2px 2px 8px;scroll-snap-type:x proximity;overscroll-behavior-inline:contain;scrollbar-gutter:stable}
   .q-decision-provenance-page .q-decision-evidence-grid>article{flex:0 0 min(82vw,300px);min-width:0;scroll-snap-align:start}
-  .q-decision-maker-panel~.q-panel>.q-panel-body{max-height:min(58dvh,500px);overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
-  .q-decision-maker-panel~.q-panel .q-kpi-grid{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding:2px 2px 8px;scroll-snap-type:x proximity;overscroll-behavior-inline:contain;scrollbar-gutter:stable}
-  .q-decision-maker-panel~.q-panel .q-kpi{flex:0 0 min(68vw,220px);min-height:92px;scroll-snap-align:start}
+  .q-decision-provenance-page .q-decision-maker-panel~.q-panel>.q-panel-body{max-height:min(58dvh,500px);overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+  .q-decision-provenance-page .q-decision-maker-panel~.q-panel .q-kpi-grid{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding:2px 2px 8px;scroll-snap-type:x proximity;overscroll-behavior-inline:contain;scrollbar-gutter:stable}
+  .q-decision-provenance-page .q-decision-maker-panel~.q-panel .q-kpi{flex:0 0 min(68vw,220px);min-height:92px;scroll-snap-align:start}
 }
 
 @media(max-width:560px){
