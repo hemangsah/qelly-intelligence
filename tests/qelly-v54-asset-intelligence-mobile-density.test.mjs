@@ -21,9 +21,7 @@ test('Asset Intelligence preserves the full contract-first evidence surface',()=
 test('Asset Intelligence owns a phone-only 2x2 density mode for KPI, metric, and gate evidence',()=>{
   assert.ok(presentationStart>=0&&presentationEnd>presentationStart);
   assert.match(routeSource,/window\.matchMedia\('\(max-width: 620px\)'\)/);
-  for(const selector of ['.q-kpi-grid','.q-metric-grid','.q-gate-grid']){
-    assert.match(presentationSource,new RegExp(`selector:'\\${selector.replaceAll('.','\\.')}'`));
-  }
+  for(const selector of ['.q-kpi-grid','.q-metric-grid','.q-gate-grid']) assert.ok(presentationSource.includes(`selector:'${selector}'`));
   assert.equal((presentationSource.match(/\['grid-template-columns','repeat\(2,minmax\(0,1fr\)\)'\]/g)||[]).length,3);
   assert.match(routeSource,/style\.setProperty\(property,value,'important'\)/);
   assert.match(routeSource,/style\.removeProperty\(property\)/);
