@@ -99,7 +99,12 @@ async function enhanceCurrentRoute() {
   }
   if (main.getAttribute('aria-busy') === 'true') return;
   const page = main.querySelector(':scope > .q-page');
-  if (!page || !main.querySelector('.q-discovery-card-grid')) return;
+  if (!page) return;
+  if (!main.querySelector('.q-discovery-card-grid')) {
+    delete main.dataset.discoveryHubEnhanced;
+    settleInitial();
+    return;
+  }
   if (enhancedPages.has(page) || processingPages.has(page)) {
     if (enhancedPages.has(page)) settleInitial();
     return;
