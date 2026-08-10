@@ -25,13 +25,14 @@ export async function renderFormulaLibrary(main,{pageHead,escapeHtml,navigate}){
     <div class="q-calculator-card__footer"><span>${definition.externalProviderRequired?'Provider-dependent':'Your inputs only'}</span><strong>View method <span aria-hidden="true">→</span></strong></div>
   </a>`;
   const featured=FEATURED_IDS.map((id)=>formulas.find((item)=>item.formulaId===id)).filter(Boolean);
+  const featuredLabel=`${featured.length} priority ${featured.length===1?'method':'methods'}`;
 
   main.innerHTML=`<section class="q-page q-calculator-center-page q-formula-center-page">
     ${pageHead('Quantitative methodology','Formulas','Browse documented risk, return, portfolio, derivatives, fixed-income and personal-finance methods. Each formula explains its assumptions before you open the structured calculator.',`<button class="q-button q-button--primary" data-action="open-calculators">Open calculators</button><button class="q-button q-button--secondary" data-action="open-indicators">Browse indicators</button>`)}
     <div class="q-state-banner is-simulated"><span class="q-status q-status--simulated">DETERMINISTIC METHODS</span><p>Formula results use the values you provide. They do not place trades, move funds or convert an illustrative output into personalized advice.</p></div>
 
     <section class="q-calculator-featured" aria-labelledby="formula-featured-title">
-      <div class="q-calculator-section-head"><div><p class="q-eyebrow">Popular methodologies</p><h2 id="formula-featured-title">Understand the method before calculating</h2><p>Start with a governed method, inspect assumptions and units, then move into the structured calculator.</p></div><span class="q-truth-pill is-cached">6 priority methods</span></div>
+      <div class="q-calculator-section-head"><div><p class="q-eyebrow">Popular methodologies</p><h2 id="formula-featured-title">Understand the method before calculating</h2><p>Start with a governed method, inspect assumptions and units, then move into the structured calculator.</p></div><span class="q-truth-pill is-cached">${featuredLabel}</span></div>
       <div class="q-calculator-card-grid is-featured">${featured.map((definition)=>card(definition,{featured:true})).join('')}</div>
     </section>
 
