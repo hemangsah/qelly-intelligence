@@ -1,0 +1,197 @@
+/* Qelly Intelligence — post-V5.4 Formula/Quant progressive density.
+   Presentation only: all formula definitions and solver semantics remain unchanged.
+   Scope is owned by the executable route wrapper rather than shell/root data attributes.
+   Surfaces intentionally reuse the canonical premium shell token family. */
+.q-formula-center-page{
+  display:grid;
+  gap:14px;
+}
+.q-formula-center-page .q-calculator-featured{min-width:0}
+.q-formula-center-page .q-calculator-section-head{
+  display:flex;
+  align-items:end;
+  justify-content:space-between;
+  gap:16px;
+  margin:0 0 10px;
+}
+.q-formula-center-page .q-calculator-section-head h2{
+  margin:3px 0 4px;
+  color:var(--q-premium-text,#f5f1f3);
+  font-size:clamp(16px,1.7vw,22px);
+}
+.q-formula-center-page .q-calculator-section-head p{
+  margin:0;
+  color:var(--q-premium-secondary,#b8aeb3);
+  font-size:11px;
+}
+.q-formula-center-page .q-calculator-card-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+.q-formula-center-page .q-formula-card{
+  min-width:0;
+  min-height:168px;
+  display:grid;
+  grid-template-rows:auto auto 1fr auto;
+  gap:8px;
+  padding:14px;
+  color:var(--q-premium-text,#f5f1f3);
+  text-decoration:none;
+  border:1px solid var(--q-premium-hairline,rgba(255,255,255,.07));
+  border-radius:12px;
+  background:linear-gradient(160deg,var(--q-premium-surface-3,#171319),var(--q-premium-surface-2,#121014));
+  box-shadow:0 1px 0 rgb(255 255 255 / .018),0 10px 28px rgb(0 0 0 / .20);
+  transition:border-color 160ms ease,box-shadow 180ms ease,transform 180ms cubic-bezier(.16,1,.3,1),background 180ms ease;
+}
+.q-formula-center-page .q-formula-card:hover,
+.q-formula-center-page .q-formula-card:focus-visible{
+  color:var(--q-premium-text,#f5f1f3);
+  text-decoration:none;
+  border-color:color-mix(in srgb,var(--q-premium-active,#8e1d4b) 58%,var(--q-premium-divider,rgba(255,255,255,.12)));
+  background:linear-gradient(160deg,color-mix(in srgb,var(--q-premium-surface-3,#171319) 94%,var(--q-premium-active,#8e1d4b) 6%),var(--q-premium-surface-2,#121014));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--q-premium-active,#8e1d4b) 12%,transparent),0 16px 38px rgb(0 0 0 / .28);
+  transform:translateY(-1px);
+}
+.q-formula-center-page .q-formula-card:focus-visible{
+  outline:2px solid color-mix(in srgb,var(--q-premium-active,#8e1d4b) 66%,white 34%);
+  outline-offset:2px;
+}
+.q-formula-center-page .q-calculator-card__meta{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  color:var(--q-premium-secondary,#b8aeb3);
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.055em;
+  text-transform:uppercase;
+}
+.q-formula-center-page .q-formula-card h3{
+  margin:0;
+  color:var(--q-premium-text,#f5f1f3);
+  font-size:15px;
+  line-height:1.22;
+  letter-spacing:-.018em;
+}
+.q-formula-center-page .q-formula-card p{
+  margin:0;
+  color:var(--q-premium-secondary,#b8aeb3);
+  font-size:10.5px;
+  line-height:1.48;
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:3;
+  overflow:hidden;
+}
+.q-formula-center-page .q-calculator-card__footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding-top:9px;
+  border-top:1px solid var(--q-premium-hairline,rgba(255,255,255,.07));
+  color:var(--q-premium-secondary,#b8aeb3);
+  font-size:9px;
+}
+.q-formula-center-page .q-calculator-card__footer strong{
+  color:color-mix(in srgb,var(--q-premium-active,#8e1d4b) 58%,white 42%);
+  font-size:9.5px;
+}
+.q-formula-center-page .q-calculator-card-grid.is-featured .q-formula-card{
+  min-height:168px;
+  border-color:color-mix(in srgb,var(--q-premium-active,#8e1d4b) 34%,var(--q-premium-hairline,rgba(255,255,255,.07)));
+  background:radial-gradient(360px 120px at 100% 0,color-mix(in srgb,var(--q-premium-active,#8e1d4b) 14%,transparent),transparent 70%),linear-gradient(160deg,var(--q-premium-surface-3,#171319),var(--q-premium-surface-2,#121014));
+}
+.q-formula-center-page .q-formula-library-disclosure{
+  border:1px solid var(--q-premium-hairline,rgba(255,255,255,.07));
+  border-radius:14px;
+  background:linear-gradient(180deg,var(--q-premium-surface-2,#121014),var(--q-premium-surface-1,#0d0a0c));
+  box-shadow:0 10px 34px rgb(0 0 0 / .22);
+  color:var(--q-premium-text,#f5f1f3);
+  overflow:hidden;
+}
+.q-formula-center-page .q-formula-library-disclosure>summary{
+  min-height:78px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  padding:14px 16px;
+  cursor:pointer;
+  list-style:none;
+}
+.q-formula-center-page .q-formula-library-disclosure>summary::-webkit-details-marker{display:none}
+.q-formula-center-page .q-formula-library-disclosure>summary:focus-visible{
+  outline:2px solid color-mix(in srgb,var(--q-premium-active,#8e1d4b) 66%,white 34%);
+  outline-offset:-3px;
+}
+.q-formula-center-page .q-formula-library-disclosure__copy{
+  display:grid;
+  gap:3px;
+  min-width:0;
+}
+.q-formula-center-page .q-formula-library-disclosure__copy>strong{
+  color:var(--q-premium-text,#f5f1f3);
+  font-size:15px;
+}
+.q-formula-center-page .q-formula-library-disclosure__copy>small{
+  color:var(--q-premium-secondary,#b8aeb3);
+  font-size:10px;
+}
+.q-formula-center-page .q-formula-library-disclosure__action{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  flex:0 0 auto;
+  color:color-mix(in srgb,var(--q-premium-active,#8e1d4b) 58%,white 42%);
+  font-size:11px;
+  font-weight:800;
+}
+.q-formula-center-page .q-formula-library-disclosure__action span{transition:transform 160ms ease}
+.q-formula-center-page .q-formula-library-disclosure[open] .q-formula-library-disclosure__action span{transform:rotate(180deg)}
+.q-formula-center-page .q-formula-library-disclosure[open]>summary{
+  border-bottom:1px solid var(--q-premium-hairline,rgba(255,255,255,.07));
+}
+.q-formula-center-page .q-formula-library-disclosure .q-calculator-browser{
+  padding:14px 16px 18px;
+  background:var(--q-premium-surface-1,#0d0a0c);
+}
+
+@media(max-width:1100px){
+  .q-formula-center-page .q-calculator-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:680px){
+  .q-formula-center-page{gap:11px}
+  .q-formula-center-page .q-calculator-section-head{
+    align-items:start;
+    gap:10px;
+  }
+  .q-formula-center-page .q-calculator-card-grid.is-featured{
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    scroll-snap-type:x proximity;
+    overscroll-behavior-inline:contain;
+    padding:0 1px 6px;
+  }
+  .q-formula-center-page .q-calculator-card-grid.is-featured .q-formula-card{
+    flex:0 0 min(82vw,310px);
+    min-height:176px;
+    scroll-snap-align:start;
+  }
+  .q-formula-center-page .q-calculator-card-grid:not(.is-featured){grid-template-columns:1fr}
+  .q-formula-center-page .q-formula-library-disclosure>summary{
+    min-height:72px;
+    padding:12px;
+  }
+  .q-formula-center-page .q-formula-library-disclosure__copy>strong{font-size:13px}
+  .q-formula-center-page .q-formula-library-disclosure__action{font-size:0}
+  .q-formula-center-page .q-formula-library-disclosure__action span{font-size:14px}
+  .q-formula-center-page .q-formula-library-disclosure .q-calculator-browser{padding:12px}
+}
+@media(prefers-reduced-motion:reduce){
+  .q-formula-center-page .q-formula-card{transition:none}
+  .q-formula-center-page .q-formula-library-disclosure__action span{transition:none}
+}
