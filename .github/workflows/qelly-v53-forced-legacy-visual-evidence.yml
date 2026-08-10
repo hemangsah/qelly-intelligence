@@ -1,0 +1,162 @@
+name: Qelly V5.3 Forced Legacy Visual Evidence
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'scripts/qelly-v53-force-legacy-build.mjs'
+      - '.github/workflows/qelly-v53-forced-legacy-visual-evidence.yml'
+      - 'scripts/qelly-v53-activation-audit.mjs'
+      - 'tests/qelly-v53-activation-contract.test.mjs'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qelly-v53-forced-legacy-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  forced-legacy-visual-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      QELLY_SCREEN_EVIDENCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      QELLY_SCREEN_BATCH_SIZE: '10'
+      QELLY_V53_FORCE_LEGACY_EVIDENCE: 'true'
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: 'utf-8'
+    steps:
+      - name: Checkout exact evidence head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Guard exact evidence head
+        run: test "$(git rev-parse HEAD)" = "$QELLY_SCREEN_EVIDENCE_SHA"
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Install isolated visual evidence runtime
+        run: |
+          python -m pip install --disable-pip-version-check playwright pillow
+          python -m playwright install --with-deps chromium
+          chromium_path="$(python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as playwright:
+              print(playwright.chromium.executable_path)
+          PY
+          )"
+          test -x "$chromium_path"
+          sudo ln -sf "$chromium_path" /usr/bin/chromium
+
+      - name: Validate source and build normal frontend
+        run: |
+          npm run env:check
+          npm run typecheck
+          npm run lint
+          npm run security:scan
+          node --test tests/qelly-v53-activation-contract.test.mjs
+          npm run build:frontend
+
+      - name: Force legacy contract in disposable build only
+        run: |
+          node scripts/qelly-v53-force-legacy-build.mjs | tee qelly-v53-forced-legacy-build.json
+          grep -F 'data-qelly-v53-forced-legacy-evidence="true"' dist/frontend/index.html
+          ! grep -F 'data-qelly-v53-forced-legacy-evidence="true"' apps/web/public/index.html
+          git diff --exit-code -- apps/web/public/index.html apps/web/public/assets/qelly-ui-lock-v5-3.css apps/web/public/assets/qelly-ui-lock-v5-3.mjs apps/web/public/assets/qelly-v53-visible-refinement.css
+
+      - name: Capture all 71 routes under forced legacy contract
+        shell: bash
+        run: |
+          set -uo pipefail
+          ROOT="$PWD"
+          OUT="$ROOT/preview/release-a5-all-screens"
+          rm -rf "$OUT"
+          mkdir -p "$OUT"
+          ROUTE_COUNT="$(node --input-type=module -e "import {routeDefinitions} from './apps/web/public/assets/route-registry.mjs'; process.stdout.write(String(routeDefinitions.length));")"
+          BATCH_SIZE="$QELLY_SCREEN_BATCH_SIZE"
+          batch_failures=0
+          for ((start=0; start<ROUTE_COUNT; start+=BATCH_SIZE)); do
+            end=$((start+BATCH_SIZE))
+            if [ "$end" -gt "$ROUTE_COUNT" ]; then end="$ROUTE_COUNT"; fi
+            python3 "$ROOT/scripts/release-a5-screen-batch.py" "$start" "$end" || batch_failures=$((batch_failures+1))
+          done
+          python3 "$ROOT/scripts/release-a5-screen-aggregate.py" || true
+          echo "batch_failures=$batch_failures" >> "$GITHUB_ENV"
+
+      - name: Summarize forced-legacy result
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFile,writeFile} from 'node:fs/promises';
+          const manifest=JSON.parse(await readFile('preview/release-a5-all-screens/manifest.json','utf8'));
+          const failed=manifest.renders.filter(item=>item.status!=='passed').map(item=>({route:item.route,viewport:item.viewport,pageHeightPx:item.pageHeightPx,overflowPx:item.overflowPx,errors:item.consoleErrors}));
+          const representativeRoutes=new Set(['market','advanced-chart','research-workspace','qelly-verify','screener-lab','portfolio-analytics','theme-lab','data-mesh','identity-access','decision-provenance','formula-library','feature-universe','observability']);
+          const representative=manifest.renders.filter(item=>representativeRoutes.has(item.route)).map(item=>({route:item.route,viewport:item.viewport,pageHeightPx:item.pageHeightPx,overflowPx:item.overflowPx,status:item.status,file:item.file}));
+          const report={
+            schemaVersion:1,
+            exactSourceSha:process.env.QELLY_SCREEN_EVIDENCE_SHA,
+            evidenceMode:'forced-legacy-v53-build-only',
+            forcedAttribute:'data-ui-lock-v5-3="active"',
+            productSourceChanged:false,
+            routeCount:manifest.routeCount,
+            renderCount:manifest.renderCount,
+            expectedRenderCount:manifest.expectedRenderCount,
+            passed:manifest.passed,
+            failed:manifest.failed,
+            missing:manifest.missing,
+            consoleErrorCount:manifest.consoleErrorCount,
+            batchFailures:Number(process.env.batch_failures||0),
+            representative,
+            failures:failed,
+            evidenceBoundary:'governed local test runtime; legacy attribute injected into dist/frontend only; no production user data or provider activation'
+          };
+          await writeFile('qelly-v53-forced-legacy-visual-report.json',JSON.stringify(report,null,2)+'\n');
+          console.log(JSON.stringify(report,null,2));
+          if(manifest.routeCount!==71||manifest.renderCount!==142||manifest.expectedRenderCount!==142||manifest.missing.length!==0)process.exit(1);
+          NODE
+
+      - name: Publish evidence summary
+        shell: bash
+        run: |
+          echo '## Qelly V5.3 forced-legacy visual evidence' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Product source activation changed: **no**' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Disposable built frontend forced attribute: `data-ui-lock-v5-3="active"`' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Route coverage: **71 routes × 2 viewports**' >> "$GITHUB_STEP_SUMMARY"
+          node --input-type=module <<'NODE' >> "$GITHUB_STEP_SUMMARY"
+          import {readFile} from 'node:fs/promises';
+          const r=JSON.parse(await readFile('qelly-v53-forced-legacy-visual-report.json','utf8'));
+          console.log(`- Mechanical render result: **${r.passed}/${r.renderCount} passed; ${r.failed} failed; ${r.missing.length} missing; ${r.consoleErrorCount} console errors**`);
+          console.log('- Interpretation: diagnostic evidence only. A mechanically passing forced render is not approval to activate the legacy layer.');
+          NODE
+
+      - name: Upload forced-legacy diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-v53-forced-legacy-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: |
+            qelly-v53-forced-legacy-build.json
+            qelly-v53-forced-legacy-visual-report.json
+            preview/release-a5-all-screens
+            preview/RELEASE_A5_ALL_SCREENS_LOG.json
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 30
