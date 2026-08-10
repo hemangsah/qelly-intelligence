@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const routeSource=await readFile(new URL('../apps/web/public/assets/routes/asset-intelligence.mjs',import.meta.url),'utf8');
+const responsiveScript=await readFile(new URL('../scripts/release-v53-responsive-evidence.py',import.meta.url),'utf8');
+const responsiveWorkflow=await readFile(new URL('../.github/workflows/qelly-v53-responsive-evidence.yml',import.meta.url),'utf8');
 const presentationStart=routeSource.indexOf('const ASSET_INTELLIGENCE_MOBILE_PRESENTATION');
 const presentationEnd=routeSource.indexOf('let assetIntelligenceDensityMedia');
 const presentationSource=routeSource.slice(presentationStart,presentationEnd);
@@ -37,4 +39,13 @@ test('Asset Intelligence density is scoped to its route root and leaves analytic
   assert.match(routeSource,/QellyDataGrid/);
   assert.match(routeSource,/technical-study engine/);
   assert.doesNotMatch(presentationSource,/position|transform|scale|zoom/i);
+});
+
+test('nine-width evidence genuinely includes Asset Intelligence and derives render cardinality',()=>{
+  assert.match(responsiveScript,/REPRESENTATIVE_ROUTES=\[[\s\S]*'asset-intelligence'/);
+  assert.match(responsiveWorkflow,/expectedRenderCount=manifest\.representativeRouteCount\*manifest\.viewportCount/);
+  assert.match(responsiveWorkflow,/manifest\.routes\.includes\('asset-intelligence'\)/);
+  assert.match(responsiveWorkflow,/manifest\.renderCount===expectedRenderCount/);
+  assert.match(responsiveWorkflow,/pngs\.length===expectedRenderCount/);
+  assert.doesNotMatch(responsiveWorkflow,/manifest\.renderCount===135|manifest\.expectedRenderCount===135|pngs\.length===135/);
 });
