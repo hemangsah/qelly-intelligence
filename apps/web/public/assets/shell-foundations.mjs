@@ -32,8 +32,8 @@ function applyObservabilityDensity(){
     document.documentElement.dataset.observabilityDensity='inactive';
     return;
   }
-  const sloPanel=[...page.querySelectorAll('.q-panel')].find((panel)=>panel.querySelector('.q-panel-header h2')?.textContent?.trim()==='SLO candidates');
-  sloPanel?.querySelector('.q-panel-body.q-stack')?.classList.add('q-observability-slo-rail');
+  const sloRail=page.querySelector('.q-slo-row')?.parentElement;
+  if(sloRail?.classList.contains('q-stack'))sloRail.classList.add('q-observability-slo-rail');
   const active=Boolean(observabilityDensityMedia?.matches);
   for(const [selector,styles] of OBSERVABILITY_MOBILE_PRESENTATION){
     page.querySelectorAll(selector).forEach((element)=>setObservabilityPresentation(element,styles,active));
