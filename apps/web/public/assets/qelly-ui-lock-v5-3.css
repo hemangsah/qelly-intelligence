@@ -284,6 +284,13 @@ html[data-ui-lock-v5-3="active"] .q-ti-control-group{border-radius:10px}
   html[data-ui-lock-v5-3="active"] .q-compare-tray button{min-height:30px;padding-inline:8px}
   html[data-ui-lock-v5-3="active"] .q-v5-evidence-ribbon{grid-template-columns:1fr 1fr}
   html[data-ui-lock-v5-3="active"] .q-live-chart-shell{min-height:420px}
+  html[data-ui-lock-v5-3="active"] #series-grid .q-grid-scroll{
+    max-height:clamp(320px,56dvh,520px);
+    overflow:auto;
+    overscroll-behavior:contain;
+    scrollbar-gutter:stable;
+    -webkit-overflow-scrolling:touch;
+  }
 }
 
 @media(max-width:390px){
