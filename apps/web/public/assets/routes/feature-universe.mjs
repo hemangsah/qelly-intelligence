@@ -1,4 +1,5 @@
 const officialSymbol=new URL('../brand/qelly-symbol.svg',import.meta.url).href;
+const FEATURE_UNIVERSE_STYLESHEET=new URL('../feature-universe-density.css',import.meta.url).href;
 const CLUSTERS=[
   {name:'Discover',copy:'Universal search, rankings, categories, venues, DEX, converter, global charts, news and trust.',routes:['discovery-hub','asset-rankings','search','categories','venues','dex-discovery','global-charts','converter','news-research','trust-center']},
   {name:'Analyse',copy:'Market charts, technicals, fundamentals, estimates, filings, events, peers and comparisons.',routes:['market','asset-intelligence','advanced-chart','fundamentals-estimates','filing-workspace','event-calendar','comparison-lab','asset']},
@@ -7,8 +8,41 @@ const CLUSTERS=[
   {name:'Brand',copy:'Theme personas, About Qelly and the mapped modular feature overview.',routes:['theme-personas','about-qelly','feature-universe']}
 ];
 const FEATURE_UNIVERSE_MODULE_COUNT=CLUSTERS.reduce((total,cluster)=>total+cluster.routes.length,0);
+let featureUniverseStylePromise;
+
+function ensureFeatureUniverseStyles(){
+  if(featureUniverseStylePromise)return featureUniverseStylePromise;
+  featureUniverseStylePromise=new Promise((resolve)=>{
+    const root=document.documentElement;
+    let settled=false;
+    const finish=(state)=>{
+      if(settled)return;
+      settled=true;
+      root.dataset.featureUniverseDensity=state;
+      resolve();
+    };
+    const existing=document.querySelector('link[data-qelly-feature-universe-density="active"]');
+    if(existing){
+      if(existing.sheet){finish('active');return;}
+      existing.addEventListener('load',()=>finish('active'),{once:true});
+      existing.addEventListener('error',()=>finish('unavailable'),{once:true});
+      setTimeout(()=>finish('timeout'),2000);
+      return;
+    }
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href=FEATURE_UNIVERSE_STYLESHEET;
+    link.dataset.qellyFeatureUniverseDensity='active';
+    link.addEventListener('load',()=>finish('active'),{once:true});
+    link.addEventListener('error',()=>finish('unavailable'),{once:true});
+    document.head.append(link);
+    setTimeout(()=>finish('timeout'),2000);
+  });
+  return featureUniverseStylePromise;
+}
 
 export async function renderFeatureUniverse(main,deps){
+  await ensureFeatureUniverseStyles();
   const {pageHead,stateBanner,escapeHtml,navigate}=deps;
   main.innerHTML=`<section class="q-page q-feature-universe">
     ${pageHead('Qelly product architecture','Explore the Qelly intelligence universe','Every mapped product module is positioned inside a coherent journey: discover → analyse → monitor → decide → evidence. Explore the modular system without losing context.',`<button class="q-button q-button--ghost" data-action="about-qelly">About Qelly</button><button class="q-button q-button--primary" data-action="open-market">Open market overview</button>`)}
