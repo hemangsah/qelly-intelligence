@@ -43,6 +43,14 @@
 .q-provenance-context-ribbon{display:none}
 .q-provenance-relationships-audit .q-record-row small{overflow-wrap:anywhere}
 
+@media(min-width:861px){
+  html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-decision-maker-panel{grid-column:1/-1;align-self:start}
+  html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-decision-maker-panel+.q-panel{grid-column:1/-1;align-self:start}
+  html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-decision-maker-panel+.q-panel+.q-panel,
+  html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-decision-maker-panel+.q-panel+.q-panel+.q-panel{grid-column:span 6;align-self:start}
+  html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-panel+.q-panel{margin-top:0}
+}
+
 @media(max-width:1180px){
   .q-provenance-workbench{grid-template-columns:minmax(210px,.7fr) minmax(0,1.3fr)}
   .q-provenance-relations{grid-column:1/-1;border-left:0;border-top:1px solid var(--q-border)}
