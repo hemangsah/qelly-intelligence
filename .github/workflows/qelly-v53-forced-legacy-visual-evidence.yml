@@ -74,7 +74,14 @@ jobs:
           npm run security:scan
           node --test tests/qelly-v53-activation-contract.test.mjs
           npm run build:frontend
-          grep -F 'staticVisualPreview:false' dist/frontend/qelly-config.js
+          node --input-type=module <<'NODE'
+          import {readFile} from 'node:fs/promises';
+          const source=await readFile('dist/frontend/qelly-config.js','utf8');
+          if(!/(?:["']?staticVisualPreview["']?)\s*:\s*false\b/.test(source)){
+            throw new Error('Canonical evidence build did not emit staticVisualPreview:false.');
+          }
+          console.log(JSON.stringify({canonicalEvidenceBuild:true,staticVisualPreview:false}));
+          NODE
 
       - name: Force legacy contract in disposable build only
         run: |
