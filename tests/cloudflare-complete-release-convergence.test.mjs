@@ -89,7 +89,10 @@ test('Cloudflare evidence handoff verifies PR checks, no-ops main deployments, a
   assert.match(source,/Guard exact pull-request head/);
   assert.match(source,/git rev-parse HEAD/);
   assert.match(source,/Capture all registered screens\s*\n\s*if: steps\.pr\.outputs\.eligible == 'true'/);
-  assert.match(source,/manifest\.routeCount===70&&manifest\.renderCount===140&&manifest\.expectedRenderCount===140/);
+  assert.match(source,/const expectedRenderCount=manifest\.routeCount\*manifest\.viewportCount;/);
+  assert.match(source,/manifest\.renderCount===expectedRenderCount&&manifest\.expectedRenderCount===expectedRenderCount/);
+  assert.match(source,/pngs\.length===expectedRenderCount/);
+  assert.doesNotMatch(source,/manifest\.routeCount===70|manifest\.renderCount===140|manifest\.expectedRenderCount===140/);
   assert.match(source,/accessibility\.status==='passed'/);
   assert.match(source,/always\(\) && steps\.pr\.outputs\.eligible == 'true'/);
   assert.match(source,/contents: read/);
