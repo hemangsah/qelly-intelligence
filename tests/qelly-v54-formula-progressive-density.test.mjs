@@ -14,11 +14,13 @@ test('Formula library preserves the complete method universe behind explicit pro
   assert.doesNotMatch(route,/\n\s*render\(\);\s*\n}\s*$/);
 });
 
-test('Formula density layer is route-scoped, mobile task-oriented and reduced-motion safe',()=>{
-  assert.match(css,/data-v53-route="formula-library"/);
+test('Formula density layer binds to the executable route wrapper and stays mobile/reduced-motion safe',()=>{
+  assert.match(route,/q-formula-center-page/);
+  assert.match(css,/\.q-formula-center-page \.q-formula-card/);
+  assert.match(css,/\.q-formula-center-page \.q-formula-library-disclosure/);
+  assert.doesNotMatch(css,/data-v53-route/);
   assert.match(css,/scroll-snap-type:x proximity/);
   assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
-  assert.match(css,/\.q-formula-library-disclosure/);
 });
 
 test('Formula route loads the progressive-density stylesheet exactly once',()=>{
