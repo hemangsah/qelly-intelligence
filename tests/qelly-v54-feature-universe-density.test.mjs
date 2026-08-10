@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const route=fs.readFileSync('apps/web/public/assets/routes/feature-universe.mjs','utf8');
-const css=fs.readFileSync('apps/web/public/assets/feature-universe-density.css','utf8');
 const postmerge=fs.readFileSync('apps/web/public/assets/qelly-post-v53-convergence.css','utf8');
 
 test('Feature Universe count is derived from the mapped route corpus',()=>{
@@ -14,29 +13,30 @@ test('Feature Universe count is derived from the mapped route corpus',()=>{
   assert.doesNotMatch(route,/count:\d+/);
 });
 
-test('Feature Universe renderer explicitly loads and awaits its route-owned stylesheet',()=>{
-  assert.match(route,/new URL\('\.\.\/feature-universe-density\.css',import\.meta\.url\)/);
-  assert.match(route,/link\.dataset\.qellyFeatureUniverseDensity='active'/);
-  assert.match(route,/export async function renderFeatureUniverse\(main,deps\)\{\s*await ensureFeatureUniverseStyles\(\)/);
-  assert.match(route,/root\.dataset\.featureUniverseDensity=state/);
+test('Feature Universe mobile density is owned by the route renderer and applies at the mobile breakpoint',()=>{
+  assert.match(route,/matchMedia\('\(max-width: 768px\)'\)/);
+  assert.match(route,/applyFeatureUniverseDensity\(main\)/);
+  assert.match(route,/element\.style\.setProperty\(name,value,'important'\)/);
+  assert.match(route,/page\.dataset\.mobileDensity=active\?'active':'desktop'/);
+  assert.match(route,/document\.documentElement\.dataset\.featureUniverseDensity=active\?'active':'desktop'/);
 });
 
-test('Feature Universe mobile module corpus uses route-owned horizontal rails',()=>{
-  assert.match(css,/@media\(max-width:768px\)/);
-  assert.match(css,/\.q-feature-universe \.q-universe-journey\{display:flex;gap:7px;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;scrollbar-width:none/);
-  assert.match(css,/\.q-feature-universe \.q-universe-route-grid\{display:flex;gap:7px;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;scrollbar-width:none/);
-  assert.match(css,/\.q-feature-universe \.q-universe-route-grid button\{flex:0 0 min\(72vw,240px\);min-height:72px/);
+test('Feature Universe renderer explicitly forces horizontal mobile task rails without hiding content',()=>{
+  assert.match(route,/\['\.q-universe-journey',\{'display':'flex'/);
+  assert.match(route,/\['\.q-universe-route-grid',\{'display':'flex'/);
+  assert.match(route,/\['\.q-capability-ribbon \.q-panel-body',\{'display':'flex'/);
+  assert.match(route,/'flex':'0 0 min\(72vw,240px\)'/);
+  assert.doesNotMatch(route,/display':'none|visibility':'hidden|content-visibility':'hidden|opacity':'0/);
 });
 
 test('Feature Universe density retains every mapped destination and capability',()=>{
   assert.doesNotMatch(route,/\.slice\(/);
   assert.doesNotMatch(route,/\.filter\(/);
   assert.match(route,/cluster\.routes\.map\(/);
-  const contentRules=css.split('\n').filter(line=>!line.includes('::before')&&!line.includes('::after')).join('\n');
-  assert.doesNotMatch(contentRules,/display:none|visibility:hidden|content-visibility:hidden|opacity:0/);
 });
 
-test('Feature Universe route CSS stays isolated from dormant V5.3 activation and removes dead postmerge rules',()=>{
-  assert.doesNotMatch(css,/data-ui-lock-v5-3|data-ui-lock-v53|data-v53-route/);
+test('Feature Universe does not reactivate dormant V5.3 or retain dead postmerge rules',()=>{
+  assert.doesNotMatch(route,/data-ui-lock-v5-3|data-ui-lock-v53/);
   assert.doesNotMatch(postmerge,/\.q-feature-universe/);
+  assert.doesNotMatch(route,/feature-universe-density\.css/);
 });
