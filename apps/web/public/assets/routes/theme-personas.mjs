@@ -9,17 +9,15 @@ const accents={
   'high-contrast':'#6b0031'
 };
 
-const THEME_PERSONA_MOBILE_STYLES=Object.freeze([
+const THEME_PERSONA_COMPACT_STYLES=Object.freeze([
   Object.freeze({selector:'.q-brand-lock-banner',styles:Object.freeze([
     ['min-height','0'],['padding','20px 18px'],['margin-bottom','14px'],['border-radius','26px 26px 26px 10px']
   ])}),
   Object.freeze({selector:'.q-persona-grid',styles:Object.freeze([
-    ['grid-template-columns','none'],['grid-auto-flow','column'],['grid-auto-columns','minmax(286px,84vw)'],['gap','12px'],
-    ['overflow-x','auto'],['overflow-y','hidden'],['scroll-snap-type','x mandatory'],['overscroll-behavior-inline','contain'],
-    ['scroll-padding-inline','2px'],['padding','2px max(18px,4vw) 14px 2px'],['margin-bottom','14px']
+    ['grid-template-columns','repeat(2,minmax(0,1fr))'],['gap','12px'],['margin-bottom','14px']
   ])}),
   Object.freeze({selector:'.q-persona-card',styles:Object.freeze([
-    ['min-height','0'],['padding','18px'],['border-radius','26px 26px 26px 10px'],['scroll-snap-align','start'],['scroll-snap-stop','always']
+    ['min-height','0'],['padding','18px'],['border-radius','26px 26px 26px 10px']
   ])}),
   Object.freeze({selector:'.q-persona-glyph',styles:Object.freeze([
     ['width','48px'],['height','48px'],['margin-bottom','16px'],['border-radius','18px 18px 18px 7px']
@@ -53,31 +51,56 @@ const THEME_PERSONA_MOBILE_STYLES=Object.freeze([
   ])})
 ]);
 
-let personaDensityMedia=null;
+const THEME_PERSONA_MOBILE_STYLES=Object.freeze([
+  Object.freeze({selector:'.q-persona-grid',styles:Object.freeze([
+    ['grid-template-columns','none'],['grid-auto-flow','column'],['grid-auto-columns','minmax(286px,84vw)'],
+    ['overflow-x','auto'],['overflow-y','hidden'],['scroll-snap-type','x mandatory'],['overscroll-behavior-inline','contain'],
+    ['scroll-padding-inline','2px'],['padding','2px max(18px,4vw) 14px 2px']
+  ])}),
+  Object.freeze({selector:'.q-persona-card',styles:Object.freeze([
+    ['scroll-snap-align','start'],['scroll-snap-stop','always']
+  ])})
+]);
+
+let personaCompactMedia=null;
+let personaMobileMedia=null;
 let personaDensityPage=null;
 
-function setThemePersonaStyle(node,property,value,active){
-  if(active) node.style.setProperty(property,value,'important');
-  else node.style.removeProperty(property);
+function setThemePersonaStyle(node,property,value){
+  node.style.setProperty(property,value,'important');
+}
+
+function visitThemePersonaStyles(page,group,callback){
+  group.forEach(({selector,styles})=>{
+    page.querySelectorAll(selector).forEach((node)=>{
+      styles.forEach(([property,value])=>callback(node,property,value));
+    });
+  });
 }
 
 function applyThemePersonaDensity(){
   const page=personaDensityPage;
   if(!page?.isConnected) return;
-  const active=Boolean(personaDensityMedia?.matches);
-  THEME_PERSONA_MOBILE_STYLES.forEach(({selector,styles})=>{
-    page.querySelectorAll(selector).forEach((node)=>{
-      styles.forEach(([property,value])=>setThemePersonaStyle(node,property,value,active));
-    });
-  });
-  page.dataset.personaDensity=active?'mobile-rail':'desktop-grid';
+  const compact=Boolean(personaCompactMedia?.matches);
+  const mobile=Boolean(personaMobileMedia?.matches);
+
+  visitThemePersonaStyles(page,THEME_PERSONA_COMPACT_STYLES,(node,property)=>node.style.removeProperty(property));
+  visitThemePersonaStyles(page,THEME_PERSONA_MOBILE_STYLES,(node,property)=>node.style.removeProperty(property));
+  if(compact) visitThemePersonaStyles(page,THEME_PERSONA_COMPACT_STYLES,setThemePersonaStyle);
+  if(mobile) visitThemePersonaStyles(page,THEME_PERSONA_MOBILE_STYLES,setThemePersonaStyle);
+
+  page.dataset.personaDensity=mobile?'mobile-rail':compact?'tablet-grid':'desktop-grid';
 }
 
 function installThemePersonaDensity(page){
   personaDensityPage=page;
-  if(!personaDensityMedia){
-    personaDensityMedia=window.matchMedia('(max-width: 620px)');
-    personaDensityMedia.addEventListener?.('change',applyThemePersonaDensity);
+  if(!personaCompactMedia){
+    personaCompactMedia=window.matchMedia('(max-width: 860px)');
+    personaCompactMedia.addEventListener?.('change',applyThemePersonaDensity);
+  }
+  if(!personaMobileMedia){
+    personaMobileMedia=window.matchMedia('(max-width: 620px)');
+    personaMobileMedia.addEventListener?.('change',applyThemePersonaDensity);
   }
   applyThemePersonaDensity();
 }
