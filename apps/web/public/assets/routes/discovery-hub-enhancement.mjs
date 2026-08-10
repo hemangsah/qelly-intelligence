@@ -69,7 +69,11 @@ async function correctEvidenceKpis(main) {
     valueNode.textContent = formatDiscoveryEvidenceValue(item.value);
     valueNode.dataset.discoveryEvidence = 'formatted';
     if (item.value && typeof item.value === 'object') {
-      const evidenceLabel = [item.value.provider, item.value.freshnessClass, item.value.canonicalEntityId].filter(Boolean).join(' · ');
+      const evidenceParts = [];
+      for (const candidate of [item.value.provider, item.value.freshnessClass, item.value.canonicalEntityId]) {
+        if (candidate) evidenceParts.push(candidate);
+      }
+      const evidenceLabel = evidenceParts.join(' · ');
       if (evidenceLabel) valueNode.setAttribute('aria-label', `${item.label}: ${valueNode.textContent}. ${evidenceLabel}`);
     }
   }
