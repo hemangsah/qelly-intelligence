@@ -22,6 +22,9 @@ test('Observability mobile density compacts summaries and converts long evidence
   assert.match(densityBlock,/\.q-provider-score-grid/);
   assert.match(densityBlock,/overflow-x':'auto'/);
   assert.match(densityBlock,/scroll-snap-type':'x proximity'/);
+  assert.match(shell,/const sloRail=page\.querySelector\('\.q-slo-row'\)\?\.parentElement/);
+  assert.match(shell,/if\(sloRail\?\.classList\.contains\('q-stack'\)\)sloRail\.classList\.add\('q-observability-slo-rail'\)/);
+  assert.doesNotMatch(shell,/q-panel-header h2/);
 });
 
 test('Observability density does not hide or truncate operational evidence',()=>{
