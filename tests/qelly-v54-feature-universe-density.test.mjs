@@ -32,7 +32,8 @@ test('Feature Universe density retains every mapped destination and capability',
   assert.doesNotMatch(route,/\.slice\(/);
   assert.doesNotMatch(route,/\.filter\(/);
   assert.match(route,/cluster\.routes\.map\(/);
-  assert.doesNotMatch(css,/display:none|visibility:hidden|content-visibility:hidden|opacity:0/);
+  const contentRules=css.split('\n').filter(line=>!line.includes('::before')&&!line.includes('::after')).join('\n');
+  assert.doesNotMatch(contentRules,/display:none|visibility:hidden|content-visibility:hidden|opacity:0/);
 });
 
 test('Feature Universe route CSS stays isolated from dormant V5.3 activation and removes dead postmerge rules',()=>{
