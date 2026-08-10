@@ -5,8 +5,8 @@ import {PERSONA_PROFILES} from '../apps/web/public/assets/persona-profiles.mjs';
 
 const routeSource=await readFile(new URL('../apps/web/public/assets/routes/theme-personas.mjs',import.meta.url),'utf8');
 
-const presentationStart=routeSource.indexOf('const THEME_PERSONA_MOBILE_STYLES');
-const presentationEnd=routeSource.indexOf('let personaDensityMedia');
+const presentationStart=routeSource.indexOf('const THEME_PERSONA_COMPACT_STYLES');
+const presentationEnd=routeSource.indexOf('let personaCompactMedia');
 const presentationSource=routeSource.slice(presentationStart,presentationEnd);
 
 test('Theme Personas keeps every governed persona and comparison row',()=>{
@@ -18,17 +18,20 @@ test('Theme Personas keeps every governed persona and comparison row',()=>{
   assert.match(routeSource,/Governed behaviour matrix/);
 });
 
-test('Theme Personas owns a mobile-only horizontal evidence rail without hiding persona content',()=>{
+test('Theme Personas owns responsive tablet and phone density modes without hiding persona content',()=>{
   assert.ok(presentationStart>=0&&presentationEnd>presentationStart);
+  assert.match(routeSource,/window\.matchMedia\('\(max-width: 860px\)'\)/);
   assert.match(routeSource,/window\.matchMedia\('\(max-width: 620px\)'\)/);
-  assert.match(presentationSource,/selector:'\.q-persona-grid'/);
+  assert.match(presentationSource,/const THEME_PERSONA_COMPACT_STYLES/);
+  assert.match(presentationSource,/\['grid-template-columns','repeat\(2,minmax\(0,1fr\)\)'\]/);
+  assert.match(presentationSource,/const THEME_PERSONA_MOBILE_STYLES/);
   assert.match(presentationSource,/\['grid-auto-flow','column'\]/);
   assert.match(presentationSource,/\['grid-auto-columns','minmax\(286px,84vw\)'\]/);
   assert.match(presentationSource,/\['overflow-x','auto'\]/);
   assert.match(presentationSource,/\['scroll-snap-type','x mandatory'\]/);
   assert.match(presentationSource,/\['scroll-snap-align','start'\]/);
   assert.match(routeSource,/style\.setProperty\(property,value,'important'\)/);
-  assert.match(routeSource,/page\.dataset\.personaDensity=active\?'mobile-rail':'desktop-grid'/);
+  assert.match(routeSource,/page\.dataset\.personaDensity=mobile\?'mobile-rail':compact\?'tablet-grid':'desktop-grid'/);
   assert.doesNotMatch(presentationSource,/display[^\n]*none|visibility[^\n]*hidden|opacity[^\n]*['"]0['"]/i);
 });
 
