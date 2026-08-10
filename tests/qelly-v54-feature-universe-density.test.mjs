@@ -4,7 +4,7 @@ import fs from 'node:fs';
 
 const route=fs.readFileSync('apps/web/public/assets/routes/feature-universe.mjs','utf8');
 const css=fs.readFileSync('apps/web/public/assets/qelly-post-v53-convergence.css','utf8');
-const owner='html[data-v53-postmerge-convergence="wave1"][data-v53-route="feature-universe"] #main';
+const owner='html[data-v53-postmerge-convergence="wave1"] #main .q-feature-universe';
 
 test('Feature Universe count is derived from the mapped route corpus',()=>{
   assert.match(route,/const FEATURE_UNIVERSE_MODULE_COUNT=CLUSTERS\.reduce\(\(total,cluster\)=>total\+cluster\.routes\.length,0\)/);
@@ -24,7 +24,7 @@ test('Feature Universe density retains every mapped destination and capability',
   assert.doesNotMatch(route,/\.slice\(/);
   assert.doesNotMatch(route,/\.filter\(/);
   assert.match(route,/cluster\.routes\.map\(/);
-  const featureRules=css.split('\n').filter(line=>line.includes('data-v53-route="feature-universe"')&&!line.includes('::before')&&!line.includes('::after')).join('\n');
+  const featureRules=css.split('\n').filter(line=>line.includes('.q-feature-universe')&&!line.includes('::before')&&!line.includes('::after')).join('\n');
   assert.doesNotMatch(featureRules,/display:none|visibility:hidden|content-visibility:hidden|opacity:0/);
 });
 
