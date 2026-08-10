@@ -21,14 +21,8 @@ const count=(text,needle)=>(text.match(new RegExp(escapeRegex(needle),'g'))||[])
 
 function selectorsForAttribute(css,attribute,value='active'){
   const marker=`[${attribute}="${value}"]`;
-  const blocks=[];
-  for(const part of css.split('}')){
-    const open=part.lastIndexOf('{');
-    if(open===-1)continue;
-    const selector=part.slice(0,open).trim().split(/\n(?=[^\s])/).at(-1)?.trim()||'';
-    if(selector.includes(marker))blocks.push(selector.replace(/\s+/g,' '));
-  }
-  return blocks;
+  const pattern=new RegExp(`([^{}]*${escapeRegex(marker)}[^{}]*)\\{`,'g');
+  return [...css.matchAll(pattern)].map((match)=>match[1].trim().replace(/\s+/g,' '));
 }
 
 function hasGlobalActualActivation(selectors){
