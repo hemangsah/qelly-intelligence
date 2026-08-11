@@ -97,6 +97,7 @@
   <script type="module" src="./assets/qelly-shell-compat.js"></script>
   <script type="module" src="./assets/app.js"></script>
   <script type="module" src="./assets/routes/discovery-hub-enhancement.mjs"></script>
+  <script type="module" src="./assets/routes/data-mesh-enhancement.mjs"></script>
   <script type="module" src="./assets/qelly-product-route-guard.mjs"></script>
   <script type="module" src="./assets/qelly-worldclass-uiux.mjs"></script>
   <script type="module" src="./assets/qelly-public-recovery.mjs"></script>
@@ -117,7 +118,7 @@
     window.addEventListener('error',reveal,{once:true});
     window.addEventListener('unhandledrejection',reveal,{once:true});
     try{
-      await Promise.all([document.fonts?.ready??Promise.resolve(),routeReady,window.__qellyDiscoveryEnhancementReady??Promise.resolve()]);
+      await Promise.all([document.fonts?.ready??Promise.resolve(),routeReady,window.__qellyDiscoveryEnhancementReady??Promise.resolve(),window.__qellyDataMeshEnhancementReady??Promise.resolve()]);
       await new Promise((resolve)=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
     }finally{reveal();}
   </script>
