@@ -34,4 +34,13 @@ html[data-resolved-appearance="light"]:not([data-border-visibility="strong"]) :w
 }
 .q-ti-page select:focus-visible{outline:2px solid var(--q-focus)!important;outline-offset:2px!important;border-color:var(--q-focus)!important}
 @media(forced-colors:active){.q-ti-page select{background-image:none!important;forced-color-adjust:auto!important}}
+/* Theme Studio mobile workstation density: preserve all semantic evidence while avoiding a serialized document wall. */
+@media(max-width:700px){
+  .q-ti-page .q-ti-preview-body{gap:10px!important;padding:10px!important}
+  .q-ti-page .q-ti-preview-grid{gap:8px!important}
+  .q-ti-page .q-ti-side{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+  .q-ti-page .q-ti-alpha-signal,.q-ti-page .q-ti-semantic-card{min-width:0!important;padding:11px!important}
+  .q-ti-page .q-ti-audit{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:1px!important}
+  .q-ti-page .q-ti-audit-item{min-width:0!important;padding:9px 10px!important}
+}
 /* governed surfaces: q-command-dialog q-mi-chart-tooltip q-mi-table-scroll q-ti-drawer role="tooltip" */
