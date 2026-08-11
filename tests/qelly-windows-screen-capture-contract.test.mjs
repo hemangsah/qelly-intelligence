@@ -4,12 +4,15 @@ import {readFile} from 'node:fs/promises';
 
 const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 
-test('Windows screenshot workflow forces UTF-8 and fails on the first external command error',async()=>{
+test('Windows screenshot workflow forces UTF-8 and fails non-retryable capture errors',async()=>{
   const workflow=await read('.github/workflows/qelly-all-screens-windows.yml');
   assert.match(workflow,/PYTHONUTF8: '1'/);
   assert.match(workflow,/PYTHONIOENCODING: 'utf-8'/);
   assert.match(workflow,/python -X utf8 scripts\/release-a5-screen-batch\.py/);
-  assert.match(workflow,/if \(\$LASTEXITCODE -ne 0\) \{ throw "Screen batch \$start\.\.\$end failed" \}/);
+  assert.match(workflow,/\$retryable = \$text -match 'net::ERR_FAILED'/);
+  assert.match(workflow,/if \(-not \$retryable -or \$attempt -ge \$maxAttempts\) \{\s*throw "Screen batch \$Start\.\.\$End failed"/);
+  assert.match(workflow,/\$maxAttempts = 3/);
+  assert.doesNotMatch(workflow,/continue-on-error:\s*true/);
   assert.match(workflow,/windows-capture\.log/);
   assert.match(workflow,/Get-Content 'preview\/release-a5-all-screens\/manifest\.json' -Raw -Encoding utf8/);
 });
