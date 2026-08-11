@@ -1,9 +1,6 @@
 let densityMedia=null;
-let observer=null;
-let readyResolve=null;
-let readySettled=false;
-
-const isFundamentalsHash=()=>location.hash==='#/fundamentals-estimates'||location.hash.startsWith('#/fundamentals-estimates?');
+let currentMain=null;
+let mediaBound=false;
 
 function setPresentation(element,styles,active){
   if(!element)return;
@@ -13,25 +10,13 @@ function setPresentation(element,styles,active){
   }
 }
 
-function resolveReady(){
-  if(readySettled)return;
-  readySettled=true;
-  readyResolve?.();
-}
-
 function applyFundamentalsDensity(){
-  const main=document.getElementById('main');
-  const page=main?.querySelector('.q-page');
+  const page=currentMain?.querySelector('.q-page');
   const issuer=page?.querySelector('#fundamental-asset');
   const annualGrid=page?.querySelector('#annual-grid');
   const filings=page?.querySelector('[data-action="open-filings"]');
   const compare=page?.querySelector('[data-action="compare"]');
-  const isFundamentals=Boolean(issuer&&annualGrid&&filings&&compare);
-  if(!isFundamentals){
-    document.documentElement.dataset.fundamentalsDensity='inactive';
-    if(!isFundamentalsHash())resolveReady();
-    return false;
-  }
+  if(!issuer||!annualGrid||!filings||!compare)return false;
 
   const active=Boolean(densityMedia?.matches);
   const kpis=page.querySelector('.q-kpi-grid');
@@ -53,22 +38,15 @@ function applyFundamentalsDensity(){
 
   page.dataset.fundamentalsMobileDensity=active?'active':'desktop';
   document.documentElement.dataset.fundamentalsDensity=active?'active':'desktop';
-  resolveReady();
   return true;
 }
 
-function install(){
-  const main=document.getElementById('main');
-  if(!main||typeof MutationObserver!=='function'){
-    resolveReady();
-    return;
+export function installFundamentalsDensity(main){
+  currentMain=main;
+  densityMedia??=typeof globalThis.matchMedia==='function'?globalThis.matchMedia('(max-width: 620px)'):null;
+  if(!mediaBound){
+    densityMedia?.addEventListener?.('change',()=>applyFundamentalsDensity());
+    mediaBound=true;
   }
-  densityMedia=typeof globalThis.matchMedia==='function'?globalThis.matchMedia('(max-width: 620px)'):null;
-  observer=new MutationObserver(()=>applyFundamentalsDensity());
-  observer.observe(main,{childList:true,subtree:true});
-  densityMedia?.addEventListener?.('change',()=>applyFundamentalsDensity());
-  queueMicrotask(()=>applyFundamentalsDensity());
+  applyFundamentalsDensity();
 }
-
-window.__qellyFundamentalsEnhancementReady=new Promise((resolve)=>{readyResolve=resolve;});
-install();
