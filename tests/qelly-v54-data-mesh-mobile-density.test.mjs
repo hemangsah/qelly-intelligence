@@ -11,7 +11,7 @@ const RESPONSIVE='scripts/release-v53-responsive-evidence.py';
 function dataMeshRenderer(source){
   const normalized=source.replace(/\r\n/g,'\n');
   const start=normalized.indexOf('async function renderDataMesh(main)');
-  const end=normalized.indexOf('\n\nasync function runRuntimeScenario',start);
+  const end=normalized.indexOf('\n\nasync function renderInstrumentMaster',start);
   assert.ok(start>=0,'Data Mesh renderer missing');
   assert.ok(end>start,'Data Mesh renderer boundary missing');
   return normalized.slice(start,end);
