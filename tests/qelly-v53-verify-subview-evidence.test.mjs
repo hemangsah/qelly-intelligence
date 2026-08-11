@@ -99,11 +99,14 @@ test('Wave 4 raises complete-route denominators without weakening representative
   assert.match(windows,/pngCount -ne 142/);
   assert.match(responsive,/manifest\.canonicalRouteCount===71/);
   assert.match(responsive,/manifest\.representativeRouteCount===manifest\.routes\.length/);
-  assert.match(responsive,/manifest\.representativeRouteCount>=16/);
+  assert.match(responsive,/manifest\.representativeRouteCount>=17/);
+  assert.match(responsive,/manifest\.routes\.includes\('asset-intelligence'\)/);
+  assert.match(responsive,/manifest\.routes\.includes\('fundamentals-estimates'\)/);
   assert.match(responsive,/const expectedRenderCount=manifest\.representativeRouteCount\*manifest\.viewportCount/);
   assert.match(responsive,/manifest\.renderCount===expectedRenderCount/);
+  assert.match(responsive,/manifest\.expectedRenderCount===expectedRenderCount/);
   assert.match(responsive,/pngs\.length===expectedRenderCount/);
-  assert.doesNotMatch(responsive,/manifest\.representativeRouteCount===15|manifest\.renderCount===135|pngs\.length===135/);
+  assert.doesNotMatch(responsive,/manifest\.representativeRouteCount===15|manifest\.representativeRouteCount===16|manifest\.renderCount===135|manifest\.renderCount===144|pngs\.length===135|pngs\.length===144/);
 });
 
 test('Wave 4 introduces no execution, custody, wallet or secret-collection capability',async()=>{
