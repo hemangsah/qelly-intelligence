@@ -2,6 +2,13 @@ import { mkdir, open, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const WINDOWS_LOCK_CONTENTION_CODES = new Set(['EPERM', 'EACCES']);
+
+export async function isLocalFileLockContention(error, lockPath, { platform = process.platform } = {}) {
+  if (error?.code === 'EEXIST') return true;
+  if (platform !== 'win32' || !WINDOWS_LOCK_CONTENTION_CODES.has(error?.code)) return false;
+  return stat(lockPath).then(() => true).catch(() => false);
+}
 
 export async function withLocalFileLock(targetPath, handler, { timeoutMs = 2500, staleMs = 15000 } = {}) {
   const lockPath = `${targetPath}.lock`;
@@ -16,7 +23,7 @@ export async function withLocalFileLock(targetPath, handler, { timeoutMs = 2500,
       finally { await handle.close().catch(() => {}); await rm(lockPath, { force: true }).catch(() => {}); }
     } catch (error) {
       await handle?.close().catch(() => {});
-      if (error.code !== 'EEXIST') throw error;
+      if (!(await isLocalFileLockContention(error, lockPath))) throw error;
       const age = await stat(lockPath).then((value) => Date.now() - value.mtimeMs).catch(() => 0);
       if (age > staleMs) { await rm(lockPath, { force: true }).catch(() => {}); continue; }
       if (Date.now() - started >= timeoutMs) {

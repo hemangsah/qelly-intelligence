@@ -93,7 +93,13 @@ jobs:
 
           current_sha="$(jq -r '.head.sha' <<<"$pr_json")"
           test "${#current_sha}" -eq 40
-          test "$current_sha" = "$sha"
+          if [ "$current_sha" != "$sha" ]; then
+            echo 'Verified Cloudflare deployment belongs to a superseded pull-request head; exact-PR evidence is intentionally not applicable.'
+            echo "eligible=false" >> "$GITHUB_OUTPUT"
+            echo "sha=$sha" >> "$GITHUB_OUTPUT"
+            echo "pr_url=$pr_url" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
           echo "eligible=true" >> "$GITHUB_OUTPUT"
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
