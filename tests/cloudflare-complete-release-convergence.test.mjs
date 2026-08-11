@@ -80,10 +80,12 @@ test('Cloudflare evidence handoff verifies PR checks, no-ops main deployments, a
   assert.match(source,/select\(\.state == "open" and \.head\.sha == \$sha\)/);
   assert.match(source,/Verified Cloudflare deployment has no open pull request; exact-PR evidence is intentionally not applicable\./);
   assert.match(source,/Verified Cloudflare deployment belongs to a closed pull request; exact-PR evidence is intentionally not applicable\./);
+  assert.match(source,/if \[ "\$current_sha" != "\$sha" \]; then/);
+  assert.match(source,/Verified Cloudflare deployment belongs to a superseded pull-request head; exact-PR evidence is intentionally not applicable\./);
   assert.match(source,/echo "eligible=false" >> "\$GITHUB_OUTPUT"/);
   assert.match(source,/echo "eligible=true" >> "\$GITHUB_OUTPUT"/);
   assert.doesNotMatch(source,/test -n "\$pr_url"/);
-  assert.match(source,/test "\$current_sha" = "\$sha"/);
+  assert.doesNotMatch(source,/test "\$current_sha" = "\$sha"/);
   assert.match(source,/if: steps\.pr\.outputs\.eligible == 'true'\s*\n\s*uses: actions\/checkout/);
   assert.match(source,/ref: \$\{\{ steps\.pr\.outputs\.sha \}\}/);
   assert.match(source,/Guard exact pull-request head/);
