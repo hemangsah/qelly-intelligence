@@ -1,3 +1,70 @@
+import {installFundamentalsDensity} from './fundamentals-estimates-enhancement.mjs';
+
 const assets=[['QI-EQUITY-AAPL','AAPL'],['QI-EQUITY-NVDA','NVDA']];
 const format=value=>new Intl.NumberFormat('en-US',{notation:'compact',maximumFractionDigits:2}).format(Number(value));
-export async function renderFundamentalsEstimates(main,deps){const {api,pageHead,stateBanner,escapeHtml,QellyDataGrid,asset,navigate}=deps;const selected=assets.some(([id,symbol])=>id===asset||symbol===asset)?assets.find(([id,symbol])=>id===asset||symbol===asset)[0]:'QI-EQUITY-AAPL';const [overview,annual,quarterly,earnings,estimates,actions]=await Promise.all([api(`/api/v1/asset-intelligence/${selected}/overview`),api(`/api/v1/asset-intelligence/${selected}/financials?frequency=annual`),api(`/api/v1/asset-intelligence/${selected}/financials?frequency=quarterly`),api(`/api/v1/asset-intelligence/${selected}/earnings`),api(`/api/v1/asset-intelligence/${selected}/estimates`),api(`/api/v1/asset-intelligence/${selected}/corporate-actions`)]);const selector=`<select id="fundamental-asset" class="q-inline-select" aria-label="Select issuer">${assets.map(([id,symbol])=>`<option value="${id}" ${id===selected?'selected':''}>${symbol}</option>`).join('')}</select>`;main.innerHTML=`<section class="q-page">${pageHead('Qelly Intelligence','Fundamentals & Estimates','Periodized annual and quarterly statements, derived margins, earnings surprises, consensus ranges, revision breadth and corporate actions. Values are deterministic fixtures, not licensed statements.',`${selector}<button class="q-button q-button--secondary" data-action="open-filings">Open filings</button><button class="q-button q-button--primary" data-action="compare">Compare issuers</button>`)}${stateBanner()}<div class="q-kpi-grid"><article class="q-kpi"><div class="q-kpi-label">Issuer</div><div class="q-kpi-value">${escapeHtml(overview.symbol)}</div><div class="q-kpi-meta"><span>${escapeHtml(overview.profile.industry)}</span><span class="q-status q-status--simulated">fixture</span></div></article><article class="q-kpi"><div class="q-kpi-label">Revenue</div><div class="q-kpi-value">${format(annual.statements[0].revenue.value)}</div><div class="q-kpi-meta"><span>${escapeHtml(annual.currency)} · ${escapeHtml(annual.statements[0].period)}</span><span class="q-status q-status--cached">annual</span></div></article><article class="q-kpi"><div class="q-kpi-label">EPS consensus</div><div class="q-kpi-value">${estimates.consensus.epsConsensus}</div><div class="q-kpi-meta"><span>${escapeHtml(estimates.consensus.nextPeriod)}</span><span class="q-status q-status--simulated">estimate fixture</span></div></article><article class="q-kpi"><div class="q-kpi-label">Revision breadth</div><div class="q-kpi-value">${estimates.revisionBreadth}%</div><div class="q-kpi-meta"><span>${estimates.consensus.analystCount} analysts represented</span><span class="q-status q-status--cached">derived</span></div></article></div><section class="q-panel"><div class="q-panel-head"><div><h2>Annual statements</h2><p>Income, cash flow and balance-sheet fixture fields with units and period labels.</p></div><span class="q-status q-status--warning">licensed provider required</span></div><div id="annual-grid"></div></section><div class="q-two-column"><section class="q-panel"><div class="q-panel-head"><div><h2>Quarterly operating trend</h2><p>Latest four packaged quarters</p></div><span class="q-status q-status--cached">${quarterly.statements.length} periods</span></div><div class="q-panel-body q-stack">${quarterly.statements.map((row,index)=>`<div class="q-record-row"><span><strong>${escapeHtml(row.period)}</strong><small>Revenue ${format(row.revenue.value)} · EPS ${escapeHtml(row.eps.value)}</small></span><span class="${quarterly.derived[index].revenueGrowth==null?'':quarterly.derived[index].revenueGrowth>=0?'is-positive':'is-negative'}">${quarterly.derived[index].revenueGrowth==null?'N/A':`${quarterly.derived[index].revenueGrowth}%`}</span></div>`).join('')}</div></section><section class="q-panel"><div class="q-panel-head"><div><h2>Earnings surprise history</h2><p>Actual versus deterministic consensus</p></div></div><div class="q-panel-body q-stack">${earnings.items.map(item=>`<div class="q-record-row"><span><strong>${escapeHtml(item.period)}</strong><small>Actual ${item.epsActual} · Estimate ${item.epsEstimate}</small></span><span class="is-positive">+${item.surprisePercent}%</span></div>`).join('')}</div></section></div><div class="q-two-column"><section class="q-panel"><div class="q-panel-head"><div><h2>Consensus range</h2><p>${escapeHtml(estimates.consensus.nextPeriod)}</p></div><span class="q-status q-status--simulated">not live</span></div><div class="q-metric-grid"><article class="q-metric-card"><span>EPS low</span><strong>${estimates.consensus.epsLow}</strong><small>fixture</small></article><article class="q-metric-card"><span>EPS consensus</span><strong>${estimates.consensus.epsConsensus}</strong><small>fixture</small></article><article class="q-metric-card"><span>EPS high</span><strong>${estimates.consensus.epsHigh}</strong><small>fixture</small></article></div></section><section class="q-panel"><div class="q-panel-head"><div><h2>Corporate actions</h2><p>Split and dividend adjustment contracts</p></div></div><div class="q-panel-body q-stack">${actions.items.map(item=>`<div class="q-record-row"><span><strong>${escapeHtml(item.type)} · ${escapeHtml(item.actionId)}</strong><small>${escapeHtml(item.exDate)}${item.amount!=null?` · ${item.amount} ${item.currency}`:''}${item.ratio?` · ${item.ratio}`:''}</small></span><span class="q-status q-status--cached">${escapeHtml(item.status)}</span></div>`).join('')}</div></section></div></section>`;new QellyDataGrid(document.getElementById('annual-grid'),{columns:[{key:'period',label:'Period',width:100},{key:'revenueDisplay',label:'Revenue',width:130},{key:'grossProfitDisplay',label:'Gross profit',width:130},{key:'operatingIncomeDisplay',label:'Operating income',width:140},{key:'netIncomeDisplay',label:'Net income',width:130},{key:'epsDisplay',label:'EPS',width:90},{key:'freeCashFlowDisplay',label:'Free cash flow',width:140}],rows:annual.statements.map(row=>({...row,revenueDisplay:format(row.revenue.value),grossProfitDisplay:format(row.grossProfit.value),operatingIncomeDisplay:format(row.operatingIncome.value),netIncomeDisplay:format(row.netIncome.value),epsDisplay:row.eps.value,freeCashFlowDisplay:format(row.freeCashFlow.value)})),caption:'Annual financial statement fixtures'});main.querySelector('#fundamental-asset').addEventListener('change',event=>navigate('fundamentals-estimates',event.target.value));main.querySelector('[data-action="open-filings"]').addEventListener('click',()=>navigate('filing-workspace',selected));main.querySelector('[data-action="compare"]').addEventListener('click',()=>navigate('comparison-lab'));}
+
+export async function renderFundamentalsEstimates(main,deps){
+  const {api,pageHead,stateBanner,escapeHtml,QellyDataGrid,asset,navigate}=deps;
+  const selected=assets.some(([id,symbol])=>id===asset||symbol===asset)
+    ?assets.find(([id,symbol])=>id===asset||symbol===asset)[0]
+    :'QI-EQUITY-AAPL';
+  const [overview,annual,quarterly,earnings,estimates,actions]=await Promise.all([
+    api(`/api/v1/asset-intelligence/${selected}/overview`),
+    api(`/api/v1/asset-intelligence/${selected}/financials?frequency=annual`),
+    api(`/api/v1/asset-intelligence/${selected}/financials?frequency=quarterly`),
+    api(`/api/v1/asset-intelligence/${selected}/earnings`),
+    api(`/api/v1/asset-intelligence/${selected}/estimates`),
+    api(`/api/v1/asset-intelligence/${selected}/corporate-actions`)
+  ]);
+  const selector=`<select id="fundamental-asset" class="q-inline-select" aria-label="Select issuer">${assets.map(([id,symbol])=>`<option value="${id}" ${id===selected?'selected':''}>${symbol}</option>`).join('')}</select>`;
+
+  main.innerHTML=`<section class="q-page">${pageHead(
+    'Qelly Intelligence',
+    'Fundamentals & Estimates',
+    'Periodized annual and quarterly statements, derived margins, earnings surprises, consensus ranges, revision breadth and corporate actions. Values are deterministic fixtures, not licensed statements.',
+    `${selector}<button class="q-button q-button--secondary" data-action="open-filings">Open filings</button><button class="q-button q-button--primary" data-action="compare">Compare issuers</button>`
+  )}${stateBanner()}
+    <div class="q-kpi-grid">
+      <article class="q-kpi"><div class="q-kpi-label">Issuer</div><div class="q-kpi-value">${escapeHtml(overview.symbol)}</div><div class="q-kpi-meta"><span>${escapeHtml(overview.profile.industry)}</span><span class="q-status q-status--simulated">fixture</span></div></article>
+      <article class="q-kpi"><div class="q-kpi-label">Revenue</div><div class="q-kpi-value">${format(annual.statements[0].revenue.value)}</div><div class="q-kpi-meta"><span>${escapeHtml(annual.currency)} · ${escapeHtml(annual.statements[0].period)}</span><span class="q-status q-status--cached">annual</span></div></article>
+      <article class="q-kpi"><div class="q-kpi-label">EPS consensus</div><div class="q-kpi-value">${estimates.consensus.epsConsensus}</div><div class="q-kpi-meta"><span>${escapeHtml(estimates.consensus.nextPeriod)}</span><span class="q-status q-status--simulated">estimate fixture</span></div></article>
+      <article class="q-kpi"><div class="q-kpi-label">Revision breadth</div><div class="q-kpi-value">${estimates.revisionBreadth}%</div><div class="q-kpi-meta"><span>${estimates.consensus.analystCount} analysts represented</span><span class="q-status q-status--cached">derived</span></div></article>
+    </div>
+    <section class="q-panel"><div class="q-panel-head"><div><h2>Annual statements</h2><p>Income, cash flow and balance-sheet fixture fields with units and period labels.</p></div><span class="q-status q-status--warning">licensed provider required</span></div><div id="annual-grid"></div></section>
+    <div class="q-two-column">
+      <section class="q-panel"><div class="q-panel-head"><div><h2>Quarterly operating trend</h2><p>Latest four packaged quarters</p></div><span class="q-status q-status--cached">${quarterly.statements.length} periods</span></div><div class="q-panel-body q-stack">${quarterly.statements.map((row,index)=>`<div class="q-record-row"><span><strong>${escapeHtml(row.period)}</strong><small>Revenue ${format(row.revenue.value)} · EPS ${escapeHtml(row.eps.value)}</small></span><span class="${quarterly.derived[index].revenueGrowth==null?'':quarterly.derived[index].revenueGrowth>=0?'is-positive':'is-negative'}">${quarterly.derived[index].revenueGrowth==null?'N/A':`${quarterly.derived[index].revenueGrowth}%`}</span></div>`).join('')}</div></section>
+      <section class="q-panel"><div class="q-panel-head"><div><h2>Earnings surprise history</h2><p>Actual versus deterministic consensus</p></div></div><div class="q-panel-body q-stack">${earnings.items.map(item=>`<div class="q-record-row"><span><strong>${escapeHtml(item.period)}</strong><small>Actual ${item.epsActual} · Estimate ${item.epsEstimate}</small></span><span class="is-positive">+${item.surprisePercent}%</span></div>`).join('')}</div></section>
+    </div>
+    <div class="q-two-column">
+      <section class="q-panel"><div class="q-panel-head"><div><h2>Consensus range</h2><p>${escapeHtml(estimates.consensus.nextPeriod)}</p></div><span class="q-status q-status--simulated">not live</span></div><div class="q-metric-grid"><article class="q-metric-card"><span>EPS low</span><strong>${estimates.consensus.epsLow}</strong><small>fixture</small></article><article class="q-metric-card"><span>EPS consensus</span><strong>${estimates.consensus.epsConsensus}</strong><small>fixture</small></article><article class="q-metric-card"><span>EPS high</span><strong>${estimates.consensus.epsHigh}</strong><small>fixture</small></article></div></section>
+      <section class="q-panel"><div class="q-panel-head"><div><h2>Corporate actions</h2><p>Split and dividend adjustment contracts</p></div></div><div class="q-panel-body q-stack">${actions.items.map(item=>`<div class="q-record-row"><span><strong>${escapeHtml(item.type)} · ${escapeHtml(item.actionId)}</strong><small>${escapeHtml(item.exDate)}${item.amount!=null?` · ${item.amount} ${item.currency}`:''}${item.ratio?` · ${item.ratio}`:''}</small></span><span class="q-status q-status--cached">${escapeHtml(item.status)}</span></div>`).join('')}</div></section>
+    </div>
+  </section>`;
+
+  installFundamentalsDensity(main);
+
+  new QellyDataGrid(document.getElementById('annual-grid'),{
+    columns:[
+      {key:'period',label:'Period',width:100},
+      {key:'revenueDisplay',label:'Revenue',width:130},
+      {key:'grossProfitDisplay',label:'Gross profit',width:130},
+      {key:'operatingIncomeDisplay',label:'Operating income',width:140},
+      {key:'netIncomeDisplay',label:'Net income',width:130},
+      {key:'epsDisplay',label:'EPS',width:90},
+      {key:'freeCashFlowDisplay',label:'Free cash flow',width:140}
+    ],
+    rows:annual.statements.map(row=>({...row,
+      revenueDisplay:format(row.revenue.value),
+      grossProfitDisplay:format(row.grossProfit.value),
+      operatingIncomeDisplay:format(row.operatingIncome.value),
+      netIncomeDisplay:format(row.netIncome.value),
+      epsDisplay:row.eps.value,
+      freeCashFlowDisplay:format(row.freeCashFlow.value)
+    })),
+    caption:'Annual financial statement fixtures'
+  });
+
+  main.querySelector('#fundamental-asset').addEventListener('change',event=>navigate('fundamentals-estimates',event.target.value));
+  main.querySelector('[data-action="open-filings"]').addEventListener('click',()=>navigate('filing-workspace',selected));
+  main.querySelector('[data-action="compare"]').addEventListener('click',()=>navigate('comparison-lab'));
+}
