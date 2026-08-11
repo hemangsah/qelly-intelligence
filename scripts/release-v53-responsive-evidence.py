@@ -13,7 +13,7 @@ GENERATED=ROOT/'scripts'/'.release-v53-responsive-generated.py'
 OUT=ROOT/'preview'/'v53-responsive-evidence'
 
 REPRESENTATIVE_ROUTES=[
-    'market','advanced-chart','asset-intelligence','discovery-hub','research-workspace','portfolio-analytics',
+    'market','advanced-chart','asset-intelligence','fundamentals-estimates','discovery-hub','research-workspace','portfolio-analytics',
     'screener-lab','theme-lab','theme-personas','identity-access','import-center',
     'data-mesh','observability','decision-provenance','formula-library','trust-center'
 ]
