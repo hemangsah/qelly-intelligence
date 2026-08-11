@@ -10,7 +10,7 @@ test('Windows evidence retries only proven transient filesystem and loopback fai
 
   assert.match(source,/function Invoke-QellyValidationCommand/);
   assert.match(source,/\$maxAttempts = if \(\$AllowFsRetry\) \{ 3 \} else \{ 1 \}/);
-  assert.match(source,/\(\?i\)\\b\(\?:EACCES\|EPERM\)\\b/);
+  assert.ok(source.includes("$text -match '(?i)\\b(?:EACCES|EPERM)\\b'"));
   assert.match(source,/@\{ command = 'npm run typecheck'; retryFs = \$true \}/);
   assert.match(source,/@\{ command = 'npm run build:frontend'; retryFs = \$true \}/);
   for(const command of ['env:check','lint','validate:design','security:scan']){
