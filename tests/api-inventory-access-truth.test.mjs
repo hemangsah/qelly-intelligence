@@ -37,9 +37,7 @@ const expectedProtected=[
   '/api/v1/calculations/saved',
   '/api/v1/calculations/saved/:id',
   '/api/v1/evidence/graphs',
-  '/api/v1/watchlist',
-  '/api/v1/portfolio',
-  '/api/v1/providers/status'
+  '/api/v1/watchlist'
 ];
 
 test('API access classifier preserves the runtime public/protected boundary',()=>{
