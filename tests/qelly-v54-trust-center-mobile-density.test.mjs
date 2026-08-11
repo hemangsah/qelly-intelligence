@@ -8,11 +8,12 @@ const APP='apps/web/public/assets/app.js';
 const RESPONSIVE='scripts/release-v53-responsive-evidence.py';
 
 function trustRenderer(source){
-  const start=source.indexOf('async function renderTrustCenter(main)');
-  const end=source.indexOf('\n\nasync function renderSecurityEvidence',start);
+  const normalized=source.replace(/\r\n/g,'\n');
+  const start=normalized.indexOf('async function renderTrustCenter(main)');
+  const end=normalized.indexOf('\n\nasync function renderSecurityEvidence',start);
   assert.ok(start>=0,'Trust Center renderer missing');
   assert.ok(end>start,'Trust Center renderer boundary missing');
-  return source.slice(start,end);
+  return normalized.slice(start,end);
 }
 
 test('Trust Center phone density is route-scoped, reversible and keyboard-scrollable',async()=>{
