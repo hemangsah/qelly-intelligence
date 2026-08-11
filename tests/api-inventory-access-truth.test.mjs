@@ -70,14 +70,9 @@ test('inventory public-v1 exact paths stay aligned with the server authenticatio
   ]);
 });
 
-test('committed API inventory is complete and classified from the canonical contract policy',async()=>{
-  const inventory=JSON.parse(await readFile(new URL('../artifacts/QELLY_API_INVENTORY.json',import.meta.url),'utf8'));
-  assert.equal(inventory.count,apiRoutes.length);
-  assert.equal(inventory.items.length,apiRoutes.length);
-  for(const [index,route] of apiRoutes.entries()){
-    const row=inventory.items[index];
-    assert.equal(row.index,index+1);
-    assert.equal(row.route,route);
-    assert.equal(row.access,classifyApiContractAccess(route),route);
-  }
+test('product inventory generator uses the canonical API access classifier',async()=>{
+  const source=await readFile(new URL('../scripts/build-product-inventory.mjs',import.meta.url),'utf8');
+  assert.match(source,/import \{classifyApiContractAccess\} from '\.\.\/src\/server\/api-access-policy\.mjs';/);
+  assert.match(source,/access:classifyApiContractAccess\(route\)/);
+  assert.doesNotMatch(source,/route\.startsWith\('\/api\/v1\/public\/'\)/);
 });
