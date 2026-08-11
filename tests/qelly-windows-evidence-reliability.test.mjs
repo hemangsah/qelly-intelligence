@@ -8,15 +8,19 @@ const WORKFLOW='.github/workflows/qelly-all-screens-windows.yml';
 test('Windows evidence retries only proven transient filesystem and loopback failures',async()=>{
   const source=await read(WORKFLOW);
 
-  assert.match(source,/function Invoke-QellyValidationCommand/);
+  assert.match(source,/function Invoke-QellyNpmValidation/);
+  assert.match(source,/\$PSNativeCommandUseErrorActionPreference = \$false/);
   assert.match(source,/\$maxAttempts = if \(\$AllowFsRetry\) \{ 3 \} else \{ 1 \}/);
   assert.ok(source.includes("$text -match '(?i)\\b(?:EACCES|EPERM)\\b'"));
-  assert.match(source,/@\{ command = 'npm run typecheck'; retryFs = \$true \}/);
-  assert.match(source,/@\{ command = 'npm run build:frontend'; retryFs = \$true \}/);
-  for(const command of ['env:check','lint','validate:design','security:scan']){
-    assert.match(source,new RegExp(`@\\{ command = 'npm run ${command.replace(':','\\:')}'; retryFs = \\$false \\}`));
+  assert.match(source,/@\{ script = 'typecheck'; retryFs = \$true; isTest = \$false \}/);
+  assert.match(source,/@\{ script = 'build:frontend'; retryFs = \$true; isTest = \$false \}/);
+  for(const script of ['env:check','lint','validate:design','security:scan']){
+    assert.match(source,new RegExp(`@\\{ script = '${script.replace(':','\\:')}'; retryFs = \\$false; isTest = \\$false \\}`));
   }
-  assert.match(source,/@\{ command = 'npm test'; retryFs = \$false \}/);
+  assert.match(source,/@\{ script = 'test'; retryFs = \$false; isTest = \$true \}/);
+  assert.match(source,/\$output = & npm\.cmd test 2>&1/);
+  assert.match(source,/\$output = & npm\.cmd run \$Script 2>&1/);
+  assert.doesNotMatch(source,/cmd\.exe \/d \/s \/c/);
 
   assert.match(source,/function Invoke-QellyScreenBatch/);
   assert.match(source,/\$maxAttempts = 3/);
@@ -34,11 +38,20 @@ test('Windows evidence retries only proven transient filesystem and loopback fai
 
 test('Windows retry policy does not retry deterministic validation failures',async()=>{
   const source=await read(WORKFLOW);
-  const validationBlock=source.slice(source.indexOf('function Invoke-QellyValidationCommand'),source.indexOf('      - name: Capture every registered route'));
+  const validationBlock=source.slice(source.indexOf('function Invoke-QellyNpmValidation'),source.indexOf('      - name: Capture every registered route'));
   assert.match(validationBlock,/\$retryable = \$AllowFsRetry -and \(\$text -match/);
   assert.match(validationBlock,/if \(-not \$retryable -or \$attempt -ge \$maxAttempts\)/);
-  assert.match(validationBlock,/throw "Validation command failed \(\$code\): \$Command"/);
-  assert.doesNotMatch(validationBlock,/npm test'; retryFs = \$true/);
+  assert.match(validationBlock,/throw "Validation command failed \(\$code\): \$label"/);
+  assert.doesNotMatch(validationBlock,/script = 'test'; retryFs = \$true/);
+});
+
+test('Windows validation diagnostics survive pre-capture failure',async()=>{
+  const source=await read(WORKFLOW);
+  assert.match(source,/\$validationLogDir = Join-Path \$PWD 'preview\/windows-validation'/);
+  assert.match(source,/Tee-Object -FilePath \$logPath -Append/);
+  assert.match(source,/preview\/windows-validation/);
+  assert.match(source,/if: always\(\)/);
+  assert.match(source,/if-no-files-found: warn/);
 });
 
 test('Windows screen retry preserves complete archive acceptance',async()=>{
