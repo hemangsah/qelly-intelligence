@@ -14,6 +14,7 @@ const REFINEMENT_STYLESHEET=new URL('./qelly-v53-visible-refinement.css',import.
 const POSTMERGE_STYLESHEET=new URL('./qelly-post-v53-convergence.css',import.meta.url).href;
 const ACTIVE_SHELL_STYLESHEET=new URL('./qelly-v53-active-shell-convergence.css',import.meta.url).href;
 const PRODUCTION_SHELL_STYLESHEET=new URL('./qelly-v53-production-shell-convergence.css',import.meta.url).href;
+const PRODUCTION_STATUS_STYLESHEET=new URL('./qelly-v53-production-shell-status.css',import.meta.url).href;
 const FAMILY_RUNTIME=new URL('./qelly-v53-family-harmonization.mjs',import.meta.url).href;
 const COLOR_BLIND_MARKET_TOKENS=Object.freeze({positive:'#168AAD',negative:'#D1495B',warning:'#F3A712'});
 
@@ -62,6 +63,13 @@ function activateActiveShellConvergence(){
     link.rel='stylesheet';
     link.href=PRODUCTION_SHELL_STYLESHEET;
     link.dataset.qellyV53ProductionShell='wave1';
+    document.head.append(link);
+  }
+  if(!document.querySelector('link[data-qelly-v53-production-status="wave1"]')){
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href=PRODUCTION_STATUS_STYLESHEET;
+    link.dataset.qellyV53ProductionStatus='wave1';
     document.head.append(link);
   }
 }
@@ -145,12 +153,13 @@ function annotateEvidence(scope=document){
 function ensureProductionStatus(){
   const header=document.querySelector('.q-product-header');
   if(!header||header.querySelector('.q-v53-product-status'))return;
-  const utc=new Date().toISOString().slice(11,19);
+  const now=new Date();
+  const utc=now.toISOString().slice(11,19);
   const status=document.createElement('div');
   status.className='q-v53-product-status';
   status.setAttribute('role','status');
   status.setAttribute('aria-label','Qelly operating boundary and workspace status');
-  status.innerHTML=`<span class="q-v53-product-status__context"><time datetime="${new Date().toISOString()}">UTC ${utc}</time><span>Workspace · Institutional research</span><span>Provider truth · route-governed</span></span><strong>READ ONLY · NO EXECUTION</strong>`;
+  status.innerHTML=`<span class="q-v53-product-status__context"><time datetime="${now.toISOString()}">UTC ${utc}</time><span>Workspace · Institutional research</span><span>Provider truth · route-governed</span></span><strong>READ ONLY · NO EXECUTION</strong>`;
   header.prepend(status);
 }
 
