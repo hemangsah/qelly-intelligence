@@ -42,7 +42,7 @@ test('Research evidence topology preserves real items, references, timestamps an
 test('Research workstation matches the institutional topology without hiding evidence',async()=>{
   const css=stripComments(await read(cssPath));
   assert.match(css,/\.q-research-workstation\{[\s\S]*grid-template-columns:218px minmax\(0,1fr\) 300px/);
-  assert.match(css,/PRIMARY ANALYTICAL WORKSPACE \/ CONTEXT \/ INTELLIGENCE INSPECTOR/);
+  for(const owner of ['q-research-context-rail','q-research-primary','q-research-inspector'])assert.match(css,new RegExp(`\\.${owner}`),`missing workstation owner: ${owner}`);
   assert.match(css,/\.q-research-evidence-grid\{[\s\S]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(css,/@media\(max-width:900px\)[\s\S]*\.q-research-evidence-grid\{[\s\S]*overflow-x:auto/);
   assert.match(css,/@media\(max-width:640px\)[\s\S]*\.q-research-kpi-strip\{[\s\S]*overflow-x:auto/);
