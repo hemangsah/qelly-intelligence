@@ -1,0 +1,46 @@
+/* Qelly Intelligence — V5.3 Market Command pixel correction.
+   Loaded after the Wave 2 route stylesheet to defeat retained V5 light-card inheritance only. */
+
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main[data-v53-route="live-markets"] :where(.q-v5-market-metric,.q-v5-evidence-cell){
+  border-color:var(--q-v53-market-line)!important;
+  background:#141015!important;
+  color:#f5edf1!important;
+  box-shadow:none!important;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main[data-v53-route="live-markets"] :where(.q-v5-market-metric,.q-v5-evidence-cell)>span{
+  color:#ad9aa3!important;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main[data-v53-route="live-markets"] :where(.q-v5-market-metric,.q-v5-evidence-cell)>strong{
+  color:#f5edf1!important;
+}
+
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main[data-v53-route="live-markets"] .q-live-side-stack .q-panel-head{
+  border-color:var(--q-v53-market-line)!important;
+  background:#100c10!important;
+  color:#f5edf1!important;
+  box-shadow:none!important;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main[data-v53-route="live-markets"] .q-live-side-stack .q-panel-head::before,
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main[data-v53-route="live-markets"] .q-live-side-stack .q-panel-head::after{
+  background:transparent!important;
+  box-shadow:none!important;
+}
+
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main[data-v53-route="live-markets"] .q-market-tape .q-panel-head{
+  background:#100c10!important;
+  color:#f5edf1!important;
+  box-shadow:none!important;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main[data-v53-route="live-markets"] .q-tape-card{
+  border-color:var(--q-v53-market-line)!important;
+  background:#120d11!important;
+  color:#f5edf1!important;
+  box-shadow:none!important;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main[data-v53-route="live-markets"] .q-tape-card :where(span,strong){
+  color:inherit;
+}
+
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main[data-v53-route="live-markets"] :where(.q-live-command-deck,.q-live-chart-shell,.q-live-side-stack,.q-market-tape){
+  color:#f5edf1;
+}
