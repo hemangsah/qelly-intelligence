@@ -3,21 +3,21 @@
 
 html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main[data-v53-route="live-markets"] :where(.q-v5-market-metric,.q-v5-evidence-cell){
   border-color:var(--q-v53-market-line)!important;
-  background:var(--q-v53-market-panel-2)!important;
-  color:var(--q-text,#f5edf1)!important;
+  background:#141015!important;
+  color:#f5edf1!important;
   box-shadow:none!important;
 }
 html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main[data-v53-route="live-markets"] :where(.q-v5-market-metric,.q-v5-evidence-cell)>span{
-  color:var(--q-v53-market-muted)!important;
+  color:#ad9aa3!important;
 }
 html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main[data-v53-route="live-markets"] :where(.q-v5-market-metric,.q-v5-evidence-cell)>strong{
-  color:var(--q-text,#f5edf1);
+  color:#f5edf1!important;
 }
 
 html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main[data-v53-route="live-markets"] .q-live-side-stack .q-panel-head{
   border-color:var(--q-v53-market-line)!important;
   background:#100c10!important;
-  color:var(--q-text,#f5edf1)!important;
+  color:#f5edf1!important;
   box-shadow:none!important;
 }
 html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main[data-v53-route="live-markets"] .q-live-side-stack .q-panel-head::before,
@@ -28,13 +28,13 @@ html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main[data-v53-ro
 
 html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main[data-v53-route="live-markets"] .q-market-tape .q-panel-head{
   background:#100c10!important;
-  color:var(--q-text,#f5edf1)!important;
+  color:#f5edf1!important;
   box-shadow:none!important;
 }
 html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main[data-v53-route="live-markets"] .q-tape-card{
   border-color:var(--q-v53-market-line)!important;
   background:#120d11!important;
-  color:var(--q-text,#f5edf1)!important;
+  color:#f5edf1!important;
   box-shadow:none!important;
 }
 html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main[data-v53-route="live-markets"] .q-tape-card :where(span,strong){
@@ -42,5 +42,5 @@ html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main[data-v53-ro
 }
 
 html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main[data-v53-route="live-markets"] :where(.q-live-command-deck,.q-live-chart-shell,.q-live-side-stack,.q-market-tape){
-  color:var(--q-text,#f5edf1);
+  color:#f5edf1;
 }
