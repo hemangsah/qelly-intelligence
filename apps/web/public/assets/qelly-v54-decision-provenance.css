@@ -1,12 +1,12 @@
-/* Qelly V5.4 Wave 3 — Decision Provenance traversal and mobile context retention.
-   Presentation-only: graph semantics, truth states, evidence payloads and execution boundaries remain authoritative. */
+/* Qelly V5.3 Wave 4 — Decision Provenance institutional workstation convergence.
+   Presentation-only: governed graph semantics, truth states, evidence payloads, traversal and execution boundaries remain authoritative. */
 
-.q-decision-provenance-page .q-decision-graph-stack{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(300px,.65fr);gap:var(--q-gap);margin-bottom:var(--q-gap)}
+.q-decision-provenance-page .q-decision-graph-stack{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(300px,.65fr);gap:12px;margin-bottom:12px}
 .q-decision-provenance-page>.q-panel+.q-panel{margin-top:var(--q-gap)}
 .q-provenance-explorer{grid-column:1/-1;overflow:clip;border-color:color-mix(in srgb,var(--q-accent) 28%,var(--q-border));box-shadow:0 12px 36px color-mix(in srgb,var(--q-accent) 7%,transparent)}
 .q-provenance-explorer>.q-panel-head{align-items:flex-start;background:linear-gradient(135deg,color-mix(in srgb,var(--q-accent) 5%,var(--q-surface)),var(--q-surface) 55%)}
 .q-provenance-panel-body{padding:0}
-.q-provenance-workbench{display:grid;grid-template-columns:minmax(220px,.72fr) minmax(0,1.45fr) minmax(250px,.82fr);min-height:430px;background:var(--q-surface)}
+.q-provenance-workbench{display:grid;grid-template-columns:minmax(210px,.66fr) minmax(0,1.55fr) minmax(260px,.78fr);min-height:460px;background:var(--q-surface)}
 .q-provenance-node-navigator,.q-provenance-relations{min-width:0;background:color-mix(in srgb,var(--q-surface) 94%,var(--q-accent) 6%);padding:14px}
 .q-provenance-node-navigator{border-right:1px solid var(--q-border)}
 .q-provenance-relations{border-left:1px solid var(--q-border)}
@@ -43,17 +43,25 @@
 .q-provenance-context-ribbon{display:none}
 .q-provenance-relationships-audit .q-record-row small{overflow-wrap:anywhere}
 
-@media(min-width:861px){
-  html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-decision-maker-panel{grid-column:1/-1;align-self:start}
+@media(min-width:1181px){
+  html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-graph-stack>.q-panel:not(.q-provenance-explorer)>.q-panel-body{max-height:min(34vh,320px);overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+  html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-decision-maker-panel{grid-column:1/span 7;align-self:start}
+  html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-decision-maker-panel+.q-panel{grid-column:8/-1;align-self:start}
+  html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-decision-maker-panel+.q-panel+.q-panel{grid-column:1/span 7;align-self:start}
+  html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-decision-maker-panel+.q-panel+.q-panel+.q-panel{grid-column:8/-1;align-self:start}
+  html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-panel+.q-panel{margin-top:0}
+  html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-decision-maker-panel>.q-panel-body,
+  html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-decision-maker-panel+.q-panel>.q-panel-body{max-height:min(72vh,760px);overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+  html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-decision-maker-panel+.q-panel+.q-panel>.q-panel-body,
+  html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-decision-maker-panel+.q-panel+.q-panel+.q-panel>.q-panel-body{max-height:min(48vh,520px);overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+}
+
+@media(min-width:861px) and (max-width:1180px){
+  html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-decision-maker-panel,
   html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-decision-maker-panel+.q-panel{grid-column:1/-1;align-self:start}
   html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-decision-maker-panel+.q-panel+.q-panel,
   html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-decision-maker-panel+.q-panel+.q-panel+.q-panel{grid-column:span 6;align-self:start}
   html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-panel+.q-panel{margin-top:0}
-}
-
-@media(min-width:861px) and (max-width:1180px){
-  html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-decision-maker-panel+.q-panel+.q-panel,
-  html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-decision-maker-panel+.q-panel+.q-panel+.q-panel{grid-column:1/-1}
 }
 
 @media(max-width:1180px){
@@ -70,7 +78,7 @@
   .q-provenance-node-list{display:flex;gap:8px;max-height:none;overflow-x:auto;overflow-y:hidden;padding:2px 2px 8px;scroll-snap-type:x proximity;overscroll-behavior-inline:contain}
   .q-provenance-node{flex:0 0 min(76vw,260px);scroll-snap-align:start;min-height:88px}
   .q-provenance-keyboard-hint{display:none}
-  .q-provenance-focus{padding:14px}
+  .q-provenance-focus{padding:14px;max-height:min(68dvh,560px);overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
   .q-provenance-detail-grid{grid-template-columns:1fr}
   .q-provenance-detail-grid>div,.q-provenance-detail-grid>div:nth-child(even){padding:10px 0;border-left:0}
   .q-provenance-relations{border-top:1px solid var(--q-border);padding:12px}
@@ -82,6 +90,7 @@
   .q-decision-graph-stack>.q-panel:last-child .q-panel-body{max-height:300px;overflow:auto;overscroll-behavior:contain}
   .q-decision-provenance-page .q-decision-evidence-grid{display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;padding:2px 2px 8px;scroll-snap-type:x proximity;overscroll-behavior-inline:contain;scrollbar-gutter:stable}
   .q-decision-provenance-page .q-decision-evidence-grid>article{flex:0 0 min(82vw,300px);min-width:0;scroll-snap-align:start}
+  .q-decision-provenance-page>.q-decision-maker-panel>.q-panel-body{max-height:min(72dvh,620px);overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
   .q-decision-provenance-page .q-decision-maker-panel~.q-panel>.q-panel-body{max-height:min(58dvh,500px);overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
   .q-decision-provenance-page .q-decision-maker-panel~.q-panel .q-kpi-grid{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding:2px 2px 8px;scroll-snap-type:x proximity;overscroll-behavior-inline:contain;scrollbar-gutter:stable}
   .q-decision-provenance-page .q-decision-maker-panel~.q-panel .q-kpi{flex:0 0 min(68vw,220px);min-height:92px;scroll-snap-align:start}
