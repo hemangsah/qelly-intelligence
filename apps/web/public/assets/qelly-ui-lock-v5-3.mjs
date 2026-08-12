@@ -13,6 +13,7 @@ const RAIL_PREF='qelly.ui-lock-v5-3.rail';
 const REFINEMENT_STYLESHEET=new URL('./qelly-v53-visible-refinement.css',import.meta.url).href;
 const POSTMERGE_STYLESHEET=new URL('./qelly-post-v53-convergence.css',import.meta.url).href;
 const ACTIVE_SHELL_STYLESHEET=new URL('./qelly-v53-active-shell-convergence.css',import.meta.url).href;
+const PRODUCTION_SHELL_STYLESHEET=new URL('./qelly-v53-production-shell-convergence.css',import.meta.url).href;
 const FAMILY_RUNTIME=new URL('./qelly-v53-family-harmonization.mjs',import.meta.url).href;
 const COLOR_BLIND_MARKET_TOKENS=Object.freeze({positive:'#168AAD',negative:'#D1495B',warning:'#F3A712'});
 
@@ -22,6 +23,15 @@ root.dataset.uiLockV53DesignSha='e077489ba482f0df9258a14c0074adb1bc9eee02d4740b7
 root.dataset.uiLockV53Refinement='2026-08-09';
 root.dataset.v53PostmergeConvergence='wave1';
 root.dataset.v53ActiveShell='wave1';
+
+function appendStylesheet(href,datasetKey,datasetValue){
+  if(document.querySelector(`link[data-${datasetKey}="${datasetValue}"]`))return;
+  const link=document.createElement('link');
+  link.rel='stylesheet';
+  link.href=href;
+  link.dataset[datasetKey.replace(/-([a-z])/g,(_,letter)=>letter.toUpperCase())]=datasetValue;
+  document.head.append(link);
+}
 
 function activateVisibleRefinement(){
   if(document.querySelector('link[data-qelly-v53-refinement="active"]'))return;
@@ -49,12 +59,20 @@ function activateActiveShellConvergence(){
     commandBar.insertBefore(personaRibbon,commandTrigger??commandBar.querySelector('.q-command-actions'));
     personaRibbon.dataset.v53ShellPlacement='command-context';
   }
-  if(document.querySelector('link[data-qelly-v53-active-shell="wave1"]'))return;
-  const link=document.createElement('link');
-  link.rel='stylesheet';
-  link.href=ACTIVE_SHELL_STYLESHEET;
-  link.dataset.qellyV53ActiveShell='wave1';
-  document.head.append(link);
+  if(!document.querySelector('link[data-qelly-v53-active-shell="wave1"]')){
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href=ACTIVE_SHELL_STYLESHEET;
+    link.dataset.qellyV53ActiveShell='wave1';
+    document.head.append(link);
+  }
+  if(!document.querySelector('link[data-qelly-v53-production-shell="wave1"]')){
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href=PRODUCTION_SHELL_STYLESHEET;
+    link.dataset.qellyV53ProductionShell='wave1';
+    document.head.append(link);
+  }
 }
 
 async function activateFamilyHarmonization(){
@@ -135,7 +153,7 @@ function annotateEvidence(scope=document){
 
 function annotateShell(){
   document.querySelector('.q-global-strip')?.setAttribute('data-qelly-shell-layer','system-strip');
-  document.querySelector('.q-command-bar')?.setAttribute('data-qelly-shell-layer','command-bar');
+  document.querySelector('.q-command-bar,.q-product-header')?.setAttribute('data-qelly-shell-layer','command-bar');
   rail?.setAttribute('data-qelly-shell-layer','navigation-rail');
   document.getElementById('context-shelf')?.setAttribute('data-qelly-shell-layer','context-bar');
   main?.setAttribute('data-qelly-shell-layer','analytical-workspace');
@@ -202,6 +220,9 @@ if(main){
   });
   observer.observe(main,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
 }
+
+const shellObserver=new MutationObserver(()=>requestAnimationFrame(()=>annotateShell()));
+shellObserver.observe(document.getElementById('app')||document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
 
 activateVisibleRefinement();
 activatePostMergeConvergence();
