@@ -16,6 +16,7 @@ const ACTIVE_SHELL_STYLESHEET=new URL('./qelly-v53-active-shell-convergence.css'
 const PRODUCTION_SHELL_STYLESHEET=new URL('./qelly-v53-production-shell-convergence.css',import.meta.url).href;
 const PRODUCTION_STATUS_STYLESHEET=new URL('./qelly-v53-production-shell-status.css',import.meta.url).href;
 const MARKET_COMMAND_STYLESHEET=new URL('./qelly-v53-market-command-workspace.css',import.meta.url).href;
+const MARKET_COMMAND_CORRECTION_STYLESHEET=new URL('./qelly-v53-market-command-workspace-correction.css',import.meta.url).href;
 const FAMILY_RUNTIME=new URL('./qelly-v53-family-harmonization.mjs',import.meta.url).href;
 const COLOR_BLIND_MARKET_TOKENS=Object.freeze({positive:'#168AAD',negative:'#D1495B',warning:'#F3A712'});
 
@@ -78,6 +79,13 @@ function activateActiveShellConvergence(){
     link.rel='stylesheet';
     link.href=MARKET_COMMAND_STYLESHEET;
     link.dataset.qellyV53MarketCommand='wave2';
+    document.head.append(link);
+  }
+  if(!document.querySelector('link[data-qelly-v53-market-command-correction="wave2"]')){
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href=MARKET_COMMAND_CORRECTION_STYLESHEET;
+    link.dataset.qellyV53MarketCommandCorrection='wave2';
     document.head.append(link);
   }
 }
