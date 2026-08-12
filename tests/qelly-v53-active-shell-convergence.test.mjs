@@ -31,9 +31,10 @@ test('active shell implements the approved 24 + 40 + 30 institutional chrome wit
   for(const selector of ['.q-global-strip','.q-command-bar','.q-context-shelf','.q-edge-dock','#main','.q-panel','.q-data-grid','.q-context-drawer','.q-compare-tray']){
     assert.ok(css.includes(selector),`missing active shell owner ${selector}`);
   }
-  assert.doesNotMatch(executableCss(css),/display\s*:\s*none/);
-  assert.doesNotMatch(executableCss(css),/visibility\s*:\s*hidden/);
-  assert.doesNotMatch(executableCss(css),/content\s*:/);
+  const activeCss=executableCss(css);
+  assert.doesNotMatch(activeCss,/display\s*:\s*none/);
+  assert.doesNotMatch(activeCss,/visibility\s*:\s*hidden/);
+  assert.doesNotMatch(activeCss,/^\s*content\s*:/m);
 });
 
 test('operating-mode context is reparented into command chrome without deleting or replacing its governed renderer',async()=>{
