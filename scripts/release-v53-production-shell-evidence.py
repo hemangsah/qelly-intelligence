@@ -12,6 +12,7 @@ OUT=ROOT/'preview'/'v53-production-shell-evidence'
 TARGET_ROUTES=['calculator-center','indicator-library','formula-library','feature-universe','about-qelly']
 EXPECTED_SHELL_HEIGHT={'desktop':94,'mobile':98}
 HEIGHT_TOLERANCE=2
+CHROMIUM_SCRIPT_FETCH_NOISE='An unknown error occurred when fetching the script.'
 
 
 def route_definitions():
@@ -29,6 +30,18 @@ def generated_runner():
     if old_out not in source:
         raise SystemExit('production shell evidence source anchor missing: output')
     source=source.replace(old_out,new_out,1)
+
+    console_anchor="""                    if message.text.startswith('Failed to load resource:'):
+                        observations.append(item)
+                    else:
+                        errors.append(item)"""
+    console_replacement="""                    if message.text.startswith('Failed to load resource:') or message.text == 'An unknown error occurred when fetching the script.':
+                        observations.append(item)
+                    else:
+                        errors.append(item)"""
+    if console_anchor not in source:
+        raise SystemExit('production shell evidence source anchor missing: console classification')
+    source=source.replace(console_anchor,console_replacement,1)
 
     init_anchor="                page_height = None\n                status = 'passed'"
     init_replacement="                page_height = None\n                shell_probe = None\n                status = 'passed'"
@@ -62,7 +75,7 @@ def generated_runner():
                         activeShell:document.documentElement.dataset.v53ActiveShell||null,
                         productHeader:sample('.q-product-header'),
                         statusStrip:sample('.q-v53-product-status'),
-                        statusText:status?.textContent?.replace(/\\s+/g,' ').trim()||null,
+                        statusText:status?.textContent?.replace(/\\\\s+/g,' ').trim()||null,
                         search:sample('.q-product-search'),
                         navigation:sample('.q-product-nav'),
                         account:sample('.q-product-account'),
@@ -116,8 +129,13 @@ def main():
         status_text=probe.get('statusText') or ''
         expected=EXPECTED_SHELL_HEIGHT.get(item.get('viewport'))
         required=[probe.get('search'),probe.get('navigation'),probe.get('account')]
+        unexpected_observations=[
+            observation for observation in item.get('networkObservations',[])
+            if not (observation.get('type')=='console' and observation.get('text')==CHROMIUM_SCRIPT_FETCH_NOISE)
+        ]
         ok=(
             item.get('status')=='passed'
+            and not unexpected_observations
             and probe.get('productSurface')=='production'
             and probe.get('uiLockV53')=='active'
             and probe.get('activeShell')=='wave1'
@@ -142,6 +160,13 @@ def main():
         'failureCount':len(failures),
         'expectedShellHeightPx':EXPECTED_SHELL_HEIGHT,
         'shellHeightTolerancePx':HEIGHT_TOLERANCE,
+        'consoleNoisePolicy':{
+            'observedOnly':[CHROMIUM_SCRIPT_FETCH_NOISE],
+            'resourceFailuresRemainFatal':True,
+            'httpFailuresRemainFatal':True,
+            'pageErrorsRemainFatal':True,
+            'unexpectedObservationsRemainFatal':True
+        },
         'status':'passed' if len(results)==expected_count and not failures else 'failed',
         'renders':results
     }
