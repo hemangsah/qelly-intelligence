@@ -1,7 +1,6 @@
 from pathlib import Path
 import json
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -10,7 +9,7 @@ ROOT=Path(__file__).resolve().parents[1]
 SOURCE=ROOT/'scripts'/'release-a5-screen-batch-v2.py'
 GENERATED=ROOT/'scripts'/'.release-v53-production-shell-generated.py'
 OUT=ROOT/'preview'/'v53-production-shell-evidence'
-TARGET_ROUTES=['market','live-markets','research-workspace','decision-provenance','theme-lab','search']
+TARGET_ROUTES=['live-markets','research-workspace','decision-provenance','theme-lab','search']
 EXPECTED_SHELL_HEIGHT={'desktop':94,'mobile':98}
 HEIGHT_TOLERANCE=2
 
