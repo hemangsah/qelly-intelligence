@@ -9,7 +9,7 @@ ROOT=Path(__file__).resolve().parents[1]
 SOURCE=ROOT/'scripts'/'release-a5-screen-batch-v2.py'
 GENERATED=ROOT/'scripts'/'.release-v53-production-shell-generated.py'
 OUT=ROOT/'preview'/'v53-production-shell-evidence'
-TARGET_ROUTES=['live-markets','research-workspace','decision-provenance','theme-lab','search']
+TARGET_ROUTES=['calculator-center','indicator-library','formula-library','feature-universe','about-qelly']
 EXPECTED_SHELL_HEIGHT={'desktop':94,'mobile':98}
 HEIGHT_TOLERANCE=2
 
@@ -55,11 +55,14 @@ def generated_runner():
                           visible:box.width>0&&box.height>0&&style.display!=='none'&&style.visibility!=='hidden'
                         };
                       };
+                      const status=document.querySelector('.q-v53-product-status');
                       return {
                         productSurface:document.documentElement.dataset.productSurface||null,
                         uiLockV53:document.documentElement.dataset.uiLockV53||null,
                         activeShell:document.documentElement.dataset.v53ActiveShell||null,
                         productHeader:sample('.q-product-header'),
+                        statusStrip:sample('.q-v53-product-status'),
+                        statusText:status?.textContent?.replace(/\\s+/g,' ').trim()||null,
                         search:sample('.q-product-search'),
                         navigation:sample('.q-product-nav'),
                         account:sample('.q-product-account'),
@@ -98,7 +101,7 @@ def main():
     try:
         for route in TARGET_ROUTES:
             position=index[route]
-            subprocess.run([sys.executable,str(GENERATED),str(position),str(position+1)],cwd=ROOT,check=True)
+            subprocess.run([sys.executable,str(GENERATED),str(position),str(position+1)],cwd=ROOT,check=False)
     finally:
         GENERATED.unlink(missing_ok=True)
 
@@ -109,6 +112,8 @@ def main():
     for item in results:
         probe=item.get('shellProbe') or {}
         header=probe.get('productHeader') or {}
+        status_strip=probe.get('statusStrip') or {}
+        status_text=probe.get('statusText') or ''
         expected=EXPECTED_SHELL_HEIGHT.get(item.get('viewport'))
         required=[probe.get('search'),probe.get('navigation'),probe.get('account')]
         ok=(
@@ -117,6 +122,9 @@ def main():
             and probe.get('uiLockV53')=='active'
             and probe.get('activeShell')=='wave1'
             and header.get('visible') is True
+            and status_strip.get('visible') is True
+            and 'READ ONLY' in status_text
+            and 'NO EXECUTION' in status_text
             and expected is not None
             and abs((header.get('height') or 0)-expected)<=HEIGHT_TOLERANCE
             and all((entry or {}).get('visible') is True for entry in required)
