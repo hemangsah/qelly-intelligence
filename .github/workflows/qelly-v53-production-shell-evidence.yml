@@ -1,0 +1,98 @@
+name: Qelly V5.3 Production Shell Evidence
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'apps/web/public/assets/qelly-ui-lock-v5-3.mjs'
+      - 'apps/web/public/assets/qelly-v53-active-shell-convergence.css'
+      - 'apps/web/public/assets/qelly-v53-production-shell-convergence.css'
+      - 'apps/web/public/assets/qelly-v53-production-shell-status.css'
+      - 'apps/web/public/assets/prompt2c-public-beta.mjs'
+      - 'apps/web/public/assets/prompt2c-public-beta.css'
+      - 'scripts/release-v53-production-shell-evidence.py'
+      - 'tests/qelly-v53-active-shell-convergence.test.mjs'
+      - 'tests/qelly-v53-production-shell-convergence.test.mjs'
+      - '.github/workflows/qelly-v53-production-shell-evidence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qelly-v53-production-shell-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  production-shell-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      QELLY_V53_EVIDENCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: 'utf-8'
+    steps:
+      - name: Checkout exact production-shell head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.QELLY_V53_EVIDENCE_SHA }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Guard exact production-shell head
+        run: test "$(git rev-parse HEAD)" = "$QELLY_V53_EVIDENCE_SHA"
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+
+      - name: Install locked dependencies
+        run: |
+          npm ci --ignore-scripts
+          python -m pip install --disable-pip-version-check playwright pillow
+          python -m playwright install --with-deps chromium
+
+      - name: Validate production shell source contract
+        run: |
+          npm run env:check
+          npm run lint
+          node --test tests/qelly-v53-active-shell-convergence.test.mjs tests/qelly-v53-production-shell-convergence.test.mjs
+
+      - name: Build Prompt2C production-mode frontend
+        env:
+          QELLY_PROMPT2C_PUBLIC_BETA: 'true'
+        run: npm run build:frontend
+
+      - name: Capture authoritative product shell at desktop and mobile
+        run: python -X utf8 scripts/release-v53-production-shell-evidence.py
+
+      - name: Verify production shell evidence manifest
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFile,readdir} from 'node:fs/promises';
+          const root='preview/v53-production-shell-evidence';
+          const manifest=JSON.parse(await readFile(`${root}/manifest.json`,'utf8'));
+          const files=await readdir(root);
+          const pngs=files.filter(name=>name.endsWith('.png'));
+          const ok=manifest.status==='passed'&&manifest.canonicalRouteCount===71&&manifest.renderCount===10&&manifest.expectedRenderCount===10&&manifest.failureCount===0&&pngs.length===10;
+          console.log(JSON.stringify({status:manifest.status,canonicalRouteCount:manifest.canonicalRouteCount,routes:manifest.routes,renderCount:manifest.renderCount,expectedRenderCount:manifest.expectedRenderCount,failureCount:manifest.failureCount,pngs:pngs.length,expectedShellHeightPx:manifest.expectedShellHeightPx},null,2));
+          if(!ok)process.exit(1);
+          NODE
+
+      - name: Upload production shell evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-v53-production-shell-${{ env.QELLY_V53_EVIDENCE_SHA }}
+          path: preview/v53-production-shell-evidence
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 30

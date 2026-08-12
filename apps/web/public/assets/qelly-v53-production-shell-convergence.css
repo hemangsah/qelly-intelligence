@@ -1,0 +1,263 @@
+/* Qelly Intelligence — V5.3 authoritative production-shell convergence.
+   This styles the Prompt 2C product header that supersedes compatibility chrome. */
+
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"]{
+  --q-product-radius:8px;
+  --q-v53-product-shell-h:94px;
+}
+
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-header{
+  box-sizing:border-box;
+  height:var(--q-v53-product-shell-h);
+  min-height:var(--q-v53-product-shell-h);
+  display:grid;
+  grid-template-columns:64px minmax(320px,1fr) auto;
+  grid-template-rows:40px 30px;
+  grid-template-areas:
+    "brand search actions"
+    "brand nav actions";
+  align-items:center;
+  gap:4px 10px;
+  padding:10px 12px;
+  border-bottom:1px solid color-mix(in srgb,var(--q-product-accent) 20%,var(--q-product-line));
+  background:color-mix(in srgb,var(--q-product-bg) 96%,transparent);
+  box-shadow:0 1px 0 rgb(255 255 255 / .02);
+  backdrop-filter:blur(18px) saturate(110%);
+  -webkit-backdrop-filter:blur(18px) saturate(110%);
+}
+
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-brand{
+  grid-area:brand;
+  width:54px;
+  min-width:54px;
+  height:70px;
+  display:grid;
+  place-items:center;
+  border-right:1px solid var(--q-product-line);
+  padding-right:10px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-brand__mark{
+  width:38px;
+  height:38px;
+  border-radius:7px;
+  font-size:18px;
+  box-shadow:0 7px 20px color-mix(in srgb,var(--q-product-accent) 28%,transparent);
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-brand>span:last-child{
+  position:absolute;
+  width:1px;
+  height:1px;
+  overflow:hidden;
+  clip:rect(0 0 0 0);
+  white-space:nowrap;
+}
+
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-search{
+  grid-area:search;
+  align-self:center;
+  height:34px;
+  min-height:34px;
+  border-radius:6px;
+  background:color-mix(in srgb,var(--q-product-surface) 94%,#000);
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-search input{
+  min-height:32px!important;
+  padding:6px 10px!important;
+  font-size:11px!important;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-search button{
+  padding:0 10px;
+  font-size:10px;
+}
+
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav{
+  grid-area:nav;
+  justify-content:flex-start;
+  align-self:center;
+  min-width:0;
+  gap:3px;
+  overflow-x:auto;
+  overscroll-behavior-inline:contain;
+  scrollbar-width:none;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav::-webkit-scrollbar{display:none}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav a{
+  min-height:24px;
+  display:inline-flex;
+  align-items:center;
+  padding:3px 7px;
+  border-radius:5px;
+  font-size:9px;
+  font-weight:650;
+  letter-spacing:.01em;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav a.is-active{
+  background:color-mix(in srgb,var(--q-product-accent) 18%,var(--q-product-surface-2));
+  color:color-mix(in srgb,var(--q-product-accent-strong) 72%,#fff);
+  box-shadow:inset 0 -1px 0 color-mix(in srgb,var(--q-product-accent-strong) 72%,transparent);
+}
+
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-actions{
+  grid-area:actions;
+  gap:5px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] :where(.q-product-system,.q-product-account){
+  min-height:30px;
+  height:30px;
+  border-radius:6px;
+  padding:4px 8px;
+  font-size:9px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-account span:first-child{
+  width:20px;
+  height:20px;
+  border-radius:5px;
+  font-size:9px;
+}
+
+/* The route context remains visible, but becomes workstation-dense rather than a large card. */
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-worldclass-context{
+  min-height:44px;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:8px 12px;
+  margin:0 0 10px;
+  padding:7px 10px;
+  border-radius:7px;
+  box-shadow:none;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-worldclass-context__main{
+  gap:4px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-worldclass-breadcrumb{
+  gap:5px;
+  font-size:8px;
+  letter-spacing:.045em;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-worldclass-purpose{
+  max-width:100ch;
+  font-size:9px;
+  line-height:1.35;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-worldclass-truth{
+  gap:5px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-worldclass-truth-chip{
+  min-height:20px;
+  padding:2px 6px;
+  border-radius:5px;
+  font-size:7px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-worldclass-context__aside,
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-worldclass-related{
+  gap:4px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] :where(.q-worldclass-related a,.q-worldclass-method summary){
+  min-height:24px;
+  padding:3px 7px;
+  border-radius:5px;
+  font-size:8px;
+}
+
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-market-home{
+  padding-top:clamp(18px,2vw,30px);
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-market-hero{
+  min-height:min(560px,calc(100vh - var(--q-v53-product-shell-h)));
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] :where(.q-market-hero__snapshot,.q-market-observation,.q-market-provider,.q-product-tool-grid>a,.q-market-safety){
+  border-radius:8px;
+}
+
+@media(max-width:1080px){
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-header{
+    grid-template-columns:52px minmax(220px,1fr) auto;
+    padding-inline:9px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-system span:last-child{
+    position:absolute;
+    width:1px;
+    height:1px;
+    overflow:hidden;
+    clip:rect(0 0 0 0);
+    white-space:nowrap;
+  }
+}
+
+@media(max-width:760px){
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"]{
+    --q-v53-product-shell-h:98px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-header{
+    height:var(--q-v53-product-shell-h);
+    min-height:var(--q-v53-product-shell-h);
+    grid-template-columns:42px minmax(0,1fr) auto;
+    grid-template-rows:40px 30px;
+    grid-template-areas:
+      "brand search actions"
+      "nav nav nav";
+    gap:6px;
+    padding:8px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-brand{
+    width:40px;
+    min-width:40px;
+    height:38px;
+    padding-right:6px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-brand__mark{
+    width:30px;
+    height:30px;
+    font-size:14px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-search{
+    height:34px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-search button{
+    position:absolute;
+    width:1px;
+    height:1px;
+    overflow:hidden;
+    clip:rect(0 0 0 0);
+    white-space:nowrap;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-actions{
+    gap:4px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-account span:last-child,
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-system{
+    position:absolute;
+    width:1px;
+    height:1px;
+    overflow:hidden;
+    clip:rect(0 0 0 0);
+    white-space:nowrap;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-account{
+    width:30px;
+    min-width:30px;
+    padding:4px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav{
+    width:100%;
+    justify-content:flex-start;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav a{
+    min-height:28px;
+    padding-inline:8px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-worldclass-context{
+    grid-template-columns:1fr;
+    padding:7px 8px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-worldclass-context__aside,
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-worldclass-related{
+    justify-content:flex-start;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-header,
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav{
+    scroll-behavior:auto;
+  }
+}
