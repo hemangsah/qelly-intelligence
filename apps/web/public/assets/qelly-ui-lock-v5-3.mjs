@@ -24,15 +24,6 @@ root.dataset.uiLockV53Refinement='2026-08-09';
 root.dataset.v53PostmergeConvergence='wave1';
 root.dataset.v53ActiveShell='wave1';
 
-function appendStylesheet(href,datasetKey,datasetValue){
-  if(document.querySelector(`link[data-${datasetKey}="${datasetValue}"]`))return;
-  const link=document.createElement('link');
-  link.rel='stylesheet';
-  link.href=href;
-  link.dataset[datasetKey.replace(/-([a-z])/g,(_,letter)=>letter.toUpperCase())]=datasetValue;
-  document.head.append(link);
-}
-
 function activateVisibleRefinement(){
   if(document.querySelector('link[data-qelly-v53-refinement="active"]'))return;
   const link=document.createElement('link');
@@ -151,9 +142,23 @@ function annotateEvidence(scope=document){
   });
 }
 
+function ensureProductionStatus(){
+  const header=document.querySelector('.q-product-header');
+  if(!header||header.querySelector('.q-v53-product-status'))return;
+  const utc=new Date().toISOString().slice(11,19);
+  const status=document.createElement('div');
+  status.className='q-v53-product-status';
+  status.setAttribute('role','status');
+  status.setAttribute('aria-label','Qelly operating boundary and workspace status');
+  status.innerHTML=`<span class="q-v53-product-status__context"><time datetime="${new Date().toISOString()}">UTC ${utc}</time><span>Workspace · Institutional research</span><span>Provider truth · route-governed</span></span><strong>READ ONLY · NO EXECUTION</strong>`;
+  header.prepend(status);
+}
+
 function annotateShell(){
+  ensureProductionStatus();
   document.querySelector('.q-global-strip')?.setAttribute('data-qelly-shell-layer','system-strip');
   document.querySelector('.q-command-bar,.q-product-header')?.setAttribute('data-qelly-shell-layer','command-bar');
+  document.querySelector('.q-v53-product-status')?.setAttribute('data-qelly-shell-layer','system-strip');
   rail?.setAttribute('data-qelly-shell-layer','navigation-rail');
   document.getElementById('context-shelf')?.setAttribute('data-qelly-shell-layer','context-bar');
   main?.setAttribute('data-qelly-shell-layer','analytical-workspace');
