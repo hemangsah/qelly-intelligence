@@ -30,7 +30,8 @@ test('Research workspace exposes only evidence fields supported by the authorita
 
 test('Research evidence topology preserves real items, references, timestamps and production gates',async()=>{
   const route=await read(routePath);
-  for(const marker of ['data-evidence="research-item"','data-evidence="research-reference"','data-provenance="workspace-truth"','data-provenance="source-references"','data-provenance="falsification-boundary"','data-provenance="production-gates"'])assert.match(route,new RegExp(marker));
+  for(const marker of ['data-evidence="research-item"','data-provenance="research-reference"','data-provenance="workspace-truth"','data-provenance="source-references"','data-provenance="falsification-boundary"','data-provenance="production-gates"'])assert.match(route,new RegExp(marker));
+  assert.doesNotMatch(route,/data-evidence="research-reference"/);
   assert.match(route,/item\.referenceId\?\?'local-note'/);
   assert.match(route,/item\.addedAt/);
   assert.match(route,/workspace\.revision/);
