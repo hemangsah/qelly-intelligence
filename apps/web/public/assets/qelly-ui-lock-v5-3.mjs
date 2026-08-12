@@ -17,6 +17,7 @@ const PRODUCTION_SHELL_STYLESHEET=new URL('./qelly-v53-production-shell-converge
 const PRODUCTION_STATUS_STYLESHEET=new URL('./qelly-v53-production-shell-status.css',import.meta.url).href;
 const MARKET_COMMAND_STYLESHEET=new URL('./qelly-v53-market-command-workspace.css',import.meta.url).href;
 const MARKET_COMMAND_CORRECTION_STYLESHEET=new URL('./qelly-v53-market-command-workspace-correction.css',import.meta.url).href;
+const RESEARCH_EVIDENCE_STYLESHEET=new URL('./qelly-v53-research-evidence-workspace.css',import.meta.url).href;
 const FAMILY_RUNTIME=new URL('./qelly-v53-family-harmonization.mjs',import.meta.url).href;
 const COLOR_BLIND_MARKET_TOKENS=Object.freeze({positive:'#168AAD',negative:'#D1495B',warning:'#F3A712'});
 
@@ -86,6 +87,13 @@ function activateActiveShellConvergence(){
     link.rel='stylesheet';
     link.href=MARKET_COMMAND_CORRECTION_STYLESHEET;
     link.dataset.qellyV53MarketCommandCorrection='wave2';
+    document.head.append(link);
+  }
+  if(!document.querySelector('link[data-qelly-v53-research-evidence="wave3"]')){
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href=RESEARCH_EVIDENCE_STYLESHEET;
+    link.dataset.qellyV53ResearchEvidence='wave3';
     document.head.append(link);
   }
 }
@@ -160,8 +168,8 @@ function annotateDecisionProvenanceControls(scope=document){
 }
 
 function annotateEvidence(scope=document){
-  scope.querySelectorAll?.('.q-panel,.q-card,.q-research-card').forEach((panel)=>{
-    const hasEvidence=Boolean(panel.querySelector('.q-source-line,[data-evidence],[data-source],[data-provenance],.q-evidence,.q-methodology'));
+  scope.querySelectorAll?.('.q-panel,.q-card,.q-research-card,.q-research-evidence-card,.q-research-inspector-block').forEach((panel)=>{
+    const hasEvidence=Boolean(panel.querySelector('.q-source-line,[data-evidence],[data-source],[data-provenance],.q-evidence,.q-methodology'))||panel.matches('[data-evidence],[data-source],[data-provenance]');
     panel.dataset.v53EvidenceAdjacent=hasEvidence?'true':'false';
   });
 }
