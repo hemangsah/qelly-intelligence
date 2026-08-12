@@ -7,6 +7,8 @@ const productRuntimePath=new URL('../apps/web/public/assets/prompt2c-public-beta
 const cssPath=new URL('../apps/web/public/assets/qelly-v53-production-shell-convergence.css',import.meta.url);
 const read=(url)=>readFile(url,'utf8');
 const executableCss=(source)=>source.replace(/\/\*[\s\S]*?\*\//g,'');
+const escaped=(value)=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+const directSelectorHides=(css,selector)=>new RegExp(`${escaped(selector)}\\s*\\{[^}]*display\\s*:\\s*none`,'s').test(css);
 
 test('V5.3 production shell follows the authoritative Prompt2C product header owner',async()=>{
   const [runtime,product,css]=await Promise.all([read(runtimePath),read(productRuntimePath),read(cssPath)]);
@@ -22,10 +24,11 @@ test('authoritative product shell keeps search, navigation and account controls 
   const css=executableCss(await read(cssPath));
   for(const selector of ['.q-product-brand','.q-product-search','.q-product-nav','.q-product-actions','.q-product-account']){
     assert.ok(css.includes(selector),`missing production shell owner ${selector}`);
+    assert.equal(directSelectorHides(css,selector),false,`${selector} must not be display:none`);
   }
   assert.match(css,/grid-template-areas:[\s\S]*"brand search actions"[\s\S]*"brand nav actions"/);
   assert.match(css,/overflow-x:auto/);
-  assert.doesNotMatch(css,/display\s*:\s*none/);
+  assert.match(css,/\.q-product-nav::\-webkit-scrollbar\{display:none\}/);
 });
 
 test('production shell density is responsive without removing route evidence',async()=>{
