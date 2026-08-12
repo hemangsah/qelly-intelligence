@@ -44,6 +44,7 @@ jobs:
           set -euo pipefail
           api_get() {
             curl --fail --silent --show-error \
+              --retry 4 --retry-delay 1 --retry-all-errors \
               -H 'Accept: application/vnd.github+json' \
               -H "Authorization: Bearer $GH_TOKEN" \
               -H 'X-GitHub-Api-Version: 2022-11-28' \
