@@ -36,11 +36,26 @@ const PUBLIC_V1_TEMPLATE_ROUTES=Object.freeze([
 
 const TOP_LEVEL_PUBLIC_SET=new Set(TOP_LEVEL_PUBLIC_API_ROUTES);
 const PUBLIC_V1_SET=new Set(PUBLIC_V1_API_PATHS);
+
+function templateRoutePattern(route){
+  const source=String(route).split('/').map((segment)=>{
+    if(segment.startsWith(':'))return '[^/]+';
+    return segment.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  }).join('/');
+  return new RegExp(`^${source}$`);
+}
+
+const PUBLIC_V1_TEMPLATE_PATTERNS=Object.freeze(PUBLIC_V1_TEMPLATE_ROUTES.map(templateRoutePattern));
 const PUBLIC_V1_TEMPLATE_SET=new Set(PUBLIC_V1_TEMPLATE_ROUTES);
 
 export function isPublicApiContractRoute(route){
   const value=String(route||'');
   return TOP_LEVEL_PUBLIC_SET.has(value)||PUBLIC_V1_SET.has(value)||PUBLIC_V1_TEMPLATE_SET.has(value);
+}
+
+export function isPublicApiRequestPath(pathname){
+  const value=String(pathname||'');
+  return TOP_LEVEL_PUBLIC_SET.has(value)||PUBLIC_V1_SET.has(value)||PUBLIC_V1_TEMPLATE_PATTERNS.some((pattern)=>pattern.test(value));
 }
 
 export function classifyApiContractAccess(route){
