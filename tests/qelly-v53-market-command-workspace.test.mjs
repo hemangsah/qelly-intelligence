@@ -48,9 +48,11 @@ test('Market Command workstation topology matches the institutional-density refe
   assert.doesNotMatch(css,/\.q-live-side-stack>\.q-panel[^{]*\{[^}]*display\s*:\s*none/s);
 });
 
-test('retained light-card inheritance is explicitly corrected to dark institutional surfaces',async()=>{
+test('retained light-card inheritance is explicitly corrected to a fixed dark institutional surface',async()=>{
   const correction=stripComments(await read(correctionPath));
-  assert.match(correction,/:where\(\.q-v5-market-metric,\.q-v5-evidence-cell\)[\s\S]*background:var\(--q-v53-market-panel-2\)!important/);
+  assert.match(correction,/:where\(\.q-v5-market-metric,\.q-v5-evidence-cell\)[\s\S]*background:#141015!important/);
+  assert.match(correction,/:where\(\.q-v5-market-metric,\.q-v5-evidence-cell\)[\s\S]*color:#f5edf1!important/);
+  assert.doesNotMatch(correction,/:where\(\.q-v5-market-metric,\.q-v5-evidence-cell\)[\s\S]*background:var\(--q-v53-market-panel-2\)!important/);
   assert.match(correction,/\.q-live-side-stack \.q-panel-head[\s\S]*background:#100c10!important/);
   assert.match(correction,/\.q-tape-card[\s\S]*background:#120d11!important/);
 });
