@@ -1,0 +1,526 @@
+/* Qelly Intelligence — V5.3 active shell convergence, wave 1.
+   Implements the approved institutional-density shell against the CURRENT runtime contract.
+   It intentionally does not activate the dormant data-ui-lock-v5-3 legacy layer. */
+
+:root{
+  --q-v53a-system-h:24px;
+  --q-v53a-command-h:40px;
+  --q-v53a-context-h:30px;
+  --q-v53a-shell-top:94px;
+  --q-v53a-rail-w:64px;
+  --q-v53a-inspector-w:320px;
+  --q-v53a-radius-panel:8px;
+  --q-v53a-radius-control:6px;
+  --q-v53a-gap:8px;
+}
+
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"]{
+  --q-shell-top:var(--q-v53a-shell-top);
+}
+
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] body{
+  background:
+    radial-gradient(920px 420px at 86% -8%,color-mix(in srgb,var(--q-accent,#6f1838) 8%,transparent),transparent 70%),
+    var(--q-canvas,#090609);
+}
+
+/* 24px system strip — truth first, not decorative chrome. */
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-global-strip{
+  height:var(--q-v53a-system-h);
+  min-height:var(--q-v53a-system-h);
+  padding-inline:8px 10px;
+  gap:10px;
+  background:color-mix(in srgb,var(--q-chrome,#090609) 98%,#000);
+  border-bottom-color:color-mix(in srgb,var(--q-border,#3a2430) 68%,transparent);
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-brand-home{
+  display:flex;
+  align-items:center;
+  min-width:92px;
+  height:20px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-brand-home img{
+  width:auto;
+  height:18px;
+  max-width:92px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-macro-strip{
+  min-width:0;
+  gap:10px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-macro-track{
+  gap:12px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-macro-item,
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-macro-item strong{
+  font-size:10px;
+  line-height:1;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-truth-chip{
+  gap:6px;
+  font-size:9px;
+  letter-spacing:.02em;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-truth-chip .q-status{
+  padding:2px 6px;
+  font-size:8px;
+}
+
+/* 40px command layer. The existing operating-mode ribbon becomes an inline command context. */
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-command-bar{
+  top:var(--q-v53a-system-h);
+  height:var(--q-v53a-command-h);
+  min-height:var(--q-v53a-command-h);
+  padding:0 8px;
+  gap:8px;
+  background:color-mix(in srgb,var(--q-surface,#100a0e) 97%,transparent);
+  border-bottom:1px solid color-mix(in srgb,var(--q-border,#3a2430) 72%,transparent);
+  box-shadow:none;
+  backdrop-filter:blur(18px) saturate(112%);
+  -webkit-backdrop-filter:blur(18px) saturate(112%);
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-workspace-switcher{
+  min-width:168px;
+  max-width:210px;
+  column-gap:6px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-workspace-switcher span{
+  width:24px;
+  height:24px;
+  border-radius:var(--q-v53a-radius-control);
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-workspace-switcher strong{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:10px;
+  line-height:1.1;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-workspace-switcher small{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:8px;
+  line-height:1.1;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-command-bar .q-persona-ribbon{
+  position:static;
+  top:auto;
+  z-index:auto;
+  width:min(24vw,260px);
+  height:28px;
+  min-height:28px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:0 8px;
+  color:var(--q-muted);
+  background:var(--q-surface-alt);
+  border:1px solid var(--q-border);
+  border-radius:var(--q-v53a-radius-control);
+  box-shadow:none;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-command-bar .q-persona-ribbon__label{
+  flex:0 0 auto;
+  color:color-mix(in srgb,var(--q-accent,#6f1838) 78%,#fff);
+  font-size:8px;
+  letter-spacing:.08em;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-command-bar .q-persona-ribbon__context{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:5px;
+  overflow:hidden;
+  color:var(--q-muted);
+  font-size:8px;
+  white-space:nowrap;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-command-bar .q-persona-ribbon__context strong{
+  flex:0 0 auto;
+  color:var(--q-text);
+  font-size:9px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-command-bar .q-persona-ribbon__context span{
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-command-trigger{
+  height:30px;
+  min-height:30px;
+  max-width:none;
+  border-radius:var(--q-v53a-radius-control);
+  padding-inline:10px;
+  font-size:10px;
+  background:color-mix(in srgb,var(--q-surface-alt,#151015) 88%,#000);
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-command-trigger kbd{
+  padding:2px 6px;
+  border-radius:4px;
+  font-size:8px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-command-actions{
+  gap:5px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-icon-button,
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-avatar{
+  width:28px;
+  height:28px;
+  min-width:28px;
+  border-radius:var(--q-v53a-radius-control);
+  font-size:9px;
+}
+
+/* 30px context layer. */
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-context-shelf{
+  top:calc(var(--q-v53a-system-h) + var(--q-v53a-command-h));
+  height:var(--q-v53a-context-h);
+  min-height:var(--q-v53a-context-h);
+  gap:10px;
+  padding:0 10px;
+  background:color-mix(in srgb,var(--q-surface,#100a0e) 96%,transparent);
+  border-bottom:1px solid color-mix(in srgb,var(--q-border,#3a2430) 78%,transparent);
+  box-shadow:none;
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-breadcrumbs,
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-category-shelf button{
+  font-size:9px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-category-shelf button{
+  padding:4px 7px;
+  border-radius:4px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-category-shelf button.is-active{
+  color:color-mix(in srgb,var(--q-accent,#6f1838) 62%,#fff);
+  background:color-mix(in srgb,var(--q-accent,#6f1838) 14%,var(--q-surface-alt));
+  box-shadow:inset 0 -1px 0 color-mix(in srgb,var(--q-accent,#6f1838) 72%,#fff);
+}
+
+/* Preserve the two-level navigation topology, but make the persistent domain rail match the 64px lock candidate. */
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-shell{
+  min-height:calc(100vh - var(--q-v53a-shell-top));
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-edge-dock{
+  top:var(--q-v53a-shell-top);
+  width:var(--q-v53a-rail-w);
+  height:calc(100vh - var(--q-v53a-shell-top));
+  gap:5px;
+  padding:6px 5px;
+  background:linear-gradient(180deg,#10090d,#080608);
+  border-right-color:color-mix(in srgb,var(--q-border,#3a2430) 84%,transparent);
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-edge-dock__brand{
+  width:38px;
+  height:38px;
+  border-radius:7px;
+  background:transparent;
+  border-color:transparent;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-edge-dock button{
+  width:52px;
+  min-height:43px;
+  gap:2px;
+  border-radius:var(--q-v53a-radius-control);
+  color:color-mix(in srgb,#fff 62%,transparent);
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-edge-dock button small{
+  font-size:8px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-edge-dock button:hover,
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-edge-dock button.is-active{
+  color:#fff;
+  background:color-mix(in srgb,var(--q-accent,#6f1838) 52%,#171015);
+  border-color:color-mix(in srgb,var(--q-accent,#6f1838) 72%,#5a3445);
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-edge-dock button.is-active{
+  box-shadow:inset 2px 0 0 color-mix(in srgb,var(--q-accent,#6f1838) 52%,#fff);
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-rail{
+  top:var(--q-v53a-shell-top);
+  height:calc(100vh - var(--q-v53a-shell-top));
+  background:linear-gradient(180deg,#120b10,#0b080a);
+  border-right-color:color-mix(in srgb,var(--q-border,#3a2430) 84%,transparent);
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-rail nav{
+  padding:8px 6px;
+  gap:2px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-nav-domain-context{
+  padding:7px 8px 9px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-nav-domain-context small,
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-nav-domain-context span,
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-nav-section{
+  font-size:8px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-nav-domain-context strong{
+  font-size:11px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-nav-link{
+  height:34px;
+  border-radius:var(--q-v53a-radius-control);
+  padding-inline:8px;
+  font-size:10px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-nav-link.is-active{
+  background:color-mix(in srgb,var(--q-accent,#6f1838) 34%,#171015);
+  border-color:color-mix(in srgb,var(--q-accent,#6f1838) 54%,#5a3445);
+  box-shadow:inset 2px 0 0 color-mix(in srgb,var(--q-accent,#6f1838) 58%,#fff);
+}
+
+/* Analytical workspace: tighter curvature, less card chrome, no evidence removal. */
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main{
+  padding:12px clamp(10px,1.25vw,18px) 54px;
+  background:
+    linear-gradient(color-mix(in srgb,var(--q-border,#3a2430) 13%,transparent) 1px,transparent 1px),
+    linear-gradient(90deg,color-mix(in srgb,var(--q-border,#3a2430) 10%,transparent) 1px,transparent 1px),
+    radial-gradient(680px 360px at 94% 0,color-mix(in srgb,var(--q-accent,#6f1838) 5%,transparent),transparent 70%),
+    var(--q-canvas,#090609);
+  background-size:48px 48px,48px 48px,auto,auto;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-page{
+  max-width:none;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-page-head{
+  min-height:46px;
+  gap:10px;
+  margin-bottom:10px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-page-head h1{
+  margin:2px 0 4px;
+  font-size:clamp(20px,1.9vw,28px);
+  letter-spacing:-.025em;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-page-head p{
+  max-width:880px;
+  font-size:11px;
+  line-height:1.4;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-page-actions{
+  gap:5px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-button{
+  min-height:28px;
+  border-radius:var(--q-v53a-radius-control);
+  padding-inline:9px;
+  font-size:10px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] :where(.q-panel,.q-card,.q-research-card,.q-kpi){
+  border-radius:var(--q-v53a-radius-panel);
+  border-color:color-mix(in srgb,var(--q-border,#3a2430) 92%,transparent);
+  background:color-mix(in srgb,var(--q-surface,#151015) 96%,#080608);
+  box-shadow:0 1px 0 rgb(255 255 255 / .012),0 10px 28px rgb(0 0 0 / .12);
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-panel-head{
+  gap:8px;
+  padding:9px 11px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-panel-head h2{
+  font-size:11px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-panel-head p{
+  font-size:9px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-panel-body{
+  padding:11px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] :where(.q-dashboard-grid,.q-dashboard-stack,.q-kpi-grid){
+  gap:var(--q-v53a-gap);
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-kpi{
+  min-height:82px;
+  padding:10px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-kpi-label{
+  font-size:8px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-kpi-value{
+  margin:6px 0 4px;
+  font-size:18px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-kpi-meta{
+  gap:5px;
+  font-size:9px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-data-grid table{
+  font-size:11px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-data-grid th{
+  height:30px;
+  font-size:9px;
+  letter-spacing:.035em;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-data-grid td{
+  font-size:11px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-source-line{
+  gap:8px;
+  padding:7px 9px;
+  font-size:9px;
+}
+
+/* Existing source drawer becomes the persistent Intelligence Inspector surface when opened. */
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-shell.is-context-open{
+  grid-template-columns:64px 250px minmax(0,1fr) var(--q-v53a-inspector-w);
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-shell.is-context-open:has(.q-rail.is-collapsed){
+  grid-template-columns:64px 68px minmax(0,1fr) var(--q-v53a-inspector-w);
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-context-drawer{
+  top:var(--q-v53a-shell-top);
+  height:calc(100vh - var(--q-v53a-shell-top));
+  width:var(--q-v53a-inspector-w);
+  border-left-color:color-mix(in srgb,var(--q-accent,#6f1838) 34%,var(--q-border,#3a2430));
+  background:color-mix(in srgb,var(--q-surface,#151015) 98%,#080608);
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-context-head{
+  padding:10px 12px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-context-head h2{
+  font-size:12px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-context-content{
+  padding:10px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-context-block{
+  margin-bottom:7px;
+  padding:9px;
+  border-radius:var(--q-v53a-radius-panel);
+  background:var(--q-surface-alt);
+}
+
+/* Persistent activity/evidence actions retain all controls while taking less canvas. */
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-compare-tray{
+  min-height:38px;
+  padding:5px 7px 5px 10px;
+  border-radius:var(--q-v53a-radius-panel);
+  border-color:color-mix(in srgb,var(--q-accent,#6f1838) 28%,var(--q-border,#3a2430));
+  background:color-mix(in srgb,var(--q-surface,#151015) 96%,#080608);
+  box-shadow:0 12px 34px rgb(0 0 0 / .20);
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-compare-tray strong{
+  font-size:9px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-compare-tray small{
+  font-size:8px;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-compare-tray button{
+  min-height:26px;
+  padding:5px 8px;
+  border-radius:var(--q-v53a-radius-control);
+  font-size:9px;
+}
+
+@media(max-width:1180px){
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-command-bar .q-persona-ribbon{
+    width:min(20vw,190px);
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-workspace-switcher{
+    min-width:145px;
+    max-width:170px;
+  }
+}
+
+@media(max-width:920px){
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"]{
+    --q-v53a-system-h:26px;
+    --q-v53a-command-h:44px;
+    --q-v53a-context-h:30px;
+    --q-v53a-shell-top:100px;
+    --q-shell-top:var(--q-v53a-shell-top);
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-global-strip{
+    padding-inline:7px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-brand-home{
+    min-width:74px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-brand-home img{
+    height:16px;
+    max-width:74px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-macro-strip{
+    overflow-x:auto;
+    overscroll-behavior-inline:contain;
+    scrollbar-width:none;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-command-bar{
+    gap:6px;
+    padding-inline:7px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-workspace-switcher{
+    min-width:112px;
+    max-width:132px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-command-bar .q-persona-ribbon{
+    width:112px;
+    min-width:0;
+    padding-inline:6px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-command-trigger{
+    min-width:0;
+    padding-inline:8px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-context-shelf{
+    padding-inline:8px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] #main{
+    padding:10px 10px 78px;
+    background-size:40px 40px,40px 40px,auto,auto;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-page-head h1{
+    font-size:22px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-panel-head,
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-panel-body{
+    padding:10px;
+  }
+}
+
+@media(max-width:620px){
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-truth-chip{
+    max-width:112px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-workspace-switcher{
+    min-width:86px;
+    max-width:96px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-workspace-switcher small,
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-command-bar .q-persona-ribbon__context span,
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-command-trigger span:nth-child(2){
+    max-width:0;
+    overflow:hidden;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-command-bar .q-persona-ribbon{
+    width:92px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-command-trigger{
+    flex:1 1 44px;
+    justify-content:center;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-command-trigger kbd{
+    max-width:0;
+    overflow:hidden;
+    padding-inline:0;
+    border-color:transparent;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-page-head{
+    min-height:0;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-page-head h1{
+    font-size:20px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-page-head p{
+    font-size:10px;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] :where(.q-global-strip,.q-command-bar,.q-context-shelf,.q-edge-dock,.q-rail,.q-context-drawer,.q-compare-tray){
+    scroll-behavior:auto;
+  }
+}
