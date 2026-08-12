@@ -12,6 +12,9 @@ const REDUCED_MOTION_QUERY='(prefers-reduced-motion: reduce)';
 const RAIL_PREF='qelly.ui-lock-v5-3.rail';
 const REFINEMENT_STYLESHEET=new URL('./qelly-v53-visible-refinement.css',import.meta.url).href;
 const POSTMERGE_STYLESHEET=new URL('./qelly-post-v53-convergence.css',import.meta.url).href;
+const ACTIVE_SHELL_STYLESHEET=new URL('./qelly-v53-active-shell-convergence.css',import.meta.url).href;
+const PRODUCTION_SHELL_STYLESHEET=new URL('./qelly-v53-production-shell-convergence.css',import.meta.url).href;
+const PRODUCTION_STATUS_STYLESHEET=new URL('./qelly-v53-production-shell-status.css',import.meta.url).href;
 const FAMILY_RUNTIME=new URL('./qelly-v53-family-harmonization.mjs',import.meta.url).href;
 const COLOR_BLIND_MARKET_TOKENS=Object.freeze({positive:'#168AAD',negative:'#D1495B',warning:'#F3A712'});
 
@@ -20,6 +23,7 @@ root.dataset.uiLockV53Approved='2026-08-08';
 root.dataset.uiLockV53DesignSha='e077489ba482f0df9258a14c0074adb1bc9eee02d4740b7fb683fdf7df3b2855';
 root.dataset.uiLockV53Refinement='2026-08-09';
 root.dataset.v53PostmergeConvergence='wave1';
+root.dataset.v53ActiveShell='wave1';
 
 function activateVisibleRefinement(){
   if(document.querySelector('link[data-qelly-v53-refinement="active"]'))return;
@@ -37,6 +41,37 @@ function activatePostMergeConvergence(){
   link.href=POSTMERGE_STYLESHEET;
   link.dataset.qellyV53Postmerge='wave1';
   document.head.append(link);
+}
+
+function activateActiveShellConvergence(){
+  const commandBar=document.querySelector('.q-command-bar');
+  const personaRibbon=document.getElementById('persona-ribbon');
+  const commandTrigger=document.getElementById('command-button');
+  if(commandBar&&personaRibbon&&personaRibbon.parentElement!==commandBar){
+    commandBar.insertBefore(personaRibbon,commandTrigger??commandBar.querySelector('.q-command-actions'));
+    personaRibbon.dataset.v53ShellPlacement='command-context';
+  }
+  if(!document.querySelector('link[data-qelly-v53-active-shell="wave1"]')){
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href=ACTIVE_SHELL_STYLESHEET;
+    link.dataset.qellyV53ActiveShell='wave1';
+    document.head.append(link);
+  }
+  if(!document.querySelector('link[data-qelly-v53-production-shell="wave1"]')){
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href=PRODUCTION_SHELL_STYLESHEET;
+    link.dataset.qellyV53ProductionShell='wave1';
+    document.head.append(link);
+  }
+  if(!document.querySelector('link[data-qelly-v53-production-status="wave1"]')){
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href=PRODUCTION_STATUS_STYLESHEET;
+    link.dataset.qellyV53ProductionStatus='wave1';
+    document.head.append(link);
+  }
 }
 
 async function activateFamilyHarmonization(){
@@ -115,9 +150,24 @@ function annotateEvidence(scope=document){
   });
 }
 
+function ensureProductionStatus(){
+  const header=document.querySelector('.q-product-header');
+  if(!header||header.querySelector('.q-v53-product-status'))return;
+  const now=new Date();
+  const utc=now.toISOString().slice(11,19);
+  const status=document.createElement('div');
+  status.className='q-v53-product-status';
+  status.setAttribute('role','status');
+  status.setAttribute('aria-label','Qelly operating boundary and workspace status');
+  status.innerHTML=`<span class="q-v53-product-status__context"><time datetime="${now.toISOString()}">UTC ${utc}</time><span>Workspace · Institutional research</span><span>Provider truth · route-governed</span></span><strong>READ ONLY · NO EXECUTION</strong>`;
+  header.prepend(status);
+}
+
 function annotateShell(){
+  ensureProductionStatus();
   document.querySelector('.q-global-strip')?.setAttribute('data-qelly-shell-layer','system-strip');
-  document.querySelector('.q-command-bar')?.setAttribute('data-qelly-shell-layer','command-bar');
+  document.querySelector('.q-command-bar,.q-product-header')?.setAttribute('data-qelly-shell-layer','command-bar');
+  document.querySelector('.q-v53-product-status')?.setAttribute('data-qelly-shell-layer','system-strip');
   rail?.setAttribute('data-qelly-shell-layer','navigation-rail');
   document.getElementById('context-shelf')?.setAttribute('data-qelly-shell-layer','context-bar');
   main?.setAttribute('data-qelly-shell-layer','analytical-workspace');
@@ -185,8 +235,12 @@ if(main){
   observer.observe(main,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
 }
 
+const shellObserver=new MutationObserver(()=>requestAnimationFrame(()=>annotateShell()));
+shellObserver.observe(document.getElementById('app')||document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+
 activateVisibleRefinement();
 activatePostMergeConvergence();
+activateActiveShellConvergence();
 void activateFamilyHarmonization();
 void activateThemePreferenceBridge();
 applyCompactRailDefault();
