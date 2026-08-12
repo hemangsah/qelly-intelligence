@@ -9,14 +9,13 @@ import { createRuntime as buildRuntime } from './runtime.mjs';
 import { release, productVersion, routes, apiRoutes, contracts } from './route-manifest.mjs';
 import { initializeProductionFoundation, productionFoundationHealth } from '../production/production-foundation.mjs';
 import { handleSavedCalculationRequest } from '../calculations/saved-calculation-routes.mjs';
+import { isPublicApiRequestPath } from './api-access-policy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '../..');
 const publicDir = path.join(rootDir, 'apps/web/public');
 const packageDir = path.join(rootDir, 'packages');
 const defaultRuntimeDir = path.join(rootDir, 'runtime');
-const publicApiPaths = new Set(['/api/v1/config','/api/v1/auth/status','/api/v1/auth/register','/api/v1/auth/login','/api/v1/auth/passkeys/authenticate/options','/api/v1/auth/passkeys/authenticate/verify','/api/v1/auth/recovery/request','/api/v1/auth/recovery/status','/api/v1/auth/recovery/reset','/api/v1/production-foundation/status','/api/v1/public/markets/overview','/api/v1/public/markets/assets','/api/v1/public/providers','/api/v1/calculations/metadata','/api/v1/calculations/formulas','/api/v1/calculations/run','/api/v1/calculations/batch','/api/v1/indicators','/api/v1/indicators/run','/api/v1/india/rules','/api/v1/india/charges']);
-function isPublicApiPath(pathname){return publicApiPaths.has(pathname)||/^\/api\/v1\/public\/markets\/assets\/[^/]+(?:\/candles)?$/.test(pathname)||/^\/api\/v1\/calculations\/formulas\/[^/]+$/.test(pathname)||/^\/api\/v1\/indicators\/[^/]+$/.test(pathname);}
 
 const securityHeaders = {
   'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' wss://stream.binance.com:9443; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
@@ -132,7 +131,7 @@ export function createServer({runtime=createRuntime(defaultRuntimeDir)}={}){
       if(request.method==='GET' && url.pathname==='/api/v1/india/rules') return json(response,200,runtime.calculationService.indiaRules({ruleId:url.searchParams.get('ruleId'),effectiveDate:url.searchParams.get('effectiveDate')}),id);
       if(request.method==='POST' && url.pathname==='/api/v1/india/charges') return json(response,200,runtime.calculationService.indiaCharges(await bodyJson(request,256000)),id);
 
-      if(!sid && url.pathname.startsWith('/api/v1/') && !isPublicApiPath(url.pathname)) return error(response,401,'session_required','A session header is required when development identity is disabled',id);
+      if(!sid && url.pathname.startsWith('/api/v1/') && !isPublicApiRequestPath(url.pathname)) return error(response,401,'session_required','A session header is required when development identity is disabled',id);
 
       if(await handleSavedCalculationRequest({request,response,url,id,runtime,sid,json,bodyJson,scopedContext,idempotent})) return;
 
