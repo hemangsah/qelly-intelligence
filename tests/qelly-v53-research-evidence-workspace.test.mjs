@@ -40,7 +40,10 @@ test('Research evidence topology preserves real items, references, timestamps an
 });
 
 test('Research workstation matches the institutional topology without hiding evidence',async()=>{
-  const css=stripComments(await read(cssPath));
+  const [route,rawCss]=await Promise.all([read(routePath),read(cssPath)]);
+  const css=stripComments(rawCss);
+  assert.match(route,/--q-v53-research-panel-2:color-mix\(in srgb,var\(--q-surface\) 92%,var\(--q-canvas\)\)/);
+  assert.doesNotMatch(route,/--q-v53-research-panel-2:[^"']*q-surface-alt/);
   assert.match(css,/\.q-research-workstation\{[\s\S]*grid-template-columns:218px minmax\(0,1fr\) 300px/);
   for(const owner of ['q-research-context-rail','q-research-primary','q-research-inspector'])assert.match(css,new RegExp(`\\.${owner}`),`missing workstation owner: ${owner}`);
   assert.match(css,/\.q-research-evidence-grid\{[\s\S]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
