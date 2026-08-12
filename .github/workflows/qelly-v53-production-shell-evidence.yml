@@ -8,6 +8,7 @@ on:
       - 'apps/web/public/assets/qelly-ui-lock-v5-3.mjs'
       - 'apps/web/public/assets/qelly-v53-active-shell-convergence.css'
       - 'apps/web/public/assets/qelly-v53-production-shell-convergence.css'
+      - 'apps/web/public/assets/qelly-v53-production-shell-status.css'
       - 'apps/web/public/assets/prompt2c-public-beta.mjs'
       - 'apps/web/public/assets/prompt2c-public-beta.css'
       - 'scripts/release-v53-production-shell-evidence.py'
