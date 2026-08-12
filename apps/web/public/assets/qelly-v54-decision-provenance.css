@@ -78,7 +78,7 @@
   .q-provenance-node-list{display:flex;gap:8px;max-height:none;overflow-x:auto;overflow-y:hidden;padding:2px 2px 8px;scroll-snap-type:x proximity;overscroll-behavior-inline:contain}
   .q-provenance-node{flex:0 0 min(76vw,260px);scroll-snap-align:start;min-height:88px}
   .q-provenance-keyboard-hint{display:none}
-  .q-provenance-focus{padding:14px}
+  .q-provenance-focus{padding:14px;max-height:min(68dvh,560px);overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
   .q-provenance-detail-grid{grid-template-columns:1fr}
   .q-provenance-detail-grid>div,.q-provenance-detail-grid>div:nth-child(even){padding:10px 0;border-left:0}
   .q-provenance-relations{border-top:1px solid var(--q-border);padding:12px}
@@ -90,6 +90,7 @@
   .q-decision-graph-stack>.q-panel:last-child .q-panel-body{max-height:300px;overflow:auto;overscroll-behavior:contain}
   .q-decision-provenance-page .q-decision-evidence-grid{display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;padding:2px 2px 8px;scroll-snap-type:x proximity;overscroll-behavior-inline:contain;scrollbar-gutter:stable}
   .q-decision-provenance-page .q-decision-evidence-grid>article{flex:0 0 min(82vw,300px);min-width:0;scroll-snap-align:start}
+  .q-decision-provenance-page>.q-decision-maker-panel>.q-panel-body{max-height:min(72dvh,620px);overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
   .q-decision-provenance-page .q-decision-maker-panel~.q-panel>.q-panel-body{max-height:min(58dvh,500px);overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
   .q-decision-provenance-page .q-decision-maker-panel~.q-panel .q-kpi-grid{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding:2px 2px 8px;scroll-snap-type:x proximity;overscroll-behavior-inline:contain;scrollbar-gutter:stable}
   .q-decision-provenance-page .q-decision-maker-panel~.q-panel .q-kpi{flex:0 0 min(68vw,220px);min-height:92px;scroll-snap-align:start}
