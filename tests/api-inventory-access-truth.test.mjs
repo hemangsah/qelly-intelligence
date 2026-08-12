@@ -5,6 +5,7 @@ import {apiRoutes} from '../src/server/route-manifest.mjs';
 import {
   classifyApiContractAccess,
   isPublicApiContractRoute,
+  isPublicApiRequestPath,
   PUBLIC_V1_API_PATHS,
   PUBLIC_V1_TEMPLATE_ROUTES
 } from '../src/server/api-access-policy.mjs';
@@ -53,21 +54,38 @@ test('API access classifier preserves the runtime public/protected boundary',()=
   }
 });
 
-test('inventory public-v1 exact paths stay aligned with the server authentication gate',async()=>{
-  const source=await readFile(new URL('../src/server/server.mjs',import.meta.url),'utf8');
-  const match=source.match(/const publicApiPaths = new Set\(\[([^\]]*)\]\);/s);
-  assert.ok(match,'server publicApiPaths set must remain discoverable');
-  const runtimePaths=[...match[1].matchAll(/'([^']+)'/g)].map((entry)=>entry[1]);
-  assert.deepEqual([...runtimePaths].sort(),[...PUBLIC_V1_API_PATHS].sort());
+test('canonical request matcher resolves exact and template public paths while failing closed',()=>{
+  for(const pathname of PUBLIC_V1_API_PATHS)assert.equal(isPublicApiRequestPath(pathname),true,pathname);
+  for(const pathname of [
+    '/api/v1/public/markets/assets/btc',
+    '/api/v1/public/markets/assets/btc/candles',
+    '/api/v1/calculations/formulas/black-scholes',
+    '/api/v1/indicators/rsi'
+  ])assert.equal(isPublicApiRequestPath(pathname),true,pathname);
 
-  const runtimePatternSource=String.raw`/^\/api\/v1\/public\/markets\/assets\/[^/]+(?:\/candles)?$/.test(pathname)||/^\/api\/v1\/calculations\/formulas\/[^/]+$/.test(pathname)||/^\/api\/v1\/indicators\/[^/]+$/.test(pathname)`;
-  assert.ok(source.includes(runtimePatternSource),'server public template patterns must remain aligned');
+  for(const pathname of [
+    '/api/v1/calculations/saved',
+    '/api/v1/calculations/saved/calc-1',
+    '/api/v1/providers/status',
+    '/api/v1/providers/execute',
+    '/api/v1/unknown',
+    '/api/v1/public/markets/assets/btc/candles/extra'
+  ])assert.equal(isPublicApiRequestPath(pathname),false,`must fail closed: ${pathname}`);
+
   assert.deepEqual(PUBLIC_V1_TEMPLATE_ROUTES,[
     '/api/v1/public/markets/assets/:id',
     '/api/v1/public/markets/assets/:id/candles',
     '/api/v1/calculations/formulas/:id',
     '/api/v1/indicators/:id'
   ]);
+});
+
+test('server authentication gate consumes the canonical request matcher instead of duplicating policy',async()=>{
+  const source=await readFile(new URL('../src/server/server.mjs',import.meta.url),'utf8');
+  assert.match(source,/import \{ isPublicApiRequestPath \} from '\.\/api-access-policy\.mjs';/);
+  assert.match(source,/!isPublicApiRequestPath\(url\.pathname\)/);
+  assert.doesNotMatch(source,/const publicApiPaths = new Set/);
+  assert.doesNotMatch(source,/function isPublicApiPath\(/);
 });
 
 test('product inventory generator uses the canonical API access classifier',async()=>{
