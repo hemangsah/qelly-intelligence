@@ -5,15 +5,20 @@ import {readFile} from 'node:fs/promises';
 const routePath=new URL('../apps/web/public/assets/routes/live-markets.mjs',import.meta.url);
 const runtimePath=new URL('../apps/web/public/assets/qelly-ui-lock-v5-3.mjs',import.meta.url);
 const cssPath=new URL('../apps/web/public/assets/qelly-v53-market-command-workspace.css',import.meta.url);
+const correctionPath=new URL('../apps/web/public/assets/qelly-v53-market-command-workspace-correction.css',import.meta.url);
 const read=(url)=>readFile(url,'utf8');
 const stripComments=(source)=>source.replace(/\/\*[\s\S]*?\*\//g,'');
 
 test('V5.3 Market Command is activated from the current runtime contract only',async()=>{
-  const [runtime,css]=await Promise.all([read(runtimePath),read(cssPath)]);
+  const [runtime,css,correction]=await Promise.all([read(runtimePath),read(cssPath),read(correctionPath)]);
   assert.match(runtime,/qelly-v53-market-command-workspace\.css/);
+  assert.match(runtime,/qelly-v53-market-command-workspace-correction\.css/);
   assert.match(runtime,/data-qelly-v53-market-command="wave2"/);
+  assert.match(runtime,/data-qelly-v53-market-command-correction="wave2"/);
   assert.match(css,/html\[data-ui-lock-v53="active"\]\[data-v53-active-shell="wave1"\]/);
+  assert.match(correction,/html\[data-ui-lock-v53="active"\]\[data-v53-active-shell="wave1"\]/);
   assert.doesNotMatch(css,/data-ui-lock-v5-3/);
+  assert.doesNotMatch(correction,/data-ui-lock-v5-3/);
 });
 
 test('Market Command keeps all live-market truth and evidence surfaces',async()=>{
@@ -43,9 +48,17 @@ test('Market Command workstation topology matches the institutional-density refe
   assert.doesNotMatch(css,/\.q-live-side-stack>\.q-panel[^{]*\{[^}]*display\s*:\s*none/s);
 });
 
+test('retained light-card inheritance is explicitly corrected to dark institutional surfaces',async()=>{
+  const correction=stripComments(await read(correctionPath));
+  assert.match(correction,/:where\(\.q-v5-market-metric,\.q-v5-evidence-cell\)[\s\S]*background:var\(--q-v53-market-panel-2\)!important/);
+  assert.match(correction,/\.q-live-side-stack \.q-panel-head[\s\S]*background:#100c10!important/);
+  assert.match(correction,/\.q-tape-card[\s\S]*background:#120d11!important/);
+});
+
 test('Market Command layout does not introduce execution or custody controls',async()=>{
-  const [css,route]=await Promise.all([read(cssPath),read(routePath)]);
+  const [css,correction,route]=await Promise.all([read(cssPath),read(correctionPath),read(routePath)]);
   assert.doesNotMatch(css,/trade-button|order-entry|wallet-connect|withdraw-button/i);
+  assert.doesNotMatch(correction,/trade-button|order-entry|wallet-connect|withdraw-button/i);
   assert.doesNotMatch(route,/data-action="(?:buy|sell|execute|withdraw|transfer|connect-wallet)"/i);
   assert.match(route,/executionDisabled|Execution<\/span><strong>Disabled/);
 });
