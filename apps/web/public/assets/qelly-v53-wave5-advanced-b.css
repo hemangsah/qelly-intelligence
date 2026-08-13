@@ -1,0 +1,2 @@
+html[data-ui-lock-v5-3="active"][data-v53-route="advanced-chart"] #main>.q-page>.q-panel:has(.q-chart-stage){grid-column:1;min-width:0}
+html[data-ui-lock-v5-3="active"][data-v53-route="advanced-chart"] #main>.q-page>.q-two-column{grid-column:2;display:grid;grid-template-columns:1fr;gap:var(--q-v53-w5-gap);min-width:0}
