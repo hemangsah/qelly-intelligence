@@ -4,3 +4,4 @@ html[data-ui-lock-v53="active"]:is([data-v53-route="identity-access"],[data-v53-
 html[data-ui-lock-v53="active"][data-v53-route="identity-access"] #main .q-context-block dl{display:grid;grid-template-columns:minmax(110px,.7fr) minmax(0,1.3fr);gap:7px 14px;margin:0}
 html[data-ui-lock-v53="active"][data-v53-route="identity-access"] #main .q-context-block dt{color:var(--q-muted,#aaa0a6)!important;font-size:10px;text-transform:uppercase;letter-spacing:.045em}
 html[data-ui-lock-v53="active"][data-v53-route="identity-access"] #main .q-context-block dd{margin:0;font-variant-numeric:tabular-nums}
+html[data-ui-lock-v53="active"] :is([data-v53-route="identity-access"],[data-v53-route="data-mesh"]) #main .q-capability{background:#111315!important;color:#aca3a8!important;border-color:#39363a!important}
