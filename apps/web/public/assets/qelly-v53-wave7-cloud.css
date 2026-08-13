@@ -1,0 +1,15 @@
+/* V5.3 Wave 7 — cloud/account lifecycle. Presentation only. */
+html[data-ui-lock-v53="active"][data-v53-route="saved-calculations"] .q-saved-calculations-page{display:grid;grid-template-columns:minmax(280px,.72fr) minmax(0,1.55fr);gap:12px;align-items:start}
+html[data-ui-lock-v53="active"][data-v53-route="saved-calculations"] .q-saved-calculations-page>:is(.q-page-head,.q-state-banner){grid-column:1/-1}
+html[data-ui-lock-v53="active"][data-v53-route="saved-calculations"] .q-saved-calculations-page>.q-panel:has([data-cloud-sync]){grid-column:1;position:sticky;top:78px;min-width:0}
+html[data-ui-lock-v53="active"][data-v53-route="saved-calculations"] .q-saved-calculations-page>.q-panel:has(#saved-search){grid-column:2;min-width:0}
+html[data-ui-lock-v53="active"][data-v53-route="saved-calculations"] .q-saved-calculations-page>.q-panel:has([data-cloud-sync]) .q-panel-head{display:grid;grid-template-columns:1fr;gap:10px;padding:13px 14px 10px}
+html[data-ui-lock-v53="active"][data-v53-route="saved-calculations"] .q-saved-calculations-page>.q-panel:has([data-cloud-sync]) .q-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+html[data-ui-lock-v53="active"][data-v53-route="saved-calculations"] .q-saved-calculations-page>.q-panel:has([data-cloud-sync]) .q-button{min-height:30px;padding:6px 9px;font-size:11px}
+html[data-ui-lock-v53="active"][data-v53-route="saved-calculations"] .q-saved-calculations-page>.q-panel:has([data-cloud-sync]) .q-state-banner{margin:0 0 8px;padding:10px 11px;border-radius:10px}
+html[data-ui-lock-v53="active"][data-v53-route="saved-calculations"] .q-filter-bar{display:grid;grid-template-columns:minmax(180px,1.5fr) repeat(3,minmax(110px,.7fr));gap:7px;padding:0 0 10px}
+html[data-ui-lock-v53="active"][data-v53-route="saved-calculations"] .q-saved-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+html[data-ui-lock-v53="active"][data-v53-route="saved-calculations"] .q-saved-card{min-width:0;padding:12px;border-radius:12px}
+html[data-ui-lock-v53="active"][data-v53-route="saved-calculations"] .q-saved-card h3{font-size:14px;line-height:1.25;margin:4px 0}
+html[data-ui-lock-v53="active"][data-v53-route="saved-calculations"] .q-saved-card p{font-size:11px;line-height:1.4;margin:4px 0}
+html[data-ui-lock-v53="active"][data-v53-route="saved-calculations"] .q-saved-card .q-actions{gap:5px;margin-top:8px}
