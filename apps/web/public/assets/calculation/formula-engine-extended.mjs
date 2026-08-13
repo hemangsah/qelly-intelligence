@@ -2,6 +2,7 @@ import {FormulaError,calculateFormula as calculateFoundationFormula,listFormulaD
 import {calculateFreshFormula,listFreshFormulaDefinitions,getFreshFormulaDefinition,isFreshFormula,freshFormulaEngineMetadata} from './fresh-formula-catalog.mjs';
 import {inputContractFor} from './formula-input-contracts.mjs';
 import {correctHistoricalTailResult} from './historical-tail-boundary.mjs';
+import {actualXirrIterations} from './xirr-iteration-metadata.mjs';
 
 export {FormulaError};
 const enrichDefinition=(definition)=>{
@@ -19,7 +20,11 @@ export function listFormulaDefinitions({domain=null}={}){
 export function getFormulaDefinition(formulaId){return enrichDefinition(isFreshFormula(formulaId)?getFreshFormulaDefinition(formulaId):getFoundationFormulaDefinition(formulaId));}
 export function calculateFormula(formulaId,inputs={},options={}){
   if(isFreshFormula(formulaId))return calculateFreshFormula(formulaId,inputs,options);
-  return correctHistoricalTailResult(formulaId,calculateFoundationFormula(formulaId,inputs,options));
+  const result=correctHistoricalTailResult(formulaId,calculateFoundationFormula(formulaId,inputs,options));
+  if(formulaId==='xirr'&&result?.status==='success'&&result.outputs){
+    return {...result,outputs:{...result.outputs,iterations:actualXirrIterations(inputs)}};
+  }
+  return result;
 }
 export function calculateBatch(requests=[],options={}){
   if(!Array.isArray(requests)||requests.length<1)throw new FormulaError('invalid_array','requests must contain at least one value','requests');
