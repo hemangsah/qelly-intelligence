@@ -101,7 +101,7 @@ jobs:
           NODE
       - name: Upload live production verification evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: qelly-live-production-verification-92f277f
           path: dist/live-production-verification
