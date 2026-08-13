@@ -1,4 +1,4 @@
-import './qelly-v53-verify-canonical.mjs';
+import './qelly-v53-verify-route-loader.mjs';
 
 const verifyStyle=document.createElement('link');
 verifyStyle.rel='stylesheet';
