@@ -1,0 +1,1 @@
+html[data-ui-lock-v53="active"][data-v53-route$="analytics"] #main>.q-page>.q-two-column{grid-column:1/-1;grid-template-columns:minmax(0,1fr) var(--q-v53-w5-side);gap:var(--q-v53-w5-gap)}
