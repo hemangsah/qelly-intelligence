@@ -1,0 +1,2 @@
+html[data-ui-lock-v5-3="active"][data-v53-route="advanced-chart"] #main>.q-page{grid-template-columns:minmax(0,1fr) var(--q-v53-w5-side)}
+html[data-ui-lock-v5-3="active"][data-v53-route="advanced-chart"] #main>.q-page>:is(.q-page-head,.q-state-banner,.q-kpi-grid){grid-column:1/-1}
