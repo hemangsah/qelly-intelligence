@@ -1,6 +1,7 @@
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, rename, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { withLocalFileLock } from '../platform/local-file-lock.mjs';
 import { calculateFormula, calculateBatch, listFormulaDefinitions, getFormulaDefinition, formulaEngineMetadata } from '../../apps/web/public/assets/calculation/formula-engine-extended.mjs';
 import { calculateIndicator, listIndicatorDefinitions, getIndicatorDefinition, indicatorEngineMetadata } from '../../apps/web/public/assets/calculation/indicator-engine-extended.mjs';
 import { INDIA_RULE_REGISTRY, selectIndiaRule, calculateCustomIndiaCharges } from '../../apps/web/public/assets/calculation/india-rules.mjs';
@@ -49,7 +50,26 @@ export class SavedCalculationStore{
       return {schemaVersion:2,items:migrated};
     }catch(error){if(error.code==='ENOENT')return {schemaVersion:2,items:[]};throw error;}
   }
-  async #write(store){await mkdir(path.dirname(this.filePath),{recursive:true});await writeFile(this.filePath,JSON.stringify({...store,schemaVersion:2},null,2)+'\n',{mode:0o600});}
+  async #write(store){
+    await mkdir(path.dirname(this.filePath),{recursive:true});
+    const temp=`${this.filePath}.${process.pid}.${randomUUID()}.tmp`;
+    try{
+      await writeFile(temp,JSON.stringify({...store,schemaVersion:2},null,2)+'\n',{encoding:'utf8',mode:0o600,flush:true});
+      await rename(temp,this.filePath);
+    }catch(error){
+      await rm(temp,{force:true}).catch(()=>{});
+      throw error;
+    }
+  }
+  async #mutate(mutator){
+    await mkdir(path.dirname(this.filePath),{recursive:true});
+    return withLocalFileLock(this.filePath,async()=>{
+      const store=await this.#read();
+      const result=await mutator(store);
+      await this.#write(store);
+      return result;
+    });
+  }
   #index(store,{userId,tenantId,workspaceId,id}){const index=store.items.findIndex(item=>item.id===id&&item.userId===userId&&item.tenantId===tenantId&&item.workspaceId===workspaceId);if(index<0)throw notFound();return index;}
   async #audit(eventType,{userId,tenantId,workspaceId,correlationId,id,details={}}){await this.auditLedger?.append({eventType,correlationId,actor:{type:'user',id:userId},tenantId,workspaceId,outcome:'success',details:{savedCalculationId:id,...details}});}
   async list({userId,tenantId,workspaceId,query='',tag=null,favorite=null,sort='updated-desc'}){
@@ -63,20 +83,19 @@ export class SavedCalculationStore{
   }
   async get(scope){const store=await this.#read();return publicDetail(store.items[this.#index(store,scope)]);}
   async save({userId,tenantId,workspaceId,name,result,notes='',tags:inputTags=[],favorite=false,correlationId}){
-    const store=await this.#read(),savedAt=new Date().toISOString(),item={id:randomUUID(),userId,tenantId,workspaceId,name:text(name||result?.formulaId||result?.indicatorId||'Calculation',120),savedAt,updatedAt:savedAt,schemaVersion:2,version:1,formulaVersion:result?.formulaVersion??null,indicatorVersion:result?.indicatorVersion??null,indiaRuleVersion:result?.evidence?.indiaRuleVersion??null,effectiveDate:result?.effectiveDate??null,result:clean(result),notes:text(notes,2000),tags:tags(inputTags),favorite:Boolean(favorite),revisions:[]};
-    item.revisions=[revisionFrom(item,{createdAt:savedAt})];store.items.unshift(item);store.items=store.items.slice(0,MAX_SAVED);await this.#write(store);await this.#audit('calculation.saved.v2',{userId,tenantId,workspaceId,correlationId,id:item.id,details:{formulaId:result?.formulaId??null,indicatorId:result?.indicatorId??null,version:1}});return publicDetail(item);
+    const item=await this.#mutate(async store=>{const savedAt=new Date().toISOString(),next={id:randomUUID(),userId,tenantId,workspaceId,name:text(name||result?.formulaId||result?.indicatorId||'Calculation',120),savedAt,updatedAt:savedAt,schemaVersion:2,version:1,formulaVersion:result?.formulaVersion??null,indicatorVersion:result?.indicatorVersion??null,indiaRuleVersion:result?.evidence?.indiaRuleVersion??null,effectiveDate:result?.effectiveDate??null,result:clean(result),notes:text(notes,2000),tags:tags(inputTags),favorite:Boolean(favorite),revisions:[]};next.revisions=[revisionFrom(next,{createdAt:savedAt})];store.items.unshift(next);store.items=store.items.slice(0,MAX_SAVED);return next;});
+    await this.#audit('calculation.saved.v2',{userId,tenantId,workspaceId,correlationId,id:item.id,details:{formulaId:result?.formulaId??null,indicatorId:result?.indicatorId??null,version:1}});return publicDetail(item);
   }
   async update({userId,tenantId,workspaceId,id,name,result,notes,tags:inputTags,favorite,correlationId}){
-    const store=await this.#read(),index=this.#index(store,{userId,tenantId,workspaceId,id}),current=store.items[index],updatedAt=new Date().toISOString();
-    const next={...current,name:name===undefined?current.name:text(name,120),result:result===undefined?current.result:clean(result),notes:notes===undefined?current.notes:text(notes,2000),tags:inputTags===undefined?current.tags:tags(inputTags),favorite:favorite===undefined?current.favorite:Boolean(favorite),updatedAt,version:current.version+1};
-    next.formulaVersion=next.result?.formulaVersion??current.formulaVersion;next.indicatorVersion=next.result?.indicatorVersion??current.indicatorVersion;next.indiaRuleVersion=next.result?.evidence?.indiaRuleVersion??current.indiaRuleVersion;next.effectiveDate=next.result?.effectiveDate??current.effectiveDate;next.revisions=[...current.revisions,revisionFrom(next,{createdAt:updatedAt})].slice(-MAX_REVISIONS);store.items[index]=next;await this.#write(store);await this.#audit('calculation.updated.v2',{userId,tenantId,workspaceId,correlationId,id,details:{version:next.version}});return publicDetail(next);
+    const next=await this.#mutate(async store=>{const index=this.#index(store,{userId,tenantId,workspaceId,id}),current=store.items[index],updatedAt=new Date().toISOString();const updated={...current,name:name===undefined?current.name:text(name,120),result:result===undefined?current.result:clean(result),notes:notes===undefined?current.notes:text(notes,2000),tags:inputTags===undefined?current.tags:tags(inputTags),favorite:favorite===undefined?current.favorite:Boolean(favorite),updatedAt,version:current.version+1};updated.formulaVersion=updated.result?.formulaVersion??current.formulaVersion;updated.indicatorVersion=updated.result?.indicatorVersion??current.indicatorVersion;updated.indiaRuleVersion=updated.result?.evidence?.indiaRuleVersion??current.indiaRuleVersion;updated.effectiveDate=updated.result?.effectiveDate??current.effectiveDate;updated.revisions=[...current.revisions,revisionFrom(updated,{createdAt:updatedAt})].slice(-MAX_REVISIONS);store.items[index]=updated;return updated;});
+    await this.#audit('calculation.updated.v2',{userId,tenantId,workspaceId,correlationId,id,details:{version:next.version}});return publicDetail(next);
   }
   async duplicate({userId,tenantId,workspaceId,id,name,correlationId}){const source=await this.get({userId,tenantId,workspaceId,id});return this.save({userId,tenantId,workspaceId,name:name??`${source.name} Copy`,result:source.result,notes:source.notes,tags:source.tags,favorite:false,correlationId});}
   async revisions(scope){const detail=await this.get(scope);return {id:detail.id,currentVersion:detail.version,items:[...detail.revisions].sort((a,b)=>b.version-a.version)};}
   async restore({userId,tenantId,workspaceId,id,revisionId,correlationId}){
-    const store=await this.#read(),index=this.#index(store,{userId,tenantId,workspaceId,id}),current=store.items[index],selected=current.revisions.find(revision=>revision.revisionId===revisionId);if(!selected)throw Object.assign(new Error('Saved calculation revision was not found'),{status:404,code:'saved_calculation_revision_not_found'});
-    const updatedAt=new Date().toISOString(),next={...current,name:selected.name,result:clean(selected.result),notes:selected.notes,tags:tags(selected.tags),favorite:Boolean(selected.favorite),formulaVersion:selected.formulaVersion,indicatorVersion:selected.indicatorVersion,indiaRuleVersion:selected.indiaRuleVersion,effectiveDate:selected.effectiveDate,updatedAt,version:current.version+1};next.revisions=[...current.revisions,revisionFrom(next,{createdAt:updatedAt,restoredFrom:revisionId})].slice(-MAX_REVISIONS);store.items[index]=next;await this.#write(store);await this.#audit('calculation.revision.restored.v2',{userId,tenantId,workspaceId,correlationId,id,details:{version:next.version,restoredFrom:revisionId}});return publicDetail(next);
+    const next=await this.#mutate(async store=>{const index=this.#index(store,{userId,tenantId,workspaceId,id}),current=store.items[index],selected=current.revisions.find(revision=>revision.revisionId===revisionId);if(!selected)throw Object.assign(new Error('Saved calculation revision was not found'),{status:404,code:'saved_calculation_revision_not_found'});const updatedAt=new Date().toISOString(),updated={...current,name:selected.name,result:clean(selected.result),notes:selected.notes,tags:tags(selected.tags),favorite:Boolean(selected.favorite),formulaVersion:selected.formulaVersion,indicatorVersion:selected.indicatorVersion,indiaRuleVersion:selected.indiaRuleVersion,effectiveDate:selected.effectiveDate,updatedAt,version:current.version+1};updated.revisions=[...current.revisions,revisionFrom(updated,{createdAt:updatedAt,restoredFrom:revisionId})].slice(-MAX_REVISIONS);store.items[index]=updated;return updated;});
+    await this.#audit('calculation.revision.restored.v2',{userId,tenantId,workspaceId,correlationId,id,details:{version:next.version,restoredFrom:revisionId}});return publicDetail(next);
   }
-  async remove({userId,tenantId,workspaceId,id,correlationId}){const store=await this.#read(),index=this.#index(store,{userId,tenantId,workspaceId,id});store.items.splice(index,1);await this.#write(store);await this.#audit('calculation.deleted.v2',{userId,tenantId,workspaceId,correlationId,id});return {deleted:true,id};}
+  async remove({userId,tenantId,workspaceId,id,correlationId}){await this.#mutate(async store=>{const index=this.#index(store,{userId,tenantId,workspaceId,id});store.items.splice(index,1);});await this.#audit('calculation.deleted.v2',{userId,tenantId,workspaceId,correlationId,id});return {deleted:true,id};}
 }
 export const calculationLimits=Object.freeze({maxBodyBytes:MAX_BODY_BYTES,maxBatch:MAX_BATCH,maxSeries:MAX_SERIES,maxSaved:MAX_SAVED,maxRevisions:MAX_REVISIONS});
