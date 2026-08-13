@@ -1,3 +1,11 @@
+import './qelly-v53-verify-convergence.mjs';
+
+const verifyStyle=document.createElement('link');
+verifyStyle.rel='stylesheet';
+verifyStyle.href=new URL('./qelly-v53-verify-convergence.css',import.meta.url).href;
+verifyStyle.dataset.qellyV53VerifyConvergence='active';
+if(!document.querySelector('link[data-qelly-v53-verify-convergence]'))document.head.append(verifyStyle);
+
 const PRIMARY_ID='qelly-verify-shell-primary';
 const PRIMARY_VERIFY='qelly-verify-shell-primary-verify';
 const SHELF_VERIFY='qelly-verify-shell-shelf-verify';
