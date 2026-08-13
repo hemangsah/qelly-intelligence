@@ -1,0 +1,1 @@
+html[data-ui-lock-v53="active"][data-v53-route$="analytics"] #main>.q-page>.q-panel:not(:has(.q-data-grid)){grid-column:2;align-self:start}
