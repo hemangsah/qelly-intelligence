@@ -78,6 +78,8 @@ def generated_runner():
                         statusText:status?.textContent?.replace(/\\\\s+/g,' ').trim()||null,
                         search:sample('.q-product-search'),
                         navigation:sample('.q-product-nav'),
+                        semanticRail:sample('.q-edge-dock'),
+                        mobileNavigation:sample('#mobile-navigation'),
                         account:sample('.q-product-account'),
                         legacyCommand:sample('.q-command-bar')
                       };
@@ -128,7 +130,11 @@ def main():
         status_strip=probe.get('statusStrip') or {}
         status_text=probe.get('statusText') or ''
         expected=EXPECTED_SHELL_HEIGHT.get(item.get('viewport'))
-        required=[probe.get('search'),probe.get('navigation'),probe.get('account')]
+        required=[probe.get('search'),probe.get('account')]
+        if item.get('viewport')=='desktop':
+            required.append(probe.get('semanticRail'))
+        else:
+            required.append(probe.get('navigation') or probe.get('mobileNavigation'))
         unexpected_observations=[
             observation for observation in item.get('networkObservations',[])
             if not (observation.get('type')=='console' and observation.get('text')==CHROMIUM_SCRIPT_FETCH_NOISE)
@@ -152,7 +158,7 @@ def main():
     manifest={
         'schemaVersion':1,
         'evidenceHead':os.getenv('QELLY_V53_EVIDENCE_SHA','local'),
-        'boundary':'governed local production-mode frontend; Prompt2C product shell; providers remain local/fail-closed',
+        'boundary':'governed local production-mode frontend; accepted V5.3 product shell; providers remain local/fail-closed',
         'canonicalRouteCount':len(definitions),
         'routes':TARGET_ROUTES,
         'renderCount':len(results),
@@ -160,6 +166,8 @@ def main():
         'failureCount':len(failures),
         'expectedShellHeightPx':EXPECTED_SHELL_HEIGHT,
         'shellHeightTolerancePx':HEIGHT_TOLERANCE,
+        'desktopNavigationContract':'64px semantic rail',
+        'mobileNavigationContract':'compact product/mobile navigation',
         'consoleNoisePolicy':{
             'observedOnly':[CHROMIUM_SCRIPT_FETCH_NOISE],
             'resourceFailuresRemainFatal':True,
