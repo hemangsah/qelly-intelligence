@@ -1,0 +1,1 @@
+html[data-ui-lock-v53="active"] #main>.q-page:has(.q-provider-grid) .q-dashboard-grid{grid-template-columns:minmax(0,2.15fr) minmax(260px,.85fr);gap:10px}
