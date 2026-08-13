@@ -1,0 +1,2 @@
+html[data-ui-lock-v53="active"] :is([data-v53-route="feature-universe"],[data-v53-route="about-qelly"],[data-v53-route="theme-personas"]) #main>.q-page{gap:10px}
+html[data-ui-lock-v53="active"] :is([data-v53-route="feature-universe"],[data-v53-route="about-qelly"],[data-v53-route="theme-personas"]) #main .q-panel{border-radius:10px}
