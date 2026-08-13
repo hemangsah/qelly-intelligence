@@ -1,0 +1,14 @@
+/* V5.3 Wave 7 — collaboration/workspace presentation. */
+html[data-ui-lock-v53="active"]:is([data-v53-route="watchlist"],[data-v53-route="alert-center"],[data-v53-route="notification-center"],[data-v53-route="notification-schedules"]) #main>.q-page{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:10px;align-items:start}
+html[data-ui-lock-v53="active"]:is([data-v53-route="watchlist"],[data-v53-route="alert-center"],[data-v53-route="notification-center"],[data-v53-route="notification-schedules"]) #main>.q-page>:is(.q-page-head,.q-state-banner,.q-kpi-grid){grid-column:1/-1}
+html[data-ui-lock-v53="active"]:is([data-v53-route="watchlist"],[data-v53-route="alert-center"],[data-v53-route="notification-center"],[data-v53-route="notification-schedules"]) #main>.q-page>.q-kpi-grid{grid-template-columns:repeat(4,minmax(0,1fr));margin:0;gap:7px}
+html[data-ui-lock-v53="active"]:is([data-v53-route="watchlist"],[data-v53-route="alert-center"],[data-v53-route="notification-center"],[data-v53-route="notification-schedules"]) #main>.q-page>.q-kpi-grid .q-kpi{min-height:80px;padding:10px 11px;border-radius:10px}
+html[data-ui-lock-v53="active"][data-v53-route="watchlist"] #main>.q-page>.q-panel:has(#watchlist-grid){grid-column:1/9;min-width:0}
+html[data-ui-lock-v53="active"][data-v53-route="watchlist"] #main>.q-page>.q-panel:not(:has(#watchlist-grid)){grid-column:9/-1;min-width:0}
+html[data-ui-lock-v53="active"][data-v53-route="alert-center"] #main>.q-page>.q-panel:has(#alerts-grid){grid-column:5/-1;min-width:0}
+html[data-ui-lock-v53="active"][data-v53-route="alert-center"] #main>.q-page>.q-panel:not(:has(#alerts-grid)){grid-column:1/5;min-width:0}
+html[data-ui-lock-v53="active"][data-v53-route="notification-center"] #main>.q-page>.q-panel{grid-column:1/-1;min-width:0}
+html[data-ui-lock-v53="active"][data-v53-route="notification-schedules"] #main>.q-page>.q-panel:has(#schedule-name){grid-column:1/6;min-width:0}
+html[data-ui-lock-v53="active"][data-v53-route="notification-schedules"] #main>.q-page>.q-panel:not(:has(#schedule-name)){grid-column:6/-1;min-width:0}
+html[data-ui-lock-v53="active"][data-v53-route="notification-center"] .q-notification-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border-radius:10px}
+html[data-ui-lock-v53="active"]:is([data-v53-route="watchlist"],[data-v53-route="alert-center"],[data-v53-route="notification-schedules"]) .q-inline-form{gap:7px;align-items:end}
