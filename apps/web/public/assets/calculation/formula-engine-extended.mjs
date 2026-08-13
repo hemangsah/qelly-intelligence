@@ -3,6 +3,7 @@ import {calculateFreshFormula,listFreshFormulaDefinitions,getFreshFormulaDefinit
 import {inputContractFor} from './formula-input-contracts.mjs';
 import {correctHistoricalTailResult} from './historical-tail-boundary.mjs';
 import {actualXirrIterations} from './xirr-iteration-metadata.mjs';
+import {correctPortfolioVarianceResult} from './portfolio-variance-boundary.mjs';
 
 export {FormulaError};
 const enrichDefinition=(definition)=>{
@@ -20,7 +21,7 @@ export function listFormulaDefinitions({domain=null}={}){
 export function getFormulaDefinition(formulaId){return enrichDefinition(isFreshFormula(formulaId)?getFreshFormulaDefinition(formulaId):getFoundationFormulaDefinition(formulaId));}
 export function calculateFormula(formulaId,inputs={},options={}){
   if(isFreshFormula(formulaId))return calculateFreshFormula(formulaId,inputs,options);
-  const result=correctHistoricalTailResult(formulaId,calculateFoundationFormula(formulaId,inputs,options));
+  const result=correctPortfolioVarianceResult(formulaId,correctHistoricalTailResult(formulaId,calculateFoundationFormula(formulaId,inputs,options)));
   if(formulaId==='xirr'&&result?.status==='success'&&result.outputs){
     return {...result,outputs:{...result.outputs,iterations:actualXirrIterations(inputs)}};
   }
