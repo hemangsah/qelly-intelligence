@@ -1,5 +1,5 @@
 html[data-ui-lock-v53="active"][data-v53-route="security-setup"] #main>.q-page>.q-two-column{grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr);gap:12px}
 html[data-ui-lock-v53="active"][data-v53-route="security-setup"] #main>.q-page>.q-two-column .q-panel{min-height:230px}
 html[data-ui-lock-v53="active"][data-v53-route="security-setup"] #main>.q-page>.q-two-column .q-panel-body>ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;list-style:none;margin:0;padding:0}
-html[data-ui-lock-v53="active"][data-v53-route="security-setup"] #main>.q-page>.q-two-column .q-panel-body>ul>li{padding:12px;border:1px solid var(--q-border,#39363a);border-radius:8px;background:var(--q-surface-alt,#17191b);line-height:1.45}
+html[data-ui-lock-v53="active"][data-v53-route="security-setup"] #main>.q-page>.q-two-column .q-panel-body>ul>li{padding:12px;border:1px solid #39363a;border-radius:8px;background:#111315!important;color:#f3eef1!important;line-height:1.45}
 @media(max-width:760px){html[data-ui-lock-v53="active"][data-v53-route="security-setup"] #main>.q-page>.q-two-column{grid-template-columns:1fr}html[data-ui-lock-v53="active"][data-v53-route="security-setup"] #main>.q-page>.q-two-column .q-panel-body>ul{grid-template-columns:1fr}}
