@@ -99,8 +99,6 @@ function refresh(scope=document){
 
 function start(){
   const root=document.documentElement;
-  root.setAttribute('data-ui-lock-v5-3','active');
-  root.dataset.v53ActivationContract='canonical-with-v53-compatibility-alias';
   root.dataset.v53FamilyHarmonization='active';
   loadFamilyStyles();
   refresh(document);
