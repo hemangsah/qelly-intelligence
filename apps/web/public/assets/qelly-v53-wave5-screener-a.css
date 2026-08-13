@@ -1,0 +1,2 @@
+html[data-ui-lock-v5-3="active"][data-v53-route="screener-lab"] #main>.q-page{grid-template-columns:minmax(238px,300px) minmax(0,1fr)}
+html[data-ui-lock-v5-3="active"][data-v53-route="screener-lab"] #main>.q-page>:is(.q-page-head,.q-state-banner,.q-kpi-grid){grid-column:1/-1}

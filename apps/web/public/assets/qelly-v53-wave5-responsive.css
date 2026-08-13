@@ -1,0 +1,1 @@
+@media(max-width:760px){html[data-ui-lock-v5-3="active"]:is([data-v53-route="advanced-chart"],[data-v53-route="screener-lab"],[data-v53-route="portfolio-analytics"]) #main>.q-page{display:block}html[data-ui-lock-v5-3="active"][data-v53-route="screener-lab"] #main>.q-page>.q-panel:has(#screen-class){position:static}}
