@@ -1,0 +1,1 @@
+html[data-ui-lock-v53="active"][data-v53-route="saved-calculations"] #main .q-saved-calculations-page>.q-panel:first-of-type .q-actions{display:grid;grid-template-columns:repeat(2,minmax(110px,1fr));gap:6px}
