@@ -5,7 +5,9 @@ Repository: `hemangsah/qelly-intelligence`
 
 ## Current phase
 
-The accepted V5.3 institutional-density UI/UX convergence is complete through Wave 8. Current merged `main` is `4e73aa33cc715c16865dad97ee529d1c145daf5b`.
+The accepted V5.3 institutional-density UI/UX convergence is complete through Wave 8.
+
+The latest V5.3 application implementation merge is `4e73aa33cc715c16865dad97ee529d1c145daf5b` from PR #178. PR #179 later merged the documentation-only closeout and route-baseline reconciliation at `89925ab38d34fcb63dec48a650f3e45460e73ff1`.
 
 Older Prompt 2A and Prompt 2B closeout records remain historical provenance; they are not the live implementation phase.
 
@@ -14,6 +16,7 @@ Older Prompt 2A and Prompt 2B closeout records remain historical provenance; the
 - PR #176: Wave 6 identity, security and operations; merged at `652b68c7a035945ca7c645ae479895c3bc98ed77`.
 - PR #177: Wave 7 cloud lifecycle, collaboration and public surfaces; reviewed head `dc671e43193631d71994cb4fb64da87ae10d4c60`; merged at `0a204a1fa5e80285b8b264c2d7616720f87a3bce`.
 - PR #178: Wave 8 truth states, provenance density and mobile Evidence Sheet; reviewed head `9ee1e8eaddf78b6e4d45faf7358603e9ceb94540`; merged at `4e73aa33cc715c16865dad97ee529d1c145daf5b`.
+- PR #179: documentation-only V5.3 closeout and route-baseline reconciliation; merged at `89925ab38d34fcb63dec48a650f3e45460e73ff1`.
 
 ## Acceptance evidence
 
@@ -23,11 +26,11 @@ The complete all-screens manifest recorded 71 canonical routes, two governed vie
 
 ## Post-merge deployment
 
-Cloudflare Pages successfully deployed merge commit `4e73aa33cc715c16865dad97ee529d1c145daf5b` at:
+Cloudflare Pages successfully deployed the accepted Wave 8 application tree at:
 
 `https://7acb5df0.qelly-intelligence.pages.dev`
 
-Post-merge static preview, repository validation, exact-head evidence and core build/integration checks were green when this handoff was prepared.
+Subsequent documentation-only closeout changes do not alter application runtime behavior.
 
 ## Route baseline
 
@@ -39,4 +42,4 @@ Historical Prompt 2B Figma documents that state a 70-route design-generation den
 
 Do not create another broad V5.3 visual wave unless a concrete accepted-design gap or regression is demonstrated.
 
-Next work should begin from exact `main` and be scoped independently as post-merge remediation, explicit V5.4-or-later work, backend/provider capability work with its own contracts, or documentation/evidence maintenance.
+Next work should begin from the then-current exact `main` and be scoped independently as post-merge remediation, explicit V5.4-or-later work, backend/provider capability work with its own contracts, or documentation/evidence maintenance.
