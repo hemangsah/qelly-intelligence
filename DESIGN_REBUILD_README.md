@@ -29,13 +29,14 @@ Scalper Velocity, Investor Compound, Aggressive Alpha, Quant Operator, Research 
 
 ## Current governed route baseline
 
-- 70 registered routes
+- 71 registered routes
 - Canonical route inventory is authoritative for current route identity and evidence coverage
+- Route 71 (`#/qelly-verify`) is recorded in `QELLY_ROUTE_INVENTORY_V54_DELTA.csv` as a canonical reconciliation of an existing evidence surface
 - Required all-screens evidence covers desktop and mobile for every registered route
 
 ## Historical Part 22 review artifacts
 
-The original Part 22 review package predates the current 70-route inventory and recorded:
+The original Part 22 review package predates the current route inventory and recorded:
 
 - 47 routes at that historical review point
 - 6 personas
