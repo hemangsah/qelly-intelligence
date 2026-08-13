@@ -1,0 +1,3 @@
+html[data-ui-lock-v53="active"][data-v53-route="notification-center"] #main .q-notification-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+html[data-ui-lock-v53="active"][data-v53-route="notification-center"] #main .q-notification-card{min-height:132px;display:grid;align-content:space-between}
+@media(max-width:760px){html[data-ui-lock-v53="active"][data-v53-route="notification-center"] #main .q-notification-grid{grid-template-columns:1fr}}
