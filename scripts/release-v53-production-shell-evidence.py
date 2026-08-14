@@ -10,7 +10,10 @@ SOURCE=ROOT/'scripts'/'release-a5-screen-batch-v2.py'
 GENERATED=ROOT/'scripts'/'.release-v53-production-shell-generated.py'
 OUT=ROOT/'preview'/'v53-production-shell-evidence'
 TARGET_ROUTES=['calculator-center','indicator-library','formula-library','feature-universe','about-qelly']
-EXPECTED_SHELL_HEIGHT={'desktop':94,'mobile':98}
+# Accepted V5.3: desktop owns 24px system + 40px command + 30px context.
+# Mobile owns only the 24px system + 40px command at the top; task navigation
+# is task-first/lower-surface navigation, not a duplicated 34px top product row.
+EXPECTED_SHELL_HEIGHT={'desktop':94,'mobile':64}
 HEIGHT_TOLERANCE=2
 CHROMIUM_SCRIPT_FETCH_NOISE='An unknown error occurred when fetching the script.'
 
@@ -78,6 +81,8 @@ def generated_runner():
                         statusText:status?.textContent?.replace(/\\\\s+/g,' ').trim()||null,
                         search:sample('.q-product-search'),
                         navigation:sample('.q-product-nav'),
+                        semanticRail:sample('.q-edge-dock'),
+                        mobileNavigation:sample('#mobile-navigation'),
                         account:sample('.q-product-account'),
                         legacyCommand:sample('.q-command-bar')
                       };
@@ -127,8 +132,17 @@ def main():
         header=probe.get('productHeader') or {}
         status_strip=probe.get('statusStrip') or {}
         status_text=probe.get('statusText') or ''
-        expected=EXPECTED_SHELL_HEIGHT.get(item.get('viewport'))
-        required=[probe.get('search'),probe.get('navigation'),probe.get('account')]
+        viewport=item.get('viewport')
+        expected=EXPECTED_SHELL_HEIGHT.get(viewport)
+        required=[probe.get('search'),probe.get('account')]
+        if viewport=='desktop':
+            required.append(probe.get('semanticRail'))
+        duplicate_mobile_top_nav_ok=True
+        if viewport=='mobile':
+            duplicate_mobile_top_nav_ok=all(
+                not (entry or {}).get('visible',False)
+                for entry in (probe.get('navigation'),probe.get('mobileNavigation'))
+            )
         unexpected_observations=[
             observation for observation in item.get('networkObservations',[])
             if not (observation.get('type')=='console' and observation.get('text')==CHROMIUM_SCRIPT_FETCH_NOISE)
@@ -146,13 +160,14 @@ def main():
             and expected is not None
             and abs((header.get('height') or 0)-expected)<=HEIGHT_TOLERANCE
             and all((entry or {}).get('visible') is True for entry in required)
+            and duplicate_mobile_top_nav_ok
         )
         if not ok: failures.append(item)
     expected_count=len(TARGET_ROUTES)*2
     manifest={
-        'schemaVersion':1,
+        'schemaVersion':2,
         'evidenceHead':os.getenv('QELLY_V53_EVIDENCE_SHA','local'),
-        'boundary':'governed local production-mode frontend; Prompt2C product shell; providers remain local/fail-closed',
+        'boundary':'governed local production-mode frontend; accepted V5.3 product shell; providers remain local/fail-closed',
         'canonicalRouteCount':len(definitions),
         'routes':TARGET_ROUTES,
         'renderCount':len(results),
@@ -160,6 +175,8 @@ def main():
         'failureCount':len(failures),
         'expectedShellHeightPx':EXPECTED_SHELL_HEIGHT,
         'shellHeightTolerancePx':HEIGHT_TOLERANCE,
+        'desktopNavigationContract':'64px semantic rail; 24px system + 40px command + 30px context',
+        'mobileNavigationContract':'24px system + 40px command top shell; no duplicate top product/mobile navigation',
         'consoleNoisePolicy':{
             'observedOnly':[CHROMIUM_SCRIPT_FETCH_NOISE],
             'resourceFailuresRemainFatal':True,

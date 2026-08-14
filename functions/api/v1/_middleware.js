@@ -4,16 +4,18 @@ import {
   correlationId,
   enforceRateLimit,
   errorResponse,
-  publicRuntimeConfig,
   requireOrigin,
   resolveSession,
   responseJson
 } from '../../_lib/runtime.js';
+import {effectivePublicRuntimeConfig} from '../../_lib/email-capability.js';
 import {handleGovernance} from '../../_lib/governance.js';
 import {safeBaseCurrency,safeTimezone} from '../../_lib/profile-preferences.js';
 import {readinessSnapshot} from '../../_lib/readiness.js';
 
 const pathFor=(request)=>new URL(request.url).pathname.replace(/^\/api\/v1\/?/,'').replace(/\/$/,'');
+const unsafeMethod=(method)=>!['GET','HEAD','OPTIONS'].includes(String(method||'').toUpperCase());
+const authMutationRoute=(path,method)=>path.startsWith('auth/')&&unsafeMethod(method);
 const governanceRoute=(path,method)=>method==='POST'&&(path==='cloud/opt-in'||path==='account/delete');
 const registrationRoute=(path,method)=>path==='auth/register'&&method==='POST';
 
@@ -24,20 +26,24 @@ export async function onRequest(context){
   const interceptReadiness=path==='readiness'&&method==='GET';
   const interceptGovernance=governanceRoute(path,method);
   const interceptRegistration=registrationRoute(path,method);
-  if(!interceptReadiness&&!interceptGovernance&&!interceptRegistration)return context.next();
+  const interceptAuthMutation=authMutationRoute(path,method);
+  if(!interceptReadiness&&!interceptGovernance&&!interceptRegistration&&!interceptAuthMutation)return context.next();
 
   const started=Date.now();
   let response;
   try{
-    if(request.headers.get('origin'))requireOrigin(request,env);
+    // Unsafe browser mutations must carry an allowed Origin. requireOrigin is a no-op
+    // for GET/HEAD/OPTIONS, so readiness remains unaffected while exact nested Auth
+    // functions (register/recovery) cannot bypass the catch-all CSRF boundary.
+    requireOrigin(request,env);
     if(interceptReadiness){
-      const runtime=publicRuntimeConfig(env,request.url);
+      const runtime=effectivePublicRuntimeConfig(env,request.url);
       response=responseJson(request,env,readinessSnapshot(runtime),503);
       return response;
     }
 
     if(interceptRegistration){
-      const runtime=publicRuntimeConfig(env,request.url);
+      const runtime=effectivePublicRuntimeConfig(env,request.url);
       if(runtime.capabilities.emailDelivery){
         const body=await request.clone().json().catch(()=>{throw new HttpError(400,'invalid_json','Request body must be valid JSON');});
         if(!body?.baseCurrency||!body?.timezone){
@@ -46,6 +52,11 @@ export async function onRequest(context){
         safeBaseCurrency(body.baseCurrency);
         safeTimezone(body.timezone);
       }
+      response=await context.next();
+      return response;
+    }
+
+    if(interceptAuthMutation){
       response=await context.next();
       return response;
     }
@@ -75,4 +86,4 @@ export async function onRequest(context){
   }
 }
 
-export const __middlewareTest=Object.freeze({pathFor,governanceRoute,registrationRoute,readinessSnapshot});
+export const __middlewareTest=Object.freeze({pathFor,unsafeMethod,authMutationRoute,governanceRoute,registrationRoute,readinessSnapshot});

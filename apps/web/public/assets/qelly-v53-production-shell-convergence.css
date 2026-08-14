@@ -1,263 +1,360 @@
-/* Qelly Intelligence — V5.3 authoritative production-shell convergence.
-   This styles the Prompt 2C product header that supersedes compatibility chrome. */
+/* Qelly Intelligence — accepted V5.3 production-shell convergence.
+   Presentation only. Existing route controls, evidence and read-only boundaries remain authoritative. */
 
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"]{
-  --q-product-radius:8px;
-  --q-v53-product-shell-h:94px;
+html[data-ui-lock-v53="active"][data-product-surface="production"]{
+  --q-v53-system-h:24px;
+  --q-v53-command-h:40px;
+  --q-v53-context-h:30px;
+  --q-v53-top:94px;
+  --q-v53-rail:64px;
+  --q-v53-inspector:304px;
+  --q-v53-context:184px;
+  --q-v53-gap:10px;
+  --q-v53-radius:7px;
 }
 
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-header{
+html[data-ui-lock-v53="active"][data-product-surface="production"] body{
+  background:#080609;
+}
+
+/* Accepted system strip + command surface. */
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-product-header{
   box-sizing:border-box;
-  height:var(--q-v53-product-shell-h);
-  min-height:var(--q-v53-product-shell-h);
+  position:sticky;
+  top:0;
+  z-index:70;
+  height:64px;
+  min-height:64px;
   display:grid;
-  grid-template-columns:64px minmax(320px,1fr) auto;
-  grid-template-rows:40px 30px;
-  grid-template-areas:
-    "brand search actions"
-    "brand nav actions";
+  grid-template-columns:minmax(0,1fr) auto;
+  grid-template-rows:24px 40px;
+  grid-template-areas:"status status" "search actions";
+  gap:0 8px;
+  padding:0 12px 0 76px;
+  background:#09070a;
+  border:0;
+  border-bottom:1px solid #3d2430;
+  box-shadow:none;
+  backdrop-filter:none;
+}
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-v53-product-status{
+  grid-area:status;
+  width:calc(100% + 88px);
+  margin-left:-76px;
+  height:24px;
+  min-height:24px;
+  padding:0 12px 0 76px;
+  display:flex;
   align-items:center;
-  gap:4px 10px;
-  padding:10px 12px;
-  border-bottom:1px solid color-mix(in srgb,var(--q-product-accent) 20%,var(--q-product-line));
-  background:color-mix(in srgb,var(--q-product-bg) 96%,transparent);
-  box-shadow:0 1px 0 rgb(255 255 255 / .02);
-  backdrop-filter:blur(18px) saturate(110%);
-  -webkit-backdrop-filter:blur(18px) saturate(110%);
+  justify-content:space-between;
+  color:#b9aeb4;
+  background:#070608;
+  border-bottom:1px solid #2b1a22;
+  font-size:10px;
+  letter-spacing:.02em;
 }
-
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-brand{
-  grid-area:brand;
-  width:54px;
-  min-width:54px;
-  height:70px;
-  display:grid;
-  place-items:center;
-  border-right:1px solid var(--q-product-line);
-  padding-right:10px;
-}
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-brand__mark{
-  width:38px;
-  height:38px;
-  border-radius:7px;
-  font-size:18px;
-  box-shadow:0 7px 20px color-mix(in srgb,var(--q-product-accent) 28%,transparent);
-}
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-brand>span:last-child{
-  position:absolute;
-  width:1px;
-  height:1px;
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-v53-product-status__context{
+  min-width:0;
+  display:flex;
+  gap:10px;
   overflow:hidden;
-  clip:rect(0 0 0 0);
   white-space:nowrap;
 }
-
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-search{
-  grid-area:search;
-  align-self:center;
-  height:34px;
-  min-height:34px;
-  border-radius:6px;
-  background:color-mix(in srgb,var(--q-product-surface) 94%,#000);
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-v53-product-status strong{
+  color:#e59bb8;
+  font-size:10px;
+  letter-spacing:.04em;
 }
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-search input{
-  min-height:32px!important;
-  padding:6px 10px!important;
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-product-brand,
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-product-nav,
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-product-menu{
+  display:none!important;
+}
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-product-search{
+  grid-area:search;
+  height:32px;
+  min-height:32px;
+  align-self:center;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  border:1px solid #5b2c40;
+  border-radius:7px;
+  background:#151014;
+  overflow:hidden;
+}
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-product-search input{
+  width:100%;
+  min-height:30px!important;
+  padding:5px 10px!important;
+  border:0!important;
+  background:transparent!important;
+  color:#eee8eb!important;
   font-size:11px!important;
 }
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-search button{
-  padding:0 10px;
-  font-size:10px;
-}
-
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav{
-  grid-area:nav;
-  justify-content:flex-start;
-  align-self:center;
-  min-width:0;
-  gap:3px;
-  overflow-x:auto;
-  overscroll-behavior-inline:contain;
-  scrollbar-width:none;
-}
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav::-webkit-scrollbar{display:none}
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav a{
-  min-height:24px;
-  display:inline-flex;
-  align-items:center;
-  padding:3px 7px;
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-product-search button{
+  min-width:58px;
+  margin:4px;
+  padding:0 8px;
+  border:1px solid #603047;
   border-radius:5px;
+  background:#1c1419;
+  color:#d8cbd1;
   font-size:9px;
-  font-weight:650;
-  letter-spacing:.01em;
+  font-weight:700;
 }
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav a.is-active{
-  background:color-mix(in srgb,var(--q-product-accent) 18%,var(--q-product-surface-2));
-  color:color-mix(in srgb,var(--q-product-accent-strong) 72%,#fff);
-  box-shadow:inset 0 -1px 0 color-mix(in srgb,var(--q-product-accent-strong) 72%,transparent);
-}
-
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-actions{
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-product-actions{
   grid-area:actions;
+  align-self:center;
+  display:flex;
   gap:5px;
 }
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] :where(.q-product-system,.q-product-account){
+html[data-ui-lock-v53="active"][data-product-surface="production"] :where(.q-product-system,.q-product-account){
   min-height:30px;
   height:30px;
   border-radius:6px;
-  padding:4px 8px;
-  font-size:9px;
-}
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-account span:first-child{
-  width:20px;
-  height:20px;
-  border-radius:5px;
   font-size:9px;
 }
 
-/* The route context remains visible, but becomes workstation-dense rather than a large card. */
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-worldclass-context{
-  min-height:44px;
-  grid-template-columns:minmax(0,1fr) auto;
-  gap:8px 12px;
-  margin:0 0 10px;
-  padding:7px 10px;
-  border-radius:7px;
-  box-shadow:none;
+/* Accepted compact category rail. */
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-edge-dock{
+  position:fixed!important;
+  inset:0 auto 0 0!important;
+  z-index:90!important;
+  width:64px!important;
+  height:100vh!important;
+  padding:28px 6px 8px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  gap:7px!important;
+  overflow-y:auto;
+  background:#0b090c!important;
+  border-right:1px solid #39242d!important;
 }
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-worldclass-context__main{
-  gap:4px;
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-edge-dock:before{
+  content:'QELLY';
+  position:sticky;
+  top:0;
+  display:grid;
+  place-items:center;
+  min-height:42px;
+  margin:-20px -2px 7px;
+  color:#f3e8ed;
+  border-bottom:1px solid #32202a;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.08em;
 }
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-worldclass-breadcrumb{
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-edge-dock button{
+  width:52px!important;
+  min-height:43px!important;
+  padding:4px 2px!important;
+  border:1px solid #33212a!important;
+  border-radius:6px!important;
+  background:#0d0b0e!important;
+  color:#c8bcc2!important;
+  font-size:10px!important;
+}
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-edge-dock button small{
+  display:block!important;
+  font-size:8px!important;
+  line-height:1.15!important;
+}
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-edge-dock button.is-active{
+  color:#fff!important;
+  background:#6f1838!important;
+  border-color:#9c315a!important;
+  box-shadow:none!important;
+}
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-rail{display:none!important}
+
+/* Existing route context becomes the 30px accepted context bar. */
+html[data-ui-lock-v53="active"][data-product-surface="production"] #main{
+  margin-left:64px;
+  padding:8px 12px 52px!important;
+  min-height:calc(100vh - 64px);
+  background:#080609!important;
+}
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-worldclass-context{
+  min-height:30px!important;
+  height:30px;
+  margin:0 0 8px!important;
+  padding:0 10px!important;
+  display:flex!important;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  overflow:hidden;
+  border:1px solid #3c2530!important;
+  border-radius:6px!important;
+  background:#100d10!important;
+  box-shadow:none!important;
+}
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-worldclass-context__main{
+  min-width:0;
+  display:flex!important;
+  align-items:center;
+  gap:8px!important;
+}
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-worldclass-breadcrumb{
+  flex:0 1 auto;
+  min-width:0;
+  overflow:hidden;
+  color:#e19ab5!important;
+  font-size:9px!important;
+  font-weight:750;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-worldclass-purpose,
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-worldclass-context__aside,
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-worldclass-related,
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-worldclass-method{
+  display:none!important;
+}
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-worldclass-truth{
+  margin-left:auto;
+  display:flex!important;
   gap:5px;
-  font-size:8px;
-  letter-spacing:.045em;
 }
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-worldclass-purpose{
-  max-width:100ch;
-  font-size:9px;
-  line-height:1.35;
-}
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-worldclass-truth{
-  gap:5px;
-}
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-worldclass-truth-chip{
-  min-height:20px;
-  padding:2px 6px;
-  border-radius:5px;
-  font-size:7px;
-}
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-worldclass-context__aside,
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-worldclass-related{
-  gap:4px;
-}
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] :where(.q-worldclass-related a,.q-worldclass-method summary){
-  min-height:24px;
-  padding:3px 7px;
-  border-radius:5px;
-  font-size:8px;
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-worldclass-truth-chip{
+  min-height:18px!important;
+  padding:2px 6px!important;
+  border-radius:4px!important;
+  font-size:8px!important;
 }
 
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-market-home{
-  padding-top:clamp(18px,2vw,30px);
+/* Institutional title hierarchy. */
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-page-head{
+  min-height:50px!important;
+  margin:0 0 8px!important;
+  padding:0 2px!important;
+  gap:8px!important;
 }
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-market-hero{
-  min-height:min(560px,calc(100vh - var(--q-v53-product-shell-h)));
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-page-head h1{
+  margin:2px 0 3px!important;
+  font-size:24px!important;
+  line-height:1.05!important;
+  letter-spacing:-.02em!important;
 }
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] :where(.q-market-hero__snapshot,.q-market-observation,.q-market-provider,.q-product-tool-grid>a,.q-market-safety){
-  border-radius:8px;
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-page-head p{
+  max-width:900px!important;
+  margin:0!important;
+  font-size:10px!important;
+  line-height:1.35!important;
+}
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-page-actions .q-button{
+  min-height:28px!important;
+  padding:4px 9px!important;
+  border-radius:5px!important;
+  font-size:9px!important;
 }
 
-@media(max-width:1080px){
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-header{
-    grid-template-columns:52px minmax(220px,1fr) auto;
-    padding-inline:9px;
-  }
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-system span:last-child{
-    position:absolute;
-    width:1px;
-    height:1px;
-    overflow:hidden;
-    clip:rect(0 0 0 0);
-    white-space:nowrap;
-  }
+/* Market Command: accepted chart/context/Inspector workstation proportions. */
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-market-page>.q-state-banner{display:none!important}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-command-deck{
+  min-height:52px!important;
+  margin:0 0 7px!important;
+  padding:6px 8px!important;
+  display:grid!important;
+  grid-template-columns:minmax(180px,.7fr) minmax(130px,.42fr) minmax(420px,1.4fr)!important;
+  gap:8px!important;
+  border-radius:7px!important;
+}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-symbol-block,
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-price-block{
+  min-height:40px!important;
+}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-controls{
+  gap:6px!important;
+}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-controls label span{font-size:8px!important}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-controls select{min-height:28px!important;font-size:9px!important}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-v5-market-ribbon,
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-v5-evidence-ribbon{
+  gap:6px!important;
+  margin:0 0 7px!important;
+}
+html[data-v53-route="live-markets"][data-product-surface="production"] :where(.q-v5-market-metric,.q-v5-evidence-cell){
+  min-height:44px!important;
+  padding:6px 8px!important;
+  border-radius:6px!important;
+}
+html[data-v53-route="live-markets"][data-product-surface="production"] :where(.q-v5-market-metric,.q-v5-evidence-cell)>span{font-size:8px!important}
+html[data-v53-route="live-markets"][data-product-surface="production"] :where(.q-v5-market-metric,.q-v5-evidence-cell)>strong{font-size:11px!important}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-layout{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(390px,31vw)!important;
+  align-items:stretch!important;
+  gap:10px!important;
+}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-chart-shell{
+  min-height:500px!important;
+  height:min(56vh,520px)!important;
+  border-radius:7px!important;
+}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-tradingview-stage{min-height:430px!important;height:calc(100% - 58px)!important}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-side-stack{
+  display:grid!important;
+  grid-template-columns:minmax(150px,.78fr) minmax(215px,1.22fr)!important;
+  grid-template-rows:minmax(0,1fr) auto!important;
+  gap:10px!important;
+}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-side-stack>.q-panel{
+  min-height:0!important;
+  border-radius:7px!important;
+  overflow:hidden;
+}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-side-stack>.q-panel:nth-child(1){grid-column:1;grid-row:1 / span 2}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-side-stack>.q-panel:nth-child(2){grid-column:2;grid-row:1}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-side-stack>.q-panel:nth-child(3){grid-column:2;grid-row:2}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-side-stack .q-panel-head,
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-side-stack .q-panel-body{padding:8px!important}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-side-stack h2{font-size:11px!important}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-side-stack p,
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-stat,
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-record-row{font-size:9px!important}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-market-tape{
+  margin-top:8px!important;
+  border-radius:7px!important;
+}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-market-tape .q-panel-head{min-height:34px!important;padding:5px 8px!important}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-market-tape .q-panel-body{padding:6px 8px!important}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-tape-grid{gap:6px!important}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-tape-card{min-height:42px!important;padding:5px 7px!important;border-radius:5px!important}
+
+/* Compact panels globally; the accepted lock uses 5–8px curvature. */
+html[data-ui-lock-v53="active"][data-product-surface="production"] #main :where(.q-panel,.q-card,.q-kpi,.q-research-card){
+  border-radius:7px!important;
+  box-shadow:none!important;
 }
 
-@media(max-width:760px){
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"]{
-    --q-v53-product-shell-h:98px;
+@media(max-width:1024px){
+  html[data-ui-lock-v53="active"][data-product-surface="production"] .q-product-header{padding-left:10px}
+  html[data-ui-lock-v53="active"][data-product-surface="production"] .q-v53-product-status{width:100%;margin-left:0;padding-left:0}
+  html[data-ui-lock-v53="active"][data-product-surface="production"] .q-edge-dock{display:none!important}
+  html[data-ui-lock-v53="active"][data-product-surface="production"] #main{margin-left:0;padding-inline:10px!important}
+  html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-layout{grid-template-columns:1fr!important}
+  html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-side-stack{grid-template-columns:1fr 1fr!important}
+}
+
+@media(max-width:600px){
+  html[data-ui-lock-v53="active"][data-product-surface="production"] .q-product-header{
+    height:64px;min-height:64px;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:24px 40px;padding:0 8px;
   }
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-header{
-    height:var(--q-v53-product-shell-h);
-    min-height:var(--q-v53-product-shell-h);
-    grid-template-columns:42px minmax(0,1fr) auto;
-    grid-template-rows:40px 30px;
-    grid-template-areas:
-      "brand search actions"
-      "nav nav nav";
-    gap:6px;
-    padding:8px;
-  }
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-brand{
-    width:40px;
-    min-width:40px;
-    height:38px;
-    padding-right:6px;
-  }
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-brand__mark{
-    width:30px;
-    height:30px;
-    font-size:14px;
-  }
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-search{
-    height:34px;
-  }
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-search button{
-    position:absolute;
-    width:1px;
-    height:1px;
-    overflow:hidden;
-    clip:rect(0 0 0 0);
-    white-space:nowrap;
-  }
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-actions{
-    gap:4px;
-  }
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-account span:last-child,
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-system{
-    position:absolute;
-    width:1px;
-    height:1px;
-    overflow:hidden;
-    clip:rect(0 0 0 0);
-    white-space:nowrap;
-  }
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-account{
-    width:30px;
-    min-width:30px;
-    padding:4px;
-  }
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav{
-    width:100%;
-    justify-content:flex-start;
-  }
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav a{
-    min-height:28px;
-    padding-inline:8px;
-  }
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-worldclass-context{
-    grid-template-columns:1fr;
-    padding:7px 8px;
-  }
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-worldclass-context__aside,
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-worldclass-related{
-    justify-content:flex-start;
-  }
+  html[data-ui-lock-v53="active"][data-product-surface="production"] .q-v53-product-status{font-size:8px}
+  html[data-ui-lock-v53="active"][data-product-surface="production"] .q-v53-product-status__context span:not(:first-child){display:none}
+  html[data-ui-lock-v53="active"][data-product-surface="production"] .q-product-search button{display:none}
+  html[data-ui-lock-v53="active"][data-product-surface="production"] .q-product-system{display:none}
+  html[data-ui-lock-v53="active"][data-product-surface="production"] .q-worldclass-context{height:auto;min-height:28px!important}
+  html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-command-deck{grid-template-columns:1fr!important}
+  html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-controls{grid-template-columns:1fr 1fr!important}
+  html[data-v53-route="live-markets"][data-product-surface="production"] .q-v5-market-ribbon,
+  html[data-v53-route="live-markets"][data-product-surface="production"] .q-v5-evidence-ribbon{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-chart-shell{height:52vh!important;min-height:420px!important}
+  html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-side-stack{grid-template-columns:1fr!important}
+  html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-side-stack>.q-panel{grid-column:1!important;grid-row:auto!important}
 }
 
 @media(prefers-reduced-motion:reduce){
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-header,
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav{
-    scroll-behavior:auto;
-  }
+  html[data-ui-lock-v53="active"][data-product-surface="production"] *{scroll-behavior:auto!important}
 }

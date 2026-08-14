@@ -271,10 +271,12 @@ export const refreshSession=async(env,refreshToken)=>{
   await verifyAccess(env,session.access_token);
   return session;
 };
+const rejectedRefresh=(error)=>error instanceof HttpError&&(error.status===400||error.status===401)&&!error.retryable;
 export const resolveSession=async(request,env,{required=false}={})=>{
   const cookies=parseCookies(request);
   let accessToken=cookies[ACCESS_COOKIE];
   let refreshToken=cookies[REFRESH_COOKIE];
+  let accessRejected=false;
   try{
     if(accessToken){
       const verified=await verifyAccess(env,accessToken);
@@ -282,14 +284,23 @@ export const resolveSession=async(request,env,{required=false}={})=>{
     }
   }catch(error){
     if(!(error instanceof HttpError)||error.status!==401)throw error;
+    accessRejected=true;
   }
   if(refreshToken){
-    const rotated=await refreshSession(env,refreshToken);
-    const verified=await verifyAccess(env,rotated.access_token);
-    const rotatedCookies=tokenCookies(rotated);
-    queueResponseCookies(request,rotatedCookies);
-    return {...verified,accessToken:rotated.access_token,refreshToken:rotated.refresh_token,cookies:rotatedCookies};
+    try{
+      const rotated=await refreshSession(env,refreshToken);
+      const verified=await verifyAccess(env,rotated.access_token);
+      const rotatedCookies=tokenCookies(rotated);
+      queueResponseCookies(request,rotatedCookies);
+      return {...verified,accessToken:rotated.access_token,refreshToken:rotated.refresh_token,cookies:rotatedCookies};
+    }catch(error){
+      if(!rejectedRefresh(error))throw error;
+      queueResponseCookies(request,clearSessionCookies());
+      if(required)throw new HttpError(401,'authentication_required','Authentication is required');
+      return null;
+    }
   }
+  if(accessRejected)queueResponseCookies(request,clearSessionCookies());
   if(required)throw new HttpError(401,'authentication_required','Authentication is required');
   return null;
 };
