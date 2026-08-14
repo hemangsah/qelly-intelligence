@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 
 const loginSource=()=>readFile(new URL('../apps/web/public/assets/routes/auth-login.mjs',import.meta.url),'utf8');
 const registerSource=()=>readFile(new URL('../apps/web/public/assets/routes/auth-register.mjs',import.meta.url),'utf8');
+const recoverySource=()=>readFile(new URL('../apps/web/public/assets/routes/auth-recovery.mjs',import.meta.url),'utf8');
 
 test('login renders even when session status cannot be fetched',async()=>{
   const code=await loginSource();
@@ -12,12 +13,17 @@ test('login renders even when session status cannot be fetched',async()=>{
   assert.match(code,/Existing users may still attempt to sign in/);
 });
 
-test('signup and recovery CTAs follow the email-delivery capability',async()=>{
-  const code=await loginSource();
-  assert.match(code,/capabilities\?\.emailDelivery===true/);
-  assert.match(code,/Password recovery temporarily unavailable/);
-  assert.match(code,/Registration temporarily unavailable/);
-  assert.match(code,/Signup and recovery remain fail-closed/);
+test('signup and recovery CTAs use live server email-delivery truth instead of static build capability',async()=>{
+  const [login,register,recovery]=await Promise.all([loginSource(),registerSource(),recoverySource()]);
+  assert.match(login,/state\?\.config\?\.auth\?\.emailDeliveryAvailable===true/);
+  assert.match(register,/api\('\/api\/v1\/config'\)/);
+  assert.match(register,/auth\?\.emailDeliveryAvailable===true/);
+  assert.match(recovery,/api\('\/api\/v1\/config'\)/);
+  assert.match(recovery,/auth\?\.emailDeliveryAvailable===true/);
+  for(const code of [login,register,recovery])assert.doesNotMatch(code,/__QELLY_CONFIG__\?\.capabilities\?\.emailDelivery/);
+  assert.match(login,/Password recovery temporarily unavailable/);
+  assert.match(login,/Registration temporarily unavailable/);
+  assert.match(login,/Signup and recovery remain fail-closed/);
 });
 
 test('existing-password sign in is not blocked by the new-password strength policy',async()=>{
