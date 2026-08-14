@@ -1,0 +1,14 @@
+html[data-ui-lock-v53="active"] .q-truth-chip{display:flex;align-items:center;gap:7px;min-width:0;font-size:9px}
+html[data-ui-lock-v53="active"] .q-truth-chip>.q-status{flex:0 0 auto}
+html[data-ui-lock-v53="active"] .q-truth-chip>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html[data-ui-lock-v53="active"] .q-status{font-weight:760;letter-spacing:.055em}
+html[data-ui-lock-v53="active"] .q-status:before{width:6px;height:6px;flex:0 0 6px}
+html[data-ui-lock-v53="active"] .q-status--delayed{border-style:dashed}
+html[data-ui-lock-v53="active"] .q-status--delayed:before{border-radius:1px;transform:rotate(45deg)}
+html[data-ui-lock-v53="active"] .q-status--stale{border-style:double}
+html[data-ui-lock-v53="active"] .q-status--simulated{border-style:dotted}
+html[data-ui-lock-v53="active"] .q-status--simulated:before{background:transparent;border:1px solid currentColor}
+html[data-ui-lock-v53="active"] .q-state-banner{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px 10px;margin:0 0 10px;padding:9px 11px;border-left-width:3px;border-radius:10px;font-size:11px;line-height:1.4}
+html[data-ui-lock-v53="active"] .q-state-banner p{min-width:0;margin:0;font-size:10px;line-height:1.45}
+html[data-ui-lock-v53="active"] .q-state-banner:has(.q-status--stale){border-left-color:var(--q-stale)}
+html[data-ui-lock-v53="active"] .q-state-banner:has(.q-status--delayed){border-left-color:var(--q-delayed)}

@@ -1,0 +1,4 @@
+html[data-ui-lock-v53="active"] .q-source-line{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px 10px;padding:8px 10px;font-size:9px;line-height:1.35}
+html[data-ui-lock-v53="active"] .q-source-button{text-align:left;text-decoration-thickness:1px;text-underline-offset:3px}
+html[data-ui-lock-v53="active"] .q-source-cell small{font-size:8px;line-height:1.35}
+html[data-ui-lock-v53="active"] .q-grid-footer{gap:12px;flex-wrap:wrap;font-size:9px;line-height:1.35}

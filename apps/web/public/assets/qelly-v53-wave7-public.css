@@ -1,0 +1,22 @@
+/* V5.3 Wave 7 — enterprise/public architecture surfaces. */
+html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-feature-universe{gap:10px}
+html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-universe-hero{min-height:230px;padding:16px 18px;border-radius:18px}
+html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-universe-core{width:156px;height:156px}
+html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-universe-clusters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-universe-cluster{min-width:0;padding:13px;border-radius:14px}
+html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-universe-cluster:last-child{grid-column:1/-1}
+html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-universe-cluster h2{font-size:19px;line-height:1.15;margin:3px 0 5px}
+html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-universe-route-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-universe-route-grid button{min-height:64px;padding:9px;border-radius:10px;text-align:left}
+html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-capability-ribbon .q-panel-body{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;padding:0}
+html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-capability-ribbon .q-panel-body>div{padding:11px 12px}
+html[data-ui-lock-v53="active"][data-v53-route="about-qelly"] .q-about-page{gap:12px}
+html[data-ui-lock-v53="active"][data-v53-route="about-qelly"] .q-about-hero{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr);gap:18px;min-height:360px;padding:22px 24px;border-radius:20px}
+html[data-ui-lock-v53="active"][data-v53-route="about-qelly"] .q-about-copy h2{font-size:clamp(34px,4vw,58px);line-height:.98;letter-spacing:-.035em}
+html[data-ui-lock-v53="active"][data-v53-route="about-qelly"] .q-about-stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+html[data-ui-lock-v53="active"][data-v53-route="about-qelly"] .q-about-stat-grid article{padding:13px;border-radius:12px}
+html[data-ui-lock-v53="active"][data-v53-route="about-qelly"] .q-principle-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+html[data-ui-lock-v53="active"][data-v53-route="about-qelly"] .q-principle-grid article{padding:13px;border-radius:12px}
+html[data-ui-lock-v53="active"][data-v53-route="about-qelly"] .q-pillar-track{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+html[data-ui-lock-v53="active"][data-v53-route="about-qelly"] .q-pillar-track article{padding:14px;border-radius:12px}
+html[data-ui-lock-v53="active"][data-v53-route="about-qelly"] .q-founder-note{display:grid;grid-template-columns:minmax(220px,.55fr) minmax(0,1fr);gap:18px;padding:18px 20px;border-radius:16px}

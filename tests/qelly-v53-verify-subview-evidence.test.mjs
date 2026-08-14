@@ -7,6 +7,10 @@ const REGISTRY='apps/web/public/assets/route-registry.mjs';
 const BOOTSTRAP='apps/web/public/assets/qelly-verify-bootstrap.mjs';
 const PRODUCT='apps/web/public/assets/qelly-verify-product.mjs';
 const SHELL='apps/web/public/assets/qelly-verify-shell-nav.mjs';
+const CANONICAL='apps/web/public/assets/qelly-v53-verify-canonical.mjs';
+const LOCK='apps/web/public/assets/qelly-v53-lock-candidate-convergence.mjs';
+const VERIFY_CSS='apps/web/public/assets/qelly-v53-verify-convergence.css';
+const BROWSER='scripts/qelly-verify-browser-check.mjs';
 const INDEX='apps/web/public/index.html';
 const EVIDENCE='scripts/release-v53-verify-subview-evidence.py';
 const WORKFLOW='.github/workflows/qelly-v53-verify-subview-evidence.yml';
@@ -34,24 +38,38 @@ test('Verify product retains explicit local-only and execution-disabled boundari
   assert.match(product,/Human validation remains required/);
 });
 
-test('current shell exposes canonical Verify and methodology through responsive native navigation primitives',async()=>{
+test('canonical V5.3 Verify is the sole first-view owner while preserving the CSV analyzer as secondary',async()=>{
+  const [canonical,lock,css,browser]=await Promise.all([read(CANONICAL),read(LOCK),read(VERIFY_CSS),read(BROWSER)]);
+  assert.match(canonical,/workbench\.dataset\.v53VerifyWorkbench='accepted-lock'/);
+  assert.match(canonical,/Qelly Verify/);
+  assert.match(canonical,/Formula validation, assumptions, sensitivity and reproducibility\./);
+  assert.match(canonical,/data-v53-verify-primary/);
+  assert.match(canonical,/data-v53-verify-context/);
+  assert.match(canonical,/data-v53-verify-inspector/);
+  assert.match(canonical,/data-v53-verify-activity/);
+  assert.match(canonical,/data-v53-verify-formula/);
+  assert.match(canonical,/Strategy evidence tools · CSV analysis/);
+  assert.match(canonical,/q-v53-strategy-tools/);
+  assert.match(canonical,/const boundary=hero\?\.querySelector\('\.q-verify-boundary'\)/);
+  assert.match(canonical,/if\(boundary\)details\.append\(boundary\)/);
+  assert.match(lock,/if\(route==='qelly-verify'\)return null/);
+  assert.match(lock,/if\(route==='market'&&\['qelly-verify','evidence-methodology'\]\.includes\(params\.get\('view'\)\)\)return null/);
+  assert.match(css,/html\[data-qelly-verify-subview="qelly-verify"\] #main>\.q-worldclass-context\{display:none!important\}/);
+  assert.match(browser,/syntheticLockCount/);
+  assert.match(browser,/worldclassContextVisible/);
+  assert.match(browser,/visibleVerifyHeroCount/);
+  assert.match(browser,/verify_not_first_view_owner/);
+});
+
+test('current shell exposes canonical Verify and methodology through governed navigation without making a mobile shelf an acceptance dependency',async()=>{
   const [shell,index]=await Promise.all([read(SHELL),read(INDEX)]);
   assert.match(shell,/document\.getElementById\('primary-nav'\)/);
-  assert.match(shell,/#context-shelf \.q-category-shelf/);
-  assert.match(shell,/#main \.q-worldclass-context \.q-worldclass-related/);
-  assert.match(shell,/MOBILE_SHELL_QUERY='\(max-width: 920px\)'/);
   assert.match(shell,/\[data-route="qelly-verify"\]/);
   assert.match(shell,/canonicalVerify\.dataset\.qellyVerifyLink='shell'/);
   assert.match(shell,/data-qelly-methodology-link="shell"/);
-  assert.match(shell,/verify\.dataset\.qellyVerifyLink='worldclass'/);
-  assert.match(shell,/method\.dataset\.qellyMethodologyLink='worldclass'/);
   assert.match(shell,/view==='qelly-verify'\?'#\/qelly-verify'/);
   assert.match(shell,/verify\.href='#\/qelly-verify'/);
-  assert.match(shell,/shelf\.style\.setProperty\('display','flex','important'\)/);
-  assert.match(shell,/shelf\.style\.removeProperty\('display'\)/);
   assert.match(shell,/method\.textContent='Evidence'/);
-  assert.match(shell,/method\.setAttribute\('aria-label','Evidence Methodology'\)/);
-  assert.match(shell,/related\.firstElementChild!==verify/);
   assert.match(shell,/route!=='market'&&route!=='qelly-verify'/);
   assert.match(shell,/responsiveShell\.addEventListener\?\.\('change',schedule\)/);
   assert.match(shell,/MutationObserver/);
@@ -61,7 +79,7 @@ test('current shell exposes canonical Verify and methodology through responsive 
   assert.ok(shellPosition>productPosition,'shell nav bridge must load after Verify product runtime');
 });
 
-test('dedicated evidence harness proves legacy Verify alias forwards to canonical route across nine widths',async()=>{
+test('dedicated evidence harness proves alias normalization and accepted Verify workstation geometry across nine widths',async()=>{
   const [script,workflow]=await Promise.all([read(EVIDENCE),read(WORKFLOW)]);
   for(const width of [360,390,430,768,1024,1280,1440,1728,1920])assert.ok(script.includes(String(width)),`missing width ${width}`);
   assert.match(script,/'id':'qelly-verify'/);
@@ -72,10 +90,16 @@ test('dedicated evidence harness proves legacy Verify alias forwards to canonica
   assert.match(script,/canonical route count changed unexpectedly/);
   assert.match(script,/canonical Qelly Verify route missing/);
   assert.match(script,/Evidence Methodology must remain a governed Market subview/);
-  assert.match(script,/primaryVerify/);
-  assert.match(script,/shellMode:innerWidth<=920\?'shelf':'worldclass'/);
-  assert.match(script,/shelfVerifyBounds/);
-  assert.match(script,/contextVerifyBounds/);
+  assert.match(script,/data-v53-verify-workbench=\"accepted-lock\"/);
+  assert.match(script,/data-v53-verify-primary/);
+  assert.match(script,/data-v53-verify-context/);
+  assert.match(script,/data-v53-verify-inspector/);
+  assert.match(script,/data-v53-verify-activity/);
+  assert.match(script,/data-v53-verify-formula/);
+  assert.match(script,/Verify KPI strip is incomplete/);
+  assert.match(script,/Verify Inspector evidence is incomplete/);
+  assert.match(script,/task-first accepted-lock composition; no duplicate mobile top shelf required/);
+  assert.doesNotMatch(script,/shellMode:innerWidth<=920\?'shelf':'worldclass'/);
   assert.match(script,/aliasNormalized/);
   assert.match(workflow,/manifest\.canonicalRouteCount===71/);
   assert.match(workflow,/manifest\.canonicalRoute==='qelly-verify'/);
