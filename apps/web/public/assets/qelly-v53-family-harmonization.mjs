@@ -86,23 +86,14 @@ function annotateCurrentRoute(){
   }
 }
 
-function annotateViewport(){
-  document.documentElement.dataset.v53Viewport=viewportMode(window.innerWidth);
-}
-
-function refresh(scope=document){
-  annotateCurrentRoute();
-  annotateViewport();
-  annotateVerify(scope);
-  decorateCloudStates(scope);
-}
+function annotateViewport(){document.documentElement.dataset.v53Viewport=viewportMode(window.innerWidth)}
+function refresh(scope=document){annotateCurrentRoute();annotateViewport();annotateVerify(scope);decorateCloudStates(scope)}
 
 function start(){
   const root=document.documentElement;
   root.dataset.v53FamilyHarmonization='active';
   loadFamilyStyles();
   refresh(document);
-
   const main=document.getElementById('main');
   if(main){
     const observer=new MutationObserver((mutations)=>{
@@ -111,12 +102,12 @@ function start(){
     });
     observer.observe(main,{childList:true,subtree:true,attributes:true,attributeFilter:['class','data-cloud-state','data-sync-state','data-cloud-status','data-sync-status']});
   }
-
   window.addEventListener('hashchange',()=>requestAnimationFrame(()=>refresh(document)));
   window.addEventListener('resize',()=>requestAnimationFrame(annotateViewport),{passive:true});
 }
 
 if(typeof document!=='undefined'&&typeof window!=='undefined'){
   start();
+  void import('./qelly-v53-lock-shell.mjs');
   void import('./qelly-v53-lock-candidate-convergence.mjs');
 }
