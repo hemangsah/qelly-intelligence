@@ -4,11 +4,11 @@ import {
   correlationId,
   enforceRateLimit,
   errorResponse,
-  publicRuntimeConfig,
   requireOrigin,
   resolveSession,
   responseJson
 } from '../../_lib/runtime.js';
+import {effectivePublicRuntimeConfig} from '../../_lib/email-capability.js';
 import {handleGovernance} from '../../_lib/governance.js';
 import {safeBaseCurrency,safeTimezone} from '../../_lib/profile-preferences.js';
 import {readinessSnapshot} from '../../_lib/readiness.js';
@@ -37,13 +37,13 @@ export async function onRequest(context){
     // functions (register/recovery) cannot bypass the catch-all CSRF boundary.
     requireOrigin(request,env);
     if(interceptReadiness){
-      const runtime=publicRuntimeConfig(env,request.url);
+      const runtime=effectivePublicRuntimeConfig(env,request.url);
       response=responseJson(request,env,readinessSnapshot(runtime),503);
       return response;
     }
 
     if(interceptRegistration){
-      const runtime=publicRuntimeConfig(env,request.url);
+      const runtime=effectivePublicRuntimeConfig(env,request.url);
       if(runtime.capabilities.emailDelivery){
         const body=await request.clone().json().catch(()=>{throw new HttpError(400,'invalid_json','Request body must be valid JSON');});
         if(!body?.baseCurrency||!body?.timezone){

@@ -5,7 +5,9 @@ const recoveryMessage=(error)=>{
 };
 
 export async function renderAuthRecovery(main,{api,toast,navigate}){
-if(window.__QELLY_CONFIG__?.capabilities?.emailDelivery!==true){
+let emailDelivery=false;
+try{emailDelivery=(await api('/api/v1/config'))?.auth?.emailDeliveryAvailable===true;}catch{}
+if(!emailDelivery){
   main.innerHTML=`<section class="q-auth-page" data-production-auth="unavailable"><div class="q-auth-hero"><div><p class="q-eyebrow">Account recovery</p><h1>Email recovery is temporarily unavailable.</h1><p>No recovery request will be sent until transactional email delivery is proven. This prevents misleading success messages and repeated provider failures.</p></div></div><div class="q-auth-card"><div><p class="q-eyebrow">Fail-closed protection</p><h2>Recovery delivery is unavailable</h2><p class="q-muted-copy">Existing users can still return to sign in. Public markets and deterministic local tools remain available.</p></div><div class="q-auth-footer"><button class="q-button q-button--ghost" type="button" data-login>Return to sign in</button><button class="q-button q-button--primary" type="button" data-home>Return home</button></div></div></section>`;
   main.querySelector('[data-login]').addEventListener('click',()=>navigate('auth-login'));
   main.querySelector('[data-home]').addEventListener('click',()=>navigate('market'));

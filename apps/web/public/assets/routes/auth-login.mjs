@@ -13,7 +13,7 @@ export async function renderAuthLogin(main,{api,toast,navigate,onAuthenticated,s
   const storedReturn=sessionStorage.getItem('qelly.returnTo');
   const requestedReturn=state?.routeQuery?.get?.('returnTo')||storedReturn||'account-session';
   if(status.authenticated){sessionStorage.removeItem('qelly.returnTo');navigate(requestedReturn);return;}
-  const emailDelivery=window.__QELLY_CONFIG__?.capabilities?.emailDelivery===true;
+  const emailDelivery=state?.config?.auth?.emailDeliveryAvailable===true;
   main.innerHTML=`<section class="q-auth-page" data-production-auth="true">
     <div class="q-auth-hero"><div><p class="q-eyebrow">Qelly account</p><h1>Sign in to Qelly</h1><p>Access saved calculations and cloud synchronization. Public market observations and deterministic tools remain available without an account.</p></div><div class="q-auth-proof-grid"><article><strong>Private</strong><span>Secure browser session</span></article><article><strong>Scoped</strong><span>Your workspace only</span></article><article><strong>Read-only</strong><span>No trading or custody</span></article></div></div>
     <div class="q-auth-card"><div><p class="q-eyebrow">Welcome back</p><h2>Continue to your workspace</h2><p class="q-muted-copy">Enter the email and password used when your Qelly account was created.</p></div>
