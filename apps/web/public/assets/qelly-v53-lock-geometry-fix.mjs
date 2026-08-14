@@ -1,7 +1,8 @@
 // Qelly Intelligence — deterministic V5.3 lock geometry reconciliation.
-// The accepted shell reserves 114px on desktop and 82px on mobile before
-// the lock workspace. Keep this rule last in <head> so async stylesheet
-// ordering cannot collapse the accepted first-view composition again.
+// Desktop uses a fixed 24/40/30 shell plus 64px rail, so the workspace must
+// reserve 114px. Mobile's compact shell is already in normal flow; do not add
+// a second vertical reserve. Keep this rule last in <head> so async stylesheet
+// ordering cannot collapse or double-offset the accepted first-view geometry.
 
 const STYLE_ID='qelly-v53-lock-geometry-fix';
 const CSS=`
@@ -30,7 +31,7 @@ html[data-v53-lock-candidate="true"] .q-v53-lock-page{
   html[data-v53-lock-candidate="true"] #main{
     width:100%!important;
     margin:0!important;
-    padding:82px 0 0!important;
+    padding:0!important;
   }
   html[data-v53-lock-candidate="true"] .q-v53-lock-page{
     padding:11px 12px 92px!important;
