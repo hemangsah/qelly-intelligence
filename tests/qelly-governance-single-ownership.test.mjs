@@ -12,8 +12,9 @@ test('API middleware intercepts governed writes and registration preference vali
   const [middleware]=await sources();
   assert.match(middleware,/governanceRoute\(path,method\)/);
   assert.match(middleware,/registrationRoute\(path,method\)/);
+  assert.match(middleware,/authMutationRoute\(path,method\)/);
   assert.match(middleware,/handleGovernance\(context,path,method,session,qelly\)/);
-  assert.match(middleware,/if\(!interceptReadiness&&!interceptGovernance&&!interceptRegistration\)return context\.next\(\)/);
+  assert.match(middleware,/if\(!interceptReadiness&&!interceptGovernance&&!interceptRegistration&&!interceptAuthMutation\)return context\.next\(\)/);
 });
 
 test('general data module has no consent or deletion write implementation',async()=>{
