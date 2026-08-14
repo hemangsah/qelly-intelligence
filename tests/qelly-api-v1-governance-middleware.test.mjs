@@ -4,6 +4,8 @@ import {readFile} from 'node:fs/promises';
 import {onRequest,__middlewareTest} from '../functions/api/v1/_middleware.js';
 
 const SITE='https://qelly-middleware.test';
+const CANONICAL='https://qelly-intelligence.pages.dev';
+const ecbXml=(date=new Date(Date.now()-24*60*60*1000).toISOString().slice(0,10))=>`<?xml version="1.0"?><Envelope><Cube><Cube time='${date}'><Cube currency='USD' rate='1.15'/><Cube currency='GBP' rate='0.86'/><Cube currency='INR' rate='105.1'/><Cube currency='JPY' rate='171.5'/><Cube currency='CHF' rate='0.94'/></Cube></Cube></Envelope>`;
 const environment=(overrides={})=>({
   QELLY_PUBLIC_SITE_URL:SITE,
   QELLY_PUBLIC_SUPABASE_URL:'https://example.supabase.co',
@@ -17,7 +19,7 @@ const environment=(overrides={})=>({
 });
 const browserHeaders=(extra={})=>({origin:SITE,...extra});
 
-test('readiness middleware remains fail-closed with structured proof states',async()=>{
+test('readiness middleware remains fail-closed with structured proof states outside canonical production',async()=>{
   let nextCalls=0;
   const request=new Request(`${SITE}/api/v1/readiness`);
   const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response('unexpected');}});
@@ -33,7 +35,7 @@ test('readiness middleware remains fail-closed with structured proof states',asy
   assert.equal(body.checks.providerFreshness.proven,false);
 });
 
-test('configured email transport never becomes ready without end-to-end proof',async()=>{
+test('configured email transport never becomes ready outside canonical evidence scope',async()=>{
   const request=new Request(`${SITE}/api/v1/readiness`);
   const response=await onRequest({request,env:environment({QELLY_ENABLE_AUTH_EMAIL_DELIVERY:'true'}),next:async()=>new Response('unexpected')});
   const body=await response.json();
@@ -41,7 +43,27 @@ test('configured email transport never becomes ready without end-to-end proof',a
   assert.equal(body.ready,false);
   assert.equal(body.checks.authEmail.configured,true);
   assert.equal(body.checks.authEmail.proven,false);
-  assert.equal(body.dependencies.auth,'email_delivery_configured_not_end_to_end_proven');
+  assert.equal(body.dependencies.auth,'canonical_production_scope_required');
+});
+
+test('canonical readiness returns 200 only when all production evidence canaries pass',async()=>{
+  const env=environment({
+    QELLY_PUBLIC_SITE_URL:CANONICAL,
+    QELLY_ENABLE_AUTH_EMAIL_DELIVERY:'true',
+    __fetch:async(url)=>{
+      const target=String(url);
+      if(target.endsWith('/auth/v1/health'))return new Response(JSON.stringify({version:'test'}),{status:200,headers:{'Content-Type':'application/json'}});
+      if(target.includes('eurofxref-daily.xml'))return new Response(ecbXml(),{status:200,headers:{'Content-Type':'application/xml'}});
+      throw new Error(`Unexpected URL ${target}`);
+    }
+  });
+  const request=new Request(`${CANONICAL}/api/v1/readiness`);
+  const response=await onRequest({request,env,next:async()=>new Response('unexpected')});
+  const body=await response.json();
+  assert.equal(response.status,200);
+  assert.equal(body.ready,true);
+  assert.equal(body.status,'ready');
+  for(const check of Object.values(body.checks))if(check.required){assert.equal(check.configured,true);assert.equal(check.proven,true);}
 });
 
 test('unsafe Auth mutations fail closed when Origin is absent',async()=>{
@@ -113,7 +135,7 @@ test('safe Auth reads and non-governed API routes continue through the existing 
   }
 });
 
-test('middleware source owns governed paths, registration validation and Auth mutation origin enforcement',async()=>{
+test('middleware source owns governed paths, readiness evidence collection and Auth mutation origin enforcement',async()=>{
   const source=await readFile(new URL('../functions/api/v1/_middleware.js',import.meta.url),'utf8');
   assert.equal(__middlewareTest.governanceRoute('cloud/opt-in','POST'),true);
   assert.equal(__middlewareTest.governanceRoute('account/delete','POST'),true);
@@ -125,6 +147,7 @@ test('middleware source owns governed paths, registration validation and Auth mu
   assert.equal(__middlewareTest.unsafeMethod('POST'),true);
   assert.equal(__middlewareTest.unsafeMethod('OPTIONS'),false);
   assert.match(source,/handleGovernance/);
+  assert.match(source,/collectReadinessEvidence/);
   assert.match(source,/readinessSnapshot/);
   assert.match(source,/safeBaseCurrency/);
   assert.match(source,/safeTimezone/);

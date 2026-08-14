@@ -22,6 +22,12 @@ export function parseGeneratedBrowserConfig(source){
   return config;
 }
 
+const readinessProven=(payload)=>{
+  if(payload?.ready!==true||payload?.status!=='ready')return false;
+  const checks=payload?.checks&&typeof payload.checks==='object'?Object.values(payload.checks):[];
+  return checks.length>0&&checks.every(value=>value?.required!==true||(value?.configured===true&&value?.proven===true));
+};
+
 export function validateRuntimeConvergence({
   targetSha,
   releaseStatus,
@@ -43,7 +49,7 @@ export function validateRuntimeConvergence({
     browserConfig:browserConfigStatus===200&&exactSha(browserConfig?.releaseSha,targetSha),
     apiConfig:apiConfigStatus===200&&exactSha(apiConfigSha(apiConfig),targetSha),
     health:healthStatus===200&&health?.status==='ok'&&exactSha(health?.releaseSha,targetSha),
-    readiness:readinessStatus===503&&readiness?.ready===false&&readiness?.status==='not_proven'&&exactSha(readiness?.releaseSha,targetSha)
+    readiness:readinessStatus===200&&readinessProven(readiness)&&exactSha(readiness?.releaseSha,targetSha)
   });
   return Object.freeze({
     converged:Object.values(checks).every(Boolean),
