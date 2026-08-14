@@ -50,6 +50,11 @@ function routeState(){
 }
 function eligibleSpec(){
   const {route,params}=routeState();
+  // Qelly Verify is a real deterministic formula workbench. The generic
+  // simulated lock surface is only a presentation fallback for routes that do
+  // not have a dedicated accepted-lock implementation; never prepend it ahead
+  // of the canonical Verify route or its historical aliases.
+  if(route==='qelly-verify')return null;
   if(route==='market'&&['qelly-verify','evidence-methodology'].includes(params.get('view')))return null;
   return SPECS[route]||null;
 }
