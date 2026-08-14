@@ -1,8 +1,9 @@
 // Qelly Intelligence — deterministic V5.3 lock geometry reconciliation.
 // Desktop uses a fixed 24/40/30 shell plus 64px rail, so the workspace must
-// reserve 114px. Mobile's compact shell is already in normal flow; do not add
-// a second vertical reserve. Keep this rule last in <head> so async stylesheet
-// ordering cannot collapse or double-offset the accepted first-view geometry.
+// reserve 114px. Mobile's compact shell is absolutely positioned; the lock
+// surface owns its first-view spacing and must not inherit a second 82px reserve.
+// Keep this rule last in <head> so async stylesheet ordering cannot collapse or
+// double-offset the accepted first-view geometry.
 
 const STYLE_ID='qelly-v53-lock-geometry-fix';
 const CSS=`
@@ -34,8 +35,83 @@ html[data-v53-lock-candidate="true"] .q-v53-lock-page{
     padding:0!important;
   }
   html[data-v53-lock-candidate="true"] .q-v53-lock-page{
-    padding:11px 12px 92px!important;
+    position:relative!important;
+    min-height:844px!important;
+    padding:82px 12px 92px!important;
   }
+
+  /* Accepted V5.3 compact system identity: mark + QELLY, not the desktop
+     reference-system sentence. Accessible text remains owned by the DOM. */
+  html[data-v53-lock-candidate="true"] .q-v53-lock-system span{
+    display:inline-flex!important;
+    align-items:center!important;
+    gap:6px!important;
+    font-size:0!important;
+  }
+  html[data-v53-lock-candidate="true"] .q-v53-lock-system span::before{
+    content:''!important;
+    display:inline-block!important;
+    width:14px!important;
+    height:14px!important;
+    box-sizing:border-box!important;
+    border:1.5px solid var(--v53-shell-accent,#e6a3ba)!important;
+    border-radius:50%!important;
+    background:linear-gradient(142deg,transparent 44%,var(--v53-shell-accent,#e6a3ba) 45%,var(--v53-shell-accent,#e6a3ba) 52%,transparent 53%)!important;
+  }
+  html[data-v53-lock-candidate="true"] .q-v53-lock-system span::after{
+    content:'QELLY'!important;
+    color:var(--v53-shell-text,#f4eff2)!important;
+    font:750 10px/1 var(--q-font-ui,"IBM Plex Sans Variable","IBM Plex Sans",Arial,sans-serif)!important;
+    letter-spacing:.04em!important;
+  }
+
+  /* Accepted mobile command copy and compact shortcut. */
+  html[data-v53-lock-candidate="true"] .q-v53-lock-command>span:nth-child(2){
+    font-size:0!important;
+  }
+  html[data-v53-lock-candidate="true"] .q-v53-lock-command>span:nth-child(2)::after{
+    content:'Search Qelly…'!important;
+    font:500 10px/1 var(--q-font-ui,"IBM Plex Sans Variable","IBM Plex Sans",Arial,sans-serif)!important;
+  }
+  html[data-v53-lock-candidate="true"] .q-v53-lock-command kbd{
+    font-size:0!important;
+  }
+  html[data-v53-lock-candidate="true"] .q-v53-lock-command kbd::after{
+    content:'⌘K'!important;
+    font:650 9px/20px var(--q-font-mono,"IBM Plex Mono",monospace)!important;
+  }
+
+  /* Mobile accepted-lock terminology is task-first. Keep the richer DOM labels
+     for accessibility and desktop; only the compact visual copy changes. */
+  html[data-v53-lock-candidate="true"] .q-v53-lock-primary>h2{
+    font-size:0!important;
+  }
+  html[data-v53-lock-candidate="true"] .q-v53-lock-primary>h2::after{
+    content:'PRIMARY TASK'!important;
+    font-size:10px!important;
+  }
+  html[data-v53-lock-candidate="true"] .q-v53-lock-inspector>h3{
+    font-size:0!important;
+  }
+  html[data-v53-lock-candidate="true"] .q-v53-lock-inspector>h3::after{
+    content:'EVIDENCE SHEET'!important;
+    font-size:10px!important;
+  }
+
+  /* Accepted mobile frames end with a route-specific V5.3 sign-off above the
+     task nav. The real route remains present below this governed first view. */
+  html[data-v53-lock-candidate="true"] .q-v53-lock-page::after{
+    content:'V5.3 · ' attr(data-v53-lock-route)!important;
+    position:absolute!important;
+    right:14px!important;
+    bottom:68px!important;
+    color:var(--q-v53-lock-muted,#9f9399)!important;
+    font:650 8px/1 var(--q-font-mono,"IBM Plex Mono",monospace)!important;
+    letter-spacing:.02em!important;
+  }
+  html[data-v53-lock-candidate="true"] .q-v53-lock-page[data-v53-lock-route="market"]::after{content:'V5.3 · market-command'!important;}
+  html[data-v53-lock-candidate="true"] .q-v53-lock-page[data-v53-lock-route="research-workspace"]::after{content:'V5.3 · research-evidence'!important;}
+  html[data-v53-lock-candidate="true"] .q-v53-lock-page[data-v53-lock-route="security-setup"]::after{content:'V5.3 · identity-security'!important;}
 }
 `;
 
