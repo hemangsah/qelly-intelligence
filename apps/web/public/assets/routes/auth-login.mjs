@@ -20,7 +20,7 @@ export async function renderAuthLogin(main,{api,toast,navigate,onAuthenticated,s
       ${statusWarning?`<div class="q-state-banner q-state-banner--warning" role="status"><strong>Session verification unavailable</strong><span>${statusWarning}</span></div>`:''}
       <form id="login-form" class="q-auth-form" novalidate>
         <label>Email<input name="email" type="email" inputmode="email" autocomplete="username" required placeholder="you@example.com" aria-describedby="login-error"></label>
-        <label class="q-password-field">Password<input name="password" type="password" autocomplete="current-password" required minlength="12" placeholder="Your password" aria-describedby="login-error"><button class="q-password-toggle" type="button" data-password-toggle aria-pressed="false">Show</button></label>
+        <label class="q-password-field">Password<input name="password" type="password" autocomplete="current-password" required placeholder="Your password" aria-describedby="login-error"><button class="q-password-toggle" type="button" data-password-toggle aria-pressed="false">Show</button></label>
         <button class="q-button q-button--primary" type="submit" data-sign-in>Sign in</button>
         <button class="q-button q-button--secondary" type="button" disabled aria-describedby="passkey-status">Passkey sign-in unavailable</button>
         <p id="passkey-status" class="q-muted-copy">Passkeys are not enabled in this production release. Qelly will not start a WebAuthn ceremony until the server implementation is complete and independently accepted.</p>
