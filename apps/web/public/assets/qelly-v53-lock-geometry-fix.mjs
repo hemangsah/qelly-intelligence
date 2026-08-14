@@ -1,9 +1,9 @@
 // Qelly Intelligence — deterministic V5.3 lock geometry reconciliation.
 // Desktop uses a fixed 24/40/30 shell plus 64px rail, so the workspace must
-// reserve 114px. Mobile's compact shell is absolutely positioned; the lock
-// surface owns its first-view spacing and must not inherit a second 82px reserve.
-// Keep this rule last in <head> so async stylesheet ordering cannot collapse or
-// double-offset the accepted first-view geometry.
+// reserve 114px. Mobile's compact shell is absolutely positioned and the
+// accepted lock surface already carries its correct first-view inset; do not
+// add a second shell reserve. Keep this rule last in <head> so async stylesheet
+// ordering cannot collapse or double-offset the accepted first-view geometry.
 
 const STYLE_ID='qelly-v53-lock-geometry-fix';
 const CSS=`
@@ -37,7 +37,7 @@ html[data-v53-lock-candidate="true"] .q-v53-lock-page{
   html[data-v53-lock-candidate="true"] .q-v53-lock-page{
     position:relative!important;
     min-height:844px!important;
-    padding:82px 12px 92px!important;
+    padding:11px 12px 92px!important;
   }
 
   /* Accepted V5.3 compact system identity: mark + QELLY, not the desktop
