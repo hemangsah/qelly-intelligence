@@ -35,6 +35,11 @@ async function inspect({name,viewport,reducedMotion='no-preference'}){
     await page.waitForURL(/#\/qelly-verify(?:[/?#]|$)/,{timeout:30000});
     await page.waitForSelector('[data-qelly-verify-surface]',{state:'visible',timeout:30000});
     await page.waitForSelector('[data-v53-verify-workbench="accepted-lock"]',{state:'visible',timeout:30000});
+    await page.waitForFunction(()=>{
+      const worldclass=document.querySelector('#main>.q-worldclass-context');
+      const style=worldclass?getComputedStyle(worldclass):null;
+      return !document.querySelector('#main>.q-v53-lock-page')&&(!worldclass||style.display==='none'||style.visibility==='hidden');
+    },null,{timeout:30000});
   }catch(error){
     const diagnostics=await routeDiagnostics(page);
     await page.screenshot({path:path.join(output,`${name}-route-failure.png`),fullPage:true});
@@ -51,11 +56,19 @@ async function inspect({name,viewport,reducedMotion='no-preference'}){
       const style=getComputedStyle(node);
       return box.width>0&&box.height>0&&style.display!=='none'&&style.visibility!=='hidden';
     };
+    const hero=document.querySelector('.q-verify-hero');
+    const workbench=document.querySelector('[data-v53-verify-workbench="accepted-lock"]');
     return {
       hash:location.hash,
       appReady:document.documentElement.dataset.appReady||null,
-      heading:document.querySelector('.q-verify-hero h1')?.textContent?.trim()||null,
-      subtitle:document.querySelector('.q-verify-hero__copy>p:not(.q-verify-kicker)')?.textContent?.trim()||null,
+      heading:hero?.querySelector('h1')?.textContent?.trim()||null,
+      subtitle:hero?.querySelector('.q-verify-hero__copy>p:not(.q-verify-kicker)')?.textContent?.trim()||null,
+      heroTop:hero?Math.round(hero.getBoundingClientRect().top):null,
+      workbenchTop:workbench?Math.round(workbench.getBoundingClientRect().top):null,
+      viewportHeight:innerHeight,
+      syntheticLockCount:document.querySelectorAll('#main>.q-v53-lock-page').length,
+      worldclassContextVisible:visible('#main>.q-worldclass-context'),
+      visibleVerifyHeroCount:[...document.querySelectorAll('.q-verify-hero')].filter(node=>{const b=node.getBoundingClientRect(),s=getComputedStyle(node);return b.width>0&&b.height>0&&s.display!=='none'&&s.visibility!=='hidden';}).length,
       workbenchVisible:visible('[data-v53-verify-workbench="accepted-lock"]'),
       primaryVisible:visible('[data-v53-verify-primary]'),
       contextVisible:visible('[data-v53-verify-context]'),
@@ -133,6 +146,10 @@ for(const result of results){
   if(result.canonical.appReady!=='true')throw new Error(`${result.name}_app_not_ready`);
   if(result.canonical.heading!=='Qelly Verify')throw new Error(`${result.name}_canonical_heading_invalid`);
   if(result.canonical.subtitle!=='Formula validation, assumptions, sensitivity and reproducibility.')throw new Error(`${result.name}_canonical_subtitle_invalid`);
+  if(result.canonical.syntheticLockCount!==0)throw new Error(`${result.name}_synthetic_verify_surface_present_${result.canonical.syntheticLockCount}`);
+  if(result.canonical.worldclassContextVisible)throw new Error(`${result.name}_legacy_route_context_visible`);
+  if(result.canonical.visibleVerifyHeroCount!==1)throw new Error(`${result.name}_verify_primary_surface_count_${result.canonical.visibleVerifyHeroCount}`);
+  if(result.canonical.heroTop==null||result.canonical.workbenchTop==null||result.canonical.heroTop>result.canonical.viewportHeight*.4||result.canonical.workbenchTop>result.canonical.viewportHeight*.55)throw new Error(`${result.name}_verify_not_first_view_owner_${JSON.stringify({heroTop:result.canonical.heroTop,workbenchTop:result.canonical.workbenchTop,viewportHeight:result.canonical.viewportHeight})}`);
   if(!result.canonical.workbenchVisible||!result.canonical.primaryVisible||!result.canonical.contextVisible||!result.canonical.inspectorVisible||!result.canonical.activityVisible||!result.canonical.formulaSelector||result.canonical.kpiCount<6||result.canonical.evidenceCount<6||result.canonical.activityEntryCount<4)throw new Error(`${result.name}_canonical_workbench_incomplete`);
   if(!result.canonical.strategySecondary)throw new Error(`${result.name}_secondary_strategy_tools_missing`);
   if(result.canonical.horizontalOverflow)throw new Error(`${result.name}_canonical_horizontal_overflow`);
