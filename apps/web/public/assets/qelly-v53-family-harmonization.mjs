@@ -1,3 +1,5 @@
+import './qelly-v53-lock-route-cleanup.mjs';
+
 // Qelly Intelligence — V5.3 route-family harmonization.
 // Presentation metadata only: no provider, auth, persistence or write semantics.
 
