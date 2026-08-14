@@ -11,7 +11,7 @@ import {
 import {effectivePublicRuntimeConfig} from '../../_lib/email-capability.js';
 import {handleGovernance} from '../../_lib/governance.js';
 import {safeBaseCurrency,safeTimezone} from '../../_lib/profile-preferences.js';
-import {readinessSnapshot} from '../../_lib/readiness.js';
+import {collectReadinessEvidence,readinessSnapshot} from '../../_lib/readiness.js';
 
 const pathFor=(request)=>new URL(request.url).pathname.replace(/^\/api\/v1\/?/,'').replace(/\/$/,'');
 const unsafeMethod=(method)=>!['GET','HEAD','OPTIONS'].includes(String(method||'').toUpperCase());
@@ -38,7 +38,9 @@ export async function onRequest(context){
     requireOrigin(request,env);
     if(interceptReadiness){
       const runtime=effectivePublicRuntimeConfig(env,request.url);
-      response=responseJson(request,env,readinessSnapshot(runtime),503);
+      const evidence=await collectReadinessEvidence(context,runtime);
+      const snapshot=readinessSnapshot(runtime,evidence);
+      response=responseJson(request,env,snapshot,snapshot.ready?200:503);
       return response;
     }
 
