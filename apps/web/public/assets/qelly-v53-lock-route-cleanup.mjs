@@ -1,3 +1,5 @@
+import './qelly-v53-lock-geometry-fix.mjs';
+
 // Qelly Intelligence — synchronous V5.3 lock cleanup for legacy Verify subviews.
 // The canonical first-view reference surface must not survive a hash transition
 // into the historical CSV or evidence-methodology subviews.
