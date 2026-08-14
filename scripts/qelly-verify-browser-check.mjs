@@ -19,6 +19,18 @@ const apiFixture=pathname=>{
 
 async function routeDiagnostics(page){return page.evaluate(()=>{const main=document.getElementById('main');return {href:location.href,hash:location.hash,readyState:document.readyState,appReady:document.documentElement.dataset.appReady||null,bootstrapState:window.__QELLY_VERIFY_ROUTE__?JSON.parse(JSON.stringify(window.__QELLY_VERIFY_ROUTE__)):null,verifyApi:typeof window.QellyVerify?.render,methodologyApi:typeof window.QellyVerify?.renderMethodology,mainOwner:main?.dataset.qellyVerifyOwner||null,mainBusy:main?.getAttribute('aria-busy')||null,mainText:main?.textContent?.replace(/\s+/g,' ').trim().slice(0,2000)||null};});}
 
+const methodologyReady=()=>{
+  const main=document.getElementById('main');
+  const heading=document.querySelector('.q-methodology-page .q-verify-hero h1');
+  return main?.dataset.qellyVerifyOwner==='methodology'&&
+    main?.getAttribute('aria-busy')!=='true'&&
+    heading?.textContent?.trim()==='Every conclusion needs an evidence state.'&&
+    document.querySelectorAll('.q-methodology-classes article').length===4&&
+    document.querySelectorAll('.q-methodology-modules>article').length===6&&
+    document.querySelectorAll('.q-methodology-not-assessed .q-verify-state-list li').length===8&&
+    document.querySelectorAll('.q-methodology-scores dl div').length===3;
+};
+
 async function inspect({name,viewport,reducedMotion='no-preference'}){
   const browser=await chromium.launch({headless:true});
   const context=await browser.newContext({viewport,reducedMotion,serviceWorkers:'block',acceptDownloads:false});
@@ -111,16 +123,14 @@ async function inspect({name,viewport,reducedMotion='no-preference'}){
   await page.screenshot({path:path.join(output,`${name}-report.png`),fullPage:true});
 
   /* Enter through the governed shorthand route and require the final
-     methodology renderer to own #main before sampling the DOM. A transient
-     convergence surface also carries the methodology marker, so waiting only
-     on that marker is insufficient on reduced-motion mobile renders. */
+     methodology renderer to own #main before sampling the DOM. The complete
+     methodology anatomy must survive a short stabilization window because
+     asynchronous route decorators can briefly replace #main during navigation. */
   await page.goto(`${baseUrl}/#/evidence-methodology`,{waitUntil:'domcontentloaded',timeout:45000});
   await page.waitForURL(url=>url.hash==='#/market?view=evidence-methodology',{timeout:30000});
-  await page.waitForFunction(()=>{
-    const main=document.getElementById('main');
-    const heading=document.querySelector('.q-methodology-page .q-verify-hero h1');
-    return main?.dataset.qellyVerifyOwner==='methodology'&&heading?.textContent?.trim()==='Every conclusion needs an evidence state.';
-  },null,{timeout:30000});
+  await page.waitForFunction(methodologyReady,null,{timeout:30000});
+  await page.waitForTimeout(250);
+  await page.waitForFunction(methodologyReady,null,{timeout:30000});
   const methodology=await page.evaluate(()=>({
     hash:location.hash,
     owner:document.getElementById('main')?.dataset.qellyVerifyOwner||null,
