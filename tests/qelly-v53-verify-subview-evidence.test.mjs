@@ -8,6 +8,9 @@ const BOOTSTRAP='apps/web/public/assets/qelly-verify-bootstrap.mjs';
 const PRODUCT='apps/web/public/assets/qelly-verify-product.mjs';
 const SHELL='apps/web/public/assets/qelly-verify-shell-nav.mjs';
 const CANONICAL='apps/web/public/assets/qelly-v53-verify-canonical.mjs';
+const LOCK='apps/web/public/assets/qelly-v53-lock-candidate-convergence.mjs';
+const VERIFY_CSS='apps/web/public/assets/qelly-v53-verify-convergence.css';
+const BROWSER='scripts/qelly-verify-browser-check.mjs';
 const INDEX='apps/web/public/index.html';
 const EVIDENCE='scripts/release-v53-verify-subview-evidence.py';
 const WORKFLOW='.github/workflows/qelly-v53-verify-subview-evidence.yml';
@@ -35,8 +38,8 @@ test('Verify product retains explicit local-only and execution-disabled boundari
   assert.match(product,/Human validation remains required/);
 });
 
-test('canonical V5.3 Verify owns the accepted formula-first workstation while preserving the CSV analyzer as secondary',async()=>{
-  const canonical=await read(CANONICAL);
+test('canonical V5.3 Verify is the sole first-view owner while preserving the CSV analyzer as secondary',async()=>{
+  const [canonical,lock,css,browser]=await Promise.all([read(CANONICAL),read(LOCK),read(VERIFY_CSS),read(BROWSER)]);
   assert.match(canonical,/workbench\.dataset\.v53VerifyWorkbench='accepted-lock'/);
   assert.match(canonical,/Qelly Verify/);
   assert.match(canonical,/Formula validation, assumptions, sensitivity and reproducibility\./);
@@ -47,6 +50,15 @@ test('canonical V5.3 Verify owns the accepted formula-first workstation while pr
   assert.match(canonical,/data-v53-verify-formula/);
   assert.match(canonical,/Strategy evidence tools · CSV analysis/);
   assert.match(canonical,/q-v53-strategy-tools/);
+  assert.match(canonical,/const boundary=hero\?\.querySelector\('\.q-verify-boundary'\)/);
+  assert.match(canonical,/if\(boundary\)details\.append\(boundary\)/);
+  assert.match(lock,/if\(route==='qelly-verify'\)return null/);
+  assert.match(lock,/if\(route==='market'&&\['qelly-verify','evidence-methodology'\]\.includes\(params\.get\('view'\)\)\)return null/);
+  assert.match(css,/html\[data-qelly-verify-subview="qelly-verify"\] #main>\.q-worldclass-context\{display:none!important\}/);
+  assert.match(browser,/syntheticLockCount/);
+  assert.match(browser,/worldclassContextVisible/);
+  assert.match(browser,/visibleVerifyHeroCount/);
+  assert.match(browser,/verify_not_first_view_owner/);
 });
 
 test('current shell exposes canonical Verify and methodology through governed navigation without making a mobile shelf an acceptance dependency',async()=>{
