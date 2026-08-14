@@ -11,6 +11,7 @@ const SPECS=Object.freeze({
   market:{slot:1,section:'MARKET COMMAND',title:'Market Command',subtitle:'Cross-asset context, liquidity, breadth and evidence',tone:'#6EA8FF'},
   'advanced-chart':{slot:2,section:'ADVANCED CHART',title:'Advanced Chart Studio',subtitle:'Multi-timeframe analysis with overlays, events and provenance',tone:'#16A36A'},
   'research-workspace':{slot:3,section:'RESEARCH & EVIDENCE',title:'Research Workspace',subtitle:'Claims, citations, contradictions, methodology and audit trail',tone:'#6EA8FF'},
+  'qelly-verify':{slot:4,section:'QUANT & VERIFICATION',title:'Qelly Verify',subtitle:'Formula validation, assumptions, sensitivity and reproducibility',tone:'#16A36A'},
   'screener-lab':{slot:5,section:'SCREENERS & QUANT',title:'Screener Lab',subtitle:'Evidence-aware factor filtering and ranked scenario comparison',tone:'#6EA8FF'},
   'portfolio-analytics':{slot:6,section:'PORTFOLIO & RISK',title:'Portfolio Risk',subtitle:'Exposure, attribution, drawdown, VaR and scenario intelligence',tone:'#16A36A'},
   'theme-lab':{slot:7,section:'THEME INTELLIGENCE',title:'Theme Studio',subtitle:'Governed appearance, density, persona and mindset controls',tone:'#A469D6'},
@@ -49,7 +50,6 @@ function routeState(){
 }
 function eligibleSpec(){
   const {route,params}=routeState();
-  if(route==='qelly-verify')return null;
   if(route==='market'&&['qelly-verify','evidence-methodology'].includes(params.get('view')))return null;
   return SPECS[route]||null;
 }
