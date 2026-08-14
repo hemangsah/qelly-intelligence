@@ -1,0 +1,99 @@
+name: Qelly Live Auth UI Canary
+
+on:
+  push:
+    branches:
+      - canary/qelly-live-auth-ui-20260815
+
+permissions:
+  contents: read
+
+jobs:
+  capture-auth-ui:
+    name: Capture canonical sign-in, registration and recovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PUBLIC_URL: https://qelly-intelligence.pages.dev
+      EXPECTED_RELEASE_SHA: df5475a591e99ff932729e9b027317c3deaf10e8
+    steps:
+      - name: Checkout isolated canary branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Capture live canonical Auth routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p auth-ui-evidence
+          node <<'NODE'
+          const fs=require('node:fs');
+          const {chromium}=require('playwright');
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const context=await browser.newContext({viewport:{width:1440,height:1000},serviceWorkers:'block'});
+            const page=await context.newPage();
+            const errors=[];
+            page.on('pageerror',error=>errors.push({type:'pageerror',message:error.message}));
+            page.on('console',message=>{if(message.type()==='error')errors.push({type:'console',message:message.text()});});
+            const routes=['auth-login','auth-register','auth-recovery'];
+            const evidence={publicUrl:process.env.PUBLIC_URL,expectedReleaseSha:process.env.EXPECTED_RELEASE_SHA,routes:{},errors};
+            for(const route of routes){
+              const response=await page.goto(`${process.env.PUBLIC_URL}/#/${route}`,{waitUntil:'domcontentloaded',timeout:45000});
+              await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true',{timeout:30000});
+              await page.waitForTimeout(1500);
+              const state=await page.evaluate(()=>{
+                const main=document.querySelector('#main');
+                const config=window.__QELLY_CONFIG__||{};
+                const text=main?.innerText||'';
+                return {
+                  url:location.href,
+                  navigationStatus:null,
+                  releaseSha:config.releaseSha||null,
+                  h1:main?.querySelector('h1')?.textContent?.trim()||null,
+                  h2:main?.querySelector('h2')?.textContent?.trim()||null,
+                  productionAuth:main?.querySelector('[data-production-auth]')?.getAttribute('data-production-auth')||null,
+                  forms:[...main?.querySelectorAll('form')||[]].length,
+                  buttons:[...main?.querySelectorAll('button')||[]].map(button=>({text:button.textContent.trim(),disabled:button.disabled})),
+                  text,
+                  bodyOverflowX:document.documentElement.scrollWidth>document.documentElement.clientWidth
+                };
+              });
+              state.navigationStatus=response?.status()??null;
+              evidence.routes[route]=state;
+              await page.screenshot({path:`auth-ui-evidence/${route}.png`,fullPage:true});
+              if(state.navigationStatus!==200)throw new Error(`${route}_http_${state.navigationStatus}`);
+              if(state.releaseSha!==process.env.EXPECTED_RELEASE_SHA)throw new Error(`${route}_release_mismatch_${state.releaseSha}`);
+              if(state.bodyOverflowX)throw new Error(`${route}_horizontal_overflow`);
+            }
+            const login=evidence.routes['auth-login'];
+            const register=evidence.routes['auth-register'];
+            const recovery=evidence.routes['auth-recovery'];
+            if(!/Sign in to Qelly/i.test(login.h1||''))throw new Error(`login_h1_invalid_${login.h1}`);
+            if(/temporarily unavailable/i.test(login.text)||/registration temporarily unavailable/i.test(login.text))throw new Error('login_still_claims_auth_email_unavailable');
+            if(!login.buttons.some(button=>/recover/i.test(button.text)&&button.disabled===false))throw new Error('login_recovery_action_not_available');
+            if(!login.buttons.some(button=>/(create|register|sign up)/i.test(button.text)&&button.disabled===false))throw new Error('login_registration_action_not_available');
+            if(register.productionAuth!=='true'||register.forms<1||!/Save your Qelly work securely/i.test(register.h1||''))throw new Error(`registration_not_live_${JSON.stringify(register)}`);
+            if(recovery.productionAuth!=='true'||recovery.forms<1||!/Reset your Qelly password/i.test(recovery.h1||''))throw new Error(`recovery_not_live_${JSON.stringify(recovery)}`);
+            fs.writeFileSync('auth-ui-evidence/result.json',JSON.stringify(evidence,null,2));
+            await browser.close();
+          })().catch(error=>{console.error(error);process.exit(1);});
+          NODE
+      - name: Upload live Auth UI evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-live-auth-ui-${{ github.sha }}
+          path: auth-ui-evidence
+          if-no-files-found: error
+          retention-days: 3
