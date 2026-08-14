@@ -4,7 +4,7 @@ async function loadCanonicalVerify(){
   if(loaded)return;
   if(!/^#\/qelly-verify(?:[/?#]|$)/i.test(location.hash))return;
   loaded=true;
-  await import('./qelly-v53-verify-canonical.mjs');
+  await import('./qelly-v53-verify-convergence.mjs');
 }
 
 /* The legacy market subview is normalized by qelly-verify-bootstrap.mjs. Once
