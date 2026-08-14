@@ -23,7 +23,9 @@ const suggestedCurrency=()=>{
 };
 
 export async function renderAuthRegister(main,{api,toast,navigate,onAuthenticated}){
-if(window.__QELLY_CONFIG__?.capabilities?.emailDelivery!==true){
+let emailDelivery=false;
+try{emailDelivery=(await api('/api/v1/config'))?.auth?.emailDeliveryAvailable===true;}catch{}
+if(!emailDelivery){
   main.innerHTML=`<section class="q-auth-page" data-production-auth="unavailable"><div class="q-auth-hero"><div><p class="q-eyebrow">Account availability</p><h1>Account creation is temporarily unavailable.</h1><p>Transactional email delivery has not been proven, so Qelly is not accepting registration requests. No account information has been submitted. Public markets and deterministic local tools remain available.</p></div></div><div class="q-auth-card"><div><p class="q-eyebrow">Fail-closed protection</p><h2>Email confirmation is unavailable</h2><p class="q-muted-copy">Registration will reopen only after a dedicated transactional email provider is configured and a production confirmation flow passes.</p></div><div class="q-auth-footer"><button class="q-button q-button--ghost" type="button" data-login>Sign in to an existing account</button><button class="q-button q-button--primary" type="button" data-home>Return home</button></div></div></section>`;
   main.querySelector('[data-login]').addEventListener('click',()=>navigate('auth-login'));
   main.querySelector('[data-home]').addEventListener('click',()=>navigate('market'));
