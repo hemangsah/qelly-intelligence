@@ -1,0 +1,6 @@
+@import url('./qelly-v53-wave6.css');
+@media(max-width:760px){
+ html[data-ui-lock-v53="active"] #main>.q-page:has(#screen-class),html[data-ui-lock-v53="active"][data-v53-route$="analytics"] #main>.q-page,html[data-ui-lock-v53="active"][data-v53-route="advanced-chart"] #main>.q-page{display:block}
+ html[data-ui-lock-v53="active"] #main>.q-page>.q-panel:has(#screen-class){position:static}
+ html[data-ui-lock-v53="active"][data-v53-route$="analytics"] #main>.q-page>.q-two-column{grid-template-columns:1fr}
+}

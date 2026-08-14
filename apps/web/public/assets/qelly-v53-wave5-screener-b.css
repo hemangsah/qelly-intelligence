@@ -1,0 +1,2 @@
+html[data-ui-lock-v5-3="active"][data-v53-route="screener-lab"] #main>.q-page>.q-panel:has(#screen-class){grid-column:1;align-self:start;position:sticky;top:8px}
+html[data-ui-lock-v5-3="active"][data-v53-route="screener-lab"] #main>.q-page>.q-panel:has(#screener-grid){grid-column:2;min-width:0}

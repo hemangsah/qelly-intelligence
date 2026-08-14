@@ -1,3 +1,4 @@
+@import url('./qelly-v53-wave5.css');
 /* Prompt 2B fixed-navigation clearance.
    Native scroll-to-element and keyboard focus must stop above the governed mobile navigation. */
 @media(max-width:920px){

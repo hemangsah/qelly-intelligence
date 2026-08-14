@@ -1,20 +1,19 @@
-/* Qelly Intelligence — V5.3 production system strip.
+/* Qelly Intelligence — V5.3 production system strip and final shell cascade.
    Loaded after Prompt2C and the production-shell convergence layer. */
 
 html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-header{
   height:94px;
   min-height:94px;
-  grid-template-columns:64px minmax(320px,1fr) auto;
+  grid-template-columns:minmax(320px,1fr) auto;
   grid-template-rows:24px 40px 30px;
   grid-template-areas:
-    "status status status"
-    "brand search actions"
-    "brand nav actions";
+    "status status"
+    "search actions"
+    "nav nav";
   column-gap:10px;
   row-gap:0;
-  padding:0 12px;
+  padding:0 12px 0 76px;
 }
-
 html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-v53-product-status{
   grid-area:status;
   align-self:stretch;
@@ -23,8 +22,8 @@ html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surf
   align-items:center;
   justify-content:space-between;
   gap:12px;
-  margin:0 -12px;
-  padding:0 12px;
+  margin:0 -12px 0 -76px;
+  padding:0 12px 0 76px;
   border-bottom:1px solid color-mix(in srgb,var(--q-product-accent) 16%,var(--q-product-line));
   background:color-mix(in srgb,var(--q-product-bg) 98%,#000);
   color:var(--q-product-muted);
@@ -41,9 +40,7 @@ html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surf
   gap:10px;
   overflow:hidden;
 }
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-v53-product-status__context>*{
-  flex:0 0 auto;
-}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-v53-product-status__context>*{flex:0 0 auto}
 html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-v53-product-status__context>*+*{
   padding-left:10px;
   border-left:1px solid var(--q-product-line);
@@ -55,82 +52,208 @@ html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surf
   font-weight:740;
   letter-spacing:.075em;
 }
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-brand{
-  height:70px;
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-brand,
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-menu{display:none!important}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-search{grid-area:search;align-self:center}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-actions{grid-area:actions;align-self:center}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav{
+  grid-area:nav;
+  display:flex!important;
+  position:static!important;
+  inset:auto!important;
+  width:100%!important;
+  height:30px!important;
+  min-height:30px!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:3px!important;
+  padding:0!important;
+  border:0!important;
+  border-top:1px solid color-mix(in srgb,var(--q-product-accent) 12%,var(--q-product-line))!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  white-space:nowrap!important;
+  clip:auto!important;
+  clip-path:none!important;
 }
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-actions{
-  align-self:center;
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav a{
+  flex:0 0 auto;
+  min-height:22px;
+  padding:3px 8px;
+  border-radius:4px;
+  color:var(--q-product-muted);
+  font-size:8px;
+  font-weight:650;
+  letter-spacing:.015em;
 }
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav a.is-active{
+  color:#fff;
+  background:color-mix(in srgb,var(--q-product-accent) 34%,#171015);
+  box-shadow:inset 0 -1px 0 color-mix(in srgb,var(--q-product-accent) 72%,#fff);
+}
+
+/* Prompt2C hides these by ID; the accepted V5.3 desktop shell explicitly restores the semantic rail. */
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #edge-dock{
+  display:flex!important;
+  position:fixed!important;
+  top:94px!important;
+  right:auto!important;
+  bottom:0!important;
+  left:0!important;
+  z-index:95!important;
+  width:64px!important;
+  height:calc(100vh - 94px)!important;
+  padding:6px 5px!important;
+  flex-direction:column!important;
+  gap:5px!important;
+  overflow-y:auto!important;
+  background:linear-gradient(180deg,#10090d,#080608)!important;
+  border-right:1px solid color-mix(in srgb,var(--q-border,#3a2430) 84%,transparent)!important;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #edge-dock .q-edge-dock__brand{
+  display:flex!important;
+  flex:0 0 auto;
+  width:52px!important;
+  height:42px!important;
+  align-items:center;
+  justify-content:center;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #edge-dock .q-edge-dock__brand img{width:30px!important;height:30px!important}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #edge-dock .q-edge-dock__domains{
+  display:flex!important;
+  min-height:0;
+  flex:1 1 auto;
+  flex-direction:column!important;
+  gap:5px!important;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #edge-dock .q-edge-dock__utilities{
+  display:flex!important;
+  flex:0 0 auto;
+  flex-direction:column!important;
+  gap:5px!important;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #edge-dock button{
+  display:flex!important;
+  width:52px!important;
+  min-height:43px!important;
+  padding:4px 2px!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:2px!important;
+  border:1px solid #33212a!important;
+  border-radius:6px!important;
+  background:#0d0b0e!important;
+  color:#c8bcc2!important;
+  font-size:10px!important;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #edge-dock button small{display:block!important;font-size:8px!important;line-height:1.1!important}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #edge-dock button.is-active{
+  color:#fff!important;
+  background:#6f1838!important;
+  border-color:#9c315a!important;
+  box-shadow:inset 2px 0 0 #e59bb8!important;
+}
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #main{margin-left:64px!important;width:calc(100% - 64px)!important}
 
 @media(max-width:760px){
   html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-header{
     height:98px;
     min-height:98px;
-    grid-template-columns:42px minmax(0,1fr) auto;
+    grid-template-columns:minmax(0,1fr) auto;
     grid-template-rows:24px 40px 34px;
-    grid-template-areas:
-      "status status status"
-      "brand search actions"
-      "nav nav nav";
+    grid-template-areas:"status status" "search actions" "nav nav";
     column-gap:6px;
-    row-gap:0;
     padding:0 8px;
   }
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-v53-product-status{
-    margin:0 -8px;
-    padding:0 8px;
-    gap:8px;
-    font-size:7px;
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-v53-product-status{margin:0 -8px;padding:0 8px;gap:8px;font-size:7px}
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-v53-product-status__context{gap:7px}
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-v53-product-status__context>*+*{padding-left:7px}
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-v53-product-status__context span:last-child{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-v53-product-status strong{font-size:7px}
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav{height:34px!important;min-height:34px!important}
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav a{min-height:26px;padding:4px 8px;font-size:8px}
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #edge-dock{display:none!important}
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #main{margin-left:0!important;width:100%!important}
+}
+
+/* Mobile/tablet shell ownership: keep the accepted 94px total top stack as
+   24px system + 40px command + 30px governed context shelf. The Verify
+   evidence controls therefore remain visible rather than existing in a
+   zero-height shelf. */
+@media(max-width:920px){
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-header{
+    height:64px;
+    min-height:64px;
+    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-rows:24px 40px;
+    grid-template-areas:"status status" "search actions";
   }
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-v53-product-status__context{
-    gap:7px;
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav{display:none!important}
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #context-shelf{
+    display:block!important;
+    box-sizing:border-box;
+    width:100%!important;
+    height:30px!important;
+    min-height:30px!important;
+    padding:0 8px!important;
+    overflow:hidden!important;
+    border-bottom:1px solid color-mix(in srgb,var(--q-product-accent) 14%,var(--q-product-line))!important;
+    background:color-mix(in srgb,var(--q-product-bg) 98%,#000)!important;
   }
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-v53-product-status__context>*+*{
-    padding-left:7px;
-  }
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-v53-product-status__context span:last-child{
-    position:absolute;
-    width:1px;
-    height:1px;
-    overflow:hidden;
-    clip:rect(0 0 0 0);
-    white-space:nowrap;
-  }
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-v53-product-status strong{
-    font-size:7px;
-  }
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-brand{
-    height:40px;
-  }
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-menu{
-    display:none!important;
-  }
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav{
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #context-shelf .q-category-shelf{
     display:flex!important;
     position:static!important;
-    inset:auto!important;
     width:100%!important;
-    height:34px!important;
-    min-height:34px!important;
-    flex-direction:row!important;
+    height:30px!important;
+    min-height:30px!important;
     align-items:center!important;
     justify-content:flex-start!important;
-    gap:3px!important;
+    gap:4px!important;
     padding:0!important;
-    border:0!important;
-    border-radius:0!important;
-    background:transparent!important;
-    box-shadow:none!important;
+    margin:0!important;
     overflow-x:auto!important;
     overflow-y:hidden!important;
     white-space:nowrap!important;
-    clip:auto!important;
-    clip-path:none!important;
+    visibility:visible!important;
   }
-  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav a{
-    flex:0 0 auto;
-    min-height:26px;
-    padding:4px 8px;
-    font-size:8px;
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #context-shelf .q-category-shelf button{
+    display:inline-flex!important;
+    flex:0 0 auto!important;
+    min-height:22px!important;
+    padding:3px 8px!important;
+    align-items:center!important;
+    border:1px solid transparent!important;
+    border-radius:4px!important;
+    background:transparent!important;
+    color:var(--q-product-muted)!important;
+    font-size:8px!important;
+    font-weight:650!important;
+    line-height:1!important;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #context-shelf .q-category-shelf button.is-active{
+    color:#fff!important;
+    border-color:color-mix(in srgb,var(--q-product-accent) 38%,var(--q-product-line))!important;
+    background:color-mix(in srgb,var(--q-product-accent) 28%,#171015)!important;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #edge-dock{display:none!important}
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #main{margin-left:0!important;width:100%!important}
+}
+
+@media(max-width:760px){
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #context-shelf{
+    height:34px!important;
+    min-height:34px!important;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #context-shelf .q-category-shelf{
+    height:34px!important;
+    min-height:34px!important;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #context-shelf .q-category-shelf button{
+    min-height:26px!important;
+    padding:4px 8px!important;
   }
 }

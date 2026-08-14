@@ -1,0 +1,3 @@
+html[data-ui-lock-v53="active"][data-v53-route="observability"] #main .q-panel:has(+ .q-observability-tables) article{background:#111315!important;color:#f3eef1!important;border-color:#39363a!important}
+html[data-ui-lock-v53="active"][data-v53-route="observability"] #main .q-panel:has(+ .q-observability-tables) article :is(dt,span){color:#aca3a8!important}
+html[data-ui-lock-v53="active"][data-v53-route="observability"] #main .q-panel:has(+ .q-observability-tables) article :is(dd,strong){color:#f3eef1!important}
