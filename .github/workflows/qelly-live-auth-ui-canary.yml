@@ -69,7 +69,12 @@ jobs:
                   h2:main?.querySelector('h2')?.textContent?.trim()||null,
                   productionAuth:main?.querySelector('[data-production-auth]')?.getAttribute('data-production-auth')||null,
                   forms:[...main?.querySelectorAll('form')||[]].length,
-                  buttons:[...main?.querySelectorAll('button')||[]].map(button=>({text:button.textContent.trim(),disabled:button.disabled})),
+                  actions:[...main?.querySelectorAll('button,a')||[]].map(node=>({
+                    tag:node.tagName.toLowerCase(),
+                    text:node.textContent.trim(),
+                    disabled:node.tagName==='BUTTON'?node.disabled:false,
+                    href:node.tagName==='A'?node.getAttribute('href'):null
+                  })),
                   text,
                   bodyOverflowX:document.documentElement.scrollWidth>document.documentElement.clientWidth
                 };
@@ -79,16 +84,18 @@ jobs:
               if(state.releaseSha!==process.env.EXPECTED_RELEASE_SHA)throw new Error(`${route}_release_mismatch_${state.releaseSha}`);
               if(state.bodyOverflowX)throw new Error(`${route}_horizontal_overflow`);
             }
+            fs.writeFileSync('auth-ui-evidence/result.json',JSON.stringify(evidence,null,2));
             const login=evidence.routes['auth-login'];
             const register=evidence.routes['auth-register'];
             const recovery=evidence.routes['auth-recovery'];
+            const enabledAction=(route,pattern)=>route.actions.some(action=>pattern.test(action.text)&&action.disabled!==true);
             if(!/Sign in to Qelly/i.test(login.h1||''))throw new Error(`login_h1_invalid_${login.h1}`);
             if(/temporarily unavailable/i.test(login.text)||/registration temporarily unavailable/i.test(login.text))throw new Error('login_still_claims_auth_email_unavailable');
-            if(!login.buttons.some(button=>/recover/i.test(button.text)&&button.disabled===false))throw new Error('login_recovery_action_not_available');
-            if(!login.buttons.some(button=>/(create|register|sign up)/i.test(button.text)&&button.disabled===false))throw new Error('login_registration_action_not_available');
+            if(!enabledAction(login,/(forgot password|recover)/i))throw new Error('login_recovery_action_not_available');
+            if(!enabledAction(login,/(create account|register|sign up)/i))throw new Error('login_registration_action_not_available');
             if(register.productionAuth!=='true'||register.forms<1||!/Save your Qelly work securely/i.test(register.h1||''))throw new Error(`registration_not_live_${JSON.stringify(register)}`);
             if(recovery.productionAuth!=='true'||recovery.forms<1||!/Reset your Qelly password/i.test(recovery.h1||''))throw new Error(`recovery_not_live_${JSON.stringify(recovery)}`);
-            fs.writeFileSync('auth-ui-evidence/result.json',JSON.stringify(evidence,null,2));
+            if(errors.length)throw new Error(`auth_ui_browser_errors_${JSON.stringify(errors)}`);
             await browser.close();
             function locationRoute(url){try{return new URL(url).hash.replace(/^#\//,'').split(/[?&]/)[0];}catch{return '';}}
           })().catch(error=>{console.error(error);process.exit(1);});
