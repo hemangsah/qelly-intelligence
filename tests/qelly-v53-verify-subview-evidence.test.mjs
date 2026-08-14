@@ -37,7 +37,7 @@ test('Verify product retains explicit local-only and execution-disabled boundari
 
 test('canonical V5.3 Verify owns the accepted formula-first workstation while preserving the CSV analyzer as secondary',async()=>{
   const canonical=await read(CANONICAL);
-  assert.match(canonical,/data\.v53VerifyWorkbench='accepted-lock'/);
+  assert.match(canonical,/workbench\.dataset\.v53VerifyWorkbench='accepted-lock'/);
   assert.match(canonical,/Qelly Verify/);
   assert.match(canonical,/Formula validation, assumptions, sensitivity and reproducibility\./);
   assert.match(canonical,/data-v53-verify-primary/);
