@@ -276,7 +276,6 @@ export const resolveSession=async(request,env,{required=false}={})=>{
   const cookies=parseCookies(request);
   let accessToken=cookies[ACCESS_COOKIE];
   let refreshToken=cookies[REFRESH_COOKIE];
-  let accessRejected=false;
   try{
     if(accessToken){
       const verified=await verifyAccess(env,accessToken);
@@ -284,7 +283,6 @@ export const resolveSession=async(request,env,{required=false}={})=>{
     }
   }catch(error){
     if(!(error instanceof HttpError)||error.status!==401)throw error;
-    accessRejected=true;
   }
   if(refreshToken){
     try{
@@ -300,7 +298,6 @@ export const resolveSession=async(request,env,{required=false}={})=>{
       return null;
     }
   }
-  if(accessRejected)queueResponseCookies(request,clearSessionCookies());
   if(required)throw new HttpError(401,'authentication_required','Authentication is required');
   return null;
 };
