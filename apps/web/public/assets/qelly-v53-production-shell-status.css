@@ -179,3 +179,81 @@ html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surf
   html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #edge-dock{display:none!important}
   html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #main{margin-left:0!important;width:100%!important}
 }
+
+/* Mobile/tablet shell ownership: keep the accepted 94px total top stack as
+   24px system + 40px command + 30px governed context shelf. The Verify
+   evidence controls therefore remain visible rather than existing in a
+   zero-height shelf. */
+@media(max-width:920px){
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-header{
+    height:64px;
+    min-height:64px;
+    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-rows:24px 40px;
+    grid-template-areas:"status status" "search actions";
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-nav{display:none!important}
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #context-shelf{
+    display:block!important;
+    box-sizing:border-box;
+    width:100%!important;
+    height:30px!important;
+    min-height:30px!important;
+    padding:0 8px!important;
+    overflow:hidden!important;
+    border-bottom:1px solid color-mix(in srgb,var(--q-product-accent) 14%,var(--q-product-line))!important;
+    background:color-mix(in srgb,var(--q-product-bg) 98%,#000)!important;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #context-shelf .q-category-shelf{
+    display:flex!important;
+    position:static!important;
+    width:100%!important;
+    height:30px!important;
+    min-height:30px!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:4px!important;
+    padding:0!important;
+    margin:0!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    white-space:nowrap!important;
+    visibility:visible!important;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #context-shelf .q-category-shelf button{
+    display:inline-flex!important;
+    flex:0 0 auto!important;
+    min-height:22px!important;
+    padding:3px 8px!important;
+    align-items:center!important;
+    border:1px solid transparent!important;
+    border-radius:4px!important;
+    background:transparent!important;
+    color:var(--q-product-muted)!important;
+    font-size:8px!important;
+    font-weight:650!important;
+    line-height:1!important;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #context-shelf .q-category-shelf button.is-active{
+    color:#fff!important;
+    border-color:color-mix(in srgb,var(--q-product-accent) 38%,var(--q-product-line))!important;
+    background:color-mix(in srgb,var(--q-product-accent) 28%,#171015)!important;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #edge-dock{display:none!important}
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #main{margin-left:0!important;width:100%!important}
+}
+
+@media(max-width:760px){
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #context-shelf{
+    height:34px!important;
+    min-height:34px!important;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #context-shelf .q-category-shelf{
+    height:34px!important;
+    min-height:34px!important;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #context-shelf .q-category-shelf button{
+    min-height:26px!important;
+    padding:4px 8px!important;
+  }
+}
