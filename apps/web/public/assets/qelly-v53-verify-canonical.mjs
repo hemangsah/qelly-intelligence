@@ -36,12 +36,12 @@ function render(host,id){
 
   host.innerHTML=`
     <div class="q-v53-verify-kpis" aria-label="Qelly Verify quantitative summary">
-      <article><span>Engine</span><strong>${esc(formulaEngineMetadata.engineVersion)}</strong><small>Governed local</small></article>
       <article><span>Formulae</span><strong>${formulaEngineMetadata.definitionCount}</strong><small>Definitions</small></article>
       <article><span>Inputs</span><strong>${inputRows.length}</strong><small>Reference vector</small></article>
+      <article><span>Truth state</span><strong>${truthState}</strong><small>Reproducible</small></article>
+      <article><span>Engine</span><strong>${esc(formulaEngineMetadata.engineVersion)}</strong><small>Governed local</small></article>
       <article><span>Provider</span><strong>${esc(providerState)}</strong><small>External dependency</small></article>
       <article><span>Version</span><strong>${esc(definition.version??'versioned')}</strong><small>${esc(definition.formulaId)}</small></article>
-      <article><span>Truth state</span><strong>${truthState}</strong><small>Reproducible</small></article>
     </div>
     <div class="q-v53-verify-grid">
       <section class="q-panel q-v53-verify-primary" data-v53-verify-primary>
@@ -78,7 +78,14 @@ function render(host,id){
     </div>
     <section class="q-v53-verify-activity" data-v53-verify-activity aria-label="Activity and evidence">
       <header>Activity / evidence</header><div><article><time>00:00:00</time><strong>Definition selected</strong><span>${esc(definition.formulaId)}</span></article><article><time>00:00:00</time><strong>Reference vector loaded</strong><span>${inputRows.length} governed inputs</span></article><article><time>00:00:00</time><strong>Calculation completed</strong><span>${truthState}</span></article><article><time>00:00:00</time><strong>Sensitivity evaluated</strong><span>${esc(sensitivityLabel)}</span></article></div>
-    </section>`;
+    </section>
+    <nav class="q-v53-verify-mobile-nav" aria-label="Qelly Verify mobile domains">
+      <a href="#/live-markets"><strong>M</strong><span>Market</span></a>
+      <a href="#/research-workspace"><strong>R</strong><span>Research</span></a>
+      <a class="is-active" aria-current="page" href="#/qelly-verify"><strong>Q</strong><span>Quant</span></a>
+      <a href="#/decision-provenance"><strong>E</strong><span>Evidence</span></a>
+      <a href="#/feature-universe"><strong>M</strong><span>More</span></a>
+    </nav>`;
   host.querySelector('[data-v53-verify-formula]')?.addEventListener('change',(event)=>render(host,event.currentTarget.value));
 }
 
