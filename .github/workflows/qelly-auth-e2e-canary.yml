@@ -1,0 +1,142 @@
+name: Qelly Disposable Auth E2E Canary
+
+on:
+  push:
+    branches:
+      - canary/qelly-auth-e2e-20260815
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qelly-disposable-auth-e2e-canary
+  cancel-in-progress: true
+
+jobs:
+  auth-e2e:
+    name: Register, confirm, sign in and self-delete canary
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PUBLIC_URL: https://qelly-intelligence.pages.dev
+    steps:
+      - name: Exercise canonical production Auth without exposing credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +x
+          mkdir -p auth-canary-evidence
+          suffix="${GITHUB_SHA:0:8}"
+          EMAIL="hemangsah.dn+qelly-e2e-${suffix}@gmail.com"
+          PASSWORD="Qe2!$(openssl rand -hex 24)"
+          export EMAIL PASSWORD
+          echo "::add-mask::$PASSWORD"
+          cookie_jar="$(mktemp)"
+          trap 'rm -f "$cookie_jar" /tmp/qelly-register.json /tmp/qelly-login.json /tmp/qelly-config.json /tmp/qelly-delete.json /tmp/qelly-final-login.json' EXIT
+
+          register_body="$(node -e 'process.stdout.write(JSON.stringify({email:process.env.EMAIL,password:process.env.PASSWORD,displayName:"Qelly E2E Canary",organizationName:"Qelly E2E Canary",workspaceName:"Qelly E2E Canary",baseCurrency:"USD",timezone:"UTC"}))')"
+          register_status="$(curl --silent --show-error --location --max-time 30 \
+            -c "$cookie_jar" -b "$cookie_jar" \
+            -H "Origin: ${PUBLIC_URL}" \
+            -H 'Content-Type: application/json' \
+            -o /tmp/qelly-register.json -w '%{http_code}' \
+            -X POST --data "$register_body" \
+            "${PUBLIC_URL}/api/v1/auth/register")"
+          if [[ "$register_status" != "202" && "$register_status" != "201" ]]; then
+            echo "Canonical registration failed with HTTP ${register_status}"
+            cat /tmp/qelly-register.json
+            exit 1
+          fi
+          node -e 'const f=require("fs");const p=JSON.parse(f.readFileSync("/tmp/qelly-register.json","utf8"));if(p.accepted!==true)throw new Error("registration_not_accepted")'
+          echo "Disposable canary registration accepted for ${EMAIL}. Waiting for Gmail confirmation."
+
+          login_body="$(node -e 'process.stdout.write(JSON.stringify({email:process.env.EMAIL,password:process.env.PASSWORD}))')"
+          login_status="000"
+          confirmed_attempt=0
+          for attempt in $(seq 1 32); do
+            sleep 15
+            login_status="$(curl --silent --show-error --location --max-time 30 \
+              -c "$cookie_jar" -b "$cookie_jar" \
+              -H "Origin: ${PUBLIC_URL}" \
+              -H 'Content-Type: application/json' \
+              -o /tmp/qelly-login.json -w '%{http_code}' \
+              -X POST --data "$login_body" \
+              "${PUBLIC_URL}/api/v1/auth/login")"
+            if [[ "$login_status" == "200" ]]; then
+              confirmed_attempt="$attempt"
+              break
+            fi
+            if [[ "$login_status" == "429" ]]; then sleep 45; fi
+            echo "Canary awaiting confirmation; login probe ${attempt} returned HTTP ${login_status}."
+          done
+          if [[ "$login_status" != "200" ]]; then
+            echo "No successful canonical sign-in before canary timeout."
+            cat /tmp/qelly-login.json
+            exit 1
+          fi
+          node -e 'const f=require("fs");const p=JSON.parse(f.readFileSync("/tmp/qelly-login.json","utf8"));if(p.authenticated!==true||!p.context?.user?.userId)throw new Error("login_context_invalid")'
+
+          config_status="$(curl --silent --show-error --location --max-time 30 \
+            -c "$cookie_jar" -b "$cookie_jar" \
+            -H 'Cache-Control: no-cache' \
+            -o /tmp/qelly-config.json -w '%{http_code}' \
+            "${PUBLIC_URL}/api/v1/config")"
+          [[ "$config_status" == "200" ]] || { echo "Authenticated config failed HTTP ${config_status}"; exit 1; }
+          CSRF="$(node -e 'const f=require("fs");const p=JSON.parse(f.readFileSync("/tmp/qelly-config.json","utf8"));if(p.auth?.authenticated!==true||!p.csrf?.token)throw new Error("authenticated_config_invalid");process.stdout.write(p.csrf.token)')"
+          export CSRF
+          echo "::add-mask::$CSRF"
+
+          delete_body='{"reason":"Disposable production Auth E2E canary cleanup","privacyVersion":"2026-08-01","termsVersion":"2026-08-01"}'
+          delete_status="$(curl --silent --show-error --location --max-time 30 \
+            -c "$cookie_jar" -b "$cookie_jar" \
+            -H "Origin: ${PUBLIC_URL}" \
+            -H "X-Qelly-CSRF: ${CSRF}" \
+            -H 'Content-Type: application/json' \
+            -o /tmp/qelly-delete.json -w '%{http_code}' \
+            -X POST --data "$delete_body" \
+            "${PUBLIC_URL}/api/v1/account/delete")"
+          [[ "$delete_status" == "202" ]] || { echo "Canary cleanup request failed HTTP ${delete_status}"; cat /tmp/qelly-delete.json; exit 1; }
+
+          node <<'NODE'
+          const fs=require('fs');
+          const registration=JSON.parse(fs.readFileSync('/tmp/qelly-register.json','utf8'));
+          const login=JSON.parse(fs.readFileSync('/tmp/qelly-login.json','utf8'));
+          const config=JSON.parse(fs.readFileSync('/tmp/qelly-config.json','utf8'));
+          const deletion=JSON.parse(fs.readFileSync('/tmp/qelly-delete.json','utf8'));
+          const evidence={
+            target:'canonical-production',
+            publicUrl:process.env.PUBLIC_URL,
+            release:config.release,
+            registration:{accepted:registration.accepted===true,verificationRequired:registration.verificationRequired===true,callbackMode:registration.callbackMode||null},
+            signIn:{authenticated:login.authenticated===true,authenticationMethod:login.context?.session?.authenticationMethod||null,assurance:login.context?.session?.assurance||null},
+            authenticatedConfig:{authenticated:config.auth?.authenticated===true,csrfMode:config.csrf?.mode||null},
+            cleanup:{requested:deletion.requested===true,identityDeleted:deletion.identityDeleted===true,evidenceCompleted:deletion.evidenceCompleted===true,status:deletion.status||null,identityDeletionStatus:deletion.identityDeletionStatus??null}
+          };
+          fs.writeFileSync('auth-canary-evidence/result.json',JSON.stringify(evidence,null,2));
+          if(!evidence.signIn.authenticated)throw new Error('canonical_sign_in_not_proven');
+          if(!evidence.cleanup.requested)throw new Error('canary_cleanup_not_requested');
+          if(!evidence.cleanup.identityDeleted)throw new Error('canary_identity_not_deleted');
+          if(!evidence.cleanup.evidenceCompleted)throw new Error('canary_deletion_evidence_not_completed');
+          NODE
+
+          final_status="$(curl --silent --show-error --location --max-time 30 \
+            -H "Origin: ${PUBLIC_URL}" \
+            -H 'Content-Type: application/json' \
+            -o /tmp/qelly-final-login.json -w '%{http_code}' \
+            -X POST --data "$login_body" \
+            "${PUBLIC_URL}/api/v1/auth/login")"
+          if [[ "$final_status" == "200" ]]; then
+            echo 'Deleted canary could still sign in.'
+            exit 1
+          fi
+          node -e 'const fs=require("fs");const p=JSON.parse(fs.readFileSync("auth-canary-evidence/result.json","utf8"));p.cleanup.postDeletionLoginRejected=true;fs.writeFileSync("auth-canary-evidence/result.json",JSON.stringify(p,null,2))'
+          echo "Canonical Auth canary passed; sign-in succeeded on probe ${confirmed_attempt} and the disposable identity was deleted."
+
+      - name: Upload redacted Auth canary evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-disposable-auth-e2e-${{ github.sha }}
+          path: auth-canary-evidence
+          if-no-files-found: warn
+          retention-days: 3
