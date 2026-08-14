@@ -19,13 +19,31 @@ const environment=(overrides={})=>({
 });
 const browserHeaders=(extra={})=>({origin:SITE,...extra});
 
-test('readiness middleware remains fail-closed outside canonical production scope',async()=>{
+test('readiness middleware remains fail-closed with structured proof states outside canonical production',async()=>{
   let nextCalls=0;
   const request=new Request(`${SITE}/api/v1/readiness`);
   const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response('unexpected');}});
   const body=await response.json();
-  assert.equal(response.status,503);assert.equal(nextCalls,0);assert.equal(body.ready,false);assert.equal(body.status,'not_proven');
-  assert.equal(body.checks.authEmail.configured,false);assert.equal(body.checks.authEmail.proven,false);assert.equal(body.checks.rlsIsolation.proven,false);assert.equal(body.checks.providerFreshness.proven,false);
+  assert.equal(response.status,503);
+  assert.equal(nextCalls,0);
+  assert.equal(body.ready,false);
+  assert.equal(body.status,'not_proven');
+  assert.equal(body.checks.authEmail.configured,false);
+  assert.equal(body.checks.authEmail.proven,false);
+  assert.equal(body.dependencies.auth,'email_delivery_fail_closed');
+  assert.equal(body.checks.rlsIsolation.proven,false);
+  assert.equal(body.checks.providerFreshness.proven,false);
+});
+
+test('configured email transport never becomes ready outside canonical evidence scope',async()=>{
+  const request=new Request(`${SITE}/api/v1/readiness`);
+  const response=await onRequest({request,env:environment({QELLY_ENABLE_AUTH_EMAIL_DELIVERY:'true'}),next:async()=>new Response('unexpected')});
+  const body=await response.json();
+  assert.equal(response.status,503);
+  assert.equal(body.ready,false);
+  assert.equal(body.checks.authEmail.configured,true);
+  assert.equal(body.checks.authEmail.proven,false);
+  assert.equal(body.dependencies.auth,'canonical_production_scope_required');
 });
 
 test('canonical readiness returns 200 only when all production evidence canaries pass',async()=>{
@@ -42,41 +60,97 @@ test('canonical readiness returns 200 only when all production evidence canaries
   const request=new Request(`${CANONICAL}/api/v1/readiness`);
   const response=await onRequest({request,env,next:async()=>new Response('unexpected')});
   const body=await response.json();
-  assert.equal(response.status,200);assert.equal(body.ready,true);assert.equal(body.status,'ready');
-  for(const value of Object.values(body.checks))if(value.required){assert.equal(value.configured,true);assert.equal(value.proven,true);}
+  assert.equal(response.status,200);
+  assert.equal(body.ready,true);
+  assert.equal(body.status,'ready');
+  for(const check of Object.values(body.checks))if(check.required){assert.equal(check.configured,true);assert.equal(check.proven,true);}
 });
 
 test('unsafe Auth mutations fail closed when Origin is absent',async()=>{
   for(const path of ['auth/login','auth/register','auth/recovery','auth/callback','auth/password','auth/refresh','auth/logout']){
-    let nextCalls=0;const request=new Request(`${SITE}/api/v1/${path}`,{method:'POST',headers:{'content-type':'application/json'},body:'{}'});
+    let nextCalls=0;
+    const request=new Request(`${SITE}/api/v1/${path}`,{method:'POST',headers:{'content-type':'application/json'},body:'{}'});
     const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response('unsafe-auth-bypass',{status:204});}});
-    assert.equal(nextCalls,0,path);assert.equal(response.status,403,path);
+    assert.equal(nextCalls,0,path);
+    assert.equal(response.status,403,path);
   }
 });
 
 test('same-origin Auth mutations continue to the existing Auth handler',async()=>{
   for(const path of ['auth/login','auth/recovery','auth/callback','auth/password','auth/refresh','auth/logout']){
-    let nextCalls=0;const request=new Request(`${SITE}/api/v1/${path}`,{method:'POST',headers:browserHeaders({'content-type':'application/json'}),body:'{}'});
-    const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response(null,{status:204});}});assert.equal(nextCalls,1,path);assert.equal(response.status,204,path);
+    let nextCalls=0;
+    const request=new Request(`${SITE}/api/v1/${path}`,{method:'POST',headers:browserHeaders({'content-type':'application/json'}),body:'{}'});
+    const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response(null,{status:204});}});
+    assert.equal(nextCalls,1,path);
+    assert.equal(response.status,204,path);
   }
 });
 
 test('governance writes are intercepted before the legacy route handler',async()=>{
-  for(const path of ['cloud/opt-in','account/delete']){let nextCalls=0;const request=new Request(`${SITE}/api/v1/${path}`,{method:'POST',headers:browserHeaders()});const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response('legacy');}});assert.equal(nextCalls,0,path);assert.equal(response.status,401,path);}
+  for(const path of ['cloud/opt-in','account/delete']){
+    let nextCalls=0;
+    const request=new Request(`${SITE}/api/v1/${path}`,{method:'POST',headers:browserHeaders()});
+    const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response('legacy');}});
+    assert.equal(nextCalls,0,path);
+    assert.equal(response.status,401,path);
+  }
 });
 
 test('registration preferences are validated before the existing Auth handler runs when email delivery is enabled',async()=>{
   const enabled=environment({QELLY_ENABLE_AUTH_EMAIL_DELIVERY:'true'});
-  for(const payload of [{baseCurrency:'XYZ',timezone:'UTC'},{baseCurrency:'USD',timezone:'Not/A_Real_Zone'},{baseCurrency:'USD'}]){let nextCalls=0;const request=new Request(`${SITE}/api/v1/auth/register`,{method:'POST',headers:browserHeaders({'content-type':'application/json'}),body:JSON.stringify(payload)});const response=await onRequest({request,env:enabled,next:async()=>{nextCalls+=1;return new Response('accepted',{status:202});}});assert.equal(nextCalls,0);assert.equal(response.status,400);}
-  let nextCalls=0;const validRequest=new Request(`${SITE}/api/v1/auth/register`,{method:'POST',headers:browserHeaders({'content-type':'application/json'}),body:JSON.stringify({baseCurrency:'INR',timezone:'Asia/Kolkata'})});const validResponse=await onRequest({request:validRequest,env:enabled,next:async()=>{nextCalls+=1;return new Response('accepted',{status:202});}});assert.equal(nextCalls,1);assert.equal(validResponse.status,202);
+  for(const payload of [
+    {baseCurrency:'XYZ',timezone:'UTC'},
+    {baseCurrency:'USD',timezone:'Not/A_Real_Zone'},
+    {baseCurrency:'USD'}
+  ]){
+    let nextCalls=0;
+    const request=new Request(`${SITE}/api/v1/auth/register`,{method:'POST',headers:browserHeaders({'content-type':'application/json'}),body:JSON.stringify(payload)});
+    const response=await onRequest({request,env:enabled,next:async()=>{nextCalls+=1;return new Response('accepted',{status:202});}});
+    assert.equal(nextCalls,0);
+    assert.equal(response.status,400);
+  }
+
+  let nextCalls=0;
+  const validRequest=new Request(`${SITE}/api/v1/auth/register`,{method:'POST',headers:browserHeaders({'content-type':'application/json'}),body:JSON.stringify({baseCurrency:'INR',timezone:'Asia/Kolkata'})});
+  const validResponse=await onRequest({request:validRequest,env:enabled,next:async()=>{nextCalls+=1;return new Response('accepted',{status:202});}});
+  assert.equal(nextCalls,1);
+  assert.equal(validResponse.status,202);
 });
 
-test('registration remains delegated to the existing fail-closed Auth handler while email delivery is disabled',async()=>{let nextCalls=0;const request=new Request(`${SITE}/api/v1/auth/register`,{method:'POST',headers:browserHeaders({'content-type':'application/json'}),body:JSON.stringify({})});const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response('legacy-auth-boundary',{status:503});}});assert.equal(nextCalls,1);assert.equal(response.status,503);});
+test('registration remains delegated to the existing fail-closed Auth handler while email delivery is disabled',async()=>{
+  let nextCalls=0;
+  const request=new Request(`${SITE}/api/v1/auth/register`,{method:'POST',headers:browserHeaders({'content-type':'application/json'}),body:JSON.stringify({})});
+  const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response('legacy-auth-boundary',{status:503});}});
+  assert.equal(nextCalls,1);
+  assert.equal(response.status,503);
+});
 
-test('safe Auth reads and non-governed API routes continue through the existing handler',async()=>{for(const path of ['auth/me','health']){let nextCalls=0;const request=new Request(`${SITE}/api/v1/${path}`);const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response(null,{status:204});}});assert.equal(nextCalls,1,path);assert.equal(response.status,204,path);}});
+test('safe Auth reads and non-governed API routes continue through the existing handler',async()=>{
+  for(const path of ['auth/me','health']){
+    let nextCalls=0;
+    const request=new Request(`${SITE}/api/v1/${path}`);
+    const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response(null,{status:204});}});
+    assert.equal(nextCalls,1,path);
+    assert.equal(response.status,204,path);
+  }
+});
 
 test('middleware source owns governed paths, readiness evidence collection and Auth mutation origin enforcement',async()=>{
   const source=await readFile(new URL('../functions/api/v1/_middleware.js',import.meta.url),'utf8');
-  assert.equal(__middlewareTest.governanceRoute('cloud/opt-in','POST'),true);assert.equal(__middlewareTest.registrationRoute('auth/register','POST'),true);assert.equal(__middlewareTest.authMutationRoute('auth/recovery','POST'),true);assert.equal(__middlewareTest.unsafeMethod('OPTIONS'),false);
-  assert.match(source,/handleGovernance/);assert.match(source,/collectReadinessEvidence/);assert.match(source,/readinessSnapshot/);assert.match(source,/safeBaseCurrency/);assert.match(source,/safeTimezone/);assert.match(source,/requireOrigin\(request,env\)/);assert.match(source,/interceptAuthMutation/);
+  assert.equal(__middlewareTest.governanceRoute('cloud/opt-in','POST'),true);
+  assert.equal(__middlewareTest.governanceRoute('account/delete','POST'),true);
+  assert.equal(__middlewareTest.governanceRoute('cloud/opt-in','GET'),false);
+  assert.equal(__middlewareTest.registrationRoute('auth/register','POST'),true);
+  assert.equal(__middlewareTest.registrationRoute('auth/register','GET'),false);
+  assert.equal(__middlewareTest.authMutationRoute('auth/recovery','POST'),true);
+  assert.equal(__middlewareTest.authMutationRoute('auth/me','GET'),false);
+  assert.equal(__middlewareTest.unsafeMethod('POST'),true);
+  assert.equal(__middlewareTest.unsafeMethod('OPTIONS'),false);
+  assert.match(source,/handleGovernance/);
+  assert.match(source,/collectReadinessEvidence/);
+  assert.match(source,/readinessSnapshot/);
+  assert.match(source,/safeBaseCurrency/);
+  assert.match(source,/safeTimezone/);
+  assert.match(source,/requireOrigin\(request,env\)/);
+  assert.match(source,/interceptAuthMutation/);
 });
