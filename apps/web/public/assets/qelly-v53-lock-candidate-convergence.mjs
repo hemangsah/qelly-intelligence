@@ -1,6 +1,6 @@
 // Qelly Intelligence — V5.3 institutional-density lock candidate convergence.
-// Presentation-only: renders the approved first-view reference shell for the 15 lock surfaces.
-// Existing route DOM is preserved in a secondary governed tools section below the locked surface.
+// Presentation-only: prepends the approved first-view reference shell without
+// reparenting, hiding, disabling, or mutating the functional route DOM.
 
 const STYLE_HREF=new URL('./qelly-v53-lock-candidate-convergence.css',import.meta.url).href;
 const root=document.documentElement;
@@ -11,7 +11,6 @@ const SPECS=Object.freeze({
   market:{slot:1,section:'MARKET COMMAND',title:'Market Command',subtitle:'Cross-asset context, liquidity, breadth and evidence',tone:'#6EA8FF'},
   'advanced-chart':{slot:2,section:'ADVANCED CHART',title:'Advanced Chart Studio',subtitle:'Multi-timeframe analysis with overlays, events and provenance',tone:'#16A36A'},
   'research-workspace':{slot:3,section:'RESEARCH & EVIDENCE',title:'Research Workspace',subtitle:'Claims, citations, contradictions, methodology and audit trail',tone:'#6EA8FF'},
-  'qelly-verify':{slot:4,section:'QUANT & VERIFICATION',title:'Qelly Verify',subtitle:'Formula validation, assumptions, sensitivity and reproducibility',tone:'#16A36A'},
   'screener-lab':{slot:5,section:'SCREENERS & QUANT',title:'Screener Lab',subtitle:'Evidence-aware factor filtering and ranked scenario comparison',tone:'#6EA8FF'},
   'portfolio-analytics':{slot:6,section:'PORTFOLIO & RISK',title:'Portfolio Risk',subtitle:'Exposure, attribution, drawdown, VaR and scenario intelligence',tone:'#16A36A'},
   'theme-lab':{slot:7,section:'THEME INTELLIGENCE',title:'Theme Studio',subtitle:'Governed appearance, density, persona and mindset controls',tone:'#A469D6'},
@@ -43,7 +42,18 @@ function loadStyle(){
   document.head.append(link);
 }
 
-function routeFromHash(){return location.hash.replace(/^#\//,'').split(/[?/#]/)[0]||'live-markets';}
+function routeState(){
+  const raw=location.hash.replace(/^#\/?/,'');
+  const [path='',query='']=raw.split('?');
+  return {route:path.split('/')[0]||'live-markets',params:new URLSearchParams(query)};
+}
+function eligibleSpec(){
+  const {route,params}=routeState();
+  if(route==='qelly-verify')return null;
+  if(route==='market'&&['qelly-verify','evidence-methodology'].includes(params.get('view')))return null;
+  return SPECS[route]||null;
+}
+function routeFromHash(){return routeState().route;}
 function auditId(slot){return `Q5-${String(slot).padStart(3,'0')}`;}
 function esc(value){return String(value).replace(/[&<>"']/g,(char)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));}
 
@@ -105,6 +115,7 @@ function buildSurface(spec,route){
   surface.className='q-v53-lock-page';
   surface.dataset.v53LockSurface=String(spec.slot);
   surface.dataset.v53LockRoute=route;
+  surface.setAttribute('aria-label',`${spec.title} V5.3 reference workspace`);
   surface.innerHTML=`
     <header class="q-v53-lock-heading"><div><p>${esc(spec.section)}</p><h1>${esc(spec.title)}</h1><span>${esc(spec.subtitle)}</span></div><em>SIMULATED REFERENCE DATA</em></header>
     ${kpis()}
@@ -118,53 +129,37 @@ function buildSurface(spec,route){
   return surface;
 }
 
-function wrapRoute(spec,route){
-  if(!main||!main.firstElementChild)return;
-  const current=main.querySelector(':scope > .q-v53-lock-page');
-  if(current?.dataset.v53LockRoute===route){adoptStrays();return;}
-
-  root.dataset.v53LockCandidate='true';
-  root.dataset.v53LockSlot=String(spec.slot);
-  main.dataset.v53LockCandidate='true';
-  main.dataset.v53LockSlot=String(spec.slot);
-
-  const originalNodes=[...main.childNodes];
-  const tools=document.createElement('details');
-  tools.className='q-v53-lock-route-tools';
-  tools.innerHTML='<summary>Full route tools & governed evidence</summary><div class="q-v53-lock-route-tools-body"></div>';
-  const body=tools.querySelector('.q-v53-lock-route-tools-body');
-  originalNodes.forEach(node=>body.append(node));
-
-  main.append(buildSurface(spec,route),tools);
-  requestAnimationFrame(()=>root.dataset.v53LockReady='true');
+function clearSyntheticSurface(){
+  main?.querySelectorAll(':scope > .q-v53-lock-page').forEach(node=>node.remove());
 }
-
-function adoptStrays(){
-  if(!main)return;
-  const body=main.querySelector(':scope > .q-v53-lock-route-tools > .q-v53-lock-route-tools-body');
-  if(!body)return;
-  [...main.childNodes].forEach(node=>{
-    if(node.nodeType===1&&(node.matches('.q-v53-lock-page')||node.matches('.q-v53-lock-route-tools')))return;
-    if(node.nodeType===3&&!node.textContent.trim()){node.remove();return;}
-    body.append(node);
-  });
-}
-
 function clearLockState(){
+  clearSyntheticSurface();
   delete root.dataset.v53LockCandidate;
   delete root.dataset.v53LockSlot;
   delete root.dataset.v53LockReady;
   if(main){delete main.dataset.v53LockCandidate;delete main.dataset.v53LockSlot;}
 }
+function prependSurface(spec,route){
+  if(!main||!main.firstElementChild)return;
+  const current=main.querySelector(':scope > .q-v53-lock-page');
+  if(current?.dataset.v53LockRoute===route&&current.dataset.v53LockSurface===String(spec.slot))return;
+  clearSyntheticSurface();
+  root.dataset.v53LockCandidate='true';
+  root.dataset.v53LockSlot=String(spec.slot);
+  main.dataset.v53LockCandidate='true';
+  main.dataset.v53LockSlot=String(spec.slot);
+  main.prepend(buildSurface(spec,route));
+  requestAnimationFrame(()=>root.dataset.v53LockReady='true');
+}
 
 let scheduled=false;
 function refresh(){
   scheduled=false;
-  const route=routeFromHash();
-  const spec=SPECS[route];
+  const {route}=routeState();
+  const spec=eligibleSpec();
   if(!spec){clearLockState();return;}
   if(!main||main.getAttribute('aria-busy')==='true'||!main.firstElementChild)return;
-  wrapRoute(spec,route);
+  prependSurface(spec,route);
 }
 function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(refresh);}
 
@@ -174,4 +169,4 @@ window.addEventListener('pageshow',schedule);
 if(main)new MutationObserver(schedule).observe(main,{childList:true});
 for(const delay of [0,60,180,500,1200])setTimeout(schedule,delay);
 
-window.QellyV53LockCandidate=Object.freeze({schedule,routeFromHash,specs:SPECS});
+window.QellyV53LockCandidate=Object.freeze({schedule,routeFromHash,eligibleSpec,specs:SPECS});
