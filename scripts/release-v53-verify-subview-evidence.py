@@ -19,16 +19,18 @@ VIEWPORTS=[
 SCENARIOS=[
     {
         'id':'qelly-verify',
+        'kind':'verify',
         'hostRoute':'qelly-verify',
         'inputHash':'#/market?view=qelly-verify',
         'canonicalHash':'#/qelly-verify',
         'title':'Qelly Verify · Qelly Intelligence',
         'selector':'[data-qelly-verify-surface]',
         'owner':'true',
-        'requiredText':['Local-only prototype evidence workflow','Data transfer','Execution','Disabled'],
+        'requiredText':['Qelly Verify','Formula validation','assumptions','sensitivity','reproducibility'],
     },
     {
         'id':'evidence-methodology',
+        'kind':'methodology',
         'hostRoute':'market',
         'inputHash':'#/evidence-methodology',
         'canonicalHash':'#/market?view=evidence-methodology',
@@ -117,6 +119,7 @@ def generated_runner(scenario):
 
     selector=scenario['selector']
     owner=scenario['owner']
+    kind=scenario['kind']
     required=json.dumps(scenario['requiredText'])
     probe_anchor="                    if not heading or heading.strip() in RENDER_FAILURE_HEADINGS:"
     probe_code=f'''                    subview_probe = page.evaluate("""() => {{
@@ -133,32 +136,27 @@ def generated_runner(scenario):
                         }};
                       }};
                       const main=document.getElementById('main');
-                      const shelf=document.querySelector('#context-shelf .q-category-shelf');
-                      const shelfVerify=document.querySelector('#context-shelf [data-qelly-verify-link="shelf"]');
-                      const shelfMethodology=document.querySelector('#context-shelf [data-qelly-methodology-link="shelf"]');
-                      const related=document.querySelector('#main .q-worldclass-context .q-worldclass-related');
-                      const contextVerify=document.querySelector('#main .q-worldclass-context [data-qelly-verify-link="worldclass"]');
-                      const contextMethodology=document.querySelector('#main .q-worldclass-context [data-qelly-methodology-link="worldclass"]');
+                      const hero=document.querySelector('.q-verify-hero');
+                      const workbench=document.querySelector('[data-v53-verify-workbench="accepted-lock"]');
                       return {{
                         owner:main?.dataset.qellyVerifyOwner??null,
                         surface:Boolean(document.querySelector({selector!r})),
                         mainText:main?.innerText??'',
-                        shellMode:innerWidth<=920?'shelf':'worldclass',
                         primaryVerify:Boolean(document.querySelector('#primary-nav [data-qelly-verify-link="shell"]')),
                         primaryMethodology:Boolean(document.querySelector('#primary-nav [data-qelly-methodology-link="shell"]')),
-                        shelfVerify:Boolean(shelfVerify),
-                        shelfMethodology:Boolean(shelfMethodology),
-                        shelfBounds:bounds(shelf),
-                        shelfVerifyBounds:bounds(shelfVerify),
-                        shelfMethodologyBounds:bounds(shelfMethodology),
-                        contextVerify:Boolean(contextVerify),
-                        contextMethodology:Boolean(contextMethodology),
-                        contextBounds:bounds(related),
-                        contextVerifyBounds:bounds(contextVerify),
-                        contextMethodologyBounds:bounds(contextMethodology),
-                        hero:bounds(document.querySelector('.q-verify-hero')),
+                        heading:hero?.querySelector('h1')?.textContent?.trim()??null,
+                        subtitle:hero?.querySelector('.q-verify-hero__copy>p:not(.q-verify-kicker)')?.textContent?.trim()??null,
+                        hero:bounds(hero),
                         heroCopy:bounds(document.querySelector('.q-verify-hero__copy')),
-                        boundary:bounds(document.querySelector('.q-verify-boundary'))
+                        boundary:bounds(document.querySelector('.q-verify-boundary')),
+                        workbench:bounds(workbench),
+                        primary:bounds(document.querySelector('[data-v53-verify-primary]')),
+                        context:bounds(document.querySelector('[data-v53-verify-context]')),
+                        inspector:bounds(document.querySelector('[data-v53-verify-inspector]')),
+                        activity:bounds(document.querySelector('[data-v53-verify-activity]')),
+                        formulaSelector:Boolean(document.querySelector('[data-v53-verify-formula]')),
+                        kpiCount:document.querySelectorAll('.q-v53-verify-kpis article').length,
+                        evidenceCount:document.querySelectorAll('.q-v53-verify-evidence>div').length
                       }};
                     }}""")
                     if not subview_probe.get('surface'):
@@ -171,32 +169,26 @@ def generated_runner(scenario):
                     for key in ('primaryVerify','primaryMethodology'):
                         if not subview_probe.get(key):
                             errors.append({{'type':'subview-discoverability','text':f"Missing governed primary-navigation marker: {{key}}"}})
-                    if subview_probe.get('shellMode') == 'shelf':
-                        for key in ('shelfVerify','shelfMethodology'):
-                            if not subview_probe.get(key):
-                                errors.append({{'type':'subview-discoverability','text':f"Missing governed mobile/tablet shelf marker: {{key}}"}})
-                        container_bounds=subview_probe.get('shelfBounds')
-                        control_keys=('shelfVerifyBounds','shelfMethodologyBounds')
-                        surface_name='shelf'
+                    if {kind!r} == 'verify':
+                        if subview_probe.get('heading') != 'Qelly Verify':
+                            errors.append({{'type':'verify-lock','text':f"Accepted Verify heading missing: {{subview_probe.get('heading')!r}}"}})
+                        if subview_probe.get('subtitle') != 'Formula validation, assumptions, sensitivity and reproducibility.':
+                            errors.append({{'type':'verify-lock','text':f"Accepted Verify subtitle missing: {{subview_probe.get('subtitle')!r}}"}})
+                        if not subview_probe.get('formulaSelector'):
+                            errors.append({{'type':'verify-lock','text':'Governed formula selector is missing'}})
+                        if (subview_probe.get('kpiCount') or 0) < 6:
+                            errors.append({{'type':'verify-lock','text':f"Verify KPI strip is incomplete: {{subview_probe.get('kpiCount')}}"}})
+                        if (subview_probe.get('evidenceCount') or 0) < 6:
+                            errors.append({{'type':'verify-lock','text':f"Verify Inspector evidence is incomplete: {{subview_probe.get('evidenceCount')}}"}})
+                        required_regions=('workbench','primary','context','inspector','activity')
                     else:
-                        for key in ('contextVerify','contextMethodology'):
-                            if not subview_probe.get(key):
-                                errors.append({{'type':'subview-discoverability','text':f"Missing governed desktop context marker: {{key}}"}})
-                        container_bounds=subview_probe.get('contextBounds')
-                        control_keys=('contextVerifyBounds','contextMethodologyBounds')
-                        surface_name='worldclass context'
-                    if not container_bounds or not container_bounds.get('visible'):
-                        errors.append({{'type':'subview-discoverability','text':f"Active governed {{surface_name}} container is not visible: {{container_bounds}}"}})
-                    for key in control_keys:
-                        control_bounds=subview_probe.get(key)
-                        if not control_bounds or not control_bounds.get('visible'):
-                            errors.append({{'type':'subview-discoverability','text':f"Governed {{surface_name}} control is not visible: {{key}}"}})
-                        elif container_bounds and container_bounds.get('visible') and (control_bounds.get('left',0)<container_bounds.get('left',0)-2 or control_bounds.get('right',0)>container_bounds.get('right',0)+2):
-                            errors.append({{'type':'subview-discoverability','text':f"Governed {{surface_name}} control is outside the visible container: {{key}} {{control_bounds}} container={{container_bounds}}"}})
-                    for key in ('heroCopy','boundary'):
-                        bounds=subview_probe.get(key)
-                        if bounds and bounds.get('visible') and (bounds.get('left',0)<-2 or bounds.get('right',0)>bounds.get('viewportWidth',0)+2):
-                            errors.append({{'type':'subview-horizontal-bounds','text':f"{{key}} crossed viewport boundary: {{bounds}}"}})
+                        required_regions=('hero','heroCopy','boundary')
+                    for key in required_regions:
+                        region=subview_probe.get(key)
+                        if not region or not region.get('visible'):
+                            errors.append({{'type':'subview-visibility','text':f"Governed region is not visible: {{key}} {{region}}"}})
+                        elif region.get('left',0)<-2 or region.get('right',0)>region.get('viewportWidth',0)+2:
+                            errors.append({{'type':'subview-horizontal-bounds','text':f"Governed region crossed viewport boundary: {{key}} {{region}}"}})
                     if not heading or heading.strip() in RENDER_FAILURE_HEADINGS:'''
     source=replace_once(source,probe_anchor,probe_code,'subview contract probe')
     source=replace_once(
@@ -282,9 +274,9 @@ def main():
     alias_normalized=all(by[pair].get('resolvedHash')==next(item['canonicalHash'] for item in SCENARIOS if item['id']==pair[0]) for pair in expected if pair in by)
     passed=len(results)==len(expected) and not missing and not failures and alias_normalized
     manifest={
-        'schemaVersion':2,
+        'schemaVersion':3,
         'evidenceHead':os.getenv('QELLY_V53_VERIFY_EVIDENCE_SHA','local'),
-        'boundary':'governed local browser evidence; no production user data; no execution',
+        'boundary':'governed local browser evidence; accepted V5.3 Verify workstation; no production user data; no execution',
         'canonicalRouteCount':len(definitions),
         'canonicalRoute':'qelly-verify',
         'methodologyHostRoute':'market',
@@ -295,6 +287,8 @@ def main():
         'failureCount':len(failures),
         'missing':missing,
         'aliasNormalized':alias_normalized,
+        'verifyContract':'formula-first accepted-lock workstation with primary, context, Inspector and activity/evidence regions',
+        'mobileContract':'task-first accepted-lock composition; no duplicate mobile top shelf required',
         'surfaces':[{key:value for key,value in item.items() if key!='requiredText'} for item in SCENARIOS],
         'viewports':[{'name':name,'width':width,'height':height} for name,width,height in VIEWPORTS],
         'contactSheets':sheets,
@@ -307,4 +301,5 @@ def main():
         raise SystemExit(1)
 
 
-if __name__=='__main__': main()
+if __name__=='__main__':
+    main()
