@@ -97,9 +97,20 @@ async function inspect({name,viewport,reducedMotion='no-preference'}){
   }));
   await page.screenshot({path:path.join(output,`${name}-report.png`),fullPage:true});
 
-  await page.goto(`${baseUrl}/#/market?view=evidence-methodology`,{waitUntil:'domcontentloaded',timeout:45000});
-  await page.waitForSelector('[data-qelly-methodology-surface]',{state:'visible',timeout:30000});
+  /* Enter through the governed shorthand route and require the final
+     methodology renderer to own #main before sampling the DOM. A transient
+     convergence surface also carries the methodology marker, so waiting only
+     on that marker is insufficient on reduced-motion mobile renders. */
+  await page.goto(`${baseUrl}/#/evidence-methodology`,{waitUntil:'domcontentloaded',timeout:45000});
+  await page.waitForURL(url=>url.hash==='#/market?view=evidence-methodology',{timeout:30000});
+  await page.waitForFunction(()=>{
+    const main=document.getElementById('main');
+    const heading=document.querySelector('.q-methodology-page .q-verify-hero h1');
+    return main?.dataset.qellyVerifyOwner==='methodology'&&heading?.textContent?.trim()==='Every conclusion needs an evidence state.';
+  },null,{timeout:30000});
   const methodology=await page.evaluate(()=>({
+    hash:location.hash,
+    owner:document.getElementById('main')?.dataset.qellyVerifyOwner||null,
     heading:document.querySelector('.q-methodology-page .q-verify-hero h1')?.textContent?.trim()||null,
     classCount:document.querySelectorAll('.q-methodology-classes article').length,
     moduleCount:document.querySelectorAll('.q-methodology-modules>article').length,
@@ -133,6 +144,8 @@ for(const result of results){
   if(!result.report.exportAvailable||!result.report.printAvailable)throw new Error(`${result.name}_export_controls_missing`);
   if(!/processed in this browser|not uploaded/i.test(result.report.localBoundary||''))throw new Error(`${result.name}_local_boundary_missing`);
   if(result.report.horizontalOverflow)throw new Error(`${result.name}_report_horizontal_overflow`);
+  if(result.methodology.hash!=='#/market?view=evidence-methodology')throw new Error(`${result.name}_methodology_alias_not_normalized_${result.methodology.hash}`);
+  if(result.methodology.owner!=='methodology')throw new Error(`${result.name}_methodology_owner_invalid_${result.methodology.owner}`);
   if(result.methodology.heading!=='Every conclusion needs an evidence state.')throw new Error(`${result.name}_methodology_heading_invalid`);
   if(result.methodology.classCount!==4||result.methodology.moduleCount!==6||result.methodology.notAssessedCount!==8||result.methodology.scoreDisclosureCount!==3)throw new Error(`${result.name}_methodology_incomplete`);
   if(!/qelly-verify-methodology\/1\.0\.0/i.test(result.methodology.versionText))throw new Error(`${result.name}_methodology_version_missing`);
