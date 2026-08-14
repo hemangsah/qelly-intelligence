@@ -43,18 +43,32 @@ async function inspect({name,viewport,reducedMotion='no-preference'}){
     throw Object.assign(new Error(`${name}_verify_route_unavailable_${JSON.stringify(diagnostics)}`),{cause:error});
   }
 
-  const canonical=await page.evaluate(()=>({
-    hash:location.hash,
-    appReady:document.documentElement.dataset.appReady||null,
-    heading:document.querySelector('.q-verify-hero h1')?.textContent?.trim()||null,
-    workbenchVisible:Boolean(document.querySelector('[data-v53-verify-workbench="accepted-lock"]')),
-    formulaSelector:Boolean(document.querySelector('[data-v53-verify-formula]')),
-    kpiCount:document.querySelectorAll('.q-v53-verify-kpis article').length,
-    evidenceCount:document.querySelectorAll('.q-v53-verify-evidence>div').length,
-    inspectorVisible:Boolean(document.querySelector('.q-v53-verify-inspector')),
-    strategySecondary:Boolean(document.querySelector('.q-v53-strategy-tools')),
-    horizontalOverflow:document.body.scrollWidth>document.documentElement.clientWidth+1
-  }));
+  const canonical=await page.evaluate(()=>{
+    const visible=selector=>{
+      const node=document.querySelector(selector);
+      if(!node)return false;
+      const box=node.getBoundingClientRect();
+      const style=getComputedStyle(node);
+      return box.width>0&&box.height>0&&style.display!=='none'&&style.visibility!=='hidden';
+    };
+    return {
+      hash:location.hash,
+      appReady:document.documentElement.dataset.appReady||null,
+      heading:document.querySelector('.q-verify-hero h1')?.textContent?.trim()||null,
+      subtitle:document.querySelector('.q-verify-hero__copy>p:not(.q-verify-kicker)')?.textContent?.trim()||null,
+      workbenchVisible:visible('[data-v53-verify-workbench="accepted-lock"]'),
+      primaryVisible:visible('[data-v53-verify-primary]'),
+      contextVisible:visible('[data-v53-verify-context]'),
+      inspectorVisible:visible('[data-v53-verify-inspector]'),
+      activityVisible:visible('[data-v53-verify-activity]'),
+      formulaSelector:Boolean(document.querySelector('[data-v53-verify-formula]')),
+      kpiCount:document.querySelectorAll('.q-v53-verify-kpis article').length,
+      evidenceCount:document.querySelectorAll('.q-v53-verify-evidence>div').length,
+      activityEntryCount:document.querySelectorAll('[data-v53-verify-activity] article').length,
+      strategySecondary:Boolean(document.querySelector('.q-v53-strategy-tools')),
+      horizontalOverflow:document.body.scrollWidth>document.documentElement.clientWidth+1
+    };
+  });
 
   /* Preserve and exercise the historical local CSV analyzer as a secondary
      evidence tool. It must not own the primary accepted-lock surface. */
@@ -106,8 +120,9 @@ for(const result of results){
   if(result.navigationStatus!==200)throw new Error(`${result.name}_navigation_${result.navigationStatus}`);
   if(result.canonical.hash!=='#/qelly-verify')throw new Error(`${result.name}_alias_not_normalized_${result.canonical.hash}`);
   if(result.canonical.appReady!=='true')throw new Error(`${result.name}_app_not_ready`);
-  if(result.canonical.heading!=='Formula validation, assumptions, sensitivity and reproducibility.')throw new Error(`${result.name}_canonical_heading_invalid`);
-  if(!result.canonical.workbenchVisible||!result.canonical.formulaSelector||result.canonical.kpiCount<6||result.canonical.evidenceCount<6||!result.canonical.inspectorVisible)throw new Error(`${result.name}_canonical_workbench_incomplete`);
+  if(result.canonical.heading!=='Qelly Verify')throw new Error(`${result.name}_canonical_heading_invalid`);
+  if(result.canonical.subtitle!=='Formula validation, assumptions, sensitivity and reproducibility.')throw new Error(`${result.name}_canonical_subtitle_invalid`);
+  if(!result.canonical.workbenchVisible||!result.canonical.primaryVisible||!result.canonical.contextVisible||!result.canonical.inspectorVisible||!result.canonical.activityVisible||!result.canonical.formulaSelector||result.canonical.kpiCount<6||result.canonical.evidenceCount<6||result.canonical.activityEntryCount<4)throw new Error(`${result.name}_canonical_workbench_incomplete`);
   if(!result.canonical.strategySecondary)throw new Error(`${result.name}_secondary_strategy_tools_missing`);
   if(result.canonical.horizontalOverflow)throw new Error(`${result.name}_canonical_horizontal_overflow`);
   if(result.report.flow.join('>')!=='Upload>Validate>Analyze>Decide')throw new Error(`${result.name}_workflow_invalid`);
