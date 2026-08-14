@@ -14,6 +14,13 @@ const old='a10dcf0b1b045481234587e1bb14639c2c2009e8';
 
 const jsonResponse=(status,payload)=>new Response(JSON.stringify(payload),{status,headers:{'Content-Type':'application/json'}});
 const scriptResponse=(releaseSha)=>new Response(`window.__QELLY_CONFIG__=Object.freeze({releaseSha:'${releaseSha}',deploymentStage:'global-public-beta'});`,{status:200,headers:{'Content-Type':'application/javascript'}});
+const readinessChecks=()=>({
+  supabase:{required:true,configured:true,proven:true},
+  authEmail:{required:true,configured:true,proven:true},
+  rlsIsolation:{required:true,configured:true,proven:true},
+  providerFreshness:{required:true,configured:true,proven:true}
+});
+const ready=(releaseSha=sha)=>({ready:true,status:'ready',releaseSha,checks:readinessChecks()});
 
 const completeInput=(overrides={})=>({
   targetSha:sha,
@@ -22,18 +29,18 @@ const completeInput=(overrides={})=>({
   browserConfigStatus:200,
   apiConfigStatus:200,
   healthStatus:200,
-  readinessStatus:503,
+  readinessStatus:200,
   release:{releaseSha:sha},
   build:{releaseSha:sha},
   browserConfig:{releaseSha:sha},
   apiConfig:{runtime:{releaseSha:sha}},
   health:{status:'ok',releaseSha:sha},
-  readiness:{ready:false,status:'not_proven',releaseSha:sha},
+  readiness:ready(),
   ...overrides
 });
 
 test('runtime convergence rejects a mixed release rollout',()=>{
-  const result=validateRuntimeConvergence(completeInput({readiness:{ready:false,status:'not_proven',releaseSha:old}}));
+  const result=validateRuntimeConvergence(completeInput({readiness:ready(old)}));
   assert.equal(result.converged,false);
   assert.deepEqual(result.checks,{
     release:true,
@@ -44,6 +51,14 @@ test('runtime convergence rejects a mixed release rollout',()=>{
     readiness:false
   });
   assert.equal(result.observed.readinessSha,old);
+});
+
+test('runtime convergence rejects an unproven required readiness canary',()=>{
+  const result=validateRuntimeConvergence(completeInput({
+    readiness:{...ready(),checks:{...readinessChecks(),providerFreshness:{required:true,configured:true,proven:false}}}
+  }));
+  assert.equal(result.converged,false);
+  assert.equal(result.checks.readiness,false);
 });
 
 test('stability requires consecutive complete samples and resets on any mismatch',()=>{
@@ -68,7 +83,7 @@ test('runtime convergence waits for two consecutive complete six-surface samples
     if(url.includes('/health'))return jsonResponse(200,{status:'ok',releaseSha:sha});
     if(url.includes('/readiness')){
       readinessCalls+=1;
-      return jsonResponse(503,{ready:false,status:'not_proven',releaseSha:readinessCalls===1?old:sha});
+      return jsonResponse(200,ready(readinessCalls===1?old:sha));
     }
     throw new Error(`Unexpected URL ${url}`);
   };
@@ -113,7 +128,7 @@ test('a transient stale surface resets the stable convergence streak',async()=>{
     if(url.includes('qelly-config.js'))return scriptResponse(sha);
     if(url.includes('/api/v1/config'))return jsonResponse(200,{runtime:{releaseSha:sha}});
     if(url.includes('/health'))return jsonResponse(200,{status:'ok',releaseSha:sha});
-    if(url.includes('/readiness'))return jsonResponse(503,{ready:false,status:'not_proven',releaseSha:sha});
+    if(url.includes('/readiness'))return jsonResponse(200,ready());
     throw new Error(`Unexpected URL ${url}`);
   };
   try{
@@ -147,7 +162,7 @@ test('one complete sample is insufficient when two stable samples are required',
     if(url.includes('qelly-config.js'))return scriptResponse(sha);
     if(url.includes('/api/v1/config'))return jsonResponse(200,{runtime:{releaseSha:sha}});
     if(url.includes('/health'))return jsonResponse(200,{status:'ok',releaseSha:sha});
-    if(url.includes('/readiness'))return jsonResponse(503,{ready:false,status:'not_proven',releaseSha:sha});
+    if(url.includes('/readiness'))return jsonResponse(200,ready());
     throw new Error(`Unexpected URL ${url}`);
   };
   try{

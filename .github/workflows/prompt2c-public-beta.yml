@@ -49,7 +49,10 @@ jobs:
           node --check functions/_lib/auth.js
           node --check functions/_lib/data.js
           node --check functions/_lib/providers.js
+          node --check functions/_lib/readiness.js
           node --check 'functions/api/v1/[[path]].js'
+          node --check functions/api/v1/_middleware.js
+          node --check functions/api/v1/readiness.js
           node --check functions/_middleware.js
           node --check apps/web/public/assets/qelly-auth-callback.mjs
           node --check apps/web/public/assets/qelly-cloud-sync.mjs
@@ -120,7 +123,7 @@ jobs:
           fetch_route 'legal/privacy.html' '200'
           fetch_route 'support.html' '200'
           fetch_route 'api/v1/health' '200'
-          fetch_route 'api/v1/readiness' '503'
+          fetch_route 'api/v1/readiness' '200'
           fetch_route 'api/v1/config' '200'
           fetch_route 'api/v1/providers/status' '200'
           fetch_route 'api/v1/providers/binance?symbol=BTCUSDT' '200'
@@ -144,8 +147,11 @@ jobs:
           if (release.releaseSha !== process.env.RELEASE_SHA) throw new Error(`release_sha_mismatch_${release.releaseSha}`);
           if (build.releaseSha !== process.env.RELEASE_SHA) throw new Error(`build_sha_mismatch_${build.releaseSha}`);
           if (health.releaseSha !== process.env.RELEASE_SHA || health.status !== 'ok') throw new Error('health_identity_mismatch');
-          if (readiness.releaseSha && readiness.releaseSha !== process.env.RELEASE_SHA) throw new Error('readiness_identity_mismatch');
-          if (readiness.ready !== false || readiness.status !== 'not_proven') throw new Error(`readiness_truth_invalid_${JSON.stringify(readiness)}`);
+          if (readiness.releaseSha !== process.env.RELEASE_SHA) throw new Error('readiness_identity_mismatch');
+          if (readiness.ready !== true || readiness.status !== 'ready') throw new Error(`readiness_truth_invalid_${JSON.stringify(readiness)}`);
+          for (const [name, check] of Object.entries(readiness.checks || {})) {
+            if (check.required === true && (check.configured !== true || check.proven !== true)) throw new Error(`readiness_check_unproven_${name}`);
+          }
 
           for (const [expectedProvider, payload, expectedTerms] of [
             ['binance', binance, 'blocked_pending_redistribution_rights'],
