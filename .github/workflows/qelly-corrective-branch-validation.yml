@@ -34,7 +34,22 @@ jobs:
         run: npm ci
 
       - name: Run complete Node test suite
-        run: npm test
+        shell: bash
+        run: |
+          set +e
+          npm test 2>&1 | tee qelly-test.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            failure="$(grep -m1 -E 'not ok|AssertionError|ERR_ASSERTION|Error:' qelly-test.log || true)"
+            if [ -z "$failure" ]; then
+              failure="$(tail -n 1 qelly-test.log || true)"
+            fi
+            failure="${failure//'%'/'%25'}"
+            failure="${failure//$'\r'/'%0D'}"
+            failure="${failure//$'\n'/'%0A'}"
+            echo "::error title=Qelly Node test failure::$failure"
+          fi
+          exit "$status"
 
       - name: Build Cloudflare frontend bundle
         run: npm run build:frontend
