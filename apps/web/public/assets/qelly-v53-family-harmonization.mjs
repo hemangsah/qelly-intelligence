@@ -116,4 +116,7 @@ function start(){
   window.addEventListener('resize',()=>requestAnimationFrame(annotateViewport),{passive:true});
 }
 
-if(typeof document!=='undefined'&&typeof window!=='undefined')start();
+if(typeof document!=='undefined'&&typeof window!=='undefined'){
+  start();
+  void import('./qelly-v53-lock-candidate-convergence.mjs');
+}
