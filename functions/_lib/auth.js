@@ -24,7 +24,7 @@ import {
 import {handleGovernance} from './governance.js';
 
 const AUTH_TRANSACTION_COOKIE='qelly_auth_transaction';
-const AUTH_TRANSACTION_TTL_MS=10*60*1000;
+const AUTH_TRANSACTION_TTL_MS=60*60*1000;
 const AUTH_FLOWS=new Set(['signup','recovery']);
 
 const base64UrlEncode=(value)=>{

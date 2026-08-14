@@ -14,6 +14,8 @@ import {safeBaseCurrency,safeTimezone} from '../../_lib/profile-preferences.js';
 import {readinessSnapshot} from '../../_lib/readiness.js';
 
 const pathFor=(request)=>new URL(request.url).pathname.replace(/^\/api\/v1\/?/,'').replace(/\/$/,'');
+const unsafeMethod=(method)=>!['GET','HEAD','OPTIONS'].includes(String(method||'').toUpperCase());
+const authMutationRoute=(path,method)=>path.startsWith('auth/')&&unsafeMethod(method);
 const governanceRoute=(path,method)=>method==='POST'&&(path==='cloud/opt-in'||path==='account/delete');
 const registrationRoute=(path,method)=>path==='auth/register'&&method==='POST';
 
@@ -24,12 +26,16 @@ export async function onRequest(context){
   const interceptReadiness=path==='readiness'&&method==='GET';
   const interceptGovernance=governanceRoute(path,method);
   const interceptRegistration=registrationRoute(path,method);
-  if(!interceptReadiness&&!interceptGovernance&&!interceptRegistration)return context.next();
+  const interceptAuthMutation=authMutationRoute(path,method);
+  if(!interceptReadiness&&!interceptGovernance&&!interceptRegistration&&!interceptAuthMutation)return context.next();
 
   const started=Date.now();
   let response;
   try{
-    if(request.headers.get('origin'))requireOrigin(request,env);
+    // Unsafe browser mutations must carry an allowed Origin. requireOrigin is a no-op
+    // for GET/HEAD/OPTIONS, so readiness remains unaffected while exact nested Auth
+    // functions (register/recovery) cannot bypass the catch-all CSRF boundary.
+    requireOrigin(request,env);
     if(interceptReadiness){
       const runtime=publicRuntimeConfig(env,request.url);
       response=responseJson(request,env,readinessSnapshot(runtime),503);
@@ -46,6 +52,11 @@ export async function onRequest(context){
         safeBaseCurrency(body.baseCurrency);
         safeTimezone(body.timezone);
       }
+      response=await context.next();
+      return response;
+    }
+
+    if(interceptAuthMutation){
       response=await context.next();
       return response;
     }
@@ -75,4 +86,4 @@ export async function onRequest(context){
   }
 }
 
-export const __middlewareTest=Object.freeze({pathFor,governanceRoute,registrationRoute,readinessSnapshot});
+export const __middlewareTest=Object.freeze({pathFor,unsafeMethod,authMutationRoute,governanceRoute,registrationRoute,readinessSnapshot});
