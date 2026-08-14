@@ -105,7 +105,10 @@ function converge(){
     const summary=document.createElement('summary');
     summary.textContent='Strategy evidence tools · CSV analysis';
     workspace.before(details);
-    details.append(summary,workspace);
+    const boundary=hero?.querySelector('.q-verify-boundary');
+    details.append(summary);
+    if(boundary)details.append(boundary);
+    details.append(workspace);
   }
 }
 
