@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { publicRuntimeConfig } from '../functions/_lib/runtime.js';
+import { __authTest } from '../functions/_lib/auth.js';
 import { onRequest } from '../functions/api/v1/[[path]].js';
 
 const environment=(overrides={})=>({
@@ -16,6 +17,10 @@ test('transactional email delivery is fail-closed unless explicitly enabled',()=
   assert.equal(publicRuntimeConfig(environment()).capabilities.authentication,true);
   assert.equal(publicRuntimeConfig(environment()).capabilities.emailDelivery,false);
   assert.equal(publicRuntimeConfig(environment({QELLY_ENABLE_AUTH_EMAIL_DELIVERY:'true'})).capabilities.emailDelivery,true);
+});
+
+test('signup and recovery PKCE verifier transaction survives the governed one-hour email window',()=>{
+  assert.equal(__authTest.AUTH_TRANSACTION_TTL_MS,60*60*1000);
 });
 
 for(const [path,body] of [
