@@ -17,7 +17,7 @@ const apiFixture=pathname=>{
   return {};
 };
 
-async function routeDiagnostics(page){return page.evaluate(()=>{const main=document.getElementById('main');return {href:location.href,hash:location.hash,readyState:document.readyState,appReady:document.documentElement.dataset.appReady||null,bootstrapState:window.__QELLY_VERIFY_ROUTE__?JSON.parse(JSON.stringify(window.__QELLY_VERIFY_ROUTE__)):null,verifyApi:typeof window.QellyVerify?.render,methodologyApi:typeof window.QellyVerify?.renderMethodology,mainOwner:main?.dataset.qellyVerifyOwner||null,mainBusy:main?.getAttribute('aria-busy')||null,mainText:main?.textContent?.replace(/\s+/g,' ').trim().slice(0,1600)||null};});}
+async function routeDiagnostics(page){return page.evaluate(()=>{const main=document.getElementById('main');return {href:location.href,hash:location.hash,readyState:document.readyState,appReady:document.documentElement.dataset.appReady||null,bootstrapState:window.__QELLY_VERIFY_ROUTE__?JSON.parse(JSON.stringify(window.__QELLY_VERIFY_ROUTE__)):null,verifyApi:typeof window.QellyVerify?.render,methodologyApi:typeof window.QellyVerify?.renderMethodology,mainOwner:main?.dataset.qellyVerifyOwner||null,mainBusy:main?.getAttribute('aria-busy')||null,mainText:main?.textContent?.replace(/\s+/g,' ').trim().slice(0,2000)||null};});}
 
 async function inspect({name,viewport,reducedMotion='no-preference'}){
   const browser=await chromium.launch({headless:true});
@@ -27,13 +27,46 @@ async function inspect({name,viewport,reducedMotion='no-preference'}){
   const pageErrors=[];const consoleErrors=[];
   page.on('pageerror',error=>pageErrors.push({name:error.name,message:error.message,stack:error.stack||null}));
   page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});
+
+  /* Prove the old market alias still normalizes, but require the canonical V5.3
+     formula workbench to own the resulting Qelly Verify page. */
   const response=await page.goto(`${baseUrl}/#/market?view=qelly-verify`,{waitUntil:'domcontentloaded',timeout:45000});
-  try{await page.waitForSelector('[data-qelly-verify-surface]',{state:'visible',timeout:30000});}catch(error){const diagnostics=await routeDiagnostics(page);await page.screenshot({path:path.join(output,`${name}-route-failure.png`),fullPage:true});await writeFile(path.join(output,`${name}-route-failure.json`),JSON.stringify({diagnostics,pageErrors,consoleErrors,error:{name:error.name,message:error.message}},null,2));await browser.close();throw Object.assign(new Error(`${name}_verify_route_unavailable_${JSON.stringify(diagnostics)}`),{cause:error});}
-  const analysisRequests=[];const observe=request=>{if(request.method()!=='GET'&&request.method()!=='HEAD')analysisRequests.push({method:request.method(),url:request.url()});};
-  page.on('request',observe);await page.locator('[data-verify-sample]').click();await page.waitForSelector('.q-verify-report',{state:'visible',timeout:15000});await page.waitForTimeout(250);page.off('request',observe);
-  const report=await page.evaluate(()=>({
+  try{
+    await page.waitForURL(/#\/qelly-verify(?:[/?#]|$)/,{timeout:30000});
+    await page.waitForSelector('[data-qelly-verify-surface]',{state:'visible',timeout:30000});
+    await page.waitForSelector('[data-v53-verify-workbench="accepted-lock"]',{state:'visible',timeout:30000});
+  }catch(error){
+    const diagnostics=await routeDiagnostics(page);
+    await page.screenshot({path:path.join(output,`${name}-route-failure.png`),fullPage:true});
+    await writeFile(path.join(output,`${name}-route-failure.json`),JSON.stringify({diagnostics,pageErrors,consoleErrors,error:{name:error.name,message:error.message}},null,2));
+    await browser.close();
+    throw Object.assign(new Error(`${name}_verify_route_unavailable_${JSON.stringify(diagnostics)}`),{cause:error});
+  }
+
+  const canonical=await page.evaluate(()=>({
+    hash:location.hash,
     appReady:document.documentElement.dataset.appReady||null,
     heading:document.querySelector('.q-verify-hero h1')?.textContent?.trim()||null,
+    workbenchVisible:Boolean(document.querySelector('[data-v53-verify-workbench="accepted-lock"]')),
+    formulaSelector:Boolean(document.querySelector('[data-v53-verify-formula]')),
+    kpiCount:document.querySelectorAll('.q-v53-verify-kpis article').length,
+    evidenceCount:document.querySelectorAll('.q-v53-verify-evidence>div').length,
+    inspectorVisible:Boolean(document.querySelector('.q-v53-verify-inspector')),
+    strategySecondary:Boolean(document.querySelector('.q-v53-strategy-tools')),
+    horizontalOverflow:document.body.scrollWidth>document.documentElement.clientWidth+1
+  }));
+
+  /* Preserve and exercise the historical local CSV analyzer as a secondary
+     evidence tool. It must not own the primary accepted-lock surface. */
+  await page.locator('.q-v53-strategy-tools>summary').click();
+  const analysisRequests=[];const observe=request=>{if(request.method()!=='GET'&&request.method()!=='HEAD')analysisRequests.push({method:request.method(),url:request.url()});};
+  page.on('request',observe);
+  await page.locator('[data-verify-sample]').click();
+  await page.waitForSelector('.q-verify-report',{state:'visible',timeout:15000});
+  await page.waitForTimeout(250);
+  page.off('request',observe);
+
+  const report=await page.evaluate(()=>({
     flow:[...document.querySelectorAll('.q-verify-flow span')].map(node=>node.textContent.trim()),
     reportVisible:Boolean(document.querySelector('.q-verify-report')),
     scoreValues:[...document.querySelectorAll('.q-verify-score strong')].map(node=>Number(node.textContent)),
@@ -63,7 +96,7 @@ async function inspect({name,viewport,reducedMotion='no-preference'}){
   }));
   await page.screenshot({path:path.join(output,`${name}-methodology.png`),fullPage:true});
   await browser.close();
-  return {name,viewport,reducedMotion,navigationStatus:response?.status()??null,report,methodology,pageErrors,consoleErrors,analysisRequests};
+  return {name,viewport,reducedMotion,navigationStatus:response?.status()??null,canonical,report,methodology,pageErrors,consoleErrors,analysisRequests};
 }
 
 const results=[await inspect({name:'desktop',viewport:{width:1440,height:1000}}),await inspect({name:'mobile-reduced-motion',viewport:{width:375,height:812},reducedMotion:'reduce'})];
@@ -71,8 +104,12 @@ await writeFile(path.join(output,'evidence.json'),JSON.stringify({baseUrl,result
 
 for(const result of results){
   if(result.navigationStatus!==200)throw new Error(`${result.name}_navigation_${result.navigationStatus}`);
-  if(result.report.appReady!=='true')throw new Error(`${result.name}_app_not_ready`);
-  if(result.report.heading!=='Put your strategy through evidence, not belief.')throw new Error(`${result.name}_heading_invalid`);
+  if(result.canonical.hash!=='#/qelly-verify')throw new Error(`${result.name}_alias_not_normalized_${result.canonical.hash}`);
+  if(result.canonical.appReady!=='true')throw new Error(`${result.name}_app_not_ready`);
+  if(result.canonical.heading!=='Formula validation, assumptions, sensitivity and reproducibility.')throw new Error(`${result.name}_canonical_heading_invalid`);
+  if(!result.canonical.workbenchVisible||!result.canonical.formulaSelector||result.canonical.kpiCount<6||result.canonical.evidenceCount<6||!result.canonical.inspectorVisible)throw new Error(`${result.name}_canonical_workbench_incomplete`);
+  if(!result.canonical.strategySecondary)throw new Error(`${result.name}_secondary_strategy_tools_missing`);
+  if(result.canonical.horizontalOverflow)throw new Error(`${result.name}_canonical_horizontal_overflow`);
   if(result.report.flow.join('>')!=='Upload>Validate>Analyze>Decide')throw new Error(`${result.name}_workflow_invalid`);
   if(!result.report.reportVisible||result.report.scoreValues.length!==3||result.report.scoreValues.some(value=>!Number.isFinite(value)||value<0||value>100))throw new Error(`${result.name}_scores_invalid`);
   if(result.report.metricCount<8||result.report.warningCount<2||result.report.failureConditionCount<1)throw new Error(`${result.name}_report_incomplete`);
