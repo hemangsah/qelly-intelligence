@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {onRequest,__middlewareTest} from '../functions/api/v1/_middleware.js';
 
+const SITE='https://qelly-middleware.test';
 const environment=(overrides={})=>({
-  QELLY_PUBLIC_SITE_URL:'https://qelly-middleware.test',
+  QELLY_PUBLIC_SITE_URL:SITE,
   QELLY_PUBLIC_SUPABASE_URL:'https://example.supabase.co',
   QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'sb_publishable_middleware_test_1234567890',
   QELLY_PUBLIC_RELEASE_SHA:'1111111111111111111111111111111111111111',
@@ -14,10 +15,11 @@ const environment=(overrides={})=>({
   QELLY_ENABLE_LIVE_PROVIDERS:'true',
   ...overrides
 });
+const browserHeaders=(extra={})=>({origin:SITE,...extra});
 
 test('readiness middleware remains fail-closed with structured proof states',async()=>{
   let nextCalls=0;
-  const request=new Request('https://qelly-middleware.test/api/v1/readiness');
+  const request=new Request(`${SITE}/api/v1/readiness`);
   const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response('unexpected');}});
   const body=await response.json();
   assert.equal(response.status,503);
@@ -32,7 +34,7 @@ test('readiness middleware remains fail-closed with structured proof states',asy
 });
 
 test('configured email transport never becomes ready without end-to-end proof',async()=>{
-  const request=new Request('https://qelly-middleware.test/api/v1/readiness');
+  const request=new Request(`${SITE}/api/v1/readiness`);
   const response=await onRequest({request,env:environment({QELLY_ENABLE_AUTH_EMAIL_DELIVERY:'true'}),next:async()=>new Response('unexpected')});
   const body=await response.json();
   assert.equal(response.status,503);
@@ -42,10 +44,30 @@ test('configured email transport never becomes ready without end-to-end proof',a
   assert.equal(body.dependencies.auth,'email_delivery_configured_not_end_to_end_proven');
 });
 
+test('unsafe Auth mutations fail closed when Origin is absent',async()=>{
+  for(const path of ['auth/login','auth/register','auth/recovery','auth/callback','auth/password','auth/refresh','auth/logout']){
+    let nextCalls=0;
+    const request=new Request(`${SITE}/api/v1/${path}`,{method:'POST',headers:{'content-type':'application/json'},body:'{}'});
+    const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response('unsafe-auth-bypass',{status:204});}});
+    assert.equal(nextCalls,0,path);
+    assert.equal(response.status,403,path);
+  }
+});
+
+test('same-origin Auth mutations continue to the existing Auth handler',async()=>{
+  for(const path of ['auth/login','auth/recovery','auth/callback','auth/password','auth/refresh','auth/logout']){
+    let nextCalls=0;
+    const request=new Request(`${SITE}/api/v1/${path}`,{method:'POST',headers:browserHeaders({'content-type':'application/json'}),body:'{}'});
+    const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response(null,{status:204});}});
+    assert.equal(nextCalls,1,path);
+    assert.equal(response.status,204,path);
+  }
+});
+
 test('governance writes are intercepted before the legacy route handler',async()=>{
   for(const path of ['cloud/opt-in','account/delete']){
     let nextCalls=0;
-    const request=new Request(`https://qelly-middleware.test/api/v1/${path}`,{method:'POST'});
+    const request=new Request(`${SITE}/api/v1/${path}`,{method:'POST',headers:browserHeaders()});
     const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response('legacy');}});
     assert.equal(nextCalls,0,path);
     assert.equal(response.status,401,path);
@@ -60,14 +82,14 @@ test('registration preferences are validated before the existing Auth handler ru
     {baseCurrency:'USD'}
   ]){
     let nextCalls=0;
-    const request=new Request('https://qelly-middleware.test/api/v1/auth/register',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
+    const request=new Request(`${SITE}/api/v1/auth/register`,{method:'POST',headers:browserHeaders({'content-type':'application/json'}),body:JSON.stringify(payload)});
     const response=await onRequest({request,env:enabled,next:async()=>{nextCalls+=1;return new Response('accepted',{status:202});}});
     assert.equal(nextCalls,0);
     assert.equal(response.status,400);
   }
 
   let nextCalls=0;
-  const validRequest=new Request('https://qelly-middleware.test/api/v1/auth/register',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({baseCurrency:'INR',timezone:'Asia/Kolkata'})});
+  const validRequest=new Request(`${SITE}/api/v1/auth/register`,{method:'POST',headers:browserHeaders({'content-type':'application/json'}),body:JSON.stringify({baseCurrency:'INR',timezone:'Asia/Kolkata'})});
   const validResponse=await onRequest({request:validRequest,env:enabled,next:async()=>{nextCalls+=1;return new Response('accepted',{status:202});}});
   assert.equal(nextCalls,1);
   assert.equal(validResponse.status,202);
@@ -75,30 +97,37 @@ test('registration preferences are validated before the existing Auth handler ru
 
 test('registration remains delegated to the existing fail-closed Auth handler while email delivery is disabled',async()=>{
   let nextCalls=0;
-  const request=new Request('https://qelly-middleware.test/api/v1/auth/register',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({})});
+  const request=new Request(`${SITE}/api/v1/auth/register`,{method:'POST',headers:browserHeaders({'content-type':'application/json'}),body:JSON.stringify({})});
   const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response('legacy-auth-boundary',{status:503});}});
   assert.equal(nextCalls,1);
   assert.equal(response.status,503);
 });
 
-test('non-governed API routes continue through the existing handler',async()=>{
-  let nextCalls=0;
-  const request=new Request('https://qelly-middleware.test/api/v1/health');
-  const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response(null,{status:204});}});
-  assert.equal(nextCalls,1);
-  assert.equal(response.status,204);
+test('safe Auth reads and non-governed API routes continue through the existing handler',async()=>{
+  for(const path of ['auth/me','health']){
+    let nextCalls=0;
+    const request=new Request(`${SITE}/api/v1/${path}`);
+    const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response(null,{status:204});}});
+    assert.equal(nextCalls,1,path);
+    assert.equal(response.status,204,path);
+  }
 });
 
-test('middleware source owns governed paths and registration preference validation',async()=>{
+test('middleware source owns governed paths, registration validation and Auth mutation origin enforcement',async()=>{
   const source=await readFile(new URL('../functions/api/v1/_middleware.js',import.meta.url),'utf8');
   assert.equal(__middlewareTest.governanceRoute('cloud/opt-in','POST'),true);
   assert.equal(__middlewareTest.governanceRoute('account/delete','POST'),true);
   assert.equal(__middlewareTest.governanceRoute('cloud/opt-in','GET'),false);
   assert.equal(__middlewareTest.registrationRoute('auth/register','POST'),true);
   assert.equal(__middlewareTest.registrationRoute('auth/register','GET'),false);
+  assert.equal(__middlewareTest.authMutationRoute('auth/recovery','POST'),true);
+  assert.equal(__middlewareTest.authMutationRoute('auth/me','GET'),false);
+  assert.equal(__middlewareTest.unsafeMethod('POST'),true);
+  assert.equal(__middlewareTest.unsafeMethod('OPTIONS'),false);
   assert.match(source,/handleGovernance/);
   assert.match(source,/readinessSnapshot/);
   assert.match(source,/safeBaseCurrency/);
   assert.match(source,/safeTimezone/);
-  assert.match(source,/if\(!interceptReadiness&&!interceptGovernance&&!interceptRegistration\)return context\.next\(\)/);
+  assert.match(source,/requireOrigin\(request,env\)/);
+  assert.match(source,/interceptAuthMutation/);
 });
