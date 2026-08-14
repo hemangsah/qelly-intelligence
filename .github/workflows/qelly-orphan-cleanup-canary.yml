@@ -1,0 +1,24 @@
+name: Qelly Disposable Auth Orphan Cleanup
+
+on:
+  push:
+    branches:
+      - canary/qelly-orphan-cleanup-c53d3a11
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Invoke exact disposable-user cleanup
+        shell: bash
+        run: |
+          set -euo pipefail
+          url='https://ssdgfgqnjlwzkgukzeef.supabase.co/functions/v1/qelly-auth-canary-cleanup-c53d3a11'
+          status="$(curl --silent --show-error --max-time 30 -H 'Content-Type: application/json' -o cleanup.json -w '%{http_code}' -X POST --data '{}' "$url")"
+          cat cleanup.json
+          [[ "$status" == "200" ]] || exit 1
+          node -e 'const p=require("./cleanup.json"); if(p.ok!==true||!(p.deleted===true||p.alreadyDeleted===true)) process.exit(1)'
