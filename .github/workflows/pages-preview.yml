@@ -2,7 +2,7 @@ name: Canonical GitHub Pages Handoff
 
 on:
   push:
-    branches: [release/qelly-global-public-beta]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
