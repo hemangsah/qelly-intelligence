@@ -46,12 +46,13 @@ test('V5 Live Market Command exposes truthful market and evidence ribbons',async
     'live-evidence-source',
     'live-evidence-observed',
     'live-evidence-freshness',
-    'Confidence</span><strong>Not supplied',
-    'Coverage</span><strong>Selected public candle feed',
+    'Coverage</span><strong>Selected candle series',
     'Execution</span><strong>Disabled',
-    'provider adapter → normalized candles → chart renderer'
+    'provider policy → normalized candles → chart renderer'
   ])assert.ok(route.includes(phrase),`missing V5 live-market contract: ${phrase}`);
+  assert.match(route,/Confidence<\/span><strong[^>]*>Not supplied/);
   assert.match(route,/const freshness=/);
+  assert.match(route,/const confidence=/);
   assert.match(marketCss,/grid-template-columns:repeat\(6,minmax\(0,1fr\)\)/);
   assert.match(marketCss,/scroll-snap-type:x mandatory/);
   assert.doesNotMatch(route,/confidence[^\n]{0,80}(?:100|95|90|high)/i,'live market must not fabricate confidence');
