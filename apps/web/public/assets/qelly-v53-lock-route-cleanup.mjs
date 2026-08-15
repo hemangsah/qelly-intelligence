@@ -1,4 +1,5 @@
 import './qelly-v53-lock-geometry-fix.mjs';
+import './qelly-v53-theme-preview-truth.mjs';
 
 // Qelly Intelligence — synchronous V5.3 lock cleanup.
 // Dedicated route implementations must render their real functional DOM instead
