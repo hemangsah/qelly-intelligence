@@ -22,14 +22,8 @@ export async function route(context){
 
   if(routeName==='catalog')return responseJson(request,env,liveMarketCatalog(),200,{cookies:session.cookies,cache:'private, no-store'});
   if(routeName==='status')return responseJson(request,env,liveMarketStatus(),200,{cookies:session.cookies,cache:'private, no-store'});
-  if(routeName==='candles'){
-    const result=await liveMarketCandles(context,options);
-    return responseJson(request,env,result,200,{cookies:session.cookies,cache:'private, no-store',headers:{'X-Qelly-Data-Mode':result.source.mode}});
-  }
-  if(routeName==='ticker'){
-    const result=await liveMarketTicker(context,options);
-    return responseJson(request,env,result,200,{cookies:session.cookies,cache:'private, no-store',headers:{'X-Qelly-Data-Mode':result.source.mode}});
-  }
+  if(routeName==='candles')return responseJson(request,env,await liveMarketCandles(context,options),200,{cookies:session.cookies,cache:'private, no-store'});
+  if(routeName==='ticker')return responseJson(request,env,await liveMarketTicker(context,options),200,{cookies:session.cookies,cache:'private, no-store'});
   throw new HttpError(404,'live_market_route_not_found','Live market endpoint was not found');
 }
 
