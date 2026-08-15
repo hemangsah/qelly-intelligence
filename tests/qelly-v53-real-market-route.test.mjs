@@ -7,7 +7,7 @@ const cssPath=new URL('../apps/web/public/assets/qelly-v53-real-market.css',impo
 
 test('Market joins Live Markets as a real-DOM route instead of receiving the simulated reference overlay',async()=>{
   const source=await readFile(cleanupPath,'utf8');
-  assert.match(source,/DEDICATED_REAL_ROUTES=new Set\(\['live-markets','market'\]\)/);
+  assert.match(source,/DEDICATED_REAL_ROUTES=new Set\(\[[^\]]*'live-markets'[^\]]*'market'[^\]]*\]/s);
   assert.match(source,/synthetic&&isDedicatedRealRoute\(\)/);
   assert.match(source,/root\.dataset\.v53RealMarket='active'/);
   assert.match(source,/qelly-v53-real-market\.css/);
