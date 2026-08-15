@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {publicRuntimeConfig,__test,onRequest} from '../functions/api/v1/[[path]].js';
+import {onRequest as onConfigRequest} from '../functions/api/v1/config.js';
 
 const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 const env=()=>({
@@ -34,7 +35,7 @@ test('JWT validation rejects incorrect issuer before upstream verification',()=>
 
 test('Pages config route is available without authentication and establishes truthful capabilities',async()=>{
   const request=new Request('https://qelly-runtime.test/api/v1/config');
-  const response=await onRequest({request,env:env(),params:{path:['config']},waitUntil(){}});
+  const response=await onConfigRequest({request,env:env(),waitUntil(){}});
   assert.equal(response.status,200);
   const body=await response.json();
   assert.equal(body.auth.authenticated,false);
@@ -45,7 +46,7 @@ test('Pages config route is available without authentication and establishes tru
 
 test('forbidden CORS origin returns a typed error instead of throwing from error handling',async()=>{
   const request=new Request('https://qelly-runtime.test/api/v1/config',{headers:{Origin:'https://attacker.invalid'}});
-  const response=await onRequest({request,env:env(),params:{path:['config']},waitUntil(){}});
+  const response=await onConfigRequest({request,env:env(),waitUntil(){}});
   assert.equal(response.status,403);
   assert.equal((await response.json()).error.code,'cors_origin_forbidden');
 });
