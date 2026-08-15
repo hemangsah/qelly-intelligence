@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {providerCatalog,providerResult,__providerTest} from '../functions/_lib/providers.js';
 import {__test as apiTest} from '../functions/api/v1/[[path]].js';
+import {onRequest as configOnRequest} from '../functions/api/v1/config.js';
 import {HttpError,errorResponse,requireOrigin,resolveSession,responseJson} from '../functions/_lib/runtime.js';
 
 const baseEnv=()=>({
@@ -93,7 +94,7 @@ test('direct Coinbase API response is truthful and performs no upstream fetch',a
 
 test('public config declares unsupported production capabilities as disabled',async()=>{
   const request=new Request('https://qelly-intelligence.pages.dev/api/v1/config');
-  const response=await apiTest.route({request,env:baseEnv(),params:{path:['config']}});
+  const response=await configOnRequest({request,env:baseEnv(),params:{path:['config']},next:async()=>new Response(null,{status:404})});
   const body=await response.json();
   assert.equal(response.status,200);
   assert.deepEqual(body.capabilityTruth,{passkeys:false,mfa:false,research:false,persistentJobs:false,productionNotifications:false,multiSessionManagement:false});
