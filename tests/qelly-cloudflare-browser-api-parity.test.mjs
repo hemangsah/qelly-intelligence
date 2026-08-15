@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readdir,readFile,stat} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {matchUnavailableCapability} from '../functions/_lib/capability-registry.js';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const publicRoot=path.join(root,'apps/web/public');
@@ -36,11 +37,12 @@ function extractApiCalls(source){
   return calls.map(normalizeApiPath).filter(Boolean);
 }
 
-const EXACT=new Set([
+const EXACT_IMPLEMENTED=new Set([
   '/api/v1/config',
   '/api/v1/health',
   '/api/v1/readiness',
   '/api/v1/platform/readiness',
+  '/api/v1/platform/capabilities',
   '/api/v1/auth/email-capability',
   '/api/v1/auth/register',
   '/api/v1/auth/login',
@@ -73,15 +75,19 @@ const EXACT=new Set([
   '/api/v1/live-markets/ticker'
 ]);
 
-function cloudflareOwns(apiPath){
-  if(EXACT.has(apiPath))return true;
-  if(/^\/api\/v1\/providers\/(?:binance|coinbase|ecb)$/.test(apiPath))return true;
-  if(/^\/api\/v1\/public\/markets\/assets\/:param(?:\/candles)?$/.test(apiPath))return true;
-  if(/^\/api\/v1\/saved-calculations\/:param(?:\/(?:restore|revisions|revisions\/restore))?$/.test(apiPath))return true;
-  return false;
+function cloudflareImplementationState(apiPath){
+  if(EXACT_IMPLEMENTED.has(apiPath))return 'implemented';
+  if(/^\/api\/v1\/providers\/(?:binance|coinbase|ecb)$/.test(apiPath))return 'implemented';
+  if(/^\/api\/v1\/public\/markets\/assets\/[^/]+(?:\/candles)?$/.test(apiPath))return 'implemented';
+  if(/^\/api\/v1\/saved-calculations\/[^/]+(?:\/(?:restore|revisions|revisions\/restore))?$/.test(apiPath))return 'implemented';
+  const relative=String(apiPath||'').replace(/^\/api\/v1\//,'');
+  if(matchUnavailableCapability(relative))return 'unavailable';
+  return 'unowned';
 }
 
-test('every literal browser API dependency is owned by the canonical Cloudflare runtime',async()=>{
+function cloudflareOwns(apiPath){return cloudflareImplementationState(apiPath)!=='unowned';}
+
+test('every literal browser API dependency is either implemented or explicitly governed unavailable in canonical Cloudflare',async()=>{
   const files=await browserSources(publicRoot);
   const dependencies=new Map();
   for(const file of files){
@@ -91,20 +97,22 @@ test('every literal browser API dependency is owned by the canonical Cloudflare 
       dependencies.get(apiPath).add(path.relative(root,file));
     }
   }
-  const unsupported=[...dependencies.entries()]
-    .filter(([apiPath])=>!cloudflareOwns(apiPath))
+  const unowned=[...dependencies.entries()]
+    .filter(([apiPath])=>cloudflareImplementationState(apiPath)==='unowned')
     .map(([apiPath,filesForPath])=>({apiPath,files:[...filesForPath].sort()}))
     .sort((left,right)=>left.apiPath.localeCompare(right.apiPath));
-  assert.deepEqual(unsupported,[],`Browser API paths without canonical Cloudflare ownership:\n${unsupported.map(item=>`- ${item.apiPath} <- ${item.files.join(', ')}`).join('\n')}`);
+  assert.deepEqual(unowned,[],`Browser API paths without any canonical Cloudflare ownership/truth state:\n${unowned.map(item=>`- ${item.apiPath} <- ${item.files.join(', ')}`).join('\n')}`);
 });
 
-test('coverage predicate is conservative and does not treat arbitrary catch-all paths as implemented',()=>{
-  assert.equal(cloudflareOwns('/api/v1/config'),true);
-  assert.equal(cloudflareOwns('/api/v1/live-markets/candles'),true);
-  assert.equal(cloudflareOwns('/api/v1/saved-calculations/:param/revisions'),true);
-  assert.equal(cloudflareOwns('/api/v1/research/workspaces'),false);
-  assert.equal(cloudflareOwns('/api/v1/calculators/catalog'),false);
-  assert.equal(cloudflareOwns('/api/v1/admin/anything'),false);
+test('coverage distinguishes actual implementation from governed capability debt',()=>{
+  assert.equal(cloudflareImplementationState('/api/v1/config'),'implemented');
+  assert.equal(cloudflareImplementationState('/api/v1/live-markets/candles'),'implemented');
+  assert.equal(cloudflareImplementationState('/api/v1/saved-calculations/:param/revisions'),'implemented');
+  assert.equal(cloudflareImplementationState('/api/v1/public/markets/assets/QI-CRYPTO-BTC/candles'),'implemented');
+  assert.equal(cloudflareImplementationState('/api/v1/research/workspaces'),'unavailable');
+  assert.equal(cloudflareImplementationState('/api/v1/auth/mfa/status'),'unavailable');
+  assert.equal(cloudflareImplementationState('/api/v1/calculators/catalog'),'unowned');
+  assert.equal(cloudflareImplementationState('/api/v1/admin/anything'),'unowned');
 });
 
-export const __cloudflareBrowserParityTest=Object.freeze({normalizeApiPath,extractApiCalls,cloudflareOwns});
+export const __cloudflareBrowserParityTest=Object.freeze({normalizeApiPath,extractApiCalls,cloudflareOwns,cloudflareImplementationState});
