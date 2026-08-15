@@ -192,12 +192,23 @@ test('cloud consent writes through the append-only governance RPC only',async()=
   });
 });
 
-test('account deletion records durable evidence before optional identity deletion',async()=>{
+test('account deletion atomically completes durable evidence and authenticated identity deletion',async()=>{
   const calls=[];
   const requestId='33333333-3333-4333-8333-333333333333';
+  const completedAt='2026-08-15T07:30:00.000Z';
   const env=baseEnv(async(url,options={})=>{
     calls.push({url:new URL(url),body:options.body?JSON.parse(options.body):null});
-    return jsonResponse({requestId,status:'requested',replayed:false});
+    return jsonResponse({
+      requested:true,
+      requestId,
+      status:'completed',
+      replayed:false,
+      identityDeleted:true,
+      identityDeletionStatus:204,
+      evidenceCompleted:true,
+      evidenceError:null,
+      completedAt
+    });
   });
   const request=new Request(`${SITE}/api/v1/account/delete`,{
     method:'POST',
@@ -220,10 +231,19 @@ test('account deletion records durable evidence before optional identity deletio
   assert.equal(response.status,202);
   assert.equal(body.requested,true);
   assert.equal(body.requestId,requestId);
-  assert.equal(body.identityDeleted,false);
-  assert.equal(body.status,'requested');
+  assert.equal(body.identityDeleted,true);
+  assert.equal(body.identityDeletionStatus,204);
+  assert.equal(body.evidenceCompleted,true);
+  assert.equal(body.evidenceError,null);
+  assert.equal(body.status,'completed');
+  assert.equal(body.completedAt,completedAt);
   assert.equal(calls.length,1);
-  assert.equal(calls[0].url.pathname,'/rest/v1/rpc/qelly_request_account_deletion');
+  assert.equal(calls[0].url.pathname,'/rest/v1/rpc/qelly_self_delete_account');
+  assert.deepEqual(calls[0].body,{
+    p_reason:'Close account',
+    p_privacy_version:'2026-08-01',
+    p_terms_version:'2026-08-01'
+  });
   assert.ok(setCookies(response).some(value=>value.startsWith('qelly_sb_access=')&&/Max-Age=0/.test(value)));
 });
 

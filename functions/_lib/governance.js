@@ -1,13 +1,10 @@
 import {
   cleanText,
   clearSessionCookies,
-  fetcher,
   jsonBody,
-  publicRuntimeConfig,
   requireCsrf,
   responseJson,
-  restRequest,
-  supabaseRequest
+  restRequest
 } from './runtime.js';
 
 const resultObject=(payload)=>Array.isArray(payload)?(payload[0]||{}):(payload||{});
@@ -38,7 +35,11 @@ export async function handleGovernance(context,path,method,session,qelly){
     const body=await jsonBody(request);
     const privacyVersion=policyVersion(body.privacyVersion,qelly.profile?.privacy_version||'2026-08-01');
     const termsVersion=policyVersion(body.termsVersion,qelly.profile?.terms_version||'2026-08-01');
-    const requested=resultObject(await restRequest(env,session.accessToken,'rpc/qelly_request_account_deletion',{
+
+    // The database RPC is SECURITY DEFINER but can only target auth.uid().
+    // This keeps the privileged operation inside Supabase and avoids exposing a
+    // service-role credential to the Cloudflare Pages runtime.
+    const deletion=resultObject(await restRequest(env,session.accessToken,'rpc/qelly_self_delete_account',{
       method:'POST',
       body:{
         p_reason:cleanText(body.reason,500)||null,
@@ -47,56 +48,16 @@ export async function handleGovernance(context,path,method,session,qelly){
       }
     }));
 
-    let identityDeleted=false;
-    let evidenceCompleted=false;
-    let identityDeletionStatus=null;
-    let evidenceError=null;
-    const requestId=String(requested.requestId||requested.request_id||'');
-
-    if(env.QELLY_SUPABASE_SERVICE_ROLE_KEY&&requestId){
-      const config=publicRuntimeConfig(env,request.url);
-      const serviceKey=String(env.QELLY_SUPABASE_SERVICE_ROLE_KEY);
-      const response=await fetcher(env)(`${config.supabaseUrl}/auth/v1/admin/users/${session.user.id}`,{
-        method:'DELETE',
-        headers:{apikey:serviceKey,Authorization:`Bearer ${serviceKey}`}
-      });
-      identityDeletionStatus=response.status;
-      identityDeleted=response.ok;
-
-      if(identityDeleted){
-        try{
-          await supabaseRequest(env,'/rest/v1/rpc/qelly_complete_account_deletion',{
-            method:'POST',
-            token:serviceKey,
-            headers:{apikey:serviceKey},
-            body:{
-              p_request_id:requestId,
-              p_metadata:{
-                identityDeletionStatus,
-                completedBy:'qelly-cloudflare-facade'
-              }
-            }
-          });
-          evidenceCompleted=true;
-        }catch(error){
-          evidenceError=String(error?.code||'deletion_evidence_completion_failed');
-        }
-      }
-    }
-
-    const status=identityDeleted
-      ?(evidenceCompleted?'completed':'identity_deleted_evidence_pending')
-      :'requested';
-
     return responseJson(request,env,{
-      requested:true,
-      requestId:requestId||null,
-      replayed:Boolean(requested.replayed),
-      identityDeleted,
-      identityDeletionStatus,
-      evidenceCompleted,
-      evidenceError,
-      status
+      requested:deletion.requested===true,
+      requestId:deletion.requestId||deletion.request_id||null,
+      replayed:Boolean(deletion.replayed),
+      identityDeleted:deletion.identityDeleted===true,
+      identityDeletionStatus:deletion.identityDeletionStatus??null,
+      evidenceCompleted:deletion.evidenceCompleted===true,
+      evidenceError:deletion.evidenceError??null,
+      status:deletion.status||'requested',
+      completedAt:deletion.completedAt||null
     },202,{cookies:clearSessionCookies()});
   }
 
