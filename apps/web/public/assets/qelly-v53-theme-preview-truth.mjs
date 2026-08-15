@@ -2,12 +2,23 @@
 // Theme Lab intentionally renders static market-shaped sample values to validate
 // semantic tokens. Those values must never be mistaken for a market feed.
 
+const TRUTH_STYLE_HREF=new URL('./qelly-v53-theme-preview-truth.css',import.meta.url).href;
 const isThemeLab=()=>String(globalThis.location?.hash||'').replace(/^#\/?/,'').split(/[/?]/)[0]==='theme-lab';
+
+function ensureTruthStyle(){
+  if(document.querySelector('link[data-qelly-theme-preview-truth="active"]'))return;
+  const link=document.createElement('link');
+  link.rel='stylesheet';
+  link.href=TRUTH_STYLE_HREF;
+  link.dataset.qellyThemePreviewTruth='active';
+  document.head.append(link);
+}
 
 export function applyThemePreviewTruth(root=document){
   if(!isThemeLab())return false;
   const preview=root.querySelector?.('.q-ti-preview-shell');
   if(!preview)return false;
+  ensureTruthStyle();
   preview.dataset.qellyPreviewTruth='demonstration';
   if(!preview.querySelector('.q-ti-preview-truth-banner')){
     const banner=document.createElement('div');
