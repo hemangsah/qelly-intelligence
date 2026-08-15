@@ -59,6 +59,8 @@ const EXACT_IMPLEMENTED=new Set([
   '/api/v1/account/delete',
   '/api/v1/account/export',
   '/api/v1/providers/status',
+  '/api/v1/providers/runtime',
+  '/api/v1/public/providers',
   '/api/v1/market/overview',
   '/api/v1/public/markets/overview',
   '/api/v1/public/markets/assets',
@@ -107,6 +109,8 @@ test('every literal browser API dependency is either implemented or explicitly g
 test('coverage distinguishes actual implementation from governed capability debt',()=>{
   assert.equal(cloudflareImplementationState('/api/v1/config'),'implemented');
   assert.equal(cloudflareImplementationState('/api/v1/live-markets/candles'),'implemented');
+  assert.equal(cloudflareImplementationState('/api/v1/providers/runtime'),'implemented');
+  assert.equal(cloudflareImplementationState('/api/v1/public/providers'),'implemented');
   assert.equal(cloudflareImplementationState('/api/v1/saved-calculations/:param/revisions'),'implemented');
   assert.equal(cloudflareImplementationState('/api/v1/public/markets/assets/QI-CRYPTO-BTC/candles'),'implemented');
   assert.equal(cloudflareImplementationState('/api/v1/research/workspaces'),'unavailable');
