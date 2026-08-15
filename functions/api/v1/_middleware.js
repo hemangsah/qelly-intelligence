@@ -5,13 +5,11 @@ import {
   enforceRateLimit,
   errorResponse,
   requireOrigin,
-  resolveSession,
-  responseJson
+  resolveSession
 } from '../../_lib/runtime.js';
 import {effectivePublicRuntimeConfig} from '../../_lib/email-capability.js';
 import {handleGovernance} from '../../_lib/governance.js';
 import {safeBaseCurrency,safeTimezone} from '../../_lib/profile-preferences.js';
-import {collectReadinessEvidence,readinessSnapshot} from '../../_lib/readiness.js';
 
 const pathFor=(request)=>new URL(request.url).pathname.replace(/^\/api\/v1\/?/,'').replace(/\/$/,'');
 const unsafeMethod=(method)=>!['GET','HEAD','OPTIONS'].includes(String(method||'').toUpperCase());
@@ -23,26 +21,18 @@ export async function onRequest(context){
   const {request,env}=context;
   const path=pathFor(request);
   const method=request.method.toUpperCase();
-  const interceptReadiness=path==='readiness'&&method==='GET';
   const interceptGovernance=governanceRoute(path,method);
   const interceptRegistration=registrationRoute(path,method);
   const interceptAuthMutation=authMutationRoute(path,method);
-  if(!interceptReadiness&&!interceptGovernance&&!interceptRegistration&&!interceptAuthMutation)return context.next();
+  if(!interceptGovernance&&!interceptRegistration&&!interceptAuthMutation)return context.next();
 
   const started=Date.now();
   let response;
   try{
-    // Unsafe browser mutations must carry an allowed Origin. requireOrigin is a no-op
-    // for GET/HEAD/OPTIONS, so readiness remains unaffected while exact nested Auth
-    // functions (register/recovery) cannot bypass the catch-all CSRF boundary.
+    // Unsafe browser mutations must carry an allowed Origin. Operational GET routes,
+    // including /readiness, are owned by their dedicated Pages Functions and pass
+    // through this middleware without being shadowed here.
     requireOrigin(request,env);
-    if(interceptReadiness){
-      const runtime=effectivePublicRuntimeConfig(env,request.url);
-      const evidence=await collectReadinessEvidence(context,runtime);
-      const snapshot=readinessSnapshot(runtime,evidence);
-      response=responseJson(request,env,snapshot,snapshot.ready?200:503);
-      return response;
-    }
 
     if(interceptRegistration){
       const runtime=effectivePublicRuntimeConfig(env,request.url);
@@ -88,4 +78,4 @@ export async function onRequest(context){
   }
 }
 
-export const __middlewareTest=Object.freeze({pathFor,unsafeMethod,authMutationRoute,governanceRoute,registrationRoute,readinessSnapshot});
+export const __middlewareTest=Object.freeze({pathFor,unsafeMethod,authMutationRoute,governanceRoute,registrationRoute});
