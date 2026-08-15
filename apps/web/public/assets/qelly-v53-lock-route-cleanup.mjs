@@ -7,10 +7,12 @@ import './qelly-v53-lock-geometry-fix.mjs';
 const LEGACY_VERIFY_VIEWS=new Set(['qelly-verify','evidence-methodology']);
 const REAL_ANALYSIS_ROUTES=new Set(['advanced-chart','screener-lab']);
 const REAL_EVIDENCE_ROUTES=new Set(['research-workspace','portfolio-analytics','watchlist','saved-calculations','calculator-detail','decision-provenance']);
-const DEDICATED_REAL_ROUTES=new Set(['live-markets','market',...REAL_ANALYSIS_ROUTES,...REAL_EVIDENCE_ROUTES]);
+const REAL_FINAL_ROUTES=new Set(['security-setup','delivery-operations','notification-center','about-qelly','theme-lab']);
+const DEDICATED_REAL_ROUTES=new Set(['live-markets','market',...REAL_ANALYSIS_ROUTES,...REAL_EVIDENCE_ROUTES,...REAL_FINAL_ROUTES]);
 const REAL_MARKET_STYLE_HREF=new URL('./qelly-v53-real-market.css',import.meta.url).href;
 const REAL_ANALYSIS_STYLE_HREF=new URL('./qelly-v53-real-analysis.css',import.meta.url).href;
 const REAL_EVIDENCE_STYLE_HREF=new URL('./qelly-v53-real-evidence.css',import.meta.url).href;
+const REAL_FINAL_STYLE_HREF=new URL('./qelly-v53-real-final.css',import.meta.url).href;
 
 const routeState=(hash=globalThis.location?.hash||'')=>{
   const raw=String(hash).replace(/^#\/?/,'');
@@ -48,6 +50,10 @@ function ensureRealEvidenceStyle(){
   ensureStyle('link[data-qelly-v53-real-evidence="active"]',REAL_EVIDENCE_STYLE_HREF,'qellyV53RealEvidence');
 }
 
+function ensureRealFinalStyle(){
+  ensureStyle('link[data-qelly-v53-real-final="active"]',REAL_FINAL_STYLE_HREF,'qellyV53RealFinal');
+}
+
 export function syncRealRouteState(){
   const root=document.documentElement;
   const route=routeState().route;
@@ -68,6 +74,12 @@ export function syncRealRouteState(){
     root.dataset.v53RealEvidence=route;
   }else{
     delete root.dataset.v53RealEvidence;
+  }
+  if(REAL_FINAL_ROUTES.has(route)){
+    ensureRealFinalStyle();
+    root.dataset.v53RealFinal=route;
+  }else{
+    delete root.dataset.v53RealFinal;
   }
   return isDedicatedRealRoute();
 }
