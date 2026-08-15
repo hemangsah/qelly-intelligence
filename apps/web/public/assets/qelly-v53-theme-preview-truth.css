@@ -1,0 +1,16 @@
+.q-ti-preview-shell[data-qelly-preview-truth="demonstration"] .q-ti-preview-truth-banner{
+  position:relative;
+  z-index:2;
+  padding:7px 9px;
+  border:1px solid var(--q-border-subtle,var(--border-color,#29303a));
+  border-radius:5px;
+  font-size:9px;
+  line-height:1.35;
+  font-weight:700;
+  letter-spacing:.065em;
+  text-transform:uppercase;
+}
+
+.q-ti-preview-shell[data-qelly-preview-truth="demonstration"] [data-sample-value="true"]{
+  font-variant-numeric:tabular-nums;
+}
