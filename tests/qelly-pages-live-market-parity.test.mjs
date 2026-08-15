@@ -67,7 +67,7 @@ test('browser market workspace defaults to governed fixture and cannot stream wi
 
 test('dedicated live-market implementation cannot be covered by the synthetic V5.3 lock candidate',async()=>{
   const source=await lockCleanupSource();
-  assert.match(source,/DEDICATED_REAL_ROUTES=new Set\(\['live-markets'\]\)/);
+  assert.match(source,/DEDICATED_REAL_ROUTES=new Set\(\[[^\]]*'live-markets'[^\]]*\]\)/);
   assert.match(source,/synthetic&&isDedicatedRealRoute\(\)/);
   assert.match(source,/clearLockState\(\)/);
 });
