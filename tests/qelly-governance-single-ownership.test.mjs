@@ -32,8 +32,11 @@ test('governance module is the only implementation owner',async()=>{
   assert.match(governance,/path==='cloud\/opt-in'&&method==='POST'/);
   assert.match(governance,/rpc\/qelly_set_cloud_sync_consent/);
   assert.match(governance,/path==='account\/delete'&&method==='POST'/);
-  assert.match(governance,/rpc\/qelly_request_account_deletion/);
-  assert.match(governance,/rpc\/qelly_complete_account_deletion/);
+  assert.match(governance,/rpc\/qelly_self_delete_account/);
+  assert.doesNotMatch(governance,/rpc\/qelly_request_account_deletion/);
+  assert.doesNotMatch(governance,/rpc\/qelly_complete_account_deletion/);
+  assert.doesNotMatch(governance,/auth\/v1\/admin\/users/);
+  assert.doesNotMatch(governance,/QELLY_SUPABASE_SERVICE_ROLE_KEY/);
   const implementationSources=`${data}\n${governance}`;
   assert.equal((implementationSources.match(/path==='cloud\/opt-in'/g)||[]).length,1);
   assert.equal((implementationSources.match(/path==='account\/delete'/g)||[]).length,1);
@@ -41,12 +44,15 @@ test('governance module is the only implementation owner',async()=>{
   assert.match(middleware,/path==='account\/delete'/);
 });
 
-test('deletion evidence brackets optional identity deletion',async()=>{
+test('account deletion delegates one authenticated atomic transaction to Supabase and clears the browser session',async()=>{
   const [,,governance]=await sources();
-  const requestEvidence=governance.indexOf('rpc/qelly_request_account_deletion');
-  const adminDelete=governance.indexOf('/auth/v1/admin/users/');
-  const completionEvidence=governance.indexOf('/rest/v1/rpc/qelly_complete_account_deletion');
-  assert.ok(requestEvidence>=0&&adminDelete>requestEvidence,'request evidence must precede identity deletion');
-  assert.ok(completionEvidence>adminDelete,'completion evidence must follow identity deletion');
-  assert.match(governance,/identity_deleted_evidence_pending/);
+  assert.match(governance,/restRequest\(env,session\.accessToken,'rpc\/qelly_self_delete_account'/);
+  assert.match(governance,/p_reason:cleanText\(body\.reason,500\)\|\|null/);
+  assert.match(governance,/p_privacy_version:privacyVersion/);
+  assert.match(governance,/p_terms_version:termsVersion/);
+  assert.match(governance,/identityDeleted:deletion\.identityDeleted===true/);
+  assert.match(governance,/evidenceCompleted:deletion\.evidenceCompleted===true/);
+  assert.match(governance,/cookies:clearSessionCookies\(\)/);
+  assert.doesNotMatch(governance,/auth\/v1\/admin\/users/);
+  assert.doesNotMatch(governance,/QELLY_SUPABASE_SERVICE_ROLE_KEY/);
 });
