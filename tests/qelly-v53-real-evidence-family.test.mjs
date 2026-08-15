@@ -52,14 +52,18 @@ test('Portfolio Analytics exposes source, observed time, confidence, coverage an
   assert.doesNotMatch(source,/data-action="(?:execute|trade|order|wallet|withdraw)/i);
 });
 
-test('Workspace Watchlist separates persistent state from deterministic quote evidence',async()=>{
+test('Workspace Watchlist separates Cloud RLS persistence from unavailable quote truth',async()=>{
   const source=await read('../apps/web/public/assets/routes/workspace-watchlist.mjs');
   assert.match(source,/q-v53-evidence-workspace/);
   assert.match(source,/q-v53-evidence-inspector/);
-  assert.match(source,/Workspace watchlist store \+ packaged quote fixture/);
-  assert.match(source,/Quote observation time not supplied/);
-  assert.match(source,/CONFIDENCE','Not supplied/);
-  assert.match(source,/sharing private/i);
+  assert.match(source,/data-watchlist-persistence="CLOUD RLS"/);
+  assert.match(source,/data-watchlist-quote-truth="UNAVAILABLE"/);
+  assert.match(source,/Supabase workspace-scoped/);
+  assert.match(source,/No market observation supplied/);
+  assert.match(source,/No rights-approved quote observation/);
+  assert.match(source,/does not substitute deterministic fixture prices/i);
+  assert.match(source,/Workspace membership only/);
+  assert.doesNotMatch(source,/packaged quote fixture|local JSON|fixture quotes|Watchlist created locally/i);
 });
 
 test('Saved Calculations remains explicit about local persistence, cloud opt-in and conflict handling',async()=>{
