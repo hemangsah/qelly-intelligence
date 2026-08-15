@@ -28,10 +28,13 @@ test('Market Command keeps all live-market truth and evidence surfaces',async()=
   assert.match(route,/id="qelly-live-chart"/);
   assert.match(route,/Market pulse/);
   assert.match(route,/Provider matrix/);
+  assert.match(route,/Provider rights/);
   assert.match(route,/Read-only safety lock/);
   assert.match(route,/No order placement, API keys, balances, transfers, withdrawals, private keys or wallet custody/);
-  assert.match(route,/Static demo values for symbol selection; not provider observations/);
-  assert.match(route,/>illustrative<\/small>/);
+  assert.match(route,/Demonstration watch universe/);
+  assert.match(route,/values come from the selected governed feed after selection/);
+  assert.match(route,/>governed demo<\/small>/);
+  assert.match(route,/never labels blocked or simulated observations as live/);
 });
 
 test('Market Command workstation topology matches the institutional-density reference without slicing evidence',async()=>{
