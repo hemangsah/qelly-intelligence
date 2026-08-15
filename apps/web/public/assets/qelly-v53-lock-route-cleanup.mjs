@@ -64,8 +64,10 @@ function installDedicatedPrependGuard(){
 
 if(typeof window!=='undefined'&&typeof document!=='undefined'){
   installDedicatedPrependGuard();
-  const cleanup=()=>{clearLegacyVerifyLock();clearDedicatedRealRouteLock();};
-  window.addEventListener('hashchange',cleanup);
-  window.addEventListener('pageshow',cleanup);
-  queueMicrotask(cleanup);
+  window.addEventListener('hashchange',clearLegacyVerifyLock);
+  window.addEventListener('pageshow',clearLegacyVerifyLock);
+  window.addEventListener('hashchange',clearDedicatedRealRouteLock);
+  window.addEventListener('pageshow',clearDedicatedRealRouteLock);
+  queueMicrotask(clearLegacyVerifyLock);
+  queueMicrotask(clearDedicatedRealRouteLock);
 }
