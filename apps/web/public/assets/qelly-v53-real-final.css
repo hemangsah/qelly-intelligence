@@ -1,0 +1,262 @@
+/* Qelly Intelligence — V5.3 final real-route convergence.
+   Removes dependence on the synthetic lock candidate for security, operations,
+   notifications, About Qelly and Theme Lab while preserving each real renderer. */
+
+html[data-v53-real-final] #main > .q-page{
+  width:min(100%,1680px);
+  max-width:none;
+  margin:0 auto;
+  padding:12px 14px 18px;
+  gap:9px;
+}
+
+html[data-v53-real-final] #main > .q-page > .q-page-head{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:end;
+  gap:14px;
+  padding:10px 12px;
+  border-radius:7px;
+}
+
+html[data-v53-real-final] #main > .q-page > .q-page-head h1{
+  margin:2px 0 4px;
+  font-size:22px;
+  line-height:1.06;
+  letter-spacing:-.02em;
+}
+
+html[data-v53-real-final] #main > .q-page .q-eyebrow,
+html[data-v53-real-final] #main > .q-page .q-kpi-label,
+html[data-v53-real-final] #main > .q-page .q-v53-final-inspector small{
+  font-size:9px;
+  letter-spacing:.075em;
+}
+
+html[data-v53-real-final] #main > .q-page .q-kpi-meta,
+html[data-v53-real-final] #main > .q-page .q-panel-head p,
+html[data-v53-real-final] #main > .q-page > .q-page-head p:not(.q-eyebrow){
+  font-size:10px;
+  line-height:1.4;
+}
+
+html[data-v53-real-final] #main > .q-page > .q-kpi-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:6px;
+}
+
+html[data-v53-real-final] #main > .q-page .q-kpi{
+  min-height:72px;
+  padding:8px 9px;
+  border-radius:6px;
+}
+
+html[data-v53-real-final] #main > .q-page .q-kpi-value{
+  font-size:18px;
+  line-height:1.1;
+}
+
+html[data-v53-real-final] #main > .q-page .q-panel,
+html[data-v53-real-final] #main > .q-page .q-v53-final-inspector{
+  border-radius:6px;
+}
+
+html[data-v53-real-final] #main > .q-page .q-panel-head{
+  min-height:38px;
+  padding:7px 9px;
+}
+
+html[data-v53-real-final] #main > .q-page .q-panel-head h2{
+  font-size:12px;
+  line-height:1.15;
+}
+
+html[data-v53-real-final] #main > .q-page .q-panel-body{
+  padding:8px;
+}
+
+html[data-v53-real-final] #main > .q-page .q-v53-final-workspace{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 292px;
+  gap:8px;
+  align-items:start;
+}
+
+html[data-v53-real-final] #main > .q-page .q-v53-final-primary{
+  min-width:0;
+  display:grid;
+  gap:8px;
+}
+
+html[data-v53-real-final] #main > .q-page .q-v53-final-inspector{
+  position:sticky;
+  top:52px;
+  overflow:hidden;
+  border:1px solid var(--q-border-subtle,var(--border-color,#29303a));
+  background:var(--q-surface-raised,var(--surface-2,#11161d));
+}
+
+html[data-v53-real-final] #main > .q-page .q-v53-final-inspector > header{
+  padding:9px 10px;
+  border-bottom:1px solid var(--q-border-subtle,var(--border-color,#29303a));
+}
+
+html[data-v53-real-final] #main > .q-page .q-v53-final-inspector > header strong{
+  display:block;
+  font-size:11px;
+  line-height:1.2;
+}
+
+html[data-v53-real-final] #main > .q-page .q-v53-final-inspector > header span{
+  display:block;
+  margin-top:3px;
+  font-size:9px;
+  line-height:1.4;
+  opacity:.72;
+}
+
+html[data-v53-real-final] #main > .q-page .q-v53-final-row{
+  display:grid;
+  grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);
+  gap:8px;
+  padding:7px 10px;
+  border-bottom:1px solid var(--q-border-subtle,var(--border-color,#29303a));
+  font-size:10px;
+  line-height:1.35;
+}
+
+html[data-v53-real-final] #main > .q-page .q-v53-final-row strong{
+  min-width:0;
+  overflow-wrap:anywhere;
+  font-weight:600;
+}
+
+html[data-v53-real-final] #main > .q-page .q-v53-final-note{
+  padding:9px 10px;
+  font-size:9px;
+  line-height:1.45;
+  opacity:.78;
+}
+
+html[data-v53-real-final] #main > .q-page .q-v53-final-activity{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  padding:7px 9px;
+  border:1px solid var(--q-border-subtle,var(--border-color,#29303a));
+  border-radius:6px;
+  font-size:9px;
+  line-height:1.35;
+}
+
+html[data-v53-real-final] #main > .q-page .q-v53-final-activity span{
+  padding:3px 6px;
+  border:1px solid var(--q-border-subtle,var(--border-color,#29303a));
+  border-radius:5px;
+}
+
+html[data-v53-real-final="security-setup"] #main > .q-page .q-v53-security-secret{
+  overflow-wrap:anywhere;
+  white-space:pre-wrap;
+}
+
+html[data-v53-real-final="delivery-operations"] #main > .q-page .q-auth-form,
+html[data-v53-real-final="notification-center"] #main > .q-page .q-notification-card{
+  font-size:10px;
+}
+
+/* About remains an editorial product page, but uses the compact real shell. */
+html[data-v53-real-final="about-qelly"] #main > .q-page.q-about-page{
+  gap:10px;
+}
+
+html[data-v53-real-final="about-qelly"] #main > .q-page .q-about-stat-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:6px;
+}
+
+html[data-v53-real-final="about-qelly"] #main > .q-page .q-about-stat-grid article,
+html[data-v53-real-final="about-qelly"] #main > .q-page .q-principle-grid article,
+html[data-v53-real-final="about-qelly"] #main > .q-page .q-pillar-track article{
+  border-radius:6px;
+}
+
+/* Theme Lab already has a richer theme-specific system. Only constrain the real
+   page shell and let its V5.4 theme stylesheet remain authoritative inside. */
+html[data-v53-real-final="theme-lab"] #main > .q-page.q-ti-page{
+  width:min(100%,1760px);
+  max-width:none;
+  padding:10px 12px 18px;
+}
+
+html[data-v53-real-final="theme-lab"] #main > .q-page .q-ti-hero,
+html[data-v53-real-final="theme-lab"] #main > .q-page .q-ti-tabs{
+  border-radius:6px;
+}
+
+html[data-v53-real-final] #main > .q-page .q-button,
+html[data-v53-real-final] #main > .q-page input,
+html[data-v53-real-final] #main > .q-page select{
+  min-height:30px;
+  border-radius:5px;
+  font-size:10px;
+}
+
+@media(max-width:900px){
+  html[data-v53-real-final] #main > .q-page{
+    padding:8px 8px 78px;
+  }
+  html[data-v53-real-final] #main > .q-page > .q-page-head,
+  html[data-v53-real-final] #main > .q-page .q-v53-final-workspace{
+    grid-template-columns:1fr;
+  }
+  html[data-v53-real-final] #main > .q-page > .q-page-head h1{
+    font-size:19px;
+  }
+  html[data-v53-real-final] #main > .q-page > .q-kpi-grid,
+  html[data-v53-real-final="about-qelly"] #main > .q-page .q-about-stat-grid{
+    display:flex;
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    padding-bottom:3px;
+  }
+  html[data-v53-real-final] #main > .q-page .q-kpi,
+  html[data-v53-real-final="about-qelly"] #main > .q-page .q-about-stat-grid article{
+    flex:0 0 74%;
+    scroll-snap-align:start;
+  }
+  html[data-v53-real-final] #main > .q-page .q-v53-final-inspector{
+    position:static;
+  }
+  html[data-v53-real-final] #main > .q-page .q-two-column,
+  html[data-v53-real-final="about-qelly"] #main > .q-page .q-principle-grid,
+  html[data-v53-real-final="about-qelly"] #main > .q-page .q-pillar-track{
+    grid-template-columns:1fr;
+  }
+  html[data-v53-real-final="theme-lab"] #main > .q-page.q-ti-page{
+    padding:8px 8px 78px;
+  }
+}
+
+@media(max-width:480px){
+  html[data-v53-real-final] #main > .q-page .q-v53-final-row{
+    grid-template-columns:1fr;
+    gap:2px;
+  }
+  html[data-v53-real-final] #main > .q-page .q-kpi,
+  html[data-v53-real-final="about-qelly"] #main > .q-page .q-about-stat-grid article{
+    flex-basis:82%;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  html[data-v53-real-final] #main > .q-page *,
+  html[data-v53-real-final] #main > .q-page *::before,
+  html[data-v53-real-final] #main > .q-page *::after{
+    scroll-behavior:auto!important;
+    transition-duration:.001ms!important;
+    animation-duration:.001ms!important;
+  }
+}
