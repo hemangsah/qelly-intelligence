@@ -70,7 +70,7 @@ test('canonical readiness returns 200 only when all production evidence canaries
 test('readiness GET delegates through middleware to its dedicated route owner',async()=>{
   let nextCalls=0;
   const request=new Request(`${SITE}/api/v1/readiness`);
-  const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response('dedicated-readiness',{status:204});}});
+  const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response(null,{status:204});}});
   assert.equal(nextCalls,1);
   assert.equal(response.status,204);
 });
