@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "Qelly Terminal Design Tokens",
+  "version": "6.0.0-internal",
+  "principles": {
+    "density": "institutional-compact",
+    "truthFirst": true,
+    "readOnly": true,
+    "executionControlsAllowed": false,
+    "colorOnlyStateAllowed": false
+  },
+  "typography": {
+    "fontSans": "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
+    "fontMono": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+    "utilityLabelPx": 10,
+    "bodyCompactPx": 11,
+    "bodyPx": 12,
+    "panelTitlePx": 14,
+    "routeTitlePx": 22,
+    "lineHeightCompact": 1.35,
+    "lineHeightBody": 1.45,
+    "numericFeature": "tabular-nums"
+  },
+  "spacePx": {"1": 2, "2": 4, "3": 6, "4": 8, "5": 10, "6": 12, "8": 16, "10": 20, "12": 24, "16": 32},
+  "radiusPx": {"sm": 5, "md": 6, "lg": 8},
+  "borderPx": {"hairline": 1},
+  "shellPx": {
+    "systemStrip": 24,
+    "commandBar": 40,
+    "contextBar": 34,
+    "navRailCollapsed": 48,
+    "navRailExpanded": 192,
+    "inspectorMin": 280,
+    "inspectorPreferred": 320,
+    "inspectorMax": 360,
+    "activityTrayCollapsed": 34
+  },
+  "motionMs": {"fast": 120, "normal": 180, "panel": 220, "sheetMax": 260},
+  "breakpointsPx": {"mobile": 640, "tablet": 960, "desktop": 1200, "wide": 1536},
+  "touchTargetPx": 44,
+  "mobileReference": {"width": 390, "height": 844, "inspectorMode": "bottom-sheet", "bottomNavItems": 5},
+  "semanticColors": {
+    "surfaceCanvas": "var(--q-surface-canvas)",
+    "surfacePanel": "var(--q-surface-panel)",
+    "surfaceRaised": "var(--q-surface-raised)",
+    "textPrimary": "var(--q-text-primary)",
+    "textSecondary": "var(--q-text-secondary)",
+    "border": "var(--q-border)",
+    "brand": "var(--q-brand)",
+    "directionPositive": "var(--q-market-positive)",
+    "directionNegative": "var(--q-market-negative)",
+    "fresh": "var(--q-state-fresh)",
+    "stale": "var(--q-state-stale)",
+    "partial": "var(--q-state-partial)",
+    "missing": "var(--q-state-missing)",
+    "conflicting": "var(--q-state-conflicting)",
+    "degraded": "var(--q-state-degraded)",
+    "simulated": "var(--q-state-simulated)",
+    "unavailable": "var(--q-state-unavailable)",
+    "audit": "var(--q-state-audit)"
+  },
+  "truthStates": {
+    "fresh": {"label": "Fresh", "requiresTimestamp": true},
+    "stale": {"label": "Stale", "requiresTimestamp": true},
+    "partial": {"label": "Partial", "requiresCoverage": true},
+    "missing": {"label": "Missing", "requiresReason": true},
+    "conflicting": {"label": "Conflicting", "requiresSources": true},
+    "degraded": {"label": "Degraded", "requiresFallbackReason": true},
+    "simulated": {"label": "Demonstration data", "requiresProviderDisclosure": true},
+    "unavailable": {"label": "Unavailable", "requiresReason": true},
+    "audit": {"label": "Audit", "requiresProvenance": true}
+  },
+  "evidenceFields": ["source", "providerMode", "observationTime", "retrievalTime", "freshness", "confidence", "coverage", "method", "fallbackReason", "auditId"],
+  "accessibility": {
+    "zoomRequiredPercent": 200,
+    "reducedMotionRequired": true,
+    "keyboardRequired": true,
+    "stateMustNotDependOnColor": true,
+    "minTouchTargetPx": 44
+  }
+}
