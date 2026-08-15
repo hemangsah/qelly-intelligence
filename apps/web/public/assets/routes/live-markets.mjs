@@ -11,6 +11,13 @@ const freshness=(value)=>{
   if(seconds<3600)return `${Math.round(seconds/60)}m ago`;
   return `${Math.round(seconds/3600)}h ago`;
 };
+const confidence=(source={})=>{
+  if(source.mode==='live-public'&&source.realtimeAuthorized===true)return 'Direct provider';
+  if(source.mode==='cached-public')return 'Reduced · cached';
+  if(source.mode==='stale-public')return 'Low · stale';
+  if(source.mode==='simulated-demo')return 'Demonstration only';
+  return 'Unavailable';
+};
 const symbolLabel=(value)=>{
   const symbol=String(value||'BTCUSDT').replace(/^B-/,'').replace('_','');
   if(symbol.includes('-'))return symbol.replace('-',' / ');
@@ -61,7 +68,7 @@ export async function renderLiveMarkets(main,deps){
       <div class="q-v5-evidence-cell"><span>Source</span><strong id="live-evidence-source">Preparing…</strong></div>
       <div class="q-v5-evidence-cell"><span>Observed</span><strong id="live-evidence-observed">Not supplied</strong></div>
       <div class="q-v5-evidence-cell"><span>Freshness</span><strong id="live-evidence-freshness">Not supplied</strong></div>
-      <div class="q-v5-evidence-cell"><span>Provider rights</span><strong id="live-evidence-rights">Evaluating</strong></div>
+      <div class="q-v5-evidence-cell"><span>Confidence</span><strong id="live-evidence-confidence">Evaluating</strong></div>
       <div class="q-v5-evidence-cell"><span>Coverage</span><strong>Selected candle series</strong></div>
       <div class="q-v5-evidence-cell"><span>Execution</span><strong>Disabled</strong></div>
     </section>
@@ -73,9 +80,9 @@ export async function renderLiveMarkets(main,deps){
         <div class="q-chart-attribution"><span>Method: provider policy → normalized candles → chart renderer</span><span id="live-observed-at">—</span></div>
       </section>
       <aside class="q-live-side-stack">
-        <section class="q-panel"><div class="q-panel-head"><div><h2>Market pulse</h2><p>Read-only governed data</p></div><span class="q-provider-pulse"></span></div><div class="q-panel-body"><div class="q-live-stat"><span>Range change</span><strong id="live-stat-change">—</strong></div><div class="q-live-stat"><span>Visible range volume</span><strong id="live-stat-volume">—</strong></div><div class="q-live-stat"><span>Provider mode</span><strong id="live-stat-provider">—</strong></div><div class="q-live-stat"><span>Execution</span><strong class="is-negative">Disabled</strong></div></div></section>
-        <section class="q-panel"><div class="q-panel-head"><div><h2>Provider rights matrix</h2><p>Selectable only when display rights are authorized</p></div></div><div class="q-panel-body q-stack">${providerRows}</div></section>
-        <section class="q-panel q-risk-lock"><div class="q-panel-body"><p class="q-eyebrow">Evidence boundary</p><h2>No synthetic value is presented as live.</h2><p id="live-policy-note">The governed demonstration feed is selected until a provider is explicitly rights-authorized by the production policy layer.</p></div></section>
+        <section class="q-panel"><div class="q-panel-head"><div><h2>Market pulse</h2><p>Read-only governed data</p></div><span class="q-provider-pulse"></span></div><div class="q-panel-body"><div class="q-live-stat"><span>Range change</span><strong id="live-stat-change">—</strong></div><div class="q-live-stat"><span>Visible range volume</span><strong id="live-stat-volume">—</strong></div><div class="q-live-stat"><span>Provider mode</span><strong id="live-stat-provider">—</strong></div><div class="q-live-stat"><span>Provider rights</span><strong id="live-stat-rights">Evaluating</strong></div><div class="q-live-stat"><span>Execution</span><strong class="is-negative">Disabled</strong></div></div></section>
+        <section class="q-panel"><div class="q-panel-head"><div><h2>Provider matrix</h2><p>Rights and availability · selectable only when display rights are authorized</p></div></div><div class="q-panel-body q-stack">${providerRows}</div></section>
+        <section class="q-panel q-risk-lock"><div class="q-panel-body"><p class="q-eyebrow">Evidence boundary</p><h2>Read-only safety lock</h2><p>No order placement, API keys, balances, transfers, withdrawals, private keys or wallet custody.</p><p id="live-policy-note">The governed demonstration feed is selected until a provider is explicitly rights-authorized by the production policy layer.</p></div></section>
       </aside>
     </div>
 
@@ -111,13 +118,14 @@ export async function renderLiveMarkets(main,deps){
     main.querySelector('#live-stat-change').textContent=changeLabel;main.querySelector('#live-stat-change').className=changeClass;
     main.querySelector('#live-stat-volume').textContent=format(summary.volume);
     main.querySelector('#live-stat-provider').textContent=`${source.name||data.provider||'Unknown'} · ${source.mode||'unknown'}`;
+    main.querySelector('#live-stat-rights').textContent=source.termsState||((source.realtimeAuthorized===true)?'authorized':'governed demo');
     const modeBadge=main.querySelector('#live-mode-badge');modeBadge.textContent=source.mode||'unknown';modeBadge.className=`q-status q-status--${source.mode==='live-public'?'live':source.mode==='cached-public'?'cached':source.mode==='stale-public'?'stale':'simulated'}`;
     main.querySelector('#live-source-label').textContent=source.fallbackReason?`${source.name||data.provider} · fallback: ${source.fallbackReason}`:`${source.name||data.provider} · ${source.mode||'unknown'}`;
     main.querySelector('#live-observed-at').textContent=observedLabel;
     main.querySelector('#live-kpi-last').textContent=format(summary.last);
     const kpiChange=main.querySelector('#live-kpi-change');kpiChange.textContent=changeLabel;kpiChange.className=changeClass;
     main.querySelector('#live-kpi-high').textContent=format(summary.high);main.querySelector('#live-kpi-low').textContent=format(summary.low);main.querySelector('#live-kpi-volume').textContent=format(summary.volume);main.querySelector('#live-kpi-mode').textContent=source.mode||'unknown';
-    main.querySelector('#live-evidence-source').textContent=source.name||data.provider||'Unknown';main.querySelector('#live-evidence-observed').textContent=observedLabel;main.querySelector('#live-evidence-freshness').textContent=freshness(source.observedAt);main.querySelector('#live-evidence-rights').textContent=source.termsState||((source.realtimeAuthorized===true)?'authorized':'governed demo');
+    main.querySelector('#live-evidence-source').textContent=source.name||data.provider||'Unknown';main.querySelector('#live-evidence-observed').textContent=observedLabel;main.querySelector('#live-evidence-freshness').textContent=freshness(source.observedAt);main.querySelector('#live-evidence-confidence').textContent=confidence(source);
     main.querySelector('#live-policy-note').textContent=source.fallbackReason?`Requested provider ${data.requestedProvider||current.provider} is not being presented as live: ${source.fallbackReason}.`:(source.mode==='live-public'?'This provider is currently rights-authorized for live public display.':'Qelly is using a governed non-live market representation.');
     setStreamState(data);
   };
