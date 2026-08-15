@@ -5,6 +5,7 @@ import {liveMarketCandles,liveMarketCatalog,liveMarketStatus} from '../functions
 
 const routeSource=()=>readFile(new URL('../functions/api/v1/live-markets/[[route]].js',import.meta.url),'utf8');
 const uiSource=()=>readFile(new URL('../apps/web/public/assets/routes/live-markets.mjs',import.meta.url),'utf8');
+const lockCleanupSource=()=>readFile(new URL('../apps/web/public/assets/qelly-v53-lock-route-cleanup.mjs',import.meta.url),'utf8');
 
 test('Pages live-market catalog exposes governed fixture and blocks unapproved crypto display rights',()=>{
   const catalog=liveMarketCatalog();
@@ -62,6 +63,13 @@ test('browser market workspace defaults to governed fixture and cannot stream wi
   assert.match(source,/provider\.enabled\?'':' · rights blocked'/);
   assert.match(source,/data\.source\?\.mode!=='live-public'\|\|data\.source\?\.realtimeAuthorized!==true/);
   assert.match(source,/blocked or simulated observations as live/);
+});
+
+test('dedicated live-market implementation cannot be covered by the synthetic V5.3 lock candidate',async()=>{
+  const source=await lockCleanupSource();
+  assert.match(source,/DEDICATED_REAL_ROUTES=new Set\(\['live-markets'\]\)/);
+  assert.match(source,/synthetic&&isDedicatedRealRoute\(\)/);
+  assert.match(source,/clearLockState\(\)/);
 });
 
 test('live-market status reflects rights-authorized state instead of configuration fiction',()=>{
