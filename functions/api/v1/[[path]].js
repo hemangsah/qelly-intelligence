@@ -2,6 +2,7 @@ import {HttpError,SECURITY_HEADERS,bootstrapContext,correlationId,corsHeaders,en
 import {handleAuth} from '../../_lib/auth.js';
 import {handleData,__dataTest} from '../../_lib/data.js';
 import {providerCatalog,providerResult} from '../../_lib/providers.js';
+import {capabilityInventory,matchUnavailableCapability} from '../../_lib/capability-registry.js';
 
 const publicTruthState=(state)=>({
   live_provider:'live',
@@ -192,6 +193,10 @@ export async function route(context){
   if(!authRuntime.capabilities.emailDelivery&&method==='POST'&&['auth/register','auth/recovery/request'].includes(path))throw new HttpError(503,'auth_email_delivery_unavailable','Account creation and email recovery are temporarily unavailable until transactional email delivery is proven.',{retryable:false});
   const auth=await handleAuth(context,path,method);
   if(auth)return auth;
+  if(path==='platform/capabilities'&&method==='GET'){
+    await enforceRateLimit(env,`public-capability-inventory:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:60});
+    return responseJson(request,env,capabilityInventory(),200,{cache:'no-store'});
+  }
   if(path==='providers/status'&&method==='GET'){
     await enforceRateLimit(env,`public-provider-status:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:60});
     return responseJson(request,env,{providers:providerCatalog(),releaseSha:publicRuntimeConfig(env,request.url).releaseSha});
@@ -237,6 +242,19 @@ export async function route(context){
   if(path==='sessions'&&method==='GET')return responseJson(request,env,{scope:'current-session-only',items:[{sessionId:`supabase-${session.user.id.slice(0,8)}`,authenticationMethod:'supabase-email-password',expiresAt:new Date(Number(session.claims.exp)*1000).toISOString(),current:true,revokedAt:null}]});
   const data=await handleData(context,path,segments,method,session,qelly);
   if(data)return data;
+  const unavailable=matchUnavailableCapability(path);
+  if(unavailable)throw new HttpError(501,'capability_unavailable_in_canonical_runtime',`${unavailable.label} is not available in the canonical Cloudflare runtime.`,{
+    details:{
+      capability:unavailable.id,
+      truthState:'UNAVAILABLE',
+      canonicalRuntime:unavailable.canonicalRuntime,
+      category:unavailable.category,
+      priority:unavailable.priority,
+      reason:unavailable.reason,
+      routeFamilies:unavailable.routeFamilies
+    },
+    retryable:false
+  });
   throw new HttpError(404,'route_not_found','API route was not found');
 }
 
