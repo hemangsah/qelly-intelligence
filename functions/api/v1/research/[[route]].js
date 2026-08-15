@@ -28,6 +28,17 @@ const ensureUuid=(value,label='Identifier')=>{
   if(!UUID.test(id))throw new HttpError(400,'research_id_invalid',`${label} is invalid`);
   return id;
 };
+const safeScore=(value,label)=>{
+  if(value==null||value==='')return null;
+  const score=Number(value);
+  if(!Number.isFinite(score)||score<0||score>1)throw new HttpError(400,'research_score_invalid',`${label} must be between 0 and 1`);
+  return score;
+};
+const safeStatus=(value)=>{
+  const status=cleanText(value||'draft',40).toLowerCase();
+  if(!['draft','active','review','archived'].includes(status))throw new HttpError(400,'research_status_invalid','Research status is invalid');
+  return status;
+};
 const metadataFor=(body,current={})=>({
   ...(current&&typeof current==='object'&&!Array.isArray(current)?current:{}),
   ...(body.description!==undefined?{description:cleanText(body.description,2000)}:{}),
@@ -127,13 +138,14 @@ async function handleResearch(context,relative,method,session,qelly){
         title:name,
         status:'draft',
         hypothesis:body.hypothesis?cleanText(body.hypothesis,4000):null,
-        confidence:body.confidence==null?null:Number(body.confidence),
+        confidence:safeScore(body.confidence,'Research confidence'),
         invalidation_conditions:safeArray(body.invalidationConditions,50),
         metadata:metadataFor(body,{})
       },
       prefer:'return=representation'
     });
-    return responseJson(request,env,{item:projectToWorkspace(rows?.[0])},201);
+    if(!rows?.[0])throw new HttpError(409,'research_create_failed','Research workspace could not be created');
+    return responseJson(request,env,{item:projectToWorkspace(rows[0])},201);
   }
 
   const projectId=ensureUuid(segments[0],'Research workspace identifier');
@@ -151,9 +163,9 @@ async function handleResearch(context,relative,method,session,qelly){
     const body=await jsonBody(request);
     const patch={};
     if(body.name!==undefined){const name=cleanText(body.name,160);if(name.length<2)throw new HttpError(400,'research_name_required','Research workspace name is required');patch.title=name;}
-    if(body.status!==undefined)patch.status=cleanText(body.status,40);
+    if(body.status!==undefined)patch.status=safeStatus(body.status);
     if(body.hypothesis!==undefined)patch.hypothesis=body.hypothesis?cleanText(body.hypothesis,4000):null;
-    if(body.confidence!==undefined)patch.confidence=body.confidence==null?null:Number(body.confidence);
+    if(body.confidence!==undefined)patch.confidence=safeScore(body.confidence,'Research confidence');
     if(body.invalidationConditions!==undefined)patch.invalidation_conditions=safeArray(body.invalidationConditions,50);
     if(body.description!==undefined||body.tags!==undefined)patch.metadata=metadataFor(body,project.metadata||{});
     if(!Object.keys(patch).length)return responseJson(request,env,{item:projectToWorkspace(project)});
@@ -190,9 +202,9 @@ async function handleResearch(context,relative,method,session,qelly){
         source_ref:referenceId,
         source_url:sourceUrl,
         observed_at:body.observedAt||null,
-        freshness:referenceId||sourceUrl?'unverified-reference':'missing',
-        confidence:body.confidence==null?null:Number(body.confidence),
-        coverage:body.coverage==null?null:Number(body.coverage),
+        freshness:'missing',
+        confidence:safeScore(body.confidence,'Evidence confidence'),
+        coverage:safeScore(body.coverage,'Evidence coverage'),
         method:body.method?cleanText(body.method,500):null,
         assumptions:safeArray(body.assumptions,50),
         contradictions:safeArray(body.contradictions,50),
@@ -233,9 +245,9 @@ async function handleResearch(context,relative,method,session,qelly){
     const snapshot=versions[0].snapshot||{};
     const patch={
       title:cleanText(snapshot.title||'Research workspace',160),
-      status:cleanText(snapshot.status||'draft',40),
+      status:safeStatus(snapshot.status||'draft'),
       hypothesis:snapshot.hypothesis?cleanText(snapshot.hypothesis,4000):null,
-      confidence:snapshot.confidence??null,
+      confidence:safeScore(snapshot.confidence,'Research confidence'),
       invalidation_conditions:safeArray(snapshot.invalidationConditions,50),
       metadata:{...(snapshot.metadata||{}),restoredFromVersionId:versionId,restoredAt:new Date().toISOString()},
       deleted_at:snapshot.deletedAt||null
@@ -269,4 +281,4 @@ export async function onRequest(context){
   }
 }
 
-export const __researchCloudflareTest=Object.freeze({routePath,metadataFor,projectToWorkspace,revisionToVersion});
+export const __researchCloudflareTest=Object.freeze({routePath,safeScore,safeStatus,metadataFor,projectToWorkspace,revisionToVersion});
