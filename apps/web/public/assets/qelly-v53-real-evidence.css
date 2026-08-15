@@ -1,0 +1,304 @@
+/* Qelly Intelligence — V5.3 real evidence/portfolio family convergence.
+   Styles only functional route DOM after synthetic lock-candidate ownership is removed. */
+
+html[data-v53-real-evidence] #main > .q-page{
+  width:min(100%,1680px);
+  max-width:none;
+  margin:0 auto;
+  padding:12px 14px 18px;
+  gap:9px;
+}
+
+html[data-v53-real-evidence] #main > .q-page > .q-page-head{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:14px;
+  align-items:end;
+  padding:10px 12px;
+  border-radius:7px;
+}
+
+html[data-v53-real-evidence] #main > .q-page > .q-page-head h1{
+  margin:2px 0 4px;
+  font-size:22px;
+  line-height:1.06;
+  letter-spacing:-.02em;
+}
+
+html[data-v53-real-evidence] #main > .q-page .q-eyebrow,
+html[data-v53-real-evidence] #main > .q-page .q-kpi-label,
+html[data-v53-real-evidence] #main > .q-page .q-v53-evidence-inspector small,
+html[data-v53-real-evidence] #main > .q-page .q-research-section-label{
+  font-size:9px;
+  letter-spacing:.075em;
+}
+
+html[data-v53-real-evidence] #main > .q-page .q-kpi-meta,
+html[data-v53-real-evidence] #main > .q-page .q-panel-head p,
+html[data-v53-real-evidence] #main > .q-page > .q-page-head p:not(.q-eyebrow){
+  font-size:10px;
+  line-height:1.4;
+}
+
+html[data-v53-real-evidence] #main > .q-page > .q-kpi-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:6px;
+}
+
+html[data-v53-real-evidence] #main > .q-page .q-kpi{
+  min-height:72px;
+  padding:8px 9px;
+  border-radius:6px;
+}
+
+html[data-v53-real-evidence] #main > .q-page .q-kpi-value{
+  font-size:18px;
+  line-height:1.1;
+}
+
+html[data-v53-real-evidence] #main > .q-page .q-panel,
+html[data-v53-real-evidence] #main > .q-page .q-data-grid,
+html[data-v53-real-evidence] #main > .q-page .q-v53-evidence-inspector,
+html[data-v53-real-evidence] #main > .q-page .q-research-context-rail,
+html[data-v53-real-evidence] #main > .q-page .q-research-primary,
+html[data-v53-real-evidence] #main > .q-page .q-research-inspector{
+  border-radius:6px;
+}
+
+html[data-v53-real-evidence] #main > .q-page .q-panel-head{
+  min-height:38px;
+  padding:7px 9px;
+}
+
+html[data-v53-real-evidence] #main > .q-page .q-panel-head h2{
+  font-size:12px;
+  line-height:1.15;
+}
+
+html[data-v53-real-evidence] #main > .q-page .q-panel-body{
+  padding:8px;
+}
+
+html[data-v53-real-evidence] #main > .q-page .q-v53-evidence-workspace{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 292px;
+  gap:8px;
+  align-items:start;
+}
+
+html[data-v53-real-evidence] #main > .q-page .q-v53-evidence-primary{
+  min-width:0;
+  display:grid;
+  gap:8px;
+}
+
+html[data-v53-real-evidence] #main > .q-page .q-v53-evidence-inspector{
+  position:sticky;
+  top:52px;
+  overflow:hidden;
+  border:1px solid var(--q-border-subtle,var(--border-color,#29303a));
+  background:var(--q-surface-raised,var(--surface-2,#11161d));
+}
+
+html[data-v53-real-evidence] #main > .q-page .q-v53-evidence-inspector > header{
+  padding:9px 10px;
+  border-bottom:1px solid var(--q-border-subtle,var(--border-color,#29303a));
+}
+
+html[data-v53-real-evidence] #main > .q-page .q-v53-evidence-inspector > header strong{
+  display:block;
+  font-size:11px;
+  line-height:1.2;
+}
+
+html[data-v53-real-evidence] #main > .q-page .q-v53-evidence-inspector > header span{
+  display:block;
+  margin-top:3px;
+  font-size:9px;
+  line-height:1.4;
+  opacity:.72;
+}
+
+html[data-v53-real-evidence] #main > .q-page .q-v53-evidence-row{
+  display:grid;
+  grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);
+  gap:8px;
+  padding:7px 10px;
+  border-bottom:1px solid var(--q-border-subtle,var(--border-color,#29303a));
+  font-size:10px;
+  line-height:1.35;
+}
+
+html[data-v53-real-evidence] #main > .q-page .q-v53-evidence-row strong{
+  min-width:0;
+  overflow-wrap:anywhere;
+  font-weight:600;
+}
+
+html[data-v53-real-evidence] #main > .q-page .q-v53-evidence-note{
+  padding:9px 10px;
+  font-size:9px;
+  line-height:1.45;
+  opacity:.78;
+}
+
+html[data-v53-real-evidence] #main > .q-page .q-v53-evidence-activity{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  padding:7px 9px;
+  border:1px solid var(--q-border-subtle,var(--border-color,#29303a));
+  border-radius:6px;
+  font-size:9px;
+  line-height:1.35;
+}
+
+html[data-v53-real-evidence] #main > .q-page .q-v53-evidence-activity span{
+  padding:3px 6px;
+  border:1px solid var(--q-border-subtle,var(--border-color,#29303a));
+  border-radius:5px;
+}
+
+/* Research already owns a genuine context / primary / Inspector renderer. */
+html[data-v53-real-evidence="research-workspace"] #main > .q-page .q-research-workstation{
+  display:grid;
+  grid-template-columns:220px minmax(0,1fr) 300px;
+  gap:8px;
+  align-items:start;
+}
+
+html[data-v53-real-evidence="research-workspace"] #main > .q-page .q-research-context-rail,
+html[data-v53-real-evidence="research-workspace"] #main > .q-page .q-research-inspector{
+  position:sticky;
+  top:52px;
+}
+
+html[data-v53-real-evidence="research-workspace"] #main > .q-page .q-research-kpi-strip{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:5px;
+}
+
+html[data-v53-real-evidence="research-workspace"] #main > .q-page .q-research-kpi-strip > article{
+  min-height:64px;
+  padding:7px 8px;
+  border-radius:5px;
+}
+
+/* Decision Provenance already has its own governed traversal workbench and V5.4 enhancement layer. */
+html[data-v53-real-evidence="decision-provenance"] #main > .q-page .q-provenance-workbench,
+html[data-v53-real-evidence="decision-provenance"] #main > .q-page .q-decision-evidence-grid{
+  gap:7px;
+}
+
+html[data-v53-real-evidence="saved-calculations"] #main > .q-page .q-saved-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:6px;
+}
+
+html[data-v53-real-evidence="saved-calculations"] #main > .q-page .q-saved-card{
+  min-width:0;
+  padding:9px;
+  border-radius:6px;
+}
+
+html[data-v53-real-evidence="calculator-detail"] #main > .q-page .q-structured-calculator{
+  display:grid;
+  grid-template-columns:minmax(0,1.05fr) minmax(340px,.95fr);
+  gap:8px;
+  align-items:start;
+}
+
+html[data-v53-real-evidence] #main > .q-page .q-page-actions,
+html[data-v53-real-evidence] #main > .q-page .q-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+}
+
+html[data-v53-real-evidence] #main > .q-page .q-button,
+html[data-v53-real-evidence] #main > .q-page input,
+html[data-v53-real-evidence] #main > .q-page select,
+html[data-v53-real-evidence] #main > .q-page textarea{
+  border-radius:5px;
+  font-size:10px;
+}
+
+html[data-v53-real-evidence] #main > .q-page .q-button,
+html[data-v53-real-evidence] #main > .q-page input,
+html[data-v53-real-evidence] #main > .q-page select{
+  min-height:30px;
+}
+
+@media(max-width:1100px){
+  html[data-v53-real-evidence="research-workspace"] #main > .q-page .q-research-workstation{
+    grid-template-columns:190px minmax(0,1fr) 270px;
+  }
+  html[data-v53-real-evidence="research-workspace"] #main > .q-page .q-research-kpi-strip{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
+
+@media(max-width:900px){
+  html[data-v53-real-evidence] #main > .q-page{
+    padding:8px 8px 78px;
+  }
+  html[data-v53-real-evidence] #main > .q-page > .q-page-head,
+  html[data-v53-real-evidence] #main > .q-page .q-v53-evidence-workspace,
+  html[data-v53-real-evidence="research-workspace"] #main > .q-page .q-research-workstation,
+  html[data-v53-real-evidence="calculator-detail"] #main > .q-page .q-structured-calculator{
+    grid-template-columns:1fr;
+  }
+  html[data-v53-real-evidence] #main > .q-page > .q-page-head h1{
+    font-size:19px;
+  }
+  html[data-v53-real-evidence] #main > .q-page > .q-kpi-grid,
+  html[data-v53-real-evidence="research-workspace"] #main > .q-page .q-research-kpi-strip{
+    display:flex;
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    padding-bottom:3px;
+  }
+  html[data-v53-real-evidence] #main > .q-page .q-kpi,
+  html[data-v53-real-evidence="research-workspace"] #main > .q-page .q-research-kpi-strip > article{
+    flex:0 0 74%;
+    scroll-snap-align:start;
+  }
+  html[data-v53-real-evidence] #main > .q-page .q-v53-evidence-inspector,
+  html[data-v53-real-evidence="research-workspace"] #main > .q-page .q-research-context-rail,
+  html[data-v53-real-evidence="research-workspace"] #main > .q-page .q-research-inspector{
+    position:static;
+  }
+  html[data-v53-real-evidence="research-workspace"] #main > .q-page .q-research-context-rail{order:1;}
+  html[data-v53-real-evidence="research-workspace"] #main > .q-page .q-research-primary{order:2;}
+  html[data-v53-real-evidence="research-workspace"] #main > .q-page .q-research-inspector{order:3;}
+  html[data-v53-real-evidence="saved-calculations"] #main > .q-page .q-saved-grid{
+    grid-template-columns:1fr;
+  }
+  html[data-v53-real-evidence] #main > .q-page .q-two-column{
+    grid-template-columns:1fr;
+  }
+}
+
+@media(max-width:480px){
+  html[data-v53-real-evidence] #main > .q-page .q-v53-evidence-row{
+    grid-template-columns:1fr;
+    gap:2px;
+  }
+  html[data-v53-real-evidence] #main > .q-page .q-kpi,
+  html[data-v53-real-evidence="research-workspace"] #main > .q-page .q-research-kpi-strip > article{
+    flex-basis:82%;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  html[data-v53-real-evidence] #main > .q-page *,
+  html[data-v53-real-evidence] #main > .q-page *::before,
+  html[data-v53-real-evidence] #main > .q-page *::after{
+    scroll-behavior:auto!important;
+    transition-duration:.001ms!important;
+    animation-duration:.001ms!important;
+  }
+}
