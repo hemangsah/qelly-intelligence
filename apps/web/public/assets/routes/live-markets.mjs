@@ -68,7 +68,7 @@ export async function renderLiveMarkets(main,deps){
       <div class="q-v5-evidence-cell"><span>Source</span><strong id="live-evidence-source">Preparing…</strong></div>
       <div class="q-v5-evidence-cell"><span>Observed</span><strong id="live-evidence-observed">Not supplied</strong></div>
       <div class="q-v5-evidence-cell"><span>Freshness</span><strong id="live-evidence-freshness">Not supplied</strong></div>
-      <div class="q-v5-evidence-cell"><span>Confidence</span><strong id="live-evidence-confidence">Evaluating</strong></div>
+      <div class="q-v5-evidence-cell"><span>Confidence</span><strong id="live-evidence-confidence">Not supplied</strong></div>
       <div class="q-v5-evidence-cell"><span>Coverage</span><strong>Selected candle series</strong></div>
       <div class="q-v5-evidence-cell"><span>Execution</span><strong>Disabled</strong></div>
     </section>
