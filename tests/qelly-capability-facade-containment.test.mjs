@@ -20,7 +20,8 @@ test('readiness remains not proven until required end-to-end canaries exist',asy
   assert.equal(body.status,'not_proven');
   assert.equal(body.dependencies.supabase,'supabase_auth_health_http_503');
   assert.equal(body.dependencies.auth,'email_delivery_canary_proven');
-  assert.equal(body.dependencies.providers,'intentionally_unavailable_rights_restricted');
+  assert.equal(body.dependencies.providers,'ecb_reference_freshness_not_proven');
+  assert.equal(body.checks.providerFreshness.required,true);
   assert.equal(body.checks.rlsIsolation.proven,true);
 });
 
