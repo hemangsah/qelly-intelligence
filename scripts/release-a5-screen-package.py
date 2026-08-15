@@ -24,7 +24,7 @@ This package contains {manifest['renderCount']} full-page PNG captures across {m
 
 Evidence boundary: {manifest['evidenceBoundary']}.
 
-Public production deployment is verified separately by the Cloudflare release workflow. Authenticated screens in this package use a disposable local test identity because production Auth remains deliberately fail-closed until SMTP delivery and two-user RLS canaries pass.
+Public production deployment is verified separately by the Cloudflare release workflow. Authenticated screens in this package use a disposable local test identity and contain no production user data. This visual-evidence package does not itself prove transactional-email delivery, production authentication readiness, tenant isolation or provider availability; those controls require their dedicated runtime and canary evidence.
 ''')
 checksums={}
 for path in sorted(OUT.iterdir()):
