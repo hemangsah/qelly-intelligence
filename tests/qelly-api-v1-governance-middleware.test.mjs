@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {onRequest,__middlewareTest} from '../functions/api/v1/_middleware.js';
+import {onRequest as onReadinessRequest} from '../functions/api/v1/readiness.js';
 
 const SITE='https://qelly-middleware.test';
 const CANONICAL='https://qelly-intelligence.pages.dev';
@@ -19,10 +20,10 @@ const environment=(overrides={})=>({
 });
 const browserHeaders=(extra={})=>({origin:SITE,...extra});
 
-test('readiness middleware remains fail-closed with structured proof states outside canonical production',async()=>{
+test('dedicated readiness route remains fail-closed with structured proof states outside canonical production',async()=>{
   let nextCalls=0;
   const request=new Request(`${SITE}/api/v1/readiness`);
-  const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response('unexpected');}});
+  const response=await onReadinessRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response('unexpected');}});
   const body=await response.json();
   assert.equal(response.status,503);
   assert.equal(nextCalls,0);
@@ -37,7 +38,7 @@ test('readiness middleware remains fail-closed with structured proof states outs
 
 test('configured email transport never becomes ready outside canonical evidence scope',async()=>{
   const request=new Request(`${SITE}/api/v1/readiness`);
-  const response=await onRequest({request,env:environment({QELLY_ENABLE_AUTH_EMAIL_DELIVERY:'true'}),next:async()=>new Response('unexpected')});
+  const response=await onReadinessRequest({request,env:environment({QELLY_ENABLE_AUTH_EMAIL_DELIVERY:'true'}),next:async()=>new Response('unexpected')});
   const body=await response.json();
   assert.equal(response.status,503);
   assert.equal(body.ready,false);
@@ -58,12 +59,20 @@ test('canonical readiness returns 200 only when all production evidence canaries
     }
   });
   const request=new Request(`${CANONICAL}/api/v1/readiness`);
-  const response=await onRequest({request,env,next:async()=>new Response('unexpected')});
+  const response=await onReadinessRequest({request,env,next:async()=>new Response('unexpected')});
   const body=await response.json();
   assert.equal(response.status,200);
   assert.equal(body.ready,true);
   assert.equal(body.status,'ready');
   for(const check of Object.values(body.checks))if(check.required){assert.equal(check.configured,true);assert.equal(check.proven,true);}
+});
+
+test('readiness GET delegates through middleware to its dedicated route owner',async()=>{
+  let nextCalls=0;
+  const request=new Request(`${SITE}/api/v1/readiness`);
+  const response=await onRequest({request,env:environment(),next:async()=>{nextCalls+=1;return new Response('dedicated-readiness',{status:204});}});
+  assert.equal(nextCalls,1);
+  assert.equal(response.status,204);
 });
 
 test('unsafe Auth mutations fail closed when Origin is absent',async()=>{
@@ -135,8 +144,9 @@ test('safe Auth reads and non-governed API routes continue through the existing 
   }
 });
 
-test('middleware source owns governed paths, readiness evidence collection and Auth mutation origin enforcement',async()=>{
+test('middleware source owns governed mutations but not readiness evidence collection',async()=>{
   const source=await readFile(new URL('../functions/api/v1/_middleware.js',import.meta.url),'utf8');
+  const readinessSource=await readFile(new URL('../functions/api/v1/readiness.js',import.meta.url),'utf8');
   assert.equal(__middlewareTest.governanceRoute('cloud/opt-in','POST'),true);
   assert.equal(__middlewareTest.governanceRoute('account/delete','POST'),true);
   assert.equal(__middlewareTest.governanceRoute('cloud/opt-in','GET'),false);
@@ -147,8 +157,11 @@ test('middleware source owns governed paths, readiness evidence collection and A
   assert.equal(__middlewareTest.unsafeMethod('POST'),true);
   assert.equal(__middlewareTest.unsafeMethod('OPTIONS'),false);
   assert.match(source,/handleGovernance/);
-  assert.match(source,/collectReadinessEvidence/);
-  assert.match(source,/readinessSnapshot/);
+  assert.doesNotMatch(source,/collectReadinessEvidence/);
+  assert.doesNotMatch(source,/readinessSnapshot/);
+  assert.doesNotMatch(source,/interceptReadiness/);
+  assert.match(readinessSource,/collectReadinessEvidence/);
+  assert.match(readinessSource,/readinessSnapshot/);
   assert.match(source,/safeBaseCurrency/);
   assert.match(source,/safeTimezone/);
   assert.match(source,/requireOrigin\(request,env\)/);
