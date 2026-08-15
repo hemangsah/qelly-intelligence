@@ -22,7 +22,6 @@ export const unavailableCapabilities=Object.freeze([
   capability('platform-assurance','Staging assurance & migrations','operations','low',['platform/assurance','platform/migrations/**','platform/staging-manifest'],'Staging assurance and migration-control surfaces are deployment operations, not enabled end-user production APIs.'),
   capability('portfolio','Portfolio analytics','portfolio','high',['portfolio/**'],'The portfolio service has not yet been promoted with canonical holdings persistence and governed market inputs.'),
   capability('privacy','Privacy inventory & consent controls','governance','high',['privacy/**'],'Browser privacy/consent management has not yet been promoted to the canonical Cloudflare API.'),
-  capability('research','Research workspaces','research','high',['research/**'],'Persistent research workspace/version APIs are not yet backed by the canonical Cloudflare persistence contract.'),
   capability('screeners','Screeners','quant','high',['screeners/**'],'Server-side screener execution/saved screens are not yet promoted to Cloudflare. Deterministic calculator/formula/indicator engines remain separate.'),
   capability('search','Universal search','discovery','high',['search'],'Universal search is not yet backed by a canonical cross-domain index.'),
   capability('secure-imports','Secure import vault & quarantine','security','medium',['secure-imports','secure-imports/**'],'Secure import quarantine/rescan requires an accepted production file-scanning pipeline that is not yet enabled.'),
