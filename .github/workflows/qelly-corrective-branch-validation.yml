@@ -34,19 +34,7 @@ jobs:
         run: npm ci
 
       - name: Run complete Node test suite
-        shell: bash
-        run: |
-          set -o pipefail
-          npm test 2>&1 | tee node-test.log
-
-      - name: Upload Node test diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: qelly-node-test-diagnostics
-          path: node-test.log
-          if-no-files-found: warn
-          retention-days: 1
+        run: npm test
 
       - name: Build Cloudflare frontend bundle
         run: npm run build:frontend
