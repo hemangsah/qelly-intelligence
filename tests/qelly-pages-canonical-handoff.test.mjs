@@ -5,8 +5,8 @@ import {readFile} from 'node:fs/promises';
 const workflow=await readFile(new URL('../.github/workflows/pages-preview.yml',import.meta.url),'utf8');
 const builder=await readFile(new URL('../scripts/build-pages-canonical-handoff.mjs',import.meta.url),'utf8');
 
-test('GitHub Pages deploys from the release line and remains a canonical handoff, not a second runtime',()=>{
-  assert.match(workflow,/branches:\s*\[release\/qelly-global-public-beta\]/);
+test('GitHub Pages uses its environment-approved main control branch and remains a canonical handoff, not a second runtime',()=>{
+  assert.match(workflow,/branches:\s*\[main\]/);
   assert.match(workflow,/QELLY_STATIC_VISUAL_PREVIEW:\s*'true'/);
   assert.match(workflow,/npm run validate:pages-preview/);
   assert.match(workflow,/node scripts\/build-pages-canonical-handoff\.mjs/);
