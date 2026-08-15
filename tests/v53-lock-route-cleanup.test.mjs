@@ -11,7 +11,8 @@ test('legacy Verify and methodology subviews are synchronously excluded from the
   assert.match(source,/querySelectorAll\(':scope > \.q-v53-lock-page'\)/);
 });
 
-test('route cleanup loads before asynchronous lock-candidate activation',()=>{
+test('route cleanup loads synchronously and historical lock-candidate activation stays retired',()=>{
   assert.match(family,/^import '\.\/qelly-v53-lock-route-cleanup\.mjs';/);
-  assert.match(family,/void import\('\.\/qelly-v53-lock-candidate-convergence\.mjs'\)/);
+  assert.doesNotMatch(family,/void import\('\.\/qelly-v53-lock-candidate-convergence\.mjs'\)/);
+  assert.match(family,/void import\('\.\/qelly-v53-lock-shell\.mjs'\)/);
 });
