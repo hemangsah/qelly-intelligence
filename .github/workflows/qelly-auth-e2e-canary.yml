@@ -35,12 +35,13 @@ jobs:
           const fs=require('node:fs');
           const config=JSON.parse(fs.readFileSync('/tmp/qelly-config.json','utf8'));
           const expected=process.env.EXPECTED_RELEASE_SHA;
+          const releaseSha=typeof config?.release==='string'?config.release:(config?.release?.sha||config?.runtime?.releaseSha||null);
           const evidence={
             status:'passed',
             target:'canonical-production',
             publicUrl:process.env.PUBLIC_URL,
             supersededReason:'The former Gmail-alias workflow could not consume mandatory confirmation mail. Full register-confirm-login-delete coverage is owned by Qelly Self-Contained Auth E2E Canary.',
-            releaseSha:config?.release?.sha||null,
+            releaseSha,
             auth:{
               authenticated:config?.auth?.authenticated===true,
               emailDeliveryAvailable:config?.auth?.emailDeliveryAvailable===true
