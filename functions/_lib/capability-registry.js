@@ -28,7 +28,6 @@ export const unavailableCapabilities=Object.freeze([
   capability('secret-protection','Secret protection rotation','security','low',['security/secret-protection/**'],'Secret rotation is an operator capability and is not exposed as an end-user production API.'),
   capability('remote-session-control','Remote session control','identity','medium',['sessions/**'],'Only the current-browser session summary is implemented; multi-device revoke/control is unavailable.'),
   capability('streams-timeseries','Streams & time-series service','market-data','high',['streams/**','timeseries/**'],'The local stream/time-series service is not yet promoted with rights-safe canonical provider inputs.'),
-  capability('watchlists','Watchlists','workspace','high',['watchlist','workspace/watchlists/**'],'Persistent watchlists are not yet backed by a canonical Cloudflare storage contract.'),
   capability('workspaces','Workspace management','workspace','high',['workspaces','workspaces/**'],'Workspace switching/management beyond the bootstrapped current workspace is not yet promoted to the canonical API.')
 ]);
 
