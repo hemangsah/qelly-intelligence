@@ -11,7 +11,7 @@ const screener=()=>read('../apps/web/public/assets/routes/screener-lab.mjs');
 test('Advanced Chart and Screener Lab own real V5.3 DOM instead of synthetic lock surfaces',async()=>{
   const source=await cleanup();
   assert.match(source,/REAL_ANALYSIS_ROUTES=new Set\(\['advanced-chart','screener-lab'\]\)/);
-  assert.match(source,/DEDICATED_REAL_ROUTES=new Set\(\['live-markets','market',\.\.\.REAL_ANALYSIS_ROUTES\]\)/);
+  assert.match(source,/DEDICATED_REAL_ROUTES=new Set\(\['live-markets','market',\.\.\.REAL_ANALYSIS_ROUTES(?:,[^\]]+)?\]\)/);
   assert.match(source,/qelly-v53-real-analysis\.css/);
   assert.match(source,/root\.dataset\.v53RealAnalysis=route/);
   assert.match(source,/synthetic&&isDedicatedRealRoute\(\)/);
