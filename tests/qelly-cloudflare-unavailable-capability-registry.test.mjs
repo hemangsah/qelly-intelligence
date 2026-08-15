@@ -23,6 +23,8 @@ test('registry matches capability debt without shadowing promoted runtime famili
   assert.equal(matchUnavailableCapability('auth/mfa/status')?.id,'mfa');
   assert.equal(matchUnavailableCapability('research/workspaces'),null);
   assert.equal(matchUnavailableCapability('research/workspaces/abc/items'),null);
+  assert.equal(matchUnavailableCapability('workspace/watchlists'),null);
+  assert.equal(matchUnavailableCapability('workspace/watchlists/abc/items'),null);
   assert.equal(matchUnavailableCapability('providers/runtime'),null);
   assert.equal(matchUnavailableCapability('public/providers'),null);
   assert.equal(matchUnavailableCapability('sessions/remote-session-id')?.id,'remote-session-control');
