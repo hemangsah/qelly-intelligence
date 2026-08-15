@@ -54,7 +54,7 @@ export function liveMarketCatalog(){
     const policy=policies.get(id);
     return {id,name:PROVIDER_UI[id].name,transport:[...PROVIDER_UI[id].transport],symbols:[...PROVIDER_UI[id].symbols],intervals:Object.keys(INTERVAL_SECONDS),enabled:Boolean(policy?.enabled),realtime:Boolean(policy?.enabled),realtimeAuthorized:Boolean(policy?.enabled),termsState:policy?.termsState||'unavailable',reason:policy?.reason||null,termsUrl:policy?.termsUrl||null};
   });
-  return {brandChart:'TradingView Lightweight Charts compatible',liveModeEnabled:providers.some(provider=>provider.id!=='fixture'&&provider.realtimeAuthorized),providers,guardrails:{publicMarketDataOnly:true,privateAccountEndpoints:false,trading:false,transfers:false,withdrawals:false,credentialsRequired:false,blockedProvidersNeverPresentedAsLive:true}};
+  return {brandChart:'Qelly First-Party SVG renderer',chartRuntime:'first-party-only',thirdPartyRuntimeScripts:false,liveModeEnabled:providers.some(provider=>provider.id!=='fixture'&&provider.realtimeAuthorized),providers,guardrails:{publicMarketDataOnly:true,privateAccountEndpoints:false,trading:false,transfers:false,withdrawals:false,credentialsRequired:false,blockedProvidersNeverPresentedAsLive:true}};
 }
 
 function fixtureResult({requestedProvider='fixture',symbol='BTCUSDT',interval='1m',limit=240,fallbackReason=null,termsState=null}={}){
