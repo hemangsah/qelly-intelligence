@@ -16,7 +16,10 @@ import {
 
 const routePath=(context)=>{
   const value=context.params?.route;
-  return Array.isArray(value)?value.join('/'):String(value||'').replace(/^\/+|\/+$/g,'');
+  const raw=(Array.isArray(value)?value.join('/'):String(value||'')).replace(/^\/+|\/+$/g,'');
+  if(raw==='workspaces')return '';
+  if(raw.startsWith('workspaces/'))return raw.slice('workspaces/'.length);
+  return raw;
 };
 const safeArray=(value,max=20)=>Array.isArray(value)?value.slice(0,max):[];
 const cleanTags=(value)=>safeArray(value).map((item)=>cleanText(item,40)).filter(Boolean);
