@@ -61,8 +61,9 @@ test('Cloudflare portfolio route exposes exact read paths under authenticated RL
   assert.match(analytics,/data-portfolio-persistence="CLOUD RLS"/);
   assert.match(analytics,/data-portfolio-valuation-truth="UNAVAILABLE"/);
   assert.match(attribution,/data-portfolio-attribution-truth/);
-  assert.doesNotMatch(analytics,/deterministic portfolio performance fixture/i);
-  assert.doesNotMatch(attribution,/deterministic contribution analysis|fixture/i);
+  assert.doesNotMatch(analytics,/deterministic portfolio performance fixture|q-status--simulated/i);
+  assert.doesNotMatch(attribution,/deterministic contribution analysis|q-status--simulated/i);
+  assert.match(attribution,/does not calculate allocation or selection effects from fixture prices/i);
 });
 
 test('unknown portfolio sub-capabilities remain unavailable instead of inheriting fake success',()=>{
