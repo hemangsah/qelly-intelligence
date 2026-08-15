@@ -19,10 +19,12 @@ test('canonical capability debt is explicit, reasoned and never presented as imp
   assert.equal(inventory.unavailableCount,unavailableCapabilities.length);
 });
 
-test('registry matches known capability debt without shadowing implemented runtime families',()=>{
+test('registry matches capability debt without shadowing promoted runtime families',()=>{
   assert.equal(matchUnavailableCapability('auth/mfa/status')?.id,'mfa');
-  assert.equal(matchUnavailableCapability('research/workspaces')?.id,'research');
-  assert.equal(matchUnavailableCapability('research/workspaces/abc/items')?.id,'research');
+  assert.equal(matchUnavailableCapability('research/workspaces'),null);
+  assert.equal(matchUnavailableCapability('research/workspaces/abc/items'),null);
+  assert.equal(matchUnavailableCapability('providers/runtime'),null);
+  assert.equal(matchUnavailableCapability('public/providers'),null);
   assert.equal(matchUnavailableCapability('sessions/remote-session-id')?.id,'remote-session-control');
   assert.equal(matchUnavailableCapability('portfolio/risk')?.id,'portfolio');
   assert.equal(matchUnavailableCapability('platform/readiness'),null);
