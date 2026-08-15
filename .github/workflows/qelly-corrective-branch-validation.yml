@@ -34,7 +34,19 @@ jobs:
         run: npm ci
 
       - name: Run complete Node test suite
-        run: npm test
+        shell: bash
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee qelly-test-output.log
+
+      - name: Upload failing test trace
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qelly-test-output
+          path: qelly-test-output.log
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Build Cloudflare frontend bundle
         run: npm run build:frontend
