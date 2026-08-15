@@ -1,20 +1,20 @@
-name: Static Visual Preview
+name: Canonical GitHub Pages Handoff
 
 on:
   push:
-    branches: [main]
+    branches: [release/qelly-global-public-beta]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: pages-static-visual-preview
+  group: pages-canonical-handoff
   cancel-in-progress: true
 
 jobs:
   build:
-    name: Build static visual preview
+    name: Validate preview and build canonical handoff
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -41,27 +41,29 @@ jobs:
         run: npm run validate:design
       - name: Test
         run: npm test
-      - name: Build static visual preview
+      - name: Build static visual preview for CI parity validation
         env:
           QELLY_STATIC_VISUAL_PREVIEW: 'true'
           QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
           QELLY_DEPLOYMENT_ENVIRONMENT: github-pages
         run: npm run build:frontend
-      - name: Remove Cloudflare-only controls
+      - name: Remove Cloudflare-only controls from CI preview
         run: node scripts/sanitize-pages-artifact.mjs
-      - name: Validate compiled artifact
+      - name: Validate compiled preview artifact
         run: npm run validate:pages-preview
       - name: Smoke-test repository-path serving
         run: npm run smoke:pages-preview
+      - name: Build canonical production handoff
+        run: node scripts/build-pages-canonical-handoff.mjs
       - name: Configure GitHub Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
-      - name: Upload compiled static frontend
+      - name: Upload canonical handoff
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
-          path: dist/frontend
+          path: dist/pages-canonical
 
   deploy:
-    name: Deploy static visual preview
+    name: Deploy canonical Qelly terminal handoff
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
