@@ -209,11 +209,12 @@ try{
   const configResponse=await qelly('/api/v1/config');
   requireStatus(configResponse,[200],'qelly_authenticated_config');
   const config=await json(configResponse);
-  if(config?.release?.sha!==EXPECTED_RELEASE_SHA)throw new Error(`qelly_release_identity_mismatch_${config?.release?.sha||'missing'}`);
+  const releaseSha=typeof config?.release==='string'?config.release:(config?.release?.sha||config?.runtime?.releaseSha||null);
+  if(releaseSha!==EXPECTED_RELEASE_SHA)throw new Error(`qelly_release_identity_mismatch_${releaseSha||'missing'}`);
   if(config?.auth?.authenticated!==true||!config?.csrf?.token)throw new Error('qelly_authenticated_config_invalid');
   const csrf=String(config.csrf.token);
   mask(csrf);
-  evidence.releaseSha=config.release.sha;
+  evidence.releaseSha=releaseSha;
   evidence.authenticatedConfig={authenticated:true,csrfMode:config?.csrf?.mode||null};
 
   stage='qelly-self-delete';
