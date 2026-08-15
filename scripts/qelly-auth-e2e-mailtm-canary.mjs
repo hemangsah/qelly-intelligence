@@ -15,6 +15,18 @@ const json=async(response)=>{
 const requireStatus=(response,allowed,label)=>{
   if(!allowed.includes(response.status))throw new Error(`${label}_http_${response.status}`);
 };
+const collection=(payload)=>{
+  if(Array.isArray(payload))return payload;
+  if(Array.isArray(payload?.['hydra:member']))return payload['hydra:member'];
+  if(Array.isArray(payload?.member))return payload.member;
+  if(Array.isArray(payload?.domains))return payload.domains;
+  if(Array.isArray(payload?.items))return payload.items;
+  return [];
+};
+
+class ExternalDependencyUnavailable extends Error{
+  constructor(message){super(message);this.name='ExternalDependencyUnavailable';}
+}
 
 class CookieJar{
   #cookies=new Map();
@@ -51,6 +63,28 @@ const mailFetch=async(path,{method='GET',body,token}={})=>{
   if(token)headers.set('Authorization',`Bearer ${token}`);
   if(body!==undefined){headers.set('Content-Type','application/json');body=JSON.stringify(body);}
   return fetch(`${MAIL_API}${path}`,{method,headers,body,redirect:'follow',signal:AbortSignal.timeout(30_000)});
+};
+
+const discoverMailDomain=async()=>{
+  let lastStatus=null;
+  let lastCount=0;
+  for(let attempt=1;attempt<=6;attempt++){
+    try{
+      const response=await mailFetch(`/domains?page=1&cacheBust=${Date.now()}`);
+      lastStatus=response.status;
+      if(response.status===200){
+        const payload=await json(response);
+        const domains=collection(payload);
+        lastCount=domains.length;
+        const domain=(domains.find(item=>item?.isActive===true&&item?.isPrivate!==true)||domains.find(item=>item?.isActive===true)||domains[0])?.domain;
+        if(domain)return {domain,attempt,status:response.status,count:domains.length};
+      }
+    }catch(error){
+      console.log(`::warning::Mail.tm domain discovery attempt ${attempt} failed: ${String(error?.message||error).slice(0,160)}`);
+    }
+    if(attempt<6)await sleep(Math.min(10_000,1_500*attempt));
+  }
+  throw new ExternalDependencyUnavailable(`mailtm_active_domain_unavailable_status_${lastStatus??'network'}_count_${lastCount}`);
 };
 
 const decodeHtml=(value)=>String(value||'')
@@ -93,12 +127,9 @@ const evidence={
 
 try{
   console.log('Temporary QA mailbox provider: Mail.tm — https://mail.tm');
-  const domainsResponse=await mailFetch('/domains?page=1');
-  requireStatus(domainsResponse,[200],'mailtm_domains');
-  const domainsPayload=await json(domainsResponse);
-  const domains=domainsPayload?.['hydra:member']||domainsPayload?.member||[];
-  const domain=(domains.find(item=>item?.isActive===true&&item?.isPrivate!==true)||domains.find(item=>item?.isActive===true)||domains[0])?.domain;
-  if(!domain)throw new Error('mailtm_active_domain_missing');
+  const discovered=await discoverMailDomain();
+  const domain=discovered.domain;
+  evidence.mailboxDiscovery={status:'available',attempt:discovered.attempt,httpStatus:discovered.status,domainCount:discovered.count};
 
   stage='mail-account';
   const mailboxEmail=`qelly-${process.env.GITHUB_SHA?.slice(0,8)||'canary'}-${randomBytes(5).toString('hex')}@${domain}`;
@@ -142,7 +173,7 @@ try{
     const messagesResponse=await mailFetch('/messages?page=1',{token:mailToken});
     if(messagesResponse.status!==200)continue;
     const payload=await json(messagesResponse);
-    const messages=payload?.['hydra:member']||payload?.member||[];
+    const messages=collection(payload);
     const match=messages.find(message=>/confirm your email address|confirm.*email|qelly/i.test(`${message?.subject||''} ${message?.from?.name||''} ${message?.from?.address||''}`));
     if(match?.id)messageId=String(match.id);
   }
@@ -216,11 +247,20 @@ try{
   await writeFile(`${evidenceDir}/result.json`,JSON.stringify(evidence,null,2));
   console.log('Canonical production Auth E2E canary passed and disposable identity cleanup completed.');
 }catch(error){
-  evidence.status='failed';
-  evidence.stage=stage;
-  evidence.failure=String(error?.message||error||'unknown_failure').slice(0,400);
-  await writeFile(`${evidenceDir}/result.json`,JSON.stringify(evidence,null,2));
-  throw error;
+  if(error instanceof ExternalDependencyUnavailable&&stage==='mail-domain'){
+    evidence.status='blocked_external';
+    evidence.stage=stage;
+    evidence.failure=String(error.message).slice(0,400);
+    evidence.mailboxDiscovery={status:'unavailable_after_retries'};
+    await writeFile(`${evidenceDir}/result.json`,JSON.stringify(evidence,null,2));
+    console.log(`::warning::Canonical Auth E2E did not run because the disposable mailbox provider was unavailable after retries: ${error.message}`);
+  }else{
+    evidence.status='failed';
+    evidence.stage=stage;
+    evidence.failure=String(error?.message||error||'unknown_failure').slice(0,400);
+    await writeFile(`${evidenceDir}/result.json`,JSON.stringify(evidence,null,2));
+    throw error;
+  }
 }finally{
   if(mailAccountId&&mailToken){
     try{await mailFetch(`/accounts/${encodeURIComponent(mailAccountId)}`,{method:'DELETE',token:mailToken});}catch{}
