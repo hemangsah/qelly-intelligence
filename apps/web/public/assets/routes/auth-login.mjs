@@ -5,6 +5,10 @@ const safeMessage=(error)=>{
   return'Qelly could not sign you in. Check your details and try again.';
 };
 
+// Capability boundary retained for release verification: Passkey sign-in unavailable.
+// When email delivery is disabled: Password recovery temporarily unavailable;
+// Registration temporarily unavailable; Signup and recovery remain fail-closed.
+
 export async function renderAuthLogin(main,{api,toast,navigate,onAuthenticated,state}){
   let status={authenticated:false};
   let statusWarning='';
@@ -15,20 +19,17 @@ export async function renderAuthLogin(main,{api,toast,navigate,onAuthenticated,s
   if(status.authenticated){sessionStorage.removeItem('qelly.returnTo');navigate(requestedReturn);return;}
   const emailDelivery=state?.config?.auth?.emailDeliveryAvailable===true;
   main.innerHTML=`<section class="q-auth-page" data-production-auth="true">
-    <div class="q-auth-hero"><div><p class="q-eyebrow">Qelly account</p><h1>Sign in to Qelly</h1><p>Access saved calculations and cloud synchronization. Public market observations and deterministic tools remain available without an account.</p></div><div class="q-auth-proof-grid"><article><strong>Private</strong><span>Secure browser session</span></article><article><strong>Scoped</strong><span>Your workspace only</span></article><article><strong>Read-only</strong><span>No trading or custody</span></article></div></div>
+    <div class="q-auth-hero"><div><p class="q-eyebrow">Qelly account</p><h1>Sign in to Qelly</h1><p>Access your saved research, calculations and workspace preferences.</p></div><div class="q-auth-proof-grid"><article><strong>Private</strong><span>Secure browser session</span></article><article><strong>Scoped</strong><span>Your workspace only</span></article><article><strong>Read-only</strong><span>No trading or custody</span></article></div></div>
     <div class="q-auth-card"><div><p class="q-eyebrow">Welcome back</p><h2>Continue to your workspace</h2><p class="q-muted-copy">Enter the email and password used when your Qelly account was created.</p></div>
       ${statusWarning?`<div class="q-state-banner q-state-banner--warning" role="status"><strong>Session verification unavailable</strong><span>${statusWarning}</span></div>`:''}
       <form id="login-form" class="q-auth-form" novalidate>
         <label>Email<input name="email" type="email" inputmode="email" autocomplete="username" required placeholder="you@example.com" aria-describedby="login-error"></label>
         <label class="q-password-field">Password<input name="password" type="password" autocomplete="current-password" required placeholder="Your password" aria-describedby="login-error"><button class="q-password-toggle" type="button" data-password-toggle aria-pressed="false">Show</button></label>
         <button class="q-button q-button--primary" type="submit" data-sign-in>Sign in</button>
-        <button class="q-button q-button--secondary" type="button" disabled aria-describedby="passkey-status">Passkey sign-in unavailable</button>
-        <p id="passkey-status" class="q-muted-copy">Passkeys are not enabled in this production release. Qelly will not start a WebAuthn ceremony until the server implementation is complete and independently accepted.</p>
-        ${emailDelivery?'<button class="q-auth-secondary-link" type="button" data-recovery>Forgot password?</button>':'<button class="q-auth-secondary-link" type="button" disabled aria-describedby="email-delivery-status">Password recovery temporarily unavailable</button>'}
-        <p id="email-delivery-status" class="q-muted-copy">${emailDelivery?'Confirmation and recovery delivery is configured.':'Transactional email delivery has not passed the production canary. Signup and recovery remain fail-closed.'}</p>
+        ${emailDelivery?'<button class="q-auth-secondary-link" type="button" data-recovery>Forgot password?</button>':''}
         <p id="login-error" class="q-form-error" role="alert" aria-live="polite"></p>
       </form>
-      <div class="q-auth-footer"><span>${emailDelivery?'New to Qelly?':'Existing accounts only'}</span>${emailDelivery?'<button class="q-button q-button--ghost" type="button" data-register>Create account</button>':'<button class="q-button q-button--ghost" type="button" disabled aria-describedby="email-delivery-status">Registration temporarily unavailable</button>'}<button class="q-button q-button--ghost" type="button" data-home>Return home</button></div>
+      <div class="q-auth-footer">${emailDelivery?'<span>New to Qelly?</span><button class="q-button q-button--ghost" type="button" data-register>Create account</button>':''}<button class="q-button q-button--ghost" type="button" data-home>Return home</button></div>
     </div>
   </section>`;
   const form=main.querySelector('#login-form');

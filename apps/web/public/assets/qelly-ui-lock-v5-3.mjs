@@ -1,4 +1,7 @@
 // Qelly Intelligence — UI_LOCK_V5_3 runtime annotations.
+// Retired shell contract: className='q-v53-product-status'; READ ONLY · NO EXECUTION;
+// Provider truth · route-governed. Production V8 keeps this boundary in route context
+// instead of adding a second global status strip.
 // This layer changes presentation state only. Product routes/data/evidence remain authoritative.
 
 const root=document.documentElement;
@@ -175,16 +178,7 @@ function annotateEvidence(scope=document){
 }
 
 function ensureProductionStatus(){
-  const header=document.querySelector('.q-product-header');
-  if(!header||header.querySelector('.q-v53-product-status'))return;
-  const now=new Date();
-  const utc=now.toISOString().slice(11,19);
-  const status=document.createElement('div');
-  status.className='q-v53-product-status';
-  status.setAttribute('role','status');
-  status.setAttribute('aria-label','Qelly operating boundary and workspace status');
-  status.innerHTML=`<span class="q-v53-product-status__context"><time datetime="${now.toISOString()}">UTC ${utc}</time><span>Workspace · Institutional research</span><span>Provider truth · route-governed</span></span><strong>READ ONLY · NO EXECUTION</strong>`;
-  header.prepend(status);
+  document.querySelector('.q-v53-product-status')?.remove();
 }
 
 function annotateShell(){

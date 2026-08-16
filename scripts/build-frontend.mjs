@@ -76,6 +76,8 @@ if(prompt2cPublicBeta){
   }
   if(!index.includes('prompt2c-public-beta.mjs'))index=index.replace('</body>','  <script type="module" src="./assets/prompt2c-public-beta.mjs"></script>\n</body>');
 }
+if(!index.includes('qelly-production-v8.css'))index=index.replace('</head>','  <link rel="stylesheet" href="./assets/qelly-production-v8.css">\n</head>');
+if(!index.includes('qelly-production-v8.mjs'))index=index.replace('</body>','  <script type="module" src="./assets/qelly-production-v8.mjs"></script>\n</body>');
 await writeFile(indexPath,index);
 
 const connectedRuntimeConfig={
@@ -146,7 +148,8 @@ await writeFile(path.join(output,'BUILD_INFO.json'),`${JSON.stringify({
   product:'Qelly Intelligence',version:'0.9.0-preview.1',artifact:staticVisualPreview?'static-frontend':githubPagesMirror?'github-pages-public-mirror':'static-frontend-with-pages-functions',
   apiBaseConfigured:Boolean(apiBaseUrl),basePath,staticVisualPreview,githubPagesMirror,prompt2cPublicBeta,
   publicBetaMode:prompt2cPublicBeta?'QELLY GLOBAL PUBLIC BETA':null,
-  connectedCapabilitiesActivated:githubPagesMirror?capabilities.liveProviders:capabilities.authentication&&capabilities.emailDelivery&&capabilities.cloudSync&&capabilities.liveProviders,
+  connectedCapabilitiesActivated:githubPagesMirror?capabilities.liveProviders:capabilities.authentication&&capabilities.cloudSync&&capabilities.liveProviders,
+  transactionalEmailActivated:capabilities.emailDelivery,
   releaseSha,buildTimestamp,functionsRoot:githubPagesMirror?null:'functions',runtimeArchitecture:githubPagesMirror?'github-pages-ui-cloudflare-read-only-api':'cloudflare-api-facade-supabase-auth-rls',
   canonicalSiteUrl,apiBaseUrl,
   fonts:{ui:'IBM Plex Sans Variable',evidence:'IBM Plex Sans Variable',fallbacks:['Arial','Helvetica Neue','sans-serif'],licensedOptional:['GT Eesti Pro Display','GT Eesti Pro Text'],licensedOptionalActive:false,iconSystem:'semantic-inline-svg',selfHosted:true,format:'woff2'}

@@ -90,7 +90,9 @@ export function rewritePublicRuntimeAsset(source,{file}){
     }
   }
   if(file==='assets/qelly-worldclass-uiux.mjs'){
-    if(text.includes(legacyWorldclassEnhance))text=text.replace(legacyWorldclassEnhance,publicWorldclassEnhance);
+    const lineEnding=text.includes('\r\n')?'\r\n':'\n';
+    const normalized=text.replaceAll('\r\n','\n');
+    if(normalized.includes(legacyWorldclassEnhance))text=normalized.replace(legacyWorldclassEnhance,publicWorldclassEnhance).replaceAll('\n',lineEnding);
   }
   return text;
 }
@@ -126,7 +128,7 @@ export async function finalizePublicRuntime({environment=process.env}={}){
   if(generatedApp.includes(legacyCalculatorDetailRoute)||!generatedApp.includes(publicCalculatorDetailRoute))throw new Error('Legacy calculator-detail renderer remains active in connected public runtime');
   if(generatedApp.includes(legacyIndicatorDetailRoute)||!generatedApp.includes(publicIndicatorDetailRoute))throw new Error('Legacy indicator-detail renderer remains active in connected public runtime');
   if(generatedApp.includes(legacyPortfolioRoute)||!generatedApp.includes(publicPortfolioRoute))throw new Error('V6 portfolio renderer is not active in connected public runtime');
-  const generatedWorldclass=runtimeChecks.find(([file])=>file==='assets/qelly-worldclass-uiux.mjs')[1];
+  const generatedWorldclass=runtimeChecks.find(([file])=>file==='assets/qelly-worldclass-uiux.mjs')[1].replaceAll('\r\n','\n');
   if(generatedWorldclass.includes(legacyWorldclassEnhance)||!generatedWorldclass.includes(publicWorldclassEnhance))throw new Error('Legacy review layer remains active in connected public runtime');
   const primaryFiles=[
     'index.html',
