@@ -9,74 +9,75 @@ const EXTERNAL_SYMBOLS=Object.freeze([
   ['ADAUSDT','ADA / USDT']
 ]);
 const INTERVALS=Object.freeze([['5m','5m'],['15m','15m'],['1h','1h'],['4h','4h'],['1d','1D']]);
-const tone=(value)=>{const state=String(value||'').toUpperCase();if(['ENABLED','REFERENCE_ENABLED','LIVE','MATCH','PASS'].includes(state))return 'live';if(['DELAYED','WARNING','CACHED'].includes(state))return 'delayed';if(['UNAVAILABLE','DENY','MISMATCH','BLOCKED'].includes(state))return 'unavailable';return 'cached';};
+const tone=(value)=>{const state=String(value||'').toUpperCase();if(['ENABLED','REFERENCE_ENABLED','LIVE','MATCH','PASS'].includes(state))return 'live';if(['DELAYED','DELAYED_PROVIDER','WARNING','CACHED','CACHED_PROVIDER'].includes(state))return 'delayed';if(['UNAVAILABLE','DENY','MISMATCH','BLOCKED'].includes(state))return 'unavailable';return 'cached';};
 const date=(value)=>{const parsed=new Date(value||'');return Number.isNaN(parsed.getTime())?'Not supplied':parsed.toLocaleString('en-IN');};
 const value=(input)=>input==null||input===''?'—':new Intl.NumberFormat('en-IN',{maximumFractionDigits:6}).format(Number(input));
 
 function providerCard(provider,escapeHtml){
   const active=Boolean(provider.enabled);
-  return `<article class="q-v6-market-provider">
-    <div><span class="q-v6-runtime-dot q-v6-runtime-dot--${tone(provider.runtimeState)}"></span><span><strong>${escapeHtml(String(provider.id||'provider').toUpperCase())}</strong><small>${escapeHtml((provider.capabilities||[]).join(' · ')||'No approved capabilities')}</small></span></div>
-    <span class="q-status q-status--${active?'live':'unavailable'}">${active?'approved':'rights blocked'}</span>
-    <dl><dt>Runtime</dt><dd>${escapeHtml(provider.runtimeState||'UNAVAILABLE')}</dd><dt>Terms</dt><dd>${escapeHtml(provider.termsState||'not supplied')}</dd><dt>Reason</dt><dd>${escapeHtml(provider.reason||'No blocking reason')}</dd></dl>
+  const reference=provider.id==='ecb';
+  return `<article class="q-v7-provider-card" data-provider="${escapeHtml(provider.id)}">
+    <div><strong>${escapeHtml(String(provider.id||'provider').toUpperCase())}</strong><span class="q-status q-status--${active?(reference?'delayed':'live'):'unavailable'}">${active?(reference?'DELAYED REFERENCE':'AUTHORIZED'):'UNAVAILABLE'}</span></div>
+    <p>${escapeHtml(provider.termsState||provider.reason||'Provider policy state unavailable')}</p>
     ${provider.termsUrl?`<a href="${escapeHtml(provider.termsUrl)}" target="_blank" rel="noopener noreferrer nofollow">Provider terms ↗</a>`:''}
   </article>`;
 }
 
-function governedRows(plane,escapeHtml){
-  const items=Array.isArray(plane?.items)?plane.items.slice(0,10):[];
-  if(!items.length)return '<div class="q-empty-state"><strong>No governed observation snapshot available</strong><p>Sign in for the private data-plane snapshot, or open Reference Time Series for approved ECB history.</p></div>';
-  return items.map((item)=>`<div class="q-v6-market-row"><span><strong>${escapeHtml(item.symbol||'—')}</strong><small>${escapeHtml(item.displayName||'')} · ${escapeHtml(item.unit||'')}</small></span><span><strong>${escapeHtml(value(item.value))}</strong><small>${escapeHtml(date(item.observedAt))}</small></span><span class="q-status q-status--${tone(item.truthState)}">${escapeHtml(item.truthState||'UNAVAILABLE')}</span></div>`).join('');
+function governedRates(ecb,escapeHtml){
+  const rates=ecb?.data?.rates||{};
+  const preferred=['USD','INR','GBP','JPY','CHF','CNY','CAD','AUD','SGD','AED'];
+  const rows=preferred.filter(code=>rates[code]!=null).map(code=>[code,rates[code]]);
+  if(!rows.length)return '<div class="q-empty-state"><strong>ECB observations unavailable</strong><p>No approved reference observations were returned. Qelly will not substitute generated values.</p></div>';
+  const observedAt=ecb?.observationTime||ecb?.observedAt||null;
+  return rows.map(([code,rate])=>`<article class="q-v7-rate-card"><span>EUR / ${escapeHtml(code)}</span><strong>${escapeHtml(value(rate))}</strong><small>Observed ${escapeHtml(date(observedAt))}</small></article>`).join('');
 }
 
 export async function renderMarketV6(main,deps){
   const {api,pageHead,stateBanner,escapeHtml}=deps;
-  const [providerResult,planeResult]=await Promise.allSettled([
-    api('/api/v1/providers/runtime'),
-    api('/api/v1/platform/data-plane?limit=10')
+  const [overviewResult,ecbResult]=await Promise.allSettled([
+    api('/api/v1/public/markets/overview'),
+    api('/api/v1/providers/ecb?capability=fx-reference-rates&symbol=EUR')
   ]);
-  const runtime=providerResult.status==='fulfilled'?providerResult.value:{providers:[],liveProviderFeatureEnabled:false};
-  const plane=planeResult.status==='fulfilled'?planeResult.value:null;
-  const providers=Array.isArray(runtime.providers)?runtime.providers:[];
-  const authorizedMarketProviders=providers.filter((provider)=>provider.enabled&&provider.id!=='ecb');
-  const referenceProviders=providers.filter((provider)=>provider.enabled&&provider.id==='ecb');
+  const overview=overviewResult.status==='fulfilled'?overviewResult.value:{providers:[],guardrails:{fabricatedObservations:false}};
+  const ecb=ecbResult.status==='fulfilled'?ecbResult.value:null;
+  const providers=Array.isArray(overview.providers)?overview.providers:[];
+  const authorizedMarketProviders=providers.filter(provider=>provider.enabled&&provider.id!=='ecb');
+  const referenceProviders=providers.filter(provider=>provider.enabled&&provider.id==='ecb');
   const symbolOptions=EXTERNAL_SYMBOLS.map(([id,label])=>`<option value="${id}">${label}</option>`).join('');
   const intervalOptions=INTERVALS.map(([id,label])=>`<option value="${id}">${label}</option>`).join('');
+  const ecbObservedAt=ecb?.observationTime||ecb?.observedAt||null;
+  const ecbIngestedAt=ecb?.ingestionTime||ecb?.ingestedAt||null;
+  const ecbTruth=String(ecb?.truthState||'unavailable').toUpperCase();
 
-  main.innerHTML=`<section class="q-page q-v6-market-page" data-market-runtime="governed-v6">
-    ${pageHead('Qelly Intelligence · Governed market command','Market Intelligence Command','External live display and Qelly-governed analytical data are deliberately separated. No generated price, candle, volume or market-cap observation is substituted when provider rights are unavailable.',`<a class="q-button q-button--secondary" href="#/data-mesh">Provider runtime</a><a class="q-button q-button--primary" href="#/timeseries-lab">Reference history</a>`)}${stateBanner()}
+  main.innerHTML=`<section class="q-page q-market-home q-v7-public-market" data-market-runtime="v7-public-no-fabrication" data-qelly-v7-public-market="true">
+    ${pageHead('Qelly Intelligence · Market Command','Governed Market Terminal','External market visualization, provider-rights evidence and approved reference observations are separate trust domains. Public routes never call private workspace APIs and never manufacture missing prices.',`<a class="q-button q-button--secondary" href="https://www.tradingview.com/markets/" target="_blank" rel="noopener noreferrer nofollow">TradingView Markets ↗</a><a class="q-button q-button--primary" href="#/auth-login">Open authenticated terminal</a>`)}${stateBanner()}
 
-    <section class="q-v6-market-truth-strip">
-      <div><span>Internal crypto feed</span><strong>${authorizedMarketProviders.length?'AUTHORIZED':'UNAVAILABLE'}</strong><small>${authorizedMarketProviders.length?'Rights-authorized provider available':'Binance / Coinbase remain policy blocked'}</small></div>
-      <div><span>Approved reference feed</span><strong>${referenceProviders.length?'ECB ACTIVE':'UNAVAILABLE'}</strong><small>Daily working-day FX reference data</small></div>
-      <div><span>External chart</span><strong>TRADINGVIEW</strong><small>Display-only · never ingested by Qelly</small></div>
-      <div><span>Execution</span><strong>DISABLED</strong><small>No orders, balances, custody or signing</small></div>
-      <div><span>Runtime</span><strong>${escapeHtml(plane?.canonicalRuntime||'Cloudflare Pages')}</strong><small>${escapeHtml(String(plane?.releaseSha||runtime.releaseSha||'').slice(0,12)||'release unresolved')}</small></div>
+    <section class="q-v7-boundary-ribbon" aria-label="Market truth boundary">
+      <div><span>Internal crypto feeds</span><strong>${authorizedMarketProviders.length}</strong><small>${authorizedMarketProviders.length?'Rights-authorized provider available':'No rights-authorized crypto feed'}</small></div>
+      <div><span>Approved reference feeds</span><strong>${referenceProviders.length}</strong><small>ECB daily working-day reference cadence</small></div>
+      <div><span>Fabricated fallback</span><strong>OFF</strong><small>Unavailable stays unavailable</small></div>
+      <div><span>Execution</span><strong>DISABLED</strong><small>Read-only research terminal</small></div>
     </section>
 
-    <div class="q-v6-market-layout">
-      <section class="q-panel q-v6-market-chart-panel">
-        <div class="q-panel-head"><div><h2>External live market display</h2><p>TradingView renders this chart independently. Qelly does not read or reuse widget values.</p></div><span class="q-status q-status--cached">DISPLAY ONLY</span></div>
+    <div class="q-v7-market-grid">
+      <section class="q-panel q-v7-chart-panel">
+        <div class="q-panel-head"><div><p class="q-eyebrow">External display boundary</p><h2>TradingView market visualization</h2><p>Human-readable display only. Widget observations are not ingested, scraped, persisted or consumed by Qelly analytics.</p></div><span class="q-status q-status--cached">DISPLAY ONLY</span></div>
         <div class="q-panel-body">
-          <div class="q-control-row q-v6-market-controls"><label class="q-setting"><span>Display symbol</span><select id="v6-market-symbol">${symbolOptions}</select></label><label class="q-setting"><span>Interval</span><select id="v6-market-interval">${intervalOptions}</select></label><div class="q-setting q-query-boundary"><span>Analytics boundary</span><strong>External values excluded</strong><small>Never used for Qelly calculations, risk, alerts or decisions.</small></div></div>
-          <div id="v6-market-tradingview" class="q-v6-market-tradingview" aria-label="TradingView external market chart"></div>
+          <div class="q-control-row q-v6-market-controls"><label class="q-setting"><span>Display symbol</span><select id="v6-market-symbol">${symbolOptions}</select></label><label class="q-setting"><span>Display interval</span><select id="v6-market-interval">${intervalOptions}</select></label><div class="q-setting q-query-boundary"><span>Analytics boundary</span><strong>External values excluded</strong><small>Never used for Qelly calculations, risk, alerts or decisions.</small></div></div>
+          <div id="v6-market-tradingview" class="q-v7-chart-stage q-v6-market-tradingview" aria-label="TradingView external market chart"></div>
+          <div class="q-chart-attribution"><span>External provider boundary · analytics reuse prohibited</span><span>Qelly provider truth remains independently governed.</span></div>
         </div>
       </section>
 
-      <aside class="q-panel q-v6-market-side">
-        <div class="q-panel-head"><div><h2>Research surfaces</h2><p>Open professional external sources without misrepresenting them as Qelly-owned data.</p></div></div>
-        <div class="q-panel-body q-v6-market-links">
-          <a href="https://www.tradingview.com/" target="_blank" rel="noopener noreferrer nofollow"><strong>TradingView</strong><span>Charts and market display ↗</span></a>
-          <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener noreferrer nofollow"><strong>Forex Factory</strong><span>Macro event calendar ↗</span></a>
-          <a href="https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html" target="_blank" rel="noopener noreferrer nofollow"><strong>European Central Bank</strong><span>Official FX reference rates ↗</span></a>
-        </div>
-        <div class="q-v6-market-boundary"><span class="q-status q-status--unavailable">NO FALLBACK FABRICATION</span><p>If an internal market provider is unavailable or rights-blocked, Qelly shows that state directly. It does not manufacture substitute market observations.</p></div>
+      <aside class="q-v7-side-stack">
+        <section class="q-panel"><div class="q-panel-head"><div><h2>Provider rights matrix</h2><p>Authorization, not technical reachability, controls internal display.</p></div></div><div class="q-panel-body q-v7-provider-grid">${providers.map(provider=>providerCard(provider,escapeHtml)).join('')||'<div class="q-empty-state">Provider registry unavailable.</div>'}</div></section>
+        <section class="q-panel"><div class="q-panel-head"><div><h2>Professional research links</h2><p>External sources open in separate trust boundaries.</p></div></div><div class="q-panel-body q-v7-link-grid"><a class="q-button q-button--secondary" href="https://www.tradingview.com/markets/" target="_blank" rel="noopener noreferrer nofollow">TradingView Markets ↗</a><a class="q-button q-button--secondary" href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener noreferrer nofollow">Forex Factory Calendar ↗</a><a class="q-button q-button--secondary" href="https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html" target="_blank" rel="noopener noreferrer nofollow">ECB Reference Rates ↗</a><a class="q-button q-button--secondary" href="https://www.cmegroup.com/markets.html" target="_blank" rel="noopener noreferrer nofollow">CME Markets ↗</a></div></section>
       </aside>
     </div>
 
-    <section class="q-panel"><div class="q-panel-head"><div><h2>Governed observation plane</h2><p>Provider-backed data available to Qelly analytics. Current production coverage is reference-data focused.</p></div><span class="q-status q-status--${plane?'delayed':'unavailable'}">${plane?'CONNECTED':'AUTH REQUIRED'}</span></div><div class="q-panel-body q-v6-market-observations">${governedRows(plane,escapeHtml)}</div></section>
+    <section class="q-panel q-v7-reference-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Approved governed observations</p><h2>ECB euro reference rates</h2><p>Real provider observations with source cadence and observation time retained. Reference rates are not executable quotes.</p></div><span class="q-status q-status--${tone(ecb?.truthState)}">${escapeHtml(ecbTruth)}</span></div><div class="q-panel-body"><div class="q-v7-rate-grid">${governedRates(ecb,escapeHtml)}</div><div class="q-v7-evidence-strip"><span>Source: European Central Bank</span><span>Observed: ${escapeHtml(date(ecbObservedAt))}</span><span>Ingested: ${escapeHtml(date(ecbIngestedAt))}</span><span>Execution: disabled</span></div></div></section>
 
-    <section class="q-panel"><div class="q-panel-head"><div><h2>Provider rights matrix</h2><p>Runtime availability follows explicit commercial and redistribution policy.</p></div><span class="q-status q-status--cached">${providers.length} governed providers</span></div><div class="q-panel-body q-v6-market-provider-grid">${providers.map((provider)=>providerCard(provider,escapeHtml)).join('')||'<div class="q-empty-state">Provider registry unavailable.</div>'}</div></section>
+    <section class="q-panel"><div class="q-panel-head"><div><h2>Production boundary</h2><p>The public market route uses only anonymous/public contracts. Private data-plane and workspace APIs are requested only after authentication.</p></div><span class="q-status q-status--live">PUBLIC SAFE</span></div><div class="q-panel-body"><div class="q-v6-market-boundary"><span class="q-status q-status--unavailable">NO FALLBACK FABRICATION</span><p>${escapeHtml(overview.reason||'If an internal provider is unavailable or rights-blocked, Qelly exposes that state directly.')}</p></div></div></section>
   </section>`;
 
   const chart=main.querySelector('#v6-market-tradingview');
