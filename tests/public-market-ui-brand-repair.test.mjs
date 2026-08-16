@@ -1,41 +1,31 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {__test as publicApi} from '../functions/api/v1/[[path]].js';
 
 const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 
-test('governed public market contract is deterministic, explicit and non-executable',()=>{
-  const first=publicApi.publicMarketOverviewContract();
-  const second=publicApi.publicMarketOverviewContract();
-  assert.deepEqual(first,second);
-  assert.equal(first.mode,'simulated-demo');
-  assert.equal(first.items.length,6);
-  assert.equal(first.guardrails.live,false);
-  assert.equal(first.guardrails.executable,false);
-  assert.equal(first.guardrails.personalizedAdvice,false);
-  assert.match(first.truthBoundary,/not live/i);
-  assert.equal(first.items.every((asset)=>asset.source?.freshness==='simulated'),true);
-
-  const bitcoin=publicApi.publicMarketAsset('QI-CRYPTO-BTC');
-  assert.equal(bitcoin.symbol,'BTC');
-  const candles=publicApi.publicMarketCandles(bitcoin,168);
-  assert.equal(candles.points.length,168);
-  assert.equal(candles.guardrails.live,false);
-  assert.equal(candles.guardrails.executable,false);
-  assert.deepEqual(candles,publicApi.publicMarketCandles(bitcoin,168));
+test('governed public market contract is explicit no-fabrication and non-executable',async()=>{
+  const dedicated=await read('functions/api/v1/public/markets/[[route]].js');
+  assert.match(dedicated,/MARKET_UNAVAILABLE_REASON/);
+  assert.match(dedicated,/does not generate substitute prices or candles/i);
+  assert.match(dedicated,/fabricatedObservations:false/);
+  assert.match(dedicated,/points:\[\]/);
+  assert.match(dedicated,/execution:false/);
+  assert.doesNotMatch(dedicated,/simulated-demo|qelly-governed-demo|Math\.sin|Math\.cos/);
 });
 
-test('anonymous market handlers execute before the required-session gate',async()=>{
-  const source=await read('functions/api/v1/[[path]].js');
-  const overview=source.indexOf("path==='public/markets/overview'");
-  const candles=source.indexOf("segments[4]==='candles'");
-  const requiredSession=source.indexOf('resolveSession(request,env,{required:true})');
-  assert.ok(overview>0);
-  assert.ok(candles>overview);
-  assert.ok(requiredSession>candles);
-  assert.match(source,/publicMarketOverviewContract\(\)/);
-  assert.match(source,/publicMarketCandles\(asset,url\.searchParams\.get\('limit'\)\)/);
+test('dedicated public market route owns anonymous market namespace before catch-all session gate',async()=>{
+  const [catchAll,dedicated]=await Promise.all([
+    read('functions/api/v1/[[path]].js'),
+    read('functions/api/v1/public/markets/[[route]].js')
+  ]);
+  assert.match(dedicated,/export async function onRequest/);
+  assert.match(dedicated,/const route=segments\(params\.route\)/);
+  assert.match(dedicated,/route\[0\]==='overview'/);
+  assert.match(dedicated,/route\[0\]==='assets'/);
+  assert.doesNotMatch(catchAll,/path==='public\/markets\/overview'|path==='public\/markets\/assets'/);
+  assert.doesNotMatch(catchAll,/segments\[0\]==='public'&&segments\[1\]==='markets'/);
+  assert.match(catchAll,/resolveSession\(request,env,\{required:true\}\)/);
 });
 
 test('canonical Qelly logo is used in the global strip and edge dock',async()=>{
