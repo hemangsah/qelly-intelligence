@@ -40,7 +40,7 @@ export async function renderIndicatorLibrary(main,{pageHead,escapeHtml,navigate}
     <section class="q-v6-quant-kpis" aria-label="Indicator library evidence"><div><span>Studies</span><strong>${definitions.length}</strong><small>registered indicator engines</small></div><div><span>Categories</span><strong>${categories.length}</strong><small>technical/statistical groups</small></div><div><span>Versioned</span><strong>${versioned}/${definitions.length}</strong><small>method identity exposed</small></div><div><span>Reference vectors</span><strong>${withReference}</strong><small>governed sample evidence</small></div><div><span>Execution</span><strong>OFF</strong><small>descriptive analysis only</small></div></section>
 
     <section class="q-calculator-featured" aria-labelledby="indicator-featured-title">
-      <div class="q-calculator-section-head"><div><p class="q-eyebrow">Priority studies</p><h2 id="indicator-featured-title">Start with a familiar methodology</h2><p>Review required data, warm-up behavior, output alignment and interpretation limits before using a study.</p></div><span class="q-truth-pill is-cached">${featuredLabel}</span></div>
+      <div class="q-calculator-section-head"><div><p class="q-eyebrow">Priority studies</p><h2 id="indicator-featured-title">Start with a familiar indicator</h2><p>Review required data, warm-up behavior, output alignment and interpretation limits before using a study.</p></div><span class="q-truth-pill is-cached">${featuredLabel}</span></div>
       <div class="q-calculator-card-grid is-featured">${featured.map((definition)=>card(definition,{featured:true})).join('')}</div>
     </section>
 
