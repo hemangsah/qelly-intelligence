@@ -22,11 +22,15 @@ const legacyCases=[
   "case 'trust-center': await renderTrustCenter(main); break;"
 ];
 
+const unavailableRoutes=['discovery-hub','search','categories','category-detail','venues','venue-detail','dex-discovery','global-charts','news-research','research-article','asset','rankings'];
+
 test('production finalizer replaces every finance-shaped fixture route owner',async()=>{
   const source=await read('apps/web/public/assets/app.js');
   const output=rewriteGovernedDiscovery(source);
-  for(const legacy of legacyCases)assert.doesNotMatch(output,new RegExp(legacy.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
-  for(const route of ['discovery-hub','search','categories','category-detail','venues','venue-detail','dex-discovery','global-charts','news-research','research-article','asset','rankings'])assert.match(output,new RegExp(`renderGovernedUnavailable\\}\)=>renderGovernedUnavailable\\(main,[^;]+,'${route}'\\)`));
+  for(const legacy of legacyCases)assert.equal(output.includes(legacy),false,`legacy production route remains: ${legacy}`);
+  for(const route of unavailableRoutes){
+    assert.ok(output.includes(`renderGovernedUnavailable(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state},'${route}')`),`governed replacement missing for ${route}`);
+  }
   assert.match(output,/renderGovernedConverter/);
   assert.match(output,/renderGovernedTrustCenter/);
 });
