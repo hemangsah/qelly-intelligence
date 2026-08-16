@@ -45,21 +45,20 @@ test('Static visual preview rejects backend mutations without executing them',as
   );
 });
 
-test('Pages workflow validates the static preview but deploys only the canonical Cloudflare handoff with least privilege',async()=>{
+test('Pages deployment uses the release-line governed public mirror while retaining preview tooling only for tests',async()=>{
   const workflow=await readFile(new URL('../.github/workflows/pages-preview.yml',import.meta.url),'utf8');
-  assert.match(workflow,/push:\s*\n\s+branches: \[main\]/);
+  assert.match(workflow,/push:\s*\n\s+branches: \[release\/qelly-global-public-beta\]/);
   assert.match(workflow,/workflow_dispatch:/);
   assert.match(workflow,/npm ci --ignore-scripts/);
-  assert.match(workflow,/QELLY_STATIC_VISUAL_PREVIEW: 'true'/);
-  assert.match(workflow,/npm run build:frontend/);
-  assert.match(workflow,/node scripts\/sanitize-pages-artifact\.mjs/);
-  assert.match(workflow,/npm run validate:pages-preview/);
-  assert.match(workflow,/npm run smoke:pages-preview/);
-  assert.match(workflow,/node scripts\/build-pages-canonical-handoff\.mjs/);
-  assert.match(workflow,/path: dist\/pages-canonical/);
-  assert.doesNotMatch(workflow,/path: dist\/frontend/);
-  assert.doesNotMatch(workflow,/path:\s*\.(?:\s|$)/);
+  assert.match(workflow,/QELLY_GITHUB_PAGES_MIRROR: 'true'/);
+  assert.match(workflow,/QELLY_STATIC_VISUAL_PREVIEW: 'false'/);
+  assert.match(workflow,/QELLY_PUBLIC_API_BASE_URL: https:\/\/qelly-intelligence\.pages\.dev/);
+  assert.match(workflow,/node scripts\/finalize-github-pages-mirror\.mjs/);
+  assert.match(workflow,/path: dist\/frontend/);
   assert.match(workflow,/pages: write/);
   assert.match(workflow,/id-token: write/);
   assert.match(workflow,/cancel-in-progress: true/);
+  assert.doesNotMatch(workflow,/node scripts\/sanitize-pages-artifact\.mjs/);
+  assert.doesNotMatch(workflow,/node scripts\/build-pages-canonical-handoff\.mjs/);
+  assert.doesNotMatch(workflow,/path: dist\/pages-canonical/);
 });
