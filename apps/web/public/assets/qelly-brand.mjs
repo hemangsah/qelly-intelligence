@@ -100,6 +100,10 @@ function installAuthBrand(){
   host.prepend(block);
 }
 function installStateBrand(){
+  if(productionProduct()){
+    document.querySelectorAll('.qelly-state-brand').forEach((node)=>node.remove());
+    return;
+  }
   document.querySelectorAll('.q-state-banner,.q-empty-state,.q-error-state,[data-state="empty"],[data-state="error"]').forEach((node)=>{
     if(node.querySelector('.qelly-state-brand'))return;
     const image=document.createElement('img');
