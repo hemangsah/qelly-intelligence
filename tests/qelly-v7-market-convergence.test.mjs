@@ -22,6 +22,13 @@ test('canonical production Market renderer is no-fabrication and anonymous-safe'
   assert.doesNotMatch(source,/Math\.sin|Math\.cos|qelly-governed-demo|simulated-demo/);
 });
 
+test('legacy route guard no longer owns the Market route',async()=>{
+  const source=await read('apps/web/public/assets/qelly-product-route-guard.mjs');
+  assert.match(source,/Market is owned exclusively by the canonical V6\/V7 production renderer/);
+  assert.doesNotMatch(source,/route==='market'\?'\.q-market-home'/);
+  assert.doesNotMatch(source,/qellyProductHome/);
+});
+
 test('public recovery never invents market observations or deterministic crypto prices',async()=>{
   const source=await read('apps/web/public/assets/qelly-public-recovery.mjs');
   assert.match(source,/No fabricated recovery data/);
