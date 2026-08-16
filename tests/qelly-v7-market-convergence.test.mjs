@@ -21,6 +21,15 @@ test('public Market Command is a no-fabrication external-display plus governed-r
   assert.doesNotMatch(source,/Math\.sin|Math\.cos|qelly-governed-demo|simulated-demo/);
 });
 
+test('public recovery never invents market observations or deterministic crypto prices',async()=>{
+  const source=await read('apps/web/public/assets/qelly-public-recovery.mjs');
+  assert.match(source,/No fabricated recovery data/);
+  assert.match(source,/No substitute price, candle, volume or market movement has been generated/);
+  assert.match(source,/TradingView/);
+  assert.match(source,/Forex Factory/);
+  assert.doesNotMatch(source,/demoAssets|\$42,500|\$2,280|\$98\.40|\$312\.60|deterministic public market recovery/i);
+});
+
 test('live market compatibility contract keeps provider-specific intervals and asset route',async()=>{
   const [service,route]=await Promise.all([
     read('functions/_lib/live-markets.js'),
