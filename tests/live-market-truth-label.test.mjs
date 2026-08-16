@@ -13,9 +13,12 @@ test('live market command exposes only rights-authorized internal providers', ()
 });
 
 test('live market command keeps external display separate from Qelly analytical observations', () => {
-  assert.match(source, /TradingView · display-only boundary/);
+  assert.match(source, /TradingView · isolated display boundary/);
   assert.match(source, /TradingView values are not read, scraped, persisted or used by Qelly analytics/);
   assert.match(source, /Display reuse<\/span><strong>PROHIBITED/);
+  assert.match(source, /Provider contract/);
+  assert.match(source, /Provider symbol/);
+  assert.match(source, /Provider interval/);
   assert.match(source, /External widget observations never become Qelly analytical inputs/);
 });
 
