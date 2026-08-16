@@ -21,20 +21,19 @@ test('V5.3 Market Command is activated from the current runtime contract only',a
   assert.doesNotMatch(correction,/data-ui-lock-v5-3/);
 });
 
-test('Market Command keeps all live-market truth and evidence surfaces',async()=>{
+test('Market Command keeps all governed market truth and evidence surfaces without demo observations',async()=>{
   const route=await read(routePath);
-  for(const label of ['Last','Change','High','Low','Visible volume','Feed mode'])assert.match(route,new RegExp(`>${label}<`));
-  for(const label of ['Source','Observed','Freshness','Confidence','Coverage','Execution'])assert.match(route,new RegExp(`>${label}<`));
+  for(const label of ['Governed last','Governed change','Internal provider','External display','Fabricated fallback','Execution'])assert.match(route,new RegExp(`>${label}<`));
+  for(const label of ['Analytics source','Observed','Truth state','Display source','Display reuse','Execution'])assert.match(route,new RegExp(`>${label}<`));
   assert.match(route,/id="qelly-live-chart"/);
-  assert.match(route,/Market pulse/);
+  assert.match(route,/Governed market status/);
   assert.match(route,/Provider matrix/);
   assert.match(route,/Provider rights/);
-  assert.match(route,/Read-only safety lock/);
-  assert.match(route,/No order placement, API keys, balances, transfers, withdrawals, private keys or wallet custody/);
-  assert.match(route,/Demonstration watch universe/);
-  assert.match(route,/values come from the selected governed feed after selection/);
-  assert.match(route,/>governed demo<\/small>/);
-  assert.match(route,/never labels blocked or simulated observations as live/);
+  assert.match(route,/No synthetic market substitute/);
+  assert.match(route,/No Qelly-generated fallback values/);
+  assert.match(route,/TradingView values are not read, scraped, persisted or used by Qelly analytics/);
+  assert.match(route,/Missing internal market data remains visibly unavailable/);
+  assert.doesNotMatch(route,/Demonstration watch universe|governed demo|simulated observations as live/i);
 });
 
 test('Market Command workstation topology matches the institutional-density reference without slicing evidence',async()=>{
@@ -65,5 +64,5 @@ test('Market Command layout does not introduce execution or custody controls',as
   assert.doesNotMatch(css,/trade-button|order-entry|wallet-connect|withdraw-button/i);
   assert.doesNotMatch(correction,/trade-button|order-entry|wallet-connect|withdraw-button/i);
   assert.doesNotMatch(route,/data-action="(?:buy|sell|execute|withdraw|transfer|connect-wallet)"/i);
-  assert.match(route,/executionDisabled|Execution<\/span><strong>Disabled/);
+  assert.match(route,/Execution<\/span><strong>Disabled/);
 });

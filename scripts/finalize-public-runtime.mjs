@@ -8,6 +8,7 @@ const legacyPublicOrigin='https://hemangsah.github.io/qelly-intelligence';
 const productionPolishLink='<link rel="stylesheet" href="./assets/qelly-production-polish.css">';
 const productionV6Link='<link rel="stylesheet" href="./assets/qelly-v6-production-convergence.css">';
 const instrumentV6Link='<link rel="stylesheet" href="./assets/routes/instrument-master-v6.css">';
+const marketV6Link='<link rel="stylesheet" href="./assets/routes/market-v6.css">';
 const prohibitedPrimaryCopy=[
   'QELLY GLOBAL PUBLIC BETA',
   'VALIDATION STATE',
@@ -19,7 +20,7 @@ const prohibitedPrimaryCopy=[
 ];
 
 const legacyMarketRoute="case 'market': await renderMarket(main); break;";
-const publicMarketRoute="case 'market': if(runtimeConfig.dataMode!=='public-runtime')await renderMarket(main); break;";
+const publicMarketRoute="case 'market': await import('./routes/market-v6.mjs').then(({renderMarketV6})=>renderMarketV6(main,{api,pageHead,stateBanner,escapeHtml})); break;";
 const legacyDataMeshRoute="case 'data-mesh': await renderDataMesh(main); break;";
 const publicDataMeshRoute="case 'data-mesh': await import('./routes/provider-runtime-v6.mjs').then(({renderProviderRuntimeV6})=>renderProviderRuntimeV6(main,{api,pageHead,stateBanner,escapeHtml})); break;";
 const legacyInstrumentRoute="case 'instrument-master': await renderInstrumentMaster(main); break;";
@@ -72,6 +73,7 @@ export function rewritePublicIdentity(source,{siteUrl,file}){
     if(!text.includes(productionPolishLink))text=text.replace('</head>',`  ${productionPolishLink}\n</head>`);
     if(!text.includes(productionV6Link))text=text.replace('</head>',`  ${productionV6Link}\n</head>`);
     if(!text.includes(instrumentV6Link))text=text.replace('</head>',`  ${instrumentV6Link}\n</head>`);
+    if(!text.includes(marketV6Link))text=text.replace('</head>',`  ${marketV6Link}\n</head>`);
   }
   return text;
 }
@@ -109,7 +111,7 @@ export async function finalizePublicRuntime({environment=process.env}={}){
   }
   const runtimeChecks=await Promise.all(runtimeAssets.map(async(file)=>[file,await readFile(path.join(output,file),'utf8')]));
   const generatedApp=runtimeChecks.find(([file])=>file==='assets/app.js')[1];
-  if(generatedApp.includes(legacyMarketRoute)||!generatedApp.includes(publicMarketRoute))throw new Error('Legacy market renderer remains active in connected public runtime');
+  if(generatedApp.includes(legacyMarketRoute)||!generatedApp.includes(publicMarketRoute))throw new Error('Governed V6 market renderer is not active in connected public runtime');
   if(generatedApp.includes(legacyDataMeshRoute)||!generatedApp.includes(publicDataMeshRoute))throw new Error('Legacy provider fixture renderer remains active in connected public runtime');
   if(generatedApp.includes(legacyInstrumentRoute)||!generatedApp.includes(publicInstrumentRoute))throw new Error('Legacy synthetic instrument renderer remains active in connected public runtime');
   if(generatedApp.includes(legacyTimeSeriesRoute)||!generatedApp.includes(publicTimeSeriesRoute))throw new Error('Legacy synthetic time-series renderer remains active in connected public runtime');
@@ -133,7 +135,8 @@ export async function finalizePublicRuntime({environment=process.env}={}){
     'assets/routes/instrument-master-v6.mjs',
     'assets/routes/time-series-v6.mjs',
     'assets/routes/portfolio-v6-entry.mjs',
-    'assets/routes/portfolio-v6.mjs'
+    'assets/routes/portfolio-v6.mjs',
+    'assets/routes/market-v6.mjs'
   ];
   for(const file of primaryFiles){
     const text=await readFile(path.join(output,file),'utf8');
@@ -146,11 +149,12 @@ export async function finalizePublicRuntime({environment=process.env}={}){
   if(!index.includes(productionPolishLink))throw new Error('Production polish stylesheet is not loaded after runtime hardening');
   if(!index.includes(productionV6Link))throw new Error('V6 production convergence stylesheet is not loaded');
   if(!index.includes(instrumentV6Link))throw new Error('V6 instrument master stylesheet is not loaded');
+  if(!index.includes(marketV6Link))throw new Error('V6 market stylesheet is not loaded');
   const generatedConfig=checks.find(([file])=>file==='qelly-config.js')[1];
   if(!generatedConfig.includes('QELLY')||generatedConfig.includes('QELLY GLOBAL PUBLIC BETA'))throw new Error('Generated production product identity is incorrect');
   const headers=await readFile(path.join(output,'_headers'),'utf8');
   if(!/Cache-Control:\s*public, max-age=0, must-revalidate, no-transform/.test(headers))throw new Error('Public HTML must prevent unsolicited edge transformation');
-  return {status:'public-runtime-finalized',siteUrl,files:identityFiles.length,runtimeAssets:runtimeAssets.length,legacyOrigins:0,prohibitedPrimaryCopy:0,productionPolish:true,v6ProductionConvergence:true,instrumentMasterV6:true,calculatorDetailV6:true,indicatorDetailV6:true,portfolioV6:true};
+  return {status:'public-runtime-finalized',siteUrl,files:identityFiles.length,runtimeAssets:runtimeAssets.length,legacyOrigins:0,prohibitedPrimaryCopy:0,productionPolish:true,v6ProductionConvergence:true,instrumentMasterV6:true,marketV6:true,calculatorDetailV6:true,indicatorDetailV6:true,portfolioV6:true};
 }
 
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){

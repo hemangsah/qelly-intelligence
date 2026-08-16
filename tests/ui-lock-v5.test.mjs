@@ -45,14 +45,15 @@ test('V5 Live Market Command exposes truthful market and evidence ribbons',async
     'q-v5-evidence-ribbon',
     'live-evidence-source',
     'live-evidence-observed',
-    'live-evidence-freshness',
-    'Coverage</span><strong>Selected candle series',
+    'live-evidence-truth',
+    'Display reuse</span><strong>PROHIBITED',
     'Execution</span><strong>Disabled',
-    'provider policy → normalized candles → chart renderer'
+    'TradingView values are not read, scraped, persisted or used by Qelly analytics.'
   ])assert.ok(route.includes(phrase),`missing V5 live-market contract: ${phrase}`);
-  assert.match(route,/Confidence<\/span><strong[^>]*>Not supplied/);
-  assert.match(route,/const freshness=/);
-  assert.match(route,/const confidence=/);
+  assert.match(route,/Fabricated fallback<\/span><strong>OFF/);
+  assert.match(route,/No Qelly-generated fallback values/);
+  assert.match(route,/Missing internal market data remains visibly unavailable/);
+  assert.doesNotMatch(route,/live-evidence-freshness|const freshness=|const confidence=|governed demo/i);
   assert.match(marketCss,/grid-template-columns:repeat\(6,minmax\(0,1fr\)\)/);
   assert.match(marketCss,/scroll-snap-type:x mandatory/);
   assert.doesNotMatch(route,/confidence[^\n]{0,80}(?:100|95|90|high)/i,'live market must not fabricate confidence');
