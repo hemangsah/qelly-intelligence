@@ -25,6 +25,10 @@ const legacyInstrumentRoute="case 'instrument-master': await renderInstrumentMas
 const publicInstrumentRoute="case 'instrument-master': await import('./routes/instrument-master-v6.mjs').then(({renderInstrumentMasterV6})=>renderInstrumentMasterV6(main,{api,pageHead,stateBanner,escapeHtml})); break;";
 const legacyTimeSeriesRoute="case 'timeseries-lab': await renderTimeSeriesLab(main); break;";
 const publicTimeSeriesRoute="case 'timeseries-lab': await import('./routes/time-series-v6.mjs').then(({renderTimeSeriesV6})=>renderTimeSeriesV6(main,{api,pageHead,stateBanner,escapeHtml})); break;";
+const legacyCalculatorDetailRoute="case 'calculator-detail': await renderCalculatorDetail(main,{pageHead,stateBanner,escapeHtml,toast,navigate,id,query}); break;";
+const publicCalculatorDetailRoute="case 'calculator-detail': await import('./routes/calculator-detail-v6.mjs').then(({renderCalculatorDetailV6})=>renderCalculatorDetailV6(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,id,query})); break;";
+const legacyIndicatorDetailRoute="case 'indicator-detail': await renderIndicatorDetail(main,{pageHead,stateBanner,escapeHtml,toast,navigate,id}); break;";
+const publicIndicatorDetailRoute="case 'indicator-detail': await import('./routes/indicator-detail-v6.mjs').then(({renderIndicatorDetailV6})=>renderIndicatorDetailV6(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,id})); break;";
 const legacyWorldclassEnhance="const enhance=async()=>{\n  if(!main||main.getAttribute('aria-busy')==='true'||!main.firstElementChild)return;";
 const publicWorldclassEnhance="const enhance=async()=>{\n  if(window.__QELLY_CONFIG__?.dataMode==='public-runtime'){main?.querySelector(':scope > .q-worldclass-context')?.remove();if(main)main.dataset.worldclassRoute=parseHash().route;return;}\n  if(!main||main.getAttribute('aria-busy')==='true'||!main.firstElementChild)return;";
 
@@ -70,6 +74,10 @@ export function rewritePublicRuntimeAsset(source,{file}){
     if(!text.includes(publicInstrumentRoute))throw new Error('Connected public runtime instrument V6 ownership boundary is missing');
     if(text.includes(legacyTimeSeriesRoute))text=text.replace(legacyTimeSeriesRoute,publicTimeSeriesRoute);
     if(!text.includes(publicTimeSeriesRoute))throw new Error('Connected public runtime time-series V6 ownership boundary is missing');
+    if(text.includes(legacyCalculatorDetailRoute))text=text.replace(legacyCalculatorDetailRoute,publicCalculatorDetailRoute);
+    if(!text.includes(publicCalculatorDetailRoute))throw new Error('Connected public runtime calculator-detail V6 ownership boundary is missing');
+    if(text.includes(legacyIndicatorDetailRoute))text=text.replace(legacyIndicatorDetailRoute,publicIndicatorDetailRoute);
+    if(!text.includes(publicIndicatorDetailRoute))throw new Error('Connected public runtime indicator-detail V6 ownership boundary is missing');
   }
   if(file==='assets/qelly-worldclass-uiux.mjs'){
     if(text.includes(legacyWorldclassEnhance))text=text.replace(legacyWorldclassEnhance,publicWorldclassEnhance);
@@ -102,6 +110,8 @@ export async function finalizePublicRuntime({environment=process.env}={}){
   if(generatedApp.includes(legacyDataMeshRoute)||!generatedApp.includes(publicDataMeshRoute))throw new Error('Legacy provider fixture renderer remains active in connected public runtime');
   if(generatedApp.includes(legacyInstrumentRoute)||!generatedApp.includes(publicInstrumentRoute))throw new Error('Legacy synthetic instrument renderer remains active in connected public runtime');
   if(generatedApp.includes(legacyTimeSeriesRoute)||!generatedApp.includes(publicTimeSeriesRoute))throw new Error('Legacy synthetic time-series renderer remains active in connected public runtime');
+  if(generatedApp.includes(legacyCalculatorDetailRoute)||!generatedApp.includes(publicCalculatorDetailRoute))throw new Error('Legacy calculator-detail renderer remains active in connected public runtime');
+  if(generatedApp.includes(legacyIndicatorDetailRoute)||!generatedApp.includes(publicIndicatorDetailRoute))throw new Error('Legacy indicator-detail renderer remains active in connected public runtime');
   const generatedWorldclass=runtimeChecks.find(([file])=>file==='assets/qelly-worldclass-uiux.mjs')[1];
   if(generatedWorldclass.includes(legacyWorldclassEnhance)||!generatedWorldclass.includes(publicWorldclassEnhance))throw new Error('Legacy review layer remains active in connected public runtime');
   const primaryFiles=[
@@ -111,7 +121,10 @@ export async function finalizePublicRuntime({environment=process.env}={}){
     'assets/routes/auth-login.mjs',
     'assets/routes/auth-register.mjs',
     'assets/routes/auth-recovery.mjs',
-    'assets/routes/calculator-detail.mjs',
+    'assets/routes/calculator-center.mjs',
+    'assets/routes/calculator-detail-v6.mjs',
+    'assets/routes/indicator-library.mjs',
+    'assets/routes/indicator-detail-v6.mjs',
     'assets/routes/provider-runtime-v6.mjs',
     'assets/routes/instrument-master-v6.mjs',
     'assets/routes/time-series-v6.mjs'
@@ -131,7 +144,7 @@ export async function finalizePublicRuntime({environment=process.env}={}){
   if(!generatedConfig.includes('QELLY')||generatedConfig.includes('QELLY GLOBAL PUBLIC BETA'))throw new Error('Generated production product identity is incorrect');
   const headers=await readFile(path.join(output,'_headers'),'utf8');
   if(!/Cache-Control:\s*public, max-age=0, must-revalidate, no-transform/.test(headers))throw new Error('Public HTML must prevent unsolicited edge transformation');
-  return {status:'public-runtime-finalized',siteUrl,files:identityFiles.length,runtimeAssets:runtimeAssets.length,legacyOrigins:0,prohibitedPrimaryCopy:0,productionPolish:true,v6ProductionConvergence:true,instrumentMasterV6:true};
+  return {status:'public-runtime-finalized',siteUrl,files:identityFiles.length,runtimeAssets:runtimeAssets.length,legacyOrigins:0,prohibitedPrimaryCopy:0,productionPolish:true,v6ProductionConvergence:true,instrumentMasterV6:true,calculatorDetailV6:true,indicatorDetailV6:true};
 }
 
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
