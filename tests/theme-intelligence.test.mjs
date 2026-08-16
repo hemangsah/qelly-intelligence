@@ -67,12 +67,23 @@ test('version migration preserves user intent while canonicalizing legacy identi
 });
 
 test('Theme Studio has guarded import export overlays gallery and no hardcoded route palette',async()=>{
-  const [route,css,index,bootstrap,fontGovernance,build]=await Promise.all([read('apps/web/public/assets/routes/theme-intelligence-studio.mjs'),read('apps/web/public/assets/theme-intelligence.css'),read('apps/web/public/index.html'),read('apps/web/public/assets/theme-intelligence-bootstrap.mjs'),read('apps/web/public/assets/qelly-font-governance.css'),read('scripts/build-frontend.mjs')]);
+  const [route,css,index,bootstrap,fontGovernance,build,app,enhancements]=await Promise.all([read('apps/web/public/assets/routes/theme-intelligence-studio.mjs'),read('apps/web/public/assets/theme-intelligence.css'),read('apps/web/public/index.html'),read('apps/web/public/assets/theme-intelligence-bootstrap.mjs'),read('apps/web/public/assets/qelly-font-governance.css'),read('scripts/build-frontend.mjs'),read('apps/web/public/assets/app.js'),read('apps/web/public/assets/theme-intelligence-enhancements.mjs')]);
   for(const phrase of ['Theme Studio','Theme Gallery','Apply','Cancel','Reset','data-ti-overlay','importPreset','alphaIntensity','alphaPack'])assert.match(route,new RegExp(phrase));
   assert.doesNotMatch(route,/#[0-9a-fA-F]{6}/,'route UI must consume semantic theme data rather than hardcoded colors');
   for(const surface of ['q-command-dialog','q-mi-chart-tooltip','q-mi-table-scroll','q-ti-drawer','role="tooltip"'])assert.match(css,new RegExp(surface.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
   assert.match(index,/theme-intelligence\.css/);assert.match(index,/data-theme-ready="false"/);assert.doesNotMatch(index,/rel=["']preload["'][^>]*ibm-plex-sans-variable\.woff2/i);assert.match(fontGovernance,/ibm-plex-sans-variable\.woff2/);assert.match(build,/ibm-plex-sans-variable\.woff2/);
   assert.match(bootstrap,/renderThemeIntelligenceStudio/);assert.match(bootstrap,/themeIntelligence\.start/);assert.match(bootstrap,/stopImmediatePropagation/);assert.match(bootstrap,/themeFamily:'crimson-vector'/);
+  assert.match(route,/DESIGN TOKEN SAMPLE · NO MARKET OBSERVATIONS/);
+  assert.match(route,/No provider observation is attached/);
+  assert.match(route,/document\.title=`\$\{view===/);
+  assert.match(route,/view==='gallery'\?'Theme Gallery':view==='compare'\?'Theme Compare':'Theme Studio'/);
+  assert.match(app,/if\(!\/\^#\\\/theme-lab\(\?:\\\/\|\$\)\/\.test\(location\.hash\)\)document\.title/);
+  for(const label of ['Light starts','Dark starts','Latitude','Longitude','Custom accent','Accent intensity','Persona','Mindset','Aggressive Alpha level','Visual pack'])assert.match(route,new RegExp(`aria-label="${label}"`));
+  assert.match(route,/select aria-label="\$\{label\}" data-ti-select="\$\{key\}"/);
+  assert.match(route,/patch\.themeFamily='crimson-vector'/);
+  assert.doesNotMatch(route,/patch\.themeFamily='aggressive-alpha'/);
+  assert.match(enhancements,/migrateThemeConfig\(\{\.\.\.this\.config,\.\.\.input\}\)/);
+  assert.doesNotMatch(route,/\b(?:BTC|ETH|SOL|AAPL|GOLD)\b|\bLive\b|64,466|3,412|2,431|180\.19M/);
 });
 
 test('cross-browser title line box remains non-clipping',async()=>{

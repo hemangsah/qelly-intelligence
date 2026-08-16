@@ -109,7 +109,7 @@ const routes = [
   { section:'Workspace', route:'import-center', label:'Import Center', icon:icon('import'), meta:'P21' },
   { section:'Workspace', route:'research-history', label:'Research History', icon:icon('history'), meta:'P21' },
   { section:'Operations', route:'migration-center', label:'Migration Center', icon:icon('migration'), meta:'P21' },
-  { section:'Platform', route:'theme-lab', label:'Theme Laboratory', icon:icon('theme'), meta:'W1' },
+  { section:'Platform', route:'theme-lab', label:'Theme Studio', icon:icon('theme'), meta:'W1' },
   { section:'Control', route:'identity-access', label:'Identity & Access', icon:icon('identity'), meta:'W2' },
   { section:'Control', route:'data-mesh', label:'Provider Runtime', icon:icon('data'), meta:'W3' },
   { section:'Control', route:'instrument-master', label:'Instrument Master', icon:icon('instrument'), meta:'W3' },

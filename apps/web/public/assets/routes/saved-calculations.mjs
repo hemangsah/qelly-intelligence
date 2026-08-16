@@ -32,9 +32,10 @@ const syncNotice=(result)=>{
   return pushNotice(result?.push||result,'synchronization');
 };
 
-export async function renderSavedCalculations(main,{api,pageHead,escapeHtml,toast,navigate}){
+export async function renderSavedCalculations(main,{api,pageHead,escapeHtml,toast,navigate,state}){
   let filters={query:'',tag:null,favorite:null,sort:'updated-desc'},cloud=null,busy=false,disposeResume=()=>{};
-  const refreshCloud=async()=>{if(!api)return;try{cloud=await cloudStatus(api);}catch(error){cloud={authenticated:false,error:error.message};}render();};
+  const authenticated=state?.config?.auth?.authenticated===true;
+  const refreshCloud=async()=>{if(!api||!authenticated){cloud={authenticated:false,available:true,optIn:false,cloudRecordCount:0,pendingOperationCount:0,queuedLocalBatches:0};render();return;}try{cloud=await cloudStatus(api);}catch(error){cloud={authenticated:false,error:error.message};}render();};
   const action=async(handler)=>{if(busy)return;busy=true;render();try{const outcome=await handler();if(outcome?.message)toast(outcome.message,{tone:outcome.tone||'neutral'});}catch(error){toast(error.message,{tone:'danger'});}finally{busy=false;await refreshCloud();}};
   const render=()=>{
     let items=[];try{items=listSavedCalculations(filters);}catch(error){main.innerHTML=`<section class="q-page">${pageHead('Local persistence error','Saved Calculations','The browser storage record could not be read safely. No data was silently replaced.')}<div class="q-state-banner is-error"><span class="q-status q-status--unavailable">UNAVAILABLE</span><p>${escapeHtml(error.message)}</p></div></section>`;return;}

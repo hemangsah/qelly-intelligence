@@ -52,11 +52,20 @@ const startupTimeout=new Promise((resolve)=>{
   },12000);
 });
 
+const enhancementReady=(document.readyState==='loading'
+  ?new Promise((resolve)=>document.addEventListener('DOMContentLoaded',resolve,{once:true}))
+  :Promise.resolve()
+).then(()=>Promise.all([
+  window.__qellyDiscoveryEnhancementReady??Promise.resolve(),
+  window.__qellyDataMeshEnhancementReady??Promise.resolve()
+]));
+
 try{
   await Promise.race([
     Promise.all([
-      document.fonts?.load('400 1em "Qelly IBM Plex Sans"')??Promise.resolve(),
-      routeReady
+      document.fonts?.ready??Promise.resolve(),
+      routeReady,
+      enhancementReady
     ]),
     startupTimeout
   ]);

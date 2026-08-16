@@ -22,12 +22,16 @@ test('Cloudflare public runtime contains no CSP-blocked inline JavaScript',async
   assert.equal(directives.get('frame-src'),'frame-src https://*.tradingview.com https://*.tradingview-widget.com');
   assert.doesNotMatch(directives.get('script-src')||'',/'unsafe-inline'|'unsafe-eval'/);
   const hardened=hardenIndexHtml(source);
+  const sourceInline=[...source.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
+    .filter((match)=>!/(?:^|\s)src\s*=/.test(match[1])&&match[2].trim());
   const inline=[...hardened.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
     .filter((match)=>!/(?:^|\s)src\s*=/.test(match[1])&&match[2].trim());
+  assert.equal(sourceInline.length,0);
   assert.equal(inline.length,0);
   assert.match(hardened,/assets\/qelly-prepaint-bootstrap\.js/);
   assert.match(hardened,/assets\/qelly-app-ready\.mjs/);
   assert.ok(hardened.indexOf('qelly-app-ready.mjs')<hardened.indexOf('assets/app.js'));
+  assert.equal(hardenIndexHtml(hardened),hardened);
   assert.match(ready,/QELLY_STARTUP_SCRIPT_ERROR/);
   assert.match(ready,/QELLY_STARTUP_TIMEOUT/);
   assert.match(ready,/data-qelly-startup-retry/);

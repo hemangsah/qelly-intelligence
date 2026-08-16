@@ -58,6 +58,26 @@ async function idempotent(runtime, request, body, handler) {
   const value=await handler(); runtime.idempotencyStore.put(key,fingerprint,value); return {...value,idempotency:{replayed:false,key}};
 }
 async function scopedContext(runtime,sid,action){const {context}=await runtime.identityService.require(sid,action);return {context,scope:{userId:context.user.userId,tenantId:context.organization.organizationId,workspaceId:context.workspace.workspaceId}};}
+const localProfilePayload=(context)=>({
+  user:{userId:context.user.userId,email:context.user.primaryEmail??context.user.email??null,emailConfirmedAt:context.user.emailVerified?context.user.updatedAt??context.user.createdAt:null,displayName:context.user.displayName??null},
+  profile:{displayName:context.user.displayName??null,baseCurrency:context.user.baseCurrency??'USD',timezone:context.user.timezone??'UTC',cloudSyncOptIn:Boolean(context.user.cloudSyncOptIn),privacyVersion:context.user.privacyVersion??null,termsVersion:context.user.termsVersion??null,createdAt:context.user.createdAt??null,updatedAt:context.user.updatedAt??null},
+  workspace:{workspaceId:context.workspace.workspaceId,name:context.workspace.name},
+  session:{...context.session},
+  capabilities:{profilePersistence:'local-atomic-json',workspacePersistence:'local-atomic-json',execution:false,cloudSync:false,identityMode:context.mode}
+});
+const localCapabilityInventory=()=>({generatedAt:new Date().toISOString(),canonicalRuntime:'local-node-runtime',truthState:'AUDIT',unavailableCount:2,items:[
+  {id:'mfa',label:'Authenticator MFA & recovery codes',category:'identity',priority:'critical',state:'UNAVAILABLE',canonicalRuntime:'local-node-runtime',routeFamilies:['auth/mfa/**'],implementedExceptions:[],reason:'MFA requires a production identity session; the deterministic local fixture does not claim production assurance.'},
+  {id:'remote-session-control',label:'Remote session control',category:'identity',priority:'medium',state:'UNAVAILABLE',canonicalRuntime:'local-node-runtime',routeFamilies:['sessions/**'],implementedExceptions:[],reason:'The local fixture exposes test sessions only and does not claim remote multi-device control.'}
+]});
+function localProfilePatch(body){
+  const patch={};
+  if(Object.hasOwn(body,'displayName')){const value=String(body.displayName??'').trim();if(!value||value.length>80)throw Object.assign(new Error('Display name is required and must not exceed 80 characters'),{status:400,code:'profile_display_name_invalid'});patch.displayName=value;}
+  if(Object.hasOwn(body,'baseCurrency')){const value=String(body.baseCurrency??'').toUpperCase();if(!['USD','INR','EUR','GBP','SGD','AED','JPY'].includes(value))throw Object.assign(new Error('Base currency is not supported'),{status:400,code:'profile_currency_invalid'});patch.baseCurrency=value;}
+  if(Object.hasOwn(body,'timezone')){const value=String(body.timezone??'').trim();if(!/^[A-Za-z0-9_+\-/]{1,64}$/.test(value))throw Object.assign(new Error('Timezone is invalid'),{status:400,code:'profile_timezone_invalid'});try{new Intl.DateTimeFormat('en-US',{timeZone:value}).format(new Date());}catch{throw Object.assign(new Error('Timezone is not recognized'),{status:400,code:'profile_timezone_invalid'});}patch.timezone=value;}
+  if(Object.hasOwn(body,'cloudSyncOptIn'))patch.cloudSyncOptIn=false;
+  if(!Object.keys(patch).length)throw Object.assign(new Error('No supported profile fields were supplied'),{status:400,code:'profile_patch_empty'});
+  return patch;
+}
 async function serveFile(response, filePath, id){
   try{
     const info=await stat(filePath); if(!info.isFile()) throw new Error('not-file');
@@ -103,6 +123,8 @@ export function createServer({runtime=createRuntime(defaultRuntimeDir)}={}){
       if(request.method==='GET' && url.pathname==='/api/v1/public/providers') {
         return json(response,200,{catalog:runtime.publicMarketService.catalog(),status:runtime.publicMarketService.status()},id);
       }
+      if(request.method==='GET' && url.pathname==='/api/v1/platform/capabilities') return json(response,200,localCapabilityInventory(),id);
+      if(request.method==='GET' && url.pathname==='/api/v1/providers/ecb') return json(response,200,{provider:'ecb',sourceProvider:'ecb',truthState:'unavailable',sourceTruthState:'unavailable',data:null,error:{code:'provider_unavailable',message:'The local runtime has no configured ECB network adapter.'},observedAt:null,ingestedAt:new Date().toISOString(),attribution:'European Central Bank',termsState:'conditionally_approved_attributed_reference_data',externalCallsPerformed:false},id,{'Cache-Control':'public, max-age=5'});
       if(request.method==='GET' && url.pathname==='/api/v1/public/markets/overview') {
         return json(response,200,await runtime.publicMarketService.overview(),id,{'Cache-Control':'public, max-age=10, stale-while-revalidate=30'});
       }
@@ -132,6 +154,18 @@ export function createServer({runtime=createRuntime(defaultRuntimeDir)}={}){
       if(request.method==='POST' && url.pathname==='/api/v1/india/charges') return json(response,200,runtime.calculationService.indiaCharges(await bodyJson(request,256000)),id);
 
       if(!sid && url.pathname.startsWith('/api/v1/') && !isPublicApiRequestPath(url.pathname)) return error(response,401,'session_required','A session header is required when development identity is disabled',id);
+
+      if(request.method==='GET' && url.pathname==='/api/v1/profile'){
+        const {context}=await runtime.identityService.require(sid,'preference:read');return json(response,200,localProfilePayload(context),id);
+      }
+      if(request.method==='PATCH' && url.pathname==='/api/v1/profile'){
+        const patch=localProfilePatch(await bodyJson(request));await runtime.identityService.updateProfile(sid,patch,id);const context=await runtime.identityService.context(sid);return json(response,200,{updated:true,...localProfilePayload(context)},id);
+      }
+      if(request.method==='GET' && url.pathname==='/api/v1/platform/data-plane'){
+        await runtime.identityService.require(sid,'provider:read');
+        const [instruments,timeSeries]=await Promise.all([runtime.instrumentStore.summary(),runtime.timeSeriesStore.summary()]);
+        return json(response,200,{items:[],dataPlane:{instrumentCount:Number(instruments?.total??instruments?.count??0),seriesCount:Number(timeSeries?.seriesCount??timeSeries?.series??0),pointCount:Number(timeSeries?.pointCount??timeSeries?.points??0),openQualityEventCount:runtime.qualityEngine.listIncidents().length,latestObservedAt:timeSeries?.latestObservedAt??null},canonicalRuntime:'local-node-runtime',releaseSha:release,environment:'local-test',releaseCongruence:{state:'UNVERIFIED',runtimeSha:release,recordedSha:null,reason:'The disposable local audit runtime is not a production deployment.'},guardrails:{readOnly:true,execution:false,rawProviderCacheExposed:false,browserDirectPrivilegedTableAccess:false}},id);
+      }
 
       if(await handleSavedCalculationRequest({request,response,url,id,runtime,sid,json,bodyJson,scopedContext,idempotent})) return;
 
@@ -554,6 +588,13 @@ export function createServer({runtime=createRuntime(defaultRuntimeDir)}={}){
       if(request.method==='GET' && url.pathname.startsWith('/assets/')){
         const target=path.resolve(publicDir,url.pathname.slice(1)); if(!target.startsWith(publicDir+path.sep)) return error(response,403,'forbidden','Invalid asset path',id); return serveFile(response,target,id);
       }
+      if(request.method==='GET'){
+        const target=path.resolve(publicDir,url.pathname.slice(1));
+        if(target.startsWith(publicDir+path.sep)){
+          const info=await stat(target).catch(()=>null);
+          if(info?.isFile())return serveFile(response,target,id);
+        }
+      }
       if(request.method==='GET' && !url.pathname.startsWith('/api/')) return serveFile(response,path.join(publicDir,'index.html'),id);
       return error(response,404,'route_not_found','API route not found',id);
     }catch(caught){
@@ -565,10 +606,23 @@ export function createServer({runtime=createRuntime(defaultRuntimeDir)}={}){
   });
 }
 
+export function closeRuntime(runtime){
+  if(!runtime)return Promise.resolve();
+  if(runtime.shutdownPromise)return runtime.shutdownPromise;
+  runtime.shutdownPromise=(async()=>{
+    runtime.jobQueue?.close?.();
+    await runtime.productionRepository?.close?.();
+  })();
+  return runtime.shutdownPromise;
+}
+
 export async function startServer({port=Number(process.env.PORT||4480),host=process.env.HOST||'127.0.0.1',runtimePath=process.env.QELLY_RUNTIME_DIR??defaultRuntimeDir,environment=process.env}={}){
   const runtime=createRuntime(runtimePath); await runtime.schemaRegistry.init(); await initializeProductionFoundation(runtime,{runtimeDir:runtimePath,environment}); runtime.schemaRegistry.registerEnforcement({route:'PUT /api/v1/preferences/layout',request:'layout-preference-input',response:'layout-preference'}); runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/timeseries/:id/append',request:'timeseries-append-request'}); runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/asset-intelligence/compare/series',request:'asset-comparison-request'}); runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/asset-intelligence/layouts',request:'chart-layout-input',response:'chart-layout-record'}); runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/workspace/watchlists',request:'watchlist-input'}); runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/workspace/watchlists/:id/items',request:'watchlist-item-input'}); runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/alerts/rules',request:'alert-rule-input'}); runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/screeners/run',request:'screener-request'}); runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/research/workspaces',request:'research-workspace-input'}); runtime.schemaRegistry.registerEnforcement({route:'PUT /api/v1/onboarding/profile',request:'onboarding-profile-input'}); runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/notification-schedules',request:'notification-schedule-input'}); runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/screeners/formulas/run',request:'formula-screener-request'}); runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/imports/preview',request:'import-request'}); runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/research/workspaces/:id/versions',request:'research-version-input'}); runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/auth/register',request:'auth-register-input'}); runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/auth/login',request:'auth-login-input'}); runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/jobs/notifications',request:'notification-job-input'});runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/auth/mfa/confirm',request:'mfa-confirm-input'});runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/auth/mfa/disable',request:'mfa-confirm-input'});runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/secure-imports',request:'secure-import-input'});runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/jobs/delivery',request:'delivery-job-input'});runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/auth/mfa/recovery/consume',request:'mfa-recovery-input'});runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/auth/passkeys/register/verify',request:'passkey-registration-input'});runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/auth/passkeys/authenticate/options',request:'passkey-auth-options-input'});runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/auth/passkeys/authenticate/verify',request:'passkey-authentication-input'});runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/auth/recovery/request',request:'account-recovery-request'});runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/auth/recovery/reset',request:'account-recovery-reset'});runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/platform/assurance/concurrency',request:'assurance-concurrency-input'});runtime.schemaRegistry.registerEnforcement({route:'POST /api/v1/evidence/explain-move',request:'evidence-explain-move-input',response:'evidence-graph'}); await runtime.preferenceStore.init(); await runtime.timeSeriesStore.summary(); await runtime.streamGateway.replay({channel:'quotes'}); runtime.observability.log('info','runtime.started',{release,runtimePath:path.basename(runtimePath)});
-  if(runtime.productionFoundation?.strictProductionDependencies){const health=await productionFoundationHealth(runtime);if(!health.ready){runtime.jobQueue?.close?.();await runtime.productionRepository?.close?.();throw Object.assign(new Error('Required production dependencies are not ready'),{code:'production_dependencies_unready',details:{productionPolicy:health.productionPolicy,dependencies:Object.fromEntries(Object.entries(health.dependencies).map(([key,value])=>[key,{ok:value?.ok??value?.valid??false,driver:value?.driver??value?.protector?.mode??null,error:value?.error??null}]))}});}}
-  const server=createServer({runtime}); await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(port,host,resolve);});
+  if(runtime.productionFoundation?.strictProductionDependencies){const health=await productionFoundationHealth(runtime);if(!health.ready){await closeRuntime(runtime);throw Object.assign(new Error('Required production dependencies are not ready'),{code:'production_dependencies_unready',details:{productionPolicy:health.productionPolicy,dependencies:Object.fromEntries(Object.entries(health.dependencies).map(([key,value])=>[key,{ok:value?.ok??value?.valid??false,driver:value?.driver??value?.protector?.mode??null,error:value?.error??null}]))}});}}
+  const server=createServer({runtime});
+  server.once('close',()=>{void closeRuntime(runtime);});
+  try{await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(port,host,resolve);});}
+  catch(error){await closeRuntime(runtime);throw error;}
   return {server,host,port:server.address().port,runtime};
 }
 
@@ -580,7 +634,7 @@ if(process.argv[1] && fileURLToPath(import.meta.url)===path.resolve(process.argv
     const deadline=setTimeout(()=>{console.error(JSON.stringify({level:'error',event:'runtime.shutdown.timeout',signal}));process.exit(1);},Math.max(5000,Number(process.env.QELLY_SHUTDOWN_TIMEOUT_MS??25000)));deadline.unref?.();
     started.server.closeIdleConnections?.();
     await new Promise((resolve)=>started.server.close(resolve));
-    started.runtime.jobQueue?.close?.();await started.runtime.productionRepository?.close?.();clearTimeout(deadline);
+    await closeRuntime(started.runtime);clearTimeout(deadline);
     started.runtime.observability.log('info','runtime.shutdown.completed',{signal});process.exit(0);
   };
   process.once('SIGTERM',()=>void shutdown('SIGTERM'));process.once('SIGINT',()=>void shutdown('SIGINT'));

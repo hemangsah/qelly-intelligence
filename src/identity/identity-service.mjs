@@ -38,6 +38,20 @@ export class IdentityService {
     };
   }
 
+  async updateProfile(sessionId, patch, correlationId) {
+    const { context } = await this.require(sessionId, 'preference:write');
+    let updated;
+    await this.store.update((data) => {
+      const user = data.users.find((item) => item.userId === context.user.userId);
+      if (!user) throw Object.assign(new Error('Profile not found'), { status:404, code:'profile_not_found' });
+      Object.assign(user, patch, { updatedAt:new Date().toISOString() });
+      updated = structuredClone(user);
+      return data;
+    });
+    await this.auditLedger.append({ eventType:'identity.profile.updated.v1', correlationId, actor:{type:'user',id:context.user.userId}, tenantId:context.organization.organizationId, workspaceId:context.workspace.workspaceId, classification:'restricted', details:{fields:Object.keys(patch),persistence:'local-atomic-json'} });
+    return updated;
+  }
+
   async require(sessionId, action, resource = {}) {
     const context = await this.context(sessionId);
     const result = evaluateAccess({ action, resource, context });

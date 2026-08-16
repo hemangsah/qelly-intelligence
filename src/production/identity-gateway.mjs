@@ -20,6 +20,7 @@ export class IdentityGateway{
     return this.local.require(sessionKey,action,resource);
   }
   async evaluate(sessionKey,action,resource={}){const context=await this.context(sessionKey);return evaluateAccess({action,resource,context});}
+  async updateProfile(sessionKey,patch,correlationId){if(String(sessionKey??'').startsWith('prod:'))throw Object.assign(new Error('Profile updates are owned by the canonical Cloudflare profile function'),{status:501,code:'profile_update_runtime_mismatch'});return this.local.updateProfile(sessionKey,patch,correlationId);}
   issueCsrf(sessionKey){if(String(sessionKey??'').startsWith('prod:'))return this.production.csrf(sessionKey);return this.developmentEnabled?this.localCsrfTokens.issue(sessionKey):null;}
   async verifyCsrf(sessionKey,provided){if(String(sessionKey??'').startsWith('prod:'))return this.production.verifyCsrf(sessionKey,provided);return this.developmentEnabled&&this.localCsrfTokens.verify(sessionKey,provided);}
   async listSessions(sessionKey){

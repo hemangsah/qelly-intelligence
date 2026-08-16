@@ -92,6 +92,19 @@ test('direct Coinbase API response is truthful and performs no upstream fetch',a
   assert.equal(body.fallbackReason,'provider_end_user_display_rights_not_verified');
 });
 
+test('public provider contracts honor HEAD without falling into authentication',async()=>{
+  const cases=[
+    ['providers/status',['providers','status']],
+    ['providers/coinbase',['providers','coinbase']],
+    ['market/overview',['market','overview']]
+  ];
+  for(const [path,segments] of cases){
+    const request=new Request(`https://qelly-intelligence.pages.dev/api/v1/${path}`,{method:'HEAD'});
+    const response=await apiTest.route({request,env:baseEnv(),params:{path:segments}});
+    assert.equal(response.status,200,path);
+  }
+});
+
 test('public config declares unsupported production capabilities as disabled',async()=>{
   const request=new Request('https://qelly-intelligence.pages.dev/api/v1/config');
   const response=await configOnRequest({request,env:baseEnv(),params:{path:['config']},next:async()=>new Response(null,{status:404})});

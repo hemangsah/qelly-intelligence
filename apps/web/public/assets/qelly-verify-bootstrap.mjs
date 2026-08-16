@@ -31,8 +31,7 @@ document.addEventListener('click',event=>{
 
 window.addEventListener('hashchange',()=>{
   const view=viewFor(location.hash);
-  if(view)setRequested(view,'hash');
-  else if(state.lastIntent==='navigation-link')setRequested(null,'hash-navigation');
+  setRequested(view,view?'hash':'hash-navigation');
 });
 
 let scheduled=false;

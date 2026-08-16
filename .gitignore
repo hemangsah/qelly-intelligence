@@ -17,6 +17,7 @@ dist/
 coverage/
 
 # Generated evidence and local build artifacts
+outputs/
 screens/
 preview/
 validation/renders/

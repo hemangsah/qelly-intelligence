@@ -31,11 +31,19 @@ test('GitHub Pages artifact removes only Cloudflare deployment controls',async()
   }
 });
 
-test('Pages artifact sanitizer rejects symbolic control paths',async()=>{
+test('Pages artifact sanitizer rejects symbolic control paths',async(t)=>{
   const directory=await mkdtemp(path.join(os.tmpdir(),'qelly-pages-artifact-link-'));
   try{
     await writeFile(path.join(directory,'outside.txt'),'not a control file');
-    await symlink(path.join(directory,'outside.txt'),path.join(directory,'_headers'));
+    try{
+      await symlink(path.join(directory,'outside.txt'),path.join(directory,'_headers'));
+    }catch(error){
+      if(process.platform==='win32'&&['EPERM','EACCES','UNKNOWN'].includes(error?.code)){
+        t.skip('Windows symbolic-link creation is unavailable without Developer Mode or elevated privilege.');
+        return;
+      }
+      throw error;
+    }
     await assert.rejects(()=>sanitizePagesArtifact(directory),/refuses non-file control path/);
     assert.equal(await readFile(path.join(directory,'outside.txt'),'utf8'),'not a control file');
   }finally{

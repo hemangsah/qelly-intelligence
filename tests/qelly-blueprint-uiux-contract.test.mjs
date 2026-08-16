@@ -39,11 +39,13 @@ test('canonical typography and semantic colors match the governed blueprint',asy
 
 test('application shell preserves accessibility and no broken font preload',async()=>{
   const html=await read('apps/web/public/index.html');
+  const appReady=await read('apps/web/public/assets/qelly-app-ready.mjs');
   assert.match(html,/class="skip-link" href="#main"/);
   assert.match(html,/main id="main" tabindex="-1"/);
   assert.match(html,/aria-label="Toggle appearance"/);
   assert.doesNotMatch(html,/rel="preload"[^>]*ibm-plex-sans-variable\.woff2/i);
-  assert.match(html,/document\.fonts\?\.ready/);
+  assert.match(html,/assets\/qelly-app-ready\.mjs/);
+  assert.match(appReady,/document\.fonts\?\.ready/);
 });
 
 test('theme controls expose accessible names and governed persistence boundaries',async()=>{

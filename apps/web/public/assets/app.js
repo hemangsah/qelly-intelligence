@@ -409,7 +409,7 @@ async function renderRoute() {
   } finally {
     main.setAttribute('aria-busy', 'false');
     main.focus({ preventScroll:true });
-    document.title = `${routeDefinitions.find((item) => item.route === state.route)?.label ?? 'Qelly Intelligence'} · Qelly Intelligence`;
+    if(!/^#\/theme-lab(?:\/|$)/.test(location.hash))document.title = `${routeDefinitions.find((item) => item.route === state.route)?.label ?? 'Qelly Intelligence'} · Qelly Intelligence`;
   }
 }
 

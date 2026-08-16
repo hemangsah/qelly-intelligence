@@ -7,8 +7,11 @@ import { routeDefinitions } from '../apps/web/public/assets/route-registry.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
 const index = await readFile(path.join(root, 'apps/web/public/index.html'), 'utf8');
+const routeInventory = await readFile(path.join(root, 'QELLY_ROUTE_INVENTORY.csv'), 'utf8');
+const routeInventoryRoutes = routeInventory.split(/\r?\n/).slice(1).map((line) => line.match(/^"\d+","#\/([^"]+)"/)?.[1]).filter(Boolean);
 const service = await readFile(path.join(root, 'src/markets/public-market-service.mjs'), 'utf8');
 const evidence = await readFile(path.join(root, 'src/evidence/decision-provenance-store.mjs'), 'utf8');
+const themeStudio = await readFile(path.join(root, 'apps/web/public/assets/routes/theme-intelligence-studio.mjs'), 'utf8');
 const schemas = (await readdir(path.join(root, 'packages/schemas'))).filter((name) => name.endsWith('.json'));
 for (const file of schemas) JSON.parse(await readFile(path.join(root, 'packages/schemas', file), 'utf8'));
 const requiredPublicBetaSchemas = [
@@ -98,6 +101,19 @@ for (const file of requiredFiles) {
     missingFiles.push(file);
   }
 }
+const forbiddenPublicFiles = [
+  'apps/web/public/assets/qelly-v53-lock-candidate-convergence.mjs',
+  'apps/web/public/assets/qelly-v53-lock-candidate-convergence.css'
+];
+const presentForbiddenPublicFiles = [];
+for (const file of forbiddenPublicFiles) {
+  try {
+    await stat(path.join(root, file));
+    presentForbiddenPublicFiles.push(file);
+  } catch (error) {
+    if (error?.code !== 'ENOENT') throw error;
+  }
+}
 
 const requiredPublic = [
   '/api/v1/public/providers',
@@ -132,8 +148,10 @@ const checks = {
   packageName: pkg.name === 'qelly-intelligence',
   version: pkg.version === productVersion,
   requiredFiles: missingFiles.length === 0,
+  forbiddenPublicAssetsAbsent: presentForbiddenPublicFiles.length === 0,
   routes: routes.length === 71 && new Set(routes).size === routes.length,
   routeRegistry: routeNames.length === routes.length && routes.every((route) => routeNames.includes(route)) && routeNames.every((route) => routes.includes(route)),
+  routeInventory: routeInventoryRoutes.length === routes.length && routes.every((route) => routeInventoryRoutes.includes(route)) && routeInventoryRoutes.every((route) => routes.includes(route)),
   apiContracts: apiRoutes.length === 202 && new Set(apiRoutes).size === apiRoutes.length,
   contracts: contracts.size === 18,
   publicApis: requiredPublic.every((route) => apiRoutes.includes(route)),
@@ -141,6 +159,7 @@ const checks = {
   savedLifecycleApis: requiredSavedLifecycle.every((route) => apiRoutes.includes(route)),
   dangerousAbsent: dangerous.every((route) => !apiRoutes.includes(route)),
   brand: index.includes('Qelly Intelligence · Verifiable Market Intelligence') && !/Release A5/i.test(index),
+  themeStudioTruth: themeStudio.includes('DESIGN TOKEN SAMPLE · NO MARKET OBSERVATIONS') && themeStudio.includes('No provider observation is attached') && !/\b(?:BTC|ETH|SOL|AAPL|GOLD)\b|\bLive\b|64,466|3,412|2,431|180\.19M/.test(themeStudio),
   evidenceIntegrity: [
     'DecisionRecord',
     'RiskAssessment',
@@ -159,7 +178,7 @@ const checks = {
 };
 const failed = Object.entries(checks).filter(([, value]) => !value);
 if (failed.length) {
-  throw new Error(JSON.stringify({ failed, missingFiles }, null, 2));
+  throw new Error(JSON.stringify({ failed, missingFiles, presentForbiddenPublicFiles }, null, 2));
 }
 
 const result = {
