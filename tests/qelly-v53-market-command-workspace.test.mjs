@@ -24,11 +24,13 @@ test('V5.3 Market Command is activated from the current runtime contract only',a
 test('Market Command keeps all governed market truth and evidence surfaces without demo observations',async()=>{
   const route=await read(routePath);
   for(const label of ['Governed last','Governed change','Internal provider','External display','Fabricated fallback','Execution'])assert.match(route,new RegExp(`>${label}<`));
-  for(const label of ['Analytics source','Observed','Truth state','Display source','Display reuse','Execution'])assert.match(route,new RegExp(`>${label}<`));
+  for(const label of ['Analytics source','Observed','Truth state','Provider contract','Display reuse','Execution'])assert.match(route,new RegExp(`>${label}<`));
   assert.match(route,/id="qelly-live-chart"/);
   assert.match(route,/Governed market status/);
   assert.match(route,/Provider matrix/);
   assert.match(route,/Provider rights/);
+  assert.match(route,/Provider symbol/);
+  assert.match(route,/Provider interval/);
   assert.match(route,/No synthetic market substitute/);
   assert.match(route,/No Qelly-generated fallback values/);
   assert.match(route,/TradingView values are not read, scraped, persisted or used by Qelly analytics/);
