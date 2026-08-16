@@ -62,18 +62,18 @@ test('connected-save helper pushes only after authenticated cloud opt-in is prov
   assert.match(source,/Saved locally\. Cloud synchronization is currently opted out\./);
 });
 
-test('public-runtime finalizer replaces both legacy quant detail renderers and passes the authenticated API client',()=>{
+test('public-runtime finalizer replaces the current quant detail router signatures and preserves authenticated route context',()=>{
   const legacy=[
-    "case 'calculator-detail': await renderCalculatorDetail(main,{pageHead,stateBanner,escapeHtml,toast,navigate,id,query}); break;",
-    "case 'indicator-detail': await renderIndicatorDetail(main,{pageHead,stateBanner,escapeHtml,toast,navigate,id}); break;"
+    "case 'calculator-detail': await renderCalculatorDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset,query:state.routeQuery}); break;",
+    "case 'indicator-detail': await renderIndicatorDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset}); break;"
   ].join('\n');
   const rewritten=rewritePublicRuntimeAsset(legacy,{file:'assets/app.js'});
   assert.doesNotMatch(rewritten,/await renderCalculatorDetail\(main/);
   assert.doesNotMatch(rewritten,/await renderIndicatorDetail\(main/);
   assert.match(rewritten,/calculator-detail-v6\.mjs/);
   assert.match(rewritten,/indicator-detail-v6\.mjs/);
-  assert.match(rewritten,/renderCalculatorDetailV6\(main,\{api,pageHead/);
-  assert.match(rewritten,/renderIndicatorDetailV6\(main,\{api,pageHead/);
+  assert.match(rewritten,/renderCalculatorDetailV6\(main,\{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state\.asset,query:state\.routeQuery\}\)/);
+  assert.match(rewritten,/renderIndicatorDetailV6\(main,\{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state\.asset\}\)/);
 });
 
 test('shared V6 quant styling includes deterministic state, responsive density and reduced-motion containment',async()=>{
