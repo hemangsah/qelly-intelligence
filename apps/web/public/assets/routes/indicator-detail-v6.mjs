@@ -14,12 +14,12 @@ function enhanceSemantics(main,definition,escapeHtml){
   if(banner){
     banner.className='q-v6-indicator-truth';
     const status=banner.querySelector('.q-status');if(status){status.className='q-status q-status--deterministic';status.textContent=`${source} · DETERMINISTIC`;}
-    const copy=banner.querySelector('p');if(copy)copy.textContent='The indicator engine is deterministic, but the detail-page input shown here is engine evidence rather than a live market feed. It must not be interpreted as a current quote, recommendation or execution signal.';
+    const copy=banner.querySelector('p');if(copy)copy.textContent='The indicator engine is deterministic. This detail-page input is engine evidence, not a live market feed. It must not be interpreted as a current quote, recommendation or execution signal.';
   }
   const detailGrid=main.querySelector('.q-indicator-detail-grid');
   if(detailGrid&&!main.querySelector('.q-v6-quant-kpis')){
     const kpis=document.createElement('section');kpis.className='q-v6-quant-kpis';kpis.setAttribute('aria-label','Indicator method evidence');
-    kpis.innerHTML=`<div><span>Indicator ID</span><strong>${escapeHtml(definition.indicatorId)}</strong><small>stable method identity</small></div><div><span>Version</span><strong>${escapeHtml(String(versionOf(definition)))}</strong><small>engine definition</small></div><div><span>Required fields</span><strong>${definition.requiredFields?.length||0}</strong><small>${escapeHtml((definition.requiredFields||[]).join(' · ')||'none')}</small></div><div><span>Evidence input</span><strong>${escapeHtml(source)}</strong><small>not an implicit live feed</small></div><div><span>Execution</span><strong>OFF</strong><small>descriptive analysis only</small></div>`;
+    kpis.innerHTML=`<div><span>Indicator ID</span><strong>${escapeHtml(definition.indicatorId)}</strong><small>stable method identity</small></div><div><span>Version</span><strong>${escapeHtml(String(versionOf(definition)))}</strong><small>engine definition</small></div><div><span>Required fields</span><strong>${definition.requiredFields?.length||0}</strong><small>${escapeHtml((definition.requiredFields||[]).join(' · ')||'none')}</small></div><div><span>Evidence input</span><strong>${escapeHtml(source)}</strong><small>not a live market feed</small></div><div><span>Execution</span><strong>OFF</strong><small>descriptive analysis only</small></div>`;
     detailGrid.before(kpis);
   }
   main.querySelectorAll('.q-indicator-detail-page .q-status--simulated').forEach((status)=>{status.classList.remove('q-status--simulated');status.classList.add('q-status--deterministic');if(status.textContent.trim()==='SIMULATED')status.textContent='DETERMINISTIC SAMPLE';});
