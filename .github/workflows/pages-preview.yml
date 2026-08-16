@@ -110,8 +110,12 @@ jobs:
       contents: read
       pages: write
       id-token: write
+    # The repository's default github-pages environment intentionally protects
+    # a different branch. deploy-pages supports another environment name when
+    # needed, so the canonical release line uses a dedicated deployment target
+    # without weakening the existing protected environment.
     environment:
-      name: github-pages
+      name: qelly-github-pages-release
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Check out exact source for verification
