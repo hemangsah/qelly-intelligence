@@ -1,7 +1,7 @@
 import {HttpError,fetcher} from './runtime.js';
 
 const SAFE_SYMBOL=/^[A-Z0-9-]{3,30}$/;
-const GRANULARITY=new Map([['1m',60],['5m',300],['15m',900],['1h',3600],['4h',21600],['1d',86400]]);
+const GRANULARITY=new Map([['1m',60],['5m',300],['15m',900],['1h',3600],['4h',14400],['1d',86400]]);
 const PROVIDER_POLICY=Object.freeze({
   binance:Object.freeze({
     id:'binance',
