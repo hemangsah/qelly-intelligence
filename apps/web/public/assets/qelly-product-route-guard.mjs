@@ -1,3 +1,5 @@
+import './qelly-external-market-surfaces.mjs';
+
 const main=document.getElementById('main');
 const cache=new Map();
 let restoring=false;

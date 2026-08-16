@@ -1,0 +1,85 @@
+name: Qelly Cloudflare Production Parity
+
+on:
+  pull_request:
+    branches:
+      - release/qelly-global-public-beta
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qelly-cloudflare-production-parity-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  production-parity:
+    name: Build exact production-mode Pages artifact
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      QELLY_REQUIRE_PUBLIC_RUNTIME: 'true'
+      QELLY_PROMPT2C_PUBLIC_BETA: 'true'
+      QELLY_PUBLIC_SITE_URL: https://qelly-intelligence.pages.dev
+      QELLY_PUBLIC_SUPABASE_URL: https://ssdgfgqnjlwzkgukzeef.supabase.co
+      QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_shape_only_012345678901234567890123456789
+      QELLY_DEPLOYMENT_ENVIRONMENT: cloudflare-pages-production-parity
+      QELLY_ENABLE_AUTH: 'true'
+      QELLY_ENABLE_AUTH_EMAIL_DELIVERY: 'false'
+      QELLY_ENABLE_CLOUD_SYNC: 'true'
+      QELLY_ENABLE_LIVE_PROVIDERS: 'true'
+      QELLY_ENABLE_FEEDBACK_WRITES: 'true'
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Set up Node 22
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Syntax-check every Pages Function
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            node --check "$file"
+          done < <(find functions -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | sort -z)
+      - name: Build exact production-mode frontend
+        run: npm run build:frontend
+      - name: Validate production artifact contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s dist/frontend/index.html
+          test -s dist/frontend/qelly-config.js
+          test -s dist/frontend/qelly-release.json
+          test -s dist/frontend/_routes.json
+          test -s dist/frontend/assets/routes/provider-runtime-v6.mjs
+          test -s dist/frontend/assets/routes/instrument-master-v6.mjs
+          test -s dist/frontend/assets/routes/time-series-v6.mjs
+          test -s dist/frontend/assets/routes/calculator-detail-v6.mjs
+          test -s dist/frontend/assets/routes/indicator-detail-v6.mjs
+          test -s dist/frontend/assets/routes/portfolio-v6-entry.mjs
+          grep -F "renderPortfolioV6Entry" dist/frontend/assets/app.js
+          grep -F "renderProviderRuntimeV6" dist/frontend/assets/app.js
+          grep -F "renderInstrumentMasterV6" dist/frontend/assets/app.js
+          grep -F "renderTimeSeriesV6" dist/frontend/assets/app.js
+      - name: Upload production-parity diagnostics
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-cloudflare-production-parity-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            dist/frontend/BUILD_INFO.json
+            dist/frontend/qelly-release.json
+            dist/frontend/qelly-config.js
+            dist/frontend/_routes.json
+          if-no-files-found: warn
+          retention-days: 14
