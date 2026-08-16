@@ -8,7 +8,7 @@ const releaseTarget=path.join(root,'dist/frontend/qelly-release.json');
 const buildInfoTarget=path.join(root,'dist/frontend/BUILD_INFO.json');
 
 export function shouldEnablePublicAuthEmail(environment=process.env){
-  return environment.QELLY_REQUIRE_PUBLIC_RUNTIME==='true'&&String(environment.QELLY_ENABLE_AUTH_EMAIL_DELIVERY||'').trim().toLowerCase()!=='false';
+  return environment.QELLY_REQUIRE_PUBLIC_RUNTIME==='true'&&String(environment.QELLY_ENABLE_AUTH_EMAIL_DELIVERY||'').trim().toLowerCase()==='true';
 }
 
 export function synchronizePublicAuthEmailArtifacts({configSource,releaseSource,buildInfoSource}){
