@@ -1,3 +1,5 @@
+import '../qelly-canonical-route-rescue.mjs';
+
 let densityMedia=null;
 let observer=null;
 let readyResolve=null;
