@@ -12,6 +12,8 @@ test('Pages workflow deploys the release-line production mirror instead of stati
   assert.match(workflow,/QELLY_PUBLIC_API_BASE_URL: https:\/\/qelly-intelligence\.pages\.dev/);
   assert.match(workflow,/path: dist\/frontend/);
   assert.match(workflow,/Verify canonical API permits read-only mirror CORS/);
+  assert.match(workflow,/name: qelly-github-pages-release/);
+  assert.doesNotMatch(workflow,/environment:\s*\n\s+name: github-pages\s*$/m);
   assert.doesNotMatch(workflow,/build-pages-canonical-handoff|dist\/pages-canonical|sanitize-pages-artifact/);
 });
 
