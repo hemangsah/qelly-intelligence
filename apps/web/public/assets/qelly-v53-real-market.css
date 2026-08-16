@@ -1,186 +1,70 @@
-/* Qelly Intelligence — V5.3 real Market DOM convergence.
-   This layer styles the functional Market route. It does not introduce fixture
-   values, execution controls or a second synthetic workspace. */
+/* Qelly Intelligence — real Market DOM convergence.
+   The V7 rules below style the governed public terminal without introducing
+   fixture values, execution controls or a second synthetic workspace. */
 
 html[data-v53-real-market="active"] #main > .q-page{
-  width:min(100%,1680px);
-  max-width:none;
-  margin:0 auto;
-  padding:12px 14px 18px;
-  gap:10px;
+  width:min(100%,1680px);max-width:none;margin:0 auto;padding:12px 14px 18px;gap:10px
 }
+html[data-v53-real-market="active"] #main > .q-page > .q-page-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:end;padding:10px 12px;border-radius:7px}
+html[data-v53-real-market="active"] #main > .q-page > .q-page-head h1{font-size:22px;line-height:1.05;letter-spacing:-.02em;margin:2px 0 4px}
+html[data-v53-real-market="active"] #main > .q-page > .q-page-head p:not(.q-eyebrow){max-width:920px;font-size:11px;line-height:1.45}
+html[data-v53-real-market="active"] #main > .q-page .q-eyebrow,html[data-v53-real-market="active"] #main > .q-page .q-kpi-label,html[data-v53-real-market="active"] #main > .q-page .q-panel-head p{font-size:9px;letter-spacing:.08em}
+html[data-v53-real-market="active"] #main > .q-page .q-panel,html[data-v53-real-market="active"] #main > .q-page .q-chart-shell,html[data-v53-real-market="active"] #main > .q-page .q-data-grid{border-radius:7px;box-shadow:none}
+html[data-v53-real-market="active"] #main > .q-page .q-panel-head{min-height:38px;padding:8px 10px}
+html[data-v53-real-market="active"] #main > .q-page .q-panel-head h2{font-size:12px;line-height:1.15}
+html[data-v53-real-market="active"] #main > .q-page .q-panel-body{padding:10px}
+html[data-v53-real-market="active"] #main > .q-page .q-page-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}
+html[data-v53-real-market="active"] #main > .q-page .q-button{min-height:31px;padding:5px 10px;border-radius:6px;font-size:10px}
 
-html[data-v53-real-market="active"] #main > .q-page > .q-page-head{
-  display:grid;
-  grid-template-columns:minmax(0,1fr) auto;
-  gap:16px;
-  align-items:end;
-  padding:10px 12px;
-  border-radius:7px;
+/* V7 governed public terminal. */
+html[data-v53-real-market="active"] .q-v7-public-market{display:grid;gap:10px;max-width:none}
+html[data-v53-real-market="active"] .q-v7-terminal-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;padding:16px 18px;border:1px solid color-mix(in srgb,var(--q-border,#4b2c39) 80%,transparent);border-radius:10px;background:linear-gradient(135deg,color-mix(in srgb,var(--q-surface,#100c0f) 94%,#6f1838 6%),var(--q-surface,#100c0f));overflow:hidden}
+html[data-v53-real-market="active"] .q-v7-terminal-hero>div:first-child{max-width:900px}
+html[data-v53-real-market="active"] .q-v7-terminal-hero h1{margin:3px 0 7px;font-size:clamp(26px,2.8vw,40px);line-height:1;letter-spacing:-.035em}
+html[data-v53-real-market="active"] .q-v7-terminal-hero p{margin:0;color:var(--q-muted,#b5a8ae);font-size:12px;line-height:1.5}
+html[data-v53-real-market="active"] .q-v7-boundary-ribbon{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+html[data-v53-real-market="active"] .q-v7-boundary-ribbon>div{min-height:76px;padding:11px 12px;border:1px solid var(--q-border,#3d2731);border-radius:8px;background:var(--q-surface,#100c0f)}
+html[data-v53-real-market="active"] .q-v7-boundary-ribbon span,html[data-v53-real-market="active"] .q-v7-boundary-ribbon small{display:block;color:var(--q-muted,#a99ca2);font-size:9px;text-transform:uppercase;letter-spacing:.05em}
+html[data-v53-real-market="active"] .q-v7-boundary-ribbon strong{display:block;margin:6px 0 3px;color:var(--q-text,#f1e9ed);font-size:18px;letter-spacing:-.02em}
+html[data-v53-real-market="active"] .q-v7-market-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(310px,.7fr);gap:10px;align-items:stretch}
+html[data-v53-real-market="active"] .q-v7-chart-panel,html[data-v53-real-market="active"] .q-v7-side-stack>.q-panel,html[data-v53-real-market="active"] .q-v7-reference-panel{border-radius:9px!important;box-shadow:none!important}
+html[data-v53-real-market="active"] .q-v7-chart-stage{min-height:520px;height:min(58vh,620px);overflow:hidden;border:1px solid color-mix(in srgb,var(--q-border,#3d2731) 80%,transparent);border-radius:7px;background:#09070a}
+html[data-v53-real-market="active"] .q-v7-side-stack{display:grid;grid-template-rows:minmax(0,1fr) auto;gap:10px}
+html[data-v53-real-market="active"] .q-v7-provider-grid{display:grid;gap:7px}
+html[data-v53-real-market="active"] .q-v7-provider-card{padding:10px;border:1px solid var(--q-border,#3d2731);border-radius:7px;background:color-mix(in srgb,var(--q-surface-alt,#171116) 80%,transparent)}
+html[data-v53-real-market="active"] .q-v7-provider-card>div{display:flex;align-items:center;justify-content:space-between;gap:8px}
+html[data-v53-real-market="active"] .q-v7-provider-card strong{font-size:11px}
+html[data-v53-real-market="active"] .q-v7-provider-card p{margin:7px 0;color:var(--q-muted,#a99ca2);font-size:9px;line-height:1.4;overflow-wrap:anywhere}
+html[data-v53-real-market="active"] .q-v7-provider-card a{font-size:9px;color:var(--q-accent-soft,#e59bb8)}
+html[data-v53-real-market="active"] .q-v7-link-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+html[data-v53-real-market="active"] .q-v7-link-grid .q-button{justify-content:center;min-height:34px;font-size:10px}
+html[data-v53-real-market="active"] .q-v7-rate-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
+html[data-v53-real-market="active"] .q-v7-rate-card{padding:10px;border:1px solid var(--q-border,#3d2731);border-radius:7px;background:color-mix(in srgb,var(--q-surface-alt,#171116) 78%,transparent)}
+html[data-v53-real-market="active"] .q-v7-rate-card span,html[data-v53-real-market="active"] .q-v7-rate-card small{display:block;color:var(--q-muted,#a99ca2);font-size:9px}
+html[data-v53-real-market="active"] .q-v7-rate-card strong{display:block;margin:7px 0 5px;font-size:18px;font-variant-numeric:tabular-nums}
+html[data-v53-real-market="active"] .q-v7-evidence-strip{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:9px;padding-top:9px;border-top:1px solid var(--q-border,#3d2731);color:var(--q-muted,#a99ca2);font-size:9px}
+
+@media(max-width:1100px){
+  html[data-v53-real-market="active"] .q-v7-market-grid{grid-template-columns:1fr}
+  html[data-v53-real-market="active"] .q-v7-side-stack{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto}
+  html[data-v53-real-market="active"] .q-v7-rate-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
-
-html[data-v53-real-market="active"] #main > .q-page > .q-page-head h1{
-  font-size:22px;
-  line-height:1.05;
-  letter-spacing:-.02em;
-  margin:2px 0 4px;
+@media(max-width:720px){
+  html[data-v53-real-market="active"] #main > .q-page{padding:8px 8px 78px}
+  html[data-v53-real-market="active"] .q-v7-terminal-hero{align-items:flex-start;flex-direction:column;padding:14px}
+  html[data-v53-real-market="active"] .q-v7-terminal-hero .q-page-actions{width:100%;justify-content:flex-start}
+  html[data-v53-real-market="active"] .q-v7-terminal-hero .q-button{flex:1}
+  html[data-v53-real-market="active"] .q-v7-boundary-ribbon{grid-template-columns:repeat(2,minmax(0,1fr))}
+  html[data-v53-real-market="active"] .q-v7-chart-stage{min-height:420px;height:58vh}
+  html[data-v53-real-market="active"] .q-v7-side-stack{grid-template-columns:1fr}
+  html[data-v53-real-market="active"] .q-v7-rate-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  html[data-v53-real-market="active"] .q-v7-link-grid{grid-template-columns:1fr}
 }
-
-html[data-v53-real-market="active"] #main > .q-page > .q-page-head p:not(.q-eyebrow){
-  max-width:920px;
-  font-size:11px;
-  line-height:1.45;
+@media(max-width:430px){
+  html[data-v53-real-market="active"] .q-v7-boundary-ribbon{grid-template-columns:1fr}
+  html[data-v53-real-market="active"] .q-v7-rate-grid{grid-template-columns:1fr}
+  html[data-v53-real-market="active"] .q-v7-terminal-hero h1{font-size:28px}
 }
-
-html[data-v53-real-market="active"] #main > .q-page .q-eyebrow,
-html[data-v53-real-market="active"] #main > .q-page .q-kpi-label,
-html[data-v53-real-market="active"] #main > .q-page .q-panel-head p{
-  font-size:9px;
-  letter-spacing:.08em;
-}
-
-html[data-v53-real-market="active"] #main > .q-page > .q-truth-callout{
-  min-height:34px;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:7px 10px;
-  border-radius:6px;
-  font-size:10px;
-}
-
-html[data-v53-real-market="active"] #main > .q-page > .q-kpi-grid{
-  display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:6px;
-}
-
-html[data-v53-real-market="active"] #main > .q-page .q-kpi{
-  min-height:74px;
-  padding:9px 10px;
-  border-radius:6px;
-}
-
-html[data-v53-real-market="active"] #main > .q-page .q-kpi-value{
-  font-size:18px;
-  line-height:1.1;
-}
-
-html[data-v53-real-market="active"] #main > .q-page .q-kpi-meta{
-  margin-top:5px;
-  font-size:9px;
-  line-height:1.35;
-}
-
-html[data-v53-real-market="active"] #main > .q-page > .q-dashboard-grid{
-  display:grid;
-  grid-template-columns:minmax(0,1fr) 292px;
-  gap:8px;
-  align-items:stretch;
-}
-
-html[data-v53-real-market="active"] #main > .q-page .q-dashboard-stack{
-  display:grid;
-  grid-template-rows:minmax(0,1fr) auto;
-  gap:8px;
-}
-
-html[data-v53-real-market="active"] #main > .q-page .q-panel,
-html[data-v53-real-market="active"] #main > .q-page .q-chart-shell,
-html[data-v53-real-market="active"] #main > .q-page .q-data-grid{
-  border-radius:6px;
-}
-
-html[data-v53-real-market="active"] #main > .q-page .q-panel-head{
-  min-height:38px;
-  padding:7px 9px;
-}
-
-html[data-v53-real-market="active"] #main > .q-page .q-panel-head h2{
-  font-size:12px;
-  line-height:1.15;
-}
-
-html[data-v53-real-market="active"] #main > .q-page .q-panel-body{
-  padding:8px;
-}
-
-html[data-v53-real-market="active"] #main > .q-page .q-heatmap{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:5px;
-}
-
-html[data-v53-real-market="active"] #main > .q-page .q-heat-cell{
-  min-height:48px;
-  padding:7px;
-  border-radius:5px;
-  text-align:left;
-}
-
-html[data-v53-real-market="active"] #main > .q-page .q-context-block dl{
-  display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);
-  gap:5px 8px;
-  font-size:10px;
-}
-
-html[data-v53-real-market="active"] #main > .q-page #market-grid{
-  min-height:260px;
-}
-
-html[data-v53-real-market="active"] #main > .q-page .q-page-actions{
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:flex-end;
-  gap:5px;
-}
-
-html[data-v53-real-market="active"] #main > .q-page .q-button{
-  min-height:30px;
-  padding:5px 9px;
-  border-radius:5px;
-  font-size:10px;
-}
-
-@media(max-width:900px){
-  html[data-v53-real-market="active"] #main > .q-page{
-    padding:8px 8px 78px;
-  }
-  html[data-v53-real-market="active"] #main > .q-page > .q-page-head{
-    grid-template-columns:1fr;
-    align-items:start;
-  }
-  html[data-v53-real-market="active"] #main > .q-page > .q-page-head h1{
-    font-size:19px;
-  }
-  html[data-v53-real-market="active"] #main > .q-page > .q-kpi-grid{
-    display:flex;
-    overflow-x:auto;
-    scroll-snap-type:x mandatory;
-    padding-bottom:3px;
-  }
-  html[data-v53-real-market="active"] #main > .q-page .q-kpi{
-    flex:0 0 72%;
-    scroll-snap-align:start;
-  }
-  html[data-v53-real-market="active"] #main > .q-page > .q-dashboard-grid{
-    grid-template-columns:1fr;
-  }
-  html[data-v53-real-market="active"] #main > .q-page .q-dashboard-stack{
-    grid-template-rows:auto;
-  }
-  html[data-v53-real-market="active"] #main > .q-page .q-page-actions{
-    justify-content:flex-start;
-  }
-}
-
 @media(prefers-reduced-motion:reduce){
-  html[data-v53-real-market="active"] #main > .q-page *,
-  html[data-v53-real-market="active"] #main > .q-page *::before,
-  html[data-v53-real-market="active"] #main > .q-page *::after{
-    scroll-behavior:auto!important;
-    transition-duration:.001ms!important;
-    animation-duration:.001ms!important;
-  }
+  html[data-v53-real-market="active"] #main > .q-page *,html[data-v53-real-market="active"] #main > .q-page *::before,html[data-v53-real-market="active"] #main > .q-page *::after{scroll-behavior:auto!important;transition-duration:.001ms!important;animation-duration:.001ms!important}
 }

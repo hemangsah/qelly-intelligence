@@ -1,5 +1,5 @@
 import {HttpError,bootstrapContext,enforceRateLimit,errorResponse,responseJson,resolveSession} from '../../../_lib/runtime.js';
-import {liveMarketCandles,liveMarketCatalog,liveMarketStatus,liveMarketTicker} from '../../../_lib/live-markets.js';
+import {liveMarketAsset,liveMarketCandles,liveMarketCatalog,liveMarketStatus,liveMarketTicker} from '../../../_lib/live-markets.js';
 
 export async function route(context){
   const {request,env}=context;
@@ -21,6 +21,7 @@ export async function route(context){
 
   if(routeName==='catalog')return responseJson(request,env,liveMarketCatalog(),200,{cookies:session.cookies,cache:'private, no-store'});
   if(routeName==='status')return responseJson(request,env,liveMarketStatus(),200,{cookies:session.cookies,cache:'private, no-store'});
+  if(routeName==='asset')return responseJson(request,env,await liveMarketAsset(context,options),200,{cookies:session.cookies,cache:'private, no-store'});
   if(routeName==='candles')return responseJson(request,env,await liveMarketCandles(context,options),200,{cookies:session.cookies,cache:'private, no-store'});
   if(routeName==='ticker')return responseJson(request,env,await liveMarketTicker(context,options),200,{cookies:session.cookies,cache:'private, no-store'});
   throw new HttpError(404,'live_market_route_not_found','Live market endpoint was not found');

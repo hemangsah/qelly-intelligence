@@ -110,8 +110,7 @@ export async function route(context){
   await enforceRateLimit(env,`user:${session.user.id}:${path}`);
   const qelly=await bootstrapContext(env,session);
   if(path==='session/context'&&method==='GET')return responseJson(request,env,qelly,200,{cookies:session.cookies});
-  if(path==='preferences/layout'&&method==='GET')return responseJson(request,env,{theme:'burgundy-command',density:'comfortable',motion:'full',fontScale:100,radiusPx:14,customAccent:null,route:'market',revision:1});
-  if(path==='preferences/layout'&&['PATCH','PUT'].includes(method))return responseJson(request,env,{revision:1,persisted:false,storage:'browser-local'});
+  if(path==='preferences/layout')throw new HttpError(503,'preferences_route_owner_mismatch','Preferences are owned by the dedicated /api/v1/preferences/layout function; the generic API fallback will not return browser-local defaults.',{retryable:false});
   if(path==='sessions'&&method==='GET')return responseJson(request,env,{scope:'current-session-only',items:[{sessionId:`supabase-${session.user.id.slice(0,8)}`,authenticationMethod:'supabase-email-password',expiresAt:new Date(Number(session.claims.exp)*1000).toISOString(),current:true,revokedAt:null}]});
   const data=await handleData(context,path,segments,method,session,qelly);
   if(data)return data;

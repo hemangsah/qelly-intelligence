@@ -18,14 +18,29 @@ tradingview_hook = """                    if parsed.netloc=='s3.tradingview.com'
                         )
                         return
 """
+context_marker = """                context=browser.new_context(viewport=viewport,reduced_motion='reduce' if vname=='mobile' else 'no-preference')
+"""
+context_isolation = """                context=browser.new_context(
+                    viewport=viewport,
+                    reduced_motion='reduce' if vname=='mobile' else 'no-preference',
+                    service_workers='block',
+                )
+"""
 
 if legacy_import not in source:
     raise SystemExit('accessibility evidence launcher import changed; update the contract adapter hook')
 if external_marker not in source:
     raise SystemExit('accessibility evidence external-resource hook changed; update TradingView isolation')
+if context_marker not in source:
+    raise SystemExit('accessibility evidence browser-context contract changed; update service-worker isolation')
 
 patched_source = source.replace(legacy_import, evidence_import, 1)
 patched_source = patched_source.replace(external_marker, tradingview_hook + external_marker, 1)
+# Playwright page routing does not intercept Service Worker network requests.
+# The synthetic qelly.test evidence origin therefore cannot load prompt2c-sw.js
+# unless workers are disabled. Offline-shell registration is verified separately
+# by the public-runtime/browser workflows, so accessibility checks isolate it.
+patched_source = patched_source.replace(context_marker, context_isolation, 1)
 
 with tempfile.NamedTemporaryFile(
     mode='w',

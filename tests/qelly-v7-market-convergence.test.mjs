@@ -1,0 +1,57 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+
+const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
+
+test('production terminal shell never labels governed market data simulated',async()=>{
+  const source=await read('apps/web/public/assets/qelly-v53-lock-shell.mjs');
+  assert.match(source,/MARKET DATA · GOVERNED PROVIDER TRUTH/);
+  assert.doesNotMatch(source,/SIMULATED REFERENCE DATA|Providers 5\/6/);
+});
+
+test('canonical production Market renderer is no-fabrication and anonymous-safe',async()=>{
+  const source=await read('apps/web/public/assets/routes/market-v6.mjs');
+  assert.match(source,/\/api\/v1\/public\/markets\/overview/);
+  assert.match(source,/\/api\/v1\/providers\/ecb\?capability=fx-reference-rates&symbol=EUR/);
+  assert.match(source,/TradingView market visualization/);
+  assert.match(source,/Forex Factory Calendar/);
+  assert.match(source,/Fabricated fallback/);
+  assert.match(source,/OFF/);
+  assert.doesNotMatch(source,/\/api\/v1\/platform\/data-plane|\/api\/v1\/providers\/runtime/);
+  assert.doesNotMatch(source,/Math\.sin|Math\.cos|qelly-governed-demo|simulated-demo/);
+});
+
+test('legacy route guard no longer owns the Market route',async()=>{
+  const source=await read('apps/web/public/assets/qelly-product-route-guard.mjs');
+  assert.match(source,/Market is owned exclusively by the canonical V6\/V7 production renderer/);
+  assert.doesNotMatch(source,/route==='market'\?'\.q-market-home'/);
+  assert.doesNotMatch(source,/qellyProductHome/);
+});
+
+test('public recovery never invents market observations or deterministic crypto prices',async()=>{
+  const source=await read('apps/web/public/assets/qelly-public-recovery.mjs');
+  assert.match(source,/No fabricated recovery data/);
+  assert.match(source,/No substitute price, candle, volume or market movement has been generated/);
+  assert.match(source,/TradingView/);
+  assert.match(source,/Forex Factory/);
+  assert.doesNotMatch(source,/demoAssets|\$42,500|\$2,280|\$98\.40|\$312\.60|deterministic public market recovery/i);
+});
+
+test('live market compatibility contract keeps provider-specific intervals, symbols and asset route',async()=>{
+  const [service,route,ui]=await Promise.all([
+    read('functions/_lib/live-markets.js'),
+    read('functions/api/v1/live-markets/[[route]].js'),
+    read('apps/web/public/assets/routes/live-markets.mjs')
+  ]);
+  assert.match(service,/binance:Object\.freeze\(\['1m','5m','15m','30m','1h','4h','1d'\]\)/);
+  assert.match(service,/coinbase:Object\.freeze\(\['1m','5m','15m','1h','6h','1d'\]\)/);
+  assert.doesNotMatch(service,/coinbase:Object\.freeze\([^\n]*'4h'/);
+  assert.match(route,/routeName==='asset'/);
+  assert.match(route,/liveMarketAsset/);
+  assert.match(ui,/Provider symbol/);
+  assert.match(ui,/Provider interval/);
+  assert.match(ui,/selected\.symbols/);
+  assert.match(ui,/selected\.intervals/);
+  assert.match(ui,/\/api\/v1\/live-markets\/candles\?provider=/);
+});
