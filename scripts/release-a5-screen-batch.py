@@ -18,14 +18,32 @@ tradingview_hook = """                    if parsed.netloc == 's3.tradingview.co
                         )
                         return
 """
+console_marker = """                    item = {'type': 'console', 'text': message.text}
+                    if message.text.startswith('Failed to load resource:'):
+"""
+console_diagnostics = """                    location = message.location or {}
+                    item = {
+                        'type': 'console',
+                        'text': message.text,
+                        'location': {
+                            'url': location.get('url'),
+                            'lineNumber': location.get('lineNumber'),
+                            'columnNumber': location.get('columnNumber'),
+                        },
+                    }
+                    if message.text.startswith('Failed to load resource:'):
+"""
 
 if legacy_import not in source:
     raise SystemExit('release evidence launcher import changed; update the contract adapter hook')
 if external_marker not in source:
     raise SystemExit('release evidence external-resource hook changed; update TradingView isolation')
+if console_marker not in source:
+    raise SystemExit('release evidence console hook changed; update diagnostic adapter')
 
 patched_source = source.replace(legacy_import, evidence_import, 1)
 patched_source = patched_source.replace(external_marker, tradingview_hook + external_marker, 1)
+patched_source = patched_source.replace(console_marker, console_diagnostics, 1)
 
 with tempfile.NamedTemporaryFile(
     mode='w',
