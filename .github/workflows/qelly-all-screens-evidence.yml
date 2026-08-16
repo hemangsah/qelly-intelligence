@@ -8,6 +8,8 @@ on:
       - 'functions/**'
       - 'packages/**'
       - 'scripts/release-a5-*'
+      - 'scripts/finalize-public-runtime.mjs'
+      - 'scripts/finalize-governed-discovery.mjs'
       - 'src/server/**'
       - 'tests/**'
       - 'package.json'
@@ -30,6 +32,17 @@ jobs:
       QELLY_SCREEN_BATCH_SIZE: '10'
       PYTHONUTF8: '1'
       PYTHONIOENCODING: 'utf-8'
+      QELLY_REQUIRE_PUBLIC_RUNTIME: 'true'
+      QELLY_PROMPT2C_PUBLIC_BETA: 'true'
+      QELLY_PUBLIC_SITE_URL: https://qelly-intelligence.pages.dev
+      QELLY_PUBLIC_SUPABASE_URL: https://ssdgfgqnjlwzkgukzeef.supabase.co
+      QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_shape_only_012345678901234567890123456789
+      QELLY_DEPLOYMENT_ENVIRONMENT: cloudflare-pages-production-evidence
+      QELLY_ENABLE_AUTH: 'true'
+      QELLY_ENABLE_AUTH_EMAIL_DELIVERY: 'false'
+      QELLY_ENABLE_CLOUD_SYNC: 'true'
+      QELLY_ENABLE_LIVE_PROVIDERS: 'true'
+      QELLY_ENABLE_FEEDBACK_WRITES: 'true'
     steps:
       - name: Checkout exact evidence head
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -63,7 +76,7 @@ jobs:
           test -x "$chromium_path"
           sudo ln -sf "$chromium_path" /usr/bin/chromium
           /usr/bin/chromium --version
-      - name: Validate source before browser capture
+      - name: Validate exact production artifact before browser capture
         run: |
           npm run env:check
           npm run typecheck
@@ -72,6 +85,11 @@ jobs:
           npm run security:scan
           npm test
           npm run build:frontend
+          test -s dist/frontend/index.html
+          test -s dist/frontend/qelly-config.js
+          grep -F "renderGovernedUnavailable" dist/frontend/assets/app.js
+          grep -F "renderGovernedConverterV2" dist/frontend/assets/app.js
+          grep -F "renderGovernedTrustCenterV2" dist/frontend/assets/app.js
       - name: Capture every registered route at desktop and mobile widths
         run: npm run browser:all
       - name: Validate accessibility and responsive interaction contracts
