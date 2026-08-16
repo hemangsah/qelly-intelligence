@@ -1,79 +1,161 @@
-name: Canonical GitHub Pages Handoff
+name: Qelly GitHub Pages Public Mirror
 
 on:
+  pull_request:
+    branches: [release/qelly-global-public-beta]
+    paths:
+      - 'apps/web/public/**'
+      - 'functions/**'
+      - 'scripts/build-frontend.mjs'
+      - 'scripts/finalize-public-runtime.mjs'
+      - 'scripts/finalize-governed-discovery.mjs'
+      - 'scripts/finalize-github-pages-mirror.mjs'
+      - 'tests/**'
+      - '.github/workflows/pages-preview.yml'
+      - 'package.json'
+      - 'package-lock.json'
   push:
-    branches: [main]
+    branches: [release/qelly-global-public-beta]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: pages-canonical-handoff
+  group: qelly-github-pages-public-mirror-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
+
+env:
+  QELLY_GITHUB_PAGES_MIRROR: 'true'
+  QELLY_STATIC_VISUAL_PREVIEW: 'false'
+  QELLY_REQUIRE_PUBLIC_RUNTIME: 'true'
+  QELLY_PROMPT2C_PUBLIC_BETA: 'true'
+  QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
+  QELLY_PUBLIC_SITE_URL: https://hemangsah.github.io/qelly-intelligence
+  QELLY_CANONICAL_SITE_URL: https://qelly-intelligence.pages.dev
+  QELLY_PUBLIC_API_BASE_URL: https://qelly-intelligence.pages.dev
+  QELLY_DEPLOYMENT_ENVIRONMENT: production
+  QELLY_ENABLE_AUTH: 'false'
+  QELLY_ENABLE_AUTH_EMAIL_DELIVERY: 'false'
+  QELLY_ENABLE_CLOUD_SYNC: 'false'
+  QELLY_ENABLE_LIVE_PROVIDERS: 'true'
+  QELLY_ENABLE_FEEDBACK_WRITES: 'false'
 
 jobs:
   build:
-    name: Validate preview and build canonical handoff
+    name: Build and validate governed public mirror
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
-      - name: Check out source
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Check out exact source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
           persist-credentials: false
+      - name: Guard exact head
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
       - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '22'
           cache: npm
       - name: Install locked dependencies
         run: npm ci --ignore-scripts
-      - name: Scan repository for committed secrets
-        run: npm run security:scan
-      - name: Type and syntax check
-        run: npm run typecheck
-      - name: Lint and repository policy
-        run: npm run lint
-      - name: Validate governed design foundations
-        run: npm run validate:design
-      - name: Test
-        run: npm test
-      - name: Build static visual preview for CI parity validation
-        env:
-          QELLY_STATIC_VISUAL_PREVIEW: 'true'
-          QELLY_PUBLIC_BASE_PATH: /qelly-intelligence/
-          QELLY_DEPLOYMENT_ENVIRONMENT: github-pages
+      - name: Validate repository and security boundaries
+        run: |
+          npm run security:scan
+          npm run typecheck
+          npm run lint
+          npm run validate:design
+          npm test
+      - name: Build production-generation public mirror
         run: npm run build:frontend
-      - name: Remove Cloudflare-only controls from CI preview
-        run: node scripts/sanitize-pages-artifact.mjs
-      - name: Validate compiled preview artifact
-        run: npm run validate:pages-preview
-      - name: Smoke-test repository-path serving
-        run: npm run smoke:pages-preview
-      - name: Build canonical production handoff
-        run: node scripts/build-pages-canonical-handoff.mjs
+      - name: Finalize GitHub Pages mirror boundary
+        run: node scripts/finalize-github-pages-mirror.mjs
+      - name: Verify mirror artifact contract
+        run: |
+          test -s dist/frontend/index.html
+          test -s dist/frontend/qelly-config.js
+          test -s dist/frontend/assets/qelly-github-pages-mirror.mjs
+          test -s dist/frontend/assets/qelly-v7-identity-workbench.css
+          test ! -e dist/frontend/_routes.json
+          grep -F 'github-pages-public' dist/frontend/qelly-config.js
+          grep -F 'https://qelly-intelligence.pages.dev' dist/frontend/qelly-config.js
+          grep -F 'qelly-github-pages-mirror.mjs' dist/frontend/index.html
+          grep -F 'noindex,follow,noarchive' dist/frontend/index.html
+          grep -F 'renderGovernedUnavailable' dist/frontend/assets/app.js
+          grep -F 'renderGovernedConverterV2' dist/frontend/assets/app.js
+          grep -F 'renderGovernedTrustCenterV2' dist/frontend/assets/app.js
+          ! grep -F 'STATIC VISUAL PREVIEW' dist/frontend/index.html
+          ! grep -F 'Deterministic demo data · backend unavailable' dist/frontend/index.html
       - name: Configure GitHub Pages
+        if: github.event_name == 'push'
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
-      - name: Upload canonical handoff
+      - name: Upload governed terminal mirror
+        if: github.event_name == 'push'
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
-          path: dist/pages-canonical
+          path: dist/frontend
 
   deploy:
-    name: Deploy canonical Qelly terminal handoff
+    name: Deploy and verify GitHub public terminal mirror
+    if: github.event_name == 'push'
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     permissions:
+      contents: read
       pages: write
       id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Check out exact source for verification
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
       - name: Deploy GitHub Pages
         id: deployment
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+      - name: Wait for canonical Cloudflare runtime SHA
+        env:
+          PUBLIC_URL: https://qelly-intelligence.pages.dev
+          RELEASE_SHA: ${{ github.sha }}
+        run: node scripts/wait-for-cloudflare-runtime-convergence.mjs
+      - name: Verify canonical API permits read-only mirror CORS
+        shell: bash
+        run: |
+          set -euo pipefail
+          headers="$(mktemp)"
+          body="$(mktemp)"
+          curl --silent --show-error --fail --max-time 30 \
+            -H 'Origin: https://hemangsah.github.io' \
+            -H 'Accept: application/json' \
+            -D "$headers" -o "$body" \
+            'https://qelly-intelligence.pages.dev/api/v1/market/overview'
+          grep -i '^access-control-allow-origin: https://hemangsah.github.io' "$headers"
+          grep -i '^cross-origin-resource-policy: cross-origin' "$headers"
+          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync(process.argv[1]));if(!p.providers||p.execution!==false)process.exit(1)" "$body"
+      - name: Verify deployed GitHub terminal mirror
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://hemangsah.github.io/qelly-intelligence/'
+          curl --silent --show-error --fail --max-time 30 -o /tmp/qelly-mirror.html "$base"
+          curl --silent --show-error --fail --max-time 30 -o /tmp/qelly-mirror-config.js "${base}qelly-config.js"
+          curl --silent --show-error --fail --max-time 30 -o /tmp/qelly-mirror-market.js "${base}assets/routes/market-v6.mjs"
+          grep -F 'id="app"' /tmp/qelly-mirror.html
+          grep -F 'qelly-github-pages-mirror.mjs' /tmp/qelly-mirror.html
+          grep -F 'github-pages-public' /tmp/qelly-mirror-config.js
+          grep -F 'https://qelly-intelligence.pages.dev' /tmp/qelly-mirror-config.js
+          ! grep -F 'SIMULATED REFERENCE DATA' /tmp/qelly-mirror.html
