@@ -40,7 +40,7 @@ export async function renderCalculatorCenter(main,{pageHead,escapeHtml,navigate}
     <section class="q-v6-quant-kpis" aria-label="Calculator library evidence"><div><span>Methods</span><strong>${definitions.length}</strong><small>registered deterministic calculators</small></div><div><span>Domains</span><strong>${domains.length}</strong><small>quantitative categories</small></div><div><span>Versioned</span><strong>${versioned}/${definitions.length}</strong><small>method identity exposed</small></div><div><span>Typical inputs</span><strong>${averageFields}</strong><small>average structured fields</small></div><div><span>Execution</span><strong>OFF</strong><small>analysis only</small></div></section>
 
     <section class="q-calculator-featured" aria-labelledby="calculator-featured-title">
-      <div class="q-calculator-section-head"><div><p class="q-eyebrow">Priority workflows</p><h2 id="calculator-featured-title">Start with a governed calculation</h2><p>Common risk, return, portfolio and derivative methods with structured inputs and version-aware evidence.</p></div><span class="q-truth-pill is-cached">${featuredLabel}</span></div>
+      <div class="q-calculator-section-head"><div><p class="q-eyebrow">Priority workflows</p><h2 id="calculator-featured-title">Start with a proven calculation</h2><p>Common risk, return, portfolio and derivative methods with structured inputs and version-aware evidence.</p></div><span class="q-truth-pill is-cached">${featuredLabel}</span></div>
       <div class="q-calculator-card-grid is-featured">${featured.map((definition)=>card(definition,{featured:true})).join('')}</div>
     </section>
 
