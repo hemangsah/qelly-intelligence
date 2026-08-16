@@ -1,7 +1,7 @@
 name: Qelly Complete All-Screens Evidence
 on:
   pull_request:
-    branches: [main]
+    branches: [main, release/qelly-global-public-beta]
     types: [opened, synchronize, reopened]
     paths:
       - 'apps/web/public/**'
