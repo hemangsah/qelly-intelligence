@@ -14,15 +14,24 @@ if ! [[ "$BATCH_SIZE" =~ ^[0-9]+$ ]] || [ "$BATCH_SIZE" -lt 1 ]; then
   echo "Invalid screen batch size: $BATCH_SIZE" >&2
   exit 1
 fi
+failure=0
 for ((start=0; start<ROUTE_COUNT; start+=BATCH_SIZE)); do
   end=$((start+BATCH_SIZE))
   if [ "$end" -gt "$ROUTE_COUNT" ]; then end="$ROUTE_COUNT"; fi
   batch_manifest="$OUT/$(printf 'batch-%03d-%03d.json' "$start" "$end")"
   if ! python3 "$ROOT/scripts/release-a5-screen-batch.py" "$start" "$end"; then
+    failure=1
     echo "Browser evidence batch ${start}:${end} failed. Diagnostic manifest follows:" >&2
     if [ -f "$batch_manifest" ]; then cat "$batch_manifest" >&2; fi
-    exit 1
   fi
 done
-python3 "$ROOT/scripts/release-a5-screen-aggregate.py"
-python3 "$ROOT/scripts/release-a5-screen-package.py"
+if ! python3 "$ROOT/scripts/release-a5-screen-aggregate.py"; then
+  failure=1
+fi
+if ! python3 "$ROOT/scripts/release-a5-screen-package.py"; then
+  failure=1
+fi
+if [ "$failure" -ne 0 ]; then
+  echo "One or more browser evidence routes failed; complete diagnostics were retained." >&2
+  exit 1
+fi
