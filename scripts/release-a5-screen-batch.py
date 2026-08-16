@@ -33,6 +33,13 @@ console_diagnostics = """                    location = message.location or {}
                     }
                     if message.text.startswith('Failed to load resource:'):
 """
+context_marker = """                    reduced_motion='reduce',
+                ),
+"""
+context_isolation = """                    reduced_motion='reduce',
+                    service_workers='block',
+                ),
+"""
 
 if legacy_import not in source:
     raise SystemExit('release evidence launcher import changed; update the contract adapter hook')
@@ -40,10 +47,17 @@ if external_marker not in source:
     raise SystemExit('release evidence external-resource hook changed; update TradingView isolation')
 if console_marker not in source:
     raise SystemExit('release evidence console hook changed; update diagnostic adapter')
+if source.count(context_marker) != 2:
+    raise SystemExit('release evidence browser-context contract changed; update service-worker isolation')
 
 patched_source = source.replace(legacy_import, evidence_import, 1)
 patched_source = patched_source.replace(external_marker, tradingview_hook + external_marker, 1)
 patched_source = patched_source.replace(console_marker, console_diagnostics, 1)
+# Playwright page routing does not intercept Service Worker network requests.
+# Blocking workers in this isolated screenshot runtime prevents prompt2c-sw.js
+# from attempting to resolve the synthetic qelly.test host. Offline-shell
+# behavior is validated separately by the public-runtime/browser workflows.
+patched_source = patched_source.replace(context_marker, context_isolation, 2)
 
 with tempfile.NamedTemporaryFile(
     mode='w',
