@@ -22,30 +22,22 @@ test('premium reset uses neutral institutional foundations and rare gradients',a
   assert.doesNotMatch(foundation,/radial-gradient/);
 });
 
-test('Asset Rankings uses realistic deterministic OHLC and table-first composition',async()=>{
-  const [data,route,chart]=await Promise.all([
-    read('apps/web/public/assets/routes/asset-rankings-data.mjs'),
-    read('apps/web/public/assets/routes/asset-rankings-premium.mjs'),
-    read('apps/web/public/assets/routes/asset-rankings-chart.mjs')
-  ]);
-  for(const field of ['open','high','low','close','volume','oi','funding'])assert.match(data,new RegExp(field));
-  assert.match(data,/regime/);
-  assert.match(data,/shock/);
-  assert.match(chart,/candlestick/);
-  assert.match(chart,/q-mi-crosshair/);
-  assert.match(chart,/q-mi-chart-tooltip/);
-  assert.ok(route.indexOf('${tableMarkup')<route.indexOf('${chartMarkup'),'Ranking table must be composed before the chart');
+test('Asset Rankings production composition is provider-truth first and does not mount deterministic OHLC',async()=>{
+  const route=await read('apps/web/public/assets/routes/asset-rankings-premium.mjs');
+  assert.match(route,/Asset ranking availability/);
+  assert.match(route,/Provider rights matrix|Ranking feed unavailable/);
+  assert.match(route,/ECB euro reference-rate universe/);
+  assert.match(route,/Professional research surfaces/);
+  assert.doesNotMatch(route,/asset-rankings-chart|candlestick|deterministicOhlc|demonstrationRows|tableMarkup|chartMarkup/);
 });
 
-test('premium rankings expose Discovery Terminal Research and governed market columns',async()=>{
-  const [route,data,table]=await Promise.all([
-    read('apps/web/public/assets/routes/asset-rankings-premium.mjs'),
-    read('apps/web/public/assets/routes/asset-rankings-data.mjs'),
-    read('apps/web/public/assets/routes/asset-rankings-table.mjs')
-  ]);
-  for(const mode of ['discovery','terminal','research'])assert.match(route,new RegExp(`'${mode}'`));
-  for(const label of ['Rank','Watchlist','Asset','Price','1h','24h','7d','30d','Sparkline','Volume','Market Cap','FDV','Supply','Liquidity','Funding','OI','OI Change','Liquidation','Volatility','Confidence','Source','Freshness','Explain'])assert.match(data,new RegExp(`'${label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}'`));
-  for(const interaction of ['data-mi-search','data-mi-filter-toggle','data-mi-columns-toggle','data-mi-density-select','data-mi-watch','data-mi-explain','data-sort','data-mi-view'])assert.match(table,new RegExp(interaction));
+test('premium rankings expose governed availability, reference coverage and professional research links',async()=>{
+  const route=await read('apps/web/public/assets/routes/asset-rankings-premium.mjs');
+  for(const label of ['Authorized ranking feeds','Approved reference feeds','Fabricated prices','Executable rankings','Ranking state'])assert.match(route,new RegExp(label));
+  for(const label of ['Reference pair','Rate','Observation','Source','Truth'])assert.match(route,new RegExp(label));
+  for(const surface of ['TradingView','CME','Forex Factory','ECB'])assert.match(route,new RegExp(surface));
+  assert.match(route,/data-ranking-boundary/);
+  assert.match(route,/Production no-fabrication contract/);
 });
 
 test('SVG icon registry replaces temporary glyph navigation',async()=>{
@@ -62,16 +54,16 @@ test('SVG icon registry replaces temporary glyph navigation',async()=>{
   assert.doesNotMatch(index,/>☰<|>⌕<|>◐<|>♢</);
 });
 
-test('static preview truth is compact and mobile is purpose-built',async()=>{
+test('production rankings truth is compact and mobile foundations remain purpose-built',async()=>{
   const [route,mobile]=await Promise.all([
     read('apps/web/public/assets/routes/asset-rankings-premium.mjs'),
     read('apps/web/public/assets/premium-mobile.css')
   ]);
-  assert.match(route,/Static visual preview/);
-  assert.match(route,/fixed scenario observations/);
-  assert.match(route,/backend unavailable/);
-  assert.match(route,/no live provider blending/);
-  assert.match(route,/no trading or persistence/);
+  assert.match(route,/Governed production truth/);
+  assert.match(route,/No fixed crypto scenario is shown in production/);
+  assert.match(route,/fabricated fallback off/);
+  assert.match(route,/Research only · no trading/);
+  assert.match(route,/No crypto ranking values are displayed/);
   assert.match(mobile,/q-mi-mobile-rankings/);
   assert.match(mobile,/q-mi-mobile-row/);
   assert.match(mobile,/safe-area-inset-bottom/);
