@@ -3,11 +3,21 @@ import {mountTradingViewDisplay} from './market/tradingview-display-widget.mjs';
 let activeHandle=null;
 let lastSignature='';
 
+function ensureStyles(){
+  if(document.querySelector('link[data-qelly-v6-production-convergence]'))return;
+  const link=document.createElement('link');
+  link.rel='stylesheet';
+  link.href='/assets/qelly-v6-production-convergence.css';
+  link.dataset.qellyV6ProductionConvergence='true';
+  document.head.append(link);
+}
+
 const externalLink=(href,label)=>`<a class="q-button q-button--secondary" href="${href}" target="_blank" rel="noopener noreferrer nofollow">${label}</a>`;
 
 function ensurePanel(main){
   const chart=main.querySelector('#qelly-live-chart');
   if(!chart)return null;
+  ensureStyles();
   let panel=main.querySelector('[data-qelly-external-market-surface]');
   if(panel)return panel;
   panel=document.createElement('section');
