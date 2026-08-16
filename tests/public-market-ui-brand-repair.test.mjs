@@ -20,8 +20,9 @@ test('dedicated public market route owns anonymous market namespace before catch
     read('functions/api/v1/public/markets/[[route]].js')
   ]);
   assert.match(dedicated,/export async function onRequest/);
-  assert.match(dedicated,/segments\[0\]==='overview'/);
-  assert.match(dedicated,/segments\[0\]==='assets'/);
+  assert.match(dedicated,/const route=segments\(params\.route\)/);
+  assert.match(dedicated,/route\[0\]==='overview'/);
+  assert.match(dedicated,/route\[0\]==='assets'/);
   assert.doesNotMatch(catchAll,/path==='public\/markets\/overview'|path==='public\/markets\/assets'/);
   assert.doesNotMatch(catchAll,/segments\[0\]==='public'&&segments\[1\]==='markets'/);
   assert.match(catchAll,/resolveSession\(request,env,\{required:true\}\)/);
