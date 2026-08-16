@@ -16,7 +16,7 @@
     "inventory": "node scripts/build-inventory.mjs",
     "security:scan": "node scripts/secret-scan.mjs",
     "browser:render": "bash scripts/release-a5-all-screens.sh",
-    "a11y": "python3 scripts/release-a5-accessibility-check.py",
+    "a11y": "python3 scripts/release-a5-accessibility-evidence.py",
     "worker": "node apps/worker/worker.mjs",
     "worker:once": "node apps/worker/worker.mjs --once",
     "migrate": "node scripts/migrate-production.mjs",
