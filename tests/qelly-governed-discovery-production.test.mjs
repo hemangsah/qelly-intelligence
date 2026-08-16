@@ -31,8 +31,9 @@ test('production finalizer replaces every finance-shaped fixture route owner',as
   for(const route of unavailableRoutes){
     assert.ok(output.includes(`renderGovernedUnavailable(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state},'${route}')`),`governed replacement missing for ${route}`);
   }
-  assert.match(output,/renderGovernedConverter/);
-  assert.match(output,/renderGovernedTrustCenter/);
+  assert.match(output,/renderGovernedConverterV2/);
+  assert.match(output,/renderGovernedTrustCenterV2/);
+  assert.match(output,/\.\/routes\/governed-utility-v2\.mjs/);
 });
 
 test('governed discovery module never generates market facts for unavailable capabilities',async()=>{
@@ -46,14 +47,24 @@ test('governed discovery module never generates market facts for unavailable cap
   assert.doesNotMatch(source,/Math\.sin|Math\.cos|demonstrationRows|fixture universe|qelly-fixture|simulated-demo/);
 });
 
-test('converter derives only from governed ECB reference observations',async()=>{
-  const source=await read('apps/web/public/assets/routes/governed-discovery.mjs');
+test('V2 converter derives only from governed ECB observations and fails closed without them',async()=>{
+  const source=await read('apps/web/public/assets/routes/governed-utility-v2.mjs');
   assert.match(source,/\/api\/v1\/providers\/ecb\?capability=fx-reference-rates&symbol=EUR/);
   assert.match(source,/amount ÷ source-per-EUR × target-per-EUR/);
   assert.match(source,/\(input\/sourceRate\)\*targetRate/);
   assert.match(source,/Fabricated rate<\/span><strong>OFF/);
   assert.match(source,/Tradable<\/dt><dd>No/);
+  assert.match(source,/No rate was generated/);
+  assert.match(source,/unavailable-no-fabrication/);
   assert.doesNotMatch(source,/83\.12|151\.4|\.91|\.78/);
+});
+
+test('V2 Trust Center consumes the actual capability inventory shape',async()=>{
+  const source=await read('apps/web/public/assets/routes/governed-utility-v2.mjs');
+  assert.match(source,/Array\.isArray\(capabilities\.items\)\?capabilities\.items:\[\]/);
+  assert.match(source,/capabilities\.unavailableCount\?\?unavailable\.length/);
+  assert.match(source,/capabilities\.canonicalRuntime\|\|'cloudflare-pages-functions'/);
+  assert.doesNotMatch(source,/capabilities\.unavailable\)/);
 });
 
 test('frontend build runs governed discovery finalization after canonical runtime finalization',async()=>{
