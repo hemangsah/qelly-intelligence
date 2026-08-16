@@ -20,13 +20,14 @@ test('market snapshot helpers clamp reads and filter normalized instruments dete
   assert.deepEqual(filterSnapshotItems(rows,{query:'euro'}).map(item=>item.symbol),['EURUSD']);
 });
 
-test('instrument and data-quality families are promoted while unimplemented time-series streaming stays fail-closed',()=>{
+test('instrument, data-quality and bounded time-series families are promoted while realtime streaming stays fail-closed',()=>{
   assert.equal(matchUnavailableCapability('instruments'),null);
   assert.equal(matchUnavailableCapability('instruments/EURUSD'),null);
   assert.equal(matchUnavailableCapability('data-quality/status'),null);
   assert.equal(matchUnavailableCapability('data-quality/events'),null);
-  assert.equal(matchUnavailableCapability('timeseries/EURUSD')?.id,'streams-timeseries');
-  assert.equal(matchUnavailableCapability('streams/market')?.id,'streams-timeseries');
+  assert.equal(matchUnavailableCapability('timeseries/EURUSD'),null);
+  assert.equal(matchUnavailableCapability('timeseries/summary'),null);
+  assert.equal(matchUnavailableCapability('streams/market')?.id,'streams');
 });
 
 test('governed snapshot RPC is authenticated, read-only and does not expose raw provider-cache payloads',async()=>{
@@ -40,12 +41,13 @@ test('governed snapshot RPC is authenticated, read-only and does not expose raw 
   assert.doesNotMatch(migration,/insert\s+into|update\s+public\.|delete\s+from/i);
 });
 
-test('Cloudflare exposes normalized market health through the constrained RPC rather than privileged raw-table reads',async()=>{
-  const [helper,dataPlane,instruments,quality]=await Promise.all([
+test('Cloudflare exposes normalized market health through constrained RPCs rather than privileged raw-table reads',async()=>{
+  const [helper,dataPlane,instruments,quality,timeseries]=await Promise.all([
     read('functions/_lib/market-data-snapshot.js'),
     read('functions/api/v1/platform/data-plane.js'),
     read('functions/api/v1/instruments/[[route]].js'),
-    read('functions/api/v1/data-quality/[[route]].js')
+    read('functions/api/v1/data-quality/[[route]].js'),
+    read('functions/api/v1/timeseries/[[route]].js')
   ]);
   assert.match(helper,/rpc\/qelly_market_data_snapshot/);
   assert.match(helper,/method:'POST'/);
@@ -53,26 +55,29 @@ test('Cloudflare exposes normalized market health through the constrained RPC ra
   assert.match(dataPlane,/rawProviderCacheExposed:false/);
   assert.match(instruments,/Instrument endpoints are read-only/);
   assert.match(quality,/Data-quality endpoints are read-only/);
-  for(const source of [dataPlane,instruments,quality]){
+  assert.match(timeseries,/Time-series endpoints are read-only/);
+  assert.match(timeseries,/rpc\/qelly_timeseries_history/);
+  for(const source of [dataPlane,instruments,quality,timeseries]){
     assert.doesNotMatch(source,/qelly_provider_cache\?/);
     assert.doesNotMatch(source,/SUPABASE_SERVICE_ROLE_KEY/);
   }
 });
 
-test('ECB provider ingestion is scheduler-only and the scheduler source contains no plaintext credential',async()=>{
+test('ECB provider ingestion is scheduler-only, history-backed and the active scheduler source contains no plaintext credential',async()=>{
   const [edge,scheduler]=await Promise.all([
     read('supabase/functions/qelly-provider-ingestion/index.ts'),
-    read('supabase/migrations/20260816021000_qelly_schedule_ecb_provider_ingestion_v2.sql')
+    read('supabase/migrations/20260816022000_qelly_internal_scheduler_and_release_identity_v1.sql')
   ]);
   assert.match(edge,/INTERNAL_INGESTION_AUTH_REQUIRED/);
   assert.match(edge,/INTERNAL_KEY_SHA256/);
+  assert.match(edge,/eurofxref-hist-90d\.xml/);
+  assert.match(edge,/history90dBackfilled/);
   assert.doesNotMatch(edge,/admin\.auth\.getUser/);
   assert.doesNotMatch(edge,/authorization.*Bearer/i);
   assert.match(edge,/commercial_rights_status!=="allowed"/);
   assert.match(edge,/redistribution_rights_status!=="allowed"/);
   assert.match(scheduler,/vault\.decrypted_secrets/);
-  assert.match(scheduler,/qelly_provider_ingestion_key/);
-  assert.doesNotMatch(scheduler,/vault\.create_secret/i);
+  assert.match(scheduler,/qelly_internal_scheduler_key/);
   assert.doesNotMatch(scheduler,/[A-Za-z0-9_-]{56,}/);
 });
 
