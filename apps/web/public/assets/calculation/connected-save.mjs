@@ -10,9 +10,8 @@ const summarizeTransfer=(transfer)=>{
   return {state:'LOCAL',message:'Saved in this browser; no cloud transfer was required.'};
 };
 
-export async function saveConnectedCalculation({api,name,result,notes='',tags=[],favorite=false}={}){
-  const item=saveCalculation({name,result,notes,tags,favorite});
-  if(typeof api!=='function')return {item,cloud:null,state:'LOCAL',message:'Saved in this browser.'};
+export async function syncSavedCalculationIfOptedIn({api,item}={}){
+  if(typeof api!=='function'||!item)return {item,cloud:null,state:'LOCAL',message:'Saved in this browser.'};
   let status;
   try{status=await cloudStatus(api);}catch(error){return {item,cloud:null,state:'LOCAL',message:`Saved locally. Cloud status is unavailable: ${error.message}`};}
   if(!status.authenticated)return {item,cloud:status,state:'LOCAL',message:'Saved locally. Sign in before using cloud synchronization.'};
@@ -23,6 +22,11 @@ export async function saveConnectedCalculation({api,name,result,notes='',tags=[]
   }catch(error){
     return {item,cloud:status,state:'LOCAL',message:`Saved locally. Cloud synchronization could not start: ${error.message}`};
   }
+}
+
+export async function saveConnectedCalculation({api,name,result,notes='',tags=[],favorite=false}={}){
+  const item=saveCalculation({name,result,notes,tags,favorite});
+  return syncSavedCalculationIfOptedIn({api,item});
 }
 
 export const __connectedSaveTest=Object.freeze({summarizeTransfer});
