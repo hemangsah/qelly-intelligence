@@ -257,3 +257,43 @@ html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surf
     padding:4px 8px!important;
   }
 }
+
+/* Deep mobile usability repair: one readable shell with reachable controls. */
+@media(max-width:760px){
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-header{
+    height:80px;
+    min-height:80px;
+    grid-template-rows:28px 52px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-v53-product-status{
+    min-height:28px;
+    font-size:9px;
+    line-height:1.2;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-v53-product-status strong{font-size:9px}
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-search{
+    height:44px;
+    min-height:44px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-search input{
+    min-height:44px!important;
+    padding:8px 10px!important;
+    font-size:13px!important;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] :where(.q-product-system,.q-product-account){
+    height:44px;
+    min-height:44px;
+    padding:8px 11px;
+    font-size:12px;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #context-shelf,
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #context-shelf .q-category-shelf{
+    height:52px!important;
+    min-height:52px!important;
+  }
+  html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #context-shelf .q-category-shelf button{
+    min-height:44px!important;
+    padding:8px 12px!important;
+    font-size:12px!important;
+  }
+}

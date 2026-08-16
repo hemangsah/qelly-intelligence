@@ -8,6 +8,7 @@ html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-universe-c
 html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-universe-cluster h2{font-size:19px;line-height:1.15;margin:3px 0 5px}
 html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-universe-route-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-universe-route-grid button{min-height:64px;padding:9px;border-radius:10px;text-align:left}
+html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-universe-cluster .q-icon-button{font-size:18px!important}
 html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-capability-ribbon .q-panel-body{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;padding:0}
 html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-capability-ribbon .q-panel-body>div{padding:11px 12px}
 html[data-ui-lock-v53="active"][data-v53-route="about-qelly"] .q-about-page{gap:12px}
@@ -20,3 +21,11 @@ html[data-ui-lock-v53="active"][data-v53-route="about-qelly"] .q-principle-grid 
 html[data-ui-lock-v53="active"][data-v53-route="about-qelly"] .q-pillar-track{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
 html[data-ui-lock-v53="active"][data-v53-route="about-qelly"] .q-pillar-track article{padding:14px;border-radius:12px}
 html[data-ui-lock-v53="active"][data-v53-route="about-qelly"] .q-founder-note{display:grid;grid-template-columns:minmax(220px,.55fr) minmax(0,1fr);gap:18px;padding:18px 20px;border-radius:16px}
+@media(max-width:768px){
+ html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-universe-clusters{grid-template-columns:minmax(0,1fr)}
+ html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-universe-cluster:last-child{grid-column:auto}
+ html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-universe-route-grid{display:flex;grid-template-columns:none;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x proximity}
+ html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-universe-route-grid button{flex:0 0 min(76vw,260px);min-height:82px;scroll-snap-align:start}
+ html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-capability-ribbon .q-panel-body{display:flex;grid-template-columns:none;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x proximity}
+ html[data-ui-lock-v53="active"][data-v53-route="feature-universe"] .q-capability-ribbon .q-panel-body>div{flex:0 0 min(76vw,260px);min-height:72px;scroll-snap-align:start}
+}

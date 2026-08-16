@@ -113,6 +113,56 @@ html[data-v53-family-harmonization="active"] [data-v53-cloud-presentation="exist
   border-inline-start-color:var(--q-v53-cloud);
 }
 
+/* Readability floor for dense evidence metadata on every governed family. */
+html[data-v53-family-harmonization="active"] #main .q-page-head>div>p:not(.q-eyebrow){font-size:12px!important;line-height:1.45!important}
+html[data-v53-family-harmonization="active"] #main .q-panel-head p{font-size:11px!important;line-height:1.4!important}
+html[data-v53-family-harmonization="active"] #main :where(.q-eyebrow,.q-status,.q-chip,.q-badge,.q-kpi-label){font-size:10.5px!important;line-height:1.25!important}
+
+/* Mobile is a readable, touch-first composition rather than a compressed desktop. */
+@media (max-width:768px){
+  html[data-v53-family-harmonization="active"]{
+    --q-v53-text-body:13px;
+    --q-v53-text-small:12px;
+    --q-v53-text-meta:11px;
+  }
+  html[data-v53-family-harmonization="active"] #main{overflow-x:hidden;overflow-x:clip}
+  html[data-v53-family-harmonization="active"] #main :where(.q-page,.q-panel,.q-card,.q-kpi,.q-state-banner,.q-empty-state,.q-error-state){min-width:0;max-width:100%}
+  html[data-v53-family-harmonization="active"] #main :where(p,li,dt,dd,td,th,label,small){font-size:max(12px,1em)!important;line-height:1.45!important}
+  html[data-v53-family-harmonization="active"] #main .q-page-head>div>p:not(.q-eyebrow){font-size:13px!important;line-height:1.5!important}
+  html[data-v53-family-harmonization="active"] #main .q-panel-head p{font-size:12px!important;line-height:1.45!important}
+  html[data-v53-family-harmonization="active"] #main :where(.q-eyebrow,.q-status,.q-chip,.q-badge,.q-kpi-label,.q-truth-pill,.q-worldclass-truth-chip){font-size:11px!important;line-height:1.25!important}
+  html[data-v53-family-harmonization="active"] #main :where(.q-button,button:not([hidden]),summary,[role="button"],[role="tab"]){min-height:44px!important}
+  html[data-v53-family-harmonization="active"] #main :where(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),select,textarea){min-height:44px!important;font-size:13px!important}
+  html[data-v53-family-harmonization="active"] #main input[type="range"]{min-height:44px!important}
+  html[data-v53-family-harmonization="active"] #main :where(input[type="checkbox"],input[type="radio"]){min-width:24px!important;min-height:24px!important}
+  html[data-v53-family-harmonization="active"] #main :where(.q-icon-button,button[aria-label]:not([hidden])){min-width:44px!important}
+  html[data-v53-family-harmonization="active"] #main :where(.q-market-hero__actions a,.q-market-section__head a,.q-access-gate__actions a,[class*="action"]>.q-button){min-height:44px!important;display:inline-flex;align-items:center}
+  html[data-v53-family-harmonization="active"] #main .q-state-banner{grid-template-columns:minmax(0,1fr)!important;align-items:start!important;gap:7px!important;padding:11px 12px!important}
+  html[data-v53-family-harmonization="active"] #main .q-state-banner :where(.q-status,.q-chip,.q-badge){width:max-content;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+  html[data-v53-family-harmonization="active"] #main :where(.q-state-banner p,.q-panel-head p,.q-page-head p,.q-card p,.q-saved-card p){overflow-wrap:anywhere}
+  html[data-v53-family-harmonization="active"] #main :where(a,button,input,select,textarea,summary,[role="button"],[role="tab"]):focus-visible{outline:3px solid color-mix(in srgb,var(--q-v53-family-accent) 78%,white 16%);outline-offset:3px}
+  html[data-v53-family-harmonization="active"][data-ui-lock-v53="active"][data-product-surface="production"] #main :where(.q-button,button:not([hidden]),select,input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),textarea){font-size:12px!important;line-height:1.25!important}
+  html[data-v53-family-harmonization="active"][data-ui-lock-v53="active"][data-product-surface="production"] #main :where(.q-status,.q-chip,.q-badge,.q-eyebrow,.q-kpi-label){font-size:12px!important}
+  html[data-v53-family-harmonization="active"] #main .q-page-head::before,
+  html[data-v53-family-harmonization="active"] #main .q-page-head::after{display:none!important}
+
+  /* Route-family detail floors: evidence text must remain legible, not merely present. */
+  html[data-v53-family-harmonization="active"] #main :where(.q-kpi-meta,.q-kpi-meta span,.q-source-line,.q-source-line span,.q-source-line strong,.q-heat-cell strong,.q-source-cell strong,.q-grid-footer,.q-grid-footer span){font-size:12px!important;line-height:1.4!important}
+  html[data-v53-family-harmonization="active"] #main .q-panel-head h2{font-size:18px!important;line-height:1.25!important}
+  html[data-v53-family-harmonization="active"] #main .q-record-row strong{font-size:12px!important;line-height:1.35!important}
+  html[data-v53-family-harmonization="active"] #main .q-mi-intelligence-module>header span{font-size:12px!important;line-height:1.3!important}
+  html[data-v53-family-harmonization="active"][data-v53-route="theme-lab"] #main :where(.q-ti-lock span,.q-ti-mobile-preview-head span,.q-ti-mobile-preview-head strong,.q-ti-control-group summary span,.q-ti-mobile-choice strong,.q-ti-validation,.q-ti-preview-truth-banner,.q-ti-preview-top span,.q-ti-metric em,.q-ti-chart-tip strong,.q-ti-chart-tip span,.q-ti-audit-item span){font-size:12px!important;line-height:1.4!important}
+  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-verify-kpis :where(span,strong),
+  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-verify-result>span,
+  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-verify-activity :where(header,time,strong,span),
+  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-strategy-tools>summary{font-size:12px!important;line-height:1.4!important}
+  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-panel-head h2{font-size:18px!important;line-height:1.25!important}
+  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-verify-columns h3{font-size:14px!important;line-height:1.3!important}
+  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-verify-workbench code{font-size:12px!important;overflow-wrap:anywhere}
+  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-verify-mobile-nav a{min-height:48px!important;font-size:12px!important}
+  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-verify-mobile-nav :where(span,strong){font-size:12px!important;line-height:1.25!important}
+}
+
 /* Required responsive proof modes. Mobile is task-first with evidence as a sheet, not desktop squeezed down. */
 @media (max-width:360px){
   html[data-v53-family-harmonization="active"] #main{--q-v53-mobile-pad:10px}
