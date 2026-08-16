@@ -1,6 +1,6 @@
 const truth=(value)=>String(value||'UNAVAILABLE').toUpperCase();
 const tone=(value)=>{const state=truth(value);if(['LIVE','AVAILABLE','ACTIVE','COMPLETE','CLOUD'].includes(state))return 'live';if(['DELAYED','PARTIAL','DEGRADED','WARNING'].includes(state))return 'delayed';if(['CACHED','LOCAL','DETERMINISTIC'].includes(state))return 'cached';return 'unavailable';};
-const number=(value)=>Number.isFinite(Number(value))?Number(value):null;
+const number=(value)=>value===null||value===undefined||String(value).trim()===''?null:Number.isFinite(Number(value))?Number(value):null;
 const money=(value,currency='USD')=>{const numeric=number(value);if(numeric==null)return '—';try{return new Intl.NumberFormat('en-IN',{style:'currency',currency,maximumFractionDigits:2}).format(numeric);}catch{return `${currency} ${numeric.toLocaleString('en-IN',{maximumFractionDigits:2})}`;}};
 const amount=(value)=>{const numeric=number(value);return numeric==null?'—':new Intl.NumberFormat('en-IN',{maximumFractionDigits:6}).format(numeric);};
 const date=(value)=>{const parsed=new Date(value||'');return Number.isNaN(parsed.getTime())?'Not supplied':parsed.toLocaleString('en-IN');};
