@@ -13,11 +13,10 @@ export async function route(context){
   await enforceRateLimit(env,`live-market:${session.user.id}:${routeName}`,{limit:120});
 
   const options={
-    provider:url.searchParams.get('provider')||'fixture',
+    provider:url.searchParams.get('provider')||'binance',
     symbol:url.searchParams.get('symbol')||'BTCUSDT',
     interval:url.searchParams.get('interval')||'1m',
-    limit:url.searchParams.get('limit')||240,
-    mode:url.searchParams.get('mode')||'auto'
+    limit:url.searchParams.get('limit')||240
   };
 
   if(routeName==='catalog')return responseJson(request,env,liveMarketCatalog(),200,{cookies:session.cookies,cache:'private, no-store'});
