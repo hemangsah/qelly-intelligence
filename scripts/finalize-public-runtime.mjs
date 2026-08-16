@@ -17,6 +17,7 @@ const prohibitedPrimaryCopy=[
   'STATE: DEFAULT',
   'Secure identity foundation'
 ];
+
 const legacyMarketRoute="case 'market': await renderMarket(main); break;";
 const publicMarketRoute="case 'market': if(runtimeConfig.dataMode!=='public-runtime')await renderMarket(main); break;";
 const legacyDataMeshRoute="case 'data-mesh': await renderDataMesh(main); break;";
@@ -29,8 +30,20 @@ const legacyCalculatorDetailRoute="case 'calculator-detail': await renderCalcula
 const publicCalculatorDetailRoute="case 'calculator-detail': await import('./routes/calculator-detail-v6.mjs').then(({renderCalculatorDetailV6})=>renderCalculatorDetailV6(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,id,query})); break;";
 const legacyIndicatorDetailRoute="case 'indicator-detail': await renderIndicatorDetail(main,{pageHead,stateBanner,escapeHtml,toast,navigate,id}); break;";
 const publicIndicatorDetailRoute="case 'indicator-detail': await import('./routes/indicator-detail-v6.mjs').then(({renderIndicatorDetailV6})=>renderIndicatorDetailV6(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,id})); break;";
+const legacyPortfolioRoute="case 'portfolio-analytics': await renderPortfolioAnalytics(main,{api,pageHead,stateBanner,escapeHtml,QellyDataGrid,QellyChartShell,formatCompact,navigate}); break;";
+const publicPortfolioRoute="case 'portfolio-analytics': await import('./routes/portfolio-v6-entry.mjs').then(({renderPortfolioV6Entry})=>renderPortfolioV6Entry(main,{api,pageHead,stateBanner,escapeHtml,QellyDataGrid,QellyChartShell,formatCompact,navigate})); break;";
 const legacyWorldclassEnhance="const enhance=async()=>{\n  if(!main||main.getAttribute('aria-busy')==='true'||!main.firstElementChild)return;";
 const publicWorldclassEnhance="const enhance=async()=>{\n  if(window.__QELLY_CONFIG__?.dataMode==='public-runtime'){main?.querySelector(':scope > .q-worldclass-context')?.remove();if(main)main.dataset.worldclassRoute=parseHash().route;return;}\n  if(!main||main.getAttribute('aria-busy')==='true'||!main.firstElementChild)return;";
+
+const appRouteMigrations=Object.freeze([
+  [legacyMarketRoute,publicMarketRoute],
+  [legacyDataMeshRoute,publicDataMeshRoute],
+  [legacyInstrumentRoute,publicInstrumentRoute],
+  [legacyTimeSeriesRoute,publicTimeSeriesRoute],
+  [legacyCalculatorDetailRoute,publicCalculatorDetailRoute],
+  [legacyIndicatorDetailRoute,publicIndicatorDetailRoute],
+  [legacyPortfolioRoute,publicPortfolioRoute]
+]);
 
 const cleanSiteUrl=(value)=>{
   const url=new URL(String(value||''));
@@ -66,22 +79,12 @@ export function rewritePublicIdentity(source,{siteUrl,file}){
 export function rewritePublicRuntimeAsset(source,{file}){
   let text=String(source);
   if(file==='assets/app.js'){
-    if(text.includes(legacyMarketRoute))text=text.replace(legacyMarketRoute,publicMarketRoute);
-    if(!text.includes(publicMarketRoute))throw new Error('Connected public runtime market ownership boundary is missing');
-    if(text.includes(legacyDataMeshRoute))text=text.replace(legacyDataMeshRoute,publicDataMeshRoute);
-    if(!text.includes(publicDataMeshRoute))throw new Error('Connected public runtime provider V6 ownership boundary is missing');
-    if(text.includes(legacyInstrumentRoute))text=text.replace(legacyInstrumentRoute,publicInstrumentRoute);
-    if(!text.includes(publicInstrumentRoute))throw new Error('Connected public runtime instrument V6 ownership boundary is missing');
-    if(text.includes(legacyTimeSeriesRoute))text=text.replace(legacyTimeSeriesRoute,publicTimeSeriesRoute);
-    if(!text.includes(publicTimeSeriesRoute))throw new Error('Connected public runtime time-series V6 ownership boundary is missing');
-    if(text.includes(legacyCalculatorDetailRoute))text=text.replace(legacyCalculatorDetailRoute,publicCalculatorDetailRoute);
-    if(!text.includes(publicCalculatorDetailRoute))throw new Error('Connected public runtime calculator-detail V6 ownership boundary is missing');
-    if(text.includes(legacyIndicatorDetailRoute))text=text.replace(legacyIndicatorDetailRoute,publicIndicatorDetailRoute);
-    if(!text.includes(publicIndicatorDetailRoute))throw new Error('Connected public runtime indicator-detail V6 ownership boundary is missing');
+    for(const [legacyRoute,publicRoute] of appRouteMigrations){
+      if(text.includes(legacyRoute))text=text.replace(legacyRoute,publicRoute);
+    }
   }
   if(file==='assets/qelly-worldclass-uiux.mjs'){
     if(text.includes(legacyWorldclassEnhance))text=text.replace(legacyWorldclassEnhance,publicWorldclassEnhance);
-    if(!text.includes(publicWorldclassEnhance))throw new Error('Connected public runtime review-layer boundary is missing');
   }
   return text;
 }
@@ -112,6 +115,7 @@ export async function finalizePublicRuntime({environment=process.env}={}){
   if(generatedApp.includes(legacyTimeSeriesRoute)||!generatedApp.includes(publicTimeSeriesRoute))throw new Error('Legacy synthetic time-series renderer remains active in connected public runtime');
   if(generatedApp.includes(legacyCalculatorDetailRoute)||!generatedApp.includes(publicCalculatorDetailRoute))throw new Error('Legacy calculator-detail renderer remains active in connected public runtime');
   if(generatedApp.includes(legacyIndicatorDetailRoute)||!generatedApp.includes(publicIndicatorDetailRoute))throw new Error('Legacy indicator-detail renderer remains active in connected public runtime');
+  if(generatedApp.includes(legacyPortfolioRoute)||!generatedApp.includes(publicPortfolioRoute))throw new Error('V6 portfolio renderer is not active in connected public runtime');
   const generatedWorldclass=runtimeChecks.find(([file])=>file==='assets/qelly-worldclass-uiux.mjs')[1];
   if(generatedWorldclass.includes(legacyWorldclassEnhance)||!generatedWorldclass.includes(publicWorldclassEnhance))throw new Error('Legacy review layer remains active in connected public runtime');
   const primaryFiles=[
@@ -127,7 +131,9 @@ export async function finalizePublicRuntime({environment=process.env}={}){
     'assets/routes/indicator-detail-v6.mjs',
     'assets/routes/provider-runtime-v6.mjs',
     'assets/routes/instrument-master-v6.mjs',
-    'assets/routes/time-series-v6.mjs'
+    'assets/routes/time-series-v6.mjs',
+    'assets/routes/portfolio-v6-entry.mjs',
+    'assets/routes/portfolio-v6.mjs'
   ];
   for(const file of primaryFiles){
     const text=await readFile(path.join(output,file),'utf8');
@@ -144,7 +150,7 @@ export async function finalizePublicRuntime({environment=process.env}={}){
   if(!generatedConfig.includes('QELLY')||generatedConfig.includes('QELLY GLOBAL PUBLIC BETA'))throw new Error('Generated production product identity is incorrect');
   const headers=await readFile(path.join(output,'_headers'),'utf8');
   if(!/Cache-Control:\s*public, max-age=0, must-revalidate, no-transform/.test(headers))throw new Error('Public HTML must prevent unsolicited edge transformation');
-  return {status:'public-runtime-finalized',siteUrl,files:identityFiles.length,runtimeAssets:runtimeAssets.length,legacyOrigins:0,prohibitedPrimaryCopy:0,productionPolish:true,v6ProductionConvergence:true,instrumentMasterV6:true,calculatorDetailV6:true,indicatorDetailV6:true};
+  return {status:'public-runtime-finalized',siteUrl,files:identityFiles.length,runtimeAssets:runtimeAssets.length,legacyOrigins:0,prohibitedPrimaryCopy:0,productionPolish:true,v6ProductionConvergence:true,instrumentMasterV6:true,calculatorDetailV6:true,indicatorDetailV6:true,portfolioV6:true};
 }
 
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
