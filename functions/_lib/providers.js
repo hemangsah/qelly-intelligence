@@ -1,7 +1,8 @@
 import {HttpError,fetcher} from './runtime.js';
 
 const SAFE_SYMBOL=/^[A-Z0-9-]{3,30}$/;
-const GRANULARITY=new Map([['1m',60],['5m',300],['15m',900],['1h',3600],['4h',21600],['1d',86400]]);
+const BINANCE_INTERVALS=new Set(['1m','5m','15m','30m','1h','4h','1d']);
+const COINBASE_GRANULARITY=new Map([['1m',60],['5m',300],['15m',900],['1h',3600],['6h',21600],['1d',86400]]);
 const PROVIDER_POLICY=Object.freeze({
   binance:Object.freeze({
     id:'binance',
@@ -77,7 +78,7 @@ const live=async(env,provider,capability,source,params={})=>{
       return {provider:'binance-spot-public',sourceIdentifier:symbol,truthState:'live_provider',observationTime:new Date(number(data.closeTime,'close time')).toISOString(),ingestionTime,freshness:'near-real-time',quality:'official-public-endpoint',confidence:.98,attribution:'Binance Spot public market data',license:'Binance terms and written redistribution approval required',data:{symbol,price:number(data.lastPrice,'price'),open:number(data.openPrice,'open'),high:number(data.highPrice,'high'),low:number(data.lowPrice,'low'),volume:number(data.volume,'volume'),quoteVolume:number(data.quoteVolume,'quote volume')}};
     }
     const interval=String(params.interval||'1h');
-    if(!GRANULARITY.has(interval)&&interval!=='30m')throw new HttpError(400,'invalid_provider_interval','Invalid Binance interval');
+    if(!BINANCE_INTERVALS.has(interval))throw new HttpError(400,'invalid_provider_interval','Invalid Binance interval');
     const limit=Math.min(Math.max(Number(params.limit)||168,1),1000);
     const rows=await fetchJson(env,`https://api.binance.com/api/v3/klines?symbol=${encodeURIComponent(symbol)}&interval=${interval}&limit=${limit}`);
     const candles=rows.map(row=>({time:new Date(number(row[0],'open time')).toISOString(),open:number(row[1],'open'),high:number(row[2],'high'),low:number(row[3],'low'),close:number(row[4],'close'),volume:number(row[5],'volume')}));
@@ -92,8 +93,8 @@ const live=async(env,provider,capability,source,params={})=>{
       return {provider:'coinbase-exchange-public',sourceIdentifier:product,truthState:'live_provider',observationTime:new Date(data.time).toISOString(),ingestionTime,freshness:'near-real-time',quality:'official-public-endpoint',confidence:.98,attribution:'Coinbase Exchange public market data',license:'Written Coinbase permission required for Qelly end-user display',data:{product,price:number(data.price,'price'),bid:number(data.bid,'bid'),ask:number(data.ask,'ask'),volume:number(data.volume,'volume')}};
     }
     const interval=String(params.interval||'1h');
-    if(!GRANULARITY.has(interval))throw new HttpError(400,'invalid_provider_interval','Invalid Coinbase interval');
-    const granularity=GRANULARITY.get(interval);
+    if(!COINBASE_GRANULARITY.has(interval))throw new HttpError(400,'invalid_provider_interval','Invalid Coinbase interval');
+    const granularity=COINBASE_GRANULARITY.get(interval);
     const limit=Math.min(Math.max(Number(params.limit)||168,1),300);
     const end=new Date(params.end||Date.now());
     const start=new Date(params.start||end.getTime()-granularity*1000*limit);
