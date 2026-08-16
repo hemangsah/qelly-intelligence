@@ -26,7 +26,9 @@ const protectedRoutes=new Map([
   ['portfolio-analytics','Portfolio analytics'],
   ['research-workspace','Research workspace']
 ]);
-const selectorFor=(route)=>route==='market'?'.q-market-home':route==='status'?'.q-system-page':protectedRoutes.has(route)?`.q-access-gate[data-qelly-destination="${route}"]`:null;
+// Market is owned exclusively by the canonical V6/V7 production renderer.
+// This legacy guard only owns access gates and retained system surfaces.
+const selectorFor=(route)=>route==='status'?'.q-system-page':protectedRoutes.has(route)?`.q-access-gate[data-qelly-destination="${route}"]`:null;
 const apiUrl=(path)=>window.__QELLY_CONFIG__?.apiBaseUrl?new URL(path,`${String(window.__QELLY_CONFIG__.apiBaseUrl).replace(/\/$/,'')}/`).toString():path;
 const resolveAuthentication=()=>{
   if(authState!==null)return Promise.resolve(authState);
@@ -71,7 +73,6 @@ const replaceProductContent=(route,node)=>{
   if(node.parentElement===main&&existing.every((child)=>allowed.has(child))&&existing.includes(node))return;
   restoring=true;
   main.replaceChildren(...sentinels,node);
-  main.dataset.qellyProductHome=route==='market'?'ready':main.dataset.qellyProductHome||'';
   main.setAttribute('aria-busy','false');
   queueMicrotask(()=>{
     restoring=false;
