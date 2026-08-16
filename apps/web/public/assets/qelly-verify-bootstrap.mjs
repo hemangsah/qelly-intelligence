@@ -18,9 +18,14 @@ const setRequested=(view,intent)=>{
   state.requestedView=view||null;
   state.lastIntent=String(intent||'unknown');
 };
+const canonicalHashFor=view=>view==='methodology'?'#/market?view=evidence-methodology':view==='verify'?'#/qelly-verify':null;
+const normalizeHash=view=>{
+  const canonicalHash=canonicalHashFor(view);
+  if(canonicalHash&&location.hash!==canonicalHash)history.replaceState(null,'',canonicalHash);
+};
 
 const initialView=viewFor(location.hash);
-if(initialView)setRequested(initialView,'initial-url');
+if(initialView){setRequested(initialView,'initial-url');normalizeHash(initialView);}
 
 document.addEventListener('click',event=>{
   const link=event.target.closest?.('a[href^="#/"]');
@@ -32,20 +37,22 @@ document.addEventListener('click',event=>{
 window.addEventListener('hashchange',()=>{
   const view=viewFor(location.hash);
   setRequested(view,view?'hash':'hash-navigation');
+  normalizeHash(view);
 });
 
 let scheduled=false;
 const handoff=()=>{
   scheduled=false;
-  if(!state.requested)return;
+  const currentView=viewFor(location.hash);
+  if(!currentView){setRequested(null,'handoff-navigation');return;}
+  setRequested(currentView,'handoff-url');
   const view=state.requestedView||'verify';
   const method=view==='methodology'?'renderMethodology':'render';
   if(typeof window.QellyVerify?.[method]!=='function')return;
   const main=document.getElementById('main');
   const owner=view==='methodology'?'methodology':'true';
   const selector=view==='methodology'?'[data-qelly-methodology-surface]':'[data-qelly-verify-surface]';
-  const canonicalHash=view==='methodology'?'#/market?view=evidence-methodology':'#/qelly-verify';
-  if(location.hash!==canonicalHash)history.replaceState(null,'',canonicalHash);
+  normalizeHash(view);
   if(!(main?.dataset.qellyVerifyOwner===owner&&main.querySelector(selector)))window.QellyVerify[method]();
   if(view==='verify')document.title='Qelly Verify · Qelly Intelligence';
 };

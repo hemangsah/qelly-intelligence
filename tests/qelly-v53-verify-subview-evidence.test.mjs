@@ -24,7 +24,10 @@ test('Qelly Verify is a canonical public Evidence route while methodology remain
   assert.match(registry,/'qelly-verify':'evidence'/);
   assert.ok(bootstrap.includes('verify:/^#\\/(?:qelly-verify|market\\?[^#]*\\bview=qelly-verify(?:&|$))/i'));
   assert.ok(bootstrap.includes('methodology:/^#\\/(?:evidence-methodology|market\\?[^#]*\\bview=evidence-methodology(?:&|$))/i'));
-  assert.match(bootstrap,/canonicalHash=view==='methodology'\?'#\/market\?view=evidence-methodology':'#\/qelly-verify'/);
+  assert.match(bootstrap,/canonicalHashFor=view=>view==='methodology'\?'#\/market\?view=evidence-methodology':view==='verify'\?'#\/qelly-verify':null/);
+  assert.match(bootstrap,/if\(initialView\)\{setRequested\(initialView,'initial-url'\);normalizeHash\(initialView\);\}/);
+  assert.match(bootstrap,/const currentView=viewFor\(location\.hash\)/);
+  assert.match(bootstrap,/if\(!currentView\)\{setRequested\(null,'handoff-navigation'\);return;\}/);
   assert.match(bootstrap,/Qelly Verify · Qelly Intelligence/);
   assert.match(bootstrap,/setRequested\(view,view\?'hash':'hash-navigation'\)/);
   assert.doesNotMatch(bootstrap,/else if\(state\.lastIntent==='navigation-link'\)/);
@@ -73,7 +76,10 @@ test('current shell exposes canonical Verify and methodology through governed na
   assert.match(shell,/responsiveShell\.addEventListener\?\.\('change',schedule\)/);
   assert.match(shell,/MutationObserver/);
   const productPosition=index.indexOf('./assets/qelly-verify-product.mjs');
+  const bootstrapPosition=index.indexOf('./assets/qelly-verify-bootstrap.mjs');
+  const appPosition=index.indexOf('./assets/app.js');
   const shellPosition=index.indexOf('./assets/qelly-verify-shell-nav.mjs');
+  assert.ok(bootstrapPosition>=0&&bootstrapPosition<appPosition,'Verify route bootstrap must load before the application router');
   assert.ok(productPosition>=0,'Verify product runtime missing from index');
   assert.ok(shellPosition>productPosition,'shell nav bridge must load after Verify product runtime');
 });

@@ -130,7 +130,9 @@ function renderAccessGate(route){
 function enhanceCurrentRoute(){
   const main=document.getElementById('main');if(!main||rendering)return;
   const route=routeFromHash();updateHeaderRoute();
-  if(route==='market'){if(main.dataset.qellyProductHome!=='ready'&&main.dataset.qellyProductHome!=='loading')renderMarketHomepage();return;}
+  // Market is owned by the connected market-v6 route. Do not replace it with
+  // the legacy beta homepage or call that page's private market contract.
+  if(route==='market')return;
   if(route==='status'){if(!main.querySelector('.q-system-page'))renderStatusPage();return;}
   const text=main.textContent||'';
   if(/Unable to render this route/i.test(text)&&/Authentication is required|authentication_required|sign in required/i.test(text))renderAccessGate(route);

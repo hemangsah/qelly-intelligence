@@ -14,6 +14,9 @@ const runtimePath=await mkdtemp(path.join(os.tmpdir(),'qelly-all-screens-audit-'
 const expectedOrigin='https://qelly.test';
 const fixtureSession='sess-local-primary';
 const publicRoutes=new Set(routeDefinitions.filter((item)=>item.public===true).map((item)=>item.route));
+const requestedRoutes=new Set(String(process.env.QELLY_AUDIT_ROUTES||'').split(',').map((item)=>item.trim()).filter(Boolean));
+const auditRouteDefinitions=requestedRoutes.size?routeDefinitions.filter((item)=>requestedRoutes.has(item.route)):routeDefinitions;
+if(requestedRoutes.size&&auditRouteDefinitions.length!==requestedRoutes.size)throw new Error('QELLY_AUDIT_ROUTES contains an unknown route');
 const viewports=[['desktop',{width:1440,height:1000}],['mobile',{width:390,height:844}]];
 const criticalTypes=new Set(['document','script','stylesheet','font','image']);
 const mime=new Map([
@@ -82,7 +85,7 @@ try{
   for(const [viewportName,viewport] of viewports){
     const contexts=new Map();
     for(const authenticated of [false,true])contexts.set(authenticated,await browser.newContext({viewport,deviceScaleFactor:1,reducedMotion:'reduce',serviceWorkers:'block'}));
-    for(const definition of routeDefinitions){
+    for(const definition of auditRouteDefinitions){
       const routeName=definition.route;
       const authenticated=!publicRoutes.has(routeName);
       const page=await contexts.get(authenticated).newPage();
@@ -170,7 +173,7 @@ try{
   }
 
   const failures=results.filter((item)=>item.status!=='passed');
-  const report={schemaVersion:1,generatedAt:new Date().toISOString(),evidenceBoundary:'verified-governed-local-test-runtime',browserExecutable:executablePath??'playwright-managed',routeCount:routeDefinitions.length,viewportCount:viewports.length,renderCount:results.length,passed:results.length-failures.length,failed:failures.length,consoleErrorCount:results.reduce((sum,item)=>sum+item.consoleErrors.length,0),authentication:{anonymousConfigAuthenticated:false,authenticatedConfigAuthenticated:true,authenticatedStatusAuthenticated:true,fixtureSession},status:failures.length?'failed':'passed',renders:results};
+  const report={schemaVersion:1,generatedAt:new Date().toISOString(),evidenceBoundary:'verified-governed-local-test-runtime',browserExecutable:executablePath??'playwright-managed',routeCount:auditRouteDefinitions.length,viewportCount:viewports.length,renderCount:results.length,passed:results.length-failures.length,failed:failures.length,consoleErrorCount:results.reduce((sum,item)=>sum+item.consoleErrors.length,0),authentication:{anonymousConfigAuthenticated:false,authenticatedConfigAuthenticated:true,authenticatedStatusAuthenticated:true,fixtureSession},status:failures.length?'failed':'passed',renders:results};
   await writeFile(path.join(outputRoot,'AUDIT_LOG.json'),`${JSON.stringify(report,null,2)}\n`);
   console.log(JSON.stringify({status:report.status,routes:report.routeCount,renders:report.renderCount,passed:report.passed,failed:report.failed,consoleErrors:report.consoleErrorCount,browserExecutable:report.browserExecutable,failures:failures.slice(0,12)},null,2));
   if(failures.length)process.exitCode=1;

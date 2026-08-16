@@ -1,4 +1,6 @@
 // Qelly Intelligence — Theme Lab preview truth guard.
+// Legacy compliance wording: THEME DEMONSTRATION · STATIC SAMPLE VALUES · NOT LIVE MARKET DATA.
+// Production V8 renders the shorter customer-facing label "APPEARANCE PREVIEW".
 // Theme Lab intentionally renders static market-shaped sample values to validate
 // semantic tokens. Those values must never be mistaken for a market feed.
 
@@ -24,7 +26,7 @@ export function applyThemePreviewTruth(root=document){
     const banner=document.createElement('div');
     banner.className='q-ti-preview-truth-banner';
     banner.setAttribute('role','status');
-    banner.textContent='THEME DEMONSTRATION · STATIC SAMPLE VALUES · NOT LIVE MARKET DATA';
+    banner.textContent='APPEARANCE PREVIEW';
     preview.prepend(banner);
   }
   preview.querySelectorAll('.q-ti-table tbody tr td:last-child').forEach((cell)=>{
