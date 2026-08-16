@@ -51,8 +51,48 @@ function evidenceProfile() {
   });
 }
 
+function evidenceDataPlane() {
+  return {
+    generatedAt: FIXED_TIME,
+    canonicalRuntime: 'evidence-cloudflare-contract-adapter',
+    releaseSha: 'evidence-fixture',
+    environment: 'test',
+    canonicalSite: 'https://qelly.test',
+    dataPlane: {
+      instrumentCount: 0,
+      seriesCount: 0,
+      pointCount: 0,
+      providerCount: 0,
+    },
+    items: [],
+    releaseIdentity: null,
+    releaseCongruence: {
+      state: 'UNVERIFIED',
+      runtimeSha: 'evidence-fixture',
+      recordedSha: null,
+      reason: 'Evidence runtime intentionally has no production release identity.',
+    },
+    guardrails: {
+      readOnly: true,
+      execution: false,
+      rawProviderCacheExposed: false,
+      browserDirectPrivilegedTableAccess: false,
+    },
+    evidenceBoundary: 'deterministic-empty-contract-no-market-observations',
+  };
+}
+
 function hasEvidenceSession(request) {
   return request.headers['x-qelly-session-id'] === EVIDENCE_SESSION_ID;
+}
+
+function sessionRequired(response, message) {
+  return sendJson(response, 401, {
+    error: {
+      code: 'session_required',
+      message,
+    },
+  });
 }
 
 function proxyToLegacy(request, response, upstreamPort) {
@@ -97,14 +137,16 @@ export async function startServer(options = {}) {
 
     if (request.method === 'GET' && url.pathname === '/api/v1/profile') {
       if (!hasEvidenceSession(request)) {
-        return sendJson(response, 401, {
-          error: {
-            code: 'session_required',
-            message: 'The evidence profile contract requires an authenticated fixture session.',
-          },
-        });
+        return sessionRequired(response, 'The evidence profile contract requires an authenticated fixture session.');
       }
       return sendJson(response, 200, evidenceProfile());
+    }
+
+    if (request.method === 'GET' && url.pathname === '/api/v1/platform/data-plane') {
+      if (!hasEvidenceSession(request)) {
+        return sessionRequired(response, 'The evidence data-plane contract requires an authenticated fixture session.');
+      }
+      return sendJson(response, 200, evidenceDataPlane());
     }
 
     return proxyToLegacy(request, response, legacy.port);
