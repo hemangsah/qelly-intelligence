@@ -1,6 +1,14 @@
 import {enforceRateLimit,errorResponse,publicRuntimeConfig,resolveSession,responseJson} from '../../../_lib/runtime.js';
 import {marketDataSnapshot,snapshotLimit} from '../../../_lib/market-data-snapshot.js';
 
+const releaseCongruence=(runtime,snapshot)=>{
+  const runtimeSha=String(runtime.releaseSha||'').toLowerCase();
+  const recordedSha=String(snapshot.releaseIdentity?.sourceRevision||'').toLowerCase();
+  if(!recordedSha)return {state:'UNVERIFIED',runtimeSha,recordedSha:null,reason:'No persisted production release identity is available.'};
+  if(runtimeSha&&runtimeSha===recordedSha)return {state:'MATCH',runtimeSha,recordedSha,reason:null};
+  return {state:'MISMATCH',runtimeSha,recordedSha,reason:'Cloudflare runtime SHA and persisted production release identity do not match.'};
+};
+
 export async function onRequest(context){
   const {request,env}=context;
   try{
@@ -16,9 +24,12 @@ export async function onRequest(context){
       releaseSha:runtime.releaseSha,
       environment:runtime.environment,
       canonicalSite:runtime.publicSiteUrl,
+      releaseCongruence:releaseCongruence(runtime,snapshot),
       guardrails:{readOnly:true,execution:false,rawProviderCacheExposed:false,browserDirectPrivilegedTableAccess:false}
     },200,{cookies:session.cookies,cache:'private, no-store'});
   }catch(error){
     return errorResponse(request,env,error);
   }
 }
+
+export const __dataPlaneRouteTest=Object.freeze({releaseCongruence});
