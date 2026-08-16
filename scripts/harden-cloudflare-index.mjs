@@ -36,7 +36,12 @@ export async function hardenCloudflareBuild({environment=process.env}={}){
   const output=path.join(root,'dist/frontend');
   const indexPath=path.join(output,'index.html');
   const requirePublicRuntime=environment.QELLY_REQUIRE_PUBLIC_RUNTIME==='true';
-  if(requirePublicRuntime){
+  const githubPagesMirror=environment.QELLY_GITHUB_PAGES_MIRROR==='true';
+  // Cloudflare runtime embeds a browser-safe Supabase publishable key because
+  // auth is brokered through its same-origin facade. The GitHub Pages mirror
+  // deliberately contains no Supabase credential and calls only the canonical
+  // Cloudflare public API, so the key check does not apply there.
+  if(requirePublicRuntime&&!githubPagesMirror){
     const supabaseUrl=new URL(String(environment.QELLY_PUBLIC_SUPABASE_URL||''));
     const projectReference=supabaseUrl.hostname.split('.')[0];
     const key=String(environment.QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY??environment.QELLY_PUBLIC_SUPABASE_ANON_KEY??'');
@@ -47,7 +52,7 @@ export async function hardenCloudflareBuild({environment=process.env}={}){
   const source=await readFile(indexPath,'utf8');
   const hardened=hardenIndexHtml(source);
   await writeFile(indexPath,hardened);
-  return {status:'cloudflare-index-hardened',indexPath:path.relative(root,indexPath),inlineScripts:0};
+  return {status:'cloudflare-index-hardened',indexPath:path.relative(root,indexPath),inlineScripts:0,githubPagesMirror};
 }
 
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
