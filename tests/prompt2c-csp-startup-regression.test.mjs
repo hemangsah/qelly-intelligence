@@ -13,9 +13,14 @@ test('Cloudflare public runtime contains no CSP-blocked inline JavaScript',async
     read('apps/web/public/assets/qelly-prepaint-bootstrap.js')
   ]);
   const csp=headers.match(/Content-Security-Policy:\s*([^\n]+)/)?.[1]||'';
-  const scriptDirective=csp.split(';').map((directive)=>directive.trim()).find((directive)=>directive.startsWith('script-src '))||'';
-  assert.equal(scriptDirective,"script-src 'self'");
-  assert.doesNotMatch(scriptDirective,/'unsafe-inline'/);
+  const directives=new Map(csp.split(';').map((directive)=>directive.trim()).filter(Boolean).map((directive)=>{
+    const [name,...values]=directive.split(/\s+/);
+    return [name,`${name}${values.length?` ${values.join(' ')}`:''}`];
+  }));
+  assert.equal(directives.get('script-src'),"script-src 'self' https://s3.tradingview.com");
+  assert.equal(directives.get('connect-src'),"connect-src 'self'");
+  assert.equal(directives.get('frame-src'),'frame-src https://*.tradingview.com https://*.tradingview-widget.com');
+  assert.doesNotMatch(directives.get('script-src')||'',/'unsafe-inline'|'unsafe-eval'/);
   const hardened=hardenIndexHtml(source);
   const inline=[...hardened.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
     .filter((match)=>!/(?:^|\s)src\s*=/.test(match[1])&&match[2].trim());
