@@ -56,13 +56,14 @@ test('decision provenance remains functional in preview instead of disabling the
   assert.doesNotMatch(source,/\$\{isDemo\?'disabled'/);
 });
 
-test('static preview build restores the validator-compatible truth contract',async()=>{
+test('static preview remains an internal validator-compatible mode alongside the production Pages mirror',async()=>{
   const build=await read('scripts/build-frontend.mjs');
   assert.match(build,/const runtimeConfig=staticVisualPreview\?\{/);
-  assert.match(build,/deploymentStage:'github-pages'/);
+  assert.match(build,/deploymentStage:'github-pages-static-preview'/);
   assert.match(build,/previewLabel:'Static visual preview'/);
-  assert.match(build,/artifact:staticVisualPreview\?'static-frontend':'static-frontend-with-pages-functions'/);
+  assert.match(build,/githubPagesMirror\?'github-pages-public-mirror':'static-frontend-with-pages-functions'/);
   assert.match(build,/CF_PAGES_COMMIT_SHA\?\?process\.env\.GITHUB_SHA\?\?process\.env\.QELLY_PUBLIC_RELEASE_SHA/);
+  assert.match(build,/if\(staticVisualPreview&&githubPagesMirror\)throw new Error/);
 });
 
 test('migration profiles separate incompatible platform and Supabase schemas',async()=>{
