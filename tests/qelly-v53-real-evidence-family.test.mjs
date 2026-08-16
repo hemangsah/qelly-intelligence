@@ -39,27 +39,32 @@ test('Research Workspace retains genuine evidence, Inspector and falsification b
   assert.match(source,/Qelly will not infer them from note text/);
 });
 
-test('Portfolio Analytics exposes source, observed time, confidence, coverage and no-custody boundaries',async()=>{
+test('Portfolio Analytics separates Cloud RLS positions from unavailable market valuation and preserves no-custody boundaries',async()=>{
   const source=await read('../apps/web/public/assets/routes/portfolio-analytics.mjs');
   assert.match(source,/q-v53-evidence-workspace/);
   assert.match(source,/q-v53-evidence-inspector/);
-  assert.match(source,/Qelly deterministic portfolio performance fixture/);
-  assert.match(source,/OBSERVED AT/);
-  assert.match(source,/0\.82 chart evidence metadata/);
-  assert.match(source,/COVERAGE/);
+  assert.match(source,/data-portfolio-persistence="CLOUD RLS"/);
+  assert.match(source,/data-portfolio-valuation-truth="UNAVAILABLE"/);
+  assert.match(source,/No approved valuation observation/);
+  assert.match(source,/No governed valuation series/);
+  assert.match(source,/Qelly does not invent prices, P&amp;L, performance or risk/);
   assert.match(source,/No custodian or broker connection/);
-  assert.match(source,/Research model only/);
+  assert.doesNotMatch(source,/deterministic portfolio performance fixture|scenario only|packaged performance history/i);
   assert.doesNotMatch(source,/data-action="(?:execute|trade|order|wallet|withdraw)/i);
 });
 
-test('Workspace Watchlist separates persistent state from deterministic quote evidence',async()=>{
+test('Workspace Watchlist separates Cloud RLS persistence from unavailable quote truth',async()=>{
   const source=await read('../apps/web/public/assets/routes/workspace-watchlist.mjs');
   assert.match(source,/q-v53-evidence-workspace/);
   assert.match(source,/q-v53-evidence-inspector/);
-  assert.match(source,/Workspace watchlist store \+ packaged quote fixture/);
-  assert.match(source,/Quote observation time not supplied/);
-  assert.match(source,/CONFIDENCE','Not supplied/);
-  assert.match(source,/sharing private/i);
+  assert.match(source,/data-watchlist-persistence="CLOUD RLS"/);
+  assert.match(source,/data-watchlist-quote-truth="UNAVAILABLE"/);
+  assert.match(source,/Supabase workspace-scoped/);
+  assert.match(source,/No market observation supplied/);
+  assert.match(source,/No rights-approved quote observation/);
+  assert.match(source,/does not substitute deterministic fixture prices/i);
+  assert.match(source,/Workspace membership only/);
+  assert.doesNotMatch(source,/packaged quote fixture|local JSON|fixture quotes|Watchlist created locally/i);
 });
 
 test('Saved Calculations remains explicit about local persistence, cloud opt-in and conflict handling',async()=>{

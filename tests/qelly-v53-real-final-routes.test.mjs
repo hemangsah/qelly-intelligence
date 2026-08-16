@@ -26,14 +26,19 @@ test('final real-route CSS is scoped, dense and mobile-collapsible',async()=>{
   assert.doesNotMatch(source,/display\s*:\s*none/);
 });
 
-test('Security Setup exposes authenticated assurance evidence without financial authority',async()=>{
+test('Security Setup exposes the canonical MFA unavailability boundary without financial authority',async()=>{
   const source=await read('../apps/web/public/assets/routes/security-setup.mjs');
-  assert.match(source,/q-v53-final-workspace/);
-  assert.match(source,/q-v53-final-inspector/);
-  assert.match(source,/Authenticated \/api\/v1\/auth\/mfa\/status/);
-  assert.match(source,/Direct authenticated status response/);
-  assert.match(source,/No private keys, wallet seeds or financial recovery phrases/);
-  assert.match(source,/does not authorize trading, custody, transfers, wallet signing or money movement/);
+  assert.match(source,/data-capability-state="UNAVAILABLE"/);
+  assert.match(source,/data-capability="mfa"/);
+  assert.match(source,/Authenticator MFA is unavailable/);
+  assert.match(source,/Cloudflare Pages Functions/);
+  assert.match(source,/Current authentication/);
+  assert.match(source,/Email\/password session and supported recovery flow/);
+  assert.match(source,/Financial authority/);
+  assert.match(source,/never authorizes trading, custody, transfers, wallet signing or money movement/);
+  assert.match(source,/No MFA operation will be attempted/);
+  assert.doesNotMatch(source,/\/api\/v1\/auth\/mfa\//);
+  assert.doesNotMatch(source,/\bapi\s*\(|\bfetch\s*\(/);
 });
 
 test('Delivery Operations separates configuration, attempts and external-delivery proof',async()=>{

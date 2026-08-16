@@ -1,28 +1,8 @@
-import {CSRF_COOKIE,HttpError,SECURITY_HEADERS,bootstrapContext,cookie,correlationId,corsHeaders,enforceRateLimit,errorResponse,parseCookies,publicRuntimeConfig,requireOrigin,responseJson,resolveSession,stableUuid,validateJwtClaims} from '../../_lib/runtime.js';
+import {HttpError,SECURITY_HEADERS,bootstrapContext,correlationId,corsHeaders,enforceRateLimit,errorResponse,publicRuntimeConfig,requireOrigin,responseJson,resolveSession,stableUuid,validateJwtClaims} from '../../_lib/runtime.js';
 import {handleAuth} from '../../_lib/auth.js';
 import {handleData,__dataTest} from '../../_lib/data.js';
 import {providerCatalog,providerResult} from '../../_lib/providers.js';
-
-const configResponse=async(request,env)=>{
-  const session=await resolveSession(request,env);
-  const csrf=parseCookies(request)[CSRF_COOKIE]||crypto.randomUUID().replaceAll('-','');
-  const context=session?await bootstrapContext(env,session):null;
-  const runtime=publicRuntimeConfig(env,request.url);
-  return responseJson(request,env,{
-    productName:'Qelly Intelligence',
-    productVersion:'0.9.0-preview.1',
-    release:runtime.releaseSha,
-    defaultRoute:'market',
-    csrf:{header:'X-Qelly-CSRF',token:context?csrf:null,mode:context?'double-submit-cookie':'unavailable-until-authenticated'},
-    auth:{authenticated:Boolean(context),backendAvailable:true,productionIdentityEnabled:true,emailDeliveryAvailable:runtime.capabilities.emailDelivery,registrationAvailable:runtime.capabilities.emailDelivery,recoveryAvailable:runtime.capabilities.emailDelivery,mode:'supabase-auth-cloudflare-facade'},
-    cloud:{available:true,syncAvailable:true,providerRuntime:true},
-    capabilityTruth:{passkeys:false,mfa:false,research:false,persistentJobs:false,productionNotifications:false,multiSessionManagement:false},
-    providerRights:{binance:'blocked_pending_redistribution_rights',coinbase:'blocked_pending_written_end_user_display_permission',ecb:'conditionally_approved_attributed_reference_data'},
-    runtime,
-    states:['default','loading','empty','partial','error','offline','live','cached','stale','delayed','simulated','unavailable','mobile','reduced-motion','high-contrast'],
-    liveTrading:false
-  },200,{cookies:[...(session?.cookies||[]),...(context?[cookie(CSRF_COOKIE,csrf,{httpOnly:false,maxAge:60*60*8,sameSite:'Strict'})]:[])]});
-};
+import {capabilityInventory,matchUnavailableCapability} from '../../_lib/capability-registry.js';
 
 const publicTruthState=(state)=>({
   live_provider:'live',
@@ -209,22 +189,14 @@ export async function route(context){
   const method=request.method.toUpperCase();
   if(method==='OPTIONS')return new Response(null,{status:204,headers:{...SECURITY_HEADERS,...corsHeaders(request,env),'Access-Control-Allow-Methods':'GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS','Access-Control-Allow-Headers':'Content-Type,X-Qelly-CSRF,Idempotency-Key,X-Correlation-Id','Access-Control-Max-Age':'600'}});
   if(request.headers.get('origin'))requireOrigin(request,env);
-  if(path==='config'&&method==='GET')return configResponse(request,env);
-  if(path==='health'&&method==='GET'){
-    const runtime=publicRuntimeConfig(env,request.url);
-    return responseJson(request,env,{status:'ok',scope:'process-and-static-runtime',releaseSha:runtime.releaseSha,deterministicLocal:true,authenticationConfigured:runtime.capabilities.authentication,emailDeliveryConfigured:runtime.capabilities.emailDelivery,cloudSyncConfigured:runtime.capabilities.cloudSync,liveProvidersConfigured:runtime.capabilities.liveProviders,providerRights:'restricted',trading:false,custody:false,transfers:false});
-  }
-  if(path==='readiness'&&method==='GET')return responseJson(request,env,{
-    ready:false,
-    status:'not_proven',
-    reason:'End-to-end Auth delivery, RLS isolation and provider freshness canaries are not yet complete.',
-    dependencies:{supabase:'configured_not_canaried',auth:'smtp_delivery_blocked',rls:'required_not_live_proven',providers:'restricted_by_rights_review'},
-    releaseSha:publicRuntimeConfig(env,request.url).releaseSha
-  },503);
   const authRuntime=publicRuntimeConfig(env,request.url);
   if(!authRuntime.capabilities.emailDelivery&&method==='POST'&&['auth/register','auth/recovery/request'].includes(path))throw new HttpError(503,'auth_email_delivery_unavailable','Account creation and email recovery are temporarily unavailable until transactional email delivery is proven.',{retryable:false});
   const auth=await handleAuth(context,path,method);
   if(auth)return auth;
+  if(path==='platform/capabilities'&&method==='GET'){
+    await enforceRateLimit(env,`public-capability-inventory:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:60});
+    return responseJson(request,env,capabilityInventory(),200,{cache:'no-store'});
+  }
   if(path==='providers/status'&&method==='GET'){
     await enforceRateLimit(env,`public-provider-status:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:60});
     return responseJson(request,env,{providers:providerCatalog(),releaseSha:publicRuntimeConfig(env,request.url).releaseSha});
@@ -270,6 +242,19 @@ export async function route(context){
   if(path==='sessions'&&method==='GET')return responseJson(request,env,{scope:'current-session-only',items:[{sessionId:`supabase-${session.user.id.slice(0,8)}`,authenticationMethod:'supabase-email-password',expiresAt:new Date(Number(session.claims.exp)*1000).toISOString(),current:true,revokedAt:null}]});
   const data=await handleData(context,path,segments,method,session,qelly);
   if(data)return data;
+  const unavailable=matchUnavailableCapability(path);
+  if(unavailable)throw new HttpError(501,'capability_unavailable_in_canonical_runtime',`${unavailable.label} is not available in the canonical Cloudflare runtime.`,{
+    details:{
+      capability:unavailable.id,
+      truthState:'UNAVAILABLE',
+      canonicalRuntime:unavailable.canonicalRuntime,
+      category:unavailable.category,
+      priority:unavailable.priority,
+      reason:unavailable.reason,
+      routeFamilies:unavailable.routeFamilies
+    },
+    retryable:false
+  });
   throw new HttpError(404,'route_not_found','API route was not found');
 }
 

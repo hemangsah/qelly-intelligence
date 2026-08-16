@@ -165,7 +165,7 @@ test('generated runtime finalizer rejects internal product copy',async()=>{
 });
 
 test('public API defaults signed-out users to the market product',async()=>{
-  const source=await read('functions/api/v1/[[path]].js');
+  const source=await read('functions/api/v1/config.js');
   assert.match(source,/defaultRoute:'market'/);
   assert.doesNotMatch(source,/defaultRoute:context\?'market':'auth-login'/);
 });

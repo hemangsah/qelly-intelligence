@@ -39,12 +39,17 @@ test('Part 22 ticker summarizes candles without exposing order execution',async(
   assert.equal(result.guardrails.readOnly,true);
 });
 
-test('Part 22 chart adapter includes TradingView-compatible and local fallback renderers',async()=>{
+test('Part 22 chart adapter is first-party, CSP-safe and preserves institutional chart affordances',async()=>{
   const source=await readFile(path.join(root,'apps/web/public/assets/market/tradingview-live-chart.mjs'),'utf8');
-  assert.match(source,/lightweight-charts/);
-  assert.match(source,/fallbackChart/);
+  assert.match(source,/Qelly first-party SVG/);
+  assert.match(source,/data-qelly-market-svg/);
   assert.match(source,/candlestick/i);
   assert.match(source,/volume/i);
+  assert.match(source,/SMA 20/);
+  assert.match(source,/pointermove/);
+  assert.match(source,/requestAnimationFrame/);
+  assert.doesNotMatch(source,/unpkg\.com|cdn\.jsdelivr\.net|cdnjs\.cloudflare\.com/i);
+  assert.doesNotMatch(source,/createElement\(['"]script['"]\)|\.src\s*=\s*['"]https?:\/\//i);
 });
 
 test('Part 22 modular experience routes are packaged',async()=>{

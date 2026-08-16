@@ -1,65 +1,111 @@
-let loaderPromise=null;
-const CDN='https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js';
-
-export async function loadTradingViewLightweightCharts(){
-  if(window.LightweightCharts)return window.LightweightCharts;
-  if(loaderPromise)return loaderPromise;
-  loaderPromise=new Promise((resolve,reject)=>{
-    const existing=document.querySelector('script[data-qelly-lightweight-charts]');
-    if(existing){existing.addEventListener('load',()=>resolve(window.LightweightCharts));existing.addEventListener('error',reject);return;}
-    const script=document.createElement('script');script.src=CDN;script.async=true;script.dataset.qellyLightweightCharts='true';
-    script.onload=()=>window.LightweightCharts?resolve(window.LightweightCharts):reject(new Error('TradingView Lightweight Charts did not initialize'));
-    script.onerror=()=>reject(new Error('TradingView Lightweight Charts CDN unavailable'));
-    document.head.appendChild(script);
-  });
-  return loaderPromise;
-}
-
 function css(name,fallback){return getComputedStyle(document.documentElement).getPropertyValue(name).trim()||fallback;}
-function addCandles(chart,lib,options){
-  if(typeof chart.addSeries==='function'&&lib.CandlestickSeries)return chart.addSeries(lib.CandlestickSeries,options);
-  return chart.addCandlestickSeries(options);
+const esc=(value)=>String(value??'').replace(/[&<>"']/g,(ch)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const finite=(value)=>Number.isFinite(Number(value));
+
+function normalize(points=[]){
+  return points.map((point)=>({time:Number(point.time),open:Number(point.open),high:Number(point.high),low:Number(point.low),close:Number(point.close),volume:Number(point.volume||0)})).filter((point)=>finite(point.time)&&finite(point.open)&&finite(point.high)&&finite(point.low)&&finite(point.close)&&point.high>=Math.max(point.open,point.close)&&point.low<=Math.min(point.open,point.close));
 }
-function addHistogram(chart,lib,options){
-  if(typeof chart.addSeries==='function'&&lib.HistogramSeries)return chart.addSeries(lib.HistogramSeries,options);
-  return chart.addHistogramSeries(options);
-}
-function addLine(chart,lib,options){
-  if(typeof chart.addSeries==='function'&&lib.LineSeries)return chart.addSeries(lib.LineSeries,options);
-  return chart.addLineSeries(options);
-}
+
 function movingAverage(points,period=20){
-  return points.map((point,index)=>{if(index<period-1)return null;const value=points.slice(index-period+1,index+1).reduce((sum,x)=>sum+x.close,0)/period;return {time:point.time,value};}).filter(Boolean);
+  const out=[];
+  let sum=0;
+  for(let index=0;index<points.length;index++){
+    sum+=points[index].close;
+    if(index>=period)sum-=points[index-period].close;
+    if(index>=period-1)out.push({index,value:sum/period});
+  }
+  return out;
+}
+
+function chartMarkup(points,symbol){
+  if(!points.length)return '<div class="q-empty-state"><strong>Chart unavailable</strong><p>No valid governed candle observations were supplied.</p></div>';
+  const width=1120,height=520,padLeft=56,padRight=74,padTop=28,priceBottom=392,volumeTop=420,volumeBottom=492;
+  const plotWidth=width-padLeft-padRight;
+  const lows=points.map((point)=>point.low),highs=points.map((point)=>point.high);
+  const min=Math.min(...lows),max=Math.max(...highs),range=Math.max(max-min,Math.abs(max)*0.00001,1e-9);
+  const y=(value)=>padTop+((max-value)/range)*(priceBottom-padTop);
+  const step=plotWidth/Math.max(points.length,1),bodyWidth=Math.max(1.4,Math.min(8,step*.62));
+  const maxVolume=Math.max(...points.map((point)=>point.volume),1);
+  const up=css('--q-positive','#16a36a'),down=css('--q-negative','#df4963'),grid=css('--q-chart-grid','rgba(120,25,55,.10)'),label=css('--q-chart-label','#9f8790'),accent=css('--q-accent','#7a1238'),maColor=css('--q-warning','#d39524'),watermark=css('--q-chart-watermark','rgba(114,15,50,.055)');
+  const gridRows=Array.from({length:6},(_,index)=>{
+    const ratio=index/5,gy=padTop+ratio*(priceBottom-padTop),value=max-ratio*range;
+    return `<line x1="${padLeft}" y1="${gy.toFixed(2)}" x2="${width-padRight}" y2="${gy.toFixed(2)}" stroke="${grid}" stroke-width="1"/><text x="${width-padRight+8}" y="${(gy+4).toFixed(2)}" fill="${label}" font-size="11">${Number(value).toLocaleString('en-US',{maximumFractionDigits:Math.abs(value)>=100?2:6})}</text>`;
+  }).join('');
+  const verticals=Array.from({length:7},(_,index)=>{const gx=padLeft+(plotWidth*index/6);return `<line x1="${gx.toFixed(2)}" y1="${padTop}" x2="${gx.toFixed(2)}" y2="${volumeBottom}" stroke="${grid}" stroke-width="1"/>`;}).join('');
+  const candles=points.map((bar,index)=>{
+    const x=padLeft+(index+.5)*step,open=y(bar.open),close=y(bar.close),high=y(bar.high),low=y(bar.low),top=Math.min(open,close),body=Math.max(1.2,Math.abs(close-open)),color=bar.close>=bar.open?up:down;
+    return `<g data-candle-index="${index}"><line x1="${x.toFixed(2)}" y1="${high.toFixed(2)}" x2="${x.toFixed(2)}" y2="${low.toFixed(2)}" stroke="${color}" stroke-width="1"/><rect x="${(x-bodyWidth/2).toFixed(2)}" y="${top.toFixed(2)}" width="${bodyWidth.toFixed(2)}" height="${body.toFixed(2)}" rx="1" fill="${color}"/></g>`;
+  }).join('');
+  const volumes=points.map((bar,index)=>{
+    const x=padLeft+(index+.5)*step,h=Math.max(1,(bar.volume/maxVolume)*(volumeBottom-volumeTop)),color=bar.close>=bar.open?up:down;
+    return `<rect x="${(x-bodyWidth/2).toFixed(2)}" y="${(volumeBottom-h).toFixed(2)}" width="${bodyWidth.toFixed(2)}" height="${h.toFixed(2)}" fill="${color}" opacity=".30"/>`;
+  }).join('');
+  const ma=movingAverage(points,20).map((point)=>`${(padLeft+(point.index+.5)*step).toFixed(2)},${y(point.value).toFixed(2)}`).join(' ');
+  const firstTime=new Date(points[0].time*1000),lastTime=new Date(points.at(-1).time*1000);
+  const timeLabel=(date)=>Number.isNaN(date.getTime())?'—':date.toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+  return `<div class="q-first-party-chart" data-qelly-chart-engine="first-party-svg">
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" role="img" aria-label="${esc(symbol)} governed candlestick chart" data-qelly-market-svg>
+      <g aria-hidden="true">${gridRows}${verticals}</g>
+      <text x="${width/2}" y="${height/2-24}" text-anchor="middle" fill="${watermark}" font-size="42" font-weight="700">QELLY · ${esc(symbol)}</text>
+      <g aria-label="Candlesticks">${candles}</g>
+      <g aria-label="Volume">${volumes}</g>
+      ${ma?`<polyline points="${ma}" fill="none" stroke="${maColor}" stroke-width="2" vector-effect="non-scaling-stroke" aria-label="SMA 20"/>`:''}
+      <line data-qelly-crosshair-x x1="0" y1="${padTop}" x2="0" y2="${volumeBottom}" stroke="${accent}" stroke-width="1" stroke-dasharray="4 4" visibility="hidden" vector-effect="non-scaling-stroke"/>
+      <line data-qelly-crosshair-y x1="${padLeft}" y1="0" x2="${width-padRight}" y2="0" stroke="${accent}" stroke-width="1" stroke-dasharray="4 4" visibility="hidden" vector-effect="non-scaling-stroke"/>
+      <text x="${padLeft}" y="${height-8}" fill="${label}" font-size="11">${esc(timeLabel(firstTime))}</text>
+      <text x="${width-padRight}" y="${height-8}" text-anchor="end" fill="${label}" font-size="11">${esc(timeLabel(lastTime))}</text>
+      <text x="${padLeft}" y="${volumeTop-8}" fill="${label}" font-size="10">VOLUME</text>
+      <text x="${padLeft+62}" y="${volumeTop-8}" fill="${maColor}" font-size="10">SMA 20</text>
+    </svg>
+    <div class="q-chart-fallback-note"><strong>Qelly first-party renderer</strong><span>CSP-safe · no third-party runtime script · renders only the governed data envelope supplied by Qelly.</span></div>
+  </div>`;
 }
 
 export async function mountLiveMarketChart(container,{points,symbol='BTCUSDT',interval='1m',onCrosshair=null}={}){
-  if(!container)return {destroy(){},update(){}};
-  try{
-    const lib=await loadTradingViewLightweightCharts();
-    container.innerHTML='';
-    const chart=lib.createChart(container,{width:container.clientWidth||900,height:520,layout:{background:{type:'solid',color:'transparent'},textColor:css('--q-chart-label','#9f8790'),fontFamily:'JetBrains Mono, ui-monospace, monospace',fontSize:11},grid:{vertLines:{color:css('--q-chart-grid','rgba(120,25,55,.08)')},horzLines:{color:css('--q-chart-grid','rgba(120,25,55,.08)')}},crosshair:{mode:lib.CrosshairMode?.Normal??0,vertLine:{color:css('--q-accent','#7a1238'),width:1,style:2,labelBackgroundColor:css('--q-burgundy-core','#2a000f')},horzLine:{color:css('--q-accent','#7a1238'),width:1,style:2,labelBackgroundColor:css('--q-burgundy-core','#2a000f')}},rightPriceScale:{borderColor:css('--q-chart-border','#d9c4cc'),scaleMargins:{top:.08,bottom:.24}},timeScale:{borderColor:css('--q-chart-border','#d9c4cc'),timeVisible:true,secondsVisible:interval==='1s'||interval==='1m'},handleScroll:{mouseWheel:true,pressedMouseMove:true,horzTouchDrag:true,vertTouchDrag:false},handleScale:{axisPressedMouseMove:true,mouseWheel:true,pinch:true},kineticScroll:{mouse:true,touch:true},watermark:{visible:true,fontSize:42,horzAlign:'center',vertAlign:'center',color:css('--q-chart-watermark','rgba(114,15,50,.055)'),text:`QELLY · ${symbol}`}});
-    const candles=addCandles(chart,lib,{upColor:'#16a36a',downColor:'#df4963',wickUpColor:'#16a36a',wickDownColor:'#df4963',borderVisible:false,priceLineVisible:true,lastValueVisible:true});
-    const volume=addHistogram(chart,lib,{priceFormat:{type:'volume'},priceScaleId:'volume',color:css('--q-accent','#7a1238'),lastValueVisible:false,priceLineVisible:false});
-    chart.priceScale('volume').applyOptions({scaleMargins:{top:.82,bottom:0}});
-    const ma=addLine(chart,lib,{color:'#d39524',lineWidth:2,priceLineVisible:false,lastValueVisible:false,title:'SMA 20'});
-    const normalized=points.map(point=>({time:Number(point.time),open:Number(point.open),high:Number(point.high),low:Number(point.low),close:Number(point.close)}));
-    candles.setData(normalized);
-    volume.setData(points.map(point=>({time:Number(point.time),value:Number(point.volume),color:Number(point.close)>=Number(point.open)?'rgba(22,163,106,.30)':'rgba(223,73,99,.30)'})));
-    ma.setData(movingAverage(points,20));
-    chart.timeScale().fitContent();
-    if(onCrosshair&&typeof chart.subscribeCrosshairMove==='function')chart.subscribeCrosshairMove((param)=>{const value=param.seriesData?.get?.(candles);if(value)onCrosshair(value);});
-    const resize=()=>chart.applyOptions({width:container.clientWidth||900});
-    const observer=new ResizeObserver(resize);observer.observe(container);
-    return {engine:'TradingView Lightweight Charts',update(point){candles.update(point);volume.update({time:point.time,value:point.volume,color:point.close>=point.open?'rgba(22,163,106,.30)':'rgba(223,73,99,.30)'});},destroy(){observer.disconnect();chart.remove();}};
-  }catch(error){
-    container.innerHTML=fallbackChart(points,symbol,error.message);
-    return {engine:'Qelly SVG fallback',update(){},destroy(){}};
-  }
-}
+  if(!container)return {engine:'Qelly first-party SVG',destroy(){},update(){}};
+  let series=normalize(points),destroyed=false,frame=null;
+  const maxPoints=Math.max(30,series.length||260);
 
-function fallbackChart(points,symbol,reason){
-  const sampled=points.filter((_,index)=>index%Math.max(1,Math.floor(points.length/100))===0);const width=1120,height=500,pad=34;
-  const min=Math.min(...sampled.map(item=>item.low)),max=Math.max(...sampled.map(item=>item.high));const y=value=>pad+(max-value)/(max-min||1)*(height-pad*2);const step=(width-pad*2)/Math.max(1,sampled.length);
-  const candles=sampled.map((bar,index)=>{const x=pad+index*step+step*.5,open=y(bar.open),close=y(bar.close),high=y(bar.high),low=y(bar.low),top=Math.min(open,close),body=Math.max(1,Math.abs(close-open));return `<line x1="${x}" y1="${high}" x2="${x}" y2="${low}" stroke="${bar.close>=bar.open?'#16a36a':'#df4963'}"/><rect x="${x-Math.max(1,step*.28)}" y="${top}" width="${Math.max(2,step*.56)}" height="${body}" rx="1" fill="${bar.close>=bar.open?'#16a36a':'#df4963'}"/>`;}).join('');
-  return `<div class="q-live-fallback"><svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" role="img" aria-label="${symbol} candlestick chart">${candles}</svg><div class="q-chart-fallback-note"><strong>Qelly fallback renderer</strong><span>${reason}</span></div></div>`;
+  const bindCrosshair=()=>{
+    const svg=container.querySelector('[data-qelly-market-svg]');
+    if(!svg)return;
+    const xLine=svg.querySelector('[data-qelly-crosshair-x]'),yLine=svg.querySelector('[data-qelly-crosshair-y]');
+    const width=1120,padLeft=56,padRight=74,padTop=28,priceBottom=392,plotWidth=width-padLeft-padRight;
+    const min=Math.min(...series.map((point)=>point.low)),max=Math.max(...series.map((point)=>point.high)),range=Math.max(max-min,Math.abs(max)*0.00001,1e-9);
+    const y=(value)=>padTop+((max-value)/range)*(priceBottom-padTop);
+    svg.addEventListener('pointermove',(event)=>{
+      if(!series.length)return;
+      const rect=svg.getBoundingClientRect();
+      if(!rect.width)return;
+      const localX=(event.clientX-rect.left)/rect.width*width;
+      const ratio=Math.max(0,Math.min(0.999999,(localX-padLeft)/plotWidth));
+      const index=Math.min(series.length-1,Math.max(0,Math.floor(ratio*series.length)));
+      const bar=series[index],x=padLeft+(index+.5)*(plotWidth/series.length),cy=y(bar.close);
+      xLine?.setAttribute('x1',String(x));xLine?.setAttribute('x2',String(x));xLine?.setAttribute('visibility','visible');
+      yLine?.setAttribute('y1',String(cy));yLine?.setAttribute('y2',String(cy));yLine?.setAttribute('visibility','visible');
+      if(typeof onCrosshair==='function')onCrosshair(bar);
+    });
+    svg.addEventListener('pointerleave',()=>{xLine?.setAttribute('visibility','hidden');yLine?.setAttribute('visibility','hidden');});
+  };
+
+  const render=()=>{if(destroyed)return;container.innerHTML=chartMarkup(series,symbol);bindCrosshair();};
+  const schedule=()=>{if(frame!==null)return;const run=()=>{frame=null;render();};frame=typeof requestAnimationFrame==='function'?requestAnimationFrame(run):setTimeout(run,0);};
+  render();
+
+  return {
+    engine:'Qelly first-party SVG',
+    interval,
+    update(point){
+      const normalized=normalize([point])[0];
+      if(!normalized||destroyed)return;
+      if(series.length&&series.at(-1).time===normalized.time)series[series.length-1]=normalized;else series.push(normalized);
+      if(series.length>maxPoints)series=series.slice(-maxPoints);
+      schedule();
+    },
+    destroy(){
+      destroyed=true;
+      if(frame!==null){if(typeof cancelAnimationFrame==='function')cancelAnimationFrame(frame);else clearTimeout(frame);frame=null;}
+      container.replaceChildren();
+    }
+  };
 }
