@@ -5,8 +5,9 @@ import {
   synchronizePublicAuthEmailArtifacts
 } from '../scripts/enable-public-auth-email.mjs';
 
-test('public auth email capability defaults on only for required connected runtime',()=>{
-  assert.equal(shouldEnablePublicAuthEmail({QELLY_REQUIRE_PUBLIC_RUNTIME:'true'}),true);
+test('public auth email capability activates only for explicit required connected runtime',()=>{
+  assert.equal(shouldEnablePublicAuthEmail({QELLY_REQUIRE_PUBLIC_RUNTIME:'true',QELLY_ENABLE_AUTH_EMAIL_DELIVERY:'true'}),true);
+  assert.equal(shouldEnablePublicAuthEmail({QELLY_REQUIRE_PUBLIC_RUNTIME:'true'}),false);
   assert.equal(shouldEnablePublicAuthEmail({QELLY_REQUIRE_PUBLIC_RUNTIME:'true',QELLY_ENABLE_AUTH_EMAIL_DELIVERY:'false'}),false);
   assert.equal(shouldEnablePublicAuthEmail({QELLY_REQUIRE_PUBLIC_RUNTIME:'false',QELLY_ENABLE_AUTH_EMAIL_DELIVERY:'true'}),false);
 });
