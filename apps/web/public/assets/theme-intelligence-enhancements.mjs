@@ -54,7 +54,7 @@ const originalApply=controller.apply.bind(controller);
 controller.snapshot=function(){return {config:structuredClone(this.config),tokens:resolveTokens(this.config),audit:tokenContrastAudit(this.config)};};
 controller.schedule=function(){clearTimeout(this.timer);if(this.config.appearance==='scheduled')this.timer=setTimeout(()=>this.apply(this.config),60_000);};
 controller.apply=function(input=this.config,{preview=false,persist=false}={}){
-  const requested=core.migrateThemeConfig(input),appearance=resolveAppearance(requested);
+  const requested=core.migrateThemeConfig({...this.config,...input}),appearance=resolveAppearance(requested);
   originalApply({...requested,appearance},{preview,persist:false});
   this.config=requested;
   const root=document.documentElement;

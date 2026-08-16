@@ -6,9 +6,11 @@ const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 
 test('application shell does not preload or await a nonexistent bundled font',async()=>{
   const index=await read('apps/web/public/index.html');
+  const appReady=await read('apps/web/public/assets/qelly-app-ready.mjs');
   assert.doesNotMatch(index,/assets\/fonts\/ibm-plex-sans-variable\.woff2/);
-  assert.doesNotMatch(index,/document\.fonts\?\.load\([^)]*Qelly IBM Plex Sans/);
-  assert.match(index,/document\.fonts\?\.ready\?\?Promise\.resolve\(\)/);
+  assert.match(index,/assets\/qelly-app-ready\.mjs/);
+  assert.doesNotMatch(appReady,/document\.fonts\?\.load\([^)]*Qelly IBM Plex Sans/);
+  assert.match(appReady,/document\.fonts\?\.ready\?\?Promise\.resolve\(\)/);
 });
 
 test('screen evidence authenticates through an explicit local fixture identity',async()=>{

@@ -22,6 +22,14 @@ test('every executable route has a governed domain and page-shell kind',()=>{
   assert.ok(routeDefinitions.every((route)=>kinds.has(route.kind)));
 });
 
+test('checked-in route inventory matches every authoritative registered route',async()=>{
+  const csv=await read('QELLY_ROUTE_INVENTORY.csv');
+  const inventoryRoutes=csv.split(/\r?\n/).slice(1).map((line)=>line.match(/^"\d+","#\/([^"]+)"/)?.[1]).filter(Boolean);
+  const registeredRoutes=routeDefinitions.map((item)=>item.route);
+  assert.equal(inventoryRoutes.length,registeredRoutes.length);
+  assert.deepEqual(new Set(inventoryRoutes),new Set(registeredRoutes));
+});
+
 test('personas define operating behavior beyond theme color',()=>{
   assert.equal(PERSONA_PROFILES.length,6);
   for(const persona of PERSONA_PROFILES){

@@ -55,7 +55,9 @@ test('Data Mesh enhancement participates in app-ready gating and governed respon
   const index=await read(INDEX);
   const responsive=await read(RESPONSIVE);
   assert.match(index,/assets\/routes\/data-mesh-enhancement\.mjs/);
-  assert.match(index,/window\.__qellyDataMeshEnhancementReady\?\?Promise\.resolve\(\)/);
+  const appReady=await readFile(new URL('../apps/web/public/assets/qelly-app-ready.mjs',import.meta.url),'utf8');
+  assert.match(index,/assets\/qelly-app-ready\.mjs/);
+  assert.match(appReady,/window\.__qellyDataMeshEnhancementReady\?\?Promise\.resolve\(\)/);
   assert.match(responsive,/'data-mesh'/);
   for(const width of [360,390,430,768,1024,1280,1440,1728,1920]){
     assert.ok(responsive.includes(String(width)),`missing governed viewport ${width}`);

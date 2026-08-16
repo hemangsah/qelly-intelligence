@@ -19,10 +19,10 @@ export function hardenIndexHtml(source){
   let html=String(source);
   const themePattern=/<script>\s*\(\(\)=>\{[\s\S]*?root\.dataset\.themeReady='true';[\s\S]*?<\/script>/;
   const readinessPattern=/<script type="module">\s*const root=document\.documentElement;[\s\S]*?finally\{reveal\(\);\}\s*<\/script>/;
-  if(!themePattern.test(html))throw new Error('Qelly prepaint inline bootstrap was not found');
-  if(!readinessPattern.test(html))throw new Error('Qelly app-ready inline bootstrap was not found');
-  html=html.replace(themePattern,'<script src="./assets/qelly-prepaint-bootstrap.js"></script>');
-  html=html.replace(readinessPattern,'');
+  const prepaintScript='<script src="./assets/qelly-prepaint-bootstrap.js"></script>';
+  if(themePattern.test(html))html=html.replace(themePattern,prepaintScript);
+  else if(!html.includes(prepaintScript))throw new Error('Qelly prepaint bootstrap was not found');
+  if(readinessPattern.test(html))html=html.replace(readinessPattern,'');
   const configScript='  <script src="./qelly-config.js"></script>';
   const readyScript='  <script type="module" src="./assets/qelly-app-ready.mjs"></script>';
   if(!html.includes(configScript))throw new Error('Qelly runtime config script was not found');

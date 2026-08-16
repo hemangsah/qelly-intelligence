@@ -30,6 +30,16 @@ test('Release A1 signed session cookies reject tampering',()=>{
   const issued=issueSessionToken(secret);assert.equal(verifySignedSession(issued.signed,secret),issued.token);assert.equal(verifySignedSession(`${issued.signed}x`,secret),null);assert.match(serializeSessionCookie(issued.signed,{secure:true}),/HttpOnly/);assert.match(serializeSessionCookie(issued.signed,{secure:true}),/Secure/);
 });
 
+test('SQLite production repository shutdown is idempotent',async()=>{
+  const dir=await temp();
+  try{
+    const repository=new SqliteProductionRepository({filePath:path.join(dir,'shutdown.sqlite')});
+    repository.close();
+    repository.close();
+    assert.equal(repository.closed,true);
+  }finally{await rm(dir,{recursive:true,force:true});}
+});
+
 test('SQLite development repository creates tenant-scoped registration transaction',async()=>{
   const repo=new SqliteProductionRepository();
   try{

@@ -44,5 +44,7 @@ test('application shell loads and awaits the Discovery enhancement before first 
   const html = await readFile(indexPath, 'utf8');
   assert.match(html, /assets\/routes\/discovery-hub-enhancement\.css/);
   assert.match(html, /assets\/routes\/discovery-hub-enhancement\.mjs/);
-  assert.match(html, /window\.__qellyDiscoveryEnhancementReady\?\?Promise\.resolve\(\)/);
+  const appReady=await readFile(new URL('../apps/web/public/assets/qelly-app-ready.mjs',import.meta.url),'utf8');
+  assert.match(html, /assets\/qelly-app-ready\.mjs/);
+  assert.match(appReady, /window\.__qellyDiscoveryEnhancementReady\?\?Promise\.resolve\(\)/);
 });

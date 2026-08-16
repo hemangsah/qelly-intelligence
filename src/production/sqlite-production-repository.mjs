@@ -142,7 +142,7 @@ CREATE TABLE IF NOT EXISTS migration_history(
 export class SqliteProductionRepository{
   constructor({filePath=':memory:'}={}){
     if(filePath!==':memory:')mkdirSync(path.dirname(filePath),{recursive:true});
-    this.filePath=filePath; this.db=new DatabaseSync(filePath); this.db.exec(SCHEMA); this.ensureReleaseA5Schema();
+    this.filePath=filePath; this.db=new DatabaseSync(filePath); this.closed=false; this.db.exec(SCHEMA); this.ensureReleaseA5Schema();
   }
   ensureReleaseA5Schema(){
     const additions=[
@@ -153,7 +153,7 @@ export class SqliteProductionRepository{
     for(const statement of additions){try{this.db.exec(statement);}catch(error){if(!String(error.message).toLowerCase().includes('duplicate column'))throw error;}}
     this.db.exec(`UPDATE secure_imports SET updated_at=COALESCE(updated_at,created_at)`);
   }
-  close(){this.db.close();}
+  close(){if(this.closed)return;this.db.close();this.closed=true;}
   async health(){
     try{const row=this.db.prepare('SELECT 1 AS ok').get();return {ok:row.ok===1,driver:'sqlite-development',filePath:this.filePath};}
     catch(error){return {ok:false,driver:'sqlite-development',error:error.message};}

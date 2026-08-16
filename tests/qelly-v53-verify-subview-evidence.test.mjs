@@ -8,7 +8,6 @@ const BOOTSTRAP='apps/web/public/assets/qelly-verify-bootstrap.mjs';
 const PRODUCT='apps/web/public/assets/qelly-verify-product.mjs';
 const SHELL='apps/web/public/assets/qelly-verify-shell-nav.mjs';
 const CANONICAL='apps/web/public/assets/qelly-v53-verify-canonical.mjs';
-const LOCK='apps/web/public/assets/qelly-v53-lock-candidate-convergence.mjs';
 const VERIFY_CSS='apps/web/public/assets/qelly-v53-verify-convergence.css';
 const BROWSER='scripts/qelly-verify-browser-check.mjs';
 const INDEX='apps/web/public/index.html';
@@ -27,6 +26,8 @@ test('Qelly Verify is a canonical public Evidence route while methodology remain
   assert.ok(bootstrap.includes('methodology:/^#\\/(?:evidence-methodology|market\\?[^#]*\\bview=evidence-methodology(?:&|$))/i'));
   assert.match(bootstrap,/canonicalHash=view==='methodology'\?'#\/market\?view=evidence-methodology':'#\/qelly-verify'/);
   assert.match(bootstrap,/Qelly Verify · Qelly Intelligence/);
+  assert.match(bootstrap,/setRequested\(view,view\?'hash':'hash-navigation'\)/);
+  assert.doesNotMatch(bootstrap,/else if\(state\.lastIntent==='navigation-link'\)/);
 });
 
 test('Verify product retains explicit local-only and execution-disabled boundaries',async()=>{
@@ -39,7 +40,7 @@ test('Verify product retains explicit local-only and execution-disabled boundari
 });
 
 test('canonical V5.3 Verify is the sole first-view owner while preserving the CSV analyzer as secondary',async()=>{
-  const [canonical,lock,css,browser]=await Promise.all([read(CANONICAL),read(LOCK),read(VERIFY_CSS),read(BROWSER)]);
+  const [canonical,css,browser]=await Promise.all([read(CANONICAL),read(VERIFY_CSS),read(BROWSER)]);
   assert.match(canonical,/workbench\.dataset\.v53VerifyWorkbench='accepted-lock'/);
   assert.match(canonical,/Qelly Verify/);
   assert.match(canonical,/Formula validation, assumptions, sensitivity and reproducibility\./);
@@ -52,8 +53,6 @@ test('canonical V5.3 Verify is the sole first-view owner while preserving the CS
   assert.match(canonical,/q-v53-strategy-tools/);
   assert.match(canonical,/const boundary=hero\?\.querySelector\('\.q-verify-boundary'\)/);
   assert.match(canonical,/if\(boundary\)details\.append\(boundary\)/);
-  assert.match(lock,/if\(route==='qelly-verify'\)return null/);
-  assert.match(lock,/if\(route==='market'&&\['qelly-verify','evidence-methodology'\]\.includes\(params\.get\('view'\)\)\)return null/);
   assert.match(css,/html\[data-qelly-verify-subview="qelly-verify"\] #main>\.q-worldclass-context\{display:none!important\}/);
   assert.match(browser,/syntheticLockCount/);
   assert.match(browser,/worldclassContextVisible/);

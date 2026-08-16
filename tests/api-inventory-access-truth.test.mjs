@@ -60,13 +60,15 @@ test('canonical request matcher resolves exact and template public paths while f
     '/api/v1/public/markets/assets/btc',
     '/api/v1/public/markets/assets/btc/candles',
     '/api/v1/calculations/formulas/black-scholes',
-    '/api/v1/indicators/rsi'
+    '/api/v1/indicators/rsi',
+    '/api/v1/platform/capabilities',
+    '/api/v1/providers/status',
+    '/api/v1/providers/ecb'
   ])assert.equal(isPublicApiRequestPath(pathname),true,pathname);
 
   for(const pathname of [
     '/api/v1/calculations/saved',
     '/api/v1/calculations/saved/calc-1',
-    '/api/v1/providers/status',
     '/api/v1/providers/execute',
     '/api/v1/unknown',
     '/api/v1/public/markets/assets/btc/candles/extra'

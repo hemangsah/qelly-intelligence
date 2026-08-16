@@ -15,6 +15,7 @@ const publicTruthState=(state)=>({
   delayed:'delayed',
   stale:'stale'
 }[String(state||'')]||'unavailable');
+const readMethod=(method)=>['GET','HEAD'].includes(String(method||'').toUpperCase());
 
 const publicProviderEnvelope=(result,provider)=>{
   const sourceProvider=String(result?.provider||provider);
@@ -86,22 +87,22 @@ export async function route(context){
   if(!authRuntime.capabilities.emailDelivery&&method==='POST'&&['auth/register','auth/recovery/request'].includes(path))throw new HttpError(503,'auth_email_delivery_unavailable','Account creation and email recovery are temporarily unavailable until transactional email delivery is proven.',{retryable:false});
   const auth=await handleAuth(context,path,method);
   if(auth)return auth;
-  if(path==='platform/capabilities'&&method==='GET'){
+  if(path==='platform/capabilities'&&readMethod(method)){
     await enforceRateLimit(env,`public-capability-inventory:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:60});
     return responseJson(request,env,capabilityInventory(),200,{cache:'no-store'});
   }
-  if(path==='providers/status'&&method==='GET'){
+  if(path==='providers/status'&&readMethod(method)){
     await enforceRateLimit(env,`public-provider-status:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:60});
     return responseJson(request,env,{providers:providerCatalog(),releaseSha:publicRuntimeConfig(env,request.url).releaseSha});
   }
-  if(segments[0]==='providers'&&['binance','coinbase','ecb'].includes(segments[1])&&method==='GET'){
+  if(segments[0]==='providers'&&['binance','coinbase','ecb'].includes(segments[1])&&readMethod(method)){
     await enforceRateLimit(env,`public-provider:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:60});
     const provider=segments[1];
     const capability=url.searchParams.get('capability')||(provider==='ecb'?'fx-reference-rates':'quote');
     const symbol=url.searchParams.get('symbol')||(provider==='binance'?'BTCUSDT':provider==='coinbase'?'BTC-USD':'EUR');
     return responseJson(request,env,await providerResult(context,provider,capability,symbol,Object.fromEntries(url.searchParams)),200,{cache:'public, max-age=5'});
   }
-  if(path==='market/overview'&&method==='GET'){
+  if(path==='market/overview'&&readMethod(method)){
     await enforceRateLimit(env,`public-market-overview:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:60});
     return publicMarketOverview(context);
   }
@@ -142,4 +143,4 @@ export async function onRequest(context){
 }
 
 export {publicRuntimeConfig} from '../../_lib/runtime.js';
-export const __test=Object.freeze({route,stableUuid,validateJwtClaims,publicTruthState,publicProviderEnvelope,...__dataTest});
+export const __test=Object.freeze({route,stableUuid,validateJwtClaims,publicTruthState,publicProviderEnvelope,readMethod,...__dataTest});
