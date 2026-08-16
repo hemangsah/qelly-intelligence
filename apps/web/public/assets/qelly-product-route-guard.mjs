@@ -1,4 +1,5 @@
 import './qelly-external-market-surfaces.mjs';
+import './routes/public-market-v7.mjs';
 
 const main=document.getElementById('main');
 const cache=new Map();
