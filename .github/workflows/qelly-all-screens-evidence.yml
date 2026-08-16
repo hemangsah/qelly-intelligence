@@ -37,7 +37,8 @@ jobs:
       QELLY_PUBLIC_SITE_URL: https://qelly-intelligence.pages.dev
       QELLY_PUBLIC_SUPABASE_URL: https://ssdgfgqnjlwzkgukzeef.supabase.co
       QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_shape_only_012345678901234567890123456789
-      QELLY_DEPLOYMENT_ENVIRONMENT: cloudflare-pages-production-evidence
+      QELLY_DEPLOYMENT_ENVIRONMENT: production
+      QELLY_EVIDENCE_CONTEXT: cloudflare-pages-production
       QELLY_ENABLE_AUTH: 'true'
       QELLY_ENABLE_AUTH_EMAIL_DELIVERY: 'false'
       QELLY_ENABLE_CLOUD_SYNC: 'true'
