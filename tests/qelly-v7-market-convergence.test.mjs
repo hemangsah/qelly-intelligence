@@ -38,20 +38,20 @@ test('public recovery never invents market observations or deterministic crypto 
   assert.doesNotMatch(source,/demoAssets|\$42,500|\$2,280|\$98\.40|\$312\.60|deterministic public market recovery/i);
 });
 
-test('live market compatibility contract keeps provider-specific intervals, symbols and asset route',async()=>{
-  const [service,route,ui]=await Promise.all([
+test('legacy live-market API preserves provider-specific contracts while the public UI uses the network aggregator',async()=>{
+  const [service,route,wrapper,ui]=await Promise.all([
     read('functions/_lib/live-markets.js'),
     read('functions/api/v1/live-markets/[[route]].js'),
-    read('apps/web/public/assets/routes/live-markets.mjs')
+    read('apps/web/public/assets/routes/live-markets.mjs'),
+    read('apps/web/public/assets/routes/market-network.mjs')
   ]);
   assert.match(service,/binance:Object\.freeze\(\['1m','5m','15m','30m','1h','4h','1d'\]\)/);
   assert.match(service,/coinbase:Object\.freeze\(\['1m','5m','15m','1h','6h','1d'\]\)/);
   assert.doesNotMatch(service,/coinbase:Object\.freeze\([^\n]*'4h'/);
   assert.match(route,/routeName==='asset'/);
   assert.match(route,/liveMarketAsset/);
-  assert.match(ui,/Provider symbol/);
-  assert.match(ui,/Provider interval/);
-  assert.match(ui,/selected\.symbols/);
-  assert.match(ui,/selected\.intervals/);
-  assert.match(ui,/\/api\/v1\/live-markets\/candles\?provider=/);
+  assert.match(wrapper,/renderGlobalMarketNetwork/);
+  assert.match(ui,/\/api\/v1\/market\/network/);
+  assert.match(ui,/Coinbase \/ Binance blocked/);
+  assert.doesNotMatch(ui,/\/api\/v1\/live-markets\/candles\?provider=/);
 });
