@@ -9,3 +9,23 @@ html[data-production-system="v8"] #main textarea{padding:10px 11px!important;bor
 html[data-production-system="v8"] #main select option{background:var(--q-surface)!important;color:var(--q-text)!important}
 html[data-production-system="v8"][data-resolved-appearance="dark"] #main :where(input,select,textarea),html[data-production-system="v8"][data-appearance="dark"] #main :where(input,select,textarea){color-scheme:dark!important}
 html[data-production-system="v8"][data-resolved-appearance="light"] #main :where(input,select,textarea),html[data-production-system="v8"][data-appearance="light"] #main :where(input,select,textarea){color-scheme:light!important}
+
+/* Calculator + indicator evidence strips stay horizontal and readable. */
+html[data-production-system="v8"] #main .q-v6-quant-kpis{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:0!important;width:100%!important;margin:0 0 var(--q-route-gap)!important;overflow:hidden!important;border:1px solid var(--q-border)!important;border-radius:10px!important;background:var(--q-surface)!important}
+html[data-production-system="v8"] #main .q-v6-quant-kpis>div{display:block!important;min-width:0!important;width:auto!important;min-height:84px!important;padding:13px 14px!important;border:0!important;border-right:1px solid var(--q-border)!important;writing-mode:horizontal-tb!important;overflow:hidden!important}
+html[data-production-system="v8"] #main .q-v6-quant-kpis>div:last-child{border-right:0!important}
+html[data-production-system="v8"] #main .q-v6-quant-kpis>div>*{display:block!important;position:static!important;width:auto!important;max-width:100%!important;writing-mode:horizontal-tb!important;word-break:normal!important;overflow-wrap:normal!important;text-orientation:mixed!important}
+html[data-production-system="v8"] #main .q-v6-quant-kpis strong{margin:5px 0 2px!important;font-size:20px!important;line-height:1.12!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+html[data-production-system="v8"] #main .q-v6-quant-kpis span,html[data-production-system="v8"] #main .q-v6-quant-kpis small{font-size:11px!important;line-height:1.35!important}
+html[data-production-system="v8"] #main .q-v6-quant-method-strip{display:flex!important;flex-wrap:wrap!important;gap:6px!important;margin-top:10px!important}
+html[data-production-system="v8"] #main .q-v6-quant-method-strip span{display:inline-flex!important;align-items:center!important;min-height:24px!important;padding:3px 7px!important;font-size:10px!important;white-space:nowrap!important}
+html[data-production-system="v8"] #main .q-calculator-card__footer{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;min-width:0!important}
+html[data-production-system="v8"] #main .q-calculator-card__footer>span:first-child{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+html[data-production-system="v8"] #main .q-calculator-card__footer strong{flex:0 0 auto!important;white-space:nowrap!important}
+html[data-production-system="v8"] #main :where(.q-calculator-library-disclosure,.q-indicator-library-disclosure)>summary{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:18px!important;min-height:72px!important;padding:13px 16px!important}
+html[data-production-system="v8"] #main :where(.q-calculator-library-disclosure__copy,.q-indicator-library-disclosure__copy){display:grid!important;gap:3px!important;min-width:0!important}
+html[data-production-system="v8"] #main :where(.q-calculator-library-disclosure__copy,.q-indicator-library-disclosure__copy)>*{display:block!important;margin:0!important}
+html[data-production-system="v8"] #main :where(.q-calculator-library-disclosure__action,.q-indicator-library-disclosure__action){flex:0 0 auto!important;white-space:nowrap!important}
+
+@media(max-width:1100px){html[data-production-system="v8"] #main .q-v6-quant-kpis{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:700px){html[data-production-system="v8"] #main .q-v6-quant-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}html[data-production-system="v8"] #main :where(.q-calculator-library-disclosure,.q-indicator-library-disclosure)>summary{align-items:flex-start!important}}
