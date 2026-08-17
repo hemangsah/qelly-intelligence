@@ -40,7 +40,7 @@ jobs:
       QELLY_DEPLOYMENT_ENVIRONMENT: production
       QELLY_EVIDENCE_CONTEXT: cloudflare-pages-production
       QELLY_ENABLE_AUTH: 'true'
-      QELLY_ENABLE_AUTH_EMAIL_DELIVERY: 'false'
+      QELLY_ENABLE_AUTH_EMAIL_DELIVERY: 'true'
       QELLY_ENABLE_CLOUD_SYNC: 'true'
       QELLY_ENABLE_LIVE_PROVIDERS: 'true'
       QELLY_ENABLE_FEEDBACK_WRITES: 'true'
@@ -88,6 +88,7 @@ jobs:
           npm run build:frontend
           test -s dist/frontend/index.html
           test -s dist/frontend/qelly-config.js
+          grep -F '"emailDelivery":true' dist/frontend/qelly-config.js
           grep -F "renderGovernedUnavailable" dist/frontend/assets/app.js
           grep -F "renderGovernedConverterV2" dist/frontend/assets/app.js
           grep -F "renderGovernedTrustCenterV2" dist/frontend/assets/app.js
