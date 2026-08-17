@@ -5,8 +5,9 @@ const main=document.getElementById('main');
 const CUSTOMER_ROUTES=new Set([
   'feature-universe','market','asset-rankings','asset','calculator-center','india-finance',
   'indicator-library','formula-library','saved-calculations','qelly-verify','about-qelly',
-  'auth-login','auth-register','auth-recovery','account-session','watchlist','news-research'
+  'auth-login','auth-register','auth-recovery','account-session','watchlist','news-research','live-markets'
 ]);
+const ACCESS_ROUTES=new Set(['auth-login','auth-register','auth-recovery']);
 const ADMIN_ROUTES=new Set([
   'identity-access','data-mesh','instrument-master','timeseries-lab','stream-operations',
   'observability','migration-center','platform-readiness','delivery-operations','secret-rotation',
@@ -57,6 +58,36 @@ function normalizeCustomerCopy(scope=document){
   }
 }
 
+function syncAppearanceButton(button=document.querySelector('[data-v8-appearance]')){
+  if(!button)return;
+  const resolved=root.dataset.resolvedAppearance||root.dataset.appearance||'dark';
+  const next=resolved==='light'?'Dark':'Light';
+  button.setAttribute('aria-label',`Switch to ${next.toLowerCase()} appearance`);
+  button.setAttribute('title',`Switch to ${next.toLowerCase()} appearance`);
+  button.setAttribute('aria-pressed',String(resolved==='light'));
+  button.dataset.resolvedAppearance=resolved;
+  button.innerHTML=`<span aria-hidden="true">◐</span><span>${next}</span>`;
+}
+
+function setAccessHeaderMode(header,access){
+  const search=header.querySelector('.q-product-search');
+  const account=header.querySelector('.q-product-account');
+  const systemButtons=[...header.querySelectorAll('.q-product-system:not([data-v8-appearance])')];
+  if(access){
+    header.dataset.accessShell='compact';
+    header.style.setProperty('grid-template-columns','auto minmax(0,1fr) auto','important');
+    search?.style.setProperty('display','none','important');
+    account?.style.setProperty('display','none','important');
+    systemButtons.forEach((node)=>node.style.setProperty('display','none','important'));
+  }else{
+    delete header.dataset.accessShell;
+    header.style.removeProperty('grid-template-columns');
+    search?.style.removeProperty('display');
+    account?.style.removeProperty('display');
+    systemButtons.forEach((node)=>node.style.removeProperty('display'));
+  }
+}
+
 function simplifyHeader(){
   document.querySelector('.q-v53-product-status')?.remove();
   const header=document.querySelector('.q-product-header');
@@ -72,7 +103,7 @@ function simplifyHeader(){
   const search=header.querySelector('#q-product-search-input');
   if(search)search.placeholder='Search markets, assets and tools';
   const system=header.querySelector('.q-product-system span:last-child');
-  if(system)system.textContent='Data status';
+  if(system&&!system.closest('[data-v8-appearance]'))system.textContent='Data status';
   const account=header.querySelector('.q-product-account');
   if(account&&account.getAttribute('href')?.includes('auth-login')){
     account.innerHTML='<span aria-hidden="true">●</span><span>Sign in</span>';
@@ -84,17 +115,25 @@ function simplifyHeader(){
     button.type='button';
     button.className='q-product-system';
     button.dataset.v8Appearance='true';
-    button.setAttribute('aria-label','Open appearance settings');
-    button.innerHTML='<span aria-hidden="true">◐</span><span>Appearance</span>';
-    button.addEventListener('click',()=>{location.hash='#/theme-lab';});
+    button.addEventListener('click',async()=>{
+      button.disabled=true;
+      try{
+        if(window.QellyThemeStudio?.toggleAppearance)await window.QellyThemeStudio.toggleAppearance({notify:false});
+        else location.hash='#/theme-lab';
+      }finally{button.disabled=false;syncAppearanceButton(button);}
+    });
     actions.insertBefore(button,account||null);
   }
+  syncAppearanceButton(actions?.querySelector('[data-v8-appearance]'));
+  setAccessHeaderMode(header,ACCESS_ROUTES.has(routeName()));
 }
 
 function annotateRoute(){
   const route=routeName();
+  const access=ACCESS_ROUTES.has(route);
   root.dataset.productionRoute=route;
   root.dataset.productionArea=ADMIN_ROUTES.has(route)?'admin':CUSTOMER_ROUTES.has(route)?'customer':'workspace';
+  root.dataset.productionAccess=String(access);
   main?.setAttribute('data-production-route',route);
   if(!main)return;
   const page=main.querySelector('.q-page');
@@ -116,8 +155,8 @@ function annotateRoute(){
 
 function refresh(scope=document){
   ensureCanonicalStylesheetLast();
-  simplifyHeader();
   annotateRoute();
+  simplifyHeader();
   normalizeCustomerCopy(scope);
   root.dataset.productionSystem='v8';
 }
@@ -130,6 +169,7 @@ const schedule=(scope=document)=>{
 };
 
 window.addEventListener('hashchange',()=>schedule(main||document));
+document.addEventListener('qelly:appearance-changed',()=>syncAppearanceButton());
 if(main)new MutationObserver(()=>schedule(main)).observe(main,{childList:true,subtree:true});
 new MutationObserver(()=>schedule(document)).observe(document.querySelector('#app')||document.body,{childList:true,subtree:true});
 new MutationObserver(()=>schedule(document)).observe(document.head,{childList:true});

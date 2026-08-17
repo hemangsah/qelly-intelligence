@@ -64,7 +64,7 @@ const routes = [
   { section:'Security', route:'secret-rotation', label:'Secret Rotation', icon:icon('rotate'), meta:'A5' },
   { section:'Operations', route:'quarantine-review', label:'Quarantine Review', icon:icon('quarantine'), meta:'A5' },
   { section:'Operations', route:'staging-assurance', label:'Staging Assurance', icon:icon('check'), meta:'A5' },
-  { section:'Live', route:'live-markets', label:'Live Market Command', icon:icon('activity'), meta:'P22' },
+  { section:'Live', route:'live-markets', label:'Global Market Network', icon:icon('activity'), meta:'P22', public:true },
   { section:'Tools', route:'calculator-center', label:'Quant Calculator Center', icon:icon('calculator'), meta:'W1', public:true },
   { section:'Tools', route:'india-finance', label:'India Finance & SIP', icon:icon('calculator'), meta:'W1', public:true },
   { section:'Tools', route:'indicator-library', label:'Indicator Library', icon:icon('chart'), meta:'W1', public:true },

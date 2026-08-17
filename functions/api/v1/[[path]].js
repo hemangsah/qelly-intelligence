@@ -3,6 +3,7 @@ import {handleAuth} from '../../_lib/auth.js';
 import {handleData,__dataTest} from '../../_lib/data.js';
 import {providerCatalog,providerResult} from '../../_lib/providers.js';
 import {capabilityInventory,matchUnavailableCapability} from '../../_lib/capability-registry.js';
+import {buildExternalMarketNetwork} from '../../_lib/market-network.js';
 
 const publicTruthState=(state)=>({
   live_provider:'live',
@@ -75,6 +76,20 @@ const publicMarketOverview=async(context)=>{
   },200,{cache:'public, max-age=5, stale-while-revalidate=20'});
 };
 
+const publicMarketNetwork=async(context)=>{
+  const {request,env}=context;
+  const [external,ecbEntry]=await Promise.all([
+    buildExternalMarketNetwork(),
+    providerResult(context,'ecb','fx-reference-rates','EUR',{}).then((value)=>publicProviderEnvelope(value,'ecb')).catch((error)=>publicProviderEnvelope({provider:'ecb',truthState:'unavailable',data:null,observedAt:null,ingestedAt:new Date().toISOString(),attribution:'European Central Bank',fallbackReason:error.message},'ecb'))
+  ]);
+  return responseJson(request,env,{
+    ...external,
+    sources:{...external.sources,ecb:ecbEntry},
+    providerPolicy:{binance:'rights_blocked_or_unverified',coinbase:'rights_blocked_or_unverified',ecb:'governed_reference_data'},
+    releaseSha:publicRuntimeConfig(env,request.url).releaseSha
+  },200,{cache:'public, max-age=0, s-maxage=90, stale-while-revalidate=900'});
+};
+
 export async function route(context){
   const {request,env}=context;
   const url=new URL(request.url);
@@ -105,6 +120,10 @@ export async function route(context){
   if(path==='market/overview'&&readMethod(method)){
     await enforceRateLimit(env,`public-market-overview:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:60});
     return publicMarketOverview(context);
+  }
+  if(path==='market/network'&&readMethod(method)){
+    await enforceRateLimit(env,`public-market-network:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:30});
+    return publicMarketNetwork(context);
   }
 
   const session=await resolveSession(request,env,{required:true});
@@ -143,4 +162,4 @@ export async function onRequest(context){
 }
 
 export {publicRuntimeConfig} from '../../_lib/runtime.js';
-export const __test=Object.freeze({route,stableUuid,validateJwtClaims,publicTruthState,publicProviderEnvelope,readMethod,...__dataTest});
+export const __test=Object.freeze({route,stableUuid,validateJwtClaims,publicTruthState,publicProviderEnvelope,readMethod,publicMarketNetwork,...__dataTest});

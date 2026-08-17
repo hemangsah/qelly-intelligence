@@ -4,7 +4,8 @@ import {readFile} from 'node:fs/promises';
 import {__liveMarketTest,liveMarketStatus} from '../functions/_lib/live-markets.js';
 
 const routeSource=()=>readFile(new URL('../functions/api/v1/live-markets/[[route]].js',import.meta.url),'utf8');
-const uiSource=()=>readFile(new URL('../apps/web/public/assets/routes/live-markets.mjs',import.meta.url),'utf8');
+const uiSource=()=>readFile(new URL('../apps/web/public/assets/routes/market-network.mjs',import.meta.url),'utf8');
+const wrapperSource=()=>readFile(new URL('../apps/web/public/assets/routes/live-markets.mjs',import.meta.url),'utf8');
 const lockCleanupSource=()=>readFile(new URL('../apps/web/public/assets/qelly-v53-lock-route-cleanup.mjs',import.meta.url),'utf8');
 
 test('unsupported live-market provider stays unavailable and never fabricates observations',()=>{
@@ -19,7 +20,7 @@ test('unsupported live-market provider stays unavailable and never fabricates ob
   assert.equal(result.guardrails.fabricatedObservations,false);
 });
 
-test('Pages route restores all Part 22 live-market endpoints behind authenticated session resolution',async()=>{
+test('Pages route restores all Part 22 live-market compatibility endpoints behind authenticated session resolution',async()=>{
   const source=await routeSource();
   assert.match(source,/resolveSession\(request,env,\{required:true\}\)/);
   assert.match(source,/routeName==='catalog'/);
@@ -30,16 +31,16 @@ test('Pages route restores all Part 22 live-market endpoints behind authenticate
   assert.match(source,/method!=='GET'/);
 });
 
-test('browser market workspace selects only authorized providers and keeps TradingView display-only',async()=>{
-  const source=await uiSource();
-  assert.match(source,/authorized=providers\.filter\(\(provider\)=>provider\.realtimeAuthorized===true&&provider\.enabled===true\)/);
+test('public browser market workspace uses the rights-aware market network and keeps TradingView display-only',async()=>{
+  const [source,wrapper]=await Promise.all([uiSource(),wrapperSource()]);
+  assert.match(wrapper,/renderGlobalMarketNetwork/);
+  assert.match(source,/\/api\/v1\/market\/network/);
   assert.doesNotMatch(source,/coindcx|governed demo|Demonstration watch universe/i);
-  assert.match(source,/rights blocked/);
-  assert.match(source,/No Qelly-generated fallback values/);
-  assert.match(source,/TradingView · isolated display boundary/);
-  assert.match(source,/TradingView values are not read, scraped, persisted or used by Qelly analytics/);
-  assert.match(source,/Provider symbol/);
-  assert.match(source,/Provider interval/);
+  assert.match(source,/Coinbase \/ Binance blocked/);
+  assert.match(source,/No fabricated fallback values/);
+  assert.match(source,/TradingView is an external display boundary/);
+  assert.match(source,/Qelly does not scrape or reuse widget values/);
+  assert.doesNotMatch(source,/\/api\/v1\/live-markets\/candles/);
 });
 
 test('dedicated live-market implementation cannot be covered by the synthetic V5.3 lock candidate',async()=>{
@@ -49,7 +50,7 @@ test('dedicated live-market implementation cannot be covered by the synthetic V5
   assert.match(source,/clearLockState\(\)/);
 });
 
-test('live-market status reflects rights-authorized state instead of configuration fiction',()=>{
+test('legacy live-market status reflects rights-authorized state instead of configuration fiction',()=>{
   const status=liveMarketStatus();
   assert.equal(status.enabled,false);
   assert.equal(status.mode,'unavailable-no-authorized-provider');

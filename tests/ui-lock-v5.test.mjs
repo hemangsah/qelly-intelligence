@@ -35,38 +35,33 @@ test('V5 frontend foundation is loaded after legacy visual layers',async()=>{
   assert.match(motion,/prefers-reduced-motion: reduce/);
 });
 
-test('V5 Live Market Command exposes truthful market and evidence ribbons',async()=>{
-  const [route,marketCss]=await Promise.all([
+test('Global Market Network succeeds the V5 Live Market Command with truthful evidence and no-fabrication semantics',async()=>{
+  const [wrapper,route,networkCss]=await Promise.all([
     read('apps/web/public/assets/routes/live-markets.mjs'),
-    read('apps/web/public/assets/qelly-ui-lock-v5-markets.css')
+    read('apps/web/public/assets/routes/market-network.mjs'),
+    read('apps/web/public/assets/routes/market-network.css')
   ]);
-  for(const phrase of [
-    'q-v5-market-ribbon',
-    'q-v5-evidence-ribbon',
-    'live-evidence-source',
-    'live-evidence-observed',
-    'live-evidence-truth',
-    'Display reuse</span><strong>PROHIBITED',
-    'Execution</span><strong>Disabled',
-    'TradingView values are not read, scraped, persisted or used by Qelly analytics.'
-  ])assert.ok(route.includes(phrase),`missing V5 live-market contract: ${phrase}`);
-  assert.match(route,/Fabricated fallback<\/span><strong>OFF/);
-  assert.match(route,/No Qelly-generated fallback values/);
-  assert.match(route,/Missing internal market data remains visibly unavailable/);
-  assert.doesNotMatch(route,/live-evidence-freshness|const freshness=|const confidence=|governed demo/i);
-  assert.match(marketCss,/grid-template-columns:repeat\(6,minmax\(0,1fr\)\)/);
-  assert.match(marketCss,/scroll-snap-type:x mandatory/);
-  assert.doesNotMatch(route,/confidence[^\n]{0,80}(?:100|95|90|high)/i,'live market must not fabricate confidence');
+  assert.match(wrapper,/renderGlobalMarketNetwork/);
+  for(const phrase of ['Fabricated fallback','Internal execution','Provider provenance','ECB governed FX reference','Official research network','TradingView is an external display boundary'])assert.ok(route.includes(phrase),`missing Global Market Network contract: ${phrase}`);
+  assert.match(route,/>OFF</);
+  assert.match(route,/>DISABLED</);
+  assert.match(route,/No fabricated fallback values/);
+  assert.match(route,/Coinbase \/ Binance blocked/);
+  assert.doesNotMatch(route,/confidence[^\n]{0,80}(?:100|95|90|high)/i,'market network must not fabricate confidence');
+  assert.doesNotMatch(route,/governed demo|simulated-demo|qelly-governed-demo/i);
+  assert.match(networkCss,/\.q-mn-status-grid/);
+  assert.match(networkCss,/@media\(max-width:700px\)/);
 });
 
 test('V5 preserves evidence-first and read-only safety semantics',async()=>{
-  const [lock,css,motion,marketCss]=await Promise.all([
+  const [lock,css,motion,marketCss,network]=await Promise.all([
     read('docs/design/UI_LOCK_V5_APPROVED_2026-08-07.md'),
     read('apps/web/public/assets/qelly-ui-lock-v5.css'),
     read('apps/web/public/assets/qelly-ui-lock-v5.mjs'),
-    read('apps/web/public/assets/qelly-ui-lock-v5-markets.css')
+    read('apps/web/public/assets/qelly-ui-lock-v5-markets.css'),
+    read('apps/web/public/assets/routes/market-network.mjs')
   ]);
   assert.match(lock,/Evidence-first truth model/);
   assert.match(lock,/No-silent-feature-removal rule/);
-  assert.doesNotMatch(`${css}\n${motion}\n${marketCss}`,/place order|execute trade|connect wallet|deposit funds|withdraw funds|swap now/i);
+  assert.doesNotMatch(`${css}\n${motion}\n${marketCss}\n${network}`,/place order|execute trade|connect wallet|deposit funds|withdraw funds|swap now/i);
 });
