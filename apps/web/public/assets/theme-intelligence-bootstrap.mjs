@@ -11,6 +11,14 @@ let authenticated=false;
 let applying=false;
 const apiBase=String(window.__QELLY_CONFIG__?.apiBaseUrl??'').replace(/\/$/,'');
 const apiPath=(pathname)=>apiBase?new URL(pathname,`${apiBase}/`).toString():pathname;
+const LEGACY_THEME_PRESETS=Object.freeze({
+  'burgundy-command':{themeFamily:'sovereign-obsidian',persona:'scalper-velocity',appearance:'dark'},
+  'porcelain-burgundy':{themeFamily:'porcelain-signal',persona:'investor-compound',appearance:'light'},
+  'burgundy-night':{themeFamily:'crimson-vector',persona:'aggressive-alpha',appearance:'dark'},
+  'graphite-terminal':{themeFamily:'obsidian-strike',persona:'quant-operator',appearance:'dark'},
+  'midnight-research':{themeFamily:'monochrome-ledger',persona:'research-oracle',appearance:'dark'},
+  'high-contrast':{themeFamily:'signal-access',persona:'signal-access',appearance:'high-contrast'}
+});
 
 function toast(message,{tone='neutral'}={}){
   let stack=document.querySelector('.q-ti-toast-stack');
@@ -39,6 +47,34 @@ async function persistPreference(patch){
   if(!response.ok)throw new Error((await response.json().catch(()=>null))?.error?.message??`Preference save failed (${response.status})`);
   localState.prefs=await response.json();return localState.prefs;
 }
+async function applyAndPersistTheme(patch,{notify=true}={}){
+  const profile=patch.persona?PERSONAS.find((item)=>item.id===patch.persona):null;
+  const complete={...patch,...(profile&&!patch.mindset?{mindset:profile.mindsets[0]}:{})};
+  themeIntelligence.apply(complete);
+  themeIntelligence.commit();
+  const preference=preferencePatch(themeIntelligence.config);
+  localState.prefs={...localState.prefs,...preference};
+  let persisted=!authenticated;
+  try{await persistPreference(preference);persisted=true;}
+  catch(error){toast(`Appearance changed locally; cloud preference save failed: ${error.message}`,{tone:'warning'});}
+  const detail={appearance:document.documentElement.dataset.resolvedAppearance||document.documentElement.dataset.appearance||themeIntelligence.config.appearance,requestedAppearance:themeIntelligence.config.appearance,themeFamily:themeIntelligence.config.themeFamily,persona:themeIntelligence.config.persona,persisted};
+  document.dispatchEvent(new CustomEvent('qelly:appearance-changed',{detail}));
+  if(notify)toast(`${detail.appearance==='light'?'Light':detail.appearance==='dark'?'Dark':detail.appearance} appearance applied${persisted?'':' locally'}.`,{tone:persisted?'positive':'warning'});
+  return detail;
+}
+async function setAppearance(appearance,options={}){
+  if(!['dark','light','oled','high-contrast','system','scheduled'].includes(String(appearance)))throw new TypeError('Unsupported Qelly appearance');
+  return applyAndPersistTheme({appearance:String(appearance)},options);
+}
+async function toggleAppearance(options={}){
+  const resolved=document.documentElement.dataset.resolvedAppearance||document.documentElement.dataset.appearance||'dark';
+  return setAppearance(resolved==='light'?'dark':'light',options);
+}
+async function applyLegacyThemePreset(value,options={}){
+  const preset=LEGACY_THEME_PRESETS[String(value||'')];
+  if(!preset)return null;
+  return applyAndPersistTheme(preset,options);
+}
 function studioRoute(){return /^#\/theme-lab(?:\/|$)/.test(location.hash);}
 async function mountRoute(){
   if(!studioRoute())return;
@@ -63,12 +99,7 @@ function installLaunchers(){
   if(actions&&!actions.querySelector('[data-ti-launcher]')){
     const button=document.createElement('button');button.type='button';button.className='q-ti-launcher';button.dataset.tiLauncher='true';button.textContent='Theme Studio';button.addEventListener('click',()=>navigate('theme-lab'));actions.prepend(button);
   }
-  document.getElementById('global-theme-selector')?.addEventListener('change',(event)=>{
-    const map={'burgundy-command':'scalper-velocity','porcelain-burgundy':'investor-compound','burgundy-night':'aggressive-alpha','graphite-terminal':'quant-operator','midnight-research':'research-oracle','high-contrast':'signal-access'};
-    const persona=map[event.target.value];if(!persona)return;
-    const profile=PERSONAS.find((item)=>item.id===persona);const patch={persona,mindset:profile?.mindsets[0],...(persona==='aggressive-alpha'?{themeFamily:'crimson-vector'}:{})};
-    themeIntelligence.preview(patch);themeIntelligence.commit();localState.prefs={...localState.prefs,...preferencePatch(themeIntelligence.config)};
-  });
+  document.getElementById('global-theme-selector')?.addEventListener('change',(event)=>{void applyLegacyThemePreset(event.target.value);});
 }
 function installPortalInheritance(){
   const apply=()=>{if(applying)return;applying=true;try{themeIntelligence.apply(themeIntelligence.config);}finally{applying=false;}};
@@ -81,4 +112,5 @@ await hydrateAuthenticatedPreferences();
 installRouteGuard();installLaunchers();installPortalInheritance();
 enhanceThemeIntelligenceVisuals(document);
 if(studioRoute())queueMicrotask(mountRoute);
-window.QellyThemeStudio=Object.freeze({open:()=>navigate('theme-lab'),gallery:()=>navigate('theme-lab','gallery'),compare:()=>navigate('theme-lab','compare')});
+window.QellyThemeStudio=Object.freeze({open:()=>navigate('theme-lab'),gallery:()=>navigate('theme-lab','gallery'),compare:()=>navigate('theme-lab','compare'),setAppearance,toggleAppearance,applyLegacyThemePreset,snapshot:()=>themeIntelligence.snapshot()});
+document.dispatchEvent(new CustomEvent('qelly:appearance-changed',{detail:{appearance:document.documentElement.dataset.resolvedAppearance||document.documentElement.dataset.appearance||themeIntelligence.config.appearance,requestedAppearance:themeIntelligence.config.appearance,themeFamily:themeIntelligence.config.themeFamily,persona:themeIntelligence.config.persona,persisted:authenticated}}));
