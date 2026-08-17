@@ -58,5 +58,19 @@ html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-metrics
 html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-best{margin-bottom:10px!important}
 html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-comparison{margin:0!important}
 
+/* Technical IDs are still available, but only on demand. */
+html[data-production-system="v8"] #main .q-v8-technical-identifiers{margin-top:12px!important;border-top:1px solid var(--q-border)!important;padding-top:10px!important}
+html[data-production-system="v8"] #main .q-v8-technical-identifiers>summary{cursor:pointer!important;color:var(--q-muted)!important;font-size:12px!important}
+html[data-production-system="v8"] #main .q-v8-technical-identifiers dl{margin:10px 0 0!important}
+html[data-production-system="v8"] #main .q-v8-technical-identifiers dd{overflow-wrap:anywhere!important;font-family:ui-monospace,SFMono-Regular,Consolas,monospace!important;font-size:11px!important}
+
+/* External TradingView must fail visibly and usefully instead of becoming a silent blank panel. */
+html[data-production-system="v8"] #main .qelly-tradingview-widget{min-height:420px!important;background:var(--q-surface)!important;border-radius:10px!important;overflow:hidden!important}
+html[data-production-system="v8"] #main .qelly-tradingview-loading,html[data-production-system="v8"] #main .qelly-tradingview-fallback{min-height:420px!important;display:grid!important;place-items:center!important;padding:28px!important;border:1px solid var(--q-border)!important;border-radius:10px!important;background:var(--q-surface)!important;color:var(--q-text)!important;text-align:center!important}
+html[data-production-system="v8"] #main .qelly-tradingview-fallback>div{max-width:560px!important}
+html[data-production-system="v8"] #main .qelly-tradingview-fallback h3{margin:0 0 8px!important;font-size:20px!important}
+html[data-production-system="v8"] #main .qelly-tradingview-fallback p{margin:0 0 16px!important;color:var(--q-muted)!important}
+html[data-production-system="v8"] #main .qelly-tradingview-fallback a{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:38px!important;padding:0 13px!important;border:1px solid var(--q-border)!important;border-radius:8px!important;background:var(--q-surfacealt)!important;color:var(--q-text)!important;text-decoration:none!important}
+
 @media(max-width:1100px){html[data-production-system="v8"] #main .q-v6-quant-kpis{grid-template-columns:repeat(3,minmax(0,1fr))!important}html[data-production-system="v8"] #main .q-saved-calculations-page .q-filter-bar{grid-template-columns:repeat(2,minmax(0,1fr))!important}html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-grid,html[data-production-system="v8"] #main .q-research-evidence-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(max-width:700px){html[data-production-system="v8"] #main .q-v6-quant-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}html[data-production-system="v8"] #main :where(.q-calculator-library-disclosure,.q-indicator-library-disclosure)>summary{align-items:flex-start!important}html[data-production-system="v8"] #main .q-saved-calculations-page .q-filter-bar,html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-grid,html[data-production-system="v8"] #main .q-research-evidence-grid{grid-template-columns:1fr!important}}
