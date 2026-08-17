@@ -57,6 +57,19 @@ test('global market network is live-first and preserves no-fabrication boundarie
   assert.match(backend,/sourceFailuresRemainUnavailable:true/);
 });
 
+test('all-screen evidence exercises governed calculator and indicator detail selections',async()=>{
+  const [adapter,workflow]=await Promise.all([
+    read('scripts/release-a5-screen-batch.py'),
+    read('.github/workflows/qelly-all-screens-evidence.yml')
+  ]);
+  assert.match(adapter,/'calculator-detail': 'position-size'/);
+  assert.match(adapter,/'indicator-detail': 'rsi'/);
+  assert.match(adapter,/'formula-detail': 'position-size'/);
+  assert.match(adapter,/expected_hash = f'#\/\{route_name\}\/\{detail_asset\}'/);
+  assert.match(workflow,/QELLY_ENABLE_AUTH_EMAIL_DELIVERY: 'true'/);
+  assert.match(workflow,/grep -F '\"emailDelivery\":true'/);
+});
+
 test('deployed acceptance gate verifies Cloudflare and GitHub live-markets',async()=>{
   const source=await read('.github/workflows/qelly-v8-live-terminal-acceptance.yml');
   assert.match(source,/api\/v1\/market\/network/);
