@@ -35,6 +35,7 @@ jobs:
       QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_shape_only_012345678901234567890123456789
       QELLY_DEPLOYMENT_ENVIRONMENT: cloudflare-pages-production-parity
       QELLY_ENABLE_AUTH: 'true'
+      QELLY_ENABLE_AUTH_EMAIL_DELIVERY: 'true'
       QELLY_ENABLE_CLOUD_SYNC: 'true'
       QELLY_ENABLE_LIVE_PROVIDERS: 'true'
       QELLY_ENABLE_FEEDBACK_WRITES: 'true'
@@ -52,17 +53,37 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci --ignore-scripts
-      - name: Validate connected production contract
+      - name: Run repository tests
+        run: npm test
+      - name: Build production frontend
+        run: npm run build:frontend
+      - name: Syntax-check live terminal owners
         run: |
-          npm test
-          npm run build:frontend
           node --check functions/_lib/market-network.js
           node --check 'functions/api/v1/[[path]].js'
           node --check functions/api/v1/config.js
           node --check apps/web/public/assets/routes/market-network.mjs
-          grep -F 'data-market-network="live-terminal-v8"' apps/web/public/assets/routes/market-network.mjs
-          grep -F "'market','live-markets'" apps/web/public/assets/qelly-github-pages-mirror.mjs
-          ! grep -F "'simulated'" functions/api/v1/config.js
+          node --check apps/web/public/assets/qelly-production-v8.mjs
+          node --check apps/web/public/assets/market/tradingview-display-widget.mjs
+      - name: Validate semantic source contract
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs');
+          const market=fs.readFileSync('apps/web/public/assets/routes/market-network.mjs','utf8');
+          const mirror=fs.readFileSync('apps/web/public/assets/qelly-github-pages-mirror.mjs','utf8');
+          const config=fs.readFileSync('functions/api/v1/config.js','utf8');
+          const runtime=fs.readFileSync('apps/web/public/assets/qelly-production-v8.mjs','utf8');
+          const repairs=fs.readFileSync('apps/web/public/assets/qelly-production-v8-route-repairs.css','utf8');
+          const widget=fs.readFileSync('apps/web/public/assets/market/tradingview-display-widget.mjs','utf8');
+          if(!market.includes('data-market-network="live-terminal-v8"'))throw new Error('live_terminal_marker_missing');
+          if(!/LOCAL_PUBLIC_ROUTES=new Set\(\[[\s\S]*['"]live-markets['"]/.test(mirror))throw new Error('github_live_markets_not_local');
+          const states=config.match(/states:\[([^\]]+)\]/)?.[1]||'';
+          if(/['"]simulated['"]/.test(states))throw new Error('simulated_connected_state_leaked');
+          if(!config.includes('fabricatedMarketFallback:false'))throw new Error('no_fabrication_policy_missing');
+          if(/\['simulated','Indicative'\]/.test(runtime)||/\['demo','Reference'\]/.test(runtime))throw new Error('truth_state_euphemism_reintroduced');
+          if(!repairs.includes('.q-v6-quant-kpis')||!repairs.includes('.q-saved-calculations-page .q-filter-bar')||!repairs.includes('.q-research-evidence-grid'))throw new Error('screenshot_route_repairs_missing');
+          if(!widget.includes('qelly-tradingview-fallback')||!widget.includes('WIDGET_TIMEOUT_MS'))throw new Error('external_chart_failure_state_missing');
+          NODE
       - name: Verify generated browser capability truth
         run: |
           node <<'NODE'
