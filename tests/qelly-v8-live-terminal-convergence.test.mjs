@@ -19,6 +19,16 @@ test('production frontend build inherits the proven canonical email canary',asyn
   assert.match(source,/QELLY_ENABLE_AUTH_EMAIL_DELIVERY,productionEmailCanary/);
 });
 
+test('canonical auth router uses the same effective email capability owner as config',async()=>{
+  const [router,config]=await Promise.all([
+    read('functions/api/v1/[[path]].js'),
+    read('functions/api/v1/config.js')
+  ]);
+  assert.match(router,/effectivePublicRuntimeConfig/);
+  assert.match(router,/const authRuntime=effectivePublicRuntimeConfig\(env,request\.url\)/);
+  assert.match(config,/effectivePublicRuntimeConfig/);
+});
+
 test('github pages keeps live-markets local and uses canonical read-only API',async()=>{
   const [mirror,finalizer]=await Promise.all([
     read('apps/web/public/assets/qelly-github-pages-mirror.mjs'),
