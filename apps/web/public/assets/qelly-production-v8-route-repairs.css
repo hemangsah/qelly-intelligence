@@ -27,5 +27,36 @@ html[data-production-system="v8"] #main :where(.q-calculator-library-disclosure_
 html[data-production-system="v8"] #main :where(.q-calculator-library-disclosure__copy,.q-indicator-library-disclosure__copy)>*{display:block!important;margin:0!important}
 html[data-production-system="v8"] #main :where(.q-calculator-library-disclosure__action,.q-indicator-library-disclosure__action){flex:0 0 auto!important;white-space:nowrap!important}
 
-@media(max-width:1100px){html[data-production-system="v8"] #main .q-v6-quant-kpis{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
-@media(max-width:700px){html[data-production-system="v8"] #main .q-v6-quant-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}html[data-production-system="v8"] #main :where(.q-calculator-library-disclosure,.q-indicator-library-disclosure)>summary{align-items:flex-start!important}}
+/* Saved calculations and Verify use the same terminal control contract. */
+html[data-production-system="v8"] #main .q-saved-calculations-page .q-filter-bar{display:grid!important;grid-template-columns:minmax(260px,2fr) repeat(3,minmax(150px,.72fr))!important;align-items:end!important;gap:10px!important;margin-bottom:14px!important}
+html[data-production-system="v8"] #main .q-saved-calculations-page .q-field{display:grid!important;gap:6px!important;min-width:0!important}
+html[data-production-system="v8"] #main .q-saved-calculations-page .q-field>span{color:var(--q-text-secondary)!important;font-size:12px!important}
+html[data-production-system="v8"] #main .q-saved-calculations-page .q-saved-grid{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))!important;align-items:start!important;gap:12px!important}
+html[data-production-system="v8"] #main .q-saved-calculations-page .q-saved-card{min-height:0!important;padding:16px!important}
+html[data-production-system="v8"] #main .q-saved-calculations-page .q-panel-body{min-height:0!important}
+html[data-production-system="v8"] #main[data-production-route="qelly-verify"] :where(select,input,textarea),html[data-production-system="v8"] #main .q-verify-page :where(select,input,textarea){background:var(--q-surfacealt)!important;color:var(--q-text)!important;border-color:var(--q-border)!important}
+
+/* Research workspace: useful first viewport, no decorative empty-grid void. */
+html[data-production-system="v8"] #main .q-research-workspace-page{display:grid!important;gap:14px!important}
+html[data-production-system="v8"] #main .q-research-external-sources .q-panel-body{min-height:0!important;padding:12px!important;background:var(--q-surface)!important;background-image:none!important}
+html[data-production-system="v8"] #main .q-research-evidence-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;min-height:0!important}
+html[data-production-system="v8"] #main .q-research-evidence-card{min-height:0!important;padding:14px!important;border:1px solid var(--q-border)!important;border-radius:10px!important;background:var(--q-surfacealt)!important;background-image:none!important}
+html[data-production-system="v8"] #main .q-research-evidence-card__head{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:8px!important}
+html[data-production-system="v8"] #main .q-research-empty-state{min-height:150px!important;padding:24px!important;background:var(--q-surface)!important;background-image:none!important}
+html[data-production-system="v8"] #main .q-research-kpi-strip{min-height:0!important}
+
+/* Theme personas: operating-mode selector, not a marketing landing page. */
+html[data-production-system="v8"] #main .q-theme-persona-page{display:grid!important;gap:14px!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-brand-lock-banner{min-height:0!important;padding:20px 22px!important;margin:0!important;border-radius:14px!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-brand-lock-banner h2{margin:5px 0 8px!important;font-size:clamp(24px,2.7vw,36px)!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;margin:0!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-card{min-height:0!important;padding:16px!important;border-radius:12px!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-glyph{width:42px!important;height:42px!important;margin-bottom:10px!important;border-radius:10px!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-card h2{margin:5px 0!important;font-size:20px!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-metrics{display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px!important;margin:11px 0!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-metrics span{min-height:54px!important;padding:9px!important;border-radius:8px!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-best{margin-bottom:10px!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-comparison{margin:0!important}
+
+@media(max-width:1100px){html[data-production-system="v8"] #main .q-v6-quant-kpis{grid-template-columns:repeat(3,minmax(0,1fr))!important}html[data-production-system="v8"] #main .q-saved-calculations-page .q-filter-bar{grid-template-columns:repeat(2,minmax(0,1fr))!important}html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-grid,html[data-production-system="v8"] #main .q-research-evidence-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:700px){html[data-production-system="v8"] #main .q-v6-quant-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}html[data-production-system="v8"] #main :where(.q-calculator-library-disclosure,.q-indicator-library-disclosure)>summary{align-items:flex-start!important}html[data-production-system="v8"] #main .q-saved-calculations-page .q-filter-bar,html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-grid,html[data-production-system="v8"] #main .q-research-evidence-grid{grid-template-columns:1fr!important}}
