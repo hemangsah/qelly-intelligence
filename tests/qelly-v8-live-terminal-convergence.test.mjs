@@ -86,6 +86,8 @@ test('V8 runtime never euphemizes demo or simulated truth states',async()=>{
   const source=await read('apps/web/public/assets/qelly-production-v8.mjs');
   assert.doesNotMatch(source,/\['simulated','Indicative'\]/);
   assert.doesNotMatch(source,/\['demo','Reference'\]/);
+  assert.doesNotMatch(source,/repairDecisionTruthLabels/);
+  assert.doesNotMatch(source,/demo · not persisted · not live['"],\s*['"]LOCAL SCENARIO/);
   assert.match(source,/Truth-state words[\s\S]*are never rewritten globally/);
   assert.match(source,/option\[value=\"simulated\"\]/);
   assert.match(source,/Asia\/Calcutta/);
