@@ -78,4 +78,36 @@ test('deployed acceptance gate verifies Cloudflare and GitHub live-markets',asyn
   assert.match(source,/static_dynamic_email_capability_drift/);
   assert.match(source,/github-live-markets/);
   assert.match(source,/unexpected_handoff/);
+  assert.match(source,/Run repository tests/);
+  assert.match(source,/Validate semantic source contract/);
+});
+
+test('V8 runtime never euphemizes demo or simulated truth states',async()=>{
+  const source=await read('apps/web/public/assets/qelly-production-v8.mjs');
+  assert.doesNotMatch(source,/\['simulated','Indicative'\]/);
+  assert.doesNotMatch(source,/\['demo','Reference'\]/);
+  assert.match(source,/Truth-state words[\s\S]*are never rewritten globally/);
+  assert.match(source,/option\[value=\"simulated\"\]/);
+  assert.match(source,/Asia\/Calcutta/);
+  assert.match(source,/Asia\/Kolkata/);
+  assert.match(source,/q-v8-technical-identifiers/);
+});
+
+test('V8 screenshot repair boundary fixes dark controls and broken density owners',async()=>{
+  const css=await read('apps/web/public/assets/qelly-production-v8-route-repairs.css');
+  assert.match(css,/q-v6-quant-kpis/);
+  assert.match(css,/grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
+  assert.match(css,/q-saved-calculations-page \.q-filter-bar/);
+  assert.match(css,/q-research-evidence-grid/);
+  assert.match(css,/q-theme-persona-page \.q-persona-grid/);
+  assert.match(css,/color-scheme:dark/);
+});
+
+test('TradingView display fails visibly without fabricating a chart',async()=>{
+  const source=await read('apps/web/public/assets/market/tradingview-display-widget.mjs');
+  assert.match(source,/WIDGET_TIMEOUT_MS=9000/);
+  assert.match(source,/qelly-tradingview-fallback/);
+  assert.match(source,/Qelly has not substituted or fabricated chart values/);
+  assert.match(source,/dataset\.externalState='unavailable'/);
+  assert.match(source,/Open TradingView directly/);
 });
