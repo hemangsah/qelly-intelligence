@@ -1,7 +1,7 @@
 // Qelly GitHub Pages public mirror guard.
-// The mirror renders the production public terminal against the canonical
-// Cloudflare read-only API. Authenticated/private routes stay on Cloudflare
-// because HttpOnly session cookies are intentionally not shared across origins.
+// The mirror renders public terminal surfaces against the canonical Cloudflare
+// read-only API. Authenticated/private routes stay on Cloudflare because
+// HttpOnly session cookies are intentionally not shared across origins.
 
 const config=window.__QELLY_CONFIG__||{};
 const active=config.mirrorMode==='github-pages-public';
@@ -12,12 +12,12 @@ const routeState=(hash=location.hash)=>{
   return {route:path.split('/')[0]||'market',path,query};
 };
 const LOCAL_PUBLIC_ROUTES=new Set([
-  'market','asset-rankings','asset','calculator-center','india-finance','indicator-library','formula-library','saved-calculations',
+  'market','live-markets','asset-rankings','asset','calculator-center','india-finance','indicator-library','formula-library','saved-calculations',
   'formula-detail','indicator-detail','calculator-detail','saved-calculation-detail','feature-universe','about-qelly','decision-provenance'
 ]);
 const CANONICAL_ONLY_ROUTES=new Set([
   'auth-login','auth-register','auth-recovery','account-session','security-setup','passkey-center','account-recovery','secure-import-vault',
-  'delivery-operations','platform-readiness','secret-rotation','quarantine-review','staging-assurance','live-markets','theme-personas',
+  'delivery-operations','platform-readiness','secret-rotation','quarantine-review','staging-assurance','theme-personas',
   'discovery-hub','search','categories','category-detail','venues','venue-detail','dex-discovery','global-charts','converter','news-research',
   'research-article','trust-center','asset-intelligence','advanced-chart','fundamentals-estimates','filing-workspace','event-calendar','comparison-lab',
   'watchlist','alert-center','notification-center','screener-lab','portfolio-analytics','research-workspace','onboarding','notification-schedules',
