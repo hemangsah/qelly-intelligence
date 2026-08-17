@@ -30,8 +30,8 @@ function ensureCanonicalStylesheetLast(){
 }
 
 /* This map is intentionally limited to presentation terminology. Truth-state words
-   such as simulated, demo, fixture, live, delayed or unavailable are never rewritten
-   globally: route owners must disclose those states exactly. */
+   such as simulated, demo, fixture, live, delayed or unavailable are never rewritten globally:
+   route owners must disclose those states exactly. */
 const phraseMap=new Map([
   ['independent dark, light, OLED and high-contrast palettes','Choose a certified palette for the complete workspace'],
   ['static visual preview','Reference mode'],
@@ -164,37 +164,10 @@ function maskCurrentSessionIdentifier(){
   }
 }
 
-function repairDecisionTruthLabels(){
-  if(routeName()!=='decision-provenance'||!main)return;
-  const replacements=new Map([
-    ['demo · not persisted · not live','LOCAL SCENARIO · NO LIVE EVIDENCE'],
-    ['deterministic preview','LOCAL SCENARIO'],
-    ['demo package','local scenario package'],
-    ['demonstration-package quality','scenario-package quality'],
-    ['demo structure','local scenario structure'],
-    ['demo link','scenario link']
-  ]);
-  const walker=document.createTreeWalker(main,NodeFilter.SHOW_TEXT);
-  const nodes=[];
-  while(walker.nextNode())nodes.push(walker.currentNode);
-  for(const node of nodes){
-    let value=node.nodeValue||'';
-    for(const [from,to] of replacements)value=value.replaceAll(from,to);
-    node.nodeValue=value;
-  }
-  for(const status of main.querySelectorAll('.q-status--simulated')){
-    if(/scenario|demo|fixture|not live/i.test(status.textContent||'')){
-      status.classList.remove('q-status--simulated');
-      status.classList.add('q-status--unavailable');
-    }
-  }
-}
-
 function repairLegacyRuntimeState(){
   document.querySelector('#state-selector option[value="simulated"]')?.remove();
   moveTechnicalIdentifiersBehindDisclosure();
   maskCurrentSessionIdentifier();
-  repairDecisionTruthLabels();
 }
 
 function annotateRoute(){
