@@ -56,6 +56,35 @@ function evidencePublicMarketOverview(){
   };
 }
 
+function evidenceMarketNetwork(){
+  const isolated=(id,label,usage)=>({id,label,state:'unavailable',observedAt:null,fetchedAt:FIXED_TIME,data:null,attribution:label,usage,reason:'evidence_runtime_external_network_isolated'});
+  return {
+    generatedAt:FIXED_TIME,
+    releaseSha:'evidence-fixture',
+    sources:{
+      'alternative-me':isolated('alternative-me','Alternative.me','External crypto reference API isolated in deterministic evidence runtime.'),
+      hyperliquid:isolated('hyperliquid','Hyperliquid','External read-only info API isolated in deterministic evidence runtime.'),
+      'world-bank':isolated('world-bank','World Bank','External macro reference API isolated in deterministic evidence runtime.'),
+      ecb:{provider:'ecb',sourceIdentifier:'EUR',truthState:'unavailable',observationTime:null,ingestionTime:FIXED_TIME,freshness:'unavailable',quality:'evidence-network-isolated',confidence:0,attribution:'European Central Bank',license:null,fallbackReason:'evidence_runtime_external_network_isolated',termsState:'conditionally_approved_attributed_reference_data',cache:{hit:false,stale:false},data:null}
+    },
+    policy:{fabricatedFallback:false,execution:false,custody:false,sourceFailuresRemainUnavailable:true,cacheSeconds:90,staleWhileRevalidateSeconds:900},
+    providerPolicy:{binance:'rights_blocked_or_unverified',coinbase:'rights_blocked_or_unverified',ecb:'governed_reference_data'},
+    researchLinks:[
+      {id:'tradingview',label:'TradingView',url:'https://www.tradingview.com/',mode:'display_or_outbound',note:'External research/display boundary; evidence runtime does not consume widget values.'},
+      {id:'coinmarketcap',label:'CoinMarketCap',url:'https://coinmarketcap.com/',mode:'outbound',note:'Research link only in evidence runtime.'},
+      {id:'coinpaprika',label:'CoinPaprika',url:'https://coinpaprika.com/',mode:'outbound',note:'Research link only in evidence runtime.'},
+      {id:'defillama',label:'DefiLlama',url:'https://defillama.com/',mode:'outbound',note:'Research link only in evidence runtime.'},
+      {id:'coinglass',label:'CoinGlass',url:'https://www.coinglass.com/',mode:'outbound',note:'Research link only in evidence runtime.'},
+      {id:'hypurrscan',label:'Hypurrscan',url:'https://hypurrscan.io/',mode:'outbound',note:'Research link only in evidence runtime.'},
+      {id:'x',label:'X / market community',url:'https://x.com/',mode:'outbound',note:'Research link only in evidence runtime.'},
+      {id:'forex-factory',label:'Forex Factory',url:'https://www.forexfactory.com/calendar',mode:'outbound',note:'Research link only in evidence runtime.'},
+      {id:'ecb',label:'European Central Bank',url:'https://www.ecb.europa.eu/',mode:'outbound',note:'Official source link.'},
+      {id:'world-bank',label:'World Bank Data',url:'https://data.worldbank.org/',mode:'outbound',note:'Official source link.'}
+    ],
+    evidenceBoundary:'deterministic-empty-contract-no-market-observations'
+  };
+}
+
 function evidenceEcb(){
   return {provider:'ecb',sourceIdentifier:'EUR',truthState:'unavailable',observationTime:null,ingestionTime:FIXED_TIME,freshness:'unavailable',quality:'evidence-network-isolated',confidence:0,attribution:'European Central Bank',license:null,fallbackReason:'evidence_runtime_external_network_isolated',termsState:'conditionally_approved_attributed_reference_data',cache:{hit:false,stale:false},data:null};
 }
@@ -117,6 +146,7 @@ export async function startServer(options={}){
     if(request.method==='GET'&&url.pathname==='/api/v1/providers/status')return sendJson(response,200,{providers:providerPolicies(),releaseSha:'evidence-fixture'});
     if(request.method==='GET'&&url.pathname==='/api/v1/providers/ecb')return sendJson(response,200,evidenceEcb());
     if(request.method==='GET'&&url.pathname==='/api/v1/public/markets/overview')return sendJson(response,200,evidencePublicMarketOverview());
+    if(request.method==='GET'&&url.pathname==='/api/v1/market/network')return sendJson(response,200,evidenceMarketNetwork());
     if(request.method==='GET'&&url.pathname==='/api/v1/auth/status')return sendJson(response,200,{authenticated:hasEvidenceSession(request),mode:'evidence-fixture'});
     if(request.method==='GET'&&url.pathname==='/api/v1/profile'){
       if(!hasEvidenceSession(request))return sessionRequired(response,'The evidence profile contract requires an authenticated fixture session.');
@@ -145,4 +175,4 @@ export async function startServer(options={}){
   return {server,host,port:server.address().port,runtime:legacy.runtime,evidenceUpstream:legacy,staticRoot:productionFrontend};
 }
 
-export const __evidenceServerTest=Object.freeze({providerPolicies,evidencePublicMarketOverview,evidenceEcb,evidenceLiveCatalog,evidenceLiveUnavailable,productionFrontend});
+export const __evidenceServerTest=Object.freeze({providerPolicies,evidencePublicMarketOverview,evidenceMarketNetwork,evidenceEcb,evidenceLiveCatalog,evidenceLiveUnavailable,productionFrontend});
