@@ -60,3 +60,13 @@ test('market terminal exposes cross-asset display and explicit research/license 
   assert.doesNotMatch(helper,/api\.coinpaprika\.com/);
   assert.doesNotMatch(helper,/pro-api\.coinmarketcap\.com/);
 });
+
+test('all-screen evidence server owns market network with a deterministic empty no-fabrication fixture',async()=>{
+  const source=await readFile(new URL('../scripts/release-a5-evidence-server.mjs',import.meta.url),'utf8');
+  assert.match(source,/function evidenceMarketNetwork\(\)/);
+  assert.match(source,/url\.pathname==='\/api\/v1\/market\/network'/);
+  assert.match(source,/evidence_runtime_external_network_isolated/);
+  assert.match(source,/fabricatedFallback:false/);
+  assert.match(source,/sourceFailuresRemainUnavailable:true/);
+  assert.match(source,/deterministic-empty-contract-no-market-observations/);
+});
