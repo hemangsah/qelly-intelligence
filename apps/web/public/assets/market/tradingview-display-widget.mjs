@@ -12,9 +12,23 @@ const SYMBOL_MAP=Object.freeze({
   XRPUSDT:'BINANCE:XRPUSDT',
   'XRP-USD':'COINBASE:XRPUSD',
   ADAUSDT:'BINANCE:ADAUSDT',
-  'ADA-USD':'COINBASE:ADAUSD'
+  'ADA-USD':'COINBASE:ADAUSD',
+  XAUUSD:'OANDA:XAUUSD',
+  XAGUSD:'OANDA:XAGUSD',
+  EURUSD:'FX:EURUSD',
+  GBPUSD:'FX:GBPUSD',
+  USDJPY:'FX:USDJPY',
+  USDINR:'FX_IDC:USDINR',
+  SPX:'SP:SPX',
+  NDX:'NASDAQ:NDX',
+  NIFTY:'NSE:NIFTY',
+  SENSEX:'BSE:SENSEX',
+  HSI:'HSI:HSI',
+  NI225:'TVC:NI225',
+  DXY:'TVC:DXY',
+  USOIL:'TVC:USOIL'
 });
-const INTERVAL_MAP=Object.freeze({'1m':'1','5m':'5','15m':'15','30m':'30','1h':'60','4h':'240','1d':'D'});
+const INTERVAL_MAP=Object.freeze({'1m':'1','5m':'5','15m':'15','30m':'30','1h':'60','4h':'240','1d':'D','1w':'W'});
 
 export const tradingViewSymbol=(value)=>SYMBOL_MAP[String(value||'').toUpperCase()]||'BITSTAMP:BTCUSD';
 export const tradingViewInterval=(value)=>INTERVAL_MAP[String(value||'')]||'60';
