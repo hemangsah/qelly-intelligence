@@ -1,4 +1,5 @@
 const REQUEST_TIMEOUT_MS=7000;
+const SOURCE_CACHE_TTL=Object.freeze({hyperliquid:8,'alternative-me':60,'world-bank':3600});
 
 const nowIso=()=>new Date().toISOString();
 const finiteOrNull=(value)=>Number.isFinite(Number(value))?Number(value):null;
@@ -17,8 +18,54 @@ async function fetchJson(url,{method='GET',body=null,headers={}}={}){
   }finally{clearTimeout(timer);}
 }
 
-const unavailable=(id,label,extra={})=>({id,label,state:'unavailable',observedAt:null,fetchedAt:nowIso(),data:null,...extra});
+const unavailable=(id,label,extra={})=>({id,label,state:'unavailable',truthState:'unavailable',observedAt:null,fetchedAt:nowIso(),data:null,...extra});
 const success=(id,label,data,{state='live_external_reference',...extra}={})=>({id,label,state,observedAt:extra.observedAt??null,fetchedAt:nowIso(),data,...extra});
+const sourceTruthState=(value,cacheState='miss')=>{
+  if(!value||value.state==='unavailable'||value.data==null)return 'unavailable';
+  if(value.state==='reference_external')return 'delayed';
+  if(cacheState==='hit')return 'cached';
+  if(value.state==='live_external_reference')return 'live';
+  return 'cached';
+};
+const withDelivery=(value,edgeCache,ttlSeconds)=>({
+  ...value,
+  truthState:sourceTruthState(value,edgeCache),
+  delivery:{edgeCache,cacheTtlSeconds:ttlSeconds,scope:'cloudflare_poi_cache'}
+});
+
+function edgeCacheRequest(context,key){
+  const request=context?.request;
+  if(!request?.url)return null;
+  const url=new URL(`/__qelly-edge-cache/market-network/${encodeURIComponent(key)}/v2`,request.url);
+  return new Request(url.toString(),{method:'GET',headers:{Accept:'application/json'}});
+}
+
+async function cachedSource(context,key,ttlSeconds,loader){
+  const cache=globalThis.caches?.default;
+  const cacheRequest=edgeCacheRequest(context,key);
+  if(!cache||!cacheRequest)return withDelivery(await loader(),'bypass',ttlSeconds);
+  try{
+    const hit=await cache.match(cacheRequest);
+    if(hit){
+      const cached=await hit.json();
+      return withDelivery(cached,'hit',ttlSeconds);
+    }
+  }catch(error){
+    console.warn(JSON.stringify({event:'qelly_market_source_cache_read_failed',source:key,message:error?.message||String(error)}));
+  }
+  const value=await loader();
+  if(value?.state!=='unavailable'&&value?.data!=null){
+    const response=new Response(JSON.stringify(value),{
+      headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':`public, max-age=${ttlSeconds}`}
+    });
+    const write=cache.put(cacheRequest,response).catch((error)=>{
+      console.warn(JSON.stringify({event:'qelly_market_source_cache_write_failed',source:key,message:error?.message||String(error)}));
+    });
+    if(typeof context?.waitUntil==='function')context.waitUntil(write);
+    else await write;
+  }
+  return withDelivery(value,'miss',ttlSeconds);
+}
 
 async function alternativeCrypto(){
   const [tickerResult,fngResult]=await Promise.allSettled([
@@ -89,8 +136,12 @@ async function worldBankMacro(){
   }
 }
 
-export async function buildExternalMarketNetwork(){
-  const results=await Promise.all([alternativeCrypto(),hyperliquidMids(),worldBankMacro()]);
+export async function buildExternalMarketNetwork(context={}){
+  const results=await Promise.all([
+    cachedSource(context,'alternative-me',SOURCE_CACHE_TTL['alternative-me'],alternativeCrypto),
+    cachedSource(context,'hyperliquid',SOURCE_CACHE_TTL.hyperliquid,hyperliquidMids),
+    cachedSource(context,'world-bank',SOURCE_CACHE_TTL['world-bank'],worldBankMacro)
+  ]);
   return {
     generatedAt:nowIso(),
     sources:Object.fromEntries(results.map((item)=>[item.id,item])),
@@ -99,8 +150,10 @@ export async function buildExternalMarketNetwork(){
       execution:false,
       custody:false,
       sourceFailuresRemainUnavailable:true,
-      cacheSeconds:90,
-      staleWhileRevalidateSeconds:900
+      responseCacheSeconds:10,
+      staleWhileRevalidateSeconds:30,
+      sourceCacheSeconds:{...SOURCE_CACHE_TTL},
+      edgeCacheScope:'cloudflare_point_of_presence'
     },
     researchLinks:[
       {id:'tradingview',label:'TradingView',url:'https://www.tradingview.com/',mode:'display_or_outbound',note:'External research/display boundary; widget values are not silently reused as Qelly analytical inputs.'},
@@ -123,4 +176,4 @@ export async function buildExternalMarketNetwork(){
   };
 }
 
-export const __test=Object.freeze({finiteOrNull,alternativeCrypto,hyperliquidMids,worldBankMacro});
+export const __test=Object.freeze({finiteOrNull,sourceTruthState,withDelivery,edgeCacheRequest,cachedSource,alternativeCrypto,hyperliquidMids,worldBankMacro,SOURCE_CACHE_TTL});
