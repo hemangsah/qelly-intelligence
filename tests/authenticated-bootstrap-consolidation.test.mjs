@@ -54,6 +54,18 @@ test('shared config payload remains the authority for standalone config and cons
   assert.equal(payload.liveTrading,false);
 });
 
+test('config cloud-sync availability follows explicit runtime capability truth',()=>{
+  const fetchImpl=async()=>{throw new Error('network not expected');};
+  const disabled=buildPublicConfigPayload({...environment(fetchImpl),QELLY_ENABLE_CLOUD_SYNC:'false'},'https://qelly.test/api/v1/config',null,'unused');
+  const enabled=buildPublicConfigPayload({...environment(fetchImpl),QELLY_ENABLE_CLOUD_SYNC:'true'},'https://qelly.test/api/v1/config',null,'unused');
+  assert.equal(disabled.runtime.capabilities.cloudSync,false);
+  assert.equal(disabled.cloud.available,true);
+  assert.equal(disabled.cloud.syncAvailable,false);
+  assert.equal(enabled.runtime.capabilities.cloudSync,true);
+  assert.equal(enabled.cloud.available,true);
+  assert.equal(enabled.cloud.syncAvailable,true);
+});
+
 test('browser bootstrap owner collapses concurrent config, session and preference reads and invalidates after writes',async()=>{
   let bootstrapCalls=0;
   let passthroughCalls=0;
