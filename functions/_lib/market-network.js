@@ -104,13 +104,19 @@ export async function buildExternalMarketNetwork(){
     },
     researchLinks:[
       {id:'tradingview',label:'TradingView',url:'https://www.tradingview.com/',mode:'display_or_outbound',note:'External research/display boundary; widget values are not silently reused as Qelly analytical inputs.'},
+      {id:'forex-factory',label:'Forex Factory',url:'https://www.forexfactory.com/calendar',mode:'outbound',note:'External macro calendar research link.'},
+      {id:'cme',label:'CME Group Markets',url:'https://www.cmegroup.com/markets.html',mode:'outbound',note:'Official derivatives, rates, FX, commodities and crypto futures research destination.'},
+      {id:'fred',label:'FRED Economic Data',url:'https://fred.stlouisfed.org/',mode:'outbound',note:'Federal Reserve Bank of St. Louis macroeconomic research destination.'},
+      {id:'sec-edgar',label:'SEC EDGAR',url:'https://www.sec.gov/search-filings',mode:'outbound',note:'Official US company filing search and disclosure research.'},
+      {id:'rbi-data',label:'RBI Data / DBIE',url:'https://data.rbi.org.in/',mode:'outbound',note:'Reserve Bank of India official statistics and Database on Indian Economy research destination.'},
+      {id:'nse-market-data',label:'NSE India Market Data',url:'https://www.nseindia.com/market-data',mode:'outbound',note:'National Stock Exchange of India official market-data research destination.'},
+      {id:'imf-data',label:'IMF Data',url:'https://data.imf.org/en/',mode:'outbound',note:'International Monetary Fund macroeconomic and financial statistics research destination.'},
       {id:'coinmarketcap',label:'CoinMarketCap',url:'https://coinmarketcap.com/',mode:'outbound',note:'Keyless API is documented for evaluation/prototyping; Qelly does not rely on it as an unrestricted production redistribution feed.'},
       {id:'coinpaprika',label:'CoinPaprika',url:'https://coinpaprika.com/',mode:'outbound',note:'Free API plan is non-commercial under current terms; no production redistribution feed is enabled.'},
       {id:'defillama',label:'DefiLlama',url:'https://defillama.com/',mode:'outbound',note:'Official research destination; Qelly does not republish restricted data without the applicable permission/plan.'},
       {id:'coinglass',label:'CoinGlass',url:'https://www.coinglass.com/',mode:'outbound',note:'Official research link; no hidden scraping.'},
       {id:'hypurrscan',label:'Hypurrscan',url:'https://hypurrscan.io/',mode:'outbound',note:'Hyperliquid explorer research link.'},
       {id:'x',label:'X / market community',url:'https://x.com/',mode:'outbound',note:'Community research link; no timeline scraping or fake embed.'},
-      {id:'forex-factory',label:'Forex Factory',url:'https://www.forexfactory.com/calendar',mode:'outbound',note:'External macro calendar research link.'},
       {id:'ecb',label:'European Central Bank',url:'https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html',mode:'outbound',note:'Official reference-rate source.'},
       {id:'world-bank',label:'World Bank Data',url:'https://data.worldbank.org/',mode:'outbound',note:'Official macro reference research.'}
     ]
