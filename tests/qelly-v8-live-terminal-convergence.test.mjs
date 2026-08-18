@@ -113,7 +113,9 @@ test('V9 convergence layer modernizes access account and formula routes without 
   assert.match(runtime,/qelly-production-v9-route-convergence\.css/);
   assert.match(runtime,/ROUTE_CONVERGENCE_STYLESHEET/);
   assert.match(runtime,/normalizeDeterministicPresentation/);
-  assert.match(runtime,/'calculator-detail','indicator-detail','formula-detail'/);
+  assert.match(runtime,/'calculator-detail'/);
+  assert.match(runtime,/'indicator-detail'/);
+  assert.match(runtime,/'formula-detail'/);
   assert.match(css,/\.q-auth-page/);
   assert.match(css,/\.q-v6-account-page/);
   assert.match(css,/\.q-formula-detail-page/);
