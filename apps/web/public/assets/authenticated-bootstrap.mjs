@@ -13,6 +13,7 @@ const INVALIDATING_PREFIXES=[
   '/api/v1/account/'
 ];
 const READ_METHODS=new Set(['GET','HEAD','OPTIONS']);
+const REQUIRED_PROJECTIONS=['config','context','preferences'];
 
 const requestUrl=(input,baseUrl)=>{
   if(input instanceof Request)return new URL(input.url);
@@ -21,6 +22,7 @@ const requestUrl=(input,baseUrl)=>{
 
 const requestMethod=(input,init)=>String(init?.method||(input instanceof Request?input.method:'GET')).toUpperCase();
 const shouldInvalidate=(pathname)=>INVALIDATING_PREFIXES.some((prefix)=>pathname.startsWith(prefix));
+const hasCanonicalBootstrapShape=(body)=>Boolean(body&&typeof body==='object'&&REQUIRED_PROJECTIONS.every((key)=>Object.prototype.hasOwnProperty.call(body,key)));
 
 const responseFromRecord=(record,key)=>{
   if(!record.ok){
@@ -28,12 +30,6 @@ const responseFromRecord=(record,key)=>{
       status:record.status,
       statusText:record.statusText,
       headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Qelly-Bootstrap':'error'}
-    });
-  }
-  if(!record.body||!(key in record.body)){
-    return new Response(JSON.stringify({error:{code:'bootstrap_projection_missing',message:'Application bootstrap did not include the requested projection'}}),{
-      status:503,
-      headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Qelly-Bootstrap':'invalid'}
     });
   }
   return new Response(JSON.stringify(record.body[key]),{
@@ -62,14 +58,20 @@ export function createAuthenticatedBootstrapFetch({fetchImpl,baseUrl='https://qe
     if(inFlight)return inFlight;
     const startedGeneration=generation;
     const request=Promise.resolve().then(async()=>{
-      const response=await fetchImpl(bootstrapUrl,{method:'GET',credentials:'include',headers:{Accept:'application/json'}});
-      const body=await response.clone().json().catch(()=>null);
-      const record={ok:response.ok,status:response.status,statusText:response.statusText,body};
-      if(response.ok&&startedGeneration===generation){
-        snapshot=record;
-        expiresAt=now()+Math.max(0,Number(ttlMs)||0);
+      try{
+        const response=await fetchImpl(bootstrapUrl,{method:'GET',credentials:'include',headers:{Accept:'application/json'}});
+        const body=await response.clone().json().catch(()=>null);
+        const compatible=hasCanonicalBootstrapShape(body);
+        const fallback=response.status===404||response.status===405||(response.ok&&!compatible);
+        const record={ok:response.ok,status:response.status,statusText:response.statusText,body,fallback};
+        if(response.ok&&compatible&&startedGeneration===generation){
+          snapshot=record;
+          expiresAt=now()+Math.max(0,Number(ttlMs)||0);
+        }
+        return record;
+      }catch(error){
+        return {ok:false,status:0,statusText:'',body:null,fallback:true,error};
       }
-      return record;
     });
     inFlight=request;
     try{return await request;}
@@ -82,6 +84,7 @@ export function createAuthenticatedBootstrapFetch({fetchImpl,baseUrl='https://qe
     const projection=url.origin===canonicalBase.origin&&url.search===''&&method==='GET'?PROJECTIONS.get(url.pathname):null;
     if(projection){
       const record=await loadBootstrap();
+      if(record.fallback)return fetchImpl(input,init);
       return responseFromRecord(record,projection);
     }
 
@@ -95,4 +98,4 @@ export function createAuthenticatedBootstrapFetch({fetchImpl,baseUrl='https://qe
   return wrappedFetch;
 }
 
-export const __authenticatedBootstrapTest=Object.freeze({BOOTSTRAP_PATH,PROJECTIONS,INVALIDATING_PREFIXES,shouldInvalidate});
+export const __authenticatedBootstrapTest=Object.freeze({BOOTSTRAP_PATH,PROJECTIONS,INVALIDATING_PREFIXES,REQUIRED_PROJECTIONS,shouldInvalidate,hasCanonicalBootstrapShape});
