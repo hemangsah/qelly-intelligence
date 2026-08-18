@@ -2,45 +2,57 @@
 
 Last substantive repair session: 2026-08-18
 
-This is the durable continuation point for Qelly terminal convergence. It contains no secrets or user PII. Re-query current GitHub, Cloudflare, GitHub Pages and Supabase state before making any fresh production claim.
+This is the durable continuation point for Qelly terminal convergence. It contains no secrets or user PII. It is deliberately **not** a deployment-identity authority: every continuation must freshly query GitHub, canonical Cloudflare, GitHub Pages and Supabase before making a current production claim.
 
-## Current production and active repair
+## Current source topology and evidence model
 
 - Repository: `hemangsah/qelly-intelligence`
 - Release branch: `release/qelly-global-public-beta`
 - Canonical runtime: `https://qelly-intelligence.pages.dev/`
 - Public mirror: `https://hemangsah.github.io/qelly-intelligence/`
-- Current verified production release SHA: `dadc635b52be95b80b357cd5a78931818a8226ed`
-- PRs `#224` through `#230` are merged.
-- PR `#227`: World Bank annual macro truth corrected to `reference_external`.
-- PR `#228`: India timezone aliases canonicalized across runtime and persistence.
-- PR `#229`: residual simulated/mock semantics removed from the account local-profile surface.
-- PR `#230`: profile/account cloud-sync availability made explicit and strict `=== true`; stored opt-in remains untouched while unavailable.
-- Active repair branch: `repair/qelly-v9-cloudsync-backend-enforcement-20260818`
-- Active scope: enforce the same canonical `cloudSync` capability on `cloud/status`, `sync/push`, and `sync/pull` while leaving saved-calculation persistence unchanged.
+- Release-branch source checkpoint from which this governance repair was created: `6b6a242b885ec2fb7364d5c2bbf32c787942d06b`
+- Last independently verified canonical Cloudflare runtime checkpoint before this governance repair: `6bb72f35c5b1a2b0019beba19dab438410d388f3`
+- That Cloudflare checkpoint reports build/release time `2026-08-18T12:44:49.619Z`; the scheduled Supabase release-identity probe recorded it at `2026-08-18T13:05:01.986085Z`.
 
-## Verified production convergence at `dadc635b...`
+Do **not** infer that the current GitHub release head is already deployed merely because it is merged. Do **not** infer that the last verified runtime checkpoint is still current merely because it is recorded here. Re-query both sides and compare exact SHAs.
 
-Post-merge verification established:
+This distinction is intentional: a governance-only merge of this file changes the release-branch SHA, so embedding a field named “current verified production release SHA” would make this file self-stale by construction.
 
-- the release branch resolves exactly to `dadc635b52be95b80b357cd5a78931818a8226ed`;
-- the persistent Supabase production release identity is recorded on the same SHA;
-- PR `#230` merged at that release SHA after its exact-head required gates were green;
-- the release source contains the strict profile/account cloud-sync capability truth repair.
+## Completed 2026-08-18 repair chain
 
-Re-query Cloudflare, `/api/v1/config`, `/api/v1/market/network`, GitHub Pages, and the Supabase release ledger before making any new deployment-convergence claim after the next merge.
+PRs `#224` through `#231`, `#233` and `#235` are merged into the release line. Duplicate repair PRs `#232` and `#234` were closed after zero-diff convergence checks. Stale non-draft PR `#198` was closed after proving its runtime retirement and stronger regression coverage were already in current release.
 
-## Timezone canonicalization completed
+Key completed repairs:
 
-Supabase migration: `20260818101413_qelly_timezone_canonicalization_v1`.
+- `#227` — World Bank annual macro truth corrected to `reference_external`.
+- `#228` — India timezone aliases canonicalized across runtime and persistence.
+- `#229` — residual simulated/mock semantics removed from the account local-profile surface.
+- `#230` — profile/account cloud-sync availability made explicit and strict `=== true`; stored opt-in is retained while unavailable.
+- `#231` — `cloud/status`, `sync/push` and `sync/pull` now enforce the same canonical cloud-sync capability before synchronization-specific Supabase access; saved-calculation persistence remains independent.
+- `#233` — obsolete live-verifier branch/SHA pinning removed; verification identity made dynamic and release-aware.
+- `#235` — release verification governance consolidated: Prompt 2C remains the automatic release-push verifier, V2 is a manual exact-release diagnostic using shared convergence and current provider-rights policy, and V1 remains manual-only.
 
-Verified state:
+## Live-verification ownership
 
-- `qelly_profiles`: 2 `Asia/Kolkata`, 7 `UTC`, zero `Asia/Calcutta`.
-- `auth.users.raw_user_meta_data`: 2 `Asia/Kolkata`, 4 `UTC`, 3 without timezone metadata, zero `Asia/Calcutta`.
-- `qelly_theme_schedules`: zero legacy alias rows.
-- `qelly_profiles_timezone_canonical` and `qelly_theme_schedules_timezone_canonical` triggers are installed.
-- registration/profile runtime paths canonicalize the legacy alias before persistence/response.
+Automatic post-merge production verification has one canonical owner:
+
+- `.github/workflows/prompt2c-public-beta.yml`
+  - triggers on `release/qelly-global-public-beta` pushes;
+  - derives expected identity from `${{ github.sha }}`;
+  - calls `scripts/wait-for-cloudflare-runtime-convergence.mjs`;
+  - requires stable convergence across release JSON, build info, browser config, API config, health and readiness;
+  - validates governed provider-rights states;
+  - validates the deployed browser/CSP boundary;
+  - uploads exact-SHA live evidence.
+
+Manual diagnostics:
+
+- `qelly-live-production-verification-v2.yml` — manual release-branch diagnostic using the same shared Cloudflare convergence helper and canonical rights-gated Binance/Coinbase semantics.
+- `qelly-live-production-verification.yml` — legacy manual release diagnostic.
+
+Cloudflare exact-PR deployment evidence is independently consumed by `qelly-cloudflare-evidence-handoff.yml`, which accepts successful official `cloudflare-workers-and-pages` deployment evidence, resolves the exact current open PR head, rebuilds/validates it and captures the full screen/accessibility archive.
+
+Historical fixed-preview/restoration workflows still target historical feature branches that remain present. They are not the current release verification owner and should not be treated as current production evidence without a separate retirement decision.
 
 ## Product truth contract
 
@@ -54,10 +66,11 @@ Verified state:
 8. Slow macro/reference data must not be labelled live merely because an HTTP request succeeds.
 9. User-facing timezone identifiers use canonical current IANA names.
 10. Missing capability proof must fail closed; omission must not be interpreted as availability.
+11. GitHub source identity and deployed runtime identity are separate facts until exact convergence is proven.
 
 ## Provider and operations state
 
-Usable paths:
+Usable governed paths:
 
 - Hyperliquid — fast public market observations.
 - Alternative.me — public market/sentiment observations.
@@ -66,85 +79,105 @@ Usable paths:
 
 Rights-gated:
 
-- Binance — commercial/redistribution rights remain unverified.
-- Coinbase — written end-user display/redistribution permission remains unverified.
+- Binance — commercial/redistribution rights remain unverified; activation remains blocked by `blocked_pending_redistribution_rights`.
+- Coinbase — written end-user display/redistribution permission remains unverified; activation remains blocked by `blocked_pending_written_end_user_display_permission`.
 
 Do not relabel Binance or Coinbase as internally live until explicit rights evidence exists.
 
-The historical ECB timeout incident is resolved. Open data-quality events, open provider incidents, and runtime-job backlog were verified as zero.
+Fresh connected Supabase operations evidence on 2026-08-18 established:
 
-## Supabase security / readiness state
+- open data-quality events: `0`;
+- open provider incidents: `0`;
+- nonterminal runtime jobs: `0`;
+- ECB readiness checks: passing;
+- six Binance/Coinbase readiness rows outside generic “pass/ready” labels are intentional governance blocks (`activation_allowed:false`), not operational provider failures.
+
+## Supabase release identity and scheduler
 
 - Project ref: `ssdgfgqnjlwzkgukzeef`
 - Provider ingestion Edge Function: `qelly-provider-ingestion`
 - Release identity sync Edge Function: `qelly-release-identity-sync`
-- Release sync runs hourly through a Vault-backed scheduler boundary.
+- Release identity scheduler: minute `5` of every hour (`5 * * * *`) through the existing Vault-backed scheduler boundary.
 
-Outstanding security advisories:
+The release-identity Edge Function fetches canonical Cloudflare `qelly-release.json`, validates release/site/capability truth and records the exact observed release. A ledger row can therefore lag a newly merged/deployed release until the next scheduler run; timestamp the evidence and do not interpret temporary ledger lag as deployment failure without checking the observation window.
 
-- leaked-password protection remains disabled; the connected management tool still exposes no safe Auth-setting mutation;
-- `pg_net` version `0.20.4` is reported with extension schema `public` and `extrelocatable=false`; do not attempt a naive `ALTER EXTENSION ... SET SCHEMA`;
-- `qelly_market_data_snapshot` and `qelly_timeseries_history` remain reviewed authenticated `SECURITY DEFINER` RPC boundaries because their governed source tables are not browser-readable.
+## Supabase security / readiness state
 
-Performance advisor output currently contains only `unused_index` informational candidates. Do not drop indexes solely because current usage counters are zero.
+Fresh 2026-08-18 security-advisor review still reports these unresolved warnings:
 
-Readiness proof weakness still open:
+- leaked-password protection remains disabled; the connected management surface still exposes no safe hosted Auth-setting mutation;
+- `pg_net` is reported in schema `public` and is non-relocatable in the inspected installation; do not attempt a naive `ALTER EXTENSION ... SET SCHEMA`;
+- `qelly_market_data_snapshot` and `qelly_timeseries_history` remain reviewed authenticated `SECURITY DEFINER` read RPC boundaries because their governed source tables are not browser-readable.
 
-- `functions/_lib/email-capability.js` uses a static `AUTH_EMAIL_CANARY` with `verifiedAt:'2026-08-14'` and can also accept an explicit production email-delivery flag;
-- current Supabase Auth logs prove active `/user` and token/session operations from the canonical runtime, but the inspected log window does not itself provide a fresh end-to-end email-delivery proof;
-- do not claim this static canary is equivalent to current transactional-email delivery evidence. A safe live/durable email canary needs a reliable non-PII evidence source or a dedicated controlled test-recipient workflow.
+Do not weaken RLS or rewrite Auth internals to silence these warnings. Performance `unused_index` findings remain informational without representative workload evidence.
 
-## Active cloud-sync backend enforcement repair
+## Email-delivery readiness weakness
 
-Branch: `repair/qelly-v9-cloudsync-backend-enforcement-20260818`
+Still open:
 
-Confirmed defect on production `dadc635b...`:
+- `functions/_lib/email-capability.js` contains a static `AUTH_EMAIL_CANARY` with `verifiedAt:'2026-08-14'` and can also accept an explicit runtime email-delivery flag;
+- active Auth/session evidence is not equivalent to a fresh end-to-end transactional-email delivery canary;
+- do not claim the static canary alone proves current email delivery;
+- a safe repair requires a reliable non-PII evidence source or a dedicated controlled test-recipient workflow. Do not request or expose raw mail credentials merely to refresh this proof.
 
-- the profile/account surface now treats cloud synchronization as available only when the canonical runtime explicitly reports `cloudSync === true`;
-- the authenticated backend handlers for `cloud/status`, `sync/push`, and `sync/pull` still execute without checking that capability;
-- therefore a client can call synchronization routes even when the runtime capability is disabled.
+## Timezone canonicalization
 
-Current branch changes:
+Supabase migration: `20260818101413_qelly_timezone_canonicalization_v1`.
 
-- `functions/_lib/data.js` resolves the same effective public runtime used by the profile capability contract;
-- the three supported synchronization routes require `runtime.capabilities.cloudSync === true` before any synchronization-specific Supabase read or write;
-- disabled synchronization fails with HTTP 503 semantics, code `cloud_sync_unavailable`, and `retryable:false`;
-- regression coverage proves all three synchronization routes fail before Supabase access when disabled;
-- regression coverage also proves `saved-calculations` cloud persistence remains available when synchronization is disabled.
+Last verified migration state:
 
-This repair must not alter saved-calculation CRUD behavior, stored calculation data, existing user opt-in values, profile/workspace RLS ownership, database schema/migrations, timezone data, market/provider truth, formulas/indicators, or execution/custody boundaries.
+- `qelly_profiles`: canonical `Asia/Kolkata` / `UTC`, zero `Asia/Calcutta`;
+- `auth.users.raw_user_meta_data`: zero legacy `Asia/Calcutta` where timezone metadata is present;
+- `qelly_theme_schedules`: zero legacy alias rows;
+- profile and theme-schedule canonicalization triggers are installed;
+- registration/profile runtime paths canonicalize the legacy alias before persistence/response.
 
-## Vercel state
+Re-query counts before making a new current-row-count claim.
 
-The connected Vercel team still has zero Qelly projects. Do not claim Vercel deployment parity or invent a Vercel URL.
+## Vercel boundary
 
-The repository contains `vercel.json`, but connector bootstrap has not created a project. Vercel CSP also requires deliberate external-frame alignment before TradingView parity can be claimed.
+Last connected Vercel checkpoint found zero Qelly projects. Treat that as a historical checkpoint, not a permanent fact: re-query Vercel before any parity claim. Never invent a Vercel URL merely because `vercel.json` exists.
+
+## Current governance repair
+
+Branch: `repair/qelly-v9-durable-state-truth-20260818`
+
+Purpose:
+
+- remove the self-invalidating “current verified production SHA” model from this durable file;
+- distinguish source checkpoint, independent runtime checkpoint and evidence timestamps;
+- record completed cloud-sync and live-verification repairs;
+- record fresh provider/operations/security evidence;
+- preserve unresolved email/Auth and provider-rights limitations explicitly.
+
+This branch is governance-only. It must not change runtime code, provider policy, Supabase schema/data, Auth behavior, saved calculations, formulas/indicators, or execution/custody boundaries.
 
 ## Release procedure
 
 For every repair PR:
 
-1. recover the exact current PR head;
-2. require exact-head success for repository diagnostics, V8 live-terminal acceptance, Cloudflare parity, GitHub mirror, Prompt 2C, corrective validation, browser acceptance where triggered, and complete all-screens evidence;
-3. never merge a red or incomplete head;
+1. recover the exact current release base and exact PR head;
+2. require exact-head success for repository diagnostics, V8 live-terminal acceptance, Cloudflare parity, GitHub mirror, Prompt 2C, corrective validation and complete all-screens evidence as applicable;
+3. never merge a red, incomplete, superseded or behind head;
 4. merge using an expected-head SHA guard;
-5. verify resulting release SHA directly on Cloudflare;
-6. verify `/api/v1/config` and `/api/v1/market/network` truth;
-7. verify GitHub Pages same SHA;
-8. synchronize/verify Supabase release identity;
-9. apply and verify any included Supabase migration through the migration API;
-10. rerun relevant advisors after DDL;
-11. record remaining limitations explicitly.
+5. re-query the release branch after merge;
+6. prove canonical Cloudflare identity independently; do not substitute PR preview success for production deployment;
+7. verify `/api/v1/config`, health/readiness and market/provider truth when the repair affects those surfaces;
+8. verify GitHub Pages parity when applicable;
+9. synchronize/verify Supabase release identity, accounting for the hourly scheduler observation window;
+10. apply and verify any included Supabase migration only through the governed migration path;
+11. rerun relevant advisors after DDL/security changes;
+12. record remaining limitations explicitly.
 
 ## Continuation rule
 
-If a future chat says “continue Qelly”, start from this file, then freshly query:
+If a future chat says “continue Qelly”, start from this file but treat every exact SHA and operational count as a timestamped checkpoint, not current truth. Freshly query:
 
-1. release branch SHA and open repair PRs;
-2. exact-head GitHub Actions status;
-3. Cloudflare release/config/market-network;
-4. GitHub Pages release identity;
-5. Supabase release/provider/auth/security/data-quality/profile evidence;
-6. Vercel state if parity work is requested.
+1. release branch SHA, open non-draft repair PRs and mergeability;
+2. exact-head GitHub Actions for the active repair;
+3. canonical Cloudflare release/config/health/readiness/market-provider truth;
+4. GitHub Pages release identity/parity;
+5. Supabase release ledger, provider/readiness/incidents/data-quality/runtime jobs and security advisors;
+6. Vercel only if parity/deployment work is relevant.
 
-Never substitute historical screenshots or old conversation SHAs for current runtime evidence.
+Never substitute historical screenshots, old conversation SHAs, PR preview deployments, or this file’s checkpoints for fresh current-runtime evidence.
