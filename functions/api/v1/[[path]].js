@@ -34,9 +34,11 @@ const publicProviderEnvelope=(result,provider)=>{
 };
 
 const externalTruthState=(source,{reference=false}={})=>{
-  if(!source||source.state==='unavailable'||source.data==null)return 'unavailable';
-  if(reference||source.state==='reference_external')return 'delayed';
-  if(source.state==='live_external_reference')return 'live';
+  const raw=String(source?.truthState||source?.state||'unavailable').toLowerCase();
+  if(!source||raw==='unavailable'||source.data==null)return 'unavailable';
+  if(reference||raw.includes('delayed')||raw.includes('stale')||raw.includes('reference'))return 'delayed';
+  if(raw.includes('cached'))return 'cached';
+  if(raw.startsWith('live'))return 'live';
   return 'cached';
 };
 const formatUsd=(value,{maximumFractionDigits=2}={})=>Number.isFinite(Number(value))?`$${Number(value).toLocaleString('en-US',{maximumFractionDigits})}`:'Unavailable';
@@ -50,7 +52,7 @@ const publicMarketOverview=async(context)=>{
       providerResult(context,'coinbase','quote','BTC-USD',{}),
       providerResult(context,'ecb','fx-reference-rates','EUR',{})
     ]),
-    buildExternalMarketNetwork()
+    buildExternalMarketNetwork(context)
   ]);
   const normalized=(entry,provider)=>publicProviderEnvelope(entry.status==='fulfilled'?entry.value:{provider,truthState:'unavailable',data:null,error:{code:'provider_unavailable',message:'Provider is temporarily unavailable'},observedAt:null,ingestedAt:new Date().toISOString(),attribution:provider},provider);
   const [binance,coinbase,ecb]=[
@@ -105,13 +107,13 @@ const publicMarketOverview=async(context)=>{
     deterministicLocal:false,
     fabricatedFallback:false,
     execution:false
-  },200,{cache:'public, max-age=0, s-maxage=60, stale-while-revalidate=180'});
+  },200,{cache:'public, max-age=0, s-maxage=10, stale-while-revalidate=30'});
 };
 
 const publicMarketNetwork=async(context)=>{
   const {request,env}=context;
   const [external,ecbEntry]=await Promise.all([
-    buildExternalMarketNetwork(),
+    buildExternalMarketNetwork(context),
     providerResult(context,'ecb','fx-reference-rates','EUR',{}).then((value)=>publicProviderEnvelope(value,'ecb')).catch((error)=>publicProviderEnvelope({provider:'ecb',truthState:'unavailable',data:null,observedAt:null,ingestedAt:new Date().toISOString(),attribution:'European Central Bank',fallbackReason:error.message},'ecb'))
   ]);
   return responseJson(request,env,{
@@ -119,7 +121,7 @@ const publicMarketNetwork=async(context)=>{
     sources:{...external.sources,ecb:ecbEntry},
     providerPolicy:{binance:'rights_blocked_or_unverified',coinbase:'rights_blocked_or_unverified',ecb:'governed_reference_data'},
     releaseSha:publicRuntimeConfig(env,request.url).releaseSha
-  },200,{cache:'public, max-age=0, s-maxage=90, stale-while-revalidate=900'});
+  },200,{cache:'public, max-age=0, s-maxage=10, stale-while-revalidate=30'});
 };
 
 export async function route(context){
