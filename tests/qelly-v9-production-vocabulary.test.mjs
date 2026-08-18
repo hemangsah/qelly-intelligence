@@ -26,3 +26,12 @@ test('deterministic analytical routes do not reuse simulated market semantics',(
     assert.ok(source.includes('data-truth-state="local"'),`${name} must expose explicit local-result truth metadata`);
   }
 });
+
+test('account profile surface distinguishes local fixture persistence without simulated or mock semantics',()=>{
+  const account=read('apps/web/public/assets/routes/account-session.mjs');
+  assert.equal(account.includes('q-status--simulated'),false,'account local profile status must not use simulated styling');
+  assert.doesNotMatch(account,/\bsimulated\b/i,'account customer copy must not describe unsupported controls as simulated');
+  assert.doesNotMatch(account,/\bmock\b/i,'account customer copy must not describe unavailable security controls as mock');
+  assert.ok(account.includes("cloudProfile?'cloud-rls':'local'"),'account persistence badge must expose cloud/local truth metadata');
+  assert.ok(account.includes("cloudProfile?'live':'cached'"),'local profile fixture must use a neutral non-live status style');
+});
