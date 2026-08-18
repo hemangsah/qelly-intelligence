@@ -1,7 +1,6 @@
 import {effectivePublicRuntimeConfig} from './email-capability.js';
 
-export function buildPublicConfigPayload(env,requestUrl,session,csrf){
-  const runtime=effectivePublicRuntimeConfig(env,requestUrl);
+export function buildPublicConfigPayload(env,requestUrl,session,csrf,{runtime=effectivePublicRuntimeConfig(env,requestUrl)}={}){
   const emailDelivery=runtime.capabilities.emailDelivery===true;
   const authenticated=Boolean(session);
   return {
