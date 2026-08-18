@@ -1,4 +1,5 @@
 import {CSRF_COOKIE,bootstrapContext,cookie,enforceRateLimit,errorResponse,parseCookies,resolveSession,responseJson} from '../../_lib/runtime.js';
+import {effectivePublicRuntimeConfig} from '../../_lib/email-capability.js';
 import {buildPublicConfigPayload} from '../../_lib/config-payload.js';
 import {readUiPreferenceRow,uiPreferencesEnvelope} from '../../_lib/ui-preferences.js';
 
@@ -6,7 +7,8 @@ export async function onRequest(context){
   const {request,env}=context;
   try{
     if(request.method.toUpperCase()!=='GET')return context.next();
-    const session=await resolveSession(request,env);
+    const runtime=effectivePublicRuntimeConfig(env,request.url);
+    const session=runtime.capabilities.authentication===true?await resolveSession(request,env):null;
     const rateKey=session
       ?`user:${session.user.id}:bootstrap`
       :`public-bootstrap:${request.headers.get('CF-Connecting-IP')||'unknown'}`;
@@ -25,7 +27,7 @@ export async function onRequest(context){
     return responseJson(request,env,{
       schemaVersion:1,
       generatedAt:new Date().toISOString(),
-      config:buildPublicConfigPayload(env,request.url,session,csrf),
+      config:buildPublicConfigPayload(env,request.url,session,csrf,{runtime}),
       context:qelly,
       preferences
     },200,{
