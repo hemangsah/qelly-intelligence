@@ -2,7 +2,7 @@ name: Qelly Live Production Verification V2
 
 on:
   push:
-    branches: [feature/prompt2c-global-public-beta]
+    branches: [release/qelly-global-public-beta]
   workflow_dispatch:
 
 permissions:
@@ -14,12 +14,18 @@ jobs:
     timeout-minutes: 20
     env:
       PUBLIC_URL: https://qelly-intelligence.pages.dev
-      RELEASE_SHA: 92f277f803a307e660e25bb2eef873a6337f4999
+      RELEASE_SHA: ${{ github.sha }}
       FALLBACK_SHA: 603cece3091dc59cfb72680914e7056b40058022
       SUPABASE_PROJECT_REF: ssdgfgqnjlwzkgukzeef
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with: {persist-credentials: false, fetch-depth: 1}
+      - name: Guard canonical release ref and exact checkout identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/release/qelly-global-public-beta"
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with: {node-version: '22', cache: npm}
       - run: npm ci --ignore-scripts
@@ -95,7 +101,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: qelly-live-production-verification-v2-92f277f
+          name: qelly-live-production-verification-v2-${{ github.sha }}
           path: dist/live-production-verification-v2
           if-no-files-found: error
           retention-days: 14
