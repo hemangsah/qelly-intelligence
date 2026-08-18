@@ -1,6 +1,9 @@
 const ROUTE_ALIASES=Object.freeze({
-  'quant-calculator':'calculator-center'
+  'quant-calculator':'calculator-center',
+  market:'live-markets'
 });
+
+const keepLegacyMarketPreview=()=>globalThis?.window?.__QELLY_CONFIG__?.staticVisualPreview===true;
 
 export function parseHashRoute(hash,{fallback='market'}={}){
   const raw=String(hash??'').replace(/^#\/?/,'')||fallback;
@@ -9,7 +12,7 @@ export function parseHashRoute(hash,{fallback='market'}={}){
   const queryText=queryIndex>=0?raw.slice(queryIndex+1):'';
   const segments=pathPart.split('/').filter(Boolean);
   const parsedRoute=decodeURIComponent(segments.shift()??fallback);
-  const route=ROUTE_ALIASES[parsedRoute]??parsedRoute;
+  const route=parsedRoute==='market'&&keepLegacyMarketPreview()?parsedRoute:(ROUTE_ALIASES[parsedRoute]??parsedRoute);
   const asset=segments.length?decodeURIComponent(segments.join('/')):null;
   return {route,asset,query:new URLSearchParams(queryText),queryText};
 }
