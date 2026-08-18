@@ -62,7 +62,7 @@ export function createAuthenticatedBootstrapFetch({fetchImpl,baseUrl='https://qe
         const response=await fetchImpl(bootstrapUrl,{method:'GET',credentials:'include',headers:{Accept:'application/json'}});
         const body=await response.clone().json().catch(()=>null);
         const compatible=hasCanonicalBootstrapShape(body);
-        const fallback=response.status===404||response.status===405||(response.ok&&!compatible);
+        const fallback=response.status===401||response.status===404||response.status===405||(response.ok&&!compatible);
         const record={ok:response.ok,status:response.status,statusText:response.statusText,body,fallback};
         if(response.ok&&compatible&&startedGeneration===generation){
           snapshot=record;

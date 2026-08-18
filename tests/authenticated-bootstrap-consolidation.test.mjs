@@ -116,6 +116,34 @@ test('browser bootstrap owner falls back to existing endpoints during deployment
   assert.equal((await context.json()).workspace.workspaceId,workspaceId);
 });
 
+test('bootstrap 401 rollout skew falls back while protected projections keep their own authorization',async()=>{
+  let bootstrapCalls=0;
+  const endpointCalls=[];
+  const fetchImpl=async(input)=>{
+    const url=new URL(input instanceof Request?input.url:String(input),'https://qelly.test');
+    if(url.pathname==='/api/v1/bootstrap'){
+      bootstrapCalls+=1;
+      return new Response(JSON.stringify({error:{code:'session_required',message:'Session required'}}),{status:401,headers:{'content-type':'application/json'}});
+    }
+    endpointCalls.push(url.pathname);
+    if(url.pathname==='/api/v1/config')return new Response(JSON.stringify({auth:{authenticated:false},defaultRoute:'market'}),{status:200,headers:{'content-type':'application/json'}});
+    if(url.pathname==='/api/v1/session/context'||url.pathname==='/api/v1/preferences/layout')return new Response(JSON.stringify({error:{code:'session_required',message:'Session required'}}),{status:401,headers:{'content-type':'application/json'}});
+    throw new Error(`Unexpected endpoint ${url.pathname}`);
+  };
+  const wrapped=createAuthenticatedBootstrapFetch({fetchImpl,baseUrl:'https://qelly.test'});
+  const [config,context,preferences]=await Promise.all([
+    wrapped('/api/v1/config'),
+    wrapped('/api/v1/session/context'),
+    wrapped('/api/v1/preferences/layout')
+  ]);
+  assert.equal(bootstrapCalls,1);
+  assert.deepEqual(endpointCalls.sort(),['/api/v1/config','/api/v1/preferences/layout','/api/v1/session/context']);
+  assert.equal(config.status,200);
+  assert.equal((await config.json()).auth.authenticated,false);
+  assert.equal(context.status,401);
+  assert.equal(preferences.status,401);
+});
+
 test('bootstrap installer executes before the application shell entry',async()=>{
   const html=await readFile(new URL('../apps/web/public/index.html',import.meta.url),'utf8');
   const installer=html.indexOf('./assets/authenticated-bootstrap-install.mjs');
