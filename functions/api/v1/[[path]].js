@@ -18,6 +18,15 @@ const publicTruthState=(state)=>({
   stale:'stale'
 }[String(state||'')]||'unavailable');
 const readMethod=(method)=>['GET','HEAD'].includes(String(method||'').toUpperCase());
+const cloudSyncRoute=(path)=>['cloud/status','sync/push','sync/pull'].includes(String(path||''));
+const requireCloudSyncCapability=(path,runtime)=>{
+  if(!cloudSyncRoute(path))return;
+  if(runtime?.capabilities?.cloudSync===true)return;
+  throw new HttpError(503,'cloud_sync_unavailable','Cloud synchronization is unavailable in the current canonical runtime.',{
+    details:{capability:'cloudSync',truthState:'UNAVAILABLE'},
+    retryable:false
+  });
+};
 
 const publicProviderEnvelope=(result,provider)=>{
   const sourceProvider=String(result?.provider||provider);
@@ -130,6 +139,7 @@ export async function route(context){
   const session=await resolveSession(request,env,{required:true});
   await enforceRateLimit(env,`user:${session.user.id}:${path}`);
   const qelly=await bootstrapContext(env,session);
+  requireCloudSyncCapability(path,authRuntime);
   if(path==='session/context'&&method==='GET')return responseJson(request,env,qelly,200,{cookies:session.cookies});
   if(path==='preferences/layout')throw new HttpError(503,'preferences_route_owner_mismatch','Preferences are owned by the dedicated /api/v1/preferences/layout function; the generic API fallback will not return browser-local defaults.',{retryable:false});
   if(path==='sessions'&&method==='GET')return responseJson(request,env,{scope:'current-session-only',items:[{sessionId:`supabase-${session.user.id.slice(0,8)}`,authenticationMethod:'supabase-email-password',expiresAt:new Date(Number(session.claims.exp)*1000).toISOString(),current:true,revokedAt:null}]});
@@ -163,4 +173,4 @@ export async function onRequest(context){
 }
 
 export {publicRuntimeConfig} from '../../_lib/runtime.js';
-export const __test=Object.freeze({route,stableUuid,validateJwtClaims,publicTruthState,publicProviderEnvelope,readMethod,publicMarketNetwork,...__dataTest});
+export const __test=Object.freeze({route,stableUuid,validateJwtClaims,publicTruthState,publicProviderEnvelope,readMethod,publicMarketNetwork,cloudSyncRoute,requireCloudSyncCapability,...__dataTest});
