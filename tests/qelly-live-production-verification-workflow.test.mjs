@@ -6,6 +6,7 @@ const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 const V1='.github/workflows/qelly-live-production-verification.yml';
 const V2='.github/workflows/qelly-live-production-verification-v2.yml';
 const PROMPT2C='.github/workflows/prompt2c-public-beta.yml';
+const CONVERGENCE='scripts/wait-for-cloudflare-runtime-convergence.mjs';
 const PROVIDERS='functions/_lib/providers.js';
 const OBSOLETE_BRANCH='feature/prompt2c-global-public-beta';
 const OBSOLETE_RELEASE='92f277f803a307e660e25bb2eef873a6337f4999';
@@ -38,10 +39,10 @@ test('V2 is a manual release-branch diagnostic with dynamic identity and shared 
   assert.doesNotMatch(source,new RegExp(OBSOLETE_RELEASE));
 });
 
-test('V2 retains live release, runtime, provider and browser diagnostic surfaces',async()=>{
-  const source=await read(V2);
+test('V2 retains live release, runtime, provider and browser diagnostic surfaces through shared convergence',async()=>{
+  const [source,convergence]=await Promise.all([read(V2),read(CONVERGENCE)]);
+  assert.ok(convergence.includes('/qelly-release.json?'),'shared convergence must verify the release identity surface');
   for(const marker of [
-    'qelly-release.json',
     'qelly-config.js',
     'BUILD_INFO.json',
     'api/v1/health',
