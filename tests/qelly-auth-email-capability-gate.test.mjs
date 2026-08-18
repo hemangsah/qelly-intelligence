@@ -17,7 +17,9 @@ test('frontend and Cloudflare runtime both keep email delivery fail-closed witho
   const build=await readFile(new URL('../scripts/enable-public-auth-email.mjs',import.meta.url),'utf8');
   assert.match(runtime,/emailDelivery:bool\(env\.QELLY_ENABLE_AUTH_EMAIL_DELIVERY,false\)/);
   assert.match(capability,/emailDeliveryAvailable=\(env=\{\}\)=>bool\(env\.QELLY_ENABLE_AUTH_EMAIL_DELIVERY,false\)/);
-  assert.match(capability,/authoritative:false/);
+  assert.match(capability,/readinessEvidence:true/);
+  assert.match(capability,/capabilityAuthority:false/);
+  assert.match(capability,/evidenceMethod:'confirmation_sent_at_then_email_confirmed_at'/);
   assert.doesNotMatch(capability,/AUTH_EMAIL_CANARY\.proven\s*&&/);
   assert.doesNotMatch(capability,/site===CANONICAL_QELLY_PUBLIC_SITE/);
   assert.match(build,/String\(environment\.QELLY_ENABLE_AUTH_EMAIL_DELIVERY\|\|'?'\)?/);
