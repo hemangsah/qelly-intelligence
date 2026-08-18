@@ -22,7 +22,12 @@ export async function renderAccountSession(main,{api,pageHead,escapeHtml,toast,o
   const user=profile.user||{},settings=profile.profile||{},workspace=profile.workspace||{},session=profile.session||{};
   const profileCapabilities=profile.capabilities||{};
   const cloudProfile=profileCapabilities.profilePersistence==='cloud-rls';
-  const cloudSyncAvailable=cloudProfile&&profileCapabilities.cloudSync!==false;
+  const cloudSyncAvailable=cloudProfile&&profileCapabilities.cloudSync===true;
+  const cloudSyncCopy=cloudSyncAvailable
+    ?'Allow saved deterministic calculations and supported workspace state to synchronize through the authenticated Qelly cloud contract.'
+    :cloudProfile
+      ?'Cloud synchronization is unavailable in the current canonical runtime. Any stored opt-in is retained but inactive; profile changes still persist to the authenticated RLS profile.'
+      :'Unavailable in the governed local identity fixture; profile changes remain local.';
   const persistenceLabel=cloudProfile?'CLOUD RLS':'LOCAL ATOMIC JSON';
   const authenticationLabel=String(session.authenticationMethod||current?.authenticationMethod||'declared session').toUpperCase();
   main.innerHTML=`<section class="q-page q-v6-account-page">
@@ -36,7 +41,7 @@ export async function renderAccountSession(main,{api,pageHead,escapeHtml,toast,o
         <label class="q-setting q-setting--wide"><span>Display name</span><input name="displayName" maxlength="80" required value="${esc(settings.displayName||'',escapeHtml)}"></label>
         <label class="q-setting"><span>Base currency</span><select name="baseCurrency">${['USD','INR','EUR','GBP','SGD','AED','JPY'].map((currency)=>`<option value="${currency}" ${currency===settings.baseCurrency?'selected':''}>${currency}</option>`).join('')}</select></label>
         <label class="q-setting"><span>Timezone</span><input name="timezone" maxlength="64" required value="${esc(settings.timezone||'UTC',escapeHtml)}" placeholder="Asia/Kolkata"></label>
-        <label class="q-v6-cloud-toggle q-setting--wide"><input type="checkbox" name="cloudSyncOptIn" ${settings.cloudSyncOptIn?'checked':''} ${cloudSyncAvailable?'':'disabled'}><span><strong>Cloud synchronization</strong><small>${cloudSyncAvailable?'Allow saved deterministic calculations and supported workspace state to synchronize through the authenticated Qelly cloud contract.':'Unavailable in the deterministic local identity fixture; profile changes remain local.'}</small></span></label>
+        <label class="q-v6-cloud-toggle q-setting--wide" data-cloud-sync-state="${cloudSyncAvailable?'available':'unavailable'}"><input type="checkbox" name="cloudSyncOptIn" ${settings.cloudSyncOptIn&&cloudSyncAvailable?'checked':''} ${cloudSyncAvailable?'':'disabled'}><span><strong>Cloud synchronization</strong><small>${escapeHtml(cloudSyncCopy)}</small></span></label>
         <div class="q-v6-profile-actions"><button type="button" class="q-button q-button--secondary" data-reset-profile>Reset form</button><button type="submit" class="q-button q-button--primary">Save profile</button></div>
       </form></section>
       <aside class="q-panel"><div class="q-panel-head"><div><h2>Workspace identity</h2><p>Current bootstrapped workspace and policy versions.</p></div><span class="q-status q-status--cached">CURRENT</span></div><div class="q-panel-body"><dl class="q-v6-evidence-list"><dt>Workspace</dt><dd>${esc(workspace.name,escapeHtml)}</dd><dt>Workspace ID</dt><dd>${esc(workspace.workspaceId,escapeHtml)}</dd><dt>User ID</dt><dd>${esc(user.userId,escapeHtml)}</dd><dt>Privacy version</dt><dd>${esc(settings.privacyVersion,escapeHtml)}</dd><dt>Terms version</dt><dd>${esc(settings.termsVersion,escapeHtml)}</dd><dt>Profile updated</dt><dd>${escapeHtml(date(settings.updatedAt))}</dd><dt>Execution</dt><dd>Disabled</dd></dl></div></aside>
@@ -49,7 +54,9 @@ export async function renderAccountSession(main,{api,pageHead,escapeHtml,toast,o
 
   const form=main.querySelector('#v6-profile-form');
   const save=async()=>{
-    const data=new FormData(form);const payload={displayName:String(data.get('displayName')||''),baseCurrency:String(data.get('baseCurrency')||'USD'),timezone:String(data.get('timezone')||'UTC'),cloudSyncOptIn:Boolean(form.elements.cloudSyncOptIn.checked)};
+    const data=new FormData(form);
+    const payload={displayName:String(data.get('displayName')||''),baseCurrency:String(data.get('baseCurrency')||'USD'),timezone:String(data.get('timezone')||'UTC')};
+    if(cloudSyncAvailable)payload.cloudSyncOptIn=Boolean(form.elements.cloudSyncOptIn.checked);
     try{await api('/api/v1/profile',{method:'PATCH',body:JSON.stringify(payload)});toast('Profile preferences saved',{tone:'success'});await onAuthenticated('account-session');}catch(error){toast(error.message,{tone:'danger'});}
   };
   form.addEventListener('submit',(event)=>{event.preventDefault();void save();});
