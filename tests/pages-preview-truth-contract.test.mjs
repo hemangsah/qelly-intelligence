@@ -20,7 +20,8 @@ test('governed detail routes expose canonical static-preview truth-state markers
     'assets/routes/saved-calculation-detail.mjs'
   ])assert.match(validator,new RegExp(route.replaceAll('.','\\.')));
 
-  assert.match(formula,/q-status--simulated">DETERMINISTIC</);
+  assert.match(formula,/q-status--cached">DETERMINISTIC</);
+  assert.doesNotMatch(formula,/q-status--simulated">DETERMINISTIC</);
   assert.match(indicator,/q-status--simulated">DETERMINISTIC · USER-PROVIDED MARKET HISTORY</);
   assert.match(calculator,/q-status--simulated">DETERMINISTIC</);
   assert.match(saved,/SHARED READ-ONLY|DETERMINISTIC LOCAL|UNAVAILABLE/);
