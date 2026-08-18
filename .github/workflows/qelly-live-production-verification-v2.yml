@@ -1,8 +1,6 @@
 name: Qelly Live Production Verification V2
 
 on:
-  push:
-    branches: [release/qelly-global-public-beta]
   workflow_dispatch:
 
 permissions:
@@ -29,18 +27,23 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with: {node-version: '22', cache: npm}
       - run: npm ci --ignore-scripts
+      - name: Wait for stable Cloudflare runtime convergence
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import {waitForCloudflareRuntimeConvergence} from './scripts/wait-for-cloudflare-runtime-convergence.mjs';
+          await waitForCloudflareRuntimeConvergence({
+            publicUrl:process.env.PUBLIC_URL,
+            releaseSha:process.env.RELEASE_SHA,
+            outputDir:'dist/live-production-verification-v2/http'
+          });
+          NODE
       - name: Verify release, configuration, Functions and providers
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p dist/live-production-verification-v2/http
-          for attempt in $(seq 1 18); do
-            curl --fail --silent --show-error --location --max-time 20 "${PUBLIC_URL}/qelly-release.json?v2=${attempt}" -o /tmp/release.json || true
-            actual="$(node -e "try{process.stdout.write(JSON.parse(require('fs').readFileSync('/tmp/release.json','utf8')).releaseSha||'')}catch{}")"
-            [ "$actual" = "$RELEASE_SHA" ] && break
-            sleep 10
-          done
-          cp /tmp/release.json dist/live-production-verification-v2/http/release.json
           for path in '' qelly-config.js BUILD_INFO.json robots.txt sitemap.xml manifest.webmanifest auth/callback.html legal/privacy.html support.html api/v1/health api/v1/readiness api/v1/config api/v1/providers/status 'api/v1/providers/binance?symbol=BTCUSDT' 'api/v1/providers/coinbase?symbol=BTC-USD' 'api/v1/providers/ecb?symbol=EUR'; do
             safe="$(echo "${path:-index}" | tr '/?=&' '----')"
             curl --fail --silent --show-error --location --max-time 30 -D "dist/live-production-verification-v2/http/${safe}.headers" "${PUBLIC_URL}/${path}" -o "dist/live-production-verification-v2/http/${safe}.body"
@@ -66,11 +69,17 @@ jobs:
             if(value.provider!==id)throw new Error(`provider_id_${id}`);
             for(const field of ['truthState','ingestionTime','freshness','quality','confidence','cache'])if(value[field]===undefined||value[field]===null&&field!=='confidence')throw new Error(`provider_field_${id}_${field}`);
           };
-          validateProvider(binance,'binance');validateProvider(coinbase,'coinbase-exchange-public');validateProvider(ecb,'ecb-reference-rates');
-          if(binance.truthState!=='unavailable'||!String(binance.fallbackReason||'').startsWith('provider_http_'))throw new Error('binance_degraded_truth_invalid');
-          if(coinbase.truthState!=='live_provider'||!coinbase.data||coinbase.confidence<=0)throw new Error('coinbase_live_invalid');
+          const validateRightsBlocked=(value,id,termsState,reason)=>{
+            if(value.truthState!=='unavailable'||value.data!==null||value.confidence!==0||value.freshness!=='unavailable'||value.quality!=='unavailable')throw new Error(`${id}_rights_gate_truth_invalid`);
+            if(value.termsState!==termsState)throw new Error(`${id}_terms_state_invalid_${value.termsState}`);
+            if(value.fallbackReason!==reason)throw new Error(`${id}_rights_reason_invalid_${value.fallbackReason}`);
+            if(value.cache?.hit!==false||value.cache?.stale!==false)throw new Error(`${id}_blocked_cache_truth_invalid`);
+          };
+          validateProvider(binance,'binance');validateProvider(coinbase,'coinbase');validateProvider(ecb,'ecb-reference-rates');
+          validateRightsBlocked(binance,'binance','blocked_pending_redistribution_rights','provider_redistribution_rights_not_verified');
+          validateRightsBlocked(coinbase,'coinbase','blocked_pending_written_end_user_display_permission','provider_end_user_display_rights_not_verified');
           if(ecb.truthState!=='delayed_provider'||!ecb.data?.rates||ecb.confidence<=0)throw new Error('ecb_live_invalid');
-          const redacted={releaseSha:release.releaseSha,fallbackReleaseSha:release.fallbackReleaseSha,capabilities:{authentication:release.authentication,cloudSync:release.cloudSync,liveProviders:release.liveProviders,protectedWrites:release.protectedWrites},config:{releaseSha:config.releaseSha,publicSiteUrl:config.publicSiteUrl,staticVisualPreview:config.staticVisualPreview,supabaseUrl:config.supabase?.url,keyShape:{present:key.length>0,length:key.length,equalsProjectReference:key===process.env.SUPABASE_PROJECT_REF,modernPrefix:key.startsWith('sb_publishable_'),legacyJwtShape:parts.length===3,valid:modern||legacy}},health,readiness,providers:{binance:{truthState:binance.truthState,fallbackReason:binance.fallbackReason,freshness:binance.freshness,confidence:binance.confidence,cache:binance.cache},coinbase:{truthState:coinbase.truthState,observationTime:coinbase.observationTime,ingestionTime:coinbase.ingestionTime,freshness:coinbase.freshness,confidence:coinbase.confidence,cache:coinbase.cache},ecb:{truthState:ecb.truthState,observationTime:ecb.observationTime,ingestionTime:ecb.ingestionTime,freshness:ecb.freshness,confidence:ecb.confidence,cache:ecb.cache}}};
+          const redacted={releaseSha:release.releaseSha,fallbackReleaseSha:release.fallbackReleaseSha,capabilities:{authentication:release.authentication,cloudSync:release.cloudSync,liveProviders:release.liveProviders,protectedWrites:release.protectedWrites},config:{releaseSha:config.releaseSha,publicSiteUrl:config.publicSiteUrl,staticVisualPreview:config.staticVisualPreview,supabaseUrl:config.supabase?.url,keyShape:{present:key.length>0,length:key.length,equalsProjectReference:key===process.env.SUPABASE_PROJECT_REF,modernPrefix:key.startsWith('sb_publishable_'),legacyJwtShape:parts.length===3,valid:modern||legacy}},health,readiness,providers:{binance:{truthState:binance.truthState,fallbackReason:binance.fallbackReason,termsState:binance.termsState,freshness:binance.freshness,confidence:binance.confidence,cache:binance.cache},coinbase:{truthState:coinbase.truthState,fallbackReason:coinbase.fallbackReason,termsState:coinbase.termsState,freshness:coinbase.freshness,confidence:coinbase.confidence,cache:coinbase.cache},ecb:{truthState:ecb.truthState,observationTime:ecb.observationTime,ingestionTime:ecb.ingestionTime,freshness:ecb.freshness,confidence:ecb.confidence,cache:ecb.cache}}};
           fs.writeFileSync('dist/live-production-verification-v2/runtime-redacted.json',JSON.stringify(redacted,null,2));
           NODE
       - name: Verify rendered production browser and strict CSP
