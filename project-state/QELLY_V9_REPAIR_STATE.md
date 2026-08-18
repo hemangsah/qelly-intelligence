@@ -68,7 +68,7 @@ Historical fixed-preview/restoration workflows still target historical feature b
 9. User-facing timezone identifiers use canonical current IANA names.
 10. Missing capability proof must fail closed; omission must not be interpreted as availability.
 11. GitHub source identity and deployed runtime identity are separate facts until exact convergence is proven.
-12. A historical canary is evidence metadata, not current capability authority.
+12. Dated readiness evidence cannot enable a capability; runtime availability and readiness proof are separate controls.
 
 ## Provider and operations state
 
@@ -113,17 +113,24 @@ Fresh 2026-08-18 security-advisor review still reports these unresolved warnings
 
 Do not weaken RLS or rewrite Auth internals to silence these warnings. Performance `unused_index` findings remain informational without representative workload evidence.
 
-## Email-delivery capability contract
+## Email-delivery capability and readiness contract
 
-The runtime capability is fail-closed and configuration-driven:
+Runtime availability is fail-closed and configuration-driven:
 
-- frontend production artifact activation already requires `QELLY_REQUIRE_PUBLIC_RUNTIME=true` and explicit `QELLY_ENABLE_AUTH_EMAIL_DELIVERY=true`;
-- Pages Functions runtime availability now also requires the explicit `QELLY_ENABLE_AUTH_EMAIL_DELIVERY` flag;
-- canonical hostname alone is not proof and cannot enable registration/recovery;
-- the Aug 14 `AUTH_EMAIL_CANARY` may remain as historical evidence metadata but is marked `authoritative:false` and is not consulted for runtime availability;
+- frontend production artifact activation requires `QELLY_REQUIRE_PUBLIC_RUNTIME=true` and explicit `QELLY_ENABLE_AUTH_EMAIL_DELIVERY=true`;
+- Pages Functions runtime availability also requires explicit `QELLY_ENABLE_AUTH_EMAIL_DELIVERY=true`;
+- canonical hostname alone cannot enable registration/recovery;
 - registration and recovery fail with `auth_email_delivery_unavailable` before any Supabase email request when the explicit flag is missing/false.
 
-This fixes capability truth, but it does **not** turn configuration into an end-to-end deliverability claim. A fresh controlled transactional-email canary remains useful readiness evidence. Do not request or expose raw mail credentials merely to generate that proof.
+Readiness evidence is a separate control:
+
+- privacy-preserving Supabase aggregate verification on 2026-08-18 found six confirmation-mail attempts after the previous canary and four accounts subsequently confirmed after their recorded `confirmation_sent_at`;
+- the latest confirmed-after-mail observation was `2026-08-15T11:11:55.355034Z`;
+- `AUTH_EMAIL_CANARY` records that timestamp with evidence method `confirmation_sent_at_then_email_confirmed_at`, `readinessEvidence:true`, and `capabilityAuthority:false`;
+- readiness can use this explicitly dated production evidence only when the runtime email capability is also explicitly configured;
+- the canary cannot turn the capability on and does not replace periodic refresh of deliverability evidence.
+
+Do not persist recipient addresses, raw mail credentials or user identities merely to refresh this proof.
 
 ## Timezone canonicalization
 
@@ -149,7 +156,7 @@ Do not encode an “active repair branch” here; that field becomes stale immed
 
 Known items that still require fresh evidence or external authorization before stronger claims:
 
-- fresh end-to-end transactional-email delivery proof independent of configuration flags;
+- periodic refresh of end-to-end transactional-email confirmation/recovery evidence;
 - leaked-password protection enablement through a supported Supabase Auth management surface;
 - Binance redistribution rights and Coinbase written end-user display/redistribution permission;
 - Vercel parity only if a real connected Qelly project is created and verified;
