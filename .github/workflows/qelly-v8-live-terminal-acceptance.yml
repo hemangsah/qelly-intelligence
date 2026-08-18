@@ -27,18 +27,6 @@ jobs:
     name: Validate live terminal source contract
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    env:
-      QELLY_REQUIRE_PUBLIC_RUNTIME: 'true'
-      QELLY_PROMPT2C_PUBLIC_BETA: 'true'
-      QELLY_PUBLIC_SITE_URL: https://qelly-intelligence.pages.dev
-      QELLY_PUBLIC_SUPABASE_URL: https://ssdgfgqnjlwzkgukzeef.supabase.co
-      QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_shape_only_012345678901234567890123456789
-      QELLY_DEPLOYMENT_ENVIRONMENT: cloudflare-pages-production-parity
-      QELLY_ENABLE_AUTH: 'true'
-      QELLY_ENABLE_AUTH_EMAIL_DELIVERY: 'true'
-      QELLY_ENABLE_CLOUD_SYNC: 'true'
-      QELLY_ENABLE_LIVE_PROVIDERS: 'true'
-      QELLY_ENABLE_FEEDBACK_WRITES: 'true'
     steps:
       - name: Checkout exact head
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -56,6 +44,18 @@ jobs:
       - name: Run repository tests
         run: npm test
       - name: Build production frontend
+        env:
+          QELLY_REQUIRE_PUBLIC_RUNTIME: 'true'
+          QELLY_PROMPT2C_PUBLIC_BETA: 'true'
+          QELLY_PUBLIC_SITE_URL: https://qelly-intelligence.pages.dev
+          QELLY_PUBLIC_SUPABASE_URL: https://ssdgfgqnjlwzkgukzeef.supabase.co
+          QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_shape_only_012345678901234567890123456789
+          QELLY_DEPLOYMENT_ENVIRONMENT: cloudflare-pages-production-parity
+          QELLY_ENABLE_AUTH: 'true'
+          QELLY_ENABLE_AUTH_EMAIL_DELIVERY: 'true'
+          QELLY_ENABLE_CLOUD_SYNC: 'true'
+          QELLY_ENABLE_LIVE_PROVIDERS: 'true'
+          QELLY_ENABLE_FEEDBACK_WRITES: 'true'
         run: npm run build:frontend
       - name: Syntax-check live terminal owners
         run: |
