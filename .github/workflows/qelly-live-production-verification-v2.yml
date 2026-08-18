@@ -1,8 +1,6 @@
 name: Qelly Live Production Verification V2
 
 on:
-  push:
-    branches: [release/qelly-global-public-beta]
   workflow_dispatch:
 
 permissions:
@@ -29,18 +27,23 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with: {node-version: '22', cache: npm}
       - run: npm ci --ignore-scripts
+      - name: Wait for stable Cloudflare runtime convergence
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import {waitForCloudflareRuntimeConvergence} from './scripts/wait-for-cloudflare-runtime-convergence.mjs';
+          await waitForCloudflareRuntimeConvergence({
+            publicUrl:process.env.PUBLIC_URL,
+            releaseSha:process.env.RELEASE_SHA,
+            outputDir:'dist/live-production-verification-v2/http'
+          });
+          NODE
       - name: Verify release, configuration, Functions and providers
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p dist/live-production-verification-v2/http
-          for attempt in $(seq 1 18); do
-            curl --fail --silent --show-error --location --max-time 20 "${PUBLIC_URL}/qelly-release.json?v2=${attempt}" -o /tmp/release.json || true
-            actual="$(node -e "try{process.stdout.write(JSON.parse(require('fs').readFileSync('/tmp/release.json','utf8')).releaseSha||'')}catch{}")"
-            [ "$actual" = "$RELEASE_SHA" ] && break
-            sleep 10
-          done
-          cp /tmp/release.json dist/live-production-verification-v2/http/release.json
           for path in '' qelly-config.js BUILD_INFO.json robots.txt sitemap.xml manifest.webmanifest auth/callback.html legal/privacy.html support.html api/v1/health api/v1/readiness api/v1/config api/v1/providers/status 'api/v1/providers/binance?symbol=BTCUSDT' 'api/v1/providers/coinbase?symbol=BTC-USD' 'api/v1/providers/ecb?symbol=EUR'; do
             safe="$(echo "${path:-index}" | tr '/?=&' '----')"
             curl --fail --silent --show-error --location --max-time 30 -D "dist/live-production-verification-v2/http/${safe}.headers" "${PUBLIC_URL}/${path}" -o "dist/live-production-verification-v2/http/${safe}.body"
