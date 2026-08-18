@@ -10,17 +10,17 @@ This is the durable continuation point for Qelly terminal convergence. It contai
 - Release branch: `release/qelly-global-public-beta`
 - Canonical runtime: `https://qelly-intelligence.pages.dev/`
 - Public mirror: `https://hemangsah.github.io/qelly-intelligence/`
-- Release-branch source checkpoint from which this governance repair was created: `6b6a242b885ec2fb7364d5c2bbf32c787942d06b`
-- Last independently verified canonical Cloudflare runtime checkpoint before this governance repair: `6bb72f35c5b1a2b0019beba19dab438410d388f3`
+- Source checkpoint observed immediately before the explicit-email-capability repair: `46c0d2007810a1f69fe2edff58ee0b2f9d76e62b`
+- Last independently verified canonical Cloudflare runtime checkpoint recorded during this session: `6bb72f35c5b1a2b0019beba19dab438410d388f3`
 - That Cloudflare checkpoint reports build/release time `2026-08-18T12:44:49.619Z`; the scheduled Supabase release-identity probe recorded it at `2026-08-18T13:05:01.986085Z`.
 
 Do **not** infer that the current GitHub release head is already deployed merely because it is merged. Do **not** infer that the last verified runtime checkpoint is still current merely because it is recorded here. Re-query both sides and compare exact SHAs.
 
-This distinction is intentional: a governance-only merge of this file changes the release-branch SHA, so embedding a field named “current verified production release SHA” would make this file self-stale by construction.
+This distinction is intentional: any repair or governance merge changes the release-branch SHA, so embedding a timeless field named “current verified production release SHA” would make this file self-stale by construction.
 
 ## Completed 2026-08-18 repair chain
 
-PRs `#224` through `#231`, `#233` and `#235` are merged into the release line. Duplicate repair PRs `#232` and `#234` were closed after zero-diff convergence checks. Stale non-draft PR `#198` was closed after proving its runtime retirement and stronger regression coverage were already in current release.
+PRs `#224` through `#231`, `#233`, `#235` and `#236` are merged into the release line. Duplicate repair PRs `#232` and `#234` were closed after zero-diff convergence checks. Stale non-draft PR `#198` was closed after proving its runtime retirement and stronger regression coverage were already in current release.
 
 Key completed repairs:
 
@@ -28,9 +28,10 @@ Key completed repairs:
 - `#228` — India timezone aliases canonicalized across runtime and persistence.
 - `#229` — residual simulated/mock semantics removed from the account local-profile surface.
 - `#230` — profile/account cloud-sync availability made explicit and strict `=== true`; stored opt-in is retained while unavailable.
-- `#231` — `cloud/status`, `sync/push` and `sync/pull` now enforce the same canonical cloud-sync capability before synchronization-specific Supabase access; saved-calculation persistence remains independent.
-- `#233` — obsolete live-verifier branch/SHA pinning removed; verification identity made dynamic and release-aware.
-- `#235` — release verification governance consolidated: Prompt 2C remains the automatic release-push verifier, V2 is a manual exact-release diagnostic using shared convergence and current provider-rights policy, and V1 remains manual-only.
+- `#231` — `cloud/status`, `sync/push` and `sync/pull` enforce the same canonical cloud-sync capability before synchronization-specific Supabase access; saved-calculation persistence remains independent.
+- `#233` — obsolete live-verifier branch/SHA pinning removed and verification identity made dynamic/release-aware.
+- `#235` — release verification governance consolidated: Prompt 2C remains the automatic release-push verifier; V2 and V1 are manual diagnostics; V2 uses shared convergence and current provider-rights semantics.
+- `#236` — durable continuation state made evidence-relative so source checkpoints and independently observed deployment checkpoints are not conflated.
 
 ## Live-verification ownership
 
@@ -67,6 +68,7 @@ Historical fixed-preview/restoration workflows still target historical feature b
 9. User-facing timezone identifiers use canonical current IANA names.
 10. Missing capability proof must fail closed; omission must not be interpreted as availability.
 11. GitHub source identity and deployed runtime identity are separate facts until exact convergence is proven.
+12. A historical canary is evidence metadata, not current capability authority.
 
 ## Provider and operations state
 
@@ -111,14 +113,17 @@ Fresh 2026-08-18 security-advisor review still reports these unresolved warnings
 
 Do not weaken RLS or rewrite Auth internals to silence these warnings. Performance `unused_index` findings remain informational without representative workload evidence.
 
-## Email-delivery readiness weakness
+## Email-delivery capability contract
 
-Still open:
+The runtime capability is fail-closed and configuration-driven:
 
-- `functions/_lib/email-capability.js` contains a static `AUTH_EMAIL_CANARY` with `verifiedAt:'2026-08-14'` and can also accept an explicit runtime email-delivery flag;
-- active Auth/session evidence is not equivalent to a fresh end-to-end transactional-email delivery canary;
-- do not claim the static canary alone proves current email delivery;
-- a safe repair requires a reliable non-PII evidence source or a dedicated controlled test-recipient workflow. Do not request or expose raw mail credentials merely to refresh this proof.
+- frontend production artifact activation already requires `QELLY_REQUIRE_PUBLIC_RUNTIME=true` and explicit `QELLY_ENABLE_AUTH_EMAIL_DELIVERY=true`;
+- Pages Functions runtime availability now also requires the explicit `QELLY_ENABLE_AUTH_EMAIL_DELIVERY` flag;
+- canonical hostname alone is not proof and cannot enable registration/recovery;
+- the Aug 14 `AUTH_EMAIL_CANARY` may remain as historical evidence metadata but is marked `authoritative:false` and is not consulted for runtime availability;
+- registration and recovery fail with `auth_email_delivery_unavailable` before any Supabase email request when the explicit flag is missing/false.
+
+This fixes capability truth, but it does **not** turn configuration into an end-to-end deliverability claim. A fresh controlled transactional-email canary remains useful readiness evidence. Do not request or expose raw mail credentials merely to generate that proof.
 
 ## Timezone canonicalization
 
@@ -138,19 +143,17 @@ Re-query counts before making a new current-row-count claim.
 
 Last connected Vercel checkpoint found zero Qelly projects. Treat that as a historical checkpoint, not a permanent fact: re-query Vercel before any parity claim. Never invent a Vercel URL merely because `vercel.json` exists.
 
-## Current governance repair
+## Durable open-risk queue
 
-Branch: `repair/qelly-v9-durable-state-truth-20260818`
+Do not encode an “active repair branch” here; that field becomes stale immediately after a successful merge. Resolve current work from GitHub at continuation time.
 
-Purpose:
+Known items that still require fresh evidence or external authorization before stronger claims:
 
-- remove the self-invalidating “current verified production SHA” model from this durable file;
-- distinguish source checkpoint, independent runtime checkpoint and evidence timestamps;
-- record completed cloud-sync and live-verification repairs;
-- record fresh provider/operations/security evidence;
-- preserve unresolved email/Auth and provider-rights limitations explicitly.
-
-This branch is governance-only. It must not change runtime code, provider policy, Supabase schema/data, Auth behavior, saved calculations, formulas/indicators, or execution/custody boundaries.
+- fresh end-to-end transactional-email delivery proof independent of configuration flags;
+- leaked-password protection enablement through a supported Supabase Auth management surface;
+- Binance redistribution rights and Coinbase written end-user display/redistribution permission;
+- Vercel parity only if a real connected Qelly project is created and verified;
+- retirement of historical feature-branch workflows only after their remaining draft/history use is intentionally closed.
 
 ## Release procedure
 
