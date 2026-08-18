@@ -31,10 +31,12 @@ test('transactional email requires explicit runtime activation in every environm
   assert.equal(emailDeliveryAvailable(canonicalEnvironment({QELLY_ENABLE_AUTH_EMAIL_DELIVERY:'true'})),true);
 });
 
-test('historical canonical email canary is retained as non-authoritative evidence only',()=>{
+test('canonical email canary is dated readiness evidence but never capability authority',()=>{
   assert.equal(AUTH_EMAIL_CANARY.proven,true);
-  assert.equal(AUTH_EMAIL_CANARY.verifiedAt,'2026-08-14');
-  assert.equal(AUTH_EMAIL_CANARY.authoritative,false);
+  assert.equal(AUTH_EMAIL_CANARY.verifiedAt,'2026-08-15T11:11:55.355034Z');
+  assert.equal(AUTH_EMAIL_CANARY.evidenceMethod,'confirmation_sent_at_then_email_confirmed_at');
+  assert.equal(AUTH_EMAIL_CANARY.readinessEvidence,true);
+  assert.equal(AUTH_EMAIL_CANARY.capabilityAuthority,false);
   assert.equal(effectivePublicRuntimeConfig(canonicalEnvironment()).capabilities.emailDelivery,false);
   assert.equal(effectivePublicRuntimeConfig(canonicalEnvironment({QELLY_ENABLE_AUTH_EMAIL_DELIVERY:'true'})).capabilities.emailDelivery,true);
   assert.equal(effectivePublicRuntimeConfig(canonicalEnvironment({QELLY_ENABLE_AUTH_EMAIL_DELIVERY:'false'})).capabilities.emailDelivery,false);
