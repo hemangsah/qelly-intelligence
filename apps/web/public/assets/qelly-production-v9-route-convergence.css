@@ -1,0 +1,249 @@
+/* Qelly V9 route convergence layer.
+ * Design-lock implementation loaded after the V8 canonical + repair styles.
+ * Keeps runtime truth unchanged while modernizing customer-facing route hierarchy.
+ */
+
+/* Access routes: modern focused account surface. */
+html[data-production-system="v8"] #main .q-auth-page{
+  width:min(100%,1180px)!important;
+  min-height:calc(100vh - 64px)!important;
+  margin:0 auto!important;
+  padding:54px 30px 72px!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,.92fr) minmax(420px,.78fr)!important;
+  gap:18px!important;
+  align-items:stretch!important;
+  background:transparent!important;
+}
+html[data-production-system="v8"] #main .q-auth-hero,
+html[data-production-system="v8"] #main .q-auth-card{
+  min-width:0!important;
+  margin:0!important;
+  border:1px solid var(--q-border)!important;
+  border-radius:16px!important;
+  box-shadow:none!important;
+}
+html[data-production-system="v8"] #main .q-auth-hero{
+  padding:44px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:space-between!important;
+  gap:34px!important;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--q-accent) 44%,var(--q-surface)) 0%,color-mix(in srgb,var(--q-accent) 18%,var(--q-surface)) 46%,var(--q-surface) 100%)!important;
+}
+html[data-production-system="v8"] #main .q-auth-hero h1{
+  max-width:620px!important;
+  margin:8px 0 14px!important;
+  font-size:clamp(34px,4.5vw,58px)!important;
+  line-height:1.02!important;
+}
+html[data-production-system="v8"] #main .q-auth-hero>div>p:not(.q-eyebrow){
+  max-width:610px!important;
+  margin:0!important;
+  color:var(--q-text-secondary)!important;
+  font-size:15px!important;
+  line-height:1.65!important;
+}
+html[data-production-system="v8"] #main .q-auth-proof-grid{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:9px!important;
+}
+html[data-production-system="v8"] #main .q-auth-proof-grid article{
+  min-height:62px!important;
+  display:grid!important;
+  grid-template-columns:110px 1fr!important;
+  align-items:center!important;
+  gap:14px!important;
+  padding:14px 16px!important;
+  border:1px solid color-mix(in srgb,var(--q-border) 70%,var(--q-accent))!important;
+  border-radius:10px!important;
+  background:color-mix(in srgb,var(--q-surface) 78%,transparent)!important;
+}
+html[data-production-system="v8"] #main .q-auth-proof-grid strong{font-size:14px!important;color:var(--q-text)!important}
+html[data-production-system="v8"] #main .q-auth-proof-grid span{font-size:12px!important;color:var(--q-text-secondary)!important}
+html[data-production-system="v8"] #main .q-auth-steps{
+  display:grid!important;
+  gap:10px!important;
+  margin:20px 0 0!important;
+  padding:0!important;
+  list-style:none!important;
+}
+html[data-production-system="v8"] #main .q-auth-steps li{
+  display:grid!important;
+  grid-template-columns:30px 1fr!important;
+  align-items:center!important;
+  gap:12px!important;
+  min-height:48px!important;
+  padding:8px 12px!important;
+  border:1px solid color-mix(in srgb,var(--q-border) 72%,var(--q-accent))!important;
+  border-radius:10px!important;
+  background:color-mix(in srgb,var(--q-surface) 78%,transparent)!important;
+}
+html[data-production-system="v8"] #main .q-auth-steps b{
+  width:28px!important;height:28px!important;display:grid!important;place-items:center!important;
+  border-radius:50%!important;background:var(--q-accent)!important;color:#fff!important;font-size:12px!important
+}
+html[data-production-system="v8"] #main .q-auth-card{
+  padding:38px 40px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+  gap:22px!important;
+  background:var(--q-surface)!important;
+}
+html[data-production-system="v8"] #main .q-auth-card h2{margin:6px 0 8px!important;font-size:28px!important}
+html[data-production-system="v8"] #main .q-auth-card .q-muted-copy{margin:0!important;font-size:13px!important;line-height:1.55!important;color:var(--q-muted)!important}
+html[data-production-system="v8"] #main .q-auth-form{display:grid!important;gap:15px!important;margin:0!important}
+html[data-production-system="v8"] #main .q-auth-form>label:not(.q-auth-consent){display:grid!important;gap:7px!important;color:var(--q-text-secondary)!important;font-size:12px!important;font-weight:620!important}
+html[data-production-system="v8"] #main .q-auth-form input:not([type="checkbox"]),
+html[data-production-system="v8"] #main .q-auth-form select{height:46px!important;min-height:46px!important;padding:0 13px!important;font-size:14px!important;border-radius:9px!important;background:var(--q-surfacealt)!important}
+html[data-production-system="v8"] #main .q-auth-form .q-button--primary{width:100%!important;min-height:44px!important;margin-top:3px!important}
+html[data-production-system="v8"] #main .q-password-field{position:relative!important}
+html[data-production-system="v8"] #main .q-password-field input{padding-right:70px!important}
+html[data-production-system="v8"] #main .q-password-toggle{
+  position:absolute!important;right:8px!important;bottom:5px!important;min-height:36px!important;height:36px!important;
+  padding:0 10px!important;border:0!important;background:transparent!important;color:var(--q-text-secondary)!important;font-size:12px!important
+}
+html[data-production-system="v8"] #main .q-auth-secondary-link{
+  justify-self:start!important;min-height:30px!important;padding:0!important;border:0!important;background:transparent!important;color:var(--q-accentstrong)!important;font-size:12px!important
+}
+html[data-production-system="v8"] #main .q-auth-consent{display:grid!important;grid-template-columns:18px 1fr!important;gap:10px!important;align-items:start!important;color:var(--q-text-secondary)!important;font-size:12px!important}
+html[data-production-system="v8"] #main .q-auth-consent input{margin-top:3px!important}
+html[data-production-system="v8"] #main .q-auth-footer{
+  display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:8px!important;
+  padding-top:16px!important;border-top:1px solid var(--q-border)!important;color:var(--q-muted)!important;font-size:12px!important
+}
+html[data-production-system="v8"] #main .q-auth-footer .q-button{min-height:34px!important}
+html[data-production-system="v8"] #main .q-form-error:not(:empty){margin:0!important;padding:10px 12px!important;border:1px solid color-mix(in srgb,var(--q-negative) 50%,var(--q-border))!important;border-radius:8px!important;background:color-mix(in srgb,var(--q-negative) 8%,var(--q-surface))!important;color:var(--q-negative)!important;font-size:12px!important}
+
+/* Account route: identity -> profile -> session/security -> technical evidence. */
+html[data-production-system="v8"] #main .q-v6-account-page{display:grid!important;gap:16px!important}
+html[data-production-system="v8"] #main .q-v6-account-page .q-page-head{margin-bottom:0!important}
+html[data-production-system="v8"] #main .q-v6-account-hero{
+  display:grid!important;grid-template-columns:minmax(0,1.38fr) minmax(360px,.72fr)!important;gap:14px!important;margin:0!important
+}
+html[data-production-system="v8"] #main .q-v6-identity-card,
+html[data-production-system="v8"] #main .q-v6-security-card{min-height:150px!important;padding:22px!important;border-radius:14px!important}
+html[data-production-system="v8"] #main .q-v6-identity-card{display:flex!important;flex-direction:column!important;justify-content:space-between!important;gap:22px!important}
+html[data-production-system="v8"] #main .q-v6-identity-primary{display:flex!important;align-items:center!important;gap:16px!important}
+html[data-production-system="v8"] #main .q-v6-avatar{width:62px!important;height:62px!important;display:grid!important;place-items:center!important;flex:0 0 62px!important;border-radius:16px!important;background:var(--q-text)!important;color:var(--q-canvas)!important;font-size:18px!important;font-weight:750!important}
+html[data-production-system="v8"] #main .q-v6-identity-primary h2{margin:0 0 4px!important;font-size:24px!important}
+html[data-production-system="v8"] #main .q-v6-identity-primary p{margin:0!important;color:var(--q-muted)!important;font-size:13px!important}
+html[data-production-system="v8"] #main .q-v6-identity-tags{display:flex!important;flex-wrap:wrap!important;gap:7px!important}
+html[data-production-system="v8"] #main .q-v6-security-card .q-panel-head{padding:0 0 14px!important;background:transparent!important;border-bottom:1px solid var(--q-border)!important}
+html[data-production-system="v8"] #main .q-v6-security-list{display:grid!important;gap:0!important}
+html[data-production-system="v8"] #main .q-v6-security-row{
+  min-height:47px!important;display:grid!important;grid-template-columns:minmax(90px,.45fr) minmax(0,1fr) auto!important;align-items:center!important;gap:12px!important;
+  padding:10px 0!important;border-bottom:1px solid var(--q-border)!important
+}
+html[data-production-system="v8"] #main .q-v6-security-row:last-child{border-bottom:0!important}
+html[data-production-system="v8"] #main .q-v6-security-row>span:first-child{color:var(--q-muted)!important;font-size:11px!important;text-transform:uppercase!important;letter-spacing:.06em!important}
+html[data-production-system="v8"] #main .q-v6-security-row strong{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;color:var(--q-text)!important;font-size:13px!important}
+html[data-production-system="v8"] #main .q-v6-profile-layout{
+  display:grid!important;grid-template-columns:minmax(0,1.45fr) minmax(330px,.78fr)!important;gap:14px!important;margin:0!important;align-items:stretch!important
+}
+html[data-production-system="v8"] #main .q-v6-profile-layout>.q-panel{min-width:0!important;margin:0!important}
+html[data-production-system="v8"] #main .q-v6-profile-form{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;padding:20px!important}
+html[data-production-system="v8"] #main .q-v6-profile-form .q-setting{display:grid!important;gap:7px!important;min-width:0!important}
+html[data-production-system="v8"] #main .q-v6-profile-form .q-setting>span{font-size:12px!important;font-weight:620!important;color:var(--q-text-secondary)!important}
+html[data-production-system="v8"] #main .q-v6-profile-form .q-setting--wide{grid-column:1/-1!important}
+html[data-production-system="v8"] #main .q-v6-profile-form input:not([type="checkbox"]),
+html[data-production-system="v8"] #main .q-v6-profile-form select{height:44px!important;min-height:44px!important;font-size:14px!important}
+html[data-production-system="v8"] #main .q-v6-cloud-toggle{
+  grid-column:1/-1!important;display:grid!important;grid-template-columns:20px 1fr!important;gap:12px!important;align-items:start!important;
+  padding:14px!important;border:1px solid var(--q-border)!important;border-radius:10px!important;background:var(--q-surfacealt)!important
+}
+html[data-production-system="v8"] #main .q-v6-cloud-toggle strong{display:block!important;margin-bottom:3px!important;font-size:13px!important;color:var(--q-text)!important}
+html[data-production-system="v8"] #main .q-v6-cloud-toggle small{display:block!important;font-size:12px!important;line-height:1.5!important;color:var(--q-muted)!important}
+html[data-production-system="v8"] #main .q-v6-profile-actions{grid-column:1/-1!important;display:flex!important;justify-content:flex-end!important;gap:8px!important;padding-top:2px!important}
+html[data-production-system="v8"] #main .q-v6-evidence-list{display:grid!important;grid-template-columns:minmax(120px,.65fr) minmax(0,1fr)!important;margin:0!important}
+html[data-production-system="v8"] #main .q-v6-evidence-list dt,
+html[data-production-system="v8"] #main .q-v6-evidence-list dd{margin:0!important;padding:11px 0!important;border-bottom:1px solid var(--q-border)!important;font-size:12px!important}
+html[data-production-system="v8"] #main .q-v6-evidence-list dt{color:var(--q-muted)!important}
+html[data-production-system="v8"] #main .q-v6-evidence-list dd{color:var(--q-text)!important;font-weight:620!important;overflow-wrap:anywhere!important}
+html[data-production-system="v8"] #main .q-v6-account-page>.q-two-column{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;margin:0!important;align-items:stretch!important}
+html[data-production-system="v8"] #main .q-v6-account-page>.q-two-column>.q-panel{margin:0!important;min-width:0!important}
+html[data-production-system="v8"] #main .q-v6-account-actions{display:flex!important;flex-wrap:wrap!important;gap:8px!important;margin-top:14px!important}
+html[data-production-system="v8"] #main .q-v6-capability-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+html[data-production-system="v8"] #main .q-v6-capability-card{min-height:124px!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:7px!important;padding:15px!important;border:1px solid var(--q-border)!important;border-radius:10px!important;background:var(--q-surfacealt)!important}
+html[data-production-system="v8"] #main .q-v6-capability-card strong{font-size:15px!important;color:var(--q-text)!important}
+html[data-production-system="v8"] #main .q-v6-capability-card small{flex:1!important;font-size:12px!important;line-height:1.5!important;color:var(--q-muted)!important}
+html[data-production-system="v8"] #main .q-v8-technical-identifiers{margin-top:14px!important;padding:12px 14px 0!important;border:1px solid var(--q-border)!important;border-radius:9px!important;background:var(--q-surfacealt)!important}
+html[data-production-system="v8"] #main .q-v8-technical-identifiers>summary{min-height:32px!important;display:flex!important;align-items:center!important;cursor:pointer!important;font-weight:620!important;color:var(--q-text-secondary)!important}
+
+/* Formula detail: methodology and worked result share the first viewport cleanly. */
+html[data-production-system="v8"] #main .q-formula-detail-page{display:grid!important;gap:14px!important}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-page-head{margin-bottom:0!important}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-state-banner{min-height:52px!important;margin:0!important;padding:11px 14px!important;display:flex!important;align-items:center!important;gap:10px!important;border-left-width:3px!important}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-state-banner p{margin:0!important;font-size:12px!important;color:var(--q-text-secondary)!important}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-calculator-layout{
+  display:grid!important;grid-template-columns:minmax(0,1.42fr) minmax(350px,.78fr)!important;gap:14px!important;align-items:start!important;margin:0!important
+}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-calculator-layout>.q-panel{min-width:0!important;margin:0!important}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-calculator-layout>.q-panel:nth-child(2){position:sticky!important;top:82px!important}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-panel-head{padding:18px 20px!important}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-panel-body{padding:20px!important}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-evidence-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;margin:0 0 20px!important}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-evidence-grid>div{min-height:72px!important;padding:12px!important;border:1px solid var(--q-border)!important;border-radius:9px!important;background:var(--q-surfacealt)!important}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-evidence-grid dt{margin:0 0 5px!important;color:var(--q-muted)!important;font-size:10px!important;text-transform:uppercase!important;letter-spacing:.06em!important}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-evidence-grid dd{margin:0!important;color:var(--q-text)!important;font-size:13px!important;font-weight:620!important}
+html[data-production-system="v8"] #main .q-formula-detail-page h3{margin:22px 0 10px!important;font-size:16px!important}
+html[data-production-system="v8"] #main .q-formula-detail-page ul{margin:0 0 20px!important;padding-left:20px!important}
+html[data-production-system="v8"] #main .q-formula-detail-page li{margin:5px 0!important;color:var(--q-text-secondary)!important;font-size:13px!important}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-responsive-table{max-height:360px!important;overflow:auto!important;border:1px solid var(--q-border)!important;border-radius:9px!important}
+html[data-production-system="v8"] #main .q-formula-detail-page table{width:100%!important;border-collapse:collapse!important}
+html[data-production-system="v8"] #main .q-formula-detail-page th,
+html[data-production-system="v8"] #main .q-formula-detail-page td{padding:10px 11px!important;border-bottom:1px solid var(--q-border)!important;text-align:left!important;font-size:12px!important;vertical-align:top!important}
+html[data-production-system="v8"] #main .q-formula-detail-page th{color:var(--q-text-secondary)!important;background:var(--q-surfacealt)!important;font-weight:650!important}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-calculation-result-list{display:grid!important;gap:7px!important}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-calculation-result{min-height:58px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:18px!important;padding:12px 14px!important;border:1px solid var(--q-border)!important;border-radius:9px!important;background:var(--q-surfacealt)!important}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-calculation-result span{color:var(--q-muted)!important;font-size:12px!important}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-calculation-result strong{max-width:58%!important;overflow:hidden!important;text-overflow:ellipsis!important;color:var(--q-text)!important;font-size:18px!important;line-height:1.1!important;text-align:right!important;font-variant-numeric:tabular-nums!important}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-actions{display:flex!important;flex-wrap:wrap!important;gap:8px!important;margin-top:14px!important}
+html[data-production-system="v8"] #main .q-formula-detail-page details{margin-top:18px!important;border-top:1px solid var(--q-border)!important;padding-top:12px!important}
+html[data-production-system="v8"] #main .q-formula-detail-page details>summary{cursor:pointer!important;color:var(--q-text-secondary)!important;font-size:12px!important;font-weight:620!important}
+
+/* Customer detail routes use full customer-area spacing rather than legacy workspace chrome. */
+html[data-production-system="v8"] #main[data-production-route="calculator-detail"]>.q-page,
+html[data-production-system="v8"] #main[data-production-route="indicator-detail"]>.q-page,
+html[data-production-system="v8"] #main[data-production-route="formula-detail"]>.q-page{width:min(100%,1540px)!important;max-width:1540px!important;margin:0 auto!important;padding:28px 30px 64px!important}
+
+/* Responsive convergence. */
+@media(max-width:1100px){
+  html[data-production-system="v8"] #main .q-auth-page{grid-template-columns:1fr 1fr!important;padding:36px 24px 60px!important}
+  html[data-production-system="v8"] #main .q-auth-hero{padding:30px!important}
+  html[data-production-system="v8"] #main .q-auth-card{padding:30px!important}
+  html[data-production-system="v8"] #main .q-v6-account-hero,
+  html[data-production-system="v8"] #main .q-v6-profile-layout,
+  html[data-production-system="v8"] #main .q-v6-account-page>.q-two-column,
+  html[data-production-system="v8"] #main .q-formula-detail-page .q-calculator-layout{grid-template-columns:1fr!important}
+  html[data-production-system="v8"] #main .q-formula-detail-page .q-calculator-layout>.q-panel:nth-child(2){position:static!important}
+}
+@media(max-width:760px){
+  html[data-production-system="v8"] #main .q-auth-page{grid-template-columns:1fr!important;min-height:0!important;padding:22px 16px 44px!important}
+  html[data-production-system="v8"] #main .q-auth-hero{padding:24px!important;gap:22px!important}
+  html[data-production-system="v8"] #main .q-auth-hero h1{font-size:34px!important}
+  html[data-production-system="v8"] #main .q-auth-card{padding:24px!important}
+  html[data-production-system="v8"] #main .q-auth-proof-grid article{grid-template-columns:90px 1fr!important}
+  html[data-production-system="v8"] #main .q-v6-account-hero,
+  html[data-production-system="v8"] #main .q-v6-profile-layout,
+  html[data-production-system="v8"] #main .q-v6-account-page>.q-two-column,
+  html[data-production-system="v8"] #main .q-v6-profile-form,
+  html[data-production-system="v8"] #main .q-v6-capability-grid,
+  html[data-production-system="v8"] #main .q-formula-detail-page .q-evidence-grid{grid-template-columns:1fr!important}
+  html[data-production-system="v8"] #main .q-v6-security-row{grid-template-columns:1fr auto!important;gap:6px 10px!important}
+  html[data-production-system="v8"] #main .q-v6-security-row>span:first-child{grid-column:1/-1!important}
+  html[data-production-system="v8"] #main .q-v6-profile-form .q-setting--wide,
+  html[data-production-system="v8"] #main .q-v6-cloud-toggle,
+  html[data-production-system="v8"] #main .q-v6-profile-actions{grid-column:1!important}
+  html[data-production-system="v8"] #main .q-v6-profile-actions{justify-content:stretch!important}
+  html[data-production-system="v8"] #main .q-v6-profile-actions .q-button{flex:1!important}
+  html[data-production-system="v8"] #main .q-v6-evidence-list{grid-template-columns:1fr!important}
+  html[data-production-system="v8"] #main .q-v6-evidence-list dt{padding-bottom:2px!important;border-bottom:0!important}
+  html[data-production-system="v8"] #main .q-v6-evidence-list dd{padding-top:2px!important}
+  html[data-production-system="v8"] #main .q-formula-detail-page .q-responsive-table{max-width:100%!important;overflow-x:auto!important}
+  html[data-production-system="v8"] #main[data-production-route="calculator-detail"]>.q-page,
+  html[data-production-system="v8"] #main[data-production-route="indicator-detail"]>.q-page,
+  html[data-production-system="v8"] #main[data-production-route="formula-detail"]>.q-page{padding:20px 16px 48px!important}
+}
