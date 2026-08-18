@@ -5,24 +5,40 @@ import {readFile} from 'node:fs/promises';
 const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 const V1='.github/workflows/qelly-live-production-verification.yml';
 const V2='.github/workflows/qelly-live-production-verification-v2.yml';
+const PROMPT2C='.github/workflows/prompt2c-public-beta.yml';
 const PROVIDERS='functions/_lib/providers.js';
 const OBSOLETE_BRANCH='feature/prompt2c-global-public-beta';
 const OBSOLETE_RELEASE='92f277f803a307e660e25bb2eef873a6337f4999';
 const RELEASE_REF='refs/heads/release/qelly-global-public-beta';
 
-test('V2 automatically verifies the exact release-branch commit instead of a historical SHA',async()=>{
+test('Prompt 2C is the automatic exact-SHA release verifier and uses stable shared convergence',async()=>{
+  const source=await read(PROMPT2C);
+  assert.match(source,/push:\s*\n\s*branches:\s*\n\s*- release\/qelly-global-public-beta/);
+  assert.match(source,/RELEASE_SHA:\s*\$\{\{ github\.sha \}\}/);
+  assert.match(source,/github\.event_name == 'push'[\s\S]*github\.ref == 'refs\/heads\/release\/qelly-global-public-beta'/);
+  assert.ok(source.includes('node scripts/wait-for-cloudflare-runtime-convergence.mjs'));
+  assert.ok(source.includes('Verify browser startup under deployed CSP'));
+  assert.ok(source.includes('qelly-live-public-verification-${{ github.sha }}'));
+  assert.ok(source.includes('blocked_pending_redistribution_rights'));
+  assert.ok(source.includes('blocked_pending_written_end_user_display_permission'));
+});
+
+test('V2 is a manual release-branch diagnostic with dynamic identity and shared convergence',async()=>{
   const source=await read(V2);
-  assert.match(source,/push:\s*\n\s*branches:\s*\[release\/qelly-global-public-beta\]/);
-  assert.match(source,/workflow_dispatch:/);
+  assert.match(source,/on:\s*\n\s*workflow_dispatch:/);
+  assert.doesNotMatch(source,/\n\s*push:/);
   assert.match(source,/RELEASE_SHA:\s*\$\{\{ github\.sha \}\}/);
   assert.match(source,new RegExp(`test "\\$GITHUB_REF" = "${RELEASE_REF.replaceAll('/','\\/')}"`));
   assert.match(source,/test "\$\(git rev-parse HEAD\)" = "\$RELEASE_SHA"/);
+  assert.ok(source.includes("import {waitForCloudflareRuntimeConvergence} from './scripts/wait-for-cloudflare-runtime-convergence.mjs';"));
+  assert.ok(source.includes("outputDir:'dist/live-production-verification-v2/http'"));
+  assert.doesNotMatch(source,/seq 1 18/);
   assert.match(source,/qelly-live-production-verification-v2-\$\{\{ github\.sha \}\}/);
   assert.doesNotMatch(source,new RegExp(OBSOLETE_BRANCH.replaceAll('/','\\/')));
   assert.doesNotMatch(source,new RegExp(OBSOLETE_RELEASE));
 });
 
-test('V2 retains live release, runtime, provider and browser verification surfaces',async()=>{
+test('V2 retains live release, runtime, provider and browser diagnostic surfaces',async()=>{
   const source=await read(V2);
   for(const marker of [
     'qelly-release.json',
@@ -64,7 +80,7 @@ test('V2 provider verification follows the canonical rights-gated provider polic
   assert.doesNotMatch(source,/binance_degraded_truth_invalid/);
 });
 
-test('legacy V1 is manual-only and cannot automatically compete with V2',async()=>{
+test('legacy V1 remains manual-only with exact release-branch identity guards',async()=>{
   const source=await read(V1);
   assert.match(source,/on:\s*\n\s*workflow_dispatch:/);
   assert.doesNotMatch(source,/\n\s*push:/);
