@@ -13,10 +13,10 @@ export async function onRequest(context){
   const {request,env}=context;
   try{
     if(request.method.toUpperCase()!=='GET')return context.next();
-    const session=await resolveSession(request,env);
+    const runtime=effectivePublicRuntimeConfig(env,request.url);
+    const session=runtime.capabilities.authentication===true?await resolveSession(request,env):null;
     const csrf=parseCookies(request)[CSRF_COOKIE]||crypto.randomUUID().replaceAll('-','');
     const authenticated=Boolean(session);
-    const runtime=effectivePublicRuntimeConfig(env,request.url);
     const payload=buildPublicConfigPayload(env,request.url,session,csrf,{runtime});
     if(payload.defaultRoute!==CONFIG_ROUTE_CONTRACT.defaultRoute||payload.dataStatePolicy.fabricatedMarketFallback!==CONFIG_ROUTE_CONTRACT.fabricatedMarketFallback||payload.dataStatePolicy.deterministicExamplesRestrictedToAnalyticalTools!==CONFIG_ROUTE_CONTRACT.deterministicExamplesRestrictedToAnalyticalTools)throw new Error('config_route_contract_mismatch');
     if(authenticated&&payload.csrf.mode!==CONFIG_ROUTE_CONTRACT.csrfMode)throw new Error('config_csrf_contract_mismatch');
