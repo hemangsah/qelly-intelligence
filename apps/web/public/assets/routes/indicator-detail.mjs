@@ -58,7 +58,7 @@ export async function renderIndicatorDetail(main,{pageHead,escapeHtml,toast,navi
 
   main.innerHTML=`<section class="q-page q-indicator-detail-page">
     ${pageHead('Indicator methodology',definition.name,methodDescription,`<button class="q-button q-button--secondary" data-action="library">Back to indicators</button>`)}
-    <div class="q-state-banner is-simulated"><span class="q-status q-status--simulated">DETERMINISTIC · USER-PROVIDED MARKET HISTORY</span><p>This study uses only the fields listed below. It does not infer order-book, liquidation, options-chain or on-chain data.</p></div>
+    <div class="q-state-banner" data-truth-state="deterministic"><span class="q-status" data-truth-state="deterministic">DETERMINISTIC · USER-PROVIDED MARKET HISTORY</span><p>This study uses only the fields listed below. It does not infer order-book, liquidation, options-chain or on-chain data.</p></div>
 
     <section class="q-indicator-detail-grid">
       <article class="q-panel q-indicator-methodology">
@@ -79,7 +79,7 @@ export async function renderIndicatorDetail(main,{pageHead,escapeHtml,toast,navi
       </article>
 
       <article class="q-panel q-indicator-sample">
-        <div class="q-panel-head"><div><p class="q-eyebrow">Deterministic sample evidence</p><h2>${latest?`${escapeHtml(titleCase(seriesName))}: ${escapeHtml(fmt(latest.value))}`:'Insufficient history'}</h2><p>${available.length} available observations · ${warmup} warm-up positions</p></div><span class="q-status q-status--simulated">LOCAL</span></div>
+        <div class="q-panel-head"><div><p class="q-eyebrow">Deterministic sample evidence</p><h2>${latest?`${escapeHtml(titleCase(seriesName))}: ${escapeHtml(fmt(latest.value))}`:'Insufficient history'}</h2><p>${available.length} available observations · ${warmup} warm-up positions</p></div><span class="q-status" data-truth-state="local">LOCAL</span></div>
         <div class="q-panel-body">
           <div class="q-indicator-value-grid"><div><span>Latest value</span><strong>${latest?escapeHtml(fmt(latest.value)):'—'}</strong></div><div><span>Recent range</span><strong>${minimum==null?'—':`${escapeHtml(fmt(minimum))}–${escapeHtml(fmt(maximum))}`}</strong></div><div><span>Sample observations</span><strong>${Math.max(close.length,series?.length??0)}</strong></div></div>
           <div class="q-indicator-chart" role="img" aria-label="Recent ${escapeHtml(definition.name)} sample values">
