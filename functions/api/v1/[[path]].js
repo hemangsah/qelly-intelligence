@@ -33,12 +33,24 @@ const publicProviderEnvelope=(result,provider)=>{
   };
 };
 
+const externalTruthState=(source,{reference=false}={})=>{
+  if(!source||source.state==='unavailable'||source.data==null)return 'unavailable';
+  if(reference||source.state==='reference_external')return 'delayed';
+  if(source.state==='live_external_reference')return 'live';
+  return 'cached';
+};
+const formatUsd=(value,{maximumFractionDigits=2}={})=>Number.isFinite(Number(value))?`$${Number(value).toLocaleString('en-US',{maximumFractionDigits})}`:'Unavailable';
+const macroObservation=({label,value,state,provider,observedAt,attribution})=>({label,value:value??'Unavailable',state:state||'unavailable',provider,observedAt:observedAt??null,attribution:attribution??provider});
+
 const publicMarketOverview=async(context)=>{
   const {request,env}=context;
-  const settled=await Promise.allSettled([
-    providerResult(context,'binance','quote','BTCUSDT',{}),
-    providerResult(context,'coinbase','quote','BTC-USD',{}),
-    providerResult(context,'ecb','fx-reference-rates','EUR',{})
+  const [settled,external]=await Promise.all([
+    Promise.allSettled([
+      providerResult(context,'binance','quote','BTCUSDT',{}),
+      providerResult(context,'coinbase','quote','BTC-USD',{}),
+      providerResult(context,'ecb','fx-reference-rates','EUR',{})
+    ]),
+    buildExternalMarketNetwork()
   ]);
   const normalized=(entry,provider)=>publicProviderEnvelope(entry.status==='fulfilled'?entry.value:{provider,truthState:'unavailable',data:null,error:{code:'provider_unavailable',message:'Provider is temporarily unavailable'},observedAt:null,ingestedAt:new Date().toISOString(),attribution:provider},provider);
   const [binance,coinbase,ecb]=[
@@ -48,7 +60,7 @@ const publicMarketOverview=async(context)=>{
   ];
   const quote=(result,label)=>({
     label,
-    value:result.data?.price!=null?`$${Number(result.data.price).toLocaleString('en-US',{maximumFractionDigits:2})}`:'Unavailable',
+    value:result.data?.price!=null?formatUsd(result.data.price):'Unavailable',
     state:result.truthState,
     provider:result.provider,
     observedAt:result.observedAt,
@@ -57,8 +69,25 @@ const publicMarketOverview=async(context)=>{
     reason:result.fallbackReason??null,
     termsState:result.termsState??null
   });
+  const hyperliquid=external.sources?.hyperliquid;
+  const alternative=external.sources?.['alternative-me'];
+  const worldBank=external.sources?.['world-bank'];
+  const hyperRows=Array.isArray(hyperliquid?.data)?hyperliquid.data:[];
+  const mid=(symbol)=>hyperRows.find((row)=>row.symbol===symbol)?.mid;
+  const sentiment=alternative?.data?.sentiment;
+  const indiaGrowth=Array.isArray(worldBank?.data)?worldBank.data.find((row)=>row.countryId==='IND'):null;
+  const ecbUsd=ecb.data?.rates?.USD;
+  const macro=[
+    macroObservation({label:'BTC',value:formatUsd(mid('BTC')),state:externalTruthState(hyperliquid),provider:'Hyperliquid',observedAt:hyperliquid?.observedAt,attribution:hyperliquid?.attribution}),
+    macroObservation({label:'ETH',value:formatUsd(mid('ETH')),state:externalTruthState(hyperliquid),provider:'Hyperliquid',observedAt:hyperliquid?.observedAt,attribution:hyperliquid?.attribution}),
+    macroObservation({label:'SOL',value:formatUsd(mid('SOL'),{maximumFractionDigits:4}),state:externalTruthState(hyperliquid),provider:'Hyperliquid',observedAt:hyperliquid?.observedAt,attribution:hyperliquid?.attribution}),
+    macroObservation({label:'Fear & Greed',value:sentiment?.value!=null?`${sentiment.value} · ${sentiment.classification||'Reference'}`:'Unavailable',state:externalTruthState(alternative,{reference:true}),provider:'Alternative.me',observedAt:sentiment?.timestamp??alternative?.observedAt,attribution:alternative?.attribution}),
+    macroObservation({label:'EUR/USD',value:Number.isFinite(Number(ecbUsd))?Number(ecbUsd).toFixed(4):'Unavailable',state:ecb.truthState==='unavailable'?'unavailable':'delayed',provider:'ECB',observedAt:ecb.observedAt,attribution:ecb.attribution??'European Central Bank'}),
+    macroObservation({label:'India GDP',value:Number.isFinite(Number(indiaGrowth?.gdpGrowthPct))?`${Number(indiaGrowth.gdpGrowthPct).toFixed(2)}% · ${indiaGrowth.year}`:'Unavailable',state:externalTruthState(worldBank,{reference:true}),provider:'World Bank',observedAt:worldBank?.observedAt,attribution:worldBank?.attribution})
+  ];
   return responseJson(request,env,{
     generatedAt:new Date().toISOString(),
+    macro,
     market:[quote(coinbase,'Coinbase Exchange'),quote(binance,'Binance')],
     referenceRates:{
       label:'ECB reference rates',
@@ -72,9 +101,11 @@ const publicMarketOverview=async(context)=>{
       termsState:ecb.termsState??'conditionally_approved_attributed_reference_data'
     },
     providers:{binance,coinbase,ecb},
-    deterministicLocal:true,
+    externalSources:external.sources,
+    deterministicLocal:false,
+    fabricatedFallback:false,
     execution:false
-  },200,{cache:'public, max-age=5, stale-while-revalidate=20'});
+  },200,{cache:'public, max-age=0, s-maxage=60, stale-while-revalidate=180'});
 };
 
 const publicMarketNetwork=async(context)=>{
@@ -163,4 +194,4 @@ export async function onRequest(context){
 }
 
 export {publicRuntimeConfig} from '../../_lib/runtime.js';
-export const __test=Object.freeze({route,stableUuid,validateJwtClaims,publicTruthState,publicProviderEnvelope,readMethod,publicMarketNetwork,...__dataTest});
+export const __test=Object.freeze({route,stableUuid,validateJwtClaims,publicTruthState,publicProviderEnvelope,externalTruthState,macroObservation,readMethod,publicMarketNetwork,...__dataTest});
