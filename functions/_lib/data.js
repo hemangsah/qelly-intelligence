@@ -8,6 +8,7 @@ import {
   restRequest,
   stableUuid
 } from './runtime.js';
+import {effectivePublicRuntimeConfig} from './email-capability.js';
 
 const MAX_SYNC_BATCH_ITEMS=100;
 const DEFAULT_PAGE_SIZE=50;
@@ -186,9 +187,17 @@ const atomicSyncItems=async(rawItems,body,key,qelly)=>Promise.all(rawItems.map(a
   };
 }));
 
+const requireCloudSyncCapability=(env,request)=>{
+  const runtime=effectivePublicRuntimeConfig(env,request.url);
+  if(runtime?.capabilities?.cloudSync!==true)throw new HttpError(503,'cloud_sync_unavailable','Cloud synchronization is unavailable in the current canonical runtime.',{retryable:false});
+  return runtime;
+};
+
 export async function handleData(context,path,segments,method,session,qelly){
   const {request,env}=context;
   const url=new URL(request.url);
+  const cloudSyncRoute=(path==='cloud/status'&&method==='GET')||(path==='sync/push'&&method==='POST')||(path==='sync/pull'&&method==='GET');
+  if(cloudSyncRoute)requireCloudSyncCapability(env,request);
 
   if(path==='cloud/status'&&method==='GET')return responseJson(request,env,await cloudStatus(env,session,qelly));
 
@@ -380,5 +389,6 @@ export const __dataTest=Object.freeze({
   revisionPagePath,
   revisionsForRecords,
   atomicSyncItems,
+  requireCloudSyncCapability,
   MAX_PULL_REVISION_ROWS
 });
