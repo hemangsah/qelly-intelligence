@@ -3,9 +3,10 @@
 const root=document.documentElement;
 const main=document.getElementById('main');
 const ROUTE_REPAIR_STYLESHEET=new URL('./qelly-production-v8-route-repairs.css',import.meta.url).href;
+const ROUTE_CONVERGENCE_STYLESHEET=new URL('./qelly-production-v9-route-convergence.css',import.meta.url).href;
 const CUSTOMER_ROUTES=new Set([
-  'feature-universe','market','asset-rankings','asset','calculator-center','india-finance',
-  'indicator-library','formula-library','saved-calculations','qelly-verify','about-qelly',
+  'feature-universe','market','asset-rankings','asset','calculator-center','calculator-detail','india-finance',
+  'indicator-library','indicator-detail','formula-library','formula-detail','saved-calculations','qelly-verify','about-qelly',
   'auth-login','auth-register','auth-recovery','account-session','watchlist','news-research','live-markets',
   'research-workspace','decision-provenance','theme-personas'
 ]);
@@ -27,6 +28,14 @@ function ensureCanonicalStylesheetLast(){
     repairs.dataset.qellyProductionV8RouteRepairs='true';
     document.head.append(repairs);
   }else if(document.head.lastElementChild!==repairs)document.head.append(repairs);
+  let convergence=document.querySelector('link[data-qelly-production-v9-route-convergence="true"]');
+  if(!convergence){
+    convergence=document.createElement('link');
+    convergence.rel='stylesheet';
+    convergence.href=ROUTE_CONVERGENCE_STYLESHEET;
+    convergence.dataset.qellyProductionV9RouteConvergence='true';
+    document.head.append(convergence);
+  }else if(document.head.lastElementChild!==convergence)document.head.append(convergence);
 }
 
 /* This map is intentionally limited to presentation terminology. Truth-state words
@@ -164,10 +173,30 @@ function maskCurrentSessionIdentifier(){
   }
 }
 
+function normalizeDeterministicPresentation(){
+  if(!main)return;
+  if(routeName()==='formula-detail'){
+    const badge=[...main.querySelectorAll('.q-status--simulated')].find((node)=>/deterministic/i.test(node.textContent||''));
+    if(badge){
+      badge.classList.remove('q-status--simulated');
+      badge.classList.add('q-status--cached');
+      badge.closest('.q-state-banner')?.classList.remove('is-simulated');
+    }
+  }
+  if(routeName()==='account-session'){
+    for(const badge of main.querySelectorAll('.q-v6-profile-layout .q-status--simulated')){
+      if(!/local/i.test(badge.textContent||''))continue;
+      badge.classList.remove('q-status--simulated');
+      badge.classList.add('q-status--cached');
+    }
+  }
+}
+
 function repairLegacyRuntimeState(){
   document.querySelector('#state-selector option[value="simulated"]')?.remove();
   moveTechnicalIdentifiersBehindDisclosure();
   maskCurrentSessionIdentifier();
+  normalizeDeterministicPresentation();
 }
 
 function annotateRoute(){
