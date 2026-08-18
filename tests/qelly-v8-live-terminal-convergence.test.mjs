@@ -105,6 +105,33 @@ test('V8 screenshot repair boundary fixes dark controls and broken density owner
   assert.match(css,/color-scheme:dark/);
 });
 
+test('V9 convergence layer modernizes access account and formula routes without changing source truth',async()=>{
+  const [runtime,css]=await Promise.all([
+    read('apps/web/public/assets/qelly-production-v8.mjs'),
+    read('apps/web/public/assets/qelly-production-v9-route-convergence.css')
+  ]);
+  assert.match(runtime,/qelly-production-v9-route-convergence\.css/);
+  assert.match(runtime,/ROUTE_CONVERGENCE_STYLESHEET/);
+  assert.match(runtime,/normalizeDeterministicPresentation/);
+  assert.match(runtime,/'calculator-detail','indicator-detail','formula-detail'/);
+  assert.match(css,/\.q-auth-page/);
+  assert.match(css,/\.q-v6-account-page/);
+  assert.match(css,/\.q-formula-detail-page/);
+  assert.match(css,/min-height:46px/);
+  assert.match(css,/q-v8-technical-identifiers/);
+});
+
+test('ECB ingestion uses daily refresh, history fallback and governed stale preservation',async()=>{
+  const source=await read('supabase/functions/qelly-provider-ingestion/index.ts');
+  assert.match(source,/eurofxref-daily\.xml/);
+  assert.match(source,/eurofxref-hist-90d\.xml/);
+  assert.match(source,/history90dBackfilled/);
+  assert.match(source,/stale_until/);
+  assert.match(source,/truthState:\"delayed_provider\"/);
+  assert.match(source,/UPSTREAM_PROVIDER_FAILURE/);
+  assert.match(source,/attempts/);
+});
+
 test('TradingView display fails visibly without fabricating a chart',async()=>{
   const source=await read('apps/web/public/assets/market/tradingview-display-widget.mjs');
   assert.match(source,/WIDGET_TIMEOUT_MS=9000/);
