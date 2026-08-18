@@ -19,7 +19,16 @@ test('saved detail hash parser preserves encoded identifiers and query',()=>{
 
 test('hash parser uses deterministic production fallback without contaminating asset',()=>{
   const parsed=parseHashRoute('',{fallback:'market'});
-  assert.deepEqual({route:parsed.route,asset:parsed.asset,query:parsed.query.toString()},{route:'live-markets',asset:null,query:''});
+  assert.deepEqual({route:parsed.route,asset:parsed.asset,query:parsed.query.toString()},{route:'market',asset:null,query:''});
+});
+
+test('market and live-markets remain distinct canonical routes',()=>{
+  const market=parseHashRoute('#/market');
+  const liveMarkets=parseHashRoute('#/live-markets');
+  assert.equal(market.route,'market');
+  assert.equal(liveMarkets.route,'live-markets');
+  assert.equal(buildHashRoute(market.route),'#/market');
+  assert.equal(buildHashRoute(liveMarkets.route),'#/live-markets');
 });
 
 test('legacy quant-calculator deep links resolve to the canonical calculator center',()=>{
