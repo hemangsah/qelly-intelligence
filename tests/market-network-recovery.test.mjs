@@ -20,8 +20,10 @@ test('global market network aggregates only explicit external/reference sources 
     const network=await buildExternalMarketNetwork();
     assert.equal(network.policy.fabricatedFallback,false);
     assert.equal(network.policy.execution,false);
-    assert.equal(network.policy.cacheSeconds,90);
-    assert.equal(network.policy.staleWhileRevalidateSeconds,900);
+    assert.equal(network.policy.responseCacheSeconds,10);
+    assert.equal(network.policy.staleWhileRevalidateSeconds,30);
+    assert.deepEqual(network.policy.sourceCacheSeconds,{hyperliquid:8,'alternative-me':60,'world-bank':3600});
+    assert.equal(network.policy.edgeCacheScope,'cloudflare_point_of_presence');
     assert.equal(network.sources['alternative-me'].data.assets[0].priceUsd,65000);
     assert.equal(network.sources.hyperliquid.data[0].symbol,'BTC');
     assert.equal(network.sources['world-bank'].data[0].gdpGrowthPct,6.5);
