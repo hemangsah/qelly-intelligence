@@ -1,4 +1,5 @@
 import {HttpError,bootstrapContext,cleanText,enforceRateLimit,errorResponse,jsonBody,requireCsrf,resolveSession,responseJson,restRequest} from '../../_lib/runtime.js';
+import {effectivePublicRuntimeConfig} from '../../_lib/email-capability.js';
 import {canonicalTimezone,recognizedTimezone} from '../../_lib/timezone.js';
 
 const BASE_CURRENCIES=Object.freeze(['USD','INR','EUR','GBP','SGD','AED','JPY']);
@@ -15,7 +16,7 @@ const safeCurrency=(value)=>{
   return currency;
 };
 
-const profilePayload=(context)=>({
+const profilePayload=(context,runtime={capabilities:{}})=>({
   user:{
     userId:context.user.userId,
     email:context.user.email,
@@ -37,7 +38,12 @@ const profilePayload=(context)=>({
     name:context.workspace.name
   },
   session:{...context.session},
-  capabilities:{profilePersistence:'cloud-rls',workspacePersistence:'cloud-rls',execution:false}
+  capabilities:{
+    profilePersistence:'cloud-rls',
+    workspacePersistence:'cloud-rls',
+    cloudSync:runtime?.capabilities?.cloudSync===true,
+    execution:false
+  }
 });
 
 export async function onRequest(context){
@@ -47,10 +53,11 @@ export async function onRequest(context){
     if(!['GET','PATCH'].includes(method))throw new HttpError(405,'method_not_allowed','Profile endpoint supports GET and PATCH only');
     const session=await resolveSession(request,env,{required:true});
     await enforceRateLimit(env,`user:${session.user.id}:profile`,{limit:90});
+    const runtime=effectivePublicRuntimeConfig(env,request.url);
 
     if(method==='GET'){
       const qelly=await bootstrapContext(env,session);
-      return responseJson(request,env,profilePayload(qelly),200,{cookies:session.cookies,cache:'private, no-store'});
+      return responseJson(request,env,profilePayload(qelly,runtime),200,{cookies:session.cookies,cache:'private, no-store'});
     }
 
     await requireCsrf(request);
@@ -71,7 +78,7 @@ export async function onRequest(context){
     });
     if(!rows?.length)throw new HttpError(404,'profile_not_found','Profile was not found');
     const qelly=await bootstrapContext(env,session);
-    return responseJson(request,env,{updated:true,...profilePayload(qelly)},200,{cookies:session.cookies,cache:'private, no-store'});
+    return responseJson(request,env,{updated:true,...profilePayload(qelly,runtime)},200,{cookies:session.cookies,cache:'private, no-store'});
   }catch(error){return errorResponse(request,env,error);}
 }
 
