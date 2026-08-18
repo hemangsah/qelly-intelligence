@@ -2,7 +2,7 @@
 
 Last substantive repair session: 2026-08-18
 
-This file is the durable continuation point for Qelly terminal convergence. It contains no secrets or user PII. Always re-query current GitHub, Cloudflare, GitHub Pages and Supabase state before making a new production claim.
+This is the durable continuation point for Qelly terminal convergence. It contains no secrets or user PII. Always re-query current GitHub, Cloudflare, GitHub Pages and Supabase state before making a new production claim.
 
 ## Current production and active repair
 
@@ -10,26 +10,27 @@ This file is the durable continuation point for Qelly terminal convergence. It c
 - Release branch: `release/qelly-global-public-beta`
 - Canonical runtime: `https://qelly-intelligence.pages.dev/`
 - Public mirror: `https://hemangsah.github.io/qelly-intelligence/`
-- Current verified production release SHA: `a1e9a56ef0c51a6ae67ba89549d53236b07cd424`
+- Current verified production release SHA: `d2dcc90578b92075214318bba7f8e01881c0402f`
 - PR `#224` merged: live-data terminal convergence and V8/V9 route repair.
 - PR `#225` merged: production shell/formula residual simulated-vocabulary cleanup.
 - PR `#226` merged: deterministic calculator/indicator truth semantics.
-- Active repair branch: `repair/qelly-v9-world-bank-reference-truth-20260818`
-- Next PR should correct World Bank annual macro API truth from a live state to an explicit external reference state.
+- PR `#227` merged: World Bank annual macro source state corrected from live to reference.
+- Active repair branch: `repair/qelly-v9-timezone-canonicalization-20260818`
+- Next PR: canonicalize legacy India timezone aliases in runtime and persistence.
 
-## Verified production convergence at `a1e9a56e...`
+## Verified production convergence at `d2dcc905...`
 
-Direct runtime verification after PR #226 established:
+Post-merge verification established:
 
-- Cloudflare `qelly-release.json` serves `a1e9a56ef0c51a6ae67ba89549d53236b07cd424`.
-- GitHub Pages serves the same SHA and uses Cloudflare as the canonical API base.
-- Supabase `qelly_release_identity` records `cloudflare:a1e9a56ef0c51a6ae67ba89549d53236b07cd424`.
-- Cloudflare `/api/v1/config` returns the same release SHA with production authentication, email delivery, cloud sync, live-provider and protected-write capability truth.
-- `fabricatedMarketFallback` is false and connected production states do not include `simulated`.
-- Cloudflare `/api/v1/market/network` returns the same release SHA, `fabricatedFallback:false`, `execution:false`, fresh Hyperliquid and Alternative.me observations and governed ECB reference data.
-- Latest verification returned 30 ECB rate keys including the EUR base.
-- Deployed shell contains neither the old hidden `value="simulated"` state option nor a visible `Simulated` label.
-- Calculator and indicator customer routes use explicit deterministic/local truth semantics rather than simulated market-state classes.
+- Cloudflare `qelly-release.json` serves `d2dcc90578b92075214318bba7f8e01881c0402f`.
+- GitHub Pages serves the same SHA; mirror workflow run `32123567804` and API base remains canonical Cloudflare.
+- Supabase `qelly_release_identity` records `cloudflare:d2dcc90578b92075214318bba7f8e01881c0402f`.
+- `/api/v1/market/network` reports the same release SHA.
+- World Bank annual GDP source state is `reference_external`, with `observedAt:null` retained rather than inventing a precise annual timestamp.
+- Hyperliquid and Alternative.me remain `live_external_reference` fast public observations.
+- ECB remains governed delayed/reference data.
+- `fabricatedFallback:false`; internal execution and custody remain disabled.
+- Connected production states do not include `simulated`.
 
 ## Product truth contract
 
@@ -37,119 +38,82 @@ Direct runtime verification after PR #226 established:
 2. Upstream failure remains `STALE`, `UNAVAILABLE` or `ERROR`.
 3. Technical reachability is not redistribution permission.
 4. Execution and custody remain disabled unless separately implemented and proven.
-5. External widgets and research links are display/research boundaries, not ingestion licenses.
+5. External widgets/research links are display/research boundaries, not ingestion licenses.
 6. Cloudflare is canonical; GitHub Pages mirrors the product and calls canonical APIs where needed.
 7. Deterministic local formulas, calculators and indicators are analytical computation states, not simulated market-data states.
 8. Slow macro/reference datasets must not be labelled as live market observations merely because their HTTP request succeeded.
+9. User-facing timezone identifiers should use canonical current IANA names rather than legacy aliases.
 
-## Provider and source state
+## Provider and data-quality state
 
-### Fast public observations
+Approved/usable paths:
 
-- Hyperliquid — public fast market observations through the Cloudflare market-network owner.
-- Alternative.me — public market/sentiment observations; ticker is approximately five-minute reference data and fear-and-greed is daily.
-
-### Governed/reference observations
-
+- Hyperliquid — fast public market observations.
+- Alternative.me — public market/sentiment observations.
 - ECB — governed delayed/reference FX data persisted through Supabase.
-- World Bank — annual macro reference observations through the Cloudflare market-network owner. Production `a1e9...` still reports the raw API source state as `live_external_reference`; this is a semantic defect because the payload itself declares annual macro reference data and `observedAt` is null. The active repair changes the raw source state to `reference_external` without inventing a precise observation timestamp.
+- World Bank — annual external macro reference observations.
 
-### Rights-gated providers
+Rights-gated providers:
 
-- Binance — commercial/redistribution rights remain unverified in the provider registry.
+- Binance — commercial/redistribution rights remain unverified.
 - Coinbase — written end-user display/redistribution permission remains unverified.
 
 Do not relabel Binance or Coinbase as internally live until explicit rights evidence exists in the provider registry.
 
-## Research/display links
-
-The governed research dock includes TradingView, Forex Factory, ECB, World Bank, DefiLlama, CoinGlass, Hypurrscan, CoinMarketCap, CoinPaprika and other explicitly outbound/display destinations.
-
-TradingView is display-only. Widget values are not silently ingested as Qelly analytics inputs. If embedding fails, render a clean external-link fallback rather than a fabricated chart.
+The historical 17 August ECB timeout incident was resolved after healthy provider cache evidence was established. Open `qelly_data_quality_events` count and open `qelly_provider_incidents` count were both verified as zero. Runtime job backlog was also verified as zero.
 
 ## Supabase production state
 
 - Project ref: `ssdgfgqnjlwzkgukzeef`
 - Region: `us-east-1`
 - Provider ingestion Edge Function: `qelly-provider-ingestion`
-- Current repaired ingestion version from this repair sequence: v6
 - Release identity sync Edge Function: `qelly-release-identity-sync`
+- Scheduled release sync: hourly via Supabase cron/Vault-backed scheduler boundary.
 
-ECB ingestion policy:
-
-1. reuse fresh governed cache;
-2. after historical backfill, prefer the small official ECB daily XML;
-3. fall back to the official 90-day XML;
-4. retain explicitly stale governed cache within `stale_until` if both official sources fail;
-5. never fabricate values;
-6. keep the custom internal ingestion-key authorization boundary.
-
-Current ECB cache evidence from this repair session:
-
-- observation date: `2026-08-17`
-- ingestion time: `2026-08-18 07:01:41.509+00`
-- cache expiry: `2026-08-19 19:01:41.17+00`
-- truth state: `delayed_provider`
-
-The historical 17 August ECB 90-day XML timeout data-quality event was resolved after the resilient ingestion path and healthy cache were verified. Open `qelly_data_quality_events` count was verified as zero, and there were no open `qelly_provider_incidents`. ECB `current_availability` and `freshness` readiness checks were refreshed to pass with current cache evidence.
-
-Scheduled jobs include:
-
-- `qelly-ecb-provider-ingestion` — working-day provider refresh;
-- `qelly-release-identity-sync` — hourly release-ledger synchronization.
-
-Scheduler credentials remain in Supabase Vault and must never be printed into repo files, logs or chat output.
+Scheduler credentials remain in Supabase Vault and must never be printed into repository files, logs or chat output.
 
 ## Auth/security findings
 
-- Cloudflare-origin Supabase sign-in/session flows are functioning; verified `/user` and token-refresh traffic returned HTTP 200.
+- Cloudflare-origin Supabase sign-in/session flows are functioning.
 - User/workspace data uses authenticated RLS storage where implemented.
 - Provider/readiness/time-series base tables are deliberately not directly browser-readable.
-- `qelly_market_data_snapshot` and `qelly_timeseries_history` are reviewed authenticated `SECURITY DEFINER` RPC boundaries because underlying governed tables are not browser-readable. Do not blindly revoke authenticated execute or switch them to invoker semantics without an equivalent safe data boundary.
+- `qelly_market_data_snapshot` and `qelly_timeseries_history` remain reviewed authenticated `SECURITY DEFINER` boundaries because underlying governed tables are not browser-readable.
 
-Outstanding Supabase platform advisories:
+Outstanding platform advisories:
 
 - leaked-password protection remains disabled; current connected management tooling has not exposed a safe setting mutation, so do not claim it is fixed;
 - `pg_net` remains installed in `public`; relocation requires dependency-aware migration planning;
 - the reviewed `SECURITY DEFINER` RPCs remain an explicit architectural exception until replaced with an equally safe boundary.
 
-## Completed CI repair
+## Active timezone canonicalization repair
 
-The V8 acceptance workflow previously leaked production `QELLY_*` variables into repository tests. Repository tests now run in a clean environment and production capability variables are scoped to the production frontend build. Do not revert this separation.
+Production evidence before the repair:
 
-## V9 design lock
+- `qelly_profiles`: 2 rows stored as `Asia/Calcutta`, 7 rows stored as `UTC`.
+- `auth.users.raw_user_meta_data`: 2 users stored as `Asia/Calcutta`, 4 as `UTC`, 3 with no timezone metadata.
+- no legacy timezone rows were found in `qelly_theme_schedules` at the time of the audit.
 
-Repository implementation authority:
-
-`docs/design/QELLY_V9_TERMINAL_DESIGN_LOCK.md`
-
-Primary convergence stylesheet:
-
-`apps/web/public/assets/qelly-production-v9-route-convergence.css`
-
-External design artifacts from the repair session also exist as a PDF design lock and self-contained HTML design board, but the repository design lock is the durable implementation authority.
-
-## Active World Bank reference-truth repair
-
-Branch: `repair/qelly-v9-world-bank-reference-truth-20260818`
+Branch: `repair/qelly-v9-timezone-canonicalization-20260818`
 
 Scope:
 
-- change the generic successful public-source helper so a source may provide an explicit state without changing the default fast-source state;
-- return World Bank annual GDP data as `reference_external`, not `live_external_reference`;
-- preserve `observedAt:null` because a year such as 2025 is not a precise observation timestamp;
-- preserve World Bank attribution, annual cadence and its explicit statement that the data is not real-time market data;
-- add `tests/qelly-v9-market-network-truth.test.mjs` to execute the World Bank source function against a controlled response and reject any live classification.
+- add shared `functions/_lib/timezone.js` canonicalization/recognition helpers;
+- map the legacy `Asia/Calcutta` alias to `Asia/Kolkata`;
+- canonicalize timezone input during Qelly registration before Supabase auth metadata is persisted;
+- canonicalize profile PATCH values and profile GET payloads;
+- add a migration that updates the two legacy profile rows and matching auth metadata;
+- add persistence triggers on `qelly_profiles` and `qelly_theme_schedules` so supported database writes cannot reintroduce the legacy alias;
+- add regression tests covering runtime canonicalization and the persistence contract.
 
-This scope must not change the World Bank values, Hyperliquid/Alternative.me fast-source states, ECB data, execution/custody state or provider-rights policy.
+This repair must not alter UTC profiles, unrelated profile fields, workspace ownership, session state, market data, provider policy, formula/indicator mathematics or execution/custody boundaries.
+
+After the PR merges, apply the migration through the Supabase migration tool, then verify zero remaining `Asia/Calcutta` profile/auth metadata rows and verify the deployed profile/runtime release identity.
 
 ## Vercel state
 
-The connected Vercel team `hemangsah's projects` still has zero projects. Do not claim Vercel deployment parity or invent a Vercel terminal URL.
+The connected Vercel team still has zero Qelly projects. Do not claim Vercel deployment parity or invent a Vercel terminal URL.
 
-The repository contains `vercel.json` with the frontend build contract, but a direct connector bootstrap attempt did not create a project because the exposed deployment action could not resolve the required project/file payload. This is a tooling/bootstrap gap, not a successful deployment.
-
-Important future Vercel parity issue: the current Vercel CSP uses `default-src 'self'` and does not explicitly permit external frames. If TradingView or another approved display widget is expected on Vercel, the Vercel CSP must be deliberately aligned with the canonical display boundary before claiming parity.
+The repository contains `vercel.json`, but the connector bootstrap path has not successfully created a project. The current Vercel CSP also needs deliberate alignment for approved external display frames before TradingView parity can be claimed.
 
 ## Release procedure
 
@@ -161,12 +125,11 @@ For every repair PR:
 4. merge using an expected-head SHA guard;
 5. verify the resulting release SHA directly on Cloudflare `qelly-release.json`;
 6. verify `/api/v1/config` capability/data-state truth and no connected `simulated` state;
-7. verify `/api/v1/market/network` exact SHA, no fabricated fallback, at least one fast public source and governed/reference sources with truthful cadence/state;
+7. verify `/api/v1/market/network` exact SHA, no fabricated fallback, fast public source availability and truthful reference states;
 8. verify GitHub Pages release identity equals the same SHA;
 9. synchronize and verify Supabase release identity;
-10. record remaining limitations explicitly instead of labelling them complete.
-
-For the active World Bank repair, post-merge acceptance must additionally verify `sources['world-bank'].state === 'reference_external'` and must reject a state beginning with `live`.
+10. apply/verify any Supabase migration included in the repair;
+11. record remaining limitations explicitly instead of labelling them complete.
 
 ## Continuation rule
 
@@ -176,7 +139,7 @@ If a future chat says “continue Qelly”, start from this file, then freshly q
 2. exact-head GitHub Actions status;
 3. Cloudflare `qelly-release.json`, `/api/v1/config`, `/api/v1/market/network`;
 4. GitHub Pages release identity;
-5. Supabase release identity/provider/auth/security/data-quality evidence;
+5. Supabase release identity/provider/auth/security/data-quality/profile evidence;
 6. Vercel project/deployment state if parity work is requested.
 
 Never substitute historical screenshots or old conversation SHAs for current runtime evidence.
