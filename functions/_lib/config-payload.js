@@ -10,7 +10,7 @@ export function buildPublicConfigPayload(env,requestUrl,session,csrf,{runtime=ef
     defaultRoute:'market',
     csrf:{header:'X-Qelly-CSRF',token:authenticated?csrf:null,mode:authenticated?'double-submit-cookie':'unavailable-until-authenticated'},
     auth:{authenticated,backendAvailable:true,productionIdentityEnabled:true,emailDeliveryAvailable:emailDelivery,registrationAvailable:emailDelivery,recoveryAvailable:emailDelivery,mode:'supabase-auth-cloudflare-facade'},
-    cloud:{available:true,syncAvailable:true,providerRuntime:true},
+    cloud:{available:true,syncAvailable:runtime.capabilities.cloudSync===true,providerRuntime:true},
     capabilityTruth:{passkeys:false,mfa:false,research:false,persistentJobs:false,productionNotifications:false,multiSessionManagement:false},
     providerRights:{binance:'blocked_pending_redistribution_rights',coinbase:'blocked_pending_written_end_user_display_permission',ecb:'conditionally_approved_attributed_reference_data'},
     runtime,
