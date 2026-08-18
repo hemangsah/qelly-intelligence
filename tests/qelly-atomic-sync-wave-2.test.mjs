@@ -46,6 +46,8 @@ const pushRequest=(items=[savedItem()],key='qelly-sync-test-batch')=>new Request
   body:JSON.stringify({items,baseRevisions:{[CALCULATION_ID]:null}})
 });
 
+const readRequest=(path)=>new Request(`https://qelly-intelligence.pages.dev/api/v1/${path}`);
+
 test('local cloud record and request hash are deterministic without updatedAt',async()=>{
   const first=__dataTest.localToCloud(savedItem(),qelly);
   const second=__dataTest.localToCloud(savedItem(),qelly);
@@ -80,6 +82,39 @@ test('sync push makes one Supabase RPC request for the entire batch',async()=>{
   assert.equal(calls[0].body.p_items[0].id,CALCULATION_ID);
   assert.match(calls[0].body.p_items[0].operationId,/^[0-9a-f-]{36}$/);
   assert.match(calls[0].body.p_request_hash,/^[0-9a-f]{64}$/);
+});
+
+test('cloud sync routes fail closed before Supabase when the canonical runtime disables cloud sync',async()=>{
+  let upstreamCalls=0;
+  const env=baseEnv(async()=>{upstreamCalls+=1;throw new Error('Supabase must not be called while cloud sync is disabled');});
+  env.QELLY_ENABLE_CLOUD_SYNC='false';
+  const cases=[
+    ['cloud/status','GET',readRequest('cloud/status')],
+    ['sync/push','POST',pushRequest()],
+    ['sync/pull','GET',readRequest('sync/pull')]
+  ];
+  for(const [path,method,request] of cases){
+    await assert.rejects(
+      handleData({request,env},path,[],method,session,qelly),
+      error=>error?.status===503&&error?.code==='cloud_sync_unavailable'&&error?.retryable===false
+    );
+  }
+  assert.equal(upstreamCalls,0);
+});
+
+test('disabling cloud sync does not disable saved-calculation cloud persistence',async()=>{
+  const calls=[];
+  const env=baseEnv(async(url)=>{
+    calls.push(String(url));
+    return new Response('[]',{status:200,headers:{'content-type':'application/json'}});
+  });
+  env.QELLY_ENABLE_CLOUD_SYNC='false';
+  const response=await handleData({request:readRequest('saved-calculations'),env},'saved-calculations',[],'GET',session,qelly);
+  const body=await response.json();
+  assert.equal(response.status,200);
+  assert.deepEqual(body.items,[]);
+  assert.equal(calls.length,1);
+  assert.match(calls[0],/\/rest\/v1\/qelly_saved_calculations\?/);
 });
 
 test('same key and payload produce the same client request hash and operation id',async()=>{

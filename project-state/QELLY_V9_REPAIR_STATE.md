@@ -10,25 +10,25 @@ This is the durable continuation point for Qelly terminal convergence. It contai
 - Release branch: `release/qelly-global-public-beta`
 - Canonical runtime: `https://qelly-intelligence.pages.dev/`
 - Public mirror: `https://hemangsah.github.io/qelly-intelligence/`
-- Current verified production release SHA: `37f78e7f35c052d42bf4b6dead85b0229ec15dbd`
-- PRs `#224` through `#229` are merged.
+- Current verified production release SHA: `dadc635b52be95b80b357cd5a78931818a8226ed`
+- PRs `#224` through `#230` are merged.
 - PR `#227`: World Bank annual macro truth corrected to `reference_external`.
 - PR `#228`: India timezone aliases canonicalized across runtime and persistence.
 - PR `#229`: residual simulated/mock semantics removed from the account local-profile surface.
-- Active repair branch: `repair/qelly-v9-profile-cloudsync-capability-truth-20260818`
-- Active scope: make account cloud-sync availability explicit and fail-closed rather than treating an omitted capability as available.
+- PR `#230`: profile/account cloud-sync availability made explicit and strict `=== true`; stored opt-in remains untouched while unavailable.
+- Active repair branch: `repair/qelly-v9-cloudsync-backend-enforcement-20260818`
+- Active scope: enforce the same canonical `cloudSync` capability on `cloud/status`, `sync/push`, and `sync/pull` while leaving saved-calculation persistence unchanged.
 
-## Verified production convergence at `37f78e7f...`
+## Verified production convergence at `dadc635b...`
 
 Post-merge verification established:
 
-- Cloudflare `qelly-release.json` serves `37f78e7f35c052d42bf4b6dead85b0229ec15dbd`.
-- GitHub Pages serves the same SHA; mirror workflow run `32127018208`.
-- Supabase `qelly_release_identity` records `cloudflare:37f78e7f35c052d42bf4b6dead85b0229ec15dbd`.
-- `/api/v1/config` top-level/runtime release identities match and `fabricatedMarketFallback:false`.
-- `/api/v1/market/network` matches the release, keeps World Bank `reference_external`, Hyperliquid and Alternative.me `live_external_reference`, `fabricatedFallback:false`, and `execution:false`.
-- The deployed account module returns HTTP 200, contains no `q-status--simulated`, no “rather than simulated” copy, no “mock controls” copy, and includes explicit truth metadata.
-- Connected production states do not include `simulated`.
+- the release branch resolves exactly to `dadc635b52be95b80b357cd5a78931818a8226ed`;
+- the persistent Supabase production release identity is recorded on the same SHA;
+- PR `#230` merged at that release SHA after its exact-head required gates were green;
+- the release source contains the strict profile/account cloud-sync capability truth repair.
+
+Re-query Cloudflare, `/api/v1/config`, `/api/v1/market/network`, GitHub Pages, and the Supabase release ledger before making any new deployment-convergence claim after the next merge.
 
 ## Timezone canonicalization completed
 
@@ -94,25 +94,25 @@ Readiness proof weakness still open:
 - current Supabase Auth logs prove active `/user` and token/session operations from the canonical runtime, but the inspected log window does not itself provide a fresh end-to-end email-delivery proof;
 - do not claim this static canary is equivalent to current transactional-email delivery evidence. A safe live/durable email canary needs a reliable non-PII evidence source or a dedicated controlled test-recipient workflow.
 
-## Active cloud-sync capability repair
+## Active cloud-sync backend enforcement repair
 
-Branch: `repair/qelly-v9-profile-cloudsync-capability-truth-20260818`
+Branch: `repair/qelly-v9-cloudsync-backend-enforcement-20260818`
 
-Confirmed defect on production `37f78e7f...`:
+Confirmed defect on production `dadc635b...`:
 
-- `/api/v1/profile` reported `profilePersistence` and `workspacePersistence` but omitted `cloudSync`;
-- `account-session.mjs` used `profileCapabilities.cloudSync !== false`, so a missing field was interpreted as available.
+- the profile/account surface now treats cloud synchronization as available only when the canonical runtime explicitly reports `cloudSync === true`;
+- the authenticated backend handlers for `cloud/status`, `sync/push`, and `sync/pull` still execute without checking that capability;
+- therefore a client can call synchronization routes even when the runtime capability is disabled.
 
 Current branch changes:
 
-- profile API exposes `capabilities.cloudSync` explicitly from the canonical effective runtime;
-- profile capability serialization uses `=== true`, so missing proof fails closed;
-- account UI enables synchronization only when `profilePersistence === 'cloud-rls'` and `cloudSync === true`;
-- when cloud profile persistence remains available but sync is unavailable, the UI states that any stored opt-in is retained but inactive and profile persistence continues through RLS;
-- profile saves do not overwrite `cloudSyncOptIn` when the sync capability is unavailable;
-- regression tests lock the explicit/fail-closed contract.
+- `functions/_lib/data.js` resolves the same effective public runtime used by the profile capability contract;
+- the three supported synchronization routes require `runtime.capabilities.cloudSync === true` before any synchronization-specific Supabase read or write;
+- disabled synchronization fails with HTTP 503 semantics, code `cloud_sync_unavailable`, and `retryable:false`;
+- regression coverage proves all three synchronization routes fail before Supabase access when disabled;
+- regression coverage also proves `saved-calculations` cloud persistence remains available when synchronization is disabled.
 
-This repair must not alter saved calculation data, existing user opt-in values when sync is unavailable, profile RLS ownership, timezone data, market/provider truth, calculations, or execution/custody boundaries.
+This repair must not alter saved-calculation CRUD behavior, stored calculation data, existing user opt-in values, profile/workspace RLS ownership, database schema/migrations, timezone data, market/provider truth, formulas/indicators, or execution/custody boundaries.
 
 ## Vercel state
 
