@@ -10,27 +10,38 @@ This is the durable continuation point for Qelly terminal convergence. It contai
 - Release branch: `release/qelly-global-public-beta`
 - Canonical runtime: `https://qelly-intelligence.pages.dev/`
 - Public mirror: `https://hemangsah.github.io/qelly-intelligence/`
-- Current verified production release SHA: `d2dcc90578b92075214318bba7f8e01881c0402f`
+- Current verified production release SHA: `8247d805954ec38cca9ef4b98cceda587d17d335`
 - PR `#224` merged: live-data terminal convergence and V8/V9 route repair.
 - PR `#225` merged: production shell/formula residual simulated-vocabulary cleanup.
 - PR `#226` merged: deterministic calculator/indicator truth semantics.
 - PR `#227` merged: World Bank annual macro source state corrected from live to reference.
-- Active repair branch: `repair/qelly-v9-timezone-canonicalization-20260818`
-- Next PR: canonicalize legacy India timezone aliases in runtime and persistence.
+- PR `#228` merged: canonical India timezone identifiers across runtime and persistence.
+- Active repair branch: `repair/qelly-v9-account-local-truth-semantics-20260818`
+- Next PR scope: remove residual simulated/mock semantics from the account local-profile fixture while preserving explicit local-vs-cloud truth.
 
-## Verified production convergence at `d2dcc905...`
+## Verified production convergence at `8247d805...`
 
 Post-merge verification established:
 
-- Cloudflare `qelly-release.json` serves `d2dcc90578b92075214318bba7f8e01881c0402f`.
-- GitHub Pages serves the same SHA; mirror workflow run `32123567804` and API base remains canonical Cloudflare.
-- Supabase `qelly_release_identity` records `cloudflare:d2dcc90578b92075214318bba7f8e01881c0402f`.
-- `/api/v1/market/network` reports the same release SHA.
-- World Bank annual GDP source state is `reference_external`, with `observedAt:null` retained rather than inventing a precise annual timestamp.
-- Hyperliquid and Alternative.me remain `live_external_reference` fast public observations.
-- ECB remains governed delayed/reference data.
-- `fabricatedFallback:false`; internal execution and custody remain disabled.
+- Cloudflare `qelly-release.json` serves `8247d805954ec38cca9ef4b98cceda587d17d335`.
+- GitHub Pages serves the same SHA; mirror workflow run `32125589383` and API base remains canonical Cloudflare.
+- Supabase `qelly_release_identity` records `cloudflare:8247d805954ec38cca9ef4b98cceda587d17d335`.
+- `/api/v1/config` returns the same release in both top-level and runtime release fields and keeps `fabricatedMarketFallback:false`.
+- `/api/v1/market/network` returns the same release SHA, World Bank `reference_external`, Hyperliquid and Alternative.me `live_external_reference`, `fabricatedFallback:false`, and `execution:false`.
 - Connected production states do not include `simulated`.
+
+## Timezone canonicalization completed
+
+Supabase migration recorded as `20260818101413_qelly_timezone_canonicalization_v1`.
+
+Verified post-migration state:
+
+- `qelly_profiles`: 2 `Asia/Kolkata`, 7 `UTC`, zero `Asia/Calcutta`.
+- `auth.users.raw_user_meta_data`: 2 `Asia/Kolkata`, 4 `UTC`, 3 without timezone metadata, zero `Asia/Calcutta`.
+- `qelly_theme_schedules`: zero `Asia/Calcutta` rows.
+- `qelly_profiles_timezone_canonical` trigger is installed.
+- `qelly_theme_schedules_timezone_canonical` trigger is installed.
+- registration and profile API paths canonicalize the legacy `Asia/Calcutta` alias to `Asia/Kolkata` before persistence/response.
 
 ## Product truth contract
 
@@ -42,7 +53,8 @@ Post-merge verification established:
 6. Cloudflare is canonical; GitHub Pages mirrors the product and calls canonical APIs where needed.
 7. Deterministic local formulas, calculators and indicators are analytical computation states, not simulated market-data states.
 8. Slow macro/reference datasets must not be labelled as live market observations merely because their HTTP request succeeded.
-9. User-facing timezone identifiers should use canonical current IANA names rather than legacy aliases.
+9. User-facing timezone identifiers use canonical current IANA names rather than legacy aliases.
+10. Local fixture/persistence states must be named explicitly as local and must not reuse simulated market semantics.
 
 ## Provider and data-quality state
 
@@ -60,9 +72,9 @@ Rights-gated providers:
 
 Do not relabel Binance or Coinbase as internally live until explicit rights evidence exists in the provider registry.
 
-The historical 17 August ECB timeout incident was resolved after healthy provider cache evidence was established. Open `qelly_data_quality_events` count and open `qelly_provider_incidents` count were both verified as zero. Runtime job backlog was also verified as zero.
+The historical 17 August ECB timeout incident was resolved after healthy provider cache evidence was established. Open `qelly_data_quality_events`, open `qelly_provider_incidents`, and runtime-job backlog were verified as zero.
 
-## Supabase production state
+## Supabase production state and advisories
 
 - Project ref: `ssdgfgqnjlwzkgukzeef`
 - Region: `us-east-1`
@@ -72,42 +84,33 @@ The historical 17 August ECB timeout incident was resolved after healthy provide
 
 Scheduler credentials remain in Supabase Vault and must never be printed into repository files, logs or chat output.
 
-## Auth/security findings
+Post-timezone-DDL security advisories are unchanged; the migration introduced no new advisory. Outstanding warnings remain:
 
-- Cloudflare-origin Supabase sign-in/session flows are functioning.
-- User/workspace data uses authenticated RLS storage where implemented.
-- Provider/readiness/time-series base tables are deliberately not directly browser-readable.
-- `qelly_market_data_snapshot` and `qelly_timeseries_history` remain reviewed authenticated `SECURITY DEFINER` boundaries because underlying governed tables are not browser-readable.
-
-Outstanding platform advisories:
-
-- leaked-password protection remains disabled; current connected management tooling has not exposed a safe setting mutation, so do not claim it is fixed;
+- leaked-password protection is disabled; current connected management tooling has not exposed a safe setting mutation, so do not claim it is fixed;
 - `pg_net` remains installed in `public`; relocation requires dependency-aware migration planning;
-- the reviewed `SECURITY DEFINER` RPCs remain an explicit architectural exception until replaced with an equally safe boundary.
+- `qelly_market_data_snapshot` and `qelly_timeseries_history` remain reviewed authenticated `SECURITY DEFINER` RPC boundaries because their governed source tables are not browser-readable. Do not blindly revoke or convert them without an equivalent safe boundary.
 
-## Active timezone canonicalization repair
+Performance advisor output currently contains only `unused_index` informational candidates. Do not drop indexes solely because they have not yet accumulated usage; evaluate workload and FK/query requirements first.
 
-Production evidence before the repair:
+## Active account local-truth cleanup
 
-- `qelly_profiles`: 2 rows stored as `Asia/Calcutta`, 7 rows stored as `UTC`.
-- `auth.users.raw_user_meta_data`: 2 users stored as `Asia/Calcutta`, 4 as `UTC`, 3 with no timezone metadata.
-- no legacy timezone rows were found in `qelly_theme_schedules` at the time of the audit.
+Branch: `repair/qelly-v9-account-local-truth-semantics-20260818`
 
-Branch: `repair/qelly-v9-timezone-canonicalization-20260818`
+Confirmed residue in `apps/web/public/assets/routes/account-session.mjs`:
 
-Scope:
+- local profile fixture used `q-status--simulated` despite being deterministic/local persistence rather than simulated market data;
+- customer copy said unsupported controls were unavailable “rather than simulated”;
+- security copy called unavailable controls “mock controls”.
 
-- add shared `functions/_lib/timezone.js` canonicalization/recognition helpers;
-- map the legacy `Asia/Calcutta` alias to `Asia/Kolkata`;
-- canonicalize timezone input during Qelly registration before Supabase auth metadata is persisted;
-- canonicalize profile PATCH values and profile GET payloads;
-- add a migration that updates the two legacy profile rows and matching auth metadata;
-- add persistence triggers on `qelly_profiles` and `qelly_theme_schedules` so supported database writes cannot reintroduce the legacy alias;
-- add regression tests covering runtime canonicalization and the persistence contract.
+Current branch changes:
 
-This repair must not alter UTC profiles, unrelated profile fields, workspace ownership, session state, market data, provider policy, formula/indicator mathematics or execution/custody boundaries.
+- local profile badge uses neutral `cached` styling rather than simulated styling;
+- profile badge exposes `data-truth-state="cloud-rls"` or `data-truth-state="local"` explicitly;
+- customer copy describes unsupported controls as unavailable until production capability is proven;
+- unavailable security controls are described as placeholder controls, not mocks;
+- production-vocabulary regression coverage rejects simulated/mock semantics on the account surface.
 
-After the PR merges, apply the migration through the Supabase migration tool, then verify zero remaining `Asia/Calcutta` profile/auth metadata rows and verify the deployed profile/runtime release identity.
+This scope must not alter authenticated profile persistence, session behavior, timezone data, cloud sync, market/provider truth, calculations, or execution/custody boundaries.
 
 ## Vercel state
 
@@ -129,7 +132,8 @@ For every repair PR:
 8. verify GitHub Pages release identity equals the same SHA;
 9. synchronize and verify Supabase release identity;
 10. apply/verify any Supabase migration included in the repair;
-11. record remaining limitations explicitly instead of labelling them complete.
+11. rerun relevant Supabase advisories after DDL;
+12. record remaining limitations explicitly instead of labelling them complete.
 
 ## Continuation rule
 
