@@ -18,7 +18,7 @@ async function fetchJson(url,{method='GET',body=null,headers={}}={}){
 }
 
 const unavailable=(id,label,extra={})=>({id,label,state:'unavailable',observedAt:null,fetchedAt:nowIso(),data:null,...extra});
-const success=(id,label,data,extra={})=>({id,label,state:'live_external_reference',observedAt:extra.observedAt??null,fetchedAt:nowIso(),data,...extra});
+const success=(id,label,data,{state='live_external_reference',...extra}={})=>({id,label,state,observedAt:extra.observedAt??null,fetchedAt:nowIso(),data,...extra});
 
 async function alternativeCrypto(){
   const [tickerResult,fngResult]=await Promise.allSettled([
@@ -77,6 +77,7 @@ async function worldBankMacro(){
     const records=Array.isArray(payload)&&Array.isArray(payload[1])?payload[1]:[];
     const rows=records.map((row)=>({countryId:String(row.countryiso3code??''),country:String(row.country?.value??''),year:String(row.date??''),gdpGrowthPct:finiteOrNull(row.value)})).filter((row)=>row.countryId&&row.gdpGrowthPct!=null);
     return success('world-bank','World Bank',rows,{
+      state:'reference_external',
       observedAt:null,
       attribution:'World Bank Indicators API',
       docsUrl:'https://datahelpdesk.worldbank.org/knowledgebase/articles/889392',
