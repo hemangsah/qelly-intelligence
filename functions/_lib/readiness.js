@@ -77,12 +77,19 @@ export async function collectReadinessEvidence(context,runtime){
     supabaseHealthCanary(context,runtime),
     runtime.capabilities.liveProviders===true?ecbFreshnessCanary(context):Promise.resolve(frozenEvidence({proven:true,state:'intentionally_unavailable_rights_restricted'}))
   ]);
+  const emailConfigured=runtime.capabilities.emailDelivery===true;
+  const emailEvidenceProven=emailConfigured&&AUTH_EMAIL_CANARY.proven===true&&AUTH_EMAIL_CANARY.readinessEvidence===true;
   const authEmail=frozenEvidence({
-    proven:runtime.capabilities.emailDelivery===true&&AUTH_EMAIL_CANARY.proven===true,
-    state:runtime.capabilities.emailDelivery===true&&AUTH_EMAIL_CANARY.proven===true?'email_delivery_canary_proven':'email_delivery_fail_closed',
+    proven:emailEvidenceProven,
+    state:emailConfigured
+      ?emailEvidenceProven?'email_delivery_canary_proven':'email_delivery_configured_not_end_to_end_proven'
+      :'email_delivery_fail_closed',
     verifiedAt:AUTH_EMAIL_CANARY.verifiedAt,
     scope:AUTH_EMAIL_CANARY.scope,
-    provider:AUTH_EMAIL_CANARY.provider
+    provider:AUTH_EMAIL_CANARY.provider,
+    evidenceMethod:AUTH_EMAIL_CANARY.evidenceMethod||null,
+    readinessEvidence:AUTH_EMAIL_CANARY.readinessEvidence===true,
+    capabilityAuthority:AUTH_EMAIL_CANARY.capabilityAuthority===true
   });
   const rlsIsolation=frozenEvidence({
     proven:RLS_ISOLATION_CANARY.proven===true,
