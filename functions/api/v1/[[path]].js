@@ -1,4 +1,5 @@
 import {HttpError,SECURITY_HEADERS,bootstrapContext,correlationId,corsHeaders,enforceRateLimit,errorResponse,publicRuntimeConfig,requireOrigin,responseJson,resolveSession,stableUuid,validateJwtClaims} from '../../_lib/runtime.js';
+import {effectivePublicRuntimeConfig} from '../../_lib/email-capability.js';
 import {handleAuth} from '../../_lib/auth.js';
 import {handleData,__dataTest} from '../../_lib/data.js';
 import {providerCatalog,providerResult} from '../../_lib/providers.js';
@@ -98,7 +99,7 @@ export async function route(context){
   const method=request.method.toUpperCase();
   if(method==='OPTIONS')return new Response(null,{status:204,headers:{...SECURITY_HEADERS,...corsHeaders(request,env),'Access-Control-Allow-Methods':'GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS','Access-Control-Allow-Headers':'Content-Type,X-Qelly-CSRF,Idempotency-Key,X-Correlation-Id','Access-Control-Max-Age':'600'}});
   if(request.headers.get('origin'))requireOrigin(request,env);
-  const authRuntime=publicRuntimeConfig(env,request.url);
+  const authRuntime=effectivePublicRuntimeConfig(env,request.url);
   if(!authRuntime.capabilities.emailDelivery&&method==='POST'&&['auth/register','auth/recovery/request'].includes(path))throw new HttpError(503,'auth_email_delivery_unavailable','Account creation and email recovery are temporarily unavailable until transactional email delivery is proven.',{retryable:false});
   const auth=await handleAuth(context,path,method);
   if(auth)return auth;

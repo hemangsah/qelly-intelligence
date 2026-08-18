@@ -27,7 +27,7 @@ jobs:
       QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_shape_only_012345678901234567890123456789
       QELLY_DEPLOYMENT_ENVIRONMENT: cloudflare-pages-production-parity
       QELLY_ENABLE_AUTH: 'true'
-      QELLY_ENABLE_AUTH_EMAIL_DELIVERY: 'false'
+      QELLY_ENABLE_AUTH_EMAIL_DELIVERY: 'true'
       QELLY_ENABLE_CLOUD_SYNC: 'true'
       QELLY_ENABLE_LIVE_PROVIDERS: 'true'
       QELLY_ENABLE_FEEDBACK_WRITES: 'true'
@@ -67,6 +67,7 @@ jobs:
           test -s dist/frontend/assets/routes/calculator-detail-v6.mjs
           test -s dist/frontend/assets/routes/indicator-detail-v6.mjs
           test -s dist/frontend/assets/routes/portfolio-v6-entry.mjs
+          grep -F '"emailDelivery":true' dist/frontend/qelly-config.js
           grep -F "renderPortfolioV6Entry" dist/frontend/assets/app.js
           grep -F "renderProviderRuntimeV6" dist/frontend/assets/app.js
           grep -F "renderInstrumentMasterV6" dist/frontend/assets/app.js

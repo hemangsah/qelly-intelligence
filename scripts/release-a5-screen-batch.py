@@ -40,6 +40,24 @@ context_isolation = """                    reduced_motion='reduce',
                     service_workers='block',
                 ),
 """
+detail_route_marker = """                expected_title = f\"{definition['label']} · Qelly Intelligence\"
+                expected_hash = f'#/{route_name}'
+                try:
+                    page.goto(
+                        f'{EXPECTED_ORIGIN}/#/{route_name}',
+"""
+detail_route_evidence = """                expected_title = f\"{definition['label']} · Qelly Intelligence\"
+                governed_detail_assets = {
+                    'formula-detail': 'position-size',
+                    'calculator-detail': 'position-size',
+                    'indicator-detail': 'rsi',
+                }
+                detail_asset = governed_detail_assets.get(route_name)
+                expected_hash = f'#/{route_name}/{detail_asset}' if detail_asset else f'#/{route_name}'
+                try:
+                    page.goto(
+                        f'{EXPECTED_ORIGIN}/{expected_hash}',
+"""
 
 if legacy_import not in source:
     raise SystemExit('release evidence launcher import changed; update the contract adapter hook')
@@ -49,6 +67,8 @@ if console_marker not in source:
     raise SystemExit('release evidence console hook changed; update diagnostic adapter')
 if source.count(context_marker) != 2:
     raise SystemExit('release evidence browser-context contract changed; update service-worker isolation')
+if detail_route_marker not in source:
+    raise SystemExit('release evidence route navigation contract changed; update governed detail evidence hook')
 
 patched_source = source.replace(legacy_import, evidence_import, 1)
 patched_source = patched_source.replace(external_marker, tradingview_hook + external_marker, 1)
@@ -58,6 +78,10 @@ patched_source = patched_source.replace(console_marker, console_diagnostics, 1)
 # from attempting to resolve the synthetic qelly.test host. Offline-shell
 # behavior is validated separately by the public-runtime/browser workflows.
 patched_source = patched_source.replace(context_marker, context_isolation, 2)
+# Hidden detail routes need governed identifiers to prove their actual workbench
+# state. Otherwise app.js retains its generic BTC context and the screenshot only
+# proves a selection-required fallback, not calculator/indicator functionality.
+patched_source = patched_source.replace(detail_route_marker, detail_route_evidence, 1)
 
 with tempfile.NamedTemporaryFile(
     mode='w',

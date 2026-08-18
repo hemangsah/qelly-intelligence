@@ -2,10 +2,13 @@
 
 const root=document.documentElement;
 const main=document.getElementById('main');
+const ROUTE_REPAIR_STYLESHEET=new URL('./qelly-production-v8-route-repairs.css',import.meta.url).href;
+const ROUTE_CONVERGENCE_STYLESHEET=new URL('./qelly-production-v9-route-convergence.css',import.meta.url).href;
 const CUSTOMER_ROUTES=new Set([
-  'feature-universe','market','asset-rankings','asset','calculator-center','india-finance',
-  'indicator-library','formula-library','saved-calculations','qelly-verify','about-qelly',
-  'auth-login','auth-register','auth-recovery','account-session','watchlist','news-research','live-markets'
+  'feature-universe','market','asset-rankings','asset','calculator-center','calculator-detail','india-finance',
+  'indicator-library','indicator-detail','formula-library','formula-detail','saved-calculations','qelly-verify','about-qelly',
+  'auth-login','auth-register','auth-recovery','account-session','watchlist','news-research','live-markets',
+  'research-workspace','decision-provenance','theme-personas'
 ]);
 const ACCESS_ROUTES=new Set(['auth-login','auth-register','auth-recovery']);
 const ADMIN_ROUTES=new Set([
@@ -15,26 +18,36 @@ const ADMIN_ROUTES=new Set([
 ]);
 
 function ensureCanonicalStylesheetLast(){
-  const stylesheet=document.querySelector('link[href$="qelly-production-v8.css"]');
-  if(stylesheet&&document.head.lastElementChild!==stylesheet)document.head.append(stylesheet);
+  const canonical=document.querySelector('link[href$="qelly-production-v8.css"]');
+  if(canonical&&document.head.lastElementChild!==canonical)document.head.append(canonical);
+  let repairs=document.querySelector('link[data-qelly-production-v8-route-repairs="true"]');
+  if(!repairs){
+    repairs=document.createElement('link');
+    repairs.rel='stylesheet';
+    repairs.href=ROUTE_REPAIR_STYLESHEET;
+    repairs.dataset.qellyProductionV8RouteRepairs='true';
+    document.head.append(repairs);
+  }else if(document.head.lastElementChild!==repairs)document.head.append(repairs);
+  let convergence=document.querySelector('link[data-qelly-production-v9-route-convergence="true"]');
+  if(!convergence){
+    convergence=document.createElement('link');
+    convergence.rel='stylesheet';
+    convergence.href=ROUTE_CONVERGENCE_STYLESHEET;
+    convergence.dataset.qellyProductionV9RouteConvergence='true';
+    document.head.append(convergence);
+  }else if(document.head.lastElementChild!==convergence)document.head.append(convergence);
 }
 
+/* This map is intentionally limited to presentation terminology. Truth-state words
+   such as simulated, demo, fixture, live, delayed or unavailable are never rewritten globally:
+   route owners must disclose those states exactly. */
 const phraseMap=new Map([
   ['independent dark, light, OLED and high-contrast palettes','Choose a certified palette for the complete workspace'],
   ['static visual preview','Reference mode'],
-  ['deterministic demo · not live','Reference data · not live'],
-  ['deterministic demo data · backend unavailable · no live services','Reference data · live services unavailable'],
-  ['demo observations only','Reference observations only'],
-  ['governed public demo + explicit provider state','Source, freshness and provider state'],
   ['deterministic market visualization','Reproducible market visualization'],
   ['deterministic local','Reproducible locally'],
   ['local foundation','Workspace runtime'],
-  ['production gated','Not connected'],
-  ['fixture method and interpretation','Reference method and interpretation'],
-  ['fixture data','Reference data'],
-  ['fixture state','Reference state'],
-  ['simulated','Indicative'],
-  ['demo','Reference']
+  ['production gated','Not connected']
 ]);
 
 function routeName(){return location.hash.replace(/^#\/?/,'').split(/[/?#]/)[0]||'feature-universe';}
@@ -43,17 +56,13 @@ function normalizeCustomerCopy(scope=document){
   const walker=document.createTreeWalker(scope,NodeFilter.SHOW_TEXT,{acceptNode(node){
     const parent=node.parentElement;
     if(!parent||parent.closest('script,style,pre,code,[data-preserve-technical-copy]'))return NodeFilter.FILTER_REJECT;
-    return /simulated|demo|fixture|deterministic local|local foundation|production gated|independent dark, light/i.test(node.nodeValue||'')?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT;
+    return /deterministic local|local foundation|production gated|independent dark, light|static visual preview|deterministic market visualization/i.test(node.nodeValue||'')?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT;
   }});
   const nodes=[];
   while(walker.nextNode())nodes.push(walker.currentNode);
   for(const node of nodes){
     let value=node.nodeValue||'';
     for(const [from,to] of phraseMap)value=value.replace(new RegExp(from.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),to);
-    value=value
-      .replace(/Indicative-Reference/gi,'Reference')
-      .replace(/deterministic Reference/gi,'reference')
-      .replace(/Qelly reference/gi,'Qelly reference dataset');
     node.nodeValue=value;
   }
 }
@@ -128,6 +137,68 @@ function simplifyHeader(){
   setAccessHeaderMode(header,ACCESS_ROUTES.has(routeName()));
 }
 
+function moveTechnicalIdentifiersBehindDisclosure(){
+  if(routeName()!=='account-session'||!main)return;
+  const timezone=main.querySelector('input[name="timezone"]');
+  if(timezone?.value==='Asia/Calcutta')timezone.value='Asia/Kolkata';
+  const list=main.querySelector('.q-v6-evidence-list');
+  if(!list||list.dataset.v8TechnicalIds==='repaired')return;
+  list.dataset.v8TechnicalIds='repaired';
+  const pairs=[];
+  for(const dt of [...list.querySelectorAll(':scope > dt')]){
+    if(!/^(Workspace ID|User ID)$/i.test(dt.textContent?.trim()||''))continue;
+    const dd=dt.nextElementSibling;
+    if(dd?.tagName==='DD')pairs.push([dt,dd]);
+  }
+  if(!pairs.length)return;
+  const details=document.createElement('details');
+  details.className='q-v8-technical-identifiers';
+  const summary=document.createElement('summary');
+  summary.textContent='Technical identifiers';
+  const technical=document.createElement('dl');
+  technical.className='q-v6-evidence-list';
+  for(const [dt,dd] of pairs)technical.append(dt,dd);
+  details.append(summary,technical);
+  list.parentElement?.append(details);
+}
+
+function maskCurrentSessionIdentifier(){
+  if(routeName()!=='account-session'||!main)return;
+  for(const row of main.querySelectorAll('.q-v6-security-row')){
+    if(row.querySelector(':scope > span')?.textContent?.trim()!=='Session')continue;
+    const value=row.querySelector('strong');
+    if(!value||value.dataset.v8Masked==='true')continue;
+    const full=value.textContent?.trim()||'';
+    if(full.length>12){value.title=full;value.textContent=`••••${full.slice(-8)}`;value.dataset.v8Masked='true';}
+  }
+}
+
+function normalizeDeterministicPresentation(){
+  if(!main)return;
+  if(routeName()==='formula-detail'){
+    const badge=[...main.querySelectorAll('.q-status--simulated')].find((node)=>/deterministic/i.test(node.textContent||''));
+    if(badge){
+      badge.classList.remove('q-status--simulated');
+      badge.classList.add('q-status--cached');
+      badge.closest('.q-state-banner')?.classList.remove('is-simulated');
+    }
+  }
+  if(routeName()==='account-session'){
+    for(const badge of main.querySelectorAll('.q-v6-profile-layout .q-status--simulated')){
+      if(!/local/i.test(badge.textContent||''))continue;
+      badge.classList.remove('q-status--simulated');
+      badge.classList.add('q-status--cached');
+    }
+  }
+}
+
+function repairLegacyRuntimeState(){
+  document.querySelector('#state-selector option[value="simulated"]')?.remove();
+  moveTechnicalIdentifiersBehindDisclosure();
+  maskCurrentSessionIdentifier();
+  normalizeDeterministicPresentation();
+}
+
 function annotateRoute(){
   const route=routeName();
   const access=ACCESS_ROUTES.has(route);
@@ -154,11 +225,12 @@ function annotateRoute(){
 }
 
 function refresh(scope=document){
+  root.dataset.productionSystem='v8';
   ensureCanonicalStylesheetLast();
   annotateRoute();
   simplifyHeader();
+  repairLegacyRuntimeState();
   normalizeCustomerCopy(scope);
-  root.dataset.productionSystem='v8';
 }
 
 let queued=false;

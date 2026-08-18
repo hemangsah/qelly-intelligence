@@ -1,0 +1,76 @@
+/* Qelly Production V8 route repair boundary.
+ * Loaded after qelly-production-v8.css while legacy route styles are retired.
+ * Scoped to the V8 production system only.
+ */
+html[data-production-system="v8"] #main{--q-control-height:40px;--q-route-gap:14px}
+html[data-production-system="v8"] #main :where(input,select,textarea){box-sizing:border-box!important;min-width:0!important;border:1px solid var(--q-border)!important;background:var(--q-surfacealt)!important;color:var(--q-text)!important;-webkit-text-fill-color:var(--q-text)!important;box-shadow:none!important}
+html[data-production-system="v8"] #main :where(input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),select){min-height:var(--q-control-height)!important;height:var(--q-control-height)!important;padding:0 11px!important;border-radius:8px!important}
+html[data-production-system="v8"] #main textarea{padding:10px 11px!important;border-radius:8px!important}
+html[data-production-system="v8"] #main select option{background:var(--q-surface)!important;color:var(--q-text)!important}
+html[data-production-system="v8"][data-resolved-appearance="dark"] #main :where(input,select,textarea),html[data-production-system="v8"][data-appearance="dark"] #main :where(input,select,textarea){color-scheme:dark!important}
+html[data-production-system="v8"][data-resolved-appearance="light"] #main :where(input,select,textarea),html[data-production-system="v8"][data-appearance="light"] #main :where(input,select,textarea){color-scheme:light!important}
+
+/* Calculator + indicator evidence strips stay horizontal and readable. */
+html[data-production-system="v8"] #main .q-v6-quant-kpis{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:0!important;width:100%!important;margin:0 0 var(--q-route-gap)!important;overflow:hidden!important;border:1px solid var(--q-border)!important;border-radius:10px!important;background:var(--q-surface)!important}
+html[data-production-system="v8"] #main .q-v6-quant-kpis>div{display:block!important;min-width:0!important;width:auto!important;min-height:84px!important;padding:13px 14px!important;border:0!important;border-right:1px solid var(--q-border)!important;writing-mode:horizontal-tb!important;overflow:hidden!important}
+html[data-production-system="v8"] #main .q-v6-quant-kpis>div:last-child{border-right:0!important}
+html[data-production-system="v8"] #main .q-v6-quant-kpis>div>*{display:block!important;position:static!important;width:auto!important;max-width:100%!important;writing-mode:horizontal-tb!important;word-break:normal!important;overflow-wrap:normal!important;text-orientation:mixed!important}
+html[data-production-system="v8"] #main .q-v6-quant-kpis strong{margin:5px 0 2px!important;font-size:20px!important;line-height:1.12!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+html[data-production-system="v8"] #main .q-v6-quant-kpis span,html[data-production-system="v8"] #main .q-v6-quant-kpis small{font-size:11px!important;line-height:1.35!important}
+html[data-production-system="v8"] #main .q-v6-quant-method-strip{display:flex!important;flex-wrap:wrap!important;gap:6px!important;margin-top:10px!important}
+html[data-production-system="v8"] #main .q-v6-quant-method-strip span{display:inline-flex!important;align-items:center!important;min-height:24px!important;padding:3px 7px!important;font-size:10px!important;white-space:nowrap!important}
+html[data-production-system="v8"] #main .q-calculator-card__footer{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;min-width:0!important}
+html[data-production-system="v8"] #main .q-calculator-card__footer>span:first-child{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+html[data-production-system="v8"] #main .q-calculator-card__footer strong{flex:0 0 auto!important;white-space:nowrap!important}
+html[data-production-system="v8"] #main :where(.q-calculator-library-disclosure,.q-indicator-library-disclosure)>summary{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:18px!important;min-height:72px!important;padding:13px 16px!important}
+html[data-production-system="v8"] #main :where(.q-calculator-library-disclosure__copy,.q-indicator-library-disclosure__copy){display:grid!important;gap:3px!important;min-width:0!important}
+html[data-production-system="v8"] #main :where(.q-calculator-library-disclosure__copy,.q-indicator-library-disclosure__copy)>*{display:block!important;margin:0!important}
+html[data-production-system="v8"] #main :where(.q-calculator-library-disclosure__action,.q-indicator-library-disclosure__action){flex:0 0 auto!important;white-space:nowrap!important}
+
+/* Saved calculations and Verify use the same terminal control contract. */
+html[data-production-system="v8"] #main .q-saved-calculations-page .q-filter-bar{display:grid!important;grid-template-columns:minmax(260px,2fr) repeat(3,minmax(150px,.72fr))!important;align-items:end!important;gap:10px!important;margin-bottom:14px!important}
+html[data-production-system="v8"] #main .q-saved-calculations-page .q-field{display:grid!important;gap:6px!important;min-width:0!important}
+html[data-production-system="v8"] #main .q-saved-calculations-page .q-field>span{color:var(--q-text-secondary)!important;font-size:12px!important}
+html[data-production-system="v8"] #main .q-saved-calculations-page .q-saved-grid{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))!important;align-items:start!important;gap:12px!important}
+html[data-production-system="v8"] #main .q-saved-calculations-page .q-saved-card{min-height:0!important;padding:16px!important}
+html[data-production-system="v8"] #main .q-saved-calculations-page .q-panel-body{min-height:0!important}
+html[data-production-system="v8"] #main[data-production-route="qelly-verify"] :where(select,input,textarea),html[data-production-system="v8"] #main .q-verify-page :where(select,input,textarea){background:var(--q-surfacealt)!important;color:var(--q-text)!important;border-color:var(--q-border)!important}
+
+/* Research workspace: useful first viewport, no decorative empty-grid void. */
+html[data-production-system="v8"] #main .q-research-workspace-page{display:grid!important;gap:14px!important}
+html[data-production-system="v8"] #main .q-research-external-sources .q-panel-body{min-height:0!important;padding:12px!important;background:var(--q-surface)!important;background-image:none!important}
+html[data-production-system="v8"] #main .q-research-evidence-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;min-height:0!important}
+html[data-production-system="v8"] #main .q-research-evidence-card{min-height:0!important;padding:14px!important;border:1px solid var(--q-border)!important;border-radius:10px!important;background:var(--q-surfacealt)!important;background-image:none!important}
+html[data-production-system="v8"] #main .q-research-evidence-card__head{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:8px!important}
+html[data-production-system="v8"] #main .q-research-empty-state{min-height:150px!important;padding:24px!important;background:var(--q-surface)!important;background-image:none!important}
+html[data-production-system="v8"] #main .q-research-kpi-strip{min-height:0!important}
+
+/* Theme personas: operating-mode selector, not a marketing landing page. */
+html[data-production-system="v8"] #main .q-theme-persona-page{display:grid!important;gap:14px!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-brand-lock-banner{min-height:0!important;padding:20px 22px!important;margin:0!important;border-radius:14px!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-brand-lock-banner h2{margin:5px 0 8px!important;font-size:clamp(24px,2.7vw,36px)!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;margin:0!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-card{min-height:0!important;padding:16px!important;border-radius:12px!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-glyph{width:42px!important;height:42px!important;margin-bottom:10px!important;border-radius:10px!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-card h2{margin:5px 0!important;font-size:20px!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-metrics{display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px!important;margin:11px 0!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-metrics span{min-height:54px!important;padding:9px!important;border-radius:8px!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-best{margin-bottom:10px!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-comparison{margin:0!important}
+
+/* Technical IDs are still available, but only on demand. */
+html[data-production-system="v8"] #main .q-v8-technical-identifiers{margin-top:12px!important;border-top:1px solid var(--q-border)!important;padding-top:10px!important}
+html[data-production-system="v8"] #main .q-v8-technical-identifiers>summary{cursor:pointer!important;color:var(--q-muted)!important;font-size:12px!important}
+html[data-production-system="v8"] #main .q-v8-technical-identifiers dl{margin:10px 0 0!important}
+html[data-production-system="v8"] #main .q-v8-technical-identifiers dd{overflow-wrap:anywhere!important;font-family:ui-monospace,SFMono-Regular,Consolas,monospace!important;font-size:11px!important}
+
+/* External TradingView must fail visibly and usefully instead of becoming a silent blank panel. */
+html[data-production-system="v8"] #main .qelly-tradingview-widget{min-height:420px!important;background:var(--q-surface)!important;border-radius:10px!important;overflow:hidden!important}
+html[data-production-system="v8"] #main .qelly-tradingview-loading,html[data-production-system="v8"] #main .qelly-tradingview-fallback{min-height:420px!important;display:grid!important;place-items:center!important;padding:28px!important;border:1px solid var(--q-border)!important;border-radius:10px!important;background:var(--q-surface)!important;color:var(--q-text)!important;text-align:center!important}
+html[data-production-system="v8"] #main .qelly-tradingview-fallback>div{max-width:560px!important}
+html[data-production-system="v8"] #main .qelly-tradingview-fallback h3{margin:0 0 8px!important;font-size:20px!important}
+html[data-production-system="v8"] #main .qelly-tradingview-fallback p{margin:0 0 16px!important;color:var(--q-muted)!important}
+html[data-production-system="v8"] #main .qelly-tradingview-fallback a{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:38px!important;padding:0 13px!important;border:1px solid var(--q-border)!important;border-radius:8px!important;background:var(--q-surfacealt)!important;color:var(--q-text)!important;text-decoration:none!important}
+
+@media(max-width:1100px){html[data-production-system="v8"] #main .q-v6-quant-kpis{grid-template-columns:repeat(3,minmax(0,1fr))!important}html[data-production-system="v8"] #main .q-saved-calculations-page .q-filter-bar{grid-template-columns:repeat(2,minmax(0,1fr))!important}html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-grid,html[data-production-system="v8"] #main .q-research-evidence-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:700px){html[data-production-system="v8"] #main .q-v6-quant-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}html[data-production-system="v8"] #main :where(.q-calculator-library-disclosure,.q-indicator-library-disclosure)>summary{align-items:flex-start!important}html[data-production-system="v8"] #main .q-saved-calculations-page .q-filter-bar,html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-grid,html[data-production-system="v8"] #main .q-research-evidence-grid{grid-template-columns:1fr!important}}
