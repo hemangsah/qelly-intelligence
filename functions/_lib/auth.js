@@ -22,6 +22,7 @@ import {
   verifyAccess
 } from './runtime.js';
 import {handleGovernance} from './governance.js';
+import {canonicalTimezone,recognizedTimezone} from './timezone.js';
 
 const AUTH_TRANSACTION_COOKIE='qelly_auth_transaction';
 const AUTH_TRANSACTION_TTL_MS=60*60*1000;
@@ -135,6 +136,8 @@ export async function handleAuth(context,path,method){
     const body=await jsonBody(request);
     const email=safeEmail(body.email);
     const password=strongPassword(body.password);
+    const timezone=canonicalTimezone(body.timezone||'Asia/Kolkata');
+    if(!recognizedTimezone(timezone))throw new HttpError(400,'profile_timezone_invalid','Timezone is not recognized');
     await enforceRateLimit(env,`auth-register:${await hashKey(email)}`);
     const transaction=await issueAuthTransaction('signup');
     const config=publicRuntimeConfig(env,request.url);
@@ -149,7 +152,7 @@ export async function handleAuth(context,path,method){
           organization_name:cleanText(body.organizationName,100),
           workspace_name:cleanText(body.workspaceName||body.organizationName||'My Qelly Workspace',100),
           base_currency:cleanText(body.baseCurrency||'USD',8),
-          timezone:cleanText(body.timezone||'Asia/Kolkata',64)
+          timezone
         },
         code_challenge:transaction.challenge,
         code_challenge_method:'s256'
