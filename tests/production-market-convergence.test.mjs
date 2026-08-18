@@ -5,19 +5,20 @@ import {parseHashRoute} from '../apps/web/public/assets/hash-route-state.mjs';
 
 const source=(relative)=>readFileSync(new URL(`../${relative}`,import.meta.url),'utf8');
 
-test('production market route resolves to the source-backed global market network',()=>{
+test('production market overview and live market network remain distinct canonical routes',()=>{
   const previous=globalThis.window;
   try{
     delete globalThis.window;
-    assert.equal(parseHashRoute('#/market').route,'live-markets');
-    assert.equal(parseHashRoute('').route,'live-markets');
+    assert.equal(parseHashRoute('#/market').route,'market');
+    assert.equal(parseHashRoute('#/live-markets').route,'live-markets');
+    assert.equal(parseHashRoute('').route,'market');
   }finally{
     if(previous===undefined)delete globalThis.window;
     else globalThis.window=previous;
   }
 });
 
-test('static visual preview preserves the legacy market frame for design evidence',()=>{
+test('static visual preview preserves the market overview route for design evidence',()=>{
   const previous=globalThis.window;
   try{
     globalThis.window={__QELLY_CONFIG__:{staticVisualPreview:true}};
