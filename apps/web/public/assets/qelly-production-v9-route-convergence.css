@@ -221,6 +221,31 @@ html[data-production-system="v8"] #main[data-production-route="formula-detail"]>
   html[data-production-system="v8"] #main .q-formula-detail-page .q-calculator-layout>.q-panel:nth-child(2){position:static!important}
 }
 @media(max-width:760px){
+  html[data-production-system="v8"][data-production-access="true"] #context-shelf .q-category-shelf{
+    display:flex!important;
+    max-width:100%!important;
+    min-width:0!important;
+    gap:8px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    overscroll-behavior-inline:contain!important;
+    scroll-snap-type:x proximity!important;
+    padding:8px!important;
+    scrollbar-width:none!important;
+  }
+  html[data-production-system="v8"][data-production-access="true"] #context-shelf .q-category-shelf::-webkit-scrollbar{display:none!important}
+  html[data-production-system="v8"][data-production-access="true"] #context-shelf .q-category-shelf>button{
+    flex:0 0 auto!important;
+    width:auto!important;
+    min-width:max-content!important;
+    max-width:none!important;
+    white-space:nowrap!important;
+    overflow:visible!important;
+    text-overflow:clip!important;
+    scroll-snap-align:start!important;
+    padding:10px 14px!important;
+    line-height:1.2!important;
+  }
   html[data-production-system="v8"] #main .q-auth-page{grid-template-columns:1fr!important;min-height:0!important;padding:22px 16px 44px!important}
   html[data-production-system="v8"] #main .q-auth-hero{padding:24px!important;gap:22px!important}
   html[data-production-system="v8"] #main .q-auth-hero h1{font-size:34px!important}
