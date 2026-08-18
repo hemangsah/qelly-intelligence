@@ -5,6 +5,7 @@ import {readFile} from 'node:fs/promises';
 const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 const V1='.github/workflows/qelly-live-production-verification.yml';
 const V2='.github/workflows/qelly-live-production-verification-v2.yml';
+const PROVIDERS='functions/_lib/providers.js';
 const OBSOLETE_BRANCH='feature/prompt2c-global-public-beta';
 const OBSOLETE_RELEASE='92f277f803a307e660e25bb2eef873a6337f4999';
 const RELEASE_REF='refs/heads/release/qelly-global-public-beta';
@@ -41,6 +42,26 @@ test('V2 retains live release, runtime, provider and browser verification surfac
   assert.match(source,/release\.releaseSha!==process\.env\.RELEASE_SHA/);
   assert.match(source,/config\.releaseSha!==process\.env\.RELEASE_SHA/);
   assert.match(source,/health\.status!==['"]ok['"]\|\|health\.releaseSha!==process\.env\.RELEASE_SHA/);
+});
+
+test('V2 provider verification follows the canonical rights-gated provider policy',async()=>{
+  const [source,providers]=await Promise.all([read(V2),read(PROVIDERS)]);
+  for(const marker of [
+    'blocked_pending_redistribution_rights',
+    'provider_redistribution_rights_not_verified',
+    'blocked_pending_written_end_user_display_permission',
+    'provider_end_user_display_rights_not_verified'
+  ]){
+    assert.ok(providers.includes(marker),`provider owner missing policy marker: ${marker}`);
+    assert.ok(source.includes(marker),`V2 verifier missing canonical policy marker: ${marker}`);
+  }
+  assert.match(source,/validateProvider\(binance,'binance'\)/);
+  assert.match(source,/validateProvider\(coinbase,'coinbase'\)/);
+  assert.match(source,/validateRightsBlocked\(binance/);
+  assert.match(source,/validateRightsBlocked\(coinbase/);
+  assert.doesNotMatch(source,/validateProvider\(coinbase,'coinbase-exchange-public'\)/);
+  assert.doesNotMatch(source,/coinbase\.truthState!==['"]live_provider['"]/);
+  assert.doesNotMatch(source,/binance_degraded_truth_invalid/);
 });
 
 test('legacy V1 is manual-only and cannot automatically compete with V2',async()=>{
