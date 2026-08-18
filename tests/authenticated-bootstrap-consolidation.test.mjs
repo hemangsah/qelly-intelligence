@@ -94,6 +94,28 @@ test('browser bootstrap owner collapses concurrent config, session and preferenc
   assert.equal(bootstrapCalls,3);
 });
 
+test('browser bootstrap owner falls back to existing endpoints during deployment or preview skew',async()=>{
+  let bootstrapCalls=0;
+  const endpointCalls=[];
+  const fetchImpl=async(input)=>{
+    const url=new URL(input instanceof Request?input.url:String(input),'https://qelly.test');
+    if(url.pathname==='/api/v1/bootstrap'){
+      bootstrapCalls+=1;
+      return new Response(JSON.stringify({auth:{authenticated:false},defaultRoute:'market'}),{status:200,headers:{'content-type':'application/json'}});
+    }
+    endpointCalls.push(url.pathname);
+    if(url.pathname==='/api/v1/config')return new Response(JSON.stringify({auth:{authenticated:false},defaultRoute:'market'}),{status:200,headers:{'content-type':'application/json'}});
+    if(url.pathname==='/api/v1/session/context')return new Response(JSON.stringify({workspace:{workspaceId}}),{status:200,headers:{'content-type':'application/json'}});
+    throw new Error(`Unexpected endpoint ${url.pathname}`);
+  };
+  const wrapped=createAuthenticatedBootstrapFetch({fetchImpl,baseUrl:'https://qelly.test'});
+  const [config,context]=await Promise.all([wrapped('/api/v1/config'),wrapped('/api/v1/session/context')]);
+  assert.equal(bootstrapCalls,1);
+  assert.deepEqual(endpointCalls.sort(),['/api/v1/config','/api/v1/session/context']);
+  assert.equal((await config.json()).defaultRoute,'market');
+  assert.equal((await context.json()).workspace.workspaceId,workspaceId);
+});
+
 test('bootstrap installer executes before the application shell entry',async()=>{
   const html=await readFile(new URL('../apps/web/public/index.html',import.meta.url),'utf8');
   const installer=html.indexOf('./assets/authenticated-bootstrap-install.mjs');
