@@ -1,4 +1,5 @@
 import {HttpError,cleanText} from './runtime.js';
+import {canonicalTimezone,recognizedTimezone} from './timezone.js';
 
 export const SUPPORTED_BASE_CURRENCIES=Object.freeze(['USD','INR','EUR','GBP','SGD','AED','JPY']);
 const CURRENCY_SET=new Set(SUPPORTED_BASE_CURRENCIES);
@@ -10,8 +11,7 @@ export const safeBaseCurrency=(value)=>{
 };
 
 export const safeTimezone=(value)=>{
-  const timezone=cleanText(value||'UTC',64)||'UTC';
-  try{new Intl.DateTimeFormat('en-US',{timeZone:timezone}).format(new Date(0));}
-  catch{throw new HttpError(400,'timezone_invalid','Timezone must be a valid IANA timezone');}
+  const timezone=canonicalTimezone(cleanText(value||'UTC',64)||'UTC');
+  if(!recognizedTimezone(timezone))throw new HttpError(400,'timezone_invalid','Timezone must be a valid IANA timezone');
   return timezone;
 };
