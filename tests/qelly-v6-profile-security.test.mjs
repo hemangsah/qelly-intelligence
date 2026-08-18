@@ -10,8 +10,9 @@ test('profile validation matches the production profile schema boundary',()=>{
   assert.deepEqual([...BASE_CURRENCIES],['USD','INR','EUR','GBP','SGD','AED','JPY']);
   assert.equal(safeCurrency('inr'),'INR');
   assert.equal(safeTimezone('Asia/Kolkata'),'Asia/Kolkata');
+  assert.equal(safeTimezone('Asia/Calcutta'),'Asia/Kolkata');
   assert.throws(()=>safeCurrency('BTC'),/Base currency is not supported/);
-  assert.throws(()=>safeTimezone('not a timezone'),/Timezone is invalid/);
+  assert.throws(()=>safeTimezone('not a timezone'),/Timezone is not recognized/);
 });
 
 test('profile writes remain authenticated, CSRF protected and RLS-scoped through the user token',async()=>{

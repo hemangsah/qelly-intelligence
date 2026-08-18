@@ -1,13 +1,11 @@
 import {HttpError,bootstrapContext,cleanText,enforceRateLimit,errorResponse,jsonBody,requireCsrf,resolveSession,responseJson,restRequest} from '../../_lib/runtime.js';
+import {canonicalTimezone,recognizedTimezone} from '../../_lib/timezone.js';
 
 const BASE_CURRENCIES=Object.freeze(['USD','INR','EUR','GBP','SGD','AED','JPY']);
-const TIMEZONE=/^[A-Za-z0-9_+\-/]{1,64}$/;
 
 const safeTimezone=(value)=>{
-  const timezone=String(value||'').trim();
-  if(!TIMEZONE.test(timezone))throw new HttpError(400,'profile_timezone_invalid','Timezone is invalid');
-  try{new Intl.DateTimeFormat('en-US',{timeZone:timezone}).format(new Date());}
-  catch{throw new HttpError(400,'profile_timezone_invalid','Timezone is not recognized');}
+  const timezone=canonicalTimezone(value);
+  if(!recognizedTimezone(timezone))throw new HttpError(400,'profile_timezone_invalid','Timezone is not recognized');
   return timezone;
 };
 
@@ -27,7 +25,7 @@ const profilePayload=(context)=>({
   profile:{
     displayName:context.profile?.display_name||null,
     baseCurrency:context.profile?.base_currency||'USD',
-    timezone:context.profile?.timezone||'UTC',
+    timezone:canonicalTimezone(context.profile?.timezone||'UTC'),
     cloudSyncOptIn:Boolean(context.profile?.cloud_sync_opt_in),
     privacyVersion:context.profile?.privacy_version||null,
     termsVersion:context.profile?.terms_version||null,

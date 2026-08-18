@@ -6,10 +6,11 @@ import {safeBaseCurrency,safeTimezone,SUPPORTED_BASE_CURRENCIES} from '../functi
 const read=(relative)=>readFile(new URL(`../${relative}`,import.meta.url),'utf8');
 const migration=()=>read('packages/migrations/20260808090000_qelly_profile_locale_preferences.sql');
 
-test('profile preference helpers validate supported currencies and IANA timezones',()=>{
+test('profile preference helpers validate supported currencies and canonical IANA timezones',()=>{
   assert.deepEqual(SUPPORTED_BASE_CURRENCIES,['USD','INR','EUR','GBP','SGD','AED','JPY']);
   assert.equal(safeBaseCurrency('inr'),'INR');
   assert.equal(safeTimezone('Asia/Kolkata'),'Asia/Kolkata');
+  assert.equal(safeTimezone('Asia/Calcutta'),'Asia/Kolkata');
   assert.equal(safeTimezone('America/New_York'),'America/New_York');
   assert.throws(()=>safeBaseCurrency('XYZ'),/Base currency is not supported/);
   assert.throws(()=>safeTimezone('Not/A_Real_Zone'),/valid IANA timezone/);
@@ -35,9 +36,12 @@ test('profile locale migration preserves the Auth trigger security boundary',asy
   assert.match(sql,/notify pgrst, 'reload schema'/i);
 });
 
-test('registration already forwards the governed preference metadata to Supabase Auth',async()=>{
+test('registration forwards governed preference metadata with canonical timezone normalization',async()=>{
   const auth=await read('functions/_lib/auth.js');
   assert.match(auth,/base_currency:cleanText\(body\.baseCurrency\|\|'USD',8\)/);
-  assert.match(auth,/timezone:cleanText\(body\.timezone\|\|[^,]+,64\)/);
+  assert.match(auth,/canonicalTimezone\(body\.timezone\|\|'Asia\/Kolkata'\)/);
+  assert.match(auth,/recognizedTimezone\(timezone\)/);
+  assert.match(auth,/\btimezone\b/);
+  assert.doesNotMatch(auth,/timezone:cleanText\(body\.timezone/);
   assert.match(auth,/workspace_name:cleanText\(body\.workspaceName\|\|body\.organizationName\|\|'My Qelly Workspace',100\)/);
 });
