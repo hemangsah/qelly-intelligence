@@ -24,7 +24,7 @@ export async function renderFormulaDetail(main,{pageHead,escapeHtml,toast,naviga
   const result=reference?calculateFormula(definition.formulaId,reference,{calculatedAt:'2026-07-30T00:00:00.000Z'}):null;
   main.innerHTML=`<section class="q-page q-formula-detail-page">
     ${pageHead('Quantitative methodology','Formula',definition.name,`<button class="q-button q-button--primary" data-action="calculate">Use calculator</button>`)}
-    <div class="q-state-banner is-simulated"><span class="q-status q-status--simulated">DETERMINISTIC</span><p>This formula runs locally from your inputs. It does not require live market data or execution access.</p></div>
+    <div class="q-state-banner"><span class="q-status q-status--cached">DETERMINISTIC</span><p>This formula runs locally from your inputs. It does not require live market data or execution access.</p></div>
     <section class="q-calculator-layout"><article class="q-panel"><div class="q-panel-head"><div><p class="q-eyebrow">${escapeHtml(humanize(definition.category??definition.domain))}</p><h2>${escapeHtml(definition.name)}</h2><p>${escapeHtml(definition.description)}</p></div></div><div class="q-panel-body">
       <dl class="q-evidence-grid"><div><dt>Method</dt><dd>${escapeHtml(definition.numericalMethod??definition.description)}</dd></div><div><dt>Output units</dt><dd>${escapeHtml(definition.units??'Formula-specific')}</dd></div><div><dt>Data requirement</dt><dd>${definition.externalProviderRequired?'External provider required':'Your inputs only'}</dd></div><div><dt>Calculation type</dt><dd>Deterministic local</dd></div></dl>
       <h3>Assumptions</h3><ul>${(definition.assumptions??[]).map((item)=>`<li>${escapeHtml(item)}</li>`).join('')||'<li>User inputs are authoritative.</li>'}</ul>
