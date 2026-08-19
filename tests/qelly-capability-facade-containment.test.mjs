@@ -38,7 +38,7 @@ test('configured canonical email can use dated readiness evidence without granti
   assert.equal(body.checks.authEmail.proven,true);
   assert.equal(body.checks.authEmail.evidence.readinessEvidence,true);
   assert.equal(body.checks.authEmail.evidence.capabilityAuthority,false);
-  assert.equal(body.checks.authEmail.evidence.evidenceMethod,'confirmation_sent_at_then_email_confirmed_at');
+  assert.equal(body.checks.authEmail.evidence.evidenceMethod,'signup_confirmation_completed_and_password_recovery_delivery_proven');
 });
 
 test('placeholder job, notification and foundation-ready routes are absent',async()=>{
