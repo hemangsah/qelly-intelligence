@@ -33,8 +33,8 @@ test('transactional email requires explicit runtime activation in every environm
 
 test('canonical email canary is dated readiness evidence but never capability authority',()=>{
   assert.equal(AUTH_EMAIL_CANARY.proven,true);
-  assert.equal(AUTH_EMAIL_CANARY.verifiedAt,'2026-08-19T16:51:37.822699Z');
-  assert.equal(AUTH_EMAIL_CANARY.evidenceMethod,'confirmation_sent_at_then_email_confirmed_at');
+  assert.equal(AUTH_EMAIL_CANARY.verifiedAt,'2026-08-19T16:55:30.291866Z');
+  assert.equal(AUTH_EMAIL_CANARY.evidenceMethod,'signup_confirmation_completed_and_password_recovery_delivery_proven');
   assert.equal(AUTH_EMAIL_CANARY.readinessEvidence,true);
   assert.equal(AUTH_EMAIL_CANARY.capabilityAuthority,false);
   assert.equal(effectivePublicRuntimeConfig(canonicalEnvironment()).capabilities.emailDelivery,false);
