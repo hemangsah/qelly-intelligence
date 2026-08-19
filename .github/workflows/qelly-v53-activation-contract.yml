@@ -34,7 +34,7 @@ jobs:
         run: npm ci
 
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: timeout 300s npx playwright install chromium
 
       - name: Run activation contract unit gates
         run: node --test tests/qelly-v53-activation-contract.test.mjs
