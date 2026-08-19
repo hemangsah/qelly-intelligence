@@ -1,7 +1,6 @@
 import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import {AUTH_EMAIL_CANARY,CANONICAL_QELLY_PUBLIC_SITE} from '../functions/_lib/email-capability.js';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const output=path.join(root,'dist/frontend');
@@ -27,11 +26,10 @@ if(staticVisualPreview&&(apiBaseUrl||requirePublicRuntime))throw new Error('Stat
 
 const buildTimestamp=new Date().toISOString();
 const releaseSha=String(process.env.CF_PAGES_COMMIT_SHA??process.env.GITHUB_SHA??process.env.QELLY_PUBLIC_RELEASE_SHA??'unresolved');
-const productionEmailCanary=Boolean(requirePublicRuntime&&!githubPagesMirror&&AUTH_EMAIL_CANARY.proven&&publicSiteUrl===CANONICAL_QELLY_PUBLIC_SITE);
 const capabilities={
   deterministicLocal:true,
   authentication:!staticVisualPreview&&!githubPagesMirror&&asBool(process.env.QELLY_ENABLE_AUTH,requirePublicRuntime),
-  emailDelivery:!staticVisualPreview&&!githubPagesMirror&&asBool(process.env.QELLY_ENABLE_AUTH_EMAIL_DELIVERY,productionEmailCanary),
+  emailDelivery:!staticVisualPreview&&!githubPagesMirror&&asBool(process.env.QELLY_ENABLE_AUTH_EMAIL_DELIVERY,false),
   cloudSync:!staticVisualPreview&&!githubPagesMirror&&asBool(process.env.QELLY_ENABLE_CLOUD_SYNC,requirePublicRuntime),
   liveProviders:!staticVisualPreview&&asBool(process.env.QELLY_ENABLE_LIVE_PROVIDERS,requirePublicRuntime),
   protectedWrites:!staticVisualPreview&&!githubPagesMirror&&asBool(process.env.QELLY_ENABLE_FEEDBACK_WRITES,requirePublicRuntime),
