@@ -17,3 +17,12 @@ test('V8 live-terminal gate retains convergence diagnostics after an early stop'
   assert.match(source,/dist\/live-public-verification\/http/);
   assert.match(source,/if-no-files-found: error/);
 });
+
+test('GitHub Pages deploy retains convergence diagnostics only after the gate actually ran',async()=>{
+  const source=await workflow('pages-preview.yml');
+  assert.match(source,/id: convergence/);
+  assert.match(source,/node scripts\/wait-for-cloudflare-runtime-convergence\.mjs/);
+  assert.match(source,/if: always\(\) && steps\.convergence\.outcome != 'skipped'/);
+  assert.match(source,/dist\/live-public-verification\/http/);
+  assert.match(source,/if-no-files-found: error/);
+});
