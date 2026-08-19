@@ -67,7 +67,7 @@ jobs:
       - name: Install isolated visual evidence runtime
         run: |
           python -m pip install --disable-pip-version-check playwright pillow
-          python -m playwright install --with-deps chromium
+          timeout 5m python -m playwright install chromium
           chromium_path="$(python - <<'PY'
           from playwright.sync_api import sync_playwright
           with sync_playwright() as playwright:
