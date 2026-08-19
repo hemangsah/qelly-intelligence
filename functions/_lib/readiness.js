@@ -114,12 +114,13 @@ const check=(required,configured,proof,states)=>Object.freeze({
 });
 
 export function readinessSnapshot(runtime,evidence={}){
+  const authRequired=runtime.capabilities.authentication===true;
   const liveProvidersRequired=runtime.capabilities.liveProviders===true;
   const checks=Object.freeze({
     supabase:check(true,Boolean(runtime.supabaseUrl&&runtime.supabasePublishableKey),evidence.supabase,{
       proven:'supabase_auth_health_proven',unproven:'configured_not_live_canaried',unconfigured:'supabase_runtime_not_configured',notRequired:'not_required'
     }),
-    authEmail:check(true,runtime.capabilities.emailDelivery===true,evidence.authEmail,{
+    authEmail:check(authRequired,runtime.capabilities.emailDelivery===true,evidence.authEmail,{
       proven:'email_delivery_canary_proven',unproven:'email_delivery_configured_not_end_to_end_proven',unconfigured:'email_delivery_fail_closed',notRequired:'not_required'
     }),
     rlsIsolation:check(true,true,evidence.rlsIsolation,{
