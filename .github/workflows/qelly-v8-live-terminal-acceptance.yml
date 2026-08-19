@@ -163,7 +163,7 @@ jobs:
       - name: Verify canonical and mirror live-markets UI
         shell: bash
         run: |
-          npx playwright install --with-deps chromium
+          timeout 300s npx playwright install chromium
           node <<'NODE'
           const fs=require('node:fs');
           const {chromium}=require('playwright');
