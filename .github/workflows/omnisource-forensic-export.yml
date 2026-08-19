@@ -1,0 +1,114 @@
+name: Qelly Omnisource Forensic Export
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+  issues: read
+  deployments: read
+  pages: read
+
+jobs:
+  export-exact-corpus:
+    if: github.event.pull_request.head.ref == 'agent/qelly-omnisource-forensic-export-336a556c'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      EXACT_HEAD: 336a556c552e0be7894745f5bf04a3f04c4b9da1
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check out exact protected source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.EXACT_HEAD }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify exact source and build forensic export
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXACT_HEAD"
+          mkdir -p forensic-export/github-api
+          git archive --format=zip --prefix="qelly-intelligence-${EXACT_HEAD}/" -o forensic-export/qelly-exact-source.zip HEAD
+          git ls-files > forensic-export/TRACKED_PATHS.txt
+          git for-each-ref --format='%(refname),%(objectname),%(creatordate:iso8601),%(subject)' refs/heads refs/remotes refs/tags > forensic-export/GIT_REFS.csv
+          git log --all --date=iso-strict --pretty=format:'%H%x09%P%x09%aI%x09%cI%x09%an%x09%ae%x09%s' > forensic-export/GIT_COMMITS.tsv
+          python3 - <<'PY'
+          import csv, hashlib, json, mimetypes, os, pathlib, subprocess, urllib.request, urllib.error
+          root=pathlib.Path('.').resolve(); out=root/'forensic-export'; exact=os.environ['EXACT_HEAD']
+          def git(*args, binary=False):
+              return subprocess.check_output(['git',*args],cwd=root,text=not binary)
+          rows=[]; text_index=[]
+          for raw in git('ls-files','-z').split('\0'):
+              if not raw: continue
+              p=root/raw; body=p.read_bytes();
+              try: decoded=body.decode('utf-8'); text=True; lines=decoded.count('\n')+(1 if decoded and not decoded.endswith('\n') else 0)
+              except UnicodeDecodeError: decoded=None; text=False; lines=None
+              blob=git('hash-object',raw).strip(); latest=git('log','-1','--format=%H','--',raw).strip() or 'UNAVAILABLE'
+              intro=(git('log','--follow','--diff-filter=A','--format=%H','--',raw).strip().splitlines() or ['UNAVAILABLE'])[-1]
+              mime=mimetypes.guess_type(raw)[0] or subprocess.check_output(['file','-b','--mime-type',str(p)],text=True).strip()
+              row={'path':raw,'exactHead':exact,'bytes':len(body),'sha256':hashlib.sha256(body).hexdigest(),'gitBlob':blob,'introducingCommit':intro,'latestModifyingCommit':latest,'mime':mime,'textUtf8':text,'lineCount':lines}
+              rows.append(row)
+              if text: text_index.append({'path':raw,'lineCount':lines,'sha256':row['sha256'],'content':decoded})
+          (out/'TRACKED_FILE_INVENTORY.json').write_text(json.dumps({'exactHead':exact,'count':len(rows),'files':rows},indent=2)+'\n')
+          with (out/'TRACKED_FILE_INVENTORY.csv').open('w',newline='') as f:
+              w=csv.DictWriter(f,fieldnames=list(rows[0])); w.writeheader(); w.writerows(rows)
+          with (out/'COMPLETE_TEXT_CORPUS.jsonl').open('w') as f:
+              for item in text_index: f.write(json.dumps(item,ensure_ascii=False)+'\n')
+          api='https://api.github.com/repos/hemangsah/qelly-intelligence'; token=os.environ['GH_TOKEN']
+          headers={'Authorization':f'Bearer {token}','Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','User-Agent':'qelly-omnisource-forensic'}
+          def get(path, paginate=False):
+              url=path if path.startswith('http') else api+path; all_items=[]; page=1
+              while True:
+                  u=url+('&' if '?' in url else '?')+f'per_page=100&page={page}' if paginate else url
+                  req=urllib.request.Request(u,headers=headers)
+                  try:
+                      with urllib.request.urlopen(req,timeout=60) as r: data=json.loads(r.read())
+                  except urllib.error.HTTPError as e:
+                      return {'unavailable':True,'status':e.code,'path':path}
+                  if not paginate: return data
+                  if not isinstance(data,list): return data
+                  all_items.extend(data)
+                  if len(data)<100: return all_items
+                  page+=1
+          endpoints={'repository':'','branches':'/branches','tags':'/tags','pulls':'/pulls?state=all','issues':'/issues?state=all','workflows':'/actions/workflows','runs':'/actions/runs','artifacts':'/actions/artifacts','deployments':'/deployments','releases':'/releases','pages':'/pages'}
+          api_dir=out/'github-api'
+          for name,path in endpoints.items():
+              data=get(path,paginate=name in {'branches','tags','pulls','issues','deployments','releases'})
+              (api_dir/f'{name}.json').write_text(json.dumps(data,indent=2)+'\n')
+          pulls=json.loads((api_dir/'pulls.json').read_text())
+          for pr in pulls:
+              n=pr['number']
+              detail={'pull':get(f'/pulls/{n}'),'issueComments':get(f'/issues/{n}/comments',True),'reviewComments':get(f'/pulls/{n}/comments',True),'reviews':get(f'/pulls/{n}/reviews',True),'files':get(f'/pulls/{n}/files',True)}
+              (api_dir/f'pr-{n}.json').write_text(json.dumps(detail,indent=2)+'\n')
+          runs=get('/actions/runs')
+          run_items=runs.get('workflow_runs',[]) if isinstance(runs,dict) else []
+          for run in run_items:
+              if any(k in run.get('name','').lower() for k in ['prompt 2a','prompt 2b','theme intelligence','ui rescue','typography','plex','production foundation','codeql','continuous integration','container']):
+                  rid=run['id']; data={'run':run,'jobs':get(f'/actions/runs/{rid}/jobs') ,'artifacts':get(f'/actions/runs/{rid}/artifacts')}
+                  (api_dir/f'run-{rid}.json').write_text(json.dumps(data,indent=2)+'\n')
+          PY
+          find forensic-export -type f ! -name SHA256SUMS.txt -print0 | sort -z | xargs -0 sha256sum > forensic-export/SHA256SUMS.txt
+          python3 - <<'PY'
+          import hashlib,json,pathlib,zipfile,os
+          root=pathlib.Path('forensic-export'); target=pathlib.Path('qelly-omnisource-forensic-export.zip')
+          with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as z:
+              for p in sorted(root.rglob('*')):
+                  if p.is_file(): z.write(p,p.as_posix())
+          with zipfile.ZipFile(target) as z:
+              bad=z.testzip(); entries=len(z.infolist())
+          if bad: raise SystemExit(f'CRC failure: {bad}')
+          body=target.read_bytes(); print(json.dumps({'exactHead':os.environ['EXACT_HEAD'],'bytes':len(body),'sha256':hashlib.sha256(body).hexdigest(),'entries':entries,'crc':'passed'}))
+          PY
+      - name: Upload exact forensic corpus
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-omnisource-forensic-export-336a556c
+          path: qelly-omnisource-forensic-export.zip
+          if-no-files-found: error
+          retention-days: 30

@@ -1,0 +1,58 @@
+name: Apply Prompt 2B Final Review Harness Fix
+
+on:
+  push:
+    branches:
+      - agent/qelly-omnisource-forensic-export-336a556c
+    paths:
+      - .github/workflows/apply-prompt2b-final-review-harness-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply-exact-fix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out protected product branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: feature/calculator-and-indicator-foundation
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Guard protected source and apply exact harness correction
+        env:
+          EXPECTED_HEAD: cb85761b3ff9928aae8cfdada9f4be67985de97c
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          test "$(git ls-remote origin refs/heads/feature/calculator-and-indicator-foundation | cut -f1)" = "$EXPECTED_HEAD"
+          python3 - <<'PY'
+          from pathlib import Path
+          path=Path('scripts/prompt2b-final-review.mjs')
+          text=path.read_text()
+          old='fresh-rolling-volatility'
+          new='fresh-rolling-support-resistance'
+          if text.count(old) != 1:
+              raise SystemExit(f'expected exactly one stale indicator id, found {text.count(old)}')
+          if new in text:
+              raise SystemExit('replacement already present before guarded mutation')
+          path.write_text(text.replace(old,new))
+          PY
+          node --check scripts/prompt2b-final-review.mjs
+          node --input-type=module <<'NODE'
+          import {calculateIndicator,listIndicatorDefinitions} from './apps/web/public/assets/calculation/indicator-engine-extended.mjs';
+          const ids=listIndicatorDefinitions().map(item=>item.indicatorId??item.id);
+          if(ids.length!==54||ids.includes('fresh-rolling-volatility')||!ids.includes('fresh-rolling-support-resistance'))process.exit(1);
+          const close=Array.from({length:10000},(_,index)=>100+Math.sin(index/17)*3+index*.0008),high=close.map((value,index)=>value+.7+(index%4)*.02),low=close.map((value,index)=>value-.8-(index%3)*.02),open=close.map((value,index)=>value+(index%2?.1:-.1)),volume=close.map((_,index)=>1000+(index%250)*11);
+          const result=calculateIndicator('fresh-rolling-support-resistance',{open,high,low,close,volume,period:14});
+          console.log(JSON.stringify({indicatorDefinitions:ids.length,status:result.status},null,2));
+          if(result.status!=='success')process.exit(1);
+          NODE
+          git diff --check
+          git config user.name hemangsah
+          git config user.email hemangsah.dn@gmail.com
+          git add scripts/prompt2b-final-review.mjs
+          git commit -m "test(prompt2b): use canonical rolling support resistance performance case"
+          git push origin HEAD:feature/calculator-and-indicator-foundation
