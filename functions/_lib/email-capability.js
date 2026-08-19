@@ -3,10 +3,10 @@ import {bool,publicRuntimeConfig} from './runtime.js';
 export const CANONICAL_QELLY_PUBLIC_SITE='https://qelly-intelligence.pages.dev';
 export const AUTH_EMAIL_CANARY=Object.freeze({
   proven:true,
-  verifiedAt:'2026-08-15T11:11:55.355034Z',
+  verifiedAt:'2026-08-19T16:55:30.291866Z',
   scope:'canonical-production',
   provider:'supabase-auth-custom-smtp',
-  evidenceMethod:'confirmation_sent_at_then_email_confirmed_at',
+  evidenceMethod:'signup_confirmation_completed_and_password_recovery_delivery_proven',
   readinessEvidence:true,
   capabilityAuthority:false
 });
