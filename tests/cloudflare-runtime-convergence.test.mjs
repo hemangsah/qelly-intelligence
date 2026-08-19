@@ -112,6 +112,19 @@ test('runtime convergence waits for two consecutive complete six-surface samples
     assert.equal(JSON.parse(await readFile(path.join(outputDir,'api-config-convergence.json'),'utf8')).runtime.releaseSha,sha);
     assert.equal(JSON.parse(await readFile(path.join(outputDir,'health-convergence.json'),'utf8')).releaseSha,sha);
     assert.equal(JSON.parse(await readFile(path.join(outputDir,'readiness-convergence.json'),'utf8')).releaseSha,sha);
+    const diagnostics=JSON.parse(await readFile(path.join(outputDir,'runtime-convergence-status.json'),'utf8'));
+    assert.equal(diagnostics.targetSha,sha);
+    assert.equal(diagnostics.attempt,3);
+    assert.equal(diagnostics.complete,true);
+    assert.equal(diagnostics.converged,true);
+    assert.deepEqual(diagnostics.checks,{
+      release:true,
+      build:true,
+      browserConfig:true,
+      apiConfig:true,
+      health:true,
+      readiness:true
+    });
   }finally{
     await rm(outputDir,{recursive:true,force:true});
   }
@@ -154,7 +167,7 @@ test('a transient stale surface resets the stable convergence streak',async()=>{
   }
 });
 
-test('one complete sample is insufficient when two stable samples are required',async()=>{
+test('one complete sample is insufficient when two stable samples are required and leaves diagnostics',async()=>{
   const outputDir=await mkdtemp(path.join(os.tmpdir(),'qelly-runtime-single-'));
   const fetchImpl=async(url)=>{
     if(url.includes('qelly-release.json'))return jsonResponse(200,{releaseSha:sha});
@@ -175,6 +188,13 @@ test('one complete sample is insufficient when two stable samples are required',
       outputDir,
       log:()=>{}
     }),/did not remain converged/);
+    const diagnostics=JSON.parse(await readFile(path.join(outputDir,'runtime-convergence-status.json'),'utf8'));
+    assert.equal(diagnostics.attempt,1);
+    assert.equal(diagnostics.totalAttempts,1);
+    assert.equal(diagnostics.converged,true);
+    assert.equal(diagnostics.complete,false);
+    assert.equal(diagnostics.stableSamples,1);
+    assert.equal(diagnostics.requiredStableSamples,2);
   }finally{
     await rm(outputDir,{recursive:true,force:true});
   }

@@ -132,6 +132,7 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
       - name: Wait for canonical Cloudflare runtime SHA
+        id: convergence
         env:
           PUBLIC_URL: https://qelly-intelligence.pages.dev
           RELEASE_SHA: ${{ github.sha }}
@@ -163,3 +164,11 @@ jobs:
           grep -F 'github-pages-public' /tmp/qelly-mirror-config.js
           grep -F 'https://qelly-intelligence.pages.dev' /tmp/qelly-mirror-config.js
           ! grep -F 'SIMULATED REFERENCE DATA' /tmp/qelly-mirror.html
+      - name: Upload canonical convergence evidence
+        if: always() && steps.convergence.outcome != 'skipped'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-pages-canonical-convergence-${{ github.sha }}
+          path: dist/live-public-verification/http
+          if-no-files-found: error
+          retention-days: 14

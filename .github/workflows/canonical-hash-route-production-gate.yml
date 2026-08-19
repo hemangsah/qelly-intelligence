@@ -40,11 +40,13 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Verify screenshot-critical hash routes
         run: node scripts/verify-canonical-hash-routes.mjs
-      - name: Upload route evidence
+      - name: Upload route and convergence evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: qelly-canonical-hash-routes-${{ github.sha }}
-          path: dist/canonical-hash-route-verification
+          path: |
+            dist/canonical-hash-route-verification
+            dist/live-public-verification/http
           if-no-files-found: error
           retention-days: 14

@@ -149,6 +149,17 @@ export async function waitForCloudflareRuntimeConvergence({
     });
     const stability=advanceConvergenceStability(result,stableSamples,stableRequired);
     stableSamples=stability.stableSamples;
+    await writeFile(path.join(outputDir,'runtime-convergence-status.json'),JSON.stringify({
+      targetSha:releaseSha,
+      attempt,
+      totalAttempts,
+      stableSamples,
+      requiredStableSamples:stableRequired,
+      complete:stability.complete,
+      converged:result.converged,
+      checks:result.checks,
+      observed:result.observed
+    },null,2));
     if(stability.complete){
       log(JSON.stringify({status:'cloudflare-runtime-stably-converged',attempt,stableSamples,requiredStableSamples:stableRequired,...result.observed}));
       return Object.freeze({...result,...stability});

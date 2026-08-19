@@ -199,11 +199,13 @@ jobs:
             fs.writeFileSync('dist/v8-live-terminal-acceptance/browser-evidence.json',JSON.stringify({canonical,mirror},null,2));
           })().catch(error=>{console.error(error);process.exit(1);});
           NODE
-      - name: Upload V8 live terminal evidence
+      - name: Upload V8 live terminal and convergence evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: qelly-v8-live-terminal-acceptance-${{ github.sha }}
-          path: dist/v8-live-terminal-acceptance
+          path: |
+            dist/v8-live-terminal-acceptance
+            dist/live-public-verification/http
           if-no-files-found: error
           retention-days: 14
