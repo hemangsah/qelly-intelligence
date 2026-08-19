@@ -37,7 +37,7 @@ jobs:
       - name: Wait for canonical Cloudflare convergence
         run: node scripts/wait-for-cloudflare-runtime-convergence.mjs
       - name: Install browser
-        run: npx playwright install --with-deps chromium
+        run: timeout 300s npx playwright install chromium
       - name: Verify screenshot-critical hash routes
         run: node scripts/verify-canonical-hash-routes.mjs
       - name: Upload route and convergence evidence
