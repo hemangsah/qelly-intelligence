@@ -51,7 +51,7 @@ test('explicit canonical email disable remains an operator kill switch',async()=
   assert.equal(body.ready,false);
   assert.equal(body.dependencies.auth,'email_delivery_fail_closed');
   assert.equal(body.checks.authEmail.configured,false);
-  assert.equal(body.checks.authEmail.proven,true);
+  assert.equal(body.checks.authEmail.proven,false);
   assert.equal(body.checks.authEmail.evidence.capabilityAuthority,true);
 });
 
