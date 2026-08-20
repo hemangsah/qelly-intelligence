@@ -12,7 +12,7 @@ const env=(overrides={})=>({
   ...overrides
 });
 
-test('readiness remains not proven until required end-to-end canaries exist',async()=>{
+test('canonical readiness can trust dated email evidence but remains not proven until other required dependencies pass',async()=>{
   const request=new Request('https://qelly-intelligence.pages.dev/api/v1/readiness');
   const response=await readinessOnRequest({request,env:env(),params:{path:['readiness']},next:async()=>new Response(null,{status:404})});
   const body=await response.json();
@@ -20,14 +20,16 @@ test('readiness remains not proven until required end-to-end canaries exist',asy
   assert.equal(body.ready,false);
   assert.equal(body.status,'not_proven');
   assert.equal(body.dependencies.supabase,'supabase_auth_health_http_503');
-  assert.equal(body.dependencies.auth,'email_delivery_fail_closed');
+  assert.equal(body.dependencies.auth,'email_delivery_canary_proven');
   assert.equal(body.dependencies.providers,'ecb_reference_freshness_not_proven');
-  assert.equal(body.checks.authEmail.configured,false);
+  assert.equal(body.checks.authEmail.configured,true);
+  assert.equal(body.checks.authEmail.proven,true);
+  assert.equal(body.checks.authEmail.evidence.capabilityAuthority,true);
   assert.equal(body.checks.providerFreshness.required,true);
   assert.equal(body.checks.rlsIsolation.proven,true);
 });
 
-test('configured canonical email can use dated readiness evidence without granting capability authority',async()=>{
+test('explicit canonical email activation and the dated canary agree on capability authority',async()=>{
   const request=new Request('https://qelly-intelligence.pages.dev/api/v1/readiness');
   const response=await readinessOnRequest({request,env:env({QELLY_ENABLE_AUTH_EMAIL_DELIVERY:'true'}),params:{path:['readiness']},next:async()=>new Response(null,{status:404})});
   const body=await response.json();
@@ -37,8 +39,20 @@ test('configured canonical email can use dated readiness evidence without granti
   assert.equal(body.checks.authEmail.configured,true);
   assert.equal(body.checks.authEmail.proven,true);
   assert.equal(body.checks.authEmail.evidence.readinessEvidence,true);
-  assert.equal(body.checks.authEmail.evidence.capabilityAuthority,false);
+  assert.equal(body.checks.authEmail.evidence.capabilityAuthority,true);
   assert.equal(body.checks.authEmail.evidence.evidenceMethod,'confirmation_sent_at_then_email_confirmed_at');
+});
+
+test('explicit canonical email disable remains an operator kill switch',async()=>{
+  const request=new Request('https://qelly-intelligence.pages.dev/api/v1/readiness');
+  const response=await readinessOnRequest({request,env:env({QELLY_ENABLE_AUTH_EMAIL_DELIVERY:'false'}),params:{path:['readiness']},next:async()=>new Response(null,{status:404})});
+  const body=await response.json();
+  assert.equal(response.status,503);
+  assert.equal(body.ready,false);
+  assert.equal(body.dependencies.auth,'email_delivery_fail_closed');
+  assert.equal(body.checks.authEmail.configured,false);
+  assert.equal(body.checks.authEmail.proven,true);
+  assert.equal(body.checks.authEmail.evidence.capabilityAuthority,true);
 });
 
 test('placeholder job, notification and foundation-ready routes are absent',async()=>{
