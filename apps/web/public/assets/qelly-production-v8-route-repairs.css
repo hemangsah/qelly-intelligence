@@ -72,5 +72,34 @@ html[data-production-system="v8"] #main .qelly-tradingview-fallback h3{margin:0 
 html[data-production-system="v8"] #main .qelly-tradingview-fallback p{margin:0 0 16px!important;color:var(--q-muted)!important}
 html[data-production-system="v8"] #main .qelly-tradingview-fallback a{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:38px!important;padding:0 13px!important;border:1px solid var(--q-border)!important;border-radius:8px!important;background:var(--q-surfacealt)!important;color:var(--q-text)!important;text-decoration:none!important}
 
+/* Semantic surface convergence: legacy route locks must never leave light cards
+   underneath dark-theme text tokens. These rules are token-driven so light mode
+   remains semantically correct as well. */
+html[data-production-system="v8"] body #app #main :where(.q-v53-final-inspector,.q-v53-evidence-inspector,.q-v53-real-inspector){border:1px solid var(--q-border)!important;background:var(--q-surface)!important;background-image:none!important;color:var(--q-text)!important;box-shadow:none!important}
+html[data-production-system="v8"] body #app #main :where(.q-v53-final-inspector,.q-v53-evidence-inspector,.q-v53-real-inspector)>header{border-color:var(--q-border)!important;background:var(--q-surfacealt)!important;background-image:none!important;color:var(--q-text)!important}
+html[data-production-system="v8"] body #app #main :where(.q-v53-final-row,.q-v53-evidence-row,.q-v53-real-evidence-row){border-color:var(--q-border)!important;background:transparent!important;background-image:none!important;color:var(--q-text)!important}
+html[data-production-system="v8"] body #app #main :where(.q-v53-final-note,.q-v53-evidence-note,.q-v53-real-inspector-note){border-color:var(--q-border)!important;background:var(--q-surfacealt)!important;background-image:none!important;color:var(--q-muted)!important}
+html[data-production-system="v8"] body #app #main :where(.q-v53-final-inspector,.q-v53-evidence-inspector,.q-v53-real-inspector) strong{color:var(--q-text)!important;-webkit-text-fill-color:var(--q-text)!important}
+html[data-production-system="v8"] body #app #main :where(.q-v53-final-inspector,.q-v53-evidence-inspector,.q-v53-real-inspector) :where(small,span,p){color:var(--q-muted)!important;-webkit-text-fill-color:var(--q-muted)!important}
+
+html[data-production-system="v8"] body #app #main .q-context-block{border-color:var(--q-border)!important;background:var(--q-surfacealt)!important;background-image:none!important;color:var(--q-text)!important}
+html[data-production-system="v8"] body #app #main .q-context-block dt{color:var(--q-muted)!important;-webkit-text-fill-color:var(--q-muted)!important}
+html[data-production-system="v8"] body #app #main .q-context-block dd{color:var(--q-text)!important;-webkit-text-fill-color:var(--q-text)!important}
+
+html[data-production-system="v8"] body #app #main .q-metric-card,html[data-production-system="v8"] body #app #main .q-gate-grid>article{border:1px solid var(--q-border)!important;background:var(--q-surfacealt)!important;background-image:none!important;color:var(--q-text)!important;box-shadow:none!important}
+html[data-production-system="v8"] body #app #main .q-metric-card strong,html[data-production-system="v8"] body #app #main .q-gate-grid>article strong{color:var(--q-text)!important;-webkit-text-fill-color:var(--q-text)!important}
+html[data-production-system="v8"] body #app #main .q-metric-card :where(span,small),html[data-production-system="v8"] body #app #main .q-gate-grid>article span{color:var(--q-muted)!important;-webkit-text-fill-color:var(--q-muted)!important}
+
+html[data-production-system="v8"] body #app #main .q-calendar-event{border-color:var(--q-border)!important;background:var(--q-surfacealt)!important;background-image:none!important;color:var(--q-text)!important;box-shadow:none!important}
+html[data-production-system="v8"] body #app #main .q-calendar-event strong{color:var(--q-text)!important;-webkit-text-fill-color:var(--q-text)!important}
+html[data-production-system="v8"] body #app #main .q-calendar-event :where(time,small){color:var(--q-muted)!important;-webkit-text-fill-color:var(--q-muted)!important}
+
+html[data-production-system="v8"] body #app #main pre{border-color:var(--q-border)!important;background:var(--q-surfacealt)!important;background-image:none!important;color:var(--q-text-secondary)!important;-webkit-text-fill-color:var(--q-text-secondary)!important;box-shadow:none!important}
+
+/* Legacy data-grid header/footer chrome had a hard-coded light surface in several
+   workspace routes. Keep the grid semantic in both appearance modes. */
+html[data-production-system="v8"] body #app #main .q-data-grid :where(thead,th,tfoot,.q-grid-footer,.q-grid-summary){border-color:var(--q-border)!important;background:var(--q-surfacealt)!important;background-image:none!important;color:var(--q-text-secondary)!important;-webkit-text-fill-color:var(--q-text-secondary)!important}
+html[data-production-system="v8"] body #app #main .q-data-grid td{border-color:var(--q-border)!important;color:var(--q-text)!important;-webkit-text-fill-color:var(--q-text)!important}
+
 @media(max-width:1100px){html[data-production-system="v8"] #main .q-v6-quant-kpis{grid-template-columns:repeat(3,minmax(0,1fr))!important}html[data-production-system="v8"] #main .q-saved-calculations-page .q-filter-bar{grid-template-columns:repeat(2,minmax(0,1fr))!important}html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-grid,html[data-production-system="v8"] #main .q-research-evidence-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(max-width:700px){html[data-production-system="v8"] #main .q-v6-quant-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}html[data-production-system="v8"] #main :where(.q-calculator-library-disclosure,.q-indicator-library-disclosure)>summary{align-items:flex-start!important}html[data-production-system="v8"] #main .q-saved-calculations-page .q-filter-bar,html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-grid,html[data-production-system="v8"] #main .q-research-evidence-grid{grid-template-columns:1fr!important}}
