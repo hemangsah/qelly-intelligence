@@ -5,14 +5,18 @@ import {shouldEnablePublicAuthEmail,synchronizePublicAuthEmailArtifacts} from '.
 
 const buildFrontendUrl=new URL('../scripts/build-frontend.mjs',import.meta.url);
 
-test('frontend build requires explicit email-delivery activation and never promotes the dated canary to authority',async()=>{
+test('frontend build trusts only the dated canonical email canary when the explicit setting is absent',async()=>{
   const source=await readFile(buildFrontendUrl,'utf8');
-  assert.doesNotMatch(source,/AUTH_EMAIL_CANARY/);
-  assert.doesNotMatch(source,/productionEmailCanary/);
-  assert.match(source,/QELLY_ENABLE_AUTH_EMAIL_DELIVERY\s*,\s*false\)/);
+  assert.match(source,/AUTH_EMAIL_CANARY/);
+  assert.match(source,/CANONICAL_QELLY_PUBLIC_SITE/);
+  assert.match(source,/productionEmailCanary/);
+  assert.match(source,/publicSiteUrl===CANONICAL_QELLY_PUBLIC_SITE/);
+  assert.match(source,/canonicalSiteUrl===CANONICAL_QELLY_PUBLIC_SITE/);
+  assert.match(source,/AUTH_EMAIL_CANARY\.capabilityAuthority===true/);
+  assert.match(source,/asBool\(explicitEmailDelivery,productionEmailCanary\)/);
 });
 
-test('post-build auth email activation is explicit-only',()=>{
+test('post-build auth email activation remains explicit-only',()=>{
   assert.equal(shouldEnablePublicAuthEmail({}),false);
   assert.equal(shouldEnablePublicAuthEmail({QELLY_REQUIRE_PUBLIC_RUNTIME:'true'}),false);
   assert.equal(shouldEnablePublicAuthEmail({
