@@ -19,7 +19,6 @@ const ADMIN_ROUTES=new Set([
 
 function ensureCanonicalStylesheetLast(){
   const canonical=document.querySelector('link[href$="qelly-production-v8.css"]');
-  if(canonical&&document.head.lastElementChild!==canonical)document.head.append(canonical);
   let repairs=document.querySelector('link[data-qelly-production-v8-route-repairs="true"]');
   if(!repairs){
     repairs=document.createElement('link');
@@ -27,7 +26,7 @@ function ensureCanonicalStylesheetLast(){
     repairs.href=ROUTE_REPAIR_STYLESHEET;
     repairs.dataset.qellyProductionV8RouteRepairs='true';
     document.head.append(repairs);
-  }else if(document.head.lastElementChild!==repairs)document.head.append(repairs);
+  }
   let convergence=document.querySelector('link[data-qelly-production-v9-route-convergence="true"]');
   if(!convergence){
     convergence=document.createElement('link');
@@ -35,7 +34,11 @@ function ensureCanonicalStylesheetLast(){
     convergence.href=ROUTE_CONVERGENCE_STYLESHEET;
     convergence.dataset.qellyProductionV9RouteConvergence='true';
     document.head.append(convergence);
-  }else if(document.head.lastElementChild!==convergence)document.head.append(convergence);
+  }
+  const desiredTail=[canonical,repairs,convergence].filter(Boolean);
+  const currentTail=Array.from(document.head.children).slice(-desiredTail.length);
+  const alreadyOrdered=desiredTail.length>0&&desiredTail.every((node,index)=>currentTail[index]===node);
+  if(!alreadyOrdered)document.head.append(...desiredTail);
 }
 
 /* This map is intentionally limited to presentation terminology. Truth-state words
