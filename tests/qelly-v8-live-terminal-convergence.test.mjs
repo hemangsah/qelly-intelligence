@@ -11,12 +11,14 @@ test('connected production config excludes simulated market state',async()=>{
   assert.match(source,/deterministicExamplesRestrictedToAnalyticalTools:true/);
 });
 
-test('production frontend build requires explicit email capability authority',async()=>{
+test('production frontend build uses canonical canary authority without weakening explicit overrides',async()=>{
   const source=await read('scripts/build-frontend.mjs');
-  assert.doesNotMatch(source,/AUTH_EMAIL_CANARY/);
-  assert.doesNotMatch(source,/CANONICAL_QELLY_PUBLIC_SITE/);
-  assert.doesNotMatch(source,/productionEmailCanary/);
-  assert.match(source,/QELLY_ENABLE_AUTH_EMAIL_DELIVERY,false/);
+  assert.match(source,/AUTH_EMAIL_CANARY/);
+  assert.match(source,/CANONICAL_QELLY_PUBLIC_SITE/);
+  assert.match(source,/productionEmailCanary/);
+  assert.match(source,/explicitEmailDelivery/);
+  assert.match(source,/asBool\(explicitEmailDelivery,productionEmailCanary\)/);
+  assert.match(source,/AUTH_EMAIL_CANARY\.capabilityAuthority===true/);
 });
 
 test('canonical auth router uses the same effective email capability owner as config',async()=>{
