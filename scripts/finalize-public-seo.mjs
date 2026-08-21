@@ -77,9 +77,21 @@ export function buildIndexSeoBlock(options={}){
   return tags.join('\n');
 }
 
+function stripIndexOwnedSocialMetadata(source){
+  let html=String(source);
+  const ownedMetaPatterns=[
+    /\s*<meta\b(?=[^>]*\bname=["']application-name["'])[^>]*>\s*/gi,
+    /\s*<meta\b(?=[^>]*\bproperty=["']og:[^"']+["'])[^>]*>\s*/gi,
+    /\s*<meta\b(?=[^>]*\bname=["']twitter:[^"']+["'])[^>]*>\s*/gi
+  ];
+  for(const pattern of ownedMetaPatterns)html=html.replace(pattern,'\n');
+  return html;
+}
+
 export function applyIndexSeo(source,options={}){
   let html=String(source);
   html=html.replace(/\s*<!-- QELLY_PUBLIC_SEO_START -->[\s\S]*?<!-- QELLY_PUBLIC_SEO_END -->\s*/g,'\n');
+  html=stripIndexOwnedSocialMetadata(html);
   html=html.replace(/\s*<meta\s+name=["']robots["'][^>]*>\s*/gi,'\n');
   html=html.replace(/\s*<link\s+rel=["']canonical["'][^>]*>\s*/gi,'\n');
   if(!/<\/head>/i.test(html))throw new Error('index.html is missing </head>');
