@@ -136,6 +136,168 @@ html[data-production-system="v8"] .q-feature-navigation__group a{border-radius:v
 html[data-production-system="v8"] .q-feature-navigation__universe:hover,
 html[data-production-system="v8"] .q-feature-navigation__group a:hover{transform:translateX(4px);box-shadow:0 10px 24px color-mix(in srgb,#000 20%,transparent)}
 
+/* Designer pass: normalize every surviving legacy route family. */
+html[data-production-system="v8"] body #app #main{
+  --q-modern-hairline:color-mix(in srgb,var(--q-border) 76%,var(--q-accent));
+  --q-modern-glass:color-mix(in srgb,var(--q-surface) 91%,transparent);
+  --q-modern-soft:color-mix(in srgb,var(--q-surfacealt) 74%,transparent);
+}
+html[data-production-system="v8"] body #app #main>.q-page,
+html[data-production-system="v8"] body #app #main>.q-verify-page{
+  gap:clamp(14px,1.8vw,24px)!important;
+}
+html[data-production-system="v8"] body #app #main :where(h1,h2,h3){text-wrap:balance}
+html[data-production-system="v8"] body #app #main :where(p,li,dd){text-wrap:pretty}
+
+html[data-production-system="v8"] body #app #main :where(
+  .q-panel,.q-mn-card,.q-mn-panel,.q-v7-chart-panel,.q-v7-reference-panel,
+  .q-v7-provider-card,.q-mi-kpi,.q-mi-regime,.q-kpi,.q-metric-card,
+  .q-auth-card,.q-auth-hero,.q-access-gate,.q-it-hero,.q-it-guide,.q-it-panel,
+  .q-it-provider,.q-category-card,.q-venue-card,.q-dex-card,.q-provider-card,
+  .q-research-card,.q-notification-card,.q-article-shell,.q-asset-hero,
+  .q-persona-card,.q-market-pulse-card,.q-feature-card,.q-calculator-card,
+  .q-saved-card,.q-chart-shell,.q-chart-stage,.q-empty-state,.q-truth-callout,
+  .q-result-priority,.q-indicator-mini-chart,.q-verify-hero,.q-v53-verify-workbench,
+  [class$="-card"],[class*="-card "],[class$="-panel"],[class*="-panel "],
+  [class$="-hero"],[class*="-hero "],[class$="-kpi"],[class*="-kpi "]
+){
+  border-radius:var(--q-modern-radius-lg)!important;
+  border-color:var(--q-modern-hairline)!important;
+  box-shadow:0 14px 42px color-mix(in srgb,#000 17%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 5%,transparent)!important;
+  transition:transform var(--q-modern-standard) var(--q-modern-ease),box-shadow var(--q-modern-standard) var(--q-modern-ease),border-color var(--q-modern-fast) ease,background-color var(--q-modern-fast) ease!important;
+}
+html[data-production-system="v8"] body #app #main :where(.q-it-hero,.q-verify-hero,.q-auth-hero,.q-asset-hero,.q-home-hero){
+  border-radius:var(--q-modern-radius-xl)!important;
+}
+html[data-production-system="v8"] body #app #main :where(.q-home-section,.q-about-section,.q-product-directory){
+  border-radius:var(--q-modern-radius-xl)!important;
+}
+
+html[data-production-system="v8"] body #app #main :where(
+  .q-mn-status,.q-mn-live-row,.q-mn-source,.q-mn-guide,.q-mn-link,
+  .q-provider-stat,.q-capability,.q-choice-row,.q-record-row,.q-decision,
+  .q-runtime-result>div,.q-calculator-list-item,.q-calculator-card__meta,
+  .q-calculator-card__footer,.q-result-card,.q-mi-mobile-row,.q-mi-pill,
+  .q-v6-portfolio-row,.q-v6-portfolio-analytic,.q-verify-page article,
+  .q-about-page article,.q-it-community-grid>form,.q-it-community-grid>aside,
+  .q-it-note,.q-it-evidence-grid article,.q-json-evidence
+){
+  border-radius:var(--q-modern-radius-md)!important;
+  transition:transform var(--q-modern-fast) var(--q-modern-ease),box-shadow var(--q-modern-fast) ease,border-color var(--q-modern-fast) ease,background-color var(--q-modern-fast) ease!important;
+}
+
+html[data-production-system="v8"] body #app #main :where(
+  .q-panel-head,.q-mn-panel-head,.q-chart-header,.q-card-header,.q-section-header
+){
+  padding-block:clamp(14px,1.6vw,20px)!important;
+  border-bottom-color:color-mix(in srgb,var(--q-border) 74%,transparent)!important;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--q-surfacealt) 54%,transparent),transparent)!important;
+}
+html[data-production-system="v8"] body #app #main :where(
+  .q-chart-toolbar,.q-mn-chart-controls,.q-filter-bar,.q-toolbar,.q-page-actions,
+  .q-calculator-actions,.q-result-actions,.q-actions,.q-grid-footer
+){
+  gap:8px!important;
+  border-radius:var(--q-modern-radius-md)!important;
+  background:var(--q-modern-soft)!important;
+  backdrop-filter:blur(16px) saturate(1.12);
+}
+html[data-production-system="v8"] body #app #main :where(
+  .q-chart-toolbar button,.q-mn-chart-controls button,.q-row-actions button,
+  .q-mi-chart-controls button,.q-filter-bar button,.q-toolbar button
+){border-radius:999px!important;min-height:38px!important;padding-inline:13px!important}
+
+html[data-production-system="v8"] body #app #main :where(
+  .q-grid-scroll,.q-table-wrap,.q-mn-table-wrap,.q-chart-table,.q-audit-table,
+  .q-mi-table-wrap,[class$="-table-wrap"],[class*="-table-wrap "]
+){
+  border:1px solid var(--q-modern-hairline)!important;
+  border-radius:var(--q-modern-radius-md)!important;
+  overflow:auto!important;
+  overscroll-behavior:contain;
+  background:var(--q-modern-glass)!important;
+  box-shadow:0 12px 34px color-mix(in srgb,#000 14%,transparent)!important;
+}
+html[data-production-system="v8"] body #app #main :where(table){border-collapse:separate!important;border-spacing:0!important}
+html[data-production-system="v8"] body #app #main :where(th){
+  background:color-mix(in srgb,var(--q-surfacealt) 92%,transparent)!important;
+  backdrop-filter:blur(18px) saturate(1.08);
+}
+html[data-production-system="v8"] body #app #main :where(td,th){transition:background-color var(--q-modern-fast) ease,color var(--q-modern-fast) ease!important}
+html[data-production-system="v8"] body #app #main :where(tbody tr:hover td){background:color-mix(in srgb,var(--q-accent) 8%,var(--q-surface))!important}
+
+html[data-production-system="v8"] body #app #main :where(
+  .q-status,.q-badge,.q-chip,.q-tag,.q-capability,.q-mi-pill,
+  [class$="-badge"],[class*="-badge "],[class$="-chip"],[class*="-chip "]
+){
+  border-radius:999px!important;
+  min-height:26px;
+  display:inline-flex;
+  align-items:center;
+  padding-inline:9px;
+  backdrop-filter:blur(12px);
+}
+html[data-production-system="v8"] body #app #main :where(details){
+  border-radius:var(--q-modern-radius-md)!important;
+  overflow:hidden;
+  transition:border-color var(--q-modern-fast) ease,box-shadow var(--q-modern-fast) ease!important;
+}
+html[data-production-system="v8"] body #app #main :where(details[open]){border-color:color-mix(in srgb,var(--q-accent) 38%,var(--q-border))!important;box-shadow:0 14px 38px color-mix(in srgb,#000 16%,transparent)!important}
+html[data-production-system="v8"] body #app #main :where(summary){cursor:pointer;border-radius:var(--q-modern-radius-sm)!important}
+html[data-production-system="v8"] body #app #main :where(pre,.q-json-evidence){border-radius:var(--q-modern-radius-md)!important;scrollbar-gutter:stable}
+html[data-production-system="v8"] body #app #main :where(.q-empty-state){
+  border-style:solid!important;
+  background:radial-gradient(circle at 50% 8%,color-mix(in srgb,var(--q-accent) 13%,transparent),transparent 44%),var(--q-modern-glass)!important;
+}
+html[data-production-system="v8"] body #app #main :where(.q-empty-state span,.q-access-gate__icon){filter:drop-shadow(0 12px 24px color-mix(in srgb,var(--q-accent) 25%,transparent))}
+
+html[data-production-system="v8"] body #app #main :where(.q-mn-status-grid,.q-kpi-grid,.q-metric-grid,.q-provider-grid,.q-contract-grid,.q-saved-grid){gap:clamp(10px,1.4vw,18px)!important}
+html[data-production-system="v8"] body #app #main :where(.q-mn-status,.q-mi-kpi,.q-kpi,.q-metric-card){
+  position:relative;
+  overflow:hidden;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--q-accent) 5%,var(--q-surface)),var(--q-surfacealt))!important;
+}
+html[data-production-system="v8"] body #app #main :where(.q-mn-status,.q-mi-kpi,.q-kpi,.q-metric-card)::before{
+  content:"";
+  position:absolute;
+  inset:0 0 auto;
+  height:2px;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--q-accent) 72%,#fff),transparent);
+  opacity:.55;
+  pointer-events:none;
+}
+
+html[data-production-system="v8"].q-is-scrolled body #app header.q-product-header{
+  background:color-mix(in srgb,var(--q-chrome) 94%,transparent)!important;
+  box-shadow:0 18px 52px color-mix(in srgb,#000 34%,transparent)!important;
+  border-bottom-color:color-mix(in srgb,var(--q-accent) 34%,var(--q-border))!important;
+}
+html[data-production-system="v8"][data-motion="full"] body .q-cursor-aura{
+  display:block!important;
+  background:radial-gradient(260px circle at var(--aura-x,50%) var(--aura-y,50%),color-mix(in srgb,var(--q-accent) 8%,transparent),transparent 72%)!important;
+  mix-blend-mode:screen;
+}
+html[data-production-system="v8"] :where(.q-product-nav,.q-context-shelf,.q-it-tabs,.q-chart-toolbar){scroll-behavior:smooth;scroll-snap-type:x proximity}
+html[data-production-system="v8"] :where(.q-product-nav,.q-context-shelf,.q-it-tabs,.q-chart-toolbar)>*{scroll-snap-align:start}
+
+@media(hover:hover) and (pointer:fine){
+  html[data-production-system="v8"] body #app #main :where(
+    .q-mn-card,.q-mn-panel,.q-v7-provider-card,.q-mi-kpi,.q-kpi,.q-metric-card,
+    .q-provider-card,.q-research-card,.q-notification-card,.q-category-card,
+    .q-venue-card,.q-dex-card,.q-feature-card,.q-calculator-card,.q-saved-card,
+    .q-about-page article,.q-verify-page article
+  ):hover{
+    transform:translateY(-4px)!important;
+    border-color:color-mix(in srgb,var(--q-accent) 43%,var(--q-border))!important;
+    box-shadow:0 24px 66px color-mix(in srgb,#000 27%,transparent),0 0 0 1px color-mix(in srgb,var(--q-accent) 17%,transparent)!important;
+  }
+  html[data-production-system="v8"] body #app #main :where(.q-mn-live-row,.q-mn-source,.q-mn-guide,.q-choice-row,.q-record-row):hover{
+    transform:translateX(3px)!important;
+    border-color:color-mix(in srgb,var(--q-accent) 38%,var(--q-border))!important;
+    box-shadow:0 10px 28px color-mix(in srgb,#000 18%,transparent)!important;
+  }
+}
+
 html[data-production-system="v8"][data-motion="full"] #main>.q-page{animation:q-modern-route-enter 560ms var(--q-modern-ease) both}
 @keyframes q-modern-route-enter{from{opacity:0;transform:translate3d(0,16px,0) scale(.994);filter:blur(3px)}to{opacity:1;transform:none;filter:none}}
 

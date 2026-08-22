@@ -154,12 +154,16 @@ test('modern production polish is globally loaded, curved, animated and motion-s
     read('apps/web/public/assets/qelly-sovereign-motion.js'),
     read('apps/web/public/prompt2c-sw.js')
   ]);
-  assert.match(index, /qelly-production-v9-route-convergence\.css[\s\S]*qelly-modern-interaction-polish\.css\?v=20260822-modern3/);
+  assert.match(index, /qelly-production-v9-route-convergence\.css[\s\S]*qelly-modern-interaction-polish\.css\?v=20260822-modern4/);
   assert.match(css, /--q-modern-radius-xl:32px/);
   assert.match(css, /header\.q-product-header[\s\S]*border-radius:0 0 var\(--q-modern-radius-lg\)/);
   assert.match(css, /:where\(button:not\(\.q-product-brand__mark\),a\.q-button,\[role="button"\],\[role="tab"\]\)[\s\S]*border-radius:999px!important/);
   assert.match(css, /#main \.q-page-actions \.q-button\{border-radius:999px!important/);
   assert.match(css, /\.q-product-search\{[\s\S]*border-radius:999px!important/);
+  assert.match(css, /Designer pass: normalize every surviving legacy route family/);
+  assert.match(css, /\.q-mn-card,[\s\S]*\.q-v7-provider-card,[\s\S]*\.q-mi-kpi/);
+  assert.match(css, /\.q-grid-scroll,[\s\S]*\.q-mn-table-wrap/);
+  assert.match(css, /\.q-is-scrolled body #app header\.q-product-header/);
   assert.match(css, /\.skip-link\{[\s\S]*transform:translateY\(calc\(-100% - 20px\)\)!important/);
   assert.match(css, /\.skip-link:focus-visible\{[\s\S]*transform:translateY\(0\)!important/);
   assert.match(css, /\.q-feature-navigation__group a:hover\{transform:translateX\(4px\)/);
@@ -167,6 +171,8 @@ test('modern production polish is globally loaded, curved, animated and motion-s
   assert.match(css, /body>\.q-scroll-progress[\s\S]*display:block!important/);
   assert.match(css, /@media\(prefers-reduced-motion:reduce\)[\s\S]*animation:none!important/);
   assert.match(motion, /'\.q-it-hero'[\s\S]*'\.q-it-provider'/);
-  assert.match(motion, /\.q-product-header button[\s\S]*\.q-it-tabs button/);
+  assert.match(motion, /button:not\(\[disabled\]\),a\.q-button,\[role="button"\],\[role="tab"\]/);
+  assert.match(motion, /root\.classList\.toggle\('q-is-scrolled', scrollY > 20\)/);
+  assert.match(motion, /\.q-mn-card[\s\S]*\.q-v7-provider-card[\s\S]*\.q-mi-kpi/);
   assert.match(worker, /qelly-modern-interaction-polish\.css/);
 });

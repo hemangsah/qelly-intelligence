@@ -24,7 +24,10 @@ function ensureAmbientLayers() {
     document.body.appendChild(progress);
     const update = () => {
       const height = Math.max(1, document.documentElement.scrollHeight - innerHeight);
-      progress.style.setProperty('--scroll-progress', String(Math.min(1, scrollY / height)));
+      const position = Math.min(1, scrollY / height);
+      progress.style.setProperty('--scroll-progress', String(position));
+      root.style.setProperty('--q-scroll-position', String(position));
+      root.classList.toggle('q-is-scrolled', scrollY > 20);
     };
     addEventListener('scroll', update, { passive: true });
     addEventListener('resize', update, { passive: true });
@@ -132,7 +135,11 @@ function activateMotion() {
     '.q-provider-card', '.q-research-card', '.q-notification-card', '.q-article-shell',
     '.q-asset-hero', '.q-persona-card', '.q-universe-node', '.q-market-pulse-card',
     '.q-about-stat', '.q-live-stage', '.q-feature-card', '.q-it-hero', '.q-it-guide',
-    '.q-it-panel', '.q-it-provider', '.q-it-news-grid article', '.q-calculator-card', '.q-saved-card'
+    '.q-it-panel', '.q-it-provider', '.q-it-news-grid article', '.q-calculator-card', '.q-saved-card',
+    '.q-mn-card', '.q-mn-panel', '.q-mn-status', '.q-mn-source', '.q-mn-guide',
+    '.q-v7-chart-panel', '.q-v7-provider-card', '.q-v7-reference-panel', '.q-mi-kpi',
+    '.q-mi-regime', '.q-verify-page article', '.q-about-page article', '.q-empty-state',
+    '.q-result-priority', '.q-chart-shell', '.q-v6-portfolio-row', '.q-v6-portfolio-analytic'
   ];
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
@@ -144,7 +151,7 @@ function activateMotion() {
     });
   }, { threshold: .055, rootMargin: '70px 0px' });
   [...document.querySelectorAll(revealSelectors.join(','))].forEach((item, index) => bindReveal(item, observer, index));
-  document.querySelectorAll('.q-button,.q-icon-button,.q-nav-link,.q-theme-choice,.q-choice-row,.q-product-header button,.q-it-tabs button,.q-it-guide button,.q-it-community-grid button,.q-feature-navigation button').forEach(bindMagnetic);
+  document.querySelectorAll('button:not([disabled]),a.q-button,[role="button"],[role="tab"],.q-nav-link,.q-theme-choice,.q-choice-row,.q-mn-link').forEach(bindMagnetic);
 }
 
 let scheduled = false;
