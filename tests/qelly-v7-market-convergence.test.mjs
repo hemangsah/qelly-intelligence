@@ -62,3 +62,11 @@ test('legacy live-market API preserves provider-specific contracts while the pub
   assert.match(ui,/Coinbase \/ Binance blocked/);
   assert.doesNotMatch(ui,/\/api\/v1\/live-markets\/candles\?provider=/);
 });
+
+test('market route keeps long governed labels readable on narrow screens',async()=>{
+  const css=await read('apps/web/public/assets/routes/market-v6.css');
+  assert.match(css,/@media\(max-width:430px\)/);
+  assert.match(css,/\.q-v7-public-market>\.q-page-head h1\{[^}]*overflow-wrap:anywhere!important/);
+  assert.match(css,/\.q-page-actions\{display:grid!important;grid-template-columns:1fr!important/);
+  assert.match(css,/\.q-v7-boundary-ribbon :where\(span,small\)\{[^}]*overflow-wrap:anywhere!important/);
+});
