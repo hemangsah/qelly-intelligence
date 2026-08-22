@@ -1,6 +1,6 @@
 import {evaluateDecision} from './qelly-decision-engine.mjs';
 
-const RESCUE_ROUTES=new Set(['news-research','notification-schedules','data-mesh','decision-provenance','platform-readiness','watchlist']);
+const RESCUE_ROUTES=new Set(['notification-schedules','data-mesh','decision-provenance','platform-readiness','watchlist']);
 const esc=(value)=>String(value??'').replace(/[&<>"']/g,(char)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const currentRoute=()=>decodeURIComponent((location.hash.replace(/^#\/?/,'').split('?')[0]||'').trim());
 const failed=(main)=>/Unable to render this route|API route was not found|Request failed \((?:404|501)\)/i.test(main?.textContent||'');
@@ -8,22 +8,6 @@ const fetchJson=async(path)=>{const response=await fetch(path,{credentials:'incl
 const status=(label,tone='unavailable')=>`<span class="q-status q-status--${tone}">${esc(label)}</span>`;
 const shell=(eyebrow,title,description,body)=>`<section class="q-page q-canonical-rescue" data-canonical-route-rescue="${esc(currentRoute())}"><header class="q-page-head"><div><p class="q-eyebrow">${esc(eyebrow)}</p><h1>${esc(title)}</h1><p>${esc(description)}</p></div></header>${body}</section>`;
 const record=(title,detail,badge,badgeTone='unavailable')=>`<div class="q-record-row"><span><strong>${esc(title)}</strong><small>${esc(detail)}</small></span>${status(badge,badgeTone)}</div>`;
-
-function rescueNews(main){
-  main.innerHTML=shell('Research · governed source boundary','News & Research','The licensed discovery-news service is not enabled in the canonical runtime. The route remains usable without inventing headlines, sentiment, citations or provider observations.',`
-    <div class="q-kpi-grid">
-      <article class="q-kpi"><div class="q-kpi-label">Licensed news feed</div><div class="q-kpi-value">Off</div><div class="q-kpi-meta"><span>rights not established</span>${status('UNAVAILABLE')}</div></article>
-      <article class="q-kpi"><div class="q-kpi-label">Research persistence</div><div class="q-kpi-value">Cloud</div><div class="q-kpi-meta"><span>workspace RLS</span>${status('AVAILABLE','live')}</div></article>
-      <article class="q-kpi"><div class="q-kpi-label">AI summaries</div><div class="q-kpi-value">Off</div><div class="q-kpi-meta"><span>no generated content presented as evidence</span>${status('GATED')}</div></article>
-      <article class="q-kpi"><div class="q-kpi-label">Execution</div><div class="q-kpi-value">Disabled</div><div class="q-kpi-meta"><span>research only</span>${status('READ ONLY','live')}</div></article>
-    </div>
-    <section class="q-panel"><div class="q-panel-head"><div><h2>Available research surfaces</h2><p>Use operational Qelly surfaces while external content rights remain gated.</p></div>${status('SAFE DEGRADED','cached')}</div><div class="q-panel-body q-stack">
-      ${record('Research Workspace','Cloud-RLS research projects, evidence records and revision history.','OPEN','live')}
-      ${record('Live Market Command','Provider-truth market surface with explicit availability and freshness.','OPEN','live')}
-      ${record('Decision Provenance','Deterministic decision-support analysis remains available without persistence.','OPEN','cached')}
-    </div><div class="q-page-actions"><a class="q-button q-button--primary" href="#/research-workspace">Open Research Workspace</a><a class="q-button q-button--secondary" href="#/live-markets">Open Live Market Command</a><a class="q-button q-button--secondary" href="#/decision-provenance">Open Decision Provenance</a></div></section>
-    <div class="q-truth-callout"><span class="q-status q-status--unavailable">NO FABRICATED CONTENT</span><p>Qelly will not substitute packaged news fixtures for a licensed production feed.</p></div>`);
-}
 
 function rescueNotifications(main){
   main.innerHTML=shell('Operations · capability boundary','Notification Schedules','Persistent scheduling and external delivery are not enabled in this Cloudflare release. The controls are intentionally disabled instead of failing with a missing API route.',`
@@ -90,8 +74,7 @@ async function applyRescue(){
   if(main.dataset.canonicalRescueRoute===route)return;
   main.dataset.canonicalRescueRoute=route;
   try{
-    if(route==='news-research')rescueNews(main);
-    else if(route==='notification-schedules')rescueNotifications(main);
+    if(route==='notification-schedules')rescueNotifications(main);
     else if(route==='data-mesh')await rescueDataMesh(main);
     else if(route==='decision-provenance')rescueDecision(main);
     else if(route==='platform-readiness')await rescueReadiness(main);

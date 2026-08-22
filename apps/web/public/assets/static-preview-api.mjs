@@ -131,7 +131,7 @@ function config() {
     productVersion: '0.9.0-preview.1',
     release: 'static-visual-preview',
     defaultRoute: 'market',
-    routes: ['market', 'asset-rankings', 'asset', 'decision-provenance', 'feature-universe', 'about-qelly', 'theme-personas', 'auth-login', 'auth-register', 'auth-recovery'],
+    routes: ['market', 'asset-rankings', 'asset', 'decision-provenance', 'feature-universe', 'about-qelly', 'theme-personas', 'auth-login', 'auth-register', 'auth-recovery', 'news-research'],
     auth: {
       authenticated: false,
       mode: 'static-visual-preview',

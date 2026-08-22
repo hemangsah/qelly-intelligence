@@ -29,6 +29,7 @@ import { renderLiveMarkets } from './routes/live-markets.mjs';
 import { renderThemePersonas } from './routes/theme-personas.mjs';
 import { renderAboutQelly } from './routes/about-qelly.mjs';
 import { renderFeatureUniverse } from './routes/feature-universe.mjs';
+import { renderIntelligenceTerminal } from './routes/intelligence-terminal.mjs';
 import { renderAuthLogin } from './routes/auth-login.mjs';
 import { renderAuthRegister } from './routes/auth-register.mjs';
 import { renderAuthRecovery } from './routes/auth-recovery.mjs';
@@ -57,7 +58,7 @@ import { renderAssetRankings as renderAssetRankingsRescue } from './routes/asset
 const runtimeConfig=Object.freeze({...window.__QELLY_CONFIG__});
 const staticVisualPreview=runtimeConfig.staticVisualPreview===true;
 const staticPreviewApi=staticVisualPreview?await import('./static-preview-api.mjs'):null;
-const staticPreviewRoutes=new Set(['market','asset-rankings','asset','decision-provenance','feature-universe','about-qelly','theme-personas','auth-login','auth-register','auth-recovery','calculator-center','india-finance','indicator-library','formula-library','saved-calculations','formula-detail','indicator-detail','calculator-detail','saved-calculation-detail']);
+const staticPreviewRoutes=new Set(['market','asset-rankings','asset','decision-provenance','feature-universe','about-qelly','theme-personas','auth-login','auth-register','auth-recovery','calculator-center','india-finance','indicator-library','formula-library','saved-calculations','formula-detail','indicator-detail','calculator-detail','saved-calculation-detail','news-research']);
 const apiBaseUrl=String(runtimeConfig.apiBaseUrl??'').replace(/\/$/,'');
 const apiUrl=(path)=>apiBaseUrl?new URL(path,`${apiBaseUrl}/`).toString():path;
 
@@ -292,8 +293,9 @@ function resolveHash() {
   const definition=routeDefinitions.find((item)=>item.route===route);
   const allowed=staticVisualPreview
     ? definition&&staticPreviewRoutes.has(route)
-    : definition&&((state.authenticated&&!definition.anonymousOnly)||(!state.authenticated&&definition.public===true));
-  state.route=allowed?route:(staticVisualPreview?'market':state.authenticated?'discovery-hub':'auth-login');
+    : Boolean(definition);
+  const authenticatedAccessRoute=Boolean(state.authenticated&&definition?.anonymousOnly);
+  state.route=authenticatedAccessRoute?'account-session':allowed?route:(staticVisualPreview?'market':state.authenticated?'discovery-hub':'feature-universe');
   if(!allowed&&route!==state.route)history.replaceState(null,'',`#/${state.route}`);
   state.activeDomain=(allowed?definition:routeDefinitions.find((item)=>item.route===state.route))?.domain??'markets';
   state.routeQuery=query;
@@ -327,6 +329,11 @@ async function renderRoute() {
   main.setAttribute('aria-busy', 'true');
   renderNavigation();
   try {
+    if(!staticVisualPreview&&!state.authenticated&&definition&&definition.public!==true&&!definition.anonymousOnly){
+      sessionStorage.setItem('qelly.returnTo',state.route);
+      main.innerHTML=protectedRouteGate(definition);
+      return;
+    }
     if (state.previewState === 'loading') { main.innerHTML = loadingPage(); return; }
     if (state.previewState === 'empty') { main.innerHTML = emptyPage(); main.querySelector('[data-reset-state]')?.addEventListener('click', () => { state.previewState='default'; document.getElementById('state-selector').value='default'; renderRoute(); }); return; }
     if (state.previewState === 'error') { main.innerHTML = errorPage('A provider contract failed validation.', 'Retry the deterministic fixture or inspect the contract evidence.'); bindRetry(); return; }
@@ -373,7 +380,7 @@ async function renderRoute() {
       case 'dex-discovery': await renderDexDiscovery(main); break;
       case 'global-charts': await renderGlobalCharts(main); break;
       case 'converter': await renderConverter(main); break;
-      case 'news-research': await renderNewsResearch(main); break;
+      case 'news-research': await renderIntelligenceTerminal(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate}); break;
       case 'research-article': await renderResearchArticle(main); break;
       case 'trust-center': await renderTrustCenter(main); break;
       case 'market': await renderMarket(main); break;
@@ -416,6 +423,11 @@ async function renderRoute() {
 
 function pageHead(eyebrow, title, description, actions = '') {
   return `<div class="q-page-head"><div><p class="q-eyebrow">${escapeHtml(eyebrow)}</p><h1>${escapeHtml(title)}</h1><p>${escapeHtml(description)}</p></div><div class="q-page-actions">${actions}</div></div>`;
+}
+
+function protectedRouteGate(definition){
+  const domain=productDomains.find((item)=>item.id===definition.domain)?.label??'Qelly';
+  return `<section class="q-page q-access-gate" data-qelly-destination="${escapeHtml(definition.route)}"><div class="q-access-gate__icon" aria-hidden="true">↗</div><p class="q-eyebrow">${escapeHtml(domain)} · private workspace</p><h1>${escapeHtml(definition.label)}</h1><p>This feature is available and its destination has been preserved. Sign in to open your private, workspace-scoped data; public tools remain available without an account.</p><div class="q-access-gate__actions"><a class="q-button q-button--primary" href="#/auth-login">Sign in</a><a class="q-button q-button--secondary" href="#/auth-register">Create account</a><a class="q-button q-button--ghost" href="#/feature-universe">Browse all features</a></div><div class="q-truth-callout is-compact"><span class="q-status q-status--cached">VISIBLE</span><p>The feature is not missing. Its data is protected by Supabase authentication and row-level workspace isolation.</p></div></section>`;
 }
 
 function stateBanner() {

@@ -85,7 +85,7 @@ const routes = [
   { section:'Discover', route:'dex-discovery', label:'DEX Discovery', icon:icon('dex'), meta:'W5' },
   { section:'Discover', route:'global-charts', label:'Global Charts', icon:icon('chart'), meta:'W5' },
   { section:'Discover', route:'converter', label:'Converter', icon:icon('convert'), meta:'W5' },
-  { section:'Discover', route:'news-research', label:'News & Research', icon:icon('news'), meta:'W5' },
+  { section:'Discover', route:'news-research', label:'AI, News & Community', icon:icon('news'), meta:'W5', public:true },
   { section:'Discover', route:'trust-center', label:'Trust Center', icon:icon('trust'), meta:'W5' },
   { section:'Intelligence', route:'asset-intelligence', label:'Asset Intelligence', icon:icon('asset'), meta:'W6' },
   { section:'Intelligence', route:'advanced-chart', label:'Advanced Chart Studio', icon:icon('chart'), meta:'W6' },

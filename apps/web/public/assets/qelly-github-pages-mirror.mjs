@@ -13,12 +13,12 @@ const routeState=(hash=location.hash)=>{
 };
 const LOCAL_PUBLIC_ROUTES=new Set([
   'market','live-markets','asset-rankings','asset','calculator-center','india-finance','indicator-library','formula-library','saved-calculations',
-  'formula-detail','indicator-detail','calculator-detail','saved-calculation-detail','feature-universe','about-qelly','decision-provenance'
+  'formula-detail','indicator-detail','calculator-detail','saved-calculation-detail','feature-universe','about-qelly','decision-provenance','news-research'
 ]);
 const CANONICAL_ONLY_ROUTES=new Set([
   'auth-login','auth-register','auth-recovery','account-session','security-setup','passkey-center','account-recovery','secure-import-vault',
   'delivery-operations','platform-readiness','secret-rotation','quarantine-review','staging-assurance','theme-personas',
-  'discovery-hub','search','categories','category-detail','venues','venue-detail','dex-discovery','global-charts','converter','news-research',
+  'discovery-hub','search','categories','category-detail','venues','venue-detail','dex-discovery','global-charts','converter',
   'research-article','trust-center','asset-intelligence','advanced-chart','fundamentals-estimates','filing-workspace','event-calendar','comparison-lab',
   'watchlist','alert-center','notification-center','screener-lab','portfolio-analytics','research-workspace','onboarding','notification-schedules',
   'formula-screener','portfolio-attribution','import-center','research-history','migration-center','theme-lab','data-mesh','instrument-master',

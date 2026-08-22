@@ -8,6 +8,7 @@ const appPath=path.join(root,'dist/frontend/assets/app.js');
 const unavailable=(route)=>`case '${route}': await import('./routes/governed-discovery.mjs').then(({renderGovernedUnavailable})=>renderGovernedUnavailable(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state},'${route}')); break;`;
 const converter="case 'converter': await import('./routes/governed-utility-v2.mjs').then(({renderGovernedConverterV2})=>renderGovernedConverterV2(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state})); break;";
 const trustCenter="case 'trust-center': await import('./routes/governed-utility-v2.mjs').then(({renderGovernedTrustCenterV2})=>renderGovernedTrustCenterV2(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state})); break;";
+const intelligenceTerminal="case 'news-research': await renderIntelligenceTerminal(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate}); break;";
 const migrations=Object.freeze([
   ["case 'discovery-hub': await renderDiscoveryHub(main); break;",unavailable('discovery-hub')],
   ["case 'search': await renderSearch(main); break;",unavailable('search')],
@@ -17,7 +18,7 @@ const migrations=Object.freeze([
   ["case 'venue-detail': await renderVenueDetail(main); break;",unavailable('venue-detail')],
   ["case 'dex-discovery': await renderDexDiscovery(main); break;",unavailable('dex-discovery')],
   ["case 'global-charts': await renderGlobalCharts(main); break;",unavailable('global-charts')],
-  ["case 'news-research': await renderNewsResearch(main); break;",unavailable('news-research')],
+  ["case 'news-research': await renderNewsResearch(main); break;",intelligenceTerminal],
   ["case 'research-article': await renderResearchArticle(main); break;",unavailable('research-article')],
   ["case 'asset': await renderAsset(main); break;",unavailable('asset')],
   ["case 'rankings': await renderLegacyRankings(main); break;",unavailable('rankings')],

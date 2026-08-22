@@ -16,11 +16,10 @@ test('canonical route rescue module is valid JavaScript and loaded by the produc
 
 test('rescue coverage matches photographed canonical route failures without fabricating data',async()=>{
   const source=await readFile(sourceUrl,'utf8');
-  for(const route of ['news-research','notification-schedules','data-mesh','decision-provenance','platform-readiness','watchlist'])assert.match(source,new RegExp(`['\"]${route}['\"]`));
+  for(const route of ['notification-schedules','data-mesh','decision-provenance','platform-readiness','watchlist'])assert.match(source,new RegExp(`['\"]${route}['\"]`));
+  assert.doesNotMatch(source,/rescueNews|route==='news-research'/);
   assert.match(source,/No fixture incidents are substituted/);
-  assert.match(source,/will not substitute packaged news fixtures/);
   assert.match(source,/NO PERSISTENCE/);
-  assert.match(source,/NO FABRICATED CONTENT/);
   assert.match(source,/\/api\/v1\/providers\/runtime/);
   assert.match(source,/\/api\/v1\/platform\/readiness/);
   assert.match(source,/\/api\/v1\/workspace\/watchlists/);

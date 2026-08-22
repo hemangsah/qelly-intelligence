@@ -22,7 +22,7 @@ const legacyCases=[
   "case 'trust-center': await renderTrustCenter(main); break;"
 ];
 
-const unavailableRoutes=['discovery-hub','search','categories','category-detail','venues','venue-detail','dex-discovery','global-charts','news-research','research-article','asset','rankings'];
+const unavailableRoutes=['discovery-hub','search','categories','category-detail','venues','venue-detail','dex-discovery','global-charts','research-article','asset','rankings'];
 
 test('production finalizer replaces every finance-shaped fixture route owner',async()=>{
   const source=await read('apps/web/public/assets/app.js');
@@ -31,6 +31,7 @@ test('production finalizer replaces every finance-shaped fixture route owner',as
   for(const route of unavailableRoutes){
     assert.ok(output.includes(`renderGovernedUnavailable(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state},'${route}')`),`governed replacement missing for ${route}`);
   }
+  assert.match(output,/renderIntelligenceTerminal/);
   assert.match(output,/renderGovernedConverterV2/);
   assert.match(output,/renderGovernedTrustCenterV2/);
   assert.match(output,/\.\/routes\/governed-utility-v2\.mjs/);
