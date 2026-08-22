@@ -297,6 +297,11 @@ html[data-production-system="v8"] #main .q-filter-chip{min-width:44px!important}
 html[data-production-system="v8"] #main :where(.q-v53-verify-activity>header,.q-v53-strategy-tools>summary,.q-v53-strategy-tools .q-verify-upload-card code){font-size:12px!important;line-height:1.4!important}
 html[data-production-system="v8"] #main .q-v53-strategy-tools>summary{min-height:44px!important;display:flex!important;align-items:center!important}
 
+/* The retired V5.3 compact-action lock is still present for historical route
+   compatibility. Keep the public intelligence-terminal CTA at the current
+   touch floor even when that older selector wins the general cascade. */
+html[data-production-system="v8"] body #app #main[data-production-route="news-research"] .q-page-actions .q-button{min-height:44px!important;padding-block:8px!important}
+
 @media(max-width:760px){
   html[data-production-system="v8"] #main :where(
     button:not([hidden]),input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
