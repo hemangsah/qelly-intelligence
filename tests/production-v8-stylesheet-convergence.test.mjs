@@ -7,7 +7,7 @@ const runtimeUrl=new URL('../apps/web/public/assets/qelly-production-v8.mjs',imp
 test('production V8 stylesheet convergence becomes idempotent after canonical order is reached',async()=>{
   const source=await readFile(runtimeUrl,'utf8');
   assert.match(source,/const desiredTail=\[canonical,repairs,convergence\]\.filter\(Boolean\)/);
-  assert.match(source,/const currentTail=Array\.from\(document\.head\.children\)\.slice\(-desiredTail\.length\)/);
+  assert.match(source,/const currentTail=Array\.from\(document\.head\.querySelectorAll\('link\[rel="stylesheet"\]'\)\)\.slice\(-desiredTail\.length\)/);
   assert.match(source,/const alreadyOrdered=desiredTail\.length>0&&desiredTail\.every\(\(node,index\)=>currentTail\[index\]===node\)/);
   assert.match(source,/if\(!alreadyOrdered\)document\.head\.append\(\.\.\.desiredTail\)/);
   assert.doesNotMatch(source,/lastElementChild!==canonical/);

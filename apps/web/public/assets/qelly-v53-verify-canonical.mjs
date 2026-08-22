@@ -30,6 +30,7 @@ function render(host,id){
   const stress=sensitivity(definition,inputs);
   const inputRows=Object.entries(inputs).slice(0,10);
   const assumptions=(definition.assumptions??[]).slice(0,7);
+  const assumptionSummary=assumptions.length?`${assumptions.length}`:'None declared';
   const providerState=definition.externalProviderRequired?'Required':'Not required';
   const truthState=result?.status==='success'?'DETERMINISTIC':'UNAVAILABLE';
   const sensitivityLabel=stress?`${title(stress.key)} ±5%`:'Not available';
@@ -51,7 +52,7 @@ function render(host,id){
           <div class="q-v53-verify-result"><span>${esc(outputLabel)}</span><strong>${esc(outputValue)}</strong><small>${esc(definition.units??'Formula-specific units')}</small></div>
           <div class="q-v53-verify-columns">
             <div><h3>Reference inputs</h3><dl>${inputRows.map(([key,value])=>`<div><dt>${esc(title(key))}</dt><dd>${esc(show(value))}</dd></div>`).join('')||'<div><dt>Inputs</dt><dd>User supplied</dd></div>'}</dl></div>
-            <div><h3>Assumptions</h3><ul>${assumptions.map((item)=>`<li>${esc(item)}</li>`).join('')||'<li>User inputs are authoritative.</li>'}</ul></div>
+            <div><h3>Assumptions</h3>${assumptions.length?`<ul>${assumptions.map((item)=>`<li>${esc(item)}</li>`).join('')}</ul>`:'<p class="q-v53-verify-empty">No formula-specific assumptions are declared. Reference inputs remain user-controlled.</p>'}</div>
           </div>
           <div class="q-v53-verify-actions"><a class="q-button q-button--primary" href="#/calculator-detail/${esc(definition.formulaId)}">Use calculator</a><a class="q-button q-button--secondary" href="#/formula-detail/${esc(definition.formulaId)}">Open methodology</a><a class="q-button q-button--ghost" href="#/formula-library">Formula library</a></div>
         </div>
@@ -63,7 +64,7 @@ function render(host,id){
           <div><dt>Formula ID</dt><dd><code>${esc(definition.formulaId)}</code></dd></div>
           <div><dt>Units</dt><dd>${esc(definition.units??'Formula-specific')}</dd></div>
           <div><dt>Inputs</dt><dd>${inputRows.length}</dd></div>
-          <div><dt>Assumptions</dt><dd>${assumptions.length}</dd></div>
+          <div><dt>Assumptions</dt><dd>${esc(assumptionSummary)}</dd></div>
           <div><dt>Sensitivity</dt><dd>${esc(sensitivityLabel)}</dd></div>
           <div><dt>Provider</dt><dd>${esc(providerState)}</dd></div>
           <div><dt>Calculation</dt><dd>${result?.status==='success'?'PASS':'UNAVAILABLE'}</dd></div>
@@ -71,13 +72,13 @@ function render(host,id){
       </aside>
       <aside class="q-panel q-v53-verify-inspector" data-v53-verify-inspector aria-label="Qelly Verify Intelligence Inspector">
         <div class="q-panel-head"><div><p class="q-eyebrow">Intelligence Inspector</p><h2>Evidence & reproducibility</h2></div></div>
-        <div class="q-panel-body"><div class="q-v53-verify-tabs" aria-label="Inspector views"><span class="is-active">Evidence</span><span>Assumptions</span><span>Contradictions</span></div><dl class="q-v53-verify-evidence">
+        <div class="q-panel-body"><div class="q-v53-verify-tabs" aria-label="Evidence coverage"><span>Evidence</span><span>Assumptions</span><span>Contradictions</span></div><dl class="q-v53-verify-evidence">
           <div><dt>Truth state</dt><dd>${truthState}</dd></div><div><dt>Version</dt><dd>${esc(definition.version??'—')}</dd></div><div><dt>Calculation</dt><dd>${result?.status==='success'?'PASS':'UNAVAILABLE'}</dd></div><div><dt>External provider</dt><dd>${esc(providerState)}</dd></div><div><dt>Reference</dt><dd>${esc(definition.referenceSource??definition.description??'Governed formula definition')}</dd></div><div><dt>Contract</dt><dd>${esc(formulaEngineMetadata.presentationContractVersion)}</dd></div>
         </dl>${stress?`<div class="q-v53-verify-sensitivity"><h3>Sensitivity · ${esc(title(stress.key))} ±5%</h3><div><span>−5%</span><strong>${esc(stress.low)}</strong></div><div><span>Base</span><strong>${esc(stress.base)}</strong></div><div><span>+5%</span><strong>${esc(stress.high)}</strong></div></div>`:'<p class="q-v53-verify-note">No scalar numeric reference input is available for a local sensitivity run.</p>'}<p class="q-v53-verify-note">Observed inputs, outputs and assumptions remain explicitly separated and reproducible from the governed formula definition.</p></div>
       </aside>
     </div>
     <section class="q-v53-verify-activity" data-v53-verify-activity aria-label="Activity and evidence">
-      <header>Activity / evidence</header><div><article><time>00:00:00</time><strong>Definition selected</strong><span>${esc(definition.formulaId)}</span></article><article><time>00:00:00</time><strong>Reference vector loaded</strong><span>${inputRows.length} governed inputs</span></article><article><time>00:00:00</time><strong>Calculation completed</strong><span>${truthState}</span></article><article><time>00:00:00</time><strong>Sensitivity evaluated</strong><span>${esc(sensitivityLabel)}</span></article></div>
+      <header>Reproducibility sequence</header><div><article><span>Step 1</span><strong>Definition selected</strong><span>${esc(definition.formulaId)}</span></article><article><span>Step 2</span><strong>Reference vector loaded</strong><span>${inputRows.length} governed inputs</span></article><article><span>Step 3</span><strong>Calculation completed</strong><span>${truthState}</span></article><article><span>Step 4</span><strong>Sensitivity evaluated</strong><span>${esc(sensitivityLabel)}</span></article></div>
     </section>
     <nav class="q-v53-verify-mobile-nav" aria-label="Qelly Verify mobile domains">
       <a href="#/live-markets"><strong>M</strong><span>Market</span></a>

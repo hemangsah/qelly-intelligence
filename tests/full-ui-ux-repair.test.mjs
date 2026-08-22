@@ -64,6 +64,25 @@ test('data grids expose a 44 pixel checkbox label target', async () => {
   assert.match(css, /\.q-grid-checkbox-target\{[^}]*width:44px;[^}]*height:44px/);
 });
 
+test('legacy market drawers and mobile rows keep valid geometry selectors', async () => {
+  const css = await read('apps/web/public/assets/ui-rescue.css');
+  assert.match(css, /\.qv-sheet>section\{[^}]*top:0;height:100%/);
+  assert.match(css, /\.qv-mobile-row\{border-top:/);
+  assert.match(css, /\.qv-mobile-row\.is-open \.mobile-detail/);
+});
+
+test('theme launcher and analytical graphics expose accessible mobile semantics', async () => {
+  const [theme, advanced, comparison] = await Promise.all([
+    read('apps/web/public/assets/theme-intelligence-visual-final-fixes.css'),
+    read('apps/web/public/assets/routes/advanced-chart.mjs'),
+    read('apps/web/public/assets/routes/comparison-lab.mjs')
+  ]);
+  assert.match(theme, /q-ti-launcher\{min-height:44px!important/);
+  assert.match(theme, /width:44px!important;min-width:44px!important/);
+  assert.match(advanced, /<svg aria-hidden="true" focusable="false"/);
+  assert.match(comparison, /<svg aria-hidden="true" focusable="false"/);
+});
+
 test('theme and provider cards do not skip the level-two heading', async () => {
   const [theme, app] = await Promise.all([
     read('apps/web/public/assets/routes/theme-intelligence-studio.mjs'),

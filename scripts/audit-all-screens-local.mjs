@@ -91,7 +91,11 @@ try{
       const page=await contexts.get(authenticated).newPage();
       const errors=[];
       const observations=[];
-      page.on('console',(message)=>{if(message.type()==='error')errors.push({type:'console',text:message.text()});});
+      page.on('console',(message)=>{
+        if(message.type()!=='error')return;
+        const item={type:'console',text:message.text()};
+        (/^Failed to load resource: the server responded with a status of (?:401|403|404)/.test(item.text)?observations:errors).push(item);
+      });
       page.on('pageerror',(error)=>errors.push({type:'pageerror',text:error.message}));
       page.on('requestfailed',(request)=>{
         const item={type:'requestfailed',resourceType:request.resourceType(),url:request.url(),failure:request.failure()?.errorText??'unknown'};
@@ -145,7 +149,7 @@ try{
       const expectedTitle=`${definition.label} · Qelly Intelligence`;
       const expectedHash=`#/${routeName}`;
       const screenshot=path.join(outputRoot,`${routeName}__${viewportName}.png`);
-      let heading=null,title=null,resolvedHash=null,overflowPx=null,pageHeightPx=null;
+      let heading=null,title=null,resolvedHash=null,overflowPx=null,pageHeightPx=null,uiAudit=null;
       try{
         await page.goto(`${expectedOrigin}/#/${routeName}`,{waitUntil:'domcontentloaded',timeout:30000});
         await page.locator('main#main h1').first().waitFor({state:'visible',timeout:20000});
@@ -157,16 +161,76 @@ try{
         resolvedHash=await page.evaluate(()=>location.hash.split('?')[0]);
         overflowPx=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
         pageHeightPx=await page.evaluate(()=>document.documentElement.scrollHeight);
+        uiAudit=await page.evaluate(({mobile})=>{
+          const main=document.querySelector('main#main');
+          const visible=(element)=>{
+            const style=getComputedStyle(element),box=element.getBoundingClientRect();
+            return style.display!=='none'&&style.visibility!=='hidden'&&Number(style.opacity)!==0&&box.width>0&&box.height>0;
+          };
+          const seconds=(value)=>String(value||'').split(',').reduce((maximum,item)=>{
+            const token=item.trim();
+            const number=Number.parseFloat(token)||0;
+            return Math.max(maximum,token.endsWith('ms')?number/1000:number);
+          },0);
+          const accessibleName=(element)=>{
+            const labelledBy=String(element.getAttribute('aria-labelledby')||'').trim().split(/\s+/).filter(Boolean).map((id)=>document.getElementById(id)?.textContent||'').join(' ');
+            const labels='labels' in element?[...(element.labels||[])].map((label)=>label.textContent||'').join(' '):'';
+            return [element.getAttribute('aria-label'),labelledBy,labels,element.getAttribute('title'),element.getAttribute('alt'),element.textContent,element.value,element.getAttribute('placeholder')].find((value)=>String(value||'').trim())||'';
+          };
+          const controls=[...document.querySelectorAll('button,a[href],input:not([type="hidden"]),select,textarea,summary,[role="button"],[role="tab"],[role="link"]')].filter(visible);
+          const effectiveBox=(element)=>element.matches('input[type="checkbox"],input[type="radio"],input[type="file"]')&&element.closest('label')?element.closest('label').getBoundingClientRect():element.getBoundingClientRect();
+          const unlabeled=controls.filter((element)=>!accessibleName(element)).map((element)=>element.outerHTML.slice(0,180));
+          const smallTargets=mobile?controls.filter((element)=>{const box=effectiveBox(element);return box.width<44||box.height<44;}).map((element)=>{const box=effectiveBox(element);return{name:accessibleName(element).trim().slice(0,60),tag:element.tagName,width:Math.round(box.width),height:Math.round(box.height)};}):[];
+          const tinyText=[...main.querySelectorAll('*')].filter((element)=>visible(element)&&element.children.length===0&&(element.textContent||'').trim()&&!element.closest('.sr-only,[aria-hidden="true"]')&&Number.parseFloat(getComputedStyle(element).fontSize)<12).map((element)=>({tag:element.tagName,text:element.textContent.trim().slice(0,70),fontSize:getComputedStyle(element).fontSize}));
+          const headings=[...main.querySelectorAll('h1,h2,h3,h4,h5,h6')].filter(visible);
+          const headingLevels=headings.map((element)=>Number(element.tagName[1]));
+          const headingJumps=headingLevels.filter((level,index)=>index>0&&level>headingLevels[index-1]+1).length;
+          const ids=[...document.querySelectorAll('[id]')].map((element)=>element.id).filter(Boolean);
+          const duplicateIds=[...new Set(ids.filter((id,index)=>ids.indexOf(id)!==index))];
+          const brokenAria=[...document.querySelectorAll('[aria-labelledby],[aria-describedby],[aria-controls]')].flatMap((element)=>['aria-labelledby','aria-describedby','aria-controls'].flatMap((attribute)=>String(element.getAttribute(attribute)||'').split(/\s+/).filter((id)=>id&&!document.getElementById(id)).map((id)=>({attribute,id,element:element.outerHTML.slice(0,140)}))));
+          const imageIssues=[...document.images].flatMap((element)=>{
+            const issues=[];
+            if(!element.hasAttribute('alt'))issues.push({issue:'missing-alt',src:element.getAttribute('src')});
+            if(!element.hasAttribute('width')||!element.hasAttribute('height'))issues.push({issue:'missing-dimensions',src:element.getAttribute('src')});
+            if(element.complete&&(!element.naturalWidth||!element.naturalHeight))issues.push({issue:'broken-image',src:element.getAttribute('src')});
+            return issues;
+          });
+          const svgIssues=[...document.querySelectorAll('svg')].filter(visible).filter((element)=>element.getAttribute('aria-hidden')!=='true'&&!(element.getAttribute('role')==='img'&&(element.getAttribute('aria-label')||element.querySelector('title')))).map((element)=>element.outerHTML.slice(0,160));
+          const canvasIssues=[...document.querySelectorAll('canvas')].filter(visible).filter((element)=>!(element.getAttribute('aria-label')||element.getAttribute('aria-labelledby')||element.textContent?.trim())).map((element)=>element.outerHTML.slice(0,160));
+          const motionIssues=[...document.querySelectorAll('*')].filter(visible).flatMap((element)=>{
+            const style=getComputedStyle(element),animation=seconds(style.animationDuration),transition=seconds(style.transitionDuration);
+            return animation>.01||transition>.01?[{tag:element.tagName,className:String(element.className||'').slice(0,80),animation,transition}]:[];
+          });
+          const clippedText=[...main.querySelectorAll('*')].filter((element)=>visible(element)&&(element.textContent||'').trim()&&element.scrollWidth>element.clientWidth+2&&['hidden','clip'].includes(getComputedStyle(element).overflowX)).map((element)=>({tag:element.tagName,text:element.textContent.trim().slice(0,70),clientWidth:element.clientWidth,scrollWidth:element.scrollWidth}));
+          const placeholderEvidence=[...main.querySelectorAll('time')].filter((element)=>/^00:00(?::00)?$/.test((element.textContent||'').trim())&&!element.dateTime).map((element)=>element.outerHTML.slice(0,120));
+          return {h1Count:headings.filter((element)=>element.tagName==='H1').length,headingJumps,unlabeled,smallTargets,tinyText,duplicateIds,brokenAria,imageIssues,svgIssues,canvasIssues,motionIssues,clippedText,placeholderEvidence,reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches};
+        },{mobile:viewportName==='mobile'});
         if(!heading||['Unable to render this route.','Route unavailable','Qelly foundation failed to start'].includes(heading))errors.push({type:'semantic',text:`Invalid route heading: ${heading}`});
         if(title!==expectedTitle)errors.push({type:'route-identity',text:`Expected title ${expectedTitle}; received ${title}`});
         if(resolvedHash!==expectedHash)errors.push({type:'route-identity',text:`Expected hash ${expectedHash}; received ${resolvedHash}`});
         if(overflowPx>2)errors.push({type:'horizontal-overflow',text:`Document overflowed viewport by ${overflowPx}px`});
+        const uiChecks=[
+          ['heading-count',uiAudit.h1Count===1,`Expected one visible h1; received ${uiAudit.h1Count}`],
+          ['heading-order',uiAudit.headingJumps===0,`Heading hierarchy skipped ${uiAudit.headingJumps} level(s)`],
+          ['control-labels',uiAudit.unlabeled.length===0,`${uiAudit.unlabeled.length} visible control(s) lack an accessible name`],
+          ['touch-targets',uiAudit.smallTargets.length===0,`${uiAudit.smallTargets.length} mobile target(s) are smaller than 44px`],
+          ['text-size',uiAudit.tinyText.length===0,`${uiAudit.tinyText.length} visible text node(s) are smaller than 12px`],
+          ['duplicate-ids',uiAudit.duplicateIds.length===0,`${uiAudit.duplicateIds.length} duplicate id(s) found`],
+          ['aria-references',uiAudit.brokenAria.length===0,`${uiAudit.brokenAria.length} ARIA reference(s) target missing elements`],
+          ['images',uiAudit.imageIssues.length===0,`${uiAudit.imageIssues.length} image accessibility or sizing issue(s) found`],
+          ['svg-semantics',uiAudit.svgIssues.length===0,`${uiAudit.svgIssues.length} visible SVG(s) lack decorative or named-image semantics`],
+          ['canvas-semantics',uiAudit.canvasIssues.length===0,`${uiAudit.canvasIssues.length} visible canvas element(s) lack a label or fallback`],
+          ['reduced-motion',uiAudit.reducedMotion&&uiAudit.motionIssues.length===0,`${uiAudit.motionIssues.length} animation or transition(s) remain active with reduced motion`],
+          ['placeholder-evidence',uiAudit.placeholderEvidence.length===0,`${uiAudit.placeholderEvidence.length} unlabeled zero-time evidence value(s) found`]
+        ];
+        for(const [type,passed,text] of uiChecks)if(!passed)errors.push({type,text});
+        if(uiAudit.clippedText.length)observations.push({type:'clipped-text',count:uiAudit.clippedText.length,samples:uiAudit.clippedText.slice(0,5)});
         await page.screenshot({path:screenshot,fullPage:true,animations:'disabled'});
       }catch(error){
         errors.push({type:'render',text:error.message});
         await page.screenshot({path:screenshot,fullPage:true,animations:'disabled'}).catch(()=>{});
       }
-      results.push({route:routeName,label:definition.label,section:definition.section,public:publicRoutes.has(routeName),authenticatedFixture:authenticated,viewport:viewportName,dimensions:viewport,heading,title,resolvedHash,expectedTitle,expectedHash,overflowPx,pageHeightPx,consoleErrors:errors,networkObservations:observations,status:errors.length?'failed':'passed',elapsedMs:Date.now()-started,file:path.relative(root,screenshot).split(path.sep).join('/')});
+      results.push({route:routeName,label:definition.label,section:definition.section,public:publicRoutes.has(routeName),authenticatedFixture:authenticated,viewport:viewportName,dimensions:viewport,heading,title,resolvedHash,expectedTitle,expectedHash,overflowPx,pageHeightPx,uiAudit,consoleErrors:errors,networkObservations:observations,status:errors.length?'failed':'passed',elapsedMs:Date.now()-started,file:path.relative(root,screenshot).split(path.sep).join('/')});
       await page.close();
     }
     for(const context of contexts.values())await context.close();

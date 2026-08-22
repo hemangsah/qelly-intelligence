@@ -52,11 +52,18 @@ test('canonical V5.3 Verify is the sole first-view owner while preserving the CS
   assert.match(canonical,/data-v53-verify-inspector/);
   assert.match(canonical,/data-v53-verify-activity/);
   assert.match(canonical,/data-v53-verify-formula/);
+  assert.match(canonical,/Reproducibility sequence/);
+  assert.doesNotMatch(canonical,/<time>00:00:00<\/time>/);
+  assert.match(canonical,/No formula-specific assumptions are declared/);
+  assert.match(canonical,/const assumptionSummary=assumptions\.length/);
   assert.match(canonical,/Strategy evidence tools · CSV analysis/);
   assert.match(canonical,/q-v53-strategy-tools/);
   assert.match(canonical,/const boundary=hero\?\.querySelector\('\.q-verify-boundary'\)/);
   assert.match(canonical,/if\(boundary\)details\.append\(boundary\)/);
   assert.match(css,/html\[data-qelly-verify-subview="qelly-verify"\] #main>\.q-worldclass-context\{display:none!important\}/);
+  assert.match(css,/\.q-v53-verify-actions \.q-button\{min-height:44px/);
+  assert.match(css,/\.q-v53-verify-evidence div\{grid-template-columns:minmax\(84px,\.65fr\) minmax\(0,1\.35fr\)\}/);
+  assert.doesNotMatch(css,/q-v53-verify-inspector \.q-v53-verify-tabs[^}]*display:none/);
   assert.match(browser,/syntheticLockCount/);
   assert.match(browser,/worldclassContextVisible/);
   assert.match(browser,/visibleVerifyHeroCount/);
