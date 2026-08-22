@@ -13,6 +13,20 @@ test('production build rewrites legacy public URLs and adds canonical social ide
   assert.match(rewritten,new RegExp(`<link rel="canonical" href="${siteUrl.replaceAll('.','\\.')}/">`));
   assert.match(rewritten,new RegExp(`<meta property="og:url" content="${siteUrl.replaceAll('.','\\.')}/">`));
   assert.match(rewritten,/twitter:card/);
+  assert.match(rewritten,/<html[^>]*data-product-surface="production"/);
+  assert.match(rewritten,/<html[^>]*data-production-system="v8"/);
+  assert.equal((rewritten.match(/data-product-surface=/g)||[]).length,1);
+  assert.equal((rewritten.match(/data-production-system=/g)||[]).length,1);
+});
+
+test('production shell activation is idempotent for an already annotated document',()=>{
+  const siteUrl='https://qelly-intelligence.pages.dev';
+  const source='<!doctype html><html lang="en" data-product-surface="preview" data-production-system="v7"><head><title>Qelly</title></head><body></body></html>';
+  const rewritten=rewritePublicIdentity(source,{siteUrl,file:'index.html'});
+  assert.match(rewritten,/<html[^>]*data-product-surface="production"/);
+  assert.match(rewritten,/<html[^>]*data-production-system="v8"/);
+  assert.equal((rewritten.match(/data-product-surface=/g)||[]).length,1);
+  assert.equal((rewritten.match(/data-production-system=/g)||[]).length,1);
 });
 
 test('public headers preserve strict CSP and prevent unsolicited edge transformation',async()=>{

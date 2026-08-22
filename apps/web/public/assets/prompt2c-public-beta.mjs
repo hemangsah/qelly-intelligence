@@ -154,7 +154,10 @@ function install(){
   if(!initialHash||initialHash==='#/'||initialHash==='#')location.hash='#/market';
   buildProductHeader();loadSessionState();loadReleaseIdentity();registerServiceWorker();
   window.addEventListener('hashchange',()=>{updateHeaderRoute();setTimeout(enhanceCurrentRoute,0);});
-  window.addEventListener('online',()=>{buildProductHeader();if(routeFromHash()==='market')renderMarketHomepage();});
+  // Connectivity changes may refresh shell state, but route rendering remains
+  // exclusively owned by app.js. Calling the retired beta homepage here raced
+  // the canonical market-v6 renderer after reloads and online transitions.
+  window.addEventListener('online',buildProductHeader);
   window.addEventListener('offline',buildProductHeader);
   const main=document.getElementById('main');if(main)new MutationObserver(()=>queueMicrotask(enhanceCurrentRoute)).observe(main,{childList:true,subtree:true});
   setTimeout(enhanceCurrentRoute,0);

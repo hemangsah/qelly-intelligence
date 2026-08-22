@@ -57,6 +57,17 @@ export function rewritePublicIdentity(source,{siteUrl,canonicalUrl=siteUrl,file}
   let text=String(source).replaceAll(legacyPublicOrigin,siteUrl);
   if(file==='qelly-config.js')text=text.replaceAll('QELLY GLOBAL PUBLIC BETA','QELLY');
   if(file==='index.html'){
+    // Activate the production shell before the first paint. Waiting for the
+    // deferred V8 runtime allowed legacy navigation rails to flash while later
+    // stylesheets were still loading.
+    text=text.replace(/<html\b([^>]*)>/i,(match,attributes)=>{
+      let next=attributes;
+      for(const [name,value] of [['data-product-surface','production'],['data-production-system','v8']]){
+        const attribute=new RegExp(`\\s${name}="[^"]*"`,'i');
+        next=attribute.test(next)?next.replace(attribute,` ${name}="${value}"`):`${next} ${name}="${value}"`;
+      }
+      return `<html${next}>`;
+    });
     const canonical=`<link rel="canonical" href="${canonicalUrl}/">`;
     const social=[
       canonical,

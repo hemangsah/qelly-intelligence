@@ -29,6 +29,13 @@ test('legacy route guard no longer owns the Market route',async()=>{
   assert.doesNotMatch(source,/qellyProductHome/);
 });
 
+test('connectivity changes cannot replace the canonical Market renderer',async()=>{
+  const source=await read('apps/web/public/assets/prompt2c-public-beta.mjs');
+  assert.match(source,/window\.addEventListener\('online',buildProductHeader\)/);
+  assert.doesNotMatch(source,/addEventListener\('online',[\s\S]{0,180}renderMarketHomepage/);
+  assert.match(source,/if\(route==='market'\)return/);
+});
+
 test('public recovery never invents market observations or deterministic crypto prices',async()=>{
   const source=await read('apps/web/public/assets/qelly-public-recovery.mjs');
   assert.match(source,/No fabricated recovery data/);
