@@ -36,7 +36,7 @@ function ensureCanonicalStylesheetLast(){
     document.head.append(convergence);
   }
   const desiredTail=[canonical,repairs,convergence].filter(Boolean);
-  const currentTail=Array.from(document.head.children).slice(-desiredTail.length);
+  const currentTail=Array.from(document.head.querySelectorAll('link[rel="stylesheet"]')).slice(-desiredTail.length);
   const alreadyOrdered=desiredTail.length>0&&desiredTail.every((node,index)=>currentTail[index]===node);
   if(!alreadyOrdered)document.head.append(...desiredTail);
 }

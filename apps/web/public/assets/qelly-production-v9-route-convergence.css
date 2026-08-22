@@ -118,7 +118,7 @@ html[data-production-system="v8"] #main .q-auth-footer .q-button{min-height:44px
 html[data-production-system="v8"] #main .q-form-error:not(:empty){margin:0!important;padding:10px 12px!important;border:1px solid color-mix(in srgb,var(--q-negative) 50%,var(--q-border))!important;border-radius:8px!important;background:color-mix(in srgb,var(--q-negative) 8%,var(--q-surface))!important;color:var(--q-negative)!important;font-size:12px!important}
 
 /* Authentication copy must remain legible even when an older identity sheet is loaded later. */
-#main .q-auth-page :where(.q-eyebrow,.q-muted-copy,.q-auth-proof-grid span,.q-auth-steps span,.q-password-toggle,.q-auth-secondary-link,.q-auth-footer,.q-auth-footer .q-button){font-size:12px!important}
+#main .q-auth-page :where(.q-eyebrow,.q-muted-copy,.q-auth-proof-grid strong,.q-auth-proof-grid span,.q-auth-steps span,.q-password-toggle,.q-auth-secondary-link,.q-auth-footer,.q-auth-footer span,.q-auth-footer .q-button){font-size:12px!important}
 
 /* Account route: identity -> profile -> session/security -> technical evidence. */
 html[data-production-system="v8"] #main .q-v6-account-page{display:grid!important;gap:16px!important}
@@ -304,4 +304,5 @@ html[data-production-system="v8"] #main .q-v53-strategy-tools>summary{min-height
     .q-worldclass-breadcrumb a,.q-worldclass-related a
   ){min-height:44px!important}
   html[data-production-system="v8"] #main input[type="range"]{min-height:44px!important}
+  html[data-production-system="v8"] #main :where(.q-provider-card a,.q-market-provider a){min-height:44px!important;display:inline-flex!important;align-items:center!important}
 }
