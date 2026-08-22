@@ -16,9 +16,9 @@ html[data-production-system="v8"] #main .q-v6-quant-kpis>div{display:block!impor
 html[data-production-system="v8"] #main .q-v6-quant-kpis>div:last-child{border-right:0!important}
 html[data-production-system="v8"] #main .q-v6-quant-kpis>div>*{display:block!important;position:static!important;width:auto!important;max-width:100%!important;writing-mode:horizontal-tb!important;word-break:normal!important;overflow-wrap:normal!important;text-orientation:mixed!important}
 html[data-production-system="v8"] #main .q-v6-quant-kpis strong{margin:5px 0 2px!important;font-size:20px!important;line-height:1.12!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
-html[data-production-system="v8"] #main .q-v6-quant-kpis span,html[data-production-system="v8"] #main .q-v6-quant-kpis small{font-size:11px!important;line-height:1.35!important}
+html[data-production-system="v8"] #main .q-v6-quant-kpis span,html[data-production-system="v8"] #main .q-v6-quant-kpis small{font-size:12px!important;line-height:1.4!important}
 html[data-production-system="v8"] #main .q-v6-quant-method-strip{display:flex!important;flex-wrap:wrap!important;gap:6px!important;margin-top:10px!important}
-html[data-production-system="v8"] #main .q-v6-quant-method-strip span{display:inline-flex!important;align-items:center!important;min-height:24px!important;padding:3px 7px!important;font-size:10px!important;white-space:nowrap!important}
+html[data-production-system="v8"] #main .q-v6-quant-method-strip span{display:inline-flex!important;align-items:center!important;min-height:30px!important;padding:5px 8px!important;font-size:12px!important;white-space:nowrap!important}
 html[data-production-system="v8"] #main .q-calculator-card__footer{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;min-width:0!important}
 html[data-production-system="v8"] #main .q-calculator-card__footer>span:first-child{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
 html[data-production-system="v8"] #main .q-calculator-card__footer strong{flex:0 0 auto!important;white-space:nowrap!important}
@@ -62,7 +62,7 @@ html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-compari
 html[data-production-system="v8"] #main .q-v8-technical-identifiers{margin-top:12px!important;border-top:1px solid var(--q-border)!important;padding-top:10px!important}
 html[data-production-system="v8"] #main .q-v8-technical-identifiers>summary{cursor:pointer!important;color:var(--q-muted)!important;font-size:12px!important}
 html[data-production-system="v8"] #main .q-v8-technical-identifiers dl{margin:10px 0 0!important}
-html[data-production-system="v8"] #main .q-v8-technical-identifiers dd{overflow-wrap:anywhere!important;font-family:ui-monospace,SFMono-Regular,Consolas,monospace!important;font-size:11px!important}
+html[data-production-system="v8"] #main .q-v8-technical-identifiers dd{overflow-wrap:anywhere!important;font-family:ui-monospace,SFMono-Regular,Consolas,monospace!important;font-size:12px!important}
 
 /* External TradingView must fail visibly and usefully instead of becoming a silent blank panel. */
 html[data-production-system="v8"] #main .qelly-tradingview-widget{min-height:420px!important;background:var(--q-surface)!important;border-radius:10px!important;overflow:hidden!important}
@@ -70,7 +70,7 @@ html[data-production-system="v8"] #main .qelly-tradingview-loading,html[data-pro
 html[data-production-system="v8"] #main .qelly-tradingview-fallback>div{max-width:560px!important}
 html[data-production-system="v8"] #main .qelly-tradingview-fallback h3{margin:0 0 8px!important;font-size:20px!important}
 html[data-production-system="v8"] #main .qelly-tradingview-fallback p{margin:0 0 16px!important;color:var(--q-muted)!important}
-html[data-production-system="v8"] #main .qelly-tradingview-fallback a{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:38px!important;padding:0 13px!important;border:1px solid var(--q-border)!important;border-radius:8px!important;background:var(--q-surfacealt)!important;color:var(--q-text)!important;text-decoration:none!important}
+html[data-production-system="v8"] #main .qelly-tradingview-fallback a{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:44px!important;padding:0 13px!important;border:1px solid var(--q-border)!important;border-radius:8px!important;background:var(--q-surfacealt)!important;color:var(--q-text)!important;text-decoration:none!important}
 
 /* Semantic surface convergence: legacy route locks must never leave light cards
    underneath dark-theme text tokens. These rules are token-driven so light mode
@@ -109,47 +109,54 @@ html[data-production-system="v8"] body #app #main[data-production-route="researc
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-page-actions .q-button{width:100%!important;min-width:0!important;white-space:normal!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-kpi-strip{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;overflow:visible!important;padding:0!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-kpi-strip>article{min-width:0!important;width:auto!important;min-height:72px!important;padding:10px 11px!important;scroll-snap-align:none!important}
-html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-kpi-strip :where(span,small){font-size:10px!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-kpi-strip :where(span,small){font-size:12px!important;line-height:1.45!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-kpi-strip strong{font-size:17px!important;white-space:normal!important;overflow-wrap:anywhere!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-workstation{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important;min-width:0!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-context-rail{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:9px!important;overflow:visible!important;padding:12px!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-context-rail>.q-research-section-label{grid-column:auto!important}
-html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-context-rail>p{display:block!important;font-size:11px!important;line-height:1.45!important}
+html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-context-rail>p{display:block!important;font-size:12px!important;line-height:1.5!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-context-dl{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:0!important;min-width:0!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-context-dl>div{display:grid!important;grid-template-columns:1fr!important;gap:3px!important;min-width:0!important;padding:9px 8px!important;border-right:0!important;border-bottom:1px solid var(--q-border)!important}
-html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-context-dl :where(dt,dd){font-size:10px!important;text-align:left!important;overflow-wrap:anywhere!important}
+html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-context-dl :where(dt,dd){font-size:12px!important;text-align:left!important;overflow-wrap:anywhere!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-tag-rail{min-width:0!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-context-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;min-width:0!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-context-actions .q-button{width:100%!important;min-width:0!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-primary{overflow:visible!important;min-width:0!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-primary-head{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:8px!important;padding:12px!important}
-html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-primary-head p{display:block!important;font-size:11px!important;line-height:1.45!important}
+html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-primary-head p{display:block!important;font-size:12px!important;line-height:1.5!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-evidence-grid{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:9px!important;min-width:0!important;width:100%!important;overflow:visible!important;padding:10px!important;background-image:none!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-evidence-card{width:auto!important;min-width:0!important;min-height:0!important;scroll-snap-align:none!important;padding:13px!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-evidence-card__head{align-items:flex-start!important;flex-wrap:wrap!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-evidence-card :where(h3,p,time){max-width:100%!important;overflow-wrap:anywhere!important;white-space:normal!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-evidence-card h3{font-size:14px!important}
-html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-evidence-card p{font-size:11px!important;line-height:1.45!important}
-html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-evidence-card time{font-size:9px!important}
-html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-evidence-card__source{grid-template-columns:minmax(0,1fr)!important;gap:4px!important;font-size:10px!important}
+html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-evidence-card p{font-size:12px!important;line-height:1.5!important}
+html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-evidence-card time{font-size:12px!important}
+html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-evidence-card__source{grid-template-columns:minmax(0,1fr)!important;gap:4px!important;font-size:12px!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-evidence-card__source strong{text-align:left!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-capture{padding:12px!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-capture-form{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:9px!important;overflow:visible!important;padding:0!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-capture-form .q-setting{flex:none!important;width:100%!important;min-width:0!important}
-html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-capture-form .q-setting>span{font-size:10px!important}
-html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-capture-form :where(input,select,.q-button){width:100%!important;min-width:0!important;height:40px!important;min-height:40px!important;font-size:12px!important}
+html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-capture-form .q-setting>span{font-size:12px!important}
+html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-capture-form :where(input,select,.q-button){width:100%!important;min-width:0!important;height:44px!important;min-height:44px!important;font-size:12px!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-capture-form>.q-button{grid-column:auto!important;justify-self:stretch!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-inspector{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:9px!important;overflow:visible!important;padding:12px!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-inspector>.q-research-section-label{position:static!important;left:auto!important;z-index:auto!important;display:block!important;grid-column:auto!important;align-self:auto!important;padding:0!important;writing-mode:horizontal-tb!important;border-right:0!important;background:transparent!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-inspector-block{width:auto!important;min-width:0!important;scroll-snap-align:none!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-inspector-head h3{font-size:12px!important}
-html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-truth-row,html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-inspector-block>p{font-size:10px!important;line-height:1.45!important}
-html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-truth-row :where(strong,code){max-width:58%!important;font-size:9px!important}
+html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-truth-row,html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-inspector-block>p{font-size:12px!important;line-height:1.5!important}
+html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-truth-row :where(strong,code){max-width:58%!important;font-size:12px!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-activity-track{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:8px!important;overflow:visible!important}
-html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-activity-item{display:grid!important;flex:none!important;width:auto!important;min-width:0!important;padding:8px 0!important;border-right:0!important;border-bottom:1px solid var(--q-border)!important;font-size:10px!important;scroll-snap-align:none!important}
+html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-activity-item{display:grid!important;flex:none!important;width:auto!important;min-width:0!important;padding:8px 0!important;border-right:0!important;border-bottom:1px solid var(--q-border)!important;font-size:12px!important;scroll-snap-align:none!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-activity-item:last-child{border-bottom:0!important}
-html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-section-label{font-size:10px!important;letter-spacing:.06em!important}
+html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-section-label{font-size:12px!important;letter-spacing:.05em!important}
 }
 
 @media(max-width:1100px){html[data-production-system="v8"] #main .q-v6-quant-kpis{grid-template-columns:repeat(3,minmax(0,1fr))!important}html[data-production-system="v8"] #main .q-saved-calculations-page .q-filter-bar{grid-template-columns:repeat(2,minmax(0,1fr))!important}html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-grid,html[data-production-system="v8"] #main .q-research-evidence-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(max-width:700px){html[data-production-system="v8"] #main .q-v6-quant-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}html[data-production-system="v8"] #main :where(.q-calculator-library-disclosure,.q-indicator-library-disclosure)>summary{align-items:flex-start!important}html[data-production-system="v8"] #main .q-saved-calculations-page .q-filter-bar,html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-grid,html[data-production-system="v8"] #main .q-research-evidence-grid{grid-template-columns:1fr!important}}
+
+/* Mobile accessibility convergence: controls stay comfortably tappable without
+   converting inline editorial links into button-shaped elements. */
+@media(max-width:700px){
+html[data-production-system="v8"] #main{--q-control-height:44px}
+html[data-production-system="v8"] #main :where(button,input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea,summary,[role="button"],a.q-button,a[class*="button"]){min-height:44px!important}
+}

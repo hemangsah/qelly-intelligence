@@ -103,3 +103,8 @@ html,body{max-width:100%;overflow-x:hidden}
 @media(max-width:1100px){.q-calculator-layout{grid-template-columns:1fr}.q-calculator-catalog{position:static;max-height:none}.q-calculator-list{grid-template-columns:repeat(2,minmax(0,1fr))}.q-calculator-body{grid-template-columns:1fr}.q-india-grid{grid-template-columns:1fr}.q-india-rules,.q-india-charges{grid-column:auto}}
 @media(max-width:680px){.q-calculator-list{grid-template-columns:1fr}.q-charge-fields{grid-template-columns:1fr}.q-calculator-body{gap:16px}.q-calculator-layout,.q-india-grid{gap:14px}.q-result-actions .q-button,.q-calculator-actions .q-button{flex:1 1 145px}.q-calculator-page,.q-india-finance-page,.q-indicator-page,.q-formula-library-page,.q-saved-calculations-page{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))}.q-table-shell{max-width:100%;overflow:auto}.q-calculator-inputs textarea,.q-india-finance-page textarea,.q-indicator-page textarea{min-height:220px}}
 @media(prefers-reduced-motion:reduce){.q-calculator-list-item,.q-spark-bars span{transition:none!important}}
+
+/* Accessible grid targets and legible dense metadata. */
+.q-grid-checkbox-target{display:grid;place-items:center;width:44px;height:44px;margin:auto;cursor:pointer}
+.q-grid-checkbox-target input{width:18px;height:18px;margin:0}
+.q-grid-sort,.q-row-actions button,.q-source-cell strong,.q-source-cell small,.q-grid-footer{font-size:12px}

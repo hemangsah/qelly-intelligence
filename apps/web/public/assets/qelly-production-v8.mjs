@@ -202,6 +202,17 @@ function repairLegacyRuntimeState(){
   normalizeDeterministicPresentation();
 }
 
+function applyAccessibilityFloor(){
+  if(!main||typeof getComputedStyle!=='function')return;
+  const textCandidates=main.querySelectorAll('span,strong,small,b,em,code,progress,label,dt,dd,time,p,div,footer');
+  for(const element of textCandidates){
+    if(element.children.length||element.closest('.sr-only,[aria-hidden="true"],script,style'))continue;
+    if(!element.textContent?.trim()||!element.getClientRects().length)continue;
+    const size=Number.parseFloat(getComputedStyle(element).fontSize);
+    if(Number.isFinite(size)&&size<12)element.classList.add('q-v8-text-floor');
+  }
+}
+
 function annotateRoute(){
   const route=routeName();
   const access=ACCESS_ROUTES.has(route);
@@ -234,6 +245,7 @@ function refresh(scope=document){
   simplifyHeader();
   repairLegacyRuntimeState();
   normalizeCustomerCopy(scope);
+  applyAccessibilityFloor();
 }
 
 let queued=false;

@@ -102,11 +102,11 @@ html[data-production-system="v8"] #main .q-auth-form .q-button--primary{width:10
 html[data-production-system="v8"] #main .q-password-field{position:relative!important}
 html[data-production-system="v8"] #main .q-password-field input{padding-right:70px!important}
 html[data-production-system="v8"] #main .q-password-toggle{
-  position:absolute!important;right:8px!important;bottom:5px!important;min-height:36px!important;height:36px!important;
+  position:absolute!important;right:8px!important;bottom:1px!important;min-height:44px!important;height:44px!important;
   padding:0 10px!important;border:0!important;background:transparent!important;color:var(--q-text-secondary)!important;font-size:12px!important
 }
 html[data-production-system="v8"] #main .q-auth-secondary-link{
-  justify-self:start!important;min-height:30px!important;padding:0!important;border:0!important;background:transparent!important;color:var(--q-accentstrong)!important;font-size:12px!important
+  justify-self:start!important;min-height:44px!important;padding:0!important;border:0!important;background:transparent!important;color:var(--q-accentstrong)!important;font-size:12px!important
 }
 html[data-production-system="v8"] #main .q-auth-consent{display:grid!important;grid-template-columns:18px 1fr!important;gap:10px!important;align-items:start!important;color:var(--q-text-secondary)!important;font-size:12px!important}
 html[data-production-system="v8"] #main .q-auth-consent input{margin-top:3px!important}
@@ -114,8 +114,11 @@ html[data-production-system="v8"] #main .q-auth-footer{
   display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:8px!important;
   padding-top:16px!important;border-top:1px solid var(--q-border)!important;color:var(--q-muted)!important;font-size:12px!important
 }
-html[data-production-system="v8"] #main .q-auth-footer .q-button{min-height:34px!important}
+html[data-production-system="v8"] #main .q-auth-footer .q-button{min-height:44px!important}
 html[data-production-system="v8"] #main .q-form-error:not(:empty){margin:0!important;padding:10px 12px!important;border:1px solid color-mix(in srgb,var(--q-negative) 50%,var(--q-border))!important;border-radius:8px!important;background:color-mix(in srgb,var(--q-negative) 8%,var(--q-surface))!important;color:var(--q-negative)!important;font-size:12px!important}
+
+/* Authentication copy must remain legible even when an older identity sheet is loaded later. */
+#main .q-auth-page :where(.q-eyebrow,.q-muted-copy,.q-auth-proof-grid span,.q-auth-steps span,.q-password-toggle,.q-auth-secondary-link,.q-auth-footer,.q-auth-footer .q-button){font-size:12px!important}
 
 /* Account route: identity -> profile -> session/security -> technical evidence. */
 html[data-production-system="v8"] #main .q-v6-account-page{display:grid!important;gap:16px!important}
@@ -271,4 +274,32 @@ html[data-production-system="v8"] #main[data-production-route="formula-detail"]>
   html[data-production-system="v8"] #main[data-production-route="calculator-detail"]>.q-page,
   html[data-production-system="v8"] #main[data-production-route="indicator-detail"]>.q-page,
   html[data-production-system="v8"] #main[data-production-route="formula-detail"]>.q-page{padding:20px 16px 48px!important}
+}
+
+/* Product-wide accessibility floor. This stylesheet is intentionally kept last
+   by qelly-production-v8.mjs, so older compact-density locks cannot shrink
+   route context, evidence or calculator metadata back below readable sizes. */
+html[data-production-system="v8"] #main :where(
+  .q-worldclass-breadcrumb,.q-worldclass-breadcrumb span,.q-worldclass-truth-chip,.q-worldclass-method summary,
+  .q-provider-card p,.q-provider-card span,.q-provider-card strong,.q-capability,.q-tag,
+  .q-calculator-card__meta span,.q-calculator-card__footer span,.q-truth-pill,
+  .q-setting>span,.q-field>span,.q-research-inspector-head span,
+  .q-v53-evidence-inspector span,.q-v53-evidence-inspector strong,.q-v53-evidence-inspector small,
+  .q-v53-evidence-note,.q-v53-evidence-activity span
+){font-size:12px!important;line-height:1.4!important}
+html[data-production-system="v8"] #main .q-provider-card h2{margin:0!important;font-size:14px!important;line-height:1.3!important}
+html[data-production-system="v8"] #main :where(.q-worldclass-breadcrumb a,.q-worldclass-related a,.q-worldclass-method summary){min-height:44px!important}
+html[data-production-system="v8"] #main .q-ti-check{min-height:44px!important;display:flex!important;align-items:center!important}
+html[data-production-system="v8"] body #app #main .q-v8-text-floor:not(.sr-only){font-size:12px!important;line-height:1.4!important}
+html[data-production-system="v8"] #main :where(footer,.q-muted-copy code){font-size:12px!important;line-height:1.4!important}
+html[data-production-system="v8"] #main .q-v8-technical-identifiers>summary{min-height:44px!important}
+html[data-production-system="v8"] #main .q-filter-chip{min-width:44px!important}
+
+@media(max-width:760px){
+  html[data-production-system="v8"] #main :where(
+    button:not([hidden]),input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+    select,textarea,summary,[role="button"],[role="tab"],a.q-button,a[class*="button"],
+    .q-worldclass-breadcrumb a,.q-worldclass-related a
+  ){min-height:44px!important}
+  html[data-production-system="v8"] #main input[type="range"]{min-height:44px!important}
 }

@@ -1,0 +1,87 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+
+const read = (file) => readFile(new URL(`../${file}`, import.meta.url), 'utf8');
+
+test('visual review waits for rendered UI instead of an impossible idle network', async () => {
+  for (const file of ['scripts/ui-review.mjs', 'scripts/ui-review-premium.mjs']) {
+    const source = await read(file);
+    assert.doesNotMatch(source, /waitUntil:\s*['"]networkidle['"]/);
+    assert.match(source, /waitUntil:\s*['"]domcontentloaded['"]/);
+    assert.match(source, /locator\([^\n]+\)\.waitFor\(\{state:['"]visible['"]\}\)/);
+  }
+});
+
+test('authoritative visual review follows current supported routes', async () => {
+  const [orchestrator, current] = await Promise.all([
+    read('scripts/ui-review-orchestrator.mjs'),
+    read('scripts/ui-review-current.mjs')
+  ]);
+  assert.match(orchestrator, /authoritativePasses=\['scripts\/ui-review-current\.mjs'\]/);
+  assert.match(orchestrator, /retiredLegacyPasses/);
+  assert.match(current, /smallTargets/);
+  assert.match(current, /smallText/);
+  assert.match(current, /commandPalette/);
+  assert.match(current, /startsWith\(`\$\{origin\}\/api\/`\)/);
+});
+
+test('static preview market hero retains one semantic page title', async () => {
+  const brand = await read('apps/web/public/assets/qelly-brand.mjs');
+  assert.match(brand, /routeTitle=\[\.\.\.main\.querySelectorAll\('h1'\)\]/);
+  assert.match(brand, /document\.createElement\('h2'\)/);
+});
+
+test('shared world-class context meets mobile target and text floors', async () => {
+  const source = await read('apps/web/public/assets/qelly-worldclass-uiux.css');
+  assert.match(source, /\.q-worldclass-breadcrumb a\{[^}]*min-height:44px/);
+  assert.match(source, /\.q-worldclass-related a\{[^}]*min-height:44px/);
+  assert.match(source, /\.q-worldclass-method summary\{[^}]*min-height:44px/);
+  assert.doesNotMatch(source, /q-worldclass[^\n{]*\{[^}]*font-size:(?:8|9|10|11)px/);
+});
+
+test('production mobile controls and research evidence remain tappable and readable', async () => {
+  const [repairs, convergence] = await Promise.all([
+    read('apps/web/public/assets/qelly-production-v8-route-repairs.css'),
+    read('apps/web/public/assets/qelly-production-v9-route-convergence.css')
+  ]);
+  assert.match(repairs, /@media\(max-width:700px\)[\s\S]*--q-control-height:44px/);
+  assert.match(convergence, /a\[class\*="button"\][\s\S]*min-height:44px/);
+  assert.match(convergence, /q-worldclass-breadcrumb a,.q-worldclass-related a/);
+  assert.match(convergence, /q-auth-footer \.q-button\{min-height:44px!important\}/);
+  assert.match(convergence, /#main \.q-auth-page :where\([^}]+\)\{font-size:12px!important\}/);
+  assert.doesNotMatch(repairs, /data-production-route="research-workspace"[^\n{]*\{[^}]*font-size:(?:8|9|10|11)px/);
+});
+
+test('data grids expose a 44 pixel checkbox label target', async () => {
+  const [grid, css] = await Promise.all([
+    read('packages/data-grid/data-grid.mjs'),
+    read('apps/web/public/assets/app.css')
+  ]);
+  assert.match(grid, /<label class="q-grid-checkbox-target"><input type="checkbox"/);
+  assert.match(css, /\.q-grid-checkbox-target\{[^}]*width:44px;[^}]*height:44px/);
+});
+
+test('theme and provider cards do not skip the level-two heading', async () => {
+  const [theme, app] = await Promise.all([
+    read('apps/web/public/assets/routes/theme-intelligence-studio.mjs'),
+    read('apps/web/public/assets/app.js')
+  ]);
+  assert.match(theme, /q-ti-alpha-signal"><h2>/);
+  assert.match(theme, /q-ti-semantic-card"><h2>/);
+  assert.match(app, /q-provider-card-head"><div><h2>/);
+});
+
+test('route fallbacks keep URL ownership truthful and dynamic metadata readable', async () => {
+  const [app, runtime, convergence] = await Promise.all([
+    read('apps/web/public/assets/app.js'),
+    read('apps/web/public/assets/qelly-production-v8.mjs'),
+    read('apps/web/public/assets/qelly-production-v9-route-convergence.css')
+  ]);
+  assert.match(app, /if\(!allowed&&route!==state\.route\)history\.replaceState\(null,'',`#\/\$\{state\.route\}`\)/);
+  assert.match(runtime, /function applyAccessibilityFloor\(\)/);
+  assert.match(runtime, /size<12\)element\.classList\.add\('q-v8-text-floor'\)/);
+  assert.match(convergence, /\.q-v8-text-floor:not\(\.sr-only\)\{font-size:12px!important/);
+  assert.match(convergence, /q-v8-technical-identifiers>summary\{min-height:44px!important/);
+  assert.match(convergence, /\.q-filter-chip\{min-width:44px!important/);
+});

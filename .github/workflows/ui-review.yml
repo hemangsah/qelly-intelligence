@@ -94,6 +94,9 @@ jobs:
           QELLY_DEPLOYMENT_ENVIRONMENT: github-pages
         run: npm run build:frontend
 
+      - name: Remove Cloudflare-only preview controls
+        run: node scripts/sanitize-pages-artifact.mjs
+
       - name: Validate Pages artifact
         run: npm run validate:pages-preview
 
@@ -113,4 +116,4 @@ jobs:
           name: qelly-ui-rescue-review
           if-no-files-found: warn
           retention-days: 14
-          path: .ui-review/qelly-ui-rescue-review
+          path: .ui-review/qelly-current-review

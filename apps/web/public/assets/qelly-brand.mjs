@@ -86,6 +86,13 @@ function installHero(){
   if(main.dataset.qellyStatePage||blockingStates.has(previewState))return;
   if(main.querySelector('[data-qelly-brand-hero]'))return;
   main.insertAdjacentHTML('afterbegin',heroMarkup());
+  const routeTitle=[...main.querySelectorAll('h1')].find((heading)=>!heading.closest('[data-qelly-brand-hero]'));
+  if(routeTitle){
+    const sectionTitle=document.createElement('h2');
+    for(const attribute of routeTitle.attributes)sectionTitle.setAttribute(attribute.name,attribute.value);
+    sectionTitle.append(...routeTitle.childNodes);
+    routeTitle.replaceWith(sectionTitle);
+  }
 }
 function installAuthBrand(){
   if(productionProduct())return;

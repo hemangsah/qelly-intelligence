@@ -156,7 +156,7 @@ assert(
 );
 assert(
   config.apiBaseUrl === '' &&
-  config.deploymentStage === 'github-pages' &&
+  config.deploymentStage === 'github-pages-static-preview' &&
   config.basePath === expectedBasePath &&
   config.staticVisualPreview === true &&
   config.previewLabel === 'Static visual preview' &&

@@ -48,13 +48,13 @@ body{overflow-x:hidden}
 .q-setting input:focus,.q-setting textarea:focus,.q-calculator-inputs textarea:focus,.q-india-finance-page textarea:focus,.q-indicator-page textarea:focus{border-color:var(--q-accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--q-accent) 13%,transparent)}
 .q-worldclass-context{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;margin:0 0 18px;padding:14px 16px;border:1px solid var(--q-wc-hairline);border-radius:var(--q-wc-radius-md);background:linear-gradient(135deg,var(--q-surface),var(--q-wc-accent-soft));box-shadow:var(--q-wc-shadow-sm)}
 .q-worldclass-context__main{display:grid;gap:9px;min-width:0}
-.q-worldclass-breadcrumb{display:flex;align-items:center;flex-wrap:wrap;gap:7px;color:var(--q-muted);font-size:10px;font-weight:700;letter-spacing:.035em;text-transform:uppercase}
-.q-worldclass-breadcrumb a{text-decoration:none;color:inherit;border-radius:5px;padding:2px 3px}
+.q-worldclass-breadcrumb{display:flex;align-items:center;flex-wrap:wrap;gap:7px;color:var(--q-muted);font-size:12px;font-weight:700;letter-spacing:.035em;text-transform:uppercase}
+.q-worldclass-breadcrumb a{display:inline-flex;align-items:center;min-height:44px;text-decoration:none;color:inherit;border-radius:5px;padding:6px 5px}
 .q-worldclass-breadcrumb a:hover,.q-worldclass-breadcrumb a:focus-visible{color:var(--q-accent);background:color-mix(in srgb,var(--q-accent) 8%,transparent)}
 .q-worldclass-breadcrumb span[aria-hidden]{opacity:.55}
 .q-worldclass-purpose{margin:0;max-width:82ch;color:var(--q-text);font-size:12px;line-height:1.55;text-wrap:pretty}
 .q-worldclass-truth{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
-.q-worldclass-truth-chip{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:4px 9px;border:1px solid var(--q-wc-hairline);border-radius:999px;background:var(--q-surface);font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.q-worldclass-truth-chip{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:5px 9px;border:1px solid var(--q-wc-hairline);border-radius:999px;background:var(--q-surface);font-size:12px;font-weight:800;letter-spacing:.045em;text-transform:uppercase;white-space:nowrap}
 .q-worldclass-truth-chip:before{content:"";inline-size:6px;block-size:6px;border-radius:50%;background:var(--q-cached)}
 .q-worldclass-truth-chip[data-tone="deterministic"]:before{background:var(--q-positive)}
 .q-worldclass-truth-chip[data-tone="user"]:before{background:var(--q-delayed)}
@@ -62,14 +62,14 @@ body{overflow-x:hidden}
 .q-worldclass-truth-chip[data-tone="simulated"]:before{background:var(--q-simulated)}
 .q-worldclass-context__aside{display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;justify-content:flex-end;max-width:410px}
 .q-worldclass-related{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
-.q-worldclass-related a{display:inline-flex;align-items:center;min-height:34px;padding:5px 10px;border:1px solid var(--q-wc-hairline);border-radius:999px;background:var(--q-surface);font-size:10px;font-weight:700;text-decoration:none}
+.q-worldclass-related a{display:inline-flex;align-items:center;min-height:44px;padding:7px 12px;border:1px solid var(--q-wc-hairline);border-radius:999px;background:var(--q-surface);font-size:12px;font-weight:700;text-decoration:none}
 .q-worldclass-related a:hover,.q-worldclass-related a:focus-visible{border-color:var(--q-accent);color:var(--q-accent)}
 .q-worldclass-method{position:relative}
-.q-worldclass-method summary{list-style:none;display:inline-flex;align-items:center;min-height:34px;padding:5px 10px;border:1px solid var(--q-wc-hairline);border-radius:999px;background:var(--q-surface);font-size:10px;font-weight:800;cursor:pointer}
+.q-worldclass-method summary{list-style:none;display:inline-flex;align-items:center;min-height:44px;padding:7px 12px;border:1px solid var(--q-wc-hairline);border-radius:999px;background:var(--q-surface);font-size:12px;font-weight:800;cursor:pointer}
 .q-worldclass-method summary::-webkit-details-marker{display:none}
 .q-worldclass-method[open] summary{border-color:var(--q-accent);color:var(--q-accent)}
 .q-worldclass-method__panel{position:absolute;right:0;top:42px;z-index:34;width:min(390px,calc(100vw - 32px));padding:14px;border:1px solid var(--q-wc-hairline);border-radius:var(--q-wc-radius-sm);background:var(--q-surface);box-shadow:var(--q-wc-shadow-md)}
-.q-worldclass-method__panel dl{display:grid;grid-template-columns:92px 1fr;gap:8px 10px;margin:0;font-size:11px;line-height:1.45}
+.q-worldclass-method__panel dl{display:grid;grid-template-columns:92px 1fr;gap:8px 10px;margin:0;font-size:12px;line-height:1.5}
 .q-worldclass-method__panel dt{color:var(--q-muted);font-weight:700}
 .q-worldclass-method__panel dd{margin:0;overflow-wrap:anywhere}
 .q-calculator-page,.q-india-finance-page,.q-indicator-page,.q-formula-library-page,.q-saved-calculations-page,.q-formula-detail-page,.q-indicator-detail-page,.q-calculator-detail-page,.q-saved-detail-page{display:grid;gap:var(--q-gap)}
@@ -91,7 +91,7 @@ body{overflow-x:hidden}
 .q-spark-bars span{min-width:3px;background:linear-gradient(180deg,var(--q-positive),var(--q-accent))}
 .q-formula-detail-page .q-panel,.q-indicator-detail-page .q-panel,.q-calculator-detail-page .q-panel,.q-saved-detail-page .q-panel{scroll-margin-top:126px}
 html[data-preview-state="loading"] #main .q-panel-body{position:relative;overflow:hidden}
-html[data-preview-state="loading"] #main .q-panel-body:after{content:"Loading current evidence…";display:grid;place-items:center;min-height:92px;border-radius:var(--q-wc-radius-sm);background:linear-gradient(90deg,var(--q-surface-alt),var(--q-wc-accent-soft),var(--q-surface-alt));background-size:220% 100%;font-size:11px;font-weight:700;color:var(--q-muted);animation:q-wc-shimmer 1.6s linear infinite}
+html[data-preview-state="loading"] #main .q-panel-body:after{content:"Loading current evidence…";display:grid;place-items:center;min-height:92px;border-radius:var(--q-wc-radius-sm);background:linear-gradient(90deg,var(--q-surface-alt),var(--q-wc-accent-soft),var(--q-surface-alt));background-size:220% 100%;font-size:12px;font-weight:700;color:var(--q-muted);animation:q-wc-shimmer 1.6s linear infinite}
 html[data-preview-state="offline"] .q-worldclass-context{border-left:4px solid var(--q-unavailable)}
 html[data-preview-state="error"] .q-worldclass-context{border-left:4px solid var(--q-negative)}
 html[data-preview-state="stale"] .q-worldclass-context{border-left:4px solid var(--q-stale)}
@@ -110,7 +110,7 @@ html[data-preview-state="stale"] .q-worldclass-context{border-left:4px solid var
   .q-workspace-switcher small{display:none}
   .q-command-trigger{order:3;flex-basis:100%;max-width:none}
   .q-command-actions{gap:6px}
-  .q-state-control{min-height:40px}
+  .q-state-control{min-height:44px}
   #main{padding-inline:clamp(12px,3vw,22px)}
   .q-page-head{display:grid;grid-template-columns:1fr}
   .q-page-actions{justify-content:flex-start}
@@ -126,7 +126,7 @@ html[data-preview-state="stale"] .q-worldclass-context{border-left:4px solid var
   .q-page-head h1{font-size:clamp(25px,8vw,34px)}
   .q-page-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}.q-page-actions .q-button{width:100%}
   .q-worldclass-context{padding:13px;gap:12px;border-radius:var(--q-wc-radius-sm)}
-  .q-worldclass-related a,.q-worldclass-method summary{min-height:40px}
+  .q-worldclass-related a,.q-worldclass-method summary{min-height:44px}
   .q-worldclass-method{width:100%}.q-worldclass-method summary{width:100%;justify-content:center}.q-worldclass-method__panel{position:static;width:100%;margin-top:8px}
   .q-worldclass-method__panel dl{grid-template-columns:1fr}.q-worldclass-method__panel dt{margin-top:4px}
   .q-dashboard-grid,.q-kpi-grid,.q-india-grid{grid-template-columns:1fr}

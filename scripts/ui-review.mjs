@@ -232,7 +232,7 @@ async function openSurface(browser,{surface,viewport,errors,failures}){
   const page=await context.newPage();
   observePage(page,surface,viewport.key,errors,failures);
   const url=surface==='reference'?referenceUrl:implementationUrl;
-  await page.goto(url,{waitUntil:'networkidle'});
+  await page.goto(url,{waitUntil:'domcontentloaded'});
   const selector=surface==='reference'?'#page-markets.active':'.q-mi-page';
   await page.locator(selector).waitFor({state:'visible'});
   await stabilize(page);

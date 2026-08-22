@@ -95,7 +95,7 @@ async function openReviewPage(browser,url,viewport,{reducedMotion='no-preference
   page.on('pageerror',(error)=>errors.push({kind:'pageerror',message:error.message}));
   page.on('console',(message)=>{if(message.type()!=='error')return;const location=message.location();if(location.url&&!location.url.startsWith(origin))return;errors.push({kind:'console',message:message.text(),sourceUrl:location.url??''});});
   page.on('requestfailed',(request)=>{if(!request.url().startsWith(origin))return;if(!['document','script','stylesheet','font','image'].includes(request.resourceType()))return;failures.push({kind:'requestfailed',url:request.url(),resourceType:request.resourceType(),errorText:request.failure()?.errorText??'unknown'});});
-  await page.goto(url,{waitUntil:'networkidle'});
+  await page.goto(url,{waitUntil:'domcontentloaded'});
   await page.locator('.q-mi-page').waitFor({state:'visible'});
   await page.addStyleTag({content:freezeCss});
   await page.evaluate(async()=>{if(document.fonts?.ready)await document.fonts.ready;await new Promise((resolve)=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});
