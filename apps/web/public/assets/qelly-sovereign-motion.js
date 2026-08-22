@@ -131,7 +131,8 @@ function activateMotion() {
     '.q-kpi', '.q-panel', '.q-category-card', '.q-venue-card', '.q-dex-card',
     '.q-provider-card', '.q-research-card', '.q-notification-card', '.q-article-shell',
     '.q-asset-hero', '.q-persona-card', '.q-universe-node', '.q-market-pulse-card',
-    '.q-about-stat', '.q-live-stage', '.q-feature-card'
+    '.q-about-stat', '.q-live-stage', '.q-feature-card', '.q-it-hero', '.q-it-guide',
+    '.q-it-panel', '.q-it-provider', '.q-it-news-grid article', '.q-calculator-card', '.q-saved-card'
   ];
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
@@ -143,7 +144,7 @@ function activateMotion() {
     });
   }, { threshold: .055, rootMargin: '70px 0px' });
   [...document.querySelectorAll(revealSelectors.join(','))].forEach((item, index) => bindReveal(item, observer, index));
-  document.querySelectorAll('.q-button,.q-icon-button,.q-nav-link,.q-theme-choice,.q-choice-row').forEach(bindMagnetic);
+  document.querySelectorAll('.q-button,.q-icon-button,.q-nav-link,.q-theme-choice,.q-choice-row,.q-product-header button,.q-it-tabs button,.q-it-guide button,.q-it-community-grid button,.q-feature-navigation button').forEach(bindMagnetic);
 }
 
 let scheduled = false;

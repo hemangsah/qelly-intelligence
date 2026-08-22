@@ -146,3 +146,27 @@ test('production exposes the complete registry through one responsive feature na
   assert.match(convergence, /@media\(max-width:1180px\)[\s\S]*q-product-menu\[data-feature-navigation-owner="true"\][^}]*min-height:44px/);
   assert.match(convergence, /@media\(prefers-reduced-motion:reduce\)/);
 });
+
+test('modern production polish is globally loaded, curved, animated and motion-safe', async () => {
+  const [index, css, motion, worker] = await Promise.all([
+    read('apps/web/public/index.html'),
+    read('apps/web/public/assets/qelly-modern-interaction-polish.css'),
+    read('apps/web/public/assets/qelly-sovereign-motion.js'),
+    read('apps/web/public/prompt2c-sw.js')
+  ]);
+  assert.match(index, /qelly-production-v9-route-convergence\.css[\s\S]*qelly-modern-interaction-polish\.css\?v=20260822-modern3/);
+  assert.match(css, /--q-modern-radius-xl:32px/);
+  assert.match(css, /header\.q-product-header[\s\S]*border-radius:0 0 var\(--q-modern-radius-lg\)/);
+  assert.match(css, /:where\(button:not\(\.q-product-brand__mark\),a\.q-button,\[role="button"\],\[role="tab"\]\)[\s\S]*border-radius:999px!important/);
+  assert.match(css, /#main \.q-page-actions \.q-button\{border-radius:999px!important/);
+  assert.match(css, /\.q-product-search\{[\s\S]*border-radius:999px!important/);
+  assert.match(css, /\.skip-link\{[\s\S]*transform:translateY\(calc\(-100% - 20px\)\)!important/);
+  assert.match(css, /\.skip-link:focus-visible\{[\s\S]*transform:translateY\(0\)!important/);
+  assert.match(css, /\.q-feature-navigation__group a:hover\{transform:translateX\(4px\)/);
+  assert.match(css, /@keyframes q-modern-route-enter/);
+  assert.match(css, /body>\.q-scroll-progress[\s\S]*display:block!important/);
+  assert.match(css, /@media\(prefers-reduced-motion:reduce\)[\s\S]*animation:none!important/);
+  assert.match(motion, /'\.q-it-hero'[\s\S]*'\.q-it-provider'/);
+  assert.match(motion, /\.q-product-header button[\s\S]*\.q-it-tabs button/);
+  assert.match(worker, /qelly-modern-interaction-polish\.css/);
+});
