@@ -306,3 +306,55 @@ html[data-production-system="v8"] #main .q-v53-strategy-tools>summary{min-height
   html[data-production-system="v8"] #main input[type="range"]{min-height:44px!important}
   html[data-production-system="v8"] #main :where(.q-provider-card a,.q-market-provider a,.q-v7-provider-card a){min-height:44px!important;display:inline-flex!important;align-items:center!important}
 }
+
+/* One authoritative feature navigator. Production previously rendered the full
+   route inventory and then hid every side-navigation owner, leaving most of the
+   product reachable only by direct URL. The desktop rail and mobile drawer use
+   the same registry-backed links, so route visibility cannot drift again. */
+.q-feature-navigation__backdrop{position:fixed;z-index:128;inset:64px 0 0;background:rgb(0 0 0/.58);opacity:0;pointer-events:none;transition:opacity 180ms ease}
+.q-feature-navigation{position:fixed;z-index:129;top:64px;bottom:0;left:0;width:min(286px,92vw);display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--q-border);background:var(--q-chrome);color:var(--q-text);box-shadow:18px 0 54px rgb(0 0 0/.28);transform:translateX(-102%);transition:transform 220ms cubic-bezier(.2,.75,.25,1)}
+.q-feature-navigation>header{position:relative;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 16px 12px;border-bottom:1px solid var(--q-border);background:var(--q-chrome)}
+.q-feature-navigation>header p{margin:0 0 3px;color:var(--q-muted);font-size:12px;line-height:1.35;text-transform:uppercase;letter-spacing:.06em}
+.q-feature-navigation>header h2{margin:0;color:var(--q-text);font-size:20px;line-height:1.15}
+.q-feature-navigation>header button{width:44px;height:44px;display:grid;place-items:center;border:1px solid var(--q-border);border-radius:9px;background:var(--q-surfacealt);color:var(--q-text);font-size:24px;line-height:1;cursor:pointer}
+.q-feature-navigation__search{display:block;padding:12px 12px 6px;background:var(--q-chrome)}
+.q-feature-navigation__search input{width:100%;min-height:44px;padding:0 12px;border:1px solid var(--q-border);border-radius:9px;background:var(--q-surface);color:var(--q-text);font:500 13px/1.3 var(--q-font-text,"Qelly IBM Plex Sans",Arial,sans-serif);outline:0}
+.q-feature-navigation__search input:focus{border-color:var(--q-accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--q-accent) 20%,transparent)}
+.q-feature-navigation__status{margin:0;padding:4px 14px 8px;color:var(--q-muted);font-size:12px;line-height:1.35}
+.q-feature-navigation>nav{min-height:0;display:block;overflow-y:auto;overscroll-behavior:contain;padding:0 10px 22px;scrollbar-width:thin;scrollbar-color:var(--q-border) transparent}
+.q-feature-navigation__universe,.q-feature-navigation__group a{min-height:46px;display:grid;grid-template-columns:22px minmax(0,1fr) auto;align-items:center;gap:9px;margin:3px 0;padding:7px 9px;border:1px solid transparent;border-radius:8px;color:var(--q-secondary);text-decoration:none}
+.q-feature-navigation__universe{grid-template-columns:minmax(0,1fr);margin:2px 0 12px;padding:10px 11px;border-color:var(--q-border);background:var(--q-surfacealt)}
+.q-feature-navigation__universe strong,.q-feature-navigation__universe small,.q-feature-navigation__group a strong,.q-feature-navigation__group a small{display:block;min-width:0;overflow-wrap:anywhere}
+.q-feature-navigation__universe strong,.q-feature-navigation__group a strong{color:var(--q-text);font-size:13px;line-height:1.25;font-weight:620}
+.q-feature-navigation__universe small,.q-feature-navigation__group a small{margin-top:2px;color:var(--q-muted);font-size:12px;line-height:1.3}
+.q-feature-navigation__group{margin:0 0 12px}
+.q-feature-navigation__group>h3{display:flex;align-items:center;justify-content:space-between;margin:0;padding:7px 9px;color:var(--q-muted);font-size:12px;line-height:1.35;text-transform:uppercase;letter-spacing:.06em}
+.q-feature-navigation__group>h3 span{min-width:24px;text-align:right;font-variant-numeric:tabular-nums}
+.q-feature-navigation__group a>span:first-child{display:grid;place-items:center;color:var(--q-muted)}
+.q-feature-navigation__group .q-route-icon{width:18px;height:18px}
+.q-feature-navigation__group a em{padding:3px 5px;border:1px solid var(--q-border);border-radius:5px;color:var(--q-muted);font-size:10px;line-height:1;font-style:normal;text-transform:uppercase;letter-spacing:.04em}
+.q-feature-navigation__group a:hover,.q-feature-navigation__group a:focus-visible,.q-feature-navigation__group a.is-active{border-color:var(--q-border);background:var(--q-surfacealt);color:var(--q-text);outline:0}
+.q-feature-navigation__group a.is-active{border-color:color-mix(in srgb,var(--q-accent) 62%,var(--q-border));box-shadow:inset 3px 0 0 var(--q-accent)}
+.q-feature-navigation__group a.is-active>span:first-child{color:var(--q-accent)}
+body.q-feature-navigation-open{overflow:hidden}
+body.q-feature-navigation-open .q-feature-navigation__backdrop{opacity:1;pointer-events:auto}
+body.q-feature-navigation-open .q-feature-navigation{transform:none}
+
+@media(min-width:1181px){
+  html[data-production-system="v8"][data-production-access="false"] .q-feature-navigation{transform:none;box-shadow:none}
+  html[data-production-system="v8"][data-production-access="false"] .q-feature-navigation__backdrop{display:none}
+  html[data-production-system="v8"][data-production-access="false"] .q-feature-navigation>header button{display:none}
+  html[data-production-system="v8"][data-production-access="false"] body #app .q-shell #main{width:calc(100% - 286px)!important;max-width:none!important;margin-left:286px!important}
+}
+
+@media(max-width:1180px){
+  html[data-production-system="v8"] .q-product-header .q-product-menu[data-feature-navigation-owner="true"]{min-width:76px;min-height:44px;display:inline-flex!important;align-items:center;justify-content:center;gap:7px;border:1px solid var(--q-border);border-radius:8px;background:var(--q-surfacealt);color:var(--q-text);font-size:12px;font-weight:650}
+}
+
+@media(max-width:768px){
+  .q-feature-navigation__backdrop{inset:58px 0 0}
+  .q-feature-navigation{top:58px}
+  .q-feature-navigation__group a em{font-size:9px}
+}
+
+@media(prefers-reduced-motion:reduce){.q-feature-navigation,.q-feature-navigation__backdrop{transition:none}}

@@ -111,3 +111,25 @@ test('route fallbacks keep URL ownership truthful and dynamic metadata readable'
   assert.match(index, /qelly-production-v8-route-repairs\.css" data-qelly-production-v8-route-repairs="true"/);
   assert.match(index, /qelly-production-v9-route-convergence\.css" data-qelly-production-v9-route-convergence="true"/);
 });
+
+test('production exposes the complete registry through one responsive feature navigator', async () => {
+  const [runtime, convergence, registry] = await Promise.all([
+    read('apps/web/public/assets/qelly-production-v8.mjs'),
+    read('apps/web/public/assets/qelly-production-v9-route-convergence.css'),
+    import('../apps/web/public/assets/route-registry.mjs')
+  ]);
+  const visibleRoutes=registry.routeDefinitions.filter((route)=>!route.hidden);
+  assert.equal(visibleRoutes.length,64);
+  assert.match(runtime, /import \{ productDomains, routeDefinitions \} from '\.\/route-registry\.mjs'/);
+  assert.match(runtime, /const FEATURE_ROUTES=routeDefinitions\.filter\(\(route\)=>!route\.hidden\)/);
+  assert.match(runtime, /aria-label="All Qelly features"/);
+  assert.match(runtime, /placeholder="Filter \$\{FEATURE_ROUTES\.length\} features"/);
+  assert.match(runtime, /data-feature-navigation-owner='true'|dataset\.featureNavigationOwner='true'/);
+  assert.match(runtime, /event\.key==='Escape'/);
+  assert.match(runtime, /syncFeatureNavigation\(\)/);
+  assert.match(convergence, /\.q-feature-navigation\{[^}]*width:min\(286px,92vw\)/);
+  assert.match(convergence, /min-height:46px/);
+  assert.match(convergence, /@media\(min-width:1181px\)[\s\S]*margin-left:286px!important/);
+  assert.match(convergence, /@media\(max-width:1180px\)[\s\S]*q-product-menu\[data-feature-navigation-owner="true"\][^}]*min-height:44px/);
+  assert.match(convergence, /@media\(prefers-reduced-motion:reduce\)/);
+});
