@@ -68,5 +68,5 @@ test('market route keeps long governed labels readable on narrow screens',async(
   assert.match(css,/@media\(max-width:430px\)/);
   assert.match(css,/\.q-v7-public-market>\.q-page-head h1\{[^}]*overflow-wrap:anywhere!important/);
   assert.match(css,/\.q-page-actions\{display:grid!important;grid-template-columns:1fr!important/);
-  assert.match(css,/\.q-v7-boundary-ribbon :where\(span,small\)\{[^}]*overflow-wrap:anywhere!important/);
+  assert.match(css,/\[data-v53-family-harmonization="active"\] #main \.q-v7-public-market \.q-v7-boundary-ribbon :where\(span,small\)\{[^}]*font-size:11px!important;overflow-wrap:anywhere!important/);
 });
