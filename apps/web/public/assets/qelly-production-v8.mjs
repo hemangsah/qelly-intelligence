@@ -204,7 +204,7 @@ function repairLegacyRuntimeState(){
 
 function applyAccessibilityFloor(){
   if(!main||typeof getComputedStyle!=='function')return;
-  const textCandidates=main.querySelectorAll('span,strong,small,b,em,code,progress,label,dt,dd,time,p,div,footer');
+  const textCandidates=main.querySelectorAll('span,strong,small,b,em,code,progress,label,dt,dd,time,p,div,footer,header,summary,button,a');
   for(const element of textCandidates){
     if(element.children.length||element.closest('.sr-only,[aria-hidden="true"],script,style'))continue;
     if(!element.textContent?.trim()||!element.getClientRects().length)continue;

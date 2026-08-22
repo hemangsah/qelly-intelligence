@@ -54,6 +54,7 @@ async function openRoute(browser,route,width,height){
   const main=page.locator(`#main[data-production-route="${route}"]`);
   await main.waitFor({state:'visible',timeout:30_000});
   await page.locator(`#main[data-production-route="${route}"] h1`).first().waitFor({state:'visible',timeout:30_000});
+  await page.locator('html[data-production-system="v8"]').waitFor({state:'attached',timeout:30_000});
   await page.addStyleTag({content:freezeCss});
   await page.evaluate(async()=>{if(document.fonts?.ready)await document.fonts.ready;await new Promise((resolve)=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});
   return {context,page,errors,failures};

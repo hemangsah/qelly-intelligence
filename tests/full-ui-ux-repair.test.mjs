@@ -23,6 +23,7 @@ test('authoritative visual review follows current supported routes', async () =>
   assert.match(current, /smallTargets/);
   assert.match(current, /smallText/);
   assert.match(current, /commandPalette/);
+  assert.match(current, /html\[data-production-system="v8"\]/);
   assert.match(current, /startsWith\(`\$\{origin\}\/api\/`\)/);
 });
 
@@ -73,10 +74,11 @@ test('theme and provider cards do not skip the level-two heading', async () => {
 });
 
 test('route fallbacks keep URL ownership truthful and dynamic metadata readable', async () => {
-  const [app, runtime, convergence] = await Promise.all([
+  const [app, runtime, convergence, index] = await Promise.all([
     read('apps/web/public/assets/app.js'),
     read('apps/web/public/assets/qelly-production-v8.mjs'),
-    read('apps/web/public/assets/qelly-production-v9-route-convergence.css')
+    read('apps/web/public/assets/qelly-production-v9-route-convergence.css'),
+    read('apps/web/public/index.html')
   ]);
   assert.match(app, /if\(!allowed&&route!==state\.route\)history\.replaceState\(null,'',`#\/\$\{state\.route\}`\)/);
   assert.match(runtime, /function applyAccessibilityFloor\(\)/);
@@ -84,4 +86,7 @@ test('route fallbacks keep URL ownership truthful and dynamic metadata readable'
   assert.match(convergence, /\.q-v8-text-floor:not\(\.sr-only\)\{font-size:12px!important/);
   assert.match(convergence, /q-v8-technical-identifiers>summary\{min-height:44px!important/);
   assert.match(convergence, /\.q-filter-chip\{min-width:44px!important/);
+  assert.match(convergence, /q-v53-strategy-tools \.q-verify-upload-card code\)\{font-size:12px!important/);
+  assert.match(index, /qelly-production-v8-route-repairs\.css" data-qelly-production-v8-route-repairs="true"/);
+  assert.match(index, /qelly-production-v9-route-convergence\.css" data-qelly-production-v9-route-convergence="true"/);
 });
