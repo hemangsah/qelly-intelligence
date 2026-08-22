@@ -304,5 +304,5 @@ html[data-production-system="v8"] #main .q-v53-strategy-tools>summary{min-height
     .q-worldclass-breadcrumb a,.q-worldclass-related a
   ){min-height:44px!important}
   html[data-production-system="v8"] #main input[type="range"]{min-height:44px!important}
-  html[data-production-system="v8"] #main :where(.q-provider-card a,.q-market-provider a){min-height:44px!important;display:inline-flex!important;align-items:center!important}
+  html[data-production-system="v8"] #main :where(.q-provider-card a,.q-market-provider a,.q-v7-provider-card a){min-height:44px!important;display:inline-flex!important;align-items:center!important}
 }

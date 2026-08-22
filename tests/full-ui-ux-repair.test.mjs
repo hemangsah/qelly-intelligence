@@ -51,7 +51,7 @@ test('production mobile controls and research evidence remain tappable and reada
   assert.match(convergence, /q-worldclass-breadcrumb a,.q-worldclass-related a/);
   assert.match(convergence, /q-auth-footer \.q-button\{min-height:44px!important\}/);
   assert.match(convergence, /#main \.q-auth-page :where\([^}]+\)\{font-size:12px!important\}/);
-  assert.match(convergence, /q-market-provider a\)\{min-height:44px!important/);
+  assert.match(convergence, /q-v7-provider-card a\)\{min-height:44px!important/);
   assert.doesNotMatch(repairs, /data-production-route="research-workspace"[^\n{]*\{[^}]*font-size:(?:8|9|10|11)px/);
 });
 
