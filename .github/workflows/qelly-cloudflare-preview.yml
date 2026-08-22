@@ -34,7 +34,7 @@ jobs:
       - name: Verify deployed Cloudflare edge
         shell: bash
         env:
-          QELLY_PREVIEW_URL: https://feature-prompt2c-production.qelly-intelligence.pages.dev
+          QELLY_PREVIEW_URL: https://feature-prompt2c-production-oty3.qelly-intelligence.pages.dev
           QELLY_EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           QELLY_PREVIEW_MAX_WAIT_MS: '720000'
         run: |

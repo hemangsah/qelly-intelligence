@@ -2,7 +2,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {chromium} from 'playwright';
 import {fileURLToPath} from 'node:url';
 
-const base=String(process.env.QELLY_PREVIEW_URL||'https://feature-prompt2c-production.qelly-intelligence.pages.dev').replace(/\/$/,'');
+const base=String(process.env.QELLY_PREVIEW_URL||'https://feature-prompt2c-production-oty3.qelly-intelligence.pages.dev').replace(/\/$/,'');
 const expectedSha=String(process.env.QELLY_EXPECTED_HEAD_SHA||'').trim();
 const maxWaitMs=Number(process.env.QELLY_PREVIEW_MAX_WAIT_MS||720000);
 const output=new URL('../dist/cloudflare-preview-evidence/',import.meta.url);
