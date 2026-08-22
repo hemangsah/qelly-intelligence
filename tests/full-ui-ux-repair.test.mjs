@@ -55,6 +55,15 @@ test('production mobile controls and research evidence remain tappable and reada
   assert.doesNotMatch(repairs, /data-production-route="research-workspace"[^\n{]*\{[^}]*font-size:(?:8|9|10|11)px/);
 });
 
+test('production header and primary actions keep a 44 pixel touch floor', async () => {
+  const source = await read('apps/web/public/assets/qelly-production-v8.css');
+  assert.match(source, /\.q-product-brand \{[\s\S]*?min-height: 44px !important/);
+  assert.match(source, /\.q-product-nav a \{[\s\S]*?min-height: 44px !important/);
+  assert.match(source, /\.q-product-search input \{[\s\S]*?height: 44px !important/);
+  assert.match(source, /\.q-product-search button,[\s\S]*?\.q-product-system \{[\s\S]*?min-height: 44px !important/);
+  assert.match(source, /\.q-button--primary,[\s\S]*?\.q-button\.is-primary \{[\s\S]*?min-height: 44px !important/);
+});
+
 test('data grids expose a 44 pixel checkbox label target', async () => {
   const [grid, css] = await Promise.all([
     read('packages/data-grid/data-grid.mjs'),

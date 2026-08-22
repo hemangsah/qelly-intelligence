@@ -123,6 +123,7 @@ body {
 
 .q-product-brand {
   min-width: 148px !important;
+  min-height: 44px !important;
   display: inline-flex !important;
   align-items: center !important;
   gap: 10px !important;
@@ -167,7 +168,7 @@ body {
 }
 
 .q-product-nav a {
-  min-height: 36px !important;
+  min-height: 44px !important;
   display: inline-flex !important;
   align-items: center !important;
   padding: 0 10px !important;
@@ -215,7 +216,7 @@ body {
 
 .q-product-search input {
   width: 100% !important;
-  height: 38px !important;
+  height: 44px !important;
   padding: 0 12px !important;
   border: 1px solid var(--q-border) !important;
   border-radius: 8px !important;
@@ -230,7 +231,7 @@ body {
 .q-product-search button,
 .q-product-account,
 .q-product-system {
-  min-height: 38px !important;
+  min-height: 44px !important;
   padding: 0 12px !important;
   border: 1px solid var(--q-border) !important;
   border-radius: 8px !important;
@@ -370,6 +371,7 @@ body {
 
 .q-button--primary,
 .q-button.is-primary {
+  min-height: 44px !important;
   border-color: var(--q-accent) !important;
   background: var(--q-accent) !important;
   color: #fff !important;
