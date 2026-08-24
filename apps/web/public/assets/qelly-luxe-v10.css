@@ -93,8 +93,8 @@ html[data-production-system="v8"][data-production-access="true"] body #app .q-sh
   padding-left:0!important;
 }
 
-/* Navigation: a quiet glass command bar. The feature inventory is always a
-   drawer, never a permanent 286px tax on customer content. */
+/* Navigation: a quiet glass command bar. The feature inventory is a persistent
+   dock on wide screens and a focused drawer everywhere else. */
 html[data-production-system="v8"] body #app header.q-product-header{
   min-height:72px!important;
   grid-template-columns:auto auto minmax(260px,1fr) minmax(240px,420px) auto!important;
@@ -123,6 +123,14 @@ html[data-production-system="v8"] .q-product-menu{
   background:color-mix(in srgb,var(--q-surfacealt) 78%,transparent)!important;
   color:var(--q-text)!important;box-shadow:var(--q-luxe-inset)!important;
   font-size:12px!important;font-weight:650!important;
+}
+
+/* The legacy V5.3 shell hides this control with a higher-specificity rule.
+   Keep the launcher visible everywhere because it owns the complete product
+   inventory and is the only navigation entry point on compact layouts. */
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"][data-production-system="v8"]
+body #app .q-product-header .q-product-menu[data-feature-navigation-owner="true"]{
+  display:inline-flex!important;
 }
 
 html[data-production-system="v8"] .q-product-menu>span:first-child{font-size:0}
@@ -268,6 +276,21 @@ html[data-production-system="v8"] body #app #main :where(.q-grid-scroll,.q-table
 html[data-production-system="v8"] body #app #main :where(table,tr,td,th,thead,tbody){border-color:var(--q-divider)!important}
 html[data-production-system="v8"] body #app #main tbody tr:hover{background:color-mix(in srgb,var(--q-accent) 7%,transparent)!important}
 
+/* Controls that read as actions must also behave like actions on touch and
+   keyboard devices. Checkboxes and radios retain their native geometry while
+   their associated labels provide the larger hit area. */
+html[data-production-system="v8"] body #app #main button,
+html[data-production-system="v8"] body #app #main a.q-button,
+html[data-production-system="v8"] body #app #main a.q-mn-link,
+html[data-production-system="v8"] body #app #main [role="button"],
+html[data-production-system="v8"] body #app #main select,
+html[data-production-system="v8"] body #app #main input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+html[data-production-system="v8"] body #app #main textarea{
+  min-height:44px!important;
+}
+html[data-production-system="v8"] body #app #main button,
+html[data-production-system="v8"] body #app #main [role="button"]{min-width:44px!important}
+
 html[data-production-system="v8"] .qelly-tradingview-widget{position:relative}
 html[data-production-system="v8"] [data-external-state="loading"] .qelly-tradingview-widget::before{
   content:"Connecting to TradingView…";position:absolute;inset:0;display:grid;place-items:center;
@@ -275,6 +298,25 @@ html[data-production-system="v8"] [data-external-state="loading"] .qelly-trading
   background:linear-gradient(105deg,#090a0c 28%,#151116 45%,#090a0c 62%);background-size:220% 100%;animation:q-luxe-chart-loading 1.8s linear infinite;
 }
 @keyframes q-luxe-chart-loading{to{background-position:-220% 0}}
+
+/* Wide screens keep the product inventory visible as a quiet dock. It can be
+   collapsed from the header without trapping content beneath the panel. */
+@media(min-width:1381px){
+  html[data-production-system="v8"][data-production-access="false"] .q-feature-navigation,
+  html[data-production-system="v8"][data-production-access="true"] .q-feature-navigation{
+    top:86px!important;left:14px!important;bottom:14px!important;width:344px!important;
+    transform:none!important;
+  }
+  html[data-production-system="v8"][data-production-access="false"] body.q-feature-navigation-collapsed .q-feature-navigation,
+  html[data-production-system="v8"][data-production-access="true"] body.q-feature-navigation-collapsed .q-feature-navigation{
+    transform:translateX(calc(-100% - 28px))!important;
+  }
+  html[data-production-system="v8"] .q-feature-navigation__backdrop{display:none!important}
+  html[data-production-system="v8"][data-production-access="false"] body:not(.q-feature-navigation-collapsed) #app .q-shell #main,
+  html[data-production-system="v8"][data-production-access="true"] body:not(.q-feature-navigation-collapsed) #app .q-shell #main{
+    padding-left:372px!important;
+  }
+}
 
 @media(max-width:1380px){
   html[data-production-system="v8"] body #app header.q-product-header{grid-template-columns:auto auto minmax(0,1fr) minmax(220px,340px) auto!important}
