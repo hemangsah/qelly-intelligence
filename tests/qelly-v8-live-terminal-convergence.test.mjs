@@ -138,7 +138,9 @@ test('ECB ingestion uses daily refresh, history fallback and governed stale pres
 
 test('TradingView display fails visibly without fabricating a chart',async()=>{
   const source=await read('apps/web/public/assets/market/tradingview-display-widget.mjs');
-  assert.match(source,/WIDGET_TIMEOUT_MS=9000/);
+  assert.match(source,/WIDGET_TIMEOUT_MS=30000/);
+  assert.match(source,/new MutationObserver/);
+  assert.match(source,/observer\.disconnect\(\)/);
   assert.match(source,/qelly-tradingview-fallback/);
   assert.match(source,/Qelly has not substituted or fabricated chart values/);
   assert.match(source,/dataset\.externalState='unavailable'/);

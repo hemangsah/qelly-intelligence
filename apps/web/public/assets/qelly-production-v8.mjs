@@ -6,6 +6,7 @@ const root=document.documentElement;
 const main=document.getElementById('main');
 const ROUTE_REPAIR_STYLESHEET=new URL('./qelly-production-v8-route-repairs.css',import.meta.url).href;
 const ROUTE_CONVERGENCE_STYLESHEET=new URL('./qelly-production-v9-route-convergence.css',import.meta.url).href;
+const LUXE_STYLESHEET=new URL('./qelly-luxe-v10.css?v=20260825-luxe1',import.meta.url).href;
 const CUSTOMER_ROUTES=new Set([
   'feature-universe','market','asset-rankings','asset','calculator-center','calculator-detail','india-finance',
   'indicator-library','indicator-detail','formula-library','formula-detail','saved-calculations','qelly-verify','about-qelly',
@@ -38,7 +39,15 @@ function ensureCanonicalStylesheetLast(){
     convergence.dataset.qellyProductionV9RouteConvergence='true';
     document.head.append(convergence);
   }
-  const desiredTail=[canonical,repairs,convergence].filter(Boolean);
+  let luxe=document.querySelector('link[data-qelly-luxe-v10="true"]');
+  if(!luxe){
+    luxe=document.createElement('link');
+    luxe.rel='stylesheet';
+    luxe.href=LUXE_STYLESHEET;
+    luxe.dataset.qellyLuxeV10='true';
+    document.head.append(luxe);
+  }
+  const desiredTail=[canonical,repairs,convergence,luxe].filter(Boolean);
   const currentTail=Array.from(document.head.querySelectorAll('link[rel="stylesheet"]')).slice(-desiredTail.length);
   const alreadyOrdered=desiredTail.length>0&&desiredTail.every((node,index)=>currentTail[index]===node);
   if(!alreadyOrdered)document.head.append(...desiredTail);
