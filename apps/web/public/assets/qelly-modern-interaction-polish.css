@@ -267,6 +267,36 @@ html[data-production-system="v8"] body #app #main :where(.q-mn-status,.q-mi-kpi,
   pointer-events:none;
 }
 
+/* Market-terminal inner surfaces used a compact utility geometry that did not
+   inherit from the card selector. Keep boundary data and display attribution
+   visually distinct, but no longer visually dated. */
+html[data-production-system="v8"] body #app :where(
+  .q-v7-boundary-ribbon,.q-v7-chart-stage,.q-v6-market-tradingview,
+  .qelly-tradingview-fallback,.q-v6-market-boundary
+){
+  border-radius:var(--q-modern-radius-lg)!important;
+  overflow:hidden;
+}
+html[data-production-system="v8"] body #app :where(.q-setting,.q-query-boundary){
+  border-radius:var(--q-modern-radius-md)!important;
+  transition:transform var(--q-modern-fast) var(--q-modern-ease),border-color var(--q-modern-fast) ease,box-shadow var(--q-modern-fast) ease!important;
+}
+html[data-production-system="v8"] body #app :where(.q-v7-evidence-strip,.q-chart-attribution){
+  border-radius:var(--q-modern-radius-sm)!important;
+  background:color-mix(in srgb,var(--q-surfacealt) 86%,transparent)!important;
+}
+html[data-production-system="v8"] body #app .q-product-account{
+  border-radius:999px!important;
+  transition:transform var(--q-modern-fast) var(--q-modern-ease),box-shadow var(--q-modern-fast) ease,background-color var(--q-modern-fast) ease!important;
+}
+@media(hover:hover) and (pointer:fine){
+  html[data-production-system="v8"] body #app :where(.q-setting,.q-query-boundary):hover{
+    transform:translateY(-2px)!important;
+    border-color:color-mix(in srgb,var(--q-accent) 40%,var(--q-border))!important;
+    box-shadow:0 14px 32px color-mix(in srgb,#000 18%,transparent)!important;
+  }
+}
+
 html[data-production-system="v8"].q-is-scrolled body #app header.q-product-header{
   background:color-mix(in srgb,var(--q-chrome) 94%,transparent)!important;
   box-shadow:0 18px 52px color-mix(in srgb,#000 34%,transparent)!important;
