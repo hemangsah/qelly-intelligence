@@ -154,7 +154,7 @@ test('modern production polish is globally loaded, curved, animated and motion-s
     read('apps/web/public/assets/qelly-sovereign-motion.js'),
     read('apps/web/public/prompt2c-sw.js')
   ]);
-  assert.match(index, /qelly-production-v9-route-convergence\.css[\s\S]*qelly-modern-interaction-polish\.css\?v=20260822-modern6/);
+  assert.match(index, /qelly-production-v9-route-convergence\.css[\s\S]*qelly-modern-interaction-polish\.css\?v=20260822-modern7/);
   assert.match(css, /--q-modern-radius-xl:32px/);
   assert.match(css, /header\.q-product-header[\s\S]*border-radius:0 0 var\(--q-modern-radius-lg\)/);
   assert.match(css, /:where\(button:not\(\.q-product-brand__mark\),a\.q-button,\[role="button"\],\[role="tab"\]\)[\s\S]*border-radius:999px!important/);
@@ -174,6 +174,9 @@ test('modern production polish is globally loaded, curved, animated and motion-s
   assert.match(css, /q-v53-lock-shell-nav a:hover[\s\S]*transform:translateX\(3px\)!important/);
   assert.match(css, /q-v7-boundary-ribbon,[\s\S]*q-v6-market-boundary[\s\S]*border-radius:var\(--q-modern-radius-lg\)!important/);
   assert.match(css, /\.q-setting,\.q-query-boundary\)\{[\s\S]*border-radius:var\(--q-modern-radius-md\)!important/);
+  assert.match(css, /Modular designer layer:[\s\S]*radial-gradient\(900px 520px/);
+  assert.match(css, /q-page-head,.q-it-hero,[\s\S]*border-radius:var\(--q-modern-radius-xl\)!important/);
+  assert.match(css, /q-v7-rate-grid,.q-provider-grid,[\s\S]*grid-template-columns:repeat\(auto-fit/);
   assert.match(css, /@media\(prefers-reduced-motion:reduce\)[\s\S]*animation:none!important/);
   assert.match(motion, /'\.q-it-hero'[\s\S]*'\.q-it-provider'/);
   assert.match(motion, /button:not\(\[disabled\]\),a\.q-button,\[role="button"\],\[role="tab"\]/);

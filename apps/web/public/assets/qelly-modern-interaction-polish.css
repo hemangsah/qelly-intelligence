@@ -369,7 +369,85 @@ html[data-production-system="v8"][data-v53-lock-shell="true"] body>.q-v53-lock-s
 html[data-production-system="v8"][data-v53-lock-shell="true"] body>.q-v53-lock-shell-rail .q-v53-lock-shell-brand span:first-child{
   box-shadow:0 0 22px color-mix(in srgb,var(--q-accent) 38%,transparent)!important;
 }
+
+/* Modular designer layer: a restrained color field creates depth without
+   obscuring evidence-heavy screens. Route modules retain their actual data
+   content while receiving a common visual rhythm. */
+html[data-production-system="v8"] body{
+  background:
+    radial-gradient(900px 520px at -6% -12%,color-mix(in srgb,var(--q-accent) 15%,transparent),transparent 68%),
+    radial-gradient(780px 470px at 106% 8%,color-mix(in srgb,#7f9cff 11%,transparent),transparent 68%),
+    var(--q-canvas)!important;
+}
+html[data-production-system="v8"] body #app #main>.q-page{
+  position:relative;
+  isolation:isolate;
+}
+html[data-production-system="v8"] body #app #main>.q-page::before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:0 0 auto;
+  height:min(340px,34vh);
+  pointer-events:none;
+  opacity:.78;
+  background:linear-gradient(128deg,color-mix(in srgb,var(--q-accent) 11%,transparent),transparent 56%);
+  mask-image:linear-gradient(#000,transparent);
+}
+html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero,.q-auth-hero,.q-verify-hero,.q-asset-hero){
+  position:relative;
+  overflow:hidden;
+  border:1px solid color-mix(in srgb,var(--q-accent) 20%,var(--q-border))!important;
+  border-radius:var(--q-modern-radius-xl)!important;
+  padding:clamp(22px,3vw,38px)!important;
+  background:
+    radial-gradient(circle at 93% 8%,color-mix(in srgb,var(--q-accent) 22%,transparent),transparent 38%),
+    linear-gradient(135deg,color-mix(in srgb,var(--q-surface) 91%,transparent),color-mix(in srgb,var(--q-surfacealt) 86%,transparent))!important;
+  box-shadow:0 26px 70px color-mix(in srgb,#000 21%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 13%,transparent)!important;
+}
+html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero,.q-auth-hero,.q-verify-hero,.q-asset-hero)::after{
+  content:"";
+  position:absolute;
+  width:180px;
+  height:180px;
+  right:-68px;
+  bottom:-88px;
+  border:1px solid color-mix(in srgb,var(--q-accent) 35%,transparent);
+  border-radius:50%;
+  box-shadow:0 0 0 32px color-mix(in srgb,var(--q-accent) 5%,transparent),0 0 0 64px color-mix(in srgb,var(--q-accent) 3%,transparent);
+  pointer-events:none;
+}
+html[data-production-system="v8"] body #app #main :where(.q-panel,.q-v7-chart-panel,.q-v7-reference-panel,.q-mn-panel,.q-it-panel,.q-auth-card,.q-access-gate){
+  background:
+    linear-gradient(150deg,color-mix(in srgb,var(--q-surface) 94%,transparent),color-mix(in srgb,var(--q-surfacealt) 88%,transparent))!important;
+  box-shadow:0 18px 50px color-mix(in srgb,#000 19%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 9%,transparent)!important;
+}
+html[data-production-system="v8"] body #app #main :where(.q-panel-head,.q-chart-attribution,.q-v7-evidence-strip){
+  background:linear-gradient(90deg,color-mix(in srgb,var(--q-accent) 7%,var(--q-surfacealt)),transparent)!important;
+}
+html[data-production-system="v8"] body #app #main :where(.q-v7-rate-grid,.q-provider-grid,.q-contract-grid,.q-metric-grid,.q-kpi-grid,.q-mn-status-grid){
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));
+  gap:clamp(10px,1.25vw,18px)!important;
+}
+html[data-production-system="v8"] body #app #main :where(.q-v7-rate-grid>*,.q-provider-grid>*,.q-contract-grid>*,.q-metric-grid>*,.q-kpi-grid>*,.q-mn-status-grid>*){
+  min-width:0;
+  border-radius:var(--q-modern-radius-md)!important;
+}
+html[data-production-system="v8"] body #app #main :where(.q-v7-boundary-ribbon,.q-v6-market-boundary,.q-result-priority,.q-truth-callout){
+  border-color:color-mix(in srgb,var(--q-accent) 27%,var(--q-border))!important;
+  background:linear-gradient(105deg,color-mix(in srgb,var(--q-accent) 10%,var(--q-surface)),color-mix(in srgb,var(--q-surfacealt) 90%,transparent))!important;
+  box-shadow:inset 3px 0 0 color-mix(in srgb,var(--q-accent) 68%,transparent),0 10px 30px color-mix(in srgb,#000 14%,transparent)!important;
+}
+html[data-production-system="v8"] body #app #main :where(.q-button--primary,.q-button-primary,[data-variant="primary"]){
+  background:linear-gradient(135deg,color-mix(in srgb,var(--q-accent) 86%,#fff),var(--q-accent))!important;
+  box-shadow:0 12px 26px color-mix(in srgb,var(--q-accent) 28%,transparent)!important;
+}
 @media(hover:hover) and (pointer:fine){
+  html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero,.q-auth-hero,.q-verify-hero,.q-asset-hero):hover{
+    border-color:color-mix(in srgb,var(--q-accent) 38%,var(--q-border))!important;
+    box-shadow:0 30px 76px color-mix(in srgb,#000 25%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 16%,transparent)!important;
+  }
   html[data-production-system="v8"][data-v53-lock-shell="true"] body>.q-v53-lock-command:hover{
     transform:translateY(-2px)!important;
     border-color:color-mix(in srgb,var(--q-accent) 54%,var(--q-border))!important;
@@ -383,6 +461,7 @@ html[data-production-system="v8"][data-v53-lock-shell="true"] body>.q-v53-lock-s
 }
 
 @media(max-width:768px){
+  html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero,.q-auth-hero,.q-verify-hero,.q-asset-hero){border-radius:var(--q-modern-radius-lg)!important;padding:22px!important}
   html[data-production-system="v8"] body #app header.q-product-header{border-radius:0 0 var(--q-modern-radius-md) var(--q-modern-radius-md)!important}
   html[data-production-system="v8"] #main .q-it-tabs{border-radius:var(--q-modern-radius-md)!important}
   html[data-production-system="v8"] #main :where(.q-panel,.q-it-hero,.q-it-guide,.q-it-panel,.q-auth-card,.q-access-gate){border-radius:var(--q-modern-radius-md)!important}
