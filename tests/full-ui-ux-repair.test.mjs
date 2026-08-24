@@ -193,8 +193,12 @@ test('luxe v10 is the final border-light visual authority and is offline-safe', 
     read('apps/web/public/prompt2c-sw.js')
   ]);
   assert.match(index, /qelly-modern-interaction-polish\.css[\s\S]*qelly-luxe-v10\.css\?v=20260825-luxe1/);
-  assert.match(css, /The feature inventory is always a\s+drawer/);
+  assert.match(css, /feature inventory is a persistent\s+dock on wide screens/);
   assert.match(css, /data-production-access="false"\] \.q-feature-navigation[\s\S]*transform:translateX/);
+  assert.match(css, /data-feature-navigation-owner="true"\][^}]*display:inline-flex!important/);
+  assert.match(css, /@media\(min-width:1381px\)[\s\S]*q-feature-navigation[\s\S]*transform:none!important/);
+  assert.match(css, /q-feature-navigation-collapsed \.q-feature-navigation/);
+  assert.match(css, /body #app #main button,[\s\S]*min-height:44px!important/);
   assert.match(css, /width:min\(100%,1760px\)!important/);
   assert.match(css, /border:0!important;border-radius:22px!important/);
   assert.match(css, /q-v7-market-grid[\s\S]*grid-template-columns:minmax\(0,1fr\) minmax\(280px,340px\)/);
@@ -202,6 +206,8 @@ test('luxe v10 is the final border-light visual authority and is offline-safe', 
   assert.match(runtime, /dataset\.luxeUi='v10'/);
   const convergenceRuntime=await read('apps/web/public/assets/qelly-production-v8.mjs');
   assert.match(convergenceRuntime, /const desiredTail=\[canonical,repairs,convergence,luxe\]/);
+  assert.match(convergenceRuntime, /matchMedia\('\(min-width:1381px\)'\)\.matches/);
+  assert.match(convergenceRuntime, /q-feature-navigation-collapsed/);
   assert.match(worker, /qelly-luxe-v10\.css/);
   assert.match(worker, /qelly-luxe-v10\.mjs/);
   assert.match(worker, /fallback-v4/);

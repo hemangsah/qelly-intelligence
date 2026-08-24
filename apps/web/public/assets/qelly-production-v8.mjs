@@ -80,10 +80,21 @@ function featureNavigationMarkup(){
   return `<div class="q-feature-navigation__backdrop" data-feature-navigation-close></div><aside id="q-feature-navigation" class="q-feature-navigation" aria-label="All Qelly features"><header><div><p>Product navigation</p><h2>All features</h2></div><button type="button" data-feature-navigation-close aria-label="Close feature menu">×</button></header><label class="q-feature-navigation__search"><span class="q-visually-hidden">Filter Qelly features</span><input type="search" inputmode="search" autocomplete="off" placeholder="Filter ${FEATURE_ROUTES.length} features" aria-controls="q-feature-navigation-list"></label><p class="q-feature-navigation__status" aria-live="polite">${FEATURE_ROUTES.length} features</p><nav id="q-feature-navigation-list" aria-label="Feature routes"><a class="q-feature-navigation__universe" href="#/feature-universe" data-feature-route="feature-universe"><strong>Feature Universe</strong><small>Visual overview of every product domain</small></a>${groups}</nav></aside>`;
 }
 
+function setFeatureNavigationButtonState(button,expanded){
+  if(!button)return;
+  button.setAttribute('aria-expanded',String(expanded));
+  button.setAttribute('aria-label',`${expanded?'Hide':'Show'} all Qelly features`);
+}
+
 function closeFeatureNavigation({restoreFocus=false}={}){
-  document.body.classList.remove('q-feature-navigation-open');
+  if(matchMedia('(min-width:1381px)').matches){
+    document.body.classList.add('q-feature-navigation-collapsed');
+  }else{
+    document.body.classList.remove('q-feature-navigation-open');
+    document.body.classList.remove('q-feature-navigation-collapsed');
+  }
   const button=document.querySelector('.q-product-menu[data-feature-navigation-owner="true"]');
-  button?.setAttribute('aria-expanded','false');
+  setFeatureNavigationButtonState(button,false);
   if(restoreFocus)button?.focus();
 }
 
@@ -126,9 +137,24 @@ function ensureFeatureNavigation(){
       const status=drawer.querySelector('.q-feature-navigation__status');
       if(status)status.textContent=`${visibleCount} feature${visibleCount===1?'':'s'} shown`;
     });
-    drawer?.addEventListener('click',(event)=>{if(event.target.closest('[data-feature-route]'))closeFeatureNavigation();});
+    drawer?.addEventListener('click',(event)=>{
+      if(event.target.closest('[data-feature-route]')&&!matchMedia('(min-width:1381px)').matches)closeFeatureNavigation();
+    });
     document.querySelectorAll('[data-feature-navigation-close]').forEach((button)=>button.addEventListener('click',()=>closeFeatureNavigation({restoreFocus:true})));
-    document.addEventListener('keydown',(event)=>{if(event.key==='Escape'&&document.body.classList.contains('q-feature-navigation-open'))closeFeatureNavigation({restoreFocus:true});});
+    document.addEventListener('keydown',(event)=>{
+      const persistentOpen=matchMedia('(min-width:1381px)').matches&&!document.body.classList.contains('q-feature-navigation-collapsed');
+      if(event.key==='Escape'&&(document.body.classList.contains('q-feature-navigation-open')||persistentOpen))closeFeatureNavigation({restoreFocus:true});
+    });
+    window.addEventListener('resize',()=>{
+      const persistent=matchMedia('(min-width:1381px)').matches;
+      if(persistent)document.body.classList.remove('q-feature-navigation-open');
+      else document.body.classList.remove('q-feature-navigation-collapsed');
+      const owner=document.querySelector('.q-product-menu[data-feature-navigation-owner="true"]');
+      const expanded=persistent
+        ? !document.body.classList.contains('q-feature-navigation-collapsed')
+        : document.body.classList.contains('q-feature-navigation-open');
+      setFeatureNavigationButtonState(owner,expanded);
+    });
   }
   const originalButton=document.querySelector('.q-product-menu:not([data-feature-navigation-owner="true"])');
   if(originalButton){
@@ -136,14 +162,22 @@ function ensureFeatureNavigation(){
     originalButton.replaceWith(button);
     button.dataset.featureNavigationOwner='true';
     button.setAttribute('aria-controls','q-feature-navigation');
-    button.setAttribute('aria-label','Open all Qelly features');
     button.addEventListener('click',()=>{
-      const open=!document.body.classList.contains('q-feature-navigation-open');
-      document.body.classList.toggle('q-feature-navigation-open',open);
-      button.setAttribute('aria-expanded',String(open));
+      const persistent=matchMedia('(min-width:1381px)').matches;
+      const open=persistent
+        ? document.body.classList.toggle('q-feature-navigation-collapsed')===false
+        : !document.body.classList.contains('q-feature-navigation-open');
+      if(!persistent)document.body.classList.toggle('q-feature-navigation-open',open);
+      setFeatureNavigationButtonState(button,open);
       if(open)drawer?.querySelector('input[type="search"]')?.focus();
     });
   }
+  const owner=document.querySelector('.q-product-menu[data-feature-navigation-owner="true"]');
+  const persistent=matchMedia('(min-width:1381px)').matches;
+  const expanded=persistent
+    ? !document.body.classList.contains('q-feature-navigation-collapsed')
+    : document.body.classList.contains('q-feature-navigation-open');
+  setFeatureNavigationButtonState(owner,expanded);
   syncFeatureNavigation();
 }
 
