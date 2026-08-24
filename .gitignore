@@ -28,6 +28,7 @@ backups/
 .tmp/
 .cache/
 .vercel/
+.wrangler/
 .ui-review/
 
 # Private key and certificate containers must be injected at runtime.

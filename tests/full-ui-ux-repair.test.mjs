@@ -184,3 +184,25 @@ test('modern production polish is globally loaded, curved, animated and motion-s
   assert.match(motion, /\.q-mn-card[\s\S]*\.q-v7-provider-card[\s\S]*\.q-mi-kpi/);
   assert.match(worker, /qelly-modern-interaction-polish\.css/);
 });
+
+test('luxe v10 is the final border-light visual authority and is offline-safe', async () => {
+  const [index, css, runtime, worker] = await Promise.all([
+    read('apps/web/public/index.html'),
+    read('apps/web/public/assets/qelly-luxe-v10.css'),
+    read('apps/web/public/assets/qelly-luxe-v10.mjs'),
+    read('apps/web/public/prompt2c-sw.js')
+  ]);
+  assert.match(index, /qelly-modern-interaction-polish\.css[\s\S]*qelly-luxe-v10\.css\?v=20260825-luxe1/);
+  assert.match(css, /The feature inventory is always a\s+drawer/);
+  assert.match(css, /data-production-access="false"\] \.q-feature-navigation[\s\S]*transform:translateX/);
+  assert.match(css, /width:min\(100%,1760px\)!important/);
+  assert.match(css, /border:0!important;border-radius:22px!important/);
+  assert.match(css, /q-v7-market-grid[\s\S]*grid-template-columns:minmax\(0,1fr\) minmax\(280px,340px\)/);
+  assert.match(index, /qelly-production-v8\.mjs[\s\S]*qelly-luxe-v10\.mjs/);
+  assert.match(runtime, /dataset\.luxeUi='v10'/);
+  const convergenceRuntime=await read('apps/web/public/assets/qelly-production-v8.mjs');
+  assert.match(convergenceRuntime, /const desiredTail=\[canonical,repairs,convergence,luxe\]/);
+  assert.match(worker, /qelly-luxe-v10\.css/);
+  assert.match(worker, /qelly-luxe-v10\.mjs/);
+  assert.match(worker, /fallback-v4/);
+});

@@ -1,6 +1,6 @@
 const WIDGET_SRC='https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
 const DISPLAY_BOUNDARY='External TradingView display only. Qelly does not read, scrape, transform, persist or use widget values for calculations, risk, alerts or decisions.';
-const WIDGET_TIMEOUT_MS=9000;
+const WIDGET_TIMEOUT_MS=30000;
 
 const SYMBOL_MAP=Object.freeze({
   BTCUSDT:'BINANCE:BTCUSDT',
@@ -114,14 +114,22 @@ export function mountTradingViewDisplay(container,{symbol='BTCUSDT',interval='1h
       if(settleReady())clearTimeout(timer);
     }));
   },{once:true});
+  const observer=new MutationObserver(()=>{
+    if(settleReady()){
+      clearTimeout(timer);
+      observer.disconnect();
+    }
+  });
+  observer.observe(host,{childList:true,subtree:true});
   script.addEventListener('error',()=>{
     if(settled)return;
     settled=true;
     clearTimeout(timer);
+    observer.disconnect();
     renderFallback(container,{symbol,reason:'load-error'});
   },{once:true});
 
-  return {provider:'TradingView',usage:'display-only',boundary:DISPLAY_BOUNDARY,symbol:tradingViewSymbol(symbol),interval:tradingViewInterval(interval),destroy(){settled=true;clearTimeout(timer);container.replaceChildren();delete container.dataset.externalState;}};
+  return {provider:'TradingView',usage:'display-only',boundary:DISPLAY_BOUNDARY,symbol:tradingViewSymbol(symbol),interval:tradingViewInterval(interval),destroy(){settled=true;clearTimeout(timer);observer.disconnect();container.replaceChildren();delete container.dataset.externalState;}};
 }
 
 export const __tradingViewDisplayTest=Object.freeze({SYMBOL_MAP,INTERVAL_MAP,DISPLAY_BOUNDARY,WIDGET_SRC,WIDGET_TIMEOUT_MS,externalChartUrl});
