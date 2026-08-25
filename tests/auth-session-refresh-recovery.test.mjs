@@ -15,6 +15,11 @@ const baseEnv=(fetchImpl)=>({
 });
 const staleRefreshRequest=()=>new Request('https://qelly.test/api/v1/config',{headers:{cookie:'qelly_sb_refresh=stale-refresh-token'}});
 const staleAccessRequest=()=>new Request('https://qelly.test/api/v1/config',{headers:{cookie:'qelly_sb_access=stale-access-token; qelly_csrf=stale-csrf'}});
+const providerRejectedAccess=()=>{
+  const claims={iss:'https://project.supabase.co/auth/v1',aud:'authenticated',sub:'933c72c3-852e-4c30-97ea-9b3e21bd9e87',exp:Math.floor(Date.now()/1000)+3600};
+  const token=`header.${Buffer.from(JSON.stringify(claims)).toString('base64url')}.signature`;
+  return new Request('https://qelly.test/api/v1/config',{headers:{cookie:`qelly_sb_access=${token}; qelly_csrf=stale-csrf`}});
+};
 
 test('invalid stored refresh token clears local auth cookies and resolves anonymous when auth is optional',async()=>{
   const request=staleRefreshRequest();
@@ -52,6 +57,28 @@ test('invalid access-only session clears stale access and csrf cookies instead o
   assert.match(cookies,/qelly_sb_refresh=/);
   assert.match(cookies,/qelly_csrf=/);
   assert.match(cookies,/Max-Age=0/);
+});
+
+test('Supabase missing session_id record is recovered as a stale browser session',async()=>{
+  const request=providerRejectedAccess();
+  const env=baseEnv(async()=>new Response(JSON.stringify({code:'session_not_found',message:'Session from session_id claim in JWT does not exist'}),{status:403,headers:{'content-type':'application/json'}}));
+  const session=await resolveSession(request,env);
+  assert.equal(session,null);
+  const response=responseJson(request,env,{ok:true});
+  const cookies=response.headers.get('set-cookie')||'';
+  assert.match(cookies,/qelly_sb_access=/);
+  assert.match(cookies,/qelly_sb_refresh=/);
+  assert.match(cookies,/qelly_csrf=/);
+  assert.match(cookies,/Max-Age=0/);
+});
+
+test('Supabase missing session_id during refresh clears cookies instead of crashing bootstrap',async()=>{
+  const request=staleRefreshRequest();
+  const env=baseEnv(async()=>new Response(JSON.stringify({code:'session_not_found',message:'Session from session_id claim in JWT does not exist'}),{status:403,headers:{'content-type':'application/json'}}));
+  const session=await resolveSession(request,env);
+  assert.equal(session,null);
+  const response=responseJson(request,env,{ok:true});
+  assert.match(response.headers.get('set-cookie')||'',/Max-Age=0/);
 });
 
 test('retryable Supabase refresh failures remain fail-closed and do not discard the browser session',async()=>{
