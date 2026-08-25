@@ -394,4 +394,7 @@ document.addEventListener('qelly:session-state',(event)=>{
 if(main)new MutationObserver(()=>schedule(main)).observe(main,{childList:true,subtree:true});
 new MutationObserver(()=>schedule(document)).observe(document.querySelector('#app')||document.body,{childList:true,subtree:true});
 new MutationObserver(()=>schedule(document)).observe(document.head,{childList:true});
+if(window.__QELLY_SESSION_STATE__?.authenticated===true&&matchMedia('(min-width:1241px)').matches){
+  document.body.classList.remove('q-feature-navigation-collapsed');
+}
 refresh();

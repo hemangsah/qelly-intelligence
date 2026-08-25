@@ -3,7 +3,6 @@ const initialHash=location.hash;
 let releaseIdentity={releaseSha:config.releaseSha||'unresolved',workflowRun:null,deployedAt:null,mode:config.deploymentStage||'unknown'};
 let rendering=false;
 let sessionState={authenticated:false,sync:'off'};
-let sessionStateRevision=0;
 
 const escapeHtml=(value)=>String(value??'').replace(/[&<>'"]/g,(character)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
 const routeFromHash=()=>location.hash.replace(/^#\/?/,'').split('?')[0].split('/')[0]||'market';
@@ -51,18 +50,9 @@ function updateHeaderRoute(){
   document.querySelectorAll('[data-product-route]').forEach((element)=>{const current=element.dataset.productRoute===route;element.classList.toggle('is-active',current);if(element.tagName==='A')element.setAttribute('aria-current',current?'page':'false');});
 }
 
-async function loadSessionState(){
-  const revision=sessionStateRevision;
-  try{
-    const runtime=await requestJson('/api/v1/config');
-    if(revision!==sessionStateRevision)return;
-    sessionState.authenticated=runtime?.auth?.authenticated===true;
-    sessionState.sync=sessionState.authenticated?'off':'unavailable';
-  }catch{
-    if(revision!==sessionStateRevision)return;
-    sessionState.authenticated=false;
-    sessionState.sync='unavailable';
-  }
+function applySessionState(detail){
+  sessionState.authenticated=detail?.authenticated===true;
+  sessionState.sync=sessionState.authenticated?'available':'unavailable';
   buildProductHeader();
 }
 
@@ -163,13 +153,10 @@ async function registerServiceWorker(){if(!('serviceWorker'in navigator)||locati
 
 function install(){
   if(!initialHash||initialHash==='#/'||initialHash==='#')location.hash='#/market';
-  document.addEventListener('qelly:session-state',(event)=>{
-    sessionStateRevision+=1;
-    sessionState.authenticated=event.detail?.authenticated===true;
-    sessionState.sync=sessionState.authenticated?'available':'unavailable';
-    buildProductHeader();
-  });
-  buildProductHeader();loadSessionState();loadReleaseIdentity();registerServiceWorker();
+  document.addEventListener('qelly:session-state',(event)=>applySessionState(event.detail));
+  const initialSessionState=window.__QELLY_SESSION_STATE__;
+  if(initialSessionState)applySessionState(initialSessionState);else buildProductHeader();
+  loadReleaseIdentity();registerServiceWorker();
   window.addEventListener('hashchange',()=>{updateHeaderRoute();setTimeout(enhanceCurrentRoute,0);});
   // Connectivity changes may refresh shell state, but route rendering remains
   // exclusively owned by app.js. Calling the retired beta homepage here raced
