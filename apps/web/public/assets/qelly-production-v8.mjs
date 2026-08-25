@@ -244,9 +244,13 @@ function simplifyHeader(){
   const system=header.querySelector('.q-product-system span:last-child');
   if(system&&!system.closest('[data-v8-appearance]'))system.textContent='Data status';
   const account=header.querySelector('.q-product-account');
-  if(account&&account.getAttribute('href')?.includes('auth-login')){
-    account.innerHTML='<span aria-hidden="true">●</span><span>Sign in</span>';
-    account.setAttribute('aria-label','Sign in to Qelly');
+  if(account){
+    const authenticated=window.__QELLY_SESSION_STATE__?.authenticated===true;
+    account.setAttribute('href',authenticated?'#/account-session':'#/auth-login');
+    account.innerHTML=authenticated
+      ?'<span aria-hidden="true">QI</span><span>Account</span>'
+      :'<span aria-hidden="true">●</span><span>Sign in</span>';
+    account.setAttribute('aria-label',authenticated?'Open Qelly account':'Sign in to Qelly');
   }
   const actions=header.querySelector('.q-product-actions');
   if(actions&&!actions.querySelector('[data-v8-appearance]')){

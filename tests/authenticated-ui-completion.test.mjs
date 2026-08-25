@@ -50,4 +50,6 @@ test('successful authentication restores the persistent desktop feature dock',as
   assert.match(runtime,/event\.detail\?\.authenticated===true&&matchMedia\('\(min-width:1241px\)'\)\.matches/);
   assert.match(runtime,/document\.body\.classList\.remove\('q-feature-navigation-collapsed'\)/);
   assert.match(runtime,/window\.__QELLY_SESSION_STATE__\?\.authenticated===true/);
+  assert.match(runtime,/account\.setAttribute\('href',authenticated\?'#\/account-session':'#\/auth-login'\)/);
+  assert.match(runtime,/authenticated\?'Open Qelly account':'Sign in to Qelly'/);
 });
