@@ -49,10 +49,11 @@ test('V6 account workspace persists real profile fields and fails closed on clou
   assert.doesNotMatch(source,/profileCapabilities\.cloudSync!==false/);
   assert.match(source,/data-cloud-sync-state=/);
   assert.match(source,/if\(cloudSyncAvailable\)payload\.cloudSyncOptIn=/);
-  assert.match(source,/Any stored opt-in is retained but inactive/);
-  assert.match(source,/MFA \/ TOTP/);
-  assert.match(source,/Remote session control/);
-  assert.match(source,/UNAVAILABLE/);
+  assert.match(source,/profile changes are still saved securely/);
+  assert.match(source,/Multi-factor authentication/);
+  assert.match(source,/Other devices/);
+  assert.match(source,/Coming soon/);
+  assert.doesNotMatch(source,/engineering debt|Privacy version|Terms version|Workspace ID|User ID|SUPABASE|RLS profile/i);
   assert.doesNotMatch(source,/enableMfa|registerPasskey|remoteRevoke/);
 });
 

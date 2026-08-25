@@ -1,4 +1,5 @@
 import {mountTradingViewDisplay} from '../market/tradingview-display-widget.mjs';
+import {providerAvailability,providerPolicyMessage,truthLabel} from '../customer-copy.mjs';
 
 const EXTERNAL_SYMBOLS=Object.freeze([
   ['BTCUSDT','BTC / USDT'],
@@ -14,11 +15,10 @@ const date=(value)=>{const parsed=new Date(value||'');return Number.isNaN(parsed
 const value=(input)=>input==null||input===''?'—':new Intl.NumberFormat('en-IN',{maximumFractionDigits:6}).format(Number(input));
 
 function providerCard(provider,escapeHtml){
-  const active=Boolean(provider.enabled);
-  const reference=provider.id==='ecb';
+  const availability=providerAvailability(provider);
   return `<article class="q-v7-provider-card" data-provider="${escapeHtml(provider.id)}">
-    <div><strong>${escapeHtml(String(provider.id||'provider').toUpperCase())}</strong><span class="q-status q-status--${active?(reference?'delayed':'live'):'unavailable'}">${active?(reference?'DELAYED REFERENCE':'AUTHORIZED'):'UNAVAILABLE'}</span></div>
-    <p>${escapeHtml(provider.termsState||provider.reason||'Provider policy state unavailable')}</p>
+    <div><strong>${escapeHtml(String(provider.id||'provider').toUpperCase())}</strong><span class="q-status q-status--${availability.tone}">${escapeHtml(availability.label)}</span></div>
+    <p>${escapeHtml(providerPolicyMessage(provider))}</p>
     ${provider.termsUrl?`<a href="${escapeHtml(provider.termsUrl)}" target="_blank" rel="noopener noreferrer nofollow">Provider terms ↗</a>`:''}
   </article>`;
 }
@@ -50,7 +50,7 @@ export async function renderMarketV6(main,deps){
   const ecbTruth=String(ecb?.truthState||'unavailable').toUpperCase();
 
   main.innerHTML=`<section class="q-page q-market-home q-v7-public-market" data-market-runtime="v7-public-no-fabrication" data-qelly-v7-public-market="true">
-    ${pageHead('Qelly Intelligence · Market Command','Governed Market Terminal','External market visualization, provider-rights evidence and approved reference observations are separate trust domains. Public routes never call private workspace APIs and never manufacture missing prices.',`<a class="q-button q-button--secondary" href="https://www.tradingview.com/markets/" target="_blank" rel="noopener noreferrer nofollow">TradingView Markets ↗</a><a class="q-button q-button--primary" href="#/auth-login">Open authenticated terminal</a>`)}${stateBanner()}
+    ${pageHead('Qelly Intelligence · Market Command','Governed Market Terminal','Explore live external charts and approved reference observations with clear source boundaries. Missing market data is never replaced with invented values.',`<a class="q-button q-button--secondary" href="https://www.tradingview.com/markets/" target="_blank" rel="noopener noreferrer nofollow">TradingView Markets ↗</a><a class="q-button q-button--primary" href="#/research-workspace">Open research workspace</a>`)}${stateBanner()}
 
     <section class="q-v7-boundary-ribbon" aria-label="Market truth boundary">
       <div><span>Internal crypto feeds</span><strong>${authorizedMarketProviders.length}</strong><small>${authorizedMarketProviders.length?'Rights-authorized provider available':'No rights-authorized crypto feed'}</small></div>
@@ -75,7 +75,7 @@ export async function renderMarketV6(main,deps){
       </aside>
     </div>
 
-    <section class="q-panel q-v7-reference-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Approved governed observations</p><h2>ECB euro reference rates</h2><p>Real provider observations with source cadence and observation time retained. Reference rates are not executable quotes.</p></div><span class="q-status q-status--${tone(ecb?.truthState)}">${escapeHtml(ecbTruth)}</span></div><div class="q-panel-body"><div class="q-v7-rate-grid">${governedRates(ecb,escapeHtml)}</div><div class="q-v7-evidence-strip"><span>Source: European Central Bank</span><span>Observed: ${escapeHtml(date(ecbObservedAt))}</span><span>Ingested: ${escapeHtml(date(ecbIngestedAt))}</span><span>Execution: disabled</span></div></div></section>
+    <section class="q-panel q-v7-reference-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Approved reference observations</p><h2>ECB euro reference rates</h2><p>Source timing is preserved. Reference rates are informational and are not tradable quotes.</p></div><span class="q-status q-status--${tone(ecb?.truthState)}">${escapeHtml(truthLabel(ecbTruth))}</span></div><div class="q-panel-body"><div class="q-v7-rate-grid">${governedRates(ecb,escapeHtml)}</div><div class="q-v7-evidence-strip"><span>Source: European Central Bank</span><span>Observed: ${escapeHtml(date(ecbObservedAt))}</span><span>Updated: ${escapeHtml(date(ecbIngestedAt))}</span><span>Research only</span></div></div></section>
 
     <section class="q-panel"><div class="q-panel-head"><div><h2>Production boundary</h2><p>The public market route uses only anonymous/public contracts. Private data-plane and workspace APIs are requested only after authentication.</p></div><span class="q-status q-status--live">PUBLIC SAFE</span></div><div class="q-panel-body"><div class="q-v6-market-boundary"><span class="q-status q-status--unavailable">NO FALLBACK FABRICATION</span><p>${escapeHtml(overview.reason||'If an internal provider is unavailable or rights-blocked, Qelly exposes that state directly.')}</p></div></div></section>
   </section>`;

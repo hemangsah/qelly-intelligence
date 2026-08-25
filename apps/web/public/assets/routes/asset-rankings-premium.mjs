@@ -1,4 +1,5 @@
 import {icon} from '../icon-registry.mjs';
+import {providerAvailability,providerPolicyMessage} from '../customer-copy.mjs';
 
 const apiBase=()=>String(window.__QELLY_CONFIG__?.apiBaseUrl||'').replace(/\/$/,'');
 const apiUrl=(path)=>apiBase()?new URL(path,`${apiBase()}/`).toString():path;
@@ -15,7 +16,7 @@ async function publicJson(path){
 
 function providerMatrix(providers,escapeHtml){
   if(!providers.length)return '<div class="q-empty-state"><strong>Provider policy unavailable</strong><p>The public provider registry did not return a governed status.</p></div>';
-  return providers.map(provider=>`<article class="q-mi-intelligence-module"><header><div><p>${escapeHtml(String(provider.id||'provider').toUpperCase())}</p><h2>${provider.enabled?'Authorized reference source':'Ranking feed unavailable'}</h2></div><span>${provider.enabled?'ACTIVE':'BLOCKED'}</span></header><dl class="q-mi-evidence-grid"><div><dt>Terms</dt><dd>${escapeHtml(provider.termsState||'not supplied')}</dd></div><div><dt>Reason</dt><dd>${escapeHtml(provider.reason||'No blocking reason')}</dd></div></dl>${provider.termsUrl?`<a class="q-button q-button--ghost" href="${escapeHtml(provider.termsUrl)}" target="_blank" rel="noopener noreferrer nofollow">Provider policy ↗</a>`:''}</article>`).join('');
+  return providers.map(provider=>{const availability=providerAvailability(provider);return `<article class="q-mi-intelligence-module"><header><div><p>${escapeHtml(String(provider.id||'provider').toUpperCase())}</p><h2>${provider.enabled?'Approved reference source':'Ranking coverage pending'}</h2></div><span class="q-status q-status--${availability.tone}">${escapeHtml(availability.label)}</span></header><p>${escapeHtml(providerPolicyMessage(provider))}</p>${provider.termsUrl?`<a class="q-button q-button--ghost" href="${escapeHtml(provider.termsUrl)}" target="_blank" rel="noopener noreferrer nofollow">View provider terms ↗</a>`:''}</article>`;}).join('');
 }
 
 function referenceRows(ecb,escapeHtml){
@@ -52,7 +53,7 @@ export async function renderAssetRankings(main,{escapeHtml,navigate,toast}){
     </section>
 
     <div class="q-mi-analytical-grid">
-      <section class="q-mi-intelligence-module"><header><div><p>Asset ranking engine</p><h2>${authorizedRankProviders.length?'Provider-backed ranking inputs available':'Ranking observations unavailable'}</h2></div><span>${authorizedRankProviders.length?'READY':'UNAVAILABLE'}</span></header><div class="q-empty-state"><strong>${authorizedRankProviders.length?'Ranking methodology requires implementation against the authorized feed.':'No crypto ranking values are displayed.'}</strong><p>${escapeHtml(overview.reason||'Qelly will not rank assets from generated prices, volumes, open interest, funding or liquidation values.')}</p></div><div class="q-external-research-actions"><a class="q-button q-button--secondary" href="https://www.tradingview.com/markets/" target="_blank" rel="noopener noreferrer nofollow">TradingView market overview ↗</a><a class="q-button q-button--secondary" href="https://www.cmegroup.com/markets.html" target="_blank" rel="noopener noreferrer nofollow">CME markets ↗</a></div></section>
+      <section class="q-mi-intelligence-module"><header><div><p>Asset ranking coverage</p><h2>${authorizedRankProviders.length?'Provider-backed ranking inputs available':'Rankings are being connected'}</h2></div><span class="q-status q-status--${authorizedRankProviders.length?'live':'cached'}">${authorizedRankProviders.length?'Available':'Coverage pending'}</span></header><div class="q-empty-state"><strong>${authorizedRankProviders.length?'Ranking methodology is ready for the approved feed.':'Explore verified market sources while coverage is prepared.'}</strong><p>Qelly will publish rankings only after the required market-data permissions and source checks are complete.</p></div><div class="q-external-research-actions"><a class="q-button q-button--primary" href="#/research-workspace">Open research workspace</a><a class="q-button q-button--secondary" href="https://www.tradingview.com/markets/" target="_blank" rel="noopener noreferrer nofollow">TradingView market overview ↗</a><a class="q-button q-button--secondary" href="https://www.cmegroup.com/markets.html" target="_blank" rel="noopener noreferrer nofollow">CME markets ↗</a></div></section>
       <aside class="q-mi-side-stack">${providerMatrix(providers,escapeHtml)}</aside>
     </div>
 

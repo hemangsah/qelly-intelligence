@@ -62,7 +62,8 @@ test('Cloudflare watchlist implementation uses authenticated user-token RLS and 
   assert.match(nestedRoute,/requireOrigin\(request,env\)/);
   assert.match(ui,/data-watchlist-persistence="CLOUD RLS"/);
   assert.match(ui,/data-watchlist-quote-truth="UNAVAILABLE"/);
-  assert.match(ui,/does not substitute deterministic fixture prices/i);
+  assert.match(ui,/Prices and daily changes will appear only when an approved market-data source is connected/i);
+  assert.match(ui,/SECURE CLOUD/);
   assert.doesNotMatch(ui,/local JSON|Watchlist created locally|fixture quotes/i);
   assert.equal(matchUnavailableCapability('workspace/watchlists'),null);
 });
