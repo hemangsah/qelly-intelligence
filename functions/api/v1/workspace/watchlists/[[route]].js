@@ -1,7 +1,9 @@
 import {bootstrapContext,correlationId,enforceRateLimit,errorResponse,requireOrigin,resolveSession} from '../../../../_lib/runtime.js';
-import {handleWatchlistNested} from '../../../../_lib/watchlists.js';
+import {handleWatchlistNested,handleWatchlistRoot} from '../../../../_lib/watchlists.js';
 
 const routePath=(context)=>{
+  const pathname=new URL(context.request?.url||'https://qelly.invalid/').pathname;
+  if(/^\/api\/v1\/workspace\/watchlists\/?$/.test(pathname))return '';
   const value=context.params?.route;
   return (Array.isArray(value)?value.join('/'):String(value||'')).replace(/^\/+|\/+$/g,'');
 };
@@ -18,7 +20,9 @@ export async function onRequest(context){
     const session=await resolveSession(request,env,{required:true});
     await enforceRateLimit(env,`watchlists:${session.user.id}:${relative||'nested'}`,{limit:120});
     const qelly=await bootstrapContext(env,session);
-    response=await handleWatchlistNested(context,relative,method,session,qelly);
+    response=relative
+      ?await handleWatchlistNested(context,relative,method,session,qelly)
+      :await handleWatchlistRoot(context,method,session,qelly);
     if(response)return response;
     return context.next();
   }catch(error){

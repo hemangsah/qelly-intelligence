@@ -21,6 +21,9 @@ test('authenticated session state synchronizes the production account header',as
   assert.match(app,/publishSessionState\(\);/);
   assert.match(product,/addEventListener\('qelly:session-state'/);
   assert.match(product,/sessionState\.authenticated=event\.detail\?\.authenticated===true/);
+  assert.match(product,/let sessionStateRevision=0;/);
+  assert.match(product,/if\(revision!==sessionStateRevision\)return;/);
+  assert.match(product,/sessionStateRevision\+=1;/);
 });
 
 test('unavailable backend capabilities render a truthful professional workspace boundary',async()=>{

@@ -13,6 +13,8 @@ test('release identity sync accepts only internal scheduler calls and the canoni
   assert.match(source,/cloudflare-pages-public-runtime/);
   assert.match(source,/CANONICAL_SITE_IDENTITY_MISMATCH/);
   assert.match(source,/qelly_release_identity/);
+  assert.match(source,/searchParams\.set\("verify",crypto\.randomUUID\(\)\)/);
+  assert.match(source,/"cache-control":"no-cache"/);
   assert.doesNotMatch(source,/admin\.auth\.getUser/);
   assert.doesNotMatch(source,/authorization.*Bearer/i);
 });
