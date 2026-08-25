@@ -1,12 +1,12 @@
-/* Qelly Production V8 — customer-facing convergence runtime. */
+/* Qelly production shell — customer-facing convergence runtime. */
 
 import { productDomains, routeDefinitions } from './route-registry.mjs';
 
 const root=document.documentElement;
 const main=document.getElementById('main');
-const ROUTE_REPAIR_STYLESHEET=new URL('./qelly-production-v8-route-repairs.css',import.meta.url).href;
-const ROUTE_CONVERGENCE_STYLESHEET=new URL('./qelly-production-v9-route-convergence.css',import.meta.url).href;
-const LUXE_STYLESHEET=new URL('./qelly-luxe-v10.css?v=20260825-luxe1',import.meta.url).href;
+const ROUTE_REPAIR_STYLESHEET=new URL('./qelly-route-repairs.css',import.meta.url).href;
+const ROUTE_CONVERGENCE_STYLESHEET=new URL('./qelly-route-convergence.css',import.meta.url).href;
+const PREMIUM_THEME_STYLESHEET=new URL('./qelly-premium-theme.css?v=20260825-premium1',import.meta.url).href;
 const CUSTOMER_ROUTES=new Set([
   'feature-universe','market','asset-rankings','asset','calculator-center','calculator-detail','india-finance',
   'indicator-library','indicator-detail','formula-library','formula-detail','saved-calculations','qelly-verify','about-qelly',
@@ -22,32 +22,32 @@ const ADMIN_ROUTES=new Set([
 const FEATURE_ROUTES=routeDefinitions.filter((route)=>!route.hidden);
 
 function ensureCanonicalStylesheetLast(){
-  const canonical=document.querySelector('link[href$="qelly-production-v8.css"]');
-  let repairs=document.querySelector('link[data-qelly-production-v8-route-repairs="true"]');
+  const canonical=document.querySelector('link[href$="qelly-production-shell.css"]');
+  let repairs=document.querySelector('link[data-qelly-route-repairs="true"]');
   if(!repairs){
     repairs=document.createElement('link');
     repairs.rel='stylesheet';
     repairs.href=ROUTE_REPAIR_STYLESHEET;
-    repairs.dataset.qellyProductionV8RouteRepairs='true';
+    repairs.dataset.qellyRouteRepairs='true';
     document.head.append(repairs);
   }
-  let convergence=document.querySelector('link[data-qelly-production-v9-route-convergence="true"]');
+  let convergence=document.querySelector('link[data-qelly-route-convergence="true"]');
   if(!convergence){
     convergence=document.createElement('link');
     convergence.rel='stylesheet';
     convergence.href=ROUTE_CONVERGENCE_STYLESHEET;
-    convergence.dataset.qellyProductionV9RouteConvergence='true';
+    convergence.dataset.qellyRouteConvergence='true';
     document.head.append(convergence);
   }
-  let luxe=document.querySelector('link[data-qelly-luxe-v10="true"]');
-  if(!luxe){
-    luxe=document.createElement('link');
-    luxe.rel='stylesheet';
-    luxe.href=LUXE_STYLESHEET;
-    luxe.dataset.qellyLuxeV10='true';
-    document.head.append(luxe);
+  let premiumTheme=document.querySelector('link[data-qelly-premium-theme="true"]');
+  if(!premiumTheme){
+    premiumTheme=document.createElement('link');
+    premiumTheme.rel='stylesheet';
+    premiumTheme.href=PREMIUM_THEME_STYLESHEET;
+    premiumTheme.dataset.qellyPremiumTheme='true';
+    document.head.append(premiumTheme);
   }
-  const desiredTail=[canonical,repairs,convergence,luxe].filter(Boolean);
+  const desiredTail=[canonical,repairs,convergence,premiumTheme].filter(Boolean);
   const currentTail=Array.from(document.head.querySelectorAll('link[rel="stylesheet"]')).slice(-desiredTail.length);
   const alreadyOrdered=desiredTail.length>0&&desiredTail.every((node,index)=>currentTail[index]===node);
   if(!alreadyOrdered)document.head.append(...desiredTail);

@@ -1,4 +1,4 @@
-name: Qelly V8 Live Terminal Acceptance
+name: Qelly Live Terminal Acceptance
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ on:
       - 'functions/**'
       - 'scripts/**'
       - 'tests/**'
-      - '.github/workflows/qelly-v8-live-terminal-acceptance.yml'
+      - '.github/workflows/qelly-live-terminal-acceptance.yml'
       - 'package.json'
       - 'package-lock.json'
   push:
@@ -63,7 +63,7 @@ jobs:
           node --check 'functions/api/v1/[[path]].js'
           node --check functions/api/v1/config.js
           node --check apps/web/public/assets/routes/market-network.mjs
-          node --check apps/web/public/assets/qelly-production-v8.mjs
+          node --check apps/web/public/assets/qelly-production-shell.mjs
           node --check apps/web/public/assets/market/tradingview-display-widget.mjs
       - name: Validate semantic source contract
         run: |
@@ -72,8 +72,8 @@ jobs:
           const market=fs.readFileSync('apps/web/public/assets/routes/market-network.mjs','utf8');
           const mirror=fs.readFileSync('apps/web/public/assets/qelly-github-pages-mirror.mjs','utf8');
           const config=fs.readFileSync('functions/api/v1/config.js','utf8');
-          const runtime=fs.readFileSync('apps/web/public/assets/qelly-production-v8.mjs','utf8');
-          const repairs=fs.readFileSync('apps/web/public/assets/qelly-production-v8-route-repairs.css','utf8');
+          const runtime=fs.readFileSync('apps/web/public/assets/qelly-production-shell.mjs','utf8');
+          const repairs=fs.readFileSync('apps/web/public/assets/qelly-route-repairs.css','utf8');
           const widget=fs.readFileSync('apps/web/public/assets/market/tradingview-display-widget.mjs','utf8');
           if(!market.includes('data-market-network="live-terminal-v8"'))throw new Error('live_terminal_marker_missing');
           if(!/LOCAL_PUBLIC_ROUTES=new Set\(\[[\s\S]*['"]live-markets['"]/.test(mirror))throw new Error('github_live_markets_not_local');
@@ -126,13 +126,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p dist/v8-live-terminal-acceptance
+          mkdir -p dist/live-terminal-acceptance
           for attempt in 1 2 3 4 5; do
             if curl --silent --show-error --fail --max-time 35 \
               -H 'Cache-Control: no-cache' \
-              -o dist/v8-live-terminal-acceptance/network.json \
+              -o dist/live-terminal-acceptance/network.json \
               "${PUBLIC_URL}/api/v1/market/network?verify=${RELEASE_SHA}&attempt=${attempt}"; then
-              if NETWORK_FILE=dist/v8-live-terminal-acceptance/network.json node <<'NODE'
+              if NETWORK_FILE=dist/live-terminal-acceptance/network.json node <<'NODE'
           const fs=require('node:fs');
           const p=JSON.parse(fs.readFileSync(process.env.NETWORK_FILE,'utf8'));
           if(p.releaseSha!==process.env.RELEASE_SHA)throw new Error(`release_mismatch_${p.releaseSha}`);
@@ -145,19 +145,19 @@ jobs:
           NODE
               then break; fi
             fi
-            if [ "$attempt" = 5 ]; then echo 'Canonical market network did not reach acceptance contract'; cat dist/v8-live-terminal-acceptance/network.json || true; exit 1; fi
+            if [ "$attempt" = 5 ]; then echo 'Canonical market network did not reach acceptance contract'; cat dist/live-terminal-acceptance/network.json || true; exit 1; fi
             sleep 10
           done
-          curl --silent --show-error --fail --max-time 30 -o dist/v8-live-terminal-acceptance/config.json "${PUBLIC_URL}/api/v1/config?verify=${RELEASE_SHA}"
-          curl --silent --show-error --fail --max-time 30 -o dist/v8-live-terminal-acceptance/qelly-config.js "${PUBLIC_URL}/qelly-config.js?verify=${RELEASE_SHA}"
+          curl --silent --show-error --fail --max-time 30 -o dist/live-terminal-acceptance/config.json "${PUBLIC_URL}/api/v1/config?verify=${RELEASE_SHA}"
+          curl --silent --show-error --fail --max-time 30 -o dist/live-terminal-acceptance/qelly-config.js "${PUBLIC_URL}/qelly-config.js?verify=${RELEASE_SHA}"
           node <<'NODE'
           const fs=require('node:fs'),vm=require('node:vm');
-          const api=JSON.parse(fs.readFileSync('dist/v8-live-terminal-acceptance/config.json','utf8'));
+          const api=JSON.parse(fs.readFileSync('dist/live-terminal-acceptance/config.json','utf8'));
           if(api.runtime?.capabilities?.emailDelivery!==true||api.auth?.registrationAvailable!==true||api.auth?.recoveryAvailable!==true)throw new Error('dynamic_email_capability_not_proven');
           if(api.states?.includes('simulated'))throw new Error('simulated_state_leaked_into_connected_runtime');
           if(api.dataStatePolicy?.fabricatedMarketFallback!==false)throw new Error('data_state_policy_invalid');
           const sandbox={window:{}};
-          vm.runInNewContext(fs.readFileSync('dist/v8-live-terminal-acceptance/qelly-config.js','utf8'),sandbox,{timeout:1000});
+          vm.runInNewContext(fs.readFileSync('dist/live-terminal-acceptance/qelly-config.js','utf8'),sandbox,{timeout:1000});
           if(sandbox.window.__QELLY_CONFIG__?.capabilities?.emailDelivery!==true)throw new Error('static_dynamic_email_capability_drift');
           NODE
       - name: Verify canonical and mirror live-markets UI
@@ -185,7 +185,7 @@ jobs:
               unavailable:document.querySelectorAll('.q-mn-unavailable').length,
               title:document.querySelector('.q-page h1')?.textContent?.trim()||document.title
             }));
-            await page.screenshot({path:`dist/v8-live-terminal-acceptance/${name}.png`,fullPage:true});
+            await page.screenshot({path:`dist/live-terminal-acceptance/${name}.png`,fullPage:true});
             await browser.close();
             if(response?.status()!==200)throw new Error(`${name}_http_${response?.status()}`);
             if(evidence.host!==expectedHost)throw new Error(`${name}_unexpected_handoff_${evidence.href}`);
@@ -196,16 +196,16 @@ jobs:
           (async()=>{
             const canonical=await run(`${process.env.PUBLIC_URL}/?verify=${process.env.RELEASE_SHA}#/live-markets`,'qelly-intelligence.pages.dev','cloudflare-live-markets');
             const mirror=await run(`${process.env.MIRROR_URL}?verify=${process.env.RELEASE_SHA}#/live-markets`,'hemangsah.github.io','github-live-markets');
-            fs.writeFileSync('dist/v8-live-terminal-acceptance/browser-evidence.json',JSON.stringify({canonical,mirror},null,2));
+            fs.writeFileSync('dist/live-terminal-acceptance/browser-evidence.json',JSON.stringify({canonical,mirror},null,2));
           })().catch(error=>{console.error(error);process.exit(1);});
           NODE
       - name: Upload V8 live terminal and convergence evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: qelly-v8-live-terminal-acceptance-${{ github.sha }}
+          name: qelly-live-terminal-acceptance-${{ github.sha }}
           path: |
-            dist/v8-live-terminal-acceptance
+            dist/live-terminal-acceptance
             dist/live-public-verification/http
           if-no-files-found: error
           retention-days: 14

@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {access,readFile} from 'node:fs/promises';
 
 const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
-const V1='.github/workflows/qelly-live-production-verification.yml';
-const V2='.github/workflows/qelly-live-production-verification-v2.yml';
+const WORKFLOW='.github/workflows/qelly-live-production-verification.yml';
+const LEGACY_WORKFLOW='.github/workflows/qelly-live-production-verification-v2.yml';
 const PROMPT2C='.github/workflows/prompt2c-public-beta.yml';
 const CONVERGENCE='scripts/wait-for-cloudflare-runtime-convergence.mjs';
 const PROVIDERS='functions/_lib/providers.js';
@@ -24,23 +24,23 @@ test('Prompt 2C is the automatic exact-SHA release verifier and uses stable shar
   assert.ok(source.includes('blocked_pending_written_end_user_display_permission'));
 });
 
-test('V2 is a manual release-branch diagnostic with dynamic identity and shared convergence',async()=>{
-  const source=await read(V2);
+test('canonical workflow is a manual release-branch diagnostic with dynamic identity and shared convergence',async()=>{
+  const source=await read(WORKFLOW);
   assert.match(source,/on:\s*\n\s*workflow_dispatch:/);
   assert.doesNotMatch(source,/\n\s*push:/);
   assert.match(source,/RELEASE_SHA:\s*\$\{\{ github\.sha \}\}/);
   assert.match(source,new RegExp(`test "\\$GITHUB_REF" = "${RELEASE_REF.replaceAll('/','\\/')}"`));
   assert.match(source,/test "\$\(git rev-parse HEAD\)" = "\$RELEASE_SHA"/);
   assert.ok(source.includes("import {waitForCloudflareRuntimeConvergence} from './scripts/wait-for-cloudflare-runtime-convergence.mjs';"));
-  assert.ok(source.includes("outputDir:'dist/live-production-verification-v2/http'"));
+  assert.ok(source.includes("outputDir:'dist/live-production-verification/http'"));
   assert.doesNotMatch(source,/seq 1 18/);
-  assert.match(source,/qelly-live-production-verification-v2-\$\{\{ github\.sha \}\}/);
+  assert.match(source,/qelly-live-production-verification-\$\{\{ github\.sha \}\}/);
   assert.doesNotMatch(source,new RegExp(OBSOLETE_BRANCH.replaceAll('/','\\/')));
   assert.doesNotMatch(source,new RegExp(OBSOLETE_RELEASE));
 });
 
-test('V2 retains live release, runtime, provider and browser diagnostic surfaces through shared convergence',async()=>{
-  const [source,convergence]=await Promise.all([read(V2),read(CONVERGENCE)]);
+test('canonical workflow retains live release, runtime, provider and browser diagnostic surfaces through shared convergence',async()=>{
+  const [source,convergence]=await Promise.all([read(WORKFLOW),read(CONVERGENCE)]);
   assert.ok(convergence.includes('/qelly-release.json?'),'shared convergence must verify the release identity surface');
   for(const marker of [
     'qelly-config.js',
@@ -61,8 +61,8 @@ test('V2 retains live release, runtime, provider and browser diagnostic surfaces
   assert.match(source,/health\.status!==['"]ok['"]\|\|health\.releaseSha!==process\.env\.RELEASE_SHA/);
 });
 
-test('V2 provider verification follows the canonical rights-gated provider policy',async()=>{
-  const [source,providers]=await Promise.all([read(V2),read(PROVIDERS)]);
+test('canonical provider verification follows the rights-gated provider policy',async()=>{
+  const [source,providers]=await Promise.all([read(WORKFLOW),read(PROVIDERS)]);
   for(const marker of [
     'blocked_pending_redistribution_rights',
     'provider_redistribution_rights_not_verified',
@@ -70,7 +70,7 @@ test('V2 provider verification follows the canonical rights-gated provider polic
     'provider_end_user_display_rights_not_verified'
   ]){
     assert.ok(providers.includes(marker),`provider owner missing policy marker: ${marker}`);
-    assert.ok(source.includes(marker),`V2 verifier missing canonical policy marker: ${marker}`);
+    assert.ok(source.includes(marker),`manual verifier missing canonical policy marker: ${marker}`);
   }
   assert.match(source,/validateProvider\(binance,'binance'\)/);
   assert.match(source,/validateProvider\(coinbase,'coinbase'\)/);
@@ -81,13 +81,6 @@ test('V2 provider verification follows the canonical rights-gated provider polic
   assert.doesNotMatch(source,/binance_degraded_truth_invalid/);
 });
 
-test('legacy V1 remains manual-only with exact release-branch identity guards',async()=>{
-  const source=await read(V1);
-  assert.match(source,/on:\s*\n\s*workflow_dispatch:/);
-  assert.doesNotMatch(source,/\n\s*push:/);
-  assert.match(source,/RELEASE_SHA:\s*\$\{\{ github\.sha \}\}/);
-  assert.match(source,new RegExp(`test "\\$GITHUB_REF" = "${RELEASE_REF.replaceAll('/','\\/')}"`));
-  assert.match(source,/test "\$\(git rev-parse HEAD\)" = "\$RELEASE_SHA"/);
-  assert.doesNotMatch(source,new RegExp(OBSOLETE_BRANCH.replaceAll('/','\\/')));
-  assert.doesNotMatch(source,new RegExp(OBSOLETE_RELEASE));
+test('duplicate versioned workflow has been retired',async()=>{
+  await assert.rejects(access(new URL(`../${LEGACY_WORKFLOW}`,import.meta.url)));
 });

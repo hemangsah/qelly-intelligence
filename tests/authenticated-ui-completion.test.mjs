@@ -34,8 +34,8 @@ test('unavailable backend capabilities render a truthful professional workspace 
 
 test('feature dock is persistent at common desktop width and exposes a stable launcher hook',async()=>{
   const [runtime,css]=await Promise.all([
-    read('apps/web/public/assets/qelly-production-v8.mjs'),
-    read('apps/web/public/assets/qelly-luxe-v10.css')
+    read('apps/web/public/assets/qelly-production-shell.mjs'),
+    read('apps/web/public/assets/qelly-premium-theme.css')
   ]);
   assert.doesNotMatch(runtime,/min-width:1381px/);
   assert.match(runtime,/min-width:1241px/);
@@ -45,7 +45,7 @@ test('feature dock is persistent at common desktop width and exposes a stable la
 });
 
 test('successful authentication restores the persistent desktop feature dock',async()=>{
-  const runtime=await read('apps/web/public/assets/qelly-production-v8.mjs');
+  const runtime=await read('apps/web/public/assets/qelly-production-shell.mjs');
   assert.match(runtime,/addEventListener\('qelly:session-state'/);
   assert.match(runtime,/event\.detail\?\.authenticated===true&&matchMedia\('\(min-width:1241px\)'\)\.matches/);
   assert.match(runtime,/document\.body\.classList\.remove\('q-feature-navigation-collapsed'\)/);

@@ -48,8 +48,7 @@ Automatic post-merge production verification has one canonical owner:
 
 Manual diagnostics:
 
-- `qelly-live-production-verification-v2.yml` — manual release-branch diagnostic using the same shared Cloudflare convergence helper and canonical rights-gated Binance/Coinbase semantics.
-- `qelly-live-production-verification.yml` — legacy manual release diagnostic.
+- `qelly-live-production-verification.yml` — canonical manual release-branch diagnostic using the shared Cloudflare convergence helper and rights-gated Binance/Coinbase semantics. The duplicate legacy workflow has been retired.
 
 Cloudflare exact-PR deployment evidence is independently consumed by `qelly-cloudflare-evidence-handoff.yml`, which accepts successful official `cloudflare-workers-and-pages` deployment evidence, resolves the exact current open PR head, rebuilds/validates it and captures the full screen/accessibility archive.
 
