@@ -21,6 +21,9 @@ test('authenticated session state synchronizes the production account header',as
   assert.match(app,/publishSessionState\(\);/);
   assert.match(product,/addEventListener\('qelly:session-state'/);
   assert.match(product,/sessionState\.authenticated=event\.detail\?\.authenticated===true/);
+  assert.match(product,/let sessionStateRevision=0;/);
+  assert.match(product,/if\(revision!==sessionStateRevision\)return;/);
+  assert.match(product,/sessionStateRevision\+=1;/);
 });
 
 test('unavailable backend capabilities render a truthful professional workspace boundary',async()=>{
@@ -39,4 +42,11 @@ test('feature dock is persistent at common desktop width and exposes a stable la
   assert.match(runtime,/featureNavigationTrigger='true'/);
   assert.match(css,/@media\(min-width:1241px\)/);
   assert.match(css,/\.q-product-nav a\{min-height:44px!important/);
+});
+
+test('successful authentication restores the persistent desktop feature dock',async()=>{
+  const runtime=await read('apps/web/public/assets/qelly-production-v8.mjs');
+  assert.match(runtime,/addEventListener\('qelly:session-state'/);
+  assert.match(runtime,/event\.detail\?\.authenticated===true&&matchMedia\('\(min-width:1241px\)'\)\.matches/);
+  assert.match(runtime,/document\.body\.classList\.remove\('q-feature-navigation-collapsed'\)/);
 });

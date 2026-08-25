@@ -385,6 +385,12 @@ const schedule=(scope=document)=>{
 
 window.addEventListener('hashchange',()=>schedule(main||document));
 document.addEventListener('qelly:appearance-changed',()=>syncAppearanceButton());
+document.addEventListener('qelly:session-state',(event)=>{
+  if(event.detail?.authenticated===true&&matchMedia('(min-width:1241px)').matches){
+    document.body.classList.remove('q-feature-navigation-collapsed');
+  }
+  schedule(document);
+});
 if(main)new MutationObserver(()=>schedule(main)).observe(main,{childList:true,subtree:true});
 new MutationObserver(()=>schedule(document)).observe(document.querySelector('#app')||document.body,{childList:true,subtree:true});
 new MutationObserver(()=>schedule(document)).observe(document.head,{childList:true});

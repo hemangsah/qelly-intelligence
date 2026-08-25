@@ -43,6 +43,7 @@ test('unavailable quote envelope never contains simulated market values',()=>{
 test('nested Cloudflare watchlist route preserves exact path segments',()=>{
   assert.equal(__watchlistRouteTest.routePath({params:{route:'11111111-1111-4111-8111-111111111111'}}),'11111111-1111-4111-8111-111111111111');
   assert.equal(__watchlistRouteTest.routePath({params:{route:['11111111-1111-4111-8111-111111111111','items','QI-CRYPTO-BTC']}}),'11111111-1111-4111-8111-111111111111/items/QI-CRYPTO-BTC');
+  assert.equal(__watchlistRouteTest.routePath({request:new Request('https://qelly.test/api/v1/workspace/watchlists'),params:{route:['watchlists']}}),'');
 });
 
 test('Cloudflare watchlist implementation uses authenticated user-token RLS and mutation protections',async()=>{

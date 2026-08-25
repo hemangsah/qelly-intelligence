@@ -24,7 +24,9 @@ Deno.serve(async(req)=>{
 
   let release:any;
   try{
-    const response=await fetch(RELEASE_URL,{headers:{accept:"application/json"},signal:AbortSignal.timeout(8000),cache:"no-store"});
+    const releaseProbe=new URL(RELEASE_URL);
+    releaseProbe.searchParams.set("verify",crypto.randomUUID());
+    const response=await fetch(releaseProbe,{headers:{accept:"application/json","cache-control":"no-cache"},signal:AbortSignal.timeout(8000),cache:"no-store"});
     if(!response.ok)throw new Error(`Cloudflare release identity HTTP ${response.status}`);
     const type=(response.headers.get("content-type")||"").toLowerCase();
     if(type&&!type.includes("json"))throw new Error("Cloudflare release identity content type invalid");
