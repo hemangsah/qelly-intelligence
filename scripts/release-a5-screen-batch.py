@@ -74,7 +74,7 @@ patched_source = source.replace(legacy_import, evidence_import, 1)
 patched_source = patched_source.replace(external_marker, tradingview_hook + external_marker, 1)
 patched_source = patched_source.replace(console_marker, console_diagnostics, 1)
 # Playwright page routing does not intercept Service Worker network requests.
-# Blocking workers in this isolated screenshot runtime prevents prompt2c-sw.js
+# Blocking workers in this isolated screenshot runtime prevents qelly-service-worker.js
 # from attempting to resolve the synthetic qelly.test host. Offline-shell
 # behavior is validated separately by the public-runtime/browser workflows.
 patched_source = patched_source.replace(context_marker, context_isolation, 2)

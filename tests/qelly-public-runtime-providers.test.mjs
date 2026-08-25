@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createBinancePublicProvider,createCoinbaseExchangePublicProvider,createEcbReferenceRateProvider} from '../src/prompt2c/official-providers.mjs';
+import {createBinancePublicProvider,createCoinbaseExchangePublicProvider,createEcbReferenceRateProvider} from '../src/public-runtime/official-providers.mjs';
 
 function jsonResponse(value,status=200){return new Response(JSON.stringify(value),{status,headers:{'content-type':'application/json'}});}
 

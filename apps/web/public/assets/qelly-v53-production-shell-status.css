@@ -1,5 +1,5 @@
 /* Qelly Intelligence — V5.3 production system strip and final shell cascade.
-   Loaded after Prompt2C and the production-shell convergence layer. */
+   Loaded after the public runtime and the production-shell convergence layer. */
 
 html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] .q-product-header{
   height:94px;
@@ -95,7 +95,7 @@ html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surf
   box-shadow:inset 0 -1px 0 color-mix(in srgb,var(--q-product-accent) 72%,#fff);
 }
 
-/* Prompt2C hides these by ID; the accepted V5.3 desktop shell explicitly restores the semantic rail. */
+/* The base runtime hides these by ID; the accepted desktop shell explicitly restores the semantic rail. */
 html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"] #edge-dock{
   display:flex!important;
   position:fixed!important;

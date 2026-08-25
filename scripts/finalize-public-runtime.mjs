@@ -144,7 +144,7 @@ export async function finalizePublicRuntime({environment=process.env}={}){
   const primaryFiles=[
     'index.html',
     'qelly-config.js',
-    'assets/prompt2c-public-beta.mjs',
+    'assets/qelly-public-runtime.mjs',
     'assets/routes/auth-login.mjs',
     'assets/routes/auth-register.mjs',
     'assets/routes/auth-recovery.mjs',

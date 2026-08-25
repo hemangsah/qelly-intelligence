@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const runtimePath=new URL('../apps/web/public/assets/qelly-ui-lock-v5-3.mjs',import.meta.url);
-const productRuntimePath=new URL('../apps/web/public/assets/prompt2c-public-beta.mjs',import.meta.url);
+const productRuntimePath=new URL('../apps/web/public/assets/qelly-public-runtime.mjs',import.meta.url);
 const cssPath=new URL('../apps/web/public/assets/qelly-v53-production-shell-convergence.css',import.meta.url);
 const statusCssPath=new URL('../apps/web/public/assets/qelly-v53-production-shell-status.css',import.meta.url);
 const read=(url)=>readFile(url,'utf8');

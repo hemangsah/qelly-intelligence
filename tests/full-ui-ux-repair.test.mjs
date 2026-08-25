@@ -152,7 +152,7 @@ test('modern production polish is globally loaded, curved, animated and motion-s
     read('apps/web/public/index.html'),
     read('apps/web/public/assets/qelly-modern-interaction-polish.css'),
     read('apps/web/public/assets/qelly-sovereign-motion.js'),
-    read('apps/web/public/prompt2c-sw.js')
+    read('apps/web/public/qelly-service-worker.js')
   ]);
   assert.match(index, /qelly-route-convergence\.css[\s\S]*qelly-modern-interaction-polish\.css\?v=20260822-modern7/);
   assert.match(css, /--q-modern-radius-xl:32px/);
@@ -185,30 +185,30 @@ test('modern production polish is globally loaded, curved, animated and motion-s
   assert.match(worker, /qelly-modern-interaction-polish\.css/);
 });
 
-test('premium theme is the final border-light visual authority and is offline-safe', async () => {
-  const [index, css, runtime, worker] = await Promise.all([
+test('product experience is the final border-light visual authority and is offline-safe', async () => {
+  const [index, premium, experience, runtime, worker] = await Promise.all([
     read('apps/web/public/index.html'),
     read('apps/web/public/assets/qelly-premium-theme.css'),
+    read('apps/web/public/assets/qelly-product-experience.css'),
     read('apps/web/public/assets/qelly-premium-interactions.mjs'),
-    read('apps/web/public/prompt2c-sw.js')
+    read('apps/web/public/qelly-service-worker.js')
   ]);
-  assert.match(index, /qelly-modern-interaction-polish\.css[\s\S]*qelly-premium-theme\.css\?v=20260825-premium1/);
-  assert.match(css, /feature inventory is a persistent\s+dock on wide screens/);
-  assert.match(css, /data-production-access="false"\] \.q-feature-navigation[\s\S]*transform:translateX/);
-  assert.match(css, /data-feature-navigation-owner="true"\][^}]*display:inline-flex!important/);
-  assert.match(css, /@media\(min-width:1241px\)[\s\S]*q-feature-navigation[\s\S]*transform:none!important/);
-  assert.match(css, /q-feature-navigation-collapsed \.q-feature-navigation/);
-  assert.match(css, /body #app #main button,[\s\S]*min-height:44px!important/);
-  assert.match(css, /width:min\(100%,1760px\)!important/);
-  assert.match(css, /border:0!important;border-radius:22px!important/);
-  assert.match(css, /q-v7-market-grid[\s\S]*grid-template-columns:minmax\(0,1fr\) minmax\(280px,340px\)/);
-  assert.match(index, /qelly-production-shell\.mjs[\s\S]*qelly-premium-interactions\.mjs/);
+  assert.match(index, /qelly-premium-theme\.css\?v=20260825-premium1[\s\S]*qelly-product-experience\.css\?v=20260825-experience1/);
+  assert.match(premium, /feature inventory is a persistent\s+dock on wide screens/);
+  assert.match(experience, /single final visual authority/);
+  assert.match(experience, /--q-radius-surface:12px/);
+  assert.match(experience, /q-product-nav a\[aria-current="page"\][\s\S]*background:transparent!important/);
+  assert.match(experience, /q-calculator-card[\s\S]*min-height:208px!important/);
+  assert.match(experience, /data-appearance="light"[\s\S]*q-status--deterministic/);
+  assert.match(experience, /@media\(prefers-reduced-motion:reduce\)/);
+  assert.match(index, /qelly-premium-interactions\.mjs[\s\S]*qelly-product-experience\.mjs/);
   assert.match(runtime, /dataset\.premiumUi='true'/);
   const convergenceRuntime=await read('apps/web/public/assets/qelly-production-shell.mjs');
-  assert.match(convergenceRuntime, /const desiredTail=\[canonical,repairs,convergence,premiumTheme\]/);
+  assert.match(convergenceRuntime, /const desiredTail=\[canonical,repairs,convergence,premiumTheme,productExperience\]/);
   assert.match(convergenceRuntime, /matchMedia\('\(min-width:1241px\)'\)\.matches/);
   assert.match(convergenceRuntime, /q-feature-navigation-collapsed/);
   assert.match(worker, /qelly-premium-theme\.css/);
+  assert.match(worker, /qelly-product-experience\.css/);
   assert.match(worker, /qelly-premium-interactions\.mjs/);
-  assert.match(worker, /fallback-v4/);
+  assert.match(worker, /fallback-v1/);
 });

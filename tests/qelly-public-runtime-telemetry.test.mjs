@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {buildAnalyticsEvent,PrivacyAnalytics,redactLogValue,structuredLog,publicBetaReadiness} from '../src/prompt2c/telemetry.mjs';
+import {buildAnalyticsEvent,PrivacyAnalytics,redactLogValue,structuredLog,publicRuntimeReadiness} from '../src/public-runtime/telemetry.mjs';
 
 test('analytics rejects non-allowlisted events and strips sensitive properties',()=>{
   assert.throws(()=>buildAnalyticsEvent('calculation_payload_uploaded',{}),/not_allowlisted/);
@@ -36,7 +36,7 @@ test('structured logs redact credentials and calculation payloads',()=>{
 });
 
 test('readiness separates deterministic public beta from unavailable cloud services',()=>{
-  const readiness=publicBetaReadiness();
+  const readiness=publicRuntimeReadiness();
   assert.equal(readiness.readyForDeterministicPublicBeta,true);
   assert.equal(readiness.readyForCloudPublicBeta,false);
   assert.equal(readiness.blockers.some((blocker)=>blocker.name==='database'),true);

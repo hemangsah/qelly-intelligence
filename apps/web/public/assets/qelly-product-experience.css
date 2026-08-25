@@ -1,0 +1,145 @@
+/* Qelly product experience — single final visual authority.
+ * Keep route-specific styles focused on layout and data semantics; put global
+ * appearance, interaction, contrast and surface rules here. */
+
+:root{
+  --q-radius-control:10px;
+  --q-radius-surface:12px;
+  --q-radius-feature:16px;
+  --q-elevation-rest:0 12px 34px rgba(0,0,0,.16),inset 0 1px rgba(255,255,255,.055);
+  --q-elevation-hover:0 18px 46px rgba(0,0,0,.24),inset 0 1px rgba(255,255,255,.075);
+  scrollbar-color:color-mix(in srgb,var(--q-accent) 76%,var(--q-muted)) transparent;
+  scrollbar-width:thin;
+}
+
+html{scroll-behavior:smooth;scrollbar-gutter:stable}
+*::-webkit-scrollbar{width:9px;height:9px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{border:3px solid transparent;border-radius:999px;background:color-mix(in srgb,var(--q-accent) 72%,var(--q-muted));background-clip:padding-box}
+
+html[data-production-system="v8"] body #app header.q-product-header{
+  transition:background-color 180ms ease,box-shadow 180ms ease,backdrop-filter 180ms ease!important;
+}
+html[data-production-system="v8"] body #app header.q-product-header.is-scrolled{
+  background:color-mix(in srgb,var(--q-chrome) 94%,transparent)!important;
+  box-shadow:0 1px 0 var(--q-divider),0 20px 48px rgba(0,0,0,.24)!important;
+}
+html[data-production-system="v8"] .q-product-brand__mark{
+  display:grid!important;place-items:center!important;border-radius:10px!important;background:#fff!important;
+}
+html[data-production-system="v8"] .q-product-brand__mark img{display:block!important;width:27px!important;height:27px!important}
+
+/* Calm navigation: location is shown by typography and a precise underline,
+   not a large filled capsule. */
+html[data-production-system="v8"] .q-product-nav{
+  gap:8px!important;padding:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
+}
+html[data-production-system="v8"] .q-product-nav a{
+  position:relative!important;min-height:44px!important;padding:0 8px!important;border-radius:0!important;background:transparent!important;color:var(--q-muted)!important;
+}
+html[data-production-system="v8"] .q-product-nav a::after{
+  content:"";position:absolute;right:8px;bottom:4px;left:8px;height:2px;transform:scaleX(0);transform-origin:center;
+  background:linear-gradient(90deg,transparent,var(--q-accent-strong),transparent);transition:transform 180ms ease;
+}
+html[data-production-system="v8"] .q-product-nav a:hover,
+html[data-production-system="v8"] .q-product-nav a:focus-visible{color:var(--q-text)!important}
+html[data-production-system="v8"] .q-product-nav a[aria-current="page"],
+html[data-production-system="v8"] .q-product-nav a[aria-current="true"]{
+  color:var(--q-text)!important;background:transparent!important;box-shadow:none!important;
+}
+html[data-production-system="v8"] .q-product-nav a[aria-current="page"]::after,
+html[data-production-system="v8"] .q-product-nav a[aria-current="true"]::after{transform:scaleX(1)}
+html[data-production-system="v8"] :where(.q-product-menu,.q-product-search,.q-product-search button){border-radius:var(--q-radius-control)!important}
+
+/* Controls are compact precision objects. Semantic status labels remain pills. */
+html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(.q-status):not(.q-truth-pill),
+html[data-production-system="v8"] .q-feature-navigation>header button,
+html[data-production-system="v8"] .q-feature-navigation__search input{
+  border-radius:var(--q-radius-control)!important;
+}
+html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:disabled){
+  transition:transform 150ms ease,filter 150ms ease,box-shadow 150ms ease,background-color 150ms ease!important;
+}
+html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:disabled):hover{transform:translateY(-1px)!important;filter:brightness(1.06)}
+html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:disabled):active{transform:translateY(0)!important}
+
+/* Tonal hierarchy replaces old outlines and oversized rounding. */
+html[data-production-system="v8"] body #app #main :where(
+  .q-panel,.q-mn-panel,.q-mn-card,.q-kpi,.q-metric-card,.q-mi-kpi,.q-mi-regime,
+  .q-auth-card,.q-auth-hero,.q-access-gate,.q-it-hero,.q-it-guide,.q-it-panel,
+  .q-it-provider,.q-category-card,.q-venue-card,.q-dex-card,.q-provider-card,
+  .q-research-card,.q-notification-card,.q-article-shell,.q-asset-hero,
+  .q-persona-card,.q-market-pulse-card,.q-feature-card,.q-calculator-card,
+  .q-saved-card,.q-chart-shell,.q-empty-state,.q-truth-callout,.q-result-priority,
+  .q-indicator-mini-chart,.q-verify-hero,.q-v53-verify-workbench,
+  [class$="-card"],[class*="-card "],[class$="-panel"],[class*="-panel "]
+){
+  border:0!important;border-radius:var(--q-radius-surface)!important;background:var(--q-luxe-panel)!important;box-shadow:var(--q-elevation-rest)!important;
+}
+html[data-production-system="v8"] body #app #main :where(.q-it-hero,.q-verify-hero,.q-auth-hero,.q-asset-hero,.q-home-lead,.q-market-safety,.q-about-hero){
+  border:0!important;border-radius:var(--q-radius-feature)!important;background:var(--q-luxe-panel-strong)!important;box-shadow:var(--q-elevation-rest)!important;
+}
+html[data-production-system="v8"] body #app #main :where(.q-feature-card,.q-calculator-card,.q-persona-card,.q-saved-card,.q-category-card,.q-venue-card,.q-dex-card){
+  transition:transform 180ms cubic-bezier(.2,.8,.2,1),box-shadow 180ms ease,background-color 180ms ease!important;
+}
+html[data-production-system="v8"] body #app #main :where(.q-feature-card,.q-calculator-card,.q-persona-card,.q-saved-card,.q-category-card,.q-venue-card,.q-dex-card):hover{
+  transform:translateY(-2px)!important;box-shadow:var(--q-elevation-hover)!important;
+}
+html[data-production-system="v8"] .q-feature-navigation{border-radius:var(--q-radius-feature)!important}
+html[data-production-system="v8"] .q-feature-navigation>header{border-radius:var(--q-radius-feature) var(--q-radius-feature) 0 0!important}
+
+/* Calculator workbench: legible rather than miniaturized. */
+html[data-production-system="v8"] #main .q-calculator-workbench-page{gap:clamp(20px,2.4vw,34px)!important}
+html[data-production-system="v8"] #main .q-v6-deterministic-banner{
+  padding:16px 18px!important;border:0!important;border-radius:var(--q-radius-surface)!important;background:color-mix(in srgb,var(--q-informational) 8%,var(--q-surface))!important;box-shadow:inset 3px 0 0 var(--q-informational)!important;
+}
+html[data-production-system="v8"] #main .q-v6-deterministic-banner p{font-size:13px!important;line-height:1.6!important;color:var(--q-text-secondary)!important}
+html[data-production-system="v8"] #main .q-v6-quant-kpis{gap:1px!important;border:0!important;border-radius:var(--q-radius-surface)!important;background:var(--q-divider)!important;box-shadow:var(--q-elevation-rest)!important}
+html[data-production-system="v8"] #main .q-v6-quant-kpis>div{min-height:92px!important;padding:16px!important;border:0!important;background:var(--q-surface)!important}
+html[data-production-system="v8"] #main .q-v6-quant-kpis span,
+html[data-production-system="v8"] #main .q-v6-quant-kpis small{font-size:11px!important;line-height:1.45!important}
+html[data-production-system="v8"] #main .q-v6-quant-kpis strong{font-size:22px!important}
+html[data-production-system="v8"] #main .q-calculator-card-grid{gap:14px!important}
+html[data-production-system="v8"] #main .q-calculator-card{
+  min-height:208px!important;padding:18px!important;gap:11px!important;border:0!important;border-radius:var(--q-radius-surface)!important;background:linear-gradient(145deg,var(--q-surface),color-mix(in srgb,var(--q-accent) 4%,var(--q-surfacealt)))!important;box-shadow:var(--q-elevation-rest)!important;
+}
+html[data-production-system="v8"] #main .q-calculator-card::before{width:3px!important;background:linear-gradient(180deg,var(--q-accent-strong),transparent 82%)!important}
+html[data-production-system="v8"] #main .q-calculator-card__meta{font-size:11px!important}
+html[data-production-system="v8"] #main .q-calculator-card h3{font-size:17px!important;line-height:1.3!important}
+html[data-production-system="v8"] #main .q-calculator-card>p{font-size:13px!important;line-height:1.55!important}
+html[data-production-system="v8"] #main .q-v6-quant-method-strip span{padding:5px 8px!important;border:0!important;background:var(--q-surfacealt)!important;font-size:10px!important}
+html[data-production-system="v8"] #main .q-calculator-card__footer{padding-top:12px!important;border:0!important;color:var(--q-text-secondary)!important;font-size:11px!important}
+html[data-production-system="v8"] #main .q-calculator-card__footer strong{font-size:11px!important;color:var(--q-accent-strong)!important}
+
+/* Official logo inside the About orbit. */
+html[data-production-system="v8"] #main .q-about-orbit{border:0!important;box-shadow:0 0 0 1px color-mix(in srgb,var(--q-accent) 30%,transparent),0 0 80px color-mix(in srgb,var(--q-accent) 12%,transparent)!important}
+html[data-production-system="v8"] #main .q-orbit-core{overflow:hidden!important;border-radius:22px!important;background:#fff!important;box-shadow:0 20px 52px color-mix(in srgb,var(--q-accent) 30%,transparent)!important}
+html[data-production-system="v8"] #main .q-orbit-core img{width:68%!important;height:68%!important;object-fit:contain!important}
+html[data-production-system="v8"] #main .q-about-orbit>span{border:0!important;border-radius:8px!important;background:var(--q-surface)!important;box-shadow:var(--q-elevation-rest)!important}
+
+/* Light-theme semantic colors meet readable foreground/background contrast. */
+:root[data-appearance="light"] .q-status--deterministic,
+:root[data-resolved-appearance="light"] .q-status--deterministic{color:#174f78!important;background:#e1eff7!important;border-color:transparent!important}
+:root[data-appearance="light"] :where(.q-status--cached,.q-truth-pill.is-cached),
+:root[data-resolved-appearance="light"] :where(.q-status--cached,.q-truth-pill.is-cached){color:#28506e!important;background:#e5eef4!important;border-color:transparent!important}
+:root[data-appearance="light"] :where(.q-status--live,.q-truth-pill.is-live),
+:root[data-resolved-appearance="light"] :where(.q-status--live,.q-truth-pill.is-live){color:#076241!important;background:#ddf2e9!important;border-color:transparent!important}
+:root[data-appearance="light"] :where(.q-status--warning,.q-status--delayed,.q-truth-pill.is-delayed),
+:root[data-resolved-appearance="light"] :where(.q-status--warning,.q-status--delayed,.q-truth-pill.is-delayed){color:#764900!important;background:#f8ead0!important;border-color:transparent!important}
+:root[data-appearance="light"] :where(.q-status--error,.q-status--unavailable,.q-truth-pill.is-unavailable),
+:root[data-resolved-appearance="light"] :where(.q-status--error,.q-status--unavailable,.q-truth-pill.is-unavailable){color:#8d1c35!important;background:#f7e2e7!important;border-color:transparent!important}
+
+/* Route entry motion is subtle and does not delay interaction. */
+html[data-product-experience="ready"] #main>section{animation:q-product-enter 320ms cubic-bezier(.2,.8,.2,1) both}
+@keyframes q-product-enter{from{opacity:.45;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+@media(max-width:760px){
+  html[data-production-system="v8"] #main .q-calculator-card{min-height:190px!important;padding:16px!important}
+  html[data-production-system="v8"] #main .q-v6-quant-kpis>div{min-height:82px!important}
+}
+
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  html[data-product-experience="ready"] #main>section{animation:none}
+  html[data-production-system="v8"] *{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
+}

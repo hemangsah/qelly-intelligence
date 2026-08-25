@@ -68,7 +68,7 @@ test('product renders full report modules and public evidence methodology withou
 
 test('compiled shell and release-aware service worker include every evidence module',async()=>{
   const index=await read('apps/web/public/index.html');
-  const worker=await read('apps/web/public/prompt2c-sw.js');
+  const worker=await read('apps/web/public/qelly-service-worker.js');
   assert.match(index,/qelly-verify-evidence\.css/);
   for(const asset of ['qelly-verify-evidence.css','qelly-verify-methodology.mjs','qelly-verify-report.mjs'])assert.match(worker,new RegExp(asset.replaceAll('.','\\.')));
   assert.match(worker,/networkFirst\(request\)/);

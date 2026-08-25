@@ -23,8 +23,9 @@ for(const file of svgFiles){
  if(new Set(ids).size!==ids.length)failures.push(`${file}: duplicate IDs`);
 }
 const index=await readFile(path.join(root,'apps/web/public/index.html'),'utf8');
+const fontGovernance=await readFile(path.join(root,'apps/web/public/assets/qelly-font-governance.css'),'utf8');
 for(const needle of ['./assets/qelly-brand.css','./assets/qelly-brand.mjs','./manifest.webmanifest','./favicon.svg'])if(!index.includes(needle))failures.push(`index missing ${needle}`);
-if(!index.includes('ibm-plex-sans-variable.woff2'))failures.push('IBM Plex preload missing');
+if(!fontGovernance.includes('ibm-plex-sans-variable.woff2'))failures.push('IBM Plex self-hosted source missing');
 if(/fonts\.googleapis|use\.typekit|https?:\/\/[^\"']+\\.(?:woff2?|ttf|otf)/i.test(index))failures.push('external font request detected');
 const moduleSource=await readFile(path.join(root,'apps/web/public/assets/qelly-brand.mjs'),'utf8');
 for(const needle of ['prefers-reduced-motion','sessionStorage','qelly.brand.opening.v1','data-qelly-brand-hero'])if(!moduleSource.includes(needle))failures.push(`brand runtime missing ${needle}`);

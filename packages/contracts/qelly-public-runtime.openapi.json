@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Qelly Prompt 2C Public Beta API",
+    "title": "Qelly Public Runtime API",
     "version": "1.0.0-beta",
     "description": "Read-only status and provider APIs plus authenticated cloud-lifecycle and protected feedback contracts. No trading, custody or execution endpoints exist."
   },
@@ -16,7 +16,7 @@
         "responses": {"200": {"description": "Truthful service health", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Health"}}}}}
       }
     },
-    "/api/v1/public-beta/status": {
+    "/api/v1/runtime/status": {
       "get": {
         "operationId": "getPublicBetaStatus",
         "responses": {"200": {"description": "Deployment and external authorization state", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PublicBetaStatus"}}}}}

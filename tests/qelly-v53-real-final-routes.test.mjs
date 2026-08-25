@@ -60,9 +60,10 @@ test('Notification Center does not infer external delivery from inbox persistenc
   assert.doesNotMatch(source,/signing service absent|service worker absent/i);
 });
 
-test('About Qelly uses the locked V5.3 route contract and avoids false live-market claims',async()=>{
+test('About Qelly uses the current product contract and avoids false live-market claims',async()=>{
   const source=await read('../apps/web/public/assets/routes/about-qelly.mjs');
-  assert.match(source,/70<\/strong><span>Canonical V5\.3 product routes/);
+  assert.match(source,/70<\/strong><span>Connected product routes/);
+  assert.match(source,/qelly-symbol\.svg/);
   assert.match(source,/Read-only<\/strong>/);
   assert.match(source,/0<\/strong><span>Trade, transfer or wallet-signing routes enabled/);
   assert.match(source,/governed market context/i);

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import worker from '../apps/edge/prompt2c-worker.mjs';
+import worker from '../apps/edge/qelly-public-api-worker.mjs';
 
 const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 
@@ -18,7 +18,7 @@ test('fallback configuration preserves deterministic tools without exposing prod
 });
 
 test('offline shell excludes API and private account state',async()=>{
-  const serviceWorker=await read('apps/web/public/prompt2c-sw.js');
+  const serviceWorker=await read('apps/web/public/qelly-service-worker.js');
   assert.match(serviceWorker,/\/api\//);
   assert.match(serviceWorker,/auth\|account\|saved-calculations/);
   const shellDeclaration=serviceWorker.match(/const SHELL=(\[[^;]+\]);/)?.[1]||'';

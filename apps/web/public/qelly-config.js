@@ -35,6 +35,6 @@ window.__QELLY_CONFIG__=Object.freeze({
   ensureMeta('meta[property="og:url"]',{property:'og:url',content:config.publicBaseUrl});
   ensureMeta('meta[name="twitter:card"]',{name:'twitter:card',content:'summary'});
   ensureMeta('meta[name="robots"]',{name:'robots',content:'index,follow,max-image-preview:large'});
-  if(!document.querySelector('link[href$="prompt2c-public-beta.css"]')){const stylesheet=document.createElement('link');stylesheet.rel='stylesheet';stylesheet.href='./assets/prompt2c-public-beta.css';document.head.append(stylesheet);}
-  if(!document.querySelector('script[src$="prompt2c-public-beta.mjs"]')){const script=document.createElement('script');script.type='module';script.src='./assets/prompt2c-public-beta.mjs';document.head.append(script);}
+  if(!document.querySelector('link[href$="qelly-public-runtime.css"]')){const stylesheet=document.createElement('link');stylesheet.rel='stylesheet';stylesheet.href='./assets/qelly-public-runtime.css';document.head.append(stylesheet);}
+  if(!document.querySelector('script[src$="qelly-public-runtime.mjs"]')){const script=document.createElement('script');script.type='module';script.src='./assets/qelly-public-runtime.mjs';document.head.append(script);}
 })();

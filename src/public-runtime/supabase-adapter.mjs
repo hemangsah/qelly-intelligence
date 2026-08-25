@@ -1,13 +1,19 @@
-const SESSION_KEY='qelly.prompt2c.supabase.session.v1';
+const SESSION_KEY='qelly.public-runtime.supabase.session.v1';
+const LEGACY_SESSION_KEY='qelly.prompt2c.supabase.session.v1';
 function requireHttps(value,name){const url=new URL(value);if(url.protocol!=='https:'||url.username||url.password)throw new Error(`${name} must be a safe HTTPS URL`);return url.toString().replace(/\/$/,'');}
 function validateEmail(value){const email=String(value||'').trim().toLowerCase();if(email.length>254||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw new Error('invalid_email');return email;}
 function safeRedirect(value,allowlist=[]){const url=new URL(value);if(!allowlist.some((allowed)=>new URL(allowed).origin===url.origin))throw new Error('redirect_not_allowlisted');return url.toString();}
 function parseResponse(response,payload){if(response.ok)return payload;const error=new Error(payload?.msg||payload?.message||payload?.error_description||payload?.error||`request_failed_${response.status}`);error.status=response.status;error.code=payload?.code||payload?.error_code||'provider_request_failed';throw error;}
-export class MemorySessionStore{constructor(){this.value=null;}getItem(){return this.value;}setItem(_key,value){this.value=value;}removeItem(){this.value=null;}}
-export class SupabasePublicBetaAdapter{
+export class MemorySessionStore{
+  constructor(){this.values=new Map();this.value=null;}
+  getItem(key){return this.values.get(key)??this.value;}
+  setItem(key,value){this.values.set(key,value);this.value=value;}
+  removeItem(key){this.values.delete(key);this.value=this.values.size?[...this.values.values()].at(-1):null;}
+}
+export class SupabaseRuntimeAdapter{
   constructor({url,anonKey,fetchImpl=globalThis.fetch,sessionStore=globalThis.localStorage,redirectAllowlist=[]}){if(!anonKey||anonKey.length<20)throw new Error('invalid_supabase_anon_key');this.url=requireHttps(url,'Supabase URL');this.anonKey=anonKey;this.fetchImpl=fetchImpl;this.sessionStore=sessionStore;this.redirectAllowlist=redirectAllowlist;}
-  session(){try{const value=JSON.parse(this.sessionStore?.getItem(SESSION_KEY)||'null');return value?.access_token&&value?.refresh_token?value:null;}catch{return null;}}
-  persistSession(value){if(value?.access_token&&value?.refresh_token){const safe={access_token:value.access_token,refresh_token:value.refresh_token,expires_at:value.expires_at||Math.floor(Date.now()/1000)+(value.expires_in||3600),token_type:value.token_type||'bearer',user:value.user?{id:value.user.id,email:value.user.email,email_confirmed_at:value.user.email_confirmed_at}:null};this.sessionStore?.setItem(SESSION_KEY,JSON.stringify(safe));return safe;}this.sessionStore?.removeItem(SESSION_KEY);return null;}
+  session(){try{const source=this.sessionStore?.getItem(SESSION_KEY)||this.sessionStore?.getItem(LEGACY_SESSION_KEY);const value=JSON.parse(source||'null');if(value?.access_token&&value?.refresh_token){this.sessionStore?.setItem(SESSION_KEY,JSON.stringify(value));this.sessionStore?.removeItem(LEGACY_SESSION_KEY);return value;}return null;}catch{return null;}}
+  persistSession(value){if(value?.access_token&&value?.refresh_token){const safe={access_token:value.access_token,refresh_token:value.refresh_token,expires_at:value.expires_at||Math.floor(Date.now()/1000)+(value.expires_in||3600),token_type:value.token_type||'bearer',user:value.user?{id:value.user.id,email:value.user.email,email_confirmed_at:value.user.email_confirmed_at}:null};this.sessionStore?.setItem(SESSION_KEY,JSON.stringify(safe));this.sessionStore?.removeItem(LEGACY_SESSION_KEY);return safe;}this.sessionStore?.removeItem(SESSION_KEY);this.sessionStore?.removeItem(LEGACY_SESSION_KEY);return null;}
   async request(path,{method='GET',body=null,accessToken=null,headers={}}={}){const response=await this.fetchImpl(`${this.url}${path}`,{method,headers:{apikey:this.anonKey,'Content-Type':'application/json',...(accessToken?{Authorization:`Bearer ${accessToken}`}:{Authorization:`Bearer ${this.anonKey}`}),...headers},body:body==null?undefined:JSON.stringify(body)});let payload=null;try{payload=await response.json();}catch{}return parseResponse(response,payload);}
   async signUp({email,password,redirectTo}){const payload=await this.request('/auth/v1/signup',{method:'POST',body:{email:validateEmail(email),password,options:{email_redirect_to:safeRedirect(redirectTo,this.redirectAllowlist)}}});if(payload.session)this.persistSession(payload.session);return {user:payload.user||null,session:payload.session?this.session():null,verificationRequired:!payload.session};}
   async signIn({email,password}){const payload=await this.request('/auth/v1/token?grant_type=password',{method:'POST',body:{email:validateEmail(email),password}});return {session:this.persistSession(payload),user:payload.user||null};}

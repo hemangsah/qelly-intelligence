@@ -1,5 +1,5 @@
 name = "qelly-global-public-beta"
-main = "../../apps/edge/prompt2c-worker.mjs"
+main = "../../apps/edge/qelly-public-api-worker.mjs"
 compatibility_date = "2026-08-01"
 workers_dev = true
 

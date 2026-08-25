@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parsePrompt2CConfig,assertNoBrowserSecrets,buildSecurityHeaders,enforceCsrf,escapeCsvCell,safeJsonParse,validateImportFile,SlidingWindowRateLimiter,verifyTurnstileToken,ProviderGateway,LocalFirstSyncEngine,assessQuota} from '../src/prompt2c/foundation.mjs';
+import {parsePublicRuntimeConfig,assertNoBrowserSecrets,buildSecurityHeaders,enforceCsrf,escapeCsvCell,safeJsonParse,validateImportFile,SlidingWindowRateLimiter,verifyTurnstileToken,ProviderGateway,LocalFirstSyncEngine,assessQuota} from '../src/public-runtime/foundation.mjs';
 
 test('config defaults to truthful deterministic fallback and redacts secrets',()=>{
-  const config=parsePrompt2CConfig({QELLY_SUPABASE_SERVICE_ROLE_KEY:'server-secret'});
+  const config=parsePublicRuntimeConfig({QELLY_SUPABASE_SERVICE_ROLE_KEY:'server-secret'});
   assert.equal(config.mode,'local-only');
   assert.equal(config.public.cloudSyncAvailable,false);
   assert.equal(JSON.stringify(config.public).includes('server-secret'),false);
@@ -11,7 +11,7 @@ test('config defaults to truthful deterministic fallback and redacts secrets',()
 });
 
 test('strict cloud mode requires public and server-only credentials',()=>{
-  assert.throws(()=>parsePrompt2CConfig({QELLY_CLOUD_MODE:'supabase',QELLY_PUBLIC_SUPABASE_URL:'https://example.supabase.co',QELLY_PUBLIC_SUPABASE_ANON_KEY:'anon'},{strictCloud:true}));
+  assert.throws(()=>parsePublicRuntimeConfig({QELLY_CLOUD_MODE:'supabase',QELLY_PUBLIC_SUPABASE_URL:'https://example.supabase.co',QELLY_PUBLIC_SUPABASE_ANON_KEY:'anon'},{strictCloud:true}));
 });
 
 test('browser security and file boundaries reject malicious inputs',()=>{

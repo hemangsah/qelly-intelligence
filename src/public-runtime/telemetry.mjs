@@ -45,7 +45,7 @@ export function structuredLog(level,message,fields={}){
   if(!['debug','info','warn','error'].includes(level))throw new Error('invalid_log_level');
   return Object.freeze({timestamp:new Date().toISOString(),level,message:String(message).slice(0,300),correlationId:String(fields.correlationId||crypto.randomUUID()).slice(0,128),service:String(fields.service||'qelly-public-beta').slice(0,80),releaseSha:String(fields.releaseSha||'unresolved').slice(0,40),fields:redactLogValue(Object.fromEntries(Object.entries(fields).filter(([key])=>!['correlationId','service','releaseSha'].includes(key))))});
 }
-export function publicBetaReadiness({database='external_authorization_required',auth='external_authorization_required',providers='degraded_to_deterministic',quota='normal',deployment='validated_static_fallback',security='passing',rollback='documented'}={}){
+export function publicRuntimeReadiness({database='external_authorization_required',auth='external_authorization_required',providers='degraded_to_deterministic',quota='normal',deployment='validated_static_fallback',security='passing',rollback='documented'}={}){
   const dependencies={database,auth,providers,quota,deployment,security,rollback};
   const blockers=Object.entries(dependencies).filter(([,state])=>['failed','unknown','external_authorization_required'].includes(state)).map(([name,state])=>({name,state}));
   return {readyForDeterministicPublicBeta:security==='passing'&&deployment==='validated_static_fallback'&&quota!=='critical',readyForCloudPublicBeta:blockers.length===0,dependencies,blockers,truthBoundary:'Static deterministic readiness is independent from cloud authentication, persistence and provider activation.'};

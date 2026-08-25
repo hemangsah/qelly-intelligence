@@ -103,10 +103,10 @@ def generated_runner():
 def main():
     build_info=ROOT/'dist/frontend/BUILD_INFO.json'
     if not build_info.is_file():
-        raise SystemExit('built frontend missing; run the Prompt2C production-mode build first')
+        raise SystemExit('built frontend missing; run the public-runtime production build first')
     info=json.loads(build_info.read_text(encoding='utf-8'))
-    if info.get('staticVisualPreview') is not False or info.get('prompt2cPublicBeta') is not True:
-        raise SystemExit('production shell evidence requires staticVisualPreview=false and prompt2cPublicBeta=true')
+    if info.get('staticVisualPreview') is not False or info.get('publicRuntimeEnabled') is not True:
+        raise SystemExit('production shell evidence requires staticVisualPreview=false and publicRuntimeEnabled=true')
 
     definitions=route_definitions()
     index={item['route']:position for position,item in enumerate(definitions)}

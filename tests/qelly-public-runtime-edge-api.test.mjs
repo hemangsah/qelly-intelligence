@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import worker from '../apps/edge/prompt2c-worker.mjs';
+import worker from '../apps/edge/qelly-public-api-worker.mjs';
 
 const env={QELLY_ALLOWED_ORIGINS:'https://qelly.example',QELLY_PUBLIC_SUPABASE_URL:'https://project.supabase.co/',QELLY_PUBLIC_SUPABASE_ANON_KEY:'public-anon-key'};
 function request(path,{body,headers={}}={}){return new Request(`https://edge.example${path}`,{method:'POST',headers:{Origin:'https://qelly.example',Authorization:'Bearer user.jwt.token','Content-Type':'application/json',...headers},body:body===undefined?undefined:JSON.stringify(body)});}

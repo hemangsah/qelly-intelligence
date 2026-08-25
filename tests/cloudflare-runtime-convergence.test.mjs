@@ -201,7 +201,7 @@ test('one complete sample is insufficient when two stable samples are required a
 });
 
 test('public-runtime workflow uses the convergence gate before route capture',async()=>{
-  const workflow=await readFile(new URL('../.github/workflows/prompt2c-public-beta.yml',import.meta.url),'utf8');
+  const workflow=await readFile(new URL('../.github/workflows/qelly-public-runtime.yml',import.meta.url),'utf8');
   assert.match(workflow,/node scripts\/wait-for-cloudflare-runtime-convergence\.mjs/);
   assert.ok(workflow.indexOf('wait-for-cloudflare-runtime-convergence.mjs')<workflow.indexOf('Capture and validate critical routes'));
 });
