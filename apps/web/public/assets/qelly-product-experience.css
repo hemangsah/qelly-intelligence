@@ -6,6 +6,8 @@
   --q-radius-control:10px;
   --q-radius-surface:12px;
   --q-radius-feature:16px;
+  --q-target-min:40px;
+  --q-focus-ring:color-mix(in srgb,var(--q-accent-strong) 78%,#fff);
   --q-elevation-rest:0 12px 34px rgba(0,0,0,.16),inset 0 1px rgba(255,255,255,.055);
   --q-elevation-hover:0 18px 46px rgba(0,0,0,.24),inset 0 1px rgba(255,255,255,.075);
   scrollbar-color:color-mix(in srgb,var(--q-accent) 76%,var(--q-muted)) transparent;
@@ -16,6 +18,46 @@ html{scroll-behavior:smooth;scrollbar-gutter:stable}
 *::-webkit-scrollbar{width:9px;height:9px}
 *::-webkit-scrollbar-track{background:transparent}
 *::-webkit-scrollbar-thumb{border:3px solid transparent;border-radius:999px;background:color-mix(in srgb,var(--q-accent) 72%,var(--q-muted));background-clip:padding-box}
+
+/* One interaction contract for every route: visible keyboard focus, honest
+   disabled states, consistent pressed feedback, and comfortable hit areas. */
+html[data-production-system="v8"] :where(button,a[href],input,select,textarea,[role="button"],[role="link"],[role="tab"]){
+  touch-action:manipulation;
+}
+html[data-production-system="v8"] :where(button,a[href],input,select,textarea,[role="button"],[role="link"],[role="tab"]):focus-visible{
+  outline:3px solid var(--q-focus-ring)!important;
+  outline-offset:3px!important;
+  box-shadow:0 0 0 5px color-mix(in srgb,var(--q-focus-ring) 18%,transparent)!important;
+}
+html[data-production-system="v8"] :where(button:disabled,[aria-disabled="true"]){
+  cursor:not-allowed!important;filter:saturate(.55)!important;opacity:.58!important;
+}
+html[data-production-system="v8"] :where(button,a[href],[role="button"],[role="link"],[role="tab"]).is-interacting{
+  transform:translateY(0) scale(.985)!important;filter:brightness(.98)!important;
+}
+html[data-production-system="v8"] button[aria-label="Dismiss notification"]{
+  min-width:var(--q-target-min)!important;min-height:var(--q-target-min)!important;padding:0!important;display:inline-grid!important;place-items:center!important;
+}
+
+/* Compact source links remain visually quiet while still being easy to tap. */
+html[data-production-system="v8"] :where(
+  .qelly-tradingview-attribution a,
+  .q-v6-runtime-provider>a,
+  .q-v7-provider-card>a,
+  .q-external-research-actions>a
+){
+  display:inline-flex!important;align-items:center!important;min-height:var(--q-target-min)!important;padding-block:8px!important;text-underline-offset:3px;
+}
+
+/* Column resizing keeps a fine visual line but exposes a standards-sized
+   keyboard and pointer target. */
+html[data-production-system="v8"] .q-grid-resizer{
+  right:-12px!important;top:-3px!important;bottom:-3px!important;width:24px!important;min-width:24px!important;border-radius:8px!important;
+  background:linear-gradient(90deg,transparent 11px,color-mix(in srgb,var(--q-muted) 58%,transparent) 11px 13px,transparent 13px)!important;
+}
+html[data-production-system="v8"] .q-grid-resizer:is(:hover,:focus-visible){
+  background:linear-gradient(90deg,transparent 10px,var(--q-accent-strong) 10px 14px,transparent 14px)!important;
+}
 
 html[data-production-system="v8"] body #app header.q-product-header{
   transition:background-color 180ms ease,box-shadow 180ms ease,backdrop-filter 180ms ease!important;
@@ -134,8 +176,10 @@ html[data-product-experience="ready"] #main>section{animation:q-product-enter 32
 @keyframes q-product-enter{from{opacity:.45;transform:translateY(8px)}to{opacity:1;transform:none}}
 
 @media(max-width:760px){
+  :root{--q-target-min:44px}
   html[data-production-system="v8"] #main .q-calculator-card{min-height:190px!important;padding:16px!important}
   html[data-production-system="v8"] #main .q-v6-quant-kpis>div{min-height:82px!important}
+  html[data-production-system="v8"] .q-grid-resizer{right:-14px!important;width:28px!important;min-width:28px!important}
 }
 
 @media(prefers-reduced-motion:reduce){
