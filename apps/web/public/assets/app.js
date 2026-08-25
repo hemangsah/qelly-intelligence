@@ -114,7 +114,9 @@ async function loadAuthenticatedState(){
 }
 
 function publishSessionState(){
-  document.dispatchEvent(new CustomEvent('qelly:session-state',{detail:{authenticated:state.authenticated,identity:state.identity}}));
+  const detail=Object.freeze({authenticated:state.authenticated,identity:state.identity});
+  window.__QELLY_SESSION_STATE__=detail;
+  document.dispatchEvent(new CustomEvent('qelly:session-state',{detail}));
 }
 
 async function reloadApplication(targetRoute='account-session'){
