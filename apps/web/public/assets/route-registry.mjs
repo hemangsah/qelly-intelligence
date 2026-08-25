@@ -54,7 +54,7 @@ const routes = [
   { section:'Access', route:'auth-login', label:'Secure Login', icon:icon('login'), meta:'A1', public:true, anonymousOnly:true },
   { section:'Access', route:'auth-register', label:'Create Organization', icon:icon('userPlus'), meta:'A1', public:true, anonymousOnly:true },
   { section:'Access', route:'auth-recovery', label:'Recover Account', icon:icon('recovery'), meta:'A4', public:true, anonymousOnly:true },
-  { section:'Account', route:'account-session', label:'Session Center', icon:icon('session'), meta:'A1' },
+  { section:'Account', route:'account-session', label:'Profile & Security', icon:icon('session'), meta:'A1' },
   { section:'Account', route:'security-setup', label:'MFA Setup', icon:icon('shield'), meta:'A2' },
   { section:'Account', route:'passkey-center', label:'Passkey Center', icon:icon('key'), meta:'A3' },
   { section:'Account', route:'account-recovery', label:'Recovery Controls', icon:icon('recovery'), meta:'A3' },
