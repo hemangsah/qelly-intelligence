@@ -62,7 +62,8 @@ test('canonical Cloudflare route owns platform readiness and the UI consumes its
   assert.match(route,/cache:'no-store'/);
   assert.doesNotMatch(catchAll,/path==='platform\/readiness'/);
   assert.match(ui,/\/api\/v1\/platform\/readiness/);
-  assert.match(ui,/Provider policy matrix/);
+  assert.match(ui,/Data source permissions/);
   assert.match(ui,/Financial safety boundary/);
-  assert.match(ui,/Policy-disabled providers are not misreported as outages/);
+  assert.match(ui,/customer-readable view/);
+  assert.match(ui,/providerPolicyMessage/);
 });

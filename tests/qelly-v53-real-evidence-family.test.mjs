@@ -59,11 +59,12 @@ test('Workspace Watchlist separates Cloud RLS persistence from unavailable quote
   assert.match(source,/q-v53-evidence-inspector/);
   assert.match(source,/data-watchlist-persistence="CLOUD RLS"/);
   assert.match(source,/data-watchlist-quote-truth="UNAVAILABLE"/);
-  assert.match(source,/Supabase workspace-scoped/);
-  assert.match(source,/No market observation supplied/);
-  assert.match(source,/No rights-approved quote observation/);
-  assert.match(source,/does not substitute deterministic fixture prices/i);
-  assert.match(source,/Workspace membership only/);
+  assert.match(source,/Secure cloud · private workspace/);
+  assert.match(source,/Not yet available/);
+  assert.match(source,/Awaiting an approved market-data source/);
+  assert.match(source,/Prices and daily changes will appear only when an approved market-data source is connected/i);
+  assert.match(source,/Private to workspace members/);
+  assert.doesNotMatch(source,/Supabase workspace-scoped|Authenticated Supabase workspace tables|RLS governed/i);
   assert.doesNotMatch(source,/packaged quote fixture|local JSON|fixture quotes|Watchlist created locally/i);
 });
 

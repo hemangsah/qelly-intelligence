@@ -1,6 +1,7 @@
 import { calculateFormula, listFormulaDefinitions } from '../calculation/formula-engine-extended.mjs';
 import { INDIA_RULE_REGISTRY, selectIndiaRule, calculateCustomIndiaCharges } from '../calculation/india-rules.mjs';
 import { saveCalculation, resultToCsv } from '../calculation/persistence.mjs';
+import {humanizeOperationalState} from '../customer-copy.mjs';
 
 const EXAMPLES={
   'sip-future-value':{monthlyContribution:25000,annualReturnPercent:12,years:15,timing:'end'},
@@ -40,8 +41,8 @@ export async function renderIndiaFinanceCenter(main,{pageHead,escapeHtml,toast})
         <div class="q-panel-body"><div class="q-result-priority"><h3 id="india-primary">Ready</h3><p>INR values use Indian grouping for display; canonical stored values remain plain numbers.</p></div><div class="q-table-shell"><table class="q-table"><thead><tr><th>Output</th><th>Value</th></tr></thead><tbody id="india-results"><tr><td colspan="2">No result yet</td></tr></tbody></table></div><details><summary>Complete evidence JSON</summary><pre id="india-evidence">No evidence yet.</pre></details></div>
       </section>
       <section class="q-panel q-india-rules">
-        <div class="q-panel-head"><div><h2>Effective-dated rule registry</h2><p>Unavailable is safer than an invented or stale rate.</p></div></div>
-        <div class="q-panel-body"><div class="q-record-stack">${INDIA_RULE_REGISTRY.rules.map(rule=>`<article class="q-record-row"><span><strong>${escapeHtml(rule.name)}</strong><small>${escapeHtml(rule.sourceAuthority)} · effective ${rule.effectiveFrom}</small></span><span class="q-status q-status--unavailable">${escapeHtml(rule.status)}</span></article>`).join('')}</div><details><summary>Rule governance metadata</summary><pre>${escapeHtml(JSON.stringify(INDIA_RULE_REGISTRY,null,2))}</pre></details></div>
+        <div class="q-panel-head"><div><h2>Rule source status</h2><p>Rates are used only after the current primary source has been verified.</p></div></div>
+        <div class="q-panel-body"><div class="q-record-stack">${INDIA_RULE_REGISTRY.rules.map(rule=>`<article class="q-record-row"><span><strong>${escapeHtml(rule.name)}</strong><small>${escapeHtml(rule.sourceAuthority)} · effective ${rule.effectiveFrom}</small></span><span class="q-status q-status--cached">${escapeHtml(humanizeOperationalState(rule.status).replace(/\.$/,''))}</span></article>`).join('')}</div><div class="q-v7-evidence-strip"><span>Primary sources required</span><span>Stale rates are not reused</span><span>Custom rates stay clearly labelled</span></div></div>
       </section>
       <section class="q-panel q-india-charges">
         <div class="q-panel-head"><div><h2>Custom India trading costs</h2><p>Enter current broker, exchange and statutory charges yourself. No broker fee is universal.</p></div></div>

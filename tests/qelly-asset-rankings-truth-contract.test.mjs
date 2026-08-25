@@ -18,8 +18,9 @@ test('Asset Rankings visibly discloses provider-rights and ranking-feed availabi
   assert.match(source,/Governed production truth/);
   assert.match(source,/market ranking feed \$\{authorizedRankProviders\.length\?'authorized':'unavailable'\}/);
   assert.match(source,/Binance and Coinbase remain rights-blocked/);
-  assert.match(source,/No crypto ranking values are displayed/);
-  assert.match(source,/Qelly will not rank assets from generated prices, volumes, open interest, funding or liquidation values/);
+  assert.match(source,/Rankings are being connected/);
+  assert.match(source,/Qelly will publish rankings only after the required market-data permissions and source checks are complete/);
+  assert.match(source,/Open research workspace/);
   assert.doesNotMatch(source,/Deterministic demonstration|Values are not live market observations|High agreement/);
 });
 

@@ -25,7 +25,7 @@ test('premium reset uses neutral institutional foundations and rare gradients',a
 test('Asset Rankings production composition is provider-truth first and does not mount deterministic OHLC',async()=>{
   const route=await read('apps/web/public/assets/routes/asset-rankings-premium.mjs');
   assert.match(route,/Asset ranking availability/);
-  assert.match(route,/Provider rights matrix|Ranking feed unavailable/);
+  assert.match(route,/Ranking coverage pending|Data source permissions|Approved reference source/);
   assert.match(route,/ECB euro reference-rate universe/);
   assert.match(route,/Professional research surfaces/);
   assert.doesNotMatch(route,/asset-rankings-chart|candlestick|deterministicOhlc|demonstrationRows|tableMarkup|chartMarkup/);
@@ -63,7 +63,7 @@ test('production rankings truth is compact and mobile foundations remain purpose
   assert.match(route,/No fixed crypto scenario is shown in production/);
   assert.match(route,/fabricated fallback off/);
   assert.match(route,/Research only · no trading/);
-  assert.match(route,/No crypto ranking values are displayed/);
+  assert.match(route,/Explore verified market sources while coverage is prepared/);
   assert.match(mobile,/q-mi-mobile-rankings/);
   assert.match(mobile,/q-mi-mobile-row/);
   assert.match(mobile,/safe-area-inset-bottom/);
