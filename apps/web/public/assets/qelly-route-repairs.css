@@ -1,6 +1,6 @@
-/* Qelly Production V8 route repair boundary.
- * Loaded after qelly-production-v8.css while legacy route styles are retired.
- * Scoped to the V8 production system only.
+/* Qelly production route repair boundary.
+ * Loaded after qelly-production-shell.css while legacy route styles are retired.
+ * Scoped to the current production system only.
  */
 html[data-production-system="v8"] #main{--q-control-height:40px;--q-route-gap:14px}
 html[data-production-system="v8"] #main :where(input,select,textarea){box-sizing:border-box!important;min-width:0!important;border:1px solid var(--q-border)!important;background:var(--q-surfacealt)!important;color:var(--q-text)!important;-webkit-text-fill-color:var(--q-text)!important;box-shadow:none!important}

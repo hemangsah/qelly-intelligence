@@ -73,7 +73,7 @@ test('all-screen evidence exercises governed calculator and indicator detail sel
 });
 
 test('deployed acceptance gate verifies Cloudflare and GitHub live-markets',async()=>{
-  const source=await read('.github/workflows/qelly-v8-live-terminal-acceptance.yml');
+  const source=await read('.github/workflows/qelly-live-terminal-acceptance.yml');
   assert.match(source,/api\/v1\/market\/network/);
   assert.match(source,/ecb_reference_unavailable/);
   assert.match(source,/no_fast_public_market_source_available/);
@@ -84,8 +84,8 @@ test('deployed acceptance gate verifies Cloudflare and GitHub live-markets',asyn
   assert.match(source,/Validate semantic source contract/);
 });
 
-test('V8 runtime never euphemizes demo or simulated truth states',async()=>{
-  const source=await read('apps/web/public/assets/qelly-production-v8.mjs');
+test('production runtime never euphemizes demo or simulated truth states',async()=>{
+  const source=await read('apps/web/public/assets/qelly-production-shell.mjs');
   assert.doesNotMatch(source,/\['simulated','Indicative'\]/);
   assert.doesNotMatch(source,/\['demo','Reference'\]/);
   assert.doesNotMatch(source,/repairDecisionTruthLabels/);
@@ -97,8 +97,8 @@ test('V8 runtime never euphemizes demo or simulated truth states',async()=>{
   assert.match(source,/q-v8-technical-identifiers/);
 });
 
-test('V8 screenshot repair boundary fixes dark controls and broken density owners',async()=>{
-  const css=await read('apps/web/public/assets/qelly-production-v8-route-repairs.css');
+test('screenshot repair boundary fixes dark controls and broken density owners',async()=>{
+  const css=await read('apps/web/public/assets/qelly-route-repairs.css');
   assert.match(css,/q-v6-quant-kpis/);
   assert.match(css,/grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
   assert.match(css,/q-saved-calculations-page \.q-filter-bar/);
@@ -107,12 +107,12 @@ test('V8 screenshot repair boundary fixes dark controls and broken density owner
   assert.match(css,/color-scheme:dark/);
 });
 
-test('V9 convergence layer modernizes access account and formula routes without changing source truth',async()=>{
+test('convergence layer modernizes access account and formula routes without changing source truth',async()=>{
   const [runtime,css]=await Promise.all([
-    read('apps/web/public/assets/qelly-production-v8.mjs'),
-    read('apps/web/public/assets/qelly-production-v9-route-convergence.css')
+    read('apps/web/public/assets/qelly-production-shell.mjs'),
+    read('apps/web/public/assets/qelly-route-convergence.css')
   ]);
-  assert.match(runtime,/qelly-production-v9-route-convergence\.css/);
+  assert.match(runtime,/qelly-route-convergence\.css/);
   assert.match(runtime,/ROUTE_CONVERGENCE_STYLESHEET/);
   assert.match(runtime,/normalizeDeterministicPresentation/);
   assert.match(runtime,/'calculator-detail'/);

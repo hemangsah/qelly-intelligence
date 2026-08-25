@@ -1,5 +1,5 @@
-/* Qelly V9 route convergence layer.
- * Design-lock implementation loaded after the V8 canonical + repair styles.
+/* Qelly route convergence layer.
+ * Design-lock implementation loaded after the canonical + repair styles.
  * Keeps runtime truth unchanged while modernizing customer-facing route hierarchy.
  */
 
@@ -277,7 +277,7 @@ html[data-production-system="v8"] #main[data-production-route="formula-detail"]>
 }
 
 /* Product-wide accessibility floor. This stylesheet is intentionally kept last
-   by qelly-production-v8.mjs, so older compact-density locks cannot shrink
+   by qelly-production-shell.mjs, so older compact-density locks cannot shrink
    route context, evidence or calculator metadata back below readable sizes. */
 html[data-production-system="v8"] #main :where(
   .q-worldclass-breadcrumb,.q-worldclass-breadcrumb span,.q-worldclass-truth-chip,.q-worldclass-method summary,

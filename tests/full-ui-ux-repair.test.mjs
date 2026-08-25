@@ -43,8 +43,8 @@ test('shared world-class context meets mobile target and text floors', async () 
 
 test('production mobile controls and research evidence remain tappable and readable', async () => {
   const [repairs, convergence] = await Promise.all([
-    read('apps/web/public/assets/qelly-production-v8-route-repairs.css'),
-    read('apps/web/public/assets/qelly-production-v9-route-convergence.css')
+    read('apps/web/public/assets/qelly-route-repairs.css'),
+    read('apps/web/public/assets/qelly-route-convergence.css')
   ]);
   assert.match(repairs, /@media\(max-width:700px\)[\s\S]*--q-control-height:44px/);
   assert.match(convergence, /a\[class\*="button"\][\s\S]*min-height:44px/);
@@ -57,8 +57,8 @@ test('production mobile controls and research evidence remain tappable and reada
 
 test('production header and primary actions keep a 44 pixel touch floor', async () => {
   const [source, convergence] = await Promise.all([
-    read('apps/web/public/assets/qelly-production-v8.css'),
-    read('apps/web/public/assets/qelly-production-v9-route-convergence.css')
+    read('apps/web/public/assets/qelly-production-shell.css'),
+    read('apps/web/public/assets/qelly-route-convergence.css')
   ]);
   assert.match(source, /\.q-product-brand \{[\s\S]*?min-height: 44px !important/);
   assert.match(source, /\.q-product-nav a \{[\s\S]*?min-height: 44px !important/);
@@ -109,8 +109,8 @@ test('theme and provider cards do not skip the level-two heading', async () => {
 test('route fallbacks keep URL ownership truthful and dynamic metadata readable', async () => {
   const [app, runtime, convergence, index] = await Promise.all([
     read('apps/web/public/assets/app.js'),
-    read('apps/web/public/assets/qelly-production-v8.mjs'),
-    read('apps/web/public/assets/qelly-production-v9-route-convergence.css'),
+    read('apps/web/public/assets/qelly-production-shell.mjs'),
+    read('apps/web/public/assets/qelly-route-convergence.css'),
     read('apps/web/public/index.html')
   ]);
   assert.match(app, /if\(!allowed&&route!==state\.route\)history\.replaceState\(null,'',`#\/\$\{state\.route\}`\)/);
@@ -121,14 +121,14 @@ test('route fallbacks keep URL ownership truthful and dynamic metadata readable'
   assert.match(convergence, /q-v8-technical-identifiers>summary\{min-height:44px!important/);
   assert.match(convergence, /\.q-filter-chip\{min-width:44px!important/);
   assert.match(convergence, /q-v53-strategy-tools \.q-verify-upload-card code\)\{font-size:12px!important/);
-  assert.match(index, /qelly-production-v8-route-repairs\.css" data-qelly-production-v8-route-repairs="true"/);
-  assert.match(index, /qelly-production-v9-route-convergence\.css" data-qelly-production-v9-route-convergence="true"/);
+  assert.match(index, /qelly-route-repairs\.css" data-qelly-route-repairs="true"/);
+  assert.match(index, /qelly-route-convergence\.css" data-qelly-route-convergence="true"/);
 });
 
 test('production exposes the complete registry through one responsive feature navigator', async () => {
   const [runtime, convergence, registry] = await Promise.all([
-    read('apps/web/public/assets/qelly-production-v8.mjs'),
-    read('apps/web/public/assets/qelly-production-v9-route-convergence.css'),
+    read('apps/web/public/assets/qelly-production-shell.mjs'),
+    read('apps/web/public/assets/qelly-route-convergence.css'),
     import('../apps/web/public/assets/route-registry.mjs')
   ]);
   const visibleRoutes=registry.routeDefinitions.filter((route)=>!route.hidden);
@@ -154,7 +154,7 @@ test('modern production polish is globally loaded, curved, animated and motion-s
     read('apps/web/public/assets/qelly-sovereign-motion.js'),
     read('apps/web/public/prompt2c-sw.js')
   ]);
-  assert.match(index, /qelly-production-v9-route-convergence\.css[\s\S]*qelly-modern-interaction-polish\.css\?v=20260822-modern7/);
+  assert.match(index, /qelly-route-convergence\.css[\s\S]*qelly-modern-interaction-polish\.css\?v=20260822-modern7/);
   assert.match(css, /--q-modern-radius-xl:32px/);
   assert.match(css, /header\.q-product-header[\s\S]*border-radius:0 0 var\(--q-modern-radius-lg\)/);
   assert.match(css, /:where\(button:not\(\.q-product-brand__mark\),a\.q-button,\[role="button"\],\[role="tab"\]\)[\s\S]*border-radius:999px!important/);
@@ -185,14 +185,14 @@ test('modern production polish is globally loaded, curved, animated and motion-s
   assert.match(worker, /qelly-modern-interaction-polish\.css/);
 });
 
-test('luxe v10 is the final border-light visual authority and is offline-safe', async () => {
+test('premium theme is the final border-light visual authority and is offline-safe', async () => {
   const [index, css, runtime, worker] = await Promise.all([
     read('apps/web/public/index.html'),
-    read('apps/web/public/assets/qelly-luxe-v10.css'),
-    read('apps/web/public/assets/qelly-luxe-v10.mjs'),
+    read('apps/web/public/assets/qelly-premium-theme.css'),
+    read('apps/web/public/assets/qelly-premium-interactions.mjs'),
     read('apps/web/public/prompt2c-sw.js')
   ]);
-  assert.match(index, /qelly-modern-interaction-polish\.css[\s\S]*qelly-luxe-v10\.css\?v=20260825-luxe1/);
+  assert.match(index, /qelly-modern-interaction-polish\.css[\s\S]*qelly-premium-theme\.css\?v=20260825-premium1/);
   assert.match(css, /feature inventory is a persistent\s+dock on wide screens/);
   assert.match(css, /data-production-access="false"\] \.q-feature-navigation[\s\S]*transform:translateX/);
   assert.match(css, /data-feature-navigation-owner="true"\][^}]*display:inline-flex!important/);
@@ -202,13 +202,13 @@ test('luxe v10 is the final border-light visual authority and is offline-safe', 
   assert.match(css, /width:min\(100%,1760px\)!important/);
   assert.match(css, /border:0!important;border-radius:22px!important/);
   assert.match(css, /q-v7-market-grid[\s\S]*grid-template-columns:minmax\(0,1fr\) minmax\(280px,340px\)/);
-  assert.match(index, /qelly-production-v8\.mjs[\s\S]*qelly-luxe-v10\.mjs/);
-  assert.match(runtime, /dataset\.luxeUi='v10'/);
-  const convergenceRuntime=await read('apps/web/public/assets/qelly-production-v8.mjs');
-  assert.match(convergenceRuntime, /const desiredTail=\[canonical,repairs,convergence,luxe\]/);
+  assert.match(index, /qelly-production-shell\.mjs[\s\S]*qelly-premium-interactions\.mjs/);
+  assert.match(runtime, /dataset\.premiumUi='true'/);
+  const convergenceRuntime=await read('apps/web/public/assets/qelly-production-shell.mjs');
+  assert.match(convergenceRuntime, /const desiredTail=\[canonical,repairs,convergence,premiumTheme\]/);
   assert.match(convergenceRuntime, /matchMedia\('\(min-width:1241px\)'\)\.matches/);
   assert.match(convergenceRuntime, /q-feature-navigation-collapsed/);
-  assert.match(worker, /qelly-luxe-v10\.css/);
-  assert.match(worker, /qelly-luxe-v10\.mjs/);
+  assert.match(worker, /qelly-premium-theme\.css/);
+  assert.match(worker, /qelly-premium-interactions\.mjs/);
   assert.match(worker, /fallback-v4/);
 });

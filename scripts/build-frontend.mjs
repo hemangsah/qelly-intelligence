@@ -89,8 +89,8 @@ if(prompt2cPublicBeta){
   if(!index.includes('prompt2c-public-beta.mjs'))index=index.replace('</body>','  <script type="module" src="./assets/prompt2c-public-beta.mjs"></script>\n</body>');
 }
 if(!index.includes('qelly-verify-bootstrap.mjs'))index=index.replace('<script type="module" src="./assets/app.js"></script>','<script type="module" src="./assets/qelly-verify-bootstrap.mjs"></script>\n  <script type="module" src="./assets/app.js"></script>');
-if(!index.includes('qelly-production-v8.css'))index=index.replace('</head>','  <link rel="stylesheet" href="./assets/qelly-production-v8.css">\n</head>');
-if(!index.includes('qelly-production-v8.mjs'))index=index.replace('</body>','  <script type="module" src="./assets/qelly-production-v8.mjs"></script>\n</body>');
+if(!index.includes('qelly-production-shell.css'))index=index.replace('</head>','  <link rel="stylesheet" href="./assets/qelly-production-shell.css">\n</head>');
+if(!index.includes('qelly-production-shell.mjs'))index=index.replace('</body>','  <script type="module" src="./assets/qelly-production-shell.mjs"></script>\n</body>');
 await writeFile(indexPath,index);
 
 const connectedRuntimeConfig={

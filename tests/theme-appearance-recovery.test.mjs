@@ -26,7 +26,7 @@ test('browser theme bridge preserves full legacy preset semantics and persists a
 });
 
 test('visible production Appearance control toggles the canonical theme engine instead of merely opening Theme Studio',async()=>{
-  const source=await read('apps/web/public/assets/qelly-production-v8.mjs');
+  const source=await read('apps/web/public/assets/qelly-production-shell.mjs');
   assert.match(source,/button\.dataset\.v8Appearance='true'/);
   assert.match(source,/window\.QellyThemeStudio\?\.toggleAppearance/);
   assert.match(source,/Switch to \$\{next\.toLowerCase\(\)\} appearance/);
@@ -35,7 +35,7 @@ test('visible production Appearance control toggles the canonical theme engine i
 });
 
 test('login registration and recovery use a compact shell without duplicate search/account controls',async()=>{
-  const source=await read('apps/web/public/assets/qelly-production-v8.mjs');
+  const source=await read('apps/web/public/assets/qelly-production-shell.mjs');
   assert.match(source,/ACCESS_ROUTES=new Set\(\['auth-login','auth-register','auth-recovery'\]\)/);
   assert.match(source,/header\.dataset\.accessShell='compact'/);
   assert.match(source,/grid-template-columns','auto minmax\(0,1fr\) auto','important'/);
