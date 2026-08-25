@@ -152,6 +152,11 @@ async function registerServiceWorker(){if(!('serviceWorker'in navigator)||locati
 
 function install(){
   if(!initialHash||initialHash==='#/'||initialHash==='#')location.hash='#/market';
+  document.addEventListener('qelly:session-state',(event)=>{
+    sessionState.authenticated=event.detail?.authenticated===true;
+    sessionState.sync=sessionState.authenticated?'available':'unavailable';
+    buildProductHeader();
+  });
   buildProductHeader();loadSessionState();loadReleaseIdentity();registerServiceWorker();
   window.addEventListener('hashchange',()=>{updateHeaderRoute();setTimeout(enhanceCurrentRoute,0);});
   // Connectivity changes may refresh shell state, but route rendering remains
