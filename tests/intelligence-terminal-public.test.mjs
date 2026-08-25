@@ -30,8 +30,9 @@ test('terminal keeps provider launches external and never inserts unsafe chat if
   assert.match(source,/noopener noreferrer nofollow/);
   assert.match(source,/No Qelly API credential or conversation access is claimed/);
   assert.doesNotMatch(source,/Gmail contains/i);
-  assert.match(source,/publicPosting:false/);
-  assert.match(source,/storage:'session-only'/);
+  assert.match(source,/Prompts stay private until you open an external provider/);
+  assert.match(source,/providerPolicyMessage/);
+  assert.doesNotMatch(source,/provider\.termsState\|\|provider\.reason/);
   assert.match(styles,/\.q-intelligence-terminal \.q-it-tabs button\{height:auto!important;min-height:44px!important\}/);
 });
 

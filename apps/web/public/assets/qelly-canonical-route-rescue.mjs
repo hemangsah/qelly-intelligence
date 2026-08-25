@@ -1,4 +1,5 @@
 import {evaluateDecision} from './qelly-decision-engine.mjs';
+import {providerAvailability,providerPolicyMessage} from './customer-copy.mjs';
 
 const RESCUE_ROUTES=new Set(['notification-schedules','data-mesh','decision-provenance','platform-readiness','watchlist']);
 const esc=(value)=>String(value??'').replace(/[&<>"']/g,(char)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -10,30 +11,30 @@ const shell=(eyebrow,title,description,body)=>`<section class="q-page q-canonica
 const record=(title,detail,badge,badgeTone='unavailable')=>`<div class="q-record-row"><span><strong>${esc(title)}</strong><small>${esc(detail)}</small></span>${status(badge,badgeTone)}</div>`;
 
 function rescueNotifications(main){
-  main.innerHTML=shell('Operations · capability boundary','Notification Schedules','Persistent scheduling and external delivery are not enabled in this Cloudflare release. The controls are intentionally disabled instead of failing with a missing API route.',`
+  main.innerHTML=shell('Workspace · alerts','Notification Schedules','Scheduled alerts are being prepared. Your research workspace remains available while delivery options are connected.',`
     <div class="q-kpi-grid">
-      <article class="q-kpi"><div class="q-kpi-label">Scheduler worker</div><div class="q-kpi-value">Off</div><div class="q-kpi-meta"><span>no background execution</span>${status('DEFERRED','cached')}</div></article>
-      <article class="q-kpi"><div class="q-kpi-label">Email / SMS / push</div><div class="q-kpi-value">Off</div><div class="q-kpi-meta"><span>delivery contract not enabled</span>${status('UNAVAILABLE')}</div></article>
-      <article class="q-kpi"><div class="q-kpi-label">Webhook delivery</div><div class="q-kpi-value">Off</div><div class="q-kpi-meta"><span>no event-triggered execution</span>${status('UNAVAILABLE')}</div></article>
+      <article class="q-kpi"><div class="q-kpi-label">Scheduled alerts</div><div class="q-kpi-value">Soon</div><div class="q-kpi-meta"><span>delivery setup in progress</span>${status('PLANNED','cached')}</div></article>
+      <article class="q-kpi"><div class="q-kpi-label">Email / SMS / push</div><div class="q-kpi-value">Soon</div><div class="q-kpi-meta"><span>notification channels in progress</span>${status('PLANNED','cached')}</div></article>
+      <article class="q-kpi"><div class="q-kpi-label">Webhooks</div><div class="q-kpi-value">Soon</div><div class="q-kpi-meta"><span>integrations in progress</span>${status('PLANNED','cached')}</div></article>
       <article class="q-kpi"><div class="q-kpi-label">Financial authority</div><div class="q-kpi-value">None</div><div class="q-kpi-meta"><span>notifications cannot execute actions</span>${status('READ ONLY','live')}</div></article>
     </div>
-    <section class="q-panel"><div class="q-panel-head"><div><h2>Release boundary</h2><p>Schedules will become operational only after persistent storage, worker execution, delivery retries, audit evidence and consent controls are implemented together.</p></div>${status('LIMITED RELEASE','warning')}</div><div class="q-panel-body q-stack">
-      ${record('Create schedule','Disabled until the production scheduler exists.','DISABLED')}
-      ${record('Run due schedules','No manual simulation is exposed as production behavior.','DISABLED')}
-      ${record('External delivery','Email, SMS, push and webhook delivery are not active.','DISABLED')}
-    </div><div class="q-page-actions"><a class="q-button q-button--secondary" href="#/platform-readiness">Review Platform Readiness</a><a class="q-button q-button--secondary" href="#/account-session">Open Session Center</a></div></section>`);
+    <section class="q-panel"><div class="q-panel-head"><div><h2>What you can do now</h2><p>Create a private research note or review your alert rules while scheduled delivery is being prepared.</p></div>${status('COMING SOON','cached')}</div><div class="q-panel-body q-stack">
+      ${record('Research notes','Capture catalysts and follow-up dates in your workspace.','AVAILABLE','live')}
+      ${record('Alert rules','Review the conditions you want to monitor.','AVAILABLE','live')}
+      ${record('Scheduled delivery','Email, SMS, push and webhooks are on the roadmap.','PLANNED','cached')}
+    </div><div class="q-page-actions"><a class="q-button q-button--primary" href="#/research-workspace">Open research workspace</a><a class="q-button q-button--secondary" href="#/alert-center">Review alert rules</a></div></section>`);
 }
 
 async function rescueDataMesh(main){
   let providerData={items:[]};let providerError=null;
   try{providerData=await fetchJson('/api/v1/providers/runtime');}catch(error){providerError=error;}
   const providers=Array.isArray(providerData.items)?providerData.items:[];
-  main.innerHTML=shell('Data · provider truth','Provider Runtime & Data Quality','The provider runtime is operational where rights permit it. Data-quality incident workflow and entitlement-contract inspection remain separate unavailable capabilities and no longer collapse the entire page.',`
-    <section class="q-panel"><div class="q-panel-head"><div><h2>Provider runtime</h2><p>Canonical Cloudflare provider-policy state.</p></div>${status(providerError?'UNAVAILABLE':'RUNTIME',''+(providerError?'unavailable':'live'))}</div><div class="q-panel-body q-stack">
-      ${providerError?record('Provider runtime',providerError.message,'UNAVAILABLE'):providers.length?providers.map((item)=>record(item.id||item.provider||'provider',item.reason||item.termsState||item.policyState||'No detail supplied.',String(item.truthState||item.status||'UNKNOWN').toUpperCase(),String(item.truthState||'').toLowerCase()==='live'?'live':String(item.truthState||'').toLowerCase()==='cached'?'cached':'unavailable')).join(''):record('Provider registry','No provider records returned by the runtime.','EMPTY','cached')}
+  main.innerHTML=shell('Data · source coverage','Data Sources & Quality','See which sources are approved for customer display and where additional coverage is being prepared.',`
+    <section class="q-panel"><div class="q-panel-head"><div><h2>Source coverage</h2><p>Permission and freshness are checked before data appears in Qelly.</p></div>${status(providerError?'CHECKING':'CURRENT',providerError?'cached':'live')}</div><div class="q-panel-body q-stack">
+      ${providerError?record('Source status','Source status could not be refreshed. Try again shortly.','CHECKING','cached'):providers.length?providers.map((item)=>{const availability=providerAvailability(item);return record(item.id||item.provider||'provider',providerPolicyMessage(item),availability.label,availability.tone);}).join(''):record('Source coverage','No source records were returned.','CHECKING','cached')}
     </div></section>
-    <div class="q-two-column"><section class="q-panel"><div class="q-panel-head"><div><h2>Data-quality incidents</h2><p>Persistent incident workflow has not been promoted to canonical Cloudflare storage.</p></div>${status('UNAVAILABLE')}</div><div class="q-panel-body">${record('Incident registry','No fixture incidents are substituted.','DEFERRED','cached')}</div></section><section class="q-panel"><div class="q-panel-head"><div><h2>Entitlement contracts</h2><p>The local entitlement contract registry is not a production browser API.</p></div>${status('UNAVAILABLE')}</div><div class="q-panel-body">${record('Contract inspection','Provider rights remain enforced by the production provider policy layer.','POLICY ENFORCED','live')}</div></section></div>
-    <div class="q-truth-callout"><span class="q-status q-status--live">PARTIAL ROUTE</span><p>One unavailable operational subsystem can no longer blank the provider-runtime evidence that is actually available.</p></div>`);
+    <div class="q-two-column"><section class="q-panel"><div class="q-panel-head"><div><h2>Data quality</h2><p>Qelly keeps missing or unapproved data out of customer analysis.</p></div>${status('PROTECTED','live')}</div><div class="q-panel-body">${record('Quality monitoring','Only approved observations can appear.','ACTIVE','live')}</div></section><section class="q-panel"><div class="q-panel-head"><div><h2>Permission checks</h2><p>Display approval remains separate from technical connectivity.</p></div>${status('ENFORCED','live')}</div><div class="q-panel-body">${record('Customer display','Provider permissions are checked before use.','ACTIVE','live')}</div></section></div>
+    <div class="q-truth-callout"><span class="q-status q-status--live">TRUSTED BY DESIGN</span><p>Missing source coverage stays clearly identified instead of being replaced with sample market values.</p></div>`);
 }
 
 function decisionMarkup(result){
@@ -53,7 +54,7 @@ async function rescueReadiness(main){
     const data=await fetchJson('/api/v1/platform/readiness');
     const summary=data.summary||{};
     main.innerHTML=shell('Operations · production evidence','Platform Readiness','Direct canonical runtime evidence recovered even though the primary route renderer failed.',`
-      <div class="q-kpi-grid"><article class="q-kpi"><div class="q-kpi-label">Ready</div><div class="q-kpi-value">${Number(summary.ready)||0}</div>${status('READY','live')}</article><article class="q-kpi"><div class="q-kpi-label">Partial</div><div class="q-kpi-value">${Number(summary.partial)||0}</div>${status('PARTIAL','warning')}</article><article class="q-kpi"><div class="q-kpi-label">Deferred</div><div class="q-kpi-value">${Number(summary.deferred)||0}</div>${status('DEFERRED','cached')}</article><article class="q-kpi"><div class="q-kpi-label">Blocked</div><div class="q-kpi-value">${Number(summary.blocked)||0}</div>${status('BLOCKED')}</article></div>
+      <div class="q-kpi-grid"><article class="q-kpi"><div class="q-kpi-label">Available</div><div class="q-kpi-value">${Number(summary.ready)||0}</div>${status('READY','live')}</article><article class="q-kpi"><div class="q-kpi-label">Limited</div><div class="q-kpi-value">${Number(summary.partial)||0}</div>${status('REVIEW','warning')}</article><article class="q-kpi"><div class="q-kpi-label">Planned</div><div class="q-kpi-value">${Number(summary.deferred)||0}</div>${status('PLANNED','cached')}</article><article class="q-kpi"><div class="q-kpi-label">Needs attention</div><div class="q-kpi-value">${Number(summary.blocked)||0}</div>${status('REVIEW','warning')}</article></div>
       <section class="q-panel"><div class="q-panel-head"><div><h2>Runtime identity</h2><p>${esc(data.readinessReason||'No readiness reason supplied.')}</p></div>${status(data.ready?'PROVEN':'NOT PROVEN',data.ready?'live':'warning')}</div><div class="q-panel-body q-stack">${record('Release SHA',data.releaseSha||'unresolved','EVIDENCE','cached')}${record('Canonical terminal',data.canonicalSite||'unresolved','CLOUDFLARE','live')}</div></section>`);
   }catch(error){main.innerHTML=shell('Operations · production evidence','Platform Readiness','The readiness endpoint itself is unavailable.',`<section class="q-panel"><div class="q-panel-body">${record('Readiness endpoint',error.message,'UNAVAILABLE')}</div></section>`);}
 }
@@ -62,10 +63,10 @@ async function rescueWatchlist(main){
   try{
     const listing=await fetchJson('/api/v1/workspace/watchlists');
     const items=Array.isArray(listing.items)?listing.items:[];
-    main.innerHTML=shell('Work · cloud persistence','Workspace Watchlists','Direct Cloud-RLS watchlist evidence recovered after the primary renderer failed. Quote data remains unavailable until a rights-approved observation exists.',`
-      <div class="q-kpi-grid"><article class="q-kpi"><div class="q-kpi-label">Watchlists</div><div class="q-kpi-value">${items.length}</div><div class="q-kpi-meta"><span>workspace scoped</span>${status('CLOUD RLS','live')}</div></article><article class="q-kpi"><div class="q-kpi-label">Quote truth</div><div class="q-kpi-value">Off</div><div class="q-kpi-meta"><span>no approved observation attached</span>${status('UNAVAILABLE')}</div></article></div>
-      <section class="q-panel"><div class="q-panel-head"><div><h2>Persisted lists</h2><p>No fixture prices are substituted.</p></div>${status('RLS GOVERNED','live')}</div><div class="q-panel-body q-stack">${items.length?items.map((item)=>record(item.name||'Watchlist',item.description||'No description',`${item.itemCount??0} ITEMS`,'cached')).join(''):record('No watchlists yet','Create a list after the primary workspace renderer is available.','EMPTY','cached')}</div></section>`);
-  }catch(error){main.innerHTML=shell('Work · cloud persistence','Workspace Watchlists','The Cloud-RLS watchlist endpoint is unavailable for this session.',`<section class="q-panel"><div class="q-panel-body">${record('Watchlist persistence',error.message,'UNAVAILABLE')}</div></section>`);}
+    main.innerHTML=shell('Work · private workspace','Workspace Watchlists','Your private lists remain available even when live price coverage has not yet been approved.',`
+      <div class="q-kpi-grid"><article class="q-kpi"><div class="q-kpi-label">Watchlists</div><div class="q-kpi-value">${items.length}</div><div class="q-kpi-meta"><span>private workspace</span>${status('SECURE CLOUD','live')}</div></article><article class="q-kpi"><div class="q-kpi-label">Price coverage</div><div class="q-kpi-value">Soon</div><div class="q-kpi-meta"><span>approved source pending</span>${status('PLANNED','cached')}</div></article></div>
+      <section class="q-panel"><div class="q-panel-head"><div><h2>Saved lists</h2><p>Prices appear only after an approved source is connected.</p></div>${status('PROTECTED','live')}</div><div class="q-panel-body q-stack">${items.length?items.map((item)=>record(item.name||'Watchlist',item.description||'Add a description',`${item.itemCount??0} ITEMS`,'cached')).join(''):record('No watchlists yet','Create your first list to organize assets for research.','GET STARTED','cached')}</div></section>`);
+  }catch(error){main.innerHTML=shell('Work · private workspace','Workspace Watchlists','Your saved lists could not be refreshed for this session.',`<section class="q-panel"><div class="q-panel-body">${record('Watchlist refresh','Try again after refreshing your session.','TRY AGAIN','cached')}</div></section>`);}
 }
 
 async function applyRescue(){

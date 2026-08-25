@@ -39,8 +39,8 @@ test('production finalizer replaces every finance-shaped fixture route owner',as
 
 test('governed discovery module never generates market facts for unavailable capabilities',async()=>{
   const source=await read('apps/web/public/assets/routes/governed-discovery.mjs');
-  assert.match(source,/No production market facts are substituted/);
-  assert.match(source,/Fabricated observations<\/span><strong>0/);
+  assert.match(source,/Placeholder values<\/span><strong>OFF/);
+  assert.match(source,/will not fill gaps with invented market values/);
   assert.match(source,/No production-safe sourced discovery universe is configured/);
   assert.match(source,/No production on-chain provider is configured/);
   assert.match(source,/No licensed global aggregate or prediction-market feed is configured/);
@@ -55,7 +55,7 @@ test('V2 converter derives only from governed ECB observations and fails closed 
   assert.match(source,/\(input\/sourceRate\)\*targetRate/);
   assert.match(source,/Fabricated rate<\/span><strong>OFF/);
   assert.match(source,/Tradable<\/dt><dd>No/);
-  assert.match(source,/No rate was generated/);
+  assert.match(source,/Reference rates are refreshing/);
   assert.match(source,/unavailable-no-fabrication/);
   assert.doesNotMatch(source,/83\.12|151\.4|\.91|\.78/);
 });
@@ -63,8 +63,9 @@ test('V2 converter derives only from governed ECB observations and fails closed 
 test('V2 Trust Center consumes the actual capability inventory shape',async()=>{
   const source=await read('apps/web/public/assets/routes/governed-utility-v2.mjs');
   assert.match(source,/Array\.isArray\(capabilities\.items\)\?capabilities\.items:\[\]/);
-  assert.match(source,/capabilities\.unavailableCount\?\?unavailable\.length/);
-  assert.match(source,/capabilities\.canonicalRuntime\|\|'cloudflare-pages-functions'/);
+  assert.match(source,/unavailableCount=Number\(capabilities\.unavailableCount\?\?unavailable\.length\)/);
+  assert.match(source,/Data source permissions/);
+  assert.doesNotMatch(source,/q-json-evidence|canonicalRuntime/);
   assert.doesNotMatch(source,/capabilities\.unavailable\)/);
 });
 

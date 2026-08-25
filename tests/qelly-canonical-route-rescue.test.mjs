@@ -18,7 +18,8 @@ test('rescue coverage matches photographed canonical route failures without fabr
   const source=await readFile(sourceUrl,'utf8');
   for(const route of ['notification-schedules','data-mesh','decision-provenance','platform-readiness','watchlist'])assert.match(source,new RegExp(`['\"]${route}['\"]`));
   assert.doesNotMatch(source,/rescueNews|route==='news-research'/);
-  assert.match(source,/No fixture incidents are substituted/);
+  assert.match(source,/Missing source coverage stays clearly identified instead of being replaced with sample market values/);
+  assert.match(source,/providerPolicyMessage/);
   assert.match(source,/NO PERSISTENCE/);
   assert.match(source,/\/api\/v1\/providers\/runtime/);
   assert.match(source,/\/api\/v1\/platform\/readiness/);
@@ -28,8 +29,8 @@ test('rescue coverage matches photographed canonical route failures without fabr
 
 test('unavailable scheduling is fail-closed instead of presented as an operational worker',async()=>{
   const source=await readFile(sourceUrl,'utf8');
-  assert.match(source,/Persistent scheduling and external delivery are not enabled/);
-  assert.match(source,/Create schedule','Disabled until the production scheduler exists/);
-  assert.match(source,/Run due schedules','No manual simulation is exposed as production behavior/);
+  assert.match(source,/Scheduled alerts are being prepared/);
+  assert.match(source,/Research notes','Capture catalysts and follow-up dates/);
+  assert.match(source,/Scheduled delivery','Email, SMS, push and webhooks are on the roadmap/);
   assert.doesNotMatch(source,/api\/v1\/notification-schedules[^'"`]*['"`],\{method:'POST'/);
 });
