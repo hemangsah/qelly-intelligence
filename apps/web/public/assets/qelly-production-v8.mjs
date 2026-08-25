@@ -87,7 +87,7 @@ function setFeatureNavigationButtonState(button,expanded){
 }
 
 function closeFeatureNavigation({restoreFocus=false}={}){
-  if(matchMedia('(min-width:1381px)').matches){
+  if(matchMedia('(min-width:1241px)').matches){
     document.body.classList.add('q-feature-navigation-collapsed');
   }else{
     document.body.classList.remove('q-feature-navigation-open');
@@ -138,15 +138,15 @@ function ensureFeatureNavigation(){
       if(status)status.textContent=`${visibleCount} feature${visibleCount===1?'':'s'} shown`;
     });
     drawer?.addEventListener('click',(event)=>{
-      if(event.target.closest('[data-feature-route]')&&!matchMedia('(min-width:1381px)').matches)closeFeatureNavigation();
+      if(event.target.closest('[data-feature-route]')&&!matchMedia('(min-width:1241px)').matches)closeFeatureNavigation();
     });
     document.querySelectorAll('[data-feature-navigation-close]').forEach((button)=>button.addEventListener('click',()=>closeFeatureNavigation({restoreFocus:true})));
     document.addEventListener('keydown',(event)=>{
-      const persistentOpen=matchMedia('(min-width:1381px)').matches&&!document.body.classList.contains('q-feature-navigation-collapsed');
+      const persistentOpen=matchMedia('(min-width:1241px)').matches&&!document.body.classList.contains('q-feature-navigation-collapsed');
       if(event.key==='Escape'&&(document.body.classList.contains('q-feature-navigation-open')||persistentOpen))closeFeatureNavigation({restoreFocus:true});
     });
     window.addEventListener('resize',()=>{
-      const persistent=matchMedia('(min-width:1381px)').matches;
+      const persistent=matchMedia('(min-width:1241px)').matches;
       if(persistent)document.body.classList.remove('q-feature-navigation-open');
       else document.body.classList.remove('q-feature-navigation-collapsed');
       const owner=document.querySelector('.q-product-menu[data-feature-navigation-owner="true"]');
@@ -161,9 +161,10 @@ function ensureFeatureNavigation(){
     const button=originalButton.cloneNode(true);
     originalButton.replaceWith(button);
     button.dataset.featureNavigationOwner='true';
+    button.dataset.featureNavigationTrigger='true';
     button.setAttribute('aria-controls','q-feature-navigation');
     button.addEventListener('click',()=>{
-      const persistent=matchMedia('(min-width:1381px)').matches;
+      const persistent=matchMedia('(min-width:1241px)').matches;
       const open=persistent
         ? document.body.classList.toggle('q-feature-navigation-collapsed')===false
         : !document.body.classList.contains('q-feature-navigation-open');
@@ -173,7 +174,7 @@ function ensureFeatureNavigation(){
     });
   }
   const owner=document.querySelector('.q-product-menu[data-feature-navigation-owner="true"]');
-  const persistent=matchMedia('(min-width:1381px)').matches;
+  const persistent=matchMedia('(min-width:1241px)').matches;
   const expanded=persistent
     ? !document.body.classList.contains('q-feature-navigation-collapsed')
     : document.body.classList.contains('q-feature-navigation-open');

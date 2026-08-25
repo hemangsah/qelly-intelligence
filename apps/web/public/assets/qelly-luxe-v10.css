@@ -142,7 +142,7 @@ html[data-production-system="v8"] .q-product-nav{
   background:color-mix(in srgb,var(--q-surfacealt) 62%,transparent)!important;
   box-shadow:var(--q-luxe-inset)!important;
 }
-html[data-production-system="v8"] .q-product-nav a{min-height:38px!important;padding:0 13px!important;border:0!important;border-radius:999px!important}
+html[data-production-system="v8"] .q-product-nav a{min-height:44px!important;padding:0 13px!important;border:0!important;border-radius:999px!important}
 html[data-production-system="v8"] .q-product-nav a[aria-current="page"],
 html[data-production-system="v8"] .q-product-nav a[aria-current="true"]{
   color:#fff!important;background:linear-gradient(135deg,#a52b58,#711532)!important;
@@ -154,10 +154,10 @@ html[data-production-system="v8"] .q-product-search{
   background:color-mix(in srgb,var(--q-surfacealt) 88%,transparent)!important;
   box-shadow:var(--q-luxe-inset)!important;
 }
-html[data-production-system="v8"] .q-product-search input{min-height:38px!important;padding-inline:15px!important;border:0!important;background:transparent!important}
-html[data-production-system="v8"] .q-product-search button{min-height:38px!important;padding:0 17px!important;border:0!important;border-radius:999px!important;background:linear-gradient(135deg,#a82d5c,#721632)!important}
+html[data-production-system="v8"] .q-product-search input{min-height:44px!important;padding-inline:15px!important;border:0!important;background:transparent!important}
+html[data-production-system="v8"] .q-product-search button{min-height:44px!important;padding:0 17px!important;border:0!important;border-radius:999px!important;background:linear-gradient(135deg,#a82d5c,#721632)!important}
 html[data-production-system="v8"] .q-product-system,
-html[data-production-system="v8"] .q-product-account{border:0!important;background:transparent!important;box-shadow:none!important}
+html[data-production-system="v8"] .q-product-account{min-height:44px!important;border:0!important;background:transparent!important;box-shadow:none!important}
 
 html[data-production-system="v8"][data-production-access="false"] .q-feature-navigation,
 html[data-production-system="v8"] .q-feature-navigation{
@@ -241,6 +241,12 @@ html[data-production-system="v8"] body #app #main :where(.q-panel-head,.q-mn-pan
 }
 html[data-production-system="v8"] body #app #main :where(.q-panel-body,.q-mn-panel-body){padding:clamp(18px,2vw,30px)!important}
 
+html[data-production-system="v8"] body #app #main .q-capability-boundary__grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:clamp(16px,2vw,28px)!important}
+html[data-production-system="v8"] body #app #main .q-capability-boundary__list{display:grid!important;gap:12px!important;margin:0!important;padding-left:20px!important;color:var(--q-text-secondary)!important}
+html[data-production-system="v8"] body #app #main .q-capability-boundary details{margin-top:18px!important;padding:14px 16px!important;border:0!important;border-radius:14px!important;background:var(--q-surfacealt)!important}
+html[data-production-system="v8"] body #app #main .q-capability-boundary summary{cursor:pointer!important;font-weight:650!important}
+html[data-production-system="v8"] body #app #main .q-capability-boundary code{display:block!important;margin-top:10px!important;color:var(--q-muted)!important;overflow-wrap:anywhere!important}
+
 html[data-production-system="v8"] body #app #main :where(
   .q-v7-boundary-ribbon,.q-v7-evidence-strip,.q-home-principles,.q-control-row,
   .q-chart-toolbar,.q-mn-chart-controls,.q-filter-bar,.q-toolbar,.q-page-actions,
@@ -301,7 +307,7 @@ html[data-production-system="v8"] [data-external-state="loading"] .qelly-trading
 
 /* Wide screens keep the product inventory visible as a quiet dock. It can be
    collapsed from the header without trapping content beneath the panel. */
-@media(min-width:1381px){
+@media(min-width:1241px){
   html[data-production-system="v8"][data-production-access="false"] .q-feature-navigation,
   html[data-production-system="v8"][data-production-access="true"] .q-feature-navigation{
     top:86px!important;left:14px!important;bottom:14px!important;width:344px!important;
@@ -318,7 +324,7 @@ html[data-production-system="v8"] [data-external-state="loading"] .qelly-trading
   }
 }
 
-@media(max-width:1380px){
+@media(max-width:1240px){
   html[data-production-system="v8"] body #app header.q-product-header{grid-template-columns:auto auto minmax(0,1fr) minmax(220px,340px) auto!important}
   html[data-production-system="v8"] .q-product-nav a{padding-inline:10px!important}
 }
@@ -350,6 +356,7 @@ html[data-production-system="v8"] [data-external-state="loading"] .qelly-trading
   html[data-production-system="v8"] body #app #main .q-v7-side-stack{grid-template-columns:1fr!important}
   html[data-production-system="v8"] body #app #main .q-v7-boundary-ribbon{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
   html[data-production-system="v8"] body #app #main .q-v7-chart-stage{min-height:430px!important}
+  html[data-production-system="v8"] body #app #main .q-capability-boundary__grid{grid-template-columns:1fr!important}
 }
 
 @media(max-width:460px){

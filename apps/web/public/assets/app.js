@@ -80,6 +80,9 @@ const state = {
   routeQuery: new URLSearchParams()
 };
 
+let routeRenderRequest=0;
+let routeRenderTail=Promise.resolve();
+
 const defaultPreferences={theme:'burgundy-command',density:'comfortable',motion:'full',fontScale:100,radiusPx:14,customAccent:null,route:staticVisualPreview?'market':'auth-login',revision:1};
 const anonymousOverview=staticVisualPreview
   ? {macro:[
@@ -110,10 +113,15 @@ async function loadAuthenticatedState(){
   state.authenticated=true;
 }
 
+function publishSessionState(){
+  document.dispatchEvent(new CustomEvent('qelly:session-state',{detail:{authenticated:state.authenticated,identity:state.identity}}));
+}
+
 async function reloadApplication(targetRoute='account-session'){
   state.config=await api('/api/v1/config');
   if(state.config.auth?.authenticated)await loadAuthenticatedState();
   else{state.authenticated=false;state.identity=null;state.prefs={...defaultPreferences};state.overview=anonymousOverview;}
+  publishSessionState();
   renderIdentityHeader();applyPreferences();renderMacroStrip();renderNavigation();
   const hash=`#/${targetRoute}`;if(location.hash===hash)await renderRoute();else location.hash=hash;
 }
@@ -123,6 +131,7 @@ async function boot() {
   [state.config,state.tokens]=await Promise.all([api('/api/v1/config'),fetch(new URL('./tokens.json',import.meta.url)).then((r)=>r.json())]);
   if(state.config.auth?.authenticated)await loadAuthenticatedState();
   else{state.authenticated=false;state.prefs={...defaultPreferences};state.overview=anonymousOverview;state.route=state.config.defaultRoute??'auth-login';}
+  publishSessionState();
   renderStaticPreviewChrome();renderIdentityHeader();applyPreferences();renderMacroStrip();renderNavigation();bindShell();resolveHash();
 }
 
@@ -319,12 +328,19 @@ function navigate(route, asset = null) {
   if(state.authenticated)persistPreference({ route }).catch(() => {});
 }
 
-async function renderRoute() {
+function renderRoute(){
+  const request=++routeRenderRequest;
+  routeRenderTail=routeRenderTail.catch(()=>undefined).then(()=>request===routeRenderRequest?performRouteRender():undefined);
+  return routeRenderTail;
+}
+
+async function performRouteRender() {
   window.__qellyLiveMarketCleanup?.();
   window.__qellyLiveMarketCleanup=null;
   if (state.streamSource) { state.streamSource.close(); state.streamSource = null; }
   const main = document.getElementById('main');
-  const definition=routeDefinitions.find((item)=>item.route===state.route);
+  const route=state.route;
+  const definition=routeDefinitions.find((item)=>item.route===route);
   main.dataset.pageKind=definition?.kind??'analytical';
   main.setAttribute('aria-busy', 'true');
   renderNavigation();
@@ -338,7 +354,7 @@ async function renderRoute() {
     if (state.previewState === 'empty') { main.innerHTML = emptyPage(); main.querySelector('[data-reset-state]')?.addEventListener('click', () => { state.previewState='default'; document.getElementById('state-selector').value='default'; renderRoute(); }); return; }
     if (state.previewState === 'error') { main.innerHTML = errorPage('A provider contract failed validation.', 'Retry the deterministic fixture or inspect the contract evidence.'); bindRetry(); return; }
     if (state.previewState === 'offline') { main.innerHTML = errorPage('Workspace is offline.', 'Cached data remains visible only where the contract permits a safe last-known-good value.', 'offline'); bindRetry(); return; }
-    switch (state.route) {
+    switch (route) {
       case 'auth-login': await renderAuthLogin(main,{api,escapeHtml,toast,navigate,onAuthenticated:reloadApplication,state}); break;
       case 'auth-register': await renderAuthRegister(main,{api,toast,navigate,onAuthenticated:reloadApplication}); break;
       case 'auth-recovery': await renderAuthRecovery(main,{api,toast,navigate}); break;
@@ -412,12 +428,14 @@ async function renderRoute() {
       default: await renderMarket(main);
     }
   } catch (error) {
-    main.innerHTML = errorPage('Unable to render this route.', error.message);
+    main.innerHTML = isCapabilityBoundaryError(error)
+      ? capabilityBoundaryPage(definition,error)
+      : errorPage('Unable to render this route.', error.message);
     bindRetry();
   } finally {
     main.setAttribute('aria-busy', 'false');
     main.focus({ preventScroll:true });
-    if(!/^#\/theme-lab(?:\/|$)/.test(location.hash))document.title = `${routeDefinitions.find((item) => item.route === state.route)?.label ?? 'Qelly Intelligence'} · Qelly Intelligence`;
+    if(!/^#\/theme-lab(?:\/|$)/.test(location.hash))document.title = `${definition?.label ?? 'Qelly Intelligence'} · Qelly Intelligence`;
   }
 }
 
@@ -428,6 +446,33 @@ function pageHead(eyebrow, title, description, actions = '') {
 function protectedRouteGate(definition){
   const domain=productDomains.find((item)=>item.id===definition.domain)?.label??'Qelly';
   return `<section class="q-page q-access-gate" data-qelly-destination="${escapeHtml(definition.route)}"><div class="q-access-gate__icon" aria-hidden="true">↗</div><p class="q-eyebrow">${escapeHtml(domain)} · private workspace</p><h1>${escapeHtml(definition.label)}</h1><p>This feature is available and its destination has been preserved. Sign in to open your private, workspace-scoped data; public tools remain available without an account.</p><div class="q-access-gate__actions"><a class="q-button q-button--primary" href="#/auth-login">Sign in</a><a class="q-button q-button--secondary" href="#/auth-register">Create account</a><a class="q-button q-button--ghost" href="#/feature-universe">Browse all features</a></div><div class="q-truth-callout is-compact"><span class="q-status q-status--cached">VISIBLE</span><p>The feature is not missing. Its data is protected by Supabase authentication and row-level workspace isolation.</p></div></section>`;
+}
+
+function isCapabilityBoundaryError(error){
+  const status=Number(error?.status||0);
+  const code=String(error?.code||'');
+  return [404,501,503].includes(status)||/(capability_unavailable|route_not_found|owner_mismatch|runtime_unavailable)/i.test(code);
+}
+
+function capabilityBoundaryPage(definition,error){
+  const label=definition?.label??'This workspace';
+  const domain=productDomains.find((item)=>item.id===definition?.domain)?.label??'Qelly workspace';
+  const reason=String(error?.message||'The connected production data contract is not available.');
+  const code=String(error?.code||`http_${Number(error?.status||0)||'unavailable'}`);
+  return `<section class="q-page q-capability-boundary" data-capability-boundary="${escapeHtml(definition?.route??'unknown')}">
+    ${pageHead(`${domain} · capability status`,label,`The ${label} workspace is installed and navigable. Its connected production service is not enabled in this release, so Qelly is showing an explicit capability boundary instead of a broken screen.`)}
+    <div class="q-kpi-grid">
+      <article class="q-kpi"><div class="q-kpi-label">Interface</div><div class="q-kpi-value">Ready</div><div class="q-kpi-meta"><span>route and navigation available</span><span class="q-status q-status--live">AVAILABLE</span></div></article>
+      <article class="q-kpi"><div class="q-kpi-label">Workspace access</div><div class="q-kpi-value">Connected</div><div class="q-kpi-meta"><span>authenticated session retained</span><span class="q-status q-status--live">SIGNED IN</span></div></article>
+      <article class="q-kpi"><div class="q-kpi-label">Data contract</div><div class="q-kpi-value">Off</div><div class="q-kpi-meta"><span>no fixture response substituted</span><span class="q-status q-status--unavailable">UNAVAILABLE</span></div></article>
+      <article class="q-kpi"><div class="q-kpi-label">Execution</div><div class="q-kpi-value">Off</div><div class="q-kpi-meta"><span>read-only product boundary</span><span class="q-status q-status--cached">SAFE</span></div></article>
+    </div>
+    <div class="q-two-column q-capability-boundary__grid">
+      <section class="q-panel"><div class="q-panel-head"><div><h2>What is available</h2><p>The signed-in shell, route identity, responsive navigation, accessibility structure and production truth labels remain operational.</p></div><span class="q-status q-status--live">ROUTE READY</span></div><div class="q-panel-body"><ul class="q-capability-boundary__list"><li>Authenticated workspace context is preserved.</li><li>No values are invented when the service is absent.</li><li>You can continue to another connected Qelly workspace without signing in again.</li></ul></div></section>
+      <section class="q-panel"><div class="q-panel-head"><div><h2>What is not connected</h2><p>${escapeHtml(reason)}</p></div><span class="q-status q-status--unavailable">NOT CONNECTED</span></div><div class="q-panel-body"><p>Controls that would imply persistence, provider data or execution are withheld until the corresponding backend contract is production-ready.</p><details><summary>Technical status</summary><code>${escapeHtml(code)}</code></details></div></section>
+    </div>
+    <div class="q-page-actions"><button class="q-button q-button--primary" type="button" data-retry>Retry connection</button><a class="q-button q-button--secondary" href="#/feature-universe">Browse all features</a><a class="q-button q-button--ghost" href="#/platform-readiness">Platform readiness</a></div>
+  </section>`;
 }
 
 function stateBanner() {
