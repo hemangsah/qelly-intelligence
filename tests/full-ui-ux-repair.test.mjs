@@ -193,7 +193,7 @@ test('product experience is the final border-light visual authority and is offli
     read('apps/web/public/assets/qelly-premium-interactions.mjs'),
     read('apps/web/public/qelly-service-worker.js')
   ]);
-  assert.match(index, /qelly-premium-theme\.css\?v=20260825-premium1[\s\S]*qelly-product-experience\.css\?v=20260825-experience1/);
+  assert.match(index, /qelly-premium-theme\.css\?v=20260825-premium1[\s\S]*qelly-product-experience\.css\?v=20260825-experience2/);
   assert.match(premium, /feature inventory is a persistent\s+dock on wide screens/);
   assert.match(experience, /single final visual authority/);
   assert.match(experience, /--q-radius-surface:12px/);
