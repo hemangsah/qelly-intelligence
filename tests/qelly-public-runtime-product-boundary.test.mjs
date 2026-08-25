@@ -16,7 +16,7 @@ const prohibitedPrimaryCopy=[
 ];
 
 test('production controller exposes a product header and market-first root',async()=>{
-  const controller=await read('apps/web/public/assets/prompt2c-public-beta.mjs');
+  const controller=await read('apps/web/public/assets/qelly-public-runtime.mjs');
   assert.match(controller,/Markets/);
   assert.match(controller,/Research/);
   assert.match(controller,/Formulas/);
@@ -33,7 +33,7 @@ test('production controller exposes a product header and market-first root',asyn
 test('normal production routes exclude QA and demo language',async()=>{
   const paths=[
     'apps/web/public/index.html',
-    'apps/web/public/assets/prompt2c-public-beta.mjs',
+    'apps/web/public/assets/qelly-public-runtime.mjs',
     'apps/web/public/assets/routes/auth-login.mjs',
     'apps/web/public/assets/routes/calculator-detail.mjs'
   ];
@@ -123,7 +123,7 @@ test('production polish loads after product styles and suppresses legacy visual 
     read('apps/web/public/assets/qelly-indicator-product.css'),
     read('scripts/validate-production-restoration-case.mjs')
   ]);
-  const productStyle=build.indexOf('prompt2c-public-beta.css');
+  const productStyle=build.indexOf('qelly-public-runtime.css');
   const polishStyle=build.indexOf('qelly-production-polish.css');
   const indicatorStyle=build.indexOf('qelly-indicator-product.css');
   assert.ok(productStyle>=0&&polishStyle>productStyle&&indicatorStyle>polishStyle,{productStyle,polishStyle,indicatorStyle});

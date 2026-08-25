@@ -1,5 +1,7 @@
-const QUEUE_KEY='qelly.prompt2c.cloud.queue.v1';
-const META_KEY='qelly.prompt2c.cloud.meta.v1';
+const QUEUE_KEY='qelly.public-runtime.cloud.queue.v1';
+const META_KEY='qelly.public-runtime.cloud.meta.v1';
+const LEGACY_QUEUE_KEY='qelly.prompt2c.cloud.queue.v1';
+const LEGACY_META_KEY='qelly.prompt2c.cloud.meta.v1';
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_BATCH_ITEMS=100;
 const MAX_QUEUE_BATCHES=25;
@@ -9,7 +11,9 @@ const MAX_PULL_REVISION_ROWS_TOTAL=5000;
 
 const safeParse=(value,fallback)=>{try{return JSON.parse(value??'')??fallback;}catch{return fallback;}};
 const readQueue=()=>{
-  const value=safeParse(localStorage.getItem(QUEUE_KEY),[]);
+  const source=localStorage.getItem(QUEUE_KEY)??localStorage.getItem(LEGACY_QUEUE_KEY);
+  const value=safeParse(source,[]);
+  if(source!==null&&!localStorage.getItem(QUEUE_KEY)){localStorage.setItem(QUEUE_KEY,JSON.stringify(value));localStorage.removeItem(LEGACY_QUEUE_KEY);}
   return Array.isArray(value)?value:[];
 };
 const queueCapacityError=(current,incoming)=>Object.assign(
@@ -35,7 +39,9 @@ const defaultMeta=()=>({
   deletedRecordsSkipped:0
 });
 const readMeta=()=>{
-  const stored=safeParse(localStorage.getItem(META_KEY),{});
+  const source=localStorage.getItem(META_KEY)??localStorage.getItem(LEGACY_META_KEY);
+  const stored=safeParse(source,{});
+  if(source!==null&&!localStorage.getItem(META_KEY)){localStorage.setItem(META_KEY,JSON.stringify(stored));localStorage.removeItem(LEGACY_META_KEY);}
   return {
     ...defaultMeta(),
     ...(stored&&typeof stored==='object'?stored:{}),

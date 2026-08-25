@@ -66,12 +66,12 @@ test('homepage and shell load Qelly Verify after existing runtime protections',a
 });
 
 test('service worker cache follows release identity and refreshes executable assets from network',async()=>{
-  const source=await read('apps/web/public/prompt2c-sw.js');
-  assert.match(source,/CACHE_PREFIX='qelly-public-beta-'/);
+  const source=await read('apps/web/public/qelly-service-worker.js');
+  assert.match(source,/CACHE_PREFIX='qelly-public-runtime-'/);
   assert.match(source,/qelly-release\.json/);
   assert.match(source,/qelly-verify-engine\.mjs/);
   assert.match(source,/qelly-verify-product\.mjs/);
   assert.match(source,/\['script','style','manifest'\]/);
   assert.match(source,/networkFirst\(request\)/);
-  assert.doesNotMatch(source,/const CACHE='qelly-public-beta-v1'/);
+  assert.doesNotMatch(source,/const CACHE='qelly-public-runtime-v1'/);
 });

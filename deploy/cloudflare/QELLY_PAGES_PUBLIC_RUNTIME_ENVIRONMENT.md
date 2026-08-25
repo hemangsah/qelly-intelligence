@@ -16,7 +16,7 @@ Set these in the official Cloudflare Pages project environment:
 
 ```text
 QELLY_REQUIRE_PUBLIC_RUNTIME=true
-QELLY_PROMPT2C_PUBLIC_BETA=true
+QELLY_PUBLIC_RUNTIME=true
 QELLY_STATIC_VISUAL_PREVIEW=false
 QELLY_PUBLIC_BASE_PATH=/
 QELLY_PUBLIC_SITE_URL=https://<truthful-qelly-project>.pages.dev

@@ -5,15 +5,15 @@ import {access,readFile} from 'node:fs/promises';
 const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 const WORKFLOW='.github/workflows/qelly-live-production-verification.yml';
 const LEGACY_WORKFLOW='.github/workflows/qelly-live-production-verification-v2.yml';
-const PROMPT2C='.github/workflows/prompt2c-public-beta.yml';
+const PUBLIC_RUNTIME_WORKFLOW='.github/workflows/qelly-public-runtime.yml';
 const CONVERGENCE='scripts/wait-for-cloudflare-runtime-convergence.mjs';
 const PROVIDERS='functions/_lib/providers.js';
 const OBSOLETE_BRANCH='feature/prompt2c-global-public-beta';
 const OBSOLETE_RELEASE='92f277f803a307e660e25bb2eef873a6337f4999';
 const RELEASE_REF='refs/heads/release/qelly-global-public-beta';
 
-test('Prompt 2C is the automatic exact-SHA release verifier and uses stable shared convergence',async()=>{
-  const source=await read(PROMPT2C);
+test('public runtime workflow is the automatic exact-SHA release verifier and uses stable shared convergence',async()=>{
+  const source=await read(PUBLIC_RUNTIME_WORKFLOW);
   assert.match(source,/push:\s*\n\s*branches:\s*\n\s*- release\/qelly-global-public-beta/);
   assert.match(source,/RELEASE_SHA:\s*\$\{\{ github\.sha \}\}/);
   assert.match(source,/github\.event_name == 'push'[\s\S]*github\.ref == 'refs\/heads\/release\/qelly-global-public-beta'/);

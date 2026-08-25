@@ -2,7 +2,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {chromium} from 'playwright';
 import {fileURLToPath} from 'node:url';
 
-const base=String(process.env.QELLY_PREVIEW_URL||'https://feature-prompt2c-production-oty3.qelly-intelligence.pages.dev').replace(/\/$/,'');
+const base=String(process.env.QELLY_PREVIEW_URL||'https://qelly-intelligence.pages.dev').replace(/\/$/,'');
 const expectedSha=String(process.env.QELLY_EXPECTED_HEAD_SHA||'').trim();
 const maxWaitMs=Number(process.env.QELLY_PREVIEW_MAX_WAIT_MS||720000);
 const output=new URL('../dist/cloudflare-preview-evidence/',import.meta.url);
@@ -60,7 +60,7 @@ if(!release.authentication||!release.cloudSync||!release.liveProviders||!release
 const homepage=await fetchResponse('/',{timeout:30000});
 expectStatus(homepage,200,'homepage');
 expectSecurityHeaders(homepage.response,'homepage');
-if(!homepage.text.includes('prompt2c-public-beta.mjs'))throw new Error('homepage_prompt2c_runtime_missing');
+if(!homepage.text.includes('qelly-public-runtime.mjs'))throw new Error('homepage_public_runtime_missing');
 if(prohibited.some((phrase)=>homepage.text.includes(phrase)))throw new Error('homepage_prohibited_copy_present');
 const cacheControl=homepage.response.headers.get('cache-control')||'';
 if(!cacheControl.includes('no-transform'))throw new Error('homepage_no_transform_missing');

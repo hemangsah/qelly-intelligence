@@ -37,7 +37,7 @@ if context_marker not in source:
 patched_source = source.replace(legacy_import, evidence_import, 1)
 patched_source = patched_source.replace(external_marker, tradingview_hook + external_marker, 1)
 # Playwright page routing does not intercept Service Worker network requests.
-# The synthetic qelly.test evidence origin therefore cannot load prompt2c-sw.js
+# The synthetic qelly.test evidence origin therefore cannot load qelly-service-worker.js
 # unless workers are disabled. Offline-shell registration is verified separately
 # by the public-runtime/browser workflows, so accessibility checks isolate it.
 patched_source = patched_source.replace(context_marker, context_isolation, 1)

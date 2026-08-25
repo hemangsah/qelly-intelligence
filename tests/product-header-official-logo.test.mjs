@@ -7,7 +7,7 @@ const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 test('production product header replaces the placeholder letter with the official Qelly symbol',async()=>{
   const [correction,controller,symbol]=await Promise.all([
     read('apps/web/public/assets/qelly-brand-visual-correction.mjs'),
-    read('apps/web/public/assets/prompt2c-public-beta.mjs'),
+    read('apps/web/public/assets/qelly-public-runtime.mjs'),
     read('apps/web/public/assets/brand/qelly-symbol.svg')
   ]);
 

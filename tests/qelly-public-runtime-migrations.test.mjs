@@ -36,7 +36,7 @@ test('revision capture runs after base row persistence',()=>{
   assert.match(triggerFix,/on conflict \(calculation_id,revision_no\) do nothing/);
 });
 
-test('rollback removes triggers functions and all Prompt 2C tables',()=>{
+test('rollback removes triggers, functions and all public-runtime tables',()=>{
   assert.match(rollback,/drop trigger if exists qelly_calculation_capture_revision/);
   assert.match(rollback,/drop function if exists public\.qelly_workspace_role/);
   assert.match(rollback,/drop table if exists public\.qelly_profiles cascade/);

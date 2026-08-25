@@ -30,7 +30,7 @@ test('legacy route guard no longer owns the Market route',async()=>{
 });
 
 test('connectivity changes cannot replace the canonical Market renderer',async()=>{
-  const source=await read('apps/web/public/assets/prompt2c-public-beta.mjs');
+  const source=await read('apps/web/public/assets/qelly-public-runtime.mjs');
   assert.match(source,/window\.addEventListener\('online',buildProductHeader\)/);
   assert.doesNotMatch(source,/addEventListener\('online',[\s\S]{0,180}renderMarketHomepage/);
   assert.match(source,/if\(route==='market'\)return/);

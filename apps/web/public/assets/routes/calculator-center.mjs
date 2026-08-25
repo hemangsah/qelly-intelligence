@@ -35,13 +35,13 @@ export async function renderCalculatorCenter(main,{pageHead,escapeHtml,navigate}
   const featuredLabel=`${featured.length} priority ${featured.length===1?'workflow':'workflows'}`;
 
   main.innerHTML=`<section class="q-page q-calculator-center-page q-calculator-workbench-page">
-    ${pageHead('Deterministic quantitative workbench','Calculators','Choose a versioned method, enter explicit inputs and review explainable outputs. Qelly calculations are deterministic local computation; they are not simulated market data.',`<button class="q-button q-button--ghost" data-action="formula-library">Browse methodology</button><button class="q-button q-button--secondary" data-action="saved">Saved work</button>`)}
+    ${pageHead('Deterministic quantitative workbench','Calculators','Choose a documented method, enter explicit inputs and review explainable outputs. Qelly calculations run deterministically in your browser; they are not simulated market data.',`<button class="q-button q-button--ghost" data-action="formula-library">Browse methodology</button><button class="q-button q-button--secondary" data-action="saved">Saved work</button>`)}
     <div class="q-v6-deterministic-banner"><span class="q-status q-status--deterministic">DETERMINISTIC LOCAL</span><p>Calculations run in your browser from the values you provide. No provider quote, broker account, exchange credential, custody service or execution path is consulted. If cloud sync is opted in, an explicit Save can synchronize the resulting record through the authenticated RLS workspace.</p></div>
     <section class="q-v6-quant-kpis" aria-label="Calculator library evidence"><div><span>Methods</span><strong>${definitions.length}</strong><small>registered deterministic calculators</small></div><div><span>Domains</span><strong>${domains.length}</strong><small>quantitative categories</small></div><div><span>Versioned</span><strong>${versioned}/${definitions.length}</strong><small>method identity exposed</small></div><div><span>Typical inputs</span><strong>${averageFields}</strong><small>average structured fields</small></div><div><span>Execution</span><strong>OFF</strong><small>analysis only</small></div></section>
 
     <section class="q-calculator-featured" aria-labelledby="calculator-featured-title">
       <div class="q-calculator-section-head"><div><p class="q-eyebrow">Priority workflows</p><h2 id="calculator-featured-title">Start with a proven calculation</h2><p>Common risk, return, portfolio and derivative methods with structured inputs and version-aware evidence.</p></div><span class="q-truth-pill is-cached">${featuredLabel}</span></div>
-      <div class="q-calculator-card-grid is-featured">${featured.map((definition)=>card(definition,{featured:true})).join('')}</div>
+      <div class="q-calculator-card-grid is-featured" data-experience-grid>${featured.map((definition)=>card(definition,{featured:true})).join('')}</div>
     </section>
 
     <details id="calculator-complete-library" class="q-calculator-library-disclosure">

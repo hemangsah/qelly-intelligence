@@ -7,6 +7,7 @@ const main=document.getElementById('main');
 const ROUTE_REPAIR_STYLESHEET=new URL('./qelly-route-repairs.css',import.meta.url).href;
 const ROUTE_CONVERGENCE_STYLESHEET=new URL('./qelly-route-convergence.css',import.meta.url).href;
 const PREMIUM_THEME_STYLESHEET=new URL('./qelly-premium-theme.css?v=20260825-premium1',import.meta.url).href;
+const PRODUCT_EXPERIENCE_STYLESHEET=new URL('./qelly-product-experience.css?v=20260825-experience1',import.meta.url).href;
 const CUSTOMER_ROUTES=new Set([
   'feature-universe','market','asset-rankings','asset','calculator-center','calculator-detail','india-finance',
   'indicator-library','indicator-detail','formula-library','formula-detail','saved-calculations','qelly-verify','about-qelly',
@@ -47,7 +48,15 @@ function ensureCanonicalStylesheetLast(){
     premiumTheme.dataset.qellyPremiumTheme='true';
     document.head.append(premiumTheme);
   }
-  const desiredTail=[canonical,repairs,convergence,premiumTheme].filter(Boolean);
+  let productExperience=document.querySelector('link[data-qelly-product-experience="true"]');
+  if(!productExperience){
+    productExperience=document.createElement('link');
+    productExperience.rel='stylesheet';
+    productExperience.href=PRODUCT_EXPERIENCE_STYLESHEET;
+    productExperience.dataset.qellyProductExperience='true';
+    document.head.append(productExperience);
+  }
+  const desiredTail=[canonical,repairs,convergence,premiumTheme,productExperience].filter(Boolean);
   const currentTail=Array.from(document.head.querySelectorAll('link[rel="stylesheet"]')).slice(-desiredTail.length);
   const alreadyOrdered=desiredTail.length>0&&desiredTail.every((node,index)=>currentTail[index]===node);
   if(!alreadyOrdered)document.head.append(...desiredTail);
@@ -60,7 +69,6 @@ const phraseMap=new Map([
   ['independent dark, light, OLED and high-contrast palettes','Choose a certified palette for the complete workspace'],
   ['static visual preview','Reference mode'],
   ['deterministic market visualization','Reproducible market visualization'],
-  ['deterministic local','Reproducible locally'],
   ['local foundation','Workspace runtime'],
   ['production gated','Not connected']
 ]);

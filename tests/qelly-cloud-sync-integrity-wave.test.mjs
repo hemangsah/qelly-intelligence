@@ -10,8 +10,8 @@ import {
 } from '../apps/web/public/assets/qelly-cloud-sync.mjs';
 import {__dataTest} from '../functions/_lib/data.js';
 
-const QUEUE_KEY='qelly.prompt2c.cloud.queue.v1';
-const META_KEY='qelly.prompt2c.cloud.meta.v1';
+const QUEUE_KEY='qelly.public-runtime.cloud.queue.v1';
+const META_KEY='qelly.public-runtime.cloud.meta.v1';
 
 class MemoryStorage{
   constructor(){this.values=new Map();}

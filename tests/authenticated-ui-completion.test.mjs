@@ -15,7 +15,7 @@ test('authenticated route rendering is serialized and stale requests are discard
 test('authenticated session state synchronizes the production account header',async()=>{
   const [app,product]=await Promise.all([
     read('apps/web/public/assets/app.js'),
-    read('apps/web/public/assets/prompt2c-public-beta.mjs')
+    read('apps/web/public/assets/qelly-public-runtime.mjs')
   ]);
   assert.match(app,/qelly:session-state/);
   assert.match(app,/publishSessionState\(\);/);
@@ -28,7 +28,7 @@ test('authenticated session state synchronizes the production account header',as
 
 test('unavailable backend capabilities render a truthful professional workspace boundary',async()=>{
   const source=await read('apps/web/public/assets/app.js');
-  for(const text of ['data-capability-boundary','What is available','What is not connected','no fixture response substituted','Retry connection'])assert.match(source,new RegExp(text));
+  for(const text of ['data-capability-boundary','Continue in Qelly','Why this page is empty','never invents missing values','Retry connection'])assert.match(source,new RegExp(text));
   assert.match(source,/\[404,501,503\]\.includes\(status\)/);
 });
 

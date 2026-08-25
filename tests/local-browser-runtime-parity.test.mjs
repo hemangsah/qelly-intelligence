@@ -23,7 +23,7 @@ test('local browser runtime serves the profile, capability, data-plane and publi
     assert.equal(ecb.status,200);
     assert.equal(anonymousProfile.status,401);
     assert.equal((await ecb.json()).truthState,'unavailable');
-    const serviceWorker=await fetch(`${base}/prompt2c-sw.js`);
+    const serviceWorker=await fetch(`${base}/qelly-service-worker.js`);
     assert.equal(serviceWorker.status,200);
     assert.match(serviceWorker.headers.get('content-type')||'',/javascript/);
     assert.match(await serviceWorker.text(),/CACHE_PREFIX/);

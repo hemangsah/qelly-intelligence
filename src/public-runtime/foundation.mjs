@@ -27,7 +27,7 @@ export function assertNoBrowserSecrets(input){
   if(findings.length)throw new Error(`Browser secret markers detected: ${[...new Set(findings)].join(', ')}`);
   return true;
 }
-export function parsePrompt2CConfig(env=process.env,{strictCloud=false}={}){
+export function parsePublicRuntimeConfig(env=process.env,{strictCloud=false}={}){
   const mode=String(env.QELLY_CLOUD_MODE||'local-only').toLowerCase();
   if(!CLOUD_MODES.has(mode))throw new Error('Invalid QELLY_CLOUD_MODE');
   const supabaseUrl=absoluteHttpUrl(env.QELLY_PUBLIC_SUPABASE_URL,'QELLY_PUBLIC_SUPABASE_URL',{required:strictCloud&&mode!=='local-only'});

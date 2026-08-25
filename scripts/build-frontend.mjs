@@ -7,7 +7,8 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const output=path.join(root,'dist/frontend');
 const staticVisualPreview=process.env.QELLY_STATIC_VISUAL_PREVIEW==='true';
 const githubPagesMirror=process.env.QELLY_GITHUB_PAGES_MIRROR==='true';
-const prompt2cPublicBeta=process.env.QELLY_PROMPT2C_PUBLIC_BETA==='true';
+// The second variable is a temporary deployment alias; new configuration uses QELLY_PUBLIC_RUNTIME.
+const publicRuntimeEnabled=process.env.QELLY_PUBLIC_RUNTIME==='true'||process.env.QELLY_PROMPT2C_PUBLIC_BETA==='true';
 const requirePublicRuntime=process.env.QELLY_REQUIRE_PUBLIC_RUNTIME==='true';
 const rawBasePath=String(process.env.QELLY_PUBLIC_BASE_PATH??'/').trim();
 const basePath=rawBasePath==='/'?'/':`/${rawBasePath.replace(/^\/+|\/+$/g,'')}/`;
@@ -71,14 +72,14 @@ for(const [packageName,preferred,target] of [['@fontsource-variable/ibm-plex-san
 
 const indexPath=path.join(output,'index.html');let index=await readFile(indexPath,'utf8');
 if(basePath!=='/')index=index.replace('<head>',`<head>\n  <base href="${basePath}">`);
-if(prompt2cPublicBeta){
+if(publicRuntimeEnabled){
   const productStyles=[
-    '  <link rel="stylesheet" href="./assets/prompt2c-public-beta.css">',
+    '  <link rel="stylesheet" href="./assets/qelly-public-runtime.css">',
     '  <link rel="stylesheet" href="./assets/qelly-production-polish.css">',
     '  <link rel="stylesheet" href="./assets/qelly-indicator-product.css">',
     '  <link rel="stylesheet" href="./assets/qelly-final-a11y-polish.css">'
   ].join('\n');
-  if(!index.includes('prompt2c-public-beta.css'))index=index.replace('</head>',`${productStyles}\n</head>`);
+  if(!index.includes('qelly-public-runtime.css'))index=index.replace('</head>',`${productStyles}\n</head>`);
   else{
     const missing=[];
     if(!index.includes('qelly-production-polish.css'))missing.push('  <link rel="stylesheet" href="./assets/qelly-production-polish.css">');
@@ -86,16 +87,18 @@ if(prompt2cPublicBeta){
     if(!index.includes('qelly-final-a11y-polish.css'))missing.push('  <link rel="stylesheet" href="./assets/qelly-final-a11y-polish.css">');
     if(missing.length)index=index.replace('</head>',`${missing.join('\n')}\n</head>`);
   }
-  if(!index.includes('prompt2c-public-beta.mjs'))index=index.replace('</body>','  <script type="module" src="./assets/prompt2c-public-beta.mjs"></script>\n</body>');
+  if(!index.includes('qelly-public-runtime.mjs'))index=index.replace('</body>','  <script type="module" src="./assets/qelly-public-runtime.mjs"></script>\n</body>');
 }
 if(!index.includes('qelly-verify-bootstrap.mjs'))index=index.replace('<script type="module" src="./assets/app.js"></script>','<script type="module" src="./assets/qelly-verify-bootstrap.mjs"></script>\n  <script type="module" src="./assets/app.js"></script>');
 if(!index.includes('qelly-production-shell.css'))index=index.replace('</head>','  <link rel="stylesheet" href="./assets/qelly-production-shell.css">\n</head>');
 if(!index.includes('qelly-production-shell.mjs'))index=index.replace('</body>','  <script type="module" src="./assets/qelly-production-shell.mjs"></script>\n</body>');
+if(!index.includes('qelly-product-experience.css'))index=index.replace('</head>','  <link rel="stylesheet" href="./assets/qelly-product-experience.css">\n</head>');
+if(!index.includes('qelly-product-experience.mjs'))index=index.replace('</body>','  <script type="module" src="./assets/qelly-product-experience.mjs"></script>\n</body>');
 await writeFile(indexPath,index);
 
 const connectedRuntimeConfig={
   schemaVersion:2,
-  productMode:prompt2cPublicBeta?'QELLY GLOBAL PUBLIC BETA':'QELLY',
+  productMode:publicRuntimeEnabled?'QELLY GLOBAL PUBLIC BETA':'QELLY',
   deploymentStage:String(process.env.QELLY_DEPLOYMENT_ENVIRONMENT??'production'),
   releaseSha,
   buildTimestamp,
@@ -159,12 +162,12 @@ if(!githubPagesMirror)await writeFile(path.join(output,'_routes.json'),`${JSON.s
 
 await writeFile(path.join(output,'BUILD_INFO.json'),`${JSON.stringify({
   product:'Qelly Intelligence',version:'0.9.0-preview.1',artifact:staticVisualPreview?'static-frontend':githubPagesMirror?'github-pages-public-mirror':'static-frontend-with-pages-functions',
-  apiBaseConfigured:Boolean(apiBaseUrl),basePath,staticVisualPreview,githubPagesMirror,prompt2cPublicBeta,
-  publicBetaMode:prompt2cPublicBeta?'QELLY GLOBAL PUBLIC BETA':null,
+  apiBaseConfigured:Boolean(apiBaseUrl),basePath,staticVisualPreview,githubPagesMirror,publicRuntimeEnabled,
+  publicBetaMode:publicRuntimeEnabled?'QELLY GLOBAL PUBLIC BETA':null,
   connectedCapabilitiesActivated:githubPagesMirror?capabilities.liveProviders:capabilities.authentication&&capabilities.cloudSync&&capabilities.liveProviders,
   transactionalEmailActivated:capabilities.emailDelivery,
   releaseSha,buildTimestamp,functionsRoot:githubPagesMirror?null:'functions',runtimeArchitecture:githubPagesMirror?'github-pages-ui-cloudflare-read-only-api':'cloudflare-api-facade-supabase-auth-rls',
   canonicalSiteUrl,apiBaseUrl,
   fonts:{ui:'IBM Plex Sans Variable',evidence:'IBM Plex Sans Variable',fallbacks:['Arial','Helvetica Neue','sans-serif'],licensedOptional:['GT Eesti Pro Display','GT Eesti Pro Text'],licensedOptionalActive:false,iconSystem:'semantic-inline-svg',selfHosted:true,format:'woff2'}
 },null,2)}\n`);
-console.log(JSON.stringify({status:'frontend-build-passed',output:path.relative(root,output),releaseSha,publicSiteUrl,canonicalSiteUrl,apiBaseConfigured:Boolean(apiBaseUrl),basePath,staticVisualPreview,githubPagesMirror,prompt2cPublicBeta,capabilities,functionsRoot:githubPagesMirror?null:'functions',fonts:['ibm-plex-sans-variable.woff2']},null,2));
+console.log(JSON.stringify({status:'frontend-build-passed',output:path.relative(root,output),releaseSha,publicSiteUrl,canonicalSiteUrl,apiBaseConfigured:Boolean(apiBaseUrl),basePath,staticVisualPreview,githubPagesMirror,publicRuntimeEnabled,capabilities,functionsRoot:githubPagesMirror?null:'functions',fonts:['ibm-plex-sans-variable.woff2']},null,2));

@@ -27,14 +27,14 @@ function productNav(){
 }
 
 function buildProductHeader(){
-  document.querySelector('.q-prompt2c-beta')?.remove();
+  document.querySelector('.q-public-runtime-banner')?.remove();
   document.documentElement.dataset.productSurface='production';
   const legacy=document.querySelector('.q-command-bar');
   if(!legacy)return;
   legacy.className='q-product-header';
   legacy.setAttribute('aria-label','Qelly product navigation');
   legacy.innerHTML=`
-    <a class="q-product-brand" href="#/market" aria-label="Qelly Intelligence home"><span class="q-product-brand__mark" aria-hidden="true">Q</span><span><strong>Qelly</strong><small>Market intelligence</small></span></a>
+    <a class="q-product-brand" href="#/market" aria-label="Qelly Intelligence home"><span class="q-product-brand__mark"><img src="./assets/brand/qelly-symbol.svg" width="28" height="28" alt=""></span><span><strong>Qelly</strong><small>Market intelligence</small></span></a>
     <button class="q-product-menu" type="button" aria-expanded="false" aria-controls="q-product-navigation"><span aria-hidden="true">☰</span><span>Menu</span></button>
     <nav id="q-product-navigation" class="q-product-nav" aria-label="Primary">${productNav().map(([label,route])=>`<a href="#/${route}" data-product-route="${route}">${label}</a>`).join('')}</nav>
     <form class="q-product-search" role="search"><label class="q-visually-hidden" for="q-product-search-input">Search Qelly</label><input id="q-product-search-input" name="q" type="search" autocomplete="off" placeholder="Search assets, formulas and indicators"><button type="submit">Search</button></form>
@@ -149,7 +149,7 @@ function exposeStatus(){
   window.__QELLY_PUBLIC_BETA_STATUS__=Object.freeze({releaseSha:releaseIdentity.releaseSha||'unresolved',workflowRun:releaseIdentity.workflowRun||null,deployedAt:releaseIdentity.deployedAt||null,deploymentStage:releaseIdentity.mode||config.deploymentStage||'unknown',deterministicLocal:true,authentication:Boolean(config.capabilities?.authentication),cloudSync:Boolean(config.capabilities?.cloudSync),protectedWrites:Boolean(config.capabilities?.protectedWrites),liveProviders:Boolean(config.capabilities?.liveProviders),online:navigator.onLine,productSurface:'market-intelligence'});
 }
 
-async function registerServiceWorker(){if(!('serviceWorker'in navigator)||location.protocol==='file:')return;try{await navigator.serviceWorker.register('./prompt2c-sw.js',{scope:'./'});}catch(error){console.warn('[Qelly] offline shell registration unavailable',error?.message||error);}}
+async function registerServiceWorker(){if(!('serviceWorker'in navigator)||location.protocol==='file:')return;try{await navigator.serviceWorker.register('./qelly-service-worker.js',{scope:'./'});}catch(error){console.warn('[Qelly] offline shell registration unavailable',error?.message||error);}}
 
 function install(){
   if(!initialHash||initialHash==='#/'||initialHash==='#')location.hash='#/market';
