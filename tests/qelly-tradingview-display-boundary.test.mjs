@@ -7,6 +7,7 @@ const read=(path)=>readFile(new URL(path,import.meta.url),'utf8');
 
 test('TradingView widget uses the official embed bootstrap with an explicit display-only boundary',()=>{
   assert.equal(__tradingViewDisplayTest.WIDGET_SRC,'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js');
+  assert.deepEqual(Object.keys(__tradingViewDisplayTest.WIDGET_SOURCES),['advancedChart','tickerTape','marketOverview','screener','economicCalendar','technicalAnalysis','cryptoHeatmap','forexCrossRates','topStories']);
   assert.match(__tradingViewDisplayTest.DISPLAY_BOUNDARY,/display only/i);
   assert.match(__tradingViewDisplayTest.DISPLAY_BOUNDARY,/does not read, scrape, transform, persist or use widget values/i);
   assert.equal(tradingViewSymbol('BTCUSDT'),'BINANCE:BTCUSDT');
@@ -26,6 +27,20 @@ test('external market surface is bootstrapped by the production route guard and 
   assert.doesNotMatch(widget,/\bfetch\s*\(/);
   assert.doesNotMatch(widget,/\bWebSocket\b/);
   assert.doesNotMatch(widget,/contentWindow|contentDocument/);
+  assert.match(widget,/const widgetReady=\(wrapper\)=>Boolean\(wrapper\?\.querySelector\('iframe'\)\)/);
+  assert.match(widget,/observer\.observe\(wrapper,\{childList:true,subtree:true\}\)/);
+  assert.doesNotMatch(widget,/observer\.observe\(host/);
+});
+
+test('Market Command exposes the complete lazy embedded research suite',async()=>{
+  const route=await read('../apps/web/public/assets/routes/market-v6.mjs');
+  for(const label of ['Market overview','Screener','Economic calendar','Technicals','Crypto heatmap','FX cross rates','Top stories'])assert.match(route,new RegExp(label));
+  assert.match(route,/kind:'tickerTape'/);
+  assert.match(route,/Nine official TradingView surfaces/);
+  assert.match(route,/IntersectionObserver/);
+  assert.match(route,/role="tablist"/);
+  assert.match(route,/ArrowLeft/);
+  assert.match(route,/suiteHandle\?\.refresh\(\)/);
 });
 
 test('CSP permits only the TradingView external display boundary while browser data connections remain same-origin',async()=>{
