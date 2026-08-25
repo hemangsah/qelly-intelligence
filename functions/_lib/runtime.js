@@ -271,7 +271,11 @@ export const refreshSession=async(env,refreshToken)=>{
   await verifyAccess(env,session.access_token);
   return session;
 };
-const rejectedRefresh=(error)=>error instanceof HttpError&&(error.status===400||error.status===401)&&!error.retryable;
+const rejectedProviderSession=(error)=>error instanceof HttpError&&(
+  error.status===401||
+  (error.status===403&&/(?:session_id claim|session).*(?:does not exist|not found|invalid)/i.test(`${error.code} ${error.message}`))
+);
+const rejectedRefresh=(error)=>error instanceof HttpError&&(error.status===400||rejectedProviderSession(error))&&!error.retryable;
 export const resolveSession=async(request,env,{required=false}={})=>{
   const cookies=parseCookies(request);
   let accessToken=cookies[ACCESS_COOKIE];
@@ -283,7 +287,7 @@ export const resolveSession=async(request,env,{required=false}={})=>{
       return {...verified,accessToken,refreshToken,cookies:[]};
     }
   }catch(error){
-    if(!(error instanceof HttpError)||error.status!==401)throw error;
+    if(!rejectedProviderSession(error))throw error;
     accessRejected=true;
   }
   if(refreshToken){
