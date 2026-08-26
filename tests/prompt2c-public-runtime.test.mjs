@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {publicRuntimeConfig,__test,onRequest} from '../functions/api/v1/[[path]].js';
 import {onRequest as onConfigRequest} from '../functions/api/v1/config.js';
+import {onRequest as onBootstrapRequest} from '../functions/api/v1/bootstrap.js';
 
 const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 const env=()=>({
@@ -61,6 +62,17 @@ test('Public capability routes remain same-origin readable without configured or
   const response=await onRequest({request,env:{},params:{path:['providers','status']},waitUntil(){}});
   assert.equal(response.status,200);
   assert.equal((await response.json()).releaseSha,'unresolved');
+});
+
+test('Consolidated public bootstrap also degrades explicitly without runtime secrets',async()=>{
+  const request=new Request('https://qelly-runtime.test/api/v1/bootstrap');
+  const response=await onBootstrapRequest({request,env:{},waitUntil(){}});
+  assert.equal(response.status,200);
+  const body=await response.json();
+  assert.equal(body.config.auth.backendAvailable,false);
+  assert.equal(body.config.runtime.configurationState,'degraded');
+  assert.equal(body.context,null);
+  assert.equal(body.preferences,null);
 });
 
 test('forbidden CORS origin returns a typed error instead of throwing from error handling',async()=>{
