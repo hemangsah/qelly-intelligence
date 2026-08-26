@@ -30,6 +30,7 @@ import { renderThemePersonas } from './routes/theme-personas.mjs';
 import { renderAboutQelly } from './routes/about-qelly.mjs';
 import { renderFeatureUniverse } from './routes/feature-universe.mjs';
 import { renderIntelligenceTerminal } from './routes/intelligence-terminal.mjs';
+import { installQellyChat } from './ai/qelly-chat.mjs';
 import { renderAuthLogin } from './routes/auth-login.mjs';
 import { renderAuthRegister } from './routes/auth-register.mjs';
 import { renderAuthRecovery } from './routes/auth-recovery.mjs';
@@ -134,7 +135,7 @@ async function boot() {
   if(state.config.auth?.authenticated)await loadAuthenticatedState();
   else{state.authenticated=false;state.prefs={...defaultPreferences};state.overview=anonymousOverview;state.route=state.config.defaultRoute??'auth-login';}
   publishSessionState();
-  renderStaticPreviewChrome();renderIdentityHeader();applyPreferences();renderMacroStrip();renderNavigation();bindShell();resolveHash();
+  renderStaticPreviewChrome();renderIdentityHeader();applyPreferences();renderMacroStrip();renderNavigation();bindShell();installQellyChat({api,navigate,toast,staticVisualPreview});resolveHash();
 }
 
 function renderStaticPreviewChrome(){

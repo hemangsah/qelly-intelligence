@@ -56,3 +56,12 @@ test('local Qelly Guide routes common intents without model inference',()=>{
   assert.equal(__intelligenceTerminalTest.guide('open my watchlist').route,'watchlist');
   assert.equal(__intelligenceTerminalTest.guide('show market conditions').route,'market');
 });
+
+test('Intelligence Terminal opens the native grounded Qelly assistant',async()=>{
+  const source=await read('apps/web/public/assets/routes/intelligence-terminal.mjs');
+  assert.match(source,/Finance research AI/);
+  assert.match(source,/WORKERS AI ONLINE/);
+  assert.match(source,/qelly:open-ai/);
+  assert.match(source,/api\('\/api\/v1\/intelligence\/chat'\)/);
+  assert.match(source,/source, freshness and licence boundaries/);
+});
