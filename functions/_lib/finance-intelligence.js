@@ -53,6 +53,11 @@ const nowIso=()=>new Date().toISOString();
 const finiteOrNull=(value)=>Number.isFinite(Number(value))?Number(value):null;
 const safeText=(value,max=2400)=>String(value??'').trim().slice(0,max);
 const asArray=(value)=>Array.isArray(value)?value:[];
+const numericTokens=(value)=>new Set((String(value??'').match(/-?\d[\d,]*(?:\.\d+)?/g)||[]).map((token)=>token.replaceAll(',','').replace(/^(-?)0+(?=\d)/,'$1')));
+const unsupportedNumericClaims=(answer,message,financeContext)=>{
+  const allowed=numericTokens(`${message}\n${JSON.stringify(financeContext)}`);
+  return [...numericTokens(answer)].filter((token)=>!allowed.has(token));
+};
 
 export function datasetRegistry(){
   const items=FINANCE_DATASETS.map((item)=>({...item}));
@@ -183,6 +188,8 @@ export async function runGroundedFinanceInference(env,{message,history=[],financ
     const result=await env.AI.run(model,{messages,max_tokens:1000,temperature:0.2});
     const answer=safeText(result?.response??result?.result?.response??result?.choices?.[0]?.message?.content,12000);
     if(!answer)throw new Error('Workers AI returned no answer');
+    const unsupported=unsupportedNumericClaims(answer,message,financeContext);
+    if(unsupported.length)return {answer:groundedFallbackAnswer(message,financeContext),provider:'qelly-dataset-engine',model,state:'grounding_validation_fallback',reason:'Model output contained numeric claims absent from connected evidence.'};
     return {answer,provider:'cloudflare-workers-ai',model,state:'grounded_model_inference'};
   }catch(error){
     return {answer:groundedFallbackAnswer(message,financeContext),provider:'qelly-dataset-engine',model,state:'model_unavailable_fallback',reason:safeText(error?.message,240)};
@@ -198,4 +205,4 @@ export function suggestedRoutes(message){
   return [{route:'market',label:'Market Command'},{route:'news-research',label:'Intelligence Terminal'}];
 }
 
-export const __financeIntelligenceTest=Object.freeze({WORLD_BANK_INDICATORS,COUNTRY_ALIASES,finiteOrNull,safeText,systemPrompt,normalizeEcb});
+export const __financeIntelligenceTest=Object.freeze({WORLD_BANK_INDICATORS,COUNTRY_ALIASES,finiteOrNull,safeText,numericTokens,unsupportedNumericClaims,systemPrompt,normalizeEcb});
