@@ -1,4 +1,4 @@
-import {HttpError,SECURITY_HEADERS,bootstrapContext,correlationId,corsHeaders,enforceRateLimit,errorResponse,publicRuntimeConfig,requireOrigin,responseJson,resolveSession,stableUuid,validateJwtClaims} from '../../_lib/runtime.js';
+import {HttpError,SECURITY_HEADERS,bootstrapContext,correlationId,corsHeaders,enforceRateLimit,errorResponse,publicRuntimeConfigForRequest,requireOrigin,responseJson,resolveSession,stableUuid,validateJwtClaims} from '../../_lib/runtime.js';
 import {effectivePublicRuntimeConfig} from '../../_lib/email-capability.js';
 import {handleAuth} from '../../_lib/auth.js';
 import {handleData,__dataTest} from '../../_lib/data.js';
@@ -120,7 +120,7 @@ const publicMarketNetwork=async(context)=>{
     ...external,
     sources:{...external.sources,ecb:ecbEntry},
     providerPolicy:{binance:'rights_blocked_or_unverified',coinbase:'rights_blocked_or_unverified',ecb:'governed_reference_data'},
-    releaseSha:publicRuntimeConfig(env,request.url).releaseSha
+    releaseSha:publicRuntimeConfigForRequest(env,request.url).releaseSha
   },200,{cache:'public, max-age=0, s-maxage=10, stale-while-revalidate=30'});
 };
 
@@ -132,10 +132,12 @@ export async function route(context){
   const method=request.method.toUpperCase();
   if(method==='OPTIONS')return new Response(null,{status:204,headers:{...SECURITY_HEADERS,...corsHeaders(request,env),'Access-Control-Allow-Methods':'GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS','Access-Control-Allow-Headers':'Content-Type,X-Qelly-CSRF,Idempotency-Key,X-Correlation-Id','Access-Control-Max-Age':'600'}});
   if(request.headers.get('origin'))requireOrigin(request,env);
-  const authRuntime=effectivePublicRuntimeConfig(env,request.url);
   const authRuntimeOwned=path.startsWith('auth/')||path==='cloud/opt-in'||path==='account/delete';
-  if(authRuntimeOwned&&authRuntime.capabilities.authentication!==true)throw new HttpError(503,'auth_runtime_unavailable','Authentication is disabled in the current runtime configuration.',{retryable:false});
-  if(!authRuntime.capabilities.emailDelivery&&method==='POST'&&['auth/register','auth/recovery/request'].includes(path))throw new HttpError(503,'auth_email_delivery_unavailable','Account creation and email recovery are temporarily unavailable until transactional email delivery is proven.',{retryable:false});
+  if(authRuntimeOwned){
+    const authRuntime=effectivePublicRuntimeConfig(env,request.url);
+    if(authRuntime.capabilities.authentication!==true)throw new HttpError(503,'auth_runtime_unavailable','Authentication is disabled in the current runtime configuration.',{retryable:false});
+    if(!authRuntime.capabilities.emailDelivery&&method==='POST'&&['auth/register','auth/recovery/request'].includes(path))throw new HttpError(503,'auth_email_delivery_unavailable','Account creation and email recovery are temporarily unavailable until transactional email delivery is proven.',{retryable:false});
+  }
   const auth=await handleAuth(context,path,method);
   if(auth)return auth;
   if(path==='platform/capabilities'&&readMethod(method)){
@@ -144,7 +146,7 @@ export async function route(context){
   }
   if(path==='providers/status'&&readMethod(method)){
     await enforceRateLimit(env,`public-provider-status:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:60});
-    return responseJson(request,env,{providers:providerCatalog(),releaseSha:publicRuntimeConfig(env,request.url).releaseSha});
+    return responseJson(request,env,{providers:providerCatalog(),releaseSha:publicRuntimeConfigForRequest(env,request.url).releaseSha});
   }
   if(segments[0]==='providers'&&['binance','coinbase','ecb'].includes(segments[1])&&readMethod(method)){
     await enforceRateLimit(env,`public-provider:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:60});

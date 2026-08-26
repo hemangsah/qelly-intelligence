@@ -79,6 +79,46 @@ export function publicRuntimeConfig(env,requestUrl='https://qelly.invalid/'){
   });
 }
 
+// Public read-only surfaces must remain renderable when a Pages project has
+// not yet received its runtime secrets. Keep the strict configuration above
+// for authentication, Supabase writes, and privileged data paths; this
+// boundary is deliberately anonymous and advertises unavailable capabilities.
+export function publicRuntimeConfigForRequest(env={},requestUrl='https://qelly.invalid/'){
+  try{return publicRuntimeConfig(env,requestUrl);}
+  catch(error){
+    if(!(error instanceof HttpError)||error.code!=='runtime_configuration_invalid')throw error;
+    let publicSiteUrl;
+    try{publicSiteUrl=new URL(requestUrl).origin;}catch{publicSiteUrl='https://qelly.invalid';}
+    const releaseSha=String(env.QELLY_PUBLIC_RELEASE_SHA||env.CF_PAGES_COMMIT_SHA||'unresolved');
+    return Object.freeze({
+      schemaVersion:1,
+      environment:`${String(env.QELLY_DEPLOYMENT_ENVIRONMENT||'cloudflare-pages-public')}-degraded`,
+      releaseSha,
+      publicSiteUrl,
+      supabaseUrl:'',
+      supabasePublishableKey:'',
+      productMode:'QELLY GLOBAL PUBLIC BETA',
+      supportUrl:`${publicSiteUrl}/support.html`,
+      legal:Object.freeze({
+        beta:`${publicSiteUrl}/legal/beta.html`,
+        risk:`${publicSiteUrl}/legal/risk.html`,
+        privacy:`${publicSiteUrl}/legal/privacy.html`,
+        terms:`${publicSiteUrl}/legal/terms.html`
+      }),
+      capabilities:Object.freeze({
+        authentication:false,
+        emailDelivery:false,
+        cloudSync:false,
+        liveProviders:bool(env.QELLY_ENABLE_LIVE_PROVIDERS,true),
+        protectedWrites:false,
+        deterministicLocal:true
+      }),
+      configurationState:'degraded',
+      configurationReason:'Public runtime variables are not configured; read-only mode is active.'
+    });
+  }
+}
+
 const requestState=(request)=>{
   let state=REQUEST_STATE.get(request);
   if(!state){
@@ -146,6 +186,12 @@ const configuredOrigins=(env)=>{
 };
 const allowedOrigins=(request,env)=>{
   const origins=configuredOrigins(env);
+  if(!origins.size){
+    try{
+      const requestOrigin=new URL(request.url).origin;
+      if(requestOrigin.startsWith('https://'))origins.add(requestOrigin);
+    }catch{}
+  }
   if(!origins.size)throw new HttpError(503,'runtime_configuration_invalid','No trusted public origin is configured');
   return origins;
 };

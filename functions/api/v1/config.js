@@ -1,4 +1,4 @@
-import {CSRF_COOKIE,cookie,errorResponse,parseCookies,resolveSession,responseJson} from '../../_lib/runtime.js';
+import {CSRF_COOKIE,cookie,errorResponse,parseCookies,publicRuntimeConfigForRequest,resolveSession,responseJson} from '../../_lib/runtime.js';
 import {effectivePublicRuntimeConfig} from '../../_lib/email-capability.js';
 import {buildPublicConfigPayload} from '../../_lib/config-payload.js';
 
@@ -13,7 +13,12 @@ export async function onRequest(context){
   const {request,env}=context;
   try{
     if(request.method.toUpperCase()!=='GET')return context.next();
-    const runtime=effectivePublicRuntimeConfig(env,request.url);
+    let runtime;
+    try{runtime=effectivePublicRuntimeConfig(env,request.url);}
+    catch(error){
+      if(error?.code!=='runtime_configuration_invalid')throw error;
+      runtime=publicRuntimeConfigForRequest(env,request.url);
+    }
     const session=runtime.capabilities.authentication===true?await resolveSession(request,env):null;
     const csrf=parseCookies(request)[CSRF_COOKIE]||crypto.randomUUID().replaceAll('-','');
     const authenticated=Boolean(session);

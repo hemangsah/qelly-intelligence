@@ -1,4 +1,4 @@
-import {HttpError,errorResponse,publicRuntimeConfig,responseJson} from '../../../../_lib/runtime.js';
+import {HttpError,errorResponse,publicRuntimeConfigForRequest,responseJson} from '../../../../_lib/runtime.js';
 import {providerCatalog} from '../../../../_lib/providers.js';
 
 const MARKET_UNAVAILABLE_REASON='No rights-authorized internal crypto market-data provider is currently active. Qelly does not generate substitute prices or candles.';
@@ -34,7 +34,7 @@ export async function onRequest(context){
   const {request,env,params}=context;
   try{
     if(request.method.toUpperCase()!=='GET')return context.next();
-    const runtime=publicRuntimeConfig(env,request.url);
+    const runtime=publicRuntimeConfigForRequest(env,request.url);
     const route=segments(params.route);
     const common=boundary(runtime);
 
