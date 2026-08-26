@@ -1,7 +1,7 @@
 import {buildExternalMarketNetwork} from './market-network.js';
 import {providerResult} from './providers.js';
 
-export const DEFAULT_QELLY_AI_MODEL='@cf/meta/llama-3.1-8b-instruct';
+export const DEFAULT_QELLY_AI_MODEL='@cf/meta/llama-3.1-8b-instruct-fp8';
 
 export const FINANCE_DATASETS=Object.freeze([
   {id:'hyperliquid-public',name:'Hyperliquid public markets',category:'Digital assets',coverage:'Crypto perpetual mid-prices, live order book and trades',access:'connected',truthState:'live',url:'https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint'},
