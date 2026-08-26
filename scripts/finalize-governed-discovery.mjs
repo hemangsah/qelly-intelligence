@@ -1,6 +1,7 @@
 import {readFile,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
+import {effectiveDeploymentEnvironment} from './deployment-environment.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const appPath=path.join(root,'dist/frontend/assets/app.js');
@@ -34,7 +35,7 @@ export function rewriteGovernedDiscovery(source){
   return text;
 }
 
-export async function finalizeGovernedDiscovery({environment=process.env}={}){
+export async function finalizeGovernedDiscovery({environment=effectiveDeploymentEnvironment(process.env)}={}){
   if(environment.QELLY_REQUIRE_PUBLIC_RUNTIME!=='true')return {status:'governed-discovery-finalizer-skipped'};
   const source=await readFile(appPath,'utf8');
   const output=rewriteGovernedDiscovery(source);

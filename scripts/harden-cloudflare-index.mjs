@@ -1,6 +1,7 @@
 import {readFile,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
+import {effectiveDeploymentEnvironment} from './deployment-environment.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 
@@ -32,7 +33,7 @@ export function hardenIndexHtml(source){
   return html;
 }
 
-export async function hardenCloudflareBuild({environment=process.env}={}){
+export async function hardenCloudflareBuild({environment=effectiveDeploymentEnvironment(process.env)}={}){
   const output=path.join(root,'dist/frontend');
   const indexPath=path.join(output,'index.html');
   const requirePublicRuntime=environment.QELLY_REQUIRE_PUBLIC_RUNTIME==='true';

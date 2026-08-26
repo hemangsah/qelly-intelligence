@@ -1,6 +1,7 @@
 import {readFile,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
+import {effectiveDeploymentEnvironment} from './deployment-environment.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const output=path.join(root,'dist/frontend');
@@ -20,7 +21,7 @@ const prohibitedPrimaryCopy=[
 ];
 
 const legacyMarketRoute="case 'market': await renderMarket(main); break;";
-const publicMarketRoute="case 'market': await import('./routes/market-v6.mjs').then(({renderMarketV6})=>renderMarketV6(main,{api,pageHead,stateBanner,escapeHtml})); break;";
+const publicMarketRoute="case 'market': await renderMarketV6(main,{api,pageHead,stateBanner,escapeHtml}); break;";
 const legacyDataMeshRoute="case 'data-mesh': await renderDataMesh(main); break;";
 const publicDataMeshRoute="case 'data-mesh': await import('./routes/provider-runtime-v6.mjs').then(({renderProviderRuntimeV6})=>renderProviderRuntimeV6(main,{api,pageHead,stateBanner,escapeHtml})); break;";
 const legacyInstrumentRoute="case 'instrument-master': await renderInstrumentMaster(main); break;";
@@ -108,7 +109,7 @@ export function rewritePublicRuntimeAsset(source,{file}){
   return text;
 }
 
-export async function finalizePublicRuntime({environment=process.env}={}){
+export async function finalizePublicRuntime({environment=effectiveDeploymentEnvironment(process.env)}={}){
   const required=environment.QELLY_REQUIRE_PUBLIC_RUNTIME==='true';
   if(!required)return {status:'public-runtime-finalizer-skipped'};
   const siteUrl=cleanSiteUrl(environment.QELLY_PUBLIC_SITE_URL);

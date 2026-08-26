@@ -1,6 +1,7 @@
 import {readFile,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
+import {effectiveDeploymentEnvironment} from './deployment-environment.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const configTarget=path.join(root,'dist/frontend/qelly-config.js');
@@ -31,7 +32,7 @@ export function synchronizePublicAuthEmailArtifacts({configSource,releaseSource,
   });
 }
 
-export async function enablePublicAuthEmail({environment=process.env}={}){
+export async function enablePublicAuthEmail({environment=effectiveDeploymentEnvironment(process.env)}={}){
   if(!shouldEnablePublicAuthEmail(environment)){
     return Object.freeze({status:'public-auth-email-unchanged'});
   }

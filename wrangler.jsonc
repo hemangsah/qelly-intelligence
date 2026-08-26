@@ -3,6 +3,25 @@
   "name": "qelly-intelligence",
   "pages_build_output_dir": "dist/frontend",
   "compatibility_date": "2026-08-26",
+  "vars": {
+    "QELLY_REQUIRE_PUBLIC_RUNTIME": "true",
+    "QELLY_PUBLIC_RUNTIME": "true",
+    "QELLY_PROMPT2C_PUBLIC_BETA": "true",
+    "QELLY_STATIC_VISUAL_PREVIEW": "false",
+    "QELLY_PUBLIC_BASE_PATH": "/",
+    "QELLY_PUBLIC_SITE_URL": "https://qelly-intelligence.pages.dev",
+    "QELLY_CANONICAL_SITE_URL": "https://qelly-intelligence.pages.dev",
+    "QELLY_PUBLIC_API_BASE_URL": "",
+    "QELLY_PUBLIC_SUPABASE_URL": "https://ssdgfgqnjlwzkgukzeef.supabase.co",
+    "QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_qrZZQFNwXVUa-l6djSO8pQ_FY41zIb8",
+    "QELLY_DEPLOYMENT_ENVIRONMENT": "cloudflare-pages-production",
+    "QELLY_ENABLE_AUTH": "true",
+    "QELLY_ENABLE_AUTH_EMAIL_DELIVERY": "true",
+    "QELLY_ENABLE_CLOUD_SYNC": "true",
+    "QELLY_ENABLE_LIVE_PROVIDERS": "true",
+    "QELLY_ENABLE_FEEDBACK_WRITES": "true",
+    "QELLY_ALLOWED_ORIGINS": "https://qelly-intelligence.pages.dev"
+  },
   "ai": {
     "binding": "AI"
   }
