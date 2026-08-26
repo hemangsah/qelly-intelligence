@@ -55,15 +55,15 @@ function heroMarkup(){
         <img class="qelly-hero__logo" width="304" height="84" src="${horizontalLogo()}" alt="Qelly">
         <p class="q-eyebrow">Verifiable market intelligence</p>
         <h1 id="qelly-hero-title">See the evidence behind every market signal.</h1>
-        <p>Qelly unifies market structure, research context, source provenance and decision history in one governed intelligence workspace—without pretending simulated preview data is live.</p>
+        <p>Qelly unifies market structure, research context, source provenance and decision history in one governed intelligence workspace—without presenting reference data as live.</p>
         <div class="qelly-hero__actions">
           <a class="qelly-hero__primary" href="#/asset-rankings">Explore Asset Rankings</a>
           <a class="qelly-hero__secondary" href="#/theme-personas">Open Theme Studio</a>
         </div>
-        <div class="qelly-hero__truth">Static preview uses deterministic demo observations. Trading execution remains unavailable.</div>
+        <div class="qelly-hero__truth">Reference mode uses deterministic observations. Trading execution remains unavailable.</div>
       </div>
       <div class="qelly-product-preview" aria-label="Qelly product preview">
-        <div class="qelly-product-preview__bar"><strong>Intelligence preview</strong><span class="q-status q-status--simulated">DEMO</span></div>
+        <div class="qelly-product-preview__bar"><strong>Intelligence reference</strong><span class="q-status q-status--simulated">REFERENCE</span></div>
         <div class="qelly-product-preview__metrics">
           <div class="qelly-product-preview__metric"><small>BTC confidence</small><strong>82 / 100</strong></div>
           <div class="qelly-product-preview__metric"><small>Liquidity state</small><strong>Balanced</strong></div>

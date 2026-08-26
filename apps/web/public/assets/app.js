@@ -92,7 +92,7 @@ const anonymousOverview=staticVisualPreview
       {label:'Global OI',value:'$114.65B · +0.54%',state:'simulated'},
       {label:'Liquidations',value:'$180.19M · −47.29%',state:'simulated'},
       {label:'Breadth',value:'62 / 38',state:'simulated'},
-      {label:'Preview',value:'Demo observations only',state:'simulated'}
+      {label:'Preview',value:'Reference observations only',state:'simulated'}
     ]}
   : {macro:[{label:'Identity',value:'Sign in required',state:'cached'},{label:'Database',value:'Production foundation',state:'live'},{label:'Execution',value:'Disabled',state:'unavailable'}]};
 
@@ -142,9 +142,9 @@ function renderStaticPreviewChrome(){
   if(!staticVisualPreview)return;
   document.documentElement.dataset.preview='static';
   const truthChip=document.querySelector('.q-truth-chip');
-  if(truthChip)truthChip.innerHTML='<span class="q-status q-status--simulated">STATIC VISUAL PREVIEW</span><span>Deterministic demo data · backend unavailable · no live services</span>';
+  if(truthChip)truthChip.innerHTML='<span class="q-status q-status--simulated">REFERENCE MODE</span><span>Deterministic reference data · backend unavailable · no live services</span>';
   const providerMini=document.querySelector('.q-provider-mini');
-  if(providerMini)providerMini.innerHTML='<span class="q-provider-pulse"></span><div><strong>Static visual preview</strong><small>Deterministic demo · not live</small></div>';
+  if(providerMini)providerMini.innerHTML='<span class="q-provider-pulse"></span><div><strong>Reference mode</strong><small>Deterministic data · not live</small></div>';
   const stateSelector=document.getElementById('state-selector');
   if(stateSelector){stateSelector.value='simulated';stateSelector.disabled=true;stateSelector.title='Static preview data is always simulated';}
   const personaLabel=document.querySelector('.q-theme-control span');
@@ -479,7 +479,7 @@ function capabilityBoundaryPage(definition,error){
 }
 
 function stateBanner() {
-  if(staticVisualPreview)return `<div class="q-state-banner is-simulated">${dataStateIndicator({state:'demo',label:'Static visual preview',detail:'Deterministic demo data; not live.'})}<p>All values are deterministic demo data. The backend, persistence, providers, authentication and live services are unavailable.</p></div>`;
+  if(staticVisualPreview)return `<div class="q-state-banner is-simulated">${dataStateIndicator({state:'demo',label:'Reference mode',detail:'Deterministic reference data; not live.'})}<p>Values are deterministic reference data. The backend, persistence, providers, authentication and live services are unavailable.</p></div>`;
   if (state.previewState === 'default') return '';
   const copy = {
     partial:'Some modules are unavailable. Existing values retain their exact freshness and source states.',

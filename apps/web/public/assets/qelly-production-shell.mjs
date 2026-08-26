@@ -62,15 +62,18 @@ function ensureCanonicalStylesheetLast(){
   if(!alreadyOrdered)document.head.append(...desiredTail);
 }
 
-/* This map is intentionally limited to presentation terminology. Truth-state words
-   such as simulated, demo, fixture, live, delayed or unavailable are never rewritten globally:
-   route owners must disclose those states exactly. */
+/* This map is intentionally limited to presentation terminology and legacy shell
+   chrome. Truth-state words such as simulated, demo, fixture, live, delayed or
+   unavailable are never rewritten globally: route owners must disclose those
+   states exactly. */
 const phraseMap=new Map([
   ['independent dark, light, OLED and high-contrast palettes','Choose a certified palette for the complete workspace'],
   ['static visual preview','Reference mode'],
   ['deterministic market visualization','Reproducible market visualization'],
   ['local foundation','Workspace runtime'],
-  ['production gated','Not connected']
+  ['production gated','Not connected'],
+  ['State: default','Workspace ready'],
+  ['demonstration feeds are live market truth','unverified feeds are live market truth']
 ]);
 
 function routeName(){return location.hash.replace(/^#\/?/,'').split(/[/?#]/)[0]||'feature-universe';}

@@ -30,6 +30,14 @@ test('production controller exposes a product header and market-first root',asyn
   assert.doesNotMatch(controller,/Authentication · active/);
 });
 
+test('Cloudflare Pages production builds always install the current product shell',async()=>{
+  const build=await read('scripts/build-frontend.mjs');
+  assert.match(build,/productionPagesBuild/);
+  assert.match(build,/process\.env\.CF_PAGES==='1'/);
+  assert.match(build,/publicRuntimeEnabled=!staticVisualPreview/);
+  assert.match(build,/legacy navigation rail/);
+});
+
 test('normal production routes exclude QA and demo language',async()=>{
   const paths=[
     'apps/web/public/index.html',

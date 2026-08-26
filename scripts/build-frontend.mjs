@@ -8,7 +8,13 @@ const output=path.join(root,'dist/frontend');
 const staticVisualPreview=process.env.QELLY_STATIC_VISUAL_PREVIEW==='true';
 const githubPagesMirror=process.env.QELLY_GITHUB_PAGES_MIRROR==='true';
 // The second variable is a temporary deployment alias; new configuration uses QELLY_PUBLIC_RUNTIME.
-const publicRuntimeEnabled=process.env.QELLY_PUBLIC_RUNTIME==='true'||process.env.QELLY_PROMPT2C_PUBLIC_BETA==='true';
+// Cloudflare Pages supplies CF_PAGES but projects created before the public
+// runtime migration do not always have QELLY_PUBLIC_RUNTIME in their build
+// environment. A production Pages build must still ship the current product
+// shell; otherwise the legacy navigation rail is rendered over the new routes.
+// Static previews remain an explicit opt-out.
+const productionPagesBuild=process.env.CF_PAGES==='1'||process.env.QELLY_DEPLOYMENT_ENVIRONMENT?.includes('cloudflare-pages');
+const publicRuntimeEnabled=!staticVisualPreview&&(process.env.QELLY_PUBLIC_RUNTIME==='true'||process.env.QELLY_PROMPT2C_PUBLIC_BETA==='true'||productionPagesBuild);
 const requirePublicRuntime=process.env.QELLY_REQUIRE_PUBLIC_RUNTIME==='true';
 const rawBasePath=String(process.env.QELLY_PUBLIC_BASE_PATH??'/').trim();
 const basePath=rawBasePath==='/'?'/':`/${rawBasePath.replace(/^\/+|\/+$/g,'')}/`;
