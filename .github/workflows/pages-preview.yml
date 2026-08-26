@@ -92,17 +92,17 @@ jobs:
           ! grep -F 'STATIC VISUAL PREVIEW' dist/frontend/index.html
           ! grep -F 'Deterministic demo data · backend unavailable' dist/frontend/index.html
       - name: Configure GitHub Pages
-        if: github.event_name == 'push'
+        if: github.event_name != 'pull_request'
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - name: Upload governed terminal mirror
-        if: github.event_name == 'push'
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
           path: dist/frontend
 
   deploy:
     name: Deploy and verify GitHub public terminal mirror
-    if: github.event_name == 'push'
+    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 25
