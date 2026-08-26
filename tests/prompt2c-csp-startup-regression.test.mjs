@@ -17,9 +17,9 @@ test('Cloudflare public runtime contains no CSP-blocked inline JavaScript',async
     const [name,...values]=directive.split(/\s+/);
     return [name,`${name}${values.length?` ${values.join(' ')}`:''}`];
   }));
-  assert.equal(directives.get('script-src'),"script-src 'self' https://s3.tradingview.com");
-  assert.equal(directives.get('connect-src'),"connect-src 'self'");
-  assert.equal(directives.get('frame-src'),'frame-src https://*.tradingview.com https://*.tradingview-widget.com');
+  assert.equal(directives.get('script-src'),"script-src 'self' https://s3.tradingview.com https://files.coinmarketcap.com https://platform.twitter.com");
+  assert.equal(directives.get('connect-src'),"connect-src 'self' https://3rdparty-apis.coinmarketcap.com wss://api.hyperliquid.xyz");
+  assert.equal(directives.get('frame-src'),'frame-src https://*.tradingview.com https://*.tradingview-widget.com https://platform.twitter.com https://syndication.twitter.com');
   assert.doesNotMatch(directives.get('script-src')||'',/'unsafe-inline'|'unsafe-eval'/);
   const hardened=hardenIndexHtml(source);
   const sourceInline=[...source.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]

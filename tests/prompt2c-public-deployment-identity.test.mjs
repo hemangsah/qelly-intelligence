@@ -34,9 +34,9 @@ test('public headers preserve strict CSP and prevent unsolicited edge transforma
   assert.match(headers,/Cache-Control: public, max-age=0, must-revalidate, no-transform/);
   const csp=headers.match(/Content-Security-Policy:\s*([^\n]+)/)?.[1]||'';
   const directive=(name)=>csp.split(';').map(value=>value.trim()).find(value=>value.startsWith(`${name} `))||'';
-  assert.equal(directive('script-src'),"script-src 'self' https://s3.tradingview.com");
-  assert.equal(directive('connect-src'),"connect-src 'self'");
-  assert.equal(directive('frame-src'),'frame-src https://*.tradingview.com https://*.tradingview-widget.com');
+  assert.equal(directive('script-src'),"script-src 'self' https://s3.tradingview.com https://files.coinmarketcap.com https://platform.twitter.com");
+  assert.equal(directive('connect-src'),"connect-src 'self' https://3rdparty-apis.coinmarketcap.com wss://api.hyperliquid.xyz");
+  assert.equal(directive('frame-src'),'frame-src https://*.tradingview.com https://*.tradingview-widget.com https://platform.twitter.com https://syndication.twitter.com');
   assert.doesNotMatch(directive('script-src'),/'unsafe-inline'|'unsafe-eval'/);
   assert.doesNotMatch(csp,/static\.cloudflareinsights\.com/);
 });
