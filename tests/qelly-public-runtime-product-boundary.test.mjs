@@ -38,6 +38,13 @@ test('Cloudflare Pages production builds always install the current product shel
   assert.match(build,/legacy navigation rail/);
 });
 
+test('public shell waits for the asynchronously-created command bar',async()=>{
+  const controller=await read('apps/web/public/assets/qelly-public-runtime.mjs');
+  assert.match(controller,/headerRetryCount/);
+  assert.match(controller,/app\.js creates the legacy command bar asynchronously/);
+  assert.match(controller,/setTimeout\(buildProductHeader,50\)/);
+});
+
 test('normal production routes exclude QA and demo language',async()=>{
   const paths=[
     'apps/web/public/index.html',

@@ -2,6 +2,7 @@ const config=window.__QELLY_CONFIG__||{};
 const initialHash=location.hash;
 let releaseIdentity={releaseSha:config.releaseSha||'unresolved',workflowRun:null,deployedAt:null,mode:config.deploymentStage||'unknown'};
 let rendering=false;
+let headerRetryCount=0;
 let sessionState={authenticated:false,sync:'off'};
 
 const escapeHtml=(value)=>String(value??'').replace(/[&<>'"]/g,(character)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
@@ -30,7 +31,13 @@ function buildProductHeader(){
   document.querySelector('.q-public-runtime-banner')?.remove();
   document.documentElement.dataset.productSurface='production';
   const legacy=document.querySelector('.q-command-bar');
-  if(!legacy)return;
+  // app.js creates the legacy command bar asynchronously. Do not abandon the
+  // production shell when this module wins that race during first paint.
+  if(!legacy){
+    if(headerRetryCount<40){headerRetryCount+=1;setTimeout(buildProductHeader,50);}
+    return;
+  }
+  headerRetryCount=0;
   legacy.className='q-product-header';
   legacy.setAttribute('aria-label','Qelly product navigation');
   legacy.innerHTML=`
