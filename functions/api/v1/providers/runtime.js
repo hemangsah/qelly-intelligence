@@ -1,4 +1,4 @@
-import {publicRuntimeConfig,responseJson} from '../../../_lib/runtime.js';
+import {publicRuntimeConfigForRequest,responseJson} from '../../../_lib/runtime.js';
 import {providerCatalog} from '../../../_lib/providers.js';
 
 const legacyProviderItem=(provider,runtime)=>{
@@ -51,7 +51,7 @@ const runtimeProviderInventory=(runtime)=>{
 export async function onRequest(context){
   const {request,env}=context;
   if(request.method.toUpperCase()!=='GET')return context.next();
-  const runtime=publicRuntimeConfig(env,request.url);
+  const runtime=publicRuntimeConfigForRequest(env,request.url);
   return responseJson(request,env,runtimeProviderInventory(runtime),200,{cache:'no-store'});
 }
 

@@ -66,3 +66,20 @@ test('public recovery replaces the market error instead of redirecting or nestin
   assert.match(recovery,/if\(route==='market'\)\{renderMarketRecovery\(message\);return;\}/);
   assert.doesNotMatch(recovery,/if\(route==='market'\)\{location\.hash='#\/market\?view=decision-maker'/);
 });
+
+test('market UI normalizes governed unavailable envelopes before rendering',async()=>{
+  const app=await read('apps/web/public/assets/app.js');
+  assert.match(app,/Array\.isArray\(data\.items\)\?data\.items:\[\]/);
+  assert.match(app,/Array\.isArray\(data\.kpis\)\?data\.kpis:/);
+  assert.match(app,/data\.providerStatus\?\?\{/);
+  assert.match(app,/candles\.source\?\?\{/);
+  assert.match(app,/Provider observations remain unavailable/);
+});
+
+test('shared chart shell renders an explicit empty state instead of dereferencing a missing latest point',async()=>{
+  const chart=await read('packages/charting/chart-shell.mjs');
+  assert.match(chart,/if\(!visible\.length\)/);
+  assert.match(chart,/No governed observations are available/);
+  assert.match(chart,/q-chart-shell--empty/);
+  assert.match(chart,/return;/);
+});
