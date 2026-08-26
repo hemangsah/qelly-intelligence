@@ -93,7 +93,7 @@ const routes = [
   { section:'Intelligence', route:'filing-workspace', label:'Filing Workspace', icon:icon('research'), meta:'W6' },
   { section:'Intelligence', route:'event-calendar', label:'Event Calendar', icon:icon('schedule'), meta:'W6' },
   { section:'Intelligence', route:'comparison-lab', label:'Comparison Lab', icon:icon('compare'), meta:'W6' },
-  { section:'Intelligence', route:'market', label:'Market Overview', icon:icon('market'), meta:'W1' , public:true },
+  { section:'Intelligence', route:'market', label:'Market Command', icon:icon('market'), meta:'W1' , public:true },
   { section:'Intelligence', route:'rankings', label:'Legacy Rankings', icon:icon('ranking'), meta:'W1' },
   { section:'Workspace', route:'asset', label:'Asset Dossier', icon:icon('asset'), meta:'W1' , public:true },
   { section:'Workspace', route:'watchlist', label:'Watchlists', icon:icon('watch'), meta:'W7' },
