@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import {effectiveDeploymentEnvironment} from './deployment-environment.mjs';
 
 const repositoryRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const defaultOutput=path.join(repositoryRoot,'dist/frontend');
@@ -137,7 +138,7 @@ export function renderSitemap(options={}){
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${body?`\n${body}\n`:''}</urlset>\n`;
 }
 
-export async function finalizePublicSeo({output=defaultOutput,environment=process.env}={}){
+export async function finalizePublicSeo({output=defaultOutput,environment=effectiveDeploymentEnvironment(process.env)}={}){
   const options={
     publicSiteUrl:environment.QELLY_PUBLIC_SITE_URL??'',
     basePath:environment.QELLY_PUBLIC_BASE_PATH??'/',

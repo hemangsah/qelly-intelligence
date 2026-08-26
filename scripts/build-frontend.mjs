@@ -2,39 +2,41 @@ import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {AUTH_EMAIL_CANARY,CANONICAL_QELLY_PUBLIC_SITE} from '../functions/_lib/email-capability.js';
+import {effectiveDeploymentEnvironment} from './deployment-environment.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const output=path.join(root,'dist/frontend');
-const staticVisualPreview=process.env.QELLY_STATIC_VISUAL_PREVIEW==='true';
-const githubPagesMirror=process.env.QELLY_GITHUB_PAGES_MIRROR==='true';
+const environment=effectiveDeploymentEnvironment(process.env);
+const staticVisualPreview=environment.QELLY_STATIC_VISUAL_PREVIEW==='true';
+const githubPagesMirror=process.env.QELLY_GITHUB_PAGES_MIRROR==='true'||environment.QELLY_GITHUB_PAGES_MIRROR==='true';
 // The second variable is a temporary deployment alias; new configuration uses QELLY_PUBLIC_RUNTIME.
 // Cloudflare Pages supplies CF_PAGES but projects created before the public
 // runtime migration do not always have QELLY_PUBLIC_RUNTIME in their build
 // environment. A production Pages build must still ship the current product
 // shell; otherwise the legacy navigation rail is rendered over the new routes.
 // Static previews remain an explicit opt-out.
-const productionPagesBuild=process.env.CF_PAGES==='1'||process.env.QELLY_DEPLOYMENT_ENVIRONMENT?.includes('cloudflare-pages');
-const publicRuntimeEnabled=!staticVisualPreview&&(process.env.QELLY_PUBLIC_RUNTIME==='true'||process.env.QELLY_PROMPT2C_PUBLIC_BETA==='true'||productionPagesBuild);
-const requirePublicRuntime=process.env.QELLY_REQUIRE_PUBLIC_RUNTIME==='true';
-const rawBasePath=String(process.env.QELLY_PUBLIC_BASE_PATH??'/').trim();
+const productionPagesBuild=process.env.CF_PAGES==='1'||environment.QELLY_DEPLOYMENT_ENVIRONMENT?.includes('cloudflare-pages');
+const publicRuntimeEnabled=!staticVisualPreview&&(environment.QELLY_PUBLIC_RUNTIME==='true'||environment.QELLY_PROMPT2C_PUBLIC_BETA==='true'||productionPagesBuild);
+const requirePublicRuntime=environment.QELLY_REQUIRE_PUBLIC_RUNTIME==='true';
+const rawBasePath=String(environment.QELLY_PUBLIC_BASE_PATH??'/').trim();
 const basePath=rawBasePath==='/'?'/':`/${rawBasePath.replace(/^\/+|\/+$/g,'')}/`;
 const cleanUrl=(value,name,{required=false}={})=>{if(!value){if(required)throw new Error(`${name} is required`);return '';}const url=new URL(value);if(url.protocol!=='https:'||url.username||url.password)throw new Error(`${name} must be a safe HTTPS URL`);return url.toString().replace(/\/$/,'');};
 const asBool=(value,fallback)=>value==null||value===''?fallback:/^(1|true|yes|on)$/i.test(String(value));
 if(!/^\/(?:[A-Za-z0-9._~-]+\/)*$/.test(basePath)||basePath.includes('//')||basePath.includes('\\'))throw new Error('QELLY_PUBLIC_BASE_PATH must be a safe absolute path ending in /');
 if(staticVisualPreview&&githubPagesMirror)throw new Error('GitHub Pages mirror cannot be a static visual preview');
 
-const apiBaseUrl=cleanUrl(String(process.env.QELLY_PUBLIC_API_BASE_URL??''),'QELLY_PUBLIC_API_BASE_URL',{required:githubPagesMirror});
-const publicSiteUrl=cleanUrl(String(process.env.QELLY_PUBLIC_SITE_URL??''),'QELLY_PUBLIC_SITE_URL',{required:requirePublicRuntime});
-const canonicalSiteUrl=cleanUrl(String(process.env.QELLY_CANONICAL_SITE_URL??publicSiteUrl),'QELLY_CANONICAL_SITE_URL',{required:requirePublicRuntime});
-const supabaseUrl=cleanUrl(String(process.env.QELLY_PUBLIC_SUPABASE_URL??''),'QELLY_PUBLIC_SUPABASE_URL',{required:requirePublicRuntime&&!githubPagesMirror});
-const supabasePublishableKey=String(process.env.QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY??process.env.QELLY_PUBLIC_SUPABASE_ANON_KEY??'');
+const apiBaseUrl=cleanUrl(String(environment.QELLY_PUBLIC_API_BASE_URL??''),'QELLY_PUBLIC_API_BASE_URL',{required:githubPagesMirror});
+const publicSiteUrl=cleanUrl(String(environment.QELLY_PUBLIC_SITE_URL??''),'QELLY_PUBLIC_SITE_URL',{required:requirePublicRuntime});
+const canonicalSiteUrl=cleanUrl(String(environment.QELLY_CANONICAL_SITE_URL??publicSiteUrl),'QELLY_CANONICAL_SITE_URL',{required:requirePublicRuntime});
+const supabaseUrl=cleanUrl(String(environment.QELLY_PUBLIC_SUPABASE_URL??''),'QELLY_PUBLIC_SUPABASE_URL',{required:requirePublicRuntime&&!githubPagesMirror});
+const supabasePublishableKey=String(environment.QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY??environment.QELLY_PUBLIC_SUPABASE_ANON_KEY??'');
 if(requirePublicRuntime&&!githubPagesMirror&&supabasePublishableKey.length<20)throw new Error('QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY is required');
 if(githubPagesMirror&&apiBaseUrl===publicSiteUrl)throw new Error('GitHub Pages mirror API must point to the canonical Cloudflare origin, not the mirror itself');
 if(staticVisualPreview&&(apiBaseUrl||requirePublicRuntime))throw new Error('Static visual preview cannot enable the connected public runtime');
 
 const buildTimestamp=new Date().toISOString();
-const releaseSha=String(process.env.CF_PAGES_COMMIT_SHA??process.env.GITHUB_SHA??process.env.QELLY_PUBLIC_RELEASE_SHA??'unresolved');
-const explicitEmailDelivery=process.env.QELLY_ENABLE_AUTH_EMAIL_DELIVERY;
+const releaseSha=String(process.env.CF_PAGES_COMMIT_SHA??process.env.GITHUB_SHA??process.env.QELLY_PUBLIC_RELEASE_SHA??environment.CF_PAGES_COMMIT_SHA??environment.GITHUB_SHA??environment.QELLY_PUBLIC_RELEASE_SHA??'unresolved');
+const explicitEmailDelivery=environment.QELLY_ENABLE_AUTH_EMAIL_DELIVERY;
 const productionEmailCanary=Boolean(
   requirePublicRuntime&&
   !staticVisualPreview&&
@@ -47,11 +49,11 @@ const productionEmailCanary=Boolean(
 );
 const capabilities={
   deterministicLocal:true,
-  authentication:!staticVisualPreview&&!githubPagesMirror&&asBool(process.env.QELLY_ENABLE_AUTH,requirePublicRuntime),
+  authentication:!staticVisualPreview&&!githubPagesMirror&&asBool(environment.QELLY_ENABLE_AUTH,requirePublicRuntime),
   emailDelivery:!staticVisualPreview&&!githubPagesMirror&&asBool(explicitEmailDelivery,productionEmailCanary),
-  cloudSync:!staticVisualPreview&&!githubPagesMirror&&asBool(process.env.QELLY_ENABLE_CLOUD_SYNC,requirePublicRuntime),
-  liveProviders:!staticVisualPreview&&asBool(process.env.QELLY_ENABLE_LIVE_PROVIDERS,requirePublicRuntime),
-  protectedWrites:!staticVisualPreview&&!githubPagesMirror&&asBool(process.env.QELLY_ENABLE_FEEDBACK_WRITES,requirePublicRuntime),
+  cloudSync:!staticVisualPreview&&!githubPagesMirror&&asBool(environment.QELLY_ENABLE_CLOUD_SYNC,requirePublicRuntime),
+  liveProviders:!staticVisualPreview&&asBool(environment.QELLY_ENABLE_LIVE_PROVIDERS,requirePublicRuntime),
+  protectedWrites:!staticVisualPreview&&!githubPagesMirror&&asBool(environment.QELLY_ENABLE_FEEDBACK_WRITES,requirePublicRuntime),
   offlineShell:true
 };
 if(requirePublicRuntime&&!githubPagesMirror&&Object.entries(capabilities).some(([name,value])=>['authentication','cloudSync','liveProviders'].includes(name)&&!value))throw new Error('Required public runtime capabilities are disabled');
@@ -105,7 +107,7 @@ await writeFile(indexPath,index);
 const connectedRuntimeConfig={
   schemaVersion:2,
   productMode:publicRuntimeEnabled?'QELLY GLOBAL PUBLIC BETA':'QELLY',
-  deploymentStage:String(process.env.QELLY_DEPLOYMENT_ENVIRONMENT??'production'),
+  deploymentStage:String(environment.QELLY_DEPLOYMENT_ENVIRONMENT??'production'),
   releaseSha,
   buildTimestamp,
   basePath,

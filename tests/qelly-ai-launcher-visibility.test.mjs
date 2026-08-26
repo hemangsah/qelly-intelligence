@@ -15,8 +15,16 @@ test('Qelly AI launcher is excluded from generic button geometry overrides',asyn
 });
 
 test('Qelly AI launcher and terminal triggers have a concrete assistant panel target',async()=>{
-  const source=await read('apps/web/public/assets/ai/qelly-chat.mjs');
+  const [source,shell,css]=await Promise.all([
+    read('apps/web/public/assets/ai/qelly-chat.mjs'),
+    read('apps/web/public/assets/qelly-production-shell.mjs'),
+    read('apps/web/public/assets/qelly-production-shell.css')
+  ]);
   assert.match(source,/id="qelly-ai-assistant" data-q-ai-assistant/);
   assert.match(source,/root\.querySelector\('\[data-q-ai-assistant\]'\)/);
   assert.match(source,/launcher\.addEventListener\('click',\(\)=>open\(\)\)/);
+  assert.match(shell,/data-v8-qelly-ai/);
+  assert.match(shell,/Open Qelly AI assistant/);
+  assert.match(shell,/CustomEvent\('qelly:open-ai'/);
+  assert.match(css,/\.q-product-ai\s*\{/);
 });
