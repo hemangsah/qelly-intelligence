@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {FINANCE_DATASETS,buildFinanceContext,datasetRegistry,groundedFallbackAnswer,runGroundedFinanceInference,selectWorldBankQuery,suggestedRoutes} from '../functions/_lib/finance-intelligence.js';
+import {FINANCE_DATASETS,buildFinanceContext,datasetCoverageAnswer,datasetRegistry,groundedFallbackAnswer,runGroundedFinanceInference,selectWorldBankQuery,suggestedRoutes} from '../functions/_lib/finance-intelligence.js';
 import {handleIntelligenceChat} from '../functions/api/v1/intelligence/chat.js';
 
 const SITE='https://qelly-intelligence.pages.dev';
@@ -49,6 +49,17 @@ test('unsupported model numbers are rejected in favor of deterministic evidence'
   assert.equal(result.state,'grounding_validation_fallback');
   assert.match(result.answer,/India GDP growth 6.5%/);
   assert.doesNotMatch(result.answer,/99\.9|2021/);
+});
+
+test('dataset and license questions use the exact governed registry',async()=>{
+  let modelCalled=false;
+  const env={AI:{async run(){modelCalled=true;return {response:'invented coverage'};}}};
+  const result=await runGroundedFinanceInference(env,{message:'Which datasets and licenses can Qelly access?',history:[],financeContext});
+  assert.equal(modelCalled,false);
+  assert.equal(result.state,'grounded_registry_answer');
+  assert.equal(result.answer,datasetCoverageAnswer());
+  assert.match(result.answer,/4 connected finance sources and 24 governed dataset entries/);
+  assert.match(result.answer,/Bloomberg Data — enterprise license required/);
 });
 
 test('chat endpoint exposes capability and answers with sources without logging prompts',async()=>{
