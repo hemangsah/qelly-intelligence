@@ -1,0 +1,9 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "qelly-intelligence",
+  "pages_build_output_dir": "dist/frontend",
+  "compatibility_date": "2026-08-26",
+  "ai": {
+    "binding": "AI"
+  }
+}
