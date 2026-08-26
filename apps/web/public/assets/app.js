@@ -26,6 +26,7 @@ import { renderImportCenter } from './routes/import-center.mjs';
 import { renderResearchHistory } from './routes/research-history.mjs';
 import { renderMigrationCenter } from './routes/migration-center.mjs';
 import { renderLiveMarkets } from './routes/live-markets.mjs';
+import { renderMarketV6 } from './routes/market-v6.mjs';
 import { renderThemePersonas } from './routes/theme-personas.mjs';
 import { renderAboutQelly } from './routes/about-qelly.mjs';
 import { renderFeatureUniverse } from './routes/feature-universe.mjs';
@@ -402,7 +403,7 @@ async function performRouteRender() {
       case 'news-research': await renderIntelligenceTerminal(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate}); break;
       case 'research-article': await renderResearchArticle(main); break;
       case 'trust-center': await renderTrustCenter(main); break;
-      case 'market': await renderMarket(main); break;
+      case 'market': await renderMarketV6(main,{api,pageHead,stateBanner,escapeHtml}); break;
       case 'rankings': await renderLegacyRankings(main); break;
       case 'search': await renderSearch(main); break;
       case 'asset': await renderAsset(main); break;
