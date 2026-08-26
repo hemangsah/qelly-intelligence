@@ -46,7 +46,7 @@ function messageMarkup(message){
 
 function shellMarkup(){
   return `<button class="q-ai-launcher" type="button" data-q-ai-launcher aria-controls="qelly-ai-assistant" aria-expanded="false"><img src="./assets/brand/qelly-symbol.svg" alt=""><span><strong>Ask Qelly</strong><small>Finance intelligence</small></span><i aria-hidden="true">⌘ /</i></button>
-  <aside class="q-ai-assistant" id="qelly-ai-assistant" role="dialog" aria-label="Qelly Intelligence financial research assistant" aria-modal="false" hidden>
+  <aside class="q-ai-assistant" id="qelly-ai-assistant" data-q-ai-assistant role="dialog" aria-label="Qelly Intelligence financial research assistant" aria-modal="false" hidden>
     <header class="q-ai-header"><div class="q-ai-brand"><img src="./assets/brand/qelly-symbol.svg" alt=""><span><strong>Qelly Intelligence</strong><small><i data-q-ai-status-dot></i><span data-q-ai-status>Connecting to datasets…</span></small></span></div><div><button type="button" data-q-ai-datasets aria-expanded="false" aria-controls="q-ai-dataset-panel">Datasets</button><button type="button" data-q-ai-close aria-label="Close Qelly Intelligence">×</button></div></header>
     <section class="q-ai-dataset-panel" id="q-ai-dataset-panel" data-q-ai-dataset-panel hidden><div><strong>Finance data coverage</strong><span data-q-ai-dataset-summary>Checking source registry…</span></div><div data-q-ai-dataset-list></div><p>Qelly connects only authorized sources. Restricted institutional datasets remain clearly labelled and are never scraped.</p></section>
     <div class="q-ai-thread" data-q-ai-thread aria-live="polite" aria-relevant="additions text"></div>
