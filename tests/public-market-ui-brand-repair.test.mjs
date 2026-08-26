@@ -75,3 +75,11 @@ test('market UI normalizes governed unavailable envelopes before rendering',asyn
   assert.match(app,/candles\.source\?\?\{/);
   assert.match(app,/Provider observations remain unavailable/);
 });
+
+test('shared chart shell renders an explicit empty state instead of dereferencing a missing latest point',async()=>{
+  const chart=await read('packages/charting/chart-shell.mjs');
+  assert.match(chart,/if\(!visible\.length\)/);
+  assert.match(chart,/No governed observations are available/);
+  assert.match(chart,/q-chart-shell--empty/);
+  assert.match(chart,/return;/);
+});

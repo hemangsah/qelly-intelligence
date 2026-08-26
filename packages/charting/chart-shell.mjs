@@ -28,6 +28,11 @@ export class QellyChartShell {
 
   render() {
     const visible = this.visible();
+    if(!visible.length){
+      this.container.className='q-chart-shell q-chart-shell--empty';
+      this.container.innerHTML=`<div class="q-chart-empty q-empty-state"><div><span>∿</span><h2>${escapeHtml(this.title)}</h2><p>No governed observations are available for this chart yet. Qelly keeps missing points unavailable instead of rendering a fabricated series.</p><span class="q-status q-status--unavailable">unavailable</span></div></div>`;
+      return;
+    }
     const values = visible.map((point) => point.value);
     const min = Math.min(...values); const max = Math.max(...values); const span = Math.max(1e-9, max - min);
     const width = 900; const height = 280; const pad = 28;
