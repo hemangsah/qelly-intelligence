@@ -1,6 +1,7 @@
 const safeMessage=(error)=>{
   if(error?.status===429)return'Too many attempts. Wait a moment and try again.';
   if(error?.status===401||error?.code==='invalid_credentials'||error?.code==='login_failed')return'Email or password is incorrect.';
+  if(error?.code==='runtime_configuration_invalid')return'Qelly sign-in is temporarily unavailable because the identity service is not connected. Try again after the workspace runtime is configured.';
   if(!navigator.onLine)return'You are offline. Reconnect before signing in.';
   return'Qelly could not sign you in. Check your details and try again.';
 };

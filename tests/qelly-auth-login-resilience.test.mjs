@@ -13,6 +13,12 @@ test('login renders even when session status cannot be fetched',async()=>{
   assert.match(code,/Existing users may still attempt to sign in/);
 });
 
+test('login explains an unconfigured identity runtime instead of using a generic failure',async()=>{
+  const code=await loginSource();
+  assert.match(code,/runtime_configuration_invalid/);
+  assert.match(code,/identity service is not connected/);
+});
+
 test('signup and recovery CTAs use live server email-delivery truth instead of static build capability',async()=>{
   const [login,register,recovery]=await Promise.all([loginSource(),registerSource(),recoverySource()]);
   assert.match(login,/state\?\.config\?\.auth\?\.emailDeliveryAvailable===true/);
