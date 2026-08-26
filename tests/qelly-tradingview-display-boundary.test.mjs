@@ -43,11 +43,11 @@ test('Market Command exposes the complete lazy embedded research suite',async()=
   assert.match(route,/suiteHandle\?\.refresh\(\)/);
 });
 
-test('CSP permits only the TradingView external display boundary while browser data connections remain same-origin',async()=>{
+test('CSP preserves the TradingView boundary alongside separately governed provider displays',async()=>{
   const headers=await read('../apps/web/public/_headers');
   assert.match(headers,/script-src 'self' https:\/\/s3\.tradingview\.com/);
-  assert.match(headers,/frame-src https:\/\/\*\.tradingview\.com https:\/\/\*\.tradingview-widget\.com/);
-  assert.match(headers,/connect-src 'self'/);
+  assert.match(headers,/frame-src https:\/\/\*\.tradingview\.com https:\/\/\*\.tradingview-widget\.com https:\/\/platform\.twitter\.com https:\/\/syndication\.twitter\.com/);
+  assert.match(headers,/connect-src 'self' https:\/\/3rdparty-apis\.coinmarketcap\.com wss:\/\/api\.hyperliquid\.xyz/);
   assert.match(headers,/frame-ancestors 'none'/);
   assert.doesNotMatch(headers,/connect-src[^\n;]*tradingview/i);
 });

@@ -1,4 +1,5 @@
 import {mountTradingViewDisplay,mountTradingViewWidget,tradingViewAppearance,tradingViewSymbol} from '../market/tradingview-display-widget.mjs';
+import {mountCoinMarketCapWidgets,mountHyperliquidStream,mountXTimeline,PROVIDER_PORTALS} from '../market/external-intelligence-widgets.mjs';
 import {providerAvailability,providerPolicyMessage,truthLabel} from '../customer-copy.mjs';
 
 const EXTERNAL_SYMBOLS=Object.freeze([
@@ -18,6 +19,12 @@ const EMBED_PANELS=Object.freeze([
   {id:'heatmap',label:'Crypto heatmap',kind:'cryptoHeatmap',description:'Market-cap-weighted crypto performance and relative movement.',openUrl:'https://www.tradingview.com/heatmap/crypto/'},
   {id:'forex',label:'FX cross rates',kind:'forexCrossRates',description:'Comparative foreign-exchange cross-rate display across major currencies.',openUrl:'https://www.tradingview.com/markets/currencies/rates-all/'},
   {id:'stories',label:'Top stories',kind:'topStories',description:'External market headlines for human research and contextual review.',openUrl:'https://www.tradingview.com/news/'}
+]);
+const INTELLIGENCE_DOCK_PANELS=Object.freeze([
+  {id:'hyperliquid',label:'Live book & trades',description:'Public Hyperliquid BTC, ETH, SOL and HYPE order books and executed trades over the official read-only WebSocket.'},
+  {id:'coinmarketcap',label:'CoinMarketCap',description:'Official live website widgets for Bitcoin, Ethereum and Solana market reference.'},
+  {id:'x-pulse',label:'X market pulse',description:'Official public X timeline from CoinMarketCap with personalization disabled.'},
+  {id:'provider-portals',label:'Research portals',description:'Governed launch surfaces for providers that block framing or require approved API access.'}
 ]);
 const tone=(value)=>{const state=String(value||'').toUpperCase();if(['ENABLED','REFERENCE_ENABLED','LIVE','MATCH','PASS'].includes(state))return 'live';if(['DELAYED','DELAYED_PROVIDER','WARNING','CACHED','CACHED_PROVIDER'].includes(state))return 'delayed';if(['UNAVAILABLE','DENY','MISMATCH','BLOCKED'].includes(state))return 'unavailable';return 'cached';};
 const date=(value)=>{const parsed=new Date(value||'');return Number.isNaN(parsed.getTime())?'Not supplied':parsed.toLocaleString('en-IN');};
@@ -105,6 +112,44 @@ function mountEmbedSuite(root,{symbol,interval}){
   };
 }
 
+function portalGrid(escapeHtml){
+  return `<div class="q-intel-portal-grid">${PROVIDER_PORTALS.map(portal=>`<article class="q-intel-portal"><div><span>${escapeHtml(portal.name)}</span><em>${escapeHtml(portal.access)}</em></div><strong>${escapeHtml(portal.description)}</strong><p>${escapeHtml(portal.reason)}</p><a href="${escapeHtml(portal.url)}" target="_blank" rel="noopener noreferrer nofollow">Open ${escapeHtml(portal.name)} ↗</a></article>`).join('')}</div>`;
+}
+
+function mountExternalIntelligenceDock(root,{escapeHtml}){
+  const stage=root.querySelector('[data-intel-dock-stage]');
+  const title=root.querySelector('[data-intel-dock-title]');
+  const description=root.querySelector('[data-intel-dock-description]');
+  const buttons=[...root.querySelectorAll('[data-intel-dock-tab]')];
+  let activeId='hyperliquid',handle=null,mounted=false;
+  const activate=(id,{focus=false}={})=>{
+    const panel=INTELLIGENCE_DOCK_PANELS.find(item=>item.id===id)||INTELLIGENCE_DOCK_PANELS[0];
+    activeId=panel.id;mounted=true;handle?.destroy?.();handle=null;stage.replaceChildren();
+    for(const button of buttons){const selected=button.dataset.intelDockTab===panel.id;button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1;}
+    if(focus)buttons.find(button=>button.dataset.intelDockTab===panel.id)?.focus();
+    title.textContent=panel.label;description.textContent=panel.description;
+    if(panel.id==='hyperliquid')handle=mountHyperliquidStream(stage,{coin:'BTC'});
+    if(panel.id==='coinmarketcap')handle=mountCoinMarketCapWidgets(stage);
+    if(panel.id==='x-pulse')handle=mountXTimeline(stage,{handle:'CoinMarketCap'});
+    if(panel.id==='provider-portals'){stage.dataset.externalState='launch-only';stage.innerHTML=portalGrid(escapeHtml);}
+  };
+  buttons.forEach((button,index)=>{
+    button.addEventListener('click',()=>activate(button.dataset.intelDockTab));
+    button.addEventListener('keydown',(event)=>{
+      if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+      event.preventDefault();
+      const next=event.key==='Home'?0:event.key==='End'?buttons.length-1:(index+(event.key==='ArrowRight'?1:-1)+buttons.length)%buttons.length;
+      activate(buttons[next].dataset.intelDockTab,{focus:true});
+    });
+  });
+  const intersection='IntersectionObserver'in window?new IntersectionObserver((entries)=>{
+    if(!entries.some(entry=>entry.isIntersecting))return;
+    intersection.disconnect();activate(activeId);
+  },{rootMargin:'360px 0px'}):null;
+  if(intersection)intersection.observe(root);else activate(activeId);
+  return {refresh(){if(mounted&&activeId==='x-pulse')activate(activeId);},destroy(){intersection?.disconnect();handle?.destroy?.();handle=null;}};
+}
+
 export async function renderMarketV6(main,deps){
   const {api,pageHead,stateBanner,escapeHtml}=deps;
   const [overviewResult,ecbResult]=await Promise.allSettled([
@@ -162,6 +207,15 @@ export async function renderMarketV6(main,deps){
       </div>
     </section>
 
+    <section class="q-panel q-intel-dock" data-external-intelligence-dock>
+      <div class="q-panel-head"><div><p class="q-eyebrow">External intelligence dock</p><h2>Live market structure and research networks</h2><p>Provider-supported embeds and public read-only streams are isolated from Qelly analytics. Services that prohibit framing remain transparent launch surfaces.</p></div><span class="q-status q-status--cached">READ ONLY</span></div>
+      <div class="q-panel-body">
+        <div class="q-tv-suite-tabs q-intel-dock-tabs" role="tablist" aria-label="Choose an external intelligence display">${INTELLIGENCE_DOCK_PANELS.map((panel,index)=>`<button type="button" role="tab" aria-selected="${index===0?'true':'false'}" aria-controls="q-intel-dock-stage" tabindex="${index===0?'0':'-1'}" data-intel-dock-tab="${panel.id}">${panel.label}</button>`).join('')}</div>
+        <div class="q-tv-suite-context"><div><strong data-intel-dock-title>Live book & trades</strong><p data-intel-dock-description>${INTELLIGENCE_DOCK_PANELS[0].description}</p></div><span>External observations · never execution</span></div>
+        <div id="q-intel-dock-stage" class="q-intel-dock-stage" role="tabpanel" data-intel-dock-stage aria-live="polite"><div class="q-tv-suite-placeholder"><strong>Live market structure ready</strong><span>Scroll this panel into view to connect the read-only public stream.</span></div></div>
+      </div>
+    </section>
+
     <section class="q-panel q-v7-reference-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Approved reference observations</p><h2>ECB euro reference rates</h2><p>Source timing is preserved. Reference rates are informational and are not tradable quotes.</p></div><span class="q-status q-status--${tone(ecb?.truthState)}">${escapeHtml(truthLabel(ecbTruth))}</span></div><div class="q-panel-body"><div class="q-v7-rate-grid">${governedRates(ecb,escapeHtml)}</div><div class="q-v7-evidence-strip"><span>Source: European Central Bank</span><span>Observed: ${escapeHtml(date(ecbObservedAt))}</span><span>Updated: ${escapeHtml(date(ecbIngestedAt))}</span><span>Research only</span></div></div></section>
 
     <section class="q-panel"><div class="q-panel-head"><div><h2>Production boundary</h2><p>The public market route uses only anonymous/public contracts. Private data-plane and workspace APIs are requested only after authentication.</p></div><span class="q-status q-status--live">PUBLIC SAFE</span></div><div class="q-panel-body"><div class="q-v6-market-boundary"><span class="q-status q-status--unavailable">NO FALLBACK FABRICATION</span><p>${escapeHtml(overview.reason||'If an internal provider is unavailable or rights-blocked, Qelly exposes that state directly.')}</p></div></div></section>
@@ -172,7 +226,8 @@ export async function renderMarketV6(main,deps){
   const interval=main.querySelector('#v6-market-interval');
   const ticker=main.querySelector('#q-tv-ticker-tape');
   const suite=main.querySelector('[data-tv-suite]');
-  let handle=null,tickerHandle=null,suiteHandle=null,themeFrame=0;
+  const intelligenceDock=main.querySelector('[data-external-intelligence-dock]');
+  let handle=null,tickerHandle=null,suiteHandle=null,intelligenceDockHandle=null,themeFrame=0;
   const mountTicker=()=>{
     tickerHandle?.destroy?.();
     tickerHandle=mountTradingViewWidget(ticker,{kind:'tickerTape',label:'Cross-asset ticker tape',openUrl:'https://www.tradingview.com/markets/',config:{colorTheme:tradingViewAppearance(),isTransparent:false,displayMode:'adaptive',showSymbolLogo:true,symbols:[
@@ -181,14 +236,15 @@ export async function renderMarketV6(main,deps){
   };
   const mount=()=>{handle?.destroy?.();handle=mountTradingViewDisplay(chart,{symbol:symbol.value,interval:interval.value});suiteHandle?.update({symbol:symbol.value,interval:interval.value});};
   suiteHandle=mountEmbedSuite(suite,{symbol:symbol.value,interval:interval.value});
+  intelligenceDockHandle=mountExternalIntelligenceDock(intelligenceDock,{escapeHtml});
   mountTicker();
   symbol?.addEventListener('change',mount);interval?.addEventListener('change',mount);mount();
   const themeObserver=new MutationObserver(()=>{
     cancelAnimationFrame(themeFrame);
-    themeFrame=requestAnimationFrame(()=>{mount();mountTicker();suiteHandle?.refresh();});
+    themeFrame=requestAnimationFrame(()=>{mount();mountTicker();suiteHandle?.refresh();intelligenceDockHandle?.refresh();});
   });
   themeObserver.observe(document.documentElement,{attributes:true,attributeFilter:['data-appearance','data-resolved-appearance']});
-  window.__qellyMarketV6Cleanup=()=>{cancelAnimationFrame(themeFrame);themeObserver.disconnect();handle?.destroy?.();tickerHandle?.destroy?.();suiteHandle?.destroy?.();handle=null;tickerHandle=null;suiteHandle=null;};
+  window.__qellyMarketV6Cleanup=()=>{cancelAnimationFrame(themeFrame);themeObserver.disconnect();handle?.destroy?.();tickerHandle?.destroy?.();suiteHandle?.destroy?.();intelligenceDockHandle?.destroy?.();handle=null;tickerHandle=null;suiteHandle=null;intelligenceDockHandle=null;};
 }
 
-export const __marketV6Test=Object.freeze({EXTERNAL_SYMBOLS,INTERVALS,EMBED_PANELS,tone,panelConfig});
+export const __marketV6Test=Object.freeze({EXTERNAL_SYMBOLS,INTERVALS,EMBED_PANELS,INTELLIGENCE_DOCK_PANELS,tone,panelConfig});

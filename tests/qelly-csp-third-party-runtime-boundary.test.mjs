@@ -29,13 +29,13 @@ test('browser asset runtime does not load JavaScript from general-purpose third-
   assert.deepEqual(failures,[],`Unapproved browser runtime script loaders found: ${failures.join(', ')}`);
 });
 
-test('production CSP keeps first-party JavaScript as the default and isolates the approved TradingView display runtime',async()=>{
+test('production CSP keeps first-party JavaScript as the default and allowlists only approved external displays',async()=>{
   const headers=await readFile(path.join(root,'apps/web/public/_headers'),'utf8');
   const csp=headers.match(/Content-Security-Policy:\s*([^\n]+)/)?.[1]||'';
   const directive=(name)=>csp.split(';').map((value)=>value.trim()).find((value)=>value.startsWith(`${name} `))||'';
-  assert.equal(directive('script-src'),"script-src 'self' https://s3.tradingview.com");
-  assert.equal(directive('connect-src'),"connect-src 'self'");
-  assert.equal(directive('frame-src'),'frame-src https://*.tradingview.com https://*.tradingview-widget.com');
+  assert.equal(directive('script-src'),"script-src 'self' https://s3.tradingview.com https://files.coinmarketcap.com https://platform.twitter.com");
+  assert.equal(directive('connect-src'),"connect-src 'self' https://3rdparty-apis.coinmarketcap.com wss://api.hyperliquid.xyz");
+  assert.equal(directive('frame-src'),'frame-src https://*.tradingview.com https://*.tradingview-widget.com https://platform.twitter.com https://syndication.twitter.com');
   assert.doesNotMatch(directive('script-src'),/'unsafe-inline'|'unsafe-eval'/);
-  assert.doesNotMatch(directive('connect-src'),/tradingview|binance|coinbase/i);
+  assert.doesNotMatch(directive('connect-src'),/tradingview|binance|coinbase|arkham|coinglass|forexfactory/i);
 });
