@@ -66,3 +66,12 @@ test('public recovery replaces the market error instead of redirecting or nestin
   assert.match(recovery,/if\(route==='market'\)\{renderMarketRecovery\(message\);return;\}/);
   assert.doesNotMatch(recovery,/if\(route==='market'\)\{location\.hash='#\/market\?view=decision-maker'/);
 });
+
+test('market UI normalizes governed unavailable envelopes before rendering',async()=>{
+  const app=await read('apps/web/public/assets/app.js');
+  assert.match(app,/Array\.isArray\(data\.items\)\?data\.items:\[\]/);
+  assert.match(app,/Array\.isArray\(data\.kpis\)\?data\.kpis:/);
+  assert.match(app,/data\.providerStatus\?\?\{/);
+  assert.match(app,/candles\.source\?\?\{/);
+  assert.match(app,/Provider observations remain unavailable/);
+});
