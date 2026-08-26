@@ -157,7 +157,7 @@ test('modern production polish is globally loaded, curved, animated and motion-s
   assert.match(index, /qelly-route-convergence\.css[\s\S]*qelly-modern-interaction-polish\.css\?v=20260822-modern7/);
   assert.match(css, /--q-modern-radius-xl:32px/);
   assert.match(css, /header\.q-product-header[\s\S]*border-radius:0 0 var\(--q-modern-radius-lg\)/);
-  assert.match(css, /:where\(button:not\(\.q-product-brand__mark\),a\.q-button,\[role="button"\],\[role="tab"\]\)[\s\S]*border-radius:999px!important/);
+  assert.match(css, /:where\(button:not\(\.q-product-brand__mark\):not\(\.q-ai-launcher\),a\.q-button,\[role="button"\],\[role="tab"\]\)[\s\S]*border-radius:999px!important/);
   assert.match(css, /#main \.q-page-actions \.q-button\{border-radius:999px!important/);
   assert.match(css, /\.q-product-search\{[\s\S]*border-radius:999px!important/);
   assert.match(css, /Designer pass: normalize every surviving legacy route family/);
