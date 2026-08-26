@@ -42,6 +42,15 @@ test('Workers AI inference receives a grounded system contract',async()=>{
   assert.match(request.input.messages.at(-1).content,/QELLY_GROUNDED_DATA_JSON/);
 });
 
+test('unsupported model numbers are rejected in favor of deterministic evidence',async()=>{
+  const env={AI:{async run(){return {response:'India growth was 99.9% in 2021 [world-bank].'};}}};
+  const result=await runGroundedFinanceInference(env,{message:'India growth?',history:[],financeContext});
+  assert.equal(result.provider,'qelly-dataset-engine');
+  assert.equal(result.state,'grounding_validation_fallback');
+  assert.match(result.answer,/India GDP growth 6.5%/);
+  assert.doesNotMatch(result.answer,/99\.9|2021/);
+});
+
 test('chat endpoint exposes capability and answers with sources without logging prompts',async()=>{
   const env={
     AI:{async run(){return {response:'BTC is 78,000 in the supplied observation [hyperliquid-public].'};}},
