@@ -44,7 +44,6 @@ test('Workers AI inference receives a grounded system contract',async()=>{
 
 test('chat endpoint exposes capability and answers with sources without logging prompts',async()=>{
   const env={
-    QELLY_PUBLIC_SITE_URL:SITE,
     AI:{async run(){return {response:'BTC is 78,000 in the supplied observation [hyperliquid-public].'};}},
     async __buildFinanceContext(){return financeContext;}
   };
@@ -58,6 +57,11 @@ test('chat endpoint exposes capability and answers with sources without logging 
   assert.equal(answer.truthState,'grounded_model_inference');
   assert.equal(answer.sources[0].id,'hyperliquid-public');
   assert.equal(answer.inference.provider,'cloudflare-workers-ai');
+
+  await assert.rejects(
+    ()=>handleIntelligenceChat({request:new Request(`${SITE}/api/v1/intelligence/chat`,{method:'POST',headers:{Origin:'https://attacker.example','Content-Type':'application/json'},body:JSON.stringify({message:'What is BTC now?'})}),env}),
+    (error)=>error?.status===403&&error?.code==='csrf_origin_forbidden'
+  );
 });
 
 test('finance context composes governed providers and route suggestions',async()=>{
