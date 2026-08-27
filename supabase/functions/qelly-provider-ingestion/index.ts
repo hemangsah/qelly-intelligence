@@ -1,5 +1,5 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
+import "jsr:@supabase/functions-js@2.112.4/edge-runtime.d.ts";
+import { createClient } from "npm:@supabase/supabase-js@2.112.4";
 
 const ECB_HISTORY_URL="https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml";
 const ECB_DAILY_URL="https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml";

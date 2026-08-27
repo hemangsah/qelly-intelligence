@@ -1,5 +1,5 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
+import "jsr:@supabase/functions-js@2.112.4/edge-runtime.d.ts";
+import { createClient } from "npm:@supabase/supabase-js@2.112.4";
 
 const CANONICAL_SITE="https://qelly-intelligence.pages.dev";
 const RELEASE_URL=`${CANONICAL_SITE}/qelly-release.json`;
