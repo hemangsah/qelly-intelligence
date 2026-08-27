@@ -14,6 +14,9 @@ const INTERVALS=Object.freeze([['5m','5m'],['15m','15m'],['1h','1h'],['4h','4h']
 const EMBED_PANELS=Object.freeze([
   {id:'overview',label:'Market overview',kind:'marketOverview',description:'Indices, crypto, foreign exchange and India benchmarks in one comparative display.',openUrl:'https://www.tradingview.com/markets/'},
   {id:'screener',label:'Screener',kind:'screener',description:'Sortable crypto market discovery with overview and performance columns.',openUrl:'https://www.tradingview.com/crypto-coins/screener/'},
+  {id:'us-screener',label:'US market',kind:'screener',market:'america',description:'United States equities screener with performance, valuation and technical columns.',openUrl:'https://www.tradingview.com/markets/stocks-usa/market-movers-all-stocks/'},
+  {id:'india-screener',label:'India market',kind:'screener',market:'india',description:'Indian equities screener spanning NSE and BSE market research.',openUrl:'https://www.tradingview.com/markets/stocks-india/market-movers-all-stocks/'},
+  {id:'hong-kong-screener',label:'Hong Kong market',kind:'screener',market:'hongkong',description:'Hong Kong equities and Hang Seng market research surface.',openUrl:'https://www.tradingview.com/markets/stocks-hong-kong/market-movers-all-stocks/'},
   {id:'calendar',label:'Economic calendar',kind:'economicCalendar',description:'Scheduled macro releases across the world’s largest economies.',openUrl:'https://www.tradingview.com/economic-calendar/'},
   {id:'technicals',label:'Technicals',kind:'technicalAnalysis',description:'Display-only technical summary for the symbol selected above.',openUrl:'https://www.tradingview.com/technical-analysis/'},
   {id:'heatmap',label:'Crypto heatmap',kind:'cryptoHeatmap',description:'Market-cap-weighted crypto performance and relative movement.',openUrl:'https://www.tradingview.com/heatmap/crypto/'},
@@ -57,7 +60,7 @@ function panelConfig(panel,{symbol,interval}){
     {title:'Forex',symbols:[{s:'FX_IDC:EURUSD',d:'EUR / USD'},{s:'FX_IDC:GBPUSD',d:'GBP / USD'},{s:'FX_IDC:USDJPY',d:'USD / JPY'},{s:'FX_IDC:USDINR',d:'USD / INR'}]},
     {title:'India',symbols:[{s:'NSE:NIFTY',d:'Nifty 50'},{s:'BSE:SENSEX',d:'Sensex'},{s:'NSE:BANKNIFTY',d:'Bank Nifty'},{s:'NSE:INDIAVIX',d:'India VIX'}]}
   ]};
-  if(panel.kind==='screener')return {...shared,market:'crypto',showToolbar:true,defaultColumn:'overview',defaultScreen:'general'};
+  if(panel.kind==='screener')return {...shared,market:panel.market||'crypto',showToolbar:true,defaultColumn:'overview',defaultScreen:'general'};
   if(panel.kind==='economicCalendar')return {...shared,countryFilter:'ar,au,br,ca,cn,fr,de,in,id,it,jp,kr,mx,ru,sa,za,tr,gb,us,eu',importanceFilter:'-1,0,1'};
   if(panel.kind==='technicalAnalysis')return {...shared,symbol:tradingViewSymbol(symbol),interval:interval==='1d'?'1D':String(interval||'15m'),showIntervalTabs:true,displayMode:'multiple'};
   if(panel.kind==='cryptoHeatmap')return {...shared,dataSource:'Crypto',blockSize:'market_cap_calc',blockColor:'24h_close_change|5',hasTopBar:true,isDataSetEnabled:true,isZoomEnabled:true,hasSymbolTooltip:true,isMonoSize:false};
@@ -199,7 +202,7 @@ export async function renderMarketV6(main,deps){
     </div>
 
     <section class="q-panel q-tv-suite" data-tv-suite>
-      <div class="q-panel-head"><div><p class="q-eyebrow">Embedded research suite</p><h2>Market intelligence displays</h2><p>Nine official TradingView surfaces are available without leaving Qelly. Only the selected panel loads, preserving performance and attention.</p></div><span class="q-status q-status--cached">DISPLAY ONLY</span></div>
+      <div class="q-panel-head"><div><p class="q-eyebrow">Embedded research suite</p><h2>Market intelligence displays</h2><p>Ten official TradingView surfaces are available without leaving Qelly. Only the selected panel loads, preserving performance and attention.</p></div><span class="q-status q-status--cached">DISPLAY ONLY</span></div>
       <div class="q-panel-body">
         <div class="q-tv-suite-tabs" role="tablist" aria-label="Choose an embedded market display">${EMBED_PANELS.map((panel,index)=>`<button type="button" role="tab" aria-selected="${index===0?'true':'false'}" aria-controls="q-tv-suite-stage" tabindex="${index===0?'0':'-1'}" data-tv-suite-tab="${panel.id}">${panel.label}</button>`).join('')}</div>
         <div class="q-tv-suite-context"><div><strong data-tv-suite-title>Market overview</strong><p data-tv-suite-description>${EMBED_PANELS[0].description}</p></div><span>External data · human review only</span></div>

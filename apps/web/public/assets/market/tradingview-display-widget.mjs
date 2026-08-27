@@ -72,12 +72,16 @@ export function mountTradingViewWidget(container,{kind,config={},label='TradingV
   wrapper.className='tradingview-widget-container qelly-tradingview-widget';
   wrapper.style.height='100%';
   wrapper.style.width='100%';
+  const loading=document.createElement('div');
+  loading.className='qelly-tradingview-loading';
+  loading.setAttribute('role','status');
+  loading.innerHTML=`<span aria-hidden="true"></span><strong>Loading ${label}…</strong><small>Official TradingView display · no substitute values</small>`;
   const host=document.createElement('div');
   host.className='tradingview-widget-container__widget';
   host.style.height='calc(100% - 32px)';
   host.style.width='100%';
   host.setAttribute('aria-label',`Loading external ${label}`);
-  wrapper.append(host);
+  wrapper.append(loading,host);
 
   const attribution=document.createElement('div');
   attribution.className='tradingview-widget-copyright qelly-tradingview-attribution';
@@ -102,6 +106,7 @@ export function mountTradingViewWidget(container,{kind,config={},label='TradingV
     if(settled||!container.isConnected||!widgetReady(wrapper))return false;
     settled=true;
     container.dataset.externalState='display-only';
+    loading.remove();
     wrapper.querySelector('iframe')?.setAttribute('aria-label',label);
     return true;
   };

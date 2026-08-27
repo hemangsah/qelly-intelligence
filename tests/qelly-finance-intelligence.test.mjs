@@ -84,6 +84,24 @@ test('chat endpoint exposes capability and answers with sources without logging 
   );
 });
 
+test('short social messages use the immediate Qelly conversational path',async()=>{
+  let contextBuilt=false;
+  let modelCalled=false;
+  const env={
+    AI:{async run(){modelCalled=true;return {response:'should not run'};}},
+    async __buildFinanceContext(){contextBuilt=true;return financeContext;}
+  };
+  const response=await handleIntelligenceChat({request:new Request(`${SITE}/api/v1/intelligence/chat`,{method:'POST',headers:{Origin:SITE,'Content-Type':'application/json'},body:JSON.stringify({message:'Hello!'})}),env});
+  assert.equal(response.status,200);
+  const answer=await response.json();
+  assert.equal(answer.truthState,'conversational');
+  assert.equal(answer.inference.provider,'qelly-conversation-router');
+  assert.match(answer.content,/I’m Qelly Intelligence AI/);
+  assert.deepEqual(answer.sources,[]);
+  assert.equal(contextBuilt,false);
+  assert.equal(modelCalled,false);
+});
+
 test('finance context composes governed providers and route suggestions',async()=>{
   const context=await buildFinanceContext({env:{}},'India inflation',{
     networkLoader:async()=>({sources:{hyperliquid:{data:[{symbol:'BTC',mid:1}],truthState:'live'},'alternative-me':{data:null,truthState:'unavailable'}}}),

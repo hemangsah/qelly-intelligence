@@ -36,7 +36,7 @@ test('Market Command exposes the complete lazy embedded research suite',async()=
   const route=await read('../apps/web/public/assets/routes/market-v6.mjs');
   for(const label of ['Market overview','Screener','Economic calendar','Technicals','Crypto heatmap','FX cross rates','Top stories'])assert.match(route,new RegExp(label));
   assert.match(route,/kind:'tickerTape'/);
-  assert.match(route,/Nine official TradingView surfaces/);
+  assert.match(route,/Ten official TradingView surfaces/);
   assert.match(route,/IntersectionObserver/);
   assert.match(route,/role="tablist"/);
   assert.match(route,/ArrowLeft/);

@@ -1,6 +1,10 @@
 // Compatibility bridge for the retained core module's browser global export.
 globalThis.TYPOGRAPHY_LOCK='IBM Plex Sans Variable permanent canonical font · GT Eesti inactive licence gate';
-const [{themeIntelligence,migrateThemeConfig,preferencePatch,PERSONAS},{renderThemeIntelligenceStudio},{enhanceThemeIntelligenceVisuals}]=await Promise.all([import('./theme-intelligence.mjs'),import('./routes/theme-intelligence-studio.mjs'),import('./theme-intelligence-visual-correction.mjs')]);
+const {themeIntelligence,migrateThemeConfig,preferencePatch,PERSONAS}=await import('./theme-intelligence.mjs');
+let studioRendererPromise=null;
+let visualEnhancerPromise=null;
+const loadStudioRenderer=()=>studioRendererPromise??=import('./routes/theme-intelligence-studio.mjs').then((module)=>module.renderThemeIntelligenceStudio);
+const loadVisualEnhancer=()=>visualEnhancerPromise??=import('./theme-intelligence-visual-correction.mjs').then((module)=>module.enhanceThemeIntelligenceVisuals);
 
 const main=()=>document.getElementById('main');
 const localState={prefs:migrateThemeConfig({})};
@@ -81,6 +85,7 @@ async function mountRoute(){
   const target=main();if(!target)return;
   mounted=true;
   observer?.disconnect();
+  const [renderThemeIntelligenceStudio,enhanceThemeIntelligenceVisuals]=await Promise.all([loadStudioRenderer(),loadVisualEnhancer()]);
   await renderThemeIntelligenceStudio(target,{toast,navigate,state:localState,persistPreference,renderRoute:mountRoute});
   enhanceThemeIntelligenceVisuals(target);
   observer?.observe(target,{childList:true});
@@ -110,7 +115,8 @@ const shared=(()=>{const encoded=new URL(location.href).searchParams.get('qellyT
 themeIntelligence.start(shared);localState.prefs={...localState.prefs,...preferencePatch(themeIntelligence.config)};
 await hydrateAuthenticatedPreferences();
 installRouteGuard();installLaunchers();installPortalInheritance();
-enhanceThemeIntelligenceVisuals(document);
+const enhanceDocument=()=>void loadVisualEnhancer().then((enhanceThemeIntelligenceVisuals)=>enhanceThemeIntelligenceVisuals(document)).catch(()=>{});
+if(typeof requestIdleCallback==='function')requestIdleCallback(enhanceDocument,{timeout:1800});else setTimeout(enhanceDocument,250);
 if(studioRoute())queueMicrotask(mountRoute);
 window.QellyThemeStudio=Object.freeze({open:()=>navigate('theme-lab'),gallery:()=>navigate('theme-lab','gallery'),compare:()=>navigate('theme-lab','compare'),setAppearance,toggleAppearance,applyLegacyThemePreset,snapshot:()=>themeIntelligence.snapshot()});
 document.dispatchEvent(new CustomEvent('qelly:appearance-changed',{detail:{appearance:document.documentElement.dataset.resolvedAppearance||document.documentElement.dataset.appearance||themeIntelligence.config.appearance,requestedAppearance:themeIntelligence.config.appearance,themeFamily:themeIntelligence.config.themeFamily,persona:themeIntelligence.config.persona,persisted:authenticated}}));

@@ -22,7 +22,7 @@ function persist(messages){
   try{sessionStorage.setItem(STORAGE_KEY,JSON.stringify(messages.slice(-MAX_MESSAGES).map(({role,content,sources=[],actions=[],truthState=null,generatedAt=null})=>({role,content,sources,actions,truthState,generatedAt}))));}catch{}
 }
 
-const truthLabel=(value)=>({grounded_model_inference:'GROUNDED AI',grounded_fallback:'DATASET ANSWER',model_unavailable_fallback:'MODEL DEGRADED'}[value]||'QELLY');
+const truthLabel=(value)=>({conversational:'QELLY AI',grounded_model_inference:'GROUNDED AI',grounded_fallback:'DATASET ANSWER',grounding_validation_fallback:'VERIFIED DATASET ANSWER',grounded_registry_answer:'GOVERNED REGISTRY',model_unavailable_fallback:'MODEL DEGRADED'}[value]||'QELLY');
 
 function sourceList(sources=[]){
   const available=sources.filter((source)=>source?.truthState&&source.truthState!=='unavailable');
