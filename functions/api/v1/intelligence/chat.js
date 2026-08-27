@@ -15,6 +15,20 @@ const sameOriginResponseEnv=(request,env)=>({
   QELLY_ALLOWED_ORIGINS:[env.QELLY_ALLOWED_ORIGINS,new URL(request.url).origin].filter(Boolean).join(',')
 });
 
+const conversationalReply=(message)=>{
+  const normalized=String(message??'').trim().toLowerCase().replace(/[.!?]+$/g,'').trim();
+  if(/^(hi|hello|hey|hiya|good morning|good afternoon|good evening)$/.test(normalized)){
+    return 'Hi — I’m Qelly Intelligence AI. I can help you explore markets, compare assets and economies, explain financial concepts, and inspect the sources behind every data-backed answer. What would you like to research?';
+  }
+  if(/^(who are you|what are you|what is qelly|tell me about yourself)$/.test(normalized)){
+    return 'I’m Qelly Intelligence AI, the evidence-first research assistant for Qelly Intelligence. I answer financial questions using connected, source-labelled datasets and clearly disclose when coverage is delayed, restricted, or unavailable.';
+  }
+  if(/^(thanks|thank you|thankyou|cheers)$/.test(normalized)){
+    return 'You’re welcome. I’m ready whenever you want to explore a market, compare economies, inspect a source, or understand a financial concept.';
+  }
+  return null;
+};
+
 export async function handleIntelligenceChat(context){
   const {request,env}=context;
   const method=request.method.toUpperCase();
@@ -34,6 +48,22 @@ export async function handleIntelligenceChat(context){
   if(message.length<2)throw new HttpError(400,'chat_message_required','Enter a financial research question.');
   if(message.length>2400)throw new HttpError(400,'chat_message_too_long','Keep the research question under 2,400 characters.');
   const history=safeHistory(body.history);
+  const conversationalAnswer=conversationalReply(message);
+  if(conversationalAnswer){
+    return responseJson(request,sameOriginResponseEnv(request,env),{
+      id:crypto.randomUUID(),
+      role:'assistant',
+      content:conversationalAnswer,
+      generatedAt:new Date().toISOString(),
+      truthState:'conversational',
+      inference:{provider:'qelly-conversation-router',model:null,state:'conversational',reason:null},
+      sources:[],
+      datasets:{connected:0,catalogued:0,used:0},
+      actions:[{route:'market',label:'Open Market Command'},{route:'research-workspace',label:'Open Research Workspace'}],
+      disclaimer:'Research information only · not personalized financial advice · no execution',
+      correlationId:correlationId(request)
+    });
+  }
   const contextBuilder=typeof env.__buildFinanceContext==='function'?env.__buildFinanceContext:buildFinanceContext;
   const financeContext=await contextBuilder(context,message);
   const inference=await runGroundedFinanceInference(env,{message,history,financeContext});
@@ -62,4 +92,4 @@ export async function onRequest(context){
   }
 }
 
-export const __intelligenceChatTest=Object.freeze({clientKey,safeHistory,requireSameOrigin,sameOriginResponseEnv});
+export const __intelligenceChatTest=Object.freeze({clientKey,safeHistory,requireSameOrigin,sameOriginResponseEnv,conversationalReply});

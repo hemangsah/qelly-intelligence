@@ -119,7 +119,7 @@ export async function renderGlobalMarketNetwork(main,deps){
     <section class="q-mn-workbench">
       <section class="q-mn-panel q-mn-chart-panel">
         <div class="q-mn-chart-controls"><label><span>Cross-asset display</span><select id="q-mn-symbol">${CHART_PRESETS.map(([id,label,group])=>`<option value="${escapeHtml(id)}">${escapeHtml(group)} · ${escapeHtml(label)}</option>`).join('')}</select></label><label><span>Interval</span><select id="q-mn-interval">${INTERVALS.map((item)=>`<option value="${item}" ${item==='1h'?'selected':''}>${item}</option>`).join('')}</select></label><span class="q-status q-status--cached">TRADINGVIEW · DISPLAY ONLY</span></div>
-        <div id="q-market-network-chart" class="q-mn-chart" aria-label="TradingView cross-asset external research chart"></div>
+        <div id="q-market-network-chart" class="q-mn-chart" aria-label="TradingView cross-asset external research chart"><div class="qelly-tradingview-loading" role="status"><span aria-hidden="true"></span><strong>Loading cross-asset market chart…</strong><small>Official TradingView display · Qelly tables remain available below</small></div></div>
         <div class="q-mn-attribution">TradingView is an external display boundary. Qelly does not scrape or reuse widget values. Qelly calculations, provider truth, alerts and decisions do not consume TradingView widget values.</div>
       </section>
       <aside class="q-mn-side">

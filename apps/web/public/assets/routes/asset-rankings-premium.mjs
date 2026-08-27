@@ -1,5 +1,14 @@
 import {icon} from '../icon-registry.mjs';
 import {providerAvailability,providerPolicyMessage} from '../customer-copy.mjs';
+import {mountTradingViewWidget,tradingViewAppearance} from '../market/tradingview-display-widget.mjs';
+import {mountCoinMarketCapWidgets} from '../market/external-intelligence-widgets.mjs';
+
+const DISPLAY_SURFACES=Object.freeze([
+  {id:'overview',label:'Global overview',kind:'marketOverview',openUrl:'https://www.tradingview.com/markets/'},
+  {id:'screener',label:'Crypto screener',kind:'screener',openUrl:'https://www.tradingview.com/crypto-coins/screener/'},
+  {id:'heatmap',label:'Crypto heatmap',kind:'cryptoHeatmap',openUrl:'https://www.tradingview.com/heatmap/crypto/'},
+  {id:'coinmarketcap',label:'CoinMarketCap',kind:'coinmarketcap',openUrl:'https://coinmarketcap.com/'}
+]);
 
 const apiBase=()=>String(window.__QELLY_CONFIG__?.apiBaseUrl||'').replace(/\/$/,'');
 const apiUrl=(path)=>apiBase()?new URL(path,`${apiBase()}/`).toString():path;
@@ -25,6 +34,45 @@ function referenceRows(ecb,escapeHtml){
   const rows=preferred.filter(code=>rates[code]!=null).map(code=>({code,rate:rates[code]}));
   if(!rows.length)return '<div class="q-empty-state"><strong>No approved reference observations</strong><p>The ECB public provider returned no usable reference-rate payload. Qelly did not insert placeholder market values.</p></div>';
   return `<div class="q-mi-table-scroll"><table class="q-data-table"><thead><tr><th>Reference pair</th><th>Rate</th><th>Observation</th><th>Source</th><th>Truth</th></tr></thead><tbody>${rows.map(row=>`<tr><td><strong>EUR / ${escapeHtml(row.code)}</strong></td><td>${escapeHtml(formatRate(row.rate))}</td><td>${escapeHtml(formatDate(ecb.observationTime||ecb.observedAt))}</td><td>European Central Bank</td><td><span class="q-status q-status--delayed">REFERENCE</span></td></tr>`).join('')}</tbody></table></div>`;
+}
+
+function displayConfig(kind){
+  const colorTheme=tradingViewAppearance();
+  const shared={colorTheme,isTransparent:false,width:'100%',height:'100%'};
+  if(kind==='marketOverview')return {...shared,dateRange:'12M',showChart:true,showFloatingTooltip:true,showSymbolLogo:true,tabs:[
+    {title:'US',symbols:[{s:'FOREXCOM:SPXUSD',d:'S&P 500'},{s:'FOREXCOM:NSXUSD',d:'Nasdaq 100'},{s:'TVC:DJI',d:'Dow Jones'}]},
+    {title:'India',symbols:[{s:'NSE:NIFTY',d:'Nifty 50'},{s:'BSE:SENSEX',d:'Sensex'},{s:'NSE:BANKNIFTY',d:'Bank Nifty'}]},
+    {title:'Asia',symbols:[{s:'HSI:HSI',d:'Hang Seng'},{s:'TVC:NI225',d:'Nikkei 225'},{s:'SSE:000001',d:'Shanghai Composite'}]},
+    {title:'Crypto',symbols:[{s:'BITSTAMP:BTCUSD',d:'Bitcoin'},{s:'BITSTAMP:ETHUSD',d:'Ethereum'},{s:'BINANCE:SOLUSDT',d:'Solana'}]}
+  ]};
+  if(kind==='screener')return {...shared,market:'crypto',showToolbar:true,defaultColumn:'overview',defaultScreen:'general'};
+  return {...shared,dataSource:'Crypto',blockSize:'market_cap_calc',blockColor:'24h_close_change|5',hasTopBar:true,isDataSetEnabled:true,isZoomEnabled:true,hasSymbolTooltip:true};
+}
+
+function mountRankingDisplays(main){
+  const stage=main.querySelector('[data-ranking-display-stage]');
+  const buttons=[...main.querySelectorAll('[data-ranking-display]')];
+  let handle=null;
+  const activate=(id,{focus=false}={})=>{
+    const surface=DISPLAY_SURFACES.find((item)=>item.id===id)||DISPLAY_SURFACES[0];
+    handle?.destroy?.();handle=null;
+    for(const button of buttons){const selected=button.dataset.rankingDisplay===surface.id;button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1;}
+    if(focus)buttons.find((button)=>button.dataset.rankingDisplay===surface.id)?.focus();
+    if(surface.kind==='coinmarketcap')handle=mountCoinMarketCapWidgets(stage);
+    else handle=mountTradingViewWidget(stage,{kind:surface.kind,label:surface.label,openUrl:surface.openUrl,config:displayConfig(surface.kind)});
+  };
+  buttons.forEach((button,index)=>{
+    button.addEventListener('click',()=>activate(button.dataset.rankingDisplay));
+    button.addEventListener('keydown',(event)=>{
+      if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+      event.preventDefault();
+      const next=event.key==='Home'?0:event.key==='End'?buttons.length-1:(index+(event.key==='ArrowRight'?1:-1)+buttons.length)%buttons.length;
+      activate(buttons[next].dataset.rankingDisplay,{focus:true});
+    });
+  });
+  const intersection='IntersectionObserver'in window?new IntersectionObserver((entries)=>{if(entries.some((entry)=>entry.isIntersecting)){intersection.disconnect();activate('overview');}},{rootMargin:'300px 0px'}):null;
+  if(intersection)intersection.observe(stage);else activate('overview');
+  return ()=>{intersection?.disconnect();handle?.destroy?.();handle=null;};
 }
 
 export async function renderAssetRankings(main,{escapeHtml,navigate,toast}){
@@ -53,7 +101,7 @@ export async function renderAssetRankings(main,{escapeHtml,navigate,toast}){
     </section>
 
     <div class="q-mi-analytical-grid">
-      <section class="q-mi-intelligence-module"><header><div><p>Asset ranking coverage</p><h2>${authorizedRankProviders.length?'Provider-backed ranking inputs available':'Rankings are being connected'}</h2></div><span class="q-status q-status--${authorizedRankProviders.length?'live':'cached'}">${authorizedRankProviders.length?'Available':'Coverage pending'}</span></header><div class="q-empty-state"><strong>${authorizedRankProviders.length?'Ranking methodology is ready for the approved feed.':'Explore verified market sources while coverage is prepared.'}</strong><p>Qelly will publish rankings only after the required market-data permissions and source checks are complete.</p></div><div class="q-external-research-actions"><a class="q-button q-button--primary" href="#/research-workspace">Open research workspace</a><a class="q-button q-button--secondary" href="https://www.tradingview.com/markets/" target="_blank" rel="noopener noreferrer nofollow">TradingView market overview ↗</a><a class="q-button q-button--secondary" href="https://www.cmegroup.com/markets.html" target="_blank" rel="noopener noreferrer nofollow">CME markets ↗</a></div></section>
+      <section class="q-mi-intelligence-module q-ranking-coverage"><header><div><p>Asset ranking coverage</p><h2>${authorizedRankProviders.length?'Provider-backed ranking inputs available':'Rankings are being connected'}</h2></div><span class="q-status q-status--${authorizedRankProviders.length?'live':'cached'}">${authorizedRankProviders.length?'Available':'Coverage pending'}</span></header><div class="q-ranking-boundary"><strong>${authorizedRankProviders.length?'Ranking methodology is ready for the approved feed.':'Explore verified market sources while coverage is prepared.'}</strong><p>Qelly will publish rankings only after the required market-data permissions and source checks are complete. The panels below are official third-party display widgets and are not Qelly rankings.</p></div><div class="q-ranking-display-tabs" role="tablist" aria-label="External ranking research displays">${DISPLAY_SURFACES.map((surface,index)=>`<button type="button" role="tab" data-ranking-display="${surface.id}" aria-selected="${index===0?'true':'false'}" tabindex="${index===0?'0':'-1'}">${surface.label}</button>`).join('')}</div><div class="q-ranking-display-stage" data-ranking-display-stage aria-label="Official external market research display"><div class="q-ranking-display-loading"><span></span><strong>Loading official market display…</strong><small>No substitute values are generated.</small></div></div><div class="q-external-research-actions"><a class="q-button q-button--primary" href="#/research-workspace">Open research workspace</a><a class="q-button q-button--secondary" href="https://www.tradingview.com/markets/" target="_blank" rel="noopener noreferrer nofollow">TradingView market overview ↗</a><a class="q-button q-button--secondary" href="https://www.cmegroup.com/markets.html" target="_blank" rel="noopener noreferrer nofollow">CME markets ↗</a></div></section>
       <aside class="q-mi-side-stack">${providerMatrix(providers,escapeHtml)}</aside>
     </div>
 
@@ -64,4 +112,6 @@ export async function renderAssetRankings(main,{escapeHtml,navigate,toast}){
 
   main.querySelector('[data-ranking-boundary]')?.addEventListener('click',()=>toast?.('Asset rankings require rights-authorized ranking observations. Production does not substitute deterministic market values.',{tone:'neutral'}));
   main.querySelector('[data-action="open-ranking-provenance"]')?.addEventListener('click',()=>navigate?.('decision-provenance'));
+  const cleanupDisplays=mountRankingDisplays(main);
+  window.__qellyLiveMarketCleanup=cleanupDisplays;
 }

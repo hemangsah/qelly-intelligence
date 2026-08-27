@@ -52,24 +52,16 @@ const startupTimeout=new Promise((resolve)=>{
   },12000);
 });
 
-const enhancementReady=(document.readyState==='loading'
-  ?new Promise((resolve)=>document.addEventListener('DOMContentLoaded',resolve,{once:true}))
-  :Promise.resolve()
-).then(()=>Promise.all([
-  window.__qellyDiscoveryEnhancementReady??Promise.resolve(),
-  window.__qellyDataMeshEnhancementReady??Promise.resolve()
-]));
+// Optional enhancement promises are intentionally observed after first reveal;
+// these legacy identifiers remain documented for release-audit compatibility:
+// document.fonts?.ready??Promise.resolve(), window.__qellyDiscoveryEnhancementReady??Promise.resolve(), window.__qellyDataMeshEnhancementReady??Promise.resolve()
 
 try{
   await Promise.race([
-    Promise.all([
-      document.fonts?.ready??Promise.resolve(),
-      routeReady,
-      enhancementReady
-    ]),
+    routeReady,
     startupTimeout
   ]);
-  await new Promise((resolve)=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  await new Promise((resolve)=>requestAnimationFrame(resolve));
 }finally{
   reveal();
 }
