@@ -2,10 +2,10 @@ name: Container Build
 
 on:
   push:
-    branches: [main]
+    branches: [main, release/qelly-global-public-beta]
     tags: ['v*']
   pull_request:
-    branches: [main]
+    branches: [main, release/qelly-global-public-beta]
 
 permissions:
   contents: read
