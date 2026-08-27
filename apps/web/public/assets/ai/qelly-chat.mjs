@@ -24,6 +24,20 @@ function persist(messages){
 
 const truthLabel=(value)=>({conversational:'QELLY AI',grounded_model_inference:'GROUNDED AI',grounded_fallback:'DATASET ANSWER',grounding_validation_fallback:'VERIFIED DATASET ANSWER',grounded_registry_answer:'GOVERNED REGISTRY',model_unavailable_fallback:'MODEL DEGRADED'}[value]||'QELLY');
 
+const conversationalReply=(message)=>{
+  const normalized=String(message??'').trim().toLowerCase().replace(/[.!?]+$/g,'').trim();
+  if(/^(hi|hello|hey|hiya|good morning|good afternoon|good evening)$/.test(normalized)){
+    return 'Hi — I’m Qelly Intelligence AI. I can help you explore markets, compare assets and economies, explain financial concepts, and inspect the sources behind every data-backed answer. What would you like to research?';
+  }
+  if(/^(who are you|what are you|what is qelly|tell me about yourself)$/.test(normalized)){
+    return 'I’m Qelly Intelligence AI, the evidence-first research assistant for Qelly Intelligence. I answer financial questions using connected, source-labelled datasets and clearly disclose when coverage is delayed, restricted, or unavailable.';
+  }
+  if(/^(thanks|thank you|thankyou|cheers)$/.test(normalized)){
+    return 'You’re welcome. I’m ready whenever you want to explore a market, compare economies, inspect a source, or understand a financial concept.';
+  }
+  return null;
+};
+
 function sourceList(sources=[]){
   const available=sources.filter((source)=>source?.truthState&&source.truthState!=='unavailable');
   if(!available.length)return '';
@@ -110,7 +124,14 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
     if(!value||sending)return;
     const history=messages.slice(-10).map(({role,content})=>({role,content}));
     messages.push({role:'user',content:value,generatedAt:new Date().toISOString()});
-    persist(messages);render();setBusy(true);input.value='';
+    persist(messages);render();input.value='';
+    const conversationalAnswer=conversationalReply(value);
+    if(conversationalAnswer){
+      messages.push({role:'assistant',content:conversationalAnswer,sources:[],actions:[],truthState:'conversational',generatedAt:new Date().toISOString()});
+      persist(messages);render();input.focus();
+      return;
+    }
+    setBusy(true);
     try{
       const result=await api('/api/v1/intelligence/chat',{method:'POST',body:JSON.stringify({message:value,history})});
       messages.push({role:'assistant',content:result.content,sources:result.sources||[],actions:result.actions||[],truthState:result.truthState,generatedAt:result.generatedAt});
@@ -134,4 +155,4 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
   loadCapability().catch(()=>{root.querySelector('[data-q-ai-status]').textContent=staticVisualPreview?'Static preview':'Dataset service reconnecting';root.querySelector('[data-q-ai-status-dot]').dataset.state='reference';});
 }
 
-export const __qellyChatTest=Object.freeze({STORAGE_KEY,MAX_MESSAGES,suggestions,truthLabel,safeUrl});
+export const __qellyChatTest=Object.freeze({STORAGE_KEY,MAX_MESSAGES,suggestions,truthLabel,safeUrl,conversationalReply});

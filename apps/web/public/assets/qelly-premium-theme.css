@@ -297,13 +297,6 @@ html[data-production-system="v8"] body #app #main textarea{
 html[data-production-system="v8"] body #app #main button,
 html[data-production-system="v8"] body #app #main [role="button"]{min-width:44px!important}
 
-html[data-production-system="v8"] .qelly-tradingview-widget{position:relative}
-html[data-production-system="v8"] [data-external-state="loading"] .qelly-tradingview-widget::before{
-  content:"Connecting to TradingView…";position:absolute;inset:0;display:grid;place-items:center;
-  color:var(--q-muted);font-size:13px;letter-spacing:.02em;
-  background:linear-gradient(105deg,#090a0c 28%,#151116 45%,#090a0c 62%);background-size:220% 100%;animation:q-luxe-chart-loading 1.8s linear infinite;
-}
-@keyframes q-luxe-chart-loading{to{background-position:-220% 0}}
 
 /* Wide screens keep the product inventory visible as a quiet dock. It can be
    collapsed from the header without trapping content beneath the panel. */
@@ -366,7 +359,6 @@ html[data-production-system="v8"] [data-external-state="loading"] .qelly-trading
 }
 
 @media(prefers-reduced-motion:reduce){
-  html[data-production-system="v8"] [data-external-state="loading"] .qelly-tradingview-widget::before{animation:none}
 }
 
 /* Customer-facing data states: soft depth replaces dense outlined registries. */

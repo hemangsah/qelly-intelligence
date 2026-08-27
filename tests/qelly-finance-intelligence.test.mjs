@@ -126,6 +126,9 @@ test('frontend installs an accessible global chat drawer and Cloudflare AI bindi
   assert.match(chat,/aria-live="polite"/);
   assert.match(chat,/sessionStorage/);
   assert.match(chat,/maxlength="2400"/);
+  assert.match(chat,/const conversationalAnswer=conversationalReply\(value\)/);
+  assert.match(chat,/truthState:'conversational'/);
+  assert.match(chat,/Hi — I’m Qelly Intelligence AI/);
   assert.match(css,/@media\(max-width:640px\)/);
   assert.match(css,/100dvh/);
   assert.match(app,/installQellyChat\(\{api,navigate,toast,staticVisualPreview\}\)/);

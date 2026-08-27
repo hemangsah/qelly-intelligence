@@ -36,12 +36,12 @@ test('Global Market Network keeps governed truth, provenance and external-displa
 
 test('Global Market Network V8 topology is responsive and preserves all evidence surfaces',async()=>{
   const css=stripComments(await read(networkCssPath));
-  assert.match(css,/\.q-mn-workbench\{[\s\S]*grid-template-columns:minmax\(0,1\.62fr\) minmax\(300px,\.68fr\)/);
+  assert.match(css,/\.q-mn-workbench\{[\s\S]*grid-template-columns:minmax\(0,1\.62fr\) minmax\(300px,(?:0)?\.68fr\)/);
   assert.match(css,/\.q-mn-status-grid\{[\s\S]*repeat\(5,minmax\(0,1fr\)\)/);
   assert.match(css,/\.q-mn-source-grid\{[\s\S]*repeat\(4,minmax\(0,1fr\)\)/);
-  assert.match(css,/@media\(max-width:1180px\)/);
-  assert.match(css,/@media\(max-width:1040px\)/);
-  assert.match(css,/@media\(max-width:700px\)/);
+  assert.match(css,/@media\s*\(max-width:1180px\)/);
+  assert.match(css,/@media\s*\(max-width:1040px\)/);
+  assert.match(css,/@media\s*\(max-width:700px\)/);
   assert.match(css,/\.q-mn-table-wrap\{overflow-x:auto\}/);
   assert.match(css,/\.q-mn-chart\{height:390px;min-height:390px/);
   assert.doesNotMatch(css,/visibility\s*:\s*hidden/);

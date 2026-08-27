@@ -12,6 +12,8 @@ test('TradingView widget uses the official embed bootstrap with an explicit disp
   assert.match(__tradingViewDisplayTest.DISPLAY_BOUNDARY,/does not read, scrape, transform, persist or use widget values/i);
   assert.equal(tradingViewSymbol('BTCUSDT'),'BINANCE:BTCUSDT');
   assert.equal(tradingViewInterval('4h'),'240');
+  assert.equal(__tradingViewDisplayTest.WIDGET_TIMEOUT_MS,12000);
+  assert.match(__tradingViewDisplayTest.COMPONENT_STYLESHEET,/tradingview-display-widget\.css$/);
 });
 
 test('external market surface is bootstrapped by the production route guard and does not ingest external data',async()=>{
@@ -30,6 +32,12 @@ test('external market surface is bootstrapped by the production route guard and 
   assert.match(widget,/const widgetReady=\(wrapper\)=>Boolean\(wrapper\?\.querySelector\('iframe'\)\)/);
   assert.match(widget,/observer\.observe\(wrapper,\{childList:true,subtree:true\}\)/);
   assert.doesNotMatch(widget,/observer\.observe\(host/);
+  assert.match(widget,/iframe\.addEventListener\('load'/);
+  assert.doesNotMatch(widget,/script\.addEventListener\('load',\(\)=>requestAnimationFrame/);
+  const css=await read('../apps/web/public/assets/market/tradingview-display-widget.css');
+  assert.match(css,/inset:0 0 32px/);
+  assert.match(css,/z-index:3/);
+  assert.match(css,/pointer-events:none/);
 });
 
 test('Market Command exposes the complete lazy embedded research suite',async()=>{

@@ -1,0 +1,69 @@
+.qelly-tradingview-widget{
+  position:relative;
+  isolation:isolate;
+  display:grid;
+  grid-template-rows:minmax(0,1fr) 32px;
+  min-height:100%;
+  overflow:hidden;
+  background:var(--q-surface,#101217);
+}
+
+.qelly-tradingview-widget>.tradingview-widget-container__widget{
+  position:relative;
+  z-index:1;
+  min-width:0;
+  min-height:0;
+}
+
+.qelly-tradingview-widget iframe{
+  display:block;
+  width:100%!important;
+  height:100%!important;
+  border:0!important;
+}
+
+.qelly-tradingview-loading{
+  position:absolute;
+  inset:0 0 32px;
+  z-index:3;
+  display:grid;
+  place-content:center;
+  justify-items:center;
+  gap:9px;
+  min-height:0;
+  padding:24px;
+  pointer-events:none;
+  text-align:center;
+  color:var(--q-text,#f3edf0);
+  background:linear-gradient(135deg,color-mix(in srgb,var(--q-surface,#101217) 95%,var(--q-accent,#9f2d59) 5%),var(--q-surfacealt,#17141a));
+}
+
+.qelly-tradingview-loading span{
+  width:26px;
+  height:26px;
+  border:2px solid color-mix(in srgb,var(--q-accent,#9f2d59) 24%,transparent);
+  border-top-color:var(--q-accent,#9f2d59);
+  border-radius:50%;
+  animation:qelly-tradingview-spin .8s linear infinite;
+}
+
+.qelly-tradingview-loading strong{font-size:13px}
+.qelly-tradingview-loading small{color:var(--q-muted,#aaa0a5);font-size:10px}
+.qelly-tradingview-attribution{position:relative;z-index:2;min-height:32px}
+
+.qelly-tradingview-fallback{
+  min-height:100%;
+  display:grid;
+  place-items:center;
+  padding:28px;
+  background:var(--q-surface,#101217);
+  color:var(--q-text,#f3edf0);
+  text-align:center;
+}
+.qelly-tradingview-fallback>div{max-width:560px}
+.qelly-tradingview-fallback h3{margin:0 0 8px;font-size:20px}
+.qelly-tradingview-fallback p{margin:0 0 16px;color:var(--q-muted,#aaa0a5)}
+.qelly-tradingview-fallback a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 13px;border:1px solid var(--q-border,#3a3035);border-radius:8px;background:var(--q-surfacealt,#17141a);color:var(--q-text,#f3edf0);text-decoration:none}
+
+@keyframes qelly-tradingview-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.qelly-tradingview-loading span{animation:none}}
