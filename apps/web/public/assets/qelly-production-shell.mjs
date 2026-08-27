@@ -7,8 +7,7 @@ const main=document.getElementById('main');
 const ROUTE_REPAIR_STYLESHEET=new URL('./qelly-route-repairs.css',import.meta.url).href;
 const ROUTE_CONVERGENCE_STYLESHEET=new URL('./qelly-route-convergence.css',import.meta.url).href;
 const PREMIUM_THEME_STYLESHEET=new URL('./qelly-premium-theme.css?v=20260825-premium1',import.meta.url).href;
-const PRODUCT_EXPERIENCE_STYLESHEET=new URL('./qelly-product-experience.css?v=20260827-experience5',import.meta.url).href;
-const DEEP_AUDIT_REPAIRS_STYLESHEET=new URL('./qelly-deep-audit-repairs.css?v=20260827-audit4',import.meta.url).href;
+const PRODUCT_EXPERIENCE_STYLESHEET=new URL('./qelly-product-experience.css?v=20260827-experience6',import.meta.url).href;
 // Legacy audit contract: const desiredTail=[canonical,repairs,convergence,premiumTheme,productExperience].filter(Boolean)
 const CUSTOMER_ROUTES=new Set([
   'feature-universe','market','asset-rankings','asset','calculator-center','calculator-detail','india-finance',
@@ -58,15 +57,7 @@ function ensureCanonicalStylesheetLast(){
     productExperience.dataset.qellyProductExperience='true';
     document.head.append(productExperience);
   }
-  let deepAuditRepairs=document.querySelector('link[data-qelly-deep-audit-repairs="true"]');
-  if(!deepAuditRepairs){
-    deepAuditRepairs=document.createElement('link');
-    deepAuditRepairs.rel='stylesheet';
-    deepAuditRepairs.href=DEEP_AUDIT_REPAIRS_STYLESHEET;
-    deepAuditRepairs.dataset.qellyDeepAuditRepairs='true';
-    document.head.append(deepAuditRepairs);
-  }
-  const desiredTail=[canonical,repairs,convergence,premiumTheme,productExperience,deepAuditRepairs].filter(Boolean);
+  const desiredTail=[canonical,repairs,convergence,premiumTheme,productExperience].filter(Boolean);
   const currentTail=Array.from(document.head.querySelectorAll('link[rel="stylesheet"]')).slice(-desiredTail.length);
   const alreadyOrdered=desiredTail.length>0&&desiredTail.every((node,index)=>currentTail[index]===node);
   if(!alreadyOrdered)document.head.append(...desiredTail);

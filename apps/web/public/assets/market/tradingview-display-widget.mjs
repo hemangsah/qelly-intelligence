@@ -1,5 +1,6 @@
 const DISPLAY_BOUNDARY='External TradingView display only. Qelly does not read, scrape, transform, persist or use widget values for calculations, risk, alerts or decisions.';
-const WIDGET_TIMEOUT_MS=30000;
+const WIDGET_TIMEOUT_MS=12000;
+const COMPONENT_STYLESHEET=new URL('./tradingview-display-widget.css',import.meta.url).href;
 const WIDGET_SOURCES=Object.freeze({
   advancedChart:'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js',
   tickerTape:'https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js',
@@ -50,6 +51,15 @@ const externalChartUrl=(symbol)=>`https://www.tradingview.com/chart/?symbol=${en
 // readiness check must observe the stable wrapper, never the removed host.
 const widgetReady=(wrapper)=>Boolean(wrapper?.querySelector('iframe'));
 
+function ensureComponentStyles(){
+  if(document.querySelector('link[data-qelly-tradingview-display-style]'))return;
+  const link=document.createElement('link');
+  link.rel='stylesheet';
+  link.href=COMPONENT_STYLESHEET;
+  link.dataset.qellyTradingviewDisplayStyle='true';
+  document.head.append(link);
+}
+
 function renderFallback(container,{symbol='BTCUSDT',reason='load-error',title='TradingView panel unavailable',openUrl}={}){
   container.dataset.externalProvider='tradingview';
   container.dataset.usage='display-only';
@@ -62,6 +72,7 @@ export function mountTradingViewWidget(container,{kind,config={},label='TradingV
   if(!(container instanceof HTMLElement))throw new TypeError('TradingView widget container is required');
   const source=WIDGET_SOURCES[kind];
   if(!source)throw new TypeError(`Unsupported TradingView widget: ${String(kind||'')}`);
+  ensureComponentStyles();
   container.replaceChildren();
   container.dataset.externalProvider='tradingview';
   container.dataset.usage='display-only';
@@ -102,33 +113,36 @@ export function mountTradingViewWidget(container,{kind,config={},label='TradingV
   container.append(wrapper);
 
   let settled=false;
-  const settleReady=()=>{
-    if(settled||!container.isConnected||!widgetReady(wrapper))return false;
+  let observedIframe=null;
+  const settleReady=(iframe)=>{
+    if(settled||!container.isConnected||iframe!==wrapper.querySelector('iframe'))return false;
     settled=true;
     container.dataset.externalState='display-only';
     loading.remove();
-    wrapper.querySelector('iframe')?.setAttribute('aria-label',label);
+    iframe.setAttribute('aria-label',label);
+    clearTimeout(timer);
+    observer.disconnect();
+    return true;
+  };
+  const observeIframe=()=>{
+    const iframe=wrapper.querySelector('iframe');
+    if(!iframe||iframe===observedIframe)return false;
+    observedIframe=iframe;
+    iframe.setAttribute('aria-label',`Loading external ${label}`);
+    iframe.addEventListener('load',()=>requestAnimationFrame(()=>requestAnimationFrame(()=>settleReady(iframe))),{once:true});
     return true;
   };
   const timer=setTimeout(()=>{
-    if(settleReady())return;
+    if(settled)return;
     settled=true;
     observer.disconnect();
     renderFallback(container,{reason:'timeout',title:`${label} unavailable`,openUrl});
   },WIDGET_TIMEOUT_MS);
   const observer=new MutationObserver(()=>{
-    if(settleReady()){
-      clearTimeout(timer);
-      observer.disconnect();
-    }
+    observeIframe();
   });
   observer.observe(wrapper,{childList:true,subtree:true});
-  script.addEventListener('load',()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    if(settleReady()){
-      clearTimeout(timer);
-      observer.disconnect();
-    }
-  })),{once:true});
+  script.addEventListener('load',observeIframe,{once:true});
   script.addEventListener('error',()=>{
     if(settled)return;
     settled=true;
@@ -170,4 +184,4 @@ export function mountTradingViewDisplay(container,{symbol='BTCUSDT',interval='1h
   return {...handle,symbol:resolvedSymbol,interval:resolvedInterval};
 }
 
-export const __tradingViewDisplayTest=Object.freeze({SYMBOL_MAP,INTERVAL_MAP,DISPLAY_BOUNDARY,WIDGET_SRC:WIDGET_SOURCES.advancedChart,WIDGET_SOURCES,WIDGET_TIMEOUT_MS,externalChartUrl,widgetReady});
+export const __tradingViewDisplayTest=Object.freeze({SYMBOL_MAP,INTERVAL_MAP,DISPLAY_BOUNDARY,WIDGET_SRC:WIDGET_SOURCES.advancedChart,WIDGET_SOURCES,WIDGET_TIMEOUT_MS,COMPONENT_STYLESHEET,externalChartUrl,widgetReady});

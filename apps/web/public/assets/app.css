@@ -108,3 +108,13 @@ html,body{max-width:100%;overflow-x:hidden}
 .q-grid-checkbox-target{display:grid;place-items:center;width:44px;height:44px;margin:auto;cursor:pointer}
 .q-grid-checkbox-target input{width:18px;height:18px;margin:0}
 .q-grid-sort,.q-row-actions button,.q-source-cell strong,.q-source-cell small,.q-grid-footer{font-size:12px}
+
+/* Discovery grids own their card geometry. */
+.q-category-grid-large,.q-venue-grid{align-items:stretch}
+.q-category-grid-large>.q-category-card,.q-venue-grid>.q-venue-card{height:100%;min-width:0;overflow:visible}
+.q-category-card{align-content:start;min-height:126px}
+.q-category-card>span{min-width:0}
+.q-category-card strong,.q-category-card small,.q-venue-card :where(h2,p,footer){overflow-wrap:anywhere}
+.q-venue-card{display:flex;flex-direction:column;min-height:260px}
+.q-venue-card dl{margin-top:auto}
+.q-category-matrix-row:not(.is-head){min-height:48px}

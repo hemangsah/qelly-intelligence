@@ -21,16 +21,26 @@ test('startup reveals the first usable route without waiting for fonts or option
   assert.match(theme,/requestIdleCallback\(enhanceDocument/);
 });
 
-test('deep audit stylesheet removes the misplaced header line and normalizes control geometry',async()=>{
-  const [index,css]=await Promise.all([
+test('component owners replace the retired deep-audit override layer',async()=>{
+  const [index,shell,experience,widgetCss,rankings,network,discovery]=await Promise.all([
     read('apps/web/public/index.html'),
-    read('apps/web/public/assets/qelly-deep-audit-repairs.css')
+    read('apps/web/public/assets/qelly-production-shell.mjs'),
+    read('apps/web/public/assets/qelly-product-experience.css'),
+    read('apps/web/public/assets/market/tradingview-display-widget.css'),
+    read('apps/web/public/assets/premium-rankings.css'),
+    read('apps/web/public/assets/routes/market-network.css'),
+    read('apps/web/public/assets/app.css')
   ]);
-  assert.match(index,/qelly-deep-audit-repairs\.css/);
-  assert.match(css,/\.q-product-nav a::after/);
-  assert.match(css,/content:none!important/);
-  assert.match(css,/\.q-product-search :where\(input,button\)/);
-  assert.match(css,/data-resolved-appearance="light"/);
+  assert.doesNotMatch(index,/qelly-deep-audit-repairs\.css/);
+  assert.doesNotMatch(shell,/DEEP_AUDIT_REPAIRS_STYLESHEET|qellyDeepAuditRepairs/);
+  assert.doesNotMatch(experience,/@import/);
+  assert.match(experience,/\.q-product-nav a::after\{content:none!important/);
+  assert.match(experience,/\.q-product-search :where\(input,button\)/);
+  assert.match(experience,/data-resolved-appearance="light"/);
+  assert.match(widgetCss,/\.qelly-tradingview-loading/);
+  assert.match(rankings,/\.q-ranking-display-stage/);
+  assert.match(network,/\.q-market-network\s*>\s*\.q-page-head/);
+  assert.match(discovery,/Discovery grids own their card geometry/);
 });
 
 test('rankings expose lazy official research displays and preserve the no-fabrication boundary',async()=>{

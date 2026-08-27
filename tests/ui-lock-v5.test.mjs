@@ -50,7 +50,7 @@ test('Global Market Network succeeds the V5 Live Market Command with truthful ev
   assert.doesNotMatch(route,/confidence[^\n]{0,80}(?:100|95|90|high)/i,'market network must not fabricate confidence');
   assert.doesNotMatch(route,/governed demo|simulated-demo|qelly-governed-demo/i);
   assert.match(networkCss,/\.q-mn-status-grid/);
-  assert.match(networkCss,/@media\(max-width:700px\)/);
+  assert.match(networkCss,/@media\s*\(max-width:700px\)/);
 });
 
 test('V5 preserves evidence-first and read-only safety semantics',async()=>{
