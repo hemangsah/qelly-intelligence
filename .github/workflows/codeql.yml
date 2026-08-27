@@ -2,9 +2,9 @@ name: CodeQL
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, release/qelly-global-public-beta]
   pull_request:
-    branches: [main, develop]
+    branches: [main, develop, release/qelly-global-public-beta]
   schedule:
     - cron: '17 3 * * 1'
 

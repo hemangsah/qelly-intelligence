@@ -27,6 +27,14 @@ test('release synchronization persists a constrained projection rather than arbi
   assert.match(source,/source_revision:String\(release\.releaseSha\)/);
 });
 
+test('release identity sync pins its Supabase Edge Runtime dependencies exactly',async()=>{
+  const source=await read('supabase/functions/qelly-release-identity-sync/index.ts');
+  assert.match(source,/jsr:@supabase\/functions-js@2\.112\.4\/edge-runtime\.d\.ts/);
+  assert.match(source,/npm:@supabase\/supabase-js@2\.112\.4/);
+  assert.doesNotMatch(source,/jsr:@supabase\/functions-js\/edge-runtime\.d\.ts/);
+  assert.doesNotMatch(source,/npm:@supabase\/supabase-js@2["']/);
+});
+
 test('operator scheduler source uses Vault references only and schedules both provider ingestion and release sync',async()=>{
   const source=await read('supabase/migrations/20260816022000_qelly_internal_scheduler_and_release_identity_v1.sql');
   assert.match(source,/qelly_internal_scheduler_key/);

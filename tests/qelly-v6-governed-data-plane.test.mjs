@@ -81,6 +81,14 @@ test('ECB provider ingestion is scheduler-only, history-backed and the active sc
   assert.doesNotMatch(scheduler,/[A-Za-z0-9_-]{56,}/);
 });
 
+test('provider ingestion pins its Supabase Edge Runtime dependencies exactly',async()=>{
+  const edge=await read('supabase/functions/qelly-provider-ingestion/index.ts');
+  assert.match(edge,/jsr:@supabase\/functions-js@2\.112\.4\/edge-runtime\.d\.ts/);
+  assert.match(edge,/npm:@supabase\/supabase-js@2\.112\.4/);
+  assert.doesNotMatch(edge,/jsr:@supabase\/functions-js\/edge-runtime\.d\.ts/);
+  assert.doesNotMatch(edge,/npm:@supabase\/supabase-js@2["']/);
+});
+
 test('Market Command renders first-party governed ECB observations separately from TradingView display-only data',async()=>{
   const source=await read('apps/web/public/assets/qelly-external-market-surfaces.mjs');
   assert.match(source,/\/api\/v1\/platform\/data-plane\?limit=200/);
