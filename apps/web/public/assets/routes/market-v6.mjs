@@ -231,6 +231,10 @@ export async function renderMarketV6(main,deps){
   const suite=main.querySelector('[data-tv-suite]');
   const intelligenceDock=main.querySelector('[data-external-intelligence-dock]');
   let handle=null,tickerHandle=null,suiteHandle=null,intelligenceDockHandle=null,themeFrame=0;
+  // Evidence aliases are immediately handed to the local Qelly Verify surface.
+  // Do not start third-party iframe widgets during that transient handoff: a
+  // provider can emit a console error when its iframe is removed mid-startup.
+  const verifyAliasActive=/^#\/market\?[^#]*view=(?:qelly-verify|evidence-methodology)(?:&|$)/i.test(location.hash);
   const mountTicker=()=>{
     tickerHandle?.destroy?.();
     tickerHandle=mountTradingViewWidget(ticker,{kind:'tickerTape',label:'Cross-asset ticker tape',openUrl:'https://www.tradingview.com/markets/',config:{colorTheme:tradingViewAppearance(),isTransparent:false,displayMode:'adaptive',showSymbolLogo:true,symbols:[
@@ -238,10 +242,12 @@ export async function renderMarketV6(main,deps){
     ]}});
   };
   const mount=()=>{handle?.destroy?.();handle=mountTradingViewDisplay(chart,{symbol:symbol.value,interval:interval.value});suiteHandle?.update({symbol:symbol.value,interval:interval.value});};
-  suiteHandle=mountEmbedSuite(suite,{symbol:symbol.value,interval:interval.value});
-  intelligenceDockHandle=mountExternalIntelligenceDock(intelligenceDock,{escapeHtml});
-  mountTicker();
-  symbol?.addEventListener('change',mount);interval?.addEventListener('change',mount);mount();
+  if(!verifyAliasActive){
+    suiteHandle=mountEmbedSuite(suite,{symbol:symbol.value,interval:interval.value});
+    intelligenceDockHandle=mountExternalIntelligenceDock(intelligenceDock,{escapeHtml});
+    mountTicker();
+    symbol?.addEventListener('change',mount);interval?.addEventListener('change',mount);mount();
+  }
   const themeObserver=new MutationObserver(()=>{
     cancelAnimationFrame(themeFrame);
     themeFrame=requestAnimationFrame(()=>{mount();mountTicker();suiteHandle?.refresh();intelligenceDockHandle?.refresh();});
