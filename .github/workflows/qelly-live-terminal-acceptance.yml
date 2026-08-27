@@ -172,8 +172,27 @@ jobs:
             const context=await browser.newContext({viewport:{width:1440,height:1000},serviceWorkers:'block'});
             const page=await context.newPage();
             const errors=[];
+            const externalDisplayFailures=[];
+            const externalDisplayHosts=new Set(['s3.tradingview.com']);
+            const recordNetworkFailure=(kind,requestUrl,status='network-error')=>{
+              let host='';
+              try{host=new URL(requestUrl).hostname;}catch{}
+              const failure={kind,url:requestUrl,status};
+              if(externalDisplayHosts.has(host))externalDisplayFailures.push(failure);
+              else errors.push(`${kind}:${status}:${requestUrl}`);
+            };
             page.on('pageerror',e=>errors.push(`page:${e.message}`));
-            page.on('console',m=>{if(m.type()==='error')errors.push(`console:${m.text()}`);});
+            page.on('console',m=>{
+              if(m.type()!=='error')return;
+              // HTTP failures are classified with their exact URL by the
+              // response listener below. Keep non-network console errors fatal.
+              if(m.text().startsWith('Failed to load resource:'))return;
+              errors.push(`console:${m.text()}`);
+            });
+            page.on('response',response=>{
+              if(response.status()>=400)recordNetworkFailure('response',response.url(),response.status());
+            });
+            page.on('requestfailed',request=>recordNetworkFailure('requestfailed',request.url(),request.failure()?.errorText||'network-error'));
             const response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:45000});
             await page.waitForSelector('[data-market-network="live-terminal-v8"]',{timeout:45000});
             await page.waitForTimeout(7000);
@@ -183,6 +202,7 @@ jobs:
               providerHealth:document.querySelector('.q-mn-status strong')?.textContent?.trim()||'',
               marketRows:document.querySelectorAll('.q-mn-table tbody tr').length,
               unavailable:document.querySelectorAll('.q-mn-unavailable').length,
+              externalDisplayFallbacks:document.querySelectorAll('[data-external-provider="tradingview"][data-external-state="unavailable"] .qelly-tradingview-fallback').length,
               title:document.querySelector('.q-page h1')?.textContent?.trim()||document.title
             }));
             await page.screenshot({path:`dist/live-terminal-acceptance/${name}.png`,fullPage:true});
@@ -190,8 +210,9 @@ jobs:
             if(response?.status()!==200)throw new Error(`${name}_http_${response?.status()}`);
             if(evidence.host!==expectedHost)throw new Error(`${name}_unexpected_handoff_${evidence.href}`);
             if(evidence.marketRows<20)throw new Error(`${name}_insufficient_source_rows_${evidence.marketRows}`);
+            if(externalDisplayFailures.length&&evidence.externalDisplayFallbacks<1)throw new Error(`${name}_external_display_failed_without_governed_fallback_${JSON.stringify(externalDisplayFailures)}`);
             if(errors.length)throw new Error(`${name}_browser_errors_${JSON.stringify(errors)}`);
-            return evidence;
+            return {...evidence,externalDisplayFailures};
           };
           (async()=>{
             const canonical=await run(`${process.env.PUBLIC_URL}/?verify=${process.env.RELEASE_SHA}#/live-markets`,'qelly-intelligence.pages.dev','cloudflare-live-markets');
