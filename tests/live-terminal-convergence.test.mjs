@@ -80,6 +80,10 @@ test('deployed acceptance gate verifies Cloudflare and GitHub live-markets',asyn
   assert.match(source,/static_dynamic_email_capability_drift/);
   assert.match(source,/github-live-markets/);
   assert.match(source,/unexpected_handoff/);
+  assert.match(source,/externalDisplayHosts=new Set\(\['s3\.tradingview\.com'\]\)/);
+  assert.match(source,/page\.on\('response'/);
+  assert.match(source,/external_display_failed_without_governed_fallback/);
+  assert.match(source,/externalDisplayFailures/);
   assert.match(source,/Run repository tests/);
   assert.match(source,/Validate semantic source contract/);
 });
