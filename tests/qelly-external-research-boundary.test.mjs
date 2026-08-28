@@ -8,8 +8,9 @@ test('research workspace exposes official external research launchers without au
   assert.match(source,/https:\/\/www\.tradingview\.com\/chart\//);
   assert.match(source,/https:\/\/www\.forexfactory\.com\/calendar/);
   assert.match(source,/https:\/\/data\.ecb\.europa\.eu\/key-figures\/ecb-interest-rates-and-exchange-rates\/exchange-rates/);
-  assert.match(source,/does not ingest its values into Qelly analytics/i);
-  assert.match(source,/does not create Qelly evidence automatically/i);
+  assert.match(source,/not automatically ingested into Qelly analytics/i);
+  assert.match(source,/never turns its contents into Qelly evidence/i);
+  assert.match(source,/no automatic ingestion/i);
   assert.match(source,/target="_blank"/);
   assert.match(source,/rel="noopener noreferrer"/);
 });

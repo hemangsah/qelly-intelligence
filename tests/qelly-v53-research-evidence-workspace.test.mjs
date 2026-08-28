@@ -1,66 +1,75 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {__researchWorkspaceV2Test as ui} from '../apps/web/public/assets/routes/research-workspace.mjs';
+import {__researchCloudflareTest as api} from '../functions/api/v1/research/[[route]].js';
 
 const routePath=new URL('../apps/web/public/assets/routes/research-workspace.mjs',import.meta.url);
-const runtimePath=new URL('../apps/web/public/assets/qelly-ui-lock-v5-3.mjs',import.meta.url);
-const cssPath=new URL('../apps/web/public/assets/qelly-v53-research-evidence-workspace.css',import.meta.url);
-const storePath=new URL('../src/workspace/workspace-operations-store.mjs',import.meta.url);
+const cssPath=new URL('../apps/web/public/assets/research-workspace-v2.css',import.meta.url);
+const backendPath=new URL('../functions/api/v1/research/[[route]].js',import.meta.url);
 const read=(url)=>readFile(url,'utf8');
-const stripComments=(source)=>source.replace(/\/\*[\s\S]*?\*\//g,'');
 
-test('V5.3 Research & Evidence is activated only through the current runtime contract',async()=>{
-  const [runtime,css]=await Promise.all([read(runtimePath),read(cssPath)]);
-  assert.match(runtime,/qelly-v53-research-evidence-workspace\.css/);
-  assert.match(runtime,/data-qelly-v53-research-evidence="wave3"/);
-  assert.match(css,/html\[data-ui-lock-v53="active"\]\[data-v53-active-shell="wave1"\]/);
-  assert.doesNotMatch(css,/data-ui-lock-v5-3/);
-});
-
-test('Research workspace exposes only evidence fields supported by the authoritative store',async()=>{
-  const [route,store]=await Promise.all([read(routePath),read(storePath)]);
-  for(const field of ['researchWorkspaceId','revision','createdAt','updatedAt','items','referenceId','addedAt'])assert.match(store,new RegExp(field));
-  for(const truth of ['Workspaces','Evidence items','References','Revision','Persistence','Contradictions'])assert.match(route,new RegExp(`>${truth}<`));
-  assert.match(route,/Contradiction \/ falsification/);
-  assert.match(route,/not modeled/i);
-  assert.match(route,/does not store structured contradiction, hypothesis confidence or falsification records/);
-  assert.doesNotMatch(store,/contradictionCount|hypothesisConfidence|falsificationScore/);
-  assert.doesNotMatch(route,/87%|0\.78|Neutral|18 s|Q-MX 2\.4|Q5-003/);
-});
-
-test('Research evidence topology preserves real items, references, timestamps and production gates',async()=>{
-  const route=await read(routePath);
-  for(const marker of ['data-evidence="research-item"','data-provenance="research-reference"','data-provenance="workspace-truth"','data-provenance="source-references"','data-provenance="falsification-boundary"','data-provenance="production-gates"'])assert.match(route,new RegExp(marker));
-  assert.doesNotMatch(route,/data-evidence="research-reference"/);
-  assert.match(route,/item\.referenceId\?\?'local-note'/);
-  assert.match(route,/item\.addedAt/);
-  assert.match(route,/workspace\.revision/);
-  assert.match(route,/listing\.collaboration/);
-  for(const deferred of ['Comments / presence','External sharing','Research export'])assert.match(route,new RegExp(deferred));
-  assert.match(route,/They are not simulated as complete/);
-});
-
-test('Research workstation matches the institutional topology without hiding evidence',async()=>{
-  const [route,rawCss]=await Promise.all([read(routePath),read(cssPath)]);
-  const css=stripComments(rawCss);
-  assert.match(route,/--q-v53-research-panel-2:color-mix\(in srgb,var\(--q-surface\) 92%,var\(--q-canvas\)\)/);
-  assert.doesNotMatch(route,/--q-v53-research-panel-2:[^"']*q-surface-alt/);
-  assert.match(css,/\.q-research-workstation\{[\s\S]*grid-template-columns:218px minmax\(0,1fr\) 300px/);
-  for(const owner of ['q-research-context-rail','q-research-primary','q-research-inspector'])assert.match(css,new RegExp(`\\.${owner}`),`missing workstation owner: ${owner}`);
-  assert.match(css,/\.q-research-evidence-grid\{[\s\S]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
-  assert.match(css,/@media\(max-width:900px\)[\s\S]*\.q-research-evidence-grid\{[\s\S]*overflow-x:auto/);
-  assert.match(css,/@media\(max-width:640px\)[\s\S]*\.q-research-kpi-strip\{[\s\S]*overflow-x:auto/);
-  assert.match(css,/@media\(max-width:640px\)[\s\S]*\.q-research-inspector\{[\s\S]*overflow-x:auto/);
-  assert.match(css,/font-variant-numeric:tabular-nums lining-nums/);
+test('Research Operating System activates its dedicated responsive surface',async()=>{
+  const [route,css]=await Promise.all([read(routePath),read(cssPath)]);
+  assert.match(route,/research-workspace-v2\.css/);
+  assert.match(route,/data-qelly-research-v2/);
+  assert.match(css,/\.q-research-v2-layout\{display:grid;grid-template-columns:minmax\(0,1fr\) minmax\(290px,340px\)/);
+  assert.match(css,/\.q-research-v2-evidence-grid\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(css,/@media\(max-width:1180px\)[\s\S]*\.q-research-v2-layout\{grid-template-columns:1fr\}/);
+  assert.match(css,/@media\(max-width:760px\)[\s\S]*\.q-research-v2-kpis\{display:flex;overflow-x:auto/);
+  assert.match(css,/@media\(max-width:760px\)[\s\S]*\.q-research-v2-evidence-grid[^}]*grid-template-columns:1fr/);
   assert.doesNotMatch(css,/visibility\s*:\s*hidden/);
-  assert.doesNotMatch(css,/\.q-research-evidence-card[^\{]*\{[^}]*display\s*:\s*none/s);
-  assert.doesNotMatch(css,/nth-child\([^)]*n\s*\+/);
 });
 
-test('Research workspace remains read-only financial intelligence with no execution or custody controls',async()=>{
+test('Research charter and evidence capture preserve the advanced governed fields',async()=>{
+  const [route,backend]=await Promise.all([read(routePath),read(backendPath)]);
+  for(const field of ['hypothesis','invalidationConditions','confidence','evidenceRole','referenceId','sourceUrl','method','assumptions','contradictions','limitations']){
+    assert.match(`${route}\n${backend}`,new RegExp(field),`missing governed field: ${field}`);
+  }
+  for(const feature of ['Research charter','Evidence register','Counter-evidence','Decision readiness','Recent evidence','Official source launchpad']){
+    assert.match(route,new RegExp(feature),`missing research capability: ${feature}`);
+  }
+  assert.match(route,/Confidence is analyst-declared/);
+  assert.match(route,/research completeness, not prediction accuracy/i);
+});
+
+test('Research completeness is deterministic and does not misread a missing confidence value',()=>{
+  const empty=ui.readinessFor({hypothesis:'',invalidationConditions:[],confidence:null},[]);
+  assert.equal(empty.score,0);
+  assert.equal(empty.checks.find((check)=>check.id==='confidence').pass,false);
+  const complete=ui.readinessFor({hypothesis:'Rates decline',invalidationConditions:['Rates rise'],confidence:.6},[
+    {evidenceRole:'supporting',referenceId:'ECB-1',method:'Official release',limitations:[],assumptions:[]},
+    {evidenceRole:'counter',sourceUrl:'https://example.com/counter',limitations:['Lagged'],assumptions:[]}
+  ]);
+  assert.equal(complete.score,100);
+  assert.equal(complete.label,'Review ready');
+});
+
+test('Research API validates evidence roles, HTTPS sources and bounded structured lists',()=>{
+  assert.equal(api.safeEvidenceRole('counter'),'counter');
+  assert.throws(()=>api.safeEvidenceRole('optimistic'),/Evidence role is invalid/);
+  assert.equal(api.safeSourceUrl('https://example.com/record'),'https://example.com/record');
+  assert.throws(()=>api.safeSourceUrl('http://example.com/record'),/must use HTTPS/);
+  assert.throws(()=>api.safeSourceUrl('https://user:secret@example.com/record'),/must use HTTPS/);
+  assert.deepEqual(api.cleanList(['  one  ','',42]),['one','42']);
+});
+
+test('Research handoffs connect Qelly Chat, revision history and Decision Provenance',async()=>{
+  const route=await read(routePath);
+  assert.match(route,/qelly:open-ai/);
+  assert.match(route,/mode:'research'/);
+  assert.match(route,/navigate\('research-history'\)/);
+  assert.match(route,/qelly\.decision\.draft\.v1/);
+  assert.match(route,/navigate\('decision-provenance'\)/);
+  assert.match(route,/invalidationCondition/);
+  assert.match(route,/evidenceConfidence/);
+});
+
+test('Research remains intelligence-only with no execution, custody or hidden ingestion',async()=>{
   const [route,css]=await Promise.all([read(routePath),read(cssPath)]);
   assert.doesNotMatch(route,/data-action="(?:buy|sell|execute|withdraw|transfer|connect-wallet|sign-wallet)"/i);
   assert.doesNotMatch(css,/trade-button|order-entry|wallet-connect|withdraw-button|transfer-button/i);
-  assert.match(route,/navigate\('portfolio-analytics'\)/);
-  assert.match(route,/navigate\('research-history'\)/);
+  assert.match(route,/execution disabled/);
+  assert.match(route,/does not execute trades/);
+  assert.match(route,/no automatic ingestion/);
 });

@@ -252,7 +252,7 @@ function simplifyHeader(){
   brand?.style.setProperty('display','inline-flex','important');
   header.querySelector('a[data-product-route="calculator-center"]')?.replaceChildren(document.createTextNode('Tools'));
   const search=header.querySelector('#q-product-search-input');
-  if(search)search.placeholder='Search markets, assets and tools';
+  if(search)search.placeholder='Search Qelly';
   const system=header.querySelector('.q-product-system span:last-child');
   if(system&&!system.closest('[data-v8-appearance]'))system.textContent='Data status';
   const account=header.querySelector('.q-product-account');

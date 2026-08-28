@@ -22,6 +22,7 @@ const routePath=(context)=>{
   return raw;
 };
 const safeArray=(value,max=20)=>Array.isArray(value)?value.slice(0,max):[];
+const cleanList=(value,max=20,length=1000)=>safeArray(value,max).map((item)=>cleanText(item,length)).filter(Boolean);
 const cleanTags=(value)=>safeArray(value).map((item)=>cleanText(item,40)).filter(Boolean);
 const ensureUuid=(value,label='Identifier')=>{
   const id=String(value||'');
@@ -38,6 +39,18 @@ const safeStatus=(value)=>{
   const status=cleanText(value||'draft',40).toLowerCase();
   if(!['draft','active','review','archived'].includes(status))throw new HttpError(400,'research_status_invalid','Research status is invalid');
   return status;
+};
+const safeEvidenceRole=(value)=>{
+  const role=cleanText(value||'supporting',40).toLowerCase();
+  if(!['supporting','counter','neutral'].includes(role))throw new HttpError(400,'research_evidence_role_invalid','Evidence role is invalid');
+  return role;
+};
+const safeSourceUrl=(value)=>{
+  if(!value)return null;
+  let url;
+  try{url=new URL(cleanText(value,1000));}catch{throw new HttpError(400,'research_source_url_invalid','Evidence source URL is invalid');}
+  if(url.protocol!=='https:'||url.username||url.password)throw new HttpError(400,'research_source_url_invalid','Evidence source URL must use HTTPS without embedded credentials');
+  return url.href;
 };
 const metadataFor=(body,current={})=>({
   ...(current&&typeof current==='object'&&!Array.isArray(current)?current:{}),
@@ -139,7 +152,7 @@ async function handleResearch(context,relative,method,session,qelly){
         status:'draft',
         hypothesis:body.hypothesis?cleanText(body.hypothesis,4000):null,
         confidence:safeScore(body.confidence,'Research confidence'),
-        invalidation_conditions:safeArray(body.invalidationConditions,50),
+        invalidation_conditions:cleanList(body.invalidationConditions,50,2000),
         metadata:metadataFor(body,{})
       },
       prefer:'return=representation'
@@ -166,7 +179,7 @@ async function handleResearch(context,relative,method,session,qelly){
     if(body.status!==undefined)patch.status=safeStatus(body.status);
     if(body.hypothesis!==undefined)patch.hypothesis=body.hypothesis?cleanText(body.hypothesis,4000):null;
     if(body.confidence!==undefined)patch.confidence=safeScore(body.confidence,'Research confidence');
-    if(body.invalidationConditions!==undefined)patch.invalidation_conditions=safeArray(body.invalidationConditions,50);
+    if(body.invalidationConditions!==undefined)patch.invalidation_conditions=cleanList(body.invalidationConditions,50,2000);
     if(body.description!==undefined||body.tags!==undefined)patch.metadata=metadataFor(body,project.metadata||{});
     if(!Object.keys(patch).length)return responseJson(request,env,{item:projectToWorkspace(project)});
     const rows=await restRequest(env,session.accessToken,`qelly_research_projects?id=eq.${projectId}&workspace_id=eq.${workspaceId}`,{method:'PATCH',body:patch,prefer:'return=representation'});
@@ -189,14 +202,14 @@ async function handleResearch(context,relative,method,session,qelly){
     if(title.length<1)throw new HttpError(400,'research_item_title_required','Evidence item title is required');
     if(!['note','asset','filing','chart','event','reference'].includes(type))throw new HttpError(400,'research_item_type_invalid','Evidence item type is invalid');
     const referenceId=body.referenceId?cleanText(body.referenceId,500):null;
-    const sourceUrl=body.sourceUrl?cleanText(body.sourceUrl,1000):null;
+    const sourceUrl=safeSourceUrl(body.sourceUrl);
     const rows=await restRequest(env,session.accessToken,'qelly_research_evidence',{
       method:'POST',
       body:{
         project_id:projectId,
         workspace_id:workspaceId,
         owner_id:ownerId,
-        evidence_role:'supporting',
+        evidence_role:safeEvidenceRole(body.evidenceRole),
         title,
         source_type:type,
         source_ref:referenceId,
@@ -206,9 +219,9 @@ async function handleResearch(context,relative,method,session,qelly){
         confidence:safeScore(body.confidence,'Evidence confidence'),
         coverage:safeScore(body.coverage,'Evidence coverage'),
         method:body.method?cleanText(body.method,500):null,
-        assumptions:safeArray(body.assumptions,50),
-        contradictions:safeArray(body.contradictions,50),
-        limitations:safeArray(body.limitations,50),
+        assumptions:cleanList(body.assumptions,50,2000),
+        contradictions:cleanList(body.contradictions,50,2000),
+        limitations:cleanList(body.limitations,50,2000),
         payload:{note:cleanText(body.note,4000)}
       },
       prefer:'return=representation'
@@ -248,7 +261,7 @@ async function handleResearch(context,relative,method,session,qelly){
       status:safeStatus(snapshot.status||'draft'),
       hypothesis:snapshot.hypothesis?cleanText(snapshot.hypothesis,4000):null,
       confidence:safeScore(snapshot.confidence,'Research confidence'),
-      invalidation_conditions:safeArray(snapshot.invalidationConditions,50),
+      invalidation_conditions:cleanList(snapshot.invalidationConditions,50,2000),
       metadata:{...(snapshot.metadata||{}),restoredFromVersionId:versionId,restoredAt:new Date().toISOString()},
       deleted_at:snapshot.deletedAt||null
     };
@@ -281,4 +294,4 @@ export async function onRequest(context){
   }
 }
 
-export const __researchCloudflareTest=Object.freeze({routePath,safeScore,safeStatus,metadataFor,projectToWorkspace,revisionToVersion});
+export const __researchCloudflareTest=Object.freeze({routePath,safeScore,safeStatus,safeEvidenceRole,safeSourceUrl,cleanList,metadataFor,projectToWorkspace,revisionToVersion});

@@ -67,7 +67,7 @@ html[data-production-system="v8"] .q-grid-resizer:is(:hover,:focus-visible){
 html[data-production-system="v8"] body #app header.q-product-header{
   position:sticky!important;top:0!important;z-index:200!important;
   grid-template-areas:"brand nav search actions menu"!important;
-  grid-template-columns:132px max-content minmax(200px,280px) max-content auto!important;
+  grid-template-columns:132px max-content minmax(170px,210px) max-content auto!important;
   justify-content:stretch!important;
   align-items:center!important;
   gap:10px!important;
@@ -96,7 +96,7 @@ html[data-production-system="v8"] .q-product-nav{
 }
 html[data-production-system="v8"] .q-product-nav::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
 html[data-production-system="v8"] .q-product-nav a{
-  position:relative!important;z-index:1!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:42px!important;margin:0!important;padding:0 6px!important;border-radius:0!important;background:transparent!important;color:var(--q-muted)!important;line-height:1!important;
+  position:relative!important;z-index:1!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:42px!important;margin:0!important;padding:0 9px!important;border-radius:0!important;background:transparent!important;color:var(--q-muted)!important;font-size:13px!important;font-weight:620!important;line-height:1!important;
 }
 html[data-production-system="v8"] .q-product-nav a::before,
 html[data-production-system="v8"] .q-product-nav a::after{content:none!important;display:none!important}
@@ -107,11 +107,14 @@ html[data-production-system="v8"] .q-product-nav a[aria-current="true"]{
   color:var(--q-text)!important;background:transparent!important;box-shadow:none!important;
 }
 html[data-production-system="v8"] .q-product-header :where(.q-product-menu,.q-product-system,.q-product-account){height:44px!important;min-height:44px!important;margin:0!important;padding-inline:10px!important;align-items:center!important;justify-content:center!important;white-space:nowrap!important}
-html[data-production-system="v8"] .q-product-actions{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:3px!important;min-width:0!important}
-html[data-production-system="v8"] .q-product-search{width:clamp(200px,20vw,280px)!important;max-width:280px!important;min-width:0!important;height:42px!important;min-height:42px!important;justify-self:end!important;align-self:center!important;margin:0!important;padding:2px!important;border-radius:var(--q-radius-control)!important}
+html[data-production-system="v8"] .q-product-actions{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:4px!important;min-width:0!important}
+html[data-production-system="v8"] .q-product-actions :where(.q-product-system,.q-product-ai){width:44px!important;min-width:44px!important;padding-inline:0!important}
+html[data-production-system="v8"] .q-product-actions :where(.q-product-system,.q-product-ai)>span:last-child{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;white-space:nowrap!important}
+html[data-production-system="v8"] .q-product-search{width:clamp(170px,14vw,210px)!important;max-width:210px!important;min-width:0!important;height:42px!important;min-height:42px!important;justify-self:end!important;align-self:center!important;margin:0!important;padding:2px!important;border-radius:var(--q-radius-control)!important}
 html[data-production-system="v8"] .q-product-search :where(input,button){height:38px!important;min-height:38px!important;align-self:center!important;margin:0!important;transform:none!important}
-html[data-production-system="v8"] .q-product-search input{padding-inline:11px!important}
-html[data-production-system="v8"] .q-product-search button{padding-inline:12px!important}
+html[data-production-system="v8"] .q-product-search input{padding-inline:11px!important;font-size:12px!important}
+html[data-production-system="v8"] .q-product-search button{display:grid!important;place-items:center!important;width:40px!important;min-width:40px!important;padding:0!important}
+html[data-production-system="v8"] .q-product-search button svg{width:17px!important;height:17px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;stroke-linecap:round!important}
 html[data-production-system="v8"] :where(.q-product-menu,.q-product-search button){border-radius:var(--q-radius-control)!important}
 
 /* Market display controls should read as a compact toolbar, not three tall
@@ -233,25 +236,28 @@ html[data-product-experience="ready"] #main>section{animation:q-product-enter 32
 
 /* Once the complete primary set no longer fits without compressing Menu, move
    route discovery into the governed drawer and give the search the full band. */
-@media(max-width:1360px){
-  html[data-production-system="v8"] body #app header.q-product-header{grid-template-areas:"brand search actions menu"!important;grid-template-columns:132px minmax(200px,320px) minmax(0,1fr) auto!important}
+@media(max-width:1520px){
+  html[data-production-system="v8"] body #app header.q-product-header{grid-template-areas:"brand search actions menu"!important;grid-template-columns:132px minmax(170px,210px) minmax(0,1fr) auto!important}
   html[data-production-system="v8"] body #app .q-product-header .q-product-nav{display:none!important}
-  html[data-production-system="v8"] body #app .q-product-header .q-product-search{width:min(100%,320px)!important;max-width:320px!important;justify-self:start!important}
+  html[data-production-system="v8"] body #app .q-product-header .q-product-search{width:min(100%,210px)!important;max-width:210px!important;justify-self:start!important}
   html[data-production-system="v8"] body #app .q-product-header .q-product-actions{justify-self:end!important}
+  html[data-production-system="v8"] body #app .q-product-header.is-menu-open .q-product-nav{display:grid!important;position:absolute!important;top:calc(100% + 8px)!important;right:16px!important;left:auto!important;width:min(440px,calc(100vw - 32px))!important;height:auto!important;max-height:min(70vh,560px)!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:4px!important;padding:10px!important;overflow:auto!important;border:1px solid var(--q-divider)!important;border-radius:var(--q-radius-surface)!important;background:color-mix(in srgb,var(--q-chrome) 98%,transparent)!important;box-shadow:0 24px 64px rgba(0,0,0,.36)!important}
+  html[data-production-system="v8"] body #app .q-product-header.is-menu-open .q-product-nav a{justify-content:flex-start!important;min-height:44px!important;padding-inline:12px!important;border-radius:var(--q-radius-control)!important}
 }
 
 @media(max-width:920px){
-  html[data-production-system="v8"] body #app header.q-product-header{grid-template-columns:132px minmax(180px,240px) minmax(0,1fr) auto!important}
-  html[data-production-system="v8"] body #app .q-product-header .q-product-search{width:min(100%,240px)!important}
-  html[data-production-system="v8"] body #app .q-product-system>span:last-child{display:none!important}
+  html[data-production-system="v8"] body #app header.q-product-header{grid-template-columns:132px minmax(160px,190px) minmax(0,1fr) auto!important}
+  html[data-production-system="v8"] body #app .q-product-header .q-product-search{width:min(100%,190px)!important}
 }
 
 @media(max-width:760px){
   :root{--q-target-min:44px}
   html[data-production-system="v8"] body #app header.q-product-header{grid-template-areas:"brand menu actions"!important;grid-template-columns:44px 44px minmax(0,1fr)!important;gap:8px!important}
+  html[data-production-system="v8"] body #app .q-product-header .q-product-search{display:none!important}
   html[data-production-system="v8"] body #app .q-product-header .q-product-menu{justify-self:start!important}
   html[data-production-system="v8"] body #app .q-product-header .q-product-actions{justify-self:end!important}
   html[data-production-system="v8"] body #app .q-product-account{max-width:112px!important}
+  html[data-production-system="v8"] body #app .q-product-header.is-menu-open .q-product-nav{right:10px!important;left:10px!important;width:auto!important;grid-template-columns:1fr!important}
   html[data-production-system="v8"] #main .q-calculator-card{min-height:190px!important;padding:16px!important}
   html[data-production-system="v8"] #main .q-v6-quant-kpis>div{min-height:82px!important}
   html[data-production-system="v8"] .q-grid-resizer{right:-14px!important;width:28px!important;min-width:28px!important}

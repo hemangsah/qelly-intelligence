@@ -31,12 +31,14 @@ test('real evidence family layout is route-scoped, inspector-capable and mobile-
 
 test('Research Workspace retains genuine evidence, Inspector and falsification boundaries',async()=>{
   const source=await read('../apps/web/public/assets/routes/research-workspace.mjs');
-  assert.match(source,/q-research-context-rail/);
-  assert.match(source,/q-research-primary/);
-  assert.match(source,/q-research-inspector/);
-  assert.match(source,/Contradiction \/ falsification/);
-  assert.match(source,/does not store structured contradiction, hypothesis confidence or falsification records/);
-  assert.match(source,/Qelly will not infer them from note text/);
+  assert.match(source,/q-research-v2-charter/);
+  assert.match(source,/q-research-v2-register/);
+  assert.match(source,/q-research-v2-inspector/);
+  assert.match(source,/Counter-evidence/);
+  assert.match(source,/Invalidation conditions/);
+  assert.match(source,/research completeness, not prediction accuracy/i);
+  assert.match(source,/does not execute trades/);
+  assert.match(source,/convert missing sources into facts/);
 });
 
 test('Portfolio Analytics separates Cloud RLS positions from unavailable market valuation and preserves no-custody boundaries',async()=>{

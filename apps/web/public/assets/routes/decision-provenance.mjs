@@ -139,7 +139,7 @@ export async function renderDecisionProvenance(main,deps){
   activateWave3Stylesheet();
   const {api,pageHead,stateBanner,escapeHtml,toast,renderRoute,navigate}=deps;
   const chatDraft=restoreChatDecisionDraft();
-  let result=evaluateDecision(chatDraft?{thesis:chatDraft.thesis}:{});
+  let result=evaluateDecision(chatDraft?{thesis:chatDraft.thesis,invalidationCondition:chatDraft.invalidationCondition,evidenceConfidence:chatDraft.evidenceConfidence}:{});
   let listing;
   try{listing=await api('/api/v1/evidence/graphs');}
   catch(error){listing={items:[],mode:'deterministic-demo',truthBoundary:'Persistent provenance storage is not connected on this Cloudflare runtime. Qelly keeps the deterministic decision workflow available and labels the client-generated graph as non-live and non-persisted.',errorCode:error?.code??'evidence_backend_unavailable'};}
