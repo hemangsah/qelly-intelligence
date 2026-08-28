@@ -20,8 +20,12 @@ const EMBED_PANELS=Object.freeze([
   {id:'calendar',label:'Economic calendar',kind:'economicCalendar',description:'Scheduled macro releases across the world’s largest economies.',openUrl:'https://www.tradingview.com/economic-calendar/'},
   {id:'technicals',label:'Technicals',kind:'technicalAnalysis',description:'Display-only technical summary for the symbol selected above.',openUrl:'https://www.tradingview.com/technical-analysis/'},
   {id:'heatmap',label:'Crypto heatmap',kind:'cryptoHeatmap',description:'Market-cap-weighted crypto performance and relative movement.',openUrl:'https://www.tradingview.com/heatmap/crypto/'},
+  {id:'stock-heatmap',label:'Stock heatmap',kind:'stockHeatmap',description:'United States equity sectors and relative performance in an official heatmap.',openUrl:'https://www.tradingview.com/heatmap/stock/'},
   {id:'forex',label:'FX cross rates',kind:'forexCrossRates',description:'Comparative foreign-exchange cross-rate display across major currencies.',openUrl:'https://www.tradingview.com/markets/currencies/rates-all/'},
-  {id:'stories',label:'Top stories',kind:'topStories',description:'External market headlines for human research and contextual review.',openUrl:'https://www.tradingview.com/news/'}
+  {id:'stories',label:'Top stories',kind:'topStories',description:'External market headlines for human research and contextual review.',openUrl:'https://www.tradingview.com/news/'},
+  {id:'symbol-overview',label:'Symbol overview',kind:'symbolOverview',description:'Comparative price context for major global asset classes.',openUrl:'https://www.tradingview.com/markets/'},
+  {id:'mini-chart',label:'Mini chart',kind:'miniChart',description:'Compact display for the symbol selected in the terminal.',openUrl:'https://www.tradingview.com/chart/'},
+  {id:'market-quotes',label:'Market quotes',kind:'marketQuotes',description:'Grouped indices, commodities, foreign exchange and crypto quote display.',openUrl:'https://www.tradingview.com/markets/'}
 ]);
 const INTELLIGENCE_DOCK_PANELS=Object.freeze([
   {id:'hyperliquid',label:'Live book & trades',description:'Public Hyperliquid BTC, ETH, SOL and HYPE order books and executed trades over the official read-only WebSocket.'},
@@ -32,6 +36,7 @@ const INTELLIGENCE_DOCK_PANELS=Object.freeze([
 const tone=(value)=>{const state=String(value||'').toUpperCase();if(['ENABLED','REFERENCE_ENABLED','LIVE','MATCH','PASS'].includes(state))return 'live';if(['DELAYED','DELAYED_PROVIDER','WARNING','CACHED','CACHED_PROVIDER'].includes(state))return 'delayed';if(['UNAVAILABLE','DENY','MISMATCH','BLOCKED'].includes(state))return 'unavailable';return 'cached';};
 const date=(value)=>{const parsed=new Date(value||'');return Number.isNaN(parsed.getTime())?'Not supplied':parsed.toLocaleString('en-IN');};
 const value=(input)=>input==null||input===''?'—':new Intl.NumberFormat('en-IN',{maximumFractionDigits:6}).format(Number(input));
+const integrationLabel=(input)=>String(input||'catalogued').replaceAll('-',' ');
 
 function providerCard(provider,escapeHtml){
   const availability=providerAvailability(provider);
@@ -51,6 +56,45 @@ function governedRates(ecb,escapeHtml){
   return rows.map(([code,rate])=>`<article class="q-v7-rate-card"><span>EUR / ${escapeHtml(code)}</span><strong>${escapeHtml(value(rate))}</strong><small>Observed ${escapeHtml(date(observedAt))}</small></article>`).join('');
 }
 
+function sourceRows(source,escapeHtml){
+  const rows=Array.isArray(source?.data)?source.data:[];
+  if(source?.id==='alternative-me'){
+    const assets=Array.isArray(source?.data?.assets)?source.data.assets.slice(0,5):[];
+    const sentiment=source?.data?.sentiment;
+    return `${sentiment?`<div><span>Fear & Greed</span><strong>${escapeHtml(value(sentiment.value))}</strong><small>${escapeHtml(sentiment.classification)}</small></div>`:''}${assets.map((row)=>`<div><span>${escapeHtml(row.symbol)}</span><strong>$${escapeHtml(value(row.priceUsd))}</strong><small>${escapeHtml(value(row.change24hPct))}% · 24h</small></div>`).join('')}`;
+  }
+  if(source?.id==='hyperliquid')return rows.slice(0,6).map((row)=>`<div><span>${escapeHtml(row.symbol)}</span><strong>$${escapeHtml(value(row.mid))}</strong><small>Read-only midpoint</small></div>`).join('');
+  if(source?.id==='world-bank')return rows.slice(0,7).map((row)=>`<div><span>${escapeHtml(row.countryId)}</span><strong>${escapeHtml(value(row.gdpGrowthPct))}%</strong><small>GDP growth · ${escapeHtml(row.year)}</small></div>`).join('');
+  if(source?.id==='us-treasury')return rows.slice(0,7).map((row)=>`<div><span>${escapeHtml(row.security)}</span><strong>${escapeHtml(value(row.averageInterestRatePct))}%</strong><small>Monthly average · ${escapeHtml(row.recordDate)}</small></div>`).join('');
+  if(source?.id==='imf')return rows.slice(0,7).map((row)=>`<div><span>${escapeHtml(row.country)}</span><strong>${escapeHtml(value(row.growthPct))}%</strong><small>Real GDP growth · ${escapeHtml(row.year)}${row.estimateOrProjection?' estimate / projection':''}</small></div>`).join('');
+  return '';
+}
+
+function networkSourceCard(source,escapeHtml){
+  const rows=sourceRows(source,escapeHtml);
+  const state=String(source?.truthState||'unavailable').toUpperCase();
+  return `<article class="q-public-source-card" data-source="${escapeHtml(source?.id||'source')}"><header><div><span>${escapeHtml(source?.label||source?.id||'External source')}</span><small>${escapeHtml(source?.attribution||'External provider')}</small></div><em class="q-status q-status--${tone(state)}">${escapeHtml(truthLabel(state))}</em></header><div class="q-public-source-values">${rows||'<p>No current observations were returned. Qelly has not substituted values.</p>'}</div><footer><span>${escapeHtml(source?.cadence||source?.usage||'Source cadence disclosed by provider.')}</span>${source?.docsUrl?`<a href="${escapeHtml(source.docsUrl)}" target="_blank" rel="noopener noreferrer nofollow">Source docs ↗</a>`:''}</footer></article>`;
+}
+
+function providerAtlasCard(provider,escapeHtml){
+  return `<article class="q-provider-atlas-card" data-provider-atlas-card data-search="${escapeHtml(`${provider.name} ${provider.category} ${provider.integration} ${(provider.aliases||[]).join(' ')}`.toLowerCase())}" data-integration="${escapeHtml(provider.integration)}"><div><strong>${escapeHtml(provider.name)}</strong><span>${escapeHtml(integrationLabel(provider.integration))}</span></div><small>${escapeHtml(provider.category)}</small><p>${escapeHtml(provider.note)}</p>${provider.url?`<a href="${escapeHtml(provider.url)}" target="_blank" rel="noopener noreferrer nofollow">Official / supplied destination ↗</a>`:'<em>No approved public destination recorded</em>'}</article>`;
+}
+
+function bindProviderAtlas(root){
+  const search=root.querySelector('[data-provider-atlas-search]');
+  const filter=root.querySelector('[data-provider-atlas-filter]');
+  const count=root.querySelector('[data-provider-atlas-count]');
+  const cards=[...root.querySelectorAll('[data-provider-atlas-card]')];
+  const apply=()=>{
+    const query=String(search?.value||'').trim().toLowerCase();
+    const integration=String(filter?.value||'all');
+    let visible=0;
+    for(const card of cards){const show=(!query||card.dataset.search.includes(query))&&(integration==='all'||card.dataset.integration===integration);card.hidden=!show;if(show)visible+=1;}
+    if(count)count.textContent=`${visible} of ${cards.length} providers`;
+  };
+  search?.addEventListener('input',apply);filter?.addEventListener('change',apply);apply();
+}
+
 function panelConfig(panel,{symbol,interval}){
   const colorTheme=tradingViewAppearance();
   const shared={colorTheme,isTransparent:false,width:'100%',height:'100%'};
@@ -64,7 +108,11 @@ function panelConfig(panel,{symbol,interval}){
   if(panel.kind==='economicCalendar')return {...shared,countryFilter:'ar,au,br,ca,cn,fr,de,in,id,it,jp,kr,mx,ru,sa,za,tr,gb,us,eu',importanceFilter:'-1,0,1'};
   if(panel.kind==='technicalAnalysis')return {...shared,symbol:tradingViewSymbol(symbol),interval:interval==='1d'?'1D':String(interval||'15m'),showIntervalTabs:true,displayMode:'multiple'};
   if(panel.kind==='cryptoHeatmap')return {...shared,dataSource:'Crypto',blockSize:'market_cap_calc',blockColor:'24h_close_change|5',hasTopBar:true,isDataSetEnabled:true,isZoomEnabled:true,hasSymbolTooltip:true,isMonoSize:false};
+  if(panel.kind==='stockHeatmap')return {...shared,dataSource:'SPX500',blockSize:'market_cap_basic',blockColor:'change',grouping:'sector',locale:'en',symbolUrl:'',hasTopBar:true,isDataSetEnabled:true,isZoomEnabled:true,hasSymbolTooltip:true,isMonoSize:false};
   if(panel.kind==='forexCrossRates')return {...shared,currencies:['EUR','USD','JPY','GBP','CHF','AUD','CAD','NZD','CNY','INR']};
+  if(panel.kind==='symbolOverview')return {...shared,symbols:[['S&P 500','FOREXCOM:SPXUSD|12M'],['Nifty 50','NSE:NIFTY|12M'],['Gold','OANDA:XAUUSD|12M'],['Bitcoin','BITSTAMP:BTCUSD|12M']],chartOnly:false,dateRange:'12M',showVolume:false,showMA:false,hideDateRanges:false,hideMarketStatus:false,hideSymbolLogo:false,scalePosition:'right',scaleMode:'Normal',fontFamily:'-apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif',fontSize:'10',noTimeScale:false,valuesTracking:'1',changeMode:'price-and-percent'};
+  if(panel.kind==='miniChart')return {...shared,symbol:tradingViewSymbol(symbol),dateRange:'12M',trendLineColor:'#b44b73',underLineColor:'rgba(180,75,115,.28)',underLineBottomColor:'rgba(180,75,115,0)',isTransparent:false,autosize:true,largeChartUrl:''};
+  if(panel.kind==='marketQuotes')return {...shared,symbolGroups:[{name:'Indices',symbols:[{name:'FOREXCOM:SPXUSD',displayName:'S&P 500'},{name:'NASDAQ:NDX',displayName:'Nasdaq 100'},{name:'NSE:NIFTY',displayName:'Nifty 50'},{name:'TVC:NI225',displayName:'Nikkei 225'}]},{name:'Commodities & FX',symbols:[{name:'OANDA:XAUUSD',displayName:'Gold'},{name:'TVC:USOIL',displayName:'WTI Oil'},{name:'FX_IDC:EURUSD',displayName:'EUR / USD'},{name:'FX_IDC:USDINR',displayName:'USD / INR'}]},{name:'Crypto',symbols:[{name:'BITSTAMP:BTCUSD',displayName:'Bitcoin'},{name:'BITSTAMP:ETHUSD',displayName:'Ethereum'},{name:'BINANCE:SOLUSDT',displayName:'Solana'}]}],showSymbolLogo:true,isTransparent:false};
   return {...shared,feedMode:'market',market:'crypto',displayMode:'regular'};
 }
 
@@ -155,12 +203,17 @@ function mountExternalIntelligenceDock(root,{escapeHtml}){
 
 export async function renderMarketV6(main,deps){
   const {api,pageHead,stateBanner,escapeHtml}=deps;
-  const [overviewResult,ecbResult]=await Promise.allSettled([
+  const [overviewResult,ecbResult,networkResult]=await Promise.allSettled([
     api('/api/v1/public/markets/overview'),
-    api('/api/v1/providers/ecb?capability=fx-reference-rates&symbol=EUR')
+    api('/api/v1/providers/ecb?capability=fx-reference-rates&symbol=EUR'),
+    api('/api/v1/market/network')
   ]);
   const overview=overviewResult.status==='fulfilled'?overviewResult.value:{providers:[],guardrails:{fabricatedObservations:false}};
   const ecb=ecbResult.status==='fulfilled'?ecbResult.value:null;
+  const network=networkResult.status==='fulfilled'?networkResult.value:{sources:{},providerDirectory:[],providerDirectorySummary:{total:0,byIntegration:{}}};
+  const networkSources=Object.values(network?.sources||{});
+  const providerDirectory=Array.isArray(network?.providerDirectory)?network.providerDirectory:[];
+  const integrationModes=Object.keys(network?.providerDirectorySummary?.byIntegration||{}).sort();
   const providers=Array.isArray(overview.providers)?overview.providers:[];
   const authorizedMarketProviders=providers.filter(provider=>provider.enabled&&provider.id!=='ecb');
   const referenceProviders=providers.filter(provider=>provider.enabled&&provider.id==='ecb');
@@ -202,7 +255,7 @@ export async function renderMarketV6(main,deps){
     </div>
 
     <section class="q-panel q-tv-suite" data-tv-suite>
-      <div class="q-panel-head"><div><p class="q-eyebrow">Embedded research suite</p><h2>Market intelligence displays</h2><p>Ten official TradingView surfaces are available without leaving Qelly. Only the selected panel loads, preserving performance and attention.</p></div><span class="q-status q-status--cached">DISPLAY ONLY</span></div>
+      <div class="q-panel-head"><div><p class="q-eyebrow">Embedded research suite</p><h2>Market intelligence displays</h2><p>Fourteen official TradingView surfaces are available without leaving Qelly. Only the selected panel loads, preserving performance and attention.</p></div><span class="q-status q-status--cached">DISPLAY ONLY</span></div>
       <div class="q-panel-body">
         <div class="q-tv-suite-tabs" role="tablist" aria-label="Choose an embedded market display">${EMBED_PANELS.map((panel,index)=>`<button type="button" role="tab" aria-selected="${index===0?'true':'false'}" aria-controls="q-tv-suite-stage" tabindex="${index===0?'0':'-1'}" data-tv-suite-tab="${panel.id}">${panel.label}</button>`).join('')}</div>
         <div class="q-tv-suite-context"><div><strong data-tv-suite-title>Market overview</strong><p data-tv-suite-description>${EMBED_PANELS[0].description}</p></div><span>External data · human review only</span></div>
@@ -219,6 +272,10 @@ export async function renderMarketV6(main,deps){
       </div>
     </section>
 
+    <section class="q-panel q-public-data-board"><div class="q-panel-head"><div><p class="q-eyebrow">Governed live and reference network</p><h2>Global public data board</h2><p>Official/public feeds keep their own cadence, attribution and truth state. Reference observations are never presented as tradable quotes.</p></div><span class="q-status q-status--${networkSources.some((source)=>source?.truthState==='live')?'live':'delayed'}">${networkSources.filter((source)=>source?.data!=null).length} SOURCES AVAILABLE</span></div><div class="q-panel-body q-public-source-grid">${networkSources.map((source)=>networkSourceCard(source,escapeHtml)).join('')||'<div class="q-empty-state"><strong>Public data network unavailable</strong><p>No source values were substituted.</p></div>'}</div></section>
+
+    <section class="q-panel q-provider-atlas" data-provider-atlas><div class="q-panel-head"><div><p class="q-eyebrow">Supplied provider universe</p><h2>Provider, API and embed atlas</h2><p>Every named provider is discoverable here. “Catalogued” never means licensed, live, free, embeddable or endorsed.</p></div><span class="q-status q-status--cached">${escapeHtml(String(providerDirectory.length))} CATALOGUED</span></div><div class="q-panel-body"><div class="q-provider-atlas-controls"><label><span>Search providers</span><input type="search" placeholder="Search name, market or integration…" autocomplete="off" data-provider-atlas-search></label><label><span>Integration state</span><select data-provider-atlas-filter><option value="all">All states</option>${integrationModes.map((mode)=>`<option value="${escapeHtml(mode)}">${escapeHtml(integrationLabel(mode))}</option>`).join('')}</select></label><strong data-provider-atlas-count>${escapeHtml(String(providerDirectory.length))} providers</strong></div><div class="q-provider-atlas-grid">${providerDirectory.map((provider)=>providerAtlasCard(provider,escapeHtml)).join('')||'<div class="q-empty-state"><strong>Provider atlas unavailable</strong><p>The supplied candidates could not be loaded.</p></div>'}</div></div></section>
+
     <section class="q-panel q-v7-reference-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Approved reference observations</p><h2>ECB euro reference rates</h2><p>Source timing is preserved. Reference rates are informational and are not tradable quotes.</p></div><span class="q-status q-status--${tone(ecb?.truthState)}">${escapeHtml(truthLabel(ecbTruth))}</span></div><div class="q-panel-body"><div class="q-v7-rate-grid">${governedRates(ecb,escapeHtml)}</div><div class="q-v7-evidence-strip"><span>Source: European Central Bank</span><span>Observed: ${escapeHtml(date(ecbObservedAt))}</span><span>Updated: ${escapeHtml(date(ecbIngestedAt))}</span><span>Research only</span></div></div></section>
 
     <section class="q-panel"><div class="q-panel-head"><div><h2>Production boundary</h2><p>The public market route uses only anonymous/public contracts. Private data-plane and workspace APIs are requested only after authentication.</p></div><span class="q-status q-status--live">PUBLIC SAFE</span></div><div class="q-panel-body"><div class="q-v6-market-boundary"><span class="q-status q-status--unavailable">NO FALLBACK FABRICATION</span><p>${escapeHtml(overview.reason||'If an internal provider is unavailable or rights-blocked, Qelly exposes that state directly.')}</p></div></div></section>
@@ -230,6 +287,7 @@ export async function renderMarketV6(main,deps){
   const ticker=main.querySelector('#q-tv-ticker-tape');
   const suite=main.querySelector('[data-tv-suite]');
   const intelligenceDock=main.querySelector('[data-external-intelligence-dock]');
+  const providerAtlas=main.querySelector('[data-provider-atlas]');
   let handle=null,tickerHandle=null,suiteHandle=null,intelligenceDockHandle=null,themeFrame=0;
   // Evidence aliases are immediately handed to the local Qelly Verify surface.
   // Do not start third-party iframe widgets during that transient handoff: a
@@ -248,6 +306,7 @@ export async function renderMarketV6(main,deps){
     mountTicker();
     symbol?.addEventListener('change',mount);interval?.addEventListener('change',mount);mount();
   }
+  bindProviderAtlas(providerAtlas);
   const themeObserver=new MutationObserver(()=>{
     cancelAnimationFrame(themeFrame);
     themeFrame=requestAnimationFrame(()=>{mount();mountTicker();suiteHandle?.refresh();intelligenceDockHandle?.refresh();});

@@ -1,7 +1,7 @@
 # Qelly Intelligence — Data Provider and External Integration Contract
 
 Status: design + implementation gate
-Review date: 2026-08-15
+Review date: 2026-08-28
 
 This document defines how Qelly decides whether a provider can appear as live, delayed, reference, demonstration, or unavailable. Technical connectivity alone is not authorization to display or redistribute data to end users.
 
@@ -94,6 +94,45 @@ Design mode: `macro-reference-candidate`.
 Official references:
 - https://fred.stlouisfed.org/docs/api/fred/overview.html
 - https://fred.stlouisfed.org/docs/api/terms_of_use.html
+
+## 2026-08-28 supplied-provider atlas
+
+The three user-supplied research documents are candidate inventories, not authority to connect, frame, scrape or redistribute a source. Production now exposes their 183 deduplicated provider, API, venue, broker, software and research names through the searchable Market Command provider atlas. Category-summary rows such as “India NSE/BSE data” are deliberately excluded as non-provider labels.
+
+The atlas integration state is explicit:
+
+- `official-embed`, `live-public`, `governed-reference` and `reference-public` identify currently implemented, bounded surfaces.
+- `terms-review` keeps a technically reachable/free-looking surface disabled until commercial display, redistribution, geography, attribution and quota terms pass review.
+- `key-required` never puts a credential in the browser.
+- `paid-or-contract` makes exchange, institutional or enterprise entitlement requirements visible.
+- `external-research` and `broker-or-exchange` remain canonical outbound destinations; Qelly does not frame account, wallet, order-routing, custody or leveraged-trading surfaces.
+- `software-or-directory` separates SDK, repository and MCP discovery from user-facing data display.
+
+Catalog membership is therefore discovery metadata, not a live/free/approved claim.
+
+## Newly activated official reference APIs
+
+### U.S. Treasury Fiscal Data
+
+The public Market Network requests the official Average Interest Rates dataset, keeps only the latest record date, labels values as monthly average reference rates rather than tradable yields, and edge-caches successful results for six hours.
+
+Official documentation: https://fiscaldata.treasury.gov/api-documentation/
+
+### IMF DataMapper
+
+The public Market Network requests the official real-GDP-growth indicator for a bounded country set, preserves the published period, explicitly labels current-year observations as estimates/projections, and edge-caches successful results for six hours. It is statistical reference data, not a live market feed.
+
+Official documentation: https://www.imf.org/external/datamapper/api/help
+
+### BLS
+
+BLS remains catalogued as official reference data but is not auto-requested by each homepage visitor. The unregistered public quota is too small for uncontrolled point-of-presence traffic; activation requires a registered server-side key, centralized cache/budget and series-level presentation review.
+
+Official documentation: https://www.bls.gov/developers/
+
+## Official TradingView display suite
+
+Market Command now offers fourteen lazy, mutually exclusive official widget panels: market overview, four regional/asset screeners, economic calendar, technical analysis, crypto heatmap, stock heatmap, FX cross rates, top stories, symbol overview, mini chart and market quotes. Ticker tape and the main advanced chart remain separate display surfaces. Only the selected tab loads, and no iframe values are read by Qelly.
 
 ## Required provider registry fields
 

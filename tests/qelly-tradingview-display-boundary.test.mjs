@@ -7,7 +7,7 @@ const read=(path)=>readFile(new URL(path,import.meta.url),'utf8');
 
 test('TradingView widget uses the official embed bootstrap with an explicit display-only boundary',()=>{
   assert.equal(__tradingViewDisplayTest.WIDGET_SRC,'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js');
-  assert.deepEqual(Object.keys(__tradingViewDisplayTest.WIDGET_SOURCES),['advancedChart','tickerTape','marketOverview','screener','economicCalendar','technicalAnalysis','cryptoHeatmap','forexCrossRates','topStories']);
+  assert.deepEqual(Object.keys(__tradingViewDisplayTest.WIDGET_SOURCES),['advancedChart','tickerTape','marketOverview','screener','economicCalendar','technicalAnalysis','cryptoHeatmap','stockHeatmap','forexCrossRates','topStories','symbolOverview','miniChart','marketQuotes']);
   assert.match(__tradingViewDisplayTest.DISPLAY_BOUNDARY,/display only/i);
   assert.match(__tradingViewDisplayTest.DISPLAY_BOUNDARY,/does not read, scrape, transform, persist or use widget values/i);
   assert.equal(tradingViewSymbol('BTCUSDT'),'BINANCE:BTCUSDT');
@@ -42,9 +42,10 @@ test('external market surface is bootstrapped by the production route guard and 
 
 test('Market Command exposes the complete lazy embedded research suite',async()=>{
   const route=await read('../apps/web/public/assets/routes/market-v6.mjs');
-  for(const label of ['Market overview','Screener','Economic calendar','Technicals','Crypto heatmap','FX cross rates','Top stories'])assert.match(route,new RegExp(label));
+  for(const label of ['Market overview','Screener','Economic calendar','Technicals','Crypto heatmap','Stock heatmap','FX cross rates','Top stories','Symbol overview','Mini chart','Market quotes'])assert.match(route,new RegExp(label));
+  assert.equal((await import('../apps/web/public/assets/routes/market-v6.mjs')).__marketV6Test.EMBED_PANELS.length,14);
   assert.match(route,/kind:'tickerTape'/);
-  assert.match(route,/Ten official TradingView surfaces/);
+  assert.match(route,/Fourteen official TradingView surfaces/);
   assert.match(route,/IntersectionObserver/);
   assert.match(route,/role="tablist"/);
   assert.match(route,/ArrowLeft/);
