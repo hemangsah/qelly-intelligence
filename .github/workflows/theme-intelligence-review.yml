@@ -1,4 +1,4 @@
-name: Qelly Theme Intelligence Review
+name: Theme Intelligence Review
 
 on:
   pull_request:
@@ -8,8 +8,8 @@ on:
       - 'apps/web/public/**'
       - 'src/server/preferences-store.mjs'
       - 'packages/schemas/layout-preference*.json'
-      - 'figma-plugin/**'
-      - 'figma-theme-plugin/**'
+      - 'design/figma/plugins/core/**'
+      - 'design/figma/plugins/theme/**'
       - 'design/figma/**'
       - 'scripts/theme-intelligence-review.mjs'
       - 'scripts/theme-intelligence-review-stable.mjs'

@@ -17,7 +17,7 @@ test('Cloudflare preview validation follows current no-fabrication and readiness
 });
 
 test('Cloudflare preview workflow requires an explicit immutable preview and exact SHA',async()=>{
-  const workflow=await read('.github/workflows/qelly-cloudflare-preview.yml');
+  const workflow=await read('.github/workflows/cloudflare-preview.yml');
   assert.match(workflow,/workflow_dispatch:/);
   assert.match(workflow,/preview_url:/);
   assert.match(workflow,/expected_sha:/);

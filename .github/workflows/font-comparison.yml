@@ -1,12 +1,12 @@
-name: Qelly IBM Plex Governance Audit
+name: Font Comparison
 
 on:
   pull_request:
     branches: [main]
     paths:
       - 'apps/web/public/**'
-      - 'figma-plugin/**'
-      - 'figma-theme-plugin/**'
+      - 'design/figma/plugins/core/**'
+      - 'design/figma/plugins/theme/**'
       - 'design/figma/**'
       - '.github/workflows/font-comparison.yml'
       - 'package.json'

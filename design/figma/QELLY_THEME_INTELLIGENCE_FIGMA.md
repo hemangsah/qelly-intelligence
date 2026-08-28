@@ -1,6 +1,6 @@
 # Qelly Theme Intelligence Figma handoff
 
-The dedicated executable generator is `figma-theme-plugin/code.js` with manifest `figma-theme-plugin/manifest.json`.
+The dedicated executable generator is `design/figma/plugins/theme/code.js` with manifest `design/figma/plugins/theme/manifest.json`.
 
 It creates 14 editable variable collections and 16 semantic evidence pages covering appearance modes, 13 curated themes, six personas, 24 mindsets, Aggressive Alpha intensity and packs, Theme Studio desktop/mobile, Theme Gallery, charts, tables, overlays, portals, accessibility, responsive states, persistence, comparison and approval handoff.
 

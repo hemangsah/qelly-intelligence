@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const workflow=await readFile(new URL('../.github/workflows/pages-preview.yml',import.meta.url),'utf8');
+const workflow=await readFile(new URL('../.github/workflows/github-pages-mirror.yml',import.meta.url),'utf8');
 const mirror=await readFile(new URL('../apps/web/public/assets/qelly-github-pages-mirror.mjs',import.meta.url),'utf8');
 const finalizer=await readFile(new URL('../scripts/finalize-github-pages-mirror.mjs',import.meta.url),'utf8');
 

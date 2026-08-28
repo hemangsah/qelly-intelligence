@@ -1,4 +1,4 @@
-name: Qelly Logo Final Visual Correction Review
+name: Logo Visual Review
 
 on:
   pull_request:

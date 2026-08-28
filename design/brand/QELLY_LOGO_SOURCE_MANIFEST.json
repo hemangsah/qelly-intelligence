@@ -496,7 +496,7 @@
       "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
     },
     {
-      "path": "figma-brand-foundations/README.md",
+      "path": "design/figma/plugins/brand-foundations/README.md",
       "purpose": "editable Figma brand foundations",
       "kind": "text",
       "bytes": 173,
@@ -508,7 +508,7 @@
       "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
     },
     {
-      "path": "figma-brand-foundations/code.js",
+      "path": "design/figma/plugins/brand-foundations/code.js",
       "purpose": "editable Figma brand foundations",
       "kind": "text",
       "bytes": 1980,
@@ -520,7 +520,7 @@
       "authoritativeSelectedLogoRelationship": "preserves Q ring, Q tail, trajectory, red and green nodes, burgundy identity and QELLY wordmark"
     },
     {
-      "path": "figma-brand-foundations/manifest.json",
+      "path": "design/figma/plugins/brand-foundations/manifest.json",
       "purpose": "editable Figma brand foundations",
       "kind": "text",
       "bytes": 185,

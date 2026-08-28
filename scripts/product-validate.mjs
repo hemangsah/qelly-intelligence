@@ -7,7 +7,7 @@ import { routeDefinitions } from '../apps/web/public/assets/route-registry.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
 const index = await readFile(path.join(root, 'apps/web/public/index.html'), 'utf8');
-const routeInventory = await readFile(path.join(root, 'QELLY_ROUTE_INVENTORY.csv'), 'utf8');
+const routeInventory = await readFile(path.join(root, 'design/inventory/QELLY_ROUTE_INVENTORY.csv'), 'utf8');
 const routeInventoryRoutes = routeInventory.split(/\r?\n/).slice(1).map((line) => line.match(/^"\d+","#\/([^"]+)"/)?.[1]).filter(Boolean);
 const service = await readFile(path.join(root, 'src/markets/public-market-service.mjs'), 'utf8');
 const evidence = await readFile(path.join(root, 'src/evidence/decision-provenance-store.mjs'), 'utf8');
@@ -30,10 +30,10 @@ const requiredFiles = [
   'CONTRIBUTING.md',
   'vercel.json',
   '.github/workflows/ci.yml',
-  '.github/workflows/container.yml',
+  '.github/workflows/containers.yml',
   '.github/workflows/production-foundation-services.yml',
   '.github/workflows/release.yml',
-  '.github/workflows/codeql.yml',
+  '.github/workflows/security.yml',
   'packages/migrations/105_scope_a_decision_provenance.sql',
   'packages/migrations/107_calculator_indicator_foundation.sql',
   'packages/migrations/108_saved_calculation_lifecycle.sql',
@@ -68,30 +68,30 @@ const requiredFiles = [
   'docs/deployment/PRODUCTION_DEPENDENCY_POLICY.md',
   'docs/deployment/ROLLBACK_RUNBOOK.md',
   'docs/deployment/BACKUP_RESTORE_RUNBOOK.md',
-  'QELLY_PRODUCT_ARCHITECTURE.md',
-  'QELLY_INFORMATION_ARCHITECTURE.md',
-  'QELLY_REFERENCE_SYNTHESIS.md',
-  'QELLY_DESIGN_PRINCIPLES.md',
-  'QELLY_DESIGN_TOKENS.json',
-  'QELLY_MOTION_TOKENS.json',
-  'QELLY_CHART_TOKENS.json',
-  'QELLY_COMPONENT_INVENTORY.csv',
-  'QELLY_ROUTE_INVENTORY.csv',
-  'QELLY_SCREEN_MATRIX.csv',
-  'QELLY_FEATURE_MATRIX.csv',
-  'QELLY_PROVIDER_MATRIX.csv',
-  'QELLY_LICENSING_MATRIX.csv',
-  'QELLY_ACCESSIBILITY_STANDARD.md',
-  'QELLY_WRITING_STANDARD.md',
-  'QELLY_RESPONSIVE_STANDARD.md',
-  'QELLY_FIGMA_HANDOFF.md',
-  'QELLY_FRONTEND_ARCHITECTURE.md',
-  'QELLY_BACKEND_DOMAIN_MAP.md',
-  'QELLY_DATA_NORMALIZATION.md',
-  'QELLY_IMPLEMENTATION_ROADMAP.md',
-  'QELLY_VALIDATION_REPORT.md',
-  'figma-plugin/manifest.json',
-  'figma-plugin/code.js'
+  'docs/governance/QELLY_PRODUCT_ARCHITECTURE.md',
+  'docs/governance/QELLY_INFORMATION_ARCHITECTURE.md',
+  'docs/governance/QELLY_REFERENCE_SYNTHESIS.md',
+  'docs/governance/QELLY_DESIGN_PRINCIPLES.md',
+  'design/tokens/QELLY_DESIGN_TOKENS.json',
+  'design/tokens/QELLY_MOTION_TOKENS.json',
+  'design/tokens/QELLY_CHART_TOKENS.json',
+  'design/inventory/QELLY_COMPONENT_INVENTORY.csv',
+  'design/inventory/QELLY_ROUTE_INVENTORY.csv',
+  'design/inventory/QELLY_SCREEN_MATRIX.csv',
+  'design/inventory/QELLY_FEATURE_MATRIX.csv',
+  'docs/governance/QELLY_PROVIDER_MATRIX.csv',
+  'docs/governance/QELLY_LICENSING_MATRIX.csv',
+  'docs/governance/QELLY_ACCESSIBILITY_STANDARD.md',
+  'docs/governance/QELLY_WRITING_STANDARD.md',
+  'docs/governance/QELLY_RESPONSIVE_STANDARD.md',
+  'docs/governance/QELLY_FIGMA_HANDOFF.md',
+  'docs/governance/QELLY_FRONTEND_ARCHITECTURE.md',
+  'docs/governance/QELLY_BACKEND_DOMAIN_MAP.md',
+  'docs/governance/QELLY_DATA_NORMALIZATION.md',
+  'docs/governance/QELLY_IMPLEMENTATION_ROADMAP.md',
+  'docs/governance/QELLY_VALIDATION_REPORT.md',
+  'design/figma/plugins/core/manifest.json',
+  'design/figma/plugins/core/code.js'
 ];
 const missingFiles = [];
 for (const file of requiredFiles) {

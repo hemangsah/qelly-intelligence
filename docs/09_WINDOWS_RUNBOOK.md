@@ -6,7 +6,7 @@ Install Node.js 22 or later.
 
 ## Start
 
-Double-click `RUN_QELLY_WINDOWS.bat`, or run:
+Double-click `scripts/dev/run-windows.bat`, or run:
 
 ```powershell
 npm start
@@ -16,7 +16,7 @@ Open `http://127.0.0.1:4480`.
 
 ## Validate
 
-Double-click `CHECK_QELLY_WINDOWS.bat`, or run:
+Double-click `scripts/dev/check-windows.bat`, or run:
 
 ```powershell
 npm test

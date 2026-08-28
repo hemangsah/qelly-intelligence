@@ -12,14 +12,14 @@ test('canonical hash-route gate retains convergence diagnostics after an early s
 });
 
 test('live-terminal gate retains convergence diagnostics after an early stop',async()=>{
-  const source=await workflow('qelly-live-terminal-acceptance.yml');
+  const source=await workflow('live-terminal.yml');
   assert.match(source,/node scripts\/wait-for-cloudflare-runtime-convergence\.mjs/);
   assert.match(source,/dist\/live-public-verification\/http/);
   assert.match(source,/if-no-files-found: error/);
 });
 
 test('GitHub Pages deploy retains convergence diagnostics only after the gate actually ran',async()=>{
-  const source=await workflow('pages-preview.yml');
+  const source=await workflow('github-pages-mirror.yml');
   assert.match(source,/id: convergence/);
   assert.match(source,/node scripts\/wait-for-cloudflare-runtime-convergence\.mjs/);
   assert.match(source,/if: always\(\) && steps\.convergence\.outcome != 'skipped'/);

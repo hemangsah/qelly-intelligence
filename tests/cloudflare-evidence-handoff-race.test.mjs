@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const workflowPath = path.join(root, '.github/workflows/qelly-cloudflare-evidence-handoff.yml');
+const workflowPath = path.join(root, '.github/workflows/release-evidence-handoff.yml');
 
 test('Cloudflare handoff treats superseded successful previews as ineligible instead of failed', async () => {
   const workflow = await readFile(workflowPath, 'utf8');

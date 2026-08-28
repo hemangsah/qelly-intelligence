@@ -6,16 +6,16 @@ Generated from the current executable source and validation outputs.
 
 ### Frontend
 
-- 61 meaningful registered routes.
+- 71 meaningful registered routes.
 - Public market overview, rankings, and asset detail use the evidence-bearing public market service.
 - Decision Provenance provides `Explain this move`, graph and relationship inspection, upstream/downstream traversal, an accessible text alternative, and checksum-bearing evidence export.
 - A governed nine-domain shell adds progressive desktop navigation, mobile bottom navigation, context breadcrumbs, persistent compare/watch/explain actions, and route-specific page kinds without replacing the existing route architecture.
 - Six operating personas now change density, motion, default route, timeframe, alert posture, terminology, and module priority rather than acting as color-only themes.
-- Thirty governed semantic tokens, 24 typography roles, chart/motion contracts, 40 component definitions, and a deterministic 411-frame Figma generator are packaged as canonical design foundations.
+- Thirty governed semantic tokens, 24 typography roles, chart/motion contracts, 40 component definitions, and a deterministic 431-frame Figma generator are packaged as canonical design foundations.
 
 ### Backend
 
-- 187 documented API contracts, 65 runtime JSON schemas, and 17 domain contracts.
+- 202 documented API contracts, 72 runtime JSON schemas, and 17 domain contracts.
 - 276 automated tests and 260 full-stack smoke requests pass.
 - Public market responses preserve canonical identity, provider/source, observation and ingestion time, freshness, quality, cache, confidence, degradation, and fallback state.
 - Decision Provenance persists scoped nodes and edges, prevents orphaned relations, verifies graph integrity, supports traversal, and exports checksum-bearing evidence packages.
@@ -29,12 +29,12 @@ Generated from the current executable source and validation outputs.
 - `npm run env:check` — passed with financial-safety flags disabled.
 - `npm run typecheck` — 169 files passed.
 - `npm run lint` — 261 files passed.
-- `npm run validate:design` — 61 routes, nine domains, six personas, 30 semantic tokens, 24 typography roles, 25 Figma pages, 411 frames, and 40 components passed.
+- `npm run validate:design` — 71 routes, nine domains, six personas, 30 semantic tokens, 24 typography roles, 25 Figma pages, 431 frames, and 40 components passed.
 - `npm run security:scan` — 537 text files scanned; zero high-confidence findings.
 - `npm audit` — zero vulnerabilities.
 - `npm test` — 276/276 passed.
 - `npm run build` — cold start and explicit simulated public-market fallback passed.
-- `npm run validate:product` — 61 routes, 187 APIs, 17 contracts, 65 schemas, and 44 required repository files passed.
+- `npm run validate:product` — 71 routes, 202 APIs, 17 contracts, 72 schemas, and the governed repository file set passed.
 - `npm run inventory:product` — 537 non-runtime source/inventory files recorded.
 - `npm run smoke` — 260/260 requests passed.
 - Static Pages build — `dist/frontend`, `/qelly-intelligence/` base path, no backend or production secrets.

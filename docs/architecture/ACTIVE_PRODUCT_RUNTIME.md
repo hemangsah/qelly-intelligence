@@ -20,7 +20,7 @@ This document is the editing map for the current Qelly production surface.
 - `apps/edge/qelly-public-api-worker.mjs` — standalone Worker reference implementation.
 - `packages/contracts/qelly-public-runtime.openapi.json` — public API contract.
 - `deploy/cloudflare/wrangler.public-runtime.example.toml` — Worker deployment example.
-- `.github/workflows/qelly-public-runtime.yml` — release-branch validation and live exact-SHA verification.
+- `.github/workflows/public-runtime.yml` — release-branch validation and live exact-SHA verification.
 
 ## Naming policy
 

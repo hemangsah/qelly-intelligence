@@ -207,9 +207,9 @@ const components=[
 ].map(([component,states,keyboard,mobile])=>({component,states,keyboard_behavior:keyboard,mobile_behavior:mobile,implementation_status:'foundation-contract; route adoption incremental'}));
 
 await Promise.all([
-  writeFile(path.join(root,'QELLY_ROUTE_INVENTORY.csv'),csv(Object.keys(routeRows[0]),routeRows)),
-  writeFile(path.join(root,'QELLY_SCREEN_MATRIX.csv'),csv(Object.keys(screenRows[0]),screenRows)),
-  writeFile(path.join(root,'QELLY_COMPONENT_INVENTORY.csv'),csv(Object.keys(components[0]),components))
+  writeFile(path.join(root,'design/inventory/QELLY_ROUTE_INVENTORY.csv'),csv(Object.keys(routeRows[0]),routeRows)),
+  writeFile(path.join(root,'design/inventory/QELLY_SCREEN_MATRIX.csv'),csv(Object.keys(screenRows[0]),screenRows)),
+  writeFile(path.join(root,'design/inventory/QELLY_COMPONENT_INVENTORY.csv'),csv(Object.keys(components[0]),components))
 ]);
 
 console.log(JSON.stringify({status:'qelly-design-inventory-built',routes:routeRows.length,frames:screenRows.length,components:components.length},null,2));
