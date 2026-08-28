@@ -78,7 +78,7 @@ jobs:
           cp -a baseline-src/dist/frontend .qelly-worldclass-prepared/baseline/frontend
           cp -a .qelly-worldclass-design .qelly-worldclass-prepared/design
           cp design/inventory/QELLY_SCREEN_MATRIX.csv .qelly-worldclass-prepared/
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: qelly-worldclass-prepared-${{ env.QELLY_REVIEW_HEAD }}
           path: .qelly-worldclass-prepared
@@ -122,7 +122,7 @@ jobs:
         run: node scripts/capture-qelly-worldclass-screens.mjs
       - name: Upload durable capture shard
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: qelly-worldclass-capture-${{ matrix.shard }}-${{ env.QELLY_REVIEW_HEAD }}
           path: .qelly-worldclass-capture/shard-${{ matrix.shard }}
@@ -170,7 +170,7 @@ jobs:
           const ok=s.exactHead===process.env.QELLY_REVIEW_HEAD&&s.screenRows===431&&s.capturedRows===431&&s.missingRows===0&&s.duplicateRows===0&&s.failedRows===0&&s.finalReview.crcVerified&&m.capturedRows===431&&m.missingRows===0&&m.duplicateRows===0&&c.missingTargets.length===0&&c.mismatches.length===0;
           console.log(JSON.stringify({head:s.exactHead,screens:s.capturedRows,finalReview:s.finalReview,checks:c.fileCount},null,2));if(!ok)process.exit(1);
           NODE
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: design-governance-review-${{ env.QELLY_REVIEW_HEAD }}
           path: .qelly-worldclass-review
