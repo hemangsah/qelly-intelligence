@@ -34,6 +34,7 @@ test('persistent assistant branding reserves image geometry and reduced motion c
   assert.match(appCss,/@media \(prefers-reduced-motion:reduce\)[\s\S]*#app\.q-app\.q-app\.q-app #main \*[\s\S]*#q-feature-navigation\.q-feature-navigation \*[\s\S]*animation:none!important;[\s\S]*transition:none!important;/);
   assert.match(productCss,/\.q-product-header :where\(\.q-product-menu,\.q-product-system,\.q-product-account\)\{height:44px!important;min-height:44px!important/);
   assert.match(productCss,/header\.q-product-header>\.q-product-menu\{display:none!important;grid-area:menu!important;width:max-content!important;max-width:100%!important;justify-self:end!important\}/);
+  assert.match(productCss,/\.q-product-menu\[data-feature-navigation-owner="true"\]\{display:none!important\}/);
   assert.match(productCss,/@media\(max-width:1520px\)[\s\S]*\.q-product-header \.q-product-menu\{display:inline-flex!important\}/);
   assert.match(productCss,/@media\(max-width:760px\)[\s\S]*header\.q-product-header\{grid-template-areas:"brand menu actions"!important;grid-template-columns:44px 44px minmax\(0,1fr\)!important/);
 });
