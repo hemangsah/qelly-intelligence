@@ -14,7 +14,6 @@ test('global market network aggregates only explicit external/reference sources 
     if(String(url).includes('alternative.me/fng'))return jsonResponse({data:[{value:'42',value_classification:'Fear',timestamp:'1770000000'}]});
     if(String(url).includes('hyperliquid.xyz/info'))return jsonResponse({BTC:'65001',ETH:'3500',HYPE:'40'});
     if(String(url).includes('api.worldbank.org'))return jsonResponse([{page:1},[{countryiso3code:'IND',country:{value:'India'},date:'2025',value:6.5}]]);
-    if(String(url).includes('fiscaldata.treasury.gov'))return jsonResponse({data:[{record_date:'2026-07-31',security_type_desc:'Marketable',security_desc:'Treasury Bills',avg_interest_rate_amt:'3.758'}]});
     if(String(url).includes('imf.org/external/datamapper'))return jsonResponse({values:{NGDP_RPCH:{IND:{2026:6.4},USA:{2026:2.1}}}});
     throw new Error(`unexpected request ${url}`);
   };
@@ -24,12 +23,11 @@ test('global market network aggregates only explicit external/reference sources 
     assert.equal(network.policy.execution,false);
     assert.equal(network.policy.responseCacheSeconds,10);
     assert.equal(network.policy.staleWhileRevalidateSeconds,30);
-    assert.deepEqual(network.policy.sourceCacheSeconds,{hyperliquid:8,'alternative-me':60,'world-bank':3600,'us-treasury':21600,imf:21600});
+    assert.deepEqual(network.policy.sourceCacheSeconds,{hyperliquid:8,'alternative-me':60,'world-bank':3600,imf:21600});
     assert.equal(network.policy.edgeCacheScope,'cloudflare_point_of_presence');
     assert.equal(network.sources['alternative-me'].data.assets[0].priceUsd,65000);
     assert.equal(network.sources.hyperliquid.data[0].symbol,'BTC');
     assert.equal(network.sources['world-bank'].data[0].gdpGrowthPct,6.5);
-    assert.equal(network.sources['us-treasury'].data[0].averageInterestRatePct,3.758);
     assert.equal(network.sources.imf.data[0].countryId,'IND');
     assert.ok(network.providerDirectory.length>175);
     assert.equal(network.providerDirectorySummary.total,network.providerDirectory.length);
@@ -47,7 +45,6 @@ test('upstream failures remain unavailable instead of becoming generated market 
     assert.equal(network.sources['alternative-me'].state,'unavailable');
     assert.equal(network.sources.hyperliquid.state,'unavailable');
     assert.equal(network.sources['world-bank'].state,'unavailable');
-    assert.equal(network.sources['us-treasury'].state,'unavailable');
     assert.equal(network.sources.imf.state,'unavailable');
     assert.equal(network.policy.sourceFailuresRemainUnavailable,true);
     assert.equal(JSON.stringify(network).includes('simulated-demo'),false);

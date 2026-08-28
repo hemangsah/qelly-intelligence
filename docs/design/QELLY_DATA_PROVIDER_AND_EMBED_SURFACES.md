@@ -110,11 +110,11 @@ The atlas integration state is explicit:
 
 Catalog membership is therefore discovery metadata, not a live/free/approved claim.
 
-## Newly activated official reference APIs
+## Newly assessed official reference APIs
 
 ### U.S. Treasury Fiscal Data
 
-The public Market Network requests the official Average Interest Rates dataset, keeps only the latest record date, labels values as monthly average reference rates rather than tradable yields, and edge-caches successful results for six hours.
+The official Average Interest Rates dataset is catalogued, but the production fetch is disabled. The exact Cloudflare preview received upstream TLS HTTP 525 from the official API on 2026-08-28 after a local technical probe succeeded. Activation requires a successful canonical-edge delivery recheck; when enabled, observations must be labelled monthly averages rather than tradable yields.
 
 Official documentation: https://fiscaldata.treasury.gov/api-documentation/
 

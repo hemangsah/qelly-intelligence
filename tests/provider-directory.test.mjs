@@ -15,6 +15,7 @@ test('provider directory is deduplicated and separates discovery from activation
   }
   assert.equal(providers.find((item)=>item.name==='TradingView').integration,'official-embed');
   assert.equal(providers.find((item)=>item.name==='CoinGecko').integration,'terms-review');
+  assert.equal(providers.find((item)=>item.name==='US Treasury').integration,'delivery-review');
   assert.equal(providers.find((item)=>item.name==='FRED (Federal Reserve)').integration,'key-required');
   assert.equal(providers.find((item)=>item.name==='Bloomberg Terminal').integration,'paid-or-contract');
   assert.equal(providers.find((item)=>item.name==='DhanHQ').integration,'key-required');

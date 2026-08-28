@@ -66,7 +66,6 @@ function evidenceMarketNetwork(){
       'alternative-me':isolated('alternative-me','Alternative.me','External crypto reference API isolated in deterministic evidence runtime.'),
       hyperliquid:isolated('hyperliquid','Hyperliquid','External read-only info API isolated in deterministic evidence runtime.'),
       'world-bank':isolated('world-bank','World Bank','External macro reference API isolated in deterministic evidence runtime.'),
-      'us-treasury':isolated('us-treasury','US Treasury Fiscal Data','Official public reference API isolated in deterministic evidence runtime.'),
       imf:isolated('imf','IMF DataMapper','Official statistical reference API isolated in deterministic evidence runtime.'),
       ecb:{provider:'ecb',sourceIdentifier:'EUR',truthState:'unavailable',observationTime:null,ingestionTime:FIXED_TIME,freshness:'unavailable',quality:'evidence-network-isolated',confidence:0,attribution:'European Central Bank',license:null,fallbackReason:'evidence_runtime_external_network_isolated',termsState:'conditionally_approved_attributed_reference_data',cache:{hit:false,stale:false},data:null}
     },

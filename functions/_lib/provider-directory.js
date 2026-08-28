@@ -12,7 +12,7 @@ const active=[
   entry('Hyperliquid','crypto','live-public','https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api','Official read-only public market stream; no wallet, custody or execution.'),
   entry('European Central Bank','fx-macro','governed-reference','https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html','Daily working-day reference rates with governed ingestion and attribution.', ['ECB']),
   entry('World Bank','macro','reference-public','https://datahelpdesk.worldbank.org/knowledgebase/topics/125589-developer-information','Official annual macro reference data; not a live market quote.'),
-  entry('US Treasury','macro','reference-public','https://fiscaldata.treasury.gov/api-documentation/','Official Fiscal Data open-data API; reference observations only.'),
+  entry('US Treasury','macro','delivery-review','https://fiscaldata.treasury.gov/api-documentation/','Official Fiscal Data open-data API; production fetch is disabled while the canonical Cloudflare edge receives an upstream TLS 525 response.'),
   entry('IMF Data API','macro','reference-public','https://www.imf.org/external/datamapper/api/','Official IMF statistical reference data with source attribution.'),
   entry('BLS (Bureau of Labor Statistics)','macro','reference-public','https://www.bls.gov/developers/','Official public API; displayed as delayed economic reference data with access-date disclosure.')
 ];

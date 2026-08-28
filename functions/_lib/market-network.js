@@ -1,14 +1,14 @@
 import {providerDirectory,providerDirectorySummary} from './provider-directory.js';
 
 const REQUEST_TIMEOUT_MS=7000;
-const SOURCE_CACHE_TTL=Object.freeze({hyperliquid:8,'alternative-me':60,'world-bank':3600,'us-treasury':21600,imf:21600});
+const SOURCE_CACHE_TTL=Object.freeze({hyperliquid:8,'alternative-me':60,'world-bank':3600,imf:21600});
 
 const nowIso=()=>new Date().toISOString();
 const finiteOrNull=(value)=>Number.isFinite(Number(value))?Number(value):null;
 
-async function fetchJson(url,{method='GET',body=null,headers={},timeoutMs=REQUEST_TIMEOUT_MS}={}){
+async function fetchJson(url,{method='GET',body=null,headers={}}={}){
   const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),timeoutMs);
+  const timer=setTimeout(()=>controller.abort(),REQUEST_TIMEOUT_MS);
   try{
     const response=await fetch(url,{method,body,headers:{Accept:'application/json',...headers},signal:controller.signal});
     if(!response.ok){
@@ -138,32 +138,6 @@ async function worldBankMacro(){
   }
 }
 
-async function usTreasuryRates(){
-  try{
-    const url='https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/avg_interest_rates?fields=record_date,security_type_desc,security_desc,avg_interest_rate_amt&sort=-record_date&page%5Bsize%5D=25';
-    const payload=await fetchJson(url,{headers:{'User-Agent':'Qelly-Intelligence/1.0 (+https://qelly-intelligence.pages.dev/)'},timeoutMs:12000});
-    const records=Array.isArray(payload?.data)?payload.data:[];
-    const latestDate=records.find((row)=>row?.record_date)?.record_date??null;
-    const rows=records.filter((row)=>row?.record_date===latestDate).map((row)=>({
-      securityType:String(row.security_type_desc??''),
-      security:String(row.security_desc??''),
-      averageInterestRatePct:finiteOrNull(row.avg_interest_rate_amt),
-      recordDate:String(row.record_date??'')
-    })).filter((row)=>row.security&&row.averageInterestRatePct!=null).slice(0,12);
-    if(!rows.length)return unavailable('us-treasury','US Treasury Fiscal Data',{attribution:'U.S. Department of the Treasury, Fiscal Data',docsUrl:'https://fiscaldata.treasury.gov/api-documentation/'});
-    return success('us-treasury','US Treasury Fiscal Data',rows,{
-      state:'reference_external',
-      observedAt:latestDate?`${latestDate}T00:00:00.000Z`:null,
-      attribution:'U.S. Department of the Treasury, Fiscal Data',
-      docsUrl:'https://fiscaldata.treasury.gov/api-documentation/',
-      usage:'official open-data API; monthly average interest-rate reference observations, not tradable yields',
-      cadence:'monthly average interest rates on U.S. Treasury securities'
-    });
-  }catch(error){
-    return unavailable('us-treasury','US Treasury Fiscal Data',{attribution:'U.S. Department of the Treasury, Fiscal Data',reason:error.message,docsUrl:'https://fiscaldata.treasury.gov/api-documentation/'});
-  }
-}
-
 async function imfGrowthReference(){
   try{
     const countryNames={IND:'India',USA:'United States',CHN:'China',GBR:'United Kingdom',JPN:'Japan',ARE:'United Arab Emirates'};
@@ -197,7 +171,6 @@ export async function buildExternalMarketNetwork(context={}){
     cachedSource(context,'alternative-me',SOURCE_CACHE_TTL['alternative-me'],alternativeCrypto),
     cachedSource(context,'hyperliquid',SOURCE_CACHE_TTL.hyperliquid,hyperliquidMids),
     cachedSource(context,'world-bank',SOURCE_CACHE_TTL['world-bank'],worldBankMacro),
-    cachedSource(context,'us-treasury',SOURCE_CACHE_TTL['us-treasury'],usTreasuryRates),
     cachedSource(context,'imf',SOURCE_CACHE_TTL.imf,imfGrowthReference)
   ]);
   return {
@@ -236,4 +209,4 @@ export async function buildExternalMarketNetwork(context={}){
   };
 }
 
-export const __test=Object.freeze({finiteOrNull,sourceTruthState,withDelivery,edgeCacheRequest,cachedSource,alternativeCrypto,hyperliquidMids,worldBankMacro,usTreasuryRates,imfGrowthReference,SOURCE_CACHE_TTL});
+export const __test=Object.freeze({finiteOrNull,sourceTruthState,withDelivery,edgeCacheRequest,cachedSource,alternativeCrypto,hyperliquidMids,worldBankMacro,imfGrowthReference,SOURCE_CACHE_TTL});
