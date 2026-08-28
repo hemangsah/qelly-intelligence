@@ -54,7 +54,9 @@ test('canonical workflow retains live release, runtime, provider and browser dia
     'api/v1/providers/ecb?symbol=EUR',
     'npx playwright install --with-deps chromium',
     'inlineScriptCount',
-    'startupFailure'
+    'startupFailure',
+    'expectedTradingViewAbort',
+    "new URL(entry.url).hostname"
   ])assert.ok(source.includes(marker),`missing live verification marker: ${marker}`);
   assert.match(source,/release\.releaseSha!==process\.env\.RELEASE_SHA/);
   assert.match(source,/config\.releaseSha!==process\.env\.RELEASE_SHA/);
