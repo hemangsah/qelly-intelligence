@@ -25,7 +25,7 @@ function installStaticHeader(){
 
 function installDecisionNavigation(){
   document.querySelectorAll('.q-product-nav').forEach((nav)=>{
-    if(nav.querySelector('[data-qelly-decision-link]'))return;
+    if(nav.querySelector('[data-qelly-decision-link],a[href="#/decision-provenance"]'))return;
     const link=document.createElement('a');link.href='#/decision-provenance';link.dataset.qellyDecisionLink='true';link.textContent='Decision';nav.prepend(link);
   });
 }
