@@ -21,8 +21,13 @@ const scoreTone=(value,inverted=false)=>{const score=inverted?100-Number(value):
 function installNavigation(){
   const targets=[document.querySelector('.q-product-nav'),document.querySelector('.q-recovery-header nav')].filter(Boolean);
   for(const nav of targets){
-    if(!nav.querySelector('[data-qelly-verify-link]')){const link=document.createElement('a');link.href='#/qelly-verify';link.dataset.qellyVerifyLink='true';link.textContent='Verify';const first=nav.querySelector('a');if(first)nav.insertBefore(link,first);else nav.append(link);}
-    if(!nav.querySelector('[data-qelly-methodology-link]')){const link=document.createElement('a');link.href='#/market?view=evidence-methodology';link.dataset.qellyMethodologyLink='true';link.textContent='Evidence';const verify=nav.querySelector('[data-qelly-verify-link]');verify?.insertAdjacentElement('afterend',link);if(!verify)nav.append(link);}
+    let inserted=false;
+    if(!nav.querySelector('[data-qelly-verify-link]')){const link=document.createElement('a');link.href='#/qelly-verify';link.dataset.qellyVerifyLink='true';link.textContent='Verify';const first=nav.querySelector('a');if(first)nav.insertBefore(link,first);else nav.append(link);inserted=true;}
+    if(!nav.querySelector('[data-qelly-methodology-link]')){const link=document.createElement('a');link.href='#/market?view=evidence-methodology';link.dataset.qellyMethodologyLink='true';link.textContent='Evidence';const verify=nav.querySelector('[data-qelly-verify-link]');verify?.insertAdjacentElement('afterend',link);if(!verify)nav.append(link);inserted=true;}
+    /* Inserting links before the current first item can preserve the browser's
+       old horizontal scroll anchor, leaving the new destinations hidden below
+       the brand. Reset only after insertion; user-driven scrolling is kept. */
+    if(inserted&&nav.matches('.q-product-nav')){nav.scrollLeft=0;requestAnimationFrame(()=>{nav.scrollLeft=0;});}
   }
   document.querySelectorAll('[data-qelly-verify-link]').forEach(link=>link.classList.toggle('is-active',verifyActive()));
   document.querySelectorAll('[data-qelly-methodology-link]').forEach(link=>link.classList.toggle('is-active',methodologyActive()));

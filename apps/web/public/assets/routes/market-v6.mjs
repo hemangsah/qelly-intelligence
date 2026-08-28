@@ -81,6 +81,7 @@ function providerAtlasCard(provider,escapeHtml){
 }
 
 function bindProviderAtlas(root){
+  if(!root?.isConnected)return;
   const search=root.querySelector('[data-provider-atlas-search]');
   const filter=root.querySelector('[data-provider-atlas-filter]');
   const count=root.querySelector('[data-provider-atlas-count]');
@@ -229,8 +230,6 @@ export async function renderMarketV6(main,deps){
   const overview=overviewResult.status==='fulfilled'?overviewResult.value:{providers:[],guardrails:{fabricatedObservations:false}};
   const ecb=ecbResult.status==='fulfilled'?ecbResult.value:null;
   const providers=Array.isArray(overview.providers)?overview.providers:[];
-  const authorizedMarketProviders=providers.filter(provider=>provider.enabled&&provider.id!=='ecb');
-  const referenceProviders=providers.filter(provider=>provider.enabled&&provider.id==='ecb');
   const symbolOptions=EXTERNAL_SYMBOLS.map(([id,label])=>`<option value="${id}">${label}</option>`).join('');
   const intervalOptions=INTERVALS.map(([id,label])=>`<option value="${id}">${label}</option>`).join('');
   const ecbObservedAt=ecb?.observationTime||ecb?.observedAt||null;
@@ -244,13 +243,6 @@ export async function renderMarketV6(main,deps){
       <div class="q-market-principle__rules"><span>Verify freshness</span><span>Separate signal from story</span><span>Keep execution outside research</span></div>
     </section>
     ${stateBanner()}
-
-    <section class="q-v7-boundary-ribbon" aria-label="Market truth boundary">
-      <div><span>Internal crypto feeds</span><strong>${authorizedMarketProviders.length}</strong><small>${authorizedMarketProviders.length?'Rights-authorized provider available':'No rights-authorized crypto feed'}</small></div>
-      <div><span>Approved reference feeds</span><strong>${referenceProviders.length}</strong><small>ECB daily working-day reference cadence</small></div>
-      <div><span>Fabricated fallback</span><strong>OFF</strong><small>Unavailable stays unavailable</small></div>
-      <div><span>Execution</span><strong>DISABLED</strong><small>Read-only research terminal</small></div>
-    </section>
 
     <section class="q-tv-tape-shell" aria-label="TradingView cross-asset ticker tape">
       <div id="q-tv-ticker-tape" class="q-tv-ticker-stage"></div>
@@ -300,12 +292,13 @@ export async function renderMarketV6(main,deps){
     <section class="q-panel"><div class="q-panel-head"><div><h2>Production boundary</h2><p>The public market route uses only anonymous/public contracts. Private data-plane and workspace APIs are requested only after authentication.</p></div><span class="q-status q-status--live">PUBLIC SAFE</span></div><div class="q-panel-body"><div class="q-v6-market-boundary"><span class="q-status q-status--unavailable">NO FALLBACK FABRICATION</span><p>${escapeHtml(overview.reason||'If an internal provider is unavailable or rights-blocked, Qelly exposes that state directly.')}</p></div></div></section>
   </section>`;
 
-  const chart=main.querySelector('#v6-market-tradingview');
-  const symbol=main.querySelector('#v6-market-symbol');
-  const interval=main.querySelector('#v6-market-interval');
-  const ticker=main.querySelector('#q-tv-ticker-tape');
-  const suite=main.querySelector('[data-tv-suite]');
-  const intelligenceDock=main.querySelector('[data-external-intelligence-dock]');
+  const marketRoot=main.querySelector('[data-qelly-v7-public-market]');
+  const chart=marketRoot.querySelector('#v6-market-tradingview');
+  const symbol=marketRoot.querySelector('#v6-market-symbol');
+  const interval=marketRoot.querySelector('#v6-market-interval');
+  const ticker=marketRoot.querySelector('#q-tv-ticker-tape');
+  const suite=marketRoot.querySelector('[data-tv-suite]');
+  const intelligenceDock=marketRoot.querySelector('[data-external-intelligence-dock]');
   let handle=null,tickerHandle=null,suiteHandle=null,intelligenceDockHandle=null,themeFrame=0;
   // Evidence aliases are immediately handed to the local Qelly Verify surface.
   // Do not start third-party iframe widgets during that transient handoff: a
@@ -324,7 +317,7 @@ export async function renderMarketV6(main,deps){
     mountTicker();
     symbol?.addEventListener('change',mount);interval?.addEventListener('change',mount);mount();
   }
-  api('/api/v1/market/network').then((network)=>populateNetworkSections(main,network,escapeHtml)).catch(()=>populateNetworkSections(main,{sources:{},providerDirectory:[],providerDirectorySummary:{byIntegration:{}}},escapeHtml));
+  api('/api/v1/market/network').then((network)=>populateNetworkSections(marketRoot,network,escapeHtml)).catch(()=>populateNetworkSections(marketRoot,{sources:{},providerDirectory:[],providerDirectorySummary:{byIntegration:{}}},escapeHtml));
   const themeObserver=new MutationObserver(()=>{
     cancelAnimationFrame(themeFrame);
     themeFrame=requestAnimationFrame(()=>{mount();mountTicker();suiteHandle?.refresh();intelligenceDockHandle?.refresh();});

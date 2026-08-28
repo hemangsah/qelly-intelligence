@@ -79,7 +79,7 @@ function renderPublicRecovery(route,message){
 }
 
 function brokenSurface(){if(!main||main.dataset.qellyRecoveryOwner)return false;const text=main.textContent?.toLowerCase()||'';return failureCopy.some((phrase)=>text.includes(phrase));}
-function reconcile(){scheduled=false;if(rendering||!main)return;installStaticHeader();installDecisionNavigation();const {route,params}=parseRoute();if(route==='market'&&params.get('view')==='decision-maker'){if(main.dataset.qellyRecoveryOwner!=='decision-maker')renderDecisionMaker();return;}if(main.dataset.qellyRecoveryOwner&&main.dataset.qellyRecoveryOwner!==route)delete main.dataset.qellyRecoveryOwner;if(brokenSurface()&&publicRoutes.has(route))renderPublicRecovery(route,main.textContent?.trim());}
+function reconcile(){scheduled=false;if(rendering||!main)return;installStaticHeader();installDecisionNavigation();const {route,params}=parseRoute();if(route==='market'&&params.get('view')==='decision-maker'){if(main.dataset.qellyRecoveryOwner!=='decision-maker'||!main.querySelector('[data-qelly-recovery-owned="decision-maker"]'))renderDecisionMaker();return;}if(main.dataset.qellyRecoveryOwner&&main.dataset.qellyRecoveryOwner!==route)delete main.dataset.qellyRecoveryOwner;if(brokenSurface()&&publicRoutes.has(route))renderPublicRecovery(route,main.textContent?.trim());}
 function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(reconcile);}
 
 installStaticHeader();installDecisionNavigation();
