@@ -1,6 +1,6 @@
 {
   "productVersion": "0.9.0-preview.1",
-  "count": 70,
+  "count": 71,
   "items": [
     {
       "index": 1,
@@ -29,7 +29,7 @@
     {
       "index": 4,
       "route": "account-session",
-      "label": "Session Center",
+      "label": "Profile & Security",
       "section": "Account",
       "public": false,
       "implementation": "runnable-route"
@@ -109,9 +109,9 @@
     {
       "index": 14,
       "route": "live-markets",
-      "label": "Live Market Command",
+      "label": "Global Market Network",
       "section": "Live",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     },
     {
@@ -277,9 +277,9 @@
     {
       "index": 35,
       "route": "news-research",
-      "label": "News & Research",
+      "label": "AI, News & Community",
       "section": "Discover",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     },
     {
@@ -341,7 +341,7 @@
     {
       "index": 43,
       "route": "market",
-      "label": "Market Overview",
+      "label": "Market Command",
       "section": "Intelligence",
       "public": true,
       "implementation": "runnable-route"
@@ -469,7 +469,7 @@
     {
       "index": 59,
       "route": "theme-lab",
-      "label": "Theme Laboratory",
+      "label": "Theme Studio",
       "section": "Platform",
       "public": false,
       "implementation": "runnable-route"
@@ -532,6 +532,14 @@
     },
     {
       "index": 67,
+      "route": "qelly-verify",
+      "label": "Qelly Verify",
+      "section": "Evidence",
+      "public": true,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 68,
       "route": "security-evidence",
       "label": "Security Evidence",
       "section": "Evidence",
@@ -539,7 +547,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 68,
+      "index": 69,
       "route": "category-detail",
       "label": "Category Detail",
       "section": "Detail",
@@ -547,7 +555,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 69,
+      "index": 70,
       "route": "venue-detail",
       "label": "Venue Detail",
       "section": "Detail",
@@ -555,7 +563,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 70,
+      "index": 71,
       "route": "research-article",
       "label": "Research Article",
       "section": "Detail",

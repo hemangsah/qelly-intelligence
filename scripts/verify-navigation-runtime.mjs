@@ -30,7 +30,9 @@ const observations=[];
 page.on('pageerror',(error)=>failures.push({type:'pageerror',message:error.message}));
 page.on('requestfailed',(request)=>{
   const message=request.failure()?.errorText||'unknown';
-  if(request.url().includes('tradingview-widget.com')&&message.includes('ERR_ABORTED')){
+  const requestUrl=new URL(request.url());
+  const isTradingViewWidget=requestUrl.hostname==='tradingview-widget.com'||requestUrl.hostname.endsWith('.tradingview-widget.com');
+  if(isTradingViewWidget&&message.includes('ERR_ABORTED')){
     observations.push({kind:'expected-widget-teardown',url:request.url()});
     return;
   }

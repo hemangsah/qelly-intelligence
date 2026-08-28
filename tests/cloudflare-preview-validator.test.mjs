@@ -25,3 +25,19 @@ test('Cloudflare preview workflow requires an explicit immutable preview and exa
   assert.match(workflow,/QELLY_EXPECTED_HEAD_SHA: \$\{\{ inputs\.expected_sha \}\}/);
   assert.doesNotMatch(workflow,/feature-prompt2c-production-oty3/);
 });
+
+test('release deployability gate recognizes the verified Cloudflare public beta without overstating production',async()=>{
+  const [releaseCheck,readme]=await Promise.all([read('scripts/release-check.mjs'),read('README.md')]);
+  assert.match(releaseCheck,/readme\.includes\('\*\*Public beta deployed\.\*\*'\)/);
+  assert.match(releaseCheck,/readme\.includes\('https:\/\/qelly-intelligence\.pages\.dev'\)/);
+  assert.match(readme,/\*\*Public beta deployed\.\*\*/);
+  assert.match(readme,/Cloudflare Pages Functions/);
+});
+
+test('navigation verifier parses request hosts before accepting TradingView widget teardown',async()=>{
+  const source=await read('scripts/verify-navigation-runtime.mjs');
+  assert.match(source,/new URL\(request\.url\(\)\)/);
+  assert.match(source,/requestUrl\.hostname==='tradingview-widget\.com'/);
+  assert.match(source,/requestUrl\.hostname\.endsWith\('\.tradingview-widget\.com'\)/);
+  assert.doesNotMatch(source,/request\.url\(\)\.includes\('tradingview-widget\.com'\)/);
+});

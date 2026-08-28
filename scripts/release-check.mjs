@@ -80,7 +80,9 @@ const result = {
     'QELLY_PRIVATE_KEYS_ENABLED=false',
     'QELLY_RECOVERY_PHRASES_ENABLED=false'
   ].every((value) => envExample.includes(value)),
-  truthfulDeployability: readme.includes('Preview deployable.')
+  truthfulDeployability: readme.includes('**Public beta deployed.**')
+    && readme.includes('https://qelly-intelligence.pages.dev')
+    && readme.includes('Cloudflare Pages Functions')
     && !readme.includes('Public production deployment verified'),
   vercelFunctionPathsExist: functionPaths.every((file) => sourceTree.includes(file))
 };
