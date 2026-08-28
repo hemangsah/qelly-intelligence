@@ -65,7 +65,7 @@ function decisionReadinessMarkup(result,escapeHtml){
   return `<section class="q-panel q-decision-readiness"><div class="q-panel-head"><div><p class="q-eyebrow">Decision control plane</p><h2>Readiness gates and counterfactual stress</h2><p>A high composite cannot hide missing evidence. Each gate and scenario remains independently inspectable.</p></div><span class="q-status q-status--${result.readiness.blocked?'warning':'live'}">${escapeHtml(result.readiness.label)}</span></div><div class="q-panel-body"><div class="q-decision-gates">${gates}</div><div class="q-decision-counterfactuals" aria-label="Counterfactual scenario scores">${counterfactuals}</div></div></section>`;
 }
 
-function decisionControls(result,isDemo,escapeHtml){
+function decisionControls(result,isDemo,canPersist,escapeHtml){
   return `<section class="q-panel q-decision-maker-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Qelly Intelligence · explainable decision support</p><h2>AI Decision Maker · evidence mode</h2><p>Convert a human hypothesis into an auditable research posture. ${isDemo?'This surface runs a deterministic explainable framework over fixed scenario profiles; no live AI model or live market feed is running.':'The output remains decision support and requires human verification.'}</p></div><span class="q-status q-status--${isDemo?'simulated':'cached'}">${isDemo?'deterministic preview':'human in control'}</span></div><div class="q-panel-body">
     <form data-qelly-decision-form class="q-inline-form">
       <label class="q-setting"><span>Canonical asset</span><select name="assetId">${decisionAssets.map((asset)=>`<option value="${asset.id}" ${asset.id===result.input.assetId?'selected':''}>${escapeHtml(asset.name)} · ${escapeHtml(asset.symbol)}</option>`).join('')}</select></label>
@@ -75,7 +75,7 @@ function decisionControls(result,isDemo,escapeHtml){
       <label class="q-setting"><span>Scenario move · <output>${result.input.scenarioMove}%</output></span><input name="scenarioMove" type="range" min="-30" max="30" step="1" value="${result.input.scenarioMove}"></label>
       <label class="q-setting"><span>Human hypothesis</span><textarea name="thesis" rows="3" maxlength="1200" placeholder="State the thesis and the evidence supporting it." aria-label="Human hypothesis">${escapeHtml(result.input.thesis)}</textarea></label>
       <label class="q-setting"><span>Invalidation condition</span><textarea name="invalidationCondition" rows="3" maxlength="1200" placeholder="State the observable condition that would invalidate the thesis." aria-label="Invalidation condition">${escapeHtml(result.input.invalidationCondition)}</textarea></label>
-      <div class="q-page-actions"><button class="q-button q-button--primary" type="submit">Run decision analysis</button>${isDemo?'':`<button class="q-button q-button--secondary" type="button" data-action="persist-decision">Persist evidence package</button>`}</div>
+      <div class="q-page-actions"><button class="q-button q-button--primary" type="submit">Run decision analysis</button>${canPersist?`<button class="q-button q-button--secondary" type="button" data-action="persist-decision">Persist evidence package</button>`:''}</div>
     </form>
     <section class="q-decision-result" aria-live="polite">
       <div class="q-decision-result__score"><span>Decision-support score</span><strong>${result.score}</strong><small>Transparent deterministic composite</small></div>
@@ -190,7 +190,7 @@ export async function renderDecisionProvenance(main,deps){
       <div class="q-truth-callout"><span class="q-status q-status--${truthTone}">${truthLabel}</span><p>${escapeHtml(truthText)}</p></div>
       <div class="q-kpi-grid"><article class="q-kpi"><div class="q-kpi-label">Research posture</div><div class="q-kpi-value">${escapeHtml(result.posture)}</div><div class="q-kpi-meta"><span>${escapeHtml(result.asset.symbol)} · ${escapeHtml(result.input.horizon)}</span><span class="q-status q-status--cached">score ${result.score}</span></div></article><article class="q-kpi"><div class="q-kpi-label">User-assessed confidence</div><div class="q-kpi-value">${result.input.evidenceConfidence}%</div><div class="q-kpi-meta"><span>${escapeHtml(result.confidenceBand)} band</span><span class="q-status q-status--warning">assumption</span></div></article><article class="q-kpi"><div class="q-kpi-label">Source quality</div><div class="q-kpi-value">${result.sourceQuality.composite}</div><div class="q-kpi-meta"><span>demo package</span><span class="q-status q-status--warning">freshness unavailable</span></div></article><article class="q-kpi"><div class="q-kpi-label">Execution</div><div class="q-kpi-value">Off</div><div class="q-kpi-meta"><span>decision support only</span><span class="q-status q-status--unavailable">disabled</span></div></article></div>
       <div class="q-decision-graph-stack">${graphMarkup(graph,{isDemo,isCaptureFixture},escapeHtml,selectedNodeId)}</div>
-      ${decisionControls(result,isDemo,escapeHtml)}
+      ${decisionControls(result,isDemo,listing.mode==='supabase-rls',escapeHtml)}
       ${decisionReadinessMarkup(result,escapeHtml)}
       ${analysisAuditMarkup(result,escapeHtml)}
     </section>`;
