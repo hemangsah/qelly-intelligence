@@ -1,5 +1,7 @@
+import {providerDirectory,providerDirectorySummary} from './provider-directory.js';
+
 const REQUEST_TIMEOUT_MS=7000;
-const SOURCE_CACHE_TTL=Object.freeze({hyperliquid:8,'alternative-me':60,'world-bank':3600});
+const SOURCE_CACHE_TTL=Object.freeze({hyperliquid:8,'alternative-me':60,'world-bank':3600,imf:21600});
 
 const nowIso=()=>new Date().toISOString();
 const finiteOrNull=(value)=>Number.isFinite(Number(value))?Number(value):null;
@@ -136,15 +138,46 @@ async function worldBankMacro(){
   }
 }
 
+async function imfGrowthReference(){
+  try{
+    const countryNames={IND:'India',USA:'United States',CHN:'China',GBR:'United Kingdom',JPN:'Japan',ARE:'United Arab Emirates'};
+    const url='https://www.imf.org/external/datamapper/api/v1/NGDP_RPCH/IND/USA/CHN/GBR/JPN/ARE';
+    const payload=await fetchJson(url,{headers:{'User-Agent':'Qelly-Intelligence/1.0 (+https://qelly-intelligence.pages.dev/)'}});
+    const values=payload?.values?.NGDP_RPCH??{};
+    const currentYear=new Date().getUTCFullYear();
+    const rows=Object.entries(countryNames).map(([countryId,country])=>{
+      const periods=values?.[countryId]??{};
+      const years=Object.keys(periods).filter((year)=>Number(year)<=currentYear&&finiteOrNull(periods[year])!=null).sort((a,b)=>Number(b)-Number(a));
+      const year=years[0]??null;
+      return {countryId,country,year,growthPct:year?finiteOrNull(periods[year]):null,estimateOrProjection:year?Number(year)>=currentYear:false};
+    }).filter((row)=>row.year&&row.growthPct!=null);
+    if(!rows.length)return unavailable('imf','IMF DataMapper',{attribution:'International Monetary Fund, World Economic Outlook',docsUrl:'https://www.imf.org/external/datamapper/api/help'});
+    const latestYear=rows.map((row)=>Number(row.year)).sort((a,b)=>b-a)[0];
+    return success('imf','IMF DataMapper',rows,{
+      state:'reference_external',
+      observedAt:null,
+      attribution:'International Monetary Fund, World Economic Outlook',
+      docsUrl:'https://www.imf.org/external/datamapper/api/help',
+      usage:'official statistical reference data with attribution; estimates and projections are labelled and are not live market observations',
+      cadence:`latest published WEO real-GDP-growth observation through ${latestYear}`
+    });
+  }catch(error){
+    return unavailable('imf','IMF DataMapper',{attribution:'International Monetary Fund, World Economic Outlook',reason:error.message,docsUrl:'https://www.imf.org/external/datamapper/api/help'});
+  }
+}
+
 export async function buildExternalMarketNetwork(context={}){
   const results=await Promise.all([
     cachedSource(context,'alternative-me',SOURCE_CACHE_TTL['alternative-me'],alternativeCrypto),
     cachedSource(context,'hyperliquid',SOURCE_CACHE_TTL.hyperliquid,hyperliquidMids),
-    cachedSource(context,'world-bank',SOURCE_CACHE_TTL['world-bank'],worldBankMacro)
+    cachedSource(context,'world-bank',SOURCE_CACHE_TTL['world-bank'],worldBankMacro),
+    cachedSource(context,'imf',SOURCE_CACHE_TTL.imf,imfGrowthReference)
   ]);
   return {
     generatedAt:nowIso(),
     sources:Object.fromEntries(results.map((item)=>[item.id,item])),
+    providerDirectory:providerDirectory(),
+    providerDirectorySummary:providerDirectorySummary(),
     policy:{
       fabricatedFallback:false,
       execution:false,
@@ -176,4 +209,4 @@ export async function buildExternalMarketNetwork(context={}){
   };
 }
 
-export const __test=Object.freeze({finiteOrNull,sourceTruthState,withDelivery,edgeCacheRequest,cachedSource,alternativeCrypto,hyperliquidMids,worldBankMacro,SOURCE_CACHE_TTL});
+export const __test=Object.freeze({finiteOrNull,sourceTruthState,withDelivery,edgeCacheRequest,cachedSource,alternativeCrypto,hyperliquidMids,worldBankMacro,imfGrowthReference,SOURCE_CACHE_TTL});

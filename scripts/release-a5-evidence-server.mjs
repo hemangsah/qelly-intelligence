@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {startServer as startLegacyServer} from '../src/server/server.mjs';
 import {__profileRouteTest} from '../functions/api/v1/profile.js';
 import {capabilityInventory} from '../functions/_lib/capability-registry.js';
+import {providerDirectory,providerDirectorySummary} from '../functions/_lib/provider-directory.js';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const productionFrontend=path.join(root,'dist/frontend');
@@ -65,8 +66,11 @@ function evidenceMarketNetwork(){
       'alternative-me':isolated('alternative-me','Alternative.me','External crypto reference API isolated in deterministic evidence runtime.'),
       hyperliquid:isolated('hyperliquid','Hyperliquid','External read-only info API isolated in deterministic evidence runtime.'),
       'world-bank':isolated('world-bank','World Bank','External macro reference API isolated in deterministic evidence runtime.'),
+      imf:isolated('imf','IMF DataMapper','Official statistical reference API isolated in deterministic evidence runtime.'),
       ecb:{provider:'ecb',sourceIdentifier:'EUR',truthState:'unavailable',observationTime:null,ingestionTime:FIXED_TIME,freshness:'unavailable',quality:'evidence-network-isolated',confidence:0,attribution:'European Central Bank',license:null,fallbackReason:'evidence_runtime_external_network_isolated',termsState:'conditionally_approved_attributed_reference_data',cache:{hit:false,stale:false},data:null}
     },
+    providerDirectory:providerDirectory(),
+    providerDirectorySummary:providerDirectorySummary(),
     policy:{fabricatedFallback:false,execution:false,custody:false,sourceFailuresRemainUnavailable:true,cacheSeconds:90,staleWhileRevalidateSeconds:900},
     providerPolicy:{binance:'rights_blocked_or_unverified',coinbase:'rights_blocked_or_unverified',ecb:'governed_reference_data'},
     researchLinks:[

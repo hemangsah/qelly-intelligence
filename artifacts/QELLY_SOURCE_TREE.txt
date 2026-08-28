@@ -641,6 +641,7 @@ functions/_lib/market-network.js
 functions/_lib/platform-readiness.js
 functions/_lib/portfolio-cloud.js
 functions/_lib/profile-preferences.js
+functions/_lib/provider-directory.js
 functions/_lib/providers.js
 functions/_lib/readiness.js
 functions/_lib/runtime.js
@@ -1271,6 +1272,7 @@ tests/prompt2c-public-market-envelope.test.mjs
 tests/prompt2c-public-runtime-hardening.test.mjs
 tests/prompt2c-public-runtime.test.mjs
 tests/prompt2c-route-ownership.test.mjs
+tests/provider-directory.test.mjs
 tests/public-auth-email-artifact-sync.test.mjs
 tests/public-beta-foundation.test.mjs
 tests/public-market-launch.test.mjs

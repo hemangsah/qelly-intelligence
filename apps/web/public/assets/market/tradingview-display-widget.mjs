@@ -9,8 +9,12 @@ const WIDGET_SOURCES=Object.freeze({
   economicCalendar:'https://s3.tradingview.com/external-embedding/embed-widget-events.js',
   technicalAnalysis:'https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js',
   cryptoHeatmap:'https://s3.tradingview.com/external-embedding/embed-widget-crypto-coins-heatmap.js',
+  stockHeatmap:'https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js',
   forexCrossRates:'https://s3.tradingview.com/external-embedding/embed-widget-forex-cross-rates.js',
-  topStories:'https://s3.tradingview.com/external-embedding/embed-widget-timeline.js'
+  topStories:'https://s3.tradingview.com/external-embedding/embed-widget-timeline.js',
+  symbolOverview:'https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js',
+  miniChart:'https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js',
+  marketQuotes:'https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js'
 });
 
 const SYMBOL_MAP=Object.freeze({
