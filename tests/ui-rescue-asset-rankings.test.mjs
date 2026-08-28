@@ -73,11 +73,11 @@ test('production rankings truth is compact and mobile foundations remain purpose
 
 test('research Figma motion and originality deliverables exist',async()=>{
   const files=[
-    'design/research/REFERENCE_UI_FORENSICS.md','design/research/REFERENCE_COMPUTED_STYLES.json','design/research/REFERENCE_LAYOUT_METRICS.json','design/research/REFERENCE_MOTION_INVENTORY.json','design/research/REFERENCE_FEATURE_INVENTORY.csv','design/research/QELLY_SYNTHESIS_DECISIONS.md','design/review/VISUAL_FAILURE_REPORT.md','design/icons/QELLY_ICON_GUIDE.md','design/figma/QELLY_FIGMA_MASTER_SPEC.md','design/figma/QELLY_FIGMA_SCREEN_MATRIX.csv','design/figma/QELLY_FIGMA_COMPONENT_MATRIX.csv','design/figma/QELLY_DESIGN_REVIEW_CHECKLIST.md','QELLY_MOTION_SYSTEM.md','QELLY_MOTION_TOKENS.json'
+    'design/research/REFERENCE_UI_FORENSICS.md','design/research/REFERENCE_COMPUTED_STYLES.json','design/research/REFERENCE_LAYOUT_METRICS.json','design/research/REFERENCE_MOTION_INVENTORY.json','design/research/REFERENCE_FEATURE_INVENTORY.csv','design/research/QELLY_SYNTHESIS_DECISIONS.md','design/review/VISUAL_FAILURE_REPORT.md','design/icons/QELLY_ICON_GUIDE.md','design/figma/QELLY_FIGMA_MASTER_SPEC.md','design/figma/QELLY_FIGMA_SCREEN_MATRIX.csv','design/figma/QELLY_FIGMA_COMPONENT_MATRIX.csv','design/figma/QELLY_DESIGN_REVIEW_CHECKLIST.md','docs/governance/QELLY_MOTION_SYSTEM.md','design/tokens/QELLY_MOTION_TOKENS.json'
   ];
   const contents=await Promise.all(files.map(read));
   assert.ok(contents.every((value)=>value.length>20));
-  const figma=await read('figma-plugin/code.js');
+  const figma=await read('design/figma/plugins/core/code.js');
   assert.match(figma,/31 Handoff/);
   assert.match(figma,/Qelly Premium Semantic/);
   assert.match(figma,/MASTER_SCREENS/);

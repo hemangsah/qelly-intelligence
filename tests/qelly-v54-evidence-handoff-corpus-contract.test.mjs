@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-const workflow = await readFile('.github/workflows/qelly-cloudflare-evidence-handoff.yml', 'utf8');
+const workflow = await readFile('.github/workflows/release-evidence-handoff.yml', 'utf8');
 
 test('Cloudflare evidence handoff derives render cardinality from the captured corpus', () => {
   assert.match(workflow, /const expectedRenderCount=manifest\.routeCount\*manifest\.viewportCount;/);

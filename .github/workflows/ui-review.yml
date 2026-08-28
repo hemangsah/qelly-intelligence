@@ -1,4 +1,4 @@
-name: Qelly UI Rescue Review
+name: UI Review
 
 on:
   pull_request:

@@ -1,0 +1,241 @@
+name: Public Runtime
+
+on:
+  pull_request:
+    branches:
+      - release/qelly-global-public-beta
+      - main
+  push:
+    branches:
+      - release/qelly-global-public-beta
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qelly-public-runtime-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate public-runtime head
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Security, type and design validation
+        run: |
+          npm run security:scan
+          npm run typecheck
+          npm run lint
+          npm run validate:design
+      - name: Complete repository test suite
+        run: npm test
+      - name: Check Pages Functions modules
+        run: |
+          node --check functions/_lib/runtime.js
+          node --check functions/_lib/auth.js
+          node --check functions/_lib/data.js
+          node --check functions/_lib/providers.js
+          node --check functions/_lib/readiness.js
+          node --check 'functions/api/v1/[[path]].js'
+          node --check functions/api/v1/_middleware.js
+          node --check functions/api/v1/readiness.js
+          node --check functions/_middleware.js
+          node --check apps/web/public/assets/qelly-auth-callback.mjs
+          node --check apps/web/public/assets/qelly-cloud-sync.mjs
+      - name: Build frontend bundle
+        run: npm run build:frontend
+
+  verify-public:
+    name: Verify externally deployed runtime truth
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/release/qelly-global-public-beta'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PUBLIC_URL: https://qelly-intelligence.pages.dev
+      RELEASE_SHA: ${{ github.sha }}
+      SUPABASE_PROJECT_REF: ssdgfgqnjlwzkgukzeef
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Wait for complete Cloudflare runtime convergence
+        run: node scripts/wait-for-cloudflare-runtime-convergence.mjs
+      - name: Capture and validate critical routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          fetch_route() {
+            path="$1"
+            expected="$2"
+            safe="$(echo "${path:-index}" | tr '/?=&' '----')"
+            separator='?'
+            case "${path}" in *\?*) separator='&' ;; esac
+            url="${PUBLIC_URL%/}/${path}${separator}verify=${RELEASE_SHA}"
+            status="$(curl --silent --show-error --location --max-time 30 \
+              -H 'Cache-Control: no-cache' \
+              -D "dist/live-public-verification/http/${safe}.headers" \
+              -o "dist/live-public-verification/http/${safe}.body" \
+              -w '%{http_code}' \
+              "${url}")"
+            case ",${expected}," in
+              *",${status},"*) ;;
+              *)
+                echo "Unexpected HTTP ${status} for /${path}; expected ${expected}"
+                cat "dist/live-public-verification/http/${safe}.body" || true
+                exit 1
+                ;;
+            esac
+          }
+
+          fetch_route '' '200'
+          fetch_route 'qelly-config.js' '200'
+          fetch_route 'BUILD_INFO.json' '200'
+          fetch_route 'robots.txt' '200'
+          fetch_route 'sitemap.xml' '200'
+          fetch_route 'manifest.webmanifest' '200'
+          fetch_route 'auth/callback.html' '200'
+          fetch_route 'legal/privacy.html' '200'
+          fetch_route 'support.html' '200'
+          fetch_route 'api/v1/health' '200'
+          fetch_route 'api/v1/readiness' '200'
+          fetch_route 'api/v1/config' '200'
+          fetch_route 'api/v1/providers/status' '200'
+          fetch_route 'api/v1/providers/binance?symbol=BTCUSDT' '200'
+          fetch_route 'api/v1/providers/coinbase?symbol=BTC-USD' '200'
+          fetch_route 'api/v1/providers/ecb?symbol=EUR' '200,503'
+
+          grep -F 'id="app"' dist/live-public-verification/http/index.body
+
+          node <<'NODE'
+          const fs = require('node:fs');
+          const vm = require('node:vm');
+          const base = 'dist/live-public-verification/http';
+          const readJson = name => JSON.parse(fs.readFileSync(`${base}/${name}`, 'utf8'));
+          const release = readJson('release.json');
+          const build = readJson('BUILD_INFO.json.body');
+          const health = readJson('api-v1-health.body');
+          const readiness = readJson('api-v1-readiness.body');
+          const binance = readJson('api-v1-providers-binance-symbol-BTCUSDT.body');
+          const coinbase = readJson('api-v1-providers-coinbase-symbol-BTC-USD.body');
+
+          if (release.releaseSha !== process.env.RELEASE_SHA) throw new Error(`release_sha_mismatch_${release.releaseSha}`);
+          if (build.releaseSha !== process.env.RELEASE_SHA) throw new Error(`build_sha_mismatch_${build.releaseSha}`);
+          if (health.releaseSha !== process.env.RELEASE_SHA || health.status !== 'ok') throw new Error('health_identity_mismatch');
+          if (readiness.releaseSha !== process.env.RELEASE_SHA) throw new Error('readiness_identity_mismatch');
+          if (readiness.ready !== true || readiness.status !== 'ready') throw new Error(`readiness_truth_invalid_${JSON.stringify(readiness)}`);
+          for (const [name, check] of Object.entries(readiness.checks || {})) {
+            if (check.required === true && (check.configured !== true || check.proven !== true)) throw new Error(`readiness_check_unproven_${name}`);
+          }
+
+          for (const [expectedProvider, payload, expectedTerms] of [
+            ['binance', binance, 'blocked_pending_redistribution_rights'],
+            ['coinbase', coinbase, 'blocked_pending_written_end_user_display_permission']
+          ]) {
+            if (payload.provider !== expectedProvider) throw new Error(`${expectedProvider}_identity_invalid`);
+            if (payload.truthState !== 'unavailable' || payload.data !== null || payload.confidence !== 0) {
+              throw new Error(`${expectedProvider}_availability_truth_invalid_${JSON.stringify(payload)}`);
+            }
+            if (payload.termsState !== expectedTerms) throw new Error(`${expectedProvider}_terms_state_invalid_${payload.termsState}`);
+          }
+
+          const source = fs.readFileSync(`${base}/qelly-config.js.body`, 'utf8');
+          const sandbox = { window: {} };
+          vm.runInNewContext(source, sandbox, { timeout: 1000 });
+          const config = sandbox.window.__QELLY_CONFIG__ || {};
+          const key = String(config.supabase?.publishableKey || '');
+          const validModern = /^sb_publishable_[A-Za-z0-9_-]{20,}$/.test(key);
+          const parts = key.split('.');
+          const validLegacy = parts.length === 3 && parts.every(part => /^[A-Za-z0-9_-]+$/.test(part) && part.length >= 16) && key.length >= 100;
+          const evidence = {
+            releaseSha: config.releaseSha,
+            publicSiteUrl: config.publicSiteUrl,
+            staticVisualPreview: config.staticVisualPreview,
+            capabilities: config.capabilities,
+            supabaseUrl: config.supabase?.url,
+            keyShape: { present: key.length > 0, equalsProjectReference: key === process.env.SUPABASE_PROJECT_REF, valid: validModern || validLegacy },
+            readiness,
+            blockedProviders: { binance, coinbase }
+          };
+          fs.writeFileSync('dist/live-public-verification/config-redacted.json', JSON.stringify(evidence, null, 2));
+          if (config.releaseSha !== process.env.RELEASE_SHA) throw new Error('generated_config_release_mismatch');
+          if (config.publicSiteUrl !== process.env.PUBLIC_URL) throw new Error('generated_site_url_mismatch');
+          if (config.staticVisualPreview !== false) throw new Error('static_preview_enabled');
+          if (key === process.env.SUPABASE_PROJECT_REF || !(validModern || validLegacy)) throw new Error('invalid_publishable_key');
+          NODE
+      - name: Verify browser startup under deployed CSP
+        shell: bash
+        run: |
+          npx playwright install --with-deps chromium
+          node <<'NODE'
+          const fs = require('node:fs');
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, serviceWorkers: 'block' });
+            const page = await context.newPage();
+            const pageErrors = [];
+            const consoleErrors = [];
+            page.on('pageerror', error => pageErrors.push({ name: error.name, message: error.message }));
+            page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+            const response = await page.goto(`${process.env.PUBLIC_URL}?verify=${process.env.RELEASE_SHA}`, { waitUntil: 'domcontentloaded', timeout: 45000 });
+            await page.waitForTimeout(13000);
+            const dom = await page.evaluate(() => {
+              const main = document.querySelector('#main');
+              const app = document.querySelector('.q-app');
+              return {
+                appReady: document.documentElement.dataset.appReady || null,
+                themeReady: document.documentElement.dataset.themeReady || null,
+                appExists: Boolean(document.querySelector('#app')),
+                mainChildCount: main?.childElementCount ?? null,
+                appVisibility: app ? getComputedStyle(app).visibility : null,
+                startupFailure: Boolean(document.querySelector('.q-startup-failure')),
+                inlineScriptCount: [...document.scripts].filter(script => !script.src && script.textContent.trim()).length
+              };
+            });
+            const evidence = { url: page.url(), navigationStatus: response?.status() ?? null, dom, pageErrors, consoleErrors };
+            fs.writeFileSync('dist/live-public-verification/browser-evidence.json', JSON.stringify(evidence, null, 2));
+            await page.screenshot({ path: 'dist/live-public-verification/homepage.png', fullPage: true });
+            await browser.close();
+            if (evidence.navigationStatus !== 200) throw new Error(`homepage_status_${evidence.navigationStatus}`);
+            if (dom.appReady !== 'true' || dom.themeReady !== 'true') throw new Error(`app_not_ready_${JSON.stringify(dom)}`);
+            if (dom.appVisibility !== 'visible' || !dom.appExists || !(dom.mainChildCount > 0)) throw new Error('main_route_not_rendered');
+            if (dom.startupFailure || dom.inlineScriptCount !== 0) throw new Error('startup_or_csp_failure');
+            if (pageErrors.length) throw new Error(`page_errors_${JSON.stringify(pageErrors)}`);
+            const cspErrors = consoleErrors.filter(text => /content security policy|refused to execute inline|violates.*script-src/i.test(text));
+            if (cspErrors.length) throw new Error(`csp_console_errors_${JSON.stringify(cspErrors)}`);
+          })().catch(error => { console.error(error); process.exit(1); });
+          NODE
+      - name: Upload deployed runtime verification evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-live-public-verification-${{ github.sha }}
+          path: dist/live-public-verification
+          if-no-files-found: error
+          retention-days: 14

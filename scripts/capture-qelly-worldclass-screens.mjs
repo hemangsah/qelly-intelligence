@@ -17,7 +17,7 @@ for(const dir of [output,pngCurrent,webpCurrent,pngBefore,webpBefore])await mkdi
 const jsonl=path.join(output,'capture.jsonl');await writeFile(jsonl,'');
 const sha256=body=>createHash('sha256').update(body).digest('hex');
 const parseCsv=text=>{const rows=[];let row=[],field='',quoted=false;for(let i=0;i<text.length;i++){const char=text[i];if(quoted){if(char==='"'&&text[i+1]==='"'){field+='"';i++;}else if(char==='"')quoted=false;else field+=char;}else if(char==='"')quoted=true;else if(char===','){row.push(field);field='';}else if(char==='\n'){row.push(field.replace(/\r$/,''));rows.push(row);row=[];field='';}else field+=char;}if(field||row.length){row.push(field);rows.push(row);}const headers=rows.shift()??[];return rows.filter(item=>item.some(Boolean)).map(item=>Object.fromEntries(headers.map((key,index)=>[key,item[index]??''])))};
-const rows=parseCsv(await readFile(path.join(root,'QELLY_SCREEN_MATRIX.csv'),'utf8'));
+const rows=parseCsv(await readFile(path.join(root,'design/inventory/QELLY_SCREEN_MATRIX.csv'),'utf8'));
 const selected=rows.map((row,index)=>({...row,__index:index})).filter(row=>row.__index%shardCount===shardIndex);
 const append=async record=>{const handle=await open(jsonl,'a');try{await handle.write(`${JSON.stringify(record)}\n`);await handle.sync();}finally{await handle.close();}};
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.ico':'image/x-icon','.webmanifest':'application/manifest+json','.woff2':'font/woff2','.txt':'text/plain; charset=utf-8'};

@@ -62,7 +62,7 @@ test('global market network is live-first and preserves no-fabrication boundarie
 test('all-screen evidence exercises governed calculator and indicator detail selections',async()=>{
   const [adapter,workflow]=await Promise.all([
     read('scripts/release-a5-screen-batch.py'),
-    read('.github/workflows/qelly-all-screens-evidence.yml')
+    read('.github/workflows/browser-e2e.yml')
   ]);
   assert.match(adapter,/'calculator-detail': 'position-size'/);
   assert.match(adapter,/'indicator-detail': 'rsi'/);
@@ -73,7 +73,7 @@ test('all-screen evidence exercises governed calculator and indicator detail sel
 });
 
 test('deployed acceptance gate verifies Cloudflare and GitHub live-markets',async()=>{
-  const source=await read('.github/workflows/qelly-live-terminal-acceptance.yml');
+  const source=await read('.github/workflows/live-terminal.yml');
   assert.match(source,/api\/v1\/market\/network/);
   assert.match(source,/ecb_reference_unavailable/);
   assert.match(source,/no_fast_public_market_source_available/);

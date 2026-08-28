@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 
 const routeSource=await readFile(new URL('../apps/web/public/assets/routes/asset-intelligence.mjs',import.meta.url),'utf8');
 const responsiveScript=await readFile(new URL('../scripts/release-v53-responsive-evidence.py',import.meta.url),'utf8');
-const responsiveWorkflow=await readFile(new URL('../.github/workflows/qelly-v53-responsive-evidence.yml',import.meta.url),'utf8');
+const responsiveWorkflow=await readFile(new URL('../.github/workflows/responsive-e2e.yml',import.meta.url),'utf8');
 const presentationStart=routeSource.indexOf('const ASSET_INTELLIGENCE_MOBILE_PRESENTATION');
 const presentationEnd=routeSource.indexOf('let assetIntelligenceDensityMedia');
 const presentationSource=routeSource.slice(presentationStart,presentationEnd);

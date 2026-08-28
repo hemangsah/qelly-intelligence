@@ -1,0 +1,185 @@
+name: Browser E2E Windows
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'apps/web/public/**'
+      - 'scripts/release-a5-*'
+      - 'src/server/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/browser-e2e-windows.yml'
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: qelly-all-screens-windows-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  capture-and-package-windows:
+    runs-on: windows-2025
+    timeout-minutes: 120
+    env:
+      QELLY_SCREEN_EVIDENCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      QELLY_SCREEN_BATCH_SIZE: '10'
+      QELLY_SQLITE_PATH: ':memory:'
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: 'utf-8'
+    steps:
+      - name: Checkout exact evidence head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Guard exact evidence head
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ((git rev-parse HEAD).Trim() -ne $env:QELLY_SCREEN_EVIDENCE_SHA) {
+            throw 'Exact evidence head mismatch'
+          }
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Install locked application dependencies
+        run: npm ci --ignore-scripts
+      - name: Install isolated browser evidence runtime
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python -m pip install --disable-pip-version-check playwright pillow
+          if ($LASTEXITCODE -ne 0) { throw 'Python browser dependencies failed to install' }
+          python -m playwright install chromium
+          if ($LASTEXITCODE -ne 0) { throw 'Chromium failed to install' }
+      - name: Validate exact source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $false
+          $validationLogDir = Join-Path $PWD 'preview/windows-validation'
+          New-Item -ItemType Directory -Force -Path $validationLogDir | Out-Null
+
+          function Invoke-QellyNpmValidation {
+            param(
+              [Parameter(Mandatory=$true)][string]$Script,
+              [Parameter(Mandatory=$true)][bool]$AllowFsRetry,
+              [Parameter(Mandatory=$true)][bool]$IsTest
+            )
+            $label = if ($IsTest) { 'npm test' } else { "npm run $Script" }
+            $safeName = if ($IsTest) { 'npm-test' } else { "npm-run-$($Script.Replace(':','-'))" }
+            $logPath = Join-Path $validationLogDir "$safeName.log"
+            $maxAttempts = if ($AllowFsRetry) { 3 } else { 1 }
+            for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+              "===== $label attempt $attempt/$maxAttempts =====" | Tee-Object -FilePath $logPath -Append
+              Write-Host "::group::$label (attempt $attempt/$maxAttempts)"
+              if ($IsTest) {
+                $output = & npm.cmd test 2>&1
+              } else {
+                $output = & npm.cmd run $Script 2>&1
+              }
+              $code = $LASTEXITCODE
+              $output | Tee-Object -FilePath $logPath -Append | ForEach-Object { Write-Host $_ }
+              Write-Host '::endgroup::'
+              if ($code -eq 0) { return }
+              $text = ($output | Out-String)
+              $retryable = $AllowFsRetry -and ($text -match '(?i)\b(?:EACCES|EPERM)\b')
+              if (-not $retryable -or $attempt -ge $maxAttempts) {
+                throw "Validation command failed ($code): $label"
+              }
+              Write-Warning "Known transient Windows filesystem failure detected for $label; retrying exact command."
+              Start-Sleep -Seconds (2 * $attempt)
+            }
+          }
+
+          $commands = @(
+            @{ script = 'env:check'; retryFs = $false; isTest = $false },
+            @{ script = 'typecheck'; retryFs = $true; isTest = $false },
+            @{ script = 'lint'; retryFs = $false; isTest = $false },
+            @{ script = 'validate:design'; retryFs = $false; isTest = $false },
+            @{ script = 'security:scan'; retryFs = $false; isTest = $false },
+            @{ script = 'test'; retryFs = $false; isTest = $true },
+            @{ script = 'build:frontend'; retryFs = $true; isTest = $false }
+          )
+          foreach ($entry in $commands) {
+            Invoke-QellyNpmValidation -Script $entry.script -AllowFsRetry $entry.retryFs -IsTest $entry.isTest
+          }
+      - name: Capture every registered route at desktop and mobile widths
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          function Invoke-QellyScreenBatch {
+            param(
+              [Parameter(Mandatory=$true)][int]$Start,
+              [Parameter(Mandatory=$true)][int]$End,
+              [Parameter(Mandatory=$true)][string]$LogPath
+            )
+            $maxAttempts = 3
+            for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+              Write-Host "Capturing route batch $Start..$End (attempt $attempt/$maxAttempts)"
+              $output = & python -X utf8 scripts/release-a5-screen-batch.py $Start $End 2>&1
+              $code = $LASTEXITCODE
+              $output | Tee-Object -FilePath $LogPath -Append
+              if ($code -eq 0) { return }
+              $text = ($output | Out-String)
+              $retryable = $text -match 'net::ERR_FAILED'
+              if (-not $retryable -or $attempt -ge $maxAttempts) {
+                throw "Screen batch $Start..$End failed"
+              }
+              Write-Warning "Known transient Windows loopback navigation failure detected for batch $Start..$End; retrying exact batch."
+              Start-Sleep -Seconds (2 * $attempt)
+            }
+          }
+          $routeCount = [int](node --input-type=module -e "import {routeDefinitions} from './apps/web/public/assets/route-registry.mjs'; process.stdout.write(String(routeDefinitions.length));")
+          if ($LASTEXITCODE -ne 0 -or $routeCount -lt 1) { throw 'Invalid route count' }
+          $out = Join-Path $PWD 'preview/release-a5-all-screens'
+          if (Test-Path $out) { Remove-Item -Recurse -Force $out }
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          $captureLog = Join-Path $out 'windows-capture.log'
+          $batchSize = [int]$env:QELLY_SCREEN_BATCH_SIZE
+          for ($start = 0; $start -lt $routeCount; $start += $batchSize) {
+            $end = [Math]::Min($start + $batchSize, $routeCount)
+            Invoke-QellyScreenBatch -Start $start -End $end -LogPath $captureLog
+          }
+          python -X utf8 scripts/release-a5-screen-aggregate.py 2>&1 | Tee-Object -FilePath $captureLog -Append
+          if ($LASTEXITCODE -ne 0) { throw 'Screen aggregation failed' }
+          python -X utf8 scripts/release-a5-screen-package.py 2>&1 | Tee-Object -FilePath $captureLog -Append
+          if ($LASTEXITCODE -ne 0) { throw 'Screen packaging failed' }
+      - name: Verify exact screenshot archive
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $manifest = Get-Content 'preview/release-a5-all-screens/manifest.json' -Raw -Encoding utf8 | ConvertFrom-Json
+          $pngCount = (Get-ChildItem 'preview/release-a5-all-screens' -Filter '*.png').Count
+          $archives = @(Get-ChildItem 'preview' -Filter 'QELLY_ALL_SCREENS_*.zip')
+          if ($manifest.status -ne 'passed') { throw 'Manifest did not pass' }
+          if ([int]$manifest.routeCount -ne 71) { throw "Expected 71 routes, received $($manifest.routeCount)" }
+          if ([int]$manifest.renderCount -ne 142 -or [int]$manifest.expectedRenderCount -ne 142) { throw 'Expected 142 route-viewport renders' }
+          if ([int]$manifest.failed -ne 0 -or $manifest.missing.Count -ne 0) { throw 'Screen evidence contains failed or missing renders' }
+          if ($pngCount -ne 142) { throw "Expected 142 PNG files, received $pngCount" }
+          if ($archives.Count -ne 1 -or $archives[0].Length -le 0) { throw 'Exact screenshot ZIP is missing or empty' }
+          Write-Host ($manifest | ConvertTo-Json -Depth 4)
+          Write-Host "Archive: $($archives[0].FullName) ($($archives[0].Length) bytes)"
+      - name: Upload complete Windows evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-complete-all-screens-windows-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: |
+            preview/QELLY_ALL_SCREENS_*.zip
+            preview/release-a5-all-screens
+            preview/RELEASE_A5_ALL_SCREENS_LOG.json
+            preview/windows-validation
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 30

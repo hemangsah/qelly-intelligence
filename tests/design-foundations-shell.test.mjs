@@ -23,7 +23,7 @@ test('every executable route has a governed domain and page-shell kind',()=>{
 });
 
 test('checked-in route inventory matches every authoritative registered route',async()=>{
-  const csv=await read('QELLY_ROUTE_INVENTORY.csv');
+  const csv=await read('design/inventory/QELLY_ROUTE_INVENTORY.csv');
   const inventoryRoutes=csv.split(/\r?\n/).slice(1).map((line)=>line.match(/^"\d+","#\/([^"]+)"/)?.[1]).filter(Boolean);
   const registeredRoutes=routeDefinitions.map((item)=>item.route);
   assert.equal(inventoryRoutes.length,registeredRoutes.length);
@@ -75,7 +75,7 @@ test('static preview exposes a deterministic evidence graph and still rejects mu
 });
 
 test('canonical design tokens cover every mode, typography role, and chart truth requirement',async()=>{
-  const [tokens,motion,charts]=await Promise.all([json('QELLY_DESIGN_TOKENS.json'),json('QELLY_MOTION_TOKENS.json'),json('QELLY_CHART_TOKENS.json')]);
+  const [tokens,motion,charts]=await Promise.all([json('design/tokens/QELLY_DESIGN_TOKENS.json'),json('design/tokens/QELLY_MOTION_TOKENS.json'),json('design/tokens/QELLY_CHART_TOKENS.json')]);
   assert.equal(Object.keys(tokens.semanticTokens).length,30);
   for(const token of Object.values(tokens.semanticTokens)){assert.ok(token.light&&token.dark&&token.highContrast);assert.ok(token.contrastRule&&token.usage);}
   assert.equal(Object.keys(tokens.typography.roles).length,24);
@@ -96,7 +96,7 @@ test('governed shell has progressive desktop and mobile layers',async()=>{
 
 test('Figma handoff uses semantic editable masters instead of frame-count theater',async()=>{
   const [plugin,manifest,screenMatrix,componentMatrix,spec]=await Promise.all([
-    read('figma-plugin/code.js'),json('figma-plugin/manifest.json'),read('design/figma/QELLY_FIGMA_SCREEN_MATRIX.csv'),read('design/figma/QELLY_FIGMA_COMPONENT_MATRIX.csv'),read('design/figma/QELLY_FIGMA_MASTER_SPEC.md')
+    read('design/figma/plugins/core/code.js'),json('design/figma/plugins/core/manifest.json'),read('design/figma/QELLY_FIGMA_SCREEN_MATRIX.csv'),read('design/figma/QELLY_FIGMA_COMPONENT_MATRIX.csv'),read('design/figma/QELLY_FIGMA_MASTER_SPEC.md')
   ]);
   const pages=plugin.match(/const PAGE_NAMES=\[([\s\S]*?)\];/)[1].match(/'\d{2} [^']+'/g);
   const masterScreens=plugin.match(/const MASTER_SCREENS=\[([\s\S]*?)\];/)[1].match(/\['/g);

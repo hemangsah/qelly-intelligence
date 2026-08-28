@@ -1,0 +1,93 @@
+name: Responsive E2E
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'apps/web/public/**'
+      - 'scripts/release-v53-responsive-evidence.py'
+      - 'tests/qelly-v53-visible-refinement.test.mjs'
+      - '.github/workflows/responsive-e2e.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: qelly-v53-responsive-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  responsive-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      QELLY_V53_EVIDENCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: 'utf-8'
+    steps:
+      - name: Checkout exact responsive-evidence head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.QELLY_V53_EVIDENCE_SHA }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Guard exact responsive-evidence head
+        run: test "$(git rev-parse HEAD)" = "$QELLY_V53_EVIDENCE_SHA"
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Install locked application dependencies
+        run: npm ci --ignore-scripts
+      - name: Install isolated responsive evidence runtime
+        run: |
+          python -m pip install --disable-pip-version-check playwright pillow
+          python -m playwright install --with-deps chromium
+          chromium_path="$(python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as playwright:
+              print(playwright.chromium.executable_path)
+          PY
+          )"
+          test -x "$chromium_path"
+          sudo ln -sf "$chromium_path" /usr/bin/chromium
+          /usr/bin/chromium --version
+      - name: Validate and build exact frontend
+        run: |
+          npm run env:check
+          npm run typecheck
+          npm run lint
+          npm run validate:design
+          npm run security:scan
+          npm test
+          npm run build:frontend
+      - name: Capture V5.3 at all nine required resolutions
+        run: python -X utf8 scripts/release-v53-responsive-evidence.py
+      - name: Verify responsive evidence manifest
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFile,readdir} from 'node:fs/promises';
+          const root='preview/v53-responsive-evidence';
+          const manifest=JSON.parse(await readFile(`${root}/manifest.json`,'utf8'));
+          const files=await readdir(root);
+          const pngs=files.filter(name=>name.endsWith('.png'));
+          const sheets=files.filter(name=>name.startsWith('contact-sheet-')&&name.endsWith('.jpg'));
+          const required=['360','390','430','768','1024','1280','1440','1728','1920'];
+          const dimensions=manifest.viewports.map(item=>String(item.width));
+          const expectedRenderCount=manifest.representativeRouteCount*manifest.viewportCount;
+          const ok=manifest.status==='passed'&&manifest.canonicalRouteCount===71&&manifest.representativeRouteCount===manifest.routes.length&&manifest.representativeRouteCount>=17&&manifest.routes.includes('asset-intelligence')&&manifest.routes.includes('fundamentals-estimates')&&manifest.viewportCount===9&&manifest.renderCount===expectedRenderCount&&manifest.expectedRenderCount===expectedRenderCount&&manifest.failureCount===0&&manifest.missing.length===0&&pngs.length===expectedRenderCount&&sheets.length===9&&required.every(width=>dimensions.includes(width));
+          console.log(JSON.stringify({status:manifest.status,canonicalRouteCount:manifest.canonicalRouteCount,representativeRouteCount:manifest.representativeRouteCount,viewportCount:manifest.viewportCount,renderCount:manifest.renderCount,expectedRenderCount,pngs:pngs.length,contactSheets:sheets.length,includesAssetIntelligence:manifest.routes.includes('asset-intelligence'),includesFundamentalsEstimates:manifest.routes.includes('fundamentals-estimates'),dimensions},null,2));
+          if(!ok)process.exit(1);
+          NODE
+      - name: Upload nine-width responsive evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qelly-v53-responsive-${{ env.QELLY_V53_EVIDENCE_SHA }}
+          path: preview/v53-responsive-evidence
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 30

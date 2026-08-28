@@ -92,12 +92,12 @@ The Node API and worker use separate persistent container images. `vercel.json` 
 
 ## Evidence and reports
 
-- `QELLY_PRODUCT_ARCHITECTURE.md`
-- `QELLY_INFORMATION_ARCHITECTURE.md`
-- `QELLY_DESIGN_PRINCIPLES.md`
-- `QELLY_FRONTEND_ARCHITECTURE.md`
-- `QELLY_FIGMA_HANDOFF.md`
-- `QELLY_VALIDATION_REPORT.md`
+- `docs/governance/QELLY_PRODUCT_ARCHITECTURE.md`
+- `docs/governance/QELLY_INFORMATION_ARCHITECTURE.md`
+- `docs/governance/QELLY_DESIGN_PRINCIPLES.md`
+- `docs/governance/QELLY_FRONTEND_ARCHITECTURE.md`
+- `docs/governance/QELLY_FIGMA_HANDOFF.md`
+- `docs/governance/QELLY_VALIDATION_REPORT.md`
 - `docs/QELLY_RECOVERY_LEDGER.md`
 - `docs/ARCHITECTURE.md`
 - `docs/DATA_SOURCES.md`

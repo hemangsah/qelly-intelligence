@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
-const WORKFLOW='.github/workflows/qelly-all-screens-windows.yml';
+const WORKFLOW='.github/workflows/browser-e2e-windows.yml';
 
 test('Windows evidence retries only proven transient filesystem and loopback failures',async()=>{
   const source=await read(WORKFLOW);

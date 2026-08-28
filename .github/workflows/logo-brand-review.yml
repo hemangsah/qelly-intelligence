@@ -1,4 +1,4 @@
-name: Qelly Logo Brand Review
+name: Logo Brand Review
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
     paths:
       - 'apps/web/public/**'
       - 'design/brand/**'
-      - 'figma-brand-foundations/**'
+      - 'design/figma/plugins/brand-foundations/**'
       - 'scripts/logo-brand-*.mjs'
       - 'tests/logo-brand-system.test.mjs'
       - 'package.json'

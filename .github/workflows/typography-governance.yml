@@ -1,12 +1,12 @@
-name: Typography Governance Review
+name: Typography Governance
 
 on:
   pull_request:
     branches: [main]
     paths:
       - 'apps/web/public/**'
-      - 'figma-plugin/**'
-      - 'figma-theme-plugin/**'
+      - 'design/figma/plugins/core/**'
+      - 'design/figma/plugins/theme/**'
       - 'design/figma/**'
       - 'tests/theme-intelligence.test.mjs'
       - '.github/workflows/typography-governance.yml'

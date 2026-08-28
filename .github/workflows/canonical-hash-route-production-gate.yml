@@ -1,4 +1,4 @@
-name: Qelly Canonical Hash Route Gate
+name: Canonical Hash Route Gate
 
 on:
   push:

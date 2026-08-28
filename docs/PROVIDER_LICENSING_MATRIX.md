@@ -2,8 +2,8 @@
 
 The authoritative operational matrix is [`DATA_SOURCES.md`](DATA_SOURCES.md). Canonical generated inventories are:
 
-- [`../QELLY_PROVIDER_MATRIX.csv`](../QELLY_PROVIDER_MATRIX.csv)
-- [`../QELLY_LICENSING_MATRIX.csv`](../QELLY_LICENSING_MATRIX.csv)
+- [`governance/QELLY_PROVIDER_MATRIX.csv`](governance/QELLY_PROVIDER_MATRIX.csv)
+- [`governance/QELLY_LICENSING_MATRIX.csv`](governance/QELLY_LICENSING_MATRIX.csv)
 
 This file is retained as a compatibility pointer for older handoffs. The generated CSVs record integration intent; they are not evidence that current commercial terms, attribution, caching, redistribution, derived-data, websocket, historical or geographic rights were verified.
 

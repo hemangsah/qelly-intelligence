@@ -9,7 +9,9 @@ const registry=await import('../apps/web/public/assets/route-registry.mjs');
 const routeRows=registry.routeDefinitions.map((item,index)=>({index:index+1,route:item.route,label:item.label,section:item.section,public:Boolean(item.public),implementation:'runnable-route'}));
 const apiRows=apiRoutes.map((route,index)=>({index:index+1,route,access:classifyApiContractAccess(route),implementation:'documented-contract'}));
 await writeFile(path.join(out,'QELLY_ROUTE_INVENTORY.json'),JSON.stringify({productVersion,count:routeRows.length,items:routeRows},null,2)+'\n');
-await writeFile(path.join(out,'QELLY_API_INVENTORY.json'),JSON.stringify({productVersion,count:apiRows.length,items:apiRows},null,2)+'\n');
+// Keep the API inventory compact: it is a machine artifact and this avoids
+// committing formatting-only churn when the inventory is regenerated.
+await writeFile(path.join(out,'QELLY_API_INVENTORY.json'),JSON.stringify({productVersion,count:apiRows.length,items:apiRows})+'\n');
 const csv=(rows,columns)=>[columns.join(','),...rows.map(row=>columns.map(key=>`"${String(row[key]??'').replaceAll('"','""')}"`).join(','))].join('\n')+'\n';
 await writeFile(path.join(out,'QELLY_ROUTE_INVENTORY.csv'),csv(routeRows,['index','route','label','section','public','implementation']));
 await writeFile(path.join(out,'QELLY_API_INVENTORY.csv'),csv(apiRows,['index','route','access','implementation']));

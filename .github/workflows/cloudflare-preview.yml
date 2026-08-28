@@ -1,0 +1,58 @@
+name: Cloudflare Preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      preview_url:
+        description: Immutable Cloudflare Pages preview URL
+        required: true
+        type: string
+      expected_sha:
+        description: Full commit SHA deployed to the preview
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qelly-cloudflare-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    name: Verify exact Cloudflare preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Validate preview verifier
+        run: node --check scripts/validate-cloudflare-preview.mjs
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+      - name: Verify deployed Cloudflare edge
+        shell: bash
+        env:
+          QELLY_PREVIEW_URL: ${{ inputs.preview_url }}
+          QELLY_EXPECTED_HEAD_SHA: ${{ inputs.expected_sha }}
+          QELLY_PREVIEW_MAX_WAIT_MS: '720000'
+        run: |
+          set -euo pipefail
+          mkdir -p dist/cloudflare-preview-evidence
+          node scripts/validate-cloudflare-preview.mjs 2>&1 | tee dist/cloudflare-preview-evidence/run.log
+      - name: Upload live preview evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-cloudflare-preview-${{ inputs.expected_sha }}
+          path: dist/cloudflare-preview-evidence
+          if-no-files-found: error
+          retention-days: 14

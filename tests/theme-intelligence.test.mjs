@@ -94,7 +94,7 @@ test('cross-browser title line box remains non-clipping',async()=>{
 });
 
 test('Figma generator contains governed Theme Intelligence collections and evidence pages',async()=>{
-  const source=await read('figma-theme-plugin/code.js');
+  const source=await read('design/figma/plugins/theme/code.js');
   assert.match(source,/const PAGES=/);assert.match(source,/const COLLECTIONS=/);assert.match(source,/COLLECTIONS.length/);
   assert.match(source,/Focused Edge/);assert.match(source,/Scarlet Circuit/);assert.match(source,/IBM Plex Sans Variable/);assert.match(source,/GT Eesti remains inactive/);
   for(const phrase of ['stringVariable','floatVariable','market/positive','responsive/viewport'])assert.match(source,new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));

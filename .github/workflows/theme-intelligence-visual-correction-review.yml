@@ -1,4 +1,4 @@
-name: Qelly Theme Intelligence Visual Correction Review
+name: Theme Visual Review
 
 on:
   pull_request:
@@ -9,8 +9,8 @@ on:
       - 'src/server/preferences-store.mjs'
       - 'packages/schemas/layout-preference*.json'
       - 'packages/ui-primitives/**'
-      - 'figma-plugin/**'
-      - 'figma-theme-plugin/**'
+      - 'design/figma/plugins/core/**'
+      - 'design/figma/plugins/theme/**'
       - 'design/figma/**'
       - 'scripts/theme-intelligence-visual-correction-review.mjs'
       - 'scripts/theme-intelligence-visual-correction-evidence-complete.mjs'

@@ -2,7 +2,7 @@
 
 ## Execution and evidence boundary
 
-Run the repository plugin in `figma-plugin/`. It generates 31 editable semantic pages, dark and warm-porcelain variables, radius and motion variables, text and paint styles, component definitions, variants, responsive desktop/mobile master frames and focused correction review boards.
+Run the repository plugin in `design/figma/plugins/core/`. It generates 31 editable semantic pages, dark and warm-porcelain variables, radius and motion variables, text and paint styles, component definitions, variants, responsive desktop/mobile master frames and focused correction review boards.
 
 The production typography target is **IBM Plex Sans Variable** for display, UI, body, tables, chart labels, controls and numeric evidence. The plugin attempts to load IBM Plex Sans from the local Figma environment and falls back to Inter only when IBM Plex Sans is unavailable; that fallback must be resolved before final Figma approval. **GT Eesti Pro Display and GT Eesti Pro Text are an inactive commercial reference** and must not be represented as active until Qelly owns an appropriate web licence and supplies licensed files. No hosted Figma URL or exported frame is claimed by CI.
 

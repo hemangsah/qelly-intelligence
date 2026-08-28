@@ -1,0 +1,259 @@
+name: Production Restoration
+
+on:
+  push:
+    branches: [feature/prompt2c-production-ui-defect-sweep]
+  pull_request:
+    branches: [feature/prompt2c-global-public-beta]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qelly-production-restoration-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate product, calculations and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Verify governed lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          git cat-file -e 150025b9662404e5f98cd397c74c5d8be386460c^{commit}
+          git merge-base --is-ancestor 150025b9662404e5f98cd397c74c5d8be386460c HEAD
+          test "$(git merge-base 150025b9662404e5f98cd397c74c5d8be386460c HEAD)" = "150025b9662404e5f98cd397c74c5d8be386460c"
+          git cat-file -e 603cece3091dc59cfb72680914e7056b40058022^{commit}
+      - run: npm run security:scan
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run validate:design
+      - name: Run production-boundary and calculation-contract tests
+        run: |
+          node --test tests/prompt2c-production-product-boundary.test.mjs
+          node --test tests/prompt2c-formula-presentation-contracts.test.mjs
+          node --test tests/prompt2c-product-catalogs.test.mjs
+          node --test tests/prompt2c-indicator-sample-contracts.test.mjs
+      - name: Run complete repository suite
+        run: npm test
+      - name: Check changed runtime modules
+        run: |
+          node --check apps/web/public/assets/prompt2c-public-beta.mjs
+          node --check apps/web/public/assets/qelly-brand.mjs
+          node --check apps/web/public/assets/qelly-shell-compat.js
+          node --check apps/web/public/assets/qelly-product-route-guard.mjs
+          node --check apps/web/public/assets/routes/auth-login.mjs
+          node --check apps/web/public/assets/routes/auth-register.mjs
+          node --check apps/web/public/assets/routes/auth-recovery.mjs
+          node --check apps/web/public/assets/routes/calculator-center.mjs
+          node --check apps/web/public/assets/routes/calculator-detail.mjs
+          node --check apps/web/public/assets/routes/formula-library.mjs
+          node --check apps/web/public/assets/routes/formula-detail.mjs
+          node --check apps/web/public/assets/routes/indicator-library.mjs
+          node --check apps/web/public/assets/routes/indicator-detail.mjs
+          node --check apps/web/public/assets/calculation/indicator-sample-contracts.mjs
+          node --check apps/web/public/assets/calculation/formula-input-contracts.mjs
+          node --check apps/web/public/assets/calculation/formula-engine-extended.mjs
+          node --check 'functions/api/v1/[[path]].js'
+          node --check scripts/build-frontend.mjs
+          node --check scripts/finalize-public-runtime.mjs
+          node --check scripts/harden-cloudflare-index.mjs
+          node --check scripts/validate-production-restoration-case.mjs
+          node --check scripts/validate-production-market-browser.mjs
+          node --check scripts/validate-production-indicator-browser.mjs
+          node --check scripts/validate-production-simple-browser.mjs
+      - name: Build exact connected public runtime
+        shell: bash
+        env:
+          QELLY_STATIC_VISUAL_PREVIEW: 'false'
+          QELLY_PROMPT2C_PUBLIC_BETA: 'true'
+          QELLY_REQUIRE_PUBLIC_RUNTIME: 'true'
+          QELLY_PUBLIC_BASE_PATH: /
+          QELLY_PUBLIC_SITE_URL: https://qelly-intelligence.pages.dev
+          QELLY_PUBLIC_API_BASE_URL: ''
+          QELLY_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_public_key_1234567890
+          QELLY_PUBLIC_RELEASE_SHA: ${{ github.sha }}
+          QELLY_DEPLOYMENT_ENVIRONMENT: cloudflare-pages-production
+          QELLY_ENABLE_AUTH: 'true'
+          QELLY_ENABLE_CLOUD_SYNC: 'true'
+          QELLY_ENABLE_LIVE_PROVIDERS: 'true'
+          QELLY_ENABLE_FEEDBACK_WRITES: 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p dist/production-restoration-evidence
+          npm run build:frontend 2>&1 | tee dist/production-restoration-evidence/frontend-build.log
+          node scripts/validate-prompt2c-public-runtime.mjs 2>&1 | tee dist/production-restoration-evidence/runtime-validation.log
+          cp dist/frontend/qelly-release.json dist/production-restoration-evidence/qelly-release.json
+          printf '{"headSha":"%s","baseSha":"150025b9662404e5f98cd397c74c5d8be386460c","fallbackSha":"603cece3091dc59cfb72680914e7056b40058022","workflowRun":"%s"}\n' "${GITHUB_SHA}" "${GITHUB_RUN_ID}" > dist/production-restoration-evidence/manifest.json
+          find dist/production-restoration-evidence -type f -print0 | sort -z | xargs -0 sha256sum > dist/production-restoration-evidence/SHA256SUMS.txt
+      - name: Upload exact built runtime
+        uses: actions/upload-artifact@v4
+        with:
+          name: qelly-restoration-build-${{ github.sha }}
+          path: dist/frontend
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload build evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: qelly-restoration-build-evidence-${{ github.sha }}
+          path: dist/production-restoration-evidence
+          if-no-files-found: error
+          retention-days: 14
+
+  browser:
+    name: Browser ${{ matrix.case }} ${{ matrix.width }}x${{ matrix.height }}
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - case: market-home
+            width: 320
+            height: 800
+            hash: '#/market'
+          - case: market-home
+            width: 768
+            height: 1024
+            hash: '#/market'
+          - case: market-home
+            width: 1440
+            height: 1000
+            hash: '#/market'
+          - case: calculator-center
+            width: 390
+            height: 844
+            hash: '#/calculator-center'
+          - case: calculator-center
+            width: 1440
+            height: 1000
+            hash: '#/calculator-center'
+          - case: position-size-calculator
+            width: 360
+            height: 900
+            hash: '#/calculator-detail/position-size'
+          - case: position-size-calculator
+            width: 1024
+            height: 900
+            hash: '#/calculator-detail/position-size'
+          - case: position-size-calculator
+            width: 1440
+            height: 1000
+            hash: '#/calculator-detail/position-size'
+          - case: formula-library
+            width: 390
+            height: 844
+            hash: '#/formula-library'
+          - case: formula-library
+            width: 1440
+            height: 1000
+            hash: '#/formula-library'
+          - case: formula-detail
+            width: 390
+            height: 844
+            hash: '#/formula-detail/position-size'
+          - case: formula-detail
+            width: 1440
+            height: 1000
+            hash: '#/formula-detail/position-size'
+          - case: indicator-library
+            width: 390
+            height: 844
+            hash: '#/indicator-library'
+          - case: indicator-library
+            width: 1440
+            height: 1000
+            hash: '#/indicator-library'
+          - case: indicator-detail
+            width: 390
+            height: 844
+            hash: '#/indicator-detail/rsi'
+          - case: indicator-detail
+            width: 1440
+            height: 1000
+            hash: '#/indicator-detail/rsi'
+          - case: auth-login
+            width: 390
+            height: 844
+            hash: '#/auth-login'
+          - case: auth-register
+            width: 390
+            height: 844
+            hash: '#/auth-register'
+          - case: auth-recovery
+            width: 390
+            height: 844
+            hash: '#/auth-recovery'
+          - case: protected-route-gate
+            width: 390
+            height: 844
+            hash: '#/account-session'
+          - case: system-status
+            width: 1280
+            height: 900
+            hash: '#/status'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - uses: actions/download-artifact@v4
+        with:
+          name: qelly-restoration-build-${{ github.sha }}
+          path: dist/frontend
+      - run: npx playwright install --with-deps chromium
+      - name: Verify bounded browser case
+        shell: bash
+        env:
+          QELLY_RESTORATION_URL: http://127.0.0.1:4173
+          QELLY_BROWSER_CASE: ${{ matrix.case }}
+          QELLY_BROWSER_WIDTH: ${{ matrix.width }}
+          QELLY_BROWSER_HEIGHT: ${{ matrix.height }}
+          QELLY_BROWSER_HASH: ${{ matrix.hash }}
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 --directory dist/frontend > /tmp/qelly-restoration-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill ${server_pid} 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            curl --fail --silent http://127.0.0.1:4173/ >/dev/null && break
+            sleep 1
+          done
+          if [ "${QELLY_BROWSER_CASE}" = "market-home" ]; then
+            node scripts/validate-production-market-browser.mjs
+          elif [ "${QELLY_BROWSER_CASE}" = "indicator-detail" ]; then
+            node scripts/validate-production-indicator-browser.mjs
+          elif [ "${QELLY_BROWSER_CASE}" = "protected-route-gate" ] || [ "${QELLY_BROWSER_CASE}" = "system-status" ]; then
+            node scripts/validate-production-simple-browser.mjs
+          else
+            node scripts/validate-production-restoration-case.mjs
+          fi
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qelly-browser-${{ matrix.case }}-${{ matrix.width }}x${{ matrix.height }}-${{ github.sha }}
+          path: dist/production-restoration-browser/${{ matrix.case }}-${{ matrix.width }}x${{ matrix.height }}
+          if-no-files-found: error
+          retention-days: 14

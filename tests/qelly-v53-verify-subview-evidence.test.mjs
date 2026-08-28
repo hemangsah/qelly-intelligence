@@ -12,7 +12,7 @@ const VERIFY_CSS='apps/web/public/assets/qelly-v53-verify-convergence.css';
 const BROWSER='scripts/qelly-verify-browser-check.mjs';
 const INDEX='apps/web/public/index.html';
 const EVIDENCE='scripts/release-v53-verify-subview-evidence.py';
-const WORKFLOW='.github/workflows/qelly-v53-verify-subview-evidence.yml';
+const WORKFLOW='.github/workflows/verify-evidence.yml';
 
 test('Qelly Verify is a canonical public Evidence route while methodology remains a Market subview',async()=>{
   const [registry,bootstrap]=await Promise.all([read(REGISTRY),read(BOOTSTRAP)]);
@@ -123,9 +123,9 @@ test('dedicated evidence harness proves alias normalization and accepted Verify 
 
 test('Wave 4 raises complete-route denominators without weakening representative responsive coverage',async()=>{
   const [allScreens,windows,responsive]=await Promise.all([
-    read('.github/workflows/qelly-all-screens-evidence.yml'),
-    read('.github/workflows/qelly-all-screens-windows.yml'),
-    read('.github/workflows/qelly-v53-responsive-evidence.yml')
+    read('.github/workflows/browser-e2e.yml'),
+    read('.github/workflows/browser-e2e-windows.yml'),
+    read('.github/workflows/responsive-e2e.yml')
   ]);
   assert.match(allScreens,/manifest\.routeCount===71/);
   assert.match(allScreens,/manifest\.renderCount===142/);

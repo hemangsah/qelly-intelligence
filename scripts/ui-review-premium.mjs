@@ -266,7 +266,7 @@ async function copyReviewDocuments(){
     'design/research/REFERENCE_UI_FORENSICS.md','design/research/REFERENCE_COMPUTED_STYLES.json','design/research/REFERENCE_LAYOUT_METRICS.json','design/research/REFERENCE_MOTION_INVENTORY.json','design/research/REFERENCE_FEATURE_INVENTORY.csv','design/research/QELLY_SYNTHESIS_DECISIONS.md','design/research/REFERENCE_SCREENSHOTS/README.md','design/review/VISUAL_FAILURE_REPORT.md'
   ];
   for(const file of researchFiles){const target=path.join(researchOutput,file.replace(/^design\/(?:research|review)\//,''));await mkdir(path.dirname(target),{recursive:true});await cp(path.join(root,file),target);}
-  const figmaFiles=['figma-plugin/code.js','figma-plugin/manifest.json','design/figma/QELLY_FIGMA_MASTER_SPEC.md','design/figma/QELLY_FIGMA_SCREEN_MATRIX.csv','design/figma/QELLY_FIGMA_COMPONENT_MATRIX.csv','design/figma/QELLY_DESIGN_REVIEW_CHECKLIST.md'];
+  const figmaFiles=['design/figma/plugins/core/code.js','design/figma/plugins/core/manifest.json','design/figma/QELLY_FIGMA_MASTER_SPEC.md','design/figma/QELLY_FIGMA_SCREEN_MATRIX.csv','design/figma/QELLY_FIGMA_COMPONENT_MATRIX.csv','design/figma/QELLY_DESIGN_REVIEW_CHECKLIST.md'];
   for(const file of figmaFiles)await cp(path.join(root,file),path.join(figmaOutput,path.basename(file)));
   await writeFile(path.join(figmaOutput,'PREVIEW_LIMITATION.md'),'# Figma evidence boundary\n\nThis artifact contains the executable generator, manifest, master specification, screen matrix, component matrix, and review checklist. CI cannot publish a hosted Figma file or truthfully export frames from the user\'s Figma account. Run the plugin and open the editable master frames before approval.\n','utf8');
 }

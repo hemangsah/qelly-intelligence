@@ -54,7 +54,7 @@ test('premium evidence and Figma boundaries remain governed',async()=>{
 });
 
 test('editable Figma handoff matches IBM Plex production typography',async()=>{
-  const [plugin,spec,checklist,matrix,alignment]=await Promise.all([read('figma-plugin/code.js'),read('design/figma/QELLY_FIGMA_MASTER_SPEC.md'),read('design/figma/QELLY_DESIGN_REVIEW_CHECKLIST.md'),read('design/figma/QELLY_FIGMA_COMPONENT_MATRIX.csv'),read('design/figma/QELLY_IBM_PLEX_ALIGNMENT.md')]);
+  const [plugin,spec,checklist,matrix,alignment]=await Promise.all([read('design/figma/plugins/core/code.js'),read('design/figma/QELLY_FIGMA_MASTER_SPEC.md'),read('design/figma/QELLY_DESIGN_REVIEW_CHECKLIST.md'),read('design/figma/QELLY_FIGMA_COMPONENT_MATRIX.csv'),read('design/figma/QELLY_IBM_PLEX_ALIGNMENT.md')]);
   for(const phrase of ["family:'IBM Plex Sans'",'IBM Plex Sans Variable','GT Eesti commercial licence gate','all text and numeric roles'])assert.ok(plugin.includes(phrase));
   assert.doesNotMatch(plugin,/Geist Sans Variable|Geist Mono Variable|family:'Geist'/);
   assert.match(spec,/IBM Plex Sans Variable/);

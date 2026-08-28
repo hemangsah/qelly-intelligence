@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import {access,readFile} from 'node:fs/promises';
 
 const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
-const WORKFLOW='.github/workflows/qelly-live-production-verification.yml';
+const WORKFLOW='.github/workflows/cloudflare-production.yml';
 const LEGACY_WORKFLOW='.github/workflows/qelly-live-production-verification-v2.yml';
-const PUBLIC_RUNTIME_WORKFLOW='.github/workflows/qelly-public-runtime.yml';
+const PUBLIC_RUNTIME_WORKFLOW='.github/workflows/public-runtime.yml';
 const CONVERGENCE='scripts/wait-for-cloudflare-runtime-convergence.mjs';
 const PROVIDERS='functions/_lib/providers.js';
 const OBSOLETE_BRANCH='feature/prompt2c-global-public-beta';

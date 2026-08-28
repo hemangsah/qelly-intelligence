@@ -46,7 +46,7 @@ test('Static visual preview rejects backend mutations without executing them',as
 });
 
 test('Pages deployment uses the release-line governed public mirror while retaining preview tooling only for tests',async()=>{
-  const workflow=await readFile(new URL('../.github/workflows/pages-preview.yml',import.meta.url),'utf8');
+  const workflow=await readFile(new URL('../.github/workflows/github-pages-mirror.yml',import.meta.url),'utf8');
   assert.match(workflow,/push:\s*\n\s+branches: \[release\/qelly-global-public-beta\]/);
   assert.match(workflow,/workflow_dispatch:/);
   assert.match(workflow,/npm ci --ignore-scripts/);

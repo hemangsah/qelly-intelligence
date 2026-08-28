@@ -5,7 +5,7 @@ import {readFile} from 'node:fs/promises';
 const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 
 test('Pages workflow deploys the release-line production mirror instead of static preview handoff',async()=>{
-  const workflow=await read('.github/workflows/pages-preview.yml');
+  const workflow=await read('.github/workflows/github-pages-mirror.yml');
   assert.match(workflow,/branches: \[release\/qelly-global-public-beta\]/);
   assert.match(workflow,/QELLY_GITHUB_PAGES_MIRROR: 'true'/);
   assert.match(workflow,/QELLY_STATIC_VISUAL_PREVIEW: 'false'/);
