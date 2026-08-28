@@ -6,9 +6,9 @@ const SOURCE_CACHE_TTL=Object.freeze({hyperliquid:8,'alternative-me':60,'world-b
 const nowIso=()=>new Date().toISOString();
 const finiteOrNull=(value)=>Number.isFinite(Number(value))?Number(value):null;
 
-async function fetchJson(url,{method='GET',body=null,headers={}}={}){
+async function fetchJson(url,{method='GET',body=null,headers={},timeoutMs=REQUEST_TIMEOUT_MS}={}){
   const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),REQUEST_TIMEOUT_MS);
+  const timer=setTimeout(()=>controller.abort(),timeoutMs);
   try{
     const response=await fetch(url,{method,body,headers:{Accept:'application/json',...headers},signal:controller.signal});
     if(!response.ok){
@@ -140,8 +140,8 @@ async function worldBankMacro(){
 
 async function usTreasuryRates(){
   try{
-    const url='https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/avg_interest_rates?sort=-record_date&page%5Bsize%5D=25';
-    const payload=await fetchJson(url);
+    const url='https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/avg_interest_rates?fields=record_date,security_type_desc,security_desc,avg_interest_rate_amt&sort=-record_date&page%5Bsize%5D=25';
+    const payload=await fetchJson(url,{headers:{'User-Agent':'Qelly-Intelligence/1.0 (+https://qelly-intelligence.pages.dev/)'},timeoutMs:12000});
     const records=Array.isArray(payload?.data)?payload.data:[];
     const latestDate=records.find((row)=>row?.record_date)?.record_date??null;
     const rows=records.filter((row)=>row?.record_date===latestDate).map((row)=>({

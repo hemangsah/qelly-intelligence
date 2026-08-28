@@ -37,6 +37,9 @@ test('Market Command exposes a searchable complete atlas and governed public-dat
   assert.match(route,/data-provider-atlas-filter/);
   assert.match(route,/Every named provider is discoverable here/);
   assert.match(route,/Reference observations are never presented as tradable quotes/);
+  assert.match(route,/Slow reference providers load in the background and never block Market Command/);
+  assert.match(route,/api\('\/api\/v1\/market\/network'\)\.then/);
+  assert.doesNotMatch(route,/\[overviewResult,ecbResult,networkResult\]/);
   assert.match(route,/card\.hidden=!show/);
   assert.match(css,/\.q-provider-atlas-grid/);
   assert.match(css,/\.q-public-source-grid/);

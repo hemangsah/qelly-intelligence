@@ -95,6 +95,25 @@ function bindProviderAtlas(root){
   search?.addEventListener('input',apply);filter?.addEventListener('change',apply);apply();
 }
 
+function populateNetworkSections(root,network,escapeHtml){
+  if(!root?.isConnected)return;
+  const networkSources=Object.values(network?.sources||{});
+  const providerDirectory=Array.isArray(network?.providerDirectory)?network.providerDirectory:[];
+  const integrationModes=Object.keys(network?.providerDirectorySummary?.byIntegration||{}).sort();
+  const sourceGrid=root.querySelector('[data-public-source-grid]');
+  const sourceStatus=root.querySelector('[data-public-source-status]');
+  const atlas=root.querySelector('[data-provider-atlas]');
+  const atlasStatus=root.querySelector('[data-provider-atlas-status]');
+  const atlasFilter=atlas?.querySelector('[data-provider-atlas-filter]');
+  const atlasGrid=atlas?.querySelector('[data-provider-atlas-grid]');
+  if(sourceGrid)sourceGrid.innerHTML=networkSources.map((source)=>networkSourceCard(source,escapeHtml)).join('')||'<div class="q-empty-state"><strong>Public data network unavailable</strong><p>No source values were substituted.</p></div>';
+  if(sourceStatus){sourceStatus.className=`q-status q-status--${networkSources.some((source)=>source?.truthState==='live')?'live':'delayed'}`;sourceStatus.textContent=`${networkSources.filter((source)=>source?.data!=null).length} SOURCES AVAILABLE`;}
+  if(atlasFilter)atlasFilter.innerHTML=`<option value="all">All states</option>${integrationModes.map((mode)=>`<option value="${escapeHtml(mode)}">${escapeHtml(integrationLabel(mode))}</option>`).join('')}`;
+  if(atlasGrid)atlasGrid.innerHTML=providerDirectory.map((provider)=>providerAtlasCard(provider,escapeHtml)).join('')||'<div class="q-empty-state"><strong>Provider atlas unavailable</strong><p>The supplied candidates could not be loaded.</p></div>';
+  if(atlasStatus)atlasStatus.textContent=`${providerDirectory.length} CATALOGUED`;
+  bindProviderAtlas(atlas);
+}
+
 function panelConfig(panel,{symbol,interval}){
   const colorTheme=tradingViewAppearance();
   const shared={colorTheme,isTransparent:false,width:'100%',height:'100%'};
@@ -203,17 +222,12 @@ function mountExternalIntelligenceDock(root,{escapeHtml}){
 
 export async function renderMarketV6(main,deps){
   const {api,pageHead,stateBanner,escapeHtml}=deps;
-  const [overviewResult,ecbResult,networkResult]=await Promise.allSettled([
+  const [overviewResult,ecbResult]=await Promise.allSettled([
     api('/api/v1/public/markets/overview'),
-    api('/api/v1/providers/ecb?capability=fx-reference-rates&symbol=EUR'),
-    api('/api/v1/market/network')
+    api('/api/v1/providers/ecb?capability=fx-reference-rates&symbol=EUR')
   ]);
   const overview=overviewResult.status==='fulfilled'?overviewResult.value:{providers:[],guardrails:{fabricatedObservations:false}};
   const ecb=ecbResult.status==='fulfilled'?ecbResult.value:null;
-  const network=networkResult.status==='fulfilled'?networkResult.value:{sources:{},providerDirectory:[],providerDirectorySummary:{total:0,byIntegration:{}}};
-  const networkSources=Object.values(network?.sources||{});
-  const providerDirectory=Array.isArray(network?.providerDirectory)?network.providerDirectory:[];
-  const integrationModes=Object.keys(network?.providerDirectorySummary?.byIntegration||{}).sort();
   const providers=Array.isArray(overview.providers)?overview.providers:[];
   const authorizedMarketProviders=providers.filter(provider=>provider.enabled&&provider.id!=='ecb');
   const referenceProviders=providers.filter(provider=>provider.enabled&&provider.id==='ecb');
@@ -272,9 +286,9 @@ export async function renderMarketV6(main,deps){
       </div>
     </section>
 
-    <section class="q-panel q-public-data-board"><div class="q-panel-head"><div><p class="q-eyebrow">Governed live and reference network</p><h2>Global public data board</h2><p>Official/public feeds keep their own cadence, attribution and truth state. Reference observations are never presented as tradable quotes.</p></div><span class="q-status q-status--${networkSources.some((source)=>source?.truthState==='live')?'live':'delayed'}">${networkSources.filter((source)=>source?.data!=null).length} SOURCES AVAILABLE</span></div><div class="q-panel-body q-public-source-grid">${networkSources.map((source)=>networkSourceCard(source,escapeHtml)).join('')||'<div class="q-empty-state"><strong>Public data network unavailable</strong><p>No source values were substituted.</p></div>'}</div></section>
+    <section class="q-panel q-public-data-board"><div class="q-panel-head"><div><p class="q-eyebrow">Governed live and reference network</p><h2>Global public data board</h2><p>Official/public feeds keep their own cadence, attribution and truth state. Reference observations are never presented as tradable quotes.</p></div><span class="q-status q-status--cached" data-public-source-status>LOADING SOURCES</span></div><div class="q-panel-body q-public-source-grid" data-public-source-grid><div class="q-empty-state"><strong>Connecting public data network</strong><p>Slow reference providers load in the background and never block Market Command.</p></div></div></section>
 
-    <section class="q-panel q-provider-atlas" data-provider-atlas><div class="q-panel-head"><div><p class="q-eyebrow">Supplied provider universe</p><h2>Provider, API and embed atlas</h2><p>Every named provider is discoverable here. “Catalogued” never means licensed, live, free, embeddable or endorsed.</p></div><span class="q-status q-status--cached">${escapeHtml(String(providerDirectory.length))} CATALOGUED</span></div><div class="q-panel-body"><div class="q-provider-atlas-controls"><label><span>Search providers</span><input type="search" placeholder="Search name, market or integration…" autocomplete="off" data-provider-atlas-search></label><label><span>Integration state</span><select data-provider-atlas-filter><option value="all">All states</option>${integrationModes.map((mode)=>`<option value="${escapeHtml(mode)}">${escapeHtml(integrationLabel(mode))}</option>`).join('')}</select></label><strong data-provider-atlas-count>${escapeHtml(String(providerDirectory.length))} providers</strong></div><div class="q-provider-atlas-grid">${providerDirectory.map((provider)=>providerAtlasCard(provider,escapeHtml)).join('')||'<div class="q-empty-state"><strong>Provider atlas unavailable</strong><p>The supplied candidates could not be loaded.</p></div>'}</div></div></section>
+    <section class="q-panel q-provider-atlas" data-provider-atlas><div class="q-panel-head"><div><p class="q-eyebrow">Supplied provider universe</p><h2>Provider, API and embed atlas</h2><p>Every named provider is discoverable here. “Catalogued” never means licensed, live, free, embeddable or endorsed.</p></div><span class="q-status q-status--cached" data-provider-atlas-status>LOADING CATALOG</span></div><div class="q-panel-body"><div class="q-provider-atlas-controls"><label><span>Search providers</span><input type="search" placeholder="Search name, market or integration…" autocomplete="off" data-provider-atlas-search></label><label><span>Integration state</span><select data-provider-atlas-filter><option value="all">All states</option></select></label><strong data-provider-atlas-count>0 providers</strong></div><div class="q-provider-atlas-grid" data-provider-atlas-grid><div class="q-empty-state"><strong>Loading provider atlas</strong><p>Discovery metadata loads independently from the primary market terminal.</p></div></div></div></section>
 
     <section class="q-panel q-v7-reference-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Approved reference observations</p><h2>ECB euro reference rates</h2><p>Source timing is preserved. Reference rates are informational and are not tradable quotes.</p></div><span class="q-status q-status--${tone(ecb?.truthState)}">${escapeHtml(truthLabel(ecbTruth))}</span></div><div class="q-panel-body"><div class="q-v7-rate-grid">${governedRates(ecb,escapeHtml)}</div><div class="q-v7-evidence-strip"><span>Source: European Central Bank</span><span>Observed: ${escapeHtml(date(ecbObservedAt))}</span><span>Updated: ${escapeHtml(date(ecbIngestedAt))}</span><span>Research only</span></div></div></section>
 
@@ -287,7 +301,6 @@ export async function renderMarketV6(main,deps){
   const ticker=main.querySelector('#q-tv-ticker-tape');
   const suite=main.querySelector('[data-tv-suite]');
   const intelligenceDock=main.querySelector('[data-external-intelligence-dock]');
-  const providerAtlas=main.querySelector('[data-provider-atlas]');
   let handle=null,tickerHandle=null,suiteHandle=null,intelligenceDockHandle=null,themeFrame=0;
   // Evidence aliases are immediately handed to the local Qelly Verify surface.
   // Do not start third-party iframe widgets during that transient handoff: a
@@ -306,7 +319,7 @@ export async function renderMarketV6(main,deps){
     mountTicker();
     symbol?.addEventListener('change',mount);interval?.addEventListener('change',mount);mount();
   }
-  bindProviderAtlas(providerAtlas);
+  api('/api/v1/market/network').then((network)=>populateNetworkSections(main,network,escapeHtml)).catch(()=>populateNetworkSections(main,{sources:{},providerDirectory:[],providerDirectorySummary:{byIntegration:{}}},escapeHtml));
   const themeObserver=new MutationObserver(()=>{
     cancelAnimationFrame(themeFrame);
     themeFrame=requestAnimationFrame(()=>{mount();mountTicker();suiteHandle?.refresh();intelligenceDockHandle?.refresh();});
