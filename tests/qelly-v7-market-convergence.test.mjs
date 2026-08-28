@@ -18,6 +18,8 @@ test('canonical production Market renderer is no-fabrication and anonymous-safe'
   assert.match(source,/Forex Factory Calendar/);
   assert.match(source,/Missing market data is never replaced with invented values/);
   assert.doesNotMatch(source,/aria-label="Market truth boundary"/);
+  assert.match(source,/const marketRoot=main\.querySelector\('\[data-qelly-v7-public-market\]'\)/);
+  assert.match(source,/populateNetworkSections\(marketRoot,network,escapeHtml\)/);
   assert.doesNotMatch(source,/\/api\/v1\/platform\/data-plane|\/api\/v1\/providers\/runtime/);
   assert.doesNotMatch(source,/Math\.sin|Math\.cos|qelly-governed-demo|simulated-demo/);
 });

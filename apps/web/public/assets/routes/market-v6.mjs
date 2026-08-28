@@ -81,6 +81,7 @@ function providerAtlasCard(provider,escapeHtml){
 }
 
 function bindProviderAtlas(root){
+  if(!root?.isConnected)return;
   const search=root.querySelector('[data-provider-atlas-search]');
   const filter=root.querySelector('[data-provider-atlas-filter]');
   const count=root.querySelector('[data-provider-atlas-count]');
@@ -291,12 +292,13 @@ export async function renderMarketV6(main,deps){
     <section class="q-panel"><div class="q-panel-head"><div><h2>Production boundary</h2><p>The public market route uses only anonymous/public contracts. Private data-plane and workspace APIs are requested only after authentication.</p></div><span class="q-status q-status--live">PUBLIC SAFE</span></div><div class="q-panel-body"><div class="q-v6-market-boundary"><span class="q-status q-status--unavailable">NO FALLBACK FABRICATION</span><p>${escapeHtml(overview.reason||'If an internal provider is unavailable or rights-blocked, Qelly exposes that state directly.')}</p></div></div></section>
   </section>`;
 
-  const chart=main.querySelector('#v6-market-tradingview');
-  const symbol=main.querySelector('#v6-market-symbol');
-  const interval=main.querySelector('#v6-market-interval');
-  const ticker=main.querySelector('#q-tv-ticker-tape');
-  const suite=main.querySelector('[data-tv-suite]');
-  const intelligenceDock=main.querySelector('[data-external-intelligence-dock]');
+  const marketRoot=main.querySelector('[data-qelly-v7-public-market]');
+  const chart=marketRoot.querySelector('#v6-market-tradingview');
+  const symbol=marketRoot.querySelector('#v6-market-symbol');
+  const interval=marketRoot.querySelector('#v6-market-interval');
+  const ticker=marketRoot.querySelector('#q-tv-ticker-tape');
+  const suite=marketRoot.querySelector('[data-tv-suite]');
+  const intelligenceDock=marketRoot.querySelector('[data-external-intelligence-dock]');
   let handle=null,tickerHandle=null,suiteHandle=null,intelligenceDockHandle=null,themeFrame=0;
   // Evidence aliases are immediately handed to the local Qelly Verify surface.
   // Do not start third-party iframe widgets during that transient handoff: a
@@ -315,7 +317,7 @@ export async function renderMarketV6(main,deps){
     mountTicker();
     symbol?.addEventListener('change',mount);interval?.addEventListener('change',mount);mount();
   }
-  api('/api/v1/market/network').then((network)=>populateNetworkSections(main,network,escapeHtml)).catch(()=>populateNetworkSections(main,{sources:{},providerDirectory:[],providerDirectorySummary:{byIntegration:{}}},escapeHtml));
+  api('/api/v1/market/network').then((network)=>populateNetworkSections(marketRoot,network,escapeHtml)).catch(()=>populateNetworkSections(marketRoot,{sources:{},providerDirectory:[],providerDirectorySummary:{byIntegration:{}}},escapeHtml));
   const themeObserver=new MutationObserver(()=>{
     cancelAnimationFrame(themeFrame);
     themeFrame=requestAnimationFrame(()=>{mount();mountTicker();suiteHandle?.refresh();intelligenceDockHandle?.refresh();});
