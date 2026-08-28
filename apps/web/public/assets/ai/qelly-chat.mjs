@@ -127,7 +127,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
     if(open)setTimeout(()=>input.focus(),50);
   };
   const setMode=(next)=>{mode=CHAT_MODES.some((item)=>item.id===next)?next:'research';root.querySelectorAll('[data-q-ai-mode]').forEach((button)=>button.setAttribute('aria-pressed',String(button.dataset.qAiMode===mode)));};
-  const open=(prompt='',requestedMode='')=>{setOpen(true);if(requestedMode)setMode(requestedMode);if(prompt&&!input.value)input.value=String(prompt).slice(0,2400);};
+  const open=(prompt='',requestedMode='',expand=false)=>{setOpen(true);if(requestedMode)setMode(requestedMode);if(prompt&&!input.value)input.value=String(prompt).slice(0,2400);if(expand&&!matchMedia('(max-width:640px)').matches){panel.classList.add('is-expanded');const button=root.querySelector('[data-q-ai-expand]');button?.setAttribute('aria-pressed','true');if(button)button.textContent='Compact';}};
   const close=()=>setOpen(false);
   const setBusy=(value)=>{sending=value;send.disabled=value;input.disabled=value;send.querySelector('span').textContent=value?'Thinking…':'Send';panel.classList.toggle('is-thinking',value);};
 
@@ -176,7 +176,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
   root.querySelector('[data-q-ai-export]').addEventListener('click',()=>{const blob=new Blob([JSON.stringify({schemaVersion:'qelly.chat.export/1.0.0',exportedAt:new Date().toISOString(),messages},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const anchor=document.createElement('a');anchor.href=url;anchor.download=`qelly-chat-${new Date().toISOString().slice(0,10)}.json`;anchor.click();setTimeout(()=>URL.revokeObjectURL(url),500);toast?.('Qelly conversation exported',{tone:'success'});});
   root.querySelector('[data-q-ai-clear]').addEventListener('click',()=>{messages=[];persist(messages);render();input.focus();});
   datasetButton.addEventListener('click',()=>{const expanded=datasetButton.getAttribute('aria-expanded')!=='true';datasetButton.setAttribute('aria-expanded',String(expanded));datasetPanel.hidden=!expanded;});
-  document.addEventListener('qelly:open-ai',(event)=>open(event.detail?.prompt||'',event.detail?.mode||''));
+  document.addEventListener('qelly:open-ai',(event)=>open(event.detail?.prompt||'',event.detail?.mode||'',event.detail?.expand===true));
   window.addEventListener('keydown',(event)=>{if((event.ctrlKey||event.metaKey)&&event.key==='/'){event.preventDefault();panel.hidden?open():close();}if(event.key==='Escape'&&!panel.hidden)close();});
   render();
   loadCapability().catch(()=>{root.querySelector('[data-q-ai-status]').textContent=staticVisualPreview?'Static preview':'Dataset service reconnecting';root.querySelector('[data-q-ai-status-dot]').dataset.state='reference';});

@@ -2,6 +2,7 @@ import {HttpError,SECURITY_HEADERS,bootstrapContext,correlationId,corsHeaders,en
 import {effectivePublicRuntimeConfig} from '../../_lib/email-capability.js';
 import {handleAuth} from '../../_lib/auth.js';
 import {handleData,__dataTest} from '../../_lib/data.js';
+import {handleEvidence,__evidenceTest} from '../../_lib/evidence.js';
 import {providerCatalog,providerResult} from '../../_lib/providers.js';
 import {capabilityInventory,matchUnavailableCapability} from '../../_lib/capability-registry.js';
 import {buildExternalMarketNetwork} from '../../_lib/market-network.js';
@@ -172,6 +173,8 @@ export async function route(context){
   if(path==='sessions'&&method==='GET')return responseJson(request,env,{scope:'current-session-only',items:[{sessionId:`supabase-${session.user.id.slice(0,8)}`,authenticationMethod:'supabase-email-password',expiresAt:new Date(Number(session.claims.exp)*1000).toISOString(),current:true,revokedAt:null}]});
   const data=await handleData(context,path,segments,method,session,qelly);
   if(data)return data;
+  const evidence=await handleEvidence(context,path,segments,method,session,qelly);
+  if(evidence)return evidence;
   const unavailable=matchUnavailableCapability(path);
   if(unavailable)throw new HttpError(501,'capability_unavailable_in_canonical_runtime',`${unavailable.label} is not available in the canonical Cloudflare runtime.`,{
     details:{
@@ -200,4 +203,4 @@ export async function onRequest(context){
 }
 
 export {publicRuntimeConfig} from '../../_lib/runtime.js';
-export const __test=Object.freeze({route,stableUuid,validateJwtClaims,publicTruthState,publicProviderEnvelope,externalTruthState,macroObservation,readMethod,publicMarketNetwork,...__dataTest});
+export const __test=Object.freeze({route,stableUuid,validateJwtClaims,publicTruthState,publicProviderEnvelope,externalTruthState,macroObservation,readMethod,publicMarketNetwork,...__dataTest,...__evidenceTest});

@@ -32,6 +32,8 @@ test('registry matches capability debt without shadowing promoted runtime famili
   assert.equal(matchUnavailableCapability('platform/readiness'),null);
   assert.equal(matchUnavailableCapability('live-markets/candles'),null);
   assert.equal(matchUnavailableCapability('saved-calculations'),null);
+  assert.equal(matchUnavailableCapability('evidence/graphs'),null);
+  assert.equal(matchUnavailableCapability('evidence/explain-move'),null);
   assert.equal(matchUnavailableCapability('admin/anything'),null);
 });
 

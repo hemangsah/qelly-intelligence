@@ -52,6 +52,7 @@ const renderSecretRotation=lazyRoute('./routes/secret-rotation.mjs','renderSecre
 const renderQuarantineReview=lazyRoute('./routes/quarantine-review.mjs','renderQuarantineReview');
 const renderStagingAssurance=lazyRoute('./routes/staging-assurance.mjs','renderStagingAssurance');
 const renderDecisionProvenance=lazyRoute('./routes/decision-provenance.mjs','renderDecisionProvenance');
+const renderQellyChatWorkspace=lazyRoute('./routes/qelly-chat-workspace.mjs','renderQellyChatWorkspace');
 const renderCalculatorCenter=lazyRoute('./routes/calculator-center.mjs','renderCalculatorCenter');
 const renderIndiaFinanceCenter=lazyRoute('./routes/india-finance-center.mjs','renderIndiaFinanceCenter');
 const renderIndicatorLibrary=lazyRoute('./routes/indicator-library.mjs','renderIndicatorLibrary');
@@ -427,7 +428,7 @@ async function performRouteRender(request,controller) {
       case 'dex-discovery': await renderDexDiscovery(main); break;
       case 'global-charts': await renderGlobalCharts(main); break;
       case 'converter': await renderConverter(main); break;
-      case 'news-research': await renderIntelligenceTerminal(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate}); break;
+      case 'news-research': await renderQellyChatWorkspace(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate}); break;
       case 'research-article': await renderResearchArticle(main); break;
       case 'trust-center': await renderTrustCenter(main); break;
       case 'market': await renderMarketV6(main,{api,pageHead,stateBanner,escapeHtml}); break;

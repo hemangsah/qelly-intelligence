@@ -33,7 +33,7 @@ test('persistent assistant branding reserves image geometry and reduced motion c
   assert.match(assistant,/qelly-symbol\.svg" width="36" height="36"/);
   assert.match(appCss,/@media \(prefers-reduced-motion:reduce\)[\s\S]*#app\.q-app\.q-app\.q-app #main \*[\s\S]*#q-feature-navigation\.q-feature-navigation \*[\s\S]*animation:none!important;[\s\S]*transition:none!important;/);
   assert.match(productCss,/\.q-product-header :where\(\.q-product-menu,\.q-product-system,\.q-product-account\)\{height:44px!important;min-height:44px!important/);
-  assert.match(productCss,/@media\(max-width:760px\)[\s\S]*header\.q-product-header\{grid-template-columns:44px minmax\(0,1fr\) auto auto!important/);
+  assert.match(productCss,/@media\(max-width:760px\)[\s\S]*header\.q-product-header\{grid-template-areas:"brand menu actions"!important;grid-template-columns:44px 44px minmax\(0,1fr\)!important/);
 });
 
 test('authenticated session state synchronizes the production account header',async()=>{

@@ -13,7 +13,6 @@ export const unavailableCapabilities=Object.freeze([
   capability('delivery-jobs','Delivery, jobs & storage operations','operations','medium',['delivery/**','delivery-attempts','jobs','jobs/**','storage/status'],'Persistent delivery jobs/background workers are not implemented in this Cloudflare Pages release.'),
   capability('devices','Device inventory','identity','medium',['devices','devices/**'],'Multi-device identity inventory and remote device revocation are not implemented.'),
   capability('discovery','Discovery intelligence','discovery','high',['discovery/**'],'The local discovery service has not yet been promoted with production-safe data sourcing and persistence.'),
-  capability('evidence-graphs','Decision evidence graphs','evidence','high',['evidence/**'],'The evidence graph service has not yet been promoted to Cloudflare with persistent provenance storage.'),
   capability('imports','Import center','data-management','medium',['imports','imports/**'],'The local import pipeline has not yet been promoted to the canonical runtime.'),
   capability('observability','Application observability','operations','medium',['observability/**'],'Production log/trace query APIs are not exposed to the browser in this release.'),
   capability('onboarding','Profile onboarding','identity','high',['onboarding/**'],'The local onboarding profile/catalog workflow is not yet backed by a canonical Cloudflare persistence contract.'),
