@@ -90,6 +90,8 @@ const state = {
 
 let routeRenderRequest=0;
 let routeRenderTail=Promise.resolve();
+let activeRouteController=null;
+let currentRenderSignal=null;
 
 const defaultPreferences={theme:'burgundy-command',density:'comfortable',motion:'full',fontScale:100,radiusPx:14,customAccent:null,route:staticVisualPreview?'market':'auth-login',revision:1};
 const anonymousOverview=staticVisualPreview
@@ -108,7 +110,7 @@ const api = async (path, options = {}) => {
   if(staticVisualPreview)return staticPreviewApi.staticPreviewRequest(path,{...options,method});
   const mutationHeaders = ['GET','HEAD','OPTIONS'].includes(method)||options.skipCsrf ? {} : {'X-Qelly-CSRF': state.config?.csrf?.token ?? ''};
   const {skipCsrf,...fetchOptions}=options;
-  const response = await fetch(apiUrl(path), { ...fetchOptions, credentials:'include', headers:{'Content-Type':'application/json',...mutationHeaders,...(options.headers ?? {})} });
+  const response = await fetch(apiUrl(path), { ...fetchOptions, signal:fetchOptions.signal??currentRenderSignal??undefined, credentials:'include', headers:{'Content-Type':'application/json',...mutationHeaders,...(options.headers ?? {})} });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     const caught=new Error(body.error?.message ?? `Request failed (${response.status})`);caught.status=response.status;caught.code=body.error?.code;throw caught;
@@ -341,13 +343,31 @@ function navigate(route, asset = null) {
 
 function renderRoute(){
   const request=++routeRenderRequest;
-  routeRenderTail=routeRenderTail.catch(()=>undefined).then(()=>request===routeRenderRequest?performRouteRender():undefined);
+  activeRouteController?.abort();
+  window.__qellyLiveMarketCleanup?.();
+  window.__qellyLiveMarketCleanup=null;
+  window.__qellyMarketV6Cleanup?.();
+  window.__qellyMarketV6Cleanup=null;
+  const controller=new AbortController();
+  activeRouteController=controller;
+  const main=document.getElementById('main');
+  const definition=routeDefinitions.find((item)=>item.route===state.route);
+  if(main){
+    main.dataset.pageKind=definition?.kind??'analytical';
+    main.setAttribute('aria-busy','true');
+    main.innerHTML=loadingPage(definition?.label??'Loading route');
+  }
+  if(!/^#\/theme-lab(?:\/|$)/.test(location.hash))document.title=`${definition?.label??'Qelly Intelligence'} · Qelly Intelligence`;
+  routeRenderTail=routeRenderTail.catch(()=>undefined).then(()=>request===routeRenderRequest?performRouteRender(request,controller):undefined);
   return routeRenderTail;
 }
 
-async function performRouteRender() {
+async function performRouteRender(request,controller) {
+  currentRenderSignal=controller.signal;
   window.__qellyLiveMarketCleanup?.();
   window.__qellyLiveMarketCleanup=null;
+  window.__qellyMarketV6Cleanup?.();
+  window.__qellyMarketV6Cleanup=null;
   if (state.streamSource) { state.streamSource.close(); state.streamSource = null; }
   const main = document.getElementById('main');
   const route=state.route;
@@ -439,11 +459,22 @@ async function performRouteRender() {
       default: await renderMarket(main);
     }
   } catch (error) {
+    if(error?.name==='AbortError'||request!==routeRenderRequest)return;
     main.innerHTML = isCapabilityBoundaryError(error)
       ? capabilityBoundaryPage(definition,error)
       : errorPage('Unable to render this route.', error.message);
     bindRetry();
   } finally {
+    if(currentRenderSignal===controller.signal)currentRenderSignal=null;
+    if(request!==routeRenderRequest){
+      const currentDefinition=routeDefinitions.find((item)=>item.route===state.route);
+      main.dataset.pageKind=currentDefinition?.kind??'analytical';
+      main.setAttribute('aria-busy','true');
+      main.innerHTML=loadingPage(currentDefinition?.label??'Loading route');
+      if(!/^#\/theme-lab(?:\/|$)/.test(location.hash))document.title=`${currentDefinition?.label??'Qelly Intelligence'} · Qelly Intelligence`;
+      return;
+    }
+    if(activeRouteController===controller)activeRouteController=null;
     main.setAttribute('aria-busy', 'false');
     main.focus({ preventScroll:true });
     if(!/^#\/theme-lab(?:\/|$)/.test(location.hash))document.title = `${definition?.label ?? 'Qelly Intelligence'} · Qelly Intelligence`;
@@ -1026,7 +1057,7 @@ async function persistPreference(patch) {
   return state.prefs;
 }
 
-function loadingPage(){return `<section class="q-page">${pageHead('Validation state','Loading route','Deterministic skeletons preserve layout geometry and prevent content shift.')}<div class="q-skeleton-grid">${Array.from({length:4},()=>'<span class="q-skeleton is-large"></span>').join('')}</div><div class="q-dashboard-grid" style="margin-top:var(--q-gap)"><span class="q-skeleton" style="height:420px"></span><span class="q-skeleton" style="height:420px"></span></div><span class="q-skeleton" style="height:320px"></span></section>`}
+function loadingPage(title='Loading route'){return `<section class="q-page">${pageHead('Loading',title,'Preparing the requested workspace while preserving stable layout geometry.')}<div class="q-skeleton-grid">${Array.from({length:4},()=>'<span class="q-skeleton is-large"></span>').join('')}</div><div class="q-dashboard-grid" style="margin-top:var(--q-gap)"><span class="q-skeleton" style="height:420px"></span><span class="q-skeleton" style="height:420px"></span></div><span class="q-skeleton" style="height:320px"></span></section>`}
 function emptyPage(){return `<section class="q-page">${pageHead('Validation state','Empty state','The route has no matching data and does not invent a zero-value result.')}<div class="q-empty-state"><div><span>◇</span><h2>No eligible records</h2><p>Adjust filters, connect an entitled source, or return to the default fixture state.</p><button class="q-button q-button--primary" data-reset-state>Return to default</button></div></div></section>`}
 function errorPage(title,description,type='error'){return `<section class="q-page">${pageHead('Validation state',title,description)}<div class="q-empty-state q-error-state"><div><span>${type==='offline'?'⌁':'!'}</span><h2>${escapeHtml(title)}</h2><p>${escapeHtml(description)}</p><button class="q-button q-button--primary" data-retry>Retry foundation route</button></div></div></section>`}
 function bindRetry(){document.querySelector('[data-retry]')?.addEventListener('click',()=>{state.previewState='default';document.getElementById('state-selector').value='default';renderRoute();});}

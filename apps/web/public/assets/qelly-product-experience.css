@@ -93,7 +93,7 @@ html[data-production-system="v8"] .q-product-nav a[aria-current="page"],
 html[data-production-system="v8"] .q-product-nav a[aria-current="true"]{
   color:var(--q-text)!important;background:transparent!important;box-shadow:none!important;
 }
-html[data-production-system="v8"] .q-product-header :where(.q-product-menu,.q-product-system,.q-product-account){height:42px!important;min-height:42px!important;margin:0!important;align-items:center!important;justify-content:center!important}
+html[data-production-system="v8"] .q-product-header :where(.q-product-menu,.q-product-system,.q-product-account){height:44px!important;min-height:44px!important;margin:0!important;align-items:center!important;justify-content:center!important}
 html[data-production-system="v8"] .q-product-search{height:42px!important;min-height:42px!important;align-self:center!important;margin:0!important;padding:2px!important;border-radius:var(--q-radius-control)!important}
 html[data-production-system="v8"] .q-product-search :where(input,button){height:38px!important;min-height:38px!important;align-self:center!important;margin:0!important;transform:none!important}
 html[data-production-system="v8"] :where(.q-product-menu,.q-product-search button){border-radius:var(--q-radius-control)!important}
@@ -211,6 +211,7 @@ html[data-product-experience="ready"] #main>section{animation:q-product-enter 32
 
 @media(max-width:760px){
   :root{--q-target-min:44px}
+  html[data-production-system="v8"] body #app header.q-product-header{grid-template-columns:44px minmax(0,1fr) auto auto!important;gap:8px!important}
   html[data-production-system="v8"] #main .q-calculator-card{min-height:190px!important;padding:16px!important}
   html[data-production-system="v8"] #main .q-v6-quant-kpis>div{min-height:82px!important}
   html[data-production-system="v8"] .q-grid-resizer{right:-14px!important;width:28px!important;min-width:28px!important}
@@ -219,5 +220,11 @@ html[data-product-experience="ready"] #main>section{animation:q-product-enter 32
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   html[data-product-experience="ready"] #main>section{animation:none}
-  html[data-production-system="v8"] *{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
+  html[data-production-system="v8"] body #app.q-app *,
+  html[data-production-system="v8"] body #app.q-app *::before,
+  html[data-production-system="v8"] body #app.q-app *::after{
+    scroll-behavior:auto!important;
+    transition:none!important;
+    animation:none!important;
+  }
 }

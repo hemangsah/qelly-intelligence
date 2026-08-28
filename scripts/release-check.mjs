@@ -19,6 +19,8 @@ const schemas = (await readdir(path.join(root, 'packages/schemas'))).filter((nam
 const envExample = await readFile(path.join(root, '.env.example'), 'utf8');
 const readme = await readFile(path.join(root, 'README.md'), 'utf8');
 const vercel = await readJson('vercel.json');
+const readmeUrls = [...readme.matchAll(/\]\((https?:\/\/[^)\s]+)\)/g)].map(([, url]) => url);
+const canonicalPublicSiteUrl = new URL('https://qelly-intelligence.pages.dev');
 
 const required = [
   'LICENSE',
@@ -80,7 +82,20 @@ const result = {
     'QELLY_PRIVATE_KEYS_ENABLED=false',
     'QELLY_RECOVERY_PHRASES_ENABLED=false'
   ].every((value) => envExample.includes(value)),
-  truthfulDeployability: readme.includes('Preview deployable.')
+  truthfulDeployability: readme.includes('**Public beta deployed.**')
+    && readmeUrls.some((candidate) => {
+      try {
+        const parsed = new URL(candidate);
+        return parsed.protocol === canonicalPublicSiteUrl.protocol
+          && parsed.hostname === canonicalPublicSiteUrl.hostname
+          && parsed.pathname === '/'
+          && parsed.search === ''
+          && parsed.hash === '';
+      } catch {
+        return false;
+      }
+    })
+    && readme.includes('Cloudflare Pages Functions')
     && !readme.includes('Public production deployment verified'),
   vercelFunctionPathsExist: functionPaths.every((file) => sourceTree.includes(file))
 };

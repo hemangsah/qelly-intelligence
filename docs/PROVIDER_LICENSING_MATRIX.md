@@ -1,18 +1,21 @@
 # Provider and licensing summary
 
-Canonical current inventories:
+The authoritative operational matrix is [`DATA_SOURCES.md`](DATA_SOURCES.md). Canonical generated inventories are:
 
 - [`../QELLY_PROVIDER_MATRIX.csv`](../QELLY_PROVIDER_MATRIX.csv)
 - [`../QELLY_LICENSING_MATRIX.csv`](../QELLY_LICENSING_MATRIX.csv)
 
-The table below records repository integration intent only. It is not evidence that current commercial terms, attribution, caching, redistribution, derived-data, websocket, historical, or geographic rights were verified.
+This file is retained as a compatibility pointer for older handoffs. The generated CSVs record integration intent; they are not evidence that current commercial terms, attribution, caching, redistribution, derived-data, websocket, historical or geographic rights were verified.
 
 | Provider | Launch use | Authentication | Current implementation | Production boundary |
 |---|---|---|---|---|
-| Binance public market data | Read-only 24h ticker and candles | None in the current adapter | Adapter and normalized public launch responses | Disabled by default; current official policy, terms, attribution, caching, redistribution, and geography require review |
-| CoinDCX public market data | Read-only candles fallback | None in the current adapter | Existing candle adapter | Disabled by default; current official policy, terms, attribution, caching, redistribution, and geography require review |
-| Qelly deterministic fixture | Tests and degraded/offline fallback | None | Implemented | Always labelled simulated; never shown as live |
-| TradingView Lightweight Charts | Chart rendering option | Library licensing/attribution applies | Provider-agnostic chart architecture and local fallback | Do not redistribute Advanced Charts without a licence |
-| Investing.com | None | N/A | Not integrated | No scraping; only officially permitted widgets/licensed integration |
+| Alternative.me | Public crypto reference and Fear & Greed | None | Enabled in Pages Function | Required attribution; bounded cache |
+| Hyperliquid | Public mid-price reference | None | Enabled in Pages Function | Read-only documented endpoint; no execution |
+| World Bank | Annual GDP-growth reference | None | Enabled in Pages Function | Delayed macro reference, not a live market feed |
+| ECB | Daily FX reference rates | None | Enabled and governed | Attributed reference use; not an executable price series |
+| Binance | Quote/candle adapter | None | Policy-blocked | Enable only after redistribution rights are verified |
+| Coinbase | Quote/candle adapter | None | Policy-blocked | Enable only after written end-user-display permission is verified |
+| TradingView | Human-readable display and outbound research | Public widget/link boundary | Display only | Widget values are not ingested or persisted as Qelly data |
+| Qelly deterministic fixtures | Tests and local demonstrations | None | Local-only | Always labelled simulated; never shown as live |
 
-Credentials, when later required, remain server-side and are never embedded in frontend code. CoinGlass and CoinMarketCap are design/capability references only and are not Qelly data providers.
+Credentials, when later required, remain server-side and are never embedded in frontend code. CoinGlass, CoinMarketCap and the other research destinations in `DATA_SOURCES.md` are links, not Qelly data providers.

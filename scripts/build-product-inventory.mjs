@@ -13,7 +13,7 @@ await writeFile(path.join(out,'QELLY_API_INVENTORY.json'),JSON.stringify({produc
 const csv=(rows,columns)=>[columns.join(','),...rows.map(row=>columns.map(key=>`"${String(row[key]??'').replaceAll('"','""')}"`).join(','))].join('\n')+'\n';
 await writeFile(path.join(out,'QELLY_ROUTE_INVENTORY.csv'),csv(routeRows,['index','route','label','section','public','implementation']));
 await writeFile(path.join(out,'QELLY_API_INVENTORY.csv'),csv(apiRows,['index','route','access','implementation']));
-const excludes=new Set(['node_modules','dist','.git','runtime','preview','__pycache__']);
+const excludes=new Set(['node_modules','dist','.git','runtime','preview','__pycache__','.wrangler','.cache','.vercel','coverage','outputs','screens','.ui-review']);
 async function walk(dir){const out=[];for(const entry of await readdir(dir,{withFileTypes:true})){if(excludes.has(entry.name))continue;const full=path.join(dir,entry.name);if(entry.isDirectory())out.push(...await walk(full));else out.push(path.relative(root,full).replaceAll('\\','/'));}return out;}
 const tree=(await walk(root)).sort();await writeFile(path.join(out,'QELLY_SOURCE_TREE.txt'),tree.join('\n')+'\n');
 console.log(JSON.stringify({status:'product-inventory-written',productVersion,routes:routeRows.length,apiContracts:apiRows.length,sourceFiles:tree.length},null,2));

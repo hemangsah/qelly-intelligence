@@ -1,9 +1,16 @@
 name: Qelly Cloudflare Preview Gate
 
 on:
-  pull_request:
-    branches: [feature/prompt2c-global-public-beta]
   workflow_dispatch:
+    inputs:
+      preview_url:
+        description: Immutable Cloudflare Pages preview URL
+        required: true
+        type: string
+      expected_sha:
+        description: Full commit SHA deployed to the preview
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -34,8 +41,8 @@ jobs:
       - name: Verify deployed Cloudflare edge
         shell: bash
         env:
-          QELLY_PREVIEW_URL: https://feature-prompt2c-production-oty3.qelly-intelligence.pages.dev
-          QELLY_EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          QELLY_PREVIEW_URL: ${{ inputs.preview_url }}
+          QELLY_EXPECTED_HEAD_SHA: ${{ inputs.expected_sha }}
           QELLY_PREVIEW_MAX_WAIT_MS: '720000'
         run: |
           set -euo pipefail
@@ -43,9 +50,9 @@ jobs:
           node scripts/validate-cloudflare-preview.mjs 2>&1 | tee dist/cloudflare-preview-evidence/run.log
       - name: Upload live preview evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: qelly-cloudflare-preview-${{ github.event.pull_request.head.sha || github.sha }}
+          name: qelly-cloudflare-preview-${{ inputs.expected_sha }}
           path: dist/cloudflare-preview-evidence
           if-no-files-found: error
           retention-days: 14

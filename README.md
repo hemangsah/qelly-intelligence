@@ -4,9 +4,9 @@ Qelly Intelligence is a verifiable financial-market intelligence platform that c
 
 ## Current deployability
 
-**Preview deployable.** The repository runs locally and in a portable Node.js/Docker environment. It is not yet a verified public production deployment.
+**Public beta deployed.** The canonical Cloudflare Pages deployment is [qelly-intelligence.pages.dev](https://qelly-intelligence.pages.dev). The repository also runs locally and retains a portable Node.js/Docker runtime for environments that need the persistent worker and storage adapters.
 
-The launch surface includes documented public read-only market adapters with explicit attribution, freshness and degraded-state labels. When a provider is disabled or unavailable, Qelly uses deterministic fixtures labelled **simulated**; fixture values are never presented as live.
+The public launch surface uses Cloudflare Pages Functions with Supabase Auth/Postgres and documented read-only sources. Every market response carries source, observation time, ingestion/fetch time, freshness, cache state and an explicit truth state. A failed public source remains **unavailable**; Qelly does not invent a live fallback. Deterministic fixtures are limited to local demonstrations and tests and are always labelled **simulated**.
 
 Live trading, custody, transfers, withdrawals, private-key collection and recovery-phrase collection are intentionally disabled.
 
@@ -56,13 +56,15 @@ npm run worker
 
 ## Public market data
 
-Set:
+The Cloudflare public runtime enables only sources whose current use boundary is recorded in [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md). Binance and Coinbase adapters remain present but return an explicit unavailable/rights-blocked envelope until redistribution or end-user-display permission is verified.
+
+For the portable Node runtime, set:
 
 ```bash
 QELLY_PUBLIC_MARKET_DATA_ENABLED=true
 ```
 
-Qelly attempts documented public read-only market endpoints. The normalized response includes provider, source URL where permitted, observation time, ingestion time, freshness, quality state, confidence, cache state and fallback reason.
+Qelly then attempts documented public read-only endpoints. The normalized response includes provider, source URL where permitted, observation time, ingestion time, freshness, quality state, confidence, cache state and fallback reason.
 
 No private exchange credentials belong in frontend code.
 
@@ -72,7 +74,12 @@ The Scope A flagship workflow is available at `#/decision-provenance`. It persis
 
 ## Production configuration
 
-Use `.env.preview.example` or `.env.production.example`. Strict deployment also requires PostgreSQL, TLS Redis, private S3, private ClamAV, external email, signed webhooks, an active worker, secure session and keyring material. Run migrations from the operations job before the API:
+There are two supported deployment shapes:
+
+- The canonical public beta uses `wrangler.jsonc`, `dist/frontend`, Cloudflare Pages Functions and a browser-safe Supabase publishable key; authenticated writes forward the user's JWT through the same-origin facade. No Supabase service-role credential is shipped to the browser. Cloudflare Workers AI is an optional binding.
+- The portable full Node runtime uses `.env.preview.example` or `.env.production.example`. Strict deployment also requires PostgreSQL, TLS Redis, private S3, private ClamAV, external email, signed webhooks, an active worker, secure session and keyring material.
+
+For the Node runtime, run migrations from the operations job before the API:
 
 ```bash
 NODE_ENV=production npm run env:check
@@ -81,7 +88,7 @@ npm run migrate -- --status
 npm run start:production
 ```
 
-The Node API and worker use separate persistent container images. Vercel is configured for the static `dist/frontend` artifact only; no worker, TCP scanner, migration, Redis consumer, SSE server, or persistent Node process is assigned to a Vercel function.
+The Node API and worker use separate persistent container images. `vercel.json` is retained only as a portable static-hosting manifest for `dist/frontend`; there is no active Vercel project, and no worker, TCP scanner, migration, Redis consumer, SSE server, or persistent Node process is assigned to a Vercel function.
 
 ## Evidence and reports
 
@@ -93,6 +100,7 @@ The Node API and worker use separate persistent container images. Vercel is conf
 - `QELLY_VALIDATION_REPORT.md`
 - `docs/QELLY_RECOVERY_LEDGER.md`
 - `docs/ARCHITECTURE.md`
+- `docs/DATA_SOURCES.md`
 - `docs/DATA_PROVENANCE.md`
 - `docs/DEPLOYMENT_RUNBOOK.md`
 - `docs/PROVIDER_LICENSING_MATRIX.md`

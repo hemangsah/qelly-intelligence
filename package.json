@@ -24,6 +24,7 @@
     "backup": "node scripts/backup-production.mjs",
     "restore": "node scripts/restore-production.mjs",
     "browser:all": "bash scripts/release-a5-all-screens.sh",
+    "browser:navigation": "node scripts/verify-navigation-runtime.mjs",
     "staging:health": "node scripts/staging-health-check.mjs",
     "start:production": "NODE_ENV=production node src/server/server.mjs",
     "build": "node scripts/build.mjs",
