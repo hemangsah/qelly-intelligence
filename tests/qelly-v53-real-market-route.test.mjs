@@ -41,6 +41,7 @@ test('Market command layout keeps navigation and controls directly interactive',
   ]);
   assert.doesNotMatch(market,/aria-label="Market truth boundary"/);
   assert.match(experience,/grid-template-columns:156px max-content minmax\(180px,1fr\) auto auto!important/);
+  assert.match(experience,/@media\(max-width:1500px\)[\s\S]*?\.q-product-nav\{display:none!important\}/);
   assert.match(experience,/html\[data-production-system="v8"\] body\{overflow-x:clip!important;overflow-y:visible!important\}/);
   assert.match(experience,/\.q-v6-market-controls>\.q-setting\{[\s\S]*?min-height:0!important/);
   assert.match(experience,/\.q-v6-market-controls select\{[^}]*height:44px!important/);

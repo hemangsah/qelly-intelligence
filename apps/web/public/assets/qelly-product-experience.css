@@ -222,13 +222,9 @@ html[data-appearance="light"] :where(.q-panel,.q-mi-intelligence-module,.q-mn-pa
 html[data-product-experience="ready"] #main>section{animation:q-product-enter 320ms cubic-bezier(.2,.8,.2,1) both}
 @keyframes q-product-enter{from{opacity:.45;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-@media(max-width:1280px){
-  html[data-production-system="v8"] body #app header.q-product-header{grid-template-columns:156px minmax(0,1fr) minmax(210px,260px) auto auto!important;gap:8px!important;padding-inline:12px!important}
-  html[data-production-system="v8"] body #app .q-product-header .q-product-nav{justify-self:stretch!important;width:100%!important}
-  html[data-production-system="v8"] body #app .q-product-header .q-product-nav a{padding-inline:6px!important}
-}
-
-@media(max-width:1180px){
+/* Once the complete primary set no longer fits without compressing Menu, move
+   route discovery into the governed drawer and give the search the full band. */
+@media(max-width:1500px){
   html[data-production-system="v8"] body #app header.q-product-header{grid-template-columns:156px minmax(220px,1fr) auto auto!important}
   html[data-production-system="v8"] body #app .q-product-header .q-product-nav{display:none!important}
   html[data-production-system="v8"] body #app .q-product-header .q-product-search{grid-column:2!important;grid-row:1!important;width:100%!important}
