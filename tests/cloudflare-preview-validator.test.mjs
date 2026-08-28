@@ -29,7 +29,10 @@ test('Cloudflare preview workflow requires an explicit immutable preview and exa
 test('release deployability gate recognizes the verified Cloudflare public beta without overstating production',async()=>{
   const [releaseCheck,readme]=await Promise.all([read('scripts/release-check.mjs'),read('README.md')]);
   assert.match(releaseCheck,/readme\.includes\('\*\*Public beta deployed\.\*\*'\)/);
-  assert.match(releaseCheck,/readme\.includes\('https:\/\/qelly-intelligence\.pages\.dev'\)/);
+  assert.match(releaseCheck,/readme\.matchAll/);
+  assert.match(releaseCheck,/new URL\('https:\/\/qelly-intelligence\.pages\.dev'\)/);
+  assert.match(releaseCheck,/parsed\.hostname === canonicalPublicSiteUrl\.hostname/);
+  assert.doesNotMatch(releaseCheck,/readme\.includes\('https:\/\/qelly-intelligence\.pages\.dev'\)/);
   assert.match(readme,/\*\*Public beta deployed\.\*\*/);
   assert.match(readme,/Cloudflare Pages Functions/);
 });
