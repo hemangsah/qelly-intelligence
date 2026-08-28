@@ -12,7 +12,7 @@ export function buildPublicConfigPayload(env,requestUrl,session,csrf,{runtime=ef
     csrf:{header:'X-Qelly-CSRF',token:authenticated?csrf:null,mode:authenticated?'double-submit-cookie':'unavailable-until-authenticated'},
     auth:{authenticated,backendAvailable:authentication,productionIdentityEnabled:authentication,emailDeliveryAvailable:emailDelivery,registrationAvailable:emailDelivery,recoveryAvailable:emailDelivery,mode:'supabase-auth-cloudflare-facade'},
     cloud:{available:true,syncAvailable:runtime.capabilities.cloudSync===true,providerRuntime:true},
-    capabilityTruth:{passkeys:false,mfa:false,research:false,persistentJobs:false,productionNotifications:false,multiSessionManagement:false},
+    capabilityTruth:{passkeys:false,mfa:false,research:authentication&&runtime.capabilities.cloudSync===true,persistentJobs:false,productionNotifications:false,multiSessionManagement:false},
     providerRights:{binance:'blocked_pending_redistribution_rights',coinbase:'blocked_pending_written_end_user_display_permission',ecb:'conditionally_approved_attributed_reference_data'},
     runtime,
     dataStatePolicy:{connectedProduction:true,fabricatedMarketFallback:false,designSampleStateRuntime:false,deterministicExamplesRestrictedToAnalyticalTools:true},

@@ -105,12 +105,12 @@ test('public provider contracts honor HEAD without falling into authentication',
   }
 });
 
-test('public config declares unsupported production capabilities as disabled',async()=>{
+test('public config declares governed cloud research while unsupported capabilities stay disabled',async()=>{
   const request=new Request('https://qelly-intelligence.pages.dev/api/v1/config');
   const response=await configOnRequest({request,env:baseEnv(),params:{path:['config']},next:async()=>new Response(null,{status:404})});
   const body=await response.json();
   assert.equal(response.status,200);
-  assert.deepEqual(body.capabilityTruth,{passkeys:false,mfa:false,research:false,persistentJobs:false,productionNotifications:false,multiSessionManagement:false});
+  assert.deepEqual(body.capabilityTruth,{passkeys:false,mfa:false,research:true,persistentJobs:false,productionNotifications:false,multiSessionManagement:false});
   assert.ok(body.states.includes('cached'));
 });
 
