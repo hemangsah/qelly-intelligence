@@ -16,8 +16,8 @@ test('canonical production Market renderer is no-fabrication and anonymous-safe'
   assert.match(source,/\/api\/v1\/providers\/ecb\?capability=fx-reference-rates&symbol=EUR/);
   assert.match(source,/TradingView market visualization/);
   assert.match(source,/Forex Factory Calendar/);
-  assert.match(source,/Fabricated fallback/);
-  assert.match(source,/OFF/);
+  assert.match(source,/Missing market data is never replaced with invented values/);
+  assert.doesNotMatch(source,/aria-label="Market truth boundary"/);
   assert.doesNotMatch(source,/\/api\/v1\/platform\/data-plane|\/api\/v1\/providers\/runtime/);
   assert.doesNotMatch(source,/Math\.sin|Math\.cos|qelly-governed-demo|simulated-demo/);
 });

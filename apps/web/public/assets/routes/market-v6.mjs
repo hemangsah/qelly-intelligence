@@ -229,8 +229,6 @@ export async function renderMarketV6(main,deps){
   const overview=overviewResult.status==='fulfilled'?overviewResult.value:{providers:[],guardrails:{fabricatedObservations:false}};
   const ecb=ecbResult.status==='fulfilled'?ecbResult.value:null;
   const providers=Array.isArray(overview.providers)?overview.providers:[];
-  const authorizedMarketProviders=providers.filter(provider=>provider.enabled&&provider.id!=='ecb');
-  const referenceProviders=providers.filter(provider=>provider.enabled&&provider.id==='ecb');
   const symbolOptions=EXTERNAL_SYMBOLS.map(([id,label])=>`<option value="${id}">${label}</option>`).join('');
   const intervalOptions=INTERVALS.map(([id,label])=>`<option value="${id}">${label}</option>`).join('');
   const ecbObservedAt=ecb?.observationTime||ecb?.observedAt||null;
@@ -244,13 +242,6 @@ export async function renderMarketV6(main,deps){
       <div class="q-market-principle__rules"><span>Verify freshness</span><span>Separate signal from story</span><span>Keep execution outside research</span></div>
     </section>
     ${stateBanner()}
-
-    <section class="q-v7-boundary-ribbon" aria-label="Market truth boundary">
-      <div><span>Internal crypto feeds</span><strong>${authorizedMarketProviders.length}</strong><small>${authorizedMarketProviders.length?'Rights-authorized provider available':'No rights-authorized crypto feed'}</small></div>
-      <div><span>Approved reference feeds</span><strong>${referenceProviders.length}</strong><small>ECB daily working-day reference cadence</small></div>
-      <div><span>Fabricated fallback</span><strong>OFF</strong><small>Unavailable stays unavailable</small></div>
-      <div><span>Execution</span><strong>DISABLED</strong><small>Read-only research terminal</small></div>
-    </section>
 
     <section class="q-tv-tape-shell" aria-label="TradingView cross-asset ticker tape">
       <div id="q-tv-ticker-tape" class="q-tv-ticker-stage"></div>

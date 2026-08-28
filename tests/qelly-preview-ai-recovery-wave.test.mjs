@@ -26,6 +26,7 @@ test('public recovery catches the exact broken route states from the reported sc
   assert.match(source,/view=decision-maker/);
   assert.match(source,/qelly-logo-primary\.svg/);
   assert.match(source,/MutationObserver/);
+  assert.match(source,/qellyRecoveryOwner!=='decision-maker'\|\|!main\.querySelector\('\[data-qelly-recovery-owned="decision-maker"\]'\)/);
   assert.doesNotMatch(source,/placeOrder|executeTrade|wallet\.sign/i);
   assert.match(source,/No execution\. No personalized advice\./i);
 });

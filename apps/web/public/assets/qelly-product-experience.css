@@ -15,6 +15,11 @@
 }
 
 html{scroll-behavior:smooth;scrollbar-gutter:stable}
+/* Keep the document as the only vertical scroll container. A vertically
+   scrollable body makes the sticky command header attach to a non-scrolling
+   ancestor and disappear as the document moves. */
+html[data-production-system="v8"]{overflow-x:clip!important;overflow-y:auto!important}
+html[data-production-system="v8"] body{overflow-x:clip!important;overflow-y:visible!important}
 *::-webkit-scrollbar{width:9px;height:9px}
 *::-webkit-scrollbar-track{background:transparent}
 *::-webkit-scrollbar-thumb{border:3px solid transparent;border-radius:999px;background:color-mix(in srgb,var(--q-accent) 72%,var(--q-muted));background-clip:padding-box}
@@ -60,8 +65,9 @@ html[data-production-system="v8"] .q-grid-resizer:is(:hover,:focus-visible){
 }
 
 html[data-production-system="v8"] body #app header.q-product-header{
-  grid-template-columns:156px fit-content(640px) minmax(210px,260px) auto auto!important;
-  justify-content:start!important;
+  position:sticky!important;top:0!important;z-index:200!important;
+  grid-template-columns:156px max-content minmax(180px,1fr) auto auto!important;
+  justify-content:stretch!important;
   align-items:center!important;
   gap:8px!important;
   border-radius:0!important;
@@ -80,11 +86,11 @@ html[data-production-system="v8"] .q-product-brand__mark img{display:block!impor
 /* Calm navigation: location is shown by typography and accessible current-page
    state, without the historical underline artifact. */
 html[data-production-system="v8"] .q-product-nav{
-  height:42px!important;min-height:42px!important;align-items:center!important;gap:8px!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important;
+  height:42px!important;min-height:42px!important;align-items:center!important;gap:4px!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow-x:auto!important;overflow-y:hidden!important;overflow-anchor:none!important;scrollbar-width:none!important;
 }
 html[data-production-system="v8"] .q-product-nav::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
 html[data-production-system="v8"] .q-product-nav a{
-  display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:42px!important;margin:0!important;padding:0 8px!important;border-radius:0!important;background:transparent!important;color:var(--q-muted)!important;line-height:1!important;
+  position:relative!important;z-index:1!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:42px!important;margin:0!important;padding:0 6px!important;border-radius:0!important;background:transparent!important;color:var(--q-muted)!important;line-height:1!important;
 }
 html[data-production-system="v8"] .q-product-nav a::before,
 html[data-production-system="v8"] .q-product-nav a::after{content:none!important;display:none!important}
@@ -95,9 +101,27 @@ html[data-production-system="v8"] .q-product-nav a[aria-current="true"]{
   color:var(--q-text)!important;background:transparent!important;box-shadow:none!important;
 }
 html[data-production-system="v8"] .q-product-header :where(.q-product-menu,.q-product-system,.q-product-account){height:44px!important;min-height:44px!important;margin:0!important;align-items:center!important;justify-content:center!important}
-html[data-production-system="v8"] .q-product-search{height:42px!important;min-height:42px!important;align-self:center!important;margin:0!important;padding:2px!important;border-radius:var(--q-radius-control)!important}
+html[data-production-system="v8"] .q-product-search{width:100%!important;min-width:0!important;height:42px!important;min-height:42px!important;justify-self:stretch!important;align-self:center!important;margin:0!important;padding:2px!important;border-radius:var(--q-radius-control)!important}
 html[data-production-system="v8"] .q-product-search :where(input,button){height:38px!important;min-height:38px!important;align-self:center!important;margin:0!important;transform:none!important}
 html[data-production-system="v8"] :where(.q-product-menu,.q-product-search button){border-radius:var(--q-radius-control)!important}
+
+/* Market display controls should read as a compact toolbar, not three tall
+   settings cards. The selects retain the 44px touch target. */
+html[data-v53-real-market="active"] body #app #main .q-v6-market-controls{
+  grid-template-columns:minmax(140px,180px) minmax(140px,180px) minmax(220px,1fr)!important;
+  align-items:end!important;gap:10px!important;padding:10px!important;
+}
+html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-setting{
+  display:grid!important;align-content:end!important;gap:6px!important;min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
+}
+html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-setting>span{margin:0!important}
+html[data-v53-real-market="active"] body #app #main .q-v6-market-controls select{width:100%!important;height:44px!important;min-height:44px!important;margin:0!important}
+html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-query-boundary{
+  align-self:stretch!important;align-content:center!important;gap:3px!important;padding:6px 10px!important;border-left:1px solid var(--q-divider)!important;
+}
+html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-query-boundary>span{font-size:10px!important;line-height:1.25!important}
+html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-query-boundary>strong{font-size:11px!important;line-height:1.25!important}
+html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-query-boundary>small{font-size:9px!important;line-height:1.25!important}
 
 /* Controls are compact precision objects. Semantic status labels remain pills. */
 html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(.q-status):not(.q-truth-pill),
@@ -135,6 +159,7 @@ html[data-production-system="v8"] body #app #main :where(.q-feature-card,.q-calc
 }
 html[data-production-system="v8"] .q-feature-navigation{border-radius:var(--q-radius-feature)!important}
 html[data-production-system="v8"] .q-feature-navigation>header{border-radius:var(--q-radius-feature) var(--q-radius-feature) 0 0!important}
+html[data-production-system="v8"] .q-feature-navigation>nav{overscroll-behavior:contain!important;scrollbar-gutter:stable!important}
 
 /* Calculator workbench: legible rather than miniaturized. */
 html[data-production-system="v8"] #main .q-calculator-workbench-page{gap:clamp(20px,2.4vw,34px)!important}
@@ -198,8 +223,9 @@ html[data-product-experience="ready"] #main>section{animation:q-product-enter 32
 @keyframes q-product-enter{from{opacity:.45;transform:translateY(8px)}to{opacity:1;transform:none}}
 
 @media(max-width:1280px){
-  html[data-production-system="v8"] body #app header.q-product-header{grid-template-columns:156px fit-content(440px) minmax(210px,260px) auto auto!important;gap:8px!important;padding-inline:12px!important}
-  html[data-production-system="v8"] body #app .q-product-header .q-product-nav a{padding-inline:9px!important}
+  html[data-production-system="v8"] body #app header.q-product-header{grid-template-columns:156px minmax(0,1fr) minmax(210px,260px) auto auto!important;gap:8px!important;padding-inline:12px!important}
+  html[data-production-system="v8"] body #app .q-product-header .q-product-nav{justify-self:stretch!important;width:100%!important}
+  html[data-production-system="v8"] body #app .q-product-header .q-product-nav a{padding-inline:6px!important}
 }
 
 @media(max-width:1180px){
@@ -228,4 +254,14 @@ html[data-product-experience="ready"] #main>section{animation:q-product-enter 32
     transition:none!important;
     animation:none!important;
   }
+}
+
+@media(max-width:720px){
+  html[data-v53-real-market="active"] body #app #main .q-v6-market-controls{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-query-boundary{grid-column:1/-1!important;border-left:0!important;border-top:1px solid var(--q-divider)!important}
+}
+
+@media(max-width:520px){
+  html[data-v53-real-market="active"] body #app #main .q-v6-market-controls{grid-template-columns:1fr!important}
+  html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-query-boundary{grid-column:auto!important}
 }
