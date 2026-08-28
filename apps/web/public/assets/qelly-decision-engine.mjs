@@ -87,6 +87,32 @@ export function evaluateDecision(rawInput={}){
       'User-assessed confidence is an assumption and is not source quality.'
     ])
   });
+  const scoreForScenario=(move)=>{
+    const scenarioScore=score-components.scenarioMoveAdjustment+move*0.55;
+    const normalized=Number(clamp(scenarioScore,0,100).toFixed(1));
+    return Object.freeze({
+      move,
+      score:normalized,
+      posture:normalized>=72?'Research candidate':normalized>=55?'Monitor with conditions':normalized>=40?'Wait for stronger evidence':'Avoid new exposure'
+    });
+  };
+  const counterfactuals=freezeList([-20,-10,0,10,20].map(scoreForScenario));
+  const decisionGates=freezeList([
+    {id:'hypothesis',label:'Hypothesis stated',state:input.thesis?'pass':'attention',detail:input.thesis?'A human thesis is recorded.':'Add a falsifiable human thesis.'},
+    {id:'invalidation',label:'Invalidation defined',state:input.invalidationCondition?'pass':'blocked',detail:input.invalidationCondition?'An observable invalidation condition is recorded.':'Decision reliance is blocked until an invalidation condition is stated.'},
+    {id:'freshness',label:'Fresh evidence attached',state:'blocked',detail:'No timestamped live provider observations are attached.'},
+    {id:'agreement',label:'Independent agreement',state:'blocked',detail:'No cross-provider agreement measure is available.'},
+    {id:'execution',label:'Human control preserved',state:'pass',detail:'Execution, custody and wallet signing remain disabled.'}
+  ]);
+  const passedGates=decisionGates.filter((gate)=>gate.state==='pass').length;
+  const blockedGates=decisionGates.filter((gate)=>gate.state==='blocked').length;
+  const readiness=Object.freeze({
+    state:blockedGates?'research-only':passedGates===decisionGates.length?'review-ready':'needs-review',
+    passed:passedGates,
+    blocked:blockedGates,
+    total:decisionGates.length,
+    label:blockedGates?'Research only · evidence incomplete':'Ready for human review'
+  });
   const sourceRecords=freezeList([
     {
       sourceId:'qelly-fixed-scenario-profile-v2',
@@ -191,6 +217,9 @@ export function evaluateDecision(rawInput={}){
     missingInformation,
     sourceRecords,
     sourceQuality,
+    counterfactuals,
+    decisionGates,
+    readiness,
     methodology:Object.freeze({...METHOD,components}),
     decisionRecord,
     execution:false,

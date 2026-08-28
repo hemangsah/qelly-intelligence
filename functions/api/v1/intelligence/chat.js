@@ -2,6 +2,7 @@ import {HttpError,correlationId,enforceRateLimit,errorResponse,jsonBody,response
 import {DEFAULT_QELLY_AI_MODEL,buildFinanceContext,datasetRegistry,runGroundedFinanceInference,suggestedRoutes} from '../../../_lib/finance-intelligence.js';
 
 const clientKey=(request)=>request.headers.get('CF-Connecting-IP')||request.headers.get('x-forwarded-for')||'unknown';
+const CHAT_MODES=Object.freeze(['research','compare','explain','decision']);
 const safeHistory=(value)=>Array.isArray(value)?value.slice(-12).map((item)=>({role:item?.role==='assistant'?'assistant':'user',content:String(item?.content??'').trim().slice(0,2000)})).filter((item)=>item.content):[];
 const requireSameOrigin=(request)=>{
   const origin=request.headers.get('origin');
@@ -36,6 +37,7 @@ export async function handleIntelligenceChat(context){
     await enforceRateLimit(env,`intelligence-capability:${clientKey(request)}`,{limit:60});
     return responseJson(request,env,{
       assistant:{id:'qelly-intelligence',name:'Qelly Intelligence',available:true,inferenceAvailable:typeof env.AI?.run==='function',provider:typeof env.AI?.run==='function'?'cloudflare-workers-ai':'qelly-dataset-engine',model:typeof env.AI?.run==='function'?String(env.QELLY_AI_MODEL||DEFAULT_QELLY_AI_MODEL):null},
+      modes:CHAT_MODES,
       datasets:datasetRegistry(),
       policy:{conversationStorage:'browser_session_only',promptLogging:false,execution:false,custody:false,financialAdvice:false}
     });
@@ -48,6 +50,7 @@ export async function handleIntelligenceChat(context){
   if(message.length<2)throw new HttpError(400,'chat_message_required','Enter a financial research question.');
   if(message.length>2400)throw new HttpError(400,'chat_message_too_long','Keep the research question under 2,400 characters.');
   const history=safeHistory(body.history);
+  const mode=CHAT_MODES.includes(String(body.mode||''))?String(body.mode):'research';
   const conversationalAnswer=conversationalReply(message);
   if(conversationalAnswer){
     return responseJson(request,sameOriginResponseEnv(request,env),{
@@ -55,6 +58,7 @@ export async function handleIntelligenceChat(context){
       role:'assistant',
       content:conversationalAnswer,
       generatedAt:new Date().toISOString(),
+      mode,
       truthState:'conversational',
       inference:{provider:'qelly-conversation-router',model:null,state:'conversational',reason:null},
       sources:[],
@@ -66,17 +70,20 @@ export async function handleIntelligenceChat(context){
   }
   const contextBuilder=typeof env.__buildFinanceContext==='function'?env.__buildFinanceContext:buildFinanceContext;
   const financeContext=await contextBuilder(context,message);
-  const inference=await runGroundedFinanceInference(env,{message,history,financeContext});
+  const inference=await runGroundedFinanceInference(env,{message,history,financeContext,mode});
+  const availableSources=financeContext.citations.filter((source)=>source?.truthState&&source.truthState!=='unavailable');
   return responseJson(request,sameOriginResponseEnv(request,env),{
     id:crypto.randomUUID(),
     role:'assistant',
     content:inference.answer,
     generatedAt:new Date().toISOString(),
+    mode,
     truthState:inference.state,
     inference:{provider:inference.provider,model:inference.model,state:inference.state,reason:inference.reason??null},
     sources:financeContext.citations,
     datasets:financeContext.datasetSummary,
-    actions:suggestedRoutes(message),
+    actions:suggestedRoutes(message,mode),
+    evidence:{used:availableSources.length,available:availableSources.map((source)=>source.id),unavailable:financeContext.citations.filter((source)=>source?.truthState==='unavailable').map((source)=>source.id),generatedAt:financeContext.generatedAt,noFabricatedFallback:financeContext.policy.fabricatedFallback===false},
     disclaimer:'Research information only · not personalized financial advice · no execution',
     correlationId:correlationId(request)
   });
@@ -92,4 +99,4 @@ export async function onRequest(context){
   }
 }
 
-export const __intelligenceChatTest=Object.freeze({clientKey,safeHistory,requireSameOrigin,sameOriginResponseEnv,conversationalReply});
+export const __intelligenceChatTest=Object.freeze({CHAT_MODES,clientKey,safeHistory,requireSameOrigin,sameOriginResponseEnv,conversationalReply});

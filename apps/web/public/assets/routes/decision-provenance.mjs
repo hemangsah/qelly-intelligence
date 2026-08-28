@@ -11,6 +11,7 @@ const listMarkup=(items,escapeHtml,{ordered=false,empty='None recorded.'}={})=>{
 const graphValue=(value)=>typeof value==='object'&&value!==null?JSON.stringify(value):String(value??'—');
 const defaultGraphNodeId=(graph)=>graph?.nodes?.find((node)=>node.type==='DecisionRecord')?.nodeId??graph?.nodes?.[0]?.nodeId??null;
 const isGovernedCaptureFixture=()=>globalThis.location?.hostname==='qelly.test';
+const restoreChatDecisionDraft=()=>{try{const value=JSON.parse(sessionStorage.getItem('qelly.decision.draft.v1')||'null');sessionStorage.removeItem('qelly.decision.draft.v1');return value&&typeof value.thesis==='string'?value:null;}catch{return null;}};
 
 async function ensureGovernedCaptureGraph(listing,api,result){
   if(!isGovernedCaptureFixture()||listing.items?.length)return listing;
@@ -18,6 +19,50 @@ async function ensureGovernedCaptureGraph(listing,api,result){
     await api('/api/v1/evidence/explain-move',{method:'POST',headers:{'Idempotency-Key':'qelly-wave3-provenance-capture-v1'},body:JSON.stringify({canonicalId:result.input.assetId,consideredAction:'monitor-with-conditions',horizon:result.input.horizon,confidence:result.input.evidenceConfidence/100,thesis:'Governed local screenshot fixture for Decision Provenance traversal validation.',notes:'Local screenshot evidence fixture only. External providers and execution remain disabled; this is not production user data.'})});
     return await api('/api/v1/evidence/graphs');
   }catch{return listing;}
+}
+
+function buildLocalDecisionGraph(result){
+  const id=result.analysisId;
+  const nodes=[
+    {nodeId:`${id}:asset`,type:'Asset',label:`${result.asset.name} (${result.asset.symbol})`,classification:'canonical-input',revision:1,data:{canonicalId:result.asset.id,horizon:result.input.horizon}},
+    {nodeId:`${id}:source`,type:'SourceRecord',label:'Qelly fixed scenario library',classification:'demonstration-source',revision:1,data:{sourceId:result.sourceRecords[0]?.sourceId,freshness:'not-live',qualityState:'simulated'}},
+    {nodeId:`${id}:hypothesis`,type:'Hypothesis',label:result.input.thesis||'Human thesis not supplied',classification:'human-input',revision:1,data:{thesis:result.input.thesis||null,confidenceAssumption:`${result.input.evidenceConfidence}%`,invalidationCondition:result.input.invalidationCondition||null}},
+    {nodeId:`${id}:scenario`,type:'ProviderObservation',label:`${result.input.scenarioMove}% scenario move`,classification:'scenario-input',revision:1,data:{scenarioMove:result.input.scenarioMove,liveProvider:false,freshness:'not-live'}},
+    {nodeId:`${id}:method`,type:'NormalizedObservation',label:`${result.methodology.id}@${result.methodology.version}`,classification:'versioned-method',revision:1,data:{formula:result.methodology.formula,components:result.methodology.components}},
+    {nodeId:`${id}:risk`,type:'RiskAssessment',label:`${result.riskPosture} scenario risk`,classification:'derived-inference',revision:1,data:{riskPosture:result.riskPosture,uncertaintyCount:result.uncertainty.length,execution:false}},
+    {nodeId:`${id}:decision`,type:'DecisionRecord',label:result.posture,classification:'considered-not-executed',revision:1,data:{analysisId:result.analysisId,score:result.score,readiness:result.readiness.label,humanOverrideRequired:true,executionStatus:'disabled'}},
+    {nodeId:`${id}:invalidation`,type:'Hypothesis',label:result.input.invalidationCondition||'Invalidation condition missing',classification:'falsification-gate',revision:1,data:{state:result.input.invalidationCondition?'recorded':'blocked',condition:result.input.invalidationCondition||null}}
+  ];
+  const edges=[
+    {fromNodeId:`${id}:asset`,toNodeId:`${id}:scenario`,type:'scopes'},
+    {fromNodeId:`${id}:source`,toNodeId:`${id}:method`,type:'informs'},
+    {fromNodeId:`${id}:scenario`,toNodeId:`${id}:method`,type:'normalized-by'},
+    {fromNodeId:`${id}:hypothesis`,toNodeId:`${id}:decision`,type:'considered-in'},
+    {fromNodeId:`${id}:method`,toNodeId:`${id}:risk`,type:'derives'},
+    {fromNodeId:`${id}:risk`,toNodeId:`${id}:decision`,type:'constrains'},
+    {fromNodeId:`${id}:invalidation`,toNodeId:`${id}:decision`,type:'invalidates'}
+  ];
+  return Object.freeze({
+    graphId:`local-${id}`,
+    title:`${result.asset.symbol} decision provenance`,
+    truthBoundary:'Client-generated explainability graph over declared scenario inputs. It is not persisted and contains no live provider observations.',
+    integrity:{valid:true,scope:'local-deterministic'},
+    nodes:Object.freeze(nodes.map(Object.freeze)),
+    edges:Object.freeze(edges.map(Object.freeze)),
+    textAlternative:{steps:Object.freeze([
+      `The canonical asset ${result.asset.name} scopes the scenario.`,
+      `The fixed scenario library and user-selected ${result.input.scenarioMove}% move enter ${result.methodology.id}@${result.methodology.version}.`,
+      `The method derives a ${result.riskPosture.toLowerCase()} risk assessment and a ${result.score}/100 composite.`,
+      `Qelly records “${result.posture}” as considered-not-executed; human verification and the invalidation gate remain mandatory.`
+    ])}
+  });
+}
+
+function decisionReadinessMarkup(result,escapeHtml){
+  const gateTone=(state)=>state==='pass'?'live':state==='attention'?'warning':'unavailable';
+  const gates=result.decisionGates.map((gate)=>`<article class="q-decision-gate is-${gate.state}"><span class="q-status q-status--${gateTone(gate.state)}">${escapeHtml(gate.state)}</span><strong>${escapeHtml(gate.label)}</strong><p>${escapeHtml(gate.detail)}</p></article>`).join('');
+  const counterfactuals=result.counterfactuals.map((scenario)=>`<article class="q-decision-counterfactual${scenario.move===result.input.scenarioMove?' is-current':''}"><span>${scenario.move>0?'+':''}${scenario.move}% move</span><strong>${scenario.score}</strong><small>${escapeHtml(scenario.posture)}</small></article>`).join('');
+  return `<section class="q-panel q-decision-readiness"><div class="q-panel-head"><div><p class="q-eyebrow">Decision control plane</p><h2>Readiness gates and counterfactual stress</h2><p>A high composite cannot hide missing evidence. Each gate and scenario remains independently inspectable.</p></div><span class="q-status q-status--${result.readiness.blocked?'warning':'live'}">${escapeHtml(result.readiness.label)}</span></div><div class="q-panel-body"><div class="q-decision-gates">${gates}</div><div class="q-decision-counterfactuals" aria-label="Counterfactual scenario scores">${counterfactuals}</div></div></section>`;
 }
 
 function decisionControls(result,isDemo,escapeHtml){
@@ -93,11 +138,19 @@ function graphMarkup(graph,{isDemo=false,isCaptureFixture=false}={},escapeHtml,s
 export async function renderDecisionProvenance(main,deps){
   activateWave3Stylesheet();
   const {api,pageHead,stateBanner,escapeHtml,toast,renderRoute,navigate}=deps;
-  let result=evaluateDecision();
-  let listing=await api('/api/v1/evidence/graphs');
+  const chatDraft=restoreChatDecisionDraft();
+  let result=evaluateDecision(chatDraft?{thesis:chatDraft.thesis}:{});
+  let listing;
+  try{listing=await api('/api/v1/evidence/graphs');}
+  catch(error){listing={items:[],mode:'deterministic-demo',truthBoundary:'Persistent provenance storage is not connected on this Cloudflare runtime. Qelly keeps the deterministic decision workflow available and labels the client-generated graph as non-live and non-persisted.',errorCode:error?.code??'evidence_backend_unavailable'};}
   listing=await ensureGovernedCaptureGraph(listing,api,result);
-  const graph=listing.items?.[0]?await api(`/api/v1/evidence/graphs/${encodeURIComponent(listing.items[0].graphId)}`):null;
-  const isDemo=listing.mode==='deterministic-demo';
+  let graph=null;
+  let graphSource='local';
+  if(listing.items?.[0]){
+    try{graph=await api(`/api/v1/evidence/graphs/${encodeURIComponent(listing.items[0].graphId)}`);graphSource='persisted';}catch{graph=null;}
+  }
+  if(!graph)graph=buildLocalDecisionGraph(result);
+  const isDemo=listing.mode==='deterministic-demo'||graphSource==='local';
   const isCaptureFixture=isGovernedCaptureFixture()&&Boolean(graph);
   let selectedNodeId=defaultGraphNodeId(graph);
 
@@ -132,21 +185,24 @@ export async function renderDecisionProvenance(main,deps){
     const truthLabel=isCaptureFixture?'local fixture · no production data':isDemo?'demo · not persisted · not live':'workspace evidence';
     const truthTone=isCaptureFixture||isDemo?'simulated':'cached';
     const truthText=isCaptureFixture?`${listing.truthBoundary} This graph was created only inside the governed screenshot runtime to exercise provenance traversal; external providers and execution are disabled.`:listing.truthBoundary;
-    main.innerHTML=`<section class="q-page q-decision-provenance-page">${pageHead('Explainable decision intelligence','Qelly AI Decision Support','Analyze a market hypothesis, separate evidence from inference, expose contradictions and preserve the path to a human decision.',`<button class="q-button q-button--secondary" data-action="market">Open market</button><button class="q-button q-button--secondary" data-action="export-decision">Export analysis</button><button class="q-button q-button--primary" data-action="export-graph" ${graph?'':'disabled'}>Export provenance</button>`)}${stateBanner()}
+    main.innerHTML=`<section class="q-page q-decision-provenance-page">${pageHead('Qelly flagship decision workspace','Decision Command Center','Build an explainable decision, stress its assumptions, traverse every provenance edge and preserve the path to human judgment.',`<button class="q-button q-button--secondary" data-action="ask-qelly">Ask Qelly</button><button class="q-button q-button--secondary" data-action="export-decision">Export analysis</button><button class="q-button q-button--primary" data-action="export-graph" ${graph?'':'disabled'}>Export provenance</button>`)}${stateBanner()}
+      <section class="q-decision-command-hero" aria-label="Decision workflow overview"><div><span>01 · Frame</span><strong>State the thesis</strong><small>Human hypothesis + falsifiable invalidation</small></div><div><span>02 · Stress</span><strong>Test the posture</strong><small>Risk, sensitivity and contradictions</small></div><div><span>03 · Trace</span><strong>Inspect provenance</strong><small>Sources, transformations and governed edges</small></div><div><span>04 · Decide</span><strong>Human judgment</strong><small>Considered, never automatically executed</small></div></section>
       <div class="q-truth-callout"><span class="q-status q-status--${truthTone}">${truthLabel}</span><p>${escapeHtml(truthText)}</p></div>
       <div class="q-kpi-grid"><article class="q-kpi"><div class="q-kpi-label">Research posture</div><div class="q-kpi-value">${escapeHtml(result.posture)}</div><div class="q-kpi-meta"><span>${escapeHtml(result.asset.symbol)} · ${escapeHtml(result.input.horizon)}</span><span class="q-status q-status--cached">score ${result.score}</span></div></article><article class="q-kpi"><div class="q-kpi-label">User-assessed confidence</div><div class="q-kpi-value">${result.input.evidenceConfidence}%</div><div class="q-kpi-meta"><span>${escapeHtml(result.confidenceBand)} band</span><span class="q-status q-status--warning">assumption</span></div></article><article class="q-kpi"><div class="q-kpi-label">Source quality</div><div class="q-kpi-value">${result.sourceQuality.composite}</div><div class="q-kpi-meta"><span>demo package</span><span class="q-status q-status--warning">freshness unavailable</span></div></article><article class="q-kpi"><div class="q-kpi-label">Execution</div><div class="q-kpi-value">Off</div><div class="q-kpi-meta"><span>decision support only</span><span class="q-status q-status--unavailable">disabled</span></div></article></div>
       <div class="q-decision-graph-stack">${graphMarkup(graph,{isDemo,isCaptureFixture},escapeHtml,selectedNodeId)}</div>
       ${decisionControls(result,isDemo,escapeHtml)}
+      ${decisionReadinessMarkup(result,escapeHtml)}
       ${analysisAuditMarkup(result,escapeHtml)}
     </section>`;
 
     bindGraph();
     main.querySelector('[data-action="market"]')?.addEventListener('click',()=>navigate('market'));
+    main.querySelector('[data-action="ask-qelly"]')?.addEventListener('click',()=>document.dispatchEvent(new CustomEvent('qelly:open-ai',{detail:{prompt:result.input.thesis?`Challenge this decision thesis and identify missing evidence: ${result.input.thesis}`:`Help me frame a falsifiable ${result.asset.symbol} decision thesis for a ${result.input.horizon} horizon.`,mode:'decision'}})));
     main.querySelector('[data-action="export-decision"]')?.addEventListener('click',()=>{downloadJson(`qelly-decision-${result.asset.symbol.toLowerCase()}.json`,{generatedAt:new Date().toISOString(),product:'Qelly Intelligence',...result});toast('Decision analysis exported',{tone:'success'});});
-    main.querySelector('[data-action="export-graph"]')?.addEventListener('click',async()=>{if(!graph)return;const exported=await api(`/api/v1/evidence/graphs/${encodeURIComponent(graph.graphId)}/export`);downloadJson(`qelly-evidence-${graph.graphId}.json`,exported);toast('Provenance package exported',{tone:'success'});});
+    main.querySelector('[data-action="export-graph"]')?.addEventListener('click',async()=>{if(!graph)return;const exported=graphSource==='local'?{schemaVersion:'qelly.provenance.local/1.0.0',generatedAt:new Date().toISOString(),persistence:'not-persisted',truthBoundary:graph.truthBoundary,graph}:await api(`/api/v1/evidence/graphs/${encodeURIComponent(graph.graphId)}/export`);downloadJson(`qelly-evidence-${graph.graphId}.json`,exported);toast('Provenance package exported',{tone:'success'});});
     const form=main.querySelector('[data-qelly-decision-form]');
     form?.querySelectorAll('input[type="range"]').forEach((input)=>input.addEventListener('input',()=>input.closest('label')?.querySelector('output')?.replaceChildren(`${input.value}%`)));
-    form?.addEventListener('submit',(event)=>{event.preventDefault();const data=new FormData(form);result=evaluateDecision({assetId:data.get('assetId'),horizon:data.get('horizon'),risk:data.get('risk'),evidenceConfidence:Number(data.get('evidenceConfidence')),scenarioMove:Number(data.get('scenarioMove')),thesis:data.get('thesis'),invalidationCondition:data.get('invalidationCondition')});draw();toast('Decision-support record recalculated',{tone:'success'});});
+    form?.addEventListener('submit',(event)=>{event.preventDefault();const data=new FormData(form);result=evaluateDecision({assetId:data.get('assetId'),horizon:data.get('horizon'),risk:data.get('risk'),evidenceConfidence:Number(data.get('evidenceConfidence')),scenarioMove:Number(data.get('scenarioMove')),thesis:data.get('thesis'),invalidationCondition:data.get('invalidationCondition')});if(graphSource==='local'){graph=buildLocalDecisionGraph(result);selectedNodeId=defaultGraphNodeId(graph);}draw();toast('Decision-support record recalculated',{tone:'success'});});
     main.querySelector('[data-action="persist-decision"]')?.addEventListener('click',async()=>{const button=main.querySelector('[data-action="persist-decision"]');button.disabled=true;try{await api('/api/v1/evidence/explain-move',{method:'POST',headers:{'Idempotency-Key':`evidence-explain-${Date.now()}`},body:JSON.stringify({canonicalId:result.input.assetId,consideredAction:result.posture.toLowerCase().replaceAll(' ','-'),horizon:result.input.horizon,confidence:result.input.evidenceConfidence/100,thesis:result.input.thesis,notes:`Invalidation: ${result.input.invalidationCondition||'not supplied'}; decision-support score ${result.score}; source-package quality ${result.sourceQuality.composite}; execution disabled.`})});toast('Decision evidence package persisted',{tone:'success'});await renderRoute();}catch(error){toast(error.message,{tone:'danger'});}finally{button.disabled=false;}});
   };
   draw();

@@ -18,12 +18,11 @@ const humanRoute=(route)=>({market:'Markets','asset-rankings':'Market rankings',
 
 function productNav(){
   return[
+    ['Decision','decision-provenance'],
+    ['Qelly Chat','news-research'],
     ['Markets','market'],
     ['Research','research-workspace'],
-    ['Formulas','formula-library'],
-    ['Indicators','indicator-library'],
-    ['Calculators','calculator-center'],
-    ['Saved','saved-calculations']
+    ['Tools','calculator-center']
   ];
 }
 

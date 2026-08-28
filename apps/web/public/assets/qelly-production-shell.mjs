@@ -270,10 +270,10 @@ function simplifyHeader(){
     button.type='button';
     button.className='q-product-ai';
     button.dataset.v8QellyAi='true';
-    button.setAttribute('aria-label','Open Qelly AI assistant');
+    button.setAttribute('aria-label','Open Qelly AI assistant and Qelly Chat intelligence workspace');
     button.setAttribute('aria-controls','qelly-ai-assistant');
     button.setAttribute('aria-haspopup','dialog');
-    button.innerHTML='<span aria-hidden="true">✦</span><span>Qelly AI</span>';
+    button.innerHTML='<span aria-hidden="true">✦</span><span>Qelly Chat</span>';
     button.addEventListener('click',()=>document.dispatchEvent(new CustomEvent('qelly:open-ai',{detail:{source:'product-header'}})));
     actions.insertBefore(button,account||null);
   }

@@ -26,6 +26,9 @@ test('decision support is deterministic and separates evidence from inference',(
   assert.match(first.sourceQuality.interpretation,/not current market truth/i);
   assert.equal(first.methodology.version,'2.0.0');
   assert.match(first.boundary,/No live provider observations/i);
+  assert.equal(first.counterfactuals.length,5);
+  assert.ok(first.decisionGates.some((gate)=>gate.id==='freshness'&&gate.state==='blocked'));
+  assert.equal(first.readiness.state,'research-only');
 });
 
 test('decision support UI names assumptions, source quality, invalidation and execution boundaries',async()=>{
@@ -38,6 +41,7 @@ test('decision support UI names assumptions, source quality, invalidation and ex
     read('scripts/build-frontend.mjs')
   ]);
   for(const phrase of ['User-assessed evidence confidence','Invalidation condition','Observed facts','Scenario observations','Missing information','Source quality','Methodology','considered-not-executed'])assert.match(route,new RegExp(phrase));
+  for(const phrase of ['Decision Command Center','Readiness gates and counterfactual stress','buildLocalDecisionGraph','Ask Qelly'])assert.match(route,new RegExp(phrase));
   for(const field of ['sourceQuality','sourceRecords','observedFacts','derivedMetrics','inferences','assumptions','uncertainty','missingInformation','methodology','decisionRecord'])assert.match(engine,new RegExp(field));
   assert.match(brandCorrection,/qelly-symbol\.svg/);
   assert.match(brandCorrection,/correctWorkspaceSwitcherBrand/);

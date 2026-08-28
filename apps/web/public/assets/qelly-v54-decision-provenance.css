@@ -56,6 +56,26 @@
   html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-decision-maker-panel+.q-panel+.q-panel+.q-panel>.q-panel-body{max-height:min(48vh,520px);overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
 }
 
+/* Flagship decision command surface */
+.q-decision-provenance-page .q-decision-command-hero{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));overflow:hidden;border:1px solid color-mix(in srgb,var(--q-accent) 30%,var(--q-border));border-radius:calc(var(--q-radius) + 4px);background:radial-gradient(circle at 10% 0,color-mix(in srgb,var(--q-accent) 22%,transparent),transparent 40%),linear-gradient(135deg,color-mix(in srgb,var(--q-surface) 96%,#000),color-mix(in srgb,var(--q-canvas) 88%,var(--q-accent) 12%));box-shadow:0 22px 70px rgba(0,0,0,.2)}
+.q-decision-provenance-page .q-decision-command-hero>div{position:relative;display:grid;align-content:center;gap:5px;min-height:118px;padding:20px;border-right:1px solid color-mix(in srgb,var(--q-border) 72%,transparent)}
+.q-decision-provenance-page .q-decision-command-hero>div:last-child{border-right:0}
+.q-decision-provenance-page .q-decision-command-hero>div:not(:last-child)::after{content:'→';position:absolute;right:-11px;top:50%;z-index:1;display:grid;place-items:center;width:22px;height:22px;border-radius:999px;background:var(--q-accent);color:#fff;font:800 10px var(--q-font-mono);transform:translateY(-50%)}
+.q-decision-provenance-page .q-decision-command-hero span{color:var(--q-accent-strong);font:800 8px var(--q-font-mono);letter-spacing:.1em;text-transform:uppercase}
+.q-decision-provenance-page .q-decision-command-hero strong{font:800 clamp(14px,1.5vw,19px)/1.1 var(--q-font-sans)}
+.q-decision-provenance-page .q-decision-command-hero small{max-width:28ch;color:var(--q-muted);font:600 9px/1.45 var(--q-font-sans)}
+.q-decision-provenance-page .q-decision-readiness{grid-column:1/-1}
+.q-decision-provenance-page .q-decision-gates{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.q-decision-provenance-page .q-decision-gate{display:grid;align-content:start;gap:7px;min-height:132px;padding:13px;border:1px solid var(--q-border);border-radius:12px;background:color-mix(in srgb,var(--q-surface-2) 92%,transparent)}
+.q-decision-provenance-page .q-decision-gate.is-pass{border-color:color-mix(in srgb,#36d399 28%,var(--q-border))}.q-decision-provenance-page .q-decision-gate.is-blocked{border-color:color-mix(in srgb,#ef6b78 35%,var(--q-border))}
+.q-decision-provenance-page .q-decision-gate .q-status{justify-self:start}.q-decision-provenance-page .q-decision-gate strong{font-size:11px}.q-decision-provenance-page .q-decision-gate p{margin:0;color:var(--q-muted);font-size:9px;line-height:1.5}
+.q-decision-provenance-page .q-decision-counterfactuals{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:12px}
+.q-decision-provenance-page .q-decision-counterfactual{display:grid;grid-template-columns:1fr auto;gap:3px 10px;padding:12px;border-radius:11px;background:var(--q-surface-2);box-shadow:inset 0 0 0 1px var(--q-border)}
+.q-decision-provenance-page .q-decision-counterfactual.is-current{background:color-mix(in srgb,var(--q-accent) 12%,var(--q-surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--q-accent) 55%,var(--q-border))}
+.q-decision-provenance-page .q-decision-counterfactual span{color:var(--q-muted);font:700 8px var(--q-font-mono)}.q-decision-provenance-page .q-decision-counterfactual strong{grid-row:1/3;grid-column:2;font:850 22px var(--q-font-sans)}.q-decision-provenance-page .q-decision-counterfactual small{font-size:8px}
+@media(max-width:860px){.q-decision-provenance-page .q-decision-command-hero{grid-template-columns:1fr 1fr}.q-decision-provenance-page .q-decision-command-hero>div{min-height:102px;border-bottom:1px solid var(--q-border)}.q-decision-provenance-page .q-decision-command-hero>div:nth-child(2){border-right:0}.q-decision-provenance-page .q-decision-command-hero>div::after{content:none}.q-decision-provenance-page .q-decision-gates,.q-decision-provenance-page .q-decision-counterfactuals{display:flex;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:6px}.q-decision-provenance-page .q-decision-gate{flex:0 0 min(72vw,260px);scroll-snap-align:start}.q-decision-provenance-page .q-decision-counterfactual{flex:0 0 min(55vw,190px);scroll-snap-align:start}}
+@media(max-width:520px){.q-decision-provenance-page .q-decision-command-hero{grid-template-columns:1fr}.q-decision-provenance-page .q-decision-command-hero>div{border-right:0}}
+
 @media(min-width:861px) and (max-width:1180px){
   html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-decision-maker-panel,
   html[data-v53-postmerge-convergence="wave1"][data-v53-route="decision-provenance"] #main .q-decision-provenance-page>.q-decision-maker-panel+.q-panel{grid-column:1/-1;align-self:start}

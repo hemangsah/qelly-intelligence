@@ -6,6 +6,7 @@ const officialPrimary=new URL('./brand/qelly-logo-primary.svg',import.meta.url).
 const main=document.getElementById('main');
 const publicRoutes=new Set(['market','asset-rankings','asset','formula-library','indicator-library','calculator-center','saved-calculations','decision-provenance']);
 const failureCopy=['unable to render this route','authentication is required','retry foundation route','foundation route failed'];
+// Legacy deep-link contract remains supported by reconcile: #/market?view=decision-maker.
 let scheduled=false;
 let rendering=false;
 
@@ -18,14 +19,14 @@ function installStaticHeader(){
   document.documentElement.dataset.qellyRecoveryShell='static-preview';
   const header=document.createElement('header');
   header.className='q-recovery-header';
-  header.innerHTML=`<a class="q-recovery-brand" href="#/market" aria-label="Qelly Intelligence home"><img src="${officialPrimary}" width="152" height="42" alt="Qelly"></a><nav aria-label="Preview navigation"><a href="#/market">Markets</a><a href="#/asset-rankings">Rankings</a><a href="#/market?view=decision-maker" data-qelly-decision-link>Decision Maker</a><a href="#/formula-library">Formulas</a><a href="#/indicator-library">Indicators</a><a href="#/calculator-center">Calculators</a></nav><div class="q-recovery-header__actions">${previewBadge()}<a href="https://qelly-intelligence.pages.dev" rel="noopener">Open live site</a></div>`;
+  header.innerHTML=`<a class="q-recovery-brand" href="#/market" aria-label="Qelly Intelligence home"><img src="${officialPrimary}" width="152" height="42" alt="Qelly"></a><nav aria-label="Preview navigation"><a href="#/decision-provenance" data-qelly-decision-link>Decision</a><a href="#/news-research">Qelly Chat</a><a href="#/market">Markets</a><a href="#/asset-rankings">Rankings</a><a href="#/calculator-center">Tools</a></nav><div class="q-recovery-header__actions">${previewBadge()}<a href="https://qelly-intelligence.pages.dev" rel="noopener">Open live site</a></div>`;
   document.querySelector('.q-app')?.prepend(header);
 }
 
 function installDecisionNavigation(){
   document.querySelectorAll('.q-product-nav').forEach((nav)=>{
     if(nav.querySelector('[data-qelly-decision-link]'))return;
-    const link=document.createElement('a');link.href='#/market?view=decision-maker';link.dataset.qellyDecisionLink='true';link.textContent='Decision Maker';nav.append(link);
+    const link=document.createElement('a');link.href='#/decision-provenance';link.dataset.qellyDecisionLink='true';link.textContent='Decision';nav.prepend(link);
   });
 }
 

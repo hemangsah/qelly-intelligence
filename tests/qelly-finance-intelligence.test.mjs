@@ -113,6 +113,12 @@ test('finance context composes governed providers and route suggestions',async()
   assert.equal(suggestedRoutes('verify this source')[0].route,'qelly-verify');
 });
 
+test('decision chat mode preserves governed evidence and opens the decision command center',async()=>{
+  const result=await runGroundedFinanceInference({}, {message:'Challenge this thesis',history:[],financeContext,mode:'decision'});
+  assert.ok(result.answer.length>0);
+  assert.equal(suggestedRoutes('Challenge this thesis','decision')[0].route,'decision-provenance');
+});
+
 test('frontend installs an accessible global chat drawer and Cloudflare AI binding',async()=>{
   const [chat,css,app,index,wrangler,endpoint]=await Promise.all([
     readFile(new URL('../apps/web/public/assets/ai/qelly-chat.mjs',import.meta.url),'utf8'),
