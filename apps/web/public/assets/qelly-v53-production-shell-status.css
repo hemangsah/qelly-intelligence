@@ -69,7 +69,7 @@ html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surf
   gap:3px!important;
   padding:0!important;
   border:0!important;
-  border-top:1px solid color-mix(in srgb,var(--q-product-accent) 12%,var(--q-product-line))!important;
+  border-top:0!important;
   border-radius:0!important;
   background:transparent!important;
   box-shadow:none!important;

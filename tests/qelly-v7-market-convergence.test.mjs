@@ -22,6 +22,20 @@ test('canonical production Market renderer is no-fabrication and anonymous-safe'
   assert.doesNotMatch(source,/Math\.sin|Math\.cos|qelly-governed-demo|simulated-demo/);
 });
 
+test('Market Command keeps the hero transition intentional and removes the shell separator artifact',async()=>{
+  const [source,marketCss,shellCss]=await Promise.all([
+    read('apps/web/public/assets/routes/market-v6.mjs'),
+    read('apps/web/public/assets/qelly-v53-real-market.css'),
+    read('apps/web/public/assets/qelly-v53-production-shell-status.css')
+  ]);
+  assert.match(source,/q-market-principle/);
+  assert.match(source,/Price is an observation; risk is a decision\./);
+  assert.match(marketCss,/\.q-market-principle\{display:flex/);
+  assert.match(marketCss,/\.q-page > \.q-page-head\{margin-bottom:0!important;padding-bottom:10px!important/);
+  assert.match(marketCss,/\.q-product-nav\{border-top:0!important/);
+  assert.match(shellCss,/\.q-product-nav\{[\s\S]*?border-top:0!important/);
+});
+
 test('legacy route guard no longer owns the Market route',async()=>{
   const source=await read('apps/web/public/assets/qelly-product-route-guard.mjs');
   assert.match(source,/Market is owned exclusively by the canonical V6\/V7 production renderer/);

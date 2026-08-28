@@ -60,7 +60,8 @@ html[data-production-system="v8"] .q-grid-resizer:is(:hover,:focus-visible){
 }
 
 html[data-production-system="v8"] body #app header.q-product-header{
-  grid-template-columns:156px minmax(260px,1fr) minmax(210px,260px) auto auto!important;
+  grid-template-columns:156px fit-content(640px) minmax(210px,260px) auto auto!important;
+  justify-content:start!important;
   align-items:center!important;
   gap:8px!important;
   border-radius:0!important;
@@ -197,7 +198,7 @@ html[data-product-experience="ready"] #main>section{animation:q-product-enter 32
 @keyframes q-product-enter{from{opacity:.45;transform:translateY(8px)}to{opacity:1;transform:none}}
 
 @media(max-width:1280px){
-  html[data-production-system="v8"] body #app header.q-product-header{grid-template-columns:156px minmax(260px,1fr) minmax(210px,260px) auto auto!important;gap:8px!important;padding-inline:12px!important}
+  html[data-production-system="v8"] body #app header.q-product-header{grid-template-columns:156px fit-content(440px) minmax(210px,260px) auto auto!important;gap:8px!important;padding-inline:12px!important}
   html[data-production-system="v8"] body #app .q-product-header .q-product-nav a{padding-inline:9px!important}
 }
 
