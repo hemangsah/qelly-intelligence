@@ -22,8 +22,9 @@
 .q-formula-center-page .q-calculator-section-head p{
   margin:0;
   color:var(--q-premium-secondary,#b8aeb3);
-  font-size:11px;
+  font-size:12px;
 }
+.q-formula-center-page #formula-result-count{font-size:12px!important}
 .q-formula-center-page .q-calculator-card-grid{
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
