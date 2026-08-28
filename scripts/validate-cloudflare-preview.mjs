@@ -8,16 +8,16 @@ const maxWaitMs=Number(process.env.QELLY_PREVIEW_MAX_WAIT_MS||720000);
 const output=new URL('../dist/cloudflare-preview-evidence/',import.meta.url);
 const fallbackSha='603cece3091dc59cfb72680914e7056b40058022';
 const prohibited=['QELLY GLOBAL PUBLIC BETA','VALIDATION STATE','Unable to render this route','Retry foundation route','AUTHENTICATION DEMO','LOCAL DEMONSTRATION IDENTITY BOUNDARY','STATE: DEFAULT','Secure identity foundation','Input JSON'];
-const allowedProviderStates=new Set(['live','stale','delayed','unavailable','simulated']);
+const allowedProviderStates=new Set(['live','cached','stale','delayed','unavailable']);
 const delay=(ms)=>new Promise((resolve)=>setTimeout(resolve,ms));
 const urlFor=(pathname)=>`${base}${pathname}${pathname.includes('?')?'&':'?'}qelly_verify=${Date.now()}`;
 
 if(!/^[0-9a-f]{40}$/i.test(expectedSha))throw new Error('QELLY_EXPECTED_HEAD_SHA must be a full commit SHA');
 await mkdir(output,{recursive:true});
 
-const fetchResponse=async(pathname,{timeout=30000,origin=false}={})=>{
+const fetchResponse=async(pathname,{timeout=30000,origin=null}={})=>{
   const response=await fetch(urlFor(pathname),{
-    headers:{Accept:pathname.endsWith('.html')||pathname==='/'?'text/html,application/xhtml+xml':'application/json,text/plain,*/*','Cache-Control':'no-cache',Pragma:'no-cache',...(origin?{Origin:base}:{})},
+    headers:{Accept:pathname.endsWith('.html')||pathname==='/'?'text/html,application/xhtml+xml':'application/json,text/plain,*/*','Cache-Control':'no-cache',Pragma:'no-cache',...(origin?{Origin:origin}:{})},
     redirect:'follow',
     signal:AbortSignal.timeout(timeout)
   });
@@ -65,7 +65,11 @@ if(prohibited.some((phrase)=>homepage.text.includes(phrase)))throw new Error('ho
 const cacheControl=homepage.response.headers.get('cache-control')||'';
 if(!cacheControl.includes('no-transform'))throw new Error('homepage_no_transform_missing');
 
-const configEntry=await fetchResponse('/api/v1/config',{timeout:30000,origin:true});
+const forbiddenOrigin=await fetchResponse('/api/v1/config',{timeout:30000,origin:'https://example.invalid'});
+expectStatus(forbiddenOrigin,403,'forbidden_origin');
+if(forbiddenOrigin.json?.error?.code!=='cors_origin_forbidden')throw new Error('forbidden_origin_contract_invalid');
+
+const configEntry=await fetchResponse('/api/v1/config',{timeout:30000});
 expectStatus(configEntry,200,'config');
 expectSecurityHeaders(configEntry.response,'config');
 const config=configEntry.json;
@@ -80,39 +84,39 @@ const publishableShape=publishableKey.startsWith('sb_publishable_')||publishable
 if(!publishableShape||publishableKey==='ssdgfgqnjlwzkgukzeef'||publishableKey.startsWith('sb_secret_')||/service_role/i.test(publishableKey))throw new Error('supabase_publishable_key_invalid');
 if(!String(runtime.supabaseUrl||'').startsWith('https://')||!String(runtime.supabaseUrl).endsWith('.supabase.co'))throw new Error('supabase_url_invalid');
 
-const healthEntry=await fetchResponse('/api/v1/health',{timeout:30000,origin:true});
+const healthEntry=await fetchResponse('/api/v1/health',{timeout:30000});
 expectStatus(healthEntry,200,'health');
 expectSecurityHeaders(healthEntry.response,'health');
 const health=healthEntry.json;
-if(health?.status!=='ok'||health?.releaseSha!==expectedSha||!health.authentication||!health.cloudSync||!health.liveProviders)throw new Error('health_contract_invalid');
+if(health?.status!=='ok'||health?.releaseSha!==expectedSha||!health.authenticationConfigured||!health.cloudSyncConfigured||!health.liveProvidersConfigured)throw new Error('health_contract_invalid');
 if(health.trading!==false||health.custody!==false||health.transfers!==false)throw new Error('health_execution_boundary_invalid');
 
-const readinessEntry=await fetchResponse('/api/v1/readiness',{timeout:30000,origin:true});
+const readinessEntry=await fetchResponse('/api/v1/readiness',{timeout:30000});
 expectStatus(readinessEntry,200,'readiness');
 const readiness=readinessEntry.json;
 if(readiness?.ready!==true||readiness?.releaseSha!==expectedSha)throw new Error('readiness_contract_invalid');
-for(const [name,value] of Object.entries({supabase:'configured',auth:'configured',rls:'required',providers:'configured'}))if(readiness?.dependencies?.[name]!==value)throw new Error(`readiness_dependency_${name}_${readiness?.dependencies?.[name]}`);
+for(const [name,value] of Object.entries({supabase:'supabase_auth_health_proven',auth:'email_delivery_canary_proven',rls:'rls_isolation_canary_proven',providers:'ecb_reference_freshness_proven'}))if(readiness?.dependencies?.[name]!==value)throw new Error(`readiness_dependency_${name}_${readiness?.dependencies?.[name]}`);
 
-const statusEntry=await fetchResponse('/api/v1/providers/status',{timeout:30000,origin:true});
+const statusEntry=await fetchResponse('/api/v1/providers/status',{timeout:30000});
 expectStatus(statusEntry,200,'provider_status');
 const providerIds=new Set((statusEntry.json?.providers||[]).map((item)=>item.id));
 for(const id of ['coinbase','ecb','binance'])if(!providerIds.has(id))throw new Error(`provider_catalog_missing_${id}`);
 if(statusEntry.json?.releaseSha!==expectedSha)throw new Error('provider_status_release_mismatch');
 
-const marketEntry=await fetchResponse('/api/v1/market/overview',{timeout:45000,origin:true});
+const marketEntry=await fetchResponse('/api/v1/market/overview',{timeout:45000});
 expectStatus(marketEntry,200,'market_overview');
 const market=marketEntry.json;
-if(market?.execution!==false||market?.deterministicLocal!==true)throw new Error('market_execution_boundary_invalid');
+if(market?.execution!==false||market?.deterministicLocal!==false||market?.fabricatedFallback!==false)throw new Error('market_execution_boundary_invalid');
 for(const id of ['coinbase','ecb','binance']){
   const item=market?.providers?.[id];
   if(!item||item.provider!==id||!allowedProviderStates.has(item.truthState))throw new Error(`market_provider_contract_${id}`);
   if(!item.ingestedAt)throw new Error(`market_provider_ingested_at_missing_${id}`);
 }
 
-const authStatus=await fetchResponse('/api/v1/auth/status',{timeout:30000,origin:true});
+const authStatus=await fetchResponse('/api/v1/auth/status',{timeout:30000});
 expectStatus(authStatus,200,'auth_status');
 if(authStatus.json?.authenticated!==false)throw new Error('anonymous_auth_status_invalid');
-const protectedEntry=await fetchResponse('/api/v1/session/context',{timeout:30000,origin:true});
+const protectedEntry=await fetchResponse('/api/v1/session/context',{timeout:30000});
 expectStatus(protectedEntry,401,'protected_route');
 if(protectedEntry.json?.error?.code!=='authentication_required')throw new Error('protected_route_error_contract_invalid');
 
@@ -120,7 +124,7 @@ const browserEvidence=[];
 const browser=await chromium.launch({headless:true});
 try{
   const cases=[
-    {name:'market-desktop',hash:'#/market',width:1440,height:1000,selector:'.q-market-home',heading:'Understand markets before making a decision.'},
+    {name:'market-desktop',hash:'#/market',width:1440,height:1000,selector:'.q-market-home',heading:'Governed Market Terminal'},
     {name:'auth-mobile',hash:'#/auth-login',width:390,height:844,selector:'.q-auth-page',heading:'Sign in to Qelly'},
     {name:'formula-mobile',hash:'#/formula-detail/position-size',width:390,height:844,selector:'.q-formula-detail-page',heading:'Worked calculation'}
   ];
