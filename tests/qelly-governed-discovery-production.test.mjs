@@ -31,7 +31,7 @@ test('production finalizer replaces every finance-shaped fixture route owner',as
   for(const route of unavailableRoutes){
     assert.ok(output.includes(`renderGovernedUnavailable(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state},'${route}')`),`governed replacement missing for ${route}`);
   }
-  assert.match(output,/renderIntelligenceTerminal/);
+  assert.match(output,/renderQellyChatWorkspace/);
   assert.match(output,/renderGovernedConverterV2/);
   assert.match(output,/renderGovernedTrustCenterV2/);
   assert.match(output,/\.\/routes\/governed-utility-v2\.mjs/);

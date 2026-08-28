@@ -43,10 +43,10 @@ test('all protected destinations remain visible and preserve their requested rou
   assert.match(app,/The feature is not missing/);
 });
 
-test('production finalizer preserves the working intelligence terminal',()=>{
+test('production finalizer promotes the flagship Qelly Chat workspace',()=>{
   const source="case 'news-research': await renderNewsResearch(main); break;";
   const output=rewriteGovernedDiscovery(source);
-  assert.match(output,/renderIntelligenceTerminal/);
+  assert.match(output,/renderQellyChatWorkspace/);
   assert.doesNotMatch(output,/renderGovernedUnavailable/);
 });
 
