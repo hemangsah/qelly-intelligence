@@ -40,8 +40,9 @@ test('Market command layout keeps navigation and controls directly interactive',
     readFile(marketPath,'utf8'),readFile(experiencePath,'utf8'),readFile(verifyPath,'utf8')
   ]);
   assert.doesNotMatch(market,/aria-label="Market truth boundary"/);
-  assert.match(experience,/grid-template-areas:"brand nav search actions menu"!important/);
-  assert.match(experience,/grid-template-columns:132px max-content minmax\(170px,210px\) max-content auto!important/);
+  assert.match(experience,/grid-template-areas:"brand nav search \. actions"!important/);
+  assert.match(experience,/grid-template-columns:132px max-content minmax\(170px,210px\) minmax\(0,1fr\) max-content!important/);
+  assert.match(experience,/header\.q-product-header>\.q-product-menu\{display:none!important/);
   assert.match(experience,/@media\(max-width:1520px\)[\s\S]*?\.q-product-nav\{display:none!important\}/);
   assert.match(experience,/\.q-product-header\.is-menu-open \.q-product-nav\{display:grid!important/);
   assert.match(experience,/\.q-product-search\{width:clamp\(170px,14vw,210px\)!important;max-width:210px!important/);

@@ -66,8 +66,8 @@ html[data-production-system="v8"] .q-grid-resizer:is(:hover,:focus-visible){
 
 html[data-production-system="v8"] body #app header.q-product-header{
   position:sticky!important;top:0!important;z-index:200!important;
-  grid-template-areas:"brand nav search actions menu"!important;
-  grid-template-columns:132px max-content minmax(170px,210px) max-content auto!important;
+  grid-template-areas:"brand nav search . actions"!important;
+  grid-template-columns:132px max-content minmax(170px,210px) minmax(0,1fr) max-content!important;
   justify-content:stretch!important;
   align-items:center!important;
   gap:10px!important;
@@ -79,7 +79,7 @@ html[data-production-system="v8"] body #app header.q-product-header>.q-product-b
 html[data-production-system="v8"] body #app header.q-product-header>.q-product-nav{grid-area:nav!important}
 html[data-production-system="v8"] body #app header.q-product-header>.q-product-search{grid-area:search!important}
 html[data-production-system="v8"] body #app header.q-product-header>.q-product-actions{grid-area:actions!important}
-html[data-production-system="v8"] body #app header.q-product-header>.q-product-menu{grid-area:menu!important;width:max-content!important;max-width:100%!important;justify-self:end!important}
+html[data-production-system="v8"] body #app header.q-product-header>.q-product-menu{display:none!important;grid-area:menu!important;width:max-content!important;max-width:100%!important;justify-self:end!important}
 html[data-production-system="v8"] body #app header.q-product-header.is-scrolled{
   background:color-mix(in srgb,var(--q-chrome) 94%,transparent)!important;
   box-shadow:0 1px 0 var(--q-divider),0 20px 48px rgba(0,0,0,.24)!important;
@@ -237,7 +237,8 @@ html[data-product-experience="ready"] #main>section{animation:q-product-enter 32
 /* Once the complete primary set no longer fits without compressing Menu, move
    route discovery into the governed drawer and give the search the full band. */
 @media(max-width:1520px){
-  html[data-production-system="v8"] body #app header.q-product-header{grid-template-areas:"brand search actions menu"!important;grid-template-columns:132px minmax(170px,210px) minmax(0,1fr) auto!important}
+  html[data-production-system="v8"] body #app header.q-product-header{grid-template-areas:"brand search . actions menu"!important;grid-template-columns:132px minmax(170px,210px) minmax(0,1fr) max-content auto!important}
+  html[data-production-system="v8"] body #app .q-product-header .q-product-menu{display:inline-flex!important}
   html[data-production-system="v8"] body #app .q-product-header .q-product-nav{display:none!important}
   html[data-production-system="v8"] body #app .q-product-header .q-product-search{width:min(100%,210px)!important;max-width:210px!important;justify-self:start!important}
   html[data-production-system="v8"] body #app .q-product-header .q-product-actions{justify-self:end!important}
