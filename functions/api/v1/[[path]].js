@@ -6,6 +6,7 @@ import {handleEvidence,__evidenceTest} from '../../_lib/evidence.js';
 import {providerCatalog,providerResult} from '../../_lib/providers.js';
 import {capabilityInventory,matchUnavailableCapability} from '../../_lib/capability-registry.js';
 import {buildAssetRankings,buildDiscoveryOverview,buildExternalMarketNetwork,buildNetworkDiagnostics} from '../../_lib/market-network.js';
+import {buildUniversalSearch} from '../../_lib/public-search.js';
 
 const publicTruthState=(state)=>({
   live_provider:'live',
@@ -168,6 +169,22 @@ export async function route(context){
   if(path==='market/network'&&readMethod(method)){
     await enforceRateLimit(env,`public-market-network:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:30});
     return publicMarketNetwork(context);
+  }
+  if(path==='search'&&readMethod(method)){
+    await enforceRateLimit(env,`public-universal-search:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:90});
+    const query=url.searchParams.get('q')||'';
+    const types=url.searchParams.get('types')||'';
+    const assetTerms=new Set(['btc','bitcoin','eth','ethereum','usdt','tether','bnb','xrp','sol','solana','usdc','doge','dogecoin','ada','cardano','trx','tron']);
+    const assetIntent=types.split(',').includes('asset')||assetTerms.has(query.trim().toLowerCase());
+    const external=assetIntent?await buildExternalMarketNetwork(context):{sources:{}};
+    const result=buildUniversalSearch({
+      q:query,
+      types,
+      access:url.searchParams.get('access')||'all',
+      limit:url.searchParams.get('limit')||30,
+      assetRankings:buildAssetRankings(external.sources)
+    });
+    return responseJson(request,env,{...result,releaseSha:publicRuntimeConfigForRequest(env,request.url).releaseSha},200,{cache:'public, max-age=0, s-maxage=10, stale-while-revalidate=30'});
   }
 
   const session=await resolveSession(request,env,{required:true});

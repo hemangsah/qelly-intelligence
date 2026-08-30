@@ -63,6 +63,7 @@ const renderIndicatorDetail=lazyRoute('./routes/indicator-detail.mjs','renderInd
 const renderCalculatorDetail=lazyRoute('./routes/calculator-detail.mjs','renderCalculatorDetail');
 const renderSavedCalculationDetail=lazyRoute('./routes/saved-calculation-detail.mjs','renderSavedCalculationDetail');
 const renderAssetRankingsRescue=lazyRoute('./routes/asset-rankings.mjs','renderAssetRankings');
+const renderUniversalSearch=lazyRoute('./routes/universal-search.mjs','renderUniversalSearch');
 
 const runtimeConfig=Object.freeze({...window.__QELLY_CONFIG__});
 const staticVisualPreview=runtimeConfig.staticVisualPreview===true;
@@ -433,7 +434,7 @@ async function performRouteRender(request,controller) {
       case 'trust-center': await renderTrustCenter(main); break;
       case 'market': await renderMarketV6(main,{api,pageHead,stateBanner,escapeHtml}); break;
       case 'rankings': await renderLegacyRankings(main); break;
-      case 'search': await renderSearch(main); break;
+      case 'search': await renderUniversalSearch(main,{api,escapeHtml,toast,navigate,state}); break;
       case 'asset': await renderAsset(main); break;
       case 'watchlist': await renderWorkspaceWatchlist(main,{api,pageHead,stateBanner,escapeHtml,QellyDataGrid,toast,navigate,renderRoute}); break;
       case 'alert-center': await renderAlertCenter(main,{api,pageHead,stateBanner,escapeHtml,QellyDataGrid,toast,navigate,renderRoute}); break;
@@ -644,25 +645,6 @@ async function renderLegacyRankings(main) {
   main.querySelector('[data-action="reset-filters"]').addEventListener('click',()=>{document.getElementById('ranking-query').value='';document.getElementById('ranking-freshness').value='';document.getElementById('ranking-change').value='all';filter();});
   main.querySelector('[data-action="export"]').addEventListener('click',()=>downloadJson('qelly-public-market-evidence.json',{generatedAt:data.generatedAt,mode:data.mode,truthBoundary:data.truthBoundary,items:data.items}));
 }
-
-async function renderSearch(main) {
-  main.innerHTML = `<section class="q-page">${pageHead('Qelly Intelligence · Federated discovery','Universal Search','Weighted local search across assets, categories, venues, DEX pairs, news, research, methodologies and application commands.',`<button class="q-button q-button--secondary" data-action="save-search">Save search</button><button class="q-button q-button--secondary" data-action="open-contract">Discovery contract</button>`)}${stateBanner()}<div class="q-search-layout"><div><section class="q-search-hero"><h2>Search the Qelly intelligence graph</h2><p>Results retain entity type, canonical route, source boundary and stable relevance evidence.</p><input id="universal-search" class="q-search-input" type="search" autocomplete="off" placeholder="Try BTC, India, venue, liquidity or methodology" aria-label="Search Qelly"></section><div class="q-discovery-filter-row" role="group" aria-label="Search result types">${['all','asset','category','venue','dex','news','research','methodology','command'].map((type)=>`<button class="q-filter-chip ${type==='all'?'is-active':''}" data-search-type="${type}">${type}</button>`).join('')}</div><div id="search-results" class="q-search-results"></div></div><aside class="q-panel"><div class="q-panel-head"><div><h2>Search evidence</h2><p>Deterministic federated index</p></div><span class="q-status q-status--simulated">local</span></div><div class="q-panel-body"><div id="search-facets" class="q-stack"></div><div class="q-truth-callout is-compact"><span class="q-status q-status--unavailable">production gated</span><p>No external index, licensed feed, user profiling or generative answer synthesis is active.</p></div></div></aside></div></section>`;
-  const input=document.getElementById('universal-search'); const results=document.getElementById('search-results'); const facets=document.getElementById('search-facets');
-  let timer, selectedType='all', lastData=null;
-  const draw=async()=>{
-    const types=selectedType==='all'?'':selectedType; const data=await api(`/api/v1/search?q=${encodeURIComponent(input.value)}&types=${encodeURIComponent(types)}&limit=50`); lastData=data;
-    facets.innerHTML=`<div class="q-context-block"><h3>Result facets</h3><dl><dt>Total</dt><dd>${data.total}</dd><dt>Mode</dt><dd>${escapeHtml(data.mode)}</dd><dt>Source</dt><dd>${escapeHtml(data.source)}</dd></dl></div><div class="q-capabilities">${data.facets.types.map((item)=>`<span class="q-capability">${escapeHtml(item.value)} ${item.count}</span>`).join('')}</div>`;
-    results.innerHTML=data.items.length?data.items.map((item)=>`<button class="q-search-result" data-result-route="${escapeAttribute(item.route)}"><span class="q-asset-icon">${escapeHtml(item.type.slice(0,2).toUpperCase())}</span><span><strong>${escapeHtml(item.title)}</strong><br><small>${escapeHtml(item.subtitle)} · relevance ${item.score}</small></span><span class="q-status q-status--simulated">${escapeHtml(item.type)}</span></button>`).join(''):`<div class="q-empty-state"><div><span>⌕</span><h2>No federated match</h2><p>Try another entity, topic, venue or command. Missing results are never fabricated.</p></div></div>`;
-    results.querySelectorAll('[data-result-route]').forEach((element)=>element.addEventListener('click',()=>navigateDiscoveryResult(element.dataset.resultRoute)));
-  };
-  input.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(draw,120)});
-  main.querySelectorAll('[data-search-type]').forEach((button)=>button.addEventListener('click',()=>{selectedType=button.dataset.searchType;main.querySelectorAll('[data-search-type]').forEach((item)=>item.classList.toggle('is-active',item===button));draw();}));
-  main.querySelector('[data-action="open-contract"]').addEventListener('click',()=>openContract('public-discovery-search'));
-  main.querySelector('[data-action="save-search"]').addEventListener('click',async()=>{try{const result=await api('/api/v1/discovery/saved/searches',{method:'POST',headers:{'Idempotency-Key':`search-${Date.now()}-qelly`},body:JSON.stringify({name:input.value?`Search: ${input.value}`:'All discovery',query:input.value,filters:{types:selectedType}})});toast(`Saved ${result.name} locally`,{tone:'success'});}catch(error){toast(error.message,{tone:'danger'});}});
-  await draw(); input.focus();
-}
-
-function navigateDiscoveryResult(route){const [target,...rest]=String(route).split('/');navigate(target,rest.length?decodeURIComponent(rest.join('/')):null);}
 
 async function renderAsset(main) {
   const id=state.asset||'QI-CRYPTO-BTC';

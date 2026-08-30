@@ -18,6 +18,7 @@ const expectedPublic=[
   '/api/v1/auth/recovery/request',
   '/api/v1/auth/passkeys/authenticate/options',
   '/api/v1/production-foundation/status',
+  '/api/v1/search',
   '/api/v1/public/providers',
   '/api/v1/public/markets/assets/:id/candles',
   '/api/v1/calculations/metadata',

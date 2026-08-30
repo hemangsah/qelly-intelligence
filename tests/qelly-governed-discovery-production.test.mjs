@@ -22,7 +22,7 @@ const legacyCases=[
   "case 'trust-center': await renderTrustCenter(main); break;"
 ];
 
-const unavailableRoutes=['search','categories','category-detail','venues','venue-detail','dex-discovery','global-charts','research-article','asset','rankings'];
+const unavailableRoutes=['categories','category-detail','venues','venue-detail','dex-discovery','global-charts','research-article','asset','rankings'];
 
 test('production finalizer replaces every finance-shaped fixture route owner',async()=>{
   const source=await read('apps/web/public/assets/app.js');
@@ -32,6 +32,8 @@ test('production finalizer replaces every finance-shaped fixture route owner',as
     assert.ok(output.includes(`renderGovernedUnavailable(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state},'${route}')`),`governed replacement missing for ${route}`);
   }
   assert.match(output,/renderDiscoveryOverview/);
+  assert.match(output,/renderUniversalSearch/);
+  assert.match(output,/\.\/routes\/universal-search\.mjs/);
   assert.match(output,/\.\/routes\/discovery-overview\.mjs/);
   assert.match(output,/renderQellyChatWorkspace/);
   assert.match(output,/renderGovernedConverterV2/);

@@ -79,7 +79,7 @@ const routes = [
   { section:'Company', route:'about-qelly', label:'About Qelly', icon:icon('brand'), meta:'P22' , public:true },
   { section:'Discover', route:'discovery-hub', label:'Discovery Overview', icon:icon('discovery'), meta:'W5' },
   { section:'Discover', route:'asset-rankings', label:'Asset Rankings', icon:icon('ranking'), meta:'W5' , public:true },
-  { section:'Discover', route:'search', label:'Universal Search', icon:icon('search'), meta:'W5' },
+  { section:'Discover', route:'search', label:'Universal Search', icon:icon('search'), meta:'W5', public:true },
   { section:'Discover', route:'categories', label:'Categories', icon:icon('categories'), meta:'W5' },
   { section:'Discover', route:'venues', label:'Venues', icon:icon('venue'), meta:'W5' },
   { section:'Discover', route:'dex-discovery', label:'DEX Discovery', icon:icon('dex'), meta:'W5' },

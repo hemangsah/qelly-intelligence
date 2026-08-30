@@ -15,6 +15,7 @@ const PUBLIC_V1_API_PATHS=Object.freeze([
   '/api/v1/auth/recovery/reset',
   '/api/v1/production-foundation/status',
   '/api/v1/platform/capabilities',
+  '/api/v1/search',
   '/api/v1/public/markets/overview',
   '/api/v1/public/markets/assets',
   '/api/v1/public/providers',
