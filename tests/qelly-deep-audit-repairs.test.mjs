@@ -43,11 +43,11 @@ test('component owners replace the retired deep-audit override layer',async()=>{
   assert.match(discovery,/Discovery grids own their card geometry/);
 });
 
-test('rankings expose lazy official research displays and preserve the no-fabrication boundary',async()=>{
+test('rankings expose governed candidate narrowing and preserve the no-fabrication boundary',async()=>{
   const route=await read('apps/web/public/assets/routes/asset-rankings-premium.mjs');
-  for(const label of ['Global overview','Crypto screener','Crypto heatmap','CoinMarketCap'])assert.match(route,new RegExp(label));
-  assert.match(route,/IntersectionObserver/);
-  assert.match(route,/official third-party display widgets and are not Qelly rankings/);
+  for(const label of ['Choose what “rank higher” means','Research shortlist','Evidence inspector','Professional research surfaces'])assert.match(route,new RegExp(label));
+  assert.match(route,/relative to .*current governed sample/);
+  assert.match(route,/External display values remain outside Qelly's analytical trust boundary/);
   assert.match(route,/data-market-ranking-runtime="no-fabrication"/);
 });
 

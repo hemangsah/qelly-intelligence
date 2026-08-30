@@ -16,10 +16,10 @@ test('Asset Rankings production route does not import deterministic crypto obser
 test('Asset Rankings visibly discloses provider-rights and ranking-feed availability',async()=>{
   const source=await read('apps/web/public/assets/routes/asset-rankings-premium.mjs');
   assert.match(source,/Governed production truth/);
-  assert.match(source,/market ranking feed \$\{authorizedRankProviders\.length\?'authorized':'unavailable'\}/);
-  assert.match(source,/Binance and Coinbase remain rights-blocked/);
-  assert.match(source,/Rankings are being connected/);
-  assert.match(source,/Qelly will publish rankings only after the required market-data permissions and source checks are complete/);
+  assert.match(source,/attributed sample \$\{ranking\.state==='available'\?'available':'unavailable'\}/);
+  assert.match(source,/Blocked feeds stay outside the ranking/);
+  assert.match(source,/Missing required evidence/);
+  assert.match(source,/Source ledger unavailable/);
   assert.match(source,/Open research workspace/);
   assert.doesNotMatch(source,/Deterministic demonstration|Values are not live market observations|High agreement/);
 });
@@ -27,10 +27,10 @@ test('Asset Rankings visibly discloses provider-rights and ranking-feed availabi
 test('Asset Rankings separates approved ECB reference coverage from rankings and exposes research exits',async()=>{
   const source=await read('apps/web/public/assets/routes/asset-rankings-premium.mjs');
   assert.match(source,/ECB euro reference-rate universe/);
-  assert.match(source,/They are not re-labeled as asset rankings/);
-  assert.match(source,/TradingView market overview/);
+  assert.match(source,/remain visibly separate from candidate scores/);
+  assert.match(source,/TradingView/);
   assert.match(source,/CME markets/);
   assert.match(source,/Forex Factory/);
   assert.match(source,/data-ranking-boundary/);
-  assert.match(source,/navigate\?\.\('decision-provenance'\)/);
+  assert.match(source,/not search, a recommendation engine or a trading surface/);
 });

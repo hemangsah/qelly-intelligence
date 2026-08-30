@@ -25,7 +25,7 @@ test('premium reset uses neutral institutional foundations and rare gradients',a
 test('Asset Rankings production composition is provider-truth first and does not mount deterministic OHLC',async()=>{
   const route=await read('apps/web/public/assets/routes/asset-rankings-premium.mjs');
   assert.match(route,/Asset ranking availability/);
-  assert.match(route,/Ranking coverage pending|Data source permissions|Approved reference source/);
+  assert.match(route,/Data source permissions|Blocked feeds stay outside the ranking/);
   assert.match(route,/ECB euro reference-rate universe/);
   assert.match(route,/Professional research surfaces/);
   assert.doesNotMatch(route,/asset-rankings-chart|candlestick|deterministicOhlc|demonstrationRows|tableMarkup|chartMarkup/);
@@ -33,8 +33,8 @@ test('Asset Rankings production composition is provider-truth first and does not
 
 test('premium rankings expose governed availability, reference coverage and professional research links',async()=>{
   const route=await read('apps/web/public/assets/routes/asset-rankings-premium.mjs');
-  for(const label of ['Authorized ranking feeds','Approved reference feeds','Fabricated prices','Executable rankings','Ranking state'])assert.match(route,new RegExp(label));
-  for(const label of ['Reference pair','Rate','Observation','Source','Truth'])assert.match(route,new RegExp(label));
+  for(const label of ['Eligible candidates','Cross-source context','Excluded rows','Fabricated prices','Executable rankings'])assert.match(route,new RegExp(label));
+  for(const label of ['Source ledger','Observed','Fetched','truthState'])assert.match(route,new RegExp(label));
   for(const surface of ['TradingView','CME','Forex Factory','ECB'])assert.match(route,new RegExp(surface));
   assert.match(route,/data-ranking-boundary/);
   assert.match(route,/Production no-fabrication contract/);

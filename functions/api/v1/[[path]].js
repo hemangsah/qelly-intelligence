@@ -5,7 +5,7 @@ import {handleData,__dataTest} from '../../_lib/data.js';
 import {handleEvidence,__evidenceTest} from '../../_lib/evidence.js';
 import {providerCatalog,providerResult} from '../../_lib/providers.js';
 import {capabilityInventory,matchUnavailableCapability} from '../../_lib/capability-registry.js';
-import {buildDiscoveryOverview,buildExternalMarketNetwork,buildNetworkDiagnostics} from '../../_lib/market-network.js';
+import {buildAssetRankings,buildDiscoveryOverview,buildExternalMarketNetwork,buildNetworkDiagnostics} from '../../_lib/market-network.js';
 
 const publicTruthState=(state)=>({
   live_provider:'live',
@@ -124,6 +124,7 @@ const publicMarketNetwork=async(context)=>{
     sources,
     networkDiagnostics,
     discoveryOverview:buildDiscoveryOverview(sources,networkDiagnostics),
+    assetRankings:buildAssetRankings(sources),
     providerPolicy:{binance:'rights_blocked_or_unverified',coinbase:'rights_blocked_or_unverified',ecb:'governed_reference_data'},
     releaseSha:publicRuntimeConfigForRequest(env,request.url).releaseSha
   },200,{cache:'public, max-age=0, s-maxage=10, stale-while-revalidate=30'});

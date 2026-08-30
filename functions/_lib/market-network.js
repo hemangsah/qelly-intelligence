@@ -166,6 +166,107 @@ export function buildDiscoveryOverview(sources={},diagnostics=buildNetworkDiagno
   };
 }
 
+const rankingScore=(rows,read)=>{
+  const values=[...new Set(rows.map(read).filter((value)=>Number.isFinite(value)))].sort((left,right)=>right-left);
+  const denominator=Math.max(1,values.length-1);
+  const scores=new Map(values.map((value,index)=>[value,Math.round((1-index/denominator)*100)]));
+  return (row)=>scores.get(read(row))??0;
+};
+
+export function buildAssetRankings(sources={}){
+  const alternative=sources['alternative-me'];
+  const hyperliquid=sources.hyperliquid;
+  const primaryRows=Array.isArray(alternative?.data?.assets)?alternative.data.assets:[];
+  const hyperRows=Array.isArray(hyperliquid?.data)?hyperliquid.data:[];
+  const hyperBySymbol=new Map(hyperRows.map((row)=>[String(row.symbol||'').toUpperCase(),finiteOrNull(row.mid)]));
+  const required=['priceUsd','change24hPct','marketCapUsd','volume24hUsd'];
+  const exclusions=[];
+  const eligible=[];
+  for(const row of primaryRows){
+    const missing=required.filter((field)=>row?.[field]==null||row?.[field]===''||finiteOrNull(row[field])==null);
+    if(!row?.symbol||missing.length){
+      exclusions.push({symbol:String(row?.symbol||'Unknown'),reason:row?.symbol?`Missing ${missing.join(', ')}`:'Missing symbol identity'});
+      continue;
+    }
+    const marketCapUsd=finiteOrNull(row.marketCapUsd);
+    const volume24hUsd=finiteOrNull(row.volume24hUsd);
+    eligible.push({
+      ...row,
+      symbol:String(row.symbol).toUpperCase(),
+      priceUsd:finiteOrNull(row.priceUsd),
+      change24hPct:finiteOrNull(row.change24hPct),
+      marketCapUsd,
+      volume24hUsd,
+      turnoverPct:marketCapUsd>0?volume24hUsd/marketCapUsd*100:null,
+      contextMidUsd:hyperBySymbol.get(String(row.symbol).toUpperCase())??null
+    });
+  }
+  const momentumScore=rankingScore(eligible,(row)=>row.change24hPct);
+  const liquidityScore=rankingScore(eligible,(row)=>row.turnoverPct);
+  const sizeScore=rankingScore(eligible,(row)=>row.marketCapUsd);
+  // Coverage is an evidence-presence signal, not a relative percentile. Keeping
+  // it binary prevents an all-primary-only sample from incorrectly scoring 100.
+  const coverageScore=(row)=>row.contextMidUsd==null?0:100;
+  const candidates=eligible.map((row)=>{
+    const scores={
+      momentum:momentumScore(row),
+      liquidity:liquidityScore(row),
+      size:sizeScore(row),
+      coverage:coverageScore(row)
+    };
+    const balanced=Math.round(scores.momentum*.35+scores.liquidity*.30+scores.size*.20+scores.coverage*.15);
+    const contextDifferencePct=row.contextMidUsd!=null&&row.priceUsd>0?(row.contextMidUsd-row.priceUsd)/row.priceUsd*100:null;
+    return {
+      id:`QI-CRYPTO-${row.symbol}`,
+      symbol:row.symbol,
+      name:String(row.name||row.symbol),
+      sourceRank:finiteOrNull(row.rank),
+      priceUsd:row.priceUsd,
+      change24hPct:row.change24hPct,
+      marketCapUsd:row.marketCapUsd,
+      volume24hUsd:row.volume24hUsd,
+      turnoverPct:row.turnoverPct,
+      contextMidUsd:row.contextMidUsd,
+      contextDifferencePct,
+      contextLabel:row.contextMidUsd==null?'Primary source only':'Independent perpetual midpoint context',
+      observedAt:row.updatedAt||alternative?.observedAt||null,
+      truthState:normalizedTruthState(alternative),
+      provider:alternative?.attribution||alternative?.label||'Alternative.me',
+      scores:{...scores,balanced}
+    };
+  }).sort((left,right)=>right.scores.balanced-left.scores.balanced||left.symbol.localeCompare(right.symbol)).map((row,index)=>({...row,rank:index+1}));
+  const primaryReady=sourceUsable(alternative)&&candidates.length>0;
+  const contextReady=sourceUsable(hyperliquid)&&hyperRows.length>0;
+  return {
+    version:'governed-candidate-ranking-v1',
+    state:primaryReady?'available':'unavailable',
+    purpose:'Narrow the governed crypto sample into research candidates using declared, adjustable criteria.',
+    universe:{label:'Alternative.me attributed top-10 crypto sample',assetClass:'crypto',candidateCount:candidates.length,observedAt:alternative?.observedAt||null,truthState:normalizedTruthState(alternative)},
+    candidates,
+    exclusions,
+    methodology:{
+      label:'Within-sample research ranking',
+      defaultCriterion:'balanced',
+      defaultWeights:{momentum:.35,liquidity:.30,size:.20,coverage:.15},
+      criteria:[
+        {id:'balanced',label:'Balanced evidence',purpose:'Combine momentum, turnover, size and independent context availability.'},
+        {id:'momentum',label:'24h momentum',purpose:'Order the current sample by attributed 24-hour percentage change.'},
+        {id:'liquidity',label:'Turnover intensity',purpose:'Order the current sample by 24-hour volume as a share of market value.'},
+        {id:'size',label:'Market value',purpose:'Order the current sample by attributed market capitalization.'},
+        {id:'coverage',label:'Source coverage',purpose:'Surface candidates with independent Hyperliquid midpoint context.'}
+      ],
+      scoreMeaning:'Scores are relative positions inside the current governed sample, not return forecasts, confidence probabilities or recommendations.',
+      tieBreak:'Symbol ascending after the selected score.'
+    },
+    readiness:{candidateCount:candidates.length,crossSourceCandidates:candidates.filter((row)=>row.contextMidUsd!=null).length,excludedCount:exclusions.length,primaryReady,contextReady},
+    sourceLedger:[
+      {id:'alternative-me',label:alternative?.label||'Alternative.me',role:'Primary attributed ranking observations',truthState:normalizedTruthState(alternative),observedAt:alternative?.observedAt||null,fetchedAt:alternative?.fetchedAt||null,usage:alternative?.usage||null},
+      {id:'hyperliquid',label:hyperliquid?.label||'Hyperliquid',role:'Independent midpoint context only; not a spot-price confirmation',truthState:normalizedTruthState(hyperliquid),observedAt:hyperliquid?.observedAt||null,fetchedAt:hyperliquid?.fetchedAt||null,usage:hyperliquid?.usage||null}
+    ],
+    boundaries:{withinSampleOnly:true,crossAsset:false,personalizedRecommendation:false,execution:false,fabricatedFallback:false,externalWidgetValuesConsumed:false}
+  };
+}
+
 export function buildNetworkDiagnostics(sources={}){
   const entries=Object.entries(sources).map(([id,source])=>({id,source,state:normalizedTruthState(source)}));
   const sourceCounts={total:entries.length,live:0,cached:0,delayed:0,unavailable:0};
@@ -436,4 +537,4 @@ export async function buildExternalMarketNetwork(context={}){
   };
 }
 
-export const __test=Object.freeze({finiteOrNull,normalizedTruthState,sourceUsable,buildNetworkDiagnostics,buildDiscoveryOverview,sourceTruthState,withDelivery,edgeCacheRequest,cachedSource,alternativeCrypto,hyperliquidMids,worldBankMacro,imfGrowthReference,SOURCE_CACHE_TTL});
+export const __test=Object.freeze({finiteOrNull,normalizedTruthState,sourceUsable,buildNetworkDiagnostics,buildDiscoveryOverview,buildAssetRankings,sourceTruthState,withDelivery,edgeCacheRequest,cachedSource,alternativeCrypto,hyperliquidMids,worldBankMacro,imfGrowthReference,SOURCE_CACHE_TTL});
