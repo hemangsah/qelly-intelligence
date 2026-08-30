@@ -136,7 +136,10 @@ test('production exposes the complete registry through one responsive feature na
   assert.match(runtime, /import \{ productDomains, routeDefinitions \} from '\.\/route-registry\.mjs'/);
   assert.match(runtime, /const FEATURE_ROUTES=routeDefinitions\.filter\(\(route\)=>!route\.hidden\)/);
   assert.match(runtime, /aria-label="All Qelly features"/);
-  assert.match(runtime, /placeholder="Filter \$\{FEATURE_ROUTES\.length\} features"/);
+  assert.match(runtime, /placeholder="Search \$\{FEATURE_ROUTES\.length\} features by purpose"/);
+  assert.match(runtime, /data-feature-domain-filter/);
+  assert.match(runtime, /route\.purpose/);
+  assert.match(runtime, /route\.useCase/);
   assert.match(runtime, /data-feature-navigation-owner='true'|dataset\.featureNavigationOwner='true'/);
   assert.match(runtime, /event\.key==='Escape'/);
   assert.match(runtime, /syncFeatureNavigation\(\)/);

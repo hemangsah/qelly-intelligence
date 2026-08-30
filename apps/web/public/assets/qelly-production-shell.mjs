@@ -8,6 +8,7 @@ const ROUTE_REPAIR_STYLESHEET=new URL('./qelly-route-repairs.css',import.meta.ur
 const ROUTE_CONVERGENCE_STYLESHEET=new URL('./qelly-route-convergence.css',import.meta.url).href;
 const PREMIUM_THEME_STYLESHEET=new URL('./qelly-premium-theme.css?v=20260825-premium1',import.meta.url).href;
 const PRODUCT_EXPERIENCE_STYLESHEET=new URL('./qelly-product-experience.css?v=20260827-experience6',import.meta.url).href;
+const NAVIGATION_V2_STYLESHEET=new URL('./qelly-navigation-v2.css?v=20260829-navigation1',import.meta.url).href;
 // Legacy audit contract: const desiredTail=[canonical,repairs,convergence,premiumTheme,productExperience].filter(Boolean)
 const CUSTOMER_ROUTES=new Set([
   'feature-universe','market','asset-rankings','asset','calculator-center','calculator-detail','india-finance',
@@ -57,7 +58,15 @@ function ensureCanonicalStylesheetLast(){
     productExperience.dataset.qellyProductExperience='true';
     document.head.append(productExperience);
   }
-  const desiredTail=[canonical,repairs,convergence,premiumTheme,productExperience].filter(Boolean);
+  let navigationV2=document.querySelector('link[data-qelly-navigation-v2="true"]');
+  if(!navigationV2){
+    navigationV2=document.createElement('link');
+    navigationV2.rel='stylesheet';
+    navigationV2.href=NAVIGATION_V2_STYLESHEET;
+    navigationV2.dataset.qellyNavigationV2='true';
+    document.head.append(navigationV2);
+  }
+  const desiredTail=[canonical,repairs,convergence,premiumTheme,productExperience,navigationV2].filter(Boolean);
   const currentTail=Array.from(document.head.querySelectorAll('link[rel="stylesheet"]')).slice(-desiredTail.length);
   const alreadyOrdered=desiredTail.length>0&&desiredTail.every((node,index)=>currentTail[index]===node);
   if(!alreadyOrdered)document.head.append(...desiredTail);
@@ -87,9 +96,10 @@ function featureNavigationMarkup(){
   const groups=productDomains.map((domain)=>{
     const routes=FEATURE_ROUTES.filter((route)=>route.domain===domain.id&&route.route!=='feature-universe');
     if(!routes.length)return '';
-    return `<section class="q-feature-navigation__group" data-feature-domain="${escapeNavigationText(domain.id)}"><h3>${escapeNavigationText(domain.label)} <span>${routes.length}</span></h3><div>${routes.map((route)=>`<a href="#/${escapeNavigationText(route.route)}" data-feature-route="${escapeNavigationText(route.route)}" data-feature-search="${escapeNavigationText(`${domain.label} ${route.section} ${route.label} ${route.route}`.toLowerCase())}"><span>${route.icon}</span><span><strong>${escapeNavigationText(route.label)}</strong><small>${escapeNavigationText(route.section)}</small></span>${route.public===true?'<em>Public</em>':'<em data-feature-access="protected">Sign in</em>'}</a>`).join('')}</div></section>`;
+    return `<section class="q-feature-navigation__group" data-feature-domain="${escapeNavigationText(domain.id)}"><h3>${escapeNavigationText(domain.label)} <span>${routes.length}</span></h3><div>${routes.map((route)=>`<a href="#/${escapeNavigationText(route.route)}" data-feature-route="${escapeNavigationText(route.route)}" data-feature-search="${escapeNavigationText(`${domain.label} ${route.section} ${route.label} ${route.route} ${route.purpose} ${route.useCase}`.toLowerCase())}" title="${escapeNavigationText(route.useCase)}"><span class="q-feature-navigation__icon">${route.icon}</span><span class="q-feature-navigation__copy"><span class="q-feature-navigation__name"><strong>${escapeNavigationText(route.label)}</strong>${route.public===true?'<em>Public</em>':'<em data-feature-access="protected">Sign in</em>'}</span><small>${escapeNavigationText(route.purpose)}</small><span class="q-feature-navigation__use">${escapeNavigationText(route.useCase)}</span></span></a>`).join('')}</div></section>`;
   }).join('');
-  return `<div class="q-feature-navigation__backdrop" data-feature-navigation-close></div><aside id="q-feature-navigation" class="q-feature-navigation" aria-label="All Qelly features"><header><div><p>Product navigation</p><h2>All features</h2></div><button type="button" data-feature-navigation-close aria-label="Close feature menu">×</button></header><label class="q-feature-navigation__search"><span class="q-visually-hidden">Filter Qelly features</span><input type="search" inputmode="search" autocomplete="off" placeholder="Filter ${FEATURE_ROUTES.length} features" aria-controls="q-feature-navigation-list"></label><p class="q-feature-navigation__status" aria-live="polite">${FEATURE_ROUTES.length} features</p><nav id="q-feature-navigation-list" aria-label="Feature routes"><a class="q-feature-navigation__universe" href="#/feature-universe" data-feature-route="feature-universe"><strong>Feature Universe</strong><small>Visual overview of every product domain</small></a>${groups}</nav></aside>`;
+  const filters=productDomains.map((domain)=>`<button type="button" data-feature-domain-filter="${escapeNavigationText(domain.id)}" aria-pressed="false">${escapeNavigationText(domain.shortLabel)}</button>`).join('');
+  return `<div class="q-feature-navigation__backdrop" data-feature-navigation-close></div><aside id="q-feature-navigation" class="q-feature-navigation" aria-label="All Qelly features"><header><div><p>Product navigation</p><h2>Choose the job to be done</h2><small>Every destination has a distinct purpose and outcome.</small></div><button type="button" data-feature-navigation-close aria-label="Close feature menu">×</button></header><label class="q-feature-navigation__search"><span class="q-visually-hidden">Search Qelly features by purpose or use case</span><input type="search" inputmode="search" autocomplete="off" placeholder="Search ${FEATURE_ROUTES.length} features by purpose" aria-controls="q-feature-navigation-list"></label><div class="q-feature-navigation__filters" role="toolbar" aria-label="Filter features by product domain"><button type="button" data-feature-domain-filter="all" aria-pressed="true">All</button>${filters}</div><p class="q-feature-navigation__status" aria-live="polite">${FEATURE_ROUTES.length} purpose-built features</p><nav id="q-feature-navigation-list" aria-label="Feature routes"><a class="q-feature-navigation__universe" href="#/feature-universe" data-feature-route="feature-universe" data-feature-search="feature universe understand how every qelly product domain connects choose the right workflow"><strong>Feature Universe</strong><small>See how product domains connect before choosing a workflow.</small><span>Use when you are unsure where to start.</span></a>${groups}</nav></aside>`;
 }
 
 function setFeatureNavigationButtonState(button,expanded){
@@ -130,25 +140,33 @@ function ensureFeatureNavigation(){
     document.body.insertAdjacentHTML('beforeend',featureNavigationMarkup());
     drawer=document.getElementById('q-feature-navigation');
     const search=drawer?.querySelector('input[type="search"]');
-    search?.addEventListener('input',()=>{
+    let activeDomain='all';
+    const updateFeatureVisibility=()=>{
       const query=search.value.trim().toLowerCase();
       let visibleCount=0;
       for(const group of drawer.querySelectorAll('.q-feature-navigation__group')){
         let groupCount=0;
         for(const link of group.querySelectorAll('[data-feature-search]')){
-          const visible=!query||link.dataset.featureSearch.includes(query);
+          const domainMatch=activeDomain==='all'||group.dataset.featureDomain===activeDomain;
+          const visible=domainMatch&&(!query||link.dataset.featureSearch.includes(query));
           link.hidden=!visible;
           if(visible){visibleCount+=1;groupCount+=1;}
         }
         group.hidden=groupCount===0;
       }
       const universe=drawer.querySelector('.q-feature-navigation__universe');
-      const universeVisible=!query||'feature universe visual overview product domain'.includes(query);
+      const universeVisible=(activeDomain==='all'||activeDomain==='home')&&(!query||universe.dataset.featureSearch.includes(query));
       if(universe)universe.hidden=!universeVisible;
       if(universeVisible)visibleCount+=1;
       const status=drawer.querySelector('.q-feature-navigation__status');
-      if(status)status.textContent=`${visibleCount} feature${visibleCount===1?'':'s'} shown`;
-    });
+      if(status)status.textContent=`${visibleCount} purpose-built feature${visibleCount===1?'':'s'} shown`;
+    };
+    search?.addEventListener('input',updateFeatureVisibility);
+    drawer.querySelectorAll('[data-feature-domain-filter]').forEach((button)=>button.addEventListener('click',()=>{
+      activeDomain=button.dataset.featureDomainFilter;
+      drawer.querySelectorAll('[data-feature-domain-filter]').forEach((item)=>item.setAttribute('aria-pressed',String(item===button)));
+      updateFeatureVisibility();
+    }));
     drawer?.addEventListener('click',(event)=>{
       if(event.target.closest('[data-feature-route]')&&!matchMedia('(min-width:1241px)').matches)closeFeatureNavigation();
     });
