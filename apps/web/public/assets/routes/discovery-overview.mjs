@@ -124,7 +124,16 @@ export async function renderDiscoveryOverview(main,deps){
     main.querySelector('[data-brief-question]').textContent=questionText(active,main.querySelector('[data-brief-horizon]').value,main.querySelector('[data-brief-region]').value,main.querySelector('[data-brief-outcome]').value);
     main.querySelector('[data-selected-count]').textContent=String(selected.size);
   };
-  const chooseLens=(id)=>{const next=lenses.find((item)=>item.id===id);if(!next)return;active=next;refreshEvidence();main.querySelector('.q-do-stage')?.scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});};
+  const chooseLens=(id)=>{
+    const next=lenses.find((item)=>item.id===id);
+    if(!next)return;
+    active=next;
+    selected.clear();
+    (active.observations||[]).filter((item)=>item.value!=null).slice(0,2).forEach((item)=>selected.add(item.id));
+    refreshEvidence();
+    main.querySelector('[data-brief-output]').innerHTML='<small>Evidence re-scoped to this lens. Review the selected observations, then generate the brief.</small>';
+    main.querySelector('.q-do-stage')?.scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+  };
   main.querySelectorAll('[data-lens]').forEach((button)=>button.addEventListener('click',()=>chooseLens(button.dataset.lens)));
   main.querySelectorAll('[data-map-lens]').forEach((button)=>button.addEventListener('click',()=>chooseLens(button.dataset.mapLens)));
   main.querySelector('[data-evidence-list]').addEventListener('change',(event)=>{
@@ -137,7 +146,7 @@ export async function renderDiscoveryOverview(main,deps){
   ['[data-brief-horizon]','[data-brief-region]','[data-brief-outcome]'].forEach((selector)=>main.querySelector(selector).addEventListener('change',refreshEvidence));
   main.querySelector('[data-action="clear-evidence"]').addEventListener('click',()=>{selected.clear();refreshEvidence();main.querySelector('[data-brief-output]').innerHTML='<small>Evidence queue cleared. Select source-backed observations before generating a brief.</small>';});
   main.querySelector('[data-action="generate-brief"]').addEventListener('click',()=>{
-    const chosen=lenses.flatMap((lens)=>lens.observations||[]).filter((item)=>selected.has(item.id));
+    const chosen=(active?.observations||[]).filter((item)=>selected.has(item.id));
     const checks=CHECKS[active?.id]||['Verify source timing.','Record limitations.','Define the next evidence required.'];
     const output=main.querySelector('[data-brief-output]');
     output.innerHTML=`<div class="q-do-brief-ready"><span>Research brief ready</span><ol>${checks.map((item)=>`<li>${safe(item)}</li>`).join('')}</ol><div><strong>Evidence carried forward</strong><p>${chosen.length?chosen.map((item)=>safe(item.label)).join(' · '):'No evidence selected—add at least one governed observation before treating this as a usable brief.'}</p></div><a class="q-button q-button--primary" href="#/${safe(active?.nextRoute||'research-workspace')}">${safe(active?.nextLabel||'Open research workspace')}</a></div>`;

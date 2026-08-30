@@ -48,6 +48,10 @@ test('Discovery Overview production renderer owns theme framing and working brie
   for(const marker of ['data-lens','data-evidence-id','data-brief-horizon','data-action="generate-brief"','data-source-toggle','data-map-lens'])assert.match(route,new RegExp(marker));
   for(const distinction of ['Global Market Network','Asset Rankings','Universal Search','Asset Intelligence'])assert.match(route,new RegExp(distinction));
   assert.match(route,/up to five observations/);
+  assert.match(route,/active=next;\s*selected\.clear\(\);/);
+  assert.match(route,/Evidence re-scoped to this lens/);
+  assert.match(route,/const chosen=\(active\?\.observations\|\|\[\]\)\.filter/);
+  assert.doesNotMatch(route,/const chosen=lenses\.flatMap/);
   assert.match(route,/does not rank assets, duplicate universal search, publish a thesis or execute a trade/);
   assert.match(handler,/discoveryOverview:buildDiscoveryOverview\(sources,networkDiagnostics\)/);
   assert.match(finalizer,/renderDiscoveryOverview/);
