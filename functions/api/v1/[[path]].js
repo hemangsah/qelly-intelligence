@@ -7,6 +7,7 @@ import {providerCatalog,providerResult} from '../../_lib/providers.js';
 import {capabilityInventory,matchUnavailableCapability} from '../../_lib/capability-registry.js';
 import {buildAssetRankings,buildDiscoveryOverview,buildExternalMarketNetwork,buildNetworkDiagnostics} from '../../_lib/market-network.js';
 import {buildUniversalSearch} from '../../_lib/public-search.js';
+import {buildPublicCategories} from '../../_lib/public-categories.js';
 
 const publicTruthState=(state)=>({
   live_provider:'live',
@@ -184,6 +185,12 @@ export async function route(context){
       limit:url.searchParams.get('limit')||30,
       assetRankings:buildAssetRankings(external.sources)
     });
+    return responseJson(request,env,{...result,releaseSha:publicRuntimeConfigForRequest(env,request.url).releaseSha},200,{cache:'public, max-age=0, s-maxage=10, stale-while-revalidate=30'});
+  }
+  if(path==='discovery/categories'&&readMethod(method)){
+    await enforceRateLimit(env,`public-categories:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:60});
+    const external=await buildExternalMarketNetwork(context);
+    const result=buildPublicCategories(buildAssetRankings(external.sources));
     return responseJson(request,env,{...result,releaseSha:publicRuntimeConfigForRequest(env,request.url).releaseSha},200,{cache:'public, max-age=0, s-maxage=10, stale-while-revalidate=30'});
   }
 

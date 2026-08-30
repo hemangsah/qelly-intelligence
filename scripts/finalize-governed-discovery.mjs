@@ -13,7 +13,6 @@ const trustCenter="case 'trust-center': await import('./routes/governed-utility-
 const qellyChatWorkspace="case 'news-research': await renderQellyChatWorkspace(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate}); break;";
 const migrations=Object.freeze([
   ["case 'discovery-hub': await renderDiscoveryHub(main); break;",discoveryOverview],
-  ["case 'categories': await renderCategories(main); break;",unavailable('categories')],
   ["case 'category-detail': await renderCategoryDetail(main); break;",unavailable('category-detail')],
   ["case 'venues': await renderVenues(main); break;",unavailable('venues')],
   ["case 'venue-detail': await renderVenueDetail(main); break;",unavailable('venue-detail')],

@@ -231,7 +231,7 @@
       "route": "search",
       "label": "Universal Search",
       "section": "Discover",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     },
     {
@@ -239,7 +239,7 @@
       "route": "categories",
       "label": "Categories",
       "section": "Discover",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     },
     {
@@ -277,7 +277,7 @@
     {
       "index": 35,
       "route": "news-research",
-      "label": "AI, News & Community",
+      "label": "Qelly Chat & Research",
       "section": "Discover",
       "public": true,
       "implementation": "runnable-route"

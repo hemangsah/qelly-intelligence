@@ -54,6 +54,7 @@ apps/edge/qelly-public-api-worker.mjs
 apps/web/FRONTEND_DELIVERY_README.md
 apps/web/public/_headers
 apps/web/public/apple-touch-icon.png
+apps/web/public/assets/about-qelly-v2.css
 apps/web/public/assets/ai/qelly-chat.css
 apps/web/public/assets/ai/qelly-chat.mjs
 apps/web/public/assets/app.css
@@ -117,6 +118,7 @@ apps/web/public/assets/qelly-brand-visual-correction.mjs
 apps/web/public/assets/qelly-brand.css
 apps/web/public/assets/qelly-brand.mjs
 apps/web/public/assets/qelly-canonical-route-rescue.mjs
+apps/web/public/assets/qelly-chat-workspace.css
 apps/web/public/assets/qelly-cloud-sync.mjs
 apps/web/public/assets/qelly-decision-engine.mjs
 apps/web/public/assets/qelly-external-market-surfaces.mjs
@@ -127,6 +129,7 @@ apps/web/public/assets/qelly-github-pages-mirror.mjs
 apps/web/public/assets/qelly-governed-screen-catalog.json
 apps/web/public/assets/qelly-indicator-product.css
 apps/web/public/assets/qelly-modern-interaction-polish.css
+apps/web/public/assets/qelly-navigation-v2.css
 apps/web/public/assets/qelly-post-v53-convergence.css
 apps/web/public/assets/qelly-premium-interactions.mjs
 apps/web/public/assets/qelly-premium-reset.css
@@ -236,6 +239,7 @@ apps/web/public/assets/qelly-verify-shell-nav.mjs
 apps/web/public/assets/qelly-verify.css
 apps/web/public/assets/qelly-worldclass-uiux.css
 apps/web/public/assets/qelly-worldclass-uiux.mjs
+apps/web/public/assets/research-workspace-v2.css
 apps/web/public/assets/route-registry.mjs
 apps/web/public/assets/routes/about-qelly.mjs
 apps/web/public/assets/routes/account-recovery.mjs
@@ -248,6 +252,7 @@ apps/web/public/assets/routes/asset-rankings-chart.mjs
 apps/web/public/assets/routes/asset-rankings-data.mjs
 apps/web/public/assets/routes/asset-rankings-premium.mjs
 apps/web/public/assets/routes/asset-rankings-table.mjs
+apps/web/public/assets/routes/asset-rankings-v2.css
 apps/web/public/assets/routes/asset-rankings.mjs
 apps/web/public/assets/routes/auth-login.mjs
 apps/web/public/assets/routes/auth-recovery.mjs
@@ -255,12 +260,16 @@ apps/web/public/assets/routes/auth-register.mjs
 apps/web/public/assets/routes/calculator-center.mjs
 apps/web/public/assets/routes/calculator-detail-v6.mjs
 apps/web/public/assets/routes/calculator-detail.mjs
+apps/web/public/assets/routes/categories-v2.css
+apps/web/public/assets/routes/categories.mjs
 apps/web/public/assets/routes/comparison-lab.mjs
 apps/web/public/assets/routes/data-mesh-enhancement.mjs
 apps/web/public/assets/routes/decision-provenance.mjs
 apps/web/public/assets/routes/delivery-operations.mjs
 apps/web/public/assets/routes/discovery-hub-enhancement.css
 apps/web/public/assets/routes/discovery-hub-enhancement.mjs
+apps/web/public/assets/routes/discovery-overview.css
+apps/web/public/assets/routes/discovery-overview.mjs
 apps/web/public/assets/routes/event-calendar.mjs
 apps/web/public/assets/routes/feature-universe.mjs
 apps/web/public/assets/routes/filing-workspace.mjs
@@ -281,6 +290,7 @@ apps/web/public/assets/routes/instrument-master-v6.mjs
 apps/web/public/assets/routes/intelligence-terminal.css
 apps/web/public/assets/routes/intelligence-terminal.mjs
 apps/web/public/assets/routes/live-markets.mjs
+apps/web/public/assets/routes/market-network-v2.css
 apps/web/public/assets/routes/market-network.css
 apps/web/public/assets/routes/market-network.mjs
 apps/web/public/assets/routes/market-v6.css
@@ -297,6 +307,7 @@ apps/web/public/assets/routes/portfolio-v6-entry.mjs
 apps/web/public/assets/routes/portfolio-v6.css
 apps/web/public/assets/routes/portfolio-v6.mjs
 apps/web/public/assets/routes/provider-runtime-v6.mjs
+apps/web/public/assets/routes/qelly-chat-workspace.mjs
 apps/web/public/assets/routes/quarantine-review.mjs
 apps/web/public/assets/routes/research-history.mjs
 apps/web/public/assets/routes/research-workspace.mjs
@@ -310,6 +321,8 @@ apps/web/public/assets/routes/staging-assurance.mjs
 apps/web/public/assets/routes/theme-intelligence-studio.mjs
 apps/web/public/assets/routes/theme-personas.mjs
 apps/web/public/assets/routes/time-series-v6.mjs
+apps/web/public/assets/routes/universal-search-v2.css
+apps/web/public/assets/routes/universal-search.mjs
 apps/web/public/assets/routes/workspace-watchlist.mjs
 apps/web/public/assets/shell-foundations.mjs
 apps/web/public/assets/static-preview-api.mjs
@@ -633,6 +646,7 @@ functions/_lib/config-payload.js
 functions/_lib/data.js
 functions/_lib/email-capability.js
 functions/_lib/entitlement-policy.js
+functions/_lib/evidence.js
 functions/_lib/finance-intelligence.js
 functions/_lib/governance.js
 functions/_lib/live-markets.js
@@ -643,6 +657,8 @@ functions/_lib/portfolio-cloud.js
 functions/_lib/profile-preferences.js
 functions/_lib/provider-directory.js
 functions/_lib/providers.js
+functions/_lib/public-categories.js
+functions/_lib/public-search.js
 functions/_lib/readiness.js
 functions/_lib/runtime.js
 functions/_lib/timezone.js
@@ -1283,6 +1299,7 @@ tests/qelly-ai-launcher-visibility.test.mjs
 tests/qelly-api-route-ownership.test.mjs
 tests/qelly-api-v1-governance-middleware.test.mjs
 tests/qelly-asset-rankings-truth-contract.test.mjs
+tests/qelly-asset-rankings-v2.test.mjs
 tests/qelly-atomic-sync-wave-2.test.mjs
 tests/qelly-auth-email-capability-gate.test.mjs
 tests/qelly-auth-login-resilience.test.mjs
@@ -1292,8 +1309,11 @@ tests/qelly-bootstrap-read-amplification.test.mjs
 tests/qelly-canonical-hash-route-production-gate.test.mjs
 tests/qelly-canonical-route-rescue.test.mjs
 tests/qelly-capability-facade-containment.test.mjs
+tests/qelly-categories-v2.test.mjs
+tests/qelly-chat-flagship-workspace.test.mjs
 tests/qelly-cloud-sync-integrity-wave.test.mjs
 tests/qelly-cloudflare-browser-api-parity.test.mjs
+tests/qelly-cloudflare-evidence-graphs.test.mjs
 tests/qelly-cloudflare-pages-environment.test.mjs
 tests/qelly-cloudflare-platform-readiness.test.mjs
 tests/qelly-cloudflare-portfolio-storage.test.mjs
@@ -1308,11 +1328,13 @@ tests/qelly-dead-public-market-demo-retired.test.mjs
 tests/qelly-decision-support-integrity.test.mjs
 tests/qelly-deep-audit-repairs.test.mjs
 tests/qelly-discovery-hub-correctness-density.test.mjs
+tests/qelly-discovery-overview-v1.test.mjs
 tests/qelly-evidence-service-worker-isolation.test.mjs
 tests/qelly-external-intelligence-dock.test.mjs
 tests/qelly-external-research-boundary.test.mjs
 tests/qelly-finance-intelligence.test.mjs
 tests/qelly-github-pages-public-mirror.test.mjs
+tests/qelly-global-market-network-v2.test.mjs
 tests/qelly-global-registration-profile.test.mjs
 tests/qelly-governance-single-ownership.test.mjs
 tests/qelly-governed-discovery-production.test.mjs
@@ -1338,6 +1360,7 @@ tests/qelly-public-runtime-supabase.test.mjs
 tests/qelly-public-runtime-surface.test.mjs
 tests/qelly-public-runtime-telemetry.test.mjs
 tests/qelly-public-trust-copy.test.mjs
+tests/qelly-purpose-navigation-about.test.mjs
 tests/qelly-readiness-required-dependencies.test.mjs
 tests/qelly-screen-evidence-boundary.test.mjs
 tests/qelly-screen-evidence-finalization.test.mjs
@@ -1345,6 +1368,7 @@ tests/qelly-sync-batches-client-deny-policy.test.mjs
 tests/qelly-sync-batches-rls-migration.test.mjs
 tests/qelly-tradingview-display-boundary.test.mjs
 tests/qelly-ui-preferences-grants.test.mjs
+tests/qelly-universal-search-v2.test.mjs
 tests/qelly-v53-activation-contract.test.mjs
 tests/qelly-v53-active-shell-convergence.test.mjs
 tests/qelly-v53-colorblind-bridge.test.mjs
