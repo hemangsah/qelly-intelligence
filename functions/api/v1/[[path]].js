@@ -5,7 +5,7 @@ import {handleData,__dataTest} from '../../_lib/data.js';
 import {handleEvidence,__evidenceTest} from '../../_lib/evidence.js';
 import {providerCatalog,providerResult} from '../../_lib/providers.js';
 import {capabilityInventory,matchUnavailableCapability} from '../../_lib/capability-registry.js';
-import {buildExternalMarketNetwork} from '../../_lib/market-network.js';
+import {buildExternalMarketNetwork,buildNetworkDiagnostics} from '../../_lib/market-network.js';
 
 const publicTruthState=(state)=>({
   live_provider:'live',
@@ -117,9 +117,11 @@ const publicMarketNetwork=async(context)=>{
     buildExternalMarketNetwork(context),
     providerResult(context,'ecb','fx-reference-rates','EUR',{}).then((value)=>publicProviderEnvelope(value,'ecb')).catch((error)=>publicProviderEnvelope({provider:'ecb',truthState:'unavailable',data:null,observedAt:null,ingestedAt:new Date().toISOString(),attribution:'European Central Bank',fallbackReason:error.message},'ecb'))
   ]);
+  const sources={...external.sources,ecb:ecbEntry};
   return responseJson(request,env,{
     ...external,
-    sources:{...external.sources,ecb:ecbEntry},
+    sources,
+    networkDiagnostics:buildNetworkDiagnostics(sources),
     providerPolicy:{binance:'rights_blocked_or_unverified',coinbase:'rights_blocked_or_unverified',ecb:'governed_reference_data'},
     releaseSha:publicRuntimeConfigForRequest(env,request.url).releaseSha
   },200,{cache:'public, max-age=0, s-maxage=10, stale-while-revalidate=30'});

@@ -5,6 +5,84 @@ const SOURCE_CACHE_TTL=Object.freeze({hyperliquid:8,'alternative-me':60,'world-b
 
 const nowIso=()=>new Date().toISOString();
 const finiteOrNull=(value)=>Number.isFinite(Number(value))?Number(value):null;
+const normalizedTruthState=(source)=>{
+  const state=String(source?.truthState||source?.state||'unavailable').toLowerCase();
+  if(state==='unavailable'||source?.data==null)return 'unavailable';
+  if(state.includes('stale')||state.includes('delayed')||state==='reference_external')return 'delayed';
+  if(state.includes('cache'))return 'cached';
+  if(state.includes('live'))return 'live';
+  return 'cached';
+};
+const sourceUsable=(source)=>normalizedTruthState(source)!=='unavailable';
+const hasArrayData=(source)=>Array.isArray(source?.data)&&source.data.length>0;
+const hasObjectData=(source,key)=>source?.data&&typeof source.data==='object'&&source.data[key]!=null;
+
+export function buildNetworkDiagnostics(sources={}){
+  const entries=Object.entries(sources).map(([id,source])=>({id,source,state:normalizedTruthState(source)}));
+  const sourceCounts={total:entries.length,live:0,cached:0,delayed:0,unavailable:0};
+  for(const entry of entries)sourceCounts[entry.state]+=1;
+  const alternative=sources['alternative-me'];
+  const hyperliquid=sources.hyperliquid;
+  const ecb=sources.ecb;
+  const worldBank=sources['world-bank'];
+  const imf=sources.imf;
+  const coverage=[
+    {
+      id:'crypto-pricing',
+      label:'Crypto price context',
+      purpose:'Compare two independent, read-only crypto observations.',
+      mode:'market_observation',
+      sources:['alternative-me','hyperliquid'],
+      available:[alternative,hyperliquid].filter(sourceUsable).length,
+      required:2,
+      ready:sourceUsable(alternative)&&sourceUsable(hyperliquid)&&hasArrayData(hyperliquid)&&Array.isArray(alternative?.data?.assets)
+    },
+    {
+      id:'market-sentiment',
+      label:'Market sentiment',
+      purpose:'Add a clearly attributed daily risk-appetite reference.',
+      mode:'reference_observation',
+      sources:['alternative-me'],
+      available:sourceUsable(alternative)&&hasObjectData(alternative,'sentiment')?1:0,
+      required:1,
+      ready:sourceUsable(alternative)&&hasObjectData(alternative,'sentiment')
+    },
+    {
+      id:'fx-reference',
+      label:'FX reference rates',
+      purpose:'Anchor currency research to official ECB reference data.',
+      mode:'governed_reference',
+      sources:['ecb'],
+      available:sourceUsable(ecb)&&hasObjectData(ecb,'rates')?1:0,
+      required:1,
+      ready:sourceUsable(ecb)&&hasObjectData(ecb,'rates')
+    },
+    {
+      id:'macro-context',
+      label:'Macro context',
+      purpose:'Compare annual World Bank history with IMF WEO estimates.',
+      mode:'statistical_reference',
+      sources:['world-bank','imf'],
+      available:[worldBank,imf].filter(sourceUsable).length,
+      required:2,
+      ready:sourceUsable(worldBank)&&sourceUsable(imf)&&hasArrayData(worldBank)&&hasArrayData(imf)
+    }
+  ];
+  const readyDomains=coverage.filter((item)=>item.ready).length;
+  return {
+    sourceCounts,
+    coverage,
+    readiness:{
+      readyDomains,
+      totalDomains:coverage.length,
+      crossAssetContext:coverage.every((item)=>item.available>0),
+      independentCryptoComparison:coverage.find((item)=>item.id==='crypto-pricing')?.ready===true,
+      macroCrossCheck:coverage.find((item)=>item.id==='macro-context')?.ready===true,
+      decisionUse:readyDomains===coverage.length?'ready_with_source_boundaries':'partial_source_coverage',
+      execution:false
+    }
+  };
+}
 
 async function fetchJson(url,{method='GET',body=null,headers={}}={}){
   const controller=new AbortController();
@@ -189,24 +267,24 @@ export async function buildExternalMarketNetwork(context={}){
       edgeCacheScope:'cloudflare_point_of_presence'
     },
     researchLinks:[
-      {id:'tradingview',label:'TradingView',url:'https://www.tradingview.com/',mode:'display_or_outbound',note:'External research/display boundary; widget values are not silently reused as Qelly analytical inputs.'},
-      {id:'forex-factory',label:'Forex Factory',url:'https://www.forexfactory.com/calendar',mode:'outbound',note:'External macro calendar research link.'},
-      {id:'cme',label:'CME Group Markets',url:'https://www.cmegroup.com/markets.html',mode:'outbound',note:'Official derivatives, rates, FX, commodities and crypto futures research destination.'},
-      {id:'fred',label:'FRED Economic Data',url:'https://fred.stlouisfed.org/',mode:'outbound',note:'Federal Reserve Bank of St. Louis macroeconomic research destination.'},
-      {id:'sec-edgar',label:'SEC EDGAR',url:'https://www.sec.gov/search-filings',mode:'outbound',note:'Official US company filing search and disclosure research.'},
-      {id:'rbi-data',label:'RBI Data / DBIE',url:'https://data.rbi.org.in/',mode:'outbound',note:'Reserve Bank of India official statistics and Database on Indian Economy research destination.'},
-      {id:'nse-market-data',label:'NSE India Market Data',url:'https://www.nseindia.com/market-data',mode:'outbound',note:'National Stock Exchange of India official market-data research destination.'},
-      {id:'imf-data',label:'IMF Data',url:'https://data.imf.org/en/',mode:'outbound',note:'International Monetary Fund macroeconomic and financial statistics research destination.'},
-      {id:'coinmarketcap',label:'CoinMarketCap',url:'https://coinmarketcap.com/',mode:'outbound',note:'Keyless API is documented for evaluation/prototyping; Qelly does not rely on it as an unrestricted production redistribution feed.'},
-      {id:'coinpaprika',label:'CoinPaprika',url:'https://coinpaprika.com/',mode:'outbound',note:'Free API plan is non-commercial under current terms; no production redistribution feed is enabled.'},
-      {id:'defillama',label:'DefiLlama',url:'https://defillama.com/',mode:'outbound',note:'Official research destination; Qelly does not republish restricted data without the applicable permission/plan.'},
-      {id:'coinglass',label:'CoinGlass',url:'https://www.coinglass.com/',mode:'outbound',note:'Official research link; no hidden scraping.'},
-      {id:'hypurrscan',label:'Hypurrscan',url:'https://hypurrscan.io/',mode:'outbound',note:'Hyperliquid explorer research link.'},
-      {id:'x',label:'X / market community',url:'https://x.com/',mode:'outbound',note:'Community research link; no timeline scraping or fake embed.'},
-      {id:'ecb',label:'European Central Bank',url:'https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html',mode:'outbound',note:'Official reference-rate source.'},
-      {id:'world-bank',label:'World Bank Data',url:'https://data.worldbank.org/',mode:'outbound',note:'Official macro reference research.'}
+      {id:'tradingview',label:'TradingView',url:'https://www.tradingview.com/',mode:'display_or_outbound',category:'market-research',note:'External research/display boundary; widget values are not silently reused as Qelly analytical inputs.'},
+      {id:'forex-factory',label:'Forex Factory',url:'https://www.forexfactory.com/calendar',mode:'outbound',category:'market-research',note:'External macro calendar research link.'},
+      {id:'cme',label:'CME Group Markets',url:'https://www.cmegroup.com/markets.html',mode:'outbound',category:'official-data',note:'Official derivatives, rates, FX, commodities and crypto futures research destination.'},
+      {id:'fred',label:'FRED Economic Data',url:'https://fred.stlouisfed.org/',mode:'outbound',category:'official-data',note:'Federal Reserve Bank of St. Louis macroeconomic research destination.'},
+      {id:'sec-edgar',label:'SEC EDGAR',url:'https://www.sec.gov/search-filings',mode:'outbound',category:'official-data',note:'Official US company filing search and disclosure research.'},
+      {id:'rbi-data',label:'RBI Data / DBIE',url:'https://data.rbi.org.in/',mode:'outbound',category:'official-data',note:'Reserve Bank of India official statistics and Database on Indian Economy research destination.'},
+      {id:'nse-market-data',label:'NSE India Market Data',url:'https://www.nseindia.com/market-data',mode:'outbound',category:'official-data',note:'National Stock Exchange of India official market-data research destination.'},
+      {id:'imf-data',label:'IMF Data',url:'https://data.imf.org/en/',mode:'outbound',category:'official-data',note:'International Monetary Fund macroeconomic and financial statistics research destination.'},
+      {id:'coinmarketcap',label:'CoinMarketCap',url:'https://coinmarketcap.com/',mode:'outbound',category:'crypto-research',note:'Keyless API is documented for evaluation/prototyping; Qelly does not rely on it as an unrestricted production redistribution feed.'},
+      {id:'coinpaprika',label:'CoinPaprika',url:'https://coinpaprika.com/',mode:'outbound',category:'crypto-research',note:'Free API plan is non-commercial under current terms; no production redistribution feed is enabled.'},
+      {id:'defillama',label:'DefiLlama',url:'https://defillama.com/',mode:'outbound',category:'crypto-research',note:'Official research destination; Qelly does not republish restricted data without the applicable permission/plan.'},
+      {id:'coinglass',label:'CoinGlass',url:'https://www.coinglass.com/',mode:'outbound',category:'crypto-research',note:'Official research link; no hidden scraping.'},
+      {id:'hypurrscan',label:'Hypurrscan',url:'https://hypurrscan.io/',mode:'outbound',category:'crypto-research',note:'Hyperliquid explorer research link.'},
+      {id:'x',label:'X / market community',url:'https://x.com/',mode:'outbound',category:'community',note:'Community research link; no timeline scraping or fake embed.'},
+      {id:'ecb',label:'European Central Bank',url:'https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html',mode:'outbound',category:'official-data',note:'Official reference-rate source.'},
+      {id:'world-bank',label:'World Bank Data',url:'https://data.worldbank.org/',mode:'outbound',category:'official-data',note:'Official macro reference research.'}
     ]
   };
 }
 
-export const __test=Object.freeze({finiteOrNull,sourceTruthState,withDelivery,edgeCacheRequest,cachedSource,alternativeCrypto,hyperliquidMids,worldBankMacro,imfGrowthReference,SOURCE_CACHE_TTL});
+export const __test=Object.freeze({finiteOrNull,normalizedTruthState,sourceUsable,buildNetworkDiagnostics,sourceTruthState,withDelivery,edgeCacheRequest,cachedSource,alternativeCrypto,hyperliquidMids,worldBankMacro,imfGrowthReference,SOURCE_CACHE_TTL});
