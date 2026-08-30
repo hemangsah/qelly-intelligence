@@ -48,7 +48,8 @@ test('Global Market Network V2 has three distinct jobs and working analytical su
   assert.match(route,/data-guide/);
   assert.match(route,/Indicative difference/);
   assert.match(route,/not an executable spread or trading signal/);
-  assert.match(handler,/networkDiagnostics:buildNetworkDiagnostics\(sources\)/);
+  assert.match(handler,/const networkDiagnostics=buildNetworkDiagnostics\(sources\)/);
+  assert.match(handler,/\n\s*networkDiagnostics,/);
 });
 
 test('Global Market Network V2 is container-responsive and offline packaged',async()=>{

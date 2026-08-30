@@ -7,11 +7,12 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const appPath=path.join(root,'dist/frontend/assets/app.js');
 
 const unavailable=(route)=>`case '${route}': await import('./routes/governed-discovery.mjs').then(({renderGovernedUnavailable})=>renderGovernedUnavailable(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state},'${route}')); break;`;
+const discoveryOverview="case 'discovery-hub': await import('./routes/discovery-overview.mjs').then(({renderDiscoveryOverview})=>renderDiscoveryOverview(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state})); break;";
 const converter="case 'converter': await import('./routes/governed-utility-v2.mjs').then(({renderGovernedConverterV2})=>renderGovernedConverterV2(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state})); break;";
 const trustCenter="case 'trust-center': await import('./routes/governed-utility-v2.mjs').then(({renderGovernedTrustCenterV2})=>renderGovernedTrustCenterV2(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state})); break;";
 const qellyChatWorkspace="case 'news-research': await renderQellyChatWorkspace(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate}); break;";
 const migrations=Object.freeze([
-  ["case 'discovery-hub': await renderDiscoveryHub(main); break;",unavailable('discovery-hub')],
+  ["case 'discovery-hub': await renderDiscoveryHub(main); break;",discoveryOverview],
   ["case 'search': await renderSearch(main); break;",unavailable('search')],
   ["case 'categories': await renderCategories(main); break;",unavailable('categories')],
   ["case 'category-detail': await renderCategoryDetail(main); break;",unavailable('category-detail')],
@@ -45,6 +46,7 @@ export async function finalizeGovernedDiscovery({environment=effectiveDeployment
     if(!output.includes(replacement))throw new Error(`Governed production renderer missing: ${replacement}`);
   }
   if(!output.includes("./routes/governed-discovery.mjs"))throw new Error('Governed discovery route module is not referenced by production app');
+  if(!output.includes("./routes/discovery-overview.mjs"))throw new Error('Discovery Overview production route module is not referenced by production app');
   if(!output.includes("./routes/governed-utility-v2.mjs"))throw new Error('Governed utility route module is not referenced by production app');
   return {status:'governed-discovery-finalized',migrations:migrations.length,governedDiscovery:true,governedUtilities:true};
 }

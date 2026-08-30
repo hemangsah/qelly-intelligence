@@ -16,6 +16,155 @@ const normalizedTruthState=(source)=>{
 const sourceUsable=(source)=>normalizedTruthState(source)!=='unavailable';
 const hasArrayData=(source)=>Array.isArray(source?.data)&&source.data.length>0;
 const hasObjectData=(source,key)=>source?.data&&typeof source.data==='object'&&source.data[key]!=null;
+const observation=(sourceId,source,label,value,unit='text',extra={})=>({
+  id:`${sourceId}:${String(label).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}`,
+  label,
+  value:value??null,
+  unit,
+  sourceId,
+  provider:source?.attribution||source?.label||sourceId,
+  truthState:normalizedTruthState(source),
+  observedAt:extra.observedAt??source?.observedAt??null,
+  context:extra.context??null
+});
+const lensState=(sources)=>{
+  const states=sources.map(normalizedTruthState);
+  if(states.every((state)=>state==='unavailable'))return 'unavailable';
+  if(states.some((state)=>state==='unavailable'))return 'partial';
+  if(states.some((state)=>state==='delayed'))return 'reference';
+  if(states.some((state)=>state==='cached'))return 'cached';
+  return 'live';
+};
+
+export function buildDiscoveryOverview(sources={},diagnostics=buildNetworkDiagnostics(sources)){
+  const alternative=sources['alternative-me'];
+  const hyperliquid=sources.hyperliquid;
+  const ecb=sources.ecb;
+  const worldBank=sources['world-bank'];
+  const imf=sources.imf;
+  const assets=Array.isArray(alternative?.data?.assets)?alternative.data.assets.filter((row)=>Number.isFinite(Number(row.change24hPct))):[];
+  const advancing=assets.filter((row)=>Number(row.change24hPct)>0).length;
+  const declining=assets.filter((row)=>Number(row.change24hPct)<0).length;
+  const unchanged=Math.max(0,assets.length-advancing-declining);
+  const sentiment=alternative?.data?.sentiment;
+  const rates=ecb?.data?.rates&&typeof ecb.data.rates==='object'?ecb.data.rates:{};
+  const eurUsd=finiteOrNull(rates.USD);
+  const eurInr=finiteOrNull(rates.INR);
+  const usdInr=eurUsd&&eurInr?eurInr/eurUsd:null;
+  const worldRows=Array.isArray(worldBank?.data)?worldBank.data:[];
+  const imfRows=Array.isArray(imf?.data)?imf.data:[];
+  const country=(rows,id)=>rows.find((row)=>row.countryId===id);
+  const wbIndia=country(worldRows,'IND');
+  const wbUsa=country(worldRows,'USA');
+  const wbChina=country(worldRows,'CHN');
+  const imfIndia=country(imfRows,'IND');
+  const imfUsa=country(imfRows,'USA');
+  const lens=(record)=>({
+    ...record,
+    ready:record.state!=='unavailable'&&record.observations.some((item)=>item.value!=null),
+    evidenceCount:record.observations.filter((item)=>item.value!=null).length
+  });
+  const lenses=[
+    lens({
+      id:'risk-appetite',
+      label:'Risk appetite',
+      purpose:'Frame whether current market psychology deserves a deeper breadth check.',
+      question:'Is the current risk mood broad enough to justify a cross-asset research question?',
+      state:lensState([alternative]),
+      sourceIds:['alternative-me'],
+      observations:[
+        observation('alternative-me',alternative,'Fear & Greed score',sentiment?.value,'score',{observedAt:sentiment?.timestamp,context:sentiment?.classification||null}),
+        observation('alternative-me',alternative,'Advancing assets in source sample',advancing,'count',{context:`${assets.length} attributed crypto assets sampled`}),
+        observation('alternative-me',alternative,'Declining assets in source sample',declining,'count',{context:`${unchanged} unchanged`})
+      ],
+      limitation:'A sentiment reference and a small crypto sample do not establish a global risk regime.',
+      nextRoute:'live-markets',
+      nextLabel:'Check market breadth'
+    }),
+    lens({
+      id:'crypto-breadth',
+      label:'Crypto breadth',
+      purpose:'Test whether a crypto theme is shared across the governed source sample.',
+      question:'Which part of the available crypto sample is participating in the current move?',
+      state:lensState([alternative,hyperliquid]),
+      sourceIds:['alternative-me','hyperliquid'],
+      observations:[
+        observation('alternative-me',alternative,'Available asset observations',assets.length,'count'),
+        observation('alternative-me',alternative,'Positive 24h observations',advancing,'count'),
+        observation('alternative-me',alternative,'Negative 24h observations',declining,'count'),
+        observation('hyperliquid',hyperliquid,'Independent venue observations',Array.isArray(hyperliquid?.data)?hyperliquid.data.length:0,'count')
+      ],
+      limitation:'Breadth describes participation in the current sample; it is not an asset ranking or trade signal.',
+      nextRoute:'asset-rankings',
+      nextLabel:'Narrow with declared criteria'
+    }),
+    lens({
+      id:'currency-conditions',
+      label:'Currency conditions',
+      purpose:'Frame a currency question from official reference rates before using a converter or chart.',
+      question:'Do official reference rates suggest a currency condition worth researching by region?',
+      state:lensState([ecb]),
+      sourceIds:['ecb'],
+      observations:[
+        observation('ecb',ecb,'EUR / USD reference',eurUsd,'rate'),
+        observation('ecb',ecb,'EUR / INR reference',eurInr,'rate'),
+        observation('ecb',ecb,'USD / INR derived cross-reference',usdInr,'rate',{context:'INR-per-EUR ÷ USD-per-EUR; reference only'}),
+        observation('ecb',ecb,'Published currency references',Object.keys(rates).length,'count')
+      ],
+      limitation:'ECB rates are working-day references, not executable FX quotes, remittance rates or forecasts.',
+      nextRoute:'converter',
+      nextLabel:'Model a reference conversion'
+    }),
+    lens({
+      id:'growth-divergence',
+      label:'Growth divergence',
+      purpose:'Compare historical and forecast-labelled growth references before forming a macro thesis.',
+      question:'Which regional growth differences deserve primary-source research?',
+      state:lensState([worldBank,imf]),
+      sourceIds:['world-bank','imf'],
+      observations:[
+        observation('world-bank',worldBank,`India GDP growth · ${wbIndia?.year||'latest'}`,wbIndia?.gdpGrowthPct,'percent',{context:'World Bank historical observation'}),
+        observation('world-bank',worldBank,`United States GDP growth · ${wbUsa?.year||'latest'}`,wbUsa?.gdpGrowthPct,'percent',{context:'World Bank historical observation'}),
+        observation('world-bank',worldBank,`China GDP growth · ${wbChina?.year||'latest'}`,wbChina?.gdpGrowthPct,'percent',{context:'World Bank historical observation'}),
+        observation('imf',imf,`India WEO growth · ${imfIndia?.year||'latest'}`,imfIndia?.growthPct,'percent',{context:imfIndia?.estimateOrProjection?'Estimate or projection':'Published observation'}),
+        observation('imf',imf,`United States WEO growth · ${imfUsa?.year||'latest'}`,imfUsa?.growthPct,'percent',{context:imfUsa?.estimateOrProjection?'Estimate or projection':'Published observation'})
+      ],
+      limitation:'Annual history and WEO estimates use different publication methods and must not be treated as live market data.',
+      nextRoute:'research-workspace',
+      nextLabel:'Build a macro dossier'
+    })
+  ];
+  const sourceRoles={
+    'alternative-me':'Sentiment and attributed crypto sample',
+    hyperliquid:'Independent read-only crypto venue context',
+    ecb:'Official working-day FX reference',
+    'world-bank':'Historical annual growth reference',
+    imf:'WEO estimate and projection cross-check'
+  };
+  const sourceLedger=Object.entries(sources).map(([id,source])=>({
+    id,
+    label:source?.label||source?.attribution||id,
+    role:sourceRoles[id]||'Governed research source',
+    truthState:normalizedTruthState(source),
+    observedAt:source?.observedAt??null,
+    fetchedAt:source?.fetchedAt??source?.ingestedAt??null,
+    cadence:source?.cadence??'Provider governed',
+    attribution:source?.attribution??source?.label??id
+  }));
+  return {
+    version:'governed-theme-framing-v1',
+    job:'Turn a broad market theme into a researchable question before choosing an asset.',
+    lenses,
+    sourceLedger,
+    readiness:{
+      availableLenses:lenses.filter((item)=>item.ready).length,
+      totalLenses:lenses.length,
+      sourceCounts:diagnostics.sourceCounts,
+      decisionUse:diagnostics.readiness?.decisionUse||'partial_source_coverage'
+    },
+    boundaries:{ranking:false,search:false,singleAssetAnalysis:false,execution:false,fabricatedFallback:false}
+  };
+}
 
 export function buildNetworkDiagnostics(sources={}){
   const entries=Object.entries(sources).map(([id,source])=>({id,source,state:normalizedTruthState(source)}));
@@ -287,4 +436,4 @@ export async function buildExternalMarketNetwork(context={}){
   };
 }
 
-export const __test=Object.freeze({finiteOrNull,normalizedTruthState,sourceUsable,buildNetworkDiagnostics,sourceTruthState,withDelivery,edgeCacheRequest,cachedSource,alternativeCrypto,hyperliquidMids,worldBankMacro,imfGrowthReference,SOURCE_CACHE_TTL});
+export const __test=Object.freeze({finiteOrNull,normalizedTruthState,sourceUsable,buildNetworkDiagnostics,buildDiscoveryOverview,sourceTruthState,withDelivery,edgeCacheRequest,cachedSource,alternativeCrypto,hyperliquidMids,worldBankMacro,imfGrowthReference,SOURCE_CACHE_TTL});
