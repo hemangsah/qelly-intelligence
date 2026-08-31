@@ -263,6 +263,8 @@ apps/web/public/assets/routes/calculator-detail.mjs
 apps/web/public/assets/routes/categories-v2.css
 apps/web/public/assets/routes/categories.mjs
 apps/web/public/assets/routes/comparison-lab.mjs
+apps/web/public/assets/routes/converter-v3.css
+apps/web/public/assets/routes/converter.mjs
 apps/web/public/assets/routes/data-mesh-enhancement.mjs
 apps/web/public/assets/routes/decision-provenance.mjs
 apps/web/public/assets/routes/delivery-operations.mjs
@@ -664,6 +666,7 @@ functions/_lib/profile-preferences.js
 functions/_lib/provider-directory.js
 functions/_lib/providers.js
 functions/_lib/public-categories.js
+functions/_lib/public-converter.js
 functions/_lib/public-dex.js
 functions/_lib/public-global-charts.js
 functions/_lib/public-search.js
@@ -1331,6 +1334,7 @@ tests/qelly-cloudflare-research-storage.test.mjs
 tests/qelly-cloudflare-unavailable-capability-registry.test.mjs
 tests/qelly-cloudflare-watchlist-storage.test.mjs
 tests/qelly-containment-wave-1.test.mjs
+tests/qelly-converter-v3.test.mjs
 tests/qelly-csp-third-party-runtime-boundary.test.mjs
 tests/qelly-database-concurrency-isolation-repair.test.mjs
 tests/qelly-dead-public-market-demo-retired.test.mjs

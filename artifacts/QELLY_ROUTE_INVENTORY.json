@@ -269,9 +269,9 @@
     {
       "index": 34,
       "route": "converter",
-      "label": "Converter",
+      "label": "FX Reference Converter",
       "section": "Discover",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     },
     {

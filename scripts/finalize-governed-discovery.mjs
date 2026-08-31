@@ -8,7 +8,6 @@ const appPath=path.join(root,'dist/frontend/assets/app.js');
 
 const unavailable=(route)=>`case '${route}': await import('./routes/governed-discovery.mjs').then(({renderGovernedUnavailable})=>renderGovernedUnavailable(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state},'${route}')); break;`;
 const discoveryOverview="case 'discovery-hub': await import('./routes/discovery-overview.mjs').then(({renderDiscoveryOverview})=>renderDiscoveryOverview(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state})); break;";
-const converter="case 'converter': await import('./routes/governed-utility-v2.mjs').then(({renderGovernedConverterV2})=>renderGovernedConverterV2(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state})); break;";
 const trustCenter="case 'trust-center': await import('./routes/governed-utility-v2.mjs').then(({renderGovernedTrustCenterV2})=>renderGovernedTrustCenterV2(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state})); break;";
 const qellyChatWorkspace="case 'news-research': await renderQellyChatWorkspace(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate}); break;";
 const migrations=Object.freeze([
@@ -19,7 +18,6 @@ const migrations=Object.freeze([
   ["case 'research-article': await renderResearchArticle(main); break;",unavailable('research-article')],
   ["case 'asset': await renderAsset(main); break;",unavailable('asset')],
   ["case 'rankings': await renderLegacyRankings(main); break;",unavailable('rankings')],
-  ["case 'converter': await renderConverter(main); break;",converter],
   ["case 'trust-center': await renderTrustCenter(main); break;",trustCenter]
 ]);
 

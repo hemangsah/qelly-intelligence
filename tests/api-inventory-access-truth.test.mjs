@@ -23,6 +23,7 @@ const expectedPublic=[
   '/api/v1/discovery/venues',
   '/api/v1/discovery/dex',
   '/api/v1/discovery/global-charts',
+  '/api/v1/discovery/converter',
   '/api/v1/public/providers',
   '/api/v1/public/markets/assets/:id/candles',
   '/api/v1/calculations/metadata',

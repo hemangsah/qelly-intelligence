@@ -32,7 +32,7 @@ index,route,label,section,public,implementation
 "31","venues","Venues","Discover","true","runnable-route"
 "32","dex-discovery","DEX Discovery","Discover","true","runnable-route"
 "33","global-charts","Global Charts","Discover","true","runnable-route"
-"34","converter","Converter","Discover","false","runnable-route"
+"34","converter","FX Reference Converter","Discover","true","runnable-route"
 "35","news-research","Qelly Chat & Research","Discover","true","runnable-route"
 "36","trust-center","Trust Center","Discover","false","runnable-route"
 "37","asset-intelligence","Asset Intelligence","Intelligence","false","runnable-route"

@@ -98,7 +98,7 @@ index,route,access,implementation
 "97","/api/v1/discovery/dex/:id","authenticated-or-policy-dependent","documented-contract"
 "98","/api/v1/discovery/global-charts","public","documented-contract"
 "99","/api/v1/discovery/prediction-markets","authenticated-or-policy-dependent","documented-contract"
-"100","/api/v1/discovery/converter","authenticated-or-policy-dependent","documented-contract"
+"100","/api/v1/discovery/converter","public","documented-contract"
 "101","/api/v1/discovery/news","authenticated-or-policy-dependent","documented-contract"
 "102","/api/v1/discovery/research","authenticated-or-policy-dependent","documented-contract"
 "103","/api/v1/discovery/research/:id","authenticated-or-policy-dependent","documented-contract"
