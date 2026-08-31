@@ -295,7 +295,7 @@
       "route": "asset-intelligence",
       "label": "Asset Intelligence",
       "section": "Intelligence",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     },
     {

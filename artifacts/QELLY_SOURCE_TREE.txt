@@ -247,6 +247,7 @@ apps/web/public/assets/routes/account-session-v6.css
 apps/web/public/assets/routes/account-session.mjs
 apps/web/public/assets/routes/advanced-chart.mjs
 apps/web/public/assets/routes/alert-center.mjs
+apps/web/public/assets/routes/asset-intelligence-v2.css
 apps/web/public/assets/routes/asset-intelligence.mjs
 apps/web/public/assets/routes/asset-rankings-chart.mjs
 apps/web/public/assets/routes/asset-rankings-data.mjs
@@ -665,6 +666,7 @@ functions/_lib/portfolio-cloud.js
 functions/_lib/profile-preferences.js
 functions/_lib/provider-directory.js
 functions/_lib/providers.js
+functions/_lib/public-asset-intelligence.js
 functions/_lib/public-categories.js
 functions/_lib/public-converter.js
 functions/_lib/public-dex.js

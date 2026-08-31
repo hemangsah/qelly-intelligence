@@ -794,6 +794,29 @@
         }
       }
     },
+    "/api/v1/discovery/asset-intelligence": {
+      "get": {
+        "summary": "Build a provider-rights-safe single-instrument diligence brief",
+        "parameters": [
+          {
+            "name": "asset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Governed asset briefing contract"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        }
+      }
+    },
     "/api/v1/discovery/news": {
       "get": {
         "summary": "Qelly route contract: /api/v1/discovery/news",
