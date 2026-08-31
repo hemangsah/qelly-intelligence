@@ -255,7 +255,7 @@
       "route": "dex-discovery",
       "label": "DEX Discovery",
       "section": "Discover",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     },
     {

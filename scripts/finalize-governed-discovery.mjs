@@ -15,7 +15,6 @@ const migrations=Object.freeze([
   ["case 'discovery-hub': await renderDiscoveryHub(main); break;",discoveryOverview],
   ["case 'category-detail': await renderCategoryDetail(main); break;",unavailable('category-detail')],
   ["case 'venue-detail': await renderVenueDetail(main); break;",unavailable('venue-detail')],
-  ["case 'dex-discovery': await renderDexDiscovery(main); break;",unavailable('dex-discovery')],
   ["case 'global-charts': await renderGlobalCharts(main); break;",unavailable('global-charts')],
   ["case 'news-research': await renderNewsResearch(main); break;",qellyChatWorkspace],
   ["case 'research-article': await renderResearchArticle(main); break;",unavailable('research-article')],

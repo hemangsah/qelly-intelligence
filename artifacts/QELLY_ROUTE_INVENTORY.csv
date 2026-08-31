@@ -30,7 +30,7 @@ index,route,label,section,public,implementation
 "29","search","Universal Search","Discover","true","runnable-route"
 "30","categories","Categories","Discover","true","runnable-route"
 "31","venues","Venues","Discover","true","runnable-route"
-"32","dex-discovery","DEX Discovery","Discover","false","runnable-route"
+"32","dex-discovery","DEX Discovery","Discover","true","runnable-route"
 "33","global-charts","Global Charts","Discover","false","runnable-route"
 "34","converter","Converter","Discover","false","runnable-route"
 "35","news-research","Qelly Chat & Research","Discover","true","runnable-route"

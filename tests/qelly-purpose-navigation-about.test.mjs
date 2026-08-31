@@ -31,8 +31,12 @@ test('purpose-led navigation searches metadata and filters by domain',async()=>{
   assert.match(css,/grid-template-areas:"brand nav search actions"/);
   assert.match(css,/q-feature-navigation__use/);
   assert.match(css,/@media\(min-width:1241px\)/);
-  assert.match(index,/qelly-navigation-v2\.css\?v=20260829-navigation1/);
+  assert.match(index,/qelly-navigation-v2\.css\?v=20260831-header2/);
   assert.match(worker,/qelly-navigation-v2\.css/);
+  assert.match(css,/height:64px!important;min-height:64px!important/);
+  assert.match(css,/grid-template-columns:156px max-content 220px minmax\(12px,1fr\) max-content!important/);
+  assert.match(css,/@media\(max-width:1520px\)[\s\S]*grid-template-areas:"brand menu \. search \. actions"/);
+  assert.match(css,/@media\(max-width:760px\)[\s\S]*grid-template-areas:"brand menu \. actions"/);
   assert.equal(productDomains.length,10);
 });
 

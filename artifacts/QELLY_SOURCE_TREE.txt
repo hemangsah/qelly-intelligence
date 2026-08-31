@@ -266,6 +266,8 @@ apps/web/public/assets/routes/comparison-lab.mjs
 apps/web/public/assets/routes/data-mesh-enhancement.mjs
 apps/web/public/assets/routes/decision-provenance.mjs
 apps/web/public/assets/routes/delivery-operations.mjs
+apps/web/public/assets/routes/dex-discovery-v2.css
+apps/web/public/assets/routes/dex-discovery.mjs
 apps/web/public/assets/routes/discovery-hub-enhancement.css
 apps/web/public/assets/routes/discovery-hub-enhancement.mjs
 apps/web/public/assets/routes/discovery-overview.css
@@ -660,6 +662,7 @@ functions/_lib/profile-preferences.js
 functions/_lib/provider-directory.js
 functions/_lib/providers.js
 functions/_lib/public-categories.js
+functions/_lib/public-dex.js
 functions/_lib/public-search.js
 functions/_lib/public-venues.js
 functions/_lib/readiness.js
@@ -1330,6 +1333,7 @@ tests/qelly-database-concurrency-isolation-repair.test.mjs
 tests/qelly-dead-public-market-demo-retired.test.mjs
 tests/qelly-decision-support-integrity.test.mjs
 tests/qelly-deep-audit-repairs.test.mjs
+tests/qelly-dex-discovery-v2.test.mjs
 tests/qelly-discovery-hub-correctness-density.test.mjs
 tests/qelly-discovery-overview-v1.test.mjs
 tests/qelly-evidence-service-worker-isolation.test.mjs

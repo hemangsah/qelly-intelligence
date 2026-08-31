@@ -730,11 +730,8 @@
           "200": {
             "description": "Successful response"
           },
-          "401": {
-            "description": "Authentication required"
-          },
-          "403": {
-            "description": "Forbidden"
+          "429": {
+            "description": "Rate limit exceeded"
           }
         }
       }

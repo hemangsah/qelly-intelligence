@@ -9,6 +9,7 @@ import {buildAssetRankings,buildDiscoveryOverview,buildExternalMarketNetwork,bui
 import {buildUniversalSearch} from '../../_lib/public-search.js';
 import {buildPublicCategories} from '../../_lib/public-categories.js';
 import {buildPublicVenues} from '../../_lib/public-venues.js';
+import {buildPublicDexDiscovery} from '../../_lib/public-dex.js';
 import {providerDirectory} from '../../_lib/provider-directory.js';
 
 const publicTruthState=(state)=>({
@@ -200,6 +201,11 @@ export async function route(context){
     const external=await buildExternalMarketNetwork(context);
     const result=buildPublicVenues({directory:providerDirectory(),providerPolicies:providerCatalog(),sources:external.sources});
     return responseJson(request,env,{...result,releaseSha:publicRuntimeConfigForRequest(env,request.url).releaseSha},200,{cache:'public, max-age=0, s-maxage=10, stale-while-revalidate=30'});
+  }
+  if(path==='discovery/dex'&&readMethod(method)){
+    await enforceRateLimit(env,`public-dex:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:60});
+    const result=buildPublicDexDiscovery(providerDirectory());
+    return responseJson(request,env,{...result,releaseSha:publicRuntimeConfigForRequest(env,request.url).releaseSha},200,{cache:'public, max-age=0, s-maxage=30, stale-while-revalidate=60'});
   }
 
   const session=await resolveSession(request,env,{required:true});
