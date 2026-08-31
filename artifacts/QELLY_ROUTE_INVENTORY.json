@@ -263,7 +263,7 @@
       "route": "global-charts",
       "label": "Global Charts",
       "section": "Discover",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     },
     {

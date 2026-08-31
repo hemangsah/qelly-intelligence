@@ -7,6 +7,7 @@ import {__profileRouteTest} from '../functions/api/v1/profile.js';
 import {capabilityInventory} from '../functions/_lib/capability-registry.js';
 import {providerDirectory,providerDirectorySummary} from '../functions/_lib/provider-directory.js';
 import {buildPublicDexDiscovery} from '../functions/_lib/public-dex.js';
+import {buildPublicGlobalCharts} from '../functions/_lib/public-global-charts.js';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const productionFrontend=path.join(root,'dist/frontend');
@@ -153,6 +154,7 @@ export async function startServer(options={}){
     if(request.method==='GET'&&url.pathname==='/api/v1/public/markets/overview')return sendJson(response,200,evidencePublicMarketOverview());
     if(request.method==='GET'&&url.pathname==='/api/v1/market/network')return sendJson(response,200,evidenceMarketNetwork());
     if(request.method==='GET'&&url.pathname==='/api/v1/discovery/dex')return sendJson(response,200,{...buildPublicDexDiscovery(providerDirectory()),releaseSha:'evidence-fixture'});
+    if(request.method==='GET'&&url.pathname==='/api/v1/discovery/global-charts')return sendJson(response,200,{...buildPublicGlobalCharts(providerDirectory()),releaseSha:'evidence-fixture'});
     if(request.method==='GET'&&url.pathname==='/api/v1/auth/status')return sendJson(response,200,{authenticated:hasEvidenceSession(request),mode:'evidence-fixture'});
     if(request.method==='GET'&&url.pathname==='/api/v1/profile'){
       if(!hasEvidenceSession(request))return sessionRequired(response,'The evidence profile contract requires an authenticated fixture session.');

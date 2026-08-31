@@ -67,6 +67,7 @@ const renderUniversalSearch=lazyRoute('./routes/universal-search.mjs','renderUni
 const renderCategoriesWorkspace=lazyRoute('./routes/categories.mjs','renderCategories');
 const renderVenuesWorkspace=lazyRoute('./routes/venues.mjs','renderVenues');
 const renderDexWorkspace=lazyRoute('./routes/dex-discovery.mjs','renderDexDiscovery');
+const renderGlobalChartsWorkspace=lazyRoute('./routes/global-charts.mjs','renderGlobalChartsWorkspace');
 
 const runtimeConfig=Object.freeze({...window.__QELLY_CONFIG__});
 const staticVisualPreview=runtimeConfig.staticVisualPreview===true;
@@ -430,7 +431,7 @@ async function performRouteRender(request,controller) {
       case 'venues': await renderVenuesWorkspace(main,{api,escapeHtml,toast}); break;
       case 'venue-detail': await renderVenueDetail(main); break;
       case 'dex-discovery': await renderDexWorkspace(main,{api,escapeHtml,toast}); break;
-      case 'global-charts': await renderGlobalCharts(main); break;
+      case 'global-charts': await renderGlobalChartsWorkspace(main,{api,escapeHtml,toast}); break;
       case 'converter': await renderConverter(main); break;
       case 'news-research': await renderQellyChatWorkspace(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate}); break;
       case 'research-article': await renderResearchArticle(main); break;

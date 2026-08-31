@@ -47,7 +47,7 @@ function buildProductHeader(){
     <div class="q-product-actions"><button class="q-product-system" type="button" data-product-route="status" aria-label="Open system status"><span class="q-product-system__dot" data-state="${navigator.onLine?'live':'offline'}"></span><span>${navigator.onLine?'Online':'Offline'}</span></button><a class="q-product-account" href="#/${sessionState.authenticated?'account-session':'auth-login'}"><span aria-hidden="true">${sessionState.authenticated?'QI':'↗'}</span><span>${sessionState.authenticated?'Account':'Sign in'}</span></a></div>`;
   legacy.querySelector('.q-product-menu')?.addEventListener('click',(event)=>{const open=legacy.classList.toggle('is-menu-open');event.currentTarget.setAttribute('aria-expanded',String(open));if(open)legacy.querySelector('#q-product-navigation a')?.focus();});
   legacy.querySelectorAll('[data-product-route]').forEach((element)=>element.addEventListener('click',(event)=>{event.preventDefault();legacy.classList.remove('is-menu-open');legacy.querySelector('.q-product-menu')?.setAttribute('aria-expanded','false');navigate(element.dataset.productRoute);}));
-  legacy.querySelector('.q-product-search')?.addEventListener('submit',(event)=>{event.preventDefault();const query=new FormData(event.currentTarget).get('q')?.toString().trim();navigate('asset-rankings',query?`query=${encodeURIComponent(query)}`:'');});
+  legacy.querySelector('.q-product-search')?.addEventListener('submit',(event)=>{event.preventDefault();const query=new FormData(event.currentTarget).get('q')?.toString().trim();navigate('search',query?`q=${encodeURIComponent(query)}`:'');});
   updateHeaderRoute();
 }
 

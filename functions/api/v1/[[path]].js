@@ -10,6 +10,7 @@ import {buildUniversalSearch} from '../../_lib/public-search.js';
 import {buildPublicCategories} from '../../_lib/public-categories.js';
 import {buildPublicVenues} from '../../_lib/public-venues.js';
 import {buildPublicDexDiscovery} from '../../_lib/public-dex.js';
+import {buildPublicGlobalCharts} from '../../_lib/public-global-charts.js';
 import {providerDirectory} from '../../_lib/provider-directory.js';
 
 const publicTruthState=(state)=>({
@@ -205,6 +206,11 @@ export async function route(context){
   if(path==='discovery/dex'&&readMethod(method)){
     await enforceRateLimit(env,`public-dex:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:60});
     const result=buildPublicDexDiscovery(providerDirectory());
+    return responseJson(request,env,{...result,releaseSha:publicRuntimeConfigForRequest(env,request.url).releaseSha},200,{cache:'public, max-age=0, s-maxage=30, stale-while-revalidate=60'});
+  }
+  if(path==='discovery/global-charts'&&readMethod(method)){
+    await enforceRateLimit(env,`public-global-charts:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:60});
+    const result=buildPublicGlobalCharts(providerDirectory());
     return responseJson(request,env,{...result,releaseSha:publicRuntimeConfigForRequest(env,request.url).releaseSha},200,{cache:'public, max-age=0, s-maxage=30, stale-while-revalidate=60'});
   }
 

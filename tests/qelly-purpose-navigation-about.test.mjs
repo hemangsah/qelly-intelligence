@@ -16,8 +16,9 @@ test('every visible navigation feature has a distinct purpose and concrete use c
 });
 
 test('purpose-led navigation searches metadata and filters by domain',async()=>{
-  const [runtime,css,index,worker]=await Promise.all([
+  const [runtime,headerRuntime,css,index,worker]=await Promise.all([
     read('../apps/web/public/assets/qelly-production-shell.mjs'),
+    read('../apps/web/public/assets/qelly-public-runtime.mjs'),
     read('../apps/web/public/assets/qelly-navigation-v2.css'),
     read('../apps/web/public/index.html'),
     read('../apps/web/public/qelly-service-worker.js')
@@ -28,14 +29,15 @@ test('purpose-led navigation searches metadata and filters by domain',async()=>{
   assert.match(runtime,/route\.purpose/);
   assert.match(runtime,/route\.useCase/);
   assert.match(runtime,/activeDomain==='all'/);
+  assert.match(headerRuntime,/navigate\('search',query\?`q=\$\{encodeURIComponent\(query\)\}`:''\)/);
   assert.match(css,/grid-template-areas:"brand nav search actions"/);
   assert.match(css,/q-feature-navigation__use/);
   assert.match(css,/@media\(min-width:1241px\)/);
-  assert.match(index,/qelly-navigation-v2\.css\?v=20260831-header2/);
+  assert.match(index,/qelly-navigation-v2\.css\?v=20260831-header3/);
   assert.match(worker,/qelly-navigation-v2\.css/);
   assert.match(css,/height:64px!important;min-height:64px!important/);
-  assert.match(css,/grid-template-columns:156px max-content 220px minmax\(12px,1fr\) max-content!important/);
-  assert.match(css,/@media\(max-width:1520px\)[\s\S]*grid-template-areas:"brand menu \. search \. actions"/);
+  assert.match(css,/grid-template-columns:148px 42px max-content minmax\(8px,1fr\) 190px max-content!important/);
+  assert.match(css,/@media\(max-width:1239px\)[\s\S]*grid-template-areas:"brand menu search \. actions"/);
   assert.match(css,/@media\(max-width:760px\)[\s\S]*grid-template-areas:"brand menu \. actions"/);
   assert.equal(productDomains.length,10);
 });

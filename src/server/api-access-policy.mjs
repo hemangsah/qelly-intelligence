@@ -19,6 +19,7 @@ const PUBLIC_V1_API_PATHS=Object.freeze([
   '/api/v1/discovery/categories',
   '/api/v1/discovery/venues',
   '/api/v1/discovery/dex',
+  '/api/v1/discovery/global-charts',
   '/api/v1/public/markets/overview',
   '/api/v1/public/markets/assets',
   '/api/v1/public/providers',

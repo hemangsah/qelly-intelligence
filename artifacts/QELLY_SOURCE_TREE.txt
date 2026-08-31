@@ -280,6 +280,8 @@ apps/web/public/assets/routes/formula-library.mjs
 apps/web/public/assets/routes/formula-screener.mjs
 apps/web/public/assets/routes/fundamentals-estimates-enhancement.mjs
 apps/web/public/assets/routes/fundamentals-estimates.mjs
+apps/web/public/assets/routes/global-charts-v2.css
+apps/web/public/assets/routes/global-charts.mjs
 apps/web/public/assets/routes/governed-discovery.mjs
 apps/web/public/assets/routes/governed-utility-v2.mjs
 apps/web/public/assets/routes/import-center.mjs
@@ -663,6 +665,7 @@ functions/_lib/provider-directory.js
 functions/_lib/providers.js
 functions/_lib/public-categories.js
 functions/_lib/public-dex.js
+functions/_lib/public-global-charts.js
 functions/_lib/public-search.js
 functions/_lib/public-venues.js
 functions/_lib/readiness.js
@@ -1341,6 +1344,7 @@ tests/qelly-external-intelligence-dock.test.mjs
 tests/qelly-external-research-boundary.test.mjs
 tests/qelly-finance-intelligence.test.mjs
 tests/qelly-github-pages-public-mirror.test.mjs
+tests/qelly-global-charts-v2.test.mjs
 tests/qelly-global-market-network-v2.test.mjs
 tests/qelly-global-registration-profile.test.mjs
 tests/qelly-governance-single-ownership.test.mjs
