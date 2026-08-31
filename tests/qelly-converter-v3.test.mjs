@@ -59,3 +59,8 @@ test('Converter UI is purpose-distinct, cost-transparent and responsive',async()
   assert.match(css,/@container\(max-width:620px\)/);
   assert.doesNotMatch(css,/visibility\s*:\s*hidden/);
 });
+
+test('release workflows validate the Converter V3 artifact instead of the retired renderer',async()=>{
+  const workflows=await Promise.all([read('.github/workflows/browser-e2e.yml'),read('.github/workflows/github-pages-mirror.yml')]);
+  for(const workflow of workflows){assert.match(workflow,/renderConverterWorkspace/);assert.match(workflow,/assets\/routes\/converter\.mjs/);assert.match(workflow,/assets\/routes\/converter-v3\.css/);assert.doesNotMatch(workflow,/renderGovernedConverterV2/);}
+});

@@ -90,7 +90,9 @@ jobs:
           test -s dist/frontend/qelly-config.js
           grep -F '"emailDelivery":true' dist/frontend/qelly-config.js
           grep -F "renderGovernedUnavailable" dist/frontend/assets/app.js
-          grep -F "renderGovernedConverterV2" dist/frontend/assets/app.js
+          grep -F "renderConverterWorkspace" dist/frontend/assets/app.js
+          test -s dist/frontend/assets/routes/converter.mjs
+          test -s dist/frontend/assets/routes/converter-v3.css
           grep -F "renderGovernedTrustCenterV2" dist/frontend/assets/app.js
       - name: Capture every registered route at desktop and mobile widths
         run: npm run browser:all

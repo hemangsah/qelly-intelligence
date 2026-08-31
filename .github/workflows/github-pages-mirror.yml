@@ -87,7 +87,9 @@ jobs:
           grep -F 'qelly-github-pages-mirror.mjs' dist/frontend/index.html
           grep -F 'noindex,follow,noarchive' dist/frontend/index.html
           grep -F 'renderGovernedUnavailable' dist/frontend/assets/app.js
-          grep -F 'renderGovernedConverterV2' dist/frontend/assets/app.js
+          grep -F 'renderConverterWorkspace' dist/frontend/assets/app.js
+          test -s dist/frontend/assets/routes/converter.mjs
+          test -s dist/frontend/assets/routes/converter-v3.css
           grep -F 'renderGovernedTrustCenterV2' dist/frontend/assets/app.js
           ! grep -F 'STATIC VISUAL PREVIEW' dist/frontend/index.html
           ! grep -F 'Deterministic demo data · backend unavailable' dist/frontend/index.html
