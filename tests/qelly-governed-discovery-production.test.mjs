@@ -22,7 +22,7 @@ const legacyCases=[
   "case 'trust-center': await renderTrustCenter(main); break;"
 ];
 
-const unavailableRoutes=['category-detail','venues','venue-detail','dex-discovery','global-charts','research-article','asset','rankings'];
+const unavailableRoutes=['category-detail','venue-detail','dex-discovery','global-charts','research-article','asset','rankings'];
 
 test('production finalizer replaces every finance-shaped fixture route owner',async()=>{
   const source=await read('apps/web/public/assets/app.js');
@@ -34,7 +34,9 @@ test('production finalizer replaces every finance-shaped fixture route owner',as
   assert.match(output,/renderDiscoveryOverview/);
   assert.match(output,/renderUniversalSearch/);
   assert.match(output,/renderCategoriesWorkspace/);
+  assert.match(output,/renderVenuesWorkspace/);
   assert.match(output,/\.\/routes\/categories\.mjs/);
+  assert.match(output,/\.\/routes\/venues\.mjs/);
   assert.match(output,/\.\/routes\/universal-search\.mjs/);
   assert.match(output,/\.\/routes\/discovery-overview\.mjs/);
   assert.match(output,/renderQellyChatWorkspace/);

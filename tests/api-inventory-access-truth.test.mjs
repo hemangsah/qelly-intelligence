@@ -20,6 +20,7 @@ const expectedPublic=[
   '/api/v1/production-foundation/status',
   '/api/v1/search',
   '/api/v1/discovery/categories',
+  '/api/v1/discovery/venues',
   '/api/v1/public/providers',
   '/api/v1/public/markets/assets/:id/candles',
   '/api/v1/calculations/metadata',

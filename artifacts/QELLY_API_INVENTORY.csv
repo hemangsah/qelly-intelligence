@@ -92,7 +92,7 @@ index,route,access,implementation
 "91","/api/v1/discovery/rankings","authenticated-or-policy-dependent","documented-contract"
 "92","/api/v1/discovery/categories","public","documented-contract"
 "93","/api/v1/discovery/categories/:id","authenticated-or-policy-dependent","documented-contract"
-"94","/api/v1/discovery/venues","authenticated-or-policy-dependent","documented-contract"
+"94","/api/v1/discovery/venues","public","documented-contract"
 "95","/api/v1/discovery/venues/:id","authenticated-or-policy-dependent","documented-contract"
 "96","/api/v1/discovery/dex","authenticated-or-policy-dependent","documented-contract"
 "97","/api/v1/discovery/dex/:id","authenticated-or-policy-dependent","documented-contract"

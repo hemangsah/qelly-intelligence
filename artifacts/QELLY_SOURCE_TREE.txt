@@ -323,6 +323,8 @@ apps/web/public/assets/routes/theme-personas.mjs
 apps/web/public/assets/routes/time-series-v6.mjs
 apps/web/public/assets/routes/universal-search-v2.css
 apps/web/public/assets/routes/universal-search.mjs
+apps/web/public/assets/routes/venues-v2.css
+apps/web/public/assets/routes/venues.mjs
 apps/web/public/assets/routes/workspace-watchlist.mjs
 apps/web/public/assets/shell-foundations.mjs
 apps/web/public/assets/static-preview-api.mjs
@@ -659,6 +661,7 @@ functions/_lib/provider-directory.js
 functions/_lib/providers.js
 functions/_lib/public-categories.js
 functions/_lib/public-search.js
+functions/_lib/public-venues.js
 functions/_lib/readiness.js
 functions/_lib/runtime.js
 functions/_lib/timezone.js
@@ -1413,6 +1416,7 @@ tests/qelly-v7-identity-workbench.test.mjs
 tests/qelly-v7-market-convergence.test.mjs
 tests/qelly-v9-market-network-truth.test.mjs
 tests/qelly-v9-production-vocabulary.test.mjs
+tests/qelly-venues-v2.test.mjs
 tests/qelly-verify-evidence-report.test.mjs
 tests/qelly-verify-prototype.test.mjs
 tests/qelly-windows-evidence-reliability.test.mjs

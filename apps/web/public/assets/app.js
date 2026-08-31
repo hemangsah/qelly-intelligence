@@ -65,6 +65,7 @@ const renderSavedCalculationDetail=lazyRoute('./routes/saved-calculation-detail.
 const renderAssetRankingsRescue=lazyRoute('./routes/asset-rankings.mjs','renderAssetRankings');
 const renderUniversalSearch=lazyRoute('./routes/universal-search.mjs','renderUniversalSearch');
 const renderCategoriesWorkspace=lazyRoute('./routes/categories.mjs','renderCategories');
+const renderVenuesWorkspace=lazyRoute('./routes/venues.mjs','renderVenues');
 
 const runtimeConfig=Object.freeze({...window.__QELLY_CONFIG__});
 const staticVisualPreview=runtimeConfig.staticVisualPreview===true;
@@ -425,7 +426,7 @@ async function performRouteRender(request,controller) {
       case 'asset-rankings': await renderRankings(main); break;
       case 'categories': await renderCategoriesWorkspace(main,{api,escapeHtml,toast}); break;
       case 'category-detail': await renderCategoryDetail(main); break;
-      case 'venues': await renderVenues(main); break;
+      case 'venues': await renderVenuesWorkspace(main,{api,escapeHtml,toast}); break;
       case 'venue-detail': await renderVenueDetail(main); break;
       case 'dex-discovery': await renderDexDiscovery(main); break;
       case 'global-charts': await renderGlobalCharts(main); break;

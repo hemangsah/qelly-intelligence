@@ -247,7 +247,7 @@
       "route": "venues",
       "label": "Venues",
       "section": "Discover",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     },
     {

@@ -14,7 +14,6 @@ const qellyChatWorkspace="case 'news-research': await renderQellyChatWorkspace(m
 const migrations=Object.freeze([
   ["case 'discovery-hub': await renderDiscoveryHub(main); break;",discoveryOverview],
   ["case 'category-detail': await renderCategoryDetail(main); break;",unavailable('category-detail')],
-  ["case 'venues': await renderVenues(main); break;",unavailable('venues')],
   ["case 'venue-detail': await renderVenueDetail(main); break;",unavailable('venue-detail')],
   ["case 'dex-discovery': await renderDexDiscovery(main); break;",unavailable('dex-discovery')],
   ["case 'global-charts': await renderGlobalCharts(main); break;",unavailable('global-charts')],

@@ -8,6 +8,8 @@ import {capabilityInventory,matchUnavailableCapability} from '../../_lib/capabil
 import {buildAssetRankings,buildDiscoveryOverview,buildExternalMarketNetwork,buildNetworkDiagnostics} from '../../_lib/market-network.js';
 import {buildUniversalSearch} from '../../_lib/public-search.js';
 import {buildPublicCategories} from '../../_lib/public-categories.js';
+import {buildPublicVenues} from '../../_lib/public-venues.js';
+import {providerDirectory} from '../../_lib/provider-directory.js';
 
 const publicTruthState=(state)=>({
   live_provider:'live',
@@ -191,6 +193,12 @@ export async function route(context){
     await enforceRateLimit(env,`public-categories:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:60});
     const external=await buildExternalMarketNetwork(context);
     const result=buildPublicCategories(buildAssetRankings(external.sources));
+    return responseJson(request,env,{...result,releaseSha:publicRuntimeConfigForRequest(env,request.url).releaseSha},200,{cache:'public, max-age=0, s-maxage=10, stale-while-revalidate=30'});
+  }
+  if(path==='discovery/venues'&&readMethod(method)){
+    await enforceRateLimit(env,`public-venues:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:60});
+    const external=await buildExternalMarketNetwork(context);
+    const result=buildPublicVenues({directory:providerDirectory(),providerPolicies:providerCatalog(),sources:external.sources});
     return responseJson(request,env,{...result,releaseSha:publicRuntimeConfigForRequest(env,request.url).releaseSha},200,{cache:'public, max-age=0, s-maxage=10, stale-while-revalidate=30'});
   }
 
