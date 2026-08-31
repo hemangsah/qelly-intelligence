@@ -48,7 +48,7 @@ test('public Asset Intelligence API, route, access policy and release artifacts 
   assert.match(registry,/route:'asset-intelligence'.*public:true/);
   assert.match(worker,/asset-intelligence-v2\.css/);
   assert.match(evidence,/url\.pathname==='\/api\/v1\/discovery\/asset-intelligence'/);
-  assert.match(capabilities,/\['discovery\/asset-intelligence'\]/);
+  assert.match(capabilities,/'discovery\/asset-intelligence'/);
   assert.match(workflow,/asset-intelligence-v2\.css/);
   assert.deepEqual(Object.keys(JSON.parse(openapi).paths['/api/v1/discovery/asset-intelligence'].get.responses).sort(),['200','429']);
 });

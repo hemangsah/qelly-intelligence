@@ -29,15 +29,14 @@ test('analytical-family CSS is route-scoped, dense and mobile-collapsible',async
   assert.doesNotMatch(source,/display\s*:\s*none/);
 });
 
-test('Advanced Chart real renderer exposes V5.3 evidence without inventing confidence or live data',async()=>{
+test('Advanced Chart renderer exposes governed study evidence without inventing prices or signals',async()=>{
   const source=await advanced();
-  assert.match(source,/q-v53-real-workspace/);
-  assert.match(source,/q-v53-real-inspector/);
-  assert.match(source,/TRUTH STATE/);
-  assert.match(source,/Packaged OHLCV fixture/);
-  assert.match(source,/CONFIDENCE','Not supplied/);
-  assert.match(source,/OBSERVED AT','Not supplied by fixture contract/);
-  assert.match(source,/Read-only analytical surface/);
+  assert.match(source,/governed-study-workspace-v2/);
+  assert.match(source,/Study price structure without inventing the tape/);
+  assert.match(source,/Six gates before one calculation/);
+  assert.match(source,/Study reconstruction receipt/);
+  assert.match(source,/No fake candles/);
+  assert.doesNotMatch(source,/Packaged OHLCV fixture|deterministic candlestick/);
   assert.doesNotMatch(source,/data-action="(?:execute|trade|order|wallet|withdraw)/i);
 });
 

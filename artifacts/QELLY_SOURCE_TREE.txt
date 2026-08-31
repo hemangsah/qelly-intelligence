@@ -245,6 +245,7 @@ apps/web/public/assets/routes/about-qelly.mjs
 apps/web/public/assets/routes/account-recovery.mjs
 apps/web/public/assets/routes/account-session-v6.css
 apps/web/public/assets/routes/account-session.mjs
+apps/web/public/assets/routes/advanced-chart-v2.css
 apps/web/public/assets/routes/advanced-chart.mjs
 apps/web/public/assets/routes/alert-center.mjs
 apps/web/public/assets/routes/asset-intelligence-v2.css
@@ -666,6 +667,7 @@ functions/_lib/portfolio-cloud.js
 functions/_lib/profile-preferences.js
 functions/_lib/provider-directory.js
 functions/_lib/providers.js
+functions/_lib/public-advanced-chart.js
 functions/_lib/public-asset-intelligence.js
 functions/_lib/public-categories.js
 functions/_lib/public-converter.js
@@ -1403,6 +1405,7 @@ tests/qelly-v53-research-evidence-workspace.test.mjs
 tests/qelly-v53-synthetic-runtime-retired.test.mjs
 tests/qelly-v53-verify-subview-evidence.test.mjs
 tests/qelly-v53-visible-refinement.test.mjs
+tests/qelly-v54-advanced-chart-studio.test.mjs
 tests/qelly-v54-asset-intelligence-mobile-density.test.mjs
 tests/qelly-v54-calculator-progressive-density.test.mjs
 tests/qelly-v54-data-mesh-mobile-density.test.mjs

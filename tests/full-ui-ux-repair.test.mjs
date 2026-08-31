@@ -92,7 +92,7 @@ test('theme launcher and analytical graphics expose accessible mobile semantics'
   ]);
   assert.match(theme, /q-ti-launcher\{min-height:44px!important/);
   assert.match(theme, /width:44px!important;min-width:44px!important/);
-  assert.match(advanced, /<svg aria-hidden="true" focusable="false"/);
+  assert.match(advanced, /aria-label="Historical chart unavailable"/);
   assert.match(comparison, /<svg aria-hidden="true" focusable="false"/);
 });
 

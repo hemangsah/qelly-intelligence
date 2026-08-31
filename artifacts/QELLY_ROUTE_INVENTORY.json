@@ -303,7 +303,7 @@
       "route": "advanced-chart",
       "label": "Advanced Chart Studio",
       "section": "Intelligence",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     },
     {

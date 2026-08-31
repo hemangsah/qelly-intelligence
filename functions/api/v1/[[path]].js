@@ -13,6 +13,7 @@ import {buildPublicDexDiscovery} from '../../_lib/public-dex.js';
 import {buildPublicGlobalCharts} from '../../_lib/public-global-charts.js';
 import {buildPublicConverter} from '../../_lib/public-converter.js';
 import {buildPublicAssetIntelligence} from '../../_lib/public-asset-intelligence.js';
+import {buildPublicAdvancedChart} from '../../_lib/public-advanced-chart.js';
 import {providerDirectory} from '../../_lib/provider-directory.js';
 
 const publicTruthState=(state)=>({
@@ -226,6 +227,12 @@ export async function route(context){
     await enforceRateLimit(env,`public-asset-intelligence:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:60});
     const external=await buildExternalMarketNetwork(context);
     const result=buildPublicAssetIntelligence(external.sources,url.searchParams.get('asset')||'QI-CRYPTO-BTC');
+    return responseJson(request,env,{...result,releaseSha:publicRuntimeConfigForRequest(env,request.url).releaseSha},200,{cache:'public, max-age=0, s-maxage=10, stale-while-revalidate=30'});
+  }
+  if(path==='discovery/advanced-chart'&&readMethod(method)){
+    await enforceRateLimit(env,`public-advanced-chart:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:60});
+    const external=await buildExternalMarketNetwork(context);
+    const result=buildPublicAdvancedChart(external.sources,url.searchParams.get('asset')||'QI-CRYPTO-BTC',Object.fromEntries(url.searchParams));
     return responseJson(request,env,{...result,releaseSha:publicRuntimeConfigForRequest(env,request.url).releaseSha},200,{cache:'public, max-age=0, s-maxage=10, stale-while-revalidate=30'});
   }
 

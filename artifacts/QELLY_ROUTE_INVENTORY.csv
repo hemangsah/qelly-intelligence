@@ -36,7 +36,7 @@ index,route,label,section,public,implementation
 "35","news-research","Qelly Chat & Research","Discover","true","runnable-route"
 "36","trust-center","Trust Center","Discover","false","runnable-route"
 "37","asset-intelligence","Asset Intelligence","Intelligence","true","runnable-route"
-"38","advanced-chart","Advanced Chart Studio","Intelligence","false","runnable-route"
+"38","advanced-chart","Advanced Chart Studio","Intelligence","true","runnable-route"
 "39","fundamentals-estimates","Fundamentals & Estimates","Intelligence","false","runnable-route"
 "40","filing-workspace","Filing Workspace","Intelligence","false","runnable-route"
 "41","event-calendar","Event Calendar","Intelligence","false","runnable-route"

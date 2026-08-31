@@ -22,6 +22,7 @@ const PUBLIC_V1_API_PATHS=Object.freeze([
   '/api/v1/discovery/global-charts',
   '/api/v1/discovery/converter',
   '/api/v1/discovery/asset-intelligence',
+  '/api/v1/discovery/advanced-chart',
   '/api/v1/public/markets/overview',
   '/api/v1/public/markets/assets',
   '/api/v1/public/providers',

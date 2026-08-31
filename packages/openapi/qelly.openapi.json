@@ -817,6 +817,23 @@
         }
       }
     },
+    "/api/v1/discovery/advanced-chart": {
+      "get": {
+        "summary": "Configure a governed technical-study plan and inspect historical-series readiness",
+        "parameters": [
+          {"name":"asset","in":"query","required":false,"schema":{"type":"string"}},
+          {"name":"study","in":"query","required":false,"schema":{"type":"string","enum":["sma","ema","rsi","macd","bollinger","atr","volume"]}},
+          {"name":"interval","in":"query","required":false,"schema":{"type":"string","enum":["1h","4h","1d"]}},
+          {"name":"range","in":"query","required":false,"schema":{"type":"string","enum":["7d","30d","90d","1y"]}},
+          {"name":"length","in":"query","required":false,"schema":{"type":"integer","minimum":2,"maximum":250}},
+          {"name":"confirmation","in":"query","required":false,"schema":{"type":"integer","minimum":1,"maximum":10}}
+        ],
+        "responses": {
+          "200": {"description":"Governed technical-study and series-readiness contract"},
+          "429": {"description":"Rate limited"}
+        }
+      }
+    },
     "/api/v1/discovery/news": {
       "get": {
         "summary": "Qelly route contract: /api/v1/discovery/news",
