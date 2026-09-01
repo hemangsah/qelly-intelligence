@@ -285,7 +285,7 @@ expect(duplicateDeleted.deleted&&originalDeleted.deleted,'saved calculation dele
   const trust=(await request('/api/v1/discovery/status')).json();
   expect(!trust.safety.liveTrading && !trust.safety.externalProviders && !trust.productionDeployment,'trust boundary invalid');
 
-  const expectedRequests=290;
+  const expectedRequests=291;
   expect(log.length===expectedRequests,`request denominator mismatch: ${log.length} !== ${expectedRequests}`);
   const result={
     status:'smoke-passed',productVersion:'0.9.0-preview.1',legacyRelease:'27.0.0',requests:log.length,requestDenominator:expectedRequests,

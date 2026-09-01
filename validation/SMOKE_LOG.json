@@ -2,8 +2,8 @@
   "status": "smoke-passed",
   "productVersion": "0.9.0-preview.1",
   "legacyRelease": "27.0.0",
-  "requests": 290,
-  "requestDenominator": 290,
+  "requests": 291,
+  "requestDenominator": 291,
   "checks": {
     "publicMarketEvidence": true,
     "decisionProvenanceGraph": true,
@@ -923,6 +923,12 @@
     },
     {
       "method": "GET",
+      "pathname": "/assets/routes/comparison-lab-v2.css",
+      "status": 200,
+      "contentType": "text/css; charset=utf-8"
+    },
+    {
+      "method": "GET",
       "pathname": "/assets/qelly-sovereign-v3.css",
       "status": 200,
       "contentType": "text/css; charset=utf-8"
@@ -1253,43 +1259,43 @@
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/calculations/saved/bc30132f-9c39-4e5d-9512-4f2c02209179",
+      "pathname": "/api/v1/calculations/saved/0c20530b-eb49-4793-b8df-8774bc675ca1",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "PATCH",
-      "pathname": "/api/v1/calculations/saved/bc30132f-9c39-4e5d-9512-4f2c02209179",
+      "pathname": "/api/v1/calculations/saved/0c20530b-eb49-4793-b8df-8774bc675ca1",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/calculations/saved/bc30132f-9c39-4e5d-9512-4f2c02209179/duplicate",
+      "pathname": "/api/v1/calculations/saved/0c20530b-eb49-4793-b8df-8774bc675ca1/duplicate",
       "status": 201,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/calculations/saved/bc30132f-9c39-4e5d-9512-4f2c02209179/revisions",
+      "pathname": "/api/v1/calculations/saved/0c20530b-eb49-4793-b8df-8774bc675ca1/revisions",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/calculations/saved/bc30132f-9c39-4e5d-9512-4f2c02209179/restore",
+      "pathname": "/api/v1/calculations/saved/0c20530b-eb49-4793-b8df-8774bc675ca1/restore",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "DELETE",
-      "pathname": "/api/v1/calculations/saved/f3f10807-da9a-4f24-b633-3b79a3aa12f3",
+      "pathname": "/api/v1/calculations/saved/5bd718f3-4b0c-4ea8-9aa3-387a27018d12",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "DELETE",
-      "pathname": "/api/v1/calculations/saved/bc30132f-9c39-4e5d-9512-4f2c02209179",
+      "pathname": "/api/v1/calculations/saved/0c20530b-eb49-4793-b8df-8774bc675ca1",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
@@ -1313,19 +1319,19 @@
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/evidence/graphs/graph-97cfd910-2794-40f1-a384-2c9ebd352863",
+      "pathname": "/api/v1/evidence/graphs/graph-deb7a5bb-2d94-45ef-ab5b-6ca6fb100184",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/evidence/graphs/graph-97cfd910-2794-40f1-a384-2c9ebd352863/traverse?depth=3",
+      "pathname": "/api/v1/evidence/graphs/graph-deb7a5bb-2d94-45ef-ab5b-6ca6fb100184/traverse?depth=3",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/evidence/graphs/graph-97cfd910-2794-40f1-a384-2c9ebd352863/export",
+      "pathname": "/api/v1/evidence/graphs/graph-deb7a5bb-2d94-45ef-ab5b-6ca6fb100184/export",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
@@ -1547,7 +1553,7 @@
     },
     {
       "method": "DELETE",
-      "pathname": "/api/v1/asset-intelligence/layouts/chart-3990f348-233e-4ba4-96fa-833858136102",
+      "pathname": "/api/v1/asset-intelligence/layouts/chart-1396e483-1737-49ad-97e9-6bd21cd97a03",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
@@ -1571,13 +1577,13 @@
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/workspace/watchlists/watchlist-3b7e7aa4-428a-43c9-8c35-82a44bf2c882/items",
+      "pathname": "/api/v1/workspace/watchlists/watchlist-10ebc33a-a1c5-4eb1-b549-5739d3a2606e/items",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/workspace/watchlists/watchlist-3b7e7aa4-428a-43c9-8c35-82a44bf2c882",
+      "pathname": "/api/v1/workspace/watchlists/watchlist-10ebc33a-a1c5-4eb1-b549-5739d3a2606e",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
@@ -1601,7 +1607,7 @@
     },
     {
       "method": "PUT",
-      "pathname": "/api/v1/notifications/notification-744dba97-e6ac-42f1-8aef-6fae39d870b4/read",
+      "pathname": "/api/v1/notifications/notification-20ec9503-56d8-4e7e-a827-4b04598c1e32/read",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
@@ -1637,13 +1643,13 @@
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/research/workspaces/research-20dc8229-3400-468d-99e5-d9a84bac8cb4/items",
+      "pathname": "/api/v1/research/workspaces/research-ab0e7a79-4126-463f-832b-fe464abd6317/items",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/research/workspaces/research-20dc8229-3400-468d-99e5-d9a84bac8cb4",
+      "pathname": "/api/v1/research/workspaces/research-ab0e7a79-4126-463f-832b-fe464abd6317",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
@@ -1745,43 +1751,43 @@
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/imports/import-b886681f-f04d-4505-afa7-9c6171d37b7f",
+      "pathname": "/api/v1/imports/import-9fef9356-7a7d-4cdf-b2da-570bbcfd06cf",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/research/workspaces/research-20dc8229-3400-468d-99e5-d9a84bac8cb4/versions",
+      "pathname": "/api/v1/research/workspaces/research-ab0e7a79-4126-463f-832b-fe464abd6317/versions",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/research/workspaces/research-20dc8229-3400-468d-99e5-d9a84bac8cb4/items",
+      "pathname": "/api/v1/research/workspaces/research-ab0e7a79-4126-463f-832b-fe464abd6317/items",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/research/workspaces/research-20dc8229-3400-468d-99e5-d9a84bac8cb4/versions",
+      "pathname": "/api/v1/research/workspaces/research-ab0e7a79-4126-463f-832b-fe464abd6317/versions",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "GET",
-      "pathname": "/api/v1/research/version-diff?workspaceId=research-20dc8229-3400-468d-99e5-d9a84bac8cb4&left=research-version-f2163e33-38cf-4444-b00b-233886198f80&right=research-version-5d4e2e5b-4576-4a79-b64c-ecc0cfe91a2e",
+      "pathname": "/api/v1/research/version-diff?workspaceId=research-ab0e7a79-4126-463f-832b-fe464abd6317&left=research-version-a1d3c975-2b92-4ae2-85ff-43e80fc83201&right=research-version-f1f1252d-a4c2-4099-a717-435d0565fda0",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/research/workspaces/research-20dc8229-3400-468d-99e5-d9a84bac8cb4/versions/research-version-f2163e33-38cf-4444-b00b-233886198f80/restore",
+      "pathname": "/api/v1/research/workspaces/research-ab0e7a79-4126-463f-832b-fe464abd6317/versions/research-version-a1d3c975-2b92-4ae2-85ff-43e80fc83201/restore",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
     {
       "method": "POST",
-      "pathname": "/api/v1/research/workspaces/research-20dc8229-3400-468d-99e5-d9a84bac8cb4/versions/research-version-f2163e33-38cf-4444-b00b-233886198f80/restore",
+      "pathname": "/api/v1/research/workspaces/research-ab0e7a79-4126-463f-832b-fe464abd6317/versions/research-version-a1d3c975-2b92-4ae2-85ff-43e80fc83201/restore",
       "status": 200,
       "contentType": "application/json; charset=utf-8"
     },
