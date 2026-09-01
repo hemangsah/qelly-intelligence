@@ -282,7 +282,7 @@ apps/web/public/assets/routes/filing-workspace.mjs
 apps/web/public/assets/routes/formula-detail.mjs
 apps/web/public/assets/routes/formula-library.mjs
 apps/web/public/assets/routes/formula-screener.mjs
-apps/web/public/assets/routes/fundamentals-estimates-enhancement.mjs
+apps/web/public/assets/routes/fundamentals-estimates-v2.css
 apps/web/public/assets/routes/fundamentals-estimates.mjs
 apps/web/public/assets/routes/global-charts-v2.css
 apps/web/public/assets/routes/global-charts.mjs
@@ -672,6 +672,7 @@ functions/_lib/public-asset-intelligence.js
 functions/_lib/public-categories.js
 functions/_lib/public-converter.js
 functions/_lib/public-dex.js
+functions/_lib/public-fundamentals-estimates.js
 functions/_lib/public-global-charts.js
 functions/_lib/public-search.js
 functions/_lib/public-venues.js
@@ -1307,6 +1308,7 @@ tests/prompt2c-route-ownership.test.mjs
 tests/provider-directory.test.mjs
 tests/public-auth-email-artifact-sync.test.mjs
 tests/public-beta-foundation.test.mjs
+tests/public-fundamentals-estimates.test.mjs
 tests/public-market-launch.test.mjs
 tests/public-market-ui-brand-repair.test.mjs
 tests/public-seo-finalizer.test.mjs

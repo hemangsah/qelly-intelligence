@@ -122,7 +122,8 @@ const requiredPublic = [
   '/api/v1/public/markets/assets/:id',
   '/api/v1/public/markets/assets/:id/candles',
   '/api/v1/discovery/asset-intelligence',
-  '/api/v1/discovery/advanced-chart'
+  '/api/v1/discovery/advanced-chart',
+  '/api/v1/discovery/fundamentals-estimates'
 ];
 const requiredEvidence = [
   '/api/v1/evidence/graphs',
@@ -154,7 +155,7 @@ const checks = {
   routes: routes.length === 71 && new Set(routes).size === routes.length,
   routeRegistry: routeNames.length === routes.length && routes.every((route) => routeNames.includes(route)) && routeNames.every((route) => routes.includes(route)),
   routeInventory: routeInventoryRoutes.length === routes.length && routes.every((route) => routeInventoryRoutes.includes(route)) && routeInventoryRoutes.every((route) => routes.includes(route)),
-  apiContracts: apiRoutes.length === 204 && new Set(apiRoutes).size === apiRoutes.length,
+  apiContracts: apiRoutes.length === 205 && new Set(apiRoutes).size === apiRoutes.length,
   contracts: contracts.size === 18,
   publicApis: requiredPublic.every((route) => apiRoutes.includes(route)),
   evidenceApis: requiredEvidence.every((route) => apiRoutes.includes(route)),

@@ -834,6 +834,24 @@
         }
       }
     },
+    "/api/v1/discovery/fundamentals-estimates": {
+      "get": {
+        "summary": "Build a governed issuer operating scenario and inspect statement and consensus evidence readiness",
+        "parameters": [
+          {"name":"issuer","in":"query","required":false,"schema":{"type":"string"}},
+          {"name":"baseRevenue","in":"query","required":false,"schema":{"type":"number","minimum":1}},
+          {"name":"revenueGrowthPct","in":"query","required":false,"schema":{"type":"number","minimum":-95,"maximum":500}},
+          {"name":"operatingMarginPct","in":"query","required":false,"schema":{"type":"number","minimum":-100,"maximum":100}},
+          {"name":"taxRatePct","in":"query","required":false,"schema":{"type":"number","minimum":0,"maximum":100}},
+          {"name":"dilutedShares","in":"query","required":false,"schema":{"type":"number","exclusiveMinimum":0}},
+          {"name":"earningsMultiple","in":"query","required":false,"schema":{"type":"number","minimum":0,"maximum":500}}
+        ],
+        "responses": {
+          "200": {"description":"Governed fundamentals-model, formula, sensitivity and evidence-readiness contract"},
+          "429": {"description":"Rate limited"}
+        }
+      }
+    },
     "/api/v1/discovery/news": {
       "get": {
         "summary": "Qelly route contract: /api/v1/discovery/news",

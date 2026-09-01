@@ -1,70 +1,55 @@
-import {installFundamentalsDensity} from './fundamentals-estimates-enhancement.mjs';
+const STYLE_ID='qelly-fundamentals-estimates-v2-style';
+function ensureStyles(){if(document.getElementById(STYLE_ID))return;const link=document.createElement('link');link.id=STYLE_ID;link.rel='stylesheet';link.href='./assets/routes/fundamentals-estimates-v2.css?v=20260901-fundamentals2';document.head.append(link);}
+const upper=(value)=>String(value||'unavailable').replace(/[-_]+/g,' ').toUpperCase();
+const number=(value,digits=2)=>Number.isFinite(Number(value))?new Intl.NumberFormat('en-US',{maximumFractionDigits:digits}).format(Number(value)):'—';
 
-const assets=[['QI-EQUITY-AAPL','AAPL'],['QI-EQUITY-NVDA','NVDA']];
-const format=value=>new Intl.NumberFormat('en-US',{notation:'compact',maximumFractionDigits:2}).format(Number(value));
+export async function renderFundamentalsEstimates(main,{api,escapeHtml,toast,navigate,asset}){
+  ensureStyles();const safe=(value)=>escapeHtml(String(value??''));
+  const endpoint=(issuer,params='')=>`/api/v1/discovery/fundamentals-estimates?issuer=${encodeURIComponent(issuer||'QI-EQUITY-AAPL')}${params}`;
+  let data;
+  try{data=await api(endpoint(asset));}catch(error){main.innerHTML=`<section class="q-fe-page"><div class="q-fe-error"><p class="q-eyebrow">Qelly Intelligence · Fundamentals & Estimates</p><h1>The governed financial model is unavailable.</h1><p>${safe(error.message)} No statement value, estimate, ratio or valuation was substituted.</p><button type="button" data-fe-retry>Retry contract</button></div></section>`;main.querySelector('[data-fe-retry]').addEventListener('click',()=>void renderFundamentalsEstimates(main,{api,escapeHtml,toast,navigate,asset}));main.removeAttribute('aria-busy');return;}
 
-export async function renderFundamentalsEstimates(main,deps){
-  const {api,pageHead,stateBanner,escapeHtml,QellyDataGrid,asset,navigate}=deps;
-  const selected=assets.some(([id,symbol])=>id===asset||symbol===asset)
-    ?assets.find(([id,symbol])=>id===asset||symbol===asset)[0]
-    :'QI-EQUITY-AAPL';
-  const [overview,annual,quarterly,earnings,estimates,actions]=await Promise.all([
-    api(`/api/v1/asset-intelligence/${selected}/overview`),
-    api(`/api/v1/asset-intelligence/${selected}/financials?frequency=annual`),
-    api(`/api/v1/asset-intelligence/${selected}/financials?frequency=quarterly`),
-    api(`/api/v1/asset-intelligence/${selected}/earnings`),
-    api(`/api/v1/asset-intelligence/${selected}/estimates`),
-    api(`/api/v1/asset-intelligence/${selected}/corporate-actions`)
-  ]);
-  const selector=`<select id="fundamental-asset" class="q-inline-select" aria-label="Select issuer">${assets.map(([id,symbol])=>`<option value="${id}" ${id===selected?'selected':''}>${symbol}</option>`).join('')}</select>`;
+  const paint=(model)=>{
+    data=model;const selected=data.selected;const scenario=data.scenario;const assumptions=scenario.assumptions;const outputs=scenario.outputs;const coverage=data.coverage;
+    const issuers=data.issuers.map((item)=>`<option value="${safe(item.id)}" ${item.id===selected.id?'selected':''}>${safe(item.symbol)} · ${safe(item.name)}</option>`).join('');
+    main.innerHTML=`<section class="q-fe-page" data-fundamentals-experience="governed-fundamentals-workspace-v2" data-source-state="${safe(data.readiness.state)}">
+    <header class="q-fe-hero"><div><p class="q-eyebrow">Qelly Intelligence · Fundamentals & Estimates</p><h1>Model the business. Preserve the source boundary.</h1><p>${safe(data.job)}</p><div class="q-fe-hero-actions"><label><span>Issuer</span><select data-fe-issuer aria-label="Select issuer">${issuers}</select></label><button type="button" data-fe-route="decision-provenance">Open Decision Provenance</button></div></div><aside><span>Unique job · operating model governance</span><strong>Reported fact ≠ consensus ≠ user assumption.</strong><p>Filing Workspace reads source documents. Comparison Lab aligns peers. This workspace governs definitions, assumption math and the bridge from operating drivers to a decision.</p></aside></header>
+    <section class="q-fe-boundary"><span></span><div><strong>Source evidence unavailable · declared scenario modeling is ready</strong><p>${safe(coverage.reason)} The model below uses only editable demonstration assumptions and never labels them as ${safe(selected.symbol)} facts.</p></div><button type="button" data-fe-route="filing-workspace">Acquire filing evidence →</button></section>
+    <section class="q-fe-snapshot"><article><span>Resolved issuer</span><strong>${safe(selected.symbol)}</strong><small>${safe(selected.reportingFramework)} · ${safe(selected.reportingCurrency)}</small></article><article><span>Statement periods</span><strong>${safe(coverage.statementPeriods)}</strong><small>No issuer values substituted</small></article><article><span>Consensus observations</span><strong>${safe(coverage.estimateObservations)}</strong><small>${safe(coverage.analystCount)} analysts asserted</small></article><article><span>Quality gates</span><strong>${safe(data.readiness.readyGates)} / ${safe(data.readiness.totalGates)}</strong><small>${safe(upper(data.readiness.state))}</small></article><article><span>Scenario engine</span><strong>Ready</strong><small>User assumptions only</small></article></section>
 
-  main.innerHTML=`<section class="q-page">${pageHead(
-    'Qelly Intelligence',
-    'Fundamentals & Estimates',
-    'Periodized annual and quarterly statements, derived margins, earnings surprises, consensus ranges, revision breadth and corporate actions. Values are deterministic fixtures, not licensed statements.',
-    `${selector}<button class="q-button q-button--secondary" data-action="open-filings">Open filings</button><button class="q-button q-button--primary" data-action="compare">Compare issuers</button>`
-  )}${stateBanner()}
-    <div class="q-kpi-grid">
-      <article class="q-kpi"><div class="q-kpi-label">Issuer</div><div class="q-kpi-value">${escapeHtml(overview.symbol)}</div><div class="q-kpi-meta"><span>${escapeHtml(overview.profile.industry)}</span><span class="q-status q-status--simulated">fixture</span></div></article>
-      <article class="q-kpi"><div class="q-kpi-label">Revenue</div><div class="q-kpi-value">${format(annual.statements[0].revenue.value)}</div><div class="q-kpi-meta"><span>${escapeHtml(annual.currency)} · ${escapeHtml(annual.statements[0].period)}</span><span class="q-status q-status--cached">annual</span></div></article>
-      <article class="q-kpi"><div class="q-kpi-label">EPS consensus</div><div class="q-kpi-value">${estimates.consensus.epsConsensus}</div><div class="q-kpi-meta"><span>${escapeHtml(estimates.consensus.nextPeriod)}</span><span class="q-status q-status--simulated">estimate fixture</span></div></article>
-      <article class="q-kpi"><div class="q-kpi-label">Revision breadth</div><div class="q-kpi-value">${estimates.revisionBreadth}%</div><div class="q-kpi-meta"><span>${estimates.consensus.analystCount} analysts represented</span><span class="q-status q-status--cached">derived</span></div></article>
-    </div>
-    <section class="q-panel"><div class="q-panel-head"><div><h2>Annual statements</h2><p>Income, cash flow and balance-sheet fixture fields with units and period labels.</p></div><span class="q-status q-status--warning">licensed provider required</span></div><div id="annual-grid"></div></section>
-    <div class="q-two-column">
-      <section class="q-panel"><div class="q-panel-head"><div><h2>Quarterly operating trend</h2><p>Latest four packaged quarters</p></div><span class="q-status q-status--cached">${quarterly.statements.length} periods</span></div><div class="q-panel-body q-stack">${quarterly.statements.map((row,index)=>`<div class="q-record-row"><span><strong>${escapeHtml(row.period)}</strong><small>Revenue ${format(row.revenue.value)} · EPS ${escapeHtml(row.eps.value)}</small></span><span class="${quarterly.derived[index].revenueGrowth==null?'':quarterly.derived[index].revenueGrowth>=0?'is-positive':'is-negative'}">${quarterly.derived[index].revenueGrowth==null?'N/A':`${quarterly.derived[index].revenueGrowth}%`}</span></div>`).join('')}</div></section>
-      <section class="q-panel"><div class="q-panel-head"><div><h2>Earnings surprise history</h2><p>Actual versus deterministic consensus</p></div></div><div class="q-panel-body q-stack">${earnings.items.map(item=>`<div class="q-record-row"><span><strong>${escapeHtml(item.period)}</strong><small>Actual ${item.epsActual} · Estimate ${item.epsEstimate}</small></span><span class="is-positive">+${item.surprisePercent}%</span></div>`).join('')}</div></section>
-    </div>
-    <div class="q-two-column">
-      <section class="q-panel"><div class="q-panel-head"><div><h2>Consensus range</h2><p>${escapeHtml(estimates.consensus.nextPeriod)}</p></div><span class="q-status q-status--simulated">not live</span></div><div class="q-metric-grid"><article class="q-metric-card"><span>EPS low</span><strong>${estimates.consensus.epsLow}</strong><small>fixture</small></article><article class="q-metric-card"><span>EPS consensus</span><strong>${estimates.consensus.epsConsensus}</strong><small>fixture</small></article><article class="q-metric-card"><span>EPS high</span><strong>${estimates.consensus.epsHigh}</strong><small>fixture</small></article></div></section>
-      <section class="q-panel"><div class="q-panel-head"><div><h2>Corporate actions</h2><p>Split and dividend adjustment contracts</p></div></div><div class="q-panel-body q-stack">${actions.items.map(item=>`<div class="q-record-row"><span><strong>${escapeHtml(item.type)} · ${escapeHtml(item.actionId)}</strong><small>${escapeHtml(item.exDate)}${item.amount!=null?` · ${item.amount} ${item.currency}`:''}${item.ratio?` · ${item.ratio}`:''}</small></span><span class="q-status q-status--cached">${escapeHtml(item.status)}</span></div>`).join('')}</div></section>
-    </div>
-  </section>`;
+    <section class="q-fe-model"><header><div><p class="q-eyebrow">Step 01 · declared scenario</p><h2>Build an operating bridge with inspectable math.</h2><p>Amounts use a user-declared currency in millions. The engine clamps unsafe inputs, returns a formula receipt, and keeps its result separate from issuer disclosures and provider estimates.</p></div><button type="button" data-fe-reset>Reset demonstration</button></header><div class="q-fe-model-grid"><form data-fe-form>
+      <label><span>Starting revenue (millions)</span><input name="baseRevenue" type="number" min="1" max="1000000000" step="1" value="${safe(assumptions.baseRevenue)}" aria-label="Starting revenue in millions"><small>Declared base, not reported revenue</small></label>
+      <label><span>Revenue growth (%)</span><input name="revenueGrowthPct" type="number" min="-95" max="500" step="0.1" value="${safe(assumptions.revenueGrowthPct)}" aria-label="Revenue growth percent"><small>Scenario assumption</small></label>
+      <label><span>Operating margin (%)</span><input name="operatingMarginPct" type="number" min="-100" max="100" step="0.1" value="${safe(assumptions.operatingMarginPct)}" aria-label="Operating margin percent"><small>Scenario assumption</small></label>
+      <label><span>Modeled tax rate (%)</span><input name="taxRatePct" type="number" min="0" max="100" step="0.1" value="${safe(assumptions.taxRatePct)}" aria-label="Modeled tax rate percent"><small>Simplified bridge assumption</small></label>
+      <label><span>Diluted shares (millions)</span><input name="dilutedShares" type="number" min="0.01" max="1000000000" step="0.01" value="${safe(assumptions.dilutedShares)}" aria-label="Diluted shares in millions"><small>Declared denominator</small></label>
+      <label><span>Earnings multiple (×)</span><input name="earningsMultiple" type="number" min="0" max="500" step="0.1" value="${safe(assumptions.earningsMultiple)}" aria-label="Earnings multiple"><small>Convention, not intrinsic value</small></label>
+      <label class="q-fe-wide"><span>Scenario purpose</span><textarea name="purpose" rows="3" maxlength="360" placeholder="What operating question is this scenario testing?"></textarea></label>
+      <label class="q-fe-wide"><span>Invalidation condition</span><textarea name="invalidation" rows="3" maxlength="360" placeholder="Which sourced fact would invalidate these assumptions?"></textarea></label>
+      <button class="q-fe-run" type="submit">Recalculate governed scenario</button></form>
+      <aside class="q-fe-output" aria-live="polite"><header><div><p class="q-eyebrow">Model receipt</p><h3>${safe(selected.symbol)} · declared operating case</h3></div><span>NOT CONSENSUS</span></header><div class="q-fe-output-grid"><article><span>Modeled revenue</span><strong>${number(outputs.revenue)}</strong><small>Base × (1 + growth)</small></article><article><span>Operating income</span><strong>${number(outputs.operatingIncome)}</strong><small>Revenue × margin</small></article><article><span>Modeled net income</span><strong>${number(outputs.modeledNetIncome)}</strong><small>Operating income × (1 − tax)</small></article><article><span>Modeled EPS</span><strong>${number(outputs.modeledEps)}</strong><small>Net income ÷ diluted shares</small></article><article class="q-fe-output-focus"><span>Multiple-based indication</span><strong>${number(outputs.indicatedValue)}</strong><small>Modeled EPS × declared multiple</small></article></div><div class="q-fe-receipt"><strong>Reconstruction receipt</strong><p>${safe(scenario.receipt)}</p><small>User-assumption calculation only · no reported facts · no licensed consensus · no forecast · no recommendation.</small></div><div class="q-fe-output-actions"><button type="button" data-fe-copy>Copy model brief</button><button type="button" data-fe-route="decision-provenance">Send to provenance →</button></div></aside></div></section>
 
-  installFundamentalsDensity(main);
+    <section class="q-fe-sensitivity"><header><div><p class="q-eyebrow">Step 02 · mechanical sensitivity</p><h2>Challenge two drivers without pretending to know probabilities.</h2><p>Lower and higher cases move growth and operating margin by two percentage points around the declared case. They are deterministic stress rows, not bull/bear forecasts.</p></div><span>±2 PP · GROWTH + MARGIN</span></header><div class="q-fe-table-wrap"><table><thead><tr><th>Mechanical case</th><th>Growth change</th><th>Margin change</th><th>Revenue</th><th>Operating income</th><th>Modeled EPS</th><th>Indication</th></tr></thead><tbody>${scenario.sensitivity.map((row)=>`<tr data-case="${safe(row.id)}"><th>${safe(row.label)}</th><td>${row.growthDelta>0?'+':''}${safe(row.growthDelta)} pp</td><td>${row.marginDelta>0?'+':''}${safe(row.marginDelta)} pp</td><td>${number(row.revenue)}</td><td>${number(row.operatingIncome)}</td><td>${number(row.modeledEps)}</td><td>${number(row.indicatedValue)}</td></tr>`).join('')}</tbody></table></div><footer>All rows inherit the same declared tax rate, diluted shares and earnings multiple. No probability or target price is produced.</footer></section>
 
-  new QellyDataGrid(document.getElementById('annual-grid'),{
-    columns:[
-      {key:'period',label:'Period',width:100},
-      {key:'revenueDisplay',label:'Revenue',width:130},
-      {key:'grossProfitDisplay',label:'Gross profit',width:130},
-      {key:'operatingIncomeDisplay',label:'Operating income',width:140},
-      {key:'netIncomeDisplay',label:'Net income',width:130},
-      {key:'epsDisplay',label:'EPS',width:90},
-      {key:'freeCashFlowDisplay',label:'Free cash flow',width:140}
-    ],
-    rows:annual.statements.map(row=>({...row,
-      revenueDisplay:format(row.revenue.value),
-      grossProfitDisplay:format(row.grossProfit.value),
-      operatingIncomeDisplay:format(row.operatingIncome.value),
-      netIncomeDisplay:format(row.netIncome.value),
-      epsDisplay:row.eps.value,
-      freeCashFlowDisplay:format(row.freeCashFlow.value)
-    })),
-    caption:'Annual financial statement fixtures'
-  });
+    <section class="q-fe-gates"><header><div><p class="q-eyebrow">Step 03 · evidence qualification</p><h2>Seven gates separate a model from an issuer conclusion.</h2></div><span>${safe(data.readiness.readyGates)} READY · ${safe(data.readiness.totalGates-data.readiness.readyGates)} BLOCKED</span></header><div>${data.qualityGates.map((item,index)=>`<article data-gate-state="${safe(item.state)}"><header><span>${String(index+1).padStart(2,'0')}</span><b>${safe(upper(item.state))}</b></header><h3>${safe(item.label)}</h3><p>${safe(item.purpose)}</p><small>${safe(item.detail)}</small></article>`).join('')}</div></section>
 
-  main.querySelector('#fundamental-asset').addEventListener('change',event=>navigate('fundamentals-estimates',event.target.value));
-  main.querySelector('[data-action="open-filings"]').addEventListener('click',()=>navigate('filing-workspace',selected));
-  main.querySelector('[data-action="compare"]').addEventListener('click',()=>navigate('comparison-lab'));
+    <section class="q-fe-acquire"><div><p class="q-eyebrow">Step 04 · acquisition ledger</p><h2>Know exactly what evidence is missing.</h2><p>The checklist assigns each missing layer to its specialist owner. It does not convert an unavailable provider into an empty-but-valid dataset.</p><ol>${data.acquisitionChecklist.map((item)=>`<li><span>${safe(upper(item.state))}</span><div><strong>${safe(item.label)}</strong><small>Owner · ${safe(item.owner)}</small></div></li>`).join('')}</ol></div><aside><span>Official research boundary</span><h3>Use filings as evidence, not as background decoration.</h3><p>Collect exact period, unit, accounting definition, filing section, filed date and restatement status for every reported value.</p><a href="https://www.sec.gov/edgar/search/" target="_blank" rel="noopener noreferrer">Open SEC EDGAR search ↗</a><button type="button" data-fe-route="filing-workspace">Open Filing Workspace</button></aside></section>
+
+    <section class="q-fe-definitions"><header><div><p class="q-eyebrow">Step 05 · definition registry</p><h2>Every ratio has a job—and a way to fail.</h2></div><p>These are method definitions, not populated issuer metrics.</p></header><div>${data.definitions.map((item)=>`<details><summary><span>${safe(item.family)}</span><strong>${safe(item.label)}</strong><i>+</i></summary><div><p>${safe(item.purpose)}</p><dl><dt>Formula</dt><dd>${safe(item.formula)}</dd><dt>Failure boundary</dt><dd>${safe(item.failure)}</dd></dl></div></details>`).join('')}</div></section>
+
+    <section class="q-fe-workflow"><header><p class="q-eyebrow">Reproducible workflow</p><h2>Six stages from issuer identity to accountable decision.</h2></header><div>${data.workflow.map((item)=>`<article><span>${safe(item.step)}</span><h3>${safe(item.label)}</h3><p>${safe(item.job)}</p></article>`).join('')}</div></section>
+    <section class="q-fe-handoffs"><header><div><p class="q-eyebrow">Specialist handoffs</p><h2>Continue without duplicating another workspace.</h2></div><p>The model receipt carries assumptions and formulas; the next destination adds cited evidence, aligned peers, narrative research or decision accountability.</p></header><div>${data.handoffs.map((item)=>`<button type="button" data-fe-route="${safe(item.route)}"><strong>${safe(item.label)}</strong><span>${safe(item.job)}</span><i>↗</i></button>`).join('')}</div></section>
+    <footer class="q-fe-footer"><strong>${safe(data.version)}</strong><span>No fixture financials · no invented statements · no provider estimates · no recommendation · no execution</span></footer></section>`;
+    main.removeAttribute('aria-busy');bind();
+  };
+
+  const bind=()=>{
+    const form=main.querySelector('[data-fe-form]');
+    main.querySelector('[data-fe-issuer]').addEventListener('change',(event)=>navigate('fundamentals-estimates',event.target.value));
+    main.querySelectorAll('[data-fe-route]').forEach((button)=>button.addEventListener('click',()=>navigate(button.dataset.feRoute,data.selected.id)));
+    main.querySelector('[data-fe-reset]').addEventListener('click',()=>{form.reset();toast?.('Demonstration assumptions reset. Recalculate to restore the backend receipt.');});
+    main.querySelector('[data-fe-copy]').addEventListener('click',async()=>{const purpose=form.elements.purpose.value.trim()||'Not written';const invalidation=form.elements.invalidation.value.trim()||'Not written';const text=[`${data.selected.symbol} · governed fundamentals model`,data.scenario.receipt,`Purpose: ${purpose}`,`Invalidation: ${invalidation}`,'Boundary: user assumptions only; no reported facts or consensus.'].join('\n');try{await navigator.clipboard.writeText(text);toast?.('Model brief copied.');}catch{toast?.('Clipboard access is unavailable.');}});
+    form.addEventListener('submit',async(event)=>{event.preventDefault();const submit=form.querySelector('[type="submit"]');submit.disabled=true;submit.textContent='Recalculating…';const values=new URLSearchParams(new FormData(form));values.delete('purpose');values.delete('invalidation');try{const next=await api(endpoint(data.selected.id,`&${values.toString()}`));paint(next);toast?.('Scenario recalculated from declared assumptions.');}catch(error){submit.disabled=false;submit.textContent='Recalculate governed scenario';toast?.(`Scenario unavailable: ${error.message}`);}});
+  };
+  paint(data);
 }

@@ -26,6 +26,7 @@ const expectedPublic=[
   '/api/v1/discovery/converter',
   '/api/v1/discovery/asset-intelligence',
   '/api/v1/discovery/advanced-chart',
+  '/api/v1/discovery/fundamentals-estimates',
   '/api/v1/public/providers',
   '/api/v1/public/markets/assets/:id/candles',
   '/api/v1/calculations/metadata',

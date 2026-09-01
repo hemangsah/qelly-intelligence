@@ -17,6 +17,7 @@ const RETIRED_DEAD_CODE=new Set(['/api/v1/watchlist']);
 
 function cloudflareImplementationState(apiPath){
  if(RETIRED_DEAD_CODE.has(apiPath))return 'retired-dead-code';
+ if(apiPath==='/api/v1/discovery/fundamentals-estimates')return 'implemented';
  if(EXACT_IMPLEMENTED.has(apiPath))return 'implemented';
  if(/^\/api\/v1\/providers\/(?:binance|coinbase|ecb)$/.test(apiPath))return 'implemented';
  if(/^\/api\/v1\/public\/markets\/assets\/[^/]+(?:\/candles)?$/.test(apiPath))return 'implemented';
