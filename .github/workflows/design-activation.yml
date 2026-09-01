@@ -57,7 +57,7 @@ jobs:
           echo '- Browser evidence: synthetic CSS-only computed-style probe; no production data or provider calls.' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload activation evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: qelly-v53-activation-contract-${{ github.sha }}
           path: |
