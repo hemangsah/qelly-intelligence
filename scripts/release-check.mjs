@@ -102,7 +102,7 @@ const result = {
 const bad = Object.entries(result).filter(([, value]) => value === false || value == null);
 if (pkg.version !== productVersion
   || routes.length !== 71
-  || apiRoutes.length !== 207
+  || apiRoutes.length !== 208
   || contracts.size !== 18
   || schemas.length !== 72
   || bad.length) {

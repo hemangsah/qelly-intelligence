@@ -335,7 +335,7 @@
       "route": "comparison-lab",
       "label": "Comparison Lab",
       "section": "Intelligence",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     },
     {

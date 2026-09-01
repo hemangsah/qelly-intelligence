@@ -95,6 +95,7 @@ jobs:
           test -s dist/frontend/assets/routes/fundamentals-estimates-v2.css
           test -s dist/frontend/assets/routes/filing-workspace-v2.css
           test -s dist/frontend/assets/routes/event-calendar-v2.css
+          test -s dist/frontend/assets/routes/comparison-lab-v2.css
           grep -F 'renderGovernedTrustCenterV2' dist/frontend/assets/app.js
           ! grep -F 'STATIC VISUAL PREVIEW' dist/frontend/index.html
           ! grep -F 'Deterministic demo data · backend unavailable' dist/frontend/index.html

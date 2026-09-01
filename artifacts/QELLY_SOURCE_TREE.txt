@@ -264,6 +264,7 @@ apps/web/public/assets/routes/calculator-detail-v6.mjs
 apps/web/public/assets/routes/calculator-detail.mjs
 apps/web/public/assets/routes/categories-v2.css
 apps/web/public/assets/routes/categories.mjs
+apps/web/public/assets/routes/comparison-lab-v2.css
 apps/web/public/assets/routes/comparison-lab.mjs
 apps/web/public/assets/routes/converter-v3.css
 apps/web/public/assets/routes/converter.mjs
@@ -672,6 +673,7 @@ functions/_lib/providers.js
 functions/_lib/public-advanced-chart.js
 functions/_lib/public-asset-intelligence.js
 functions/_lib/public-categories.js
+functions/_lib/public-comparison-lab.js
 functions/_lib/public-converter.js
 functions/_lib/public-dex.js
 functions/_lib/public-event-calendar.js
@@ -1312,6 +1314,7 @@ tests/prompt2c-route-ownership.test.mjs
 tests/provider-directory.test.mjs
 tests/public-auth-email-artifact-sync.test.mjs
 tests/public-beta-foundation.test.mjs
+tests/public-comparison-lab.test.mjs
 tests/public-event-calendar.test.mjs
 tests/public-filing-workspace.test.mjs
 tests/public-fundamentals-estimates.test.mjs

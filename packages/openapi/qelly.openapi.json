@@ -898,6 +898,49 @@
         }
       }
     },
+    "/api/v1/discovery/comparison-lab": {
+      "get": {
+        "summary": "Build a governed same-class, aligned and weighted comparison receipt",
+        "parameters": [
+          {"name":"candidateA","in":"query","required":false,"schema":{"type":"string"}},
+          {"name":"candidateB","in":"query","required":false,"schema":{"type":"string"}},
+          {"name":"question","in":"query","required":false,"schema":{"type":"string","maxLength":420}},
+          {"name":"horizon","in":"query","required":false,"schema":{"type":"string","enum":["quarter","year","three-year"]}},
+          {"name":"owner","in":"query","required":false,"schema":{"type":"string","maxLength":100}},
+          {"name":"invalidationRule","in":"query","required":false,"schema":{"type":"string","maxLength":420}},
+          {"name":"sourceA","in":"query","required":false,"schema":{"type":"string","format":"uri"}},
+          {"name":"sourceB","in":"query","required":false,"schema":{"type":"string","format":"uri"}},
+          {"name":"label1","in":"query","required":false,"schema":{"type":"string","maxLength":100}},
+          {"name":"label2","in":"query","required":false,"schema":{"type":"string","maxLength":100}},
+          {"name":"label3","in":"query","required":false,"schema":{"type":"string","maxLength":100}},
+          {"name":"unit1","in":"query","required":false,"schema":{"type":"string","maxLength":30}},
+          {"name":"unit2","in":"query","required":false,"schema":{"type":"string","maxLength":30}},
+          {"name":"unit3","in":"query","required":false,"schema":{"type":"string","maxLength":30}},
+          {"name":"period1","in":"query","required":false,"schema":{"type":"string","maxLength":80}},
+          {"name":"period2","in":"query","required":false,"schema":{"type":"string","maxLength":80}},
+          {"name":"period3","in":"query","required":false,"schema":{"type":"string","maxLength":80}},
+          {"name":"direction1","in":"query","required":false,"schema":{"type":"string","enum":["higher","lower"]}},
+          {"name":"direction2","in":"query","required":false,"schema":{"type":"string","enum":["higher","lower"]}},
+          {"name":"direction3","in":"query","required":false,"schema":{"type":"string","enum":["higher","lower"]}},
+          {"name":"evidenceType1","in":"query","required":false,"schema":{"type":"string","enum":["reported","consensus","assumption","observation"]}},
+          {"name":"evidenceType2","in":"query","required":false,"schema":{"type":"string","enum":["reported","consensus","assumption","observation"]}},
+          {"name":"evidenceType3","in":"query","required":false,"schema":{"type":"string","enum":["reported","consensus","assumption","observation"]}},
+          {"name":"weight1","in":"query","required":false,"schema":{"type":"integer","minimum":1,"maximum":100}},
+          {"name":"weight2","in":"query","required":false,"schema":{"type":"integer","minimum":1,"maximum":100}},
+          {"name":"weight3","in":"query","required":false,"schema":{"type":"integer","minimum":1,"maximum":100}},
+          {"name":"valueA1","in":"query","required":false,"schema":{"type":"number","minimum":0}},
+          {"name":"valueA2","in":"query","required":false,"schema":{"type":"number","minimum":0}},
+          {"name":"valueA3","in":"query","required":false,"schema":{"type":"number","minimum":0}},
+          {"name":"valueB1","in":"query","required":false,"schema":{"type":"number","minimum":0}},
+          {"name":"valueB2","in":"query","required":false,"schema":{"type":"number","minimum":0}},
+          {"name":"valueB3","in":"query","required":false,"schema":{"type":"number","minimum":0}}
+        ],
+        "responses": {
+          "200": {"description":"Governed comparison candidates, evidence gates, direction-aware weighted scores, receipt and human-review protocol"},
+          "429": {"description":"Rate limited"}
+        }
+      }
+    },
     "/api/v1/discovery/news": {
       "get": {
         "summary": "Qelly route contract: /api/v1/discovery/news",

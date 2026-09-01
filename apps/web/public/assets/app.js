@@ -255,7 +255,7 @@ function renderNavigation() {
     },
     onRoute:navigate,
     onPersona:(id)=>applyPersona(id),
-    onCompare:()=>navigateOrExplain('comparison-lab','Compare needs the unavailable workspace backend.'),
+    onCompare:()=>navigate('comparison-lab'),
     onWatchlist:()=>navigateOrExplain('watchlist','Watchlists need the unavailable workspace backend.'),
     onExplain:()=>navigateOrExplain('decision-provenance','Decision Provenance needs the unavailable backend.'),
     onMenu:()=>toggleSecondaryNavigation(),

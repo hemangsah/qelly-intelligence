@@ -40,7 +40,7 @@ index,route,label,section,public,implementation
 "39","fundamentals-estimates","Fundamentals & Estimates","Intelligence","true","runnable-route"
 "40","filing-workspace","Filing Workspace","Intelligence","true","runnable-route"
 "41","event-calendar","Event Calendar","Intelligence","true","runnable-route"
-"42","comparison-lab","Comparison Lab","Intelligence","false","runnable-route"
+"42","comparison-lab","Comparison Lab","Intelligence","true","runnable-route"
 "43","market","Market Command","Intelligence","true","runnable-route"
 "44","rankings","Legacy Rankings","Intelligence","false","runnable-route"
 "45","asset","Asset Dossier","Workspace","true","runnable-route"
