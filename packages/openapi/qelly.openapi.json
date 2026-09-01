@@ -941,6 +941,38 @@
         }
       }
     },
+    "/api/v1/discovery/alert-rules": {
+      "get": {
+        "summary": "Design and dry-run an evidence-qualified governed alert rule without scheduling or delivery",
+        "parameters": [
+          {"name":"asset","in":"query","required":false,"schema":{"type":"string"}},
+          {"name":"ruleName","in":"query","required":false,"schema":{"type":"string","maxLength":100}},
+          {"name":"metric","in":"query","required":false,"schema":{"type":"string","enum":["price","change24h","realizedVolatility","volume","evidenceConfidence"]}},
+          {"name":"operator","in":"query","required":false,"schema":{"type":"string","enum":["greater_than","less_than","crosses_above","crosses_below","outside_band"]}},
+          {"name":"threshold","in":"query","required":false,"schema":{"type":"number"}},
+          {"name":"upperThreshold","in":"query","required":false,"schema":{"type":"number"}},
+          {"name":"previousValue","in":"query","required":false,"schema":{"type":"number"}},
+          {"name":"currentValue","in":"query","required":false,"schema":{"type":"number"}},
+          {"name":"sourceUrl","in":"query","required":false,"schema":{"type":"string","format":"uri"}},
+          {"name":"observedAt","in":"query","required":false,"schema":{"type":"string","format":"date-time"}},
+          {"name":"evaluatedAt","in":"query","required":false,"schema":{"type":"string","format":"date-time"}},
+          {"name":"staleAfterMinutes","in":"query","required":false,"schema":{"type":"integer","minimum":1,"maximum":10080}},
+          {"name":"cooldownMinutes","in":"query","required":false,"schema":{"type":"integer","minimum":0,"maximum":10080}},
+          {"name":"confirmationCount","in":"query","required":false,"schema":{"type":"integer","minimum":1,"maximum":10}},
+          {"name":"severity","in":"query","required":false,"schema":{"type":"string","enum":["information","attention","critical"]}},
+          {"name":"cadence","in":"query","required":false,"schema":{"type":"string","enum":["5m","15m","hourly","daily"]}},
+          {"name":"reviewQuestion","in":"query","required":false,"schema":{"type":"string","maxLength":420}},
+          {"name":"triggerMeaning","in":"query","required":false,"schema":{"type":"string","maxLength":420}},
+          {"name":"resetCondition","in":"query","required":false,"schema":{"type":"string","maxLength":420}},
+          {"name":"owner","in":"query","required":false,"schema":{"type":"string","maxLength":100}},
+          {"name":"reviewer","in":"query","required":false,"schema":{"type":"string","maxLength":100}}
+        ],
+        "responses": {
+          "200": {"description":"Governed alert definition, deterministic condition evaluation, nine readiness gates, receipt and review protocol"},
+          "429": {"description":"Rate limited"}
+        }
+      }
+    },
     "/api/v1/discovery/news": {
       "get": {
         "summary": "Qelly route contract: /api/v1/discovery/news",

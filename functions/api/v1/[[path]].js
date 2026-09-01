@@ -18,6 +18,7 @@ import {buildPublicFundamentalsEstimates} from '../../_lib/public-fundamentals-e
 import {buildPublicFilingWorkspace} from '../../_lib/public-filing-workspace.js';
 import {buildPublicEventCalendar} from '../../_lib/public-event-calendar.js';
 import {buildPublicComparisonLab} from '../../_lib/public-comparison-lab.js';
+import {buildPublicAlertRules} from '../../_lib/public-alert-rules.js';
 import {providerDirectory} from '../../_lib/provider-directory.js';
 
 const publicTruthState=(state)=>({
@@ -257,6 +258,11 @@ export async function route(context){
   if(path==='discovery/comparison-lab'&&readMethod(method)){
     await enforceRateLimit(env,`public-comparison-lab:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:90});
     const result=buildPublicComparisonLab(Object.fromEntries(url.searchParams));
+    return responseJson(request,env,{...result,releaseSha:publicRuntimeConfigForRequest(env,request.url).releaseSha},200,{cache:'no-store'});
+  }
+  if(path==='discovery/alert-rules'&&readMethod(method)){
+    await enforceRateLimit(env,`public-alert-rules:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:90});
+    const result=buildPublicAlertRules(Object.fromEntries(url.searchParams));
     return responseJson(request,env,{...result,releaseSha:publicRuntimeConfigForRequest(env,request.url).releaseSha},200,{cache:'no-store'});
   }
 

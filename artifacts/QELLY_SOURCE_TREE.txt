@@ -248,6 +248,7 @@ apps/web/public/assets/routes/account-session.mjs
 apps/web/public/assets/routes/advanced-chart-v2.css
 apps/web/public/assets/routes/advanced-chart.mjs
 apps/web/public/assets/routes/alert-center.mjs
+apps/web/public/assets/routes/alert-rules-v2.css
 apps/web/public/assets/routes/asset-intelligence-v2.css
 apps/web/public/assets/routes/asset-intelligence.mjs
 apps/web/public/assets/routes/asset-rankings-chart.mjs
@@ -671,6 +672,7 @@ functions/_lib/profile-preferences.js
 functions/_lib/provider-directory.js
 functions/_lib/providers.js
 functions/_lib/public-advanced-chart.js
+functions/_lib/public-alert-rules.js
 functions/_lib/public-asset-intelligence.js
 functions/_lib/public-categories.js
 functions/_lib/public-comparison-lab.js
@@ -1312,6 +1314,7 @@ tests/prompt2c-public-runtime-hardening.test.mjs
 tests/prompt2c-public-runtime.test.mjs
 tests/prompt2c-route-ownership.test.mjs
 tests/provider-directory.test.mjs
+tests/public-alert-rules.test.mjs
 tests/public-auth-email-artifact-sync.test.mjs
 tests/public-beta-foundation.test.mjs
 tests/public-comparison-lab.test.mjs

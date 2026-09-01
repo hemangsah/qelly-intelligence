@@ -27,6 +27,7 @@ const PUBLIC_V1_API_PATHS=Object.freeze([
   '/api/v1/discovery/filing-workspace',
   '/api/v1/discovery/event-calendar',
   '/api/v1/discovery/comparison-lab',
+  '/api/v1/discovery/alert-rules',
   '/api/v1/public/markets/overview',
   '/api/v1/public/markets/assets',
   '/api/v1/public/providers',

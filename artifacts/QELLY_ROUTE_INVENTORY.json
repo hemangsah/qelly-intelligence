@@ -375,7 +375,7 @@
       "route": "alert-center",
       "label": "Alert Rules",
       "section": "Workspace",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     },
     {

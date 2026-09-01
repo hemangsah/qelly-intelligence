@@ -156,7 +156,7 @@ const checks = {
   routes: routes.length === 71 && new Set(routes).size === routes.length,
   routeRegistry: routeNames.length === routes.length && routes.every((route) => routeNames.includes(route)) && routeNames.every((route) => routes.includes(route)),
   routeInventory: routeInventoryRoutes.length === routes.length && routes.every((route) => routeInventoryRoutes.includes(route)) && routeInventoryRoutes.every((route) => routes.includes(route)),
-  apiContracts: apiRoutes.length === 208 && new Set(apiRoutes).size === apiRoutes.length,
+  apiContracts: apiRoutes.length === 209 && new Set(apiRoutes).size === apiRoutes.length,
   contracts: contracts.size === 18,
   publicApis: requiredPublic.every((route) => apiRoutes.includes(route)),
   evidenceApis: requiredEvidence.every((route) => apiRoutes.includes(route)),
