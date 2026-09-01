@@ -16,6 +16,7 @@ import {buildPublicAssetIntelligence} from '../../_lib/public-asset-intelligence
 import {buildPublicAdvancedChart} from '../../_lib/public-advanced-chart.js';
 import {buildPublicFundamentalsEstimates} from '../../_lib/public-fundamentals-estimates.js';
 import {buildPublicFilingWorkspace} from '../../_lib/public-filing-workspace.js';
+import {buildPublicEventCalendar} from '../../_lib/public-event-calendar.js';
 import {providerDirectory} from '../../_lib/provider-directory.js';
 
 const publicTruthState=(state)=>({
@@ -245,6 +246,11 @@ export async function route(context){
   if(path==='discovery/filing-workspace'&&readMethod(method)){
     await enforceRateLimit(env,`public-filing-workspace:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:90});
     const result=buildPublicFilingWorkspace(url.searchParams.get('issuer')||'QI-EQUITY-AAPL',Object.fromEntries(url.searchParams));
+    return responseJson(request,env,{...result,releaseSha:publicRuntimeConfigForRequest(env,request.url).releaseSha},200,{cache:'no-store'});
+  }
+  if(path==='discovery/event-calendar'&&readMethod(method)){
+    await enforceRateLimit(env,`public-event-calendar:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:90});
+    const result=buildPublicEventCalendar(url.searchParams.get('asset')||'QI-EQUITY-AAPL',Object.fromEntries(url.searchParams));
     return responseJson(request,env,{...result,releaseSha:publicRuntimeConfigForRequest(env,request.url).releaseSha},200,{cache:'no-store'});
   }
 

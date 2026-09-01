@@ -97,6 +97,7 @@ jobs:
           test -s dist/frontend/assets/routes/advanced-chart-v2.css
           test -s dist/frontend/assets/routes/fundamentals-estimates-v2.css
           test -s dist/frontend/assets/routes/filing-workspace-v2.css
+          test -s dist/frontend/assets/routes/event-calendar-v2.css
           grep -F "renderGovernedTrustCenterV2" dist/frontend/assets/app.js
       - name: Capture every registered route at desktop and mobile widths
         run: npm run browser:all

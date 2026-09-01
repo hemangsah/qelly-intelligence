@@ -327,7 +327,7 @@
       "route": "event-calendar",
       "label": "Event Calendar",
       "section": "Intelligence",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     },
     {

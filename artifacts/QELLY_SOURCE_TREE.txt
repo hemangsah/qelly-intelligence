@@ -276,6 +276,7 @@ apps/web/public/assets/routes/discovery-hub-enhancement.css
 apps/web/public/assets/routes/discovery-hub-enhancement.mjs
 apps/web/public/assets/routes/discovery-overview.css
 apps/web/public/assets/routes/discovery-overview.mjs
+apps/web/public/assets/routes/event-calendar-v2.css
 apps/web/public/assets/routes/event-calendar.mjs
 apps/web/public/assets/routes/feature-universe.mjs
 apps/web/public/assets/routes/filing-workspace-v2.css
@@ -673,6 +674,7 @@ functions/_lib/public-asset-intelligence.js
 functions/_lib/public-categories.js
 functions/_lib/public-converter.js
 functions/_lib/public-dex.js
+functions/_lib/public-event-calendar.js
 functions/_lib/public-filing-workspace.js
 functions/_lib/public-fundamentals-estimates.js
 functions/_lib/public-global-charts.js
@@ -1310,6 +1312,7 @@ tests/prompt2c-route-ownership.test.mjs
 tests/provider-directory.test.mjs
 tests/public-auth-email-artifact-sync.test.mjs
 tests/public-beta-foundation.test.mjs
+tests/public-event-calendar.test.mjs
 tests/public-filing-workspace.test.mjs
 tests/public-fundamentals-estimates.test.mjs
 tests/public-market-launch.test.mjs

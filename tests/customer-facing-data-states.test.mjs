@@ -21,13 +21,13 @@ test('signed-in account presentation omits implementation identifiers and policy
   assert.doesNotMatch(source,/api\('\/api\/v1\/platform\/capabilities'\)/);
 });
 
-test('event calendar cannot fail on a missing Cloudflare asset-intelligence endpoint',async()=>{
+test('event calendar uses the public monitoring-plan contract without fixture or protected event data',async()=>{
   const source=await read('apps/web/public/assets/routes/event-calendar.mjs');
-  assert.doesNotMatch(source,/api\/v1\/asset-intelligence|Object\.groupBy|fixture/);
-  assert.match(source,/Verified events are coming to Qelly/);
-  assert.match(source,/Open research workspace/);
-  assert.match(source,/Search SEC filings/);
-  assert.match(source,/No invented dates/);
+  assert.doesNotMatch(source,/api\/v1\/asset-intelligence|Object\.groupBy|fixture/i);
+  assert.match(source,/api\/v1\/discovery\/event-calendar/);
+  assert.match(source,/Turn uncertainty into an event plan/);
+  assert.match(source,/No connected calendar feed/);
+  assert.match(source,/does not fetch the source, verify its contents, create an alert or invent a date/);
 });
 
 test('customer routes use the shared presentation boundary instead of raw provider codes',async()=>{
