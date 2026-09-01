@@ -38,7 +38,7 @@ index,route,label,section,public,implementation
 "37","asset-intelligence","Asset Intelligence","Intelligence","true","runnable-route"
 "38","advanced-chart","Advanced Chart Studio","Intelligence","true","runnable-route"
 "39","fundamentals-estimates","Fundamentals & Estimates","Intelligence","true","runnable-route"
-"40","filing-workspace","Filing Workspace","Intelligence","false","runnable-route"
+"40","filing-workspace","Filing Workspace","Intelligence","true","runnable-route"
 "41","event-calendar","Event Calendar","Intelligence","false","runnable-route"
 "42","comparison-lab","Comparison Lab","Intelligence","false","runnable-route"
 "43","market","Market Command","Intelligence","true","runnable-route"

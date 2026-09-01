@@ -319,7 +319,7 @@
       "route": "filing-workspace",
       "label": "Filing Workspace",
       "section": "Intelligence",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     },
     {

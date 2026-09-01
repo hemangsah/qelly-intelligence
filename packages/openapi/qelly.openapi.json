@@ -852,6 +852,27 @@
         }
       }
     },
+    "/api/v1/discovery/filing-workspace": {
+      "get": {
+        "summary": "Register an official issuer disclosure and build a governed claim-level citation receipt",
+        "parameters": [
+          {"name":"issuer","in":"query","required":false,"schema":{"type":"string"}},
+          {"name":"form","in":"query","required":false,"schema":{"type":"string","enum":["10-K","10-Q","8-K","20-F"]}},
+          {"name":"filingDate","in":"query","required":false,"schema":{"type":"string","format":"date"}},
+          {"name":"periodEnd","in":"query","required":false,"schema":{"type":"string","format":"date"}},
+          {"name":"officialDocumentUrl","in":"query","required":false,"schema":{"type":"string","format":"uri"}},
+          {"name":"section","in":"query","required":false,"schema":{"type":"string","maxLength":120}},
+          {"name":"locator","in":"query","required":false,"schema":{"type":"string","maxLength":180}},
+          {"name":"claim","in":"query","required":false,"schema":{"type":"string","maxLength":420}},
+          {"name":"excerpt","in":"query","required":false,"schema":{"type":"string","maxLength":1200}},
+          {"name":"evidenceRole","in":"query","required":false,"schema":{"type":"string","enum":["direct","context","counter","definition"]}}
+        ],
+        "responses": {
+          "200": {"description":"Governed filing identity, citation, evidence-gate and review protocol contract"},
+          "429": {"description":"Rate limited"}
+        }
+      }
+    },
     "/api/v1/discovery/news": {
       "get": {
         "summary": "Qelly route contract: /api/v1/discovery/news",
