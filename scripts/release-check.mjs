@@ -66,7 +66,7 @@ const result = {
     && validation.schemas === schemas.length,
   smokeCurrent: smoke.status === 'smoke-passed'
     && smoke.productVersion === productVersion
-    && smoke.requests === 292,
+    && smoke.requests === 293,
   routeInventoryCurrent: routeInventory.productVersion === productVersion
     && routeInventory.count === routes.length,
   apiInventoryCurrent: apiInventory.productVersion === productVersion
@@ -102,7 +102,7 @@ const result = {
 const bad = Object.entries(result).filter(([, value]) => value === false || value == null);
 if (pkg.version !== productVersion
   || routes.length !== 71
-  || apiRoutes.length !== 209
+  || apiRoutes.length !== 210
   || contracts.size !== 18
   || schemas.length !== 72
   || bad.length) {

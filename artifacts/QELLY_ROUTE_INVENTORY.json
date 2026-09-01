@@ -383,7 +383,7 @@
       "route": "notification-center",
       "label": "Notifications",
       "section": "Workspace",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     },
     {

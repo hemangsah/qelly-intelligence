@@ -973,6 +973,35 @@
         }
       }
     },
+    "/api/v1/discovery/notification-triage": {
+      "get": {
+        "summary": "Qualify one declared notification receipt into an accountable human triage state without inbox or delivery claims",
+        "parameters": [
+          {"name":"notificationId","in":"query","required":false,"schema":{"type":"string","maxLength":100}},
+          {"name":"title","in":"query","required":false,"schema":{"type":"string","maxLength":140}},
+          {"name":"summary","in":"query","required":false,"schema":{"type":"string","maxLength":500}},
+          {"name":"type","in":"query","required":false,"schema":{"type":"string","enum":["alert_trigger","event_reminder","evidence_update","workflow_assignment","provider_incident"]}},
+          {"name":"severity","in":"query","required":false,"schema":{"type":"string","enum":["information","attention","critical"]}},
+          {"name":"channel","in":"query","required":false,"schema":{"type":"string","enum":["in_app","email","webhook","push"]}},
+          {"name":"sourceRoute","in":"query","required":false,"schema":{"type":"string","enum":["alert-center","event-calendar","research-workspace","delivery-operations","decision-provenance"]}},
+          {"name":"deliveryReceipt","in":"query","required":false,"schema":{"type":"string","maxLength":140}},
+          {"name":"createdAt","in":"query","required":false,"schema":{"type":"string","format":"date-time"}},
+          {"name":"reviewedAt","in":"query","required":false,"schema":{"type":"string","format":"date-time"}},
+          {"name":"dedupeKey","in":"query","required":false,"schema":{"type":"string","maxLength":140}},
+          {"name":"duplicateCount","in":"query","required":false,"schema":{"type":"integer","minimum":0,"maximum":999}},
+          {"name":"owner","in":"query","required":false,"schema":{"type":"string","maxLength":100}},
+          {"name":"reviewer","in":"query","required":false,"schema":{"type":"string","maxLength":100}},
+          {"name":"reviewQuestion","in":"query","required":false,"schema":{"type":"string","maxLength":420}},
+          {"name":"responsePlan","in":"query","required":false,"schema":{"type":"string","maxLength":420}},
+          {"name":"escalationCondition","in":"query","required":false,"schema":{"type":"string","maxLength":420}},
+          {"name":"acknowledgementNote","in":"query","required":false,"schema":{"type":"string","maxLength":420}}
+        ],
+        "responses": {
+          "200": {"description":"Governed delivery declaration, eight triage gates, deterministic urgency state, receipt and human-review protocol"},
+          "429": {"description":"Rate limited"}
+        }
+      }
+    },
     "/api/v1/discovery/news": {
       "get": {
         "summary": "Qelly route contract: /api/v1/discovery/news",

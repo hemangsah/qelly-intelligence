@@ -21,7 +21,6 @@ const protectedRoutes=new Map([
   ['quarantine-review','Quarantine review'],
   ['staging-assurance','Staging assurance'],
   ['watchlist','Watchlist'],
-  ['notification-center','Notifications'],
   ['portfolio-analytics','Portfolio analytics'],
   ['research-workspace','Research workspace']
 ]);

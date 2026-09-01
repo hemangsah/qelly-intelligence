@@ -310,6 +310,7 @@ apps/web/public/assets/routes/market-v6.mjs
 apps/web/public/assets/routes/migration-center.mjs
 apps/web/public/assets/routes/notification-center.mjs
 apps/web/public/assets/routes/notification-schedules.mjs
+apps/web/public/assets/routes/notification-triage-v2.css
 apps/web/public/assets/routes/onboarding.mjs
 apps/web/public/assets/routes/passkey-center.mjs
 apps/web/public/assets/routes/platform-readiness.mjs
@@ -682,6 +683,7 @@ functions/_lib/public-event-calendar.js
 functions/_lib/public-filing-workspace.js
 functions/_lib/public-fundamentals-estimates.js
 functions/_lib/public-global-charts.js
+functions/_lib/public-notification-triage.js
 functions/_lib/public-search.js
 functions/_lib/public-venues.js
 functions/_lib/readiness.js
@@ -1323,6 +1325,7 @@ tests/public-filing-workspace.test.mjs
 tests/public-fundamentals-estimates.test.mjs
 tests/public-market-launch.test.mjs
 tests/public-market-ui-brand-repair.test.mjs
+tests/public-notification-triage.test.mjs
 tests/public-seo-finalizer.test.mjs
 tests/qelly-accessibility-evidence-runtime.test.mjs
 tests/qelly-ai-launcher-visibility.test.mjs
