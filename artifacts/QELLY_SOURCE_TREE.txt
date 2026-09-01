@@ -326,6 +326,7 @@ apps/web/public/assets/routes/research-history.mjs
 apps/web/public/assets/routes/research-workspace.mjs
 apps/web/public/assets/routes/saved-calculation-detail.mjs
 apps/web/public/assets/routes/saved-calculations.mjs
+apps/web/public/assets/routes/screener-lab-v2.css
 apps/web/public/assets/routes/screener-lab.mjs
 apps/web/public/assets/routes/secret-rotation.mjs
 apps/web/public/assets/routes/secure-import-vault.mjs
@@ -684,6 +685,7 @@ functions/_lib/public-filing-workspace.js
 functions/_lib/public-fundamentals-estimates.js
 functions/_lib/public-global-charts.js
 functions/_lib/public-notification-triage.js
+functions/_lib/public-screener-lab.js
 functions/_lib/public-search.js
 functions/_lib/public-venues.js
 functions/_lib/readiness.js
@@ -1326,6 +1328,7 @@ tests/public-fundamentals-estimates.test.mjs
 tests/public-market-launch.test.mjs
 tests/public-market-ui-brand-repair.test.mjs
 tests/public-notification-triage.test.mjs
+tests/public-screener-lab.test.mjs
 tests/public-seo-finalizer.test.mjs
 tests/qelly-accessibility-evidence-runtime.test.mjs
 tests/qelly-ai-launcher-visibility.test.mjs

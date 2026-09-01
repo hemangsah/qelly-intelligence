@@ -17,6 +17,7 @@ import {buildPublicEventCalendar} from '../functions/_lib/public-event-calendar.
 import {buildPublicComparisonLab} from '../functions/_lib/public-comparison-lab.js';
 import {buildPublicAlertRules} from '../functions/_lib/public-alert-rules.js';
 import {buildPublicNotificationTriage} from '../functions/_lib/public-notification-triage.js';
+import {buildPublicScreenerLab} from '../functions/_lib/public-screener-lab.js';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const productionFrontend=path.join(root,'dist/frontend');
@@ -173,6 +174,7 @@ export async function startServer(options={}){
     if(request.method==='GET'&&url.pathname==='/api/v1/discovery/comparison-lab')return sendJson(response,200,{...buildPublicComparisonLab(Object.fromEntries(url.searchParams)),releaseSha:'evidence-fixture'});
     if(request.method==='GET'&&url.pathname==='/api/v1/discovery/alert-rules')return sendJson(response,200,{...buildPublicAlertRules(Object.fromEntries(url.searchParams)),releaseSha:'evidence-fixture'});
     if(request.method==='GET'&&url.pathname==='/api/v1/discovery/notification-triage')return sendJson(response,200,{...buildPublicNotificationTriage(Object.fromEntries(url.searchParams)),releaseSha:'evidence-fixture'});
+    if(request.method==='GET'&&url.pathname==='/api/v1/discovery/screener-lab')return sendJson(response,200,{...buildPublicScreenerLab(Object.fromEntries(url.searchParams)),releaseSha:'evidence-fixture'});
     if(request.method==='GET'&&url.pathname==='/api/v1/auth/status')return sendJson(response,200,{authenticated:hasEvidenceSession(request),mode:'evidence-fixture'});
     if(request.method==='GET'&&url.pathname==='/api/v1/profile'){
       if(!hasEvidenceSession(request))return sessionRequired(response,'The evidence profile contract requires an authenticated fixture session.');

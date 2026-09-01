@@ -391,7 +391,7 @@
       "route": "screener-lab",
       "label": "Screener Lab",
       "section": "Workspace",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     },
     {

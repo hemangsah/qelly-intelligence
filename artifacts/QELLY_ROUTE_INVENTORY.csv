@@ -47,7 +47,7 @@ index,route,label,section,public,implementation
 "46","watchlist","Watchlists","Workspace","false","runnable-route"
 "47","alert-center","Alert Rules","Workspace","true","runnable-route"
 "48","notification-center","Notifications","Workspace","true","runnable-route"
-"49","screener-lab","Screener Lab","Workspace","false","runnable-route"
+"49","screener-lab","Screener Lab","Workspace","true","runnable-route"
 "50","portfolio-analytics","Portfolio Analytics","Workspace","false","runnable-route"
 "51","research-workspace","Research Workspace","Workspace","false","runnable-route"
 "52","onboarding","Guided Onboarding","Workspace","false","runnable-route"

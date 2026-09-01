@@ -1002,6 +1002,50 @@
         }
       }
     },
+    "/api/v1/discovery/screener-lab": {
+      "get": {
+        "summary": "Compile a typed governed screen definition and evaluate one declared candidate without fixture-universe claims",
+        "parameters": [
+          {"name":"screenName","in":"query","required":false,"schema":{"type":"string","maxLength":120}},
+          {"name":"researchQuestion","in":"query","required":false,"schema":{"type":"string","maxLength":420}},
+          {"name":"assetClass","in":"query","required":false,"schema":{"type":"string","enum":["all","equity","crypto","fund","commodity","index","fx"]}},
+          {"name":"region","in":"query","required":false,"schema":{"type":"string","enum":["global","us","india","europe","asia-pacific","other"]}},
+          {"name":"sourceName","in":"query","required":false,"schema":{"type":"string","maxLength":120}},
+          {"name":"sourceLocator","in":"query","required":false,"schema":{"type":"string","maxLength":300}},
+          {"name":"snapshotAt","in":"query","required":false,"schema":{"type":"string","format":"date-time"}},
+          {"name":"observedAt","in":"query","required":false,"schema":{"type":"string","format":"date-time"}},
+          {"name":"maxAgeMinutes","in":"query","required":false,"schema":{"type":"integer","minimum":1,"maximum":525600}},
+          {"name":"missingPolicy","in":"query","required":false,"schema":{"type":"string","enum":["exclude","manual_review","fail_screen"]}},
+          {"name":"sortField","in":"query","required":false,"schema":{"type":"string","enum":["price","change24h","marketCap","volatility30d","peRatio","revenueGrowth","dividendYield"]}},
+          {"name":"direction","in":"query","required":false,"schema":{"type":"string","enum":["asc","desc"]}},
+          {"name":"resultLimit","in":"query","required":false,"schema":{"type":"integer","minimum":1,"maximum":100}},
+          {"name":"owner","in":"query","required":false,"schema":{"type":"string","maxLength":100}},
+          {"name":"reviewCadence","in":"query","required":false,"schema":{"type":"string","enum":["event_driven","daily","weekly","monthly"]}},
+          {"name":"invalidationCondition","in":"query","required":false,"schema":{"type":"string","maxLength":420}},
+          {"name":"candidateId","in":"query","required":false,"schema":{"type":"string","maxLength":100}},
+          {"name":"symbol","in":"query","required":false,"schema":{"type":"string","maxLength":40}},
+          {"name":"candidateAssetClass","in":"query","required":false,"schema":{"type":"string","enum":["equity","crypto","fund","commodity","index","fx"]}},
+          {"name":"candidateRegion","in":"query","required":false,"schema":{"type":"string","enum":["us","india","europe","asia-pacific","other"]}},
+          {"name":"candidateNote","in":"query","required":false,"schema":{"type":"string","maxLength":420}},
+          {"name":"rule1Field","in":"query","required":false,"schema":{"type":"string"}},
+          {"name":"rule1Operator","in":"query","required":false,"schema":{"type":"string"}},
+          {"name":"rule1Value","in":"query","required":false,"schema":{"type":"number"}},
+          {"name":"rule1Observed","in":"query","required":false,"schema":{"type":"number"}},
+          {"name":"rule2Field","in":"query","required":false,"schema":{"type":"string"}},
+          {"name":"rule2Operator","in":"query","required":false,"schema":{"type":"string"}},
+          {"name":"rule2Value","in":"query","required":false,"schema":{"type":"number"}},
+          {"name":"rule2Observed","in":"query","required":false,"schema":{"type":"number"}},
+          {"name":"rule3Field","in":"query","required":false,"schema":{"type":"string"}},
+          {"name":"rule3Operator","in":"query","required":false,"schema":{"type":"string"}},
+          {"name":"rule3Value","in":"query","required":false,"schema":{"type":"number"}},
+          {"name":"rule3Observed","in":"query","required":false,"schema":{"type":"number"}}
+        ],
+        "responses": {
+          "200": {"description":"Governed screen declaration, eight readiness gates, typed predicate trace, deterministic single-candidate outcome and reusable non-persisted receipt"},
+          "429": {"description":"Rate limited"}
+        }
+      }
+    },
     "/api/v1/discovery/news": {
       "get": {
         "summary": "Qelly route contract: /api/v1/discovery/news",

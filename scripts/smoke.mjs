@@ -31,7 +31,7 @@ try {
   const config = configResult.json();
   csrf = config.csrf.token;
   expect(config.productName === 'Qelly Intelligence' && config.productVersion === '0.9.0-preview.1', 'Qelly product identity invalid');
-  expect(config.routes.length === 71 && config.apiRoutes.length === 210 && config.apiRoutes.includes('/api/v1/public/markets/overview'), 'route inventory invalid');
+  expect(config.routes.length === 71 && config.apiRoutes.length === 211 && config.apiRoutes.includes('/api/v1/public/markets/overview'), 'route inventory invalid');
   expect(config.waveStatus.part22 && config.schemaValidation.schemasLoaded === 72, 'schema and inherited capability evidence invalid');
   expect(config.csrf.mode === 'random-session-bound-local-token' && csrf.length >= 32, 'session-bound CSRF evidence invalid');
   expect(config.developmentIdentity.enabled === true, 'development identity fixture should be enabled in local smoke');
@@ -61,7 +61,7 @@ try {
     '/api/v1/asset-intelligence/QI-CRYPTO-BTC/technicals?study=sma&length=20','/api/v1/asset-intelligence/QI-EQUITY-AAPL/chart?indicators=sma,ema,bollinger,macd,atr,stochastic','/api/v1/asset-intelligence/QI-EQUITY-AAPL/financials?frequency=annual','/api/v1/asset-intelligence/QI-EQUITY-AAPL/financials?frequency=quarterly','/api/v1/asset-intelligence/QI-EQUITY-AAPL/earnings','/api/v1/asset-intelligence/QI-EQUITY-AAPL/estimates','/api/v1/asset-intelligence/QI-EQUITY-AAPL/corporate-actions','/api/v1/asset-intelligence/QI-EQUITY-AAPL/event-calendar','/api/v1/asset-intelligence/QI-EQUITY-AAPL/filings/AAPL-10Q-2026Q2','/api/v1/asset-intelligence/layouts',
     '/api/v1/workspace/watchlists','/api/v1/alerts/rules','/api/v1/notifications','/api/v1/screeners/catalog','/api/v1/screeners/saved','/api/v1/portfolio/overview','/api/v1/portfolio/holdings','/api/v1/portfolio/performance?range=1y','/api/v1/portfolio/risk','/api/v1/research/workspaces',
     '/api/v1/onboarding/catalog','/api/v1/onboarding/profile','/api/v1/notification-schedules/catalog','/api/v1/notification-schedules','/api/v1/screeners/formulas/catalog','/api/v1/portfolio/attribution','/api/v1/imports/templates','/api/v1/imports','/api/v1/platform/migrations/plan','/api/v1/platform/migrations/status',
-    '/api/v1/audit','/api/v1/audit/verify','/','/qelly-config.js','/assets/tokens.css','/assets/app.css','/assets/app.js','/assets/routes/comparison-lab-v2.css','/assets/routes/alert-rules-v2.css','/assets/routes/notification-triage-v2.css',
+    '/api/v1/audit','/api/v1/audit/verify','/','/qelly-config.js','/assets/tokens.css','/assets/app.css','/assets/app.js','/assets/routes/comparison-lab-v2.css','/assets/routes/alert-rules-v2.css','/assets/routes/notification-triage-v2.css','/assets/routes/screener-lab-v2.css',
     '/assets/qelly-sovereign-v3.css','/assets/qelly-sovereign-motion.js','/assets/market/tradingview-live-chart.mjs','/assets/routes/auth-login.mjs','/assets/routes/auth-register.mjs','/assets/routes/auth-recovery.mjs','/assets/routes/account-session.mjs','/assets/routes/passkey-center.mjs','/assets/routes/account-recovery.mjs','/assets/routes/delivery-operations.mjs','/assets/routes/platform-readiness.mjs','/assets/routes/secret-rotation.mjs','/assets/routes/quarantine-review.mjs','/assets/routes/staging-assurance.mjs','/assets/webauthn.mjs','/assets/routes/live-markets.mjs','/assets/routes/theme-personas.mjs','/assets/routes/about-qelly.mjs','/assets/routes/feature-universe.mjs','/assets/route-registry.mjs','/assets/routes/workspace-watchlist.mjs','/assets/routes/alert-center.mjs','/assets/routes/notification-center.mjs','/assets/routes/screener-lab.mjs','/assets/routes/portfolio-analytics.mjs','/assets/routes/research-workspace.mjs','/assets/routes/asset-intelligence.mjs','/assets/routes/advanced-chart.mjs','/assets/routes/fundamentals-estimates.mjs','/assets/routes/filing-workspace.mjs','/assets/routes/event-calendar.mjs','/assets/routes/comparison-lab.mjs','/assets/routes/onboarding.mjs','/assets/routes/notification-schedules.mjs','/assets/routes/formula-screener.mjs','/assets/routes/portfolio-attribution.mjs','/assets/routes/import-center.mjs','/assets/routes/research-history.mjs','/assets/routes/migration-center.mjs','/assets/calculation/formula-engine.mjs','/assets/calculation/indicator-engine.mjs','/assets/calculation/persistence.mjs','/assets/calculation/india-rules.mjs','/assets/routes/calculator-center.mjs','/assets/routes/india-finance-center.mjs','/assets/routes/indicator-library.mjs','/assets/routes/formula-library.mjs','/assets/routes/saved-calculations.mjs','/packages/data-grid/data-grid.mjs'
   ];
   for (const pathname of getPaths) await request(pathname);
@@ -285,7 +285,7 @@ expect(duplicateDeleted.deleted&&originalDeleted.deleted,'saved calculation dele
   const trust=(await request('/api/v1/discovery/status')).json();
   expect(!trust.safety.liveTrading && !trust.safety.externalProviders && !trust.productionDeployment,'trust boundary invalid');
 
-  const expectedRequests=293;
+  const expectedRequests=294;
   expect(log.length===expectedRequests,`request denominator mismatch: ${log.length} !== ${expectedRequests}`);
   const result={
     status:'smoke-passed',productVersion:'0.9.0-preview.1',legacyRelease:'27.0.0',requests:log.length,requestDenominator:expectedRequests,

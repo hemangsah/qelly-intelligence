@@ -20,6 +20,7 @@ import {buildPublicEventCalendar} from '../../_lib/public-event-calendar.js';
 import {buildPublicComparisonLab} from '../../_lib/public-comparison-lab.js';
 import {buildPublicAlertRules} from '../../_lib/public-alert-rules.js';
 import {buildPublicNotificationTriage} from '../../_lib/public-notification-triage.js';
+import {buildPublicScreenerLab} from '../../_lib/public-screener-lab.js';
 import {providerDirectory} from '../../_lib/provider-directory.js';
 
 const publicTruthState=(state)=>({
@@ -269,6 +270,11 @@ export async function route(context){
   if(path==='discovery/notification-triage'&&readMethod(method)){
     await enforceRateLimit(env,`public-notification-triage:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:90});
     const result=buildPublicNotificationTriage(Object.fromEntries(url.searchParams));
+    return responseJson(request,env,{...result,releaseSha:publicRuntimeConfigForRequest(env,request.url).releaseSha},200,{cache:'no-store'});
+  }
+  if(path==='discovery/screener-lab'&&readMethod(method)){
+    await enforceRateLimit(env,`public-screener-lab:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:90});
+    const result=buildPublicScreenerLab(Object.fromEntries(url.searchParams));
     return responseJson(request,env,{...result,releaseSha:publicRuntimeConfigForRequest(env,request.url).releaseSha},200,{cache:'no-store'});
   }
 
