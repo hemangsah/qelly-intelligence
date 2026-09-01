@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {buildPublicNotificationTriage,__test} from '../functions/_lib/public-notification-triage.js';
-import {startServer} from '../scripts/release-a5-evidence-server.mjs';
+import {onRequest} from '../functions/api/v1/[[path]].js';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const complete={notificationId:'notif-aapl-001',title:'AAPL breakout requires review',summary:'A declared price observation crossed the governed review threshold.',type:'alert_trigger',severity:'critical',channel:'in_app',sourceRoute:'alert-center',deliveryReceipt:'inapp-receipt-20260901-001',createdAt:'2026-09-01T08:00:00.000Z',reviewedAt:'2026-09-01T08:45:00.000Z',dedupeKey:'AAPL:price:crosses-above:220',duplicateCount:'1',owner:'Research operations',reviewer:'Portfolio risk lead',reviewQuestion:'Does the qualified breakout change the declared risk-reward assessment?',responsePlan:'Verify the source observation and update the risk review.',escalationCondition:'Escalate when the critical receipt exceeds its thirty-minute policy.',acknowledgementNote:'Reviewer accepted ownership of the evidence review.'};
@@ -65,17 +65,15 @@ test('input normalization bounds duplicates and rejects unknown choices',()=>{
   assert.equal(__test.instant('not-a-date'),null);
 });
 
-test('evidence server exposes the public triage contract without authentication',async()=>{
-  const started=await startServer({port:0});
-  try{
-    const query=new URLSearchParams(complete);
-    const response=await fetch(`http://${started.host}:${started.port}/api/v1/discovery/notification-triage?${query}`);
-    const body=await response.json();
-    assert.equal(response.status,200);
-    assert.equal(body.receipt.state,'ready');
-    assert.equal(body.triage.state,'escalate-now');
-    assert.equal(body.releaseSha,'evidence-fixture');
-  }finally{await new Promise((resolve)=>started.server.close(resolve));await new Promise((resolve)=>started.evidenceUpstream.server.close(resolve));}
+test('Cloudflare handler exposes the public triage contract without authentication',async()=>{
+  const query=new URLSearchParams(complete);
+  const request=new Request(`https://qelly-runtime.test/api/v1/discovery/notification-triage?${query}`);
+  const response=await onRequest({request,env:{},params:{path:['discovery','notification-triage']},waitUntil(){}});
+  const body=await response.json();
+  assert.equal(response.status,200);
+  assert.equal(body.receipt.state,'ready');
+  assert.equal(body.triage.state,'escalate-now');
+  assert.equal(body.releaseSha,'unresolved');
 });
 
 test('frontend uses only the public triage API and retains visible responsive controls',async()=>{
