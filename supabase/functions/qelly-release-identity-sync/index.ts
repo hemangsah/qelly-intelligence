@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js@2.112.4/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.4";
 
-const CANONICAL_SITE="https://qelly-intelligence.pages.dev";
+const CANONICAL_SITE="https://terminal.qellyintelligence.com";
 const RELEASE_URL=`${CANONICAL_SITE}/qelly-release.json`;
 const INTERNAL_KEY_SHA256="017a6898218742214c9f54f5ecc54847ad95b17f6ba169c5f6ce7938b3856fd5";
 const headers={"content-type":"application/json","cache-control":"no-store","x-content-type-options":"nosniff"};
