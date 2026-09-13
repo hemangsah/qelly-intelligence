@@ -1,3 +1,6 @@
+import {renderMethodology,renderVerify} from './qelly-verify-product.mjs';
+import './qelly-v53-verify-route-loader.mjs';
+
 const VIEW_PATTERNS=Object.freeze({
   verify:/^#\/(?:qelly-verify|market\?[^#]*\bview=qelly-verify(?:&|$))/i,
   methodology:/^#\/(?:evidence-methodology|market\?[^#]*\bview=evidence-methodology(?:&|$))/i
@@ -47,13 +50,12 @@ const handoff=()=>{
   if(!currentView){setRequested(null,'handoff-navigation');return;}
   setRequested(currentView,'handoff-url');
   const view=state.requestedView||'verify';
-  const method=view==='methodology'?'renderMethodology':'render';
-  if(typeof window.QellyVerify?.[method]!=='function')return;
+  const renderer=view==='methodology'?renderMethodology:renderVerify;
   const main=document.getElementById('main');
   const owner=view==='methodology'?'methodology':'true';
   const selector=view==='methodology'?'[data-qelly-methodology-surface]':'[data-qelly-verify-surface]';
   normalizeHash(view);
-  if(!(main?.dataset.qellyVerifyOwner===owner&&main.querySelector(selector)))window.QellyVerify[method]();
+  if(!(main?.dataset.qellyVerifyOwner===owner&&main.querySelector(selector)))renderer();
   if(view==='verify')document.title='Qelly Verify · Qelly Intelligence';
 };
 const schedule=()=>{
