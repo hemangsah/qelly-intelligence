@@ -36,5 +36,5 @@ test('Qelly Verify canonical V5.3 workbench is reachable through the bootstrap l
   assert.match(loader,/import\('\.\/qelly-v53-verify-convergence\.mjs'\)/);
   assert.match(convergence,/import '\.\/qelly-v53-verify-canonical\.mjs';/);
   assert.match(canonical,/const canonicalRoute=\(\)=>location\.hash\.replace/);
-  assert.match(canonical,/data-v53-verify-workbench/);
+  assert.match(canonical,/v53VerifyWorkbench/);
 });
