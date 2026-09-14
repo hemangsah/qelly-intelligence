@@ -1,6 +1,6 @@
 import {bool,publicRuntimeConfig} from './runtime.js';
 
-export const CANONICAL_QELLY_PUBLIC_SITE='https://qelly-intelligence.pages.dev';
+export const CANONICAL_QELLY_PUBLIC_SITE='https://terminal.qellyintelligence.com';
 export const AUTH_EMAIL_CANARY=Object.freeze({
   proven:true,
   verifiedAt:'2026-08-19T16:51:37.822699Z',
