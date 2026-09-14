@@ -7,7 +7,7 @@ const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 test('release identity sync accepts only internal scheduler calls and the canonical Cloudflare artifact',async()=>{
   const source=await read('supabase/functions/qelly-release-identity-sync/index.ts');
   assert.match(source,/INTERNAL_SCHEDULER_AUTH_REQUIRED/);
-  assert.match(source,/https:\/\/qelly-intelligence\.pages\.dev/);
+  assert.match(source,/https:\/\/terminal\.qellyintelligence\.com/);
   assert.match(source,/qelly-release\.json/);
   assert.match(source,/\^\[0-9a-f\]\{40\}\$/);
   assert.match(source,/cloudflare-pages-public-runtime/);
