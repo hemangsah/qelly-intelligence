@@ -40,3 +40,9 @@ test('exact Pages Function owns the legacy methodology document path',async()=>{
   assert.equal(response.headers.get('location'),'https://terminal.qellyintelligence.com/#/qelly-verify');
   assert.equal(response.headers.get('cache-control'),'no-store');
 });
+
+
+test('build emits Pages Functions routing for the legacy Verify document path',async()=>{
+  const source=await readFile(new URL('../scripts/build-frontend.mjs',import.meta.url),'utf8');
+  assert.match(source,/include:\['\/api\/\*','\/methodology\/verify'\]/);
+});
