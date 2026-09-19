@@ -24,7 +24,7 @@ test('V5.3 compatibility layers remain packaged while the current renderer has o
 test('Global Market Network keeps governed truth, provenance and external-display boundaries without demo observations',async()=>{
   const route=await read(routePath);
   for(const label of ['Data reliability','Source lineage','Synthetic market values','Trading execution','Unavailable sources'])assert.match(route,new RegExp(label));
-  for(const label of ['Provider provenance','ECB governed FX reference','Global macro context','Official research network'])assert.match(route,new RegExp(label));
+  for(const label of ['Source details','ECB governed FX reference','Global macro context','Official research network'])assert.match(route,new RegExp(label));
   assert.match(route,/id="q-market-network-chart"/);
   assert.match(route,/Missing or unavailable sources stay unavailable/);
   assert.match(route,/Never generated to fill missing price, candle, volume or market movement/);
