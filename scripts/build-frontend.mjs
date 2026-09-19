@@ -95,7 +95,12 @@ if(publicRuntimeEnabled){
     if(!index.includes('qelly-final-a11y-polish.css'))missing.push('  <link rel="stylesheet" href="./assets/qelly-final-a11y-polish.css">');
     if(missing.length)index=index.replace('</head>',`${missing.join('\n')}\n</head>`);
   }
-  if(!index.includes('qelly-public-runtime.mjs'))index=index.replace('</body>','  <script type="module" src="./assets/qelly-public-runtime.mjs"></script>\n</body>');
+  if(!index.includes('qelly-public-runtime.mjs')){
+    const appReadyScript='  <script type="module" src="./assets/qelly-app-ready.mjs"></script>';
+    const runtimeScript='  <script type="module" src="./assets/qelly-public-runtime.mjs"></script>';
+    if(!index.includes(appReadyScript))throw new Error('Qelly app-ready bootstrap anchor missing');
+    index=index.replace(appReadyScript,`${runtimeScript}\n${appReadyScript}`);
+  }
 }
 if(!index.includes('qelly-verify-bootstrap.mjs'))index=index.replace('<script type="module" src="./assets/app.js"></script>','<script type="module" src="./assets/qelly-verify-bootstrap.mjs"></script>\n  <script type="module" src="./assets/app.js"></script>');
 if(!index.includes('qelly-production-shell.css'))index=index.replace('</head>','  <link rel="stylesheet" href="./assets/qelly-production-shell.css">\n</head>');
