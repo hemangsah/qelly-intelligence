@@ -82,7 +82,7 @@ jobs:
           QELLY_PROMPT2C_PUBLIC_BETA: 'true'
           QELLY_REQUIRE_PUBLIC_RUNTIME: 'true'
           QELLY_PUBLIC_BASE_PATH: /
-          QELLY_PUBLIC_SITE_URL: https://qelly-intelligence.pages.dev
+          QELLY_PUBLIC_SITE_URL: https://terminal.qellyintelligence.com
           QELLY_PUBLIC_API_BASE_URL: ''
           QELLY_PUBLIC_SUPABASE_URL: https://example.supabase.co
           QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_public_key_1234567890
