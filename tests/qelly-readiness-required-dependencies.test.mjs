@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {collectReadinessEvidence,readinessSnapshot} from '../functions/_lib/readiness.js';
 
-const CANONICAL='https://qelly-intelligence.pages.dev';
+const CANONICAL='https://terminal.qellyintelligence.com';
 const runtime=(overrides={})=>({
   releaseSha:'readiness-test-sha',
   publicSiteUrl:overrides.publicSiteUrl||'https://qelly-readiness.test',
