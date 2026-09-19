@@ -24,3 +24,11 @@ test('support and privacy copy stay readiness-gated without stale outage claims'
   assert.match(privacy,/governed by live readiness checks and fail closed/i);
   assert.doesNotMatch(privacy,/authenticated cloud lifecycle not production-proven/i);
 });
+
+
+test('beta notice does not claim a free platform subdomain after custom-domain cutover',async()=>{
+  const beta=await read('apps/web/public/legal/beta.html');
+  assert.doesNotMatch(beta,/free platform subdomain/i);
+  assert.match(beta,/canonical custom terminal domain/i);
+  assert.match(beta,/Cloudflare Pages providing the deployment runtime/i);
+});
