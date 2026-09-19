@@ -5,7 +5,7 @@ import {onRequest,__middlewareTest} from '../functions/api/v1/_middleware.js';
 import {onRequest as onReadinessRequest} from '../functions/api/v1/readiness.js';
 
 const SITE='https://qelly-middleware.test';
-const CANONICAL='https://qelly-intelligence.pages.dev';
+const CANONICAL='https://terminal.qellyintelligence.com';
 const ecbXml=(date=new Date(Date.now()-24*60*60*1000).toISOString().slice(0,10))=>`<?xml version="1.0"?><Envelope><Cube><Cube time='${date}'><Cube currency='USD' rate='1.15'/><Cube currency='GBP' rate='0.86'/><Cube currency='INR' rate='105.1'/><Cube currency='JPY' rate='171.5'/><Cube currency='CHF' rate='0.94'/></Cube></Cube></Envelope>`;
 const environment=(overrides={})=>({
   QELLY_PUBLIC_SITE_URL:SITE,
