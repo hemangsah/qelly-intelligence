@@ -39,9 +39,10 @@ test('public browser market workspace uses the rights-aware market network and k
   assert.match(source,/Data reliability/);
   assert.match(source,/Synthetic market values/);
   assert.match(source,/Missing or unavailable sources stay unavailable/);
-  assert.doesNotMatch(source,/Coinbase \/ Binance blocked|Crypto provider rights/i);
-  assert.match(source,/TradingView is an external display boundary/);
-  assert.match(source,/Qelly does not scrape or reuse widget values/);
+  assert.doesNotMatch(source,/Coinbase \/ Binance blocked|Crypto provider rights|Provider policy|Permitted use|Provider provenance/i);
+  assert.match(source,/TradingView is a display-only research surface/);
+  assert.match(source,/Widget values are not used in Qelly calculations, alerts or decisions/);
+  assert.match(source,/Source details/);
   assert.doesNotMatch(source,/\/api\/v1\/live-markets\/candles/);
 });
 
