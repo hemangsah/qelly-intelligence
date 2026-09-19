@@ -38,3 +38,10 @@ test('Market Command exposes the lazy accessible intelligence dock',async()=>{
   assert.match(route,/aria-label="Choose an external intelligence display"/);
   assert.match(route,/intelligenceDockHandle\?\.destroy\?\.\(\)/);
 });
+
+
+test('X timeline iframe keeps a bounded visible height inside the intelligence dock',async()=>{
+  const css=await read('../apps/web/public/assets/routes/market-v6.css');
+  assert.match(css,/\.q-x-shell\{height:620px;min-height:620px;/);
+  assert.match(css,/\.q-x-shell iframe\{display:block;width:100%!important;height:100%!important;min-height:100%!important;border:0!important\}/);
+});
