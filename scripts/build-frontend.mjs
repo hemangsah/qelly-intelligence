@@ -166,7 +166,7 @@ const releaseIdentity={
   fallbackReleaseSha:'603cece3091dc59cfb72680914e7056b40058022'
 };
 await writeFile(path.join(output,'qelly-release.json'),`${JSON.stringify(releaseIdentity,null,2)}\n`);
-if(!githubPagesMirror)await writeFile(path.join(output,'_routes.json'),`${JSON.stringify({version:1,include:['/api/*'],exclude:[]},null,2)}\n`);
+if(!githubPagesMirror)await writeFile(path.join(output,'_routes.json'),`${JSON.stringify({version:1,include:['/api/*','/methodology/verify'],exclude:[]},null,2)}\n`);
 
 await writeFile(path.join(output,'BUILD_INFO.json'),`${JSON.stringify({
   product:'Qelly Intelligence',version:'0.9.0-preview.1',artifact:staticVisualPreview?'static-frontend':githubPagesMirror?'github-pages-public-mirror':'static-frontend-with-pages-functions',
