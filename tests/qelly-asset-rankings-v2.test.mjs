@@ -24,6 +24,9 @@ test('Asset Rankings derives transparent within-sample scores, exclusions and so
   assert.equal(result.version,'governed-candidate-ranking-v1');
   assert.equal(result.state,'available');
   assert.equal(result.candidates.length,3);
+  assert.equal(result.universe.sourceRowCount,4);
+  assert.equal(result.universe.label,'Alternative.me attributed 4-row crypto sample');
+  assert.doesNotMatch(result.universe.label,/top-10/i);
   assert.equal(result.exclusions.length,1);
   assert.match(result.exclusions[0].reason,/marketCapUsd/);
   assert.equal(result.readiness.crossSourceCandidates,2);

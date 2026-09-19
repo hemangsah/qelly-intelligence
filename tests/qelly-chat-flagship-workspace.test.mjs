@@ -13,7 +13,7 @@ test('Qelly Chat is a dedicated flagship route with four governed modes',async()
   assert.match(app,/case 'news-research': await renderQellyChatWorkspace/);
   assert.match(registry,/route:'news-research'.*label:'Qelly Chat & Research'.*public:true/);
   assert.match(runtime,/\['Qelly Chat','news-research'\]/);
-  for(const phrase of ['Ask → Ground → Verify → Decide','without fabricated fallback','Decision Provenance','human in control'])assert.match(route,new RegExp(phrase));
+  for(const phrase of ['Ask → Ground → Verify → Decide','without fabricated fallback','Decision Provenance','human in control','Access catalog generated','not provider freshness','Access catalog timestamp','Source-state policy'])assert.match(route,new RegExp(phrase));
 });
 
 test('flagship chat requests expanded mode and preserves decision handoff',async()=>{
