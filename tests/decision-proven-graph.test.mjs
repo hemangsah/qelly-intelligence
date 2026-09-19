@@ -20,7 +20,21 @@ test('Decision Proven Graph is deterministic, finite and probability-safe',()=>{
   const probabilities=Object.values(first.forecast.probabilities);assert.ok(probabilities.every(value=>value>=0&&value<=1));assert.ok(Math.abs(probabilities.reduce((a,b)=>a+b,0)-1)<.0001);
   for(const point of first.forecast.fan)assert.ok(point.p05<=point.p25&&point.p25<=point.p50&&point.p50<=point.p75&&point.p75<=point.p95);
   assert.ok(Object.values(first.metrics).every(value=>value===null||Number.isFinite(value)));
-  assert.match(first.confidence.calibration,/not yet measured/i);assert.equal(first.provenance.provider,'Hyperliquid');assert.equal(first.graph.textAlternative.length,first.graph.edges.length);
+  assert.match(first.confidence.calibration,/not a success probability/i);assert.equal(first.provenance.provider,'Hyperliquid');assert.equal(first.graph.textAlternative.length,first.graph.edges.length);
+  assert.match(first.qellyView.action,/BUY|SELL|WAIT|NO TRADE/);assert.ok(first.market.currentState.label);
+  if(first.qellyView.levels)assert.equal(first.qellyView.levels.targets.length,3);
+});
+
+test('selected chart range produces ranked, finite before-and-after evidence',()=>{
+  const selection={start:candles[100].t,end:candles[125].t};
+  const graph=buildDecisionProvenGraph(candles,{asset:'BTC',interval:'15m',horizonBars:16,now:candles.at(-1).t+900_000,selection});
+  assert.equal(graph.selection.candles,26);assert.equal(graph.selection.evidence.length,3);
+  assert.deepEqual(graph.selection.evidence.map(item=>item.rank),[1,2,3]);assert.ok(Number.isFinite(graph.selection.changePct));
+});
+
+test('stale evidence fails closed to NO TRADE without synthetic levels',()=>{
+  const graph=buildDecisionProvenGraph(candles,{interval:'15m',now:candles.at(-1).t+30*900_000});
+  assert.equal(graph.truthState,'DEGRADED');assert.equal(graph.qellyView.action,'NO TRADE');assert.equal(graph.qellyView.levels,null);
 });
 
 test('Decision Proven Graph fails closed on insufficient provider evidence',()=>{
@@ -38,6 +52,6 @@ test('public endpoint validates controls and returns cacheable provider-derived 
 
 test('public route and source-to-model boundary are registered',async()=>{
   const [registry,route,endpoint]=await Promise.all([readFile(new URL('../apps/web/public/assets/route-registry.mjs',import.meta.url),'utf8'),readFile(new URL('../apps/web/public/assets/routes/decision-proven-graph.mjs',import.meta.url),'utf8'),readFile(new URL('../functions/api/v1/decision-proven-graph.js',import.meta.url),'utf8')]);
-  assert.match(registry,/route:'decision-provenance'.*public:true/);assert.match(route,/PAST · OBSERVED/);assert.match(route,/FUTURE · MODELLED/);assert.match(route,/considered-not-executed/);assert.match(endpoint,/candleSnapshot/);assert.doesNotMatch(endpoint,/TradingView/);
+  assert.match(registry,/route:'decision-provenance'.*public:true/);assert.match(route,/Explain this move/);assert.match(route,/QELLY VIEW/);assert.match(route,/PAST/);assert.match(route,/FUTURE/);assert.match(route,/Methodology and sources/);assert.doesNotMatch(route,/<details class="q-dpg-audit" open/);assert.doesNotMatch(route,/Entitlement|Fingerprint|Endpoint/);assert.match(endpoint,/candleSnapshot/);assert.match(endpoint,/api\.gdeltproject\.org/);assert.doesNotMatch(endpoint,/TradingView/);
 });
 

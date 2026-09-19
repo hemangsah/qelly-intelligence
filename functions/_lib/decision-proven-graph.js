@@ -4,7 +4,7 @@ const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
 const mean=(values)=>values.length?values.reduce((sum,value)=>sum+value,0)/values.length:0;
 const quantile=(values,p)=>{if(!values.length)return null;const sorted=[...values].sort((a,b)=>a-b);const index=(sorted.length-1)*p;const low=Math.floor(index);const weight=index-low;return sorted[low]+((sorted[low+1]??sorted[low])-sorted[low])*weight;};
 const round=(value,digits=4)=>Number.isFinite(value)?Number(value.toFixed(digits)):null;
-const hash=(text)=>{let value=2166136261;for(const character of text){value^=character.charCodeAt(0);value=Math.imul(value,16777619);}return(value>>>0).toString(16).padStart(8,'0');};
+const hash=(value)=>{let result=2166136261;for(const character of value){result^=character.charCodeAt(0);result=Math.imul(result,16777619);}return(result>>>0).toString(16).padStart(8,'0');};
 const rng=(seed)=>()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
 
 export function normalizeCandles(input){
@@ -28,39 +28,64 @@ function metricSet(candles,intervalMs){
   closes.forEach((value,index)=>{numerator+=(index-xMean)*(value-yMean);denominator+=(index-xMean)**2;});
   const slope=denominator?numerator/denominator:0;
   let peak=closes[0],maxDrawdown=0;for(const value of closes){peak=Math.max(peak,value);maxDrawdown=Math.min(maxDrawdown,value/peak-1);}
-  const losses=returns.filter(value=>value<=quantile(returns,.05));const centered=returns.map(value=>value-average);
-  const up=mean(returns.slice(-14).map(value=>Math.max(0,value)));const down=mean(returns.slice(-14).map(value=>Math.max(0,-value)));
+  const losses=returns.filter(value=>value<=(quantile(returns,.05)??0));const centered=returns.map(value=>value-average);
+  const recent=returns.slice(-14);const up=mean(recent.map(value=>Math.max(0,value)));const down=mean(recent.map(value=>Math.max(0,-value)));
   const annualizer=Math.sqrt(365*86_400_000/intervalMs);
   return {returns,average,sigma,metrics:{realizedVolatilityPct:round(sigma*annualizer*100,2),ewmaVolatilityPct:round(Math.sqrt(ewma)*annualizer*100,2),parkinsonVolatilityPct:round(parkinson*annualizer*100,2),atrPct:round(mean(trs.slice(-14))/closes.at(-1)*100,2),trendPerBarPct:round(slope/closes.at(-1)*100,4),rsi14:round(down===0?100:100-(100/(1+up/down)),1),returnZScore:round(sigma?(returns.at(-1)-average)/sigma:0,2),skewness:round(sigma?mean(centered.map(value=>value**3))/sigma**3:0,2),excessKurtosis:round(sigma?mean(centered.map(value=>value**4))/sigma**4-3:0,2),historicalVaR95Pct:round(-(quantile(returns,.05)??0)*100,2),expectedShortfall95Pct:round(-mean(losses)*100,2),maxDrawdownPct:round(maxDrawdown*100,2),averageVolume:round(mean(candles.slice(-30).map(item=>item.volume)),2)}};
 }
 
 function scenarios(candles,returns,horizonBars,seed){
   const random=rng(seed);const sample=returns.slice(-Math.min(240,returns.length));const paths=800;const series=Array.from({length:horizonBars},()=>[]);const terminal=[];const block=Math.max(2,Math.round(Math.sqrt(horizonBars)));const last=candles.at(-1).close;
-  for(let path=0;path<paths;path++){
-    let price=last;
-    for(let step=0;step<horizonBars;step++){
-      const blockStart=Math.floor(random()*Math.max(1,sample.length-block));const shock=sample[(blockStart+(step%block))%sample.length]??0;price*=Math.exp(shock);series[step].push(price);
-    }
-    terminal.push(price);
-  }
+  for(let path=0;path<paths;path++){let price=last;for(let step=0;step<horizonBars;step++){const blockStart=Math.floor(random()*Math.max(1,sample.length-block));const shock=sample[(blockStart+(step%block))%sample.length]??0;price*=Math.exp(shock);series[step].push(price);}terminal.push(price);}
   const fan=series.map((values,index)=>({step:index+1,p05:round(quantile(values,.05),2),p25:round(quantile(values,.25),2),p50:round(quantile(values,.5),2),p75:round(quantile(values,.75),2),p95:round(quantile(values,.95),2)}));
-  const neutral=Math.max(.002,Math.sqrt(horizonBars)*(.25*(quantile(sample,.75)-quantile(sample,.25))));
+  const neutral=Math.max(.002,Math.sqrt(horizonBars)*(.25*((quantile(sample,.75)??0)-(quantile(sample,.25)??0))));
   const bull=terminal.filter(value=>value/last-1>neutral).length/paths;const bear=terminal.filter(value=>value/last-1< -neutral).length/paths;
   return {paths,fan,probabilities:{bull:round(bull,4),base:round(1-bull-bear,4),bear:round(bear,4)},terminal:{p05:fan.at(-1).p05,p50:fan.at(-1).p50,p95:fan.at(-1).p95}};
 }
 
-export function buildDecisionProvenGraph(raw,{asset='BTC',interval='15m',horizonBars=16,now=Date.now()}={}){
+function marketState(metrics){
+  const trend=metrics.trendPerBarPct>.015?'uptrend':metrics.trendPerBarPct<-.015?'downtrend':'range';
+  const momentum=metrics.rsi14>=70?'overbought':metrics.rsi14<=30?'oversold':metrics.rsi14>=55?'positive momentum':metrics.rsi14<=45?'negative momentum':'neutral momentum';
+  return {trend,momentum,label:trend+' · '+momentum};
+}
+
+function makeQellyView(metrics,forecast,last,truthState,confidence){
+  const freshnessOk=truthState==='LIVE'||truthState==='DELAYED';const bull=forecast.probabilities.bull;const bear=forecast.probabilities.bear;
+  const bullish=metrics.trendPerBarPct>0&&metrics.rsi14>=50&&metrics.rsi14<72&&bull>bear+.08;
+  const bearish=metrics.trendPerBarPct<0&&metrics.rsi14<=50&&metrics.rsi14>28&&bear>bull+.08;
+  let action='WAIT';if(!freshnessOk||confidence<.55)action='NO TRADE';else if(bullish)action='BUY';else if(bearish)action='SELL';
+  const supported=(action==='BUY'||action==='SELL')&&confidence>=.62&&Number.isFinite(metrics.atrPct)&&metrics.atrPct>0;
+  const direction=action==='BUY'?1:-1;const atr=last*metrics.atrPct/100;let levels=null;
+  if(supported){const entry=[last-.2*atr,last+.2*atr].sort((a,b)=>a-b);const invalidation=last-direction*1.25*atr;const targets=[last+direction*atr,last+direction*2*atr,last+direction*3*atr];levels={entryZone:entry.map(value=>round(value,2)),invalidation:round(invalidation,2),targets:targets.map(value=>round(value,2)),riskReward:[round(1/1.25,2),round(2/1.25,2),round(3/1.25,2)]};}
+  const leading=action==='BUY'?bull:action==='SELL'?bear:Math.max(bull,bear);
+  const why=[metrics.trendPerBarPct>=0?'Trend slope is non-negative.':'Trend slope is negative.',metrics.rsi14>=50?'RSI shows stronger buying momentum.':'RSI shows weaker buying momentum.','Scenario balance is '+Math.round(bull*100)+'% bull / '+Math.round(forecast.probabilities.base*100)+'% base / '+Math.round(bear*100)+'% bear.'];
+  return {action,confidence:round(Math.min(confidence,.45+leading*.55),2),levels,why,changesIf:action==='BUY'?'Momentum falls below neutral, price breaches invalidation, or fresh evidence weakens the bull case.':action==='SELL'?'Momentum recovers above neutral, price breaches invalidation, or fresh evidence weakens the bear case.':'A clearer directional edge appears with fresh evidence and aligned trend, momentum and scenario probabilities.',label:action==='NO TRADE'?'Evidence quality is too weak for a directional research signal.':action==='WAIT'?'No directional edge clears the evidence threshold.':'Research signal only — not a recommendation or guaranteed outcome.'};
+}
+
+function analyzeSelection(candles,selection){
+  const start=finite(selection?.start),end=finite(selection?.end);if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start)return null;
+  const selected=candles.filter(item=>item.time>=start&&item.time<=end);if(selected.length<2)return null;
+  const previous=candles.filter(item=>item.time<start).slice(-selected.length);const first=selected[0],last=selected.at(-1);const changePct=(last.close/first.open-1)*100;
+  const selectedReturns=selected.slice(1).map((item,index)=>Math.log(item.close/selected[index].close));const previousReturns=previous.slice(1).map((item,index)=>Math.log(item.close/previous[index].close));
+  const volatility=(items)=>Math.sqrt(mean(items.map(value=>(value-mean(items))**2)))*100;
+  const selectedVolume=mean(selected.map(item=>item.volume));const previousVolume=mean(previous.map(item=>item.volume));const volumeRatio=previousVolume?selectedVolume/previousVolume:null;
+  const evidence=[
+    {type:'price',title:(changePct>=0?'Price advanced ':'Price declined ')+Math.abs(round(changePct,2))+'%',detail:'From '+round(first.open,2)+' to '+round(last.close,2)+' across '+selected.length+' candles.',direction:changePct>=0?'supports upside':'supports downside',strength:clamp(Math.abs(changePct)/5,0,1)},
+    {type:'volume',title:Number.isFinite(volumeRatio)?'Volume ran '+round(volumeRatio,2)+'× the prior window':'Prior volume comparison unavailable',detail:'Average selected-window volume compared with an equal-length preceding window.',direction:Number.isFinite(volumeRatio)&&volumeRatio>=1.25?'confirms participation':'does not confirm broad participation',strength:Number.isFinite(volumeRatio)?clamp(Math.abs(volumeRatio-1),0,1):0},
+    {type:'volatility',title:'Realized move volatility '+round(volatility(selectedReturns),2)+'%',detail:previous.length>1?'Prior equal window: '+round(volatility(previousReturns),2)+'%.':'Not enough preceding candles for a stable comparison.',direction:previous.length>1&&volatility(selectedReturns)>volatility(previousReturns)*1.25?'regime expansion':'stable or contracting regime',strength:previous.length>1?clamp(Math.abs(volatility(selectedReturns)-volatility(previousReturns))*5,0,1):0}
+  ].sort((a,b)=>b.strength-a.strength).map((item,index)=>({...item,rank:index+1,strength:round(item.strength,2)}));
+  return {start:new Date(first.time).toISOString(),end:new Date(last.time).toISOString(),candles:selected.length,changePct:round(changePct,2),rangePct:round((Math.max(...selected.map(item=>item.high))/Math.min(...selected.map(item=>item.low))-1)*100,2),volumeRatio:round(volumeRatio,2),volatilityPct:round(volatility(selectedReturns),2),priorVolatilityPct:previous.length>1?round(volatility(previousReturns),2):null,evidence};
+}
+
+export function buildDecisionProvenGraph(raw,{asset='BTC',interval='15m',horizonBars=16,now=Date.now(),selection=null}={}){
   const intervalMs=INTERVAL_MS[interval];if(!intervalMs)throw new Error('Unsupported interval');
-  const candles=normalizeCandles(raw).filter(item=>item.time<=now+intervalMs);
-  if(candles.length<80)throw new Error('At least 80 valid candles are required');
+  const candles=normalizeCandles(raw).filter(item=>item.time<=now+intervalMs);if(candles.length<80)throw new Error('At least 80 valid candles are required');
   const {returns,metrics}=metricSet(candles,intervalMs);const fingerprint=hash(JSON.stringify(candles));const forecast=scenarios(candles,returns,horizonBars,parseInt(fingerprint,16));const observedAt=candles.at(-1).time;const ageMs=Math.max(0,now-observedAt);
-  const truthState=ageMs<=intervalMs*2?'LIVE':ageMs<=intervalMs*6?'DELAYED':ageMs<=intervalMs*24?'STALE':'DEGRADED';
-  const confidence=round(clamp(.35+Math.min(.35,candles.length/1000)+Math.max(0,.2-ageMs/(intervalMs*100)),.2,.9),2);
-  const last=candles.at(-1).close;const graphId=`dpg-${asset.toLowerCase()}-${interval}-${observedAt}-${fingerprint}`;
-  const nodes=[{id:'history',kind:'observation',label:`${candles.length} authorized candles`,state:truthState},{id:'present',kind:'market-state',label:`${asset} ${last}`,state:truthState},{id:'model',kind:'transformation',label:'Deterministic block bootstrap v1.0.0',state:'DERIVED'},{id:'future',kind:'scenario',label:`${horizonBars}-bar probability fan`,state:'MODELLED'},{id:'decision',kind:'human-gate',label:'Human decision required',state:'NOT_EXECUTED'}];
+  const truthState=ageMs<=intervalMs*2?'LIVE':ageMs<=intervalMs*6?'DELAYED':ageMs<=intervalMs*24?'STALE':'DEGRADED';const confidence=round(clamp(.35+Math.min(.35,candles.length/1000)+Math.max(0,.2-ageMs/(intervalMs*100)),.2,.9),2);
+  const last=candles.at(-1).close;const state=marketState(metrics);const qellyView=makeQellyView(metrics,forecast,last,truthState,confidence);const selectedMove=analyzeSelection(candles,selection);const graphId='dpg-'+asset.toLowerCase()+'-'+interval+'-'+observedAt+'-'+fingerprint;
+  const nodes=[{id:'history',kind:'observation',label:candles.length+' validated candles',state:truthState},{id:'present',kind:'market-state',label:asset+' '+last,state:truthState},{id:'model',kind:'transformation',label:'Deterministic block bootstrap v1.1.0',state:'DERIVED'},{id:'future',kind:'scenario',label:horizonBars+'-bar probability fan',state:'MODELLED'},{id:'decision',kind:'research-view',label:'QELLY VIEW '+qellyView.action,state:'RESEARCH_ONLY'}];
   const edges=[['history','present','establishes'],['history','model','samples'],['present','future','anchors'],['model','future','derives'],['future','decision','informs']].map(([from,to,type])=>({from,to,type}));
-  return {schemaVersion:'qelly.decision-proven-graph/1.0.0',graphId,generatedAt:new Date(now).toISOString(),truthState,execution:false,asset,interval,horizonBars,observedAt:new Date(observedAt).toISOString(),freshness:{ageMs,intervalMs,state:truthState},market:{lastPrice:last,firstTime:new Date(candles[0].time).toISOString(),points:candles.length,candles:candles.slice(-240)},metrics,forecast,confidence:{score:confidence,calibration:'Out-of-sample calibration is not yet measured; confidence reflects sample size and freshness only.'},invalidation:{lower:forecast.terminal.p05,upper:forecast.terminal.p95,condition:`Recalculate when price exits the model p05–p95 interval (${forecast.terminal.p05}–${forecast.terminal.p95}) or source freshness degrades.`},provenance:{provider:'Hyperliquid',sourceType:'authorized-public-read',endpoint:'https://api.hyperliquid.xyz/info',documentation:'https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint',request:{type:'candleSnapshot',coin:asset,interval},dataFingerprint:fingerprint,model:{id:'qelly-deterministic-block-bootstrap',version:'1.0.0',paths:forecast.paths,features:['log returns','EWMA volatility','ATR','Parkinson volatility','trend OLS','RSI','historical VaR/ES','drawdown'],limitations:['Scenarios are statistical, not predictions or investment advice.','One public venue is observed; cross-provider agreement is unavailable.','No transaction costs, liquidity depth, news or macro regime inputs are modelled.']}},graph:{nodes,edges,textAlternative:edges.map(edge=>`${nodes.find(node=>node.id===edge.from).label} ${edge.type} ${nodes.find(node=>node.id===edge.to).label}.`)}};
+  return {schemaVersion:'qelly.decision-proven-graph/1.1.0',graphId,generatedAt:new Date(now).toISOString(),truthState,execution:false,asset,interval,horizonBars,observedAt:new Date(observedAt).toISOString(),freshness:{ageMs,intervalMs,state:truthState},market:{lastPrice:last,firstTime:new Date(candles[0].time).toISOString(),points:candles.length,currentState:state,candles:candles.slice(-240)},metrics,forecast,qellyView,selection:selectedMove,confidence:{score:confidence,calibration:'Confidence reflects evidence freshness, sample depth and scenario agreement; it is not a success probability.'},invalidation:{lower:forecast.terminal.p05,upper:forecast.terminal.p95,condition:'Recalculate when price exits the model p05–p95 interval ('+forecast.terminal.p05+'–'+forecast.terminal.p95+') or evidence freshness degrades.'},provenance:{provider:'Hyperliquid',sourceType:'public market data',documentation:'https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint',request:{type:'candleSnapshot',coin:asset,interval},dataFingerprint:fingerprint,model:{id:'qelly-deterministic-block-bootstrap',version:'1.1.0',paths:forecast.paths,features:['log returns','EWMA volatility','ATR','Parkinson volatility','trend OLS','RSI','historical VaR/ES','drawdown'],limitations:['Scenarios are statistical research, not predictions or investment advice.','One public venue is observed; cross-provider agreement is not yet available.','No transaction costs or user-specific suitability are modelled.']}},graph:{nodes,edges,textAlternative:edges.map(edge=>nodes.find(node=>node.id===edge.from).label+' '+edge.type+' '+nodes.find(node=>node.id===edge.to).label+'.')}};
 }
 
 export const DECISION_INTERVALS=INTERVAL_MS;
-

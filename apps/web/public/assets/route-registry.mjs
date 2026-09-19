@@ -77,7 +77,7 @@ const routes = [
   { section:'Experience', route:'theme-personas', label:'Theme Personas', icon:icon('theme'), meta:'P22' },
   { section:'Experience', route:'feature-universe', label:'Feature Universe', icon:icon('spark'), meta:'P22' , public:true },
   { section:'Company', route:'about-qelly', label:'About Qelly', icon:icon('brand'), meta:'P22' , public:true },
-  { section:'Discover', route:'discovery-hub', label:'Discovery Overview', icon:icon('discovery'), meta:'W5' },
+  { section:'Discover', route:'discovery-hub', label:'Discovery Overview', icon:icon('discovery'), meta:'Public', public:true },
   { section:'Discover', route:'asset-rankings', label:'Asset Rankings', icon:icon('ranking'), meta:'W5' , public:true },
   { section:'Discover', route:'search', label:'Universal Search', icon:icon('search'), meta:'W5', public:true },
   { section:'Discover', route:'categories', label:'Categories', icon:icon('categories'), meta:'W5', public:true },
@@ -86,7 +86,7 @@ const routes = [
   { section:'Discover', route:'global-charts', label:'Global Charts', icon:icon('chart'), meta:'W5', public:true },
   { section:'Discover', route:'converter', label:'FX Reference Converter', icon:icon('convert'), meta:'Public', public:true },
   { section:'Discover', route:'news-research', label:'Qelly Chat & Research', icon:icon('news'), meta:'Flagship', public:true },
-  { section:'Discover', route:'trust-center', label:'Trust Center', icon:icon('trust'), meta:'W5' },
+  { section:'Discover', route:'trust-center', label:'Research Methodology', icon:icon('trust'), meta:'Public', public:true },
   { section:'Intelligence', route:'asset-intelligence', label:'Asset Intelligence', icon:icon('asset'), meta:'Public', public:true },
   { section:'Intelligence', route:'advanced-chart', label:'Advanced Chart Studio', icon:icon('chart'), meta:'Public', public:true },
   { section:'Intelligence', route:'fundamentals-estimates', label:'Fundamentals & Estimates', icon:icon('research'), meta:'Public', public:true },
@@ -104,7 +104,7 @@ const routes = [
   { section:'Workspace', route:'research-workspace', label:'Research Workspace', icon:icon('research'), meta:'W7' },
   { section:'Workspace', route:'onboarding', label:'Guided Onboarding', icon:icon('onboarding'), meta:'P21' },
   { section:'Workspace', route:'notification-schedules', label:'Notification Schedules', icon:icon('schedule'), meta:'P21' },
-  { section:'Workspace', route:'formula-screener', label:'Formula Screener', icon:icon('formula'), meta:'P21' },
+  { section:'Workspace', route:'formula-screener', label:'Formula Screener', icon:icon('formula'), meta:'Public', public:true },
   { section:'Workspace', route:'portfolio-attribution', label:'Portfolio Attribution', icon:icon('portfolio'), meta:'P21' },
   { section:'Workspace', route:'import-center', label:'Import Center', icon:icon('import'), meta:'P21' },
   { section:'Workspace', route:'research-history', label:'Research History', icon:icon('history'), meta:'P21' },
@@ -119,9 +119,9 @@ const routes = [
   { section:'Evidence', route:'decision-provenance', label:'Decision Proven Graph', icon:icon('evidence'), meta:'Flagship', public:true },
   { section:'Evidence', route:'qelly-verify', label:'Qelly Verify', icon:icon('check'), meta:'V5.4', public:true },
   { section:'Evidence', route:'security-evidence', label:'Security Evidence', icon:icon('security'), meta:'W2' },
-  { section:'Detail', route:'category-detail', label:'Category Detail', icon:icon('categories'), meta:'W5', hidden:true },
-  { section:'Detail', route:'venue-detail', label:'Venue Detail', icon:icon('venue'), meta:'W5', hidden:true },
-  { section:'Detail', route:'research-article', label:'Research Article', icon:icon('research'), meta:'W5', hidden:true }
+  { section:'Detail', route:'category-detail', label:'Category Detail', icon:icon('categories'), meta:'Public', hidden:true, public:true },
+  { section:'Detail', route:'venue-detail', label:'Venue Detail', icon:icon('venue'), meta:'Public', hidden:true, public:true },
+  { section:'Detail', route:'research-article', label:'Research Article', icon:icon('research'), meta:'Public', hidden:true, public:true }
 ];
 
 const FEATURE_GUIDE=Object.freeze({
