@@ -75,7 +75,9 @@ test('legacy live-market API preserves provider-specific contracts while the pub
   assert.match(route,/liveMarketAsset/);
   assert.match(wrapper,/renderGlobalMarketNetwork/);
   assert.match(ui,/\/api\/v1\/market\/network/);
-  assert.match(ui,/Coinbase \/ Binance blocked/);
+  assert.match(ui,/Unavailable sources/);
+  assert.match(ui,/Missing or unavailable sources stay unavailable/);
+  assert.doesNotMatch(ui,/Coinbase \/ Binance blocked|Crypto provider rights/i);
   assert.doesNotMatch(ui,/\/api\/v1\/live-markets\/candles\?provider=/);
 });
 
