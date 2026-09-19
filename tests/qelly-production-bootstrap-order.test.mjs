@@ -26,3 +26,9 @@ test('production runtime initializes immediately when the parsed shell is alread
   assert.match(runtime,/else if\(document\.readyState==='loading'\)document\.addEventListener\('DOMContentLoaded',install,\{once:true\}\)/);
   assert.doesNotMatch(runtime,/^if\(document\.readyState==='loading'\)document\.addEventListener\('DOMContentLoaded',install/m);
 });
+
+
+test('pre-ready app gate prevents descendant chrome from painting before reveal',async()=>{
+  const index=await read('apps/web/public/index.html');
+  assert.match(index,/html\[data-app-ready="false"\] \.q-app\{visibility:hidden;opacity:0;pointer-events:none\}/);
+});
