@@ -8,6 +8,14 @@ const STATIC_SECURITY=Object.freeze({
   'Strict-Transport-Security':'max-age=31536000; includeSubDomains; preload'
 });
 export async function onRequest(context){
+  const requestUrl=new URL(context.request.url);
+  if(requestUrl.pathname==='/methodology/verify'){
+    const location=new URL('/#/qelly-verify',requestUrl.origin).toString();
+    const redirect=new Response(null,{status:308,headers:{Location:location}});
+    for(const [name,value] of Object.entries(STATIC_SECURITY))redirect.headers.set(name,value);
+    redirect.headers.set('X-Qelly-Release',String(context.env.QELLY_PUBLIC_RELEASE_SHA||context.env.CF_PAGES_COMMIT_SHA||'unresolved'));
+    return redirect;
+  }
   const response=await context.next();
   const next=new Response(response.body,response);
   for(const [name,value] of Object.entries(STATIC_SECURITY))if(!next.headers.has(name))next.headers.set(name,value);
