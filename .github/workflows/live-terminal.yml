@@ -220,7 +220,7 @@ jobs:
             return {...evidence,externalDisplayFailures};
           };
           (async()=>{
-            const canonical=await run(`${process.env.PUBLIC_URL}/?verify=${process.env.RELEASE_SHA}#/live-markets`,'qelly-intelligence.pages.dev','cloudflare-live-markets');
+            const canonical=await run(`${process.env.PUBLIC_URL}/?verify=${process.env.RELEASE_SHA}#/live-markets`,'terminal.qellyintelligence.com','cloudflare-live-markets');
             const mirror=await run(`${process.env.MIRROR_URL}?verify=${process.env.RELEASE_SHA}#/live-markets`,'hemangsah.github.io','github-live-markets');
             fs.writeFileSync('dist/live-terminal-acceptance/browser-evidence.json',JSON.stringify({canonical,mirror},null,2));
           })().catch(error=>{console.error(error);process.exit(1);});
