@@ -9,7 +9,7 @@ test('Pages workflow deploys the release-line production mirror instead of stati
   assert.match(workflow,/branches: \[release\/qelly-global-public-beta\]/);
   assert.match(workflow,/QELLY_GITHUB_PAGES_MIRROR: 'true'/);
   assert.match(workflow,/QELLY_STATIC_VISUAL_PREVIEW: 'false'/);
-  assert.match(workflow,/QELLY_PUBLIC_API_BASE_URL: https:\/\/qelly-intelligence\.pages\.dev/);
+  assert.match(workflow,/QELLY_PUBLIC_API_BASE_URL: https:\/\/terminal\.qellyintelligence\.com/);
   assert.match(workflow,/path: dist\/frontend/);
   assert.match(workflow,/Verify canonical API permits read-only mirror CORS/);
   assert.match(workflow,/name: qelly-github-pages-release/);
@@ -54,7 +54,7 @@ test('Cloudflare API middleware grants GitHub only safe read CORS, never mutatio
 test('mirror finalizer preserves GitHub runtime base but canonicalizes SEO to Cloudflare',async()=>{
   const source=await read('scripts/finalize-github-pages-mirror.mjs');
   assert.match(source,/MIRROR_URL='https:\/\/hemangsah\.github\.io\/qelly-intelligence'/);
-  assert.match(source,/CANONICAL_URL='https:\/\/qelly-intelligence\.pages\.dev'/);
+  assert.match(source,/CANONICAL_URL='https:\/\/terminal\.qellyintelligence\.com'/);
   assert.match(source,/noindex,follow,noarchive/);
   assert.match(source,/qelly-github-pages-mirror\.mjs/);
   assert.match(source,/await rm\(path\.join\(directory,'_routes\.json'\),\{force:true\}\)/);
