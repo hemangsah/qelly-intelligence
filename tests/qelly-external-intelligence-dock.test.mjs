@@ -40,8 +40,16 @@ test('Market Command exposes the lazy accessible intelligence dock',async()=>{
 });
 
 
-test('X timeline iframe keeps a bounded visible height inside the intelligence dock',async()=>{
-  const css=await read('../apps/web/public/assets/routes/market-v6.css');
+test('X timeline fails closed instead of treating a hidden zero-height embed as ready',async()=>{
+  const [source,css]=await Promise.all([
+    read('../apps/web/public/assets/market/external-intelligence-widgets.mjs'),
+    read('../apps/web/public/assets/routes/market-v6.css')
+  ]);
   assert.match(css,/\.q-x-shell\{height:620px;min-height:620px;/);
-  assert.match(css,/\.q-x-shell iframe\{display:block;width:100%!important;height:100%!important;min-height:100%!important;border:0!important\}/);
+  assert.match(css,/\.q-x-shell\[hidden\]\{display:none\}/);
+  assert.match(source,/visibility!=='hidden'/);
+  assert.match(source,/rendered\.getBoundingClientRect\(\)\.height>=160/);
+  assert.match(source,/setInterval\(markReady,250\)/);
+  assert.match(source,/X timeline unavailable or rate-limited/);
+  assert.match(source,/shell\.hidden=true/);
 });
