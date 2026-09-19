@@ -1,6 +1,6 @@
 import {mountTradingViewDisplay,mountTradingViewWidget,tradingViewAppearance,tradingViewSymbol} from '../market/tradingview-display-widget.mjs';
 import {mountCoinMarketCapWidgets,mountHyperliquidStream,mountXTimeline,PROVIDER_PORTALS} from '../market/external-intelligence-widgets.mjs';
-import {providerAvailability,providerPolicyMessage,truthLabel} from '../customer-copy.mjs';
+import {truthLabel} from '../customer-copy.mjs';
 
 const EXTERNAL_SYMBOLS=Object.freeze([
   ['BTCUSDT','BTC / USDT'],
@@ -36,17 +36,6 @@ const INTELLIGENCE_DOCK_PANELS=Object.freeze([
 const tone=(value)=>{const state=String(value||'').toUpperCase();if(['ENABLED','REFERENCE_ENABLED','LIVE','MATCH','PASS'].includes(state))return 'live';if(['DELAYED','DELAYED_PROVIDER','WARNING','CACHED','CACHED_PROVIDER'].includes(state))return 'delayed';if(['UNAVAILABLE','DENY','MISMATCH','BLOCKED'].includes(state))return 'unavailable';return 'cached';};
 const date=(value)=>{const parsed=new Date(value||'');return Number.isNaN(parsed.getTime())?'Not supplied':parsed.toLocaleString('en-IN');};
 const value=(input)=>input==null||input===''?'—':new Intl.NumberFormat('en-IN',{maximumFractionDigits:6}).format(Number(input));
-const integrationLabel=(input)=>String(input||'catalogued').replaceAll('-',' ');
-
-function providerCard(provider,escapeHtml){
-  const availability=providerAvailability(provider);
-  return `<article class="q-v7-provider-card" data-provider="${escapeHtml(provider.id)}">
-    <div><strong>${escapeHtml(String(provider.id||'provider').toUpperCase())}</strong><span class="q-status q-status--${availability.tone}">${escapeHtml(availability.label)}</span></div>
-    <p>${escapeHtml(providerPolicyMessage(provider))}</p>
-    ${provider.termsUrl?`<a href="${escapeHtml(provider.termsUrl)}" target="_blank" rel="noopener noreferrer nofollow">Provider terms ↗</a>`:''}
-  </article>`;
-}
-
 function governedRates(ecb,escapeHtml){
   const rates=ecb?.data?.rates||{};
   const preferred=['USD','INR','GBP','JPY','CHF','CNY','CAD','AUD','SGD','AED'];
@@ -76,43 +65,13 @@ function networkSourceCard(source,escapeHtml){
   return `<article class="q-public-source-card" data-source="${escapeHtml(source?.id||'source')}"><header><div><span>${escapeHtml(source?.label||source?.id||'External source')}</span><small>${escapeHtml(source?.attribution||'External provider')}</small></div><em class="q-status q-status--${tone(state)}">${escapeHtml(truthLabel(state))}</em></header><div class="q-public-source-values">${rows||'<p>No current observations were returned. Qelly has not substituted values.</p>'}</div><footer><span>${escapeHtml(source?.cadence||source?.usage||'Source cadence disclosed by provider.')}</span>${source?.docsUrl?`<a href="${escapeHtml(source.docsUrl)}" target="_blank" rel="noopener noreferrer nofollow">Source docs ↗</a>`:''}</footer></article>`;
 }
 
-function providerAtlasCard(provider,escapeHtml){
-  return `<article class="q-provider-atlas-card" data-provider-atlas-card data-search="${escapeHtml(`${provider.name} ${provider.category} ${provider.integration} ${(provider.aliases||[]).join(' ')}`.toLowerCase())}" data-integration="${escapeHtml(provider.integration)}"><div><strong>${escapeHtml(provider.name)}</strong><span>${escapeHtml(integrationLabel(provider.integration))}</span></div><small>${escapeHtml(provider.category)}</small><p>${escapeHtml(provider.note)}</p>${provider.url?`<a href="${escapeHtml(provider.url)}" target="_blank" rel="noopener noreferrer nofollow">Official / supplied destination ↗</a>`:'<em>No approved public destination recorded</em>'}</article>`;
-}
-
-function bindProviderAtlas(root){
-  if(!root?.isConnected)return;
-  const search=root.querySelector('[data-provider-atlas-search]');
-  const filter=root.querySelector('[data-provider-atlas-filter]');
-  const count=root.querySelector('[data-provider-atlas-count]');
-  const cards=[...root.querySelectorAll('[data-provider-atlas-card]')];
-  const apply=()=>{
-    const query=String(search?.value||'').trim().toLowerCase();
-    const integration=String(filter?.value||'all');
-    let visible=0;
-    for(const card of cards){const show=(!query||card.dataset.search.includes(query))&&(integration==='all'||card.dataset.integration===integration);card.hidden=!show;if(show)visible+=1;}
-    if(count)count.textContent=`${visible} of ${cards.length} providers`;
-  };
-  search?.addEventListener('input',apply);filter?.addEventListener('change',apply);apply();
-}
-
 function populateNetworkSections(root,network,escapeHtml){
   if(!root?.isConnected)return;
   const networkSources=Object.values(network?.sources||{});
-  const providerDirectory=Array.isArray(network?.providerDirectory)?network.providerDirectory:[];
-  const integrationModes=Object.keys(network?.providerDirectorySummary?.byIntegration||{}).sort();
   const sourceGrid=root.querySelector('[data-public-source-grid]');
   const sourceStatus=root.querySelector('[data-public-source-status]');
-  const atlas=root.querySelector('[data-provider-atlas]');
-  const atlasStatus=root.querySelector('[data-provider-atlas-status]');
-  const atlasFilter=atlas?.querySelector('[data-provider-atlas-filter]');
-  const atlasGrid=atlas?.querySelector('[data-provider-atlas-grid]');
   if(sourceGrid)sourceGrid.innerHTML=networkSources.map((source)=>networkSourceCard(source,escapeHtml)).join('')||'<div class="q-empty-state"><strong>Public data network unavailable</strong><p>No source values were substituted.</p></div>';
   if(sourceStatus){sourceStatus.className=`q-status q-status--${networkSources.some((source)=>source?.truthState==='live')?'live':'delayed'}`;sourceStatus.textContent=`${networkSources.filter((source)=>source?.data!=null).length} SOURCES AVAILABLE`;}
-  if(atlasFilter)atlasFilter.innerHTML=`<option value="all">All states</option>${integrationModes.map((mode)=>`<option value="${escapeHtml(mode)}">${escapeHtml(integrationLabel(mode))}</option>`).join('')}`;
-  if(atlasGrid)atlasGrid.innerHTML=providerDirectory.map((provider)=>providerAtlasCard(provider,escapeHtml)).join('')||'<div class="q-empty-state"><strong>Provider atlas unavailable</strong><p>The supplied candidates could not be loaded.</p></div>';
-  if(atlasStatus)atlasStatus.textContent=`${providerDirectory.length} CATALOGUED`;
-  bindProviderAtlas(atlas);
 }
 
 function panelConfig(panel,{symbol,interval}){
@@ -223,13 +182,7 @@ function mountExternalIntelligenceDock(root,{escapeHtml}){
 
 export async function renderMarketV6(main,deps){
   const {api,pageHead,stateBanner,escapeHtml}=deps;
-  const [overviewResult,ecbResult]=await Promise.allSettled([
-    api('/api/v1/public/markets/overview'),
-    api('/api/v1/providers/ecb?capability=fx-reference-rates&symbol=EUR')
-  ]);
-  const overview=overviewResult.status==='fulfilled'?overviewResult.value:{providers:[],guardrails:{fabricatedObservations:false}};
-  const ecb=ecbResult.status==='fulfilled'?ecbResult.value:null;
-  const providers=Array.isArray(overview.providers)?overview.providers:[];
+  const ecb=await api('/api/v1/providers/ecb?capability=fx-reference-rates&symbol=EUR').catch(()=>null);
   const symbolOptions=EXTERNAL_SYMBOLS.map(([id,label])=>`<option value="${id}">${label}</option>`).join('');
   const intervalOptions=INTERVALS.map(([id,label])=>`<option value="${id}">${label}</option>`).join('');
   const ecbObservedAt=ecb?.observationTime||ecb?.observedAt||null;
@@ -255,12 +208,11 @@ export async function renderMarketV6(main,deps){
         <div class="q-panel-body">
           <div class="q-control-row q-v6-market-controls"><label class="q-setting"><span>Display symbol</span><select id="v6-market-symbol">${symbolOptions}</select></label><label class="q-setting"><span>Display interval</span><select id="v6-market-interval">${intervalOptions}</select></label><div class="q-setting q-query-boundary"><span>Analytics boundary</span><strong>External values excluded</strong><small>Never used for Qelly calculations, risk, alerts or decisions.</small></div></div>
           <div id="v6-market-tradingview" class="q-v7-chart-stage q-v6-market-tradingview" aria-label="TradingView external market chart"></div>
-          <div class="q-chart-attribution"><span>External provider boundary · analytics reuse prohibited</span><span>Qelly provider truth remains independently governed.</span></div>
+          <div class="q-chart-attribution"><span>TradingView display only</span><span>Displayed widget values are not used in Qelly calculations.</span></div>
         </div>
       </section>
 
       <aside class="q-v7-side-stack">
-        <section class="q-panel"><div class="q-panel-head"><div><h2>Provider rights matrix</h2><p>Authorization, not technical reachability, controls internal display.</p></div></div><div class="q-panel-body q-v7-provider-grid">${providers.map(provider=>providerCard(provider,escapeHtml)).join('')||'<div class="q-empty-state">Provider registry unavailable.</div>'}</div></section>
         <section class="q-panel"><div class="q-panel-head"><div><h2>Professional research links</h2><p>External sources open in separate trust boundaries.</p></div></div><div class="q-panel-body q-v7-link-grid"><a class="q-button q-button--secondary" href="https://www.tradingview.com/markets/" target="_blank" rel="noopener noreferrer nofollow">TradingView Markets ↗</a><a class="q-button q-button--secondary" href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener noreferrer nofollow">Forex Factory Calendar ↗</a><a class="q-button q-button--secondary" href="https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html" target="_blank" rel="noopener noreferrer nofollow">ECB Reference Rates ↗</a><a class="q-button q-button--secondary" href="https://www.cmegroup.com/markets.html" target="_blank" rel="noopener noreferrer nofollow">CME Markets ↗</a></div></section>
       </aside>
     </div>
@@ -285,11 +237,8 @@ export async function renderMarketV6(main,deps){
 
     <section class="q-panel q-public-data-board"><div class="q-panel-head"><div><p class="q-eyebrow">Governed live and reference network</p><h2>Global public data board</h2><p>Official/public feeds keep their own cadence, attribution and truth state. Reference observations are never presented as tradable quotes.</p></div><span class="q-status q-status--cached" data-public-source-status>LOADING SOURCES</span></div><div class="q-panel-body q-public-source-grid" data-public-source-grid><div class="q-empty-state"><strong>Connecting public data network</strong><p>Slow reference providers load in the background and never block Market Command.</p></div></div></section>
 
-    <section class="q-panel q-provider-atlas" data-provider-atlas><div class="q-panel-head"><div><p class="q-eyebrow">Supplied provider universe</p><h2>Provider, API and embed atlas</h2><p>Every named provider is discoverable here. “Catalogued” never means licensed, live, free, embeddable or endorsed.</p></div><span class="q-status q-status--cached" data-provider-atlas-status>LOADING CATALOG</span></div><div class="q-panel-body"><div class="q-provider-atlas-controls"><label><span>Search providers</span><input type="search" placeholder="Search name, market or integration…" autocomplete="off" data-provider-atlas-search></label><label><span>Integration state</span><select data-provider-atlas-filter><option value="all">All states</option></select></label><strong data-provider-atlas-count>0 providers</strong></div><div class="q-provider-atlas-grid" data-provider-atlas-grid><div class="q-empty-state"><strong>Loading provider atlas</strong><p>Discovery metadata loads independently from the primary market terminal.</p></div></div></div></section>
-
     <section class="q-panel q-v7-reference-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Approved reference observations</p><h2>ECB euro reference rates</h2><p>Source timing is preserved. Reference rates are informational and are not tradable quotes.</p></div><span class="q-status q-status--${tone(ecb?.truthState)}">${escapeHtml(truthLabel(ecbTruth))}</span></div><div class="q-panel-body"><div class="q-v7-rate-grid">${governedRates(ecb,escapeHtml)}</div><div class="q-v7-evidence-strip"><span>Source: European Central Bank</span><span>Observed: ${escapeHtml(date(ecbObservedAt))}</span><span>Updated: ${escapeHtml(date(ecbIngestedAt))}</span><span>Research only</span></div></div></section>
 
-    <section class="q-panel"><div class="q-panel-head"><div><h2>Production boundary</h2><p>The public market route uses only anonymous/public contracts. Private data-plane and workspace APIs are requested only after authentication.</p></div><span class="q-status q-status--live">PUBLIC SAFE</span></div><div class="q-panel-body"><div class="q-v6-market-boundary"><span class="q-status q-status--unavailable">NO FALLBACK FABRICATION</span><p>${escapeHtml(overview.reason||'If an internal provider is unavailable or rights-blocked, Qelly exposes that state directly.')}</p></div></div></section>
   </section>`;
 
   const marketRoot=main.querySelector('[data-qelly-v7-public-market]');
