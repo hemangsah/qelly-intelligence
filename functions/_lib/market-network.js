@@ -241,7 +241,7 @@ export function buildAssetRankings(sources={}){
     version:'governed-candidate-ranking-v1',
     state:primaryReady?'available':'unavailable',
     purpose:'Narrow the governed crypto sample into research candidates using declared, adjustable criteria.',
-    universe:{label:'Alternative.me attributed top-10 crypto sample',assetClass:'crypto',candidateCount:candidates.length,observedAt:alternative?.observedAt||null,truthState:normalizedTruthState(alternative)},
+    universe:{label:`Alternative.me attributed ${primaryRows.length}-row crypto sample`,assetClass:'crypto',sourceRowCount:primaryRows.length,candidateCount:candidates.length,observedAt:alternative?.observedAt||null,truthState:normalizedTruthState(alternative)},
     candidates,
     exclusions,
     methodology:{
