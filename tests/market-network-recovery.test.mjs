@@ -56,8 +56,9 @@ test('market terminal exposes cross-asset display and explicit research/license 
   const helper=await readFile(new URL('../functions/_lib/market-network.js',import.meta.url),'utf8');
   const widget=await readFile(new URL('../apps/web/public/assets/market/tradingview-display-widget.mjs',import.meta.url),'utf8');
   assert.match(route,/Global Market Network/);
-  assert.match(route,/Fabricated fallback/);
-  assert.match(route,/CoinPaprika Free is not used for commercial production redistribution/);
+  assert.match(route,/TradingView is a display-only research surface/);
+  assert.match(route,/Source details/);
+  assert.doesNotMatch(route,/Production truth|Crypto provider rights|CoinPaprika Free is not used for commercial production redistribution/);
   for(const symbol of ['XAUUSD','EURUSD','USDINR','SPX','NIFTY','HSI','NI225','USOIL'])assert.match(widget,new RegExp(symbol));
   assert.match(helper,/Alternative\.me/);
   assert.match(helper,/Hyperliquid/);
