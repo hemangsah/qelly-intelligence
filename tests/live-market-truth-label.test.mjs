@@ -18,17 +18,21 @@ test('Global Market Network keeps external display separate from governed analyt
   assert.match(source,/Qelly does not scrape or reuse widget values/);
   assert.match(source,/Provider provenance/);
   assert.match(source,/ECB governed FX reference/);
-  assert.match(source,/Coinbase \/ Binance blocked/);
-  assert.match(source,/Fabricated fallback/);
+  assert.match(source,/Data reliability/);
+  assert.match(source,/Source lineage/);
+  assert.match(source,/Synthetic market values/);
+  assert.match(source,/Trading execution/);
+  assert.match(source,/Unavailable sources/);
   assert.match(source,/>OFF</);
+  for(const internal of [/Production truth/,/Connected runtime policy/,/Internal execution/,/Crypto provider rights/,/Coinbase \/ Binance blocked/])assert.doesNotMatch(source,internal);
   assert.doesNotMatch(source,/\/api\/v1\/live-markets\/candles/);
 });
 
 test('market network never substitutes fabricated prices or unrestricted-provider fiction',()=>{
-  assert.match(source,/No fabricated fallback values/);
-  assert.match(source,/No unrestricted-data fiction/);
-  assert.match(source,/CoinPaprika Free is not used for commercial production redistribution/);
-  assert.match(source,/CoinMarketCap keyless access is treated as evaluation\/prototype access/);
+  assert.match(source,/Never generated to fill missing price, candle, volume or market movement/);
+  assert.match(source,/Missing or unavailable sources stay unavailable/);
+  assert.match(source,/ECB observations are official reference rates, not executable market prices/);
+  assert.doesNotMatch(source,/unrestricted-data fiction|CoinPaprika Free|CoinMarketCap keyless access/i);
   assert.match(provider,/sourceFailuresRemainUnavailable:true/);
   assert.match(provider,/fabricatedFallback:false/);
   assert.doesNotMatch(`${source}\n${provider}`,/simulated-demo|qelly-governed-demo|Demonstration watch universe/i);

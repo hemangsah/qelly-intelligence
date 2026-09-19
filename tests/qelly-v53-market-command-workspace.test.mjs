@@ -23,14 +23,14 @@ test('V5.3 compatibility layers remain packaged while the current renderer has o
 
 test('Global Market Network keeps governed truth, provenance and external-display boundaries without demo observations',async()=>{
   const route=await read(routePath);
-  for(const label of ['Release','Fabricated fallback','Internal execution','Crypto provider rights'])assert.match(route,new RegExp(label));
+  for(const label of ['Data reliability','Source lineage','Synthetic market values','Trading execution','Unavailable sources'])assert.match(route,new RegExp(label));
   for(const label of ['Provider provenance','ECB governed FX reference','Global macro context','Official research network'])assert.match(route,new RegExp(label));
   assert.match(route,/id="q-market-network-chart"/);
-  assert.match(route,/Coinbase \/ Binance blocked/);
-  assert.match(route,/No fabricated fallback values/);
+  assert.match(route,/Missing or unavailable sources stay unavailable/);
+  assert.match(route,/Never generated to fill missing price, candle, volume or market movement/);
   assert.match(route,/TradingView is an external display boundary/);
   assert.match(route,/Qelly does not scrape or reuse widget values/);
-  assert.match(route,/CoinPaprika Free is not used for commercial production redistribution/);
+  assert.doesNotMatch(route,/CoinPaprika Free|CoinMarketCap keyless access|Crypto provider rights|Coinbase \/ Binance blocked/i);
   assert.doesNotMatch(route,/Demonstration watch universe|governed demo|simulated observations as live/i);
 });
 
@@ -59,7 +59,8 @@ test('Global Market Network does not introduce execution or custody controls',as
   const [css,route]=await Promise.all([read(networkCssPath),read(routePath)]);
   assert.doesNotMatch(css,/trade-button|order-entry|wallet-connect|withdraw-button/i);
   assert.doesNotMatch(route,/data-action="(?:buy|sell|execute|withdraw|transfer|connect-wallet)"/i);
-  assert.match(route,/Internal execution/);
-  assert.match(route,/>DISABLED</);
-  assert.match(route,/No fabricated fallback values/);
+  assert.match(route,/Trading execution/);
+  assert.match(route,/>NOT AVAILABLE</);
+  assert.match(route,/Synthetic market values/);
+  assert.match(route,/>OFF</);
 });

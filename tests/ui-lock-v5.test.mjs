@@ -42,11 +42,11 @@ test('Global Market Network succeeds the V5 Live Market Command with truthful ev
     read('apps/web/public/assets/routes/market-network.css')
   ]);
   assert.match(wrapper,/renderGlobalMarketNetwork/);
-  for(const phrase of ['Fabricated fallback','Internal execution','Provider provenance','ECB governed FX reference','Official research network','TradingView is an external display boundary'])assert.ok(route.includes(phrase),`missing Global Market Network contract: ${phrase}`);
+  for(const phrase of ['Data reliability','Synthetic market values','Trading execution','Provider provenance','ECB governed FX reference','Official research network','TradingView is an external display boundary'])assert.ok(route.includes(phrase),`missing Global Market Network contract: ${phrase}`);
   assert.match(route,/>OFF</);
-  assert.match(route,/>DISABLED</);
-  assert.match(route,/No fabricated fallback values/);
-  assert.match(route,/Coinbase \/ Binance blocked/);
+  assert.match(route,/>NOT AVAILABLE</);
+  assert.match(route,/Missing or unavailable sources stay unavailable/);
+  assert.doesNotMatch(route,/Coinbase \/ Binance blocked|Crypto provider rights|Internal execution/i);
   assert.doesNotMatch(route,/confidence[^\n]{0,80}(?:100|95|90|high)/i,'market network must not fabricate confidence');
   assert.doesNotMatch(route,/governed demo|simulated-demo|qelly-governed-demo/i);
   assert.match(networkCss,/\.q-mn-status-grid/);
