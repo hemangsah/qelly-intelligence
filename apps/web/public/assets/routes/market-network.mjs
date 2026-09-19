@@ -109,7 +109,7 @@ function sourceCard(source,escapeHtml,{reference=false}={}){
     <p>${escapeHtml(source.usage||source.reason||source.fallbackReason||'Source usage metadata unavailable.')}</p>
     <dl><div><dt>Observed</dt><dd>${escapeHtml(dateTime(source.observedAt,reference?'Reference cadence':'Unavailable'))}</dd></div><div><dt>Fetched</dt><dd>${escapeHtml(dateTime(fetchedAt))}</dd></div><div><dt>Delivery</dt><dd>${escapeHtml(`${cache} · ${ttl}`)}</dd></div><div><dt>Cadence</dt><dd>${escapeHtml(source.cadence||'Provider governed')}</dd></div></dl>
     <button type="button" data-source-inspect aria-expanded="false">Inspect provenance</button>
-    <div class="q-mn-source-detail" hidden><strong>Source notes</strong><p>${escapeHtml(source.usage||'Use remains constrained by the named provider policy and attribution.')}</p>${source.docsUrl||source.termsUrl?`<a href="${escapeHtml(source.docsUrl||source.termsUrl)}" target="_blank" rel="noopener noreferrer nofollow">Open source documentation ↗</a>`:''}</div>
+    <div class="q-mn-source-detail" hidden><strong>Source notes</strong><p>${escapeHtml(source.usage||'Source use follows the named source terms and attribution requirements.')}</p>${source.docsUrl||source.termsUrl?`<a href="${escapeHtml(source.docsUrl||source.termsUrl)}" target="_blank" rel="noopener noreferrer nofollow">Open source documentation ↗</a>`:''}</div>
   </article>`;
 }
 
