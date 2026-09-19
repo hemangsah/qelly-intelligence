@@ -47,6 +47,7 @@ test('X timeline fails closed instead of treating a hidden zero-height embed as 
   ]);
   assert.match(css,/\.q-x-shell\{height:620px;min-height:620px;/);
   assert.match(css,/\.q-x-shell\[hidden\]\{display:none\}/);
+  assert.match(css,/\.q-intel-dock-stage\[data-external-state="unavailable"\]\{min-height:0\}/);
   assert.match(source,/visibility!=='hidden'/);
   assert.match(source,/rendered\.getBoundingClientRect\(\)\.height>=160/);
   assert.match(source,/setInterval\(markReady,250\)/);
