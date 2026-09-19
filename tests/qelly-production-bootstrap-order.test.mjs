@@ -17,3 +17,12 @@ test('static source keeps production runtime build-gated',async()=>{
   assert.match(index,/qelly-app-ready\.mjs/);
   assert.doesNotMatch(index,/src="\.\/assets\/qelly-public-runtime\.mjs"/);
 });
+
+
+test('production runtime initializes immediately when the parsed shell is already available',async()=>{
+  const runtime=await read('apps/web/public/assets/qelly-public-runtime.mjs');
+  assert.match(runtime,/const shellAlreadyParsed=Boolean\(document\.querySelector\('#app \\.q-command-bar'\)&&document\.getElementById\('main'\)\)/);
+  assert.match(runtime,/if\(shellAlreadyParsed\)install\(\)/);
+  assert.match(runtime,/else if\(document\.readyState==='loading'\)document\.addEventListener\('DOMContentLoaded',install,\{once:true\}\)/);
+  assert.doesNotMatch(runtime,/^if\(document\.readyState==='loading'\)document\.addEventListener\('DOMContentLoaded',install/m);
+});
