@@ -1,3 +1,5 @@
+import {mountTradingViewWidget,tradingViewAppearance} from '../market/tradingview-display-widget.mjs';
+import {adSlot,mountAdSlots} from '../qelly-ad-slot.mjs';
 import { calculateFormula, listFormulaDefinitions } from '../calculation/formula-engine-extended.mjs';
 import { INDIA_RULE_REGISTRY, selectIndiaRule, calculateCustomIndiaCharges } from '../calculation/india-rules.mjs';
 import { saveCalculation, resultToCsv } from '../calculation/persistence.mjs';
@@ -24,11 +26,11 @@ const download=(name,content,type)=>{const blob=new Blob([content],{type});const
 export async function renderIndiaFinanceCenter(main,{pageHead,escapeHtml,toast}){
   const formulas=listFormulaDefinitions({domain:'india-finance'});
   main.innerHTML=`<section class="q-page q-india-finance-page">
-    ${pageHead('Qelly India finance','India Finance & SIP Center','Deterministic goal, investment and loan calculations with Indian number formatting and explicit effective-date governance. Statutory rates are never silently assumed.',`<span class="q-status q-status--simulated">EDUCATIONAL</span>`)}
-    <div class="q-state-banner is-simulated"><span class="q-status q-status--simulated">LOCAL / VERSIONED</span><p>Calculations are educational. Tax, scheme and statutory rates remain unavailable until a current primary source is verified; user-entered custom rates are labelled explicitly.</p></div>
+    ${pageHead('Qelly India finance','India Finance & SIP Center','Plan goals, investments and loans with Indian number formatting, then follow live India market movers and headlines in one public workspace.',`<span class="q-status q-status--live">PUBLIC · NO SIGN-IN</span>`)}
+    <div class="q-state-banner is-simulated"><span class="q-status q-status--simulated">RESEARCH ONLY</span><p>Calculators run privately in this browser. Market panels are live external research displays. QELLY does not invent missing statutory rates or guarantee outcomes.</p></div>
     <div class="q-india-grid">
       <section class="q-panel">
-        <div class="q-panel-head"><div><h2>Investment and loan workbench</h2><p>${formulas.length} governed formula families</p></div></div>
+        <div class="q-panel-head"><div><h2>Investment and loan calculators</h2><p>${formulas.length} goal, return and borrowing tools</p></div></div>
         <div class="q-panel-body">
           <label class="q-field"><span>Calculator</span><select id="india-formula">${formulas.map(item=>`<option value="${item.formulaId}">${escapeHtml(item.name)}</option>`).join('')}</select></label>
           <label class="q-field"><span>Inputs (JSON)</span><textarea id="india-input" rows="13" spellcheck="false"></textarea></label>
@@ -37,19 +39,28 @@ export async function renderIndiaFinanceCenter(main,{pageHead,escapeHtml,toast})
         </div>
       </section>
       <section class="q-panel">
-        <div class="q-panel-head"><div><h2>Result and evidence</h2><p id="india-summary">Choose a calculation and run it locally.</p></div></div>
-        <div class="q-panel-body"><div class="q-result-priority"><h3 id="india-primary">Ready</h3><p>INR values use Indian grouping for display; canonical stored values remain plain numbers.</p></div><div class="q-table-shell"><table class="q-table"><thead><tr><th>Output</th><th>Value</th></tr></thead><tbody id="india-results"><tr><td colspan="2">No result yet</td></tr></tbody></table></div><details><summary>Complete evidence JSON</summary><pre id="india-evidence">No evidence yet.</pre></details></div>
+        <div class="q-panel-head"><div><h2>Your result</h2><p id="india-summary">Choose a calculation and run it locally.</p></div></div>
+        <div class="q-panel-body"><div class="q-result-priority"><h3 id="india-primary">Ready</h3><p>INR values use Indian grouping for display; canonical stored values remain plain numbers.</p></div><div class="q-table-shell"><table class="q-table"><thead><tr><th>Output</th><th>Value</th></tr></thead><tbody id="india-results"><tr><td colspan="2">No result yet</td></tr></tbody></table></div><details><summary>Calculation details</summary><pre id="india-evidence">No evidence yet.</pre></details></div>
       </section>
-      <section class="q-panel q-india-rules">
-        <div class="q-panel-head"><div><h2>Rule source status</h2><p>Rates are used only after the current primary source has been verified.</p></div></div>
-        <div class="q-panel-body"><div class="q-record-stack">${INDIA_RULE_REGISTRY.rules.map(rule=>`<article class="q-record-row"><span><strong>${escapeHtml(rule.name)}</strong><small>${escapeHtml(rule.sourceAuthority)} · effective ${rule.effectiveFrom}</small></span><span class="q-status q-status--cached">${escapeHtml(humanizeOperationalState(rule.status).replace(/\.$/,''))}</span></article>`).join('')}</div><div class="q-v7-evidence-strip"><span>Primary sources required</span><span>Stale rates are not reused</span><span>Custom rates stay clearly labelled</span></div></div>
+      <section class="q-panel q-india-market-pulse">
+        <div class="q-panel-head"><div><p class="q-eyebrow">LIVE INDIA FINANCE</p><h2>Movers, benchmarks and market news</h2><p>Explore NSE and BSE market activity, Nifty and Sensex context, USD/INR and current India-focused headlines.</p></div><span class="q-status q-status--live">LIVE DISPLAY</span></div>
+        <div class="q-panel-body"><div class="q-india-live-grid"><div><h3>India market movers</h3><div class="q-india-widget q-india-widget--screener" data-india-screener></div></div><div><h3>Benchmarks & rupee</h3><div class="q-india-widget" data-india-quotes></div></div></div><div><h3>India market headlines</h3><div class="q-india-widget q-india-widget--stories" data-india-stories></div></div><div class="q-actions"><a class="q-button q-button--secondary" href="https://www.nseindia.com/market-data/live-equity-market" target="_blank" rel="noopener noreferrer nofollow">NSE market data ↗</a><a class="q-button q-button--secondary" href="https://www.rbi.org.in/" target="_blank" rel="noopener noreferrer nofollow">RBI ↗</a><a class="q-button q-button--secondary" href="https://www.sebi.gov.in/" target="_blank" rel="noopener noreferrer nofollow">SEBI ↗</a></div></div>
       </section>
+      ${adSlot('india-finance-inline')}
+      <details class="q-panel q-india-methodology"><summary>Rates, sources and calculation method</summary><div class="q-panel-body"><p>Current statutory rates are used only after a primary source is verified. Stale rates are not reused, and custom rates remain clearly labelled.</p><ul>${INDIA_RULE_REGISTRY.rules.map(rule=>`<li><strong>${escapeHtml(rule.name)}</strong> · ${escapeHtml(rule.sourceAuthority)} · effective ${rule.effectiveFrom}</li>`).join('')}</ul></div></details>
       <section class="q-panel q-india-charges">
         <div class="q-panel-head"><div><h2>Custom India trading costs</h2><p>Enter current broker, exchange and statutory charges yourself. No broker fee is universal.</p></div></div>
         <div class="q-panel-body"><div class="q-charge-fields">${['turnover','brokerage','exchangeCharges','stt','ctt','sebiCharges','stampDuty','dpCharges','otherCharges'].map(name=>`<label class="q-field"><span>${escapeHtml(name.replace(/([A-Z])/g,' $1'))}</span><input type="number" min="0" step="any" value="0" data-charge="${name}"></label>`).join('')}<label class="q-field"><span>GST rate (%)</span><input type="number" min="0" step="any" value="18" data-charge="gstRatePercent"></label></div><button class="q-button q-button--secondary" data-action="charges">Calculate custom charges</button><pre id="charge-result">User-entered rates only.</pre></div>
       </section>
     </div>
   </section>`;
+  mountAdSlots(main);
+  const appearance=tradingViewAppearance();const shared={autosize:true,width:'100%',height:'100%',colorTheme:appearance,locale:'en',isTransparent:false};
+  const indiaWidgets=[
+    mountTradingViewWidget(main.querySelector('[data-india-screener]'),{kind:'screener',label:'India market movers',openUrl:'https://www.tradingview.com/markets/stocks-india/market-movers-all-stocks/',config:{...shared,market:'india',defaultColumn:'overview',showToolbar:true}}),
+    mountTradingViewWidget(main.querySelector('[data-india-quotes]'),{kind:'marketQuotes',label:'India benchmarks and rupee',openUrl:'https://www.tradingview.com/markets/indices/quotes-india/',config:{...shared,symbolGroups:[{name:'India',symbols:[{name:'NSE:NIFTY',displayName:'Nifty 50'},{name:'BSE:SENSEX',displayName:'Sensex'},{name:'NSE:BANKNIFTY',displayName:'Bank Nifty'},{name:'FX_IDC:USDINR',displayName:'USD / INR'},{name:'MCX:GOLD1!',displayName:'Gold'}]}],showSymbolLogo:true}}),
+    mountTradingViewWidget(main.querySelector('[data-india-stories]'),{kind:'topStories',label:'India market headlines',openUrl:'https://www.tradingview.com/news/markets/india/',config:{...shared,feedMode:'market',market:'stock',isTransparent:false}})
+  ];window.__qellyIndiaFinanceCleanup=()=>indiaWidgets.forEach(widget=>widget?.destroy?.());
   let result=null;
   const select=main.querySelector('#india-formula'),editor=main.querySelector('#india-input');
   const setActions=(enabled)=>main.querySelectorAll('[data-action="save"],[data-action="csv"]').forEach(button=>button.disabled=!enabled);
