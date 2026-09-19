@@ -1,0 +1,4 @@
+# Retired Qelly Verify legacy entry points.
+# Cloudflare Pages supports fragments in redirect destinations; keep the canonical product route hash-based.
+/methodology/verify /#/qelly-verify 301
+/methodology/verify/ /#/qelly-verify 301
