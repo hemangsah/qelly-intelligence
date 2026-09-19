@@ -33,6 +33,16 @@ test('transactional email requires explicit activation outside canonical product
   assert.equal(emailDeliveryAvailable(canonicalEnvironment({QELLY_ENABLE_AUTH_EMAIL_DELIVERY:'false'}),CANONICAL_QELLY_PUBLIC_SITE),false);
 });
 
+test('legacy pages production origin cannot inherit canonical email canary authority after terminal migration',()=>{
+  const legacyEnvironment=environment({
+    QELLY_PUBLIC_SITE_URL:'https://qelly-intelligence.pages.dev',
+    QELLY_ALLOWED_ORIGINS:'https://qelly-intelligence.pages.dev'
+  });
+  assert.equal(CANONICAL_QELLY_PUBLIC_SITE,'https://terminal.qellyintelligence.com');
+  assert.equal(emailDeliveryAvailable(legacyEnvironment,'https://qelly-intelligence.pages.dev'),false);
+  assert.equal(emailDeliveryAvailable(canonicalEnvironment(),'https://qelly-intelligence.pages.dev'),false);
+});
+
 test('canonical email canary is dated readiness evidence and fallback capability authority',()=>{
   assert.equal(AUTH_EMAIL_CANARY.proven,true);
   assert.equal(AUTH_EMAIL_CANARY.verifiedAt,'2026-08-19T16:51:37.822699Z');
