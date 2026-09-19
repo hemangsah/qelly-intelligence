@@ -12,7 +12,8 @@ test('production terminal shell never labels governed market data simulated',asy
 
 test('canonical production Market renderer is no-fabrication and anonymous-safe',async()=>{
   const source=await read('apps/web/public/assets/routes/market-v6.mjs');
-  assert.match(source,/\/api\/v1\/public\/markets\/overview/);
+  assert.doesNotMatch(source,/\/api\/v1\/public\/markets\/overview/);
+  assert.match(source,/\/api\/v1\/market\/network/);
   assert.match(source,/\/api\/v1\/providers\/ecb\?capability=fx-reference-rates&symbol=EUR/);
   assert.match(source,/TradingView market visualization/);
   assert.match(source,/Forex Factory Calendar/);
@@ -21,6 +22,7 @@ test('canonical production Market renderer is no-fabrication and anonymous-safe'
   assert.match(source,/const marketRoot=main\.querySelector\('\[data-qelly-v7-public-market\]'\)/);
   assert.match(source,/populateNetworkSections\(marketRoot,network,escapeHtml\)/);
   assert.doesNotMatch(source,/\/api\/v1\/platform\/data-plane|\/api\/v1\/providers\/runtime/);
+  assert.doesNotMatch(source,/Provider rights matrix|Authorization, not technical reachability|Supplied provider universe|Provider, API and embed atlas|Production boundary|providerPolicyMessage|providerAvailability/);
   assert.doesNotMatch(source,/Math\.sin|Math\.cos|qelly-governed-demo|simulated-demo/);
 });
 
@@ -75,7 +77,8 @@ test('legacy live-market API preserves provider-specific contracts while the pub
   assert.match(route,/liveMarketAsset/);
   assert.match(wrapper,/renderGlobalMarketNetwork/);
   assert.match(ui,/\/api\/v1\/market\/network/);
-  assert.match(ui,/Coinbase \/ Binance blocked/);
+  assert.match(ui,/Source details/);
+  assert.doesNotMatch(ui,/Production truth|Crypto provider rights|Coinbase \/ Binance blocked|Provider policy/);
   assert.doesNotMatch(ui,/\/api\/v1\/live-markets\/candles\?provider=/);
 });
 
