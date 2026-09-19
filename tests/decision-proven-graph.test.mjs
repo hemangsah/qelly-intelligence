@@ -20,10 +20,24 @@ test('Decision Proven Graph is deterministic, finite and probability-safe',()=>{
   const probabilities=Object.values(first.forecast.probabilities);assert.ok(probabilities.every(value=>value>=0&&value<=1));assert.ok(Math.abs(probabilities.reduce((a,b)=>a+b,0)-1)<.0001);
   for(const point of first.forecast.fan)assert.ok(point.p05<=point.p25&&point.p25<=point.p50&&point.p50<=point.p75&&point.p75<=point.p95);
   assert.ok(Object.values(first.metrics).every(value=>value===null||Number.isFinite(value)));
-  assert.match(first.confidence.calibration,/not a success probability/i);assert.equal(first.provenance.provider,'Hyperliquid');assert.equal(first.graph.textAlternative.length,first.graph.edges.length);\n  assert.match(first.qellyView.action,/BUY|SELL|WAIT|NO TRADE/);assert.ok(first.market.currentState.label);\n  if(first.qellyView.levels)assert.equal(first.qellyView.levels.targets.length,3);
+  assert.match(first.confidence.calibration,/not a success probability/i);assert.equal(first.provenance.provider,'Hyperliquid');assert.equal(first.graph.textAlternative.length,first.graph.edges.length);
+  assert.match(first.qellyView.action,/BUY|SELL|WAIT|NO TRADE/);assert.ok(first.market.currentState.label);
+  if(first.qellyView.levels)assert.equal(first.qellyView.levels.targets.length,3);
 });
 
-test('selected chart range produces ranked, finite before-and-after evidence',()=>{\n  const selection={start:candles[100].t,end:candles[125].t};\n  const graph=buildDecisionProvenGraph(candles,{asset:'BTC',interval:'15m',horizonBars:16,now:candles.at(-1).t+900_000,selection});\n  assert.equal(graph.selection.candles,26);assert.equal(graph.selection.evidence.length,3);\n  assert.deepEqual(graph.selection.evidence.map(item=>item.rank),[1,2,3]);assert.ok(Number.isFinite(graph.selection.changePct));\n});\n\ntest('stale evidence fails closed to NO TRADE without synthetic levels',()=>{\n  const graph=buildDecisionProvenGraph(candles,{interval:'15m',now:candles.at(-1).t+30*900_000});\n  assert.equal(graph.truthState,'DEGRADED');assert.equal(graph.qellyView.action,'NO TRADE');assert.equal(graph.qellyView.levels,null);\n});\n\ntest('Decision Proven Graph fails closed on insufficient provider evidence',()=>{
+test('selected chart range produces ranked, finite before-and-after evidence',()=>{
+  const selection={start:candles[100].t,end:candles[125].t};
+  const graph=buildDecisionProvenGraph(candles,{asset:'BTC',interval:'15m',horizonBars:16,now:candles.at(-1).t+900_000,selection});
+  assert.equal(graph.selection.candles,26);assert.equal(graph.selection.evidence.length,3);
+  assert.deepEqual(graph.selection.evidence.map(item=>item.rank),[1,2,3]);assert.ok(Number.isFinite(graph.selection.changePct));
+});
+
+test('stale evidence fails closed to NO TRADE without synthetic levels',()=>{
+  const graph=buildDecisionProvenGraph(candles,{interval:'15m',now:candles.at(-1).t+30*900_000});
+  assert.equal(graph.truthState,'DEGRADED');assert.equal(graph.qellyView.action,'NO TRADE');assert.equal(graph.qellyView.levels,null);
+});
+
+test('Decision Proven Graph fails closed on insufficient provider evidence',()=>{
   assert.throws(()=>buildDecisionProvenGraph(candles.slice(0,20),{interval:'15m'}),/At least 80/);
 });
 
