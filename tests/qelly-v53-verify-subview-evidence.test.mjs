@@ -22,7 +22,7 @@ test('Qelly Verify is a canonical public Evidence route while methodology remain
   assert.equal(routes.includes('evidence-methodology'),false);
   assert.match(registry,/route:'qelly-verify', label:'Qelly Verify'.*public:true/);
   assert.match(registry,/'qelly-verify':'evidence'/);
-  assert.ok(bootstrap.includes('verify:/^#\\/(?:qelly-verify|market\\?[^#]*\\bview=qelly-verify(?:&|$))/i'));
+  assert.ok(bootstrap.includes('verify:/^#\\/(?:qelly-verify|methodology\\/verify|market\\?[^#]*\\bview=qelly-verify(?:&|$))/i'));
   assert.ok(bootstrap.includes('methodology:/^#\\/(?:evidence-methodology|market\\?[^#]*\\bview=evidence-methodology(?:&|$))/i'));
   assert.match(bootstrap,/canonicalHashFor=view=>view==='methodology'\?'#\/market\?view=evidence-methodology':view==='verify'\?'#\/qelly-verify':null/);
   assert.match(bootstrap,/if\(initialView\)\{setRequested\(initialView,'initial-url'\);normalizeHash\(initialView\);\}/);
