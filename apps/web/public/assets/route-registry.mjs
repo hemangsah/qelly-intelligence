@@ -116,7 +116,7 @@ const routes = [
   { section:'Data Plane', route:'timeseries-lab', label:'Time Series Lab', icon:icon('chart'), meta:'W4' },
   { section:'Data Plane', route:'stream-operations', label:'Stream Operations', icon:icon('stream'), meta:'W4' },
   { section:'Operations', route:'observability', label:'Observability Center', icon:icon('activity'), meta:'W4' },
-  { section:'Evidence', route:'decision-provenance', label:'QELLY Decision Intelligence', icon:icon('evidence'), meta:'Flagship', public:true },
+  { section:'Evidence', route:'decision-provenance', label:'Decision Proven Graph', icon:icon('evidence'), meta:'Flagship', public:true },
   { section:'Evidence', route:'qelly-verify', label:'Qelly Verify', icon:icon('check'), meta:'V5.4', public:true },
   { section:'Evidence', route:'security-evidence', label:'Security Evidence', icon:icon('security'), meta:'W2' },
   { section:'Detail', route:'category-detail', label:'Category Detail', icon:icon('categories'), meta:'Public', hidden:true, public:true },
@@ -186,7 +186,7 @@ const FEATURE_GUIDE=Object.freeze({
   'timeseries-lab':{purpose:'Inspect normalized historical series and lineage.',useCase:'Use when validating intervals, sequence and source history.'},
   'stream-operations':{purpose:'Monitor replay, resume and gap behavior for streams.',useCase:'Use when diagnosing real-time continuity and delivery order.'},
   'observability':{purpose:'Inspect traces, metrics, logs and service health.',useCase:'Use when investigating performance or runtime failures.'},
-  'decision-provenance':{purpose:'Explain market moves and weigh evidence across past, present and possible futures.',useCase:'Use when you want a transparent research view, scenario probabilities and evidence-gated trade levels.'},
+  'decision-provenance':{purpose:'Turn a thesis into an auditable human decision.',useCase:'Use when assumptions, evidence and invalidation must stay connected.'},
   'qelly-verify':{purpose:'Verify strategy evidence from an uploaded trade file.',useCase:'Use when testing reported performance against reproducible analysis.'},
   'security-evidence':{purpose:'Review security controls and audit evidence.',useCase:'Use when proving platform safeguards to an operator or reviewer.'}
 });
@@ -197,7 +197,7 @@ export const productDomains = [
   { id:'tools', label:'Calculators', shortLabel:'Tools', icon:icon('calculator'), defaultRoute:'calculator-center', destinations:['Quant calculators','India finance','Indicators','Formula library','Saved calculations'] },
   { id:'research', label:'Research', shortLabel:'Research', icon:icon('research'), defaultRoute:'news-research', destinations:['Research','News','Events','Learning'] },
   { id:'workspaces', label:'Workspaces', shortLabel:'Work', icon:icon('portfolio'), defaultRoute:'watchlist', destinations:['Portfolio','Watchlists','Alerts','Workspaces','Settings'] },
-  { id:'evidence', label:'Evidence', shortLabel:'Evidence', icon:icon('evidence'), defaultRoute:'decision-provenance', destinations:['Decision Intelligence','Qelly Verify','Research Methodology'] },
+  { id:'evidence', label:'Evidence', shortLabel:'Evidence', icon:icon('evidence'), defaultRoute:'decision-provenance', destinations:['Decision Provenance','Qelly Verify','Evidence','Trust'] },
   { id:'data', label:'Data plane', shortLabel:'Data', icon:icon('data'), defaultRoute:'data-mesh', destinations:['Data Sources','Developer/API','Operations'] },
   { id:'operations', label:'Operations', shortLabel:'Ops', icon:icon('status'), defaultRoute:'platform-readiness', destinations:['Operations','Security','Trust'] },
   { id:'account', label:'Account', shortLabel:'Account', icon:icon('identity'), defaultRoute:'account-session', destinations:['Settings','Workspaces','Team'] },
