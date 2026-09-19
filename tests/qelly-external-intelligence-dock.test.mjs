@@ -38,3 +38,19 @@ test('Market Command exposes the lazy accessible intelligence dock',async()=>{
   assert.match(route,/aria-label="Choose an external intelligence display"/);
   assert.match(route,/intelligenceDockHandle\?\.destroy\?\.\(\)/);
 });
+
+
+test('X timeline fails closed instead of treating a hidden zero-height embed as ready',async()=>{
+  const [source,css]=await Promise.all([
+    read('../apps/web/public/assets/market/external-intelligence-widgets.mjs'),
+    read('../apps/web/public/assets/routes/market-v6.css')
+  ]);
+  assert.match(css,/\.q-x-shell\{height:620px;min-height:620px;/);
+  assert.match(css,/\.q-x-shell\[hidden\]\{display:none\}/);
+  assert.match(css,/\.q-intel-dock-stage\[data-external-state="unavailable"\]\{min-height:0\}/);
+  assert.match(source,/visibility!=='hidden'/);
+  assert.match(source,/rendered\.getBoundingClientRect\(\)\.height>=160/);
+  assert.match(source,/setInterval\(markReady,250\)/);
+  assert.match(source,/X timeline unavailable or rate-limited/);
+  assert.match(source,/shell\.hidden=true/);
+});
