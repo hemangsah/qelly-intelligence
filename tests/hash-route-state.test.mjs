@@ -37,3 +37,11 @@ test('legacy quant-calculator deep links resolve to the canonical calculator cen
   assert.equal(parsed.asset,null);
   assert.equal(parsed.query.get('source'),'legacy');
 });
+
+
+test('legacy methodology verify deep link resolves to the canonical Qelly Verify route',()=>{
+  const parsed=parseHashRoute('#/methodology/verify?source=legacy');
+  assert.equal(parsed.route,'qelly-verify');
+  assert.equal(parsed.asset,null);
+  assert.equal(parsed.query.get('source'),'legacy');
+});
