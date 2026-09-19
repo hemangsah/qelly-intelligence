@@ -1,4 +1,5 @@
 import {decisionAssets,evaluateDecision} from '../qelly-decision-engine.mjs';
+import {renderDecisionProvenGraph} from './decision-proven-graph.mjs';
 
 const WAVE3_STYLESHEET=new URL('../qelly-v54-decision-provenance.css',import.meta.url).href;
 const activateWave3Stylesheet=()=>{if(!document.querySelector('link[data-qelly-v54-decision-provenance="wave3"]')){const link=document.createElement('link');link.rel='stylesheet';link.href=WAVE3_STYLESHEET;link.dataset.qellyV54DecisionProvenance='wave3';document.head.append(link);}document.documentElement.dataset.v54DecisionProvenance='wave3';};
@@ -135,7 +136,7 @@ function graphMarkup(graph,{isDemo=false,isCaptureFixture=false}={},escapeHtml,s
   <section class="q-panel"><div class="q-panel-head"><div><h2>Accessible text alternative</h2><p>The full relationship remains usable without the visual graph.</p></div></div><div class="q-panel-body"><ol>${(graph.textAlternative?.steps??[]).map((step)=>`<li>${escapeHtml(step)}</li>`).join('')}</ol></div></section>`;
 }
 
-export async function renderDecisionProvenance(main,deps){
+async function renderLegacyDecisionProvenance(main,deps){
   activateWave3Stylesheet();
   const {api,pageHead,stateBanner,escapeHtml,toast,renderRoute,navigate}=deps;
   const chatDraft=restoreChatDecisionDraft();
@@ -207,3 +208,8 @@ export async function renderDecisionProvenance(main,deps){
   };
   draw();
 }
+
+export async function renderDecisionProvenance(main,deps){
+  return renderDecisionProvenGraph(main,deps,{legacy:renderLegacyDecisionProvenance});
+}
+
