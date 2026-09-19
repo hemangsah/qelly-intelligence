@@ -173,4 +173,7 @@ function install(){
   setTimeout(enhanceCurrentRoute,0);
 }
 
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
+const shellAlreadyParsed=Boolean(document.querySelector('#app .q-command-bar')&&document.getElementById('main'));
+if(shellAlreadyParsed)install();
+else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
+else install();
