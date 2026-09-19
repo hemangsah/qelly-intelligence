@@ -25,7 +25,7 @@ test('public mirror keeps Cloudflare as canonical authority for private routes a
   assert.match(mirror,/auth-login/);
   assert.match(mirror,/account-session/);
   assert.match(mirror,/location\.replace\(target\)/);
-  assert.match(finalizer,/CANONICAL_URL='https:\/\/qelly-intelligence\.pages\.dev'/);
+  assert.match(finalizer,/CANONICAL_URL='https:\/\/terminal\.qellyintelligence\.com'/);
   assert.match(finalizer,/noindex,follow,noarchive/);
   assert.match(finalizer,/qelly-github-pages-mirror\.mjs/);
 });
