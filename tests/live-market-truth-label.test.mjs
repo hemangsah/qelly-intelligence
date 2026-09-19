@@ -13,10 +13,10 @@ test('live-markets route delegates to the rights-aware Global Market Network wit
   assert.doesNotMatch(wrapper,/renderLiveMarkets[\s\S]*innerHTML/);
 });
 
-test('Global Market Network keeps external display separate from governed analytical observations',()=>{
-  assert.match(source,/TradingView is an external display boundary/);
-  assert.match(source,/Qelly does not scrape or reuse widget values/);
-  assert.match(source,/Provider provenance/);
+test('Global Market Network keeps external display separate from attributed analytical observations',()=>{
+  assert.match(source,/TradingView is a display-only research surface/);
+  assert.match(source,/Widget values are not used in Qelly calculations, alerts or decisions/);
+  assert.match(source,/Source details/);
   assert.match(source,/ECB governed FX reference/);
   assert.match(source,/Data reliability/);
   assert.match(source,/Source lineage/);
@@ -24,7 +24,7 @@ test('Global Market Network keeps external display separate from governed analyt
   assert.match(source,/Trading execution/);
   assert.match(source,/Unavailable sources/);
   assert.match(source,/>OFF</);
-  for(const internal of [/Production truth/,/Connected runtime policy/,/Internal execution/,/Crypto provider rights/,/Coinbase \/ Binance blocked/])assert.doesNotMatch(source,internal);
+  for(const internal of [/Production truth/,/Connected runtime policy/,/Internal execution/,/Crypto provider rights/,/Coinbase \/ Binance blocked/,/Provider policy/,/Permitted use/,/Provider provenance/,/governed market orientation/])assert.doesNotMatch(source,internal);
   assert.doesNotMatch(source,/\/api\/v1\/live-markets\/candles/);
 });
 

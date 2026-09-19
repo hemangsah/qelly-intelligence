@@ -42,7 +42,7 @@ test('Global Market Network succeeds the V5 Live Market Command with truthful ev
     read('apps/web/public/assets/routes/market-network.css')
   ]);
   assert.match(wrapper,/renderGlobalMarketNetwork/);
-  for(const phrase of ['Data reliability','Synthetic market values','Trading execution','Provider provenance','ECB governed FX reference','Official research network','TradingView is an external display boundary'])assert.ok(route.includes(phrase),`missing Global Market Network contract: ${phrase}`);
+  for(const phrase of ['Data reliability','Synthetic market values','Trading execution','Source details','ECB governed FX reference','Official research network','TradingView is a display-only research surface'])assert.ok(route.includes(phrase),`missing Global Market Network contract: ${phrase}`);
   assert.match(route,/>OFF</);
   assert.match(route,/>NOT AVAILABLE</);
   assert.match(route,/Missing or unavailable sources stay unavailable/);

@@ -24,12 +24,12 @@ test('V5.3 compatibility layers remain packaged while the current renderer has o
 test('Global Market Network keeps governed truth, provenance and external-display boundaries without demo observations',async()=>{
   const route=await read(routePath);
   for(const label of ['Data reliability','Source lineage','Synthetic market values','Trading execution','Unavailable sources'])assert.match(route,new RegExp(label));
-  for(const label of ['Provider provenance','ECB governed FX reference','Global macro context','Official research network'])assert.match(route,new RegExp(label));
+  for(const label of ['Source details','ECB governed FX reference','Global macro context','Official research network'])assert.match(route,new RegExp(label));
   assert.match(route,/id="q-market-network-chart"/);
   assert.match(route,/Missing or unavailable sources stay unavailable/);
   assert.match(route,/Never generated to fill missing price, candle, volume or market movement/);
-  assert.match(route,/TradingView is an external display boundary/);
-  assert.match(route,/Qelly does not scrape or reuse widget values/);
+  assert.match(route,/TradingView is a display-only research surface/);
+  assert.match(route,/Widget values are not used in Qelly calculations, alerts or decisions/);
   assert.doesNotMatch(route,/CoinPaprika Free|CoinMarketCap keyless access|Crypto provider rights|Coinbase \/ Binance blocked/i);
   assert.doesNotMatch(route,/Demonstration watch universe|governed demo|simulated observations as live/i);
 });

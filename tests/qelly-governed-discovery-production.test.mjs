@@ -65,7 +65,9 @@ test('V2 Trust Center consumes the actual capability inventory shape',async()=>{
   const source=await read('apps/web/public/assets/routes/governed-utility-v2.mjs');
   assert.match(source,/Array\.isArray\(capabilities\.items\)\?capabilities\.items:\[\]/);
   assert.match(source,/unavailableCount=Number\(capabilities\.unavailableCount\?\?unavailable\.length\)/);
-  assert.match(source,/Data source permissions/);
+  assert.match(source,/Coverage availability/);
+  assert.match(source,/Research safeguards/);
+  assert.doesNotMatch(source,/Data source permissions|providerPolicyMessage|providerAvailability|Registered sources/);
   assert.doesNotMatch(source,/q-json-evidence|canonicalRuntime/);
   assert.doesNotMatch(source,/capabilities\.unavailable\)/);
 });
