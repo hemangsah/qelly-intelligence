@@ -4,6 +4,8 @@ import { calculateFormula, listFormulaDefinitions } from '../calculation/formula
 import { INDIA_RULE_REGISTRY, selectIndiaRule, calculateCustomIndiaCharges } from '../calculation/india-rules.mjs';
 import { saveCalculation, resultToCsv } from '../calculation/persistence.mjs';
 import {humanizeOperationalState} from '../customer-copy.mjs';
+const INDIA_STYLESHEET=new URL('./india-finance-center.css',import.meta.url).href;
+const installIndiaStyles=()=>{if(document.querySelector('link[data-india-finance]'))return;const link=document.createElement('link');link.rel='stylesheet';link.href=INDIA_STYLESHEET;link.dataset.indiaFinance='consumer-v1';document.head.append(link);};
 
 const EXAMPLES={
   'sip-future-value':{monthlyContribution:25000,annualReturnPercent:12,years:15,timing:'end'},
@@ -24,6 +26,7 @@ const rows=(output)=>Object.entries(output??{}).filter(([,value])=>!(Array.isArr
 const download=(name,content,type)=>{const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(url),0);};
 
 export async function renderIndiaFinanceCenter(main,{pageHead,escapeHtml,toast}){
+  installIndiaStyles();
   const formulas=listFormulaDefinitions({domain:'india-finance'});
   main.innerHTML=`<section class="q-page q-india-finance-page">
     ${pageHead('Qelly India finance','India Finance & SIP Center','Plan goals, investments and loans with Indian number formatting, then follow live India market movers and headlines in one public workspace.',`<span class="q-status q-status--live">PUBLIC · NO SIGN-IN</span>`)}
