@@ -6,6 +6,8 @@ test('Cloudflare Pages builds inherit committed public runtime variables',()=>{
   const environment=effectiveDeploymentEnvironment({CF_PAGES:'1'});
   assert.equal(environment.QELLY_REQUIRE_PUBLIC_RUNTIME,'true');
   assert.equal(environment.QELLY_PUBLIC_SITE_URL,'https://terminal.qellyintelligence.com');
+  assert.equal(environment.QELLY_CANONICAL_SITE_URL,'https://terminal.qellyintelligence.com');
+  assert.equal(environment.QELLY_ALLOWED_ORIGINS,'https://terminal.qellyintelligence.com,https://qelly-intelligence.pages.dev');
   assert.equal(environment.QELLY_PUBLIC_SUPABASE_URL,'https://ssdgfgqnjlwzkgukzeef.supabase.co');
   assert.match(environment.QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY,/^sb_publishable_/);
   assert.equal(environment.QELLY_ENABLE_AUTH,'true');
