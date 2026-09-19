@@ -11,6 +11,7 @@ test('finance dataset registry is comprehensive but never claims universal acces
   const registry=datasetRegistry();
   assert.ok(registry.catalogued>=24);
   assert.equal(registry.connected,4);
+  assert.ok(Number.isFinite(Date.parse(registry.generatedAt)));
   assert.equal(registry.policy.universalCoverageClaim,false);
   assert.ok(registry.items.some((item)=>item.id==='world-bank'&&item.access==='connected'));
   assert.ok(registry.items.some((item)=>item.id==='bloomberg'&&item.access==='enterprise_license_required'));
