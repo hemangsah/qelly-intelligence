@@ -52,7 +52,7 @@ test('Pages deployment uses the release-line governed public mirror while retain
   assert.match(workflow,/npm ci --ignore-scripts/);
   assert.match(workflow,/QELLY_GITHUB_PAGES_MIRROR: 'true'/);
   assert.match(workflow,/QELLY_STATIC_VISUAL_PREVIEW: 'false'/);
-  assert.match(workflow,/QELLY_PUBLIC_API_BASE_URL: https:\/\/qelly-intelligence\.pages\.dev/);
+  assert.match(workflow,/QELLY_PUBLIC_API_BASE_URL: https:\/\/terminal\.qellyintelligence\.com/);
   assert.match(workflow,/node scripts\/finalize-github-pages-mirror\.mjs/);
   assert.match(workflow,/path: dist\/frontend/);
   assert.match(workflow,/pages: write/);
