@@ -14,7 +14,7 @@ const v2CssHref=new URL('./market-network-v2.css?v=20260830-network2',import.met
 const VIEWS={
   scan:{label:'Scan breadth',title:'See whether a move is broad or isolated.',copy:'Start with the cross-asset display and live source board. Use the observation as a research lead, then confirm its source state.'},
   compare:{label:'Compare sources',title:'Challenge one observation with an independent source.',copy:'Use the source comparison and macro cross-checks to expose differences in cadence, market construction and publication method.'},
-  audit:{label:'Audit freshness',title:'Decide whether the evidence is current enough for the question.',copy:'Inspect observed time, fetch time, edge-cache state, cadence and permitted use before carrying evidence into research.'}
+  audit:{label:'Audit freshness',title:'Decide whether the evidence is current enough for the question.',copy:'Inspect observation time, refresh time, cadence and source notes before carrying evidence into research.'}
 };
 const GUIDES={
   'cross-asset':{
