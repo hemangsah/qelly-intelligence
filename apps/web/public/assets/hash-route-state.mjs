@@ -9,8 +9,10 @@ export function parseHashRoute(hash,{fallback='market'}={}){
   const queryText=queryIndex>=0?raw.slice(queryIndex+1):'';
   const segments=pathPart.split('/').filter(Boolean);
   const parsedRoute=decodeURIComponent(segments.shift()??fallback);
-  const route=ROUTE_ALIASES[parsedRoute]??parsedRoute;
-  const asset=segments.length?decodeURIComponent(segments.join('/')):null;
+  const parsedAsset=segments.length?decodeURIComponent(segments.join('/')):null;
+  const legacyVerify=parsedRoute==='methodology'&&parsedAsset==='verify';
+  const route=legacyVerify?'qelly-verify':(ROUTE_ALIASES[parsedRoute]??parsedRoute);
+  const asset=legacyVerify?null:parsedAsset;
   return {route,asset,query:new URLSearchParams(queryText),queryText};
 }
 
