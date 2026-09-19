@@ -41,15 +41,16 @@ test('public headers preserve strict CSP and prevent unsolicited edge transforma
   assert.doesNotMatch(csp,/static\.cloudflareinsights\.com/);
 });
 
-test('privacy and support copy remain accurate while transactional email is fail-closed',async()=>{
+test('privacy and support copy remain accurate under live readiness-gated cloud capabilities',async()=>{
   const [privacy,support]=await Promise.all([read('apps/web/public/legal/privacy.html'),read('apps/web/public/support.html')]);
   assert.match(privacy,/configured to use Supabase Postgres and Auth/);
-  assert.match(privacy,/authenticated production lifecycle remains fail-closed/);
+  assert.match(privacy,/authenticated production lifecycle remains fail-closed until delivery and isolation canaries pass/);
+  assert.match(privacy,/authenticated cloud capabilities are governed by live readiness checks and fail closed/);
   assert.match(privacy,/Optional Cloudflare Web Analytics is not required/);
-  assert.doesNotMatch(privacy,/must be updated when a real cloud provider is activated/);
-  assert.match(support,/Registration and recovery remain fail-closed/);
-  assert.match(support,/protected account feedback is not yet production-proven/);
-  assert.doesNotMatch(support,/Production authentication and protected feedback APIs are active/);
-  assert.doesNotMatch(support,/cloud endpoint are authorized/);
-  assert.doesNotMatch(support,/Cloud protected writes require authorization/);
+  assert.doesNotMatch(privacy,/authenticated cloud lifecycle not production-proven/i);
+  assert.match(support,/protected account capabilities are readiness-gated/i);
+  assert.match(support,/Registration, recovery and protected writes remain available only while transactional email, isolation and runtime canaries are proven/);
+  assert.match(support,/fail closed if required evidence degrades/i);
+  assert.doesNotMatch(support,/protected account feedback is not yet production-proven/i);
+  assert.doesNotMatch(support,/protected cloud support not production-proven/i);
 });
