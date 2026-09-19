@@ -154,11 +154,33 @@ export function mountXTimeline(container,{handle='CoinMarketCap'}={}){
   const script=externalScript(X_WIDGET_SRC,{charset:'utf-8'});
   const fallback=document.createElement('p');fallback.className='q-external-disclosure';fallback.innerHTML=`Official X timeline with personalization disabled · <a href="https://x.com/${safeHandle}" target="_blank" rel="noopener noreferrer nofollow">open @${safeHandle} directly ↗</a>`;
   shell.append(timeline,script);container.append(shell,fallback);
-  const timer=setTimeout(()=>{if(!shell.querySelector('iframe')){container.dataset.externalState='unavailable';fallback.firstChild.textContent='X timeline unavailable in this browser · ';}},15000);
-  const observer=new MutationObserver(()=>{if(shell.querySelector('iframe')){clearTimeout(timer);observer.disconnect();container.dataset.externalState='display-only';shell.querySelector('iframe')?.setAttribute('title',`Public posts by ${safeHandle} on X`);}});
-  observer.observe(shell,{childList:true,subtree:true});
-  script.addEventListener('error',()=>{clearTimeout(timer);observer.disconnect();container.dataset.externalState='unavailable';},{once:true});
-  return {provider:'X',usage:'display-only',boundary:EXTERNAL_INTELLIGENCE_BOUNDARY,destroy(){clearTimeout(timer);observer.disconnect();script.remove();container.replaceChildren();delete container.dataset.externalState;}};
+  let settled=false;
+  const ready=()=>{
+    const iframe=shell.querySelector('iframe');
+    const rendered=shell.querySelector('.twitter-timeline-rendered');
+    if(!iframe||!rendered)return false;
+    iframe.setAttribute('title',`Public posts by ${safeHandle} on X`);
+    const iframeStyle=getComputedStyle(iframe);
+    return iframeStyle.visibility!=='hidden'&&iframe.getBoundingClientRect().height>=160&&rendered.getBoundingClientRect().height>=160;
+  };
+  const markReady=()=>{
+    if(settled||!ready())return false;
+    settled=true;clearTimeout(timer);clearInterval(probe);observer.disconnect();
+    container.dataset.externalState='display-only';
+    return true;
+  };
+  const markUnavailable=(message='X timeline unavailable in this browser · ')=>{
+    if(settled)return;
+    settled=true;clearTimeout(timer);clearInterval(probe);observer.disconnect();
+    container.dataset.externalState='unavailable';shell.hidden=true;
+    fallback.firstChild.textContent=message;
+  };
+  const observer=new MutationObserver(markReady);
+  observer.observe(shell,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class','height']});
+  const probe=setInterval(markReady,250);
+  const timer=setTimeout(()=>markUnavailable('X timeline unavailable or rate-limited · '),15000);
+  script.addEventListener('error',()=>markUnavailable('X timeline script could not load · '),{once:true});
+  return {provider:'X',usage:'display-only',boundary:EXTERNAL_INTELLIGENCE_BOUNDARY,destroy(){settled=true;clearTimeout(timer);clearInterval(probe);observer.disconnect();script.remove();container.replaceChildren();delete container.dataset.externalState;}};
 }
 
 export const __externalIntelligenceTest=Object.freeze({HYPERLIQUID_WS_URL,COINMARKETCAP_WIDGET_SRC,X_WIDGET_SRC,MAX_BOOK_LEVELS,MAX_TRADES,PROVIDER_PORTALS});
