@@ -28,8 +28,8 @@ test('Decision Proven Graph is deterministic, finite and probability-safe',()=>{
 test('selected chart range produces ranked, finite before-and-after evidence',()=>{
   const selection={start:candles[100].t,end:candles[125].t};
   const graph=buildDecisionProvenGraph(candles,{asset:'BTC',interval:'15m',horizonBars:16,now:candles.at(-1).t+900_000,selection});
-  assert.equal(graph.selection.candles,26);assert.equal(graph.selection.evidence.length,3);
-  assert.deepEqual(graph.selection.evidence.map(item=>item.rank),[1,2,3]);assert.ok(Number.isFinite(graph.selection.changePct));
+  assert.equal(graph.selection.candles,26);assert.equal(graph.selection.evidence.length,4);
+  assert.deepEqual(graph.selection.evidence.map(item=>item.rank),[1,2,3,4]);assert.ok(Number.isFinite(graph.selection.changePct));assert.ok(graph.selection.technicalComparison);assert.ok(Number.isFinite(graph.selection.technicalComparison.rsi14.change));
 });
 
 test('stale evidence fails closed to NO TRADE without synthetic levels',()=>{
@@ -46,12 +46,12 @@ test('public endpoint validates controls and returns cacheable provider-derived 
   const request=new Request('https://terminal.qellyintelligence.com/api/v1/decision-proven-graph?asset=BTC&interval=15m&horizon=4h');
   const response=await onRequest({request,env:{__fetch:async(_url,options)=>{providerBody=JSON.parse(options.body);return new Response(JSON.stringify(candles),{status:200,headers:{'content-type':'application/json'}});}}});
   assert.equal(response.status,200);assert.match(response.headers.get('cache-control'),/stale-while-revalidate/);assert.equal(providerBody.type,'candleSnapshot');assert.equal(providerBody.req.coin,'BTC');
-  const body=await response.json();assert.equal(body.provenance.provider,'Hyperliquid');assert.equal(body.horizon,'4h');assert.ok(new Date(body.generatedAt).getTime()>0);
+  const body=await response.json();assert.equal(body.provenance.provider,'Hyperliquid');assert.equal(body.horizon,'4h');assert.ok(new Date(body.generatedAt).getTime()>0);assert.equal(body.multiTimeframe.state,'live');assert.ok(body.multiTimeframe.views.length>=4);
   const invalid=await onRequest({request:new Request('https://terminal.qellyintelligence.com/api/v1/decision-proven-graph?asset=INVALID'),env:{}});assert.equal(invalid.status,400);
 });
 
 test('public route and source-to-model boundary are registered',async()=>{
   const [registry,route,endpoint]=await Promise.all([readFile(new URL('../apps/web/public/assets/route-registry.mjs',import.meta.url),'utf8'),readFile(new URL('../apps/web/public/assets/routes/decision-proven-graph.mjs',import.meta.url),'utf8'),readFile(new URL('../functions/api/v1/decision-proven-graph.js',import.meta.url),'utf8')]);
-  assert.match(registry,/route:'decision-provenance'.*public:true/);assert.match(route,/Explain this move/);assert.match(route,/QELLY VIEW/);assert.match(route,/PAST/);assert.match(route,/FUTURE/);assert.match(route,/Methodology and sources/);assert.doesNotMatch(route,/<details class="q-dpg-audit" open/);assert.doesNotMatch(route,/Entitlement|Fingerprint|Endpoint/);assert.match(endpoint,/candleSnapshot/);assert.match(endpoint,/api\.gdeltproject\.org/);assert.doesNotMatch(endpoint,/TradingView/);
+  assert.match(registry,/route:'decision-provenance'.*public:true/);assert.match(route,/Explain this move/);assert.match(route,/QELLY VIEW/);assert.match(route,/PAST/);assert.match(route,/FUTURE/);assert.match(route,/MULTI-TIMEFRAME/);assert.match(route,/Methodology and sources/);assert.doesNotMatch(route,/<details class="q-dpg-audit" open/);assert.doesNotMatch(route,/Entitlement|Fingerprint|Endpoint/);assert.match(endpoint,/candleSnapshot/);assert.match(endpoint,/api\.gdeltproject\.org/);assert.doesNotMatch(endpoint,/TradingView/);
 });
 
