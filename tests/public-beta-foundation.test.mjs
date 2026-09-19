@@ -71,3 +71,10 @@ test('public-beta schemas and feature gates remain committed', async () => {
   assert.equal(flags.flags.realMoneyTrading.state, 'hard-disabled');
   assert.equal(environments.invariants.seedPhraseCollection, false);
 });
+
+
+test('public beta notice does not claim a platform subdomain after custom-domain cutover',async()=>{
+  const beta=await source('apps/web/public/legal/beta.html');
+  assert.doesNotMatch(beta,/free platform subdomain/i);
+  assert.match(beta,/canonical custom terminal domain/i);
+});
