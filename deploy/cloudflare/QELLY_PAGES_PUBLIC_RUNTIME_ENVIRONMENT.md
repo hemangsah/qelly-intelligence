@@ -19,7 +19,7 @@ QELLY_REQUIRE_PUBLIC_RUNTIME=true
 QELLY_PUBLIC_RUNTIME=true
 QELLY_STATIC_VISUAL_PREVIEW=false
 QELLY_PUBLIC_BASE_PATH=/
-QELLY_PUBLIC_SITE_URL=https://<truthful-qelly-project>.pages.dev
+QELLY_PUBLIC_SITE_URL=https://terminal.qellyintelligence.com
 QELLY_PUBLIC_API_BASE_URL=
 QELLY_PUBLIC_SUPABASE_URL=https://ssdgfgqnjlwzkgukzeef.supabase.co
 QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<existing browser-safe publishable key from project ssdgfgqnjlwzkgukzeef>
@@ -29,7 +29,7 @@ QELLY_ENABLE_AUTH=true
 QELLY_ENABLE_CLOUD_SYNC=true
 QELLY_ENABLE_LIVE_PROVIDERS=true
 QELLY_ENABLE_FEEDBACK_WRITES=true
-QELLY_ALLOWED_ORIGINS=https://<truthful-qelly-project>.pages.dev
+QELLY_ALLOWED_ORIGINS=https://terminal.qellyintelligence.com,https://qelly-intelligence.pages.dev
 ```
 
 The Supabase publishable key is intentionally browser-safe. It is not a service-role credential and remains constrained by Auth and RLS.
@@ -48,11 +48,11 @@ A `QELLY_RATE_LIMITER` binding may be connected when available on the selected F
 
 In the existing project `ssdgfgqnjlwzkgukzeef`, configure:
 
-- Site URL: `https://<truthful-qelly-project>.pages.dev`
-- Redirect URL: `https://<truthful-qelly-project>.pages.dev/auth/callback.html`
-- Recovery redirect: `https://<truthful-qelly-project>.pages.dev/auth/callback.html?flow=recovery`
+- Site URL: `https://terminal.qellyintelligence.com`
+- Redirect URL: `https://terminal.qellyintelligence.com/auth/callback.html`
+- Recovery redirect: `https://terminal.qellyintelligence.com/auth/callback.html?flow=recovery`
 
-Do not add wildcard redirects broader than the exact Pages hostname unless a separately governed preview policy requires them.
+Keep `https://qelly-intelligence.pages.dev/auth/callback.html` temporarily allowlisted only for rollback/preview verification. Do not add wildcard redirect URLs; retire the legacy callback after the custom-domain auth matrix passes.
 
 ## Release proof
 

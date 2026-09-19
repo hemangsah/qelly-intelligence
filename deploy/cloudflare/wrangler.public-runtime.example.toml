@@ -5,8 +5,8 @@ workers_dev = true
 
 [vars]
 QELLY_RELEASE_SHA = "SET_BY_RELEASE_AUTOMATION"
-QELLY_ALLOWED_ORIGINS = "https://qelly-global-public-beta.pages.dev,https://hemangsah.github.io"
-QELLY_PUBLIC_HOSTNAME = "qelly-global-public-beta.pages.dev"
+QELLY_ALLOWED_ORIGINS = "https://terminal.qellyintelligence.com,https://qelly-intelligence.pages.dev"
+QELLY_PUBLIC_HOSTNAME = "terminal.qellyintelligence.com"
 QELLY_PUBLIC_SUPABASE_URL = ""
 QELLY_FEEDBACK_REST_URL = ""
 
@@ -15,4 +15,4 @@ QELLY_FEEDBACK_REST_URL = ""
 # QELLY_SUPABASE_SERVICE_ROLE_KEY
 #
 # Do not place passwords, database URLs, raw tokens, private keys or recovery codes here.
-# The pages.dev name is a truthful preferred candidate, not a claimed reservation.
+# The custom terminal domain is the production authority; pages.dev is retained only as a controlled rollback/preview origin.

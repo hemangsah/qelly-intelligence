@@ -6,7 +6,7 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const output=path.join(root,'dist/frontend');
 const MIRROR_URL='https://hemangsah.github.io/qelly-intelligence';
-const CANONICAL_URL='https://qelly-intelligence.pages.dev';
+const CANONICAL_URL='https://terminal.qellyintelligence.com';
 const MIRROR_BOOTSTRAP='<script type="module" src="./assets/qelly-github-pages-mirror.mjs"></script>';
 
 const parseConfig=(source)=>{

@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      PUBLIC_URL: https://qelly-intelligence.pages.dev
+      PUBLIC_URL: https://terminal.qellyintelligence.com
       RELEASE_SHA: ${{ github.sha }}
       FALLBACK_SHA: 603cece3091dc59cfb72680914e7056b40058022
       SUPABASE_PROJECT_REF: ssdgfgqnjlwzkgukzeef

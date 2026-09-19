@@ -47,7 +47,7 @@ jobs:
         env:
           QELLY_REQUIRE_PUBLIC_RUNTIME: 'true'
           QELLY_PROMPT2C_PUBLIC_BETA: 'true'
-          QELLY_PUBLIC_SITE_URL: https://qelly-intelligence.pages.dev
+          QELLY_PUBLIC_SITE_URL: https://terminal.qellyintelligence.com
           QELLY_PUBLIC_SUPABASE_URL: https://ssdgfgqnjlwzkgukzeef.supabase.co
           QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_shape_only_012345678901234567890123456789
           QELLY_DEPLOYMENT_ENVIRONMENT: cloudflare-pages-production-parity
@@ -104,7 +104,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      PUBLIC_URL: https://qelly-intelligence.pages.dev
+      PUBLIC_URL: https://terminal.qellyintelligence.com
       MIRROR_URL: https://hemangsah.github.io/qelly-intelligence/
       RELEASE_SHA: ${{ github.sha }}
     steps:

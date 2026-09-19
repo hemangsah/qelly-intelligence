@@ -20,7 +20,7 @@ test('canonical hash route browser probe is valid JavaScript and covers screensh
 test('production gate targets only the canonical release branch, uses proven action pins and uploads browser evidence',async()=>{
   const source=await readFile(workflowUrl,'utf8');
   assert.match(source,/release\/qelly-global-public-beta/);
-  assert.match(source,/PUBLIC_URL: https:\/\/qelly-intelligence\.pages\.dev/);
+  assert.match(source,/PUBLIC_URL: https:\/\/terminal\.qellyintelligence\.com/);
   assert.match(source,/actions\/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1/);
   assert.match(source,/actions\/setup-node@820762786026740c76f36085b0efc47a31fe5020/);
   assert.match(source,/actions\/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a/);
