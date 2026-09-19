@@ -13,24 +13,19 @@ test('live-markets route delegates to the rights-aware Global Market Network wit
   assert.doesNotMatch(wrapper,/renderLiveMarkets[\s\S]*innerHTML/);
 });
 
-test('Global Market Network keeps external display separate from governed analytical observations',()=>{
-  assert.match(source,/TradingView is an external display boundary/);
-  assert.match(source,/Qelly does not scrape or reuse widget values/);
-  assert.match(source,/Provider provenance/);
+test('Global Market Network keeps external display separate from attributed analytical observations',()=>{
+  assert.match(source,/TradingView is a display-only research surface/);
+  assert.match(source,/Widget values are not used in Qelly calculations, alerts or decisions/);
+  assert.match(source,/Source details/);
   assert.match(source,/ECB governed FX reference/);
-  assert.match(source,/Coinbase \/ Binance blocked/);
-  assert.match(source,/Fabricated fallback/);
-  assert.match(source,/>OFF</);
+  assert.doesNotMatch(source,/Production truth|Crypto provider rights|Coinbase \/ Binance blocked|Provider policy/);
   assert.doesNotMatch(source,/\/api\/v1\/live-markets\/candles/);
 });
 
 test('market network never substitutes fabricated prices or unrestricted-provider fiction',()=>{
-  assert.match(source,/No fabricated fallback values/);
-  assert.match(source,/No unrestricted-data fiction/);
-  assert.match(source,/CoinPaprika Free is not used for commercial production redistribution/);
-  assert.match(source,/CoinMarketCap keyless access is treated as evaluation\/prototype access/);
   assert.match(provider,/sourceFailuresRemainUnavailable:true/);
   assert.match(provider,/fabricatedFallback:false/);
   assert.doesNotMatch(`${source}\n${provider}`,/simulated-demo|qelly-governed-demo|Demonstration watch universe/i);
+  assert.doesNotMatch(source,/Production truth|Crypto provider rights|CoinPaprika Free is not used for commercial production redistribution|CoinMarketCap keyless access is treated as evaluation\/prototype access/);
   assert.doesNotMatch(source,/₹65\.1L|₹3\.42L|₹63,100|₹17,450|₹268|₹92/);
 });
