@@ -15,3 +15,11 @@ test('public legal and support copy reflects readiness-gated cloud capabilities 
   assert.match(support,/protected account capabilities are readiness-gated/i);
   assert.match(support,/fail closed if required evidence degrades/i);
 });
+
+
+test('beta banner is readiness-gated instead of claiming cloud capabilities are unavailable',async()=>{
+  const beta=await read('apps/web/public/legal/beta.html');
+  assert.doesNotMatch(beta,/connected cloud capabilities remain unavailable/i);
+  assert.match(beta,/remain available only while their live readiness, isolation, delivery and provider checks stay proven/i);
+  assert.match(beta,/fail closed if required evidence degrades/i);
+});
