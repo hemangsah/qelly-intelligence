@@ -3,7 +3,6 @@ import {adSlot,mountAdSlots} from '../qelly-ad-slot.mjs';
 import { calculateFormula, listFormulaDefinitions } from '../calculation/formula-engine-extended.mjs';
 import { INDIA_RULE_REGISTRY, selectIndiaRule, calculateCustomIndiaCharges } from '../calculation/india-rules.mjs';
 import { saveCalculation, resultToCsv } from '../calculation/persistence.mjs';
-import {humanizeOperationalState} from '../customer-copy.mjs';
 const INDIA_STYLESHEET=new URL('./india-finance-center.css',import.meta.url).href;
 const installIndiaStyles=()=>{if(document.querySelector('link[data-india-finance]'))return;const link=document.createElement('link');link.rel='stylesheet';link.href=INDIA_STYLESHEET;link.dataset.indiaFinance='consumer-v1';document.head.append(link);};
 
