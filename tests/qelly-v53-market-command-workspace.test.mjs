@@ -28,7 +28,7 @@ test('Global Market Network keeps governed truth, provenance and external-displa
   assert.match(route,/id="q-market-network-chart"/);
   assert.match(route,/Missing or unavailable sources stay unavailable/);
   assert.match(route,/Never generated to fill missing price, candle, volume or market movement/);
-  assert.match(route,/TradingView is an external display boundary/);
+  assert.match(route,/TradingView is a display-only research surface/);
   assert.match(route,/Qelly does not scrape or reuse widget values/);
   assert.doesNotMatch(route,/CoinPaprika Free|CoinMarketCap keyless access|Crypto provider rights|Coinbase \/ Binance blocked/i);
   assert.doesNotMatch(route,/Demonstration watch universe|governed demo|simulated observations as live/i);
