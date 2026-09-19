@@ -8,7 +8,7 @@ test('public legal pages identify the terminal custom domain as canonical',async
   const paths=['apps/web/public/support.html','apps/web/public/legal/privacy.html','apps/web/public/legal/terms.html','apps/web/public/legal/beta.html','apps/web/public/legal/risk.html'];
   for(const path of paths){
     const html=await read(path);
-    assert.match(html,/rel="canonical" href="https:\/\/qelly-intelligence\.pages\.dev\//,path);
+    assert.match(html,/rel="canonical" href="https:\/\/terminal\.qellyintelligence\.com\//,path);
     assert.doesNotMatch(html,/hemangsah\.github\.io\/qelly-intelligence/,path);
   }
 });
