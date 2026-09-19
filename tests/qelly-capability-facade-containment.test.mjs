@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {onRequest as readinessOnRequest} from '../functions/api/v1/readiness.js';
 
 const env=(overrides={})=>({
-  QELLY_PUBLIC_SITE_URL:'https://qelly-intelligence.pages.dev',
+  QELLY_PUBLIC_SITE_URL:'https://terminal.qellyintelligence.com',
   QELLY_PUBLIC_SUPABASE_URL:'https://example.supabase.co',
   QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'sb_publishable_test_key_long_enough_for_validation',
   QELLY_PUBLIC_RELEASE_SHA:'98a88d76bbba1017a40012aa2790213af6af485a',
@@ -13,7 +13,7 @@ const env=(overrides={})=>({
 });
 
 test('canonical readiness can trust dated email evidence but remains not proven until other required dependencies pass',async()=>{
-  const request=new Request('https://qelly-intelligence.pages.dev/api/v1/readiness');
+  const request=new Request('https://terminal.qellyintelligence.com/api/v1/readiness');
   const response=await readinessOnRequest({request,env:env(),params:{path:['readiness']},next:async()=>new Response(null,{status:404})});
   const body=await response.json();
   assert.equal(response.status,503);
@@ -30,7 +30,7 @@ test('canonical readiness can trust dated email evidence but remains not proven 
 });
 
 test('explicit canonical email activation and the dated canary agree on capability authority',async()=>{
-  const request=new Request('https://qelly-intelligence.pages.dev/api/v1/readiness');
+  const request=new Request('https://terminal.qellyintelligence.com/api/v1/readiness');
   const response=await readinessOnRequest({request,env:env({QELLY_ENABLE_AUTH_EMAIL_DELIVERY:'true'}),params:{path:['readiness']},next:async()=>new Response(null,{status:404})});
   const body=await response.json();
   assert.equal(response.status,503);
@@ -44,7 +44,7 @@ test('explicit canonical email activation and the dated canary agree on capabili
 });
 
 test('explicit canonical email disable remains an operator kill switch',async()=>{
-  const request=new Request('https://qelly-intelligence.pages.dev/api/v1/readiness');
+  const request=new Request('https://terminal.qellyintelligence.com/api/v1/readiness');
   const response=await readinessOnRequest({request,env:env({QELLY_ENABLE_AUTH_EMAIL_DELIVERY:'false'}),params:{path:['readiness']},next:async()=>new Response(null,{status:404})});
   const body=await response.json();
   assert.equal(response.status,503);
