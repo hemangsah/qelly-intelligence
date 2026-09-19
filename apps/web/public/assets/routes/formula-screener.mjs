@@ -1,8 +1,119 @@
+const ENDPOINT='/api/v1/formula-screener';
+
+const formatNumber=(value,digits=3)=>Number.isFinite(Number(value))?Number(value).toLocaleString(undefined,{maximumFractionDigits:digits}):'Unavailable';
+const formatTime=(value)=>{if(!value)return 'Unavailable';const date=new Date(value);return Number.isNaN(date.getTime())?'Unavailable':date.toLocaleString();};
+const statusClass=(state)=>state==='live'||state==='available'?'fresh':state==='partial'||state==='delayed'?'cached':'unavailable';
+
 export async function renderFormulaScreener(main,deps){
- const {api,pageHead,stateBanner,escapeHtml,QellyDataGrid,toast}=deps;const catalog=await api('/api/v1/screeners/formulas/catalog');const definition={formulas:[{name:'momentumQuality',expression:'change24h / max(volatility30d, 1)'}],formulaFilters:[{formula:'momentumQuality',operator:'greater_than',value:0}],sort:'momentumQuality',direction:'desc',limit:50};const initial=await api('/api/v1/screeners/formulas/run',{method:'POST',body:JSON.stringify(definition)});
- main.innerHTML=`<section class="q-page">${pageHead('Qelly Intelligence · Screening','Formula Screener','Create bounded arithmetic formulas with a safe parser. Dynamic JavaScript evaluation and distributed execution are explicitly disabled.',`<button class="q-button q-button--primary" data-action="run">Evaluate formula</button>`)}${stateBanner()}
- <div class="q-kpi-grid"><article class="q-kpi"><div class="q-kpi-label">Allowed fields</div><div class="q-kpi-value">${catalog.fields.length}</div><div class="q-kpi-meta"><span>numeric fixture fields</span><span class="q-status q-status--cached">bounded</span></div></article><article class="q-kpi"><div class="q-kpi-label">Functions</div><div class="q-kpi-value">${catalog.functions.length}</div><div class="q-kpi-meta"><span>${catalog.functions.join(', ')}</span><span class="q-status q-status--cached">safe</span></div></article><article class="q-kpi"><div class="q-kpi-label">Matches</div><div class="q-kpi-value" id="formula-match-count">${initial.total}</div><div class="q-kpi-meta"><span>deterministic universe</span><span class="q-status q-status--simulated">fixture</span></div></article><article class="q-kpi"><div class="q-kpi-label">Dynamic code</div><div class="q-kpi-value">Off</div><div class="q-kpi-meta"><span>no eval or Function</span><span class="q-status q-status--fresh">protected</span></div></article></div>
- <section class="q-panel"><div class="q-panel-head"><div><h2>Formula definition</h2><p>Examples: change24h / max(volatility30d, 1), coalesce(revenueGrowth, 0) / max(coalesce(peRatio, 1), 1).</p></div></div><div class="q-panel-body"><div class="q-inline-form"><label class="q-setting"><span>Formula name</span><input id="formula-name" value="momentumQuality"></label><label class="q-setting"><span>Expression</span><input id="formula-expression" value="change24h / max(volatility30d, 1)"></label><label class="q-setting"><span>Minimum value</span><input id="formula-min" type="number" step="0.001" value="0"></label></div></div></section><section class="q-panel"><div class="q-panel-head"><div><h2>Formula results</h2><p>Unavailable source fields propagate as unavailable formula values.</p></div></div><div id="formula-grid"></div></section></section>`;
- const render=payload=>{const name=document.getElementById('formula-name').value;const target=document.getElementById('formula-grid');target.innerHTML='';new QellyDataGrid(target,{caption:'Formula screener results',columns:[{key:'symbol',label:'Symbol',width:90},{key:'name',label:'Asset',width:190},{key:'assetClass',label:'Class',width:100},{key:'change24h',label:'24h',width:90,format:'change'},{key:'volatility30d',label:'Volatility',width:110,numeric:true},{key:'formulaValue',label:name,width:150,numeric:true},{key:'freshnessClass',label:'Freshness',width:110,format:'status'}],rows:payload.items.map(item=>({...item,formulaValue:item.formulas?.[name]??'N/A'}))});};render(initial);
- main.querySelector('[data-action="run"]').addEventListener('click',async()=>{const name=document.getElementById('formula-name').value;const result=await api('/api/v1/screeners/formulas/run',{method:'POST',body:JSON.stringify({formulas:[{name,expression:document.getElementById('formula-expression').value}],formulaFilters:[{formula:name,operator:'greater_than',value:Number(document.getElementById('formula-min').value)}],sort:name,direction:'desc',limit:50})});document.getElementById('formula-match-count').textContent=result.total;render(result);toast('Formula evaluated by safe parser',{tone:'success'});});
+  const {api,pageHead,stateBanner,escapeHtml,QellyDataGrid,toast}=deps;
+  let catalog;
+  try{catalog=await api(ENDPOINT);}
+  catch(error){
+    main.innerHTML=`<section class="q-page">${pageHead('Qelly Intelligence · Screening','Formula Screener','Rank supported digital assets with transparent quantitative metrics derived from recent market observations.')}${stateBanner()}<section class="q-panel"><div class="q-panel-body"><h2>Formula Screener is temporarily unavailable</h2><p>${escapeHtml(error?.message||'The public screener catalog could not be loaded. Please retry.')}</p><button class="q-button q-button--primary" data-action="retry-page">Retry</button></div></section></section>`;
+    main.querySelector('[data-action="retry-page"]')?.addEventListener('click',()=>renderFormulaScreener(main,deps));
+    return;
+  }
+
+  const formulaOptions=catalog.formulas.map((formula)=>`<option value="${escapeHtml(formula.id)}">${escapeHtml(formula.label)}</option>`).join('');
+  const assetOptions=catalog.assets.map((asset)=>`<label class="q-setting"><span>${escapeHtml(asset)}</span><input type="checkbox" data-asset="${escapeHtml(asset)}" checked></label>`).join('');
+  main.innerHTML=`<section class="q-page">
+    ${pageHead('Qelly Intelligence · Screening','Formula Screener','Rank supported digital assets with transparent quantitative metrics derived from recent market observations.',`<button class="q-button q-button--primary" data-action="run">Refresh results</button>`)}
+    ${stateBanner()}
+    <div class="q-kpi-grid">
+      <article class="q-kpi"><div class="q-kpi-label">Assets</div><div class="q-kpi-value">${catalog.assets.length}</div><div class="q-kpi-meta"><span>Supported universe</span><span class="q-status q-status--fresh">Public</span></div></article>
+      <article class="q-kpi"><div class="q-kpi-label">Metrics</div><div class="q-kpi-value">${catalog.formulas.length}</div><div class="q-kpi-meta"><span>Bounded quantitative choices</span><span class="q-status q-status--fresh">Transparent</span></div></article>
+      <article class="q-kpi"><div class="q-kpi-label">Source</div><div class="q-kpi-value">Hyperliquid</div><div class="q-kpi-meta"><span>${escapeHtml(catalog.source.interval)} candles</span><span class="q-status q-status--fresh">Market data</span></div></article>
+      <article class="q-kpi"><div class="q-kpi-label">Available rows</div><div class="q-kpi-value" id="formula-row-count">—</div><div class="q-kpi-meta"><span id="formula-generated-at">Awaiting refresh</span><span class="q-status q-status--cached" id="formula-state">Ready</span></div></article>
+    </div>
+    <section class="q-panel">
+      <div class="q-panel-head"><div><h2>Screen configuration</h2><p>Choose one metric and the assets you want to compare. Results are recalculated from recent public market candles.</p></div></div>
+      <div class="q-panel-body">
+        <div class="q-inline-form">
+          <label class="q-setting"><span>Metric</span><select id="formula-choice">${formulaOptions}</select></label>
+        </div>
+        <div class="q-inline-form" id="formula-assets" aria-label="Assets">${assetOptions}</div>
+        <p id="formula-description">${escapeHtml(catalog.formulas[0]?.description||'')}</p>
+      </div>
+    </section>
+    <section class="q-panel">
+      <div class="q-panel-head"><div><h2>Ranked results</h2><p>Unavailable assets remain explicit. Freshness is based on the most recent observed candle for each row.</p></div></div>
+      <div class="q-panel-body" id="formula-error" hidden></div>
+      <div id="formula-grid"></div>
+    </section>
+  </section>`;
+
+  const choice=main.querySelector('#formula-choice');
+  const description=main.querySelector('#formula-description');
+  const errorBox=main.querySelector('#formula-error');
+  const runButton=main.querySelector('[data-action="run"]');
+  const selectedAssets=()=>[...main.querySelectorAll('[data-asset]:checked')].map((input)=>input.dataset.asset);
+  const updateDescription=()=>{description.textContent=catalog.formulas.find((formula)=>formula.id===choice.value)?.description||'';};
+  choice.addEventListener('change',updateDescription);
+
+  const renderRows=(payload)=>{
+    const target=main.querySelector('#formula-grid');
+    target.innerHTML='';
+    const rows=payload.rows.map((row,index)=>({
+      rank:row.state==='available'?index+1:'—',
+      asset:row.asset,
+      result:row.value==null?'Unavailable':formatNumber(row.value,4),
+      price:row.metrics?.lastPrice==null?'Unavailable':formatNumber(row.metrics.lastPrice,4),
+      change24h:row.metrics?.change24hPct==null?'Unavailable':`${formatNumber(row.metrics.change24hPct,2)}%`,
+      volatility:row.metrics?.realizedVolatilityPct==null?'Unavailable':`${formatNumber(row.metrics.realizedVolatilityPct,2)}%`,
+      freshness:row.freshness?.state||'unavailable',
+      observedAt:formatTime(row.source?.observedAt),
+      state:row.state
+    }));
+    new QellyDataGrid(target,{
+      caption:'Formula Screener ranked results',
+      columns:[
+        {key:'rank',label:'#',width:55},
+        {key:'asset',label:'Asset',width:90},
+        {key:'result',label:payload.formula.label,width:150,numeric:true},
+        {key:'price',label:'Price',width:120,numeric:true},
+        {key:'change24h',label:'24h',width:90},
+        {key:'volatility',label:'Realized vol.',width:120},
+        {key:'freshness',label:'Freshness',width:110,format:'status'},
+        {key:'observedAt',label:'Observed',width:190},
+        {key:'state',label:'State',width:110,format:'status'}
+      ],
+      rows
+    });
+    main.querySelector('#formula-row-count').textContent=String(payload.available);
+    main.querySelector('#formula-generated-at').textContent=`Updated ${formatTime(payload.generatedAt)}`;
+    const state=main.querySelector('#formula-state');
+    state.textContent=payload.state==='live'?'Live':payload.state==='partial'?'Partial':'Unavailable';
+    state.className=`q-status q-status--${statusClass(payload.state)}`;
+  };
+
+  const run=async()=>{
+    const assets=selectedAssets();
+    errorBox.hidden=true;
+    errorBox.textContent='';
+    if(!assets.length){
+      errorBox.hidden=false;
+      errorBox.textContent='Select at least one asset to run the screen.';
+      return;
+    }
+    runButton.disabled=true;
+    runButton.textContent='Refreshing…';
+    try{
+      const payload=await api(ENDPOINT,{method:'POST',body:JSON.stringify({formula:choice.value,assets})});
+      renderRows(payload);
+      toast(payload.state==='partial'?'Results refreshed with some assets unavailable':'Formula results refreshed',{tone:payload.state==='partial'?'warning':'success'});
+    }catch(error){
+      const state=main.querySelector('#formula-state');
+      state.textContent='Unavailable';
+      state.className='q-status q-status--unavailable';
+      errorBox.hidden=false;
+      errorBox.innerHTML=`<strong>Live results are temporarily unavailable.</strong><p>${escapeHtml(error?.message||'The market data provider could not complete this screen. Retry shortly.')}</p><button class="q-button" data-action="retry-results">Retry</button>`;
+      errorBox.querySelector('[data-action="retry-results"]')?.addEventListener('click',run,{once:true});
+    }finally{
+      runButton.disabled=false;
+      runButton.textContent='Refresh results';
+    }
+  };
+
+  runButton.addEventListener('click',run);
+  await run();
 }
