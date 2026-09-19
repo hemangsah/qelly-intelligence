@@ -1,3 +1,4 @@
+import {adSlot,mountAdSlots} from '../qelly-ad-slot.mjs';
 import {mountTradingViewDisplay,mountTradingViewWidget,tradingViewAppearance,tradingViewSymbol} from '../market/tradingview-display-widget.mjs';
 import {mountCoinMarketCapWidgets,mountHyperliquidStream,mountXTimeline,PROVIDER_PORTALS} from '../market/external-intelligence-widgets.mjs';
 import {truthLabel} from '../customer-copy.mjs';
@@ -237,10 +238,13 @@ export async function renderMarketV6(main,deps){
 
     <section class="q-panel q-public-data-board"><div class="q-panel-head"><div><p class="q-eyebrow">Governed live and reference network</p><h2>Global public data board</h2><p>Official/public feeds keep their own cadence, attribution and truth state. Reference observations are never presented as tradable quotes.</p></div><span class="q-status q-status--cached" data-public-source-status>LOADING SOURCES</span></div><div class="q-panel-body q-public-source-grid" data-public-source-grid><div class="q-empty-state"><strong>Connecting public data network</strong><p>Slow reference providers load in the background and never block Market Command.</p></div></div></section>
 
+    ${adSlot('market-intelligence-inline')}
+
     <section class="q-panel q-v7-reference-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Approved reference observations</p><h2>ECB euro reference rates</h2><p>Source timing is preserved. Reference rates are informational and are not tradable quotes.</p></div><span class="q-status q-status--${tone(ecb?.truthState)}">${escapeHtml(truthLabel(ecbTruth))}</span></div><div class="q-panel-body"><div class="q-v7-rate-grid">${governedRates(ecb,escapeHtml)}</div><div class="q-v7-evidence-strip"><span>Source: European Central Bank</span><span>Observed: ${escapeHtml(date(ecbObservedAt))}</span><span>Updated: ${escapeHtml(date(ecbIngestedAt))}</span><span>Research only</span></div></div></section>
 
   </section>`;
 
+  mountAdSlots(main);
   const marketRoot=main.querySelector('[data-qelly-v7-public-market]');
   const chart=marketRoot.querySelector('#v6-market-tradingview');
   const symbol=marketRoot.querySelector('#v6-market-symbol');
