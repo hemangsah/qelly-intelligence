@@ -1,5 +1,5 @@
 const VIEW_PATTERNS=Object.freeze({
-  verify:/^#\/(?:qelly-verify|market\?[^#]*\bview=qelly-verify(?:&|$))/i,
+  verify:/^#\/(?:qelly-verify|methodology\/verify|market\?[^#]*\bview=qelly-verify(?:&|$))/i,
   methodology:/^#\/(?:evidence-methodology|market\?[^#]*\bview=evidence-methodology(?:&|$))/i
 });
 const state=window.__QELLY_VERIFY_ROUTE__??{requested:false,requestedView:null,initialHash:location.hash,lastIntent:'none'};
