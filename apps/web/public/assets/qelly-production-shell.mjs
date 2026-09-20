@@ -22,7 +22,8 @@ const ADMIN_ROUTES=new Set([
   'observability','migration-center','platform-readiness','delivery-operations','secret-rotation',
   'quarantine-review','staging-assurance','secure-import-vault','security-evidence'
 ]);
-const FEATURE_ROUTES=routeDefinitions.filter((route)=>!route.hidden);
+const FEATURE_ROUTES=routeDefinitions.filter((route)=>route.public===true&&!route.hidden);
+const FEATURE_DOMAINS=productDomains.filter((domain)=>FEATURE_ROUTES.some((route)=>route.domain===domain.id));
 
 function ensureCanonicalStylesheetLast(){
   const canonical=document.querySelector('link[href$="qelly-production-shell.css"]');
@@ -93,12 +94,12 @@ function escapeNavigationText(value){
 }
 
 function featureNavigationMarkup(){
-  const groups=productDomains.map((domain)=>{
+  const groups=FEATURE_DOMAINS.map((domain)=>{
     const routes=FEATURE_ROUTES.filter((route)=>route.domain===domain.id&&route.route!=='feature-universe');
     if(!routes.length)return '';
     return `<section class="q-feature-navigation__group" data-feature-domain="${escapeNavigationText(domain.id)}"><h3>${escapeNavigationText(domain.label)} <span>${routes.length}</span></h3><div>${routes.map((route)=>`<a href="#/${escapeNavigationText(route.route)}" data-feature-route="${escapeNavigationText(route.route)}" data-feature-search="${escapeNavigationText(`${domain.label} ${route.section} ${route.label} ${route.route} ${route.purpose} ${route.useCase}`.toLowerCase())}" title="${escapeNavigationText(route.useCase)}"><span class="q-feature-navigation__icon">${route.icon}</span><span class="q-feature-navigation__copy"><span class="q-feature-navigation__name"><strong>${escapeNavigationText(route.label)}</strong>${route.public===true?'<em>Public</em>':'<em data-feature-access="protected">Sign in</em>'}</span><small>${escapeNavigationText(route.purpose)}</small><span class="q-feature-navigation__use">${escapeNavigationText(route.useCase)}</span></span></a>`).join('')}</div></section>`;
   }).join('');
-  const filters=productDomains.map((domain)=>`<button type="button" data-feature-domain-filter="${escapeNavigationText(domain.id)}" aria-pressed="false">${escapeNavigationText(domain.shortLabel)}</button>`).join('');
+  const filters=FEATURE_DOMAINS.map((domain)=>`<button type="button" data-feature-domain-filter="${escapeNavigationText(domain.id)}" aria-pressed="false">${escapeNavigationText(domain.shortLabel)}</button>`).join('');
   return `<div class="q-feature-navigation__backdrop" data-feature-navigation-close></div><aside id="q-feature-navigation" class="q-feature-navigation" aria-label="All Qelly features"><header><div><p>Product navigation</p><h2>Choose the job to be done</h2><small>Every destination has a distinct purpose and outcome.</small></div><button type="button" data-feature-navigation-close aria-label="Close feature menu">×</button></header><label class="q-feature-navigation__search"><span class="q-visually-hidden">Search Qelly features by purpose or use case</span><input type="search" inputmode="search" autocomplete="off" placeholder="Search ${FEATURE_ROUTES.length} features by purpose" aria-controls="q-feature-navigation-list"></label><div class="q-feature-navigation__filters" role="toolbar" aria-label="Filter features by product domain"><button type="button" data-feature-domain-filter="all" aria-pressed="true">All</button>${filters}</div><p class="q-feature-navigation__status" aria-live="polite">${FEATURE_ROUTES.length} purpose-built features</p><nav id="q-feature-navigation-list" aria-label="Feature routes"><a class="q-feature-navigation__universe" href="#/feature-universe" data-feature-route="feature-universe" data-feature-search="feature universe understand how every qelly product domain connects choose the right workflow"><strong>Feature Universe</strong><small>See how product domains connect before choosing a workflow.</small><span>Use when you are unsure where to start.</span></a>${groups}</nav></aside>`;
 }
 
