@@ -15,7 +15,7 @@ export const seoStaticResources=Object.freeze([
 ]);
 
 const productTitle='Qelly Intelligence · Verifiable Market Intelligence';
-const productDescription='Qelly Intelligence: evidence-backed market discovery, quantitative research and decision tools with transparent provider truth.';
+const productDescription='Qelly Intelligence: evidence-backed market discovery, quantitative research and Decision Intelligence with transparent source evidence.';
 
 const escapeAttribute=(value)=>String(value).replaceAll('&','&amp;').replaceAll('"','&quot;').replaceAll('<','&lt;').replaceAll('>','&gt;');
 const escapeXml=(value)=>escapeAttribute(value).replaceAll("'",'&apos;');
@@ -51,6 +51,7 @@ export function buildIndexSeoBlock(options={}){
   const tags=[
     '<!-- QELLY_PUBLIC_SEO_START -->',
     `  <meta name="robots" content="${robots}">`,
+    `  <meta name="description" content="${escapeAttribute(productDescription)}">`,
     '  <meta name="application-name" content="Qelly Intelligence">',
     '  <meta property="og:type" content="website">',
     '  <meta property="og:site_name" content="Qelly Intelligence">',
@@ -94,6 +95,7 @@ export function applyIndexSeo(source,options={}){
   html=html.replace(/\s*<!-- QELLY_PUBLIC_SEO_START -->[\s\S]*?<!-- QELLY_PUBLIC_SEO_END -->\s*/g,'\n');
   html=stripIndexOwnedSocialMetadata(html);
   html=html.replace(/\s*<meta\s+name=["']robots["'][^>]*>\s*/gi,'\n');
+  html=html.replace(/\s*<meta\s+name=["']description["'][^>]*>\s*/gi,'\n');
   html=html.replace(/\s*<link\s+rel=["']canonical["'][^>]*>\s*/gi,'\n');
   if(!/<\/head>/i.test(html))throw new Error('index.html is missing </head>');
   return html.replace(/<\/head>/i,`${buildIndexSeoBlock(options)}\n</head>`);
