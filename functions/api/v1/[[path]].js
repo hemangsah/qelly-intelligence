@@ -22,6 +22,7 @@ import {buildPublicAlertRules} from '../../_lib/public-alert-rules.js';
 import {buildPublicNotificationTriage} from '../../_lib/public-notification-triage.js';
 import {buildPublicScreenerLab} from '../../_lib/public-screener-lab.js';
 import {providerDirectory} from '../../_lib/provider-directory.js';
+import {normalizeAnalyticsBatch,summarizeAnalyticsBatch} from '../../_lib/public-analytics.js';
 
 const publicTruthState=(state)=>({
   live_provider:'live',
@@ -165,6 +166,16 @@ export async function route(context){
   if(path==='platform/capabilities'&&readMethod(method)){
     await enforceRateLimit(env,`public-capability-inventory:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:60});
     return responseJson(request,env,capabilityInventory(),200,{cache:'no-store'});
+  }
+  if(path==='analytics/events'&&method==='POST'){
+    await enforceRateLimit(env,`public-analytics:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:30});
+    const contentLength=Number(request.headers.get('content-length')||0);
+    if(contentLength>16384)throw new HttpError(413,'analytics_batch_too_large','Analytics batch exceeds 16 KB.');
+    let payload;
+    try{payload=await request.json();}catch{throw new HttpError(400,'invalid_analytics_batch','Analytics body must be valid JSON.');}
+    const events=normalizeAnalyticsBatch(payload);
+    console.log(JSON.stringify(summarizeAnalyticsBatch(events)));
+    return responseJson(request,env,{accepted:events.length},202,{cache:'no-store'});
   }
   if(path==='providers/status'&&readMethod(method)){
     await enforceRateLimit(env,`public-provider-status:${request.headers.get('CF-Connecting-IP')||'unknown'}`,{limit:60});
