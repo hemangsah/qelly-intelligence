@@ -8,6 +8,8 @@ test('Market mounts Advanced Chart before the secondary widget network',async()=
   const source=await read('apps/web/public/assets/routes/market-v6.mjs');
   assert.ok(source.indexOf('q-v7-chart-panel') < source.indexOf('q-market-widget-section'));
   assert.match(source,/chartFrame=requestAnimationFrame\(mount\)/);
+  assert.match(source,/rootMargin:'160px 0px'/);
+  assert.match(source,/rootMargin:'120px 0px'/);
   assert.ok(source.indexOf('q-v7-chart-panel') < source.indexOf('data-market-widget-grid'));
 });
 
