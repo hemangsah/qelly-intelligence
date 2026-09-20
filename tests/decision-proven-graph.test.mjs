@@ -42,16 +42,47 @@ test('Decision Proven Graph fails closed on insufficient provider evidence',()=>
 });
 
 test('public endpoint validates controls and returns cacheable provider-derived evidence',async()=>{
-  let providerBody=null;const now=candles.at(-1).t+900_000;
+  const providerBodies=[];const now=candles.at(-1).t+900_000;
   const request=new Request('https://terminal.qellyintelligence.com/api/v1/decision-proven-graph?asset=BTC&interval=15m&horizon=4h');
-  const response=await onRequest({request,env:{__fetch:async(_url,options)=>{providerBody=JSON.parse(options.body);return new Response(JSON.stringify(candles),{status:200,headers:{'content-type':'application/json'}});}}});
-  assert.equal(response.status,200);assert.match(response.headers.get('cache-control'),/stale-while-revalidate/);assert.equal(providerBody.type,'candleSnapshot');assert.equal(providerBody.req.coin,'BTC');
+  const response=await onRequest({request,env:{__fetch:async(url,options={})=>{
+    if(String(url).includes('api.hyperliquid.xyz')){
+      const body=JSON.parse(options.body);providerBodies.push(body);
+      if(body.type==='metaAndAssetCtxs')return new Response(JSON.stringify([{universe:[{name:'BTC'}]},[{funding:'0.000125',openInterest:'1000',markPx:'80000',oraclePx:'79900',dayNtlVlm:'120000000',premium:'0.0002'}]]),{status:200,headers:{'content-type':'application/json'}});
+      return new Response(JSON.stringify(candles),{status:200,headers:{'content-type':'application/json'}});
+    }
+    return new Response(JSON.stringify({articles:[]}),{status:200,headers:{'content-type':'application/json'}});
+  }}});
+  assert.equal(response.status,200);assert.match(response.headers.get('cache-control'),/stale-while-revalidate/);
+  assert.ok(providerBodies.some(body=>body.type==='candleSnapshot'&&body.req.coin==='BTC'));
+  assert.ok(providerBodies.some(body=>body.type==='metaAndAssetCtxs'));
   const body=await response.json();assert.equal(body.provenance.provider,'Hyperliquid');assert.equal(body.horizon,'4h');assert.ok(new Date(body.generatedAt).getTime()>0);assert.equal(body.multiTimeframe.state,'live');assert.ok(body.multiTimeframe.views.length>=4);
+  assert.equal(body.evidence.derivatives.state,'live');assert.equal(body.evidence.derivatives.provider,'Hyperliquid');assert.equal(body.evidence.derivatives.currentOnly,true);assert.equal(body.evidence.derivatives.fundingPct,.0125);assert.equal(body.evidence.derivatives.openInterest,1000);assert.equal(body.evidence.derivatives.openInterestNotionalUsd,80_000_000);assert.equal(body.evidence.derivatives.markOracleBasisPct,.125156);
+  assert.equal(body.evidence.liquidations.state,'unavailable');
   const invalid=await onRequest({request:new Request('https://terminal.qellyintelligence.com/api/v1/decision-proven-graph?asset=INVALID'),env:{}});assert.equal(invalid.status,400);
 });
 
 test('public route and source-to-model boundary are registered',async()=>{
   const [registry,route,endpoint]=await Promise.all([readFile(new URL('../apps/web/public/assets/route-registry.mjs',import.meta.url),'utf8'),readFile(new URL('../apps/web/public/assets/routes/decision-proven-graph.mjs',import.meta.url),'utf8'),readFile(new URL('../functions/api/v1/decision-proven-graph.js',import.meta.url),'utf8')]);
-  assert.match(registry,/route:'decision-provenance'.*public:true/);assert.match(route,/Explain this move/);assert.match(route,/QELLY VIEW/);assert.match(route,/PAST/);assert.match(route,/FUTURE/);assert.match(route,/MULTI-TIMEFRAME/);assert.match(route,/Methodology and sources/);assert.doesNotMatch(route,/<details class="q-dpg-audit" open/);assert.doesNotMatch(route,/Entitlement|Fingerprint|Endpoint/);assert.match(endpoint,/candleSnapshot/);assert.match(endpoint,/api\.gdeltproject\.org/);assert.doesNotMatch(endpoint,/TradingView/);
+  assert.match(registry,/route:'decision-provenance'.*public:true/);assert.match(route,/Explain this move/);assert.match(route,/QELLY VIEW/);assert.match(route,/PAST/);assert.match(route,/FUTURE/);assert.match(route,/MULTI-TIMEFRAME/);assert.match(route,/DERIVATIVES CONTEXT/);assert.match(route,/Current funding/);assert.match(route,/Open interest/);assert.match(route,/Liquidations: unavailable, not inferred/);assert.match(route,/Methodology and sources/);assert.doesNotMatch(route,/<details class="q-dpg-audit" open/);assert.doesNotMatch(route,/Entitlement|Fingerprint|Endpoint/);assert.match(endpoint,/candleSnapshot/);assert.match(endpoint,/metaAndAssetCtxs/);assert.match(endpoint,/currentOnly:true/);assert.match(endpoint,/api\.gdeltproject\.org/);assert.doesNotMatch(endpoint,/TradingView/);
 });
 
+
+
+test('derivatives provider failure does not fabricate values or take Decision Intelligence offline',async()=>{
+  const request=new Request('https://terminal.qellyintelligence.com/api/v1/decision-proven-graph?asset=BTC&interval=15m&horizon=4h');
+  const response=await onRequest({request,env:{__fetch:async(url,options={})=>{
+    if(String(url).includes('api.hyperliquid.xyz')){
+      const body=JSON.parse(options.body);
+      if(body.type==='metaAndAssetCtxs')return new Response(JSON.stringify({error:'down'}),{status:503,headers:{'content-type':'application/json'}});
+      return new Response(JSON.stringify(candles),{status:200,headers:{'content-type':'application/json'}});
+    }
+    return new Response(JSON.stringify({articles:[]}),{status:200,headers:{'content-type':'application/json'}});
+  }}});
+  assert.equal(response.status,200);
+  const body=await response.json();
+  assert.equal(body.evidence.derivatives.state,'unavailable');
+  assert.equal(body.evidence.derivatives.currentOnly,true);
+  assert.match(body.evidence.derivatives.message,/not inferred/i);
+  assert.equal(body.evidence.derivatives.fundingRate,undefined);
+  assert.equal(body.evidence.liquidations.state,'unavailable');
+});
