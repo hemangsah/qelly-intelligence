@@ -6,7 +6,7 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const output=path.join(root,'dist/frontend');
 const RELEASE_PLACEHOLDER="const RELEASE_KEY='__QELLY_RELEASE_KEY__';";
-const SHELL_PATTERN=/const SHELL=Object\.freeze\(\[[\s\S]*?\]\);/;
+const SHELL_BLOCK_PATTERN=/const SHELL=\[[\s\S]*?\];(?:\nSHELL\.push\([\s\S]*?\);)?/;
 
 const normalizeLocalAsset=(value)=>{
   const raw=String(value||'').trim();
@@ -35,6 +35,17 @@ export function collectFinalShell(indexHtml){
   });
 }
 
+export function collectSourceShell(workerSource){
+  const source=String(workerSource||'');
+  const block=source.match(SHELL_BLOCK_PATTERN)?.[0]||'';
+  if(!block)throw new Error('Service worker shell declaration is missing');
+  const assets=[];
+  const pattern=/['"](.\/[^'"]+)['"]/g;
+  let match;
+  while((match=pattern.exec(block)))assets.push(match[1]);
+  return [...new Set(assets)];
+}
+
 export function serviceWorkerReleaseKey(releaseSha,buildTimestamp='',strict=false){
   const sha=String(releaseSha||'').trim().toLowerCase();
   if(/^[0-9a-f]{40}$/.test(sha))return sha;
@@ -46,12 +57,12 @@ export function serviceWorkerReleaseKey(releaseSha,buildTimestamp='',strict=fals
 export function stampServiceWorker(source,{releaseSha,buildTimestamp,shell,strict=false}){
   const sha=serviceWorkerReleaseKey(releaseSha,buildTimestamp,strict);
   if(!String(source).includes(RELEASE_PLACEHOLDER))throw new Error('Service worker release placeholder is missing');
-  if(!SHELL_PATTERN.test(String(source)))throw new Error('Service worker shell declaration is missing');
+  if(!SHELL_BLOCK_PATTERN.test(String(source)))throw new Error('Service worker shell declaration is missing');
   const normalizedShell=[...new Set(shell||[])].filter(Boolean);
   if(!normalizedShell.includes('./')||!normalizedShell.includes('./index.html'))throw new Error('Service worker shell must include navigation fallbacks');
   return String(source)
     .replace(RELEASE_PLACEHOLDER,`const RELEASE_KEY='${sha}';`)
-    .replace(SHELL_PATTERN,`const SHELL=Object.freeze(${JSON.stringify(normalizedShell)});`);
+    .replace(SHELL_BLOCK_PATTERN,`const SHELL=${JSON.stringify(normalizedShell)};`);
 }
 
 export async function finalizeReleaseCache({outputDir=output}={}){
@@ -61,7 +72,7 @@ export async function finalizeReleaseCache({outputDir=output}={}){
     readFile(path.join(outputDir,'qelly-service-worker.js'),'utf8')
   ]);
   const release=JSON.parse(releaseText);
-  const shell=collectFinalShell(indexHtml);
+  const shell=[...new Set([...collectSourceShell(workerSource),...collectFinalShell(indexHtml)])];
   const stamped=stampServiceWorker(workerSource,{releaseSha:release.releaseSha,buildTimestamp:release.buildTimestamp,shell,strict:process.env.QELLY_REQUIRE_PUBLIC_RUNTIME==='true'});
   await writeFile(path.join(outputDir,'qelly-service-worker.js'),stamped);
   return {status:'release-cache-finalized',releaseSha:release.releaseSha,shellEntries:shell.length};
