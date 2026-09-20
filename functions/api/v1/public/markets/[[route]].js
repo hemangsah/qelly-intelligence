@@ -10,10 +10,8 @@ const LIVE_INTERVALS=new Set(['15m','1h','4h','1d']);
 const LIVE_ASSETS=Object.freeze([
   {canonicalId:'QI-CRYPTO-BTC',symbol:'BTC',name:'Bitcoin',category:'Layer 1'},
   {canonicalId:'QI-CRYPTO-ETH',symbol:'ETH',name:'Ethereum',category:'Smart-contract platforms'},
-  {canonicalId:'QI-CRYPTO-BNB',symbol:'BNB',name:'BNB',category:'Exchange ecosystems'},
   {canonicalId:'QI-CRYPTO-SOL',symbol:'SOL',name:'Solana',category:'Smart-contract platforms'},
   {canonicalId:'QI-CRYPTO-XRP',symbol:'XRP',name:'XRP',category:'Payments'},
-  {canonicalId:'QI-CRYPTO-ADA',symbol:'ADA',name:'Cardano',category:'Smart-contract platforms'},
   {canonicalId:'QI-CRYPTO-HYPE',symbol:'HYPE',name:'Hyperliquid',category:'Exchange ecosystems'},
   {canonicalId:'QI-CRYPTO-DOGE',symbol:'DOGE',name:'Dogecoin',category:'Meme assets'}
 ]);
