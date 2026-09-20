@@ -110,5 +110,4 @@ function start(){
 
 if(typeof document!=='undefined'&&typeof window!=='undefined'){
   start();
-  void import('./qelly-v53-lock-shell.mjs');
 }
