@@ -215,5 +215,6 @@ test('product experience is the final border-light visual authority and is offli
   assert.match(worker, /qelly-premium-theme\.css/);
   assert.match(worker, /qelly-product-experience\.css/);
   assert.match(worker, /qelly-premium-interactions\.mjs/);
-  assert.match(worker, /fallback-v1/);
+  assert.match(worker, /RELEASE_KEY='__QELLY_RELEASE_KEY__'/);
+  assert.doesNotMatch(worker, /fallback-v1/);
 });

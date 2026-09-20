@@ -8,6 +8,15 @@
   Cross-Origin-Opener-Policy: same-origin
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
 
+/
+  Cache-Control: no-store, no-cache, must-revalidate, no-transform
+
+/index.html
+  Cache-Control: no-store, no-cache, must-revalidate, no-transform
+
+/qelly-service-worker.js
+  Cache-Control: no-store, no-cache, must-revalidate, no-transform
+
 /qelly-config.js
   Cache-Control: no-store
 

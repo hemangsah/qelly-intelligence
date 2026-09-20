@@ -60,6 +60,7 @@ jobs:
           test -s dist/frontend/index.html
           test -s dist/frontend/qelly-config.js
           test -s dist/frontend/qelly-release.json
+          test -s dist/frontend/qelly-service-worker.js
           test -s dist/frontend/_routes.json
           test -s dist/frontend/assets/routes/provider-runtime-v6.mjs
           test -s dist/frontend/assets/routes/instrument-master-v6.mjs
@@ -72,6 +73,18 @@ jobs:
           grep -F "renderProviderRuntimeV6" dist/frontend/assets/app.js
           grep -F "renderInstrumentMasterV6" dist/frontend/assets/app.js
           grep -F "renderTimeSeriesV6" dist/frontend/assets/app.js
+          ! grep -F "__QELLY_RELEASE_KEY__" dist/frontend/qelly-service-worker.js
+          node <<'NODE'
+          const fs=require('node:fs');
+          const release=JSON.parse(fs.readFileSync('dist/frontend/qelly-release.json','utf8'));
+          const worker=fs.readFileSync('dist/frontend/qelly-service-worker.js','utf8');
+          const expected="const RELEASE_KEY='"+release.releaseSha+"';";
+          if(!worker.includes(expected))throw new Error('service_worker_release_identity_mismatch');
+          if(worker.includes('caches.match('))throw new Error('service_worker_cross_release_cache_lookup');
+          for(const required of ['./','./index.html','./qelly-config.js','./qelly-release.json']){
+            if(!worker.includes(JSON.stringify(required)))throw new Error('service_worker_shell_missing_'+required);
+          }
+          NODE
       - name: Upload production-parity diagnostics
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

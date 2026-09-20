@@ -1,51 +1,49 @@
 const CACHE_PREFIX='qelly-public-runtime-';
-const FALLBACK_CACHE=`${CACHE_PREFIX}fallback-v1`;
+const RELEASE_KEY='__QELLY_RELEASE_KEY__';
 const SHELL=['./','./index.html','./qelly-release.json','./qelly-config.js','./manifest.webmanifest','./favicon.svg','./assets/tokens.css','./assets/app.css','./assets/qelly-premium-reset.css','./assets/qelly-worldclass-uiux.css','./assets/qelly-verify.css','./assets/qelly-verify-evidence.css','./assets/qelly-verify-bootstrap.mjs','./assets/qelly-verify-engine.mjs','./assets/qelly-verify-methodology.mjs','./assets/qelly-verify-report.mjs','./assets/qelly-verify-product.mjs','./assets/qelly-public-runtime.css','./assets/qelly-public-runtime.mjs','./assets/qelly-production-shell.css','./assets/qelly-modern-interaction-polish.css','./assets/qelly-premium-theme.css','./assets/qelly-product-experience.css','./assets/qelly-navigation-v2.css','./assets/about-qelly-v2.css','./assets/routes/market-network-v2.css','./assets/routes/discovery-overview.css','./assets/routes/discovery-overview.mjs','./assets/routes/asset-rankings-v2.css','./assets/routes/universal-search-v2.css','./assets/routes/universal-search.mjs','./assets/routes/categories-v2.css','./assets/routes/categories.mjs','./assets/routes/venues-v2.css','./assets/routes/venues.mjs','./assets/routes/dex-discovery-v2.css','./assets/routes/dex-discovery.mjs','./assets/routes/global-charts-v2.css','./assets/routes/global-charts.mjs','./assets/routes/converter-v3.css','./assets/routes/converter.mjs','./assets/routes/asset-intelligence-v2.css','./assets/routes/asset-intelligence.mjs','./assets/routes/advanced-chart-v2.css','./assets/routes/advanced-chart.mjs','./assets/qelly-premium-interactions.mjs','./assets/qelly-product-experience.mjs','./assets/qelly-production-shell.mjs','./assets/app.js','./assets/calculation/formula-engine.mjs','./assets/calculation/indicator-engine.mjs','./legal/beta.html','./legal/risk.html','./legal/privacy.html','./legal/terms.html','./support.html'];
 SHELL.push('./assets/routes/fundamentals-estimates.mjs','./assets/routes/fundamentals-estimates-v2.css','./assets/routes/filing-workspace.mjs','./assets/routes/filing-workspace-v2.css','./assets/routes/event-calendar.mjs','./assets/routes/event-calendar-v2.css','./assets/routes/comparison-lab.mjs','./assets/routes/comparison-lab-v2.css','./assets/routes/alert-center.mjs','./assets/routes/alert-rules-v2.css','./assets/routes/notification-center.mjs','./assets/routes/notification-triage-v2.css','./assets/routes/screener-lab.mjs','./assets/routes/screener-lab-v2.css');
-let resolvedCacheName=null;
+const CACHE_NAME=`${CACHE_PREFIX}${RELEASE_KEY}`;
 
-async function cacheName(){
-  if(resolvedCacheName)return resolvedCacheName;
-  try{
-    const response=await fetch('./qelly-release.json',{cache:'no-store'});
-    if(!response.ok)throw new Error(`release ${response.status}`);
-    const release=await response.json();
-    const sha=String(release?.releaseSha||'').toLowerCase();
-    resolvedCacheName=/^[0-9a-f]{40}$/.test(sha)?`${CACHE_PREFIX}${sha}`:FALLBACK_CACHE;
-  }catch{resolvedCacheName=FALLBACK_CACHE;}
-  return resolvedCacheName;
-}
+function privateOrApi(url){return url.pathname.includes('/api/')||/\/(auth|account|saved-calculations|secure-import|quarantine|delivery-operations)(?:\/|$)/i.test(url.pathname);}
+
+async function releaseCache(){return caches.open(CACHE_NAME);}
 
 async function installShell(){
-  const name=await cacheName();
-  const cache=await caches.open(name);
+  const cache=await releaseCache();
   await cache.addAll(SHELL);
   await self.skipWaiting();
 }
 
 async function activateShell(){
-  const name=await cacheName();
   const keys=await caches.keys();
-  await Promise.all(keys.filter(key=>key.startsWith(CACHE_PREFIX)&&key!==name).map(key=>caches.delete(key)));
+  await Promise.all(keys.filter(key=>key.startsWith(CACHE_PREFIX)&&key!==CACHE_NAME).map(key=>caches.delete(key)));
   await self.clients.claim();
 }
 
-function privateOrApi(url){return url.pathname.includes('/api/')||/\/(auth|account|saved-calculations|secure-import|quarantine|delivery-operations)(?:\/|$)/i.test(url.pathname);}
-
 async function remember(request,response){
   if(!response?.ok)return response;
-  const cache=await caches.open(await cacheName());
+  const cache=await releaseCache();
   await cache.put(request,response.clone());
   return response;
 }
 
+async function releaseMatch(request){
+  const cache=await releaseCache();
+  return cache.match(request);
+}
+
 async function networkFirst(request,fallback){
-  try{return await remember(request,await fetch(request));}
-  catch{return(await caches.match(request))||(fallback?await caches.match(fallback):undefined)||Response.error();}
+  try{return await remember(request,await fetch(request,{cache:'no-store'}));}
+  catch{
+    const cached=await releaseMatch(request);
+    if(cached)return cached;
+    if(fallback)return releaseMatch(fallback);
+    return Response.error();
+  }
 }
 
 async function cacheFirstWithRefresh(request){
-  const cached=await caches.match(request);
+  const cached=await releaseMatch(request);
   const refresh=fetch(request).then(response=>remember(request,response)).catch(()=>null);
   return cached||(await refresh)||Response.error();
 }
