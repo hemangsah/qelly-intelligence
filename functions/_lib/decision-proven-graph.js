@@ -41,8 +41,7 @@ function scenarios(candles,returns,horizonBars,seed){
   const neutral=Math.max(.002,Math.sqrt(horizonBars)*(.25*((quantile(sample,.75)??0)-(quantile(sample,.25)??0))));
   const bull=round(terminal.filter(value=>value/last-1>neutral).length/paths,4);
   const bear=round(terminal.filter(value=>value/last-1< -neutral).length/paths,4);
-  const base=round(clamp(1-bull-bear,0,1),4);
-  const normalizedBase=round(1-bull-bear,4);
+  const normalizedBase=round(clamp(1-bull-bear,0,1),4);
   return {paths,fan,probabilities:{bull,base:normalizedBase,bear},terminal:{p05:fan.at(-1).p05,p50:fan.at(-1).p50,p95:fan.at(-1).p95}};
 }
 
