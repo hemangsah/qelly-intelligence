@@ -75,11 +75,11 @@ export function rewritePublicIdentity(source,{siteUrl,canonicalUrl=siteUrl,file}
       '<meta property="og:type" content="website">',
       '<meta property="og:site_name" content="Qelly Intelligence">',
       '<meta property="og:title" content="Qelly Intelligence · Verifiable Market Intelligence">',
-      '<meta property="og:description" content="Evidence-backed market discovery, quantitative tools and decision provenance.">',
+      '<meta property="og:description" content="Evidence-backed market discovery, quantitative tools and Decision Intelligence.">',
       `<meta property="og:url" content="${canonicalUrl}/">`,
       '<meta name="twitter:card" content="summary_large_image">',
       '<meta name="twitter:title" content="Qelly Intelligence · Verifiable Market Intelligence">',
-      '<meta name="twitter:description" content="Evidence-backed market discovery, quantitative tools and decision provenance.">'
+      '<meta name="twitter:description" content="Evidence-backed market discovery, quantitative tools and Decision Intelligence.">'
     ].join('\n  ');
     if(!text.includes('rel="canonical"'))text=text.replace('</title>',`</title>\n  ${social}`);
     else{
