@@ -125,16 +125,18 @@ test('route fallbacks keep URL ownership truthful and dynamic metadata readable'
   assert.match(index, /qelly-route-convergence\.css" data-qelly-route-convergence="true"/);
 });
 
-test('production exposes the complete registry through one responsive feature navigator', async () => {
+test('production exposes the public consumer registry through one responsive feature navigator', async () => {
   const [runtime, convergence, registry] = await Promise.all([
     read('apps/web/public/assets/qelly-production-shell.mjs'),
     read('apps/web/public/assets/qelly-route-convergence.css'),
     import('../apps/web/public/assets/route-registry.mjs')
   ]);
-  const visibleRoutes=registry.routeDefinitions.filter((route)=>!route.hidden);
-  assert.equal(visibleRoutes.length,64);
+  const visibleRoutes=registry.routeDefinitions.filter((route)=>route.public===true&&!route.hidden);
+  assert.ok(visibleRoutes.length>=30);
+  for(const route of ['identity-access','data-mesh','instrument-master','timeseries-lab','stream-operations','observability','migration-center','security-evidence'])assert.equal(visibleRoutes.some((item)=>item.route===route),false);
   assert.match(runtime, /import \{ productDomains, routeDefinitions \} from '\.\/route-registry\.mjs'/);
-  assert.match(runtime, /const FEATURE_ROUTES=routeDefinitions\.filter\(\(route\)=>!route\.hidden\)/);
+  assert.match(runtime, /const FEATURE_ROUTES=routeDefinitions\.filter\(\(route\)=>route\.public===true&&!route\.hidden\)/);
+  assert.match(runtime, /const FEATURE_DOMAINS=productDomains\.filter\(\(domain\)=>FEATURE_ROUTES\.some/);
   assert.match(runtime, /aria-label="All Qelly features"/);
   assert.match(runtime, /placeholder="Search \$\{FEATURE_ROUTES\.length\} features by purpose"/);
   assert.match(runtime, /data-feature-domain-filter/);
