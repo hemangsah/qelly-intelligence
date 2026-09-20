@@ -4,10 +4,14 @@ import {readFile} from 'node:fs/promises';
 
 const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 
-test('production terminal shell never labels governed market data simulated',async()=>{
-  const source=await read('apps/web/public/assets/qelly-v53-lock-shell.mjs');
-  assert.match(source,/MARKET DATA · GOVERNED PROVIDER TRUTH/);
-  assert.doesNotMatch(source,/SIMULATED REFERENCE DATA|Providers 5\/6/);
+test('production terminal shell does not depend on the retired V5.3 lock shell',async()=>{
+  const [source,family]=await Promise.all([
+    read('apps/web/public/assets/qelly-production-shell.mjs'),
+    read('apps/web/public/assets/qelly-v53-family-harmonization.mjs')
+  ]);
+  assert.doesNotMatch(source,/SIMULATED REFERENCE DATA|Providers 5\/6|Provider truth: governed|Workspace: Institutional Research/);
+  assert.doesNotMatch(family,/qelly-v53-lock-shell\.mjs/);
+  await assert.rejects(()=>read('apps/web/public/assets/qelly-v53-lock-shell.mjs'),{code:'ENOENT'});
 });
 
 test('canonical production Market renderer is no-fabrication and anonymous-safe',async()=>{
