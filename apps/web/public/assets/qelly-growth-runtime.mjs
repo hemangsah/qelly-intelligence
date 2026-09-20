@@ -47,13 +47,21 @@ export function updateGrowthConsent(granted,storage=globalThis.localStorage){
   return storageSet(storage,CONSENT_KEY,{...previous,analytics:granted===true,updatedAt:new Date().toISOString()});
 }
 
-export function recordRecentActivity({route,label,kind='page'},storage=globalThis.localStorage,now=Date.now()){
+const safeRecentHref=(value)=>{
+  const href=String(value??'').trim();
+  return /^#\/[a-z0-9._~:%/-]+(?:\?[a-z0-9._~:%&=+,-]*)?$/i.test(href)&&href.length<=240?href:null;
+};
+
+export function recordRecentActivity({route,label,kind='page',key=null,href=null},storage=globalThis.localStorage,now=Date.now()){
   const safeRoute=cleanToken(route);
   const safeKind=cleanToken(kind);
+  const safeKey=cleanToken(key??route);
   const safeLabel=String(label??'').replace(/[<>]/g,'').trim().slice(0,80);
-  if(!safeRoute||!safeKind||!safeLabel)return [];
+  const safeHref=safeRecentHref(href??(safeRoute?'#/'+safeRoute:''));
+  if(!safeRoute||!safeKind||!safeKey||!safeLabel||!safeHref)return [];
   const current=storageGet(storage,ACTIVITY_KEY,[]);
-  const next=[{route:safeRoute,label:safeLabel,kind:safeKind,visitedAt:new Date(now).toISOString()},...current.filter((item)=>item?.route!==safeRoute)].slice(0,MAX_ACTIVITY);
+  const identity=(item)=>cleanToken(item?.key??item?.route);
+  const next=[{key:safeKey,route:safeRoute,href:safeHref,label:safeLabel,kind:safeKind,visitedAt:new Date(now).toISOString()},...current.filter((item)=>identity(item)!==safeKey)].slice(0,MAX_ACTIVITY);
   storageSet(storage,ACTIVITY_KEY,next);
   return next;
 }
@@ -100,6 +108,22 @@ export function createGrowthAnalytics({config={},storage=globalThis.localStorage
 
 const routeFromHash=()=>location.hash.replace(/^#\/?/,'').split('?')[0].split('/')[0]||'market';
 const routeLabel=(route)=>route.split('-').map((part)=>part.charAt(0).toUpperCase()+part.slice(1)).join(' ');
+const decodeSegment=(value)=>{try{return decodeURIComponent(String(value??''));}catch{return String(value??'');}};
+export function recentDescriptorFromHash(hash){
+  const raw=String(hash??'').replace(/^#\/?/,'').split('?')[0];
+  const segments=raw.split('/').filter(Boolean).map(decodeSegment);
+  const route=cleanToken(segments[0]||'market')||'market';
+  const detail=segments[1]||'';
+  if(route==='asset'&&detail){
+    const symbol=detail.toUpperCase().replace(/^QI-CRYPTO-/,'').replace(/[^A-Z0-9._-]/g,'').slice(0,20);
+    if(symbol)return {route,key:'asset:'+symbol.toLowerCase(),href:'#/asset/'+encodeURIComponent(detail),label:symbol+' · Asset Dossier',kind:'asset'};
+  }
+  if(route==='calculator-detail'&&detail){
+    const id=cleanToken(detail);
+    if(id)return {route,key:'calculator:'+id,href:'#/calculator-detail/'+encodeURIComponent(detail),label:routeLabel(id)+' · Calculator',kind:'calculator'};
+  }
+  return {route,key:route,href:'#/'+route,label:routeLabel(route),kind:route.includes('calculator')?'calculator':route==='decision-provenance'?'decision_intelligence':'research_page'};
+}
 const escapeHtml=(value)=>String(value??'').replace(/[&<>'"]/g,(character)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
 
 function openGrowthPanel(analytics){
@@ -108,7 +132,7 @@ function openGrowthPanel(analytics){
   const consent=readGrowthConsent();
   const dialog=document.createElement('dialog');
   dialog.className='q-growth-panel';dialog.dataset.qellyGrowthPanel='true';
-  dialog.innerHTML=`<form method="dialog" class="q-growth-panel__head"><div><small>Your browser</small><h2>Recent Qelly activity</h2></div><button aria-label="Close recent activity">×</button></form><div class="q-growth-panel__body"><p>Return to recent public research without an account. This list stays in this browser.</p><div class="q-growth-panel__list">${recent.length?recent.map((item)=>`<a href="#/${escapeHtml(item.route)}"><span>${escapeHtml(item.label)}</span><small>${escapeHtml(item.kind.replaceAll('_',' '))}</small></a>`).join(''):'<p class="q-growth-panel__empty">Open a market, calculator or research tool and it will appear here.</p>'}</div><label class="q-growth-consent"><input type="checkbox" data-growth-consent ${consent?'checked':''}><span><strong>Help improve Qelly</strong><small>Share coarse feature-use counts only. Inputs, outputs, searches, symbols and account data are never included.</small></span></label><a class="q-growth-privacy" href="./legal/privacy.html">Privacy details</a></div>`;
+  dialog.innerHTML=`<form method="dialog" class="q-growth-panel__head"><div><small>Your browser</small><h2>Recent Qelly activity</h2></div><button aria-label="Close recent activity">×</button></form><div class="q-growth-panel__body"><p>Return to recent public research without an account. This list stays in this browser.</p><div class="q-growth-panel__list">${recent.length?recent.map((item)=>{const href=safeRecentHref(item.href)||safeRecentHref('#/'+item.route)||'#/market';return `<a href="${escapeHtml(href)}"><span>${escapeHtml(item.label)}</span><small>${escapeHtml(item.kind.replaceAll('_',' '))}</small></a>`;}).join(''):'<p class="q-growth-panel__empty">Open a market, calculator or research tool and it will appear here.</p>'}</div><label class="q-growth-consent"><input type="checkbox" data-growth-consent ${consent?'checked':''}><span><strong>Help improve Qelly</strong><small>Share coarse feature-use counts only. Inputs, outputs, searches, symbols and account data are never included.</small></span></label><a class="q-growth-privacy" href="./legal/privacy.html">Privacy details</a></div>`;
   document.body.append(dialog);
   dialog.querySelector('[data-growth-consent]')?.addEventListener('change',(event)=>{
     updateGrowthConsent(event.currentTarget.checked);
@@ -121,8 +145,9 @@ function openGrowthPanel(analytics){
 export function installGrowthRuntime(config=window.__QELLY_CONFIG__||{}){
   const analytics=createGrowthAnalytics({config:config.analytics});
   const trackRoute=()=>{
-    const route=routeFromHash();
-    recordRecentActivity({route,label:routeLabel(route),kind:route.includes('calculator')?'calculator':route==='decision-provenance'?'decision_intelligence':'research_page'});
+    const recent=recentDescriptorFromHash(location.hash);
+    const route=recent.route;
+    recordRecentActivity(recent);
     if(ANALYTICS_ROUTES.has(route)){
       analytics.track('route_view',{route,feature:route==='decision-provenance'?'decision_intelligence':route});
       if(route==='decision-provenance')analytics.track('decision_open',{route,feature:'decision_intelligence'});
