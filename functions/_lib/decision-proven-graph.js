@@ -40,9 +40,10 @@ function scenarios(candles,returns,horizonBars,seed){
   const fan=series.map((values,index)=>({step:index+1,p05:round(quantile(values,.05),2),p25:round(quantile(values,.25),2),p50:round(quantile(values,.5),2),p75:round(quantile(values,.75),2),p95:round(quantile(values,.95),2)}));
   const neutral=Math.max(.002,Math.sqrt(horizonBars)*(.25*((quantile(sample,.75)??0)-(quantile(sample,.25)??0))));
   const bull=round(terminal.filter(value=>value/last-1>neutral).length/paths,4);
-  const bear=round(terminal.filter(value=>value/last-1< -neutral).length/paths,4);
-  const normalizedBase=round(clamp(1-bull-bear,0,1),4);
-  return {paths,fan,probabilities:{bull,base:normalizedBase,bear},terminal:{p05:fan.at(-1).p05,p50:fan.at(-1).p50,p95:fan.at(-1).p95}};
+  let bear=round(terminal.filter(value=>value/last-1< -neutral).length/paths,4);
+  let base=round(1-bull-bear,4);
+  if(base<0){base=0;bear=round(1-bull,4);}
+  return {paths,fan,probabilities:{bull,base,bear},terminal:{p05:fan.at(-1).p05,p50:fan.at(-1).p50,p95:fan.at(-1).p95}};
 }
 
 function marketState(metrics){
