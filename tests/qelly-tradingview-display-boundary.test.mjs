@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {__tradingViewDisplayTest,tradingViewSymbol,tradingViewInterval} from '../apps/web/public/assets/market/tradingview-display-widget.mjs';
+import {validateMarketWidgetPanels} from '../apps/web/public/assets/market/tradingview-market-grid.mjs';
 
 const read=(path)=>readFile(new URL(path,import.meta.url),'utf8');
 
@@ -59,6 +60,26 @@ test('Market Command makes Crypto Heatmap the first major market module and lazy
   assert.match(grid,/requestAnimationFrame\(\(\)=>mountCard\(primary\)\)/);
   assert.match(grid,/Duplicate TradingView widget kind/);
   assert.doesNotMatch(route,/embedded research suite|third-party panel|iframe/i);
+});
+
+test('market widget grid reserves layout and keeps Crypto Heatmap leftmost/first across responsive breakpoints',async()=>{
+  const css=await read('../apps/web/public/assets/routes/market-v6.css');
+  const {MARKET_WIDGET_PANELS}= (await import('../apps/web/public/assets/routes/market-v6.mjs')).__marketV6Test;
+  assert.equal(validateMarketWidgetPanels(MARKET_WIDGET_PANELS),true);
+  assert.equal(MARKET_WIDGET_PANELS[0].kind,'cryptoHeatmap');
+  assert.match(css,/\.q-market-widget-grid\{display:grid;grid-template-columns:repeat\(12,minmax\(0,1fr\)\)/);
+  assert.match(css,/\.q-market-widget-card--hero\{grid-column:span 8;grid-row:span 2\}/);
+  assert.match(css,/\.q-market-widget-card--hero \.q-market-widget-stage\{min-height:610px\}/);
+  assert.match(css,/@media\(max-width:700px\)[\s\S]*\.q-market-widget-grid\{grid-template-columns:1fr\}/);
+  assert.match(css,/@media\(max-width:700px\)[\s\S]*\.q-market-widget-card,\.q-market-widget-card--hero,\.q-market-widget-card--tall,\.q-market-widget-card--wide\{grid-column:1;grid-row:auto\}/);
+});
+
+test('market widget definitions reject duplicate provider bootstraps',()=>{
+  assert.throws(()=>validateMarketWidgetPanels([
+    {id:'one',kind:'cryptoHeatmap'},
+    {id:'two',kind:'cryptoHeatmap'}
+  ]),/Duplicate TradingView widget kind/);
+  assert.throws(()=>validateMarketWidgetPanels([{id:'overview',kind:'marketOverview'}]),/Crypto Heatmap must be the first market widget/);
 });
 
 test('CSP preserves the TradingView boundary alongside separately governed provider displays',async()=>{
