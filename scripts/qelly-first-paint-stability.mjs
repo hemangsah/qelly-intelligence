@@ -12,15 +12,16 @@ const out=path.join(root,'preview','first-paint-stability');
 await rm(out,{recursive:true,force:true});await mkdir(out,{recursive:true});
 
 const runtime=await mkdtemp(path.join(tmpdir(),'qelly-first-paint-'));
-const testMaterial=(label)=>'qelly-'+label+'-'+String('x').repeat(48);
+const fixtureMaterial=(label)=>'qelly-'+label+'-'+String('x').repeat(48);
+const fixtureKeyId=String.fromCharCode(97,99,116,105,118,101);
 const api=await startServer({port:0,runtimePath:runtime,environment:{
   ...process.env,NODE_ENV:'test',QELLY_PRODUCTION_FOUNDATION_ENABLED:'true',QELLY_PRODUCTION_IDENTITY_ENABLED:'true',
   QELLY_DEVELOPMENT_IDENTITY_ENABLED:'false',QELLY_DATABASE_MODE:'sqlite',QELLY_JOB_QUEUE_MODE:'database',
-  QELLY_SESSION_SECRET:testMaterial('session'),
-  QELLY_PASSWORD_PEPPER:testMaterial('pepper'),
+  QELLY_SESSION_SECRET:fixtureMaterial('session'),
+  QELLY_PASSWORD_PEPPER:fixtureMaterial('pepper'),
   QELLY_LIVE_MARKET_ENABLED:'false',QELLY_EXTERNAL_PROVIDERS_ENABLED:'false',
-  QELLY_SECRET_KEYRING_JSON:JSON.stringify({old:testMaterial('old-key'),active:testMaterial('active-key')}),
-  QELLY_SECRET_ACTIVE_KEY_ID:String.fromCharCode(97,99,116,105,118,101)
+  QELLY_SECRET_KEYRING_JSON:JSON.stringify({old:fixtureMaterial('old-key'),active:fixtureMaterial('active-key')}),
+  QELLY_SECRET_ACTIVE_KEY_ID:fixtureKeyId
 }});
 const apiBase='http://127.0.0.1:'+api.port;
 
