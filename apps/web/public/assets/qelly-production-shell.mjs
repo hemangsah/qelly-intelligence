@@ -407,7 +407,10 @@ document.addEventListener('qelly:session-state',(event)=>{
   }
   schedule(document);
 });
-if(main)new MutationObserver(()=>schedule(main)).observe(main,{childList:true,subtree:true});
+if(main)new MutationObserver((records)=>{
+  const routeRootChanged=records.some((record)=>record.type==='childList'&&record.target===main);
+  if(routeRootChanged)schedule(main);
+}).observe(main,{childList:true,subtree:true});
 if(window.__QELLY_SESSION_STATE__?.authenticated===true&&matchMedia('(min-width:1241px)').matches){
   document.body.classList.remove('q-feature-navigation-collapsed');
 }
