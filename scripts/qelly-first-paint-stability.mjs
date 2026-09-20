@@ -83,7 +83,22 @@ try{
     for(const [routeName,hash] of routes){
       const context=await browser.newContext({viewport,device_scale_factor:1,reduced_motion:'reduce'});
       const page=await context.newPage();
-      const errors=[];page.on('pageerror',error=>errors.push(String(error)));page.on('console',msg=>{if(msg.type()==='error')errors.push(msg.text());});
+      const errors=[];
+      const networkFailures=[];
+      page.on('pageerror',error=>errors.push(String(error)));
+      page.on('console',msg=>{
+        if(msg.type()!=='error')return;
+        const value=msg.text();
+        if(/^Failed to load resource:/i.test(value))return;
+        errors.push(value);
+      });
+      page.on('response',response=>{
+        const status=response.status();
+        if(status<400)return;
+        const url=new URL(response.url());
+        const expectedAuthBoundary=status===401&&url.pathname.startsWith('/api/v1/');
+        networkFailures.push({status,url:url.pathname+url.search,expectedAuthBoundary});
+      });
       for(const mode of ['cold','warm']){
         const started=performance.now();
         if(mode==='cold')await page.goto(base+'/'+hash,{waitUntil:'domcontentloaded',timeout:20000});
@@ -98,8 +113,10 @@ try{
         const obsolete=frames.flatMap(frame=>Object.entries(frame.visibleLegacy).filter(([,count])=>count>0).map(([selector,count])=>({elapsedMs:frame.elapsedMs,selector,count})));
         const structural=frames.filter(frame=>frame.currentShells!==1||frame.visibleProductHeaders!==1||frame.legacyCommandBars!==0||frame.primaryNavCount!==1);
         const last=frames.at(-1);
-        const passed=obsolete.length===0&&structural.length===0&&last.appReady==='true'&&last.mainChildren>0&&errors.length===0;
-        report.scenarios.push({route:routeName,hash,viewport:viewportName,mode,navigationToDomContentLoadedMs:Math.round(domLoaded-started),frames,obsolete,structural,errors,status:passed?'passed':'failed'});
+        const unexpectedNetwork=networkFailures.filter(item=>!item.expectedAuthBoundary);
+        const authBoundary401=networkFailures.filter(item=>item.expectedAuthBoundary);
+        const passed=obsolete.length===0&&structural.length===0&&last.appReady==='true'&&last.mainChildren>0&&errors.length===0&&unexpectedNetwork.length===0;
+        report.scenarios.push({route:routeName,hash,viewport:viewportName,mode,navigationToDomContentLoadedMs:Math.round(domLoaded-started),frames,obsolete,structural,errors,unexpectedNetwork,authBoundary401,status:passed?'passed':'failed'});
         if(!passed)report.status='failed';
       }
       await context.close();
@@ -112,6 +129,14 @@ try{
   await rm(runtime,{recursive:true,force:true});
 }
 await writeFile(path.join(out,'first-paint-stability.json'),JSON.stringify(report,null,2)+'\n');
-const summary={status:report.status,scenarios:report.scenarios.length,failed:report.scenarios.filter(item=>item.status!=='passed').length,maxDomContentLoadedMs:Math.max(...report.scenarios.map(item=>item.navigationToDomContentLoadedMs)),maxReadyFrameMs:Math.max(...report.scenarios.map(item=>item.frames.find(frame=>frame.appReady==='true')?.elapsedMs??7001))};
+const summary={
+  status:report.status,
+  scenarios:report.scenarios.length,
+  failed:report.scenarios.filter(item=>item.status!=='passed').length,
+  authBoundary401:report.scenarios.reduce((total,item)=>total+item.authBoundary401.length,0),
+  unexpectedNetworkFailures:report.scenarios.reduce((total,item)=>total+item.unexpectedNetwork.length,0),
+  maxDomContentLoadedMs:Math.max(...report.scenarios.map(item=>item.navigationToDomContentLoadedMs)),
+  maxReadyFrameMs:Math.max(...report.scenarios.map(item=>item.frames.find(frame=>frame.appReady==='true')?.elapsedMs??7001))
+};
 console.log(JSON.stringify(summary,null,2));
 if(report.status!=='passed')process.exit(1);
