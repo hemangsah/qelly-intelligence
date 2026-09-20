@@ -191,7 +191,7 @@ export async function renderMarketV6(main,deps){
   const ecbTruth=String(ecb?.truthState||'unavailable').toUpperCase();
 
   main.innerHTML=`<section class="q-page q-market-home q-v7-public-market" data-market-runtime="v7-public-no-fabrication" data-qelly-v7-public-market="true">
-    ${pageHead('Qelly Intelligence · Market Command','Market Pulse','Explore live external charts and approved reference observations with clear source boundaries. Missing market data is never replaced with invented values.',`<a class="q-button q-button--secondary" href="https://www.tradingview.com/markets/" target="_blank" rel="noopener noreferrer nofollow">TradingView Markets ↗</a><a class="q-button q-button--primary" href="#/research-workspace">Open research workspace</a>`)}
+    ${pageHead('Qelly Intelligence · Market Command','Market Pulse','Explore live market charts and reference observations with clear source and freshness. Missing market data is never replaced with invented values.',`<a class="q-button q-button--secondary" href="https://www.tradingview.com/markets/" target="_blank" rel="noopener noreferrer nofollow">TradingView Markets ↗</a><a class="q-button q-button--primary" href="#/research-workspace">Open research workspace</a>`)}
     <section class="q-market-principle" aria-label="Market intelligence principle">
       <div><span class="q-eyebrow">Market discipline</span><strong>Price is an observation; risk is a decision.</strong></div>
       <div class="q-market-principle__rules"><span>Verify freshness</span><span>Separate signal from story</span><span>Keep execution outside research</span></div>
@@ -200,7 +200,7 @@ export async function renderMarketV6(main,deps){
 
     <section class="q-tv-tape-shell" aria-label="TradingView cross-asset ticker tape">
       <div id="q-tv-ticker-tape" class="q-tv-ticker-stage"></div>
-      <p>External display only · ticker observations are never consumed by Qelly calculations.</p>
+      <p>Reference display only · ticker observations are never consumed by Qelly calculations.</p>
     </section>
 
     <div class="q-v7-market-grid">
