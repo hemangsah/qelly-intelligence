@@ -38,7 +38,7 @@ const adSlots=Object.freeze({
   'calculator-side':String(environment.QELLY_PUBLIC_AD_SLOT_CALCULATOR??'').trim()
 });
 const configuredAdSlots=Object.values(adSlots).filter(Boolean);
-if(adClient&&!/^ca-pub-\d{10,20}$/.test(adClient))throw new Error('QELLY_PUBLIC_AD_CLIENT must be a valid public AdSense client ID');
+if(adClient&&!/^ca-pub-\d{16}$/.test(adClient))throw new Error('QELLY_PUBLIC_AD_CLIENT must be a valid public AdSense client ID');
 for(const [placement,id] of Object.entries(adSlots))if(id&&!/^\d{5,20}$/.test(id))throw new Error(`Ad slot ${placement} must be a numeric public slot ID`);
 if(configuredAdSlots.length&&!adClient)throw new Error('Configured ad slots require QELLY_PUBLIC_AD_CLIENT');
 const advertisingConfigured=!staticVisualPreview&&!githubPagesMirror&&Boolean(adClient&&configuredAdSlots.length);
@@ -174,6 +174,8 @@ if(advertisingConfigured){
   addSources('connect-src',['https://pagead2.googlesyndication.com','https://googleads.g.doubleclick.net']);
   addSources('frame-src',['https://googleads.g.doubleclick.net','https://tpc.googlesyndication.com','https://*.googlesyndication.com']);
   await writeFile(headersPath,headers);
+  const publisherId=adClient.replace(/^ca-/,'');
+  await writeFile(path.join(output,'ads.txt'),`google.com, ${publisherId}, DIRECT, f08c47fec0942fa0\n`);
 }
 
 if(staticVisualPreview||githubPagesMirror){
