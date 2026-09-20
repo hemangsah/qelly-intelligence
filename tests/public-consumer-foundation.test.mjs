@@ -50,3 +50,12 @@ test('Home and About count only consumer-oriented public destinations',async()=>
   assert.match(home,/name:'Research'/);
   assert.match(about,/route\.public&&!route\.hidden&&!route\.route\.startsWith\('auth-'\)/);
 });
+
+
+test('public production shell navigation exposes only public non-hidden destinations',async()=>{
+  const shell=await read('apps/web/public/assets/qelly-production-shell.mjs');
+  assert.match(shell,/const FEATURE_ROUTES=routeDefinitions\.filter\(\(route\)=>route\.public===true&&!route\.hidden\)/);
+  assert.match(shell,/const FEATURE_DOMAINS=productDomains\.filter\(\(domain\)=>FEATURE_ROUTES\.some/);
+  assert.match(shell,/const groups=FEATURE_DOMAINS\.map/);
+  assert.match(shell,/const filters=FEATURE_DOMAINS\.map/);
+});
