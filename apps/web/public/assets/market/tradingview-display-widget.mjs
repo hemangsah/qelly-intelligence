@@ -1,4 +1,4 @@
-const DISPLAY_BOUNDARY='External TradingView display only. Qelly does not read, scrape, transform, persist or use widget values for calculations, risk, alerts or decisions.';
+const DISPLAY_BOUNDARY='TradingView market reference only. Qelly does not read, scrape, transform, persist or use widget values for calculations, risk, alerts or decisions.';
 const WIDGET_TIMEOUT_MS=12000;
 const COMPONENT_STYLESHEET=new URL('./tradingview-display-widget.css',import.meta.url).href;
 const WIDGET_SOURCES=Object.freeze({
@@ -10,6 +10,8 @@ const WIDGET_SOURCES=Object.freeze({
   technicalAnalysis:'https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js',
   cryptoHeatmap:'https://s3.tradingview.com/external-embedding/embed-widget-crypto-coins-heatmap.js',
   stockHeatmap:'https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js',
+  etfHeatmap:'https://s3.tradingview.com/external-embedding/embed-widget-etf-heatmap.js',
+  forexHeatmap:'https://s3.tradingview.com/external-embedding/embed-widget-forex-heat-map.js',
   forexCrossRates:'https://s3.tradingview.com/external-embedding/embed-widget-forex-cross-rates.js',
   topStories:'https://s3.tradingview.com/external-embedding/embed-widget-timeline.js',
   symbolOverview:'https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js',
@@ -68,7 +70,7 @@ function renderFallback(container,{symbol='BTCUSDT',reason='load-error',title='T
   container.dataset.externalProvider='tradingview';
   container.dataset.usage='display-only';
   container.dataset.externalState='unavailable';
-  const detail=reason==='timeout'?'The external panel did not initialize within the production timeout.':'The external panel script could not be loaded in this browser.';
+  const detail=reason==='timeout'?'The market reference did not initialize within the production timeout.':'The market reference could not be loaded in this browser.';
   container.innerHTML=`<section class="qelly-tradingview-fallback" role="status" aria-live="polite"><div><h3>${title}</h3><p>${detail} Qelly has not substituted or fabricated chart values.</p><a href="${openUrl||externalChartUrl(symbol)}" target="_blank" rel="noopener noreferrer nofollow">Open TradingView directly</a></div></section>`;
 }
 
@@ -90,12 +92,12 @@ export function mountTradingViewWidget(container,{kind,config={},label='TradingV
   const loading=document.createElement('div');
   loading.className='qelly-tradingview-loading';
   loading.setAttribute('role','status');
-  loading.innerHTML=`<span aria-hidden="true"></span><strong>Loading ${label}…</strong><small>Official TradingView display · no substitute values</small>`;
+  loading.innerHTML=`<span aria-hidden="true"></span><strong>Loading ${label}…</strong><small>TradingView market reference · no substitute values</small>`;
   const host=document.createElement('div');
   host.className='tradingview-widget-container__widget';
   host.style.height='calc(100% - 32px)';
   host.style.width='100%';
-  host.setAttribute('aria-label',`Loading external ${label}`);
+  host.setAttribute('aria-label',`Loading ${label}`);
   wrapper.append(loading,host);
 
   const attribution=document.createElement('div');
@@ -132,7 +134,7 @@ export function mountTradingViewWidget(container,{kind,config={},label='TradingV
     const iframe=wrapper.querySelector('iframe');
     if(!iframe||iframe===observedIframe)return false;
     observedIframe=iframe;
-    iframe.setAttribute('aria-label',`Loading external ${label}`);
+    iframe.setAttribute('aria-label',`Loading ${label}`);
     iframe.addEventListener('load',()=>requestAnimationFrame(()=>requestAnimationFrame(()=>settleReady(iframe))),{once:true});
     return true;
   };

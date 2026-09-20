@@ -35,7 +35,7 @@ test('Market Command exposes the lazy accessible intelligence dock',async()=>{
   for(const provider of ['Forex Factory','CoinGlass','HypurrScan','Arkham Intelligence','Coinbase','Binance','CoinDCX','NDTV Profit','YouTube Finance'])assert.ok(PROVIDER_PORTALS.some(item=>item.name===provider));
   assert.match(route,/data-external-intelligence-dock/);
   assert.match(route,/IntersectionObserver/);
-  assert.match(route,/aria-label="Choose an external intelligence display"/);
+  assert.match(route,/aria-label="Choose a market context view"/);
   assert.match(route,/intelligenceDockHandle\?\.destroy\?\.\(\)/);
 });
 

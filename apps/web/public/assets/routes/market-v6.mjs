@@ -1,5 +1,6 @@
 import {adSlot,mountAdSlots} from '../qelly-ad-slot.mjs';
 import {mountTradingViewDisplay,mountTradingViewWidget,tradingViewAppearance,tradingViewSymbol} from '../market/tradingview-display-widget.mjs';
+import {mountTradingViewMarketGrid} from '../market/tradingview-market-grid.mjs';
 import {mountCoinMarketCapWidgets,mountHyperliquidStream,mountXTimeline,PROVIDER_PORTALS} from '../market/external-intelligence-widgets.mjs';
 import {truthLabel} from '../customer-copy.mjs';
 
@@ -12,21 +13,16 @@ const EXTERNAL_SYMBOLS=Object.freeze([
   ['ADAUSDT','ADA / USDT']
 ]);
 const INTERVALS=Object.freeze([['5m','5m'],['15m','15m'],['1h','1h'],['4h','4h'],['1d','1D']]);
-const EMBED_PANELS=Object.freeze([
-  {id:'overview',label:'Market overview',kind:'marketOverview',description:'Indices, crypto, foreign exchange and India benchmarks in one comparative display.',openUrl:'https://www.tradingview.com/markets/'},
-  {id:'screener',label:'Screener',kind:'screener',description:'Sortable crypto market discovery with overview and performance columns.',openUrl:'https://www.tradingview.com/crypto-coins/screener/'},
-  {id:'us-screener',label:'US market',kind:'screener',market:'america',description:'United States equities screener with performance, valuation and technical columns.',openUrl:'https://www.tradingview.com/markets/stocks-usa/market-movers-all-stocks/'},
-  {id:'india-screener',label:'India market',kind:'screener',market:'india',description:'Indian equities screener spanning NSE and BSE market research.',openUrl:'https://www.tradingview.com/markets/stocks-india/market-movers-all-stocks/'},
-  {id:'hong-kong-screener',label:'Hong Kong market',kind:'screener',market:'hongkong',description:'Hong Kong equities and Hang Seng market research surface.',openUrl:'https://www.tradingview.com/markets/stocks-hong-kong/market-movers-all-stocks/'},
-  {id:'calendar',label:'Economic calendar',kind:'economicCalendar',description:'Scheduled macro releases across the world’s largest economies.',openUrl:'https://www.tradingview.com/economic-calendar/'},
-  {id:'technicals',label:'Technicals',kind:'technicalAnalysis',description:'Display-only technical summary for the symbol selected above.',openUrl:'https://www.tradingview.com/technical-analysis/'},
-  {id:'heatmap',label:'Crypto heatmap',kind:'cryptoHeatmap',description:'Market-cap-weighted crypto performance and relative movement.',openUrl:'https://www.tradingview.com/heatmap/crypto/'},
-  {id:'stock-heatmap',label:'Stock heatmap',kind:'stockHeatmap',description:'United States equity sectors and relative performance in an official heatmap.',openUrl:'https://www.tradingview.com/heatmap/stock/'},
-  {id:'forex',label:'FX cross rates',kind:'forexCrossRates',description:'Comparative foreign-exchange cross-rate display across major currencies.',openUrl:'https://www.tradingview.com/markets/currencies/rates-all/'},
-  {id:'stories',label:'Top stories',kind:'topStories',description:'External market headlines for human research and contextual review.',openUrl:'https://www.tradingview.com/news/'},
-  {id:'symbol-overview',label:'Symbol overview',kind:'symbolOverview',description:'Comparative price context for major global asset classes.',openUrl:'https://www.tradingview.com/markets/'},
-  {id:'mini-chart',label:'Mini chart',kind:'miniChart',description:'Compact display for the symbol selected in the terminal.',openUrl:'https://www.tradingview.com/chart/'},
-  {id:'market-quotes',label:'Market quotes',kind:'marketQuotes',description:'Grouped indices, commodities, foreign exchange and crypto quote display.',openUrl:'https://www.tradingview.com/markets/'}
+const MARKET_WIDGET_PANELS=Object.freeze([
+  {id:'crypto-heatmap',label:'Crypto Coins Heatmap',kind:'cryptoHeatmap',size:'hero',description:'Market-cap-weighted crypto performance and relative movement across the market.',openUrl:'https://www.tradingview.com/heatmap/crypto/'},
+  {id:'market-overview',label:'Market Overview',kind:'marketOverview',size:'tall',description:'Compare major indices, crypto, foreign exchange and India benchmarks.',openUrl:'https://www.tradingview.com/markets/'},
+  {id:'crypto-market',label:'Crypto Market Screener',kind:'screener',size:'wide',description:'Scan crypto assets with sortable market and performance columns.',openUrl:'https://www.tradingview.com/crypto-coins/screener/'},
+  {id:'economic-calendar',label:'Economic Calendar',kind:'economicCalendar',size:'standard',description:'Review scheduled macro releases and event risk across major economies.',openUrl:'https://www.tradingview.com/economic-calendar/'},
+  {id:'stock-heatmap',label:'Stock Heatmap',kind:'stockHeatmap',size:'standard',description:'See United States equity sectors and relative one-day performance.',openUrl:'https://www.tradingview.com/heatmap/stock/'},
+  {id:'etf-heatmap',label:'ETF Heatmap',kind:'etfHeatmap',size:'standard',description:'Compare exchange-traded funds by activity and performance.',openUrl:'https://www.tradingview.com/heatmap/etf/'},
+  {id:'fx-heatmap',label:'Forex Heatmap',kind:'forexHeatmap',size:'standard',description:'Compare relative strength and weakness across major currencies.',openUrl:'https://www.tradingview.com/markets/currencies/rates-all/'},
+  {id:'technicals',label:'Technical Analysis',kind:'technicalAnalysis',size:'standard',dynamic:true,description:'Review a technical summary for the symbol selected in Market Pulse.',openUrl:'https://www.tradingview.com/technical-analysis/'},
+  {id:'stories',label:'Top Stories',kind:'topStories',size:'standard',description:'Read concise market headlines and current context from TradingView.',openUrl:'https://www.tradingview.com/news/'}
 ]);
 const INTELLIGENCE_DOCK_PANELS=Object.freeze([
   {id:'hyperliquid',label:'Live book & trades',description:'Public Hyperliquid BTC, ETH, SOL and HYPE order books and executed trades over the official read-only WebSocket.'},
@@ -89,58 +85,13 @@ function panelConfig(panel,{symbol,interval}){
   if(panel.kind==='technicalAnalysis')return {...shared,symbol:tradingViewSymbol(symbol),interval:interval==='1d'?'1D':String(interval||'15m'),showIntervalTabs:true,displayMode:'multiple'};
   if(panel.kind==='cryptoHeatmap')return {...shared,dataSource:'Crypto',blockSize:'market_cap_calc',blockColor:'24h_close_change|5',hasTopBar:true,isDataSetEnabled:true,isZoomEnabled:true,hasSymbolTooltip:true,isMonoSize:false};
   if(panel.kind==='stockHeatmap')return {...shared,dataSource:'SPX500',blockSize:'market_cap_basic',blockColor:'change',grouping:'sector',locale:'en',symbolUrl:'',hasTopBar:true,isDataSetEnabled:true,isZoomEnabled:true,hasSymbolTooltip:true,isMonoSize:false};
+  if(panel.kind==='etfHeatmap')return {...shared,dataSource:'AllUSEtf',blockSize:'volume',blockColor:'change',grouping:'asset_class',locale:'en',symbolUrl:'',hasTopBar:true,isDataSetEnabled:true,isZoomEnabled:true,hasSymbolTooltip:true,isMonoSize:false};
+  if(panel.kind==='forexHeatmap')return {...shared,currencies:['EUR','USD','JPY','GBP','CHF','AUD','CAD','NZD','CNY']};
   if(panel.kind==='forexCrossRates')return {...shared,currencies:['EUR','USD','JPY','GBP','CHF','AUD','CAD','NZD','CNY','INR']};
   if(panel.kind==='symbolOverview')return {...shared,symbols:[['S&P 500','FOREXCOM:SPXUSD|12M'],['Nifty 50','NSE:NIFTY|12M'],['Gold','OANDA:XAUUSD|12M'],['Bitcoin','BITSTAMP:BTCUSD|12M']],chartOnly:false,dateRange:'12M',showVolume:false,showMA:false,hideDateRanges:false,hideMarketStatus:false,hideSymbolLogo:false,scalePosition:'right',scaleMode:'Normal',fontFamily:'-apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif',fontSize:'10',noTimeScale:false,valuesTracking:'1',changeMode:'price-and-percent'};
   if(panel.kind==='miniChart')return {...shared,symbol:tradingViewSymbol(symbol),dateRange:'12M',trendLineColor:'#b44b73',underLineColor:'rgba(180,75,115,.28)',underLineBottomColor:'rgba(180,75,115,0)',isTransparent:false,autosize:true,largeChartUrl:''};
   if(panel.kind==='marketQuotes')return {...shared,symbolGroups:[{name:'Indices',symbols:[{name:'FOREXCOM:SPXUSD',displayName:'S&P 500'},{name:'NASDAQ:NDX',displayName:'Nasdaq 100'},{name:'NSE:NIFTY',displayName:'Nifty 50'},{name:'TVC:NI225',displayName:'Nikkei 225'}]},{name:'Commodities & FX',symbols:[{name:'OANDA:XAUUSD',displayName:'Gold'},{name:'TVC:USOIL',displayName:'WTI Oil'},{name:'FX_IDC:EURUSD',displayName:'EUR / USD'},{name:'FX_IDC:USDINR',displayName:'USD / INR'}]},{name:'Crypto',symbols:[{name:'BITSTAMP:BTCUSD',displayName:'Bitcoin'},{name:'BITSTAMP:ETHUSD',displayName:'Ethereum'},{name:'BINANCE:SOLUSDT',displayName:'Solana'}]}],showSymbolLogo:true,isTransparent:false};
   return {...shared,feedMode:'market',market:'crypto',displayMode:'regular'};
-}
-
-function mountEmbedSuite(root,{symbol,interval}){
-  const stage=root.querySelector('[data-tv-suite-stage]');
-  const title=root.querySelector('[data-tv-suite-title]');
-  const description=root.querySelector('[data-tv-suite-description]');
-  const buttons=[...root.querySelectorAll('[data-tv-suite-tab]')];
-  let parameters={symbol,interval};
-  let activeId='overview';
-  let handle=null;
-  let mounted=false;
-  const activate=(id,{focus=false}={})=>{
-    const panel=EMBED_PANELS.find(item=>item.id===id)||EMBED_PANELS[0];
-    activeId=panel.id;
-    mounted=true;
-    for(const button of buttons){
-      const selected=button.dataset.tvSuiteTab===panel.id;
-      button.setAttribute('aria-selected',String(selected));
-      button.tabIndex=selected?0:-1;
-    }
-    if(focus)buttons.find(button=>button.dataset.tvSuiteTab===panel.id)?.focus();
-    title.textContent=panel.label;
-    description.textContent=panel.description;
-    handle?.destroy?.();
-    handle=mountTradingViewWidget(stage,{kind:panel.kind,label:panel.label,openUrl:panel.openUrl,config:panelConfig(panel,parameters)});
-  };
-  buttons.forEach((button,index)=>{
-    button.addEventListener('click',()=>activate(button.dataset.tvSuiteTab));
-    button.addEventListener('keydown',(event)=>{
-      if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
-      event.preventDefault();
-      const next=event.key==='Home'?0:event.key==='End'?buttons.length-1:(index+(event.key==='ArrowRight'?1:-1)+buttons.length)%buttons.length;
-      activate(buttons[next].dataset.tvSuiteTab,{focus:true});
-    });
-  });
-  const intersection='IntersectionObserver'in window?new IntersectionObserver((entries)=>{
-    if(!entries.some(entry=>entry.isIntersecting))return;
-    intersection.disconnect();
-    activate(activeId);
-  },{rootMargin:'360px 0px'}):null;
-  if(intersection)intersection.observe(root);
-  else activate(activeId);
-  return {
-    update(next){parameters={...parameters,...next};if(mounted&&activeId==='technicals')activate(activeId);},
-    refresh(){if(mounted)activate(activeId);},
-    destroy(){intersection?.disconnect();handle?.destroy?.();handle=null;}
-  };
 }
 
 function portalGrid(escapeHtml){
@@ -198,40 +149,44 @@ export async function renderMarketV6(main,deps){
     </section>
     ${stateBanner()}
 
+    <section class="q-market-widget-section" data-market-widget-grid aria-labelledby="q-market-widget-title">
+      <header class="q-market-widget-section__head">
+        <div><p class="q-eyebrow">Market map</p><h2 id="q-market-widget-title">See the market before narrowing the question.</h2><p>Start with crypto breadth, then compare cross-asset, macro, equity and currency context as needed.</p></div>
+        <a href="https://www.tradingview.com/markets/" target="_blank" rel="noopener noreferrer nofollow">Market data by TradingView ↗</a>
+      </header>
+      <div class="q-market-widget-grid">
+        ${MARKET_WIDGET_PANELS.map((panel,index)=>`<article class="q-market-widget-card q-market-widget-card--${panel.size}" data-market-widget-id="${panel.id}" data-market-widget-priority="${index===0?'primary':'secondary'}">
+          <header><div><span>${index===0?'Start here':'Market reference'}</span><h3>${panel.label}</h3><p>${panel.description}</p></div></header>
+          <div class="q-market-widget-stage" data-market-widget-stage aria-label="${panel.label}"><div class="q-market-widget-note"><strong>${index===0?'Preparing market breadth':'Loads when needed'}</strong><span>${index===0?'Qelly content is ready; market reference is connecting.':'This view connects as you approach it.'}</span></div></div>
+        </article>`).join('')}
+      </div>
+    </section>
+
     <section class="q-tv-tape-shell" aria-label="TradingView cross-asset ticker tape">
       <div id="q-tv-ticker-tape" class="q-tv-ticker-stage"></div>
-      <p>Reference display only · ticker observations are never consumed by Qelly calculations.</p>
+      <p>Reference quotes provide market context and are not used in Qelly calculations.</p>
     </section>
 
     <div class="q-v7-market-grid">
       <section class="q-panel q-v7-chart-panel">
-        <div class="q-panel-head"><div><p class="q-eyebrow">Market chart</p><h2>TradingView market visualization</h2><p>Human-readable display only. Widget observations are not ingested, scraped, persisted or consumed by Qelly analytics.</p></div><span class="q-status q-status--cached">DISPLAY ONLY</span></div>
+        <div class="q-panel-head"><div><p class="q-eyebrow">Market chart</p><h2>Interactive market chart</h2><p>Use the chart for visual market context. Qelly calculations and decisions rely on Qelly’s sourced evidence.</p></div><span class="q-status q-status--cached">REFERENCE</span></div>
         <div class="q-panel-body">
-          <div class="q-control-row q-v6-market-controls"><label class="q-setting"><span>Display symbol</span><select id="v6-market-symbol">${symbolOptions}</select></label><label class="q-setting"><span>Display interval</span><select id="v6-market-interval">${intervalOptions}</select></label><div class="q-setting q-query-boundary"><span>Research use</span><strong>External values excluded</strong><small>Never used for Qelly calculations, risk, alerts or decisions.</small></div></div>
-          <div id="v6-market-tradingview" class="q-v7-chart-stage q-v6-market-tradingview" aria-label="TradingView external market chart"></div>
-          <div class="q-chart-attribution"><span>TradingView display only</span><span>Displayed widget values are not used in Qelly calculations.</span></div>
+          <div class="q-control-row q-v6-market-controls"><label class="q-setting"><span>Display symbol</span><select id="v6-market-symbol">${symbolOptions}</select></label><label class="q-setting"><span>Display interval</span><select id="v6-market-interval">${intervalOptions}</select></label><div class="q-setting q-query-boundary"><span>Research use</span><strong>Reference only</strong><small>Not used in Qelly calculations, risk, alerts or decisions.</small></div></div>
+          <div id="v6-market-tradingview" class="q-v7-chart-stage q-v6-market-tradingview" aria-label="TradingView market chart"></div>
+          <div class="q-chart-attribution"><span>Reference chart</span><span>Chart values are not used in Qelly calculations.</span></div>
         </div>
       </section>
 
       <aside class="q-v7-side-stack">
-        <section class="q-panel"><div class="q-panel-head"><div><h2>Professional research links</h2><p>External sources open in separate trust boundaries.</p></div></div><div class="q-panel-body q-v7-link-grid"><a class="q-button q-button--secondary" href="https://www.tradingview.com/markets/" target="_blank" rel="noopener noreferrer nofollow">TradingView Markets ↗</a><a class="q-button q-button--secondary" href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener noreferrer nofollow">Forex Factory Calendar ↗</a><a class="q-button q-button--secondary" href="https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html" target="_blank" rel="noopener noreferrer nofollow">ECB Reference Rates ↗</a><a class="q-button q-button--secondary" href="https://www.cmegroup.com/markets.html" target="_blank" rel="noopener noreferrer nofollow">CME Markets ↗</a></div></section>
+        <section class="q-panel"><div class="q-panel-head"><div><h2>Professional research links</h2><p>Open primary and specialist research sources in their own sites.</p></div></div><div class="q-panel-body q-v7-link-grid"><a class="q-button q-button--secondary" href="https://www.tradingview.com/markets/" target="_blank" rel="noopener noreferrer nofollow">TradingView Markets ↗</a><a class="q-button q-button--secondary" href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener noreferrer nofollow">Forex Factory Calendar ↗</a><a class="q-button q-button--secondary" href="https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html" target="_blank" rel="noopener noreferrer nofollow">ECB Reference Rates ↗</a><a class="q-button q-button--secondary" href="https://www.cmegroup.com/markets.html" target="_blank" rel="noopener noreferrer nofollow">CME Markets ↗</a></div></section>
       </aside>
     </div>
 
-    <section class="q-panel q-tv-suite" data-tv-suite>
-      <div class="q-panel-head"><div><p class="q-eyebrow">Market views</p><h2>Market intelligence displays</h2><p>Fourteen official TradingView surfaces are available without leaving Qelly. Only the selected panel loads, preserving performance and attention.</p></div><span class="q-status q-status--cached">DISPLAY ONLY</span></div>
-      <div class="q-panel-body">
-        <div class="q-tv-suite-tabs" role="tablist" aria-label="Choose an embedded market display">${EMBED_PANELS.map((panel,index)=>`<button type="button" role="tab" aria-selected="${index===0?'true':'false'}" aria-controls="q-tv-suite-stage" tabindex="${index===0?'0':'-1'}" data-tv-suite-tab="${panel.id}">${panel.label}</button>`).join('')}</div>
-        <div class="q-tv-suite-context"><div><strong data-tv-suite-title>Market overview</strong><p data-tv-suite-description>${EMBED_PANELS[0].description}</p></div><span>External data · human review only</span></div>
-        <div id="q-tv-suite-stage" class="q-tv-suite-stage" role="tabpanel" data-tv-suite-stage aria-live="polite"><div class="q-tv-suite-placeholder"><strong>Market overview ready to load</strong><span>Scroll this panel into view to connect the external display.</span></div></div>
-      </div>
-    </section>
-
     <section class="q-panel q-intel-dock" data-external-intelligence-dock>
-      <div class="q-panel-head"><div><p class="q-eyebrow">Live market context</p><h2>Live market structure and research networks</h2><p>Provider-supported embeds and public read-only streams are isolated from Qelly analytics. Services that prohibit framing remain transparent launch surfaces.</p></div><span class="q-status q-status--cached">READ ONLY</span></div>
+      <div class="q-panel-head"><div><p class="q-eyebrow">Live market context</p><h2>Live market structure and research networks</h2><p>Read-only market context stays separate from Qelly calculations and execution.</p></div><span class="q-status q-status--cached">READ ONLY</span></div>
       <div class="q-panel-body">
-        <div class="q-tv-suite-tabs q-intel-dock-tabs" role="tablist" aria-label="Choose an external intelligence display">${INTELLIGENCE_DOCK_PANELS.map((panel,index)=>`<button type="button" role="tab" aria-selected="${index===0?'true':'false'}" aria-controls="q-intel-dock-stage" tabindex="${index===0?'0':'-1'}" data-intel-dock-tab="${panel.id}">${panel.label}</button>`).join('')}</div>
-        <div class="q-tv-suite-context"><div><strong data-intel-dock-title>Live book & trades</strong><p data-intel-dock-description>${INTELLIGENCE_DOCK_PANELS[0].description}</p></div><span>External observations · never execution</span></div>
+        <div class="q-tv-suite-tabs q-intel-dock-tabs" role="tablist" aria-label="Choose a market context view">${INTELLIGENCE_DOCK_PANELS.map((panel,index)=>`<button type="button" role="tab" aria-selected="${index===0?'true':'false'}" aria-controls="q-intel-dock-stage" tabindex="${index===0?'0':'-1'}" data-intel-dock-tab="${panel.id}">${panel.label}</button>`).join('')}</div>
+        <div class="q-tv-suite-context"><div><strong data-intel-dock-title>Live book & trades</strong><p data-intel-dock-description>${INTELLIGENCE_DOCK_PANELS[0].description}</p></div><span>Read-only observations · never execution</span></div>
         <div id="q-intel-dock-stage" class="q-intel-dock-stage" role="tabpanel" data-intel-dock-stage aria-live="polite"><div class="q-tv-suite-placeholder"><strong>Live market structure ready</strong><span>Scroll this panel into view to connect the read-only public stream.</span></div></div>
       </div>
     </section>
@@ -250,12 +205,11 @@ export async function renderMarketV6(main,deps){
   const symbol=marketRoot.querySelector('#v6-market-symbol');
   const interval=marketRoot.querySelector('#v6-market-interval');
   const ticker=marketRoot.querySelector('#q-tv-ticker-tape');
-  const suite=marketRoot.querySelector('[data-tv-suite]');
+  const marketGrid=marketRoot.querySelector('[data-market-widget-grid]');
   const intelligenceDock=marketRoot.querySelector('[data-external-intelligence-dock]');
-  let handle=null,tickerHandle=null,suiteHandle=null,intelligenceDockHandle=null,themeFrame=0;
+  let handle=null,tickerHandle=null,marketGridHandle=null,intelligenceDockHandle=null,themeFrame=0;
   // Evidence aliases are immediately handed to the local Qelly Verify surface.
-  // Do not start third-party iframe widgets during that transient handoff: a
-  // provider can emit a console error when its iframe is removed mid-startup.
+  // Avoid starting market reference widgets during that transient handoff.
   const verifyAliasActive=/^#\/market\?[^#]*view=(?:qelly-verify|evidence-methodology)(?:&|$)/i.test(location.hash);
   const mountTicker=()=>{
     tickerHandle?.destroy?.();
@@ -263,20 +217,29 @@ export async function renderMarketV6(main,deps){
       {proName:'FOREXCOM:SPXUSD',title:'S&P 500'},{proName:'NASDAQ:NDX',title:'Nasdaq 100'},{proName:'NSE:NIFTY',title:'Nifty 50'},{proName:'FX_IDC:USDINR',title:'USD / INR'},{proName:'OANDA:XAUUSD',title:'Gold'},{proName:'BITSTAMP:BTCUSD',title:'Bitcoin'},{proName:'BITSTAMP:ETHUSD',title:'Ethereum'}
     ]}});
   };
-  const mount=()=>{handle?.destroy?.();handle=mountTradingViewDisplay(chart,{symbol:symbol.value,interval:interval.value});suiteHandle?.update({symbol:symbol.value,interval:interval.value});};
+  const mount=()=>{handle?.destroy?.();handle=mountTradingViewDisplay(chart,{symbol:symbol.value,interval:interval.value});marketGridHandle?.update({symbol:symbol.value,interval:interval.value});};
+  const lazyMount=(element,callback)=>{
+    if(!element)return {disconnect(){}};
+    if(!('IntersectionObserver'in window)){callback();return {disconnect(){}};}
+    const observer=new IntersectionObserver((entries)=>{if(!entries.some(entry=>entry.isIntersecting))return;observer.disconnect();callback();},{rootMargin:'280px 0px',threshold:0.01});
+    observer.observe(element);return observer;
+  };
+  let tickerObserver=null,chartObserver=null;
   if(!verifyAliasActive){
-    suiteHandle=mountEmbedSuite(suite,{symbol:symbol.value,interval:interval.value});
+    const gridPanels=MARKET_WIDGET_PANELS.map(panel=>({...panel,config:(context)=>panelConfig(panel,context)}));
+    marketGridHandle=mountTradingViewMarketGrid(marketGrid,{panels:gridPanels,context:{symbol:symbol.value,interval:interval.value}});
     intelligenceDockHandle=mountExternalIntelligenceDock(intelligenceDock,{escapeHtml});
-    mountTicker();
-    symbol?.addEventListener('change',mount);interval?.addEventListener('change',mount);mount();
+    tickerObserver=lazyMount(ticker,mountTicker);
+    chartObserver=lazyMount(chart,mount);
+    symbol?.addEventListener('change',mount);interval?.addEventListener('change',mount);
   }
   api('/api/v1/market/network').then((network)=>populateNetworkSections(marketRoot,network,escapeHtml)).catch(()=>populateNetworkSections(marketRoot,{sources:{},providerDirectory:[],providerDirectorySummary:{byIntegration:{}}},escapeHtml));
   const themeObserver=new MutationObserver(()=>{
     cancelAnimationFrame(themeFrame);
-    themeFrame=requestAnimationFrame(()=>{mount();mountTicker();suiteHandle?.refresh();intelligenceDockHandle?.refresh();});
+    themeFrame=requestAnimationFrame(()=>{if(handle)mount();if(tickerHandle)mountTicker();marketGridHandle?.refresh();intelligenceDockHandle?.refresh();});
   });
   themeObserver.observe(document.documentElement,{attributes:true,attributeFilter:['data-appearance','data-resolved-appearance']});
-  window.__qellyMarketV6Cleanup=()=>{cancelAnimationFrame(themeFrame);themeObserver.disconnect();handle?.destroy?.();tickerHandle?.destroy?.();suiteHandle?.destroy?.();intelligenceDockHandle?.destroy?.();handle=null;tickerHandle=null;suiteHandle=null;intelligenceDockHandle=null;};
+  window.__qellyMarketV6Cleanup=()=>{cancelAnimationFrame(themeFrame);themeObserver.disconnect();tickerObserver?.disconnect?.();chartObserver?.disconnect?.();handle?.destroy?.();tickerHandle?.destroy?.();marketGridHandle?.destroy?.();intelligenceDockHandle?.destroy?.();handle=null;tickerHandle=null;marketGridHandle=null;intelligenceDockHandle=null;};
 }
 
-export const __marketV6Test=Object.freeze({EXTERNAL_SYMBOLS,INTERVALS,EMBED_PANELS,INTELLIGENCE_DOCK_PANELS,tone,panelConfig});
+export const __marketV6Test=Object.freeze({EXTERNAL_SYMBOLS,INTERVALS,MARKET_WIDGET_PANELS,INTELLIGENCE_DOCK_PANELS,tone,panelConfig});
