@@ -64,7 +64,7 @@ test('public recovery replaces the market error instead of redirecting or nestin
   const recovery=await read('apps/web/public/assets/qelly-public-recovery.mjs');
   assert.match(recovery,/function renderMarketRecovery/);
   assert.match(recovery,/main\.innerHTML=`<section class="q-recovery-page q-market-recovery"/);
-  assert.match(recovery,/No authentication is required for this public route/);
+  assert.match(recovery,/This research page is public and does not require sign-in/);
   assert.match(recovery,/if\(route==='market'\)\{renderMarketRecovery\(message\);return;\}/);
   assert.doesNotMatch(recovery,/if\(route==='market'\)\{location\.hash='#\/market\?view=decision-maker'/);
 });
