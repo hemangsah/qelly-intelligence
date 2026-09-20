@@ -47,7 +47,7 @@ test('About Qelly explains purpose, audience, workflow and live capability bound
     read('../apps/web/public/assets/routes/about-qelly.mjs'),
     read('../apps/web/public/assets/about-qelly-v2.css')
   ]);
-  for(const phrase of ['Purpose before feature count','The operating journey','Purpose map','Built for different analytical jobs','What Qelly does','What Qelly will not do'])assert.match(route,new RegExp(phrase));
+  for(const phrase of ['Purpose before feature count','The research journey','Purpose map','Built for different analytical jobs','What Qelly does','What Qelly will not do'])assert.match(route,new RegExp(phrase));
   for(const stage of ['Discover','Understand','Research','Decide','Verify'])assert.match(route,new RegExp(`name:'${stage}'`));
   assert.match(route,/config\.capabilityTruth\?\.research/);
   assert.match(route,/capabilities\.cloudSync/);
