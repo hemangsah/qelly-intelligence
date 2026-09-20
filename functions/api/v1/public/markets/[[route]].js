@@ -3,6 +3,7 @@ import {HttpError,enforceRateLimit,errorResponse,fetcher,publicRuntimeConfigForR
 import {providerCatalog} from '../../../../_lib/providers.js';
 
 const MARKET_UNAVAILABLE_REASON='Current governed market coverage is unavailable for this diagnostic surface.';
+const NO_FABRICATION_RULE='Qelly does not generate substitute prices or candles.';
 const DISPLAY_BOUNDARY='TradingView may be used as an external human-readable display surface. Qelly does not ingest, scrape, persist or use widget values for analytics.';
 const HYPERLIQUID_URL='https://api.hyperliquid.xyz/info';
 const HYPERLIQUID_DOCS='https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint';
@@ -42,7 +43,7 @@ const boundary=(runtime)=>({
     {name:'Forex Factory',usage:'external-research',url:'https://www.forexfactory.com/calendar'},
     {name:'European Central Bank',usage:'official-reference-source',url:'https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html'}
   ],
-  guardrails:{readOnly:true,execution:false,fabricatedObservations:false,externalDisplayConsumedByAnalytics:false}
+  guardrails:{readOnly:true,execution:false,fabricatedObservations:false,externalDisplayConsumedByAnalytics:false,noFabricationRule:NO_FABRICATION_RULE}
 });
 const ip=(request)=>request.headers.get('cf-connecting-ip')||request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()||'anonymous';
 const round=(value,digits=6)=>Number.isFinite(Number(value))?Number(Number(value).toFixed(digits)):null;
@@ -220,5 +221,5 @@ export async function onRequest(context){
 }
 
 export const __publicMarketTruthTest=Object.freeze({
-  MARKET_UNAVAILABLE_REASON,DISPLAY_BOUNDARY,providerState,segments,LIVE_ASSETS,liveAsset,freshnessFor,assetObservation,candleEnvelope
+  MARKET_UNAVAILABLE_REASON,NO_FABRICATION_RULE,DISPLAY_BOUNDARY,providerState,segments,LIVE_ASSETS,liveAsset,freshnessFor,assetObservation,candleEnvelope
 });
