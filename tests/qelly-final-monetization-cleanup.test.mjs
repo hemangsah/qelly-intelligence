@@ -11,11 +11,15 @@ test('shared sponsor runtime reads validated production config and remains conse
   ]);
   assert.match(slot,/__QELLY_CONFIG__\?\.ads/);
   assert.match(slot,/qelly-consent-v1/);
+  assert.match(slot,/activation-required/);
+  assert.match(slot,/settings\.enabled/);
   assert.match(slot,/IntersectionObserver/);
   assert.match(slot,/pagead2\.googlesyndication\.com/);
   assert.match(slot,/data-ad-state="requested"|dataset\.adState='requested'/);
   assert.doesNotMatch(slot,/ca-pub-\d{16}/);
   for(const name of [
+    'QELLY_PUBLIC_AD_NETWORK_ENABLED',
+    'QELLY_PUBLIC_ADSENSE_CSP_READY',
     'QELLY_PUBLIC_ADSENSE_CLIENT',
     'QELLY_PUBLIC_AD_SLOT_MARKET_INTELLIGENCE_INLINE',
     'QELLY_PUBLIC_AD_SLOT_DECISION_INTELLIGENCE_INLINE',
@@ -24,6 +28,8 @@ test('shared sponsor runtime reads validated production config and remains conse
   ])assert.match(build,new RegExp(name));
   assert.match(build,/ca-pub-\\d\{16\}/);
   assert.match(build,/ads:adConfig/);
+  assert.match(build,/adConfig\.enabled/);
+  assert.match(build,/Ad network activation requires a validated client/);
   assert.match(build,/adsConfigured:Boolean/);
 });
 
