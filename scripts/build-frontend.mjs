@@ -30,6 +30,18 @@ const publicSiteUrl=cleanUrl(String(environment.QELLY_PUBLIC_SITE_URL??''),'QELL
 const canonicalSiteUrl=cleanUrl(String(environment.QELLY_CANONICAL_SITE_URL??publicSiteUrl),'QELLY_CANONICAL_SITE_URL',{required:requirePublicRuntime});
 const supabaseUrl=cleanUrl(String(environment.QELLY_PUBLIC_SUPABASE_URL??''),'QELLY_PUBLIC_SUPABASE_URL',{required:requirePublicRuntime&&!githubPagesMirror});
 const supabasePublishableKey=String(environment.QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY??environment.QELLY_PUBLIC_SUPABASE_ANON_KEY??'');
+const adClient=String(environment.QELLY_PUBLIC_AD_CLIENT??'').trim();
+const adSlots=Object.freeze({
+  'market-intelligence-inline':String(environment.QELLY_PUBLIC_AD_SLOT_MARKET??'').trim(),
+  'decision-intelligence-inline':String(environment.QELLY_PUBLIC_AD_SLOT_DECISION??'').trim(),
+  'research-inline':String(environment.QELLY_PUBLIC_AD_SLOT_RESEARCH??'').trim(),
+  'calculator-side':String(environment.QELLY_PUBLIC_AD_SLOT_CALCULATOR??'').trim()
+});
+const configuredAdSlots=Object.values(adSlots).filter(Boolean);
+if(adClient&&!/^ca-pub-\d{10,20}$/.test(adClient))throw new Error('QELLY_PUBLIC_AD_CLIENT must be a valid public AdSense client ID');
+for(const [placement,id] of Object.entries(adSlots))if(id&&!/^\d{5,20}$/.test(id))throw new Error(`Ad slot ${placement} must be a numeric public slot ID`);
+if(configuredAdSlots.length&&!adClient)throw new Error('Configured ad slots require QELLY_PUBLIC_AD_CLIENT');
+const advertisingConfigured=!staticVisualPreview&&!githubPagesMirror&&Boolean(adClient&&configuredAdSlots.length);
 if(requirePublicRuntime&&!githubPagesMirror&&supabasePublishableKey.length<20)throw new Error('QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY is required');
 if(githubPagesMirror&&apiBaseUrl===publicSiteUrl)throw new Error('GitHub Pages mirror API must point to the canonical Cloudflare origin, not the mirror itself');
 if(staticVisualPreview&&(apiBaseUrl||requirePublicRuntime))throw new Error('Static visual preview cannot enable the connected public runtime');
@@ -126,6 +138,7 @@ const connectedRuntimeConfig={
   dataMode:'public-runtime',
   backendAvailable:true,
   supabase:Object.freeze({url:supabaseUrl,publishableKey:githubPagesMirror?'':supabasePublishableKey}),
+  ads:Object.freeze({client:advertisingConfigured?adClient:'',slots:advertisingConfigured?adSlots:Object.freeze({})}),
   capabilities:Object.freeze(capabilities),
   supportUrl:`${canonicalSiteUrl}/support.html`,
   legal:Object.freeze({
@@ -145,6 +158,23 @@ const runtimeConfig=staticVisualPreview?{
   backendAvailable:false
 }:connectedRuntimeConfig;
 await writeFile(path.join(output,'qelly-config.js'),`window.__QELLY_CONFIG__=Object.freeze(${JSON.stringify(runtimeConfig)});\n`);
+if(advertisingConfigured){
+  const headersPath=path.join(output,'_headers');
+  let headers=await readFile(headersPath,'utf8');
+  const addSources=(directive,sources)=>{
+    const pattern=new RegExp(`(${directive}\\s+[^\\n]+)`);
+    const match=headers.match(pattern);
+    if(!match)throw new Error(`Missing CSP directive ${directive}`);
+    let line=match[1];
+    for(const source of sources)if(!line.includes(source))line+=` ${source}`;
+    headers=headers.replace(match[1],line);
+  };
+  addSources('script-src',['https://pagead2.googlesyndication.com']);
+  addSources('img-src',['https://pagead2.googlesyndication.com','https://googleads.g.doubleclick.net','https://www.google.com']);
+  addSources('connect-src',['https://pagead2.googlesyndication.com','https://googleads.g.doubleclick.net']);
+  addSources('frame-src',['https://googleads.g.doubleclick.net','https://tpc.googlesyndication.com','https://*.googlesyndication.com']);
+  await writeFile(headersPath,headers);
+}
 
 if(staticVisualPreview||githubPagesMirror){
   const mode=githubPagesMirror?'public terminal mirror':'static visual preview';
@@ -165,6 +195,7 @@ const releaseIdentity={
   cloudSync:capabilities.cloudSync,
   liveProviders:capabilities.liveProviders,
   protectedWrites:capabilities.protectedWrites,
+  advertisingConfigured,
   publicSiteUrl:publicSiteUrl||null,
   canonicalSiteUrl:canonicalSiteUrl||null,
   apiBaseUrl:apiBaseUrl||null,
@@ -179,6 +210,7 @@ await writeFile(path.join(output,'BUILD_INFO.json'),`${JSON.stringify({
   publicBetaMode:publicRuntimeEnabled?'QELLY GLOBAL PUBLIC BETA':null,
   connectedCapabilitiesActivated:githubPagesMirror?capabilities.liveProviders:capabilities.authentication&&capabilities.cloudSync&&capabilities.liveProviders,
   transactionalEmailActivated:capabilities.emailDelivery,
+  advertisingConfigured,configuredAdPlacements:advertisingConfigured?configuredAdSlots.length:0,
   releaseSha,buildTimestamp,functionsRoot:githubPagesMirror?null:'functions',runtimeArchitecture:githubPagesMirror?'github-pages-ui-cloudflare-read-only-api':'cloudflare-api-facade-supabase-auth-rls',
   canonicalSiteUrl,apiBaseUrl,
   fonts:{ui:'IBM Plex Sans Variable',evidence:'IBM Plex Sans Variable',fallbacks:['Arial','Helvetica Neue','sans-serif'],licensedOptional:['GT Eesti Pro Display','GT Eesti Pro Text'],licensedOptionalActive:false,iconSystem:'semantic-inline-svg',selfHosted:true,format:'woff2'}
