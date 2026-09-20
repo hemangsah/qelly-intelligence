@@ -35,7 +35,7 @@ const classicTag=(file)=>new RegExp('\\s*<script\\s+src="\\./assets/'+escaped(fi
 
 export function convergePublicRuntimeHtml(source){
   let html=String(source);
-  const shellPattern=/<header class="q-global-strip"[\s\S]*?<div class="q-context-shelf" id="context-shelf"><\/div>\s*/;
+  const shellPattern=/<header class="q-global-strip"[\s\S]*?<div id="context-shelf" class="q-context-shelf"><\/div>\s*/;
   if(!shellPattern.test(html)&&!html.includes('data-qelly-current-shell="true"'))throw new Error('Legacy Qelly shell prefix was not found for convergence');
   if(shellPattern.test(html))html=html.replace(shellPattern,CURRENT_HEADER+'\n');
 
