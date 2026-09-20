@@ -83,6 +83,31 @@ try{
     for(const [routeName,hash] of routes){
       const context=await browser.newContext({viewport,device_scale_factor:1,reduced_motion:'reduce'});
       const page=await context.newPage();
+      await page.addInitScript(()=>{
+        const state={longTasks:[],mutations:0};
+        Object.defineProperty(window,'__QELLY_PERF_SIGNALS__',{value:state,configurable:true});
+        try{
+          new PerformanceObserver((list)=>{
+            for(const entry of list.getEntries()){
+              state.longTasks.push({
+                duration:Number(entry.duration.toFixed(2)),
+                name:String(entry.name||'longtask'),
+                attribution:Array.from(entry.attribution||[]).map((item)=>({
+                  name:String(item.name||''),
+                  containerType:String(item.containerType||''),
+                  containerSrc:String(item.containerSrc||'')
+                })).slice(0,4)
+              });
+              if(state.longTasks.length>200)state.longTasks.splice(0,state.longTasks.length-200);
+            }
+          }).observe({type:'longtask',buffered:true});
+        }catch{}
+        addEventListener('DOMContentLoaded',()=>{
+          const target=document.getElementById('main');
+          if(!target)return;
+          new MutationObserver((records)=>{state.mutations+=records.length;}).observe(target,{childList:true,subtree:true,attributes:true});
+        },{once:true});
+      });
       const errors=[];
       const networkFailures=[];
       page.on('pageerror',error=>errors.push(String(error)));
@@ -113,10 +138,16 @@ try{
         const obsolete=frames.flatMap(frame=>Object.entries(frame.visibleLegacy).filter(([,count])=>count>0).map(([selector,count])=>({elapsedMs:frame.elapsedMs,selector,count})));
         const structural=frames.filter(frame=>frame.currentShells!==1||frame.visibleProductHeaders!==1||frame.legacyCommandBars!==0||frame.primaryNavCount!==1);
         const last=frames.at(-1);
+        const performanceSignals=await page.evaluate(()=>({
+          longTasks:Array.isArray(window.__QELLY_PERF_SIGNALS__?.longTasks)?window.__QELLY_PERF_SIGNALS__.longTasks:[],
+          mutations:Number(window.__QELLY_PERF_SIGNALS__?.mutations||0),
+          domNodes:document.getElementsByTagName('*').length
+        }));
+        const criticalStalls=performanceSignals.longTasks.filter((item)=>Number(item.duration)>2000);
         const unexpectedNetwork=networkFailures.filter(item=>!item.expectedAuthBoundary);
         const authBoundary401=networkFailures.filter(item=>item.expectedAuthBoundary);
-        const passed=obsolete.length===0&&structural.length===0&&last.appReady==='true'&&last.mainChildren>0&&errors.length===0&&unexpectedNetwork.length===0;
-        report.scenarios.push({route:routeName,hash,viewport:viewportName,mode,navigationToDomContentLoadedMs:Math.round(domLoaded-started),frames,obsolete,structural,errors,unexpectedNetwork,authBoundary401,status:passed?'passed':'failed'});
+        const passed=obsolete.length===0&&structural.length===0&&last.appReady==='true'&&last.mainChildren>0&&errors.length===0&&unexpectedNetwork.length===0&&criticalStalls.length===0;
+        report.scenarios.push({route:routeName,hash,viewport:viewportName,mode,navigationToDomContentLoadedMs:Math.round(domLoaded-started),frames,obsolete,structural,errors,unexpectedNetwork,authBoundary401,performanceSignals:{...performanceSignals,criticalStalls,maxLongTaskMs:performanceSignals.longTasks.reduce((max,item)=>Math.max(max,Number(item.duration)||0),0),longTasksOver500:performanceSignals.longTasks.filter((item)=>Number(item.duration)>500).length},status:passed?'passed':'failed'});
         if(!passed)report.status='failed';
       }
       await context.close();
@@ -136,7 +167,12 @@ const summary={
   authBoundary401:report.scenarios.reduce((total,item)=>total+item.authBoundary401.length,0),
   unexpectedNetworkFailures:report.scenarios.reduce((total,item)=>total+item.unexpectedNetwork.length,0),
   maxDomContentLoadedMs:Math.max(...report.scenarios.map(item=>item.navigationToDomContentLoadedMs)),
-  maxReadyFrameMs:Math.max(...report.scenarios.map(item=>item.frames.find(frame=>frame.appReady==='true')?.elapsedMs??7001))
+  maxReadyFrameMs:Math.max(...report.scenarios.map(item=>item.frames.find(frame=>frame.appReady==='true')?.elapsedMs??7001)),
+  maxLongTaskMs:Math.max(...report.scenarios.map(item=>item.performanceSignals?.maxLongTaskMs??0)),
+  longTasksOver500:report.scenarios.reduce((total,item)=>total+(item.performanceSignals?.longTasksOver500??0),0),
+  criticalStalls:report.scenarios.reduce((total,item)=>total+(item.performanceSignals?.criticalStalls?.length??0),0),
+  maxDomNodes:Math.max(...report.scenarios.map(item=>item.performanceSignals?.domNodes??0)),
+  totalMutations:report.scenarios.reduce((total,item)=>total+(item.performanceSignals?.mutations??0),0)
 };
 console.log(JSON.stringify(summary,null,2));
 if(report.status!=='passed')process.exit(1);

@@ -79,87 +79,103 @@ export function mountTradingViewWidget(container,{kind,config={},label='TradingV
   const source=WIDGET_SOURCES[kind];
   if(!source)throw new TypeError(`Unsupported TradingView widget: ${String(kind||'')}`);
   ensureComponentStyles();
-  container.replaceChildren();
-  container.dataset.externalProvider='tradingview';
-  container.dataset.usage='display-only';
-  container.dataset.externalWidget=kind;
-  container.dataset.externalState='loading';
 
-  const wrapper=document.createElement('div');
-  wrapper.className='tradingview-widget-container qelly-tradingview-widget';
-  wrapper.style.height='100%';
-  wrapper.style.width='100%';
-  const loading=document.createElement('div');
-  loading.className='qelly-tradingview-loading';
-  loading.setAttribute('role','status');
-  loading.innerHTML=`<span aria-hidden="true"></span><strong>Loading ${label}…</strong><small>TradingView market reference · no substitute values</small>`;
-  const host=document.createElement('div');
-  host.className='tradingview-widget-container__widget';
-  host.style.height='calc(100% - 32px)';
-  host.style.width='100%';
-  host.setAttribute('aria-label',`Loading ${label}`);
-  wrapper.append(loading,host);
-
-  const attribution=document.createElement('div');
-  attribution.className='tradingview-widget-copyright qelly-tradingview-attribution';
-  const link=document.createElement('a');
-  link.href=openUrl;
-  link.target='_blank';
-  link.rel='noopener noreferrer nofollow';
-  link.textContent=`${label} by TradingView`;
-  attribution.append(link);
-  wrapper.append(attribution);
-
-  const script=document.createElement('script');
-  script.type='text/javascript';
-  script.src=source;
-  script.async=true;
-  script.textContent=JSON.stringify({...config,locale:'en'});
-  wrapper.append(script);
-  container.append(wrapper);
-
-  let settled=false;
-  let observedIframe=null;
-  const settleReady=(iframe)=>{
-    if(settled||!container.isConnected||iframe!==wrapper.querySelector('iframe'))return false;
-    settled=true;
-    container.dataset.externalState='display-only';
-    loading.remove();
-    iframe.setAttribute('aria-label',label);
+  let destroyed=false,settled=false,timer=0,observer=null;
+  const cleanupAttempt=()=>{
     clearTimeout(timer);
-    observer.disconnect();
-    return true;
+    timer=0;
+    if(observer)observer.disconnect();
+    observer=null;
   };
-  const observeIframe=()=>{
-    const iframe=wrapper.querySelector('iframe');
-    if(!iframe||iframe===observedIframe)return false;
-    observedIframe=iframe;
-    iframe.setAttribute('aria-label',`Loading ${label}`);
-    iframe.addEventListener('load',()=>requestAnimationFrame(()=>requestAnimationFrame(()=>settleReady(iframe))),{once:true});
-    return true;
+  const unavailable=(reason)=>{
+    cleanupAttempt();
+    if(destroyed)return;
+    container.dataset.externalProvider='tradingview';
+    container.dataset.usage='display-only';
+    container.dataset.externalState='unavailable';
+    const detail=reason==='timeout'?'The market reference did not initialize within the production timeout.':'The market reference could not be loaded in this browser.';
+    container.innerHTML=`<section class="qelly-tradingview-fallback" role="status" aria-live="polite"><div><h3>${label} unavailable</h3><p>${detail} Qelly has not substituted or fabricated chart values.</p><div class="qelly-tradingview-fallback__actions"><button type="button" class="q-button q-button--secondary" data-qelly-tv-retry>Retry market view</button><a href="${openUrl}" target="_blank" rel="noopener noreferrer nofollow">Open TradingView directly</a></div></div></section>`;
+    container.querySelector('[data-qelly-tv-retry]')?.addEventListener('click',start,{once:true});
   };
-  const timer=setTimeout(()=>{
-    if(settled)return;
-    settled=true;
-    observer.disconnect();
-    renderFallback(container,{reason:'timeout',title:`${label} unavailable`,openUrl});
-  },WIDGET_TIMEOUT_MS);
-  const observer=new MutationObserver(()=>{
-    observeIframe();
-  });
-  observer.observe(wrapper,{childList:true,subtree:true});
-  script.addEventListener('load',observeIframe,{once:true});
-  script.addEventListener('error',()=>{
-    if(settled)return;
-    settled=true;
-    clearTimeout(timer);
-    observer.disconnect();
-    renderFallback(container,{reason:'load-error',title:`${label} unavailable`,openUrl});
-  },{once:true});
+  const start=()=>{
+    if(destroyed)return;
+    cleanupAttempt();
+    settled=false;
+    container.replaceChildren();
+    container.dataset.externalProvider='tradingview';
+    container.dataset.usage='display-only';
+    container.dataset.externalWidget=kind;
+    container.dataset.externalState='loading';
 
-  return {provider:'TradingView',kind,usage:'display-only',boundary:DISPLAY_BOUNDARY,destroy(){settled=true;clearTimeout(timer);observer.disconnect();container.replaceChildren();delete container.dataset.externalState;delete container.dataset.externalWidget;}};
+    const wrapper=document.createElement('div');
+    wrapper.className='tradingview-widget-container qelly-tradingview-widget';
+    wrapper.style.height='100%';
+    wrapper.style.width='100%';
+    const loading=document.createElement('div');
+    loading.className='qelly-tradingview-loading';
+    loading.setAttribute('role','status');
+    loading.innerHTML=`<span aria-hidden="true"></span><strong>Loading ${label}…</strong><small>TradingView market reference · no substitute values</small>`;
+    const host=document.createElement('div');
+    host.className='tradingview-widget-container__widget';
+    host.style.height='calc(100% - 32px)';
+    host.style.width='100%';
+    host.setAttribute('aria-label',`Loading ${label}`);
+    wrapper.append(loading,host);
+
+    const attribution=document.createElement('div');
+    attribution.className='tradingview-widget-copyright qelly-tradingview-attribution';
+    const link=document.createElement('a');
+    link.href=openUrl;
+    link.target='_blank';
+    link.rel='noopener noreferrer nofollow';
+    link.textContent=`${label} by TradingView`;
+    attribution.append(link);
+    wrapper.append(attribution);
+
+    const script=document.createElement('script');
+    script.type='text/javascript';
+    script.src=source;
+    script.async=true;
+    script.textContent=JSON.stringify({...config,locale:'en'});
+    wrapper.append(script);
+    container.append(wrapper);
+
+    let observedIframe=null;
+    const settleReady=(iframe)=>{
+      if(settled||destroyed||!container.isConnected||iframe!==wrapper.querySelector('iframe'))return false;
+      settled=true;
+      container.dataset.externalState='display-only';
+      loading.remove();
+      iframe.setAttribute('aria-label',label);
+      cleanupAttempt();
+      return true;
+    };
+    const observeIframe=()=>{
+      const iframe=wrapper.querySelector('iframe');
+      if(!iframe||iframe===observedIframe)return false;
+      observedIframe=iframe;
+      iframe.setAttribute('aria-label',`Loading ${label}`);
+      iframe.addEventListener('load',()=>requestAnimationFrame(()=>requestAnimationFrame(()=>settleReady(iframe))),{once:true});
+      return true;
+    };
+    timer=setTimeout(()=>{
+      if(settled||destroyed)return;
+      settled=true;
+      unavailable('timeout');
+    },WIDGET_TIMEOUT_MS);
+    observer=new MutationObserver(observeIframe);
+    observer.observe(wrapper,{childList:true,subtree:true});
+    script.addEventListener('load',observeIframe,{once:true});
+    script.addEventListener('error',()=>{
+      if(settled||destroyed)return;
+      settled=true;
+      unavailable('load-error');
+    },{once:true});
+  };
+
+  start();
+  return {provider:'TradingView',kind,usage:'display-only',boundary:DISPLAY_BOUNDARY,retry:start,destroy(){destroyed=true;settled=true;cleanupAttempt();container.replaceChildren();delete container.dataset.externalState;delete container.dataset.externalWidget;}};
 }
-
 export function mountTradingViewDisplay(container,{symbol='BTCUSDT',interval='1h'}={}){
   const resolvedSymbol=tradingViewSymbol(symbol);
   const resolvedInterval=tradingViewInterval(interval);

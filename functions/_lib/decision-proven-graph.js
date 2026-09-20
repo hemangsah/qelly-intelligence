@@ -39,8 +39,11 @@ function scenarios(candles,returns,horizonBars,seed){
   for(let path=0;path<paths;path++){let price=last;for(let step=0;step<horizonBars;step++){const blockStart=Math.floor(random()*Math.max(1,sample.length-block));const shock=sample[(blockStart+(step%block))%sample.length]??0;price*=Math.exp(shock);series[step].push(price);}terminal.push(price);}
   const fan=series.map((values,index)=>({step:index+1,p05:round(quantile(values,.05),2),p25:round(quantile(values,.25),2),p50:round(quantile(values,.5),2),p75:round(quantile(values,.75),2),p95:round(quantile(values,.95),2)}));
   const neutral=Math.max(.002,Math.sqrt(horizonBars)*(.25*((quantile(sample,.75)??0)-(quantile(sample,.25)??0))));
-  const bull=terminal.filter(value=>value/last-1>neutral).length/paths;const bear=terminal.filter(value=>value/last-1< -neutral).length/paths;
-  return {paths,fan,probabilities:{bull:round(bull,4),base:round(1-bull-bear,4),bear:round(bear,4)},terminal:{p05:fan.at(-1).p05,p50:fan.at(-1).p50,p95:fan.at(-1).p95}};
+  const bull=round(terminal.filter(value=>value/last-1>neutral).length/paths,4);
+  let bear=round(terminal.filter(value=>value/last-1< -neutral).length/paths,4);
+  let base=round(1-bull-bear,4);
+  if(base<0){base=0;bear=round(1-bull,4);}
+  return {paths,fan,probabilities:{bull,base,bear},terminal:{p05:fan.at(-1).p05,p50:fan.at(-1).p50,p95:fan.at(-1).p95}};
 }
 
 function marketState(metrics){

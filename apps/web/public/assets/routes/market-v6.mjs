@@ -127,7 +127,7 @@ function mountExternalIntelligenceDock(root,{escapeHtml}){
   const intersection='IntersectionObserver'in window?new IntersectionObserver((entries)=>{
     if(!entries.some(entry=>entry.isIntersecting))return;
     intersection.disconnect();activate(activeId);
-  },{rootMargin:'360px 0px'}):null;
+  },{rootMargin:'120px 0px'}):null;
   if(intersection)intersection.observe(root);else activate(activeId);
   return {refresh(){if(mounted&&activeId==='x-pulse')activate(activeId);},destroy(){intersection?.disconnect();handle?.destroy?.();handle=null;}};
 }
@@ -149,24 +149,6 @@ export async function renderMarketV6(main,deps){
     </section>
     ${stateBanner()}
 
-    <section class="q-market-widget-section" data-market-widget-grid aria-labelledby="q-market-widget-title">
-      <header class="q-market-widget-section__head">
-        <div><p class="q-eyebrow">Market map</p><h2 id="q-market-widget-title">See the market before narrowing the question.</h2><p>Start with crypto breadth, then compare cross-asset, macro, equity and currency context as needed.</p></div>
-        <a href="https://www.tradingview.com/markets/" target="_blank" rel="noopener noreferrer nofollow">Market data by TradingView ↗</a>
-      </header>
-      <div class="q-market-widget-grid">
-        ${MARKET_WIDGET_PANELS.map((panel,index)=>`<article class="q-market-widget-card q-market-widget-card--${panel.size}" data-market-widget-id="${panel.id}" data-market-widget-priority="${index===0?'primary':'secondary'}">
-          <header><div><span>${index===0?'Start here':'Market reference'}</span><h3>${panel.label}</h3><p>${panel.description}</p></div></header>
-          <div class="q-market-widget-stage" data-market-widget-stage aria-label="${panel.label}"><div class="q-market-widget-note"><strong>${index===0?'Preparing market breadth':'Loads when needed'}</strong><span>${index===0?'Qelly content is ready; market reference is connecting.':'This view connects as you approach it.'}</span></div></div>
-        </article>`).join('')}
-      </div>
-    </section>
-
-    <section class="q-tv-tape-shell" aria-label="TradingView cross-asset ticker tape">
-      <div id="q-tv-ticker-tape" class="q-tv-ticker-stage"></div>
-      <p>Reference quotes provide market context and are not used in Qelly calculations.</p>
-    </section>
-
     <div class="q-v7-market-grid">
       <section class="q-panel q-v7-chart-panel">
         <div class="q-panel-head"><div><p class="q-eyebrow">Market chart</p><h2>Interactive market chart</h2><p>Use the chart for visual market context. Qelly calculations and decisions rely on Qelly’s sourced evidence.</p></div><span class="q-status q-status--cached">REFERENCE</span></div>
@@ -181,6 +163,24 @@ export async function renderMarketV6(main,deps){
         <section class="q-panel"><div class="q-panel-head"><div><h2>Professional research links</h2><p>Open primary and specialist research sources in their own sites.</p></div></div><div class="q-panel-body q-v7-link-grid"><a class="q-button q-button--secondary" href="https://www.tradingview.com/markets/" target="_blank" rel="noopener noreferrer nofollow">TradingView Markets ↗</a><a class="q-button q-button--secondary" href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener noreferrer nofollow">Forex Factory Calendar ↗</a><a class="q-button q-button--secondary" href="https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html" target="_blank" rel="noopener noreferrer nofollow">ECB Reference Rates ↗</a><a class="q-button q-button--secondary" href="https://www.cmegroup.com/markets.html" target="_blank" rel="noopener noreferrer nofollow">CME Markets ↗</a></div></section>
       </aside>
     </div>
+
+    <section class="q-market-widget-section" data-market-widget-grid aria-labelledby="q-market-widget-title">
+      <header class="q-market-widget-section__head">
+        <div><p class="q-eyebrow">Market map</p><h2 id="q-market-widget-title">See the market before narrowing the question.</h2><p>Start with the advanced chart, then crypto breadth, and add cross-asset, macro, equity and currency context only as needed.</p></div>
+        <a href="https://www.tradingview.com/markets/" target="_blank" rel="noopener noreferrer nofollow">Market data by TradingView ↗</a>
+      </header>
+      <div class="q-market-widget-grid">
+        ${MARKET_WIDGET_PANELS.map((panel,index)=>`<article class="q-market-widget-card q-market-widget-card--${panel.size}" data-market-widget-id="${panel.id}" data-market-widget-priority="${index===0?'primary':'secondary'}">
+          <header><div><span>${index===0?'Start here':'Market reference'}</span><h3>${panel.label}</h3><p>${panel.description}</p></div></header>
+          <div class="q-market-widget-stage" data-market-widget-stage aria-label="${panel.label}"><div class="q-market-widget-note"><strong>${index===0?'Preparing market breadth':'Loads when needed'}</strong><span>${index===0?'Qelly content is ready; market reference is connecting.':'This view connects as you approach it.'}</span></div></div>
+        </article>`).join('')}
+      </div>
+    </section>
+
+    <section class="q-tv-tape-shell" aria-label="TradingView cross-asset ticker tape">
+      <div id="q-tv-ticker-tape" class="q-tv-ticker-stage"></div>
+      <p>Reference quotes provide market context and are not used in Qelly calculations.</p>
+    </section>
 
     <section class="q-panel q-intel-dock" data-external-intelligence-dock>
       <div class="q-panel-head"><div><p class="q-eyebrow">Live market context</p><h2>Live market structure and research networks</h2><p>Read-only market context stays separate from Qelly calculations and execution.</p></div><span class="q-status q-status--cached">READ ONLY</span></div>
@@ -218,28 +218,39 @@ export async function renderMarketV6(main,deps){
     ]}});
   };
   const mount=()=>{handle?.destroy?.();handle=mountTradingViewDisplay(chart,{symbol:symbol.value,interval:interval.value});marketGridHandle?.update({symbol:symbol.value,interval:interval.value});};
-  const lazyMount=(element,callback)=>{
+  const lazyMount=(element,callback,{rootMargin='120px 0px'}={})=>{
     if(!element)return {disconnect(){}};
     if(!('IntersectionObserver'in window)){callback();return {disconnect(){}};}
-    const observer=new IntersectionObserver((entries)=>{if(!entries.some(entry=>entry.isIntersecting))return;observer.disconnect();callback();},{rootMargin:'280px 0px',threshold:0.01});
+    const observer=new IntersectionObserver((entries)=>{if(!entries.some(entry=>entry.isIntersecting))return;observer.disconnect();callback();},{rootMargin,threshold:0.01});
     observer.observe(element);return observer;
   };
-  let tickerObserver=null,chartObserver=null;
+  let tickerObserver=null,chartFrame=0;
   if(!verifyAliasActive){
     const gridPanels=MARKET_WIDGET_PANELS.map(panel=>({...panel,config:(context)=>panelConfig(panel,context)}));
-    marketGridHandle=mountTradingViewMarketGrid(marketGrid,{panels:gridPanels,context:{symbol:symbol.value,interval:interval.value}});
+    marketGridHandle=mountTradingViewMarketGrid(marketGrid,{panels:gridPanels,context:{symbol:symbol.value,interval:interval.value},rootMargin:'160px 0px'});
     intelligenceDockHandle=mountExternalIntelligenceDock(intelligenceDock,{escapeHtml});
-    tickerObserver=lazyMount(ticker,mountTicker);
-    chartObserver=lazyMount(chart,mount);
+    chartFrame=requestAnimationFrame(mount);
+    tickerObserver=lazyMount(ticker,mountTicker,{rootMargin:'80px 0px'});
     symbol?.addEventListener('change',mount);interval?.addEventListener('change',mount);
   }
   api('/api/v1/market/network').then((network)=>populateNetworkSections(marketRoot,network,escapeHtml)).catch(()=>populateNetworkSections(marketRoot,{sources:{},providerDirectory:[],providerDirectorySummary:{byIntegration:{}}},escapeHtml));
+  let lastAppearance=tradingViewAppearance(),themeTimer=0;
   const themeObserver=new MutationObserver(()=>{
+    const nextAppearance=tradingViewAppearance();
+    if(nextAppearance===lastAppearance)return;
+    lastAppearance=nextAppearance;
+    clearTimeout(themeTimer);
     cancelAnimationFrame(themeFrame);
-    themeFrame=requestAnimationFrame(()=>{if(handle)mount();if(tickerHandle)mountTicker();marketGridHandle?.refresh();intelligenceDockHandle?.refresh();});
+    themeTimer=setTimeout(()=>{
+      themeFrame=requestAnimationFrame(()=>{
+        if(handle)mount();
+        if(tickerHandle)mountTicker();
+        marketGridHandle?.refresh();
+      });
+    },250);
   });
   themeObserver.observe(document.documentElement,{attributes:true,attributeFilter:['data-appearance','data-resolved-appearance']});
-  window.__qellyMarketV6Cleanup=()=>{cancelAnimationFrame(themeFrame);themeObserver.disconnect();tickerObserver?.disconnect?.();chartObserver?.disconnect?.();handle?.destroy?.();tickerHandle?.destroy?.();marketGridHandle?.destroy?.();intelligenceDockHandle?.destroy?.();handle=null;tickerHandle=null;marketGridHandle=null;intelligenceDockHandle=null;};
+  window.__qellyMarketV6Cleanup=()=>{clearTimeout(themeTimer);cancelAnimationFrame(themeFrame);cancelAnimationFrame(chartFrame);themeObserver.disconnect();tickerObserver?.disconnect?.();handle?.destroy?.();tickerHandle?.destroy?.();marketGridHandle?.destroy?.();intelligenceDockHandle?.destroy?.();handle=null;tickerHandle=null;marketGridHandle=null;intelligenceDockHandle=null;};
 }
 
 export const __marketV6Test=Object.freeze({EXTERNAL_SYMBOLS,INTERVALS,MARKET_WIDGET_PANELS,INTELLIGENCE_DOCK_PANELS,tone,panelConfig});

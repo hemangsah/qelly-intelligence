@@ -41,21 +41,29 @@ export function mountTradingViewMarketGrid(root,{panels,context={},rootMargin='3
     card.dataset.marketWidgetState='mounted';
   };
 
-  const primary=cards.find(card=>card.dataset.marketWidgetPriority==='primary')||cards[0];
-  const secondary=cards.filter(card=>card!==primary);
-  const primaryFrame=requestAnimationFrame(()=>mountCard(primary));
+  const mountTimers=new Set();
+  const scheduleCard=(card,delay=0)=>{
+    if(destroyed||!card||card.dataset.marketWidgetState==='mounted')return;
+    const timer=setTimeout(()=>{
+      mountTimers.delete(timer);
+      if(!destroyed&&card.isConnected)mountCard(card);
+    },Math.max(0,delay));
+    mountTimers.add(timer);
+  };
 
   let observer=null;
   if('IntersectionObserver'in window){
     observer=new IntersectionObserver((entries)=>{
-      for(const entry of entries){
-        if(!entry.isIntersecting)continue;
+      const visible=entries
+        .filter(entry=>entry.isIntersecting)
+        .sort((a,b)=>cards.indexOf(a.target)-cards.indexOf(b.target));
+      visible.forEach((entry,index)=>{
         observer.unobserve(entry.target);
-        mountCard(entry.target);
-      }
+        scheduleCard(entry.target,index*350);
+      });
     },{rootMargin,threshold:0.01});
-    secondary.forEach(card=>observer.observe(card));
-  }else secondary.forEach(card=>mountCard(card));
+    cards.forEach(card=>observer.observe(card));
+  }else cards.forEach((card,index)=>scheduleCard(card,index*350));
 
   return {
     update(next){
@@ -80,7 +88,9 @@ export function mountTradingViewMarketGrid(root,{panels,context={},rootMargin='3
       }
     },
     destroy(){
-      destroyed=true;cancelAnimationFrame(primaryFrame);observer?.disconnect();
+      destroyed=true;observer?.disconnect();
+      for(const timer of mountTimers)clearTimeout(timer);
+      mountTimers.clear();
       for(const handle of handles.values())handle?.destroy?.();
       handles.clear();mountedKinds.clear();
     },

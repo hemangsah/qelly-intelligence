@@ -43,7 +43,7 @@ test('external market surface is bootstrapped by the production route guard and 
   assert.match(css,/pointer-events:none/);
 });
 
-test('Market Command makes Crypto Heatmap the first major market module and lazy-loads secondary views',async()=>{
+test('Market Command makes Advanced Chart first and Crypto Heatmap the first lazy secondary module',async()=>{
   const route=await read('../apps/web/public/assets/routes/market-v6.mjs');
   const grid=await read('../apps/web/public/assets/market/tradingview-market-grid.mjs');
   const mod=await import('../apps/web/public/assets/routes/market-v6.mjs');
@@ -53,11 +53,12 @@ test('Market Command makes Crypto Heatmap the first major market module and lazy
   assert.equal(new Set(panels.map(panel=>panel.kind)).size,panels.length);
   for(const label of ['Crypto Coins Heatmap','Market Overview','Crypto Market Screener','Economic Calendar','Stock Heatmap','ETF Heatmap','Forex Heatmap','Technical Analysis','Top Stories'])assert.match(route,new RegExp(label));
   assert.match(route,/data-market-widget-priority="\$\{index===0\?'primary':'secondary'\}"/);
+  assert.ok(route.indexOf('q-v7-market-grid')<route.indexOf('data-market-widget-grid'));
   assert.ok(route.indexOf('data-market-widget-grid')<route.indexOf('q-tv-tape-shell'));
-  assert.ok(route.indexOf('data-market-widget-grid')<route.indexOf('q-v7-market-grid'));
   assert.doesNotMatch(route,/data-tv-suite/);
   assert.match(grid,/IntersectionObserver/);
-  assert.match(grid,/requestAnimationFrame\(\(\)=>mountCard\(primary\)\)/);
+  assert.match(grid,/scheduleCard\(entry\.target,index\*350\)/);
+  assert.match(grid,/cards\.forEach\(card=>observer\.observe\(card\)\)/);
   assert.match(grid,/Duplicate TradingView widget kind/);
   assert.doesNotMatch(route,/embedded research suite|third-party panel|iframe/i);
 });
