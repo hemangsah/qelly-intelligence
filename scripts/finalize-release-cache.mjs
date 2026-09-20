@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 import {readFile,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
@@ -34,9 +35,16 @@ export function collectFinalShell(indexHtml){
   });
 }
 
-export function stampServiceWorker(source,{releaseSha,shell}){
+export function serviceWorkerReleaseKey(releaseSha,buildTimestamp='',strict=false){
   const sha=String(releaseSha||'').trim().toLowerCase();
-  if(!/^[0-9a-f]{40}$/.test(sha))throw new Error('Service worker release SHA must be a full 40-character commit SHA');
+  if(/^[0-9a-f]{40}$/.test(sha))return sha;
+  if(strict)throw new Error('Production service worker release SHA must be a full 40-character commit SHA');
+  const digest=createHash('sha256').update(sha+'|'+String(buildTimestamp||'local')).digest('hex').slice(0,24);
+  return 'local-'+digest;
+}
+
+export function stampServiceWorker(source,{releaseSha,buildTimestamp,shell,strict=false}){
+  const sha=serviceWorkerReleaseKey(releaseSha,buildTimestamp,strict);
   if(!String(source).includes(RELEASE_PLACEHOLDER))throw new Error('Service worker release placeholder is missing');
   if(!SHELL_PATTERN.test(String(source)))throw new Error('Service worker shell declaration is missing');
   const normalizedShell=[...new Set(shell||[])].filter(Boolean);
@@ -54,7 +62,7 @@ export async function finalizeReleaseCache({outputDir=output}={}){
   ]);
   const release=JSON.parse(releaseText);
   const shell=collectFinalShell(indexHtml);
-  const stamped=stampServiceWorker(workerSource,{releaseSha:release.releaseSha,shell});
+  const stamped=stampServiceWorker(workerSource,{releaseSha:release.releaseSha,buildTimestamp:release.buildTimestamp,shell,strict:process.env.QELLY_REQUIRE_PUBLIC_RUNTIME==='true'});
   await writeFile(path.join(outputDir,'qelly-service-worker.js'),stamped);
   return {status:'release-cache-finalized',releaseSha:release.releaseSha,shellEntries:shell.length};
 }
