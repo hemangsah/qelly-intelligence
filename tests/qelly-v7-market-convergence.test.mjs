@@ -56,7 +56,7 @@ test('connectivity changes cannot replace the canonical Market renderer',async()
 
 test('public recovery never invents market observations or deterministic crypto prices',async()=>{
   const source=await read('apps/web/public/assets/qelly-public-recovery.mjs');
-  assert.match(source,/No fabricated recovery data/);
+  assert.match(source,/No substitute rankings were generated/);
   assert.match(source,/No substitute price, candle, volume or market movement has been generated/);
   assert.match(source,/TradingView/);
   assert.match(source,/Forex Factory/);
