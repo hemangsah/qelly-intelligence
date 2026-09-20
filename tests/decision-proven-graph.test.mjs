@@ -51,7 +51,7 @@ test('evidence calibration suppresses a directional view when independent timefr
     forecast:{probabilities:{bull:.61,base:.18,bear:.21}},
     confidence:{score:.78,calibration:'base'},
     qellyView:{action:'BUY',confidence:.78,levels:{entryZone:[99,101],invalidation:97,targets:[102,104,106],riskReward:[.8,1.6,2.4]},why:['Base directional evidence.'],label:'Research signal only.',changesIf:'Base invalidation.'},
-    graph:{nodes:[{id:'decision',label:'QELLY VIEW BUY'}]}
+    graph:{nodes:[{id:'history',label:'history'},{id:'decision',label:'QELLY VIEW BUY'}],edges:[{from:'history',to:'decision',type:'informs'}],textAlternative:['history informs QELLY VIEW BUY.']}
   };
   const multiTimeframe={state:'live',agreement:{direction:'SELL',aligned:3,directional:4,total:4}};
   const result=calibrateDecisionEvidence(graph,multiTimeframe,{state:'live'});
