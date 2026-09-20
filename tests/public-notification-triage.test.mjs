@@ -87,8 +87,13 @@ test('frontend uses only the public triage API and retains visible responsive co
   assert.match(route,/\/api\/v1\/discovery\/notification-triage/);
   assert.doesNotMatch(route,/api\/v1\/notifications(?:\/|['"?])/);
   assert.match(route,/Eight review gates/);
-  assert.match(route,/Evaluation trace/);
+  assert.match(route,/Review trace/);
+  assert.match(route,/Decision Intelligence/);
+  assert.match(route,/What this does not do/);
+  assert.match(route,/Nothing saved to an account/);
+  assert.doesNotMatch(route,/governed-notification-triage-v2|Provider Operations|Decision Provenance|Unique job · delivery triage|The backend|operational question|provider claim/i);
   assert.match(route,/No fixture inbox/);
+  assert.doesNotMatch(route,/data-nt-provider/);
   assert.doesNotMatch(guard,/\['notification-center','Notifications'\]/);
   assert.match(registry,/route:'notification-center'.*public:true/);
   assert.match(worker,/notification-triage-v2\.css/);
