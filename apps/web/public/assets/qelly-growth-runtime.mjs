@@ -63,6 +63,8 @@ export function readRecentActivity(storage=globalThis.localStorage){
   return Array.isArray(value)?value.slice(0,MAX_ACTIVITY):[];
 }
 
+export const isGrowthOpenTarget=(target)=>Boolean(target?.closest?.('[data-growth-open]'));
+
 export function createGrowthAnalytics({config={},storage=globalThis.localStorage,navigatorObject=globalThis.navigator,fetchImpl=globalThis.fetch,now=()=>Date.now()}={}){
   const enabled=config?.enabled===true;
   const endpoint=String(config?.endpoint||'/api/v1/analytics/events');
@@ -129,6 +131,7 @@ export function installGrowthRuntime(config=window.__QELLY_CONFIG__||{}){
   };
   document.addEventListener('qelly:product-event',(event)=>analytics.track(event.detail?.name,event.detail?.properties));
   document.addEventListener('qelly:ad',(event)=>analytics.track(event.detail?.state==='requested'?'ad_slot_render':'ad_slot_eligibility',{state:event.detail?.state,feature:event.detail?.placement}));
+  document.addEventListener('click',(event)=>{if(isGrowthOpenTarget(event.target))openGrowthPanel(analytics);});
   document.addEventListener('click',(event)=>{const link=event.target.closest?.('a[href]');if(link&&routeFromHash()==='news-research')analytics.track('research_click',{route:'news-research',feature:link.origin===location.origin?'internal':'external',action:'open'});});
   window.addEventListener('hashchange',()=>setTimeout(trackRoute,0));
   window.addEventListener('pagehide',()=>void analytics.flush());
@@ -137,7 +140,7 @@ export function installGrowthRuntime(config=window.__QELLY_CONFIG__||{}){
     const actions=document.querySelector('.q-product-actions');
     if(!actions||actions.querySelector('[data-growth-open]'))return;
     const button=document.createElement('button');button.type='button';button.className='q-product-recent';button.dataset.growthOpen='true';button.textContent='Recent';
-    button.addEventListener('click',()=>openGrowthPanel(analytics));actions.prepend(button);
+    actions.prepend(button);
   };
   new MutationObserver(installButton).observe(document.body,{childList:true,subtree:true});
   installButton();setTimeout(trackRoute,0);
