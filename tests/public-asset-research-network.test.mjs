@@ -18,7 +18,7 @@ test('generator emits useful crawlable pages, preserves sitemap entries and conv
   try{
     await mkdir(output,{recursive:true});
     const existing='  <url><loc>https://terminal.qellyintelligence.com/calculators/volatility-calculator/</loc></url>';
-    await writeFile(path.join(output,'sitemap.xml'),${<?xml version="1.0"?><urlset>${existing}</urlset>});
+    await writeFile(path.join(output,'sitemap.xml'),'<?xml version="1.0"?><urlset>'+existing+'</urlset>');
     const environment={QELLY_CANONICAL_SITE_URL:'https://terminal.qellyintelligence.com'};
     const first=await generatePublicAssetResearch({output,environment});
     const second=await generatePublicAssetResearch({output,environment});
@@ -28,8 +28,8 @@ test('generator emits useful crawlable pages, preserves sitemap entries and conv
       await access(file);
       const html=await readFile(file,'utf8');
       for(const value of [
-        ${<h1>${item.name}},
-        ${data-qelly-asset-research="${item.canonicalId}"},
+        '<h1>'+item.name,
+        'data-qelly-asset-research="'+item.canonicalId+'"',
         'Current public observation',
         'Source &amp; freshness',
         'Interpretation boundary',
@@ -40,15 +40,15 @@ test('generator emits useful crawlable pages, preserves sitemap entries and conv
         '/calculators/volatility-calculator/',
         'application/ld+json',
         'BreadcrumbList',
-        ${https://terminal.qellyintelligence.com/research/assets/${item.slug}/}
-      ])assert.ok(html.includes(value),${missing ${item.symbol} page contract: ${value}});
+        'https://terminal.qellyintelligence.com/research/assets/'+item.slug+'/'
+      ])assert.ok(html.includes(value),'missing '+item.symbol+' page contract: '+value);
       assert.doesNotMatch(html,/pages\.dev|auth-login|sign in required|guaranteed return|price target/i);
     }
     const sitemap=await readFile(path.join(output,'sitemap.xml'),'utf8');
     assert.ok(sitemap.includes(existing));
     for(const item of PUBLIC_ASSET_RESEARCH){
-      const url=${https://terminal.qellyintelligence.com/research/assets/${item.slug}/};
-      assert.equal(sitemap.split(url).length-1,1,${expected one sitemap entry for ${item.symbol}});
+      const url='https://terminal.qellyintelligence.com/research/assets/'+item.slug+'/';
+      assert.equal(sitemap.split(url).length-1,1,'expected one sitemap entry for '+item.symbol);
     }
     assert.equal((sitemap.match(/\/research\/assets\//g)||[]).length,6);
     assert.doesNotMatch(sitemap,/cardano|\/ada\//i);
