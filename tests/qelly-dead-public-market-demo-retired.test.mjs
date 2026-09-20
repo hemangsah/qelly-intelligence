@@ -12,11 +12,15 @@ test('legacy catch-all no longer owns or fabricates the public market namespace'
   assert.doesNotMatch(catchAll,/Math\.sin|Math\.cos/);
 });
 
-test('dedicated Cloudflare public market owner remains explicit no-fabrication authority',()=>{
+test('dedicated Cloudflare public market owner remains bounded live and explicit no-fabrication authority',()=>{
   assert.match(dedicated,/MARKET_UNAVAILABLE_REASON/);
+  assert.match(dedicated,/NO_FABRICATION_RULE/);
   assert.match(dedicated,/fabricatedObservations:false/);
-  assert.match(dedicated,/points:\[\]/);
-  assert.match(dedicated,/does not generate substitute prices or candles/i);
+  assert.match(dedicated,/fabricatedFallback:false/);
+  assert.match(dedicated,/HYPERLIQUID_URL='https:\/\/api\.hyperliquid\.xyz\/info'/);
+  assert.match(dedicated,/type:'candleSnapshot'/);
+  assert.match(dedicated,/LIVE_ASSETS=Object\.freeze/);
+  assert.doesNotMatch(dedicated,/qelly-fixture|simulated-demo|qelly-governed-demo|Math\.sin|Math\.cos/);
 });
 
 test('provider-backed legacy market overview remains read-only and truth-labeled',()=>{
