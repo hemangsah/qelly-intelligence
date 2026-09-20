@@ -197,7 +197,7 @@ export const productDomains = [
   { id:'tools', label:'Calculators', shortLabel:'Tools', icon:icon('calculator'), defaultRoute:'calculator-center', destinations:['Quant calculators','India finance','Indicators','Formula library','Saved calculations'] },
   { id:'research', label:'Research', shortLabel:'Research', icon:icon('research'), defaultRoute:'news-research', destinations:['Research','News','Events','Learning'] },
   { id:'workspaces', label:'Workspaces', shortLabel:'Work', icon:icon('portfolio'), defaultRoute:'watchlist', destinations:['Portfolio','Watchlists','Alerts','Workspaces','Settings'] },
-  { id:'evidence', label:'Evidence', shortLabel:'Evidence', icon:icon('evidence'), defaultRoute:'decision-provenance', destinations:['Decision Provenance','Qelly Verify','Evidence','Trust'] },
+  { id:'evidence', label:'Evidence', shortLabel:'Evidence', icon:icon('evidence'), defaultRoute:'decision-provenance', destinations:['Decision Intelligence','Qelly Verify','Evidence','Trust'] },
   { id:'data', label:'Data plane', shortLabel:'Data', icon:icon('data'), defaultRoute:'data-mesh', destinations:['Data Sources','Developer/API','Operations'] },
   { id:'operations', label:'Operations', shortLabel:'Ops', icon:icon('status'), defaultRoute:'platform-readiness', destinations:['Operations','Security','Trust'] },
   { id:'account', label:'Account', shortLabel:'Account', icon:icon('identity'), defaultRoute:'account-session', destinations:['Settings','Workspaces','Team'] },
