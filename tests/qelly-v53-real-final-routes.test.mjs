@@ -62,7 +62,7 @@ test('Notification Center does not infer external delivery from inbox persistenc
 
 test('About Qelly uses the current product contract and avoids false live-market claims',async()=>{
   const source=await read('../apps/web/public/assets/routes/about-qelly.mjs');
-  assert.match(source,/36<\\/strong><span>Public financial calculators/);
+  assert.match(source,/36<\/strong><span>Public financial calculators/);
   assert.match(source,/Public research destinations/);
   assert.match(source,/qelly-symbol\.svg/);
   assert.match(source,/Read-only<\/strong>/);
