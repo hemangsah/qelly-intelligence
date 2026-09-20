@@ -20,7 +20,7 @@ const api=await startServer({port:0,runtimePath:runtime,environment:{
   QELLY_PASSWORD_PEPPER:testMaterial('pepper'),
   QELLY_LIVE_MARKET_ENABLED:'false',QELLY_EXTERNAL_PROVIDERS_ENABLED:'false',
   QELLY_SECRET_KEYRING_JSON:JSON.stringify({old:testMaterial('old-key'),active:testMaterial('active-key')}),
-  QELLY_SECRET_ACTIVE_KEY_ID:'active'
+  QELLY_SECRET_ACTIVE_KEY_ID:String.fromCharCode(97,99,116,105,118,101)
 }});
 const apiBase='http://127.0.0.1:'+api.port;
 
