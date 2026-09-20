@@ -1,5 +1,5 @@
 const DISPLAY_BOUNDARY='TradingView market reference only. Qelly does not read, scrape, transform, persist or use widget values for calculations, risk, alerts or decisions.';
-const WIDGET_TIMEOUT_MS=10000;
+const WIDGET_TIMEOUT_MS=12000;
 const COMPONENT_STYLESHEET=new URL('./tradingview-display-widget.css',import.meta.url).href;
 const WIDGET_SOURCES=Object.freeze({
   advancedChart:'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js',
