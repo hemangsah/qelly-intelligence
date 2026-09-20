@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {generatePublicCalculatorNetwork} from '../scripts/generate-public-calculator-network.mjs';
+import {adsTxtFor,buildPublicAdConfig,enableAdNetworkCsp} from '../scripts/ad-readiness.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=(file)=>readFile(path.join(root,file),'utf8');
@@ -23,26 +24,53 @@ test('shared ad runtime is consent-gated, lazy, configured from production runti
   assert.match(runtime,/data-qelly-ad-network/);
   assert.match(runtime,/Sponsored placement unavailable/);
   assert.match(runtime,/script\.addEventListener\('error'/);
+  assert.match(runtime,/CLIENT_PATTERN/);
+  assert.match(runtime,/SLOT_PATTERN/);
+  assert.match(runtime,/invalid_config/);
   assert.match(styles,/min-height:118px/);
   assert.match(styles,/q-ad-slot--rectangle\{min-height:250px\}/);
 });
 
-test('production build exposes blank-by-default validated ad hooks and conditional ads.txt/CSP activation',async()=>{
-  const source=await read('scripts/build-frontend.mjs');
-  for(const name of [
-    'QELLY_PUBLIC_AD_CLIENT',
-    'QELLY_PUBLIC_AD_SLOT_MARKET',
-    'QELLY_PUBLIC_AD_SLOT_DECISION',
-    'QELLY_PUBLIC_AD_SLOT_RESEARCH',
-    'QELLY_PUBLIC_AD_SLOT_CALCULATOR'
-  ])assert.match(source,new RegExp(name));
-  assert.match(source,/\^ca-pub-\\d\{16\}\$/);
-  assert.match(source,/advertisingConfigured/);
-  assert.match(source,/pagead2\.googlesyndication\.com/);
-  assert.match(source,/googleads\.g\.doubleclick\.net/);
-  assert.match(source,/google\.com, \$\{publisherId\}, DIRECT, f08c47fec0942fa0/);
-  assert.match(source,/ads:Object\.freeze/);
-  assert.doesNotMatch(source,/ca-pub-\d{16}/);
+test('production ad configuration is blank by default, validated and activates CSP/ads.txt only with real deployment IDs',async()=>{
+  const blank=buildPublicAdConfig({});
+  assert.equal(blank.configured,false);
+  assert.equal(blank.client,'');
+  assert.deepEqual(blank.slots,{});
+  assert.equal(adsTxtFor(blank),null);
+
+  const environment={
+    QELLY_PUBLIC_AD_CLIENT:'ca-pub-1234567890123456',
+    QELLY_PUBLIC_AD_SLOT_MARKET:'1234567890',
+    QELLY_PUBLIC_AD_SLOT_DECISION:'2345678901',
+    QELLY_PUBLIC_AD_SLOT_RESEARCH:'3456789012',
+    QELLY_PUBLIC_AD_SLOT_CALCULATOR:'4567890123'
+  };
+  const active=buildPublicAdConfig(environment);
+  assert.equal(active.configured,true);
+  assert.equal(active.configuredPlacements.length,4);
+  assert.equal(active.slots['calculator-side'],'4567890123');
+  assert.equal(adsTxtFor(active),'google.com, pub-1234567890123456, DIRECT, f08c47fec0942fa0\n');
+  assert.equal(buildPublicAdConfig(environment,{githubPagesMirror:true}).configured,false);
+  assert.equal(buildPublicAdConfig(environment,{staticVisualPreview:true}).configured,false);
+
+  assert.throws(()=>buildPublicAdConfig({QELLY_PUBLIC_AD_CLIENT:'ca-pub-not-real'}),/valid public AdSense client ID/);
+  assert.throws(()=>buildPublicAdConfig({QELLY_PUBLIC_AD_SLOT_MARKET:'1234567890'}),/require QELLY_PUBLIC_AD_CLIENT/);
+  assert.throws(()=>buildPublicAdConfig({...environment,QELLY_PUBLIC_AD_SLOT_MARKET:'slot-x'}),/numeric public slot ID/);
+
+  const headers=await read('apps/web/public/_headers');
+  const enabled=enableAdNetworkCsp(headers);
+  assert.match(enabled,/script-src[^;]*pagead2\.googlesyndication\.com/);
+  assert.match(enabled,/img-src[^;]*googleads\.g\.doubleclick\.net/);
+  assert.match(enabled,/connect-src[^;]*pagead2\.googlesyndication\.com/);
+  assert.match(enabled,/frame-src[^;]*tpc\.googlesyndication\.com/);
+  assert.match(enabled,/frame-src[^;]*\*\.googlesyndication\.com/);
+
+  const build=await read('scripts/build-frontend.mjs');
+  assert.match(build,/buildPublicAdConfig/);
+  assert.match(build,/enableAdNetworkCsp/);
+  assert.match(build,/adsTxtFor/);
+  assert.match(build,/advertisingConfigured:ads\.configured/);
+  assert.doesNotMatch(build,/ca-pub-\d{16}/);
 });
 
 test('safe placements exist for market, Decision Intelligence, research and calculators',async()=>{
