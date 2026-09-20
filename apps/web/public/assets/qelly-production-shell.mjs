@@ -26,13 +26,14 @@ const FEATURE_ROUTES=routeDefinitions.filter((route)=>route.public===true&&!rout
 const FEATURE_DOMAINS=productDomains.filter((domain)=>FEATURE_ROUTES.some((route)=>route.domain===domain.id));
 
 function verifyCanonicalStylesheetContract(){
+  const byHref=(href)=>Array.from(document.querySelectorAll('link[rel="stylesheet"]')).find((node)=>node.href===href);
   const required=[
     ['production-shell',document.querySelector('link[href$="qelly-production-shell.css"]')],
-    ['route-repairs',document.querySelector('link[data-qelly-route-repairs="true"]')],
-    ['route-convergence',document.querySelector('link[data-qelly-route-convergence="true"]')],
-    ['premium-theme',document.querySelector('link[data-qelly-premium-theme="true"]')],
-    ['product-experience',document.querySelector('link[data-qelly-product-experience="true"]')],
-    ['navigation-v2',document.querySelector('link[data-qelly-navigation-v2="true"]')]
+    ['route-repairs',byHref(ROUTE_REPAIR_STYLESHEET)],
+    ['route-convergence',byHref(ROUTE_CONVERGENCE_STYLESHEET)],
+    ['premium-theme',byHref(PREMIUM_THEME_STYLESHEET)],
+    ['product-experience',byHref(PRODUCT_EXPERIENCE_STYLESHEET)],
+    ['navigation-v2',byHref(NAVIGATION_V2_STYLESHEET)]
   ];
   const missing=required.filter(([,node])=>!node).map(([name])=>name);
   root.dataset.productionStylesheets=missing.length?'incomplete':'stable';
