@@ -39,6 +39,11 @@ export function convergePublicRuntimeHtml(source){
   if(!shellPattern.test(html)&&!html.includes('data-qelly-current-shell="true"'))throw new Error('Legacy Qelly shell prefix was not found for convergence');
   if(shellPattern.test(html))html=html.replace(shellPattern,CURRENT_HEADER+'\n');
 
+  const legacyReadyGate='html[data-app-ready="false"] .q-app{visibility:hidden;opacity:0;pointer-events:none}';
+  const currentReadyGate='html[data-app-ready="false"] .q-app{visibility:visible;opacity:1;pointer-events:auto}html[data-app-ready="false"] #main{visibility:hidden;min-height:calc(100vh - 64px);pointer-events:none}html[data-app-ready="false"] [data-qelly-legacy-bindings="true"]{display:none!important}';
+  if(html.includes(legacyReadyGate))html=html.replace(legacyReadyGate,currentReadyGate);
+  else if(!html.includes('html[data-app-ready="false"] #main{visibility:hidden'))throw new Error('Legacy app-ready paint gate was not found for convergence');
+
   const styleAnchor='  <link rel="stylesheet" href="./assets/qelly-production-shell.css">';
   if(!html.includes(styleAnchor))throw new Error('Canonical production shell stylesheet anchor missing');
   const staticStyles=STATIC_COMPAT_STYLES.filter(([file])=>!html.includes('./assets/'+file)).map(([file,attr])=>'  <link rel="stylesheet" href="./assets/'+file+'" '+attr+'>').join('\n');
