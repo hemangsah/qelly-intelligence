@@ -36,3 +36,11 @@ test('TradingView blank states are bounded and retryable',async()=>{
   assert.match(source,/retry:start/);
   assert.match(source,/did not initialize within the production timeout/);
 });
+
+
+test('production shell ignores third-party subtree churn after route root settles',async()=>{
+  const source=await read('apps/web/public/assets/qelly-production-shell.mjs');
+  assert.match(source,/const routeRootChanged=records\.some\(\(record\)=>record\.type==='childList'&&record\.target===main\)/);
+  assert.match(source,/if\(routeRootChanged\)schedule\(main\)/);
+  assert.doesNotMatch(source,/new MutationObserver\(\(\)=>schedule\(main\)\)/);
+});
