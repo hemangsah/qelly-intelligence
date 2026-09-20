@@ -1,7 +1,9 @@
 const CONSENT_KEY='qelly-consent-v1';
 const ACTIVITY_KEY='qelly-growth-activity-v1';
 const SESSION_KEY='qelly-growth-session-v1';
+const PINNED_KEY='qelly-growth-pinned-v1';
 const MAX_ACTIVITY=8;
+const MAX_PINNED=6;
 const ALLOWED_EVENTS=new Set([
   'route_view','calculator_open','calculator_complete','decision_open','decision_range_selected',
   'decision_explain','qelly_view_interaction','asset_search','research_click','india_finance_use',
@@ -71,6 +73,33 @@ export function readRecentActivity(storage=globalThis.localStorage){
   return Array.isArray(value)?value.slice(0,MAX_ACTIVITY):[];
 }
 
+export function readPinnedActivity(storage=globalThis.localStorage){
+  const value=storageGet(storage,PINNED_KEY,[]);
+  return Array.isArray(value)?value.slice(0,MAX_PINNED):[];
+}
+
+const safePinnedDescriptor=(input)=>{
+  const safeRoute=cleanToken(input?.route);
+  const safeKind=cleanToken(input?.kind);
+  const safeKey=cleanToken(input?.key??input?.route);
+  const safeLabel=String(input?.label??'').replace(/[<>]/g,'').trim().slice(0,80);
+  const safeHref=safeRecentHref(input?.href??(safeRoute?'#/'+safeRoute:''));
+  if(!safeRoute||!safeKind||!safeKey||!safeLabel||!safeHref)return null;
+  return {key:safeKey,route:safeRoute,href:safeHref,label:safeLabel,kind:safeKind};
+};
+
+export function togglePinnedActivity(descriptor,storage=globalThis.localStorage){
+  const safe=safePinnedDescriptor(descriptor);
+  if(!safe)return readPinnedActivity(storage);
+  const current=readPinnedActivity(storage);
+  const exists=current.some((item)=>cleanToken(item?.key)===safe.key);
+  const next=exists
+    ? current.filter((item)=>cleanToken(item?.key)!==safe.key)
+    : [safe,...current.filter((item)=>cleanToken(item?.key)!==safe.key)].slice(0,MAX_PINNED);
+  storageSet(storage,PINNED_KEY,next);
+  return next;
+}
+
 export const isGrowthOpenTarget=(target)=>Boolean(target?.closest?.('[data-growth-open]'));
 
 export function createGrowthAnalytics({config={},storage=globalThis.localStorage,navigatorObject=globalThis.navigator,fetchImpl=globalThis.fetch,now=()=>Date.now()}={}){
@@ -129,11 +158,26 @@ const escapeHtml=(value)=>String(value??'').replace(/[&<>'"]/g,(character)=>({'&
 function openGrowthPanel(analytics){
   document.querySelector('[data-qelly-growth-panel]')?.remove();
   const recent=readRecentActivity();
+  const pinned=readPinnedActivity();
+  const current=recentDescriptorFromHash(location.hash);
+  const canPin=current.route==='asset'||ANALYTICS_ROUTES.has(current.route);
+  const currentPinned=pinned.some((item)=>item?.key===current.key);
   const consent=readGrowthConsent();
   const dialog=document.createElement('dialog');
   dialog.className='q-growth-panel';dialog.dataset.qellyGrowthPanel='true';
-  dialog.innerHTML=`<form method="dialog" class="q-growth-panel__head"><div><small>Your browser</small><h2>Recent Qelly activity</h2></div><button aria-label="Close recent activity">×</button></form><div class="q-growth-panel__body"><p>Return to recent public research without an account. This list stays in this browser.</p><div class="q-growth-panel__list">${recent.length?recent.map((item)=>{const href=safeRecentHref(item.href)||safeRecentHref('#/'+item.route)||'#/market';return `<a href="${escapeHtml(href)}"><span>${escapeHtml(item.label)}</span><small>${escapeHtml(item.kind.replaceAll('_',' '))}</small></a>`;}).join(''):'<p class="q-growth-panel__empty">Open a market, calculator or research tool and it will appear here.</p>'}</div><label class="q-growth-consent"><input type="checkbox" data-growth-consent ${consent?'checked':''}><span><strong>Help improve Qelly</strong><small>Share coarse feature-use counts only. Inputs, outputs, searches, symbols and account data are never included.</small></span></label><a class="q-growth-privacy" href="./legal/privacy.html">Privacy details</a></div>`;
+  const pinnedMarkup=pinned.length?pinned.map((item)=>{const href=safeRecentHref(item.href)||safeRecentHref('#/'+item.route)||'#/market';return '<div class="q-growth-pin-row"><a href="'+escapeHtml(href)+'"><span>'+escapeHtml(item.label)+'</span><small>'+escapeHtml(item.kind.replaceAll('_',' '))+'</small></a><button type="button" data-growth-unpin="'+escapeHtml(item.key)+'" aria-label="Unpin '+escapeHtml(item.label)+'">Unpin</button></div>';}).join(''):'<p class="q-growth-panel__empty">Pin a public tool or research page to keep it here.</p>';
+  const recentMarkup=recent.length?recent.map((item)=>{const href=safeRecentHref(item.href)||safeRecentHref('#/'+item.route)||'#/market';return '<a href="'+escapeHtml(href)+'"><span>'+escapeHtml(item.label)+'</span><small>'+escapeHtml(item.kind.replaceAll('_',' '))+'</small></a>';}).join(''):'<p class="q-growth-panel__empty">Open a market, calculator or research tool and it will appear here.</p>';
+  dialog.innerHTML='<form method="dialog" class="q-growth-panel__head"><div><small>Your browser</small><h2>Recent Qelly activity</h2></div><button aria-label="Close recent activity">×</button></form><div class="q-growth-panel__body"><p>Return to recent public research without an account. Recent and pinned items stay in this browser.</p>'+(canPin?'<button type="button" class="q-growth-pin-current" data-growth-pin-current>'+ (currentPinned?'Unpin current':'Pin current') +'</button>':'')+'<section class="q-growth-section"><div class="q-growth-section__head"><strong>Pinned</strong><small>'+pinned.length+'/'+MAX_PINNED+'</small></div><div class="q-growth-panel__list q-growth-panel__list--pinned">'+pinnedMarkup+'</div></section><section class="q-growth-section"><div class="q-growth-section__head"><strong>Recent</strong><small>browser local</small></div><div class="q-growth-panel__list">'+recentMarkup+'</div></section><label class="q-growth-consent"><input type="checkbox" data-growth-consent '+(consent?'checked':'')+'><span><strong>Help improve Qelly</strong><small>Share coarse feature-use counts only. Inputs, outputs, searches, symbols and account data are never included.</small></span></label><a class="q-growth-privacy" href="./legal/privacy.html">Privacy details</a></div>';
   document.body.append(dialog);
+  dialog.querySelector('[data-growth-pin-current]')?.addEventListener('click',()=>{
+    togglePinnedActivity(current);
+    openGrowthPanel(analytics);
+  });
+  dialog.querySelectorAll('[data-growth-unpin]').forEach((button)=>button.addEventListener('click',()=>{
+    const item=pinned.find((entry)=>entry?.key===button.dataset.growthUnpin);
+    if(item)togglePinnedActivity(item);
+    openGrowthPanel(analytics);
+  }));
   dialog.querySelector('[data-growth-consent]')?.addEventListener('change',(event)=>{
     updateGrowthConsent(event.currentTarget.checked);
     analytics.track('consent_status',{state:event.currentTarget.checked?'granted':'denied',surface:'recent_panel'});
@@ -169,7 +213,7 @@ export function installGrowthRuntime(config=window.__QELLY_CONFIG__||{}){
   };
   new MutationObserver(installButton).observe(document.body,{childList:true,subtree:true});
   installButton();setTimeout(trackRoute,0);
-  window.__QELLY_GROWTH__=Object.freeze({track:analytics.track,open:()=>openGrowthPanel(analytics),readRecentActivity});
+  window.__QELLY_GROWTH__=Object.freeze({track:analytics.track,open:()=>openGrowthPanel(analytics),readRecentActivity,readPinnedActivity,togglePinnedActivity});
   return window.__QELLY_GROWTH__;
 }
 
