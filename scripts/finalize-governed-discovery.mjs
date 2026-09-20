@@ -16,7 +16,6 @@ const migrations=Object.freeze([
   ["case 'venue-detail': await renderVenueDetail(main); break;",unavailable('venue-detail')],
   ["case 'news-research': await renderNewsResearch(main); break;",qellyChatWorkspace],
   ["case 'research-article': await renderResearchArticle(main); break;",unavailable('research-article')],
-  ["case 'asset': await renderAsset(main); break;",unavailable('asset')],
   ["case 'rankings': await renderLegacyRankings(main); break;",unavailable('rankings')],
   ["case 'trust-center': await renderTrustCenter(main); break;",trustCenter]
 ]);
@@ -38,6 +37,7 @@ export async function finalizeGovernedDiscovery({environment=effectiveDeployment
     if(output.includes(legacy))throw new Error(`Legacy production renderer remains active: ${legacy}`);
     if(!output.includes(replacement))throw new Error(`Governed production renderer missing: ${replacement}`);
   }
+  if(!output.includes("case 'asset': await renderAsset(main); break;"))throw new Error('Live Asset Dossier renderer was replaced during production finalization');
   if(!output.includes("./routes/governed-discovery.mjs"))throw new Error('Governed discovery route module is not referenced by production app');
   if(!output.includes("./routes/discovery-overview.mjs"))throw new Error('Discovery Overview production route module is not referenced by production app');
   if(!output.includes("./routes/governed-utility-v2.mjs"))throw new Error('Governed utility route module is not referenced by production app');

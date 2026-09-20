@@ -16,13 +16,12 @@ const legacyCases=[
   "case 'global-charts': await renderGlobalCharts(main); break;",
   "case 'news-research': await renderNewsResearch(main); break;",
   "case 'research-article': await renderResearchArticle(main); break;",
-  "case 'asset': await renderAsset(main); break;",
   "case 'rankings': await renderLegacyRankings(main); break;",
   "case 'converter': await renderConverter(main); break;",
   "case 'trust-center': await renderTrustCenter(main); break;"
 ];
 
-const unavailableRoutes=['category-detail','venue-detail','research-article','asset','rankings'];
+const unavailableRoutes=['category-detail','venue-detail','research-article','rankings'];
 
 test('production finalizer replaces every finance-shaped fixture route owner',async()=>{
   const source=await read('apps/web/public/assets/app.js');
@@ -31,6 +30,8 @@ test('production finalizer replaces every finance-shaped fixture route owner',as
   for(const route of unavailableRoutes){
     assert.ok(output.includes(`renderGovernedUnavailable(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state},'${route}')`),`governed replacement missing for ${route}`);
   }
+  assert.match(output,/case 'asset': await renderAsset\(main\); break;/);
+  assert.doesNotMatch(output,/renderGovernedUnavailable\(main,\{api,pageHead,stateBanner,escapeHtml,navigate,toast,state\},'asset'\)/);
   assert.match(output,/renderDiscoveryOverview/);
   assert.match(output,/renderUniversalSearch/);
   assert.match(output,/renderCategoriesWorkspace/);
@@ -77,4 +78,15 @@ test('frontend build runs governed discovery finalization after canonical runtim
   const command=pkg.scripts['build:frontend'];
   assert.ok(command.indexOf('finalize-public-runtime.mjs')<command.indexOf('finalize-governed-discovery.mjs'));
   assert.ok(command.indexOf('finalize-governed-discovery.mjs')<command.indexOf('finalize-public-seo.mjs'));
+});
+
+
+test('production discovery finalizer preserves the live Asset Dossier owner',async()=>{
+  const source=await read('apps/web/public/assets/app.js');
+  const output=rewriteGovernedDiscovery(source);
+  assert.match(source,/case 'asset': await renderAsset\(main\); break;/);
+  assert.match(output,/case 'asset': await renderAsset\(main\); break;/);
+  assert.match(output,/async function renderAsset\(main\)/);
+  assert.match(output,/\/api\/v1\/public\/markets\/assets\//);
+  assert.doesNotMatch(output,/renderGovernedUnavailable\(main,\{api,pageHead,stateBanner,escapeHtml,navigate,toast,state\},'asset'\)/);
 });
