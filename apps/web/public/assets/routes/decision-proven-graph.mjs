@@ -10,6 +10,13 @@ const INTERVAL_MS=Object.freeze({'1m':60_000,'5m':300_000,'15m':900_000,'30m':1_
 const HORIZON_MS=Object.freeze({'1h':3_600_000,'4h':14_400_000,'12h':43_200_000,'1d':86_400_000,'3d':259_200_000,'7d':604_800_000});
 const validHorizons=(interval)=>Object.keys(HORIZON_MS).filter(horizon=>{const bars=Math.ceil(HORIZON_MS[horizon]/INTERVAL_MS[interval]);return bars>=2&&bars<=168;});
 const normalizeHorizon=(interval,horizon)=>validHorizons(interval).includes(horizon)?horizon:validHorizons(interval)[0];
+const displayTime=(value)=>{
+  const raw=String(value||'').trim();
+  const compact=raw.match(/^(\d{4})(\d{2})(\d{2})T?(\d{2})(\d{2})(\d{2})Z?$/);
+  const normalized=compact?`${compact[1]}-${compact[2]}-${compact[3]}T${compact[4]}:${compact[5]}:${compact[6]}Z`:raw;
+  const parsed=new Date(normalized);
+  return Number.isNaN(parsed.getTime())?'Time unavailable':parsed.toLocaleString();
+};
 
 function chart(data,escapeHtml){
   const history=data.market.candles,future=data.forecast.fan,all=[...history.flatMap(item=>[item.low,item.high]),...future.flatMap(item=>[item.p05,item.p95])],min=Math.min(...all),max=Math.max(...all),width=1000,height=430,pad=38,split=690;
@@ -44,13 +51,13 @@ const heroSnapshot=(data,escapeHtml)=>{
   const lastEventTime=latestNews?.publishedAt||data.observedAt;
   return '<section class="q-dpg-hero-snapshot" aria-label="Decision Intelligence snapshot">'+
     '<article><span>Current price</span><strong>'+money(data.market.lastPrice)+'</strong><small>'+escapeHtml(data.asset)+' · '+escapeHtml(data.interval)+'</small></article>'+
-    '<article><span>Freshness</span><strong>'+escapeHtml(data.truthState)+'</strong><small>'+new Date(data.observedAt).toLocaleString()+'</small></article>'+
+    '<article><span>Freshness</span><strong>'+escapeHtml(data.truthState)+'</strong><small>'+escapeHtml(displayTime(data.observedAt))+'</small></article>'+
     '<article><span>Regime</span><strong>'+escapeHtml(data.market.currentState.label)+'</strong><small>Observed market state</small></article>'+
     '<article><span>Risk state</span><strong>'+escapeHtml(view.riskState?.label||'Unknown')+'</strong><small>ATR '+escapeHtml(String(view.riskState?.atrPct??'—'))+'%</small></article>'+
     '<article><span>Timeframe agreement</span><strong>'+escapeHtml(agreement)+'</strong><small>'+escapeHtml(String(gate.timeframeAligned??0)+'/'+String(gate.timeframeTotal??0)+' aligned')+'</small></article>'+
     '<article><span>Data coverage</span><strong>'+escapeHtml(String(data.market.points))+' candles</strong><small>'+escapeHtml(data.provenance.provider)+' public data</small></article>'+
     '<article><span>Derivatives</span><strong>'+escapeHtml(derivatives)+'</strong><small>Context only · never direction by itself</small></article>'+
-    '<article class="q-dpg-hero-snapshot__event"><span>Last meaningful event</span><strong>'+escapeHtml(lastEvent)+'</strong><small>'+escapeHtml(lastEventTime?new Date(lastEventTime).toLocaleString():'Unavailable')+'</small></article>'+
+    '<article class="q-dpg-hero-snapshot__event"><span>Last meaningful event</span><strong>'+escapeHtml(lastEvent)+'</strong><small>'+escapeHtml(displayTime(lastEventTime))+'</small></article>'+
   '</section>';
 };
 
