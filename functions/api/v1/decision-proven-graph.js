@@ -87,7 +87,8 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives){
   const sampleDepth=clamp((Number(graph.market?.points)||0)/240);
   const scenarioSeparation=clamp(scenarioGap/.25);
   const timeframeCoverage=clamp(total/4);
-  const timeframeAgreement=directional?clamp(aligned/directional)*timeframeCoverage:0;
+  const directionalCoverage=total?clamp(directional/total):0;
+  const timeframeAgreement=total?clamp(aligned/total):0;
   const qualityScore=round(.30*freshness+.20*sampleDepth+.25*scenarioSeparation+.25*timeframeAgreement,3);
   const baseConfidence=finite(base?.confidence)??finite(graph.confidence?.score)??0;
   const calibratedConfidence=round(clamp(baseConfidence*(.7+.3*qualityScore),.2,.92),2);
@@ -138,6 +139,8 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives){
       sampleDepth:round(sampleDepth,3),
       scenarioSeparation:round(scenarioSeparation,3),
       timeframeAgreement:round(timeframeAgreement,3),
+      timeframeCoverage:round(timeframeCoverage,3),
+      directionalCoverage:round(directionalCoverage,3),
       timeframeDirection:String(agreement.direction||'UNAVAILABLE'),
       timeframeAligned:aligned,
       timeframeTotal:total,
@@ -145,6 +148,11 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives){
     }
   };
   const nodes=Array.isArray(graph.graph?.nodes)?graph.graph.nodes.map(node=>node.id==='decision'?{...node,label:'QELLY VIEW '+action}:node):graph.graph?.nodes;
+  const textAlternative=Array.isArray(graph.graph?.edges)&&Array.isArray(nodes)?graph.graph.edges.map(edge=>{
+    const from=nodes.find(node=>node.id===edge.from)?.label||edge.from;
+    const to=nodes.find(node=>node.id===edge.to)?.label||edge.to;
+    return from+' '+edge.type+' '+to+'.';
+  }):graph.graph?.textAlternative;
   return {
     ...graph,
     qellyView,
@@ -154,7 +162,7 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives){
       breakdown:qellyView.evidenceGate,
       calibration:'Evidence-quality confidence combines freshness, sample depth, scenario separation and independent timeframe agreement. It is not a success probability.'
     },
-    graph:graph.graph?{...graph.graph,nodes}:graph.graph
+    graph:graph.graph?{...graph.graph,nodes,textAlternative}:graph.graph
   };
 }
 
