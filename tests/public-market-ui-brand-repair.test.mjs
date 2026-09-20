@@ -9,9 +9,11 @@ test('governed public market contract is explicit no-fabrication and non-executa
   assert.match(dedicated,/MARKET_UNAVAILABLE_REASON/);
   assert.match(dedicated,/does not generate substitute prices or candles/i);
   assert.match(dedicated,/fabricatedObservations:false/);
-  assert.match(dedicated,/points:\[\]/);
+  assert.match(dedicated,/HYPERLIQUID_URL='https:\/\/api\.hyperliquid\.xyz\/info'/);
+  assert.match(dedicated,/fabricatedFallback:false/);
+  assert.match(dedicated,/LIVE_INTERVALS=new Set\(\['15m','1h','4h','1d'\]\)/);
   assert.match(dedicated,/execution:false/);
-  assert.doesNotMatch(dedicated,/simulated-demo|qelly-governed-demo|Math\.sin|Math\.cos/);
+  assert.doesNotMatch(dedicated,/simulated-demo|qelly-governed-demo|qelly-fixture|Math\.sin|Math\.cos/);
 });
 
 test('dedicated public market route owns anonymous market namespace before catch-all session gate',async()=>{
