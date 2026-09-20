@@ -59,3 +59,22 @@ test('public production shell navigation exposes only public non-hidden destinat
   assert.match(shell,/const groups=FEATURE_DOMAINS\.map/);
   assert.match(shell,/const filters=FEATURE_DOMAINS\.map/);
 });
+
+
+test('public route guidance and recovery states use consumer language',async()=>{
+  const [registry,recovery]=await Promise.all([
+    read('apps/web/public/assets/route-registry.mjs'),
+    read('apps/web/public/assets/qelly-public-recovery.mjs')
+  ]);
+  for(const term of [
+    "purpose:'Survey cross-asset market coverage, freshness and source availability.'",
+    "purpose:'Start broad market discovery from available market coverage.'",
+    "purpose:'Understand sources, methodology, freshness and coverage limits.'",
+    "purpose:'Review cross-asset market context, charts and research sources in one place.'",
+    "label:'Decision Intelligence'"
+  ])assert.ok(registry.includes(term),term);
+  assert.doesNotMatch(recovery,/qelly-intelligence\.pages\.dev|governed degraded mode|No authorized provider observation|no-fabrication boundary|Open governed Market Command/i);
+  assert.match(recovery,/terminal\.qellyintelligence\.com/);
+  assert.match(recovery,/No verified observation available/);
+  assert.match(recovery,/No substitute data generated/);
+});
