@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {buildDecisionProvenGraph,normalizeCandles} from '../functions/_lib/decision-proven-graph.js';
-import {onRequest} from '../functions/api/v1/decision-proven-graph.js';
+import {onRequest,__decisionIntelligenceCalibrationTest} from '../functions/api/v1/decision-proven-graph.js';
 
 const start=Date.now()-180*900_000;
 const candles=Array.from({length:180},(_,index)=>{const close=100+index*.08+Math.sin(index/5)*2;return {t:start+index*900_000,o:String(close-.15),h:String(close+1),l:String(close-1),c:String(close),v:String(1000+index),n:20+index};});
@@ -41,6 +41,50 @@ test('Decision Proven Graph fails closed on insufficient provider evidence',()=>
   assert.throws(()=>buildDecisionProvenGraph(candles.slice(0,20),{interval:'15m'}),/At least 80/);
 });
 
+
+
+const calibrationGraph=(action='BUY')=>({
+  qellyView:{action,confidence:.82,label:'Base model view',levels:{entryZone:[99,101],invalidation:97.5,targets:[102,104,106],riskReward:[.8,1.6,2.4]},why:['Base evidence'],changesIf:'Base invalidation'},
+  truthState:'LIVE',
+  forecast:{probabilities:{bull:.56,base:.24,bear:.20},terminal:{p05:92,p50:102,p95:114}},
+  market:{lastPrice:100},
+  metrics:{atrPct:2,expectedShortfall95Pct:1.6,maxDrawdownPct:-8}
+});
+const mtf=(actions,state='live')=>({
+  state,
+  views:actions.map((action,index)=>({interval:['15m','1h','4h','1d'][index]||String(index),qellyView:{action}})),
+  agreement:(()=>{const directional=actions.filter(action=>action==='BUY'||action==='SELL'),buys=directional.filter(action=>action==='BUY').length,sells=directional.length-buys;return{direction:buys>sells?'BUY':sells>buys?'SELL':'MIXED',aligned:Math.max(buys,sells),directional:directional.length,total:actions.length};})()
+});
+
+test('QELLY VIEW evidence calibration preserves only aligned directional signals',()=>{
+  const calibrated=__decisionIntelligenceCalibrationTest.calibrateQellyView(calibrationGraph('BUY'),mtf(['BUY','BUY','BUY','WAIT']));
+  assert.equal(calibrated.baseAction,'BUY');
+  assert.equal(calibrated.action,'BUY');
+  assert.equal(calibrated.evidenceGate.state,'pass');
+  assert.ok(calibrated.evidenceGate.timeframe.alignmentRatio>.9);
+  assert.ok(calibrated.confidence>=.62);
+  assert.ok(calibrated.levels);
+  assert.match(calibrated.confidenceMeaning,/not a success probability/i);
+  assert.ok(calibrated.invalidation.some(item=>/Timeframe invalidation/i.test(item)));
+});
+
+test('QELLY VIEW downgrades conflicting directional evidence to NO TRADE',()=>{
+  const calibrated=__decisionIntelligenceCalibrationTest.calibrateQellyView(calibrationGraph('BUY'),mtf(['BUY','SELL','SELL','WAIT']));
+  assert.equal(calibrated.baseAction,'BUY');
+  assert.equal(calibrated.action,'NO TRADE');
+  assert.equal(calibrated.evidenceGate.state,'blocked');
+  assert.equal(calibrated.levels,null);
+  assert.ok(calibrated.evidenceGate.reasons.some(item=>/majority|confirm/i.test(item)));
+});
+
+test('QELLY VIEW never promotes WAIT into a directional signal',()=>{
+  const graph=calibrationGraph('WAIT');graph.qellyView.levels=null;
+  const calibrated=__decisionIntelligenceCalibrationTest.calibrateQellyView(graph,mtf(['BUY','BUY','BUY','WAIT']));
+  assert.notEqual(calibrated.action,'BUY');
+  assert.notEqual(calibrated.action,'SELL');
+  assert.equal(calibrated.baseAction,'WAIT');
+});
+
 test('public endpoint validates controls and returns cacheable provider-derived evidence',async()=>{
   const providerBodies=[];const now=candles.at(-1).t+900_000;
   const request=new Request('https://terminal.qellyintelligence.com/api/v1/decision-proven-graph?asset=BTC&interval=15m&horizon=4h');
@@ -55,7 +99,7 @@ test('public endpoint validates controls and returns cacheable provider-derived 
   assert.equal(response.status,200);assert.match(response.headers.get('cache-control'),/stale-while-revalidate/);
   assert.ok(providerBodies.some(body=>body.type==='candleSnapshot'&&body.req.coin==='BTC'));
   assert.ok(providerBodies.some(body=>body.type==='metaAndAssetCtxs'));
-  const body=await response.json();assert.equal(body.provenance.provider,'Hyperliquid');assert.equal(body.horizon,'4h');assert.ok(new Date(body.generatedAt).getTime()>0);assert.equal(body.multiTimeframe.state,'live');assert.ok(body.multiTimeframe.views.length>=4);
+  const body=await response.json();assert.equal(body.provenance.provider,'Hyperliquid');assert.equal(body.horizon,'4h');assert.ok(new Date(body.generatedAt).getTime()>0);assert.equal(body.multiTimeframe.state,'live');assert.ok(body.multiTimeframe.views.length>=4);assert.ok(body.qellyView.evidenceGate);assert.match(body.qellyView.confidenceMeaning,/not a success probability/i);assert.ok(Array.isArray(body.qellyView.invalidation));
   assert.equal(body.evidence.derivatives.state,'live');assert.equal(body.evidence.derivatives.provider,'Hyperliquid');assert.equal(body.evidence.derivatives.currentOnly,true);assert.equal(body.evidence.derivatives.fundingPct,.0125);assert.equal(body.evidence.derivatives.openInterest,1000);assert.equal(body.evidence.derivatives.openInterestNotionalUsd,80_000_000);assert.equal(body.evidence.derivatives.markOracleBasisPct,.125156);
   assert.equal(body.evidence.liquidations.state,'unavailable');
   const invalid=await onRequest({request:new Request('https://terminal.qellyintelligence.com/api/v1/decision-proven-graph?asset=INVALID'),env:{}});assert.equal(invalid.status,400);
@@ -63,7 +107,7 @@ test('public endpoint validates controls and returns cacheable provider-derived 
 
 test('public route and source-to-model boundary are registered',async()=>{
   const [registry,route,endpoint]=await Promise.all([readFile(new URL('../apps/web/public/assets/route-registry.mjs',import.meta.url),'utf8'),readFile(new URL('../apps/web/public/assets/routes/decision-proven-graph.mjs',import.meta.url),'utf8'),readFile(new URL('../functions/api/v1/decision-proven-graph.js',import.meta.url),'utf8')]);
-  assert.match(registry,/route:'decision-provenance'.*public:true/);assert.match(route,/Explain this move/);assert.match(route,/QELLY VIEW/);assert.match(route,/PAST/);assert.match(route,/FUTURE/);assert.match(route,/MULTI-TIMEFRAME/);assert.match(route,/DERIVATIVES CONTEXT/);assert.match(route,/Current funding/);assert.match(route,/Open interest/);assert.match(route,/Liquidations: unavailable, not inferred/);assert.match(route,/Methodology and sources/);assert.doesNotMatch(route,/<details class="q-dpg-audit" open/);assert.doesNotMatch(route,/Entitlement|Fingerprint|Endpoint/);assert.match(endpoint,/candleSnapshot/);assert.match(endpoint,/metaAndAssetCtxs/);assert.match(endpoint,/currentOnly:true/);assert.match(endpoint,/api\.gdeltproject\.org/);assert.doesNotMatch(endpoint,/TradingView/);
+  assert.match(registry,/route:'decision-provenance'.*public:true/);assert.match(route,/Explain this move/);assert.match(route,/QELLY VIEW/);assert.match(route,/PAST/);assert.match(route,/FUTURE/);assert.match(route,/MULTI-TIMEFRAME/);assert.match(route,/DERIVATIVES CONTEXT/);assert.match(route,/Evidence gate/);assert.match(route,/Timeframe alignment/);assert.match(route,/Why this is NO TRADE/);assert.match(route,/Invalidation/);assert.match(route,/Current funding/);assert.match(route,/Open interest/);assert.match(route,/Liquidations: unavailable, not inferred/);assert.match(route,/Methodology and sources/);assert.doesNotMatch(route,/<details class="q-dpg-audit" open/);assert.doesNotMatch(route,/Entitlement|Fingerprint|Endpoint/);assert.match(endpoint,/candleSnapshot/);assert.match(endpoint,/metaAndAssetCtxs/);assert.match(endpoint,/currentOnly:true/);assert.match(endpoint,/api\.gdeltproject\.org/);assert.doesNotMatch(endpoint,/TradingView/);
 });
 
 
