@@ -8,7 +8,7 @@ test('Market mounts Advanced Chart before the secondary widget network',async()=
   const source=await read('apps/web/public/assets/routes/market-v6.mjs');
   assert.ok(source.indexOf('q-v7-chart-panel') < source.indexOf('q-market-widget-section'));
   assert.match(source,/chartFrame=requestAnimationFrame\(mount\)/);
-  assert.ok(source.indexOf('q-v7-chart-panel') < source.indexOf('Crypto Coins Heatmap'));
+  assert.ok(source.indexOf('q-v7-chart-panel') < source.indexOf('data-market-widget-grid'));
 });
 
 test('Market suppresses appearance mutation remount storms',async()=>{
@@ -30,7 +30,7 @@ test('secondary TradingView widgets mount lazily and in a staggered queue',async
 
 test('TradingView blank states are bounded and retryable',async()=>{
   const source=await read('apps/web/public/assets/market/tradingview-display-widget.mjs');
-  assert.match(source,/const WIDGET_TIMEOUT_MS=10000/);
+  assert.match(source,/const WIDGET_TIMEOUT_MS=12000/);
   assert.match(source,/data-qelly-tv-retry/);
   assert.match(source,/Retry market view/);
   assert.match(source,/retry:start/);
