@@ -124,7 +124,8 @@ const calibrateQellyView=(graph,multiTimeframe)=>{
   if(levels?.invalidation)invalidation.push(`Price invalidation: ${round(levels.invalidation,6)}.`);
   invalidation.push('Freshness invalidation: directional signals are withdrawn if evidence becomes degraded.');
   if(directionalBase)invalidation.push(`Timeframe invalidation: ${base.action} must retain a majority among directional timeframe views.`);
-  invalidation.push('Scenario invalidation: the opposing scenario must not meet or exceed the supporting directional scenario.');
+  if(directionalBase)invalidation.push('Scenario invalidation: the opposing scenario must not meet or exceed the supporting directional scenario.');
+  else invalidation.push('Decision state changes only after the base model becomes directional and the evidence gate passes.');
   const supportingProbability=base.action==='BUY'?probabilities.bull:base.action==='SELL'?probabilities.bear:Math.max(probabilities.bull,probabilities.base,probabilities.bear);
   const opposingProbability=base.action==='BUY'?probabilities.bear:base.action==='SELL'?probabilities.bull:Math.min(probabilities.bull,probabilities.bear);
   const label=action==='NO TRADE'&&base.action!=='NO TRADE'
@@ -140,6 +141,7 @@ const calibrateQellyView=(graph,multiTimeframe)=>{
     confidenceMeaning:'Evidence-quality score from model confidence, scenario separation, freshness and independent timeframe agreement; not a success probability.',
     evidenceGate:{
       state:action==='BUY'||action==='SELL'?'pass':action==='NO TRADE'?'blocked':'watch',
+      method:'50% base model confidence + 30% independent timeframe alignment + 15% bull/bear scenario separation normalized at 25 percentage points + 5% freshness.',
       score:evidenceScore,
       freshness:graph.truthState,
       scenarioEdge:round(scenarioEdge,4),
@@ -151,7 +153,7 @@ const calibrateQellyView=(graph,multiTimeframe)=>{
     },
     risk:{atrPct:graph.metrics?.atrPct??null,expectedShortfall95Pct:graph.metrics?.expectedShortfall95Pct??null,maxDrawdownPct:graph.metrics?.maxDrawdownPct??null,forecastBandPct,adverseTailPct},
     invalidation,
-    why:[...base.why,`Multi-timeframe: ${aligned}/${directional.length||0} directional views align with the evaluated posture.`,`Scenario separation: ${round(scenarioEdge*100,1)} percentage points between bull and bear probabilities.`],
+    why:[...base.why,directionalBase?`Multi-timeframe: ${aligned}/${directional.length||0} directional views align with the base ${base.action} posture.`:`Multi-timeframe: ${multiTimeframe?.agreement?.direction||'MIXED'} consensus across ${directional.length} directional views; the base action remains ${base.action}.`,`Scenario separation: ${round(scenarioEdge*100,1)} percentage points between bull and bear probabilities.`],
     changesIf:reasons.length?`NO TRADE while: ${reasons.join(' ')}`:base.changesIf
   };
 };
