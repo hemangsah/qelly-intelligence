@@ -11,8 +11,8 @@ const executableCss=(source)=>source.replace(/\/\*[\s\S]*?\*\//g,'');
 
 test('V5.3 production shell uses the accepted compact terminal stack',async()=>{
   const [runtime,product,css,statusCss]=await Promise.all([read(runtimePath),read(productRuntimePath),read(cssPath),read(statusCssPath)]);
-  assert.match(product,/q-product-header\\[data-qelly-current-shell="true"\\]/);
-  assert.match(product,/if\\(!header\\.matches\\('\\.q-product-header\\[data-qelly-current-shell="true"\\]'\\)\\)/);
+  assert.match(product,/q-product-header\[data-qelly-current-shell="true"\]/);
+  assert.match(product,/if\(!header\.matches\('\.q-product-header\[data-qelly-current-shell="true"\]'\)\)/);
   assert.match(runtime,/qelly-v53-production-shell-convergence\.css/);
   assert.match(runtime,/qelly-v53-production-shell-status\.css/);
   assert.match(css,/--q-v53-system-h:24px/);
