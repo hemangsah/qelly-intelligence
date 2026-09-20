@@ -25,52 +25,20 @@ const ADMIN_ROUTES=new Set([
 const FEATURE_ROUTES=routeDefinitions.filter((route)=>route.public===true&&!route.hidden);
 const FEATURE_DOMAINS=productDomains.filter((domain)=>FEATURE_ROUTES.some((route)=>route.domain===domain.id));
 
-function ensureCanonicalStylesheetLast(){
-  const canonical=document.querySelector('link[href$="qelly-production-shell.css"]');
-  let repairs=document.querySelector('link[data-qelly-route-repairs="true"]');
-  if(!repairs){
-    repairs=document.createElement('link');
-    repairs.rel='stylesheet';
-    repairs.href=ROUTE_REPAIR_STYLESHEET;
-    repairs.dataset.qellyRouteRepairs='true';
-    document.head.append(repairs);
-  }
-  let convergence=document.querySelector('link[data-qelly-route-convergence="true"]');
-  if(!convergence){
-    convergence=document.createElement('link');
-    convergence.rel='stylesheet';
-    convergence.href=ROUTE_CONVERGENCE_STYLESHEET;
-    convergence.dataset.qellyRouteConvergence='true';
-    document.head.append(convergence);
-  }
-  let premiumTheme=document.querySelector('link[data-qelly-premium-theme="true"]');
-  if(!premiumTheme){
-    premiumTheme=document.createElement('link');
-    premiumTheme.rel='stylesheet';
-    premiumTheme.href=PREMIUM_THEME_STYLESHEET;
-    premiumTheme.dataset.qellyPremiumTheme='true';
-    document.head.append(premiumTheme);
-  }
-  let productExperience=document.querySelector('link[data-qelly-product-experience="true"]');
-  if(!productExperience){
-    productExperience=document.createElement('link');
-    productExperience.rel='stylesheet';
-    productExperience.href=PRODUCT_EXPERIENCE_STYLESHEET;
-    productExperience.dataset.qellyProductExperience='true';
-    document.head.append(productExperience);
-  }
-  let navigationV2=document.querySelector('link[data-qelly-navigation-v2="true"]');
-  if(!navigationV2){
-    navigationV2=document.createElement('link');
-    navigationV2.rel='stylesheet';
-    navigationV2.href=NAVIGATION_V2_STYLESHEET;
-    navigationV2.dataset.qellyNavigationV2='true';
-    document.head.append(navigationV2);
-  }
-  const desiredTail=[canonical,repairs,convergence,premiumTheme,productExperience,navigationV2].filter(Boolean);
-  const currentTail=Array.from(document.head.querySelectorAll('link[rel="stylesheet"]')).slice(-desiredTail.length);
-  const alreadyOrdered=desiredTail.length>0&&desiredTail.every((node,index)=>currentTail[index]===node);
-  if(!alreadyOrdered)document.head.append(...desiredTail);
+function verifyCanonicalStylesheetContract(){
+  const byHref=(href)=>Array.from(document.querySelectorAll('link[rel="stylesheet"]')).find((node)=>node.href===href);
+  const required=[
+    ['production-shell',document.querySelector('link[href$="qelly-production-shell.css"]')],
+    ['route-repairs',byHref(ROUTE_REPAIR_STYLESHEET)],
+    ['route-convergence',byHref(ROUTE_CONVERGENCE_STYLESHEET)],
+    ['premium-theme',byHref(PREMIUM_THEME_STYLESHEET)],
+    ['product-experience',byHref(PRODUCT_EXPERIENCE_STYLESHEET)],
+    ['navigation-v2',byHref(NAVIGATION_V2_STYLESHEET)]
+  ];
+  const missing=required.filter(([,node])=>!node).map(([name])=>name);
+  root.dataset.productionStylesheets=missing.length?'incomplete':'stable';
+  if(missing.length)console.warn('[Qelly] production stylesheet contract incomplete:',missing.join(', '));
+  return missing.length===0;
 }
 
 /* This map is intentionally limited to presentation terminology and legacy shell
@@ -414,20 +382,21 @@ function annotateRoute(){
 
 function refresh(scope=document){
   root.dataset.productionSystem='v8';
-  ensureCanonicalStylesheetLast();
+  verifyCanonicalStylesheetContract();
   annotateRoute();
   simplifyHeader();
   ensureFeatureNavigation();
   repairLegacyRuntimeState();
   normalizeCustomerCopy(scope);
   applyAccessibilityFloor();
+  root.dataset.productionShellReady='true';
 }
 
 let queued=false;
 const schedule=(scope=document)=>{
   if(queued)return;
   queued=true;
-  requestAnimationFrame(()=>{queued=false;refresh(scope);});
+  queueMicrotask(()=>{queued=false;refresh(scope);});
 };
 
 window.addEventListener('hashchange',()=>schedule(main||document));
@@ -439,8 +408,6 @@ document.addEventListener('qelly:session-state',(event)=>{
   schedule(document);
 });
 if(main)new MutationObserver(()=>schedule(main)).observe(main,{childList:true,subtree:true});
-new MutationObserver(()=>schedule(document)).observe(document.querySelector('#app')||document.body,{childList:true,subtree:true});
-new MutationObserver(()=>schedule(document)).observe(document.head,{childList:true});
 if(window.__QELLY_SESSION_STATE__?.authenticated===true&&matchMedia('(min-width:1241px)').matches){
   document.body.classList.remove('q-feature-navigation-collapsed');
 }

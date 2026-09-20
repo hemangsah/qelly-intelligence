@@ -135,5 +135,5 @@ if(main){
     authRequest=null;
     scheduleReconcile();
   });
-  for(const delay of [0,100,300,800,1600,3000])setTimeout(scheduleReconcile,delay);
+  queueMicrotask(scheduleReconcile);
 }

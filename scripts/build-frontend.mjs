@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {AUTH_EMAIL_CANARY,CANONICAL_QELLY_PUBLIC_SITE} from '../functions/_lib/email-capability.js';
 import {effectiveDeploymentEnvironment} from './deployment-environment.mjs';
+import {convergePublicRuntimeHtml} from './public-shell-convergence.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const output=path.join(root,'dist/frontend');
@@ -119,6 +120,7 @@ if(publicRuntimeEnabled){
   }
   if(!index.includes('qelly-growth-runtime.css'))index=index.replace('</head>','  <link rel="stylesheet" href="./assets/qelly-growth-runtime.css">\n</head>');
   if(!index.includes('qelly-growth-runtime.mjs'))index=index.replace('  <script type="module" src="./assets/qelly-app-ready.mjs"></script>','  <script type="module" src="./assets/qelly-growth-runtime.mjs"></script>\n  <script type="module" src="./assets/qelly-app-ready.mjs"></script>');
+  index=convergePublicRuntimeHtml(index);
 }
 if(!index.includes('qelly-verify-bootstrap.mjs'))index=index.replace('<script type="module" src="./assets/app.js"></script>','<script type="module" src="./assets/qelly-verify-bootstrap.mjs"></script>\n  <script type="module" src="./assets/app.js"></script>');
 if(!index.includes('qelly-production-shell.css'))index=index.replace('</head>','  <link rel="stylesheet" href="./assets/qelly-production-shell.css">\n</head>');

@@ -115,7 +115,7 @@ test('route fallbacks keep URL ownership truthful and dynamic metadata readable'
   ]);
   assert.match(app, /if\(!allowed&&route!==state\.route\)history\.replaceState\(null,'',`#\/\$\{state\.route\}`\)/);
   assert.match(runtime, /function applyAccessibilityFloor\(\)/);
-  assert.match(runtime, /document\.head\.querySelectorAll\('link\[rel="stylesheet"\]'\)/);
+  assert.match(runtime, /document\.querySelectorAll\('link\[rel="stylesheet"\]'\)/);
   assert.match(runtime, /size<12\)element\.classList\.add\('q-v8-text-floor'\)/);
   assert.match(convergence, /\.q-v8-text-floor:not\(\.sr-only\)\{font-size:12px!important/);
   assert.match(convergence, /q-v8-technical-identifiers>summary\{min-height:44px!important/);

@@ -38,11 +38,13 @@ test('Cloudflare Pages production builds always install the current product shel
   assert.match(build,/legacy navigation rail/);
 });
 
-test('public shell waits for the asynchronously-created command bar',async()=>{
+test('public shell binds the build-time current header and only retains legacy fallback compatibility',async()=>{
   const controller=await read('apps/web/public/assets/qelly-public-runtime.mjs');
-  assert.match(controller,/headerRetryCount/);
-  assert.match(controller,/app\.js creates the legacy command bar asynchronously/);
-  assert.match(controller,/setTimeout\(buildProductHeader,50\)/);
+  assert.match(controller,/q-product-header\[data-qelly-current-shell="true"\]/);
+  assert.match(controller,/bindProductHeader\(header\)/);
+  assert.match(controller,/syncProductHeaderState\(header\)/);
+  assert.match(controller,/\.q-command-bar:not\(\[hidden\]\)/);
+  assert.doesNotMatch(controller,/app\.js creates the legacy command bar asynchronously/);
 });
 
 test('normal production routes exclude QA and demo language',async()=>{
