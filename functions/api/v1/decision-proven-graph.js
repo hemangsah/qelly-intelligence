@@ -12,6 +12,7 @@ const gdeltTime=(time)=>new Date(time).toISOString().replace(/\D/g,'').slice(0,1
 const safeUrl=(value)=>{try{const url=new URL(value);return url.protocol==='https:'||url.protocol==='http:'?url.href:null;}catch{return null;}};
 const finite=(value)=>{const number=Number(value);return Number.isFinite(number)?number:null;};
 const round=(value,digits=6)=>Number.isFinite(value)?Number(value.toFixed(digits)):null;
+const clamp=(value,min=0,max=1)=>Math.min(max,Math.max(min,value));
 
 async function fetchCandles(fetchImpl,asset,interval,endTime,points=500){
   const response=await fetchImpl(HYPERLIQUID_INFO_URL,{method:'POST',headers:{'content-type':'application/json','user-agent':'QELLY-Intelligence/decision-intelligence'},body:JSON.stringify({type:'candleSnapshot',req:{coin:asset,interval,startTime:endTime-DECISION_INTERVALS[interval]*points,endTime}}),signal:AbortSignal.timeout(8_000)});
@@ -73,6 +74,90 @@ async function fetchNews(fetchImpl,asset,start,end){
   throw new Error('News provider unavailable');
 }
 
+export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives){
+  const base=graph.qellyView;
+  const bull=finite(graph.forecast?.probabilities?.bull)??0;
+  const bear=finite(graph.forecast?.probabilities?.bear)??0;
+  const scenarioGap=Math.abs(bull-bear);
+  const agreement=multiTimeframe?.agreement||{};
+  const total=Math.max(0,Number(agreement.total)||0);
+  const directional=Math.max(0,Number(agreement.directional)||0);
+  const aligned=Math.max(0,Number(agreement.aligned)||0);
+  const freshness=graph.truthState==='LIVE'?1:graph.truthState==='DELAYED'?0.78:graph.truthState==='STALE'?0.35:0;
+  const sampleDepth=clamp((Number(graph.market?.points)||0)/240);
+  const scenarioSeparation=clamp(scenarioGap/.25);
+  const timeframeCoverage=clamp(total/4);
+  const timeframeAgreement=directional?clamp(aligned/directional)*timeframeCoverage:0;
+  const qualityScore=round(.30*freshness+.20*sampleDepth+.25*scenarioSeparation+.25*timeframeAgreement,3);
+  const baseConfidence=finite(base?.confidence)??finite(graph.confidence?.score)??0;
+  const calibratedConfidence=round(clamp(baseConfidence*(.7+.3*qualityScore),.2,.92),2);
+  const baseAction=base?.action||'NO TRADE';
+  let action=baseAction;
+  const contradictions=[];
+  const directionalAction=baseAction==='BUY'||baseAction==='SELL';
+  if(directionalAction){
+    if(directional<2||agreement.direction==='MIXED'){
+      action='NO TRADE';
+      contradictions.push('Independent timeframes do not provide enough directional agreement.');
+    }else if(agreement.direction!==baseAction){
+      action='NO TRADE';
+      contradictions.push('The multi-timeframe majority points against the selected directional view.');
+    }
+    if(scenarioGap<.08){
+      action='NO TRADE';
+      contradictions.push('Bull and bear scenario probabilities are too close to support a directional view.');
+    }
+  }
+  const atrPct=finite(graph.metrics?.atrPct);
+  const riskLabel=atrPct===null?'Unknown':atrPct>=3?'High short-term range':atrPct>=1.5?'Elevated short-term range':atrPct>=.75?'Moderate short-term range':'Lower short-term range';
+  const derivativesLive=derivatives?.state==='live';
+  const why=[
+    ...(Array.isArray(base?.why)?base.why:[]),
+    total?('Multi-timeframe evidence: '+String(agreement.direction||'MIXED')+' with '+aligned+'/'+total+' observed timeframes aligned.'):'Multi-timeframe evidence is unavailable and was not inferred.',
+    derivativesLive?'Current funding/open-interest context is available as risk context; it does not force direction.':'Current funding/open-interest context is unavailable and did not increase confidence.'
+  ];
+  const downgraded=directionalAction&&action==='NO TRADE';
+  const label=downgraded?'Independent evidence does not clear the directional research threshold.':base?.label;
+  const changesIf=downgraded?'Reassess when fresh price evidence, scenario separation and independent timeframes align again.':base?.changesIf;
+  const qellyView={
+    ...base,
+    action,
+    confidence:calibratedConfidence,
+    levels:action===baseAction?base?.levels:null,
+    label,
+    why,
+    changesIf,
+    contradictions,
+    riskState:{label:riskLabel,atrPct:round(atrPct,2)},
+    scenario:{bull,bear,base:finite(graph.forecast?.probabilities?.base)??0,gap:round(scenarioGap,4),leading:bull>bear?'BULL':bear>bull?'BEAR':'BALANCED'},
+    evidenceGate:{
+      baseAction,
+      directionalEligible:action==='BUY'||action==='SELL',
+      qualityScore,
+      freshness,
+      sampleDepth:round(sampleDepth,3),
+      scenarioSeparation:round(scenarioSeparation,3),
+      timeframeAgreement:round(timeframeAgreement,3),
+      timeframeDirection:String(agreement.direction||'UNAVAILABLE'),
+      timeframeAligned:aligned,
+      timeframeTotal:total,
+      derivativesCoverage:derivativesLive?'live':'unavailable'
+    }
+  };
+  const nodes=Array.isArray(graph.graph?.nodes)?graph.graph.nodes.map(node=>node.id==='decision'?{...node,label:'QELLY VIEW '+action}:node):graph.graph?.nodes;
+  return {
+    ...graph,
+    qellyView,
+    confidence:{
+      ...graph.confidence,
+      score:calibratedConfidence,
+      breakdown:qellyView.evidenceGate,
+      calibration:'Evidence-quality confidence combines freshness, sample depth, scenario separation and independent timeframe agreement. It is not a success probability.'
+    },
+    graph:graph.graph?{...graph.graph,nodes}:graph.graph
+  };
+}
+
 const timeframeSummary=(graph)=>({interval:graph.interval,truthState:graph.truthState,marketState:graph.market.currentState,metrics:{rsi14:graph.metrics.rsi14,atrPct:graph.metrics.atrPct,trendPerBarPct:graph.metrics.trendPerBarPct},probabilities:graph.forecast.probabilities,qellyView:{action:graph.qellyView.action,confidence:graph.qellyView.confidence,label:graph.qellyView.label}});
 async function fetchTimeframes(fetchImpl,asset,endTime,selectedInterval){
   const intervals=[...new Set([selectedInterval,...TIMEFRAMES])];
@@ -93,7 +178,7 @@ export async function onRequest({request,env}){
     const endTime=Date.now();const selectionStart=Number(url.searchParams.get('selectionStart'));const selectionEnd=Number(url.searchParams.get('selectionEnd'));let selection=null;
     if(url.searchParams.has('selectionStart')||url.searchParams.has('selectionEnd')){if(!Number.isFinite(selectionStart)||!Number.isFinite(selectionEnd)||selectionStart>=selectionEnd||selectionEnd-selectionStart>90*86_400_000)throw new HttpError(400,'invalid_selection','Select a valid chart range of 90 days or less');selection={start:selectionStart,end:selectionEnd};}
     const fetchImpl=fetcher(env);const [payload,multiTimeframe,derivatives]=await Promise.all([fetchCandles(fetchImpl,asset,interval,endTime),fetchTimeframes(fetchImpl,asset,endTime,interval),fetchDerivativesContext(fetchImpl,asset,endTime)]);
-    let graph;try{graph=buildDecisionProvenGraph(payload,{asset,interval,horizonBars,now:endTime,selection});}catch(error){throw new HttpError(503,'insufficient_provider_data',error.message,{retryable:true});}
+    let graph;try{graph=buildDecisionProvenGraph(payload,{asset,interval,horizonBars,now:endTime,selection});graph=calibrateDecisionEvidence(graph,multiTimeframe,derivatives);}catch(error){throw new HttpError(503,'insufficient_provider_data',error.message,{retryable:true});}
     const newsStart=selection?.start??endTime-24*3_600_000;const newsEnd=Math.min(selection?.end??endTime,endTime);let articles=[];let newsState='unavailable';
     try{articles=await fetchNews(fetchImpl,asset,newsStart,newsEnd);newsState=articles.length?'live':'no-matches';}catch{}
     return responseJson(request,env,{...graph,horizon,multiTimeframe,evidence:{news:{state:newsState,provider:'GDELT',articles},derivatives,liquidations:{state:'unavailable',message:'Verified liquidation evidence is not available for this view, so it is not inferred.'}}},200,{cache:'public, max-age=10, stale-while-revalidate=30'});
