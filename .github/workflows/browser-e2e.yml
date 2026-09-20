@@ -103,6 +103,8 @@ jobs:
           test -s dist/frontend/assets/routes/notification-triage-v2.css
           test -s dist/frontend/assets/routes/screener-lab-v2.css
           grep -F "renderGovernedTrustCenterV2" dist/frontend/assets/app.js
+      - name: Validate cold and warm first-paint stability
+        run: node scripts/qelly-first-paint-stability.mjs
       - name: Capture every registered route at desktop and mobile widths
         run: npm run browser:all
       - name: Validate accessibility and responsive interaction contracts
@@ -133,6 +135,7 @@ jobs:
             preview/QELLY_ALL_SCREENS_*.zip
             preview/release-a5-all-screens
             preview/RELEASE_A5_ALL_SCREENS_LOG.json
+            preview/first-paint-stability
             validation/RELEASE_A5_ACCESSIBILITY_REGRESSION.json
           include-hidden-files: true
           if-no-files-found: warn
