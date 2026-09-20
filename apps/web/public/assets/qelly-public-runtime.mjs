@@ -26,31 +26,69 @@ function productNav(){
   ];
 }
 
-function buildProductHeader(){
-  document.querySelector('.q-public-runtime-banner')?.remove();
-  document.documentElement.dataset.productSurface='production';
-  const legacy=document.querySelector('.q-command-bar');
-  // app.js creates the legacy command bar asynchronously. Do not abandon the
-  // production shell when this module wins that race during first paint.
-  if(!legacy){
-    if(headerRetryCount<40){headerRetryCount+=1;setTimeout(buildProductHeader,50);}
-    return;
-  }
-  headerRetryCount=0;
-  legacy.className='q-product-header';
-  legacy.setAttribute('aria-label','Qelly product navigation');
-  legacy.innerHTML=`
+function productHeaderMarkup(){
+  return `
     <a class="q-product-brand" href="#/market" aria-label="Qelly Intelligence home"><span class="q-product-brand__mark"><img src="./assets/brand/qelly-symbol.svg" width="28" height="28" alt=""></span><span><strong>Qelly</strong><small>Market intelligence</small></span></a>
     <button class="q-product-menu" type="button" aria-expanded="false" aria-controls="q-product-navigation"><span aria-hidden="true">☰</span><span>Menu</span></button>
     <nav id="q-product-navigation" class="q-product-nav" aria-label="Primary">${productNav().map(([label,route])=>`<a href="#/${route}" data-product-route="${route}">${label}</a>`).join('')}</nav>
     <form class="q-product-search" role="search"><label class="q-visually-hidden" for="q-product-search-input">Search Qelly</label><input id="q-product-search-input" name="q" type="search" autocomplete="off" placeholder="Search Qelly"><button type="submit" aria-label="Search Qelly"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg><span class="q-visually-hidden">Search</span></button></form>
-    <div class="q-product-actions"><button class="q-product-system" type="button" data-product-route="status" aria-label="Open system status"><span class="q-product-system__dot" data-state="${navigator.onLine?'live':'offline'}"></span><span>${navigator.onLine?'Online':'Offline'}</span></button><a class="q-product-account" href="#/${sessionState.authenticated?'account-session':'auth-login'}"><span aria-hidden="true">${sessionState.authenticated?'QI':'↗'}</span><span>${sessionState.authenticated?'Account':'Sign in'}</span></a></div>`;
-  legacy.querySelector('.q-product-menu')?.addEventListener('click',(event)=>{const open=legacy.classList.toggle('is-menu-open');event.currentTarget.setAttribute('aria-expanded',String(open));if(open)legacy.querySelector('#q-product-navigation a')?.focus();});
-  legacy.querySelectorAll('[data-product-route]').forEach((element)=>element.addEventListener('click',(event)=>{event.preventDefault();legacy.classList.remove('is-menu-open');legacy.querySelector('.q-product-menu')?.setAttribute('aria-expanded','false');navigate(element.dataset.productRoute);}));
-  legacy.querySelector('.q-product-search')?.addEventListener('submit',(event)=>{event.preventDefault();const query=new FormData(event.currentTarget).get('q')?.toString().trim();navigate('search',query?`q=${encodeURIComponent(query)}`:'');});
-  updateHeaderRoute();
+    <div class="q-product-actions"><button class="q-product-system" type="button" data-product-route="status" aria-label="Open system status"><span class="q-product-system__dot"></span><span>Data status</span></button><button class="q-product-system" type="button" data-v8-appearance="true" aria-label="Toggle appearance"><span aria-hidden="true">◐</span><span>Appearance</span></button><button class="q-product-ai" type="button" data-v8-qelly-ai="true" data-qelly-chat-open="true" aria-label="Open Qelly AI assistant and Qelly Chat intelligence workspace" aria-haspopup="dialog"><span aria-hidden="true">✦</span><span>Qelly Chat</span></button><a class="q-product-account" href="#/auth-login" aria-label="Sign in to Qelly"><span aria-hidden="true">●</span><span>Sign in</span></a></div>`;
 }
 
+function syncProductHeaderState(header){
+  const status=header.querySelector('.q-product-system[data-product-route="status"]');
+  const dot=status?.querySelector('.q-product-system__dot');
+  if(dot)dot.dataset.state=navigator.onLine?'live':'offline';
+  if(status)status.setAttribute('aria-label',navigator.onLine?'Open system status · online':'Open system status · offline');
+  const account=header.querySelector('.q-product-account');
+  if(account){
+    account.href='#/'+(sessionState.authenticated?'account-session':'auth-login');
+    account.innerHTML=sessionState.authenticated?'<span aria-hidden="true">QI</span><span>Account</span>':'<span aria-hidden="true">●</span><span>Sign in</span>';
+    account.setAttribute('aria-label',sessionState.authenticated?'Open Qelly account':'Sign in to Qelly');
+  }
+  const appearance=header.querySelector('[data-v8-appearance]');
+  if(appearance){
+    const resolved=document.documentElement.dataset.resolvedAppearance||document.documentElement.dataset.appearance||'dark';
+    const next=resolved==='light'?'Dark':'Light';
+    appearance.setAttribute('aria-label','Switch to '+next.toLowerCase()+' appearance');
+    appearance.setAttribute('title','Switch to '+next.toLowerCase()+' appearance');
+    appearance.innerHTML='<span aria-hidden="true">◐</span><span>'+next+'</span>';
+  }
+}
+
+function bindProductHeader(header){
+  if(header.dataset.qellyProductHeaderBound==='true')return;
+  header.dataset.qellyProductHeaderBound='true';
+  header.querySelector('.q-product-menu')?.addEventListener('click',(event)=>{const open=header.classList.toggle('is-menu-open');event.currentTarget.setAttribute('aria-expanded',String(open));if(open)header.querySelector('#q-product-navigation a')?.focus();});
+  header.querySelectorAll('[data-product-route]').forEach((element)=>element.addEventListener('click',(event)=>{event.preventDefault();header.classList.remove('is-menu-open');header.querySelector('.q-product-menu')?.setAttribute('aria-expanded','false');navigate(element.dataset.productRoute);}));
+  header.querySelector('.q-product-search')?.addEventListener('submit',(event)=>{event.preventDefault();const query=new FormData(event.currentTarget).get('q')?.toString().trim();navigate('search',query?`q=${encodeURIComponent(query)}`:'');});
+  header.querySelector('[data-qelly-chat-open]')?.addEventListener('click',()=>document.dispatchEvent(new CustomEvent('qelly:open-ai',{detail:{source:'product-header'}})));
+  header.querySelector('[data-v8-appearance]')?.addEventListener('click',async(event)=>{
+    const button=event.currentTarget;button.disabled=true;
+    try{if(window.QellyThemeStudio?.toggleAppearance)await window.QellyThemeStudio.toggleAppearance({notify:false});else navigate('theme-lab');}
+    finally{button.disabled=false;syncProductHeaderState(header);}
+  });
+}
+
+function buildProductHeader(){
+  document.querySelector('.q-public-runtime-banner')?.remove();
+  document.documentElement.dataset.productSurface='production';
+  const header=document.querySelector('.q-product-header[data-qelly-current-shell="true"],.q-product-header,.q-command-bar:not([hidden])');
+  if(!header){
+    if(headerRetryCount<40){headerRetryCount+=1;setTimeout(buildProductHeader,50);}
+    return;
+  }
+  headerRetryCount=0;
+  if(!header.matches('.q-product-header[data-qelly-current-shell="true"]')){
+    header.className='q-product-header';
+    header.dataset.qellyCurrentShell='true';
+    header.setAttribute('aria-label','Qelly product navigation');
+    header.innerHTML=productHeaderMarkup();
+  }
+  bindProductHeader(header);
+  syncProductHeaderState(header);
+  updateHeaderRoute();
+}
 function updateHeaderRoute(){
   const route=routeFromHash();
   document.querySelectorAll('[data-product-route]').forEach((element)=>{const current=element.dataset.productRoute===route;element.classList.toggle('is-active',current);if(element.tagName==='A')element.setAttribute('aria-current',current?'page':'false');});
@@ -173,7 +211,7 @@ function install(){
   setTimeout(enhanceCurrentRoute,0);
 }
 
-const shellAlreadyParsed=Boolean(document.querySelector('#app .q-command-bar')&&document.getElementById('main'));
+const shellAlreadyParsed=Boolean(document.querySelector('#app .q-product-header[data-qelly-current-shell="true"],#app .q-command-bar')&&document.getElementById('main'));
 if(shellAlreadyParsed)install();
 else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
 else install();
