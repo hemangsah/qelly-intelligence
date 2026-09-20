@@ -36,7 +36,9 @@ if(requirePublicRuntime&&!githubPagesMirror&&supabasePublishableKey.length<20)th
 if(githubPagesMirror&&apiBaseUrl===publicSiteUrl)throw new Error('GitHub Pages mirror API must point to the canonical Cloudflare origin, not the mirror itself');
 if(staticVisualPreview&&(apiBaseUrl||requirePublicRuntime))throw new Error('Static visual preview cannot enable the connected public runtime');
 
+const adNetworkEnabled=!staticVisualPreview&&!githubPagesMirror&&asBool(environment.QELLY_PUBLIC_AD_NETWORK_ENABLED,false)&&asBool(environment.QELLY_PUBLIC_ADSENSE_CSP_READY,false);
 const adConfig=Object.freeze({
+  enabled:adNetworkEnabled,
   client:staticVisualPreview||githubPagesMirror?'':cleanAdClient(environment.QELLY_PUBLIC_ADSENSE_CLIENT),
   slots:Object.freeze({
     'market-intelligence-inline':staticVisualPreview||githubPagesMirror?'':cleanAdSlot(environment.QELLY_PUBLIC_AD_SLOT_MARKET_INTELLIGENCE_INLINE,'QELLY_PUBLIC_AD_SLOT_MARKET_INTELLIGENCE_INLINE'),
@@ -45,6 +47,7 @@ const adConfig=Object.freeze({
     'calculator-inline':staticVisualPreview||githubPagesMirror?'':cleanAdSlot(environment.QELLY_PUBLIC_AD_SLOT_CALCULATOR_INLINE,'QELLY_PUBLIC_AD_SLOT_CALCULATOR_INLINE')
   })
 });
+if(adConfig.enabled&&(!adConfig.client||!Object.values(adConfig.slots).some(Boolean)))throw new Error('Ad network activation requires a validated client and at least one configured slot');
 
 const buildTimestamp=new Date().toISOString();
 const releaseSha=String(process.env.CF_PAGES_COMMIT_SHA??process.env.GITHUB_SHA??process.env.QELLY_PUBLIC_RELEASE_SHA??environment.CF_PAGES_COMMIT_SHA??environment.GITHUB_SHA??environment.QELLY_PUBLIC_RELEASE_SHA??'unresolved');
