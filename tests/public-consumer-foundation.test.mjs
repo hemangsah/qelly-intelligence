@@ -78,3 +78,11 @@ test('public route guidance and recovery states use consumer language',async()=>
   assert.match(recovery,/No verified observation available/);
   assert.match(recovery,/No substitute data generated/);
 });
+
+
+test('Evidence domain uses the Decision Intelligence product name',async()=>{
+  const registry=await read('apps/web/public/assets/route-registry.mjs');
+  const evidence=registry.slice(registry.indexOf("{ id:'evidence'"),registry.indexOf("{ id:'data'"));
+  assert.match(evidence,/Decision Intelligence/);
+  assert.doesNotMatch(evidence,/Decision Provenance/);
+});
