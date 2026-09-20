@@ -16,3 +16,10 @@ test('route cleanup loads synchronously and historical lock-candidate activation
   assert.doesNotMatch(family,/void import\('\.\/qelly-v53-lock-candidate-convergence\.mjs'\)/);
   assert.match(family,/void import\('\.\/qelly-v53-lock-shell\.mjs'\)/);
 });
+
+
+test('live Asset Dossier is treated as a dedicated real route, not a synthetic lock candidate',()=>{
+  assert.match(source,/DEDICATED_REAL_ROUTES=new Set\(\['live-markets','market','asset'/);
+  assert.match(source,/if\(synthetic&&isDedicatedRealRoute\(\)\)\{/);
+  assert.match(source,/clearDedicatedRealRouteLock/);
+});
