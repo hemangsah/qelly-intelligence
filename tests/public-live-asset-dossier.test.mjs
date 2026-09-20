@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {onRequest,__publicMarketTruthTest} from '../functions/api/v1/public/markets/[[route]].js';
+import {readFile} from 'node:fs/promises';
 
 function candles({count=180,base=60000}={}){
   const now=Date.now();
@@ -109,4 +110,19 @@ test('governed overview remains deny-by-default for blocked provider catalog',as
   assert.equal(payload.truthState,'UNAVAILABLE');
   assert.equal(payload.guardrails.fabricatedObservations,false);
   assert.ok(Array.isArray(payload.providers));
+});
+
+
+test('Asset Dossier UI consumes the live contract and owns a consumer-friendly unavailable state',async()=>{
+  const app=await readFile(new URL('../apps/web/public/assets/app.js',import.meta.url),'utf8');
+  const start=app.indexOf('async function renderAsset(main) {');
+  const end=app.indexOf('async function renderWatchlist(main)',start);
+  const asset=app.slice(start,end);
+  assert.match(asset,/Market evidence unavailable/);
+  assert.match(asset,/No substitute price or chart has been generated/);
+  assert.match(asset,/data-action="asset-retry"/);
+  assert.match(asset,/Evidence &amp; freshness/);
+  assert.match(asset,/24h range risk/);
+  assert.match(asset,/market price history/);
+  assert.doesNotMatch(asset,/\/USDT price history|rights-authorized|Provider rights|Entitlement|Inspect JSON/i);
 });
