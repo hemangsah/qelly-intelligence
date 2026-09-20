@@ -227,7 +227,7 @@ export async function renderMarketV6(main,deps){
   let tickerObserver=null,chartFrame=0;
   if(!verifyAliasActive){
     const gridPanels=MARKET_WIDGET_PANELS.map(panel=>({...panel,config:(context)=>panelConfig(panel,context)}));
-    marketGridHandle=mountTradingViewMarketGrid(marketGrid,{panels:gridPanels,context:{symbol:symbol.value,interval:interval.value}});
+    marketGridHandle=mountTradingViewMarketGrid(marketGrid,{panels:gridPanels,context:{symbol:symbol.value,interval:interval.value},rootMargin:'160px 0px'});
     intelligenceDockHandle=mountExternalIntelligenceDock(intelligenceDock,{escapeHtml});
     chartFrame=requestAnimationFrame(mount);
     tickerObserver=lazyMount(ticker,mountTicker,{rootMargin:'80px 0px'});
