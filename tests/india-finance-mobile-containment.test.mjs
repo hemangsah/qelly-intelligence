@@ -17,3 +17,13 @@ test('every India finance option has a valid default and selection clears stale 
   assert.match(route,/const reset=\(\)=>\{[\s\S]*?clearResult\(\);\}/);
   assert.match(route,/const run=\(\)=>\{clearResult\(\);let input/);
 });
+
+
+test('India market quotes use the official TradingView symbolsGroups schema and required benchmark universe',async()=>{
+  const route=await readFile(new URL('../apps/web/public/assets/routes/india-finance-center.mjs',import.meta.url),'utf8');
+  assert.match(route,/kind:'marketQuotes'/);
+  assert.match(route,/symbolsGroups:\[\{name:'India'/);
+  assert.doesNotMatch(route,/\bsymbolGroups:\[/);
+  for(const symbol of ['NSE:NIFTY','BSE:SENSEX','NSE:BANKNIFTY','FX_IDC:USDINR'])assert.match(route,new RegExp(symbol.replace(/[:]/g,'\\:')));
+  for(const label of ['Nifty 50','Sensex','Bank Nifty','USD / INR'])assert.match(route,new RegExp(label.replace(/\//g,'\\/')));
+});
