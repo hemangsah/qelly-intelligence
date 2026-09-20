@@ -7,7 +7,17 @@ const CHART_PRESETS=[
   ['SPX','S&P 500','United States'],['NDX','Nasdaq 100','United States'],['NIFTY','Nifty 50','India'],['SENSEX','Sensex','India'],
   ['HSI','Hang Seng','Hong Kong'],['NI225','Nikkei 225','Japan'],['DXY','U.S. Dollar Index','Macro'],['USOIL','WTI crude oil','Energy']
 ];
-const INTERVALS=['5m','15m','1h','4h','1d','1w'];
+export const INTERVALS=Object.freeze(['5m','15m','1h','4h','1d','1w']);
+const PREFERRED_INTERVAL_KEY='qelly-market-network-interval-v1';
+export function readPreferredMarketInterval(storage=globalThis.localStorage){
+  const value=String(storage?.getItem?.(PREFERRED_INTERVAL_KEY)||'').trim();
+  return INTERVALS.includes(value)?value:'1h';
+}
+export function writePreferredMarketInterval(value,storage=globalThis.localStorage){
+  const interval=String(value??'').trim();
+  if(!INTERVALS.includes(interval))return false;
+  try{storage?.setItem?.(PREFERRED_INTERVAL_KEY,interval);return true;}catch{return false;}
+}
 const cssHref=new URL('./market-network.css?v=20260830-network2',import.meta.url).href;
 const v2CssHref=new URL('./market-network-v2.css?v=20260830-network2',import.meta.url).href;
 
@@ -202,6 +212,7 @@ export async function renderGlobalMarketNetwork(main,deps){
   const totalDomains=Number(diagnostics.readiness?.totalDomains||diagnostics.coverage?.length||0);
   const comparisonReady=diagnostics.readiness?.independentCryptoComparison===true;
   const macroReady=diagnostics.readiness?.macroCrossCheck===true;
+  const preferredInterval=readPreferredMarketInterval();
 
   main.innerHTML=`<section class="q-page q-market-network" data-market-network="live-terminal-v8" data-network-experience="mission-control-v2" data-network-view="scan">
     ${pageHead('Qelly Intelligence · Global Market Network','Global Market Network','Use this feature to determine what is moving, whether the move is broad and whether each observation is trustworthy enough to research.',`<a class="q-button q-button--ghost" href="#/platform-readiness">Service status</a><button class="q-button q-button--primary q-mn-refresh" data-action="refresh-network">Refresh network</button>`)}${stateBanner()}
@@ -223,7 +234,7 @@ export async function renderGlobalMarketNetwork(main,deps){
 
     <section class="q-mn-workbench" data-network-section="scan">
       <section class="q-mn-panel q-mn-chart-panel">
-        <div class="q-mn-chart-controls"><label><span>Cross-asset display</span><select id="q-mn-symbol">${CHART_PRESETS.map(([id,label,group])=>`<option value="${escapeHtml(id)}">${escapeHtml(group)} · ${escapeHtml(label)}</option>`).join('')}</select></label><label><span>Interval</span><select id="q-mn-interval">${INTERVALS.map((item)=>`<option value="${item}" ${item==='1h'?'selected':''}>${item}</option>`).join('')}</select></label><span class="q-status q-status--cached">TRADINGVIEW · DISPLAY ONLY</span></div>
+        <div class="q-mn-chart-controls"><label><span>Cross-asset display</span><select id="q-mn-symbol">${CHART_PRESETS.map(([id,label,group])=>`<option value="${escapeHtml(id)}">${escapeHtml(group)} · ${escapeHtml(label)}</option>`).join('')}</select></label><label><span>Interval</span><select id="q-mn-interval">${INTERVALS.map((item)=>`<option value="${item}" ${item===preferredInterval?'selected':''}>${item}</option>`).join('')}</select></label><span class="q-status q-status--cached">TRADINGVIEW · DISPLAY ONLY</span></div>
         <div id="q-market-network-chart" class="q-mn-chart" aria-label="TradingView cross-asset external research chart"><div class="qelly-tradingview-loading" role="status"><span aria-hidden="true"></span><strong>Loading cross-asset market chart…</strong><small>Official TradingView display · Qelly observations remain separate</small></div></div>
         <div class="q-mn-attribution">TradingView is a display-only research surface. Widget values are not used in Qelly calculations, alerts or decisions.</div>
       </section>
@@ -265,7 +276,7 @@ export async function renderGlobalMarketNetwork(main,deps){
     }
   };
   symbolSelect?.addEventListener('change',mountChart);
-  intervalSelect?.addEventListener('change',mountChart);
+  intervalSelect?.addEventListener('change',()=>{writePreferredMarketInterval(intervalSelect.value);mountChart();});
   main.querySelector('[data-action="refresh-network"]')?.addEventListener('click',()=>{chartHandle?.destroy?.();void renderGlobalMarketNetwork(main,deps);});
   main.querySelectorAll('[data-network-view]').forEach((button)=>button.addEventListener('click',()=>{
     const view=VIEWS[button.dataset.networkView]||VIEWS.scan;
