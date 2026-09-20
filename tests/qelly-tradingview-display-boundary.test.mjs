@@ -6,12 +6,12 @@ import {validateMarketWidgetPanels} from '../apps/web/public/assets/market/tradi
 
 const read=(path)=>readFile(new URL(path,import.meta.url),'utf8');
 
-test('TradingView widget uses the official embed bootstrap with an explicit display-only boundary',()=>{
+test('TradingView widget uses official bootstraps with an explicit market-reference boundary',()=>{
   assert.equal(__tradingViewDisplayTest.WIDGET_SRC,'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js');
   assert.deepEqual(Object.keys(__tradingViewDisplayTest.WIDGET_SOURCES),['advancedChart','tickerTape','marketOverview','screener','economicCalendar','technicalAnalysis','cryptoHeatmap','stockHeatmap','etfHeatmap','forexHeatmap','forexCrossRates','topStories','symbolOverview','miniChart','marketQuotes']);
   assert.match(__tradingViewDisplayTest.WIDGET_SOURCES.etfHeatmap,/embed-widget-etf-heatmap\.js$/);
   assert.match(__tradingViewDisplayTest.WIDGET_SOURCES.forexHeatmap,/embed-widget-forex-heat-map\.js$/);
-  assert.match(__tradingViewDisplayTest.DISPLAY_BOUNDARY,/display only/i);
+  assert.match(__tradingViewDisplayTest.DISPLAY_BOUNDARY,/market reference only/i);
   assert.match(__tradingViewDisplayTest.DISPLAY_BOUNDARY,/does not read, scrape, transform, persist or use widget values/i);
   assert.equal(tradingViewSymbol('BTCUSDT'),'BINANCE:BTCUSDT');
   assert.equal(tradingViewInterval('4h'),'240');
