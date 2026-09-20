@@ -50,3 +50,11 @@ test('Decision Intelligence hero stays dense and responsive',async()=>{
   assert.match(css,/@media\(max-width:900px\)\{\.q-dpg-hero-snapshot\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(css,/@media\(max-width:520px\)\{\.q-dpg-hero-snapshot\{grid-template-columns:1fr\}/);
 });
+
+test('Decision Intelligence normalizes compact sourced timestamps before display',async()=>{
+  const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
+  assert.match(route,/const displayTime=\(value\)=>/);
+  assert.match(route,/compact=raw\.match/);
+  assert.match(route,/Time unavailable/);
+  assert.doesNotMatch(route,/lastEventTime\?new Date\(lastEventTime\)\.toLocaleString/);
+});
