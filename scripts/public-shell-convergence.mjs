@@ -50,6 +50,7 @@ export function convergePublicRuntimeHtml(source){
   if(staticStyles)html=html.replace(styleAnchor,staticStyles+'\n'+styleAnchor);
 
   for(const file of ['qelly-worldclass-uiux.mjs','qelly-ui-lock-v5.mjs'])html=html.replace(moduleTag(file),'\n');
+  html=html.replace(moduleTag('qelly-sovereign-motion.js'),'\n');
   html=html.replace(classicTag('qelly-sovereign-motion.js'),'\n');
 
   const early=['qelly-ui-lock-v5-3.mjs','qelly-production-shell.mjs'];
