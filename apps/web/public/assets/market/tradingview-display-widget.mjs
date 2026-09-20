@@ -10,6 +10,8 @@ const WIDGET_SOURCES=Object.freeze({
   technicalAnalysis:'https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js',
   cryptoHeatmap:'https://s3.tradingview.com/external-embedding/embed-widget-crypto-coins-heatmap.js',
   stockHeatmap:'https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js',
+  etfHeatmap:'https://s3.tradingview.com/external-embedding/embed-widget-etf-heatmap.js',
+  forexHeatmap:'https://s3.tradingview.com/external-embedding/embed-widget-forex-heat-map.js',
   forexCrossRates:'https://s3.tradingview.com/external-embedding/embed-widget-forex-cross-rates.js',
   topStories:'https://s3.tradingview.com/external-embedding/embed-widget-timeline.js',
   symbolOverview:'https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js',
