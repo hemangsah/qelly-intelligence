@@ -1,3 +1,5 @@
+import {routeDefinitions} from '../route-registry.mjs';
+
 const WORKFLOWS=[
   {route:'market',eyebrow:'Markets',title:'Market Pulse',copy:'Scan cross-asset conditions, ranked observations and current source freshness.'},
   {route:'decision-provenance',eyebrow:'Decision Intelligence',title:'Explain a market move',copy:'Connect candlesticks, quantitative evidence and relevant news into an evidence-backed research view.'},
@@ -113,7 +115,7 @@ export async function renderFeatureUniverse(main,deps){
         <div class="q-universe-core"><img src="${officialSymbol}" alt="" width="48" height="48" aria-hidden="true"><strong>${FEATURE_UNIVERSE_MODULE_COUNT}</strong><small>mapped modules</small></div>
         <div class="q-universe-journey">${CLUSTERS.map((cluster)=>`<button class="q-universe-node" data-cluster="${escapeHtml(cluster.name)}"><strong>${escapeHtml(cluster.name)}</strong><span>${cluster.routes.length} modules</span></button>`).join('')}</div>
       </section>
-      <div class="q-universe-clusters">${CLUSTERS.map((cluster,index)=>`<section class="q-universe-cluster" id="q-universe-${cluster.name.toLowerCase()}"><header><div><span>${String(index+1).padStart(2,'0')}</span><p class="q-eyebrow">${cluster.routes.length} destinations</p><h2>${escapeHtml(cluster.name)}</h2><p>${escapeHtml(cluster.copy)}</p></div><button class="q-icon-button" data-open-first="${cluster.routes[0]}" aria-label="Open ${escapeHtml(cluster.name)}">↗</button></header><div class="q-universe-route-grid">${cluster.routes.map((route)=>`<button data-route-target="${route}"><strong>${escapeHtml(route.replaceAll('-',' '))}</strong><small>Open workspace →</small></button>`).join('')}</div></section>`).join('')}</div>
+      <div class="q-universe-clusters">${CLUSTERS.map((cluster,index)=>`<section class="q-universe-cluster" id="q-universe-${cluster.name.toLowerCase()}"><header><div><span>${String(index+1).padStart(2,'0')}</span><p class="q-eyebrow">${cluster.routes.length} destinations</p><h2>${escapeHtml(cluster.name)}</h2><p>${escapeHtml(cluster.copy)}</p></div><button class="q-icon-button" data-open-first="${cluster.routes[0]}" aria-label="Open ${escapeHtml(cluster.name)}">↗</button></header><div class="q-universe-route-grid">${cluster.routes.map((route)=>{const label=routeDefinitions.find((item)=>item.route===route)?.label??route.replaceAll('-',' ');return `<button data-route-target="${route}"><strong>${escapeHtml(label)}</strong><small>Open workspace →</small></button>`;}).join('')}</div></section>`).join('')}</div>
       <section class="q-panel q-capability-ribbon"><div class="q-panel-body"><div><span>DATA</span><strong>Source and freshness visible</strong></div><div><span>CHARTS</span><strong>Cross-asset research views</strong></div><div><span>WORKSPACE</span><strong>Saved and versioned research</strong></div><div><span>SAFETY</span><strong>Read-only; no trading or custody</strong></div></div></section>
     </section>
   </section>`;

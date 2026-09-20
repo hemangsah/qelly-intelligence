@@ -86,3 +86,10 @@ test('Evidence domain uses the Decision Intelligence product name',async()=>{
   assert.match(evidence,/Decision Intelligence/);
   assert.doesNotMatch(evidence,/Decision Provenance/);
 });
+
+
+test('feature directory renders consumer route labels instead of implementation slugs',async()=>{
+  const home=await read('apps/web/public/assets/routes/feature-universe.mjs');
+  assert.match(home,/routeDefinitions\.find\(\(item\)=>item\.route===route\)\?\.label/);
+  assert.doesNotMatch(home,/escapeHtml\(route\.replaceAll\('-',' '\)\)/);
+});
