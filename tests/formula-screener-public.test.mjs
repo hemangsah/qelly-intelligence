@@ -113,10 +113,11 @@ test('public endpoint enforces per-client rate limits',async()=>{
 });
 
 test('frontend uses only the public live contract and retains consumer-facing truth',async()=>{
-  const [route,registry,endpoint]=await Promise.all([
+  const [route,registry,endpoint,styles]=await Promise.all([
     readFile(path.join(root,'apps/web/public/assets/routes/formula-screener.mjs'),'utf8'),
     readFile(path.join(root,'apps/web/public/assets/route-registry.mjs'),'utf8'),
-    readFile(path.join(root,'functions/api/v1/formula-screener.js'),'utf8')
+    readFile(path.join(root,'functions/api/v1/formula-screener.js'),'utf8'),
+    readFile(path.join(root,'apps/web/public/assets/app.css'),'utf8')
   ]);
   assert.match(route,/\/api\/v1\/formula-screener/);
   assert.doesNotMatch(route,/screeners\/formulas/);
@@ -127,5 +128,7 @@ test('frontend uses only the public live contract and retains consumer-facing tr
   assert.match(registry,/route:'formula-screener'.*public:true/);
   assert.doesNotMatch(endpoint,/service[_-]?role|supabase|eval\s*\(|new Function|Function\s*\(/i);
   assert.doesNotMatch(endpoint,/api\.hyperliquid\.xyz\/info.*\+|new URL\([^)]*provider/i);
+  assert.match(styles,/#formula-grid \.q-grid-scroll\{overflow-x:hidden/);
+  assert.match(styles,/#formula-grid \.q-data-grid table\{width:100%;min-width:0;table-layout:fixed\}/);
   assert.deepEqual(__test.ASSETS,['BTC','ETH','SOL','HYPE','XRP','DOGE']);
 });
