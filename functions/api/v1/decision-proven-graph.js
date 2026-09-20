@@ -83,7 +83,7 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives){
   const total=Math.max(0,Number(agreement.total)||0);
   const directional=Math.max(0,Number(agreement.directional)||0);
   const aligned=Math.max(0,Number(agreement.aligned)||0);
-  const freshness=graph.truthState==='LIVE'?1:graph.truthState==='DELAYED'?.78:graph.truthState==='STALE'?.35:0;
+  const freshness=graph.truthState==='LIVE'?1:graph.truthState==='DELAYED'?0.78:graph.truthState==='STALE'?0.35:0;
   const sampleDepth=clamp((Number(graph.market?.points)||0)/240);
   const scenarioSeparation=clamp(scenarioGap/.25);
   const timeframeCoverage=clamp(total/4);
