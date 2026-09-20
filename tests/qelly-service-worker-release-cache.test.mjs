@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {collectFinalShell,serviceWorkerReleaseKey,stampServiceWorker} from '../scripts/finalize-release-cache.mjs';
+import {collectFinalShell,collectSourceShell,serviceWorkerReleaseKey,stampServiceWorker} from '../scripts/finalize-release-cache.mjs';
 
 const read=(path)=>readFile(new URL('../'+path,import.meta.url),'utf8');
 const sha='0123456789abcdef0123456789abcdef01234567';
@@ -14,12 +14,19 @@ test('final shell collector uses final local HTML dependencies and excludes exte
   assert.equal(new Set(shell).size,shell.length);
 });
 
+test('governed source shell remains comprehensive before final build stamping',async()=>{
+  const source=await read('apps/web/public/qelly-service-worker.js');
+  const shell=collectSourceShell(source);
+  for(const asset of ['./assets/qelly-verify-engine.mjs','./assets/qelly-modern-interaction-polish.css','./assets/routes/asset-rankings-v2.css','./assets/routes/event-calendar.mjs','./support.html'])assert.ok(shell.includes(asset),asset);
+  assert.ok(shell.length>50);
+});
+
 test('service worker stamping binds one release cache and preserves release-local fallbacks only',async()=>{
   const source=await read('apps/web/public/qelly-service-worker.js');
   const stamped=stampServiceWorker(source,{releaseSha:sha,shell:['./','./index.html','./assets/app.js']});
   assert.match(stamped,new RegExp("const RELEASE_KEY='"+sha+"'"));
   assert.match(stamped,/const CACHE_NAME=\`\$\{CACHE_PREFIX\}\$\{RELEASE_KEY\}\`/);
-  assert.match(stamped,/const SHELL=Object\.freeze\(\["\.\/","\.\/index\.html","\.\/assets\/app\.js"\]\)/);
+  assert.match(stamped,/const SHELL=\["\.\/","\.\/index\.html","\.\/assets\/app\.js"\];/);
   assert.doesNotMatch(stamped,/__QELLY_RELEASE_KEY__/);
   assert.doesNotMatch(stamped,/caches\.match\(/);
   assert.doesNotMatch(stamped,/fetch\('\.\/qelly-release\.json'/);
