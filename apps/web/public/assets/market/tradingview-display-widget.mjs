@@ -84,7 +84,7 @@ export function mountTradingViewWidget(container,{kind,config={},label='TradingV
   const cleanupAttempt=()=>{
     clearTimeout(timer);
     timer=0;
-    observer?.disconnect();
+    if(observer)observer.disconnect();
     observer=null;
   };
   const unavailable=(reason)=>{
