@@ -1,3 +1,5 @@
+import {tradingViewAppearance} from '../market/tradingview-display-widget.mjs';
+import {mountLazyTradingViewWidget} from '../market/lazy-tradingview-widget.mjs';
 const STYLE_ID='qelly-event-calendar-v2-style';
 function ensureStyles(){if(document.getElementById(STYLE_ID))return;const link=document.createElement('link');link.id=STYLE_ID;link.rel='stylesheet';link.href='./assets/routes/event-calendar-v2.css?v=20260901-event2';document.head.append(link);}
 const status=(value)=>String(value||'blocked').toUpperCase().replaceAll('-',' ');
@@ -16,6 +18,7 @@ export async function renderEventCalendar(main,deps){
       <section class="q-ec-hero"><div><p class="q-eyebrow">Qelly Intelligence · Event Calendar</p><h1>Turn uncertainty into an event plan.</h1><p>${safe(model.job)}</p><div class="q-ec-hero-actions"><label><span>Asset</span><select aria-label="Select event asset" data-ec-asset>${model.assets.map((item)=>`<option value="${safe(item.id)}" ${item.id===selected.id?'selected':''}>${safe(item.symbol)} · ${safe(item.name)}</option>`).join('')}</select></label><button data-ec-provenance>Open Decision Provenance</button></div></div><aside><span>Unique job · catalyst choreography</span><strong>One event. Two outcomes. One accountable review.</strong><p>Filings prove issuer language. Alerts deliver triggers. This workspace defines what must be checked before, during and after a future catalyst.</p></aside></section>
       <section class="q-ec-boundary"><span></span><div><strong>No connected calendar feed · event planning remains operational</strong><p>${safe(coverage.reason)} Qelly does not fetch the source, verify its contents, create an alert or invent a date.</p></div><a href="https://www.sec.gov/edgar/search/" target="_blank" rel="noopener noreferrer nofollow">Find a primary source ↗</a></section>
       <section class="q-ec-snapshot" aria-label="Event planning summary"><article><span>Resolved asset</span><strong>${safe(selected.symbol)}</strong><small>${safe(selected.assetClass)}</small></article><article><span>Connected events</span><strong>${coverage.connectedEvents}</strong><small>No event substituted</small></article><article><span>Monitoring plans</span><strong>${coverage.registeredPlans}</strong><small>${safe(plan.state)}</small></article><article><span>Evidence gates</span><strong>${readiness.readyGates} / ${readiness.totalGates}</strong><small>${safe(readiness.state)}</small></article></section>
+      <section class="q-ec-market-calendar" aria-labelledby="q-ec-market-calendar-title"><header><div><p class="q-eyebrow">Scheduled macro context</p><h2 id="q-ec-market-calendar-title">Economic Calendar</h2><p>Use scheduled releases as context while keeping the monitoring receipt tied to verified primary sources.</p></div><a href="https://www.tradingview.com/economic-calendar/" target="_blank" rel="noopener noreferrer nofollow">Economic Calendar by TradingView ↗</a></header><div class="q-ec-market-calendar__stage" data-ec-economic-calendar><div class="q-ec-market-calendar__placeholder"><strong>Calendar ready when needed</strong><span>Loads as this section approaches the viewport.</span></div></div></section>
       <section class="q-ec-workbench"><header><div><p class="q-eyebrow">Step 01 · declare the catalyst</p><h2>Build the monitoring receipt before the outcome.</h2><p>The backend validates timing, source authority, thesis exposure, outcome criteria and ownership. Nothing is persisted or scheduled.</p></div><button type="button" data-ec-reset>Clear plan</button></header><div class="q-ec-workbench-grid">
         <form data-ec-form>
           <label><span>Event type</span><select name="eventType" aria-label="Event type">${model.eventTypes.map((item)=>`<option value="${safe(item.id)}" ${item.id===plan.eventType?'selected':''}>${safe(item.label)}</option>`).join('')}</select></label>
@@ -43,6 +46,11 @@ export async function renderEventCalendar(main,deps){
       <footer class="q-ec-footer"><span>User-declared planning contract · no connected event feed · no source content fetched</span><span>No persistence · no alerts · no recommendation · no execution</span></footer>
     </section>`;
     bind();
+    const calendar=main.querySelector('[data-ec-economic-calendar]');
+    const appearance=tradingViewAppearance();
+    window.__qellyEventCalendarWidgetCleanup?.();
+    const widget=mountLazyTradingViewWidget(calendar,{kind:'economicCalendar',label:'Economic Calendar',openUrl:'https://www.tradingview.com/economic-calendar/',config:{autosize:true,width:'100%',height:'100%',colorTheme:appearance,isTransparent:false,locale:'en',countryFilter:'ar,au,br,ca,cn,fr,de,in,id,it,jp,kr,mx,ru,sa,za,tr,gb,us,eu',importanceFilter:'-1,0,1'}},{rootMargin:'260px 0px'});
+    window.__qellyEventCalendarWidgetCleanup=()=>widget?.destroy?.();
   };
 
   const bind=()=>{

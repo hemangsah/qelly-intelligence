@@ -10,3 +10,14 @@
 @media(max-width:720px){.q-ec-page{padding:12px;gap:12px}.q-ec-hero{padding:20px;border-radius:17px}.q-ec-hero h1{font-size:clamp(2.35rem,13vw,4rem)}.q-ec-hero-actions{display:grid}.q-ec-hero-actions label,.q-ec-hero-actions select,.q-ec-hero-actions button{width:100%}.q-ec-boundary{grid-template-columns:6px 1fr}.q-ec-boundary a{grid-column:2;white-space:normal}.q-ec-snapshot{grid-template-columns:repeat(2,minmax(0,1fr))}.q-ec-workbench>header,.q-ec-gates>header,.q-ec-outcomes>header,.q-ec-handoffs>header{align-items:start;flex-direction:column;padding:18px}.q-ec-workbench form{grid-template-columns:1fr;padding:18px}.q-ec-receipt{padding:18px}.q-ec-receipt dl{grid-template-columns:1fr}.q-ec-guide>div,.q-ec-guide aside{padding:18px}.q-ec-outcomes>div{grid-template-columns:1fr}.q-ec-outcomes article{border-right:0;border-bottom:1px solid var(--ec-line)}.q-ec-outcomes article:last-child{border-bottom:0}.q-ec-timeline{padding:18px}.q-ec-handoffs>div{grid-template-columns:1fr;padding:12px}.q-ec-footer{display:grid}}
 @media(max-width:430px){.q-ec-snapshot{grid-template-columns:1fr}.q-ec-receipt>div{display:grid}.q-ec-hero aside{padding:17px}}
 @media(prefers-reduced-motion:reduce){.q-ec-page *{scroll-behavior:auto!important;transition:none!important}.q-ec-page button:hover{transform:none}}
+
+.q-ec-market-calendar{display:grid;gap:0;border:1px solid var(--ec-line);border-radius:20px;background:var(--ec-panel);overflow:hidden}
+.q-ec-market-calendar>header{display:flex;align-items:end;justify-content:space-between;gap:18px;padding:22px 24px;border-bottom:1px solid var(--ec-line)}
+.q-ec-market-calendar>header>div{display:grid;gap:6px}.q-ec-market-calendar>header p:not(.q-eyebrow){max-width:780px;color:var(--q-text-muted,#b8acb2);line-height:1.5}
+.q-ec-market-calendar>header>a{flex:0 0 auto;color:#e26998;font-size:.76rem;font-weight:800;text-decoration:none}
+.q-ec-market-calendar__stage{position:relative;min-height:520px;background:#09090b;overflow:hidden;contain:layout paint}
+.q-ec-market-calendar__stage>.qelly-tradingview-widget{height:100%!important;min-height:520px}
+.q-ec-market-calendar__placeholder{position:absolute;inset:0;display:grid;place-content:center;gap:7px;text-align:center;color:var(--q-text-muted,#b8acb2)}
+.q-ec-market-calendar__placeholder strong{color:var(--q-text,#f7f2f4)}
+.q-ec-market-calendar__stage[data-external-state]>.q-ec-market-calendar__placeholder{display:none}
+@media(max-width:720px){.q-ec-market-calendar>header{align-items:flex-start;flex-direction:column;padding:18px}.q-ec-market-calendar__stage,.q-ec-market-calendar__stage>.qelly-tradingview-widget{min-height:460px}}

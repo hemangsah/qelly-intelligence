@@ -28,3 +28,18 @@ test('India market quotes use the official TradingView symbolsGroups schema and 
   for(const label of ['Nifty 50','Sensex','Bank Nifty','USD / INR'])assert.match(route,new RegExp(label.replace(/\//g,'\\/')));
   assert.match(route,/<strong>Coverage:<\/strong> Nifty 50 · Sensex · Bank Nifty · USD\/INR · Gold/);
 });
+
+
+test('India market context is lazy and reserved below the finance tools',async()=>{
+  const [route,css]=await Promise.all([
+    readFile(new URL('../apps/web/public/assets/routes/india-finance-center.mjs',import.meta.url),'utf8'),
+    readFile(new URL('../apps/web/public/assets/routes/india-finance-center.css',import.meta.url),'utf8')
+  ]);
+  assert.match(route,/mountLazyTradingViewWidget/);
+  assert.equal((route.match(/mountLazyTradingViewWidget\(/g)||[]).length,3);
+  assert.doesNotMatch(route,/mountTradingViewWidget\(/);
+  assert.match(route,/rootMargin:'260px 0px'/);
+  assert.match(css,/\.q-india-widget\{min-height:420px/);
+  assert.match(css,/\.q-india-widget--screener\{min-height:520px\}/);
+  assert.match(css,/\.q-india-widget--stories\{min-height:500px\}/);
+});
