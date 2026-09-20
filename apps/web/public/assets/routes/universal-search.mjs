@@ -89,6 +89,7 @@ export async function renderUniversalSearch(main,{api,escapeHtml,toast,state}){
       const data=await api(`/api/v1/search?q=${encodeURIComponent(input.value.trim())}&types=${encodeURIComponent(types)}&access=${encodeURIComponent(selectedAccess)}&limit=40`);
       if(request!==sequence)return;
       renderData(data);
+      document.dispatchEvent(new CustomEvent('qelly:product-event',{detail:{name:'asset_search',properties:{route:'search',feature:selectedType==='all'?'all':selectedType,action:'complete'}}}));
       const query=input.value.trim();
       const next=`#/search${query?`?q=${encodeURIComponent(query)}`:''}`;
       if(location.hash!==next)history.replaceState(null,'',next);

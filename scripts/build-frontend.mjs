@@ -37,6 +37,7 @@ if(githubPagesMirror&&apiBaseUrl===publicSiteUrl)throw new Error('GitHub Pages m
 if(staticVisualPreview&&(apiBaseUrl||requirePublicRuntime))throw new Error('Static visual preview cannot enable the connected public runtime');
 
 const adNetworkEnabled=!staticVisualPreview&&!githubPagesMirror&&asBool(environment.QELLY_PUBLIC_AD_NETWORK_ENABLED,false)&&asBool(environment.QELLY_PUBLIC_ADSENSE_CSP_READY,false);
+const productAnalyticsEnabled=!staticVisualPreview&&!githubPagesMirror&&asBool(environment.QELLY_PUBLIC_PRODUCT_ANALYTICS_ENABLED,true);
 const adConfig=Object.freeze({
   enabled:adNetworkEnabled,
   client:staticVisualPreview||githubPagesMirror?'':cleanAdClient(environment.QELLY_PUBLIC_ADSENSE_CLIENT),
@@ -116,6 +117,8 @@ if(publicRuntimeEnabled){
     if(!index.includes(appReadyScript))throw new Error('Qelly app-ready bootstrap anchor missing');
     index=index.replace(appReadyScript,`${runtimeScript}\n${appReadyScript}`);
   }
+  if(!index.includes('qelly-growth-runtime.css'))index=index.replace('</head>','  <link rel="stylesheet" href="./assets/qelly-growth-runtime.css">\n</head>');
+  if(!index.includes('qelly-growth-runtime.mjs'))index=index.replace('  <script type="module" src="./assets/qelly-app-ready.mjs"></script>','  <script type="module" src="./assets/qelly-growth-runtime.mjs"></script>\n  <script type="module" src="./assets/qelly-app-ready.mjs"></script>');
 }
 if(!index.includes('qelly-verify-bootstrap.mjs'))index=index.replace('<script type="module" src="./assets/app.js"></script>','<script type="module" src="./assets/qelly-verify-bootstrap.mjs"></script>\n  <script type="module" src="./assets/app.js"></script>');
 if(!index.includes('qelly-production-shell.css'))index=index.replace('</head>','  <link rel="stylesheet" href="./assets/qelly-production-shell.css">\n</head>');
@@ -142,6 +145,7 @@ const connectedRuntimeConfig={
   backendAvailable:true,
   supabase:Object.freeze({url:supabaseUrl,publishableKey:githubPagesMirror?'':supabasePublishableKey}),
   ads:adConfig,
+  analytics:Object.freeze({enabled:productAnalyticsEnabled,endpoint:'/api/v1/analytics/events',consentRequired:true,collectsInputs:false}),
   capabilities:Object.freeze(capabilities),
   supportUrl:`${canonicalSiteUrl}/support.html`,
   legal:Object.freeze({
@@ -196,7 +200,7 @@ await writeFile(path.join(output,'BUILD_INFO.json'),`${JSON.stringify({
   connectedCapabilitiesActivated:githubPagesMirror?capabilities.liveProviders:capabilities.authentication&&capabilities.cloudSync&&capabilities.liveProviders,
   transactionalEmailActivated:capabilities.emailDelivery,
   releaseSha,buildTimestamp,functionsRoot:githubPagesMirror?null:'functions',runtimeArchitecture:githubPagesMirror?'github-pages-ui-cloudflare-read-only-api':'cloudflare-api-facade-supabase-auth-rls',
-  canonicalSiteUrl,apiBaseUrl,adsConfigured:Boolean(adConfig.client&&Object.values(adConfig.slots).some(Boolean)),
+  canonicalSiteUrl,apiBaseUrl,adsConfigured:Boolean(adConfig.client&&Object.values(adConfig.slots).some(Boolean)),productAnalyticsEnabled,
   fonts:{ui:'IBM Plex Sans Variable',evidence:'IBM Plex Sans Variable',fallbacks:['Arial','Helvetica Neue','sans-serif'],licensedOptional:['GT Eesti Pro Display','GT Eesti Pro Text'],licensedOptionalActive:false,iconSystem:'semantic-inline-svg',selfHosted:true,format:'woff2'}
 },null,2)}\n`);
 console.log(JSON.stringify({status:'frontend-build-passed',output:path.relative(root,output),releaseSha,publicSiteUrl,canonicalSiteUrl,apiBaseConfigured:Boolean(apiBaseUrl),basePath,staticVisualPreview,githubPagesMirror,publicRuntimeEnabled,capabilities,functionsRoot:githubPagesMirror?null:'functions',fonts:['ibm-plex-sans-variable.woff2']},null,2));

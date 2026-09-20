@@ -1,0 +1,148 @@
+const CONSENT_KEY='qelly-consent-v1';
+const ACTIVITY_KEY='qelly-growth-activity-v1';
+const SESSION_KEY='qelly-growth-session-v1';
+const MAX_ACTIVITY=8;
+const ALLOWED_EVENTS=new Set([
+  'route_view','calculator_open','calculator_complete','decision_open','decision_range_selected',
+  'decision_explain','qelly_view_interaction','asset_search','research_click','india_finance_use',
+  'ad_slot_eligibility','ad_slot_render','consent_status','degraded_state','client_error'
+]);
+const ALLOWED_PROPERTIES=new Set(['route','feature','action','state','surface','returning','count']);
+const ANALYTICS_ROUTES=new Set(['market','asset-rankings','asset-intelligence','advanced-chart','decision-provenance','news-research','research-workspace','calculator-center','calculator-detail','india-finance','indicator-library','indicator-detail','formula-library','formula-detail','search','categories','venues','dex-discovery','global-charts','converter','event-calendar','comparison-lab']);
+const SAFE_TOKEN=/^[a-z0-9][a-z0-9_.:-]{0,63}$/i;
+
+const parseJson=(value,fallback)=>{try{return JSON.parse(value);}catch{return fallback;}};
+const storageGet=(storage,key,fallback)=>parseJson(storage?.getItem?.(key)||'',fallback);
+const storageSet=(storage,key,value)=>{try{storage?.setItem?.(key,JSON.stringify(value));return true;}catch{return false;}};
+const cleanToken=(value)=>{const token=String(value??'').trim().toLowerCase();return SAFE_TOKEN.test(token)?token:null;};
+
+export function sanitizeGrowthEvent(input,now=Date.now()){
+  const name=cleanToken(input?.name);
+  if(!name||!ALLOWED_EVENTS.has(name))return null;
+  const properties={};
+  for(const [key,value] of Object.entries(input?.properties??{})){
+    if(!ALLOWED_PROPERTIES.has(key))continue;
+    if(key==='count'){
+      const count=Math.max(1,Math.min(100,Math.trunc(Number(value)||1)));
+      properties.count=count;
+      continue;
+    }
+    if(key==='returning'){
+      properties.returning=value===true;
+      continue;
+    }
+    const token=cleanToken(value);
+    if(token)properties[key]=token;
+  }
+  return Object.freeze({name,properties:Object.freeze(properties),occurredAt:new Date(now).toISOString()});
+}
+
+export function readGrowthConsent(storage=globalThis.localStorage){
+  const consent=storageGet(storage,CONSENT_KEY,{});
+  return consent?.analytics===true;
+}
+
+export function updateGrowthConsent(granted,storage=globalThis.localStorage){
+  const previous=storageGet(storage,CONSENT_KEY,{});
+  return storageSet(storage,CONSENT_KEY,{...previous,analytics:granted===true,updatedAt:new Date().toISOString()});
+}
+
+export function recordRecentActivity({route,label,kind='page'},storage=globalThis.localStorage,now=Date.now()){
+  const safeRoute=cleanToken(route);
+  const safeKind=cleanToken(kind);
+  const safeLabel=String(label??'').replace(/[<>]/g,'').trim().slice(0,80);
+  if(!safeRoute||!safeKind||!safeLabel)return [];
+  const current=storageGet(storage,ACTIVITY_KEY,[]);
+  const next=[{route:safeRoute,label:safeLabel,kind:safeKind,visitedAt:new Date(now).toISOString()},...current.filter((item)=>item?.route!==safeRoute)].slice(0,MAX_ACTIVITY);
+  storageSet(storage,ACTIVITY_KEY,next);
+  return next;
+}
+
+export function readRecentActivity(storage=globalThis.localStorage){
+  const value=storageGet(storage,ACTIVITY_KEY,[]);
+  return Array.isArray(value)?value.slice(0,MAX_ACTIVITY):[];
+}
+
+export function createGrowthAnalytics({config={},storage=globalThis.localStorage,navigatorObject=globalThis.navigator,fetchImpl=globalThis.fetch,now=()=>Date.now()}={}){
+  const enabled=config?.enabled===true;
+  const endpoint=String(config?.endpoint||'/api/v1/analytics/events');
+  const dnt=String(navigatorObject?.doNotTrack||globalThis.doNotTrack||'')==='1'||navigatorObject?.globalPrivacyControl===true;
+  let queue=[];
+  let timer=null;
+  const returning=storageGet(storage,SESSION_KEY,null)!=null;
+  storageSet(storage,SESSION_KEY,{lastSeenAt:new Date(now()).toISOString()});
+
+  const flush=async()=>{
+    if(!queue.length||!enabled||dnt||!readGrowthConsent(storage))return false;
+    const events=queue.splice(0,20);
+    try{
+      const response=await fetchImpl(endpoint,{method:'POST',credentials:'omit',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({schemaVersion:1,events})});
+      if(!response?.ok)throw new Error('analytics delivery unavailable');
+      return true;
+    }catch{
+      queue=[];
+      return false;
+    }
+  };
+  const track=(name,properties={})=>{
+    if(!enabled||dnt||!readGrowthConsent(storage))return false;
+    const event=sanitizeGrowthEvent({name,properties:{...properties,returning}},now());
+    if(!event)return false;
+    queue.push(event);
+    if(queue.length>=10)void flush();
+    else if(timer==null)timer=setTimeout(()=>{timer=null;void flush();},1500);
+    return true;
+  };
+  return Object.freeze({track,flush,enabled:enabled&&!dnt,returning});
+}
+
+const routeFromHash=()=>location.hash.replace(/^#\/?/,'').split('?')[0].split('/')[0]||'market';
+const routeLabel=(route)=>route.split('-').map((part)=>part.charAt(0).toUpperCase()+part.slice(1)).join(' ');
+const escapeHtml=(value)=>String(value??'').replace(/[&<>'"]/g,(character)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
+
+function openGrowthPanel(analytics){
+  document.querySelector('[data-qelly-growth-panel]')?.remove();
+  const recent=readRecentActivity();
+  const consent=readGrowthConsent();
+  const dialog=document.createElement('dialog');
+  dialog.className='q-growth-panel';dialog.dataset.qellyGrowthPanel='true';
+  dialog.innerHTML=`<form method="dialog" class="q-growth-panel__head"><div><small>Your browser</small><h2>Recent Qelly activity</h2></div><button aria-label="Close recent activity">×</button></form><div class="q-growth-panel__body"><p>Return to recent public research without an account. This list stays in this browser.</p><div class="q-growth-panel__list">${recent.length?recent.map((item)=>`<a href="#/${escapeHtml(item.route)}"><span>${escapeHtml(item.label)}</span><small>${escapeHtml(item.kind.replaceAll('_',' '))}</small></a>`).join(''):'<p class="q-growth-panel__empty">Open a market, calculator or research tool and it will appear here.</p>'}</div><label class="q-growth-consent"><input type="checkbox" data-growth-consent ${consent?'checked':''}><span><strong>Help improve Qelly</strong><small>Share coarse feature-use counts only. Inputs, outputs, searches, symbols and account data are never included.</small></span></label><a class="q-growth-privacy" href="./legal/privacy.html">Privacy details</a></div>`;
+  document.body.append(dialog);
+  dialog.querySelector('[data-growth-consent]')?.addEventListener('change',(event)=>{
+    updateGrowthConsent(event.currentTarget.checked);
+    analytics.track('consent_status',{state:event.currentTarget.checked?'granted':'denied',surface:'recent_panel'});
+  });
+  dialog.addEventListener('close',()=>dialog.remove(),{once:true});
+  dialog.showModal();
+}
+
+export function installGrowthRuntime(config=window.__QELLY_CONFIG__||{}){
+  const analytics=createGrowthAnalytics({config:config.analytics});
+  const trackRoute=()=>{
+    const route=routeFromHash();
+    recordRecentActivity({route,label:routeLabel(route),kind:route.includes('calculator')?'calculator':route==='decision-provenance'?'decision_intelligence':'research_page'});
+    if(ANALYTICS_ROUTES.has(route)){
+      analytics.track('route_view',{route,feature:route==='decision-provenance'?'decision_intelligence':route});
+      if(route==='decision-provenance')analytics.track('decision_open',{route,feature:'decision_intelligence'});
+      if(route==='calculator-detail')analytics.track('calculator_open',{route,feature:'calculator'});
+    }
+  };
+  document.addEventListener('qelly:product-event',(event)=>analytics.track(event.detail?.name,event.detail?.properties));
+  document.addEventListener('qelly:ad',(event)=>analytics.track(event.detail?.state==='requested'?'ad_slot_render':'ad_slot_eligibility',{state:event.detail?.state,feature:event.detail?.placement}));
+  document.addEventListener('click',(event)=>{const link=event.target.closest?.('a[href]');if(link&&routeFromHash()==='news-research')analytics.track('research_click',{route:'news-research',feature:link.origin===location.origin?'internal':'external',action:'open'});});
+  window.addEventListener('hashchange',()=>setTimeout(trackRoute,0));
+  window.addEventListener('pagehide',()=>void analytics.flush());
+  window.addEventListener('error',()=>analytics.track('client_error',{route:routeFromHash(),state:'uncaught'}));
+  const installButton=()=>{
+    const actions=document.querySelector('.q-product-actions');
+    if(!actions||actions.querySelector('[data-growth-open]'))return;
+    const button=document.createElement('button');button.type='button';button.className='q-product-recent';button.dataset.growthOpen='true';button.textContent='Recent';
+    button.addEventListener('click',()=>openGrowthPanel(analytics));actions.prepend(button);
+  };
+  new MutationObserver(installButton).observe(document.body,{childList:true,subtree:true});
+  installButton();setTimeout(trackRoute,0);
+  window.__QELLY_GROWTH__=Object.freeze({track:analytics.track,open:()=>openGrowthPanel(analytics),readRecentActivity});
+  return window.__QELLY_GROWTH__;
+}
+
+if(typeof window!=='undefined'&&typeof document!=='undefined')installGrowthRuntime();
