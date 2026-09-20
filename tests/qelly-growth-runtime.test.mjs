@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {sanitizeGrowthEvent,createGrowthAnalytics,recordRecentActivity,readRecentActivity,updateGrowthConsent,isGrowthOpenTarget} from '../apps/web/public/assets/qelly-growth-runtime.mjs';
+import {sanitizeGrowthEvent,createGrowthAnalytics,recordRecentActivity,readRecentActivity,updateGrowthConsent,isGrowthOpenTarget,recentDescriptorFromHash} from '../apps/web/public/assets/qelly-growth-runtime.mjs';
 
 const memoryStorage=()=>{const values=new Map();return{getItem:(key)=>values.get(key)??null,setItem:(key,value)=>values.set(key,String(value))};};
 
@@ -22,18 +22,36 @@ test('analytics is disabled without explicit consent and honors global privacy c
   assert.equal(privateAnalytics.track('route_view',{route:'market'}),false);
 });
 
-test('recent activity stays bounded, local and de-duplicated by route',()=>{
+test('recent activity stays bounded, local and de-duplicated by privacy-safe key',()=>{
   const storage=memoryStorage();
-  for(let index=0;index<12;index+=1)recordRecentActivity({route:`tool-${index}`,label:`Tool ${index}`,kind:'calculator'},storage,index);
-  recordRecentActivity({route:'tool-5',label:'Tool five',kind:'calculator'},storage,20);
+  for(let index=0;index<12;index+=1)recordRecentActivity({route:`tool-${index}`,key:`tool-${index}`,href:`#/tool-${index}`,label:`Tool ${index}`,kind:'calculator'},storage,index);
+  recordRecentActivity({route:'tool-5',key:'tool-5',href:'#/tool-5',label:'Tool five',kind:'calculator'},storage,20);
   const recent=readRecentActivity(storage);
-  assert.equal(recent.length,8);assert.equal(recent[0].route,'tool-5');assert.equal(recent.filter((item)=>item.route==='tool-5').length,1);
+  assert.equal(recent.length,8);assert.equal(recent[0].key,'tool-5');assert.equal(recent.filter((item)=>item.key==='tool-5').length,1);
 });
 
 test('recent activity uses privacy-safe taxonomy tokens',()=>{
   const storage=memoryStorage();
   assert.equal(recordRecentActivity({route:'decision-provenance',label:'Decision Intelligence',kind:'decision_intelligence'},storage,0).length,1);
   assert.equal(recordRecentActivity({route:'market',label:'Markets',kind:'research page'},storage,1).length,0);
+});
+
+test('recent descriptors keep distinct assets and calculators local without widening analytics route taxonomy',()=>{
+  assert.deepEqual(recentDescriptorFromHash('#/asset/QI-CRYPTO-BTC'),{route:'asset',key:'asset:btc',href:'#/asset/QI-CRYPTO-BTC',label:'BTC · Asset Dossier',kind:'asset'});
+  assert.deepEqual(recentDescriptorFromHash('#/asset/QI-CRYPTO-ETH'),{route:'asset',key:'asset:eth',href:'#/asset/QI-CRYPTO-ETH',label:'ETH · Asset Dossier',kind:'asset'});
+  assert.deepEqual(recentDescriptorFromHash('#/calculator-detail/kelly-criterion-calculator?source=research'),{route:'calculator-detail',key:'calculator:kelly-criterion-calculator',href:'#/calculator-detail/kelly-criterion-calculator',label:'Kelly Criterion Calculator · Calculator',kind:'calculator'});
+});
+
+test('recent activity preserves separate assets and calculators while de-duplicating the same detail',()=>{
+  const storage=memoryStorage();
+  recordRecentActivity(recentDescriptorFromHash('#/asset/QI-CRYPTO-BTC'),storage,1);
+  recordRecentActivity(recentDescriptorFromHash('#/asset/QI-CRYPTO-ETH'),storage,2);
+  recordRecentActivity(recentDescriptorFromHash('#/calculator-detail/volatility-calculator'),storage,3);
+  recordRecentActivity(recentDescriptorFromHash('#/asset/QI-CRYPTO-BTC'),storage,4);
+  const recent=readRecentActivity(storage);
+  assert.equal(recent.length,3);
+  assert.deepEqual(recent.map((item)=>item.key),['asset:btc','calculator:volatility-calculator','asset:eth']);
+  assert.equal(recent[0].href,'#/asset/QI-CRYPTO-BTC');
 });
 
 test('recent activity trigger survives shell button replacement',()=>{
