@@ -1,4 +1,6 @@
 const STYLESHEET=new URL('./qelly-ad-slot.css',import.meta.url).href;
+const CLIENT_PATTERN=/^ca-pub-\d{16}$/;
+const SLOT_PATTERN=/^\d{5,20}$/;
 const installStyles=()=>{if(document.querySelector('link[data-qelly-ad-slot]'))return;const link=document.createElement('link');link.id='qelly-ad-slot-style';link.rel='stylesheet';link.href=STYLESHEET;link.dataset.qellyAdSlot='v1';document.head.append(link);};
 const config=()=>{const runtime=globalThis.__QELLY_CONFIG__?.ads||globalThis.__QELLY_PUBLIC_CONFIG__?.ads||{};const meta=document.querySelector('meta[name="qelly-ad-client"]')?.content||'';return {client:String(runtime.client||meta).trim(),slots:runtime.slots||{}};};
 const hasConsent=()=>{try{return JSON.parse(localStorage.getItem('qelly-consent-v1')||'{}')?.advertising===true;}catch{return false;}};
@@ -9,6 +11,7 @@ export function mountAdSlots(root=document){
   installStyles();const settings=config();
   root.querySelectorAll('[data-qelly-ad-slot]').forEach(slot=>{if(slot.dataset.qellyAdMounted)return;slot.dataset.qellyAdMounted='true';const placement=slot.dataset.qellyAdSlot,stage=slot.querySelector('[data-qelly-ad-stage]'),id=String(settings.slots?.[placement]||'').trim();
     if(!settings.client||!id){slot.dataset.adState='reserved';emit('reserved',{placement});return;}
+    if(!CLIENT_PATTERN.test(settings.client)||!SLOT_PATTERN.test(id)){slot.dataset.adState='unavailable';emit('invalid_config',{placement});return;}
     if(!hasConsent()){slot.dataset.adState='consent-required';stage.innerHTML='<strong>Sponsored placement</strong><small>Advertising is paused until optional advertising consent is enabled.</small>';emit('consent_required',{placement});return;}
     const load=()=>{
       let script=document.querySelector('script[data-qelly-ad-network]');
