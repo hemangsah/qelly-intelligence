@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {sanitizeGrowthEvent,createGrowthAnalytics,recordRecentActivity,readRecentActivity,updateGrowthConsent} from '../apps/web/public/assets/qelly-growth-runtime.mjs';
+import {sanitizeGrowthEvent,createGrowthAnalytics,recordRecentActivity,readRecentActivity,updateGrowthConsent,isGrowthOpenTarget} from '../apps/web/public/assets/qelly-growth-runtime.mjs';
 
 const memoryStorage=()=>{const values=new Map();return{getItem:(key)=>values.get(key)??null,setItem:(key,value)=>values.set(key,String(value))};};
 
@@ -34,4 +34,10 @@ test('recent activity uses privacy-safe taxonomy tokens',()=>{
   const storage=memoryStorage();
   assert.equal(recordRecentActivity({route:'decision-provenance',label:'Decision Intelligence',kind:'decision_intelligence'},storage,0).length,1);
   assert.equal(recordRecentActivity({route:'market',label:'Markets',kind:'research page'},storage,1).length,0);
+});
+
+test('recent activity trigger survives shell button replacement',()=>{
+  const trigger={closest:(selector)=>selector==='[data-growth-open]'?trigger:null};
+  assert.equal(isGrowthOpenTarget(trigger),true);
+  assert.equal(isGrowthOpenTarget({closest:()=>null}),false);
 });
