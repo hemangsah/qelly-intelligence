@@ -63,15 +63,15 @@ const snapshot=async(page,elapsed)=>{
   const legacy={};for(const selector of legacySelectors)legacy[selector]=await visibleCount(page,selector);
   return {
     elapsedMs:elapsed,
-    appReady:await page.locator('html').get_attribute('data-app-ready'),
+    appReady:await page.locator('html').getAttribute('data-app-ready'),
     currentShells:await page.locator('[data-qelly-current-shell="true"]').count(),
     visibleProductHeaders:await visibleCount(page,'.q-product-header'),
     legacyCommandBars:await page.locator('.q-command-bar').count(),
     visibleLegacy:legacy,
     primaryNavCount:await page.locator('#q-product-navigation').count(),
-    mainBusy:await page.locator('#main').get_attribute('aria-busy'),
+    mainBusy:await page.locator('#main').getAttribute('aria-busy'),
     mainChildren:await page.locator('#main').evaluate(node=>node.childElementCount),
-    heading:await page.locator('#main h1').first.text_content().catch(()=>null),
+    heading:await page.locator('#main h1').first().textContent().catch(()=>null),
     title:await page.title(),
     stylesheetLinks:await page.locator('link[rel="stylesheet"]').evaluateAll(nodes=>nodes.map(node=>node.getAttribute('href')))
   };
@@ -81,8 +81,8 @@ const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chro
 try{
   for(const [viewportName,viewport] of viewports){
     for(const [routeName,hash] of routes){
-      const context=await browser.new_context({viewport,device_scale_factor:1,reduced_motion:'reduce'});
-      const page=await context.new_page();
+      const context=await browser.newContext({viewport,device_scale_factor:1,reduced_motion:'reduce'});
+      const page=await context.newPage();
       const errors=[];page.on('pageerror',error=>errors.push(String(error)));page.on('console',msg=>{if(msg.type()==='error')errors.push(msg.text());});
       for(const mode of ['cold','warm']){
         const started=performance.now();
