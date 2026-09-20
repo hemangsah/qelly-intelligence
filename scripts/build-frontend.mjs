@@ -22,6 +22,8 @@ const rawBasePath=String(environment.QELLY_PUBLIC_BASE_PATH??'/').trim();
 const basePath=rawBasePath==='/'?'/':`/${rawBasePath.replace(/^\/+|\/+$/g,'')}/`;
 const cleanUrl=(value,name,{required=false}={})=>{if(!value){if(required)throw new Error(`${name} is required`);return '';}const url=new URL(value);if(url.protocol!=='https:'||url.username||url.password)throw new Error(`${name} must be a safe HTTPS URL`);return url.toString().replace(/\/$/,'');};
 const asBool=(value,fallback)=>value==null||value===''?fallback:/^(1|true|yes|on)$/i.test(String(value));
+const cleanAdClient=(value)=>{const client=String(value??'').trim();if(!client)return'';if(!/^ca-pub-\d{16}$/.test(client))throw new Error('QELLY_PUBLIC_ADSENSE_CLIENT must match ca-pub-################');return client;};
+const cleanAdSlot=(value,name)=>{const slot=String(value??'').trim();if(!slot)return'';if(!/^\d{5,20}$/.test(slot))throw new Error(`${name} must contain only the numeric ad-slot identifier`);return slot;};
 if(!/^\/(?:[A-Za-z0-9._~-]+\/)*$/.test(basePath)||basePath.includes('//')||basePath.includes('\\'))throw new Error('QELLY_PUBLIC_BASE_PATH must be a safe absolute path ending in /');
 if(staticVisualPreview&&githubPagesMirror)throw new Error('GitHub Pages mirror cannot be a static visual preview');
 
@@ -33,6 +35,19 @@ const supabasePublishableKey=String(environment.QELLY_PUBLIC_SUPABASE_PUBLISHABL
 if(requirePublicRuntime&&!githubPagesMirror&&supabasePublishableKey.length<20)throw new Error('QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY is required');
 if(githubPagesMirror&&apiBaseUrl===publicSiteUrl)throw new Error('GitHub Pages mirror API must point to the canonical Cloudflare origin, not the mirror itself');
 if(staticVisualPreview&&(apiBaseUrl||requirePublicRuntime))throw new Error('Static visual preview cannot enable the connected public runtime');
+
+const adNetworkEnabled=!staticVisualPreview&&!githubPagesMirror&&asBool(environment.QELLY_PUBLIC_AD_NETWORK_ENABLED,false)&&asBool(environment.QELLY_PUBLIC_ADSENSE_CSP_READY,false);
+const adConfig=Object.freeze({
+  enabled:adNetworkEnabled,
+  client:staticVisualPreview||githubPagesMirror?'':cleanAdClient(environment.QELLY_PUBLIC_ADSENSE_CLIENT),
+  slots:Object.freeze({
+    'market-intelligence-inline':staticVisualPreview||githubPagesMirror?'':cleanAdSlot(environment.QELLY_PUBLIC_AD_SLOT_MARKET_INTELLIGENCE_INLINE,'QELLY_PUBLIC_AD_SLOT_MARKET_INTELLIGENCE_INLINE'),
+    'decision-intelligence-inline':staticVisualPreview||githubPagesMirror?'':cleanAdSlot(environment.QELLY_PUBLIC_AD_SLOT_DECISION_INTELLIGENCE_INLINE,'QELLY_PUBLIC_AD_SLOT_DECISION_INTELLIGENCE_INLINE'),
+    'research-inline':staticVisualPreview||githubPagesMirror?'':cleanAdSlot(environment.QELLY_PUBLIC_AD_SLOT_RESEARCH_INLINE,'QELLY_PUBLIC_AD_SLOT_RESEARCH_INLINE'),
+    'calculator-inline':staticVisualPreview||githubPagesMirror?'':cleanAdSlot(environment.QELLY_PUBLIC_AD_SLOT_CALCULATOR_INLINE,'QELLY_PUBLIC_AD_SLOT_CALCULATOR_INLINE')
+  })
+});
+if(adConfig.enabled&&(!adConfig.client||!Object.values(adConfig.slots).some(Boolean)))throw new Error('Ad network activation requires a validated client and at least one configured slot');
 
 const buildTimestamp=new Date().toISOString();
 const releaseSha=String(process.env.CF_PAGES_COMMIT_SHA??process.env.GITHUB_SHA??process.env.QELLY_PUBLIC_RELEASE_SHA??environment.CF_PAGES_COMMIT_SHA??environment.GITHUB_SHA??environment.QELLY_PUBLIC_RELEASE_SHA??'unresolved');
@@ -126,6 +141,7 @@ const connectedRuntimeConfig={
   dataMode:'public-runtime',
   backendAvailable:true,
   supabase:Object.freeze({url:supabaseUrl,publishableKey:githubPagesMirror?'':supabasePublishableKey}),
+  ads:adConfig,
   capabilities:Object.freeze(capabilities),
   supportUrl:`${canonicalSiteUrl}/support.html`,
   legal:Object.freeze({
@@ -180,7 +196,7 @@ await writeFile(path.join(output,'BUILD_INFO.json'),`${JSON.stringify({
   connectedCapabilitiesActivated:githubPagesMirror?capabilities.liveProviders:capabilities.authentication&&capabilities.cloudSync&&capabilities.liveProviders,
   transactionalEmailActivated:capabilities.emailDelivery,
   releaseSha,buildTimestamp,functionsRoot:githubPagesMirror?null:'functions',runtimeArchitecture:githubPagesMirror?'github-pages-ui-cloudflare-read-only-api':'cloudflare-api-facade-supabase-auth-rls',
-  canonicalSiteUrl,apiBaseUrl,
+  canonicalSiteUrl,apiBaseUrl,adsConfigured:Boolean(adConfig.client&&Object.values(adConfig.slots).some(Boolean)),
   fonts:{ui:'IBM Plex Sans Variable',evidence:'IBM Plex Sans Variable',fallbacks:['Arial','Helvetica Neue','sans-serif'],licensedOptional:['GT Eesti Pro Display','GT Eesti Pro Text'],licensedOptionalActive:false,iconSystem:'semantic-inline-svg',selfHosted:true,format:'woff2'}
 },null,2)}\n`);
 console.log(JSON.stringify({status:'frontend-build-passed',output:path.relative(root,output),releaseSha,publicSiteUrl,canonicalSiteUrl,apiBaseConfigured:Boolean(apiBaseUrl),basePath,staticVisualPreview,githubPagesMirror,publicRuntimeEnabled,capabilities,functionsRoot:githubPagesMirror?null:'functions',fonts:['ibm-plex-sans-variable.woff2']},null,2));

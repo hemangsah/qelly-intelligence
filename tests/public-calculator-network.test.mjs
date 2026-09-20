@@ -32,10 +32,12 @@ test('calculator generator emits indexable no-login pages and sitemap coverage',
       'id="q-calculator-form" data-calculator-form',
       'form="q-calculator-form"',
       'Frequently asked questions',
-      'Reserved sponsor space',
+      'data-qelly-ad-slot="calculator-inline"',
+      '/assets/qelly-ad-slot.css',
+      '/qelly-config.js',
       'No. It works publicly without login'
     ])assert.ok(html.includes(value),`missing calculator page contract: ${value}`);
-    assert.doesNotMatch(html,/auth-login|signup|required account|onclick=/i);
+    assert.doesNotMatch(html,/auth-login|signup|required account|onclick=|Reserved sponsor space · no ad network configured/i);
     const sitemap=await readFile(path.join(output,'sitemap.xml'),'utf8');
     assert.equal((sitemap.match(/<url>/g)||[]).length,36);
   }finally{
