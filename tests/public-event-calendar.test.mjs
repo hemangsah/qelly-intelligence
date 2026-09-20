@@ -46,9 +46,15 @@ test('Event Calendar browser route uses the public planning contract and respons
   assert.match(route,/data-ec-form/);
   assert.match(route,/Two-sided outcomes|Record both sides/);
   assert.match(route,/Five review moments/);
+  assert.match(route,/Economic Calendar/);
+  assert.match(route,/data-ec-economic-calendar/);
+  assert.match(route,/mountLazyTradingViewWidget/);
+  assert.match(route,/rootMargin:'260px 0px'/);
   assert.match(route,/No persistence · no alerts · no recommendation · no execution/);
   assert.match(css,/@media\(max-width:1100px\)/);
   assert.match(css,/@media\(max-width:720px\)/);
   assert.match(css,/@media\(max-width:430px\)/);
-  assert.doesNotMatch(css,/display\s*:\s*none|visibility\s*:\s*hidden/);
+  assert.doesNotMatch(css,/visibility\s*:\s*hidden/);
+  assert.match(css,/\.q-ec-market-calendar__stage\{[^}]*min-height:520px/);
+  assert.match(css,/@media\(max-width:720px\)[\s\S]*q-ec-market-calendar__stage[^}]*min-height:460px/);
 });
