@@ -2,8 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {buildNetworkDiagnostics} from '../functions/_lib/market-network.js';
+import {INTERVALS,readPreferredMarketInterval,writePreferredMarketInterval} from '../apps/web/public/assets/routes/market-network.mjs';
 
 const read=(relative)=>readFile(new URL(`../${relative}`,import.meta.url),'utf8');
+const memoryStorage=()=>{const values=new Map();return{getItem:(key)=>values.get(key)??null,setItem:(key,value)=>values.set(key,String(value))};};
 
 const sources=()=>({
   'alternative-me':{truthState:'live',data:{assets:[{symbol:'BTC',priceUsd:65000}],sentiment:{value:42}}},
@@ -33,6 +35,24 @@ test('market-network diagnostics stay partial when a required source is unavaila
   assert.equal(result.coverage.find((item)=>item.id==='crypto-pricing').ready,false);
   assert.equal(result.readiness.independentCryptoComparison,false);
   assert.equal(result.readiness.decisionUse,'partial_source_coverage');
+});
+
+test('preferred market timeframe is browser-local and constrained to the existing interval allowlist',()=>{
+  const storage=memoryStorage();
+  assert.deepEqual(INTERVALS,['5m','15m','1h','4h','1d','1w']);
+  assert.equal(readPreferredMarketInterval(storage),'1h');
+  assert.equal(writePreferredMarketInterval('4h',storage),true);
+  assert.equal(readPreferredMarketInterval(storage),'4h');
+  assert.equal(writePreferredMarketInterval('2m',storage),false);
+  assert.equal(readPreferredMarketInterval(storage),'4h');
+});
+
+test('market-network route restores the preferred interval and persists changes without analytics coupling',async()=>{
+  const route=await read('apps/web/public/assets/routes/market-network.mjs');
+  assert.match(route,/const preferredInterval=readPreferredMarketInterval\(\)/);
+  assert.match(route,/item===preferredInterval\?'selected':''/);
+  assert.match(route,/writePreferredMarketInterval\(intervalSelect\.value\)/);
+  assert.doesNotMatch(route,/analytics\.track|qelly:product-event/);
 });
 
 test('Global Market Network V2 has three distinct jobs and working analytical surfaces',async()=>{
