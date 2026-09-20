@@ -653,10 +653,19 @@ async function renderLegacyRankings(main) {
 
 async function renderAsset(main) {
   const id=state.asset||'QI-CRYPTO-BTC';
-  const [data,candles]=await Promise.all([
-    api(`/api/v1/public/markets/assets/${encodeURIComponent(id)}`),
-    api(`/api/v1/public/markets/assets/${encodeURIComponent(id)}/candles?interval=1h&limit=168`)
-  ]);
+  let data,candles;
+  try{
+    [data,candles]=await Promise.all([
+      api(`/api/v1/public/markets/assets/${encodeURIComponent(id)}`),
+      api(`/api/v1/public/markets/assets/${encodeURIComponent(id)}/candles?interval=1h&limit=168`)
+    ]);
+  }catch(error){
+    main.innerHTML=`<section class="q-page">${stateBanner()}<section class="q-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Asset Dossier</p><h1>Market evidence unavailable</h1><p>Current public market observations for this asset could not be loaded. No substitute price or chart has been generated.</p></div><span class="q-status q-status--unavailable">Unavailable</span></div><div class="q-panel-body"><p>${escapeHtml(error?.message||'Retry shortly or continue with research tools that do not require this market observation.')}</p><div class="q-action-row"><button class="q-button q-button--primary" data-action="asset-retry">Retry</button><button class="q-button" data-action="asset-decision">Decision Intelligence</button><button class="q-button" data-action="asset-news">News &amp; research</button></div></div></section></section>`;
+    main.querySelector('[data-action="asset-retry"]')?.addEventListener('click',()=>renderAsset(main),{once:true});
+    main.querySelector('[data-action="asset-decision"]')?.addEventListener('click',()=>navigate('decision-provenance'));
+    main.querySelector('[data-action="asset-news"]')?.addEventListener('click',()=>navigate('news-research'));
+    return;
+  }
   const freshness=data.source.freshness;
   const price=data.price==null?'N/A':new Intl.NumberFormat('en-US',{style:'currency',currency:data.currency,maximumFractionDigits:data.price>100?2:6}).format(data.price);
   const change24h=Number.isFinite(Number(data.change24h))?Number(data.change24h):null;
@@ -687,7 +696,7 @@ async function renderAsset(main) {
     </div>
   </section>`;
   const series=candles.points.map((point)=>({label:new Date(point.time*1000).toLocaleString('en-US',{month:'short',day:'2-digit',hour:'2-digit'}),value:Number(point.close)}));
-  new QellyChartShell(document.getElementById('asset-chart'),{title:`${data.symbol}/USDT price history`,series,metadata:{source:candles.source.attribution,observedAt:candles.source.observedAt,receivedAt:candles.source.observedAt,confidence:candles.source.mode==='live-public'?.96:.72,freshnessClass:candles.source.mode==='live-public'?'live':'simulated'},currency:data.currency});
+  new QellyChartShell(document.getElementById('asset-chart'),{title:`${data.symbol} market price history`,series,metadata:{source:candles.source.attribution,observedAt:candles.source.observedAt,receivedAt:candles.source.observedAt,confidence:candles.source.mode==='live-public'?.96:.72,freshnessClass:candles.source.mode==='live-public'?'live':'simulated'},currency:data.currency});
   main.querySelector('[data-action="asset-source"]')?.addEventListener('click',()=>openJsonDialog(`${data.name} data details`,data,'Source details and raw public observation'));
   main.querySelector('[data-action="asset-decision"]')?.addEventListener('click',()=>navigate('decision-provenance'));
   main.querySelector('[data-action="asset-intelligence"]')?.addEventListener('click',()=>navigate('asset-intelligence'));
