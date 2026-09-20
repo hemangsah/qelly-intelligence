@@ -1,6 +1,6 @@
 const STYLESHEET=new URL('./qelly-ad-slot.css',import.meta.url).href;
 const installStyles=()=>{if(document.querySelector('link[data-qelly-ad-slot]'))return;const link=document.createElement('link');link.rel='stylesheet';link.href=STYLESHEET;link.dataset.qellyAdSlot='v1';document.head.append(link);};
-const config=()=>{const runtime=globalThis.__QELLY_PUBLIC_CONFIG__?.ads||{};const meta=document.querySelector('meta[name="qelly-ad-client"]')?.content||'';return {client:String(runtime.client||meta).trim(),slots:runtime.slots||{}};};
+const config=()=>{const runtime=globalThis.__QELLY_CONFIG__?.ads||globalThis.__QELLY_PUBLIC_CONFIG__?.ads||{};const meta=document.querySelector('meta[name="qelly-ad-client"]')?.content||'';return {client:String(runtime.client||meta).trim(),slots:runtime.slots||{}};};
 const hasConsent=()=>{try{return JSON.parse(localStorage.getItem('qelly-consent-v1')||'{}')?.advertising===true;}catch{return false;}};
 const emit=(name,detail)=>window.dispatchEvent(new CustomEvent('qelly:ad',{detail:{name,...detail}}));
 export const adSlot=(placement,{format='horizontal',label='Sponsored'}={})=>'<aside class="q-ad-slot q-ad-slot--'+format+'" data-qelly-ad-slot="'+placement+'" aria-label="'+label+'"><span>'+label+'</span><div data-qelly-ad-stage><strong>Independent research, sustainably supported</strong><small>Advertising space is reserved without shifting the page. Personalized ads stay off until consent.</small></div></aside>';
