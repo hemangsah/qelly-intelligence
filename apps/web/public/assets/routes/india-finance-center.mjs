@@ -1,4 +1,5 @@
-import {mountTradingViewWidget,tradingViewAppearance} from '../market/tradingview-display-widget.mjs';
+import {tradingViewAppearance} from '../market/tradingview-display-widget.mjs';
+import {mountLazyTradingViewWidget} from '../market/lazy-tradingview-widget.mjs';
 import {adSlot,mountAdSlots} from '../qelly-ad-slot.mjs';
 import { calculateFormula, listFormulaDefinitions } from '../calculation/formula-engine-extended.mjs';
 import { INDIA_RULE_REGISTRY, selectIndiaRule, calculateCustomIndiaCharges } from '../calculation/india-rules.mjs';
@@ -59,9 +60,9 @@ export async function renderIndiaFinanceCenter(main,{pageHead,escapeHtml,toast})
   mountAdSlots(main);
   const appearance=tradingViewAppearance();const shared={autosize:true,width:'100%',height:'100%',colorTheme:appearance,locale:'en',isTransparent:false};
   const indiaWidgets=[
-    mountTradingViewWidget(main.querySelector('[data-india-screener]'),{kind:'screener',label:'India market movers',openUrl:'https://www.tradingview.com/markets/stocks-india/market-movers-all-stocks/',config:{...shared,market:'india',defaultColumn:'overview',showToolbar:true}}),
-    mountTradingViewWidget(main.querySelector('[data-india-quotes]'),{kind:'marketQuotes',label:'India benchmarks and rupee',openUrl:'https://www.tradingview.com/markets/indices/quotes-india/',config:{...shared,symbolsGroups:[{name:'India',symbols:[{name:'NSE:NIFTY',displayName:'Nifty 50'},{name:'BSE:SENSEX',displayName:'Sensex'},{name:'NSE:BANKNIFTY',displayName:'Bank Nifty'},{name:'FX_IDC:USDINR',displayName:'USD / INR'},{name:'MCX:GOLD1!',displayName:'Gold'}]}],showSymbolLogo:true}}),
-    mountTradingViewWidget(main.querySelector('[data-india-stories]'),{kind:'topStories',label:'India market headlines',openUrl:'https://www.tradingview.com/news/markets/india/',config:{...shared,feedMode:'market',market:'stock',isTransparent:false}})
+    mountLazyTradingViewWidget(main.querySelector('[data-india-screener]'),{kind:'screener',label:'India market movers',openUrl:'https://www.tradingview.com/markets/stocks-india/market-movers-all-stocks/',config:{...shared,market:'india',defaultColumn:'overview',showToolbar:true}},{rootMargin:'260px 0px'}),
+    mountLazyTradingViewWidget(main.querySelector('[data-india-quotes]'),{kind:'marketQuotes',label:'India benchmarks and rupee',openUrl:'https://www.tradingview.com/markets/indices/quotes-india/',config:{...shared,symbolsGroups:[{name:'India',symbols:[{name:'NSE:NIFTY',displayName:'Nifty 50'},{name:'BSE:SENSEX',displayName:'Sensex'},{name:'NSE:BANKNIFTY',displayName:'Bank Nifty'},{name:'FX_IDC:USDINR',displayName:'USD / INR'},{name:'MCX:GOLD1!',displayName:'Gold'}]}],showSymbolLogo:true}},{rootMargin:'260px 0px'}),
+    mountLazyTradingViewWidget(main.querySelector('[data-india-stories]'),{kind:'topStories',label:'India market headlines',openUrl:'https://www.tradingview.com/news/markets/india/',config:{...shared,feedMode:'market',market:'stock',isTransparent:false}},{rootMargin:'260px 0px'})
   ];window.__qellyIndiaFinanceCleanup=()=>indiaWidgets.forEach(widget=>widget?.destroy?.());
   let result=null;
   const select=main.querySelector('#india-formula'),editor=main.querySelector('#india-input');
