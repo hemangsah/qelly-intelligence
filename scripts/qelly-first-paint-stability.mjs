@@ -89,8 +89,7 @@ try{
         const domLoaded=performance.now();
         const frames=[];
         for(const target of samples){
-          const due=domLoaded+target;const wait=Math.max(0,due-performance.now());if(wait)await page.wait_for_timeout?.(wait);
-          if(wait)await new Promise(resolve=>setTimeout(resolve,wait));
+          const due=domLoaded+target;const wait=Math.max(0,due-performance.now());if(wait)await page.waitForTimeout(wait);
           const state=await snapshot(page,Math.round(performance.now()-domLoaded));frames.push(state);
           await page.screenshot({path:path.join(out,routeName+'__'+viewportName+'__'+mode+'__'+String(target).padStart(4,'0')+'.png'),animations:'disabled'});
         }
