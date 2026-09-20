@@ -14,6 +14,8 @@ test('shared sponsor runtime reads validated production config and remains conse
   assert.match(slot,/activation-required/);
   assert.match(slot,/settings\.enabled/);
   assert.match(slot,/IntersectionObserver/);
+  assert.match(slot,/addEventListener\('error',unavailable/);
+  assert.match(slot,/Sponsored placement unavailable/);
   assert.match(slot,/pagead2\.googlesyndication\.com/);
   assert.match(slot,/data-ad-state="requested"|dataset\.adState='requested'/);
   assert.doesNotMatch(slot,/ca-pub-\d{16}/);
