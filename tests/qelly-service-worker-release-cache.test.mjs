@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {collectFinalShell,stampServiceWorker} from '../scripts/finalize-release-cache.mjs';
+import {collectFinalShell,serviceWorkerReleaseKey,stampServiceWorker} from '../scripts/finalize-release-cache.mjs';
 
 const read=(path)=>readFile(new URL('../'+path,import.meta.url),'utf8');
 const sha='0123456789abcdef0123456789abcdef01234567';
@@ -25,6 +25,15 @@ test('service worker stamping binds one release cache and preserves release-loca
   assert.doesNotMatch(stamped,/fetch\('\.\/qelly-release\.json'/);
   assert.match(stamped,/return cache\.match\(request\)/);
   assert.match(stamped,/fetch\(request,\{cache:'no-store'\}\)/);
+});
+
+test('production release keys require a full SHA while local builds receive a deterministic scoped key',()=>{
+  assert.equal(serviceWorkerReleaseKey(sha,'2026-09-21T00:00:00Z',true),sha);
+  assert.throws(()=>serviceWorkerReleaseKey('unresolved','2026-09-21T00:00:00Z',true),/full 40-character commit SHA/);
+  const first=serviceWorkerReleaseKey('unresolved','2026-09-21T00:00:00Z',false);
+  const second=serviceWorkerReleaseKey('unresolved','2026-09-21T00:00:00Z',false);
+  assert.equal(first,second);
+  assert.match(first,/^local-[0-9a-f]{24}$/);
 });
 
 test('release-cache finalizer runs after all frontend generators',async()=>{
