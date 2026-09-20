@@ -43,3 +43,10 @@ test('chart interaction supports a single candle and a dragged move',async()=>{
   assert.match(route,/candles\[a\]\.time\+intervalMs-1/);
   assert.doesNotMatch(route,/if\(b-a<1\)return/);
 });
+
+test('Decision Intelligence hero stays dense and responsive',async()=>{
+  const css=await read('apps/web/public/assets/qelly-decision-proven-graph.css');
+  assert.match(css,/\.q-dpg-hero-snapshot\{display:grid;grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
+  assert.match(css,/@media\(max-width:900px\)\{\.q-dpg-hero-snapshot\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(css,/@media\(max-width:520px\)\{\.q-dpg-hero-snapshot\{grid-template-columns:1fr\}/);
+});
