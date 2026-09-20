@@ -51,7 +51,7 @@ test('evidence calibration suppresses a directional view when independent timefr
     forecast:{probabilities:{bull:.61,base:.18,bear:.21}},
     confidence:{score:.78,calibration:'base'},
     qellyView:{action:'BUY',confidence:.78,levels:{entryZone:[99,101],invalidation:97,targets:[102,104,106],riskReward:[.8,1.6,2.4]},why:['Base directional evidence.'],label:'Research signal only.',changesIf:'Base invalidation.'},
-    graph:{nodes:[{id:'decision',label:'QELLY VIEW BUY'}]}
+    graph:{nodes:[{id:'history',label:'history'},{id:'decision',label:'QELLY VIEW BUY'}],edges:[{from:'history',to:'decision',type:'informs'}],textAlternative:['history informs QELLY VIEW BUY.']}
   };
   const multiTimeframe={state:'live',agreement:{direction:'SELL',aligned:3,directional:4,total:4}};
   const result=calibrateDecisionEvidence(graph,multiTimeframe,{state:'live'});
@@ -59,9 +59,12 @@ test('evidence calibration suppresses a directional view when independent timefr
   assert.equal(result.qellyView.levels,null);
   assert.equal(result.qellyView.evidenceGate.baseAction,'BUY');
   assert.equal(result.qellyView.evidenceGate.directionalEligible,false);
+  assert.equal(result.qellyView.evidenceGate.timeframeAgreement,.75);
+  assert.equal(result.qellyView.evidenceGate.directionalCoverage,1);
   assert.match(result.qellyView.contradictions.join(' '),/points against/i);
   assert.match(result.qellyView.label,/does not clear/i);
   assert.equal(result.graph.nodes.find(node=>node.id==='decision').label,'QELLY VIEW NO TRADE');
+  assert.match(result.graph.textAlternative.at(-1),/QELLY VIEW NO TRADE/);
 });
 
 test('evidence calibration preserves an aligned directional view and exposes confidence breakdown',()=>{
@@ -79,9 +82,30 @@ test('evidence calibration preserves an aligned directional view and exposes con
   assert.ok(result.qellyView.levels);
   assert.equal(result.qellyView.evidenceGate.directionalEligible,true);
   assert.equal(result.qellyView.evidenceGate.derivativesCoverage,'unavailable');
+  assert.equal(result.qellyView.evidenceGate.timeframeAgreement,.75);
+  assert.equal(result.qellyView.evidenceGate.directionalCoverage,.75);
   assert.ok(result.confidence.breakdown.qualityScore>0&&result.confidence.breakdown.qualityScore<=1);
   assert.match(result.confidence.calibration,/not a success probability/i);
   assert.match(result.qellyView.why.join(' '),/did not increase confidence/i);
+});
+
+
+
+test('timeframe agreement measures aligned evidence across all observed frames',()=>{
+  const graph={
+    truthState:'LIVE',
+    market:{points:500},
+    metrics:{atrPct:.2},
+    forecast:{probabilities:{bull:.58,base:.24,bear:.18}},
+    confidence:{score:.8,calibration:'base'},
+    qellyView:{action:'BUY',confidence:.8,levels:null,why:[],label:'Research signal only.',changesIf:'Reassess.'},
+    graph:{nodes:[{id:'history',label:'history'},{id:'decision',label:'QELLY VIEW BUY'}],edges:[{from:'history',to:'decision',type:'informs'}],textAlternative:['history informs QELLY VIEW BUY.']}
+  };
+  const result=calibrateDecisionEvidence(graph,{state:'live',agreement:{direction:'BUY',aligned:1,directional:1,total:4}},{state:'live'});
+  assert.equal(result.qellyView.action,'NO TRADE');
+  assert.equal(result.qellyView.evidenceGate.timeframeAgreement,.25);
+  assert.equal(result.qellyView.evidenceGate.directionalCoverage,.25);
+  assert.match(result.graph.textAlternative[0],/QELLY VIEW NO TRADE/);
 });
 
 test('public endpoint validates controls and returns cacheable provider-derived evidence',async()=>{
