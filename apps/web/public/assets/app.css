@@ -118,3 +118,22 @@ html,body{max-width:100%;overflow-x:hidden}
 .q-venue-card{display:flex;flex-direction:column;min-height:260px}
 .q-venue-card dl{margin-top:auto}
 .q-category-matrix-row:not(.is-head){min-height:48px}
+
+
+/* Formula Screener mobile containment: keep the ranked receipt readable without widening the page. */
+@media(max-width:620px){
+  #formula-grid{min-width:0;max-width:100%;overflow:hidden}
+  #formula-grid .q-grid-scroll{overflow-x:hidden;max-width:100%}
+  #formula-grid .q-data-grid table{width:100%;min-width:0;table-layout:fixed}
+  #formula-grid .q-data-grid :is(th,td){min-width:0!important;width:auto!important;padding-inline:7px;overflow:hidden;text-overflow:ellipsis}
+  #formula-grid .q-data-grid :is(th,td):nth-child(4),
+  #formula-grid .q-data-grid :is(th,td):nth-child(6),
+  #formula-grid .q-data-grid :is(th,td):nth-child(8){display:none}
+  #formula-grid .q-data-grid :is(th,td):nth-child(1){width:36px!important}
+  #formula-grid .q-data-grid :is(th,td):nth-child(2){width:54px!important}
+  #formula-grid .q-data-grid :is(th,td):nth-child(3){width:88px!important}
+  #formula-grid .q-data-grid :is(th,td):nth-child(5){width:62px!important}
+  #formula-grid .q-data-grid :is(th,td):nth-child(7){width:78px!important}
+  #formula-grid .q-data-grid :is(th,td):nth-child(9){width:74px!important}
+  #formula-grid .q-grid-sort{padding-inline:5px;white-space:normal;line-height:1.15}
+}
