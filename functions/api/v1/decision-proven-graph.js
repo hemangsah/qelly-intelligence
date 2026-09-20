@@ -95,7 +95,7 @@ const calibrateQellyView=(graph,multiTimeframe)=>{
   const probabilities=graph.forecast?.probabilities||{bull:0,base:1,bear:0};
   const scenarioEdge=Math.abs(Number(probabilities.bull||0)-Number(probabilities.bear||0));
   const scenarioClarity=clamp(scenarioEdge/.25);
-  const freshnessScore=graph.truthState==='LIVE'?1:graph.truthState==='DELAYED'?.75:0;
+  const freshnessScore=graph.truthState==='LIVE'?1:graph.truthState==='DELAYED' ? .75 : 0;
   const evidenceScore=round(clamp((Number(base.confidence||0)*.5)+(alignmentRatio*.3)+(scenarioClarity*.15)+(freshnessScore*.05),0,.95),4);
   const reasons=[];
   let action=base.action;
