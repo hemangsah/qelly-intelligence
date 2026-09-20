@@ -127,7 +127,7 @@ function mountExternalIntelligenceDock(root,{escapeHtml}){
   const intersection='IntersectionObserver'in window?new IntersectionObserver((entries)=>{
     if(!entries.some(entry=>entry.isIntersecting))return;
     intersection.disconnect();activate(activeId);
-  },{rootMargin:'360px 0px'}):null;
+  },{rootMargin:'120px 0px'}):null;
   if(intersection)intersection.observe(root);else activate(activeId);
   return {refresh(){if(mounted&&activeId==='x-pulse')activate(activeId);},destroy(){intersection?.disconnect();handle?.destroy?.();handle=null;}};
 }
