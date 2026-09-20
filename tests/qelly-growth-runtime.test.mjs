@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {sanitizeGrowthEvent,createGrowthAnalytics,recordRecentActivity,readRecentActivity,updateGrowthConsent,isGrowthOpenTarget,recentDescriptorFromHash} from '../apps/web/public/assets/qelly-growth-runtime.mjs';
+import {sanitizeGrowthEvent,createGrowthAnalytics,recordRecentActivity,readRecentActivity,readPinnedActivity,togglePinnedActivity,updateGrowthConsent,isGrowthOpenTarget,recentDescriptorFromHash} from '../apps/web/public/assets/qelly-growth-runtime.mjs';
 
 const memoryStorage=()=>{const values=new Map();return{getItem:(key)=>values.get(key)??null,setItem:(key,value)=>values.set(key,String(value))};};
 
@@ -52,6 +52,29 @@ test('recent activity preserves separate assets and calculators while de-duplica
   assert.equal(recent.length,3);
   assert.deepEqual(recent.map((item)=>item.key),['asset:btc','calculator:volatility-calculator','asset:eth']);
   assert.equal(recent[0].href,'#/asset/QI-CRYPTO-BTC');
+});
+
+test('pinned tools stay browser-local, bounded and toggle by exact safe key',()=>{
+  const storage=memoryStorage();
+  const btc=recentDescriptorFromHash('#/asset/QI-CRYPTO-BTC');
+  const eth=recentDescriptorFromHash('#/asset/QI-CRYPTO-ETH');
+  togglePinnedActivity(btc,storage);
+  togglePinnedActivity(eth,storage);
+  let pinned=readPinnedActivity(storage);
+  assert.deepEqual(pinned.map((item)=>item.key),['asset:eth','asset:btc']);
+  assert.equal(pinned[0].href,'#/asset/QI-CRYPTO-ETH');
+  togglePinnedActivity(btc,storage);
+  pinned=readPinnedActivity(storage);
+  assert.deepEqual(pinned.map((item)=>item.key),['asset:eth']);
+  for(let index=0;index<8;index+=1)togglePinnedActivity({route:'calculator-detail',key:'calculator:tool-'+index,href:'#/calculator-detail/tool-'+index,label:'Tool '+index,kind:'calculator'},storage);
+  assert.equal(readPinnedActivity(storage).length,6);
+});
+
+test('pinned tools reject unsafe href and invalid taxonomy',()=>{
+  const storage=memoryStorage();
+  togglePinnedActivity({route:'market',key:'market',href:'https://evil.example/',label:'Market',kind:'research_page'},storage);
+  togglePinnedActivity({route:'market',key:'market',href:'#/market',label:'Market',kind:'research page'},storage);
+  assert.equal(readPinnedActivity(storage).length,0);
 });
 
 test('recent activity trigger survives shell button replacement',()=>{
