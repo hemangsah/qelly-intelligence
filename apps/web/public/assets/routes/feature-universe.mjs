@@ -1,28 +1,28 @@
 const WORKFLOWS=[
-  {route:'market',eyebrow:'Markets',title:'Market overview',copy:'Cross-asset conditions, ranked observations and explicit freshness in one research surface.'},
-  {route:'asset-rankings',eyebrow:'Discovery',title:'Asset rankings',copy:'Compare the available universe with methodology, source state and coverage boundaries.'},
-  {route:'asset',eyebrow:'Research',title:'Asset intelligence',copy:'Move from price context to charts, evidence, related events and reproducible analysis.'},
-  {route:'calculator-center',eyebrow:'Quant tools',title:'Calculator workspace',copy:'Run versioned calculations, understand inputs and preserve reproducible results.'},
-  {route:'india-finance',eyebrow:'India',title:'India finance tools',copy:'SIP and market calculations with effective-date rules and transparent methodology.'},
-  {route:'formula-library',eyebrow:'Methods',title:'Formula library',copy:'Browse documented formulas and inspect assumptions before using them in a workflow.'},
-  {route:'saved-calculations',eyebrow:'Workspace',title:'Saved work',copy:'Return to calculation history, revisions and reusable research inputs.'},
-  {route:'qelly-verify',eyebrow:'Evidence',title:'Qelly Verify',copy:'Inspect the source chain and verification evidence behind a Qelly result.'}
+  {route:'market',eyebrow:'Markets',title:'Market Pulse',copy:'Scan cross-asset conditions, ranked observations and current source freshness.'},
+  {route:'decision-provenance',eyebrow:'Decision Intelligence',title:'Explain a market move',copy:'Connect candlesticks, quantitative evidence and relevant news into an evidence-backed research view.'},
+  {route:'formula-screener',eyebrow:'Screening',title:'Formula Screener',copy:'Rank supported assets with bounded quantitative metrics calculated from current market observations.'},
+  {route:'asset',eyebrow:'Assets',title:'Asset Dossier',copy:'Review price, performance, range risk, evidence freshness and next research steps for an asset.'},
+  {route:'calculator-center',eyebrow:'Quant tools',title:'Calculator workspace',copy:'Run transparent calculations with visible assumptions and reproducible results.'},
+  {route:'india-finance',eyebrow:'India',title:'India intelligence',copy:'Review Indian market context and use finance calculators with clear source and effective-date context.'},
+  {route:'news-research',eyebrow:'Research',title:'News & research',copy:'Find current evidence and connect it to a market or thesis without hiding source limitations.'},
+  {route:'qelly-verify',eyebrow:'Verification',title:'Qelly Verify',copy:'Inspect the evidence chain behind a Qelly result and keep unavailable evidence explicit.'}
 ];
 
 const PRINCIPLES=[
-  ['Source-aware','Every observation exposes provider and availability state.'],
+  ['Source-aware','Every observation exposes its source and availability state.'],
   ['Reproducible','Calculations preserve inputs, method version and result history.'],
   ['Read-only by design','The public terminal does not execute trades or hold assets.'],
-  ['Coverage before claims','A market is displayed only within its approved data boundary.']
+  ['Coverage before claims','A market is displayed only when the required source coverage is available.']
 ];
 
 const officialSymbol=new URL('../brand/qelly-symbol.svg',import.meta.url).href;
 const CLUSTERS=[
-  {name:'Discover',copy:'Search, rankings, categories, venues, global charts, news and market trust.',routes:['discovery-hub','asset-rankings','search','categories','venues','dex-discovery','global-charts','converter','news-research','trust-center']},
-  {name:'Analyse',copy:'Market charts, technicals, fundamentals, estimates, filings, events, peers and comparisons.',routes:['market','asset-intelligence','advanced-chart','fundamentals-estimates','filing-workspace','event-calendar','comparison-lab','asset']},
-  {name:'Monitor',copy:'Watchlists, alerts, screeners, portfolios, research, imports and scheduled updates.',routes:['watchlist','alert-center','notification-center','screener-lab','formula-screener','portfolio-analytics','portfolio-attribution','research-workspace','research-history','import-center','notification-schedules','onboarding','rankings']},
-  {name:'Govern',copy:'Identity, data sources, instruments, time series, security, operations and appearance.',routes:['identity-access','data-mesh','instrument-master','timeseries-lab','stream-operations','observability','security-evidence','migration-center','theme-lab']},
-  {name:'About',copy:'Product principles, appearance personas and the complete feature directory.',routes:['theme-personas','about-qelly','feature-universe']}
+  {name:'Discover',copy:'Find markets, rankings, categories, venues, global context and current research.',routes:['discovery-hub','asset-rankings','search','categories','venues','dex-discovery','global-charts','converter','news-research','trust-center']},
+  {name:'Analyse',copy:'Move from market context into assets, charts, filings, events, comparisons and Decision Intelligence.',routes:['market','asset','asset-intelligence','advanced-chart','fundamentals-estimates','filing-workspace','event-calendar','comparison-lab','decision-provenance']},
+  {name:'Quant tools',copy:'Screen assets and run transparent formulas, indicators and financial calculations.',routes:['screener-lab','formula-screener','calculator-center','formula-library','indicator-library','india-finance']},
+  {name:'Research',copy:'Build evidence from news, filings, events and verification tools.',routes:['news-research','filing-workspace','event-calendar','comparison-lab','qelly-verify']},
+  {name:'About',copy:'Understand Qelly, its research model and available public capabilities.',routes:['about-qelly','feature-universe']}
 ];
 const FEATURE_UNIVERSE_MODULE_COUNT=CLUSTERS.reduce((total,cluster)=>total+cluster.routes.length,0);
 let featureUniverseDensityMain=null;
@@ -90,7 +90,7 @@ export async function renderFeatureUniverse(main,deps){
       </article>
       <aside class="q-home-status" aria-label="Product availability">
         <div><span class="q-eyebrow">Workspace status</span><h2>Research mode</h2><p>Source-aware, read-only and evidence-first.</p></div>
-        <div class="q-home-status-row"><span>Market observations</span><strong>Rights and freshness shown per source</strong></div>
+        <div class="q-home-status-row"><span>Market observations</span><strong>Source and freshness shown per observation</strong></div>
         <div class="q-home-status-row"><span>Calculations</span><strong>Reproducible and versioned</strong></div>
         <div class="q-home-status-row"><span>Trading and custody</span><strong>Not provided</strong></div>
         <div class="q-home-status-row"><span>Account</span><strong>Optional for public research</strong></div>
@@ -103,7 +103,7 @@ export async function renderFeatureUniverse(main,deps){
     </section>
 
     <section class="q-home-section" aria-labelledby="q-home-principles">
-      <header><div><h2 id="q-home-principles">Built for explainable research</h2><p>The interface separates product availability, data rights and analytical evidence.</p></div></header>
+      <header><div><h2 id="q-home-principles">Built for explainable research</h2><p>The interface separates product availability, source coverage and analytical evidence.</p></div></header>
       <div class="q-home-principles">${PRINCIPLES.map(([title,copy])=>`<div><strong>${escapeHtml(title)}</strong><span>${escapeHtml(copy)}</span></div>`).join('')}</div>
     </section>
 

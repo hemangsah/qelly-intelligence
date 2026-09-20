@@ -191,7 +191,7 @@ export async function renderMarketV6(main,deps){
   const ecbTruth=String(ecb?.truthState||'unavailable').toUpperCase();
 
   main.innerHTML=`<section class="q-page q-market-home q-v7-public-market" data-market-runtime="v7-public-no-fabrication" data-qelly-v7-public-market="true">
-    ${pageHead('Qelly Intelligence · Market Command','Governed Market Terminal','Explore live external charts and approved reference observations with clear source boundaries. Missing market data is never replaced with invented values.',`<a class="q-button q-button--secondary" href="https://www.tradingview.com/markets/" target="_blank" rel="noopener noreferrer nofollow">TradingView Markets ↗</a><a class="q-button q-button--primary" href="#/research-workspace">Open research workspace</a>`)}
+    ${pageHead('Qelly Intelligence · Market Command','Market Pulse','Explore live market charts and reference observations with clear source and freshness. Missing market data is never replaced with invented values.',`<a class="q-button q-button--secondary" href="https://www.tradingview.com/markets/" target="_blank" rel="noopener noreferrer nofollow">TradingView Markets ↗</a><a class="q-button q-button--primary" href="#/research-workspace">Open research workspace</a>`)}
     <section class="q-market-principle" aria-label="Market intelligence principle">
       <div><span class="q-eyebrow">Market discipline</span><strong>Price is an observation; risk is a decision.</strong></div>
       <div class="q-market-principle__rules"><span>Verify freshness</span><span>Separate signal from story</span><span>Keep execution outside research</span></div>
@@ -200,14 +200,14 @@ export async function renderMarketV6(main,deps){
 
     <section class="q-tv-tape-shell" aria-label="TradingView cross-asset ticker tape">
       <div id="q-tv-ticker-tape" class="q-tv-ticker-stage"></div>
-      <p>External display only · ticker observations are never consumed by Qelly calculations.</p>
+      <p>Reference display only · ticker observations are never consumed by Qelly calculations.</p>
     </section>
 
     <div class="q-v7-market-grid">
       <section class="q-panel q-v7-chart-panel">
-        <div class="q-panel-head"><div><p class="q-eyebrow">External display boundary</p><h2>TradingView market visualization</h2><p>Human-readable display only. Widget observations are not ingested, scraped, persisted or consumed by Qelly analytics.</p></div><span class="q-status q-status--cached">DISPLAY ONLY</span></div>
+        <div class="q-panel-head"><div><p class="q-eyebrow">Market chart</p><h2>TradingView market visualization</h2><p>Human-readable display only. Widget observations are not ingested, scraped, persisted or consumed by Qelly analytics.</p></div><span class="q-status q-status--cached">DISPLAY ONLY</span></div>
         <div class="q-panel-body">
-          <div class="q-control-row q-v6-market-controls"><label class="q-setting"><span>Display symbol</span><select id="v6-market-symbol">${symbolOptions}</select></label><label class="q-setting"><span>Display interval</span><select id="v6-market-interval">${intervalOptions}</select></label><div class="q-setting q-query-boundary"><span>Analytics boundary</span><strong>External values excluded</strong><small>Never used for Qelly calculations, risk, alerts or decisions.</small></div></div>
+          <div class="q-control-row q-v6-market-controls"><label class="q-setting"><span>Display symbol</span><select id="v6-market-symbol">${symbolOptions}</select></label><label class="q-setting"><span>Display interval</span><select id="v6-market-interval">${intervalOptions}</select></label><div class="q-setting q-query-boundary"><span>Research use</span><strong>External values excluded</strong><small>Never used for Qelly calculations, risk, alerts or decisions.</small></div></div>
           <div id="v6-market-tradingview" class="q-v7-chart-stage q-v6-market-tradingview" aria-label="TradingView external market chart"></div>
           <div class="q-chart-attribution"><span>TradingView display only</span><span>Displayed widget values are not used in Qelly calculations.</span></div>
         </div>
@@ -219,7 +219,7 @@ export async function renderMarketV6(main,deps){
     </div>
 
     <section class="q-panel q-tv-suite" data-tv-suite>
-      <div class="q-panel-head"><div><p class="q-eyebrow">Embedded research suite</p><h2>Market intelligence displays</h2><p>Fourteen official TradingView surfaces are available without leaving Qelly. Only the selected panel loads, preserving performance and attention.</p></div><span class="q-status q-status--cached">DISPLAY ONLY</span></div>
+      <div class="q-panel-head"><div><p class="q-eyebrow">Market views</p><h2>Market intelligence displays</h2><p>Fourteen official TradingView surfaces are available without leaving Qelly. Only the selected panel loads, preserving performance and attention.</p></div><span class="q-status q-status--cached">DISPLAY ONLY</span></div>
       <div class="q-panel-body">
         <div class="q-tv-suite-tabs" role="tablist" aria-label="Choose an embedded market display">${EMBED_PANELS.map((panel,index)=>`<button type="button" role="tab" aria-selected="${index===0?'true':'false'}" aria-controls="q-tv-suite-stage" tabindex="${index===0?'0':'-1'}" data-tv-suite-tab="${panel.id}">${panel.label}</button>`).join('')}</div>
         <div class="q-tv-suite-context"><div><strong data-tv-suite-title>Market overview</strong><p data-tv-suite-description>${EMBED_PANELS[0].description}</p></div><span>External data · human review only</span></div>
@@ -228,7 +228,7 @@ export async function renderMarketV6(main,deps){
     </section>
 
     <section class="q-panel q-intel-dock" data-external-intelligence-dock>
-      <div class="q-panel-head"><div><p class="q-eyebrow">External intelligence dock</p><h2>Live market structure and research networks</h2><p>Provider-supported embeds and public read-only streams are isolated from Qelly analytics. Services that prohibit framing remain transparent launch surfaces.</p></div><span class="q-status q-status--cached">READ ONLY</span></div>
+      <div class="q-panel-head"><div><p class="q-eyebrow">Live market context</p><h2>Live market structure and research networks</h2><p>Provider-supported embeds and public read-only streams are isolated from Qelly analytics. Services that prohibit framing remain transparent launch surfaces.</p></div><span class="q-status q-status--cached">READ ONLY</span></div>
       <div class="q-panel-body">
         <div class="q-tv-suite-tabs q-intel-dock-tabs" role="tablist" aria-label="Choose an external intelligence display">${INTELLIGENCE_DOCK_PANELS.map((panel,index)=>`<button type="button" role="tab" aria-selected="${index===0?'true':'false'}" aria-controls="q-intel-dock-stage" tabindex="${index===0?'0':'-1'}" data-intel-dock-tab="${panel.id}">${panel.label}</button>`).join('')}</div>
         <div class="q-tv-suite-context"><div><strong data-intel-dock-title>Live book & trades</strong><p data-intel-dock-description>${INTELLIGENCE_DOCK_PANELS[0].description}</p></div><span>External observations · never execution</span></div>
@@ -236,7 +236,7 @@ export async function renderMarketV6(main,deps){
       </div>
     </section>
 
-    <section class="q-panel q-public-data-board"><div class="q-panel-head"><div><p class="q-eyebrow">Governed live and reference network</p><h2>Global public data board</h2><p>Official/public feeds keep their own cadence, attribution and truth state. Reference observations are never presented as tradable quotes.</p></div><span class="q-status q-status--cached" data-public-source-status>LOADING SOURCES</span></div><div class="q-panel-body q-public-source-grid" data-public-source-grid><div class="q-empty-state"><strong>Connecting public data network</strong><p>Slow reference providers load in the background and never block Market Command.</p></div></div></section>
+    <section class="q-panel q-public-data-board"><div class="q-panel-head"><div><p class="q-eyebrow">Market data sources</p><h2>Global public data board</h2><p>Official/public feeds keep their own cadence, attribution and truth state. Reference observations are never presented as tradable quotes.</p></div><span class="q-status q-status--cached" data-public-source-status>LOADING SOURCES</span></div><div class="q-panel-body q-public-source-grid" data-public-source-grid><div class="q-empty-state"><strong>Connecting public data network</strong><p>Slow reference providers load in the background and never block Market Command.</p></div></div></section>
 
     ${adSlot('market-intelligence-inline')}
 

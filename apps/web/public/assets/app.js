@@ -653,15 +653,46 @@ async function renderLegacyRankings(main) {
 
 async function renderAsset(main) {
   const id=state.asset||'QI-CRYPTO-BTC';
-  const [data,candles]=await Promise.all([api(`/api/v1/public/markets/assets/${encodeURIComponent(id)}`),api(`/api/v1/public/markets/assets/${encodeURIComponent(id)}/candles?interval=1h&limit=168`)]);
-  const freshness=data.source.freshness;const price=data.price==null?'N/A':new Intl.NumberFormat('en-US',{style:'currency',currency:data.currency,maximumFractionDigits:data.price>100?2:6}).format(data.price);
-  const stats=[['24h quote volume',data.quoteVolume24h,'USD'],['24h high',data.high24h,data.currency],['24h low',data.low24h,data.currency],['Market cap',data.marketCap,null]];
-  main.innerHTML=`<section class="q-page">${stateBanner()}<div class="q-asset-hero"><div class="q-asset-identity"><span class="q-asset-icon">${escapeHtml(data.symbol.slice(0,2))}</span><div><p class="q-eyebrow" style="color:rgba(255,255,255,.72)!important">Canonical public asset</p><h1>${escapeHtml(data.name)} <small style="font-size:12px;opacity:.72">${escapeHtml(data.symbol)}</small></h1><p>${escapeHtml(data.canonicalId)} · ${escapeHtml(data.category)} · read-only</p></div></div><div class="q-asset-price"><span class="q-status q-status--${freshness}">${escapeHtml(data.source.qualityState)}</span><strong>${escapeHtml(price)}</strong><span class="${(data.change24h??0)>=0?'is-positive':'is-negative'}">${(data.change24h??0)>=0?'+':''}${Number(data.change24h??0).toFixed(2)}%</span></div></div><div class="q-asset-tabs" role="tablist"><button class="is-active" role="tab" aria-selected="true">Overview</button><button role="tab" aria-selected="false">Markets</button><button role="tab" aria-selected="false">Evidence</button></div><div class="q-kpi-grid">${stats.map(([label,value,unit])=>`<article class="q-kpi"><div class="q-kpi-label">${escapeHtml(label)}</div><div class="q-kpi-value">${value==null?'N/A':unit==='USD'?formatCompact(value):new Intl.NumberFormat('en-US',{style:'currency',currency:unit,maximumFractionDigits:6}).format(value)}</div><div class="q-kpi-meta"><span>${value==null?escapeHtml(data.definitions.marketCap):'Provider observation'}</span><span class="q-status q-status--${value==null?'unavailable':freshness}">${value==null?'unavailable':freshness}</span></div></article>`).join('')}</div><div class="q-dashboard-grid"><div id="asset-chart"></div><section class="q-panel"><div class="q-panel-head"><div><h2>Source and definitions</h2><p>Every displayed field has a source or explicit unavailability reason</p></div><button class="q-button q-button--ghost" data-action="asset-source">Inspect JSON</button></div><div class="q-panel-body"><div class="q-context-block"><dl><dt>Provider</dt><dd>${escapeHtml(data.source.providerName)}</dd><dt>Observation</dt><dd>${escapeHtml(data.source.observationTime)}</dd><dt>Ingestion</dt><dd>${escapeHtml(data.source.ingestionTime)}</dd><dt>Cache</dt><dd>${escapeHtml(data.source.cacheState)}</dd><dt>Quality</dt><dd>${escapeHtml(data.source.qualityState)}</dd><dt>Entitlement</dt><dd>${escapeHtml(data.source.entitlement)}</dd></dl></div><div class="q-truth-callout is-compact"><span class="q-status q-status--${data.source.degraded?'warning':'live'}">${data.source.degraded?'degraded':'public'}</span><p>${escapeHtml(data.source.fallbackReason??'Documented public market endpoint; no account or trading access.')}</p></div><div class="q-action-row"><button class="q-button q-button--primary" data-action="signin-action">Sign in for watchlists and alerts</button></div></div></section></div></section>`;
+  const [data,candles]=await Promise.all([
+    api(`/api/v1/public/markets/assets/${encodeURIComponent(id)}`),
+    api(`/api/v1/public/markets/assets/${encodeURIComponent(id)}/candles?interval=1h&limit=168`)
+  ]);
+  const freshness=data.source.freshness;
+  const price=data.price==null?'N/A':new Intl.NumberFormat('en-US',{style:'currency',currency:data.currency,maximumFractionDigits:data.price>100?2:6}).format(data.price);
+  const change24h=Number.isFinite(Number(data.change24h))?Number(data.change24h):null;
+  const high24h=Number.isFinite(Number(data.high24h))?Number(data.high24h):null;
+  const low24h=Number.isFinite(Number(data.low24h))?Number(data.low24h):null;
+  const currentPrice=Number.isFinite(Number(data.price))?Number(data.price):null;
+  const rangeRiskPct=high24h!=null&&low24h!=null&&currentPrice>0?(high24h-low24h)/currentPrice*100:null;
+  const stats=[
+    ['24h change',change24h==null?'N/A':`${change24h>=0?'+':''}${change24h.toFixed(2)}%`,change24h==null?'unavailable':freshness,'Price performance'],
+    ['24h high',high24h==null?'N/A':new Intl.NumberFormat('en-US',{style:'currency',currency:data.currency,maximumFractionDigits:6}).format(high24h),high24h==null?'unavailable':freshness,'Observed range'],
+    ['24h low',low24h==null?'N/A':new Intl.NumberFormat('en-US',{style:'currency',currency:data.currency,maximumFractionDigits:6}).format(low24h),low24h==null?'unavailable':freshness,'Observed range'],
+    ['24h range risk',rangeRiskPct==null?'N/A':`${rangeRiskPct.toFixed(2)}%`,rangeRiskPct==null?'unavailable':freshness,'High-low width vs current price']
+  ];
+  main.innerHTML=`<section class="q-page">${stateBanner()}
+    <div class="q-asset-hero">
+      <div class="q-asset-identity"><span class="q-asset-icon">${escapeHtml(data.symbol.slice(0,2))}</span><div><p class="q-eyebrow" style="color:rgba(255,255,255,.72)!important">Market snapshot</p><h1>${escapeHtml(data.name)} <small style="font-size:12px;opacity:.72">${escapeHtml(data.symbol)}</small></h1><p>${escapeHtml(data.category)} · public research</p></div></div>
+      <div class="q-asset-price"><span class="q-status q-status--${freshness}">${escapeHtml(data.source.qualityState)}</span><strong>${escapeHtml(price)}</strong><span class="${(change24h??0)>=0?'is-positive':'is-negative'}">${change24h==null?'24h unavailable':`${change24h>=0?'+':''}${change24h.toFixed(2)}%`}</span></div>
+    </div>
+    <div class="q-kpi-grid">${stats.map(([label,value,status,meta])=>`<article class="q-kpi"><div class="q-kpi-label">${escapeHtml(label)}</div><div class="q-kpi-value">${escapeHtml(value)}</div><div class="q-kpi-meta"><span>${escapeHtml(meta)}</span><span class="q-status q-status--${status}">${escapeHtml(status)}</span></div></article>`).join('')}</div>
+    <div class="q-dashboard-grid">
+      <div id="asset-chart"></div>
+      <div class="q-dashboard-stack">
+        <section class="q-panel"><div class="q-panel-head"><div><h2>Evidence &amp; freshness</h2><p>Source, timing and data quality stay visible without dominating the market view.</p></div><button class="q-button q-button--ghost" data-action="asset-source">Data details</button></div>
+          <div class="q-panel-body"><div class="q-context-block"><dl><dt>Source</dt><dd>${escapeHtml(data.source.providerName)}</dd><dt>Last observed</dt><dd>${escapeHtml(data.source.observationTime)}</dd><dt>Freshness</dt><dd>${escapeHtml(freshness)}</dd><dt>Data quality</dt><dd>${escapeHtml(data.source.qualityState)}</dd></dl></div><div class="q-truth-callout is-compact"><span class="q-status q-status--${data.source.degraded?'warning':'live'}">${data.source.degraded?'degraded':'available'}</span><p>${escapeHtml(data.source.fallbackReason??'Public market observations are shown with their current source and freshness state.')}</p></div></div>
+        </section>
+        <section class="q-panel"><div class="q-panel-head"><div><h2>Continue analysis</h2><p>Move from the snapshot into quantitative evidence, catalysts and scheduled events.</p></div></div><div class="q-panel-body"><div class="q-action-row"><button class="q-button q-button--primary" data-action="asset-decision">Decision Intelligence</button><button class="q-button" data-action="asset-intelligence">Asset Intelligence</button><button class="q-button" data-action="asset-news">News &amp; research</button><button class="q-button" data-action="asset-events">Events</button></div></div></section>
+      </div>
+    </div>
+  </section>`;
   const series=candles.points.map((point)=>({label:new Date(point.time*1000).toLocaleString('en-US',{month:'short',day:'2-digit',hour:'2-digit'}),value:Number(point.close)}));
   new QellyChartShell(document.getElementById('asset-chart'),{title:`${data.symbol}/USDT price history`,series,metadata:{source:candles.source.attribution,observedAt:candles.source.observedAt,receivedAt:candles.source.observedAt,confidence:candles.source.mode==='live-public'?.96:.72,freshnessClass:candles.source.mode==='live-public'?'live':'simulated'},currency:data.currency});
-  main.querySelector('[data-action="asset-source"]').addEventListener('click',()=>openJsonDialog(`${data.name} evidence`,data,'Canonical public-market observation'));
-  main.querySelector('[data-action="signin-action"]').addEventListener('click',()=>navigate(state.authenticated?'watchlist':'auth-login'));
-  main.querySelectorAll('[role="tab"]').forEach((tab)=>tab.addEventListener('click',()=>{main.querySelectorAll('[role="tab"]').forEach((item)=>{item.classList.toggle('is-active',item===tab);item.setAttribute('aria-selected',String(item===tab));});}));
+  main.querySelector('[data-action="asset-source"]')?.addEventListener('click',()=>openJsonDialog(`${data.name} data details`,data,'Source details and raw public observation'));
+  main.querySelector('[data-action="asset-decision"]')?.addEventListener('click',()=>navigate('decision-provenance'));
+  main.querySelector('[data-action="asset-intelligence"]')?.addEventListener('click',()=>navigate('asset-intelligence'));
+  main.querySelector('[data-action="asset-news"]')?.addEventListener('click',()=>navigate('news-research'));
+  main.querySelector('[data-action="asset-events"]')?.addEventListener('click',()=>navigate('event-calendar'));
 }
 
 async function renderWatchlist(main) {
