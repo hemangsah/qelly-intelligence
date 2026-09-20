@@ -81,7 +81,11 @@ test('Alert Rules browser route uses the public dry-run contract and responsive 
   assert.match(route,/data-ar-form/);
   assert.match(route,/Nine gates before a condition asks for attention/);
   assert.match(route,/Evaluation trace/);
-  assert.match(route,/No live feed · no persistence · no scheduler · no delivery · no recommendation · no execution/);
+  assert.match(route,/Open Decision Intelligence/);
+  assert.match(route,/Review record/);
+  assert.match(route,/Verification code/);
+  assert.doesNotMatch(route,/governed-alert-rules-v2|attention governance|The backend|Integrity fingerprint|Decision Provenance|Open governed|Provider Operations/i);
+  assert.match(route,/No live monitoring · no saved rule · no automated delivery · no recommendation · no execution/);
   assert.match(css,/@media\(max-width:1160px\)/);
   assert.match(css,/@media\(max-width:760px\)/);
   assert.match(css,/@media\(max-width:430px\)/);

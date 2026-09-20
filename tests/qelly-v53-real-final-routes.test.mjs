@@ -55,9 +55,9 @@ test('Notification Center does not infer external delivery from inbox persistenc
   assert.match(source,/q-v53-final-workspace/);
   assert.match(source,/q-v53-final-inspector/);
   assert.match(source,/Inbox state does not imply push, email or webhook delivery/);
-  assert.match(source,/Verified separately in Provider Operations/);
-  assert.match(source,/external delivery not inferred/i);
-  assert.doesNotMatch(source,/signing service absent|service worker absent/i);
+  assert.match(source,/Delivery evidence must be verified separately/);
+  assert.match(source,/external delivery is not inferred/i);
+  assert.doesNotMatch(source,/Provider Operations|Decision Provenance|signing service absent|service worker absent/i);
 });
 
 test('About Qelly uses the current product contract and avoids false live-market claims',async()=>{
