@@ -1,6 +1,6 @@
 import {HttpError} from './runtime.js';
 
-const EVENTS=new Set(['route_view','calculator_open','calculator_complete','decision_open','decision_range_selected','decision_explain','qelly_view_interaction','asset_search','research_click','india_finance_use','ad_slot_eligibility','ad_slot_render','consent_status','degraded_state','client_error']);
+const EVENTS=new Set(['route_view','calculator_open','calculator_complete','decision_open','decision_range_selected','decision_explain','qelly_view_interaction','asset_search','research_click','india_finance_use','ad_slot_eligibility','ad_slot_render','consent_status','degraded_state','client_error','runtime_signal']);
 const ROUTES=new Set(['market','asset-rankings','asset-intelligence','advanced-chart','decision-provenance','news-research','research-workspace','calculator-center','calculator-detail','india-finance','indicator-library','indicator-detail','formula-library','formula-detail','search','categories','venues','dex-discovery','global-charts','converter','event-calendar','comparison-lab']);
 const PROPERTIES=new Set(['route','feature','action','state','surface','returning','count']);
 const TOKEN=/^[a-z0-9][a-z0-9_.:-]{0,63}$/i;

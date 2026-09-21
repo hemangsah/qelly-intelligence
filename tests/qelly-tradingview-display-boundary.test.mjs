@@ -91,3 +91,13 @@ test('CSP preserves the TradingView boundary alongside separately governed provi
   assert.match(headers,/frame-ancestors 'none'/);
   assert.doesNotMatch(headers,/connect-src[^\n;]*tradingview/i);
 });
+
+test('TradingView wrapper emits coarse load outcome telemetry without reading widget contents',async()=>{
+  const widget=await read('../apps/web/public/assets/market/tradingview-display-widget.mjs');
+  assert.match(widget,/qelly:runtime-signal/);
+  assert.match(widget,/feature:'embed'/);
+  assert.match(widget,/emitRuntime\('load'/);
+  assert.match(widget,/emitRuntime\('failure'/);
+  assert.match(widget,/gte_8000ms|gte_4000ms|gte_2000ms|lt_2000ms/);
+  assert.doesNotMatch(widget,/contentWindow|contentDocument/);
+});

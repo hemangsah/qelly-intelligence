@@ -57,3 +57,16 @@ test('current product header is visible before route readiness while main conten
   assert.match(html,/data-app-ready="false"\] #main\{visibility:hidden/);
   assert.doesNotMatch(html,/data-app-ready="false"\] \.q-app\{visibility:hidden/);
 });
+
+test('browser stability evidence measures repeated route switching after forced GC',async()=>{
+  const probe=await read('scripts/qelly-first-paint-stability.mjs');
+  assert.match(probe,/runRouteCycleStabilityProbe/);
+  assert.match(probe,/for\(let cycle=1;cycle<=6;cycle\+=1\)/);
+  assert.match(probe,/HeapProfiler\.collectGarbage/);
+  assert.match(probe,/Performance\.getMetrics/);
+  assert.match(probe,/jsHeapUsedBytes/);
+  assert.match(probe,/eventListeners/);
+  assert.match(probe,/domNodes/);
+  assert.match(probe,/materialContinuousGrowth/);
+  assert.match(probe,/metricSource:'chromium-cdp-after-forced-gc'/);
+});

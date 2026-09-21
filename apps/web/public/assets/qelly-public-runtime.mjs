@@ -193,7 +193,7 @@ function exposeStatus(){
   window.__QELLY_PUBLIC_BETA_STATUS__=Object.freeze({releaseSha:releaseIdentity.releaseSha||'unresolved',workflowRun:releaseIdentity.workflowRun||null,deployedAt:releaseIdentity.deployedAt||null,deploymentStage:releaseIdentity.mode||config.deploymentStage||'unknown',deterministicLocal:true,authentication:Boolean(config.capabilities?.authentication),cloudSync:Boolean(config.capabilities?.cloudSync),protectedWrites:Boolean(config.capabilities?.protectedWrites),liveProviders:Boolean(config.capabilities?.liveProviders),online:navigator.onLine,productSurface:'market-intelligence'});
 }
 
-async function registerServiceWorker(){if(!('serviceWorker'in navigator)||location.protocol==='file:')return;try{await navigator.serviceWorker.register('./qelly-service-worker.js',{scope:'./'});}catch(error){console.warn('[Qelly] offline shell registration unavailable',error?.message||error);}}
+async function registerServiceWorker(){if(!('serviceWorker'in navigator)||location.protocol==='file:')return;try{await navigator.serviceWorker.register('./qelly-service-worker.js',{scope:'./'});document.dispatchEvent(new CustomEvent('qelly:runtime-signal',{detail:{feature:'service_worker',action:'register',state:'ready',surface:'offline_shell'}}));}catch(error){document.dispatchEvent(new CustomEvent('qelly:runtime-signal',{detail:{feature:'service_worker',action:'register',state:'failed',surface:'offline_shell'}}));console.warn('[Qelly] offline shell registration unavailable',error?.message||error);}}
 
 function install(){
   if(!initialHash||initialHash==='#/'||initialHash==='#')location.hash='#/market';
