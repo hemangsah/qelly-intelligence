@@ -89,3 +89,16 @@ test('Global Market Network V2 is container-responsive and offline packaged',asy
   assert.doesNotMatch(css,/visibility\s*:\s*hidden/);
   assert.match(worker,/assets\/routes\/market-network-v2\.css/);
 });
+
+test('Global Market Network distributes Forex Cross Rates through the shared lazy widget loader',async()=>{
+  const [route,css]=await Promise.all([
+    read('apps/web/public/assets/routes/market-network.mjs'),
+    read('apps/web/public/assets/routes/market-network.css')
+  ]);
+  assert.match(route,/mountLazyTradingViewWidget/);
+  assert.match(route,/kind:'forexCrossRates'/);
+  assert.match(route,/data-network-fx-cross/);
+  assert.match(route,/rootMargin:'160px 0px'/);
+  assert.match(route,/fxCrossHandle\?\.destroy\?\.\(\)/);
+  assert.match(css,/\.q-mn-fx-cross-stage\{[^}]*height:360px;min-height:360px/);
+});
