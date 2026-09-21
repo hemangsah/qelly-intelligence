@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {buildDecisionProvenGraph,normalizeCandles} from '../functions/_lib/decision-proven-graph.js';
 import {buildDecisionIntelligence,calibrateDecisionEvidence,onRequest} from '../functions/api/v1/decision-proven-graph.js';
+import {__decisionProvenGraphRouteTest} from '../apps/web/public/assets/routes/decision-proven-graph.mjs';
 
 const start=Date.now()-180*900_000;
 const candles=Array.from({length:180},(_,index)=>{const close=100+index*.08+Math.sin(index/5)*2;return {t:start+index*900_000,o:String(close-.15),h:String(close+1),l:String(close-1),c:String(close),v:String(1000+index),n:20+index};});
@@ -172,4 +173,28 @@ test('Decision Intelligence builder is reusable by grounded internal tools witho
   assert.ok(result.qellyView.evidenceGate);
   assert.ok(providerBodies.some(body=>body.type==='candleSnapshot'));
   assert.ok(providerBodies.some(body=>body.type==='metaAndAssetCtxs'));
+});
+
+test('Decision Intelligence consumes fresh bounded Chat context once and rejects stale or invalid context',()=>{
+  const original=globalThis.sessionStorage;
+  const values=new Map();
+  globalThis.sessionStorage={
+    getItem:key=>values.has(key)?values.get(key):null,
+    setItem:(key,value)=>values.set(key,String(value)),
+    removeItem:key=>values.delete(key)
+  };
+  try{
+    const key=__decisionProvenGraphRouteTest.CHAT_DECISION_CONTEXT_KEY;
+    values.set(key,JSON.stringify({createdAt:new Date().toISOString(),asset:'ETH',timeframe:'1h'}));
+    assert.deepEqual(__decisionProvenGraphRouteTest.readChatDecisionContext(),{asset:'ETH',interval:'1h'});
+    assert.equal(values.has(key),false);
+
+    values.set(key,JSON.stringify({createdAt:new Date(Date.now()-16*60_000).toISOString(),asset:'SOL',timeframe:'4h'}));
+    assert.deepEqual(__decisionProvenGraphRouteTest.readChatDecisionContext(),{asset:'BTC',interval:'15m'});
+
+    values.set(key,JSON.stringify({createdAt:new Date().toISOString(),asset:'INVALID',timeframe:'2m'}));
+    assert.deepEqual(__decisionProvenGraphRouteTest.readChatDecisionContext(),{asset:'BTC',interval:'15m'});
+  }finally{
+    if(original===undefined)delete globalThis.sessionStorage;else globalThis.sessionStorage=original;
+  }
 });
