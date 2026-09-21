@@ -69,3 +69,10 @@ test('retired V5.3 lock shell stays deleted while family harmonization remains a
   assert.doesNotMatch(family,/qelly-v53-lock-shell\.mjs/);
   await assert.rejects(()=>stat(new URL('../apps/web/public/assets/qelly-v53-lock-shell.mjs',import.meta.url)),{code:'ENOENT'});
 });
+
+test('ads seller authorization remains inactive until real publisher approval',async()=>{
+  const ads=await read('apps/web/public/ads.txt');
+  assert.match(ads,/currently authorizes no advertising sellers/i);
+  assert.match(ads,/only after publisher approval and domain verification/i);
+  assert.doesNotMatch(ads,/google\.com\s*,\s*pub-/i);
+});
