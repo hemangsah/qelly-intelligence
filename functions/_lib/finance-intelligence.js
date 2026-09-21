@@ -1,6 +1,6 @@
 import {buildExternalMarketNetwork} from './market-network.js';
 import {providerResult} from './providers.js';
-import {buildAssetToolReceipt,buildIndiaToolReceipt,buildSearchToolReceipt,normalizeChatAsset,normalizeChatMode} from './qelly-chat-tools.js';
+import {buildAssetToolReceipt,buildEventCalendarToolReceipt,buildFormulaScreenerToolReceipt,buildIndiaToolReceipt,buildMarketToolReceipt,buildPublicResearchToolReceipt,buildSearchToolReceipt,buildVerifyToolReceipt,normalizeChatAsset,normalizeChatMode} from './qelly-chat-tools.js';
 
 export const DEFAULT_QELLY_AI_MODEL='@cf/meta/llama-3.1-8b-instruct-fp8';
 
@@ -157,9 +157,14 @@ export async function buildFinanceContext(context,message,{networkLoader=buildEx
     policy:{fabricatedFallback:false,execution:false,custody:false,financialAdvice:false,sourceFailuresRemainUnavailable:true}
   };
   const tools=[];
-  if(['ask','research','compare','explain','calculate'].includes(resolvedMode))tools.push(buildSearchToolReceipt(message,sources));
+  if(['ask','research','compare','explain','asset'].includes(resolvedMode))tools.push(buildMarketToolReceipt(sources,resolvedAsset));
+  if(['ask','research','compare','explain'].includes(resolvedMode))tools.push(buildSearchToolReceipt(message,sources));
   if(['asset','compare','explain','decision'].includes(resolvedMode))tools.push(buildAssetToolReceipt(sources,resolvedAsset));
+  if(['ask','research','explain'].includes(resolvedMode))tools.push(buildPublicResearchToolReceipt(base));
   if(resolvedMode==='india')tools.push(buildIndiaToolReceipt(base));
+  if(/\b(formula screener|screen(?:er|ing)?|momentum quality|trend efficiency|rsi impulse)\b/i.test(message))tools.push(await buildFormulaScreenerToolReceipt(context?.env||{}, {message,asset:resolvedAsset}));
+  if(/\b(event calendar|catalyst|earnings date|macro event|protocol event|regulatory milestone)\b/i.test(message))tools.push(buildEventCalendarToolReceipt(message,resolvedAsset));
+  if(/\b(qelly verify|verify strategy|verify backtest|strategy verification|trade csv)\b/i.test(message))tools.push(buildVerifyToolReceipt());
   return {...base,tools};
 }
 
