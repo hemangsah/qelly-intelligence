@@ -7,7 +7,7 @@ const MAX_PINNED=6;
 const ALLOWED_EVENTS=new Set([
   'route_view','calculator_open','calculator_complete','decision_open','decision_range_selected',
   'decision_explain','qelly_view_interaction','asset_search','research_click','india_finance_use',
-  'ad_slot_eligibility','ad_slot_render','consent_status','degraded_state','client_error'
+  'ad_slot_eligibility','ad_slot_render','consent_status','degraded_state','client_error','runtime_signal'
 ]);
 const ALLOWED_PROPERTIES=new Set(['route','feature','action','state','surface','returning','count']);
 const ANALYTICS_ROUTES=new Set(['market','asset-rankings','asset-intelligence','advanced-chart','decision-provenance','news-research','research-workspace','calculator-center','calculator-detail','india-finance','indicator-library','indicator-detail','formula-library','formula-detail','search','categories','venues','dex-discovery','global-charts','converter','event-calendar','comparison-lab']);
@@ -111,8 +111,9 @@ export function createGrowthAnalytics({config={},storage=globalThis.localStorage
   const returning=storageGet(storage,SESSION_KEY,null)!=null;
   storageSet(storage,SESSION_KEY,{lastSeenAt:new Date(now()).toISOString()});
 
+  const canCollect=()=>enabled&&!dnt&&readGrowthConsent(storage);
   const flush=async()=>{
-    if(!queue.length||!enabled||dnt||!readGrowthConsent(storage))return false;
+    if(!queue.length||!canCollect())return false;
     const events=queue.splice(0,20);
     try{
       const response=await fetchImpl(endpoint,{method:'POST',credentials:'omit',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({schemaVersion:1,events})});
@@ -124,7 +125,7 @@ export function createGrowthAnalytics({config={},storage=globalThis.localStorage
     }
   };
   const track=(name,properties={})=>{
-    if(!enabled||dnt||!readGrowthConsent(storage))return false;
+    if(!canCollect())return false;
     const event=sanitizeGrowthEvent({name,properties:{...properties,returning}},now());
     if(!event)return false;
     queue.push(event);
@@ -132,7 +133,7 @@ export function createGrowthAnalytics({config={},storage=globalThis.localStorage
     else if(timer==null)timer=setTimeout(()=>{timer=null;void flush();},1500);
     return true;
   };
-  return Object.freeze({track,flush,enabled:enabled&&!dnt,returning});
+  return Object.freeze({track,flush,canCollect,enabled:enabled&&!dnt,returning});
 }
 
 const routeFromHash=()=>location.hash.replace(/^#\/?/,'').split('?')[0].split('/')[0]||'market';
@@ -181,6 +182,7 @@ function openGrowthPanel(analytics){
   dialog.querySelector('[data-growth-consent]')?.addEventListener('change',(event)=>{
     updateGrowthConsent(event.currentTarget.checked);
     analytics.track('consent_status',{state:event.currentTarget.checked?'granted':'denied',surface:'recent_panel'});
+    window.dispatchEvent(new CustomEvent('qelly:analytics-consent-change',{detail:{enabled:event.currentTarget.checked===true}}));
   });
   dialog.addEventListener('close',()=>dialog.remove(),{once:true});
   dialog.showModal();
@@ -188,10 +190,50 @@ function openGrowthPanel(analytics){
 
 export function installGrowthRuntime(config=window.__QELLY_CONFIG__||{}){
   const analytics=createGrowthAnalytics({config:config.analytics});
+  let runtimeObserversInstalled=false,retryCount=0,memoryPressureReported=false;
+  const runtimeTrack=(detail={})=>{
+    const route=routeFromHash();
+    analytics.track('runtime_signal',{
+      route:ANALYTICS_ROUTES.has(route)?route:undefined,
+      feature:detail.feature,
+      action:detail.action,
+      state:detail.state,
+      surface:detail.surface,
+      count:detail.count
+    });
+  };
+  const sampleMemoryPressure=()=>{
+    if(memoryPressureReported||!analytics.canCollect())return;
+    const memory=globalThis.performance?.memory;
+    const used=Number(memory?.usedJSHeapSize),limit=Number(memory?.jsHeapSizeLimit);
+    if(!Number.isFinite(used)||!Number.isFinite(limit)||limit<=0||used/limit<0.85)return;
+    memoryPressureReported=true;
+    runtimeTrack({feature:'main_thread',action:'memory_pressure',state:'high',surface:'browser'});
+  };
+  const ensureRuntimeObservers=()=>{
+    if(runtimeObserversInstalled||!analytics.canCollect())return;
+    runtimeObserversInstalled=true;
+    try{
+      let pending=0;
+      new PerformanceObserver((list)=>{
+        const entries=list.getEntries();
+        if(!entries.length)return;
+        pending+=entries.length;
+        const severe=entries.some(entry=>Number(entry.duration)>=500);
+        if(severe||pending>=5){
+          runtimeTrack({feature:'main_thread',action:'long_task',state:severe?'gte_500ms':'gt_50ms',surface:'browser',count:pending});
+          pending=0;
+        }
+      }).observe({type:'longtask',buffered:true});
+    }catch{}
+    sampleMemoryPressure();
+  };
   const trackRoute=()=>{
     const recent=recentDescriptorFromHash(location.hash);
     const route=recent.route;
     recordRecentActivity(recent);
+    ensureRuntimeObservers();
+    sampleMemoryPressure();
     if(ANALYTICS_ROUTES.has(route)){
       analytics.track('route_view',{route,feature:route==='decision-provenance'?'decision_intelligence':route});
       if(route==='decision-provenance')analytics.track('decision_open',{route,feature:'decision_intelligence'});
@@ -199,12 +241,22 @@ export function installGrowthRuntime(config=window.__QELLY_CONFIG__||{}){
     }
   };
   document.addEventListener('qelly:product-event',(event)=>analytics.track(event.detail?.name,event.detail?.properties));
+  document.addEventListener('qelly:runtime-signal',(event)=>runtimeTrack(event.detail));
   document.addEventListener('qelly:ad',(event)=>analytics.track(event.detail?.state==='requested'?'ad_slot_render':'ad_slot_eligibility',{state:event.detail?.state,feature:event.detail?.placement}));
+  window.addEventListener('qelly:analytics-consent-change',(event)=>{if(event.detail?.enabled)ensureRuntimeObservers();});
   document.addEventListener('click',(event)=>{if(isGrowthOpenTarget(event.target))openGrowthPanel(analytics);});
-  document.addEventListener('click',(event)=>{const link=event.target.closest?.('a[href]');if(link&&routeFromHash()==='news-research')analytics.track('research_click',{route:'news-research',feature:link.origin===location.origin?'internal':'external',action:'open'});});
+  document.addEventListener('click',(event)=>{
+    if(event.target.closest?.('[data-qelly-tv-retry],[data-retry]')){
+      retryCount+=1;
+      runtimeTrack({feature:'provider',action:'retry',state:retryCount>1?'repeated':'single',surface:'browser',count:1});
+    }
+    const link=event.target.closest?.('a[href]');
+    if(link&&routeFromHash()==='news-research')analytics.track('research_click',{route:'news-research',feature:link.origin===location.origin?'internal':'external',action:'open'});
+  });
   window.addEventListener('hashchange',()=>setTimeout(trackRoute,0));
   window.addEventListener('pagehide',()=>void analytics.flush());
   window.addEventListener('error',()=>analytics.track('client_error',{route:routeFromHash(),state:'uncaught'}));
+  window.addEventListener('unhandledrejection',()=>analytics.track('client_error',{route:routeFromHash(),state:'unhandled_rejection'}));
   const installButton=()=>{
     const actions=document.querySelector('.q-product-actions');
     if(!actions||actions.querySelector('[data-growth-open]'))return;
@@ -212,7 +264,7 @@ export function installGrowthRuntime(config=window.__QELLY_CONFIG__||{}){
     actions.prepend(button);
   };
   new MutationObserver(installButton).observe(document.body,{childList:true,subtree:true});
-  installButton();setTimeout(trackRoute,0);
+  installButton();ensureRuntimeObservers();setTimeout(trackRoute,0);
   window.__QELLY_GROWTH__=Object.freeze({track:analytics.track,open:()=>openGrowthPanel(analytics),readRecentActivity,readPinnedActivity,togglePinnedActivity});
   return window.__QELLY_GROWTH__;
 }
