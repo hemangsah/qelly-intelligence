@@ -24,9 +24,9 @@ test('India market quotes use the official TradingView symbolsGroups schema and 
   assert.match(route,/kind:'marketQuotes'/);
   assert.match(route,/symbolsGroups:\[\{name:'India'/);
   assert.doesNotMatch(route,/\bsymbolGroups:\[/);
-  for(const symbol of ['NSE:NIFTY','BSE:SENSEX','NSE:BANKNIFTY','FX_IDC:USDINR'])assert.match(route,new RegExp(symbol.replace(/[:]/g,'\\:')));
-  for(const label of ['Nifty 50','Sensex','Bank Nifty','USD / INR'])assert.match(route,new RegExp(label.replace(/\//g,'\\/')));
-  assert.match(route,/<strong>Coverage:<\/strong> Nifty 50 · Sensex · Bank Nifty · USD\/INR · Gold/);
+  for(const symbol of ['NSE:NIFTY','BSE:SENSEX','NSE:BANKNIFTY','NSE:INDIAVIX','FX_IDC:USDINR'])assert.match(route,new RegExp(symbol.replace(/[:]/g,'\\:')));
+  for(const label of ['Nifty 50','Sensex','Bank Nifty','India VIX','USD / INR'])assert.match(route,new RegExp(label.replace(/\//g,'\\/')));
+  assert.match(route,/<strong>Coverage:<\/strong> Nifty 50 · Sensex · Bank Nifty · India VIX · USD\/INR · Gold/);
 });
 
 
@@ -36,10 +36,23 @@ test('India market context is lazy and reserved below the finance tools',async()
     readFile(new URL('../apps/web/public/assets/routes/india-finance-center.css',import.meta.url),'utf8')
   ]);
   assert.match(route,/mountLazyTradingViewWidget/);
-  assert.equal((route.match(/mountLazyTradingViewWidget\(/g)||[]).length,3);
+  assert.equal((route.match(/mountLazyTradingViewWidget\(/g)||[]).length,5);
   assert.doesNotMatch(route,/mountTradingViewWidget\(/);
   assert.match(route,/rootMargin:'260px 0px'/);
   assert.match(css,/\.q-india-widget\{min-height:420px/);
   assert.match(css,/\.q-india-widget--screener\{min-height:520px\}/);
   assert.match(css,/\.q-india-widget--stories\{min-height:500px\}/);
+  assert.match(css,/\.q-india-context-grid\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+});
+
+test('India research context preserves display-only and primary-source boundaries',async()=>{
+  const route=await readFile(new URL('../apps/web/public/assets/routes/india-finance-center.mjs',import.meta.url),'utf8');
+  assert.match(route,/kind:'economicCalendar'/);
+  assert.match(route,/countryFilter:'in'/);
+  assert.match(route,/kind:'technicalAnalysis'/);
+  assert.match(route,/symbol:'NSE:NIFTY'/);
+  assert.match(route,/Direct QELLY feeds for FII\/DII flows, government-bond yields, market breadth and corporate actions are not licensed or connected here/);
+  assert.match(route,/https:\/\/www\.nseindia\.com\/reports\/fii-dii/);
+  assert.match(route,/https:\/\/www\.nseindia\.com\/companies-listing\/corporate-filings-actions/);
+  assert.match(route,/https:\/\/www\.bseindia\.com\/markets\.html/);
 });
