@@ -105,7 +105,7 @@ function shellMarkup(){
     <div class="q-ai-thread" data-q-ai-thread aria-live="polite" aria-relevant="additions text"></div>
     <div class="q-ai-suggestions" data-q-ai-suggestions></div>
     <form class="q-ai-composer" data-q-ai-form><label><span class="q-visually-hidden">Ask Qelly a finance question</span><textarea name="message" rows="1" maxlength="2400" placeholder="Ask about markets, evidence, risk or QELLY tools…" required></textarea></label><button type="button" data-q-ai-stop hidden><span>Stop</span><b aria-hidden="true">■</b></button><button type="submit" data-q-ai-send><span>Send</span><b aria-hidden="true">↑</b></button></form>
-    <footer><span>Connected evidence + bounded QELLY tools + model inference</span><div><button type="button" data-q-ai-export>Export</button><button type="button" data-q-ai-clear>Clear</button></div><small>Research only · no trade execution · unvalidated streaming disabled</small></footer>
+    <footer><span>Connected evidence + QELLY tool receipts + model inference</span><div><button type="button" data-q-ai-export>Export</button><button type="button" data-q-ai-clear>Clear</button></div><small>Research only · no trade execution · unvalidated streaming disabled</small></footer>
   </aside>`;
 }
 
