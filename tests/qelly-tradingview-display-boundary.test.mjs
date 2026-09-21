@@ -96,8 +96,8 @@ test('TradingView wrapper emits coarse load outcome telemetry without reading wi
   const widget=await read('../apps/web/public/assets/market/tradingview-display-widget.mjs');
   assert.match(widget,/qelly:runtime-signal/);
   assert.match(widget,/feature:'embed'/);
-  assert.match(widget,/action:'load'/);
-  assert.match(widget,/action,'failure'/);
+  assert.match(widget,/emitRuntime\('load'/);
+  assert.match(widget,/emitRuntime\('failure'/);
   assert.match(widget,/gte_8000ms|gte_4000ms|gte_2000ms|lt_2000ms/);
   assert.doesNotMatch(widget,/contentWindow|contentDocument/);
 });
