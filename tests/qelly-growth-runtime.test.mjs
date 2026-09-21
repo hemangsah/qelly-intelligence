@@ -9,13 +9,19 @@ test('growth events accept only coarse allowlisted properties',()=>{
   assert.deepEqual(event,{name:'calculator_complete',properties:{route:'calculator-detail',feature:'retirement'},occurredAt:'1970-01-01T00:00:00.000Z'});
   assert.equal(sanitizeGrowthEvent({name:'keystroke',properties:{}}),null);
   assert.equal(sanitizeGrowthEvent({name:'asset_search',properties:{route:'search',feature:'BTC USD'}})?.properties.feature,undefined);
+  assert.deepEqual(
+    sanitizeGrowthEvent({name:'runtime_signal',properties:{route:'market',feature:'main_thread',action:'long_task',state:'gte_500ms',surface:'browser',secret:'never'}},0),
+    {name:'runtime_signal',properties:{route:'market',feature:'main_thread',action:'long_task',state:'gte_500ms',surface:'browser'},occurredAt:'1970-01-01T00:00:00.000Z'}
+  );
 });
 
 test('analytics is disabled without explicit consent and honors global privacy control',async()=>{
   const storage=memoryStorage();let requests=0;
   const analytics=createGrowthAnalytics({config:{enabled:true,endpoint:'/api/v1/analytics/events'},storage,navigatorObject:{doNotTrack:'0'},fetchImpl:async()=>{requests+=1;return{ok:true};},now:()=>0});
   assert.equal(analytics.track('route_view',{route:'market'}),false);
+  assert.equal(analytics.canCollect(),false);
   updateGrowthConsent(true,storage);
+  assert.equal(analytics.canCollect(),true);
   assert.equal(analytics.track('route_view',{route:'market'}),true);
   await analytics.flush();assert.equal(requests,1);
   const privateAnalytics=createGrowthAnalytics({config:{enabled:true},storage,navigatorObject:{globalPrivacyControl:true}});
