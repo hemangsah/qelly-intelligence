@@ -112,17 +112,28 @@ const anonymousOverview=staticVisualPreview
     ]}
   : {macro:[{label:'Identity',value:'Sign in required',state:'cached'},{label:'Database',value:'Production foundation',state:'live'},{label:'Execution',value:'Disabled',state:'unavailable'}]};
 
+const runtimeSignal=(detail)=>document.dispatchEvent(new CustomEvent('qelly:runtime-signal',{detail}));
+const latencyState=(duration)=>duration>=4000?'gte_4000ms':duration>=2000?'gte_2000ms':duration>=1000?'gte_1000ms':null;
 const api = async (path, options = {}) => {
   const method = String(options.method ?? 'GET').toUpperCase();
   if(staticVisualPreview)return staticPreviewApi.staticPreviewRequest(path,{...options,method});
   const mutationHeaders = ['GET','HEAD','OPTIONS'].includes(method)||options.skipCsrf ? {} : {'X-Qelly-CSRF': state.config?.csrf?.token ?? ''};
   const {skipCsrf,...fetchOptions}=options;
-  const response = await fetch(apiUrl(path), { ...fetchOptions, signal:fetchOptions.signal??currentRenderSignal??undefined, credentials:'include', headers:{'Content-Type':'application/json',...mutationHeaders,...(options.headers ?? {})} });
-  if (!response.ok) {
-    const body = await response.json().catch(() => ({}));
-    const caught=new Error(body.error?.message ?? `Request failed (${response.status})`);caught.status=response.status;caught.code=body.error?.code;throw caught;
+  const started=performance.now();
+  try{
+    const response = await fetch(apiUrl(path), { ...fetchOptions, signal:fetchOptions.signal??currentRenderSignal??undefined, credentials:'include', headers:{'Content-Type':'application/json',...mutationHeaders,...(options.headers ?? {})} });
+    const slow=latencyState(performance.now()-started);
+    if(slow)runtimeSignal({feature:'api',action:'latency',state:slow,surface:'fetch'});
+    if (!response.ok) {
+      runtimeSignal({feature:'api',action:'failure',state:response.status>=500?'server_error':response.status===429?'rate_limited':'request_error',surface:'fetch'});
+      const body = await response.json().catch(() => ({}));
+      const caught=new Error(body.error?.message ?? `Request failed (${response.status})`);caught.status=response.status;caught.code=body.error?.code;throw caught;
+    }
+    return response.json();
+  }catch(error){
+    if(error?.name!=='AbortError'&&!Number.isFinite(Number(error?.status)))runtimeSignal({feature:'api',action:'failure',state:'network_error',surface:'fetch'});
+    throw error;
   }
-  return response.json();
 };
 
 async function loadAuthenticatedState(){
