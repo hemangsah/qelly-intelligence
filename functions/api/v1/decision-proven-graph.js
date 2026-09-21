@@ -174,21 +174,57 @@ async function fetchTimeframes(fetchImpl,asset,endTime,selectedInterval){
   return {state:views.length>=3?'live':views.length?'partial':'unavailable',views,agreement:{direction:buys>sells?'BUY':sells>buys?'SELL':'MIXED',aligned:Math.max(buys,sells),directional:directional.length,total:views.length}};
 }
 
+export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',horizon='4h',selection=null,now=Date.now()}={}){
+  const resolvedAsset=String(asset||'BTC').toUpperCase();
+  const resolvedInterval=String(interval||'15m');
+  const resolvedHorizon=String(horizon||'4h');
+  if(!ASSETS.has(resolvedAsset))throw new HttpError(400,'unsupported_asset','Supported assets: BTC, ETH, SOL, HYPE, XRP, DOGE');
+  if(!DECISION_INTERVALS[resolvedInterval])throw new HttpError(400,'unsupported_interval','Unsupported candle interval');
+  if(!HORIZONS[resolvedHorizon])throw new HttpError(400,'unsupported_horizon','Supported horizons: 1h, 4h, 12h, 1d, 3d, 7d');
+  const horizonBars=Math.ceil(HORIZONS[resolvedHorizon]/DECISION_INTERVALS[resolvedInterval]);
+  if(horizonBars<2||horizonBars>168)throw new HttpError(400,'incompatible_horizon','Choose a horizon at least two bars long and no more than 168 bars');
+  let resolvedSelection=null;
+  if(selection){
+    const start=Number(selection.start),end=Number(selection.end);
+    if(!Number.isFinite(start)||!Number.isFinite(end)||start>=end||end-start>90*86_400_000)throw new HttpError(400,'invalid_selection','Select a valid chart range of 90 days or less');
+    resolvedSelection={start,end};
+  }
+  const endTime=Number(now);
+  if(!Number.isFinite(endTime)||endTime<=0)throw new HttpError(400,'invalid_observation_time','Observation time is invalid');
+  const fetchImpl=fetcher(env);
+  const [payload,multiTimeframe,derivatives]=await Promise.all([
+    fetchCandles(fetchImpl,resolvedAsset,resolvedInterval,endTime),
+    fetchTimeframes(fetchImpl,resolvedAsset,endTime,resolvedInterval),
+    fetchDerivativesContext(fetchImpl,resolvedAsset,endTime)
+  ]);
+  let graph;
+  try{
+    graph=buildDecisionProvenGraph(payload,{asset:resolvedAsset,interval:resolvedInterval,horizonBars,now:endTime,selection:resolvedSelection});
+    graph=calibrateDecisionEvidence(graph,multiTimeframe,derivatives);
+  }catch(error){
+    if(error instanceof HttpError)throw error;
+    throw new HttpError(503,'insufficient_provider_data',error.message,{retryable:true});
+  }
+  const newsStart=resolvedSelection?.start??endTime-24*3_600_000;
+  const newsEnd=Math.min(resolvedSelection?.end??endTime,endTime);
+  let articles=[],newsState='unavailable';
+  try{articles=await fetchNews(fetchImpl,resolvedAsset,newsStart,newsEnd);newsState=articles.length?'live':'no-matches';}catch{}
+  return {...graph,horizon:resolvedHorizon,multiTimeframe,evidence:{news:{state:newsState,provider:'GDELT',articles},derivatives,liquidations:{state:'unavailable',message:'Verified liquidation evidence is not available for this view, so it is not inferred.'}}};
+}
+
 export async function onRequest({request,env}){
   try{
     if(request.method!=='GET')throw new HttpError(405,'method_not_allowed','Use GET for public Decision Intelligence');
     await enforceRateLimit(env,'decision-proven-graph:'+ip(request),{limit:30,windowMs:60_000});
-    const url=new URL(request.url);const asset=String(url.searchParams.get('asset')||'BTC').toUpperCase();const interval=url.searchParams.get('interval')||'15m';const horizon=url.searchParams.get('horizon')||'4h';
-    if(!ASSETS.has(asset))throw new HttpError(400,'unsupported_asset','Supported assets: BTC, ETH, SOL, HYPE, XRP, DOGE');
-    if(!DECISION_INTERVALS[interval])throw new HttpError(400,'unsupported_interval','Unsupported candle interval');
-    if(!HORIZONS[horizon])throw new HttpError(400,'unsupported_horizon','Supported horizons: 1h, 4h, 12h, 1d, 3d, 7d');
-    const horizonBars=Math.ceil(HORIZONS[horizon]/DECISION_INTERVALS[interval]);if(horizonBars<2||horizonBars>168)throw new HttpError(400,'incompatible_horizon','Choose a horizon at least two bars long and no more than 168 bars');
-    const endTime=Date.now();const selectionStart=Number(url.searchParams.get('selectionStart'));const selectionEnd=Number(url.searchParams.get('selectionEnd'));let selection=null;
-    if(url.searchParams.has('selectionStart')||url.searchParams.has('selectionEnd')){if(!Number.isFinite(selectionStart)||!Number.isFinite(selectionEnd)||selectionStart>=selectionEnd||selectionEnd-selectionStart>90*86_400_000)throw new HttpError(400,'invalid_selection','Select a valid chart range of 90 days or less');selection={start:selectionStart,end:selectionEnd};}
-    const fetchImpl=fetcher(env);const [payload,multiTimeframe,derivatives]=await Promise.all([fetchCandles(fetchImpl,asset,interval,endTime),fetchTimeframes(fetchImpl,asset,endTime,interval),fetchDerivativesContext(fetchImpl,asset,endTime)]);
-    let graph;try{graph=buildDecisionProvenGraph(payload,{asset,interval,horizonBars,now:endTime,selection});graph=calibrateDecisionEvidence(graph,multiTimeframe,derivatives);}catch(error){throw new HttpError(503,'insufficient_provider_data',error.message,{retryable:true});}
-    const newsStart=selection?.start??endTime-24*3_600_000;const newsEnd=Math.min(selection?.end??endTime,endTime);let articles=[];let newsState='unavailable';
-    try{articles=await fetchNews(fetchImpl,asset,newsStart,newsEnd);newsState=articles.length?'live':'no-matches';}catch{}
-    return responseJson(request,env,{...graph,horizon,multiTimeframe,evidence:{news:{state:newsState,provider:'GDELT',articles},derivatives,liquidations:{state:'unavailable',message:'Verified liquidation evidence is not available for this view, so it is not inferred.'}}},200,{cache:'public, max-age=10, stale-while-revalidate=30'});
+    const url=new URL(request.url);
+    const selectionStart=Number(url.searchParams.get('selectionStart')),selectionEnd=Number(url.searchParams.get('selectionEnd'));
+    const selection=url.searchParams.has('selectionStart')||url.searchParams.has('selectionEnd')?{start:selectionStart,end:selectionEnd}:null;
+    const result=await buildDecisionIntelligence(env,{
+      asset:url.searchParams.get('asset')||'BTC',
+      interval:url.searchParams.get('interval')||'15m',
+      horizon:url.searchParams.get('horizon')||'4h',
+      selection
+    });
+    return responseJson(request,env,result,200,{cache:'public, max-age=10, stale-while-revalidate=30'});
   }catch(error){return errorResponse(request,env,error);}
 }
