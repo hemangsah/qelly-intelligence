@@ -69,7 +69,7 @@ export async function handleIntelligenceChat(context){
       modes:CHAT_MODES,
       controls:{assets:CHAT_ASSETS,timeframes:CHAT_TIMEFRAMES,calculators:FEATURED_CALCULATORS},
       datasets:datasetRegistry(),
-      tools:{marketData:true,assetDossier:true,formulaScreener:true,calculators:true,decisionIntelligence:true,search:true,eventCalendar:'planning-only-no-live-feed',indiaFinance:true,qellyVerify:'evidence-handoff'},
+      tools:{marketData:true,assetDossier:true,formulaScreener:'on-demand-read-only',calculators:true,decisionIntelligence:true,search:true,eventCalendar:'planning-only-no-live-feed',indiaFinance:true,publicResearch:true,qellyVerify:'input-required-local-analysis'},
       policy:{conversationStorage:'browser_session_only',promptLogging:false,execution:false,custody:false,financialAdvice:false,unvalidatedStreaming:false}
     });
   }
