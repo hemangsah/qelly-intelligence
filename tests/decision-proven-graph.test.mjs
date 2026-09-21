@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {buildDecisionProvenGraph,normalizeCandles} from '../functions/_lib/decision-proven-graph.js';
-import {calibrateDecisionEvidence,onRequest} from '../functions/api/v1/decision-proven-graph.js';
+import {buildDecisionIntelligence,calibrateDecisionEvidence,onRequest} from '../functions/api/v1/decision-proven-graph.js';
+import {__decisionProvenGraphRouteTest} from '../apps/web/public/assets/routes/decision-proven-graph.mjs';
 
 const start=Date.now()-180*900_000;
 const candles=Array.from({length:180},(_,index)=>{const close=100+index*.08+Math.sin(index/5)*2;return {t:start+index*900_000,o:String(close-.15),h:String(close+1),l:String(close-1),c:String(close),v:String(1000+index),n:20+index};});
@@ -152,4 +153,48 @@ test('derivatives provider failure does not fabricate values or take Decision In
   assert.match(body.evidence.derivatives.message,/not inferred/i);
   assert.equal(body.evidence.derivatives.fundingRate,undefined);
   assert.equal(body.evidence.liquidations.state,'unavailable');
+});
+
+
+test('Decision Intelligence builder is reusable by grounded internal tools without changing the public route contract',async()=>{
+  const providerBodies=[];
+  const result=await buildDecisionIntelligence({__fetch:async(url,options={})=>{
+    if(String(url).includes('api.hyperliquid.xyz')){
+      const body=JSON.parse(options.body);providerBodies.push(body);
+      if(body.type==='metaAndAssetCtxs')return new Response(JSON.stringify([{universe:[{name:'BTC'}]},[{funding:'0.0001',openInterest:'100',markPx:'80000',oraclePx:'79950',dayNtlVlm:'1000000',premium:'0'}]]),{status:200,headers:{'content-type':'application/json'}});
+      return new Response(JSON.stringify(candles),{status:200,headers:{'content-type':'application/json'}});
+    }
+    return new Response(JSON.stringify({articles:[]}),{status:200,headers:{'content-type':'application/json'}});
+  }},{asset:'BTC',interval:'15m',horizon:'4h',now:candles.at(-1).t+900_000});
+  assert.equal(result.asset,'BTC');
+  assert.equal(result.interval,'15m');
+  assert.equal(result.horizon,'4h');
+  assert.equal(result.provenance.provider,'Hyperliquid');
+  assert.ok(result.qellyView.evidenceGate);
+  assert.ok(providerBodies.some(body=>body.type==='candleSnapshot'));
+  assert.ok(providerBodies.some(body=>body.type==='metaAndAssetCtxs'));
+});
+
+test('Decision Intelligence consumes fresh bounded Chat context once and rejects stale or invalid context',()=>{
+  const original=globalThis.sessionStorage;
+  const values=new Map();
+  globalThis.sessionStorage={
+    getItem:key=>values.has(key)?values.get(key):null,
+    setItem:(key,value)=>values.set(key,String(value)),
+    removeItem:key=>values.delete(key)
+  };
+  try{
+    const key=__decisionProvenGraphRouteTest.CHAT_DECISION_CONTEXT_KEY;
+    values.set(key,JSON.stringify({createdAt:new Date().toISOString(),asset:'ETH',timeframe:'1h'}));
+    assert.deepEqual(__decisionProvenGraphRouteTest.readChatDecisionContext(),{asset:'ETH',interval:'1h'});
+    assert.equal(values.has(key),false);
+
+    values.set(key,JSON.stringify({createdAt:new Date(Date.now()-16*60_000).toISOString(),asset:'SOL',timeframe:'4h'}));
+    assert.deepEqual(__decisionProvenGraphRouteTest.readChatDecisionContext(),{asset:'BTC',interval:'15m'});
+
+    values.set(key,JSON.stringify({createdAt:new Date().toISOString(),asset:'INVALID',timeframe:'2m'}));
+    assert.deepEqual(__decisionProvenGraphRouteTest.readChatDecisionContext(),{asset:'BTC',interval:'15m'});
+  }finally{
+    if(original===undefined)delete globalThis.sessionStorage;else globalThis.sessionStorage=original;
+  }
 });
