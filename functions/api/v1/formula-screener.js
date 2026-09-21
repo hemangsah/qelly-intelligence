@@ -112,6 +112,10 @@ async function evaluateAsset(fetchImpl,asset,formula,endTime){
   };
 }
 
+export async function runFormulaScreen(env,{formula='momentum_quality',assets=ASSETS}={}){
+  return runScreen(env,normalizeRequest({formula,assets}));
+}
+
 async function runScreen(env,{formula,assets}){
   const fetchImpl=fetcher(env);
   const endTime=Date.now();
@@ -154,8 +158,7 @@ export async function onRequest({request,env={}}){
     await enforceRateLimit(env,'public-formula-screener:'+ip(request),{limit:20,windowMs:60_000});
     if(request.method==='GET')return responseJson(request,env,publicCatalog(),200,{cache:'public, max-age=60, stale-while-revalidate=300'});
     const body=await jsonBody(request,8_192);
-    const normalized=normalizeRequest(body);
-    return responseJson(request,env,await runScreen(env,normalized),200,{cache:'public, max-age=5, stale-while-revalidate=15'});
+    return responseJson(request,env,await runFormulaScreen(env,body),200,{cache:'public, max-age=5, stale-while-revalidate=15'});
   }catch(error){return errorResponse(request,env,error);}
 }
 
