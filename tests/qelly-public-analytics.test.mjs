@@ -22,3 +22,9 @@ test('public analytics endpoint accepts a bounded consent-originated batch witho
   const response=await apiTest.route({request,env,params:{path:['analytics','events']}});
   assert.equal(response.status,202);assert.deepEqual(await response.json(),{accepted:1});
 });
+
+test('runtime observability accepts only coarse taxonomy tokens',()=>{
+  const events=normalizeAnalyticsBatch({schemaVersion:1,events:[{name:'runtime_signal',properties:{route:'market',feature:'api',action:'latency',state:'gte_2000ms',surface:'fetch'},occurredAt:'2026-09-20T00:00:00.000Z'}]},{now:Date.parse('2026-09-20T00:01:00.000Z')});
+  assert.deepEqual(events[0].properties,{route:'market',feature:'api',action:'latency',state:'gte_2000ms',surface:'fetch'});
+  assert.deepEqual(summarizeAnalyticsBatch(events),{event:'qelly_product_analytics',schemaVersion:1,eventCount:1,counts:{'runtime_signal:market:api':1},containsUserInputs:false,containsIdentifiers:false});
+});
