@@ -46,3 +46,12 @@ test('production shell ignores third-party subtree churn after route root settle
   assert.match(source,/if\(routeRootChanged\)schedule\(main\)/);
   assert.doesNotMatch(source,/new MutationObserver\(\(\)=>schedule\(main\)\)/);
 });
+
+test('Market home preserves the master embed order after Advanced Chart',async()=>{
+  const source=await read('apps/web/public/assets/routes/market-v6.mjs');
+  const order=['crypto-heatmap','market-overview','crypto-market','economic-calendar','stock-heatmap','fx-heatmap','etf-heatmap','technicals','stories'];
+  const positions=order.map(id=>source.indexOf(`id:'${id}'`));
+  assert.equal(positions.every(index=>index>=0),true);
+  assert.deepEqual([...positions].sort((a,b)=>a-b),positions);
+  assert.ok(source.indexOf('q-v7-chart-panel') < source.indexOf('q-market-widget-section'));
+});
