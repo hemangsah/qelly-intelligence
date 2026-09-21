@@ -56,7 +56,7 @@ const routes=[
 const viewports=[['desktop',{width:1440,height:1000}],['mobile',{width:390,height:844}]];
 const samples=[0,100,250,500,1000,2000,4000,7000];
 const legacySelectors=['.q-global-strip','.q-command-bar','.q-rail','.q-persona-ribbon','.q-context-shelf','.q-edge-dock','.q-compare-tray','.q-worldclass-context'];
-const report={schemaVersion:1,generatedAt:new Date().toISOString(),releaseSha:process.env.QELLY_SCREEN_EVIDENCE_SHA||process.env.GITHUB_SHA||'local',samples,scenarios:[],status:'passed'};
+const report={schemaVersion:2,generatedAt:new Date().toISOString(),releaseSha:process.env.QELLY_SCREEN_EVIDENCE_SHA||process.env.GITHUB_SHA||'local',samples,scenarios:[],routeCycleStability:null,status:'passed'};
 
 const visibleCount=async(page,selector)=>page.locator(selector).evaluateAll(nodes=>nodes.filter(node=>{const style=getComputedStyle(node),box=node.getBoundingClientRect();return style.display!=='none'&&style.visibility!=='hidden'&&Number(style.opacity)>0&&box.width>0&&box.height>0;}).length);
 const snapshot=async(page,elapsed)=>{
@@ -76,6 +76,65 @@ const snapshot=async(page,elapsed)=>{
     stylesheetLinks:await page.locator('link[rel="stylesheet"]').evaluateAll(nodes=>nodes.map(node=>node.getAttribute('href')))
   };
 };
+
+const materialContinuousGrowth=(values,{ratio,minDelta})=>{
+  if(values.length<4)return false;
+  const first=values[0],last=values.at(-1),tail=values.slice(-4);
+  const monotonicTail=tail.every((value,index)=>index===0||value>=tail[index-1]*0.98);
+  return monotonicTail&&last-first>minDelta&&last>first*ratio;
+};
+
+async function runRouteCycleStabilityProbe(browser){
+  const context=await browser.newContext({viewport:{width:1440,height:1000},device_scale_factor:1,reduced_motion:'reduce'});
+  const page=await context.newPage();
+  const errors=[];
+  page.on('pageerror',error=>errors.push(String(error)));
+  page.on('console',message=>{if(message.type()==='error'&&!/^Failed to load resource:/i.test(message.text()))errors.push(message.text());});
+  const sequence=['#/market','#/decision-provenance','#/news-research','#/calculator-center'];
+  const samples=[];
+  let cdp=null;
+  try{
+    await page.goto(base+'/#/market',{waitUntil:'domcontentloaded',timeout:20000});
+    await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true'&&document.querySelector('#main')?.getAttribute('aria-busy')==='false',{timeout:15000});
+    cdp=await context.newCDPSession(page);
+    await cdp.send('Performance.enable');
+    await cdp.send('HeapProfiler.enable');
+    for(let cycle=1;cycle<=6;cycle+=1){
+      for(const hash of sequence){
+        await page.evaluate((next)=>{location.hash=next;},hash);
+        await page.waitForFunction(()=>document.querySelector('#main')?.getAttribute('aria-busy')==='false',{timeout:15000});
+        await page.waitForTimeout(120);
+      }
+      await cdp.send('HeapProfiler.collectGarbage');
+      await page.waitForTimeout(80);
+      const metrics=await cdp.send('Performance.getMetrics');
+      const values=Object.fromEntries(metrics.metrics.map(item=>[item.name,item.value]));
+      samples.push({
+        cycle,
+        jsHeapUsedBytes:Math.round(Number(values.JSHeapUsedSize)||0),
+        nodes:Math.round(Number(values.Nodes)||0),
+        documents:Math.round(Number(values.Documents)||0),
+        eventListeners:Math.round(Number(values.JSEventListeners)||0),
+        domNodes:await page.locator('*').count()
+      });
+    }
+    const heap=samples.map(item=>item.jsHeapUsedBytes);
+    const dom=samples.map(item=>item.domNodes);
+    const listeners=samples.map(item=>item.eventListeners);
+    const documents=samples.map(item=>item.documents);
+    const failures=[];
+    if(materialContinuousGrowth(heap,{ratio:1.25,minDelta:8*1024*1024}))failures.push('js_heap');
+    if(materialContinuousGrowth(dom,{ratio:1.20,minDelta:800}))failures.push('dom_nodes');
+    if(materialContinuousGrowth(listeners,{ratio:1.50,minDelta:150}))failures.push('event_listeners');
+    if(materialContinuousGrowth(documents,{ratio:1.50,minDelta:8}))failures.push('documents');
+    return {status:failures.length||errors.length?'failed':'passed',cycles:6,sequence,samples,failures,errors,metricSource:'chromium-cdp-after-forced-gc'};
+  }catch(error){
+    return {status:'unavailable',cycles:samples.length,sequence,samples,failures:[],errors:[String(error?.message||error)],metricSource:'chromium-cdp-after-forced-gc'};
+  }finally{
+    await cdp?.detach?.().catch(()=>{});
+    await context.close();
+  }
+}
 
 const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
 try{
@@ -153,6 +212,8 @@ try{
       await context.close();
     }
   }
+  report.routeCycleStability=await runRouteCycleStabilityProbe(browser);
+  if(report.routeCycleStability.status==='failed')report.status='failed';
 }finally{
   await browser.close();
   await new Promise(resolve=>server.close(resolve));
@@ -172,7 +233,13 @@ const summary={
   longTasksOver500:report.scenarios.reduce((total,item)=>total+(item.performanceSignals?.longTasksOver500??0),0),
   criticalStalls:report.scenarios.reduce((total,item)=>total+(item.performanceSignals?.criticalStalls?.length??0),0),
   maxDomNodes:Math.max(...report.scenarios.map(item=>item.performanceSignals?.domNodes??0)),
-  totalMutations:report.scenarios.reduce((total,item)=>total+(item.performanceSignals?.mutations??0),0)
+  totalMutations:report.scenarios.reduce((total,item)=>total+(item.performanceSignals?.mutations??0),0),
+  routeCycleStatus:report.routeCycleStability?.status??'not_run',
+  routeCycleFailures:report.routeCycleStability?.failures??[],
+  routeCycleHeapStart:report.routeCycleStability?.samples?.[0]?.jsHeapUsedBytes??null,
+  routeCycleHeapEnd:report.routeCycleStability?.samples?.at(-1)?.jsHeapUsedBytes??null,
+  routeCycleDomStart:report.routeCycleStability?.samples?.[0]?.domNodes??null,
+  routeCycleDomEnd:report.routeCycleStability?.samples?.at(-1)?.domNodes??null
 };
 console.log(JSON.stringify(summary,null,2));
 if(report.status!=='passed')process.exit(1);
