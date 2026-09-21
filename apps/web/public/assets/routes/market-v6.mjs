@@ -19,8 +19,8 @@ const MARKET_WIDGET_PANELS=Object.freeze([
   {id:'crypto-market',label:'Crypto Market Screener',kind:'screener',size:'wide',description:'Scan crypto assets with sortable market and performance columns.',openUrl:'https://www.tradingview.com/crypto-coins/screener/'},
   {id:'economic-calendar',label:'Economic Calendar',kind:'economicCalendar',size:'standard',description:'Review scheduled macro releases and event risk across major economies.',openUrl:'https://www.tradingview.com/economic-calendar/'},
   {id:'stock-heatmap',label:'Stock Heatmap',kind:'stockHeatmap',size:'standard',description:'See United States equity sectors and relative one-day performance.',openUrl:'https://www.tradingview.com/heatmap/stock/'},
-  {id:'etf-heatmap',label:'ETF Heatmap',kind:'etfHeatmap',size:'standard',description:'Compare exchange-traded funds by activity and performance.',openUrl:'https://www.tradingview.com/heatmap/etf/'},
   {id:'fx-heatmap',label:'Forex Heatmap',kind:'forexHeatmap',size:'standard',description:'Compare relative strength and weakness across major currencies.',openUrl:'https://www.tradingview.com/markets/currencies/rates-all/'},
+  {id:'etf-heatmap',label:'ETF Heatmap',kind:'etfHeatmap',size:'standard',description:'Compare exchange-traded funds by activity and performance.',openUrl:'https://www.tradingview.com/heatmap/etf/'},
   {id:'technicals',label:'Technical Analysis',kind:'technicalAnalysis',size:'standard',dynamic:true,description:'Review a technical summary for the symbol selected in Market Pulse.',openUrl:'https://www.tradingview.com/technical-analysis/'},
   {id:'stories',label:'Top Stories',kind:'topStories',size:'standard',description:'Read concise market headlines and current context from TradingView.',openUrl:'https://www.tradingview.com/news/'}
 ]);
