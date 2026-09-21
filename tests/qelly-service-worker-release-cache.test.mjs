@@ -61,5 +61,5 @@ test('service-worker registration exposes only coarse runtime state',async()=>{
   const runtime=await read('apps/web/public/assets/qelly-public-runtime.mjs');
   assert.match(runtime,/feature:'service_worker',action:'register',state:'ready',surface:'offline_shell'/);
   assert.match(runtime,/feature:'service_worker',action:'register',state:'failed',surface:'offline_shell'/);
-  assert.doesNotMatch(runtime,/qelly:runtime-signal[^\n]*error\?\.message/);
+  assert.doesNotMatch(runtime,/detail:\{feature:'service_worker'[^}]*error/);
 });
