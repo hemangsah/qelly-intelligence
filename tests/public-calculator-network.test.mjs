@@ -80,6 +80,14 @@ test('calculator sharing uses a privacy-safe URL fragment and restores only regi
   assert.doesNotMatch(runtime,/url\.searchParams\.set|localStorage/);
 });
 
+test('calculator runtime does not reinterpret dynamic values as HTML',async()=>{
+  const runtime=await readFile(new URL('../apps/web/public/assets/calculator-network.mjs',import.meta.url),'utf8');
+  assert.doesNotMatch(runtime,/\.innerHTML\s*=/);
+  assert.match(runtime,/result\.replaceChildren\(fragment\)/);
+  assert.match(runtime,/result\.replaceChildren\(message\)/);
+  assert.match(runtime,/textContent=String\(text\)/);
+});
+
 test('calculator directory and educational sections remain mobile-contained',async()=>{
   const css=await readFile(new URL('../apps/web/public/assets/calculator-network.css',import.meta.url),'utf8');
   assert.match(css,/\.q-cn-directory-grid\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);

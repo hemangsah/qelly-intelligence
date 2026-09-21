@@ -2,14 +2,61 @@ import {calculateFormula} from './calculation/formula-engine-extended.mjs';
 import {mountAdSlots} from './qelly-ad-slot.mjs';
 
 const config=JSON.parse(document.querySelector('#q-calculator-config')?.textContent||'{}');
-const form=document.querySelector('[data-calculator-form]');const result=document.querySelector('[data-calculator-result]');const status=document.querySelector('[data-calculator-status]');
+const form=document.querySelector('[data-calculator-form]');
+const result=document.querySelector('[data-calculator-result]');
+const status=document.querySelector('[data-calculator-status]');
 const humanize=(value)=>String(value).replace(/([a-z0-9])([A-Z])/g,'$1 $2').replace(/[-_]+/g,' ').replace(/^./,letter=>letter.toUpperCase());
 const parse=(element,schema)=>{if(schema.type==='boolean')return element.checked;if(schema.type==='number')return Number(element.value);if(schema.type==='array'||schema.type==='object')return JSON.parse(element.value);return element.value;};
 const format=(value)=>typeof value==='number'?new Intl.NumberFormat(undefined,{maximumFractionDigits:6}).format(value):value==null?'Not available':typeof value==='object'?JSON.stringify(value):String(value);
 const emit=(type)=>document.dispatchEvent(new CustomEvent('qelly:calculator-event',{detail:{type,calculator:config.slug}}));
+const node=(tag,{className,text,attributes}={})=>{
+  const element=document.createElement(tag);
+  if(className)element.className=className;
+  if(text!=null)element.textContent=String(text);
+  for(const [name,value] of Object.entries(attributes||{})){if(value!=null)element.setAttribute(name,String(value));}
+  return element;
+};
 
-function fields(){
-  return Object.entries(config.schema.properties||{}).map(([key,schema])=>{const value=config.example[key];const id=`calc-${key}`;if(schema.enum)return `<label for="${id}"><span>${schema.title||humanize(key)}</span><select id="${id}" name="${key}">${schema.enum.map(item=>`<option value="${item}" ${String(item)===String(value)?'selected':''}>${item}</option>`).join('')}</select><small>${schema.description||''}</small></label>`;if(schema.type==='boolean')return `<label class="q-cn-check" for="${id}"><input id="${id}" name="${key}" type="checkbox" ${value?'checked':''}><span>${schema.title||humanize(key)}</span></label>`;const structured=schema.type==='array'||schema.type==='object';return `<label for="${id}"><span>${schema.title||humanize(key)}${schema.unit?` · ${schema.unit}`:''}</span>${structured?`<textarea id="${id}" name="${key}" rows="3">${JSON.stringify(value)}</textarea>`:`<input id="${id}" name="${key}" type="${schema.type==='number'?'number':'text'}" value="${value??''}" ${schema.type==='number'?'step="any"':''}>`}<small>${schema.description||''}</small></label>`;}).join('');
+function fieldFor(key,schema){
+  const value=config.example[key];
+  const id=`calc-${key}`;
+  if(schema.type==='boolean'){
+    const label=node('label',{className:'q-cn-check',attributes:{for:id}});
+    const input=node('input',{attributes:{id,name:key,type:'checkbox'}});
+    input.checked=Boolean(value);
+    label.append(input,node('span',{text:schema.title||humanize(key)}));
+    return label;
+  }
+
+  const label=node('label',{attributes:{for:id}});
+  const title=schema.title||humanize(key);
+  label.append(node('span',{text:`${title}${schema.unit?` · ${schema.unit}`:''}`}));
+  let control;
+
+  if(Array.isArray(schema.enum)){
+    control=node('select',{attributes:{id,name:key}});
+    for(const item of schema.enum){
+      const option=node('option',{text:item,attributes:{value:item}});
+      option.selected=String(item)===String(value);
+      control.append(option);
+    }
+  }else if(schema.type==='array'||schema.type==='object'){
+    control=node('textarea',{attributes:{id,name:key,rows:'3'}});
+    control.value=JSON.stringify(value);
+  }else{
+    control=node('input',{attributes:{id,name:key,type:schema.type==='number'?'number':'text'}});
+    control.value=value??'';
+    if(schema.type==='number')control.step='any';
+  }
+
+  label.append(control,node('small',{text:schema.description||''}));
+  return label;
+}
+
+function mountFields(){
+  const fragment=document.createDocumentFragment();
+  for(const [key,schema] of Object.entries(config.schema.properties||{}))fragment.append(fieldFor(key,schema));
+  form.replaceChildren(fragment);
 }
 function collectInputs(){
   const inputs={};
@@ -40,10 +87,36 @@ function shareUrl(inputs){
   if(encoded.length>8000)throw new Error('These inputs are too large for a shareable URL. Export or copy them instead.');
   const url=new URL(location.href);url.hash=`q=${encoded}`;return url.toString();
 }
-function calculate(){
-  try{const inputs=collectInputs();const receipt=calculateFormula(config.formulaId,inputs);if(receipt.status!=='success')throw new Error(receipt.validationErrors?.[0]?.message||'Check the inputs.');result.innerHTML=Object.entries(receipt.outputs||{}).map(([key,value])=>`<article><span>${humanize(key)}</span><strong>${format(value)}</strong></article>`).join('');status.textContent=`Calculated locally · ${receipt.formulaVersion} · ${new Date(receipt.calculatedAt).toLocaleString()}`;status.dataset.state='success';emit('calculation_completed');}catch(error){result.innerHTML=`<p class="q-cn-error" role="alert">${String(error.message||error)}</p>`;status.textContent='Result unavailable until every input is valid.';status.dataset.state='error';}
+function renderOutputs(outputs){
+  const fragment=document.createDocumentFragment();
+  for(const [key,value] of Object.entries(outputs||{})){
+    const article=node('article');
+    article.append(node('span',{text:humanize(key)}),node('strong',{text:format(value)}));
+    fragment.append(article);
+  }
+  result.replaceChildren(fragment);
 }
-form.innerHTML=fields();
+function renderError(error){
+  const message=node('p',{className:'q-cn-error',text:String(error?.message||error),attributes:{role:'alert'}});
+  result.replaceChildren(message);
+}
+function calculate(){
+  try{
+    const inputs=collectInputs();
+    const receipt=calculateFormula(config.formulaId,inputs);
+    if(receipt.status!=='success')throw new Error(receipt.validationErrors?.[0]?.message||'Check the inputs.');
+    renderOutputs(receipt.outputs);
+    status.textContent=`Calculated locally · ${receipt.formulaVersion} · ${new Date(receipt.calculatedAt).toLocaleString()}`;
+    status.dataset.state='success';
+    emit('calculation_completed');
+  }catch(error){
+    renderError(error);
+    status.textContent='Result unavailable until every input is valid.';
+    status.dataset.state='error';
+  }
+}
+
+mountFields();
 const loadedSharedState=loadSharedInputs();
 form.addEventListener('submit',event=>{event.preventDefault();calculate();});
 let timer;form.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(calculate,160);});
