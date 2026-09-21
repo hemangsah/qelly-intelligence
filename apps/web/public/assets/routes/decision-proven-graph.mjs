@@ -14,9 +14,11 @@ const CHAT_DECISION_CONTEXT_KEY='qelly.decision.chat-context.v1';
 const DECISION_ASSETS=new Set(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
 const readChatDecisionContext=()=>{
   try{
-    const raw=sessionStorage.getItem(CHAT_DECISION_CONTEXT_KEY);
+    const storage=globalThis.sessionStorage;
+    if(!storage)return {asset:'BTC',interval:'15m'};
+    const raw=storage.getItem(CHAT_DECISION_CONTEXT_KEY);
     if(!raw)return {asset:'BTC',interval:'15m'};
-    sessionStorage.removeItem(CHAT_DECISION_CONTEXT_KEY);
+    storage.removeItem(CHAT_DECISION_CONTEXT_KEY);
     const parsed=JSON.parse(raw),createdAt=Date.parse(parsed?.createdAt||'');
     if(!Number.isFinite(createdAt)||Date.now()-createdAt>15*60_000)return {asset:'BTC',interval:'15m'};
     const asset=DECISION_ASSETS.has(String(parsed?.asset||'').toUpperCase())?String(parsed.asset).toUpperCase():'BTC';
