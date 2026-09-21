@@ -1,4 +1,5 @@
-import {mountTradingViewDisplay} from '../market/tradingview-display-widget.mjs';
+import {mountTradingViewDisplay,tradingViewAppearance} from '../market/tradingview-display-widget.mjs';
+import {mountLazyTradingViewWidget} from '../market/lazy-tradingview-widget.mjs';
 
 const CHART_PRESETS=[
   ['BTCUSDT','Bitcoin / USD','Crypto'],['ETHUSDT','Ethereum / USD','Crypto'],['SOLUSDT','Solana / USD','Crypto'],
@@ -254,6 +255,11 @@ export async function renderGlobalMarketNetwork(main,deps){
       <section class="q-mn-panel"><div class="q-mn-panel-head"><div><h2>IMF WEO cross-check</h2><p>Estimates and projections stay labelled</p></div><span class="q-mn-source-state" data-state="reference">${escapeHtml(stateLabel(imf,{reference:true}))}</span></div><div class="q-mn-panel-body">${imfPanel(imf,escapeHtml)}</div></section>
     </section>
 
+    <section class="q-mn-panel q-mn-fx-cross-panel" data-network-section="compare">
+      <div class="q-mn-panel-head"><div><p class="q-eyebrow">Official TradingView display</p><h2>Forex cross rates</h2><p>Cross-rate context loads only when this panel approaches the viewport and remains display-only.</p></div><span class="q-mn-source-state" data-state="reference">DISPLAY ONLY</span></div>
+      <div class="q-mn-panel-body"><div class="q-mn-fx-cross-stage" data-network-fx-cross aria-label="TradingView Forex Cross Rates"><div class="qelly-tradingview-loading" role="status"><span aria-hidden="true"></span><strong>Forex cross rates load when needed…</strong><small>Official TradingView display · no Qelly substitution values</small></div></div><p class="q-mn-disclosure">This panel is external market context. Qelly does not read widget values into calculations, alerts or decisions.</p></div>
+    </section>
+
     <section class="q-mn-panel q-mn-provenance" data-network-section="audit"><div class="q-mn-panel-head"><div><p class="q-eyebrow">Freshness inspector</p><h2>Source details</h2><p>Observation time, refresh time, cadence and attribution for each source.</p></div><span class="q-mn-source-state" data-state="${availableCount===sourceList.length?'live':'delayed'}">${escapeHtml(`${availableCount} / ${sourceList.length} available`)}</span></div><div class="q-mn-panel-body q-mn-source-grid">${sourceCard(alternative,escapeHtml)}${sourceCard(hyper,escapeHtml)}${sourceCard(ecb,escapeHtml,{reference:true})}${sourceCard(worldBank,escapeHtml,{reference:true})}${sourceCard(imf,escapeHtml,{reference:true})}</div></section>
 
     <section class="q-mn-panel q-mn-research-network"><div class="q-mn-panel-head"><div><p class="q-eyebrow">Professional research dock</p><h2>Official research network</h2><p>Primary and specialist destinations remain separate from Qelly analytical inputs.</p></div></div><div class="q-mn-panel-body"><div class="q-mn-link-filters" role="toolbar" aria-label="Filter research destinations"><button type="button" data-link-filter="all" aria-pressed="true">All</button><button type="button" data-link-filter="official-data" aria-pressed="false">Official data</button><button type="button" data-link-filter="market-research" aria-pressed="false">Market research</button><button type="button" data-link-filter="crypto-research" aria-pressed="false">Crypto research</button><button type="button" data-link-filter="community" aria-pressed="false">Community</button></div><div class="q-mn-links">${researchLinks.map((item)=>`<a class="q-mn-link" data-link-category="${escapeHtml(researchCategory(item))}" href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer nofollow" title="${escapeHtml(item.note||item.mode)}"><strong>${escapeHtml(item.label)} ↗</strong><span>${escapeHtml(item.note||item.mode)}</span></a>`).join('')}</div><p class="q-mn-link-status" aria-live="polite">${researchLinks.length} research destinations shown</p></div></section>
@@ -262,10 +268,19 @@ export async function renderGlobalMarketNetwork(main,deps){
   </section>`;
 
   const root=main.querySelector('.q-market-network');
-  let chartHandle=null;
+  let chartHandle=null,fxCrossHandle=null;
   const symbolSelect=main.querySelector('#q-mn-symbol');
   const intervalSelect=main.querySelector('#q-mn-interval');
   const chart=main.querySelector('#q-market-network-chart');
+  const fxCrossStage=main.querySelector('[data-network-fx-cross]');
+  if(fxCrossStage){
+    fxCrossHandle=mountLazyTradingViewWidget(fxCrossStage,{
+      kind:'forexCrossRates',
+      label:'Forex Cross Rates',
+      openUrl:'https://www.tradingview.com/markets/currencies/rates-all/',
+      config:{width:'100%',height:'100%',colorTheme:tradingViewAppearance(),isTransparent:false,currencies:['EUR','USD','JPY','GBP','CHF','AUD','CAD','NZD','CNY','INR']}
+    },{rootMargin:'160px 0px'});
+  }
   const mountChart=()=>{
     chartHandle?.destroy?.();
     chartHandle=null;
@@ -307,6 +322,6 @@ export async function renderGlobalMarketNetwork(main,deps){
     output.hidden=false;
     output.innerHTML=`<div><p class="q-eyebrow">Selected workflow</p><h3>${escapeHtml(guide.title)}</h3><p>${escapeHtml(guide.summary)}</p></div><ol>${guide.steps.map((step)=>`<li>${escapeHtml(step)}</li>`).join('')}</ol><a class="q-button q-button--primary" href="#/${escapeHtml(guide.nextRoute)}">${escapeHtml(guide.nextLabel)}</a>`;
   }));
-  window.__qellyLiveMarketCleanup=()=>{chartHandle?.destroy?.();chartHandle=null;};
+  window.__qellyLiveMarketCleanup=()=>{chartHandle?.destroy?.();fxCrossHandle?.destroy?.();chartHandle=null;fxCrossHandle=null;};
   mountChart();
 }
