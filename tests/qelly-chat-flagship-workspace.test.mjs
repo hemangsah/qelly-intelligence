@@ -27,7 +27,7 @@ test('flagship chat requests expanded mode and preserves decision handoff',async
 
 test('global chat drawer exposes grounded context and reliability controls',async()=>{
   const [assistant,css,endpoint]=await Promise.all([read('apps/web/public/assets/ai/qelly-chat.mjs'),read('apps/web/public/assets/ai/qelly-chat.css'),read('functions/api/v1/intelligence/chat.js')]);
-  for(const phrase of ['data-q-ai-asset','data-q-ai-timeframe','data-q-ai-calculator','data-q-ai-copy-sources','data-q-ai-stop','data-q-ai-retry','QELLY tool receipts','unvalidated streaming disabled'])assert.match(assistant,new RegExp(phrase));
+  for(const phrase of ['data-q-ai-asset','data-q-ai-timeframe','data-q-ai-calculator','data-q-ai-copy-sources','data-q-ai-stop','data-q-ai-retry','QELLY tool receipts','unvalidated streaming disabled','qelly.decision.chat-context.v1','freshness'])assert.match(assistant,new RegExp(phrase));
   assert.match(assistant,/new AbortController\(\)/);
   assert.match(assistant,/activeController\?\.abort\(\)/);
   assert.match(assistant,/Generation cancelled\. No partial or unvalidated answer was accepted\./);
