@@ -112,8 +112,8 @@ async function evaluateAsset(fetchImpl,asset,formula,endTime){
   };
 }
 
-export async function runFormulaScreen(env,{formula='momentum_quality',assets=ASSETS}={}){
-  return runScreen(env,normalizeRequest({formula,assets}));
+export async function runFormulaScreen(env,request={}){
+  return runScreen(env,normalizeRequest(request));
 }
 
 async function runScreen(env,{formula,assets}){
