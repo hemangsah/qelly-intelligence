@@ -53,5 +53,5 @@ test('Market home preserves the master embed order after Advanced Chart',async()
   const positions=order.map(id=>source.indexOf(`id:'${id}'`));
   assert.equal(positions.every(index=>index>=0),true);
   assert.deepEqual([...positions].sort((a,b)=>a-b),positions);
-  assert.ok(source.indexOf('q-v7-chart-panel') < source.indexOf("id:'crypto-heatmap'"));
+  assert.ok(source.indexOf('q-v7-chart-panel') < source.indexOf('q-market-widget-section'));
 });
