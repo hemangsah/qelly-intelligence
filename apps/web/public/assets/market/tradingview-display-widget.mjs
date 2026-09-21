@@ -80,7 +80,9 @@ export function mountTradingViewWidget(container,{kind,config={},label='TradingV
   if(!source)throw new TypeError(`Unsupported TradingView widget: ${String(kind||'')}`);
   ensureComponentStyles();
 
-  let destroyed=false,settled=false,timer=0,observer=null;
+  let destroyed=false,settled=false,timer=0,observer=null,startedAt=0;
+  const emitRuntime=(action,state)=>window.dispatchEvent(new CustomEvent('qelly:runtime-signal',{detail:{feature:'embed',action,state,surface:String(kind||'tradingview')}}));
+  const durationState=()=>{const duration=performance.now()-startedAt;return duration>=8000?'gte_8000ms':duration>=4000?'gte_4000ms':duration>=2000?'gte_2000ms':'lt_2000ms';};
   const cleanupAttempt=()=>{
     clearTimeout(timer);
     timer=0;
@@ -89,6 +91,7 @@ export function mountTradingViewWidget(container,{kind,config={},label='TradingV
   };
   const unavailable=(reason)=>{
     cleanupAttempt();
+    emitRuntime('failure',reason==='timeout'?'timeout':'load_error');
     if(destroyed)return;
     container.dataset.externalProvider='tradingview';
     container.dataset.usage='display-only';
@@ -101,6 +104,7 @@ export function mountTradingViewWidget(container,{kind,config={},label='TradingV
     if(destroyed)return;
     cleanupAttempt();
     settled=false;
+    startedAt=performance.now();
     container.replaceChildren();
     container.dataset.externalProvider='tradingview';
     container.dataset.usage='display-only';
@@ -147,6 +151,7 @@ export function mountTradingViewWidget(container,{kind,config={},label='TradingV
       container.dataset.externalState='display-only';
       loading.remove();
       iframe.setAttribute('aria-label',label);
+      emitRuntime('load',durationState());
       cleanupAttempt();
       return true;
     };
