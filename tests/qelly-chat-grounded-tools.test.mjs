@@ -21,7 +21,7 @@ test('calculator receipt fails closed until registered inputs are supplied',()=>
   const empty=buildCalculatorToolReceipt({formulaId:'cagr'});
   assert.equal(empty.truthState,'input_required');
   assert.equal(empty.data.definition.formulaId,'cagr');
-  assert.deepEqual(empty.data.definition.example,{startValue:100,endValue:125,years:3});
+  assert.deepEqual(empty.data.definition.example,{startValue:10000,endValue:18000,years:5});
 
   const result=buildCalculatorToolReceipt({formulaId:'cagr',inputs:{startValue:100,endValue:121,years:2}});
   assert.equal(result.truthState,'deterministic');
