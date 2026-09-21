@@ -216,8 +216,12 @@ const MODE_DIRECTIVES=Object.freeze({
 
 const AI_TIMEOUT_MS=12_000;
 const toolFallbackLines=(financeContext)=>asArray(financeContext?.tools).flatMap((tool)=>{
-  if(tool?.id==='decision-intelligence'&&tool.data)return [`Decision Intelligence: ${tool.data.asset} ${tool.data.interval} · QELLY VIEW ${tool.data.action} · evidence confidence ${Math.round(Number(tool.data.confidence||0)*100)}% · truth state ${tool.truthState}.`];
-  if(tool?.id==='asset-dossier'&&tool.data)return [`Asset Dossier: ${tool.data.symbol} · ${tool.data.observation?.priceUsd??'price unavailable'} USD · source ${tool.source} · truth state ${tool.truthState}.`];
+  if(tool?.id==='decision-intelligence'&&tool.data)return [`Decision Intelligence: ${tool.data.asset} ${tool.data.interval} · QELLY VIEW ${tool.data.action} · evidence confidence ${Math.round(Number(tool.data.confidence||0)*100)}% · truth state ${tool.truthState} · freshness ${tool.freshness}.`];
+  if(tool?.id==='asset-dossier'&&tool.data)return [`Asset Dossier: ${tool.data.symbol} · ${tool.data.observation?.priceUsd??'price unavailable'} USD · source ${tool.source} · truth state ${tool.truthState} · freshness ${tool.freshness}.`];
+  if(tool?.id==='public-market-data'&&tool.data)return [`Public market context: ${tool.data.symbol} ${tool.data.mid??'price unavailable'} · source ${tool.source} · truth state ${tool.truthState} · freshness ${tool.freshness}.`];
+  if(tool?.id==='formula-screener'&&tool.data)return [`Formula Screener: ${tool.data.formula?.label||tool.data.formula||'registered metric'} · ${(tool.data.rows||[]).map(row=>`${row.asset} ${row.value??'unavailable'}`).join(' · ')||'no verified rows'} · freshness ${tool.freshness}.`];
+  if(tool?.id==='event-calendar')return [`Event Calendar: ${tool.truthState}. ${tool.limitations?.[0]||'No live event evidence was inferred.'}`];
+  if(tool?.id==='qelly-verify')return [`QELLY Verify: ${tool.truthState}. ${tool.limitations?.[0]||'User evidence is required.'}`];
   if(tool?.id==='india-finance'&&tool.data)return [`India Finance: delayed/reference evidence is available from ${tool.source}; live TradingView benchmark values are display-only and are not ingested into this answer.`];
   return [];
 });
