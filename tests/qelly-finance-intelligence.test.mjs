@@ -166,7 +166,9 @@ test('chat capability exposes eight modes, context controls and tool boundaries'
   assert.ok(capability.controls.timeframes.includes('1d'));
   assert.ok(capability.controls.calculators.includes('cagr'));
   assert.equal(capability.tools.eventCalendar,'planning-only-no-live-feed');
-  assert.equal(capability.tools.qellyVerify,'evidence-handoff');
+  assert.equal(capability.tools.qellyVerify,'input-required-local-analysis');
+  assert.equal(capability.tools.publicResearch,true);
+  assert.equal(capability.tools.formulaScreener,'on-demand-read-only');
   assert.equal(capability.policy.unvalidatedStreaming,false);
 });
 
