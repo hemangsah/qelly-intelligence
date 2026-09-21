@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {buildDecisionProvenGraph,normalizeCandles} from '../functions/_lib/decision-proven-graph.js';
-import {calibrateDecisionEvidence,onRequest} from '../functions/api/v1/decision-proven-graph.js';
+import {buildDecisionIntelligence,calibrateDecisionEvidence,onRequest} from '../functions/api/v1/decision-proven-graph.js';
 
 const start=Date.now()-180*900_000;
 const candles=Array.from({length:180},(_,index)=>{const close=100+index*.08+Math.sin(index/5)*2;return {t:start+index*900_000,o:String(close-.15),h:String(close+1),l:String(close-1),c:String(close),v:String(1000+index),n:20+index};});
@@ -152,4 +152,24 @@ test('derivatives provider failure does not fabricate values or take Decision In
   assert.match(body.evidence.derivatives.message,/not inferred/i);
   assert.equal(body.evidence.derivatives.fundingRate,undefined);
   assert.equal(body.evidence.liquidations.state,'unavailable');
+});
+
+
+test('Decision Intelligence builder is reusable by grounded internal tools without changing the public route contract',async()=>{
+  const providerBodies=[];
+  const result=await buildDecisionIntelligence({__fetch:async(url,options={})=>{
+    if(String(url).includes('api.hyperliquid.xyz')){
+      const body=JSON.parse(options.body);providerBodies.push(body);
+      if(body.type==='metaAndAssetCtxs')return new Response(JSON.stringify([{universe:[{name:'BTC'}]},[{funding:'0.0001',openInterest:'100',markPx:'80000',oraclePx:'79950',dayNtlVlm:'1000000',premium:'0'}]]),{status:200,headers:{'content-type':'application/json'}});
+      return new Response(JSON.stringify(candles),{status:200,headers:{'content-type':'application/json'}});
+    }
+    return new Response(JSON.stringify({articles:[]}),{status:200,headers:{'content-type':'application/json'}});
+  }},{asset:'BTC',interval:'15m',horizon:'4h',now:candles.at(-1).t+900_000});
+  assert.equal(result.asset,'BTC');
+  assert.equal(result.interval,'15m');
+  assert.equal(result.horizon,'4h');
+  assert.equal(result.provenance.provider,'Hyperliquid');
+  assert.ok(result.qellyView.evidenceGate);
+  assert.ok(providerBodies.some(body=>body.type==='candleSnapshot'));
+  assert.ok(providerBodies.some(body=>body.type==='metaAndAssetCtxs'));
 });
