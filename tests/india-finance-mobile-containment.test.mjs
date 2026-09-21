@@ -24,8 +24,8 @@ test('India market quotes use the official TradingView symbolsGroups schema and 
   assert.match(route,/kind:'marketQuotes'/);
   assert.match(route,/symbolsGroups:\[\{name:'India'/);
   assert.doesNotMatch(route,/\bsymbolGroups:\[/);
-  for(const symbol of ['NSE:NIFTY','BSE:SENSEX','NSE:BANKNIFTY','NSE:INDIAVIX','FX_IDC:USDINR'])assert.match(route,new RegExp(symbol.replace(/[:]/g,'\\:')));
-  for(const label of ['Nifty 50','Sensex','Bank Nifty','India VIX','USD / INR'])assert.match(route,new RegExp(label.replace(/\//g,'\\/')));
+  for(const symbol of ['NSE:NIFTY','BSE:SENSEX','NSE:BANKNIFTY','NSE:INDIAVIX','FX_IDC:USDINR'])assert.ok(route.includes(symbol),symbol);
+  for(const label of ['Nifty 50','Sensex','Bank Nifty','India VIX','USD / INR'])assert.ok(route.includes(label),label);
   assert.match(route,/<strong>Coverage:<\/strong> Nifty 50 · Sensex · Bank Nifty · India VIX · USD\/INR · Gold/);
 });
 
