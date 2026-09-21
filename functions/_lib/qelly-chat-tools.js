@@ -175,7 +175,7 @@ export function buildIndiaToolReceipt(financeContext={}){
       ecbReference:{base:ecb.base??'EUR',inr:ecb.rates?.INR??null,observedAt:ecb.observedAt??null},
       displayOnlyCoverage:['Nifty 50','Sensex','Bank Nifty','USD/INR','Gold']
     },
-    limitations:['India benchmark widgets are official TradingView display surfaces; QELLY Chat does not ingest their displayed values as evidence.','No verified live India VIX, FII/DII, breadth, yield or corporate-action feed is connected here.','World Bank and ECB observations are delayed reference data, not live exchange prices.']
+    limitations:['India benchmark widgets are official TradingView display-only surfaces; QELLY Chat does not ingest their displayed values as evidence.','No verified live India VIX, FII/DII, breadth, yield or corporate-action feed is connected here.','World Bank and ECB observations are delayed reference data, not live exchange prices.']
   });
 }
 
