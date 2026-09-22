@@ -24,7 +24,8 @@ test('Market suppresses appearance mutation remount storms',async()=>{
 test('secondary TradingView widgets mount lazily and in a staggered queue',async()=>{
   const source=await read('apps/web/public/assets/market/tradingview-market-grid.mjs');
   assert.match(source,/const mountTimers=new Set\(\)/);
-  assert.match(source,/scheduleCard\(entry\.target,index\*350\)/);
+  assert.match(source,/const ROUTE_SETTLE_DELAY_MS=220/);
+  assert.match(source,/scheduleCard\(entry\.target,ROUTE_SETTLE_DELAY_MS\+index\*350\)/);
   assert.match(source,/cards\.forEach\(card=>observer\.observe\(card\)\)/);
   assert.doesNotMatch(source,/requestAnimationFrame\(\(\)=>mountCard\(primary\)\)/);
   assert.match(source,/for\(const timer of mountTimers\)clearTimeout\(timer\)/);
