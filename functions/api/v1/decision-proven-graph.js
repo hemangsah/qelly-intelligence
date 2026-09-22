@@ -1,4 +1,4 @@
-import {buildDecisionProvenGraph,DECISION_INTERVALS} from '../../_lib/decision-proven-graph.js';
+import {buildDecisionProvenGraph,buildDecisionWalkForwardCalibration,DECISION_INTERVALS} from '../../_lib/decision-proven-graph.js';
 import {buildTradeResearch} from '../../_lib/decision-trade-research.js';
 import {HttpError,enforceRateLimit,errorResponse,fetcher,responseJson} from '../../_lib/runtime.js';
 
@@ -115,10 +115,10 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives){
   const riskLabel=volatilityRegime!=='UNKNOWN'?volatilityRegime.replaceAll('_',' ') : atrPct===null?'Unknown':atrPct>=3?'High short-term range':atrPct>=1.5?'Elevated short-term range':atrPct>=.75?'Moderate short-term range':'Lower short-term range';
   const derivativesLive=derivatives?.state==='live';
   const calibrationState=String(graph?.quant?.calibration?.state||'UNCALIBRATED');
-  const calibrationEligible=calibrationState==='CALIBRATED';
+  const calibrationEligible=calibrationState==='CALIBRATED'&&graph?.quant?.calibration?.eligible===true;
   if(directionalAction&&!calibrationEligible){
     action='NO TRADE';
-    contradictions.push('Directional setup is withheld because empirical out-of-sample probability calibration is not yet available.');
+    contradictions.push(calibrationState==='WEAK_CALIBRATION'?'Directional setup is withheld because walk-forward calibration quality does not clear the Brier/reliability gate.':'Directional setup is withheld because empirical walk-forward calibration is not yet available.');
   }
   const why=[
     ...(Array.isArray(base?.why)?base.why:[]),
@@ -212,6 +212,7 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   let graph;
   try{
     graph=buildDecisionProvenGraph(payload,{asset:resolvedAsset,interval:resolvedInterval,horizonBars,now:endTime,selection:resolvedSelection});
+    graph={...graph,quant:{...graph.quant,calibration:buildDecisionWalkForwardCalibration(payload,{interval:resolvedInterval,horizonBars})}};
     graph=calibrateDecisionEvidence(graph,multiTimeframe,derivatives);
   }catch(error){
     if(error instanceof HttpError)throw error;

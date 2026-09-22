@@ -115,6 +115,21 @@ const scannerMarkup=(scan,{scanning=false,error=null,escapeHtml})=>{
   '</section>';
 };
 
+const probabilityCalibrationMarkup=(data,escapeHtml)=>{
+  const calibration=data?.confidence?.probabilityCalibration||data?.quant?.calibration;
+  if(!calibration)return '';
+  const pctValue=(value)=>Number.isFinite(Number(value))?(Number(value)*100).toFixed(1)+'%':'Unavailable';
+  const brier=Number.isFinite(Number(calibration.brierScore))?Number(calibration.brierScore).toFixed(4):'Unavailable';
+  const skill=Number.isFinite(Number(calibration.skillScore))?pctValue(calibration.skillScore):'Unavailable';
+  const gap=Number.isFinite(Number(calibration.reliabilityGap))?pctValue(calibration.reliabilityGap):'Unavailable';
+  const bins=Array.isArray(calibration.reliabilityBins)?calibration.reliabilityBins:[];
+  return '<section class="q-dpg-model-calibration"><header><div><small>MODEL CALIBRATION · WALK-FORWARD</small><h2>'+escapeHtml(String(calibration.state||'UNCALIBRATED').replaceAll('_',' '))+'</h2><p>'+escapeHtml(calibration.reason||'Calibration evidence is unavailable.')+'</p></div><span>'+(calibration.eligible?'ELIGIBLE':'NOT ELIGIBLE')+'</span></header>'+
+    '<div class="q-dpg-model-calibration__metrics"><article><span>Resolved samples</span><strong>'+escapeHtml(String(calibration.sampleSize??0))+'</strong></article><article><span>Brier score</span><strong>'+escapeHtml(brier)+'</strong><small>lower is better</small></article><article><span>Skill vs uniform</span><strong>'+escapeHtml(skill)+'</strong></article><article><span>Reliability gap</span><strong>'+escapeHtml(gap)+'</strong><small>lower is better</small></article></div>'+
+    (bins.length?'<details><summary>Reliability bins</summary><div class="q-dpg-reliability-bins">'+bins.map(bin=>'<span><em>'+Math.round(Number(bin.low)*100)+'–'+Math.round(Number(bin.high)*100)+'%</em><strong>'+Math.round(Number(bin.meanConfidence)*100)+'% conf / '+Math.round(Number(bin.hitRate)*100)+'% hit</strong><small>n='+escapeHtml(String(bin.sampleSize))+'</small></span>').join('')+'</div></details>':'')+
+    '<p class="q-dpg-calibration-method">'+escapeHtml(calibration.method||'')+(calibration.leakageGuard?' · '+escapeHtml(calibration.leakageGuard):'')+'</p>'+
+  '</section>';
+};
+
 
 
 export async function renderDecisionProvenGraph(main,deps){
@@ -164,6 +179,7 @@ export async function renderDecisionProvenGraph(main,deps){
     const view=data.qellyView,move=data.selection;
     return '<section class="q-dpg-truth"><span class="q-status q-status--'+(data.truthState==='LIVE'?'live':data.truthState.toLowerCase())+'">'+escapeHtml(data.truthState)+'</span><strong>'+escapeHtml(data.asset)+' / '+escapeHtml(data.interval)+'</strong><span>'+escapeHtml(data.market.currentState.label)+' · updated '+new Date(data.observedAt).toLocaleString()+'</span></section>'+
       tradeResearchMarkup(data,escapeHtml)+
+      probabilityCalibrationMarkup(data,escapeHtml)+
       '<section class="q-dpg-view q-dpg-view--'+actionTone(view.action)+'"><div><small>QELLY VIEW</small><h2>'+escapeHtml(view.action)+'</h2><p>'+escapeHtml(view.label)+'</p></div><div class="q-dpg-confidence"><span>Evidence confidence</span><strong>'+Math.round(view.confidence*100)+'%</strong></div>'+calibration(view,escapeHtml)+levels(view)+'<details><summary>Why this view?</summary><ul>'+view.why.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul><p><strong>What changes it:</strong> '+escapeHtml(view.changesIf)+'</p></details></section>'+
       '<section class="q-dpg-stage"><div class="q-dpg-chart-wrap"><div class="q-dpg-chart-help">Click one candle or drag across observed candles to select a move.</div>'+chart(data,escapeHtml)+'<div class="q-dpg-selection-actions"><span data-dpg-selection-label>'+(state.draft?(state.draft.end-state.draft.start<(INTERVAL_MS[state.interval]||0)?'Single candle selected':'Range selected'):'No range selected')+'</span><button class="q-button q-button--primary" data-dpg-explain '+(state.draft?'':'disabled')+'>'+(state.draft&&state.draft.end-state.draft.start<(INTERVAL_MS[state.interval]||0)?'Explain this candle':'Explain this move')+'</button><button class="q-button q-button--secondary" data-dpg-clear '+(state.draft||state.selection?'':'disabled')+'>Clear</button></div></div><aside class="q-dpg-scenarios">'+[['Bull',data.forecast.probabilities.bull],['Base',data.forecast.probabilities.base],['Bear',data.forecast.probabilities.bear]].map(([label,value])=>'<article><span>'+label+'</span><strong>'+Math.round(value*100)+'%</strong><meter min="0" max="1" value="'+value+'"></meter></article>').join('')+'<p>Modelled terminal range<br><strong>'+money(data.forecast.terminal.p05)+' – '+money(data.forecast.terminal.p95)+'</strong></p></aside></section>'+
       (move?'<section class="q-dpg-move"><header><div><small>SELECTED MOVE</small><h2>'+pct(move.changePct)+' across '+move.candles+' candles</h2></div><span>'+new Date(move.start).toLocaleString()+' → '+new Date(move.end).toLocaleString()+'</span></header><div><article><span>Range</span><strong>'+pct(move.rangePct)+'</strong></article><article><span>Volume vs prior</span><strong>'+(move.volumeRatio?move.volumeRatio+'×':'N/A')+'</strong></article><article><span>Volatility</span><strong>'+pct(move.volatilityPct)+'</strong></article><article><span>Prior volatility</span><strong>'+(move.priorVolatilityPct===null?'N/A':pct(move.priorVolatilityPct))+'</strong></article></div></section>':'')+
