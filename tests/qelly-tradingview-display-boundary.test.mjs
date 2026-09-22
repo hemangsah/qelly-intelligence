@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {__tradingViewDisplayTest,tradingViewSymbol,tradingViewInterval} from '../apps/web/public/assets/market/tradingview-display-widget.mjs';
-import {validateMarketWidgetPanels} from '../apps/web/public/assets/market/tradingview-market-grid.mjs';
+import {validateMarketWidgetPanels,__tradingViewMarketGridTest} from '../apps/web/public/assets/market/tradingview-market-grid.mjs';
 
 const read=(path)=>readFile(new URL(path,import.meta.url),'utf8');
 
@@ -57,7 +57,8 @@ test('Market Command makes Advanced Chart first and Crypto Heatmap the first laz
   assert.ok(route.indexOf('data-market-widget-grid')<route.indexOf('q-tv-tape-shell'));
   assert.doesNotMatch(route,/data-tv-suite/);
   assert.match(grid,/IntersectionObserver/);
-  assert.match(grid,/scheduleCard\(entry\.target,index\*350\)/);
+  assert.match(grid,/scheduleCard\(entry\.target,ROUTE_SETTLE_DELAY_MS\+index\*350\)/);
+  assert.equal(__tradingViewMarketGridTest.ROUTE_SETTLE_DELAY_MS,220);
   assert.match(grid,/cards\.forEach\(card=>observer\.observe\(card\)\)/);
   assert.match(grid,/Duplicate TradingView widget kind/);
   assert.doesNotMatch(route,/embedded research suite|third-party panel|iframe/i);
