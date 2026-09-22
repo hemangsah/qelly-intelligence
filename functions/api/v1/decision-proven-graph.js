@@ -1,5 +1,6 @@
 import {buildDecisionProvenGraph,buildDecisionWalkForwardCalibration,DECISION_INTERVALS} from '../../_lib/decision-proven-graph.js';
 import {buildTradeResearch} from '../../_lib/decision-trade-research.js';
+import {buildDecisionHistoricalAnalogs} from '../../_lib/decision-historical-analogs.js';
 import {HttpError,enforceRateLimit,errorResponse,fetcher,responseJson} from '../../_lib/runtime.js';
 
 const ASSETS=new Set(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
@@ -212,7 +213,10 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   let graph;
   try{
     graph=buildDecisionProvenGraph(payload,{asset:resolvedAsset,interval:resolvedInterval,horizonBars,now:endTime,selection:resolvedSelection});
-    graph={...graph,quant:{...graph.quant,calibration:buildDecisionWalkForwardCalibration(payload,{interval:resolvedInterval,horizonBars})}};
+    graph={...graph,
+      quant:{...graph.quant,calibration:buildDecisionWalkForwardCalibration(payload,{interval:resolvedInterval,horizonBars})},
+      historicalAnalogs:buildDecisionHistoricalAnalogs(payload,{interval:resolvedInterval,horizonBars,windowBars:100,limit:5})
+    };
     graph=calibrateDecisionEvidence(graph,multiTimeframe,derivatives);
   }catch(error){
     if(error instanceof HttpError)throw error;
