@@ -8,7 +8,7 @@ test('Market mounts Advanced Chart before the secondary widget network',async()=
   const source=await read('apps/web/public/assets/routes/market-v6.mjs');
   assert.ok(source.indexOf('q-v7-chart-panel') < source.indexOf('q-market-widget-section'));
   assert.match(source,/chartFrame=requestAnimationFrame\(mount\)/);
-  assert.match(source,/const MARKET_ROUTE_SETTLE_DELAY_MS=220/);
+  assert.match(source,/const MARKET_ROUTE_SETTLE_DELAY_MS=900/);
   assert.match(source,/chartTimer=setTimeout\(\(\)=>\{if\(!marketRoot\.isConnected\)return;chartFrame=requestAnimationFrame\(mount\);\},MARKET_ROUTE_SETTLE_DELAY_MS\)/);
   assert.match(source,/clearTimeout\(chartTimer\)/);
   assert.match(source,/rootMargin:'160px 0px'/);
@@ -27,7 +27,7 @@ test('Market suppresses appearance mutation remount storms',async()=>{
 test('secondary TradingView widgets mount lazily and in a staggered queue',async()=>{
   const source=await read('apps/web/public/assets/market/tradingview-market-grid.mjs');
   assert.match(source,/const mountTimers=new Set\(\)/);
-  assert.match(source,/const ROUTE_SETTLE_DELAY_MS=220/);
+  assert.match(source,/const ROUTE_SETTLE_DELAY_MS=1050/);
   assert.match(source,/scheduleCard\(entry\.target,ROUTE_SETTLE_DELAY_MS\+index\*350\)/);
   assert.match(source,/cards\.forEach\(card=>observer\.observe\(card\)\)/);
   assert.doesNotMatch(source,/requestAnimationFrame\(\(\)=>mountCard\(primary\)\)/);
