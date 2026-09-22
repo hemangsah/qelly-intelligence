@@ -77,6 +77,22 @@ const heroSnapshot=(data,escapeHtml)=>{
   '</section>';
 };
 
+const tradeResearchMarkup=(data,escapeHtml)=>{
+  const trade=data.tradeResearch;
+  if(!trade)return '';
+  const selected=trade.selected;
+  const matrix=Array.isArray(trade.matrix)?trade.matrix:[];
+  const matrixMarkup=matrix.length?matrix.map(item=>'<article class="q-dpg-rr-card q-dpg-rr-card--'+escapeHtml(String(item.feasibility||'unavailable').toLowerCase().replace(/\s+/g,'-'))+'"><span>'+escapeHtml(item.label)+'</span><strong>'+money(item.target)+'</strong><small>'+escapeHtml(item.feasibility)+'</small><p>'+escapeHtml(item.feasibilityReason)+'</p><em>Target-touch probability: uncalibrated</em></article>').join(''):'<p class="q-dpg-no-levels">No R:R matrix is available because the current evidence gate does not support a directional setup.</p>';
+  const status=trade.status==='VALID'?'live':'warning';
+  return '<section class="q-dpg-trade-research"><header><div><small>FIND TRADE NOW · RESEARCH ONLY</small><h2>'+(trade.status==='VALID'?'Evidence-qualified setup':'No valid setup')+'</h2><p>'+escapeHtml(trade.reason)+'</p></div><span class="q-status q-status--'+status+'">'+escapeHtml(trade.status)+'</span></header>'+
+    (trade.entry?'<div class="q-dpg-trade-summary"><article><span>Entry</span><strong>'+money(trade.entry.preferred)+'</strong><small>'+escapeHtml(trade.entry.method)+' · '+money(trade.entry.zone[0])+' – '+money(trade.entry.zone[1])+'</small></article><article><span>Stop / invalidation</span><strong>'+money(trade.stop.price)+'</strong><small>'+escapeHtml(String(trade.stop.distancePct??'—'))+'% from price</small></article><article><span>Selected R:R</span><strong>'+(selected?escapeHtml(selected.label):'None')+'</strong><small>'+(selected?escapeHtml(selected.feasibility):'Not supported')+'</small></article><article><span>Setup expiry</span><strong>'+(trade.expiryAt?escapeHtml(displayTime(trade.expiryAt)):'Unavailable')+'</strong><small>Reassess after expiry or evidence change</small></article></div>':'')+
+    '<div class="q-dpg-rr-grid">'+matrixMarkup+'</div>'+
+    '<div class="q-dpg-trade-boundary"><strong>Calibration boundary</strong><p>'+escapeHtml(trade.calibration)+'</p></div>'+
+    (Array.isArray(trade.contradictions)&&trade.contradictions.length?'<div class="q-dpg-contradictions"><strong>Contradictions</strong><ul>'+trade.contradictions.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul></div>':'')+
+    '<p class="q-dpg-trade-change"><strong>What changes the view:</strong> '+escapeHtml(trade.whatChangesView)+'</p>'+
+  '</section>';
+};
+
 const calibration=(view,escapeHtml)=>{
   const gate=view.evidenceGate||{};
   const scenario=view.scenario||{};
@@ -92,7 +108,7 @@ const calibration=(view,escapeHtml)=>{
 export async function renderDecisionProvenGraph(main,deps){
   installStyles();const {api,pageHead,stateBanner,escapeHtml,toast}=deps;
   const chatContext=readChatDecisionContext();
-  let state={asset:chatContext.asset,interval:chatContext.interval,horizon:normalizeHorizon(chatContext.interval,'4h'),loading:true,data:null,error:null,draft:null,selection:null};
+  let state={asset:chatContext.asset,interval:chatContext.interval,horizon:normalizeHorizon(chatContext.interval,'4h'),rr:'auto',customRr:'2.5',loading:true,data:null,error:null,draft:null,selection:null};
   const select=(name,values)=>'<label><span>'+name[0].toUpperCase()+name.slice(1)+'</span><select data-dpg-'+name+'>'+values.map(value=>'<option value="'+value+'" '+(state[name]===value?'selected':'')+'>'+value+'</option>').join('')+'</select></label>';
   const evidence=(data)=>{
     const move=data.selection,quant=move?.evidence||[],articles=data.evidence?.news?.articles||[];
@@ -104,6 +120,7 @@ export async function renderDecisionProvenGraph(main,deps){
     const view=data.qellyView,move=data.selection;
     return '<section class="q-dpg-truth"><span class="q-status q-status--'+(data.truthState==='LIVE'?'live':data.truthState.toLowerCase())+'">'+escapeHtml(data.truthState)+'</span><strong>'+escapeHtml(data.asset)+' / '+escapeHtml(data.interval)+'</strong><span>'+escapeHtml(data.market.currentState.label)+' · updated '+new Date(data.observedAt).toLocaleString()+'</span></section>'+
       heroSnapshot(data,escapeHtml)+
+      tradeResearchMarkup(data,escapeHtml)+
       '<section class="q-dpg-view q-dpg-view--'+actionTone(view.action)+'"><div><small>QELLY VIEW</small><h2>'+escapeHtml(view.action)+'</h2><p>'+escapeHtml(view.label)+'</p></div><div class="q-dpg-confidence"><span>Evidence confidence</span><strong>'+Math.round(view.confidence*100)+'%</strong></div>'+calibration(view,escapeHtml)+levels(view)+'<details><summary>Why this view?</summary><ul>'+view.why.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul><p><strong>What changes it:</strong> '+escapeHtml(view.changesIf)+'</p></details></section>'+
       '<section class="q-dpg-stage"><div class="q-dpg-chart-wrap"><div class="q-dpg-chart-help">Click one candle or drag across observed candles to select a move.</div>'+chart(data,escapeHtml)+'<div class="q-dpg-selection-actions"><span data-dpg-selection-label>'+(state.draft?(state.draft.end-state.draft.start<(INTERVAL_MS[state.interval]||0)?'Single candle selected':'Range selected'):'No range selected')+'</span><button class="q-button q-button--primary" data-dpg-explain '+(state.draft?'':'disabled')+'>'+(state.draft&&state.draft.end-state.draft.start<(INTERVAL_MS[state.interval]||0)?'Explain this candle':'Explain this move')+'</button><button class="q-button q-button--secondary" data-dpg-clear '+(state.draft||state.selection?'':'disabled')+'>Clear</button></div></div><aside class="q-dpg-scenarios">'+[['Bull',data.forecast.probabilities.bull],['Base',data.forecast.probabilities.base],['Bear',data.forecast.probabilities.bear]].map(([label,value])=>'<article><span>'+label+'</span><strong>'+Math.round(value*100)+'%</strong><meter min="0" max="1" value="'+value+'"></meter></article>').join('')+'<p>Modelled terminal range<br><strong>'+money(data.forecast.terminal.p05)+' – '+money(data.forecast.terminal.p95)+'</strong></p></aside></section>'+
       (move?'<section class="q-dpg-move"><header><div><small>SELECTED MOVE</small><h2>'+pct(move.changePct)+' across '+move.candles+' candles</h2></div><span>'+new Date(move.start).toLocaleString()+' → '+new Date(move.end).toLocaleString()+'</span></header><div><article><span>Range</span><strong>'+pct(move.rangePct)+'</strong></article><article><span>Volume vs prior</span><strong>'+(move.volumeRatio?move.volumeRatio+'×':'N/A')+'</strong></article><article><span>Volatility</span><strong>'+pct(move.volatilityPct)+'</strong></article><article><span>Prior volatility</span><strong>'+(move.priorVolatilityPct===null?'N/A':pct(move.priorVolatilityPct))+'</strong></article></div></section>':'')+
@@ -113,7 +130,7 @@ export async function renderDecisionProvenGraph(main,deps){
   };
   const draw=()=>{
     const data=state.data;
-    main.innerHTML='<section class="q-page q-dpg-page">'+pageHead('QELLY Decision Intelligence','Explain the move. Weigh the evidence. Decide with context.','Select any chart range to connect price action with ranked quantitative and live news evidence, then see a transparent research view across past, present and possible futures.','<button class="q-button q-button--secondary" data-dpg-export '+(data?'':'disabled')+'>Export research</button><button class="q-button q-button--primary" data-dpg-refresh>Refresh</button>')+stateBanner()+'<section class="q-dpg-controls" aria-label="Decision controls">'+select('asset',['BTC','ETH','SOL','HYPE','XRP','DOGE'])+select('interval',['1m','5m','15m','30m','1h','4h','1d'])+select('horizon',validHorizons(state.interval))+'<p>Public research · no sign-in required · no trade execution</p></section>'+(state.loading?'<section class="q-dpg-state" role="status"><span class="q-spinner"></span><h2>Weighing fresh evidence</h2><p>Loading market observations and scenario ranges.</p></section>':'')+(state.error?'<section class="q-dpg-state q-dpg-state--error" role="alert"><h2>Live research unavailable</h2><p>'+escapeHtml(state.error)+'</p><button class="q-button q-button--secondary" data-dpg-refresh>Try again</button></section>':'')+(data?content(data):'')+'</section>';
+    main.innerHTML='<section class="q-page q-dpg-page">'+pageHead('QELLY Decision Intelligence','Explain the move. Weigh the evidence. Decide with context.','Select any chart range to connect price action with ranked quantitative and live news evidence, then see a transparent research view across past, present and possible futures.','<button class="q-button q-button--secondary" data-dpg-export '+(data?'':'disabled')+'>Export research</button><button class="q-button q-button--primary" data-dpg-refresh>Refresh</button>')+stateBanner()+'<section class="q-dpg-controls q-dpg-controls--decision" aria-label="Decision controls">'+select('asset',['BTC','ETH','SOL','HYPE','XRP','DOGE'])+select('interval',['1m','5m','15m','30m','1h','4h','1d'])+select('horizon',validHorizons(state.interval))+'<label><span>Risk / reward</span><select data-dpg-rr><option value="auto" '+(state.rr==='auto'?'selected':'')+'>Auto</option><option value="1" '+(state.rr==='1'?'selected':'')+'>1:1</option><option value="2" '+(state.rr==='2'?'selected':'')+'>1:2</option><option value="3" '+(state.rr==='3'?'selected':'')+'>1:3</option><option value="4" '+(state.rr==='4'?'selected':'')+'>1:4</option><option value="custom" '+(state.rr==='custom'?'selected':'')+'>Custom</option></select></label>'+(state.rr==='custom'?'<label><span>Custom R:R</span><input data-dpg-custom-rr type="number" min="0.5" max="10" step="0.1" value="'+escapeHtml(state.customRr)+'"></label>':'')+'<button class="q-button q-button--primary q-dpg-find-trade" data-dpg-find-trade>Find Trade Now</button><p>Public research · no sign-in required · no trade execution</p></section>'+(state.loading?'<section class="q-dpg-state" role="status"><span class="q-spinner"></span><h2>Weighing fresh evidence</h2><p>Loading market observations and scenario ranges.</p></section>':'')+(state.error?'<section class="q-dpg-state q-dpg-state--error" role="alert"><h2>Live research unavailable</h2><p>'+escapeHtml(state.error)+'</p><button class="q-button q-button--secondary" data-dpg-refresh>Try again</button></section>':'')+(data?content(data):'')+'</section>';
     wire();mountAdSlots(main);
   };
   const wire=()=>{
@@ -123,6 +140,9 @@ export async function renderDecisionProvenGraph(main,deps){
       if(key==='interval')state.horizon=normalizeHorizon(state.interval,state.horizon);
       state.draft=null;state.selection=null;load();
     }));
+    main.querySelector('[data-dpg-rr]')?.addEventListener('change',(event)=>{state.rr=event.currentTarget.value;load();});
+    main.querySelector('[data-dpg-custom-rr]')?.addEventListener('change',(event)=>{state.customRr=event.currentTarget.value;load();});
+    main.querySelector('[data-dpg-find-trade]')?.addEventListener('click',load);
     main.querySelectorAll('[data-dpg-refresh]').forEach(button=>button.addEventListener('click',load));main.querySelector('[data-dpg-export]')?.addEventListener('click',()=>{download(state.data);toast('Research package exported',{tone:'success'});});
     main.querySelector('[data-dpg-explain]')?.addEventListener('click',()=>{state.selection=state.draft;load();});main.querySelector('[data-dpg-clear]')?.addEventListener('click',()=>{state.draft=null;state.selection=null;load();});
     const svg=main.querySelector('[data-dpg-chart]');if(!svg||!state.data)return;let anchor=null;
@@ -136,7 +156,7 @@ export async function renderDecisionProvenGraph(main,deps){
       draw();
     });
   };
-  async function load(){state.loading=true;state.error=null;draw();try{const range=state.selection?'&selectionStart='+encodeURIComponent(state.selection.start)+'&selectionEnd='+encodeURIComponent(state.selection.end):'';state.data=await api('/api/v1/decision-proven-graph?asset='+encodeURIComponent(state.asset)+'&interval='+encodeURIComponent(state.interval)+'&horizon='+encodeURIComponent(state.horizon)+range);}catch(error){state.data=null;state.error=error?.message||'Fresh market evidence could not be reached. No substitute data was generated.';}finally{state.loading=false;draw();}}
+  async function load(){state.loading=true;state.error=null;draw();try{const range=state.selection?'&selectionStart='+encodeURIComponent(state.selection.start)+'&selectionEnd='+encodeURIComponent(state.selection.end):'';const rr='&rr='+encodeURIComponent(state.rr)+(state.rr==='custom'?'&customRr='+encodeURIComponent(state.customRr):'');state.data=await api('/api/v1/decision-proven-graph?asset='+encodeURIComponent(state.asset)+'&interval='+encodeURIComponent(state.interval)+'&horizon='+encodeURIComponent(state.horizon)+rr+range);}catch(error){state.data=null;state.error=error?.message||'Fresh market evidence could not be reached. No substitute data was generated.';}finally{state.loading=false;draw();}}
   await load();
 }
 
