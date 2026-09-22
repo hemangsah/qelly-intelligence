@@ -236,6 +236,7 @@ const summary={
   totalMutations:report.scenarios.reduce((total,item)=>total+(item.performanceSignals?.mutations??0),0),
   routeCycleStatus:report.routeCycleStability?.status??'not_run',
   routeCycleFailures:report.routeCycleStability?.failures??[],
+  routeCycleErrors:report.routeCycleStability?.errors??[],
   routeCycleHeapStart:report.routeCycleStability?.samples?.[0]?.jsHeapUsedBytes??null,
   routeCycleHeapEnd:report.routeCycleStability?.samples?.at(-1)?.jsHeapUsedBytes??null,
   routeCycleDomStart:report.routeCycleStability?.samples?.[0]?.domNodes??null,

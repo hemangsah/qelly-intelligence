@@ -23,10 +23,11 @@ test('single-candle selection produces truthful evidence instead of being reject
 
 test('Decision Intelligence hero exposes current evidence dimensions without inventing data',async()=>{
   const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
-  for(const phrase of ['Current price','Freshness','Regime','Risk state','Timeframe agreement','Data coverage','Derivatives','Last meaningful event'])assert.match(route,new RegExp(phrase));
-  assert.match(route,/No fresh sourced event verified/);
-  assert.match(route,/Context only · never direction by itself/);
-  assert.match(route,/Confidence measures evidence quality and agreement\. It is not a success probability\./);
+  for(const phrase of ['QELLY Decision Intelligence','FLAGSHIP RESEARCH WORKSPACE','Evidence quality','Model confidence','Scenario','MTF agreement','Regime','Volatility','Find Trade Now','Explain This Move','Compare Timeframes','Open QELLY Chat','Methodology / Sources'])assert.match(route,new RegExp(phrase));
+  assert.match(route,/data-dpg-asset/);
+  assert.match(route,/data-dpg-interval/);
+  assert.match(route,/stateBanner\(\)\+hero\(data\)/);
+  assert.doesNotMatch(route,/pageHead\('QELLY Decision Intelligence'/);
 });
 
 test('Decision Intelligence safely exposes provider-supported 1m and 1d intervals',async()=>{
@@ -46,9 +47,10 @@ test('chart interaction supports a single candle and a dragged move',async()=>{
 
 test('Decision Intelligence hero stays dense and responsive',async()=>{
   const css=await read('apps/web/public/assets/qelly-decision-proven-graph.css');
-  assert.match(css,/\.q-dpg-hero-snapshot\{display:grid;grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
-  assert.match(css,/@media\(max-width:900px\)\{\.q-dpg-hero-snapshot\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
-  assert.match(css,/@media\(max-width:520px\)\{\.q-dpg-hero-snapshot\{grid-template-columns:1fr\}/);
+  assert.match(css,/\.q-dpg-hero\{display:grid;grid-template-columns:minmax\(260px,1\.05fr\)/);
+  assert.match(css,/@media\(max-width:1040px\)\{\.q-dpg-hero\{grid-template-columns:1fr 1\.25fr\}/);
+  assert.match(css,/@media\(max-width:760px\)\{\.q-dpg-hero\{grid-template-columns:1fr\}/);
+  assert.match(css,/@media\(max-width:480px\)\{\.q-dpg-hero__selects,\.q-dpg-hero__actions,\.q-dpg-hero__metrics\{grid-template-columns:1fr\}/);
 });
 
 test('Decision Intelligence normalizes compact sourced timestamps before display',async()=>{
