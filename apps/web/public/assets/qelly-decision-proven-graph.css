@@ -96,3 +96,24 @@
 @media(max-width:1100px){.q-dpg-analog-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:780px){.q-dpg-analogs>header{display:grid}.q-dpg-analog-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.q-dpg-analog-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.q-dpg-analog-summary,.q-dpg-analog-list{grid-template-columns:1fr}.q-dpg-analogs{padding:12px}}
+
+
+/* Decision Intelligence lifecycle / structural target completion */
+.q-dpg-trade-subsection{display:grid;gap:9px;padding-top:2px}
+.q-dpg-trade-subsection>header{display:flex;justify-content:space-between;gap:12px;align-items:end}
+.q-dpg-trade-subsection>header small{font-size:9px;letter-spacing:.08em;color:var(--text-muted)}
+.q-dpg-trade-subsection>header h3{margin:3px 0 0;font-size:14px}
+.q-dpg-trade-subsection>header>span{font-size:9px;color:var(--text-muted);text-align:right}
+.q-dpg-trade-summary article p{margin:2px 0 0;color:var(--text-muted);font-size:9px;line-height:1.35}
+.q-dpg-target-ladder{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.q-dpg-target-ladder>span{display:grid;gap:4px;padding:11px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.02)}
+.q-dpg-target-ladder em{font-style:normal;font-size:9px;letter-spacing:.05em;color:var(--text-muted)}
+.q-dpg-target-ladder strong{font-size:14px}
+.q-dpg-target-ladder small{font-size:9px;color:var(--text-muted)}
+.q-dpg-invalidation-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.q-dpg-invalidation-grid article{display:grid;gap:4px;padding:11px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.018);min-width:0}
+.q-dpg-invalidation-grid span{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)}
+.q-dpg-invalidation-grid strong{font-size:11px;overflow-wrap:anywhere}
+.q-dpg-invalidation-grid small{font-size:9px;line-height:1.4;color:var(--text-muted)}
+@media(max-width:900px){.q-dpg-target-ladder{grid-template-columns:repeat(2,minmax(0,1fr))}.q-dpg-invalidation-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.q-dpg-trade-subsection>header{display:grid;align-items:start}.q-dpg-trade-subsection>header>span{text-align:left}.q-dpg-target-ladder,.q-dpg-invalidation-grid{grid-template-columns:1fr}}
