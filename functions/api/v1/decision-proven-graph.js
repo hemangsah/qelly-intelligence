@@ -1,4 +1,5 @@
 import {buildDecisionProvenGraph,DECISION_INTERVALS} from '../../_lib/decision-proven-graph.js';
+import {buildTradeResearch} from '../../_lib/decision-trade-research.js';
 import {HttpError,enforceRateLimit,errorResponse,fetcher,responseJson} from '../../_lib/runtime.js';
 
 const ASSETS=new Set(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
@@ -174,7 +175,7 @@ async function fetchTimeframes(fetchImpl,asset,endTime,selectedInterval){
   return {state:views.length>=3?'live':views.length?'partial':'unavailable',views,agreement:{direction:buys>sells?'BUY':sells>buys?'SELL':'MIXED',aligned:Math.max(buys,sells),directional:directional.length,total:views.length}};
 }
 
-export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',horizon='4h',selection=null,now=Date.now()}={}){
+export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',horizon='4h',selection=null,requestedRr='auto',customRr=null,now=Date.now()}={}){
   const resolvedAsset=String(asset||'BTC').toUpperCase();
   const resolvedInterval=String(interval||'15m');
   const resolvedHorizon=String(horizon||'4h');
@@ -209,7 +210,8 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   const newsEnd=Math.min(resolvedSelection?.end??endTime,endTime);
   let articles=[],newsState='unavailable';
   try{articles=await fetchNews(fetchImpl,resolvedAsset,newsStart,newsEnd);newsState=articles.length?'live':'no-matches';}catch{}
-  return {...graph,horizon:resolvedHorizon,multiTimeframe,evidence:{news:{state:newsState,provider:'GDELT',articles},derivatives,liquidations:{state:'unavailable',message:'Verified liquidation evidence is not available for this view, so it is not inferred.'}}};
+  const tradeResearch=buildTradeResearch(graph,{requestedRr,customRr});
+  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence:{news:{state:newsState,provider:'GDELT',articles},derivatives,liquidations:{state:'unavailable',message:'Verified liquidation evidence is not available for this view, so it is not inferred.'}}};
 }
 
 export async function onRequest({request,env}){
@@ -223,6 +225,8 @@ export async function onRequest({request,env}){
       asset:url.searchParams.get('asset')||'BTC',
       interval:url.searchParams.get('interval')||'15m',
       horizon:url.searchParams.get('horizon')||'4h',
+      requestedRr:url.searchParams.get('rr')||'auto',
+      customRr:url.searchParams.get('customRr'),
       selection
     });
     return responseJson(request,env,result,200,{cache:'public, max-age=10, stale-while-revalidate=30'});
