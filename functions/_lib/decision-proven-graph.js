@@ -44,7 +44,7 @@ function scenarios(candles,returns,horizonBars,seed){
   let bear=round(terminal.filter(value=>value/last-1< -neutral).length/paths,4);
   let base=round(1-bull-bear,4);
   if(base<0){base=0;bear=round(1-bull,4);}
-  return {paths,fan,probabilities:{bull,base,bear},terminal:{p05:fan.at(-1).p05,p50:fan.at(-1).p50,p95:fan.at(-1).p95}};
+  return {paths,fan,probabilities:{bull,base,bear},neutralThresholdPct:round(neutral*100,4),terminal:{p05:fan.at(-1).p05,p50:fan.at(-1).p50,p95:fan.at(-1).p95}};
 }
 
 function marketState(metrics){
@@ -64,6 +64,87 @@ function makeQellyView(metrics,forecast,last,truthState,confidence){
   const leading=action==='BUY'?bull:action==='SELL'?bear:Math.max(bull,bear);
   const why=[metrics.trendPerBarPct>=0?'Trend slope is non-negative.':'Trend slope is negative.',metrics.rsi14>=50?'RSI shows stronger buying momentum.':'RSI shows weaker buying momentum.','Scenario balance is '+Math.round(bull*100)+'% bull / '+Math.round(forecast.probabilities.base*100)+'% base / '+Math.round(bear*100)+'% bear.'];
   return {action,confidence:round(Math.min(confidence,.45+leading*.55),2),levels,why,changesIf:action==='BUY'?'Momentum falls below neutral, price breaches invalidation, or fresh evidence weakens the bull case.':action==='SELL'?'Momentum recovers above neutral, price breaches invalidation, or fresh evidence weakens the bear case.':'A clearer directional edge appears with fresh evidence and aligned trend, momentum and scenario probabilities.',label:action==='NO TRADE'?'Evidence quality is too weak for a directional research signal.':action==='WAIT'?'No directional edge clears the evidence threshold.':'Research signal only — not a recommendation or guaranteed outcome.'};
+}
+
+
+const calibrationBins=Object.freeze([
+  [0,.4],[.4,.5],[.5,.6],[.6,.7],[.7,.8],[.8,.9],[.9,1.000001]
+]);
+
+export function buildDecisionWalkForwardCalibration(raw,{interval='15m',horizonBars=16,minSamples=36}={}){
+  const intervalMs=INTERVAL_MS[interval];
+  if(!intervalMs)return {state:'UNCALIBRATED',eligible:false,sampleSize:0,brierScore:null,baselineBrierScore:.3333,skillScore:null,reliabilityGap:null,reliabilityBins:[],reason:'Unsupported interval.'};
+  const candles=normalizeCandles(raw);
+  const warmup=120;
+  const horizon=Math.max(2,Math.min(168,Number(horizonBars)||16));
+  const step=Math.max(4,Math.floor(horizon/2));
+  if(candles.length<warmup+horizon+step)return {state:'UNCALIBRATED',eligible:false,sampleSize:0,brierScore:null,baselineBrierScore:.3333,skillScore:null,reliabilityGap:null,reliabilityBins:[],reason:'Not enough resolved historical observations.'};
+
+  const rows=[];
+  const first=Math.max(warmup,candles.length-420);
+  for(let cut=first;cut+horizon<candles.length;cut+=step){
+    const history=candles.slice(0,cut);
+    const entry=history.at(-1)?.close;
+    const terminal=candles[cut+horizon]?.close;
+    if(!(entry>0&&terminal>0))continue;
+    const {returns}=metricSet(history,intervalMs);
+    if(returns.length<80)continue;
+    const fingerprint=hash(JSON.stringify(history.slice(-240)));
+    const forecast=scenarios(history,returns,horizon,parseInt(fingerprint,16));
+    const probabilities=forecast.probabilities;
+    const realizedPct=(terminal/entry-1)*100;
+    const threshold=Math.max(.0001,Number(forecast.neutralThresholdPct)||0);
+    const realized=realizedPct>threshold?'bull':realizedPct< -threshold?'bear':'base';
+    const predicted=['bull','base','bear'].sort((a,b)=>probabilities[b]-probabilities[a])[0];
+    const confidence=probabilities[predicted];
+    const y={bull:realized==='bull'?1:0,base:realized==='base'?1:0,bear:realized==='bear'?1:0};
+    const rawBrier=(probabilities.bull-y.bull)**2+(probabilities.base-y.base)**2+(probabilities.bear-y.bear)**2;
+    rows.push({cutTime:history.at(-1).time,resolveTime:candles[cut+horizon].time,predicted,realized,confidence,brier:rawBrier/2,correct:predicted===realized?1:0});
+  }
+
+  const sampleSize=rows.length;
+  if(!sampleSize)return {state:'UNCALIBRATED',eligible:false,sampleSize:0,brierScore:null,baselineBrierScore:.3333,skillScore:null,reliabilityGap:null,reliabilityBins:[],reason:'No resolved calibration observations.'};
+  const brier=mean(rows.map(row=>row.brier));
+  const baseline=.3333333333;
+  const skill=1-brier/baseline;
+  const bins=calibrationBins.map(([low,high])=>{
+    const members=rows.filter(row=>row.confidence>=low&&row.confidence<high);
+    if(!members.length)return null;
+    return {
+      low:round(low,2),
+      high:round(Math.min(high,1),2),
+      sampleSize:members.length,
+      meanConfidence:round(mean(members.map(row=>row.confidence)),3),
+      hitRate:round(mean(members.map(row=>row.correct)),3)
+    };
+  }).filter(Boolean);
+  const reliabilityGap=sampleSize?bins.reduce((sum,bin)=>sum+bin.sampleSize*Math.abs(bin.meanConfidence-bin.hitRate),0)/sampleSize:null;
+  const enough=sampleSize>=Math.max(12,Number(minSamples)||36);
+  const skillOk=Number.isFinite(skill)&&skill>=.02;
+  const brierOk=Number.isFinite(brier)&&brier<=.3267;
+  const reliabilityOk=Number.isFinite(reliabilityGap)&&reliabilityGap<=.15;
+  const eligible=enough&&skillOk&&brierOk&&reliabilityOk;
+  const state=!enough?'UNCALIBRATED':eligible?'CALIBRATED':'WEAK_CALIBRATION';
+  const reason=!enough?'Resolved walk-forward sample is below the minimum calibration size.':eligible?'Walk-forward Brier skill and reliability gates are satisfied.':'Resolved history exists, but Brier skill or reliability does not clear the calibration gate.';
+  return {
+    state,
+    eligible,
+    sampleSize,
+    horizonBars:horizon,
+    stepBars:step,
+    warmupBars:warmup,
+    brierScore:round(brier,4),
+    baselineBrierScore:round(baseline,4),
+    skillScore:round(skill,4),
+    reliabilityGap:round(reliabilityGap,4),
+    reliabilityBins:bins,
+    correctClassRate:round(mean(rows.map(row=>row.correct)),3),
+    firstResolvedAt:new Date(rows[0].resolveTime).toISOString(),
+    lastResolvedAt:new Date(rows.at(-1).resolveTime).toISOString(),
+    method:'deterministic stepped walk-forward; each forecast uses only candles available at its cut point',
+    leakageGuard:'Future candles are used only to score already-generated historical probabilities.',
+    reason
+  };
 }
 
 function analyzeSelection(candles,selection,intervalMs){
