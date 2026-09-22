@@ -1,6 +1,6 @@
 import {mountTradingViewWidget} from './tradingview-display-widget.mjs';
 
-const ROUTE_SETTLE_DELAY_MS=220;
+const ROUTE_SETTLE_DELAY_MS=1050;
 
 export function validateMarketWidgetPanels(panels){
   if(!Array.isArray(panels)||!panels.length)throw new TypeError('Market widget panels are required');
