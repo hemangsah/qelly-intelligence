@@ -75,3 +75,12 @@ test('Decision Intelligence R:R research remains responsive on narrow screens',a
   assert.match(css,/\.q-dpg-rr-grid\{display:grid;grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
   assert.equal(css.includes('@media(max-width:520px){.q-dpg-controls--decision{grid-template-columns:1fr}.q-dpg-trade-summary,.q-dpg-rr-grid{grid-template-columns:1fr}'),true);
 });
+
+
+test('Decision Intelligence surfaces advanced quant state and bounded historical analogs',async()=>{
+  const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
+  for(const phrase of ['ADVANCED QUANT STATE','Garman–Klass vol','Rogers–Satchell vol','Volatility regime','HISTORICAL ANALOGS','Historical analog outcomes are descriptive comparisons'])assert.equal(route.includes(phrase),true,phrase);
+  const css=await read('apps/web/public/assets/qelly-decision-proven-graph.css');
+  assert.match(css,/\.q-dpg-quant,.q-dpg-analogs\{display:grid/);
+  assert.equal(css.includes('@media(max-width:620px)'),true);
+});
