@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {buildDecisionProvenGraph,normalizeCandles} from '../functions/_lib/decision-proven-graph.js';
+import {buildTradeResearch} from '../functions/_lib/decision-trade-research.js';
 import {buildDecisionIntelligence,calibrateDecisionEvidence,onRequest} from '../functions/api/v1/decision-proven-graph.js';
 import {__decisionProvenGraphRouteTest} from '../apps/web/public/assets/routes/decision-proven-graph.mjs';
 
@@ -197,4 +198,69 @@ test('Decision Intelligence consumes fresh bounded Chat context once and rejects
   }finally{
     if(original===undefined)delete globalThis.sessionStorage;else globalThis.sessionStorage=original;
   }
+});
+
+
+test('trade research exposes bounded 1:1 through 1:4 R:R without fabricating target-touch probabilities',()=>{
+  const graph={
+    observedAt:new Date(1_800_000_000_000).toISOString(),
+    horizonBars:16,
+    freshness:{intervalMs:900_000},
+    market:{lastPrice:100},
+    forecast:{fan:[{p05:88,p25:94,p50:100,p75:108,p95:116}]},
+    qellyView:{
+      action:'BUY',
+      confidence:.78,
+      evidenceGate:{qualityScore:.81},
+      levels:{entryZone:[99,101],invalidation:96},
+      contradictions:[],
+      changesIf:'Price breaks invalidation or evidence alignment deteriorates.'
+    }
+  };
+  const result=buildTradeResearch(graph,{requestedRr:'auto'});
+  assert.equal(result.status,'VALID');
+  assert.deepEqual(result.matrix.map(item=>item.label),['1:1','1:2','1:3','1:4']);
+  assert.ok(result.selected);
+  assert.equal(result.selected.targetTouchProbability,null);
+  assert.equal(result.selected.expectedValue,null);
+  assert.match(result.calibration,/not yet independently calibrated/i);
+});
+
+test('trade research fails closed when requested 1:4 exceeds the modelled favorable range',()=>{
+  const graph={
+    observedAt:new Date(1_800_000_000_000).toISOString(),
+    horizonBars:16,
+    freshness:{intervalMs:900_000},
+    market:{lastPrice:100},
+    forecast:{fan:[{p05:92,p25:96,p50:100,p75:103,p95:106}]},
+    qellyView:{
+      action:'BUY',
+      confidence:.75,
+      evidenceGate:{qualityScore:.76},
+      levels:{entryZone:[99,101],invalidation:97},
+      contradictions:['Event risk is elevated.'],
+      changesIf:'Reassess when event risk clears.'
+    }
+  };
+  const result=buildTradeResearch(graph,{requestedRr:'4'});
+  assert.equal(result.status,'NO_TRADE');
+  assert.equal(result.selected.label,'1:4');
+  assert.equal(result.selected.feasibility,'NOT FEASIBLE');
+  assert.match(result.reason,/beyond the model p95/i);
+});
+
+test('trade research returns NO TRADE and no synthetic levels when the evidence gate is not directional',()=>{
+  const graph={
+    observedAt:new Date(1_800_000_000_000).toISOString(),
+    horizonBars:16,
+    freshness:{intervalMs:900_000},
+    market:{lastPrice:100},
+    forecast:{fan:[{p05:90,p25:96,p50:100,p75:104,p95:110}]},
+    qellyView:{action:'NO TRADE',confidence:.45,evidenceGate:{qualityScore:.4},levels:null,contradictions:['Timeframes conflict.'],changesIf:'Wait for alignment.'}
+  };
+  const result=buildTradeResearch(graph,{requestedRr:'2'});
+  assert.equal(result.status,'NO_TRADE');
+  assert.equal(result.entry,null);
+  assert.equal(result.stop,null);
+  assert.deepEqual(result.matrix,[]);
 });
