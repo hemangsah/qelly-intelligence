@@ -129,7 +129,7 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null,now=n
     evidenceQuality:finite(view.evidenceGate?.qualityScore),
     contradictions,
     whatChangesView:view.changesIf||'Reassess when fresh evidence changes.',
-    calibration:'Target-touch probability and trade win rate are not independently calibrated unless explicitly supplied by a validated target-touch model.',
+    calibration:'Target-touch probability and trade win rate are not yet independently calibrated unless explicitly supplied by a validated target-touch model.',
     calibrationState:graph?.quant?.calibration||{state:'UNCALIBRATED',sampleSize:0,brierScore:null,reliabilityBins:[]},
     riskContext:{volatilityRegime,expectedMovePct:finite(graph?.quant?.volatility?.expectedMovePct),marketStructure:structure},
     costs:{state:'UNAVAILABLE',netRiskReward:null,reason:'Verified spread/fee inputs are not available in this research view, so net R:R is not fabricated.'}
