@@ -13,7 +13,8 @@ const EXTERNAL_SYMBOLS=Object.freeze([
   ['ADAUSDT','ADA / USDT']
 ]);
 const INTERVALS=Object.freeze([['5m','5m'],['15m','15m'],['1h','1h'],['4h','4h'],['1d','1D']]);
-const MARKET_ROUTE_SETTLE_DELAY_MS=220;
+const MARKET_ROUTE_SETTLE_DELAY_MS=900;
+const TICKER_ROUTE_SETTLE_DELAY_MS=1350;
 const MARKET_WIDGET_PANELS=Object.freeze([
   {id:'crypto-heatmap',label:'Crypto Coins Heatmap',kind:'cryptoHeatmap',size:'hero',description:'Market-cap-weighted crypto performance and relative movement across the market.',openUrl:'https://www.tradingview.com/heatmap/crypto/'},
   {id:'market-overview',label:'Market Overview',kind:'marketOverview',size:'tall',description:'Compare major indices, crypto, foreign exchange and India benchmarks.',openUrl:'https://www.tradingview.com/markets/'},
@@ -225,13 +226,13 @@ export async function renderMarketV6(main,deps){
     const observer=new IntersectionObserver((entries)=>{if(!entries.some(entry=>entry.isIntersecting))return;observer.disconnect();callback();},{rootMargin,threshold:0.01});
     observer.observe(element);return observer;
   };
-  let tickerObserver=null,chartFrame=0,chartTimer=0;
+  let tickerObserver=null,chartFrame=0,chartTimer=0,tickerTimer=0;
   if(!verifyAliasActive){
     const gridPanels=MARKET_WIDGET_PANELS.map(panel=>({...panel,config:(context)=>panelConfig(panel,context)}));
     marketGridHandle=mountTradingViewMarketGrid(marketGrid,{panels:gridPanels,context:{symbol:symbol.value,interval:interval.value},rootMargin:'160px 0px'});
     intelligenceDockHandle=mountExternalIntelligenceDock(intelligenceDock,{escapeHtml});
     chartTimer=setTimeout(()=>{if(!marketRoot.isConnected)return;chartFrame=requestAnimationFrame(mount);},MARKET_ROUTE_SETTLE_DELAY_MS);
-    tickerObserver=lazyMount(ticker,mountTicker,{rootMargin:'80px 0px'});
+    tickerObserver=lazyMount(ticker,()=>{clearTimeout(tickerTimer);tickerTimer=setTimeout(()=>{tickerTimer=0;if(marketRoot.isConnected)mountTicker();},TICKER_ROUTE_SETTLE_DELAY_MS);},{rootMargin:'80px 0px'});
     symbol?.addEventListener('change',mount);interval?.addEventListener('change',mount);
   }
   api('/api/v1/market/network').then((network)=>populateNetworkSections(marketRoot,network,escapeHtml)).catch(()=>populateNetworkSections(marketRoot,{sources:{},providerDirectory:[],providerDirectorySummary:{byIntegration:{}}},escapeHtml));
@@ -251,7 +252,7 @@ export async function renderMarketV6(main,deps){
     },250);
   });
   themeObserver.observe(document.documentElement,{attributes:true,attributeFilter:['data-appearance','data-resolved-appearance']});
-  window.__qellyMarketV6Cleanup=()=>{clearTimeout(themeTimer);clearTimeout(chartTimer);cancelAnimationFrame(themeFrame);cancelAnimationFrame(chartFrame);themeObserver.disconnect();tickerObserver?.disconnect?.();handle?.destroy?.();tickerHandle?.destroy?.();marketGridHandle?.destroy?.();intelligenceDockHandle?.destroy?.();handle=null;tickerHandle=null;marketGridHandle=null;intelligenceDockHandle=null;};
+  window.__qellyMarketV6Cleanup=()=>{clearTimeout(themeTimer);clearTimeout(chartTimer);clearTimeout(tickerTimer);chartTimer=0;tickerTimer=0;cancelAnimationFrame(themeFrame);cancelAnimationFrame(chartFrame);themeObserver.disconnect();tickerObserver?.disconnect?.();handle?.destroy?.();tickerHandle?.destroy?.();marketGridHandle?.destroy?.();intelligenceDockHandle?.destroy?.();handle=null;tickerHandle=null;marketGridHandle=null;intelligenceDockHandle=null;};
 }
 
-export const __marketV6Test=Object.freeze({EXTERNAL_SYMBOLS,INTERVALS,MARKET_ROUTE_SETTLE_DELAY_MS,MARKET_WIDGET_PANELS,INTELLIGENCE_DOCK_PANELS,tone,panelConfig});
+export const __marketV6Test=Object.freeze({EXTERNAL_SYMBOLS,INTERVALS,MARKET_ROUTE_SETTLE_DELAY_MS,TICKER_ROUTE_SETTLE_DELAY_MS,MARKET_WIDGET_PANELS,INTELLIGENCE_DOCK_PANELS,tone,panelConfig});
