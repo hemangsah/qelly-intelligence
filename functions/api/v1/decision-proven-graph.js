@@ -111,8 +111,15 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives){
     }
   }
   const atrPct=finite(graph.metrics?.atrPct);
-  const riskLabel=atrPct===null?'Unknown':atrPct>=3?'High short-term range':atrPct>=1.5?'Elevated short-term range':atrPct>=.75?'Moderate short-term range':'Lower short-term range';
+  const volatilityRegime=String(graph?.quant?.volatility?.regime||'UNKNOWN');
+  const riskLabel=volatilityRegime!=='UNKNOWN'?volatilityRegime.replaceAll('_',' ') : atrPct===null?'Unknown':atrPct>=3?'High short-term range':atrPct>=1.5?'Elevated short-term range':atrPct>=.75?'Moderate short-term range':'Lower short-term range';
   const derivativesLive=derivatives?.state==='live';
+  const calibrationState=String(graph?.quant?.calibration?.state||'UNCALIBRATED');
+  const calibrationEligible=calibrationState==='CALIBRATED';
+  if(directionalAction&&!calibrationEligible){
+    action='NO TRADE';
+    contradictions.push('Directional setup is withheld because empirical out-of-sample probability calibration is not yet available.');
+  }
   const why=[
     ...(Array.isArray(base?.why)?base.why:[]),
     total?('Multi-timeframe evidence: '+String(agreement.direction||'MIXED')+' with '+aligned+'/'+total+' observed timeframes aligned.'):'Multi-timeframe evidence is unavailable and was not inferred.',
@@ -130,7 +137,7 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives){
     why,
     changesIf,
     contradictions,
-    riskState:{label:riskLabel,atrPct:round(atrPct,2)},
+    riskState:{label:riskLabel,atrPct:round(atrPct,2),volatilityRegime,expectedMovePct:round(finite(graph?.quant?.volatility?.expectedMovePct),3),structure:graph?.quant?.structure||null},
     scenario:{bull,bear,base:finite(graph.forecast?.probabilities?.base)??0,gap:round(scenarioGap,4),leading:bull>bear?'BULL':bear>bull?'BEAR':'BALANCED'},
     evidenceGate:{
       baseAction,
@@ -145,7 +152,10 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives){
       timeframeDirection:String(agreement.direction||'UNAVAILABLE'),
       timeframeAligned:aligned,
       timeframeTotal:total,
-      derivativesCoverage:derivativesLive?'live':'unavailable'
+      derivativesCoverage:derivativesLive?'live':'unavailable',
+      quantCoverage:graph?.quant?.state==='DERIVED'?'derived':'insufficient',
+      calibrationState,
+      calibrationEligible
     }
   };
   const nodes=Array.isArray(graph.graph?.nodes)?graph.graph.nodes.map(node=>node.id==='decision'?{...node,label:'QELLY VIEW '+action}:node):graph.graph?.nodes;
@@ -161,7 +171,8 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives){
       ...graph.confidence,
       score:calibratedConfidence,
       breakdown:qellyView.evidenceGate,
-      calibration:'Evidence-quality confidence combines freshness, sample depth, scenario separation and independent timeframe agreement. It is not a success probability.'
+      calibration:'Evidence-quality confidence combines freshness, sample depth, scenario separation and independent timeframe agreement. It is not a success probability.',
+      probabilityCalibration:graph?.quant?.calibration||{state:'UNCALIBRATED',sampleSize:0,brierScore:null,reliabilityBins:[]}
     },
     graph:graph.graph?{...graph.graph,nodes,textAlternative}:graph.graph
   };

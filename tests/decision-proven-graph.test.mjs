@@ -69,25 +69,30 @@ test('evidence calibration suppresses a directional view when independent timefr
   assert.match(result.graph.textAlternative.at(-1),/QELLY VIEW NO TRADE/);
 });
 
-test('evidence calibration preserves an aligned directional view and exposes confidence breakdown',()=>{
+test('evidence calibration withholds an aligned directional view until empirical calibration exists',()=>{
   const graph={
     truthState:'LIVE',
     market:{points:500},
     metrics:{atrPct:.9},
+    quant:{state:'DERIVED',volatility:{regime:'NORMAL',expectedMovePct:2.1},structure:{state:'HH_HL',support:97,resistance:106},calibration:{state:'UNCALIBRATED',sampleSize:0,brierScore:null,reliabilityBins:[]}},
     forecast:{probabilities:{bull:.64,base:.18,bear:.18}},
     confidence:{score:.8,calibration:'base'},
     qellyView:{action:'BUY',confidence:.8,levels:{entryZone:[99,101],invalidation:97,targets:[102,104,106],riskReward:[.8,1.6,2.4]},why:['Base directional evidence.'],label:'Research signal only.',changesIf:'Base invalidation.'},
     graph:{nodes:[{id:'decision',label:'QELLY VIEW BUY'}]}
   };
   const result=calibrateDecisionEvidence(graph,{state:'live',agreement:{direction:'BUY',aligned:3,directional:3,total:4}},{state:'unavailable'});
-  assert.equal(result.qellyView.action,'BUY');
-  assert.ok(result.qellyView.levels);
-  assert.equal(result.qellyView.evidenceGate.directionalEligible,true);
+  assert.equal(result.qellyView.action,'NO TRADE');
+  assert.equal(result.qellyView.levels,null);
+  assert.equal(result.qellyView.evidenceGate.directionalEligible,false);
+  assert.equal(result.qellyView.evidenceGate.calibrationState,'UNCALIBRATED');
+  assert.equal(result.qellyView.evidenceGate.calibrationEligible,false);
   assert.equal(result.qellyView.evidenceGate.derivativesCoverage,'unavailable');
   assert.equal(result.qellyView.evidenceGate.timeframeAgreement,.75);
   assert.equal(result.qellyView.evidenceGate.directionalCoverage,.75);
   assert.ok(result.confidence.breakdown.qualityScore>0&&result.confidence.breakdown.qualityScore<=1);
+  assert.equal(result.confidence.probabilityCalibration.state,'UNCALIBRATED');
   assert.match(result.confidence.calibration,/not a success probability/i);
+  assert.match(result.qellyView.contradictions.join(' '),/calibration/i);
   assert.match(result.qellyView.why.join(' '),/did not increase confidence/i);
 });
 

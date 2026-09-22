@@ -1,0 +1,99 @@
+const finite=(value)=>Number.isFinite(Number(value))?Number(value):null;
+const round=(value,digits=4)=>Number.isFinite(value)?Number(value.toFixed(digits)):null;
+const mean=(values)=>values.length?values.reduce((sum,value)=>sum+value,0)/values.length:0;
+const quantile=(values,p)=>{if(!values.length)return null;const sorted=[...values].sort((a,b)=>a-b);const index=(sorted.length-1)*p;const low=Math.floor(index),weight=index-low;return sorted[low]+((sorted[low+1]??sorted[low])-sorted[low])*weight;};
+const percentileRank=(values,value)=>{const valid=values.filter(Number.isFinite);if(!valid.length||!Number.isFinite(value))return null;return valid.filter(item=>item<=value).length/valid.length;};
+const annualizer=(intervalMs)=>Math.sqrt(365*86_400_000/intervalMs);
+const logReturn=(a,b)=>a>0&&b>0?Math.log(b/a):0;
+
+function rollingRealized(candles,window=20){
+  const output=[];
+  for(let end=window;end<candles.length;end++){
+    const slice=candles.slice(end-window,end+1),returns=[];
+    for(let i=1;i<slice.length;i++)returns.push(logReturn(slice[i-1].close,slice[i].close));
+    const avg=mean(returns);
+    output.push(Math.sqrt(mean(returns.map(value=>(value-avg)**2))));
+  }
+  return output;
+}
+
+function adx(candles,period=14){
+  if(candles.length<period*2+1)return null;
+  const trs=[],plus=[],minus=[];
+  for(let i=1;i<candles.length;i++){
+    const current=candles[i],previous=candles[i-1];
+    const up=current.high-previous.high,down=previous.low-current.low;
+    trs.push(Math.max(current.high-current.low,Math.abs(current.high-previous.close),Math.abs(current.low-previous.close)));
+    plus.push(up>down&&up>0?up:0);
+    minus.push(down>up&&down>0?down:0);
+  }
+  const dx=[];
+  for(let i=period-1;i<trs.length;i++){
+    const tr=mean(trs.slice(i-period+1,i+1));
+    if(!(tr>0))continue;
+    const p=100*mean(plus.slice(i-period+1,i+1))/tr;
+    const m=100*mean(minus.slice(i-period+1,i+1))/tr;
+    const denom=p+m;
+    if(denom>0)dx.push(100*Math.abs(p-m)/denom);
+  }
+  return dx.length?mean(dx.slice(-period)):null;
+}
+
+function structure(candles){
+  const last=candles.at(-1),recent=candles.slice(-40),prior=candles.slice(-80,-40);
+  if(!last||recent.length<20)return {state:'UNAVAILABLE',support:null,resistance:null,breakout:'NONE',rangePct:null};
+  const support=Math.min(...recent.slice(0,-1).map(item=>item.low));
+  const resistance=Math.max(...recent.slice(0,-1).map(item=>item.high));
+  const priorSupport=prior.length?Math.min(...prior.map(item=>item.low)):support;
+  const priorResistance=prior.length?Math.max(...prior.map(item=>item.high)):resistance;
+  const higherHigh=resistance>priorResistance,higherLow=support>priorSupport,lowerHigh=resistance<priorResistance,lowerLow=support<priorSupport;
+  const state=higherHigh&&higherLow?'HH_HL':lowerHigh&&lowerLow?'LH_LL':'MIXED';
+  const breakout=last.close>resistance?'UPSIDE':last.close<support?'DOWNSIDE':'NONE';
+  return {state,support:round(support,6),resistance:round(resistance,6),priorSupport:round(priorSupport,6),priorResistance:round(priorResistance,6),breakout,rangePct:round((resistance/support-1)*100,3)};
+}
+
+export function buildDecisionQuantRisk(candles,{intervalMs,horizonBars=16}={}){
+  const rows=Array.isArray(candles)?candles.filter(item=>[item?.open,item?.high,item?.low,item?.close].every(value=>Number.isFinite(Number(value))&&Number(value)>0)):[];
+  if(rows.length<40||!(intervalMs>0))return {state:'INSUFFICIENT_DATA',sampleSize:rows.length,calibration:{state:'UNCALIBRATED',sampleSize:0,brierScore:null,reliabilityBins:[]}};
+  const returns=[];
+  for(let i=1;i<rows.length;i++)returns.push(logReturn(rows[i-1].close,rows[i].close));
+  const avg=mean(returns),sigma=Math.sqrt(mean(returns.map(value=>(value-avg)**2)));
+  const downside=returns.filter(value=>value<0);
+  const gk=rows.map(item=>.5*Math.log(item.high/item.low)**2-(2*Math.log(2)-1)*Math.log(item.close/item.open)**2).map(value=>Math.max(0,value));
+  const rs=rows.map(item=>Math.log(item.high/item.open)*Math.log(item.high/item.close)+Math.log(item.low/item.open)*Math.log(item.low/item.close)).map(value=>Math.max(0,value));
+  const ann=annualizer(intervalMs);
+  const rolling=rollingRealized(rows,20),currentRolling=rolling.at(-1)??sigma,volPct=percentileRank(rolling,currentRolling);
+  const closes=rows.map(item=>item.close),path=closes.slice(-20);
+  const efficiency=path.length>1?Math.abs(path.at(-1)-path[0])/Math.max(1e-12,path.slice(1).reduce((sum,value,index)=>sum+Math.abs(value-path[index]),0)):0;
+  const roc14=closes.length>14?(closes.at(-1)/closes.at(-15)-1)*100:null;
+  const adx14=adx(rows,14);
+  const marketStructure=structure(rows);
+  const volatilityRegime=volPct===null?'UNKNOWN':volPct>=.85?'HIGH':volPct<=.2?'LOW':volPct>=.65?'ELEVATED':'NORMAL';
+  const trendRegime=adx14!==null&&adx14>=25&&efficiency>=.35?(roc14??0)>=0?'TREND_UP':'TREND_DOWN':efficiency<=.18?'RANGE':'TRANSITION';
+  const regime=volatilityRegime==='HIGH'?'HIGH_VOLATILITY':trendRegime==='RANGE'?'RANGING':trendRegime==='TREND_UP'||trendRegime==='TREND_DOWN'?'TRENDING':'TRANSITION';
+  const horizon=Math.max(1,Math.min(168,Number(horizonBars)||16));
+  const expectedMovePct=sigma*Math.sqrt(horizon)*100;
+  const q05=quantile(returns,.05),q95=quantile(returns,.95);
+  const tailFrequency=returns.length?returns.filter(value=>Math.abs(value-avg)>=2*Math.max(sigma,1e-12)).length/returns.length:null;
+  const result={
+    state:'DERIVED',
+    sampleSize:rows.length,
+    returns:{meanPct:round(avg*100,5),q05Pct:round((q05??0)*100,4),q95Pct:round((q95??0)*100,4)},
+    volatility:{
+      realizedPct:round(sigma*ann*100,2),
+      downsideDeviationPct:round(Math.sqrt(mean(downside.map(value=>value**2)))*ann*100,2),
+      garmanKlassPct:round(Math.sqrt(mean(gk))*ann*100,2),
+      rogersSatchellPct:round(Math.sqrt(mean(rs))*ann*100,2),
+      percentile:round(volPct,3),
+      regime:volatilityRegime,
+      expectedMovePct:round(expectedMovePct,3)
+    },
+    trend:{adx14:round(adx14,2),efficiencyRatio:round(efficiency,3),roc14Pct:round(roc14,3),regime:trendRegime},
+    structure:marketStructure,
+    distribution:{skewTailFrequency:round(tailFrequency,4)},
+    regime,
+    horizonBars:horizon,
+    calibration:{state:'UNCALIBRATED',sampleSize:0,brierScore:null,reliabilityBins:[],note:'Scenario probabilities are model outputs until enough resolved out-of-sample outcomes exist for empirical calibration.'}
+  };
+  return JSON.parse(JSON.stringify(result,(key,value)=>Number.isFinite(value)||typeof value!=='number'?value:null));
+}

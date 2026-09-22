@@ -13,17 +13,25 @@ const parseRequested=(value,customRr)=>{
   return RR_PRESETS.includes(ratio)?{mode:'preset',ratio}:{mode:'auto',ratio:null};
 };
 const targetFor=(entry,risk,direction,ratio)=>round(entry+direction*risk*ratio,2);
-const feasibility=(direction,target,terminal)=>{
+const feasibility=(direction,target,terminal,{entry=null,structure=null,expectedMovePct=null}={})=>{
   const p05=finite(terminal?.p05),p25=finite(terminal?.p25),p75=finite(terminal?.p75),p95=finite(terminal?.p95);
-  if(![p05,p25,p75,p95].every(Number.isFinite))return {state:'UNAVAILABLE',reason:'Forecast quantiles are incomplete.'};
+  if(![p05,p25,p75,p95].every(Number.isFinite))return {state:'UNAVAILABLE',reason:'Forecast quantiles are incomplete.',structuralBarrier:null};
+  const resistance=finite(structure?.resistance),support=finite(structure?.support);
+  const structuralBarrier=direction>0&&resistance!==null&&resistance>entry&&resistance<target?resistance:direction<0&&support!==null&&support<entry&&support>target?support:null;
+  const expectedMove=Number.isFinite(entry)&&Number.isFinite(expectedMovePct)?Math.abs(entry*expectedMovePct/100):null;
+  const distance=Number.isFinite(entry)?Math.abs(target-entry):null;
   if(direction>0){
-    if(target<=p75)return {state:'HIGH',reason:'Target remains inside the model p75 favorable range.'};
-    if(target<=p95)return {state:'MEDIUM',reason:'Target is inside the model p95 favorable tail but beyond p75.'};
-    return {state:'NOT FEASIBLE',reason:'Target lies beyond the model p95 favorable range.'};
+    if(target>p95)return {state:'NOT FEASIBLE',reason:'Target lies beyond the model p95 favorable range.',structuralBarrier};
+    if(structuralBarrier!==null)return {state:'LOW',reason:'A verified recent resistance level sits before the requested target.',structuralBarrier};
+    if(expectedMove!==null&&distance>expectedMove*1.5)return {state:'LOW',reason:'Target distance materially exceeds the volatility-conditioned expected move.',structuralBarrier:null};
+    if(target<=p75)return {state:'HIGH',reason:'Target remains inside the model p75 favorable range with no nearer structural barrier.',structuralBarrier:null};
+    return {state:'MEDIUM',reason:'Target is inside the model p95 favorable tail but beyond p75.',structuralBarrier:null};
   }
-  if(target>=p25)return {state:'HIGH',reason:'Target remains inside the model p25 favorable range.'};
-  if(target>=p05)return {state:'MEDIUM',reason:'Target is inside the model p05 favorable tail but beyond p25.'};
-  return {state:'NOT FEASIBLE',reason:'Target lies beyond the model p05 favorable range.'};
+  if(target<p05)return {state:'NOT FEASIBLE',reason:'Target lies beyond the model p05 favorable range.',structuralBarrier};
+  if(structuralBarrier!==null)return {state:'LOW',reason:'A verified recent support level sits before the requested target.',structuralBarrier};
+  if(expectedMove!==null&&distance>expectedMove*1.5)return {state:'LOW',reason:'Target distance materially exceeds the volatility-conditioned expected move.',structuralBarrier:null};
+  if(target>=p25)return {state:'HIGH',reason:'Target remains inside the model p25 favorable range with no nearer structural barrier.',structuralBarrier:null};
+  return {state:'MEDIUM',reason:'Target is inside the model p05 favorable tail but beyond p25.',structuralBarrier:null};
 };
 
 export function buildTradeResearch(graph,{requestedRr='auto',customRr=null}={}){
@@ -50,7 +58,9 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null}={}){
     evidenceQuality:finite(view.evidenceGate?.qualityScore),
     contradictions,
     whatChangesView:view.changesIf||'Reassess when fresh evidence changes.',
-    calibration:'Target-touch probability and trade win rate are not yet independently calibrated, so they are not fabricated.'
+    calibration:'Target-touch probability and trade win rate are not yet independently calibrated, so they are not fabricated.',
+    calibrationState:graph?.quant?.calibration||{state:'UNCALIBRATED',sampleSize:0,brierScore:null,reliabilityBins:[]},
+    riskContext:{volatilityRegime:graph?.quant?.volatility?.regime||'UNKNOWN',expectedMovePct:finite(graph?.quant?.volatility?.expectedMovePct),marketStructure:graph?.quant?.structure||null}
   };
   if(!directional||entryZone.length!==2||!entryZone.every(Number.isFinite)||!Number.isFinite(invalidation)){
     return {...base,status:'NO_TRADE',reason:'The current evidence gate does not support a directional setup.',entry:null,stop:null,expiryAt:null,matrix:[],selected:null};
@@ -65,7 +75,7 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null}={}){
   ratios.sort((a,b)=>a-b);
   const matrix=ratios.map(ratio=>{
     const target=targetFor(entry,risk,direction,ratio);
-    const support=feasibility(direction,target,terminalPoint);
+    const support=feasibility(direction,target,terminalPoint,{entry,structure:graph?.quant?.structure,expectedMovePct:finite(graph?.quant?.volatility?.expectedMovePct)});
     return {
       ratio:round(ratio,2),
       label:'1:'+round(ratio,2),
@@ -74,6 +84,7 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null}={}){
       riskDistance:round(risk,2),
       feasibility:support.state,
       feasibilityReason:support.reason,
+      structuralBarrier:support.structuralBarrier===null?null:round(support.structuralBarrier,2),
       targetTouchProbability:null,
       expectedValue:null
     };
@@ -84,7 +95,7 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null}={}){
   }else if(Number.isFinite(request.ratio)){
     selected=matrix.find(item=>item.ratio===request.ratio)||null;
   }
-  if(!selected||selected.feasibility==='NOT FEASIBLE'||selected.feasibility==='UNAVAILABLE'){
+  if(!selected||['LOW','NOT FEASIBLE','UNAVAILABLE'].includes(selected.feasibility)){
     return {...base,status:'NO_TRADE',reason:selected?.feasibilityReason||'The requested R:R cannot be validated from the current forecast range.',entry:{zone:entryZone.map(value=>round(value,2)),preferred:entry,method:lastPrice!==null&&lastPrice>=Math.min(...entryZone)&&lastPrice<=Math.max(...entryZone)?'NOW':'WAIT'},stop:{price:round(invalidation,2),distance:round(risk,2)},expiryAt:Number.isFinite(observedAt)&&Number.isFinite(intervalMs)?new Date(observedAt+intervalMs*Math.min(horizonBars,8)).toISOString():null,matrix,selected};
   }
   const stopDistancePct=lastPrice?round(risk/lastPrice*100,3):null;
@@ -95,7 +106,7 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null}={}){
     status:'VALID',
     reason:'Directional evidence is live and the selected target remains inside the modelled favorable range.',
     entry:{zone:entryZone.map(value=>round(value,2)),preferred:entry,method},
-    stop:{price:round(invalidation,2),distance:round(risk,2),distancePct:stopDistancePct},
+    stop:{price:round(invalidation,2),distance:round(risk,2),distancePct:stopDistancePct,atrMultiple:Number.isFinite(finite(graph?.metrics?.atrPct))&&lastPrice?round((risk/lastPrice*100)/finite(graph.metrics.atrPct),2):null},
     expiryAt,
     matrix,
     selected
