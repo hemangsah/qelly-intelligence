@@ -186,7 +186,7 @@ async function fetchTimeframes(fetchImpl,asset,endTime,selectedInterval){
   return {state:views.length>=3?'live':views.length?'partial':'unavailable',views,agreement:{direction:buys>sells?'BUY':sells>buys?'SELL':'MIXED',aligned:Math.max(buys,sells),directional:directional.length,total:views.length}};
 }
 
-export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',horizon='4h',selection=null,requestedRr='auto',customRr=null,now=Date.now()}={}){
+export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',horizon='4h',selection=null,requestedRr='auto',customRr=null,includeNews=true,now=Date.now()}={}){
   const resolvedAsset=String(asset||'BTC').toUpperCase();
   const resolvedInterval=String(interval||'15m');
   const resolvedHorizon=String(horizon||'4h');
@@ -219,10 +219,10 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   }
   const newsStart=resolvedSelection?.start??endTime-24*3_600_000;
   const newsEnd=Math.min(resolvedSelection?.end??endTime,endTime);
-  let articles=[],newsState='unavailable';
-  try{articles=await fetchNews(fetchImpl,resolvedAsset,newsStart,newsEnd);newsState=articles.length?'live':'no-matches';}catch{}
+  let articles=[],newsState=includeNews?'unavailable':'not-requested';
+  if(includeNews){try{articles=await fetchNews(fetchImpl,resolvedAsset,newsStart,newsEnd);newsState=articles.length?'live':'no-matches';}catch{}}
   const tradeResearch=buildTradeResearch(graph,{requestedRr,customRr});
-  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence:{news:{state:newsState,provider:'GDELT',articles},derivatives,liquidations:{state:'unavailable',message:'Verified liquidation evidence is not available for this view, so it is not inferred.'}}};
+  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence:{news:{state:newsState,provider:includeNews?'GDELT':null,articles},derivatives,liquidations:{state:'unavailable',message:'Verified liquidation evidence is not available for this view, so it is not inferred.'}}};
 }
 
 export async function onRequest({request,env}){
