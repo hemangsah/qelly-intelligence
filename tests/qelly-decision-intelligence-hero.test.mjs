@@ -58,3 +58,18 @@ test('Decision Intelligence normalizes compact sourced timestamps before display
   assert.match(route,/Time unavailable/);
   assert.doesNotMatch(route,/lastEventTime\?new Date\(lastEventTime\)\.toLocaleString/);
 });
+
+
+test('Decision Intelligence exposes Find Trade Now and bounded R:R controls',async()=>{
+  const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
+  for(const phrase of ['Find Trade Now','Risk / reward','1:1','1:2','1:3','1:4','Custom','FIND TRADE NOW · RESEARCH ONLY'])assert.equal(route.includes(phrase),true,phrase);
+  assert.match(route,/data-dpg-rr/);
+  assert.match(route,/customRr/);
+  assert.match(route,/Target-touch probability: uncalibrated/);
+});
+
+test('Decision Intelligence R:R research remains responsive on narrow screens',async()=>{
+  const css=await read('apps/web/public/assets/qelly-decision-proven-graph.css');
+  assert.match(css,/\.q-dpg-rr-grid\{display:grid;grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
+  assert.equal(css.includes('@media(max-width:520px){.q-dpg-controls--decision{grid-template-columns:1fr}.q-dpg-trade-summary,.q-dpg-rr-grid{grid-template-columns:1fr}'),true);
+});
