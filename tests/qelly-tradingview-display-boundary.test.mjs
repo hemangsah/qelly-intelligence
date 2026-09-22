@@ -56,9 +56,12 @@ test('Market Command makes Advanced Chart first and Crypto Heatmap the first laz
   assert.ok(route.indexOf('q-v7-market-grid')<route.indexOf('data-market-widget-grid'));
   assert.ok(route.indexOf('data-market-widget-grid')<route.indexOf('q-tv-tape-shell'));
   assert.doesNotMatch(route,/data-tv-suite/);
+  assert.match(route,/const MARKET_ROUTE_SETTLE_DELAY_MS=900/);
+  assert.match(route,/const TICKER_ROUTE_SETTLE_DELAY_MS=1350/);
+  assert.match(route,/clearTimeout\(tickerTimer\)/);
   assert.match(grid,/IntersectionObserver/);
   assert.match(grid,/scheduleCard\(entry\.target,ROUTE_SETTLE_DELAY_MS\+index\*350\)/);
-  assert.equal(__tradingViewMarketGridTest.ROUTE_SETTLE_DELAY_MS,220);
+  assert.equal(__tradingViewMarketGridTest.ROUTE_SETTLE_DELAY_MS,1050);
   assert.match(grid,/cards\.forEach\(card=>observer\.observe\(card\)\)/);
   assert.match(grid,/Duplicate TradingView widget kind/);
   assert.doesNotMatch(route,/embedded research suite|third-party panel|iframe/i);
