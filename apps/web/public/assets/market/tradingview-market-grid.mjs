@@ -1,5 +1,7 @@
 import {mountTradingViewWidget} from './tradingview-display-widget.mjs';
 
+const ROUTE_SETTLE_DELAY_MS=220;
+
 export function validateMarketWidgetPanels(panels){
   if(!Array.isArray(panels)||!panels.length)throw new TypeError('Market widget panels are required');
   const ids=new Set(),kinds=new Set();
@@ -59,11 +61,11 @@ export function mountTradingViewMarketGrid(root,{panels,context={},rootMargin='3
         .sort((a,b)=>cards.indexOf(a.target)-cards.indexOf(b.target));
       visible.forEach((entry,index)=>{
         observer.unobserve(entry.target);
-        scheduleCard(entry.target,index*350);
+        scheduleCard(entry.target,ROUTE_SETTLE_DELAY_MS+index*350);
       });
     },{rootMargin,threshold:0.01});
     cards.forEach(card=>observer.observe(card));
-  }else cards.forEach((card,index)=>scheduleCard(card,index*350));
+  }else cards.forEach((card,index)=>scheduleCard(card,ROUTE_SETTLE_DELAY_MS+index*350));
 
   return {
     update(next){
@@ -97,3 +99,5 @@ export function mountTradingViewMarketGrid(root,{panels,context={},rootMargin='3
     mountedIds(){return [...handles.keys()];}
   };
 }
+
+export const __tradingViewMarketGridTest=Object.freeze({ROUTE_SETTLE_DELAY_MS});
