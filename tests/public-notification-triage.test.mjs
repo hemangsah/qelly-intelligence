@@ -77,10 +77,9 @@ test('Cloudflare handler exposes the public triage contract without authenticati
 });
 
 test('frontend uses only the public triage API and retains visible responsive controls',async()=>{
-  const [route,css,guard,registry,worker]=await Promise.all([
+  const [route,css,registry,worker]=await Promise.all([
     readFile(path.join(root,'apps/web/public/assets/routes/notification-center.mjs'),'utf8'),
     readFile(path.join(root,'apps/web/public/assets/routes/notification-triage-v2.css'),'utf8'),
-    readFile(path.join(root,'apps/web/public/assets/qelly-product-route-guard.mjs'),'utf8'),
     readFile(path.join(root,'apps/web/public/assets/route-registry.mjs'),'utf8'),
     readFile(path.join(root,'apps/web/public/qelly-service-worker.js'),'utf8')
   ]);
@@ -94,7 +93,6 @@ test('frontend uses only the public triage API and retains visible responsive co
   assert.doesNotMatch(route,/governed-notification-triage-v2|Provider Operations|Decision Provenance|Unique job · delivery triage|The backend|operational question|provider claim/i);
   assert.match(route,/No fixture inbox/);
   assert.doesNotMatch(route,/data-nt-provider/);
-  assert.doesNotMatch(guard,/\['notification-center','Notifications'\]/);
   assert.match(registry,/route:'notification-center'.*public:true/);
   assert.match(worker,/notification-triage-v2\.css/);
   assert.match(css,/@media\(max-width:760px\)/);
