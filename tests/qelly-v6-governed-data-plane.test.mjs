@@ -89,12 +89,12 @@ test('provider ingestion pins its Supabase Edge Runtime dependencies exactly',as
   assert.doesNotMatch(edge,/npm:@supabase\/supabase-js@2["']/);
 });
 
-test('Market Command renders first-party governed ECB observations separately from TradingView display-only data',async()=>{
-  const source=await read('apps/web/public/assets/qelly-external-market-surfaces.mjs');
-  assert.match(source,/\/api\/v1\/platform\/data-plane\?limit=200/);
-  assert.match(source,/ECB reference-rate data plane/);
-  assert.match(source,/not simulated/);
-  assert.match(source,/TradingView market visualization/);
-  assert.match(source,/values never feed Qelly calculations, risk, alerts or decisions/);
+test('live-markets renders governed ECB observations separately from TradingView display-only data',async()=>{
+  const source=await read('apps/web/public/assets/routes/market-network.mjs');
+  assert.match(source,/\/api\/v1\/market\/network/);
+  assert.match(source,/ECB governed FX reference/);
+  assert.match(source,/official reference rates, not executable market prices/);
+  assert.match(source,/TradingView is a display-only research surface/);
+  assert.match(source,/Widget values are not used in Qelly calculations, alerts or decisions/);
   assert.doesNotMatch(source,/api\.binance\.com|api\.exchange\.coinbase\.com/);
 });

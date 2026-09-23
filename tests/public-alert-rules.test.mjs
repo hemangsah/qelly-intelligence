@@ -74,10 +74,10 @@ test('operator evaluation distinguishes boundaries, crossings and bands',()=>{
 test('Alert Rules browser route uses the public dry-run contract and responsive purpose-built UI',async()=>{
   const route=await read('apps/web/public/assets/routes/alert-center.mjs');
   const css=await read('apps/web/public/assets/routes/alert-rules-v2.css');
-  const guard=await read('apps/web/public/assets/qelly-product-route-guard.mjs');
+  const registry=await read('apps/web/public/assets/route-registry.mjs');
   assert.match(route,/\/api\/v1\/discovery\/alert-rules/);
   assert.doesNotMatch(route,/\/api\/v1\/alerts\/rules|\/api\/v1\/alerts\/evaluate/);
-  assert.doesNotMatch(guard,/\['alert-center','Alerts'\]/);
+  assert.match(registry,/route:'alert-center'.*public:true/);
   assert.match(route,/data-ar-form/);
   assert.match(route,/Nine gates before a condition asks for attention/);
   assert.match(route,/Evaluation trace/);

@@ -80,13 +80,14 @@ test('static-preview branding is removed from production product mode',async()=>
   assert.match(brand,/node\.remove\(\)/);
 });
 
-test('signed-out protected routes own a dedicated access gate',async()=>{
-  const guard=await read('apps/web/public/assets/qelly-product-route-guard.mjs');
-  assert.match(guard,/account-session/);
-  assert.match(guard,/Sign in to continue/);
-  assert.match(guard,/qelly\.returnTo/);
-  assert.match(guard,/api\/v1\/auth\/status/);
-  assert.match(guard,/Return home/);
+test('signed-out protected routes own a dedicated access gate in the canonical router',async()=>{
+  const app=await read('apps/web/public/assets/app.js');
+  assert.match(app,/main\.innerHTML=protectedRouteGate\(definition\)/);
+  assert.match(app,/qelly\.returnTo/);
+  assert.match(app,/private workspace/);
+  assert.match(app,/Sign in to open your private, workspace-scoped data/);
+  assert.match(app,/#\/auth-login/);
+  assert.match(app,/#\/feature-universe/);
 });
 
 test('calculator center is a human-facing structured tool catalog',async()=>{

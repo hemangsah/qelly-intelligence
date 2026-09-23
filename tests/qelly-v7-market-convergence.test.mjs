@@ -44,11 +44,12 @@ test('Market Command keeps the hero transition intentional and removes the shell
   assert.match(shellCss,/\.q-product-nav\{[\s\S]*?border-top:0!important/);
 });
 
-test('legacy route guard no longer owns the Market route',async()=>{
-  const source=await read('apps/web/public/assets/qelly-product-route-guard.mjs');
-  assert.match(source,/Market is owned exclusively by the canonical V6\/V7 production renderer/);
-  assert.doesNotMatch(source,/route==='market'\?'\.q-market-home'/);
-  assert.doesNotMatch(source,/qellyProductHome/);
+test('legacy route guard is retired and cannot own the Market route',async()=>{
+  const index=await read('apps/web/public/index.html');
+  assert.doesNotMatch(index,/qelly-product-route-guard\.mjs/);
+  assert.doesNotMatch(index,/qelly-external-market-surfaces\.mjs/);
+  await assert.rejects(()=>read('apps/web/public/assets/qelly-product-route-guard.mjs'),{code:'ENOENT'});
+  await assert.rejects(()=>read('apps/web/public/assets/qelly-external-market-surfaces.mjs'),{code:'ENOENT'});
 });
 
 test('connectivity changes cannot replace the canonical Market renderer',async()=>{
