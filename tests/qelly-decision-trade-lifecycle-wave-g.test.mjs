@@ -67,7 +67,7 @@ test('expired setup fails closed even if the target remains structurally feasibl
   assert.match(result.reason,/expired/i);
 });
 
-test('layered invalidation keeps price structure evidence time event and regime distinct',()=>{
+test('layered invalidation keeps price structure evidence time event regime and liquidity distinct',()=>{
   const result=buildTradeResearch(graph(),{requestedRr:'1'});
   assert.ok(result.invalidation);
   assert.equal(result.invalidation.price.state,'ACTIVE');
@@ -78,7 +78,8 @@ test('layered invalidation keeps price structure evidence time event and regime 
   assert.equal(result.invalidation.time.state,'ACTIVE');
   assert.equal(result.invalidation.event.state,'UNAVAILABLE');
   assert.equal(result.invalidation.regime.state,'ACTIVE');
-  assert.match(result.stop.reason,/distinct from structural/i);
+  assert.equal(result.invalidation.liquidity.state,'UNAVAILABLE');
+  assert.match(result.stop.reason,/liquidity invalidation/i);
 });
 
 test('unknown venue costs never become a fabricated zero-cost net R:R',()=>{
@@ -127,11 +128,11 @@ test('governed scanner does not mark a FORMING setup immediately eligible',async
     market:{lastPrice:108,currentState:{regime:'TRENDING'}},
     quant:{regime:'TRENDING',volatility:{regime:'NORMAL',expectedMovePct:2}},
     qellyView:{action:'BUY',label:'Directional evidence.',contradictions:[],evidenceGate:{qualityScore:.9,scenarioSeparation:.8,timeframeAgreement:.75,freshness:1,timeframeDirection:'BUY',calibrationState:'CALIBRATED',calibrationEligible:true,quantCoverage:'derived'}},
-    tradeResearch:{status:'VALID',lifecycle:{state:'FORMING'},reason:'Wait for pullback.',selected:{label:'1:2',feasibility:'HIGH',target:112},entry:{preferred:100},stop:{price:96},expiryAt:'2026-09-23T02:00:00.000Z'}
+    tradeResearch:{status:'VALID',lifecycle:{state:'FORMING'},reason:'Wait for pullback.',selected:{label:'1:2',feasibility:'FEASIBLE',target:112,targetCongestion:'CLEAR'},entry:{preferred:100},stop:{price:96},expiryAt:'2026-09-23T02:00:00.000Z'}
   };
   const scan=await runDecisionScan({},{now:Date.parse('2026-09-23T00:00:00.000Z'),build:async(_env,{asset})=>({...forming,asset})});
   assert.equal(scan.eligibleCount,0);
-  assert.equal(scan.state,'no_eligible_setup');
+  assert.equal(scan.state,'CONDITIONAL_SETUP');
   assert.equal(scan.candidates[0].trade.lifecycle,'FORMING');
   assert.equal(scan.candidates[0].trade.entryReady,false);
 });
@@ -140,7 +141,7 @@ test('Decision UI exposes lifecycle entry logic target ladder and all invalidati
   const route=await readFile(new URL('../apps/web/public/assets/routes/decision-proven-graph.mjs',import.meta.url),'utf8');
   const css=await readFile(new URL('../apps/web/public/assets/qelly-decision-proven-graph.css',import.meta.url),'utf8');
   for(const phrase of ['Setup forming — entry not ready','Entry logic','Lifecycle','Feasible target ladder','INVALIDATION LAYERS','Price stop ≠ full thesis invalidation','Net R:R unavailable','No triggered/active history is backfilled'])assert.match(route,new RegExp(phrase));
-  for(const label of ['Price','Structure','Evidence','Time','Event','Regime'])assert.match(route,new RegExp("\\['"+label+"'"));
+  for(const label of ['Price','Structure','Evidence','Time','Event','Regime','Liquidity'])assert.match(route,new RegExp("\\['"+label+"'"));
   assert.match(css,/\.q-dpg-invalidation\{/);
   assert.match(css,/\.q-dpg-lifecycle\{/);
   assert.match(css,/\.q-dpg-target-ladder\{/);
