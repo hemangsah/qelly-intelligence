@@ -49,5 +49,5 @@ test('Market command layout keeps navigation and controls directly interactive',
   assert.match(experience,/html\[data-production-system="v8"\] body\{overflow-x:clip!important;overflow-y:visible!important\}/);
   assert.match(experience,/\.q-v6-market-controls>\.q-setting\{[\s\S]*?min-height:0!important/);
   assert.match(experience,/\.q-v6-market-controls select\{[^}]*height:44px!important/);
-  assert.match(verify,/if\(inserted&&nav\.matches\('\.q-product-nav'\)\)\{nav\.scrollLeft=0;requestAnimationFrame/);
+  assert.doesNotMatch(verify,/installNavigation|q-product-nav|scrollLeft=0/);
 });
