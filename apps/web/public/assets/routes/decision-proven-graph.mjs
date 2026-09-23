@@ -308,7 +308,7 @@ export async function renderDecisionProvenGraph(main,deps){
         '<span><em>Regime</em><strong>'+escapeHtml(String(regime))+'</strong></span>'+
         '<span><em>Volatility</em><strong>'+escapeHtml(volatility)+'</strong></span>'+
       '</div></div>'+
-      '<div class="q-dpg-hero__actions"><button class="q-button q-button--primary" data-dpg-scan '+(state.scanning?'disabled':'')+'>'+(state.scanning?'Scanning…':'Find Trade Now')+'</button><button class="q-button q-button--secondary" data-dpg-explain-header '+(state.draft?'':'disabled')+'>Explain This Move</button><button class="q-button q-button--secondary" data-dpg-mtf-jump>Compare Timeframes</button><a class="q-button q-button--secondary" href="#/qelly-chat">Open QELLY Chat</a><button class="q-button q-button--secondary" data-dpg-methodology-jump>Methodology / Sources</button></div>'+
+      '<div class="q-dpg-hero__actions"><button class="q-button q-button--primary" data-dpg-scan '+(state.scanning?'disabled':'')+'>'+(state.scanning?'Scanning…':'Find Trade Now')+'</button><button class="q-button q-button--secondary" data-dpg-explain-header '+(state.draft?'':'disabled')+'>Explain This Move</button><button class="q-button q-button--secondary" data-dpg-mtf-jump>Compare Timeframes</button><button class="q-button q-button--secondary" type="button" data-dpg-open-chat>Open QELLY Chat</button><button class="q-button q-button--secondary" data-dpg-methodology-jump>Methodology / Sources</button></div>'+
     '</section>';
   };
   const evidence=(data)=>{
@@ -349,6 +349,16 @@ export async function renderDecisionProvenGraph(main,deps){
     main.querySelectorAll('[data-dpg-scan-asset]').forEach(button=>button.addEventListener('click',()=>{state.asset=button.dataset.dpgScanAsset;state.draft=null;state.selection=null;load();}));
     main.querySelector('[data-dpg-explain-header]')?.addEventListener('click',()=>{if(state.draft){state.selection=state.draft;load();}});
     main.querySelector('[data-dpg-mtf-jump]')?.addEventListener('click',()=>main.querySelector('#qelly-decision-mtf')?.scrollIntoView({behavior:'smooth',block:'start'}));
+    main.querySelector('[data-dpg-open-chat]')?.addEventListener('click',()=>{
+      const action=state.data?.qellyView?.action||'NO TRADE';
+      document.dispatchEvent(new CustomEvent('qelly:open-ai',{detail:{
+        mode:'decision',
+        asset:state.asset,
+        timeframe:state.interval,
+        expand:true,
+        prompt:'Explain the current '+state.asset+' Decision Intelligence view ('+action+'), including the evidence gate, strongest contradiction, entry/invalidation/targets if any, R:R feasibility, calibration state, historical analog boundary and what would change the view.'
+      }}));
+    });
     main.querySelector('[data-dpg-methodology-jump]')?.addEventListener('click',()=>main.querySelector('#qelly-decision-methodology')?.scrollIntoView({behavior:'smooth',block:'start'}));
     main.querySelectorAll('[data-dpg-refresh]').forEach(button=>button.addEventListener('click',load));main.querySelector('[data-dpg-export]')?.addEventListener('click',()=>{download(state.data);toast('Research package exported',{tone:'success'});});
     main.querySelector('[data-dpg-explain]')?.addEventListener('click',()=>{state.selection=state.draft;load();});main.querySelector('[data-dpg-clear]')?.addEventListener('click',()=>{state.draft=null;state.selection=null;load();});
