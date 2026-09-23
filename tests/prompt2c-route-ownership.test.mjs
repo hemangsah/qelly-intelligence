@@ -1,20 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {readFile,access} from 'node:fs/promises';
 
-const source=await readFile(new URL('../apps/web/public/assets/qelly-product-route-guard.mjs',import.meta.url),'utf8');
+const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 
-test('product route ownership retains the hidden world-class framing sentinel',()=>{
-  assert.match(source,/framingSentinels/);
-  assert.match(source,/\.q-worldclass-context/);
-  assert.match(source,/main\.replaceChildren\(\.\.\.sentinels,node\)/);
-  assert.doesNotMatch(source,/main\.replaceChildren\(node\)/);
+test('canonical app renderer owns protected-route access gating',async()=>{
+  const app=await read('apps/web/public/assets/app.js');
+  assert.match(app,/if\(!staticVisualPreview&&!state\.authenticated&&definition&&definition\.public!==true&&!definition\.anonymousOnly\)/);
+  assert.match(app,/main\.innerHTML=protectedRouteGate\(definition\)/);
+  assert.match(app,/sessionStorage\.setItem\('qelly\.returnTo',state\.route\)/);
+  assert.match(app,/function protectedRouteGate\(definition\)/);
 });
 
-test('market, status and access-gate ownership share the stable replacement path',()=>{
-  assert.match(source,/ownMain\(route,current\)/);
-  assert.match(source,/const ownMain=\(route,node\)=>\{[\s\S]*replaceProductContent\(route,node\)/);
-  assert.match(source,/replaceProductContent\(route,gate\)/);
-  assert.match(source,/replaceProductContent\(route,preserved\)/);
-  assert.equal((source.match(/new MutationObserver/g)||[]).length,1);
+test('world-class framing is a decorator and the retired route guard is absent',async()=>{
+  const [world,index]=await Promise.all([
+    read('apps/web/public/assets/qelly-worldclass-uiux.mjs'),
+    read('apps/web/public/index.html')
+  ]);
+  assert.match(world,/q-worldclass-context/);
+  assert.match(world,/main\.prepend\(context\)/);
+  assert.doesNotMatch(world,/main\.replaceChildren/);
+  assert.doesNotMatch(index,/qelly-product-route-guard\.mjs/);
+  await assert.rejects(access(new URL('../apps/web/public/assets/qelly-product-route-guard.mjs',import.meta.url)));
 });
