@@ -19,16 +19,16 @@ test('TradingView widget uses official bootstraps with an explicit market-refere
   assert.match(__tradingViewDisplayTest.COMPONENT_STYLESHEET,/tradingview-display-widget\.css$/);
 });
 
-test('external market surface is bootstrapped by the production route guard and does not ingest external data',async()=>{
-  const [guard,surface,widget]=await Promise.all([
-    read('../apps/web/public/assets/qelly-product-route-guard.mjs'),
-    read('../apps/web/public/assets/qelly-external-market-surfaces.mjs'),
+test('route-local market network keeps TradingView display-only and does not ingest widget data',async()=>{
+  const [network,widget]=await Promise.all([
+    read('../apps/web/public/assets/routes/market-network.mjs'),
     read('../apps/web/public/assets/market/tradingview-display-widget.mjs')
   ]);
-  assert.match(guard,/import '\.\/qelly-external-market-surfaces\.mjs'/);
-  assert.match(surface,/DISPLAY ONLY/);
-  assert.match(surface,/does not scrape or ingest/);
-  assert.match(surface,/qelly-v6-production-convergence\.css/);
+  assert.match(network,/TradingView is a display-only research surface/);
+  assert.match(network,/Widget values are not used in Qelly calculations, alerts or decisions/);
+  assert.match(network,/ECB governed FX reference/);
+  assert.match(network,/mountTradingViewDisplay/);
+  assert.match(network,/mountLazyTradingViewWidget/);
   assert.doesNotMatch(widget,/\bfetch\s*\(/);
   assert.doesNotMatch(widget,/\bWebSocket\b/);
   assert.doesNotMatch(widget,/contentWindow|contentDocument/);
