@@ -50,7 +50,8 @@ export function buildDecisionHistoricalAnalogs(raw,{interval='15m',horizonBars=1
   const current=features(currentWindow,{intervalMs,horizonBars:horizon});
   if(!current)return {state:'UNAVAILABLE',analogs:[],sampledWindows:0,reason:'Current market-state features are unavailable.'};
 
-  const step=Math.max(4,Math.floor(horizon/2));
+  const candidateSpan=Math.max(0,candles.length-windowSize-horizon-Math.ceil(windowSize/4));
+  const step=Math.max(8,horizon,Math.ceil(candidateSpan/32));
   const candidates=[];
   for(let cut=windowSize;cut+horizon<candles.length-windowSize/4;cut+=step){
     const window=candles.slice(cut-windowSize,cut);
@@ -111,7 +112,8 @@ export function buildDecisionHistoricalAnalogs(raw,{interval='15m',horizonBars=1
       medianSimilarity:round(median(analogs.map(item=>item.similarity)),3)
     }:null,
     current,
-    method:'Nearest prior market-state windows using only pre-anchor trend, volatility, momentum and structure features.',
+    candidateStepBars:step,
+    method:'Nearest prior market-state windows using only pre-anchor trend, volatility, momentum and structure features, with a bounded candidate stride capped to roughly 32 resolved windows per request.',
     outcomeBoundary:'Forward outcomes are attached only after analog selection and are descriptive historical context, not probability calibration or a trade signal.',
     leakageGuard:'No forward return, favorable excursion or adverse excursion is used in analog similarity distance.',
     eligibilityImpact:'none'

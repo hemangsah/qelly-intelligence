@@ -256,12 +256,17 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liqui
 }
 
 const timeframeSummary=(graph)=>({interval:graph.interval,truthState:graph.truthState,marketState:graph.market.currentState,metrics:{rsi14:graph.metrics.rsi14,atrPct:graph.metrics.atrPct,trendPerBarPct:graph.metrics.trendPerBarPct},probabilities:graph.forecast.probabilities,qellyView:{action:graph.qellyView.action,confidence:graph.qellyView.confidence,label:graph.qellyView.label}});
-async function fetchTimeframes(fetchImpl,asset,endTime,selectedInterval){
-  const intervals=[...new Set([selectedInterval,...TIMEFRAMES])];
-  const settled=await Promise.allSettled(intervals.map(async interval=>timeframeSummary(buildDecisionProvenGraph(await fetchCandles(fetchImpl,asset,interval,endTime,240),{asset,interval,horizonBars:16,now:endTime,scenarioPaths:96}))));
-  const views=settled.filter(item=>item.status==='fulfilled').map(item=>item.value);const directional=views.filter(item=>item.qellyView.action==='BUY'||item.qellyView.action==='SELL');const buys=directional.filter(item=>item.qellyView.action==='BUY').length,sells=directional.length-buys;
+const summarizeTimeframes=(views)=>{
+  const directional=views.filter(item=>item.qellyView.action==='BUY'||item.qellyView.action==='SELL');
+  const buys=directional.filter(item=>item.qellyView.action==='BUY').length,sells=directional.length-buys;
   return {state:views.length>=3?'live':views.length?'partial':'unavailable',views,agreement:{direction:buys>sells?'BUY':sells>buys?'SELL':'MIXED',aligned:Math.max(buys,sells),directional:directional.length,total:views.length}};
+};
+async function fetchTimeframeSupport(fetchImpl,asset,endTime,selectedInterval){
+  const intervals=TIMEFRAMES.filter(interval=>interval!==selectedInterval);
+  const settled=await Promise.allSettled(intervals.map(async interval=>timeframeSummary(buildDecisionProvenGraph(await fetchCandles(fetchImpl,asset,interval,endTime,240),{asset,interval,horizonBars:16,now:endTime,scenarioPaths:48}))));
+  return settled.filter(item=>item.status==='fulfilled').map(item=>item.value);
 }
+const assembleTimeframes=(selectedGraph,supportViews)=>summarizeTimeframes([timeframeSummary(selectedGraph),...(Array.isArray(supportViews)?supportViews:[]).filter(item=>item.interval!==selectedGraph.interval)]);
 
 export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',horizon='4h',selection=null,requestedRr='auto',customRr=null,includeNews=true,now=Date.now()}={}){
   const resolvedAsset=String(asset||'BTC').toUpperCase();
@@ -282,9 +287,9 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   if(!Number.isFinite(endTime)||endTime<=0)throw new HttpError(400,'invalid_observation_time','Observation time is invalid');
   const fetchImpl=fetcher(env);
   const benchmarkAsset=resolvedAsset==='BTC'?'ETH':'BTC';
-  const [payload,multiTimeframe,derivativesCurrent,liquidity,fundingRows,benchmarkPayload]=await Promise.all([
+  const [payload,timeframeSupport,derivativesCurrent,liquidity,fundingRows,benchmarkPayload]=await Promise.all([
     fetchCandles(fetchImpl,resolvedAsset,resolvedInterval,endTime),
-    fetchTimeframes(fetchImpl,resolvedAsset,endTime,resolvedInterval),
+    fetchTimeframeSupport(fetchImpl,resolvedAsset,endTime,resolvedInterval),
     fetchDerivativesContext(fetchImpl,resolvedAsset,endTime),
     fetchLiquidityContext(fetchImpl,resolvedAsset),
     fetchFundingHistory(fetchImpl,resolvedAsset,endTime),
@@ -305,9 +310,10 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   const crossAsset=benchmarkPayload?buildDecisionCrossAsset(payload,benchmarkPayload,{asset:resolvedAsset,benchmark:benchmarkAsset}):{
     state:'unavailable',asset:resolvedAsset,benchmark:benchmarkAsset,sampleSize:0,correlation:null,beta:null,relativeStrengthPct:null,reason:'Benchmark candles are unavailable.'
   };
-  let graph;
+  let graph,multiTimeframe;
   try{
-    graph=buildDecisionProvenGraph(payload,{asset:resolvedAsset,interval:resolvedInterval,horizonBars,now:endTime,selection:resolvedSelection});
+    graph=buildDecisionProvenGraph(payload,{asset:resolvedAsset,interval:resolvedInterval,horizonBars,now:endTime,selection:resolvedSelection,scenarioPaths:256});
+    multiTimeframe=assembleTimeframes(graph,timeframeSupport);
     graph={...graph,
       quant:{...graph.quant,calibration:buildDecisionWalkForwardCalibration(payload,{interval:resolvedInterval,horizonBars})},
       historicalAnalogs:buildDecisionHistoricalAnalogs(payload,{interval:resolvedInterval,horizonBars,windowBars:100,limit:5})
