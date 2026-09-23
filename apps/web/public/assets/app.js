@@ -374,6 +374,7 @@ function renderRoute(){
   const main=document.getElementById('main');
   const definition=routeDefinitions.find((item)=>item.route===state.route);
   if(main){
+    if(state.route!=='qelly-verify')delete main.dataset.qellyVerifyOwner;
     main.dataset.pageKind=definition?.kind??'analytical';
     main.setAttribute('aria-busy','true');
     main.innerHTML=loadingPage(definition?.label??'Loading route');
