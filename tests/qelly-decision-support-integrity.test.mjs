@@ -8,6 +8,7 @@ test('decision-provenance remains a thin compatibility route to the authoritativ
   const route=await read('apps/web/public/assets/routes/decision-provenance.mjs');
   assert.match(route,/renderDecisionProvenGraph/);
   assert.match(route,/Compatibility route/);
+  assert.ok(route.length<1000,'compatibility route should not re-embed the retired Decision demo');
   assert.doesNotMatch(route,/AI Decision Maker|buildLocalDecisionGraph|evaluateDecision|fixed scenario|qelly-v54-decision-provenance/);
 });
 
