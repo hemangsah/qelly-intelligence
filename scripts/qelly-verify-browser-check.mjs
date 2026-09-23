@@ -127,7 +127,7 @@ async function inspect({name,viewport,reducedMotion='no-preference'}){
      methodology anatomy must survive a short stabilization window because
      asynchronous route decorators can briefly replace #main during navigation. */
   await page.goto(`${baseUrl}/#/evidence-methodology`,{waitUntil:'domcontentloaded',timeout:45000});
-  await page.waitForURL(url=>url.hash==='#/market?view=evidence-methodology',{timeout:30000});
+  await page.waitForURL(url=>url.hash==='#/qelly-verify?view=methodology',{timeout:30000});
   await page.waitForFunction(methodologyReady,null,{timeout:30000});
   await page.waitForTimeout(250);
   await page.waitForFunction(methodologyReady,null,{timeout:30000});
@@ -171,7 +171,7 @@ for(const result of results){
   if(!result.report.exportAvailable||!result.report.printAvailable)throw new Error(`${result.name}_export_controls_missing`);
   if(!/processed in this browser|not uploaded/i.test(result.report.localBoundary||''))throw new Error(`${result.name}_local_boundary_missing`);
   if(result.report.horizontalOverflow)throw new Error(`${result.name}_report_horizontal_overflow`);
-  if(result.methodology.hash!=='#/market?view=evidence-methodology')throw new Error(`${result.name}_methodology_alias_not_normalized_${result.methodology.hash}`);
+  if(result.methodology.hash!=='#/qelly-verify?view=methodology')throw new Error(`${result.name}_methodology_alias_not_normalized_${result.methodology.hash}`);
   if(result.methodology.owner!=='methodology')throw new Error(`${result.name}_methodology_owner_invalid_${result.methodology.owner}`);
   if(result.methodology.heading!=='Every conclusion needs an evidence state.')throw new Error(`${result.name}_methodology_heading_invalid`);
   if(result.methodology.classCount!==4||result.methodology.moduleCount!==6||result.methodology.notAssessedCount!==8||result.methodology.scoreDisclosureCount!==3)throw new Error(`${result.name}_methodology_incomplete`);
