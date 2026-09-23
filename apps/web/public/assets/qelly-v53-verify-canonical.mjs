@@ -1,4 +1,6 @@
 import {calculateFormula,listFormulaDefinitions,formulaEngineMetadata} from './calculation/formula-engine-extended.mjs';
+const VERIFY_V53_STYLESHEET=new URL('./qelly-v53-verify-convergence.css',import.meta.url).href;
+const installStyles=()=>{if(!document.querySelector('link[data-qelly-v53-verify]')){const link=document.createElement('link');link.rel='stylesheet';link.href=VERIFY_V53_STYLESHEET;link.dataset.qellyV53Verify='accepted-lock';document.head.append(link);}};
 
 const main=document.getElementById('main');
 const esc=(value)=>String(value??'').replace(/[&<>'"]/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
@@ -90,10 +92,12 @@ function render(host,id){
   host.querySelector('[data-v53-verify-formula]')?.addEventListener('change',(event)=>render(host,event.currentTarget.value));
 }
 
-function converge(){
-  if(!canonicalRoute())return;
+export function applyV53VerifyCanonical(){
+  installStyles();
+  if(!canonicalRoute())return null;
   const page=main?.querySelector('.q-verify-page');
-  if(!page||page.dataset.v53VerifyConverged==='true')return;
+  if(!page)return null;
+  if(page.dataset.v53VerifyConverged==='true')return page;
   page.dataset.v53VerifyConverged='true';
   page.classList.add('q-v53-verify-converged');
   const hero=page.querySelector('.q-verify-hero');
@@ -117,10 +121,9 @@ function converge(){
     details.append(summary);
     if(boundary)details.append(boundary);
     details.append(workspace);
+    if(details.querySelector('.q-verify-report'))details.open=true;
   }
+  return page;
 }
 
-const observer=new MutationObserver(()=>requestAnimationFrame(converge));
-if(main)observer.observe(main,{childList:true,subtree:true});
-window.addEventListener('hashchange',()=>requestAnimationFrame(converge));
-converge();
+export const __qellyV53VerifyCanonicalTest=Object.freeze({canonicalRoute});

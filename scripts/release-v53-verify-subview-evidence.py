@@ -33,7 +33,7 @@ SCENARIOS=[
         'kind':'methodology',
         'hostRoute':'market',
         'inputHash':'#/evidence-methodology',
-        'canonicalHash':'#/market?view=evidence-methodology',
+        'canonicalHash':'#/qelly-verify?view=methodology',
         'title':'Qelly Evidence Methodology',
         'selector':'[data-qelly-methodology-surface]',
         'owner':'methodology',
@@ -142,8 +142,8 @@ def generated_runner(scenario):
                         owner:main?.dataset.qellyVerifyOwner??null,
                         surface:Boolean(document.querySelector({selector!r})),
                         mainText:main?.innerText??'',
-                        primaryVerify:Boolean(document.querySelector('#primary-nav [data-qelly-verify-link="shell"]')),
-                        primaryMethodology:Boolean(document.querySelector('#primary-nav [data-qelly-methodology-link="shell"]')),
+                        primaryVerify:Boolean(document.querySelector('#primary-nav [data-route="qelly-verify"]')),
+                        methodologyDiscoverable:Boolean(document.querySelector('#main a[href="#/qelly-verify?view=methodology"]'))||location.hash==='#/qelly-verify?view=methodology',
                         heading:hero?.querySelector('h1')?.textContent?.trim()??null,
                         subtitle:hero?.querySelector('.q-verify-hero__copy>p:not(.q-verify-kicker)')?.textContent?.trim()??null,
                         hero:bounds(hero),
@@ -166,9 +166,10 @@ def generated_runner(scenario):
                     for required_text in {required}:
                         if required_text not in (subview_probe.get('mainText') or ''):
                             errors.append({{'type':'subview-boundary','text':f"Required boundary text missing: {{required_text}}"}})
-                    for key in ('primaryVerify','primaryMethodology'):
-                        if not subview_probe.get(key):
-                            errors.append({{'type':'subview-discoverability','text':f"Missing governed primary-navigation marker: {{key}}"}})
+                    if not subview_probe.get('primaryVerify'):
+                        errors.append({{'type':'subview-discoverability','text':'Missing canonical Qelly Verify primary-navigation route'}})
+                    if not subview_probe.get('methodologyDiscoverable'):
+                        errors.append({{'type':'subview-discoverability','text':'Evidence Methodology is not discoverable from the Verify route contract'}})
                     if {kind!r} == 'verify':
                         if subview_probe.get('heading') != 'Qelly Verify':
                             errors.append({{'type':'verify-lock','text':f"Accepted Verify heading missing: {{subview_probe.get('heading')!r}}"}})
@@ -238,7 +239,7 @@ def main():
     if 'market' not in index:
         raise SystemExit('canonical Market route missing')
     if 'evidence-methodology' in index:
-        raise SystemExit('Evidence Methodology must remain a governed Market subview')
+        raise SystemExit('Evidence Methodology must remain a governed Qelly Verify subview')
 
     if OUT.exists(): shutil.rmtree(OUT)
     OUT.mkdir(parents=True)
@@ -279,7 +280,7 @@ def main():
         'boundary':'governed local browser evidence; accepted V5.3 Verify workstation; no production user data; no execution',
         'canonicalRouteCount':len(definitions),
         'canonicalRoute':'qelly-verify',
-        'methodologyHostRoute':'market',
+        'methodologyHostRoute':'qelly-verify',
         'surfaceCount':len(SCENARIOS),
         'viewportCount':len(VIEWPORTS),
         'renderCount':len(results),

@@ -1,4 +1,3 @@
-import './qelly-verify-bootstrap.mjs';
 
 (()=>{
   let installing=false;

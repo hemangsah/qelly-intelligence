@@ -53,6 +53,8 @@ const renderSecretRotation=lazyRoute('./routes/secret-rotation.mjs','renderSecre
 const renderQuarantineReview=lazyRoute('./routes/quarantine-review.mjs','renderQuarantineReview');
 const renderStagingAssurance=lazyRoute('./routes/staging-assurance.mjs','renderStagingAssurance');
 const renderDecisionProvenance=lazyRoute('./routes/decision-provenance.mjs','renderDecisionProvenance');
+const renderQellyVerify=lazyRoute('./qelly-verify-product.mjs','renderVerify');
+const renderQellyVerifyMethodology=lazyRoute('./qelly-verify-product.mjs','renderMethodology');
 const renderQellyChatWorkspace=lazyRoute('./routes/qelly-chat-workspace.mjs','renderQellyChatWorkspace');
 const renderCalculatorCenter=lazyRoute('./routes/calculator-center.mjs','renderCalculatorCenter');
 const renderIndiaFinanceCenter=lazyRoute('./routes/india-finance-center.mjs','renderIndiaFinanceCenter');
@@ -331,6 +333,11 @@ function bindShell() {
 
 function resolveHash() {
   const {route,asset,query}=parseHashRoute(location.hash,{fallback:state.prefs?.route||'market'});
+  if(route==='qelly-verify'){
+    const canonicalQuery=query.toString();
+    const canonicalHash=`#/qelly-verify${canonicalQuery?`?${canonicalQuery}`:''}`;
+    if(location.hash!==canonicalHash)history.replaceState(null,'',canonicalHash);
+  }
   const definition=routeDefinitions.find((item)=>item.route===route);
   const allowed=staticVisualPreview
     ? definition&&staticPreviewRoutes.has(route)
@@ -372,6 +379,7 @@ function renderRoute(){
   const main=document.getElementById('main');
   const definition=routeDefinitions.find((item)=>item.route===state.route);
   if(main){
+    if(state.route!=='qelly-verify'){delete main.dataset.qellyVerifyOwner;delete document.documentElement.dataset.qellyVerifySubview;}
     main.dataset.pageKind=definition?.kind??'analytical';
     main.setAttribute('aria-busy','true');
     main.innerHTML=loadingPage(definition?.label??'Loading route');
@@ -474,6 +482,10 @@ async function performRouteRender(request,controller) {
       case 'stream-operations': await renderStreamOperations(main); break;
       case 'observability': await renderObservability(main); break;
       case 'decision-provenance': await renderDecisionProvenance(main,{api,pageHead,stateBanner,escapeHtml,toast,renderRoute,navigate}); break;
+      case 'qelly-verify':
+        if(state.routeQuery?.get?.('view')==='methodology')await renderQellyVerifyMethodology();
+        else await renderQellyVerify();
+        break;
       case 'security-evidence': await renderSecurityEvidence(main); break;
       default: await renderMarketV6(main,{api,pageHead,stateBanner,escapeHtml});
     }

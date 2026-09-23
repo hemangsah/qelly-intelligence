@@ -122,11 +122,14 @@ if(publicRuntimeEnabled){
   if(!index.includes('qelly-growth-runtime.mjs'))index=index.replace('  <script type="module" src="./assets/qelly-app-ready.mjs"></script>','  <script type="module" src="./assets/qelly-growth-runtime.mjs"></script>\n  <script type="module" src="./assets/qelly-app-ready.mjs"></script>');
   index=convergePublicRuntimeHtml(index);
 }
-if(!index.includes('qelly-verify-bootstrap.mjs'))index=index.replace('<script type="module" src="./assets/app.js"></script>','<script type="module" src="./assets/qelly-verify-bootstrap.mjs"></script>\n  <script type="module" src="./assets/app.js"></script>');
 if(!index.includes('qelly-production-shell.css'))index=index.replace('</head>','  <link rel="stylesheet" href="./assets/qelly-production-shell.css">\n</head>');
 if(!index.includes('qelly-production-shell.mjs'))index=index.replace('</body>','  <script type="module" src="./assets/qelly-production-shell.mjs"></script>\n</body>');
 if(!index.includes('qelly-product-experience.css'))index=index.replace('</head>','  <link rel="stylesheet" href="./assets/qelly-product-experience.css">\n</head>');
 if(!index.includes('qelly-product-experience.mjs'))index=index.replace('</body>','  <script type="module" src="./assets/qelly-product-experience.mjs"></script>\n</body>');
+const retiredVerifyExecutables=['qelly-verify-bootstrap.mjs','qelly-verify-shell-nav.mjs'];
+for(const retired of retiredVerifyExecutables){
+  if(index.includes(retired))throw new Error(`Retired Verify executable survived frontend build: ${retired}`);
+}
 await writeFile(indexPath,index);
 
 const connectedRuntimeConfig={

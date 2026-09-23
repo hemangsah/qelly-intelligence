@@ -4,9 +4,9 @@ import { readFile } from 'node:fs/promises';
 
 const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 const REGISTRY='apps/web/public/assets/route-registry.mjs';
-const BOOTSTRAP='apps/web/public/assets/qelly-verify-bootstrap.mjs';
+const ROUTER='apps/web/public/assets/hash-route-state.mjs';
+const APP='apps/web/public/assets/app.js';
 const PRODUCT='apps/web/public/assets/qelly-verify-product.mjs';
-const SHELL='apps/web/public/assets/qelly-verify-shell-nav.mjs';
 const CANONICAL='apps/web/public/assets/qelly-v53-verify-canonical.mjs';
 const VERIFY_CSS='apps/web/public/assets/qelly-v53-verify-convergence.css';
 const BROWSER='scripts/qelly-verify-browser-check.mjs';
@@ -14,25 +14,24 @@ const INDEX='apps/web/public/index.html';
 const EVIDENCE='scripts/release-v53-verify-subview-evidence.py';
 const WORKFLOW='.github/workflows/verify-evidence.yml';
 
-test('Qelly Verify is a canonical public Evidence route while methodology remains a Market subview',async()=>{
-  const [registry,bootstrap]=await Promise.all([read(REGISTRY),read(BOOTSTRAP)]);
+test('Qelly Verify is a canonical public Evidence route with methodology owned by the same lazy route',async()=>{
+  const [registry,router,app,product]=await Promise.all([read(REGISTRY),read(ROUTER),read(APP),read(PRODUCT)]);
   const routes=[...registry.matchAll(/route:'([^']+)'/g)].map(match=>match[1]);
   assert.equal(routes.length,71);
   assert.equal(routes.includes('qelly-verify'),true);
   assert.equal(routes.includes('evidence-methodology'),false);
   assert.match(registry,/route:'qelly-verify', label:'Qelly Verify'.*public:true/);
   assert.match(registry,/'qelly-verify':'evidence'/);
-  assert.ok(bootstrap.includes('verify:/^#\\/(?:qelly-verify|methodology\\/verify|market\\?[^#]*\\bview=qelly-verify(?:&|$))/i'));
-  assert.ok(bootstrap.includes('methodology:/^#\\/(?:evidence-methodology|market\\?[^#]*\\bview=evidence-methodology(?:&|$))/i'));
-  assert.match(bootstrap,/canonicalHashFor=view=>view==='methodology'\?'#\/market\?view=evidence-methodology':view==='verify'\?'#\/qelly-verify':null/);
-  assert.match(bootstrap,/if\(initialView\)\{setRequested\(initialView,'initial-url'\);normalizeHash\(initialView\);\}/);
-  assert.match(bootstrap,/const currentView=viewFor\(location\.hash\)/);
-  assert.match(bootstrap,/if\(!currentView\)\{setRequested\(null,'handoff-navigation'\);return;\}/);
-  assert.match(bootstrap,/Qelly Verify · Qelly Intelligence/);
-  assert.match(bootstrap,/setRequested\(view,view\?'hash':'hash-navigation'\)/);
-  assert.doesNotMatch(bootstrap,/else if\(state\.lastIntent==='navigation-link'\)/);
+  assert.match(router,/legacyVerify=parsedRoute==='methodology'&&parsedAsset==='verify'/);
+  assert.match(router,/legacyMethodology=parsedRoute==='evidence-methodology'\|\|\(parsedRoute==='market'&&query\.get\('view'\)==='evidence-methodology'\)/);
+  assert.match(router,/legacyMarketVerify=parsedRoute==='market'&&query\.get\('view'\)==='qelly-verify'/);
+  assert.match(router,/query\.set\('view','methodology'\)/);
+  assert.match(app,/const renderQellyVerify=lazyRoute\('\.\/qelly-verify-product\.mjs','renderVerify'\)/);
+  assert.match(app,/case 'qelly-verify':/);
+  assert.match(app,/state\.routeQuery\?\.get\?\.\('view'\)==='methodology'/);
+  assert.match(product,/#\/qelly-verify\?view=methodology/);
+  assert.doesNotMatch(product,/#\/market\?view=evidence-methodology/);
 });
-
 test('Verify product retains explicit local-only and execution-disabled boundaries',async()=>{
   const product=await read(PRODUCT);
   assert.match(product,/Local-only prototype evidence workflow/);
@@ -42,7 +41,7 @@ test('Verify product retains explicit local-only and execution-disabled boundari
   assert.match(product,/Human validation remains required/);
 });
 
-test('canonical V5.3 Verify is the sole first-view owner while preserving the CSV analyzer as secondary',async()=>{
+test('accepted V5.3 Verify composition remains available as a governed evidence artifact',async()=>{
   const [canonical,css,browser]=await Promise.all([read(CANONICAL),read(VERIFY_CSS),read(BROWSER)]);
   assert.match(canonical,/workbench\.dataset\.v53VerifyWorkbench='accepted-lock'/);
   assert.match(canonical,/Qelly Verify/);
@@ -70,27 +69,20 @@ test('canonical V5.3 Verify is the sole first-view owner while preserving the CS
   assert.match(browser,/verify_not_first_view_owner/);
 });
 
-test('current shell exposes canonical Verify and methodology through governed navigation without making a mobile shelf an acceptance dependency',async()=>{
-  const [shell,index]=await Promise.all([read(SHELL),read(INDEX)]);
-  assert.match(shell,/document\.getElementById\('primary-nav'\)/);
-  assert.match(shell,/\[data-route="qelly-verify"\]/);
-  assert.match(shell,/canonicalVerify\.dataset\.qellyVerifyLink='shell'/);
-  assert.match(shell,/data-qelly-methodology-link="shell"/);
-  assert.match(shell,/view==='qelly-verify'\?'#\/qelly-verify'/);
-  assert.match(shell,/verify\.href='#\/qelly-verify'/);
-  assert.match(shell,/method\.textContent='Evidence'/);
-  assert.match(shell,/route!=='market'&&route!=='qelly-verify'/);
-  assert.match(shell,/responsiveShell\.addEventListener\?\.\('change',schedule\)/);
-  assert.match(shell,/MutationObserver/);
-  const productPosition=index.indexOf('./assets/qelly-verify-product.mjs');
-  const bootstrapPosition=index.indexOf('./assets/qelly-verify-bootstrap.mjs');
-  const appPosition=index.indexOf('./assets/app.js');
-  const shellPosition=index.indexOf('./assets/qelly-verify-shell-nav.mjs');
-  assert.ok(bootstrapPosition>=0&&bootstrapPosition<appPosition,'Verify route bootstrap must load before the application router');
-  assert.ok(productPosition>=0,'Verify product runtime missing from index');
-  assert.ok(shellPosition>productPosition,'shell nav bridge must load after Verify product runtime');
+test('Verify route is lazy-owned by app.js with no global reconciliation scripts',async()=>{
+  const [app,index,product]=await Promise.all([read(APP),read(INDEX),read(PRODUCT)]);
+  assert.match(app,/const renderQellyVerify=lazyRoute\('\.\/qelly-verify-product\.mjs','renderVerify'\)/);
+  assert.match(app,/const renderQellyVerifyMethodology=lazyRoute\('\.\/qelly-verify-product\.mjs','renderMethodology'\)/);
+  assert.match(app,/case 'qelly-verify':/);
+  assert.doesNotMatch(index,/qelly-verify-bootstrap\.mjs/);
+  assert.doesNotMatch(index,/qelly-verify-product\.mjs/);
+  assert.doesNotMatch(index,/qelly-verify-shell-nav\.mjs/);
+  assert.doesNotMatch(product,/MutationObserver/);
+  assert.doesNotMatch(product,/window\.addEventListener\('hashchange'/);
+  assert.doesNotMatch(product,/window\.addEventListener\('pageshow'/);
+  assert.doesNotMatch(product,/for\(const delay of \[80,250,700,1600\]\)/);
+  assert.doesNotMatch(product,/enhanceHomepage|installNavigation|function reconcile|function schedule/);
 });
-
 test('dedicated evidence harness proves alias normalization and accepted Verify workstation geometry across nine widths',async()=>{
   const [script,workflow]=await Promise.all([read(EVIDENCE),read(WORKFLOW)]);
   for(const width of [360,390,430,768,1024,1280,1440,1728,1920])assert.ok(script.includes(String(width)),`missing width ${width}`);
@@ -101,7 +93,7 @@ test('dedicated evidence harness proves alias normalization and accepted Verify 
   assert.match(script,/'id':'evidence-methodology'/);
   assert.match(script,/canonical route count changed unexpectedly/);
   assert.match(script,/canonical Qelly Verify route missing/);
-  assert.match(script,/Evidence Methodology must remain a governed Market subview/);
+  assert.match(script,/Evidence Methodology must remain a governed Qelly Verify subview/);
   assert.match(script,/data-v53-verify-workbench=\"accepted-lock\"/);
   assert.match(script,/data-v53-verify-primary/);
   assert.match(script,/data-v53-verify-context/);
@@ -115,7 +107,7 @@ test('dedicated evidence harness proves alias normalization and accepted Verify 
   assert.match(script,/aliasNormalized/);
   assert.match(workflow,/manifest\.canonicalRouteCount===71/);
   assert.match(workflow,/manifest\.canonicalRoute==='qelly-verify'/);
-  assert.match(workflow,/manifest\.methodologyHostRoute==='market'/);
+  assert.match(workflow,/manifest\.methodologyHostRoute==='qelly-verify'/);
   assert.match(workflow,/manifest\.renderCount===18/);
   assert.match(workflow,/manifest\.expectedRenderCount===18/);
   assert.match(workflow,/manifest\.aliasNormalized===true/);
@@ -146,8 +138,8 @@ test('Wave 4 raises complete-route denominators without weakening representative
 });
 
 test('Wave 4 introduces no execution, custody, wallet or secret-collection capability',async()=>{
-  const [shell,evidence]=await Promise.all([read(SHELL),read(EVIDENCE)]);
-  const source=`${shell}\n${evidence}`.toLowerCase();
+  const [product,evidence]=await Promise.all([read(PRODUCT),read(EVIDENCE)]);
+  const source=`${product}\n${evidence}`.toLowerCase();
   for(const phrase of ['place order','execute trade','buy now','sell now','connect wallet','private key','recovery phrase','withdraw funds','deposit funds']){
     assert.equal(source.includes(phrase),false,`forbidden capability phrase: ${phrase}`);
   }
