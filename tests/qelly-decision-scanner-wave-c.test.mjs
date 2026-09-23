@@ -51,7 +51,7 @@ test('Decision scanner fails closed when calibration does not permit a trade',as
     now:Date.parse('2026-09-23T00:00:00.000Z'),
     build:async (_env,{asset})=>resultFor(asset,{priority:asset==='ETH'?.92:.65})
   });
-  assert.equal(scan.state,'WAIT');
+  assert.equal(scan.state,'NO_ELIGIBLE_SETUP');
   assert.equal(scan.eligibleCount,0);
   assert.equal(scan.availableCount,6);
   assert.equal(scan.eventRisk.state,'unavailable');
