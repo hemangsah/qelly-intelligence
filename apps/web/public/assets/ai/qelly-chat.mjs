@@ -1,6 +1,6 @@
+import {storeDecisionContext} from '../decision-context-bridge.mjs';
 const STORAGE_KEY='qelly.intelligence.chat.v1';
 const DECISION_DRAFT_KEY='qelly.decision.draft.v1';
-const DECISION_CONTEXT_KEY='qelly.decision.chat-context.v1';
 const MAX_MESSAGES=24;
 const CHAT_MODES=Object.freeze([
   {id:'ask',label:'Ask'},{id:'research',label:'Research'},{id:'compare',label:'Compare'},{id:'explain',label:'Explain'},
@@ -144,7 +144,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
       const route=button.dataset.qAiRoute;
       const message=messages[Number(button.dataset.qAiActionMessage)];
       if(route==='decision-provenance'&&message){
-        try{sessionStorage.setItem(DECISION_CONTEXT_KEY,JSON.stringify({createdAt:new Date().toISOString(),asset:message.asset||asset,timeframe:message.timeframe||timeframe}));}catch{}
+        storeDecisionContext({asset:message.asset||asset,timeframe:message.timeframe||timeframe,source:'qelly-chat'});
       }
       const contextualAsset=message?.asset&&message.asset!=='HYPE'&&['advanced-chart','comparison-lab','asset'].includes(route)?message.asset:null;
       navigate?.(route,contextualAsset);
@@ -236,4 +236,4 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
   loadCapability().catch(()=>{root.querySelector('[data-q-ai-status]').textContent=staticVisualPreview?'Static preview':'Dataset service reconnecting';root.querySelector('[data-q-ai-status-dot]').dataset.state='reference';});
 }
 
-export const __qellyChatTest=Object.freeze({STORAGE_KEY,DECISION_DRAFT_KEY,DECISION_CONTEXT_KEY,MAX_MESSAGES,CHAT_MODES,CHAT_ASSETS,CHAT_TIMEFRAMES,CHAT_CALCULATORS,MODE_SUGGESTIONS,truthLabel,safeUrl,conversationalReply,suggestionsFor});
+export const __qellyChatTest=Object.freeze({STORAGE_KEY,DECISION_DRAFT_KEY,MAX_MESSAGES,CHAT_MODES,CHAT_ASSETS,CHAT_TIMEFRAMES,CHAT_CALCULATORS,MODE_SUGGESTIONS,truthLabel,safeUrl,conversationalReply,suggestionsFor});
