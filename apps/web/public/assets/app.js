@@ -333,6 +333,11 @@ function bindShell() {
 
 function resolveHash() {
   const {route,asset,query}=parseHashRoute(location.hash,{fallback:state.prefs?.route||'market'});
+  if(route==='qelly-verify'){
+    const canonicalQuery=query.toString();
+    const canonicalHash=`#/qelly-verify${canonicalQuery?`?${canonicalQuery}`:''}`;
+    if(location.hash!==canonicalHash)history.replaceState(null,'',canonicalHash);
+  }
   const definition=routeDefinitions.find((item)=>item.route===route);
   const allowed=staticVisualPreview
     ? definition&&staticPreviewRoutes.has(route)
