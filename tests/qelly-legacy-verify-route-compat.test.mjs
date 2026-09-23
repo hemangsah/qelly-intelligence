@@ -28,9 +28,11 @@ test('legacy methodology document path redirects before SPA asset resolution',as
 });
 
 
-test('Verify bootstrap recognizes legacy methodology hash before app routing',async()=>{
-  const source=await readFile(new URL('../apps/web/public/assets/qelly-verify-bootstrap.mjs',import.meta.url),'utf8');
-  assert.match(source,/methodology\\\/verify/);
+test('application hash router recognizes legacy methodology hash without a bootstrap renderer',async()=>{
+  const source=await readFile(new URL('../apps/web/public/assets/hash-route-state.mjs',import.meta.url),'utf8');
+  assert.match(source,/parsedRoute==='methodology'&&parsedAsset==='verify'/);
+  const index=await readFile(new URL('../apps/web/public/index.html',import.meta.url),'utf8');
+  assert.doesNotMatch(index,/qelly-verify-bootstrap\.mjs/);
 });
 
 test('exact Pages Function owns the legacy methodology document path',async()=>{
