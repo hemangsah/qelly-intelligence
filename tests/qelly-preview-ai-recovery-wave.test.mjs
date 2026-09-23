@@ -1,21 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
-import {evaluateDecision,normalizeDecisionInput} from '../apps/web/public/assets/qelly-decision-engine.mjs';
 import {migrationProfileForFile,normalizeMigrationProfile,selectMigrationFiles} from '../scripts/migration-file-policy.mjs';
 
 const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 
-test('decision engine is deterministic, bounded and never executable',()=>{
-  const input={assetId:'QI-CRYPTO-SOL',horizon:'30d',risk:'balanced',evidenceConfidence:80,scenarioMove:-12};
-  const first=evaluateDecision(input);
-  const second=evaluateDecision(input);
-  assert.deepEqual(first,second);
-  assert.ok(first.score>=0&&first.score<=100);
-  assert.equal(first.execution,false);
-  assert.equal(first.modelState,'deterministic-explainable-framework');
-  assert.match(first.boundary,/Not live AI/i);
-  assert.equal(normalizeDecisionInput({assetId:'unknown'}).assetId,'QI-CRYPTO-BTC');
+test('retired fixed-profile Decision engine is absent from the public application',async()=>{
+  await assert.rejects(read('apps/web/public/assets/qelly-decision-engine.mjs'));
+  const route=await read('apps/web/public/assets/routes/decision-provenance.mjs');
+  assert.match(route,/renderDecisionProvenGraph/);
+  assert.doesNotMatch(route,/evaluateDecision|deterministic-explainable-framework|fixed scenario/);
 });
 
 test('public recovery catches the exact broken route states from the reported screenshots',async()=>{
@@ -48,15 +42,18 @@ test('static preview receives one compact recovery shell and official decision n
   assert.match(style,/\.q-decision-workspace/);
 });
 
-test('decision provenance remains functional in preview instead of disabling the decision workflow',async()=>{
-  const source=await read('apps/web/public/assets/routes/decision-provenance.mjs');
-  assert.match(source,/AI Decision Maker/);
-  assert.match(source,/Run decision analysis/);
-  assert.match(source,/evaluateDecision/);
-  assert.match(source,/deterministic explainable framework/i);
-  assert.match(source,/Execution disabled/);
-  assert.doesNotMatch(source,/Creation is unavailable in this static visual preview/);
-  assert.doesNotMatch(source,/\$\{isDemo\?'disabled'/);
+test('decision preview recovery remains functional without manufacturing a substitute trade view',async()=>{
+  const [route,rescue]=await Promise.all([
+    read('apps/web/public/assets/routes/decision-provenance.mjs'),
+    read('apps/web/public/assets/qelly-canonical-route-rescue.mjs')
+  ]);
+  assert.match(route,/renderDecisionProvenGraph/);
+  assert.match(rescue,/Decision Intelligence unavailable/);
+  assert.match(rescue,/No substitute decision generated/);
+  assert.match(rescue,/NO TRADE/);
+  assert.match(rescue,/FAIL CLOSED/);
+  assert.match(rescue,/No substitute data, probability, entry, stop, target, or confidence was generated/);
+  assert.doesNotMatch(rescue,/evaluateDecision|Run local analysis|Evidence confidence|Scenario move %/);
 });
 
 test('static preview remains an internal validator-compatible mode alongside the production Pages mirror',async()=>{
