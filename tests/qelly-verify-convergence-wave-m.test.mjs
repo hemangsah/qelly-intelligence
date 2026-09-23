@@ -59,14 +59,16 @@ test('Verify product and accepted V5.3 convergence have no global render reconci
 });
 
 test('source and build pipeline cannot restore global Verify executables',async()=>{
-  const [index,worker,build]=await Promise.all([
+  const [index,worker,build,shellCompat]=await Promise.all([
     read('apps/web/public/index.html'),
     read('apps/web/public/qelly-service-worker.js'),
-    read('scripts/build-frontend.mjs')
+    read('scripts/build-frontend.mjs'),
+    read('apps/web/public/assets/qelly-shell-compat.js')
   ]);
   assert.doesNotMatch(index,/qelly-verify-bootstrap\.mjs|qelly-verify-product\.mjs|qelly-verify-shell-nav\.mjs/);
   assert.doesNotMatch(worker,/qelly-verify-bootstrap\.mjs/);
   assert.match(worker,/qelly-verify-product\.mjs/);
   assert.match(worker,/qelly-verify-engine\.mjs/);
   assert.doesNotMatch(build,/index\.includes\('qelly-verify-bootstrap\.mjs'\)|qelly-verify-bootstrap\.mjs<\/script>/);
+  assert.doesNotMatch(shellCompat,/qelly-verify-bootstrap\.mjs/);
 });
