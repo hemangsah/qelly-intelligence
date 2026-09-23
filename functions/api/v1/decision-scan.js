@@ -41,20 +41,20 @@ const rankingComponents=(result)=>{
   const quality=clamp(finite(gate.qualityScore)??0);
   const calibratedConfidence=gate.calibrationEligible===true?clamp(finite(view.confidence)??0):0;
   const structureState=String(result?.quant?.structure?.state||'UNAVAILABLE');
-  const structure=structureState==='HH_HL'||structureState==='LH_LL'?1:structureState==='EXPANDING_RANGE'?.72:structureState==='CONTRACTING_RANGE'?.62:structureState==='MIXED'?.42:0;
+  const structure=structureState==='HH_HL'||structureState==='LH_LL'?1:structureState==='EXPANDING_RANGE'?0.72:structureState==='CONTRACTING_RANGE'?0.62:structureState==='MIXED'?0.42:0;
   const rr=FEASIBILITY_WEIGHT[String(selected.feasibility||'UNAVAILABLE')]??0;
   const liquidity=result?.liquidity||result?.evidence?.liquidity||{};
   const spread=finite(liquidity?.spreadBps);
-  const liquidityScore=String(liquidity?.state||'').toLowerCase()==='live'?(spread===null?.6:spread<=5?1:spread<=15?.72:.2):.35;
+  const liquidityScore=String(liquidity?.state||'').toLowerCase()==='live'?(spread===null?0.6:spread<=5?1:spread<=15?.72:.2):.35;
   const volatilityState=String(result?.quant?.volatility?.regime||'UNKNOWN').toUpperCase();
-  const volatility=volatilityState==='NORMAL'?1:volatilityState==='LOW'?.78:volatilityState==='ELEVATED'?.62:volatilityState==='HIGH'?.32:.45;
+  const volatility=volatilityState==='NORMAL'?1:volatilityState==='LOW'?0.78:volatilityState==='ELEVATED'?0.62:volatilityState==='HIGH'?0.32:.45;
   const contradiction=clamp(1-Math.min(1,(Array.isArray(view.contradictions)?view.contradictions.length:0)/4));
   const event=result?.eventRisk||result?.evidence?.eventRisk||{};
   const eventLevel=String(event?.level||'UNAVAILABLE').toUpperCase();
-  const eventRisk=eventLevel==='LOW'?1:eventLevel==='MEDIUM'?.72:eventLevel==='HIGH'?.35:eventLevel==='EXTREME'?0:.45;
+  const eventRisk=eventLevel==='LOW'?1:eventLevel==='MEDIUM'?0.72:eventLevel==='HIGH'?0.35:eventLevel==='EXTREME'?0:.45;
   const freshness=clamp(finite(gate.freshness)??(String(result?.truthState||'').toUpperCase()==='LIVE'?1:0));
   const congestion=String(selected?.targetCongestion||'UNAVAILABLE');
-  const targetCongestion=congestion==='CLEAR'?1:congestion==='AT_TARGET'?.82:congestion==='NEAR_TARGET'?.65:congestion==='BEFORE_TARGET'?.1:.45;
+  const targetCongestion=congestion==='CLEAR'?1:congestion==='AT_TARGET'?0.82:congestion==='NEAR_TARGET'?0.65:congestion==='BEFORE_TARGET'?0.1:.45;
   return {quality,calibratedConfidence,structure,rr,liquidity:liquidityScore,volatility,contradiction,eventRisk,freshness,targetCongestion};
 };
 
