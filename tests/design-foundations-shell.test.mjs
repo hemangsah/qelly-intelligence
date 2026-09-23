@@ -55,11 +55,14 @@ test('truth-state primitives use text and symbols and never call demo live',()=>
   assert.match(source,/static-preview-v1/);
 });
 
-test('static preview exposes a deterministic evidence graph and still rejects mutation',async()=>{
+test('static preview exposes a deterministic evidence graph while Decision trade fallback stays fail-closed',async()=>{
   const listing=await staticPreviewRequest('/api/v1/evidence/graphs');
   const graph=await staticPreviewRequest(`/api/v1/evidence/graphs/${listing.items[0].graphId}`);
   const repeated=await staticPreviewRequest(`/api/v1/evidence/graphs/${listing.items[0].graphId}`);
-  const routeSource=await read('apps/web/public/assets/routes/decision-provenance.mjs');
+  const [routeSource,rescueSource]=await Promise.all([
+    read('apps/web/public/assets/routes/decision-provenance.mjs'),
+    read('apps/web/public/assets/qelly-canonical-route-rescue.mjs')
+  ]);
   assert.equal(listing.total,1);
   assert.equal(listing.mode,'deterministic-demo');
   assert.equal(listing.persistence,'unavailable');
@@ -68,8 +71,10 @@ test('static preview exposes a deterministic evidence graph and still rejects mu
   assert.ok(graph.nodes.length>=7);
   assert.ok(graph.edges.length>=7);
   assert.match(graph.truthBoundary,/not live/i);
-  assert.match(routeSource,/demo · not persisted/);
-  assert.match(routeSource,/Backend unavailable/);
+  assert.match(routeSource,/renderDecisionProvenGraph/);
+  assert.match(rescueSource,/No substitute decision generated/);
+  assert.match(rescueSource,/FAIL CLOSED/);
+  assert.doesNotMatch(rescueSource,/evaluateDecision|fixed scenario|Run local analysis/);
   assert.deepEqual(graph,repeated);
   await assert.rejects(staticPreviewRequest('/api/v1/evidence/explain-move',{method:'POST'}),(error)=>error.code==='static_visual_preview_backend_unavailable');
 });
