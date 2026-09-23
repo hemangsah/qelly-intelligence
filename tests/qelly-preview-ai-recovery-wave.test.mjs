@@ -20,7 +20,10 @@ test('public recovery catches the exact broken route states from the reported sc
   assert.match(source,/view=decision-maker/);
   assert.match(source,/qelly-logo-primary\.svg/);
   assert.match(source,/MutationObserver/);
-  assert.match(source,/qellyRecoveryOwner!=='decision-maker'\|\|!main\.querySelector\('\[data-qelly-recovery-owned="decision-maker"\]'\)/);
+  assert.match(source,/openDecisionIntelligence/);
+  assert.match(source,/renderDecisionRecovery/);
+  assert.match(source,/NO TRADE · FAIL CLOSED/);
+  assert.doesNotMatch(source,/evaluateDecision|decisionAssets|Run decision analysis|Evidence confidence|User scenario move/);
   assert.doesNotMatch(source,/placeOrder|executeTrade|wallet\.sign/i);
   assert.match(source,/No execution\. No personalized advice\./i);
   assert.doesNotMatch(source,/qelly-intelligence\.pages\.dev|governed degraded mode|No authorized provider observation|no-fabrication boundary/i);
@@ -39,7 +42,8 @@ test('static preview receives one compact recovery shell and official decision n
   assert.match(style,/\.q-global-strip/);
   assert.match(style,/\.q-command-bar/);
   assert.match(style,/\.q-recovery-header/);
-  assert.match(style,/\.q-decision-workspace/);
+  assert.match(style,/\.q-recovery-table/);
+  assert.doesNotMatch(style,/\.q-decision-workspace|\.q-decision-controls|\.q-decision-output/);
 });
 
 test('decision preview recovery remains functional without manufacturing a substitute trade view',async()=>{
