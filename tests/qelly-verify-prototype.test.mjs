@@ -52,17 +52,19 @@ test('Qelly Verify product is local-only and preserves the evidence-first bounda
   assert.doesNotMatch(source,/placeOrder|executeTrade|wallet\.sign/i);
 });
 
-test('homepage and shell load Qelly Verify after existing runtime protections',async()=>{
-  const index=await read('apps/web/public/index.html');
+test('application router lazy-loads Qelly Verify without global first-paint reconciliation',async()=>{
+  const [index,app,source]=await Promise.all([
+    read('apps/web/public/index.html'),
+    read('apps/web/public/assets/app.js'),
+    read('apps/web/public/assets/qelly-verify-product.mjs')
+  ]);
   assert.match(index,/qelly-verify\.css/);
-  assert.match(index,/qelly-verify-product\.mjs/);
-  assert.ok(index.indexOf('qelly-verify-product.mjs')>index.indexOf('qelly-public-recovery.mjs'));
-  const source=await read('apps/web/public/assets/qelly-verify-product.mjs');
-  assert.match(source,/Quantitative intelligence for disciplined market decisions/);
-  assert.match(source,/Analyze a strategy/);
-  assert.match(source,/Request a demo/);
-  assert.match(source,/Validate the edge/);
+  assert.doesNotMatch(index,/qelly-verify-product\.mjs|qelly-verify-bootstrap\.mjs|qelly-verify-shell-nav\.mjs/);
+  assert.match(app,/const renderQellyVerify=lazyRoute\('\.\/qelly-verify-product\.mjs','renderVerify'\)/);
+  assert.match(app,/case 'qelly-verify':/);
+  assert.match(source,/Put your strategy through evidence, not belief/);
   assert.match(source,/Constrained Kelly research range/);
+  assert.doesNotMatch(source,/MutationObserver|enhanceHomepage|function reconcile|function schedule/);
 });
 
 test('service worker cache follows release identity and refreshes executable assets from network',async()=>{
