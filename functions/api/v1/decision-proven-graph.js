@@ -2,6 +2,8 @@ import {buildDecisionProvenGraph,buildDecisionWalkForwardCalibration,DECISION_IN
 import {buildTradeResearch} from '../../_lib/decision-trade-research.js';
 import {buildDecisionHistoricalAnalogs} from '../../_lib/decision-historical-analogs.js';
 import {normalizeDecisionLiquidity} from '../../_lib/decision-liquidity.js';
+import {buildFundingHistoryContext} from '../../_lib/decision-derivatives.js';
+import {buildDecisionCrossAsset} from '../../_lib/decision-cross-asset.js';
 import {HttpError,enforceRateLimit,errorResponse,fetcher,responseJson} from '../../_lib/runtime.js';
 
 const ASSETS=new Set(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
@@ -22,6 +24,24 @@ async function fetchCandles(fetchImpl,asset,interval,endTime,points=500){
   const response=await fetchImpl(HYPERLIQUID_INFO_URL,{method:'POST',headers:{'content-type':'application/json','user-agent':'QELLY-Intelligence/decision-intelligence'},body:JSON.stringify({type:'candleSnapshot',req:{coin:asset,interval,startTime:endTime-DECISION_INTERVALS[interval]*points,endTime}}),signal:AbortSignal.timeout(8_000)});
   if(!response.ok)throw new HttpError(503,'provider_unavailable','Live market data is unavailable',{retryable:true});
   try{return await response.json();}catch{throw new HttpError(503,'provider_invalid_response','Live market data returned an invalid response',{retryable:true});}
+}
+
+async function fetchOptionalCandles(fetchImpl,asset,interval,endTime,points=240){
+  try{return await fetchCandles(fetchImpl,asset,interval,endTime,points);}catch{return null;}
+}
+
+async function fetchFundingHistory(fetchImpl,asset,endTime){
+  try{
+    const response=await fetchImpl(HYPERLIQUID_INFO_URL,{
+      method:'POST',
+      headers:{'content-type':'application/json','user-agent':'QELLY-Intelligence/decision-intelligence'},
+      body:JSON.stringify({type:'fundingHistory',coin:asset,startTime:endTime-72*3_600_000,endTime}),
+      signal:AbortSignal.timeout(6_000)
+    });
+    if(!response.ok)return [];
+    const payload=await response.json();
+    return Array.isArray(payload)?payload:[];
+  }catch{return [];}
 }
 
 async function fetchLiquidityContext(fetchImpl,asset){
@@ -108,7 +128,7 @@ async function fetchNews(fetchImpl,asset,start,end){
   throw new Error('News provider unavailable');
 }
 
-export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liquidity=null){
+export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liquidity=null,crossAsset=null){
   const base=graph.qellyView;
   const bull=finite(graph.forecast?.probabilities?.bull)??0;
   const bear=finite(graph.forecast?.probabilities?.bear)??0;
@@ -148,6 +168,7 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liqui
   const riskLabel=volatilityRegime!=='UNKNOWN'?volatilityRegime.replaceAll('_',' ') : atrPct===null?'Unknown':atrPct>=3?'High short-term range':atrPct>=1.5?'Elevated short-term range':atrPct>=.75?'Moderate short-term range':'Lower short-term range';
   const derivativesLive=derivatives?.state==='live';
   const liquidityLive=liquidity?.state==='live';
+  const crossAssetAvailable=crossAsset?.state==='available';
   const spreadBps=finite(liquidity?.spreadBps);
   const bookImbalance=finite(liquidity?.top5Imbalance);
   if(directionalAction&&liquidityLive&&spreadBps!==null&&spreadBps>15){
@@ -172,7 +193,8 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liqui
     ...(Array.isArray(base?.why)?base.why:[]),
     total?('Multi-timeframe evidence: '+String(agreement.direction||'MIXED')+' with '+aligned+'/'+total+' observed timeframes aligned.'):'Multi-timeframe evidence is unavailable and was not inferred.',
     derivativesLive?'Current funding/open-interest context is available as risk context; it does not force direction.':'Current funding/open-interest context is unavailable and did not increase confidence.',
-    liquidityLive?('Current L2 liquidity: '+String(liquidity.spreadState||'UNKNOWN')+' spread · '+String(liquidity.imbalanceState||'UNKNOWN')+' top-five depth. This is point-in-time risk context, not a directional signal.'):'Current L2 liquidity is unavailable and was not inferred.'
+    liquidityLive?('Current L2 liquidity: '+String(liquidity.spreadState||'UNKNOWN')+' spread · '+String(liquidity.imbalanceState||'UNKNOWN')+' top-five depth. This is point-in-time risk context, not a directional signal.'):'Current L2 liquidity is unavailable and was not inferred.',
+    crossAssetAvailable?('Cross-asset context versus '+String(crossAsset.benchmark||'benchmark')+': '+String(crossAsset.correlationState||'UNAVAILABLE')+' correlation · '+String(crossAsset.relativeState||'UNAVAILABLE')+' relative performance. It has no independent eligibility impact.'):'Cross-asset dependence is unavailable and was not inferred.'
   ];
   const downgraded=directionalAction&&action==='NO TRADE';
   const label=downgraded?'Independent evidence does not clear the directional research threshold.':base?.label;
@@ -205,6 +227,9 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liqui
       liquidityCoverage:liquidityLive?'live':'unavailable',
       liquiditySpreadBps:round(spreadBps,3),
       liquidityTop5Imbalance:round(bookImbalance,4),
+      crossAssetCoverage:crossAssetAvailable?'available':'unavailable',
+      crossAssetBenchmark:crossAssetAvailable?String(crossAsset.benchmark||''):null,
+      crossAssetCorrelation:crossAssetAvailable?round(finite(crossAsset.correlation),4):null,
       quantCoverage:graph?.quant?.state==='DERIVED'?'derived':'insufficient',
       calibrationState,
       calibrationEligible
@@ -256,12 +281,29 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   const endTime=Number(now);
   if(!Number.isFinite(endTime)||endTime<=0)throw new HttpError(400,'invalid_observation_time','Observation time is invalid');
   const fetchImpl=fetcher(env);
-  const [payload,multiTimeframe,derivatives,liquidity]=await Promise.all([
+  const benchmarkAsset=resolvedAsset==='BTC'?'ETH':'BTC';
+  const [payload,multiTimeframe,derivativesCurrent,liquidity,fundingRows,benchmarkPayload]=await Promise.all([
     fetchCandles(fetchImpl,resolvedAsset,resolvedInterval,endTime),
     fetchTimeframes(fetchImpl,resolvedAsset,endTime,resolvedInterval),
     fetchDerivativesContext(fetchImpl,resolvedAsset,endTime),
-    fetchLiquidityContext(fetchImpl,resolvedAsset)
+    fetchLiquidityContext(fetchImpl,resolvedAsset),
+    fetchFundingHistory(fetchImpl,resolvedAsset,endTime),
+    fetchOptionalCandles(fetchImpl,benchmarkAsset,resolvedInterval,endTime,240)
   ]);
+  const fundingHistory=buildFundingHistoryContext(fundingRows,{currentFundingRate:derivativesCurrent?.fundingRate});
+  const derivatives=derivativesCurrent?.state==='live'?{
+    ...derivativesCurrent,
+    currentOnly:false,
+    fundingHistory,
+    fundingChangeBps:fundingHistory.fundingChangeBps,
+    fundingPercentile:fundingHistory.fundingPercentile,
+    openInterestChange:null,
+    openInterestChangeState:'UNAVAILABLE',
+    openInterestChangeReason:'Hyperliquid current asset context does not provide historical open-interest change in this Decision integration.'
+  }:derivativesCurrent;
+  const crossAsset=benchmarkPayload?buildDecisionCrossAsset(payload,benchmarkPayload,{asset:resolvedAsset,benchmark:benchmarkAsset}):{
+    state:'unavailable',asset:resolvedAsset,benchmark:benchmarkAsset,sampleSize:0,correlation:null,beta:null,relativeStrengthPct:null,reason:'Benchmark candles are unavailable.'
+  };
   let graph;
   try{
     graph=buildDecisionProvenGraph(payload,{asset:resolvedAsset,interval:resolvedInterval,horizonBars,now:endTime,selection:resolvedSelection});
@@ -269,7 +311,7 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
       quant:{...graph.quant,calibration:buildDecisionWalkForwardCalibration(payload,{interval:resolvedInterval,horizonBars})},
       historicalAnalogs:buildDecisionHistoricalAnalogs(payload,{interval:resolvedInterval,horizonBars,windowBars:100,limit:5})
     };
-    graph=calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liquidity);
+    graph=calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liquidity,crossAsset);
   }catch(error){
     if(error instanceof HttpError)throw error;
     throw new HttpError(503,'insufficient_provider_data',error.message,{retryable:true});
@@ -278,6 +320,14 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   const newsEnd=Math.min(resolvedSelection?.end??endTime,endTime);
   let articles=[],newsState=includeNews?'unavailable':'not-requested';
   if(includeNews){try{articles=await fetchNews(fetchImpl,resolvedAsset,newsStart,newsEnd);newsState=articles.length?'live':'no-matches';}catch{}}
+  const macro={
+    state:'unavailable',
+    level:'UNAVAILABLE',
+    provider:null,
+    intradayFeedConnected:false,
+    reason:'No current intraday DXY, sovereign-yield, policy-rate or liquidity feed is connected to this Decision view.',
+    cadenceBoundary:'Slow or delayed macro references used elsewhere in QELLY are intentionally excluded from intraday trade eligibility.'
+  };
   const eventRisk={
     state:'unavailable',
     level:'UNAVAILABLE',
@@ -285,9 +335,19 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
     scheduledFeedConnected:false,
     reason:'No verified scheduled-event calendar is connected to this Decision view. Recent news is evidence only and is not converted into a scheduled event-risk score.'
   };
-  graph={...graph,liquidity,eventRisk};
+  graph={...graph,liquidity,eventRisk,derivatives,crossAsset,macro};
   const tradeResearch=buildTradeResearch(graph,{requestedRr,customRr});
-  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence:{news:{state:newsState,provider:includeNews?'GDELT':null,articles},derivatives,liquidity,eventRisk,liquidations:{state:'unavailable',message:'Verified liquidation evidence is not available for this view, so it is not inferred.'}}};
+  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence:{
+    news:{state:newsState,provider:includeNews?'GDELT':null,articles},
+    derivatives,
+    liquidity,
+    crossAsset,
+    macro,
+    eventRisk,
+    liquidations:{state:'unavailable',message:'Verified liquidation evidence is not available for this view, so it is not inferred.'},
+    options:{state:'unavailable',message:'Verified options-market evidence is not connected to this Decision view, so it is not inferred.'},
+    onChain:{state:'unavailable',message:'Authorized on-chain evidence is not connected to this Decision view, so it is not inferred.'}
+  }};
 }
 
 export async function onRequest({request,env}){
