@@ -35,16 +35,16 @@ function metricSet(candles,intervalMs){
   return {returns,average,sigma,metrics:{realizedVolatilityPct:round(sigma*annualizer*100,2),ewmaVolatilityPct:round(Math.sqrt(ewma)*annualizer*100,2),parkinsonVolatilityPct:round(parkinson*annualizer*100,2),atrPct:round(mean(trs.slice(-14))/closes.at(-1)*100,2),trendPerBarPct:round(slope/closes.at(-1)*100,4),rsi14:round(down===0?100:100-(100/(1+up/down)),1),returnZScore:round(sigma?(returns.at(-1)-average)/sigma:0,2),skewness:round(sigma?mean(centered.map(value=>value**3))/sigma**3:0,2),excessKurtosis:round(sigma?mean(centered.map(value=>value**4))/sigma**4-3:0,2),historicalVaR95Pct:round(-(quantile(returns,.05)??0)*100,2),expectedShortfall95Pct:round(-mean(losses)*100,2),maxDrawdownPct:round(maxDrawdown*100,2),averageVolume:round(mean(candles.slice(-30).map(item=>item.volume)),2)}};
 }
 
-function scenarios(candles,returns,horizonBars,seed){
-  const random=rng(seed);const sample=returns.slice(-Math.min(240,returns.length));const paths=800;const series=Array.from({length:horizonBars},()=>[]);const terminal=[];const block=Math.max(2,Math.round(Math.sqrt(horizonBars)));const last=candles.at(-1).close;
-  for(let path=0;path<paths;path++){let price=last;for(let step=0;step<horizonBars;step++){const blockStart=Math.floor(random()*Math.max(1,sample.length-block));const shock=sample[(blockStart+(step%block))%sample.length]??0;price*=Math.exp(shock);series[step].push(price);}terminal.push(price);}
+function scenarios(candles,returns,horizonBars,seed,{paths=384}={}){
+  const random=rng(seed);const sample=returns.slice(-Math.min(240,returns.length));const resolvedPaths=Math.max(32,Math.min(800,Math.floor(Number(paths)||384)));const series=Array.from({length:horizonBars},()=>[]);const terminal=[];const block=Math.max(2,Math.round(Math.sqrt(horizonBars)));const last=candles.at(-1).close;
+  for(let path=0;path<resolvedPaths;path++){let price=last;for(let step=0;step<horizonBars;step++){const blockStart=Math.floor(random()*Math.max(1,sample.length-block));const shock=sample[(blockStart+(step%block))%sample.length]??0;price*=Math.exp(shock);series[step].push(price);}terminal.push(price);}
   const fan=series.map((values,index)=>({step:index+1,p05:round(quantile(values,.05),2),p25:round(quantile(values,.25),2),p50:round(quantile(values,.5),2),p75:round(quantile(values,.75),2),p95:round(quantile(values,.95),2)}));
   const neutral=Math.max(.002,Math.sqrt(horizonBars)*(.25*((quantile(sample,.75)??0)-(quantile(sample,.25)??0))));
-  const bull=round(terminal.filter(value=>value/last-1>neutral).length/paths,4);
-  let bear=round(terminal.filter(value=>value/last-1< -neutral).length/paths,4);
+  const bull=round(terminal.filter(value=>value/last-1>neutral).length/resolvedPaths,4);
+  let bear=round(terminal.filter(value=>value/last-1< -neutral).length/resolvedPaths,4);
   let base=round(1-bull-bear,4);
   if(base<0){base=0;bear=round(1-bull,4);}
-  return {paths,fan,probabilities:{bull,base,bear},neutralThresholdPct:round(neutral*100,4),terminal:{p05:fan.at(-1).p05,p50:fan.at(-1).p50,p95:fan.at(-1).p95}};
+  return {paths:resolvedPaths,fan,probabilities:{bull,base,bear},neutralThresholdPct:round(neutral*100,4),terminal:{p05:fan.at(-1).p05,p50:fan.at(-1).p50,p95:fan.at(-1).p95}};
 }
 
 function marketState(metrics){
@@ -90,7 +90,7 @@ export function buildDecisionWalkForwardCalibration(raw,{interval='15m',horizonB
     const {returns}=metricSet(history,intervalMs);
     if(returns.length<80)continue;
     const fingerprint=hash(JSON.stringify(history.slice(-240)));
-    const forecast=scenarios(history,returns,horizon,parseInt(fingerprint,16));
+    const forecast=scenarios(history,returns,horizon,parseInt(fingerprint,16),{paths:64});
     const probabilities=forecast.probabilities;
     const realizedPct=(terminal/entry-1)*100;
     const threshold=Math.max(.0001,Number(forecast.neutralThresholdPct)||0);
@@ -141,7 +141,8 @@ export function buildDecisionWalkForwardCalibration(raw,{interval='15m',horizonB
     correctClassRate:round(mean(rows.map(row=>row.correct)),3),
     firstResolvedAt:new Date(rows[0].resolveTime).toISOString(),
     lastResolvedAt:new Date(rows.at(-1).resolveTime).toISOString(),
-    method:'deterministic stepped walk-forward; each forecast uses only candles available at its cut point',
+    bootstrapPaths:64,
+    method:'deterministic stepped walk-forward with a bounded 64-path bootstrap per resolved cut; each forecast uses only candles available at its cut point',
     leakageGuard:'Future candles are used only to score already-generated historical probabilities.',
     reason
   };
@@ -168,10 +169,10 @@ function analyzeSelection(candles,selection,intervalMs){
   return {start:new Date(first.time).toISOString(),end:new Date(last.time+intervalMs-1).toISOString(),candles:selected.length,changePct:round(changePct,2),rangePct:round((Math.max(...selected.map(item=>item.high))/Math.min(...selected.map(item=>item.low))-1)*100,2),volumeRatio:round(volumeRatio,2),volatilityPct:round(selectedVolatility,2),priorVolatilityPct:previousVolatility===null?null:round(previousVolatility,2),technicalComparison,evidence};
 }
 
-export function buildDecisionProvenGraph(raw,{asset='BTC',interval='15m',horizonBars=16,now=Date.now(),selection=null}={}){
+export function buildDecisionProvenGraph(raw,{asset='BTC',interval='15m',horizonBars=16,now=Date.now(),selection=null,scenarioPaths=384}={}){
   const intervalMs=INTERVAL_MS[interval];if(!intervalMs)throw new Error('Unsupported interval');
   const candles=normalizeCandles(raw).filter(item=>item.time<=now+intervalMs);if(candles.length<80)throw new Error('At least 80 valid candles are required');
-  const {returns,metrics}=metricSet(candles,intervalMs);const fingerprint=hash(JSON.stringify(candles));const forecast=scenarios(candles,returns,horizonBars,parseInt(fingerprint,16));const observedAt=candles.at(-1).time;const ageMs=Math.max(0,now-observedAt);
+  const {returns,metrics}=metricSet(candles,intervalMs);const fingerprint=hash(JSON.stringify(candles));const forecast=scenarios(candles,returns,horizonBars,parseInt(fingerprint,16),{paths:scenarioPaths});const observedAt=candles.at(-1).time;const ageMs=Math.max(0,now-observedAt);
   const truthState=ageMs<=intervalMs*2?'LIVE':ageMs<=intervalMs*6?'DELAYED':ageMs<=intervalMs*24?'STALE':'DEGRADED';const confidence=round(clamp(.35+Math.min(.35,candles.length/1000)+Math.max(0,.2-ageMs/(intervalMs*100)),.2,.9),2);
   const advancedQuant=buildDecisionQuantRisk(candles,{intervalMs,horizonBars});const last=candles.at(-1).close;const state={...marketState(metrics),regime:advancedQuant.regime,volatilityRegime:advancedQuant.volatility?.regime};const qellyView=makeQellyView(metrics,forecast,last,truthState,confidence);const selectedMove=analyzeSelection(candles,selection,intervalMs);const graphId='dpg-'+asset.toLowerCase()+'-'+interval+'-'+observedAt+'-'+fingerprint;
   const nodes=[{id:'history',kind:'observation',label:candles.length+' validated candles',state:truthState},{id:'present',kind:'market-state',label:asset+' '+last,state:truthState},{id:'model',kind:'transformation',label:'Deterministic block bootstrap v1.1.0',state:'DERIVED'},{id:'future',kind:'scenario',label:horizonBars+'-bar probability fan',state:'MODELLED'},{id:'decision',kind:'research-view',label:'QELLY VIEW '+qellyView.action,state:'RESEARCH_ONLY'}];
