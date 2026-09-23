@@ -295,7 +295,7 @@ export async function runDecisionScan(env,{
     eventRisk:{
       state:'unavailable',
       connectedFeed:false,
-      reason:'No approved production event feed is connected. Any strict event-risk filter therefore fails closed rather than inferring scheduled catalyst risk.'
+      reason:'No approved production event feed is connected. Any strict event-risk filter therefore fails closed; QELLY does not invent scheduled catalyst risk.'
     },
     boundaries:{
       researchOnly:true,
