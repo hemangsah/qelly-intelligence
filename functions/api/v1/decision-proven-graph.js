@@ -124,9 +124,19 @@ async function fetchDerivativesContext(fetchImpl,asset,observedAt){
 
 const newsUrl=(asset,start,end,{fallback=false}={})=>{const url=new URL('https://api.gdeltproject.org/api/v2/doc/doc');url.searchParams.set('query','('+NEWS_TERMS[asset]+') sourcelang:english');url.searchParams.set('mode','artlist');url.searchParams.set('format','json');url.searchParams.set('maxrecords','12');url.searchParams.set('sort','HybridRel');if(fallback)url.searchParams.set('timespan','3days');else{url.searchParams.set('startdatetime',gdeltTime(Math.max(end-72*3_600_000,start)));url.searchParams.set('enddatetime',gdeltTime(end));}return url.href;};
 const normalizeArticles=(payload)=>(Array.isArray(payload?.articles)?payload.articles:[]).map(article=>({title:String(article?.title||'').trim().slice(0,240),source:String(article?.domain||'').trim().slice(0,100),publishedAt:String(article?.seendate||''),url:safeUrl(article?.url)})).filter(article=>article.title&&article.url).slice(0,8);
+const NEWS_TIMEOUT_MS=2_500;
+async function fetchNewsAttempt(fetchImpl,asset,start,end,{fallback=false}={}){
+  const response=await fetchImpl(newsUrl(asset,start,end,{fallback}),{
+    headers:{accept:'application/json','user-agent':'QELLY-Intelligence/decision-intelligence'},
+    signal:AbortSignal.timeout(NEWS_TIMEOUT_MS)
+  });
+  if(!response.ok)throw new Error('News provider unavailable');
+  return normalizeArticles(await response.json());
+}
 async function fetchNews(fetchImpl,asset,start,end){
-  for(const fallback of [false,true]){try{const response=await fetchImpl(newsUrl(asset,start,end,{fallback}),{headers:{accept:'application/json','user-agent':'QELLY-Intelligence/decision-intelligence'},signal:AbortSignal.timeout(4_000)});if(!response.ok)continue;const articles=normalizeArticles(await response.json());if(articles.length||fallback)return articles;}catch{}}
-  throw new Error('News provider unavailable');
+  const primary=await fetchNewsAttempt(fetchImpl,asset,start,end);
+  if(primary.length)return primary;
+  return fetchNewsAttempt(fetchImpl,asset,start,end,{fallback:true});
 }
 
 export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liquidity=null,crossAsset=null){
@@ -288,8 +298,16 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   if(!Number.isFinite(endTime)||endTime<=0)throw new HttpError(400,'invalid_observation_time','Observation time is invalid');
   const fetchImpl=fetcher(env);
   const benchmarkAsset=resolvedAsset==='BTC'?'ETH':'BTC';
-  // Resolve the mandatory selected-asset history first so optional evidence calls
-  // cannot consume the provider burst budget ahead of the core Decision input.
+  const newsStart=resolvedSelection?.start??endTime-24*3_600_000;
+  const newsEnd=Math.min(resolvedSelection?.end??endTime,endTime);
+  const newsPromise=includeNews
+    ? fetchNews(fetchImpl,resolvedAsset,newsStart,newsEnd)
+        .then(articles=>({articles,state:articles.length?'live':'no-matches'}))
+        .catch(()=>({articles:[],state:'unavailable'}))
+    : Promise.resolve({articles:[],state:'not-requested'});
+  // Resolve the mandatory selected-asset history first so optional Hyperliquid
+  // evidence calls cannot consume the provider burst budget ahead of the core input.
+  // News uses a separate provider and runs concurrently with the core Decision path.
   const payload=await fetchCandles(fetchImpl,resolvedAsset,resolvedInterval,endTime);
   const [timeframeSupport,derivativesCurrent,liquidity,fundingRows,benchmarkPayload]=await Promise.all([
     fetchTimeframeSupport(fetchImpl,resolvedAsset,endTime,resolvedInterval),
@@ -326,10 +344,7 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
     if(error instanceof HttpError)throw error;
     throw new HttpError(503,'insufficient_provider_data',error.message,{retryable:true});
   }
-  const newsStart=resolvedSelection?.start??endTime-24*3_600_000;
-  const newsEnd=Math.min(resolvedSelection?.end??endTime,endTime);
-  let articles=[],newsState=includeNews?'unavailable':'not-requested';
-  if(includeNews){try{articles=await fetchNews(fetchImpl,resolvedAsset,newsStart,newsEnd);newsState=articles.length?'live':'no-matches';}catch{}}
+  const {articles,state:newsState}=await newsPromise;
   const macro={
     state:'unavailable',
     level:'UNAVAILABLE',
@@ -380,3 +395,5 @@ export async function onRequest({request,env}){
     return responseJson(request,env,result,200,{cache:'public, max-age=10, stale-while-revalidate=30'});
   }catch(error){return errorResponse(request,env,error);}
 }
+
+export const __decisionNewsLatencyTest=Object.freeze({NEWS_TIMEOUT_MS,fetchNewsAttempt,fetchNews,newsUrl,normalizeArticles});

@@ -96,5 +96,5 @@ test('production Decision source keeps quality budgets while removing redundant 
   const mandatory=source.indexOf('const payload=await fetchCandles(fetchImpl,resolvedAsset,resolvedInterval,endTime)');
   const optional=source.indexOf('const [timeframeSupport,derivativesCurrent,liquidity,fundingRows,benchmarkPayload]=await Promise.all');
   assert.ok(mandatory>=0&&optional>mandatory);
-  assert.match(source,/optional evidence calls[\s\S]*core Decision input/);
+  assert.match(source,/optional Hyperliquid[\s\S]*core input/);
 });
