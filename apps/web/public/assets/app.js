@@ -6,6 +6,7 @@ import { productDomains, routeDefinitions } from './route-registry.mjs';
 import { parseHashRoute } from './hash-route-state.mjs';
 import { personaFor, personaPreferencePatch } from './persona-profiles.mjs';
 import { renderShellFoundations } from './shell-foundations.mjs';
+import { storeDecisionContext } from './decision-context-bridge.mjs';
 const lazyRoute=(path,exportName)=>async(...args)=>{
   const module=await import(path);
   const renderer=module[exportName];
@@ -460,7 +461,7 @@ async function performRouteRender(request,controller) {
       case 'research-workspace': await renderResearchWorkspace(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,renderRoute}); break;
       case 'onboarding': await renderOnboarding(main,{api,pageHead,stateBanner,escapeHtml,toast,renderRoute}); break;
       case 'notification-schedules': await renderNotificationSchedules(main,{api,pageHead,stateBanner,escapeHtml,toast,renderRoute}); break;
-      case 'formula-screener': await renderFormulaScreener(main,{api,pageHead,stateBanner,escapeHtml,QellyDataGrid,toast}); break;
+      case 'formula-screener': await renderFormulaScreener(main,{api,pageHead,stateBanner,escapeHtml,QellyDataGrid,toast,navigate}); break;
       case 'portfolio-attribution': await renderPortfolioAttribution(main,{api,pageHead,stateBanner,escapeHtml,QellyDataGrid,QellyChartShell}); break;
       case 'import-center': await renderImportCenter(main,{api,pageHead,stateBanner,escapeHtml,toast,renderRoute}); break;
       case 'research-history': await renderResearchHistory(main,{api,pageHead,stateBanner,escapeHtml,toast,renderRoute}); break;
@@ -673,7 +674,7 @@ async function renderAsset(main) {
   }catch(error){
     main.innerHTML=`<section class="q-page">${stateBanner()}<section class="q-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Asset Dossier</p><h1>Market evidence unavailable</h1><p>Current public market observations for this asset could not be loaded. No substitute price or chart has been generated.</p></div><span class="q-status q-status--unavailable">Unavailable</span></div><div class="q-panel-body"><p>${escapeHtml(error?.message||'Retry shortly or continue with research tools that do not require this market observation.')}</p><div class="q-action-row"><button class="q-button q-button--primary" data-action="asset-retry">Retry</button><button class="q-button" data-action="asset-decision">Decision Intelligence</button><button class="q-button" data-action="asset-news">News &amp; research</button></div></div></section></section>`;
     main.querySelector('[data-action="asset-retry"]')?.addEventListener('click',()=>renderAsset(main),{once:true});
-    main.querySelector('[data-action="asset-decision"]')?.addEventListener('click',()=>navigate('decision-provenance'));
+    main.querySelector('[data-action="asset-decision"]')?.addEventListener('click',()=>{storeDecisionContext({asset:id,timeframe:'1h',source:'asset-dossier-unavailable'});navigate('decision-provenance');});
     main.querySelector('[data-action="asset-news"]')?.addEventListener('click',()=>navigate('news-research'));
     return;
   }
@@ -709,7 +710,7 @@ async function renderAsset(main) {
   const series=candles.points.map((point)=>({label:new Date(point.time*1000).toLocaleString('en-US',{month:'short',day:'2-digit',hour:'2-digit'}),value:Number(point.close)}));
   new QellyChartShell(document.getElementById('asset-chart'),{title:`${data.symbol} market price history`,series,metadata:{source:candles.source.attribution,observedAt:candles.source.observedAt,receivedAt:candles.source.observedAt,confidence:candles.source.mode==='live-public'?.96:.72,freshnessClass:candles.source.mode==='live-public'?'live':'simulated'},currency:data.currency});
   main.querySelector('[data-action="asset-source"]')?.addEventListener('click',()=>openJsonDialog(`${data.name} data details`,data,'Source details and raw public observation'));
-  main.querySelector('[data-action="asset-decision"]')?.addEventListener('click',()=>navigate('decision-provenance'));
+  main.querySelector('[data-action="asset-decision"]')?.addEventListener('click',()=>{storeDecisionContext({asset:data.symbol,timeframe:'1h',source:'asset-dossier'});navigate('decision-provenance');});
   main.querySelector('[data-action="asset-intelligence"]')?.addEventListener('click',()=>navigate('asset-intelligence'));
   main.querySelector('[data-action="asset-news"]')?.addEventListener('click',()=>navigate('news-research'));
   main.querySelector('[data-action="asset-events"]')?.addEventListener('click',()=>navigate('event-calendar'));
