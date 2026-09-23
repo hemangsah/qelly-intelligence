@@ -36,9 +36,16 @@ test('app.js is the sole first-view owner for Verify and methodology',async()=>{
   assert.match(app,/if\(state\.route!=='qelly-verify'\)delete main\.dataset\.qellyVerifyOwner/);
 });
 
-test('Verify product has no global render reconciliation or Market-home takeover',async()=>{
-  const product=await read('apps/web/public/assets/qelly-verify-product.mjs');
+test('Verify product and accepted V5.3 convergence have no global render reconciliation',async()=>{
+  const [product,canonical]=await Promise.all([
+    read('apps/web/public/assets/qelly-verify-product.mjs'),
+    read('apps/web/public/assets/qelly-v53-verify-canonical.mjs')
+  ]);
+  assert.match(product,/applyV53VerifyCanonical/);
+  assert.match(canonical,/export function applyV53VerifyCanonical/);
+  assert.match(canonical,/data\.v53VerifyWorkbench='accepted-lock'|dataset\.v53VerifyWorkbench='accepted-lock'/);
   assert.doesNotMatch(product,/MutationObserver/);
+  assert.doesNotMatch(canonical,/MutationObserver/);
   assert.doesNotMatch(product,/window\.addEventListener\('hashchange'/);
   assert.doesNotMatch(product,/window\.addEventListener\('pageshow'/);
   assert.doesNotMatch(product,/for\(const delay of \[/);
