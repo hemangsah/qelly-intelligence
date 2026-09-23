@@ -4,6 +4,7 @@ import {buildDecisionHistoricalAnalogs} from '../../_lib/decision-historical-ana
 import {normalizeDecisionLiquidity} from '../../_lib/decision-liquidity.js';
 import {buildFundingHistoryContext} from '../../_lib/decision-derivatives.js';
 import {buildDecisionCrossAsset} from '../../_lib/decision-cross-asset.js';
+import {buildDecisionContextBundle} from '../../_lib/decision-context.js';
 import {HttpError,enforceRateLimit,errorResponse,fetcher,responseJson} from '../../_lib/runtime.js';
 
 const ASSETS=new Set(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
@@ -344,7 +345,7 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   };
   graph={...graph,liquidity,eventRisk,derivatives,crossAsset,macro};
   const tradeResearch=buildTradeResearch(graph,{requestedRr,customRr});
-  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence:{
+  const evidence={
     news:{state:newsState,provider:includeNews?'GDELT':null,articles},
     derivatives,
     liquidity,
@@ -354,7 +355,9 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
     liquidations:{state:'unavailable',message:'Verified liquidation evidence is not available for this view, so it is not inferred.'},
     options:{state:'unavailable',message:'Verified options-market evidence is not connected to this Decision view, so it is not inferred.'},
     onChain:{state:'unavailable',message:'Authorized on-chain evidence is not connected to this Decision view, so it is not inferred.'}
-  }};
+  };
+  const context=buildDecisionContextBundle(graph,{multiTimeframe,tradeResearch,evidence,horizon:resolvedHorizon});
+  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence,...context};
 }
 
 export async function onRequest({request,env}){
