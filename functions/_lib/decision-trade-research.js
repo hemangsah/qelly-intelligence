@@ -99,13 +99,15 @@ const structuralTarget=(direction,entry,risk,terminal,structure,expectedMovePct,
   };
 };
 
-const lifecycleFor=(status,entryMethod)=>{
+const lifecycleFor=({status,entryMethod,truthState='LIVE',expired=false})=>{
+  if(expired)return {state:'EXPIRED',historyAvailable:false,reason:'The bounded setup validity window has elapsed; fresh evidence is required before the setup can be considered again.'};
   if(status!=='VALID')return {state:'NO_TRADE',historyAvailable:false,reason:'No evidence-qualified setup exists, so no lifecycle transition is manufactured.'};
-  if(entryMethod==='NOW'||entryMethod==='BREAKOUT')return {state:'VALID',historyAvailable:false,reason:'The setup is valid at the current observation. Triggered/active history is not claimed without persisted prior setup state.'};
+  if(truthState==='STALE'||truthState==='DEGRADED')return {state:'WEAKENING',historyAvailable:false,reason:'The setup was derived from directional evidence, but source freshness has degraded and immediate eligibility is withheld.'};
+  if(entryMethod==='NOW'||entryMethod==='BREAKOUT')return {state:'TRIGGERED',historyAvailable:false,reason:'The current observation satisfies the entry condition. No earlier trigger or active history is backfilled without persisted prior setup state.'};
   return {state:'FORMING',historyAvailable:false,reason:'Directional evidence exists, but the entry condition is not currently satisfied. No trigger is backfilled.'};
 };
 
-export function buildTradeResearch(graph,{requestedRr='auto',customRr=null}={}){
+export function buildTradeResearch(graph,{requestedRr='auto',customRr=null,now=null}={}){
   const request=parseRequested(requestedRr,customRr);
   const view=graph?.qellyView||{};
   const action=String(view.action||'NO TRADE');
@@ -116,6 +118,8 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null}={}){
   const lastPrice=finite(graph?.market?.lastPrice);
   const intervalMs=finite(graph?.freshness?.intervalMs);
   const observedAt=Date.parse(graph?.observedAt||'');
+  const generatedAt=Date.parse(graph?.generatedAt||graph?.observedAt||'');
+  const evaluationTime=Number.isFinite(Number(now))?Number(now):(Number.isFinite(generatedAt)?generatedAt:Date.now());
   const horizonBars=Math.max(1,Number(graph?.horizonBars)||1);
   const contradictions=Array.isArray(view.contradictions)?view.contradictions:[];
   const structure=graph?.quant?.structure||null;
@@ -140,13 +144,13 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null}={}){
     riskContext:{volatilityRegime,expectedMovePct,marketStructure:structure,regime,eventRisk}
   };
   if(!directional||entryZone.length!==2||!entryZone.every(Number.isFinite)||!Number.isFinite(invalidation)){
-    const lifecycle=lifecycleFor('NO_TRADE','WAIT');
+    const lifecycle=lifecycleFor({status:'NO_TRADE',entryMethod:'WAIT',truthState:String(graph?.truthState||'')});
     return {...base,status:'NO_TRADE',reason:'The current evidence gate does not support a directional setup.',createdAt:null,lastValidatedAt:Number.isFinite(observedAt)?new Date(observedAt).toISOString():null,entry:null,stop:null,invalidation:null,expiryAt:null,lifecycle,matrix:[],structuralTargets:[],selected:null,targets:[]};
   }
   const entry=round((entryZone[0]+entryZone[1])/2,2);
   const risk=Math.abs(entry-invalidation);
   if(!(risk>0)){
-    const lifecycle=lifecycleFor('NO_TRADE','WAIT');
+    const lifecycle=lifecycleFor({status:'NO_TRADE',entryMethod:'WAIT',truthState:String(graph?.truthState||'')});
     return {...base,status:'NO_TRADE',reason:'A valid risk distance could not be established.',createdAt:null,lastValidatedAt:Number.isFinite(observedAt)?new Date(observedAt).toISOString():null,entry:null,stop:null,invalidation:null,expiryAt:null,lifecycle,matrix:[],structuralTargets:[],selected:null,targets:[]};
   }
   const direction=action==='BUY'?1:-1;
@@ -154,6 +158,7 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null}={}){
   const entryState=classifyEntry(action,lastPrice,entryZone,structure);
   const expiryBars=Number.isFinite(intervalMs)?expiryBarsFor(intervalMs,horizonBars,volatilityRegime,entryState.method):null;
   const expiryAt=Number.isFinite(observedAt)&&Number.isFinite(intervalMs)&&Number.isFinite(expiryBars)?new Date(observedAt+intervalMs*expiryBars).toISOString():null;
+  const expired=expiryAt?evaluationTime>Date.parse(expiryAt):false;
   const ratios=[...RR_PRESETS];
   if(request.mode==='custom'&&Number.isFinite(request.ratio)&&!ratios.includes(request.ratio))ratios.push(request.ratio);
   ratios.sort((a,b)=>a-b);
@@ -203,21 +208,21 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null}={}){
   const stop={price:round(invalidation,2),distance:round(risk,2),distancePct:stopDistancePct,atrMultiple:Number.isFinite(finite(graph?.metrics?.atrPct))&&lastPrice?round((risk/lastPrice*100)/finite(graph.metrics.atrPct),2):null,reason:'Price stop is distinct from structural, evidence, time, event and regime invalidation.'};
   const entryResult={zone:entryZone.map(value=>round(value,2)),preferred:entry,method:entryState.method,trigger:entryState.trigger,confirmationCondition:entryState.confirmationCondition,invalidEntryCondition:entryState.invalidEntryCondition};
   const validSelection=selected&&!['LOW','NOT FEASIBLE','UNAVAILABLE'].includes(selected.feasibility);
-  const status=validSelection?'VALID':'NO_TRADE';
-  const lifecycle=lifecycleFor(status,entryState.method);
+  const status=validSelection&&!expired?'VALID':'NO_TRADE';
+  const lifecycle=lifecycleFor({status:validSelection?'VALID':'NO_TRADE',entryMethod:entryState.method,truthState:String(graph?.truthState||''),expired});
   const targets=[...matrix,...structuralTargets]
     .filter(item=>item.feasibility==='HIGH'||item.feasibility==='MEDIUM')
     .sort((a,b)=>a.ratio-b.ratio)
     .map((item,index)=>({rank:index+1,label:item.label,price:item.target,ratio:item.ratio,feasibility:item.feasibility,source:item.source}));
   if(!validSelection){
-    return {...base,status:'NO_TRADE',reason:selected?.feasibilityReason||'The requested R:R cannot be validated from the current forecast range.',createdAt:Number.isFinite(observedAt)?new Date(observedAt).toISOString():null,lastValidatedAt:Number.isFinite(observedAt)?new Date(observedAt).toISOString():null,entry:entryResult,stop,invalidation:invalidationLayers,expiryAt,expiryBars,lifecycle,matrix,structuralTargets,selected,targets};
+    return {...base,status:'NO_TRADE',reason:expired?'The setup has expired and must be recomputed from fresh evidence.':selected?.feasibilityReason||'The requested R:R cannot be validated from the current forecast range.',createdAt:Number.isFinite(observedAt)?new Date(observedAt).toISOString():null,lastValidatedAt:Number.isFinite(generatedAt)?new Date(generatedAt).toISOString():null,entry:entryResult,stop,invalidation:invalidationLayers,expiryAt,expiryBars,lifecycle,matrix,structuralTargets,selected,targets};
   }
   return {
     ...base,
     status:'VALID',
     reason:entryState.method==='NOW'||entryState.method==='BREAKOUT'?'Directional evidence is live and the selected target remains structurally feasible.':'Directional evidence is live, but entry timing is still forming; do not chase price outside the verified zone.',
     createdAt:Number.isFinite(observedAt)?new Date(observedAt).toISOString():null,
-    lastValidatedAt:Number.isFinite(observedAt)?new Date(observedAt).toISOString():null,
+    lastValidatedAt:Number.isFinite(generatedAt)?new Date(generatedAt).toISOString():null,
     entry:entryResult,
     stop,
     invalidation:invalidationLayers,
