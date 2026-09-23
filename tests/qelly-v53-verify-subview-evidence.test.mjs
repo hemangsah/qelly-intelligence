@@ -41,7 +41,7 @@ test('Verify product retains explicit local-only and execution-disabled boundari
   assert.match(product,/Human validation remains required/);
 });
 
-test('canonical V5.3 Verify is the sole first-view owner while preserving the CSV analyzer as secondary',async()=>{
+test('accepted V5.3 Verify composition remains available as a governed evidence artifact',async()=>{
   const [canonical,css,browser]=await Promise.all([read(CANONICAL),read(VERIFY_CSS),read(BROWSER)]);
   assert.match(canonical,/workbench\.dataset\.v53VerifyWorkbench='accepted-lock'/);
   assert.match(canonical,/Qelly Verify/);
