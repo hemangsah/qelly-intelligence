@@ -19,7 +19,9 @@ test('dedicated Cloudflare public market owner remains bounded live and explicit
   assert.match(dedicated,/fabricatedFallback:false/);
   assert.match(dedicated,/HYPERLIQUID_URL='https:\/\/api\.hyperliquid\.xyz\/info'/);
   assert.match(dedicated,/type:'candleSnapshot'/);
-  assert.match(dedicated,/LIVE_ASSETS=Object\.freeze/);
+  assert.match(dedicated,/PUBLIC_CRYPTO_ASSETS,PUBLIC_CRYPTO_ASSET_MAP/);
+  assert.match(dedicated,/const LIVE_ASSETS=PUBLIC_CRYPTO_ASSETS/);
+  assert.match(dedicated,/const LIVE_ASSET_MAP=PUBLIC_CRYPTO_ASSET_MAP/);
   assert.doesNotMatch(dedicated,/qelly-fixture|simulated-demo|qelly-governed-demo|Math\.sin|Math\.cos/);
 });
 
