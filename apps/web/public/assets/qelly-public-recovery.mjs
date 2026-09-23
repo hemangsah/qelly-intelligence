@@ -1,5 +1,3 @@
-import {decisionAssets,evaluateDecision} from './qelly-decision-engine.mjs';
-
 const config=window.__QELLY_CONFIG__||{};
 const staticPreview=config.staticVisualPreview===true;
 const canonicalSite=String(config.publicSiteUrl||'https://terminal.qellyintelligence.com').replace(/\/$/,'');
@@ -31,36 +29,18 @@ function installDecisionNavigation(){
   });
 }
 
-function decisionForm(result){
-  return `<section class="q-decision-workspace" data-qelly-recovery-owned="decision-maker">
-    <header class="q-decision-hero"><div><p>Qelly Intelligence · Explainable decision support</p><h1>AI Decision Maker</h1><span>Turn a user-defined hypothesis into a transparent posture, risk boundary and verification plan. This deterministic framework does not claim live market observations.</span></div>${previewBadge()}</header>
-    <div class="q-decision-boundary" role="note"><strong>No execution. No personalized advice.</strong><span>${escapeHtml(result.boundary)}</span></div>
-    <div class="q-decision-grid">
-      <form class="q-decision-controls" data-decision-form>
-        <div><label for="q-decision-asset">Asset context</label><select id="q-decision-asset" name="assetId">${decisionAssets.map((asset)=>`<option value="${asset.id}" ${asset.id===result.input.assetId?'selected':''}>${asset.name} · ${asset.symbol}</option>`).join('')}</select></div>
-        <div><label for="q-decision-horizon">Decision horizon</label><select id="q-decision-horizon" name="horizon">${['24h','7d','30d','90d'].map((value)=>`<option ${value===result.input.horizon?'selected':''}>${value}</option>`).join('')}</select></div>
-        <div><label for="q-decision-risk">Risk posture</label><select id="q-decision-risk" name="risk">${[['conservative','Conservative'],['balanced','Balanced'],['aggressive','Aggressive']].map(([value,label])=>`<option value="${value}" ${value===result.input.risk?'selected':''}>${label}</option>`).join('')}</select></div>
-        <div><label for="q-decision-confidence">Evidence confidence <output>${result.input.evidenceConfidence}%</output></label><input id="q-decision-confidence" name="evidenceConfidence" type="range" min="25" max="95" step="5" value="${result.input.evidenceConfidence}"></div>
-        <div><label for="q-decision-scenario">User scenario move <output>${result.input.scenarioMove}%</output></label><input id="q-decision-scenario" name="scenarioMove" type="range" min="-30" max="30" step="1" value="${result.input.scenarioMove}"></div>
-        <button type="submit">Run decision analysis</button>
-      </form>
-      <section class="q-decision-output" aria-live="polite"><div class="q-decision-score"><span>Decision score</span><strong>${result.score}</strong><small>0–100 deterministic composite</small></div><div class="q-decision-posture"><span>Current posture</span><h2>${escapeHtml(result.posture)}</h2><p>${escapeHtml(result.asset.name)} · ${escapeHtml(result.input.horizon)} · ${escapeHtml(result.confidenceBand)} confidence</p></div><dl><div><dt>Risk state</dt><dd>${escapeHtml(result.riskPosture)}</dd></div><div><dt>Engine state</dt><dd>Deterministic scenario</dd></div><div><dt>Execution</dt><dd>Disabled</dd></div></dl></section>
-    </div>
-    <div class="q-decision-evidence-grid"><article><h2>What supports the posture</h2><ul>${result.supports.map((item)=>`<li>${escapeHtml(item)}</li>`).join('')}</ul></article><article><h2>What contradicts it</h2><ul>${result.contradictions.map((item)=>`<li>${escapeHtml(item)}</li>`).join('')}</ul></article><article><h2>Required verification</h2><ol>${result.nextSteps.map((item)=>`<li>${escapeHtml(item)}</li>`).join('')}</ol></article></div>
-    <footer class="q-decision-footer"><a href="#/market">Open Markets</a><a href="#/decision-provenance">Open Decision Intelligence</a><button type="button" data-decision-export>Export decision record</button></footer>
-  </section>`;
+function renderDecisionRecovery(message=''){
+  if(!main)return;
+  rendering=true;
+  main.dataset.qellyRecoveryOwner='decision-provenance';
+  main.setAttribute('aria-busy','false');
+  main.innerHTML=`<section class="q-recovery-page q-decision-recovery" data-qelly-recovery-owned="decision-provenance"><header><div><p>Decision Intelligence · evidence unavailable</p><h1>No substitute decision generated</h1><span>The authoritative Decision workflow could not load the evidence required for a current research view.</span></div>${previewBadge()}</header><div class="q-recovery-notice"><strong>NO TRADE · FAIL CLOSED</strong><span>${escapeHtml(message||'Qelly does not replace unavailable Decision evidence with fixed profiles, simulated probabilities or generated trade levels.')}</span></div><div class="q-recovery-table" role="table" aria-label="Unavailable Decision evidence"><div role="row" class="is-head"><span>Input</span><span>State</span><span>Substitute</span><span>Boundary</span><span>Next step</span></div><div role="row"><span><strong>Decision evidence</strong><small>Market, calibration, MTF, liquidity and risk gates</small></span><span>Unavailable</span><span>None</span><span>NO TRADE</span><span><a href="#/decision-provenance">Retry</a></span></div></div><div class="q-recovery-actions"><a href="#/decision-provenance">Retry Decision Intelligence</a><a href="#/market">Open Markets</a><a href="#/news-research">Open QELLY Chat</a></div><footer><strong>No execution. No personalized advice.</strong><span>No probability, confidence, entry, stop or target is generated from unavailable evidence.</span></footer></section>`;
+  document.title='Decision Intelligence unavailable · Qelly Intelligence';
+  rendering=false;
 }
 
-function bindDecisionMaker(result){
-  const form=main?.querySelector('[data-decision-form]');if(!form)return;
-  const redraw=()=>{const data=new FormData(form);renderDecisionMaker(evaluateDecision({assetId:data.get('assetId'),horizon:data.get('horizon'),risk:data.get('risk'),evidenceConfidence:Number(data.get('evidenceConfidence')),scenarioMove:Number(data.get('scenarioMove'))}));};
-  form.addEventListener('submit',(event)=>{event.preventDefault();redraw();});
-  form.querySelectorAll('input[type="range"]').forEach((input)=>input.addEventListener('input',()=>input.closest('div')?.querySelector('output')?.replaceChildren(`${input.value}%`)));
-  main.querySelector('[data-decision-export]')?.addEventListener('click',()=>{const record={generatedAt:new Date().toISOString(),product:'Qelly Intelligence',...result};const blob=new Blob([JSON.stringify(record,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const anchor=document.createElement('a');anchor.href=url;anchor.download=`qelly-decision-${result.asset.symbol.toLowerCase()}.json`;anchor.click();setTimeout(()=>URL.revokeObjectURL(url),500);});
-}
-
-function renderDecisionMaker(result=evaluateDecision()){
-  if(!main)return;rendering=true;main.dataset.qellyRecoveryOwner='decision-maker';main.setAttribute('aria-busy','false');main.innerHTML=decisionForm(result);bindDecisionMaker(result);document.title='AI Decision Maker · Qelly Intelligence';rendering=false;
+function openDecisionIntelligence(){
+  if(location.hash!=='#/decision-provenance')location.hash='#/decision-provenance';
 }
 
 function unavailableTable(label){
@@ -76,12 +56,15 @@ function renderMarketRecovery(message){
 }
 
 function renderPublicRecovery(route,message){
-  if(!main)return;if(route==='asset-rankings'){renderRankingsRecovery(message);return;}if(route==='market'){renderMarketRecovery(message);return;}
+  if(!main)return;
+  if(route==='asset-rankings'){renderRankingsRecovery(message);return;}
+  if(route==='market'){renderMarketRecovery(message);return;}
+  if(route==='decision-provenance'){renderDecisionRecovery(message);return;}
   rendering=true;main.dataset.qellyRecoveryOwner=route;main.setAttribute('aria-busy','false');main.innerHTML=`<section class="q-recovery-page"><header><div><p>Temporarily unavailable</p><h1>${escapeHtml(route.split('-').map((part)=>part.charAt(0).toUpperCase()+part.slice(1)).join(' '))}</h1><span>This research page is temporarily unavailable while its data dependency recovers.</span></div>${previewBadge()}</header><div class="q-recovery-notice"><strong>No substitute records generated</strong><span>${escapeHtml(message||'The required data is unavailable. Calculators and other public research pages remain usable.')}</span></div><div class="q-recovery-actions"><a href="#/market">Return to markets</a><a href="#/calculator-center">Use deterministic calculators</a></div></section>`;document.title='Qelly Intelligence · Degraded public mode';rendering=false;
 }
 
 function brokenSurface(){if(!main||main.dataset.qellyRecoveryOwner)return false;const text=main.textContent?.toLowerCase()||'';return failureCopy.some((phrase)=>text.includes(phrase));}
-function reconcile(){scheduled=false;if(rendering||!main)return;installStaticHeader();installDecisionNavigation();const {route,params}=parseRoute();if(route==='market'&&params.get('view')==='decision-maker'){if(main.dataset.qellyRecoveryOwner!=='decision-maker'||!main.querySelector('[data-qelly-recovery-owned="decision-maker"]'))renderDecisionMaker();return;}if(main.dataset.qellyRecoveryOwner&&main.dataset.qellyRecoveryOwner!==route)delete main.dataset.qellyRecoveryOwner;if(brokenSurface()&&publicRoutes.has(route))renderPublicRecovery(route,main.textContent?.trim());}
+function reconcile(){scheduled=false;if(rendering||!main)return;installStaticHeader();installDecisionNavigation();const {route,params}=parseRoute();if(route==='market'&&params.get('view')==='decision-maker'){openDecisionIntelligence();return;}if(main.dataset.qellyRecoveryOwner&&main.dataset.qellyRecoveryOwner!==route)delete main.dataset.qellyRecoveryOwner;if(brokenSurface()&&publicRoutes.has(route))renderPublicRecovery(route,main.textContent?.trim());}
 function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(reconcile);}
 
 installStaticHeader();installDecisionNavigation();
@@ -90,4 +73,4 @@ new MutationObserver(schedule).observe(document.documentElement,{childList:true,
 window.addEventListener('hashchange',()=>{if(main)delete main.dataset.qellyRecoveryOwner;schedule();});
 window.addEventListener('pageshow',schedule);
 for(const delay of [0,100,350,900,1800,3500])setTimeout(schedule,delay);
-window.QellyPublicRecovery=Object.freeze({reconcile,renderDecisionMaker,renderMarketRecovery,evaluateDecision});
+window.QellyPublicRecovery=Object.freeze({reconcile,openDecisionIntelligence,renderDecisionRecovery,renderMarketRecovery});
