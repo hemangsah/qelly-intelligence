@@ -39,10 +39,15 @@ test('production shell does not mutate stylesheet order or observe document head
   assert.match(shell,/queueMicrotask\(\(\)=>\{queued=false;refresh\(scope\)/);
 });
 
-test('route guard has no delayed multi-second reconciliation ladder',async()=>{
-  const guard=await read('apps/web/public/assets/qelly-product-route-guard.mjs');
-  assert.doesNotMatch(guard,/\[0,100,300,800,1600,3000\]/);
-  assert.match(guard,/queueMicrotask\(scheduleReconcile\)/);
+test('protected-route convergence has no global guard reconciliation ladder',async()=>{
+  const [index,app]=await Promise.all([
+    read('apps/web/public/index.html'),
+    read('apps/web/public/assets/app.js')
+  ]);
+  assert.doesNotMatch(index,/qelly-product-route-guard\.mjs/);
+  assert.doesNotMatch(index,/qelly-external-market-surfaces\.mjs/);
+  assert.match(app,/main\.innerHTML=protectedRouteGate\(definition\)/);
+  await assert.rejects(read('apps/web/public/assets/qelly-product-route-guard.mjs'),{code:'ENOENT'});
 });
 
 test('normal routes are not globally restyled by the idle theme visual enhancer',async()=>{
