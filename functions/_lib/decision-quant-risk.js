@@ -7,12 +7,22 @@ const annualizer=(intervalMs)=>Math.sqrt(365*86_400_000/intervalMs);
 const logReturn=(a,b)=>a>0&&b>0?Math.log(b/a):0;
 
 function rollingRealized(candles,window=20){
+  if(candles.length<=window)return [];
+  const returns=[];
+  for(let i=1;i<candles.length;i++)returns.push(logReturn(candles[i-1].close,candles[i].close));
+  const prefix=[0],prefixSquares=[0];
+  for(const value of returns){
+    prefix.push(prefix.at(-1)+value);
+    prefixSquares.push(prefixSquares.at(-1)+value*value);
+  }
   const output=[];
   for(let end=window;end<candles.length;end++){
-    const slice=candles.slice(end-window,end+1),returns=[];
-    for(let i=1;i<slice.length;i++)returns.push(logReturn(slice[i-1].close,slice[i].close));
-    const avg=mean(returns);
-    output.push(Math.sqrt(mean(returns.map(value=>(value-avg)**2))));
+    const start=end-window,finish=end,count=finish-start;
+    const sum=prefix[finish]-prefix[start];
+    const sumSquares=prefixSquares[finish]-prefixSquares[start];
+    const avg=sum/count;
+    const variance=Math.max(0,sumSquares/count-avg*avg);
+    output.push(Math.sqrt(variance));
   }
   return output;
 }
@@ -27,12 +37,14 @@ function adx(candles,period=14){
     plus.push(up>down&&up>0?up:0);
     minus.push(down>up&&down>0?down:0);
   }
-  const dx=[];
+  const prefix=(values)=>{const out=[0];for(const value of values)out.push(out.at(-1)+value);return out;};
+  const trPrefix=prefix(trs),plusPrefix=prefix(plus),minusPrefix=prefix(minus),dx=[];
   for(let i=period-1;i<trs.length;i++){
-    const tr=mean(trs.slice(i-period+1,i+1));
+    const start=i-period+1,end=i+1;
+    const tr=(trPrefix[end]-trPrefix[start])/period;
     if(!(tr>0))continue;
-    const p=100*mean(plus.slice(i-period+1,i+1))/tr;
-    const m=100*mean(minus.slice(i-period+1,i+1))/tr;
+    const p=100*((plusPrefix[end]-plusPrefix[start])/period)/tr;
+    const m=100*((minusPrefix[end]-minusPrefix[start])/period)/tr;
     const denom=p+m;
     if(denom>0)dx.push(100*Math.abs(p-m)/denom);
   }
@@ -154,4 +166,4 @@ export function buildDecisionQuantRisk(candles,{intervalMs,horizonBars=16}={}){
   return JSON.parse(JSON.stringify(result,(key,value)=>Number.isFinite(value)||typeof value!=='number'?value:null));
 }
 
-export const __decisionQuantRiskTest=Object.freeze({structure,swingPoints});
+export const __decisionQuantRiskTest=Object.freeze({structure,swingPoints,rollingRealized,adx});
