@@ -126,6 +126,22 @@ async function inspect({name,viewport,reducedMotion='no-preference'}){
      methodology renderer to own #main before sampling the DOM. The complete
      methodology anatomy must survive a short stabilization window because
      asynchronous route decorators can briefly replace #main during navigation. */
+  await page.evaluate(()=>{
+    window.__qellyVerifyRouteTrace=[];
+    const record=(kind,detail={})=>window.__qellyVerifyRouteTrace.push({kind,hash:location.hash,at:performance.now(),...detail});
+    const originalReplaceState=history.replaceState.bind(history);
+    history.replaceState=(state,title,url)=>{
+      record('replaceState',{url:String(url??''),stack:new Error().stack?.split('\n').slice(0,8).join('\n')||null});
+      return originalReplaceState(state,title,url);
+    };
+    const originalPushState=history.pushState.bind(history);
+    history.pushState=(state,title,url)=>{
+      record('pushState',{url:String(url??''),stack:new Error().stack?.split('\n').slice(0,8).join('\n')||null});
+      return originalPushState(state,title,url);
+    };
+    window.addEventListener('hashchange',(event)=>record('hashchange',{oldURL:event.oldURL,newURL:event.newURL}),true);
+    record('trace-start');
+  });
   await page.goto(`${baseUrl}/#/evidence-methodology`,{waitUntil:'domcontentloaded',timeout:45000});
   await page.waitForURL(url=>url.hash==='#/qelly-verify?view=methodology',{timeout:30000});
   const captureMethodologyFailure=async(error,phase)=>{
@@ -144,6 +160,10 @@ async function inspect({name,viewport,reducedMotion='no-preference'}){
         v53Family:root.dataset.v53Family||null,
         qellyVerifySubview:root.dataset.qellyVerifySubview||null,
         v53LockCandidate:root.dataset.v53LockCandidate||null,
+        verifyBootstrapApi:typeof window.QellyVerifyBootstrap,
+        verifyApi:typeof window.QellyVerify?.render,
+        loadedScripts:[...document.querySelectorAll('script[src]')].map(node=>node.getAttribute('src')),
+        routeTrace:Array.isArray(window.__qellyVerifyRouteTrace)?window.__qellyVerifyRouteTrace.slice(-30):[],
         owner:main?.dataset.qellyVerifyOwner||null,
         busy:main?.getAttribute('aria-busy')||null,
         pageKind:main?.dataset.pageKind||null,
