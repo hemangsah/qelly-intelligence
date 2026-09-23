@@ -1,6 +1,7 @@
 import {analyzeTrades,parseTradeCsv,sampleTradeCsv} from './qelly-verify-engine.mjs';
 import {QELLY_VERIFY_METHODOLOGY,QELLY_VERIFY_METHODOLOGY_VERSION,QELLY_VERIFY_REPORT_SCHEMA} from './qelly-verify-methodology.mjs';
 import {composeStrategyEvidenceReport} from './qelly-verify-report.mjs';
+import {applyV53VerifyCanonical} from './qelly-v53-verify-canonical.mjs';
 
 const main=document.getElementById('main');
 const MAX_FILE_BYTES=5*1024*1024;
@@ -70,6 +71,7 @@ export function renderVerify(){
   main.setAttribute('aria-busy','false');
   main.innerHTML=verifyShell(current?.evidence,current?.validation,current?.evidence?.source?.name);
   bind();
+  applyV53VerifyCanonical();
   document.title='Qelly Verify · Qelly Intelligence';
   main.focus({preventScroll:true});
 }
