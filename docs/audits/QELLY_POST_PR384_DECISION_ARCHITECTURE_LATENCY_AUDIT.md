@@ -13,6 +13,7 @@ Scope: Next-Frontier Wave Q only. This document maps the authoritative Decision 
 - Canonical production URL: `https://terminal.qellyintelligence.com/`.
 - `/qelly-release.json` reported the same release SHA and `cloudflare-pages-public-runtime` mode.
 - Production Supabase project: `ssdgfgqnjlwzkgukzeef`, healthy at audit time.
+- `public.qelly_release_identity` independently recorded production `source_revision` `0fc22351c5fcf4541892954e273ef58e95691106`, release key `cloudflare:0fc22351c5fcf4541892954e273ef58e95691106`, canonical site `https://terminal.qellyintelligence.com`, and `cloudflare-pages-public-runtime` mode.
 
 ## Authoritative ownership map
 
