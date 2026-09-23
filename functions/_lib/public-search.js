@@ -1,6 +1,7 @@
 import {routeDefinitions} from '../../apps/web/public/assets/route-registry.mjs';
 import {listFormulaDefinitions} from '../../apps/web/public/assets/calculation/formula-engine-extended.mjs';
 import {listIndicatorDefinitions} from '../../apps/web/public/assets/calculation/indicator-engine-extended.mjs';
+import {PUBLIC_CRYPTO_ASSETS} from './public-market-assets.js';
 
 const normalize=(value)=>String(value??'').trim().toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const compact=(value)=>String(value??'').trim();
@@ -88,21 +89,37 @@ const indicatorItems=listIndicatorDefinitions().map((item,index)=>({
 }));
 
 function assetItems(ranking={}){
-  return (Array.isArray(ranking.candidates)?ranking.candidates:[]).map((item,index)=>({
-    id:item.id,
-    type:'asset',
-    title:`${item.symbol} · ${item.name}`,
-    subtitle:`Governed crypto observation · rank ${item.rank??index+1}`,
-    purpose:'Open the attributed asset dossier for this instrument.',
-    useCase:'Use after discovery or ranking when one asset needs closer evidence review.',
-    keywords:`${item.symbol} ${item.name} crypto ${item.provider||''} asset dossier decision intelligence current research evidence`,
-    route:`asset/${encodeURIComponent(item.id)}`,
-    access:'public',
-    truthState:item.truthState||'unavailable',
-    source:item.provider||'Governed market source',
-    evidence:{observedAt:item.observedAt??null,priceUsd:item.priceUsd??null,change24hPct:item.change24hPct??null,rankingScore:item.scores?.balanced??null,rankingVersion:ranking.version??null},
-    featuredOrder:40+index
-  }));
+  const candidates=Array.isArray(ranking.candidates)?ranking.candidates:[];
+  const byId=new Map(candidates.flatMap((item)=>[
+    [String(item.id||'').toUpperCase(),item],
+    [String(item.symbol||'').toUpperCase(),item]
+  ]));
+  return PUBLIC_CRYPTO_ASSETS.map((asset,index)=>{
+    const ranked=byId.get(asset.canonicalId.toUpperCase())||byId.get(asset.symbol.toUpperCase())||null;
+    return {
+      id:asset.canonicalId,
+      type:'asset',
+      title:`${asset.symbol} · ${asset.name}`,
+      subtitle:ranked?`Governed crypto observation · rank ${ranked.rank??index+1}`:'Supported public crypto asset · catalog identity',
+      purpose:'Open the attributed asset dossier for this instrument.',
+      useCase:'Use after discovery or search when one supported asset needs closer evidence review.',
+      keywords:`${asset.symbol} ${asset.name} ${asset.category} crypto ${ranked?.provider||''} asset dossier decision intelligence current research evidence`,
+      route:`asset/${encodeURIComponent(asset.canonicalId)}`,
+      access:'public',
+      truthState:ranked?.truthState||'catalog',
+      source:ranked?.provider||'Qelly public asset catalog',
+      evidence:{
+        supportedPublicAsset:true,
+        category:asset.category,
+        observedAt:ranked?.observedAt??null,
+        priceUsd:ranked?.priceUsd??null,
+        change24hPct:ranked?.change24hPct??null,
+        rankingScore:ranked?.scores?.balanced??null,
+        rankingVersion:ranking.version??null
+      },
+      featuredOrder:40+index
+    };
+  });
 }
 
 const catalog=Object.freeze([...featureItems,...formulaItems,...indicatorItems]);
@@ -130,10 +147,10 @@ export function buildUniversalSearch({q='',types='',access='all',limit=30,assetR
     limit:boundedLimit,
     facets:{types:facet('type'),access:facet('access')},
     corpus:{features:featureItems.length,formulas:formulaItems.length,indicators:indicatorItems.length,assets:assetItems(assetRankings).length,total:complete.length},
-    sources:['Qelly product route registry','Qelly deterministic formula engine','Qelly deterministic indicator engine',...(assetItems(assetRankings).length?['Current governed asset-ranking sample']:[])],
+    sources:['Qelly product route registry','Qelly deterministic formula engine','Qelly deterministic indicator engine','Qelly public asset catalog',...(Array.isArray(assetRankings.candidates)&&assetRankings.candidates.length?['Current governed asset-ranking sample']:[])],
     boundaries:{privateWorkspaceContent:false,externalLicensedIndex:false,generativeSynthesis:false,userProfiling:false,execution:false,fabricatedObservations:false},
     generatedAt:new Date().toISOString()
   };
 }
 
-export const __test=Object.freeze({normalize,relevance,matchReason,featureItems,formulaItems,indicatorItems});
+export const __test=Object.freeze({normalize,relevance,matchReason,featureItems,formulaItems,indicatorItems,assetItems});
