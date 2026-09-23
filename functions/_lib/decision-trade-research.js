@@ -139,7 +139,7 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null,now=n
     evidenceQuality:finite(view.evidenceGate?.qualityScore),
     contradictions,
     whatChangesView:view.changesIf||'Reassess when fresh evidence changes.',
-    calibration:'Target-touch probability, time-to-target and trade win rate are not independently calibrated, so they are not fabricated.',
+    calibration:'Target-touch probability, time-to-target and trade win rate are not yet independently calibrated, so they are not fabricated.',
     calibrationState:graph?.quant?.calibration||{state:'UNCALIBRATED',sampleSize:0,brierScore:null,reliabilityBins:[]},
     riskContext:{volatilityRegime,expectedMovePct,marketStructure:structure,regime,eventRisk}
   };
