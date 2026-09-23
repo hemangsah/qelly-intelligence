@@ -15,11 +15,35 @@ test('Universal Search has a broad purpose-distinct governed corpus',()=>{
   assert.ok(result.corpus.features>=60);
   assert.equal(result.corpus.formulas,151);
   assert.ok(result.corpus.indicators>=50);
-  assert.equal(result.corpus.assets,2);
+  assert.equal(result.corpus.assets,6);
   assert.equal(result.boundaries.privateWorkspaceContent,false);
   assert.equal(result.boundaries.generativeSynthesis,false);
   assert.equal(result.boundaries.execution,false);
   assert.equal(result.boundaries.fabricatedObservations,false);
+});
+
+test('supported public assets are searchable without live ranking evidence',()=>{
+  const btc=buildUniversalSearch({q:'BTC'});
+  assert.equal(btc.total,1);
+  assert.equal(btc.items[0].id,'QI-CRYPTO-BTC');
+  assert.equal(btc.items[0].source,'Qelly public asset catalog');
+  assert.equal(btc.items[0].truthState,'catalog');
+  assert.equal(btc.items[0].evidence.supportedPublicAsset,true);
+  assert.equal(btc.items[0].evidence.priceUsd,null);
+  assert.equal(btc.items[0].evidence.rankingScore,null);
+  assert.equal(btc.corpus.assets,6);
+  assert.ok(btc.sources.includes('Qelly public asset catalog'));
+  assert.equal(btc.sources.includes('Current governed asset-ranking sample'),false);
+});
+
+test('ranking evidence enriches catalog assets without changing canonical identity',()=>{
+  const btc=buildUniversalSearch({q:'BTC',assetRankings:ranking});
+  assert.equal(btc.items[0].id,'QI-CRYPTO-BTC');
+  assert.equal(btc.items[0].source,'Attributed test provider');
+  assert.equal(btc.items[0].truthState,'live');
+  assert.equal(btc.items[0].evidence.priceUsd,60000);
+  assert.equal(btc.items[0].evidence.rankingScore,88);
+  assert.ok(btc.sources.includes('Current governed asset-ranking sample'));
 });
 
 test('exact IDs and names outrank metadata matches with stable explanations',()=>{
@@ -61,7 +85,9 @@ test('public search endpoint and route surface are wired without enabling sugges
   ]);
   assert.match(handler,/path==='search'&&readMethod\(method\)/);
   assert.match(handler,/buildUniversalSearch/);
-  assert.match(handler,/const assetIntent=/);
+  const searchBlock=handler.slice(handler.indexOf("if(path==='search'"),handler.indexOf("if(path==='discovery\/categories'"));
+  assert.doesNotMatch(searchBlock,/assetIntent|buildExternalMarketNetwork|buildAssetRankings/);
+  assert.match(searchBlock,/s-maxage=60, stale-while-revalidate=300/);
   assert.match(app,/case 'search': await renderUniversalSearch/);
   assert.match(registry,/route:'search'.*public:true/);
   assert.match(route,/data-search-private-content="excluded"/);
