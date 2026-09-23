@@ -18,9 +18,14 @@ export function normalizeCandles(input){
   return [...byTime.values()].sort((a,b)=>a.time-b.time);
 }
 
-function metricSet(candles,intervalMs){
-  const closes=candles.map(item=>item.close);const returns=[];
+function logReturns(candles){
+  const closes=candles.map(item=>item.close),returns=[];
   for(let index=1;index<closes.length;index++)returns.push(Math.log(closes[index]/closes[index-1]));
+  return returns;
+}
+
+function metricSet(candles,intervalMs){
+  const closes=candles.map(item=>item.close),returns=logReturns(candles);
   const average=mean(returns);const variance=mean(returns.map(value=>(value-average)**2));const sigma=Math.sqrt(variance);
   let ewma=variance;for(const value of returns)ewma=.94*ewma+.06*value**2;
   const trs=candles.slice(1).map((item,index)=>Math.max(item.high-item.low,Math.abs(item.high-closes[index]),Math.abs(item.low-closes[index])));
@@ -29,10 +34,10 @@ function metricSet(candles,intervalMs){
   closes.forEach((value,index)=>{numerator+=(index-xMean)*(value-yMean);denominator+=(index-xMean)**2;});
   const slope=denominator?numerator/denominator:0;
   let peak=closes[0],maxDrawdown=0;for(const value of closes){peak=Math.max(peak,value);maxDrawdown=Math.min(maxDrawdown,value/peak-1);}
-  const losses=returns.filter(value=>value<=(quantile(returns,.05)??0));const centered=returns.map(value=>value-average);
+  const q05=quantile(returns,.05)??0;const losses=returns.filter(value=>value<=q05);const centered=returns.map(value=>value-average);
   const recent=returns.slice(-14);const up=mean(recent.map(value=>Math.max(0,value)));const down=mean(recent.map(value=>Math.max(0,-value)));
   const annualizer=Math.sqrt(365*86_400_000/intervalMs);
-  return {returns,average,sigma,metrics:{realizedVolatilityPct:round(sigma*annualizer*100,2),ewmaVolatilityPct:round(Math.sqrt(ewma)*annualizer*100,2),parkinsonVolatilityPct:round(parkinson*annualizer*100,2),atrPct:round(mean(trs.slice(-14))/closes.at(-1)*100,2),trendPerBarPct:round(slope/closes.at(-1)*100,4),rsi14:round(down===0?100:100-(100/(1+up/down)),1),returnZScore:round(sigma?(returns.at(-1)-average)/sigma:0,2),skewness:round(sigma?mean(centered.map(value=>value**3))/sigma**3:0,2),excessKurtosis:round(sigma?mean(centered.map(value=>value**4))/sigma**4-3:0,2),historicalVaR95Pct:round(-(quantile(returns,.05)??0)*100,2),expectedShortfall95Pct:round(-mean(losses)*100,2),maxDrawdownPct:round(maxDrawdown*100,2),averageVolume:round(mean(candles.slice(-30).map(item=>item.volume)),2)}};
+  return {returns,average,sigma,metrics:{realizedVolatilityPct:round(sigma*annualizer*100,2),ewmaVolatilityPct:round(Math.sqrt(ewma)*annualizer*100,2),parkinsonVolatilityPct:round(parkinson*annualizer*100,2),atrPct:round(mean(trs.slice(-14))/closes.at(-1)*100,2),trendPerBarPct:round(slope/closes.at(-1)*100,4),rsi14:round(down===0?100:100-(100/(1+up/down)),1),returnZScore:round(sigma?(returns.at(-1)-average)/sigma:0,2),skewness:round(sigma?mean(centered.map(value=>value**3))/sigma**3:0,2),excessKurtosis:round(sigma?mean(centered.map(value=>value**4))/sigma**4-3:0,2),historicalVaR95Pct:round(-q05*100,2),expectedShortfall95Pct:round(-mean(losses)*100,2),maxDrawdownPct:round(maxDrawdown*100,2),averageVolume:round(mean(candles.slice(-30).map(item=>item.volume)),2)}};
 }
 
 function scenarios(candles,returns,horizonBars,seed,{paths=384}={}){
@@ -87,7 +92,7 @@ export function buildDecisionWalkForwardCalibration(raw,{interval='15m',horizonB
     const entry=history.at(-1)?.close;
     const terminal=candles[cut+horizon]?.close;
     if(!(entry>0&&terminal>0))continue;
-    const {returns}=metricSet(history,intervalMs);
+    const returns=logReturns(history);
     if(returns.length<80)continue;
     const fingerprint=hash(JSON.stringify(history.slice(-240)));
     const forecast=scenarios(history,returns,horizon,parseInt(fingerprint,16),{paths:64});
@@ -181,3 +186,4 @@ export function buildDecisionProvenGraph(raw,{asset='BTC',interval='15m',horizon
 }
 
 export const DECISION_INTERVALS=INTERVAL_MS;
+export const __decisionProvenGraphPerfTest=Object.freeze({logReturns,metricSet});

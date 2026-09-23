@@ -288,8 +288,10 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   if(!Number.isFinite(endTime)||endTime<=0)throw new HttpError(400,'invalid_observation_time','Observation time is invalid');
   const fetchImpl=fetcher(env);
   const benchmarkAsset=resolvedAsset==='BTC'?'ETH':'BTC';
-  const [payload,timeframeSupport,derivativesCurrent,liquidity,fundingRows,benchmarkPayload]=await Promise.all([
-    fetchCandles(fetchImpl,resolvedAsset,resolvedInterval,endTime),
+  // Resolve the mandatory selected-asset history first so optional evidence calls
+  // cannot consume the provider burst budget ahead of the core Decision input.
+  const payload=await fetchCandles(fetchImpl,resolvedAsset,resolvedInterval,endTime);
+  const [timeframeSupport,derivativesCurrent,liquidity,fundingRows,benchmarkPayload]=await Promise.all([
     fetchTimeframeSupport(fetchImpl,resolvedAsset,endTime,resolvedInterval),
     fetchDerivativesContext(fetchImpl,resolvedAsset,endTime),
     fetchLiquidityContext(fetchImpl,resolvedAsset),
