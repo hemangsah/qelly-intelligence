@@ -86,7 +86,7 @@ jobs:
           const required=['360','390','430','768','1024','1280','1440','1728','1920'];
           const dimensions=manifest.viewports.map(item=>String(item.width));
           const surfaces=new Set(manifest.surfaces.map(item=>item.id));
-          const ok=manifest.status==='passed'&&manifest.canonicalRouteCount===71&&manifest.canonicalRoute==='qelly-verify'&&manifest.methodologyHostRoute==='market'&&manifest.surfaceCount===2&&manifest.viewportCount===9&&manifest.renderCount===18&&manifest.expectedRenderCount===18&&manifest.failureCount===0&&manifest.missing.length===0&&manifest.aliasNormalized===true&&pngs.length===18&&sheets.length===9&&surfaces.has('qelly-verify')&&surfaces.has('evidence-methodology')&&required.every(width=>dimensions.includes(width));
+          const ok=manifest.status==='passed'&&manifest.canonicalRouteCount===71&&manifest.canonicalRoute==='qelly-verify'&&manifest.methodologyHostRoute==='qelly-verify'&&manifest.surfaceCount===2&&manifest.viewportCount===9&&manifest.renderCount===18&&manifest.expectedRenderCount===18&&manifest.failureCount===0&&manifest.missing.length===0&&manifest.aliasNormalized===true&&pngs.length===18&&sheets.length===9&&surfaces.has('qelly-verify')&&surfaces.has('evidence-methodology')&&required.every(width=>dimensions.includes(width));
           console.log(JSON.stringify({status:manifest.status,canonicalRouteCount:manifest.canonicalRouteCount,canonicalRoute:manifest.canonicalRoute,methodologyHostRoute:manifest.methodologyHostRoute,surfaceCount:manifest.surfaceCount,viewportCount:manifest.viewportCount,renderCount:manifest.renderCount,pngs:pngs.length,contactSheets:sheets.length,aliasNormalized:manifest.aliasNormalized,dimensions},null,2));
           if(!ok)process.exit(1);
           NODE
