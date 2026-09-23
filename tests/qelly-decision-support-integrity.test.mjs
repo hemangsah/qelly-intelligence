@@ -1,48 +1,52 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {evaluateDecision} from '../apps/web/public/assets/qelly-decision-engine.mjs';
 
 const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 
-test('decision support is deterministic and separates evidence from inference',()=>{
-  const input={assetId:'QI-CRYPTO-BTC',horizon:'30d',risk:'balanced',evidenceConfidence:75,scenarioMove:-12,thesis:'Liquidity remains resilient.',invalidationCondition:'Provider agreement falls below the governed threshold.'};
-  const first=evaluateDecision(input);
-  const second=evaluateDecision(input);
-  assert.deepEqual(first,second);
-  assert.equal(first.execution,false);
-  assert.equal(first.decisionRecord.status,'considered-not-executed');
-  assert.equal(first.decisionRecord.humanOverrideRequired,true);
-  assert.equal(first.observedFacts.length,0);
-  assert.ok(first.scenarioObservations.length>0);
-  assert.ok(first.derivedMetrics.length>0);
-  assert.ok(first.inferences.length>0);
-  assert.ok(first.assumptions.some((value)=>value.includes('Human thesis')));
-  assert.ok(first.contradictions.length>0);
-  assert.ok(first.uncertainty.length>0);
-  assert.ok(first.missingInformation.length>0);
-  assert.equal(first.sourceQuality.dimensions.freshness,0);
-  assert.equal(first.sourceQuality.dimensions.providerAgreement,0);
-  assert.match(first.sourceQuality.interpretation,/not current market truth/i);
-  assert.equal(first.methodology.version,'2.0.0');
-  assert.match(first.boundary,/No live provider observations/i);
-  assert.equal(first.counterfactuals.length,5);
-  assert.ok(first.decisionGates.some((gate)=>gate.id==='freshness'&&gate.state==='blocked'));
-  assert.equal(first.readiness.state,'research-only');
+test('decision-provenance remains a thin compatibility route to the authoritative live workspace',async()=>{
+  const route=await read('apps/web/public/assets/routes/decision-provenance.mjs');
+  assert.match(route,/renderDecisionProvenGraph/);
+  assert.match(route,/Compatibility route/);
+  assert.ok(route.length<1000,'compatibility route should not re-embed the retired Decision demo');
+  assert.doesNotMatch(route,/AI Decision Maker|buildLocalDecisionGraph|evaluateDecision|fixed scenario|qelly-v54-decision-provenance/);
 });
 
-test('decision support UI names assumptions, source quality, invalidation and execution boundaries',async()=>{
-  const [route,engine,brandCorrection,index,fontGovernance,build]=await Promise.all([
-    read('apps/web/public/assets/routes/decision-provenance.mjs'),
-    read('apps/web/public/assets/qelly-decision-engine.mjs'),
+test('authoritative Decision Intelligence retains research safety and core workflows',async()=>{
+  const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
+  for(const phrase of [
+    'QELLY Decision Intelligence',
+    'QELLY VIEW',
+    'Find Trade Now',
+    'Risk / reward',
+    '1:1',
+    '1:2',
+    '1:3',
+    '1:4',
+    'Auto',
+    'Open QELLY Chat',
+    'Methodology / Sources',
+    'DECISION TRACE · EVIDENCE GRAPH',
+    'WHAT CHANGED?'
+  ])assert.match(route,new RegExp(phrase.replace(/[?]/g,'\\?')));
+  assert.match(route,/Public research · no sign-in required · no trade execution/);
+  assert.match(route,/NO TRADE/);
+});
+
+test('superseded Decision demo bundle is absent and global shell no longer annotates deleted controls',async()=>{
+  await assert.rejects(read('apps/web/public/assets/qelly-decision-engine.mjs'));
+  await assert.rejects(read('apps/web/public/assets/qelly-v54-decision-provenance.css'));
+  const shell=await read('apps/web/public/assets/qelly-ui-lock-v5-3.mjs');
+  assert.doesNotMatch(shell,/annotateDecisionProvenanceControls|evidenceConfidence|scenarioMove/);
+});
+
+test('brand and self-hosted font governance remain intact after Decision cleanup',async()=>{
+  const [brandCorrection,index,fontGovernance,build]=await Promise.all([
     read('apps/web/public/assets/qelly-brand-visual-correction.mjs'),
     read('apps/web/public/index.html'),
     read('apps/web/public/assets/qelly-font-governance.css'),
     read('scripts/build-frontend.mjs')
   ]);
-  for(const phrase of ['User-assessed evidence confidence','Invalidation condition','Observed facts','Scenario observations','Missing information','Source quality','Methodology','considered-not-executed'])assert.match(route,new RegExp(phrase));
-  for(const phrase of ['Decision Command Center','Readiness gates and counterfactual stress','buildLocalDecisionGraph','Ask Qelly'])assert.match(route,new RegExp(phrase));
-  for(const field of ['sourceQuality','sourceRecords','observedFacts','derivedMetrics','inferences','assumptions','uncertainty','missingInformation','methodology','decisionRecord'])assert.match(engine,new RegExp(field));
   assert.match(brandCorrection,/qelly-symbol\.svg/);
   assert.match(brandCorrection,/correctWorkspaceSwitcherBrand/);
   assert.match(index,/qelly-font-governance\.css/);

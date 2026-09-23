@@ -88,12 +88,15 @@ test('Calculator Detail remains deterministic, documented and free of provider o
   assert.doesNotMatch(source,/data-action="(?:execute|trade|order|wallet|withdraw)/i);
 });
 
-test('Decision Provenance retains governed evidence traversal and human-control boundaries',async()=>{
-  const source=await read('../apps/web/public/assets/routes/decision-provenance.mjs');
-  assert.match(source,/Evidence graph · traversal mode/);
-  assert.match(source,/Observed facts/);
-  assert.match(source,/Contradicts/);
-  assert.match(source,/Invalidation condition/);
-  assert.match(source,/Execution disabled/);
-  assert.match(source,/Human verification required/);
+test('Decision compatibility route retains governed evidence and human-control boundaries through the live workspace',async()=>{
+  const [compatibility,source]=await Promise.all([
+    read('../apps/web/public/assets/routes/decision-provenance.mjs'),
+    read('../apps/web/public/assets/routes/decision-proven-graph.mjs')
+  ]);
+  assert.match(compatibility,/renderDecisionProvenGraph/);
+  assert.match(source,/DECISION TRACE · EVIDENCE GRAPH/);
+  assert.match(source,/CONTRADICTION ENGINE/);
+  assert.match(source,/What changes the view/);
+  assert.match(source,/Public research · no sign-in required · no trade execution/);
+  assert.match(source,/Methodology and sources/);
 });

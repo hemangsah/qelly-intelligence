@@ -1,4 +1,3 @@
-import {evaluateDecision} from './qelly-decision-engine.mjs';
 import {providerAvailability,providerPolicyMessage} from './customer-copy.mjs';
 
 const RESCUE_ROUTES=new Set(['notification-schedules','data-mesh','decision-provenance','platform-readiness','watchlist']);
@@ -37,16 +36,15 @@ async function rescueDataMesh(main){
     <div class="q-truth-callout"><span class="q-status q-status--live">TRUSTED BY DESIGN</span><p>Missing source coverage stays clearly identified instead of being replaced with sample market values.</p></div>`);
 }
 
-function decisionMarkup(result){
-  const list=(items)=>`<ul>${(items||[]).map((item)=>`<li>${esc(item)}</li>`).join('')||'<li>No item supplied.</li>'}</ul>`;
-  return `<section class="q-panel"><div class="q-panel-head"><div><h2>${esc(result.posture)}</h2><p>${esc(result.asset?.name||'Asset')} · ${esc(result.input?.horizon||'horizon unavailable')} · deterministic local analysis</p></div>${status(`SCORE ${result.score}`,'cached')}</div><div class="q-panel-body"><div class="q-decision-evidence-grid"><article><h3>Supports</h3>${list(result.supports)}</article><article><h3>Contradicts</h3>${list(result.contradictions)}</article><article><h3>Verify next</h3>${list(result.nextSteps)}</article></div><div class="q-truth-callout is-compact"><span class="q-status q-status--unavailable">NO PERSISTENCE</span><p>${esc(result.boundary||'Decision support only. Human verification required. Execution disabled.')}</p></div></div></section>`;
-}
 function rescueDecision(main){
-  let result=evaluateDecision();
-  main.innerHTML=shell('Evidence · deterministic fallback','Decision Provenance','The persistent evidence-graph service is unavailable, but the local explainable decision engine remains usable. No graph persistence, provider observation or execution is implied.',`
-    <section class="q-panel"><div class="q-panel-head"><div><h2>Deterministic decision support</h2><p>Scenario inputs remain separate from observed market evidence.</p></div>${status('LOCAL','cached')}</div><div class="q-panel-body"><form data-rescue-decision class="q-inline-form"><label class="q-setting"><span>Horizon</span><select name="horizon"><option value="24h">24 hours</option><option value="7d" selected>7 days</option><option value="30d">30 days</option><option value="90d">90 days</option></select></label><label class="q-setting"><span>Risk posture</span><select name="risk"><option value="conservative">Conservative</option><option value="balanced" selected>Balanced</option><option value="aggressive">Aggressive</option></select></label><label class="q-setting"><span>Evidence confidence</span><input name="evidenceConfidence" type="number" min="25" max="95" step="5" value="60"></label><label class="q-setting"><span>Scenario move %</span><input name="scenarioMove" type="number" min="-30" max="30" step="1" value="0"></label><button class="q-button q-button--primary" type="submit">Run local analysis</button></form></div></section><div data-rescue-decision-result>${decisionMarkup(result)}</div>`);
-  const form=main.querySelector('[data-rescue-decision]');
-  form?.addEventListener('submit',(event)=>{event.preventDefault();const data=new FormData(form);result=evaluateDecision({horizon:data.get('horizon'),risk:data.get('risk'),evidenceConfidence:Number(data.get('evidenceConfidence')),scenarioMove:Number(data.get('scenarioMove'))});main.querySelector('[data-rescue-decision-result]').innerHTML=decisionMarkup(result);});
+  main.innerHTML=shell('Decision Intelligence · evidence unavailable','Decision Intelligence unavailable','The authoritative Decision Intelligence workflow could not load its required evidence. Qelly will not replace it with fixed profiles, simulated probabilities, or a substitute trade signal.',`
+    <section class="q-panel"><div class="q-panel-head"><div><h2>No substitute decision generated</h2><p>Refresh the live research workflow when provider and Decision services are available.</p></div>${status('NO TRADE','unavailable')}</div><div class="q-panel-body q-stack">
+      ${record('Live Decision evidence','Required before a directional research view can be shown.','UNAVAILABLE','unavailable')}
+      ${record('Fallback signal','Fixed-profile and simulated Decision fallbacks are retired.','DISABLED','live')}
+      ${record('Execution','Qelly does not place orders or create a trade from unavailable evidence.','OFF','live')}
+      <div class="q-truth-callout"><span class="q-status q-status--unavailable">FAIL CLOSED</span><p>No substitute data, probability, entry, stop, target, or confidence was generated.</p></div>
+      <div class="q-page-actions"><a class="q-button q-button--primary" href="#/decision-provenance">Retry Decision Intelligence</a><a class="q-button q-button--secondary" href="#/market">Open Market</a><a class="q-button q-button--secondary" href="#/news-research">Open QELLY Chat &amp; Research</a></div>
+    </div></section>`);
 }
 
 async function rescueReadiness(main){

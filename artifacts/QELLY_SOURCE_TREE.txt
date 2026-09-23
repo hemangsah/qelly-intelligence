@@ -120,7 +120,6 @@ apps/web/public/assets/qelly-brand.mjs
 apps/web/public/assets/qelly-canonical-route-rescue.mjs
 apps/web/public/assets/qelly-chat-workspace.css
 apps/web/public/assets/qelly-cloud-sync.mjs
-apps/web/public/assets/qelly-decision-engine.mjs
 apps/web/public/assets/qelly-final-a11y-polish.css
 apps/web/public/assets/qelly-font-governance.css
 apps/web/public/assets/qelly-foundations.css
@@ -221,7 +220,6 @@ apps/web/public/assets/qelly-v53-wave8-provenance-a.css
 apps/web/public/assets/qelly-v53-wave8-states.css
 apps/web/public/assets/qelly-v53-wave8.css
 apps/web/public/assets/qelly-v54-calculator-progressive-density.css
-apps/web/public/assets/qelly-v54-decision-provenance.css
 apps/web/public/assets/qelly-v54-formula-progressive-density.css
 apps/web/public/assets/qelly-v54-indicator-progressive-density.css
 apps/web/public/assets/qelly-v6-production-convergence.css
@@ -1409,8 +1407,6 @@ tests/qelly-universal-search-v2.test.mjs
 tests/qelly-v53-activation-contract.test.mjs
 tests/qelly-v53-active-shell-convergence.test.mjs
 tests/qelly-v53-colorblind-bridge.test.mjs
-tests/qelly-v53-decision-provenance-a11y.test.mjs
-tests/qelly-v53-decision-provenance-workstation-wave4.test.mjs
 tests/qelly-v53-lock-geometry-fix.test.mjs
 tests/qelly-v53-market-command-workspace.test.mjs
 tests/qelly-v53-production-shell-convergence.test.mjs
@@ -1427,8 +1423,6 @@ tests/qelly-v54-advanced-chart-studio.test.mjs
 tests/qelly-v54-asset-intelligence-mobile-density.test.mjs
 tests/qelly-v54-calculator-progressive-density.test.mjs
 tests/qelly-v54-data-mesh-mobile-density.test.mjs
-tests/qelly-v54-decision-provenance-desktop-density.test.mjs
-tests/qelly-v54-decision-provenance-mobile-density.test.mjs
 tests/qelly-v54-evidence-handoff-corpus-contract.test.mjs
 tests/qelly-v54-feature-universe-density.test.mjs
 tests/qelly-v54-formula-progressive-density.test.mjs
