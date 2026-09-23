@@ -56,15 +56,18 @@ test('decision provenance API creates, reads, traverses and exports a governed p
   }
 });
 
-test('frontend registers the Decision Provenance route and real API consumer',async()=>{
-  const [registry,app,route]=await Promise.all([
+test('frontend registers the Decision compatibility route and authoritative live consumer',async()=>{
+  const [registry,app,route,live]=await Promise.all([
     readFile(new URL('../apps/web/public/assets/route-registry.mjs',import.meta.url),'utf8'),
     readFile(new URL('../apps/web/public/assets/app.js',import.meta.url),'utf8'),
-    readFile(new URL('../apps/web/public/assets/routes/decision-provenance.mjs',import.meta.url),'utf8')
+    readFile(new URL('../apps/web/public/assets/routes/decision-provenance.mjs',import.meta.url),'utf8'),
+    readFile(new URL('../apps/web/public/assets/routes/decision-proven-graph.mjs',import.meta.url),'utf8')
   ]);
   assert.match(registry,/route:'decision-provenance'/);
   assert.match(app,/renderDecisionProvenance/);
-  assert.match(route,/\/api\/v1\/evidence\/explain-move/);
-  assert.match(route,/Accessible text alternative/);
-  assert.match(route,/considered-not-executed|considered decisions only/);
+  assert.match(route,/renderDecisionProvenGraph/);
+  assert.doesNotMatch(route,/evidence\/explain-move|AI Decision Maker|evaluateDecision/);
+  assert.match(live,/\/api\/v1\/decision-proven-graph/);
+  assert.match(live,/DECISION TRACE · EVIDENCE GRAPH/);
+  assert.match(live,/Public research · no sign-in required · no trade execution/);
 });
