@@ -13,26 +13,50 @@ const parseRequested=(value,customRr)=>{
   return RR_PRESETS.includes(ratio)?{mode:'preset',ratio}:{mode:'auto',ratio:null};
 };
 const targetFor=(entry,risk,direction,ratio)=>round(entry+direction*risk*ratio,2);
+const FEASIBLE_STATES=new Set(['HIGHLY FEASIBLE','FEASIBLE','CONDITIONAL']);
+const FEASIBILITY_WEIGHT=Object.freeze({'HIGHLY FEASIBLE':1,FEASIBLE:.78,CONDITIONAL:.52,'LOW FEASIBILITY':.18,'NOT FEASIBLE':0,UNAVAILABLE:0});
 
 const feasibility=(direction,target,terminal,{entry=null,structure=null,expectedMovePct=null}={})=>{
   const p05=finite(terminal?.p05),p25=finite(terminal?.p25),p75=finite(terminal?.p75),p95=finite(terminal?.p95);
-  if(![p05,p25,p75,p95].every(Number.isFinite))return {state:'UNAVAILABLE',reason:'Forecast quantiles are incomplete.',structuralBarrier:null};
+  const empty=(state,reason,structuralBarrier=null,targetCongestion='UNAVAILABLE')=>({
+    state,reason,structuralBarrier,targetCongestion,
+    nearestObstruction:Number.isFinite(structuralBarrier)?structuralBarrier:null
+  });
+  if(![p05,p25,p75,p95].every(Number.isFinite))return empty('UNAVAILABLE','Forecast quantiles are incomplete.');
   const resistance=finite(structure?.resistance),support=finite(structure?.support);
   const structuralBarrier=direction>0&&resistance!==null&&resistance>entry&&resistance<target?resistance:direction<0&&support!==null&&support<entry&&support>target?support:null;
   const expectedMove=Number.isFinite(entry)&&Number.isFinite(expectedMovePct)?Math.abs(entry*expectedMovePct/100):null;
   const distance=Number.isFinite(entry)?Math.abs(target-entry):null;
   if(direction>0){
-    if(target>p95)return {state:'NOT FEASIBLE',reason:'Target lies beyond the model p95 favorable range.',structuralBarrier};
-    if(structuralBarrier!==null)return {state:'LOW',reason:'A verified recent resistance level sits before the requested target.',structuralBarrier};
-    if(expectedMove!==null&&distance>expectedMove*1.5)return {state:'LOW',reason:'Target distance materially exceeds the volatility-conditioned expected move.',structuralBarrier:null};
-    if(target<=p75)return {state:'HIGH',reason:'Target remains inside the model p75 favorable range with no nearer structural barrier.',structuralBarrier:null};
-    return {state:'MEDIUM',reason:'Target is inside the model p95 favorable tail but beyond p75.',structuralBarrier:null};
+    if(target>p95)return empty('NOT FEASIBLE','Target lies beyond the model p95 favorable range.',structuralBarrier,structuralBarrier!==null?'BEFORE_TARGET':'CLEAR');
+    if(structuralBarrier!==null)return empty('LOW FEASIBILITY','A verified recent resistance level sits before the requested target.',structuralBarrier,'BEFORE_TARGET');
+    if(expectedMove!==null&&distance>expectedMove*1.5)return empty('LOW FEASIBILITY','Target distance materially exceeds the volatility-conditioned expected move.',null,'CLEAR');
+    if(expectedMove!==null&&distance>expectedMove*1.1)return empty('CONDITIONAL','Target is inside the favorable distribution but extends beyond the central volatility-conditioned expected move.',null,'CLEAR');
+    if(target<=p75)return empty('HIGHLY FEASIBLE','Target remains inside the model p75 favorable range, within the volatility-conditioned move and with no nearer structural obstruction.',null,'CLEAR');
+    return empty('FEASIBLE','Target remains inside the model p95 favorable tail with no nearer structural obstruction.',null,'CLEAR');
   }
-  if(target<p05)return {state:'NOT FEASIBLE',reason:'Target lies beyond the model p05 favorable range.',structuralBarrier};
-  if(structuralBarrier!==null)return {state:'LOW',reason:'A verified recent support level sits before the requested target.',structuralBarrier};
-  if(expectedMove!==null&&distance>expectedMove*1.5)return {state:'LOW',reason:'Target distance materially exceeds the volatility-conditioned expected move.',structuralBarrier:null};
-  if(target>=p25)return {state:'HIGH',reason:'Target remains inside the model p25 favorable range with no nearer structural barrier.',structuralBarrier:null};
-  return {state:'MEDIUM',reason:'Target is inside the model p05 favorable tail but beyond p25.',structuralBarrier:null};
+  if(target<p05)return empty('NOT FEASIBLE','Target lies beyond the model p05 favorable range.',structuralBarrier,structuralBarrier!==null?'BEFORE_TARGET':'CLEAR');
+  if(structuralBarrier!==null)return empty('LOW FEASIBILITY','A verified recent support level sits before the requested target.',structuralBarrier,'BEFORE_TARGET');
+  if(expectedMove!==null&&distance>expectedMove*1.5)return empty('LOW FEASIBILITY','Target distance materially exceeds the volatility-conditioned expected move.',null,'CLEAR');
+  if(expectedMove!==null&&distance>expectedMove*1.1)return empty('CONDITIONAL','Target is inside the favorable distribution but extends beyond the central volatility-conditioned expected move.',null,'CLEAR');
+  if(target>=p25)return empty('HIGHLY FEASIBLE','Target remains inside the model p25 favorable range, within the volatility-conditioned move and with no nearer structural obstruction.',null,'CLEAR');
+  return empty('FEASIBLE','Target remains inside the model p05 favorable tail with no nearer structural obstruction.',null,'CLEAR');
+};
+
+const autoSelectionScore=(item,{entry=null,expectedMovePct=null}={})=>{
+  if(!item||!FEASIBLE_STATES.has(item.feasibility))return null;
+  const feasibilityWeight=FEASIBILITY_WEIGHT[item.feasibility]??0;
+  const expectedMove=Number.isFinite(entry)&&Number.isFinite(expectedMovePct)?Math.abs(entry*expectedMovePct/100):null;
+  const distance=finite(item.rewardDistance);
+  const moveFit=expectedMove>0&&Number.isFinite(distance)
+    ?clamp(1-Math.max(0,distance-expectedMove)/(expectedMove*1.25),0,1)
+    :.55;
+  const congestion=String(item.targetCongestion||'UNAVAILABLE');
+  const congestionWeight=congestion==='CLEAR'?1:congestion==='AT_TARGET'?.86:congestion==='NEAR_TARGET'?.68:congestion==='BEFORE_TARGET'?.12:.5;
+  const rr=finite(item.ratio)??0;
+  const rrUtility=clamp(Math.log1p(Math.max(0,rr))/Math.log(5),0,1);
+  const structuralFit=String(item.source||'')==='RR_PRESET'?.72:.9;
+  return round(100*(.46*feasibilityWeight+.24*moveFit+.16*congestionWeight+.09*rrUtility+.05*structuralFit),2);
 };
 
 const classifyEntry=(action,lastPrice,entryZone,structure)=>{
@@ -80,7 +104,7 @@ const structuralTarget=(direction,entry,risk,terminal,structure,expectedMovePct,
   const ratio=Math.abs(barrier-entry)/risk;
   if(!(ratio>=.5&&ratio<=10))return null;
   const support=feasibility(direction,barrier,terminal,{entry,structure:null,expectedMovePct});
-  if(['LOW','NOT FEASIBLE','UNAVAILABLE'].includes(support.state))return null;
+  if(!FEASIBLE_STATES.has(support.state))return null;
   const rewardDistance=Math.abs(barrier-entry);
   return {
     ratio:round(ratio,2),
@@ -91,6 +115,8 @@ const structuralTarget=(direction,entry,risk,terminal,structure,expectedMovePct,
     feasibility:support.state,
     feasibilityReason:'Nearest verified structural '+(direction>0?'resistance':'support')+' is a feasible target before forcing the next preset R:R.',
     structuralBarrier:null,
+    nearestObstruction:round(barrier,2),
+    targetCongestion:'AT_TARGET',
     source:direction>0?'RECENT_RESISTANCE':'RECENT_SUPPORT',
     ...costAdjusted(entry,risk,rewardDistance,ratio,graph),
     targetTouchProbability:null,
@@ -132,7 +158,7 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null,now=n
   const crossAsset=graph?.crossAsset||graph?.evidence?.crossAsset||{state:'unavailable'};
   const macro=graph?.macro||graph?.evidence?.macro||{state:'unavailable'};
   const base={
-    schemaVersion:'qelly.trade-research/1.1.0',
+    schemaVersion:'qelly.trade-research/1.2.0',
     setupId:graph?.graphId?graph.graphId+'-trade':null,
     requestedRr:request.mode==='custom'?'custom':request.mode==='preset'?'1:'+request.ratio:'auto',
     customRr:request.mode==='custom'?request.ratio:null,
@@ -192,6 +218,8 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null,now=n
       feasibilityReason:support.reason,
       structuralBarrier:support.structuralBarrier===null?null:round(support.structuralBarrier,2),
       structuralBarrierRr:barrierRatio,
+      nearestObstruction:support.nearestObstruction===null?null:round(support.nearestObstruction,2),
+      targetCongestion:support.targetCongestion||'UNAVAILABLE',
       source:'RR_PRESET',
       ...adjusted,
       targetTouchProbability:null,
@@ -201,11 +229,14 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null,now=n
   });
   const structural=structuralTarget(direction,entry,risk,terminalPoint,structure,expectedMovePct,graph);
   const structuralTargets=structural?[structural]:[];
+  const selectable=[...matrix,...structuralTargets]
+    .filter(item=>FEASIBLE_STATES.has(item.feasibility))
+    .map(item=>({...item,selectionScore:autoSelectionScore(item,{entry,expectedMovePct})}));
   let selected=null;
   if(request.mode==='auto'){
-    selected=[...matrix,...structuralTargets]
-      .filter(item=>item.feasibility==='HIGH'||item.feasibility==='MEDIUM')
-      .sort((a,b)=>b.ratio-a.ratio)[0]||null;
+    selected=selectable
+      .sort((a,b)=>(b.selectionScore??-1)-(a.selectionScore??-1)||a.ratio-b.ratio)[0]||null;
+    if(selected)selected={...selected,selectionReason:'Auto ranks structural validity, volatility fit, target congestion and bounded R:R utility; it does not simply choose the largest nominal R:R.'};
   }else if(Number.isFinite(request.ratio)){
     selected=matrix.find(item=>item.ratio===request.ratio)||null;
   }
@@ -217,17 +248,27 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null,now=n
     evidence:{state:'ACTIVE',condition:'Directional eligibility no longer clears, calibration degrades, or severe contradictory evidence emerges.'},
     time:{state:expiryAt?'ACTIVE':'UNAVAILABLE',at:expiryAt,condition:'The setup expires if the entry condition has not been satisfied before the bounded validity window ends.'},
     event:{state:String(eventRisk?.state||'UNAVAILABLE').toUpperCase(),level:eventRisk?.level||'UNAVAILABLE',condition:eventRisk?.reason||'Verified event-risk evidence is unavailable.'},
-    regime:{state:'ACTIVE',regime,condition:'Reassess if the market regime changes materially or volatility becomes abnormal for the setup.'}
+    regime:{state:'ACTIVE',regime,condition:'Reassess if the market regime changes materially or volatility becomes abnormal for the setup.'},
+    liquidity:{
+      state:String(liquidity?.state||'unavailable').toLowerCase()==='live'?'ACTIVE':'UNAVAILABLE',
+      spreadBps:finite(liquidity?.spreadBps),
+      spreadState:liquidity?.spreadState||'UNAVAILABLE',
+      top5Imbalance:finite(liquidity?.top5Imbalance),
+      imbalanceState:liquidity?.imbalanceState||'UNAVAILABLE',
+      condition:String(liquidity?.state||'unavailable').toLowerCase()==='live'
+        ?'Reassess if verified spread exceeds 15 bps or top-five depth becomes severely imbalanced against the setup direction.'
+        :(liquidity?.reason||'Verified L2 liquidity evidence is unavailable.')
+    }
   };
-  const stop={price:round(invalidation,2),distance:round(risk,2),distancePct:stopDistancePct,atrMultiple:Number.isFinite(finite(graph?.metrics?.atrPct))&&lastPrice?round((risk/lastPrice*100)/finite(graph.metrics.atrPct),2):null,reason:'Price stop is distinct from structural, evidence, time, event and regime invalidation.'};
+  const stop={price:round(invalidation,2),distance:round(risk,2),distancePct:stopDistancePct,atrMultiple:Number.isFinite(finite(graph?.metrics?.atrPct))&&lastPrice?round((risk/lastPrice*100)/finite(graph.metrics.atrPct),2):null,reason:'Price stop is distinct from structural, evidence, time, event, regime and liquidity invalidation.'};
   const entryResult={zone:entryZone.map(value=>round(value,2)),preferred:entry,method:entryState.method,trigger:entryState.trigger,confirmationCondition:entryState.confirmationCondition,invalidEntryCondition:entryState.invalidEntryCondition};
-  const validSelection=selected&&!['LOW','NOT FEASIBLE','UNAVAILABLE'].includes(selected.feasibility);
+  const validSelection=selected&&FEASIBLE_STATES.has(selected.feasibility);
   const status=validSelection&&!expired?'VALID':'NO_TRADE';
   const lifecycle=lifecycleFor({status:validSelection?'VALID':'NO_TRADE',entryMethod:entryState.method,truthState:String(graph?.truthState||''),expired});
   const targets=[...matrix,...structuralTargets]
-    .filter(item=>item.feasibility==='HIGH'||item.feasibility==='MEDIUM')
+    .filter(item=>FEASIBLE_STATES.has(item.feasibility))
     .sort((a,b)=>a.ratio-b.ratio)
-    .map((item,index)=>({rank:index+1,label:item.label,price:item.target,ratio:item.ratio,feasibility:item.feasibility,source:item.source}));
+    .map((item,index)=>({rank:index+1,label:item.label,price:item.target,ratio:item.ratio,feasibility:item.feasibility,source:item.source,targetCongestion:item.targetCongestion||'UNAVAILABLE',nearestObstruction:item.nearestObstruction??null,selectionScore:autoSelectionScore(item,{entry,expectedMovePct})}));
   if(status!=='VALID'){
     return {...base,status:'NO_TRADE',reason:expired?'The setup has expired and must be recomputed from fresh evidence.':selected?.feasibilityReason||'The requested R:R cannot be validated from the current forecast range.',createdAt:Number.isFinite(observedAt)?new Date(observedAt).toISOString():null,lastValidatedAt:Number.isFinite(generatedAt)?new Date(generatedAt).toISOString():null,entry:entryResult,stop,invalidation:invalidationLayers,expiryAt,expiryBars,lifecycle,matrix,structuralTargets,selected,targets};
   }
@@ -251,4 +292,4 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null,now=n
 }
 
 export const DECISION_RR_PRESETS=RR_PRESETS;
-export const __decisionTradeResearchTest=Object.freeze({parseRequested,feasibility,classifyEntry,expiryBarsFor,costAdjusted,lifecycleFor});
+export const __decisionTradeResearchTest=Object.freeze({parseRequested,feasibility,autoSelectionScore,classifyEntry,expiryBarsFor,costAdjusted,lifecycleFor,FEASIBLE_STATES});
