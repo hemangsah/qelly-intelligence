@@ -16,8 +16,9 @@ export function parseHashRoute(hash,{fallback='market'}={}){
   const legacyMarketVerify=parsedRoute==='market'&&query.get('view')==='qelly-verify';
   const route=legacyVerify||legacyMethodology||legacyMarketVerify?'qelly-verify':(ROUTE_ALIASES[parsedRoute]??parsedRoute);
   const asset=legacyVerify||legacyMethodology||legacyMarketVerify?null:parsedAsset;
-  if(legacyMethodology){query.clear();query.set('view','methodology');}
-  if(legacyVerify||legacyMarketVerify)query.clear();
+  const clearQuery=()=>{for(const key of [...query.keys()])query.delete(key);};
+  if(legacyMethodology){clearQuery();query.set('view','methodology');}
+  if(legacyVerify||legacyMarketVerify)clearQuery();
   return {route,asset,query,queryText:query.toString()};
 }
 
