@@ -1,6 +1,7 @@
 import {normalizeCandles,DECISION_INTERVALS} from '../../../../_lib/decision-proven-graph.js';
 import {HttpError,enforceRateLimit,errorResponse,fetcher,publicRuntimeConfigForRequest,responseJson} from '../../../../_lib/runtime.js';
 import {providerCatalog} from '../../../../_lib/providers.js';
+import {PUBLIC_CRYPTO_ASSETS,PUBLIC_CRYPTO_ASSET_MAP} from '../../../../_lib/public-market-assets.js';
 
 const MARKET_UNAVAILABLE_REASON='Current governed market coverage is unavailable for this diagnostic surface.';
 const NO_FABRICATION_RULE='Qelly does not generate substitute prices or candles.';
@@ -8,18 +9,8 @@ const DISPLAY_BOUNDARY='TradingView may be used as an external human-readable di
 const HYPERLIQUID_URL='https://api.hyperliquid.xyz/info';
 const HYPERLIQUID_DOCS='https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint';
 const LIVE_INTERVALS=new Set(['15m','1h','4h','1d']);
-const LIVE_ASSETS=Object.freeze([
-  {canonicalId:'QI-CRYPTO-BTC',symbol:'BTC',name:'Bitcoin',category:'Layer 1'},
-  {canonicalId:'QI-CRYPTO-ETH',symbol:'ETH',name:'Ethereum',category:'Smart-contract platforms'},
-  {canonicalId:'QI-CRYPTO-SOL',symbol:'SOL',name:'Solana',category:'Smart-contract platforms'},
-  {canonicalId:'QI-CRYPTO-XRP',symbol:'XRP',name:'XRP',category:'Payments'},
-  {canonicalId:'QI-CRYPTO-HYPE',symbol:'HYPE',name:'Hyperliquid',category:'Exchange ecosystems'},
-  {canonicalId:'QI-CRYPTO-DOGE',symbol:'DOGE',name:'Dogecoin',category:'Meme assets'}
-]);
-const LIVE_ASSET_MAP=new Map(LIVE_ASSETS.flatMap((asset)=>[
-  [asset.canonicalId.toUpperCase(),asset],
-  [asset.symbol.toUpperCase(),asset]
-]));
+const LIVE_ASSETS=PUBLIC_CRYPTO_ASSETS;
+const LIVE_ASSET_MAP=PUBLIC_CRYPTO_ASSET_MAP;
 const segments=(value)=>Array.isArray(value)?value.map(String):String(value||'').split('/').filter(Boolean);
 const providerState=()=>providerCatalog().map((provider)=>({
   id:provider.id,
