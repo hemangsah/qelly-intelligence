@@ -99,7 +99,6 @@ apps/web/public/assets/icon-registry.mjs
 apps/web/public/assets/market/external-intelligence-widgets.mjs
 apps/web/public/assets/market/tradingview-display-widget.css
 apps/web/public/assets/market/tradingview-display-widget.mjs
-apps/web/public/assets/market/tradingview-live-chart.mjs
 apps/web/public/assets/persona-profiles.mjs
 apps/web/public/assets/premium-chart.css
 apps/web/public/assets/premium-font-surface-polish.css
