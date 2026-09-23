@@ -40,6 +40,33 @@ test('trade lifecycle stays FORMING when price must pull back and does not backf
   assert.ok(Date.parse(result.expiryAt)>Date.parse(result.lastValidatedAt));
 });
 
+test('entry-ready setup reports TRIGGERED from the current observation without inventing prior transitions',()=>{
+  const result=buildTradeResearch(graph({market:{lastPrice:100,currentState:{regime:'TRENDING'}},truthState:'LIVE'}),{requestedRr:'1'});
+  assert.equal(result.status,'VALID');
+  assert.equal(result.entry.method,'NOW');
+  assert.equal(result.lifecycle.state,'TRIGGERED');
+  assert.equal(result.lifecycle.historyAvailable,false);
+  assert.match(result.lifecycle.reason,/current observation satisfies the entry condition/i);
+});
+
+test('stale directional evidence reports WEAKENING and is not an immediate scan-ready lifecycle',()=>{
+  const result=buildTradeResearch(graph({market:{lastPrice:100,currentState:{regime:'TRENDING'}},truthState:'STALE'}),{requestedRr:'1'});
+  assert.equal(result.status,'VALID');
+  assert.equal(result.lifecycle.state,'WEAKENING');
+  assert.equal(result.lifecycle.historyAvailable,false);
+});
+
+test('expired setup fails closed even if the target remains structurally feasible',()=>{
+  const result=buildTradeResearch(graph({
+    generatedAt:'2026-09-23T00:00:00.000Z',
+    market:{lastPrice:100,currentState:{regime:'TRENDING'}},
+    truthState:'LIVE'
+  }),{requestedRr:'1',now:Date.parse('2026-09-24T00:00:00.000Z')});
+  assert.equal(result.status,'NO_TRADE');
+  assert.equal(result.lifecycle.state,'EXPIRED');
+  assert.match(result.reason,/expired/i);
+});
+
 test('layered invalidation keeps price structure evidence time event and regime distinct',()=>{
   const result=buildTradeResearch(graph(),{requestedRr:'1'});
   assert.ok(result.invalidation);
