@@ -214,7 +214,7 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null,now=n
     .filter(item=>item.feasibility==='HIGH'||item.feasibility==='MEDIUM')
     .sort((a,b)=>a.ratio-b.ratio)
     .map((item,index)=>({rank:index+1,label:item.label,price:item.target,ratio:item.ratio,feasibility:item.feasibility,source:item.source}));
-  if(!validSelection){
+  if(status!=='VALID'){
     return {...base,status:'NO_TRADE',reason:expired?'The setup has expired and must be recomputed from fresh evidence.':selected?.feasibilityReason||'The requested R:R cannot be validated from the current forecast range.',createdAt:Number.isFinite(observedAt)?new Date(observedAt).toISOString():null,lastValidatedAt:Number.isFinite(generatedAt)?new Date(generatedAt).toISOString():null,entry:entryResult,stop,invalidation:invalidationLayers,expiryAt,expiryBars,lifecycle,matrix,structuralTargets,selected,targets};
   }
   return {
