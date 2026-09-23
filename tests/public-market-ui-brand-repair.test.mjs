@@ -60,13 +60,18 @@ test('final repair stylesheet is loaded last and restores accessible feature con
   assert.match(route,/Open market overview/);
 });
 
-test('public recovery replaces the market error instead of redirecting or nesting it',async()=>{
-  const recovery=await read('apps/web/public/assets/qelly-public-recovery.mjs');
-  assert.match(recovery,/function renderMarketRecovery/);
-  assert.match(recovery,/main\.innerHTML=`<section class="q-recovery-page q-market-recovery"/);
+test('authoritative app route renders market recovery without a second global owner',async()=>{
+  const [recovery,app]=await Promise.all([
+    read('apps/web/public/assets/qelly-public-recovery.mjs'),
+    read('apps/web/public/assets/app.js')
+  ]);
+  assert.match(recovery,/export function publicRecoveryMarkup/);
+  assert.match(recovery,/if\(current==='market'\)/);
+  assert.match(recovery,/q-recovery-page q-market-recovery/);
   assert.match(recovery,/This research page is public and does not require sign-in/);
-  assert.match(recovery,/if\(route==='market'\)\{renderMarketRecovery\(message\);return;\}/);
-  assert.doesNotMatch(recovery,/if\(route==='market'\)\{location\.hash='#\/market\?view=decision-maker'/);
+  assert.match(app,/else if\(isPublicRecoveryRoute\(route\)\)/);
+  assert.match(app,/main\.innerHTML=publicRecoveryMarkup\(route,error\.message,\{preview:staticVisualPreview\}\)/);
+  assert.doesNotMatch(recovery,/MutationObserver|main\.innerHTML|qellyRecoveryOwner|location\.hash='#\/market\?view=decision-maker'/);
 });
 
 test('canonical market UI keeps unavailable provider states explicit without substitute observations',async()=>{
