@@ -18,29 +18,32 @@ test('decision engine is deterministic, bounded and never executable',()=>{
   assert.equal(normalizeDecisionInput({assetId:'unknown'}).assetId,'QI-CRYPTO-BTC');
 });
 
-test('public recovery catches the exact broken route states from the reported screenshots',async()=>{
+test('public recovery is route-owned and no longer globally rewrites main',async()=>{
   const source=await read('apps/web/public/assets/qelly-public-recovery.mjs');
-  for(const phrase of ['unable to render this route','authentication is required','retry foundation route'])assert.match(source,new RegExp(phrase,'i'));
-  assert.match(source,/publicRoutes=new Set/);
-  assert.match(source,/renderRankingsRecovery/);
-  assert.match(source,/view=decision-maker/);
+  assert.match(source,/PUBLIC_RECOVERY_ROUTES/);
+  assert.match(source,/publicRecoveryMarkup/);
+  assert.match(source,/bindPublicRecoveryActions/);
+  assert.match(source,/installPublicRecoveryChrome/);
+  assert.match(source,/data-qelly-recovery-retry/);
   assert.match(source,/qelly-logo-primary\.svg/);
-  assert.match(source,/MutationObserver/);
-  assert.match(source,/qellyRecoveryOwner!=='decision-maker'\|\|!main\.querySelector\('\[data-qelly-recovery-owned="decision-maker"\]'\)/);
+  assert.doesNotMatch(source,/MutationObserver|addEventListener\(['"]hashchange|addEventListener\(['"]pageshow|setTimeout\s*\(/);
+  assert.doesNotMatch(source,/qellyRecoveryOwner|view=decision-maker|main\.innerHTML/);
   assert.doesNotMatch(source,/placeOrder|executeTrade|wallet\.sign/i);
-  assert.match(source,/No execution\. No personalized advice\./i);
+  assert.match(source,/No execution, custody or personalized financial recommendation is available\./i);
   assert.doesNotMatch(source,/qelly-intelligence\.pages\.dev|governed degraded mode|No authorized provider observation|no-fabrication boundary/i);
   assert.match(source,/terminal\.qellyintelligence\.com/);
 });
 
-test('static preview receives one compact recovery shell and official decision navigation',async()=>{
-  const [index,style]=await Promise.all([
+test('static preview recovery chrome is installed by the authoritative app bootstrap',async()=>{
+  const [index,style,app]=await Promise.all([
     read('apps/web/public/index.html'),
-    read('apps/web/public/assets/qelly-public-recovery.css')
+    read('apps/web/public/assets/qelly-public-recovery.css'),
+    read('apps/web/public/assets/app.js')
   ]);
   assert.match(index,/qelly-public-recovery\.css/);
-  assert.match(index,/qelly-public-recovery\.mjs/);
-  assert.ok(index.indexOf('qelly-public-recovery.mjs')>index.indexOf('app.js'));
+  assert.doesNotMatch(index,/qelly-public-recovery\.mjs/);
+  assert.match(app,/from '\.\/qelly-public-recovery\.mjs'/);
+  assert.match(app,/installPublicRecoveryChrome\(\)/);
   assert.match(style,/data-qelly-recovery-shell="static-preview"/);
   assert.match(style,/\.q-global-strip/);
   assert.match(style,/\.q-command-bar/);
