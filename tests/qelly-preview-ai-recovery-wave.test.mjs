@@ -29,7 +29,8 @@ test('public recovery is route-owned and no longer globally rewrites main',async
   assert.doesNotMatch(source,/MutationObserver|addEventListener\(['"]hashchange|addEventListener\(['"]pageshow|setTimeout\s*\(/);
   assert.doesNotMatch(source,/qellyRecoveryOwner|view=decision-maker|main\.innerHTML/);
   assert.doesNotMatch(source,/placeOrder|executeTrade|wallet\.sign/i);
-  assert.match(source,/No execution, custody or personalized financial recommendation is available\./i);
+  assert.match(source,/No substitute (?:price, candle, volume or market movement|records|rankings)/i);
+  assert.match(source,/personalized financial recommendation/i);
   assert.doesNotMatch(source,/qelly-intelligence\.pages\.dev|governed degraded mode|No authorized provider observation|no-fabrication boundary/i);
   assert.match(source,/terminal\.qellyintelligence\.com/);
 });
