@@ -33,6 +33,8 @@ test('app.js is the sole first-view owner for Verify and methodology',async()=>{
   assert.match(app,/const renderQellyVerifyMethodology=lazyRoute\('\.\/qelly-verify-product\.mjs','renderMethodology'\)/);
   assert.match(app,/case 'qelly-verify':/);
   assert.match(app,/state\.routeQuery\?\.get\?\.\('view'\)==='methodology'/);
+  assert.match(app,/const canonicalHash=\`#\/qelly-verify\$\{canonicalQuery\?\`\?\$\{canonicalQuery\}\`:''\}\`/);
+  assert.match(app,/if\(location\.hash!==canonicalHash\)history\.replaceState\(null,'',canonicalHash\)/);
   assert.match(app,/if\(state\.route!=='qelly-verify'\)\{delete main\.dataset\.qellyVerifyOwner;delete document\.documentElement\.dataset\.qellyVerifySubview;\}/);
 });
 
