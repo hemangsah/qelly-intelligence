@@ -143,7 +143,7 @@ try{
       const context=await browser.newContext({viewport,device_scale_factor:1,reduced_motion:'reduce'});
       const page=await context.newPage();
       await page.addInitScript(()=>{
-        const state={longTasks:[],mutations:0};
+        const state={longTasks:[],mutations:0,webVitals:{fcpMs:null,lcpMs:null,cls:0,inpMs:null,interactionCount:0},interactionDurations:{}};
         Object.defineProperty(window,'__QELLY_PERF_SIGNALS__',{value:state,configurable:true});
         try{
           new PerformanceObserver((list)=>{
@@ -160,6 +160,38 @@ try{
               if(state.longTasks.length>200)state.longTasks.splice(0,state.longTasks.length-200);
             }
           }).observe({type:'longtask',buffered:true});
+        }catch{}
+        try{
+          new PerformanceObserver((list)=>{
+            for(const entry of list.getEntries()){
+              if(entry.name==='first-contentful-paint')state.webVitals.fcpMs=Number(entry.startTime.toFixed(2));
+            }
+          }).observe({type:'paint',buffered:true});
+        }catch{}
+        try{
+          new PerformanceObserver((list)=>{
+            for(const entry of list.getEntries())state.webVitals.lcpMs=Number(entry.startTime.toFixed(2));
+          }).observe({type:'largest-contentful-paint',buffered:true});
+        }catch{}
+        try{
+          new PerformanceObserver((list)=>{
+            for(const entry of list.getEntries()){
+              if(!entry.hadRecentInput)state.webVitals.cls=Number((state.webVitals.cls+Number(entry.value||0)).toFixed(5));
+            }
+          }).observe({type:'layout-shift',buffered:true});
+        }catch{}
+        try{
+          new PerformanceObserver((list)=>{
+            for(const entry of list.getEntries()){
+              const interactionId=Number(entry.interactionId||0);
+              if(!interactionId)continue;
+              const duration=Number(entry.duration||0);
+              state.interactionDurations[interactionId]=Math.max(Number(state.interactionDurations[interactionId]||0),duration);
+            }
+            const values=Object.values(state.interactionDurations).map(Number).filter(Number.isFinite).sort((a,b)=>b-a);
+            state.webVitals.interactionCount=values.length;
+            state.webVitals.inpMs=values.length?Number(values[Math.min(Math.floor(values.length/50),values.length-1)].toFixed(2)):null;
+          }).observe({type:'event',buffered:true,durationThreshold:16});
         }catch{}
         addEventListener('DOMContentLoaded',()=>{
           const target=document.getElementById('main');
@@ -197,16 +229,34 @@ try{
         const obsolete=frames.flatMap(frame=>Object.entries(frame.visibleLegacy).filter(([,count])=>count>0).map(([selector,count])=>({elapsedMs:frame.elapsedMs,selector,count})));
         const structural=frames.filter(frame=>frame.currentShells!==1||frame.visibleProductHeaders!==1||frame.legacyCommandBars!==0||frame.primaryNavCount!==1);
         const last=frames.at(-1);
+        let representativeInteraction=false;
+        const recentButton=page.locator('[data-growth-open]').first();
+        if(await recentButton.isVisible().catch(()=>false)){
+          await recentButton.click({timeout:3000});
+          representativeInteraction=true;
+          await page.waitForTimeout(120);
+          await page.keyboard.press('Escape').catch(()=>{});
+          await page.waitForTimeout(80);
+        }
         const performanceSignals=await page.evaluate(()=>({
           longTasks:Array.isArray(window.__QELLY_PERF_SIGNALS__?.longTasks)?window.__QELLY_PERF_SIGNALS__.longTasks:[],
           mutations:Number(window.__QELLY_PERF_SIGNALS__?.mutations||0),
-          domNodes:document.getElementsByTagName('*').length
+          domNodes:document.getElementsByTagName('*').length,
+          webVitals:{...(window.__QELLY_PERF_SIGNALS__?.webVitals||{})}
         }));
+        performanceSignals.webVitals.representativeInteraction=representativeInteraction;
         const criticalStalls=performanceSignals.longTasks.filter((item)=>Number(item.duration)>2000);
         const unexpectedNetwork=networkFailures.filter(item=>!item.expectedAuthBoundary);
         const authBoundary401=networkFailures.filter(item=>item.expectedAuthBoundary);
-        const passed=obsolete.length===0&&structural.length===0&&last.appReady==='true'&&last.mainChildren>0&&errors.length===0&&unexpectedNetwork.length===0&&criticalStalls.length===0;
-        report.scenarios.push({route:routeName,hash,viewport:viewportName,mode,navigationToDomContentLoadedMs:Math.round(domLoaded-started),frames,obsolete,structural,errors,unexpectedNetwork,authBoundary401,performanceSignals:{...performanceSignals,criticalStalls,maxLongTaskMs:performanceSignals.longTasks.reduce((max,item)=>Math.max(max,Number(item.duration)||0),0),longTasksOver500:performanceSignals.longTasks.filter((item)=>Number(item.duration)>500).length},status:passed?'passed':'failed'});
+        const vitals=performanceSignals.webVitals||{};
+        const vitalsMeasured=Number.isFinite(vitals.fcpMs)&&Number.isFinite(vitals.lcpMs)&&Number.isFinite(vitals.cls)&&(representativeInteraction?Number.isFinite(vitals.inpMs):true);
+        const vitalRegressions=[];
+        if(Number(vitals.fcpMs)>3000)vitalRegressions.push('fcp');
+        if(Number(vitals.lcpMs)>4000)vitalRegressions.push('lcp');
+        if(Number(vitals.cls)>0.25)vitalRegressions.push('cls');
+        if(representativeInteraction&&Number(vitals.inpMs)>500)vitalRegressions.push('inp');
+        const passed=obsolete.length===0&&structural.length===0&&last.appReady==='true'&&last.mainChildren>0&&errors.length===0&&unexpectedNetwork.length===0&&criticalStalls.length===0&&vitalsMeasured&&vitalRegressions.length===0;
+        report.scenarios.push({route:routeName,hash,viewport:viewportName,mode,navigationToDomContentLoadedMs:Math.round(domLoaded-started),frames,obsolete,structural,errors,unexpectedNetwork,authBoundary401,performanceSignals:{...performanceSignals,criticalStalls,vitalRegressions,maxLongTaskMs:performanceSignals.longTasks.reduce((max,item)=>Math.max(max,Number(item.duration)||0),0),longTasksOver500:performanceSignals.longTasks.filter((item)=>Number(item.duration)>500).length},status:passed?'passed':'failed'});
         if(!passed)report.status='failed';
       }
       await context.close();
@@ -234,6 +284,15 @@ const summary={
   criticalStalls:report.scenarios.reduce((total,item)=>total+(item.performanceSignals?.criticalStalls?.length??0),0),
   maxDomNodes:Math.max(...report.scenarios.map(item=>item.performanceSignals?.domNodes??0)),
   totalMutations:report.scenarios.reduce((total,item)=>total+(item.performanceSignals?.mutations??0),0),
+  maxFcpMs:Math.max(...report.scenarios.map(item=>Number(item.performanceSignals?.webVitals?.fcpMs)||0)),
+  maxLcpMs:Math.max(...report.scenarios.map(item=>Number(item.performanceSignals?.webVitals?.lcpMs)||0)),
+  maxCls:Math.max(...report.scenarios.map(item=>Number(item.performanceSignals?.webVitals?.cls)||0)),
+  maxInpMs:Math.max(...report.scenarios.map(item=>Number(item.performanceSignals?.webVitals?.inpMs)||0)),
+  vitalsMissing:report.scenarios.filter(item=>{
+    const vital=item.performanceSignals?.webVitals||{};
+    return !Number.isFinite(vital.fcpMs)||!Number.isFinite(vital.lcpMs)||!Number.isFinite(vital.cls)||(vital.representativeInteraction&&!Number.isFinite(vital.inpMs));
+  }).map(item=>({route:item.route,viewport:item.viewport,mode:item.mode})),
+  vitalRegressions:report.scenarios.flatMap(item=>(item.performanceSignals?.vitalRegressions||[]).map(metric=>({route:item.route,viewport:item.viewport,mode:item.mode,metric}))),
   routeCycleStatus:report.routeCycleStability?.status??'not_run',
   routeCycleFailures:report.routeCycleStability?.failures??[],
   routeCycleErrors:report.routeCycleStability?.errors??[],

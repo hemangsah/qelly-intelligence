@@ -8,6 +8,7 @@ on:
       - 'functions/**'
       - 'packages/**'
       - 'scripts/release-a5-*'
+      - 'scripts/qelly-first-paint-stability.mjs'
       - 'scripts/finalize-public-runtime.mjs'
       - 'scripts/finalize-governed-discovery.mjs'
       - 'src/server/**'
