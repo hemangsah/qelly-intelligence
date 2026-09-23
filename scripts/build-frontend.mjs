@@ -126,6 +126,10 @@ if(!index.includes('qelly-production-shell.css'))index=index.replace('</head>','
 if(!index.includes('qelly-production-shell.mjs'))index=index.replace('</body>','  <script type="module" src="./assets/qelly-production-shell.mjs"></script>\n</body>');
 if(!index.includes('qelly-product-experience.css'))index=index.replace('</head>','  <link rel="stylesheet" href="./assets/qelly-product-experience.css">\n</head>');
 if(!index.includes('qelly-product-experience.mjs'))index=index.replace('</body>','  <script type="module" src="./assets/qelly-product-experience.mjs"></script>\n</body>');
+const retiredVerifyExecutables=['qelly-verify-bootstrap.mjs','qelly-verify-shell-nav.mjs'];
+for(const retired of retiredVerifyExecutables){
+  if(index.includes(retired))throw new Error(`Retired Verify executable survived frontend build: ${retired}`);
+}
 await writeFile(indexPath,index);
 
 const connectedRuntimeConfig={
