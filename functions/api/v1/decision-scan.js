@@ -22,7 +22,7 @@ const compactCandidate=(result)=>{
   const view=result.qellyView||{},gate=view.evidenceGate||{},trade=result.tradeResearch||{},selected=trade.selected||null;
   const action=String(view.action||'NO TRADE');
   const lifecycleState=String(trade?.lifecycle?.state||'').toUpperCase();
-  const entryReady=!trade?.lifecycle||lifecycleState==='VALID';
+  const entryReady=!trade?.lifecycle||['VALID','TRIGGERED','ACTIVE'].includes(lifecycleState);
   const eligible=(action==='BUY'||action==='SELL')&&trade.status==='VALID'&&entryReady&&gate.calibrationEligible===true;
   return {
     asset:result.asset,
