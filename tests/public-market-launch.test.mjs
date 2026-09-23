@@ -55,16 +55,19 @@ test('public market launch APIs work without an authenticated session',async()=>
 });
 
 test('public launch frontend exposes market routes without release-only branding',async()=>{
-  const [registry,index,app]=await Promise.all([
+  const [registry,index,app,market]=await Promise.all([
     readFile(new URL('../apps/web/public/assets/route-registry.mjs',import.meta.url),'utf8'),
     readFile(new URL('../apps/web/public/index.html',import.meta.url),'utf8'),
-    readFile(new URL('../apps/web/public/assets/app.js',import.meta.url),'utf8')
+    readFile(new URL('../apps/web/public/assets/app.js',import.meta.url),'utf8'),
+    readFile(new URL('../apps/web/public/assets/routes/market-v6.mjs',import.meta.url),'utf8')
   ]);
   for(const route of ['market','asset-rankings','asset','about-qelly'])assert.match(registry,new RegExp(`route:'${route}'.*public:true`));
   assert.doesNotMatch(index,/Release A5/i);
   assert.match(index,/READ ONLY/);
-  assert.match(app,/\/api\/v1\/public\/markets\/overview/);
+  assert.match(app,/case 'market': await renderMarketV6\(main,\{api,pageHead,stateBanner,escapeHtml\}\); break;/);
   assert.match(app,/case 'asset-rankings': await renderRankings\(main\)/);
   assert.doesNotMatch(app,/case 'asset-rankings': await renderAssetRankings\(main\)/);
-  assert.match(app,/No fixture value is labelled live/);
+  assert.match(market,/\/api\/v1\/market\/network/);
+  assert.match(market,/\/api\/v1\/providers\/ecb\?capability=fx-reference-rates&symbol=EUR/);
+  assert.match(market,/Missing market data is never replaced with invented values/);
 });
