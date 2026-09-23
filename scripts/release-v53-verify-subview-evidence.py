@@ -238,7 +238,7 @@ def main():
     if 'market' not in index:
         raise SystemExit('canonical Market route missing')
     if 'evidence-methodology' in index:
-        raise SystemExit('Evidence Methodology must remain a governed Market subview')
+        raise SystemExit('Evidence Methodology must remain a governed Qelly Verify subview')
 
     if OUT.exists(): shutil.rmtree(OUT)
     OUT.mkdir(parents=True)
