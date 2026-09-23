@@ -45,7 +45,7 @@ const rankingComponents=(result)=>{
   const rr=FEASIBILITY_WEIGHT[String(selected.feasibility||'UNAVAILABLE')]??0;
   const liquidity=result?.liquidity||result?.evidence?.liquidity||{};
   const spread=finite(liquidity?.spreadBps);
-  const liquidityScore=String(liquidity?.state||'').toLowerCase()==='live'?(spread===null?0.6:spread<=5?1:spread<=15?.72:.2):.35;
+  const liquidityScore=String(liquidity?.state||'').toLowerCase()==='live'?(spread===null?0.6:spread<=5?1:spread<=15?0.72:0.2):.35;
   const volatilityState=String(result?.quant?.volatility?.regime||'UNKNOWN').toUpperCase();
   const volatility=volatilityState==='NORMAL'?1:volatilityState==='LOW'?0.78:volatilityState==='ELEVATED'?0.62:volatilityState==='HIGH'?0.32:.45;
   const contradiction=clamp(1-Math.min(1,(Array.isArray(view.contradictions)?view.contradictions.length:0)/4));
