@@ -21,7 +21,9 @@ const researchPriority=(result)=>{
 const compactCandidate=(result)=>{
   const view=result.qellyView||{},gate=view.evidenceGate||{},trade=result.tradeResearch||{},selected=trade.selected||null;
   const action=String(view.action||'NO TRADE');
-  const eligible=(action==='BUY'||action==='SELL')&&trade.status==='VALID'&&gate.calibrationEligible===true;
+  const lifecycleState=String(trade?.lifecycle?.state||'').toUpperCase();
+  const entryReady=!trade?.lifecycle||['VALID','TRIGGERED','ACTIVE'].includes(lifecycleState);
+  const eligible=(action==='BUY'||action==='SELL')&&trade.status==='VALID'&&entryReady&&gate.calibrationEligible===true;
   return {
     asset:result.asset,
     interval:result.interval,
@@ -49,6 +51,8 @@ const compactCandidate=(result)=>{
     },
     trade:{
       status:trade.status||'NO_TRADE',
+      lifecycle:lifecycleState||null,
+      entryReady,
       reason:trade.reason||view.label||'No valid setup.',
       rr:selected?.label??null,
       feasibility:selected?.feasibility??null,
