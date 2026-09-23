@@ -127,6 +127,7 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null,now=n
   const expectedMovePct=finite(graph?.quant?.volatility?.expectedMovePct);
   const regime=graph?.quant?.regime||graph?.market?.currentState?.regime||'UNKNOWN';
   const eventRisk=graph?.eventRisk||graph?.evidence?.eventRisk||{state:'UNAVAILABLE',level:'UNAVAILABLE',reason:'No verified event-risk feed is attached to this setup.'};
+  const liquidity=graph?.liquidity||graph?.evidence?.liquidity||{state:'unavailable',currentOnly:true,reason:'No verified liquidity snapshot is attached to this setup.'};
   const base={
     schemaVersion:'qelly.trade-research/1.1.0',
     setupId:graph?.graphId?graph.graphId+'-trade':null,
@@ -141,7 +142,7 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null,now=n
     whatChangesView:view.changesIf||'Reassess when fresh evidence changes.',
     calibration:'Target-touch probability, time-to-target and trade win rate are not yet independently calibrated, so they are not fabricated.',
     calibrationState:graph?.quant?.calibration||{state:'UNCALIBRATED',sampleSize:0,brierScore:null,reliabilityBins:[]},
-    riskContext:{volatilityRegime,expectedMovePct,marketStructure:structure,regime,eventRisk}
+    riskContext:{volatilityRegime,expectedMovePct,marketStructure:structure,regime,eventRisk,liquidity:{state:liquidity?.state||'unavailable',currentOnly:liquidity?.currentOnly!==false,spreadBps:finite(liquidity?.spreadBps),spreadState:liquidity?.spreadState||'UNAVAILABLE',top5Imbalance:finite(liquidity?.top5Imbalance),imbalanceState:liquidity?.imbalanceState||'UNAVAILABLE',reason:liquidity?.reason||null}}
   };
   if(!directional||entryZone.length!==2||!entryZone.every(Number.isFinite)||!Number.isFinite(invalidation)){
     const lifecycle=lifecycleFor({status:'NO_TRADE',entryMethod:'WAIT',truthState:String(graph?.truthState||'')});

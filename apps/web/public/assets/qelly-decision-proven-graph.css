@@ -107,3 +107,21 @@
 @media(max-width:1100px){.q-dpg-analog-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:780px){.q-dpg-analogs>header{display:grid}.q-dpg-analog-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.q-dpg-analog-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.q-dpg-analog-summary,.q-dpg-analog-list{grid-template-columns:1fr}.q-dpg-analogs{padding:12px}}
+
+
+/* Decision Intelligence market structure + liquidity + event risk */
+.q-dpg-structure,.q-dpg-liquidity,.q-dpg-event-risk{display:grid;gap:12px;padding:16px;border:1px solid var(--border);border-radius:16px;background:var(--surface);min-width:0}
+.q-dpg-structure>header,.q-dpg-liquidity>header,.q-dpg-event-risk>header{display:flex;justify-content:space-between;gap:16px;align-items:start}
+.q-dpg-structure>header small,.q-dpg-liquidity>header small,.q-dpg-event-risk>header small{font-size:10px;letter-spacing:.1em;color:var(--text-muted)}
+.q-dpg-structure>header h2,.q-dpg-liquidity>header h2,.q-dpg-event-risk>header h2{margin:4px 0 0}
+.q-dpg-structure>header>span,.q-dpg-liquidity>header>span,.q-dpg-event-risk>header>span{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;text-align:right}
+.q-dpg-structure>p,.q-dpg-liquidity>p,.q-dpg-event-risk>p{margin:0;color:var(--text-muted);font-size:10px;line-height:1.5}
+.q-dpg-structure__grid,.q-dpg-liquidity__grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.q-dpg-structure__grid article,.q-dpg-liquidity__grid article{display:grid;gap:5px;padding:11px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.02);min-width:0}
+.q-dpg-structure__grid span,.q-dpg-liquidity__grid span{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)}
+.q-dpg-structure__grid strong,.q-dpg-liquidity__grid strong{font-size:12px;overflow-wrap:anywhere}
+.q-dpg-structure__grid small,.q-dpg-liquidity__grid small{font-size:9px;color:var(--text-muted);line-height:1.35}
+.q-dpg-liquidity__limit,.q-dpg-event-risk__limit{padding-top:8px;border-top:1px solid var(--border)}
+@media(max-width:1100px){.q-dpg-structure__grid,.q-dpg-liquidity__grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:720px){.q-dpg-structure>header,.q-dpg-liquidity>header,.q-dpg-event-risk>header{display:grid}.q-dpg-structure>header>span,.q-dpg-liquidity>header>span,.q-dpg-event-risk>header>span{text-align:left}.q-dpg-structure__grid,.q-dpg-liquidity__grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.q-dpg-structure__grid,.q-dpg-liquidity__grid{grid-template-columns:1fr}.q-dpg-structure,.q-dpg-liquidity,.q-dpg-event-risk{padding:12px}}
