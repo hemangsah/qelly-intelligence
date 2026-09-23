@@ -33,7 +33,7 @@ test('app.js is the sole first-view owner for Verify and methodology',async()=>{
   assert.match(app,/const renderQellyVerifyMethodology=lazyRoute\('\.\/qelly-verify-product\.mjs','renderMethodology'\)/);
   assert.match(app,/case 'qelly-verify':/);
   assert.match(app,/state\.routeQuery\?\.get\?\.\('view'\)==='methodology'/);
-  assert.match(app,/if\(state\.route!=='qelly-verify'\)delete main\.dataset\.qellyVerifyOwner/);
+  assert.match(app,/if\(state\.route!=='qelly-verify'\)\{delete main\.dataset\.qellyVerifyOwner;delete document\.documentElement\.dataset\.qellyVerifySubview;\}/);
 });
 
 test('Verify product and accepted V5.3 convergence have no global render reconciliation',async()=>{
