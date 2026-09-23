@@ -217,6 +217,13 @@ export function buildCalculatorToolReceipt(request={}){
 export function compactDecisionToolReceipt(result){
   if(!result)return receipt('decision-intelligence','QELLY Decision Intelligence',{limitations:['Decision Intelligence did not return a result.']});
   const view=result.qellyView||{},gate=view.evidenceGate||{},news=result.evidence?.news||{},derivatives=result.evidence?.derivatives||{};
+  const trade=result.tradeResearch||{},calibration=result.quant?.calibration||{},analogs=result.historicalAnalogs||{},contradiction=result.contradictionAnalysis||{},snapshot=result.decisionSnapshot||{};
+  const traceNodes=Array.isArray(result.decisionTrace?.nodes)?result.decisionTrace.nodes.slice(0,12).map(node=>({
+    id:node.id,kind:node.kind,label:node.label,freshness:node.freshness,role:node.role,reliability:node.reliability,source:node.source
+  })):[];
+  const targetLadder=Array.isArray(trade.targets)?trade.targets.slice(0,6).map(item=>({
+    label:item.label??null,price:item.price??item.target??null,status:item.status??null,feasibility:item.feasibility??null
+  })):[];
   return receipt('decision-intelligence','QELLY Decision Intelligence',{
     truthState:result.truthState||'unavailable',
     freshness:result.freshness?.state||result.truthState||'unavailable',
@@ -227,12 +234,38 @@ export function compactDecisionToolReceipt(result){
       marketState:result.market?.currentState??null,action:view.action??'NO TRADE',confidence:view.confidence??null,
       confidenceMeaning:result.confidence?.calibration??null,riskState:view.riskState??null,scenario:view.scenario??result.forecast?.probabilities??null,
       evidenceGate:gate,contradictions:view.contradictions??[],changesIf:view.changesIf??null,
+      contradictionAnalysis:{
+        state:contradiction.state??null,score:contradiction.score??null,
+        strongestSupport:contradiction.strongestSupport??null,strongestContradiction:contradiction.strongestContradiction??null,
+        unresolved:contradiction.unresolved===true
+      },
       multiTimeframe:result.multiTimeframe?.agreement??null,
+      calibration:{
+        state:calibration.state??'UNCALIBRATED',eligible:calibration.eligible===true,sampleSize:calibration.sampleSize??0,
+        brierScore:calibration.brierScore??null,reliabilityGap:calibration.reliabilityGap??null,skillScore:calibration.skillScore??null
+      },
+      tradeResearch:{
+        status:trade.status??'NO_TRADE',lifecycle:trade.lifecycle?.state??trade.lifecycle??null,
+        entry:trade.entry??null,stop:trade.stop??null,invalidation:trade.invalidation??null,
+        selectedRr:trade.selected??null,targets:targetLadder,expiryAt:trade.expiryAt??null,reason:trade.reason??null
+      },
+      historicalAnalogs:{
+        state:analogs.state??'UNAVAILABLE',summary:analogs.summary??null,eligibilityImpact:analogs.eligibilityImpact??'none'
+      },
+      decisionSnapshot:Object.keys(snapshot).length?snapshot:null,
+      decisionTrace:{
+        state:result.decisionTrace?'available':'unavailable',
+        eligibilityImpact:result.decisionTrace?.eligibilityImpact??'none',
+        boundary:result.decisionTrace?.boundary??null,
+        nodes:traceNodes
+      },
       derivatives:{state:derivatives.state??'unavailable',fundingPct:derivatives.fundingPct??null,openInterestNotionalUsd:derivatives.openInterestNotionalUsd??null},
       news:{state:news.state??'unavailable',provider:news.provider??null,articles:(news.articles||[]).slice(0,4).map(item=>({title:item.title,source:item.source,publishedAt:item.publishedAt,url:item.url}))}
     },
     limitations:[
       ...(result.provenance?.model?.limitations||[]).slice(0,5),
+      'Decision Trace is explanatory only and has no independent eligibility impact.',
+      'Historical analog outcomes are descriptive context, not win probability.',
       'QELLY VIEW is research support only; it does not execute a trade or represent a success probability.'
     ]
   });
