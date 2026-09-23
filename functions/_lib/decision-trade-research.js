@@ -66,7 +66,7 @@ const expiryBarsFor=(intervalMs,horizonBars,volatilityRegime,entryMethod)=>{
 
 const costAdjusted=(entry,risk,rewardDistance,ratio,graph)=>{
   const roundTripPct=finite(graph?.costs?.roundTripPct);
-  if(!(roundTripPct>=0)&&roundTripPct!==0)return {grossRiskReward:round(ratio,2),netRiskReward:null,costState:'UNAVAILABLE',estimatedCost:null,costReason:'Venue-specific spread and fee assumptions are unavailable, so net R:R is not fabricated.'};
+  if(!Number.isFinite(roundTripPct)||roundTripPct<0)return {grossRiskReward:round(ratio,2),netRiskReward:null,costState:'UNAVAILABLE',estimatedCost:null,costReason:'Venue-specific spread and fee assumptions are unavailable, so net R:R is not fabricated.'};
   const costDistance=Math.abs(entry*roundTripPct/100);
   const netReward=Math.max(0,rewardDistance-costDistance);
   const netRisk=risk+costDistance;
