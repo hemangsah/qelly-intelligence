@@ -1,4 +1,5 @@
 import {adSlot,mountAdSlots} from '../qelly-ad-slot.mjs';
+import {DECISION_CONTEXT_KEY as CHAT_DECISION_CONTEXT_KEY,DECISION_ASSETS,consumeDecisionContext as readChatDecisionContext} from '../decision-context-bridge.mjs';
 const STYLESHEET=new URL('../qelly-decision-proven-graph.css',import.meta.url).href;
 const installStyles=()=>{if(!document.querySelector('link[data-decision-proven-graph]')){const link=document.createElement('link');link.rel='stylesheet';link.href=STYLESHEET;link.dataset.decisionProvenGraph='v2';document.head.append(link);}};
 const money=(value)=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:Number(value)>=100?0:2}).format(value);
@@ -10,22 +11,6 @@ const INTERVAL_MS=Object.freeze({'1m':60_000,'5m':300_000,'15m':900_000,'30m':1_
 const HORIZON_MS=Object.freeze({'1h':3_600_000,'4h':14_400_000,'12h':43_200_000,'1d':86_400_000,'3d':259_200_000,'7d':604_800_000});
 const validHorizons=(interval)=>Object.keys(HORIZON_MS).filter(horizon=>{const bars=Math.ceil(HORIZON_MS[horizon]/INTERVAL_MS[interval]);return bars>=2&&bars<=168;});
 const normalizeHorizon=(interval,horizon)=>validHorizons(interval).includes(horizon)?horizon:validHorizons(interval)[0];
-const CHAT_DECISION_CONTEXT_KEY='qelly.decision.chat-context.v1';
-const DECISION_ASSETS=new Set(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
-const readChatDecisionContext=()=>{
-  try{
-    const storage=globalThis.sessionStorage;
-    if(!storage)return {asset:'BTC',interval:'15m'};
-    const raw=storage.getItem(CHAT_DECISION_CONTEXT_KEY);
-    if(!raw)return {asset:'BTC',interval:'15m'};
-    storage.removeItem(CHAT_DECISION_CONTEXT_KEY);
-    const parsed=JSON.parse(raw),createdAt=Date.parse(parsed?.createdAt||'');
-    if(!Number.isFinite(createdAt)||Date.now()-createdAt>15*60_000)return {asset:'BTC',interval:'15m'};
-    const asset=DECISION_ASSETS.has(String(parsed?.asset||'').toUpperCase())?String(parsed.asset).toUpperCase():'BTC';
-    const interval=Object.hasOwn(INTERVAL_MS,String(parsed?.timeframe||''))?String(parsed.timeframe):'15m';
-    return {asset,interval};
-  }catch{return {asset:'BTC',interval:'15m'};}
-};
 const displayTime=(value)=>{
   const raw=String(value||'').trim();
   const compact=raw.match(/^(\d{4})(\d{2})(\d{2})T?(\d{2})(\d{2})(\d{2})Z?$/);
