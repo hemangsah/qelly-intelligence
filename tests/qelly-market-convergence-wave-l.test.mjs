@@ -23,8 +23,8 @@ test('canonical Market keeps Advanced Chart first and Crypto Heatmap immediately
   assert.ok(firstPanel>=0,'crypto heatmap panel definition is missing');
   const panelBlock=source.slice(source.indexOf('const MARKET_WIDGET_PANELS'),source.indexOf('const INTELLIGENCE_DOCK_PANELS'));
   assert.match(panelBlock,/MARKET_WIDGET_PANELS=Object\.freeze\(\[\s*\{id:'crypto-heatmap'/);
-  assert.match(source,/mountTradingViewDisplay\(chartHost/);
-  assert.match(source,/mountMarketWidgets\(marketRoot/);
+  assert.match(source,/mountTradingViewDisplay\(chart,\{symbol:symbol\.value,interval:interval\.value\}\)/);
+  assert.match(source,/mountTradingViewMarketGrid\(marketGrid,\{panels:gridPanels,context:/);
 });
 
 test('TradingView embeds remain destroyable and timeout-bounded',async()=>{
