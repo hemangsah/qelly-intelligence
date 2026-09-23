@@ -1,3 +1,4 @@
+import {storeDecisionContext} from '../decision-context-bridge.mjs';
 const ENDPOINT='/api/v1/formula-screener';
 
 const formatNumber=(value,digits=3)=>Number.isFinite(Number(value))?Number(value).toLocaleString(undefined,{maximumFractionDigits:digits}):'Unavailable';
@@ -5,7 +6,7 @@ const formatTime=(value)=>{if(!value)return 'Unavailable';const date=new Date(va
 const statusClass=(state)=>state==='live'||state==='available'?'fresh':state==='partial'||state==='delayed'?'cached':'unavailable';
 
 export async function renderFormulaScreener(main,deps){
-  const {api,pageHead,stateBanner,escapeHtml,QellyDataGrid,toast}=deps;
+  const {api,pageHead,stateBanner,escapeHtml,QellyDataGrid,toast,navigate}=deps;
   let catalog;
   try{catalog=await api(ENDPOINT);}
   catch(error){
@@ -39,6 +40,10 @@ export async function renderFormulaScreener(main,deps){
       <div class="q-panel-head"><div><h2>Ranked results</h2><p>Unavailable assets remain explicit. Freshness is based on the most recent observed candle for each row.</p></div></div>
       <div class="q-panel-body" id="formula-error" hidden></div>
       <div id="formula-grid"></div>
+    </section>
+    <section class="q-panel">
+      <div class="q-panel-head"><div><h2>Continue in Decision Intelligence</h2><p>Screener rank is supporting evidence only. Opening an asset does not bypass calibration, multi-timeframe, liquidity, event-risk or NO TRADE gates.</p></div><span class="q-status q-status--cached">Research handoff</span></div>
+      <div class="q-panel-body"><div class="q-inline-form"><label class="q-setting"><span>Asset</span><select id="formula-decision-asset" disabled><option>Run the screener first</option></select></label><button class="q-button q-button--primary" type="button" data-action="open-decision" disabled>Open in Decision Intelligence</button></div><p id="formula-decision-boundary">Formula results never create trade eligibility on their own.</p></div>
     </section>
   </section>`;
 
@@ -81,6 +86,13 @@ export async function renderFormulaScreener(main,deps){
     });
     main.querySelector('#formula-row-count').textContent=String(payload.available);
     main.querySelector('#formula-generated-at').textContent=`Updated ${formatTime(payload.generatedAt)}`;
+    const decisionSelect=main.querySelector('#formula-decision-asset');
+    const decisionButton=main.querySelector('[data-action="open-decision"]');
+    const availableAssets=payload.rows.filter((row)=>row.state==='available').map((row)=>row.asset);
+    decisionSelect.innerHTML=availableAssets.length?availableAssets.map((asset)=>`<option value="${escapeHtml(asset)}">${escapeHtml(asset)}</option>`).join(''):'<option>No available asset</option>';
+    decisionSelect.disabled=!availableAssets.length;
+    decisionButton.disabled=!availableAssets.length;
+    main.querySelector('#formula-decision-boundary').textContent=payload.decisionBoundary?.message||'Formula results never create trade eligibility on their own.';
     const state=main.querySelector('#formula-state');
     state.textContent=payload.state==='live'?'Live':payload.state==='partial'?'Partial':'Unavailable';
     state.className=`q-status q-status--${statusClass(payload.state)}`;
@@ -115,5 +127,10 @@ export async function renderFormulaScreener(main,deps){
   };
 
   runButton.addEventListener('click',run);
+  main.querySelector('[data-action="open-decision"]')?.addEventListener('click',()=>{
+    const asset=main.querySelector('#formula-decision-asset')?.value;
+    if(!storeDecisionContext({asset,timeframe:'1h',source:'formula-screener'}))return;
+    navigate?.('decision-provenance');
+  });
   await run();
 }
