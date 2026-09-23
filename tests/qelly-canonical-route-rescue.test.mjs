@@ -20,7 +20,10 @@ test('rescue coverage matches photographed canonical route failures without fabr
   assert.doesNotMatch(source,/rescueNews|route==='news-research'/);
   assert.match(source,/Missing source coverage stays clearly identified instead of being replaced with sample market values/);
   assert.match(source,/providerPolicyMessage/);
-  assert.match(source,/NO PERSISTENCE/);
+  assert.match(source,/NO TRADE/);
+  assert.match(source,/FAIL CLOSED/);
+  assert.match(source,/No substitute data, probability, entry, stop, target, or confidence was generated/);
+  assert.doesNotMatch(source,/evaluateDecision|Run local analysis|Evidence confidence|Scenario move %/);
   assert.match(source,/\/api\/v1\/providers\/runtime/);
   assert.match(source,/\/api\/v1\/platform\/readiness/);
   assert.match(source,/\/api\/v1\/workspace\/watchlists/);
