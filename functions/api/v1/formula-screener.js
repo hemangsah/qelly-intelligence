@@ -38,7 +38,7 @@ function publicCatalog(){
     assets:ASSETS,
     formulas:Object.values(FORMULAS).map(({calculate,...formula})=>formula),
     source:{provider:'Hyperliquid',market:'public candle data',interval:INTERVAL},
-    boundaries:{customExpressions:false,arbitraryCode:false,arbitrarySql:false,providerProxy:false,privilegedState:false}
+    boundaries:{customExpressions:false,arbitraryCode:false,arbitrarySql:false,providerProxy:false,privilegedState:false,decisionEligibility:false,role:'supporting_evidence_only'}
   };
 }
 
@@ -90,7 +90,7 @@ function metricsFor(graph){
 async function evaluateAsset(fetchImpl,asset,formula,endTime){
   const payload=await fetchCandles(fetchImpl,asset,endTime);
   let graph;
-  try{graph=buildDecisionProvenGraph(payload,{asset,interval:INTERVAL,horizonBars:4,now:endTime});}
+  try{graph=buildDecisionProvenGraph(payload,{asset,interval:INTERVAL,horizonBars:4,now:endTime,scenarioPaths:32});}
   catch(error){throw new HttpError(503,'insufficient_provider_data','Live Formula Screener data is insufficient for this asset.',{details:{asset},retryable:true});}
   const metrics=metricsFor(graph);
   if(!Object.values(metrics).every(Number.isFinite))throw new HttpError(503,'insufficient_provider_data','Live Formula Screener data is incomplete for this asset.',{details:{asset},retryable:true});
@@ -108,7 +108,9 @@ async function evaluateAsset(fetchImpl,asset,formula,endTime){
     },
     source:{provider:'Hyperliquid',observedAt:graph.observedAt},
     freshness:{state:String(graph.truthState||'DEGRADED').toLowerCase(),ageMs:graph.freshness?.ageMs??null},
-    state:'available'
+    state:'available',
+    decisionRole:'supporting_evidence_only',
+    decisionEligibility:false
   };
 }
 
@@ -148,6 +150,7 @@ async function runScreen(env,{formula,assets}){
     rows,
     available:available.length,
     requested:rows.length,
+    decisionBoundary:{role:'supporting_evidence_only',eligibility:false,message:'Formula Screener can open an asset in Decision Intelligence, but screener rank never bypasses Decision evidence gates.'},
     fabricatedFallback:false
   };
 }
