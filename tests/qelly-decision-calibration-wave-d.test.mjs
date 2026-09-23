@@ -36,6 +36,8 @@ test('walk-forward calibration is deterministic and resolved without future leak
   assert.equal(Number.isFinite(a.skillScore),true);
   assert.equal(Number.isFinite(a.reliabilityGap),true);
   assert.ok(Array.isArray(a.reliabilityBins));
+  assert.equal(a.bootstrapPaths,64);
+  assert.match(a.method,/bounded 64-path bootstrap/i);
   assert.match(a.method,/walk-forward/i);
   assert.match(a.leakageGuard,/Future candles are used only to score/i);
   assert.ok(Date.parse(a.firstResolvedAt)<=Date.parse(a.lastResolvedAt));
