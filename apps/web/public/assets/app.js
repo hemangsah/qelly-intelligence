@@ -4,6 +4,7 @@ import { QellyDataGrid } from '../packages/data-grid/data-grid.mjs';
 import { QellyChartShell } from '../packages/charting/chart-shell.mjs';
 import { productDomains, routeDefinitions } from './route-registry.mjs';
 import { parseHashRoute } from './hash-route-state.mjs';
+import {bindPublicRecoveryActions,installPublicRecoveryChrome,isPublicRecoveryRoute,publicRecoveryMarkup} from './qelly-public-recovery.mjs';
 import { personaFor, personaPreferencePatch } from './persona-profiles.mjs';
 import { renderShellFoundations } from './shell-foundations.mjs';
 import { storeDecisionContext } from './decision-context-bridge.mjs';
@@ -165,6 +166,7 @@ async function boot() {
   if(state.config.auth?.authenticated)await loadAuthenticatedState();
   else{state.authenticated=false;state.prefs={...defaultPreferences};state.overview=anonymousOverview;state.route=state.config.defaultRoute??'auth-login';}
   publishSessionState();
+  installPublicRecoveryChrome();
   renderStaticPreviewChrome();renderIdentityHeader();applyPreferences();renderMacroStrip();renderNavigation();bindShell();resolveHash();
   void import('./ai/qelly-chat.mjs').then(({installQellyChat})=>installQellyChat({api,navigate,toast,staticVisualPreview})).catch(()=>{});
 }
@@ -332,8 +334,12 @@ function bindShell() {
 }
 
 function resolveHash() {
-  const {route,asset,query}=parseHashRoute(location.hash,{fallback:state.prefs?.route||'market'});
-  if(route==='qelly-verify'){
+  const sourceHash=location.hash;
+  const {route,asset,query}=parseHashRoute(sourceHash,{fallback:state.prefs?.route||'market'});
+  const legacyDecisionMaker=/^#\/market\?[^#]*\bview=decision-maker(?:&|$)/i.test(sourceHash);
+  if(legacyDecisionMaker){
+    history.replaceState(null,'','#/decision-provenance');
+  }else if(route==='qelly-verify'){
     const canonicalQuery=query.toString();
     const canonicalHash=`#/qelly-verify${canonicalQuery?`?${canonicalQuery}`:''}`;
     if(location.hash!==canonicalHash)history.replaceState(null,'',canonicalHash);
@@ -491,10 +497,16 @@ async function performRouteRender(request,controller) {
     }
   } catch (error) {
     if(error?.name==='AbortError'||request!==routeRenderRequest)return;
-    main.innerHTML = isCapabilityBoundaryError(error)
-      ? capabilityBoundaryPage(definition,error)
-      : errorPage('Unable to render this route.', error.message);
-    bindRetry();
+    if(isCapabilityBoundaryError(error)){
+      main.innerHTML=capabilityBoundaryPage(definition,error);
+      bindRetry();
+    }else if(isPublicRecoveryRoute(route)){
+      main.innerHTML=publicRecoveryMarkup(route,error.message,{preview:staticVisualPreview});
+      bindPublicRecoveryActions(main,{route,retry:()=>renderRoute()});
+    }else{
+      main.innerHTML=errorPage('Unable to render this route.',error.message);
+      bindRetry();
+    }
   } finally {
     if(currentRenderSignal===controller.signal)currentRenderSignal=null;
     if(request!==routeRenderRequest){

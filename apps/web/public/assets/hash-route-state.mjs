@@ -14,11 +14,13 @@ export function parseHashRoute(hash,{fallback='market'}={}){
   const legacyVerify=parsedRoute==='methodology'&&parsedAsset==='verify';
   const legacyMethodology=parsedRoute==='evidence-methodology'||(parsedRoute==='market'&&query.get('view')==='evidence-methodology');
   const legacyMarketVerify=parsedRoute==='market'&&query.get('view')==='qelly-verify';
-  const route=legacyVerify||legacyMethodology||legacyMarketVerify?'qelly-verify':(ROUTE_ALIASES[parsedRoute]??parsedRoute);
-  const asset=legacyVerify||legacyMethodology||legacyMarketVerify?null:parsedAsset;
+  const legacyDecisionMaker=parsedRoute==='market'&&query.get('view')==='decision-maker';
+  const verifyAlias=legacyVerify||legacyMethodology||legacyMarketVerify;
+  const route=verifyAlias?'qelly-verify':legacyDecisionMaker?'decision-provenance':(ROUTE_ALIASES[parsedRoute]??parsedRoute);
+  const asset=verifyAlias||legacyDecisionMaker?null:parsedAsset;
   const clearQuery=()=>{for(const key of [...query.keys()])query.delete(key);};
   if(legacyMethodology){clearQuery();query.set('view','methodology');}
-  if(legacyVerify||legacyMarketVerify)clearQuery();
+  if(legacyVerify||legacyMarketVerify||legacyDecisionMaker)clearQuery();
   return {route,asset,query,queryText:query.toString()};
 }
 
