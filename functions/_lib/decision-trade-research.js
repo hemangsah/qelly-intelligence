@@ -52,10 +52,10 @@ const autoSelectionScore=(item,{entry=null,expectedMovePct=null}={})=>{
     ?clamp(1-Math.max(0,distance-expectedMove)/(expectedMove*1.25),0,1)
     :.55;
   const congestion=String(item.targetCongestion||'UNAVAILABLE');
-  const congestionWeight=congestion==='CLEAR'?1:congestion==='AT_TARGET'?.86:congestion==='NEAR_TARGET'?.68:congestion==='BEFORE_TARGET'?.12:.5;
+  const congestionWeight=congestion==='CLEAR'?1:congestion==='AT_TARGET'?0.86:congestion==='NEAR_TARGET'?0.68:congestion==='BEFORE_TARGET'?0.12:.5;
   const rr=finite(item.ratio)??0;
   const rrUtility=clamp(Math.log1p(Math.max(0,rr))/Math.log(5),0,1);
-  const structuralFit=String(item.source||'')==='RR_PRESET'?.72:.9;
+  const structuralFit=String(item.source||'')==='RR_PRESET'?0.72:.9;
   return round(100*(.46*feasibilityWeight+.24*moveFit+.16*congestionWeight+.09*rrUtility+.05*structuralFit),2);
 };
 
