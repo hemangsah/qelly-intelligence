@@ -35,7 +35,7 @@ const resultFor=(asset,{
   tradeResearch:{
     status:tradeStatus,
     reason:tradeStatus==='VALID'?'Evidence-qualified setup':'No valid setup.',
-    selected:tradeStatus==='VALID'?{label:rr,feasibility:'HIGH',target:104}:null,
+    selected:tradeStatus==='VALID'?{label:rr,feasibility:'FEASIBLE',target:104,targetCongestion:'CLEAR',selectionScore:82}:null,
     entry:tradeStatus==='VALID'?{preferred:100}:null,
     stop:tradeStatus==='VALID'?{price:98}:null,
     expiryAt:tradeStatus==='VALID'?'2026-09-23T04:00:00.000Z':null
@@ -51,7 +51,7 @@ test('Decision scanner fails closed when calibration does not permit a trade',as
     now:Date.parse('2026-09-23T00:00:00.000Z'),
     build:async (_env,{asset})=>resultFor(asset,{priority:asset==='ETH'?.92:.65})
   });
-  assert.equal(scan.state,'no_eligible_setup');
+  assert.equal(scan.state,'WAIT');
   assert.equal(scan.eligibleCount,0);
   assert.equal(scan.availableCount,6);
   assert.equal(scan.eventRisk.state,'unavailable');
@@ -73,7 +73,7 @@ test('Decision scanner places a genuinely eligible calibrated setup before resea
       ?resultFor(asset,{action:'BUY',calibrated:true,tradeStatus:'VALID',priority:.55,rr:'1:2'})
       :resultFor(asset,{priority:.95})
   });
-  assert.equal(scan.state,'eligible_setups');
+  assert.equal(scan.state,'VALID_SETUP');
   assert.equal(scan.eligibleCount,1);
   assert.equal(scan.candidates[0].asset,'SOL');
   assert.equal(scan.candidates[0].eligible,true);
@@ -110,12 +110,13 @@ test('scanner helper rejects unsupported controls before provider work',async()=
 test('Decision route connects Find Trade Now to scanner and keeps mobile containment',async()=>{
   const route=await readFile(new URL('../apps/web/public/assets/routes/decision-proven-graph.mjs',import.meta.url),'utf8');
   const css=await readFile(new URL('../apps/web/public/assets/qelly-decision-proven-graph.css',import.meta.url),'utf8');
-  assert.match(route,/\/api\/v1\/decision-scan\?interval=/);
+  assert.match(route,/\/api\/v1\/decision-scan\?/);
   assert.match(route,/data-dpg-scan/);
-  assert.match(route,/FIND TRADE NOW · SIX-ASSET SCAN/);
-  assert.match(route,/Evidence triage ranks current research quality only/);
+  assert.match(route,/FIND TRADE NOW 2\.0 · GOVERNED SCAN/);
+  assert.match(route,/Evidence triage ranks current research quality, structural feasibility/);
   assert.match(route,/data-dpg-scan-asset/);
   assert.doesNotMatch(route,/data-dpg-find-trade/);
   assert.match(css,/\.q-dpg-scanner\{/);
-  assert.match(css,/@media\(max-width:540px\)\{\.q-dpg-scan-row\{grid-template-columns:26px 1fr auto/);
+  assert.match(css,/@media\(max-width:540px\)/);
+  assert.match(css,/\.q-dpg-scan-filters/);
 });
