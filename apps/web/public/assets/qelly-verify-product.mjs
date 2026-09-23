@@ -68,6 +68,7 @@ function renderError(error,sourceName){current=null;renderVerify();const status=
 export function renderVerify(){
   if(!main)return;
   main.dataset.qellyVerifyOwner='true';
+  document.documentElement.dataset.qellyVerifySubview='qelly-verify';
   main.setAttribute('aria-busy','false');
   main.innerHTML=verifyShell(current?.evidence,current?.validation,current?.evidence?.source?.name);
   bind();
@@ -78,6 +79,7 @@ export function renderVerify(){
 export function renderMethodology(){
   if(!main)return;
   main.dataset.qellyVerifyOwner='methodology';
+  document.documentElement.dataset.qellyVerifySubview='methodology';
   main.setAttribute('aria-busy','false');
   main.innerHTML=methodologyMarkup();
   document.title='Qelly Evidence Methodology · Qelly Intelligence';
