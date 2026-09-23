@@ -293,7 +293,8 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   const fundingHistory=buildFundingHistoryContext(fundingRows,{currentFundingRate:derivativesCurrent?.fundingRate});
   const derivatives=derivativesCurrent?.state==='live'?{
     ...derivativesCurrent,
-    currentOnly:false,
+    currentOnly:true,
+    historicalFundingAttached:fundingHistory.state==='available',
     fundingHistory,
     fundingChangeBps:fundingHistory.fundingChangeBps,
     fundingPercentile:fundingHistory.fundingPercentile,
