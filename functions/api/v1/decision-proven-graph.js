@@ -9,6 +9,9 @@ const TIMEFRAMES=Object.freeze(['15m','1h','4h','1d']);
 const NEWS_TERMS=Object.freeze({BTC:'Bitcoin OR BTC',ETH:'Ethereum OR Ether',SOL:'Solana',HYPE:'Hyperliquid',XRP:'XRP OR Ripple',DOGE:'Dogecoin OR DOGE'});
 const HYPERLIQUID_INFO_URL='https://api.hyperliquid.xyz/info';
 const HYPERLIQUID_PERP_DOCS='https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals';
+const PRIMARY_BOOTSTRAP_PATHS=192;
+const MTF_BOOTSTRAP_PATHS=64;
+const CALIBRATION_BOOTSTRAP_PATHS=64;
 const ip=(request)=>request.headers.get('cf-connecting-ip')||request.headers.get('x-forwarded-for')?.split(',')[0]||'anonymous';
 const gdeltTime=(time)=>new Date(time).toISOString().replace(/\D/g,'').slice(0,14);
 const safeUrl=(value)=>{try{const url=new URL(value);return url.protocol==='https:'||url.protocol==='http:'?url.href:null;}catch{return null;}};
@@ -182,7 +185,7 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives){
 const timeframeSummary=(graph)=>({interval:graph.interval,truthState:graph.truthState,marketState:graph.market.currentState,metrics:{rsi14:graph.metrics.rsi14,atrPct:graph.metrics.atrPct,trendPerBarPct:graph.metrics.trendPerBarPct},probabilities:graph.forecast.probabilities,qellyView:{action:graph.qellyView.action,confidence:graph.qellyView.confidence,label:graph.qellyView.label}});
 async function fetchTimeframes(fetchImpl,asset,endTime,selectedInterval){
   const intervals=[...new Set([selectedInterval,...TIMEFRAMES])];
-  const settled=await Promise.allSettled(intervals.map(async interval=>timeframeSummary(buildDecisionProvenGraph(await fetchCandles(fetchImpl,asset,interval,endTime,240),{asset,interval,horizonBars:16,now:endTime}))));
+  const settled=await Promise.allSettled(intervals.map(async interval=>timeframeSummary(buildDecisionProvenGraph(await fetchCandles(fetchImpl,asset,interval,endTime,240),{asset,interval,horizonBars:16,now:endTime,bootstrapPaths:MTF_BOOTSTRAP_PATHS}))));
   const views=settled.filter(item=>item.status==='fulfilled').map(item=>item.value);const directional=views.filter(item=>item.qellyView.action==='BUY'||item.qellyView.action==='SELL');const buys=directional.filter(item=>item.qellyView.action==='BUY').length,sells=directional.length-buys;
   return {state:views.length>=3?'live':views.length?'partial':'unavailable',views,agreement:{direction:buys>sells?'BUY':sells>buys?'SELL':'MIXED',aligned:Math.max(buys,sells),directional:directional.length,total:views.length}};
 }
@@ -212,12 +215,13 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   ]);
   let graph;
   try{
-    graph=buildDecisionProvenGraph(payload,{asset:resolvedAsset,interval:resolvedInterval,horizonBars,now:endTime,selection:resolvedSelection});
+    graph=buildDecisionProvenGraph(payload,{asset:resolvedAsset,interval:resolvedInterval,horizonBars,now:endTime,selection:resolvedSelection,bootstrapPaths:PRIMARY_BOOTSTRAP_PATHS});
     graph={...graph,
-      quant:{...graph.quant,calibration:buildDecisionWalkForwardCalibration(payload,{interval:resolvedInterval,horizonBars})},
+      quant:{...graph.quant,calibration:buildDecisionWalkForwardCalibration(payload,{interval:resolvedInterval,horizonBars,bootstrapPaths:CALIBRATION_BOOTSTRAP_PATHS})},
       historicalAnalogs:buildDecisionHistoricalAnalogs(payload,{interval:resolvedInterval,horizonBars,windowBars:100,limit:5})
     };
     graph=calibrateDecisionEvidence(graph,multiTimeframe,derivatives);
+    graph={...graph,provenance:{...graph.provenance,computeProfile:{id:'cloudflare-worker-bounded-v1',primaryBootstrapPaths:PRIMARY_BOOTSTRAP_PATHS,multiTimeframeBootstrapPaths:MTF_BOOTSTRAP_PATHS,calibrationBootstrapPaths:CALIBRATION_BOOTSTRAP_PATHS,note:'Bootstrap budgets bound per-request CPU without changing evidence, calibration eligibility or NO TRADE gates.'}}};
   }catch(error){
     if(error instanceof HttpError)throw error;
     throw new HttpError(503,'insufficient_provider_data',error.message,{retryable:true});
