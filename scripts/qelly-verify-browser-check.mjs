@@ -128,9 +128,55 @@ async function inspect({name,viewport,reducedMotion='no-preference'}){
      asynchronous route decorators can briefly replace #main during navigation. */
   await page.goto(`${baseUrl}/#/evidence-methodology`,{waitUntil:'domcontentloaded',timeout:45000});
   await page.waitForURL(url=>url.hash==='#/qelly-verify?view=methodology',{timeout:30000});
-  await page.waitForFunction(methodologyReady,null,{timeout:30000});
+  const captureMethodologyFailure=async(error,phase)=>{
+    const diagnostics=await page.evaluate(()=>{
+      const main=document.getElementById('main');
+      const root=document.documentElement;
+      const heading=document.querySelector('.q-methodology-page .q-verify-hero h1');
+      return {
+        hash:location.hash,
+        href:location.href,
+        title:document.title,
+        appReady:root.dataset.appReady||null,
+        productSurface:root.dataset.productSurface||null,
+        productionRoute:root.dataset.productionRoute||null,
+        v53Route:root.dataset.v53Route||null,
+        v53Family:root.dataset.v53Family||null,
+        qellyVerifySubview:root.dataset.qellyVerifySubview||null,
+        v53LockCandidate:root.dataset.v53LockCandidate||null,
+        owner:main?.dataset.qellyVerifyOwner||null,
+        busy:main?.getAttribute('aria-busy')||null,
+        pageKind:main?.dataset.pageKind||null,
+        topLevelChildren:[...(main?.children||[])].map(node=>({
+          tag:node.tagName,
+          className:node.className,
+          id:node.id||null,
+          verifySurface:node.hasAttribute?.('data-qelly-verify-surface')||false,
+          methodologySurface:node.hasAttribute?.('data-qelly-methodology-surface')||false,
+          lockPage:node.classList?.contains?.('q-v53-lock-page')||false
+        })),
+        heading:heading?.textContent?.trim()||null,
+        methodologySurface:Boolean(document.querySelector('[data-qelly-methodology-surface]')),
+        verifySurface:Boolean(document.querySelector('[data-qelly-verify-surface]')),
+        lockCount:document.querySelectorAll('#main>.q-v53-lock-page').length,
+        classCount:document.querySelectorAll('.q-methodology-classes article').length,
+        moduleCount:document.querySelectorAll('.q-methodology-modules>article').length,
+        notAssessedCount:document.querySelectorAll('.q-methodology-not-assessed .q-verify-state-list li').length,
+        scoreDisclosureCount:document.querySelectorAll('.q-methodology-scores dl div').length,
+        mainText:main?.textContent?.replace(/\s+/g,' ').trim().slice(0,5000)||null,
+        mainHtml:main?.innerHTML?.slice(0,12000)||null
+      };
+    });
+    const failure={phase,diagnostics,pageErrors:[...pageErrors],consoleErrors:[...consoleErrors],error:{name:error?.name||'Error',message:error?.message||String(error)}};
+    await page.screenshot({path:path.join(output,`${name}-methodology-failure-${phase}.png`),fullPage:true});
+    await writeFile(path.join(output,`${name}-methodology-failure-${phase}.json`),JSON.stringify(failure,null,2));
+    throw new Error(`${name}_methodology_${phase}_${JSON.stringify(diagnostics)}`,{cause:error});
+  };
+  try{await page.waitForFunction(methodologyReady,null,{timeout:30000});}
+  catch(error){await captureMethodologyFailure(error,'initial');}
   await page.waitForTimeout(250);
-  await page.waitForFunction(methodologyReady,null,{timeout:30000});
+  try{await page.waitForFunction(methodologyReady,null,{timeout:30000});}
+  catch(error){await captureMethodologyFailure(error,'stabilized');}
   const methodology=await page.evaluate(()=>({
     hash:location.hash,
     owner:document.getElementById('main')?.dataset.qellyVerifyOwner||null,
