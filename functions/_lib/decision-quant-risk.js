@@ -39,17 +39,73 @@ function adx(candles,period=14){
   return dx.length?mean(dx.slice(-period)):null;
 }
 
+function swingPoints(candles,wing=2){
+  const highs=[],lows=[];
+  for(let i=wing;i<candles.length-wing;i++){
+    const current=candles[i];
+    const neighbors=[...candles.slice(i-wing,i),...candles.slice(i+1,i+wing+1)];
+    if(neighbors.every(item=>current.high>item.high))highs.push({time:current.time,price:current.high,index:i});
+    if(neighbors.every(item=>current.low<item.low))lows.push({time:current.time,price:current.low,index:i});
+  }
+  return {highs:highs.slice(-10),lows:lows.slice(-10)};
+}
+
 function structure(candles){
-  const last=candles.at(-1),recent=candles.slice(-40),prior=candles.slice(-80,-40);
-  if(!last||recent.length<20)return {state:'UNAVAILABLE',support:null,resistance:null,breakout:'NONE',rangePct:null};
-  const support=Math.min(...recent.slice(0,-1).map(item=>item.low));
-  const resistance=Math.max(...recent.slice(0,-1).map(item=>item.high));
-  const priorSupport=prior.length?Math.min(...prior.map(item=>item.low)):support;
-  const priorResistance=prior.length?Math.max(...prior.map(item=>item.high)):resistance;
-  const higherHigh=resistance>priorResistance,higherLow=support>priorSupport,lowerHigh=resistance<priorResistance,lowerLow=support<priorSupport;
-  const state=higherHigh&&higherLow?'HH_HL':lowerHigh&&lowerLow?'LH_LL':'MIXED';
-  const breakout=last.close>resistance?'UPSIDE':last.close<support?'DOWNSIDE':'NONE';
-  return {state,support:round(support,6),resistance:round(resistance,6),priorSupport:round(priorSupport,6),priorResistance:round(priorResistance,6),breakout,rangePct:round((resistance/support-1)*100,3)};
+  const last=candles.at(-1),recent=candles.slice(-80);
+  if(!last||recent.length<20)return {state:'UNAVAILABLE',support:null,resistance:null,breakout:'NONE',breakOfStructure:'NONE',changeOfCharacter:'NONE',rangePct:null,phase:'UNAVAILABLE',compressionState:'UNAVAILABLE',swings:{highs:[],lows:[]}};
+  const swings=swingPoints(recent,2);
+  const latestHigh=swings.highs.at(-1),priorHigh=swings.highs.at(-2);
+  const latestLow=swings.lows.at(-1),priorLow=swings.lows.at(-2);
+  const higherHigh=latestHigh&&priorHigh?latestHigh.price>priorHigh.price:false;
+  const lowerHigh=latestHigh&&priorHigh?latestHigh.price<priorHigh.price:false;
+  const higherLow=latestLow&&priorLow?latestLow.price>priorLow.price:false;
+  const lowerLow=latestLow&&priorLow?latestLow.price<priorLow.price:false;
+  const state=higherHigh&&higherLow?'HH_HL':lowerHigh&&lowerLow?'LH_LL':higherHigh&&lowerLow?'EXPANDING_RANGE':lowerHigh&&higherLow?'CONTRACTING_RANGE':'MIXED';
+  const rangeWindow=recent.slice(-20);
+  const rangeHigh=Math.max(...rangeWindow.map(item=>item.high));
+  const rangeLow=Math.min(...rangeWindow.map(item=>item.low));
+  const resistanceCandidates=[...swings.highs.map(item=>item.price),rangeHigh].filter(value=>value>last.close).sort((a,b)=>a-b);
+  const supportCandidates=[...swings.lows.map(item=>item.price),rangeLow].filter(value=>value<last.close).sort((a,b)=>b-a);
+  const resistance=resistanceCandidates[0]??rangeHigh;
+  const support=supportCandidates[0]??rangeLow;
+  const priorResistance=resistanceCandidates[1]??priorHigh?.price??resistance;
+  const priorSupport=supportCandidates[1]??priorLow?.price??support;
+  const lastConfirmedHigh=latestHigh?.price??rangeHigh;
+  const lastConfirmedLow=latestLow?.price??rangeLow;
+  const breakOfStructure=last.close>lastConfirmedHigh?'UPSIDE':last.close<lastConfirmedLow?'DOWNSIDE':'NONE';
+  const changeOfCharacter=state==='HH_HL'&&breakOfStructure==='DOWNSIDE'?'DOWNSIDE':state==='LH_LL'&&breakOfStructure==='UPSIDE'?'UPSIDE':'NONE';
+  const previous=recent.at(-2);
+  const base=recent.slice(-22,-2);
+  const baseHigh=base.length?Math.max(...base.map(item=>item.high)):rangeHigh;
+  const baseLow=base.length?Math.min(...base.map(item=>item.low)):rangeLow;
+  const failedBreakout=previous?.close>baseHigh&&last.close<=baseHigh?'UPSIDE_FAILED':previous?.close<baseLow&&last.close>=baseLow?'DOWNSIDE_FAILED':'NONE';
+  const averageRange=(rows)=>mean(rows.map(item=>item.high-item.low));
+  const recentRange=averageRange(recent.slice(-10));
+  const priorRange=averageRange(recent.slice(-30,-10));
+  const compressionRatio=priorRange>0?recentRange/priorRange:null;
+  const compressionState=compressionRatio===null?'UNAVAILABLE':compressionRatio<=.72?'COMPRESSION':compressionRatio>=1.35?'EXPANSION':'NORMAL';
+  const phase=breakOfStructure!=='NONE'?'BREAKOUT':failedBreakout!=='NONE'?'FAILED_BREAKOUT':compressionState==='COMPRESSION'?'CONSOLIDATION':state==='HH_HL'||state==='LH_LL'?'TREND_CONTINUATION':'RANGE';
+  return {
+    state,
+    support:round(support,6),
+    resistance:round(resistance,6),
+    priorSupport:round(priorSupport,6),
+    priorResistance:round(priorResistance,6),
+    breakout:breakOfStructure,
+    breakOfStructure,
+    changeOfCharacter,
+    failedBreakout,
+    phase,
+    compressionState,
+    compressionRatio:round(compressionRatio,3),
+    rangeHigh:round(rangeHigh,6),
+    rangeLow:round(rangeLow,6),
+    rangePct:rangeLow>0?round((rangeHigh/rangeLow-1)*100,3):null,
+    swings:{
+      highs:swings.highs.slice(-4).map(item=>({time:item.time,price:round(item.price,6)})),
+      lows:swings.lows.slice(-4).map(item=>({time:item.time,price:round(item.price,6)}))
+    }
+  };
 }
 
 export function buildDecisionQuantRisk(candles,{intervalMs,horizonBars=16}={}){
@@ -97,3 +153,5 @@ export function buildDecisionQuantRisk(candles,{intervalMs,horizonBars=16}={}){
   };
   return JSON.parse(JSON.stringify(result,(key,value)=>Number.isFinite(value)||typeof value!=='number'?value:null));
 }
+
+export const __decisionQuantRiskTest=Object.freeze({structure,swingPoints});
