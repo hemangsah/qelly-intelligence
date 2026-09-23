@@ -69,13 +69,13 @@ test('public recovery replaces the market error instead of redirecting or nestin
   assert.doesNotMatch(recovery,/if\(route==='market'\)\{location\.hash='#\/market\?view=decision-maker'/);
 });
 
-test('market UI normalizes governed unavailable envelopes before rendering',async()=>{
-  const app=await read('apps/web/public/assets/app.js');
-  assert.match(app,/Array\.isArray\(data\.items\)\?data\.items:\[\]/);
-  assert.match(app,/Array\.isArray\(data\.kpis\)\?data\.kpis:/);
-  assert.match(app,/data\.providerStatus\?\?\{/);
-  assert.match(app,/candles\.source\?\?\{/);
-  assert.match(app,/Provider observations remain unavailable/);
+test('canonical market UI keeps unavailable provider states explicit without substitute observations',async()=>{
+  const market=await read('apps/web/public/assets/routes/market-v6.mjs');
+  assert.match(market,/const ecb=await api\('\/api\/v1\/providers\/ecb\?capability=fx-reference-rates&symbol=EUR'\)\.catch\(\(\)=>null\)/);
+  assert.match(market,/No approved reference observations were returned\. Qelly will not substitute generated values\./);
+  assert.match(market,/api\('\/api\/v1\/market\/network'\)\.then/);
+  assert.match(market,/populateNetworkSections\(marketRoot,\{sources:\{\},providerDirectory:\[\],providerDirectorySummary:\{byIntegration:\{\}\}\},escapeHtml\)/);
+  assert.doesNotMatch(market,/Math\.sin|Math\.cos|simulated-demo|qelly-governed-demo/);
 });
 
 test('shared chart shell renders an explicit empty state instead of dereferencing a missing latest point',async()=>{
