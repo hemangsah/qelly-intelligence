@@ -1,8 +1,8 @@
 const LEDGER_STATES=Object.freeze(['FORMING','VALID','TRIGGERED','ACTIVE','WEAKENING','T1_REACHED','T2_REACHED','T3_REACHED','T4_REACHED','INVALIDATED','EXPIRED','NO_TRADE']);
 const TERMINAL_OUTCOMES=new Set(['EXPIRED_UNTRIGGERED','INVALIDATED_FIRST','INVALIDATED_AFTER_TARGET','TARGET_LADDER_COMPLETE','AMBIGUOUS_INTRABAR']);
-const finite=(value)=>{const number=Number(value);return Number.isFinite(number)?number:null;};
+const finite=(value)=>{if(value==null||value==='')return null;const number=Number(value);return Number.isFinite(number)?number:null;};
 const round=(value,digits=4)=>Number.isFinite(Number(value))?Number(Number(value).toFixed(digits)):null;
-const iso=(value)=>{const date=new Date(value);return Number.isNaN(date.getTime())?null:date.toISOString();};
+const iso=(value)=>{if(value==null||value==='')return null;const date=new Date(value);return Number.isNaN(date.getTime())?null:date.toISOString();};
 const clean=(value,max=160)=>String(value??'').trim().slice(0,max);
 const state=(value,fallback='FORMING')=>LEDGER_STATES.includes(String(value||''))?String(value):fallback;
 const millis=(later,earlier)=>{const a=Date.parse(later||''),b=Date.parse(earlier||'');return Number.isFinite(a)&&Number.isFinite(b)&&a>=b?a-b:null;};
