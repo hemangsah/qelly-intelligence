@@ -525,7 +525,8 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
     if(error instanceof HttpError)throw error;
     throw new HttpError(503,'insufficient_provider_data',error.message,{retryable:true});
   }
-  const {articles,state:newsState,fetchedAt:newsObservedAt,cache:newsCache,fallbackReason:newsFallbackReason}=await newsPromise;
+  const {articles,state:newsState}=await newsPromise;
+  const {fetchedAt:newsObservedAt,cache:newsCache,fallbackReason:newsFallbackReason}=await newsPromise;
   const macroReference=await macroPromise;
   const macro={
     ...macroReference,
