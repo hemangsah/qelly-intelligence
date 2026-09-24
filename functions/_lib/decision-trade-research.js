@@ -178,7 +178,27 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null,now=n
       regime,
       eventRisk,
       liquidity:{state:liquidity?.state||'unavailable',currentOnly:liquidity?.currentOnly!==false,spreadBps:finite(liquidity?.spreadBps),spreadState:liquidity?.spreadState||'UNAVAILABLE',top1Imbalance:finite(liquidity?.top1Imbalance),top5Imbalance:finite(liquidity?.top5Imbalance),top10Imbalance:finite(liquidity?.top10Imbalance),imbalanceState:liquidity?.imbalanceState||'UNAVAILABLE',depthConsensus:liquidity?.depthConsensus||'UNAVAILABLE',micropriceBiasBps:finite(liquidity?.micropriceBiasBps),reason:liquidity?.reason||null},
-      derivatives:{state:derivatives?.state||'unavailable',fundingPct:finite(derivatives?.fundingPct),fundingChangeBps:finite(derivatives?.fundingChangeBps),fundingPercentile:finite(derivatives?.fundingPercentile),openInterestNotionalUsd:finite(derivatives?.openInterestNotionalUsd),openInterestChangeState:derivatives?.openInterestChangeState||'UNAVAILABLE'},
+      derivatives:{
+        state:derivatives?.state||'unavailable',
+        fundingPct:finite(derivatives?.fundingPct),
+        fundingChangeBps:finite(derivatives?.fundingChangeBps),
+        fundingPercentile:finite(derivatives?.fundingPercentile),
+        fundingState:derivatives?.fundingState||'UNAVAILABLE',
+        fundingShiftState:derivatives?.fundingShiftState||'UNAVAILABLE',
+        premiumPct:finite(derivatives?.premiumPct),
+        premiumChangeBps:finite(derivatives?.premiumChangeBps),
+        premiumPercentile:finite(derivatives?.premiumPercentile),
+        premiumState:derivatives?.premiumState||'UNAVAILABLE',
+        premiumShiftState:derivatives?.premiumShiftState||'UNAVAILABLE',
+        openInterestNotionalUsd:finite(derivatives?.openInterestNotionalUsd),
+        openInterestTurnover24h:finite(derivatives?.openInterestTurnover24h),
+        openInterestChangeState:derivatives?.openInterestChangeState||'UNAVAILABLE',
+        markOracleBasisPct:finite(derivatives?.markOracleBasisPct),
+        markOracleBasisState:derivatives?.markOracleBasisState||'UNAVAILABLE',
+        markOracleBasisChangeState:derivatives?.markOracleBasisChangeState||'UNAVAILABLE',
+        priceOpenInterestQuadrant:derivatives?.priceOpenInterestQuadrant||'UNAVAILABLE',
+        liquidationsState:derivatives?.liquidationsState||'UNAVAILABLE'
+      },
       crossAsset:{state:crossAsset?.state||'unavailable',benchmark:crossAsset?.benchmark||null,correlation:finite(crossAsset?.correlation),beta:finite(crossAsset?.beta),relativeStrengthPct:finite(crossAsset?.relativeStrengthPct),eligibilityImpact:crossAsset?.eligibilityImpact||'none'},
       macro:{state:macro?.state||'unavailable',level:macro?.level||'UNAVAILABLE',reason:macro?.reason||null}
     }
