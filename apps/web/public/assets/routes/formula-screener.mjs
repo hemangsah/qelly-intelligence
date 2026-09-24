@@ -139,7 +139,7 @@ export async function renderFormulaScreener(main,deps){
   runButton.addEventListener('click',run);
   main.querySelector('[data-action="open-decision"]')?.addEventListener('click',()=>{
     const asset=main.querySelector('#formula-decision-asset')?.value;
-    if(!storeDecisionContext({asset,timeframe:contextTimeframe,source:'formula-screener'}))return;
+    if(!storeDecisionContext({asset,timeframe:contextTimeframe,source:'formula-screener',formulaId:choice.value}))return;
     navigate?.('decision-provenance');
   });
   main.querySelector('[data-action="open-chat"]')?.addEventListener('click',()=>{
