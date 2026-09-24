@@ -3,6 +3,8 @@ const COINMARKETCAP_WIDGET_SRC='https://files.coinmarketcap.com/static/widget/co
 const X_WIDGET_SRC='https://platform.twitter.com/widgets.js';
 const MAX_BOOK_LEVELS=10;
 const MAX_TRADES=24;
+const SHARED_SCRIPT_TIMEOUT_MS=12000;
+const SHARED_SCRIPT_LOADS=new Map();
 
 export const EXTERNAL_INTELLIGENCE_BOUNDARY='Read-only external display. Qelly does not persist, replay, rank or use these observations for calculations, alerts, orders or execution.';
 
@@ -114,15 +116,29 @@ export function mountHyperliquidStream(container,{coin='BTC'}={}){
   return {provider:'Hyperliquid',usage:'display-only',boundary:EXTERNAL_INTELLIGENCE_BOUNDARY,destroy(){destroyed=true;clearConnection();container.replaceChildren();delete container.dataset.externalState;}};
 }
 
-function externalScript(src,attributes={}){
+function loadSharedExternalScript(src,attributes={}){
+  const existing=SHARED_SCRIPT_LOADS.get(src);
+  if(existing)return existing.promise;
   const script=document.createElement('script');
-  script.src=src;script.async=true;
+  script.src=src;script.async=true;script.dataset.qellyExternalShared='true';
   for(const [key,value] of Object.entries(attributes))script.setAttribute(key,value);
-  return script;
+  let timer=0;
+  const promise=new Promise((resolve,reject)=>{
+    const cleanup=()=>{clearTimeout(timer);script.removeEventListener('load',onLoad);script.removeEventListener('error',onError);};
+    const onLoad=()=>{cleanup();resolve(script);};
+    const onError=()=>{cleanup();SHARED_SCRIPT_LOADS.delete(src);script.remove();reject(new Error('external_script_load_error'));};
+    script.addEventListener('load',onLoad,{once:true});
+    script.addEventListener('error',onError,{once:true});
+    timer=setTimeout(()=>{cleanup();SHARED_SCRIPT_LOADS.delete(src);script.remove();reject(new Error('external_script_timeout'));},SHARED_SCRIPT_TIMEOUT_MS);
+  });
+  SHARED_SCRIPT_LOADS.set(src,{script,promise});
+  document.head.append(script);
+  return promise;
 }
 
 export function mountCoinMarketCapWidgets(container){
   if(!(container instanceof HTMLElement))throw new TypeError('CoinMarketCap widget container is required');
+  let destroyed=false;
   container.replaceChildren();
   container.dataset.externalProvider='coinmarketcap';container.dataset.usage='display-only';container.dataset.externalState='loading';
   const grid=document.createElement('div');grid.className='q-cmc-grid';
@@ -131,29 +147,28 @@ export function mountCoinMarketCapWidgets(container){
   grid.append(widget);
   const disclosure=document.createElement('p');disclosure.className='q-external-disclosure';disclosure.textContent='Official CoinMarketCap website widgets · live external display · Qelly does not read widget values.';
   container.append(grid,disclosure);
-  const script=externalScript(COINMARKETCAP_WIDGET_SRC);
-  const timer=setTimeout(()=>{if(!widget.textContent.trim()&&!widget.shadowRoot){container.dataset.externalState='unavailable';disclosure.innerHTML='CoinMarketCap widgets did not initialize. <a href="https://coinmarketcap.com/widget/" target="_blank" rel="noopener noreferrer nofollow">Open CoinMarketCap widgets ↗</a>'; }},15000);
-  script.addEventListener('load',()=>{
+  const timer=setTimeout(()=>{if(destroyed)return;if(!widget.textContent.trim()&&!widget.shadowRoot){container.dataset.externalState='unavailable';disclosure.innerHTML='CoinMarketCap widgets did not initialize. <a href="https://coinmarketcap.com/widget/" target="_blank" rel="noopener noreferrer nofollow">Open CoinMarketCap widgets ↗</a>'; }},15000);
+  loadSharedExternalScript(COINMARKETCAP_WIDGET_SRC).then(()=>{
+    if(destroyed)return;
     const initialize=window.__WIDGET_INIT;
     if(typeof initialize!=='function')return;
-    Promise.resolve(initialize()).then(()=>{if(widget.querySelector('.coinPriceBlock')){clearTimeout(timer);container.dataset.externalState='display-only';}}).catch(()=>{container.dataset.externalState='unavailable';});
-  },{once:true});
-  script.addEventListener('error',()=>{clearTimeout(timer);container.dataset.externalState='unavailable';disclosure.innerHTML='CoinMarketCap widgets could not load. <a href="https://coinmarketcap.com/" target="_blank" rel="noopener noreferrer nofollow">Open CoinMarketCap ↗</a>';},{once:true});
-  container.append(script);
-  return {provider:'CoinMarketCap',usage:'display-only',boundary:EXTERNAL_INTELLIGENCE_BOUNDARY,destroy(){clearTimeout(timer);script.remove();container.replaceChildren();delete container.dataset.externalState;}};
+    Promise.resolve(initialize()).then(()=>{if(!destroyed&&widget.querySelector('.coinPriceBlock')){clearTimeout(timer);container.dataset.externalState='display-only';}}).catch(()=>{if(!destroyed)container.dataset.externalState='unavailable';});
+  }).catch(()=>{if(destroyed)return;clearTimeout(timer);container.dataset.externalState='unavailable';disclosure.innerHTML='CoinMarketCap widgets could not load. <a href="https://coinmarketcap.com/" target="_blank" rel="noopener noreferrer nofollow">Open CoinMarketCap ↗</a>';});
+  return {provider:'CoinMarketCap',usage:'display-only',boundary:EXTERNAL_INTELLIGENCE_BOUNDARY,destroy(){if(destroyed)return;destroyed=true;clearTimeout(timer);container.replaceChildren();delete container.dataset.externalState;}};
 }
 
 export function mountXTimeline(container,{handle='CoinMarketCap'}={}){
   if(!(container instanceof HTMLElement))throw new TypeError('X timeline container is required');
+  let destroyed=false;
   const safeHandle=String(handle||'CoinMarketCap').replace(/[^A-Za-z0-9_]/g,'')||'CoinMarketCap';
   container.replaceChildren();container.dataset.externalProvider='x';container.dataset.usage='display-only';container.dataset.externalState='loading';
   const shell=document.createElement('div');shell.className='q-x-shell';
   const timeline=document.createElement('a');timeline.className='twitter-timeline';timeline.href=`https://x.com/${safeHandle}`;timeline.textContent=`Posts by @${safeHandle}`;
   timeline.dataset.theme=((document.documentElement.dataset.resolvedAppearance||document.documentElement.dataset.appearance)==='light'?'light':'dark');
   timeline.dataset.dnt='true';timeline.dataset.chrome='noheader nofooter transparent';timeline.dataset.height='620';timeline.dataset.ariaPolite='assertive';
-  const script=externalScript(X_WIDGET_SRC,{charset:'utf-8'});
+
   const fallback=document.createElement('p');fallback.className='q-external-disclosure';fallback.innerHTML=`Official X timeline with personalization disabled · <a href="https://x.com/${safeHandle}" target="_blank" rel="noopener noreferrer nofollow">open @${safeHandle} directly ↗</a>`;
-  shell.append(timeline,script);container.append(shell,fallback);
+  shell.append(timeline);container.append(shell,fallback);
   let settled=false;
   const ready=()=>{
     const iframe=shell.querySelector('iframe');
@@ -164,13 +179,13 @@ export function mountXTimeline(container,{handle='CoinMarketCap'}={}){
     return iframeStyle.visibility!=='hidden'&&iframe.getBoundingClientRect().height>=160&&rendered.getBoundingClientRect().height>=160;
   };
   const markReady=()=>{
-    if(settled||!ready())return false;
+    if(destroyed||settled||!ready())return false;
     settled=true;clearTimeout(timer);clearInterval(probe);observer.disconnect();
     container.dataset.externalState='display-only';
     return true;
   };
   const markUnavailable=(message='X timeline unavailable in this browser · ')=>{
-    if(settled)return;
+    if(destroyed||settled)return;
     settled=true;clearTimeout(timer);clearInterval(probe);observer.disconnect();
     container.dataset.externalState='unavailable';shell.hidden=true;
     fallback.firstChild.textContent=message;
@@ -179,8 +194,13 @@ export function mountXTimeline(container,{handle='CoinMarketCap'}={}){
   observer.observe(shell,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class','height']});
   const probe=setInterval(markReady,250);
   const timer=setTimeout(()=>markUnavailable('X timeline unavailable or rate-limited · '),15000);
-  script.addEventListener('error',()=>markUnavailable('X timeline script could not load · '),{once:true});
-  return {provider:'X',usage:'display-only',boundary:EXTERNAL_INTELLIGENCE_BOUNDARY,destroy(){settled=true;clearTimeout(timer);clearInterval(probe);observer.disconnect();script.remove();container.replaceChildren();delete container.dataset.externalState;}};
+  loadSharedExternalScript(X_WIDGET_SRC,{charset:'utf-8'}).then(()=>{
+    if(destroyed)return;
+    const load=window.twttr?.widgets?.load;
+    if(typeof load==='function')Promise.resolve(load(shell)).then(markReady).catch(()=>markUnavailable('X timeline could not initialize · '));
+    else markReady();
+  }).catch(()=>markUnavailable('X timeline script could not load · '));
+  return {provider:'X',usage:'display-only',boundary:EXTERNAL_INTELLIGENCE_BOUNDARY,destroy(){if(destroyed)return;destroyed=true;settled=true;clearTimeout(timer);clearInterval(probe);observer.disconnect();container.replaceChildren();delete container.dataset.externalState;}};
 }
 
-export const __externalIntelligenceTest=Object.freeze({HYPERLIQUID_WS_URL,COINMARKETCAP_WIDGET_SRC,X_WIDGET_SRC,MAX_BOOK_LEVELS,MAX_TRADES,PROVIDER_PORTALS});
+export const __externalIntelligenceTest=Object.freeze({HYPERLIQUID_WS_URL,COINMARKETCAP_WIDGET_SRC,X_WIDGET_SRC,MAX_BOOK_LEVELS,MAX_TRADES,SHARED_SCRIPT_TIMEOUT_MS,SHARED_SCRIPT_LOADS,PROVIDER_PORTALS});
