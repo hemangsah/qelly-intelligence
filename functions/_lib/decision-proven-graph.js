@@ -72,18 +72,19 @@ function makeQellyView(metrics,forecast,last,truthState,confidence){
 }
 
 
+const WALK_FORWARD_CALIBRATION_SCHEMA_VERSION='qelly.decision-walk-forward-calibration/1.0.0';
 const calibrationBins=Object.freeze([
   [0,.4],[.4,.5],[.5,.6],[.6,.7],[.7,.8],[.8,.9],[.9,1.000001]
 ]);
 
 export function buildDecisionWalkForwardCalibration(raw,{interval='15m',horizonBars=16,minSamples=36}={}){
   const intervalMs=INTERVAL_MS[interval];
-  if(!intervalMs)return {state:'UNCALIBRATED',eligible:false,sampleSize:0,brierScore:null,baselineBrierScore:.3333,skillScore:null,reliabilityGap:null,reliabilityBins:[],reason:'Unsupported interval.'};
+  if(!intervalMs)return {schemaVersion:WALK_FORWARD_CALIBRATION_SCHEMA_VERSION,state:'UNCALIBRATED',eligible:false,sampleSize:0,brierScore:null,baselineBrierScore:.3333,skillScore:null,reliabilityGap:null,reliabilityBins:[],reason:'Unsupported interval.'};
   const candles=normalizeCandles(raw);
   const warmup=120;
   const horizon=Math.max(2,Math.min(168,Number(horizonBars)||16));
   const step=Math.max(4,Math.floor(horizon/2));
-  if(candles.length<warmup+horizon+step)return {state:'UNCALIBRATED',eligible:false,sampleSize:0,brierScore:null,baselineBrierScore:.3333,skillScore:null,reliabilityGap:null,reliabilityBins:[],reason:'Not enough resolved historical observations.'};
+  if(candles.length<warmup+horizon+step)return {schemaVersion:WALK_FORWARD_CALIBRATION_SCHEMA_VERSION,state:'UNCALIBRATED',eligible:false,sampleSize:0,brierScore:null,baselineBrierScore:.3333,skillScore:null,reliabilityGap:null,reliabilityBins:[],reason:'Not enough resolved historical observations.'};
 
   const rows=[];
   const first=Math.max(warmup,candles.length-420);
@@ -108,7 +109,7 @@ export function buildDecisionWalkForwardCalibration(raw,{interval='15m',horizonB
   }
 
   const sampleSize=rows.length;
-  if(!sampleSize)return {state:'UNCALIBRATED',eligible:false,sampleSize:0,brierScore:null,baselineBrierScore:.3333,skillScore:null,reliabilityGap:null,reliabilityBins:[],reason:'No resolved calibration observations.'};
+  if(!sampleSize)return {schemaVersion:WALK_FORWARD_CALIBRATION_SCHEMA_VERSION,state:'UNCALIBRATED',eligible:false,sampleSize:0,brierScore:null,baselineBrierScore:.3333,skillScore:null,reliabilityGap:null,reliabilityBins:[],reason:'No resolved calibration observations.'};
   const brier=mean(rows.map(row=>row.brier));
   const baseline=.3333333333;
   const skill=1-brier/baseline;
@@ -132,6 +133,7 @@ export function buildDecisionWalkForwardCalibration(raw,{interval='15m',horizonB
   const state=!enough?'UNCALIBRATED':eligible?'CALIBRATED':'WEAK_CALIBRATION';
   const reason=!enough?'Resolved walk-forward sample is below the minimum calibration size.':eligible?'Walk-forward Brier skill and reliability gates are satisfied.':'Resolved history exists, but Brier skill or reliability does not clear the calibration gate.';
   return {
+    schemaVersion:WALK_FORWARD_CALIBRATION_SCHEMA_VERSION,
     state,
     eligible,
     sampleSize,
