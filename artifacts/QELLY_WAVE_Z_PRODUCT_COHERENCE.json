@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "qelly.wave-z.product-coherence/1.0.0",
+  "productionBase": "2737c7690edced6d2765ebbe5f48a01971a1a976",
+  "defaultHomeRoute": "market",
+  "auditRule": "Each page has one primary job, one authoritative renderer/data owner, explicit public/workspace boundary, and contextual handoffs that do not transfer evidence claims.",
+  "pages": [
+    {
+      "surface": "Home / Market",
+      "route": "market",
+      "label": "Market Command",
+      "public": true,
+      "job": "Default market orientation and current market command surface",
+      "owner": "production public-runtime Market V6 after finalization",
+      "coherence": "Entry surface; does not duplicate Decision or Search."
+    },
+    {
+      "surface": "Decision Intelligence",
+      "route": "decision-provenance",
+      "label": "Decision Intelligence",
+      "public": true,
+      "job": "Evidence-gated research view, scenarios, setup/invalidation and explanation",
+      "owner": "decision-provenance.mjs compatibility adapter → decision-proven-graph.mjs",
+      "coherence": "Receives asset/timeframe context; hands context to Formula and Qelly Chat."
+    },
+    {
+      "surface": "Formula Screener",
+      "route": "formula-screener",
+      "label": "Formula Screener",
+      "public": true,
+      "job": "Deterministic quantitative ranking over declared market-candle method",
+      "owner": "routes/formula-screener.mjs + /api/v1/formula-screener",
+      "coherence": "Consumes research asset/timeframe only for selection/handoff; formula sampling interval remains independently declared."
+    },
+    {
+      "surface": "Asset Dossier",
+      "route": "asset",
+      "label": "Asset Dossier",
+      "public": true,
+      "job": "Single supported asset market evidence review",
+      "owner": "app.js renderAsset + public market asset endpoints",
+      "coherence": "Canonical Search destination; explicit Decision, Formula and Chat continuation."
+    },
+    {
+      "surface": "Qelly Chat",
+      "route": "news-research",
+      "label": "Qelly Chat & Research",
+      "public": true,
+      "job": "Grounded conversational research over QELLY tools/evidence",
+      "owner": "qelly-chat-workspace.mjs + global qelly-chat.mjs + /api/v1/intelligence/chat",
+      "coherence": "Reads navigation context but re-grounds current claims; no inherited evidence claim."
+    },
+    {
+      "surface": "Universal Search",
+      "route": "search",
+      "label": "Universal Search",
+      "public": true,
+      "job": "Deterministic exact retrieval across product/formula/indicator/asset catalog",
+      "owner": "universal-search.mjs + public-search.js",
+      "coherence": "Asset hits deep-link canonical Asset Dossier ID; Search performs no analysis."
+    },
+    {
+      "surface": "India Finance",
+      "route": "india-finance",
+      "label": "India Finance & SIP",
+      "public": true,
+      "job": "India finance reference evidence and deterministic finance tools",
+      "owner": "india-finance-center.mjs",
+      "coherence": "Separate delayed/reference and display-only boundaries."
+    },
+    {
+      "surface": "Alert Rules",
+      "route": "alert-center",
+      "label": "Alert Rules",
+      "public": true,
+      "job": "Alert-rule surface with explicit capability boundary",
+      "owner": "alert-center.mjs",
+      "coherence": "Separate from Notifications delivery/history."
+    },
+    {
+      "surface": "Notifications",
+      "route": "notification-center",
+      "label": "Notifications",
+      "public": true,
+      "job": "Notification review/triage surface",
+      "owner": "notification-center.mjs",
+      "coherence": "Separate from alert definition."
+    },
+    {
+      "surface": "Qelly Verify",
+      "route": "qelly-verify",
+      "label": "Qelly Verify",
+      "public": true,
+      "job": "User-supplied strategy/trade evidence verification",
+      "owner": "qelly-verify-product.mjs",
+      "coherence": "Verification does not become Decision probability or execution."
+    },
+    {
+      "surface": "Calculator Center",
+      "route": "calculator-center",
+      "label": "Quant Calculator Center",
+      "public": true,
+      "job": "Discover deterministic registered financial calculators",
+      "owner": "calculator-center.mjs",
+      "coherence": "Routes to hidden public calculator-detail pages."
+    },
+    {
+      "surface": "Calculator pages",
+      "route": "calculator-detail/:id",
+      "label": "Calculator Detail",
+      "public": true,
+      "hidden": true,
+      "job": "Run one registered deterministic calculator with declared inputs/formula",
+      "owner": "calculator-detail.mjs in source; calculator-detail-v6.mjs in finalized connected production",
+      "coherence": "No generative arithmetic fallback; build-time ownership is classified, not deleted."
+    }
+  ],
+  "flow": {
+    "canonical": [
+      "Universal Search",
+      "Asset Dossier",
+      "Decision Intelligence",
+      "Formula Screener",
+      "Qelly Chat"
+    ],
+    "handoffState": [
+      "asset",
+      "timeframe",
+      "source",
+      "formulaId when present"
+    ],
+    "evidenceBoundary": "Handoff state is navigation context only. No result, probability, eligibility, price, or provider observation is trusted across surfaces without the destination's own evidence/tool contract."
+  },
+  "status": "Wave Z coherence delta implemented; exact-head CI/browser acceptance required before merge."
+}
