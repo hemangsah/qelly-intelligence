@@ -74,15 +74,43 @@ const derivativesContext=(data,escapeHtml)=>{
 const crossAssetContext=(data,escapeHtml)=>{
   const context=data?.evidence?.crossAsset||data?.crossAsset;
   if(!context||context.state!=='available')return '<section class="q-dpg-cross-asset"><header><div><small>CROSS-ASSET</small><h2>Dependence unavailable</h2></div><span>Not inferred</span></header><p>'+escapeHtml(context?.reason||'A same-venue benchmark series is unavailable, so correlation and beta are not inferred.')+'</p></section>';
-  const percent=(value)=>Number.isFinite(Number(value))?(Number(value)>=0?'+':'')+Number(value).toFixed(2)+'%':'Unavailable';
-  const number=(value)=>Number.isFinite(Number(value))?Number(value).toFixed(3):'Unavailable';
-  return '<section class="q-dpg-cross-asset"><header><div><small>CROSS-ASSET · DESCRIPTIVE ONLY</small><h2>'+escapeHtml(context.asset)+' vs '+escapeHtml(context.benchmark)+'</h2></div><span>NO ELIGIBILITY IMPACT</span></header><div class="q-dpg-cross-asset__grid"><article><span>Correlation</span><strong>'+number(context.correlation)+'</strong><small>'+escapeHtml(String(context.correlationState||'UNAVAILABLE').replaceAll('_',' '))+'</small></article><article><span>Beta</span><strong>'+number(context.beta)+'</strong></article><article><span>'+escapeHtml(context.asset)+' window return</span><strong>'+escapeHtml(percent(context.assetReturnPct))+'</strong></article><article><span>'+escapeHtml(context.benchmark)+' window return</span><strong>'+escapeHtml(percent(context.benchmarkReturnPct))+'</strong></article><article><span>Relative strength</span><strong>'+escapeHtml(percent(context.relativeStrengthPct))+'</strong><small>'+escapeHtml(String(context.relativeState||'UNAVAILABLE'))+'</small></article><article><span>Aligned samples</span><strong>'+escapeHtml(String(context.sampleSize??0))+'</strong></article></div><p>'+escapeHtml(context.method||'')+'</p><p class="q-dpg-cross-asset__limit">Window-dependent context only. It does not independently create BUY, SELL or NO TRADE eligibility.</p></section>';
+  const percent=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?(Number(value)>=0?'+':'')+Number(value).toFixed(2)+'%':'Unavailable';
+  const number=(value,digits=3)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Number(value).toFixed(digits):'Unavailable';
+  const lead=context.leadLag||{},spread=context.spread||{},cointegration=context.cointegration||{};
+  const lagLabel=lead.relation==='CONTEMPORANEOUS'?'Same bar':lead.relation==='BENCHMARK_LEADS'?context.benchmark+' leads '+Math.abs(Number(lead.bestLagBars||0))+' bars':lead.relation==='ASSET_LEADS'?context.asset+' leads '+Math.abs(Number(lead.bestLagBars||0))+' bars':'Unavailable';
+  return '<section class="q-dpg-cross-asset"><header><div><small>CROSS-ASSET · DESCRIPTIVE ONLY</small><h2>'+escapeHtml(context.asset)+' vs '+escapeHtml(context.benchmark)+'</h2></div><span>NO ELIGIBILITY IMPACT</span></header><div class="q-dpg-cross-asset__grid">'+
+    '<article><span>Correlation</span><strong>'+number(context.correlation)+'</strong><small>'+escapeHtml(String(context.correlationState||'UNAVAILABLE').replaceAll('_',' '))+'</small></article>'+
+    '<article><span>Rolling corr · 30</span><strong>'+number(context.rollingCorrelation30)+'</strong><small>aligned return observations</small></article>'+
+    '<article><span>Rolling corr · 90</span><strong>'+number(context.rollingCorrelation90)+'</strong><small>aligned return observations</small></article>'+
+    '<article><span>Beta</span><strong>'+number(context.beta)+'</strong><small>30 '+number(context.rollingBeta30)+' · 90 '+number(context.rollingBeta90)+'</small></article>'+
+    '<article><span>'+escapeHtml(context.asset)+' window return</span><strong>'+escapeHtml(percent(context.assetReturnPct))+'</strong></article>'+
+    '<article><span>'+escapeHtml(context.benchmark)+' window return</span><strong>'+escapeHtml(percent(context.benchmarkReturnPct))+'</strong></article>'+
+    '<article><span>Relative strength</span><strong>'+escapeHtml(percent(context.relativeStrengthPct))+'</strong><small>'+escapeHtml(String(context.relativeState||'UNAVAILABLE'))+' · '+escapeHtml(String(context.divergenceState||'UNAVAILABLE').replaceAll('_',' '))+'</small></article>'+
+    '<article><span>Spread z-score</span><strong>'+number(spread.zScore)+'</strong><small>'+escapeHtml(String(spread.state||'UNAVAILABLE'))+' · beta-adjusted log spread</small></article>'+
+    '<article><span>Lead / lag exploration</span><strong>'+escapeHtml(lagLabel)+'</strong><small>corr '+number(lead.correlation)+' · exploratory only</small></article>'+
+    '<article><span>Cointegration</span><strong>'+escapeHtml(String(cointegration.state||'NOT_TESTED').replaceAll('_',' '))+'</strong><small>not claimed without dedicated validation</small></article>'+
+    '<article><span>Aligned samples</span><strong>'+escapeHtml(String(context.sampleSize??0))+'</strong></article>'+
+    '<article><span>Provider</span><strong>'+escapeHtml(context.provider||'Hyperliquid candles')+'</strong><small>same venue · same interval</small></article>'+
+  '</div><p>'+escapeHtml(context.method||'')+'</p><p class="q-dpg-cross-asset__limit">Correlation, beta, relative strength, spread z-score and exploratory lag are window-dependent descriptive context. Correlation is not causation; cointegration is not claimed. This panel does not independently create BUY, SELL or NO TRADE eligibility.</p></section>';
 };
 
 const macroContext=(data,escapeHtml)=>{
   const macro=data?.evidence?.macro||data?.macro;
   const state=String(macro?.state||'unavailable').toUpperCase();
-  return '<section class="q-dpg-macro"><header><div><small>MACRO CONTEXT</small><h2>'+escapeHtml(String(macro?.level||'UNAVAILABLE'))+'</h2></div><span>'+escapeHtml(state.replaceAll('_',' '))+'</span></header><p>'+escapeHtml(macro?.reason||'A current intraday macro feed is not connected, so QELLY does not infer DXY, yields or policy-rate effects.')+'</p><p class="q-dpg-macro__limit">'+escapeHtml(macro?.cadenceBoundary||'Slow reference data is not substituted for current market evidence.')+'</p></section>';
+  if(!macro||macro.state!=='available')return '<section class="q-dpg-macro"><header><div><small>MACRO CONTEXT</small><h2>'+escapeHtml(String(macro?.level||'UNAVAILABLE'))+'</h2></div><span>'+escapeHtml(state.replaceAll('_',' '))+'</span></header><p>'+escapeHtml(macro?.reason||'A governed macro reference is unavailable, so QELLY does not infer DXY, yields or policy-rate effects.')+'</p><p class="q-dpg-macro__limit">'+escapeHtml(macro?.cadenceBoundary||'Slow reference data is not substituted for current market evidence.')+'</p></section>';
+  const fx=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Number(value).toFixed(4):'Unavailable';
+  const unavailable=Array.isArray(macro.unavailableSeries)?macro.unavailableSeries.map(value=>String(value).replaceAll('_',' ')).join(' · '):'DXY · yields · indexes · commodities · policy/economic releases';
+  return '<section class="q-dpg-macro"><header><div><small>MACRO CONTEXT · GOVERNED REFERENCE</small><h2>ECB daily FX reference</h2></div><span>NO INTRADAY ELIGIBILITY IMPACT</span></header>'+
+    '<div class="q-dpg-macro__grid">'+
+      '<article><span>EUR / USD</span><strong>'+fx(macro.fxReference?.eurUsd)+'</strong><small>ECB quote per EUR</small></article>'+
+      '<article><span>USD / INR</span><strong>'+fx(macro.fxReference?.usdInr)+'</strong><small>derived from same-day ECB EUR crosses</small></article>'+
+      '<article><span>EUR / INR</span><strong>'+fx(macro.fxReference?.eurInr)+'</strong><small>ECB quote per EUR</small></article>'+
+      '<article><span>Observed</span><strong>'+escapeHtml(displayTime(macro.observedAt))+'</strong><small>'+escapeHtml(String(macro.freshness||'daily reference').replaceAll('_',' '))+'</small></article>'+
+      '<article><span>Provider</span><strong>European Central Bank</strong><small>'+escapeHtml(String(macro.quality||'official reference').replaceAll('_',' '))+'</small></article>'+
+      '<article><span>Intraday feed</span><strong>NOT CONNECTED</strong><small>reference-only context</small></article>'+
+    '</div>'+
+    '<p>'+escapeHtml(macro.reason||'')+' '+escapeHtml(macro.methodology||'')+'</p>'+
+    '<p class="q-dpg-macro__limit">Unavailable, not inferred: '+escapeHtml(unavailable)+'. '+escapeHtml(macro.cadenceBoundary||'Daily reference data is not substituted for intraday evidence.')+'</p></section>';
 };
 
 const marketStructureContext=(data,escapeHtml)=>{
@@ -138,7 +166,11 @@ const eventRiskContext=(data,escapeHtml)=>{
   const eventRisk=data?.evidence?.eventRisk||data?.eventRisk;
   const state=String(eventRisk?.state||'unavailable').toUpperCase();
   const level=String(eventRisk?.level||'UNAVAILABLE').toUpperCase();
-  return '<section class="q-dpg-event-risk"><header><div><small>EVENT RISK</small><h2>'+escapeHtml(level)+'</h2></div><span>'+escapeHtml(state.replaceAll('_',' '))+'</span></header><p>'+escapeHtml(eventRisk?.reason||'A verified scheduled-event feed is not connected, so QELLY does not manufacture an event-risk score.')+'</p><p class="q-dpg-event-risk__limit">Recent news remains evidence context; it is not automatically treated as a scheduled macro or regulatory event.</p></section>';
+  const count=Math.max(0,Number(eventRisk?.eventCount)||0);
+  return '<section class="q-dpg-event-risk"><header><div><small>EVENT RISK</small><h2>'+escapeHtml(level)+'</h2></div><span>'+escapeHtml(state.replaceAll('_',' '))+'</span></header>'+
+    '<div class="q-dpg-event-risk__meta"><span><em>Verified scheduled events</em><strong>'+escapeHtml(String(count))+'</strong></span><span><em>Next event</em><strong>'+(eventRisk?.nextEventAt?escapeHtml(displayTime(eventRisk.nextEventAt)):'UNAVAILABLE')+'</strong></span><span><em>Scheduled feed</em><strong>'+(eventRisk?.scheduledFeedConnected?'CONNECTED':'NOT CONNECTED')+'</strong></span></div>'+
+    '<p>'+escapeHtml(eventRisk?.reason||'A verified scheduled-event feed is not connected, so QELLY does not manufacture an event-risk score.')+'</p>'+
+    '<p class="q-dpg-event-risk__limit">'+escapeHtml(eventRisk?.calendarBoundary||'The TradingView Economic Calendar is an isolated display embed and is not read into Decision Intelligence.')+' '+escapeHtml(eventRisk?.newsBoundary||'Recent news remains evidence context and is not converted into scheduled event risk.')+' '+escapeHtml(eventRisk?.gatingBoundary||'High-impact event gating remains unavailable until a verified feed is connected.')+'</p></section>';
 };
 
 const actionTone=(action)=>action==='BUY'?'positive':action==='SELL'?'negative':action==='NO TRADE'?'muted':'neutral';

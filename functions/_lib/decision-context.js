@@ -160,9 +160,19 @@ function decisionTrace(graph,{multiTimeframe,tradeResearch,evidence,horizon}){
       limitations:['Historical open-interest change is not inferred when unavailable.','Historical mark/oracle basis change is not inferred from premium history.','Liquidation flow and the price/OI quadrant remain unavailable without verified source history.']
     }),
     sourceNode('cross-asset','cross-asset','Cross-asset dependence',{
-      source:evidence?.crossAsset?.provider||'Hyperliquid candles',timestamp:observedAt,freshness:evidence?.crossAsset?.state==='available'?truth:'UNAVAILABLE',importance:'MEDIUM',directness:'DERIVED',reliability:evidence?.crossAsset?.state==='available'?'BOUNDED_SAMPLE':'UNAVAILABLE',role:'context_only',
+      source:evidence?.crossAsset?.provider||'Hyperliquid candles',timestamp:evidence?.crossAsset?.observedAt||observedAt,freshness:evidence?.crossAsset?.state==='available'?truth:'UNAVAILABLE',importance:'MEDIUM',directness:'DERIVED',reliability:evidence?.crossAsset?.state==='available'?'BOUNDED_SAMPLE':'UNAVAILABLE',role:'context_only',
       methodology:evidence?.crossAsset?.method||'Bounded same-venue return dependence comparison.',
-      limitations:['Cross-asset context has no independent eligibility impact.']
+      limitations:['Cross-asset context has no independent eligibility impact.','Correlation, beta, spread z-score and exploratory lag relationships are descriptive and do not establish causality or cointegration.']
+    }),
+    sourceNode('macro','macro-reference','Governed macro reference',{
+      source:evidence?.macro?.provider||'European Central Bank',timestamp:evidence?.macro?.observedAt||null,freshness:evidence?.macro?.state==='available'?'DELAYED':'UNAVAILABLE',importance:'MEDIUM',directness:evidence?.macro?.state==='available'?'DIRECT_REFERENCE':'UNAVAILABLE',reliability:evidence?.macro?.state==='available'?'OFFICIAL_REFERENCE':'UNAVAILABLE',role:'context_only',
+      methodology:evidence?.macro?.methodology||'Governed macro reference unavailable.',
+      limitations:Array.isArray(evidence?.macro?.limitations)?evidence.macro.limitations:['Macro reference data has no independent eligibility impact.']
+    }),
+    sourceNode('event-risk','event-risk','Scheduled event risk',{
+      source:evidence?.eventRisk?.provider||'No connected machine-readable feed',timestamp:evidence?.eventRisk?.nextEventAt||null,freshness:evidence?.eventRisk?.state==='available'?'LIVE':'UNAVAILABLE',importance:'HIGH',directness:evidence?.eventRisk?.state==='available'?'DIRECT':'UNAVAILABLE',reliability:evidence?.eventRisk?.state==='available'?'SCHEDULED_SOURCE':'UNAVAILABLE',role:'risk_context',
+      methodology:evidence?.eventRisk?.gatingBoundary||'High-impact event gating is unavailable until a verified scheduled feed is connected.',
+      limitations:[evidence?.eventRisk?.calendarBoundary||'Calendar embeds are not read into Decision Intelligence.',evidence?.eventRisk?.newsBoundary||'News is not converted into scheduled event risk.']
     }),
     sourceNode('news','news','Recent news evidence',{
       source:evidence?.news?.provider||'GDELT',timestamp:null,freshness:evidence?.news?.state==='live'?'LIVE':evidence?.news?.state==='no-matches'?'DELAYED':'UNAVAILABLE',importance:'MEDIUM',directness:'EXTERNAL_REPORTING',reliability:'SOURCE_DEPENDENT',role:'context_only',
@@ -203,6 +213,8 @@ function decisionTrace(graph,{multiTimeframe,tradeResearch,evidence,horizon}){
     ['liquidity','view','can suppress on severe verified risk'],
     ['derivatives','view','adds risk context'],
     ['cross-asset','view','adds descriptive context'],
+    ['macro','view','adds delayed reference context'],
+    ['event-risk','view','gates only when a verified schedule exists'],
     ['news','view','adds contextual evidence'],
     ['analogs','view','adds descriptive history'],
     ['scenario','view','informs'],
