@@ -397,6 +397,7 @@ function decisionTrace(graph,{multiTimeframe,tradeResearch,evidence,horizon,cont
     ['quant','evidence','contributes deterministic state'],
     ['mtf','evidence','supports or contradicts'],
     ['calibration','evidence','gates'],
+    ['calibration','view','gates'],
     ['liquidity','evidence','adds marketability risk'],
     ['derivatives','evidence','adds perpetual risk context'],
     ['cross-asset','evidence','adds descriptive dependence'],
