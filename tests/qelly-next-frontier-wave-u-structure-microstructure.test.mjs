@@ -37,7 +37,7 @@ test('Wave U structure exposes bounded pivots, bias, strength, retest/rejection 
 
 test('Wave U L2 computes top-1/top-5/top-10 depth, microprice and multi-depth consensus from one verified snapshot',()=>{
   const bids=Array.from({length:10},(_,i)=>({px:String(100-i*.1),sz:String(10-i*.2),n:2+i}));
-  const asks=Array.from({length:10},(_,i)=>({px:String(101+i*.1),sz:String(1+i*.05),n:1+i}));
+  const asks=Array.from({length:10},(_,i)=>({px:String(100.1+i*.1),sz:String(1+i*.05),n:1+i}));
   const result=normalizeDecisionLiquidity({time:Date.parse('2026-09-24T09:00:00.000Z'),levels:[bids,asks]},{asset:'BTC'});
   assert.equal(result.state,'live');
   assert.equal(result.spreadState,'NORMAL');
