@@ -111,8 +111,8 @@ test('Wave Z research-flow source contract connects Dossier to Decision to Formu
 
   assert.doesNotMatch(bridge,/\bfetch\s*\(|\bapi\s*\(/);
   assert.match(css,/\.q-chat-handoff\{display:grid;grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
-  assert.match(css,/@media\(max-width:980px\).*\.q-chat-handoff\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/s);
-  assert.match(css,/@media\(max-width:640px\).*\.q-chat-handoff\{grid-template-columns:1fr\}/s);
+  assert.match(css,/@media\(max-width:980px\)\{[^}]*\}\.q-chat-mode-grid,.q-chat-dataset-grid,.q-chat-handoff\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/s);
+  assert.match(css,/@media\(max-width:640px\)\{\.q-chat-mode-grid,.q-chat-dataset-grid,.q-chat-handoff\{grid-template-columns:1fr\}/s);
 });
 
 test('Wave Z Formula handoff uses research timeframe without changing Formula Screener sampling interval or adding a new endpoint',async()=>{
