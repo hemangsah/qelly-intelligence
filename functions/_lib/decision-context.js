@@ -128,7 +128,8 @@ function pastPresentFuture(graph,{multiTimeframe,tradeResearch,evidence,horizon,
     invalidation:tradeResearch?.invalidation||null,
     selectedTarget:tradeResearch?.selected||null,
     targets:Array.isArray(tradeResearch?.targets)?tradeResearch.targets:[],
-    expiryAt:tradeResearch?.expiryAt||null
+    expiryAt:tradeResearch?.expiryAt||null,
+    changeReasons
   };
   return {
     schemaVersion:'qelly.past-present-future/2.0.0',
@@ -325,6 +326,11 @@ function decisionTrace(graph,{multiTimeframe,tradeResearch,evidence,horizon,cont
     })
   ];
   const satellite=[
+    sourceNode('price','observation-compatibility','Validated price and volume observations',{
+      source:graph?.provenance?.provider||'Hyperliquid',timestamp:observedAt,freshness:truth,importance:'CRITICAL',directness:'DIRECT',reliability:'VENUE_OBSERVED',role:'observation',supportState:'OBSERVATION',
+      methodology:'Compatibility evidence node referencing the same validated normalized market observations used by the RAW OBSERVATION and NORMALIZED DATA pipeline stages; it performs no separate calculation.',
+      limitations:['Compatibility alias only; no second provider request, normalization pass or Decision engine is introduced.']
+    }),
     sourceNode('mtf','multi-timeframe','Multi-timeframe agreement',{
       source:graph?.provenance?.provider||'Hyperliquid',timestamp:observedAt,freshness:multiTimeframe?.state==='live'?truth:'UNAVAILABLE',importance:'HIGH',directness:'DERIVED',reliability:multiTimeframe?.state==='live'?'MULTI_WINDOW':'UNAVAILABLE',role:'support_or_contradiction',supportState:String(multiTimeframe?.agreement?.direction||'MIXED')===viewAction?'SUPPORT':String(multiTimeframe?.agreement?.direction||'MIXED')==='MIXED'?'NEUTRAL':'CONTRADICTION',
       methodology:'Independent supported timeframes are evaluated separately and summarized by directional agreement.',
@@ -342,8 +348,8 @@ function decisionTrace(graph,{multiTimeframe,tradeResearch,evidence,horizon,cont
     }),
     sourceNode('derivatives','derivatives','Funding and open-interest context',{
       source:evidence?.derivatives?.provider||'Hyperliquid',timestamp:evidence?.derivatives?.observedAt||observedAt,freshness:evidence?.derivatives?.state==='live'?'LIVE':'UNAVAILABLE',importance:'MEDIUM',directness:'DIRECT_AND_HISTORICAL_FUNDING',reliability:evidence?.derivatives?.state==='live'?'VENUE_OBSERVED':'UNAVAILABLE',role:'risk_context',supportState:'NEUTRAL',
-      methodology:'Current funding, open interest, mark/oracle basis, premium and volume plus same-provider settled funding/premium history when available.',
-      limitations:['Historical open-interest and mark/oracle basis change are not inferred when unavailable.','Liquidation flow remains unavailable without a verified source.']
+      methodology:'Current funding, open interest, mark/oracle basis, premium and 24h perpetual volume plus same-provider settled funding/premium history when available.',
+      limitations:['Historical open-interest change is not inferred when unavailable.','Historical mark/oracle basis change is not inferred from premium history.','Liquidation flow and the price/OI quadrant remain unavailable without verified source history.']
     }),
     sourceNode('cross-asset','cross-asset','Cross-asset dependence',{
       source:evidence?.crossAsset?.provider||'Hyperliquid candles',timestamp:evidence?.crossAsset?.observedAt||observedAt,freshness:evidence?.crossAsset?.state==='available'?truth:'UNAVAILABLE',importance:'MEDIUM',directness:'DERIVED',reliability:evidence?.crossAsset?.state==='available'?'BOUNDED_SAMPLE':'UNAVAILABLE',role:'context_only',supportState:'NEUTRAL',
@@ -396,7 +402,7 @@ function decisionTrace(graph,{multiTimeframe,tradeResearch,evidence,horizon,cont
     ['derivatives','evidence','adds perpetual risk context'],
     ['cross-asset','evidence','adds descriptive dependence'],
     ['macro','evidence','adds delayed reference context'],
-    ['event-risk','evidence','adds scheduled risk only when verified'],
+    ['event-risk','evidence','gates only when a verified schedule exists'],
     ['news','evidence','adds contextual reporting'],
     ['analogs','evidence','adds descriptive history'],
     ['options','evidence','records availability boundary'],
@@ -432,6 +438,31 @@ function snapshot(graph,{multiTimeframe,tradeResearch,evidence,contradiction}){
   const derivatives=evidence?.derivatives||{};
   const macro=evidence?.macro||{};
   const eventRisk=evidence?.eventRisk||{};
+  const changeReasons={
+    action:contradiction?.strongestContradiction||graph?.qellyView?.label||'Current evidence mix changed.',
+    contradictionState:contradiction?.strongestContradiction||graph?.qellyView?.label||'Current evidence mix changed.',
+    contradictionScore:contradiction?.strongestContradiction||graph?.qellyView?.label||'Current evidence mix changed.',
+    confidence:'Evidence confidence is recomputed from freshness, sample depth, scenario separation and multi-timeframe agreement; it is not a success probability.',
+    evidenceQuality:'Evidence quality is recomputed from freshness, sample depth, scenario separation and multi-timeframe agreement.',
+    calibrationState:calibration.reason||'Walk-forward calibration evidence changed.',
+    calibrationBrierScore:calibration.reason||'Walk-forward calibration evidence changed.',
+    selectedRr:tradeResearch?.selected?.feasibilityReason||tradeResearch?.reason||'Target feasibility changed with current structure and scenario range.',
+    selectedRrFeasibility:tradeResearch?.selected?.feasibilityReason||tradeResearch?.reason||'Target feasibility changed with current structure and scenario range.',
+    selectedTarget:tradeResearch?.selected?.feasibilityReason||tradeResearch?.reason||'Target feasibility changed with current structure and scenario range.',
+    entryMethod:tradeResearch?.reason||'Setup state changed after current entry, invalidation or expiry checks.',
+    entryPreferred:tradeResearch?.reason||'Setup state changed after current entry, invalidation or expiry checks.',
+    stopPrice:tradeResearch?.reason||'Setup state changed after current entry, invalidation or expiry checks.',
+    expiryAt:tradeResearch?.reason||'Setup state changed after current entry, invalidation or expiry checks.',
+    macroLevel:macro.reason||'Governed macro reference context changed.',
+    macroUsdInr:macro.reason||'Governed macro reference context changed.',
+    eventRiskLevel:eventRisk.reason||'Scheduled event-risk context changed.',
+    fundingPct:'Derivatives context changed; unavailable historical OI change is not inferred.',
+    fundingChangeBps:'Derivatives context changed; unavailable historical OI change is not inferred.',
+    openInterestNotionalUsd:'Derivatives context changed; unavailable historical OI change is not inferred.',
+    openInterestChangeState:'Derivatives context changed; unavailable historical OI change is not inferred.',
+    structureState:'Confirmed swing/range structure was recomputed from the current normalized candle history.',
+    structureBias:'Confirmed swing/range structure was recomputed from the current normalized candle history.'
+  };
   return {
     schemaVersion:'qelly.decision-snapshot/2.0.0',
     graphId:graph?.graphId||null,
