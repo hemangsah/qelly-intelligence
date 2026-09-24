@@ -260,6 +260,6 @@ test('Wave Y frontend hands Decision horizon R:R selection and prior snapshot to
   assert.match(endpoint,/requestedRr:decisionContext\.rr/);
   assert.equal((endpoint.match(/await decisionBuilder\(env,/g)||[]).length,1); // one authoritative runtime Decision call
   assert.match(tools,/qelly\.decision-copilot-context\/2\.0\.0/);
-  assert.match(finance,/does not create a second Decision engine/i);
+  assert.match(tools,/does not create a second Decision engine/i);
   assert.match(__financeIntelligenceTest.systemPrompt,/authoritative current Decision context/i);
 });
