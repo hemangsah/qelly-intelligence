@@ -398,8 +398,18 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
     if(error instanceof HttpError)throw error;
     throw new HttpError(503,'insufficient_provider_data',error.message,{retryable:true});
   }
-  const [{articles,state:newsState},macro]=await Promise.all([newsPromise,macroPromise]);
-  const eventRisk=buildUnavailableDecisionEventRisk();
+  const {articles,state:newsState}=await newsPromise;
+  const macroReference=await macroPromise;
+  const macro={
+    ...macroReference,
+    intradayFeedConnected:false,
+    legacyCadenceBoundary:'Slow or delayed macro references used elsewhere in QELLY are intentionally excluded from intraday trade eligibility.'
+  };
+  const eventRisk={
+    ...buildUnavailableDecisionEventRisk(),
+    scheduledFeedConnected:false,
+    legacyNewsBoundary:'Recent news is evidence only and is not converted into a scheduled event-risk score.'
+  };
   graph={...graph,liquidity,eventRisk,derivatives,crossAsset,macro};
   const tradeResearch=buildTradeResearch(graph,{requestedRr,customRr});
   const evidence={
