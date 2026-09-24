@@ -1,6 +1,7 @@
 import {buildDecisionIntelligence} from '../decision-proven-graph.js';
 import {initialObservationFromRecord,observePersistedSetup,setupRecordFromDecision,setupRowToClient} from '../../../_lib/decision-outcome-ledger.js';
 import {buildTargetTouchCalibration} from '../../../_lib/decision-target-touch-calibration.js';
+import {auditDecisionOutcomeData} from '../../../_lib/decision-outcome-data-quality.js';
 import {HttpError,UUID,bootstrapContext,correlationId,enforceRateLimit,errorResponse,jsonBody,requireCsrf,requireOrigin,resolveSession,responseJson,restRequest} from '../../../_lib/runtime.js';
 
 const routePath=(context)=>{
@@ -28,6 +29,14 @@ const calibrationRows=async(env,session,workspaceId,{limit=2000}={})=>{
     limit:String(limit)
   });
   return restRequest(env,session.accessToken,`qelly_decision_setups?${params.toString()}`);
+};
+const researchSetupRows=async(env,session,workspaceId,{limit=2000}={})=>{
+  const params=new URLSearchParams({select:'*',workspace_id:`eq.${workspaceId}`,order:'created_observed_at.asc',limit:String(limit)});
+  return restRequest(env,session.accessToken,`qelly_decision_setups?${params.toString()}`);
+};
+const researchObservationRows=async(env,session,workspaceId,{limit=5000}={})=>{
+  const params=new URLSearchParams({select:'*',workspace_id:`eq.${workspaceId}`,order:'observed_at.asc',limit:String(limit)});
+  return restRequest(env,session.accessToken,`qelly_decision_setup_observations?${params.toString()}`);
 };
 const requireSetup=async(env,session,workspaceId,id)=>{
   const rows=await setupRows(env,session,workspaceId,{id,limit:1});
@@ -57,6 +66,41 @@ async function handleLedger(context,relative,method,session,qelly){
   const ownerId=qelly.user.userId;
   const url=new URL(request.url);
   const segments=relative.split('/').filter(Boolean);
+
+  if(relative==='research-audit'&&method==='GET'){
+    const setupLimit=2000,observationLimit=5000;
+    const [setups,observations]=await Promise.all([
+      researchSetupRows(env,session,workspaceId,{limit:setupLimit}),
+      researchObservationRows(env,session,workspaceId,{limit:observationLimit})
+    ]);
+    const dataQuality=auditDecisionOutcomeData(setups||[],observations||[]);
+    const calibration=dataQuality.state==='CONTAMINATED'
+      ?{
+          schemaVersion:'qelly.target-touch-calibration/1.0.0',
+          state:'UNCALIBRATED',
+          eligible:false,
+          eligibleResolvedSetups:0,
+          minimumSampleGate:50,
+          metrics:{},
+          reason:'Outcome data-quality gate failed. Contaminated labels are excluded from scientific calibration.',
+          qualityGate:'BLOCKED'
+        }
+      :{
+          ...buildTargetTouchCalibration(setups||[],{minSamples:50,warmup:20,minSegmentSamples:50,historyLimitReached:(setups||[]).length>=setupLimit}),
+          qualityGate:dataQuality.state==='VALID'?'PASSED':dataQuality.state
+        };
+    return responseJson(request,env,{
+      dataQuality,
+      calibration,
+      sampleBoundary:{
+        setupLimit,
+        observationLimit,
+        setupLimitReached:(setups||[]).length>=setupLimit,
+        observationLimitReached:(observations||[]).length>=observationLimit
+      },
+      boundary:'This audit uses only persisted observed Decision setup history. Empty history is reported as NO_OBSERVED_DATA; contaminated history is never calibrated.'
+    });
+  }
 
   if(!relative&&method==='GET'){
     const historyLimit=2000;
@@ -140,4 +184,4 @@ export async function onRequest(context){
   }
 }
 
-export const __decisionLedgerApiTest=Object.freeze({routePath,limitFor,decisionArgs,argsFromRow,calibrationRows});
+export const __decisionLedgerApiTest=Object.freeze({routePath,limitFor,decisionArgs,argsFromRow,calibrationRows,researchSetupRows,researchObservationRows});
