@@ -55,11 +55,10 @@ test('Wave ZA app measures the authoritative route owner including superseded an
 test('Wave ZA TradingView mounts are idempotent per container and preserve display-only boundaries',async()=>{
   const source=await read('apps/web/public/assets/market/tradingview-display-widget.mjs');
   assert.match(source,/const ACTIVE_WIDGETS=new WeakMap\(\)/);
-  assert.match(source,/ACTIVE_WIDGETS\.get\(container\)\?\.destroy\?\.\(\)/);
+  assert.match(source,/const previousHandle=ACTIVE_WIDGETS\.get\(container\)/);
+  assert.match(source,/previousHandle\.destroy\?\.\(\);previousHandle\.destroy=\(\)=>\{\}/);
   assert.match(source,/ACTIVE_WIDGETS\.set\(container,handle\)/);
-  assert.match(source,/if\(ACTIVE_WIDGETS\.get\(container\)===handle\)ACTIVE_WIDGETS\.delete\(container\)/);
-  assert.match(source,/destroy\(\)\{/);
-  assert.match(source,/if\(destroyed\)return;/);
+  assert.match(source,/destroy\(\)\{destroyed=true;settled=true;cleanupAttempt\(\);container\.replaceChildren\(\)/);
   assert.match(source,/WIDGET_TIMEOUT_MS=12000/);
   assert.match(source,/does not read, scrape, transform, persist or use widget values/i);
   assert.doesNotMatch(source,/contentWindow|contentDocument|\bfetch\s*\(/);
