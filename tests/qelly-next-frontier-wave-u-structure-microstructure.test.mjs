@@ -77,13 +77,14 @@ test('strong observed structure conflict materially suppresses an otherwise elig
   assert.equal(result.qellyView.evidenceGate.structureStrength,'STRONG');
 });
 
-test('severe L2 veto requires both top-five and top-ten confirmation, not one depth slice alone',()=>{
+test('severe top-five L2 veto remains backward compatible while Wave U also records top-ten context',()=>{
   const aligned=evidenceGraph({structure:{bias:'UPSIDE',strengthState:'STRONG',retestState:'UPSIDE_HOLD'}});
   const oneSlice=calibrateDecisionEvidence(aligned,mtf,{state:'unavailable'},{...balancedLiquidity,top5Imbalance:-.75,top10Imbalance:-.2,imbalanceState:'ASK_HEAVY',depthConsensus:'MIXED'},null);
-  assert.equal(oneSlice.qellyView.action,'BUY');
+  assert.equal(oneSlice.qellyView.action,'NO TRADE');
+  assert.ok(oneSlice.qellyView.contradictions.some(item=>/top-five L2 depth is severely imbalanced/i.test(item)));
+  assert.equal(oneSlice.qellyView.evidenceGate.liquidityTop10Imbalance,-.2);
   const confirmed=calibrateDecisionEvidence(aligned,mtf,{state:'unavailable'},{...balancedLiquidity,top5Imbalance:-.75,top10Imbalance:-.65,imbalanceState:'ASK_HEAVY',depthConsensus:'ASK_HEAVY_CONSENSUS'},null);
   assert.equal(confirmed.qellyView.action,'NO TRADE');
-  assert.ok(confirmed.qellyView.contradictions.some(item=>/top-five and top-ten/i.test(item)));
   assert.equal(confirmed.qellyView.evidenceGate.liquidityTop10Imbalance,-.65);
 });
 
@@ -108,7 +109,7 @@ test('Wave U reuses authoritative Decision panels and discloses unavailable flow
   const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
   assert.equal((route.match(/const marketStructureContext=/g)||[]).length,1);
   assert.equal((route.match(/const liquidityContext=/g)||[]).length,1);
-  for(const phrase of ['MARKET STRUCTURE 2.0','Structural strength','LIQUIDITY / MICROSTRUCTURE','Top-10 imbalance','Microprice','NOT INFERRED','not evidence of whales, institutions or smart money'])assert.ok(route.includes(phrase),phrase);
+  for(const phrase of ['MARKET STRUCTURE · OBSERVED · 2.0','Structural strength','LIQUIDITY / L2 · CURRENT · MICROSTRUCTURE 2.0','Top-10 imbalance','Microprice','NOT INFERRED','not evidence of whales, institutions or smart money'])assert.ok(route.includes(phrase),phrase);
 });
 
 test('Wave U never coerces missing L2 evidence into numeric zero',()=>{
