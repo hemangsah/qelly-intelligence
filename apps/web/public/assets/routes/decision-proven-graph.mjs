@@ -66,22 +66,50 @@ const macroContext=(data,escapeHtml)=>{
 const marketStructureContext=(data,escapeHtml)=>{
   const structure=data?.quant?.structure;
   if(!structure||structure.state==='UNAVAILABLE')return '<section class="q-dpg-structure"><header><div><small>MARKET STRUCTURE</small><h2>Structure unavailable</h2></div><span>Not inferred</span></header><p>There are not enough verified candles to classify swing structure.</p></section>';
-  const price=(value)=>Number.isFinite(Number(value))?money(Number(value)):'Unavailable';
+  const price=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?money(Number(value)):'Unavailable';
+  const pctValue=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Number(value).toFixed(2)+'%':'Unavailable';
   const swingCount=(side)=>Array.isArray(structure?.swings?.[side])?structure.swings[side].length:0;
-  return '<section class="q-dpg-structure"><header><div><small>MARKET STRUCTURE · OBSERVED</small><h2>'+escapeHtml(String(structure.state).replaceAll('_',' '))+'</h2></div><span>'+escapeHtml(String(structure.phase||'UNAVAILABLE').replaceAll('_',' '))+'</span></header>'+
-    '<div class="q-dpg-structure__grid"><article><span>Support</span><strong>'+price(structure.support)+'</strong><small>Range low '+price(structure.rangeLow)+'</small></article><article><span>Resistance</span><strong>'+price(structure.resistance)+'</strong><small>Range high '+price(structure.rangeHigh)+'</small></article><article><span>Break of structure</span><strong>'+escapeHtml(String(structure.breakOfStructure||'NONE'))+'</strong><small>Confirmed swing break</small></article><article><span>Change of character</span><strong>'+escapeHtml(String(structure.changeOfCharacter||'NONE'))+'</strong><small>Against prior structural state</small></article><article><span>Failed breakout</span><strong>'+escapeHtml(String(structure.failedBreakout||'NONE').replaceAll('_',' '))+'</strong><small>Close returned inside prior range</small></article><article><span>Compression</span><strong>'+escapeHtml(String(structure.compressionState||'UNAVAILABLE'))+'</strong><small>Ratio '+escapeHtml(String(structure.compressionRatio??'—'))+'</small></article></div>'+
-    '<p>'+escapeHtml(String(swingCount('highs')))+' recent confirmed swing highs · '+escapeHtml(String(swingCount('lows')))+' recent confirmed swing lows · structure informs entry, invalidation and target feasibility.</p></section>';
+  return '<section class="q-dpg-structure"><header><div><small>MARKET STRUCTURE 2.0 · OBSERVED</small><h2>'+escapeHtml(String(structure.state).replaceAll('_',' '))+'</h2></div><span>'+escapeHtml(String(structure.bias||'MIXED').replaceAll('_',' '))+' · '+escapeHtml(String(structure.strengthState||'UNAVAILABLE'))+'</span></header>'+
+    '<div class="q-dpg-structure__grid">'+
+      '<article><span>Support</span><strong>'+price(structure.support)+'</strong><small>'+pctValue(structure.distanceToSupportPct)+' below · '+escapeHtml(String(structure.supportTouches??0))+' touches</small></article>'+
+      '<article><span>Resistance</span><strong>'+price(structure.resistance)+'</strong><small>'+pctValue(structure.distanceToResistancePct)+' above · '+escapeHtml(String(structure.resistanceTouches??0))+' touches</small></article>'+
+      '<article><span>Break of structure</span><strong>'+escapeHtml(String(structure.breakOfStructure||'NONE'))+'</strong><small>Confirmed close beyond swing structure</small></article>'+
+      '<article><span>Change of character</span><strong>'+escapeHtml(String(structure.changeOfCharacter||'NONE'))+'</strong><small>Break against the prior swing sequence</small></article>'+
+      '<article><span>Retest</span><strong>'+escapeHtml(String(structure.retestState||'NONE').replaceAll('_',' '))+'</strong><small>Prior-range hold or failure</small></article>'+
+      '<article><span>Continuation</span><strong>'+escapeHtml(String(structure.continuationState||'NONE').replaceAll('_',' '))+'</strong><small>Sequence / break / retest context</small></article>'+
+      '<article><span>Rejection</span><strong>'+escapeHtml(String(structure.rejectionState||'NONE').replaceAll('_',' '))+'</strong><small>Observed wick rejection near structure</small></article>'+
+      '<article><span>Potential exhaustion</span><strong>'+escapeHtml(String(structure.exhaustionState||'NONE').replaceAll('_',' '))+'</strong><small>Descriptive heuristic, not a reversal forecast</small></article>'+
+      '<article><span>Compression</span><strong>'+escapeHtml(String(structure.compressionState||'UNAVAILABLE'))+'</strong><small>Range ratio '+escapeHtml(String(structure.compressionRatio??'—'))+'</small></article>'+
+      '<article><span>Range position</span><strong>'+(Number.isFinite(Number(structure.rangePosition))?(Number(structure.rangePosition)*100).toFixed(0)+'%':'Unavailable')+'</strong><small>'+price(structure.rangeLow)+' → '+price(structure.rangeHigh)+'</small></article>'+
+      '<article><span>Structural strength</span><strong>'+escapeHtml(String(structure.strengthState||'UNAVAILABLE'))+'</strong><small>Score '+escapeHtml(String(structure.strengthScore??'—'))+' / 9</small></article>'+
+      '<article><span>Failed breakout</span><strong>'+escapeHtml(String(structure.failedBreakout||'NONE').replaceAll('_',' '))+'</strong><small>Close returned through prior range boundary</small></article>'+
+    '</div>'+
+    '<p>'+escapeHtml(String(swingCount('highs')))+' recent confirmed swing highs · '+escapeHtml(String(swingCount('lows')))+' recent confirmed swing lows. '+escapeHtml(structure.methodology||'Structure informs eligibility, entry, invalidation and target feasibility.')+'</p></section>';
 };
 
 const liquidityContext=(data,escapeHtml)=>{
   const liquidity=data?.evidence?.liquidity||data?.liquidity;
-  if(!liquidity||liquidity.state!=='live')return '<section class="q-dpg-liquidity"><header><div><small>LIQUIDITY / L2 · CURRENT</small><h2>Order-book context unavailable</h2></div><span>Not inferred</span></header><p>'+escapeHtml(liquidity?.reason||'A verified two-sided L2 snapshot is unavailable, so spread and book imbalance are not inferred.')+'</p><p class="q-dpg-liquidity__limit">Trade imbalance, aggressive flow, volume delta, CVD and historical book depth remain unavailable unless separately sourced.</p></section>';
-  const price=(value)=>Number.isFinite(Number(value))?money(Number(value)):'Unavailable';
-  const bps=Number.isFinite(Number(liquidity.spreadBps))?Number(liquidity.spreadBps).toFixed(2)+' bps':'Unavailable';
-  const imbalance=Number.isFinite(Number(liquidity.top5Imbalance))?(Number(liquidity.top5Imbalance)*100).toFixed(1)+'%':'Unavailable';
-  return '<section class="q-dpg-liquidity"><header><div><small>LIQUIDITY / L2 · CURRENT</small><h2>'+escapeHtml(String(liquidity.spreadState||'UNAVAILABLE'))+' spread · '+escapeHtml(String(liquidity.imbalanceState||'UNAVAILABLE').replaceAll('_',' '))+'</h2></div><span>'+escapeHtml(liquidity.provider||'Provider')+(liquidity.observedAt?' · '+escapeHtml(displayTime(liquidity.observedAt)):'')+'</span></header>'+
-    '<div class="q-dpg-liquidity__grid"><article><span>Best bid</span><strong>'+price(liquidity.bestBid)+'</strong></article><article><span>Best ask</span><strong>'+price(liquidity.bestAsk)+'</strong></article><article><span>Spread</span><strong>'+escapeHtml(bps)+'</strong></article><article><span>Top-5 bid depth</span><strong>'+compactMoney(liquidity.top5BidDepthUsd)+'</strong></article><article><span>Top-5 ask depth</span><strong>'+compactMoney(liquidity.top5AskDepthUsd)+'</strong></article><article><span>Book imbalance</span><strong>'+escapeHtml(imbalance)+'</strong><small>'+escapeHtml(String(liquidity.imbalanceState||'UNAVAILABLE').replaceAll('_',' '))+'</small></article></div>'+
-    '<p>'+escapeHtml(liquidity.method||'Current verified order-book snapshot.')+'</p><p class="q-dpg-liquidity__limit">Point-in-time risk context only. CVD, aggressive trade flow, historical depth and liquidation flow are not inferred.</p></section>';
+  if(!liquidity||liquidity.state!=='live')return '<section class="q-dpg-liquidity"><header><div><small>LIQUIDITY / MICROSTRUCTURE</small><h2>Order-book context unavailable</h2></div><span>Not inferred</span></header><p>'+escapeHtml(liquidity?.reason||'A verified two-sided L2 snapshot is unavailable, so spread and book imbalance are not inferred.')+'</p><p class="q-dpg-liquidity__limit">Trade imbalance, aggressive flow, volume delta, CVD, liquidation flow and historical book depth remain unavailable unless separately sourced.</p></section>';
+  const price=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?money(Number(value)):'Unavailable';
+  const bps=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Number(value).toFixed(2)+' bps':'Unavailable';
+  const imbalance=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?(Number(value)*100).toFixed(1)+'%':'Unavailable';
+  const depth=(bid,ask)=>compactMoney(bid)+' / '+compactMoney(ask);
+  return '<section class="q-dpg-liquidity"><header><div><small>LIQUIDITY / MICROSTRUCTURE · CURRENT</small><h2>'+escapeHtml(String(liquidity.spreadState||'UNAVAILABLE'))+' spread · '+escapeHtml(String(liquidity.depthConsensus||'UNAVAILABLE').replaceAll('_',' '))+'</h2></div><span>'+escapeHtml(liquidity.provider||'Provider')+(liquidity.observedAt?' · '+escapeHtml(displayTime(liquidity.observedAt)):'')+'</span></header>'+
+    '<div class="q-dpg-liquidity__grid">'+
+      '<article><span>Best bid</span><strong>'+price(liquidity.bestBid)+'</strong></article>'+
+      '<article><span>Best ask</span><strong>'+price(liquidity.bestAsk)+'</strong></article>'+
+      '<article><span>Spread</span><strong>'+escapeHtml(bps(liquidity.spreadBps))+'</strong><small>'+escapeHtml(String(liquidity.spreadState||'UNAVAILABLE'))+'</small></article>'+
+      '<article><span>Microprice</span><strong>'+price(liquidity.microprice)+'</strong><small>Bias '+escapeHtml(bps(liquidity.micropriceBiasBps))+'</small></article>'+
+      '<article><span>Top-1 depth B / A</span><strong>'+escapeHtml(depth(liquidity.top1BidDepthUsd,liquidity.top1AskDepthUsd))+'</strong><small>Imbalance '+escapeHtml(imbalance(liquidity.top1Imbalance))+'</small></article>'+
+      '<article><span>Top-5 depth B / A</span><strong>'+escapeHtml(depth(liquidity.top5BidDepthUsd,liquidity.top5AskDepthUsd))+'</strong><small>Imbalance '+escapeHtml(imbalance(liquidity.top5Imbalance))+'</small></article>'+
+      '<article><span>Top-10 depth B / A</span><strong>'+escapeHtml(depth(liquidity.top10BidDepthUsd,liquidity.top10AskDepthUsd))+'</strong><small>Imbalance '+escapeHtml(imbalance(liquidity.top10Imbalance))+'</small></article>'+
+      '<article><span>Top-5 imbalance</span><strong>'+escapeHtml(imbalance(liquidity.top5Imbalance))+'</strong><small>'+escapeHtml(String(liquidity.imbalanceState||'UNAVAILABLE').replaceAll('_',' '))+'</small></article>'+
+      '<article><span>Top-10 imbalance</span><strong>'+escapeHtml(imbalance(liquidity.top10Imbalance))+'</strong><small>'+escapeHtml(String(liquidity.top10ImbalanceState||'UNAVAILABLE').replaceAll('_',' '))+'</small></article>'+
+      '<article><span>Depth consensus</span><strong>'+escapeHtml(String(liquidity.depthConsensus||'UNAVAILABLE').replaceAll('_',' '))+'</strong><small>Top-1 / top-5 / top-10 agreement</small></article>'+
+      '<article><span>Top-1 concentration</span><strong>'+(Number.isFinite(Number(liquidity.depthConcentrationTop1))?(Number(liquidity.depthConcentrationTop1)*100).toFixed(1)+'%':'Unavailable')+'</strong><small>Displayed top level / top-10 depth</small></article>'+
+      '<article><span>Unavailable flow</span><strong>NOT INFERRED</strong><small>CVD · aggressor flow · liquidations</small></article>'+
+    '</div>'+
+    '<p>'+escapeHtml(liquidity.method||'Current verified order-book snapshot.')+'</p><p class="q-dpg-liquidity__limit">Point-in-time marketability context only. Displayed depth can change rapidly and is not evidence of whales, institutions or smart money. CVD, aggressive trade flow, historical depth and liquidation flow are not inferred.</p></section>';
 };
 
 const eventRiskContext=(data,escapeHtml)=>{
