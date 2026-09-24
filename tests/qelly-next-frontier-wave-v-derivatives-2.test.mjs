@@ -70,6 +70,18 @@ test('Wave V adds no derivatives provider fan-out beyond current context plus se
   assert.match(api,/premium history is not substituted for basis history/i);
 });
 
+test('Wave V carries enriched derivatives truth into setup risk context without inventing missing history',async()=>{
+  const trade=await read('functions/_lib/decision-trade-research.js');
+  for(const field of [
+    'fundingState','fundingShiftState','premiumPct','premiumChangeBps','premiumPercentile',
+    'openInterestTurnover24h','markOracleBasisPct','markOracleBasisChangeState',
+    'priceOpenInterestQuadrant','liquidationsState'
+  ])assert.ok(trade.includes(field),field);
+  assert.match(trade,/openInterestChangeState:derivatives\?\.openInterestChangeState\|\|'UNAVAILABLE'/);
+  assert.match(trade,/priceOpenInterestQuadrant:derivatives\?\.priceOpenInterestQuadrant\|\|'UNAVAILABLE'/);
+  assert.match(trade,/liquidationsState:derivatives\?\.liquidationsState\|\|'UNAVAILABLE'/);
+});
+
 test('Wave V preserves current derivatives separately from historical selected-move evidence',async()=>{
   const api=await read('functions/api/v1/decision-proven-graph.js');
   assert.match(api,/currentOnly:true/);
