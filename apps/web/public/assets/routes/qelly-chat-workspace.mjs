@@ -54,7 +54,7 @@ export async function renderQellyChatWorkspace(main,{api,pageHead,stateBanner,es
   main.querySelectorAll('[data-route]').forEach((button)=>button.addEventListener('click',()=>{
     const route=button.dataset.route;
     if(route==='asset'&&contextAsset){navigate('asset','QI-CRYPTO-'+contextAsset);return;}
-    if(route==='decision-provenance'&&contextAsset)storeDecisionContext({asset:contextAsset,timeframe:contextTimeframe,source:'qelly-chat-workspace'});
+    if(route==='decision-provenance'&&contextAsset)storeDecisionContext({asset:contextAsset,timeframe:contextTimeframe,source:'qelly-chat-workspace',formulaId:contextFormula});
     navigate(route);
   }));
 }
