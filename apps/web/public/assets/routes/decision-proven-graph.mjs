@@ -39,14 +39,35 @@ const multiTimeframe=(data,escapeHtml)=>{const mtf=data.multiTimeframe,views=mtf
 const derivativesContext=(data,escapeHtml)=>{
   const derivatives=data.evidence?.derivatives;
   if(!derivatives||derivatives.state!=='live'){
-    return '<section class="q-dpg-derivatives"><header><div><small>DERIVATIVES CONTEXT</small><h2>Funding and open interest unavailable</h2></div><span>Not inferred</span></header><p>'+escapeHtml(derivatives?.message||'Current perpetual-market context could not be verified, so Qelly does not create substitute values.')+'</p><p class="q-dpg-derivatives__limit">Funding history, OI change and liquidations remain unavailable unless separately verified.</p></section>';
+    return '<section class="q-dpg-derivatives"><header><div><small>DERIVATIVES CONTEXT</small><h2>Funding and open interest unavailable</h2></div><span>Not inferred</span></header><p>'+escapeHtml(derivatives?.message||'Current perpetual-market context could not be verified, so Qelly does not create substitute values.')+'</p><p class="q-dpg-derivatives__limit">Funding history, OI change, basis change, price/OI quadrant and liquidations remain unavailable unless separately verified.</p></section>';
   }
-  const funding=derivatives.fundingPct==null?'Unavailable':Number(derivatives.fundingPct).toFixed(4)+'%';
-  const basis=derivatives.markOracleBasisPct==null?'Unavailable':Number(derivatives.markOracleBasisPct).toFixed(4)+'%';
-  const fundingDelta=Number.isFinite(Number(derivatives.fundingChangeBps))?(Number(derivatives.fundingChangeBps)>=0?'+':'')+Number(derivatives.fundingChangeBps).toFixed(3)+' bps':'Unavailable';
-  const fundingPercentile=Number.isFinite(Number(derivatives.fundingPercentile))?Math.round(Number(derivatives.fundingPercentile)*100)+'%':'Unavailable';
+  const pct=(value,digits=4)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Number(value).toFixed(digits)+'%':'Unavailable';
+  const bps=(value,digits=3)=>value!=null&&value!==''&&Number.isFinite(Number(value))?(Number(value)>=0?'+':'')+Number(value).toFixed(digits)+' bps':'Unavailable';
+  const percentile=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Math.round(Number(value)*100)+'%':'Unavailable';
+  const ratio=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Number(value).toFixed(2)+'x':'Unavailable';
   const history=derivatives.fundingHistory||{};
-  return '<section class="q-dpg-derivatives"><header><div><small>DERIVATIVES CONTEXT · CURRENT + SETTLED HISTORY</small><h2>Funding, carry and open interest</h2></div><span>'+escapeHtml(derivatives.provider)+' · '+new Date(derivatives.observedAt).toLocaleString()+'</span></header><div class="q-dpg-derivatives__grid"><article><span>Current funding</span><strong>'+funding+'</strong></article><article><span>Funding change</span><strong>'+escapeHtml(fundingDelta)+'</strong><small>vs latest settled observation</small></article><article><span>Funding percentile</span><strong>'+escapeHtml(fundingPercentile)+'</strong><small>n='+escapeHtml(String(history.sampleSize??0))+' settled samples</small></article><article><span>Open interest</span><strong>'+compactNumber(derivatives.openInterest)+' '+escapeHtml(data.asset)+'</strong></article><article><span>OI notional</span><strong>'+compactMoney(derivatives.openInterestNotionalUsd)+'</strong></article><article><span>OI change</span><strong>'+escapeHtml(String(derivatives.openInterestChangeState||'UNAVAILABLE'))+'</strong><small>Historical OI not connected</small></article><article><span>24h perp volume</span><strong>'+compactMoney(derivatives.dayNotionalVolumeUsd)+'</strong></article><article><span>Mark / oracle basis</span><strong>'+basis+'</strong></article></div><p>'+escapeHtml(derivatives.message)+'</p><p class="q-dpg-derivatives__limit">'+escapeHtml(history.method||'Funding history unavailable.')+' · Liquidations remain unavailable, not inferred.</p></section>';
+  return '<section class="q-dpg-derivatives"><header><div><small>DERIVATIVES CONTEXT · CURRENT + SETTLED HISTORY</small><h2>Funding, premium, basis and open interest</h2></div><span>'+escapeHtml(derivatives.provider)+' · '+new Date(derivatives.observedAt).toLocaleString()+'</span></header>'+
+    '<div class="q-dpg-derivatives__grid">'+
+      '<article><span>Current funding</span><strong>'+pct(derivatives.fundingPct)+'</strong><small>'+escapeHtml(String(derivatives.fundingState||'UNAVAILABLE').replaceAll('_',' '))+'</small></article>'+
+      '<article><span>Funding change</span><strong>'+escapeHtml(bps(derivatives.fundingChangeBps))+'</strong><small>'+escapeHtml(String(derivatives.fundingShiftState||'UNAVAILABLE'))+' vs latest settled</small></article>'+
+      '<article><span>Funding percentile</span><strong>'+escapeHtml(percentile(derivatives.fundingPercentile))+'</strong><small>n='+escapeHtml(String(history.sampleSize??0))+' settled samples</small></article>'+
+      '<article><span>Current premium</span><strong>'+pct(derivatives.premiumPct)+'</strong><small>'+escapeHtml(String(derivatives.premiumState||'UNAVAILABLE').replaceAll('_',' '))+'</small></article>'+
+      '<article><span>Premium change</span><strong>'+escapeHtml(bps(derivatives.premiumChangeBps))+'</strong><small>'+escapeHtml(String(derivatives.premiumShiftState||'UNAVAILABLE'))+' vs latest settled</small></article>'+
+      '<article><span>Premium percentile</span><strong>'+escapeHtml(percentile(derivatives.premiumPercentile))+'</strong><small>n='+escapeHtml(String(history.premiumSampleSize??0))+' settled samples</small></article>'+
+      '<article><span>Open interest</span><strong>'+compactNumber(derivatives.openInterest)+' '+escapeHtml(data.asset)+'</strong></article>'+
+      '<article><span>OI notional</span><strong>'+compactMoney(derivatives.openInterestNotionalUsd)+'</strong></article>'+
+      '<article><span>OI change</span><strong>'+escapeHtml(String(derivatives.openInterestChangeState||'UNAVAILABLE'))+'</strong><small>Historical OI not connected</small></article>'+
+      '<article><span>24h perp volume</span><strong>'+compactMoney(derivatives.dayNotionalVolumeUsd)+'</strong></article>'+
+      '<article><span>OI turnover</span><strong>'+escapeHtml(ratio(derivatives.openInterestTurnover24h))+'</strong><small>24h notional volume / OI notional</small></article>'+
+      '<article><span>Mark price</span><strong>'+money(derivatives.markPrice)+'</strong></article>'+
+      '<article><span>Oracle price</span><strong>'+money(derivatives.oraclePrice)+'</strong></article>'+
+      '<article><span>Mark / oracle basis</span><strong>'+pct(derivatives.markOracleBasisPct)+'</strong><small>'+escapeHtml(String(derivatives.markOracleBasisState||'UNAVAILABLE').replaceAll('_',' '))+'</small></article>'+
+      '<article><span>Basis change</span><strong>'+escapeHtml(String(derivatives.markOracleBasisChangeState||'UNAVAILABLE'))+'</strong><small>Historical mark/oracle series not connected</small></article>'+
+      '<article><span>Price / OI quadrant</span><strong>'+escapeHtml(String(derivatives.priceOpenInterestQuadrant||'UNAVAILABLE').replaceAll('_',' '))+'</strong><small>Requires verified OI change history</small></article>'+
+      '<article><span>Liquidations</span><strong>'+escapeHtml(String(derivatives.liquidationsState||'UNAVAILABLE'))+'</strong><small>Verified liquidation flow not connected</small></article>'+
+    '</div>'+
+    '<p>'+escapeHtml(derivatives.message)+'</p>'+
+    '<p class="q-dpg-derivatives__limit">'+escapeHtml(history.method||'Funding history unavailable.')+' Historical OI change, mark/oracle basis change and liquidation flow are not inferred. Premium history is not substituted for mark/oracle basis history.</p></section>';
 };
 
 const crossAssetContext=(data,escapeHtml)=>{
