@@ -69,7 +69,7 @@ const marketStructureContext=(data,escapeHtml)=>{
   const price=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?money(Number(value)):'Unavailable';
   const pctValue=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Number(value).toFixed(2)+'%':'Unavailable';
   const swingCount=(side)=>Array.isArray(structure?.swings?.[side])?structure.swings[side].length:0;
-  return '<section class="q-dpg-structure"><header><div><small>MARKET STRUCTURE 2.0 · OBSERVED</small><h2>'+escapeHtml(String(structure.state).replaceAll('_',' '))+'</h2></div><span>'+escapeHtml(String(structure.bias||'MIXED').replaceAll('_',' '))+' · '+escapeHtml(String(structure.strengthState||'UNAVAILABLE'))+'</span></header>'+
+  return '<section class="q-dpg-structure"><header><div><small>MARKET STRUCTURE · OBSERVED · 2.0</small><h2>'+escapeHtml(String(structure.state).replaceAll('_',' '))+'</h2></div><span>'+escapeHtml(String(structure.bias||'MIXED').replaceAll('_',' '))+' · '+escapeHtml(String(structure.strengthState||'UNAVAILABLE'))+'</span></header>'+
     '<div class="q-dpg-structure__grid">'+
       '<article><span>Support</span><strong>'+price(structure.support)+'</strong><small>'+pctValue(structure.distanceToSupportPct)+' below · '+escapeHtml(String(structure.supportTouches??0))+' touches</small></article>'+
       '<article><span>Resistance</span><strong>'+price(structure.resistance)+'</strong><small>'+pctValue(structure.distanceToResistancePct)+' above · '+escapeHtml(String(structure.resistanceTouches??0))+' touches</small></article>'+
@@ -94,16 +94,16 @@ const liquidityContext=(data,escapeHtml)=>{
   const bps=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Number(value).toFixed(2)+' bps':'Unavailable';
   const imbalance=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?(Number(value)*100).toFixed(1)+'%':'Unavailable';
   const depth=(bid,ask)=>compactMoney(bid)+' / '+compactMoney(ask);
-  return '<section class="q-dpg-liquidity"><header><div><small>LIQUIDITY / MICROSTRUCTURE · CURRENT</small><h2>'+escapeHtml(String(liquidity.spreadState||'UNAVAILABLE'))+' spread · '+escapeHtml(String(liquidity.depthConsensus||'UNAVAILABLE').replaceAll('_',' '))+'</h2></div><span>'+escapeHtml(liquidity.provider||'Provider')+(liquidity.observedAt?' · '+escapeHtml(displayTime(liquidity.observedAt)):'')+'</span></header>'+
+  return '<section class="q-dpg-liquidity"><header><div><small>LIQUIDITY / L2 · CURRENT · MICROSTRUCTURE 2.0</small><h2>'+escapeHtml(String(liquidity.spreadState||'UNAVAILABLE'))+' spread · '+escapeHtml(String(liquidity.depthConsensus||'UNAVAILABLE').replaceAll('_',' '))+'</h2></div><span>'+escapeHtml(liquidity.provider||'Provider')+(liquidity.observedAt?' · '+escapeHtml(displayTime(liquidity.observedAt)):'')+'</span></header>'+
     '<div class="q-dpg-liquidity__grid">'+
       '<article><span>Best bid</span><strong>'+price(liquidity.bestBid)+'</strong></article>'+
       '<article><span>Best ask</span><strong>'+price(liquidity.bestAsk)+'</strong></article>'+
       '<article><span>Spread</span><strong>'+escapeHtml(bps(liquidity.spreadBps))+'</strong><small>'+escapeHtml(String(liquidity.spreadState||'UNAVAILABLE'))+'</small></article>'+
       '<article><span>Microprice</span><strong>'+price(liquidity.microprice)+'</strong><small>Bias '+escapeHtml(bps(liquidity.micropriceBiasBps))+'</small></article>'+
       '<article><span>Top-1 depth B / A</span><strong>'+escapeHtml(depth(liquidity.top1BidDepthUsd,liquidity.top1AskDepthUsd))+'</strong><small>Imbalance '+escapeHtml(imbalance(liquidity.top1Imbalance))+'</small></article>'+
-      '<article><span>Top-5 depth B / A</span><strong>'+escapeHtml(depth(liquidity.top5BidDepthUsd,liquidity.top5AskDepthUsd))+'</strong><small>Imbalance '+escapeHtml(imbalance(liquidity.top5Imbalance))+'</small></article>'+
+      '<article><span>Top-5 bid depth</span><strong>'+compactMoney(liquidity.top5BidDepthUsd)+'</strong><small>Verified displayed notional</small></article><article><span>Top-5 ask depth</span><strong>'+compactMoney(liquidity.top5AskDepthUsd)+'</strong><small>Verified displayed notional</small></article>'+
       '<article><span>Top-10 depth B / A</span><strong>'+escapeHtml(depth(liquidity.top10BidDepthUsd,liquidity.top10AskDepthUsd))+'</strong><small>Imbalance '+escapeHtml(imbalance(liquidity.top10Imbalance))+'</small></article>'+
-      '<article><span>Top-5 imbalance</span><strong>'+escapeHtml(imbalance(liquidity.top5Imbalance))+'</strong><small>'+escapeHtml(String(liquidity.imbalanceState||'UNAVAILABLE').replaceAll('_',' '))+'</small></article>'+
+      '<article><span>Book imbalance</span><strong>'+escapeHtml(imbalance(liquidity.top5Imbalance))+'</strong><small>Top-5 · '+escapeHtml(String(liquidity.imbalanceState||'UNAVAILABLE').replaceAll('_',' '))+'</small></article>'+
       '<article><span>Top-10 imbalance</span><strong>'+escapeHtml(imbalance(liquidity.top10Imbalance))+'</strong><small>'+escapeHtml(String(liquidity.top10ImbalanceState||'UNAVAILABLE').replaceAll('_',' '))+'</small></article>'+
       '<article><span>Depth consensus</span><strong>'+escapeHtml(String(liquidity.depthConsensus||'UNAVAILABLE').replaceAll('_',' '))+'</strong><small>Top-1 / top-5 / top-10 agreement</small></article>'+
       '<article><span>Top-1 concentration</span><strong>'+(Number.isFinite(Number(liquidity.depthConcentrationTop1))?(Number(liquidity.depthConcentrationTop1)*100).toFixed(1)+'%':'Unavailable')+'</strong><small>Displayed top level / top-10 depth</small></article>'+
