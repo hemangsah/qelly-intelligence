@@ -8,6 +8,9 @@ import {bindPublicRecoveryActions,installPublicRecoveryChrome,isPublicRecoveryRo
 import { personaFor, personaPreferencePatch } from './persona-profiles.mjs';
 import { renderShellFoundations } from './shell-foundations.mjs';
 import { storeDecisionContext, storeResearchContext } from './decision-context-bridge.mjs';
+import {installRuntimePerformanceObserver,startRouteMeasure,finishRouteMeasure} from './runtime-performance-observer.mjs';
+installRuntimePerformanceObserver();
+
 const lazyRoute=(path,exportName)=>async(...args)=>{
   const module=await import(path);
   const renderer=module[exportName];
@@ -374,6 +377,7 @@ function navigate(route, asset = null) {
 
 function renderRoute(){
   const request=++routeRenderRequest;
+  const routeMeasure=startRouteMeasure(state.route,request);
   activeRouteController?.abort();
   window.__qellyLiveMarketCleanup?.();
   window.__qellyLiveMarketCleanup=null;
@@ -390,12 +394,13 @@ function renderRoute(){
     main.innerHTML=loadingPage(definition?.label??'Loading route');
   }
   if(!/^#\/theme-lab(?:\/|$)/.test(location.hash))document.title=`${definition?.label??'Qelly Intelligence'} · Qelly Intelligence`;
-  routeRenderTail=routeRenderTail.catch(()=>undefined).then(()=>request===routeRenderRequest?performRouteRender(request,controller):undefined);
+  routeRenderTail=routeRenderTail.catch(()=>undefined).then(()=>request===routeRenderRequest?performRouteRender(request,controller,routeMeasure):finishRouteMeasure(routeMeasure,{state:'superseded',root:main}));
   return routeRenderTail;
 }
 
-async function performRouteRender(request,controller) {
+async function performRouteRender(request,controller,routeMeasure) {
   currentRenderSignal=controller.signal;
+  let routeOutcome='success';
   window.__qellyLiveMarketCleanup?.();
   window.__qellyLiveMarketCleanup=null;
   window.__qellyMarketV6Cleanup?.();
@@ -495,20 +500,25 @@ async function performRouteRender(request,controller) {
       default: await renderMarketV6(main,{api,pageHead,stateBanner,escapeHtml});
     }
   } catch (error) {
-    if(error?.name==='AbortError'||request!==routeRenderRequest)return;
+    if(error?.name==='AbortError'||request!==routeRenderRequest){routeOutcome='aborted';return;}
     if(isCapabilityBoundaryError(error)){
+      routeOutcome='capability_boundary';
       main.innerHTML=capabilityBoundaryPage(definition,error);
       bindRetry();
     }else if(isPublicRecoveryRoute(route)){
+      routeOutcome='recovery';
       main.innerHTML=publicRecoveryMarkup(route,error.message,{preview:staticVisualPreview});
       bindPublicRecoveryActions(main,{route,retry:()=>renderRoute()});
     }else{
+      routeOutcome='error';
       main.innerHTML=errorPage('Unable to render this route.',error.message);
       bindRetry();
     }
   } finally {
     if(currentRenderSignal===controller.signal)currentRenderSignal=null;
-    if(request!==routeRenderRequest){
+    const superseded=request!==routeRenderRequest;
+    finishRouteMeasure(routeMeasure,{state:superseded?'superseded':routeOutcome,root:main});
+    if(superseded){
       const currentDefinition=routeDefinitions.find((item)=>item.route===state.route);
       main.dataset.pageKind=currentDefinition?.kind??'analytical';
       main.setAttribute('aria-busy','true');
