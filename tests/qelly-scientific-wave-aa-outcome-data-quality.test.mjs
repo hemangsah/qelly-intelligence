@@ -24,7 +24,8 @@ test('Wave AA reports NO_OBSERVED_DATA without inventing scientific performance'
 });
 
 test('Wave AA accepts temporally coherent resolved labels',()=>{
-  const result=auditDecisionOutcomeData([validRow()],[],{now});
+  const observations=[{setup_id:'setup-a',observed_at:'2026-09-01T00:30:00.000Z',resolution:{state:'INVALIDATED_FIRST',calibrationEligible:true}}];
+  const result=auditDecisionOutcomeData([validRow()],observations,{now});
   assert.equal(result.state,'VALID');
   assert.equal(result.errorCount,0);
   assert.equal(result.scientificallyUsable,true);
@@ -73,4 +74,20 @@ test('Wave AA exposes a bounded authenticated research audit without adding work
   assert.match(api,/NO_OBSERVED_DATA/);
   assert.match(api,/setupLimit=2000,observationLimit=5000/);
   assert.doesNotMatch(api,/buildDecisionIntelligence\(env.*research-audit/s);
+});
+
+
+test('Wave AA treats missing observation history as contaminated rather than scientifically usable',()=>{
+  const result=auditDecisionOutcomeData([validRow()],[],{now});
+  assert.equal(result.state,'CONTAMINATED');
+  assert.equal(result.scientificallyUsable,false);
+  assert.equal(result.violationCounts.MISSING_OBSERVATION_HISTORY,1);
+});
+
+test('Wave AA rejects observations outside the setup temporal envelope',()=>{
+  const observations=[{setup_id:'setup-a',observed_at:'2026-09-01T01:30:00.000Z',resolution:{state:'INVALIDATED_FIRST',calibrationEligible:true}}];
+  const result=auditDecisionOutcomeData([validRow()],observations,{now});
+  assert.equal(result.state,'CONTAMINATED');
+  assert.ok(result.violationCounts.OBSERVATION_AFTER_LAST_OBSERVED>=1);
+  assert.ok(result.violationCounts.OBSERVATION_AFTER_RESOLUTION>=1);
 });
