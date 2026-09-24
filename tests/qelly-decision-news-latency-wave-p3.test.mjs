@@ -82,7 +82,8 @@ test('Wave AN reuses a bounded fresh contextual-news cache without changing prov
   assert.equal(calls,1);
   assert.equal(first.state,'live');
   assert.equal(first.cache.hit,false);
-  assert.equal(second.state,'live');
+  assert.equal(second.state,'cached');
+  assert.equal(second.cache.sourceState,'live');
   assert.equal(second.cache.hit,true);
   assert.equal(second.cache.stale,false);
   assert.ok(second.cache.ageMs<=1_000);
