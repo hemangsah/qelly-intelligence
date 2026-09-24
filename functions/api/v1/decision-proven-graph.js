@@ -122,8 +122,11 @@ async function fetchDerivativesContext(fetchImpl,asset,observedAt){
       markPrice:round(markPrice,6),
       oraclePrice:round(oraclePrice,6),
       markOracleBasisPct:markPrice===null||oraclePrice===null||oraclePrice===0?null:round((markPrice/oraclePrice-1)*100,6),
+      markOracleBasisBps:markPrice===null||oraclePrice===null||oraclePrice===0?null:round((markPrice/oraclePrice-1)*10_000,4),
       dayNotionalVolumeUsd:round(dayNotionalVolumeUsd,2),
+      premiumRate:round(premium,10),
       premiumPct:premium===null?null:round(premium*100,6),
+      premiumBps:premium===null?null:round(premium*10_000,4),
       message:'Current Hyperliquid perpetual context. It is not backfilled into a selected historical move or treated as causal evidence.'
     };
   }catch{
@@ -343,17 +346,36 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
     fetchFundingHistory(fetchImpl,resolvedAsset,endTime),
     fetchOptionalCandles(fetchImpl,benchmarkAsset,resolvedInterval,endTime,240)
   ]);
-  const fundingHistory=buildFundingHistoryContext(fundingRows,{currentFundingRate:derivativesCurrent?.fundingRate});
+  const fundingHistory=buildFundingHistoryContext(fundingRows,{currentFundingRate:derivativesCurrent?.fundingRate,currentPremium:derivativesCurrent?.premiumRate});
+  const oiNotional=finite(derivativesCurrent?.openInterestNotionalUsd);
+  const dayVolume=finite(derivativesCurrent?.dayNotionalVolumeUsd);
+  const markOracleBasisBps=finite(derivativesCurrent?.markOracleBasisBps);
   const derivatives=derivativesCurrent?.state==='live'?{
     ...derivativesCurrent,
     currentOnly:true,
     historicalFundingAttached:fundingHistory.state==='available',
+    historicalPremiumAttached:fundingHistory.state==='available'&&Number(fundingHistory.premiumSampleSize)>0,
     fundingHistory,
     fundingChangeBps:fundingHistory.fundingChangeBps,
     fundingPercentile:fundingHistory.fundingPercentile,
+    fundingState:fundingHistory.fundingState,
+    fundingShiftState:fundingHistory.fundingShiftState,
+    premiumChangeBps:fundingHistory.premiumChangeBps,
+    premiumPercentile:fundingHistory.premiumPercentile,
+    premiumState:fundingHistory.premiumState,
+    premiumShiftState:fundingHistory.premiumShiftState,
+    openInterestTurnover24h:oiNotional!==null&&oiNotional>0&&dayVolume!==null?round(dayVolume/oiNotional,4):null,
+    markOracleBasisState:markOracleBasisBps===null?'UNAVAILABLE':markOracleBasisBps>.5?'MARK_PREMIUM':markOracleBasisBps<-.5?'MARK_DISCOUNT':'NEAR_ORACLE',
+    markOracleBasisChange:null,
+    markOracleBasisChangeState:'UNAVAILABLE',
+    markOracleBasisChangeReason:'Historical mark/oracle observations are not connected; premium history is not substituted for basis history.',
     openInterestChange:null,
     openInterestChangeState:'UNAVAILABLE',
-    openInterestChangeReason:'Hyperliquid current asset context does not provide historical open-interest change in this Decision integration.'
+    openInterestChangeReason:'Hyperliquid current asset context does not provide historical open-interest change in this Decision integration.',
+    priceOpenInterestQuadrant:'UNAVAILABLE',
+    priceOpenInterestQuadrantReason:'Price/OI quadrant interpretation requires a verified open-interest change series, which is unavailable.',
+    liquidationsState:'UNAVAILABLE',
+    liquidationsReason:'A verified liquidation-flow source is not connected to this Decision integration.'
   }:derivativesCurrent;
   const crossAsset=benchmarkPayload?buildDecisionCrossAsset(payload,benchmarkPayload,{asset:resolvedAsset,benchmark:benchmarkAsset}):{
     state:'unavailable',asset:resolvedAsset,benchmark:benchmarkAsset,sampleSize:0,correlation:null,beta:null,relativeStrengthPct:null,reason:'Benchmark candles are unavailable.'
