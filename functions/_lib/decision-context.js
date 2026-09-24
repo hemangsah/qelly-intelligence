@@ -151,8 +151,8 @@ function decisionTrace(graph,{multiTimeframe,tradeResearch,evidence,horizon}){
     }),
     sourceNode('liquidity','liquidity','Current L2 liquidity',{
       source:evidence?.liquidity?.provider||'Hyperliquid',timestamp:evidence?.liquidity?.observedAt||observedAt,freshness:evidence?.liquidity?.state==='live'?'LIVE':'UNAVAILABLE',importance:'HIGH',directness:'DIRECT',reliability:evidence?.liquidity?.state==='live'?'POINT_IN_TIME':'UNAVAILABLE',role:'risk_context',
-      methodology:'Best bid/ask and bounded top-of-book depth when official L2 data is available.',
-      limitations:['Point-in-time book state is not historical order-flow evidence.']
+      methodology:'Best bid/ask, top-1/top-5/top-10 displayed depth, depth imbalance/consensus and best-level microprice when official L2 data is available.',
+      limitations:['Point-in-time book state is not historical order-flow evidence.','Displayed depth can change rapidly; CVD, aggressor flow and liquidation flow are not inferred when unavailable.']
     }),
     sourceNode('derivatives','derivatives','Funding and open-interest context',{
       source:evidence?.derivatives?.provider||'Hyperliquid',timestamp:evidence?.derivatives?.observedAt||observedAt,freshness:evidence?.derivatives?.state==='live'?'LIVE':'UNAVAILABLE',importance:'MEDIUM',directness:'DIRECT_AND_HISTORICAL_FUNDING',reliability:evidence?.derivatives?.state==='live'?'VENUE_OBSERVED':'UNAVAILABLE',role:'risk_context',
