@@ -1,5 +1,6 @@
 import {buildDecisionIntelligence} from './decision-proven-graph.js';
 import {HttpError,enforceRateLimit,errorResponse,responseJson} from '../../_lib/runtime.js';
+import {createDecisionLatencyTrace,estimateSerializedPayload} from '../../_lib/decision-latency.js';
 
 export const DECISION_SCAN_ASSETS=Object.freeze(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
 const INTERVALS=new Set(['1m','5m','15m','30m','1h','4h','1d']);
@@ -243,8 +244,9 @@ export async function runDecisionScan(env,{
   if(!Number.isFinite(observedAt)||observedAt<=0)throw new HttpError(400,'invalid_observation_time','Observation time is invalid');
   const universe=resolveAssets(assets);
   const filters=normalizeFilters({direction,minEvidenceQuality,minCalibratedConfidence,minMtfAgreement,liquidity,volatility,regime,eventRiskTolerance,freshness,setupFreshness});
+  const latency=createDecisionLatencyTrace();
 
-  const settled=await mapPool(universe,2,(asset)=>build(env,{
+  const settled=await mapPool(universe,2,(asset)=>latency.time('asset:'+asset,()=>build(env,{
     asset,
     interval:resolvedInterval,
     horizon:resolvedHorizon,
@@ -252,14 +254,18 @@ export async function runDecisionScan(env,{
     customRr,
     includeNews:false,
     now:observedAt
-  }));
+  })));
 
   const candidates=[];
   const failures=[];
+  const assetDecisionMs={};
   settled.forEach((result,index)=>{
     const asset=universe[index];
-    if(result.status==='fulfilled')candidates.push(compactCandidate(result.value,{filters,now:observedAt}));
-    else failures.push({asset,state:'PROVIDER_UNAVAILABLE',reason:String(result.reason?.message||'Decision evidence unavailable').slice(0,240)});
+    if(result.status==='fulfilled'){
+      candidates.push(compactCandidate(result.value,{filters,now:observedAt}));
+      assetDecisionMs[asset]=finite(result.value?.performance?.totalMs);
+    }else failures.push({asset,state:'PROVIDER_UNAVAILABLE',reason:String(result.reason?.message||'Decision evidence unavailable').slice(0,240)});
+
   });
 
   if(!candidates.length)throw new HttpError(503,'provider_unavailable','No scan candidate could be verified from live provider evidence.',{retryable:true});
@@ -292,6 +298,12 @@ export async function runDecisionScan(env,{
     availableCount:candidates.length,
     unavailableCount:failures.length,
     failures,
+    performance:latency.snapshot({
+      assetDecisionMs,
+      concurrency:2,
+      database:{used:false,ms:null},
+      network:'Measure end-to-end separately at the client or external probe; scanner timings exclude internet transit.'
+    }),
     eventRisk:{
       state:'unavailable',
       connectedFeed:false,
@@ -332,6 +344,8 @@ export async function onRequest({request,env}){
       freshness:url.searchParams.get('freshness')||'live_or_delayed',
       setupFreshness:url.searchParams.get('setupFreshness')||'current'
     });
+    const serialization=estimateSerializedPayload(result);
+    result.performance={...result.performance,serializationEstimateMs:serialization.serializationMs,responseBytesEstimate:serialization.responseBytes};
     return responseJson(request,env,result,200,{cache:'public, max-age=10, stale-while-revalidate=20'});
   }catch(error){return errorResponse(request,env,error);}
 }

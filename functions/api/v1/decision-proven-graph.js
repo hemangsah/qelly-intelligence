@@ -8,6 +8,7 @@ import {buildDecisionMacroContext,buildUnavailableDecisionEventRisk} from '../..
 import {providerResult} from '../../_lib/providers.js';
 import {buildDecisionContextBundle} from '../../_lib/decision-context.js';
 import {HttpError,enforceRateLimit,errorResponse,fetcher,responseJson} from '../../_lib/runtime.js';
+import {createDecisionLatencyTrace,estimateSerializedPayload} from '../../_lib/decision-latency.js';
 
 const ASSETS=new Set(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
 const HORIZONS=Object.freeze({'1h':3_600_000,'4h':14_400_000,'12h':43_200_000,'1d':86_400_000,'3d':259_200_000,'7d':604_800_000});
@@ -329,29 +330,32 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   const endTime=Number(now);
   if(!Number.isFinite(endTime)||endTime<=0)throw new HttpError(400,'invalid_observation_time','Observation time is invalid');
   const fetchImpl=fetcher(env);
+  const latency=createDecisionLatencyTrace();
   const benchmarkAsset=resolvedAsset==='BTC'?'ETH':'BTC';
   const newsStart=resolvedSelection?.start??endTime-24*3_600_000;
   const newsEnd=Math.min(resolvedSelection?.end??endTime,endTime);
   const newsPromise=includeNews
-    ? fetchNews(fetchImpl,resolvedAsset,newsStart,newsEnd)
+    ? latency.time('news',()=>fetchNews(fetchImpl,resolvedAsset,newsStart,newsEnd)
         .then(articles=>({articles,state:articles.length?'live':'no-matches'}))
-        .catch(()=>({articles:[],state:'unavailable'}))
+        .catch(()=>({articles:[],state:'unavailable'})))
     : Promise.resolve({articles:[],state:'not-requested'});
-  const macroPromise=providerResult({env},'ecb','fx-reference-rates','EUR')
+  const macroPromise=latency.time('macro',()=>providerResult({env},'ecb','fx-reference-rates','EUR')
     .then(buildDecisionMacroContext)
-    .catch(error=>buildDecisionMacroContext({truthState:'unavailable',fallbackReason:error?.code||'ecb_reference_unavailable'}));
+    .catch(error=>buildDecisionMacroContext({truthState:'unavailable',fallbackReason:error?.code||'ecb_reference_unavailable'})));
   // Resolve the mandatory selected-asset history first so optional Hyperliquid
   // evidence calls cannot consume the provider burst budget ahead of the core input.
   // News uses a separate provider and runs concurrently with the core Decision path.
+  const candleFetchSpan=latency.span('candleFetch');
   const payload=await fetchCandles(fetchImpl,resolvedAsset,resolvedInterval,endTime);
+  candleFetchSpan();
   const [timeframeSupport,derivativesCurrent,liquidity,fundingRows,benchmarkPayload]=await Promise.all([
-    fetchTimeframeSupport(fetchImpl,resolvedAsset,endTime,resolvedInterval),
-    fetchDerivativesContext(fetchImpl,resolvedAsset,endTime),
-    fetchLiquidityContext(fetchImpl,resolvedAsset),
-    fetchFundingHistory(fetchImpl,resolvedAsset,endTime),
-    fetchOptionalCandles(fetchImpl,benchmarkAsset,resolvedInterval,endTime,240)
+    latency.time('multiTimeframe',()=>fetchTimeframeSupport(fetchImpl,resolvedAsset,endTime,resolvedInterval)),
+    latency.time('derivatives',()=>fetchDerivativesContext(fetchImpl,resolvedAsset,endTime)),
+    latency.time('liquidity',()=>fetchLiquidityContext(fetchImpl,resolvedAsset)),
+    latency.time('fundingHistory',()=>fetchFundingHistory(fetchImpl,resolvedAsset,endTime)),
+    latency.time('crossAssetBenchmark',()=>fetchOptionalCandles(fetchImpl,benchmarkAsset,resolvedInterval,endTime,240))
   ]);
-  const fundingHistory=buildFundingHistoryContext(fundingRows,{currentFundingRate:derivativesCurrent?.fundingRate,currentPremium:derivativesCurrent?.premiumRate});
+  const fundingHistory=latency.measure('derivativesCompute',()=>buildFundingHistoryContext(fundingRows,{currentFundingRate:derivativesCurrent?.fundingRate,currentPremium:derivativesCurrent?.premiumRate}));
   const oiNotional=finite(derivativesCurrent?.openInterestNotionalUsd);
   const dayVolume=finite(derivativesCurrent?.dayNotionalVolumeUsd);
   const markOracleBasisBps=finite(derivativesCurrent?.markOracleBasisBps);
@@ -382,9 +386,9 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
     liquidationsState:'UNAVAILABLE',
     liquidationsReason:'A verified liquidation-flow source is not connected to this Decision integration.'
   }:derivativesCurrent;
-  const crossAsset=benchmarkPayload?buildDecisionCrossAsset(payload,benchmarkPayload,{asset:resolvedAsset,benchmark:benchmarkAsset}):{
+  const crossAsset=latency.measure('crossAssetCompute',()=>benchmarkPayload?buildDecisionCrossAsset(payload,benchmarkPayload,{asset:resolvedAsset,benchmark:benchmarkAsset}):{
     state:'unavailable',asset:resolvedAsset,benchmark:benchmarkAsset,sampleSize:0,correlation:null,beta:null,relativeStrengthPct:null,reason:'Benchmark candles are unavailable.'
-  };
+  });
   const selectedAssetRows=resolvedSelection?(Array.isArray(payload)?payload:[]).filter(item=>{
     const time=finite(item?.t??item?.time);
     return time!==null&&time>=resolvedSelection.start&&time<=resolvedSelection.end;
@@ -423,6 +427,7 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
         }
     :{state:'not_selected',provider:null,boundary:'Select a chart range before historical derivatives are evaluated.'};
   let graph,multiTimeframe;
+  const quantCalibrationAnalogsSpan=latency.span('quantCalibrationAnalogs');
   try{
     graph=buildDecisionProvenGraph(payload,{asset:resolvedAsset,interval:resolvedInterval,horizonBars,now:endTime,selection:resolvedSelection,scenarioPaths:256});
     multiTimeframe=assembleTimeframes(graph,timeframeSupport);
@@ -431,7 +436,9 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
       historicalAnalogs:buildDecisionHistoricalAnalogs(payload,{interval:resolvedInterval,horizonBars,windowBars:100,limit:5})
     };
     graph=calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liquidity,crossAsset);
+    quantCalibrationAnalogsSpan();
   }catch(error){
+    quantCalibrationAnalogsSpan('error');
     if(error instanceof HttpError)throw error;
     throw new HttpError(503,'insufficient_provider_data',error.message,{retryable:true});
   }
@@ -448,7 +455,7 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
     legacyNewsBoundary:'Recent news is evidence only and is not converted into a scheduled event-risk score.'
   };
   graph={...graph,liquidity,eventRisk,derivatives,crossAsset,macro};
-  const tradeResearch=buildTradeResearch(graph,{requestedRr,customRr});
+  const tradeResearch=latency.measure('riskRewardResearch',()=>buildTradeResearch(graph,{requestedRr,customRr}));
   const evidence={
     news:{state:newsState,provider:includeNews?'GDELT':null,articles},
     derivatives,
@@ -462,8 +469,9 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
     options:{state:'unavailable',message:'Verified options-market evidence is not connected to this Decision view, so it is not inferred.'},
     onChain:{state:'unavailable',message:'Authorized on-chain evidence is not connected to this Decision view, so it is not inferred.'}
   };
-  const context=buildDecisionContextBundle(graph,{multiTimeframe,tradeResearch,evidence,horizon:resolvedHorizon});
-  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence,...context};
+  const context=latency.measure('contextAndEvidenceGraph',()=>buildDecisionContextBundle(graph,{multiTimeframe,tradeResearch,evidence,horizon:resolvedHorizon}));
+  const performance=latency.snapshot({database:{used:false,ms:null},network:'Measure end-to-end separately at the client or external probe; server-side component timings exclude internet transit.'});
+  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence,...context,performance};
 }
 
 export async function onRequest({request,env}){
@@ -481,6 +489,8 @@ export async function onRequest({request,env}){
       customRr:url.searchParams.get('customRr'),
       selection
     });
+    const serialization=estimateSerializedPayload(result);
+    result.performance={...result.performance,serializationEstimateMs:serialization.serializationMs,responseBytesEstimate:serialization.responseBytes};
     return responseJson(request,env,result,200,{cache:'public, max-age=10, stale-while-revalidate=30'});
   }catch(error){return errorResponse(request,env,error);}
 }
