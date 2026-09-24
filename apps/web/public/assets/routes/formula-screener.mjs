@@ -1,4 +1,4 @@
-import {storeDecisionContext} from '../decision-context-bridge.mjs';
+import {peekResearchContext,storeDecisionContext,storeResearchContext} from '../decision-context-bridge.mjs';
 const ENDPOINT='/api/v1/formula-screener';
 
 const formatNumber=(value,digits=3)=>Number.isFinite(Number(value))?Number(value).toLocaleString(undefined,{maximumFractionDigits:digits}):'Unavailable';
@@ -15,11 +15,17 @@ export async function renderFormulaScreener(main,deps){
     return;
   }
 
-  const formulaOptions=catalog.formulas.map((formula)=>`<option value="${escapeHtml(formula.id)}">${escapeHtml(formula.label)}</option>`).join('');
-  const assetOptions=catalog.assets.map((asset)=>`<label class="q-setting"><span>${escapeHtml(asset)}</span><input type="checkbox" data-asset="${escapeHtml(asset)}" checked></label>`).join('');
+  const researchContext=peekResearchContext();
+  const contextAsset=catalog.assets.includes(researchContext.asset)?researchContext.asset:null;
+  const contextTimeframe=researchContext.timeframe||'1h';
+  const contextFormula=catalog.formulas.some((formula)=>formula.id===researchContext.formulaId)?researchContext.formulaId:null;
+  const formulaOptions=catalog.formulas.map((formula)=>`<option value="${escapeHtml(formula.id)}" ${formula.id===contextFormula?'selected':''}>${escapeHtml(formula.label)}</option>`).join('');
+  const assetOptions=catalog.assets.map((asset)=>`<label class="q-setting"><span>${escapeHtml(asset)}</span><input type="checkbox" data-asset="${escapeHtml(asset)}" ${!contextAsset||asset===contextAsset?'checked':''}></label>`).join('');
+  const contextMarkup=contextAsset?`<div class="q-truth-callout is-compact"><span class="q-status q-status--cached">research context</span><p>Continuing <strong>${escapeHtml(contextAsset)}</strong> · ${escapeHtml(contextTimeframe)} from ${escapeHtml(String(researchContext.source||'prior research').replaceAll('-',' '))}. Formula Screener still uses its declared ${escapeHtml(catalog.source.interval)} candle method; the research timeframe is preserved only for downstream Decision/Chat handoff.</p></div>`:'';
   main.innerHTML=`<section class="q-page">
     ${pageHead('Qelly Intelligence · Screening','Formula Screener','Rank supported digital assets with transparent quantitative metrics derived from recent market observations.',`<button class="q-button q-button--primary" data-action="run">Refresh results</button>`)}
     ${stateBanner()}
+    ${contextMarkup}
     <div class="q-kpi-grid">
       <article class="q-kpi"><div class="q-kpi-label">Assets</div><div class="q-kpi-value">${catalog.assets.length}</div><div class="q-kpi-meta"><span>Supported universe</span><span class="q-status q-status--fresh">Public</span></div></article>
       <article class="q-kpi"><div class="q-kpi-label">Metrics</div><div class="q-kpi-value">${catalog.formulas.length}</div><div class="q-kpi-meta"><span>Bounded quantitative choices</span><span class="q-status q-status--fresh">Transparent</span></div></article>
@@ -42,8 +48,8 @@ export async function renderFormulaScreener(main,deps){
       <div id="formula-grid"></div>
     </section>
     <section class="q-panel">
-      <div class="q-panel-head"><div><h2>Continue in Decision Intelligence</h2><p>Screener rank is supporting evidence only. Opening an asset does not bypass calibration, multi-timeframe, liquidity, event-risk or NO TRADE gates.</p></div><span class="q-status q-status--cached">Research handoff</span></div>
-      <div class="q-panel-body"><div class="q-inline-form"><label class="q-setting"><span>Asset</span><select id="formula-decision-asset" disabled><option>Run the screener first</option></select></label><button class="q-button q-button--primary" type="button" data-action="open-decision" disabled>Open in Decision Intelligence</button></div><p id="formula-decision-boundary">Formula results never create trade eligibility on their own.</p></div>
+      <div class="q-panel-head"><div><h2>Continue the research flow</h2><p>Screener rank is supporting evidence only. Opening an asset does not bypass calibration, multi-timeframe, liquidity, event-risk or NO TRADE gates.</p></div><span class="q-status q-status--cached">Decision → Formula → Chat</span></div>
+      <div class="q-panel-body"><div class="q-inline-form"><label class="q-setting"><span>Asset</span><select id="formula-decision-asset" disabled><option>Run the screener first</option></select></label><button class="q-button q-button--primary" type="button" data-action="open-decision" disabled>Open in Decision Intelligence</button><button class="q-button q-button--secondary" type="button" data-action="open-chat" disabled>Continue in Qelly Chat</button></div><p id="formula-decision-boundary">Formula results never create trade eligibility on their own.</p></div>
     </section>
   </section>`;
 
@@ -51,11 +57,13 @@ export async function renderFormulaScreener(main,deps){
   const description=main.querySelector('#formula-description');
   const errorBox=main.querySelector('#formula-error');
   const runButton=main.querySelector('[data-action="run"]');
+  let lastPayload=null;
   const selectedAssets=()=>[...main.querySelectorAll('[data-asset]:checked')].map((input)=>input.dataset.asset);
   const updateDescription=()=>{description.textContent=catalog.formulas.find((formula)=>formula.id===choice.value)?.description||'';};
   choice.addEventListener('change',updateDescription);
 
   const renderRows=(payload)=>{
+    lastPayload=payload;
     const target=main.querySelector('#formula-grid');
     target.innerHTML='';
     const rows=payload.rows.map((row,index)=>({
@@ -88,10 +96,12 @@ export async function renderFormulaScreener(main,deps){
     main.querySelector('#formula-generated-at').textContent=`Updated ${formatTime(payload.generatedAt)}`;
     const decisionSelect=main.querySelector('#formula-decision-asset');
     const decisionButton=main.querySelector('[data-action="open-decision"]');
+    const chatButton=main.querySelector('[data-action="open-chat"]');
     const availableAssets=payload.rows.filter((row)=>row.state==='available').map((row)=>row.asset);
-    decisionSelect.innerHTML=availableAssets.length?availableAssets.map((asset)=>`<option value="${escapeHtml(asset)}">${escapeHtml(asset)}</option>`).join(''):'<option>No available asset</option>';
+    decisionSelect.innerHTML=availableAssets.length?availableAssets.map((asset)=>`<option value="${escapeHtml(asset)}" ${asset===contextAsset?'selected':''}>${escapeHtml(asset)}</option>`).join(''):'<option>No available asset</option>';
     decisionSelect.disabled=!availableAssets.length;
     decisionButton.disabled=!availableAssets.length;
+    chatButton.disabled=!availableAssets.length;
     main.querySelector('#formula-decision-boundary').textContent=payload.decisionBoundary?.message||'Formula results never create trade eligibility on their own.';
     const state=main.querySelector('#formula-state');
     state.textContent=payload.state==='live'?'Live':payload.state==='partial'?'Partial':'Unavailable';
@@ -129,8 +139,14 @@ export async function renderFormulaScreener(main,deps){
   runButton.addEventListener('click',run);
   main.querySelector('[data-action="open-decision"]')?.addEventListener('click',()=>{
     const asset=main.querySelector('#formula-decision-asset')?.value;
-    if(!storeDecisionContext({asset,timeframe:'1h',source:'formula-screener'}))return;
+    if(!storeDecisionContext({asset,timeframe:contextTimeframe,source:'formula-screener',formulaId:choice.value}))return;
     navigate?.('decision-provenance');
+  });
+  main.querySelector('[data-action="open-chat"]')?.addEventListener('click',()=>{
+    const asset=main.querySelector('#formula-decision-asset')?.value;
+    const row=lastPayload?.rows?.find((item)=>item.asset===asset&&item.state==='available');
+    if(!asset||!row||!storeResearchContext({asset,timeframe:contextTimeframe,source:'formula-screener',formulaId:choice.value}))return;
+    navigate?.('news-research');
   });
   await run();
 }

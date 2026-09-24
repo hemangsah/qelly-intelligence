@@ -7,7 +7,7 @@ import { parseHashRoute } from './hash-route-state.mjs';
 import {bindPublicRecoveryActions,installPublicRecoveryChrome,isPublicRecoveryRoute,publicRecoveryMarkup} from './qelly-public-recovery.mjs';
 import { personaFor, personaPreferencePatch } from './persona-profiles.mjs';
 import { renderShellFoundations } from './shell-foundations.mjs';
-import { storeDecisionContext } from './decision-context-bridge.mjs';
+import { storeDecisionContext, storeResearchContext } from './decision-context-bridge.mjs';
 const lazyRoute=(path,exportName)=>async(...args)=>{
   const module=await import(path);
   const renderer=module[exportName];
@@ -39,7 +39,6 @@ const renderMarketV6=lazyRoute('./routes/market-v6.mjs','renderMarketV6');
 const renderThemePersonas=lazyRoute('./routes/theme-personas.mjs','renderThemePersonas');
 const renderAboutQelly=lazyRoute('./routes/about-qelly.mjs','renderAboutQelly');
 const renderFeatureUniverse=lazyRoute('./routes/feature-universe.mjs','renderFeatureUniverse');
-const renderIntelligenceTerminal=lazyRoute('./routes/intelligence-terminal.mjs','renderIntelligenceTerminal');
 const renderAuthLogin=lazyRoute('./routes/auth-login.mjs','renderAuthLogin');
 const renderAuthRegister=lazyRoute('./routes/auth-register.mjs','renderAuthRegister');
 const renderAuthRecovery=lazyRoute('./routes/auth-recovery.mjs','renderAuthRecovery');
@@ -648,10 +647,11 @@ async function renderAsset(main) {
       api(`/api/v1/public/markets/assets/${encodeURIComponent(id)}/candles?interval=1h&limit=168`)
     ]);
   }catch(error){
-    main.innerHTML=`<section class="q-page">${stateBanner()}<section class="q-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Asset Dossier</p><h1>Market evidence unavailable</h1><p>Current public market observations for this asset could not be loaded. No substitute price or chart has been generated.</p></div><span class="q-status q-status--unavailable">Unavailable</span></div><div class="q-panel-body"><p>${escapeHtml(error?.message||'Retry shortly or continue with research tools that do not require this market observation.')}</p><div class="q-action-row"><button class="q-button q-button--primary" data-action="asset-retry">Retry</button><button class="q-button" data-action="asset-decision">Decision Intelligence</button><button class="q-button" data-action="asset-news">News &amp; research</button></div></div></section></section>`;
+    main.innerHTML=`<section class="q-page">${stateBanner()}<section class="q-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Asset Dossier</p><h1>Market evidence unavailable</h1><p>Current public market observations for this asset could not be loaded. No substitute price or chart has been generated.</p></div><span class="q-status q-status--unavailable">Unavailable</span></div><div class="q-panel-body"><p>${escapeHtml(error?.message||'Retry shortly or continue with research tools that do not require this market observation.')}</p><div class="q-action-row"><button class="q-button q-button--primary" data-action="asset-retry">Retry</button><button class="q-button" data-action="asset-decision">Decision Intelligence</button><button class="q-button" data-action="asset-formula">Formula Evidence</button><button class="q-button" data-action="asset-news">News &amp; research</button></div></div></section></section>`;
     main.querySelector('[data-action="asset-retry"]')?.addEventListener('click',()=>renderAsset(main),{once:true});
     main.querySelector('[data-action="asset-decision"]')?.addEventListener('click',()=>{storeDecisionContext({asset:id,timeframe:'1h',source:'asset-dossier-unavailable'});navigate('decision-provenance');});
-    main.querySelector('[data-action="asset-news"]')?.addEventListener('click',()=>navigate('news-research'));
+    main.querySelector('[data-action="asset-formula"]')?.addEventListener('click',()=>{storeResearchContext({asset:id,timeframe:'1h',source:'asset-dossier-unavailable'});navigate('formula-screener');});
+    main.querySelector('[data-action="asset-news"]')?.addEventListener('click',()=>{storeResearchContext({asset:id,timeframe:'1h',source:'asset-dossier-unavailable'});navigate('news-research');});
     return;
   }
   const freshness=data.source.freshness;
@@ -679,7 +679,7 @@ async function renderAsset(main) {
         <section class="q-panel"><div class="q-panel-head"><div><h2>Evidence &amp; freshness</h2><p>Source, timing and data quality stay visible without dominating the market view.</p></div><button class="q-button q-button--ghost" data-action="asset-source">Data details</button></div>
           <div class="q-panel-body"><div class="q-context-block"><dl><dt>Source</dt><dd>${escapeHtml(data.source.providerName)}</dd><dt>Last observed</dt><dd>${escapeHtml(data.source.observationTime)}</dd><dt>Freshness</dt><dd>${escapeHtml(freshness)}</dd><dt>Data quality</dt><dd>${escapeHtml(data.source.qualityState)}</dd></dl></div><div class="q-truth-callout is-compact"><span class="q-status q-status--${data.source.degraded?'warning':'live'}">${data.source.degraded?'degraded':'available'}</span><p>${escapeHtml(data.source.fallbackReason??'Public market observations are shown with their current source and freshness state.')}</p></div></div>
         </section>
-        <section class="q-panel"><div class="q-panel-head"><div><h2>Continue analysis</h2><p>Move from the snapshot into quantitative evidence, catalysts and scheduled events.</p></div></div><div class="q-panel-body"><div class="q-action-row"><button class="q-button q-button--primary" data-action="asset-decision">Decision Intelligence</button><button class="q-button" data-action="asset-intelligence">Asset Intelligence</button><button class="q-button" data-action="asset-news">News &amp; research</button><button class="q-button" data-action="asset-events">Events</button></div></div></section>
+        <section class="q-panel"><div class="q-panel-head"><div><h2>Continue analysis</h2><p>Move from the snapshot into quantitative evidence, catalysts and scheduled events.</p></div></div><div class="q-panel-body"><div class="q-action-row"><button class="q-button q-button--primary" data-action="asset-decision">Decision Intelligence</button><button class="q-button" data-action="asset-formula">Formula Evidence</button><button class="q-button" data-action="asset-intelligence">Asset Intelligence</button><button class="q-button" data-action="asset-news">News &amp; research</button><button class="q-button" data-action="asset-events">Events</button></div><p class="q-muted-copy">Research flow: dossier → Decision Intelligence → formula evidence → Qelly Chat. Asset context is preserved in-session; each surface remains independently evidence-gated.</p></div></section>
       </div>
     </div>
   </section>`;
@@ -687,8 +687,9 @@ async function renderAsset(main) {
   new QellyChartShell(document.getElementById('asset-chart'),{title:`${data.symbol} market price history`,series,metadata:{source:candles.source.attribution,observedAt:candles.source.observedAt,receivedAt:candles.source.observedAt,confidence:candles.source.mode==='live-public'?.96:.72,freshnessClass:candles.source.mode==='live-public'?'live':'simulated'},currency:data.currency});
   main.querySelector('[data-action="asset-source"]')?.addEventListener('click',()=>openJsonDialog(`${data.name} data details`,data,'Source details and raw public observation'));
   main.querySelector('[data-action="asset-decision"]')?.addEventListener('click',()=>{storeDecisionContext({asset:data.symbol,timeframe:'1h',source:'asset-dossier'});navigate('decision-provenance');});
+  main.querySelector('[data-action="asset-formula"]')?.addEventListener('click',()=>{storeResearchContext({asset:data.symbol,timeframe:'1h',source:'asset-dossier'});navigate('formula-screener');});
   main.querySelector('[data-action="asset-intelligence"]')?.addEventListener('click',()=>navigate('asset-intelligence'));
-  main.querySelector('[data-action="asset-news"]')?.addEventListener('click',()=>navigate('news-research'));
+  main.querySelector('[data-action="asset-news"]')?.addEventListener('click',()=>{storeResearchContext({asset:data.symbol,timeframe:'1h',source:'asset-dossier'});navigate('news-research');});
   main.querySelector('[data-action="asset-events"]')?.addEventListener('click',()=>navigate('event-calendar'));
 }
 
