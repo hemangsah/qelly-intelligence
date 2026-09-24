@@ -4,6 +4,8 @@ import {buildDecisionHistoricalAnalogs} from '../../_lib/decision-historical-ana
 import {normalizeDecisionLiquidity} from '../../_lib/decision-liquidity.js';
 import {buildFundingHistoryContext} from '../../_lib/decision-derivatives.js';
 import {buildDecisionCrossAsset} from '../../_lib/decision-cross-asset.js';
+import {buildDecisionMacroContext,buildUnavailableDecisionEventRisk} from '../../_lib/decision-macro-events.js';
+import {providerResult} from '../../_lib/providers.js';
 import {buildDecisionContextBundle} from '../../_lib/decision-context.js';
 import {HttpError,enforceRateLimit,errorResponse,fetcher,responseJson} from '../../_lib/runtime.js';
 
@@ -335,6 +337,9 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
         .then(articles=>({articles,state:articles.length?'live':'no-matches'}))
         .catch(()=>({articles:[],state:'unavailable'}))
     : Promise.resolve({articles:[],state:'not-requested'});
+  const macroPromise=providerResult({env},'ecb','fx-reference-rates','EUR')
+    .then(buildDecisionMacroContext)
+    .catch(error=>buildDecisionMacroContext({truthState:'unavailable',fallbackReason:error?.code||'ecb_reference_unavailable'}));
   // Resolve the mandatory selected-asset history first so optional Hyperliquid
   // evidence calls cannot consume the provider burst budget ahead of the core input.
   // News uses a separate provider and runs concurrently with the core Decision path.
@@ -393,22 +398,8 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
     if(error instanceof HttpError)throw error;
     throw new HttpError(503,'insufficient_provider_data',error.message,{retryable:true});
   }
-  const {articles,state:newsState}=await newsPromise;
-  const macro={
-    state:'unavailable',
-    level:'UNAVAILABLE',
-    provider:null,
-    intradayFeedConnected:false,
-    reason:'No current intraday DXY, sovereign-yield, policy-rate or liquidity feed is connected to this Decision view.',
-    cadenceBoundary:'Slow or delayed macro references used elsewhere in QELLY are intentionally excluded from intraday trade eligibility.'
-  };
-  const eventRisk={
-    state:'unavailable',
-    level:'UNAVAILABLE',
-    provider:null,
-    scheduledFeedConnected:false,
-    reason:'No verified scheduled-event calendar is connected to this Decision view. Recent news is evidence only and is not converted into a scheduled event-risk score.'
-  };
+  const [{articles,state:newsState},macro]=await Promise.all([newsPromise,macroPromise]);
+  const eventRisk=buildUnavailableDecisionEventRisk();
   graph={...graph,liquidity,eventRisk,derivatives,crossAsset,macro};
   const tradeResearch=buildTradeResearch(graph,{requestedRr,customRr});
   const evidence={
