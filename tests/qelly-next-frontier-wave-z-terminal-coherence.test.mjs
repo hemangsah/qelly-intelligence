@@ -152,3 +152,17 @@ test('Wave Z classification preserves build-time finalizers and compatibility ow
   assert.equal(byPath.get('route:rankings'),'COMPATIBILITY');
   assert.deepEqual(manifest.researchFlow.order,['search','asset','decision-provenance','formula-screener','news-research']);
 });
+
+
+test('Wave Z page-by-page audit covers every required product surface and the canonical research flow',async()=>{
+  const audit=JSON.parse(await read('artifacts/QELLY_WAVE_Z_PRODUCT_COHERENCE.json'));
+  const routes=new Set(audit.pages.map(item=>item.route));
+  for(const route of [
+    'market','decision-provenance','formula-screener','asset','news-research','search','india-finance',
+    'alert-center','notification-center','qelly-verify','calculator-center','calculator-detail/:id'
+  ])assert.ok(routes.has(route),route);
+  assert.equal(audit.defaultHomeRoute,'market');
+  assert.deepEqual(audit.flow.canonical,['Universal Search','Asset Dossier','Decision Intelligence','Formula Screener','Qelly Chat']);
+  assert.match(audit.flow.evidenceBoundary,/navigation context only/i);
+  assert.match(audit.flow.evidenceBoundary,/destination's own evidence\/tool contract/i);
+});
