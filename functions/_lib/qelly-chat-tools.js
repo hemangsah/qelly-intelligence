@@ -382,7 +382,7 @@ export function compactDecisionToolReceipt(result,{requestContext=null}={}){
           forwardReturnPct:item.forwardReturnPct,maxFavorablePct:item.maxFavorablePct,maxAdversePct:item.maxAdversePct,timeToResolutionMs:item.timeToResolutionMs
         })):[]
       },
-      whatChanged:compareDecisionSnapshots(previousSnapshot,currentSnapshot),
+      whatChanged:compareDecisionSnapshots(previousSnapshot,snapshot),
       decisionSnapshot:Object.keys(currentSnapshot).length?currentSnapshot:null,
       evidenceGraph:{
         state:graph?.nodes?.length?'available':'unavailable',
