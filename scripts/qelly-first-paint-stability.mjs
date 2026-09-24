@@ -242,10 +242,20 @@ try{
           longTasks:Array.isArray(window.__QELLY_PERF_SIGNALS__?.longTasks)?window.__QELLY_PERF_SIGNALS__.longTasks:[],
           mutations:Number(window.__QELLY_PERF_SIGNALS__?.mutations||0),
           domNodes:document.getElementsByTagName('*').length,
-          webVitals:{...(window.__QELLY_PERF_SIGNALS__?.webVitals||{})}
+          webVitals:{...(window.__QELLY_PERF_SIGNALS__?.webVitals||{})},
+          runtimePerformance:typeof window.__QELLY_RUNTIME_PERFORMANCE__?.snapshot==='function'?window.__QELLY_RUNTIME_PERFORMANCE__.snapshot():null
         }));
         performanceSignals.webVitals.representativeInteraction=representativeInteraction;
         const criticalStalls=performanceSignals.longTasks.filter((item)=>Number(item.duration)>2000);
+        const longTaskOwner=(item)=>{
+          const sources=(item.attribution||[]).map(part=>String(part.containerSrc||'')).filter(Boolean);
+          if(sources.some(src=>/tradingview|coinmarketcap|twitter|twimg|x\.com/i.test(src)))return 'third_party';
+          if(sources.some(src=>src.startsWith(base)))return 'first_party';
+          return String(item.name||'').toLowerCase()==='self'&&!sources.length?'first_party':'unattributed';
+        };
+        const firstPartyLongTasksOver500=performanceSignals.longTasks.filter((item)=>Number(item.duration)>500&&longTaskOwner(item)==='first_party');
+        const runtimePerformance=performanceSignals.runtimePerformance;
+        const runtimeMeasured=Boolean(runtimePerformance?.installed&&Array.isArray(runtimePerformance.routes)&&runtimePerformance.routes.length>0);
         const unexpectedNetwork=networkFailures.filter(item=>!item.expectedAuthBoundary);
         const authBoundary401=networkFailures.filter(item=>item.expectedAuthBoundary);
         const vitals=performanceSignals.webVitals||{};
@@ -255,8 +265,9 @@ try{
         if(Number(vitals.lcpMs)>4000)vitalRegressions.push('lcp');
         if(Number(vitals.cls)>0.25)vitalRegressions.push('cls');
         if(representativeInteraction&&Number(vitals.inpMs)>500)vitalRegressions.push('inp');
-        const passed=obsolete.length===0&&structural.length===0&&last.appReady==='true'&&last.mainChildren>0&&errors.length===0&&unexpectedNetwork.length===0&&criticalStalls.length===0&&vitalsMeasured&&vitalRegressions.length===0;
-        report.scenarios.push({route:routeName,hash,viewport:viewportName,mode,navigationToDomContentLoadedMs:Math.round(domLoaded-started),frames,obsolete,structural,errors,unexpectedNetwork,authBoundary401,performanceSignals:{...performanceSignals,criticalStalls,vitalRegressions,maxLongTaskMs:performanceSignals.longTasks.reduce((max,item)=>Math.max(max,Number(item.duration)||0),0),longTasksOver500:performanceSignals.longTasks.filter((item)=>Number(item.duration)>500).length},status:passed?'passed':'failed'});
+        const repeatedFirstPartyLongTaskViolation=firstPartyLongTasksOver500.length>=2;
+        const passed=obsolete.length===0&&structural.length===0&&last.appReady==='true'&&last.mainChildren>0&&errors.length===0&&unexpectedNetwork.length===0&&criticalStalls.length===0&&!repeatedFirstPartyLongTaskViolation&&runtimeMeasured&&vitalsMeasured&&vitalRegressions.length===0;
+        report.scenarios.push({route:routeName,hash,viewport:viewportName,mode,navigationToDomContentLoadedMs:Math.round(domLoaded-started),frames,obsolete,structural,errors,unexpectedNetwork,authBoundary401,performanceSignals:{...performanceSignals,criticalStalls,firstPartyLongTasksOver500,repeatedFirstPartyLongTaskViolation,runtimeMeasured,vitalRegressions,maxLongTaskMs:performanceSignals.longTasks.reduce((max,item)=>Math.max(max,Number(item.duration)||0),0),longTasksOver500:performanceSignals.longTasks.filter((item)=>Number(item.duration)>500).length,maxRouteTransitionMs:Array.isArray(runtimePerformance?.routes)?runtimePerformance.routes.reduce((max,item)=>Math.max(max,Number(item.durationMs)||0),0):0},status:passed?'passed':'failed'});
         if(!passed)report.status='failed';
       }
       await context.close();
@@ -281,7 +292,11 @@ const summary={
   maxReadyFrameMs:Math.max(...report.scenarios.map(item=>item.frames.find(frame=>frame.appReady==='true')?.elapsedMs??7001)),
   maxLongTaskMs:Math.max(...report.scenarios.map(item=>item.performanceSignals?.maxLongTaskMs??0)),
   longTasksOver500:report.scenarios.reduce((total,item)=>total+(item.performanceSignals?.longTasksOver500??0),0),
+  firstPartyLongTasksOver500:report.scenarios.reduce((total,item)=>total+(item.performanceSignals?.firstPartyLongTasksOver500?.length??0),0),
+  repeatedFirstPartyLongTaskViolations:report.scenarios.filter(item=>item.performanceSignals?.repeatedFirstPartyLongTaskViolation).map(item=>({route:item.route,viewport:item.viewport,mode:item.mode})),
   criticalStalls:report.scenarios.reduce((total,item)=>total+(item.performanceSignals?.criticalStalls?.length??0),0),
+  runtimeMetricsMissing:report.scenarios.filter(item=>item.performanceSignals?.runtimeMeasured!==true).map(item=>({route:item.route,viewport:item.viewport,mode:item.mode})),
+  maxRouteTransitionMs:Math.max(...report.scenarios.map(item=>item.performanceSignals?.maxRouteTransitionMs??0)),
   maxDomNodes:Math.max(...report.scenarios.map(item=>item.performanceSignals?.domNodes??0)),
   totalMutations:report.scenarios.reduce((total,item)=>total+(item.performanceSignals?.mutations??0),0),
   maxFcpMs:Math.max(...report.scenarios.map(item=>Number(item.performanceSignals?.webVitals?.fcpMs)||0)),
