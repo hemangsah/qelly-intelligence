@@ -202,9 +202,9 @@ async function fetchNewsContext(fetchImpl,asset,start,end,{cache=globalThis.cach
   const cached=await readNewsCache(cache,key,now);
   if(cached.fresh)return {
     articles:cached.fresh.articles,
-    state:cached.fresh.state,
+    state:'cached',
     fetchedAt:cached.fresh.fetchedAt,
-    cache:{hit:true,stale:false,coalesced:false,ageMs:cached.fresh.ageMs,bucketMs:window.bucketMs}
+    cache:{hit:true,stale:false,coalesced:false,ageMs:cached.fresh.ageMs,bucketMs:window.bucketMs,sourceState:cached.fresh.state}
   };
 
   const inflightKey=key.url;
