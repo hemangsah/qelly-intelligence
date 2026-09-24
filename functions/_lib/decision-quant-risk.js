@@ -1,3 +1,4 @@
+const QUANT_SCHEMA_VERSION='qelly.decision-quant-risk/1.0.0';
 const finite=(value)=>value==null||value===''?null:Number.isFinite(Number(value))?Number(value):null;
 const clamp=(value,min=0,max=1)=>Math.min(max,Math.max(min,value));
 const round=(value,digits=4)=>Number.isFinite(value)?Number(value.toFixed(digits)):null;
@@ -211,7 +212,7 @@ function structure(candles){
 
 export function buildDecisionQuantRisk(candles,{intervalMs,horizonBars=16}={}){
   const rows=Array.isArray(candles)?candles.filter(item=>[item?.open,item?.high,item?.low,item?.close].every(value=>Number.isFinite(Number(value))&&Number(value)>0)):[];
-  if(rows.length<40||!(intervalMs>0))return {state:'INSUFFICIENT_DATA',sampleSize:rows.length,calibration:{state:'UNCALIBRATED',sampleSize:0,brierScore:null,reliabilityBins:[]}};
+  if(rows.length<40||!(intervalMs>0))return {schemaVersion:QUANT_SCHEMA_VERSION,state:'INSUFFICIENT_DATA',sampleSize:rows.length,calibration:{state:'UNCALIBRATED',sampleSize:0,brierScore:null,reliabilityBins:[]}};
   const returns=[];
   for(let i=1;i<rows.length;i++)returns.push(logReturn(rows[i-1].close,rows[i].close));
   const avg=mean(returns),sigma=Math.sqrt(mean(returns.map(value=>(value-avg)**2)));
@@ -233,6 +234,7 @@ export function buildDecisionQuantRisk(candles,{intervalMs,horizonBars=16}={}){
   const q05=quantile(returns,.05),q95=quantile(returns,.95);
   const tailFrequency=returns.length?returns.filter(value=>Math.abs(value-avg)>=2*Math.max(sigma,1e-12)).length/returns.length:null;
   const result={
+    schemaVersion:QUANT_SCHEMA_VERSION,
     state:'DERIVED',
     sampleSize:rows.length,
     returns:{meanPct:round(avg*100,5),q05Pct:round((q05??0)*100,4),q95Pct:round((q95??0)*100,4)},

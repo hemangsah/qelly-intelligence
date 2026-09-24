@@ -26,15 +26,93 @@ const normalizedTargets=(trade)=>{
     }));
 };
 
+const componentSnapshot=(decision)=>{
+  const quant=decision?.quant||{},calibration=quant?.calibration||{},mtf=decision?.multiTimeframe||{},evidence=decision?.evidence||{};
+  const derivatives=evidence?.derivatives||decision?.derivatives||{},liquidity=evidence?.liquidity||decision?.liquidity||{};
+  const macro=evidence?.macro||decision?.macro||{},crossAsset=evidence?.crossAsset||decision?.crossAsset||{},eventRisk=evidence?.eventRisk||decision?.eventRisk||{};
+  const forecast=decision?.forecast||{},probabilities=forecast?.probabilities||{},metrics=decision?.metrics||{};
+  return {
+    schemaVersion:'qelly.setup-component-snapshot/1.0.0',
+    structure:{state:quant?.structure?.state||'UNAVAILABLE',bias:quant?.structure?.bias||'MIXED',support:finite(quant?.structure?.support),resistance:finite(quant?.structure?.resistance)},
+    trend:{regime:quant?.trend?.regime||decision?.market?.currentState?.trend||'UNAVAILABLE',adx14:finite(quant?.trend?.adx14),efficiencyRatio:finite(quant?.trend?.efficiencyRatio),roc14Pct:finite(quant?.trend?.roc14Pct),trendPerBarPct:finite(metrics?.trendPerBarPct)},
+    momentum:{rsi14:finite(metrics?.rsi14),returnZScore:finite(metrics?.returnZScore),state:decision?.market?.currentState?.momentum||'UNAVAILABLE'},
+    volatility:{regime:quant?.volatility?.regime||decision?.market?.currentState?.volatilityRegime||'UNKNOWN',atrPct:finite(metrics?.atrPct),expectedMovePct:finite(quant?.volatility?.expectedMovePct),percentile:finite(quant?.volatility?.percentile)},
+    multiTimeframe:{state:mtf?.state||'unavailable',direction:mtf?.agreement?.direction||'UNAVAILABLE',aligned:finite(mtf?.agreement?.aligned),directional:finite(mtf?.agreement?.directional),total:finite(mtf?.agreement?.total)},
+    derivatives:{state:derivatives?.state||'unavailable',fundingPct:finite(derivatives?.fundingPct),fundingChangeBps:finite(derivatives?.fundingChangeBps),fundingPercentile:finite(derivatives?.fundingPercentile),openInterestNotionalUsd:finite(derivatives?.openInterestNotionalUsd),openInterestChangeState:derivatives?.openInterestChangeState||'UNAVAILABLE',markOracleBasisBps:finite(derivatives?.markOracleBasisBps)},
+    liquidity:{state:liquidity?.state||'unavailable',spreadBps:finite(liquidity?.spreadBps),spreadState:liquidity?.spreadState||'UNAVAILABLE',top5Imbalance:finite(liquidity?.top5Imbalance),top10Imbalance:finite(liquidity?.top10Imbalance),depthConsensus:liquidity?.depthConsensus||'UNAVAILABLE',micropriceBiasBps:finite(liquidity?.micropriceBiasBps)},
+    macro:{state:macro?.state||'unavailable',level:macro?.level||'UNAVAILABLE',observedAt:macro?.observedAt||null,usdInr:finite(macro?.fxReference?.usdInr)},
+    crossAsset:{state:crossAsset?.state||'unavailable',benchmark:crossAsset?.benchmark||null,correlation:finite(crossAsset?.correlation),beta:finite(crossAsset?.beta),relativeStrengthPct:finite(crossAsset?.relativeStrengthPct)},
+    eventRisk:{state:eventRisk?.state||'unavailable',level:eventRisk?.level||'UNAVAILABLE',nextEventAt:eventRisk?.nextEventAt||null},
+    news:{state:evidence?.news?.state||'unavailable',provider:evidence?.news?.provider||null,articleCount:Array.isArray(evidence?.news?.articles)?evidence.news.articles.length:0},
+    calibration:{schemaVersion:calibration?.schemaVersion||null,state:calibration?.state||'UNCALIBRATED',eligible:calibration?.eligible===true,sampleSize:finite(calibration?.sampleSize),brierScore:finite(calibration?.brierScore),reliabilityGap:finite(calibration?.reliabilityGap)},
+    scenario:{modelVersion:decision?.provenance?.model?.version||null,bull:finite(probabilities?.bull),base:finite(probabilities?.base),bear:finite(probabilities?.bear),paths:finite(forecast?.paths),neutralThresholdPct:finite(forecast?.neutralThresholdPct)}
+  };
+};
+
+const provenanceSnapshot=(decision,{sourceSetupId=null,basis='server_live_decision'}={})=>{
+  const trade=decision?.tradeResearch||{},model=decision?.provenance?.model||{},calibration=decision?.quant?.calibration||{};
+  const versions={
+    decision:decision?.schemaVersion||null,
+    quant:decision?.quant?.schemaVersion||null,
+    model:model?.version||null,
+    scenario:model?.version||null,
+    calibration:calibration?.schemaVersion||null,
+    tradeResearch:trade?.schemaVersion||null,
+    decisionSnapshot:decision?.decisionSnapshot?.schemaVersion||null,
+    evidenceGraph:decision?.evidenceGraph?.schemaVersion||null,
+    rrEngine:trade?.schemaVersion||null
+  };
+  const graphId=clean(decision?.graphId,240)||null;
+  const fingerprint=clean(decision?.provenance?.dataFingerprint,240)||null;
+  return {
+    schemaVersion:'qelly.setup-provenance/1.0.0',
+    ledgerVersion:'qelly.setup-outcome-ledger/1.1.0',
+    basis,
+    source:'QELLY Decision Intelligence server observation',
+    sourceSetupId:clean(sourceSetupId||trade?.setupId,240)||null,
+    sourceGraphId:graphId,
+    provider:clean(decision?.provenance?.provider,120)||null,
+    sourceType:clean(decision?.provenance?.sourceType,120)||null,
+    providerRequest:decision?.provenance?.request?{type:clean(decision.provenance.request.type,80)||null,coin:clean(decision.provenance.request.coin,32)||null,interval:clean(decision.provenance.request.interval,16)||null}:null,
+    dataFingerprint:fingerprint,
+    inputTimestamp:iso(decision?.generatedAt||decision?.observedAt),
+    evidenceTimestamp:iso(decision?.observedAt),
+    asset:clean(decision?.asset,16).toUpperCase()||null,
+    timeframe:clean(decision?.interval,16)||null,
+    horizon:clean(decision?.horizon,16)||null,
+    modelId:clean(model?.id,120)||null,
+    versions,
+    pipeline:[
+      {stage:'RAW_SOURCE',ref:clean(decision?.provenance?.provider,120)||null},
+      {stage:'NORMALIZED_DATA',ref:fingerprint},
+      {stage:'QUANT_STATE',ref:versions.quant},
+      {stage:'EVIDENCE',ref:'qelly.setup-evidence-snapshot/1.0.0'},
+      {stage:'REGIME',ref:versions.quant},
+      {stage:'SCENARIO',ref:versions.scenario},
+      {stage:'QELLY_VIEW',ref:versions.decisionSnapshot||versions.decision},
+      {stage:'SETUP',ref:versions.tradeResearch},
+      {stage:'TARGET_INVALIDATION',ref:versions.rrEngine},
+      {stage:'OUTCOME',ref:'qelly.setup-outcome-ledger/1.1.0'}
+    ],
+    backfilled:false,
+    execution:false
+  };
+};
+
 const evidenceSnapshot=(decision)=>({
+  schemaVersion:'qelly.setup-evidence-snapshot/1.0.0',
   observedAt:decision?.observedAt||null,
   truthState:decision?.truthState||'UNAVAILABLE',
   action:decision?.qellyView?.action||'NO TRADE',
   confidence:finite(decision?.qellyView?.confidence),
   evidenceQuality:finite(decision?.qellyView?.evidenceGate?.qualityScore),
   calibrationState:decision?.quant?.calibration?.state||'UNCALIBRATED',
-  contradictions:Array.isArray(decision?.qellyView?.contradictions)?decision.qellyView.contradictions.slice(0,20):[],
-  provider:decision?.provenance?.provider||null
+  calibrationVersion:decision?.quant?.calibration?.schemaVersion||null,
+  contradictions:Array.isArray(decision?.qellyView?.contradictions)?decision.qellyView.contradictions.slice(0,20).map(item=>clean(item,320)):[],
+  provider:decision?.provenance?.provider||null,
+  decisionSnapshotVersion:decision?.decisionSnapshot?.schemaVersion||null,
+  evidenceGraphVersion:decision?.evidenceGraph?.schemaVersion||null,
+  components:componentSnapshot(decision)
 });
 
 export function setupRecordFromDecision(decision,{workspaceId,ownerId}={}){
@@ -95,13 +173,9 @@ export function setupRecordFromDecision(decision,{workspaceId,ownerId}={}){
       resolved_outcome:{state:'OPEN',highestTarget:null,ambiguous:false,calibrationEligible:false},
       metrics,
       provenance:{
-        schemaVersion:'qelly.setup-outcome-ledger/1.0.0',
-        source:'QELLY Decision Intelligence server observation',
-        sourceSetupId,
-        sourceGraphId:clean(decision?.graphId,240)||null,
+        ...provenanceSnapshot(decision,{sourceSetupId,basis:'server_live_decision'}),
         createdFromLiveEvidence:true,
-        noBackfillBeforeTracking:true,
-        execution:false
+        noBackfillBeforeTracking:true
       }
     }
   };
@@ -155,7 +229,7 @@ export function initialObservationFromRecord(record,decision){
     invalidation_event:null,
     metrics:record.metrics,
     resolution:record.resolved_outcome,
-    provenance:{basis:'server_live_decision',backfilled:false}
+    provenance:provenanceSnapshot(decision,{sourceSetupId:record.source_setup_id,basis:'server_live_decision'})
   };
 }
 
@@ -281,7 +355,7 @@ export function observePersistedSetup(setup,decision){
     invalidation_event:invalidationEvent,
     metrics,
     resolution,
-    provenance:{basis:'server_provider_reobservation',backfilled:false,triggerBackfilled:false}
+    provenance:{...provenanceSnapshot(decision,{sourceSetupId:setup.source_setup_id,basis:'server_provider_reobservation'}),triggerBackfilled:false}
   };
   return {changed:true,patch,observation};
 }
@@ -319,4 +393,4 @@ export function setupRowToClient(row){
   };
 }
 
-export const __decisionOutcomeLedgerTest=Object.freeze({LEDGER_STATES,TERMINAL_OUTCOMES,normalizedTargets,evidenceSnapshot,candleRange,setupEntry});
+export const __decisionOutcomeLedgerTest=Object.freeze({LEDGER_STATES,TERMINAL_OUTCOMES,normalizedTargets,evidenceSnapshot,componentSnapshot,provenanceSnapshot,candleRange,setupEntry});
