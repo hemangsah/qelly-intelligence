@@ -76,6 +76,7 @@ test('Wave AJ/AK freezes model, quant, calibration, Decision, Evidence Graph and
     decision:'qelly.decision-proven-graph/1.1.0',
     quant:'qelly.decision-quant-risk/1.0.0',
     model:'1.1.0',
+    scenario:'1.1.0',
     calibration:'qelly.decision-walk-forward-calibration/1.0.0',
     tradeResearch:'qelly.trade-research/1.2.0',
     decisionSnapshot:'qelly.decision-snapshot/2.0.0',
