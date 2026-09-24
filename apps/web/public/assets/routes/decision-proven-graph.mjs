@@ -102,7 +102,7 @@ const tradeResearchMarkup=(data,escapeHtml)=>{
   const targets=Array.isArray(trade.targets)?trade.targets:[];
   const lifecycle=trade.lifecycle||{state:trade.status==='VALID'?'VALID':'NO_TRADE'};
   const lifecycleState=String(lifecycle.state||'NO_TRADE');
-  const entryReady=lifecycleState==='VALID';
+  const entryReady=['VALID','TRIGGERED','ACTIVE'].includes(lifecycleState);
   const status=trade.status==='VALID'&&entryReady?'live':trade.status==='VALID'?'delayed':'warning';
   const title=trade.status!=='VALID'?'No valid setup':entryReady?'Evidence-qualified setup':'Setup forming — entry not ready';
   const netRr=(item)=>Number.isFinite(Number(item?.netRiskReward))?'Net 1:'+Number(item.netRiskReward).toFixed(2):'Net R:R unavailable';
@@ -117,7 +117,7 @@ const tradeResearchMarkup=(data,escapeHtml)=>{
   ).join(''):'<p class="q-dpg-no-levels">No R:R matrix is available because the current evidence gate does not support a directional setup.</p>';
   const structuralMarkup=structuralTargets.length?'<div class="q-dpg-structural-targets"><strong>Structural alternative</strong>'+structuralTargets.map(item=>'<span><em>'+escapeHtml(item.label)+'</em><b>'+money(item.target)+'</b><small>'+escapeHtml(item.feasibility)+' · '+escapeHtml(item.feasibilityReason)+'</small></span>').join('')+'</div>':'';
   const invalidation=trade.invalidation||{};
-  const invalidationOrder=[['Price',invalidation.price],['Structure',invalidation.structural],['Evidence',invalidation.evidence],['Time',invalidation.time],['Event',invalidation.event],['Regime',invalidation.regime]];
+  const invalidationOrder=[['Price',invalidation.price],['Structure',invalidation.structural],['Evidence',invalidation.evidence],['Time',invalidation.time],['Event',invalidation.event],['Regime',invalidation.regime],['Liquidity',invalidation.liquidity]];
   const invalidationMarkup=trade.entry?'<section class="q-dpg-invalidation"><header><div><small>INVALIDATION LAYERS</small><h3>What cancels or weakens this setup</h3></div><span>Price stop ≠ full thesis invalidation</span></header><div>'+invalidationOrder.map(([label,item])=>'<article><span>'+label+'</span><strong>'+escapeHtml(String(item?.state||'UNAVAILABLE').replaceAll('_',' '))+'</strong>'+(Number.isFinite(Number(item?.price))?'<b>'+money(item.price)+'</b>':'')+(item?.at?'<b>'+escapeHtml(displayTime(item.at))+'</b>':'')+'<p>'+escapeHtml(item?.condition||'No verified condition is available.')+'</p></article>').join('')+'</div></section>':'';
   const targetMarkup=targets.length?'<div class="q-dpg-target-ladder"><strong>Feasible target ladder</strong><div>'+targets.map(item=>'<span><em>T'+escapeHtml(String(item.rank))+' · '+escapeHtml(item.label)+'</em><b>'+money(item.price)+'</b><small>'+escapeHtml(item.source||'MODEL')+' · '+escapeHtml(item.feasibility)+'</small></span>').join('')+'</div></div>':'';
   return '<section class="q-dpg-trade-research"><header><div><small>FIND TRADE NOW · RESEARCH ONLY</small><h2>'+title+'</h2><p>'+escapeHtml(trade.reason)+'</p></div><span class="q-status q-status--'+status+'">'+escapeHtml(lifecycleState)+'</span></header>'+
@@ -141,33 +141,54 @@ const calibration=(view,escapeHtml)=>{
   return '<div class="q-dpg-calibration"><article><span>Scenario edge</span><strong>'+escapeHtml(edge)+'</strong><small>'+escapeHtml(String(scenario.leading||'BALANCED'))+'</small></article><article><span>Timeframe agreement</span><strong>'+escapeHtml(agreement)+'</strong><small>'+escapeHtml(String(gate.timeframeAligned??0)+'/'+String(gate.timeframeTotal??0)+' observed')+'</small></article><article><span>Risk state</span><strong>'+escapeHtml(risk)+'</strong><small>ATR '+escapeHtml(String(view.riskState?.atrPct??'—'))+'%</small></article><article><span>Signal gate</span><strong>'+(gate.directionalEligible?'CLEARED':'NOT CLEARED')+'</strong><small>Base view '+escapeHtml(String(gate.baseAction||view.action))+'</small></article></div>'+(contradictions.length?'<div class="q-dpg-contradictions"><strong>Conflicting evidence</strong><ul>'+contradictions.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul></div>':'')+'<p class="q-dpg-confidence-note">Confidence measures evidence quality and agreement. It is not a success probability.</p>';
 };
 
+const scannerFiltersMarkup=(state,escapeHtml)=>{
+  const filters=state.scanFilters||{};
+  const selected=(key,value)=>String(filters[key]??'')===String(value)?' selected':'';
+  const options=(key,items)=>items.map(([value,label])=>'<option value="'+escapeHtml(value)+'"'+selected(key,value)+'>'+escapeHtml(label)+'</option>').join('');
+  return '<details class="q-dpg-scan-filters"><summary>Find Trade Now filters <span>evidence-gated</span></summary><div>'+
+    '<label><span>Universe</span><select data-dpg-scan-filter="universe">'+options('universe',[['all','All supported assets'],['current','Current asset']])+'</select></label>'+
+    '<label><span>Direction</span><select data-dpg-scan-filter="direction">'+options('direction',[['any','Any'],['long','Long'],['short','Short']])+'</select></label>'+
+    '<label><span>Min evidence</span><select data-dpg-scan-filter="minEvidenceQuality">'+options('minEvidenceQuality',[['0','Any'],['0.5','50%'],['0.65','65%'],['0.75','75%'],['0.85','85%']])+'</select></label>'+
+    '<label><span>Min calibrated confidence</span><select data-dpg-scan-filter="minCalibratedConfidence">'+options('minCalibratedConfidence',[['0','Any'],['0.5','50%'],['0.65','65%'],['0.75','75%']])+'</select></label>'+
+    '<label><span>Min MTF agreement</span><select data-dpg-scan-filter="minMtfAgreement">'+options('minMtfAgreement',[['0','Any'],['0.5','50%'],['0.75','75%'],['1','100%']])+'</select></label>'+
+    '<label><span>Liquidity</span><select data-dpg-scan-filter="liquidity">'+options('liquidity',[['any','Any'],['live','Live L2 required'],['tight','Tight spread required']])+'</select></label>'+
+    '<label><span>Volatility</span><select data-dpg-scan-filter="volatility">'+options('volatility',[['any','Any'],['low','Low'],['normal','Normal'],['elevated','Elevated'],['high','High']])+'</select></label>'+
+    '<label><span>Regime</span><select data-dpg-scan-filter="regime">'+options('regime',[['any','Any'],['trending','Trending'],['ranging','Ranging'],['transition','Transition'],['high_volatility','High volatility']])+'</select></label>'+
+    '<label><span>Event-risk tolerance</span><select data-dpg-scan-filter="eventRiskTolerance">'+options('eventRiskTolerance',[['any','Any / unavailable allowed'],['low','Low only'],['medium','Up to medium'],['high','Up to high']])+'</select></label>'+
+    '<label><span>Data freshness</span><select data-dpg-scan-filter="freshness">'+options('freshness',[['live_or_delayed','Live or delayed'],['live','Live only'],['any','Any verified state']])+'</select></label>'+
+  '</div><p>Strict filters fail closed when required evidence is unavailable. They never force a trade.</p></details>';
+};
+
 const scannerMarkup=(scan,{scanning=false,error=null,escapeHtml})=>{
-  if(scanning)return '<section class="q-dpg-scanner q-dpg-scanner--loading" role="status"><span class="q-spinner"></span><div><small>FIND TRADE NOW · UNIVERSE SCAN</small><h2>Scanning six governed assets</h2><p>Reusing the same Decision evidence, calibration and R:R gates with bounded concurrency.</p></div></section>';
-  if(error)return '<section class="q-dpg-scanner q-dpg-scanner--error" role="alert"><header><div><small>FIND TRADE NOW · UNIVERSE SCAN</small><h2>Scan unavailable</h2></div><button class="q-button q-button--secondary" data-dpg-scan>Retry scan</button></header><p>'+escapeHtml(error)+'</p></section>';
+  if(scanning)return '<section class="q-dpg-scanner q-dpg-scanner--loading" role="status"><span class="q-spinner"></span><div><small>FIND TRADE NOW 2.0 · GOVERNED SCAN</small><h2>Scanning verified market evidence</h2><p>Applying the same Decision, calibration, structure, liquidity and R:R gates with bounded concurrency.</p></div></section>';
+  if(error)return '<section class="q-dpg-scanner q-dpg-scanner--error" role="alert"><header><div><small>FIND TRADE NOW 2.0 · GOVERNED SCAN</small><h2>Scan unavailable</h2></div><button class="q-button q-button--secondary" data-dpg-scan>Retry scan</button></header><p>'+escapeHtml(error)+'</p></section>';
   if(!scan)return '';
   const candidates=Array.isArray(scan.candidates)?scan.candidates:[];
   const eligible=Number(scan.eligibleCount)||0;
-  const stateLabel=eligible?'Eligible setups found':'No eligible setup';
+  const conditional=Number(scan.conditionalCount)||0;
+  const stateLabel=String(scan.state||'NO_ELIGIBLE_SETUP').replaceAll('_',' ');
   const rows=candidates.map((item,index)=>{
     const trade=item.trade||{},evidence=item.evidence||{},market=item.market||{};
-    const tone=item.eligible?'positive':item.action==='SELL'?'negative':'muted';
+    const tone=item.eligible?'positive':item.action==='SELL'?'negative':item.conditional?'warning':'muted';
     const score=Number.isFinite(Number(item.researchPriority))?Number(item.researchPriority).toFixed(1):'—';
     const rr=trade.rr||'—';
     const calibration=evidence.calibrationState||'UNCALIBRATED';
+    const failures=Array.isArray(item.filterFailures)?item.filterFailures:[];
     return '<button class="q-dpg-scan-row q-dpg-scan-row--'+tone+'" data-dpg-scan-asset="'+escapeHtml(item.asset)+'" type="button">'+
       '<span class="q-dpg-scan-rank">'+(index+1)+'</span>'+
-      '<span class="q-dpg-scan-asset"><strong>'+escapeHtml(item.asset)+'</strong><small>'+escapeHtml(String(market.regime||'UNAVAILABLE'))+' · '+escapeHtml(String(market.volatilityRegime||'UNKNOWN'))+'</small></span>'+
+      '<span class="q-dpg-scan-asset"><strong>'+escapeHtml(item.asset)+'</strong><small>'+escapeHtml(String(market.regime||'UNAVAILABLE'))+' · '+escapeHtml(String(market.volatilityRegime||'UNKNOWN'))+'</small><em>'+escapeHtml(String(item.state||'WAIT').replaceAll('_',' '))+'</em></span>'+
       '<span><em>View</em><strong>'+escapeHtml(item.action)+'</strong></span>'+
       '<span><em>R:R</em><strong>'+escapeHtml(rr)+'</strong><small>'+escapeHtml(String(trade.feasibility||trade.status||'NO_TRADE'))+'</small></span>'+
       '<span><em>Evidence triage</em><strong>'+escapeHtml(score)+'</strong><small>not a win probability</small></span>'+
-      '<span><em>Calibration</em><strong>'+escapeHtml(calibration)+'</strong></span>'+
-      '<span class="q-dpg-scan-open">'+(item.eligible?'Open setup':'Inspect')+' →</span>'+
+      '<span><em>Calibration</em><strong>'+escapeHtml(calibration)+'</strong><small>'+escapeHtml(String(Math.round(Number(evidence.calibratedConfidence||0)*100)))+'% calibrated conf</small></span>'+
+      '<span class="q-dpg-scan-open">'+(item.eligible?'Open setup':item.conditional?'Inspect condition':'Inspect')+' →</span>'+
+      (failures.length?'<small class="q-dpg-scan-failures">'+escapeHtml(failures.slice(0,3).join(' · ').replaceAll('_',' '))+'</small>':'')+
     '</button>';
   }).join('');
-  return '<section class="q-dpg-scanner"><header><div><small>FIND TRADE NOW · SIX-ASSET SCAN</small><h2>'+stateLabel+'</h2><p>'+escapeHtml(String(scan.availableCount||0))+' verified · '+escapeHtml(String(scan.unavailableCount||0))+' unavailable · '+escapeHtml(String(scan.interval||''))+' / '+escapeHtml(String(scan.horizon||''))+'</p></div><button class="q-button q-button--secondary" data-dpg-scan>Rescan</button></header>'+
+  return '<section class="q-dpg-scanner"><header><div><small>FIND TRADE NOW 2.0 · GOVERNED SCAN</small><h2>'+escapeHtml(stateLabel)+'</h2><p>'+escapeHtml(String(scan.availableCount||0))+' verified · '+escapeHtml(String(scan.unavailableCount||0))+' unavailable · '+escapeHtml(String(eligible))+' valid · '+escapeHtml(String(conditional))+' conditional · '+escapeHtml(String(scan.interval||''))+' / '+escapeHtml(String(scan.horizon||''))+'</p></div><button class="q-button q-button--secondary" data-dpg-scan>Rescan</button></header>'+
     '<div class="q-dpg-scan-boundary"><strong>Research boundary</strong><span>'+escapeHtml(scan.eventRisk?.reason||'Event risk is unavailable unless verified by a connected source.')+'</span></div>'+
     '<div class="q-dpg-scan-list">'+(rows||'<p class="q-dpg-no-levels">No verified candidates were returned.</p>')+'</div>'+
-    '<p class="q-dpg-scan-note">Evidence triage ranks current research quality only. It is not a success probability, expected return, trade recommendation or execution priority.</p>'+
+    '<p class="q-dpg-scan-note">Evidence triage ranks current research quality, structural feasibility, liquidity, contradiction, freshness and calibration only. It is not a success probability, expected return, trade recommendation or execution priority.</p>'+
   '</section>';
 };
 
@@ -281,7 +302,7 @@ const whatChangedMarkup=(previous,current,escapeHtml)=>{
 export async function renderDecisionProvenGraph(main,deps){
   installStyles();const {api,stateBanner,escapeHtml,toast}=deps;
   const chatContext=readChatDecisionContext();
-  let state={asset:chatContext.asset,interval:chatContext.interval,horizon:normalizeHorizon(chatContext.interval,'4h'),rr:'auto',customRr:'2.5',loading:true,data:null,previousSnapshot:null,error:null,draft:null,selection:null,scanning:false,scan:null,scanError:null};
+  let state={asset:chatContext.asset,interval:chatContext.interval,horizon:normalizeHorizon(chatContext.interval,'4h'),rr:'auto',customRr:'2.5',loading:true,data:null,previousSnapshot:null,error:null,draft:null,selection:null,scanning:false,scan:null,scanError:null,scanFilters:{universe:'all',direction:'any',minEvidenceQuality:'0',minCalibratedConfidence:'0',minMtfAgreement:'0',liquidity:'any',volatility:'any',regime:'any',eventRiskTolerance:'any',freshness:'live_or_delayed'}};
   const select=(name,values)=>'<label><span>'+name[0].toUpperCase()+name.slice(1)+'</span><select data-dpg-'+name+'>'+values.map(value=>'<option value="'+value+'" '+(state[name]===value?'selected':'')+'>'+value+'</option>').join('')+'</select></label>';
   const hero=(data)=>{
     const view=data?.qellyView||{},gate=view.evidenceGate||{},scenario=view.scenario||{};
@@ -336,7 +357,7 @@ export async function renderDecisionProvenGraph(main,deps){
   };
   const draw=()=>{
     const data=state.data;
-    main.innerHTML='<section class="q-page q-dpg-page">'+stateBanner()+hero(data)+'<section class="q-dpg-controls q-dpg-controls--decision" aria-label="Decision controls">'+select('horizon',validHorizons(state.interval))+'<label><span>Risk / reward</span><select data-dpg-rr><option value="auto" '+(state.rr==='auto'?'selected':'')+'>Auto</option><option value="1" '+(state.rr==='1'?'selected':'')+'>1:1</option><option value="2" '+(state.rr==='2'?'selected':'')+'>1:2</option><option value="3" '+(state.rr==='3'?'selected':'')+'>1:3</option><option value="4" '+(state.rr==='4'?'selected':'')+'>1:4</option><option value="custom" '+(state.rr==='custom'?'selected':'')+'>Custom</option></select></label>'+(state.rr==='custom'?'<label><span>Custom R:R</span><input data-dpg-custom-rr type="number" min="0.5" max="10" step="0.1" value="'+escapeHtml(state.customRr)+'"></label>':'')+'<p>Public research · no sign-in required · no trade execution</p></section>'+scannerMarkup(state.scan,{scanning:state.scanning,error:state.scanError,escapeHtml})+(state.loading?'<section class="q-dpg-state" role="status"><span class="q-spinner"></span><h2>Weighing fresh evidence</h2><p>Loading market observations and scenario ranges.</p></section>':'')+(state.error?'<section class="q-dpg-state q-dpg-state--error" role="alert"><h2>Live research unavailable</h2><p>'+escapeHtml(state.error)+'</p><button class="q-button q-button--secondary" data-dpg-refresh>Try again</button></section>':'')+(data?content(data):'')+'</section>';
+    main.innerHTML='<section class="q-page q-dpg-page">'+stateBanner()+hero(data)+'<section class="q-dpg-controls q-dpg-controls--decision" aria-label="Decision controls">'+select('horizon',validHorizons(state.interval))+'<label><span>Risk / reward</span><select data-dpg-rr><option value="auto" '+(state.rr==='auto'?'selected':'')+'>Auto</option><option value="1" '+(state.rr==='1'?'selected':'')+'>1:1</option><option value="2" '+(state.rr==='2'?'selected':'')+'>1:2</option><option value="3" '+(state.rr==='3'?'selected':'')+'>1:3</option><option value="4" '+(state.rr==='4'?'selected':'')+'>1:4</option><option value="custom" '+(state.rr==='custom'?'selected':'')+'>Custom</option></select></label>'+(state.rr==='custom'?'<label><span>Custom R:R</span><input data-dpg-custom-rr type="number" min="0.5" max="10" step="0.1" value="'+escapeHtml(state.customRr)+'"></label>':'')+'<p>Public research · no sign-in required · no trade execution</p></section>'+scannerFiltersMarkup(state,escapeHtml)+scannerMarkup(state.scan,{scanning:state.scanning,error:state.scanError,escapeHtml})+(state.loading?'<section class="q-dpg-state" role="status"><span class="q-spinner"></span><h2>Weighing fresh evidence</h2><p>Loading market observations and scenario ranges.</p></section>':'')+(state.error?'<section class="q-dpg-state q-dpg-state--error" role="alert"><h2>Live research unavailable</h2><p>'+escapeHtml(state.error)+'</p><button class="q-button q-button--secondary" data-dpg-refresh>Try again</button></section>':'')+(data?content(data):'')+'</section>';
     wire();mountAdSlots(main);
   };
   const wire=()=>{
@@ -354,6 +375,7 @@ export async function renderDecisionProvenGraph(main,deps){
     });
     main.querySelector('[data-dpg-custom-rr]')?.addEventListener('change',(event)=>{state.customRr=event.currentTarget.value;state.scan=null;state.scanError=null;load();});
     main.querySelectorAll('[data-dpg-scan]').forEach(button=>button.addEventListener('click',scan));
+    main.querySelectorAll('[data-dpg-scan-filter]').forEach(element=>element.addEventListener('change',()=>{const key=element.dataset.dpgScanFilter;if(key){state.scanFilters[key]=element.value;state.scan=null;state.scanError=null;draw();}}));
     main.querySelectorAll('[data-dpg-scan-asset]').forEach(button=>button.addEventListener('click',()=>{state.asset=button.dataset.dpgScanAsset;state.draft=null;state.selection=null;load();}));
     main.querySelector('[data-dpg-explain-header]')?.addEventListener('click',()=>{if(state.draft){state.selection=state.draft;load();}});
     main.querySelector('[data-dpg-mtf-jump]')?.addEventListener('click',()=>main.querySelector('#qelly-decision-mtf')?.scrollIntoView({behavior:'smooth',block:'start'}));
@@ -385,10 +407,14 @@ export async function renderDecisionProvenGraph(main,deps){
     if(state.scanning)return;
     state.scanning=true;state.scanError=null;draw();
     try{
-      const rr='&rr='+encodeURIComponent(state.rr)+(state.rr==='custom'?'&customRr='+encodeURIComponent(state.customRr):'');
-      state.scan=await api('/api/v1/decision-scan?interval='+encodeURIComponent(state.interval)+'&horizon='+encodeURIComponent(state.horizon)+rr);
+      const params=new URLSearchParams({interval:state.interval,horizon:state.horizon,rr:state.rr});
+      if(state.rr==='custom')params.set('customRr',state.customRr);
+      if(state.scanFilters.universe==='current')params.set('assets',state.asset);
+      for(const key of ['direction','minEvidenceQuality','minCalibratedConfidence','minMtfAgreement','liquidity','volatility','regime','eventRiskTolerance','freshness'])params.set(key,String(state.scanFilters[key]??''));
+      params.set('setupFreshness','current');
+      state.scan=await api('/api/v1/decision-scan?'+params.toString());
       const eligibleCount=Math.max(0,Number(state.scan?.eligibleCount)||0);
-      emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'decision_scan',action:'complete',state:eligibleCount>0?'eligible':'no_eligible_setup'});
+      emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'decision_scan',action:'complete',state:telemetryToken(state.scan?.state||'unavailable')});
       emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'eligible_setup',action:'count',state:eligibleCount>0?'nonzero':'zero',...(eligibleCount>0?{count:Math.min(100,eligibleCount)}:{})});
       const firstEligible=state.scan?.candidates?.find?.(item=>item?.eligible);
       if(firstEligible&&firstEligible.asset&&firstEligible.asset!==state.asset){

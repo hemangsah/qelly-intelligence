@@ -36,19 +36,21 @@ for(const ratio of [1,2,3,4]){
     assert.equal(result.status,'VALID');
     assert.equal(result.selected.ratio,ratio);
     assert.equal(result.selected.label,`1:${ratio}`);
-    assert.ok(['HIGH','MEDIUM'].includes(result.selected.feasibility));
+    assert.ok(['HIGHLY FEASIBLE','FEASIBLE','CONDITIONAL'].includes(result.selected.feasibility));
     assert.ok(result.targets.some(item=>item.ratio===ratio));
     assert.equal(result.execution,false);
     assert.equal(result.researchOnly,true);
   });
 }
 
-test('final acceptance: Auto selects the highest evidence-feasible target without inventing probability',()=>{
+test('final acceptance: Auto selects the best structurally valid target without inventing probability',()=>{
   const result=buildTradeResearch(directionalGraph(),{requestedRr:'auto'});
   assert.equal(result.requestedRr,'auto');
   assert.equal(result.status,'VALID');
   assert.ok(result.selected);
-  assert.ok(['HIGH','MEDIUM'].includes(result.selected.feasibility));
+  assert.ok(['HIGHLY FEASIBLE','FEASIBLE','CONDITIONAL'].includes(result.selected.feasibility));
+  assert.ok(Number.isFinite(result.selected.selectionScore));
+  assert.match(result.selected.selectionReason,/does not simply choose the largest/i);
   assert.equal(result.selected.targetTouchProbability,null);
   assert.equal(result.selected.expectedValue,null);
 });
@@ -80,6 +82,6 @@ test('final acceptance: infeasible preset remains NO_TRADE even with a direction
   const result=buildTradeResearch(graph,{requestedRr:'1:4'});
   assert.equal(result.requestedRr,'1:4');
   assert.equal(result.selected.ratio,4);
-  assert.ok(['LOW','NOT FEASIBLE'].includes(result.selected.feasibility));
+  assert.ok(['LOW FEASIBILITY','NOT FEASIBLE'].includes(result.selected.feasibility));
   assert.equal(result.status,'NO_TRADE');
 });
