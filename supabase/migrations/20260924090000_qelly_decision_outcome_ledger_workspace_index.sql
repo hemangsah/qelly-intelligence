@@ -1,0 +1,2 @@
+create index if not exists qelly_decision_setup_observations_workspace_idx
+on public.qelly_decision_setup_observations(workspace_id,observed_at desc);
