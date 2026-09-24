@@ -1,5 +1,5 @@
 const RR_PRESETS=Object.freeze([1,2,3,4]);
-const finite=(value)=>{const number=Number(value);return Number.isFinite(number)?number:null;};
+const finite=(value)=>{if(value==null||value==='')return null;const number=Number(value);return Number.isFinite(number)?number:null;};
 const round=(value,digits=4)=>Number.isFinite(value)?Number(value.toFixed(digits)):null;
 const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
 const parseRequested=(value,customRr)=>{
@@ -177,7 +177,7 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null,now=n
       marketStructure:structure,
       regime,
       eventRisk,
-      liquidity:{state:liquidity?.state||'unavailable',currentOnly:liquidity?.currentOnly!==false,spreadBps:finite(liquidity?.spreadBps),spreadState:liquidity?.spreadState||'UNAVAILABLE',top5Imbalance:finite(liquidity?.top5Imbalance),imbalanceState:liquidity?.imbalanceState||'UNAVAILABLE',reason:liquidity?.reason||null},
+      liquidity:{state:liquidity?.state||'unavailable',currentOnly:liquidity?.currentOnly!==false,spreadBps:finite(liquidity?.spreadBps),spreadState:liquidity?.spreadState||'UNAVAILABLE',top1Imbalance:finite(liquidity?.top1Imbalance),top5Imbalance:finite(liquidity?.top5Imbalance),top10Imbalance:finite(liquidity?.top10Imbalance),imbalanceState:liquidity?.imbalanceState||'UNAVAILABLE',depthConsensus:liquidity?.depthConsensus||'UNAVAILABLE',micropriceBiasBps:finite(liquidity?.micropriceBiasBps),reason:liquidity?.reason||null},
       derivatives:{state:derivatives?.state||'unavailable',fundingPct:finite(derivatives?.fundingPct),fundingChangeBps:finite(derivatives?.fundingChangeBps),fundingPercentile:finite(derivatives?.fundingPercentile),openInterestNotionalUsd:finite(derivatives?.openInterestNotionalUsd),openInterestChangeState:derivatives?.openInterestChangeState||'UNAVAILABLE'},
       crossAsset:{state:crossAsset?.state||'unavailable',benchmark:crossAsset?.benchmark||null,correlation:finite(crossAsset?.correlation),beta:finite(crossAsset?.beta),relativeStrengthPct:finite(crossAsset?.relativeStrengthPct),eligibilityImpact:crossAsset?.eligibilityImpact||'none'},
       macro:{state:macro?.state||'unavailable',level:macro?.level||'UNAVAILABLE',reason:macro?.reason||null}
@@ -254,14 +254,17 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null,now=n
       spreadBps:finite(liquidity?.spreadBps),
       spreadState:liquidity?.spreadState||'UNAVAILABLE',
       top5Imbalance:finite(liquidity?.top5Imbalance),
+      top10Imbalance:finite(liquidity?.top10Imbalance),
       imbalanceState:liquidity?.imbalanceState||'UNAVAILABLE',
+      depthConsensus:liquidity?.depthConsensus||'UNAVAILABLE',
+      micropriceBiasBps:finite(liquidity?.micropriceBiasBps),
       condition:String(liquidity?.state||'unavailable').toLowerCase()==='live'
-        ?'Reassess if verified spread exceeds 15 bps or top-five depth becomes severely imbalanced against the setup direction.'
+        ?'Reassess if verified spread exceeds 15 bps or top-five and top-ten depth become severely imbalanced against the setup direction. Microprice remains descriptive only.'
         :(liquidity?.reason||'Verified L2 liquidity evidence is unavailable.')
     }
   };
   const stop={price:round(invalidation,2),distance:round(risk,2),distancePct:stopDistancePct,atrMultiple:Number.isFinite(finite(graph?.metrics?.atrPct))&&lastPrice?round((risk/lastPrice*100)/finite(graph.metrics.atrPct),2):null,reason:'Price stop is distinct from structural, evidence, time, event, regime and liquidity invalidation.'};
-  const entryResult={zone:entryZone.map(value=>round(value,2)),preferred:entry,method:entryState.method,trigger:entryState.trigger,confirmationCondition:entryState.confirmationCondition,invalidEntryCondition:entryState.invalidEntryCondition};
+  const entryResult={zone:entryZone.map(value=>round(value,2)),preferred:entry,method:entryState.method,trigger:entryState.trigger,confirmationCondition:entryState.confirmationCondition,invalidEntryCondition:entryState.invalidEntryCondition,structuralBasis:structure?{state:structure.state||'UNAVAILABLE',bias:structure.bias||'MIXED',strength:structure.strengthState||'UNAVAILABLE',phase:structure.phase||'UNAVAILABLE',retest:structure.retestState||'NONE',continuation:structure.continuationState||'NONE'}:null};
   const validSelection=selected&&FEASIBLE_STATES.has(selected.feasibility);
   const status=validSelection&&!expired?'VALID':'NO_TRADE';
   const lifecycle=lifecycleFor({status:validSelection?'VALID':'NO_TRADE',entryMethod:entryState.method,truthState:String(graph?.truthState||''),expired});

@@ -17,7 +17,7 @@ const HYPERLIQUID_L2_DOCS='https://hyperliquid.gitbook.io/hyperliquid-docs/for-d
 const ip=(request)=>request.headers.get('cf-connecting-ip')||request.headers.get('x-forwarded-for')?.split(',')[0]||'anonymous';
 const gdeltTime=(time)=>new Date(time).toISOString().replace(/\D/g,'').slice(0,14);
 const safeUrl=(value)=>{try{const url=new URL(value);return url.protocol==='https:'||url.protocol==='http:'?url.href:null;}catch{return null;}};
-const finite=(value)=>{const number=Number(value);return Number.isFinite(number)?number:null;};
+const finite=(value)=>{if(value==null||value==='')return null;const number=Number(value);return Number.isFinite(number)?number:null;};
 const round=(value,digits=6)=>Number.isFinite(value)?Number(value.toFixed(digits)):null;
 const clamp=(value,min=0,max=1)=>Math.min(max,Math.max(min,value));
 
@@ -55,10 +55,19 @@ async function fetchLiquidityContext(fetchImpl,asset){
     reason,
     spreadState:'UNAVAILABLE',
     imbalanceState:'UNAVAILABLE',
+    depthConsensus:'UNAVAILABLE',
     spreadBps:null,
+    microprice:null,
+    micropriceBiasBps:null,
+    top1BidDepthUsd:null,
+    top1AskDepthUsd:null,
+    top1Imbalance:null,
     top5BidDepthUsd:null,
     top5AskDepthUsd:null,
-    top5Imbalance:null
+    top5Imbalance:null,
+    top10BidDepthUsd:null,
+    top10AskDepthUsd:null,
+    top10Imbalance:null
   });
   try{
     const response=await fetchImpl(HYPERLIQUID_INFO_URL,{
@@ -180,8 +189,20 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liqui
   const derivativesLive=derivatives?.state==='live';
   const liquidityLive=liquidity?.state==='live';
   const crossAssetAvailable=crossAsset?.state==='available';
+  const structure=graph?.quant?.structure||null;
+  const structuralBias=String(structure?.bias||'MIXED');
+  const structuralStrength=String(structure?.strengthState||'UNAVAILABLE');
+  const strongStructureAgainstBuy=baseAction==='BUY'&&structuralStrength==='STRONG'&&structuralBias==='DOWNSIDE';
+  const strongStructureAgainstSell=baseAction==='SELL'&&structuralStrength==='STRONG'&&structuralBias==='UPSIDE';
+  if(directionalAction&&(strongStructureAgainstBuy||strongStructureAgainstSell)){
+    action='NO TRADE';
+    contradictions.push('Strong observed market structure conflicts with the directional setup.');
+  }
   const spreadBps=finite(liquidity?.spreadBps);
   const bookImbalance=finite(liquidity?.top5Imbalance);
+  const bookImbalance10=finite(liquidity?.top10Imbalance);
+  const micropriceBiasBps=finite(liquidity?.micropriceBiasBps);
+  const liquidityConsensus=String(liquidity?.depthConsensus||'UNAVAILABLE');
   if(directionalAction&&liquidityLive&&spreadBps!==null&&spreadBps>15){
     action='NO TRADE';
     contradictions.push('Current verified bid/ask spread is wider than the bounded liquidity threshold.');
@@ -204,7 +225,7 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liqui
     ...(Array.isArray(base?.why)?base.why:[]),
     total?('Multi-timeframe evidence: '+String(agreement.direction||'MIXED')+' with '+aligned+'/'+total+' observed timeframes aligned.'):'Multi-timeframe evidence is unavailable and was not inferred.',
     derivativesLive?'Current funding/open-interest context is available as risk context; it does not force direction.':'Current funding/open-interest context is unavailable and did not increase confidence.',
-    liquidityLive?('Current L2 liquidity: '+String(liquidity.spreadState||'UNKNOWN')+' spread · '+String(liquidity.imbalanceState||'UNKNOWN')+' top-five depth. This is point-in-time risk context, not a directional signal.'):'Current L2 liquidity is unavailable and was not inferred.',
+    liquidityLive?('Current L2 liquidity: '+String(liquidity.spreadState||'UNKNOWN')+' spread · '+String(liquidityConsensus).replaceAll('_',' ')+' multi-depth state · microprice bias '+(micropriceBiasBps===null?'unavailable':round(micropriceBiasBps,2)+' bps')+'. This is point-in-time risk context, not a directional signal.'):'Current L2 liquidity is unavailable and was not inferred.',
     crossAssetAvailable?('Cross-asset context versus '+String(crossAsset.benchmark||'benchmark')+': '+String(crossAsset.correlationState||'UNAVAILABLE')+' correlation · '+String(crossAsset.relativeState||'UNAVAILABLE')+' relative performance. It has no independent eligibility impact.'):'Cross-asset dependence is unavailable and was not inferred.'
   ];
   const downgraded=directionalAction&&action==='NO TRADE';
@@ -219,7 +240,7 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liqui
     why,
     changesIf,
     contradictions,
-    riskState:{label:riskLabel,atrPct:round(atrPct,2),volatilityRegime,expectedMovePct:round(finite(graph?.quant?.volatility?.expectedMovePct),3),structure:graph?.quant?.structure||null,liquidity:liquidityLive?{spreadState:liquidity.spreadState,spreadBps,imbalanceState:liquidity.imbalanceState,top5Imbalance:bookImbalance}:null},
+    riskState:{label:riskLabel,atrPct:round(atrPct,2),volatilityRegime,expectedMovePct:round(finite(graph?.quant?.volatility?.expectedMovePct),3),structure,liquidity:liquidityLive?{spreadState:liquidity.spreadState,spreadBps,imbalanceState:liquidity.imbalanceState,top5Imbalance:bookImbalance,top10Imbalance:bookImbalance10,depthConsensus:liquidityConsensus,micropriceBiasBps}:null},
     scenario:{bull,bear,base:finite(graph.forecast?.probabilities?.base)??0,gap:round(scenarioGap,4),leading:bull>bear?'BULL':bear>bull?'BEAR':'BALANCED'},
     evidenceGate:{
       baseAction,
@@ -238,6 +259,12 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liqui
       liquidityCoverage:liquidityLive?'live':'unavailable',
       liquiditySpreadBps:round(spreadBps,3),
       liquidityTop5Imbalance:round(bookImbalance,4),
+      liquidityTop10Imbalance:round(bookImbalance10,4),
+      liquidityDepthConsensus:liquidityConsensus,
+      liquidityMicropriceBiasBps:round(micropriceBiasBps,3),
+      structureBias:structuralBias,
+      structureStrength:structuralStrength,
+      structureRetest:String(structure?.retestState||'NONE'),
       crossAssetCoverage:crossAssetAvailable?'available':'unavailable',
       crossAssetBenchmark:crossAssetAvailable?String(crossAsset.benchmark||''):null,
       crossAssetCorrelation:crossAssetAvailable?round(finite(crossAsset.correlation),4):null,

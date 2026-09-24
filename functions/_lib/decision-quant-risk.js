@@ -1,4 +1,5 @@
-const finite=(value)=>Number.isFinite(Number(value))?Number(value):null;
+const finite=(value)=>value==null||value===''?null:Number.isFinite(Number(value))?Number(value):null;
+const clamp=(value,min=0,max=1)=>Math.min(max,Math.max(min,value));
 const round=(value,digits=4)=>Number.isFinite(value)?Number(value.toFixed(digits)):null;
 const mean=(values)=>values.length?values.reduce((sum,value)=>sum+value,0)/values.length:0;
 const quantile=(values,p)=>{if(!values.length)return null;const sorted=[...values].sort((a,b)=>a-b);const index=(sorted.length-1)*p;const low=Math.floor(index),weight=index-low;return sorted[low]+((sorted[low+1]??sorted[low])-sorted[low])*weight;};
@@ -64,7 +65,14 @@ function swingPoints(candles,wing=2){
 
 function structure(candles){
   const last=candles.at(-1),recent=candles.slice(-80);
-  if(!last||recent.length<20)return {state:'UNAVAILABLE',support:null,resistance:null,breakout:'NONE',breakOfStructure:'NONE',changeOfCharacter:'NONE',rangePct:null,phase:'UNAVAILABLE',compressionState:'UNAVAILABLE',swings:{highs:[],lows:[]}};
+  if(!last||recent.length<20)return {
+    state:'UNAVAILABLE',bias:'MIXED',strengthState:'UNAVAILABLE',strengthScore:null,
+    support:null,resistance:null,breakout:'NONE',breakOfStructure:'NONE',changeOfCharacter:'NONE',
+    failedBreakout:'NONE',retestState:'NONE',continuationState:'NONE',rejectionState:'NONE',exhaustionState:'NONE',
+    rangePct:null,rangePosition:null,phase:'UNAVAILABLE',compressionState:'UNAVAILABLE',
+    distanceToSupportPct:null,distanceToResistancePct:null,supportTouches:0,resistanceTouches:0,
+    swings:{highs:[],lows:[]}
+  };
   const swings=swingPoints(recent,2);
   const latestHigh=swings.highs.at(-1),priorHigh=swings.highs.at(-2);
   const latestLow=swings.lows.at(-1),priorLow=swings.lows.at(-2);
@@ -73,9 +81,13 @@ function structure(candles){
   const higherLow=latestLow&&priorLow?latestLow.price>priorLow.price:false;
   const lowerLow=latestLow&&priorLow?latestLow.price<priorLow.price:false;
   const state=higherHigh&&higherLow?'HH_HL':lowerHigh&&lowerLow?'LH_LL':higherHigh&&lowerLow?'EXPANDING_RANGE':lowerHigh&&higherLow?'CONTRACTING_RANGE':'MIXED';
+
   const rangeWindow=recent.slice(-20);
   const rangeHigh=Math.max(...rangeWindow.map(item=>item.high));
   const rangeLow=Math.min(...rangeWindow.map(item=>item.low));
+  const ranges=recent.slice(-40).map(item=>item.high-item.low).filter(value=>value>0);
+  const medianRange=quantile(ranges,.5)??Math.max(1e-12,rangeHigh-rangeLow);
+  const tolerance=Math.max(medianRange*.35,last.close*.0005);
   const resistanceCandidates=[...swings.highs.map(item=>item.price),rangeHigh].filter(value=>value>last.close).sort((a,b)=>a-b);
   const supportCandidates=[...swings.lows.map(item=>item.price),rangeLow].filter(value=>value<last.close).sort((a,b)=>b-a);
   const resistance=resistanceCandidates[0]??rangeHigh;
@@ -86,19 +98,86 @@ function structure(candles){
   const lastConfirmedLow=latestLow?.price??rangeLow;
   const breakOfStructure=last.close>lastConfirmedHigh?'UPSIDE':last.close<lastConfirmedLow?'DOWNSIDE':'NONE';
   const changeOfCharacter=state==='HH_HL'&&breakOfStructure==='DOWNSIDE'?'DOWNSIDE':state==='LH_LL'&&breakOfStructure==='UPSIDE'?'UPSIDE':'NONE';
+
   const previous=recent.at(-2);
   const base=recent.slice(-22,-2);
   const baseHigh=base.length?Math.max(...base.map(item=>item.high)):rangeHigh;
   const baseLow=base.length?Math.min(...base.map(item=>item.low)):rangeLow;
-  const failedBreakout=previous?.close>baseHigh&&last.close<=baseHigh?'UPSIDE_FAILED':previous?.close<baseLow&&last.close>=baseLow?'DOWNSIDE_FAILED':'NONE';
+  const previousUpsideBreak=Boolean(previous&&previous.close>baseHigh);
+  const previousDownsideBreak=Boolean(previous&&previous.close<baseLow);
+  const failedBreakout=previousUpsideBreak&&last.close<baseHigh?'UPSIDE_FAILED':previousDownsideBreak&&last.close>baseLow?'DOWNSIDE_FAILED':'NONE';
+  const retestState=previousUpsideBreak&&last.low<=baseHigh+tolerance&&last.close>=baseHigh
+    ?'UPSIDE_HOLD'
+    :previousDownsideBreak&&last.high>=baseLow-tolerance&&last.close<=baseLow
+      ?'DOWNSIDE_HOLD'
+      :failedBreakout;
+
   const averageRange=(rows)=>mean(rows.map(item=>item.high-item.low));
   const recentRange=averageRange(recent.slice(-10));
   const priorRange=averageRange(recent.slice(-30,-10));
   const compressionRatio=priorRange>0?recentRange/priorRange:null;
   const compressionState=compressionRatio===null?'UNAVAILABLE':compressionRatio<=.72?'COMPRESSION':compressionRatio>=1.35?'EXPANSION':'NORMAL';
-  const phase=breakOfStructure!=='NONE'?'BREAKOUT':failedBreakout!=='NONE'?'FAILED_BREAKOUT':compressionState==='COMPRESSION'?'CONSOLIDATION':state==='HH_HL'||state==='LH_LL'?'TREND_CONTINUATION':'RANGE';
+
+  const candleRange=Math.max(1e-12,last.high-last.low);
+  const body=Math.abs(last.close-last.open);
+  const upperWick=Math.max(0,last.high-Math.max(last.open,last.close));
+  const lowerWick=Math.max(0,Math.min(last.open,last.close)-last.low);
+  const supportTouches=recent.slice(-40).filter(item=>Math.abs(item.low-support)<=tolerance).length;
+  const resistanceTouches=recent.slice(-40).filter(item=>Math.abs(item.high-resistance)<=tolerance).length;
+  const rejectionState=last.low<=support+tolerance&&lowerWick/candleRange>=.4&&lowerWick>body
+    ?'SUPPORT_REJECTION'
+    :last.high>=resistance-tolerance&&upperWick/candleRange>=.4&&upperWick>body
+      ?'RESISTANCE_REJECTION'
+      :'NONE';
+  const rangePosition=rangeHigh>rangeLow?clamp((last.close-rangeLow)/(rangeHigh-rangeLow)):null;
+  const exhaustionState=compressionState==='EXPANSION'&&rangePosition!==null&&rangePosition>=.75&&upperWick/candleRange>=.45
+    ?'POTENTIAL_UPSIDE_EXHAUSTION'
+    :compressionState==='EXPANSION'&&rangePosition!==null&&rangePosition<=.25&&lowerWick/candleRange>=.45
+      ?'POTENTIAL_DOWNSIDE_EXHAUSTION'
+      :'NONE';
+
+  const sequenceBias=state==='HH_HL'?'UPSIDE':state==='LH_LL'?'DOWNSIDE':'MIXED';
+  const bias=changeOfCharacter!=='NONE'?changeOfCharacter:breakOfStructure!=='NONE'?breakOfStructure:sequenceBias;
+  const continuationState=retestState==='UPSIDE_HOLD'
+    ?'UPSIDE_RETEST_HOLD'
+    :retestState==='DOWNSIDE_HOLD'
+      ?'DOWNSIDE_RETEST_HOLD'
+      :breakOfStructure==='UPSIDE'
+        ?'UPSIDE_BREAK'
+        :breakOfStructure==='DOWNSIDE'
+          ?'DOWNSIDE_BREAK'
+          :sequenceBias==='UPSIDE'
+            ?'UPSIDE_STRUCTURE'
+            :sequenceBias==='DOWNSIDE'
+              ?'DOWNSIDE_STRUCTURE'
+              :'NONE';
+
+  let strengthScore=0;
+  if(latestHigh&&priorHigh&&latestLow&&priorLow)strengthScore+=2;
+  if(state==='HH_HL'||state==='LH_LL')strengthScore+=2;
+  if(breakOfStructure!=='NONE')strengthScore+=2;
+  if(retestState==='UPSIDE_HOLD'||retestState==='DOWNSIDE_HOLD')strengthScore+=1;
+  if(supportTouches>=2)strengthScore+=1;
+  if(resistanceTouches>=2)strengthScore+=1;
+  const strengthState=strengthScore>=7?'STRONG':strengthScore>=5?'MODERATE':strengthScore>=3?'DEVELOPING':'WEAK';
+
+  const phase=breakOfStructure!=='NONE'
+    ?'BREAKOUT'
+    :retestState==='UPSIDE_HOLD'||retestState==='DOWNSIDE_HOLD'
+      ?'RETEST'
+      :failedBreakout!=='NONE'
+        ?'FAILED_BREAKOUT'
+        :compressionState==='COMPRESSION'
+          ?'CONSOLIDATION'
+          :state==='HH_HL'||state==='LH_LL'
+            ?'TREND_CONTINUATION'
+            :'RANGE';
+
   return {
     state,
+    bias,
+    strengthState,
+    strengthScore,
     support:round(support,6),
     resistance:round(resistance,6),
     priorSupport:round(priorSupport,6),
@@ -107,12 +186,22 @@ function structure(candles){
     breakOfStructure,
     changeOfCharacter,
     failedBreakout,
+    retestState,
+    continuationState,
+    rejectionState,
+    exhaustionState,
     phase,
     compressionState,
     compressionRatio:round(compressionRatio,3),
     rangeHigh:round(rangeHigh,6),
     rangeLow:round(rangeLow,6),
     rangePct:rangeLow>0?round((rangeHigh/rangeLow-1)*100,3):null,
+    rangePosition:round(rangePosition,3),
+    supportTouches,
+    resistanceTouches,
+    distanceToSupportPct:support>0?round((last.close/support-1)*100,3):null,
+    distanceToResistancePct:resistance>0?round((resistance/last.close-1)*100,3):null,
+    methodology:'Structure is derived from confirmed local pivots, prior-range breaks, retest holds/failures, candle rejection and bounded recent-range compression. Potential exhaustion is a descriptive heuristic, not a reversal prediction.',
     swings:{
       highs:swings.highs.slice(-4).map(item=>({time:item.time,price:round(item.price,6)})),
       lows:swings.lows.slice(-4).map(item=>({time:item.time,price:round(item.price,6)}))
