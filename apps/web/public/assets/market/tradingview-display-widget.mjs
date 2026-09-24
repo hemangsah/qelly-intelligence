@@ -78,7 +78,8 @@ function renderFallback(container,{symbol='BTCUSDT',reason='load-error',title='T
 
 export function mountTradingViewWidget(container,{kind,config={},label='TradingView market panel',openUrl='https://www.tradingview.com/markets/'}={}){
   if(!(container instanceof HTMLElement))throw new TypeError('TradingView widget container is required');
-  ACTIVE_WIDGETS.get(container)?.destroy?.();
+  const previousHandle=ACTIVE_WIDGETS.get(container);
+  if(previousHandle){previousHandle.destroy?.();previousHandle.destroy=()=>{};}
   const source=WIDGET_SOURCES[kind];
   if(!source)throw new TypeError(`Unsupported TradingView widget: ${String(kind||'')}`);
   ensureComponentStyles();
@@ -182,11 +183,7 @@ export function mountTradingViewWidget(container,{kind,config={},label='TradingV
   };
 
   let handle=null;
-  handle={provider:'TradingView',kind,usage:'display-only',boundary:DISPLAY_BOUNDARY,retry:start,destroy(){
-    if(destroyed)return;
-    destroyed=true;settled=true;cleanupAttempt();
-    if(ACTIVE_WIDGETS.get(container)===handle)ACTIVE_WIDGETS.delete(container);
-    container.replaceChildren();
+  handle={provider:'TradingView',kind,usage:'display-only',boundary:DISPLAY_BOUNDARY,retry:start,destroy(){destroyed=true;settled=true;cleanupAttempt();container.replaceChildren();
     delete container.dataset.externalState;
     delete container.dataset.externalWidget;
   }};
