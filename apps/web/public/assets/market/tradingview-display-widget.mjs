@@ -1,6 +1,8 @@
 const DISPLAY_BOUNDARY='TradingView market reference only. Qelly does not read, scrape, transform, persist or use widget values for calculations, risk, alerts or decisions.';
 const WIDGET_TIMEOUT_MS=12000;
 const COMPONENT_STYLESHEET=new URL('./tradingview-display-widget.css',import.meta.url).href;
+const ACTIVE_WIDGETS=new WeakMap();
+
 const WIDGET_SOURCES=Object.freeze({
   advancedChart:'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js',
   tickerTape:'https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js',
@@ -76,6 +78,8 @@ function renderFallback(container,{symbol='BTCUSDT',reason='load-error',title='T
 
 export function mountTradingViewWidget(container,{kind,config={},label='TradingView market panel',openUrl='https://www.tradingview.com/markets/'}={}){
   if(!(container instanceof HTMLElement))throw new TypeError('TradingView widget container is required');
+  const previousHandle=ACTIVE_WIDGETS.get(container);
+  if(previousHandle){previousHandle.destroy?.();previousHandle.destroy=()=>{};}
   const source=WIDGET_SOURCES[kind];
   if(!source)throw new TypeError(`Unsupported TradingView widget: ${String(kind||'')}`);
   ensureComponentStyles();
@@ -178,8 +182,14 @@ export function mountTradingViewWidget(container,{kind,config={},label='TradingV
     },{once:true});
   };
 
+  let handle=null;
+  handle={provider:'TradingView',kind,usage:'display-only',boundary:DISPLAY_BOUNDARY,retry:start,destroy(){destroyed=true;settled=true;cleanupAttempt();container.replaceChildren();
+    delete container.dataset.externalState;
+    delete container.dataset.externalWidget;
+  }};
+  ACTIVE_WIDGETS.set(container,handle);
   start();
-  return {provider:'TradingView',kind,usage:'display-only',boundary:DISPLAY_BOUNDARY,retry:start,destroy(){destroyed=true;settled=true;cleanupAttempt();container.replaceChildren();delete container.dataset.externalState;delete container.dataset.externalWidget;}};
+  return handle;
 }
 export function mountTradingViewDisplay(container,{symbol='BTCUSDT',interval='1h'}={}){
   const resolvedSymbol=tradingViewSymbol(symbol);
@@ -211,4 +221,4 @@ export function mountTradingViewDisplay(container,{symbol='BTCUSDT',interval='1h
   return {...handle,symbol:resolvedSymbol,interval:resolvedInterval};
 }
 
-export const __tradingViewDisplayTest=Object.freeze({SYMBOL_MAP,INTERVAL_MAP,DISPLAY_BOUNDARY,WIDGET_SRC:WIDGET_SOURCES.advancedChart,WIDGET_SOURCES,WIDGET_TIMEOUT_MS,COMPONENT_STYLESHEET,externalChartUrl,widgetReady});
+export const __tradingViewDisplayTest=Object.freeze({SYMBOL_MAP,INTERVAL_MAP,DISPLAY_BOUNDARY,WIDGET_SRC:WIDGET_SOURCES.advancedChart,WIDGET_SOURCES,WIDGET_TIMEOUT_MS,COMPONENT_STYLESHEET,externalChartUrl,widgetReady,ACTIVE_WIDGETS});

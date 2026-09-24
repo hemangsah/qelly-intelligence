@@ -8,6 +8,9 @@ import {bindPublicRecoveryActions,installPublicRecoveryChrome,isPublicRecoveryRo
 import { personaFor, personaPreferencePatch } from './persona-profiles.mjs';
 import { renderShellFoundations } from './shell-foundations.mjs';
 import { storeDecisionContext, storeResearchContext } from './decision-context-bridge.mjs';
+import {installRuntimePerformanceObserver,startRouteMeasure,finishRouteMeasure} from './runtime-performance-observer.mjs';
+installRuntimePerformanceObserver();
+
 const lazyRoute=(path,exportName)=>async(...args)=>{
   const module=await import(path);
   const renderer=module[exportName];
@@ -101,6 +104,7 @@ const state = {
 let routeRenderRequest=0;
 let routeRenderTail=Promise.resolve();
 let activeRouteController=null;
+let activeRouteMeasure=null;
 let currentRenderSignal=null;
 
 const defaultPreferences={theme:'burgundy-command',density:'comfortable',motion:'full',fontScale:100,radiusPx:14,customAccent:null,route:staticVisualPreview?'market':'auth-login',revision:1};
@@ -382,6 +386,10 @@ function renderRoute(){
   const controller=new AbortController();
   activeRouteController=controller;
   const main=document.getElementById('main');
+  if(activeRouteMeasure)finishRouteMeasure(activeRouteMeasure,{state:'superseded',root:main});
+  const routeMeasure=startRouteMeasure(state.route,request);
+  activeRouteMeasure=routeMeasure;
+  controller.qellyRouteMeasure=routeMeasure;
   const definition=routeDefinitions.find((item)=>item.route===state.route);
   if(main){
     if(state.route!=='qelly-verify'){delete main.dataset.qellyVerifyOwner;delete document.documentElement.dataset.qellyVerifySubview;}
@@ -396,6 +404,8 @@ function renderRoute(){
 
 async function performRouteRender(request,controller) {
   currentRenderSignal=controller.signal;
+  const routeMeasure=controller.qellyRouteMeasure||null;
+  let routeOutcome='success';
   window.__qellyLiveMarketCleanup?.();
   window.__qellyLiveMarketCleanup=null;
   window.__qellyMarketV6Cleanup?.();
@@ -495,20 +505,26 @@ async function performRouteRender(request,controller) {
       default: await renderMarketV6(main,{api,pageHead,stateBanner,escapeHtml});
     }
   } catch (error) {
-    if(error?.name==='AbortError'||request!==routeRenderRequest)return;
+    if(error?.name==='AbortError'||request!==routeRenderRequest){routeOutcome='aborted';return;}
     if(isCapabilityBoundaryError(error)){
+      routeOutcome='capability_boundary';
       main.innerHTML=capabilityBoundaryPage(definition,error);
       bindRetry();
     }else if(isPublicRecoveryRoute(route)){
+      routeOutcome='recovery';
       main.innerHTML=publicRecoveryMarkup(route,error.message,{preview:staticVisualPreview});
       bindPublicRecoveryActions(main,{route,retry:()=>renderRoute()});
     }else{
+      routeOutcome='error';
       main.innerHTML=errorPage('Unable to render this route.',error.message);
       bindRetry();
     }
   } finally {
     if(currentRenderSignal===controller.signal)currentRenderSignal=null;
-    if(request!==routeRenderRequest){
+    const superseded=request!==routeRenderRequest;
+    finishRouteMeasure(routeMeasure,{state:superseded?'superseded':routeOutcome,root:main});
+    if(activeRouteMeasure===routeMeasure)activeRouteMeasure=null;
+    if(superseded){
       const currentDefinition=routeDefinitions.find((item)=>item.route===state.route);
       main.dataset.pageKind=currentDefinition?.kind??'analytical';
       main.setAttribute('aria-busy','true');
