@@ -82,7 +82,7 @@ create policy qelly_decision_setup_observations_editor_insert on public.qelly_de
 with check (
   owner_id=(select auth.uid())
   and (select qelly_private.workspace_role(workspace_id,(select auth.uid())))=any(array['owner'::text,'editor'::text])
-  and exists (select 1 from public.qelly_decision_setups setup where setup.id=setup_id and setup.workspace_id=workspace_id)
+  and exists (select 1 from public.qelly_decision_setups setup where setup.id=public.qelly_decision_setup_observations.setup_id and setup.workspace_id=public.qelly_decision_setup_observations.workspace_id)
 );
 
 drop trigger if exists qelly_decision_setups_no_reassign on public.qelly_decision_setups;
