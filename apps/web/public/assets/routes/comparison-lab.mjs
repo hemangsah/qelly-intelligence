@@ -3,11 +3,12 @@ function ensureStyles(){if(document.getElementById(STYLE_ID))return;const link=d
 const status=(value)=>String(value||'blocked').toUpperCase().replaceAll('-',' ');
 
 export async function renderComparisonLab(main,deps){
-  const {api,escapeHtml,navigate,toast}=deps;ensureStyles();
+  const {api,escapeHtml,navigate,toast,asset:contextAsset}=deps;ensureStyles();
   const safe=(value)=>escapeHtml(String(value??''));
   const endpoint=(params='')=>`/api/v1/discovery/comparison-lab${params?`?${params}`:''}`;
+  const initialParams=new URLSearchParams();if(contextAsset)initialParams.set('candidateA',String(contextAsset));
   let data;
-  try{data=await api(endpoint());}catch(error){main.innerHTML=`<section class="q-cl-page"><div class="q-cl-error"><p class="q-eyebrow">Comparison contract unavailable</p><h1>The aligned comparison workspace could not be loaded.</h1><p>${safe(error.message)}</p><button data-cl-retry>Retry</button></div></section>`;main.querySelector('[data-cl-retry]')?.addEventListener('click',()=>renderComparisonLab(main,deps));return;}
+  try{data=await api(endpoint(initialParams.toString()));}catch(error){main.innerHTML=`<section class="q-cl-page"><div class="q-cl-error"><p class="q-eyebrow">Comparison contract unavailable</p><h1>The aligned comparison workspace could not be loaded.</h1><p>${safe(error.message)}</p><button data-cl-retry>Retry</button></div></section>`;main.querySelector('[data-cl-retry]')?.addEventListener('click',()=>renderComparisonLab(main,deps));return;}
 
   const paint=(model)=>{
     data=model;
