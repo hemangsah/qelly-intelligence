@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "qelly.wave-z.code-classification/1.0.0",
+  "productionBase": "2737c7690edced6d2765ebbe5f48a01971a1a976",
+  "generatedFor": "Wave Z whole-terminal product coherence + dead-code cleanup",
+  "policy": {
+    "classifications": [
+      "ACTIVE",
+      "COMPATIBILITY",
+      "GENERATED",
+      "BUILD_TIME",
+      "TEST",
+      "DEPRECATED",
+      "DEAD"
+    ],
+    "massDeletion": false,
+    "rule": "Delete only when repository route/import/build/test ownership proves the code is unreachable and unnecessary."
+  },
+  "researchFlow": {
+    "order": [
+      "search",
+      "asset",
+      "decision-provenance",
+      "formula-screener",
+      "news-research"
+    ],
+    "invariant": "Asset/timeframe context may guide navigation only. Each destination owns its own evidence fetch, calculation, freshness and eligibility rules.",
+    "providerReuseBoundary": "Context handoff itself performs no provider request."
+  },
+  "items": [
+    {
+      "path": "apps/web/public/assets/decision-context-bridge.mjs",
+      "classification": "ACTIVE",
+      "owner": "Research context + Decision handoff",
+      "evidence": "Imported by Decision, Formula, app shell and Chat workspace; bounded session context only."
+    },
+    {
+      "path": "apps/web/public/assets/routes/decision-provenance.mjs",
+      "classification": "COMPATIBILITY",
+      "owner": "Historical route adapter",
+      "evidence": "app.js routes decision-provenance through this adapter to authoritative decision-proven-graph.mjs."
+    },
+    {
+      "path": "apps/web/public/assets/routes/decision-proven-graph.mjs",
+      "classification": "ACTIVE",
+      "owner": "Authoritative Decision Intelligence route",
+      "evidence": "Public route owner; exact-head Browser E2E and acceptance coverage."
+    },
+    {
+      "path": "apps/web/public/assets/routes/intelligence-terminal.mjs",
+      "classification": "TEST",
+      "owner": "Historical Intelligence Terminal acceptance fixture",
+      "evidence": "No route-registry owner; tests/intelligence-terminal-public.test.mjs imports its exported guide/provider constants directly."
+    },
+    {
+      "path": "apps/web/public/assets/app.js::renderIntelligenceTerminal lazy binding",
+      "classification": "DEAD",
+      "owner": null,
+      "evidence": "One declaration, zero runtime call/switch owner and no route-registry entry. Removed in Wave Z."
+    },
+    {
+      "path": "apps/web/public/assets/qelly-shell-compat.js",
+      "classification": "COMPATIBILITY",
+      "owner": "Production shell compatibility",
+      "evidence": "Maintains protected historical DOM bindings and production correction boundaries; not eligible for deletion in Wave Z."
+    },
+    {
+      "path": "scripts/finalize-governed-discovery.mjs",
+      "classification": "BUILD_TIME",
+      "owner": "Production governed-discovery migration",
+      "evidence": "package.json production build references finalizer; tests assert Qelly Chat and governed route migration behavior."
+    },
+    {
+      "path": "scripts/finalize-public-runtime.mjs",
+      "classification": "BUILD_TIME",
+      "owner": "Cloudflare public-runtime migration",
+      "evidence": "package.json production build references finalizer; tests/qelly-v6-finalizer-integrity.test.mjs locks current V6 migrations."
+    },
+    {
+      "path": "apps/web/public/assets/routes/calculator-detail.mjs",
+      "classification": "COMPATIBILITY",
+      "owner": "Source/non-public calculator detail",
+      "evidence": "Public-runtime finalizer deliberately replaces its route with calculator-detail-v6.mjs in connected production."
+    },
+    {
+      "path": "apps/web/public/assets/routes/indicator-detail.mjs",
+      "classification": "COMPATIBILITY",
+      "owner": "Source/non-public indicator detail",
+      "evidence": "Public-runtime finalizer deliberately replaces its route with indicator-detail-v6.mjs in connected production."
+    },
+    {
+      "path": "apps/web/public/assets/routes/portfolio-analytics.mjs",
+      "classification": "COMPATIBILITY",
+      "owner": "Source/non-public portfolio route",
+      "evidence": "Public-runtime finalizer deliberately replaces its route with portfolio-v6-entry.mjs in connected production."
+    },
+    {
+      "path": "route:rankings",
+      "classification": "COMPATIBILITY",
+      "owner": "Historical protected route",
+      "evidence": "route-registry labels Legacy Rankings; governed-discovery finalizer replaces renderer with governed unavailable state."
+    }
+  ]
+}
