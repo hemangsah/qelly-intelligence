@@ -87,13 +87,21 @@ test('severe L2 veto requires both top-five and top-ten confirmation, not one de
   assert.equal(confirmed.qellyView.evidenceGate.liquidityTop10Imbalance,-.65);
 });
 
-test('Wave U keeps one L2 provider request and does not add recent-trades fan-out',async()=>{
-  const api=await read('functions/api/v1/decision-proven-graph.js');
+test('Wave U keeps one L2 provider request, no recent-trades fan-out, and explicit null guards',async()=>{
+  const [api,trade,route]=await Promise.all([
+    read('functions/api/v1/decision-proven-graph.js'),
+    read('functions/_lib/decision-trade-research.js'),
+    read('apps/web/public/assets/routes/decision-proven-graph.mjs')
+  ]);
   assert.equal((api.match(/type:'l2Book'/g)||[]).length,1);
   assert.equal((api.match(/recentTrades/g)||[]).length,0);
   assert.match(api,/top10Imbalance/);
   assert.match(api,/micropriceBiasBps/);
   assert.match(api,/structureStrength/);
+  assert.match(api,/value==null\|\|value===''/);
+  assert.match(trade,/value==null\|\|value===''/);
+  assert.match(route,/compactMoney=\(value\)=>value!=null&&value!==''/);
+  assert.match(route,/compactNumber=\(value\)=>value!=null&&value!==''/);
 });
 
 test('Wave U reuses authoritative Decision panels and discloses unavailable flow truthfully',async()=>{
