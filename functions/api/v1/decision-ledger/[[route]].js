@@ -1,5 +1,6 @@
 import {buildDecisionIntelligence} from '../decision-proven-graph.js';
 import {initialObservationFromRecord,observePersistedSetup,setupRecordFromDecision,setupRowToClient} from '../../../_lib/decision-outcome-ledger.js';
+import {buildTargetTouchCalibration} from '../../../_lib/decision-target-touch-calibration.js';
 import {HttpError,UUID,bootstrapContext,correlationId,enforceRateLimit,errorResponse,jsonBody,requireCsrf,requireOrigin,resolveSession,responseJson,restRequest} from '../../../_lib/runtime.js';
 
 const routePath=(context)=>{
@@ -17,6 +18,16 @@ const setupRows=async(env,session,workspaceId,{id=null,sourceSetupId=null,limit=
 const observationRows=async(env,session,workspaceId,setupId)=>{
   const params=new URLSearchParams({select:'*',workspace_id:`eq.${workspaceId}`,setup_id:`eq.${setupId}`,order:'observed_at.asc',limit:'500'});
   return restRequest(env,session.accessToken,`qelly_decision_setup_observations?${params.toString()}`);
+};
+const calibrationRows=async(env,session,workspaceId,{limit=2000}={})=>{
+  const params=new URLSearchParams({
+    select:'id,targets,metrics,resolved_outcome,regime,resolved_at,created_observed_at',
+    workspace_id:`eq.${workspaceId}`,
+    resolved_at:'not.is.null',
+    order:'resolved_at.asc',
+    limit:String(limit)
+  });
+  return restRequest(env,session.accessToken,`qelly_decision_setups?${params.toString()}`);
 };
 const requireSetup=async(env,session,workspaceId,id)=>{
   const rows=await setupRows(env,session,workspaceId,{id,limit:1});
@@ -48,10 +59,22 @@ async function handleLedger(context,relative,method,session,qelly){
   const segments=relative.split('/').filter(Boolean);
 
   if(!relative&&method==='GET'){
-    const rows=await setupRows(env,session,workspaceId,{limit:limitFor(url)});
+    const historyLimit=2000;
+    const [rows,history]=await Promise.all([
+      setupRows(env,session,workspaceId,{limit:limitFor(url)}),
+      calibrationRows(env,session,workspaceId,{limit:historyLimit})
+    ]);
     const items=(rows||[]).map(setupRowToClient);
-    const calibrationEligible=items.filter(item=>item.resolvedOutcome?.calibrationEligible===true).length;
-    return responseJson(request,env,{items,observedSetups:items.length,calibrationEligible,calibrationState:'UNCALIBRATED',minimumSampleGate:50,boundary:'Only setups created after tracking began are included. No historical setups are fabricated or backfilled.'});
+    const calibration=buildTargetTouchCalibration(history||[],{minSamples:50,warmup:20,minSegmentSamples:50,historyLimitReached:(history||[]).length>=historyLimit});
+    return responseJson(request,env,{
+      items,
+      observedSetups:items.length,
+      calibrationEligible:calibration.eligibleResolvedSetups,
+      calibrationState:calibration.state,
+      minimumSampleGate:calibration.minimumSampleGate,
+      calibration,
+      boundary:'Only setups created after tracking began are included. No historical setups are fabricated or backfilled.'
+    });
   }
 
   if(!relative&&method==='POST'){
@@ -117,4 +140,4 @@ export async function onRequest(context){
   }
 }
 
-export const __decisionLedgerApiTest=Object.freeze({routePath,limitFor,decisionArgs,argsFromRow});
+export const __decisionLedgerApiTest=Object.freeze({routePath,limitFor,decisionArgs,argsFromRow,calibrationRows});
