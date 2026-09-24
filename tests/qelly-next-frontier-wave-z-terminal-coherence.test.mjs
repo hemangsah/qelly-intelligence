@@ -120,7 +120,7 @@ test('Wave Z Formula handoff uses research timeframe without changing Formula Sc
   assert.match(formula,/const ENDPOINT='\/api\/v1\/formula-screener'/);
   assert.match(formula,/Formula Screener still uses its declared/);
   assert.match(formula,/timeframe:contextTimeframe/);
-  assert.doesNotMatch(formula,/decision-proven-graph\?/');
+  assert.doesNotMatch(formula,/decision-proven-graph\?/);
   assert.equal((formula.match(/const ENDPOINT=/g)||[]).length,1);
 });
 
