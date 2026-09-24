@@ -39,7 +39,6 @@ const renderMarketV6=lazyRoute('./routes/market-v6.mjs','renderMarketV6');
 const renderThemePersonas=lazyRoute('./routes/theme-personas.mjs','renderThemePersonas');
 const renderAboutQelly=lazyRoute('./routes/about-qelly.mjs','renderAboutQelly');
 const renderFeatureUniverse=lazyRoute('./routes/feature-universe.mjs','renderFeatureUniverse');
-const renderIntelligenceTerminal=lazyRoute('./routes/intelligence-terminal.mjs','renderIntelligenceTerminal');
 const renderAuthLogin=lazyRoute('./routes/auth-login.mjs','renderAuthLogin');
 const renderAuthRegister=lazyRoute('./routes/auth-register.mjs','renderAuthRegister');
 const renderAuthRecovery=lazyRoute('./routes/auth-recovery.mjs','renderAuthRecovery');
