@@ -334,18 +334,20 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   const benchmarkAsset=resolvedAsset==='BTC'?'ETH':'BTC';
   const newsStart=resolvedSelection?.start??endTime-24*3_600_000;
   const newsEnd=Math.min(resolvedSelection?.end??endTime,endTime);
-  const newsPromise=latency.time('news',()=>includeNews
-    ? fetchNews(fetchImpl,resolvedAsset,newsStart,newsEnd)
+  const newsPromise=includeNews
+    ? latency.time('news',()=>fetchNews(fetchImpl,resolvedAsset,newsStart,newsEnd)
         .then(articles=>({articles,state:articles.length?'live':'no-matches'}))
-        .catch(()=>({articles:[],state:'unavailable'}))
-    : Promise.resolve({articles:[],state:'not-requested'}));
+        .catch(()=>({articles:[],state:'unavailable'})))
+    : Promise.resolve({articles:[],state:'not-requested'});
   const macroPromise=latency.time('macro',()=>providerResult({env},'ecb','fx-reference-rates','EUR')
     .then(buildDecisionMacroContext)
     .catch(error=>buildDecisionMacroContext({truthState:'unavailable',fallbackReason:error?.code||'ecb_reference_unavailable'})));
   // Resolve the mandatory selected-asset history first so optional Hyperliquid
   // evidence calls cannot consume the provider burst budget ahead of the core input.
   // News uses a separate provider and runs concurrently with the core Decision path.
-  const payload=await latency.time('candleFetch',()=>fetchCandles(fetchImpl,resolvedAsset,resolvedInterval,endTime));
+  const candleFetchSpan=latency.span('candleFetch');
+  const payload=await fetchCandles(fetchImpl,resolvedAsset,resolvedInterval,endTime);
+  candleFetchSpan();
   const [timeframeSupport,derivativesCurrent,liquidity,fundingRows,benchmarkPayload]=await Promise.all([
     latency.time('multiTimeframe',()=>fetchTimeframeSupport(fetchImpl,resolvedAsset,endTime,resolvedInterval)),
     latency.time('derivatives',()=>fetchDerivativesContext(fetchImpl,resolvedAsset,endTime)),
@@ -425,18 +427,18 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
         }
     :{state:'not_selected',provider:null,boundary:'Select a chart range before historical derivatives are evaluated.'};
   let graph,multiTimeframe;
+  const quantCalibrationAnalogsSpan=latency.span('quantCalibrationAnalogs');
   try{
-    ({graph,multiTimeframe}=latency.measure('quantCalibrationAnalogs',()=>{
-      let nextGraph=buildDecisionProvenGraph(payload,{asset:resolvedAsset,interval:resolvedInterval,horizonBars,now:endTime,selection:resolvedSelection,scenarioPaths:256});
-      const nextMultiTimeframe=assembleTimeframes(nextGraph,timeframeSupport);
-      nextGraph={...nextGraph,
-        quant:{...nextGraph.quant,calibration:buildDecisionWalkForwardCalibration(payload,{interval:resolvedInterval,horizonBars})},
-        historicalAnalogs:buildDecisionHistoricalAnalogs(payload,{interval:resolvedInterval,horizonBars,windowBars:100,limit:5})
-      };
-      nextGraph=calibrateDecisionEvidence(nextGraph,nextMultiTimeframe,derivatives,liquidity,crossAsset);
-      return {graph:nextGraph,multiTimeframe:nextMultiTimeframe};
-    }));
+    graph=buildDecisionProvenGraph(payload,{asset:resolvedAsset,interval:resolvedInterval,horizonBars,now:endTime,selection:resolvedSelection,scenarioPaths:256});
+    multiTimeframe=assembleTimeframes(graph,timeframeSupport);
+    graph={...graph,
+      quant:{...graph.quant,calibration:buildDecisionWalkForwardCalibration(payload,{interval:resolvedInterval,horizonBars})},
+      historicalAnalogs:buildDecisionHistoricalAnalogs(payload,{interval:resolvedInterval,horizonBars,windowBars:100,limit:5})
+    };
+    graph=calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liquidity,crossAsset);
+    quantCalibrationAnalogsSpan();
   }catch(error){
+    quantCalibrationAnalogsSpan('error');
     if(error instanceof HttpError)throw error;
     throw new HttpError(503,'insufficient_provider_data',error.message,{retryable:true});
   }
