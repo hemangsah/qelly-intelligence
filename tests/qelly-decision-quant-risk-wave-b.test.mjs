@@ -63,7 +63,7 @@ test('R:R research rejects a structurally blocked target and preserves null targ
   };
   const result=buildTradeResearch(graph,{requestedRr:'1:2'});
   assert.equal(result.status,'NO_TRADE');
-  assert.equal(result.selected.feasibility,'LOW');
+  assert.equal(result.selected.feasibility,'LOW FEASIBILITY');
   assert.equal(result.selected.structuralBarrier,106);
   assert.equal(result.selected.targetTouchProbability,null);
   assert.equal(result.selected.expectedValue,null);
