@@ -145,7 +145,6 @@ export async function renderFormulaScreener(main,deps){
   main.querySelector('[data-action="open-chat"]')?.addEventListener('click',()=>{
     const asset=main.querySelector('#formula-decision-asset')?.value;
     const row=lastPayload?.rows?.find((item)=>item.asset===asset&&item.state==='available');
-    const formula=lastPayload?.formula||catalog.formulas.find((item)=>item.id===choice.value);
     if(!asset||!row||!storeResearchContext({asset,timeframe:contextTimeframe,source:'formula-screener',formulaId:choice.value}))return;
     navigate?.('news-research');
   });
