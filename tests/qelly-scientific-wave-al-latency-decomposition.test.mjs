@@ -69,3 +69,17 @@ test('Scanner publishes total and per-asset Decision timings while retaining gov
   assert.match(source,/noTradeFirstClass:true/);
   assert.match(source,/targetTouchProbabilityCalibrated:false/);
 });
+
+
+test('Wave AL span handles time existing control flow without rewriting pinned execution contracts',()=>{
+  let tick=20;
+  const trace=createDecisionLatencyTrace({clock:()=>tick});
+  const finish=trace.span('existingFlow');
+  tick+=9;
+  finish();
+  tick+=10;
+  finish('error');
+  const snapshot=trace.snapshot();
+  assert.equal(snapshot.components.existingFlow.ms,9);
+  assert.equal(snapshot.components.existingFlow.state,'ok');
+});
