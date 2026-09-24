@@ -90,7 +90,7 @@ export function buildFundingHistoryContext(raw,{currentFundingRate=null,currentP
     method:'Hyperliquid settled funding history. Current funding and premium are compared only with prior settled observations from the same provider.',
     limitations:[
       'Funding history does not provide historical open interest.',
-      'Funding and premium percentiles are descriptive carry context, not win probability or trade direction.',
+      'Funding and premium percentiles are descriptive carry context, not a win probability or trade signal.',
       'Historical mark/oracle basis change is not inferred from premium history.'
     ]
   };
