@@ -94,7 +94,7 @@ test('Wave Z research-flow source contract connects Dossier to Decision to Formu
     'peekResearchContext()',
     'contextTimeframe',
     'data-action="open-chat"',
-    "storeDecisionContext({asset,timeframe:contextTimeframe,source:'formula-screener'})",
+    "storeDecisionContext({asset,timeframe:contextTimeframe,source:'formula-screener',formulaId:choice.value})",
     "storeResearchContext({asset,timeframe:contextTimeframe,source:'formula-screener',formulaId:choice.value})",
     "navigate?.('news-research')"
   ])assert.ok(formula.includes(phrase),phrase);
