@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {buildDecisionQuantRisk,__decisionQuantRiskTest} from '../functions/_lib/decision-quant-risk.js';
 import {normalizeDecisionLiquidity} from '../functions/_lib/decision-liquidity.js';
 import {calibrateDecisionEvidence} from '../functions/api/v1/decision-proven-graph.js';
+import {__decisionContextTest} from '../functions/_lib/decision-context.js';
 
 const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 
@@ -108,4 +109,14 @@ test('structure helper keeps unavailable state explicit on insufficient observat
   assert.equal(value.strengthState,'UNAVAILABLE');
   assert.equal(value.distanceToSupportPct,null);
   assert.equal(value.retestState,'NONE');
+});
+
+
+test('Wave U preserves unavailable numerics as null instead of false zero in Decision snapshots',()=>{
+  const snap=__decisionContextTest.snapshot({
+    graphId:'g',observedAt:'2026-09-24T09:00:00.000Z',asset:'BTC',interval:'15m',
+    qellyView:{action:'WAIT',confidence:null,evidenceGate:{}},quant:{},market:{currentState:{}}
+  },{multiTimeframe:null,tradeResearch:{status:'NO_TRADE',stop:{price:null}}});
+  assert.equal(snap.confidence,null);
+  assert.equal(snap.invalidationPrice,null);
 });
