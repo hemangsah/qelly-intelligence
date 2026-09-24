@@ -13,6 +13,7 @@ const validHorizons=(interval)=>Object.keys(HORIZON_MS).filter(horizon=>{const b
 const normalizeHorizon=(interval,horizon)=>validHorizons(interval).includes(horizon)?horizon:validHorizons(interval)[0];
 const telemetryToken=(value,fallback='unknown')=>String(value??fallback).trim().toLowerCase().replace(/[^a-z0-9_.:-]+/g,'_').replace(/^_+|_+$/g,'').slice(0,64)||fallback;
 const rrTelemetryState=(value)=>value==='auto'?'auto':value==='custom'?'custom':({'1':'rr_1_1','2':'rr_1_2','3':'rr_1_3','4':'rr_1_4'}[String(value)]||'unknown');
+const canonicalDecisionAsset=(value)=>{const symbol=String(value||'').trim().toUpperCase();return DECISION_ASSETS.has(symbol)?'QI-CRYPTO-'+symbol:null;};
 const emitProductEvent=(name,properties)=>document.dispatchEvent(new CustomEvent('qelly:product-event',{detail:{name,properties}}));
 const emitRuntimeSignal=(detail)=>document.dispatchEvent(new CustomEvent('qelly:runtime-signal',{detail}));
 const displayTime=(value)=>{
@@ -300,7 +301,7 @@ const whatChangedMarkup=(previous,current,escapeHtml)=>{
 
 
 export async function renderDecisionProvenGraph(main,deps){
-  installStyles();const {api,stateBanner,escapeHtml,toast}=deps;
+  installStyles();const {api,stateBanner,escapeHtml,toast,navigate}=deps;
   const chatContext=readChatDecisionContext();
   let state={asset:chatContext.asset,interval:chatContext.interval,horizon:normalizeHorizon(chatContext.interval,'4h'),rr:'auto',customRr:'2.5',loading:true,data:null,previousSnapshot:null,error:null,draft:null,selection:null,scanning:false,scan:null,scanError:null,scanFilters:{universe:'all',direction:'any',minEvidenceQuality:'0',minCalibratedConfidence:'0',minMtfAgreement:'0',liquidity:'any',volatility:'any',regime:'any',eventRiskTolerance:'any',freshness:'live_or_delayed'}};
   const select=(name,values)=>'<label><span>'+name[0].toUpperCase()+name.slice(1)+'</span><select data-dpg-'+name+'>'+values.map(value=>'<option value="'+value+'" '+(state[name]===value?'selected':'')+'>'+value+'</option>').join('')+'</select></label>';
@@ -324,16 +325,17 @@ export async function renderDecisionProvenGraph(main,deps){
     return '<section class="q-dpg-hero q-dpg-hero--'+actionTone(action)+'" aria-label="QELLY Decision Intelligence">'+
       '<div class="q-dpg-hero__identity"><div><small>FLAGSHIP RESEARCH WORKSPACE</small><h1>QELLY Decision Intelligence</h1></div>'+
         '<div class="q-dpg-hero__selects">'+select('asset',['BTC','ETH','SOL','HYPE','XRP','DOGE'])+select('interval',['1m','5m','15m','30m','1h','4h','1d'])+'</div>'+
-        '<div class="q-dpg-hero__market"><strong>'+price+'</strong><span>'+(change===null?'Change unavailable':(change>=0?'+':'')+change.toFixed(2)+'%')+'</span><small>Crypto · '+escapeHtml(provider)+'</small><small>'+escapeHtml(freshness)+' · '+escapeHtml(marketState)+'</small></div></div>'+
+        '<div class="q-dpg-hero__market"><strong>'+price+'</strong><span>'+(change===null?'Change unavailable':(change>=0?'+':'')+change.toFixed(2)+'%')+'</span><small>Crypto · '+escapeHtml(provider)+'</small><small>'+escapeHtml(freshness)+' · '+escapeHtml(marketState)+'</small><small>Observed '+escapeHtml(displayTime(data?.observedAt))+'</small></div></div>'+
       '<div class="q-dpg-hero__view"><small>QELLY VIEW</small><h2>'+escapeHtml(action)+'</h2><p>'+escapeHtml(label)+'</p><div class="q-dpg-hero__metrics">'+
         '<span><em>Evidence quality</em><strong>'+escapeHtml(quality)+'</strong></span>'+
-        '<span><em>Model confidence</em><strong>'+escapeHtml(confidence)+'</strong></span>'+
+        '<span><em>Calibrated confidence</em><strong>'+escapeHtml(confidence)+'</strong></span>'+
         '<span><em>Scenario</em><strong>'+escapeHtml(scenarioLead)+'</strong></span>'+
         '<span><em>MTF agreement</em><strong>'+escapeHtml(agreement)+'</strong></span>'+
         '<span><em>Regime</em><strong>'+escapeHtml(String(regime))+'</strong></span>'+
         '<span><em>Volatility</em><strong>'+escapeHtml(volatility)+'</strong></span>'+
+        '<span><em>Timeframe</em><strong>'+escapeHtml(state.interval)+'</strong></span>'+
       '</div></div>'+
-      '<div class="q-dpg-hero__actions"><button class="q-button q-button--primary" data-dpg-scan '+(state.scanning?'disabled':'')+'>'+(state.scanning?'Scanning…':'Find Trade Now')+'</button><button class="q-button q-button--secondary" data-dpg-explain-header '+(state.draft?'':'disabled')+'>Explain This Move</button><button class="q-button q-button--secondary" data-dpg-mtf-jump>Compare Timeframes</button><button class="q-button q-button--secondary" type="button" data-dpg-open-chat>Open QELLY Chat</button><button class="q-button q-button--secondary" data-dpg-methodology-jump>Methodology / Sources</button></div>'+
+      '<div class="q-dpg-hero__actions"><button class="q-button q-button--primary" data-dpg-scan '+(state.scanning?'disabled':'')+'>'+(state.scanning?'Scanning…':'Find Trade Now')+'</button><button class="q-button q-button--secondary" data-dpg-explain-header '+(state.draft?'':'disabled')+'>Explain This Move</button><button class="q-button q-button--secondary" data-dpg-explain-candle '+(data?.market?.candles?.length?'':'disabled')+'>Explain Candle</button><button class="q-button q-button--secondary" data-dpg-mtf-jump>Compare Timeframes</button><button class="q-button q-button--secondary" data-dpg-compare-asset>Compare Asset</button><button class="q-button q-button--secondary" type="button" data-dpg-open-chat>Ask QELLY</button><button class="q-button q-button--secondary" data-dpg-methodology-jump>Sources / Methodology</button></div>'+
     '</section>';
   };
   const evidence=(data)=>{
@@ -378,7 +380,9 @@ export async function renderDecisionProvenGraph(main,deps){
     main.querySelectorAll('[data-dpg-scan-filter]').forEach(element=>element.addEventListener('change',()=>{const key=element.dataset.dpgScanFilter;if(key){state.scanFilters[key]=element.value;state.scan=null;state.scanError=null;draw();}}));
     main.querySelectorAll('[data-dpg-scan-asset]').forEach(button=>button.addEventListener('click',()=>{state.asset=button.dataset.dpgScanAsset;state.draft=null;state.selection=null;load();}));
     main.querySelector('[data-dpg-explain-header]')?.addEventListener('click',()=>{if(state.draft){state.selection=state.draft;load();}});
+    main.querySelector('[data-dpg-explain-candle]')?.addEventListener('click',()=>{const candles=state.data?.market?.candles||[],intervalMs=INTERVAL_MS[state.interval],selected=state.draft&&state.draft.end-state.draft.start<intervalMs?state.draft:null,last=candles.at?.(-1);if(selected){state.selection=selected;load();return;}if(last&&intervalMs){state.draft={start:last.time,end:last.time+intervalMs-1};state.selection=state.draft;load();}});
     main.querySelector('[data-dpg-mtf-jump]')?.addEventListener('click',()=>main.querySelector('#qelly-decision-mtf')?.scrollIntoView({behavior:'smooth',block:'start'}));
+    main.querySelector('[data-dpg-compare-asset]')?.addEventListener('click',()=>{const assetId=canonicalDecisionAsset(state.asset);if(!assetId||typeof navigate!=='function'){toast?.('Asset comparison is unavailable for this Decision context.',{tone:'danger'});return;}navigate('comparison-lab',assetId);});
     main.querySelector('[data-dpg-open-chat]')?.addEventListener('click',()=>{
       const action=state.data?.qellyView?.action||'NO TRADE';
       document.dispatchEvent(new CustomEvent('qelly:open-ai',{detail:{
@@ -448,4 +452,4 @@ export async function renderDecisionProvenGraph(main,deps){
   await load();
 }
 
-export const __decisionProvenGraphRouteTest=Object.freeze({CHAT_DECISION_CONTEXT_KEY,DECISION_ASSETS,readChatDecisionContext,normalizeHorizon,validHorizons,telemetryToken,rrTelemetryState});
+export const __decisionProvenGraphRouteTest=Object.freeze({CHAT_DECISION_CONTEXT_KEY,DECISION_ASSETS,readChatDecisionContext,normalizeHorizon,validHorizons,telemetryToken,rrTelemetryState,canonicalDecisionAsset});

@@ -3,7 +3,11 @@ const ASSETS=Object.freeze([
   Object.freeze({id:'QI-EQUITY-NVDA',symbol:'NVDA',name:'NVIDIA Corporation',assetClass:'Equity'}),
   Object.freeze({id:'QI-EQUITY-MSFT',symbol:'MSFT',name:'Microsoft Corporation',assetClass:'Equity'}),
   Object.freeze({id:'QI-CRYPTO-BTC',symbol:'BTC',name:'Bitcoin',assetClass:'Crypto asset'}),
-  Object.freeze({id:'QI-CRYPTO-ETH',symbol:'ETH',name:'Ethereum',assetClass:'Crypto asset'})
+  Object.freeze({id:'QI-CRYPTO-ETH',symbol:'ETH',name:'Ethereum',assetClass:'Crypto asset'}),
+  Object.freeze({id:'QI-CRYPTO-SOL',symbol:'SOL',name:'Solana',assetClass:'Crypto asset'}),
+  Object.freeze({id:'QI-CRYPTO-XRP',symbol:'XRP',name:'XRP',assetClass:'Crypto asset'}),
+  Object.freeze({id:'QI-CRYPTO-HYPE',symbol:'HYPE',name:'Hyperliquid',assetClass:'Crypto asset'}),
+  Object.freeze({id:'QI-CRYPTO-DOGE',symbol:'DOGE',name:'Dogecoin',assetClass:'Crypto asset'})
 ]);
 
 const PROFILES=Object.freeze({
@@ -25,7 +29,7 @@ const HORIZONS=Object.freeze([
 const EVIDENCE_TYPES=Object.freeze([
   Object.freeze({id:'reported',label:'Reported fact'}),Object.freeze({id:'consensus',label:'Consensus estimate'}),Object.freeze({id:'assumption',label:'User assumption'}),Object.freeze({id:'observation',label:'Market or network observation'})
 ]);
-const SOURCE_DOMAINS=Object.freeze(['sec.gov','apple.com','nvidia.com','microsoft.com','nasdaq.com','nyse.com','cmegroup.com','bitcoin.org','ethereum.org','github.com']);
+const SOURCE_DOMAINS=Object.freeze(['sec.gov','apple.com','nvidia.com','microsoft.com','nasdaq.com','nyse.com','cmegroup.com','bitcoin.org','ethereum.org','solana.com','xrpl.org','hyperliquid.xyz','dogecoin.com','github.com']);
 const text=(value,max=500)=>String(value??'').replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().slice(0,max);
 const number=(value)=>{if(value==null||String(value).trim()==='')return null;const parsed=Number(value);return Number.isFinite(parsed)&&parsed>=0&&parsed<=1e12?parsed:null;};
 const integer=(value,fallback,min,max)=>{const parsed=Number.parseInt(String(value??''),10);return Number.isFinite(parsed)?Math.min(max,Math.max(min,parsed)):fallback;};
@@ -38,7 +42,8 @@ const shares=(a,b,direction)=>{if(a==null||b==null)return {a:null,b:null};if(a+b
 
 export function buildPublicComparisonLab(input={}){
   const candidateA=asset(input.candidateA,ASSETS[0]);
-  const candidateB=asset(input.candidateB,ASSETS[1]);
+  const compatibleFallback=ASSETS.find((item)=>item.id!==candidateA.id&&item.assetClass===candidateA.assetClass)||ASSETS[1];
+  const candidateB=asset(input.candidateB,compatibleFallback);
   const compatible=candidateA.id!==candidateB.id&&candidateA.assetClass===candidateB.assetClass;
   const profile=PROFILES[candidateA.assetClass];
   const weights=[integer(input.weight1,34,1,100),integer(input.weight2,33,1,100),integer(input.weight3,33,1,100)];
