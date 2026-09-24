@@ -9,6 +9,15 @@ export function createDecisionLatencyTrace({clock=defaultClock}={}){
     components[name]={ms:round(elapsed),state};
   };
   return {
+    span(name){
+      const start=clock();
+      let finished=false;
+      return (state='ok')=>{
+        if(finished)return;
+        finished=true;
+        record(name,start,state);
+      };
+    },
     async time(name,task){
       const start=clock();
       try{
