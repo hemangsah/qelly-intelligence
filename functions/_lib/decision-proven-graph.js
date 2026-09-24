@@ -1,6 +1,6 @@
 import {buildDecisionQuantRisk} from './decision-quant-risk.js';
 const INTERVAL_MS=Object.freeze({'1m':60_000,'3m':180_000,'5m':300_000,'15m':900_000,'30m':1_800_000,'1h':3_600_000,'2h':7_200_000,'4h':14_400_000,'8h':28_800_000,'12h':43_200_000,'1d':86_400_000});
-const finite=(value)=>Number.isFinite(Number(value))?Number(value):null;
+const finite=(value)=>value==null||value===''?null:Number.isFinite(Number(value))?Number(value):null;
 const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
 const mean=(values)=>values.length?values.reduce((sum,value)=>sum+value,0)/values.length:0;
 const quantile=(values,p)=>{if(!values.length)return null;const sorted=[...values].sort((a,b)=>a-b);const index=(sorted.length-1)*p;const low=Math.floor(index);const weight=index-low;return sorted[low]+((sorted[low+1]??sorted[low])-sorted[low])*weight;};
@@ -171,7 +171,29 @@ function analyzeSelection(candles,selection,intervalMs){
     {type:'volatility',title:(selected.length===1?'Intrabar range proxy ':'Realized move volatility ')+round(selectedVolatility,2)+'%',detail:previousVolatility!==null?'Prior equal window: '+round(previousVolatility,2)+'%.':'Not enough preceding candles for a stable comparison.',direction:previousVolatility!==null&&selectedVolatility>previousVolatility*1.25?'regime expansion':'stable or contracting regime',strength:previousVolatility!==null?clamp(Math.abs(selectedVolatility-previousVolatility)*5,0,1):0},
     ...(technicalComparison?[{type:'technical',title:'RSI shifted '+technicalComparison.rsi14.before+' → '+technicalComparison.rsi14.during,detail:'Trend per bar changed from '+technicalComparison.trendPerBarPct.before+'% to '+technicalComparison.trendPerBarPct.during+'%; ATR changed from '+technicalComparison.atrPct.before+'% to '+technicalComparison.atrPct.during+'%.',direction:technicalComparison.rsi14.change>=5?'momentum strengthened':technicalComparison.rsi14.change<=-5?'momentum weakened':'momentum broadly stable',strength:clamp(Math.abs(technicalComparison.rsi14.change)/25+Math.abs(technicalComparison.trendPerBarPct.change)*4,0,1)}]:[])
   ].sort((a,b)=>b.strength-a.strength).map((item,index)=>({...item,rank:index+1,strength:round(item.strength,2)}));
-  return {start:new Date(first.time).toISOString(),end:new Date(last.time+intervalMs-1).toISOString(),candles:selected.length,changePct:round(changePct,2),rangePct:round((Math.max(...selected.map(item=>item.high))/Math.min(...selected.map(item=>item.low))-1)*100,2),volumeRatio:round(volumeRatio,2),volatilityPct:round(selectedVolatility,2),priorVolatilityPct:previousVolatility===null?null:round(previousVolatility,2),technicalComparison,evidence};
+  const selectedHigh=Math.max(...selected.map(item=>item.high)),selectedLow=Math.min(...selected.map(item=>item.low));
+  const selectedQuant=selected.length>=40?buildDecisionQuantRisk(selected,{intervalMs,horizonBars:Math.max(4,Math.min(16,Math.floor(selected.length/4)))}):null;
+  const selectedStructure=selectedQuant?.state==='DERIVED'?selectedQuant.structure:null;
+  return {
+    start:new Date(first.time).toISOString(),
+    end:new Date(last.time+intervalMs-1).toISOString(),
+    candles:selected.length,
+    startPrice:round(first.open,6),
+    endPrice:round(last.close,6),
+    changePct:round(changePct,2),
+    rangePct:round((selectedHigh/selectedLow-1)*100,2),
+    support:round(selectedStructure?.support??selectedLow,6),
+    resistance:round(selectedStructure?.resistance??selectedHigh,6),
+    structure:selectedStructure||{state:'UNAVAILABLE',bias:'MIXED',reason:'At least 40 selected candles are required for full historical structure classification.'},
+    regime:selectedQuant?.regime||'UNAVAILABLE',
+    trend:selectedQuant?.trend||null,
+    volumeRatio:round(volumeRatio,2),
+    averageVolume:round(selectedVolume,2),
+    volatilityPct:round(selectedVolatility,2),
+    priorVolatilityPct:previousVolatility===null?null:round(previousVolatility,2),
+    technicalComparison,
+    evidence
+  };
 }
 
 export function buildDecisionProvenGraph(raw,{asset='BTC',interval='15m',horizonBars=16,now=Date.now(),selection=null,scenarioPaths=384}={}){

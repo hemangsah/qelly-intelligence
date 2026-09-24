@@ -1,9 +1,10 @@
 import {normalizeCandles,DECISION_INTERVALS} from './decision-proven-graph.js';
 import {buildDecisionQuantRisk} from './decision-quant-risk.js';
 
-const finite=(value)=>Number.isFinite(Number(value))?Number(value):null;
+const finite=(value)=>value==null||value===''?null:Number.isFinite(Number(value))?Number(value):null;
 const round=(value,digits=4)=>Number.isFinite(value)?Number(value.toFixed(digits)):null;
 const median=(values)=>{if(!values.length)return null;const sorted=[...values].sort((a,b)=>a-b),mid=Math.floor(sorted.length/2);return sorted.length%2?sorted[mid]:(sorted[mid-1]+sorted[mid])/2;};
+const quantile=(values,p)=>{if(!values.length)return null;const sorted=[...values].sort((a,b)=>a-b);const index=(sorted.length-1)*p;const low=Math.floor(index),weight=index-low;return sorted[low]+((sorted[low+1]??sorted[low])-sorted[low])*weight;};
 const scale=(difference,denominator)=>Math.abs(difference)/Math.max(denominator,1e-9);
 
 function features(window,{intervalMs,horizonBars}){
@@ -97,7 +98,8 @@ export function buildDecisionHistoricalAnalogs(raw,{interval='15m',horizonBars=1
     structure:item.features.structureState,
     forwardReturnPct:round(item.outcome.forwardReturnPct,3),
     maxFavorablePct:round(item.outcome.maxFavorablePct,3),
-    maxAdversePct:round(item.outcome.maxAdversePct,3)
+    maxAdversePct:round(item.outcome.maxAdversePct,3),
+    timeToResolutionMs:Math.max(0,item.resolveTime-item.anchorTime)
   }));
   const returns=analogs.map(item=>item.forwardReturnPct).filter(Number.isFinite);
   return {
@@ -107,14 +109,19 @@ export function buildDecisionHistoricalAnalogs(raw,{interval='15m',horizonBars=1
     summary:analogs.length?{
       count:analogs.length,
       medianForwardReturnPct:round(median(returns),3),
+      q25ForwardReturnPct:round(returns.length?quantile(returns,.25):null,3),
+      q75ForwardReturnPct:round(returns.length?quantile(returns,.75):null,3),
       positiveShare:round(returns.filter(value=>value>0).length/returns.length,3),
       negativeShare:round(returns.filter(value=>value<0).length/returns.length,3),
-      medianSimilarity:round(median(analogs.map(item=>item.similarity)),3)
+      medianSimilarity:round(median(analogs.map(item=>item.similarity)),3),
+      medianMfePct:round(median(analogs.map(item=>item.maxFavorablePct).filter(Number.isFinite)),3),
+      medianMaePct:round(median(analogs.map(item=>item.maxAdversePct).filter(Number.isFinite)),3),
+      medianTimeToResolutionMs:round(median(analogs.map(item=>item.timeToResolutionMs).filter(Number.isFinite)),0)
     }:null,
     current,
     candidateStepBars:step,
     method:'Nearest prior market-state windows using only pre-anchor trend, volatility, momentum and structure features, with a bounded candidate stride capped to roughly 32 resolved windows per request.',
-    outcomeBoundary:'Forward outcomes are attached only after analog selection and are descriptive historical context, not probability calibration or a trade signal.',
+    outcomeBoundary:'Forward return, MFE, MAE and time-to-resolution are attached only after analog selection and are descriptive historical context, not probability calibration or a trade signal.',
     leakageGuard:'No forward return, favorable excursion or adverse excursion is used in analog similarity distance.',
     eligibilityImpact:'none'
   };

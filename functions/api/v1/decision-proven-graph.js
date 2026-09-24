@@ -385,6 +385,43 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   const crossAsset=benchmarkPayload?buildDecisionCrossAsset(payload,benchmarkPayload,{asset:resolvedAsset,benchmark:benchmarkAsset}):{
     state:'unavailable',asset:resolvedAsset,benchmark:benchmarkAsset,sampleSize:0,correlation:null,beta:null,relativeStrengthPct:null,reason:'Benchmark candles are unavailable.'
   };
+  const selectedAssetRows=resolvedSelection?(Array.isArray(payload)?payload:[]).filter(item=>{
+    const time=finite(item?.t??item?.time);
+    return time!==null&&time>=resolvedSelection.start&&time<=resolvedSelection.end;
+  }):[];
+  const selectedBenchmarkRows=resolvedSelection?(Array.isArray(benchmarkPayload)?benchmarkPayload:[]).filter(item=>{
+    const time=finite(item?.t??item?.time);
+    return time!==null&&time>=resolvedSelection.start&&time<=resolvedSelection.end;
+  }):[];
+  const selectedCrossAsset=resolvedSelection&&selectedAssetRows.length&&selectedBenchmarkRows.length
+    ?buildDecisionCrossAsset(selectedAssetRows,selectedBenchmarkRows,{asset:resolvedAsset,benchmark:benchmarkAsset})
+    :{state:'unavailable',asset:resolvedAsset,benchmark:benchmarkAsset,reason:resolvedSelection?'Not enough aligned benchmark observations inside the selected move.':'No chart range selected.'};
+  const selectedFundingRows=resolvedSelection?(Array.isArray(fundingRows)?fundingRows:[]).filter(item=>{
+    const time=finite(item?.time);
+    return time!==null&&time>=resolvedSelection.start&&time<=resolvedSelection.end;
+  }):[];
+  const selectedFundingHistory=resolvedSelection?buildFundingHistoryContext(selectedFundingRows,{}):null;
+  const historicalDerivatives=resolvedSelection
+    ?selectedFundingHistory?.state==='available'
+      ?{
+          state:'available',
+          provider:'Hyperliquid settled funding history',
+          fundingHistory:selectedFundingHistory,
+          historicalOpenInterestState:'UNAVAILABLE',
+          basisHistoryState:'UNAVAILABLE',
+          liquidationsState:'UNAVAILABLE',
+          boundary:'Only settled funding/premium observations inside the selected range are attached. Historical open interest, mark/oracle basis and liquidations are not inferred.'
+        }
+      :{
+          state:'unavailable',
+          provider:'Hyperliquid settled funding history',
+          fundingHistory:selectedFundingHistory,
+          historicalOpenInterestState:'UNAVAILABLE',
+          basisHistoryState:'UNAVAILABLE',
+          liquidationsState:'UNAVAILABLE',
+          boundary:'No settled funding observations overlap the selected range; historical derivatives are not backfilled or inferred.'
+        }
+    :{state:'not_selected',provider:null,boundary:'Select a chart range before historical derivatives are evaluated.'};
   let graph,multiTimeframe;
   try{
     graph=buildDecisionProvenGraph(payload,{asset:resolvedAsset,interval:resolvedInterval,horizonBars,now:endTime,selection:resolvedSelection,scenarioPaths:256});
@@ -417,8 +454,10 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
     derivatives,
     liquidity,
     crossAsset,
+    selectedCrossAsset,
     macro,
     eventRisk,
+    historicalDerivatives,
     liquidations:{state:'unavailable',message:'Verified liquidation evidence is not available for this view, so it is not inferred.'},
     options:{state:'unavailable',message:'Verified options-market evidence is not connected to this Decision view, so it is not inferred.'},
     onChain:{state:'unavailable',message:'Authorized on-chain evidence is not connected to this Decision view, so it is not inferred.'}
