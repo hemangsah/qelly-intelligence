@@ -42,8 +42,9 @@ test('Wave ZA app measures the authoritative route owner including superseded an
   assert.match(app,/runtime-performance-observer\.mjs/);
   assert.match(app,/installRuntimePerformanceObserver\(\)/);
   assert.match(app,/const routeMeasure=startRouteMeasure\(state\.route,request\)/);
-  assert.match(app,/performRouteRender\(request,controller,routeMeasure\)/);
-  assert.match(app,/finishRouteMeasure\(routeMeasure,\{state:'superseded',root:main\}\)/);
+  assert.match(app,/controller\.qellyRouteMeasure=routeMeasure/);
+  assert.match(app,/request===routeRenderRequest\?performRouteRender\(request,controller\):undefined/);
+  assert.match(app,/if\(activeRouteMeasure\)finishRouteMeasure\(activeRouteMeasure,\{state:'superseded',root:main\}\)/);
   assert.match(app,/routeOutcome='aborted'/);
   assert.match(app,/routeOutcome='capability_boundary'/);
   assert.match(app,/routeOutcome='recovery'/);
@@ -57,6 +58,7 @@ test('Wave ZA TradingView mounts are idempotent per container and preserve displ
   assert.match(source,/ACTIVE_WIDGETS\.get\(container\)\?\.destroy\?\.\(\)/);
   assert.match(source,/ACTIVE_WIDGETS\.set\(container,handle\)/);
   assert.match(source,/if\(ACTIVE_WIDGETS\.get\(container\)===handle\)ACTIVE_WIDGETS\.delete\(container\)/);
+  assert.match(source,/destroy\(\)\{/);
   assert.match(source,/if\(destroyed\)return;/);
   assert.match(source,/WIDGET_TIMEOUT_MS=12000/);
   assert.match(source,/does not read, scrape, transform, persist or use widget values/i);
