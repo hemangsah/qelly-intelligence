@@ -156,8 +156,8 @@ function decisionTrace(graph,{multiTimeframe,tradeResearch,evidence,horizon}){
     }),
     sourceNode('derivatives','derivatives','Funding and open-interest context',{
       source:evidence?.derivatives?.provider||'Hyperliquid',timestamp:evidence?.derivatives?.observedAt||observedAt,freshness:evidence?.derivatives?.state==='live'?'LIVE':'UNAVAILABLE',importance:'MEDIUM',directness:'DIRECT_AND_HISTORICAL_FUNDING',reliability:evidence?.derivatives?.state==='live'?'VENUE_OBSERVED':'UNAVAILABLE',role:'risk_context',
-      methodology:'Current perpetual context plus settled funding history when available.',
-      limitations:['Historical open-interest change is not inferred when unavailable.']
+      methodology:'Current funding, open interest, mark/oracle basis, premium and 24h perpetual volume plus same-provider settled funding/premium history when available.',
+      limitations:['Historical open-interest change is not inferred when unavailable.','Historical mark/oracle basis change is not inferred from premium history.','Liquidation flow and the price/OI quadrant remain unavailable without verified source history.']
     }),
     sourceNode('cross-asset','cross-asset','Cross-asset dependence',{
       source:evidence?.crossAsset?.provider||'Hyperliquid candles',timestamp:observedAt,freshness:evidence?.crossAsset?.state==='available'?truth:'UNAVAILABLE',importance:'MEDIUM',directness:'DERIVED',reliability:evidence?.crossAsset?.state==='available'?'BOUNDED_SAMPLE':'UNAVAILABLE',role:'context_only',
