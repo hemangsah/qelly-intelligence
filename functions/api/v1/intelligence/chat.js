@@ -17,13 +17,54 @@ const sameOriginResponseEnv=(request,env)=>({
   QELLY_ALLOWED_ORIGINS:[env.QELLY_ALLOWED_ORIGINS,new URL(request.url).origin].filter(Boolean).join(',')
 });
 const HORIZON_FOR_TIMEFRAME=Object.freeze({'1m':'1h','5m':'4h','15m':'4h','30m':'4h','1h':'12h','4h':'1d','1d':'3d'});
+const DECISION_HORIZONS=new Set(['1h','4h','12h','1d','3d','7d']);
+const DECISION_RR=new Set(['auto','1','2','3','4','custom']);
+const DECISION_SNAPSHOT_KEYS=Object.freeze([
+  'observedAt','asset','interval','price','action','confidence','evidenceQuality','calibrationState','calibrationEligible',
+  'calibrationBrierScore','calibrationReliabilityGap','regime','volatilityRegime','structureState','structureBias',
+  'timeframeDirection','timeframeAgreement','fundingPct','fundingChangeBps','openInterestNotionalUsd','openInterestChangeState',
+  'macroState','macroLevel','macroUsdInr','eventRiskState','eventRiskLevel','contradictionState','contradictionScore',
+  'tradeStatus','lifecycle','entryMethod','entryPreferred','selectedRr','selectedRrFeasibility','selectedTarget','invalidationPrice','stopPrice','expiryAt'
+]);
+const scalarDecisionValue=(value)=>value==null||['string','number','boolean'].includes(typeof value)?value:null;
+const boundedPreviousSnapshot=(value)=>{
+  if(!value||typeof value!=='object'||Array.isArray(value))return null;
+  const out={};
+  for(const key of DECISION_SNAPSHOT_KEYS){
+    if(value[key]===undefined)continue;
+    const candidate=scalarDecisionValue(value[key]);
+    if(candidate===null&&value[key]!==null)continue;
+    out[key]=typeof candidate==='string'?candidate.slice(0,160):candidate;
+  }
+  return Object.keys(out).length?out:null;
+};
+const boundedSelection=(value)=>{
+  if(!value||typeof value!=='object'||Array.isArray(value))return null;
+  const start=Number(value.start),end=Number(value.end);
+  if(!Number.isFinite(start)||!Number.isFinite(end)||start>=end||end-start>90*86_400_000)return null;
+  return {start,end};
+};
+export const normalizeDecisionChatContext=(value)=>{
+  if(!value||typeof value!=='object'||Array.isArray(value))return {horizon:null,rr:'auto',customRr:null,selection:null,previousSnapshot:null};
+  const horizon=DECISION_HORIZONS.has(String(value.horizon||''))?String(value.horizon):null;
+  const rr=DECISION_RR.has(String(value.rr||''))?String(value.rr):'auto';
+  const rawCustom=Number(value.customRr);
+  const customRr=rr==='custom'&&Number.isFinite(rawCustom)&&rawCustom>=.5&&rawCustom<=10?Number(rawCustom.toFixed(2)):null;
+  return {
+    horizon,
+    rr:rr==='custom'&&customRr===null?'auto':rr,
+    customRr,
+    selection:boundedSelection(value.selection),
+    previousSnapshot:boundedPreviousSnapshot(value.previousSnapshot)
+  };
+};
 const followUps=(mode,asset)=>({
   ask:[`Explain the strongest evidence for ${asset}.`,`What evidence is unavailable for ${asset}?`,'Show me the relevant QELLY tools.'],
   research:[`Build a source-aware ${asset} research brief.`,`What would falsify the current ${asset} thesis?`,'Which source should I verify next?'],
   compare:[`Compare ${asset} with BTC using the same evidence dimensions.`,'Which comparison fields are missing?','Open the comparison workflow.'],
   explain:[`Explain the current ${asset} market state step by step.`,'Which claims are observed versus inferred?','What would change this explanation?'],
   calculate:['Which calculator matches this problem?','Show the registered input schema.','Open the full calculator library.'],
-  decision:[`What evidence blocks a directional ${asset} view?`,'Explain the invalidation condition.','Open Decision Intelligence.'],
+  decision:[`Why this setup or no trade for ${asset}?`,'Why is one R:R feasible while another is not?','What invalidates the current setup?'],
   asset:[`Which ${asset} evidence tracks are unavailable?`,'Show independent context and its limits.','Open the Asset Dossier.'],
   india:['Which India evidence is delayed versus display-only?','Show the latest available India macro reference evidence.','Open India Finance.']
 }[mode]||[]).slice(0,3);
@@ -42,6 +83,7 @@ const calculatorAnswer=(tool)=>{
 };
 const decisionToolSources=(result)=>([
   result?.provenance?.documentation?{id:'decision-market',title:`${result.provenance.provider||'Market'} Decision Intelligence source`,url:result.provenance.documentation,truthState:result.truthState,observedAt:result.observedAt}:null,
+  result?.evidence?.macro?.state==='available'?{id:'decision-macro-ecb',title:'European Central Bank reference rates',url:'https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html',truthState:'delayed',observedAt:result.evidence.macro.observedAt??null}:null,
   ...(result?.evidence?.news?.articles||[]).slice(0,4).map((item,index)=>item?.url?{id:`decision-news-${index+1}`,title:item.title,url:item.url,truthState:result.evidence.news.state,observedAt:item.publishedAt??null}:null)
 ]).filter(Boolean);
 
@@ -84,6 +126,7 @@ export async function handleIntelligenceChat(context){
   const mode=normalizeChatMode(body.mode);
   const asset=normalizeChatAsset(body.asset);
   const timeframe=normalizeChatTimeframe(body.timeframe);
+  const decisionContext=normalizeDecisionChatContext(body.decisionContext);
   const conversationalAnswer=conversationalReply(message);
   if(conversationalAnswer){
     return responseJson(request,sameOriginResponseEnv(request,env),{
@@ -122,8 +165,15 @@ export async function handleIntelligenceChat(context){
   if(mode==='decision'){
     const decisionBuilder=typeof env.__buildDecisionIntelligence==='function'?env.__buildDecisionIntelligence:buildDecisionIntelligence;
     try{
-      const decision=await decisionBuilder(env,{asset,interval:timeframe,horizon:HORIZON_FOR_TIMEFRAME[timeframe]||'4h'});
-      tools.push(compactDecisionToolReceipt(decision));
+      const decision=await decisionBuilder(env,{
+        asset,
+        interval:timeframe,
+        horizon:decisionContext.horizon||HORIZON_FOR_TIMEFRAME[timeframe]||'4h',
+        selection:decisionContext.selection,
+        requestedRr:decisionContext.rr,
+        customRr:decisionContext.customRr
+      });
+      tools.push(compactDecisionToolReceipt(decision,{requestContext:decisionContext}));
       extraSources=decisionToolSources(decision);
     }catch(error){
       tools.push({...compactDecisionToolReceipt(null),data:{reason:String(error?.message||'Decision Intelligence unavailable').slice(0,240)}});
@@ -163,4 +213,4 @@ export async function onRequest(context){
   }
 }
 
-export const __intelligenceChatTest=Object.freeze({CHAT_MODES,CHAT_ASSETS,CHAT_TIMEFRAMES,FEATURED_CALCULATORS,HORIZON_FOR_TIMEFRAME,clientKey,safeHistory,requireSameOrigin,sameOriginResponseEnv,conversationalReply,followUps,calculatorAnswer,decisionToolSources});
+export const __intelligenceChatTest=Object.freeze({CHAT_MODES,CHAT_ASSETS,CHAT_TIMEFRAMES,FEATURED_CALCULATORS,HORIZON_FOR_TIMEFRAME,DECISION_HORIZONS,DECISION_RR,DECISION_SNAPSHOT_KEYS,scalarDecisionValue,boundedPreviousSnapshot,boundedSelection,clientKey,safeHistory,requireSameOrigin,sameOriginResponseEnv,conversationalReply,followUps,calculatorAnswer,decisionToolSources});
