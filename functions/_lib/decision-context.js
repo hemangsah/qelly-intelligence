@@ -128,8 +128,7 @@ function pastPresentFuture(graph,{multiTimeframe,tradeResearch,evidence,horizon,
     invalidation:tradeResearch?.invalidation||null,
     selectedTarget:tradeResearch?.selected||null,
     targets:Array.isArray(tradeResearch?.targets)?tradeResearch.targets:[],
-    expiryAt:tradeResearch?.expiryAt||null,
-    changeReasons
+    expiryAt:tradeResearch?.expiryAt||null
   };
   return {
     schemaVersion:'qelly.past-present-future/2.0.0',
@@ -504,7 +503,8 @@ function snapshot(graph,{multiTimeframe,tradeResearch,evidence,contradiction}){
     selectedTargetReason:tradeResearch?.selected?.feasibilityReason||null,
     invalidationPrice:finite(tradeResearch?.stop?.price),
     stopPrice:finite(tradeResearch?.stop?.price),
-    expiryAt:tradeResearch?.expiryAt||null
+    expiryAt:tradeResearch?.expiryAt||null,
+    changeReasons
   };
 }
 
