@@ -13,7 +13,7 @@ const normalizeAsset=(value)=>{
 const normalizeTimeframe=(value)=>DECISION_TIMEFRAMES.has(String(value||''))?String(value):null;
 const normalizeFormulaId=(value)=>{
   const candidate=String(value||'').trim().toLowerCase();
-  return /^[a-z0-9][a-z0-9-]{0,79}$/.test(candidate)?candidate:null;
+  return /^[a-z0-9][a-z0-9_-]{0,79}$/.test(candidate)?candidate:null;
 };
 const normalizeSource=(value)=>String(value||'unknown').trim().replace(/[^a-zA-Z0-9_.:-]+/g,'-').slice(0,80)||'unknown';
 
