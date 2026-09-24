@@ -377,7 +377,7 @@ const groundedToolFallbackAnswer=(message,financeContext,mode='ask')=>{
 export async function runGroundedFinanceInference(env,{message,history=[],financeContext,mode='ask'}){
   const model=safeText(env?.QELLY_AI_MODEL||DEFAULT_QELLY_AI_MODEL,160);
   const resolvedMode=Object.hasOwn(MODE_DIRECTIVES,mode)?mode:'ask';
-  if(/\b(dataset|data source|coverage|licen[cs]e|what data|which data|access)\b/i.test(message))return {answer:datasetCoverageAnswer(),provider:'qelly-dataset-engine',model,state:'grounded_registry_answer'};
+  if(resolvedMode!=='decision'&&/\b(dataset|data source|coverage|licen[cs]e|what data|which data|access)\b/i.test(message))return {answer:datasetCoverageAnswer(),provider:'qelly-dataset-engine',model,state:'grounded_registry_answer'};
   if(typeof env?.AI?.run!=='function')return {answer:groundedToolFallbackAnswer(message,financeContext,resolvedMode),provider:'qelly-dataset-engine',model:null,state:'grounded_fallback'};
   const prior=asArray(history).slice(-8).map((item)=>({role:item?.role==='assistant'?'assistant':'user',content:safeText(item?.content,1800)})).filter((item)=>item.content);
   const messages=[
