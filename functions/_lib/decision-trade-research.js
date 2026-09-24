@@ -199,8 +199,38 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null,now=n
         priceOpenInterestQuadrant:derivatives?.priceOpenInterestQuadrant||'UNAVAILABLE',
         liquidationsState:derivatives?.liquidationsState||'UNAVAILABLE'
       },
-      crossAsset:{state:crossAsset?.state||'unavailable',benchmark:crossAsset?.benchmark||null,correlation:finite(crossAsset?.correlation),beta:finite(crossAsset?.beta),relativeStrengthPct:finite(crossAsset?.relativeStrengthPct),eligibilityImpact:crossAsset?.eligibilityImpact||'none'},
-      macro:{state:macro?.state||'unavailable',level:macro?.level||'UNAVAILABLE',reason:macro?.reason||null}
+      crossAsset:{
+        state:crossAsset?.state||'unavailable',
+        benchmark:crossAsset?.benchmark||null,
+        correlation:finite(crossAsset?.correlation),
+        rollingCorrelation30:finite(crossAsset?.rollingCorrelation30),
+        rollingCorrelation90:finite(crossAsset?.rollingCorrelation90),
+        beta:finite(crossAsset?.beta),
+        rollingBeta30:finite(crossAsset?.rollingBeta30),
+        rollingBeta90:finite(crossAsset?.rollingBeta90),
+        relativeStrengthPct:finite(crossAsset?.relativeStrengthPct),
+        divergenceState:crossAsset?.divergenceState||'UNAVAILABLE',
+        spreadZScore:finite(crossAsset?.spread?.zScore),
+        spreadState:crossAsset?.spread?.state||'UNAVAILABLE',
+        leadLagRelation:crossAsset?.leadLag?.relation||'UNAVAILABLE',
+        leadLagBars:finite(crossAsset?.leadLag?.bestLagBars),
+        leadLagCorrelation:finite(crossAsset?.leadLag?.correlation),
+        cointegrationState:crossAsset?.cointegration?.state||'NOT_TESTED',
+        eligibilityImpact:crossAsset?.eligibilityImpact||'none'
+      },
+      macro:{
+        state:macro?.state||'unavailable',
+        level:macro?.level||'UNAVAILABLE',
+        provider:macro?.provider||null,
+        observedAt:macro?.observedAt||null,
+        freshness:macro?.freshness||'UNAVAILABLE',
+        intradayFeedConnected:macro?.intradayFeedConnected===true,
+        eurUsd:finite(macro?.fxReference?.eurUsd),
+        usdInr:finite(macro?.fxReference?.usdInr),
+        eurInr:finite(macro?.fxReference?.eurInr),
+        eligibilityImpact:macro?.eligibilityImpact||'none',
+        reason:macro?.reason||null
+      }
     }
   };
   if(!directional||entryZone.length!==2||!entryZone.every(Number.isFinite)||!Number.isFinite(invalidation)){
