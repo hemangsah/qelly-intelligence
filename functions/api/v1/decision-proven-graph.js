@@ -20,7 +20,6 @@ const safeUrl=(value)=>{try{const url=new URL(value);return url.protocol==='http
 const finite=(value)=>{if(value==null||value==='')return null;const number=Number(value);return Number.isFinite(number)?number:null;};
 const round=(value,digits=6)=>Number.isFinite(value)?Number(value.toFixed(digits)):null;
 const clamp=(value,min=0,max=1)=>Math.min(max,Math.max(min,value));
-const bookImbalanceAvailable=(top5,top10)=>Number.isFinite(top5)&&Number.isFinite(top10);
 
 async function fetchCandles(fetchImpl,asset,interval,endTime,points=500){
   const response=await fetchImpl(HYPERLIQUID_INFO_URL,{method:'POST',headers:{'content-type':'application/json','user-agent':'QELLY-Intelligence/decision-intelligence'},body:JSON.stringify({type:'candleSnapshot',req:{coin:asset,interval,startTime:endTime-DECISION_INTERVALS[interval]*points,endTime}}),signal:AbortSignal.timeout(8_000)});
@@ -208,12 +207,12 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liqui
     action='NO TRADE';
     contradictions.push('Current verified bid/ask spread is wider than the bounded liquidity threshold.');
   }
-  if(directionalAction&&liquidityLive&&bookImbalanceAvailable(bookImbalance,bookImbalance10)){
-    const severeAgainstBuy=baseAction==='BUY'&&bookImbalance<=-.6&&bookImbalance10<=-.5;
-    const severeAgainstSell=baseAction==='SELL'&&bookImbalance>=.6&&bookImbalance10>=.5;
+  if(directionalAction&&liquidityLive&&bookImbalance!==null){
+    const severeAgainstBuy=baseAction==='BUY'&&bookImbalance<=-.6;
+    const severeAgainstSell=baseAction==='SELL'&&bookImbalance>=.6;
     if(severeAgainstBuy||severeAgainstSell){
       action='NO TRADE';
-      contradictions.push('Current verified top-five and top-ten L2 depth are severely imbalanced against the directional setup.');
+      contradictions.push('Current top-five L2 depth is severely imbalanced against the directional setup.');
     }
   }
   const calibrationState=String(graph?.quant?.calibration?.state||'UNCALIBRATED');
