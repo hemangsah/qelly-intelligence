@@ -140,6 +140,49 @@ async function fetchDerivativesContext(fetchImpl,asset,observedAt){
 const newsUrl=(asset,start,end,{fallback=false}={})=>{const url=new URL('https://api.gdeltproject.org/api/v2/doc/doc');url.searchParams.set('query','('+NEWS_TERMS[asset]+') sourcelang:english');url.searchParams.set('mode','artlist');url.searchParams.set('format','json');url.searchParams.set('maxrecords','12');url.searchParams.set('sort','HybridRel');if(fallback)url.searchParams.set('timespan','3days');else{url.searchParams.set('startdatetime',gdeltTime(Math.max(end-72*3_600_000,start)));url.searchParams.set('enddatetime',gdeltTime(end));}return url.href;};
 const normalizeArticles=(payload)=>(Array.isArray(payload?.articles)?payload.articles:[]).map(article=>({title:String(article?.title||'').trim().slice(0,240),source:String(article?.domain||'').trim().slice(0,100),publishedAt:String(article?.seendate||''),url:safeUrl(article?.url)})).filter(article=>article.title&&article.url).slice(0,8);
 const NEWS_TIMEOUT_MS=2_500;
+const NEWS_CACHE_FRESH_MS=5*60_000;
+const NEWS_CACHE_STALE_MS=30*60_000;
+const NEWS_CACHE_BUCKET_MS=5*60_000;
+const NEWS_INFLIGHT=new Map();
+
+const normalizedNewsWindow=(start,end,bucketMs=NEWS_CACHE_BUCKET_MS)=>{
+  const rawStart=Number(start),rawEnd=Number(end),bucket=Number(bucketMs);
+  if(!Number.isFinite(rawStart)||!Number.isFinite(rawEnd)||rawStart>=rawEnd)return {start:rawStart,end:rawEnd,bucketMs:0};
+  if(!(bucket>0))return {start:rawStart,end:rawEnd,bucketMs:0};
+  const normalizedStart=Math.floor(rawStart/bucket)*bucket;
+  const normalizedEnd=Math.floor(rawEnd/bucket)*bucket;
+  return {start:normalizedStart,end:Math.max(normalizedStart+1,normalizedEnd),bucketMs:bucket};
+};
+const newsCacheRequest=(asset,start,end,bucketMs=NEWS_CACHE_BUCKET_MS)=>{
+  const window=normalizedNewsWindow(start,end,bucketMs);
+  const url=new URL('https://qelly-news-cache.invalid/context');
+  url.searchParams.set('asset',String(asset||'').toUpperCase());
+  url.searchParams.set('start',String(window.start));
+  url.searchParams.set('end',String(window.end));
+  return {request:new Request(url.href),window};
+};
+const readNewsCache=async(cache,key,now)=>{
+  if(!cache)return {fresh:null,stale:null};
+  try{
+    const response=await cache.match(key);
+    if(!response)return {fresh:null,stale:null};
+    const value=await response.json();
+    const fetchedAt=Date.parse(value?.fetchedAt||'');
+    if(!Number.isFinite(fetchedAt)||!Array.isArray(value?.articles))return {fresh:null,stale:null};
+    const ageMs=Math.max(0,Number(now)-fetchedAt);
+    const normalized={articles:value.articles.slice(0,8),state:value.state==='no-matches'?'no-matches':'live',fetchedAt:new Date(fetchedAt).toISOString(),ageMs};
+    if(ageMs<=NEWS_CACHE_FRESH_MS)return {fresh:normalized,stale:null};
+    if(ageMs<=NEWS_CACHE_STALE_MS)return {fresh:null,stale:normalized};
+  }catch{}
+  return {fresh:null,stale:null};
+};
+const writeNewsCache=async(cache,key,value)=>{
+  if(!cache)return;
+  try{
+    await cache.put(key,new Response(JSON.stringify(value),{headers:{'content-type':'application/json','cache-control':'public, max-age=1800'}}));
+  }catch{}
+};
+
 async function fetchNewsAttempt(fetchImpl,asset,start,end,{fallback=false}={}){
   const response=await fetchImpl(newsUrl(asset,start,end,{fallback}),{
     headers:{accept:'application/json','user-agent':'QELLY-Intelligence/decision-intelligence'},
@@ -152,6 +195,47 @@ async function fetchNews(fetchImpl,asset,start,end){
   const primary=await fetchNewsAttempt(fetchImpl,asset,start,end);
   if(primary.length)return primary;
   return fetchNewsAttempt(fetchImpl,asset,start,end,{fallback:true});
+}
+
+async function fetchNewsContext(fetchImpl,asset,start,end,{cache=globalThis.caches?.default,now=Date.now(),bucketMs=NEWS_CACHE_BUCKET_MS}={}){
+  const {request:key,window}=newsCacheRequest(asset,start,end,bucketMs);
+  const cached=await readNewsCache(cache,key,now);
+  if(cached.fresh)return {
+    articles:cached.fresh.articles,
+    state:cached.fresh.state,
+    fetchedAt:cached.fresh.fetchedAt,
+    cache:{hit:true,stale:false,coalesced:false,ageMs:cached.fresh.ageMs,bucketMs:window.bucketMs}
+  };
+
+  const inflightKey=key.url;
+  const existing=NEWS_INFLIGHT.get(inflightKey);
+  if(existing){
+    const result=await existing;
+    return {...result,cache:{...result.cache,coalesced:true}};
+  }
+
+  const task=(async()=>{
+    try{
+      const articles=await fetchNews(fetchImpl,asset,window.start,window.end);
+      const fetchedAt=new Date(Number(now)).toISOString();
+      const state=articles.length?'live':'no-matches';
+      await writeNewsCache(cache,key,{articles,state,fetchedAt});
+      return {articles,state,fetchedAt,cache:{hit:false,stale:false,coalesced:false,ageMs:0,bucketMs:window.bucketMs}};
+    }catch(error){
+      if(cached.stale)return {
+        articles:cached.stale.articles,
+        state:'stale',
+        fetchedAt:cached.stale.fetchedAt,
+        cache:{hit:true,stale:true,coalesced:false,ageMs:cached.stale.ageMs,bucketMs:window.bucketMs},
+        fallbackReason:'news_provider_unavailable_using_stale_cache'
+      };
+      throw error;
+    }
+  })();
+
+  NEWS_INFLIGHT.set(inflightKey,task);
+  try{return await task;}
+  finally{if(NEWS_INFLIGHT.get(inflightKey)===task)NEWS_INFLIGHT.delete(inflightKey);}
 }
 
 export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liquidity=null,crossAsset=null){
@@ -335,10 +419,9 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   const newsStart=resolvedSelection?.start??endTime-24*3_600_000;
   const newsEnd=Math.min(resolvedSelection?.end??endTime,endTime);
   const newsPromise=includeNews
-    ? latency.time('news',()=>fetchNews(fetchImpl,resolvedAsset,newsStart,newsEnd)
-        .then(articles=>({articles,state:articles.length?'live':'no-matches'}))
-        .catch(()=>({articles:[],state:'unavailable'})))
-    : Promise.resolve({articles:[],state:'not-requested'});
+    ? latency.time('news',()=>fetchNewsContext(fetchImpl,resolvedAsset,newsStart,newsEnd,{bucketMs:resolvedSelection?0:NEWS_CACHE_BUCKET_MS})
+        .catch(()=>({articles:[],state:'unavailable',fetchedAt:null,cache:{hit:false,stale:false,coalesced:false,ageMs:null,bucketMs:resolvedSelection?0:NEWS_CACHE_BUCKET_MS}})))
+    : Promise.resolve({articles:[],state:'not-requested',fetchedAt:null,cache:{hit:false,stale:false,coalesced:false,ageMs:null,bucketMs:0}});
   const macroPromise=latency.time('macro',()=>providerResult({env},'ecb','fx-reference-rates','EUR')
     .then(buildDecisionMacroContext)
     .catch(error=>buildDecisionMacroContext({truthState:'unavailable',fallbackReason:error?.code||'ecb_reference_unavailable'})));
@@ -442,7 +525,7 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
     if(error instanceof HttpError)throw error;
     throw new HttpError(503,'insufficient_provider_data',error.message,{retryable:true});
   }
-  const {articles,state:newsState}=await newsPromise;
+  const {articles,state:newsState,fetchedAt:newsObservedAt,cache:newsCache,fallbackReason:newsFallbackReason}=await newsPromise;
   const macroReference=await macroPromise;
   const macro={
     ...macroReference,
@@ -469,6 +552,7 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
     options:{state:'unavailable',message:'Verified options-market evidence is not connected to this Decision view, so it is not inferred.'},
     onChain:{state:'unavailable',message:'Authorized on-chain evidence is not connected to this Decision view, so it is not inferred.'}
   };
+  evidence.news={...evidence.news,observedAt:newsObservedAt??null,cache:newsCache??null,fallbackReason:newsFallbackReason??null,boundary:'News is contextual evidence only. A bounded fresh cache may be reused; stale news is used only after provider failure and is labeled stale.'};
   const context=latency.measure('contextAndEvidenceGraph',()=>buildDecisionContextBundle(graph,{multiTimeframe,tradeResearch,evidence,horizon:resolvedHorizon}));
   const performance=latency.snapshot({database:{used:false,ms:null},network:'Measure end-to-end separately at the client or external probe; server-side component timings exclude internet transit.'});
   return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence,...context,performance};
@@ -495,4 +579,7 @@ export async function onRequest({request,env}){
   }catch(error){return errorResponse(request,env,error);}
 }
 
-export const __decisionNewsLatencyTest=Object.freeze({NEWS_TIMEOUT_MS,fetchNewsAttempt,fetchNews,newsUrl,normalizeArticles});
+export const __decisionNewsLatencyTest=Object.freeze({
+  NEWS_TIMEOUT_MS,NEWS_CACHE_FRESH_MS,NEWS_CACHE_STALE_MS,NEWS_CACHE_BUCKET_MS,
+  fetchNewsAttempt,fetchNews,fetchNewsContext,newsUrl,normalizeArticles,normalizedNewsWindow,newsCacheRequest,readNewsCache
+});
