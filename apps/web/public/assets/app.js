@@ -104,6 +104,7 @@ const state = {
 let routeRenderRequest=0;
 let routeRenderTail=Promise.resolve();
 let activeRouteController=null;
+let activeRouteMeasure=null;
 let currentRenderSignal=null;
 
 const defaultPreferences={theme:'burgundy-command',density:'comfortable',motion:'full',fontScale:100,radiusPx:14,customAccent:null,route:staticVisualPreview?'market':'auth-login',revision:1};
@@ -377,7 +378,6 @@ function navigate(route, asset = null) {
 
 function renderRoute(){
   const request=++routeRenderRequest;
-  const routeMeasure=startRouteMeasure(state.route,request);
   activeRouteController?.abort();
   window.__qellyLiveMarketCleanup?.();
   window.__qellyLiveMarketCleanup=null;
@@ -386,6 +386,10 @@ function renderRoute(){
   const controller=new AbortController();
   activeRouteController=controller;
   const main=document.getElementById('main');
+  if(activeRouteMeasure)finishRouteMeasure(activeRouteMeasure,{state:'superseded',root:main});
+  const routeMeasure=startRouteMeasure(state.route,request);
+  activeRouteMeasure=routeMeasure;
+  controller.qellyRouteMeasure=routeMeasure;
   const definition=routeDefinitions.find((item)=>item.route===state.route);
   if(main){
     if(state.route!=='qelly-verify'){delete main.dataset.qellyVerifyOwner;delete document.documentElement.dataset.qellyVerifySubview;}
@@ -394,12 +398,13 @@ function renderRoute(){
     main.innerHTML=loadingPage(definition?.label??'Loading route');
   }
   if(!/^#\/theme-lab(?:\/|$)/.test(location.hash))document.title=`${definition?.label??'Qelly Intelligence'} · Qelly Intelligence`;
-  routeRenderTail=routeRenderTail.catch(()=>undefined).then(()=>request===routeRenderRequest?performRouteRender(request,controller,routeMeasure):finishRouteMeasure(routeMeasure,{state:'superseded',root:main}));
+  routeRenderTail=routeRenderTail.catch(()=>undefined).then(()=>request===routeRenderRequest?performRouteRender(request,controller):undefined);
   return routeRenderTail;
 }
 
-async function performRouteRender(request,controller,routeMeasure) {
+async function performRouteRender(request,controller) {
   currentRenderSignal=controller.signal;
+  const routeMeasure=controller.qellyRouteMeasure||null;
   let routeOutcome='success';
   window.__qellyLiveMarketCleanup?.();
   window.__qellyLiveMarketCleanup=null;
@@ -518,6 +523,7 @@ async function performRouteRender(request,controller,routeMeasure) {
     if(currentRenderSignal===controller.signal)currentRenderSignal=null;
     const superseded=request!==routeRenderRequest;
     finishRouteMeasure(routeMeasure,{state:superseded?'superseded':routeOutcome,root:main});
+    if(activeRouteMeasure===routeMeasure)activeRouteMeasure=null;
     if(superseded){
       const currentDefinition=routeDefinitions.find((item)=>item.route===state.route);
       main.dataset.pageKind=currentDefinition?.kind??'analytical';
