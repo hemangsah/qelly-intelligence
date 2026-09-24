@@ -182,15 +182,14 @@ export function mountTradingViewWidget(container,{kind,config={},label='TradingV
   };
 
   let handle=null;
-  const destroy=()=>{
+  handle={provider:'TradingView',kind,usage:'display-only',boundary:DISPLAY_BOUNDARY,retry:start,destroy(){
     if(destroyed)return;
     destroyed=true;settled=true;cleanupAttempt();
     if(ACTIVE_WIDGETS.get(container)===handle)ACTIVE_WIDGETS.delete(container);
     container.replaceChildren();
     delete container.dataset.externalState;
     delete container.dataset.externalWidget;
-  };
-  handle={provider:'TradingView',kind,usage:'display-only',boundary:DISPLAY_BOUNDARY,retry:start,destroy};
+  }};
   ACTIVE_WIDGETS.set(container,handle);
   start();
   return handle;
