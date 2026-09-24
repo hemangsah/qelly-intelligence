@@ -1,5 +1,5 @@
 const RR_PRESETS=Object.freeze([1,2,3,4]);
-const finite=(value)=>{const number=Number(value);return Number.isFinite(number)?number:null;};
+const finite=(value)=>{if(value==null||value==='')return null;const number=Number(value);return Number.isFinite(number)?number:null;};
 const round=(value,digits=4)=>Number.isFinite(value)?Number(value.toFixed(digits)):null;
 const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
 const parseRequested=(value,customRr)=>{
