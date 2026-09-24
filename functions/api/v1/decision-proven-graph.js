@@ -17,7 +17,7 @@ const HYPERLIQUID_L2_DOCS='https://hyperliquid.gitbook.io/hyperliquid-docs/for-d
 const ip=(request)=>request.headers.get('cf-connecting-ip')||request.headers.get('x-forwarded-for')?.split(',')[0]||'anonymous';
 const gdeltTime=(time)=>new Date(time).toISOString().replace(/\D/g,'').slice(0,14);
 const safeUrl=(value)=>{try{const url=new URL(value);return url.protocol==='https:'||url.protocol==='http:'?url.href:null;}catch{return null;}};
-const finite=(value)=>{const number=Number(value);return Number.isFinite(number)?number:null;};
+const finite=(value)=>{if(value==null||value==='')return null;const number=Number(value);return Number.isFinite(number)?number:null;};
 const round=(value,digits=6)=>Number.isFinite(value)?Number(value.toFixed(digits)):null;
 const clamp=(value,min=0,max=1)=>Math.min(max,Math.max(min,value));
 const bookImbalanceAvailable=(top5,top10)=>Number.isFinite(top5)&&Number.isFinite(top10);
