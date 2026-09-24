@@ -332,7 +332,8 @@ export async function renderDecisionProvenGraph(main,deps){
         '<span><em>Scenario</em><strong>'+escapeHtml(scenarioLead)+'</strong></span>'+
         '<span><em>MTF agreement</em><strong>'+escapeHtml(agreement)+'</strong></span>'+
         '<span><em>Regime</em><strong>'+escapeHtml(String(regime))+'</strong></span>'+
-        '<span><em>Volatility</em><strong>'+escapeHtml(volatility)+'</strong></span>'+\n        '<span><em>Timeframe</em><strong>'+escapeHtml(state.interval)+'</strong></span>'+
+        '<span><em>Volatility</em><strong>'+escapeHtml(volatility)+'</strong></span>'+
+        '<span><em>Timeframe</em><strong>'+escapeHtml(state.interval)+'</strong></span>'+
       '</div></div>'+
       '<div class="q-dpg-hero__actions"><button class="q-button q-button--primary" data-dpg-scan '+(state.scanning?'disabled':'')+'>'+(state.scanning?'Scanning…':'Find Trade Now')+'</button><button class="q-button q-button--secondary" data-dpg-explain-header '+(state.draft?'':'disabled')+'>Explain This Move</button><button class="q-button q-button--secondary" data-dpg-explain-candle '+(data?.market?.candles?.length?'':'disabled')+'>Explain Candle</button><button class="q-button q-button--secondary" data-dpg-mtf-jump>Compare Timeframes</button><button class="q-button q-button--secondary" data-dpg-compare-asset>Compare Asset</button><button class="q-button q-button--secondary" type="button" data-dpg-open-chat>Ask QELLY</button><button class="q-button q-button--secondary" data-dpg-methodology-jump>Sources / Methodology</button></div>'+
     '</section>';
