@@ -197,7 +197,7 @@ async function fetchNews(fetchImpl,asset,start,end){
   return fetchNewsAttempt(fetchImpl,asset,start,end,{fallback:true});
 }
 
-async function fetchNewsContext(fetchImpl,asset,start,end,{cache=globalThis.caches?.default,now=Date.now(),bucketMs=NEWS_CACHE_BUCKET_MS}={}){
+export async function fetchNewsContext(fetchImpl,asset,start,end,{cache=globalThis.caches?.default,now=Date.now(),bucketMs=NEWS_CACHE_BUCKET_MS,cacheOnly=false}={}){
   const {request:key,window}=newsCacheRequest(asset,start,end,bucketMs);
   const cached=await readNewsCache(cache,key,now);
   if(cached.fresh)return {
@@ -205,6 +205,13 @@ async function fetchNewsContext(fetchImpl,asset,start,end,{cache=globalThis.cach
     state:'cached',
     fetchedAt:cached.fresh.fetchedAt,
     cache:{hit:true,stale:false,coalesced:false,ageMs:cached.fresh.ageMs,bucketMs:window.bucketMs,sourceState:cached.fresh.state}
+  };
+  if(cacheOnly)return {
+    articles:[],
+    state:'pending',
+    fetchedAt:null,
+    cache:{hit:false,stale:false,coalesced:false,ageMs:null,bucketMs:window.bucketMs,staleAvailable:Boolean(cached.stale)},
+    fallbackReason:null
   };
 
   const inflightKey=key.url;
@@ -419,7 +426,7 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   const newsStart=resolvedSelection?.start??endTime-24*3_600_000;
   const newsEnd=Math.min(resolvedSelection?.end??endTime,endTime);
   const newsPromise=includeNews
-    ? latency.time('news',()=>fetchNewsContext(fetchImpl,resolvedAsset,newsStart,newsEnd,{bucketMs:resolvedSelection?0:NEWS_CACHE_BUCKET_MS})
+    ? latency.time('news',()=>fetchNewsContext(fetchImpl,resolvedAsset,newsStart,newsEnd,{bucketMs:resolvedSelection?0:NEWS_CACHE_BUCKET_MS,cacheOnly:true})
         .catch(()=>({articles:[],state:'unavailable',fetchedAt:null,cache:{hit:false,stale:false,coalesced:false,ageMs:null,bucketMs:resolvedSelection?0:NEWS_CACHE_BUCKET_MS}})))
     : Promise.resolve({articles:[],state:'not-requested',fetchedAt:null,cache:{hit:false,stale:false,coalesced:false,ageMs:null,bucketMs:0}});
   const macroPromise=latency.time('macro',()=>providerResult({env},'ecb','fx-reference-rates','EUR')
@@ -553,7 +560,15 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
     options:{state:'unavailable',message:'Verified options-market evidence is not connected to this Decision view, so it is not inferred.'},
     onChain:{state:'unavailable',message:'Authorized on-chain evidence is not connected to this Decision view, so it is not inferred.'}
   };
-  evidence.news={...evidence.news,observedAt:newsObservedAt??null,cache:newsCache??null,fallbackReason:newsFallbackReason??null,boundary:'News is contextual evidence only. A bounded fresh cache may be reused; stale news is used only after provider failure and is labeled stale.'};
+  const newsEnrichmentUrl=newsState==='pending'
+    ?'/api/v1/decision-news-context?'+new URLSearchParams({asset:resolvedAsset,start:String(newsStart),end:String(newsEnd),...(resolvedSelection?{exact:'1'}:{})}).toString()
+    :null;
+  evidence.news={...evidence.news,observedAt:newsObservedAt??null,cache:newsCache??null,fallbackReason:newsFallbackReason??null,
+    enrichment:newsEnrichmentUrl?{state:'pending',url:newsEnrichmentUrl,eligibilityImpact:'none'}:null,
+    boundary:newsState==='pending'
+      ?'Full news context is pending a separate bounded enrichment request. The QELLY VIEW is already final for this snapshot because news is contextual and has no eligibility impact.'
+      :'News is contextual evidence only. A bounded fresh cache may be reused; stale news is used only after provider failure and is labeled stale.'
+  };
   const context=latency.measure('contextAndEvidenceGraph',()=>buildDecisionContextBundle(graph,{multiTimeframe,tradeResearch,evidence,horizon:resolvedHorizon}));
   const performance=latency.snapshot({database:{used:false,ms:null},network:'Measure end-to-end separately at the client or external probe; server-side component timings exclude internet transit.'});
   return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence,...context,performance};
