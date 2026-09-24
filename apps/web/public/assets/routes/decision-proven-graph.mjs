@@ -368,7 +368,7 @@ const pastPresentFutureMarkup=(data,escapeHtml)=>{
 };
 
 
-const contradictionMarkup=(data,escapeHtml)=>{const contradictionMarkup=(data,escapeHtml)=>{
+const contradictionMarkup=(data,escapeHtml)=>{
   const context=data?.contradictionAnalysis;
   if(!context)return '';
   const support=Array.isArray(context.support)?context.support:[];
