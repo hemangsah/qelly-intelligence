@@ -564,7 +564,14 @@ export async function renderDecisionProvenGraph(main,deps){
         asset:state.asset,
         timeframe:state.interval,
         expand:true,
-        prompt:'Explain the current '+state.asset+' Decision Intelligence view ('+action+'), including the evidence gate, strongest contradiction, entry/invalidation/targets if any, R:R feasibility, calibration state, historical analog boundary and what would change the view.'
+        decisionContext:{
+          horizon:state.horizon,
+          rr:state.rr,
+          customRr:state.rr==='custom'?state.customRr:null,
+          selection:state.selection||state.draft||null,
+          previousSnapshot:state.previousSnapshot||null
+        },
+        prompt:'Explain the current '+state.asset+' Decision Intelligence view ('+action+'), including why this setup or no trade, the evidence gate, strongest contradiction, entry/invalidation/targets if any, why the selected R:R is feasible or not, calibration, historical analog boundary, selected candle/range context and what changed.'
       }}));
     });
     main.querySelector('[data-dpg-methodology-jump]')?.addEventListener('click',()=>main.querySelector('#qelly-decision-methodology')?.scrollIntoView({behavior:'smooth',block:'start'}));
