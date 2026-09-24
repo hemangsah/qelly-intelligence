@@ -45,6 +45,7 @@ const derivativesContext=(data,escapeHtml)=>{
   const bps=(value,digits=3)=>value!=null&&value!==''&&Number.isFinite(Number(value))?(Number(value)>=0?'+':'')+Number(value).toFixed(digits)+' bps':'Unavailable';
   const percentile=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Math.round(Number(value)*100)+'%':'Unavailable';
   const ratio=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Number(value).toFixed(2)+'x':'Unavailable';
+  const price=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?money(Number(value)):'Unavailable';
   const history=derivatives.fundingHistory||{};
   return '<section class="q-dpg-derivatives"><header><div><small>DERIVATIVES CONTEXT · CURRENT + SETTLED HISTORY</small><h2>Funding, premium, basis and open interest</h2></div><span>'+escapeHtml(derivatives.provider)+' · '+new Date(derivatives.observedAt).toLocaleString()+'</span></header>'+
     '<div class="q-dpg-derivatives__grid">'+
@@ -59,8 +60,8 @@ const derivativesContext=(data,escapeHtml)=>{
       '<article><span>OI change</span><strong>'+escapeHtml(String(derivatives.openInterestChangeState||'UNAVAILABLE'))+'</strong><small>Historical OI not connected</small></article>'+
       '<article><span>24h perp volume</span><strong>'+compactMoney(derivatives.dayNotionalVolumeUsd)+'</strong></article>'+
       '<article><span>OI turnover</span><strong>'+escapeHtml(ratio(derivatives.openInterestTurnover24h))+'</strong><small>24h notional volume / OI notional</small></article>'+
-      '<article><span>Mark price</span><strong>'+money(derivatives.markPrice)+'</strong></article>'+
-      '<article><span>Oracle price</span><strong>'+money(derivatives.oraclePrice)+'</strong></article>'+
+      '<article><span>Mark price</span><strong>'+price(derivatives.markPrice)+'</strong></article>'+
+      '<article><span>Oracle price</span><strong>'+price(derivatives.oraclePrice)+'</strong></article>'+
       '<article><span>Mark / oracle basis</span><strong>'+pct(derivatives.markOracleBasisPct)+'</strong><small>'+escapeHtml(String(derivatives.markOracleBasisState||'UNAVAILABLE').replaceAll('_',' '))+'</small></article>'+
       '<article><span>Basis change</span><strong>'+escapeHtml(String(derivatives.markOracleBasisChangeState||'UNAVAILABLE'))+'</strong><small>Historical mark/oracle series not connected</small></article>'+
       '<article><span>Price / OI quadrant</span><strong>'+escapeHtml(String(derivatives.priceOpenInterestQuadrant||'UNAVAILABLE').replaceAll('_',' '))+'</strong><small>Requires verified OI change history</small></article>'+
