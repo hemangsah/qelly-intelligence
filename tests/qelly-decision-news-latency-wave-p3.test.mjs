@@ -143,3 +143,26 @@ test('Wave AN cache remains contextual evidence only and cannot alter Decision e
   assert.match(source,/const newsPromise=includeNews/);
   assert.match(source,/const payload=await fetchCandles\(fetchImpl,resolvedAsset,resolvedInterval,endTime\)/);
 });
+
+
+test('Wave AM cache-only news lookup returns PENDING without starting an external provider request',async()=>{
+  const cache=memoryCache(),now=Date.parse('2026-09-24T23:00:00.000Z');
+  let calls=0;
+  const result=await fetchNewsContext(async()=>{calls+=1;throw new Error('must not run');},'BTC',now-3_600_000,now,{cache,now,cacheOnly:true});
+  assert.equal(calls,0);
+  assert.equal(result.state,'pending');
+  assert.equal(result.articles.length,0);
+  assert.equal(result.cache.hit,false);
+  assert.equal(result.cache.stale,false);
+});
+
+test('Wave AM cache-only path still serves fresh cached news immediately',async()=>{
+  const cache=memoryCache(),now=Date.parse('2026-09-24T23:00:00.000Z');
+  await fetchNewsContext(async()=>new Response(JSON.stringify({articles:[article]}),{status:200,headers:{'content-type':'application/json'}}),'BTC',now-3_600_000,now,{cache,now});
+  let calls=0;
+  const result=await fetchNewsContext(async()=>{calls+=1;throw new Error('must not run');},'BTC',now-3_600_000,now,{cache,now:now+1_000,cacheOnly:true});
+  assert.equal(calls,0);
+  assert.equal(result.state,'cached');
+  assert.equal(result.cache.hit,true);
+  assert.equal(result.cache.sourceState,'live');
+});
