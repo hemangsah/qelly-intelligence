@@ -24,8 +24,8 @@ test('authoritative Decision Intelligence retains research safety and core workf
     '1:3',
     '1:4',
     'Auto',
-    'Open QELLY Chat',
-    'Methodology / Sources',
+    'Ask QELLY',
+    'Sources / Methodology',
     'DECISION TRACE · EVIDENCE GRAPH',
     'WHAT CHANGED?'
   ])assert.match(route,new RegExp(phrase.replace(/[?]/g,'\\?')));
