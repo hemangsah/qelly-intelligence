@@ -103,6 +103,16 @@ test('Wave U reuses authoritative Decision panels and discloses unavailable flow
   for(const phrase of ['MARKET STRUCTURE 2.0','Structural strength','LIQUIDITY / MICROSTRUCTURE','Top-10 imbalance','Microprice','NOT INFERRED','not evidence of whales, institutions or smart money'])assert.ok(route.includes(phrase),phrase);
 });
 
+test('Wave U never coerces missing L2 evidence into numeric zero',()=>{
+  const unavailable=normalizeDecisionLiquidity({levels:[[],[]]},{asset:'BTC'});
+  assert.equal(unavailable.spreadBps,null);
+  assert.equal(unavailable.microprice,null);
+  assert.equal(unavailable.top1Imbalance,null);
+  assert.equal(unavailable.top5Imbalance,null);
+  assert.equal(unavailable.top10Imbalance,null);
+  assert.equal(unavailable.depthConsensus,'UNAVAILABLE');
+});
+
 test('structure helper keeps unavailable state explicit on insufficient observations',()=>{
   const value=__decisionQuantRiskTest.structure(candles.slice(0,10));
   assert.equal(value.state,'UNAVAILABLE');
