@@ -399,7 +399,8 @@ export function compactDecisionToolReceipt(result,{requestContext=null}={}){
     limitations:[
       ...(result.provenance?.model?.limitations||[]).slice(0,5),
       'Decision Copilot explains the authoritative Decision Intelligence result; it does not create a second Decision engine.',
-      'Evidence Graph and Decision Trace are explanatory only and have no independent eligibility impact.',
+      'Decision Trace is explanatory only and has no independent eligibility impact.',
+      'Evidence Graph is explanatory only and has no independent eligibility impact.',
       'Historical analog outcomes are descriptive context, not win probability.',
       'Scenario probabilities and calibration metrics do not guarantee an outcome.',
       'Unavailable OI history, liquidation flow, options, on-chain or scheduled-event evidence is not inferred.',
