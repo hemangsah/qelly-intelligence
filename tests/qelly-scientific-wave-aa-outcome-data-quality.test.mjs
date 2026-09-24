@@ -61,3 +61,16 @@ test('Wave AA migration locks terminal labels and observation updates',async()=>
   assert.match(migration,/observation_time_order_check/);
   assert.match(migration,/resolution_state_consistency_check/);
 });
+
+
+test('Wave AA exposes a bounded authenticated research audit without adding work to the ordinary Decision endpoint',async()=>{
+  const api=await read('functions/api/v1/decision-ledger/[[route]].js');
+  assert.match(api,/auditDecisionOutcomeData/);
+  assert.match(api,/relative==='research-audit'/);
+  assert.match(api,/researchSetupRows/);
+  assert.match(api,/researchObservationRows/);
+  assert.match(api,/qualityGate:'BLOCKED'/);
+  assert.match(api,/NO_OBSERVED_DATA/);
+  assert.match(api,/setupLimit=2000,observationLimit=5000/);
+  assert.doesNotMatch(api,/buildDecisionIntelligence\(env.*research-audit/s);
+});
