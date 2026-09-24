@@ -296,14 +296,24 @@ const historicalAnalogsMarkup=(data,escapeHtml)=>{
   const analogs=Array.isArray(context.analogs)?context.analogs:[];
   if(!analogs.length)return '<section class="q-dpg-analogs"><header><div><small>HISTORICAL ANALOGS</small><h2>Comparable history unavailable</h2></div><span>Context only</span></header><p>'+escapeHtml(context.reason||'Not enough resolved prior windows for a bounded comparison.')+'</p></section>';
   const summary=context.summary||{};
-  const cards=analogs.map(item=>'<article><header><span>#'+escapeHtml(String(item.rank))+'</span><strong>'+escapeHtml(displayTime(item.observedAt))+'</strong><em>'+Math.round(Number(item.similarity)*100)+'% similar</em></header><div><span><small>Regime</small><strong>'+escapeHtml(String(item.regime||'UNAVAILABLE'))+'</strong></span><span><small>Volatility</small><strong>'+escapeHtml(String(item.volatilityRegime||'UNKNOWN'))+'</strong></span><span><small>Forward return</small><strong>'+escapeHtml(String(item.forwardReturnPct))+'%</strong></span><span><small>Favorable / adverse</small><strong>'+escapeHtml(String(item.maxFavorablePct))+'% / '+escapeHtml(String(item.maxAdversePct))+'%</strong></span></div></article>').join('');
+  const duration=(value)=>Number.isFinite(Number(value))?(Number(value)>=86400000?(Number(value)/86400000).toFixed(1)+'d':(Number(value)/3600000).toFixed(1)+'h'):'Unavailable';
+  const pctValue=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Number(value).toFixed(2)+'%':'Unavailable';
+  const cards=analogs.map(item=>'<article><header><span>#'+escapeHtml(String(item.rank))+'</span><strong>'+escapeHtml(displayTime(item.observedAt))+'</strong><em>'+Math.round(Number(item.similarity)*100)+'% similar</em></header><div><span><small>Regime</small><strong>'+escapeHtml(String(item.regime||'UNAVAILABLE'))+'</strong></span><span><small>Volatility</small><strong>'+escapeHtml(String(item.volatilityRegime||'UNKNOWN'))+'</strong></span><span><small>Forward return</small><strong>'+escapeHtml(pctValue(item.forwardReturnPct))+'</strong></span><span><small>Favorable / adverse</small><strong>'+escapeHtml(pctValue(item.maxFavorablePct))+' / '+escapeHtml(pctValue(item.maxAdversePct))+'</strong></span><span><small>Resolved</small><strong>'+escapeHtml(duration(item.timeToResolutionMs))+'</strong></span></div></article>').join('');
   return '<section class="q-dpg-analogs"><header><div><small>HISTORICAL ANALOGS · DESCRIPTIVE ONLY</small><h2>Nearest prior market states</h2><p>'+escapeHtml(context.method||'')+'</p></div><span>NO ELIGIBILITY IMPACT</span></header>'+
-    '<div class="q-dpg-analog-summary"><span><em>Matches</em><strong>'+escapeHtml(String(summary.count??analogs.length))+'</strong></span><span><em>Median forward return</em><strong>'+escapeHtml(String(summary.medianForwardReturnPct??'—'))+'%</strong></span><span><em>Positive / negative</em><strong>'+Math.round(Number(summary.positiveShare||0)*100)+'% / '+Math.round(Number(summary.negativeShare||0)*100)+'%</strong></span><span><em>Median similarity</em><strong>'+Math.round(Number(summary.medianSimilarity||0)*100)+'%</strong></span></div>'+
+    '<div class="q-dpg-analog-summary">'+
+      '<span><em>Matches</em><strong>'+escapeHtml(String(summary.count??analogs.length))+'</strong></span>'+
+      '<span><em>Median forward return</em><strong>'+escapeHtml(pctValue(summary.medianForwardReturnPct))+'</strong></span>'+
+      '<span><em>Return IQR</em><strong>'+escapeHtml(pctValue(summary.q25ForwardReturnPct))+' → '+escapeHtml(pctValue(summary.q75ForwardReturnPct))+'</strong></span>'+
+      '<span><em>Positive / negative</em><strong>'+Math.round(Number(summary.positiveShare||0)*100)+'% / '+Math.round(Number(summary.negativeShare||0)*100)+'%</strong></span>'+
+      '<span><em>Median similarity</em><strong>'+Math.round(Number(summary.medianSimilarity||0)*100)+'%</strong></span>'+
+      '<span><em>Median MFE / MAE</em><strong>'+escapeHtml(pctValue(summary.medianMfePct))+' / '+escapeHtml(pctValue(summary.medianMaePct))+'</strong></span>'+
+      '<span><em>Median resolution</em><strong>'+escapeHtml(duration(summary.medianTimeToResolutionMs))+'</strong></span>'+
+      '<span><em>Sampled windows</em><strong>'+escapeHtml(String(context.sampledWindows??0))+'</strong></span>'+
+    '</div>'+
     '<div class="q-dpg-analog-list">'+cards+'</div>'+
     '<div class="q-dpg-analog-boundary"><strong>Leakage guard</strong><p>'+escapeHtml(context.leakageGuard||'')+'</p><p>'+escapeHtml(context.outcomeBoundary||'')+'</p></div>'+
   '</section>';
 };
-
 
 
 const pastPresentFutureMarkup=(data,escapeHtml)=>{
@@ -312,26 +322,53 @@ const pastPresentFutureMarkup=(data,escapeHtml)=>{
   const past=context.past||{},present=context.present||{},future=context.future||{};
   const move=past.selectedRange;
   const analogSummary=past.historicalAnalogs?.summary;
-  const scenario=future.scenarios||{};
+  const scenario=future.scenarios||{},details=future.scenarioDetails||{};
   const targets=Array.isArray(future.targetFeasibility)?future.targetFeasibility:[];
-  const probability=(value)=>Number.isFinite(Number(value))?(Number(value)*100).toFixed(1)+'%':'Unavailable';
+  const probability=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?(Number(value)*100).toFixed(1)+'%':'Unavailable';
+  const pctValue=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?(Number(value)>=0?'+':'')+Number(value).toFixed(2)+'%':'Unavailable';
+  const price=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?money(value):'Unavailable';
+  const stateText=(value)=>String(value||'UNAVAILABLE').replaceAll('_',' ');
+  const evidenceList=(items,empty)=>Array.isArray(items)&&items.length?'<ul>'+items.slice(0,4).map(item=>'<li><strong>'+escapeHtml(item.title||item.type||'Evidence')+'</strong><span>'+escapeHtml(item.detail||item.direction||'')+'</span></li>').join('')+'</ul>':'<p>'+escapeHtml(empty)+'</p>';
+  const newsItems=Array.isArray(past.newsTimeline?.items)?past.newsTimeline.items:[];
+  const scenarioCard=(label,item)=>'<article><header><span>'+escapeHtml(label)+'</span><strong>'+probability(item?.probability)+'</strong></header><p><b>Range</b> '+(item?.targetRange?price(item.targetRange.low)+' → '+price(item.targetRange.high):'Unavailable')+'</p><p><b>Trigger</b> '+escapeHtml(item?.trigger||'Unavailable')+'</p><p><b>Invalidation</b> '+escapeHtml(item?.invalidation||'Unavailable')+'</p><small>'+escapeHtml(item?.whatChanges||'')+'</small></article>';
   const pastBody=move
-    ?'<strong>'+(Number(move.changePct)>=0?'+':'')+escapeHtml(String(move.changePct))+'%</strong><p>'+escapeHtml(String(move.candles))+' candles · range '+escapeHtml(String(move.rangePct))+'% · volume '+escapeHtml(String(move.volumeRatio??'N/A'))+'× prior window.</p>'
-    :'<strong>No selected range</strong><p>Select a candle or drag a range to attach move-specific Past evidence.</p>';
+    ?'<strong>'+escapeHtml(pctValue(move.returnPct??move.changePct))+'</strong><p>'+escapeHtml(String(move.candles))+' candles · range '+escapeHtml(String(move.rangePct??'—'))+'% · volume '+escapeHtml(String(move.volumeRatio??'N/A'))+'× prior window.</p>'+
+      '<div class="q-dpg-ppf__facts"><span><em>Structure</em><b>'+escapeHtml(stateText(move.structure?.state))+'</b></span><span><em>Regime</em><b>'+escapeHtml(stateText(move.regime))+'</b></span><span><em>Support</em><b>'+price(move.support)+'</b></span><span><em>Resistance</em><b>'+price(move.resistance)+'</b></span><span><em>Volatility</em><b>'+escapeHtml(pctValue(move.volatilityPct))+'</b></span><span><em>Cross-asset</em><b>'+escapeHtml(stateText(past.crossAsset?.state))+'</b></span></div>'+
+      '<details class="q-dpg-ppf__details"><summary>Move evidence and timeline</summary><div class="q-dpg-ppf__evidence"><section><h3>Supporting</h3>'+evidenceList(past.supportingEvidence,'No explicit supporting move evidence was classified.')+'</section><section><h3>Contradictory</h3>'+evidenceList(past.contradictoryEvidence,'No explicit move contradiction was classified.')+'</section><section><h3>News timeline</h3>'+(newsItems.length?'<ul>'+newsItems.slice(0,4).map(item=>'<li><strong>'+escapeHtml(item.title)+'</strong><span>'+escapeHtml(item.source||'External reporting')+(item.publishedAt?' · '+escapeHtml(displayTime(item.publishedAt)):'')+'</span></li>').join('')+'</ul>':'<p>'+escapeHtml(past.newsTimeline?.boundary||'No move-specific news matches.')+'</p>')+'</section><section><h3>Historical derivatives</h3><p>'+escapeHtml(stateText(past.historicalDerivatives?.state))+' · '+escapeHtml(past.historicalDerivatives?.boundary||'No historical derivatives context.')+'</p></section></div></details>'
+    :'<strong>No selected range</strong><p>Select a candle or drag a range to attach move-specific price, structure, volume, news, cross-asset and historical-derivatives context.</p>';
   const analogBody=analogSummary
-    ?'<small>Analogs</small><span>'+escapeHtml(String(analogSummary.count??0))+' matches · median '+escapeHtml(String(analogSummary.medianForwardReturnPct??'—'))+'% · descriptive only</span>'
-    :'<small>Analogs</small><span>'+escapeHtml(String(past.historicalAnalogs?.state||'UNAVAILABLE').replaceAll('_',' '))+'</span>';
+    ?'<small>Analogs</small><span>'+escapeHtml(String(analogSummary.count??0))+' matches · median '+escapeHtml(String(analogSummary.medianForwardReturnPct??'—'))+'% · MFE '+escapeHtml(String(analogSummary.medianMfePct??'—'))+'% · MAE '+escapeHtml(String(analogSummary.medianMaePct??'—'))+'% · descriptive only</span>'
+    :'<small>Analogs</small><span>'+escapeHtml(stateText(past.historicalAnalogs?.state))+'</span>';
+  const currentSetup=present.currentSetup||{};
+  const presentFacts=[
+    ['Freshness',present.freshness],
+    ['Regime',present.regime],
+    ['Structure',present.structure?.state],
+    ['Momentum RSI',present.momentum?.rsi14],
+    ['Volatility',present.volatility?.regime],
+    ['Liquidity',present.liquidity?.state],
+    ['Derivatives',present.derivatives?.state],
+    ['Macro',present.macro?.level||present.macro?.state],
+    ['Event risk',present.eventRisk?.level||present.eventRisk?.state],
+    ['MTF',present.multiTimeframe?.agreement?.direction],
+    ['Calibration',present.calibration?.state],
+    ['Setup',currentSetup.status]
+  ].map(([label,value])=>'<span><em>'+escapeHtml(String(label))+'</em><b>'+escapeHtml(stateText(value))+'</b></span>').join('');
   const targetRows=targets.length
-    ?targets.map(item=>'<li><span>'+escapeHtml(item.label||'Target')+'</span><strong>'+escapeHtml(String(item.feasibility||'UNAVAILABLE').replaceAll('_',' '))+'</strong><small>'+(Number.isFinite(Number(item.target))?money(item.target):'Target unavailable')+(item.structuralBarrier!==null&&item.structuralBarrier!==undefined?' · barrier '+money(item.structuralBarrier):'')+'</small></li>').join('')
+    ?targets.map(item=>'<li><span>'+escapeHtml(item.label||'Target')+'</span><strong>'+escapeHtml(stateText(item.feasibility))+'</strong><small>'+(Number.isFinite(Number(item.target))?money(item.target):'Target unavailable')+(item.structuralBarrier!==null&&item.structuralBarrier!==undefined?' · barrier '+money(item.structuralBarrier):'')+'</small></li>').join('')
     :'<li><span>Targets</span><strong>Unavailable</strong><small>No evidence-qualified target ladder.</small></li>';
-  return '<section class="q-dpg-ppf" aria-label="Past Present Future">'+
-    '<article><header><small>PAST</small><h2>Observed context</h2></header>'+pastBody+'<div class="q-dpg-ppf__meta">'+analogBody+'</div></article>'+
-    '<article><header><small>PRESENT</small><h2>'+escapeHtml(String(present.qellyView?.action||'NO TRADE').replaceAll('_',' '))+'</h2></header><strong>'+escapeHtml(String(present.marketState?.label||'Market state unavailable'))+'</strong><p>Structure '+escapeHtml(String(present.structure?.state||'UNAVAILABLE').replaceAll('_',' '))+' · trend '+escapeHtml(String(present.trend?.regime||'UNKNOWN').replaceAll('_',' '))+' · volatility '+escapeHtml(String(present.volatility?.regime||'UNKNOWN').replaceAll('_',' '))+'.</p><div class="q-dpg-ppf__meta"><small>MTF</small><span>'+escapeHtml(String(present.multiTimeframe?.agreement?.direction||'UNAVAILABLE'))+'</span><small>Calibration</small><span>'+escapeHtml(String(present.calibration?.state||'UNCALIBRATED').replaceAll('_',' '))+'</span><small>Liquidity</small><span>'+escapeHtml(String(present.liquidity?.state||'unavailable'))+'</span></div></article>'+
-    '<article><header><small>FUTURE</small><h2>Scenario map</h2></header><strong>'+probability(scenario.bull)+' bull · '+probability(scenario.base)+' base · '+probability(scenario.bear)+' bear</strong><p>Horizon '+escapeHtml(String(future.horizon||'Unavailable'))+' · modelled range '+(Number.isFinite(Number(future.expectedRange?.p05))?money(future.expectedRange.p05):'—')+' to '+(Number.isFinite(Number(future.expectedRange?.p95))?money(future.expectedRange.p95):'—')+'.</p><ul class="q-dpg-ppf__targets">'+targetRows+'</ul><p><strong>What changes the view:</strong> '+escapeHtml(future.whatChangesView||'Reassess when fresh evidence changes.')+'</p></article>'+
+  const tail=future.tail;
+  return '<section class="q-dpg-ppf q-dpg-ppf--v2" aria-label="Past Present Future">'+
+    '<article><header><small>PAST · WHY DID IT HAPPEN?</small><h2>Observed context</h2></header>'+pastBody+'<div class="q-dpg-ppf__meta">'+analogBody+'</div><p class="q-dpg-ppf__boundary">'+escapeHtml(past.context||'Historical context is descriptive only.')+'</p></article>'+
+    '<article><header><small>PRESENT · WHAT IS HAPPENING NOW?</small><h2>'+escapeHtml(stateText(present.qellyView?.action||'NO TRADE'))+'</h2></header><strong>'+escapeHtml(String(present.marketState?.label||'Market state unavailable'))+'</strong><p>'+escapeHtml(present.qellyView?.label||'')+'</p><div class="q-dpg-ppf__facts">'+presentFacts+'</div><div class="q-dpg-ppf__meta"><small>Evidence quality</small><span>'+probability(present.qellyView?.evidenceQuality)+'</span><small>Confidence</small><span>'+probability(present.qellyView?.confidence)+'</span><small>Contradiction</small><span>'+escapeHtml(stateText(present.contradiction?.state))+'</span><small>Entry</small><span>'+escapeHtml(stateText(currentSetup.entry?.method))+(Number.isFinite(Number(currentSetup.entry?.preferred))?' · '+price(currentSetup.entry.preferred):'')+'</span><small>Stop</small><span>'+price(currentSetup.stop?.price)+'</span><small>Expiry</small><span>'+(currentSetup.expiryAt?escapeHtml(displayTime(currentSetup.expiryAt)):'Unavailable')+'</span></div></article>'+
+    '<article><header><small>FUTURE · PROBABLE SCENARIOS</small><h2>Scenario map</h2></header><strong>'+probability(scenario.bull)+' bull · '+probability(scenario.base)+' base · '+probability(scenario.bear)+' bear</strong><p>Horizon '+escapeHtml(String(future.horizon||'Unavailable'))+' · modelled range '+price(future.expectedRange?.p05)+' to '+price(future.expectedRange?.p95)+'.</p><div class="q-dpg-ppf__scenarios">'+scenarioCard('Bull',details.bull)+scenarioCard('Base',details.base)+scenarioCard('Bear',details.bear)+'</div>'+
+      (tail?'<details class="q-dpg-ppf__tail"><summary>Tail bounds</summary><p>'+price(tail.lower)+' → '+price(tail.upper)+' · nominal combined tail mass '+Math.round(Number(tail.combinedNominalTailMass||0)*100)+'%.</p><p>'+escapeHtml(tail.boundary||'')+'</p></details>':'')+
+      '<div class="q-dpg-ppf__probability-boundary"><strong>'+escapeHtml(stateText(future.probabilityCalibration?.state))+'</strong><p>'+escapeHtml(future.probabilityCalibration?.boundary||future.boundary||'')+'</p></div><ul class="q-dpg-ppf__targets">'+targetRows+'</ul><p><strong>What changes the view:</strong> '+escapeHtml(future.whatChangesView||'Reassess when fresh evidence changes.')+'</p></article>'+
   '</section>';
 };
 
-const contradictionMarkup=(data,escapeHtml)=>{
+
+const contradictionMarkup=(data,escapeHtml)=>{const contradictionMarkup=(data,escapeHtml)=>{
   const context=data?.contradictionAnalysis;
   if(!context)return '';
   const support=Array.isArray(context.support)?context.support:[];
@@ -342,44 +379,82 @@ const contradictionMarkup=(data,escapeHtml)=>{
 };
 
 const decisionTraceMarkup=(data,escapeHtml)=>{
-  const trace=data?.decisionTrace;
+  const trace=data?.evidenceGraph||data?.decisionTrace;
   if(!trace)return '';
   const nodes=Array.isArray(trace.nodes)?trace.nodes:[];
+  const pipeline=Array.isArray(trace.pipeline)?trace.pipeline:[];
   const edges=Array.isArray(trace.textAlternative)?trace.textAlternative:[];
-  return '<section class="q-dpg-trace"><header><div><small>DECISION TRACE · EVIDENCE GRAPH</small><h2>Observed evidence → QELLY view → research setup</h2><p>'+escapeHtml(trace.boundary||'')+'</p></div><span>NO SECOND DECISION ENGINE</span></header><div class="q-dpg-trace__nodes">'+nodes.map(node=>'<article><div><small>'+escapeHtml(String(node.kind||'evidence').replaceAll('-',' '))+'</small><strong>'+escapeHtml(node.label||node.id)+'</strong></div><span>'+escapeHtml(String(node.freshness||'UNAVAILABLE'))+' · '+escapeHtml(String(node.role||'context').replaceAll('_',' '))+'</span><p>'+escapeHtml(node.source||'QELLY derived research')+'</p><details><summary>Method and limits</summary><p>'+escapeHtml(node.methodology||'')+'</p><ul>'+(Array.isArray(node.limitations)?node.limitations.map(item=>'<li>'+escapeHtml(item)+'</li>').join(''):'')+'</ul></details></article>').join('')+'</div><details class="q-dpg-trace__edges"><summary>Trace relationships</summary><ol>'+edges.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ol></details></section>';
+  const confidence=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Math.round(Number(value)*100)+'%':'Not quantified';
+  const nodeMarkup=nodes.map(node=>'<article><div><small>'+escapeHtml(String(node.kind||'evidence').replaceAll('-',' '))+'</small><strong>'+escapeHtml(node.label||node.id)+'</strong></div><span>'+escapeHtml(String(node.freshness||'UNAVAILABLE'))+' · '+escapeHtml(String(node.importance||'MEDIUM'))+' · '+escapeHtml(String(node.supportState||node.role||'NEUTRAL').replaceAll('_',' '))+'</span><p>'+escapeHtml(node.source||'QELLY derived research')+'</p><small>Confidence: '+escapeHtml(confidence(node.confidence))+'</small><details><summary>Method and limits</summary><p>'+escapeHtml(node.method||node.methodology||'')+'</p><ul>'+(Array.isArray(node.limitations)?node.limitations.map(item=>'<li>'+escapeHtml(item)+'</li>').join(''):'')+'</ul></details></article>').join('');
+  const pipelineMarkup=pipeline.length?'<ol class="q-dpg-trace__pipeline">'+pipeline.map(item=>'<li><span>'+escapeHtml(String(item.order))+'</span><div><small>'+escapeHtml(String(item.stage||'STAGE').replaceAll('_',' '))+'</small><strong>'+escapeHtml(item.label||item.id)+'</strong><em>'+escapeHtml(String(item.freshness||'UNAVAILABLE'))+' · '+escapeHtml(String(item.supportState||'NEUTRAL').replaceAll('_',' '))+'</em></div></li>').join('')+'</ol>':'';
+  return '<section class="q-dpg-trace q-dpg-trace--v2"><header><div><small>DECISION TRACE · EVIDENCE GRAPH 2.0</small><h2>Raw observation → normalized data → evidence → setup → outcome</h2><p>'+escapeHtml(trace.boundary||'')+'</p></div><span>NO SECOND DECISION ENGINE</span></header>'+pipelineMarkup+
+    '<details class="q-dpg-trace__inventory" open><summary>Evidence node inventory · '+escapeHtml(String(nodes.length))+' nodes</summary><div class="q-dpg-trace__nodes">'+nodeMarkup+'</div></details>'+
+    '<details class="q-dpg-trace__edges"><summary>Trace relationships</summary><ol>'+edges.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ol></details></section>';
 };
 
 
-
-const whatChangedMarkup=(previous,current,escapeHtml)=>{
+const whatChangedMarkup=(previous,current,data,escapeHtml)=>{
   if(!current)return '';
   const comparable=previous&&previous.asset===current.asset&&previous.interval===current.interval;
   if(!comparable)return '<section id="qelly-decision-what-changed" class="q-dpg-what-changed"><header><div><small>WHAT CHANGED?</small><h2>Baseline created</h2></div><span>Same-session comparison</span></header><p>This is the first comparable '+escapeHtml(String(current.asset||''))+' / '+escapeHtml(String(current.interval||''))+' Decision snapshot in this session. Refresh or recompute to see deltas.</p></section>';
   const fields=[
+    ['Price','price'],
     ['QELLY view','action'],
     ['Confidence','confidence'],
     ['Evidence quality','evidenceQuality'],
+    ['Calibration','calibrationState'],
+    ['Calibration Brier','calibrationBrierScore'],
+    ['Structure','structureState'],
+    ['Structure bias','structureBias'],
     ['Regime','regime'],
     ['Volatility regime','volatilityRegime'],
     ['MTF direction','timeframeDirection'],
     ['MTF agreement','timeframeAgreement'],
+    ['Funding','fundingPct'],
+    ['Funding change','fundingChangeBps'],
+    ['Open interest','openInterestNotionalUsd'],
+    ['OI change','openInterestChangeState'],
+    ['Macro','macroLevel'],
+    ['USD / INR ref','macroUsdInr'],
+    ['Event risk','eventRiskLevel'],
+    ['Contradiction','contradictionState'],
+    ['Contradiction score','contradictionScore'],
     ['Trade status','tradeStatus'],
     ['Lifecycle','lifecycle'],
+    ['Entry','entryMethod'],
+    ['Entry price','entryPreferred'],
     ['Selected R:R','selectedRr'],
     ['R:R feasibility','selectedRrFeasibility'],
-    ['Invalidation','invalidationPrice'],
+    ['Selected target','selectedTarget'],
+    ['Stop / invalidation','stopPrice'],
     ['Expiry','expiryAt']
   ];
   const renderValue=(key,value)=>{
     if(value===null||value===undefined||value==='')return 'Unavailable';
-    if(key==='confidence'||key==='evidenceQuality'||key==='timeframeAgreement')return (Number(value)*100).toFixed(1)+'%';
-    if(key==='invalidationPrice'&&Number.isFinite(Number(value)))return money(value);
+    if(['confidence','evidenceQuality','timeframeAgreement','contradictionScore'].includes(key))return (Number(value)*100).toFixed(1)+'%';
+    if(['price','entryPreferred','selectedTarget','stopPrice','invalidationPrice'].includes(key)&&Number.isFinite(Number(value)))return money(value);
+    if(key==='openInterestNotionalUsd'&&Number.isFinite(Number(value)))return compactMoney(value);
+    if(key==='fundingPct'&&Number.isFinite(Number(value)))return Number(value).toFixed(5)+'%';
+    if(key==='fundingChangeBps'&&Number.isFinite(Number(value)))return Number(value).toFixed(3)+' bps';
+    if(key==='macroUsdInr'&&Number.isFinite(Number(value)))return Number(value).toFixed(4);
+    if(key==='calibrationBrierScore'&&Number.isFinite(Number(value)))return Number(value).toFixed(4);
     return String(value).replaceAll('_',' ');
   };
+  const reasonFor=(key)=>{
+    if(key==='action'||key==='contradictionState'||key==='contradictionScore')return data?.contradictionAnalysis?.strongestContradiction||data?.qellyView?.label||'Current evidence mix changed.';
+    if(key==='confidence'||key==='evidenceQuality')return 'Evidence confidence is recomputed from freshness, sample depth, scenario separation and multi-timeframe agreement; it is not a success probability.';
+    if(key==='calibrationState'||key==='calibrationBrierScore')return data?.quant?.calibration?.reason||'Walk-forward calibration evidence changed.';
+    if(key==='selectedRr'||key==='selectedRrFeasibility'||key==='selectedTarget')return data?.tradeResearch?.selected?.feasibilityReason||data?.tradeResearch?.reason||'Target feasibility changed with current structure and scenario range.';
+    if(key==='entryMethod'||key==='entryPreferred'||key==='stopPrice'||key==='expiryAt')return data?.tradeResearch?.reason||'Setup state changed after current entry, invalidation or expiry checks.';
+    if(key==='macroLevel'||key==='macroUsdInr')return data?.evidence?.macro?.reason||'Governed macro reference context changed.';
+    if(key==='eventRiskLevel')return data?.evidence?.eventRisk?.reason||'Scheduled event-risk context changed.';
+    if(key==='fundingPct'||key==='fundingChangeBps'||key==='openInterestNotionalUsd'||key==='openInterestChangeState')return 'Derivatives context changed; unavailable historical OI change is not inferred.';
+    if(key==='structureState'||key==='structureBias')return 'Confirmed swing/range structure was recomputed from the current normalized candle history.';
+    return '';
+  };
   const changed=fields.map(([label,key])=>({label,key,before:previous[key],after:current[key]})).filter(item=>String(item.before??'')!==String(item.after??''));
-  return '<section id="qelly-decision-what-changed" class="q-dpg-what-changed"><header><div><small>WHAT CHANGED?</small><h2>'+(changed.length?escapeHtml(String(changed.length))+' tracked changes':'No tracked field changed')+'</h2></div><span>'+escapeHtml(String(previous.observedAt||''))+' → '+escapeHtml(String(current.observedAt||''))+'</span></header>'+(changed.length?'<div>'+changed.map(item=>'<article><small>'+escapeHtml(item.label)+'</small><span>'+escapeHtml(renderValue(item.key,item.before))+' → <strong>'+escapeHtml(renderValue(item.key,item.after))+'</strong></span></article>').join('')+'</div>':'<p>The tracked Decision fields are unchanged from the previous same-asset, same-timeframe snapshot.</p>')+'</section>';
-};
-
+  return '<section id="qelly-decision-what-changed" class="q-dpg-what-changed"><header><div><small>WHAT CHANGED?</small><h2>'+(changed.length?escapeHtml(String(changed.length))+' tracked changes':'No tracked field changed')+'</h2></div><span>'+escapeHtml(String(previous.observedAt||''))+' → '+escapeHtml(String(current.observedAt||''))+'</span></header>'+(changed.length?'<div>'+changed.map(item=>'<article><small>'+escapeHtml(item.label)+'</small><span>'+escapeHtml(renderValue(item.key,item.before))+' → <strong>'+escapeHtml(renderValue(item.key,item.after))+'</strong></span>'+(reasonFor(item.key)?'<p class="q-dpg-what-changed__reason">'+escapeHtml(reasonFor(item.key))+'</p>':'')+'</article>').join('')+'</div>':'<p>The tracked Decision fields are unchanged from the previous same-asset, same-timeframe snapshot.</p>')+'</section>';
+}
 
 
 export async function renderDecisionProvenGraph(main,deps){
@@ -461,7 +536,7 @@ export async function renderDecisionProvenGraph(main,deps){
       '<section class="q-dpg-view q-dpg-view--'+actionTone(view.action)+'"><div><small>QELLY VIEW</small><h2>'+escapeHtml(view.action)+'</h2><p>'+escapeHtml(view.label)+'</p></div><div class="q-dpg-confidence"><span>Evidence confidence</span><strong>'+Math.round(view.confidence*100)+'%</strong></div>'+calibration(view,escapeHtml)+levels(view)+'<details><summary>Why this view?</summary><ul>'+view.why.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul><p><strong>What changes it:</strong> '+escapeHtml(view.changesIf)+'</p></details></section>'+
       '<section class="q-dpg-stage"><div class="q-dpg-chart-wrap"><div class="q-dpg-chart-help">Click one candle or drag across observed candles to select a move.</div>'+chart(data,escapeHtml)+'<div class="q-dpg-selection-actions"><span data-dpg-selection-label>'+(state.draft?(state.draft.end-state.draft.start<(INTERVAL_MS[state.interval]||0)?'Single candle selected':'Range selected'):'No range selected')+'</span><button class="q-button q-button--primary" data-dpg-explain '+(state.draft?'':'disabled')+'>'+(state.draft&&state.draft.end-state.draft.start<(INTERVAL_MS[state.interval]||0)?'Explain this candle':'Explain this move')+'</button><button class="q-button q-button--secondary" data-dpg-clear '+(state.draft||state.selection?'':'disabled')+'>Clear</button></div></div><aside class="q-dpg-scenarios">'+[['Bull',data.forecast.probabilities.bull],['Base',data.forecast.probabilities.base],['Bear',data.forecast.probabilities.bear]].map(([label,value])=>'<article><span>'+label+'</span><strong>'+Math.round(value*100)+'%</strong><meter min="0" max="1" value="'+value+'"></meter></article>').join('')+'<p>Modelled terminal range<br><strong>'+money(data.forecast.terminal.p05)+' – '+money(data.forecast.terminal.p95)+'</strong></p></aside></section>'+
       (move?'<section class="q-dpg-move"><header><div><small>SELECTED MOVE</small><h2>'+pct(move.changePct)+' across '+move.candles+' candles</h2></div><span>'+new Date(move.start).toLocaleString()+' → '+new Date(move.end).toLocaleString()+'</span></header><div><article><span>Range</span><strong>'+pct(move.rangePct)+'</strong></article><article><span>Volume vs prior</span><strong>'+(move.volumeRatio?move.volumeRatio+'×':'N/A')+'</strong></article><article><span>Volatility</span><strong>'+pct(move.volatilityPct)+'</strong></article><article><span>Prior volatility</span><strong>'+(move.priorVolatilityPct===null?'N/A':pct(move.priorVolatilityPct))+'</strong></article></div></section>':'')+
-      pastPresentFutureMarkup(data,escapeHtml)+contradictionMarkup(data,escapeHtml)+whatChangedMarkup(state.previousSnapshot,data.decisionSnapshot,escapeHtml)+decisionTraceMarkup(data,escapeHtml)+
+      pastPresentFutureMarkup(data,escapeHtml)+contradictionMarkup(data,escapeHtml)+whatChangedMarkup(state.previousSnapshot,data.decisionSnapshot,data,escapeHtml)+decisionTraceMarkup(data,escapeHtml)+
       marketStructureContext(data,escapeHtml)+multiTimeframe(data,escapeHtml)+liquidityContext(data,escapeHtml)+derivativesContext(data,escapeHtml)+crossAssetContext(data,escapeHtml)+macroContext(data,escapeHtml)+eventRiskContext(data,escapeHtml)+adSlot('decision-intelligence-inline')+'<section class="q-dpg-evidence"><header><div><small>EVIDENCE RANKING</small><h2>What best explains the move</h2></div><span>News: '+escapeHtml(data.evidence?.news?.state||'unavailable')+' · L2: '+escapeHtml(data.evidence?.liquidity?.state||'unavailable')+' · Funding/OI: '+escapeHtml(data.evidence?.derivatives?.state||'unavailable')+' · Cross-asset: '+escapeHtml(data.evidence?.crossAsset?.state||'unavailable')+' · Macro: '+escapeHtml(data.evidence?.macro?.state||'unavailable')+' · Event calendar: '+escapeHtml(data.evidence?.eventRisk?.state||'unavailable')+' · Liquidations: unavailable, not inferred</span></header>'+evidence(data)+'</section>'+
       '<details id="qelly-decision-methodology" class="q-dpg-audit"><summary>Methodology and sources</summary><div><section><h3>Market data</h3><p>'+escapeHtml(data.provenance.provider)+' public candles. <a href="'+escapeHtml(data.provenance.documentation)+'" target="_blank" rel="noopener">Source documentation ↗</a></p></section><section><h3>Method</h3><p>'+data.provenance.model.features.map(escapeHtml).join(' · ')+'</p><p>'+escapeHtml(data.confidence.calibration)+'</p></section><section><h3>Limits</h3><ul>'+data.provenance.model.limitations.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul></section></div></details>';
   };
