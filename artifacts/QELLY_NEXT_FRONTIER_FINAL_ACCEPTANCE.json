@@ -1,0 +1,452 @@
+{
+  "schemaVersion": "qelly.next-frontier-final-acceptance/1.0.0",
+  "createdAt": "2026-09-24T21:18:30.000Z",
+  "status": "READY_FOR_EXACT_HEAD_GATES",
+  "start": {
+    "promptBaselineSha": "0fc22351c5fcf4541892954e273ef58e95691106",
+    "reconciledProductionSha": "9f422f60a393e87285201abab12934acd18b4780",
+    "newerPrRange": "385-396",
+    "openPrsAtZbStart": 0
+  },
+  "waves": [
+    {
+      "wave": "Q",
+      "pr": 385,
+      "headSha": "d57d5ab3075ce48e83e88ad86aec567b45d4ed57",
+      "mergeSha": "777c78761c29c1069f971efa3d2cf229902bb1e4",
+      "purpose": "Post-PR384 architecture and latency audit"
+    },
+    {
+      "wave": "R",
+      "pr": 386,
+      "headSha": "54491a408ddc581117de41463c7ea8794ce92bd3",
+      "mergeSha": "d8ad79691e90a8ce9b0bed51323ba1f9e03151dc",
+      "purpose": "Find Trade Now 2.0 and structural R:R 2.0"
+    },
+    {
+      "wave": "Header",
+      "pr": 387,
+      "headSha": "55e6e7821254ae074d48bd33a363dcd1094d2da6",
+      "mergeSha": "e4f98207de06ed23a9103663fa47ded07479fd07",
+      "purpose": "Decision Header 2.0 completion"
+    },
+    {
+      "wave": "S",
+      "pr": 388,
+      "headSha": "9cbc56c0ce0baa16455fddbda00ad0b11b7fae61",
+      "mergeSha": "18bae8fb5b2b651e733cf7629f0f3ef57aa95c56",
+      "purpose": "Observed setup lifecycle and outcome ledger"
+    },
+    {
+      "wave": "T",
+      "pr": 389,
+      "headSha": "a0c8bc74904793ac458b92cc3163bc8e27543e64",
+      "mergeSha": "13ac110915f744fc98733d47be3bba9b2c86d1ab",
+      "purpose": "Real target-touch calibration gate"
+    },
+    {
+      "wave": "U",
+      "pr": 390,
+      "headSha": "2b9d122285ee7da96745706ce1c8005ef2d651d5",
+      "mergeSha": "8f7066bdad8de3ae609cfc85205e7abd47f55110",
+      "purpose": "Market structure and L2 microstructure"
+    },
+    {
+      "wave": "V",
+      "pr": 391,
+      "headSha": "88dd6b379e8abd70140466792114e4d4aa83943b",
+      "mergeSha": "d47ab7e64f95cd4fcfb661861d9dfcb118d0ce3a",
+      "purpose": "Derivatives 2.0"
+    },
+    {
+      "wave": "W",
+      "pr": 392,
+      "headSha": "08abd819b222c026e0d39cda3101e513e3546bc6",
+      "mergeSha": "a2f0fe7c9598f84b903268e17679e0710b0c9020",
+      "purpose": "Macro, cross-asset and event-risk boundaries"
+    },
+    {
+      "wave": "X",
+      "pr": 393,
+      "headSha": "91ac09a7685924bc2a1932cee18653cadb43b649",
+      "mergeSha": "69d667cb2d1f5cf9c2c8ff55fef845668065e3b0",
+      "purpose": "Past/Present/Future, What Changed and Evidence Graph 2.0"
+    },
+    {
+      "wave": "Y",
+      "pr": 394,
+      "headSha": "e43b4ba7090a85a6f48dc639c9ba596a1796cc49",
+      "mergeSha": "2737c7690edced6d2765ebbe5f48a01971a1a976",
+      "purpose": "QELLY Chat Decision Copilot 2.0"
+    },
+    {
+      "wave": "Z",
+      "pr": 395,
+      "headSha": "13beecd10a056834743758df522de82d390269c8",
+      "mergeSha": "33e53cd1964035cdfe43a1c31b0ef9fdbdd157d6",
+      "purpose": "Whole-terminal coherence and classified cleanup"
+    },
+    {
+      "wave": "ZA",
+      "pr": 396,
+      "headSha": "c31956bb7e2a4f2fe506e08b72a98f5698e53f04",
+      "mergeSha": "9f422f60a393e87285201abab12934acd18b4780",
+      "purpose": "Performance, embed and route hardening"
+    }
+  ],
+  "decisionChecklist": [
+    {
+      "item": "authoritative header",
+      "status": "PASS"
+    },
+    {
+      "item": "stable first paint",
+      "status": "PASS"
+    },
+    {
+      "item": "no crash",
+      "status": "PASS"
+    },
+    {
+      "item": "no route-cycle iframe errors",
+      "status": "PASS"
+    },
+    {
+      "item": "scanner governed",
+      "status": "PASS"
+    },
+    {
+      "item": "1:1",
+      "status": "PASS"
+    },
+    {
+      "item": "1:2",
+      "status": "PASS"
+    },
+    {
+      "item": "1:3",
+      "status": "PASS"
+    },
+    {
+      "item": "1:4",
+      "status": "PASS"
+    },
+    {
+      "item": "Auto",
+      "status": "PASS"
+    },
+    {
+      "item": "Custom",
+      "status": "PASS"
+    },
+    {
+      "item": "structural R:R feasibility",
+      "status": "PASS"
+    },
+    {
+      "item": "entry logic",
+      "status": "PASS"
+    },
+    {
+      "item": "stop logic",
+      "status": "PASS"
+    },
+    {
+      "item": "multiple invalidation classes",
+      "status": "PASS"
+    },
+    {
+      "item": "targets",
+      "status": "PASS"
+    },
+    {
+      "item": "setup expiry",
+      "status": "PASS"
+    },
+    {
+      "item": "lifecycle",
+      "status": "PASS"
+    },
+    {
+      "item": "outcome ledger",
+      "status": "PASS"
+    },
+    {
+      "item": "target-touch calibration only if valid",
+      "status": "PASS"
+    },
+    {
+      "item": "NO TRADE first-class",
+      "status": "PASS"
+    },
+    {
+      "item": "MTF",
+      "status": "PASS"
+    },
+    {
+      "item": "market structure",
+      "status": "PASS"
+    },
+    {
+      "item": "liquidity if real",
+      "status": "PASS"
+    },
+    {
+      "item": "derivatives",
+      "status": "PASS"
+    },
+    {
+      "item": "macro if real",
+      "status": "PASS"
+    },
+    {
+      "item": "cross-asset if real",
+      "status": "PASS"
+    },
+    {
+      "item": "event risk",
+      "status": "PASS"
+    },
+    {
+      "item": "news evidence",
+      "status": "PASS"
+    },
+    {
+      "item": "options explicit available/unavailable",
+      "status": "PASS"
+    },
+    {
+      "item": "on-chain explicit available/unavailable",
+      "status": "PASS"
+    },
+    {
+      "item": "liquidations explicit available/unavailable",
+      "status": "PASS"
+    },
+    {
+      "item": "probability language clean",
+      "status": "PASS"
+    },
+    {
+      "item": "analogs leakage-safe",
+      "status": "PASS"
+    },
+    {
+      "item": "Past",
+      "status": "PASS"
+    },
+    {
+      "item": "Present",
+      "status": "PASS"
+    },
+    {
+      "item": "Future",
+      "status": "PASS"
+    },
+    {
+      "item": "What Changed",
+      "status": "PASS"
+    },
+    {
+      "item": "Evidence Graph",
+      "status": "PASS"
+    },
+    {
+      "item": "QELLY Chat Decision context",
+      "status": "PASS"
+    },
+    {
+      "item": "Search/Dossier/Formula integration",
+      "status": "PASS"
+    },
+    {
+      "item": "mobile",
+      "status": "PASS"
+    },
+    {
+      "item": "accessibility",
+      "status": "PASS"
+    },
+    {
+      "item": "measured latency",
+      "status": "PASS"
+    },
+    {
+      "item": "security",
+      "status": "PASS_WITH_REVIEWED_EXCEPTIONS"
+    }
+  ],
+  "terminalChecklist": [
+    {
+      "item": "Home",
+      "status": "PASS"
+    },
+    {
+      "item": "Market",
+      "status": "PASS"
+    },
+    {
+      "item": "Decision",
+      "status": "PASS"
+    },
+    {
+      "item": "Formula",
+      "status": "PASS"
+    },
+    {
+      "item": "Dossier",
+      "status": "PASS"
+    },
+    {
+      "item": "Chat",
+      "status": "PASS"
+    },
+    {
+      "item": "Search",
+      "status": "PASS"
+    },
+    {
+      "item": "India",
+      "status": "PASS"
+    },
+    {
+      "item": "Alerts",
+      "status": "PASS"
+    },
+    {
+      "item": "Notifications",
+      "status": "PASS"
+    },
+    {
+      "item": "Verify",
+      "status": "PASS"
+    },
+    {
+      "item": "calculators",
+      "status": "PASS"
+    },
+    {
+      "item": "no old UI flash",
+      "status": "PASS"
+    },
+    {
+      "item": "no duplicate shell",
+      "status": "PASS"
+    },
+    {
+      "item": "no critical console errors",
+      "status": "PASS"
+    },
+    {
+      "item": "no overflow",
+      "status": "PASS"
+    },
+    {
+      "item": "public/private boundaries correct",
+      "status": "PASS"
+    },
+    {
+      "item": "canonical correct",
+      "status": "PASS"
+    },
+    {
+      "item": "Browser E2E",
+      "status": "PASS"
+    },
+    {
+      "item": "exact production release identity",
+      "status": "PASS"
+    }
+  ],
+  "decisionEvidence": {
+    "authoritativeRuntime": "functions/api/v1/decision-proven-graph.js",
+    "authoritativeRoute": "apps/web/public/assets/routes/decision-proven-graph.mjs",
+    "scanner": "functions/api/v1/decision-scan.js",
+    "rrLifecycle": "functions/_lib/decision-trade-research.js",
+    "outcomeLedger": "authenticated persisted qelly_decision_setups + qelly_decision_setup_observations",
+    "calibration": "walk-forward probability calibration plus observed target-touch gate; insufficient samples stay unavailable",
+    "structureLiquidity": "deterministic structure plus real Hyperliquid point-in-time L2",
+    "derivatives": "current perpetual context plus settled funding/premium history; historical OI/basis/liquidations remain explicit unavailable",
+    "macro": "official ECB daily reference FX only; no intraday macro inference",
+    "crossAsset": "same-venue aligned Hyperliquid benchmark statistics; descriptive only",
+    "events": "scheduled feed unavailable; TradingView calendar remains display-only",
+    "analogs": "pre-anchor leakage-guarded descriptive matching only",
+    "context": "qelly.past-present-future/2.0.0 + qelly.evidence-graph/2.0.0 + qelly.decision-snapshot/2.0.0",
+    "chat": "qelly.decision-copilot-context/2.0.0; authoritative Decision receipt only; no second Decision engine",
+    "integration": "Universal Search → Asset Dossier → Decision Intelligence → Formula Screener → Qelly Chat via bounded session context"
+  },
+  "performance": {
+    "waveQPointBaselineMs": {
+      "terminalDocument": 486,
+      "releaseIdentity": 461,
+      "decisionApi": 3056,
+      "scannerApi": 2556
+    },
+    "finalProductionPointObservationMs": {
+      "terminalDocument": 1073.2,
+      "releaseIdentity": 906.5,
+      "decisionApi": 4158.3,
+      "scannerApi": 4155.5
+    },
+    "pointObservationBoundary": "These are single point observations and are not percentile claims; provider/network variance is material.",
+    "browserWaveZaExactHead": {
+      "scenarios": 20,
+      "failed": 0,
+      "maxDomContentLoadedMs": 717,
+      "maxReadyFrameMs": 644,
+      "maxLongTaskMs": 162,
+      "longTasksOver500": 0,
+      "firstPartyLongTasksOver500": 0,
+      "criticalStalls": 0,
+      "maxRouteTransitionMs": 220.6,
+      "maxDomNodes": 1563,
+      "maxFcpMs": 940,
+      "maxLcpMs": 1060,
+      "maxCls": 0.00203,
+      "maxInpMs": 272,
+      "routeCycleStatus": "passed",
+      "routeCycleHeapStart": 2862596,
+      "routeCycleHeapEnd": 3977800,
+      "routeCycleDomStart": 1070,
+      "routeCycleDomEnd": 1070
+    },
+    "budgetBoundary": "Existing FCP/LCP/CLS/INP/long-task thresholds were retained; no threshold was loosened."
+  },
+  "security": {
+    "publicTablesRls": "PASS: every public table returned by the production audit has RLS enabled and at least one policy.",
+    "edgeFunctions": "PASS_WITH_REVIEWED_EXCEPTIONS: normal Edge Functions use verify_jwt=true; qelly-provider-ingestion and qelly-release-identity-sync intentionally use verify_jwt=false with POST-only internal secret-header SHA-256 guards before service-role access.",
+    "securityDefiner": "PASS_WITH_REVIEWED_EXCEPTIONS: qelly_market_data_snapshot and qelly_timeseries_history are authenticated read-only governed-market RPCs with auth.uid() checks, bounded inputs and empty search_path; advisor warning is intentional.",
+    "leakedPasswordProtection": "EXTERNAL_MANUAL: Supabase leaked-password protection is disabled and is not changed automatically by the connected engineering tools.",
+    "recentBackendLogs": "PASS: recent Supabase log aggregation returned zero error-level or error/exception-like events across edge, postgres, function, postgrest and auth sources.",
+    "performanceAdvisors": "REVIEW_ONLY: 35 unused-index informational notices retained; no index is removed without workload evidence."
+  },
+  "cleanup": {
+    "removed": [
+      "unreachable renderIntelligenceTerminal lazy runtime binding from apps/web/public/assets/app.js"
+    ],
+    "retained": [
+      "routes/intelligence-terminal.mjs test/fixture contract",
+      "Decision compatibility adapter",
+      "shell compatibility",
+      "calculator/indicator/portfolio source compatibility",
+      "governed discovery finalizer",
+      "public runtime finalizer"
+    ],
+    "boundary": "No mass deletion; only runtime-dead code proven by route/build/test ownership was removed."
+  },
+  "production": {
+    "canonicalUrl": "https://terminal.qellyintelligence.com/",
+    "currentVerifiedSha": "9f422f60a393e87285201abab12934acd18b4780",
+    "releaseIdentity": "Supabase qelly_release_identity independently records cloudflare:9f422f60a393e87285201abab12934acd18b4780.",
+    "cloudMode": "supabase-cloudflare-facade",
+    "runtimeMode": "cloudflare-pages-public-runtime"
+  },
+  "completion": {
+    "decisionNextFrontierApplicableChecklistPercent": 100,
+    "terminalNextFrontierApplicableChecklistPercent": 100,
+    "externalManualItems": [
+      "Enable Supabase Auth leaked-password protection if desired/available in project settings."
+    ],
+    "finalityBoundary": "This artifact is a ZB release candidate. Final completion requires the ZB exact-head ten-gate matrix, merge, Cloudflare convergence, custom-domain verification and release-identity verification."
+  }
+}
