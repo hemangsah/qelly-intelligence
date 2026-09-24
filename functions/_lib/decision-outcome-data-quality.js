@@ -9,14 +9,15 @@ const ordered=(values)=>values.every((value,index)=>index===0||value>values[inde
 
 export function auditDecisionOutcomeData(setups,observations=[],{now=new Date().toISOString(),futureToleranceMs=300000,maxViolations=200}={}){
   const rows=asArray(setups),obs=asArray(observations),violations=[];
-  const nowMs=instant(now)??Date.now(),ids=new Set(),sources=new Set();
+  const nowMs=instant(now)??Date.now(),ids=new Set(),sources=new Set(),setupById=new Map();
   let resolved=0,open=0,calibrationEligible=0;
   for(const row of rows){
     const id=String(row?.id||''),source=String(row?.source_setup_id||row?.sourceSetupId||'');
     if(!id)add(violations,'MISSING_SETUP_ID','ERROR',row,'Setup identifier is missing.');
     else if(ids.has(id))add(violations,'DUPLICATE_SETUP_ID','ERROR',row,'Duplicate setup identifier appears in the audit sample.');
-    else ids.add(id);
-    if(source){if(sources.has(source))add(violations,'DUPLICATE_SOURCE_SETUP_ID','ERROR',row,'Duplicate source setup identifier appears in the audit sample.');else sources.add(source);}
+    else{ids.add(id);setupById.set(id,row);}
+    if(!source)add(violations,'MISSING_SOURCE_SETUP_ID','ERROR',row,'Source setup identifier is missing.');
+    else if(source){if(sources.has(source))add(violations,'DUPLICATE_SOURCE_SETUP_ID','ERROR',row,'Duplicate source setup identifier appears in the audit sample.');else sources.add(source);}
     const created=instant(row?.created_observed_at||row?.createdAt),last=instant(row?.last_observed_at||row?.lastObservedAt),expiry=instant(row?.expiry_at||row?.expiryAt),resolvedAt=instant(row?.resolved_at||row?.resolvedAt);
     if(created===null)add(violations,'INVALID_CREATED_TIME','ERROR',row,'Creation timestamp is missing or invalid.');
     if(last===null)add(violations,'INVALID_LAST_OBSERVED_TIME','ERROR',row,'Last-observed timestamp is missing or invalid.');
@@ -53,10 +54,17 @@ export function auditDecisionOutcomeData(setups,observations=[],{now=new Date().
     const calibrationLast=instant(asObject(row?.calibration_snapshot||row?.calibrationSnapshot).lastResolvedAt);
     if(created!==null&&calibrationLast!==null&&calibrationLast>created)add(violations,'FUTURE_CALIBRATION_LEAKAGE','ERROR',row,'Calibration snapshot includes an outcome resolved after setup creation.');
   }
+  if(rows.length>0&&obs.length===0)add(violations,'MISSING_OBSERVATION_HISTORY','ERROR',{},'Setup history exists but no observation history is available for audit.');
   const bySetup=new Map();
   for(const observation of obs){
     const setupId=String(observation?.setup_id||observation?.setupId||'');
     if(!ids.has(setupId)){add(violations,'ORPHAN_OBSERVATION','ERROR',{id:setupId},'Observation references a setup outside the audited setup set.');continue;}
+    const setup=setupById.get(setupId);
+    const observed=instant(observation?.observed_at||observation?.observedAt);
+    const created=instant(setup?.created_observed_at||setup?.createdAt),last=instant(setup?.last_observed_at||setup?.lastObservedAt),resolvedAt=instant(setup?.resolved_at||setup?.resolvedAt);
+    if(observed!==null&&created!==null&&observed<created)add(violations,'OBSERVATION_BEFORE_CREATED','ERROR',setup,'Observation precedes setup creation.');
+    if(observed!==null&&last!==null&&observed>last+futureToleranceMs)add(violations,'OBSERVATION_AFTER_LAST_OBSERVED','ERROR',setup,'Observation exceeds the setup last-observed timestamp.');
+    if(observed!==null&&resolvedAt!==null&&observed>resolvedAt+futureToleranceMs)add(violations,'OBSERVATION_AFTER_RESOLUTION','ERROR',setup,'Observation occurs after terminal resolution.');
     const list=bySetup.get(setupId)||[];list.push(observation);bySetup.set(setupId,list);
   }
   for(const [setupId,list] of bySetup){
