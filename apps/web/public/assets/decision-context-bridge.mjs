@@ -68,7 +68,7 @@ export function clearResearchContext(){
   try{globalThis.sessionStorage?.removeItem(RESEARCH_CONTEXT_KEY);}catch{}
 }
 
-export function storeDecisionContext({asset,timeframe='15m',source='unknown'}={}){
+export function storeDecisionContext({asset,timeframe='15m',source='unknown',formulaId=null}={}){
   try{
     const normalizedAsset=normalizeAsset(asset);
     const normalizedTimeframe=normalizeTimeframe(timeframe)||'15m';
@@ -79,7 +79,7 @@ export function storeDecisionContext({asset,timeframe='15m',source='unknown'}={}
       timeframe:normalizedTimeframe,
       source:normalizeSource(source)
     }));
-    storeResearchContext({asset:normalizedAsset,timeframe:normalizedTimeframe,source});
+    storeResearchContext({asset:normalizedAsset,timeframe:normalizedTimeframe,source,formulaId});
     return true;
   }catch{return false;}
 }
