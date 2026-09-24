@@ -303,7 +303,8 @@ const whatChangedMarkup=(previous,current,escapeHtml)=>{
 export async function renderDecisionProvenGraph(main,deps){
   installStyles();const {api,stateBanner,escapeHtml,toast,navigate}=deps;
   const chatContext=readChatDecisionContext();
-  let state={asset:chatContext.asset,interval:chatContext.interval,horizon:normalizeHorizon(chatContext.interval,'4h'),rr:'auto',customRr:'2.5',loading:true,data:null,previousSnapshot:null,error:null,draft:null,selection:null,scanning:false,scan:null,scanError:null,scanFilters:{universe:'all',direction:'any',minEvidenceQuality:'0',minCalibratedConfidence:'0',minMtfAgreement:'0',liquidity:'any',volatility:'any',regime:'any',eventRiskTolerance:'any',freshness:'live_or_delayed'}};
+  let state={asset:chatContext.asset,interval:chatContext.interval,horizon:normalizeHorizon(chatContext.interval,'4h'),rr:'auto',customRr:'2.5',loading:true,data:null,previousSnapshot:null,error:null,draft:null,selection:null,scanning:false,scan:null,scanError:null,ledger:null,ledgerLoading:false,ledgerError:null,ledgerMutating:false,scanFilters:{universe:'all',direction:'any',minEvidenceQuality:'0',minCalibratedConfidence:'0',minMtfAgreement:'0',liquidity:'any',volatility:'any',regime:'any',eventRiskTolerance:'any',freshness:'live_or_delayed'}};
+  const ledgerAuthenticated=()=>Boolean(window.__QELLY_SESSION_STATE__?.authenticated);
   const select=(name,values)=>'<label><span>'+name[0].toUpperCase()+name.slice(1)+'</span><select data-dpg-'+name+'>'+values.map(value=>'<option value="'+value+'" '+(state[name]===value?'selected':'')+'>'+value+'</option>').join('')+'</select></label>';
   const hero=(data)=>{
     const view=data?.qellyView||{},gate=view.evidenceGate||{},scenario=view.scenario||{};
@@ -338,6 +339,22 @@ export async function renderDecisionProvenGraph(main,deps){
       '<div class="q-dpg-hero__actions"><button class="q-button q-button--primary" data-dpg-scan '+(state.scanning?'disabled':'')+'>'+(state.scanning?'Scanning…':'Find Trade Now')+'</button><button class="q-button q-button--secondary" data-dpg-explain-header '+(state.draft?'':'disabled')+'>Explain This Move</button><button class="q-button q-button--secondary" data-dpg-explain-candle '+(data?.market?.candles?.length?'':'disabled')+'>Explain Candle</button><button class="q-button q-button--secondary" data-dpg-mtf-jump>Compare Timeframes</button><button class="q-button q-button--secondary" data-dpg-compare-asset>Compare Asset</button><button class="q-button q-button--secondary" type="button" data-dpg-open-chat>Ask QELLY</button><button class="q-button q-button--secondary" data-dpg-methodology-jump>Sources / Methodology</button></div>'+
     '</section>';
   };
+  const outcomeLedgerMarkup=(data)=>{
+    const trade=data?.tradeResearch||{},sourceSetupId=trade?.setupId||null;
+    if(!ledgerAuthenticated())return '<section class="q-dpg-ledger"><header><div><small>OBSERVED SETUP LEDGER</small><h2>Track real setup outcomes after sign-in</h2></div><span>NO BACKFILL</span></header><p>QELLY does not fabricate historical setups. Sign in to persist a live evidence-qualified setup, then re-observe it from the server-side market evidence stack.</p><p class="q-dpg-ledger__boundary">Target-touch calibration remains UNCALIBRATED until a sufficient sample of real resolved setup outcomes exists.</p></section>';
+    const ledger=state.ledger||{items:[],observedSetups:0,calibrationEligible:0,minimumSampleGate:50,calibrationState:'UNCALIBRATED'};
+    const items=Array.isArray(ledger.items)?ledger.items:[];
+    const current=sourceSetupId?items.find(item=>item.sourceSetupId===sourceSetupId):null;
+    const trackable=data?.truthState==='LIVE'&&trade?.status==='VALID'&&['FORMING','TRIGGERED','VALID'].includes(String(trade?.lifecycle?.state||''));
+    const terminal=Boolean(current?.resolvedAt);
+    const metric=(value)=>Number.isFinite(Number(value))?Number(value).toFixed(2)+'R':'—';
+    const rows=items.slice(0,6).map(item=>'<article><div><strong>'+escapeHtml(item.asset)+' · '+escapeHtml(item.timeframe)+'</strong><small>'+escapeHtml(displayTime(item.createdAt))+' · '+escapeHtml(String(item.requestedRr||'auto'))+'</small></div><span class="q-status q-status--'+(['INVALIDATED','EXPIRED'].includes(item.latestStatus)?'warning':item.resolvedAt?'live':'cached')+'">'+escapeHtml(String(item.latestStatus||'FORMING').replaceAll('_',' '))+'</span><dl><div><dt>MFE</dt><dd>'+escapeHtml(metric(item.metrics?.mfeR))+'</dd></div><div><dt>MAE</dt><dd>'+escapeHtml(metric(item.metrics?.maeR))+'</dd></div><div><dt>Highest target</dt><dd>'+escapeHtml(item.metrics?.highestTarget||'—')+'</dd></div><div><dt>Outcome</dt><dd>'+escapeHtml(item.resolvedOutcome?.state||'OPEN')+'</dd></div></dl>'+(item.resolvedAt?'':'<button class="q-button q-button--secondary" data-dpg-ledger-observe="'+escapeHtml(item.id)+'" '+(state.ledgerMutating?'disabled':'')+'>Observe outcome now</button>')+'</article>').join('');
+    const currentAction=current
+      ?'<div class="q-dpg-ledger__current"><span>Current setup</span><strong>'+escapeHtml(current.latestStatus||'FORMING')+'</strong>'+(terminal?'<small>'+escapeHtml(current.resolvedOutcome?.state||'Resolved')+'</small>':'<button class="q-button q-button--secondary" data-dpg-ledger-observe="'+escapeHtml(current.id)+'" '+(state.ledgerMutating?'disabled':'')+'>Observe current setup</button>')+'</div>'
+      :trackable?'<button class="q-button q-button--primary" data-dpg-ledger-track '+(state.ledgerMutating?'disabled':'')+'>'+(state.ledgerMutating?'Recording…':'Track this live setup')+'</button>'
+      :'<div class="q-dpg-ledger__current"><span>Current setup</span><strong>NOT TRACKABLE</strong><small>Only a LIVE, evidence-qualified VALID setup can enter the ledger.</small></div>';
+    return '<section class="q-dpg-ledger"><header><div><small>OBSERVED SETUP LEDGER · WORKSPACE RLS</small><h2>Real lifecycle and outcome evidence</h2></div><span>'+escapeHtml(String(ledger.calibrationState||'UNCALIBRATED'))+'</span></header><div class="q-dpg-ledger__summary"><span>Observed setups<strong>'+escapeHtml(String(ledger.observedSetups??items.length))+'</strong></span><span>Calibration-eligible resolutions<strong>'+escapeHtml(String(ledger.calibrationEligible??0))+' / '+escapeHtml(String(ledger.minimumSampleGate??50))+'</strong></span><span>Current source setup<strong>'+escapeHtml(sourceSetupId?'AVAILABLE':'NO TRADE')+'</strong></span></div>'+currentAction+(state.ledgerLoading?'<p>Loading workspace ledger…</p>':'')+(state.ledgerError?'<p class="q-dpg-ledger__error">'+escapeHtml(state.ledgerError)+'</p>':'')+'<div class="q-dpg-ledger__rows">'+(rows||'<p>No observed setups yet. Nothing before the first explicit tracking event is backfilled.</p>')+'</div><p class="q-dpg-ledger__boundary">'+escapeHtml(ledger.boundary||'Only setups created after tracking begins are included. No historical setups are fabricated or backfilled.')+' Target-touch calibration remains gated until the independent sample requirement is met.</p></section>';
+  };
   const evidence=(data)=>{
     const move=data.selection,quant=move?.evidence||[],articles=data.evidence?.news?.articles||[];
     const items=[...quant.map(item=>({kind:item.type,title:item.title,detail:item.detail,meta:item.direction,score:item.strength})),...articles.slice(0,5).map(article=>({kind:'news',title:article.title,detail:article.source||'News report',meta:article.publishedAt,url:article.url,score:.45}))].sort((a,b)=>b.score-a.score);
@@ -348,6 +365,7 @@ export async function renderDecisionProvenGraph(main,deps){
     const view=data.qellyView,move=data.selection;
     return '<section class="q-dpg-truth"><span class="q-status q-status--'+(data.truthState==='LIVE'?'live':data.truthState.toLowerCase())+'">'+escapeHtml(data.truthState)+'</span><strong>'+escapeHtml(data.asset)+' / '+escapeHtml(data.interval)+'</strong><span>'+escapeHtml(data.market.currentState.label)+' · updated '+new Date(data.observedAt).toLocaleString()+'</span></section>'+
       tradeResearchMarkup(data,escapeHtml)+
+      outcomeLedgerMarkup(data)+
       probabilityCalibrationMarkup(data,escapeHtml)+
       historicalAnalogsMarkup(data,escapeHtml)+
       '<section class="q-dpg-view q-dpg-view--'+actionTone(view.action)+'"><div><small>QELLY VIEW</small><h2>'+escapeHtml(view.action)+'</h2><p>'+escapeHtml(view.label)+'</p></div><div class="q-dpg-confidence"><span>Evidence confidence</span><strong>'+Math.round(view.confidence*100)+'%</strong></div>'+calibration(view,escapeHtml)+levels(view)+'<details><summary>Why this view?</summary><ul>'+view.why.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul><p><strong>What changes it:</strong> '+escapeHtml(view.changesIf)+'</p></details></section>'+
@@ -377,6 +395,8 @@ export async function renderDecisionProvenGraph(main,deps){
     });
     main.querySelector('[data-dpg-custom-rr]')?.addEventListener('change',(event)=>{state.customRr=event.currentTarget.value;state.scan=null;state.scanError=null;load();});
     main.querySelectorAll('[data-dpg-scan]').forEach(button=>button.addEventListener('click',scan));
+    main.querySelector('[data-dpg-ledger-track]')?.addEventListener('click',trackCurrentSetup);
+    main.querySelectorAll('[data-dpg-ledger-observe]').forEach(button=>button.addEventListener('click',()=>observeTrackedSetup(button.dataset.dpgLedgerObserve)));
     main.querySelectorAll('[data-dpg-scan-filter]').forEach(element=>element.addEventListener('change',()=>{const key=element.dataset.dpgScanFilter;if(key){state.scanFilters[key]=element.value;state.scan=null;state.scanError=null;draw();}}));
     main.querySelectorAll('[data-dpg-scan-asset]').forEach(button=>button.addEventListener('click',()=>{state.asset=button.dataset.dpgScanAsset;state.draft=null;state.selection=null;load();}));
     main.querySelector('[data-dpg-explain-header]')?.addEventListener('click',()=>{if(state.draft){state.selection=state.draft;load();}});
@@ -407,6 +427,36 @@ export async function renderDecisionProvenGraph(main,deps){
       draw();
     });
   };
+  async function loadLedger({redraw=true}={}){
+    if(!ledgerAuthenticated()){state.ledger=null;state.ledgerError=null;return;}
+    if(state.ledgerLoading)return;
+    state.ledgerLoading=true;state.ledgerError=null;if(redraw)draw();
+    try{state.ledger=await api('/api/v1/decision-ledger?limit=50');}
+    catch(error){state.ledger=null;state.ledgerError=error?.message||'Observed setup ledger is unavailable.';}
+    finally{state.ledgerLoading=false;if(redraw)draw();}
+  }
+  async function trackCurrentSetup(){
+    if(state.ledgerMutating||!state.data)return;
+    state.ledgerMutating=true;state.ledgerError=null;draw();
+    try{
+      const body={asset:state.asset,interval:state.interval,horizon:state.horizon,rr:state.rr};
+      if(state.rr==='custom')body.customRr=state.customRr;
+      await api('/api/v1/decision-ledger',{method:'POST',body:JSON.stringify(body)});
+      await loadLedger({redraw:false});
+      toast?.('Live setup added to the observed outcome ledger.',{tone:'success'});
+    }catch(error){state.ledgerError=error?.message||'This setup could not be tracked.';}
+    finally{state.ledgerMutating=false;draw();}
+  }
+  async function observeTrackedSetup(id){
+    if(state.ledgerMutating||!id)return;
+    state.ledgerMutating=true;state.ledgerError=null;draw();
+    try{
+      await api('/api/v1/decision-ledger/'+encodeURIComponent(id)+'/observe',{method:'POST',body:'{}'});
+      await loadLedger({redraw:false});
+      toast?.('Setup outcome re-observed from server-side market evidence.',{tone:'success'});
+    }catch(error){state.ledgerError=error?.message||'The setup could not be re-observed.';}
+    finally{state.ledgerMutating=false;draw();}
+  }
   async function scan(){
     if(state.scanning)return;
     state.scanning=true;state.scanError=null;draw();
@@ -447,7 +497,7 @@ export async function renderDecisionProvenGraph(main,deps){
     }catch(error){
       state.data=null;state.previousSnapshot=null;state.error=error?.message||'Fresh market evidence could not be reached. No substitute data was generated.';
       emitRuntimeSignal({feature:'decision',action:'failure',state:'unavailable',surface:'api'});
-    }finally{state.loading=false;draw();}
+    }finally{state.loading=false;draw();if(ledgerAuthenticated()&&!state.ledger&&!state.ledgerLoading)void loadLedger();}
   }
   await load();
 }
