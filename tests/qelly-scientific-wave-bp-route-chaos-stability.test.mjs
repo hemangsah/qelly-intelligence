@@ -8,17 +8,17 @@ test('Wave BP adds Decision-specific route chaos to the exact Browser E2E stabil
   const source=await read('scripts/qelly-first-paint-stability.mjs');
   assert.match(source,/runDecisionChaosStabilityProbe/);
   assert.match(source,/decisionChaosStability/);
-  assert.match(source,/interactionCycles:4/);
-  assert.match(source,/scannerAttempts:8/);
+  assert.match(source,/interactionCycles:6/);
+  assert.match(source,/scannerAttempts:12/);
   assert.match(source,/refreshCycles:3/);
   assert.match(source,/Page\.setWebLifecycleState/);
 });
 
 test('Wave BP exercises rapid asset, timeframe and R:R churn plus repeated scanner and recompute paths',async()=>{
   const source=await read('scripts/qelly-first-paint-stability.mjs');
-  assert.match(source,/const assets=\['BTC','ETH','SOL','BTC'\]/);
-  assert.match(source,/const intervals=\['15m','1h','5m','15m'\]/);
-  assert.match(source,/const rrs=\['1','2','4','auto'\]/);
+  assert.match(source,/const assets=\['BTC','ETH','SOL','HYPE','XRP','BTC'\]/);
+  assert.match(source,/const intervals=\['15m','1h','5m','30m','4h','15m'\]/);
+  assert.match(source,/const rrs=\['1','2','3','4','custom','auto'\]/);
   assert.match(source,/\[data-dpg-scan\]/);
   assert.match(source,/\[data-dpg-refresh\]/);
   assert.match(source,/interaction-cycle-/);
@@ -33,6 +33,9 @@ test('Wave BP measures heap, DOM, listeners, documents and iframe lifecycle afte
   assert.match(source,/materialContinuousGrowth\(listeners/);
   assert.match(source,/materialContinuousGrowth\(documents/);
   assert.match(source,/materialContinuousGrowth\(iframes/);
+  assert.match(source,/pending_timeouts/);
+  assert.match(source,/pending_intervals/);
+  assert.match(source,/__QELLY_CHAOS_TIMER_COUNTS__/);
 });
 
 test('Wave BP retains shell integrity, console and network failure gates',async()=>{
@@ -46,8 +49,13 @@ test('Wave BP retains shell integrity, console and network failure gates',async(
 test('Wave BP does not treat expected local Decision API unavailability as fabricated success',async()=>{
   const source=await read('scripts/qelly-first-paint-stability.mjs');
   assert.match(source,/expectedLocalDecisionBoundary/);
+  assert.match(source,/chaos_injected_unavailable/);
+  assert.match(source,/page\.route\('\*\*\/api\/v1\/decision-proven-graph/);
+  assert.match(source,/page\.route\('\*\*\/api\/v1\/decision-scan/);
   assert.match(source,/\[401,404,503\]/);
   assert.match(source,/never converts a failed provider\/API call into synthetic Decision evidence/);
+  assert.match(source,/decision_recompute_coverage/);
+  assert.match(source,/scanner_repeat_coverage/);
   assert.doesNotMatch(source,/status:'passed'.*catch/s);
 });
 
