@@ -30,7 +30,7 @@ const categoryFor=(file)=>{
   return'DOCUMENTATION';
 };
 const executableCategory=(category)=>['RUNTIME','BUILD','TEST','WORKFLOW'].includes(category);
-const compatibilityName=(file)=>/(?:^|[-_.])(legacy|compat(?:ibility)?|recovery|rescue|alias)(?:[-_.]|$)/i.test(path.basename(file));
+const compatibilityName=(file)=>/(?:^|[-_.])(legacy|compat(?:ibility)?|recovery|rescue|alias|font[-_.]surface|worldquant[-_.]arkham)(?:[-_.]|$)/i.test(path.basename(file));
 
 const escapeRegex=(value)=>String(value).replace(/[.*+?^$()|[\]\\]/g,'\\$&');
 const dependencyReferenceKind=(source,name)=>{
