@@ -11,6 +11,7 @@ import {buildDecisionContextBundle} from '../../_lib/decision-context.js';
 import {HttpError,enforceRateLimit,errorResponse,fetcher,responseJson} from '../../_lib/runtime.js';
 import {createDecisionLatencyTrace,estimateSerializedPayload} from '../../_lib/decision-latency.js';
 import {resilientJsonRequest,providerFailureHealth,providerResiliencePublicSummary} from '../../_lib/decision-provider-resilience.js';
+import {buildDecisionDataQuality,applyDecisionDataQualityEligibility,buildDecisionModelHealth} from '../../_lib/decision-health-quality.js';
 
 const ASSETS=new Set(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
 const HORIZONS=Object.freeze({'1h':3_600_000,'4h':14_400_000,'12h':43_200_000,'1d':86_400_000,'3d':259_200_000,'7d':604_800_000});
@@ -601,7 +602,6 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
     legacyNewsBoundary:'Recent news is evidence only and is not converted into a scheduled event-risk score.'
   };
   graph={...graph,liquidity,eventRisk,derivatives,crossAsset,macro};
-  const tradeResearch=latency.measure('riskRewardResearch',()=>buildTradeResearch(graph,{requestedRr,customRr}));
   const evidence={
     news:{state:newsState,provider:includeNews?'GDELT':null,articles},
     derivatives,
@@ -625,9 +625,14 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
       :'News is contextual evidence only. A bounded fresh cache may be reused; stale news is used only after provider failure and is labeled stale. Headline clusters are deterministic lexical audit metadata and have no eligibility impact.'
   };
   const providerResilience=providerResiliencePublicSummary({liquidity,derivatives,news:evidence.news,macro});
+  const dataQuality=buildDecisionDataQuality({graph,multiTimeframe,evidence,providerResilience});
+  graph=applyDecisionDataQualityEligibility({...graph,dataQuality},dataQuality);
+  const modelHealth=buildDecisionModelHealth({graph,dataQuality,providerResilience});
+  graph={...graph,dataQuality,modelHealth};
+  const tradeResearch=latency.measure('riskRewardResearch',()=>buildTradeResearch(graph,{requestedRr,customRr}));
   const context=latency.measure('contextAndEvidenceGraph',()=>buildDecisionContextBundle(graph,{multiTimeframe,tradeResearch,evidence,horizon:resolvedHorizon}));
   const performance=latency.snapshot({database:{used:false,ms:null},network:'Measure end-to-end separately at the client or external probe; server-side component timings exclude internet transit.'});
-  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence,providerResilience,...context,performance};
+  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence,providerResilience,dataQuality,modelHealth,...context,performance};
 }
 
 export async function onRequest({request,env}){
