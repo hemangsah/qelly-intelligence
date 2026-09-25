@@ -258,3 +258,21 @@
 .q-dpg-news__limit{padding-top:8px;border-top:1px solid var(--border)}
 @media(max-width:720px){.q-dpg-news>header{display:grid}.q-dpg-news>header>span{text-align:left}.q-dpg-news__grid{grid-template-columns:1fr}.q-dpg-news__meta{grid-template-columns:1fr}}
 @media(max-width:480px){.q-dpg-news{padding:12px}}
+
+/* Scientific Waves BC/BD: model health and data-quality audit */
+.q-dpg-health-quality{border:1px solid var(--border);border-radius:14px;background:var(--surface);padding:12px 14px;min-width:0}
+.q-dpg-health-quality>summary{cursor:pointer;font-size:11px;font-weight:700;letter-spacing:.035em}
+.q-dpg-health-quality__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+.q-dpg-health-quality__grid>section{display:grid;gap:9px;padding:12px;border:1px solid var(--border);border-radius:12px;min-width:0;background:rgba(255,255,255,.018)}
+.q-dpg-health-quality__grid small{font-size:9px;color:var(--text-muted);letter-spacing:.06em}
+.q-dpg-health-quality__grid h3,.q-dpg-health-quality__grid p{margin:0}
+.q-dpg-health-quality__grid p{font-size:10px;line-height:1.5;color:var(--text-muted)}
+.q-dpg-health-quality__components{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.q-dpg-health-quality__components>span{display:grid;gap:3px;padding:8px;border:1px solid var(--border);border-radius:9px}
+.q-dpg-health-quality__components em{font-style:normal;font-size:9px;color:var(--text-muted)}
+.q-dpg-health-quality__components strong{font-size:12px}
+.q-dpg-health-quality__grid ul{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.q-dpg-health-quality__grid li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 8px;padding:8px;border:1px solid var(--border);border-radius:9px}
+.q-dpg-health-quality__grid li strong,.q-dpg-health-quality__grid li span{font-size:9px}.q-dpg-health-quality__grid li small{grid-column:1/-1;line-height:1.4}
+@media(max-width:720px){.q-dpg-health-quality__grid{grid-template-columns:1fr}}
+@media(max-width:480px){.q-dpg-health-quality{padding:10px}.q-dpg-health-quality__components{grid-template-columns:1fr}}
