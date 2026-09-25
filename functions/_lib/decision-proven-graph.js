@@ -81,7 +81,7 @@ export function buildDecisionWalkForwardCalibration(raw,{interval='15m',horizonB
   const intervalMs=INTERVAL_MS[interval];
   const minimumSampleGate=Math.max(12,Number(minSamples)||36);
   if(!intervalMs)return {
-    schemaVersion:'qelly.decision-walk-forward-calibration/1.1.0',
+    schemaVersion:WALK_FORWARD_CALIBRATION_SCHEMA_VERSION,
     state:'UNCALIBRATED',eligible:false,sampleSize:0,minimumSampleGate,
     horizonBars:null,stepBars:null,resolutionWindowBars:null,minimumOutcomeSeparationBars:null,outcomeWindowOverlap:null,
     brierScore:null,baselineBrierScore:.3333,skillScore:null,reliabilityGap:null,reliabilityBins:[],
@@ -92,7 +92,7 @@ export function buildDecisionWalkForwardCalibration(raw,{interval='15m',horizonB
   const horizon=Math.max(2,Math.min(168,Number(horizonBars)||16));
   const step=Math.max(horizon,4);
   const baseState={
-    schemaVersion:'qelly.decision-walk-forward-calibration/1.1.0',
+    schemaVersion:WALK_FORWARD_CALIBRATION_SCHEMA_VERSION,
     minimumSampleGate,
     horizonBars:horizon,
     stepBars:step,
