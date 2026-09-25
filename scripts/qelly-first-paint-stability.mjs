@@ -453,8 +453,6 @@ try{
   if(report.routeCycleStability.status==='failed')report.status='failed';
   report.decisionChaosStability=await runDecisionChaosStabilityProbe(browser);
   if(report.decisionChaosStability.status!=='passed')report.status='failed';
-  report.decisionChaosStability=await runDecisionChaosStabilityProbe(browser);
-  if(report.decisionChaosStability.status!=='passed')report.status='failed';
 }finally{
   await browser.close();
   await new Promise(resolve=>server.close(resolve));
