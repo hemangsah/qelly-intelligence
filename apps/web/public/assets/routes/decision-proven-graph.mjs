@@ -393,12 +393,30 @@ const decisionTraceMarkup=(data,escapeHtml)=>{
 };
 
 
+const CHANGE_ATTRIBUTION_GROUPS=Object.freeze([
+  {id:'calibration',label:'Calibration',role:'eligibility gate',keys:['calibrationState','calibrationEligible','calibrationBrierScore','calibrationReliabilityGap']},
+  {id:'mtf',label:'Multi-timeframe agreement',role:'eligibility gate',keys:['timeframeDirection','timeframeAgreement']},
+  {id:'structure',label:'Market structure',role:'eligibility gate',keys:['structureState','structureBias']},
+  {id:'liquidity',label:'Liquidity',role:'eligibility gate',keys:['liquidityState','liquiditySpreadBps','liquidityDepthConsensus']},
+  {id:'targetFeasibility',label:'Target / R:R feasibility',role:'setup geometry',keys:['selectedRr','selectedRrFeasibility','selectedTarget','stopPrice','expiryAt']},
+  {id:'freshness',label:'Freshness',role:'quality input',keys:['truthState','freshnessState']},
+  {id:'trend',label:'Trend / regime',role:'model state',keys:['trendState','regime']},
+  {id:'volatility',label:'Volatility',role:'model state',keys:['volatilityRegime']},
+  {id:'price',label:'Price',role:'market observation',keys:['price']},
+  {id:'derivatives',label:'Derivatives',role:'risk context',keys:['derivativesState','fundingPct','fundingChangeBps','openInterestNotionalUsd','openInterestChangeState']},
+  {id:'news',label:'News context',role:'context only',keys:['newsState']}
+]);
+const CHANGE_ATTRIBUTION_BOUNDARY='Ranked by deterministic Decision-gate relevance and fixed methodology order. This is change attribution, not market causality, learned feature importance, or a success-probability explanation.';
+
 const whatChangedMarkup=(previous,current,escapeHtml)=>{
   if(!current)return '';
   const comparable=previous&&previous.asset===current.asset&&previous.interval===current.interval;
   if(!comparable)return '<section id="qelly-decision-what-changed" class="q-dpg-what-changed"><header><div><small>WHAT CHANGED?</small><h2>Baseline created</h2></div><span>Same-session comparison</span></header><p>This is the first comparable '+escapeHtml(String(current.asset||''))+' / '+escapeHtml(String(current.interval||''))+' Decision snapshot in this session. Refresh or recompute to see deltas.</p></section>';
   const fields=[
     ['Price','price'],
+    ['Truth state','truthState'],
+    ['Freshness','freshnessState'],
+    ['Trend','trendState'],
     ['QELLY view','action'],
     ['Confidence','confidence'],
     ['Evidence quality','evidenceQuality'],
@@ -410,6 +428,10 @@ const whatChangedMarkup=(previous,current,escapeHtml)=>{
     ['Volatility regime','volatilityRegime'],
     ['MTF direction','timeframeDirection'],
     ['MTF agreement','timeframeAgreement'],
+    ['Liquidity state','liquidityState'],
+    ['Liquidity spread','liquiditySpreadBps'],
+    ['Liquidity depth','liquidityDepthConsensus'],
+    ['Derivatives state','derivativesState'],
     ['Funding','fundingPct'],
     ['Funding change','fundingChangeBps'],
     ['Open interest','openInterestNotionalUsd'],
@@ -417,6 +439,7 @@ const whatChangedMarkup=(previous,current,escapeHtml)=>{
     ['Macro','macroLevel'],
     ['USD / INR ref','macroUsdInr'],
     ['Event risk','eventRiskLevel'],
+    ['News context','newsState'],
     ['Contradiction','contradictionState'],
     ['Contradiction score','contradictionScore'],
     ['Trade status','tradeStatus'],
@@ -435,14 +458,23 @@ const whatChangedMarkup=(previous,current,escapeHtml)=>{
     if(['price','entryPreferred','selectedTarget','stopPrice','invalidationPrice'].includes(key)&&Number.isFinite(Number(value)))return money(value);
     if(key==='openInterestNotionalUsd'&&Number.isFinite(Number(value)))return compactMoney(value);
     if(key==='fundingPct'&&Number.isFinite(Number(value)))return Number(value).toFixed(5)+'%';
-    if(key==='fundingChangeBps'&&Number.isFinite(Number(value)))return Number(value).toFixed(3)+' bps';
+    if(['fundingChangeBps','liquiditySpreadBps'].includes(key)&&Number.isFinite(Number(value)))return Number(value).toFixed(3)+' bps';
     if(key==='macroUsdInr'&&Number.isFinite(Number(value)))return Number(value).toFixed(4);
     if(key==='calibrationBrierScore'&&Number.isFinite(Number(value)))return Number(value).toFixed(4);
     return String(value).replaceAll('_',' ');
   };
   const reasonFor=(key)=>String(current?.changeReasons?.[key]||'');
   const changed=fields.map(([label,key])=>({label,key,before:previous[key],after:current[key]})).filter(item=>String(item.before??'')!==String(item.after??''));
-  return '<section id="qelly-decision-what-changed" class="q-dpg-what-changed"><header><div><small>WHAT CHANGED?</small><h2>'+(changed.length?escapeHtml(String(changed.length))+' tracked changes':'No tracked field changed')+'</h2></div><span>'+escapeHtml(String(previous.observedAt||''))+' → '+escapeHtml(String(current.observedAt||''))+'</span></header>'+(changed.length?'<div>'+changed.map(item=>'<article><small>'+escapeHtml(item.label)+'</small><span>'+escapeHtml(renderValue(item.key,item.before))+' → <strong>'+escapeHtml(renderValue(item.key,item.after))+'</strong></span>'+(reasonFor(item.key)?'<p class="q-dpg-what-changed__reason">'+escapeHtml(reasonFor(item.key))+'</p>':'')+'</article>').join('')+'</div>':'<p>The tracked Decision fields are unchanged from the previous same-asset, same-timeframe snapshot.</p>')+'</section>';
+  const changedByKey=new Map(changed.map(item=>[item.key,item]));
+  const contributors=CHANGE_ATTRIBUTION_GROUPS.map(group=>{
+    const matched=group.keys.map(key=>changedByKey.get(key)).filter(Boolean);
+    if(!matched.length)return null;
+    return {id:group.id,label:group.label,role:group.role,changedFields:matched.map(item=>item.label),reason:matched.map(item=>reasonFor(item.key)).find(Boolean)||''};
+  }).filter(Boolean).map((item,index)=>({...item,rank:index+1}));
+  const contributorMarkup=contributors.length
+    ?'<section class="q-dpg-what-changed__contributors"><h3>Ranked attribution contributors</h3><ol>'+contributors.map(item=>'<li><strong>#'+escapeHtml(String(item.rank))+' · '+escapeHtml(item.label)+'</strong><span>'+escapeHtml(item.role)+' · '+escapeHtml(item.changedFields.join(', '))+'</span>'+(item.reason?'<p>'+escapeHtml(item.reason)+'</p>':'')+'</li>').join('')+'</ol><p>'+escapeHtml(CHANGE_ATTRIBUTION_BOUNDARY)+'</p></section>'
+    :'';
+  return '<section id="qelly-decision-what-changed" class="q-dpg-what-changed"><header><div><small>WHAT CHANGED?</small><h2>'+(changed.length?escapeHtml(String(changed.length))+' tracked changes':'No tracked field changed')+'</h2></div><span>'+escapeHtml(String(previous.observedAt||''))+' → '+escapeHtml(String(current.observedAt||''))+'</span></header>'+contributorMarkup+(changed.length?'<div>'+changed.map(item=>'<article><small>'+escapeHtml(item.label)+'</small><span>'+escapeHtml(renderValue(item.key,item.before))+' → <strong>'+escapeHtml(renderValue(item.key,item.after))+'</strong></span>'+(reasonFor(item.key)?'<p class="q-dpg-what-changed__reason">'+escapeHtml(reasonFor(item.key))+'</p>':'')+'</article>').join('')+'</div>':'<p>The tracked Decision fields are unchanged from the previous same-asset, same-timeframe snapshot.</p>')+'</section>';
 }
 
 

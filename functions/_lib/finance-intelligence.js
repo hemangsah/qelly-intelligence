@@ -297,6 +297,14 @@ const decisionFallbackAnswer=(message,financeContext)=>{
       lines.push('No tracked Decision field changed from the previous comparable same-session snapshot.');
     }else{
       lines.push(`Tracked changes: ${changed.changes.length}.`);
+      const contributors=asArray(changed.contributors);
+      if(contributors.length){
+        lines.push('Ranked attribution contributors (Decision-gate relevance; not market causality):');
+        for(const item of contributors.slice(0,8)){
+          lines.push(`• #${item.rank} ${item.label} — ${displayState(item.role)} · changed: ${asArray(item.changedFields).join(', ')}${item.reason?' · '+item.reason:''}`);
+        }
+        if(changed.attributionBoundary)lines.push(changed.attributionBoundary);
+      }
       for(const item of asArray(changed.changes).slice(0,10)){
         lines.push(`• ${item.field}: ${displayState(item.before)} → ${displayState(item.after)}${item.reason?' · '+item.reason:''}`);
       }

@@ -436,9 +436,22 @@ function snapshot(graph,{multiTimeframe,tradeResearch,evidence,contradiction}){
   const calibration=graph?.quant?.calibration||{};
   const structure=graph?.quant?.structure||{};
   const derivatives=evidence?.derivatives||{};
+  const liquidity=evidence?.liquidity||{};
+  const news=evidence?.news||{};
   const macro=evidence?.macro||{};
   const eventRisk=evidence?.eventRisk||{};
   const changeReasons={
+    price:'Observed market price changed between comparable Decision snapshots.',
+    truthState:'Primary market-data truth state changed; no fresher state is inferred when unavailable.',
+    freshnessState:'Primary market-data freshness changed; freshness is a quality input, not a success probability.',
+    trendState:'Observed/derived trend classification changed from the current normalized candle history.',
+    regime:'Derived market regime changed from the current normalized candle history.',
+    volatilityRegime:'Derived volatility regime changed from the current normalized candle sample.',
+    liquidityState:'Current point-in-time L2 liquidity availability changed.',
+    liquiditySpreadBps:'Current verified bid/ask spread changed; the existing bounded spread veto remains authoritative.',
+    liquidityDepthConsensus:'Current displayed multi-depth liquidity consensus changed; this is point-in-time risk context.',
+    derivativesState:'Current derivatives availability changed; derivatives remain risk context and do not independently force direction.',
+    newsState:'Contextual news availability changed; news has no independent Decision eligibility impact.',
     action:contradiction?.strongestContradiction||graph?.qellyView?.label||'Current evidence mix changed.',
     contradictionState:contradiction?.strongestContradiction||graph?.qellyView?.label||'Current evidence mix changed.',
     contradictionScore:contradiction?.strongestContradiction||graph?.qellyView?.label||'Current evidence mix changed.',
@@ -470,6 +483,9 @@ function snapshot(graph,{multiTimeframe,tradeResearch,evidence,contradiction}){
     asset:graph?.asset||null,
     interval:graph?.interval||null,
     price:finite(graph?.market?.lastPrice),
+    truthState:graph?.truthState||'UNAVAILABLE',
+    freshnessState:graph?.freshness?.state||graph?.truthState||'UNAVAILABLE',
+    trendState:graph?.market?.currentState?.trend||'UNKNOWN',
     action:graph?.qellyView?.action||'NO TRADE',
     confidence:finite(graph?.qellyView?.confidence),
     evidenceQuality:finite(graph?.qellyView?.evidenceGate?.qualityScore),
@@ -483,6 +499,10 @@ function snapshot(graph,{multiTimeframe,tradeResearch,evidence,contradiction}){
     structureBias:structure.bias||'MIXED',
     timeframeDirection:multiTimeframe?.agreement?.direction||'UNAVAILABLE',
     timeframeAgreement:Number(multiTimeframe?.agreement?.total)?round(Number(multiTimeframe.agreement.aligned||0)/Number(multiTimeframe.agreement.total),3):null,
+    liquidityState:liquidity.state||'unavailable',
+    liquiditySpreadBps:finite(liquidity.spreadBps),
+    liquidityDepthConsensus:liquidity.depthConsensus||'UNAVAILABLE',
+    derivativesState:derivatives.state||'unavailable',
     fundingPct:finite(derivatives.fundingPct),
     fundingChangeBps:finite(derivatives.fundingChangeBps),
     openInterestNotionalUsd:finite(derivatives.openInterestNotionalUsd),
@@ -492,6 +512,7 @@ function snapshot(graph,{multiTimeframe,tradeResearch,evidence,contradiction}){
     macroUsdInr:finite(macro?.fxReference?.usdInr),
     eventRiskState:eventRisk.state||'unavailable',
     eventRiskLevel:eventRisk.level||'UNAVAILABLE',
+    newsState:news.state||'unavailable',
     contradictionState:contradiction?.state||'MIXED',
     contradictionScore:finite(contradiction?.score),
     tradeStatus:tradeResearch?.status||'NO_TRADE',

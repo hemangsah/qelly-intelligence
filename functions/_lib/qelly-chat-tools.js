@@ -215,15 +215,42 @@ export function buildCalculatorToolReceipt(request={}){
 }
 
 const DECISION_SNAPSHOT_FIELDS=Object.freeze([
-  'observedAt','asset','interval','price','action','confidence','evidenceQuality','calibrationState','calibrationEligible',
+  'observedAt','asset','interval','price','truthState','freshnessState','trendState','action','confidence','evidenceQuality','calibrationState','calibrationEligible',
   'calibrationBrierScore','calibrationReliabilityGap','regime','volatilityRegime','structureState','structureBias',
-  'timeframeDirection','timeframeAgreement','fundingPct','fundingChangeBps','openInterestNotionalUsd','openInterestChangeState',
-  'macroState','macroLevel','macroUsdInr','eventRiskState','eventRiskLevel','contradictionState','contradictionScore',
+  'timeframeDirection','timeframeAgreement','liquidityState','liquiditySpreadBps','liquidityDepthConsensus','derivativesState','fundingPct','fundingChangeBps','openInterestNotionalUsd','openInterestChangeState',
+  'macroState','macroLevel','macroUsdInr','eventRiskState','eventRiskLevel','newsState','contradictionState','contradictionScore',
   'tradeStatus','lifecycle','entryMethod','entryPreferred','selectedRr','selectedRrFeasibility','selectedTarget',
   'invalidationPrice','stopPrice','expiryAt'
 ]);
 
 const compactDecisionSnapshot=(value={})=>Object.fromEntries(DECISION_SNAPSHOT_FIELDS.filter(key=>value?.[key]!==undefined).map(key=>[key,value[key]]));
+
+const CHANGE_ATTRIBUTION_GROUPS=Object.freeze([
+  {id:'calibration',label:'Calibration',role:'eligibility_gate',keys:['calibrationState','calibrationEligible','calibrationBrierScore','calibrationReliabilityGap']},
+  {id:'mtf',label:'Multi-timeframe agreement',role:'eligibility_gate',keys:['timeframeDirection','timeframeAgreement']},
+  {id:'structure',label:'Market structure',role:'eligibility_gate',keys:['structureState','structureBias']},
+  {id:'liquidity',label:'Liquidity',role:'eligibility_gate',keys:['liquidityState','liquiditySpreadBps','liquidityDepthConsensus']},
+  {id:'targetFeasibility',label:'Target / R:R feasibility',role:'setup_geometry',keys:['selectedRr','selectedRrFeasibility','selectedTarget','stopPrice','expiryAt']},
+  {id:'freshness',label:'Freshness',role:'quality_input',keys:['truthState','freshnessState']},
+  {id:'trend',label:'Trend / regime',role:'model_state',keys:['trendState','regime']},
+  {id:'volatility',label:'Volatility',role:'model_state',keys:['volatilityRegime']},
+  {id:'price',label:'Price',role:'market_observation',keys:['price']},
+  {id:'derivatives',label:'Derivatives',role:'risk_context',keys:['derivativesState','fundingPct','fundingChangeBps','openInterestNotionalUsd','openInterestChangeState']},
+  {id:'news',label:'News context',role:'context_only',keys:['newsState']}
+]);
+const CHANGE_ATTRIBUTION_BOUNDARY='Ranked by deterministic Decision-gate relevance and fixed methodology order. This is change attribution, not market causality, learned feature importance, or a success-probability explanation.';
+const rankDecisionChangeContributors=(changes)=>{
+  const byField=new Map((Array.isArray(changes)?changes:[]).map(item=>[item.field,item]));
+  return CHANGE_ATTRIBUTION_GROUPS.map(group=>{
+    const matched=group.keys.map(key=>byField.get(key)).filter(Boolean);
+    if(!matched.length)return null;
+    return {
+      id:group.id,label:group.label,role:group.role,
+      changedFields:matched.map(item=>item.field),
+      reason:matched.find(item=>item.reason)?.reason||null
+    };
+  }).filter(Boolean).map((item,index)=>({...item,rank:index+1}));
+};
 
 export function compareDecisionSnapshots(previous,current){
   const before=compactDecisionSnapshot(previous||{}),after=compactDecisionSnapshot(current||{});
@@ -242,7 +269,9 @@ export function compareDecisionSnapshots(previous,current){
     comparable:true,
     previousObservedAt:before.observedAt??null,
     currentObservedAt:after.observedAt??null,
-    changes:changes.slice(0,24)
+    changes:changes.slice(0,24),
+    contributors:rankDecisionChangeContributors(changes),
+    attributionBoundary:CHANGE_ATTRIBUTION_BOUNDARY
   };
 }
 
@@ -409,4 +438,4 @@ export function compactDecisionToolReceipt(result,{requestContext=null}={}){
   });
 }
 
-export const __qellyChatToolsTest=Object.freeze({ASSET_IDS,scalar,bounded,state,definitionSummary,DECISION_SNAPSHOT_FIELDS,compactDecisionSnapshot,compactDecisionEvidence});
+export const __qellyChatToolsTest=Object.freeze({ASSET_IDS,scalar,bounded,state,definitionSummary,DECISION_SNAPSHOT_FIELDS,CHANGE_ATTRIBUTION_GROUPS,CHANGE_ATTRIBUTION_BOUNDARY,compactDecisionSnapshot,compactDecisionEvidence,rankDecisionChangeContributors});
