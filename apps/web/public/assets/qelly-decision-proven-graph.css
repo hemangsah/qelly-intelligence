@@ -276,3 +276,17 @@
 .q-dpg-health-quality__grid li strong,.q-dpg-health-quality__grid li span{font-size:9px}.q-dpg-health-quality__grid li small{grid-column:1/-1;line-height:1.4}
 @media(max-width:720px){.q-dpg-health-quality__grid{grid-template-columns:1fr}}
 @media(max-width:480px){.q-dpg-health-quality{padding:10px}.q-dpg-health-quality__components{grid-template-columns:1fr}}
+
+/* Waves BF/BG: primary explainability + mobile research hierarchy */
+.q-dpg-primary-summary{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;min-width:0}
+.q-dpg-primary-summary>span{display:grid;gap:4px;padding:10px;border:1px solid var(--border);border-radius:10px;min-width:0;background:rgba(255,255,255,.018)}
+.q-dpg-primary-summary em{font-style:normal;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)}
+.q-dpg-primary-summary strong{font-size:11px;line-height:1.4;overflow-wrap:anywhere}.q-dpg-primary-summary small{font-size:9px;color:var(--text-muted);overflow-wrap:anywhere}
+.q-dpg-primary-summary>p{grid-column:1/-1;margin:0;padding:9px 10px;border-left:2px solid var(--dpg-rose);font-size:10px;line-height:1.45}
+.q-dpg-confidence-audit{grid-column:1/-1;border-top:1px solid var(--border);padding-top:10px;min-width:0}
+.q-dpg-confidence-audit>summary,.q-dpg-secondary-research>summary{cursor:pointer;font-weight:650;font-size:11px}
+.q-dpg-confidence-audit>.q-dpg-calibration{margin-top:10px}
+.q-dpg-secondary-research{border:1px solid var(--border);border-radius:14px;background:var(--surface);padding:12px 14px;min-width:0}
+.q-dpg-secondary-research>div{display:grid;gap:12px;margin-top:12px;min-width:0}
+@media(max-width:760px){.q-dpg-primary-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.q-dpg-secondary-research{padding:12px}.q-dpg-view{min-width:0}.q-dpg-view>*{min-width:0}}
+@media(max-width:520px){.q-dpg-primary-summary{grid-template-columns:1fr}.q-dpg-primary-summary>p{grid-column:1}.q-dpg-primary-summary>span,.q-dpg-secondary-research{overflow-wrap:anywhere}.q-dpg-confidence-audit>.q-dpg-calibration{grid-template-columns:1fr}}
