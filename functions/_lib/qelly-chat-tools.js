@@ -344,6 +344,7 @@ export function compactDecisionToolReceipt(result,{requestContext=null}={}){
       confidenceMeaning:result.confidence?.calibration??null,riskState:view.riskState??null,scenario:view.scenario??result.forecast?.probabilities??null,
       evidenceGate:gate,contradictions:view.contradictions??[],changesIf:view.changesIf??null,
       evidence:availability,
+      providerResilience:result.providerResilience??null,
       contradictionAnalysis:{
         state:contradiction.state??null,score:contradiction.score??null,
         strongestSupport:contradiction.strongestSupport??null,strongestContradiction:contradiction.strongestContradiction??null,
