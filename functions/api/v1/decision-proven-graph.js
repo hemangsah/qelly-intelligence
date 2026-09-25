@@ -2,7 +2,7 @@ import {buildDecisionProvenGraph,buildDecisionWalkForwardCalibration,DECISION_IN
 import {buildTradeResearch} from '../../_lib/decision-trade-research.js';
 import {buildDecisionHistoricalAnalogs} from '../../_lib/decision-historical-analogs.js';
 import {normalizeDecisionLiquidity} from '../../_lib/decision-liquidity.js';
-import {buildFundingHistoryContext} from '../../_lib/decision-derivatives.js';
+import {buildFundingHistoryContext,buildDerivativesPositioningState} from '../../_lib/decision-derivatives.js';
 import {buildDecisionCrossAsset} from '../../_lib/decision-cross-asset.js';
 import {buildDecisionMacroContext,buildUnavailableDecisionEventRisk} from '../../_lib/decision-macro-events.js';
 import {providerResult} from '../../_lib/providers.js';
@@ -116,7 +116,8 @@ async function fetchDerivativesContext(fetchImpl,asset,observedAt){
     const oraclePrice=finite(context.oraclePx);
     const dayNotionalVolumeUsd=finite(context.dayNtlVlm);
     const premium=finite(context.premium);
-    if([fundingRate,openInterest,markPrice,oraclePrice,dayNotionalVolumeUsd,premium].every(value=>value===null))return unavailable();
+    const prevDayPrice=finite(context.prevDayPx);
+    if([fundingRate,openInterest,markPrice,oraclePrice,dayNotionalVolumeUsd,premium,prevDayPrice].every(value=>value===null))return unavailable();
     return {
       state:'live',
       provider:'Hyperliquid',
@@ -128,6 +129,8 @@ async function fetchDerivativesContext(fetchImpl,asset,observedAt){
       openInterest:round(openInterest,6),
       openInterestNotionalUsd:openInterest===null||markPrice===null?null:round(openInterest*markPrice,2),
       markPrice:round(markPrice,6),
+      prevDayPrice:round(prevDayPrice,6),
+      priceChange24hPct:markPrice===null||prevDayPrice===null||prevDayPrice===0?null:round((markPrice/prevDayPrice-1)*100,4),
       oraclePrice:round(oraclePrice,6),
       markOracleBasisPct:markPrice===null||oraclePrice===null||oraclePrice===0?null:round((markPrice/oraclePrice-1)*100,6),
       markOracleBasisBps:markPrice===null||oraclePrice===null||oraclePrice===0?null:round((markPrice/oraclePrice-1)*10_000,4),
@@ -455,6 +458,12 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   const oiNotional=finite(derivativesCurrent?.openInterestNotionalUsd);
   const dayVolume=finite(derivativesCurrent?.dayNotionalVolumeUsd);
   const markOracleBasisBps=finite(derivativesCurrent?.markOracleBasisBps);
+  const positioning=buildDerivativesPositioningState({
+    priceChangePct:derivativesCurrent?.priceChange24hPct,
+    openInterestChangePct:null,
+    fundingState:fundingHistory.fundingState,
+    basisState:markOracleBasisBps===null?'UNAVAILABLE':markOracleBasisBps>.5?'MARK_PREMIUM':markOracleBasisBps<-.5?'MARK_DISCOUNT':'NEAR_ORACLE'
+  });
   const derivatives=derivativesCurrent?.state==='live'?{
     ...derivativesCurrent,
     currentOnly:true,
@@ -475,10 +484,14 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
     markOracleBasisChangeState:'UNAVAILABLE',
     markOracleBasisChangeReason:'Historical mark/oracle observations are not connected; premium history is not substituted for basis history.',
     openInterestChange:null,
+    openInterestChangePct:null,
     openInterestChangeState:'UNAVAILABLE',
     openInterestChangeReason:'Hyperliquid current asset context does not provide historical open-interest change in this Decision integration.',
-    priceOpenInterestQuadrant:'UNAVAILABLE',
-    priceOpenInterestQuadrantReason:'Price/OI quadrant interpretation requires a verified open-interest change series, which is unavailable.',
+    positioning,
+    positioningState:positioning.state,
+    positioningAvailable:positioning.available,
+    priceOpenInterestQuadrant:positioning.state,
+    priceOpenInterestQuadrantReason:positioning.reason,
     liquidationsState:'UNAVAILABLE',
     liquidationsReason:'A verified liquidation-flow source is not connected to this Decision integration.'
   }:derivativesCurrent;
