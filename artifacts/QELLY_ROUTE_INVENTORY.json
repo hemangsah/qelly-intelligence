@@ -215,7 +215,7 @@
       "route": "discovery-hub",
       "label": "Discovery Overview",
       "section": "Discover",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     },
     {
@@ -285,9 +285,9 @@
     {
       "index": 36,
       "route": "trust-center",
-      "label": "Trust Center",
+      "label": "Research Methodology",
       "section": "Discover",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     },
     {
@@ -431,7 +431,7 @@
       "route": "formula-screener",
       "label": "Formula Screener",
       "section": "Workspace",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     },
     {
@@ -525,9 +525,9 @@
     {
       "index": 66,
       "route": "decision-provenance",
-      "label": "Decision Provenance",
+      "label": "Decision Intelligence",
       "section": "Evidence",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     },
     {
@@ -551,7 +551,7 @@
       "route": "category-detail",
       "label": "Category Detail",
       "section": "Detail",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     },
     {
@@ -559,7 +559,7 @@
       "route": "venue-detail",
       "label": "Venue Detail",
       "section": "Detail",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     },
     {
@@ -567,7 +567,7 @@
       "route": "research-article",
       "label": "Research Article",
       "section": "Detail",
-      "public": false,
+      "public": true,
       "implementation": "runnable-route"
     }
   ]
