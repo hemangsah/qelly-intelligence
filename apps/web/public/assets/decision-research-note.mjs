@@ -61,7 +61,17 @@ export function buildDecisionResearchNote(data,{requestedRr=null,customRr=null,t
   const providerLimits=list(data.provenance?.model?.limitations).map(item=>text(item,'')).filter(Boolean);
   const targetTouch=targetTouchCalibration&&typeof targetTouchCalibration==='object'?targetTouchCalibration:null;
   const targetTouchMetrics=targetTouch?.metrics&&typeof targetTouch.metrics==='object'?targetTouch.metrics:{};
-  const compactTargetTouchMetric=(key)=>{const item=targetTouchMetrics[key]||{};return {state:text(item.state,'UNAVAILABLE'),eligible:item.eligible===true,sampleSize:Number(item.sampleSize)||0,probability:item.eligible===true?finite(item.probability):null,brierScore:finite(item.brierScore),reliabilityGap:finite(item.reliabilityGap)};};
+  const compactTargetTouchMetric=(key)=>{const item=targetTouchMetrics[key]||{},ci=item.confidenceInterval95||{};return {
+    state:text(item.state,'UNAVAILABLE'),
+    eligible:item.eligible===true,
+    sampleSize:Number(item.sampleSize)||0,
+    walkForwardSampleSize:Number(item.walkForwardSampleSize)||0,
+    probability:item.eligible===true?finite(item.probability):null,
+    confidenceInterval95:item.eligible===true?{low:finite(ci.low),high:finite(ci.high),width:finite(ci.width)}:{low:null,high:null,width:finite(ci.width)},
+    brierScore:finite(item.brierScore),
+    reliabilityGap:finite(item.reliabilityGap),
+    reason:text(item.reason,'Calibration evidence unavailable.')
+  };};
   const evidenceLimits=[];
   for(const key of ['eventRisk','liquidations','options','onChain']){
     const item=data.evidence?.[key];
