@@ -104,9 +104,10 @@ test('Wave BN route wiring observes SLOs but never consumes them for Decision/sc
   assert.match(source,/decision_slo/);
 });
 
-test('Wave BN policy module contains no trade-performance or user-data SLO',async()=>{
+test('Wave BN policy contains no trade-performance or user-data objective',async()=>{
   const source=await read('apps/web/public/assets/decision-slos.mjs');
-  for(const forbidden of ['profit','win rate','target touch probability','expected return','email','prompt','asset identifier'])assert.doesNotMatch(source,new RegExp(forbidden,'i'));
+  const policy=JSON.stringify(decisionSloPolicy());
+  for(const forbidden of ['profit','win rate','target touch','expected return','email','prompt','asset'])assert.doesNotMatch(policy,new RegExp(forbidden,'i'));
   assert.match(source,/privacy-safe BM observations/);
   assert.match(source,/not trading-performance, target-touch, calibration, expected-value or profitability claims/);
 });
