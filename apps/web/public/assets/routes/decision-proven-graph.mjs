@@ -330,6 +330,27 @@ const probabilityCalibrationMarkup=(data,escapeHtml)=>{
   '</section>';
 };
 
+const healthQualityMarkup=(data,escapeHtml)=>{
+  const quality=data?.dataQuality;
+  const health=data?.modelHealth;
+  if(!quality&&!health)return '';
+  const score=Number.isFinite(Number(quality?.score))?Math.round(Number(quality.score)*100)+'%':'Unavailable';
+  const missing=quality?.missingness||{};
+  const components=quality?.components||{};
+  const componentCards=[
+    ['Critical coverage',components?.criticalCoverage?.score],
+    ['Freshness',components?.freshness?.score],
+    ['Provider health',components?.providerHealth?.score],
+    ['Consistency',components?.consistency?.score]
+  ].map(([label,value])=>'<span><em>'+escapeHtml(label)+'</em><strong>'+(Number.isFinite(Number(value))?Math.round(Number(value)*100)+'%':'Unavailable')+'</strong></span>').join('');
+  const drift=health?.drift||{};
+  const driftRows=Object.values(drift).slice(0,8).map(item=>'<li><strong>'+escapeHtml(String(item?.dimension||'drift').replaceAll('_',' '))+'</strong><span>'+escapeHtml(String(item?.state||'UNMEASURED'))+'</span><small>'+escapeHtml(item?.reason||'No longitudinal baseline is available.')+'</small></li>').join('');
+  return '<details class="q-dpg-health-quality"><summary>Model / data health · '+escapeHtml(String(quality?.state||'UNAVAILABLE').replaceAll('_',' '))+' · '+escapeHtml(String(health?.driftReadiness?.state||'BASELINE_UNAVAILABLE').replaceAll('_',' '))+'</summary>'+
+    '<div class="q-dpg-health-quality__grid"><section><small>DATA QUALITY · NOT DIRECTION</small><h3>'+escapeHtml(String(quality?.state||'UNAVAILABLE').replaceAll('_',' '))+' · '+escapeHtml(score)+'</h3><p>Critical readiness: <strong>'+(quality?.eligibility?.criticalReady?'PASSED':'FAIL CLOSED')+'</strong></p><div class="q-dpg-health-quality__components">'+componentCards+'</div><p>Missing contextual capabilities: '+escapeHtml(String(missing.unavailableCount??0))+' / '+escapeHtml(String(missing.totalCapabilities??0))+'. '+escapeHtml(missing.scoringBoundary||'')+'</p><p>'+escapeHtml(quality?.boundary||'')+'</p></section>'+
+    '<section><small>MODEL HEALTH · DRIFT READINESS</small><h3>'+escapeHtml(String(health?.state||'UNAVAILABLE').replaceAll('_',' '))+'</h3><p>Longitudinal drift: <strong>'+escapeHtml(String(health?.driftReadiness?.state||'UNMEASURED').replaceAll('_',' '))+'</strong></p><ul>'+driftRows+'</ul><p>'+escapeHtml(health?.driftReadiness?.boundary||'')+'</p><p>'+escapeHtml(health?.boundary||'')+'</p></section></div>'+
+  '</details>';
+};
+
 const historicalAnalogsMarkup=(data,escapeHtml)=>{
   const context=data?.historicalAnalogs;
   if(!context)return '';
@@ -600,6 +621,7 @@ export async function renderDecisionProvenGraph(main,deps){
       outcomeLedgerMarkup(data)+
       probabilityCalibrationMarkup(data,escapeHtml)+
       historicalAnalogsMarkup(data,escapeHtml)+
+      healthQualityMarkup(data,escapeHtml)+
       '<section class="q-dpg-view q-dpg-view--'+actionTone(view.action)+'"><div><small>QELLY VIEW</small><h2>'+escapeHtml(view.action)+'</h2><p>'+escapeHtml(view.label)+'</p></div><div class="q-dpg-confidence"><span>Evidence confidence</span><strong>'+Math.round(view.confidence*100)+'%</strong></div>'+calibration(view,escapeHtml)+levels(view)+'<details><summary>Why this view?</summary><ul>'+view.why.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul><p><strong>What changes it:</strong> '+escapeHtml(view.changesIf)+'</p></details></section>'+
       '<section class="q-dpg-stage"><div class="q-dpg-chart-wrap"><div class="q-dpg-chart-help">Click one candle or drag across observed candles to select a move.</div>'+chart(data,escapeHtml)+'<div class="q-dpg-selection-actions"><span data-dpg-selection-label>'+(state.draft?(state.draft.end-state.draft.start<(INTERVAL_MS[state.interval]||0)?'Single candle selected':'Range selected'):'No range selected')+'</span><button class="q-button q-button--primary" data-dpg-explain '+(state.draft?'':'disabled')+'>'+(state.draft&&state.draft.end-state.draft.start<(INTERVAL_MS[state.interval]||0)?'Explain this candle':'Explain this move')+'</button><button class="q-button q-button--secondary" data-dpg-clear '+(state.draft||state.selection?'':'disabled')+'>Clear</button></div></div><aside class="q-dpg-scenarios">'+[['Bull',data.forecast.probabilities.bull],['Base',data.forecast.probabilities.base],['Bear',data.forecast.probabilities.bear]].map(([label,value])=>'<article><span>'+label+'</span><strong>'+Math.round(value*100)+'%</strong><meter min="0" max="1" value="'+value+'"></meter></article>').join('')+'<p>Modelled terminal range<br><strong>'+money(data.forecast.terminal.p05)+' – '+money(data.forecast.terminal.p95)+'</strong></p></aside></section>'+
       (move?'<section class="q-dpg-move"><header><div><small>SELECTED MOVE</small><h2>'+pct(move.changePct)+' across '+move.candles+' candles</h2></div><span>'+new Date(move.start).toLocaleString()+' → '+new Date(move.end).toLocaleString()+'</span></header><div><article><span>Range</span><strong>'+pct(move.rangePct)+'</strong></article><article><span>Volume vs prior</span><strong>'+(move.volumeRatio?move.volumeRatio+'×':'N/A')+'</strong></article><article><span>Volatility</span><strong>'+pct(move.volatilityPct)+'</strong></article><article><span>Prior volatility</span><strong>'+(move.priorVolatilityPct===null?'N/A':pct(move.priorVolatilityPct))+'</strong></article></div></section>':'')+
