@@ -660,3 +660,14 @@ export const __decisionNewsLatencyTest=Object.freeze({
   NEWS_TIMEOUT_MS,NEWS_CACHE_FRESH_MS,NEWS_CACHE_STALE_MS,NEWS_CACHE_BUCKET_MS,
   fetchNewsAttempt,fetchNews,fetchNewsContext,newsUrl,normalizeArticles,normalizedNewsWindow,newsCacheRequest,readNewsCache
 });
+
+export const __decisionFailureInjectionTest=Object.freeze({
+  fetchCandles,
+  fetchOptionalCandles,
+  fetchFundingHistory,
+  fetchLiquidityContext,
+  fetchDerivativesContext,
+  fetchTimeframeSupport,
+  assembleTimeframes,
+  summarizeTimeframes
+});
