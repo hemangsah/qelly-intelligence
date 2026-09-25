@@ -341,7 +341,9 @@ export function compactDecisionToolReceipt(result,{requestContext=null}={}){
         selection:requestContext?.selection??null
       },
       marketState:result.market?.currentState??null,action:view.action??'NO TRADE',confidence:view.confidence??null,
-      confidenceMeaning:result.confidence?.calibration??null,riskState:view.riskState??null,scenario:view.scenario??result.forecast?.probabilities??null,
+      confidenceMeaning:result.confidence?.calibration??null,
+      confidenceDecomposition:result.confidence?.decomposition??null,
+      riskState:view.riskState??null,scenario:view.scenario??result.forecast?.probabilities??null,
       evidenceGate:gate,contradictions:view.contradictions??[],changesIf:view.changesIf??null,
       evidence:availability,
       providerResilience:result.providerResilience??null,
