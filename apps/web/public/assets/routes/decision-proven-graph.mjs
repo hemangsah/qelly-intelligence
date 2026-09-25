@@ -685,20 +685,21 @@ export async function renderDecisionProvenGraph(main,deps){
     main.innerHTML='<section class="q-page q-dpg-page">'+stateBanner()+hero(data)+'<section class="q-dpg-controls q-dpg-controls--decision" aria-label="Decision controls">'+select('horizon',validHorizons(state.interval))+'<label><span>Risk / reward</span><select data-dpg-rr><option value="auto" '+(state.rr==='auto'?'selected':'')+'>Auto</option><option value="1" '+(state.rr==='1'?'selected':'')+'>1:1</option><option value="2" '+(state.rr==='2'?'selected':'')+'>1:2</option><option value="3" '+(state.rr==='3'?'selected':'')+'>1:3</option><option value="4" '+(state.rr==='4'?'selected':'')+'>1:4</option><option value="custom" '+(state.rr==='custom'?'selected':'')+'>Custom</option></select></label>'+(state.rr==='custom'?'<label><span>Custom R:R</span><input data-dpg-custom-rr type="number" min="0.5" max="10" step="0.1" value="'+escapeHtml(state.customRr)+'"></label>':'')+'<p>Public research · no sign-in required · no trade execution</p></section>'+scannerFiltersMarkup(state,escapeHtml)+scannerMarkup(state.scan,{scanning:state.scanning,error:state.scanError,escapeHtml})+(state.loading?'<section class="q-dpg-state" role="status"><span class="q-spinner"></span><h2>Weighing fresh evidence</h2><p>Loading market observations and scenario ranges.</p></section>':'')+(state.error?'<section class="q-dpg-state q-dpg-state--error" role="alert"><h2>Live research unavailable</h2><p>'+escapeHtml(state.error)+'</p><button class="q-button q-button--secondary" data-dpg-refresh>Try again</button></section>':'')+(data?content(data):'')+'</section>';
     wire();mountAdSlots(main);
   };
+  const scheduleLoad=()=>setTimeout(()=>load(),0);
   const wire=()=>{
     main.querySelectorAll('[data-dpg-asset],[data-dpg-interval],[data-dpg-horizon]').forEach(element=>element.addEventListener('change',()=>{
       const key=element.hasAttribute('data-dpg-asset')?'asset':element.hasAttribute('data-dpg-interval')?'interval':'horizon';
       state[key]=element.value;
       if(key==='interval')state.horizon=normalizeHorizon(state.interval,state.horizon);
       if(key!=='asset'){state.scan=null;state.scanError=null;}
-      state.draft=null;state.selection=null;load();
+      state.draft=null;state.selection=null;scheduleLoad();
     }));
     main.querySelector('[data-dpg-rr]')?.addEventListener('change',(event)=>{
       state.rr=event.currentTarget.value;state.scan=null;state.scanError=null;
       emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'risk_reward',action:'select',state:rrTelemetryState(state.rr)});
-      load();
+      scheduleLoad();
     });
-    main.querySelector('[data-dpg-custom-rr]')?.addEventListener('change',(event)=>{state.customRr=event.currentTarget.value;state.scan=null;state.scanError=null;load();});
+    main.querySelector('[data-dpg-custom-rr]')?.addEventListener('change',(event)=>{state.customRr=event.currentTarget.value;state.scan=null;state.scanError=null;scheduleLoad();});
     main.querySelectorAll('[data-dpg-scan]').forEach(button=>button.addEventListener('click',scan));
     main.querySelector('[data-dpg-ledger-track]')?.addEventListener('click',trackCurrentSetup);
     main.querySelectorAll('[data-dpg-ledger-observe]').forEach(button=>button.addEventListener('click',()=>observeTrackedSetup(button.dataset.dpgLedgerObserve)));
