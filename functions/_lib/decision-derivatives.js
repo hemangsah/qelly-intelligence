@@ -19,6 +19,59 @@ const shiftState=(value,{epsilon=.05}={})=>{
   return 'FLAT';
 };
 
+const POSITIONING_DEFINITIONS=Object.freeze({
+  LONG_BUILD_UP:'Price rising with verified open interest rising.',
+  SHORT_BUILD_UP:'Price falling with verified open interest rising.',
+  SHORT_COVERING:'Price rising with verified open interest falling.',
+  LONG_UNWINDING:'Price falling with verified open interest falling.',
+  NEUTRAL_MIXED:'Price or open-interest change is within the neutral threshold.',
+  UNAVAILABLE:'Verified price and open-interest changes are both required.'
+});
+
+export function buildDerivativesPositioningState({
+  priceChangePct=null,
+  openInterestChangePct=null,
+  fundingState='UNAVAILABLE',
+  basisState='UNAVAILABLE',
+  priceEpsilonPct=.1,
+  openInterestEpsilonPct=.25
+}={}){
+  const price=finite(priceChangePct),oi=finite(openInterestChangePct);
+  const priceEpsilon=Math.max(0,finite(priceEpsilonPct)??.1);
+  const oiEpsilon=Math.max(0,finite(openInterestEpsilonPct)??.25);
+  const annotations={fundingState:String(fundingState||'UNAVAILABLE'),basisState:String(basisState||'UNAVAILABLE')};
+  if(price===null||oi===null)return {
+    state:'UNAVAILABLE',
+    available:false,
+    priceChangePct:round(price,4),
+    openInterestChangePct:round(oi,4),
+    priceEpsilonPct:priceEpsilon,
+    openInterestEpsilonPct:oiEpsilon,
+    definition:POSITIONING_DEFINITIONS.UNAVAILABLE,
+    reason:price===null&&oi===null?'Verified price change and historical open-interest change are unavailable.':price===null?'Verified price change is unavailable.':'Historical open-interest change is unavailable.',
+    annotations,
+    boundary:'Funding, premium and basis are descriptive annotations only and are never substituted for missing open-interest change. Positioning state is descriptive, not ground-truth trader positioning or a directional signal.'
+  };
+  const priceUp=price>priceEpsilon,priceDown=price< -priceEpsilon,oiUp=oi>oiEpsilon,oiDown=oi< -oiEpsilon;
+  let state='NEUTRAL_MIXED';
+  if(priceUp&&oiUp)state='LONG_BUILD_UP';
+  else if(priceDown&&oiUp)state='SHORT_BUILD_UP';
+  else if(priceUp&&oiDown)state='SHORT_COVERING';
+  else if(priceDown&&oiDown)state='LONG_UNWINDING';
+  return {
+    state,
+    available:true,
+    priceChangePct:round(price,4),
+    openInterestChangePct:round(oi,4),
+    priceEpsilonPct:priceEpsilon,
+    openInterestEpsilonPct:oiEpsilon,
+    definition:POSITIONING_DEFINITIONS[state],
+    reason:state==='NEUTRAL_MIXED'?'At least one verified change is inside the neutral threshold.':'State follows the explicit price/open-interest quadrant definition.',
+    annotations,
+    boundary:'Descriptive price/open-interest quadrant only. It does not identify individual trader positioning, prove institutional flow, or independently create BUY/SELL eligibility.'
+  };
+}
+
 export function buildFundingHistoryContext(raw,{currentFundingRate=null,currentPremium=null}={}){
   const rows=(Array.isArray(raw)?raw:[])
     .map(item=>({
@@ -96,4 +149,4 @@ export function buildFundingHistoryContext(raw,{currentFundingRate=null,currentP
   };
 }
 
-export const __decisionDerivativesTest=Object.freeze({median,percentileRank,signedState,shiftState});
+export const __decisionDerivativesTest=Object.freeze({median,percentileRank,signedState,shiftState,POSITIONING_DEFINITIONS});
