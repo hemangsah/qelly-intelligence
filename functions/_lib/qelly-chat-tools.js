@@ -346,6 +346,8 @@ export function compactDecisionToolReceipt(result,{requestContext=null}={}){
       riskState:view.riskState??null,scenario:view.scenario??result.forecast?.probabilities??null,
       evidenceGate:gate,contradictions:view.contradictions??[],changesIf:view.changesIf??null,
       evidence:availability,
+      dataQuality:result.dataQuality??null,
+      modelHealth:result.modelHealth??null,
       providerResilience:result.providerResilience??null,
       contradictionAnalysis:{
         state:contradiction.state??null,score:contradiction.score??null,
