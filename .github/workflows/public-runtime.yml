@@ -215,7 +215,12 @@ jobs:
                 mainChildCount: main?.childElementCount ?? null,
                 appVisibility: app ? getComputedStyle(app).visibility : null,
                 startupFailure: Boolean(document.querySelector('.q-startup-failure')),
-                inlineScriptCount: [...document.scripts].filter(script => !script.src && script.textContent.trim()).length
+                executableInlineScriptCount: [...document.scripts].filter(script => {
+                  if (script.src || !script.textContent.trim()) return false;
+                  const type = String(script.type || '').trim().toLowerCase();
+                  return !['application/ld+json', 'application/json'].includes(type);
+                }).length,
+                structuredDataScriptCount: [...document.scripts].filter(script => !script.src && String(script.type || '').trim().toLowerCase() === 'application/ld+json' && script.textContent.trim()).length
               };
             });
             const evidence = { url: page.url(), navigationStatus: response?.status() ?? null, dom, pageErrors, consoleErrors };
@@ -225,7 +230,7 @@ jobs:
             if (evidence.navigationStatus !== 200) throw new Error(`homepage_status_${evidence.navigationStatus}`);
             if (dom.appReady !== 'true' || dom.themeReady !== 'true') throw new Error(`app_not_ready_${JSON.stringify(dom)}`);
             if (dom.appVisibility !== 'visible' || !dom.appExists || !(dom.mainChildCount > 0)) throw new Error('main_route_not_rendered');
-            if (dom.startupFailure || dom.inlineScriptCount !== 0) throw new Error('startup_or_csp_failure');
+            if (dom.startupFailure || dom.executableInlineScriptCount !== 0) throw new Error('startup_or_csp_failure');
             if (pageErrors.length) throw new Error(`page_errors_${JSON.stringify(pageErrors)}`);
             const cspErrors = consoleErrors.filter(text => /content security policy|refused to execute inline|violates.*script-src/i.test(text));
             if (cspErrors.length) throw new Error(`csp_console_errors_${JSON.stringify(cspErrors)}`);
