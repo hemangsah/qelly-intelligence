@@ -1,5 +1,6 @@
 import {adSlot,mountAdSlots} from '../qelly-ad-slot.mjs';
 import {DECISION_CONTEXT_KEY as CHAT_DECISION_CONTEXT_KEY,DECISION_ASSETS,consumeDecisionContext as readChatDecisionContext,storeResearchContext} from '../decision-context-bridge.mjs';
+import {startDecisionObservation,recordDecisionObservation,recordScannerObservation,recordTargetTouchSample} from '../decision-observability.mjs';
 const STYLESHEET=new URL('../qelly-decision-proven-graph.css',import.meta.url).href;
 const installStyles=()=>{if(!document.querySelector('link[data-decision-proven-graph]')){const link=document.createElement('link');link.rel='stylesheet';link.href=STYLESHEET;link.dataset.decisionProvenGraph='v2';document.head.append(link);}};
 const money=(value)=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:Number(value)>=100?0:2}).format(value);
@@ -730,8 +731,8 @@ export async function renderDecisionProvenGraph(main,deps){
     if(!ledgerAuthenticated()){state.ledger=null;state.ledgerError=null;return;}
     if(state.ledgerLoading)return;
     state.ledgerLoading=true;state.ledgerError=null;if(redraw)draw();
-    try{state.ledger=await api('/api/v1/decision-ledger?limit=50');}
-    catch(error){state.ledger=null;state.ledgerError=error?.message||'Observed setup ledger is unavailable.';}
+    try{state.ledger=await api('/api/v1/decision-ledger?limit=50');recordTargetTouchSample(state.ledger);}
+    catch(error){state.ledger=null;state.ledgerError=error?.message||'Observed setup ledger is unavailable.';recordTargetTouchSample(null);}
     finally{state.ledgerLoading=false;if(redraw)draw();}
   }
   async function trackCurrentSetup(){
@@ -758,6 +759,7 @@ export async function renderDecisionProvenGraph(main,deps){
   }
   async function scan(){
     if(state.scanning)return;
+    const observabilityStartedAt=startDecisionObservation();
     state.scanning=true;state.scanError=null;draw();
     try{
       const params=new URLSearchParams({interval:state.interval,horizon:state.horizon,rr:state.rr});
@@ -766,6 +768,7 @@ export async function renderDecisionProvenGraph(main,deps){
       for(const key of ['direction','minEvidenceQuality','minCalibratedConfidence','minMtfAgreement','liquidity','volatility','regime','eventRiskTolerance','freshness'])params.set(key,String(state.scanFilters[key]??''));
       params.set('setupFreshness','current');
       state.scan=await api('/api/v1/decision-scan?'+params.toString());
+      recordScannerObservation({startedAt:observabilityStartedAt,scan:state.scan});
       const eligibleCount=Math.max(0,Number(state.scan?.eligibleCount)||0);
       emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'decision_scan',action:'complete',state:telemetryToken(state.scan?.state||'unavailable')});
       emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'eligible_setup',action:'count',state:eligibleCount>0?'nonzero':'zero',...(eligibleCount>0?{count:Math.min(100,eligibleCount)}:{})});
@@ -775,6 +778,7 @@ export async function renderDecisionProvenGraph(main,deps){
       }
     }catch(error){
       state.scan=null;state.scanError=error?.message||'The governed asset scan could not be completed. No substitute candidates were generated.';
+      recordScannerObservation({startedAt:observabilityStartedAt,failed:true});
       emitRuntimeSignal({feature:'decision_scan',action:'failure',state:'unavailable',surface:'api'});
     }finally{
       state.scanning=false;
@@ -816,6 +820,7 @@ export async function renderDecisionProvenGraph(main,deps){
   }
 
   async function load(){
+    const observabilityStartedAt=startDecisionObservation();
     state.loading=true;state.error=null;draw();
     try{
       const range=state.selection?'&selectionStart='+encodeURIComponent(state.selection.start)+'&selectionEnd='+encodeURIComponent(state.selection.end):'';
@@ -824,11 +829,13 @@ export async function renderDecisionProvenGraph(main,deps){
       const next=await api('/api/v1/decision-proven-graph?asset='+encodeURIComponent(state.asset)+'&interval='+encodeURIComponent(state.interval)+'&horizon='+encodeURIComponent(state.horizon)+rr+range);
       state.previousSnapshot=previous&&next?.decisionSnapshot&&previous.asset===next.decisionSnapshot.asset&&previous.interval===next.decisionSnapshot.interval?previous:null;
       state.data=next;
+      recordDecisionObservation({startedAt:observabilityStartedAt,data:next,rrState:rrTelemetryState(state.rr)});
       void enrichDecisionNews(next);
       emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'decision_view',action:'result',state:telemetryToken(next?.qellyView?.action||'unavailable')});
       emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'calibration',action:'state',state:telemetryToken(next?.quant?.calibration?.state||'uncalibrated')});
     }catch(error){
       state.data=null;state.previousSnapshot=null;state.error=error?.message||'Fresh market evidence could not be reached. No substitute data was generated.';
+      recordDecisionObservation({startedAt:observabilityStartedAt,rrState:rrTelemetryState(state.rr),failed:true});
       emitRuntimeSignal({feature:'decision',action:'failure',state:'unavailable',surface:'api'});
     }finally{state.loading=false;draw();if(ledgerAuthenticated()&&!state.ledger&&!state.ledgerLoading)void loadLedger();}
   }
