@@ -20,10 +20,10 @@ const HORIZON_FOR_TIMEFRAME=Object.freeze({'1m':'1h','5m':'4h','15m':'4h','30m':
 const DECISION_HORIZONS=new Set(['1h','4h','12h','1d','3d','7d']);
 const DECISION_RR=new Set(['auto','1','2','3','4','custom']);
 const DECISION_SNAPSHOT_KEYS=Object.freeze([
-  'observedAt','asset','interval','price','action','confidence','evidenceQuality','calibrationState','calibrationEligible',
+  'observedAt','asset','interval','price','truthState','freshnessState','trendState','action','confidence','evidenceQuality','calibrationState','calibrationEligible',
   'calibrationBrierScore','calibrationReliabilityGap','regime','volatilityRegime','structureState','structureBias',
-  'timeframeDirection','timeframeAgreement','fundingPct','fundingChangeBps','openInterestNotionalUsd','openInterestChangeState',
-  'macroState','macroLevel','macroUsdInr','eventRiskState','eventRiskLevel','contradictionState','contradictionScore',
+  'timeframeDirection','timeframeAgreement','liquidityState','liquiditySpreadBps','liquidityDepthConsensus','derivativesState','fundingPct','fundingChangeBps','openInterestNotionalUsd','openInterestChangeState',
+  'macroState','macroLevel','macroUsdInr','eventRiskState','eventRiskLevel','newsState','contradictionState','contradictionScore',
   'tradeStatus','lifecycle','entryMethod','entryPreferred','selectedRr','selectedRrFeasibility','selectedTarget','invalidationPrice','stopPrice','expiryAt'
 ]);
 const scalarDecisionValue=(value)=>value==null||['string','number','boolean'].includes(typeof value)?value:null;
