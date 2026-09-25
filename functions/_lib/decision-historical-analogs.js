@@ -185,7 +185,7 @@ export function buildDecisionHistoricalAnalogs(raw,{interval='15m',horizonBars=1
       thresholdSelection:'Fixed research policy; not tuned from forward returns, MFE, MAE or time-to-resolution.',
       temporalSeparation:'Candidate stride and final selection require at least one forecast horizon between anchors so selected resolved outcome windows do not overlap.'
     },
-    outcomeBoundary:'Forward return, MFE, MAE and time-to-resolution are computed only after similarity and temporal-selection gates. They remain descriptive historical context, not probability calibration, target-touch probability, expected value or a trade signal.',
+    outcomeBoundary:'Forward return, MFE, MAE and time-to-resolution are computed only after similarity and temporal-selection gates. They remain descriptive historical context, not probability calibration or a trade signal; they are also not target-touch probability or expected value.',
     leakageGuard:'No forward return, favorable excursion or adverse excursion is used in feature distance, similarity acceptance or analog ranking. Terminal price or time-to-resolution is also excluded from matching and ranking.',
     uncertaintyBoundary:'The selected analog sample is small and conditionally matched. Summary intervals are descriptive uncertainty only and do not assume independent identical draws.',
     eligibilityImpact:'none'
