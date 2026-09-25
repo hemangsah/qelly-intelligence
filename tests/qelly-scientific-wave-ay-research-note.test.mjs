@@ -9,7 +9,7 @@ const fixture=()=>({
   provenance:{provider:'Hyperliquid',documentation:'https://example.test/docs',model:{limitations:['One venue observed.']}},
   qellyView:{action:'NO TRADE',label:'Evidence withheld.',confidence:.62,evidenceGate:{qualityScore:.7,directionalEligible:false},why:['Trend mixed'],contradictions:['Calibration gate not passed'],changesIf:'Fresh evidence aligns.'},
   contradictionAnalysis:{state:'CONFLICT',score:.25,support:['Trend mixed'],contradictions:['Calibration gate not passed'],strongestSupport:'Trend mixed',strongestContradiction:'Calibration gate not passed'},
-  tradeResearch:{status:'NO_TRADE',reason:'Requested R:R not validated',entry:null,stop:null,invalidation:null,expiryAt:null,targets:[],matrix:[{label:'1:2',ratio:2,target:105,feasibility:'NOT_FEASIBLE',feasibilityReason:'barrier',grossRr:2,netRr:null,costState:'UNAVAILABLE'}],selected:null},
+  tradeResearch:{status:'NO_TRADE',reason:'Requested R:R not validated',entry:null,stop:null,invalidation:null,expiryAt:null,targets:[],matrix:[{label:'1:2',ratio:2,target:105,feasibility:'NOT_FEASIBLE',feasibilityReason:'barrier',grossRiskReward:2,netRiskReward:null,costState:'UNAVAILABLE'}],selected:null},
   quant:{calibration:{state:'UNCALIBRATED',eligible:false,sampleSize:25,minimumSampleGate:36,brierScore:.3508,skillScore:-.0525,reliabilityGap:.1872,diagnosticMetricsOnly:true,reason:'Below sample gate.'}},
   forecast:{probabilities:{bull:.3,base:.4,bear:.3},terminal:{p05:90,p50:100,p95:110}},
   evidence:{eventRisk:{state:'unavailable',level:'UNAVAILABLE',reason:'No feed.'},liquidations:{state:'unavailable',message:'No liquidation feed.'},options:{state:'unavailable',message:'No options feed.'},onChain:{state:'unavailable',message:'No on-chain feed.'}},
@@ -40,6 +40,8 @@ test('AY note does not promote diagnostics into target probability or net R:R',(
   assert.equal(note.calibration.eligible,false);
   assert.equal(note.calibration.diagnosticMetricsOnly,true);
   assert.equal(note.riskReward.selected,null);
+  assert.equal(note.riskReward.matrix[0].grossRr,2);
+  assert.equal(note.riskReward.matrix[0].netRr,null);
   assert.equal('targetTouchProbability' in note.calibration,false);
   assert.match(note.calibration.targetTouch.boundary,/not inferred from scenarios, analogs or candle depth/i);
 });
