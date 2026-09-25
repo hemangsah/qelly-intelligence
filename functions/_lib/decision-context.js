@@ -373,7 +373,10 @@ function decisionTrace(graph,{multiTimeframe,tradeResearch,evidence,horizon,cont
     sourceNode('analogs','historical-analogs','Leakage-guarded historical analogs',{
       source:'QELLY derived research',timestamp:null,freshness:analogs.state==='AVAILABLE'?'DELAYED':'UNAVAILABLE',importance:'MEDIUM',directness:'DERIVED',reliability:analogs.state==='AVAILABLE'?'DESCRIPTIVE_ONLY':'UNAVAILABLE',role:'context_only',supportState:'NEUTRAL',
       methodology:analogs.method||'Historical analogs unavailable.',
-      limitations:['Forward outcomes are attached after matching and are not win probability.']
+      limitations:[
+        'Forward outcomes are attached only after pre-outcome similarity and temporal-selection gates and are not win probability.',
+        analogs.uncertaintyBoundary||'Small selected analog samples are descriptive only and are not calibration evidence.'
+      ]
     }),
     sourceNode('options','options','Options evidence',{
       source:'No connected authorized source',timestamp:null,freshness:evidence?.options?.state==='available'?'DELAYED':'UNAVAILABLE',importance:'LOW',directness:'UNAVAILABLE',reliability:'UNAVAILABLE',role:'context_only',supportState:'UNAVAILABLE',
