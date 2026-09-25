@@ -14,6 +14,7 @@
     "smoke": "node scripts/smoke.mjs",
     "release:check": "node scripts/release-check.mjs",
     "inventory": "node scripts/build-inventory.mjs",
+    "audit:dead-code": "node scripts/runtime-dead-code-audit.mjs",
     "security:scan": "node scripts/secret-scan.mjs",
     "browser:render": "bash scripts/release-a5-all-screens.sh",
     "a11y": "python3 scripts/release-a5-accessibility-evidence.py",
