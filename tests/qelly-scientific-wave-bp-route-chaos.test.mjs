@@ -52,3 +52,12 @@ test('Wave BP unavailable chaos instrumentation fails the Browser E2E release ga
   assert.match(source,/status:'unavailable'/);
   assert.match(source,/failures:\['probe_unavailable'\]/);
 });
+
+
+test('Wave BP Decision controls defer redraw until the native change event settles',async()=>{
+  const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
+  assert.match(route,/const scheduleLoad=\(\)=>setTimeout\(\(\)=>load\(\),0\)/);
+  assert.match(route,/state\.draft=null;state\.selection=null;scheduleLoad\(\)/);
+  assert.match(route,/feature:'risk_reward',action:'select',state:rrTelemetryState\(state\.rr\)\}\);\s*scheduleLoad\(\)/);
+  assert.match(route,/state\.customRr=event\.currentTarget\.value;state\.scan=null;state\.scanError=null;scheduleLoad\(\)/);
+});
