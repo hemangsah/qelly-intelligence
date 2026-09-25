@@ -304,6 +304,146 @@ async function runDecisionChaosStabilityProbe(browser){
   }
 }
 
+
+async function runDecisionChaosStabilityProbe(browser){
+  const context=await browser.newContext({viewport:{width:1280,height:900},device_scale_factor:1,reduced_motion:'reduce'});
+  await context.addInitScript(()=>{
+    const nativeSetTimeout=globalThis.setTimeout.bind(globalThis);
+    const nativeClearTimeout=globalThis.clearTimeout.bind(globalThis);
+    const nativeSetInterval=globalThis.setInterval.bind(globalThis);
+    const nativeClearInterval=globalThis.clearInterval.bind(globalThis);
+    const activeTimeouts=new Set(),activeIntervals=new Set();
+    const telemetry={activeTimeouts:0,activeIntervals:0,createdTimeouts:0,createdIntervals:0};
+    const sync=()=>{telemetry.activeTimeouts=activeTimeouts.size;telemetry.activeIntervals=activeIntervals.size;};
+    globalThis.setTimeout=(callback,delay,...args)=>{
+      let id;
+      const wrapped=(...inner)=>{activeTimeouts.delete(id);sync();return typeof callback==='function'?callback(...inner):undefined;};
+      id=nativeSetTimeout(wrapped,delay,...args);activeTimeouts.add(id);telemetry.createdTimeouts+=1;sync();return id;
+    };
+    globalThis.clearTimeout=(id)=>{activeTimeouts.delete(id);sync();return nativeClearTimeout(id);};
+    globalThis.setInterval=(callback,delay,...args)=>{
+      const id=nativeSetInterval(callback,delay,...args);activeIntervals.add(id);telemetry.createdIntervals+=1;sync();return id;
+    };
+    globalThis.clearInterval=(id)=>{activeIntervals.delete(id);sync();return nativeClearInterval(id);};
+    Object.defineProperty(globalThis,'__QELLY_CHAOS_TIMER_TELEMETRY__',{value:telemetry,configurable:true});
+  });
+  const page=await context.newPage();
+  const errors=[],networkFailures=[];
+  let firstPartyOutstanding=0,maxFirstPartyOutstanding=0;
+  const firstParty=(url)=>String(url||'').startsWith(base);
+  page.on('pageerror',error=>errors.push(String(error)));
+  page.on('console',message=>{if(message.type()==='error'&&!/^Failed to load resource:/i.test(message.text()))errors.push(message.text());});
+  page.on('request',request=>{if(firstParty(request.url())){firstPartyOutstanding+=1;maxFirstPartyOutstanding=Math.max(maxFirstPartyOutstanding,firstPartyOutstanding);}});
+  page.on('requestfinished',request=>{if(firstParty(request.url()))firstPartyOutstanding=Math.max(0,firstPartyOutstanding-1);});
+  page.on('requestfailed',request=>{if(firstParty(request.url())){firstPartyOutstanding=Math.max(0,firstPartyOutstanding-1);networkFailures.push({url:new URL(request.url()).pathname,failure:request.failure()?.errorText||'request_failed'});}});
+  const samples=[];
+  let cdp=null;
+  const waitReady=async()=>page.waitForFunction(()=>document.documentElement.dataset.appReady==='true'&&document.querySelector('#main')?.getAttribute('aria-busy')==='false',{timeout:15000});
+  const chooseNext=async(selector,preferred)=>{
+    const locator=page.locator(selector).first();
+    if(!(await locator.count())||!(await locator.isVisible().catch(()=>false)))return null;
+    const options=await locator.locator('option').evaluateAll(nodes=>nodes.map(node=>node.value).filter(Boolean));
+    const current=await locator.inputValue();
+    const next=preferred.find(value=>options.includes(value)&&value!==current)||options.find(value=>value!==current);
+    if(!next)return null;
+    await locator.selectOption(next);
+    return next;
+  };
+  const boundedScannerProbe=async(cycle)=>page.evaluate(async(cycle)=>{
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),1800);
+    try{
+      const response=await fetch('/api/v1/decision-scan?interval=15m&horizon=4h&rr=auto&universe=all&chaosCycle='+cycle,{signal:controller.signal,cache:'no-store'});
+      return {status:response.status,ok:response.ok};
+    }catch(error){return {status:0,ok:false,error:String(error?.name||error)};}
+    finally{clearTimeout(timer);}
+  },cycle);
+  try{
+    await page.goto(base+'/#/decision-provenance',{waitUntil:'domcontentloaded',timeout:20000});
+    await waitReady();
+    cdp=await context.newCDPSession(page);
+    await cdp.send('Performance.enable');
+    await cdp.send('HeapProfiler.enable');
+    for(let cycle=1;cycle<=5;cycle+=1){
+      if(cycle===2||cycle===4){
+        await page.evaluate(()=>{location.hash='#/market';});
+        await waitReady();
+        await page.waitForTimeout(100);
+        await page.evaluate(()=>{location.hash='#/decision-provenance';});
+        await waitReady();
+      }
+      if(cycle===3){
+        await page.reload({waitUntil:'domcontentloaded',timeout:20000});
+        await waitReady();
+      }
+      await chooseNext('[data-dpg-horizon]',['1h','4h','12h','1d']);
+      await page.waitForTimeout(80);
+      const rr=await chooseNext('[data-dpg-rr]',['1','2','3','4','auto','custom']);
+      await page.waitForTimeout(80);
+      if(rr==='custom'){
+        const input=page.locator('[data-dpg-custom-rr]').first();
+        if(await input.count()){await input.fill('2.5');await input.dispatchEvent('change');}
+      }
+      await chooseNext('[data-dpg-interval]',['15m','1h','5m']);
+      await chooseNext('[data-dpg-asset]',['BTC','ETH','SOL']);
+      const refresh=page.locator('[data-dpg-refresh]').first();
+      if(await refresh.isVisible().catch(()=>false))await refresh.click().catch(()=>{});
+      const scanButton=page.locator('[data-dpg-scan]').first();
+      if(await scanButton.isVisible().catch(()=>false)&&!(await scanButton.isDisabled().catch(()=>true)))await scanButton.click().catch(()=>{});
+      await boundedScannerProbe(cycle);
+      if(cycle===5){
+        await page.waitForTimeout(1400);
+        await page.evaluate(()=>window.dispatchEvent(new Event('pageshow')));
+      }else await page.waitForTimeout(260);
+      await page.waitForFunction(()=>document.querySelector('#main')?.getAttribute('aria-busy')==='false',{timeout:15000}).catch(()=>{});
+      await cdp.send('HeapProfiler.collectGarbage');
+      await page.waitForTimeout(120);
+      const metrics=await cdp.send('Performance.getMetrics');
+      const values=Object.fromEntries(metrics.metrics.map(item=>[item.name,item.value]));
+      const timerState=await page.evaluate(()=>({...globalThis.__QELLY_CHAOS_TIMER_TELEMETRY__}));
+      samples.push({
+        cycle,
+        jsHeapUsedBytes:Math.round(Number(values.JSHeapUsedSize)||0),
+        nodes:Math.round(Number(values.Nodes)||0),
+        documents:Math.round(Number(values.Documents)||0),
+        eventListeners:Math.round(Number(values.JSEventListeners)||0),
+        domNodes:await page.locator('*').count(),
+        iframes:await page.locator('iframe').count(),
+        currentShells:await page.locator('[data-qelly-current-shell="true"]').count(),
+        activeTimeouts:Number(timerState?.activeTimeouts)||0,
+        activeIntervals:Number(timerState?.activeIntervals)||0,
+        firstPartyOutstanding
+      });
+    }
+    const failures=[];
+    const heap=samples.map(item=>item.jsHeapUsedBytes),dom=samples.map(item=>item.domNodes),listeners=samples.map(item=>item.eventListeners);
+    const documents=samples.map(item=>item.documents),iframes=samples.map(item=>item.iframes);
+    const timeouts=samples.map(item=>item.activeTimeouts),intervals=samples.map(item=>item.activeIntervals),outstanding=samples.map(item=>item.firstPartyOutstanding);
+    if(materialContinuousGrowth(heap,{ratio:1.25,minDelta:8*1024*1024}))failures.push('js_heap');
+    if(materialContinuousGrowth(dom,{ratio:1.20,minDelta:800}))failures.push('dom_nodes');
+    if(materialContinuousGrowth(listeners,{ratio:1.50,minDelta:150}))failures.push('event_listeners');
+    if(materialContinuousGrowth(documents,{ratio:1.50,minDelta:8}))failures.push('documents');
+    if(materialContinuousGrowth(iframes,{ratio:1.50,minDelta:3}))failures.push('iframes');
+    if(materialContinuousGrowth(timeouts,{ratio:2,minDelta:12}))failures.push('timeouts');
+    if(materialContinuousGrowth(intervals,{ratio:2,minDelta:4}))failures.push('intervals');
+    if(materialContinuousGrowth(outstanding,{ratio:2,minDelta:4}))failures.push('network_outstanding');
+    if(samples.some(item=>item.currentShells!==1))failures.push('duplicate_shell');
+    return {
+      status:failures.length||errors.length||networkFailures.length?'failed':'passed',
+      cycles:5,
+      actions:['route-cycle','reload','decision-recompute','scanner','asset-timeframe-rr-churn','idle-resume'],
+      samples,failures,errors,networkFailures,maxFirstPartyOutstanding,
+      metricSource:'chromium-cdp-after-forced-gc-plus-test-context-timer-instrumentation',
+      boundary:'Chaos instrumentation exists only in the isolated Browser E2E context and does not alter production runtime behavior.'
+    };
+  }catch(error){
+    return {status:'unavailable',cycles:samples.length,actions:[],samples,failures:[],errors:[String(error?.message||error)],networkFailures,maxFirstPartyOutstanding,metricSource:'chromium-cdp-after-forced-gc-plus-test-context-timer-instrumentation'};
+  }finally{
+    await cdp?.detach?.().catch(()=>{});
+    await context.close();
+  }
+}
+
 const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
 try{
   for(const [viewportName,viewport] of viewports){
@@ -443,6 +583,8 @@ try{
   }
   report.routeCycleStability=await runRouteCycleStabilityProbe(browser);
   if(report.routeCycleStability.status==='failed')report.status='failed';
+  report.decisionChaosStability=await runDecisionChaosStabilityProbe(browser);
+  if(report.decisionChaosStability.status!=='passed')report.status='failed';
   report.decisionChaosStability=await runDecisionChaosStabilityProbe(browser);
   if(report.decisionChaosStability.status!=='passed')report.status='failed';
 }finally{
