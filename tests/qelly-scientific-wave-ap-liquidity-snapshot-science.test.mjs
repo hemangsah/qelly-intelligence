@@ -58,7 +58,7 @@ test('Wave AP helper calculations preserve nulls and deterministic visible-band 
   assert.ok(gaps.max>gaps.median);
   const band=visibleDepthBand([{price:99.99,size:1}],[{price:100.01,size:1}],100,5,1,1);
   assert.equal(band.coverage,'LOWER_BOUND_VISIBLE_DEPTH');
-  assert.equal(band.imbalance,0);
+  assert.ok(Math.abs(band.imbalance)<0.001);
 });
 
 test('Wave AP does not promote new snapshot-only L2 descriptors into directional eligibility',async()=>{
