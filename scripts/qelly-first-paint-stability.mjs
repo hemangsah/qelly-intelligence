@@ -511,7 +511,11 @@ const summary={
   decisionChaosTimerStart:report.decisionChaosStability?.samples?.[0]?.timers?.total??null,
   decisionChaosTimerEnd:report.decisionChaosStability?.samples?.at(-1)?.timers?.total??null,
   decisionChaosIframeStart:report.decisionChaosStability?.samples?.[0]?.iframes??null,
-  decisionChaosIframeEnd:report.decisionChaosStability?.samples?.at(-1)?.iframes??null
+  decisionChaosIframeEnd:report.decisionChaosStability?.samples?.at(-1)?.iframes??null,
+  decisionChaosPendingTimeoutsEnd:report.decisionChaosStability?.samples?.at(-1)?.timers?.timeouts??null,
+  decisionChaosPendingIntervalsEnd:report.decisionChaosStability?.samples?.at(-1)?.timers?.intervals??null,
+  decisionChaosDecisionRecomputes:report.decisionChaosStability?.decisionRecomputes??0,
+  decisionChaosScannerRequests:report.decisionChaosStability?.scannerRequests??0
 };
 console.log(JSON.stringify(summary,null,2));
 if(report.status!=='passed')process.exit(1);
