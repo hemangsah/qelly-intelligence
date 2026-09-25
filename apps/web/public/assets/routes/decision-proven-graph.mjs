@@ -322,27 +322,33 @@ const historicalAnalogsMarkup=(data,escapeHtml)=>{
   const context=data?.historicalAnalogs;
   if(!context)return '';
   const analogs=Array.isArray(context.analogs)?context.analogs:[];
-  if(!analogs.length)return '<section class="q-dpg-analogs"><header><div><small>HISTORICAL ANALOGS</small><h2>Comparable history unavailable</h2></div><span>Context only</span></header><p>'+escapeHtml(context.reason||'Not enough resolved prior windows for a bounded comparison.')+'</p></section>';
+  const gatePct=Number.isFinite(Number(context.minimumSimilarity))?Math.round(Number(context.minimumSimilarity)*100)+'%':'Unavailable';
+  if(!analogs.length)return '<section class="q-dpg-analogs"><header><div><small>HISTORICAL ANALOGS · DESCRIPTIVE ONLY</small><h2>Comparable history unavailable</h2></div><span>NO ELIGIBILITY IMPACT</span></header><div class="q-dpg-analog-summary"><span><em>Similarity floor</em><strong>'+escapeHtml(gatePct)+'</strong></span><span><em>Sampled windows</em><strong>'+escapeHtml(String(context.sampledWindows??0))+'</strong></span><span><em>Similarity-qualified</em><strong>'+escapeHtml(String(context.similarityEligibleWindows??0))+'</strong></span><span><em>Rejected by similarity</em><strong>'+escapeHtml(String(context.similarityRejectedWindows??0))+'</strong></span></div><p>'+escapeHtml(context.reason||'No prior window cleared the bounded analog policy.')+'</p><div class="q-dpg-analog-boundary"><strong>Selection boundary</strong><p>'+escapeHtml(context.selectionPolicy?.thresholdSelection||'Similarity policy unavailable.')+'</p><p>'+escapeHtml(context.leakageGuard||'')+'</p></div></section>';
   const summary=context.summary||{};
+  const interval=summary.positiveShareInterval95||{};
   const duration=(value)=>Number.isFinite(Number(value))?(Number(value)>=86400000?(Number(value)/86400000).toFixed(1)+'d':(Number(value)/3600000).toFixed(1)+'h'):'Unavailable';
   const pctValue=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Number(value).toFixed(2)+'%':'Unavailable';
+  const share=(value)=>Number.isFinite(Number(value))?Math.round(Number(value)*100)+'%':'Unavailable';
   const cards=analogs.map(item=>'<article><header><span>#'+escapeHtml(String(item.rank))+'</span><strong>'+escapeHtml(displayTime(item.observedAt))+'</strong><em>'+Math.round(Number(item.similarity)*100)+'% similar</em></header><div><span><small>Regime</small><strong>'+escapeHtml(String(item.regime||'UNAVAILABLE'))+'</strong></span><span><small>Volatility</small><strong>'+escapeHtml(String(item.volatilityRegime||'UNKNOWN'))+'</strong></span><span><small>Forward return</small><strong>'+escapeHtml(pctValue(item.forwardReturnPct))+'</strong></span><span><small>Favorable / adverse</small><strong>'+escapeHtml(pctValue(item.maxFavorablePct))+' / '+escapeHtml(pctValue(item.maxAdversePct))+'</strong></span><span><small>Resolved</small><strong>'+escapeHtml(duration(item.timeToResolutionMs))+'</strong></span></div></article>').join('');
   return '<section class="q-dpg-analogs"><header><div><small>HISTORICAL ANALOGS · DESCRIPTIVE ONLY</small><h2>Nearest prior market states</h2><p>'+escapeHtml(context.method||'')+'</p></div><span>NO ELIGIBILITY IMPACT</span></header>'+
     '<div class="q-dpg-analog-summary">'+
       '<span><em>Matches</em><strong>'+escapeHtml(String(summary.count??analogs.length))+'</strong></span>'+
+      '<span><em>Similarity floor</em><strong>'+escapeHtml(gatePct)+'</strong></span>'+
+      '<span><em>Qualified / sampled</em><strong>'+escapeHtml(String(context.similarityEligibleWindows??0))+' / '+escapeHtml(String(context.sampledWindows??0))+'</strong></span>'+
+      '<span><em>Rejected by similarity</em><strong>'+escapeHtml(String(context.similarityRejectedWindows??0))+'</strong></span>'+
       '<span><em>Median forward return</em><strong>'+escapeHtml(pctValue(summary.medianForwardReturnPct))+'</strong></span>'+
       '<span><em>Return IQR</em><strong>'+escapeHtml(pctValue(summary.q25ForwardReturnPct))+' → '+escapeHtml(pctValue(summary.q75ForwardReturnPct))+'</strong></span>'+
-      '<span><em>Positive / negative</em><strong>'+Math.round(Number(summary.positiveShare||0)*100)+'% / '+Math.round(Number(summary.negativeShare||0)*100)+'%</strong></span>'+
+      '<span><em>Positive / negative</em><strong>'+share(summary.positiveShare)+' / '+share(summary.negativeShare)+'</strong></span>'+
+      '<span><em>Positive share · 95% descriptive interval</em><strong>'+share(interval.low)+' – '+share(interval.high)+'</strong></span>'+
       '<span><em>Median similarity</em><strong>'+Math.round(Number(summary.medianSimilarity||0)*100)+'%</strong></span>'+
       '<span><em>Median MFE / MAE</em><strong>'+escapeHtml(pctValue(summary.medianMfePct))+' / '+escapeHtml(pctValue(summary.medianMaePct))+'</strong></span>'+
       '<span><em>Median resolution</em><strong>'+escapeHtml(duration(summary.medianTimeToResolutionMs))+'</strong></span>'+
-      '<span><em>Sampled windows</em><strong>'+escapeHtml(String(context.sampledWindows??0))+'</strong></span>'+
+      '<span><em>Anchor separation</em><strong>≥ '+escapeHtml(String(context.minimumAnchorSeparationBars??'—'))+' bars</strong></span>'+
     '</div>'+
     '<div class="q-dpg-analog-list">'+cards+'</div>'+
-    '<div class="q-dpg-analog-boundary"><strong>Leakage guard</strong><p>'+escapeHtml(context.leakageGuard||'')+'</p><p>'+escapeHtml(context.outcomeBoundary||'')+'</p></div>'+
+    '<div class="q-dpg-analog-boundary"><strong>Leakage guard · Selection, leakage and uncertainty boundaries</strong><p>'+escapeHtml(context.selectionPolicy?.thresholdSelection||'')+' '+escapeHtml(context.selectionPolicy?.temporalSeparation||'')+'</p><p>'+escapeHtml(context.leakageGuard||'')+'</p><p>'+escapeHtml(context.outcomeBoundary||'')+'</p><p>'+escapeHtml(interval.boundary||context.uncertaintyBoundary||'')+'</p></div>'+
   '</section>';
 };
-
 
 const pastPresentFutureMarkup=(data,escapeHtml)=>{
   const context=data?.pastPresentFuture;
