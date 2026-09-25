@@ -490,8 +490,8 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
     positioning,
     positioningState:positioning.state,
     positioningAvailable:positioning.available,
-    priceOpenInterestQuadrant:positioning.state,
-    priceOpenInterestQuadrantReason:positioning.reason,
+    priceOpenInterestQuadrant:'UNAVAILABLE',
+    priceOpenInterestQuadrantReason:'Price/OI quadrant interpretation requires a verified open-interest change series, which is unavailable. The governed positioning classifier remains '+positioning.state+'.',
     liquidationsState:'UNAVAILABLE',
     liquidationsReason:'A verified liquidation-flow source is not connected to this Decision integration.'
   }:derivativesCurrent;
