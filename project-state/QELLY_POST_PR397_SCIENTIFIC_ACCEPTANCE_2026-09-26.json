@@ -1,0 +1,181 @@
+{
+  "schemaVersion": "qelly.post-pr397-scientific-acceptance/1.0.0",
+  "date": "2026-09-26",
+  "productionBase": "46dc910d766b0021361933b9acecc3b919bcd130",
+  "overallState": "ENGINEERING_ACCEPTED_SCIENTIFICALLY_UNCALIBRATED",
+  "data": {
+    "setupRows": 0,
+    "resolvedSetups": 0,
+    "unresolvedSetups": 0,
+    "observationRows": 0,
+    "state": "NO_OBSERVED_DATA"
+  },
+  "calibration": {
+    "targetTouch": {
+      "state": "UNCALIBRATED",
+      "eligibleResolvedSetups": 0,
+      "minimumSampleGate": 50
+    },
+    "scenarioFixture": {
+      "state": "UNCALIBRATED",
+      "sampleSize": 25,
+      "minimumSampleGate": 36,
+      "brierScore": 0.3508,
+      "skillScore": -0.0525,
+      "reliabilityGap": 0.1872,
+      "correctClassRate": 0.36,
+      "diagnosticOnly": true
+    }
+  },
+  "riskReward": {
+    "modes": [
+      "1:1",
+      "1:2",
+      "1:3",
+      "1:4",
+      "Auto",
+      "Custom"
+    ],
+    "engineeringState": "PASS",
+    "realizedPerformanceState": "BLOCKED_BY_SAMPLE",
+    "netRiskRewardState": "UNAVAILABLE_WITHOUT_EXECUTION_COST_ASSUMPTION"
+  },
+  "regime": {
+    "state": "BLOCKED_BY_SAMPLE"
+  },
+  "ablation": {
+    "state": "BLOCKED_BY_SAMPLE",
+    "reason": "No resolved production setup outcomes."
+  },
+  "latency": {
+    "baseline": {
+      "decision": {
+        "n": 20,
+        "p50Ms": 7960,
+        "p90Ms": 9440,
+        "p95Ms": 10030
+      },
+      "scanner": {
+        "n": 10,
+        "p50Ms": 6850,
+        "p90Ms": 8200,
+        "p95Ms": 8270
+      }
+    },
+    "currentBoundedSample": {
+      "measuredAtUtc": "2026-09-25T23:20:24Z",
+      "decision": {
+        "successN": 20,
+        "totalN": 20,
+        "p50Ms": 1119.7,
+        "p90Ms": 1333.09,
+        "p95Ms": 1339.175,
+        "http200": 20
+      },
+      "scanner": {
+        "successN": 7,
+        "totalN": 10,
+        "p50SuccessMs": 2104.118,
+        "p90SuccessMs": 2313.915,
+        "p95SuccessMs": 2318.026,
+        "http200": 7,
+        "http503": 2,
+        "http429": 1,
+        "certificationState": "INSUFFICIENT_SAMPLE"
+      }
+    }
+  },
+  "reliability": {
+    "failureInjection": "PASS",
+    "routeChaos": "PASS",
+    "browserE2E": "PASS",
+    "accessibility": "PASS",
+    "responsive": "PASS",
+    "bp": {
+      "scenarios": 20,
+      "failed": 0,
+      "maxDomContentLoadedMs": 728,
+      "maxLongTaskMs": 153,
+      "longTasksOver500": 0,
+      "criticalStalls": 0,
+      "maxRouteTransitionMs": 258.4,
+      "maxDomNodes": 1564,
+      "maxFcpMs": 960,
+      "maxLcpMs": 1164,
+      "maxCls": 0.00203,
+      "maxInpMs": 248,
+      "decisionRequests": 25,
+      "refreshes": 3,
+      "controlChanges": 20,
+      "idleResumed": true,
+      "heapStartBytes": 2952564,
+      "heapEndBytes": 3144388,
+      "domStart": 1040,
+      "domEnd": 1042,
+      "listenerStart": 202,
+      "listenerEnd": 202,
+      "timerStart": 2,
+      "timerEnd": 1,
+      "iframeStart": 0,
+      "iframeEnd": 0
+    }
+  },
+  "conditionalWaves": {
+    "AZ": {
+      "state": "NOT_ACTIVATED",
+      "reason": "No safe portfolio context required for public Decision."
+    },
+    "BA": {
+      "state": "NOT_ACTIVATED",
+      "reason": "No proven continuous setup-alert delivery contract."
+    },
+    "BB": {
+      "state": "PARTIAL_EXISTING",
+      "reason": "Explicit observed setup ledger exists; no free-form Decision-history store added."
+    }
+  },
+  "security": {
+    "repositoryAndDatabaseHardening": "PASS",
+    "leakedPasswordProtection": {
+      "state": "EXTERNAL_MANUAL_WARNING",
+      "enabled": false
+    }
+  },
+  "acceptance": {
+    "scientific": {
+      "outcomeLedgerQuality": "PASS_EMPTY_HISTORY",
+      "noFutureLeakage": "PASS",
+      "targetTouch": "PASS_AS_UNCALIBRATED",
+      "brierReliability": "PASS_DIAGNOSTIC_ONLY",
+      "scenarioCalibration": "PASS_AS_UNCALIBRATED",
+      "rrByRegime": "BLOCKED_BY_SAMPLE",
+      "setupExpiry": "BLOCKED_BY_SAMPLE",
+      "noTradeQuality": "BLOCKED_BY_SAMPLE",
+      "componentAblation": "NOT_APPLICABLE_AT_N0",
+      "sampleLimits": "PASS"
+    },
+    "performance": {
+      "decisionPercentiles": "MEASURED",
+      "scannerPercentiles": "MEASURED_BOUNDED_NOT_CERTIFIED",
+      "routeCycles": "PASS",
+      "memory": "PASS",
+      "iframeLifecycle": "PASS"
+    },
+    "product": {
+      "desktop": "PASS",
+      "mobile": "PASS",
+      "accessibility": "PASS",
+      "responsive": "PASS",
+      "oldUiFlash": "PASS",
+      "duplicateShell": "PASS",
+      "fakeDataBoundary": "PASS"
+    },
+    "production": {
+      "baseExactHead": "PASS",
+      "cloudflare": "PASS",
+      "publicRuntime": "PASS",
+      "supabaseReleaseIdentity": "PASS",
+      "bqFinalRelease": "PENDING_EXACT_HEAD_GATES"
+    }
+  }
+}
