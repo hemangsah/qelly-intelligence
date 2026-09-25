@@ -75,7 +75,7 @@ export function buildDecisionNewsClusters(articles,{asset='BTC',similarityThresh
     .map((article,index)=>({
       index,
       article,
-      tokens:tokenizeNewsTitle(article?.title),
+      terms:tokenizeNewsTitle(article?.title),
       topics:topicHintsFor(article?.title),
       directAssetMention:assetMentionFor(article?.title,asset)
     }))
@@ -98,13 +98,13 @@ export function buildDecisionNewsClusters(articles,{asset='BTC',similarityThresh
   for(const item of items){
     let best=null;
     for(const cluster of clusters){
-      const similarity=titleTokenJaccard(item.tokens,cluster.representativeTokens);
+      const similarity=titleTokenJaccard(item.terms,cluster.representativeTerms);
       if(similarity>=threshold&&(!best||similarity>best.similarity))best={cluster,similarity};
     }
     if(!best){
       clusters.push({
         representative:item.article,
-        representativeTokens:item.tokens,
+        representativeTerms:item.terms,
         members:[{...item,similarity:1}]
       });
       continue;
