@@ -72,19 +72,41 @@ function makeQellyView(metrics,forecast,last,truthState,confidence){
 }
 
 
-const WALK_FORWARD_CALIBRATION_SCHEMA_VERSION='qelly.decision-walk-forward-calibration/1.0.0';
+const WALK_FORWARD_CALIBRATION_SCHEMA_VERSION='qelly.decision-walk-forward-calibration/1.1.0';
 const calibrationBins=Object.freeze([
   [0,.4],[.4,.5],[.5,.6],[.6,.7],[.7,.8],[.8,.9],[.9,1.000001]
 ]);
 
 export function buildDecisionWalkForwardCalibration(raw,{interval='15m',horizonBars=16,minSamples=36}={}){
   const intervalMs=INTERVAL_MS[interval];
-  if(!intervalMs)return {schemaVersion:WALK_FORWARD_CALIBRATION_SCHEMA_VERSION,state:'UNCALIBRATED',eligible:false,sampleSize:0,brierScore:null,baselineBrierScore:.3333,skillScore:null,reliabilityGap:null,reliabilityBins:[],reason:'Unsupported interval.'};
+  const minimumSampleGate=Math.max(12,Number(minSamples)||36);
+  if(!intervalMs)return {
+    schemaVersion:'qelly.decision-walk-forward-calibration/1.1.0',
+    state:'UNCALIBRATED',eligible:false,sampleSize:0,minimumSampleGate,
+    horizonBars:null,stepBars:null,resolutionWindowBars:null,minimumOutcomeSeparationBars:null,outcomeWindowOverlap:null,
+    brierScore:null,baselineBrierScore:.3333,skillScore:null,reliabilityGap:null,reliabilityBins:[],
+    diagnosticMetricsOnly:true,reason:'Unsupported interval.'
+  };
   const candles=normalizeCandles(raw);
   const warmup=120;
   const horizon=Math.max(2,Math.min(168,Number(horizonBars)||16));
-  const step=Math.max(4,Math.floor(horizon/2));
-  if(candles.length<warmup+horizon+step)return {schemaVersion:WALK_FORWARD_CALIBRATION_SCHEMA_VERSION,state:'UNCALIBRATED',eligible:false,sampleSize:0,brierScore:null,baselineBrierScore:.3333,skillScore:null,reliabilityGap:null,reliabilityBins:[],reason:'Not enough resolved historical observations.'};
+  const step=Math.max(horizon,4);
+  const baseState={
+    schemaVersion:'qelly.decision-walk-forward-calibration/1.1.0',
+    minimumSampleGate,
+    horizonBars:horizon,
+    stepBars:step,
+    resolutionWindowBars:horizon,
+    minimumOutcomeSeparationBars:horizon,
+    outcomeWindowOverlap:false,
+    independenceGuard:'Each resolved calibration label advances by at least one full forecast horizon, so adjacent scored outcome windows do not overlap.',
+    leakageGuard:'Future candles are used only to score already-generated historical probabilities. No future observation changes an earlier forecast.'
+  };
+  if(candles.length<warmup+horizon+step)return {
+    ...baseState,state:'UNCALIBRATED',eligible:false,sampleSize:0,
+    brierScore:null,baselineBrierScore:.3333,skillScore:null,reliabilityGap:null,reliabilityBins:[],
+    diagnosticMetricsOnly:true,reason:'Not enough resolved independent historical observations.'
+  };
 
   const rows=[];
   const first=Math.max(warmup,candles.length-420);
@@ -105,11 +127,20 @@ export function buildDecisionWalkForwardCalibration(raw,{interval='15m',horizonB
     const confidence=probabilities[predicted];
     const y={bull:realized==='bull'?1:0,base:realized==='base'?1:0,bear:realized==='bear'?1:0};
     const rawBrier=(probabilities.bull-y.bull)**2+(probabilities.base-y.base)**2+(probabilities.bear-y.bear)**2;
-    rows.push({cutTime:history.at(-1).time,resolveTime:candles[cut+horizon].time,predicted,realized,confidence,brier:rawBrier/2,correct:predicted===realized?1:0});
+    rows.push({
+      cutTime:history.at(-1).time,
+      resolveTime:candles[cut+horizon].time,
+      predicted,realized,confidence,brier:rawBrier/2,correct:predicted===realized?1:0
+    });
   }
 
   const sampleSize=rows.length;
-  if(!sampleSize)return {schemaVersion:WALK_FORWARD_CALIBRATION_SCHEMA_VERSION,state:'UNCALIBRATED',eligible:false,sampleSize:0,brierScore:null,baselineBrierScore:.3333,skillScore:null,reliabilityGap:null,reliabilityBins:[],reason:'No resolved calibration observations.'};
+  if(!sampleSize)return {
+    ...baseState,state:'UNCALIBRATED',eligible:false,sampleSize:0,
+    brierScore:null,baselineBrierScore:.3333,skillScore:null,reliabilityGap:null,reliabilityBins:[],
+    diagnosticMetricsOnly:true,reason:'No resolved independent calibration observations.'
+  };
+
   const brier=mean(rows.map(row=>row.brier));
   const baseline=.3333333333;
   const skill=1-brier/baseline;
@@ -125,20 +156,23 @@ export function buildDecisionWalkForwardCalibration(raw,{interval='15m',horizonB
     };
   }).filter(Boolean);
   const reliabilityGap=sampleSize?bins.reduce((sum,bin)=>sum+bin.sampleSize*Math.abs(bin.meanConfidence-bin.hitRate),0)/sampleSize:null;
-  const enough=sampleSize>=Math.max(12,Number(minSamples)||36);
+  const enough=sampleSize>=minimumSampleGate;
   const skillOk=Number.isFinite(skill)&&skill>=.02;
   const brierOk=Number.isFinite(brier)&&brier<=.3267;
   const reliabilityOk=Number.isFinite(reliabilityGap)&&reliabilityGap<=.15;
   const eligible=enough&&skillOk&&brierOk&&reliabilityOk;
   const state=!enough?'UNCALIBRATED':eligible?'CALIBRATED':'WEAK_CALIBRATION';
-  const reason=!enough?'Resolved walk-forward sample is below the minimum calibration size.':eligible?'Walk-forward Brier skill and reliability gates are satisfied.':'Resolved history exists, but Brier skill or reliability does not clear the calibration gate.';
+  const reason=!enough
+    ?'Independent resolved walk-forward sample is below the minimum calibration size.'
+    :eligible
+      ?'Non-overlapping walk-forward Brier skill and reliability gates are satisfied.'
+      :'Independent resolved history exists, but Brier skill or reliability does not clear the calibration gate.';
+
   return {
-    schemaVersion:WALK_FORWARD_CALIBRATION_SCHEMA_VERSION,
+    ...baseState,
     state,
     eligible,
     sampleSize,
-    horizonBars:horizon,
-    stepBars:step,
     warmupBars:warmup,
     brierScore:round(brier,4),
     baselineBrierScore:round(baseline,4),
@@ -149,8 +183,8 @@ export function buildDecisionWalkForwardCalibration(raw,{interval='15m',horizonB
     firstResolvedAt:new Date(rows[0].resolveTime).toISOString(),
     lastResolvedAt:new Date(rows.at(-1).resolveTime).toISOString(),
     bootstrapPaths:64,
-    method:'deterministic stepped walk-forward with a bounded 64-path bootstrap per resolved cut; each forecast uses only candles available at its cut point',
-    leakageGuard:'Future candles are used only to score already-generated historical probabilities.',
+    diagnosticMetricsOnly:!enough,
+    method:'deterministic non-overlapping stepped walk-forward with a bounded 64-path bootstrap per resolved cut; each forecast uses only candles available at its cut point and the next scored cut is at least one full forecast horizon later',
     reason
   };
 }
