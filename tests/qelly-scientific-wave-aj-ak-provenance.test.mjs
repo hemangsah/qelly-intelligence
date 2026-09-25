@@ -22,7 +22,7 @@ const decision=()=>({
     trend:{regime:'TREND_UP',adx14:31,efficiencyRatio:.52,roc14Pct:2.2},
     volatility:{regime:'NORMAL',expectedMovePct:1.4,percentile:.57},
     structure:{state:'HH_HL',bias:'UPSIDE',support:96,resistance:104},
-    calibration:{schemaVersion:'qelly.decision-walk-forward-calibration/1.0.0',state:'CALIBRATED',eligible:true,sampleSize:80,brierScore:.19,reliabilityGap:.04,reliabilityBins:[]}
+    calibration:{schemaVersion:'qelly.decision-walk-forward-calibration/1.1.0',state:'CALIBRATED',eligible:true,sampleSize:80,brierScore:.19,reliabilityGap:.04,reliabilityBins:[]}
   },
   forecast:{paths:256,neutralThresholdPct:.3,probabilities:{bull:.58,base:.2,bear:.22}},
   qellyView:{action:'BUY',confidence:.72,evidenceGate:{qualityScore:.81},contradictions:['bounded contradiction']},
@@ -58,8 +58,8 @@ test('Wave AJ versions quant and walk-forward calibration contracts in every low
 
   const unsupported=buildDecisionWalkForwardCalibration([],{interval:'2x',horizonBars:16});
   const insufficient=buildDecisionWalkForwardCalibration([],{interval:'15m',horizonBars:16});
-  assert.equal(unsupported.schemaVersion,'qelly.decision-walk-forward-calibration/1.0.0');
-  assert.equal(insufficient.schemaVersion,'qelly.decision-walk-forward-calibration/1.0.0');
+  assert.equal(unsupported.schemaVersion,'qelly.decision-walk-forward-calibration/1.1.0');
+  assert.equal(insufficient.schemaVersion,'qelly.decision-walk-forward-calibration/1.1.0');
 });
 
 test('Wave AJ/AK freezes model, quant, calibration, Decision, Evidence Graph and R:R versions with the setup',()=>{
@@ -77,7 +77,7 @@ test('Wave AJ/AK freezes model, quant, calibration, Decision, Evidence Graph and
     quant:'qelly.decision-quant-risk/1.0.0',
     model:'1.1.0',
     scenario:'1.1.0',
-    calibration:'qelly.decision-walk-forward-calibration/1.0.0',
+    calibration:'qelly.decision-walk-forward-calibration/1.1.0',
     tradeResearch:'qelly.trade-research/1.2.0',
     decisionSnapshot:'qelly.decision-snapshot/2.0.0',
     evidenceGraph:'qelly.evidence-graph/2.0.0',
@@ -116,7 +116,7 @@ test('Wave AK observations carry reconstructable provenance rather than a basis 
   const observation=initialObservationFromRecord(prepared.record,d);
   assert.equal(observation.provenance.basis,'server_live_decision');
   assert.equal(observation.provenance.backfilled,false);
-  assert.equal(observation.provenance.versions.calibration,'qelly.decision-walk-forward-calibration/1.0.0');
+  assert.equal(observation.provenance.versions.calibration,'qelly.decision-walk-forward-calibration/1.1.0');
   assert.equal(observation.provenance.pipeline.at(-1).stage,'OUTCOME');
 });
 

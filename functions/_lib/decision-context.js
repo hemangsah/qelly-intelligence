@@ -196,6 +196,12 @@ function pastPresentFuture(graph,{multiTimeframe,tradeResearch,evidence,horizon,
         state:calibration.state||'UNCALIBRATED',
         eligible:calibration.eligible===true,
         sampleSize:Number(calibration.sampleSize)||0,
+        minimumSampleGate:Number(calibration.minimumSampleGate)||36,
+        horizonBars:Number(calibration.horizonBars)||null,
+        stepBars:Number(calibration.stepBars)||null,
+        minimumOutcomeSeparationBars:Number(calibration.minimumOutcomeSeparationBars)||null,
+        outcomeWindowOverlap:calibration.outcomeWindowOverlap===true?true:calibration.outcomeWindowOverlap===false?false:null,
+        diagnosticMetricsOnly:calibration.diagnosticMetricsOnly===true,
         brierScore:finite(calibration.brierScore),
         skillScore:finite(calibration.skillScore),
         reliabilityGap:finite(calibration.reliabilityGap)
@@ -222,9 +228,13 @@ function pastPresentFuture(graph,{multiTimeframe,tradeResearch,evidence,horizon,
         calibrationState:calibration.state||'UNCALIBRATED',
         eligible:calibration.eligible===true,
         sampleSize:Number(calibration.sampleSize)||0,
+        minimumSampleGate:Number(calibration.minimumSampleGate)||36,
+        outcomeWindowOverlap:calibration.outcomeWindowOverlap===true?true:calibration.outcomeWindowOverlap===false?false:null,
+        minimumOutcomeSeparationBars:Number(calibration.minimumOutcomeSeparationBars)||null,
+        diagnosticMetricsOnly:calibration.diagnosticMetricsOnly===true,
         brierScore:finite(calibration.brierScore),
         reliabilityGap:finite(calibration.reliabilityGap),
-        boundary:'Bull/base/bear values remain model scenario probabilities. A passed walk-forward calibration gate supports aggregate probability reliability; it does not guarantee any individual scenario.'
+        boundary:'Bull/base/bear values remain model scenario probabilities. Only non-overlapping resolved walk-forward observations can satisfy the calibration sample gate; below that gate Brier/reliability are diagnostic only. A passed gate supports aggregate probability reliability and does not guarantee any individual scenario.'
       },
       expectedRange:{
         p05:finite(terminal.p05),
@@ -338,7 +348,11 @@ function decisionTrace(graph,{multiTimeframe,tradeResearch,evidence,horizon,cont
     sourceNode('calibration','calibration','Walk-forward probability calibration',{
       source:'QELLY derived research',timestamp:calibration.lastResolvedAt||null,freshness:calibration.state==='UNCALIBRATED'?'UNAVAILABLE':'DELAYED',importance:'CRITICAL',directness:'DERIVED',reliability:calibration.eligible?'OUT_OF_SAMPLE_GATE_PASSED':'GATE_NOT_PASSED',role:'eligibility_gate',supportState:calibration.eligible?'SUPPORT':viewAction==='BUY'||viewAction==='SELL'?'CONTRADICTION':'NEUTRAL',
       methodology:calibration.method||'Walk-forward calibration unavailable.',
-      limitations:[calibration.reason||'Calibration evidence may be insufficient.']
+      limitations:[
+        calibration.reason||'Calibration evidence may be insufficient.',
+        calibration.independenceGuard||'Resolved calibration windows must be independent enough to avoid overlapping forecast outcomes.',
+        calibration.diagnosticMetricsOnly===true?'Brier, reliability and skill are diagnostic only below the independent minimum sample gate.':'Calibration metrics cleared the independent sample-size requirement.'
+      ]
     }),
     sourceNode('liquidity','liquidity','Current L2 liquidity',{
       source:evidence?.liquidity?.provider||'Hyperliquid',timestamp:evidence?.liquidity?.observedAt||observedAt,freshness:evidence?.liquidity?.state==='live'?'LIVE':'UNAVAILABLE',importance:'HIGH',directness:'DIRECT',reliability:evidence?.liquidity?.state==='live'?'POINT_IN_TIME':'UNAVAILABLE',role:'risk_context',supportState:'NEUTRAL',
