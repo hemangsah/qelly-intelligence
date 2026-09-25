@@ -367,8 +367,8 @@ function decisionTrace(graph,{multiTimeframe,tradeResearch,evidence,horizon,cont
     }),
     sourceNode('news','news','Recent news evidence',{
       source:evidence?.news?.provider||'GDELT',timestamp:null,freshness:evidence?.news?.state==='live'?'LIVE':evidence?.news?.state==='no-matches'?'DELAYED':'UNAVAILABLE',importance:'MEDIUM',directness:'EXTERNAL_REPORTING',reliability:'SOURCE_DEPENDENT',role:'context_only',supportState:'NEUTRAL',
-      methodology:'Recent relevant headlines are surfaced as evidence context.',
-      limitations:['Headline presence is not converted into causality or scheduled event risk.']
+      methodology:evidence?.news?.clustering?.method||'Recent relevant headlines are surfaced as contextual evidence. Deterministic lexical clusters may summarize duplicate reporting without changing raw articles.',
+      limitations:['Headline presence is not converted into causality or scheduled event risk.','Headline clusters are lexical audit metadata only; they do not establish semantic equivalence, sentiment, market impact or institutional intent.']
     }),
     sourceNode('analogs','historical-analogs','Leakage-guarded historical analogs',{
       source:'QELLY derived research',timestamp:null,freshness:analogs.state==='AVAILABLE'?'DELAYED':'UNAVAILABLE',importance:'MEDIUM',directness:'DERIVED',reliability:analogs.state==='AVAILABLE'?'DESCRIPTIVE_ONLY':'UNAVAILABLE',role:'context_only',supportState:'NEUTRAL',
