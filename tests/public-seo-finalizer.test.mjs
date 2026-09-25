@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyIndexSeo } from '../scripts/finalize-public-seo.mjs';
+import { applyIndexSeo,buildStructuredData } from '../scripts/finalize-public-seo.mjs';
 
 const productionOptions=Object.freeze({
   publicSiteUrl:'https://terminal.qellyintelligence.com',
@@ -21,6 +21,7 @@ function assertSingleOwnedMetadata(html){
   assert.equal(countMatches(html,/<meta\b(?=[^>]*\bname=["']twitter:title["'])[^>]*>/gi),1);
   assert.equal(countMatches(html,/<meta\b(?=[^>]*\bname=["']twitter:description["'])[^>]*>/gi),1);
   assert.equal(countMatches(html,/<meta\b(?=[^>]*\bname=["']twitter:image["'])[^>]*>/gi),1);
+  assert.equal(countMatches(html,/<script\b(?=[^>]*\bdata-qelly-public-schema=["']true["'])[^>]*>/gi),1);
 }
 
 test('public SEO finalizer replaces stale unmarked social metadata with one canonical owner block',()=>{
@@ -65,4 +66,26 @@ test('public SEO finalizer converges after repeated application',()=>{
   assert.equal(countMatches(twice,/<!-- QELLY_PUBLIC_SEO_START -->/g),1);
   assert.equal(countMatches(twice,/<!-- QELLY_PUBLIC_SEO_END -->/g),1);
   assert.doesNotMatch(twice,/\n\s*\n\s*\n\s*\n/);
+});
+
+
+test('public SEO structured data is canonical-origin owned and contains one truthful application graph',()=>{
+  const schema=buildStructuredData(productionOptions);
+  assert.match(schema,/type="application\/ld\+json"/);
+  assert.match(schema,/data-qelly-public-schema="true"/);
+  assert.match(schema,/"@type":"WebSite"/);
+  assert.match(schema,/"@type":"SoftwareApplication"/);
+  assert.match(schema,/"url":"https:\/\/terminal\.qellyintelligence\.com\/"/);
+  assert.match(schema,/"applicationCategory":"FinanceApplication"/);
+  assert.match(schema,/"isAccessibleForFree":true/);
+  assert.doesNotMatch(schema,/SearchAction|potentialAction|investment advice|guaranteed/i);
+});
+
+test('public SEO removes stale owned structured data and converges to one schema graph',()=>{
+  const source='<!doctype html><html><head><script type="application/ld+json" data-qelly-public-schema="true">{"@context":"https://schema.org","url":"https://stale.example/"}</script></head><body></body></html>';
+  const once=applyIndexSeo(source,productionOptions);
+  const twice=applyIndexSeo(once,productionOptions);
+  assert.equal(countMatches(twice,/<script\b(?=[^>]*\bdata-qelly-public-schema=["']true["'])[^>]*>/gi),1);
+  assert.doesNotMatch(twice,/stale\.example/);
+  assert.match(twice,/terminal\.qellyintelligence\.com/);
 });
