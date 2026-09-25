@@ -358,7 +358,7 @@ export function compactDecisionToolReceipt(result,{requestContext=null}={}){
         state:calibration.state??'UNCALIBRATED',eligible:calibration.eligible===true,sampleSize:calibration.sampleSize??0,
         minimumSampleGate:calibration.minimumSampleGate??36,horizonBars:calibration.horizonBars??null,stepBars:calibration.stepBars??null,
         resolutionWindowBars:calibration.resolutionWindowBars??null,minimumOutcomeSeparationBars:calibration.minimumOutcomeSeparationBars??null,
-        outcomeWindowOverlap:calibration.outcomeWindowOverlap===true,diagnosticMetricsOnly:calibration.diagnosticMetricsOnly===true,
+        outcomeWindowOverlap:calibration.outcomeWindowOverlap===true?true:calibration.outcomeWindowOverlap===false?false:null,diagnosticMetricsOnly:calibration.diagnosticMetricsOnly===true,
         brierScore:calibration.brierScore??null,reliabilityGap:calibration.reliabilityGap??null,skillScore:calibration.skillScore??null,
         method:calibration.method??null,reason:calibration.reason??null,leakageGuard:calibration.leakageGuard??null,
         independenceGuard:calibration.independenceGuard??null
