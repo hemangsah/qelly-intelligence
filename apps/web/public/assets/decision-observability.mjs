@@ -19,6 +19,8 @@ const state={
   scannerLatencies:[],
   providerLatency:{},
   providerFailures:{},
+  providerObservations:{},
+  providerFailureCounts:{},
   counters:{
     decisions:0,
     scans:0,
@@ -84,13 +86,21 @@ const providerFailure=(value)=>{
 };
 const recordProviderLatency=(data)=>{
   const components=data?.performance?.components||{};
-  for(const [key,label] of Object.entries(PROVIDER_COMPONENTS)){
-    const ms=Number(components?.[key]?.ms);
-    if(!Number.isFinite(ms))continue;
-    state.providerLatency[label]??=[];
-    boundedPush(state.providerLatency[label],ms,MAX_PROVIDER_SAMPLES);
-  }
   const observed=data?.providerResilience?.observed||{};
+  for(const [key,label] of Object.entries(PROVIDER_COMPONENTS)){
+    const component=components?.[key];
+    const provider=observed?.[key];
+    const ms=Number(component?.ms);
+    if(Number.isFinite(ms)){
+      state.providerLatency[label]??=[];
+      boundedPush(state.providerLatency[label],ms,MAX_PROVIDER_SAMPLES);
+    }
+    if(component||provider){
+      increment(state.providerObservations,label);
+      const failed=providerFailure(provider)||providerFailure(provider?.health)||(component&&String(component.state||'').toLowerCase()!=='ok');
+      if(failed)increment(state.providerFailureCounts,label);
+    }
+  }
   for(const [key,value] of Object.entries(observed))if(providerFailure(value)||providerFailure(value?.health))increment(state.providerFailures,key);
   for(const [key,value] of Object.entries(components))if(value&&String(value.state||'').toLowerCase()!=='ok')increment(state.providerFailures,key);
 };
@@ -178,6 +188,7 @@ export function decisionObservabilitySnapshot(){
   const providerLatency=Object.fromEntries(Object.entries(state.providerLatency).map(([key,values])=>[key,summarizeLatency(values)]));
   const overNotice=(runtime.longTasks||[]).filter(item=>item?.overNotice===true).length;
   const overRepeated=(runtime.longTasks||[]).filter(item=>item?.overRepeatedBudget===true).length;
+  const providerFailureRates=Object.fromEntries(Object.entries(state.providerObservations).map(([key,count])=>[key,safeRate(state.providerFailureCounts[key]||0,count)]));
   return {
     schemaVersion:'qelly.decision-observability/1.0.0',
     privacy:{
@@ -198,6 +209,9 @@ export function decisionObservabilitySnapshot(){
     },
     reliability:{
       providerFailures:{...state.providerFailures},
+      providerObservations:{...state.providerObservations},
+      providerFailureCounts:{...state.providerFailureCounts},
+      providerFailureRates,
       decisionFailures:state.counters.decisionFailures,
       scannerFailures:state.counters.scannerFailures,
       staleEvidenceCount:state.counters.staleEvidence,
@@ -234,6 +248,8 @@ export function resetDecisionObservabilityForTest(){
   state.scannerLatencies.length=0;
   state.providerLatency={};
   state.providerFailures={};
+  state.providerObservations={};
+  state.providerFailureCounts={};
   for(const key of Object.keys(state.counters))state.counters[key]=0;
   state.rrSelections={};
   state.calibrationStates={};
