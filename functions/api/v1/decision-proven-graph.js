@@ -9,6 +9,7 @@ import {providerResult} from '../../_lib/providers.js';
 import {buildDecisionContextBundle} from '../../_lib/decision-context.js';
 import {HttpError,enforceRateLimit,errorResponse,fetcher,responseJson} from '../../_lib/runtime.js';
 import {createDecisionLatencyTrace,estimateSerializedPayload} from '../../_lib/decision-latency.js';
+import {DECISION_PROVIDER_RESILIENCE,resilientJsonRequest,providerFailureHealth,providerResiliencePublicSummary} from '../../_lib/decision-provider-resilience.js';
 
 const ASSETS=new Set(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
 const HORIZONS=Object.freeze({'1h':3_600_000,'4h':14_400_000,'12h':43_200_000,'1d':86_400_000,'3d':259_200_000,'7d':604_800_000});
@@ -25,9 +26,11 @@ const round=(value,digits=6)=>Number.isFinite(value)?Number(value.toFixed(digits
 const clamp=(value,min=0,max=1)=>Math.min(max,Math.max(min,value));
 
 async function fetchCandles(fetchImpl,asset,interval,endTime,points=500){
-  const response=await fetchImpl(HYPERLIQUID_INFO_URL,{method:'POST',headers:{'content-type':'application/json','user-agent':'QELLY-Intelligence/decision-intelligence'},body:JSON.stringify({type:'candleSnapshot',req:{coin:asset,interval,startTime:endTime-DECISION_INTERVALS[interval]*points,endTime}}),signal:AbortSignal.timeout(8_000)});
-  if(!response.ok)throw new HttpError(503,'provider_unavailable','Live market data is unavailable',{retryable:true});
-  try{return await response.json();}catch{throw new HttpError(503,'provider_invalid_response','Live market data returned an invalid response',{retryable:true});}
+  const {data}=await resilientJsonRequest(fetchImpl,HYPERLIQUID_INFO_URL,{
+    policyKey:'hyperliquidCandles',
+    init:{method:'POST',headers:{'content-type':'application/json','user-agent':'QELLY-Intelligence/decision-intelligence'},body:JSON.stringify({type:'candleSnapshot',req:{coin:asset,interval,startTime:endTime-DECISION_INTERVALS[interval]*points,endTime}})}
+  });
+  return data;
 }
 
 async function fetchOptionalCandles(fetchImpl,asset,interval,endTime,points=240){
@@ -36,20 +39,20 @@ async function fetchOptionalCandles(fetchImpl,asset,interval,endTime,points=240)
 
 async function fetchFundingHistory(fetchImpl,asset,endTime){
   try{
-    const response=await fetchImpl(HYPERLIQUID_INFO_URL,{
-      method:'POST',
-      headers:{'content-type':'application/json','user-agent':'QELLY-Intelligence/decision-intelligence'},
-      body:JSON.stringify({type:'fundingHistory',coin:asset,startTime:endTime-72*3_600_000,endTime}),
-      signal:AbortSignal.timeout(6_000)
+    const {data}=await resilientJsonRequest(fetchImpl,HYPERLIQUID_INFO_URL,{
+      policyKey:'hyperliquidFunding',
+      init:{
+        method:'POST',
+        headers:{'content-type':'application/json','user-agent':'QELLY-Intelligence/decision-intelligence'},
+        body:JSON.stringify({type:'fundingHistory',coin:asset,startTime:endTime-72*3_600_000,endTime})
+      }
     });
-    if(!response.ok)return [];
-    const payload=await response.json();
-    return Array.isArray(payload)?payload:[];
+    return Array.isArray(data)?data:[];
   }catch{return [];}
 }
 
 async function fetchLiquidityContext(fetchImpl,asset){
-  const unavailable=(reason='Current L2 liquidity context is unavailable, so spread and book imbalance are not inferred.')=>({
+  const unavailable=(reason='Current L2 liquidity context is unavailable, so spread and book imbalance are not inferred.',resilience=null)=>({
     state:'unavailable',
     provider:'Hyperliquid',
     documentation:HYPERLIQUID_L2_DOCS,
@@ -70,34 +73,36 @@ async function fetchLiquidityContext(fetchImpl,asset){
     top5Imbalance:null,
     top10BidDepthUsd:null,
     top10AskDepthUsd:null,
-    top10Imbalance:null
+    top10Imbalance:null,
+    resilience
   });
   try{
-    const response=await fetchImpl(HYPERLIQUID_INFO_URL,{
-      method:'POST',
-      headers:{'content-type':'application/json','user-agent':'QELLY-Intelligence/decision-intelligence'},
-      body:JSON.stringify({type:'l2Book',coin:asset}),
-      signal:AbortSignal.timeout(5_000)
+    const {data,health}=await resilientJsonRequest(fetchImpl,HYPERLIQUID_INFO_URL,{
+      policyKey:'hyperliquidLiquidity',
+      init:{
+        method:'POST',
+        headers:{'content-type':'application/json','user-agent':'QELLY-Intelligence/decision-intelligence'},
+        body:JSON.stringify({type:'l2Book',coin:asset})
+      }
     });
-    if(!response.ok)return unavailable();
-    const normalized=normalizeDecisionLiquidity(await response.json(),{asset,provider:'Hyperliquid'});
-    return {...normalized,documentation:HYPERLIQUID_L2_DOCS};
-  }catch{
-    return unavailable();
+    const normalized=normalizeDecisionLiquidity(data,{asset,provider:'Hyperliquid'});
+    return {...normalized,documentation:HYPERLIQUID_L2_DOCS,resilience:health};
+  }catch(error){
+    return unavailable(undefined,providerFailureHealth(error,'hyperliquidLiquidity'));
   }
 }
 
 async function fetchDerivativesContext(fetchImpl,asset,observedAt){
-  const unavailable=(message='Current funding and open-interest context is unavailable, so it is not inferred.')=>({state:'unavailable',provider:'Hyperliquid',documentation:HYPERLIQUID_PERP_DOCS,currentOnly:true,message});
+  const unavailable=(message='Current funding and open-interest context is unavailable, so it is not inferred.',resilience=null)=>({state:'unavailable',provider:'Hyperliquid',documentation:HYPERLIQUID_PERP_DOCS,currentOnly:true,message,resilience});
   try{
-    const response=await fetchImpl(HYPERLIQUID_INFO_URL,{
-      method:'POST',
-      headers:{'content-type':'application/json','user-agent':'QELLY-Intelligence/decision-intelligence'},
-      body:JSON.stringify({type:'metaAndAssetCtxs'}),
-      signal:AbortSignal.timeout(8_000)
+    const {data:payload,health}=await resilientJsonRequest(fetchImpl,HYPERLIQUID_INFO_URL,{
+      policyKey:'hyperliquidDerivatives',
+      init:{
+        method:'POST',
+        headers:{'content-type':'application/json','user-agent':'QELLY-Intelligence/decision-intelligence'},
+        body:JSON.stringify({type:'metaAndAssetCtxs'})
+      }
     });
-    if(!response.ok)return unavailable();
-    const payload=await response.json();
     const meta=Array.isArray(payload)?payload[0]:null;
     const contexts=Array.isArray(payload)?payload[1]:null;
     const universe=Array.isArray(meta?.universe)?meta.universe:[];
@@ -130,18 +135,19 @@ async function fetchDerivativesContext(fetchImpl,asset,observedAt){
       premiumRate:round(premium,10),
       premiumPct:premium===null?null:round(premium*100,6),
       premiumBps:premium===null?null:round(premium*10_000,4),
+      resilience:health,
       message:'Current Hyperliquid perpetual context. It is not backfilled into a selected historical move or treated as causal evidence.'
     };
-  }catch{
-    return unavailable();
+  }catch(error){
+    return unavailable(undefined,providerFailureHealth(error,'hyperliquidDerivatives'));
   }
 }
 
 const newsUrl=(asset,start,end,{fallback=false}={})=>{const url=new URL('https://api.gdeltproject.org/api/v2/doc/doc');url.searchParams.set('query','('+NEWS_TERMS[asset]+') sourcelang:english');url.searchParams.set('mode','artlist');url.searchParams.set('format','json');url.searchParams.set('maxrecords','12');url.searchParams.set('sort','HybridRel');if(fallback)url.searchParams.set('timespan','3days');else{url.searchParams.set('startdatetime',gdeltTime(Math.max(end-72*3_600_000,start)));url.searchParams.set('enddatetime',gdeltTime(end));}return url.href;};
 const normalizeArticles=(payload)=>(Array.isArray(payload?.articles)?payload.articles:[]).map(article=>({title:String(article?.title||'').trim().slice(0,240),source:String(article?.domain||'').trim().slice(0,100),publishedAt:String(article?.seendate||''),url:safeUrl(article?.url)})).filter(article=>article.title&&article.url).slice(0,8);
-const NEWS_TIMEOUT_MS=2_500;
-const NEWS_CACHE_FRESH_MS=5*60_000;
-const NEWS_CACHE_STALE_MS=30*60_000;
+const NEWS_TIMEOUT_MS=DECISION_PROVIDER_RESILIENCE.gdeltNews.timeoutMs;
+const NEWS_CACHE_FRESH_MS=DECISION_PROVIDER_RESILIENCE.gdeltNews.cacheFreshMs;
+const NEWS_CACHE_STALE_MS=DECISION_PROVIDER_RESILIENCE.gdeltNews.cacheStaleMs;
 const NEWS_CACHE_BUCKET_MS=5*60_000;
 const NEWS_INFLIGHT=new Map();
 
@@ -569,9 +575,10 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
       ?'Full news context is pending a separate bounded enrichment request. The QELLY VIEW is already final for this snapshot because news is contextual and has no eligibility impact.'
       :'News is contextual evidence only. A bounded fresh cache may be reused; stale news is used only after provider failure and is labeled stale.'
   };
+  const providerResilience=providerResiliencePublicSummary({liquidity,derivatives,news:evidence.news,macro});
   const context=latency.measure('contextAndEvidenceGraph',()=>buildDecisionContextBundle(graph,{multiTimeframe,tradeResearch,evidence,horizon:resolvedHorizon}));
   const performance=latency.snapshot({database:{used:false,ms:null},network:'Measure end-to-end separately at the client or external probe; server-side component timings exclude internet transit.'});
-  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence,...context,performance};
+  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence,providerResilience,...context,performance};
 }
 
 export async function onRequest({request,env}){
