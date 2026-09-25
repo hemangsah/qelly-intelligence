@@ -356,8 +356,12 @@ export function compactDecisionToolReceipt(result,{requestContext=null}={}){
       multiTimeframe:{agreement:result.multiTimeframe?.agreement??null,views:mtfViews},
       calibration:{
         state:calibration.state??'UNCALIBRATED',eligible:calibration.eligible===true,sampleSize:calibration.sampleSize??0,
+        minimumSampleGate:calibration.minimumSampleGate??36,horizonBars:calibration.horizonBars??null,stepBars:calibration.stepBars??null,
+        resolutionWindowBars:calibration.resolutionWindowBars??null,minimumOutcomeSeparationBars:calibration.minimumOutcomeSeparationBars??null,
+        outcomeWindowOverlap:calibration.outcomeWindowOverlap===true,diagnosticMetricsOnly:calibration.diagnosticMetricsOnly===true,
         brierScore:calibration.brierScore??null,reliabilityGap:calibration.reliabilityGap??null,skillScore:calibration.skillScore??null,
-        method:calibration.method??null,reason:calibration.reason??null,leakageGuard:calibration.leakageGuard??null
+        method:calibration.method??null,reason:calibration.reason??null,leakageGuard:calibration.leakageGuard??null,
+        independenceGuard:calibration.independenceGuard??null
       },
       tradeResearch:{
         status:trade.status??'NO_TRADE',lifecycle:trade.lifecycle?.state??trade.lifecycle??null,
