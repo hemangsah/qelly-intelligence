@@ -1,0 +1,109 @@
+@font-face{
+  font-family:"Qelly IBM Plex Sans";
+  src:url('./fonts/ibm-plex-sans-variable.woff2') format('woff2-variations');
+  font-style:normal;
+  font-weight:100 700;
+  font-display:block;
+}
+
+:root{
+  /* Production-safe synthesis of the supplied WorldQuant / Arkham references.
+     GT Eesti Pro Display and Text are commercial fonts and are not bundled until
+     Qelly owns the appropriate web licence and supplies the licensed WOFF2 files. */
+  --q-font-ui:"Qelly IBM Plex Sans",Arial,"Helvetica Neue",sans-serif;
+  --q-font-display:var(--q-font-ui);
+  --q-font-text:var(--q-font-ui);
+  --q-font-mono:var(--q-font-ui);
+  --q-font-licensed-display-name:"GT Eesti Pro Display";
+  --q-font-licensed-text-name:"GT Eesti Pro Text";
+}
+
+html,body,button,input,select,textarea,dialog,table,code,pre,kbd,samp{
+  font-family:var(--q-font-ui)!important;
+  font-synthesis:none;
+  font-variant-numeric:tabular-nums lining-nums;
+  font-feature-settings:"tnum" 1,"lnum" 1,"zero" 1;
+}
+
+body,.q-app,.q-shell,.q-mi-page,.q-command-dialog,.q-context-drawer,.q-rail,.q-mobile-navigation{
+  font-family:var(--q-font-text)!important;
+}
+
+h1,h2,h3,h4,h5,h6,
+.q-brand-mark,.q-workspace-switcher,.q-page-head,.q-mi-page-head,
+.q-mi-page-head h1,.q-mi-table-toolbar h2,.q-mi-chart-head strong,
+.q-mi-intelligence-module h2,.q-command-context strong,.q-command-item-copy strong{
+  font-family:var(--q-font-display)!important;
+  font-synthesis:none;
+}
+
+.q-number,.q-mi-number,time,code,pre,kbd,samp,
+.q-source-line,.q-mi-source,.q-mi-freshness,
+.q-mi-chart-grid text,.q-mi-chart-tooltip,svg text,
+.q-command-shortcut,.q-command-search kbd,.q-command-footer kbd{
+  font-family:var(--q-font-ui)!important;
+  font-variant-numeric:tabular-nums lining-nums;
+  font-feature-settings:"tnum" 1,"lnum" 1,"zero" 1;
+}
+
+.q-mi-page-head h1{
+  font-weight:600!important;
+  letter-spacing:-.035em!important;
+  line-height:1.08!important;
+}
+
+.q-mi-page-head>div>span,.q-mi-research-note blockquote,
+.q-command-item-copy small,.q-mi-intelligence-module small{
+  font-weight:400!important;
+  letter-spacing:0!important;
+}
+
+.q-global-strip .q-brand-mark strong,
+.q-workspace-switcher strong,.q-nav-link,
+.q-category-shelf button,.q-mi-layout-modes button,
+.q-mi-table-actions button,.q-mi-table-actions select,
+.q-mi-chart-controls button,.q-command-item-copy strong{
+  font-weight:500!important;
+}
+
+.q-mi-table-scroll th{
+  font-family:var(--q-font-ui)!important;
+  font-size:12px!important;
+  font-weight:600!important;
+  letter-spacing:.012em!important;
+  text-transform:none!important;
+}
+
+.q-mi-table-scroll td,.q-mi-table-scroll .q-mi-number,
+.q-mi-asset strong,.q-mi-mobile-row-main strong,
+.q-mi-mobile-price strong,.q-mi-mobile-detail dd{
+  font-family:var(--q-font-ui)!important;
+  font-weight:450!important;
+}
+
+.q-mi-table-scroll .q-mi-number,.q-mi-mobile-price strong{
+  font-variant-numeric:tabular-nums lining-nums;
+  font-feature-settings:"tnum" 1,"lnum" 1,"zero" 1;
+}
+
+.q-command-input,.q-command-item,.q-command-empty,
+.q-mi-search input,.q-mi-filter-sheet,.q-mi-column-menu,.q-mi-drawer{
+  font-family:var(--q-font-ui)!important;
+}
+
+.q-command-context strong{font-weight:600!important}
+.q-command-item-copy strong{font-size:14px!important}
+.q-command-item-copy small{font-size:12px!important}
+.q-command-shortcut,.q-command-search kbd,.q-command-footer kbd{font-weight:500!important}
+
+@media(max-width:920px){
+  .q-mi-page-head h1{
+    font-size:clamp(1.875rem,8vw,2.125rem)!important;
+    line-height:1.12!important;
+    min-height:1.18em!important;
+    padding-block:.03em .1em!important;
+  }
+  .q-mi-market-pulse .q-mi-kpi p{font-weight:500!important}
+  .q-mi-mobile-row-main strong{font-size:14px!important;font-weight:500!important}
+  .q-mi-mobile-row-main small,.q-mi-mobile-detail dt{font-size:11px!important;font-weight:400!important}
+}
