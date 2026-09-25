@@ -9,7 +9,7 @@ import {providerResult} from '../../_lib/providers.js';
 import {buildDecisionContextBundle} from '../../_lib/decision-context.js';
 import {HttpError,enforceRateLimit,errorResponse,fetcher,responseJson} from '../../_lib/runtime.js';
 import {createDecisionLatencyTrace,estimateSerializedPayload} from '../../_lib/decision-latency.js';
-import {DECISION_PROVIDER_RESILIENCE,resilientJsonRequest,providerFailureHealth,providerResiliencePublicSummary} from '../../_lib/decision-provider-resilience.js';
+import {resilientJsonRequest,providerFailureHealth,providerResiliencePublicSummary} from '../../_lib/decision-provider-resilience.js';
 
 const ASSETS=new Set(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
 const HORIZONS=Object.freeze({'1h':3_600_000,'4h':14_400_000,'12h':43_200_000,'1d':86_400_000,'3d':259_200_000,'7d':604_800_000});
