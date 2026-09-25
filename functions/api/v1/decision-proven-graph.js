@@ -4,6 +4,7 @@ import {buildDecisionHistoricalAnalogs} from '../../_lib/decision-historical-ana
 import {normalizeDecisionLiquidity} from '../../_lib/decision-liquidity.js';
 import {buildFundingHistoryContext,buildDerivativesPositioningState} from '../../_lib/decision-derivatives.js';
 import {buildDecisionCrossAsset} from '../../_lib/decision-cross-asset.js';
+import {buildDecisionNewsClusters} from '../../_lib/decision-news.js';
 import {buildDecisionMacroContext,buildUnavailableDecisionEventRisk} from '../../_lib/decision-macro-events.js';
 import {providerResult} from '../../_lib/providers.js';
 import {buildDecisionContextBundle} from '../../_lib/decision-context.js';
@@ -553,6 +554,7 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   }
   const {articles,state:newsState}=await newsPromise;
   const {fetchedAt:newsObservedAt,cache:newsCache,fallbackReason:newsFallbackReason}=await newsPromise;
+  const newsClusters=buildDecisionNewsClusters(articles,{asset:resolvedAsset});
   const macroReference=await macroPromise;
   const macro={
     ...macroReference,
@@ -567,7 +569,7 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   graph={...graph,liquidity,eventRisk,derivatives,crossAsset,macro};
   const tradeResearch=latency.measure('riskRewardResearch',()=>buildTradeResearch(graph,{requestedRr,customRr}));
   const evidence={
-    news:{state:newsState,provider:includeNews?'GDELT':null,articles},
+    news:{state:newsState,provider:includeNews?'GDELT':null,articles,clusters:newsClusters.clusters,clustering:newsClusters},
     derivatives,
     liquidity,
     crossAsset,
@@ -586,7 +588,7 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
     enrichment:newsEnrichmentUrl?{state:'pending',url:newsEnrichmentUrl,eligibilityImpact:'none'}:null,
     boundary:newsState==='pending'
       ?'Full news context is pending a separate bounded enrichment request. The QELLY VIEW is already final for this snapshot because news is contextual and has no eligibility impact.'
-      :'News is contextual evidence only. A bounded fresh cache may be reused; stale news is used only after provider failure and is labeled stale.'
+      :'News is contextual evidence only. A bounded fresh cache may be reused; stale news is used only after provider failure and is labeled stale. Headline clusters are deterministic lexical audit metadata and have no eligibility impact.'
   };
   const providerResilience=providerResiliencePublicSummary({liquidity,derivatives,news:evidence.news,macro});
   const context=latency.measure('contextAndEvidenceGraph',()=>buildDecisionContextBundle(graph,{multiTimeframe,tradeResearch,evidence,horizon:resolvedHorizon}));
