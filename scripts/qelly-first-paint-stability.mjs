@@ -444,6 +444,200 @@ async function runDecisionChaosStabilityProbe(browser){
   }
 }
 
+
+async function runDecisionChaosStabilityProbe(browser){
+  const context=await browser.newContext({viewport:{width:1440,height:1000},device_scale_factor:1,reduced_motion:'reduce'});
+  const page=await context.newPage();
+  const errors=[];
+  const networkFailures=[];
+  const operations=[];
+  const samples=[];
+  let cdp=null;
+  await page.addInitScript(()=>{
+    const nativeSetTimeout=window.setTimeout.bind(window);
+    const nativeClearTimeout=window.clearTimeout.bind(window);
+    const nativeSetInterval=window.setInterval.bind(window);
+    const nativeClearInterval=window.clearInterval.bind(window);
+    const timeouts=new Set();
+    const intervals=new Set();
+    window.setTimeout=(callback,delay,...args)=>{
+      let id=0;
+      const wrapped=typeof callback==='function'
+        ?(...innerArgs)=>{timeouts.delete(id);return callback(...innerArgs);}
+        :callback;
+      id=nativeSetTimeout(wrapped,delay,...args);
+      timeouts.add(id);
+      return id;
+    };
+    window.clearTimeout=(id)=>{timeouts.delete(id);return nativeClearTimeout(id);};
+    window.setInterval=(callback,delay,...args)=>{
+      const id=nativeSetInterval(callback,delay,...args);
+      intervals.add(id);
+      return id;
+    };
+    window.clearInterval=(id)=>{intervals.delete(id);return nativeClearInterval(id);};
+    Object.defineProperty(window,'__QELLY_CHAOS_TIMER_TRACKER__',{
+      configurable:true,
+      value:Object.freeze({snapshot:()=>({timeouts:timeouts.size,intervals:intervals.size})})
+    });
+  });
+  page.on('pageerror',error=>errors.push('pageerror:'+String(error)));
+  page.on('console',message=>{
+    if(message.type()==='error'&&!/^Failed to load resource:/i.test(message.text()))errors.push('console:'+message.text());
+  });
+  page.on('response',response=>{
+    const status=response.status();
+    if(status<400)return;
+    const url=new URL(response.url());
+    const decisionApi=/^\/api\/v1\/decision-(?:proven-graph|scan)/.test(url.pathname);
+    const recoverableApi=decisionApi&&[429,503].includes(status);
+    networkFailures.push({status,url:url.pathname+url.search,recoverableApi});
+  });
+  page.on('requestfailed',request=>{
+    const url=new URL(request.url());
+    const decisionApi=/^\/api\/v1\/decision-(?:proven-graph|scan)/.test(url.pathname);
+    networkFailures.push({status:0,url:url.pathname+url.search,recoverableApi:decisionApi,reason:request.failure()?.errorText||'request_failed'});
+  });
+  const waitReady=async(timeout=20000)=>{
+    await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true'&&document.querySelector('#main')?.getAttribute('aria-busy')==='false',{timeout});
+  };
+  const waitDecisionControls=async(timeout=20000)=>{
+    await page.locator('[data-dpg-rr]').waitFor({state:'visible',timeout});
+    await waitReady(timeout);
+  };
+  const sample=async(label)=>{
+    await cdp.send('HeapProfiler.collectGarbage').catch(()=>{});
+    await page.waitForTimeout(100);
+    const metrics=await cdp.send('Performance.getMetrics');
+    const values=Object.fromEntries(metrics.metrics.map(item=>[item.name,item.value]));
+    const pageState=await page.evaluate(()=>({
+      domNodes:document.getElementsByTagName('*').length,
+      iframes:document.querySelectorAll('iframe').length,
+      currentShells:document.querySelectorAll('[data-qelly-current-shell="true"]').length,
+      productHeaders:document.querySelectorAll('.q-product-header').length,
+      mainBusy:document.querySelector('#main')?.getAttribute('aria-busy')??null,
+      timers:typeof window.__QELLY_CHAOS_TIMER_TRACKER__?.snapshot==='function'?window.__QELLY_CHAOS_TIMER_TRACKER__.snapshot():null,
+      runtimeRoutes:typeof window.__QELLY_RUNTIME_PERFORMANCE__?.snapshot==='function'
+        ?window.__QELLY_RUNTIME_PERFORMANCE__.snapshot()?.routes?.length??0
+        :null
+    }));
+    samples.push({
+      label,
+      jsHeapUsedBytes:Math.round(Number(values.JSHeapUsedSize)||0),
+      nodes:Math.round(Number(values.Nodes)||0),
+      documents:Math.round(Number(values.Documents)||0),
+      eventListeners:Math.round(Number(values.JSEventListeners)||0),
+      ...pageState
+    });
+  };
+  const choose=async(selector,value,label)=>{
+    const control=page.locator(selector);
+    if(!await control.count())throw new Error('missing chaos control '+selector);
+    await control.selectOption(value);
+    operations.push(label);
+    await page.waitForTimeout(70);
+  };
+  try{
+    await page.goto(base+'/#/decision-provenance',{waitUntil:'domcontentloaded',timeout:20000});
+    await waitDecisionControls();
+    cdp=await context.newCDPSession(page);
+    await cdp.send('Performance.enable');
+    await cdp.send('HeapProfiler.enable');
+    await sample('baseline');
+
+    const churn=[
+      ['[data-dpg-asset]','ETH','asset_eth'],
+      ['[data-dpg-interval]','1h','interval_1h'],
+      ['[data-dpg-rr]','1','rr_1_1'],
+      ['[data-dpg-asset]','SOL','asset_sol'],
+      ['[data-dpg-rr]','4','rr_1_4'],
+      ['[data-dpg-interval]','15m','interval_15m'],
+      ['[data-dpg-asset]','BTC','asset_btc'],
+      ['[data-dpg-rr]','auto','rr_auto']
+    ];
+    for(const [selector,value,label] of churn)await choose(selector,value,label);
+    await waitDecisionControls();
+    await page.waitForTimeout(300);
+    await sample('after_control_churn');
+
+    for(let index=0;index<3;index+=1){
+      const scan=page.locator('[data-dpg-scan]').first();
+      await scan.waitFor({state:'visible',timeout:10000});
+      if(await scan.isEnabled().catch(()=>false))await scan.click();
+      operations.push('scan_'+String(index+1));
+      await page.waitForFunction(()=>!document.querySelector('[data-dpg-scan]')?.disabled,{timeout:30000}).catch(()=>{});
+      await page.waitForTimeout(200);
+    }
+    await sample('after_scans');
+
+    for(let index=0;index<2;index+=1){
+      await page.reload({waitUntil:'domcontentloaded',timeout:20000});
+      operations.push('reload_'+String(index+1));
+      await waitDecisionControls();
+      await page.waitForTimeout(250);
+    }
+    await sample('after_reloads');
+
+    let idleOverride='unsupported';
+    try{
+      await cdp.send('Emulation.setIdleOverride',{isUserActive:false,isScreenUnlocked:true});
+      idleOverride='applied';
+      operations.push('idle_override');
+      await page.waitForTimeout(1500);
+      await cdp.send('Emulation.clearIdleOverride');
+      operations.push('idle_resume');
+      await choose('[data-dpg-rr]','2','resume_rr_1_2');
+      await waitDecisionControls();
+      await page.waitForTimeout(300);
+    }catch(error){
+      idleOverride='unavailable:'+String(error?.message||error).slice(0,160);
+      await cdp.send('Emulation.clearIdleOverride').catch(()=>{});
+    }
+    await sample('after_idle_resume');
+
+    const heap=samples.map(item=>item.jsHeapUsedBytes);
+    const dom=samples.map(item=>item.domNodes);
+    const listeners=samples.map(item=>item.eventListeners);
+    const documents=samples.map(item=>item.documents);
+    const timeouts=samples.map(item=>Number(item.timers?.timeouts)||0);
+    const intervals=samples.map(item=>Number(item.timers?.intervals)||0);
+    const iframes=samples.map(item=>Number(item.iframes)||0);
+    const failures=[];
+    if(materialContinuousGrowth(heap,{ratio:1.30,minDelta:10*1024*1024}))failures.push('js_heap');
+    if(materialContinuousGrowth(dom,{ratio:1.25,minDelta:1000}))failures.push('dom_nodes');
+    if(materialContinuousGrowth(listeners,{ratio:1.50,minDelta:175}))failures.push('event_listeners');
+    if(materialContinuousGrowth(documents,{ratio:1.50,minDelta:8}))failures.push('documents');
+    if(materialContinuousGrowth(timeouts,{ratio:2,minDelta:20}))failures.push('active_timeouts');
+    if(materialContinuousGrowth(intervals,{ratio:2,minDelta:8}))failures.push('active_intervals');
+    if(materialContinuousGrowth(iframes,{ratio:2,minDelta:4}))failures.push('iframes');
+    if(samples.some(item=>item.currentShells!==1||item.productHeaders!==1||item.mainBusy!=='false'))failures.push('shell_or_busy_state');
+    const unexpectedNetwork=networkFailures.filter(item=>!item.recoverableApi);
+    if(unexpectedNetwork.length)failures.push('network');
+    return {
+      status:failures.length||errors.length?'failed':'passed',
+      operations,
+      samples,
+      failures,
+      errors,
+      networkFailures,
+      recoverableApiFailures:networkFailures.filter(item=>item.recoverableApi),
+      unexpectedNetwork,
+      idleOverride,
+      metricSource:'chromium-cdp-after-forced-gc-plus-test-only-timer-tracker',
+      boundary:'Chaos instrumentation exists only inside the Playwright context. It does not change production timers, Decision math, provider policy or user-facing controls.'
+    };
+  }catch(error){
+    return {
+      status:'failed',operations,samples,failures:['probe_error'],errors:[...errors,String(error?.message||error)],
+      networkFailures,idleOverride:'unknown',metricSource:'chromium-cdp-after-forced-gc-plus-test-only-timer-tracker'
+    };
+  }finally{
+    await cdp?.send?.('Emulation.clearIdleOverride').catch(()=>{});
+    await cdp?.detach?.().catch(()=>{});
+    await context.close();
+  }
+}
+
 const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
 try{
   for(const [viewportName,viewport] of viewports){
@@ -583,6 +777,8 @@ try{
   }
   report.routeCycleStability=await runRouteCycleStabilityProbe(browser);
   if(report.routeCycleStability.status==='failed')report.status='failed';
+  report.decisionChaosStability=await runDecisionChaosStabilityProbe(browser);
+  if(report.decisionChaosStability.status==='failed')report.status='failed';
   report.decisionChaosStability=await runDecisionChaosStabilityProbe(browser);
   if(report.decisionChaosStability.status!=='passed')report.status='failed';
   report.decisionChaosStability=await runDecisionChaosStabilityProbe(browser);
