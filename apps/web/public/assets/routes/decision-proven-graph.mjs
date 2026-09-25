@@ -346,7 +346,7 @@ const historicalAnalogsMarkup=(data,escapeHtml)=>{
       '<span><em>Anchor separation</em><strong>≥ '+escapeHtml(String(context.minimumAnchorSeparationBars??'—'))+' bars</strong></span>'+
     '</div>'+
     '<div class="q-dpg-analog-list">'+cards+'</div>'+
-    '<div class="q-dpg-analog-boundary"><strong>Selection, leakage and uncertainty boundaries</strong><p>'+escapeHtml(context.selectionPolicy?.thresholdSelection||'')+' '+escapeHtml(context.selectionPolicy?.temporalSeparation||'')+'</p><p>'+escapeHtml(context.leakageGuard||'')+'</p><p>'+escapeHtml(context.outcomeBoundary||'')+'</p><p>'+escapeHtml(interval.boundary||context.uncertaintyBoundary||'')+'</p></div>'+
+    '<div class="q-dpg-analog-boundary"><strong>Leakage guard · Selection, leakage and uncertainty boundaries</strong><p>'+escapeHtml(context.selectionPolicy?.thresholdSelection||'')+' '+escapeHtml(context.selectionPolicy?.temporalSeparation||'')+'</p><p>'+escapeHtml(context.leakageGuard||'')+'</p><p>'+escapeHtml(context.outcomeBoundary||'')+'</p><p>'+escapeHtml(interval.boundary||context.uncertaintyBoundary||'')+'</p></div>'+
   '</section>';
 };
 
