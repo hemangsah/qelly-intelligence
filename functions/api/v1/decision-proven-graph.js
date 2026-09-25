@@ -569,7 +569,7 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   graph={...graph,liquidity,eventRisk,derivatives,crossAsset,macro};
   const tradeResearch=latency.measure('riskRewardResearch',()=>buildTradeResearch(graph,{requestedRr,customRr}));
   const evidence={
-    news:{state:newsState,provider:includeNews?'GDELT':null,articles,clusters:newsClusters.clusters,clustering:newsClusters},
+    news:{state:newsState,provider:includeNews?'GDELT':null,articles},
     derivatives,
     liquidity,
     crossAsset,
@@ -584,7 +584,7 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   const newsEnrichmentUrl=newsState==='pending'
     ?'/api/v1/decision-news-context?'+new URLSearchParams({asset:resolvedAsset,start:String(newsStart),end:String(newsEnd),...(resolvedSelection?{exact:'1'}:{})}).toString()
     :null;
-  evidence.news={...evidence.news,observedAt:newsObservedAt??null,cache:newsCache??null,fallbackReason:newsFallbackReason??null,
+  evidence.news={...evidence.news,clusters:newsClusters.clusters,clustering:newsClusters,observedAt:newsObservedAt??null,cache:newsCache??null,fallbackReason:newsFallbackReason??null,
     enrichment:newsEnrichmentUrl?{state:'pending',url:newsEnrichmentUrl,eligibilityImpact:'none'}:null,
     boundary:newsState==='pending'
       ?'Full news context is pending a separate bounded enrichment request. The QELLY VIEW is already final for this snapshot because news is contextual and has no eligibility impact.'
