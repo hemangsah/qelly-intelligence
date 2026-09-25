@@ -2,6 +2,7 @@ import {adSlot,mountAdSlots} from '../qelly-ad-slot.mjs';
 import {DECISION_CONTEXT_KEY as CHAT_DECISION_CONTEXT_KEY,DECISION_ASSETS,consumeDecisionContext as readChatDecisionContext,storeResearchContext} from '../decision-context-bridge.mjs';
 import {startDecisionObservation,recordDecisionObservation,recordScannerObservation,recordTargetTouchSample} from '../decision-observability.mjs';
 import {evaluateDecisionSlos} from '../decision-slos.mjs';
+import {buildDecisionResearchNote,downloadDecisionResearchNote} from '../decision-research-note.mjs';
 const STYLESHEET=new URL('../qelly-decision-proven-graph.css',import.meta.url).href;
 const installStyles=()=>{if(!document.querySelector('link[data-decision-proven-graph]')){const link=document.createElement('link');link.rel='stylesheet';link.href=STYLESHEET;link.dataset.decisionProvenGraph='v2';document.head.append(link);}};
 const money=(value)=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:Number(value)>=100?0:2}).format(value);
@@ -633,7 +634,7 @@ export async function renderDecisionProvenGraph(main,deps){
         '<span><em>Volatility</em><strong>'+escapeHtml(volatility)+'</strong></span>'+
         '<span><em>Timeframe</em><strong>'+escapeHtml(state.interval)+'</strong></span>'+
       '</div></div>'+
-      '<div class="q-dpg-hero__actions"><button class="q-button q-button--primary" data-dpg-scan '+(state.scanning?'disabled':'')+'>'+(state.scanning?'Scanning…':'Find Trade Now')+'</button><button class="q-button q-button--secondary" data-dpg-explain-header '+(state.draft?'':'disabled')+'>Explain This Move</button><button class="q-button q-button--secondary" data-dpg-explain-candle '+(data?.market?.candles?.length?'':'disabled')+'>Explain Candle</button><button class="q-button q-button--secondary" data-dpg-mtf-jump>Compare Timeframes</button><button class="q-button q-button--secondary" data-dpg-compare-asset>Compare Asset</button><button class="q-button q-button--secondary" type="button" data-dpg-formula-evidence>Formula Evidence</button><button class="q-button q-button--secondary" type="button" data-dpg-open-chat>Ask QELLY</button><button class="q-button q-button--secondary" data-dpg-methodology-jump>Sources / Methodology</button></div>'+
+      '<div class="q-dpg-hero__actions"><button class="q-button q-button--primary" data-dpg-scan '+(state.scanning?'disabled':'')+'>'+(state.scanning?'Scanning…':'Find Trade Now')+'</button><button class="q-button q-button--secondary" data-dpg-explain-header '+(state.draft?'':'disabled')+'>Explain This Move</button><button class="q-button q-button--secondary" data-dpg-explain-candle '+(data?.market?.candles?.length?'':'disabled')+'>Explain Candle</button><button class="q-button q-button--secondary" data-dpg-mtf-jump>Compare Timeframes</button><button class="q-button q-button--secondary" data-dpg-compare-asset>Compare Asset</button><button class="q-button q-button--secondary" type="button" data-dpg-formula-evidence>Formula Evidence</button><button class="q-button q-button--secondary" type="button" data-dpg-open-chat>Ask QELLY</button><button class="q-button q-button--secondary" type="button" data-dpg-research-note X>Research Note</button><button class="q-button q-button--secondary" data-dpg-methodology-jump>Sources / Methodology</button></div>'+
     '</section>';
   };
   const outcomeLedgerMarkup=(data)=>{
@@ -729,6 +730,17 @@ export async function renderDecisionProvenGraph(main,deps){
         },
         prompt:'Explain the current '+state.asset+' Decision Intelligence view ('+action+'), including why this setup or no trade, the evidence gate, strongest contradiction, entry/invalidation/targets if any, why the selected R:R is feasible or not, calibration, historical analog boundary, selected candle/range context and what changed.'
       }}));
+    });
+    main.querySelector('[data-dpg-research-note]')?.addEventListener('click',()=>{
+      if(!state.data){toast?.('Research note is unavailable until Decision evidence loads.',{tone:'danger'});return;}
+      const note=buildDecisionResearchNote(state.data,{
+        requestedRr:state.rr,
+        customRr:state.rr==='custom'?state.customRr:null,
+        targetTouchCalibration:state.ledger?.calibration||null
+      });
+      downloadDecisionResearchNote(note);
+      emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'research_note',action:'export',state:telemetryToken(state.data?.qellyView?.action||'no_trade')});
+      toast?.('Decision research note exported',{tone:'success'});
     });
     main.querySelector('[data-dpg-methodology-jump]')?.addEventListener('click',()=>main.querySelector('#qelly-decision-methodology')?.scrollIntoView({behavior:'smooth',block:'start'}));
     main.querySelectorAll('[data-dpg-refresh]').forEach(button=>button.addEventListener('click',load));main.querySelector('[data-dpg-export]')?.addEventListener('click',()=>{download(state.data);toast('Research package exported',{tone:'success'});});
