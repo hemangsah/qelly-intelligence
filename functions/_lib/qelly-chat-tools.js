@@ -421,7 +421,11 @@ export function compactDecisionToolReceipt(result,{requestContext=null}={}){
       },
       historicalAnalogs:{
         state:analogs.state??'UNAVAILABLE',summary:analogs.summary??null,eligibilityImpact:analogs.eligibilityImpact??'none',
-        leakageGuard:analogs.leakageGuard??null,outcomeBoundary:analogs.outcomeBoundary??null,
+        sampledWindows:analogs.sampledWindows??0,similarityEligibleWindows:analogs.similarityEligibleWindows??0,
+        similarityRejectedWindows:analogs.similarityRejectedWindows??0,temporalOverlapRejected:analogs.temporalOverlapRejected??0,
+        minimumSimilarity:analogs.minimumSimilarity??null,minimumAnchorSeparationBars:analogs.minimumAnchorSeparationBars??null,
+        candidateStepBars:analogs.candidateStepBars??null,selectionPolicy:analogs.selectionPolicy??null,
+        leakageGuard:analogs.leakageGuard??null,outcomeBoundary:analogs.outcomeBoundary??null,uncertaintyBoundary:analogs.uncertaintyBoundary??null,
         analogs:Array.isArray(analogs.analogs)?analogs.analogs.slice(0,5).map(item=>({
           rank:item.rank,observedAt:item.observedAt,similarity:item.similarity,regime:item.regime,volatilityRegime:item.volatilityRegime,
           forwardReturnPct:item.forwardReturnPct,maxFavorablePct:item.maxFavorablePct,maxAdversePct:item.maxAdversePct,timeToResolutionMs:item.timeToResolutionMs
