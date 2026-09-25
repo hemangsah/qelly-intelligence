@@ -20,6 +20,40 @@ const productDescription='Qelly Intelligence: evidence-backed market discovery, 
 const escapeAttribute=(value)=>String(value).replaceAll('&','&amp;').replaceAll('"','&quot;').replaceAll('<','&lt;').replaceAll('>','&gt;');
 const escapeXml=(value)=>escapeAttribute(value).replaceAll("'",'&apos;');
 
+const safeJson=(value)=>JSON.stringify(value).replaceAll('<','\\u003c').replaceAll('>','\\u003e').replaceAll('&','\\u0026');
+
+export function buildStructuredData(options={}){
+  const context=seoContext(options);
+  if(!context.indexable)return '';
+  const canonical=context.publicUrl('');
+  const graph={
+    '@context':'https://schema.org',
+    '@graph':[
+      {
+        '@type':'WebSite',
+        '@id':canonical+'#website',
+        url:canonical,
+        name:'Qelly Intelligence',
+        description:productDescription,
+        inLanguage:'en'
+      },
+      {
+        '@type':'SoftwareApplication',
+        '@id':canonical+'#application',
+        name:'Qelly Intelligence',
+        url:canonical,
+        applicationCategory:'FinanceApplication',
+        applicationSubCategory:'Market research and quantitative analysis',
+        operatingSystem:'Web',
+        isAccessibleForFree:true,
+        description:productDescription,
+        browserRequirements:'Requires a modern web browser with JavaScript enabled'
+      }
+    ]
+  };
+  return `  <script type="application/ld+json" data-qelly-public-schema="true">${safeJson(graph)}</script>`;
+}
+
 function normalizeBasePath(value='/'){
   const raw=String(value||'/').trim();
   const normalized=raw==='/'?'/':`/${raw.replace(/^\/+|\/+$/g,'')}/`;
@@ -74,6 +108,7 @@ export function buildIndexSeoBlock(options={}){
       `  <meta name="twitter:image" content="${escapeAttribute(socialImage)}">`,
       '  <meta name="twitter:image:alt" content="Qelly Intelligence institutional quantitative research interface">'
     );
+    tags.push(buildStructuredData(options));
   }
   tags.push('<!-- QELLY_PUBLIC_SEO_END -->');
   return tags.join('\n');
@@ -93,6 +128,7 @@ function stripIndexOwnedSocialMetadata(source){
 export function applyIndexSeo(source,options={}){
   let html=String(source);
   html=html.replace(/\s*<!-- QELLY_PUBLIC_SEO_START -->[\s\S]*?<!-- QELLY_PUBLIC_SEO_END -->\s*/g,'\n');
+  html=html.replace(/\s*<script\b(?=[^>]*\bdata-qelly-public-schema=["']true["'])[^>]*>[\s\S]*?<\/script>\s*/gi,'\n');
   html=stripIndexOwnedSocialMetadata(html);
   html=html.replace(/\s*<meta\s+name=["']robots["'][^>]*>\s*/gi,'\n');
   html=html.replace(/\s*<meta\s+name=["']description["'][^>]*>\s*/gi,'\n');
