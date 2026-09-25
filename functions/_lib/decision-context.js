@@ -315,8 +315,8 @@ function decisionTrace(graph,{multiTimeframe,tradeResearch,evidence,horizon,cont
     }),
     sourceNode('view','research-view','QELLY VIEW '+viewAction,{
       stage:'QELLY_VIEW',source:'QELLY derived research',timestamp:generatedAt,freshness:truth,importance:'CRITICAL',directness:'COMPOSITE',reliability:'EVIDENCE_GATED',role:'decision',supportState:viewAction==='BUY'||viewAction==='SELL'?'DECISION':viewAction==='NO TRADE'?'WITHHELD':'NEUTRAL',confidence:viewConfidence,
-      methodology:'Evidence gates combine freshness, sample depth, scenario separation, MTF agreement, calibration and severe verified risk contradictions.',
-      limitations:['Research-only; no execution or guaranteed outcome.']
+      methodology:'Evidence confidence uses one weighted decomposition: freshness 30%, sample depth 20%, scenario separation 25% and coverage-adjusted MTF agreement 25%. Each primitive enters confidence once; calibration and severe verified risk contradictions remain separate eligibility gates.',
+      limitations:['Evidence confidence is not a success probability. The preliminary model confidence is not reused in the final evidence-confidence score.','Research-only; no execution or guaranteed outcome.']
     }),
     sourceNode('setup','trade-research','Trade research setup '+String(tradeResearch?.status||'NO_TRADE'),{
       stage:'SETUP',source:'QELLY trade research',timestamp:generatedAt,freshness:truth,importance:'HIGH',directness:'DERIVED',reliability:setupValid?'STRUCTURE_AND_EVIDENCE_GATED':'FAIL_CLOSED',role:'setup',supportState:setupValid?'ACTIVE':'WITHHELD',confidence:finite(tradeResearch?.confidence),
@@ -472,8 +472,8 @@ function snapshot(graph,{multiTimeframe,tradeResearch,evidence,contradiction}){
     action:contradiction?.strongestContradiction||graph?.qellyView?.label||'Current evidence mix changed.',
     contradictionState:contradiction?.strongestContradiction||graph?.qellyView?.label||'Current evidence mix changed.',
     contradictionScore:contradiction?.strongestContradiction||graph?.qellyView?.label||'Current evidence mix changed.',
-    confidence:'Evidence confidence is recomputed from freshness, sample depth, scenario separation and multi-timeframe agreement; it is not a success probability.',
-    evidenceQuality:'Evidence quality is recomputed from freshness, sample depth, scenario separation and multi-timeframe agreement.',
+    confidence:'Evidence confidence is recomputed from one weighted decomposition: freshness 30%, sample depth 20%, scenario separation 25% and coverage-adjusted multi-timeframe agreement 25%. Each primitive enters once; it is not a success probability.',
+    evidenceQuality:'Evidence quality uses the same single decomposition as evidence confidence; preliminary model confidence is retained for audit and is not reused.',
     calibrationState:calibration.reason||'Walk-forward calibration evidence changed.',
     calibrationBrierScore:calibration.reason||'Walk-forward calibration evidence changed.',
     selectedRr:tradeResearch?.selected?.feasibilityReason||tradeResearch?.reason||'Target feasibility changed with current structure and scenario range.',
@@ -506,6 +506,9 @@ function snapshot(graph,{multiTimeframe,tradeResearch,evidence,contradiction}){
     action:graph?.qellyView?.action||'NO TRADE',
     confidence:finite(graph?.qellyView?.confidence),
     evidenceQuality:finite(graph?.qellyView?.evidenceGate?.qualityScore),
+    confidenceSchemaVersion:graph?.confidence?.decomposition?.schemaVersion||graph?.qellyView?.evidenceGate?.confidenceSchemaVersion||null,
+    confidencePrimitiveReuse:graph?.confidence?.decomposition?.primitiveReuse===true?true:graph?.confidence?.decomposition?.primitiveReuse===false?false:null,
+    preliminaryModelConfidenceReused:graph?.confidence?.decomposition?.preliminaryModelConfidenceReused===true?true:graph?.confidence?.decomposition?.preliminaryModelConfidenceReused===false?false:null,
     calibrationState:calibration.state||'UNCALIBRATED',
     calibrationEligible:calibration.eligible===true,
     calibrationBrierScore:finite(calibration.brierScore),
