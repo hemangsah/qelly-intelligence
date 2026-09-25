@@ -126,15 +126,15 @@ export function buildDecisionResearchNote(data,{requestedRr=null,customRr=null,t
         target:finite(selected.target),
         feasibility:text(selected.feasibility,'UNAVAILABLE'),
         reason:text(selected.feasibilityReason||selected.selectionReason,''),
-        grossRr:finite(selected.grossRr??selected.ratio),
-        netRr:finite(selected.netRr),
+        grossRr:finite(selected.grossRiskReward??selected.grossRr??selected.ratio),
+        netRr:finite(selected.netRiskReward??selected.netRr),
         costState:text(selected.costState,'UNAVAILABLE'),
         costReason:text(selected.costReason,'')
       }:null,
       matrix:list(trade.matrix).map(item=>({
         label:text(item?.label,ratioLabel(item?.ratio)||'R:R'),ratio:finite(item?.ratio),target:finite(item?.target),
         feasibility:text(item?.feasibility,'UNAVAILABLE'),reason:text(item?.feasibilityReason,''),
-        grossRr:finite(item?.grossRr??item?.ratio),netRr:finite(item?.netRr),costState:text(item?.costState,'UNAVAILABLE')
+        grossRr:finite(item?.grossRiskReward??item?.grossRr??item?.ratio),netRr:finite(item?.netRiskReward??item?.netRr),costState:text(item?.costState,'UNAVAILABLE')
       }))
     },
     calibration:{
