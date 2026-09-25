@@ -192,6 +192,8 @@ function pastPresentFuture(graph,{multiTimeframe,tradeResearch,evidence,horizon,
       eventRisk:evidence?.eventRisk||null,
       news:{state:news.state||'unavailable',provider:news.provider||null,count:Array.isArray(news.articles)?news.articles.length:0},
       multiTimeframe:multiTimeframe||null,
+      dataQuality:graph?.dataQuality||null,
+      modelHealth:graph?.modelHealth||null,
       calibration:{
         state:calibration.state||'UNCALIBRATED',
         eligible:calibration.eligible===true,
@@ -345,6 +347,16 @@ function decisionTrace(graph,{multiTimeframe,tradeResearch,evidence,horizon,cont
       methodology:'Independent supported timeframes are evaluated separately and summarized by directional agreement.',
       limitations:['Agreement is not probability and does not remove regime uncertainty.']
     }),
+    sourceNode('data-quality','data-quality','Current data quality '+String(graph?.dataQuality?.state||'UNAVAILABLE'),{
+      source:'QELLY current-snapshot integrity checks',timestamp:generatedAt,freshness:truth,importance:'CRITICAL',directness:'DERIVED',reliability:graph?.dataQuality?.eligibility?.criticalReady===true?'CRITICAL_CHECKS_PASSED':'FAIL_CLOSED',role:'eligibility_gate',supportState:graph?.dataQuality?.eligibility?.criticalReady===true?'SUPPORT':'WITHHELD',confidence:finite(graph?.dataQuality?.score),
+      methodology:'Coverage, freshness, provider health and deterministic consistency checks are scored separately from directional evidence. Optional contextual missingness is disclosed without creating direction.',
+      limitations:[graph?.dataQuality?.boundary||'Data quality is not directional confidence.',graph?.dataQuality?.eligibility?.boundary||'Only explicit critical-input failures can fail closed.']
+    }),
+    sourceNode('model-health','model-health','Model health '+String(graph?.modelHealth?.state||'UNAVAILABLE'),{
+      source:'QELLY model-governance checks',timestamp:generatedAt,freshness:truth,importance:'MEDIUM',directness:'DERIVED',reliability:'CURRENT_SNAPSHOT_ONLY',role:'governance',supportState:'CONTEXT',
+      methodology:'Current calibration, provider and data-quality state are reported separately from longitudinal drift readiness.',
+      limitations:[graph?.modelHealth?.driftReadiness?.boundary||'A single current snapshot cannot establish drift.',graph?.modelHealth?.boundary||'Model health does not create directional confidence.']
+    }),
     sourceNode('calibration','calibration','Walk-forward probability calibration',{
       source:'QELLY derived research',timestamp:calibration.lastResolvedAt||null,freshness:calibration.state==='UNCALIBRATED'?'UNAVAILABLE':'DELAYED',importance:'CRITICAL',directness:'DERIVED',reliability:calibration.eligible?'OUT_OF_SAMPLE_GATE_PASSED':'GATE_NOT_PASSED',role:'eligibility_gate',supportState:calibration.eligible?'SUPPORT':viewAction==='BUY'||viewAction==='SELL'?'CONTRADICTION':'NEUTRAL',
       methodology:calibration.method||'Walk-forward calibration unavailable.',
@@ -413,6 +425,9 @@ function decisionTrace(graph,{multiTimeframe,tradeResearch,evidence,horizon,cont
     ['quant','scenario','conditions'],
     ['quant','evidence','contributes deterministic state'],
     ['mtf','evidence','supports or contradicts'],
+    ['data-quality','evidence','qualifies input integrity'],
+    ['data-quality','view','fails closed on critical checks'],
+    ['model-health','evidence','reports governance state'],
     ['calibration','evidence','gates'],
     ['calibration','view','gates'],
     ['liquidity','evidence','adds marketability risk'],
@@ -474,6 +489,9 @@ function snapshot(graph,{multiTimeframe,tradeResearch,evidence,contradiction}){
     contradictionScore:contradiction?.strongestContradiction||graph?.qellyView?.label||'Current evidence mix changed.',
     confidence:'Evidence confidence is recomputed from one weighted decomposition: freshness 30%, sample depth 20%, scenario separation 25% and coverage-adjusted multi-timeframe agreement 25%. Each primitive enters once; it is not a success probability.',
     evidenceQuality:'Evidence quality uses the same single decomposition as evidence confidence; preliminary model confidence is retained for audit and is not reused.',
+    dataQualityState:'Current non-directional data-integrity state changed; optional contextual missingness is disclosed separately from critical-input readiness.',
+    dataQualityScore:'Current non-directional data-integrity score changed; it is not evidence confidence or success probability.',
+    modelHealthState:'Current model-health readiness changed; longitudinal drift remains unmeasured without a telemetry baseline.',
     calibrationState:calibration.reason||'Walk-forward calibration evidence changed.',
     calibrationBrierScore:calibration.reason||'Walk-forward calibration evidence changed.',
     selectedRr:tradeResearch?.selected?.feasibilityReason||tradeResearch?.reason||'Target feasibility changed with current structure and scenario range.',
@@ -509,6 +527,11 @@ function snapshot(graph,{multiTimeframe,tradeResearch,evidence,contradiction}){
     confidenceSchemaVersion:graph?.confidence?.decomposition?.schemaVersion||graph?.qellyView?.evidenceGate?.confidenceSchemaVersion||null,
     confidencePrimitiveReuse:graph?.confidence?.decomposition?.primitiveReuse===true?true:graph?.confidence?.decomposition?.primitiveReuse===false?false:null,
     preliminaryModelConfidenceReused:graph?.confidence?.decomposition?.preliminaryModelConfidenceReused===true?true:graph?.confidence?.decomposition?.preliminaryModelConfidenceReused===false?false:null,
+    dataQualityState:graph?.dataQuality?.state||'UNAVAILABLE',
+    dataQualityScore:finite(graph?.dataQuality?.score),
+    dataQualityCriticalReady:graph?.dataQuality?.eligibility?.criticalReady===true,
+    modelHealthState:graph?.modelHealth?.state||'UNAVAILABLE',
+    driftReadinessState:graph?.modelHealth?.driftReadiness?.state||'UNAVAILABLE',
     calibrationState:calibration.state||'UNCALIBRATED',
     calibrationEligible:calibration.eligible===true,
     calibrationBrierScore:finite(calibration.brierScore),
