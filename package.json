@@ -50,8 +50,6 @@
     "pg": "8.22.0"
   },
   "devDependencies": {
-    "@fontsource-variable/geist": "5.2.8",
-    "@fontsource-variable/geist-mono": "5.2.8",
     "@fontsource-variable/ibm-plex-sans": "5.2.8",
     "@fontsource-variable/manrope": "5.2.8",
     "@fontsource-variable/plus-jakarta-sans": "5.2.8",
