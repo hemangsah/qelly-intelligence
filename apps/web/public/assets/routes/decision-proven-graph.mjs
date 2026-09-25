@@ -1,6 +1,7 @@
 import {adSlot,mountAdSlots} from '../qelly-ad-slot.mjs';
 import {DECISION_CONTEXT_KEY as CHAT_DECISION_CONTEXT_KEY,DECISION_ASSETS,consumeDecisionContext as readChatDecisionContext,storeResearchContext} from '../decision-context-bridge.mjs';
 import {startDecisionObservation,recordDecisionObservation,recordScannerObservation,recordTargetTouchSample} from '../decision-observability.mjs';
+import {evaluateDecisionSlos} from '../decision-slos.mjs';
 const STYLESHEET=new URL('../qelly-decision-proven-graph.css',import.meta.url).href;
 const installStyles=()=>{if(!document.querySelector('link[data-decision-proven-graph]')){const link=document.createElement('link');link.rel='stylesheet';link.href=STYLESHEET;link.dataset.decisionProvenGraph='v2';document.head.append(link);}};
 const money=(value)=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:Number(value)>=100?0:2}).format(value);
@@ -581,11 +582,26 @@ const whatChangedMarkup=(previous,current,escapeHtml)=>{
 }
 
 
+const sloDiagnosticsMarkup=(slo,escapeHtml)=>{
+  if(!slo)return '';
+  const all=[...Object.values(slo.objectives||{}),...Object.entries(slo.providers||{}).map(([provider,value])=>({...value,name:'provider:'+provider}))];
+  const rows=all.map(item=>'<span><em>'+escapeHtml(String(item.name||'metric').replaceAll('_',' '))+'</em><strong>'+escapeHtml(String(item.state||'UNAVAILABLE').replaceAll('_',' '))+'</strong><small>'+escapeHtml(item.value==null?'value unavailable':String(item.value))+' / target '+escapeHtml(item.target==null?'—':String(item.target))+' · n='+escapeHtml(String(item.sampleSize??0))+'/'+escapeHtml(String(item.minSamples??0))+'</small></span>').join('');
+  return '<details class="q-dpg-audit q-dpg-slo"><summary>Operational SLOs · '+escapeHtml(String(slo.state||'OBSERVING'))+'</summary><div><section><h3>Measured objectives</h3><p>'+escapeHtml(slo.measurementBoundary||'')+'</p><div class="q-dpg-reliability-bins">'+rows+'</div></section><section><h3>Boundaries</h3><p>'+escapeHtml(slo.latencyBoundary||'')+'</p><p>'+escapeHtml(slo.providerBoundary||'')+'</p><p>'+escapeHtml(slo.scientificBoundary||'')+'</p></section></div></details>';
+};
+
+
 export async function renderDecisionProvenGraph(main,deps){
   installStyles();const {api,stateBanner,escapeHtml,toast,navigate}=deps;
   const chatContext=readChatDecisionContext();
-  let state={asset:chatContext.asset,interval:chatContext.interval,horizon:normalizeHorizon(chatContext.interval,'4h'),rr:'auto',customRr:'2.5',loading:true,data:null,previousSnapshot:null,error:null,draft:null,selection:null,scanning:false,scan:null,scanError:null,ledger:null,ledgerLoading:false,ledgerError:null,ledgerMutating:false,scanFilters:{universe:'all',direction:'any',minEvidenceQuality:'0',minCalibratedConfidence:'0',minMtfAgreement:'0',liquidity:'any',volatility:'any',regime:'any',eventRiskTolerance:'any',freshness:'live_or_delayed'}};
+  let state={asset:chatContext.asset,interval:chatContext.interval,horizon:normalizeHorizon(chatContext.interval,'4h'),rr:'auto',customRr:'2.5',loading:true,data:null,previousSnapshot:null,error:null,draft:null,selection:null,scanning:false,scan:null,scanError:null,ledger:null,ledgerLoading:false,ledgerError:null,ledgerMutating:false,slo:null,scanFilters:{universe:'all',direction:'any',minEvidenceQuality:'0',minCalibratedConfidence:'0',minMtfAgreement:'0',liquidity:'any',volatility:'any',regime:'any',eventRiskTolerance:'any',freshness:'live_or_delayed'}};
   const ledgerAuthenticated=()=>Boolean(window.__QELLY_SESSION_STATE__?.authenticated);
+  const updateSlo=(snapshot)=>{
+    const next=evaluateDecisionSlos(snapshot);
+    if(next.state==='VIOLATION'&&state.slo?.state!=='VIOLATION')emitRuntimeSignal({feature:'decision_slo',action:'violation',state:'violation',surface:'decision'});
+    state.slo=next;
+    return next;
+  };
+
   const select=(name,values)=>'<label><span>'+name[0].toUpperCase()+name.slice(1)+'</span><select data-dpg-'+name+'>'+values.map(value=>'<option value="'+value+'" '+(state[name]===value?'selected':'')+'>'+value+'</option>').join('')+'</select></label>';
   const hero=(data)=>{
     const view=data?.qellyView||{},gate=view.evidenceGate||{},scenario=view.scenario||{};
@@ -661,7 +677,7 @@ export async function renderDecisionProvenGraph(main,deps){
       (move?'<section class="q-dpg-move"><header><div><small>SELECTED MOVE</small><h2>'+pct(move.changePct)+' across '+move.candles+' candles</h2></div><span>'+new Date(move.start).toLocaleString()+' → '+new Date(move.end).toLocaleString()+'</span></header><div><article><span>Range</span><strong>'+pct(move.rangePct)+'</strong></article><article><span>Volume vs prior</span><strong>'+(move.volumeRatio?move.volumeRatio+'×':'N/A')+'</strong></article><article><span>Volatility</span><strong>'+pct(move.volatilityPct)+'</strong></article><article><span>Prior volatility</span><strong>'+(move.priorVolatilityPct===null?'N/A':pct(move.priorVolatilityPct))+'</strong></article></div></section>':'')+
       pastPresentFutureMarkup(data,escapeHtml)+contradictionMarkup(data,escapeHtml)+whatChangedMarkup(state.previousSnapshot,data.decisionSnapshot,escapeHtml)+decisionTraceMarkup(data,escapeHtml)+
       marketStructureContext(data,escapeHtml)+multiTimeframe(data,escapeHtml)+liquidityContext(data,escapeHtml)+derivativesContext(data,escapeHtml)+crossAssetContext(data,escapeHtml)+macroContext(data,escapeHtml)+eventRiskContext(data,escapeHtml)+newsResearchContext(data,escapeHtml)+adSlot('decision-intelligence-inline')+'<section class="q-dpg-evidence"><header><div><small>EVIDENCE RANKING</small><h2>What best explains the move</h2></div><span>News: '+escapeHtml(data.evidence?.news?.state||'unavailable')+' · L2: '+escapeHtml(data.evidence?.liquidity?.state||'unavailable')+' · Funding/OI: '+escapeHtml(data.evidence?.derivatives?.state||'unavailable')+' · Cross-asset: '+escapeHtml(data.evidence?.crossAsset?.state||'unavailable')+' · Macro: '+escapeHtml(data.evidence?.macro?.state||'unavailable')+' · Event calendar: '+escapeHtml(data.evidence?.eventRisk?.state||'unavailable')+' · Liquidations: unavailable, not inferred</span></header>'+evidence(data)+'</section>'+
-      secondaryResearchDiagnosticsMarkup(data,escapeHtml)+
+      secondaryResearchDiagnosticsMarkup(data,escapeHtml)+sloDiagnosticsMarkup(state.slo,escapeHtml)+
       '<details id="qelly-decision-methodology" class="q-dpg-audit"><summary>Methodology and sources</summary><div><section><h3>Market data</h3><p>'+escapeHtml(data.provenance.provider)+' public candles. <a href="'+escapeHtml(data.provenance.documentation)+'" target="_blank" rel="noopener">Source documentation ↗</a></p></section><section><h3>Method</h3><p>'+data.provenance.model.features.map(escapeHtml).join(' · ')+'</p><p>'+escapeHtml(data.confidence.calibration)+'</p></section><section><h3>Limits</h3><ul>'+data.provenance.model.limitations.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul></section></div></details>';
   };
   const draw=()=>{
@@ -768,7 +784,7 @@ export async function renderDecisionProvenGraph(main,deps){
       for(const key of ['direction','minEvidenceQuality','minCalibratedConfidence','minMtfAgreement','liquidity','volatility','regime','eventRiskTolerance','freshness'])params.set(key,String(state.scanFilters[key]??''));
       params.set('setupFreshness','current');
       state.scan=await api('/api/v1/decision-scan?'+params.toString());
-      recordScannerObservation({startedAt:observabilityStartedAt,scan:state.scan});
+      updateSlo(recordScannerObservation({startedAt:observabilityStartedAt,scan:state.scan}));
       const eligibleCount=Math.max(0,Number(state.scan?.eligibleCount)||0);
       emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'decision_scan',action:'complete',state:telemetryToken(state.scan?.state||'unavailable')});
       emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'eligible_setup',action:'count',state:eligibleCount>0?'nonzero':'zero',...(eligibleCount>0?{count:Math.min(100,eligibleCount)}:{})});
@@ -778,7 +794,7 @@ export async function renderDecisionProvenGraph(main,deps){
       }
     }catch(error){
       state.scan=null;state.scanError=error?.message||'The governed asset scan could not be completed. No substitute candidates were generated.';
-      recordScannerObservation({startedAt:observabilityStartedAt,failed:true});
+      updateSlo(recordScannerObservation({startedAt:observabilityStartedAt,failed:true}));
       emitRuntimeSignal({feature:'decision_scan',action:'failure',state:'unavailable',surface:'api'});
     }finally{
       state.scanning=false;
@@ -829,13 +845,13 @@ export async function renderDecisionProvenGraph(main,deps){
       const next=await api('/api/v1/decision-proven-graph?asset='+encodeURIComponent(state.asset)+'&interval='+encodeURIComponent(state.interval)+'&horizon='+encodeURIComponent(state.horizon)+rr+range);
       state.previousSnapshot=previous&&next?.decisionSnapshot&&previous.asset===next.decisionSnapshot.asset&&previous.interval===next.decisionSnapshot.interval?previous:null;
       state.data=next;
-      recordDecisionObservation({startedAt:observabilityStartedAt,data:next,rrState:rrTelemetryState(state.rr)});
+      updateSlo(recordDecisionObservation({startedAt:observabilityStartedAt,data:next,rrState:rrTelemetryState(state.rr)}));
       void enrichDecisionNews(next);
       emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'decision_view',action:'result',state:telemetryToken(next?.qellyView?.action||'unavailable')});
       emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'calibration',action:'state',state:telemetryToken(next?.quant?.calibration?.state||'uncalibrated')});
     }catch(error){
       state.data=null;state.previousSnapshot=null;state.error=error?.message||'Fresh market evidence could not be reached. No substitute data was generated.';
-      recordDecisionObservation({startedAt:observabilityStartedAt,rrState:rrTelemetryState(state.rr),failed:true});
+      updateSlo(recordDecisionObservation({startedAt:observabilityStartedAt,rrState:rrTelemetryState(state.rr),failed:true}));
       emitRuntimeSignal({feature:'decision',action:'failure',state:'unavailable',surface:'api'});
     }finally{state.loading=false;draw();if(ledgerAuthenticated()&&!state.ledger&&!state.ledgerLoading)void loadLedger();}
   }
