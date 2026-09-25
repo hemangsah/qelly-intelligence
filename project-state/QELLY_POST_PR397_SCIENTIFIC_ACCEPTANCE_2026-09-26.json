@@ -23,7 +23,6 @@
       "brierScore": 0.3508,
       "skillScore": -0.0525,
       "reliabilityGap": 0.1872,
-      "correctClassRate": 0.36,
       "diagnosticOnly": true
     }
   },
