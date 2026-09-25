@@ -27,23 +27,26 @@ async function walk(directory,files=[]){
   return files;
 }
 
-test('Wave BL removes only superseded font assets with zero executable references',async()=>{
-  for(const basename of removedAssets){
-    await assert.rejects(readFile(path.join(root,'apps/web/public/assets',basename),'utf8'));
+test('Wave BL retains imported font layers as compatibility instead of deleting by age',async()=>{
+  const reset=await readFile(path.join(root,'apps/web/public/assets/qelly-premium-reset.css'),'utf8');
+  const retained=[
+    'premium-font-surface.css',
+    'premium-font-surface-polish.css',
+    'premium-font-worldquant-arkham.css'
+  ];
+  for(const basename of retained){
+    const source=await readFile(path.join(root,'apps/web/public/assets',basename),'utf8');
+    assert.ok(source.length>0,basename);
+    assert.ok(reset.includes(basename),basename);
   }
-  const files=[];
-  for(const entry of executableRoots)await walk(path.join(root,entry),files);
-  const self=fileURLToPath(import.meta.url);
-  const references=[];
-  for(const file of files){
-    if(file===self)continue;
-    const source=await readFile(file,'utf8').catch(()=>null);
-    if(source===null)continue;
-    for(const basename of removedAssets){
-      if(source.includes(basename))references.push({file:path.relative(root,file),basename});
-    }
+  const report=await buildRuntimeDeadCodeAudit();
+  for(const basename of retained){
+    const item=report.retained.find(record=>record.basename===basename);
+    assert.ok(item,basename);
+    assert.equal(item.classification,'COMPATIBILITY',JSON.stringify(item));
+    const counts=item.referenceCounts||{};
+    assert.ok((counts.RUNTIME||0)+(counts.BUILD||0)+(counts.TEST||0)+(counts.WORKFLOW||0)>0,JSON.stringify(item));
   }
-  assert.deepEqual(references,[]);
 });
 
 test('Wave BL removes unused Geist packages without touching the active IBM Plex font build',async()=>{
