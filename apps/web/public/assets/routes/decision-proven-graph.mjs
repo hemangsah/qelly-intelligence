@@ -57,18 +57,20 @@ const derivativesContext=(data,escapeHtml)=>{
       '<article><span>Premium percentile</span><strong>'+escapeHtml(percentile(derivatives.premiumPercentile))+'</strong><small>n='+escapeHtml(String(history.premiumSampleSize??0))+' settled samples</small></article>'+
       '<article><span>Open interest</span><strong>'+compactNumber(derivatives.openInterest)+' '+escapeHtml(data.asset)+'</strong></article>'+
       '<article><span>OI notional</span><strong>'+compactMoney(derivatives.openInterestNotionalUsd)+'</strong></article>'+
+      '<article><span>24h price change</span><strong>'+pct(derivatives.priceChange24hPct,3)+'</strong><small>Current mark vs provider prevDayPx</small></article>'+
       '<article><span>OI change</span><strong>'+escapeHtml(String(derivatives.openInterestChangeState||'UNAVAILABLE'))+'</strong><small>Historical OI not connected</small></article>'+
+      '<article><span>Positioning state</span><strong>'+escapeHtml(String(derivatives.positioningState||'UNAVAILABLE').replaceAll('_',' '))+'</strong><small>'+escapeHtml(derivatives.positioning?.reason||'Requires verified price and OI changes')+'</small></article>'+
       '<article><span>24h perp volume</span><strong>'+compactMoney(derivatives.dayNotionalVolumeUsd)+'</strong></article>'+
       '<article><span>OI turnover</span><strong>'+escapeHtml(ratio(derivatives.openInterestTurnover24h))+'</strong><small>24h notional volume / OI notional</small></article>'+
       '<article><span>Mark price</span><strong>'+price(derivatives.markPrice)+'</strong></article>'+
       '<article><span>Oracle price</span><strong>'+price(derivatives.oraclePrice)+'</strong></article>'+
       '<article><span>Mark / oracle basis</span><strong>'+pct(derivatives.markOracleBasisPct)+'</strong><small>'+escapeHtml(String(derivatives.markOracleBasisState||'UNAVAILABLE').replaceAll('_',' '))+'</small></article>'+
       '<article><span>Basis change</span><strong>'+escapeHtml(String(derivatives.markOracleBasisChangeState||'UNAVAILABLE'))+'</strong><small>Historical mark/oracle series not connected</small></article>'+
-      '<article><span>Price / OI quadrant</span><strong>'+escapeHtml(String(derivatives.priceOpenInterestQuadrant||'UNAVAILABLE').replaceAll('_',' '))+'</strong><small>Requires verified OI change history</small></article>'+
+      '<article><span>Price / OI quadrant</span><strong>'+escapeHtml(String(derivatives.priceOpenInterestQuadrant||'UNAVAILABLE').replaceAll('_',' '))+'</strong><small>Descriptive only · requires verified OI change history</small></article>'+
       '<article><span>Liquidations</span><strong>'+escapeHtml(String(derivatives.liquidationsState||'UNAVAILABLE'))+'</strong><small>Verified liquidation flow not connected</small></article>'+
     '</div>'+
     '<p>'+escapeHtml(derivatives.message)+'</p>'+
-    '<p class="q-dpg-derivatives__limit">'+escapeHtml(history.method||'Funding history unavailable.')+' Historical OI change, mark/oracle basis change and liquidation flow are not inferred. Premium history is not substituted for mark/oracle basis history.</p></section>';
+    '<p class="q-dpg-derivatives__limit">'+escapeHtml(history.method||'Funding history unavailable.')+' Historical OI change, mark/oracle basis change and liquidation flow are not inferred. LONG BUILD-UP / SHORT BUILD-UP / SHORT COVERING / LONG UNWINDING are shown only when verified price and OI changes both exist; funding or premium never substitutes for OI change. Premium history is not substituted for mark/oracle basis history.</p></section>';
 };
 
 const crossAssetContext=(data,escapeHtml)=>{

@@ -396,6 +396,10 @@ export function compactDecisionToolReceipt(result,{requestContext=null}={}){
         state:derivatives.state??'unavailable',fundingPct:derivatives.fundingPct??null,fundingChangeBps:derivatives.fundingChangeBps??null,
         fundingPercentile:derivatives.fundingPercentile??null,fundingState:derivatives.fundingState??null,
         openInterestNotionalUsd:derivatives.openInterestNotionalUsd??null,openInterestChangeState:derivatives.openInterestChangeState??'UNAVAILABLE',
+        prevDayPrice:derivatives.prevDayPrice??null,priceChange24hPct:derivatives.priceChange24hPct??null,openInterestChangePct:derivatives.openInterestChangePct??null,
+        positioningState:derivatives.positioningState??'UNAVAILABLE',positioningAvailable:derivatives.positioningAvailable===true,
+        positioningReason:derivatives.positioning?.reason??derivatives.priceOpenInterestQuadrantReason??null,
+        positioningBoundary:derivatives.positioning?.boundary??null,
         openInterestTurnover24h:derivatives.openInterestTurnover24h??null,markOracleBasisPct:derivatives.markOracleBasisPct??null,
         markOracleBasisState:derivatives.markOracleBasisState??null,markOracleBasisChangeState:derivatives.markOracleBasisChangeState??'UNAVAILABLE',
         priceOpenInterestQuadrant:derivatives.priceOpenInterestQuadrant??'UNAVAILABLE',liquidationsState:derivatives.liquidationsState??'UNAVAILABLE'
