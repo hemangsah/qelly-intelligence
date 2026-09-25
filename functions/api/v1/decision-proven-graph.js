@@ -382,6 +382,8 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liqui
       qualityScore,
       confidenceSchemaVersion:confidenceDecomposition.schemaVersion,
       confidencePrimitiveReuse:false,
+      preliminaryModelConfidence:round(preliminaryModelConfidence,3),
+      preliminaryModelConfidenceReused:false,
       confidenceWeights,
       freshness,
       sampleDepth:round(sampleDepth,3),
