@@ -511,9 +511,7 @@ const summary={
   decisionChaosIframeStart:report.decisionChaosStability?.samples?.[0]?.iframes??null,
   decisionChaosIframeEnd:report.decisionChaosStability?.samples?.at(-1)?.iframes??null,
   decisionChaosPendingTimeoutsEnd:report.decisionChaosStability?.samples?.at(-1)?.timers?.timeouts??null,
-  decisionChaosPendingIntervalsEnd:report.decisionChaosStability?.samples?.at(-1)?.timers?.intervals??null,
-  decisionChaosDecisionRecomputes:report.decisionChaosStability?.decisionRecomputes??0,
-  decisionChaosScannerRequests:report.decisionChaosStability?.scannerRequests??0
+  decisionChaosPendingIntervalsEnd:report.decisionChaosStability?.samples?.at(-1)?.timers?.intervals??null
 };
 console.log(JSON.stringify(summary,null,2));
 if(report.status!=='passed')process.exit(1);
