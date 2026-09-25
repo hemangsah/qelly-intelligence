@@ -609,7 +609,7 @@ export async function renderDecisionProvenGraph(main,deps){
         '<div class="q-dpg-hero__market"><strong>'+price+'</strong><span>'+(change===null?'Change unavailable':(change>=0?'+':'')+change.toFixed(2)+'%')+'</span><small>Crypto · '+escapeHtml(provider)+'</small><small>'+escapeHtml(freshness)+' · '+escapeHtml(marketState)+'</small><small>Observed '+escapeHtml(displayTime(data?.observedAt))+'</small></div></div>'+
       '<div class="q-dpg-hero__view"><small>QELLY VIEW</small><h2>'+escapeHtml(action)+'</h2><p>'+escapeHtml(label)+'</p><div class="q-dpg-hero__metrics">'+
         '<span><em>Evidence quality</em><strong>'+escapeHtml(quality)+'</strong></span>'+
-        '<span><em>Evidence confidence</em><strong>'+escapeHtml(confidence)+'</strong></span>'+
+        '<span><em>Evidence confidence</em><strong>'+escapeHtml(confidence)+'</strong><small>Calibrated confidence is separate and remains calibration-gated.</small></span>'+
         '<span><em>Scenario</em><strong>'+escapeHtml(scenarioLead)+'</strong></span>'+
         '<span><em>MTF agreement</em><strong>'+escapeHtml(agreement)+'</strong></span>'+
         '<span><em>Regime</em><strong>'+escapeHtml(String(regime))+'</strong></span>'+
