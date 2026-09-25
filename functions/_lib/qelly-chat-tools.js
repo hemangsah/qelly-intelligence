@@ -439,7 +439,21 @@ export function compactDecisionToolReceipt(result,{requestContext=null}={}){
         eligibilityImpact:graph.eligibilityImpact??'none',boundary:graph.boundary??null,nodes:traceNodes
       },
       sourceLedger:traceNodes.map(node=>({id:node.id,label:node.label,source:node.source,freshness:node.freshness,reliability:node.reliability,supportState:node.supportState})).slice(0,20),
-      news:{state:news.state??'unavailable',provider:news.provider??null,articles:(news.articles||[]).slice(0,4).map(item=>({title:item.title,source:item.source,publishedAt:item.publishedAt,url:item.url}))}
+      news:{
+        state:news.state??'unavailable',provider:news.provider??null,
+        articleCount:Array.isArray(news.articles)?news.articles.length:0,
+        clusterCount:Number(news.clustering?.clusterCount)||0,
+        duplicateCount:Number(news.clustering?.duplicateCount)||0,
+        similarityThreshold:news.clustering?.similarityThreshold??null,
+        clusteringMethod:news.clustering?.method??null,
+        clusteringBoundary:news.clustering?.boundary??null,
+        clusters:Array.isArray(news.clusters)?news.clusters.slice(0,4).map(item=>({
+          clusterId:item.clusterId,articleCount:item.articleCount,duplicateCount:item.duplicateCount,sourceCount:item.sourceCount,
+          topicHints:item.topicHints,relevanceState:item.relevanceState,meanTitleSimilarity:item.meanTitleSimilarity,
+          representative:item.representative
+        })):[],
+        articles:(news.articles||[]).slice(0,4).map(item=>({title:item.title,source:item.source,publishedAt:item.publishedAt,url:item.url}))
+      }
     },
     limitations:[
       ...(result.provenance?.model?.limitations||[]).slice(0,5),

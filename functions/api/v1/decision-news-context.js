@@ -1,5 +1,6 @@
 import {fetchNewsContext} from './decision-proven-graph.js';
 import {HttpError,enforceRateLimit,errorResponse,fetcher,responseJson} from '../../_lib/runtime.js';
+import {buildDecisionNewsClusters} from '../../_lib/decision-news.js';
 
 const ASSETS=new Set(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
 const MAX_WINDOW_MS=30*86_400_000;
@@ -33,12 +34,15 @@ export async function onRequest({request,env}){
         fallbackReason:String(error?.message||'News provider unavailable').slice(0,240)
       };
     }
+    const clustering=buildDecisionNewsClusters(result.articles,{asset});
     return responseJson(request,env,{
-      schemaVersion:'qelly.decision-news-context/1.0.0',
+      schemaVersion:'qelly.decision-news-context/1.1.0',
       asset,start,end,provider:'GDELT',
       ...result,
+      clusters:clustering.clusters,
+      clustering,
       eligibilityImpact:'none',
-      boundary:'Post-Decision contextual enrichment only. This response cannot change QELLY VIEW, entry, invalidation, targets, R:R feasibility, calibration, or NO TRADE eligibility for the Decision snapshot that requested it.'
+      boundary:'Post-Decision contextual enrichment only. Headline clusters are deterministic lexical audit metadata. This response cannot change QELLY VIEW, entry, invalidation, targets, R:R feasibility, calibration, or NO TRADE eligibility for the Decision snapshot that requested it.'
     },200,{cache:'public, max-age=60, stale-while-revalidate=300'});
   }catch(error){return errorResponse(request,env,error);}
 }
