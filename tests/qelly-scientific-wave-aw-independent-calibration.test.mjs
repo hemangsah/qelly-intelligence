@@ -85,7 +85,7 @@ test('Wave AW UI distinguishes diagnostic metrics from eligible calibration',asy
     'DIAGNOSTIC ONLY',
     'diagnostic only'
   ])assert.ok(route.includes(phrase),phrase);
-  assert.match(route,/overlap '+escapeHtml\(overlap\)/);
+  assert.ok(route.includes("overlap '+escapeHtml(overlap)+'"));
   assert.match(route,/UNAVAILABLE/);
 });
 
