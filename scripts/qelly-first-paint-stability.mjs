@@ -56,7 +56,7 @@ const routes=[
 const viewports=[['desktop',{width:1440,height:1000}],['mobile',{width:390,height:844}]];
 const samples=[0,100,250,500,1000,2000,4000,7000];
 const legacySelectors=['.q-global-strip','.q-command-bar','.q-rail','.q-persona-ribbon','.q-context-shelf','.q-edge-dock','.q-compare-tray','.q-worldclass-context'];
-const report={schemaVersion:2,generatedAt:new Date().toISOString(),releaseSha:process.env.QELLY_SCREEN_EVIDENCE_SHA||process.env.GITHUB_SHA||'local',samples,scenarios:[],routeCycleStability:null,status:'passed'};
+const report={schemaVersion:3,generatedAt:new Date().toISOString(),releaseSha:process.env.QELLY_SCREEN_EVIDENCE_SHA||process.env.GITHUB_SHA||'local',samples,scenarios:[],routeCycleStability:null,decisionChaosStability:null,status:'passed'};
 
 const visibleCount=async(page,selector)=>page.locator(selector).evaluateAll(nodes=>nodes.filter(node=>{const style=getComputedStyle(node),box=node.getBoundingClientRect();return style.display!=='none'&&style.visibility!=='hidden'&&Number(style.opacity)>0&&box.width>0&&box.height>0;}).length);
 const snapshot=async(page,elapsed)=>{
@@ -130,6 +130,174 @@ async function runRouteCycleStabilityProbe(browser){
     return {status:failures.length||errors.length?'failed':'passed',cycles:6,sequence,samples,failures,errors,metricSource:'chromium-cdp-after-forced-gc'};
   }catch(error){
     return {status:'unavailable',cycles:samples.length,sequence,samples,failures:[],errors:[String(error?.message||error)],metricSource:'chromium-cdp-after-forced-gc'};
+  }finally{
+    await cdp?.detach?.().catch(()=>{});
+    await context.close();
+  }
+}
+
+
+async function runDecisionChaosStabilityProbe(browser){
+  const context=await browser.newContext({viewport:{width:1440,height:1000},device_scale_factor:1,reduced_motion:'reduce'});
+  const page=await context.newPage();
+  const errors=[],unexpectedNetwork=[];
+  const requestCounts={decision:0,scanner:0};
+  let refreshes=0,controlChanges=0,idleResumed=false,cdp=null;
+  const injectedBody=JSON.stringify({error:{code:'bp_injected_dependency_unavailable',message:'Wave BP deterministic degraded-state probe.'}});
+  await page.route(/\/api\/v1\/decision-proven-graph(?:\?|$)/,route=>route.fulfill({status:503,contentType:'application/json',body:injectedBody}));
+  await page.route(/\/api\/v1\/decision-scan(?:\?|$)/,route=>route.fulfill({status:503,contentType:'application/json',body:injectedBody}));
+  await page.addInitScript(()=>{
+    const nativeSetTimeout=window.setTimeout.bind(window),nativeClearTimeout=window.clearTimeout.bind(window);
+    const nativeSetInterval=window.setInterval.bind(window),nativeClearInterval=window.clearInterval.bind(window);
+    const timeouts=new Set(),intervals=new Set();
+    window.setTimeout=(handler,delay,...args)=>{
+      let id=0;
+      if(typeof handler==='function'){
+        const wrapped=(...callbackArgs)=>{timeouts.delete(id);return handler(...callbackArgs);};
+        id=nativeSetTimeout(wrapped,delay,...args);
+      }else id=nativeSetTimeout(handler,delay,...args);
+      timeouts.add(id);
+      return id;
+    };
+    window.clearTimeout=(id)=>{timeouts.delete(id);return nativeClearTimeout(id);};
+    window.setInterval=(handler,delay,...args)=>{const id=nativeSetInterval(handler,delay,...args);intervals.add(id);return id;};
+    window.clearInterval=(id)=>{intervals.delete(id);return nativeClearInterval(id);};
+    Object.defineProperty(window,'__QELLY_CHAOS_TIMERS__',{configurable:true,value:{snapshot:()=>({timeouts:timeouts.size,intervals:intervals.size,total:timeouts.size+intervals.size})}});
+  });
+  page.on('pageerror',error=>errors.push(String(error)));
+  page.on('console',message=>{
+    if(message.type()!=='error')return;
+    const value=message.text();
+    if(/^Failed to load resource:/i.test(value))return;
+    errors.push(value);
+  });
+  page.on('request',request=>{
+    const pathname=new URL(request.url()).pathname;
+    if(pathname==='/api/v1/decision-proven-graph')requestCounts.decision+=1;
+    if(pathname==='/api/v1/decision-scan')requestCounts.scanner+=1;
+  });
+  page.on('response',response=>{
+    if(response.status()<400)return;
+    const url=new URL(response.url());
+    const expectedInjected=response.status()===503&&['/api/v1/decision-proven-graph','/api/v1/decision-scan'].includes(url.pathname);
+    if(url.origin===base&&!expectedInjected)unexpectedNetwork.push({status:response.status(),url:url.pathname+url.search});
+  });
+  const samples=[];
+  const waitDecisionReady=async()=>{
+    await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true'&&document.querySelector('#main')?.getAttribute('aria-busy')==='false',null,{timeout:15000});
+    await page.locator('[data-dpg-asset]').waitFor({state:'visible',timeout:5000});
+    await page.locator('[data-dpg-rr]').waitFor({state:'visible',timeout:5000});
+  };
+  const metricSnapshot=async(label,cycle)=>{
+    await cdp.send('HeapProfiler.collectGarbage');
+    await page.waitForTimeout(80);
+    const metrics=await cdp.send('Performance.getMetrics');
+    const values=Object.fromEntries(metrics.metrics.map(item=>[item.name,item.value]));
+    const browserState=await page.evaluate(()=>({
+      domNodes:document.getElementsByTagName('*').length,
+      iframes:document.querySelectorAll('iframe').length,
+      timers:window.__QELLY_CHAOS_TIMERS__?.snapshot?.()||{timeouts:null,intervals:null,total:null},
+      shellCount:document.querySelectorAll('[data-qelly-current-shell="true"]').length,
+      productHeaders:document.querySelectorAll('.q-product-header').length
+    }));
+    const sample={
+      label,cycle,
+      jsHeapUsedBytes:Math.round(Number(values.JSHeapUsedSize)||0),
+      nodes:Math.round(Number(values.Nodes)||0),
+      documents:Math.round(Number(values.Documents)||0),
+      eventListeners:Math.round(Number(values.JSEventListeners)||0),
+      ...browserState
+    };
+    samples.push(sample);
+    return sample;
+  };
+  try{
+    await page.goto(base+'/#/decision-provenance',{waitUntil:'domcontentloaded',timeout:20000});
+    await waitDecisionReady();
+    cdp=await context.newCDPSession(page);
+    await cdp.send('Performance.enable');
+    await cdp.send('HeapProfiler.enable');
+    await metricSnapshot('initial',0);
+
+    const assets=['ETH','SOL','BTC','HYPE','XRP','DOGE'];
+    const intervals=['5m','15m','1h','4h','30m','15m'];
+    const rrValues=['1','2','3','4','custom','auto'];
+    for(let cycle=1;cycle<=6;cycle+=1){
+      await page.selectOption('[data-dpg-asset]',assets[cycle-1]);controlChanges+=1;
+      await page.waitForTimeout(25);
+      await page.selectOption('[data-dpg-interval]',intervals[cycle-1]);controlChanges+=1;
+      await page.waitForTimeout(25);
+      await page.selectOption('[data-dpg-rr]',rrValues[cycle-1]);controlChanges+=1;
+      await page.waitForTimeout(25);
+      if(rrValues[cycle-1]==='custom'){
+        await page.locator('[data-dpg-custom-rr]').waitFor({state:'visible',timeout:3000});
+        await page.locator('[data-dpg-custom-rr]').fill('2.7');
+        await page.locator('[data-dpg-custom-rr]').evaluate(element=>element.dispatchEvent(new Event('change',{bubbles:true})));
+        controlChanges+=1;
+      }
+      const scanButton=page.locator('[data-dpg-scan]').first();
+      await scanButton.waitFor({state:'visible',timeout:3000});
+      if(await scanButton.isEnabled())await scanButton.click();
+      await page.waitForFunction(()=>Array.from(document.querySelectorAll('[data-dpg-scan]')).some(element=>!element.disabled),null,{timeout:5000}).catch(()=>{});
+      await page.waitForTimeout(80);
+      if(cycle%2===0){
+        await page.reload({waitUntil:'domcontentloaded',timeout:20000});
+        refreshes+=1;
+        await waitDecisionReady();
+      }
+      await metricSnapshot('cycle-'+cycle,cycle);
+    }
+
+    await page.waitForTimeout(2200);
+    const beforeResume=await metricSnapshot('idle',7);
+    await page.selectOption('[data-dpg-rr]','2');controlChanges+=1;
+    const resumeScan=page.locator('[data-dpg-scan]').first();
+    if(await resumeScan.isEnabled())await resumeScan.click();
+    await page.waitForTimeout(160);
+    idleResumed=true;
+    const afterResume=await metricSnapshot('resume',8);
+
+    const failures=[];
+    const heap=samples.map(item=>item.jsHeapUsedBytes);
+    const dom=samples.map(item=>item.domNodes);
+    const listeners=samples.map(item=>item.eventListeners);
+    const documents=samples.map(item=>item.documents);
+    const timers=samples.map(item=>Number(item.timers?.total)||0);
+    const iframes=samples.map(item=>item.iframes);
+    if(materialContinuousGrowth(heap,{ratio:1.35,minDelta:10*1024*1024}))failures.push('js_heap');
+    if(materialContinuousGrowth(dom,{ratio:1.25,minDelta:600}))failures.push('dom_nodes');
+    if(materialContinuousGrowth(listeners,{ratio:1.60,minDelta:120}))failures.push('event_listeners');
+    if(materialContinuousGrowth(documents,{ratio:1.50,minDelta:8}))failures.push('documents');
+    if(materialContinuousGrowth(timers,{ratio:1.80,minDelta:20}))failures.push('timers');
+    if(materialContinuousGrowth(iframes,{ratio:1.80,minDelta:3}))failures.push('iframes');
+    if(samples.some(item=>item.shellCount!==1||item.productHeaders!==1))failures.push('duplicate_shell');
+    if(requestCounts.decision<18)failures.push('decision_recompute_coverage');
+    if(requestCounts.scanner<6)failures.push('scanner_repeat_coverage');
+    if(refreshes<3)failures.push('refresh_repeat_coverage');
+    if(!idleResumed)failures.push('idle_resume_coverage');
+    if(errors.length)failures.push('console_or_page_error');
+    if(unexpectedNetwork.length)failures.push('unexpected_first_party_network');
+    return {
+      status:failures.length?'failed':'passed',
+      cycles:6,refreshes,controlChanges,idleResumed,requestCounts,samples,failures,errors,unexpectedNetwork,
+      injectedFailureBoundary:'Decision/scanner API calls are deterministically returned as 503 so lifecycle stability is measured without external-provider variance or fake market evidence.',
+      metricSource:'chromium-cdp-after-forced-gc-plus-in-page-timer-and-iframe-counters',
+      idleWindowMs:2200,
+      resumeDelta:{
+        heapBytes:afterResume.jsHeapUsedBytes-beforeResume.jsHeapUsedBytes,
+        domNodes:afterResume.domNodes-beforeResume.domNodes,
+        eventListeners:afterResume.eventListeners-beforeResume.eventListeners,
+        timers:(Number(afterResume.timers?.total)||0)-(Number(beforeResume.timers?.total)||0),
+        iframes:afterResume.iframes-beforeResume.iframes
+      }
+    };
+  }catch(error){
+    return {
+      status:'unavailable',cycles:samples.length,refreshes,controlChanges,idleResumed,requestCounts,samples,
+      failures:['probe_unavailable'],errors:[String(error?.message||error)],unexpectedNetwork,
+      injectedFailureBoundary:'Decision/scanner API calls are deterministically returned as 503; no market evidence is synthesized.',
+      metricSource:'chromium-cdp-after-forced-gc-plus-in-page-timer-and-iframe-counters'
+    };
   }finally{
     await cdp?.detach?.().catch(()=>{});
     await context.close();
@@ -275,6 +443,8 @@ try{
   }
   report.routeCycleStability=await runRouteCycleStabilityProbe(browser);
   if(report.routeCycleStability.status==='failed')report.status='failed';
+  report.decisionChaosStability=await runDecisionChaosStabilityProbe(browser);
+  if(report.decisionChaosStability.status!=='passed')report.status='failed';
 }finally{
   await browser.close();
   await new Promise(resolve=>server.close(resolve));
@@ -314,7 +484,24 @@ const summary={
   routeCycleHeapStart:report.routeCycleStability?.samples?.[0]?.jsHeapUsedBytes??null,
   routeCycleHeapEnd:report.routeCycleStability?.samples?.at(-1)?.jsHeapUsedBytes??null,
   routeCycleDomStart:report.routeCycleStability?.samples?.[0]?.domNodes??null,
-  routeCycleDomEnd:report.routeCycleStability?.samples?.at(-1)?.domNodes??null
+  routeCycleDomEnd:report.routeCycleStability?.samples?.at(-1)?.domNodes??null,
+  decisionChaosStatus:report.decisionChaosStability?.status??'not_run',
+  decisionChaosFailures:report.decisionChaosStability?.failures??[],
+  decisionChaosDecisionRequests:report.decisionChaosStability?.requestCounts?.decision??0,
+  decisionChaosScannerRequests:report.decisionChaosStability?.requestCounts?.scanner??0,
+  decisionChaosRefreshes:report.decisionChaosStability?.refreshes??0,
+  decisionChaosControlChanges:report.decisionChaosStability?.controlChanges??0,
+  decisionChaosIdleResumed:report.decisionChaosStability?.idleResumed??false,
+  decisionChaosHeapStart:report.decisionChaosStability?.samples?.[0]?.jsHeapUsedBytes??null,
+  decisionChaosHeapEnd:report.decisionChaosStability?.samples?.at(-1)?.jsHeapUsedBytes??null,
+  decisionChaosDomStart:report.decisionChaosStability?.samples?.[0]?.domNodes??null,
+  decisionChaosDomEnd:report.decisionChaosStability?.samples?.at(-1)?.domNodes??null,
+  decisionChaosListenerStart:report.decisionChaosStability?.samples?.[0]?.eventListeners??null,
+  decisionChaosListenerEnd:report.decisionChaosStability?.samples?.at(-1)?.eventListeners??null,
+  decisionChaosTimerStart:report.decisionChaosStability?.samples?.[0]?.timers?.total??null,
+  decisionChaosTimerEnd:report.decisionChaosStability?.samples?.at(-1)?.timers?.total??null,
+  decisionChaosIframeStart:report.decisionChaosStability?.samples?.[0]?.iframes??null,
+  decisionChaosIframeEnd:report.decisionChaosStability?.samples?.at(-1)?.iframes??null
 };
 console.log(JSON.stringify(summary,null,2));
 if(report.status!=='passed')process.exit(1);
