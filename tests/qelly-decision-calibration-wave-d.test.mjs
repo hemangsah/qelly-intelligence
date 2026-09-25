@@ -23,14 +23,21 @@ function candles(count=520){
   return rows;
 }
 
-test('walk-forward calibration is deterministic and resolved without future leakage claims',()=>{
+test('walk-forward calibration is deterministic, non-overlapping and fails closed below the independent sample gate',()=>{
   const input=candles();
   const a=buildDecisionWalkForwardCalibration(input,{interval:'15m',horizonBars:16});
   const b=buildDecisionWalkForwardCalibration(input,{interval:'15m',horizonBars:16});
   assert.deepEqual(a,b);
-  assert.ok(a.sampleSize>=36);
-  assert.ok(['CALIBRATED','WEAK_CALIBRATION'].includes(a.state));
-  assert.equal(typeof a.eligible,'boolean');
+  assert.ok(a.sampleSize>0&&a.sampleSize<36);
+  assert.equal(a.minimumSampleGate,36);
+  assert.equal(a.horizonBars,16);
+  assert.equal(a.stepBars,16);
+  assert.equal(a.resolutionWindowBars,16);
+  assert.equal(a.minimumOutcomeSeparationBars,16);
+  assert.equal(a.outcomeWindowOverlap,false);
+  assert.equal(a.state,'UNCALIBRATED');
+  assert.equal(a.eligible,false);
+  assert.equal(a.diagnosticMetricsOnly,true);
   assert.equal(Number.isFinite(a.brierScore),true);
   assert.equal(Number.isFinite(a.baselineBrierScore),true);
   assert.equal(Number.isFinite(a.skillScore),true);
@@ -38,7 +45,8 @@ test('walk-forward calibration is deterministic and resolved without future leak
   assert.ok(Array.isArray(a.reliabilityBins));
   assert.equal(a.bootstrapPaths,64);
   assert.match(a.method,/bounded 64-path bootstrap/i);
-  assert.match(a.method,/walk-forward/i);
+  assert.match(a.method,/non-overlapping stepped walk-forward/i);
+  assert.match(a.independenceGuard,/no realized return bar belongs to two scored outcomes/i);
   assert.match(a.leakageGuard,/Future candles are used only to score/i);
   assert.ok(Date.parse(a.firstResolvedAt)<=Date.parse(a.lastResolvedAt));
 });
@@ -88,7 +96,7 @@ test('eligible calibrated evidence can preserve an otherwise aligned directional
 test('Decision UI surfaces calibration evidence and mobile containment',async()=>{
   const route=await readFile(new URL('../apps/web/public/assets/routes/decision-proven-graph.mjs',import.meta.url),'utf8');
   const css=await readFile(new URL('../apps/web/public/assets/qelly-decision-proven-graph.css',import.meta.url),'utf8');
-  for(const phrase of ['MODEL CALIBRATION · WALK-FORWARD','Resolved samples','Brier score','Skill vs uniform','Reliability gap','Reliability bins'])assert.match(route,new RegExp(phrase));
+  for(const phrase of ['MODEL CALIBRATION · WALK-FORWARD','Resolved samples','Outcome separation','Brier score','Skill vs uniform','Reliability gap','Reliability bins','DIAGNOSTIC ONLY'])assert.match(route,new RegExp(phrase));
   assert.match(route,/probabilityCalibrationMarkup\(data,escapeHtml\)/);
   assert.match(css,/\.q-dpg-model-calibration\{/);
   assert.match(css,/@media\(max-width:520px\)\{\.q-dpg-model-calibration__metrics,\.q-dpg-reliability-bins\{grid-template-columns:1fr/);
