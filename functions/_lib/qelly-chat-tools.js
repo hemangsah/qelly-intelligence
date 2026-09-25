@@ -292,7 +292,7 @@ const compactDecisionEvidence=(result)=>{
 
 export function compactDecisionToolReceipt(result,{requestContext=null}={}){
   if(!result)return receipt('decision-intelligence','QELLY Decision Intelligence',{limitations:['Decision Intelligence did not return a result.']});
-  const view=result.qellyView||{},gate=view.evidenceGate||{},evidence=result.evidence||{},news=evidence.news||{},derivatives=evidence.derivatives||{};
+  const view=result.qellyView||{},gate=view.evidenceGate||{},evidence=result.evidence||{},news=evidence.news||{},liquidity=evidence.liquidity||{},derivatives=evidence.derivatives||{};
   const trade=result.tradeResearch||{},calibration=result.quant?.calibration||{},analogs=result.historicalAnalogs||{},contradiction=result.contradictionAnalysis||{},snapshot=result.decisionSnapshot||{};
   const ppf=result.pastPresentFuture||{},future=ppf.future||{},present=ppf.present||{},macro=evidence.macro||{},eventRisk=evidence.eventRisk||{},crossAsset=evidence.crossAsset||{};
   const graph=result.evidenceGraph||result.decisionTrace||{};
@@ -380,6 +380,17 @@ export function compactDecisionToolReceipt(result,{requestContext=null}={}){
           historicalDerivatives:ppf.past.historicalDerivatives??null,crossAsset:ppf.past.crossAsset??null
         }:null,
         present:present?{freshness:present.freshness??null,regime:present.regime??null,qellyView:present.qellyView??null,currentSetup:present.currentSetup??null}:null
+      },
+      liquidity:{
+        state:liquidity.state??'unavailable',provider:liquidity.provider??null,observedAt:liquidity.observedAt??null,currentOnly:liquidity.currentOnly!==false,
+        spreadBps:liquidity.spreadBps??null,spreadState:liquidity.spreadState??'UNAVAILABLE',micropriceBiasBps:liquidity.micropriceBiasBps??null,
+        top1Imbalance:liquidity.top1Imbalance??null,top5Imbalance:liquidity.top5Imbalance??null,top10Imbalance:liquidity.top10Imbalance??null,
+        depthConsensus:liquidity.depthConsensus??'UNAVAILABLE',depthConcentrationTop1:liquidity.depthConcentrationTop1??null,depthConcentrationTop5:liquidity.depthConcentrationTop5??null,
+        visibleBidCoverageBps:liquidity.visibleBidCoverageBps??null,visibleAskCoverageBps:liquidity.visibleAskCoverageBps??null,
+        maxBidLevelGapBps:liquidity.maxBidLevelGapBps??null,maxAskLevelGapBps:liquidity.maxAskLevelGapBps??null,
+        visibleDepthBands:Array.isArray(liquidity.visibleDepthBands)?liquidity.visibleDepthBands.slice(0,3):[],
+        liquidityVacuumState:liquidity.liquidityVacuumState??'UNAVAILABLE_FROM_SINGLE_SNAPSHOT',
+        unavailableMetrics:Array.isArray(liquidity.unavailableMetrics)?liquidity.unavailableMetrics.slice(0,12):[]
       },
       derivatives:{
         state:derivatives.state??'unavailable',fundingPct:derivatives.fundingPct??null,fundingChangeBps:derivatives.fundingChangeBps??null,
