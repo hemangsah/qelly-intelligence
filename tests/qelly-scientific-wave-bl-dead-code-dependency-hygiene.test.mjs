@@ -82,7 +82,12 @@ test('Wave BL audit exposes the required classification taxonomy and dependency 
 
 test('Wave BL does not treat versioned names as deletion proof',async()=>{
   const report=await buildRuntimeDeadCodeAudit();
-  assert.ok(report.retained.some(item=>item.file.includes('-v2.')||item.file.includes('-v6.')||item.file.includes('-v7.')));
-  assert.ok(report.retained.every(item=>item.executableReferences===undefined||true));
+  const versioned=report.retained.filter(item=>item.file.includes('-v2.')||item.file.includes('-v6.')||item.file.includes('-v7.'));
+  assert.ok(versioned.length>0);
+  for(const item of versioned){
+    const counts=item.referenceCounts||{};
+    const executable=(counts.RUNTIME||0)+(counts.BUILD||0)+(counts.TEST||0)+(counts.WORKFLOW||0);
+    assert.ok(executable>0,JSON.stringify(item));
+  }
   assert.match(report.deletionRule,/Filename age\/version alone is never deletion proof/);
 });
