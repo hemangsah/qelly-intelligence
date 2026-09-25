@@ -145,9 +145,9 @@ async function fetchDerivativesContext(fetchImpl,asset,observedAt){
 
 const newsUrl=(asset,start,end,{fallback=false}={})=>{const url=new URL('https://api.gdeltproject.org/api/v2/doc/doc');url.searchParams.set('query','('+NEWS_TERMS[asset]+') sourcelang:english');url.searchParams.set('mode','artlist');url.searchParams.set('format','json');url.searchParams.set('maxrecords','12');url.searchParams.set('sort','HybridRel');if(fallback)url.searchParams.set('timespan','3days');else{url.searchParams.set('startdatetime',gdeltTime(Math.max(end-72*3_600_000,start)));url.searchParams.set('enddatetime',gdeltTime(end));}return url.href;};
 const normalizeArticles=(payload)=>(Array.isArray(payload?.articles)?payload.articles:[]).map(article=>({title:String(article?.title||'').trim().slice(0,240),source:String(article?.domain||'').trim().slice(0,100),publishedAt:String(article?.seendate||''),url:safeUrl(article?.url)})).filter(article=>article.title&&article.url).slice(0,8);
-const NEWS_TIMEOUT_MS=DECISION_PROVIDER_RESILIENCE.gdeltNews.timeoutMs;
-const NEWS_CACHE_FRESH_MS=DECISION_PROVIDER_RESILIENCE.gdeltNews.cacheFreshMs;
-const NEWS_CACHE_STALE_MS=DECISION_PROVIDER_RESILIENCE.gdeltNews.cacheStaleMs;
+const NEWS_TIMEOUT_MS=2_500;
+const NEWS_CACHE_FRESH_MS=5*60_000;
+const NEWS_CACHE_STALE_MS=30*60_000;
 const NEWS_CACHE_BUCKET_MS=5*60_000;
 const NEWS_INFLIGHT=new Map();
 
