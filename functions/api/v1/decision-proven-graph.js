@@ -270,9 +270,36 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liqui
   const timeframeCoverage=clamp(total/4);
   const directionalCoverage=total?clamp(directional/total):0;
   const timeframeAgreement=total?clamp(aligned/total):0;
-  const qualityScore=round(.30*freshness+.20*sampleDepth+.25*scenarioSeparation+.25*timeframeAgreement,3);
-  const baseConfidence=finite(base?.confidence)??finite(graph.confidence?.score)??0;
-  const calibratedConfidence=round(clamp(baseConfidence*(.7+.3*qualityScore),.2,.92),2);
+  const timeframeEvidence=round(timeframeAgreement*timeframeCoverage,3);
+  const confidenceWeights=Object.freeze({freshness:.30,sampleDepth:.20,scenarioSeparation:.25,timeframeEvidence:.25});
+  const contributions={
+    freshness:round(confidenceWeights.freshness*freshness,4),
+    sampleDepth:round(confidenceWeights.sampleDepth*sampleDepth,4),
+    scenarioSeparation:round(confidenceWeights.scenarioSeparation*scenarioSeparation,4),
+    timeframeEvidence:round(confidenceWeights.timeframeEvidence*timeframeEvidence,4)
+  };
+  const qualityScore=round(contributions.freshness+contributions.sampleDepth+contributions.scenarioSeparation+contributions.timeframeEvidence,3);
+  const preliminaryModelConfidence=finite(base?.confidence)??finite(graph.confidence?.score)??0;
+  const evidenceConfidence=round(clamp(qualityScore,0,1),2);
+  const confidenceDecomposition={
+    schemaVersion:'qelly.decision-evidence-confidence/1.0.0',
+    score:evidenceConfidence,
+    qualityScore,
+    weights:confidenceWeights,
+    components:{
+      freshness:{score:round(freshness,3),weight:confidenceWeights.freshness,contribution:contributions.freshness},
+      sampleDepth:{score:round(sampleDepth,3),weight:confidenceWeights.sampleDepth,contribution:contributions.sampleDepth},
+      scenarioSeparation:{score:round(scenarioSeparation,3),weight:confidenceWeights.scenarioSeparation,contribution:contributions.scenarioSeparation},
+      timeframeEvidence:{
+        score:timeframeEvidence,weight:confidenceWeights.timeframeEvidence,contribution:contributions.timeframeEvidence,
+        agreement:round(timeframeAgreement,3),coverage:round(timeframeCoverage,3)
+      }
+    },
+    preliminaryModelConfidence:round(preliminaryModelConfidence,3),
+    preliminaryModelConfidenceReused:false,
+    primitiveReuse:false,
+    boundary:'Evidence confidence is a weighted evidence-quality score, not a success probability. Freshness, sample depth, scenario separation and coverage-adjusted multi-timeframe agreement each enter the final score exactly once.'
+  };
   const baseAction=base?.action||'NO TRADE';
   let action=baseAction;
   const contradictions=[];
@@ -341,7 +368,7 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liqui
   const qellyView={
     ...base,
     action,
-    confidence:calibratedConfidence,
+    confidence:evidenceConfidence,
     levels:action===baseAction?base?.levels:null,
     label,
     why,
@@ -353,10 +380,14 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liqui
       baseAction,
       directionalEligible:action==='BUY'||action==='SELL',
       qualityScore,
+      confidenceSchemaVersion:confidenceDecomposition.schemaVersion,
+      confidencePrimitiveReuse:false,
+      confidenceWeights,
       freshness,
       sampleDepth:round(sampleDepth,3),
       scenarioSeparation:round(scenarioSeparation,3),
       timeframeAgreement:round(timeframeAgreement,3),
+      timeframeEvidence,
       timeframeCoverage:round(timeframeCoverage,3),
       directionalCoverage:round(directionalCoverage,3),
       timeframeDirection:String(agreement.direction||'UNAVAILABLE'),
@@ -391,9 +422,10 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liqui
     qellyView,
     confidence:{
       ...graph.confidence,
-      score:calibratedConfidence,
+      score:evidenceConfidence,
       breakdown:qellyView.evidenceGate,
-      calibration:'Evidence-quality confidence combines freshness, sample depth, scenario separation and independent timeframe agreement. It is not a success probability.',
+      decomposition:confidenceDecomposition,
+      calibration:'Evidence confidence is one weighted evidence-quality decomposition: freshness 30%, sample depth 20%, scenario separation 25% and coverage-adjusted multi-timeframe agreement 25%. Each primitive enters once. It is not a success probability.',
       probabilityCalibration:graph?.quant?.calibration||{state:'UNCALIBRATED',sampleSize:0,brierScore:null,reliabilityBins:[]}
     },
     graph:graph.graph?{...graph.graph,nodes,textAlternative}:graph.graph
