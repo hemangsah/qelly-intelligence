@@ -342,7 +342,7 @@ function decisionTrace(graph,{multiTimeframe,tradeResearch,evidence,horizon,cont
     }),
     sourceNode('liquidity','liquidity','Current L2 liquidity',{
       source:evidence?.liquidity?.provider||'Hyperliquid',timestamp:evidence?.liquidity?.observedAt||observedAt,freshness:evidence?.liquidity?.state==='live'?'LIVE':'UNAVAILABLE',importance:'HIGH',directness:'DIRECT',reliability:evidence?.liquidity?.state==='live'?'POINT_IN_TIME':'UNAVAILABLE',role:'risk_context',supportState:'NEUTRAL',
-      methodology:'Best bid/ask, displayed depth, imbalance/consensus and microprice are point-in-time marketability context.',
+      methodology:'Best bid/ask, displayed depth, visible 5/10/25 bps depth bands, adjacent-level gaps, imbalance/consensus and microprice are point-in-time marketability context.',
       limitations:['Point-in-time book state is not historical order-flow evidence.','CVD, aggressor flow and liquidation flow are not inferred when unavailable.']
     }),
     sourceNode('derivatives','derivatives','Funding and open-interest context',{

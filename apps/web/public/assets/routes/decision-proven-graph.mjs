@@ -144,6 +144,9 @@ const liquidityContext=(data,escapeHtml)=>{
   const bps=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Number(value).toFixed(2)+' bps':'Unavailable';
   const imbalance=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?(Number(value)*100).toFixed(1)+'%':'Unavailable';
   const depth=(bid,ask)=>compactMoney(bid)+' / '+compactMoney(ask);
+  const band=(value)=>Number.isFinite(Number(value?.bps))?escapeHtml(String(value.bps))+' bps · '+escapeHtml(compactMoney(value.bidUsd))+' / '+escapeHtml(compactMoney(value.askUsd))+' · '+escapeHtml(String(value.coverage||'UNAVAILABLE').replaceAll('_',' ')):'Unavailable';
+  const bands=Array.isArray(liquidity.visibleDepthBands)?liquidity.visibleDepthBands:[];
+  const band10=bands.find(item=>Number(item?.bps)===10);
   return '<section class="q-dpg-liquidity"><header><div><small>LIQUIDITY / L2 · CURRENT · MICROSTRUCTURE 2.0</small><h2>'+escapeHtml(String(liquidity.spreadState||'UNAVAILABLE'))+' spread · '+escapeHtml(String(liquidity.depthConsensus||'UNAVAILABLE').replaceAll('_',' '))+'</h2></div><span>'+escapeHtml(liquidity.provider||'Provider')+(liquidity.observedAt?' · '+escapeHtml(displayTime(liquidity.observedAt)):'')+'</span></header>'+
     '<div class="q-dpg-liquidity__grid">'+
       '<article><span>Best bid</span><strong>'+price(liquidity.bestBid)+'</strong></article>'+
@@ -157,9 +160,14 @@ const liquidityContext=(data,escapeHtml)=>{
       '<article><span>Top-10 imbalance</span><strong>'+escapeHtml(imbalance(liquidity.top10Imbalance))+'</strong><small>'+escapeHtml(String(liquidity.top10ImbalanceState||'UNAVAILABLE').replaceAll('_',' '))+'</small></article>'+
       '<article><span>Depth consensus</span><strong>'+escapeHtml(String(liquidity.depthConsensus||'UNAVAILABLE').replaceAll('_',' '))+'</strong><small>Top-1 / top-5 / top-10 agreement</small></article>'+
       '<article><span>Top-1 concentration</span><strong>'+(Number.isFinite(Number(liquidity.depthConcentrationTop1))?(Number(liquidity.depthConcentrationTop1)*100).toFixed(1)+'%':'Unavailable')+'</strong><small>Displayed top level / top-10 depth</small></article>'+
-      '<article><span>Unavailable flow</span><strong>NOT INFERRED</strong><small>CVD · aggressor flow · liquidations</small></article>'+
+      '<article><span>Top-5 concentration</span><strong>'+(Number.isFinite(Number(liquidity.depthConcentrationTop5))?(Number(liquidity.depthConcentrationTop5)*100).toFixed(1)+'%':'Unavailable')+'</strong><small>First 5 displayed levels / top-10 depth</small></article>'+
+      '<article><span>Visible book coverage</span><strong>'+escapeHtml(bps(liquidity.visibleBidCoverageBps))+' / '+escapeHtml(bps(liquidity.visibleAskCoverageBps))+'</strong><small>Bid / ask distance from mid across returned levels</small></article>'+
+      '<article><span>Largest visible level gap</span><strong>'+escapeHtml(bps(liquidity.maxBidLevelGapBps))+' / '+escapeHtml(bps(liquidity.maxAskLevelGapBps))+'</strong><small>Bid / ask adjacent-level gap; snapshot only</small></article>'+
+      '<article><span>Visible 10 bps depth B / A</span><strong>'+band(band10)+'</strong><small>Lower bound if returned book does not span the full band</small></article>'+
+      '<article><span>Liquidity vacuum</span><strong>'+escapeHtml(String(liquidity.liquidityVacuumState||'UNAVAILABLE_FROM_SINGLE_SNAPSHOT').replaceAll('_',' '))+'</strong><small>Persistent vacuum is not inferred from one book snapshot</small></article>'+
+      '<article><span>Unavailable flow/history</span><strong>NOT INFERRED</strong><small>CVD · aggressor flow · spread percentile · book stability · liquidations</small></article>'+
     '</div>'+
-    '<p>'+escapeHtml(liquidity.method||'Current verified order-book snapshot.')+'</p><p class="q-dpg-liquidity__limit">Point-in-time marketability context only. Displayed depth can change rapidly and is not evidence of whales, institutions or smart money. CVD, aggressive trade flow, historical depth and liquidation flow are not inferred.</p></section>';
+    '<p>'+escapeHtml(liquidity.method||'Current verified order-book snapshot.')+'</p><p class="q-dpg-liquidity__limit">Point-in-time marketability context only. Displayed depth can change rapidly and is not evidence of whales, institutions or smart money. Visible bps-band depth can be a lower bound when the returned book does not cover the full band. Persistent liquidity vacuum, spread percentile, top-of-book stability, order-book volatility, CVD, aggressive trade flow, historical depth and liquidation flow are not inferred.</p></section>';
 };
 
 const eventRiskContext=(data,escapeHtml)=>{
