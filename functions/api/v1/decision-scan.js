@@ -40,7 +40,7 @@ const resolveAssets=(value)=>{
 const rankingComponents=(result)=>{
   const view=result?.qellyView||{},gate=view.evidenceGate||{},trade=result?.tradeResearch||{},selected=trade.selected||{};
   const quality=clamp(finite(gate.qualityScore)??0);
-  const calibratedConfidence=gate.calibrationEligible===true?clamp(finite(view.confidence)??0):0;
+  const calibrationGatedEvidenceConfidence=gate.calibrationEligible===true?clamp(finite(view.confidence)??0):0;
   const structureState=String(result?.quant?.structure?.state||'UNAVAILABLE');
   const structure=structureState==='HH_HL'||structureState==='LH_LL'?1:structureState==='EXPANDING_RANGE'?0.72:structureState==='CONTRACTING_RANGE'?0.62:structureState==='MIXED'?0.42:0;
   const rr=FEASIBILITY_WEIGHT[String(selected.feasibility||'UNAVAILABLE')]??0;
@@ -56,18 +56,18 @@ const rankingComponents=(result)=>{
   const freshness=clamp(finite(gate.freshness)??(String(result?.truthState||'').toUpperCase()==='LIVE'?1:0));
   const congestion=String(selected?.targetCongestion||'UNAVAILABLE');
   const targetCongestion=congestion==='CLEAR'?1:congestion==='AT_TARGET'?0.82:congestion==='NEAR_TARGET'?0.65:congestion==='BEFORE_TARGET'?0.1:.45;
-  return {quality,calibratedConfidence,structure,rr,liquidity:liquidityScore,volatility,contradiction,eventRisk,freshness,targetCongestion};
+  return {quality,calibrationGatedEvidenceConfidence,structure,rr,liquidity:liquidityScore,volatility,contradiction,eventRisk,freshness,targetCongestion};
 };
 
 const researchPriority=(result)=>{
   const c=rankingComponents(result);
-  return round(100*(.22*c.quality+.14*c.calibratedConfidence+.12*c.structure+.14*c.rr+.08*c.liquidity+.07*c.volatility+.08*c.contradiction+.05*c.eventRisk+.06*c.freshness+.04*c.targetCongestion),1);
+  return round(100*(.22*c.quality+.14*c.calibrationGatedEvidenceConfidence+.12*c.structure+.14*c.rr+.08*c.liquidity+.07*c.volatility+.08*c.contradiction+.05*c.eventRisk+.06*c.freshness+.04*c.targetCongestion),1);
 };
 
 const normalizeFilters=(filters={})=>({
   direction:normalizeChoice(filters.direction,DIRECTIONS,'any','direction'),
   minEvidenceQuality:threshold(filters.minEvidenceQuality,'minimum evidence quality'),
-  minCalibratedConfidence:threshold(filters.minCalibratedConfidence,'minimum calibrated confidence'),
+  minCalibratedConfidence:threshold(filters.minCalibratedConfidence,'minimum calibration-gated evidence confidence'),
   minMtfAgreement:threshold(filters.minMtfAgreement,'minimum multi-timeframe agreement'),
   liquidity:normalizeChoice(filters.liquidity,LIQUIDITY_FILTERS,'any','liquidity'),
   volatility:normalizeChoice(filters.volatility,VOLATILITY_FILTERS,'any','volatility'),
@@ -85,9 +85,9 @@ const filterFailures=(result,filters,now)=>{
   if(filters.direction==='short'&&action!=='SELL')failures.push('direction_short_required');
   const quality=finite(gate.qualityScore)??0;
   if(quality<filters.minEvidenceQuality)failures.push('evidence_quality_below_minimum');
-  const confidence=gate.calibrationEligible===true?finite(view.confidence):null;
-  if(filters.minCalibratedConfidence>0&&confidence===null)failures.push('calibrated_confidence_unavailable');
-  else if((confidence??0)<filters.minCalibratedConfidence)failures.push('calibrated_confidence_below_minimum');
+  const calibrationGatedEvidenceConfidence=gate.calibrationEligible===true?finite(view.confidence):null;
+  if(filters.minCalibratedConfidence>0&&calibrationGatedEvidenceConfidence===null)failures.push('calibrated_confidence_unavailable');
+  else if((calibrationGatedEvidenceConfidence??0)<filters.minCalibratedConfidence)failures.push('calibrated_confidence_below_minimum');
   const mtf=finite(gate.timeframeAgreement)??0;
   if(mtf<filters.minMtfAgreement)failures.push('mtf_agreement_below_minimum');
 
@@ -159,7 +159,9 @@ const compactCandidate=(result,{filters=normalizeFilters(),now=Date.now()}={})=>
     researchPriorityMeaning:'Evidence triage score only; it is not a probability, win rate, expected return or execution ranking.',
     evidence:{
       qualityScore:round(finite(gate.qualityScore),3),
+      calibrationGatedEvidenceConfidence:gate.calibrationEligible===true?round(finite(view.confidence),3):null,
       calibratedConfidence:gate.calibrationEligible===true?round(finite(view.confidence),3):null,
+      confidenceMeaning:'Evidence-quality confidence exposed only when the independent scenario-calibration eligibility gate has passed. It is not a success probability, win rate or target-touch probability.',
       scenarioSeparation:round(finite(gate.scenarioSeparation),3),
       timeframeAgreement:round(finite(gate.timeframeAgreement),3),
       timeframeDirection:gate.timeframeDirection||'UNAVAILABLE',

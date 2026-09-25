@@ -249,7 +249,15 @@ const calibration=(view,escapeHtml)=>{
   const edge=Number.isFinite(Number(scenario.gap))?Math.round(Number(scenario.gap)*100)+' pts':'Unavailable';
   const risk=view.riskState?.label||'Unknown';
   const contradictions=Array.isArray(view.contradictions)?view.contradictions:[];
-  return '<div class="q-dpg-calibration"><article><span>Scenario edge</span><strong>'+escapeHtml(edge)+'</strong><small>'+escapeHtml(String(scenario.leading||'BALANCED'))+'</small></article><article><span>Timeframe agreement</span><strong>'+escapeHtml(agreement)+'</strong><small>'+escapeHtml(String(gate.timeframeAligned??0)+'/'+String(gate.timeframeTotal??0)+' observed')+'</small></article><article><span>Risk state</span><strong>'+escapeHtml(risk)+'</strong><small>ATR '+escapeHtml(String(view.riskState?.atrPct??'—'))+'%</small></article><article><span>Signal gate</span><strong>'+(gate.directionalEligible?'CLEARED':'NOT CLEARED')+'</strong><small>Base view '+escapeHtml(String(gate.baseAction||view.action))+'</small></article></div>'+(contradictions.length?'<div class="q-dpg-contradictions"><strong>Conflicting evidence</strong><ul>'+contradictions.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul></div>':'')+'<p class="q-dpg-confidence-note">Confidence measures evidence quality and agreement. It is not a success probability.</p>';
+  const weights=gate.confidenceWeights||{};
+  const component=(label,key,score,detail='')=>'<article><span>'+escapeHtml(label)+'</span><strong>'+(Number.isFinite(Number(score))?Math.round(Number(score)*100)+'%':'Unavailable')+'</strong><small>'+(Number.isFinite(Number(weights[key]))?Math.round(Number(weights[key])*100)+'% weight':'weight unavailable')+(detail?' · '+escapeHtml(detail):'')+'</small></article>';
+  const confidenceAudit=
+    component('Freshness','freshness',gate.freshness)+
+    component('History depth','sampleDepth',gate.sampleDepth)+
+    component('Scenario separation','scenarioSeparation',gate.scenarioSeparation)+
+    component('MTF evidence','timeframeEvidence',gate.timeframeEvidence,(Number.isFinite(Number(gate.timeframeAgreement))&&Number.isFinite(Number(gate.timeframeCoverage)))?'agreement '+Math.round(Number(gate.timeframeAgreement)*100)+'% × coverage '+Math.round(Number(gate.timeframeCoverage)*100)+'%':'');
+  const preliminary=Number.isFinite(Number(gate.preliminaryModelConfidence))?Math.round(Number(gate.preliminaryModelConfidence)*100)+'%':'Unavailable';
+  return '<div class="q-dpg-calibration"><article><span>Scenario edge</span><strong>'+escapeHtml(edge)+'</strong><small>'+escapeHtml(String(scenario.leading||'BALANCED'))+'</small></article><article><span>Timeframe agreement</span><strong>'+escapeHtml(agreement)+'</strong><small>'+escapeHtml(String(gate.timeframeAligned??0)+'/'+String(gate.timeframeTotal??0)+' observed')+'</small></article><article><span>Risk state</span><strong>'+escapeHtml(risk)+'</strong><small>ATR '+escapeHtml(String(view.riskState?.atrPct??'—'))+'%</small></article><article><span>Signal gate</span><strong>'+(gate.directionalEligible?'CLEARED':'NOT CLEARED')+'</strong><small>Base view '+escapeHtml(String(gate.baseAction||view.action))+'</small></article>'+confidenceAudit+'<article><span>Preliminary model confidence</span><strong>'+escapeHtml(preliminary)+'</strong><small>'+((gate.preliminaryModelConfidenceReused===false)?'AUDIT ONLY · NOT REUSED':'reuse state unavailable')+'</small></article></div>'+(contradictions.length?'<div class="q-dpg-contradictions"><strong>Conflicting evidence</strong><ul>'+contradictions.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul></div>':'')+'<p class="q-dpg-confidence-note">Evidence confidence is one weighted decomposition. Freshness, history depth, scenario separation and coverage-adjusted MTF agreement each enter once. Preliminary model confidence is audit-only and not reused. This is not a success probability.</p>';
 };
 
 const scannerFiltersMarkup=(state,escapeHtml)=>{
@@ -260,7 +268,7 @@ const scannerFiltersMarkup=(state,escapeHtml)=>{
     '<label><span>Universe</span><select data-dpg-scan-filter="universe">'+options('universe',[['all','All supported assets'],['current','Current asset']])+'</select></label>'+
     '<label><span>Direction</span><select data-dpg-scan-filter="direction">'+options('direction',[['any','Any'],['long','Long'],['short','Short']])+'</select></label>'+
     '<label><span>Min evidence</span><select data-dpg-scan-filter="minEvidenceQuality">'+options('minEvidenceQuality',[['0','Any'],['0.5','50%'],['0.65','65%'],['0.75','75%'],['0.85','85%']])+'</select></label>'+
-    '<label><span>Min calibrated confidence</span><select data-dpg-scan-filter="minCalibratedConfidence">'+options('minCalibratedConfidence',[['0','Any'],['0.5','50%'],['0.65','65%'],['0.75','75%']])+'</select></label>'+
+    '<label><span>Min calibrated confidence</span><small>Min calibration-gated evidence; evidence quality only, not success probability.</small><select data-dpg-scan-filter="minCalibratedConfidence">'+options('minCalibratedConfidence',[['0','Any'],['0.5','50%'],['0.65','65%'],['0.75','75%']])+'</select></label>'+
     '<label><span>Min MTF agreement</span><select data-dpg-scan-filter="minMtfAgreement">'+options('minMtfAgreement',[['0','Any'],['0.5','50%'],['0.75','75%'],['1','100%']])+'</select></label>'+
     '<label><span>Liquidity</span><select data-dpg-scan-filter="liquidity">'+options('liquidity',[['any','Any'],['live','Live L2 required'],['tight','Tight spread required']])+'</select></label>'+
     '<label><span>Volatility</span><select data-dpg-scan-filter="volatility">'+options('volatility',[['any','Any'],['low','Low'],['normal','Normal'],['elevated','Elevated'],['high','High']])+'</select></label>'+
@@ -291,7 +299,7 @@ const scannerMarkup=(scan,{scanning=false,error=null,escapeHtml})=>{
       '<span><em>View</em><strong>'+escapeHtml(item.action)+'</strong></span>'+
       '<span><em>R:R</em><strong>'+escapeHtml(rr)+'</strong><small>'+escapeHtml(String(trade.feasibility||trade.status||'NO_TRADE'))+'</small></span>'+
       '<span><em>Evidence triage</em><strong>'+escapeHtml(score)+'</strong><small>not a win probability</small></span>'+
-      '<span><em>Calibration</em><strong>'+escapeHtml(calibration)+'</strong><small>'+escapeHtml(String(Math.round(Number(evidence.calibratedConfidence||0)*100)))+'% calibrated conf</small></span>'+
+      '<span><em>Calibration</em><strong>'+escapeHtml(calibration)+'</strong><small>'+(evidence.calibrationGatedEvidenceConfidence==null?'gated evidence unavailable':escapeHtml(String(Math.round(Number(evidence.calibrationGatedEvidenceConfidence)*100)))+'% gated evidence conf')+'</small></span>'+
       '<span class="q-dpg-scan-open">'+(item.eligible?'Open setup':item.conditional?'Inspect condition':'Inspect')+' →</span>'+
       (failures.length?'<small class="q-dpg-scan-failures">'+escapeHtml(failures.slice(0,3).join(' · ').replaceAll('_',' '))+'</small>':'')+
     '</button>';
@@ -299,7 +307,7 @@ const scannerMarkup=(scan,{scanning=false,error=null,escapeHtml})=>{
   return '<section class="q-dpg-scanner"><header><div><small>FIND TRADE NOW 2.0 · GOVERNED SCAN</small><h2>'+escapeHtml(stateLabel)+'</h2><p>'+escapeHtml(String(scan.availableCount||0))+' verified · '+escapeHtml(String(scan.unavailableCount||0))+' unavailable · '+escapeHtml(String(eligible))+' valid · '+escapeHtml(String(conditional))+' conditional · '+escapeHtml(String(scan.interval||''))+' / '+escapeHtml(String(scan.horizon||''))+'</p></div><button class="q-button q-button--secondary" data-dpg-scan>Rescan</button></header>'+
     '<div class="q-dpg-scan-boundary"><strong>Research boundary</strong><span>'+escapeHtml(scan.eventRisk?.reason||'Event risk is unavailable unless verified by a connected source.')+'</span></div>'+
     '<div class="q-dpg-scan-list">'+(rows||'<p class="q-dpg-no-levels">No verified candidates were returned.</p>')+'</div>'+
-    '<p class="q-dpg-scan-note">Evidence triage ranks current research quality, structural feasibility, liquidity, contradiction, freshness and calibration only. It is not a success probability, expected return, trade recommendation or execution priority.</p>'+
+    '<p class="q-dpg-scan-note">Evidence triage ranks current research quality, structural feasibility, liquidity, contradiction, freshness and calibration gates only. Calibration-gated evidence confidence remains evidence quality, not a success probability, expected return, trade recommendation or execution priority.</p>'+
   '</section>';
 };
 
