@@ -180,7 +180,14 @@ async function runDecisionChaosStabilityProbe(browser){
     if(response.status()<400)return;
     const url=new URL(response.url());
     const expectedInjected=response.status()===503&&['/api/v1/decision-proven-graph','/api/v1/decision-scan'].includes(url.pathname);
-    if(url.origin===base&&!expectedInjected)unexpectedNetwork.push({status:response.status(),url:url.pathname+url.search});
+    const expectedAuthBoundary=response.status()===401&&url.pathname.startsWith('/api/v1/');
+    if(url.origin===base&&!expectedInjected&&!expectedAuthBoundary)unexpectedNetwork.push({status:response.status(),url:url.pathname+url.search});
+  });
+  page.on('requestfailed',request=>{
+    const url=new URL(request.url());
+    if(url.origin!==base)return;
+    const expectedInjected=['/api/v1/decision-proven-graph','/api/v1/decision-scan'].includes(url.pathname);
+    if(!expectedInjected)unexpectedNetwork.push({status:0,url:url.pathname+url.search,reason:request.failure()?.errorText||'request_failed'});
   });
   const samples=[];
   const waitDecisionReady=async()=>{
