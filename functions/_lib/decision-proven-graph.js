@@ -99,10 +99,10 @@ export function buildDecisionWalkForwardCalibration(raw,{interval='15m',horizonB
     resolutionWindowBars:horizon,
     minimumOutcomeSeparationBars:horizon,
     outcomeWindowOverlap:false,
-    independenceGuard:'Each resolved calibration label advances by at least one full forecast horizon, so adjacent scored outcome windows do not overlap.',
+    independenceGuard:'Each resolved calibration label advances by at least one full forecast horizon. Adjacent windows may share only the boundary price; no realized return bar belongs to two scored outcomes.',
     leakageGuard:'Future candles are used only to score already-generated historical probabilities. No future observation changes an earlier forecast.'
   };
-  if(candles.length<warmup+horizon+step)return {
+  if(candles.length<warmup+horizon+step-1)return {
     ...baseState,state:'UNCALIBRATED',eligible:false,sampleSize:0,
     brierScore:null,baselineBrierScore:.3333,skillScore:null,reliabilityGap:null,reliabilityBins:[],
     diagnosticMetricsOnly:true,reason:'Not enough resolved independent historical observations.'
@@ -110,10 +110,10 @@ export function buildDecisionWalkForwardCalibration(raw,{interval='15m',horizonB
 
   const rows=[];
   const first=Math.max(warmup,candles.length-420);
-  for(let cut=first;cut+horizon<candles.length;cut+=step){
+  for(let cut=first;cut+horizon-1<candles.length;cut+=step){
     const history=candles.slice(0,cut);
     const entry=history.at(-1)?.close;
-    const terminal=candles[cut+horizon]?.close;
+    const terminal=candles[cut+horizon-1]?.close;
     if(!(entry>0&&terminal>0))continue;
     const returns=logReturns(history);
     if(returns.length<80)continue;
@@ -129,7 +129,7 @@ export function buildDecisionWalkForwardCalibration(raw,{interval='15m',horizonB
     const rawBrier=(probabilities.bull-y.bull)**2+(probabilities.base-y.base)**2+(probabilities.bear-y.bear)**2;
     rows.push({
       cutTime:history.at(-1).time,
-      resolveTime:candles[cut+horizon].time,
+      resolveTime:candles[cut+horizon-1].time,
       predicted,realized,confidence,brier:rawBrier/2,correct:predicted===realized?1:0
     });
   }
