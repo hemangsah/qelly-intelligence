@@ -73,7 +73,7 @@ test('Wave AQ positioning state is risk context only and does not alter directio
 
 test('Wave AQ UI explains unavailable OI history instead of presenting a synthetic positioning label',async()=>{
   const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
-  for(const phrase of ['24h price change','Positioning state','Requires verified OI change history','LONG BUILD-UP / SHORT BUILD-UP / SHORT COVERING / LONG UNWINDING']){
+  for(const phrase of ['24h price change','Positioning state','requires verified OI change history','LONG BUILD-UP / SHORT BUILD-UP / SHORT COVERING / LONG UNWINDING']){
     assert.ok(route.includes(phrase),phrase);
   }
   assert.match(route,/funding or premium never substitutes for OI change/i);
