@@ -648,6 +648,39 @@ export async function renderDecisionProvenGraph(main,deps){
       else draw();
     }
   }
+  async function enrichDecisionNews(snapshot){
+    const enrichment=snapshot?.evidence?.news?.enrichment;
+    if(!enrichment?.url||snapshot?.evidence?.news?.state!=='pending')return;
+    const graphId=snapshot?.graphId||null;
+    try{
+      const result=await api(enrichment.url);
+      if(!state.data||state.data.graphId!==graphId)return;
+      const current=state.data.evidence?.news||{};
+      state.data={...state.data,evidence:{...state.data.evidence,news:{
+        ...current,
+        state:result?.state||'unavailable',
+        provider:result?.provider||current.provider||'GDELT',
+        articles:Array.isArray(result?.articles)?result.articles:[],
+        observedAt:result?.fetchedAt??null,
+        cache:result?.cache??null,
+        fallbackReason:result?.fallbackReason??null,
+        enrichment:{state:'complete',url:null,eligibilityImpact:'none'},
+        boundary:result?.boundary||'Post-Decision contextual enrichment only; QELLY VIEW is unchanged.'
+      }}};
+      draw();
+    }catch(error){
+      if(!state.data||state.data.graphId!==graphId)return;
+      const current=state.data.evidence?.news||{};
+      state.data={...state.data,evidence:{...state.data.evidence,news:{
+        ...current,state:'unavailable',articles:[],
+        enrichment:{state:'failed',url:null,eligibilityImpact:'none'},
+        fallbackReason:String(error?.message||'News context unavailable').slice(0,240),
+        boundary:'Post-Decision news enrichment failed. The already-computed QELLY VIEW remains unchanged because news has no eligibility impact.'
+      }}};
+      draw();
+    }
+  }
+
   async function load(){
     state.loading=true;state.error=null;draw();
     try{
@@ -657,6 +690,7 @@ export async function renderDecisionProvenGraph(main,deps){
       const next=await api('/api/v1/decision-proven-graph?asset='+encodeURIComponent(state.asset)+'&interval='+encodeURIComponent(state.interval)+'&horizon='+encodeURIComponent(state.horizon)+rr+range);
       state.previousSnapshot=previous&&next?.decisionSnapshot&&previous.asset===next.decisionSnapshot.asset&&previous.interval===next.decisionSnapshot.interval?previous:null;
       state.data=next;
+      void enrichDecisionNews(next);
       emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'decision_view',action:'result',state:telemetryToken(next?.qellyView?.action||'unavailable')});
       emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'calibration',action:'state',state:telemetryToken(next?.quant?.calibration?.state||'uncalibrated')});
     }catch(error){
