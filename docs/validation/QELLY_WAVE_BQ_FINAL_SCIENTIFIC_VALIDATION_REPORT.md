@@ -62,7 +62,6 @@ On the reproducible 520-candle BTC-like 15m / 4h fixture:
 - Brier score: 0.3508;
 - skill score vs uniform baseline: -0.0525;
 - reliability gap: 0.1872;
-- correct-class rate: 0.36;
 - state: `UNCALIBRATED`;
 - diagnostic metrics only: true.
 
