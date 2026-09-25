@@ -257,7 +257,7 @@ const calibration=(view,escapeHtml)=>{
     component('Scenario separation','scenarioSeparation',gate.scenarioSeparation)+
     component('MTF evidence','timeframeEvidence',gate.timeframeEvidence,(Number.isFinite(Number(gate.timeframeAgreement))&&Number.isFinite(Number(gate.timeframeCoverage)))?'agreement '+Math.round(Number(gate.timeframeAgreement)*100)+'% × coverage '+Math.round(Number(gate.timeframeCoverage)*100)+'%':'');
   const preliminary=Number.isFinite(Number(gate.preliminaryModelConfidence))?Math.round(Number(gate.preliminaryModelConfidence)*100)+'%':'Unavailable';
-  return '<div class="q-dpg-calibration"><article><span>Scenario edge</span><strong>'+escapeHtml(edge)+'</strong><small>'+escapeHtml(String(scenario.leading||'BALANCED'))+'</small></article><article><span>Timeframe agreement</span><strong>'+escapeHtml(agreement)+'</strong><small>'+escapeHtml(String(gate.timeframeAligned??0)+'/'+String(gate.timeframeTotal??0)+' observed')+'</small></article><article><span>Risk state</span><strong>'+escapeHtml(risk)+'</strong><small>ATR '+escapeHtml(String(view.riskState?.atrPct??'—'))+'%</small></article><article><span>Signal gate</span><strong>'+(gate.directionalEligible?'CLEARED':'NOT CLEARED')+'</strong><small>Base view '+escapeHtml(String(gate.baseAction||view.action))+'</small></article>'+confidenceAudit+'<article><span>Preliminary model confidence</span><strong>'+escapeHtml(preliminary)+'</strong><small>'+((gate.preliminaryModelConfidenceReused===false)?'AUDIT ONLY · NOT REUSED':'reuse state unavailable')+'</small></article></div>'+(contradictions.length?'<div class="q-dpg-contradictions"><strong>Conflicting evidence</strong><ul>'+contradictions.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul></div>':'')+'<p class="q-dpg-confidence-note">Evidence confidence is one weighted decomposition. Freshness, history depth, scenario separation and coverage-adjusted MTF agreement each enter once. Preliminary model confidence is audit-only and not reused. This is not a success probability.</p>';
+  return '<details class="q-dpg-confidence-audit"><summary>Evidence confidence diagnostics</summary><div class="q-dpg-calibration"><article><span>Scenario edge</span><strong>'+escapeHtml(edge)+'</strong><small>'+escapeHtml(String(scenario.leading||'BALANCED'))+'</small></article><article><span>Timeframe agreement</span><strong>'+escapeHtml(agreement)+'</strong><small>'+escapeHtml(String(gate.timeframeAligned??0)+'/'+String(gate.timeframeTotal??0)+' observed')+'</small></article><article><span>Risk state</span><strong>'+escapeHtml(risk)+'</strong><small>ATR '+escapeHtml(String(view.riskState?.atrPct??'—'))+'%</small></article><article><span>Signal gate</span><strong>'+(gate.directionalEligible?'CLEARED':'NOT CLEARED')+'</strong><small>Base view '+escapeHtml(String(gate.baseAction||view.action))+'</small></article>'+confidenceAudit+'<article><span>Preliminary model confidence</span><strong>'+escapeHtml(preliminary)+'</strong><small>'+((gate.preliminaryModelConfidenceReused===false)?'AUDIT ONLY · NOT REUSED':'reuse state unavailable')+'</small></article></div>'+(contradictions.length?'<div class="q-dpg-contradictions"><strong>Conflicting evidence</strong><ul>'+contradictions.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul></div>':'')+'<p class="q-dpg-confidence-note">Evidence confidence is one weighted decomposition. Freshness, history depth, scenario separation and coverage-adjusted MTF agreement each enter once. Preliminary model confidence is audit-only and not reused. This is not a success probability.</p></details>';
 };
 
 const scannerFiltersMarkup=(state,escapeHtml)=>{
@@ -349,6 +349,41 @@ const healthQualityMarkup=(data,escapeHtml)=>{
     '<div class="q-dpg-health-quality__grid"><section><small>DATA QUALITY · NOT DIRECTION</small><h3>'+escapeHtml(String(quality?.state||'UNAVAILABLE').replaceAll('_',' '))+' · '+escapeHtml(score)+'</h3><p>Critical readiness: <strong>'+(quality?.eligibility?.criticalReady?'PASSED':'FAIL CLOSED')+'</strong></p><div class="q-dpg-health-quality__components">'+componentCards+'</div><p>Missing contextual capabilities: '+escapeHtml(String(missing.unavailableCount??0))+' / '+escapeHtml(String(missing.totalCapabilities??0))+'. '+escapeHtml(missing.scoringBoundary||'')+'</p><p>'+escapeHtml(quality?.boundary||'')+'</p></section>'+
     '<section><small>MODEL HEALTH · DRIFT READINESS</small><h3>'+escapeHtml(String(health?.state||'UNAVAILABLE').replaceAll('_',' '))+'</h3><p>Longitudinal drift: <strong>'+escapeHtml(String(health?.driftReadiness?.state||'UNMEASURED').replaceAll('_',' '))+'</strong></p><ul>'+driftRows+'</ul><p>'+escapeHtml(health?.driftReadiness?.boundary||'')+'</p><p>'+escapeHtml(health?.boundary||'')+'</p></section></div>'+
   '</details>';
+};
+
+const primaryResearchSummary=(data,escapeHtml)=>{
+  const view=data?.qellyView||{};
+  const contradiction=data?.contradictionAnalysis||{};
+  const trade=data?.tradeResearch||{};
+  const selected=trade?.selected||null;
+  const event=data?.evidence?.eventRisk||data?.eventRisk||{};
+  const support=contradiction.strongestSupport||((Array.isArray(view.why)&&view.why.length)?view.why[0]:'No single supporting factor is dominant.');
+  const conflict=contradiction.strongestContradiction||((Array.isArray(view.contradictions)&&view.contradictions.length)?view.contradictions[0]:'No explicit contradiction is dominant.');
+  const entry=trade?.entry?money(trade.entry.preferred)+' · '+String(trade.entry.method||'entry'):'No evidence-qualified entry';
+  const invalidation=Number.isFinite(Number(trade?.stop?.price))?money(trade.stop.price):(trade?.invalidation?.price?.condition||'No active price invalidation');
+  const target=selected&&Number.isFinite(Number(selected.target))?money(selected.target):'No selected target';
+  const rr=selected?.label||'No selected R:R';
+  const eventLabel=String(event.level||'UNAVAILABLE').replaceAll('_',' ');
+  const eventState=String(event.state||'unavailable').replaceAll('_',' ');
+  const changes=trade.whatChangesView||view.changesIf||'Recompute when verified evidence changes.';
+  const card=(label,value,detail='')=>'<span><em>'+escapeHtml(label)+'</em><strong>'+escapeHtml(String(value))+'</strong>'+(detail?'<small>'+escapeHtml(String(detail))+'</small>':'')+'</span>';
+  return '<div class="q-dpg-primary-summary" aria-label="Primary Decision research summary">'+
+    card('Strongest evidence',support)+
+    card('Strongest contradiction',conflict)+
+    card('Entry',entry)+
+    card('Invalidation',invalidation)+
+    card('Selected target / R:R',target,rr)+
+    card('Event risk',eventLabel,eventState)+
+    '<p><strong>What changes the view:</strong> '+escapeHtml(changes)+'</p>'+
+  '</div>';
+};
+
+const secondaryResearchDiagnosticsMarkup=(data,escapeHtml)=>{
+  return '<details class="q-dpg-secondary-research"><summary>Calibration, analogs & model health</summary><div>'+
+    probabilityCalibrationMarkup(data,escapeHtml)+
+    historicalAnalogsMarkup(data,escapeHtml)+
+    healthQualityMarkup(data,escapeHtml)+
+  '</div></details>';
 };
 
 const historicalAnalogsMarkup=(data,escapeHtml)=>{
@@ -619,14 +654,13 @@ export async function renderDecisionProvenGraph(main,deps){
     return '<section class="q-dpg-truth"><span class="q-status q-status--'+(data.truthState==='LIVE'?'live':data.truthState.toLowerCase())+'">'+escapeHtml(data.truthState)+'</span><strong>'+escapeHtml(data.asset)+' / '+escapeHtml(data.interval)+'</strong><span>'+escapeHtml(data.market.currentState.label)+' · updated '+new Date(data.observedAt).toLocaleString()+'</span></section>'+
       tradeResearchMarkup(data,escapeHtml)+
       outcomeLedgerMarkup(data)+
-      probabilityCalibrationMarkup(data,escapeHtml)+
-      historicalAnalogsMarkup(data,escapeHtml)+
-      healthQualityMarkup(data,escapeHtml)+
-      '<section class="q-dpg-view q-dpg-view--'+actionTone(view.action)+'"><div><small>QELLY VIEW</small><h2>'+escapeHtml(view.action)+'</h2><p>'+escapeHtml(view.label)+'</p></div><div class="q-dpg-confidence"><span>Evidence confidence</span><strong>'+Math.round(view.confidence*100)+'%</strong></div>'+calibration(view,escapeHtml)+levels(view)+'<details><summary>Why this view?</summary><ul>'+view.why.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul><p><strong>What changes it:</strong> '+escapeHtml(view.changesIf)+'</p></details></section>'+
+
+      '<section class="q-dpg-view q-dpg-view--'+actionTone(view.action)+'"><div><small>QELLY VIEW</small><h2>'+escapeHtml(view.action)+'</h2><p>'+escapeHtml(view.label)+'</p></div><div class="q-dpg-confidence"><span>Evidence confidence</span><strong>'+Math.round(view.confidence*100)+'%</strong></div>'+levels(view)+primaryResearchSummary(data,escapeHtml)+calibration(view,escapeHtml)+'<details><summary>Why this view?</summary><ul>'+view.why.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul><p><strong>What changes it:</strong> '+escapeHtml(view.changesIf)+'</p></details></section>'+
       '<section class="q-dpg-stage"><div class="q-dpg-chart-wrap"><div class="q-dpg-chart-help">Click one candle or drag across observed candles to select a move.</div>'+chart(data,escapeHtml)+'<div class="q-dpg-selection-actions"><span data-dpg-selection-label>'+(state.draft?(state.draft.end-state.draft.start<(INTERVAL_MS[state.interval]||0)?'Single candle selected':'Range selected'):'No range selected')+'</span><button class="q-button q-button--primary" data-dpg-explain '+(state.draft?'':'disabled')+'>'+(state.draft&&state.draft.end-state.draft.start<(INTERVAL_MS[state.interval]||0)?'Explain this candle':'Explain this move')+'</button><button class="q-button q-button--secondary" data-dpg-clear '+(state.draft||state.selection?'':'disabled')+'>Clear</button></div></div><aside class="q-dpg-scenarios">'+[['Bull',data.forecast.probabilities.bull],['Base',data.forecast.probabilities.base],['Bear',data.forecast.probabilities.bear]].map(([label,value])=>'<article><span>'+label+'</span><strong>'+Math.round(value*100)+'%</strong><meter min="0" max="1" value="'+value+'"></meter></article>').join('')+'<p>Modelled terminal range<br><strong>'+money(data.forecast.terminal.p05)+' – '+money(data.forecast.terminal.p95)+'</strong></p></aside></section>'+
       (move?'<section class="q-dpg-move"><header><div><small>SELECTED MOVE</small><h2>'+pct(move.changePct)+' across '+move.candles+' candles</h2></div><span>'+new Date(move.start).toLocaleString()+' → '+new Date(move.end).toLocaleString()+'</span></header><div><article><span>Range</span><strong>'+pct(move.rangePct)+'</strong></article><article><span>Volume vs prior</span><strong>'+(move.volumeRatio?move.volumeRatio+'×':'N/A')+'</strong></article><article><span>Volatility</span><strong>'+pct(move.volatilityPct)+'</strong></article><article><span>Prior volatility</span><strong>'+(move.priorVolatilityPct===null?'N/A':pct(move.priorVolatilityPct))+'</strong></article></div></section>':'')+
       pastPresentFutureMarkup(data,escapeHtml)+contradictionMarkup(data,escapeHtml)+whatChangedMarkup(state.previousSnapshot,data.decisionSnapshot,escapeHtml)+decisionTraceMarkup(data,escapeHtml)+
       marketStructureContext(data,escapeHtml)+multiTimeframe(data,escapeHtml)+liquidityContext(data,escapeHtml)+derivativesContext(data,escapeHtml)+crossAssetContext(data,escapeHtml)+macroContext(data,escapeHtml)+eventRiskContext(data,escapeHtml)+newsResearchContext(data,escapeHtml)+adSlot('decision-intelligence-inline')+'<section class="q-dpg-evidence"><header><div><small>EVIDENCE RANKING</small><h2>What best explains the move</h2></div><span>News: '+escapeHtml(data.evidence?.news?.state||'unavailable')+' · L2: '+escapeHtml(data.evidence?.liquidity?.state||'unavailable')+' · Funding/OI: '+escapeHtml(data.evidence?.derivatives?.state||'unavailable')+' · Cross-asset: '+escapeHtml(data.evidence?.crossAsset?.state||'unavailable')+' · Macro: '+escapeHtml(data.evidence?.macro?.state||'unavailable')+' · Event calendar: '+escapeHtml(data.evidence?.eventRisk?.state||'unavailable')+' · Liquidations: unavailable, not inferred</span></header>'+evidence(data)+'</section>'+
+      secondaryResearchDiagnosticsMarkup(data,escapeHtml)+
       '<details id="qelly-decision-methodology" class="q-dpg-audit"><summary>Methodology and sources</summary><div><section><h3>Market data</h3><p>'+escapeHtml(data.provenance.provider)+' public candles. <a href="'+escapeHtml(data.provenance.documentation)+'" target="_blank" rel="noopener">Source documentation ↗</a></p></section><section><h3>Method</h3><p>'+data.provenance.model.features.map(escapeHtml).join(' · ')+'</p><p>'+escapeHtml(data.confidence.calibration)+'</p></section><section><h3>Limits</h3><ul>'+data.provenance.model.limitations.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul></section></div></details>';
   };
   const draw=()=>{
