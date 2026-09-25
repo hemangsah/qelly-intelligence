@@ -69,3 +69,20 @@ test('AY Decision route exposes one canonical research-note action',async()=>{
   assert.match(route,/downloadDecisionResearchNote\(note\)/);
   assert.doesNotMatch(route,/fetch\(.*research-note/);
 });
+
+
+test('AY target-touch probability is emitted only for an independently eligible metric',()=>{
+  const calibrated={
+    state:'CALIBRATED',eligible:true,eligibleResolvedSetups:64,minimumSampleGate:50,
+    probabilityBoundary:'Probability requires independent metric gates.',
+    metrics:{
+      T1:{state:'CALIBRATED',eligible:true,sampleSize:64,walkForwardSampleSize:44,probability:.61,confidenceInterval95:{low:.49,high:.72,width:.23},brierScore:.19,reliabilityGap:.08,reason:'gates passed'},
+      T2:{state:'WEAK_CALIBRATION',eligible:false,sampleSize:64,walkForwardSampleSize:44,probability:null,confidenceInterval95:{low:null,high:null,width:.38},brierScore:.27,reliabilityGap:.16,reason:'reliability gate failed'}
+    }
+  };
+  const note=buildDecisionResearchNote(fixture(),{targetTouchCalibration:calibrated});
+  assert.equal(note.calibration.targetTouch.T1.probability,.61);
+  assert.deepEqual(note.calibration.targetTouch.T1.confidenceInterval95,{low:.49,high:.72,width:.23});
+  assert.equal(note.calibration.targetTouch.T2.probability,null);
+  assert.equal(note.calibration.targetTouch.T2.reason,'reliability gate failed');
+});
