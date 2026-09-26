@@ -63,10 +63,12 @@ const exercise=async({name,viewport,touch=false})=>{
   const boundaries=await page.locator('.q-dpg-selection__boundary').count();
   const handles=await page.locator('.q-dpg-selection__handle').count();
   const text=(await summary.innerText()).replace(/\s+/g,' ').trim();
+  const normalizedSummary=text.toLowerCase();
   const persistent=hidden===null&&candles>1&&boundaries===2&&handles===2;
-  const required=['Start','End','Duration','Candles','Move','High','Low'].every(label=>text.includes(label));
+  const required=['start','end','duration','candles','move','high','low'].every(label=>normalizedSummary.includes(label));
+  const timestampsAvailable=!normalizedSummary.includes('time unavailable');
   if(!persistent)failures.push({type:'range-overlay',hidden,candles,boundaries,handles});
-  if(!required)failures.push({type:'range-summary',text});
+  if(!required||!timestampsAvailable)failures.push({type:'range-summary',text,required,timestampsAvailable});
   await page.screenshot({path:path.join(outputDir,`decision-range-selected-${name}.png`),fullPage:true});
   const result={name,viewport,touch,persistent,candles,boundaries,handles,summary:text,failures};
   results.push(result);

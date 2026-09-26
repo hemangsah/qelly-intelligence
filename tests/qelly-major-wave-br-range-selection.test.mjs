@@ -91,6 +91,13 @@ test('Wave BR clears stale selection on asset/timeframe changes and keeps select
   assert.doesNotMatch(load,/state\.selection=null/);
 });
 
+test('Wave BR browser acceptance is case-insensitive and rejects unavailable timestamps',async()=>{
+  const script=await read('scripts/qelly-decision-range-selection-e2e.mjs');
+  assert.match(script,/normalizedSummary=text\.toLowerCase\(\)/);
+  assert.match(script,/includes\('time unavailable'\)/);
+  assert.match(script,/!required\|\|!timestampsAvailable/);
+});
+
 test('Wave BR CSS makes the range obvious, responsive and reduced-motion safe',async()=>{
   const css=await read('apps/web/public/assets/qelly-decision-proven-graph.css');
   for(const token of [
