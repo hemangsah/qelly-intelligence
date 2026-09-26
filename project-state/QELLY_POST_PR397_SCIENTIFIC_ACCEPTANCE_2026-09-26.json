@@ -186,7 +186,20 @@
       "cloudflare": "PASS",
       "publicRuntime": "PASS",
       "supabaseReleaseIdentity": "PASS",
-      "bqFinalRelease": "PENDING_EXACT_HEAD_GATES"
+      "bqFinalRelease": "PASS",
+      "finalProductionSha": "aeffd92a910bd638ff816aa1d2bfedab8389ef24"
     }
+  },
+  "finalProduction": "aeffd92a910bd638ff816aa1d2bfedab8389ef24",
+  "finalization": {
+    "bqPr": 422,
+    "bqExactHead": "f97d351bf12eb4caaad41817d572f485d59e471c",
+    "bqMergeSha": "aeffd92a910bd638ff816aa1d2bfedab8389ef24",
+    "exactHeadGateMatrix": "PASS_10_OF_10",
+    "mergedPushGates": "PASS",
+    "cloudflare": "PASS",
+    "canonicalPublicRuntime": "PASS",
+    "supabaseReleaseIdentity": "PASS",
+    "openPrs": 0
   }
 }
