@@ -20,7 +20,14 @@ const canonicalDecisionAsset=(value)=>{const symbol=String(value||'').trim().toU
 const emitProductEvent=(name,properties)=>document.dispatchEvent(new CustomEvent('qelly:product-event',{detail:{name,properties}}));
 const emitRuntimeSignal=(detail)=>document.dispatchEvent(new CustomEvent('qelly:runtime-signal',{detail}));
 const displayTime=(value)=>{
-  const raw=String(value||'').trim();
+  if(value===null||value===undefined||value==='')return 'Time unavailable';
+  const numeric=Number(value);
+  if(Number.isFinite(numeric)){
+    const epochMilliseconds=Math.abs(numeric)<100_000_000_000?numeric*1000:numeric;
+    const parsedNumeric=new Date(epochMilliseconds);
+    return Number.isNaN(parsedNumeric.getTime())?'Time unavailable':parsedNumeric.toLocaleString();
+  }
+  const raw=String(value).trim();
   const compact=raw.match(/^(\d{4})(\d{2})(\d{2})T?(\d{2})(\d{2})(\d{2})Z?$/);
   const normalized=compact?`${compact[1]}-${compact[2]}-${compact[3]}T${compact[4]}:${compact[5]}:${compact[6]}Z`:raw;
   const parsed=new Date(normalized);
@@ -1005,4 +1012,4 @@ export async function renderDecisionProvenGraph(main,deps){
   await load();
 }
 
-export const __decisionProvenGraphRouteTest=Object.freeze({CHAT_DECISION_CONTEXT_KEY,DECISION_ASSETS,readChatDecisionContext,storeResearchContext,normalizeHorizon,validHorizons,telemetryToken,rrTelemetryState,canonicalDecisionAsset,formatRangeDuration,selectionIndexBounds,buildRangeSelection,rangeSelectionMetrics});
+export const __decisionProvenGraphRouteTest=Object.freeze({CHAT_DECISION_CONTEXT_KEY,DECISION_ASSETS,readChatDecisionContext,storeResearchContext,normalizeHorizon,validHorizons,telemetryToken,rrTelemetryState,canonicalDecisionAsset,displayTime,formatRangeDuration,selectionIndexBounds,buildRangeSelection,rangeSelectionMetrics});

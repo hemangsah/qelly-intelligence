@@ -27,6 +27,12 @@ test('Wave BR pure range helpers normalize right-to-left selection and expose tr
   assert.ok(['UP','DOWN','FLAT'].includes(metrics.direction));
 });
 
+
+test('Wave BR formats epoch candle timestamps in the visible range summary',()=>{
+  assert.notEqual(routeTest.displayTime(candles[0].time),'Time unavailable');
+  assert.notEqual(routeTest.displayTime(Math.floor(candles[0].time/1000)),'Time unavailable');
+});
+
 test('Wave BR supports a single candle without expanding it into adjacent bars',()=>{
   const selection=routeTest.buildRangeSelection(candles,5,5,300_000);
   const metrics=routeTest.rangeSelectionMetrics(candles,selection,'5m');
