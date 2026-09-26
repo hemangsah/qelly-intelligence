@@ -59,10 +59,12 @@ On the reproducible 520-candle BTC-like 15m / 4h fixture:
 
 - independent sample: 25;
 - minimum sample gate: 36;
-- Brier score: 0.3508;
-- skill score vs uniform baseline: -0.0525;
-- reliability gap: 0.1872;
+- Brier score: 0.3480;
+- skill score vs uniform baseline: -0.0439;
+- reliability gap: 0.2318;
 - state: `UNCALIBRATED`;
+- correct-class rate: 36%;
+- uniform baseline Brier: 0.3333;
 - diagnostic metrics only: true.
 
 These are deterministic fixture diagnostics, **not production outcome performance**. Bull/base/bear values remain model scenario outputs and must not be described as empirically calibrated probabilities.
@@ -196,6 +198,8 @@ Wave BP / PR #419 Browser E2E stress evidence passed:
 - iframes: 0 -> 0.
 
 The original BP summary printed a misleading scanner-request count because a duplicate summary key overwrote the authoritative counter. PR #420 repaired that reporting defect. This report intentionally does not reuse the invalid overwritten scanner count.
+Formal SLO caveat: the BP capture's maximum observed INP was 248 ms, above Wave BN's 200 ms INP objective. Browser E2E still passed its own release thresholds, but this does **not** certify the formal INP SLO. BQ therefore treats formal operational SLO certification as incomplete rather than inferring PASS from the browser gate.
+
 
 ### Browser / product gates
 
