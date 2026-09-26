@@ -134,16 +134,16 @@ Wave AL / PR #400 measured a cache-busted canonical-production baseline:
 
 ### Current bounded external sample
 
-Read-only browser sample collected 2026-09-25 23:20–23:23 UTC:
+Read-only browser samples collected 2026-09-25 23:20 UTC (Decision) and 2026-09-26 00:17–00:19 UTC (paced scanner):
 
 | Surface | Success sample | p50 | p90 | p95 |
 | --- | ---: | ---: | ---: | ---: |
 | Decision | 20/20 HTTP 200 | 1.120 s | 1.333 s | 1.339 s |
-| Scanner | 7 HTTP 200 | 2.104 s | 2.314 s | 2.318 s |
+| Scanner | 5 HTTP 200 | 2.462 s | 2.701 s | 2.775 s |
 
 Decision percentile reduction vs the Wave AL baseline is approximately 85.9% / 85.9% / 86.7% at p50/p90/p95.
 
-Scanner success-only percentile reduction is approximately 69.3% / 71.8% / 72.0%, but that comparison has a material caveat: the same paced 10-request scanner run produced 7×200, 2×503 and 1×429. The success-only scanner percentile is therefore **not** a reliability certification and must not hide the non-200 responses.
+Scanner success-only percentile reduction is approximately 64.1% / 67.1% / 66.4%, but that comparison has a material caveat: the same paced 10-request scanner run produced 5×200 and 5×503. The success-only scanner percentile is therefore **not** a reliability certification and must not hide the failed responses.
 
 Formal Wave BN operational objectives remain sample-gated:
 - Decision p95 <= 3000 ms at n>=20;
