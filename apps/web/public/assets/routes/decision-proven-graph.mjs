@@ -27,14 +27,83 @@ const displayTime=(value)=>{
   return Number.isNaN(parsed.getTime())?'Time unavailable':parsed.toLocaleString();
 };
 
-function chart(data,escapeHtml){
-  const history=data.market.candles,future=data.forecast.fan,all=[...history.flatMap(item=>[item.low,item.high]),...future.flatMap(item=>[item.p05,item.p95])],min=Math.min(...all),max=Math.max(...all),width=1000,height=430,pad=38,split=690;
+const CHART_GEOMETRY=Object.freeze({width:1000,height:430,pad:38,split:690});
+const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+const candleTime=(candle)=>Number(candle?.time??candle?.t);
+const candleValue=(candle,key)=>Number(candle?.[key]??candle?.[key[0]]);
+const formatRangeDuration=(milliseconds)=>{
+  const totalMinutes=Math.max(0,Math.round(Number(milliseconds||0)/60_000));
+  if(totalMinutes<60)return totalMinutes+'m';
+  const hours=Math.floor(totalMinutes/60),minutes=totalMinutes%60;
+  if(hours<24)return hours+'h'+(minutes?' '+minutes+'m':'');
+  const days=Math.floor(hours/24),remainingHours=hours%24;
+  return days+'d'+(remainingHours?' '+remainingHours+'h':'');
+};
+const selectionIndexBounds=(candles,selection,intervalMs)=>{
+  if(!selection||!Array.isArray(candles)||!candles.length||!Number.isFinite(Number(intervalMs)))return null;
+  const start=Number(selection.start),end=Number(selection.end);
+  if(!Number.isFinite(start)||!Number.isFinite(end))return null;
+  const low=Math.min(start,end),high=Math.max(start,end);
+  let first=-1,last=-1;
+  for(let index=0;index<candles.length;index++){
+    const time=candleTime(candles[index]);
+    if(!Number.isFinite(time))continue;
+    const candleEnd=time+Number(intervalMs)-1;
+    if(candleEnd>=low&&time<=high){
+      if(first<0)first=index;
+      last=index;
+    }
+  }
+  return first>=0&&last>=first?{startIndex:first,endIndex:last}:null;
+};
+const buildRangeSelection=(candles,startIndex,endIndex,intervalMs)=>{
+  if(!Array.isArray(candles)||!candles.length||!Number.isFinite(Number(intervalMs)))return null;
+  const a=clamp(Math.min(Number(startIndex),Number(endIndex)),0,candles.length-1);
+  const b=clamp(Math.max(Number(startIndex),Number(endIndex)),0,candles.length-1);
+  const start=candleTime(candles[a]),last=candleTime(candles[b]);
+  if(!Number.isFinite(start)||!Number.isFinite(last))return null;
+  return {start,end:last+Number(intervalMs)-1,startIndex:a,endIndex:b};
+};
+const rangeSelectionMetrics=(candles,selection,interval)=>{
+  const intervalMs=INTERVAL_MS[interval];
+  const bounds=selectionIndexBounds(candles,selection,intervalMs);
+  if(!bounds)return null;
+  const selected=candles.slice(bounds.startIndex,bounds.endIndex+1);
+  const first=selected[0],last=selected.at(-1);
+  const startPrice=candleValue(first,'close'),endPrice=candleValue(last,'close');
+  const highs=selected.map(candle=>candleValue(candle,'high')).filter(Number.isFinite);
+  const lows=selected.map(candle=>candleValue(candle,'low')).filter(Number.isFinite);
+  const absoluteMove=Number.isFinite(startPrice)&&Number.isFinite(endPrice)?endPrice-startPrice:null;
+  const movePct=Number.isFinite(absoluteMove)&&startPrice!==0?absoluteMove/startPrice*100:null;
+  const start=candleTime(first),end=candleTime(last)+intervalMs-1;
+  return {...bounds,start,end,candles:selected.length,durationMs:end-start+1,timeframe:interval,startPrice,endPrice,absoluteMove,movePct,direction:Number.isFinite(absoluteMove)?absoluteMove>0?'UP':absoluteMove<0?'DOWN':'FLAT':'UNAVAILABLE',high:highs.length?Math.max(...highs):null,low:lows.length?Math.min(...lows):null};
+};
+const rangeSelectionSummary=(state,data,escapeHtml)=>{
+  const selection=state.draft||state.selection;
+  const metrics=rangeSelectionMetrics(data?.market?.candles||[],selection,state.interval);
+  const total=Math.max(0,(data?.market?.candles||[]).length-1);
+  const startIndex=metrics?.startIndex??Math.max(0,total-19),endIndex=metrics?.endIndex??total;
+  const metric=(label,value)=>'<span><em>'+escapeHtml(label)+'</em><strong>'+escapeHtml(value)+'</strong></span>';
+  const number=(value,digits=2)=>Number.isFinite(Number(value))?Number(value).toLocaleString(undefined,{maximumFractionDigits:digits}):'Unavailable';
+  const signed=(value,suffix='')=>Number.isFinite(Number(value))?(Number(value)>=0?'+':'')+number(value,2)+suffix:'Unavailable';
+  const modes=[['navigate','Navigate'],['select-range','Select Range'],['select-candle','Select Candle'],['measure-move','Measure Move']];
+  return '<section class="q-dpg-range-workbench" aria-label="Chart range selection"><span class="q-dpg-range-live" data-dpg-selection-label aria-live="polite">'+(metrics?'Range selected':'No range selected')+'</span>'+
+    '<div class="q-dpg-chart-modes" role="toolbar" aria-label="Chart interaction mode">'+modes.map(([id,label])=>'<button type="button" class="q-dpg-mode'+(state.chartMode===id?' is-active':'')+'" data-dpg-chart-mode="'+id+'" aria-pressed="'+(state.chartMode===id?'true':'false')+'">'+label+'</button>').join('')+'</div>'+
+    (metrics?'<div class="q-dpg-range-summary" role="status" aria-live="polite">'+metric('Start',displayTime(metrics.start))+metric('End',displayTime(metrics.end))+metric('Duration',formatRangeDuration(metrics.durationMs))+metric('Candles',String(metrics.candles)+' · '+metrics.timeframe)+metric('Move',signed(metrics.movePct,'%')+' · '+metrics.direction)+metric('Absolute',signed(metrics.absoluteMove))+metric('High',number(metrics.high,6))+metric('Low',number(metrics.low,6))+'</div>':'<div class="q-dpg-range-empty" role="status">Select Range is ready. Drag across observed candles, choose Select Candle, or use the keyboard range controls.</div>')+
+    '<div class="q-dpg-range-keyboard" aria-label="Keyboard range controls"><label><span>Start candle</span><input type="range" min="0" max="'+total+'" value="'+startIndex+'" data-dpg-range-start aria-label="Selected range start candle"></label><label><span>End candle</span><input type="range" min="0" max="'+total+'" value="'+endIndex+'" data-dpg-range-end aria-label="Selected range end candle"></label></div>'+
+    '<div class="q-dpg-range-toolbar" role="toolbar" aria-label="Selected range actions"><button class="q-button q-button--primary" type="button" data-dpg-explain '+(metrics?'':'disabled')+'>'+((metrics?.candles||0)===1?'Explain This Candle':'Explain This Move')+'</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="news" '+(metrics?'':'disabled')+'>News & Events</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="flow" '+(metrics?'':'disabled')+'>Flow / Participation Evidence</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="compare" '+(metrics?'':'disabled')+'>Compare Before vs After</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="similar" '+(metrics?'':'disabled')+'>Find Similar History</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="chat" '+(metrics?'':'disabled')+'>Ask QELLY</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="note" '+(metrics?'':'disabled')+'>Create Research Note</button><button class="q-button q-button--secondary" type="button" data-dpg-clear '+(metrics||state.selection?'':'disabled')+'>Clear</button></div></section>';
+};
+
+function chart(data,escapeHtml,selection=null,interval=data.interval){
+  const history=data.market.candles,future=data.forecast.fan,all=[...history.flatMap(item=>[item.low,item.high]),...future.flatMap(item=>[item.p05,item.p95])],min=Math.min(...all),max=Math.max(...all),width=CHART_GEOMETRY.width,height=CHART_GEOMETRY.height,pad=CHART_GEOMETRY.pad,split=CHART_GEOMETRY.split;
   const y=(value)=>pad+(max-value)/(max-min||1)*(height-pad*2),hx=(index)=>pad+index/Math.max(1,history.length-1)*(split-pad),fx=(index)=>split+index/Math.max(1,future.length)*(width-split-pad);
   const line=(items,x,get)=>items.map((item,index)=>(index?'L':'M')+x(index).toFixed(1)+','+y(get(item)).toFixed(1)).join(' ');
   const band=(upper,lower)=>line(future,fx,item=>item[upper])+' '+[...future].reverse().map((item,index)=>'L'+fx(future.length-1-index).toFixed(1)+','+y(item[lower]).toFixed(1)).join(' ')+' Z';
-  const candleWidth=Math.max(1.2,(split-pad)/history.length*.62);
-  const candles=history.map((item,index)=>{const x=hx(index),up=item.close>=item.open,top=y(Math.max(item.open,item.close)),body=Math.max(1.5,Math.abs(y(item.open)-y(item.close)));return '<g class="q-dpg-candle '+(up?'is-up':'is-down')+'"><path d="M'+x+','+y(item.high)+'V'+y(item.low)+'"/><rect x="'+(x-candleWidth/2)+'" y="'+top+'" width="'+candleWidth+'" height="'+body+'"/></g>';}).join('');
-  return '<svg class="q-dpg-chart" viewBox="0 0 '+width+' '+height+'" role="img" data-dpg-chart data-count="'+history.length+'" aria-label="Interactive '+escapeHtml(data.asset)+' candlestick chart. Drag across the observed chart to select a move for explanation."><defs><linearGradient id="dpg95"><stop stop-color="#7d2944" stop-opacity=".38"/><stop offset="1" stop-color="#b34566" stop-opacity=".08"/></linearGradient><linearGradient id="dpg50"><stop stop-color="#d36483" stop-opacity=".5"/><stop offset="1" stop-color="#e69aae" stop-opacity=".16"/></linearGradient></defs><g class="q-dpg-grid"><path d="M38 108H962M38 215H962M38 322H962"/><path d="M'+split+' 38V392"/></g><path class="q-dpg-band q-dpg-band--outer" d="'+band('p95','p05')+'"/><path class="q-dpg-band q-dpg-band--inner" d="'+band('p75','p25')+'"/>'+candles+'<path class="q-dpg-median" d="M'+split+','+y(data.market.lastPrice)+' '+line(future,fx,item=>item.p50).replace(/^M/,'L')+'"/><g data-dpg-selection class="q-dpg-selection" hidden><rect x="0" y="'+pad+'" width="0" height="'+(height-pad*2)+'"/></g><circle cx="'+split+'" cy="'+y(data.market.lastPrice)+'" r="6"/><text x="40" y="28">PAST · OBSERVED</text><text x="'+(split+16)+'" y="28">FUTURE · SCENARIOS</text><text x="'+(split-10)+'" y="'+Math.max(55,y(data.market.lastPrice)-12)+'" text-anchor="end">NOW '+money(data.market.lastPrice)+'</text></svg>';
+  const candleWidth=Math.max(1.2,(split-pad)/history.length*.62),metrics=rangeSelectionMetrics(history,selection,interval);
+  const candles=history.map((item,index)=>{const x=hx(index),up=item.close>=item.open,top=y(Math.max(item.open,item.close)),body=Math.max(1.5,Math.abs(y(item.open)-y(item.close))),selected=metrics&&index>=metrics.startIndex&&index<=metrics.endIndex;return '<g data-candle-index="'+index+'" class="q-dpg-candle '+(up?'is-up':'is-down')+(selected?' is-selected':'')+'"><path d="M'+x+','+y(item.high)+'V'+y(item.low)+'"/><rect x="'+(x-candleWidth/2)+'" y="'+top+'" width="'+candleWidth+'" height="'+body+'"/></g>';}).join('');
+  const selectedStart=metrics?hx(metrics.startIndex):0,selectedEnd=metrics?hx(metrics.endIndex):0,left=metrics?Math.max(pad,Math.min(selectedStart,selectedEnd)-candleWidth*.8):0,right=metrics?Math.min(split,Math.max(selectedStart,selectedEnd)+candleWidth*.8):0;
+  const selectionMarkup='<g data-dpg-selection class="q-dpg-selection" '+(metrics?'':'hidden')+'><rect data-dpg-selection-rect x="'+left+'" y="'+pad+'" width="'+Math.max(0,right-left)+'" height="'+(height-pad*2)+'"/><line data-dpg-selection-start class="q-dpg-selection__boundary" x1="'+selectedStart+'" x2="'+selectedStart+'" y1="'+pad+'" y2="'+(height-pad)+'"/><line data-dpg-selection-end class="q-dpg-selection__boundary" x1="'+selectedEnd+'" x2="'+selectedEnd+'" y1="'+pad+'" y2="'+(height-pad)+'"/><circle data-dpg-selection-start-handle class="q-dpg-selection__handle" cx="'+selectedStart+'" cy="'+(pad+12)+'" r="6"/><circle data-dpg-selection-end-handle class="q-dpg-selection__handle" cx="'+selectedEnd+'" cy="'+(pad+12)+'" r="6"/></g>';
+  return '<svg class="q-dpg-chart" viewBox="0 0 '+width+' '+height+'" role="img" tabindex="0" data-dpg-chart data-count="'+history.length+'" data-mode="select-range" aria-label="Interactive '+escapeHtml(data.asset)+' candlestick chart. Use Select Range and drag across observed candles, or use the keyboard range controls below."><defs><linearGradient id="dpg95"><stop stop-color="#7d2944" stop-opacity=".38"/><stop offset="1" stop-color="#b34566" stop-opacity=".08"/></linearGradient><linearGradient id="dpg50"><stop stop-color="#d36483" stop-opacity=".5"/><stop offset="1" stop-color="#e69aae" stop-opacity=".16"/></linearGradient></defs><g class="q-dpg-grid"><path d="M38 108H962M38 215H962M38 322H962"/><path d="M'+split+' 38V392"/></g><path class="q-dpg-band q-dpg-band--outer" d="'+band('p95','p05')+'"/><path class="q-dpg-band q-dpg-band--inner" d="'+band('p75','p25')+'"/>'+candles+selectionMarkup+'<path class="q-dpg-median" d="M'+split+','+y(data.market.lastPrice)+' '+line(future,fx,item=>item.p50).replace(/^M/,'L')+'"/><circle cx="'+split+'" cy="'+y(data.market.lastPrice)+'" r="6"/><text x="40" y="28">PAST · OBSERVED</text><text x="'+(split+16)+'" y="28">FUTURE · SCENARIOS</text><text x="'+(split-10)+'" y="'+Math.max(55,y(data.market.lastPrice)-12)+'" text-anchor="end">NOW '+money(data.market.lastPrice)+'</text></svg>';
 }
 
 const multiTimeframe=(data,escapeHtml)=>{const mtf=data.multiTimeframe,views=mtf?.views||[];if(!views.length)return '<section id="qelly-decision-mtf" class="q-dpg-mtf"><header><div><small>MULTI-TIMEFRAME</small><h2>Cross-horizon confirmation unavailable</h2></div><span>Not inferred</span></header><p>Independent timeframe observations could not be verified, so no agreement claim is shown.</p></section>';return '<section id="qelly-decision-mtf" class="q-dpg-mtf"><header><div><small>MULTI-TIMEFRAME</small><h2>'+escapeHtml(mtf.agreement.direction)+' · '+mtf.agreement.aligned+'/'+mtf.agreement.total+' aligned</h2></div><span>'+escapeHtml(mtf.state)+'</span></header><div>'+views.map(view=>'<article><span>'+escapeHtml(view.interval)+'</span><strong class="q-dpg-mtf__'+view.qellyView.action.toLowerCase().replace(/\s+/g,'-')+'">'+escapeHtml(view.qellyView.action)+'</strong><small>'+escapeHtml(view.marketState.label)+'</small><p>RSI '+view.metrics.rsi14+' · '+Math.round(view.probabilities.bull*100)+'% bull / '+Math.round(view.probabilities.bear*100)+'% bear</p></article>').join('')+'</div><p>Agreement compares independently observed timeframes. Mixed evidence is shown as mixed; it is never forced into a trade call.</p></section>';};
@@ -594,7 +663,7 @@ const sloDiagnosticsMarkup=(slo,escapeHtml)=>{
 export async function renderDecisionProvenGraph(main,deps){
   installStyles();const {api,stateBanner,escapeHtml,toast,navigate}=deps;
   const chatContext=readChatDecisionContext();
-  let state={asset:chatContext.asset,interval:chatContext.interval,horizon:normalizeHorizon(chatContext.interval,'4h'),rr:'auto',customRr:'2.5',loading:true,data:null,previousSnapshot:null,error:null,draft:null,selection:null,scanning:false,scan:null,scanError:null,ledger:null,ledgerLoading:false,ledgerError:null,ledgerMutating:false,slo:null,scanFilters:{universe:'all',direction:'any',minEvidenceQuality:'0',minCalibratedConfidence:'0',minMtfAgreement:'0',liquidity:'any',volatility:'any',regime:'any',eventRiskTolerance:'any',freshness:'live_or_delayed'}};
+  let state={asset:chatContext.asset,interval:chatContext.interval,horizon:normalizeHorizon(chatContext.interval,'4h'),rr:'auto',customRr:'2.5',chartMode:'select-range',loading:true,data:null,previousSnapshot:null,error:null,draft:null,selection:null,scanning:false,scan:null,scanError:null,ledger:null,ledgerLoading:false,ledgerError:null,ledgerMutating:false,slo:null,scanFilters:{universe:'all',direction:'any',minEvidenceQuality:'0',minCalibratedConfidence:'0',minMtfAgreement:'0',liquidity:'any',volatility:'any',regime:'any',eventRiskTolerance:'any',freshness:'live_or_delayed'}};
   const ledgerAuthenticated=()=>Boolean(window.__QELLY_SESSION_STATE__?.authenticated);
   const updateSlo=(snapshot)=>{
     const next=evaluateDecisionSlos(snapshot);
@@ -674,7 +743,7 @@ export async function renderDecisionProvenGraph(main,deps){
       outcomeLedgerMarkup(data)+
 
       '<section class="q-dpg-view q-dpg-view--'+actionTone(view.action)+'"><div><small>QELLY VIEW</small><h2>'+escapeHtml(view.action)+'</h2><p>'+escapeHtml(view.label)+'</p></div><div class="q-dpg-confidence"><span>Evidence confidence</span><strong>'+Math.round(view.confidence*100)+'%</strong></div>'+levels(view)+primaryResearchSummary(data,escapeHtml)+calibration(view,escapeHtml)+'<details><summary>Why this view?</summary><ul>'+view.why.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul><p><strong>What changes it:</strong> '+escapeHtml(view.changesIf)+'</p></details></section>'+
-      '<section class="q-dpg-stage"><div class="q-dpg-chart-wrap"><div class="q-dpg-chart-help">Click one candle or drag across observed candles to select a move.</div>'+chart(data,escapeHtml)+'<div class="q-dpg-selection-actions"><span data-dpg-selection-label>'+(state.draft?(state.draft.end-state.draft.start<(INTERVAL_MS[state.interval]||0)?'Single candle selected':'Range selected'):'No range selected')+'</span><button class="q-button q-button--primary" data-dpg-explain '+(state.draft?'':'disabled')+'>'+(state.draft&&state.draft.end-state.draft.start<(INTERVAL_MS[state.interval]||0)?'Explain this candle':'Explain this move')+'</button><button class="q-button q-button--secondary" data-dpg-clear '+(state.draft||state.selection?'':'disabled')+'>Clear</button></div></div><aside class="q-dpg-scenarios">'+[['Bull',data.forecast.probabilities.bull],['Base',data.forecast.probabilities.base],['Bear',data.forecast.probabilities.bear]].map(([label,value])=>'<article><span>'+label+'</span><strong>'+Math.round(value*100)+'%</strong><meter min="0" max="1" value="'+value+'"></meter></article>').join('')+'<p>Modelled terminal range<br><strong>'+money(data.forecast.terminal.p05)+' – '+money(data.forecast.terminal.p95)+'</strong></p></aside></section>'+
+      '<section class="q-dpg-stage"><div class="q-dpg-chart-wrap"><div class="q-dpg-chart-help">'+(state.chartMode==='navigate'?'Navigate mode · range selection is inactive':state.chartMode==='select-candle'?'Select Candle · choose one observed candle':state.chartMode==='measure-move'?'Measure Move · drag to measure a historical move':'Select Range · drag across observed candles; selection persists until Clear')+'</div>'+chart(data,escapeHtml,state.draft||state.selection,state.interval)+rangeSelectionSummary(state,data,escapeHtml)+'</div><aside class="q-dpg-scenarios">'+[['Bull',data.forecast.probabilities.bull],['Base',data.forecast.probabilities.base],['Bear',data.forecast.probabilities.bear]].map(([label,value])=>'<article><span>'+label+'</span><strong>'+Math.round(value*100)+'%</strong><meter min="0" max="1" value="'+value+'"></meter></article>').join('')+'<p>Modelled terminal range<br><strong>'+money(data.forecast.terminal.p05)+' – '+money(data.forecast.terminal.p95)+'</strong></p></aside></section>'+
       (move?'<section class="q-dpg-move"><header><div><small>SELECTED MOVE</small><h2>'+pct(move.changePct)+' across '+move.candles+' candles</h2></div><span>'+new Date(move.start).toLocaleString()+' → '+new Date(move.end).toLocaleString()+'</span></header><div><article><span>Range</span><strong>'+pct(move.rangePct)+'</strong></article><article><span>Volume vs prior</span><strong>'+(move.volumeRatio?move.volumeRatio+'×':'N/A')+'</strong></article><article><span>Volatility</span><strong>'+pct(move.volatilityPct)+'</strong></article><article><span>Prior volatility</span><strong>'+(move.priorVolatilityPct===null?'N/A':pct(move.priorVolatilityPct))+'</strong></article></div></section>':'')+
       pastPresentFutureMarkup(data,escapeHtml)+contradictionMarkup(data,escapeHtml)+whatChangedMarkup(state.previousSnapshot,data.decisionSnapshot,escapeHtml)+decisionTraceMarkup(data,escapeHtml)+
       marketStructureContext(data,escapeHtml)+multiTimeframe(data,escapeHtml)+liquidityContext(data,escapeHtml)+derivativesContext(data,escapeHtml)+crossAssetContext(data,escapeHtml)+macroContext(data,escapeHtml)+eventRiskContext(data,escapeHtml)+newsResearchContext(data,escapeHtml)+adSlot('decision-intelligence-inline')+'<section class="q-dpg-evidence"><header><div><small>EVIDENCE RANKING</small><h2>What best explains the move</h2></div><span>News: '+escapeHtml(data.evidence?.news?.state||'unavailable')+' · L2: '+escapeHtml(data.evidence?.liquidity?.state||'unavailable')+' · Funding/OI: '+escapeHtml(data.evidence?.derivatives?.state||'unavailable')+' · Cross-asset: '+escapeHtml(data.evidence?.crossAsset?.state||'unavailable')+' · Macro: '+escapeHtml(data.evidence?.macro?.state||'unavailable')+' · Event calendar: '+escapeHtml(data.evidence?.eventRisk?.state||'unavailable')+' · Liquidations: unavailable, not inferred</span></header>'+evidence(data)+'</section>'+
@@ -744,17 +813,81 @@ export async function renderDecisionProvenGraph(main,deps){
     });
     main.querySelector('[data-dpg-methodology-jump]')?.addEventListener('click',()=>main.querySelector('#qelly-decision-methodology')?.scrollIntoView({behavior:'smooth',block:'start'}));
     main.querySelectorAll('[data-dpg-refresh]').forEach(button=>button.addEventListener('click',load));main.querySelector('[data-dpg-export]')?.addEventListener('click',()=>{download(state.data);toast('Research package exported',{tone:'success'});});
-    main.querySelector('[data-dpg-explain]')?.addEventListener('click',()=>{state.selection=state.draft;load();});main.querySelector('[data-dpg-clear]')?.addEventListener('click',()=>{state.draft=null;state.selection=null;load();});
-    const svg=main.querySelector('[data-dpg-chart]');if(!svg||!state.data)return;let anchor=null;
-    const indexAt=(event)=>{const point=svg.createSVGPoint();point.x=event.clientX;point.y=event.clientY;const local=point.matrixTransform(svg.getScreenCTM().inverse());return Math.max(0,Math.min(state.data.market.candles.length-1,Math.round((local.x-38)/(690-38)*(state.data.market.candles.length-1))));};
-    svg.addEventListener('pointerdown',(event)=>{anchor=indexAt(event);svg.setPointerCapture(event.pointerId);});
-    svg.addEventListener('pointerup',(event)=>{
-      if(anchor===null)return;
-      const end=indexAt(event),a=Math.min(anchor,end),b=Math.max(anchor,end),candles=state.data.market.candles,intervalMs=INTERVAL_MS[state.interval];
-      anchor=null;
-      state.draft={start:candles[a].time,end:b===a?candles[a].time+intervalMs-1:candles[b].time};
+    const commitRangeSelection=async(targetSelector=null)=>{
+      if(!state.draft)return false;
+      state.selection=state.draft;
+      await load();
+      if(targetSelector)main.querySelector(targetSelector)?.scrollIntoView({behavior:'smooth',block:'start'});
+      return true;
+    };
+    main.querySelector('[data-dpg-explain]')?.addEventListener('click',()=>{void commitRangeSelection('.q-dpg-move');});
+    main.querySelector('[data-dpg-clear]')?.addEventListener('click',()=>{state.draft=null;state.selection=null;void load();});
+    main.querySelectorAll('[data-dpg-chart-mode]').forEach(button=>button.addEventListener('click',()=>{state.chartMode=button.dataset.dpgChartMode||'select-range';draw();}));
+    const keyboardSelection=()=>{
+      const candles=state.data?.market?.candles||[],intervalMs=INTERVAL_MS[state.interval],startInput=main.querySelector('[data-dpg-range-start]'),endInput=main.querySelector('[data-dpg-range-end]');
+      if(!candles.length||!intervalMs||!startInput||!endInput)return;
+      state.draft=buildRangeSelection(candles,Number(startInput.value),Number(endInput.value),intervalMs);
       draw();
+    };
+    main.querySelector('[data-dpg-range-start]')?.addEventListener('change',keyboardSelection);
+    main.querySelector('[data-dpg-range-end]')?.addEventListener('change',keyboardSelection);
+    main.querySelectorAll('[data-dpg-range-action]').forEach(button=>button.addEventListener('click',async()=>{
+      const action=button.dataset.dpgRangeAction;
+      if(!state.draft)return;
+      if(action==='chat'){
+        const selection=state.draft;
+        document.dispatchEvent(new CustomEvent('qelly:open-ai',{detail:{mode:'decision-range',asset:state.asset,timeframe:state.interval,expand:true,decisionContext:{horizon:state.horizon,rr:state.rr,customRr:state.rr==='custom'?state.customRr:null,selection},prompt:'Explain only this selected historical '+state.asset+' range from '+displayTime(selection.start)+' to '+displayTime(selection.end)+'. Separate observed evidence from inference, use range-bounded evidence where available, disclose missing historical data, and do not substitute current context for historical evidence.'}}));
+        return;
+      }
+      const target={news:'.q-dpg-news',flow:'.q-dpg-derivatives',compare:'.q-dpg-ppf',similar:'.q-dpg-analogs'}[action]||null;
+      if(action==='note'){
+        if(!(await commitRangeSelection()))return;
+        const note=buildDecisionResearchNote(state.data,{requestedRr:state.rr,customRr:state.rr==='custom'?state.customRr:null,targetTouchCalibration:state.ledger?.calibration||null});
+        downloadDecisionResearchNote(note);toast?.('Selected-range research note exported',{tone:'success'});return;
+      }
+      await commitRangeSelection(target);
+    }));
+    const svg=main.querySelector('[data-dpg-chart]');
+    if(!svg||!state.data)return;
+    svg.dataset.mode=state.chartMode;
+    let anchor=null,pendingIndex=null,paintFrame=0;
+    const candles=state.data.market.candles,intervalMs=INTERVAL_MS[state.interval];
+    const indexAt=(event)=>{
+      const point=svg.createSVGPoint();point.x=event.clientX;point.y=event.clientY;
+      const matrix=svg.getScreenCTM();if(!matrix)return 0;
+      const local=point.matrixTransform(matrix.inverse());
+      return clamp(Math.round((local.x-CHART_GEOMETRY.pad)/(CHART_GEOMETRY.split-CHART_GEOMETRY.pad)*(candles.length-1)),0,candles.length-1);
+    };
+    const paintRange=(rawStart,rawEnd)=>{
+      if(rawStart===null||rawEnd===null)return;
+      const start=Math.min(rawStart,rawEnd),end=Math.max(rawStart,rawEnd),width=CHART_GEOMETRY.split-CHART_GEOMETRY.pad;
+      const center=(index)=>CHART_GEOMETRY.pad+index/Math.max(1,candles.length-1)*width,candleWidth=Math.max(1.2,width/candles.length*.62),startX=center(start),endX=center(end),left=Math.max(CHART_GEOMETRY.pad,startX-candleWidth*.8),right=Math.min(CHART_GEOMETRY.split,endX+candleWidth*.8);
+      const group=svg.querySelector('[data-dpg-selection]');group?.removeAttribute('hidden');
+      const rect=svg.querySelector('[data-dpg-selection-rect]');rect?.setAttribute('x',String(left));rect?.setAttribute('width',String(Math.max(1,right-left)));
+      for(const [selector,x] of [['[data-dpg-selection-start]',startX],['[data-dpg-selection-end]',endX],['[data-dpg-selection-start-handle]',startX],['[data-dpg-selection-end-handle]',endX]]){
+        const element=svg.querySelector(selector);if(!element)continue;
+        if(element.tagName.toLowerCase()==='line'){element.setAttribute('x1',String(x));element.setAttribute('x2',String(x));}else element.setAttribute('cx',String(x));
+      }
+      svg.querySelectorAll('[data-candle-index]').forEach(element=>element.classList.toggle('is-selected',Number(element.dataset.candleIndex)>=start&&Number(element.dataset.candleIndex)<=end));
+      const draft=buildRangeSelection(candles,start,end,intervalMs),metrics=rangeSelectionMetrics(candles,draft,state.interval),label=main.querySelector('[data-dpg-selection-label]');
+      if(label&&metrics)label.textContent='Selecting '+metrics.candles+' candle'+(metrics.candles===1?'':'s')+' · '+formatRangeDuration(metrics.durationMs)+' · '+(Number.isFinite(metrics.movePct)?(metrics.movePct>=0?'+':'')+metrics.movePct.toFixed(2)+'%':'move unavailable');
+    };
+    const queuePaint=(index)=>{pendingIndex=index;if(paintFrame)return;paintFrame=requestAnimationFrame(()=>{paintFrame=0;if(anchor!==null)paintRange(anchor,pendingIndex);});};
+    svg.addEventListener('pointerdown',(event)=>{
+      if(state.chartMode==='navigate')return;
+      event.preventDefault();anchor=indexAt(event);pendingIndex=anchor;paintRange(anchor,pendingIndex);svg.setPointerCapture?.(event.pointerId);
     });
+    svg.addEventListener('pointermove',(event)=>{if(anchor===null||state.chartMode==='navigate')return;event.preventDefault();queuePaint(state.chartMode==='select-candle'?anchor:indexAt(event));});
+    const finishSelection=(event,cancel=false)=>{
+      if(anchor===null)return;
+      if(paintFrame){cancelAnimationFrame(paintFrame);paintFrame=0;}
+      const end=cancel?anchor:(state.chartMode==='select-candle'?anchor:indexAt(event)),draft=buildRangeSelection(candles,anchor,end,intervalMs);
+      anchor=null;pendingIndex=null;
+      if(cancel||!draft){draw();return;}
+      state.draft=draft;draw();
+    };
+    svg.addEventListener('pointerup',(event)=>finishSelection(event,false));
+    svg.addEventListener('pointercancel',(event)=>finishSelection(event,true));
   };
   async function loadLedger({redraw=true}={}){
     if(!ledgerAuthenticated()){state.ledger=null;state.ledgerError=null;return;}
