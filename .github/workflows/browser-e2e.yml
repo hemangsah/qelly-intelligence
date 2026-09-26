@@ -9,6 +9,7 @@ on:
       - 'packages/**'
       - 'scripts/release-a5-*'
       - 'scripts/qelly-first-paint-stability.mjs'
+      - 'scripts/qelly-decision-range-selection-e2e.mjs'
       - 'scripts/finalize-public-runtime.mjs'
       - 'scripts/finalize-governed-discovery.mjs'
       - 'src/server/**'
@@ -127,6 +128,8 @@ jobs:
           console.log(JSON.stringify({routeCount:manifest.routeCount,renderCount:manifest.renderCount,pngs:pngs.length,accessibilityChecks:accessibility.checks,accessibilityStatus:accessibility.status,archives,archiveSize,status:manifest.status},null,2));
           if(!ok)process.exit(1);
           NODE
+      - name: Verify Decision selected-range interaction
+        run: node scripts/qelly-decision-range-selection-e2e.mjs
       - name: Upload complete or diagnostic screen evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -137,6 +140,7 @@ jobs:
             preview/release-a5-all-screens
             preview/RELEASE_A5_ALL_SCREENS_LOG.json
             preview/first-paint-stability
+            preview/decision-range-e2e
             validation/RELEASE_A5_ACCESSIBILITY_REGRESSION.json
           include-hidden-files: true
           if-no-files-found: warn
