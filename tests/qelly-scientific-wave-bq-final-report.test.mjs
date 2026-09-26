@@ -94,3 +94,12 @@ test('BQ conditional waves remain conditional instead of manufacturing unsupport
   assert.equal(state.conditionalWaves.BA.state,'NOT_ACTIVATED');
   assert.equal(state.conditionalWaves.BB.state,'PARTIAL_EXISTING');
 });
+
+
+test('BQ formal SLO caveat cannot be promoted from Browser E2E pass',async()=>{
+  const state=JSON.parse(await read('project-state/QELLY_POST_PR397_SCIENTIFIC_ACCEPTANCE_2026-09-26.json'));
+  assert.equal(state.acceptance.performance.formalSloCertification,'INCOMPLETE');
+  assert.equal(state.acceptance.performance.inp.observedMaxMs,248);
+  assert.equal(state.acceptance.performance.inp.targetMs,200);
+  assert.notEqual(state.acceptance.performance.inp.state,'PASS');
+});
