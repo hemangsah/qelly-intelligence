@@ -82,9 +82,12 @@ test('BQ latency evidence preserves reliability denominators instead of hiding s
   assert.deepEqual(state.latency.baseline.decision,{n:20,p50Ms:7960,p90Ms:9440,p95Ms:10030});
   assert.equal(state.latency.currentBoundedSample.decision.http200,20);
   assert.equal(state.latency.currentBoundedSample.decision.totalN,20);
-  assert.equal(state.latency.currentBoundedSample.scanner.http200,7);
-  assert.equal(state.latency.currentBoundedSample.scanner.http503,2);
-  assert.equal(state.latency.currentBoundedSample.scanner.http429,1);
+  assert.equal(state.latency.currentBoundedSample.scanner.http200,5);
+  assert.equal(state.latency.currentBoundedSample.scanner.http503,5);
+  assert.equal(state.latency.currentBoundedSample.scanner.http429,0);
+  assert.equal(state.latency.currentBoundedSample.scanner.p50SuccessMs,2462.1);
+  assert.equal(state.latency.currentBoundedSample.scanner.p90SuccessMs,2700.75);
+  assert.equal(state.latency.currentBoundedSample.scanner.p95SuccessMs,2775.17);
   assert.equal(state.latency.currentBoundedSample.scanner.certificationState,'INSUFFICIENT_SAMPLE');
 });
 
