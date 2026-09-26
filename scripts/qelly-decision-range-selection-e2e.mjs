@@ -36,13 +36,17 @@ const exercise=async({name,viewport,touch=false})=>{
   const start={x:box.x+box.width*.24,y:box.y+box.height*.54};
   const end={x:box.x+box.width*.53,y:box.y+box.height*.54};
   if(touch){
-    const payload=(type,point)=>({pointerId:41,pointerType:'touch',isPrimary:true,buttons:type==='pointerup'?0:1,button:0,clientX:point.x,clientY:point.y,bubbles:true,cancelable:true});
-    await chart.dispatchEvent('pointerdown',payload('pointerdown',start));
-    for(let step=1;step<=8;step++){
-      const point={x:start.x+(end.x-start.x)*step/8,y:start.y};
-      await chart.dispatchEvent('pointermove',payload('pointermove',point));
+    const cdp=await context.newCDPSession(page);
+    try{
+      await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:start.x,y:start.y,radiusX:2,radiusY:2,force:1}]});
+      for(let step=1;step<=8;step++){
+        const point={x:start.x+(end.x-start.x)*step/8,y:start.y};
+        await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:point.x,y:point.y,radiusX:2,radiusY:2,force:1}]});
+      }
+      await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    }finally{
+      await cdp.detach();
     }
-    await chart.dispatchEvent('pointerup',payload('pointerup',end));
   }else{
     await page.mouse.move(start.x,start.y);
     await page.mouse.down();
