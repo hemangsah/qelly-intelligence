@@ -106,3 +106,17 @@ test('BQ formal SLO caveat cannot be promoted from Browser E2E pass',async()=>{
   assert.equal(state.acceptance.performance.inp.targetMs,200);
   assert.notEqual(state.acceptance.performance.inp.state,'PASS');
 });
+
+
+test('BQ durable production finalization is no longer pending',async()=>{
+  const state=JSON.parse(await read('project-state/QELLY_POST_PR397_SCIENTIFIC_ACCEPTANCE_2026-09-26.json'));
+  assert.equal(state.acceptance.production.bqFinalRelease,'PASS');
+  assert.equal(state.finalProduction,'aeffd92a910bd638ff816aa1d2bfedab8389ef24');
+  assert.equal(state.finalization.bqPr,422);
+  assert.equal(state.finalization.bqExactHead,'f97d351bf12eb4caaad41817d572f485d59e471c');
+  assert.equal(state.finalization.bqMergeSha,'aeffd92a910bd638ff816aa1d2bfedab8389ef24');
+  assert.equal(state.finalization.exactHeadGateMatrix,'PASS_10_OF_10');
+  assert.equal(state.finalization.mergedPushGates,'PASS');
+  assert.equal(state.finalization.supabaseReleaseIdentity,'PASS');
+  assert.equal(state.finalization.openPrs,0);
+});

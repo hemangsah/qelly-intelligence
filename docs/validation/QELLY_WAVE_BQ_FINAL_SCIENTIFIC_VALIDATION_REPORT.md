@@ -2,6 +2,7 @@
 
 Date: 2026-09-26  
 Verified production base: `46dc910d766b0021361933b9acecc3b919bcd130`  
+Final BQ production: `aeffd92a910bd638ff816aa1d2bfedab8389ef24`  
 Scope: post-PR397 scientific validation / institutional Decision research master prompt
 
 ## Executive result
@@ -311,7 +312,7 @@ Production base `46dc910d766b0021361933b9acecc3b919bcd130` was:
 - externally verified by the Public Runtime browser/CSP gate;
 - recorded by `public.qelly_release_identity`.
 
-BQ itself is documentation/acceptance evidence only and must still pass the same exact-head release matrix before merge.
+BQ PR #422 passed the full 10/10 exact-head release matrix on `f97d351bf12eb4caaad41817d572f485d59e471c`, was squash-merged as `aeffd92a910bd638ff816aa1d2bfedab8389ef24`, deployed successfully by Cloudflare Pages, passed the merged-release CI / Security / Public Runtime / Live Terminal / Foundation / Container / Pages / canonical hash-route / Browser E2E gates, and was independently recorded by `public.qelly_release_identity`. Open PR count at production finalization was zero.
 
 ## 12. Final scientific conclusion
 
