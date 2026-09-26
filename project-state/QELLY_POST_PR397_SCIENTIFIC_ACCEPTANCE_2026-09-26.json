@@ -74,15 +74,19 @@
         "http200": 20
       },
       "scanner": {
-        "successN": 7,
+        "measuredAtUtc": "2026-09-26T00:17:13Z",
+        "pacingSeconds": 12,
+        "successN": 5,
         "totalN": 10,
-        "p50SuccessMs": 2104.118,
-        "p90SuccessMs": 2313.915,
-        "p95SuccessMs": 2318.026,
-        "http200": 7,
-        "http503": 2,
-        "http429": 1,
-        "certificationState": "INSUFFICIENT_SAMPLE"
+        "p50SuccessMs": 2462.1,
+        "p90SuccessMs": 2700.75,
+        "p95SuccessMs": 2775.17,
+        "http200": 5,
+        "http503": 5,
+        "http429": 0,
+        "other": 0,
+        "certificationState": "INSUFFICIENT_SAMPLE",
+        "reliabilityBoundary": "Success-only latency excludes five HTTP 503 responses; scanner availability is not certified."
       }
     }
   },
