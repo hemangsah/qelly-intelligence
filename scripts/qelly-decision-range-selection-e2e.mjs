@@ -31,6 +31,8 @@ const exercise=async({name,viewport,touch=false})=>{
   await page.goto(localOrigin+'/#/decision-provenance',{waitUntil:'domcontentloaded',timeout:45_000});
   const chart=page.locator('[data-dpg-chart]').first();
   await chart.waitFor({state:'visible',timeout:45_000});
+  await chart.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(120);
   const box=await chart.boundingBox();
   if(!box)throw new Error(name+': chart bounding box unavailable');
   const start={x:box.x+box.width*.24,y:box.y+box.height*.54};
