@@ -13,8 +13,8 @@ import {HttpError,enforceRateLimit,errorResponse,fetcher,responseJson} from '../
 import {createDecisionLatencyTrace,estimateSerializedPayload} from '../../_lib/decision-latency.js';
 import {resilientJsonRequest,providerFailureHealth,providerResiliencePublicSummary} from '../../_lib/decision-provider-resilience.js';
 import {buildDecisionDataQuality,applyDecisionDataQualityEligibility,buildDecisionModelHealth} from '../../_lib/decision-health-quality.js';
+import {DECISION_ASSET_SET,DECISION_ASSET_SYMBOLS} from '../../_lib/decision-asset-capabilities.js';
 
-const ASSETS=new Set(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
 const HORIZONS=Object.freeze({'1h':3_600_000,'4h':14_400_000,'12h':43_200_000,'1d':86_400_000,'3d':259_200_000,'7d':604_800_000});
 const TIMEFRAMES=Object.freeze(['15m','1h','4h','1d']);
 const NEWS_TERMS=Object.freeze({BTC:'Bitcoin OR BTC',ETH:'Ethereum OR Ether',SOL:'Solana',HYPE:'Hyperliquid',XRP:'XRP OR Ripple',DOGE:'Dogecoin OR DOGE'});
@@ -454,7 +454,7 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   const resolvedAsset=String(asset||'BTC').toUpperCase();
   const resolvedInterval=String(interval||'15m');
   const resolvedHorizon=String(horizon||'4h');
-  if(!ASSETS.has(resolvedAsset))throw new HttpError(400,'unsupported_asset','Supported assets: BTC, ETH, SOL, HYPE, XRP, DOGE');
+  if(!DECISION_ASSET_SET.has(resolvedAsset))throw new HttpError(400,'unsupported_asset','Supported assets: '+DECISION_ASSET_SYMBOLS.join(', '));
   if(!DECISION_INTERVALS[resolvedInterval])throw new HttpError(400,'unsupported_interval','Unsupported candle interval');
   if(!HORIZONS[resolvedHorizon])throw new HttpError(400,'unsupported_horizon','Supported horizons: 1h, 4h, 12h, 1d, 3d, 7d');
   const horizonBars=Math.ceil(HORIZONS[resolvedHorizon]/DECISION_INTERVALS[resolvedInterval]);

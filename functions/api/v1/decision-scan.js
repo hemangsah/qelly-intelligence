@@ -1,8 +1,9 @@
 import {buildDecisionIntelligence} from './decision-proven-graph.js';
 import {HttpError,enforceRateLimit,errorResponse,responseJson} from '../../_lib/runtime.js';
 import {createDecisionLatencyTrace,estimateSerializedPayload} from '../../_lib/decision-latency.js';
+import {DECISION_ASSET_SYMBOLS} from '../../_lib/decision-asset-capabilities.js';
 
-export const DECISION_SCAN_ASSETS=Object.freeze(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
+export const DECISION_SCAN_ASSETS=DECISION_ASSET_SYMBOLS;
 const INTERVALS=new Set(['1m','5m','15m','30m','1h','4h','1d']);
 const HORIZONS=new Set(['1h','4h','12h','1d','3d','7d']);
 const RR_VALUES=new Set(['auto','1','2','3','4','custom']);
@@ -33,7 +34,7 @@ const resolveAssets=(value)=>{
   if(value===null||value===undefined||value===''||value==='all')return [...DECISION_SCAN_ASSETS];
   const requested=(Array.isArray(value)?value:String(value).split(',')).map(item=>String(item).trim().toUpperCase()).filter(Boolean);
   const unique=[...new Set(requested)];
-  if(!unique.length||unique.some(asset=>!DECISION_SCAN_ASSETS.includes(asset)))throw new HttpError(400,'unsupported_scan_asset','Scanner assets must be drawn from BTC, ETH, SOL, HYPE, XRP and DOGE');
+  if(!unique.length||unique.some(asset=>!DECISION_SCAN_ASSETS.includes(asset)))throw new HttpError(400,'unsupported_scan_asset','Scanner assets must be drawn from '+DECISION_SCAN_ASSETS.join(', '));
   return unique;
 };
 
