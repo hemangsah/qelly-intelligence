@@ -14,6 +14,12 @@ const REGIME_FILTERS=new Set(['any','trending','ranging','transition','high_vola
 const EVENT_TOLERANCE=new Set(['any','low','medium','high']);
 const FRESHNESS_FILTERS=new Set(['any','live','live_or_delayed']);
 const SETUP_FRESHNESS=new Set(['any','current']);
+const DISCOVERY_MODES=new Set(['validated','aggressive']);
+const RANKING_PREFERENCES=new Set(['highest_quality','lowest_event_risk','closest_candidate']);
+const INTERVAL_ORDER=Object.freeze(['1m','5m','15m','30m','1h','4h','1d']);
+const INTERVAL_MS=Object.freeze({'1m':60_000,'5m':300_000,'15m':900_000,'30m':1_800_000,'1h':3_600_000,'4h':14_400_000,'1d':86_400_000});
+const HORIZON_MS=Object.freeze({'1h':3_600_000,'4h':14_400_000,'12h':43_200_000,'1d':86_400_000,'3d':259_200_000,'7d':604_800_000});
+const AGGRESSIVE_RELAXABLE_FILTER_FAILURES=new Set(['evidence_quality_below_minimum','mtf_agreement_below_minimum','live_liquidity_required','tight_liquidity_required','volatility_filter_mismatch','regime_filter_mismatch']);
 const FEASIBILITY_WEIGHT=Object.freeze({'HIGHLY FEASIBLE':1,FEASIBLE:.8,CONDITIONAL:.55,'LOW FEASIBILITY':.2,'NOT FEASIBLE':0,UNAVAILABLE:0});
 const ip=(request)=>request.headers.get('cf-connecting-ip')||request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()||'anonymous';
 const finite=(value)=>Number.isFinite(Number(value))?Number(value):null;
@@ -36,6 +42,24 @@ const resolveAssets=(value)=>{
   const unique=[...new Set(requested)];
   if(!unique.length||unique.some(asset=>!DECISION_SCAN_ASSETS.includes(asset)))throw new HttpError(400,'unsupported_scan_asset','Scanner assets must be drawn from '+DECISION_SCAN_ASSETS.join(', '));
   return unique;
+};
+
+const aggressiveIntervals=(interval,horizon)=>{
+  const current=String(interval||'15m'),index=INTERVAL_ORDER.indexOf(current);
+  if(index<0)return [current];
+  const output=[current],horizonMs=HORIZON_MS[String(horizon||'4h')]??Infinity;
+  const higher=INTERVAL_ORDER[index+1],lower=INTERVAL_ORDER[index-1];
+  if(higher&&INTERVAL_MS[higher]<=horizonMs)output.push(higher);
+  else if(lower)output.push(lower);
+  return [...new Set(output)].slice(0,2);
+};
+const searchVariants=(universe,{mode='validated',interval='15m',horizon='4h'}={})=>{
+  const intervals=mode==='aggressive'?aggressiveIntervals(interval,horizon):[interval];
+  return universe.flatMap(asset=>intervals.map(timeframe=>({asset,interval:timeframe})));
+};
+const eventRiskScore=(candidate)=>{
+  const level=String(candidate?.eventRisk?.level||'UNAVAILABLE').toUpperCase();
+  return ({LOW:1,MEDIUM:.7,HIGH:.3,EXTREME:0,UNAVAILABLE:-1})[level]??-1;
 };
 
 const rankingComponents=(result)=>{
@@ -125,16 +149,113 @@ const filterFailures=(result,filters,now)=>{
   return failures;
 };
 
-const compactCandidate=(result,{filters=normalizeFilters(),now=Date.now()}={})=>{
-  const view=result.qellyView||{},gate=view.evidenceGate||{},trade=result.tradeResearch||{},selected=trade.selected||null;
+const feasibleDiscoveryTarget=(trade,mode)=>{
+  const selected=trade?.selected||null;
+  const feasible=(item)=>['HIGHLY FEASIBLE','FEASIBLE'].includes(String(item?.feasibility||''));
+  if(mode!=='aggressive'||feasible(selected))return selected;
+  const score=(item)=>{
+    const feasibility=FEASIBILITY_WEIGHT[String(item?.feasibility||'UNAVAILABLE')]??0;
+    const ratio=finite(item?.ratio);
+    const boundedUtility=Number.isFinite(ratio)?Math.max(0,1-Math.abs(ratio-2)/4):0;
+    const declared=finite(item?.selectionScore);
+    return Number.isFinite(declared)?declared:100*(.8*feasibility+.2*boundedUtility);
+  };
+  return [...(Array.isArray(trade?.matrix)?trade.matrix:[]),...(Array.isArray(trade?.structuralTargets)?trade.structuralTargets:[])]
+    .filter(feasible)
+    .sort((a,b)=>score(b)-score(a)||(finite(a?.ratio)??99)-(finite(b?.ratio)??99))[0]||selected;
+};
+
+const coreValidationFailures=(result,{selected,entryReady}={})=>{
+  const view=result?.qellyView||{},gate=view.evidenceGate||{},trade=result?.tradeResearch||{};
+  const failures=[],action=String(view.action||'NO TRADE').toUpperCase(),truth=String(result?.truthState||'UNAVAILABLE').toUpperCase();
+  if(!['LIVE','DELAYED'].includes(truth))failures.push('freshness_below_core_requirement');
+  if(action!=='BUY'&&action!=='SELL')failures.push('directional_setup_unavailable');
+  if(gate.calibrationEligible!==true)failures.push('calibration_gate_not_passed');
+  if(!trade?.entry||!trade?.stop)failures.push('risk_structure_unavailable');
+  if(!selected||!['HIGHLY FEASIBLE','FEASIBLE'].includes(String(selected.feasibility||'')))failures.push('feasible_rr_unavailable');
+  if(!entryReady)failures.push('entry_condition_not_ready');
+  const event=result?.eventRisk||result?.evidence?.eventRisk||{};
+  if(String(event?.state||'').toLowerCase()==='available'&&String(event?.level||'').toUpperCase()==='EXTREME')failures.push('critical_event_risk');
+  return [...new Set(failures)];
+};
+
+const humanCondition=(failure)=>({
+  freshness_below_core_requirement:'Fresh live or delayed provider data must recover.',
+  directional_setup_unavailable:'QELLY VIEW must become directionally eligible (BUY or SELL).',
+  calibration_gate_not_passed:'The independent calibration gate must pass; probability cannot be fabricated.',
+  risk_structure_unavailable:'A verified entry and invalidation structure must exist.',
+  feasible_rr_unavailable:'At least one structurally feasible R:R target must exist.',
+  entry_condition_not_ready:'The verified entry trigger must become ready without chasing price.',
+  critical_event_risk:'Critical verified event risk must clear before validation.',
+  direction_long_required:'A validated long setup must exist.',
+  direction_short_required:'A validated short setup must exist.',
+  event_risk_unavailable:'Verified event-risk evidence is required by the selected tolerance.',
+  event_risk_above_tolerance:'Verified event risk must fall within the selected tolerance.',
+  live_data_required:'Live provider data is required by the selected freshness filter.',
+  freshness_below_requirement:'Provider freshness must meet the selected requirement.',
+  setup_expired:'The setup must be recomputed from fresh evidence.',
+  calibrated_confidence_unavailable:'Calibration-gated evidence confidence must become available.',
+  calibrated_confidence_below_minimum:'Calibration-gated evidence confidence must meet the selected minimum.',
+  evidence_quality_below_minimum:'Evidence quality should improve to the preferred threshold.',
+  mtf_agreement_below_minimum:'Multi-timeframe agreement should improve to the preferred threshold.',
+  live_liquidity_required:'Live L2 liquidity should become available.',
+  tight_liquidity_required:'Verified spread should meet the preferred tight-liquidity condition.',
+  volatility_filter_mismatch:'Volatility regime should match the selected preference.',
+  regime_filter_mismatch:'Market regime should match the selected preference.'
+})[failure]||String(failure||'condition').replaceAll('_',' ');
+
+const closestCandidateSummary=(candidate)=>{
+  if(!candidate)return null;
+  const missing=[...new Set([...(candidate.validationFailures||[]),...(candidate.preferenceFailures||[])])];
+  return {
+    label:'CLOSEST CANDIDATE — NOT YET VALIDATED',
+    validated:false,
+    asset:candidate.asset,
+    interval:candidate.interval,
+    direction:candidate.action,
+    possibleTrigger:candidate.trade?.trigger||candidate.trade?.reason||'Wait for a verified entry trigger.',
+    missingConditions:missing,
+    whatMustHappen:missing.map(humanCondition),
+    probabilityState:candidate.evidence?.calibrationEligible?'CALIBRATION_GATE_PASSED':'UNCALIBRATED',
+    calibratedProbability:null,
+    contradiction:Array.isArray(candidate.contradictions)&&candidate.contradictions.length?candidate.contradictions[0]:null,
+    eventRisk:candidate.eventRisk,
+    researchPriority:candidate.researchPriority,
+    boundary:'This is a research candidate only. It is not a valid setup, trade recommendation, target guarantee or substitute for missing evidence.'
+  };
+};
+
+const candidateComparator=(ranking)=>(left,right)=>{
+  if(left.eligible!==right.eligible)return left.eligible?-1:1;
+  if(left.conditional!==right.conditional)return left.conditional?-1:1;
+  if(ranking==='lowest_event_risk'){
+    const eventDelta=eventRiskScore(right)-eventRiskScore(left);
+    if(eventDelta)return eventDelta;
+  }else if(ranking==='closest_candidate'){
+    const distanceDelta=(left.validationDistance??999)-(right.validationDistance??999);
+    if(distanceDelta)return distanceDelta;
+  }
+  if(left.researchPriority!==right.researchPriority)return (right.researchPriority??-1)-(left.researchPriority??-1);
+  if(left.validationDistance!==right.validationDistance)return (left.validationDistance??999)-(right.validationDistance??999);
+  return String(left.asset).localeCompare(String(right.asset))||String(left.interval).localeCompare(String(right.interval));
+};
+
+const compactCandidate=(result,{filters=normalizeFilters(),now=Date.now(),mode='validated'}={})=>{
+  const view=result.qellyView||{},gate=view.evidenceGate||{},trade=result.tradeResearch||{};
+  const selected=feasibleDiscoveryTarget(trade,mode);
   const action=String(view.action||'NO TRADE');
   const lifecycleState=String(trade?.lifecycle?.state||'').toUpperCase();
   const entryReady=!trade?.lifecycle||['VALID','TRIGGERED','ACTIVE'].includes(lifecycleState);
   const selectedFeasibility=String(selected?.feasibility||'UNAVAILABLE');
-  const baseDirectional=(action==='BUY'||action==='SELL')&&trade.status==='VALID'&&gate.calibrationEligible===true;
-  const failures=filterFailures(result,filters,now);
-  const conditional=baseDirectional&&(!entryReady||selectedFeasibility==='CONDITIONAL');
-  const eligible=baseDirectional&&entryReady&&['HIGHLY FEASIBLE','FEASIBLE'].includes(selectedFeasibility)&&failures.length===0;
+  const filterFailureList=filterFailures(result,filters,now);
+  const relaxedPreferenceFailures=mode==='aggressive'?filterFailureList.filter(item=>AGGRESSIVE_RELAXABLE_FILTER_FAILURES.has(item)):[];
+  const enforcedFilterFailures=mode==='aggressive'?filterFailureList.filter(item=>!AGGRESSIVE_RELAXABLE_FILTER_FAILURES.has(item)):filterFailureList;
+  const coreFailures=coreValidationFailures(result,{selected,entryReady});
+  const validationFailures=[...new Set([...coreFailures,...enforcedFilterFailures])];
+  const baseDirectional=(action==='BUY'||action==='SELL')&&gate.calibrationEligible===true;
+  const eligible=validationFailures.length===0;
+  const conditional=!eligible&&baseDirectional&&validationFailures.length>0&&validationFailures.every(item=>item==='entry_condition_not_ready');
+  const failures=[...validationFailures,...relaxedPreferenceFailures];
   const truthState=String(result.truthState||'UNAVAILABLE').toUpperCase();
   const state=['STALE','DEGRADED','ERROR'].includes(truthState)?'DATA_DEGRADED'
     :eligible?'VALID_SETUP'
@@ -155,6 +276,11 @@ const compactCandidate=(result,{filters=normalizeFilters(),now=Date.now()}={})=>
     eligible,
     conditional,
     filterFailures:failures,
+    validationFailures,
+    preferenceFailures:relaxedPreferenceFailures,
+    relaxedPreferences:mode==='aggressive'?relaxedPreferenceFailures:[],
+    validationDistance:round(validationFailures.length+relaxedPreferenceFailures.length*.25,2),
+    discoveryMode:mode,
     researchPriority:researchPriority(result),
     researchPriorityComponents:Object.fromEntries(Object.entries(components).map(([key,value])=>[key,round(value,3)])),
     researchPriorityMeaning:'Evidence triage score only; it is not a probability, win rate, expected return or execution ranking.',
@@ -182,11 +308,18 @@ const compactCandidate=(result,{filters=normalizeFilters(),now=Date.now()}={})=>
     },
     eventRisk:{state:event?.state||'unavailable',level:event?.level||'UNAVAILABLE'},
     trade:{
-      status:trade.status||'NO_TRADE',
+      status:eligible?'VALID':trade.status||'NO_TRADE',
+      sourceStatus:trade.status||'NO_TRADE',
       lifecycle:lifecycleState||null,
       entryReady,
+      setupType:trade?.entry?.method||'UNAVAILABLE',
+      trigger:trade?.entry?.trigger||null,
+      confirmationCondition:trade?.entry?.confirmationCondition||null,
       reason:trade.reason||view.label||'No valid setup.',
+      requestedRr:trade.requestedRr??null,
       rr:selected?.label??null,
+      rrRelaxed:mode==='aggressive'&&Boolean(selected)&&selected!==trade.selected,
+      searchedRiskRewards:[...new Set([...(Array.isArray(trade?.matrix)?trade.matrix:[]),...(Array.isArray(trade?.structuralTargets)?trade.structuralTargets:[])].map(item=>item?.label).filter(Boolean))],
       feasibility:selected?.feasibility??null,
       selectionScore:round(finite(selected?.selectionScore),2),
       selectionReason:selected?.selectionReason??null,
@@ -224,6 +357,8 @@ export async function runDecisionScan(env,{
   requestedRr='auto',
   customRr=null,
   assets=null,
+  mode='validated',
+  ranking='highest_quality',
   direction='any',
   minEvidenceQuality=0,
   minCalibratedConfidence=0,
@@ -240,6 +375,8 @@ export async function runDecisionScan(env,{
   const resolvedInterval=String(interval||'15m');
   const resolvedHorizon=String(horizon||'4h');
   const resolvedRr=String(requestedRr||'auto');
+  const resolvedMode=normalizeChoice(mode,DISCOVERY_MODES,'validated','discovery mode');
+  const resolvedRanking=normalizeChoice(ranking,RANKING_PREFERENCES,'highest_quality','ranking preference');
   if(!INTERVALS.has(resolvedInterval))throw new HttpError(400,'unsupported_interval','Unsupported candle interval');
   if(!HORIZONS.has(resolvedHorizon))throw new HttpError(400,'unsupported_horizon','Supported horizons: 1h, 4h, 12h, 1d, 3d, 7d');
   if(!RR_VALUES.has(resolvedRr))throw new HttpError(400,'unsupported_risk_reward','Supported R:R choices: auto, 1, 2, 3, 4, custom');
@@ -248,10 +385,12 @@ export async function runDecisionScan(env,{
   const universe=resolveAssets(assets);
   const filters=normalizeFilters({direction,minEvidenceQuality,minCalibratedConfidence,minMtfAgreement,liquidity,volatility,regime,eventRiskTolerance,freshness,setupFreshness});
   const latency=createDecisionLatencyTrace();
+  const variants=searchVariants(universe,{mode:resolvedMode,interval:resolvedInterval,horizon:resolvedHorizon});
+  const concurrency=resolvedMode==='aggressive'?3:2;
 
-  const settled=await mapPool(universe,2,(asset)=>latency.time('asset:'+asset,()=>build(env,{
-    asset,
-    interval:resolvedInterval,
+  const settled=await mapPool(variants,concurrency,(variant)=>latency.time('asset:'+variant.asset+':'+variant.interval,()=>build(env,{
+    asset:variant.asset,
+    interval:variant.interval,
     horizon:resolvedHorizon,
     requestedRr:resolvedRr,
     customRr,
@@ -263,38 +402,51 @@ export async function runDecisionScan(env,{
   const failures=[];
   const assetDecisionMs={};
   settled.forEach((result,index)=>{
-    const asset=universe[index];
+    const variant=variants[index];
     if(result.status==='fulfilled'){
-      candidates.push(compactCandidate(result.value,{filters,now:observedAt}));
-      assetDecisionMs[asset]=finite(result.value?.performance?.totalMs);
-    }else failures.push({asset,state:'PROVIDER_UNAVAILABLE',reason:String(result.reason?.message||'Decision evidence unavailable').slice(0,240)});
-
+      candidates.push(compactCandidate(result.value,{filters,now:observedAt,mode:resolvedMode}));
+      assetDecisionMs[variant.asset+':'+variant.interval]=finite(result.value?.performance?.totalMs);
+    }else failures.push({asset:variant.asset,interval:variant.interval,state:'PROVIDER_UNAVAILABLE',reason:String(result.reason?.message||'Decision evidence unavailable').slice(0,240)});
   });
 
   if(!candidates.length)throw new HttpError(503,'provider_unavailable','No scan candidate could be verified from live provider evidence.',{retryable:true});
 
-  candidates.sort((left,right)=>{
-    if(left.eligible!==right.eligible)return left.eligible?-1:1;
-    if(left.conditional!==right.conditional)return left.conditional?-1:1;
-    if(left.researchPriority!==right.researchPriority)return (right.researchPriority??-1)-(left.researchPriority??-1);
-    return left.asset.localeCompare(right.asset);
-  });
+  candidates.sort(candidateComparator(resolvedRanking));
   const eligible=candidates.filter(item=>item.eligible);
   const conditionalCount=candidates.filter(item=>item.state==='CONDITIONAL_SETUP').length;
   const allDegraded=candidates.every(item=>item.state==='DATA_DEGRADED');
   const hasWait=candidates.some(item=>item.state==='WAIT');
   const state=eligible.length?'VALID_SETUP':conditionalCount?'CONDITIONAL_SETUP':allDegraded?'DATA_DEGRADED':hasWait?'WAIT':'NO_ELIGIBLE_SETUP';
+  const closestPool=candidates.filter(item=>item.state!=='DATA_DEGRADED');
+  const closestCandidate=eligible.length?null:closestCandidateSummary([...(closestPool.length?closestPool:candidates)].sort(candidateComparator('closest_candidate'))[0]||null);
+  const setupTypes=[...new Set(candidates.map(item=>item.trade?.setupType).filter(item=>item&&item!=='UNAVAILABLE'))];
+  const searchedRiskRewards=[...new Set(candidates.flatMap(item=>item.trade?.searchedRiskRewards||[]))];
 
   return {
-    schemaVersion:'qelly.decision-scan/2.0.0',
+    schemaVersion:'qelly.decision-scan/3.0.0',
     generatedAt:new Date(observedAt).toISOString(),
     state,
+    mode:resolvedMode,
+    ranking:resolvedRanking,
     universe,
     governedUniverse:DECISION_SCAN_ASSETS,
     interval:resolvedInterval,
     horizon:resolvedHorizon,
     riskReward:resolvedRr==='custom'?{mode:'custom',value:customRr}:{mode:resolvedRr},
     filters,
+    searchPlan:{
+      scope:universe.length===1?'CURRENT_ASSET':'ALL_SUPPORTED_MARKETS',
+      assets:[...universe],
+      intervals:[...new Set(variants.map(item=>item.interval))],
+      directions:filters.direction==='any'?['LONG','SHORT']:[filters.direction.toUpperCase()],
+      riskRewards:searchedRiskRewards.length?searchedRiskRewards:['1:1','1:2','1:3','1:4'],
+      setupTypes,
+      boundedVariantCount:variants.length,
+      aggressiveBroadening:resolvedMode==='aggressive',
+      boundary:'Aggressive Discovery broadens supported assets, adjacent supported timeframes and existing R:R/setup possibilities. It never fabricates direction, provider evidence, calibration, structural validity or event safety.'
+    },
+    validatedSetup:eligible[0]||null,
+    closestCandidate,
     candidates,
     eligibleCount:eligible.length,
     conditionalCount,
@@ -303,7 +455,7 @@ export async function runDecisionScan(env,{
     failures,
     performance:latency.snapshot({
       assetDecisionMs,
-      concurrency:2,
+      concurrency,
       database:{used:false,ms:null},
       network:'Measure end-to-end separately at the client or external probe; scanner timings exclude internet transit.'
     }),
@@ -320,6 +472,12 @@ export async function runDecisionScan(env,{
       expectedValueCalibrated:false,
       fabricatedFallback:false,
       rankingIsSuccessProbability:false,
+      aggressiveCanFabricateValidSetup:false,
+      aggressiveBypassesCalibration:false,
+      aggressiveBypassesFreshness:false,
+      aggressiveBypassesProviderFailure:false,
+      aggressiveBypassesCriticalEventRisk:false,
+      closestCandidateIsValidated:false,
       noTradeFirstClass:true
     }
   };
@@ -336,6 +494,8 @@ export async function onRequest({request,env}){
       requestedRr:url.searchParams.get('rr')||'auto',
       customRr:url.searchParams.get('customRr'),
       assets:url.searchParams.get('assets'),
+      mode:url.searchParams.get('mode')||'validated',
+      ranking:url.searchParams.get('ranking')||'highest_quality',
       direction:url.searchParams.get('direction')||'any',
       minEvidenceQuality:url.searchParams.get('minEvidenceQuality'),
       minCalibratedConfidence:url.searchParams.get('minCalibratedConfidence'),
@@ -354,6 +514,6 @@ export async function onRequest({request,env}){
 }
 
 export const __decisionScanTest=Object.freeze({
-  INTERVALS,HORIZONS,RR_VALUES,DIRECTIONS,LIQUIDITY_FILTERS,VOLATILITY_FILTERS,REGIME_FILTERS,EVENT_TOLERANCE,FRESHNESS_FILTERS,SETUP_FRESHNESS,
-  resolveAssets,normalizeFilters,filterFailures,rankingComponents,researchPriority,compactCandidate,mapPool
+  INTERVALS,HORIZONS,RR_VALUES,DIRECTIONS,LIQUIDITY_FILTERS,VOLATILITY_FILTERS,REGIME_FILTERS,EVENT_TOLERANCE,FRESHNESS_FILTERS,SETUP_FRESHNESS,DISCOVERY_MODES,RANKING_PREFERENCES,
+  resolveAssets,aggressiveIntervals,searchVariants,normalizeFilters,filterFailures,rankingComponents,researchPriority,feasibleDiscoveryTarget,coreValidationFailures,closestCandidateSummary,candidateComparator,compactCandidate,mapPool
 });
