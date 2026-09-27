@@ -79,3 +79,13 @@ test('Wave BS is integrated into the existing Decision response and selected-mov
   for(const phrase of ['SELECTED MOVE INTELLIGENCE','Evidence coverage','CURRENT CONTEXT','Association, not proof of causation','Before','During','After'])assert.ok(route.includes(phrase),phrase);
   for(const selector of ['.q-dpg-range-intelligence','.q-dpg-range-coverage','.q-dpg-range-comparison'])assert.ok(css.includes(selector),selector);
 });
+
+
+test('Wave BS Browser E2E enters the explained selected-range intelligence state',async()=>{
+  const script=await read('scripts/qelly-decision-range-selection-e2e.mjs');
+  assert.match(script,/buildDecisionRangeEvidence/);
+  assert.match(script,/data-dpg-explain/);
+  assert.match(script,/data-dpg-range-intelligence/);
+  assert.match(script,/rangeIntelligence:intelligenceRequired/);
+  for(const phrase of ['selected move intelligence','evidence coverage','current context','association, not proof of causation'])assert.ok(script.includes(phrase),phrase);
+});

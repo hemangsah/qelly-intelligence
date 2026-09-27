@@ -2,6 +2,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {chromium} from 'playwright';
 import {startServer} from './release-a5-evidence-server.mjs';
+import {buildDecisionRangeEvidence} from '../functions/_lib/decision-range-evidence.js';
 
 const outputDir=path.resolve('preview/decision-range-e2e');
 await mkdir(outputDir,{recursive:true});
@@ -16,7 +17,14 @@ const proxyDecision=async(route)=>{
   const requestUrl=new URL(route.request().url());
   const target=new URL(requestUrl.pathname+requestUrl.search,productionOrigin);
   const response=await fetch(target,{headers:{accept:'application/json'}});
-  const body=await response.text();
+  let body=await response.text();
+  if(response.ok&&requestUrl.searchParams.has('selectionStart')&&requestUrl.pathname.includes('/api/v1/decision-proven-graph')){
+    try{
+      const payload=JSON.parse(body);
+      payload.rangeEvidence=buildDecisionRangeEvidence({graph:payload,evidence:payload.evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:'UTC'});
+      body=JSON.stringify(payload);
+    }catch{}
+  }
   await route.fulfill({status:response.status,contentType:response.headers.get('content-type')||'application/json; charset=utf-8',body});
 };
 
@@ -69,8 +77,15 @@ const exercise=async({name,viewport,touch=false})=>{
   const timestampsAvailable=!normalizedSummary.includes('time unavailable');
   if(!persistent)failures.push({type:'range-overlay',hidden,candles,boundaries,handles});
   if(!required||!timestampsAvailable)failures.push({type:'range-summary',text,required,timestampsAvailable});
+  await page.locator('[data-dpg-explain]').first().click();
+  const intelligence=page.locator('[data-dpg-range-intelligence]').first();
+  await intelligence.waitFor({state:'visible',timeout:45_000});
+  const intelligenceText=(await intelligence.innerText()).replace(/\s+/g,' ').trim();
+  const normalizedIntelligence=intelligenceText.toLowerCase();
+  const intelligenceRequired=['selected move intelligence','exact range','evidence coverage','current context','association, not proof of causation','before','during','after'].every(label=>normalizedIntelligence.includes(label));
+  if(!intelligenceRequired)failures.push({type:'range-intelligence',text:intelligenceText});
   await page.screenshot({path:path.join(outputDir,`decision-range-selected-${name}.png`),fullPage:true});
-  const result={name,viewport,touch,persistent,candles,boundaries,handles,summary:text,failures};
+  const result={name,viewport,touch,persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,failures};
   results.push(result);
   await context.close();
 };
