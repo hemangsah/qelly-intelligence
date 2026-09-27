@@ -14,6 +14,7 @@ import {createDecisionLatencyTrace,estimateSerializedPayload} from '../../_lib/d
 import {resilientJsonRequest,providerFailureHealth,providerResiliencePublicSummary} from '../../_lib/decision-provider-resilience.js';
 import {buildDecisionDataQuality,applyDecisionDataQualityEligibility,buildDecisionModelHealth} from '../../_lib/decision-health-quality.js';
 import {DECISION_ASSET_SET,DECISION_ASSET_SYMBOLS} from '../../_lib/decision-asset-capabilities.js';
+import {buildDecisionNextMoveResearch} from '../../_lib/decision-next-move.js';
 import {buildDecisionAssetEvidenceProfile} from '../../_lib/decision-asset-evidence-profiles.js';
 
 const HORIZONS=Object.freeze({'1h':3_600_000,'4h':14_400_000,'12h':43_200_000,'1d':86_400_000,'3d':259_200_000,'7d':604_800_000});
@@ -451,7 +452,7 @@ async function fetchTimeframeSupport(fetchImpl,asset,endTime,selectedInterval){
 }
 const assembleTimeframes=(selectedGraph,supportViews)=>summarizeTimeframes([timeframeSummary(selectedGraph),...(Array.isArray(supportViews)?supportViews:[]).filter(item=>item.interval!==selectedGraph.interval)]);
 
-export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',horizon='4h',selection=null,requestedRr='auto',customRr=null,includeNews=true,now=Date.now()}={}){
+export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',horizon='4h',selection=null,requestedRr='auto',customRr=null,nextBars=null,includeNews=true,now=Date.now()}={}){
   const resolvedAsset=String(asset||'BTC').toUpperCase();
   const resolvedInterval=String(interval||'15m');
   const resolvedHorizon=String(horizon||'4h');
@@ -460,6 +461,8 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   if(!HORIZONS[resolvedHorizon])throw new HttpError(400,'unsupported_horizon','Supported horizons: 1h, 4h, 12h, 1d, 3d, 7d');
   const horizonBars=Math.ceil(HORIZONS[resolvedHorizon]/DECISION_INTERVALS[resolvedInterval]);
   if(horizonBars<2||horizonBars>168)throw new HttpError(400,'incompatible_horizon','Choose a horizon at least two bars long and no more than 168 bars');
+  const resolvedNextBars=nextBars==null||nextBars===''?null:Number(nextBars);
+  if(resolvedNextBars!==null&&(!Number.isInteger(resolvedNextBars)||resolvedNextBars<1||resolvedNextBars>12))throw new HttpError(400,'invalid_next_bars','Next-move custom horizon must be an integer from 1 to 12 candles');
   let resolvedSelection=null;
   if(selection){
     const start=Number(selection.start),end=Number(selection.end);
@@ -584,6 +587,8 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
       historicalAnalogs:buildDecisionHistoricalAnalogs(payload,{interval:resolvedInterval,horizonBars,windowBars:100,limit:5})
     };
     graph=calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liquidity,crossAsset);
+    const nextMoveResearch=buildDecisionNextMoveResearch(payload,{asset:resolvedAsset,interval:resolvedInterval,customBars:resolvedNextBars,paths:192});
+    graph={...graph,nextMoveResearch};
     quantCalibrationAnalogsSpan();
   }catch(error){
     quantCalibrationAnalogsSpan('error');
@@ -657,6 +662,7 @@ export async function onRequest({request,env}){
       horizon:url.searchParams.get('horizon')||'4h',
       requestedRr:url.searchParams.get('rr')||'auto',
       customRr:url.searchParams.get('customRr'),
+      nextBars:url.searchParams.get('nextBars'),
       selection
     });
     const serialization=estimateSerializedPayload(result);
