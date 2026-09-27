@@ -58,7 +58,7 @@ export async function onRequest({request,env}){
     const evidence={...base.evidence,news:{
       state:duringNews.state,provider:'GDELT',articles:duringNews.articles,clusters:clustering.clusters,clustering,
       observedAt:duringNews.fetchedAt??null,cache:duringNews.cache??null,fallbackReason:duringNews.fallbackReason??null,
-      boundary:'Exact selected-range news context. Retrieval uses explicit historical start/end timestamps with recent-news fallback disabled; current news outside this window is never injected.'
+      boundary:'Exact selected-range news context. Retrieval uses explicit historical start/end timestamps with recent-news fallback disabled; current news outside this window is not injected; recent-news fallback is disabled for exact historical ranges.'
     }};
     const rangeEvidenceBase=buildDecisionRangeEvidence({graph:base,evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:url.searchParams.get('timezone')||'UTC'});
     const timeline=buildDecisionHistoricalNewsTimeline({asset,rangeEvidence:rangeEvidenceBase,newsBuckets:{before:beforeNews,during:duringNews,after:afterNews}});

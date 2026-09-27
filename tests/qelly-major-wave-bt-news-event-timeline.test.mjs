@@ -31,9 +31,9 @@ test('Wave BT exact-window no-match path makes one provider request and does not
 
 test('Wave BT buckets source-backed articles strictly by timestamp and rejects contamination',()=>{
   const timeline=buildDecisionHistoricalNewsTimeline({asset:'BTC',rangeEvidence,newsBuckets:{
-    before:bucket(start-duration,start,[article('Bitcoin policy update',start-1_000)]),
-    during:bucket(start,end,[article('Bitcoin ETF inflow update',start+10_000),article('Bitcoin old unrelated timestamp',start-duration-10_000,'bad.example','https://bad.example/a')]),
-    after:bucket(end,end+duration,[article('Bitcoin market update',end+10_000)])
+    before:bucket(start-duration,start,[article('Bitcoin policy update',start-1_000,'before.example','https://before.example/a')]),
+    during:bucket(start,end,[article('Bitcoin ETF inflow update',start+10_000,'during.example','https://during.example/a'),article('Bitcoin old unrelated timestamp',start-duration-10_000,'bad.example','https://bad.example/a')]),
+    after:bucket(end,end+duration,[article('Bitcoin market update',end+10_000,'after.example','https://after.example/a')])
   }});
   assert.equal(timeline.state,'AVAILABLE');
   assert.equal(timeline.buckets.BEFORE.length,1);
