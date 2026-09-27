@@ -16,6 +16,7 @@ import {buildDecisionDataQuality,applyDecisionDataQualityEligibility,buildDecisi
 import {DECISION_ASSET_SET,DECISION_ASSET_SYMBOLS} from '../../_lib/decision-asset-capabilities.js';
 import {buildDecisionNextMoveResearch} from '../../_lib/decision-next-move.js';
 import {buildDecisionAssetEvidenceProfile} from '../../_lib/decision-asset-evidence-profiles.js';
+import {buildDecisionFormulaGovernance} from '../../_lib/decision-formula-governance.js';
 
 const HORIZONS=Object.freeze({'1h':3_600_000,'4h':14_400_000,'12h':43_200_000,'1d':86_400_000,'3d':259_200_000,'7d':604_800_000});
 const TIMEFRAMES=Object.freeze(['15m','1h','4h','1d']);
@@ -306,9 +307,14 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liqui
     boundary:'Evidence confidence is a weighted evidence-quality score, not a success probability. Freshness, sample depth, scenario separation and coverage-adjusted multi-timeframe agreement each enter the final score exactly once.'
   };
   const baseAction=base?.action||'NO TRADE';
+  const formulaGovernance=buildDecisionFormulaGovernance(graph,{multiTimeframe,derivatives,liquidity,crossAsset});
   let action=baseAction;
   const contradictions=[];
   const directionalAction=baseAction==='BUY'||baseAction==='SELL';
+  if(directionalAction&&formulaGovernance.severeContradiction){
+    action='NO TRADE';
+    contradictions.push('Governed formula families materially contradict the base directional view after redundancy control.');
+  }
   if(directionalAction){
     if(directional<2||agreement.direction==='MIXED'){
       action='NO TRADE';
@@ -360,8 +366,10 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liqui
     action='NO TRADE';
     contradictions.push(calibrationState==='WEAK_CALIBRATION'?'Directional setup is withheld because walk-forward calibration quality does not clear the Brier/reliability gate.':'Directional setup is withheld because empirical walk-forward calibration is not yet available.');
   }
+  const formulaWhy=(formulaGovernance.topContributors||[]).filter(item=>item.role==='directional_evidence'&&!item.suppressedBy&&Math.abs(Number(item.contribution)||0)>.001).slice(0,3).map(item=>'Formula attribution: '+item.label+' · '+item.direction+' · governed contribution '+round(item.contribution,4)+'.');
   const why=[
     ...(Array.isArray(base?.why)?base.why:[]),
+    ...formulaWhy,
     total?('Multi-timeframe evidence: '+String(agreement.direction||'MIXED')+' with '+aligned+'/'+total+' observed timeframes aligned.'):'Multi-timeframe evidence is unavailable and was not inferred.',
     derivativesLive?'Current funding/open-interest context is available as risk context; it does not force direction.':'Current funding/open-interest context is unavailable and did not increase confidence.',
     liquidityLive?('Current L2 liquidity: '+String(liquidity.spreadState||'UNKNOWN')+' spread · '+String(liquidityConsensus).replaceAll('_',' ')+' multi-depth state · microprice bias '+(micropriceBiasBps===null?'unavailable':round(micropriceBiasBps,2)+' bps')+'. This is point-in-time risk context, not a directional signal.'):'Current L2 liquidity is unavailable and was not inferred.',
@@ -381,6 +389,7 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liqui
     contradictions,
     riskState:{label:riskLabel,atrPct:round(atrPct,2),volatilityRegime,expectedMovePct:round(finite(graph?.quant?.volatility?.expectedMovePct),3),structure,liquidity:liquidityLive?{spreadState:liquidity.spreadState,spreadBps,imbalanceState:liquidity.imbalanceState,top5Imbalance:bookImbalance,top10Imbalance:bookImbalance10,depthConsensus:liquidityConsensus,micropriceBiasBps}:null},
     scenario:{bull,bear,base:finite(graph.forecast?.probabilities?.base)??0,gap:round(scenarioGap,4),leading:bull>bear?'BULL':bear>bull?'BEAR':'BALANCED'},
+    formulaGovernance,
     evidenceGate:{
       baseAction,
       directionalEligible:action==='BUY'||action==='SELL',
@@ -414,6 +423,12 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liqui
       crossAssetBenchmark:crossAssetAvailable?String(crossAsset.benchmark||''):null,
       crossAssetCorrelation:crossAssetAvailable?round(finite(crossAsset.correlation),4):null,
       quantCoverage:graph?.quant?.state==='DERIVED'?'derived':'insufficient',
+      formulaGovernanceState:formulaGovernance.state,
+      formulaNetDirectionalScore:formulaGovernance.netDirectionalScore,
+      formulaBaseActionSupport:formulaGovernance.baseActionSupport,
+      formulaActiveDirectionalFamilies:formulaGovernance.activeDirectionalFamilies,
+      formulaSuppressedFeatureCount:formulaGovernance.suppressedFeatureCount,
+      formulaSevereContradiction:formulaGovernance.severeContradiction,
       calibrationState,
       calibrationEligible
     }
@@ -426,6 +441,7 @@ export function calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liqui
   }):graph.graph?.textAlternative;
   return {
     ...graph,
+    formulaGovernance,
     qellyView,
     confidence:{
       ...graph.confidence,
