@@ -41,7 +41,7 @@ const normalize=(raw)=>(Array.isArray(raw)?raw:[]).map((item,index)=>({
   low:finite(item?.low??item?.l),
   close:finite(item?.close??item?.c),
   volume:finite(item?.volume??item?.v)??0
-})).filter(item=>item.time>0&&item.open>0&&item.high>=item.low&&item.close>0);
+})).filter(item=>item.time>0&&item.open>0&&item.close>0&&item.low>0&&item.volume>=0&&item.high>=Math.max(item.open,item.close)&&item.low<=Math.min(item.open,item.close));
 
 const candleRange=(item)=>Math.max(0,(item?.high??0)-(item?.low??0));
 const body=(item)=>Math.abs((item?.close??0)-(item?.open??0));

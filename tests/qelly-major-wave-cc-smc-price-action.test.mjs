@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {buildDecisionSmcPriceAction,SMC_PRICE_ACTION_DEFINITIONS,__decisionSmcPriceActionTest} from '../functions/_lib/decision-smc-price-action.js';
+import {buildDecisionFormulaGovernance} from '../functions/_lib/decision-formula-governance.js';
 
 const candle=(i,o,h,l,c)=>({time:1_700_000_000_000+i*60_000,open:o,high:h,low:l,close:c,volume:100+i});
 const trending=[];
@@ -79,4 +80,53 @@ test('Wave CC is wired into Decision quant, formula redundancy and Advanced UI',
   assert.match(gov,/redundancyGroup:'structure-direction'/);
   assert.match(route,/DETERMINISTIC SMC \/ PRICE ACTION/);
   assert.match(css,/q-dpg-smc-pa__grid/);
+});
+
+
+test('Wave CC standalone normalization rejects impossible or unsafe OHLCV rows',()=>{
+  const rows=[
+    candle(0,100,101,99,100.5),
+    {time:1_700_000_060_000,open:100,high:99,low:98,close:100.5,volume:10},
+    {time:1_700_000_120_000,open:100,high:101,low:100.2,close:100.1,volume:10},
+    {time:1_700_000_180_000,open:100,high:101,low:99,close:100.5,volume:-1},
+    candle(4,101,102,100,101.5)
+  ];
+  const normalized=__decisionSmcPriceActionTest.normalize(rows);
+  assert.equal(normalized.length,2);
+  assert.deepEqual(normalized.map(item=>item.index),[0,4]);
+});
+
+test('Wave CC SMC and market structure are redundancy-controlled while price action remains an independent governed family',()=>{
+  const graph={
+    truthState:'LIVE',
+    horizonBars:16,
+    qellyView:{action:'BUY'},
+    metrics:{trendPerBarPct:0,rsi14:50,returnZScore:0},
+    forecast:{probabilities:{bull:.60,bear:.20}},
+    quant:{
+      regime:'TREND',
+      trend:{roc14Pct:0,adx14:24},
+      structure:{bias:'UPSIDE',strengthState:'WEAK'},
+      smc:{state:'DERIVED',directionalScore:.9,breakOfStructure:'BULLISH',changeOfCharacter:'NONE',liquiditySweep:'NONE'},
+      priceAction:{state:'DERIVED',directionalScore:-.7,breakout:'BEARISH',retest:'NONE',engulfing:'NONE',pinBar:'NONE'},
+      volatility:{regime:'NORMAL'}
+    }
+  };
+  const governance=buildDecisionFormulaGovernance(graph,{multiTimeframe:{agreement:{total:0,aligned:0,direction:'MIXED'}}});
+  const group=governance.redundancyGroups.find(item=>item.group==='structure-direction');
+  assert.ok(group);
+  assert.deepEqual(new Set(group.members),new Set(['market-structure','smc-structure']));
+  assert.equal(group.primary,'smc-structure');
+  assert.deepEqual(group.suppressed,['market-structure']);
+  const smc=governance.features.find(item=>item.id==='smc-structure');
+  const structure=governance.features.find(item=>item.id==='market-structure');
+  const pa=governance.features.find(item=>item.id==='price-action-state');
+  assert.equal(smc.suppressedBy,null);
+  assert.equal(structure.suppressedBy,'smc-structure');
+  assert.equal(structure.effectiveScore,0);
+  assert.equal(pa.suppressedBy,null);
+  assert.notEqual(pa.effectiveScore,0);
+  assert.equal(governance.families.find(item=>item.family==='price_action').state,'ACTIVE');
+  assert.ok(governance.topContributors.some(item=>item.id==='smc-structure'));
+  assert.ok(governance.topContributors.some(item=>item.id==='price-action-state'));
 });
