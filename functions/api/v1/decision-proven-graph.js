@@ -14,6 +14,7 @@ import {createDecisionLatencyTrace,estimateSerializedPayload} from '../../_lib/d
 import {resilientJsonRequest,providerFailureHealth,providerResiliencePublicSummary} from '../../_lib/decision-provider-resilience.js';
 import {buildDecisionDataQuality,applyDecisionDataQualityEligibility,buildDecisionModelHealth} from '../../_lib/decision-health-quality.js';
 import {DECISION_ASSET_SET,DECISION_ASSET_SYMBOLS} from '../../_lib/decision-asset-capabilities.js';
+import {buildDecisionAssetEvidenceProfile} from '../../_lib/decision-asset-evidence-profiles.js';
 
 const HORIZONS=Object.freeze({'1h':3_600_000,'4h':14_400_000,'12h':43_200_000,'1d':86_400_000,'3d':259_200_000,'7d':604_800_000});
 const TIMEFRAMES=Object.freeze(['15m','1h','4h','1d']);
@@ -626,6 +627,11 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
       ?'Full news context is pending a separate bounded enrichment request. The QELLY VIEW is already final for this snapshot because news is contextual and has no eligibility impact.'
       :'News is contextual evidence only. A bounded fresh cache may be reused; stale news is used only after provider failure and is labeled stale. Headline clusters are deterministic lexical audit metadata and have no eligibility impact.'
   };
+  evidence.fundamentals={state:'unavailable',message:'No governed protocol-fundamental feed is connected to this Decision view.'};
+  evidence.institutionalFlow={state:'unavailable',message:'No governed crypto ETF/fund/exchange-flow feed is connected to this Decision view.'};
+  const evidenceProfile=buildDecisionAssetEvidenceProfile({assetClass:'crypto',graph,multiTimeframe,evidence});
+  evidence.profile=evidenceProfile;
+  graph={...graph,evidenceProfile};
   const providerResilience=providerResiliencePublicSummary({liquidity,derivatives,news:evidence.news,macro});
   const dataQuality=buildDecisionDataQuality({graph,multiTimeframe,evidence,providerResilience});
   graph=applyDecisionDataQualityEligibility({...graph,dataQuality},dataQuality);
@@ -635,7 +641,7 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   const context=latency.measure('contextAndEvidenceGraph',()=>buildDecisionContextBundle(graph,{multiTimeframe,tradeResearch,evidence,horizon:resolvedHorizon}));
   const rangeEvidence=latency.measure('rangeEvidence',()=>buildDecisionRangeEvidence({graph,evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:'UTC'}));
   const performance=latency.snapshot({database:{used:false,ms:null},network:'Measure end-to-end separately at the client or external probe; server-side component timings exclude internet transit.'});
-  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence,providerResilience,dataQuality,modelHealth,...context,rangeEvidence,performance};
+  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence,evidenceProfile,providerResilience,dataQuality,modelHealth,...context,rangeEvidence,performance};
 }
 
 export async function onRequest({request,env}){

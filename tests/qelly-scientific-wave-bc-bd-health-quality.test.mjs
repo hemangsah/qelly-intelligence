@@ -109,7 +109,7 @@ test('Waves BC/BD API builds health before trade research and keeps response obj
   const healthIndex=source.indexOf('const modelHealth=buildDecisionModelHealth');
   const tradeIndex=source.indexOf("const tradeResearch=latency.measure('riskRewardResearch'");
   assert.ok(qualityIndex>0&&gateIndex>qualityIndex&&healthIndex>gateIndex&&tradeIndex>healthIndex);
-  assert.match(source,/return \{\.\.\.graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence,providerResilience,dataQuality,modelHealth/);
+  assert.match(source,/return \{\.\.\.graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence,evidenceProfile,providerResilience,dataQuality,modelHealth/);
 });
 
 test('Waves BC/BD Evidence Graph exposes governance nodes without adding a second direction engine',async()=>{
