@@ -3,6 +3,7 @@ import path from 'node:path';
 import {chromium} from 'playwright';
 import {startServer} from './release-a5-evidence-server.mjs';
 import {buildDecisionRangeEvidence} from '../functions/_lib/decision-range-evidence.js';
+import {buildDecisionHistoricalNewsTimeline} from '../functions/_lib/decision-range-timeline.js';
 
 const outputDir=path.resolve('preview/decision-range-e2e');
 await mkdir(outputDir,{recursive:true});
@@ -12,9 +13,26 @@ const localOrigin=`http://127.0.0.1:${server.port}`;
 const executablePath=process.env.QELLY_BROWSER_EXECUTABLE||'/usr/bin/chromium';
 const browser=await chromium.launch({headless:true,executablePath,args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
 const results=[];
+let latestSelectedPayload=null;
 
 const proxyDecision=async(route)=>{
   const requestUrl=new URL(route.request().url());
+  if(requestUrl.pathname.includes('/api/v1/decision-range-evidence')&&latestSelectedPayload?.selection){
+    const payload=structuredClone(latestSelectedPayload);
+    const rangeEvidenceBase=buildDecisionRangeEvidence({graph:payload,evidence:payload.evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:'UTC'});
+    const start=Number(requestUrl.searchParams.get('rangeStart')),end=Number(requestUrl.searchParams.get('rangeEnd')),duration=Math.max(60_000,end-start);
+    const article=(title,offset,source,url)=>({title,source,publishedAt:new Date(offset).toISOString(),url});
+    const newsBuckets={
+      before:{state:'live',coverageState:'COMPLETE',exactWindow:true,window:{start:new Date(start-duration).toISOString(),end:new Date(start).toISOString()},articles:[article('Bitcoin policy context before selected move',start-Math.min(duration/2,3_600_000),'fixture-before.example','https://fixture-before.example/a')]},
+      during:{state:'live',coverageState:'COMPLETE',exactWindow:true,window:{start:new Date(start).toISOString(),end:new Date(end).toISOString()},articles:[article('Bitcoin <img src=x onerror=alert(1)> ETF inflow update during selected move',start+duration/2,'fixture-during.example','https://fixture-during.example/b')]},
+      after:{state:'live',coverageState:'COMPLETE',exactWindow:true,window:{start:new Date(end).toISOString(),end:new Date(end+duration).toISOString()},articles:[article('Bitcoin market context after selected move',end+Math.min(duration/2,3_600_000),'fixture-after.example','https://fixture-after.example/c')]}
+    };
+    const timeline=buildDecisionHistoricalNewsTimeline({asset:payload.asset,rangeEvidence:rangeEvidenceBase,newsBuckets});
+    const rangeEvidence={...rangeEvidenceBase,timeline};
+    const body=JSON.stringify({schemaVersion:'qelly.decision-range-evidence-response/1.1.0',asset:payload.asset,interval:payload.interval,horizon:payload.horizon,selectedMove:payload.selection,rangeEvidence,timeline});
+    await route.fulfill({status:200,contentType:'application/json; charset=utf-8',body});
+    return;
+  }
   const target=new URL(requestUrl.pathname+requestUrl.search,productionOrigin);
   const response=await fetch(target,{headers:{accept:'application/json'}});
   let body=await response.text();
@@ -22,6 +40,7 @@ const proxyDecision=async(route)=>{
     try{
       const payload=JSON.parse(body);
       payload.rangeEvidence=buildDecisionRangeEvidence({graph:payload,evidence:payload.evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:'UTC'});
+      latestSelectedPayload=payload;
       body=JSON.stringify(payload);
     }catch{}
   }
@@ -36,6 +55,7 @@ const exercise=async({name,viewport,touch=false})=>{
   page.on('console',message=>{if(message.type()==='error'&&!message.text().includes('Failed to load resource'))failures.push({type:'console',message:message.text()});});
   await page.route('**/api/v1/decision-proven-graph**',proxyDecision);
   await page.route('**/api/v1/decision-news-context**',proxyDecision);
+  await page.route('**/api/v1/decision-range-evidence**',proxyDecision);
   await page.goto(localOrigin+'/#/decision-provenance',{waitUntil:'domcontentloaded',timeout:45_000});
   const chart=page.locator('[data-dpg-chart]').first();
   await chart.waitFor({state:'visible',timeout:45_000});
@@ -84,8 +104,14 @@ const exercise=async({name,viewport,touch=false})=>{
   const normalizedIntelligence=intelligenceText.toLowerCase();
   const intelligenceRequired=['selected move intelligence','exact range','evidence coverage','current context','association, not proof of causation','before','during','after'].every(label=>normalizedIntelligence.includes(label));
   if(!intelligenceRequired)failures.push({type:'range-intelligence',text:intelligenceText});
+  const timeline=page.locator('[data-dpg-range-timeline]').first();
+  await timeline.waitFor({state:'visible',timeout:20_000});
+  const timelineText=(await timeline.innerText()).replace(/\s+/g,' ').trim(),normalizedTimeline=timelineText.toLowerCase();
+  const timelineRequired=['what caused this move?','historical news / event timeline','before','during','after','association only','direct'].every(label=>normalizedTimeline.includes(label));
+  const injectedImageCount=await timeline.locator('img[src="x"]').count();
+  if(!timelineRequired||injectedImageCount)failures.push({type:'range-timeline',text:timelineText,timelineRequired,injectedImageCount});
   await page.screenshot({path:path.join(outputDir,`decision-range-selected-${name}.png`),fullPage:true});
-  const result={name,viewport,touch,persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,failures};
+  const result={name,viewport,touch,persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,rangeTimeline:timelineRequired,rangeTimelineText:timelineText,failures};
   results.push(result);
   await context.close();
 };

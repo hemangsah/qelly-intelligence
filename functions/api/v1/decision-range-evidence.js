@@ -1,5 +1,6 @@
 import {buildDecisionIntelligence,fetchNewsContext} from './decision-proven-graph.js';
 import {buildDecisionRangeEvidence} from '../../_lib/decision-range-evidence.js';
+import {buildDecisionHistoricalNewsTimeline} from '../../_lib/decision-range-timeline.js';
 import {buildDecisionNewsClusters} from '../../_lib/decision-news.js';
 import {HttpError,enforceRateLimit,errorResponse,fetcher,responseJson} from '../../_lib/runtime.js';
 
@@ -9,6 +10,22 @@ const MAX_RANGE_MS=90*86_400_000;
 const FUTURE_TOLERANCE_MS=5*60_000;
 const ip=(request)=>request.headers.get('cf-connecting-ip')||request.headers.get('x-forwarded-for')?.split(',')[0]||'anonymous';
 const finiteTime=(value)=>{const number=Number(value);return Number.isFinite(number)&&number>0?number:null;};
+const emptyNews=(state,window,reason=null,coverageState='COMPLETE')=>({articles:[],state,fetchedAt:null,cache:{hit:false,stale:false,coalesced:false,ageMs:null,bucketMs:0},fallbackReason:reason,window,coverageState,exactWindow:true});
+const isoWindow=(start,end)=>({start:new Date(start).toISOString(),end:new Date(end).toISOString()});
+
+async function fetchHistoricalNewsWindow(fetchImpl,asset,start,end,now,{coverageState='COMPLETE'}={}){
+  if(!Number.isFinite(start)||!Number.isFinite(end)||!(start<end))return emptyNews('not-available',isoWindow(Math.max(0,start||0),Math.max(1,end||1)),'historical_window_not_available',coverageState);
+  if(start>=now)return emptyNews('not-available',isoWindow(start,end),'historical_window_has_not_occurred_yet','NOT_OCCURRED_YET');
+  const boundedEnd=Math.min(end,now);
+  const window=isoWindow(start,boundedEnd);
+  if(!(start<boundedEnd))return emptyNews('not-available',window,'historical_window_has_not_occurred_yet','NOT_OCCURRED_YET');
+  try{
+    const result=await fetchNewsContext(fetchImpl,asset,start,boundedEnd,{bucketMs:0,exactWindow:true});
+    return {...result,window,coverageState:end>now?'PARTIAL_TO_NOW':coverageState,exactWindow:true};
+  }catch(error){
+    return emptyNews('unavailable',window,String(error?.message||'Historical news provider unavailable').slice(0,240),end>now?'PARTIAL_TO_NOW':coverageState);
+  }
+}
 
 export async function onRequest({request,env}){
   try{
@@ -28,27 +45,32 @@ export async function onRequest({request,env}){
 
     const base=await buildDecisionIntelligence(env,{asset,interval,horizon,selection:{start,end},includeNews:false,now});
     if(!base.selection)throw new HttpError(422,'unsupported_history','The connected candle history does not cover this exact selected range; QELLY will not substitute a nearby range.');
-    let news;
-    try{
-      news=await fetchNewsContext(fetcher(env),asset,start,end,{bucketMs:0});
-    }catch(error){
-      news={articles:[],state:'unavailable',fetchedAt:null,cache:{hit:false,stale:false,coalesced:false,ageMs:null,bucketMs:0},fallbackReason:String(error?.message||'Range news provider unavailable').slice(0,240)};
-    }
-    const clustering=buildDecisionNewsClusters(news.articles,{asset});
+    const provisional=buildDecisionRangeEvidence({graph:base,evidence:{...base.evidence,news:{state:'not-requested',provider:'GDELT',articles:[]}},assetClass:'crypto',venue:'Hyperliquid',timezone:url.searchParams.get('timezone')||'UTC'});
+    const preStart=Date.parse(provisional.request?.preWindow?.start||''),preEnd=Date.parse(provisional.request?.preWindow?.end||'');
+    const postStart=Date.parse(provisional.request?.postWindow?.start||''),postEnd=Date.parse(provisional.request?.postWindow?.end||'');
+    const fetchImpl=fetcher(env);
+    const [beforeNews,duringNews,afterNews]=await Promise.all([
+      fetchHistoricalNewsWindow(fetchImpl,asset,preStart,preEnd,now),
+      fetchHistoricalNewsWindow(fetchImpl,asset,start,Math.min(end,now),now),
+      fetchHistoricalNewsWindow(fetchImpl,asset,postStart,postEnd,now,{coverageState:postEnd>now?'PARTIAL_TO_NOW':'COMPLETE'})
+    ]);
+    const clustering=buildDecisionNewsClusters(duringNews.articles,{asset});
     const evidence={...base.evidence,news:{
-      state:news.state,provider:'GDELT',articles:news.articles,clusters:clustering.clusters,clustering,
-      observedAt:news.fetchedAt??null,cache:news.cache??null,fallbackReason:news.fallbackReason??null,
-      boundary:'Exact selected-range news context. Retrieval is time-bounded to rangeStart/rangeEnd; current news outside this window is not injected.'
+      state:duringNews.state,provider:'GDELT',articles:duringNews.articles,clusters:clustering.clusters,clustering,
+      observedAt:duringNews.fetchedAt??null,cache:duringNews.cache??null,fallbackReason:duringNews.fallbackReason??null,
+      boundary:'Exact selected-range news context. Retrieval uses explicit historical start/end timestamps with recent-news fallback disabled; current news outside this window is not injected; recent-news fallback is disabled for exact historical ranges.'
     }};
-    const rangeEvidence=buildDecisionRangeEvidence({graph:base,evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:url.searchParams.get('timezone')||'UTC'});
+    const rangeEvidenceBase=buildDecisionRangeEvidence({graph:base,evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:url.searchParams.get('timezone')||'UTC'});
+    const timeline=buildDecisionHistoricalNewsTimeline({asset,rangeEvidence:rangeEvidenceBase,newsBuckets:{before:beforeNews,during:duringNews,after:afterNews}});
+    const rangeEvidence={...rangeEvidenceBase,timeline};
     return responseJson(request,env,{
-      schemaVersion:'qelly.decision-range-evidence-response/1.0.0',
+      schemaVersion:'qelly.decision-range-evidence-response/1.1.0',
       asset,assetClass:'crypto',interval,horizon,selectionId:rangeEvidence.request?.selectionId||null,
       rangeStart:new Date(start).toISOString(),rangeEnd:new Date(end).toISOString(),
-      selectedMove:base.selection,rangeEvidence,
-      boundary:'Research-only historical evidence. This endpoint does not change current QELLY VIEW, setup eligibility, probability calibration or execution state.'
+      selectedMove:base.selection,rangeEvidence,timeline,
+      boundary:'Research-only historical evidence. This endpoint does not change current QELLY VIEW, setup eligibility, probability calibration or execution state. Timeline chronology is association-only and never proof of causation.'
     },200,{cache:'public, max-age=30, stale-while-revalidate=60'});
   }catch(error){return errorResponse(request,env,error);}
 }
 
-export const __decisionRangeEvidenceEndpointTest=Object.freeze({ASSETS,INTERVALS,MAX_RANGE_MS,FUTURE_TOLERANCE_MS,finiteTime});
+export const __decisionRangeEvidenceEndpointTest=Object.freeze({ASSETS,INTERVALS,MAX_RANGE_MS,FUTURE_TOLERANCE_MS,finiteTime,fetchHistoricalNewsWindow});

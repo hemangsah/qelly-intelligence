@@ -28,7 +28,10 @@ test('Header 2.0 exposes complete live Decision identity and action semantics',a
   assert.match(route,/data-dpg-compare-asset/);
   assert.match(route,/canonicalDecisionAsset/);
   assert.match(route,/navigate\('comparison-lab',assetId\)/);
-  assert.match(route,/state\.selection=state\.draft;load\(\)/);
+  assert.match(route,/state\.selection=state\.draft;/);
+  assert.match(route,/await load\(\);/);
+  assert.match(route,/await loadExactRangeEvidence\(state\.selection\);/);
+  assert.match(route,/\/api\/v1\/decision-range-evidence\?/);
 });
 
 test('Header 2.0 Compare Asset hands every governed Decision crypto into the comparison contract',()=>{
