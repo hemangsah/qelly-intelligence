@@ -21,7 +21,9 @@ test('Wave Q: scanner delegates candidate truth to the authoritative Decision bu
   assert.match(scan,/includeNews:false/);
   assert.match(scan,/DECISION_SCAN_ASSETS/);
   assert.match(scan,/const universe=resolveAssets\(assets\)/);
-  assert.match(scan,/searchVariants\(universe/);\n  assert.match(scan,/const concurrency=resolvedMode==='aggressive'\?3:2/);\n  assert.match(scan,/mapPool\(variants,concurrency/);
+  assert.match(scan,/searchVariants\(universe/);
+  assert.match(scan,/const concurrency=resolvedMode==='aggressive'\?3:2/);
+  assert.match(scan,/mapPool\(variants,concurrency/);
   assert.match(scan,/rankingIsSuccessProbability:false/);
 });
 
