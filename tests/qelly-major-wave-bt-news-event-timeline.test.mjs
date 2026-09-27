@@ -60,7 +60,7 @@ test('Wave BT range endpoint fetches BEFORE DURING AFTER with exactWindow and ex
   assert.match(endpoint,/Promise\.all\(\[/);
   assert.ok((endpoint.match(/fetchHistoricalNewsWindow\(/g)||[]).length>=4);
   assert.match(endpoint,/exactWindow:true/);
-  assert.match(endpoint,/current news outside this window is never injected/);
+  assert.match(endpoint,/current news outside this window is not injected/);
   assert.match(endpoint,/buildDecisionHistoricalNewsTimeline/);
   assert.match(endpoint,/timeline/);
 });
