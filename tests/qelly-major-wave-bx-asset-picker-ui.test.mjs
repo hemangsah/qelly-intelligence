@@ -77,3 +77,11 @@ test('Wave BX chart range selection defers background redraws until the pointer 
   assert.match(route,/event\.preventDefault\(\);chartGestureActive=true;anchor=indexAt\(event\)/);
   assert.match(route,/anchor=null;pendingIndex=null;chartGestureActive=false/);
 });
+
+
+test('Wave BX picker keeps command controls fixed while only the asset universe scrolls',async()=>{
+  const css=await readFile(new URL('../apps/web/public/assets/qelly-decision-proven-graph.css',import.meta.url),'utf8');
+  assert.match(css,/q-dpg-asset-picker__panel\{[^}]*overflow:hidden[^}]*grid-template-rows:auto auto auto minmax\(0,1fr\) auto/);
+  assert.match(css,/q-dpg-asset-groups\{[^}]*overflow:auto[^}]*overscroll-behavior:contain/);
+  assert.match(css,/scrollbar-gutter:stable/);
+});
