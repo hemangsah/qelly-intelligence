@@ -66,7 +66,7 @@ const exercise=async({name,viewport,touch=false})=>{
   const chatDockToggle=page.locator('[data-dpg-chat-dock-toggle]').first();
   const dockBox=await chatDock.boundingBox();
   const dockCentered=Boolean(dockBox)&&Math.abs((dockBox.x+dockBox.width/2)-viewport.width/2)<=6&&dockBox.x>=0&&dockBox.x+dockBox.width<=viewport.width+1;
-  const legacyDecisionChatControls=await page.locator('[data-dpg-open-chat],[data-dpg-range-action="chat"]').count();
+  const legacyDecisionChatControls=await page.locator('.q-dpg-hero__actions [data-dpg-open-chat],[data-dpg-range-action="chat"]').count();
   const genericLauncher=page.locator('[data-q-ai-launcher]').first();
   const genericLauncherVisible=await genericLauncher.isVisible().catch(()=>false);
   if(!dockCentered||legacyDecisionChatControls||genericLauncherVisible)failures.push({type:'qelly-dock-shell',dockCentered,legacyDecisionChatControls,genericLauncherVisible,dockBox});

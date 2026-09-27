@@ -8,7 +8,8 @@ test('Wave BW replaces legacy Decision chat buttons with one contextual bottom-c
   for(const phrase of ['QELLY CONTEXT DOCK','Ask QELLY about selected range','Explain this setup','Why NO TRADE?','What changed?','Ask QELLY about this move'])assert.ok(route.includes(phrase),phrase);
   assert.match(route,/data-dpg-chat-dock/);
   assert.match(route,/data-dpg-chat-form/);
-  assert.doesNotMatch(route,/data-dpg-open-chat/);
+  assert.match(route,/q-dpg-chat-dock__bar" data-dpg-open-chat data-dpg-chat-dock-toggle/);
+  assert.doesNotMatch(route,/q-dpg-hero__actions[^\n]*data-dpg-open-chat/);
   assert.doesNotMatch(route,/data-dpg-range-action="chat"/);
   assert.doesNotMatch(route,/mode:'decision-range'/);
 });
