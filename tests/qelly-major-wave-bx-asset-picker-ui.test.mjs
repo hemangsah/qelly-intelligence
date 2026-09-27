@@ -96,3 +96,11 @@ test('Wave BX picker assigns non-overlapping grid rows and pointer priority to c
   assert.match(css,/q-dpg-asset-groups\{grid-row:5;position:relative;z-index:1/);
   assert.match(css,/q-dpg-asset-picker__panel>footer\{grid-row:6;position:relative;z-index:6/);
 });
+
+
+test('Wave BX desktop command picker is fixed within viewport bounds',async()=>{
+  const css=await readFile(new URL('../apps/web/public/assets/qelly-decision-proven-graph.css',import.meta.url),'utf8');
+  assert.match(css,/\.q-dpg-asset-picker__panel\{position:fixed;top:clamp\(78px,11vh,112px\);left:50%;transform:translateX\(-50%\)/);
+  assert.match(css,/height:min\(640px,calc\(100dvh - 136px\)\)/);
+  assert.match(css,/max-height:calc\(100dvh - 136px\)/);
+});
