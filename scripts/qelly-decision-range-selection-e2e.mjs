@@ -117,7 +117,7 @@ const exercise=async({name,viewport,touch=false})=>{
   await projectedRange.waitFor({state:'visible',timeout:10_000});
   const projectedState=await projectedRange.getAttribute('data-projection-state');
   const projectedObservedClass=await projectedRange.locator('[data-candle-index]').count();
-  const projectedLabel=(await projectedRange.locator('.q-dpg-projected-range__label').innerText()).trim();
+  const projectedLabel=String(await projectedRange.locator('.q-dpg-projected-range__label').textContent()||'').trim();
   if(projectedState!=='PROJECTED'||projectedObservedClass!==0||projectedLabel!=='PROJECTED')failures.push({type:'next-move-projection-boundary',projectedState,projectedObservedClass,projectedLabel});
   const nextMove=page.locator('[data-dpg-next-move]').first();
   await nextMove.waitFor({state:'visible',timeout:10_000});
