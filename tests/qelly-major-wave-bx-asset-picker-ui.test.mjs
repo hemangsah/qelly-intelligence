@@ -28,9 +28,10 @@ test('Wave BX search text covers symbol, category, venue and unavailable categor
 });
 
 test('Wave BX Decision UI consumes the capability endpoint instead of a hard-coded six-item select',async()=>{
-  const [route,css]=await Promise.all([
+  const [route,css,capabilities]=await Promise.all([
     readFile(new URL('../apps/web/public/assets/routes/decision-proven-graph.mjs',import.meta.url),'utf8'),
-    readFile(new URL('../apps/web/public/assets/qelly-decision-proven-graph.css',import.meta.url),'utf8')
+    readFile(new URL('../apps/web/public/assets/qelly-decision-proven-graph.css',import.meta.url),'utf8'),
+    readFile(new URL('../functions/_lib/decision-asset-capabilities.js',import.meta.url),'utf8')
   ]);
   assert.match(route,/\/api\/v1\/decision-assets/);
   assert.match(route,/PROVIDER-CAPABILITY UNIVERSE/);

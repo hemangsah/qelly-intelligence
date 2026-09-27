@@ -70,7 +70,7 @@ const exercise=async({name,viewport,touch=false})=>{
   const pickerBox=await assetPicker.boundingBox();
   const pickerFitsViewport=Boolean(pickerBox)&&pickerBox.x>=0&&pickerBox.y>=0&&pickerBox.x+pickerBox.width<=viewport.width+1&&pickerBox.y+Math.min(pickerBox.height,viewport.height)<=viewport.height+1;
   const pickerText=(await assetPicker.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
-  const pickerRequired=['provider-capability universe','crypto','forex','indian indices','indian stocks','global stocks','metals','commodities','global indices','reference only','unavailable'].every(label=>pickerText.includes(label));
+  const pickerRequired=['provider-capability universe','crypto','forex','indian indices','indian stocks','global stocks','metals','commodities','global indices','rates / bonds','etfs','reference only','unavailable'].every(label=>pickerText.includes(label));
   const selectableCount=await assetPicker.locator('[data-dpg-asset-select]').count();
   const unavailableSelectableCount=await assetPicker.locator('.is-unavailable [data-dpg-asset-select]').count();
   if(!pickerFitsViewport||!pickerRequired||selectableCount!==6||unavailableSelectableCount!==0)failures.push({type:'asset-picker-capability',pickerFitsViewport,pickerRequired,selectableCount,unavailableSelectableCount,text:pickerText});

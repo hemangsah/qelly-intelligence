@@ -66,7 +66,9 @@ export const decisionAssetCapabilities=()=>{
     unavailable('global-equities','Global stocks','No licensed Decision-grade global equity candle/evidence provider is connected.'),
     unavailable('metals','Metals','No governed Decision-grade metals candle/evidence provider is connected.'),
     unavailable('commodities','Commodities','No governed Decision-grade commodities candle/evidence provider is connected.'),
-    unavailable('global-indices','Global indices','No governed Decision-grade global-index candle/evidence provider is connected.')
+    unavailable('global-indices','Global indices','No governed Decision-grade global-index candle/evidence provider is connected.'),
+    unavailable('rates-bonds','Rates / Bonds','No governed Decision-grade rates or bond candle/evidence provider is connected.'),
+    unavailable('etfs','ETFs','No licensed Decision-grade ETF candle/evidence provider is connected.')
   ];
   return {
     schemaVersion:'qelly.decision-asset-capabilities/1.0.0',

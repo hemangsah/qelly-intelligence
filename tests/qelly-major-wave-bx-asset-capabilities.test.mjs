@@ -27,7 +27,7 @@ test('Wave BX keeps non-Decision categories visible but non-selectable and prese
   assert.equal(forex.selectable,false);
   assert.equal(forex.provider.id,'ecb');
   assert.match(forex.reason,/reference.*only/i);
-  for(const id of ['indian-indices','indian-equities','global-equities','metals','commodities','global-indices']){
+  for(const id of ['indian-indices','indian-equities','global-equities','metals','commodities','global-indices','rates-bonds','etfs']){
     const group=catalog.groups.find((item)=>item.id===id);
     assert.ok(group);
     assert.equal(group.selectable,false);
@@ -36,6 +36,8 @@ test('Wave BX keeps non-Decision categories visible but non-selectable and prese
   }
   assert.equal(catalog.guardrails.referenceDataDoesNotImplyDecisionSupport,true);
   assert.equal(catalog.guardrails.providerRightsBoundariesPreserved,true);
+  assert.equal(catalog.groups.find((group)=>group.id==='rates-bonds')?.label,'Rates / Bonds');
+  assert.equal(catalog.groups.find((group)=>group.id==='etfs')?.label,'ETFs');
 });
 
 test('Wave BX public capability endpoint is cacheable, read-only and truthful',async()=>{
