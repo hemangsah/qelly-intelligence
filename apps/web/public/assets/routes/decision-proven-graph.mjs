@@ -3,6 +3,7 @@ import {DECISION_CONTEXT_KEY as CHAT_DECISION_CONTEXT_KEY,DECISION_ASSETS,consum
 import {startDecisionObservation,recordDecisionObservation,recordScannerObservation,recordTargetTouchSample} from '../decision-observability.mjs';
 import {evaluateDecisionSlos} from '../decision-slos.mjs';
 import {buildDecisionResearchNote,downloadDecisionResearchNote} from '../decision-research-note.mjs';
+import {readDecisionAssetPreferences,saveDecisionAssetPreferences,toggleDecisionAssetFavorite,recordDecisionAssetRecent,decisionAssetSearchText} from '../decision-asset-picker.mjs';
 const STYLESHEET=new URL('../qelly-decision-proven-graph.css',import.meta.url).href;
 const installStyles=()=>{if(!document.querySelector('link[data-decision-proven-graph]')){const link=document.createElement('link');link.rel='stylesheet';link.href=STYLESHEET;link.dataset.decisionProvenGraph='v2';document.head.append(link);}};
 const money=(value)=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:Number(value)>=100?0:2}).format(value);
@@ -673,7 +674,8 @@ let activeDecisionDockClearanceCleanup=()=>{};
 export async function renderDecisionProvenGraph(main,deps){
   installStyles();const {api,stateBanner,escapeHtml,toast,navigate}=deps;
   const chatContext=readChatDecisionContext();
-  let state={asset:chatContext.asset,interval:chatContext.interval,horizon:normalizeHorizon(chatContext.interval,'4h'),rr:'auto',customRr:'2.5',chartMode:'select-range',uiMode:'simple',chatDockOpen:false,loading:true,data:null,previousSnapshot:null,error:null,draft:null,selection:null,rangeEvidenceLoading:false,rangeEvidenceError:null,rangeEvidenceRequest:0,scanning:false,scan:null,scanError:null,ledger:null,ledgerLoading:false,ledgerError:null,ledgerMutating:false,slo:null,scanFilters:{universe:'all',direction:'any',minEvidenceQuality:'0',minCalibratedConfidence:'0',minMtfAgreement:'0',liquidity:'any',volatility:'any',regime:'any',eventRiskTolerance:'any',freshness:'live_or_delayed'}};
+  const assetPreferences=readDecisionAssetPreferences();
+  let state={asset:chatContext.asset,interval:chatContext.interval,horizon:normalizeHorizon(chatContext.interval,'4h'),rr:'auto',customRr:'2.5',chartMode:'select-range',uiMode:'simple',chatDockOpen:false,assetCatalog:null,assetCatalogError:null,assetPickerOpen:false,assetFilter:'all',assetQuery:'',assetFavorites:assetPreferences.favorites,assetRecent:assetPreferences.recent,loading:true,data:null,previousSnapshot:null,error:null,draft:null,selection:null,rangeEvidenceLoading:false,rangeEvidenceError:null,rangeEvidenceRequest:0,scanning:false,scan:null,scanError:null,ledger:null,ledgerLoading:false,ledgerError:null,ledgerMutating:false,slo:null,scanFilters:{universe:'all',direction:'any',minEvidenceQuality:'0',minCalibratedConfidence:'0',minMtfAgreement:'0',liquidity:'any',volatility:'any',regime:'any',eventRiskTolerance:'any',freshness:'live_or_delayed'}};
   const ledgerAuthenticated=()=>Boolean(window.__QELLY_SESSION_STATE__?.authenticated);
   const updateSlo=(snapshot)=>{
     const next=evaluateDecisionSlos(snapshot);
@@ -683,6 +685,27 @@ export async function renderDecisionProvenGraph(main,deps){
   };
 
   const select=(name,values)=>'<label><span>'+name[0].toUpperCase()+name.slice(1)+'</span><select data-dpg-'+name+'>'+values.map(value=>'<option value="'+value+'" '+(state[name]===value?'selected':'')+'>'+value+'</option>').join('')+'</select></label>';
+  const assetPickerMarkup=()=>{
+    const groups=Array.isArray(state.assetCatalog?.groups)?state.assetCatalog.groups:[];
+    const allAssets=groups.flatMap((group)=>Array.isArray(group.assets)?group.assets.map((asset)=>({...asset,groupId:group.id,groupLabel:group.label,groupState:group.state})):[]);
+    const selected=allAssets.find((asset)=>asset.symbol===state.asset)||null;
+    const favorites=new Set(state.assetFavorites),recent=new Set(state.assetRecent);
+    const mode=state.assetFilter;
+    const visibleGroups=groups.map((group)=>({
+      ...group,
+      assets:(group.assets||[]).filter((asset)=>mode==='favorites'?favorites.has(asset.symbol):mode==='recent'?recent.has(asset.symbol):true)
+    })).filter((group)=>mode==='all'||group.assets.length);
+    const row=(group,asset)=>{
+      const favorite=favorites.has(asset.symbol),search=decisionAssetSearchText(group,asset);
+      return '<div class="q-dpg-asset-row" data-dpg-asset-row data-search="'+escapeHtml(search)+'"><button type="button" data-dpg-asset-select="'+escapeHtml(asset.symbol)+'"><span><strong>'+escapeHtml(asset.symbol)+'</strong><small>'+escapeHtml(asset.name)+'</small></span><span><em>'+escapeHtml(asset.category||asset.assetClass||'Asset')+'</em><small>'+escapeHtml(asset.venue||'Provider')+' · '+escapeHtml(String(asset.supportedTimeframes?.length||0))+' timeframes</small></span><b>SUPPORTED DATA</b></button><button type="button" class="q-dpg-asset-favorite" data-dpg-asset-favorite="'+escapeHtml(asset.symbol)+'" aria-pressed="'+String(favorite)+'" aria-label="'+(favorite?'Remove '+escapeHtml(asset.symbol)+' from favorites':'Add '+escapeHtml(asset.symbol)+' to favorites')+'">'+(favorite?'★':'☆')+'</button></div>';
+    };
+    const groupMarkup=(group)=>{
+      const search=decisionAssetSearchText(group),supported=group.selectable&&group.assets?.length;
+      return '<section class="q-dpg-asset-group '+(supported?'is-supported':'is-unavailable')+'" data-dpg-asset-group data-search="'+escapeHtml(search)+'"><header><div><strong>'+escapeHtml(group.label)+'</strong><small>'+escapeHtml(group.assetClass||group.id)+'</small></div><span>'+escapeHtml(group.state||'UNAVAILABLE')+'</span></header>'+(supported?'<div>'+group.assets.map((asset)=>row(group,asset)).join('')+'</div>':'<p>'+escapeHtml(group.reason||'Decision-grade provider coverage is unavailable.')+'</p>')+'</section>';
+    };
+    const panel=state.assetPickerOpen?'<section id="qelly-decision-asset-picker" class="q-dpg-asset-picker__panel" role="dialog" aria-label="Decision asset universe" data-dpg-asset-picker-panel><header><div><small>PROVIDER-CAPABILITY UNIVERSE</small><strong>Select only evidence-backed Decision assets</strong></div><button type="button" data-dpg-asset-picker-close aria-label="Close asset picker">×</button></header><label class="q-dpg-asset-search"><span class="q-visually-hidden">Search assets or categories</span><input type="search" value="'+escapeHtml(state.assetQuery)+'" placeholder="Search symbol, asset, category or provider…" data-dpg-asset-search autocomplete="off"></label><div class="q-dpg-asset-filters" role="tablist" aria-label="Asset universe filter">'+[['all','All categories'],['recent','Recent'],['favorites','Favorites']].map(([id,label])=>'<button type="button" role="tab" data-dpg-asset-filter="'+id+'" aria-selected="'+String(mode===id)+'">'+label+'</button>').join('')+'</div>'+(state.assetCatalogError?'<p class="q-dpg-asset-catalog-error">'+escapeHtml(state.assetCatalogError)+'</p>':'')+'<div class="q-dpg-asset-groups">'+(visibleGroups.length?visibleGroups.map(groupMarkup).join(''):'<p class="q-dpg-asset-empty">No assets match this view.</p>')+'</div><footer><span>'+escapeHtml(String(state.assetCatalog?.supportedAssetCount||0))+' selectable</span><small>Reference-only and unavailable categories cannot trigger Decision requests.</small></footer></section>':'';
+    return '<div class="q-dpg-asset-picker"><span>Asset</span><button type="button" class="q-dpg-asset-picker__trigger" data-dpg-asset-picker-toggle aria-expanded="'+String(state.assetPickerOpen)+'" aria-controls="qelly-decision-asset-picker"><span><strong>'+escapeHtml(state.asset)+'</strong><small>'+escapeHtml(selected?.name||'Capability catalog '+(state.assetCatalog?'loaded':'loading'))+'</small></span><b>▾</b></button>'+panel+'</div>';
+  };
   const hero=(data)=>{
     const view=data?.qellyView||{},gate=view.evidenceGate||{},scenario=view.scenario||{};
     const candles=data?.market?.candles||[],last=candles.at?.(-1),previous=candles.at?.(-2);
@@ -702,7 +725,7 @@ export async function renderDecisionProvenGraph(main,deps){
     const label=view.label||'Loading fresh evidence before a research view is shown.';
     return '<section class="q-dpg-hero q-dpg-hero--'+actionTone(action)+'" aria-label="QELLY Decision Intelligence">'+
       '<div class="q-dpg-hero__identity"><div><small>FLAGSHIP RESEARCH WORKSPACE</small><h1>QELLY Decision Intelligence</h1></div>'+
-        '<div class="q-dpg-hero__selects">'+select('asset',['BTC','ETH','SOL','HYPE','XRP','DOGE'])+select('interval',['1m','5m','15m','30m','1h','4h','1d'])+'</div>'+
+        '<div class="q-dpg-hero__selects">'+assetPickerMarkup()+select('interval',['1m','5m','15m','30m','1h','4h','1d'])+'</div>'+
         '<div class="q-dpg-hero__market"><strong>'+price+'</strong><span>'+(change===null?'Change unavailable':(change>=0?'+':'')+change.toFixed(2)+'%')+'</span><small>Crypto · '+escapeHtml(provider)+'</small><small>'+escapeHtml(freshness)+' · '+escapeHtml(marketState)+'</small><small>Observed '+escapeHtml(displayTime(data?.observedAt))+'</small></div></div>'+
       '<div class="q-dpg-hero__view"><small>QELLY VIEW</small><h2>'+escapeHtml(action)+'</h2><p>'+escapeHtml(label)+'</p><div class="q-dpg-hero__metrics">'+
         '<span><em>Evidence quality</em><strong>'+escapeHtml(quality)+'</strong></span>'+
@@ -943,12 +966,38 @@ export async function renderDecisionProvenGraph(main,deps){
       draw();
       main.querySelector('[data-dpg-mode-switcher]')?.scrollIntoView({behavior:'smooth',block:'nearest'});
     }));
-        main.querySelectorAll('[data-dpg-asset],[data-dpg-interval],[data-dpg-horizon]').forEach(element=>element.addEventListener('change',()=>{
-      const key=element.hasAttribute('data-dpg-asset')?'asset':element.hasAttribute('data-dpg-interval')?'interval':'horizon';
+    main.querySelector('[data-dpg-asset-picker-toggle]')?.addEventListener('click',()=>{state.assetPickerOpen=!state.assetPickerOpen;draw();if(state.assetPickerOpen)requestAnimationFrame(()=>main.querySelector('[data-dpg-asset-search]')?.focus());});
+    main.querySelector('[data-dpg-asset-picker-close]')?.addEventListener('click',()=>{state.assetPickerOpen=false;state.assetQuery='';draw();});
+    main.querySelector('[data-dpg-asset-search]')?.addEventListener('input',(event)=>{
+      state.assetQuery=event.currentTarget.value;
+      const query=state.assetQuery.trim().toLowerCase();
+      main.querySelectorAll('[data-dpg-asset-group]').forEach((group)=>{
+        const rows=[...group.querySelectorAll('[data-dpg-asset-row]')];
+        rows.forEach((row)=>{row.hidden=Boolean(query)&&!String(row.dataset.search||'').includes(query);});
+        const groupMatch=!query||String(group.dataset.search||'').includes(query);
+        group.hidden=!groupMatch&&rows.length>0&&!rows.some((row)=>!row.hidden);
+      });
+    });
+    main.querySelector('[data-dpg-asset-search]')?.addEventListener('keydown',(event)=>{if(event.key==='Escape'){event.preventDefault();state.assetPickerOpen=false;state.assetQuery='';draw();}});
+    main.querySelectorAll('[data-dpg-asset-filter]').forEach((button)=>button.addEventListener('click',()=>{state.assetFilter=button.dataset.dpgAssetFilter||'all';state.assetQuery='';draw();requestAnimationFrame(()=>main.querySelector('[data-dpg-asset-search]')?.focus());}));
+    main.querySelectorAll('[data-dpg-asset-favorite]').forEach((button)=>button.addEventListener('click',()=>{
+      state.assetFavorites=toggleDecisionAssetFavorite(state.assetFavorites,button.dataset.dpgAssetFavorite);
+      const saved=saveDecisionAssetPreferences({favorites:state.assetFavorites,recent:state.assetRecent});
+      state.assetFavorites=saved.favorites;state.assetRecent=saved.recent;draw();
+    }));
+    main.querySelectorAll('[data-dpg-asset-select]').forEach((button)=>button.addEventListener('click',()=>{
+      const symbol=String(button.dataset.dpgAssetSelect||'').toUpperCase();
+      if(!state.assetCatalog?.selectableSymbols?.includes(symbol)){toast?.('This asset is not supported by the current Decision evidence stack.',{tone:'danger'});return;}
+      state.asset=symbol;state.assetPickerOpen=false;state.assetQuery='';state.scan=null;state.scanError=null;
+      state.assetRecent=recordDecisionAssetRecent(state.assetRecent,symbol);
+      saveDecisionAssetPreferences({favorites:state.assetFavorites,recent:state.assetRecent});
+      state.chatDockOpen=false;state.rangeEvidenceRequest++;state.rangeEvidenceLoading=false;state.rangeEvidenceError=null;state.draft=null;state.selection=null;scheduleLoad();
+    }));
+    main.querySelectorAll('[data-dpg-interval],[data-dpg-horizon]').forEach(element=>element.addEventListener('change',()=>{
+      const key=element.hasAttribute('data-dpg-interval')?'interval':'horizon';
       state[key]=element.value;
       if(key==='interval')state.horizon=normalizeHorizon(state.interval,state.horizon);
-      if(key!=='asset'){state.scan=null;state.scanError=null;}
-      state.chatDockOpen=false;state.rangeEvidenceRequest++;state.rangeEvidenceLoading=false;state.rangeEvidenceError=null;state.draft=null;state.selection=null;scheduleLoad();
+      state.scan=null;state.scanError=null;state.chatDockOpen=false;state.rangeEvidenceRequest++;state.rangeEvidenceLoading=false;state.rangeEvidenceError=null;state.draft=null;state.selection=null;scheduleLoad();
     }));
     main.querySelector('[data-dpg-rr]')?.addEventListener('change',(event)=>{
       state.rr=event.currentTarget.value;state.scan=null;state.scanError=null;
@@ -960,7 +1009,7 @@ export async function renderDecisionProvenGraph(main,deps){
     main.querySelector('[data-dpg-ledger-track]')?.addEventListener('click',trackCurrentSetup);
     main.querySelectorAll('[data-dpg-ledger-observe]').forEach(button=>button.addEventListener('click',()=>observeTrackedSetup(button.dataset.dpgLedgerObserve)));
     main.querySelectorAll('[data-dpg-scan-filter]').forEach(element=>element.addEventListener('change',()=>{const key=element.dataset.dpgScanFilter;if(key){state.scanFilters[key]=element.value;state.scan=null;state.scanError=null;draw();}}));
-    main.querySelectorAll('[data-dpg-scan-asset]').forEach(button=>button.addEventListener('click',()=>{state.asset=button.dataset.dpgScanAsset;state.draft=null;state.selection=null;load();}));
+    main.querySelectorAll('[data-dpg-scan-asset]').forEach(button=>button.addEventListener('click',()=>{const symbol=String(button.dataset.dpgScanAsset||'').toUpperCase();if(!state.assetCatalog?.selectableSymbols?.includes(symbol))return;state.asset=symbol;state.assetRecent=recordDecisionAssetRecent(state.assetRecent,symbol);saveDecisionAssetPreferences({favorites:state.assetFavorites,recent:state.assetRecent});state.draft=null;state.selection=null;load();}));
     main.querySelector('[data-dpg-explain-header]')?.addEventListener('click',()=>{if(state.draft)void commitRangeSelection('.q-dpg-move');});
     main.querySelector('[data-dpg-explain-candle]')?.addEventListener('click',()=>{const candles=state.data?.market?.candles||[],intervalMs=INTERVAL_MS[state.interval],selected=state.draft&&state.draft.end-state.draft.start<intervalMs?state.draft:null,last=candles.at?.(-1);if(selected){void commitRangeSelection('.q-dpg-move');return;}if(last&&intervalMs){state.draft={start:last.time,end:last.time+intervalMs-1};void commitRangeSelection('.q-dpg-move');}});
     main.querySelector('[data-dpg-mtf-jump]')?.addEventListener('click',()=>main.querySelector('#qelly-decision-mtf')?.scrollIntoView({behavior:'smooth',block:'start'}));
@@ -1138,6 +1187,19 @@ export async function renderDecisionProvenGraph(main,deps){
     }
   }
 
+  async function loadAssetCatalog({redraw=true}={}){
+    try{
+      const catalog=await api('/api/v1/decision-assets');
+      if(!Array.isArray(catalog?.groups)||!Array.isArray(catalog?.selectableSymbols))throw new Error('Decision asset capability catalog is invalid.');
+      state.assetCatalog=catalog;state.assetCatalogError=null;
+      if(!catalog.selectableSymbols.includes(state.asset)&&catalog.selectableSymbols.length)state.asset=catalog.selectableSymbols[0];
+      state.assetRecent=recordDecisionAssetRecent(state.assetRecent,state.asset);
+      saveDecisionAssetPreferences({favorites:state.assetFavorites,recent:state.assetRecent});
+    }catch(error){
+      state.assetCatalog=null;state.assetCatalogError=error?.message||'Decision asset capability catalog is unavailable.';
+    }finally{if(redraw)draw();}
+  }
+
   async function load(){
     const observabilityStartedAt=startDecisionObservation();
     state.loading=true;state.error=null;draw();
@@ -1158,6 +1220,7 @@ export async function renderDecisionProvenGraph(main,deps){
       emitRuntimeSignal({feature:'decision',action:'failure',state:'unavailable',surface:'api'});
     }finally{state.loading=false;draw();if(ledgerAuthenticated()&&!state.ledger&&!state.ledgerLoading)void loadLedger();}
   }
+  await loadAssetCatalog({redraw:false});
   await load();
 }
 
