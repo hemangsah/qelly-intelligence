@@ -85,3 +85,14 @@ test('Wave BX picker keeps command controls fixed while only the asset universe 
   assert.match(css,/q-dpg-asset-groups\{[^}]*overflow:auto[^}]*overscroll-behavior:contain/);
   assert.match(css,/scrollbar-gutter:stable/);
 });
+
+
+test('Wave BX picker assigns non-overlapping grid rows and pointer priority to command controls',async()=>{
+  const css=await readFile(new URL('../apps/web/public/assets/qelly-decision-proven-graph.css',import.meta.url),'utf8');
+  assert.match(css,/grid-template-rows:auto auto auto auto minmax\(0,1fr\) auto/);
+  assert.match(css,/q-dpg-asset-picker__panel>header\{grid-row:1;position:relative;z-index:6/);
+  assert.match(css,/q-dpg-asset-search\{grid-row:2;position:relative;z-index:6/);
+  assert.match(css,/q-dpg-asset-filters\{grid-row:3;position:relative;z-index:6/);
+  assert.match(css,/q-dpg-asset-groups\{grid-row:5;position:relative;z-index:1/);
+  assert.match(css,/q-dpg-asset-picker__panel>footer\{grid-row:6;position:relative;z-index:6/);
+});

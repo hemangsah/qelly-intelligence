@@ -87,7 +87,13 @@ const exercise=async({name,viewport,touch=false})=>{
   const visibleEth=await assetPicker.locator('[data-dpg-asset-select="ETH"]:visible').count();
   if(visibleAssetRows!==1||visibleEth!==1)failures.push({type:'asset-picker-search',visibleAssetRows,visibleEth});
   await assetPicker.locator('[data-dpg-asset-favorite="ETH"]').first().click();
-  await page.locator('[data-dpg-asset-filter="favorites"]').first().click();
+  const favoritesFilter=page.locator('[data-dpg-asset-filter="favorites"]').first();
+  const favoritesHitTarget=await favoritesFilter.evaluate((node)=>{
+    const rect=node.getBoundingClientRect(),hit=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);
+    return hit===node||Boolean(hit?.closest?.('[data-dpg-asset-filter="favorites"]'));
+  });
+  if(!favoritesHitTarget)failures.push({type:'asset-picker-filter-hit-target'});
+  await favoritesFilter.click();
   await page.waitForTimeout(60);
   const favoriteEth=await page.locator('[data-dpg-asset-select="ETH"]:visible').count();
   if(favoriteEth!==1)failures.push({type:'asset-picker-favorite',favoriteEth});
