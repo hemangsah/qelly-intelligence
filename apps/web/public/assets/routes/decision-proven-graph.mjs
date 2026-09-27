@@ -685,6 +685,7 @@ export async function renderDecisionProvenGraph(main,deps){
   };
 
   const select=(name,values)=>'<label><span>'+name[0].toUpperCase()+name.slice(1)+'</span><select data-dpg-'+name+'>'+values.map(value=>'<option value="'+value+'" '+(state[name]===value?'selected':'')+'>'+value+'</option>').join('')+'</select></label>';
+  const fallbackAssetCatalog=()=>({truthState:'FALLBACK',authority:'bundled-existing-decision-universe',supportedAssetCount:DECISION_ASSETS.size,selectableSymbols:[...DECISION_ASSETS],groups:[{id:'crypto',label:'Crypto',assetClass:'crypto',state:'SUPPORTED',selectable:true,provider:{id:'hyperliquid-public',name:'Hyperliquid',state:'CURRENT_DECISION_SOURCE'},assets:[...DECISION_ASSETS].map(symbol=>({canonicalId:'QI-CRYPTO-'+symbol,symbol,name:symbol,assetClass:'crypto',category:'Current Decision asset',venue:'Hyperliquid',providerStatus:'SUPPORTED',supportedTimeframes:Object.keys(INTERVAL_MS),capabilities:['candles'],selectable:true})),reason:'Capability endpoint unavailable; selection is limited to the existing Decision asset universe.'}],guardrails:{unsupportedAssetsSelectable:false,referenceDataDoesNotImplyDecisionSupport:true}});
   const assetPickerMarkup=()=>{
     const groups=Array.isArray(state.assetCatalog?.groups)?state.assetCatalog.groups:[];
     const allAssets=groups.flatMap((group)=>Array.isArray(group.assets)?group.assets.map((asset)=>({...asset,groupId:group.id,groupLabel:group.label,groupState:group.state})):[]);
@@ -987,7 +988,7 @@ export async function renderDecisionProvenGraph(main,deps){
     }));
     main.querySelectorAll('[data-dpg-asset-select]').forEach((button)=>button.addEventListener('click',()=>{
       const symbol=String(button.dataset.dpgAssetSelect||'').toUpperCase();
-      if(!state.assetCatalog?.selectableSymbols?.includes(symbol)){toast?.('This asset is not supported by the current Decision evidence stack.',{tone:'danger'});return;}
+      if(!Array.isArray(state.assetCatalog?.selectableSymbols)||!state.assetCatalog.selectableSymbols.includes(symbol)){toast?.('This asset is not supported by the current Decision evidence stack.',{tone:'danger'});return;}
       state.asset=symbol;state.assetPickerOpen=false;state.assetQuery='';state.scan=null;state.scanError=null;
       state.assetRecent=recordDecisionAssetRecent(state.assetRecent,symbol);
       saveDecisionAssetPreferences({favorites:state.assetFavorites,recent:state.assetRecent});
@@ -1009,7 +1010,7 @@ export async function renderDecisionProvenGraph(main,deps){
     main.querySelector('[data-dpg-ledger-track]')?.addEventListener('click',trackCurrentSetup);
     main.querySelectorAll('[data-dpg-ledger-observe]').forEach(button=>button.addEventListener('click',()=>observeTrackedSetup(button.dataset.dpgLedgerObserve)));
     main.querySelectorAll('[data-dpg-scan-filter]').forEach(element=>element.addEventListener('change',()=>{const key=element.dataset.dpgScanFilter;if(key){state.scanFilters[key]=element.value;state.scan=null;state.scanError=null;draw();}}));
-    main.querySelectorAll('[data-dpg-scan-asset]').forEach(button=>button.addEventListener('click',()=>{const symbol=String(button.dataset.dpgScanAsset||'').toUpperCase();if(!state.assetCatalog?.selectableSymbols?.includes(symbol))return;state.asset=symbol;state.assetRecent=recordDecisionAssetRecent(state.assetRecent,symbol);saveDecisionAssetPreferences({favorites:state.assetFavorites,recent:state.assetRecent});state.draft=null;state.selection=null;load();}));
+    main.querySelectorAll('[data-dpg-scan-asset]').forEach(button=>button.addEventListener('click',()=>{const symbol=String(button.dataset.dpgScanAsset||'').toUpperCase();if(!Array.isArray(state.assetCatalog?.selectableSymbols)||!state.assetCatalog.selectableSymbols.includes(symbol))return;state.asset=symbol;state.assetRecent=recordDecisionAssetRecent(state.assetRecent,symbol);saveDecisionAssetPreferences({favorites:state.assetFavorites,recent:state.assetRecent});state.draft=null;state.selection=null;load();}));
     main.querySelector('[data-dpg-explain-header]')?.addEventListener('click',()=>{if(state.draft)void commitRangeSelection('.q-dpg-move');});
     main.querySelector('[data-dpg-explain-candle]')?.addEventListener('click',()=>{const candles=state.data?.market?.candles||[],intervalMs=INTERVAL_MS[state.interval],selected=state.draft&&state.draft.end-state.draft.start<intervalMs?state.draft:null,last=candles.at?.(-1);if(selected){void commitRangeSelection('.q-dpg-move');return;}if(last&&intervalMs){state.draft={start:last.time,end:last.time+intervalMs-1};void commitRangeSelection('.q-dpg-move');}});
     main.querySelector('[data-dpg-mtf-jump]')?.addEventListener('click',()=>main.querySelector('#qelly-decision-mtf')?.scrollIntoView({behavior:'smooth',block:'start'}));
@@ -1190,20 +1191,26 @@ export async function renderDecisionProvenGraph(main,deps){
   async function loadAssetCatalog({redraw=true}={}){
     try{
       const catalog=await api('/api/v1/decision-assets');
-      if(!Array.isArray(catalog?.groups)||!Array.isArray(catalog?.selectableSymbols))throw new Error('Decision asset capability catalog is invalid.');
+      if(!Array.isArray(catalog?.groups)||!Array.isArray(catalog?.selectableSymbols)||!catalog.selectableSymbols.length)throw new Error('Decision asset capability catalog is invalid.');
       state.assetCatalog=catalog;state.assetCatalogError=null;
-      if(!catalog.selectableSymbols.includes(state.asset)&&catalog.selectableSymbols.length)state.asset=catalog.selectableSymbols[0];
-      state.assetRecent=recordDecisionAssetRecent(state.assetRecent,state.asset);
-      saveDecisionAssetPreferences({favorites:state.assetFavorites,recent:state.assetRecent});
     }catch(error){
-      state.assetCatalog=null;state.assetCatalogError=error?.message||'Decision asset capability catalog is unavailable.';
-    }finally{if(redraw)draw();}
+      state.assetCatalog=fallbackAssetCatalog();
+      state.assetCatalogError='Live capability catalog unavailable. QELLY is limited to the existing six Decision assets until the catalog returns.';
+    }
+    const allowed=new Set(state.assetCatalog.selectableSymbols);
+    state.assetFavorites=state.assetFavorites.filter(symbol=>allowed.has(symbol));
+    state.assetRecent=state.assetRecent.filter(symbol=>allowed.has(symbol));
+    if(!allowed.has(state.asset))state.asset=state.assetCatalog.selectableSymbols[0];
+    state.assetRecent=recordDecisionAssetRecent(state.assetRecent,state.asset);
+    saveDecisionAssetPreferences({favorites:state.assetFavorites,recent:state.assetRecent});
+    if(redraw)draw();
   }
 
   async function load(){
     const observabilityStartedAt=startDecisionObservation();
     state.loading=true;state.error=null;draw();
     try{
+      if(!Array.isArray(state.assetCatalog?.selectableSymbols)||!state.assetCatalog.selectableSymbols.includes(state.asset))throw new Error('Selected asset is unavailable under the current Decision capability contract.');
       const range=state.selection?'&selectionStart='+encodeURIComponent(state.selection.start)+'&selectionEnd='+encodeURIComponent(state.selection.end):'';
       const rr='&rr='+encodeURIComponent(state.rr)+(state.rr==='custom'?'&customRr='+encodeURIComponent(state.customRr):'');
       const previous=state.data?.decisionSnapshot||null;

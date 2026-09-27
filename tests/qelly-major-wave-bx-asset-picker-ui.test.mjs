@@ -41,6 +41,8 @@ test('Wave BX Decision UI consumes the capability endpoint instead of a hard-cod
   assert.match(route,/data-dpg-asset-search/);
   assert.match(route,/data-dpg-asset-select/);
   assert.match(route,/selectableSymbols\.includes\(symbol\)/);
+  assert.match(route,/fallbackAssetCatalog/);
+  assert.match(route,/Selected asset is unavailable under the current Decision capability contract/);
   assert.doesNotMatch(route,/select\('asset',\['BTC','ETH','SOL','HYPE','XRP','DOGE'\]\)/);
   assert.match(css,/\.q-dpg-asset-picker__panel/);
   assert.match(css,/@media\(max-width:760px\)/);

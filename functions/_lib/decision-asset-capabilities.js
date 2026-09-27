@@ -1,7 +1,7 @@
 import {PUBLIC_CRYPTO_ASSETS} from './public-market-assets.js';
 import {providerCatalog} from './providers.js';
 
-export const DECISION_ASSET_SYMBOLS=Object.freeze(PUBLIC_CRYPTO_ASSETS.map((asset)=>asset.symbol));
+export const DECISION_ASSET_SYMBOLS=Object.freeze(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
 export const DECISION_ASSET_SET=new Set(DECISION_ASSET_SYMBOLS);
 export const DECISION_PICKER_INTERVALS=Object.freeze(['1m','5m','15m','30m','1h','4h','1d']);
 
@@ -19,7 +19,8 @@ const providerProjection=(provider)=>provider?{
 
 export const decisionAssetCapabilities=()=>{
   const ecb=providerById('ecb');
-  const cryptoAssets=PUBLIC_CRYPTO_ASSETS.map((asset)=>({
+  const cryptoBySymbol=new Map(PUBLIC_CRYPTO_ASSETS.map((asset)=>[asset.symbol,asset]));
+  const cryptoAssets=DECISION_ASSET_SYMBOLS.map((symbol)=>cryptoBySymbol.get(symbol)).filter(Boolean).map((asset)=>({
     canonicalId:asset.canonicalId,
     symbol:asset.symbol,
     name:asset.name,

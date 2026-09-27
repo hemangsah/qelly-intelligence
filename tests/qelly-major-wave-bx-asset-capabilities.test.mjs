@@ -8,7 +8,7 @@ test('Wave BX capability authority exposes only real current Decision assets as 
   const catalog=decisionAssetCapabilities();
   assert.equal(catalog.schemaVersion,'qelly.decision-asset-capabilities/1.0.0');
   assert.equal(catalog.authority,'decision-runtime-capability-contract');
-  assert.deepEqual(DECISION_ASSET_SYMBOLS,['BTC','ETH','SOL','XRP','HYPE','DOGE']);
+  assert.deepEqual(DECISION_ASSET_SYMBOLS,['BTC','ETH','SOL','HYPE','XRP','DOGE']);
   assert.deepEqual(DECISION_SCAN_ASSETS,DECISION_ASSET_SYMBOLS);
   assert.equal(catalog.supportedAssetCount,6);
   const crypto=catalog.groups.find((group)=>group.id==='crypto');
