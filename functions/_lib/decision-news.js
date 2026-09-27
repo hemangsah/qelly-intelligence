@@ -68,6 +68,30 @@ const stableHash=(value)=>{
   return (hash>>>0).toString(16).padStart(8,'0');
 };
 
+const UPSIDE_CONTEXT_TERMS=Object.freeze(['inflow','approval','approved','adoption','partnership','upgrade','launch','rally','surge','gain','record high','all time high']);
+const DOWNSIDE_CONTEXT_TERMS=Object.freeze(['outflow','ban','lawsuit','hack','hacked','exploit','breach','attack','liquidation','drop','fall','loss']);
+const matchedTerms=(title,terms)=>{
+  const normalized=' '+normalizeText(title)+' ';
+  return terms.filter(term=>normalized.includes(' '+normalizeText(term)+' '));
+};
+const directionalContextFor=(title)=>{
+  const upside=matchedTerms(title,UPSIDE_CONTEXT_TERMS),downside=matchedTerms(title,DOWNSIDE_CONTEXT_TERMS);
+  const state=upside.length&&downside.length?'MIXED_OR_UNCLEAR':upside.length?'UPSIDE_CONTEXT':downside.length?'DOWNSIDE_CONTEXT':'UNASSESSED';
+  return {state,upsideTerms:upside,downsideTerms:downside};
+};
+
+export const decisionNewsArticleMetadata=(article,{asset='BTC'}={})=>{
+  const title=String(article?.title||'');
+  const direction=directionalContextFor(title);
+  return {
+    topics:topicHintsFor(title),
+    directAssetMention:assetMentionFor(title,asset),
+    directionalRelevance:direction.state,
+    directionalTerms:{upside:direction.upsideTerms,downside:direction.downsideTerms},
+    boundary:'Directional relevance is a deterministic lexical headline cue only. It is not sentiment, market-impact proof, causality, or a BUY/SELL signal.'
+  };
+};
+
 const canonicalClusterSeed=(article)=>normalizeText(article?.title)||String(article?.url||article?.source||'news');
 
 export function buildDecisionNewsClusters(articles,{asset='BTC',similarityThreshold=.72}={}){
@@ -153,4 +177,4 @@ export function buildDecisionNewsClusters(articles,{asset='BTC',similarityThresh
   };
 }
 
-export const __decisionNewsTest=Object.freeze({STOPWORDS,ASSET_ALIASES,TOPIC_RULES,normalizeText,topicHintsFor,assetMentionFor,stableHash});
+export const __decisionNewsTest=Object.freeze({STOPWORDS,ASSET_ALIASES,TOPIC_RULES,UPSIDE_CONTEXT_TERMS,DOWNSIDE_CONTEXT_TERMS,normalizeText,topicHintsFor,assetMentionFor,directionalContextFor,stableHash});

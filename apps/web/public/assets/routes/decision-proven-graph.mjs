@@ -671,7 +671,7 @@ const sloDiagnosticsMarkup=(slo,escapeHtml)=>{
 export async function renderDecisionProvenGraph(main,deps){
   installStyles();const {api,stateBanner,escapeHtml,toast,navigate}=deps;
   const chatContext=readChatDecisionContext();
-  let state={asset:chatContext.asset,interval:chatContext.interval,horizon:normalizeHorizon(chatContext.interval,'4h'),rr:'auto',customRr:'2.5',chartMode:'select-range',loading:true,data:null,previousSnapshot:null,error:null,draft:null,selection:null,scanning:false,scan:null,scanError:null,ledger:null,ledgerLoading:false,ledgerError:null,ledgerMutating:false,slo:null,scanFilters:{universe:'all',direction:'any',minEvidenceQuality:'0',minCalibratedConfidence:'0',minMtfAgreement:'0',liquidity:'any',volatility:'any',regime:'any',eventRiskTolerance:'any',freshness:'live_or_delayed'}};
+  let state={asset:chatContext.asset,interval:chatContext.interval,horizon:normalizeHorizon(chatContext.interval,'4h'),rr:'auto',customRr:'2.5',chartMode:'select-range',loading:true,data:null,previousSnapshot:null,error:null,draft:null,selection:null,rangeEvidenceLoading:false,rangeEvidenceError:null,rangeEvidenceRequest:0,scanning:false,scan:null,scanError:null,ledger:null,ledgerLoading:false,ledgerError:null,ledgerMutating:false,slo:null,scanFilters:{universe:'all',direction:'any',minEvidenceQuality:'0',minCalibratedConfidence:'0',minMtfAgreement:'0',liquidity:'any',volatility:'any',regime:'any',eventRiskTolerance:'any',freshness:'live_or_delayed'}};
   const ledgerAuthenticated=()=>Boolean(window.__QELLY_SESSION_STATE__?.authenticated);
   const updateSlo=(snapshot)=>{
     const next=evaluateDecisionSlos(snapshot);
@@ -744,6 +744,19 @@ export async function renderDecisionProvenGraph(main,deps){
     if(!items.length)return '<div class="q-dpg-empty">Select a candle range and choose <strong>Explain this move</strong> to rank the available price, volume, volatility and news evidence.</div>';
     return '<ol class="q-dpg-ranked">'+items.map((item,index)=>'<li><span>'+(index+1)+'</span><div><small>'+escapeHtml(item.kind)+'</small><strong>'+(item.url?'<a href="'+escapeHtml(item.url)+'" target="_blank" rel="noopener">'+escapeHtml(item.title)+'</a>':escapeHtml(item.title))+'</strong><p>'+escapeHtml(item.detail)+'</p><em>'+escapeHtml(item.meta||'context')+'</em></div></li>').join('')+'</ol>';
   };
+  const historicalTimelineMarkup=(timeline)=>{
+    if(!timeline)return state.rangeEvidenceLoading?'<section class="q-dpg-range-timeline q-dpg-range-timeline--loading" data-dpg-range-timeline><header><div><small>WHAT CAUSED THIS MOVE? · HISTORICAL TIMELINE</small><h3>Loading exact BEFORE / DURING / AFTER evidence…</h3></div><span>ASSOCIATION ONLY</span></header></section>':'';
+    const bucket=(name)=>{
+      const items=Array.isArray(timeline?.buckets?.[name])?timeline.buckets[name]:[];
+      const coverage=(timeline.coverage||[]).find(item=>item.bucket===name)||{};
+      const cards=items.map(item=>{
+        const link=item.url?'<a href="'+escapeHtml(item.url)+'" target="_blank" rel="noopener">'+escapeHtml(item.event)+'</a>':'<strong>'+escapeHtml(item.event)+'</strong>';
+        return '<article class="q-dpg-range-event" data-timeline-bucket="'+escapeHtml(name)+'"><time>'+escapeHtml(displayTime(item.timestamp))+'</time>'+link+'<p>'+escapeHtml(item.source||'External reporting')+'</p><div><span>'+escapeHtml(item.directness||'INDIRECT')+'</span><span>'+escapeHtml(item.evidenceStrength||'CONTEXT ONLY')+'</span><span>'+escapeHtml(item.directionalRelevance||'UNASSESSED')+'</span><span>Association '+escapeHtml(item.associationConfidence?.label||'UNAVAILABLE')+'</span></div><small>'+escapeHtml(item.associationStatement||'')+'</small></article>';
+      }).join('');
+      return '<section><header><h4>'+escapeHtml(name)+'</h4><span>'+escapeHtml(String(items.length))+' items · '+escapeHtml(String(coverage.state||'UNAVAILABLE').replaceAll('_',' '))+'</span></header>'+(cards||'<p>No source-backed items were accepted inside this exact '+escapeHtml(name.toLowerCase())+' window.</p>')+'</section>';
+    };
+    return '<section id="qelly-decision-range-timeline" class="q-dpg-range-timeline" data-dpg-range-timeline><header><div><small>WHAT CAUSED THIS MOVE? · HISTORICAL NEWS / EVENT TIMELINE</small><h3>Chronology first, causality unclaimed</h3></div><span>'+escapeHtml(String(timeline.causalityState||'ASSOCIATION_ONLY').replaceAll('_',' '))+'</span></header><p>'+escapeHtml(timeline.boundary||'Timing does not prove causation.')+'</p><div class="q-dpg-range-timeline__buckets">'+bucket('BEFORE')+bucket('DURING')+bucket('AFTER')+'</div></section>';
+  };
   const rangeEvidenceMarkup=(data)=>{
     const range=data?.rangeEvidence;if(!range||range.state!=='AVAILABLE'||!range.summary)return '';
     const summary=range.summary,coverage=Array.isArray(range.coverage)?range.coverage:[],comparison=range.comparison||{};
@@ -753,7 +766,8 @@ export async function renderDecisionProvenGraph(main,deps){
     const windowCard=(label,item)=>'<article><span>'+escapeHtml(label)+'</span><strong>'+escapeHtml(value(item?.returnPct,'%'))+'</strong><small>'+escapeHtml(String(item?.samples??0))+' candles · range '+escapeHtml(value(item?.rangePct,'%'))+' · vol '+escapeHtml(value(item?.realizedVolatilityPct,'%'))+'</small></article>';
     const historical=range.evidenceFamilies?.filter(item=>!String(item.id||'').endsWith('-current'))||[];
     const current=range.evidenceFamilies?.filter(item=>String(item.temporalScope)==='CURRENT_CONTEXT')||[];
-    return '<section class="q-dpg-range-intelligence" data-dpg-range-intelligence><header><div><small>SELECTED MOVE INTELLIGENCE · EXACT RANGE</small><h2>'+escapeHtml(value(summary.returnPct,'%'))+' · '+escapeHtml(summary.direction)+' · '+escapeHtml(String(summary.candles))+' candles</h2></div><span>Association, not proof of causation</span></header><p class="q-dpg-range-story">'+escapeHtml(range.dataStory||'')+'</p><div class="q-dpg-range-intelligence__facts"><span><em>High</em><strong>'+escapeHtml(value(summary.high))+'</strong></span><span><em>Low</em><strong>'+escapeHtml(value(summary.low))+'</strong></span><span><em>Volatility</em><strong>'+escapeHtml(value(summary.volatilityPct,'%'))+'</strong></span><span><em>Selection ID</em><strong>'+escapeHtml(range.request?.selectionId||'Unavailable')+'</strong></span></div><h3>Before / during / after</h3><div class="q-dpg-range-comparison">'+windowCard('Before',comparison.before)+windowCard('During',comparison.during)+windowCard('After',comparison.after)+'</div><h3>Evidence coverage</h3><div class="q-dpg-range-coverage">'+historical.map(item=>card(item.label,item)).join('')+'</div><details><summary>CURRENT CONTEXT — not historical evidence</summary><div class="q-dpg-range-coverage">'+current.map(item=>card(item.label,item)).join('')+'</div><p>'+escapeHtml(range.currentContextBoundary||'')+'</p></details><details><summary>Uncertainty and attribution boundary</summary><ul>'+(range.uncertainty||[]).map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul><p>'+escapeHtml(range.causalityBoundary||'')+'</p></details></section>';
+    const rangeState=state.rangeEvidenceLoading?'<p class="q-dpg-range-fetch-state">Loading exact historical range evidence…</p>':state.rangeEvidenceError?'<p class="q-dpg-range-fetch-state q-dpg-range-fetch-state--error">'+escapeHtml(state.rangeEvidenceError)+'</p>':'';
+    return '<section class="q-dpg-range-intelligence" data-dpg-range-intelligence><header><div><small>SELECTED MOVE INTELLIGENCE · EXACT RANGE</small><h2>'+escapeHtml(value(summary.returnPct,'%'))+' · '+escapeHtml(summary.direction)+' · '+escapeHtml(String(summary.candles))+' candles</h2></div><span>Association, not proof of causation</span></header>'+rangeState+'<p class="q-dpg-range-story">'+escapeHtml(range.dataStory||'')+'</p><div class="q-dpg-range-intelligence__facts"><span><em>High</em><strong>'+escapeHtml(value(summary.high))+'</strong></span><span><em>Low</em><strong>'+escapeHtml(value(summary.low))+'</strong></span><span><em>Volatility</em><strong>'+escapeHtml(value(summary.volatilityPct,'%'))+'</strong></span><span><em>Selection ID</em><strong>'+escapeHtml(range.request?.selectionId||'Unavailable')+'</strong></span></div><h3>Before / during / after</h3><div class="q-dpg-range-comparison">'+windowCard('Before',comparison.before)+windowCard('During',comparison.during)+windowCard('After',comparison.after)+'</div>'+historicalTimelineMarkup(range.timeline)+'<h3>Evidence coverage</h3><div class="q-dpg-range-coverage">'+historical.map(item=>card(item.label,item)).join('')+'</div><details><summary>CURRENT CONTEXT — not historical evidence</summary><div class="q-dpg-range-coverage">'+current.map(item=>card(item.label,item)).join('')+'</div><p>'+escapeHtml(range.currentContextBoundary||'')+'</p></details><details><summary>Uncertainty and attribution boundary</summary><ul>'+(range.uncertainty||[]).map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul><p>'+escapeHtml(range.causalityBoundary||'')+'</p></details></section>';
   };
 
   const content=(data)=>{
@@ -777,13 +791,41 @@ export async function renderDecisionProvenGraph(main,deps){
     wire();mountAdSlots(main);
   };
   const scheduleLoad=()=>setTimeout(()=>load(),0);
+  const selectionKey=(selection)=>selection?String(selection.start)+'|'+String(selection.end):'';
+  async function loadExactRangeEvidence(selection){
+    if(!selection||!state.data)return false;
+    const key=selectionKey(selection),requestId=++state.rangeEvidenceRequest;
+    state.rangeEvidenceLoading=true;state.rangeEvidenceError=null;draw();
+    try{
+      const params=new URLSearchParams({asset:state.asset,interval:state.interval,horizon:state.horizon,rangeStart:String(selection.start),rangeEnd:String(selection.end),timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'});
+      const result=await api('/api/v1/decision-range-evidence?'+params.toString());
+      if(requestId!==state.rangeEvidenceRequest||selectionKey(state.selection)!==key||!state.data)return false;
+      state.data={...state.data,selection:result?.selectedMove||state.data.selection,rangeEvidence:result?.rangeEvidence||state.data.rangeEvidence};
+      return Boolean(result?.rangeEvidence);
+    }catch(error){
+      if(requestId===state.rangeEvidenceRequest)state.rangeEvidenceError=error?.message||'Exact historical range evidence is unavailable.';
+      return false;
+    }finally{
+      if(requestId===state.rangeEvidenceRequest){state.rangeEvidenceLoading=false;draw();}
+    }
+  }
+
   const wire=()=>{
+    const commitRangeSelection=async(targetSelector=null)=>{
+      if(!state.draft)return false;
+      state.selection=state.draft;
+      await load();
+      if(!state.data)return false;
+      await loadExactRangeEvidence(state.selection);
+      if(targetSelector)main.querySelector(targetSelector)?.scrollIntoView({behavior:'smooth',block:'start'});
+      return true;
+    };
     main.querySelectorAll('[data-dpg-asset],[data-dpg-interval],[data-dpg-horizon]').forEach(element=>element.addEventListener('change',()=>{
       const key=element.hasAttribute('data-dpg-asset')?'asset':element.hasAttribute('data-dpg-interval')?'interval':'horizon';
       state[key]=element.value;
       if(key==='interval')state.horizon=normalizeHorizon(state.interval,state.horizon);
       if(key!=='asset'){state.scan=null;state.scanError=null;}
-      state.draft=null;state.selection=null;scheduleLoad();
+      state.rangeEvidenceRequest++;state.rangeEvidenceLoading=false;state.rangeEvidenceError=null;state.draft=null;state.selection=null;scheduleLoad();
     }));
     main.querySelector('[data-dpg-rr]')?.addEventListener('change',(event)=>{
       state.rr=event.currentTarget.value;state.scan=null;state.scanError=null;
@@ -796,8 +838,8 @@ export async function renderDecisionProvenGraph(main,deps){
     main.querySelectorAll('[data-dpg-ledger-observe]').forEach(button=>button.addEventListener('click',()=>observeTrackedSetup(button.dataset.dpgLedgerObserve)));
     main.querySelectorAll('[data-dpg-scan-filter]').forEach(element=>element.addEventListener('change',()=>{const key=element.dataset.dpgScanFilter;if(key){state.scanFilters[key]=element.value;state.scan=null;state.scanError=null;draw();}}));
     main.querySelectorAll('[data-dpg-scan-asset]').forEach(button=>button.addEventListener('click',()=>{state.asset=button.dataset.dpgScanAsset;state.draft=null;state.selection=null;load();}));
-    main.querySelector('[data-dpg-explain-header]')?.addEventListener('click',()=>{if(state.draft){state.selection=state.draft;load();}});
-    main.querySelector('[data-dpg-explain-candle]')?.addEventListener('click',()=>{const candles=state.data?.market?.candles||[],intervalMs=INTERVAL_MS[state.interval],selected=state.draft&&state.draft.end-state.draft.start<intervalMs?state.draft:null,last=candles.at?.(-1);if(selected){state.selection=selected;load();return;}if(last&&intervalMs){state.draft={start:last.time,end:last.time+intervalMs-1};state.selection=state.draft;load();}});
+    main.querySelector('[data-dpg-explain-header]')?.addEventListener('click',()=>{if(state.draft)void commitRangeSelection('.q-dpg-move');});
+    main.querySelector('[data-dpg-explain-candle]')?.addEventListener('click',()=>{const candles=state.data?.market?.candles||[],intervalMs=INTERVAL_MS[state.interval],selected=state.draft&&state.draft.end-state.draft.start<intervalMs?state.draft:null,last=candles.at?.(-1);if(selected){void commitRangeSelection('.q-dpg-move');return;}if(last&&intervalMs){state.draft={start:last.time,end:last.time+intervalMs-1};void commitRangeSelection('.q-dpg-move');}});
     main.querySelector('[data-dpg-mtf-jump]')?.addEventListener('click',()=>main.querySelector('#qelly-decision-mtf')?.scrollIntoView({behavior:'smooth',block:'start'}));
     main.querySelector('[data-dpg-compare-asset]')?.addEventListener('click',()=>{const assetId=canonicalDecisionAsset(state.asset);if(!assetId||typeof navigate!=='function'){toast?.('Asset comparison is unavailable for this Decision context.',{tone:'danger'});return;}navigate('comparison-lab',assetId);});
     main.querySelector('[data-dpg-formula-evidence]')?.addEventListener('click',()=>{
@@ -834,15 +876,8 @@ export async function renderDecisionProvenGraph(main,deps){
     });
     main.querySelector('[data-dpg-methodology-jump]')?.addEventListener('click',()=>main.querySelector('#qelly-decision-methodology')?.scrollIntoView({behavior:'smooth',block:'start'}));
     main.querySelectorAll('[data-dpg-refresh]').forEach(button=>button.addEventListener('click',load));main.querySelector('[data-dpg-export]')?.addEventListener('click',()=>{download(state.data);toast('Research package exported',{tone:'success'});});
-    const commitRangeSelection=async(targetSelector=null)=>{
-      if(!state.draft)return false;
-      state.selection=state.draft;
-      await load();
-      if(targetSelector)main.querySelector(targetSelector)?.scrollIntoView({behavior:'smooth',block:'start'});
-      return true;
-    };
     main.querySelector('[data-dpg-explain]')?.addEventListener('click',()=>{void commitRangeSelection('.q-dpg-move');});
-    main.querySelector('[data-dpg-clear]')?.addEventListener('click',()=>{state.draft=null;state.selection=null;void load();});
+    main.querySelector('[data-dpg-clear]')?.addEventListener('click',()=>{state.rangeEvidenceRequest++;state.rangeEvidenceLoading=false;state.rangeEvidenceError=null;state.draft=null;state.selection=null;void load();});
     main.querySelectorAll('[data-dpg-chart-mode]').forEach(button=>button.addEventListener('click',()=>{state.chartMode=button.dataset.dpgChartMode||'select-range';draw();}));
     const keyboardSelection=()=>{
       const candles=state.data?.market?.candles||[],intervalMs=INTERVAL_MS[state.interval],startInput=main.querySelector('[data-dpg-range-start]'),endInput=main.querySelector('[data-dpg-range-end]');
@@ -860,7 +895,7 @@ export async function renderDecisionProvenGraph(main,deps){
         document.dispatchEvent(new CustomEvent('qelly:open-ai',{detail:{mode:'decision-range',asset:state.asset,timeframe:state.interval,expand:true,decisionContext:{horizon:state.horizon,rr:state.rr,customRr:state.rr==='custom'?state.customRr:null,selection},prompt:'Explain only this selected historical '+state.asset+' range from '+displayTime(selection.start)+' to '+displayTime(selection.end)+'. Separate observed evidence from inference, use range-bounded evidence where available, disclose missing historical data, and do not substitute current context for historical evidence.'}}));
         return;
       }
-      const target={news:'.q-dpg-news',flow:'.q-dpg-derivatives',compare:'.q-dpg-ppf',similar:'.q-dpg-analogs'}[action]||null;
+      const target={news:'.q-dpg-range-timeline',flow:'.q-dpg-derivatives',compare:'.q-dpg-ppf',similar:'.q-dpg-analogs'}[action]||null;
       if(action==='note'){
         if(!(await commitRangeSelection()))return;
         const note=buildDecisionResearchNote(state.data,{requestedRr:state.rr,customRr:state.rr==='custom'?state.customRr:null,targetTouchCalibration:state.ledger?.calibration||null});

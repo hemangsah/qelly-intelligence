@@ -149,7 +149,7 @@ async function fetchDerivativesContext(fetchImpl,asset,observedAt){
   }
 }
 
-const newsUrl=(asset,start,end,{fallback=false}={})=>{const url=new URL('https://api.gdeltproject.org/api/v2/doc/doc');url.searchParams.set('query','('+NEWS_TERMS[asset]+') sourcelang:english');url.searchParams.set('mode','artlist');url.searchParams.set('format','json');url.searchParams.set('maxrecords','12');url.searchParams.set('sort','HybridRel');if(fallback)url.searchParams.set('timespan','3days');else{url.searchParams.set('startdatetime',gdeltTime(Math.max(end-72*3_600_000,start)));url.searchParams.set('enddatetime',gdeltTime(end));}return url.href;};
+const newsUrl=(asset,start,end,{fallback=false,exactWindow=false}={})=>{const url=new URL('https://api.gdeltproject.org/api/v2/doc/doc');url.searchParams.set('query','('+NEWS_TERMS[asset]+') sourcelang:english');url.searchParams.set('mode','artlist');url.searchParams.set('format','json');url.searchParams.set('maxrecords','12');url.searchParams.set('sort','HybridRel');if(fallback&&!exactWindow)url.searchParams.set('timespan','3days');else{url.searchParams.set('startdatetime',gdeltTime(exactWindow?start:Math.max(end-72*3_600_000,start)));url.searchParams.set('enddatetime',gdeltTime(end));}return url.href;};
 const normalizeArticles=(payload)=>(Array.isArray(payload?.articles)?payload.articles:[]).map(article=>({title:String(article?.title||'').trim().slice(0,240),source:String(article?.domain||'').trim().slice(0,100),publishedAt:String(article?.seendate||''),url:safeUrl(article?.url)})).filter(article=>article.title&&article.url).slice(0,8);
 const NEWS_TIMEOUT_MS=2_500;
 const NEWS_CACHE_FRESH_MS=5*60_000;
@@ -165,12 +165,13 @@ const normalizedNewsWindow=(start,end,bucketMs=NEWS_CACHE_BUCKET_MS)=>{
   const normalizedEnd=Math.floor(rawEnd/bucket)*bucket;
   return {start:normalizedStart,end:Math.max(normalizedStart+1,normalizedEnd),bucketMs:bucket};
 };
-const newsCacheRequest=(asset,start,end,bucketMs=NEWS_CACHE_BUCKET_MS)=>{
+const newsCacheRequest=(asset,start,end,bucketMs=NEWS_CACHE_BUCKET_MS,{exactWindow=false}={})=>{
   const window=normalizedNewsWindow(start,end,bucketMs);
   const url=new URL('https://qelly-news-cache.invalid/context');
   url.searchParams.set('asset',String(asset||'').toUpperCase());
   url.searchParams.set('start',String(window.start));
   url.searchParams.set('end',String(window.end));
+  url.searchParams.set('scope',exactWindow?'exact-window':'recent-context');
   return {request:new Request(url.href),window};
 };
 const readNewsCache=async(cache,key,now)=>{
@@ -195,22 +196,22 @@ const writeNewsCache=async(cache,key,value)=>{
   }catch{}
 };
 
-async function fetchNewsAttempt(fetchImpl,asset,start,end,{fallback=false}={}){
-  const response=await fetchImpl(newsUrl(asset,start,end,{fallback}),{
+async function fetchNewsAttempt(fetchImpl,asset,start,end,{fallback=false,exactWindow=false}={}){
+  const response=await fetchImpl(newsUrl(asset,start,end,{fallback,exactWindow}),{
     headers:{accept:'application/json','user-agent':'QELLY-Intelligence/decision-intelligence'},
     signal:AbortSignal.timeout(NEWS_TIMEOUT_MS)
   });
   if(!response.ok)throw new Error('News provider unavailable');
   return normalizeArticles(await response.json());
 }
-async function fetchNews(fetchImpl,asset,start,end){
-  const primary=await fetchNewsAttempt(fetchImpl,asset,start,end);
-  if(primary.length)return primary;
+async function fetchNews(fetchImpl,asset,start,end,{exactWindow=false}={}){
+  const primary=await fetchNewsAttempt(fetchImpl,asset,start,end,{exactWindow});
+  if(primary.length||exactWindow)return primary;
   return fetchNewsAttempt(fetchImpl,asset,start,end,{fallback:true});
 }
 
-export async function fetchNewsContext(fetchImpl,asset,start,end,{cache=globalThis.caches?.default,now=Date.now(),bucketMs=NEWS_CACHE_BUCKET_MS,cacheOnly=false}={}){
-  const {request:key,window}=newsCacheRequest(asset,start,end,bucketMs);
+export async function fetchNewsContext(fetchImpl,asset,start,end,{cache=globalThis.caches?.default,now=Date.now(),bucketMs=NEWS_CACHE_BUCKET_MS,cacheOnly=false,exactWindow=false}={}){
+  const {request:key,window}=newsCacheRequest(asset,start,end,bucketMs,{exactWindow});
   const cached=await readNewsCache(cache,key,now);
   if(cached.fresh)return {
     articles:cached.fresh.articles,
@@ -235,7 +236,7 @@ export async function fetchNewsContext(fetchImpl,asset,start,end,{cache=globalTh
 
   const task=(async()=>{
     try{
-      const articles=await fetchNews(fetchImpl,asset,window.start,window.end);
+      const articles=await fetchNews(fetchImpl,asset,window.start,window.end,{exactWindow});
       const fetchedAt=new Date(Number(now)).toISOString();
       const state=articles.length?'live':'no-matches';
       await writeNewsCache(cache,key,{articles,state,fetchedAt});
