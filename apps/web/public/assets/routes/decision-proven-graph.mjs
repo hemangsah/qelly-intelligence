@@ -868,6 +868,18 @@ export async function renderDecisionProvenGraph(main,deps){
     return '<section class="q-dpg-asset-evidence-profile" data-dpg-evidence-profile="'+escapeHtml(profile.profileId||'unknown')+'"><header><div><small>ASSET-CLASS EVIDENCE PROFILE</small><h2>'+escapeHtml(profile.label||'Evidence profile')+'</h2><p>'+escapeHtml(profile.description||'')+'</p></div><span>'+escapeHtml(stateLabel(profile.state))+'</span></header><div class="q-dpg-asset-evidence-profile__coverage"><span><em>Applicable</em><strong>'+escapeHtml(String(coverage.applicable??0))+'</strong></span><span><em>Available</em><strong>'+escapeHtml(String(coverage.available??0))+'</strong></span><span><em>Partial</em><strong>'+escapeHtml(String(coverage.partial??0))+'</strong></span><span><em>Unavailable</em><strong>'+escapeHtml(String(coverage.unavailable??0))+'</strong></span></div><details><summary>Evidence applicability and source requirements</summary><div class="q-dpg-asset-evidence-profile__modules">'+cards+'</div><p>'+escapeHtml(profile.boundary||'')+'</p><p>'+escapeHtml(profile.weightingBoundary||'')+'</p></details></section>';
   };
 
+  const smcPriceActionMarkup=(data,escapeHtml)=>{
+    const smc=data?.quant?.smc,pa=data?.quant?.priceAction;
+    if(!smc&&!pa)return '';
+    const label=(value)=>String(value||'UNAVAILABLE').replaceAll('_',' ');
+    const fvg=smc?.fairValueGaps||{},ob=smc?.orderBlock||{},pd=smc?.premiumDiscount||{},rl=smc?.rangeLiquidity||{};
+    const metric=(name,value)=>'<span><em>'+escapeHtml(name)+'</em><strong>'+escapeHtml(label(value))+'</strong></span>';
+    return '<section class="q-dpg-smc-pa" data-dpg-smc-price-action><header><div><small>DETERMINISTIC SMC / PRICE ACTION</small><h2>Structure rules, not discretionary labels</h2><p>Every state below is derived from explicit OHLCV rules and remains research evidence only.</p></div><span>'+escapeHtml(label(smc?.direction||'NEUTRAL'))+' SMC · '+escapeHtml(label(pa?.direction||'NEUTRAL'))+' PA</span></header>'+
+      '<div class="q-dpg-smc-pa__grid"><article><h3>SMC / structure</h3><div>'+metric('Swing sequence',smc?.swingSequence)+metric('BOS',smc?.breakOfStructure)+metric('CHOCH',smc?.changeOfCharacter)+metric('Displacement',smc?.displacement?.direction)+metric('Liquidity sweep',smc?.liquiditySweep)+metric('Premium / discount',pd.state)+'</div><p>FVGs '+escapeHtml(String(fvg.count??0))+' · active '+escapeHtml(String(fvg.activeCount??0))+' · equal-high pools '+escapeHtml(String(rl.equalHighPools??0))+' · equal-low pools '+escapeHtml(String(rl.equalLowPools??0))+'.</p><p>Order block: '+escapeHtml(label(ob.direction||ob.state||'NONE'))+(ob.low!=null?' · '+escapeHtml(String(ob.low))+'–'+escapeHtml(String(ob.high)):'')+(ob.mitigated?' · mitigated':'')+'.</p></article>'+
+      '<article><h3>Price action</h3><div>'+metric('Breakout',pa?.breakout)+metric('Retest',pa?.retest)+metric('Rejection',pa?.rejection)+metric('Engulfing',pa?.engulfing)+metric('Pin bar',pa?.pinBar)+metric('Inside / outside',pa?.insideBar?'INSIDE':pa?.outsideBar?'OUTSIDE':'NONE')+metric('Compression / expansion',pa?.compressionExpansion)+metric('Failed breakout',pa?.failedBreakout)+'</div><p>Gap '+escapeHtml(label(pa?.gap))+' · continuation '+escapeHtml(label(pa?.trendContinuation))+' · exhaustion '+escapeHtml(label(pa?.exhaustion))+'.</p></article></div>'+
+      '<details><summary>Deterministic method boundary</summary><p>'+escapeHtml(smc?.methodology||'')+'</p><p>'+escapeHtml(pa?.methodology||'')+'</p><p>These rules do not identify institutional intent, smart-money actors, or causal flow. Overlapping structure features are handled by formula-governance redundancy control.</p></details></section>';
+  };
+
   const formulaGovernanceMarkup=(data,escapeHtml)=>{
     const governance=data?.formulaGovernance||data?.qellyView?.formulaGovernance;
     if(!governance)return '';
@@ -884,6 +896,7 @@ export async function renderDecisionProvenGraph(main,deps){
   const advancedDecisionContent=(data)=>{
     return '<section class="q-dpg-mode-panel q-dpg-mode-panel--advanced" data-dpg-mode-panel="advanced"><header class="q-dpg-mode-panel__header"><div><small>ADVANCED MODE</small><h2>Practitioner evidence and scenario research</h2></div><span>Exact metrics · contradictions preserved</span></header>'+
       tradeResearchMarkup(data,escapeHtml)+
+      smcPriceActionMarkup(data,escapeHtml)+
       formulaGovernanceMarkup(data,escapeHtml)+
       assetEvidenceProfileMarkup(data)+
       pastPresentFutureMarkup(data,escapeHtml)+contradictionMarkup(data,escapeHtml)+
