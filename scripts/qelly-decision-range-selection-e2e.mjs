@@ -142,6 +142,14 @@ const exercise=async({name,viewport,touch=false})=>{
   const rangeDockText=(await page.locator('[data-dpg-chat-dock-toggle]').first().innerText()).replace(/\s+/g,' ').trim().toLowerCase();
   const rangeAwareDock=rangeDockText.includes('selected range');
   if(!rangeAwareDock)failures.push({type:'qelly-dock-range-context',text:rangeDockText});
+  await page.evaluate(()=>window.scrollBy(0,1));
+  await page.waitForTimeout(80);
+  const clearanceProbe=await page.locator('[data-dpg-chat-dock]').first().evaluate((node)=>{
+    const workbench=document.querySelector('.q-dpg-range-workbench'),rect=workbench?.getBoundingClientRect(),style=getComputedStyle(node);
+    const reserved=112,zoneOverlap=Boolean(rect&&rect.bottom>innerHeight-reserved&&rect.top<innerHeight);
+    return {clearance:node.dataset.clearance||'unset',opacity:style.opacity,pointerEvents:style.pointerEvents,zoneOverlap};
+  });
+  if(clearanceProbe.zoneOverlap&&(clearanceProbe.clearance!=='chart'||clearanceProbe.pointerEvents!=='none'))failures.push({type:'qelly-dock-chart-clearance',...clearanceProbe});
   await page.locator('[data-dpg-chat-dock-toggle]').first().click();
   const selectedQuickCount=await page.locator('[data-dpg-chat-quick="selected"]').count();
   if(selectedQuickCount!==1)failures.push({type:'qelly-dock-range-action',selectedQuickCount});
