@@ -82,7 +82,7 @@ const rangeSelectionMetrics=(candles,selection,interval)=>{
   const highs=selected.map(candle=>candleValue(candle,'high')).filter(Number.isFinite);
   const lows=selected.map(candle=>candleValue(candle,'low')).filter(Number.isFinite);
   const absoluteMove=Number.isFinite(startPrice)&&Number.isFinite(endPrice)?endPrice-startPrice:null;
-  const movePct=Number.isFinite(absoluteMove)&&startPrice!==0?absoluteMove/startPrice*100:null;
+  const movePct=Number.isFinite(startPrice)&&Number.isFinite(endPrice)&&startPrice!==0?(endPrice/startPrice-1)*100:null;
   const start=candleTime(first),end=candleTime(last)+intervalMs-1;
   return {...bounds,start,end,candles:selected.length,durationMs:end-start+1,timeframe:interval,startPrice,endPrice,absoluteMove,movePct,direction:Number.isFinite(absoluteMove)?absoluteMove>0?'UP':absoluteMove<0?'DOWN':'FLAT':'UNAVAILABLE',high:highs.length?Math.max(...highs):null,low:lows.length?Math.min(...lows):null};
 };
