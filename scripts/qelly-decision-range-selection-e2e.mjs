@@ -5,6 +5,7 @@ import {startServer} from './release-a5-evidence-server.mjs';
 import {buildDecisionRangeEvidence} from '../functions/_lib/decision-range-evidence.js';
 import {buildDecisionHistoricalNewsTimeline} from '../functions/_lib/decision-range-timeline.js';
 import {buildDecisionRangeFlowParticipation} from '../functions/_lib/decision-range-flow.js';
+import {buildDecisionNextMoveResearch} from '../functions/_lib/decision-next-move.js';
 import {decisionAssetCapabilities} from '../functions/_lib/decision-asset-capabilities.js';
 
 const outputDir=path.resolve('preview/decision-range-e2e');
@@ -84,11 +85,14 @@ const proxyDecision=async(route)=>{
   const target=new URL(requestUrl.pathname+requestUrl.search,productionOrigin);
   const response=await fetch(target,{headers:{accept:'application/json'}});
   let body=await response.text();
-  if(response.ok&&requestUrl.searchParams.has('selectionStart')&&requestUrl.pathname.includes('/api/v1/decision-proven-graph')){
+  if(response.ok&&requestUrl.pathname.includes('/api/v1/decision-proven-graph')){
     try{
-      const payload=JSON.parse(body);
-      payload.rangeEvidence=buildDecisionRangeEvidence({graph:payload,evidence:payload.evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:'UTC'});
-      latestSelectedPayload=payload;
+      const payload=JSON.parse(body),customBars=requestUrl.searchParams.has('nextBars')?Number(requestUrl.searchParams.get('nextBars')):null;
+      payload.nextMoveResearch=buildDecisionNextMoveResearch(payload.market?.candles||[],{asset:payload.asset,interval:payload.interval,customBars,paths:128});
+      if(requestUrl.searchParams.has('selectionStart')){
+        payload.rangeEvidence=buildDecisionRangeEvidence({graph:payload,evidence:payload.evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:'UTC'});
+        latestSelectedPayload=payload;
+      }
       body=JSON.stringify(payload);
     }catch{}
   }
@@ -109,6 +113,24 @@ const exercise=async({name,viewport,touch=false})=>{
   await page.goto(localOrigin+'/#/decision-provenance',{waitUntil:'domcontentloaded',timeout:45_000});
   const chart=page.locator('[data-dpg-chart]').first();
   await chart.waitFor({state:'visible',timeout:45_000});
+  const projectedRange=page.locator('[data-dpg-projected-range]').first();
+  await projectedRange.waitFor({state:'visible',timeout:10_000});
+  const projectedState=await projectedRange.getAttribute('data-projection-state');
+  const projectedObservedClass=await projectedRange.locator('[data-candle-index]').count();
+  const projectedLabel=(await projectedRange.locator('.q-dpg-projected-range__label').innerText()).trim();
+  if(projectedState!=='PROJECTED'||projectedObservedClass!==0||projectedLabel!=='PROJECTED')failures.push({type:'next-move-projection-boundary',projectedState,projectedObservedClass,projectedLabel});
+  const nextMove=page.locator('[data-dpg-next-move]').first();
+  await nextMove.waitFor({state:'visible',timeout:10_000});
+  const nextMoveText=(await nextMove.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  const nextMoveRequired=['next move research','projected','bullish','neutral / small range','bearish','expected range','likely high / low band','expected volatility','calibration','projection invalidation','probability governance'].every(label=>nextMoveText.includes(label));
+  const probabilityCards=await nextMove.locator('.q-dpg-next-move__probabilities strong').allTextContents();
+  const probabilitySafe=probabilityCards.length===3&&probabilityCards.every(value=>value==='UNCALIBRATED'||/^\d+(?:\.\d+)?%$/.test(value));
+  if(!nextMoveRequired||!probabilitySafe)failures.push({type:'next-move-research',nextMoveRequired,probabilitySafe,probabilityCards,text:nextMoveText});
+  await nextMove.locator('[data-dpg-next-bars="3"]').click();
+  await page.waitForTimeout(80);
+  const activeThree=await page.locator('[data-dpg-next-move]').first().getAttribute('data-active-bars');
+  if(activeThree!=='3')failures.push({type:'next-move-horizon',activeThree});
+  await page.locator('[data-dpg-next-bars="1"]').first().click();
   const assetPickerToggle=page.locator('[data-dpg-asset-picker-toggle]').first();
   await assetPickerToggle.waitFor({state:'visible',timeout:10_000});
   await assetPickerToggle.click();
@@ -289,7 +311,7 @@ const exercise=async({name,viewport,touch=false})=>{
   const forbiddenFlowClaims=['identified whale','confirmed institution bought','confirmed institution sold'].some(label=>normalizedFlow.includes(label));
   if(!flowRequired||forbiddenFlowClaims)failures.push({type:'range-flow',text:flowText,flowRequired,forbiddenFlowClaims});
   await page.screenshot({path:path.join(outputDir,`decision-range-selected-${name}.png`),fullPage:true});
-  const result={name,viewport,touch,assetPicker:{fitsViewport:pickerFitsViewport,required:pickerRequired,selectableCount,favoriteEth},setupFinder:{required:setupFinderRequired,aggressiveRequest:setupRequestOk,closestCandidate:closestCandidateRequired,closestInterval},decisionModes:{simpleDefault:true,advanced:advancedRequired,research:researchRequired},qellyDock:{centered:dockCentered,composer:dockComposerRequired,rangeAware:rangeAwareDock},persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,rangeTimeline:timelineRequired,rangeTimelineText:timelineText,rangeFlow:flowRequired,rangeFlowText:flowText,failures};
+  const result={name,viewport,touch,nextMove:{projectedState,nextMoveRequired,probabilitySafe,activeThree},assetPicker:{fitsViewport:pickerFitsViewport,required:pickerRequired,selectableCount,favoriteEth},setupFinder:{required:setupFinderRequired,aggressiveRequest:setupRequestOk,closestCandidate:closestCandidateRequired,closestInterval},decisionModes:{simpleDefault:true,advanced:advancedRequired,research:researchRequired},qellyDock:{centered:dockCentered,composer:dockComposerRequired,rangeAware:rangeAwareDock},persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,rangeTimeline:timelineRequired,rangeTimelineText:timelineText,rangeFlow:flowRequired,rangeFlowText:flowText,failures};
   results.push(result);
   await context.close();
 };
