@@ -74,3 +74,13 @@ test('Wave CB is integrated into Decision API and the practitioner UI',async()=>
   assert.match(route,/REDUNDANCY-SUPPRESSED BY/);
   assert.match(css,/q-dpg-formula-governance__contributors/);
 });
+
+
+test('Wave CB receipts expose the master-prompt evidence contract and reconcile directional attribution',()=>{
+  const result=buildDecisionFormulaGovernance(graph(),{multiTimeframe:mtf});
+  for(const item of result.features){
+    for(const key of ['direction','strength','freshness','reliability','relevance','contradiction','horizon','regimeApplicability','role'])assert.ok(Object.hasOwn(item,key),item.id+' '+key);
+  }
+  const directionalTotal=result.topContributors.filter(item=>item.role==='directional_evidence').reduce((sum,item)=>sum+(Number(item.contribution)||0),0);
+  assert.ok(Math.abs(directionalTotal-result.netDirectionalScore)<0.02);
+});

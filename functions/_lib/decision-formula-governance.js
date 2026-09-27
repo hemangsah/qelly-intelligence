@@ -2,7 +2,6 @@ const SCHEMA_VERSION='qelly.decision-formula-governance/1.0.0';
 const clamp=(value,min=-1,max=1)=>Math.min(max,Math.max(min,Number(value)||0));
 const round=(value,digits=4)=>Number.isFinite(Number(value))?Number(Number(value).toFixed(digits)):null;
 const finite=(value)=>value==null||value===''?null:Number.isFinite(Number(value))?Number(value):null;
-const sign=(value)=>value>0?1:value<0?-1:0;
 const direction=(score)=>score>.08?'UPSIDE':score<-.08?'DOWNSIDE':'NEUTRAL';
 const availability=(value)=>value==null||value===''?'UNAVAILABLE':'AVAILABLE';
 const reliabilityFromTruth=(truth)=>truth==='LIVE'?1:truth==='DELAYED'?0.82:truth==='STALE'?0.4:0.2;
@@ -24,10 +23,10 @@ export const FORMULA_CATALOG=Object.freeze([
   Object.freeze({id:'volatility-regime',label:'Volatility regime',family:'volatility',redundancyGroup:'volatility-regime',role:'risk_context',definition:'Observed volatility regime used for risk/relevance context, not direction.'})
 ]);
 
-const feature=(id,{score=null,strength=0,reliability=0,relevance=1,state='UNAVAILABLE',detail='',horizon='CURRENT',regimeApplicability='GENERAL'}={})=>{
+const feature=(id,{score=null,strength=0,freshness='UNAVAILABLE',reliability=0,relevance=1,contradiction='NONE',state='UNAVAILABLE',detail='',horizon='CURRENT',regimeApplicability='GENERAL'}={})=>{
   const meta=FORMULA_CATALOG.find(item=>item.id===id);
   const numeric=finite(score);
-  return {...meta,state,numericScore:numeric,direction:numeric===null?'UNAVAILABLE':direction(numeric),strength:round(clamp(strength,0,1),3),reliability:round(clamp(reliability,0,1),3),relevance:round(clamp(relevance,0,1),3),horizon,regimeApplicability,detail,effectiveScore:null,contribution:null,suppressedBy:null};
+  return {...meta,state,numericScore:numeric,direction:numeric===null?'UNAVAILABLE':direction(numeric),strength:round(clamp(strength,0,1),3),freshness:String(freshness||'UNAVAILABLE'),reliability:round(clamp(reliability,0,1),3),relevance:round(clamp(relevance,0,1),3),contradiction:String(contradiction||'NONE'),horizon,regimeApplicability,detail,effectiveScore:null,contribution:null,suppressedBy:null};
 };
 
 const applyRedundancy=(features)=>{
@@ -64,18 +63,18 @@ export function buildDecisionFormulaGovernance(graph,{multiTimeframe=null,deriva
   const trendSlope=finite(metrics.trendPerBarPct),roc14=finite(trend.roc14Pct),adx14=finite(trend.adx14),rsi14=finite(metrics.rsi14),returnZ=finite(metrics.returnZScore);
   const structureStrength=structureReliability(structure.strengthState),regime=String(graph?.quant?.regime||'UNKNOWN');
   const raw=[
-    feature('trend-slope',{score:trendSlope===null?null:clamp(trendSlope/.04),strength:trendSlope===null?0:Math.min(1,Math.abs(trendSlope)/.04),reliability:freshnessReliability,state:availability(trendSlope),detail:'trendPerBarPct='+String(trendSlope??'unavailable'),regimeApplicability:regime}),
-    feature('roc14',{score:roc14===null?null:clamp(roc14/4),strength:roc14===null?0:Math.min(1,Math.abs(roc14)/4),reliability:freshnessReliability,state:availability(roc14),detail:'roc14Pct='+String(roc14??'unavailable'),regimeApplicability:regime}),
-    feature('adx14',{score:null,strength:adx14===null?0:clamp((adx14-12)/28,0,1),reliability:freshnessReliability,state:availability(adx14),detail:'adx14='+String(adx14??'unavailable'),regimeApplicability:regime}),
-    feature('rsi14',{score:rsi14===null?null:clamp((rsi14-50)/22),strength:rsi14===null?0:Math.min(1,Math.abs(rsi14-50)/22),reliability:freshnessReliability,state:availability(rsi14),detail:'rsi14='+String(rsi14??'unavailable'),regimeApplicability:regime}),
-    feature('return-z',{score:returnZ===null?null:clamp(returnZ/2.5),strength:returnZ===null?0:Math.min(1,Math.abs(returnZ)/2.5),reliability:freshnessReliability,state:availability(returnZ),detail:'returnZScore='+String(returnZ??'unavailable'),regimeApplicability:regime}),
-    feature('market-structure',{score:structureSign||0,strength:structureSign?structureStrength:0,reliability:freshnessReliability,state:structureSign?'AVAILABLE':'NEUTRAL',detail:'bias='+String(structure.bias||'MIXED')+' · strength='+String(structure.strengthState||'UNAVAILABLE'),regimeApplicability:regime}),
-    feature('scenario-balance',{score:scenarioScore,strength:Math.min(1,Math.abs(scenarioScore)),reliability:freshnessReliability,state:Number.isFinite(Number(forecast.bull))&&Number.isFinite(Number(forecast.bear))?'AVAILABLE':'UNAVAILABLE',detail:'bull='+String(forecast.bull??'unavailable')+' · bear='+String(forecast.bear??'unavailable'),horizon:String(graph?.horizonBars||'CURRENT')+' bars',regimeApplicability:regime}),
-    feature('mtf-agreement',{score:total?mtfSign*(aligned/total):null,strength:total?aligned/total:0,reliability:total?Math.min(1,total/4):0,state:total?'AVAILABLE':'UNAVAILABLE',detail:'direction='+mtfDirection+' · aligned='+aligned+'/'+total,horizon:'MULTI_TIMEFRAME',regimeApplicability:'GENERAL'}),
-    feature('liquidity-depth',{score:null,strength:liquidity?.state==='live'?Math.min(1,Math.abs(finite(liquidity?.top5Imbalance)??0)):0,reliability:liquidity?.state==='live'?1:0,state:liquidity?.state==='live'?'AVAILABLE':'UNAVAILABLE',detail:'depth='+String(liquidity?.depthConsensus||'UNAVAILABLE')+' · spreadBps='+String(liquidity?.spreadBps??'unavailable')}),
-    feature('funding-carry',{score:null,strength:derivatives?.state==='live'?Math.min(1,Math.abs(finite(derivatives?.fundingPct)??0)*100):0,reliability:derivatives?.state==='live'?1:0,state:derivatives?.state==='live'?'AVAILABLE':'UNAVAILABLE',detail:'fundingPct='+String(derivatives?.fundingPct??'unavailable')}),
-    feature('cross-asset-relative',{score:null,strength:crossAsset?.state==='available'?Math.min(1,Math.abs(finite(crossAsset?.relativeStrengthPct)??0)/3):0,reliability:crossAsset?.state==='available'?1:0,state:crossAsset?.state==='available'?'AVAILABLE':'UNAVAILABLE',detail:'relativeStrengthPct='+String(crossAsset?.relativeStrengthPct??'unavailable')+' · benchmark='+String(crossAsset?.benchmark||'unavailable')}),
-    feature('volatility-regime',{score:null,strength:graph?.quant?.volatility?.regime==='HIGH'?1:graph?.quant?.volatility?.regime==='ELEVATED'?0.75:0.4,reliability:freshnessReliability,state:graph?.quant?.volatility?.regime?'AVAILABLE':'UNAVAILABLE',detail:'regime='+String(graph?.quant?.volatility?.regime||'UNAVAILABLE')})
+    feature('trend-slope',{score:trendSlope===null?null:clamp(trendSlope/.04),strength:trendSlope===null?0:Math.min(1,Math.abs(trendSlope)/.04),freshness:truth,reliability:freshnessReliability,state:availability(trendSlope),detail:'trendPerBarPct='+String(trendSlope??'unavailable'),regimeApplicability:regime}),
+    feature('roc14',{score:roc14===null?null:clamp(roc14/4),strength:roc14===null?0:Math.min(1,Math.abs(roc14)/4),freshness:truth,reliability:freshnessReliability,state:availability(roc14),detail:'roc14Pct='+String(roc14??'unavailable'),regimeApplicability:regime}),
+    feature('adx14',{score:null,strength:adx14===null?0:clamp((adx14-12)/28,0,1),freshness:truth,reliability:freshnessReliability,state:availability(adx14),detail:'adx14='+String(adx14??'unavailable'),regimeApplicability:regime}),
+    feature('rsi14',{score:rsi14===null?null:clamp((rsi14-50)/22),strength:rsi14===null?0:Math.min(1,Math.abs(rsi14-50)/22),freshness:truth,reliability:freshnessReliability,state:availability(rsi14),detail:'rsi14='+String(rsi14??'unavailable'),regimeApplicability:regime}),
+    feature('return-z',{score:returnZ===null?null:clamp(returnZ/2.5),strength:returnZ===null?0:Math.min(1,Math.abs(returnZ)/2.5),freshness:truth,reliability:freshnessReliability,state:availability(returnZ),detail:'returnZScore='+String(returnZ??'unavailable'),regimeApplicability:regime}),
+    feature('market-structure',{score:structureSign||0,strength:structureSign?structureStrength:0,freshness:truth,reliability:freshnessReliability,state:structureSign?'AVAILABLE':'NEUTRAL',detail:'bias='+String(structure.bias||'MIXED')+' · strength='+String(structure.strengthState||'UNAVAILABLE'),regimeApplicability:regime}),
+    feature('scenario-balance',{score:scenarioScore,strength:Math.min(1,Math.abs(scenarioScore)),freshness:truth,reliability:freshnessReliability,state:Number.isFinite(Number(forecast.bull))&&Number.isFinite(Number(forecast.bear))?'AVAILABLE':'UNAVAILABLE',detail:'bull='+String(forecast.bull??'unavailable')+' · bear='+String(forecast.bear??'unavailable'),horizon:String(graph?.horizonBars||'CURRENT')+' bars',regimeApplicability:regime}),
+    feature('mtf-agreement',{score:total?mtfSign*(aligned/total):null,strength:total?aligned/total:0,freshness:total?'OBSERVED':'UNAVAILABLE',reliability:total?Math.min(1,total/4):0,state:total?'AVAILABLE':'UNAVAILABLE',detail:'direction='+mtfDirection+' · aligned='+aligned+'/'+total,horizon:'MULTI_TIMEFRAME',regimeApplicability:'GENERAL'}),
+    feature('liquidity-depth',{score:null,strength:liquidity?.state==='live'?Math.min(1,Math.abs(finite(liquidity?.top5Imbalance)??0)):0,freshness:liquidity?.state==='live'?'LIVE':'UNAVAILABLE',reliability:liquidity?.state==='live'?1:0,state:liquidity?.state==='live'?'AVAILABLE':'UNAVAILABLE',detail:'depth='+String(liquidity?.depthConsensus||'UNAVAILABLE')+' · spreadBps='+String(liquidity?.spreadBps??'unavailable')}),
+    feature('funding-carry',{score:null,strength:derivatives?.state==='live'?Math.min(1,Math.abs(finite(derivatives?.fundingPct)??0)*100):0,freshness:derivatives?.state==='live'?'LIVE':'UNAVAILABLE',reliability:derivatives?.state==='live'?1:0,state:derivatives?.state==='live'?'AVAILABLE':'UNAVAILABLE',detail:'fundingPct='+String(derivatives?.fundingPct??'unavailable')}),
+    feature('cross-asset-relative',{score:null,strength:crossAsset?.state==='available'?Math.min(1,Math.abs(finite(crossAsset?.relativeStrengthPct)??0)/3):0,freshness:crossAsset?.state==='available'?'OBSERVED':'UNAVAILABLE',reliability:crossAsset?.state==='available'?1:0,state:crossAsset?.state==='available'?'AVAILABLE':'UNAVAILABLE',detail:'relativeStrengthPct='+String(crossAsset?.relativeStrengthPct??'unavailable')+' · benchmark='+String(crossAsset?.benchmark||'unavailable')}),
+    feature('volatility-regime',{score:null,strength:graph?.quant?.volatility?.regime==='HIGH'?1:graph?.quant?.volatility?.regime==='ELEVATED'?0.75:0.4,freshness:truth,reliability:freshnessReliability,state:graph?.quant?.volatility?.regime?'AVAILABLE':'UNAVAILABLE',detail:'regime='+String(graph?.quant?.volatility?.regime||'UNAVAILABLE')})
   ];
   const redundancy=applyRedundancy(raw);
   const directional=redundancy.features.filter(item=>item.role==='directional_evidence'&&!item.suppressedBy&&item.state!=='UNAVAILABLE'&&Number.isFinite(item.effectiveScore));
@@ -92,8 +91,8 @@ export function buildDecisionFormulaGovernance(graph,{multiTimeframe=null,deriva
   const severeContradiction=Boolean(baseSign&&active.length>=3&&baseSupport<=-.35);
   const contributors=redundancy.features.filter(item=>item.state!=='UNAVAILABLE').map(item=>({
     id:item.id,label:item.label,family:item.family,role:item.role,direction:item.direction,
-    contribution:item.role==='directional_evidence'?round((item.effectiveScore||0)*(FAMILY_WEIGHTS[item.family]||0),4):0,
-    strength:item.strength,reliability:item.reliability,relevance:item.relevance,suppressedBy:item.suppressedBy,detail:item.detail
+    contribution:item.role==='directional_evidence'&&activeWeight?round((item.effectiveScore||0)*(FAMILY_WEIGHTS[item.family]||0)/activeWeight,4):0,
+    strength:item.strength,freshness:item.freshness,reliability:item.reliability,relevance:item.relevance,contradiction:item.contradiction,suppressedBy:item.suppressedBy,detail:item.detail
   })).sort((a,b)=>Math.abs(b.contribution)-Math.abs(a.contribution)||b.strength-a.strength||a.id.localeCompare(b.id));
   return {
     schemaVersion:SCHEMA_VERSION,
