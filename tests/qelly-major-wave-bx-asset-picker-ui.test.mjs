@@ -47,3 +47,15 @@ test('Wave BX Decision UI consumes the capability endpoint instead of a hard-cod
   assert.match(css,/\.q-dpg-asset-picker__panel/);
   assert.match(css,/@media\(max-width:760px\)/);
 });
+
+
+test('Wave BX stability and Browser E2E drive the real capability picker instead of the removed native asset select',async()=>{
+  const [stability,e2e]=await Promise.all([
+    readFile(new URL('../scripts/qelly-first-paint-stability.mjs',import.meta.url),'utf8'),
+    readFile(new URL('../scripts/qelly-decision-range-selection-e2e.mjs',import.meta.url),'utf8')
+  ]);
+  assert.match(stability,/data-dpg-asset-picker-toggle/);
+  assert.match(stability,/data-dpg-asset-select/);
+  assert.doesNotMatch(stability,/selectOption\('\[data-dpg-asset\]'/);
+  for(const token of ['asset-picker-capability','asset-picker-search','asset-picker-favorite','indian indices','global indices','unavailableSelectableCount'])assert.ok(e2e.includes(token),token);
+});
