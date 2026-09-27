@@ -6,7 +6,7 @@ const direction=(score)=>score>.08?'UPSIDE':score<-.08?'DOWNSIDE':'NEUTRAL';
 const availability=(value)=>value==null||value===''?'UNAVAILABLE':'AVAILABLE';
 const reliabilityFromTruth=(truth)=>truth==='LIVE'?1:truth==='DELAYED'?0.82:truth==='STALE'?0.4:0.2;
 const structureReliability=(state)=>({STRONG:1,MODERATE:.82,DEVELOPING:.62,WEAK:.42}[String(state||'').toUpperCase()]||.35);
-const FAMILY_WEIGHTS=Object.freeze({structure:.26,trend:.18,momentum:.12,scenario:.20,mtf:.24});
+const FAMILY_WEIGHTS=Object.freeze({structure:.24,trend:.17,momentum:.11,scenario:.18,mtf:.22,price_action:.08});
 
 export const FORMULA_CATALOG=Object.freeze([
   Object.freeze({id:'trend-slope',label:'OLS trend slope',family:'trend',redundancyGroup:'trend-direction',role:'directional_evidence',definition:'Bounded per-bar price slope normalized to a directional research score.'}),
@@ -15,6 +15,8 @@ export const FORMULA_CATALOG=Object.freeze([
   Object.freeze({id:'rsi14',label:'RSI momentum displacement',family:'momentum',redundancyGroup:'momentum-direction',role:'directional_evidence',definition:'Distance from neutral RSI, bounded and centered at 50.'}),
   Object.freeze({id:'return-z',label:'Return z-score',family:'momentum',redundancyGroup:'momentum-direction',role:'directional_evidence',definition:'Latest return standardized by recent return dispersion.'}),
   Object.freeze({id:'market-structure',label:'Deterministic market structure',family:'structure',redundancyGroup:'structure-direction',role:'directional_evidence',definition:'Confirmed swing-sequence / break / retest structure with explicit strength state.'}),
+  Object.freeze({id:'smc-structure',label:'Deterministic SMC structure',family:'structure',redundancyGroup:'structure-direction',role:'directional_evidence',definition:'Rule-based BOS/CHOCH/displacement/liquidity-sweep state; shares the structure redundancy group to prevent double counting.'}),
+  Object.freeze({id:'price-action-state',label:'Deterministic price action',family:'price_action',redundancyGroup:'price-action-direction',role:'directional_evidence',definition:'Rule-based breakout/retest/engulfing/pin/rejection/failed-breakout state.'}),
   Object.freeze({id:'scenario-balance',label:'Scenario balance',family:'scenario',redundancyGroup:'scenario-direction',role:'directional_evidence',definition:'Bull-minus-bear bootstrap scenario balance; separate from calibrated outcome probability.'}),
   Object.freeze({id:'mtf-agreement',label:'Multi-timeframe agreement',family:'mtf',redundancyGroup:'mtf-direction',role:'directional_evidence',definition:'Coverage-adjusted directional agreement across independently observed timeframes.'}),
   Object.freeze({id:'liquidity-depth',label:'Current L2 depth context',family:'liquidity',redundancyGroup:'liquidity-current',role:'risk_context',definition:'Current point-in-time depth/microprice context; never promoted to an independent directional vote.'}),
@@ -62,6 +64,7 @@ export function buildDecisionFormulaGovernance(graph,{multiTimeframe=null,deriva
   const scenarioScore=clamp(((finite(forecast.bull)??0)-(finite(forecast.bear)??0))/.25);
   const trendSlope=finite(metrics.trendPerBarPct),roc14=finite(trend.roc14Pct),adx14=finite(trend.adx14),rsi14=finite(metrics.rsi14),returnZ=finite(metrics.returnZScore);
   const structureStrength=structureReliability(structure.strengthState),regime=String(graph?.quant?.regime||'UNKNOWN');
+  const smc=graph?.quant?.smc||{},priceAction=graph?.quant?.priceAction||{},smcScore=finite(smc.directionalScore),priceActionScore=finite(priceAction.directionalScore);
   const raw=[
     feature('trend-slope',{score:trendSlope===null?null:clamp(trendSlope/.04),strength:trendSlope===null?0:Math.min(1,Math.abs(trendSlope)/.04),freshness:truth,reliability:freshnessReliability,state:availability(trendSlope),detail:'trendPerBarPct='+String(trendSlope??'unavailable'),regimeApplicability:regime}),
     feature('roc14',{score:roc14===null?null:clamp(roc14/4),strength:roc14===null?0:Math.min(1,Math.abs(roc14)/4),freshness:truth,reliability:freshnessReliability,state:availability(roc14),detail:'roc14Pct='+String(roc14??'unavailable'),regimeApplicability:regime}),
@@ -69,6 +72,8 @@ export function buildDecisionFormulaGovernance(graph,{multiTimeframe=null,deriva
     feature('rsi14',{score:rsi14===null?null:clamp((rsi14-50)/22),strength:rsi14===null?0:Math.min(1,Math.abs(rsi14-50)/22),freshness:truth,reliability:freshnessReliability,state:availability(rsi14),detail:'rsi14='+String(rsi14??'unavailable'),regimeApplicability:regime}),
     feature('return-z',{score:returnZ===null?null:clamp(returnZ/2.5),strength:returnZ===null?0:Math.min(1,Math.abs(returnZ)/2.5),freshness:truth,reliability:freshnessReliability,state:availability(returnZ),detail:'returnZScore='+String(returnZ??'unavailable'),regimeApplicability:regime}),
     feature('market-structure',{score:structureSign||0,strength:structureSign?structureStrength:0,freshness:truth,reliability:freshnessReliability,state:structureSign?'AVAILABLE':'NEUTRAL',detail:'bias='+String(structure.bias||'MIXED')+' · strength='+String(structure.strengthState||'UNAVAILABLE'),regimeApplicability:regime}),
+    feature('smc-structure',{score:smcScore,strength:smcScore===null?0:Math.min(1,Math.abs(smcScore)),freshness:truth,reliability:freshnessReliability,state:smc?.state==='DERIVED'?'AVAILABLE':'UNAVAILABLE',detail:'BOS='+String(smc.breakOfStructure||'NONE')+' · CHOCH='+String(smc.changeOfCharacter||'NONE')+' · sweep='+String(smc.liquiditySweep||'NONE'),regimeApplicability:regime}),
+    feature('price-action-state',{score:priceActionScore,strength:priceActionScore===null?0:Math.min(1,Math.abs(priceActionScore)),freshness:truth,reliability:freshnessReliability,state:priceAction?.state==='DERIVED'?'AVAILABLE':'UNAVAILABLE',detail:'breakout='+String(priceAction.breakout||'NONE')+' · retest='+String(priceAction.retest||'NONE')+' · engulfing='+String(priceAction.engulfing||'NONE')+' · pin='+String(priceAction.pinBar||'NONE'),regimeApplicability:regime}),
     feature('scenario-balance',{score:scenarioScore,strength:Math.min(1,Math.abs(scenarioScore)),freshness:truth,reliability:freshnessReliability,state:Number.isFinite(Number(forecast.bull))&&Number.isFinite(Number(forecast.bear))?'AVAILABLE':'UNAVAILABLE',detail:'bull='+String(forecast.bull??'unavailable')+' · bear='+String(forecast.bear??'unavailable'),horizon:String(graph?.horizonBars||'CURRENT')+' bars',regimeApplicability:regime}),
     feature('mtf-agreement',{score:total?mtfSign*(aligned/total):null,strength:total?aligned/total:0,freshness:total?'OBSERVED':'UNAVAILABLE',reliability:total?Math.min(1,total/4):0,state:total?'AVAILABLE':'UNAVAILABLE',detail:'direction='+mtfDirection+' · aligned='+aligned+'/'+total,horizon:'MULTI_TIMEFRAME',regimeApplicability:'GENERAL'}),
     feature('liquidity-depth',{score:null,strength:liquidity?.state==='live'?Math.min(1,Math.abs(finite(liquidity?.top5Imbalance)??0)):0,freshness:liquidity?.state==='live'?'LIVE':'UNAVAILABLE',reliability:liquidity?.state==='live'?1:0,state:liquidity?.state==='live'?'AVAILABLE':'UNAVAILABLE',detail:'depth='+String(liquidity?.depthConsensus||'UNAVAILABLE')+' · spreadBps='+String(liquidity?.spreadBps??'unavailable')}),
@@ -110,7 +115,7 @@ export function buildDecisionFormulaGovernance(graph,{multiTimeframe=null,deriva
     redundancyGroups:redundancy.redundancyGroups,
     suppressedFeatureCount:redundancy.suppressed.length,
     boundary:'Formula governance validates and attributes the existing Decision engine. Correlated features are capped by deterministic redundancy groups; context-only modules never become independent directional votes. This layer may veto a severe contradiction but does not create BUY or SELL direction on its own.',
-    methodology:'Directional families are structure, trend, momentum, scenario balance and multi-timeframe agreement. Within each redundancy group only the strongest bounded feature contributes; family weights are normalized across available families. Liquidity, derivatives, cross-asset and volatility remain risk/context evidence.'
+    methodology:'Directional families are structure, trend, momentum, scenario balance, multi-timeframe agreement and deterministic price action. Within each redundancy group only the strongest bounded feature contributes; family weights are normalized across available families. Liquidity, derivatives, cross-asset and volatility remain risk/context evidence.'
   };
 }
 
