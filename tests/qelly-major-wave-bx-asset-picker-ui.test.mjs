@@ -60,3 +60,11 @@ test('Wave BX stability and Browser E2E drive the real capability picker instead
   assert.doesNotMatch(stability,/selectOption\('\[data-dpg-asset\]'/);
   for(const token of ['asset-picker-capability','asset-picker-search','asset-picker-favorite','indian indices','global indices','unavailableSelectableCount'])assert.ok(e2e.includes(token),token);
 });
+
+
+test('Wave BX Browser E2E uses the exact-head capability catalog rather than pre-BX production',async()=>{
+  const e2e=await readFile(new URL('../scripts/qelly-decision-range-selection-e2e.mjs',import.meta.url),'utf8');
+  assert.match(e2e,/decisionAssetCapabilities/);
+  assert.match(e2e,/pathname\.includes\('\/api\/v1\/decision-assets'\)/);
+  assert.match(e2e,/generatedAt:new Date\(\)\.toISOString\(\)/);
+});

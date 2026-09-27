@@ -5,6 +5,7 @@ import {startServer} from './release-a5-evidence-server.mjs';
 import {buildDecisionRangeEvidence} from '../functions/_lib/decision-range-evidence.js';
 import {buildDecisionHistoricalNewsTimeline} from '../functions/_lib/decision-range-timeline.js';
 import {buildDecisionRangeFlowParticipation} from '../functions/_lib/decision-range-flow.js';
+import {decisionAssetCapabilities} from '../functions/_lib/decision-asset-capabilities.js';
 
 const outputDir=path.resolve('preview/decision-range-e2e');
 await mkdir(outputDir,{recursive:true});
@@ -18,6 +19,11 @@ let latestSelectedPayload=null;
 
 const proxyDecision=async(route)=>{
   const requestUrl=new URL(route.request().url());
+  if(requestUrl.pathname.includes('/api/v1/decision-assets')){
+    const body=JSON.stringify({...decisionAssetCapabilities(),generatedAt:new Date().toISOString()});
+    await route.fulfill({status:200,contentType:'application/json; charset=utf-8',body});
+    return;
+  }
   if(requestUrl.pathname.includes('/api/v1/decision-range-evidence')&&latestSelectedPayload?.selection){
     const payload=structuredClone(latestSelectedPayload);
     const rangeEvidenceBase=buildDecisionRangeEvidence({graph:payload,evidence:payload.evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:'UTC'});
