@@ -5,6 +5,7 @@ import {startServer} from './release-a5-evidence-server.mjs';
 import {buildDecisionRangeEvidence} from '../functions/_lib/decision-range-evidence.js';
 import {buildDecisionHistoricalNewsTimeline} from '../functions/_lib/decision-range-timeline.js';
 import {buildDecisionRangeFlowParticipation} from '../functions/_lib/decision-range-flow.js';
+import {decisionAssetCapabilities} from '../functions/_lib/decision-asset-capabilities.js';
 
 const outputDir=path.resolve('preview/decision-range-e2e');
 await mkdir(outputDir,{recursive:true});
@@ -18,6 +19,11 @@ let latestSelectedPayload=null;
 
 const proxyDecision=async(route)=>{
   const requestUrl=new URL(route.request().url());
+  if(requestUrl.pathname.includes('/api/v1/decision-assets')){
+    const body=JSON.stringify({...decisionAssetCapabilities(),generatedAt:new Date().toISOString()});
+    await route.fulfill({status:200,contentType:'application/json; charset=utf-8',body});
+    return;
+  }
   if(requestUrl.pathname.includes('/api/v1/decision-range-evidence')&&latestSelectedPayload?.selection){
     const payload=structuredClone(latestSelectedPayload);
     const rangeEvidenceBase=buildDecisionRangeEvidence({graph:payload,evidence:payload.evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:'UTC'});
@@ -55,12 +61,44 @@ const exercise=async({name,viewport,touch=false})=>{
   const failures=[];
   page.on('pageerror',error=>failures.push({type:'pageerror',message:error.message}));
   page.on('console',message=>{if(message.type()==='error'&&!message.text().includes('Failed to load resource'))failures.push({type:'console',message:message.text()});});
+  await page.route('**/api/v1/decision-assets**',proxyDecision);
   await page.route('**/api/v1/decision-proven-graph**',proxyDecision);
   await page.route('**/api/v1/decision-news-context**',proxyDecision);
   await page.route('**/api/v1/decision-range-evidence**',proxyDecision);
   await page.goto(localOrigin+'/#/decision-provenance',{waitUntil:'domcontentloaded',timeout:45_000});
   const chart=page.locator('[data-dpg-chart]').first();
   await chart.waitFor({state:'visible',timeout:45_000});
+  const assetPickerToggle=page.locator('[data-dpg-asset-picker-toggle]').first();
+  await assetPickerToggle.waitFor({state:'visible',timeout:10_000});
+  await assetPickerToggle.click();
+  const assetPicker=page.locator('[data-dpg-asset-picker-panel]').first();
+  await assetPicker.waitFor({state:'visible',timeout:10_000});
+  const pickerBox=await assetPicker.boundingBox();
+  const pickerFitsViewport=Boolean(pickerBox)&&pickerBox.x>=0&&pickerBox.y>=0&&pickerBox.x+pickerBox.width<=viewport.width+1&&pickerBox.y+Math.min(pickerBox.height,viewport.height)<=viewport.height+1;
+  const pickerText=(await assetPicker.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  const pickerRequired=['provider-capability universe','crypto','forex','indian indices','indian stocks','global stocks','metals','commodities','global indices','rates / bonds','etfs','reference only','unavailable'].every(label=>pickerText.includes(label));
+  const selectableCount=await assetPicker.locator('[data-dpg-asset-select]').count();
+  const unavailableSelectableCount=await assetPicker.locator('.is-unavailable [data-dpg-asset-select]').count();
+  if(!pickerFitsViewport||!pickerRequired||selectableCount!==6||unavailableSelectableCount!==0)failures.push({type:'asset-picker-capability',pickerFitsViewport,pickerRequired,selectableCount,unavailableSelectableCount,text:pickerText});
+  const search=assetPicker.locator('[data-dpg-asset-search]').first();
+  await search.fill('ETH');
+  await page.waitForTimeout(80);
+  const visibleAssetRows=await assetPicker.locator('[data-dpg-asset-row]:visible').count();
+  const visibleEth=await assetPicker.locator('[data-dpg-asset-select="ETH"]:visible').count();
+  if(visibleAssetRows!==1||visibleEth!==1)failures.push({type:'asset-picker-search',visibleAssetRows,visibleEth});
+  await assetPicker.locator('[data-dpg-asset-favorite="ETH"]').first().click();
+  const favoritesFilter=page.locator('[data-dpg-asset-filter="favorites"]').first();
+  const favoritesHitTarget=await favoritesFilter.evaluate((node)=>{
+    const rect=node.getBoundingClientRect(),hit=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);
+    return hit===node||Boolean(hit?.closest?.('[data-dpg-asset-filter="favorites"]'));
+  });
+  if(!favoritesHitTarget)failures.push({type:'asset-picker-filter-hit-target'});
+  await favoritesFilter.click();
+  await page.waitForTimeout(60);
+  const favoriteEth=await page.locator('[data-dpg-asset-select="ETH"]:visible').count();
+  if(favoriteEth!==1)failures.push({type:'asset-picker-favorite',favoriteEth});
+  await page.locator('[data-dpg-asset-picker-close]').first().click();
+  await assetPicker.waitFor({state:'hidden',timeout:5000});
   const chatDock=page.locator('[data-dpg-chat-dock]').first();
   await chatDock.waitFor({state:'visible',timeout:10_000});
   const chatDockToggle=page.locator('[data-dpg-chat-dock-toggle]').first();
@@ -192,7 +230,7 @@ const exercise=async({name,viewport,touch=false})=>{
   const forbiddenFlowClaims=['identified whale','confirmed institution bought','confirmed institution sold'].some(label=>normalizedFlow.includes(label));
   if(!flowRequired||forbiddenFlowClaims)failures.push({type:'range-flow',text:flowText,flowRequired,forbiddenFlowClaims});
   await page.screenshot({path:path.join(outputDir,`decision-range-selected-${name}.png`),fullPage:true});
-  const result={name,viewport,touch,decisionModes:{simpleDefault:true,advanced:advancedRequired,research:researchRequired},qellyDock:{centered:dockCentered,composer:dockComposerRequired,rangeAware:rangeAwareDock},persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,rangeTimeline:timelineRequired,rangeTimelineText:timelineText,rangeFlow:flowRequired,rangeFlowText:flowText,failures};
+  const result={name,viewport,touch,assetPicker:{fitsViewport:pickerFitsViewport,required:pickerRequired,selectableCount,favoriteEth},decisionModes:{simpleDefault:true,advanced:advancedRequired,research:researchRequired},qellyDock:{centered:dockCentered,composer:dockComposerRequired,rangeAware:rangeAwareDock},persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,rangeTimeline:timelineRequired,rangeTimelineText:timelineText,rangeFlow:flowRequired,rangeFlowText:flowText,failures};
   results.push(result);
   await context.close();
 };

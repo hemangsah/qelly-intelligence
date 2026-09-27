@@ -8,7 +8,9 @@ test('Wave BP Browser E2E owns repeated Decision control chaos coverage',async()
   const source=await read('scripts/qelly-first-paint-stability.mjs');
   for(const contract of [
     'runDecisionChaosStabilityProbe',
-    "page.selectOption('[data-dpg-asset]'",
+    'selectDecisionAsset',
+    '[data-dpg-asset-picker-toggle]',
+    '[data-dpg-asset-select="',
     "page.selectOption('[data-dpg-interval]'",
     "page.selectOption('[data-dpg-rr]'",
     "[data-dpg-scan]",
@@ -54,7 +56,7 @@ test('Wave BP unavailable chaos instrumentation fails the Browser E2E release ga
 });
 
 
-test('Wave BP Decision controls defer redraw until the native change event settles',async()=>{
+test('Wave BP remaining native Decision controls defer redraw while Wave BX asset changes use the picker path',async()=>{
   const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
   assert.match(route,/const scheduleLoad=\(\)=>setTimeout\(\(\)=>load\(\),0\)/);
   assert.match(route,/state\.draft=null;state\.selection=null;scheduleLoad\(\)/);

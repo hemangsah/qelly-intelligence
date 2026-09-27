@@ -192,8 +192,17 @@ async function runDecisionChaosStabilityProbe(browser){
   const samples=[];
   const waitDecisionReady=async()=>{
     await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true'&&document.querySelector('#main')?.getAttribute('aria-busy')==='false',null,{timeout:15000});
-    await page.locator('[data-dpg-asset]').waitFor({state:'visible',timeout:5000});
+    await page.locator('[data-dpg-asset-picker-toggle]').waitFor({state:'visible',timeout:5000});
     await page.locator('[data-dpg-rr]').waitFor({state:'visible',timeout:5000});
+  };
+  const selectDecisionAsset=async(symbol)=>{
+    const toggle=page.locator('[data-dpg-asset-picker-toggle]').first();
+    await toggle.waitFor({state:'visible',timeout:5000});
+    if(await toggle.getAttribute('aria-expanded')!=='true')await toggle.click();
+    const option=page.locator('[data-dpg-asset-select="'+symbol+'"]').first();
+    await option.waitFor({state:'visible',timeout:5000});
+    await option.click();
+    await page.waitForFunction((expected)=>document.querySelector('[data-dpg-asset-picker-toggle] strong')?.textContent?.trim()===expected,symbol,{timeout:5000});
   };
   const metricSnapshot=async(label,cycle)=>{
     await cdp.send('HeapProfiler.collectGarbage');
@@ -230,7 +239,7 @@ async function runDecisionChaosStabilityProbe(browser){
     const intervals=['5m','15m','1h','4h','30m','15m'];
     const rrValues=['1','2','3','4','custom','auto'];
     for(let cycle=1;cycle<=6;cycle+=1){
-      await page.selectOption('[data-dpg-asset]',assets[cycle-1]);controlChanges+=1;
+      await selectDecisionAsset(assets[cycle-1]);controlChanges+=1;
       await page.waitForTimeout(25);
       await page.selectOption('[data-dpg-interval]',intervals[cycle-1]);controlChanges+=1;
       await page.waitForTimeout(25);
