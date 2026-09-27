@@ -150,6 +150,17 @@ const exercise=async({name,viewport,touch=false})=>{
     return {clearance:node.dataset.clearance||'unset',opacity:style.opacity,pointerEvents:style.pointerEvents,zoneOverlap};
   });
   if(clearanceProbe.zoneOverlap&&(clearanceProbe.clearance!=='chart'||clearanceProbe.pointerEvents!=='none'))failures.push({type:'qelly-dock-chart-clearance',...clearanceProbe});
+  await page.evaluate(()=>{
+    const workbench=document.querySelector('.q-dpg-range-workbench');
+    if(!workbench)return;
+    const rect=workbench.getBoundingClientRect(),expandedReserved=Math.min(440,Math.max(230,innerHeight*.52));
+    const delta=Math.max(0,rect.bottom-(innerHeight-expandedReserved)+28);
+    if(delta>0)window.scrollBy(0,delta);
+  });
+  await page.waitForFunction(()=>document.querySelector('[data-dpg-chat-dock]')?.dataset.clearance==='clear',{timeout:5000});
+  const restoredDockBox=await page.locator('[data-dpg-chat-dock-toggle]').first().boundingBox();
+  const dockRestored=Boolean(restoredDockBox)&&restoredDockBox.y>=0&&restoredDockBox.y+restoredDockBox.height<=viewport.height+1;
+  if(!dockRestored)failures.push({type:'qelly-dock-clearance-return',restoredDockBox});
   await page.locator('[data-dpg-chat-dock-toggle]').first().click();
   const selectedQuickCount=await page.locator('[data-dpg-chat-quick="selected"]').count();
   if(selectedQuickCount!==1)failures.push({type:'qelly-dock-range-action',selectedQuickCount});
