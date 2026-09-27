@@ -78,7 +78,7 @@ const rangeSelectionMetrics=(candles,selection,interval)=>{
   if(!bounds)return null;
   const selected=candles.slice(bounds.startIndex,bounds.endIndex+1);
   const first=selected[0],last=selected.at(-1);
-  const startPrice=candleValue(first,'close'),endPrice=candleValue(last,'close');
+  const startPrice=candleValue(first,'open'),endPrice=candleValue(last,'close');
   const highs=selected.map(candle=>candleValue(candle,'high')).filter(Number.isFinite);
   const lows=selected.map(candle=>candleValue(candle,'low')).filter(Number.isFinite);
   const absoluteMove=Number.isFinite(startPrice)&&Number.isFinite(endPrice)?endPrice-startPrice:null;

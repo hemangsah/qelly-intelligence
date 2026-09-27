@@ -89,3 +89,11 @@ test('Wave BS Browser E2E enters the explained selected-range intelligence state
   assert.match(script,/rangeIntelligence:intelligenceRequired/);
   for(const phrase of ['selected move intelligence','evidence coverage','current context','association, not proof of causation'])assert.ok(script.includes(phrase),phrase);
 });
+
+
+test('Wave BS chart workbench and backend explanation use the same open-to-close move definition',async()=>{
+  const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
+  const backend=await read('functions/_lib/decision-proven-graph.js');
+  assert.match(route,/startPrice=candleValue\(first,'open'\),endPrice=candleValue\(last,'close'\)/);
+  assert.match(backend,/changePct=\(last\.close\/first\.open-1\)\*100/);
+});
