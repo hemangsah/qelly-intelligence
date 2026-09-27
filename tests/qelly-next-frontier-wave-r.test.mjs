@@ -167,7 +167,7 @@ test('Wave R: unsupported scanner assets and thresholds fail before provider wor
 test('Wave R: Decision UI exposes governed scanner filters and semantic feasibility states responsively',async()=>{
   const route=await readFile(new URL('../apps/web/public/assets/routes/decision-proven-graph.mjs',import.meta.url),'utf8');
   const css=await readFile(new URL('../apps/web/public/assets/qelly-decision-proven-graph.css',import.meta.url),'utf8');
-  for(const phrase of ['Find Trade Now filters','Min calibrated confidence','Event-risk tolerance','FIND TRADE NOW 2.0 · GOVERNED SCAN','Liquidity'])assert.match(route,new RegExp(phrase));
+  for(const phrase of ['Advanced setup filters','Min calibrated confidence','Event-risk tolerance','FIND SETUP NOW','Liquidity','Aggressive Discovery','Validated Setup'])assert.match(route,new RegExp(phrase));
   assert.match(route,/data-dpg-scan-filter/);
   assert.match(route,/URLSearchParams/);
   assert.match(css,/\.q-dpg-scan-filters/);

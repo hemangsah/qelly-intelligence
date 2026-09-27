@@ -17,7 +17,7 @@ test('authoritative Decision Intelligence retains research safety and core workf
   for(const phrase of [
     'QELLY Decision Intelligence',
     'QELLY VIEW',
-    'Find Trade Now',
+    'Find Setup Now',
     'Risk / reward',
     '1:1',
     '1:2',

@@ -62,9 +62,9 @@ test('Decision API instruments required provider, compute and serialization stag
 test('Scanner publishes total and per-asset Decision timings while retaining governed concurrency and NO TRADE boundaries',async()=>{
   const source=await read('functions/api/v1/decision-scan.js');
   assert.match(source,/createDecisionLatencyTrace/);
-  assert.match(source,/latency\.time\('asset:'\+asset/);
+  assert.match(source,/latency\.time\('asset:'\+variant\.asset\+':'\+variant\.interval/);
   assert.match(source,/assetDecisionMs/);
-  assert.match(source,/concurrency:2/);
+  assert.match(source,/concurrency,/);\n  assert.match(source,/resolvedMode==='aggressive'\?3:2/);
   assert.match(source,/estimateSerializedPayload/);
   assert.match(source,/noTradeFirstClass:true/);
   assert.match(source,/targetTouchProbabilityCalibrated:false/);
