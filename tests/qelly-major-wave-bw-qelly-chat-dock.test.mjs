@@ -32,6 +32,8 @@ test('Wave BW hides only the generic launcher on Decision without creating a sec
   assert.match(chat,/window\.addEventListener\('hashchange',syncLauncherRoute\)/);
   assert.match(css,/q-ai-launcher\[hidden\]/);
   assert.match(css,/data-production-route="decision-provenance"/);
+  assert.match(css,/\.q-ai-root\{position:relative;z-index:320\}/);
+  assert.match(css,/\.q-ai-assistant\{position:fixed;right:18px;bottom:18px;z-index:322/);
   assert.equal((chat.match(/id="qelly-ai-assistant"/g)||[]).length,1);
 });
 
