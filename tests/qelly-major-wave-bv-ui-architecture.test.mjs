@@ -13,9 +13,10 @@ test('Wave BV makes Simple the default and exposes three explicit research-depth
 
 test('Wave BV keeps Simple Mode focused while preserving deeper modules in Advanced and Research Lab',async()=>{
   const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
-  const simple=route.slice(route.indexOf('const simpleDecisionContent'),route.indexOf('const advancedDecisionContent'));
-  const advanced=route.slice(route.indexOf('const advancedDecisionContent'),route.indexOf('const researchLabContent'));
-  const research=route.slice(route.indexOf('const researchLabContent'),route.indexOf('const content=(data)'));
+  const content=route.slice(route.indexOf('const content=(data)'),route.indexOf('const draw=',route.indexOf('const content=(data)')));
+  const simple=content.slice(0,content.indexOf("if(state.uiMode==='simple')"));
+  const advanced=route.slice(route.indexOf('const advancedDecisionContent'),route.indexOf('const content=(data)'));
+  const research=content.slice(content.indexOf("const research='"));
   for(const token of ['QELLY VIEW','q-dpg-stage','rangeEvidenceMarkup','Show Advanced Research'])assert.ok(simple.includes(token),token);
   for(const token of ['tradeResearchMarkup','marketStructureContext','liquidityContext','derivativesContext','macroContext','newsResearchContext','contradictionMarkup'])assert.ok(advanced.includes(token),token);
   for(const token of ['outcomeLedgerMarkup','decisionTraceMarkup','secondaryResearchDiagnosticsMarkup','sloDiagnosticsMarkup','Methodology and sources'])assert.ok(research.includes(token),token);

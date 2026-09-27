@@ -799,18 +799,6 @@ export async function renderDecisionProvenGraph(main,deps){
     return '<nav class="q-dpg-mode-switcher" aria-label="Decision Intelligence depth" data-dpg-mode-switcher><div><small>RESEARCH DEPTH</small><strong>'+escapeHtml(modes.find(([id])=>id===state.uiMode)?.[1]||'Simple')+' Mode</strong></div><div role="tablist" aria-label="Decision Intelligence mode">'+modes.map(([id,label,description])=>'<button type="button" role="tab" class="q-dpg-ui-mode'+(state.uiMode===id?' is-active':'')+'" data-dpg-ui-mode="'+id+'" aria-selected="'+(state.uiMode===id?'true':'false')+'"><span>'+escapeHtml(label)+'</span><small>'+escapeHtml(description)+'</small></button>').join('')+'</div><p>'+escapeHtml(state.uiMode==='simple'?'Primary decision first. Advanced evidence remains available without crowding the main answer.':state.uiMode==='advanced'?'Practitioner evidence is expanded while model internals remain in Research Lab.':'Full research diagnostics, calibration, provenance and operational boundaries. Research-only; no execution.')+'</p></nav>';
   };
 
-  const simpleDecisionContent=(data)=>{
-    const view=data.qellyView,move=data.selection;
-    return '<section class="q-dpg-mode-panel q-dpg-mode-panel--simple" data-dpg-mode-panel="simple">'+
-      '<section class="q-dpg-truth"><span class="q-status q-status--'+(data.truthState==='LIVE'?'live':data.truthState.toLowerCase())+'">'+escapeHtml(data.truthState)+'</span><strong>'+escapeHtml(data.asset)+' / '+escapeHtml(data.interval)+'</strong><span>'+escapeHtml(data.market.currentState.label)+' · updated '+new Date(data.observedAt).toLocaleString()+'</span></section>'+
-      '<section class="q-dpg-view q-dpg-view--'+actionTone(view.action)+'"><div><small>QELLY VIEW</small><h2>'+escapeHtml(view.action)+'</h2><p>'+escapeHtml(view.label)+'</p></div><div class="q-dpg-confidence"><span>Evidence confidence</span><strong>'+Math.round(view.confidence*100)+'%</strong></div>'+levels(view)+primaryResearchSummary(data,escapeHtml)+calibration(view,escapeHtml)+'<details><summary>Why this view?</summary><ul>'+view.why.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul><p><strong>What changes it:</strong> '+escapeHtml(view.changesIf)+'</p></details></section>'+
-      '<section class="q-dpg-stage"><div class="q-dpg-chart-wrap"><div class="q-dpg-chart-help">'+(state.chartMode==='navigate'?'Navigate mode · range selection is inactive':state.chartMode==='select-candle'?'Select Candle · choose one observed candle · Explain this candle':state.chartMode==='measure-move'?'Measure Move · drag to measure a historical move':'Select Range · Click one candle or drag across observed candles; selection persists until Clear')+'</div>'+chart(data,escapeHtml,state.draft||state.selection,state.interval)+rangeSelectionSummary(state,data,escapeHtml)+'</div><aside class="q-dpg-scenarios">'+[['Bull',data.forecast.probabilities.bull],['Base',data.forecast.probabilities.base],['Bear',data.forecast.probabilities.bear]].map(([label,value])=>'<article><span>'+label+'</span><strong>'+Math.round(value*100)+'%</strong><meter min="0" max="1" value="'+value+'"></meter></article>').join('')+'<p>Modelled terminal range<br><strong>'+money(data.forecast.terminal.p05)+' – '+money(data.forecast.terminal.p95)+'</strong></p></aside></section>'+
-      (move?'<section class="q-dpg-move"><header><div><small>SELECTED MOVE</small><h2>'+pct(move.changePct)+' across '+move.candles+' candles</h2></div><span>'+new Date(move.start).toLocaleString()+' → '+new Date(move.end).toLocaleString()+'</span></header><div><article><span>Range</span><strong>'+pct(move.rangePct)+'</strong></article><article><span>Volume vs prior</span><strong>'+(move.volumeRatio?move.volumeRatio+'×':'N/A')+'</strong></article><article><span>Volatility</span><strong>'+pct(move.volatilityPct)+'</strong></article><article><span>Prior volatility</span><strong>'+(move.priorVolatilityPct===null?'N/A':pct(move.priorVolatilityPct))+'</strong></article></div></section>':'')+
-      rangeEvidenceMarkup(data)+
-      '<section class="q-dpg-simple-next"><div><small>NEED MORE DETAIL?</small><h2>Evidence is one layer deeper</h2><p>Open Advanced for structure, liquidity, derivatives, macro, news, scenarios and contradictions. Research Lab contains calibration, model health, provenance and operational diagnostics.</p></div><button class="q-button q-button--secondary" type="button" data-dpg-ui-mode-jump="advanced">Show Advanced Research</button></section>'+
-    '</section>';
-  };
-
   const advancedDecisionContent=(data)=>{
     return '<section class="q-dpg-mode-panel q-dpg-mode-panel--advanced" data-dpg-mode-panel="advanced"><header class="q-dpg-mode-panel__header"><div><small>ADVANCED MODE</small><h2>Practitioner evidence and scenario research</h2></div><span>Exact metrics · contradictions preserved</span></header>'+
       tradeResearchMarkup(data,escapeHtml)+
@@ -821,18 +809,24 @@ export async function renderDecisionProvenGraph(main,deps){
     '</section>';
   };
 
-  const researchLabContent=(data)=>{
-    return '<section class="q-dpg-mode-panel q-dpg-mode-panel--research" data-dpg-mode-panel="research"><header class="q-dpg-mode-panel__header"><div><small>RESEARCH LAB</small><h2>Calibration, model trace, raw diagnostics and provenance</h2></div><span>Expert surface · research-only</span></header>'+
+  const content=(data)=>{
+    const view=data.qellyView,move=data.selection;
+    const simple='<section class="q-dpg-mode-panel q-dpg-mode-panel--simple" data-dpg-mode-panel="simple">'+
+      '<section class="q-dpg-truth"><span class="q-status q-status--'+(data.truthState==='LIVE'?'live':data.truthState.toLowerCase())+'">'+escapeHtml(data.truthState)+'</span><strong>'+escapeHtml(data.asset)+' / '+escapeHtml(data.interval)+'</strong><span>'+escapeHtml(data.market.currentState.label)+' · updated '+new Date(data.observedAt).toLocaleString()+'</span></section>'+
+      '<section class="q-dpg-view q-dpg-view--'+actionTone(view.action)+'"><div><small>QELLY VIEW</small><h2>'+escapeHtml(view.action)+'</h2><p>'+escapeHtml(view.label)+'</p></div><div class="q-dpg-confidence"><span>Evidence confidence</span><strong>'+Math.round(view.confidence*100)+'%</strong></div>'+levels(view)+primaryResearchSummary(data,escapeHtml)+calibration(view,escapeHtml)+'<details><summary>Why this view?</summary><ul>'+view.why.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul><p><strong>What changes it:</strong> '+escapeHtml(view.changesIf)+'</p></details></section>'+
+      '<section class="q-dpg-stage"><div class="q-dpg-chart-wrap"><div class="q-dpg-chart-help">'+(state.chartMode==='navigate'?'Navigate mode · range selection is inactive':state.chartMode==='select-candle'?'Select Candle · choose one observed candle · Explain this candle':state.chartMode==='measure-move'?'Measure Move · drag to measure a historical move':'Select Range · Click one candle or drag across observed candles; selection persists until Clear')+'</div>'+chart(data,escapeHtml,state.draft||state.selection,state.interval)+rangeSelectionSummary(state,data,escapeHtml)+'</div><aside class="q-dpg-scenarios">'+[['Bull',data.forecast.probabilities.bull],['Base',data.forecast.probabilities.base],['Bear',data.forecast.probabilities.bear]].map(([label,value])=>'<article><span>'+label+'</span><strong>'+Math.round(value*100)+'%</strong><meter min="0" max="1" value="'+value+'"></meter></article>').join('')+'<p>Modelled terminal range<br><strong>'+money(data.forecast.terminal.p05)+' – '+money(data.forecast.terminal.p95)+'</strong></p></aside></section>'+
+      (move?'<section class="q-dpg-move"><header><div><small>SELECTED MOVE</small><h2>'+pct(move.changePct)+' across '+move.candles+' candles</h2></div><span>'+new Date(move.start).toLocaleString()+' → '+new Date(move.end).toLocaleString()+'</span></header><div><article><span>Range</span><strong>'+pct(move.rangePct)+'</strong></article><article><span>Volume vs prior</span><strong>'+(move.volumeRatio?move.volumeRatio+'×':'N/A')+'</strong></article><article><span>Volatility</span><strong>'+pct(move.volatilityPct)+'</strong></article><article><span>Prior volatility</span><strong>'+(move.priorVolatilityPct===null?'N/A':pct(move.priorVolatilityPct))+'</strong></article></div></section>':'')+
+      rangeEvidenceMarkup(data)+
+      '<section class="q-dpg-simple-next"><div><small>NEED MORE DETAIL?</small><h2>Evidence is one layer deeper</h2><p>Open Advanced for structure, liquidity, derivatives, macro, news, scenarios and contradictions. Research Lab contains calibration, model health, provenance and operational diagnostics.</p></div><button class="q-button q-button--secondary" type="button" data-dpg-ui-mode-jump="advanced">Show Advanced Research</button></section>'+
+    '</section>';
+    if(state.uiMode==='simple')return simple;
+    const advanced=simple+advancedDecisionContent(data);
+    if(state.uiMode==='advanced')return advanced;
+    const research='<section class="q-dpg-mode-panel q-dpg-mode-panel--research" data-dpg-mode-panel="research"><header class="q-dpg-mode-panel__header"><div><small>RESEARCH LAB</small><h2>Calibration, model trace, raw diagnostics and provenance</h2></div><span>Expert surface · research-only</span></header>'+
       outcomeLedgerMarkup(data)+whatChangedMarkup(state.previousSnapshot,data.decisionSnapshot,escapeHtml)+decisionTraceMarkup(data,escapeHtml)+secondaryResearchDiagnosticsMarkup(data,escapeHtml)+sloDiagnosticsMarkup(state.slo,escapeHtml)+
       '<details id="qelly-decision-methodology" class="q-dpg-audit" open><summary>Methodology and sources</summary><div><section><h3>Market data</h3><p>'+escapeHtml(data.provenance.provider)+' public candles. <a href="'+escapeHtml(data.provenance.documentation)+'" target="_blank" rel="noopener">Source documentation ↗</a></p></section><section><h3>Method</h3><p>'+data.provenance.model.features.map(escapeHtml).join(' · ')+'</p><p>'+escapeHtml(data.confidence.calibration)+'</p></section><section><h3>Limits</h3><ul>'+data.provenance.model.limitations.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul></section></div></details>'+
     '</section>';
-  };
-
-  const content=(data)=>{
-    const simple=simpleDecisionContent(data);
-    if(state.uiMode==='simple')return simple;
-    if(state.uiMode==='advanced')return simple+advancedDecisionContent(data);
-    return simple+advancedDecisionContent(data)+researchLabContent(data);
+    return advanced+research;
   };
 
   const draw=()=>{
