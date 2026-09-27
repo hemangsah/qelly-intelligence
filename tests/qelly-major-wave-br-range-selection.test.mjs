@@ -23,6 +23,10 @@ test('Wave BR pure range helpers normalize right-to-left selection and expose tr
   assert.equal(metrics.timeframe,'5m');
   assert.equal(metrics.high,Math.max(...candles.slice(3,9).map(x=>x.high)));
   assert.equal(metrics.low,Math.min(...candles.slice(3,9).map(x=>x.low)));
+  assert.equal(metrics.startPrice,candles[3].open);
+  assert.equal(metrics.endPrice,candles[8].close);
+  assert.equal(metrics.absoluteMove,candles[8].close-candles[3].open);
+  assert.equal(metrics.movePct,(candles[8].close/candles[3].open-1)*100);
   assert.ok(Number.isFinite(metrics.movePct));
   assert.ok(['UP','DOWN','FLAT'].includes(metrics.direction));
 });
