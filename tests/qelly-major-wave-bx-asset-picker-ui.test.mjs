@@ -68,3 +68,12 @@ test('Wave BX Browser E2E uses the exact-head capability catalog rather than pre
   assert.match(e2e,/pathname\.includes\('\/api\/v1\/decision-assets'\)/);
   assert.match(e2e,/generatedAt:new Date\(\)\.toISOString\(\)/);
 });
+
+
+test('Wave BX chart range selection defers background redraws until the pointer gesture commits',async()=>{
+  const route=await readFile(new URL('../apps/web/public/assets/routes/decision-proven-graph.mjs',import.meta.url),'utf8');
+  assert.match(route,/let chartGestureActive=false,chartGestureDeferredDraw=false/);
+  assert.match(route,/if\(chartGestureActive\)\{chartGestureDeferredDraw=true;return;\}/);
+  assert.match(route,/event\.preventDefault\(\);chartGestureActive=true;anchor=indexAt\(event\)/);
+  assert.match(route,/anchor=null;pendingIndex=null;chartGestureActive=false/);
+});
