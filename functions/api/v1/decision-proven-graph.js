@@ -16,6 +16,7 @@ import {buildDecisionDataQuality,applyDecisionDataQualityEligibility,buildDecisi
 import {DECISION_ASSET_SET,DECISION_ASSET_SYMBOLS} from '../../_lib/decision-asset-capabilities.js';
 import {buildDecisionNextMoveResearch} from '../../_lib/decision-next-move.js';
 import {buildDecisionAssetEvidenceProfile} from '../../_lib/decision-asset-evidence-profiles.js';
+import {buildDecisionAssetClassEvidence} from '../../_lib/decision-asset-class-evidence.js';
 import {buildDecisionFormulaGovernance} from '../../_lib/decision-formula-governance.js';
 
 const HORIZONS=Object.freeze({'1h':3_600_000,'4h':14_400_000,'12h':43_200_000,'1d':86_400_000,'3d':259_200_000,'7d':604_800_000});
@@ -652,7 +653,22 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   evidence.institutionalFlow={state:'unavailable',message:'No governed crypto ETF/fund/exchange-flow feed is connected to this Decision view.'};
   const evidenceProfile=buildDecisionAssetEvidenceProfile({assetClass:'crypto',graph,multiTimeframe,evidence});
   evidence.profile=evidenceProfile;
-  graph={...graph,evidenceProfile};
+  const assetClassEvidence=buildDecisionAssetClassEvidence({assetClass:'crypto',interval:resolvedInterval,horizon:resolvedHorizon,profile:evidenceProfile,evidence});
+  evidence.assetClassWeighting=assetClassEvidence;
+  const contextualFormulaGovernance=buildDecisionFormulaGovernance(graph,{multiTimeframe,derivatives,liquidity,crossAsset,macro,fundamentals:evidence.fundamentals,assetClassEvidence});
+  const contextualEvidenceGate={
+    ...(graph?.qellyView?.evidenceGate||{}),
+    formulaGovernanceState:contextualFormulaGovernance.state,
+    formulaNetDirectionalScore:contextualFormulaGovernance.netDirectionalScore,
+    formulaBaseActionSupport:contextualFormulaGovernance.baseActionSupport,
+    formulaActiveDirectionalFamilies:contextualFormulaGovernance.activeDirectionalFamilies,
+    formulaSuppressedFeatureCount:contextualFormulaGovernance.suppressedFeatureCount,
+    formulaSevereContradiction:contextualFormulaGovernance.severeContradiction,
+    macroContextState:String(macro?.state||'unavailable'),
+    fundamentalsContextState:String(evidence.fundamentals?.state||'unavailable'),
+    assetClassEvidenceBand:assetClassEvidence.band
+  };
+  graph={...graph,evidenceProfile,assetClassEvidence,fundamentals:evidence.fundamentals,formulaGovernance:contextualFormulaGovernance,qellyView:{...graph.qellyView,formulaGovernance:contextualFormulaGovernance,evidenceGate:contextualEvidenceGate}};
   const providerResilience=providerResiliencePublicSummary({liquidity,derivatives,news:evidence.news,macro});
   const dataQuality=buildDecisionDataQuality({graph,multiTimeframe,evidence,providerResilience});
   graph=applyDecisionDataQualityEligibility({...graph,dataQuality},dataQuality);
@@ -662,7 +678,7 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   const context=latency.measure('contextAndEvidenceGraph',()=>buildDecisionContextBundle(graph,{multiTimeframe,tradeResearch,evidence,horizon:resolvedHorizon}));
   const rangeEvidence=latency.measure('rangeEvidence',()=>buildDecisionRangeEvidence({graph,evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:'UTC'}));
   const performance=latency.snapshot({database:{used:false,ms:null},network:'Measure end-to-end separately at the client or external probe; server-side component timings exclude internet transit.'});
-  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence,evidenceProfile,providerResilience,dataQuality,modelHealth,...context,rangeEvidence,performance};
+  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence,evidenceProfile,assetClassEvidence,providerResilience,dataQuality,modelHealth,...context,rangeEvidence,performance};
 }
 
 export async function onRequest({request,env}){
