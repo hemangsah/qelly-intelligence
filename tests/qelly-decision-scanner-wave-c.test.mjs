@@ -107,13 +107,13 @@ test('scanner helper rejects unsupported controls before provider work',async()=
   assert.equal(__decisionScanTest.RR_VALUES.has('custom'),true);
 });
 
-test('Decision route connects Find Trade Now to scanner and keeps mobile containment',async()=>{
+test('Decision route connects Find Setup Now to scanner and keeps mobile containment',async()=>{
   const route=await readFile(new URL('../apps/web/public/assets/routes/decision-proven-graph.mjs',import.meta.url),'utf8');
   const css=await readFile(new URL('../apps/web/public/assets/qelly-decision-proven-graph.css',import.meta.url),'utf8');
   assert.match(route,/\/api\/v1\/decision-scan\?/);
   assert.match(route,/data-dpg-scan/);
-  assert.match(route,/FIND TRADE NOW 2\.0 · GOVERNED SCAN/);
-  assert.match(route,/Evidence triage ranks current research quality, structural feasibility/);
+  assert.match(route,/FIND SETUP NOW/);
+  assert.match(route,/NO TRADE remains valid/);
   assert.match(route,/data-dpg-scan-asset/);
   assert.doesNotMatch(route,/data-dpg-find-trade/);
   assert.match(css,/\.q-dpg-scanner\{/);

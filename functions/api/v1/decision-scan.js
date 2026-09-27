@@ -259,7 +259,7 @@ const compactCandidate=(result,{filters=normalizeFilters(),now=Date.now(),mode='
   const truthState=String(result.truthState||'UNAVAILABLE').toUpperCase();
   const state=['STALE','DEGRADED','ERROR'].includes(truthState)?'DATA_DEGRADED'
     :eligible?'VALID_SETUP'
-    :conditional&&failures.length===0?'CONDITIONAL_SETUP'
+    :conditional?'CONDITIONAL_SETUP'
     :action==='WAIT'?'WAIT'
     :'NO_ELIGIBLE_SETUP';
   const components=rankingComponents(result);
