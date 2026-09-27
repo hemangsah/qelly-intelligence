@@ -52,6 +52,25 @@ function scenarios(candles,returns,horizonBars,seed,{paths=384}={}){
   return {paths:resolvedPaths,fan,probabilities:{bull,base,bear},neutralThresholdPct:round(neutral*100,4),terminal:{p05:fan.at(-1).p05,p50:fan.at(-1).p50,p95:fan.at(-1).p95}};
 }
 
+export function buildDecisionScenarioDistribution(raw,{interval='15m',horizonBars=1,paths=384}={}){
+  const intervalMs=INTERVAL_MS[interval];
+  if(!intervalMs)throw new Error('Unsupported interval');
+  const candles=normalizeCandles(raw);
+  if(candles.length<80)throw new Error('At least 80 valid candles are required');
+  const horizon=Math.max(1,Math.min(12,Math.floor(Number(horizonBars)||1)));
+  const {returns,sigma}=metricSet(candles,intervalMs);
+  const seed=parseInt(hash(JSON.stringify(candles)+':next-move:'+horizon),16);
+  const forecast=scenarios(candles,returns,horizon,seed,{paths});
+  return {
+    horizonBars:horizon,
+    interval,
+    lastPrice:candles.at(-1).close,
+    observedAt:new Date(candles.at(-1).time).toISOString(),
+    expectedVolatilityPct:round((Number(sigma)||0)*Math.sqrt(horizon)*100,4),
+    ...forecast
+  };
+}
+
 function marketState(metrics){
   const trend=metrics.trendPerBarPct>.015?'uptrend':metrics.trendPerBarPct<-.015?'downtrend':'range';
   const momentum=metrics.rsi14>=70?'overbought':metrics.rsi14<=30?'oversold':metrics.rsi14>=55?'positive momentum':metrics.rsi14<=45?'negative momentum':'neutral momentum';
@@ -77,6 +96,14 @@ const calibrationBins=Object.freeze([
   [0,.4],[.4,.5],[.5,.6],[.6,.7],[.7,.8],[.8,.9],[.9,1.000001]
 ]);
 
+const wilsonInterval=(successes,total,z=1.96)=>{
+  const n=Math.max(0,Number(total)||0),x=Math.max(0,Math.min(n,Number(successes)||0));
+  if(!n)return null;
+  const p=x/n,z2=z*z,denominator=1+z2/n,center=(p+z2/(2*n))/denominator;
+  const margin=z*Math.sqrt((p*(1-p)+z2/(4*n))/n)/denominator;
+  return {low:round(Math.max(0,center-margin),4),high:round(Math.min(1,center+margin),4)};
+};
+
 export function buildDecisionWalkForwardCalibration(raw,{interval='15m',horizonBars=16,minSamples=36}={}){
   const intervalMs=INTERVAL_MS[interval];
   const minimumSampleGate=Math.max(12,Number(minSamples)||36);
@@ -89,7 +116,7 @@ export function buildDecisionWalkForwardCalibration(raw,{interval='15m',horizonB
   };
   const candles=normalizeCandles(raw);
   const warmup=120;
-  const horizon=Math.max(2,Math.min(168,Number(horizonBars)||16));
+  const horizon=Math.max(1,Math.min(168,Number(horizonBars)||16));
   const step=Math.max(horizon,4);
   const baseState={
     schemaVersion:WALK_FORWARD_CALIBRATION_SCHEMA_VERSION,
@@ -147,12 +174,14 @@ export function buildDecisionWalkForwardCalibration(raw,{interval='15m',horizonB
   const bins=calibrationBins.map(([low,high])=>{
     const members=rows.filter(row=>row.confidence>=low&&row.confidence<high);
     if(!members.length)return null;
+    const successes=members.reduce((sum,row)=>sum+row.correct,0);
     return {
       low:round(low,2),
       high:round(Math.min(high,1),2),
       sampleSize:members.length,
       meanConfidence:round(mean(members.map(row=>row.confidence)),3),
-      hitRate:round(mean(members.map(row=>row.correct)),3)
+      hitRate:round(mean(members.map(row=>row.correct)),3),
+      confidenceInterval95:wilsonInterval(successes,members.length)
     };
   }).filter(Boolean);
   const reliabilityGap=sampleSize?bins.reduce((sum,bin)=>sum+bin.sampleSize*Math.abs(bin.meanConfidence-bin.hitRate),0)/sampleSize:null;
@@ -180,6 +209,7 @@ export function buildDecisionWalkForwardCalibration(raw,{interval='15m',horizonB
     reliabilityGap:round(reliabilityGap,4),
     reliabilityBins:bins,
     correctClassRate:round(mean(rows.map(row=>row.correct)),3),
+    correctClassRateConfidenceInterval95:wilsonInterval(rows.reduce((sum,row)=>sum+row.correct,0),rows.length),
     firstResolvedAt:new Date(rows[0].resolveTime).toISOString(),
     lastResolvedAt:new Date(rows.at(-1).resolveTime).toISOString(),
     bootstrapPaths:64,

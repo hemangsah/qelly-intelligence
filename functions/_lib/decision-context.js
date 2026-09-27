@@ -257,6 +257,7 @@ function pastPresentFuture(graph,{multiTimeframe,tradeResearch,evidence,horizon,
       invalidation:tradeResearch?.invalidation||null,
       expiryAt:tradeResearch?.expiryAt||null,
       whatChangesView:graph?.qellyView?.changesIf||'Reassess when fresh evidence changes.',
+      nextMoveResearch:graph?.nextMoveResearch||null,
       boundary:'Scenario probabilities and percentile ranges are research model outputs with separate calibration state; they are not guaranteed outcomes.'
     }
   };
