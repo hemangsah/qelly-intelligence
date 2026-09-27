@@ -16,7 +16,7 @@ test('Header 2.0 exposes complete live Decision identity and action semantics',a
     'Regime',
     'Volatility',
     'Timeframe',
-    'Find Trade Now',
+    'Find Setup Now',
     'Explain This Move',
     'Explain Candle',
     'Compare Timeframes',

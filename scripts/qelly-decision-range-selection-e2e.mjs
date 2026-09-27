@@ -15,12 +15,52 @@ const localOrigin=`http://127.0.0.1:${server.port}`;
 const executablePath=process.env.QELLY_BROWSER_EXECUTABLE||'/usr/bin/chromium';
 const browser=await chromium.launch({headless:true,executablePath,args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
 const results=[];
-let latestSelectedPayload=null;
+let latestSelectedPayload=null,lastScanRequest=null;
 
 const proxyDecision=async(route)=>{
   const requestUrl=new URL(route.request().url());
   if(requestUrl.pathname.includes('/api/v1/decision-assets')){
     const body=JSON.stringify({...decisionAssetCapabilities(),generatedAt:new Date().toISOString()});
+    await route.fulfill({status:200,contentType:'application/json; charset=utf-8',body});
+    return;
+  }
+  if(requestUrl.pathname.includes('/api/v1/decision-scan')){
+    lastScanRequest=Object.fromEntries(requestUrl.searchParams.entries());
+    const interval=requestUrl.searchParams.get('interval')||'15m';
+    const mode=requestUrl.searchParams.get('mode')||'validated';
+    const ranking=requestUrl.searchParams.get('ranking')||'highest_quality';
+    const asset=(requestUrl.searchParams.get('assets')||'BTC').split(',')[0].toUpperCase();
+    const candidateInterval=mode==='aggressive'&&interval==='15m'?'30m':interval;
+    const closest={
+      label:'CLOSEST CANDIDATE — NOT YET VALIDATED',validated:false,asset,interval:candidateInterval,direction:'SELL',
+      possibleTrigger:'Wait for the independent calibration gate to pass while the verified entry structure remains intact.',
+      missingConditions:['calibration_gate_not_passed'],
+      whatMustHappen:['The independent calibration gate must pass; probability cannot be fabricated.'],
+      probabilityState:'UNCALIBRATED',calibratedProbability:null,
+      contradiction:'Independent probability calibration is not yet eligible.',
+      eventRisk:{state:'unavailable',level:'UNAVAILABLE'},researchPriority:68.4,
+      boundary:'This is a research candidate only. It is not a valid setup, trade recommendation, target guarantee or substitute for missing evidence.'
+    };
+    const candidate={
+      asset,interval:candidateInterval,horizon:requestUrl.searchParams.get('horizon')||'4h',truthState:'LIVE',action:'SELL',state:'NO_ELIGIBLE_SETUP',
+      eligible:false,conditional:false,filterFailures:['calibration_gate_not_passed'],validationFailures:['calibration_gate_not_passed'],preferenceFailures:[],relaxedPreferences:[],
+      discoveryMode:mode,researchPriority:68.4,
+      evidence:{qualityScore:.76,calibrationGatedEvidenceConfidence:null,calibrationState:'UNCALIBRATED',calibrationEligible:false,timeframeAgreement:.75,timeframeDirection:'SELL'},
+      market:{lastPrice:84000,regime:'trending',volatilityRegime:'NORMAL',structure:'LH_LL',liquidityState:'live',spreadState:'TIGHT',spreadBps:2},
+      eventRisk:{state:'unavailable',level:'UNAVAILABLE'},
+      trade:{status:'NO_TRADE',sourceStatus:'NO_TRADE',setupType:'PULLBACK',rr:'1:2',rrRelaxed:false,feasibility:'FEASIBLE',entry:84000,stop:84600,target:82800},
+      contradictions:['Independent probability calibration is not yet eligible.']
+    };
+    const body=JSON.stringify({
+      schemaVersion:'qelly.decision-scan/3.0.0',generatedAt:new Date().toISOString(),state:'NO_ELIGIBLE_SETUP',mode,ranking,
+      universe:[asset],governedUniverse:['BTC','ETH','SOL','HYPE','XRP','DOGE'],interval,horizon:requestUrl.searchParams.get('horizon')||'4h',
+      riskReward:{mode:requestUrl.searchParams.get('rr')||'auto'},filters:{direction:requestUrl.searchParams.get('direction')||'any'},
+      searchPlan:{scope:requestUrl.searchParams.has('assets')?'CURRENT_ASSET':'ALL_SUPPORTED_MARKETS',assets:[asset],intervals:mode==='aggressive'?[interval,candidateInterval]:[interval],directions:[(requestUrl.searchParams.get('direction')||'any').toUpperCase()],riskRewards:['1:1','1:2','1:3','1:4'],setupTypes:['PULLBACK'],boundedVariantCount:mode==='aggressive'?2:1,aggressiveBroadening:mode==='aggressive',boundary:'Aggressive Discovery broadens supported assets, adjacent supported timeframes and existing R:R/setup possibilities. It never fabricates direction, provider evidence, calibration, structural validity or event safety.'},
+      validatedSetup:null,closestCandidate:closest,candidates:[candidate],eligibleCount:0,conditionalCount:0,availableCount:1,unavailableCount:0,failures:[],
+      performance:{totalMs:25,assetDecisionMs:{[asset+':'+candidateInterval]:20},concurrency:1},
+      eventRisk:{state:'unavailable',connectedFeed:false,reason:'No approved production event feed is connected. Strict event-risk filters fail closed.'},
+      boundaries:{researchOnly:true,execution:false,fabricatedFallback:false,aggressiveCanFabricateValidSetup:false,aggressiveBypassesCalibration:false,aggressiveBypassesFreshness:false,aggressiveBypassesProviderFailure:false,aggressiveBypassesCriticalEventRisk:false,closestCandidateIsValidated:false,noTradeFirstClass:true}
+    });
     await route.fulfill({status:200,contentType:'application/json; charset=utf-8',body});
     return;
   }
@@ -62,6 +102,7 @@ const exercise=async({name,viewport,touch=false})=>{
   page.on('pageerror',error=>failures.push({type:'pageerror',message:error.message}));
   page.on('console',message=>{if(message.type()==='error'&&!message.text().includes('Failed to load resource'))failures.push({type:'console',message:message.text()});});
   await page.route('**/api/v1/decision-assets**',proxyDecision);
+  await page.route('**/api/v1/decision-scan**',proxyDecision);
   await page.route('**/api/v1/decision-proven-graph**',proxyDecision);
   await page.route('**/api/v1/decision-news-context**',proxyDecision);
   await page.route('**/api/v1/decision-range-evidence**',proxyDecision);
@@ -99,6 +140,24 @@ const exercise=async({name,viewport,touch=false})=>{
   if(favoriteEth!==1)failures.push({type:'asset-picker-favorite',favoriteEth});
   await page.locator('[data-dpg-asset-picker-close]').first().click();
   await assetPicker.waitFor({state:'hidden',timeout:5000});
+  const setupFinder=page.locator('[data-dpg-setup-finder]').first();
+  await setupFinder.waitFor({state:'visible',timeout:10_000});
+  const setupFinderText=(await setupFinder.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  const setupFinderRequired=['find setup now','validated setup','aggressive discovery','all markets','current asset','long + short','long','short','highest quality','lowest event risk','closest candidate'].every(label=>setupFinderText.includes(label));
+  if(!setupFinderRequired)failures.push({type:'setup-finder-controls',text:setupFinderText});
+  lastScanRequest=null;
+  await page.locator('[data-dpg-scan-mode="aggressive"]').first().click();
+  await page.locator('[data-dpg-scan-universe="current"]').first().click();
+  await page.locator('[data-dpg-scan-direction="short"]').first().click();
+  await page.locator('[data-dpg-scan-ranking]').first().selectOption('lowest_event_risk');
+  await page.locator('[data-dpg-setup-finder] [data-dpg-scan]').first().click();
+  const closestCandidate=page.locator('[data-dpg-closest-candidate]').first();
+  await closestCandidate.waitFor({state:'visible',timeout:10_000});
+  const closestText=(await closestCandidate.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  const closestCandidateRequired=['closest candidate','not yet validated','uncalibrated','missing conditions','calibration gate'].every(label=>closestText.includes(label));
+  const setupRequestOk=lastScanRequest?.mode==='aggressive'&&lastScanRequest?.ranking==='lowest_event_risk'&&lastScanRequest?.assets==='BTC'&&lastScanRequest?.direction==='short'&&lastScanRequest?.rr==='auto';
+  const closestInterval=await closestCandidate.locator('[data-dpg-scan-interval]').first().getAttribute('data-dpg-scan-interval');
+  if(!closestCandidateRequired||!setupRequestOk||closestInterval!=='30m')failures.push({type:'setup-finder-aggressive',closestCandidateRequired,setupRequestOk,lastScanRequest,closestInterval,text:closestText});
   const chatDock=page.locator('[data-dpg-chat-dock]').first();
   await chatDock.waitFor({state:'visible',timeout:10_000});
   const chatDockToggle=page.locator('[data-dpg-chat-dock-toggle]').first();
@@ -230,7 +289,7 @@ const exercise=async({name,viewport,touch=false})=>{
   const forbiddenFlowClaims=['identified whale','confirmed institution bought','confirmed institution sold'].some(label=>normalizedFlow.includes(label));
   if(!flowRequired||forbiddenFlowClaims)failures.push({type:'range-flow',text:flowText,flowRequired,forbiddenFlowClaims});
   await page.screenshot({path:path.join(outputDir,`decision-range-selected-${name}.png`),fullPage:true});
-  const result={name,viewport,touch,assetPicker:{fitsViewport:pickerFitsViewport,required:pickerRequired,selectableCount,favoriteEth},decisionModes:{simpleDefault:true,advanced:advancedRequired,research:researchRequired},qellyDock:{centered:dockCentered,composer:dockComposerRequired,rangeAware:rangeAwareDock},persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,rangeTimeline:timelineRequired,rangeTimelineText:timelineText,rangeFlow:flowRequired,rangeFlowText:flowText,failures};
+  const result={name,viewport,touch,assetPicker:{fitsViewport:pickerFitsViewport,required:pickerRequired,selectableCount,favoriteEth},setupFinder:{required:setupFinderRequired,aggressiveRequest:setupRequestOk,closestCandidate:closestCandidateRequired,closestInterval},decisionModes:{simpleDefault:true,advanced:advancedRequired,research:researchRequired},qellyDock:{centered:dockCentered,composer:dockComposerRequired,rangeAware:rangeAwareDock},persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,rangeTimeline:timelineRequired,rangeTimelineText:timelineText,rangeFlow:flowRequired,rangeFlowText:flowText,failures};
   results.push(result);
   await context.close();
 };

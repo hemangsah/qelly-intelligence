@@ -23,7 +23,7 @@ test('single-candle selection produces truthful evidence instead of being reject
 
 test('Decision Intelligence hero exposes current evidence dimensions without inventing data',async()=>{
   const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
-  for(const phrase of ['QELLY Decision Intelligence','FLAGSHIP RESEARCH WORKSPACE','Evidence quality','Calibrated confidence','Scenario','MTF agreement','Regime','Volatility','Timeframe','Observed ','Find Trade Now','Explain This Move','Explain Candle','Compare Timeframes','Compare Asset','Ask QELLY','Sources / Methodology'])assert.match(route,new RegExp(phrase));
+  for(const phrase of ['QELLY Decision Intelligence','FLAGSHIP RESEARCH WORKSPACE','Evidence quality','Calibrated confidence','Scenario','MTF agreement','Regime','Volatility','Timeframe','Observed ','Find Setup Now','Explain This Move','Explain Candle','Compare Timeframes','Compare Asset','Ask QELLY','Sources / Methodology'])assert.match(route,new RegExp(phrase));
   assert.match(route,/data-dpg-asset/);
   assert.match(route,/data-dpg-interval/);
   assert.match(route,/stateBanner\(\)\+hero\(data\)/);
@@ -62,9 +62,9 @@ test('Decision Intelligence normalizes compact sourced timestamps before display
 });
 
 
-test('Decision Intelligence exposes Find Trade Now and bounded R:R controls',async()=>{
+test('Decision Intelligence exposes Find Setup Now and bounded R:R controls',async()=>{
   const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
-  for(const phrase of ['Find Trade Now','Risk / reward','1:1','1:2','1:3','1:4','Custom','FIND TRADE NOW · RESEARCH ONLY'])assert.equal(route.includes(phrase),true,phrase);
+  for(const phrase of ['Find Setup Now','Risk / reward','1:1','1:2','1:3','1:4','Custom','CURRENT SETUP · RESEARCH ONLY'])assert.equal(route.includes(phrase),true,phrase);
   assert.match(route,/data-dpg-rr/);
   assert.match(route,/customRr/);
   assert.match(route,/Target-touch probability: uncalibrated/);
