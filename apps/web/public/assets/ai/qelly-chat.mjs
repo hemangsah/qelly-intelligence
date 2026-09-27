@@ -142,10 +142,14 @@ function shellMarkup(){
   </aside>`;
 }
 
+const decisionRouteActive=()=>String(globalThis.location?.hash||'').replace(/^#\/?/,'').split(/[/?#]/)[0]==='decision-provenance';
+
 export function installQellyChat({api,navigate,toast,staticVisualPreview=false}={}){
   if(document.querySelector('[data-q-ai-launcher]'))return;
   const root=document.createElement('div');root.className='q-ai-root';root.innerHTML=shellMarkup();document.body.append(root);
   const launcher=root.querySelector('[data-q-ai-launcher]'),panel=root.querySelector('[data-q-ai-assistant]'),closeButton=root.querySelector('[data-q-ai-close]');
+  const syncLauncherRoute=()=>{launcher.hidden=decisionRouteActive();};
+  syncLauncherRoute();
   const form=root.querySelector('[data-q-ai-form]'),input=form.querySelector('textarea'),send=root.querySelector('[data-q-ai-send]'),stop=root.querySelector('[data-q-ai-stop]');
   const thread=root.querySelector('[data-q-ai-thread]'),suggestionsNode=root.querySelector('[data-q-ai-suggestions]');
   const datasetButton=root.querySelector('[data-q-ai-datasets]'),datasetPanel=root.querySelector('[data-q-ai-dataset-panel]');
@@ -266,8 +270,9 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
   datasetButton.addEventListener('click',()=>{const expanded=datasetButton.getAttribute('aria-expanded')!=='true';datasetButton.setAttribute('aria-expanded',String(expanded));datasetPanel.hidden=!expanded;});
   document.addEventListener('qelly:open-ai',event=>open(event.detail?.prompt||'',event.detail?.mode||'',event.detail?.expand===true,{asset:event.detail?.asset||asset,timeframe:event.detail?.timeframe||timeframe,decisionContext:event.detail?.decisionContext??null}));
   window.addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&event.key==='/'){event.preventDefault();panel.hidden?open():close();}if(event.key==='Escape'&&!panel.hidden)close();});
+  window.addEventListener('hashchange',syncLauncherRoute);
   renderSuggestions();applyContext({mode,asset,timeframe});render();
   loadCapability().catch(()=>{root.querySelector('[data-q-ai-status]').textContent=staticVisualPreview?'Static preview':'Dataset service reconnecting';root.querySelector('[data-q-ai-status-dot]').dataset.state='reference';});
 }
 
-export const __qellyChatTest=Object.freeze({STORAGE_KEY,DECISION_DRAFT_KEY,MAX_MESSAGES,CHAT_MODES,CHAT_ASSETS,CHAT_TIMEFRAMES,CHAT_CALCULATORS,MODE_SUGGESTIONS,DECISION_HORIZONS,DECISION_RR,DECISION_SNAPSHOT_KEYS,truthLabel,safeUrl,conversationalReply,suggestionsFor,normalizeDecisionContext});
+export const __qellyChatTest=Object.freeze({decisionRouteActive,STORAGE_KEY,DECISION_DRAFT_KEY,MAX_MESSAGES,CHAT_MODES,CHAT_ASSETS,CHAT_TIMEFRAMES,CHAT_CALCULATORS,MODE_SUGGESTIONS,DECISION_HORIZONS,DECISION_RR,DECISION_SNAPSHOT_KEYS,truthLabel,safeUrl,conversationalReply,suggestionsFor,normalizeDecisionContext});

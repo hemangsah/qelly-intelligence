@@ -13,3 +13,5 @@
 .q-ai-message.is-compact .q-ai-message-copy{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}.q-ai-message.is-compact .q-ai-message-sources,.q-ai-message.is-compact .q-ai-message-tools-used,.q-ai-message.is-compact .q-ai-followups{display:none}
 .q-ai-composer>[data-q-ai-stop]{background:#7f3049}.q-ai-composer>[data-q-ai-stop][hidden]{display:none}.q-ai-composer>[data-q-ai-send][hidden]{display:none}
 
+
+.q-ai-launcher[hidden],html[data-production-route="decision-provenance"] .q-ai-launcher{display:none!important}

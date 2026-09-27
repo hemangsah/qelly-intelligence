@@ -99,7 +99,7 @@ const rangeSelectionSummary=(state,data,escapeHtml)=>{
     '<div class="q-dpg-chart-modes" role="toolbar" aria-label="Chart interaction mode">'+modes.map(([id,label])=>'<button type="button" class="q-dpg-mode'+(state.chartMode===id?' is-active':'')+'" data-dpg-chart-mode="'+id+'" aria-pressed="'+(state.chartMode===id?'true':'false')+'">'+label+'</button>').join('')+'</div>'+
     (metrics?'<div class="q-dpg-range-summary" role="status" aria-live="polite">'+metric('Start',displayTime(metrics.start))+metric('End',displayTime(metrics.end))+metric('Duration',formatRangeDuration(metrics.durationMs))+metric('Candles',String(metrics.candles)+' · '+metrics.timeframe)+metric('Move',signed(metrics.movePct,'%')+' · '+metrics.direction)+metric('Absolute',signed(metrics.absoluteMove))+metric('High',number(metrics.high,6))+metric('Low',number(metrics.low,6))+'</div>':'<div class="q-dpg-range-empty" role="status">Select Range is ready. Drag across observed candles, choose Select Candle, or use the keyboard range controls.</div>')+
     '<div class="q-dpg-range-keyboard" aria-label="Keyboard range controls"><label><span>Start candle</span><input type="range" min="0" max="'+total+'" value="'+startIndex+'" data-dpg-range-start aria-label="Selected range start candle"></label><label><span>End candle</span><input type="range" min="0" max="'+total+'" value="'+endIndex+'" data-dpg-range-end aria-label="Selected range end candle"></label></div>'+
-    '<div class="q-dpg-range-toolbar" role="toolbar" aria-label="Selected range actions"><button class="q-button q-button--primary" type="button" data-dpg-explain '+(metrics?'':'disabled')+'>'+((metrics?.candles||0)===1?'Explain This Candle':'Explain This Move')+'</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="news" '+(metrics?'':'disabled')+'>News & Events</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="flow" '+(metrics?'':'disabled')+'>Flow / Participation Evidence</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="compare" '+(metrics?'':'disabled')+'>Compare Before vs After</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="similar" '+(metrics?'':'disabled')+'>Find Similar History</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="chat" '+(metrics?'':'disabled')+'>Ask QELLY</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="note" '+(metrics?'':'disabled')+'>Create Research Note</button><button class="q-button q-button--secondary" type="button" data-dpg-clear '+(metrics||state.selection?'':'disabled')+'>Clear</button></div></section>';
+    '<div class="q-dpg-range-toolbar" role="toolbar" aria-label="Selected range actions"><button class="q-button q-button--primary" type="button" data-dpg-explain '+(metrics?'':'disabled')+'>'+((metrics?.candles||0)===1?'Explain This Candle':'Explain This Move')+'</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="news" '+(metrics?'':'disabled')+'>News & Events</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="flow" '+(metrics?'':'disabled')+'>Flow / Participation Evidence</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="compare" '+(metrics?'':'disabled')+'>Compare Before vs After</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="similar" '+(metrics?'':'disabled')+'>Find Similar History</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="note" '+(metrics?'':'disabled')+'>Create Research Note</button><button class="q-button q-button--secondary" type="button" data-dpg-clear '+(metrics||state.selection?'':'disabled')+'>Clear</button></div></section>';
 };
 
 function chart(data,escapeHtml,selection=null,interval=data.interval){
@@ -671,7 +671,7 @@ const sloDiagnosticsMarkup=(slo,escapeHtml)=>{
 export async function renderDecisionProvenGraph(main,deps){
   installStyles();const {api,stateBanner,escapeHtml,toast,navigate}=deps;
   const chatContext=readChatDecisionContext();
-  let state={asset:chatContext.asset,interval:chatContext.interval,horizon:normalizeHorizon(chatContext.interval,'4h'),rr:'auto',customRr:'2.5',chartMode:'select-range',uiMode:'simple',loading:true,data:null,previousSnapshot:null,error:null,draft:null,selection:null,rangeEvidenceLoading:false,rangeEvidenceError:null,rangeEvidenceRequest:0,scanning:false,scan:null,scanError:null,ledger:null,ledgerLoading:false,ledgerError:null,ledgerMutating:false,slo:null,scanFilters:{universe:'all',direction:'any',minEvidenceQuality:'0',minCalibratedConfidence:'0',minMtfAgreement:'0',liquidity:'any',volatility:'any',regime:'any',eventRiskTolerance:'any',freshness:'live_or_delayed'}};
+  let state={asset:chatContext.asset,interval:chatContext.interval,horizon:normalizeHorizon(chatContext.interval,'4h'),rr:'auto',customRr:'2.5',chartMode:'select-range',uiMode:'simple',chatDockOpen:false,loading:true,data:null,previousSnapshot:null,error:null,draft:null,selection:null,rangeEvidenceLoading:false,rangeEvidenceError:null,rangeEvidenceRequest:0,scanning:false,scan:null,scanError:null,ledger:null,ledgerLoading:false,ledgerError:null,ledgerMutating:false,slo:null,scanFilters:{universe:'all',direction:'any',minEvidenceQuality:'0',minCalibratedConfidence:'0',minMtfAgreement:'0',liquidity:'any',volatility:'any',regime:'any',eventRiskTolerance:'any',freshness:'live_or_delayed'}};
   const ledgerAuthenticated=()=>Boolean(window.__QELLY_SESSION_STATE__?.authenticated);
   const updateSlo=(snapshot)=>{
     const next=evaluateDecisionSlos(snapshot);
@@ -711,7 +711,7 @@ export async function renderDecisionProvenGraph(main,deps){
         '<span><em>Volatility</em><strong>'+escapeHtml(volatility)+'</strong></span>'+
         '<span><em>Timeframe</em><strong>'+escapeHtml(state.interval)+'</strong></span>'+
       '</div></div>'+
-      '<div class="q-dpg-hero__actions"><button class="q-button q-button--primary" data-dpg-scan '+(state.scanning?'disabled':'')+'>'+(state.scanning?'Scanning…':'Find Trade Now')+'</button><button class="q-button q-button--secondary" data-dpg-explain-header '+(state.draft?'':'disabled')+'>Explain This Move</button><button class="q-button q-button--secondary" data-dpg-explain-candle '+(data?.market?.candles?.length?'':'disabled')+'>Explain Candle</button><button class="q-button q-button--secondary" data-dpg-mtf-jump>Compare Timeframes</button><button class="q-button q-button--secondary" data-dpg-compare-asset>Compare Asset</button><button class="q-button q-button--secondary" type="button" data-dpg-formula-evidence>Formula Evidence</button><button class="q-button q-button--secondary" type="button" data-dpg-open-chat>Ask QELLY</button><button class="q-button q-button--secondary" type="button" data-dpg-research-note '+(data?'':'disabled')+'>Research Note</button><button class="q-button q-button--secondary" data-dpg-methodology-jump>Sources / Methodology</button></div>'+
+      '<div class="q-dpg-hero__actions"><button class="q-button q-button--primary" data-dpg-scan '+(state.scanning?'disabled':'')+'>'+(state.scanning?'Scanning…':'Find Trade Now')+'</button><button class="q-button q-button--secondary" data-dpg-explain-header '+(state.draft?'':'disabled')+'>Explain This Move</button><button class="q-button q-button--secondary" data-dpg-explain-candle '+(data?.market?.candles?.length?'':'disabled')+'>Explain Candle</button><button class="q-button q-button--secondary" data-dpg-mtf-jump>Compare Timeframes</button><button class="q-button q-button--secondary" data-dpg-compare-asset>Compare Asset</button><button class="q-button q-button--secondary" type="button" data-dpg-formula-evidence>Formula Evidence</button><button class="q-button q-button--secondary" type="button" data-dpg-research-note '+(data?'':'disabled')+'>Research Note</button><button class="q-button q-button--secondary" data-dpg-methodology-jump>Sources / Methodology</button></div>'+
     '</section>';
   };
   const outcomeLedgerMarkup=(data)=>{
@@ -809,6 +809,55 @@ export async function renderDecisionProvenGraph(main,deps){
     '</section>';
   };
 
+  const decisionChatPrompt=(kind,data,custom='')=>{
+    const selection=state.selection||state.draft||null,action=data?.qellyView?.action||'NO TRADE';
+    if(String(custom||'').trim())return String(custom).trim();
+    if(kind==='selected'&&selection)return 'Explain only this selected historical '+state.asset+' range from '+displayTime(selection.start)+' to '+displayTime(selection.end)+'. Use the exact selected-range evidence, timeline and flow/participation evidence where available. Separate observed evidence from inference, disclose unavailable historical data, and do not substitute CURRENT CONTEXT for historical evidence.';
+    if(kind==='setup')return 'Explain this current '+state.asset+' setup from Decision Intelligence. Cover setup status, entry, stop/invalidation, targets, selected R:R, calibration, strongest support, strongest contradiction, expiry and event risk. If the setup is not currently valid, say so explicitly. Research only; no execution.';
+    if(kind==='no-trade')return 'Explain why the current '+state.asset+' Decision Intelligence view is NO TRADE. Identify the evidence gate, strongest contradiction, calibration state, missing conditions, event/data risk and what would have to change before a setup could become valid.';
+    if(kind==='changed')return 'Explain what changed in the current '+state.asset+' Decision Intelligence view versus the previous comparable snapshot. Use only evidence-backed changes and distinguish unchanged evidence from new evidence.';
+    return 'Explain the current '+state.asset+' Decision Intelligence view ('+action+'). Cover the primary answer, setup or no-trade state, evidence gate, strongest support and contradiction, selected R:R, calibration, event risk, selected range if any, and what to watch next.';
+  };
+  const openDecisionChat=(prompt)=>{
+    document.dispatchEvent(new CustomEvent('qelly:open-ai',{detail:{
+      mode:'decision',
+      asset:state.asset,
+      timeframe:state.interval,
+      expand:true,
+      decisionContext:{
+        horizon:state.horizon,
+        rr:state.rr,
+        customRr:state.rr==='custom'?state.customRr:null,
+        selection:state.selection||state.draft||null,
+        previousSnapshot:state.previousSnapshot||null
+      },
+      prompt
+    }}));
+    state.chatDockOpen=false;
+    draw();
+  };
+  const qellyChatDockMarkup=(data)=>{
+    if(!data)return '';
+    const selection=state.selection||state.draft||null,trade=data.tradeResearch||{},action=data.qellyView?.action||'NO TRADE';
+    const lifecycle=String(trade.lifecycle?.state||trade.status||'NO_TRADE');
+    const hasSetup=trade.status==='VALID'||['VALID','TRIGGERED','ACTIVE'].includes(lifecycle);
+    const hasChange=Boolean(state.previousSnapshot&&data.decisionSnapshot);
+    const primary=selection?{kind:'selected',label:'Ask QELLY about selected range',state:'SELECTED RANGE'}:hasSetup?{kind:'setup',label:'Explain this setup',state:'SETUP CONTEXT'}:action==='NO TRADE'?{kind:'no-trade',label:'Why NO TRADE?',state:'NO TRADE CONTEXT'}:hasChange?{kind:'changed',label:'What changed?',state:'DECISION CHANGE'}:{kind:'view',label:'Ask QELLY about this move',state:'QELLY VIEW'};
+    const chips=[
+      ['view','Explain QELLY VIEW'],
+      ...(selection?[['selected','Explain selected move']]:[]),
+      ...(hasSetup?[['setup','Explain this setup']]:[]),
+      ...(action==='NO TRADE'?[['no-trade','Why NO TRADE?']]:[]),
+      ...(hasChange?[['changed','What changed?']]:[])
+    ];
+    const expanded=state.chatDockOpen;
+    return '<aside class="q-dpg-chat-dock" data-dpg-chat-dock data-open="'+(expanded?'true':'false')+'" aria-label="QELLY contextual research dock">'+
+      (expanded?'<section id="qelly-decision-chat-composer" class="q-dpg-chat-dock__composer" data-dpg-chat-dock-composer><header><div><small>QELLY CONTEXT DOCK</small><strong>'+escapeHtml(primary.state)+'</strong></div><button type="button" data-dpg-chat-dock-close aria-label="Close QELLY context composer">×</button></header><div class="q-dpg-chat-dock__chips" aria-label="QELLY quick research actions">'+chips.map(([kind,label])=>'<button type="button" data-dpg-chat-quick="'+kind+'">'+escapeHtml(label)+'</button>').join('')+'</div><form data-dpg-chat-form><label><span class="q-visually-hidden">Ask QELLY about the current Decision context</span><textarea rows="2" maxlength="1200" data-dpg-chat-input placeholder="'+escapeHtml(primary.label)+'…"></textarea></label><button type="submit">Open QELLY <span aria-hidden="true">↑</span></button></form><footer><span>'+escapeHtml(state.asset)+' · '+escapeHtml(state.interval)+' · '+escapeHtml(action)+'</span><small>Existing QELLY Chat · current Decision evidence · research only</small></footer></section>':'')+
+      '<button type="button" class="q-dpg-chat-dock__bar" data-dpg-chat-dock-toggle aria-expanded="'+(expanded?'true':'false')+'" aria-controls="qelly-decision-chat-composer"><img src="./assets/brand/qelly-symbol.svg" width="32" height="32" alt=""><span><small>'+escapeHtml(primary.state)+'</small><strong>'+escapeHtml(primary.label)+'</strong><em>'+escapeHtml(state.asset)+' · '+escapeHtml(state.interval)+'</em></span><b aria-hidden="true">'+(expanded?'−':'↑')+'</b></button>'+
+      '<span class="q-dpg-chat-dock__hint" aria-hidden="true">Grounded in the current Decision context</span>'+
+    '</aside>';
+  };
+
   const content=(data)=>{
     const view=data.qellyView,move=data.selection;
     const simple='<section class="q-dpg-mode-panel q-dpg-mode-panel--simple" data-dpg-mode-panel="simple">'+
@@ -831,7 +880,7 @@ export async function renderDecisionProvenGraph(main,deps){
 
   const draw=()=>{
     const data=state.data;
-    main.innerHTML='<section class="q-page q-dpg-page">'+stateBanner()+hero(data)+decisionModeSwitcher()+'<section class="q-dpg-controls q-dpg-controls--decision" aria-label="Decision controls">'+select('horizon',validHorizons(state.interval))+'<label><span>Risk / reward</span><select data-dpg-rr><option value="auto" '+(state.rr==='auto'?'selected':'')+'>Auto</option><option value="1" '+(state.rr==='1'?'selected':'')+'>1:1</option><option value="2" '+(state.rr==='2'?'selected':'')+'>1:2</option><option value="3" '+(state.rr==='3'?'selected':'')+'>1:3</option><option value="4" '+(state.rr==='4'?'selected':'')+'>1:4</option><option value="custom" '+(state.rr==='custom'?'selected':'')+'>Custom</option></select></label>'+(state.rr==='custom'?'<label><span>Custom R:R</span><input data-dpg-custom-rr type="number" min="0.5" max="10" step="0.1" value="'+escapeHtml(state.customRr)+'"></label>':'')+'<p>Public research · no sign-in required · no trade execution</p></section>'+(state.uiMode==='simple'?'':scannerFiltersMarkup(state,escapeHtml))+scannerMarkup(state.scan,{scanning:state.scanning,error:state.scanError,escapeHtml})+(state.loading?'<section class="q-dpg-state" role="status"><span class="q-spinner"></span><h2>Weighing fresh evidence</h2><p>Loading market observations and scenario ranges.</p></section>':'')+(state.error?'<section class="q-dpg-state q-dpg-state--error" role="alert"><h2>Live research unavailable</h2><p>'+escapeHtml(state.error)+'</p><button class="q-button q-button--secondary" data-dpg-refresh>Try again</button></section>':'')+(data?content(data):'')+'</section>';
+    main.innerHTML='<section class="q-page q-dpg-page">'+stateBanner()+hero(data)+decisionModeSwitcher()+'<section class="q-dpg-controls q-dpg-controls--decision" aria-label="Decision controls">'+select('horizon',validHorizons(state.interval))+'<label><span>Risk / reward</span><select data-dpg-rr><option value="auto" '+(state.rr==='auto'?'selected':'')+'>Auto</option><option value="1" '+(state.rr==='1'?'selected':'')+'>1:1</option><option value="2" '+(state.rr==='2'?'selected':'')+'>1:2</option><option value="3" '+(state.rr==='3'?'selected':'')+'>1:3</option><option value="4" '+(state.rr==='4'?'selected':'')+'>1:4</option><option value="custom" '+(state.rr==='custom'?'selected':'')+'>Custom</option></select></label>'+(state.rr==='custom'?'<label><span>Custom R:R</span><input data-dpg-custom-rr type="number" min="0.5" max="10" step="0.1" value="'+escapeHtml(state.customRr)+'"></label>':'')+'<p>Public research · no sign-in required · no trade execution</p></section>'+(state.uiMode==='simple'?'':scannerFiltersMarkup(state,escapeHtml))+scannerMarkup(state.scan,{scanning:state.scanning,error:state.scanError,escapeHtml})+(state.loading?'<section class="q-dpg-state" role="status"><span class="q-spinner"></span><h2>Weighing fresh evidence</h2><p>Loading market observations and scenario ranges.</p></section>':'')+(state.error?'<section class="q-dpg-state q-dpg-state--error" role="alert"><h2>Live research unavailable</h2><p>'+escapeHtml(state.error)+'</p><button class="q-button q-button--secondary" data-dpg-refresh>Try again</button></section>':'')+(data?content(data):'')+'</section>'+(data?qellyChatDockMarkup(data):'');
     wire();mountAdSlots(main);
   };
   const scheduleLoad=()=>setTimeout(()=>load(),0);
@@ -864,6 +913,11 @@ export async function renderDecisionProvenGraph(main,deps){
       if(targetSelector)main.querySelector(targetSelector)?.scrollIntoView({behavior:'smooth',block:'start'});
       return true;
     };
+    main.querySelector('[data-dpg-chat-dock-toggle]')?.addEventListener('click',()=>{state.chatDockOpen=!state.chatDockOpen;draw();if(state.chatDockOpen)requestAnimationFrame(()=>main.querySelector('[data-dpg-chat-input]')?.focus());});
+    main.querySelector('[data-dpg-chat-dock-close]')?.addEventListener('click',()=>{state.chatDockOpen=false;draw();});
+    main.querySelectorAll('[data-dpg-chat-quick]').forEach(button=>button.addEventListener('click',()=>openDecisionChat(decisionChatPrompt(button.dataset.dpgChatQuick,state.data))));
+    main.querySelector('[data-dpg-chat-form]')?.addEventListener('submit',(event)=>{event.preventDefault();const input=main.querySelector('[data-dpg-chat-input]');openDecisionChat(decisionChatPrompt('custom',state.data,input?.value||''));});
+    main.querySelector('[data-dpg-chat-input]')?.addEventListener('keydown',(event)=>{if(event.key==='Escape'){event.preventDefault();state.chatDockOpen=false;draw();}});
     main.querySelectorAll('[data-dpg-ui-mode],[data-dpg-ui-mode-jump]').forEach(button=>button.addEventListener('click',()=>{
       const next=button.dataset.dpgUiMode||button.dataset.dpgUiModeJump;
       if(!['simple','advanced','research'].includes(next)||next===state.uiMode)return;
@@ -877,7 +931,7 @@ export async function renderDecisionProvenGraph(main,deps){
       state[key]=element.value;
       if(key==='interval')state.horizon=normalizeHorizon(state.interval,state.horizon);
       if(key!=='asset'){state.scan=null;state.scanError=null;}
-      state.rangeEvidenceRequest++;state.rangeEvidenceLoading=false;state.rangeEvidenceError=null;state.draft=null;state.selection=null;scheduleLoad();
+      state.chatDockOpen=false;state.rangeEvidenceRequest++;state.rangeEvidenceLoading=false;state.rangeEvidenceError=null;state.draft=null;state.selection=null;scheduleLoad();
     }));
     main.querySelector('[data-dpg-rr]')?.addEventListener('change',(event)=>{
       state.rr=event.currentTarget.value;state.scan=null;state.scanError=null;
@@ -897,23 +951,6 @@ export async function renderDecisionProvenGraph(main,deps){
     main.querySelector('[data-dpg-formula-evidence]')?.addEventListener('click',()=>{
       if(!storeResearchContext({asset:state.asset,timeframe:state.interval,source:'decision-intelligence'})){toast?.('Formula handoff is unavailable for this Decision context.',{tone:'danger'});return;}
       navigate?.('formula-screener');
-    });
-    main.querySelector('[data-dpg-open-chat]')?.addEventListener('click',()=>{
-      const action=state.data?.qellyView?.action||'NO TRADE';
-      document.dispatchEvent(new CustomEvent('qelly:open-ai',{detail:{
-        mode:'decision',
-        asset:state.asset,
-        timeframe:state.interval,
-        expand:true,
-        decisionContext:{
-          horizon:state.horizon,
-          rr:state.rr,
-          customRr:state.rr==='custom'?state.customRr:null,
-          selection:state.selection||state.draft||null,
-          previousSnapshot:state.previousSnapshot||null
-        },
-        prompt:'Explain the current '+state.asset+' Decision Intelligence view ('+action+'), including why this setup or no trade, the evidence gate, strongest contradiction, entry/invalidation/targets if any, why the selected R:R is feasible or not, calibration, historical analog boundary, selected candle/range context and what changed.'
-      }}));
     });
     main.querySelector('[data-dpg-research-note]')?.addEventListener('click',()=>{
       if(!state.data){toast?.('Research note is unavailable until Decision evidence loads.',{tone:'danger'});return;}
@@ -942,11 +979,6 @@ export async function renderDecisionProvenGraph(main,deps){
     main.querySelectorAll('[data-dpg-range-action]').forEach(button=>button.addEventListener('click',async()=>{
       const action=button.dataset.dpgRangeAction;
       if(!state.draft)return;
-      if(action==='chat'){
-        const selection=state.draft;
-        document.dispatchEvent(new CustomEvent('qelly:open-ai',{detail:{mode:'decision-range',asset:state.asset,timeframe:state.interval,expand:true,decisionContext:{horizon:state.horizon,rr:state.rr,customRr:state.rr==='custom'?state.customRr:null,selection},prompt:'Explain only this selected historical '+state.asset+' range from '+displayTime(selection.start)+' to '+displayTime(selection.end)+'. Separate observed evidence from inference, use range-bounded evidence where available, disclose missing historical data, and do not substitute current context for historical evidence.'}}));
-        return;
-      }
       const target={news:'.q-dpg-range-timeline',flow:'.q-dpg-range-flow',compare:'.q-dpg-ppf',similar:'.q-dpg-analogs'}[action]||null;
       if(action==='note'){
         if(!(await commitRangeSelection()))return;
