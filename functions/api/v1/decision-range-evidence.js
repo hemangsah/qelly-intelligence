@@ -1,6 +1,7 @@
 import {buildDecisionIntelligence,fetchNewsContext} from './decision-proven-graph.js';
 import {buildDecisionRangeEvidence} from '../../_lib/decision-range-evidence.js';
 import {buildDecisionHistoricalNewsTimeline} from '../../_lib/decision-range-timeline.js';
+import {buildDecisionRangeFlowParticipation} from '../../_lib/decision-range-flow.js';
 import {buildDecisionNewsClusters} from '../../_lib/decision-news.js';
 import {HttpError,enforceRateLimit,errorResponse,fetcher,responseJson} from '../../_lib/runtime.js';
 
@@ -60,14 +61,18 @@ export async function onRequest({request,env}){
       observedAt:duringNews.fetchedAt??null,cache:duringNews.cache??null,fallbackReason:duringNews.fallbackReason??null,
       boundary:'Exact selected-range news context. Retrieval uses explicit historical start/end timestamps with recent-news fallback disabled; current news outside this window is not injected; recent-news fallback is disabled for exact historical ranges.'
     }};
+    const flowParticipation=buildDecisionRangeFlowParticipation({graph:base,evidence});
     const rangeEvidenceBase=buildDecisionRangeEvidence({graph:base,evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:url.searchParams.get('timezone')||'UTC'});
-    const timeline=buildDecisionHistoricalNewsTimeline({asset,rangeEvidence:rangeEvidenceBase,newsBuckets:{before:beforeNews,during:duringNews,after:afterNews}});
-    const rangeEvidence={...rangeEvidenceBase,timeline};
+    const evidenceFamilies=(rangeEvidenceBase.evidenceFamilies||[]).map(item=>item.id==='flow-participation'?{...item,state:flowParticipation.state,source:flowParticipation.source,data:flowParticipation,limitations:[flowParticipation.boundary]}:item);
+    const coverage=(rangeEvidenceBase.coverage||[]).map(item=>item.id==='flow-participation'?{...item,state:flowParticipation.state,available:flowParticipation.state==='PARTIAL'||flowParticipation.state==='AVAILABLE'}:item);
+    const withFlow={...rangeEvidenceBase,evidenceFamilies,coverage,flowParticipation};
+    const timeline=buildDecisionHistoricalNewsTimeline({asset,rangeEvidence:withFlow,newsBuckets:{before:beforeNews,during:duringNews,after:afterNews}});
+    const rangeEvidence={...withFlow,timeline};
     return responseJson(request,env,{
-      schemaVersion:'qelly.decision-range-evidence-response/1.1.0',
+      schemaVersion:'qelly.decision-range-evidence-response/1.2.0',
       asset,assetClass:'crypto',interval,horizon,selectionId:rangeEvidence.request?.selectionId||null,
       rangeStart:new Date(start).toISOString(),rangeEnd:new Date(end).toISOString(),
-      selectedMove:base.selection,rangeEvidence,timeline,
+      selectedMove:base.selection,rangeEvidence,timeline,flowParticipation,
       boundary:'Research-only historical evidence. This endpoint does not change current QELLY VIEW, setup eligibility, probability calibration or execution state. Timeline chronology is association-only and never proof of causation.'
     },200,{cache:'public, max-age=30, stale-while-revalidate=60'});
   }catch(error){return errorResponse(request,env,error);}
