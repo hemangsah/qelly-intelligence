@@ -8,6 +8,7 @@ import {buildDecisionNewsClusters} from '../../_lib/decision-news.js';
 import {buildDecisionMacroContext,buildUnavailableDecisionEventRisk} from '../../_lib/decision-macro-events.js';
 import {providerResult} from '../../_lib/providers.js';
 import {buildDecisionContextBundle} from '../../_lib/decision-context.js';
+import {buildDecisionRangeEvidence} from '../../_lib/decision-range-evidence.js';
 import {HttpError,enforceRateLimit,errorResponse,fetcher,responseJson} from '../../_lib/runtime.js';
 import {createDecisionLatencyTrace,estimateSerializedPayload} from '../../_lib/decision-latency.js';
 import {resilientJsonRequest,providerFailureHealth,providerResiliencePublicSummary} from '../../_lib/decision-provider-resilience.js';
@@ -631,8 +632,9 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   graph={...graph,dataQuality,modelHealth};
   const tradeResearch=latency.measure('riskRewardResearch',()=>buildTradeResearch(graph,{requestedRr,customRr}));
   const context=latency.measure('contextAndEvidenceGraph',()=>buildDecisionContextBundle(graph,{multiTimeframe,tradeResearch,evidence,horizon:resolvedHorizon}));
+  const rangeEvidence=latency.measure('rangeEvidence',()=>buildDecisionRangeEvidence({graph,evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:'UTC'}));
   const performance=latency.snapshot({database:{used:false,ms:null},network:'Measure end-to-end separately at the client or external probe; server-side component timings exclude internet transit.'});
-  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence,providerResilience,dataQuality,modelHealth,...context,performance};
+  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence,providerResilience,dataQuality,modelHealth,...context,rangeEvidence,performance};
 }
 
 export async function onRequest({request,env}){
