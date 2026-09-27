@@ -33,3 +33,12 @@ test('Wave BZ removes the old primary Find Trade Now wording from the Decision r
   assert.equal(route.includes('Find Trade Now'),false);
   assert.equal(route.includes('FIND TRADE NOW'),false);
 });
+
+
+test('Wave BZ Browser E2E exercises aggressive discovery query wiring and unvalidated closest-candidate UX',async()=>{
+  const e2e=await read('scripts/qelly-decision-range-selection-e2e.mjs');
+  for(const token of ['data-dpg-scan-mode="aggressive"','data-dpg-scan-universe="current"','data-dpg-scan-direction="short"','lowest_event_risk','setup-finder-aggressive','CLOSEST CANDIDATE — NOT YET VALIDATED'])assert.ok(e2e.includes(token),token);
+  assert.match(e2e,/lastScanRequest\?\.mode==='aggressive'/);
+  assert.match(e2e,/lastScanRequest\?\.assets==='BTC'/);
+  assert.match(e2e,/closestInterval!=='30m'/);
+});
