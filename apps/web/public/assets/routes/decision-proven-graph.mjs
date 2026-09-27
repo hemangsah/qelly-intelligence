@@ -887,8 +887,8 @@ export async function renderDecisionProvenGraph(main,deps){
     const sync=()=>{
       const dock=main.querySelector('[data-dpg-chat-dock]'),workbench=main.querySelector('.q-dpg-range-workbench');
       if(!dock||!workbench)return;
-      const rect=workbench.getBoundingClientRect(),reserved=state.chatDockOpen?Math.min(440,Math.max(230,window.innerHeight*.52)):112;
-      const overlapsBottomZone=rect.bottom>window.innerHeight-reserved&&rect.top<window.innerHeight;
+      const rect=workbench.getBoundingClientRect(),reserved=112;
+      const overlapsBottomZone=!state.chatDockOpen&&rect.bottom>window.innerHeight-reserved&&rect.top<window.innerHeight;
       dock.dataset.clearance=overlapsBottomZone?'chart':'clear';
     };
     window.addEventListener('scroll',sync,{passive:true,signal:controller.signal});

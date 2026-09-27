@@ -162,8 +162,15 @@ const exercise=async({name,viewport,touch=false})=>{
   const dockRestored=Boolean(restoredDockBox)&&restoredDockBox.y>=0&&restoredDockBox.y+restoredDockBox.height<=viewport.height+1;
   if(!dockRestored)failures.push({type:'qelly-dock-clearance-return',restoredDockBox});
   await page.locator('[data-dpg-chat-dock-toggle]').first().click();
+  const openDockState=await page.locator('[data-dpg-chat-dock]').first().getAttribute('data-clearance');
+  if(openDockState!=='clear')failures.push({type:'qelly-dock-open-clearance',openDockState});
   const selectedQuickCount=await page.locator('[data-dpg-chat-quick="selected"]').count();
   if(selectedQuickCount!==1)failures.push({type:'qelly-dock-range-action',selectedQuickCount});
+  const closeHitTarget=await page.locator('[data-dpg-chat-dock-close]').first().evaluate((node)=>{
+    const rect=node.getBoundingClientRect(),hit=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);
+    return hit===node||Boolean(hit?.closest?.('[data-dpg-chat-dock-close]'));
+  });
+  if(!closeHitTarget)failures.push({type:'qelly-dock-close-hit-target'});
   await page.locator('[data-dpg-chat-dock-close]').first().click();
   await page.locator('[data-dpg-explain]').first().click();
   const intelligence=page.locator('[data-dpg-range-intelligence]').first();

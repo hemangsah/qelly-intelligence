@@ -12,6 +12,7 @@ test('Wave BW replaces legacy Decision chat buttons with one contextual bottom-c
   assert.doesNotMatch(route,/q-dpg-hero__actions[^\n]*data-dpg-open-chat/);
   assert.doesNotMatch(route,/data-dpg-range-action="chat"/);
   assert.doesNotMatch(route,/mode:'decision-range'/);
+  assert.match(route,/!state\.chatDockOpen&&rect\.bottom>window\.innerHeight-reserved/);
 });
 
 test('Wave BW hands the current Decision context into the existing authoritative QELLY chat path',async()=>{
@@ -49,5 +50,5 @@ test('Wave BW dock is centered, mobile safe, animated and reduced-motion aware',
 
 test('Wave BW Browser E2E proves desktop/mobile shell, handoff and selected-range context',async()=>{
   const e2e=await read('scripts/qelly-decision-range-selection-e2e.mjs');
-  for(const phrase of ['qelly-dock-shell','qelly-dock-composer','qelly-dock-handoff','qelly-dock-range-context','qelly-dock-range-action','qelly-dock-chart-clearance','qelly-dock-clearance-return','data-dpg-chat-quick="view"','data-dpg-chat-quick="selected"'])assert.ok(e2e.includes(phrase),phrase);
+  for(const phrase of ['qelly-dock-shell','qelly-dock-composer','qelly-dock-handoff','qelly-dock-range-context','qelly-dock-range-action','qelly-dock-chart-clearance','qelly-dock-clearance-return','qelly-dock-open-clearance','qelly-dock-close-hit-target','data-dpg-chat-quick="view"','data-dpg-chat-quick="selected"'])assert.ok(e2e.includes(phrase),phrase);
 });
