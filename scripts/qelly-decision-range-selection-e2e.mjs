@@ -14,13 +14,26 @@ const localOrigin=`http://127.0.0.1:${server.port}`;
 const executablePath=process.env.QELLY_BROWSER_EXECUTABLE||'/usr/bin/chromium';
 const browser=await chromium.launch({headless:true,executablePath,args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
 const results=[];
-let latestSelectedPayload=null;
+let selectedDecisionReloads=0;
 
 const proxyDecision=async(route)=>{
   const requestUrl=new URL(route.request().url());
-  if(requestUrl.pathname.includes('/api/v1/decision-range-evidence')&&latestSelectedPayload?.selection){
-    const payload=structuredClone(latestSelectedPayload);
-    const rangeEvidenceBase=buildDecisionRangeEvidence({graph:payload,evidence:payload.evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:'UTC'});
+  if(requestUrl.pathname.includes('/api/v1/decision-proven-graph')&&requestUrl.searchParams.has('selectionStart')){
+    selectedDecisionReloads++;
+    await route.fulfill({status:503,contentType:'application/json; charset=utf-8',body:JSON.stringify({error:{code:'selected_decision_reload_forbidden',message:'The range workflow must not refetch the full Decision endpoint.'}})});
+    return;
+  }
+  if(requestUrl.pathname.includes('/api/v1/decision-range-evidence')){
+    const target=new URL(requestUrl.pathname+requestUrl.search,productionOrigin);
+    const upstream=await fetch(target,{headers:{accept:'application/json'}});
+    const upstreamBody=await upstream.text();
+    if(!upstream.ok){
+      await route.fulfill({status:upstream.status,contentType:upstream.headers.get('content-type')||'application/json; charset=utf-8',body:upstreamBody});
+      return;
+    }
+    const responsePayload=JSON.parse(upstreamBody);
+    const payload={...responsePayload,selection:responsePayload.selectedMove,market:null};
+    const rangeEvidenceBase=responsePayload.rangeEvidence;
     const start=Number(requestUrl.searchParams.get('rangeStart')),end=Number(requestUrl.searchParams.get('rangeEnd')),duration=Math.max(60_000,end-start);
     const article=(title,offset,source,url)=>({title,source,publishedAt:new Date(offset).toISOString(),url});
     const newsBuckets={
@@ -28,24 +41,16 @@ const proxyDecision=async(route)=>{
       during:{state:'live',coverageState:'COMPLETE',exactWindow:true,window:{start:new Date(start).toISOString(),end:new Date(end).toISOString()},articles:[article('Bitcoin <img src=x onerror=alert(1)> ETF inflow update during selected move',start+duration/2,'fixture-during.example','https://fixture-during.example/b')]},
       after:{state:'live',coverageState:'COMPLETE',exactWindow:true,window:{start:new Date(end).toISOString(),end:new Date(end+duration).toISOString()},articles:[article('Bitcoin market context after selected move',end+Math.min(duration/2,3_600_000),'fixture-after.example','https://fixture-after.example/c')]}
     };
-    const flowParticipation=buildDecisionRangeFlowParticipation({graph:payload,evidence:payload.evidence});
-    const timeline=buildDecisionHistoricalNewsTimeline({asset:payload.asset,rangeEvidence:rangeEvidenceBase,newsBuckets});
+    const timeline=buildDecisionHistoricalNewsTimeline({asset:responsePayload.asset,rangeEvidence:rangeEvidenceBase,newsBuckets});
+    const flowParticipation=responsePayload.flowParticipation||rangeEvidenceBase?.flowParticipation||null;
     const rangeEvidence={...rangeEvidenceBase,timeline,flowParticipation};
-    const body=JSON.stringify({schemaVersion:'qelly.decision-range-evidence-response/1.2.0',asset:payload.asset,interval:payload.interval,horizon:payload.horizon,selectedMove:payload.selection,rangeEvidence,timeline,flowParticipation});
+    const body=JSON.stringify({...responsePayload,rangeEvidence,timeline,flowParticipation});
     await route.fulfill({status:200,contentType:'application/json; charset=utf-8',body});
     return;
   }
   const target=new URL(requestUrl.pathname+requestUrl.search,productionOrigin);
   const response=await fetch(target,{headers:{accept:'application/json'}});
-  let body=await response.text();
-  if(response.ok&&requestUrl.searchParams.has('selectionStart')&&requestUrl.pathname.includes('/api/v1/decision-proven-graph')){
-    try{
-      const payload=JSON.parse(body);
-      payload.rangeEvidence=buildDecisionRangeEvidence({graph:payload,evidence:payload.evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:'UTC'});
-      latestSelectedPayload=payload;
-      body=JSON.stringify(payload);
-    }catch{}
-  }
+  const body=await response.text();
   await route.fulfill({status:response.status,contentType:response.headers.get('content-type')||'application/json; charset=utf-8',body});
 };
 
@@ -119,14 +124,50 @@ const exercise=async({name,viewport,touch=false})=>{
   const forbiddenFlowClaims=['identified whale','confirmed institution bought','confirmed institution sold'].some(label=>normalizedFlow.includes(label));
   if(!flowRequired||forbiddenFlowClaims)failures.push({type:'range-flow',text:flowText,flowRequired,forbiddenFlowClaims});
   await page.screenshot({path:path.join(outputDir,`decision-range-selected-${name}.png`),fullPage:true});
-  const result={name,viewport,touch,persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,rangeTimeline:timelineRequired,rangeTimelineText:timelineText,rangeFlow:flowRequired,rangeFlowText:flowText,failures};
+  if(selectedDecisionReloads!==0)failures.push({type:'selected-decision-reload',count:selectedDecisionReloads});
+  const result={name,viewport,touch,persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,rangeTimeline:timelineRequired,rangeTimelineText:timelineText,rangeFlow:flowRequired,rangeFlowText:flowText,selectedDecisionReloads,failures};
   results.push(result);
+  await context.close();
+};
+
+const exerciseRangeFailure=async()=>{
+  const context=await browser.newContext({viewport:{width:1280,height:900},serviceWorkers:'block',reducedMotion:'reduce'});
+  const page=await context.newPage();
+  const failures=[];
+  page.on('pageerror',error=>failures.push({type:'pageerror',message:error.message}));
+  await page.route('**/api/v1/decision-proven-graph**',proxyDecision);
+  await page.route('**/api/v1/decision-news-context**',proxyDecision);
+  await page.route('**/api/v1/decision-range-evidence**',async route=>{
+    await route.fulfill({status:503,contentType:'application/json; charset=utf-8',body:JSON.stringify({error:{code:'range_fixture_failure',message:'Range evidence fixture unavailable'}})});
+  });
+  await page.goto(localOrigin+'/#/decision-provenance',{waitUntil:'domcontentloaded',timeout:45_000});
+  const chart=page.locator('[data-dpg-chart]').first();
+  await chart.waitFor({state:'visible',timeout:45_000});
+  const box=await chart.boundingBox();
+  if(!box)throw new Error('range-failure: chart bounding box unavailable');
+  await page.mouse.move(box.x+box.width*.25,box.y+box.height*.5);
+  await page.mouse.down();
+  await page.mouse.move(box.x+box.width*.48,box.y+box.height*.5,{steps:10});
+  await page.mouse.up();
+  await page.locator('[data-dpg-explain]').first().click();
+  const errorPanel=page.locator('[data-dpg-range-evidence-error]').first();
+  await errorPanel.waitFor({state:'visible',timeout:20_000});
+  const chartStillVisible=await chart.isVisible();
+  const pageText=(await page.locator('main').innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  const liveResearchLost=pageText.includes('live research unavailable');
+  const overlay=page.locator('[data-dpg-selection]').first();
+  const overlayPersistent=(await overlay.getAttribute('hidden'))===null&&await page.locator('.q-dpg-candle.is-selected').count()>1;
+  const errorText=(await errorPanel.innerText()).replace(/\s+/g,' ').trim();
+  if(!chartStillVisible||liveResearchLost||!overlayPersistent||!errorText.toLowerCase().includes('current decision preserved'))failures.push({type:'range-failure-resilience',chartStillVisible,liveResearchLost,overlayPersistent,errorText});
+  if(selectedDecisionReloads!==0)failures.push({type:'selected-decision-reload',count:selectedDecisionReloads});
+  results.push({name:'range-failure',chartStillVisible,liveResearchLost,overlayPersistent,errorText,selectedDecisionReloads,failures});
   await context.close();
 };
 
 try{
   await exercise({name:'desktop',viewport:{width:1440,height:1000}});
   await exercise({name:'mobile',viewport:{width:390,height:844},touch:true});
+  await exerciseRangeFailure();
 }finally{
   await browser.close();
   await new Promise(resolve=>server.server.close(resolve));

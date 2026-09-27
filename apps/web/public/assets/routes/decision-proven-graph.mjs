@@ -778,7 +778,12 @@ export async function renderDecisionProvenGraph(main,deps){
   };
 
   const rangeEvidenceMarkup=(data)=>{
-    const range=data?.rangeEvidence;if(!range||range.state!=='AVAILABLE'||!range.summary)return '';
+    const range=data?.rangeEvidence;
+    if(!range||range.state!=='AVAILABLE'||!range.summary){
+      if(state.rangeEvidenceLoading)return '<section class="q-dpg-range-intelligence q-dpg-range-intelligence--loading" data-dpg-range-intelligence role="status"><header><div><small>SELECTED MOVE INTELLIGENCE · EXACT RANGE</small><h2>Loading exact historical evidence…</h2></div><span>CURRENT DECISION PRESERVED</span></header><p class="q-dpg-range-fetch-state">The current QELLY VIEW remains visible while range-bounded evidence is fetched.</p></section>';
+      if(state.rangeEvidenceError)return '<section class="q-dpg-range-intelligence q-dpg-range-intelligence--error" data-dpg-range-intelligence data-dpg-range-evidence-error role="alert"><header><div><small>SELECTED MOVE INTELLIGENCE · EXACT RANGE</small><h2>Exact range evidence unavailable</h2></div><span>CURRENT DECISION PRESERVED</span></header><p class="q-dpg-range-fetch-state q-dpg-range-fetch-state--error">'+escapeHtml(state.rangeEvidenceError)+'</p><p>The selected range remains highlighted. QELLY did not discard or replace the current Decision snapshot.</p></section>';
+      return '';
+    }
     const summary=range.summary,coverage=Array.isArray(range.coverage)?range.coverage:[],comparison=range.comparison||{};
     const value=(input,suffix='')=>input!=null&&input!==''&&Number.isFinite(Number(input))?Number(input).toLocaleString(undefined,{maximumFractionDigits:4})+suffix:'Unavailable';
     const scope=(item)=>String(item?.temporalScope||'UNAVAILABLE').replaceAll('_',' ');
@@ -832,13 +837,11 @@ export async function renderDecisionProvenGraph(main,deps){
 
   const wire=()=>{
     const commitRangeSelection=async(targetSelector=null)=>{
-      if(!state.draft)return false;
+      if(!state.draft||!state.data)return false;
       state.selection=state.draft;
-      await load();
-      if(!state.data)return false;
-      await loadExactRangeEvidence(state.selection);
+      const loaded=await loadExactRangeEvidence(state.selection);
       if(targetSelector)main.querySelector(targetSelector)?.scrollIntoView({behavior:'smooth',block:'start'});
-      return true;
+      return loaded;
     };
     main.querySelectorAll('[data-dpg-asset],[data-dpg-interval],[data-dpg-horizon]').forEach(element=>element.addEventListener('change',()=>{
       const key=element.hasAttribute('data-dpg-asset')?'asset':element.hasAttribute('data-dpg-interval')?'interval':'horizon';
