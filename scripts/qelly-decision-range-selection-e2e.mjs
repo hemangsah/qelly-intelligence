@@ -4,6 +4,7 @@ import {chromium} from 'playwright';
 import {startServer} from './release-a5-evidence-server.mjs';
 import {buildDecisionRangeEvidence} from '../functions/_lib/decision-range-evidence.js';
 import {buildDecisionHistoricalNewsTimeline} from '../functions/_lib/decision-range-timeline.js';
+import {buildDecisionRangeFlowParticipation} from '../functions/_lib/decision-range-flow.js';
 
 const outputDir=path.resolve('preview/decision-range-e2e');
 await mkdir(outputDir,{recursive:true});
@@ -27,9 +28,10 @@ const proxyDecision=async(route)=>{
       during:{state:'live',coverageState:'COMPLETE',exactWindow:true,window:{start:new Date(start).toISOString(),end:new Date(end).toISOString()},articles:[article('Bitcoin <img src=x onerror=alert(1)> ETF inflow update during selected move',start+duration/2,'fixture-during.example','https://fixture-during.example/b')]},
       after:{state:'live',coverageState:'COMPLETE',exactWindow:true,window:{start:new Date(end).toISOString(),end:new Date(end+duration).toISOString()},articles:[article('Bitcoin market context after selected move',end+Math.min(duration/2,3_600_000),'fixture-after.example','https://fixture-after.example/c')]}
     };
+    const flowParticipation=buildDecisionRangeFlowParticipation({graph:payload,evidence:payload.evidence});
     const timeline=buildDecisionHistoricalNewsTimeline({asset:payload.asset,rangeEvidence:rangeEvidenceBase,newsBuckets});
-    const rangeEvidence={...rangeEvidenceBase,timeline};
-    const body=JSON.stringify({schemaVersion:'qelly.decision-range-evidence-response/1.1.0',asset:payload.asset,interval:payload.interval,horizon:payload.horizon,selectedMove:payload.selection,rangeEvidence,timeline});
+    const rangeEvidence={...rangeEvidenceBase,timeline,flowParticipation};
+    const body=JSON.stringify({schemaVersion:'qelly.decision-range-evidence-response/1.2.0',asset:payload.asset,interval:payload.interval,horizon:payload.horizon,selectedMove:payload.selection,rangeEvidence,timeline,flowParticipation});
     await route.fulfill({status:200,contentType:'application/json; charset=utf-8',body});
     return;
   }
@@ -110,8 +112,14 @@ const exercise=async({name,viewport,touch=false})=>{
   const timelineRequired=['what caused this move?','historical news / event timeline','before','during','after','association only','direct'].every(label=>normalizedTimeline.includes(label));
   const injectedImageCount=await timeline.locator('img[src="x"]').count();
   if(!timelineRequired||injectedImageCount)failures.push({type:'range-timeline',text:timelineText,timelineRequired,injectedImageCount});
+  const flowPanel=page.locator('[data-dpg-range-flow]').first();
+  await flowPanel.waitFor({state:'visible',timeout:20_000});
+  const flowText=(await flowPanel.innerText()).replace(/\s+/g,' ').trim(),normalizedFlow=flowText.toLowerCase();
+  const flowRequired=['flow / participation evidence','known named flows','observed order flow','public institutional data','unknown actor activity','actor identity unavailable','true order flow unavailable'].every(label=>normalizedFlow.includes(label));
+  const forbiddenFlowClaims=['identified whale','confirmed institution bought','confirmed institution sold'].some(label=>normalizedFlow.includes(label));
+  if(!flowRequired||forbiddenFlowClaims)failures.push({type:'range-flow',text:flowText,flowRequired,forbiddenFlowClaims});
   await page.screenshot({path:path.join(outputDir,`decision-range-selected-${name}.png`),fullPage:true});
-  const result={name,viewport,touch,persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,rangeTimeline:timelineRequired,rangeTimelineText:timelineText,failures};
+  const result={name,viewport,touch,persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,rangeTimeline:timelineRequired,rangeTimelineText:timelineText,rangeFlow:flowRequired,rangeFlowText:flowText,failures};
   results.push(result);
   await context.close();
 };
