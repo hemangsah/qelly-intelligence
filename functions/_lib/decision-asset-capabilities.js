@@ -1,5 +1,6 @@
 import {PUBLIC_CRYPTO_ASSETS} from './public-market-assets.js';
 import {providerCatalog} from './providers.js';
+import {decisionEvidenceProfileCatalog} from './decision-asset-evidence-profiles.js';
 
 export const DECISION_ASSET_SYMBOLS=Object.freeze(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
 export const DECISION_ASSET_SET=new Set(DECISION_ASSET_SYMBOLS);
@@ -7,7 +8,7 @@ export const DECISION_PICKER_INTERVALS=Object.freeze(['1m','5m','15m','30m','1h'
 
 const HYPERLIQUID_DOCS='https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint';
 const providerById=(id)=>providerCatalog().find((provider)=>provider.id===id)||null;
-const unavailable=(id,label,reason)=>Object.freeze({id,label,assetClass:id,state:'UNAVAILABLE',selectable:false,provider:null,assets:Object.freeze([]),reason});
+const unavailable=(id,label,reason,evidenceProfileId=id)=>Object.freeze({id,label,assetClass:id,state:'UNAVAILABLE',selectable:false,provider:null,assets:Object.freeze([]),reason,evidenceProfileId});
 const providerProjection=(provider)=>provider?{
   id:provider.id,
   enabled:Boolean(provider.enabled),
@@ -32,7 +33,8 @@ export const decisionAssetCapabilities=()=>{
     providerStatus:'SUPPORTED',
     supportedTimeframes:[...DECISION_PICKER_INTERVALS],
     capabilities:['candles','liquidity','derivatives','historical-funding','cross-asset-context'],
-    selectable:true
+    selectable:true,
+    evidenceProfileId:'crypto'
   }));
   const groups=[
     {
@@ -49,7 +51,8 @@ export const decisionAssetCapabilities=()=>{
         coverageBoundary:'This is the existing public source used by QELLY Decision Intelligence; the picker does not introduce a new provider.'
       },
       assets:cryptoAssets,
-      reason:null
+      reason:null,
+      evidenceProfileId:'crypto'
     },
     {
       id:'forex',
@@ -59,14 +62,15 @@ export const decisionAssetCapabilities=()=>{
       selectable:false,
       provider:providerProjection(ecb),
       assets:[],
-      reason:ecb?.enabled?'ECB reference rates are available for contextual reference only. Decision-grade intraday candles and the full evidence stack are not connected, so FX pairs are not selectable.':'No governed FX source is enabled for Decision Intelligence.'
+      reason:ecb?.enabled?'ECB reference rates are available for contextual reference only. Decision-grade intraday candles and the full evidence stack are not connected, so FX pairs are not selectable.':'No governed FX source is enabled for Decision Intelligence.',
+      evidenceProfileId:'fx'
     },
-    unavailable('indian-indices','Indian indices','No governed Decision-grade index candle/evidence provider is connected.'),
+    unavailable('indian-indices','Indian indices','No governed Decision-grade index candle/evidence provider is connected.','indices'),
     unavailable('indian-equities','Indian stocks','No licensed Decision-grade Indian equity candle/evidence provider is connected.'),
     unavailable('global-equities','Global stocks','No licensed Decision-grade global equity candle/evidence provider is connected.'),
-    unavailable('metals','Metals','No governed Decision-grade metals candle/evidence provider is connected.'),
-    unavailable('commodities','Commodities','No governed Decision-grade commodities candle/evidence provider is connected.'),
-    unavailable('global-indices','Global indices','No governed Decision-grade global-index candle/evidence provider is connected.'),
+    unavailable('metals','Metals','No governed Decision-grade metals candle/evidence provider is connected.','metals-commodities'),
+    unavailable('commodities','Commodities','No governed Decision-grade commodities candle/evidence provider is connected.','metals-commodities'),
+    unavailable('global-indices','Global indices','No governed Decision-grade global-index candle/evidence provider is connected.','indices'),
     unavailable('rates-bonds','Rates / Bonds','No governed Decision-grade rates or bond candle/evidence provider is connected.'),
     unavailable('etfs','ETFs','No licensed Decision-grade ETF candle/evidence provider is connected.')
   ];
@@ -77,6 +81,7 @@ export const decisionAssetCapabilities=()=>{
     supportedAssetCount:cryptoAssets.length,
     selectableSymbols:[...DECISION_ASSET_SYMBOLS],
     groups,
+    evidenceProfiles:decisionEvidenceProfileCatalog(),
     guardrails:{
       readOnly:true,
       execution:false,
