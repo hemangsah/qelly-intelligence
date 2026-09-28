@@ -79,7 +79,25 @@ const proxyDecision=async(route)=>{
     const flowParticipation=buildDecisionRangeFlowParticipation({graph:payload,evidence:payload.evidence});
     const timeline=buildDecisionHistoricalNewsTimeline({asset:payload.asset,rangeEvidence:rangeEvidenceBase,newsBuckets});
     const rangeEvidence={...rangeEvidenceBase,timeline,flowParticipation};
-    const body=JSON.stringify({schemaVersion:'qelly.decision-range-evidence-response/1.2.0',asset:payload.asset,interval:payload.interval,horizon:payload.horizon,selectedMove:payload.selection,rangeEvidence,timeline,flowParticipation});
+    const fixtureCandles=payload.market?.candles||[];
+    const fixtureBenchmark=fixtureCandles.map((item,index)=>({
+      ...item,
+      open:Number(item.open??item.o)*(1+index*.00001),
+      high:Number(item.high??item.h)*(1+index*.00001),
+      low:Number(item.low??item.l)*(1+index*.00001),
+      close:Number(item.close??item.c)*(1+index*.00001)
+    }));
+    const rangeReplay=buildDecisionRangeReplay({
+      candles:fixtureCandles,
+      selection:payload.selection,
+      interval:payload.interval,
+      newsArticles:[...newsBuckets.before.articles,...newsBuckets.during.articles,...newsBuckets.after.articles],
+      fundingRows:[],
+      benchmarkCandles:fixtureBenchmark,
+      benchmark:payload.asset==='BTC'?'ETH':'BTC'
+    });
+    const selectedRangeSimilarMoves=buildSelectedRangeSimilarMoves(fixtureCandles,{selection:payload.selection,interval:payload.interval,limit:5});
+    const body=JSON.stringify({schemaVersion:'qelly.decision-range-evidence-response/1.3.0',asset:payload.asset,interval:payload.interval,horizon:payload.horizon,selectedMove:payload.selection,rangeEvidence,timeline,flowParticipation,rangeReplay,selectedRangeSimilarMoves});
     await route.fulfill({status:200,contentType:'application/json; charset=utf-8',body});
     return;
   }

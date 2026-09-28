@@ -73,6 +73,8 @@ export async function onRequest({request,env}){
       asset,assetClass:'crypto',interval,horizon,selectionId:rangeEvidence.request?.selectionId||null,
       rangeStart:new Date(start).toISOString(),rangeEnd:new Date(end).toISOString(),
       selectedMove:base.selection,rangeEvidence,timeline,flowParticipation,
+      rangeReplay:base.rangeReplay||null,
+      selectedRangeSimilarMoves:base.selectedRangeSimilarMoves||null,
       boundary:'Research-only historical evidence. This endpoint does not change current QELLY VIEW, setup eligibility, probability calibration or execution state. Timeline chronology is association-only and never proof of causation.'
     },200,{cache:'public, max-age=30, stale-while-revalidate=60'});
   }catch(error){return errorResponse(request,env,error);}

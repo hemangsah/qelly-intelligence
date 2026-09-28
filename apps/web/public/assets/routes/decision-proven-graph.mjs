@@ -1071,7 +1071,13 @@ export async function renderDecisionProvenGraph(main,deps){
       const params=new URLSearchParams({asset:state.asset,interval:state.interval,horizon:state.horizon,rangeStart:String(selection.start),rangeEnd:String(selection.end),timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'});
       const result=await api('/api/v1/decision-range-evidence?'+params.toString());
       if(requestId!==state.rangeEvidenceRequest||selectionKey(state.selection)!==key||!state.data)return false;
-      state.data={...state.data,selection:result?.selectedMove||state.data.selection,rangeEvidence:result?.rangeEvidence||state.data.rangeEvidence};
+      state.data={
+        ...state.data,
+        selection:result?.selectedMove||state.data.selection,
+        rangeEvidence:result?.rangeEvidence||state.data.rangeEvidence,
+        rangeReplay:result?.rangeReplay||state.data.rangeReplay,
+        selectedRangeSimilarMoves:result?.selectedRangeSimilarMoves||state.data.selectedRangeSimilarMoves
+      };
       return Boolean(result?.rangeEvidence);
     }catch(error){
       if(requestId===state.rangeEvidenceRequest)state.rangeEvidenceError=error?.message||'Exact historical range evidence is unavailable.';
