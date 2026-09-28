@@ -54,7 +54,15 @@ export const tradingViewSymbol=(value)=>SYMBOL_MAP[String(value||'').toUpperCase
 export const tradingViewInterval=(value)=>INTERVAL_MAP[String(value||'')]||'60';
 export const tradingViewAppearance=()=>((document.documentElement.dataset.resolvedAppearance||document.documentElement.dataset.appearance)==='light'?'light':'dark');
 
-const externalChartUrl=(symbol)=>`https://www.tradingview.com/chart/?symbol=${encodeURIComponent(tradingViewSymbol(symbol))}`;
+const TRADINGVIEW_OPEN_ORIGIN='https://www.tradingview.com';
+const externalChartUrl=(symbol)=>`${TRADINGVIEW_OPEN_ORIGIN}/chart/?symbol=${encodeURIComponent(tradingViewSymbol(symbol))}`;
+const safeTradingViewOpenUrl=(value,fallback=`${TRADINGVIEW_OPEN_ORIGIN}/markets/`)=>{
+  try{
+    const url=new URL(String(value||''));
+    if(url.protocol==='https:'&&url.origin===TRADINGVIEW_OPEN_ORIGIN)return url.href;
+  }catch{}
+  return fallback;
+};
 // Official iframe widgets replace their placeholder DIV with an IFRAME. The
 // readiness check must observe the stable wrapper, never the removed host.
 const widgetReady=(wrapper)=>Boolean(wrapper?.querySelector('iframe'));
@@ -73,7 +81,8 @@ function renderFallback(container,{symbol='BTCUSDT',reason='load-error',title='T
   container.dataset.usage='display-only';
   container.dataset.externalState='unavailable';
   const detail=reason==='timeout'?'The market reference did not initialize within the production timeout.':'The market reference could not be loaded in this browser.';
-  container.innerHTML=`<section class="qelly-tradingview-fallback" role="status" aria-live="polite"><div><h3>${title}</h3><p>${detail} Qelly has not substituted or fabricated chart values.</p><a href="${openUrl||externalChartUrl(symbol)}" target="_blank" rel="noopener noreferrer nofollow">Open TradingView directly</a></div></section>`;
+  const resolvedOpenUrl=safeTradingViewOpenUrl(openUrl,externalChartUrl(symbol));
+  container.innerHTML=`<section class="qelly-tradingview-fallback" role="status" aria-live="polite"><div><h3>${title}</h3><p>${detail} Qelly has not substituted or fabricated chart values.</p><a href="${resolvedOpenUrl}" target="_blank" rel="noopener noreferrer nofollow">Open TradingView directly</a></div></section>`;
 }
 
 export function mountTradingViewWidget(container,{kind,config={},label='TradingView market panel',openUrl='https://www.tradingview.com/markets/'}={}){
@@ -83,6 +92,7 @@ export function mountTradingViewWidget(container,{kind,config={},label='TradingV
   const source=WIDGET_SOURCES[kind];
   if(!source)throw new TypeError(`Unsupported TradingView widget: ${String(kind||'')}`);
   ensureComponentStyles();
+  const resolvedOpenUrl=safeTradingViewOpenUrl(openUrl);
 
   let destroyed=false,settled=false,timer=0,observer=null,startedAt=0;
   const emitRuntime=(action,state)=>window.dispatchEvent(new CustomEvent('qelly:runtime-signal',{detail:{feature:'embed',action,state,surface:String(kind||'tradingview')}}));
@@ -101,7 +111,7 @@ export function mountTradingViewWidget(container,{kind,config={},label='TradingV
     container.dataset.usage='display-only';
     container.dataset.externalState='unavailable';
     const detail=reason==='timeout'?'The market reference did not initialize within the production timeout.':'The market reference could not be loaded in this browser.';
-    container.innerHTML=`<section class="qelly-tradingview-fallback" role="status" aria-live="polite"><div><h3>${label} unavailable</h3><p>${detail} Qelly has not substituted or fabricated chart values.</p><div class="qelly-tradingview-fallback__actions"><button type="button" class="q-button q-button--secondary" data-qelly-tv-retry>Retry market view</button><a href="${openUrl}" target="_blank" rel="noopener noreferrer nofollow">Open TradingView directly</a></div></div></section>`;
+    container.innerHTML=`<section class="qelly-tradingview-fallback" role="status" aria-live="polite"><div><h3>${label} unavailable</h3><p>${detail} Qelly has not substituted or fabricated chart values.</p><div class="qelly-tradingview-fallback__actions"><button type="button" class="q-button q-button--secondary" data-qelly-tv-retry>Retry market view</button><a href="${resolvedOpenUrl}" target="_blank" rel="noopener noreferrer nofollow">Open TradingView directly</a></div></div></section>`;
     container.querySelector('[data-qelly-tv-retry]')?.addEventListener('click',start,{once:true});
   };
   const start=()=>{
@@ -133,7 +143,7 @@ export function mountTradingViewWidget(container,{kind,config={},label='TradingV
     const attribution=document.createElement('div');
     attribution.className='tradingview-widget-copyright qelly-tradingview-attribution';
     const link=document.createElement('a');
-    link.href=openUrl;
+    link.href=resolvedOpenUrl;
     link.target='_blank';
     link.rel='noopener noreferrer nofollow';
     link.textContent=`${label} by TradingView`;
@@ -221,4 +231,4 @@ export function mountTradingViewDisplay(container,{symbol='BTCUSDT',interval='1h
   return {...handle,symbol:resolvedSymbol,interval:resolvedInterval};
 }
 
-export const __tradingViewDisplayTest=Object.freeze({SYMBOL_MAP,INTERVAL_MAP,DISPLAY_BOUNDARY,WIDGET_SRC:WIDGET_SOURCES.advancedChart,WIDGET_SOURCES,WIDGET_TIMEOUT_MS,COMPONENT_STYLESHEET,externalChartUrl,widgetReady,ACTIVE_WIDGETS});
+export const __tradingViewDisplayTest=Object.freeze({SYMBOL_MAP,INTERVAL_MAP,DISPLAY_BOUNDARY,WIDGET_SRC:WIDGET_SOURCES.advancedChart,WIDGET_SOURCES,WIDGET_TIMEOUT_MS,COMPONENT_STYLESHEET,TRADINGVIEW_OPEN_ORIGIN,externalChartUrl,safeTradingViewOpenUrl,widgetReady,ACTIVE_WIDGETS});
