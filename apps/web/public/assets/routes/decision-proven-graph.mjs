@@ -721,7 +721,15 @@ export async function renderDecisionProvenGraph(main,deps){
   const chatContext=readChatDecisionContext();
   const assetPreferences=readDecisionAssetPreferences();
   let state={asset:chatContext.asset,interval:chatContext.interval,horizon:normalizeHorizon(chatContext.interval,'4h'),rr:'auto',customRr:'2.5',nextMoveBars:'1',nextMoveCustomBars:'8',chartMode:'select-range',uiMode:'simple',chatDockOpen:false,assetCatalog:null,assetCatalogError:null,assetPickerOpen:false,assetFilter:'all',assetQuery:'',assetFavorites:assetPreferences.favorites,assetRecent:assetPreferences.recent,loading:true,data:null,previousSnapshot:null,error:null,draft:null,selection:null,rangeEvidenceLoading:false,rangeEvidenceError:null,rangeEvidenceRequest:0,rangeReplayIndex:0,scanning:false,scan:null,scanError:null,ledger:null,ledgerLoading:false,ledgerError:null,ledgerMutating:false,slo:null,scanFilters:{mode:'validated',ranking:'highest_quality',universe:'all',direction:'any',minEvidenceQuality:'0',minCalibratedConfidence:'0',minMtfAgreement:'0',liquidity:'any',volatility:'any',regime:'any',eventRiskTolerance:'any',freshness:'live_or_delayed'}};
-  let chartGestureActive=false,chartGestureDeferredDraw=false;
+  let chartGestureActive=false,chartGestureDeferredDraw=false,pendingFocusSelector=null;
+  const queueFocusAfterDraw=(selector)=>{pendingFocusSelector=selector;};
+  const applyPendingFocus=()=>{
+    const selector=pendingFocusSelector;
+    pendingFocusSelector=null;
+    if(!selector)return;
+    main.querySelector(selector)?.focus({preventScroll:true});
+    requestAnimationFrame(()=>main.querySelector(selector)?.focus({preventScroll:true}));
+  };
   const ledgerAuthenticated=()=>Boolean(window.__QELLY_SESSION_STATE__?.authenticated);
   const updateSlo=(snapshot)=>{
     const next=evaluateDecisionSlos(snapshot);
@@ -1119,10 +1127,14 @@ export async function renderDecisionProvenGraph(main,deps){
     if(chartGestureActive){chartGestureDeferredDraw=true;return;}
     chartGestureDeferredDraw=false;
     const focusedMode=main.querySelector('[data-dpg-ui-mode]:focus')?.dataset.dpgUiMode||null;
+    const focusedStableControl=main.querySelector('[data-dpg-asset-picker-toggle]:focus')?'asset-picker':main.querySelector('[data-dpg-chat-dock-toggle]:focus')?'chat-dock':null;
     const data=state.data;
     main.innerHTML='<section class="q-page q-dpg-page">'+stateBanner()+hero(data)+decisionModeSwitcher()+'<section class="q-dpg-controls q-dpg-controls--decision" aria-label="Decision controls">'+select('horizon',validHorizons(state.interval))+'<label><span>Risk / reward</span><select data-dpg-rr><option value="auto" '+(state.rr==='auto'?'selected':'')+'>Auto</option><option value="1" '+(state.rr==='1'?'selected':'')+'>1:1</option><option value="2" '+(state.rr==='2'?'selected':'')+'>1:2</option><option value="3" '+(state.rr==='3'?'selected':'')+'>1:3</option><option value="4" '+(state.rr==='4'?'selected':'')+'>1:4</option><option value="custom" '+(state.rr==='custom'?'selected':'')+'>Custom</option></select></label>'+(state.rr==='custom'?'<label><span>Custom R:R</span><input data-dpg-custom-rr type="number" min="0.5" max="10" step="0.1" value="'+escapeHtml(state.customRr)+'"></label>':'')+'<p>Public research · no sign-in required · no trade execution</p></section>'+setupDiscoveryControlsMarkup(state,escapeHtml)+(state.uiMode==='simple'?'':scannerFiltersMarkup(state,escapeHtml))+scannerMarkup(state.scan,{scanning:state.scanning,error:state.scanError,escapeHtml,mode:state.scanFilters.mode,ranking:state.scanFilters.ranking})+(state.loading?'<section class="q-dpg-state" role="status"><span class="q-spinner"></span><h2>Weighing fresh evidence</h2><p>Loading market observations and scenario ranges.</p></section>':'')+(state.error?'<section class="q-dpg-state q-dpg-state--error" role="alert"><h2>Live research unavailable</h2><p>'+escapeHtml(state.error)+'</p><button class="q-button q-button--secondary" data-dpg-refresh>Try again</button></section>':'')+(data?content(data):'')+'</section>'+(data?qellyChatDockMarkup(data):'');
     wire();bindDockViewportClearance();mountAdSlots(main);
     if(focusedMode)main.querySelector('[data-dpg-ui-mode="'+focusedMode+'"]')?.focus();
+    else if(focusedStableControl==='asset-picker')main.querySelector('[data-dpg-asset-picker-toggle]')?.focus({preventScroll:true});
+    else if(focusedStableControl==='chat-dock')main.querySelector('[data-dpg-chat-dock-toggle]')?.focus({preventScroll:true});
+    applyPendingFocus();
   };
   let scheduledLoadTimer=0,rangeEvidenceController=null,decisionLoadController=null,decisionLoadRequest=0;
   const scheduleLoad=()=>{
@@ -1207,8 +1219,8 @@ export async function renderDecisionProvenGraph(main,deps){
       main.querySelector('[data-dpg-ui-mode="'+nextMode+'"]')?.focus();
     }));
     main.querySelector('[data-dpg-asset-picker-toggle]')?.addEventListener('click',()=>{state.assetPickerOpen=!state.assetPickerOpen;draw();if(state.assetPickerOpen)requestAnimationFrame(()=>main.querySelector('[data-dpg-asset-search]')?.focus());});
-    main.querySelector('[data-dpg-asset-picker-close]')?.addEventListener('click',()=>{state.assetPickerOpen=false;state.assetQuery='';draw();main.querySelector('[data-dpg-asset-picker-toggle]')?.focus();});
-    main.querySelector('[data-dpg-asset-picker-panel]')?.addEventListener('keydown',(event)=>{if(event.key==='Escape'){event.preventDefault();state.assetPickerOpen=false;state.assetQuery='';draw();main.querySelector('[data-dpg-asset-picker-toggle]')?.focus();}});
+    main.querySelector('[data-dpg-asset-picker-close]')?.addEventListener('click',()=>{state.assetPickerOpen=false;state.assetQuery='';queueFocusAfterDraw('[data-dpg-asset-picker-toggle]');draw();});
+    main.querySelector('[data-dpg-asset-picker-panel]')?.addEventListener('keydown',(event)=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();state.assetPickerOpen=false;state.assetQuery='';queueFocusAfterDraw('[data-dpg-asset-picker-toggle]');draw();}});
     main.querySelector('[data-dpg-asset-search]')?.addEventListener('input',(event)=>{
       state.assetQuery=event.currentTarget.value;
       const query=state.assetQuery.trim().toLowerCase();
@@ -1219,7 +1231,7 @@ export async function renderDecisionProvenGraph(main,deps){
         group.hidden=!groupMatch&&rows.length>0&&!rows.some((row)=>!row.hidden);
       });
     });
-    main.querySelector('[data-dpg-asset-search]')?.addEventListener('keydown',(event)=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();state.assetPickerOpen=false;state.assetQuery='';draw();main.querySelector('[data-dpg-asset-picker-toggle]')?.focus();}});
+    main.querySelector('[data-dpg-asset-search]')?.addEventListener('keydown',(event)=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();state.assetPickerOpen=false;state.assetQuery='';queueFocusAfterDraw('[data-dpg-asset-picker-toggle]');draw();}});
     main.querySelectorAll('[data-dpg-asset-filter]').forEach((button)=>button.addEventListener('click',()=>{state.assetFilter=button.dataset.dpgAssetFilter||'all';state.assetQuery='';draw();requestAnimationFrame(()=>main.querySelector('[data-dpg-asset-search]')?.focus());}));
     main.querySelectorAll('[data-dpg-asset-favorite]').forEach((button)=>button.addEventListener('click',()=>{
       state.assetFavorites=toggleDecisionAssetFavorite(state.assetFavorites,button.dataset.dpgAssetFavorite);
