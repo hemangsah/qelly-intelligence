@@ -61,7 +61,7 @@ export function buildDecisionRangeEvidence({graph,evidence={},assetClass='crypto
     rangeStart:iso(rangeStart),rangeEnd:iso(rangeEnd),preWindow,postWindow,timezone,selectionId
   };
   const comparison=buildRangeWindows(graph?.market?.candles||[],selection);
-  const news=evidence?.news||{},historicalDerivatives=evidence?.historicalDerivatives||{},selectedCrossAsset=evidence?.selectedCrossAsset||{};
+  const news=evidence?.news||{},historicalDerivatives=evidence?.historicalDerivatives||{},selectedCrossAsset=evidence?.selectedCrossAssetAnalysis||evidence?.selectedCrossAsset||{};
   const priceData={
     start:selection.start,end:selection.end,candles:selection.candles,startPrice:finite(selection.startPrice),endPrice:finite(selection.endPrice),
     returnPct:finite(selection.changePct),rangePct:finite(selection.rangePct),high:comparison.during?.high??null,low:comparison.during?.low??null,
@@ -98,7 +98,7 @@ export function buildDecisionRangeEvidence({graph,evidence={},assetClass='crypto
     unavailable('fundamentals','Fundamentals','HISTORICAL_UNAVAILABLE',assetClass==='crypto'?'No governed historical fundamental dataset is connected for this crypto range.':'No governed historical fundamental dataset is connected for this instrument.'),
     family('regulatory','Regulatory evidence',regulatoryClusters.length?'INDEXED_NEWS_ONLY':'UNAVAILABLE','HISTORICAL_RANGE_BOUNDED',news.provider||null,{clusters:regulatoryClusters},['News topic matching is contextual and does not establish causation or regulatory impact.']),
     unavailable('geopolitics','Geopolitics','HISTORICAL_UNAVAILABLE','No dedicated structured geopolitical event feed is connected; generic timing-based causation is not inferred.'),
-    family('cross-asset','Cross-asset',selectedCrossAsset?.state==='available'?'AVAILABLE':'UNAVAILABLE','HISTORICAL_RANGE_BOUNDED',selectedCrossAsset?.provider||null,selectedCrossAsset,[selectedCrossAsset?.reason||'Cross-asset evidence requires aligned benchmark observations inside the selected range.']),
+    family('cross-asset','Cross-asset selected range',String(selectedCrossAsset?.state||'UNAVAILABLE').toUpperCase()==='AVAILABLE'?'AVAILABLE':'UNAVAILABLE','HISTORICAL_RANGE_BOUNDED',selectedCrossAsset?.provider||null,selectedCrossAsset,Array.isArray(selectedCrossAsset?.limitations)?selectedCrossAsset.limitations:[selectedCrossAsset?.reason||'Cross-asset evidence requires aligned benchmark observations inside the selected range.']),
     unavailable('sector-index','Sector / index','NOT_APPLICABLE',assetClass==='crypto'?'Sector/index decomposition is not applicable to the current crypto-only provider profile.':'Sector/index evidence is not connected.'),
     unavailable('on-chain','On-chain','HISTORICAL_UNAVAILABLE',evidence?.onChain?.message||'Authorized on-chain history is not connected.'),
     unavailable('options','Options','HISTORICAL_UNAVAILABLE',evidence?.options?.message||'Authorized options history is not connected.'),

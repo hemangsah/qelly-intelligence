@@ -8,6 +8,7 @@ import {buildDecisionRangeFlowParticipation} from '../functions/_lib/decision-ra
 import {buildDecisionNextMoveResearch} from '../functions/_lib/decision-next-move.js';
 import {decisionAssetCapabilities} from '../functions/_lib/decision-asset-capabilities.js';
 import {buildDecisionRangeReplay,buildSelectedRangeSimilarMoves} from '../functions/_lib/decision-range-history.js';
+import {buildSelectedRangeCrossAssetAnalysis} from '../functions/_lib/decision-selected-cross-asset.js';
 
 const outputDir=path.resolve('preview/decision-range-e2e');
 await mkdir(outputDir,{recursive:true});
@@ -75,7 +76,6 @@ const proxyDecision=async(route)=>{
   }
   if(requestUrl.pathname.includes('/api/v1/decision-range-evidence')&&latestSelectedPayload?.selection){
     const payload=structuredClone(latestSelectedPayload);
-    const rangeEvidenceBase=buildDecisionRangeEvidence({graph:payload,evidence:payload.evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:'UTC'});
     const start=Number(requestUrl.searchParams.get('rangeStart')),end=Number(requestUrl.searchParams.get('rangeEnd')),duration=Math.max(60_000,end-start);
     const article=(title,offset,source,url)=>({title,source,publishedAt:new Date(offset).toISOString(),url});
     const newsBuckets={
@@ -83,9 +83,6 @@ const proxyDecision=async(route)=>{
       during:{state:'live',coverageState:'COMPLETE',exactWindow:true,window:{start:new Date(start).toISOString(),end:new Date(end).toISOString()},articles:[article('Bitcoin <img src=x onerror=alert(1)> ETF inflow update during selected move',start+duration/2,'fixture-during.example','https://fixture-during.example/b')]},
       after:{state:'live',coverageState:'COMPLETE',exactWindow:true,window:{start:new Date(end).toISOString(),end:new Date(end+duration).toISOString()},articles:[article('Bitcoin market context after selected move',end+Math.min(duration/2,3_600_000),'fixture-after.example','https://fixture-after.example/c')]}
     };
-    const flowParticipation=buildDecisionRangeFlowParticipation({graph:payload,evidence:payload.evidence});
-    const timeline=buildDecisionHistoricalNewsTimeline({asset:payload.asset,rangeEvidence:rangeEvidenceBase,newsBuckets});
-    const rangeEvidence={...rangeEvidenceBase,timeline,flowParticipation};
     const fixtureCandles=payload.market?.candles||[];
     const fixtureBenchmark=fixtureCandles.map((item,index)=>({
       ...item,
@@ -94,6 +91,12 @@ const proxyDecision=async(route)=>{
       low:Number(item.low??item.l)*(1+index*.00001),
       close:Number(item.close??item.c)*(1+index*.00001)
     }));
+    const selectedRangeCrossAsset=buildSelectedRangeCrossAssetAnalysis(fixtureCandles,fixtureBenchmark,{selection:payload.selection,asset:payload.asset,benchmark:payload.asset==='BTC'?'ETH':'BTC',assetClass:'crypto'});
+    payload.evidence={...payload.evidence,selectedCrossAssetAnalysis:selectedRangeCrossAsset};
+    const rangeEvidenceBase=buildDecisionRangeEvidence({graph:payload,evidence:payload.evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:'UTC'});
+    const flowParticipation=buildDecisionRangeFlowParticipation({graph:payload,evidence:payload.evidence});
+    const timeline=buildDecisionHistoricalNewsTimeline({asset:payload.asset,rangeEvidence:rangeEvidenceBase,newsBuckets});
+    const rangeEvidence={...rangeEvidenceBase,timeline,flowParticipation};
     const rangeReplay=buildDecisionRangeReplay({
       candles:fixtureCandles,
       selection:payload.selection,
@@ -104,7 +107,7 @@ const proxyDecision=async(route)=>{
       benchmark:payload.asset==='BTC'?'ETH':'BTC'
     });
     const selectedRangeSimilarMoves=buildSelectedRangeSimilarMoves(fixtureCandles,{selection:payload.selection,interval:payload.interval,limit:5});
-    const body=JSON.stringify({schemaVersion:'qelly.decision-range-evidence-response/1.3.0',asset:payload.asset,interval:payload.interval,horizon:payload.horizon,selectedMove:payload.selection,rangeEvidence,timeline,flowParticipation,rangeReplay,selectedRangeSimilarMoves});
+    const body=JSON.stringify({schemaVersion:'qelly.decision-range-evidence-response/1.4.0',asset:payload.asset,interval:payload.interval,horizon:payload.horizon,selectedMove:payload.selection,rangeEvidence,timeline,flowParticipation,selectedRangeCrossAsset,rangeReplay,selectedRangeSimilarMoves});
     await route.fulfill({status:200,contentType:'application/json; charset=utf-8',body});
     return;
   }
@@ -116,7 +119,6 @@ const proxyDecision=async(route)=>{
       const payload=JSON.parse(body),customBars=requestUrl.searchParams.has('nextBars')?Number(requestUrl.searchParams.get('nextBars')):null;
       payload.nextMoveResearch=buildDecisionNextMoveResearch(payload.market?.candles||[],{asset:payload.asset,interval:payload.interval,customBars,paths:128});
       if(requestUrl.searchParams.has('selectionStart')){
-        payload.rangeEvidence=buildDecisionRangeEvidence({graph:payload,evidence:payload.evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:'UTC'});
         const selectedStart=fixtureEpochMs(payload.selection?.start),selectedEnd=fixtureEpochMs(payload.selection?.end);
         if(!Number.isFinite(selectedStart)||!Number.isFinite(selectedEnd)||!(selectedStart<selectedEnd))throw new Error('CE browser fixture received invalid selected-range bounds');
         const selectedDuration=Math.max(60_000,selectedEnd-selectedStart),selectedCandles=payload.market?.candles||[];
@@ -135,6 +137,10 @@ const proxyDecision=async(route)=>{
           l:Number(item.l??item.low)*(1+index*.00001),
           c:Number(item.c??item.close)*(1+index*.00001)
         }));
+        const selectedRangeCrossAsset=buildSelectedRangeCrossAssetAnalysis(selectedCandles,fixtureBenchmark,{selection:payload.selection,asset:payload.asset,benchmark:payload.asset==='BTC'?'ETH':'BTC',assetClass:'crypto'});
+        payload.evidence={...payload.evidence,selectedCrossAssetAnalysis:selectedRangeCrossAsset};
+        payload.selectedRangeCrossAsset=selectedRangeCrossAsset;
+        payload.rangeEvidence=buildDecisionRangeEvidence({graph:payload,evidence:payload.evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:'UTC'});
         payload.rangeReplay=buildDecisionRangeReplay({candles:selectedCandles,selection:payload.selection,interval:payload.interval,newsArticles:fixtureNews,fundingRows:fixtureFunding,benchmarkCandles:fixtureBenchmark,benchmark:payload.asset==='BTC'?'ETH':'BTC'});
         payload.selectedRangeSimilarMoves=buildSelectedRangeSimilarMoves(selectedCandles,{selection:payload.selection,interval:payload.interval,limit:5});
         if(payload.rangeReplay?.state!=='AVAILABLE')throw new Error('CE browser fixture failed to construct an available no-hindsight replay');
@@ -387,6 +393,13 @@ const exercise=async({name,viewport,touch=false})=>{
   const normalizedIntelligence=intelligenceText.toLowerCase();
   const intelligenceRequired=['selected move intelligence','exact range','evidence coverage','current context','association, not proof of causation','before','during','after'].every(label=>normalizedIntelligence.includes(label));
   if(!intelligenceRequired)failures.push({type:'range-intelligence',text:intelligenceText});
+  const rangeCrossAsset=page.locator('[data-dpg-range-cross-asset]').first();
+  await rangeCrossAsset.waitFor({state:'visible',timeout:20_000});
+  const rangeCrossAssetText=(await rangeCrossAsset.innerText()).replace(/\s+/g,' ').trim(),normalizedRangeCrossAsset=rangeCrossAssetText.toLowerCase();
+  const rangeCrossAssetRequired=['cross-asset','selected range','relative strength','correlation','beta','before','during','after','pairwise','descriptive only'].every(label=>normalizedRangeCrossAsset.includes(label));
+  const rangeCrossAssetClassification=await rangeCrossAsset.getAttribute('data-classification');
+  const forbiddenCrossAssetCausality=['btc caused','benchmark caused','caused by btc','broad risk move confirmed'].some(label=>normalizedRangeCrossAsset.includes(label));
+  if(!rangeCrossAssetRequired||rangeCrossAssetClassification==='UNAVAILABLE'||forbiddenCrossAssetCausality)failures.push({type:'range-cross-asset',rangeCrossAssetRequired,rangeCrossAssetClassification,forbiddenCrossAssetCausality,text:rangeCrossAssetText});
   const timeline=page.locator('[data-dpg-range-timeline]').first();
   await timeline.waitFor({state:'visible',timeout:20_000});
   const timelineText=(await timeline.innerText()).replace(/\s+/g,' ').trim(),normalizedTimeline=timelineText.toLowerCase();
@@ -419,7 +432,7 @@ const exercise=async({name,viewport,touch=false})=>{
   const forbiddenFlowClaims=['identified whale','confirmed institution bought','confirmed institution sold'].some(label=>normalizedFlow.includes(label));
   if(!flowRequired||forbiddenFlowClaims)failures.push({type:'range-flow',text:flowText,flowRequired,forbiddenFlowClaims});
   await page.screenshot({path:path.join(outputDir,`decision-range-selected-${name}.png`),fullPage:true});
-  const result={name,viewport,touch,nextMove:{projectedState,nextMoveRequired,probabilitySafe,activeThree},waveCf:{setup:cfSetupRequired,lifecycleCurrent:cfLifecycleCurrent,watchCount:cfWatchCount,scenarioCards:cfScenarioCards,highProbabilitySafe:cfHighProbabilitySafe,rrCards:cfRrCards,rrInteractive:cfRrTwoActive===1&&cfRrAutoActive===1},assetPicker:{fitsViewport:pickerFitsViewport,required:pickerRequired,selectableCount,favoriteEth},setupFinder:{required:setupFinderRequired,aggressiveRequest:setupRequestOk,closestCandidate:closestCandidateRequired,closestInterval},decisionModes:{simpleDefault:true,advanced:advancedRequired,research:researchRequired},qellyDock:{centered:dockCentered,composer:dockComposerRequired,rangeAware:rangeAwareDock},persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,rangeTimeline:timelineRequired,rangeTimelineText:timelineText,rangeReplay:replayRequired&&replayScrubs,rangeReplayText:replayText,rangeSimilarMoves:similarRequired,rangeSimilarMovesText:similarText,rangeFlow:flowRequired,rangeFlowText:flowText,failures};
+  const result={name,viewport,touch,nextMove:{projectedState,nextMoveRequired,probabilitySafe,activeThree},waveCf:{setup:cfSetupRequired,lifecycleCurrent:cfLifecycleCurrent,watchCount:cfWatchCount,scenarioCards:cfScenarioCards,highProbabilitySafe:cfHighProbabilitySafe,rrCards:cfRrCards,rrInteractive:cfRrTwoActive===1&&cfRrAutoActive===1},assetPicker:{fitsViewport:pickerFitsViewport,required:pickerRequired,selectableCount,favoriteEth},setupFinder:{required:setupFinderRequired,aggressiveRequest:setupRequestOk,closestCandidate:closestCandidateRequired,closestInterval},decisionModes:{simpleDefault:true,advanced:advancedRequired,research:researchRequired},qellyDock:{centered:dockCentered,composer:dockComposerRequired,rangeAware:rangeAwareDock},persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,rangeCrossAsset:rangeCrossAssetRequired&&!forbiddenCrossAssetCausality,rangeCrossAssetClassification,rangeCrossAssetText,rangeTimeline:timelineRequired,rangeTimelineText:timelineText,rangeReplay:replayRequired&&replayScrubs,rangeReplayText:replayText,rangeSimilarMoves:similarRequired,rangeSimilarMovesText:similarText,rangeFlow:flowRequired,rangeFlowText:flowText,failures};
   results.push(result);
   await context.close();
 };
