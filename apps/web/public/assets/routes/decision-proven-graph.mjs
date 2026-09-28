@@ -21,6 +21,8 @@ const rrTelemetryState=(value)=>value==='auto'?'auto':value==='custom'?'custom':
 const canonicalDecisionAsset=(value)=>{const symbol=String(value||'').trim().toUpperCase();return DECISION_ASSETS.has(symbol)?'QI-CRYPTO-'+symbol:null;};
 const emitProductEvent=(name,properties)=>document.dispatchEvent(new CustomEvent('qelly:product-event',{detail:{name,properties}}));
 const emitRuntimeSignal=(detail)=>document.dispatchEvent(new CustomEvent('qelly:runtime-signal',{detail}));
+const prefersReducedMotion=()=>globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
+const motionBehavior=()=>prefersReducedMotion()?'auto':'smooth';
 const displayTime=(value)=>{
   if(value===null||value===undefined||value==='')return 'Time unavailable';
   const numeric=Number(value);
@@ -90,21 +92,30 @@ const rangeSelectionMetrics=(candles,selection,interval)=>{
 };
 const rangeSelectionSummary=(state,data,escapeHtml)=>{
   const selection=state.draft||state.selection;
-  const metrics=rangeSelectionMetrics(data?.market?.candles||[],selection,state.interval);
-  const total=Math.max(0,(data?.market?.candles||[]).length-1);
+  const candles=data?.market?.candles||[];
+  const intervalMs=INTERVAL_MS[state.interval];
+  const metrics=rangeSelectionMetrics(candles,selection,state.interval);
+  const total=Math.max(0,candles.length-1);
   const startIndex=metrics?.startIndex??Math.max(0,total-19),endIndex=metrics?.endIndex??total;
   const metric=(label,value)=>'<span><em>'+escapeHtml(label)+'</em><strong>'+escapeHtml(value)+'</strong></span>';
   const number=(value,digits=2)=>Number.isFinite(Number(value))?Number(value).toLocaleString(undefined,{maximumFractionDigits:digits}):'Unavailable';
   const signed=(value,suffix='')=>Number.isFinite(Number(value))?(Number(value)>=0?'+':'')+number(value,2)+suffix:'Unavailable';
+  const sliderTime=(index,end=false)=>{
+    const time=candleTime(candles[clamp(Number(index),0,total)]);
+    return Number.isFinite(time)?displayTime(time+(end&&intervalMs?intervalMs-1:0)):'Time unavailable';
+  };
+  const spokenSummary=metrics
+    ?'Selected range from '+displayTime(metrics.start)+' to '+displayTime(metrics.end)+', '+formatRangeDuration(metrics.durationMs)+', '+metrics.candles+' candles on '+metrics.timeframe+', move '+signed(metrics.movePct,'%')+' '+metrics.direction+', high '+number(metrics.high,6)+', low '+number(metrics.low,6)+'.'
+    :'No range selected. Choose Select Range and drag observed candles, or use the Start and End candle keyboard sliders.';
   const modes=[['navigate','Navigate'],['select-range','Select Range'],['select-candle','Select Candle'],['measure-move','Measure Move']];
-  return '<section class="q-dpg-range-workbench" aria-label="Chart range selection"><span class="q-dpg-range-live" data-dpg-selection-label aria-live="polite">'+(metrics?'Range selected':'No range selected')+'</span>'+
+  return '<section class="q-dpg-range-workbench" aria-label="Chart range selection" aria-describedby="q-dpg-range-instructions"><p id="q-dpg-range-instructions" class="q-dpg-sr-only">Choose an interaction mode. Keyboard users can select the same historical range with the Start candle and End candle sliders.</p><span class="q-dpg-range-live" data-dpg-selection-label aria-hidden="true">'+(metrics?'Range selected':'No range selected')+'</span><span class="q-dpg-sr-only" data-dpg-range-announcement role="status" aria-live="polite" aria-atomic="true">'+escapeHtml(spokenSummary)+'</span>'+
     '<div class="q-dpg-chart-modes" role="toolbar" aria-label="Chart interaction mode">'+modes.map(([id,label])=>'<button type="button" class="q-dpg-mode'+(state.chartMode===id?' is-active':'')+'" data-dpg-chart-mode="'+id+'" aria-pressed="'+(state.chartMode===id?'true':'false')+'">'+label+'</button>').join('')+'</div>'+
-    (metrics?'<div class="q-dpg-range-summary" role="status" aria-live="polite">'+metric('Start',displayTime(metrics.start))+metric('End',displayTime(metrics.end))+metric('Duration',formatRangeDuration(metrics.durationMs))+metric('Candles',String(metrics.candles)+' · '+metrics.timeframe)+metric('Move',signed(metrics.movePct,'%')+' · '+metrics.direction)+metric('Absolute',signed(metrics.absoluteMove))+metric('High',number(metrics.high,6))+metric('Low',number(metrics.low,6))+'</div>':'<div class="q-dpg-range-empty" role="status">Select Range is ready. Drag across observed candles, choose Select Candle, or use the keyboard range controls.</div>')+
-    '<div class="q-dpg-range-keyboard" aria-label="Keyboard range controls"><label><span>Start candle</span><input type="range" min="0" max="'+total+'" value="'+startIndex+'" data-dpg-range-start aria-label="Selected range start candle"></label><label><span>End candle</span><input type="range" min="0" max="'+total+'" value="'+endIndex+'" data-dpg-range-end aria-label="Selected range end candle"></label></div>'+
+    (metrics?'<div class="q-dpg-range-summary" role="group" aria-label="'+escapeHtml(spokenSummary)+'">'+metric('Start',displayTime(metrics.start))+metric('End',displayTime(metrics.end))+metric('Duration',formatRangeDuration(metrics.durationMs))+metric('Candles',String(metrics.candles)+' · '+metrics.timeframe)+metric('Move',signed(metrics.movePct,'%')+' · '+metrics.direction)+metric('Absolute',signed(metrics.absoluteMove))+metric('High',number(metrics.high,6))+metric('Low',number(metrics.low,6))+'</div>':'<div class="q-dpg-range-empty" role="status">Select Range is ready. Drag across observed candles, choose Select Candle, or use the keyboard range controls.</div>')+
+    '<div class="q-dpg-range-keyboard" role="group" aria-label="Keyboard range controls"><label><span>Start candle</span><input type="range" min="0" max="'+total+'" value="'+startIndex+'" data-dpg-range-start aria-label="Selected range start candle" aria-valuetext="'+escapeHtml(sliderTime(startIndex,false))+'"></label><label><span>End candle</span><input type="range" min="0" max="'+total+'" value="'+endIndex+'" data-dpg-range-end aria-label="Selected range end candle" aria-valuetext="'+escapeHtml(sliderTime(endIndex,true))+'"></label></div>'+
     '<div class="q-dpg-range-toolbar" role="toolbar" aria-label="Selected range actions"><button class="q-button q-button--primary" type="button" data-dpg-explain '+(metrics?'':'disabled')+'>'+((metrics?.candles||0)===1?'Explain This Candle':'Explain This Move')+'</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="news" '+(metrics?'':'disabled')+'>News & Events</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="flow" '+(metrics?'':'disabled')+'>Flow / Participation Evidence</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="compare" '+(metrics?'':'disabled')+'>Compare Before vs After</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="replay" '+(metrics?'':'disabled')+'>Replay Move</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="similar" '+(metrics?'':'disabled')+'>Find Similar History</button><button class="q-button q-button--secondary" type="button" data-dpg-range-action="note" '+(metrics?'':'disabled')+'>Create Research Note</button><button class="q-button q-button--secondary" type="button" data-dpg-clear '+(metrics||state.selection?'':'disabled')+'>Clear</button></div></section>';
-};
+}
 
-function chart(data,escapeHtml,selection=null,interval=data.interval){
+function chart(data,escapeHtml,selection=null,interval=data.interval,chartMode='select-range'){
   const history=data.market.candles,future=data.forecast.fan,projection=data?.nextMoveResearch?.nextCandle?.projection||null;
   const projectedValues=projection?[projection.low,projection.innerLow,projection.median,projection.innerHigh,projection.high].filter(Number.isFinite):[];
   const all=[...history.flatMap(item=>[item.low,item.high]),...future.flatMap(item=>[item.p05,item.p95]),...projectedValues],min=Math.min(...all),max=Math.max(...all),width=CHART_GEOMETRY.width,height=CHART_GEOMETRY.height,pad=CHART_GEOMETRY.pad,split=CHART_GEOMETRY.split;
@@ -119,7 +130,7 @@ function chart(data,escapeHtml,selection=null,interval=data.interval){
   const projectedMarkup=projection&&projectedValues.length===5
     ?'<g data-dpg-projected-range class="q-dpg-projected-range" data-projection-state="PROJECTED" aria-label="Projected next-candle range; not observed"><line class="q-dpg-projected-range__outer" x1="'+projectX+'" x2="'+projectX+'" y1="'+y(projection.high)+'" y2="'+y(projection.low)+'"/><rect class="q-dpg-projected-range__inner" x="'+(projectX-projectWidth/2)+'" y="'+y(projection.innerHigh)+'" width="'+projectWidth+'" height="'+Math.max(2,y(projection.innerLow)-y(projection.innerHigh))+'"/><line class="q-dpg-projected-range__median" x1="'+(projectX-projectWidth/2-3)+'" x2="'+(projectX+projectWidth/2+3)+'" y1="'+y(projection.median)+'" y2="'+y(projection.median)+'"/><text class="q-dpg-projected-range__label" x="'+(projectX+13)+'" y="'+Math.max(52,y(projection.high)-7)+'">PROJECTED</text></g>'
     :'';
-  return '<svg class="q-dpg-chart" viewBox="0 0 '+width+' '+height+'" role="img" tabindex="0" data-dpg-chart data-count="'+history.length+'" data-mode="select-range" aria-label="Interactive '+escapeHtml(data.asset)+' chart. Historical candles are observed; future bands and the dashed PROJECTED next-candle range are modelled research, not observed candles."><defs><linearGradient id="dpg95"><stop stop-color="#7d2944" stop-opacity=".38"/><stop offset="1" stop-color="#b34566" stop-opacity=".08"/></linearGradient><linearGradient id="dpg50"><stop stop-color="#d36483" stop-opacity=".5"/><stop offset="1" stop-color="#e69aae" stop-opacity=".16"/></linearGradient></defs><g class="q-dpg-grid"><path d="M38 108H962M38 215H962M38 322H962"/><path d="M'+split+' 38V392"/></g><path class="q-dpg-band q-dpg-band--outer" d="'+band('p95','p05')+'"/><path class="q-dpg-band q-dpg-band--inner" d="'+band('p75','p25')+'"/>'+candles+selectionMarkup+projectedMarkup+'<path class="q-dpg-median" d="M'+split+','+y(data.market.lastPrice)+' '+line(future,fx,item=>item.p50).replace(/^M/,'L')+'"/><circle cx="'+split+'" cy="'+y(data.market.lastPrice)+'" r="6"/><text x="40" y="28">PAST · OBSERVED</text><text x="'+(split+16)+'" y="28">FUTURE · PROJECTED SCENARIOS</text><text x="'+(split-10)+'" y="'+Math.max(55,y(data.market.lastPrice)-12)+'" text-anchor="end">NOW '+money(data.market.lastPrice)+'</text></svg>';
+  return '<svg class="q-dpg-chart" viewBox="0 0 '+width+' '+height+'" role="img" tabindex="0" data-dpg-chart data-count="'+history.length+'" data-mode="'+escapeHtml(chartMode)+'" aria-label="Interactive '+escapeHtml(data.asset)+' chart. Historical candles are observed; future bands and the dashed PROJECTED next-candle range are modelled research, not observed candles."><defs><linearGradient id="dpg95"><stop stop-color="#7d2944" stop-opacity=".38"/><stop offset="1" stop-color="#b34566" stop-opacity=".08"/></linearGradient><linearGradient id="dpg50"><stop stop-color="#d36483" stop-opacity=".5"/><stop offset="1" stop-color="#e69aae" stop-opacity=".16"/></linearGradient></defs><g class="q-dpg-grid"><path d="M38 108H962M38 215H962M38 322H962"/><path d="M'+split+' 38V392"/></g><path class="q-dpg-band q-dpg-band--outer" d="'+band('p95','p05')+'"/><path class="q-dpg-band q-dpg-band--inner" d="'+band('p75','p25')+'"/>'+candles+selectionMarkup+projectedMarkup+'<path class="q-dpg-median" d="M'+split+','+y(data.market.lastPrice)+' '+line(future,fx,item=>item.p50).replace(/^M/,'L')+'"/><circle cx="'+split+'" cy="'+y(data.market.lastPrice)+'" r="6"/><text x="40" y="28">PAST · OBSERVED</text><text x="'+(split+16)+'" y="28">FUTURE · PROJECTED SCENARIOS</text><text x="'+(split-10)+'" y="'+Math.max(55,y(data.market.lastPrice)-12)+'" text-anchor="end">NOW '+money(data.market.lastPrice)+'</text></svg>';
 }
 
 const multiTimeframe=(data,escapeHtml)=>{const mtf=data.multiTimeframe,views=mtf?.views||[];if(!views.length)return '<section id="qelly-decision-mtf" class="q-dpg-mtf"><header><div><small>MULTI-TIMEFRAME</small><h2>Cross-horizon confirmation unavailable</h2></div><span>Not inferred</span></header><p>Independent timeframe observations could not be verified, so no agreement claim is shown.</p></section>';return '<section id="qelly-decision-mtf" class="q-dpg-mtf"><header><div><small>MULTI-TIMEFRAME</small><h2>'+escapeHtml(mtf.agreement.direction)+' · '+mtf.agreement.aligned+'/'+mtf.agreement.total+' aligned</h2></div><span>'+escapeHtml(mtf.state)+'</span></header><div>'+views.map(view=>'<article><span>'+escapeHtml(view.interval)+'</span><strong class="q-dpg-mtf__'+view.qellyView.action.toLowerCase().replace(/\s+/g,'-')+'">'+escapeHtml(view.qellyView.action)+'</strong><small>'+escapeHtml(view.marketState.label)+'</small><p>RSI '+view.metrics.rsi14+' · '+Math.round(view.probabilities.bull*100)+'% bull / '+Math.round(view.probabilities.bear*100)+'% bear</p></article>').join('')+'</div><p>Agreement compares independently observed timeframes. Mixed evidence is shown as mixed; it is never forced into a trade call.</p></section>';};
@@ -896,7 +907,7 @@ export async function renderDecisionProvenGraph(main,deps){
       ['advanced','Advanced','Evidence · structure · scenarios'],
       ['research','Research Lab','Models · calibration · provenance']
     ];
-    return '<nav class="q-dpg-mode-switcher" aria-label="Decision Intelligence depth" data-dpg-mode-switcher><div><small>RESEARCH DEPTH</small><strong>'+escapeHtml(modes.find(([id])=>id===state.uiMode)?.[1]||'Simple')+' Mode</strong></div><div role="tablist" aria-label="Decision Intelligence mode">'+modes.map(([id,label,description])=>'<button type="button" role="tab" class="q-dpg-ui-mode'+(state.uiMode===id?' is-active':'')+'" data-dpg-ui-mode="'+id+'" aria-selected="'+(state.uiMode===id?'true':'false')+'"><span>'+escapeHtml(label)+'</span><small>'+escapeHtml(description)+'</small></button>').join('')+'</div><p>'+escapeHtml(state.uiMode==='simple'?'Primary decision first. Advanced evidence remains available without crowding the main answer.':state.uiMode==='advanced'?'Practitioner evidence is expanded while model internals remain in Research Lab.':'Full research diagnostics, calibration, provenance and operational boundaries. Research-only; no execution.')+'</p></nav>';
+    return '<nav class="q-dpg-mode-switcher" aria-label="Decision Intelligence depth" data-dpg-mode-switcher><div><small>RESEARCH DEPTH</small><strong>'+escapeHtml(modes.find(([id])=>id===state.uiMode)?.[1]||'Simple')+' Mode</strong></div><div role="tablist" aria-label="Decision Intelligence mode">'+modes.map(([id,label,description])=>'<button type="button" role="tab" id="qelly-decision-tab-'+id+'" class="q-dpg-ui-mode'+(state.uiMode===id?' is-active':'')+'" data-dpg-ui-mode="'+id+'" aria-selected="'+(state.uiMode===id?'true':'false')+'" aria-controls="qelly-decision-panel-'+id+'" tabindex="'+(state.uiMode===id?'0':'-1')+'"><span>'+escapeHtml(label)+'</span><small>'+escapeHtml(description)+'</small></button>').join('')+'</div><p>'+escapeHtml(state.uiMode==='simple'?'Primary decision first. Advanced evidence remains available without crowding the main answer.':state.uiMode==='advanced'?'Practitioner evidence is expanded while model internals remain in Research Lab.':'Full research diagnostics, calibration, provenance and operational boundaries. Research-only; no execution.')+'</p></nav>';
   };
 
   const assetEvidenceProfileMarkup=(data)=>{
@@ -946,7 +957,7 @@ export async function renderDecisionProvenGraph(main,deps){
   };
 
   const advancedDecisionContent=(data)=>{
-    return '<section class="q-dpg-mode-panel q-dpg-mode-panel--advanced" data-dpg-mode-panel="advanced"><header class="q-dpg-mode-panel__header"><div><small>ADVANCED MODE</small><h2>Practitioner evidence and scenario research</h2></div><span>Exact metrics · contradictions preserved</span></header>'+
+    return '<section id="qelly-decision-panel-advanced" class="q-dpg-mode-panel q-dpg-mode-panel--advanced" data-dpg-mode-panel="advanced" role="tabpanel" aria-labelledby="qelly-decision-tab-advanced" tabindex="0"><header class="q-dpg-mode-panel__header"><div><small>ADVANCED MODE</small><h2>Practitioner evidence and scenario research</h2></div><span>Exact metrics · contradictions preserved</span></header>'+
       tradeResearchMarkup(data,escapeHtml)+
       smcPriceActionMarkup(data,escapeHtml)+
       formulaGovernanceMarkup(data,escapeHtml)+
@@ -1002,7 +1013,7 @@ export async function renderDecisionProvenGraph(main,deps){
     ];
     const expanded=state.chatDockOpen;
     return '<aside class="q-dpg-chat-dock" data-dpg-chat-dock data-open="'+(expanded?'true':'false')+'" aria-label="QELLY contextual research dock">'+
-      (expanded?'<section id="qelly-decision-chat-composer" class="q-dpg-chat-dock__composer" data-dpg-chat-dock-composer><header><div><small>QELLY CONTEXT DOCK</small><strong>'+escapeHtml(primary.state)+'</strong></div><button type="button" data-dpg-chat-dock-close aria-label="Close QELLY context composer">×</button></header><div class="q-dpg-chat-dock__chips" aria-label="QELLY quick research actions">'+chips.map(([kind,label])=>'<button type="button" data-dpg-chat-quick="'+kind+'">'+escapeHtml(label)+'</button>').join('')+'</div><form data-dpg-chat-form><label><span class="q-visually-hidden">Ask QELLY about the current Decision context</span><textarea rows="2" maxlength="1200" data-dpg-chat-input placeholder="'+escapeHtml(primary.label)+'…"></textarea></label><button type="submit">Open QELLY <span aria-hidden="true">↑</span></button></form><footer><span>'+escapeHtml(state.asset)+' · '+escapeHtml(state.interval)+' · '+escapeHtml(action)+'</span><small>Existing QELLY Chat · current Decision evidence · research only</small></footer></section>':'')+
+      '<section id="qelly-decision-chat-composer" class="q-dpg-chat-dock__composer" data-dpg-chat-dock-composer '+(expanded?'':'hidden')+'><header><div><small>QELLY CONTEXT DOCK</small><strong>'+escapeHtml(primary.state)+'</strong></div><button type="button" data-dpg-chat-dock-close aria-label="Close QELLY context composer">×</button></header><div class="q-dpg-chat-dock__chips" aria-label="QELLY quick research actions">'+chips.map(([kind,label])=>'<button type="button" data-dpg-chat-quick="'+kind+'">'+escapeHtml(label)+'</button>').join('')+'</div><form data-dpg-chat-form><label><span class="q-visually-hidden">Ask QELLY about the current Decision context</span><textarea rows="2" maxlength="1200" data-dpg-chat-input placeholder="'+escapeHtml(primary.label)+'…"></textarea></label><button type="submit">Open QELLY <span aria-hidden="true">↑</span></button></form><footer><span>'+escapeHtml(state.asset)+' · '+escapeHtml(state.interval)+' · '+escapeHtml(action)+'</span><small>Existing QELLY Chat · current Decision evidence · research only</small></footer></section>'+
       '<button type="button" class="q-dpg-chat-dock__bar" data-dpg-open-chat data-dpg-chat-dock-toggle aria-expanded="'+(expanded?'true':'false')+'" aria-controls="qelly-decision-chat-composer"><img src="./assets/brand/qelly-symbol.svg" width="32" height="32" alt=""><span><small>'+escapeHtml(primary.state)+'</small><strong>'+escapeHtml(primary.label)+'</strong><em>'+escapeHtml(state.asset)+' · '+escapeHtml(state.interval)+'</em></span><b aria-hidden="true">'+(expanded?'−':'↑')+'</b></button>'+
       '<span class="q-dpg-chat-dock__hint" aria-hidden="true">Grounded in the current Decision context</span>'+
     '</aside>';
@@ -1070,11 +1081,11 @@ export async function renderDecisionProvenGraph(main,deps){
 
   const content=(data)=>{
     const view=data.qellyView,move=data.selection;
-    const simple='<section class="q-dpg-mode-panel q-dpg-mode-panel--simple" data-dpg-mode-panel="simple">'+
+    const simple='<section id="qelly-decision-panel-simple" class="q-dpg-mode-panel q-dpg-mode-panel--simple" data-dpg-mode-panel="simple" role="tabpanel" aria-labelledby="qelly-decision-tab-simple" tabindex="0">'+
       '<section class="q-dpg-truth"><span class="q-status q-status--'+(data.truthState==='LIVE'?'live':data.truthState.toLowerCase())+'">'+escapeHtml(data.truthState)+'</span><strong>'+escapeHtml(data.asset)+' / '+escapeHtml(data.interval)+'</strong><span>'+escapeHtml(data.market.currentState.label)+' · updated '+new Date(data.observedAt).toLocaleString()+'</span></section>'+
       '<section class="q-dpg-view q-dpg-view--'+actionTone(view.action)+'"><div><small>QELLY VIEW</small><h2>'+escapeHtml(view.action)+'</h2><p>'+escapeHtml(view.label)+'</p></div><div class="q-dpg-confidence"><span>Evidence confidence</span><strong>'+Math.round(view.confidence*100)+'%</strong></div>'+levels(view)+primaryResearchSummary(data,escapeHtml)+calibration(view,escapeHtml)+'<details><summary>Why this view?</summary><ul>'+view.why.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul><p><strong>What changes it:</strong> '+escapeHtml(view.changesIf)+'</p></details></section>'+
       cfSetupSummaryMarkup(data)+
-      '<section class="q-dpg-stage"><div class="q-dpg-chart-wrap"><div class="q-dpg-chart-help">'+(state.chartMode==='navigate'?'Navigate mode · range selection is inactive':state.chartMode==='select-candle'?'Select Candle · choose one observed candle · Explain this candle':state.chartMode==='measure-move'?'Measure Move · drag to measure a historical move':'Select Range · Click one candle or drag across observed candles; selection persists until Clear')+'</div>'+chart(data,escapeHtml,state.draft||state.selection,state.interval)+rangeSelectionSummary(state,data,escapeHtml)+'</div>'+cfWatchNextMarkup(data)+'</section>'+cfScenarioMarkup(data)+nextMoveResearchMarkup(data)+
+      '<section class="q-dpg-stage"><div class="q-dpg-chart-wrap"><div class="q-dpg-chart-help">'+(state.chartMode==='navigate'?'Navigate mode · range selection is inactive':state.chartMode==='select-candle'?'Select Candle · choose one observed candle · Explain this candle':state.chartMode==='measure-move'?'Measure Move · drag to measure a historical move':'Select Range · Click one candle or drag across observed candles; selection persists until Clear')+'</div>'+chart(data,escapeHtml,state.draft||state.selection,state.interval,state.chartMode)+rangeSelectionSummary(state,data,escapeHtml)+'</div>'+cfWatchNextMarkup(data)+'</section>'+cfScenarioMarkup(data)+nextMoveResearchMarkup(data)+
       (move?'<section class="q-dpg-move"><header><div><small>SELECTED MOVE</small><h2>'+pct(move.changePct)+' across '+move.candles+' candles</h2></div><span>'+new Date(move.start).toLocaleString()+' → '+new Date(move.end).toLocaleString()+'</span></header><div><article><span>Range</span><strong>'+pct(move.rangePct)+'</strong></article><article><span>Volume vs prior</span><strong>'+(move.volumeRatio?move.volumeRatio+'×':'N/A')+'</strong></article><article><span>Volatility</span><strong>'+pct(move.volatilityPct)+'</strong></article><article><span>Prior volatility</span><strong>'+(move.priorVolatilityPct===null?'N/A':pct(move.priorVolatilityPct))+'</strong></article></div></section>':'')+
       rangeEvidenceMarkup(data)+rangeReplayMarkup(data)+selectedRangeSimilarMovesMarkup(data)+
       '<section class="q-dpg-simple-next"><div><small>NEED MORE DETAIL?</small><h2>Evidence is one layer deeper</h2><p>Open Advanced for structure, liquidity, derivatives, macro, news, scenarios and contradictions. Research Lab contains calibration, model health, provenance and operational diagnostics.</p></div><button class="q-button q-button--secondary" type="button" data-dpg-ui-mode-jump="advanced">Show Advanced Research</button></section>'+
@@ -1082,7 +1093,7 @@ export async function renderDecisionProvenGraph(main,deps){
     if(state.uiMode==='simple')return simple;
     const advanced=simple+advancedDecisionContent(data);
     if(state.uiMode==='advanced')return advanced;
-    const research='<section class="q-dpg-mode-panel q-dpg-mode-panel--research" data-dpg-mode-panel="research"><header class="q-dpg-mode-panel__header"><div><small>RESEARCH LAB</small><h2>Calibration, model trace, raw diagnostics and provenance</h2></div><span>Expert surface · research-only</span></header>'+
+    const research='<section id="qelly-decision-panel-research" class="q-dpg-mode-panel q-dpg-mode-panel--research" data-dpg-mode-panel="research" role="tabpanel" aria-labelledby="qelly-decision-tab-research" tabindex="0"><header class="q-dpg-mode-panel__header"><div><small>RESEARCH LAB</small><h2>Calibration, model trace, raw diagnostics and provenance</h2></div><span>Expert surface · research-only</span></header>'+
       outcomeLedgerMarkup(data)+whatChangedMarkup(state.previousSnapshot,data.decisionSnapshot,escapeHtml)+decisionTraceMarkup(data,escapeHtml)+secondaryResearchDiagnosticsMarkup(data,escapeHtml)+sloDiagnosticsMarkup(state.slo,escapeHtml)+
       '<details id="qelly-decision-methodology" class="q-dpg-audit" open><summary>Methodology and sources</summary><div><section><h3>Market data</h3><p>'+escapeHtml(data.provenance.provider)+' public candles. <a href="'+escapeHtml(data.provenance.documentation)+'" target="_blank" rel="noopener">Source documentation ↗</a></p></section><section><h3>Method</h3><p>'+data.provenance.model.features.map(escapeHtml).join(' · ')+'</p><p>'+escapeHtml(data.confidence.calibration)+'</p></section><section><h3>Limits</h3><ul>'+data.provenance.model.limitations.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul></section></div></details>'+
     '</section>';
@@ -1161,24 +1172,41 @@ export async function renderDecisionProvenGraph(main,deps){
       state.selection=state.draft;state.rangeReplayIndex=0;
       if(!await load()||!state.data)return false;
       await loadExactRangeEvidence(state.selection);
-      if(targetSelector)main.querySelector(targetSelector)?.scrollIntoView({behavior:'smooth',block:'start'});
+      if(targetSelector)main.querySelector(targetSelector)?.scrollIntoView({behavior:motionBehavior(),block:'start'});
       return true;
     };
     main.querySelector('[data-dpg-chat-dock-toggle]')?.addEventListener('click',()=>{state.chatDockOpen=!state.chatDockOpen;draw();if(state.chatDockOpen)requestAnimationFrame(()=>main.querySelector('[data-dpg-chat-input]')?.focus());});
-    main.querySelector('[data-dpg-chat-dock-close]')?.addEventListener('click',()=>{state.chatDockOpen=false;draw();});
+    main.querySelector('[data-dpg-chat-dock-close]')?.addEventListener('click',()=>{state.chatDockOpen=false;draw();requestAnimationFrame(()=>main.querySelector('[data-dpg-chat-dock-toggle]')?.focus());});
     main.querySelectorAll('[data-dpg-chat-quick]').forEach(button=>button.addEventListener('click',()=>openDecisionChat(decisionChatPrompt(button.dataset.dpgChatQuick,state.data))));
     main.querySelector('[data-dpg-chat-form]')?.addEventListener('submit',(event)=>{event.preventDefault();const input=main.querySelector('[data-dpg-chat-input]');openDecisionChat(decisionChatPrompt('custom',state.data,input?.value||''));});
-    main.querySelector('[data-dpg-chat-input]')?.addEventListener('keydown',(event)=>{if(event.key==='Escape'){event.preventDefault();state.chatDockOpen=false;draw();}});
+    main.querySelector('[data-dpg-chat-input]')?.addEventListener('keydown',(event)=>{if(event.key==='Escape'){event.preventDefault();state.chatDockOpen=false;draw();requestAnimationFrame(()=>main.querySelector('[data-dpg-chat-dock-toggle]')?.focus());}});
     main.querySelectorAll('[data-dpg-ui-mode],[data-dpg-ui-mode-jump]').forEach(button=>button.addEventListener('click',()=>{
       const next=button.dataset.dpgUiMode||button.dataset.dpgUiModeJump;
       if(!['simple','advanced','research'].includes(next)||next===state.uiMode)return;
       state.uiMode=next;
       emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'research_depth',action:'select',state:next});
       draw();
-      main.querySelector('[data-dpg-mode-switcher]')?.scrollIntoView({behavior:'smooth',block:'nearest'});
+      main.querySelector('[data-dpg-mode-switcher]')?.scrollIntoView({behavior:motionBehavior(),block:'nearest'});
+    }));
+    main.querySelectorAll('[data-dpg-ui-mode]').forEach((button)=>button.addEventListener('keydown',(event)=>{
+      if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+      event.preventDefault();
+      const tabs=[...main.querySelectorAll('[data-dpg-ui-mode]')],index=tabs.indexOf(button);
+      if(index<0||!tabs.length)return;
+      const nextIndex=event.key==='Home'?0:event.key==='End'?tabs.length-1:event.key==='ArrowRight'?(index+1)%tabs.length:(index-1+tabs.length)%tabs.length;
+      const nextMode=tabs[nextIndex]?.dataset.dpgUiMode;
+      if(!['simple','advanced','research'].includes(nextMode))return;
+      if(nextMode!==state.uiMode){
+        state.uiMode=nextMode;
+        emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'research_depth',action:'keyboard_select',state:nextMode});
+        draw();
+        main.querySelector('[data-dpg-mode-switcher]')?.scrollIntoView({behavior:motionBehavior(),block:'nearest'});
+      }
+      main.querySelector('[data-dpg-ui-mode="'+nextMode+'"]')?.focus();
     }));
     main.querySelector('[data-dpg-asset-picker-toggle]')?.addEventListener('click',()=>{state.assetPickerOpen=!state.assetPickerOpen;draw();if(state.assetPickerOpen)requestAnimationFrame(()=>main.querySelector('[data-dpg-asset-search]')?.focus());});
-    main.querySelector('[data-dpg-asset-picker-close]')?.addEventListener('click',()=>{state.assetPickerOpen=false;state.assetQuery='';draw();});
+    main.querySelector('[data-dpg-asset-picker-close]')?.addEventListener('click',()=>{state.assetPickerOpen=false;state.assetQuery='';draw();requestAnimationFrame(()=>main.querySelector('[data-dpg-asset-picker-toggle]')?.focus());});
+    main.querySelector('[data-dpg-asset-picker-panel]')?.addEventListener('keydown',(event)=>{if(event.key==='Escape'){event.preventDefault();state.assetPickerOpen=false;state.assetQuery='';draw();requestAnimationFrame(()=>main.querySelector('[data-dpg-asset-picker-toggle]')?.focus());}});
     main.querySelector('[data-dpg-asset-search]')?.addEventListener('input',(event)=>{
       state.assetQuery=event.currentTarget.value;
       const query=state.assetQuery.trim().toLowerCase();
@@ -1250,7 +1278,7 @@ export async function renderDecisionProvenGraph(main,deps){
     main.querySelectorAll('[data-dpg-scan-asset]').forEach(button=>button.addEventListener('click',()=>{const symbol=String(button.dataset.dpgScanAsset||'').toUpperCase(),candidateInterval=String(button.dataset.dpgScanInterval||state.interval);if(!Array.isArray(state.assetCatalog?.selectableSymbols)||!state.assetCatalog.selectableSymbols.includes(symbol)||!INTERVAL_MS[candidateInterval])return;cancelRangeEvidenceRequest();state.asset=symbol;state.interval=candidateInterval;state.horizon=normalizeHorizon(state.interval,state.horizon);state.assetRecent=recordDecisionAssetRecent(state.assetRecent,symbol);saveDecisionAssetPreferences({favorites:state.assetFavorites,recent:state.assetRecent});state.draft=null;state.selection=null;void load();}));
     main.querySelector('[data-dpg-explain-header]')?.addEventListener('click',()=>{if(state.draft)void commitRangeSelection('.q-dpg-move');});
     main.querySelector('[data-dpg-explain-candle]')?.addEventListener('click',()=>{const candles=state.data?.market?.candles||[],intervalMs=INTERVAL_MS[state.interval],selected=state.draft&&state.draft.end-state.draft.start<intervalMs?state.draft:null,last=candles.at?.(-1);if(selected){void commitRangeSelection('.q-dpg-move');return;}if(last&&intervalMs){state.draft={start:last.time,end:last.time+intervalMs-1};void commitRangeSelection('.q-dpg-move');}});
-    main.querySelector('[data-dpg-mtf-jump]')?.addEventListener('click',()=>main.querySelector('#qelly-decision-mtf')?.scrollIntoView({behavior:'smooth',block:'start'}));
+    main.querySelector('[data-dpg-mtf-jump]')?.addEventListener('click',()=>main.querySelector('#qelly-decision-mtf')?.scrollIntoView({behavior:motionBehavior(),block:'start'}));
     main.querySelector('[data-dpg-compare-asset]')?.addEventListener('click',()=>{const assetId=canonicalDecisionAsset(state.asset);if(!assetId||typeof navigate!=='function'){toast?.('Asset comparison is unavailable for this Decision context.',{tone:'danger'});return;}navigate('comparison-lab',assetId);});
     main.querySelector('[data-dpg-formula-evidence]')?.addEventListener('click',()=>{
       if(!storeResearchContext({asset:state.asset,timeframe:state.interval,source:'decision-intelligence'})){toast?.('Formula handoff is unavailable for this Decision context.',{tone:'danger'});return;}
@@ -1267,7 +1295,7 @@ export async function renderDecisionProvenGraph(main,deps){
       emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'research_note',action:'export',state:telemetryToken(state.data?.qellyView?.action||'no_trade')});
       toast?.('Decision research note exported',{tone:'success'});
     });
-    main.querySelector('[data-dpg-methodology-jump]')?.addEventListener('click',()=>main.querySelector('#qelly-decision-methodology')?.scrollIntoView({behavior:'smooth',block:'start'}));
+    main.querySelector('[data-dpg-methodology-jump]')?.addEventListener('click',()=>main.querySelector('#qelly-decision-methodology')?.scrollIntoView({behavior:motionBehavior(),block:'start'}));
     main.querySelectorAll('[data-dpg-refresh]').forEach(button=>button.addEventListener('click',load));main.querySelector('[data-dpg-export]')?.addEventListener('click',()=>{download(state.data);toast('Research package exported',{tone:'success'});});
     main.querySelector('[data-dpg-explain]')?.addEventListener('click',()=>{void commitRangeSelection('.q-dpg-move');});
     main.querySelector('[data-dpg-clear]')?.addEventListener('click',()=>{cancelRangeEvidenceRequest();state.rangeReplayIndex=0;state.draft=null;state.selection=null;void load();});
