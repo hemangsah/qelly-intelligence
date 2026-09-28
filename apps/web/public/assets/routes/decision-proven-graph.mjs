@@ -1118,11 +1118,12 @@ export async function renderDecisionProvenGraph(main,deps){
   };
   const cancelRangeEvidenceRequest=()=>{
     state.rangeEvidenceRequest+=1;
+    const hadActiveRequest=Boolean(rangeEvidenceController);
     rangeEvidenceController?.abort();
     rangeEvidenceController=null;
     state.rangeEvidenceLoading=false;
     state.rangeEvidenceError=null;
-    emitRuntimeSignal({feature:'range_evidence',action:'abort',state:'superseded',surface:'decision'});
+    if(hadActiveRequest)emitRuntimeSignal({feature:'range_evidence',action:'abort',state:'superseded',surface:'decision'});
   };
   const selectionKey=(selection)=>selection?String(selection.start)+'|'+String(selection.end):'';
   async function loadExactRangeEvidence(selection){
@@ -1448,6 +1449,7 @@ export async function renderDecisionProvenGraph(main,deps){
   }
 
   async function load(){
+    if(scheduledLoadTimer){clearTimeout(scheduledLoadTimer);scheduledLoadTimer=0;}
     const requestId=++decisionLoadRequest;
     decisionLoadController?.abort();
     const controller=new AbortController();decisionLoadController=controller;

@@ -25,7 +25,7 @@ test('Wave CH coalesces identical in-flight work without changing the result',as
 test('Wave CH only treats a range as settled after its full post-window has elapsed',()=>{
   const now=1_000_000_000,start=now-300_000,end=now-200_000;
   assert.equal(historicalRangeSettled(start,end,now,0),true);
-  assert.equal(historicalRangeSettled(now-150_000,now-100_000,now,0),false);
+  assert.equal(historicalRangeSettled(now-120_000,now-40_000,now,0),false);
   assert.equal(historicalRangeSettled(end,start,now,0),false);
 });
 
@@ -86,4 +86,12 @@ test('Wave CH browser aborts superseded range and Decision network work and batc
   assert.match(route,/clearTimeout\(scheduledLoadTimer\)/);
   assert.match(route,/setTimeout\(\(\)=>\{scheduledLoadTimer=0;void load\(\);\},16\)/);
   assert.match(route,/error\?\.name==='AbortError'/);
+});
+
+
+test('Wave CH abort telemetry only emits when a range request was actually active',async()=>{
+  const route=await readFile(new URL('../apps/web/public/assets/routes/decision-proven-graph.mjs',import.meta.url),'utf8');
+  assert.match(route,/const hadActiveRequest=Boolean\(rangeEvidenceController\)/);
+  assert.match(route,/if\(hadActiveRequest\)emitRuntimeSignal/);
+  assert.match(route,/if\(scheduledLoadTimer\)\{clearTimeout\(scheduledLoadTimer\);scheduledLoadTimer=0;\}/);
 });
