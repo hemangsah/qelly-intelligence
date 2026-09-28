@@ -4,6 +4,7 @@ import {startDecisionObservation,recordDecisionObservation,recordScannerObservat
 import {evaluateDecisionSlos} from '../decision-slos.mjs';
 import {buildDecisionResearchNote,downloadDecisionResearchNote} from '../decision-research-note.mjs';
 import {readDecisionAssetPreferences,saveDecisionAssetPreferences,toggleDecisionAssetFavorite,recordDecisionAssetRecent,decisionAssetSearchText} from '../decision-asset-picker.mjs';
+import {buildDecisionScenarioUx} from '../decision-scenario-ux.mjs';
 const STYLESHEET=new URL('../qelly-decision-proven-graph.css',import.meta.url).href;
 const installStyles=()=>{if(!document.querySelector('link[data-decision-proven-graph]')){const link=document.createElement('link');link.rel='stylesheet';link.href=STYLESHEET;link.dataset.decisionProvenGraph='v2';document.head.append(link);}};
 const money=(value)=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:Number(value)>=100?0:2}).format(value);
@@ -1019,12 +1020,50 @@ export async function renderDecisionProvenGraph(main,deps){
     '</section>';
   };
 
+  const cfScenarioUx=(data)=>buildDecisionScenarioUx(data,{requestedRr:state.rr,customRr:state.customRr});
+  const cfProbability=(item)=>{
+    if(Number.isFinite(Number(item?.publishedProbability)))return (Number(item.publishedProbability)*100).toFixed(1)+'%';
+    return 'UNCALIBRATED';
+  };
+  const cfScenarioMarkup=(data)=>{
+    const ux=cfScenarioUx(data),cards=ux.scenarios||[];
+    const card=(item)=>{
+      const target=item.targetRange&&Number.isFinite(Number(item.targetRange.low))&&Number.isFinite(Number(item.targetRange.high))?money(item.targetRange.low)+' → '+money(item.targetRange.high):'Unavailable';
+      const modelShare=Number.isFinite(Number(item.modelScenarioShare))?(Number(item.modelScenarioShare)*100).toFixed(1)+'% model share':'No publishable model share';
+      const sample=Number(item.calibrationSampleSize)||0,gate=Number(item.calibrationMinimumSampleGate)||0;
+      return '<article class="q-dpg-cf-scenario q-dpg-cf-scenario--'+escapeHtml(item.id)+'" data-dpg-cf-scenario="'+escapeHtml(item.id)+'"><header><div><small>'+escapeHtml(item.label)+'</small><h3>'+escapeHtml(cfProbability(item))+'</h3></div><span>'+escapeHtml(String(item.probabilityState||'UNCALIBRATED').replaceAll('_',' '))+'</span></header><dl><div><dt>Target zone</dt><dd>'+escapeHtml(target)+'</dd></div><div><dt>What must happen</dt><dd>'+escapeHtml(item.whatMustHappen||'Unavailable')+'</dd></div><div><dt>Invalidation</dt><dd>'+escapeHtml(item.invalidation||'Unavailable')+'</dd></div><div><dt>Calibration</dt><dd>n='+escapeHtml(String(sample))+(gate?' / gate '+escapeHtml(String(gate)):'')+'</dd></div></dl>'+(item.publishedProbability==null&&item.modelScenarioShare!=null?'<p><strong>'+escapeHtml(modelShare)+'</strong> · research model output, not published as calibrated probability.</p>':'')+(item.tailBoundary?'<p>'+escapeHtml(item.whatChanges||'Tail bounds are modelled distribution limits only.')+'</p>':'')+'</article>';
+    };
+    return '<section class="q-dpg-cf-scenarios" data-dpg-cf-scenarios><header><div><small>SCENARIO MAP · WHAT MUST HAPPEN</small><h2>Bull / Base / Bear with explicit invalidation</h2><p>Scenario model output is separated from calibrated probability. High probabilities stay withheld unless the strict empirical gate exists.</p></div><span>RESEARCH ONLY</span></header><div class="q-dpg-cf-scenarios__grid">'+cards.map(card).join('')+'</div></section>';
+  };
+  const cfWatchNextMarkup=(data)=>{
+    const ux=cfScenarioUx(data),items=ux.watchNext||[];
+    const icons=['①','②','③','④','⑤'];
+    return '<aside class="q-dpg-cf-watch" data-dpg-cf-watch aria-label="What should I watch next?"><header><small>WHAT SHOULD I WATCH?</small><h3>Evidence triggers</h3></header><ol>'+items.map((item,index)=>'<li><span aria-hidden="true">'+icons[index]+'</span><div><strong>'+escapeHtml(item.label)+'</strong><p>'+escapeHtml(item.detail)+'</p><small>'+escapeHtml(String(item.state||item.kind||'WATCH').replaceAll('_',' '))+'</small></div></li>').join('')+'</ol><p>These are reassessment triggers, not guaranteed trade outcomes.</p></aside>';
+  };
+  const cfSetupSummaryMarkup=(data)=>{
+    const ux=cfScenarioUx(data),setup=ux.setup||{},current=ux.lifecycle?.find(item=>item.current)||{icon:'•',label:setup.status||'NO TRADE'},entry=setup.entry;
+    const entryText=entry&&Number.isFinite(Number(entry.preferred))?money(entry.preferred)+' · '+escapeHtml(entry.method):'No evidence-qualified entry';
+    const zone=entry?.zone?.length===2&&entry.zone.every(value=>Number.isFinite(Number(value)))?money(entry.zone[0])+' – '+money(entry.zone[1]):'Unavailable';
+    const invalidation=setup.invalidation?.price;
+    const invalidationText=Number.isFinite(Number(invalidation?.price))?money(invalidation.price):escapeHtml(invalidation?.condition||'No active price invalidation');
+    const probability=Number.isFinite(Number(setup.probability))?(Number(setup.probability)*100).toFixed(1)+'%':'UNCALIBRATED';
+    const targets=(setup.targets||[]).map(item=>'<span><em>'+escapeHtml(item.id)+' · 1:'+escapeHtml(String(item.ratio))+'</em><strong>'+(Number.isFinite(Number(item.target))?money(item.target):'Unavailable')+'</strong><small>'+escapeHtml(String(item.feasibility||'UNAVAILABLE'))+(Number.isFinite(Number(item.structuralObstruction))?' · obstruction '+money(item.structuralObstruction):'')+'</small></span>').join('');
+    const stages=(ux.lifecycle||[]).map(item=>'<span class="'+(item.current?'is-current':'')+'" data-state="'+escapeHtml(item.state)+'"><b aria-hidden="true">'+escapeHtml(item.icon)+'</b><em>'+escapeHtml(item.label)+'</em><small>'+escapeHtml(item.current?'CURRENT':item.state.replaceAll('_',' '))+'</small></span>').join('');
+    const rrCards=(ux.rrLadder||[]).map(item=>{
+      const target=Number.isFinite(Number(item.target))?money(item.target):'Unavailable';
+      const obstruction=Number.isFinite(Number(item.structuralObstruction))?'Obstruction '+money(item.structuralObstruction):'No verified obstruction before target';
+      return '<article class="q-dpg-cf-rr-card '+(item.active?'is-active':'')+'" data-dpg-cf-rr-card="'+escapeHtml(item.id)+'"><button type="button" data-dpg-cf-rr="'+escapeHtml(item.id)+'" aria-pressed="'+String(item.active)+'"><span>'+escapeHtml(item.label)+'</span><strong>'+escapeHtml(target)+'</strong><small>'+escapeHtml(String(item.feasibility||'UNAVAILABLE'))+'</small></button><p>'+escapeHtml(String(item.probabilityState||'UNCALIBRATED'))+' · '+escapeHtml(obstruction)+'</p>'+(item.id==='custom'&&item.active?'<label><span>Custom R:R</span><input type="number" min="0.5" max="10" step="0.1" value="'+escapeHtml(String(state.customRr))+'" data-dpg-cf-custom-rr></label>':'')+'</article>';
+    }).join('');
+    return '<section class="q-dpg-cf-setup" data-dpg-cf-setup><header><div><small>CURRENT SETUP · ONE CLEAN SUMMARY</small><h2>'+escapeHtml(setup.direction||'NO TRADE')+' · '+escapeHtml(String(setup.status||'NO_TRADE').replaceAll('_',' '))+'</h2><p>'+escapeHtml(setup.reason||'No setup explanation is available.')+'</p></div><span class="q-dpg-cf-status"><b aria-hidden="true">'+escapeHtml(current.icon)+'</b>'+escapeHtml(current.label)+'</span></header><div class="q-dpg-cf-setup__facts"><span><em>Direction</em><strong>'+escapeHtml(setup.direction||'NO TRADE')+'</strong></span><span><em>Entry</em><strong>'+entryText+'</strong><small>'+escapeHtml(zone)+'</small></span><span><em>Stop</em><strong>'+(Number.isFinite(Number(setup.stop))?money(setup.stop):'Unavailable')+'</strong></span><span><em>Invalidation</em><strong>'+invalidationText+'</strong></span><span><em>Selected R:R</em><strong>'+escapeHtml(setup.selectedRr||'None')+'</strong><small>'+escapeHtml(setup.selectedFeasibility||'UNAVAILABLE')+'</small></span><span><em>Setup probability</em><strong>'+escapeHtml(probability)+'</strong><small>'+escapeHtml(setup.probabilityState||'UNCALIBRATED')+'</small></span><span><em>Calibration</em><strong>'+escapeHtml(String(setup.modelCalibrationState||'UNCALIBRATED').replaceAll('_',' '))+'</strong><small>setup target-touch probability remains separate</small></span><span><em>Expiry</em><strong>'+(setup.expiryAt?escapeHtml(displayTime(setup.expiryAt)):'Unavailable')+'</strong></span><span><em>Event risk</em><strong>'+escapeHtml(String(setup.eventRisk?.level||'UNAVAILABLE'))+'</strong><small>'+escapeHtml(String(setup.eventRisk?.state||'UNAVAILABLE'))+'</small></span></div><div class="q-dpg-cf-targets"><strong>T1 / T2 / T3 / T4</strong><div>'+targets+'</div></div><div class="q-dpg-cf-lifecycle" aria-label="Setup lifecycle status"><strong>Lifecycle · text + icon</strong><div>'+stages+'</div><p>Target milestones are never marked reached without persisted observed setup history.</p></div><section class="q-dpg-cf-rr" data-dpg-cf-rr-ladder><header><div><small>R:R VISUAL LADDER</small><h3>1:1 · 1:2 · 1:3 · 1:4 · Auto · Custom</h3></div><span>target · feasibility · probability state · obstruction</span></header><div>'+rrCards+'</div></section><p class="q-dpg-cf-setup__boundary">'+escapeHtml(setup.probabilityBoundary||'Target-touch probability is not fabricated.')+'</p></section>';
+  };
+
   const content=(data)=>{
     const view=data.qellyView,move=data.selection;
     const simple='<section class="q-dpg-mode-panel q-dpg-mode-panel--simple" data-dpg-mode-panel="simple">'+
       '<section class="q-dpg-truth"><span class="q-status q-status--'+(data.truthState==='LIVE'?'live':data.truthState.toLowerCase())+'">'+escapeHtml(data.truthState)+'</span><strong>'+escapeHtml(data.asset)+' / '+escapeHtml(data.interval)+'</strong><span>'+escapeHtml(data.market.currentState.label)+' · updated '+new Date(data.observedAt).toLocaleString()+'</span></section>'+
       '<section class="q-dpg-view q-dpg-view--'+actionTone(view.action)+'"><div><small>QELLY VIEW</small><h2>'+escapeHtml(view.action)+'</h2><p>'+escapeHtml(view.label)+'</p></div><div class="q-dpg-confidence"><span>Evidence confidence</span><strong>'+Math.round(view.confidence*100)+'%</strong></div>'+levels(view)+primaryResearchSummary(data,escapeHtml)+calibration(view,escapeHtml)+'<details><summary>Why this view?</summary><ul>'+view.why.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul><p><strong>What changes it:</strong> '+escapeHtml(view.changesIf)+'</p></details></section>'+
-      '<section class="q-dpg-stage"><div class="q-dpg-chart-wrap"><div class="q-dpg-chart-help">'+(state.chartMode==='navigate'?'Navigate mode · range selection is inactive':state.chartMode==='select-candle'?'Select Candle · choose one observed candle · Explain this candle':state.chartMode==='measure-move'?'Measure Move · drag to measure a historical move':'Select Range · Click one candle or drag across observed candles; selection persists until Clear')+'</div>'+chart(data,escapeHtml,state.draft||state.selection,state.interval)+rangeSelectionSummary(state,data,escapeHtml)+'</div><aside class="q-dpg-scenarios">'+[['Bull',data.forecast.probabilities.bull],['Base',data.forecast.probabilities.base],['Bear',data.forecast.probabilities.bear]].map(([label,value])=>'<article><span>'+label+'</span><strong>'+Math.round(value*100)+'%</strong><meter min="0" max="1" value="'+value+'"></meter></article>').join('')+'<p>Modelled terminal range<br><strong>'+money(data.forecast.terminal.p05)+' – '+money(data.forecast.terminal.p95)+'</strong></p></aside></section>'+nextMoveResearchMarkup(data)+
+      cfSetupSummaryMarkup(data)+
+      '<section class="q-dpg-stage"><div class="q-dpg-chart-wrap"><div class="q-dpg-chart-help">'+(state.chartMode==='navigate'?'Navigate mode · range selection is inactive':state.chartMode==='select-candle'?'Select Candle · choose one observed candle · Explain this candle':state.chartMode==='measure-move'?'Measure Move · drag to measure a historical move':'Select Range · Click one candle or drag across observed candles; selection persists until Clear')+'</div>'+chart(data,escapeHtml,state.draft||state.selection,state.interval)+rangeSelectionSummary(state,data,escapeHtml)+'</div>'+cfWatchNextMarkup(data)+'</section>'+cfScenarioMarkup(data)+nextMoveResearchMarkup(data)+
       (move?'<section class="q-dpg-move"><header><div><small>SELECTED MOVE</small><h2>'+pct(move.changePct)+' across '+move.candles+' candles</h2></div><span>'+new Date(move.start).toLocaleString()+' → '+new Date(move.end).toLocaleString()+'</span></header><div><article><span>Range</span><strong>'+pct(move.rangePct)+'</strong></article><article><span>Volume vs prior</span><strong>'+(move.volumeRatio?move.volumeRatio+'×':'N/A')+'</strong></article><article><span>Volatility</span><strong>'+pct(move.volatilityPct)+'</strong></article><article><span>Prior volatility</span><strong>'+(move.priorVolatilityPct===null?'N/A':pct(move.priorVolatilityPct))+'</strong></article></div></section>':'')+
       rangeEvidenceMarkup(data)+rangeReplayMarkup(data)+selectedRangeSimilarMovesMarkup(data)+
       '<section class="q-dpg-simple-next"><div><small>NEED MORE DETAIL?</small><h2>Evidence is one layer deeper</h2><p>Open Advanced for structure, liquidity, derivatives, macro, news, scenarios and contradictions. Research Lab contains calibration, model health, provenance and operational diagnostics.</p></div><button class="q-button q-button--secondary" type="button" data-dpg-ui-mode-jump="advanced">Show Advanced Research</button></section>'+
@@ -1163,6 +1202,15 @@ export async function renderDecisionProvenGraph(main,deps){
       scheduleLoad();
     });
     main.querySelector('[data-dpg-custom-rr]')?.addEventListener('change',(event)=>{state.customRr=event.currentTarget.value;state.scan=null;state.scanError=null;scheduleLoad();});
+    main.querySelectorAll('[data-dpg-cf-rr]').forEach(button=>button.addEventListener('click',()=>{
+      const value=String(button.dataset.dpgCfRr||'auto');
+      if(!['auto','1','2','3','4','custom'].includes(value)||value===state.rr)return;
+      state.rr=value;state.scan=null;state.scanError=null;scheduleLoad();
+    }));
+    main.querySelector('[data-dpg-cf-custom-rr]')?.addEventListener('change',(event)=>{
+      const value=Math.max(.5,Math.min(10,Number(event.currentTarget.value)||2.5));
+      state.customRr=String(Math.round(value*10)/10);state.rr='custom';state.scan=null;state.scanError=null;scheduleLoad();
+    });
     main.querySelectorAll('[data-dpg-scan]').forEach(button=>button.addEventListener('click',scan));
     main.querySelectorAll('[data-dpg-scan-mode]').forEach(button=>button.addEventListener('click',()=>{state.scanFilters.mode=button.dataset.dpgScanMode||'validated';state.scan=null;state.scanError=null;draw();}));
     main.querySelectorAll('[data-dpg-scan-universe]').forEach(button=>button.addEventListener('click',()=>{state.scanFilters.universe=button.dataset.dpgScanUniverse||'all';state.scan=null;state.scanError=null;draw();}));
