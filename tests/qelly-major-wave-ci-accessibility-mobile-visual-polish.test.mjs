@@ -15,9 +15,10 @@ test('Wave CI exposes a complete spoken range summary and keyboard-equivalent co
 
 test('Wave CI provides accessible Decision depth tabs and focus restoration',async()=>{
   const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
+  assert.match(route,/id="qelly-decision-tab-'\+id\+'"/);
+  assert.match(route,/aria-controls="qelly-decision-panel-'\+id\+'"/);
+  assert.match(route,/tabindex="'\+\(state\.uiMode===id\?'0':'-1'\)\+'"/);
   for(const mode of ['simple','advanced','research']){
-    assert.match(route,new RegExp('id="qelly-decision-tab-'+mode+'"'));
-    assert.match(route,new RegExp('aria-controls="qelly-decision-panel-'+mode+'"'));
     assert.match(route,new RegExp('id="qelly-decision-panel-'+mode+'"'));
     assert.match(route,new RegExp('aria-labelledby="qelly-decision-tab-'+mode+'"'));
   }
