@@ -148,6 +148,8 @@ Wave CJ explicitly covers:
 
 Wave CK removes only proven-dead Decision presentation CSS and retains compatibility aliases that still have executable ownership.
 
+Current Supabase security-advisor state was rechecked during CL. It reports one external warning: **Leaked Password Protection Disabled**. This is an Auth configuration warning outside the Decision code changes in BR–CK. It remains explicit and unresolved; CL does not relabel it as PASS.
+
 ## PRODUCTION
 
 At CL start:
@@ -170,7 +172,8 @@ The final system must continue to expose, rather than conceal:
 - insufficient calibration samples;
 - uncalibrated probability states;
 - research-only / non-execution boundaries;
-- lack of causal proof where evidence is only associated or inferred.
+- lack of causal proof where evidence is only associated or inferred;
+- current external Supabase Auth warning: leaked-password protection disabled.
 
 No documentation change can convert an unavailable feed, insufficient sample, failed gate or uncalibrated model into a pass.
 
