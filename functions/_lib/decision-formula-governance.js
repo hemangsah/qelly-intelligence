@@ -6,6 +6,16 @@ const direction=(score)=>score>.08?'UPSIDE':score<-.08?'DOWNSIDE':'NEUTRAL';
 const availability=(value)=>value==null||value===''?'UNAVAILABLE':'AVAILABLE';
 const reliabilityFromTruth=(truth)=>truth==='LIVE'?1:truth==='DELAYED'?0.82:truth==='STALE'?0.4:0.2;
 const structureReliability=(state)=>({STRONG:1,MODERATE:.82,DEVELOPING:.62,WEAK:.42}[String(state||'').toUpperCase()]||.35);
+const policyRelevance=(assetClassEvidence,id)=>{
+  const item=assetClassEvidence?.modules?.find?.(module=>module.id===id);
+  return Number.isFinite(Number(item?.effectiveRelevanceWeight))?clamp(Number(item.effectiveRelevanceWeight),0,1):0;
+};
+const contextState=(source)=>{
+  const raw=String(source?.state||'unavailable').toLowerCase();
+  if(['live','available','ready'].includes(raw))return 'AVAILABLE';
+  if(['partial','pending','delayed','cached','reference_only','reference-only'].includes(raw))return 'PARTIAL';
+  return 'UNAVAILABLE';
+};
 const FAMILY_WEIGHTS=Object.freeze({structure:.24,trend:.17,momentum:.11,scenario:.18,mtf:.22,price_action:.08});
 
 export const FORMULA_CATALOG=Object.freeze([
@@ -22,6 +32,8 @@ export const FORMULA_CATALOG=Object.freeze([
   Object.freeze({id:'liquidity-depth',label:'Current L2 depth context',family:'liquidity',redundancyGroup:'liquidity-current',role:'risk_context',definition:'Current point-in-time depth/microprice context; never promoted to an independent directional vote.'}),
   Object.freeze({id:'funding-carry',label:'Funding carry context',family:'derivatives',redundancyGroup:'derivatives-carry',role:'risk_context',definition:'Current/settled funding context; descriptive only without verified positioning change.'}),
   Object.freeze({id:'cross-asset-relative',label:'Cross-asset relative strength',family:'cross_asset',redundancyGroup:'cross-asset-current',role:'context_only',definition:'Descriptive relative-performance context; no independent eligibility impact.'}),
+  Object.freeze({id:'macro-context',label:'Asset-class macro context',family:'macro',redundancyGroup:'macro-context',role:'context_only',definition:'Governed macro/reference evidence receives asset-class and horizon relevance but cannot vote direction without a validated directional adapter.'}),
+  Object.freeze({id:'fundamental-context',label:'Asset-class fundamental context',family:'fundamentals',redundancyGroup:'fundamentals-context',role:'context_only',definition:'Governed fundamental evidence receives asset-class and horizon relevance but cannot vote direction without a validated directional adapter.'}),
   Object.freeze({id:'volatility-regime',label:'Volatility regime',family:'volatility',redundancyGroup:'volatility-regime',role:'risk_context',definition:'Observed volatility regime used for risk/relevance context, not direction.'})
 ]);
 
@@ -55,7 +67,7 @@ const applyRedundancy=(features)=>{
   return {features:resolved,redundancyGroups:[...groups.entries()].map(([group,items])=>({group,primary:primaryByGroup.get(group),members:items.map(entry=>entry.item.id),suppressed:items.slice(1).map(entry=>entry.item.id)})),suppressed};
 };
 
-export function buildDecisionFormulaGovernance(graph,{multiTimeframe=null,derivatives=null,liquidity=null,crossAsset=null}={}){
+export function buildDecisionFormulaGovernance(graph,{multiTimeframe=null,derivatives=null,liquidity=null,crossAsset=null,macro=null,fundamentals=null,assetClassEvidence=null}={}){
   const truth=String(graph?.truthState||'UNAVAILABLE').toUpperCase(),freshnessReliability=reliabilityFromTruth(truth);
   const trend=graph?.quant?.trend||{},structure=graph?.quant?.structure||{},forecast=graph?.forecast?.probabilities||{},metrics=graph?.metrics||{};
   const agreement=multiTimeframe?.agreement||{},total=Math.max(0,Number(agreement.total)||0),aligned=Math.max(0,Number(agreement.aligned)||0);
@@ -65,6 +77,9 @@ export function buildDecisionFormulaGovernance(graph,{multiTimeframe=null,deriva
   const trendSlope=finite(metrics.trendPerBarPct),roc14=finite(trend.roc14Pct),adx14=finite(trend.adx14),rsi14=finite(metrics.rsi14),returnZ=finite(metrics.returnZScore);
   const structureStrength=structureReliability(structure.strengthState),regime=String(graph?.quant?.regime||'UNKNOWN');
   const smc=graph?.quant?.smc||{},priceAction=graph?.quant?.priceAction||{},smcScore=finite(smc.directionalScore),priceActionScore=finite(priceAction.directionalScore);
+  const macroState=contextState(macro),fundamentalState=contextState(fundamentals);
+  const macroRelevance=policyRelevance(assetClassEvidence,'macro')||policyRelevance(assetClassEvidence,'rates-macro')||policyRelevance(assetClassEvidence,'macro-rates')||policyRelevance(assetClassEvidence,'domestic-macro')||policyRelevance(assetClassEvidence,'central-banks');
+  const fundamentalRelevance=policyRelevance(assetClassEvidence,'fundamentals')||policyRelevance(assetClassEvidence,'earnings')||policyRelevance(assetClassEvidence,'results')||policyRelevance(assetClassEvidence,'filings');
   const raw=[
     feature('trend-slope',{score:trendSlope===null?null:clamp(trendSlope/.04),strength:trendSlope===null?0:Math.min(1,Math.abs(trendSlope)/.04),freshness:truth,reliability:freshnessReliability,state:availability(trendSlope),detail:'trendPerBarPct='+String(trendSlope??'unavailable'),regimeApplicability:regime}),
     feature('roc14',{score:roc14===null?null:clamp(roc14/4),strength:roc14===null?0:Math.min(1,Math.abs(roc14)/4),freshness:truth,reliability:freshnessReliability,state:availability(roc14),detail:'roc14Pct='+String(roc14??'unavailable'),regimeApplicability:regime}),
@@ -79,6 +94,8 @@ export function buildDecisionFormulaGovernance(graph,{multiTimeframe=null,deriva
     feature('liquidity-depth',{score:null,strength:liquidity?.state==='live'?Math.min(1,Math.abs(finite(liquidity?.top5Imbalance)??0)):0,freshness:liquidity?.state==='live'?'LIVE':'UNAVAILABLE',reliability:liquidity?.state==='live'?1:0,state:liquidity?.state==='live'?'AVAILABLE':'UNAVAILABLE',detail:'depth='+String(liquidity?.depthConsensus||'UNAVAILABLE')+' · spreadBps='+String(liquidity?.spreadBps??'unavailable')}),
     feature('funding-carry',{score:null,strength:derivatives?.state==='live'?Math.min(1,Math.abs(finite(derivatives?.fundingPct)??0)*100):0,freshness:derivatives?.state==='live'?'LIVE':'UNAVAILABLE',reliability:derivatives?.state==='live'?1:0,state:derivatives?.state==='live'?'AVAILABLE':'UNAVAILABLE',detail:'fundingPct='+String(derivatives?.fundingPct??'unavailable')}),
     feature('cross-asset-relative',{score:null,strength:crossAsset?.state==='available'?Math.min(1,Math.abs(finite(crossAsset?.relativeStrengthPct)??0)/3):0,freshness:crossAsset?.state==='available'?'OBSERVED':'UNAVAILABLE',reliability:crossAsset?.state==='available'?1:0,state:crossAsset?.state==='available'?'AVAILABLE':'UNAVAILABLE',detail:'relativeStrengthPct='+String(crossAsset?.relativeStrengthPct??'unavailable')+' · benchmark='+String(crossAsset?.benchmark||'unavailable')}),
+    feature('macro-context',{score:null,strength:macroState==='AVAILABLE'?1:macroState==='PARTIAL'?.5:0,freshness:macro?.freshness||macro?.truthState||'UNAVAILABLE',reliability:macroState==='AVAILABLE'?(macro?.referenceOnly===true?.65:.8):macroState==='PARTIAL'?.45:0,relevance:macroRelevance,state:macroState,detail:'provider='+String(macro?.provider||'unavailable')+' · level='+String(macro?.level||'UNAVAILABLE')+' · eligibilityImpact='+String(macro?.eligibilityImpact||'none'),horizon:assetClassEvidence?.band||'CURRENT'}),
+    feature('fundamental-context',{score:null,strength:fundamentalState==='AVAILABLE'?1:fundamentalState==='PARTIAL'?.5:0,freshness:fundamentals?.freshness||fundamentals?.observedAt||'UNAVAILABLE',reliability:fundamentalState==='AVAILABLE'?1:fundamentalState==='PARTIAL'?.5:0,relevance:fundamentalRelevance,state:fundamentalState,detail:'state='+String(fundamentals?.state||'unavailable')+' · '+String(fundamentals?.message||fundamentals?.reason||'No governed fundamental detail supplied.'),horizon:assetClassEvidence?.band||'CURRENT'}),
     feature('volatility-regime',{score:null,strength:graph?.quant?.volatility?.regime==='HIGH'?1:graph?.quant?.volatility?.regime==='ELEVATED'?0.75:0.4,freshness:truth,reliability:freshnessReliability,state:graph?.quant?.volatility?.regime?'AVAILABLE':'UNAVAILABLE',detail:'regime='+String(graph?.quant?.volatility?.regime||'UNAVAILABLE')})
   ];
   const redundancy=applyRedundancy(raw);
@@ -114,8 +131,8 @@ export function buildDecisionFormulaGovernance(graph,{multiTimeframe=null,deriva
     features:redundancy.features,
     redundancyGroups:redundancy.redundancyGroups,
     suppressedFeatureCount:redundancy.suppressed.length,
-    boundary:'Formula governance validates and attributes the existing Decision engine. Correlated features are capped by deterministic redundancy groups; context-only modules never become independent directional votes. This layer may veto a severe contradiction but does not create BUY or SELL direction on its own.',
-    methodology:'Directional families are structure, trend, momentum, scenario balance, multi-timeframe agreement and deterministic price action. Within each redundancy group only the strongest bounded feature contributes; family weights are normalized across available families. Liquidity, derivatives, cross-asset and volatility remain risk/context evidence.'
+    boundary:'Formula governance validates and attributes the existing Decision engine. Correlated features are capped by deterministic redundancy groups; context-only modules never become independent directional votes. Macro and fundamental receipts use asset-class/horizon relevance only when genuine evidence exists and remain zero-directional without a separately validated adapter. This layer may veto a severe contradiction but does not create BUY or SELL direction on its own.',
+    methodology:'Directional families are structure, trend, momentum, scenario balance, multi-timeframe agreement and deterministic price action. Within each redundancy group only the strongest bounded feature contributes; family weights are normalized across available families. Liquidity, derivatives, cross-asset and volatility remain risk/context evidence. Macro and fundamentals receive explicit asset-class/horizon relevance receipts but contribute zero direction unless a future governed directional adapter is independently validated.'
   };
 }
 

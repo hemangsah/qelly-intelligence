@@ -157,6 +157,8 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null,now=n
   const derivatives=graph?.derivatives||graph?.evidence?.derivatives||{state:'unavailable'};
   const crossAsset=graph?.crossAsset||graph?.evidence?.crossAsset||{state:'unavailable'};
   const macro=graph?.macro||graph?.evidence?.macro||{state:'unavailable'};
+  const fundamentals=graph?.fundamentals||graph?.evidence?.fundamentals||{state:'unavailable'};
+  const assetClassEvidence=graph?.assetClassEvidence||graph?.evidence?.assetClassWeighting||null;
   const base={
     schemaVersion:'qelly.trade-research/1.2.0',
     setupId:graph?.graphId?graph.graphId+'-trade':null,
@@ -237,7 +239,23 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null,now=n
         eurInr:finite(macro?.fxReference?.eurInr),
         eligibilityImpact:macro?.eligibilityImpact||'none',
         reason:macro?.reason||null
-      }
+      },
+      fundamentals:{
+        state:fundamentals?.state||'unavailable',
+        provider:fundamentals?.provider||null,
+        observedAt:fundamentals?.observedAt||null,
+        eligibilityImpact:fundamentals?.eligibilityImpact||'none',
+        reason:fundamentals?.reason||fundamentals?.message||null
+      },
+      assetClassEvidence:assetClassEvidence?{
+        profileId:assetClassEvidence.profileId||null,
+        band:assetClassEvidence.band||null,
+        effectiveRelevanceTotal:finite(assetClassEvidence?.coverage?.effectiveRelevanceTotal),
+        highRelevanceMissing:Number(assetClassEvidence?.coverage?.highRelevanceMissing)||0,
+        availableRelevant:Array.isArray(assetClassEvidence.availableRelevant)?assetClassEvidence.availableRelevant.slice(0,12):[],
+        missingHighRelevance:Array.isArray(assetClassEvidence.missingHighRelevance)?assetClassEvidence.missingHighRelevance.slice(0,12):[],
+        boundary:assetClassEvidence.boundary||null
+      }:null
     }
   };
   if(!directional||entryZone.length!==2||!entryZone.every(Number.isFinite)||!Number.isFinite(invalidation)){
