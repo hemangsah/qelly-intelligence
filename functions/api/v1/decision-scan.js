@@ -2,6 +2,7 @@ import {buildDecisionIntelligence} from './decision-proven-graph.js';
 import {HttpError,enforceRateLimit,errorResponse,responseJson} from '../../_lib/runtime.js';
 import {createDecisionLatencyTrace,estimateSerializedPayload} from '../../_lib/decision-latency.js';
 import {DECISION_ASSET_SYMBOLS} from '../../_lib/decision-asset-capabilities.js';
+import {coalesceDecisionWork,decisionWorkKey} from '../../_lib/decision-performance-cache.js';
 
 export const DECISION_SCAN_ASSETS=DECISION_ASSET_SYMBOLS;
 const INTERVALS=new Set(['1m','5m','15m','30m','1h','4h','1d']);
@@ -488,7 +489,7 @@ export async function onRequest({request,env}){
     if(request.method!=='GET')throw new HttpError(405,'method_not_allowed','Use GET for public Decision scanning');
     await enforceRateLimit(env,'decision-scan:'+ip(request),{limit:6,windowMs:60_000});
     const url=new URL(request.url);
-    const result=await runDecisionScan(env,{
+    const params={
       interval:url.searchParams.get('interval')||'15m',
       horizon:url.searchParams.get('horizon')||'4h',
       requestedRr:url.searchParams.get('rr')||'auto',
@@ -506,10 +507,13 @@ export async function onRequest({request,env}){
       eventRiskTolerance:url.searchParams.get('eventRiskTolerance')||'any',
       freshness:url.searchParams.get('freshness')||'live_or_delayed',
       setupFreshness:url.searchParams.get('setupFreshness')||'current'
-    });
+    };
+    const workKey=decisionWorkKey('decision-scan',params,'scan-v3');
+    const work=await coalesceDecisionWork(workKey,()=>runDecisionScan(env,params),{maxInflight:24});
+    const result={...work.value,performance:{...work.value.performance,requestCoalescing:{coalesced:work.coalesced,capacityBypass:work.capacityBypass,activeAtJoin:work.activeAtJoin,maxInflight:24}}};
     const serialization=estimateSerializedPayload(result);
     result.performance={...result.performance,serializationEstimateMs:serialization.serializationMs,responseBytesEstimate:serialization.responseBytes};
-    return responseJson(request,env,result,200,{cache:'public, max-age=10, stale-while-revalidate=20'});
+    return responseJson(request,env,result,200,{cache:'public, max-age=2, must-revalidate'});
   }catch(error){return errorResponse(request,env,error);}
 }
 

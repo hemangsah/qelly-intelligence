@@ -20,6 +20,7 @@ import {buildDecisionNextMoveResearch} from '../../_lib/decision-next-move.js';
 import {buildDecisionAssetEvidenceProfile} from '../../_lib/decision-asset-evidence-profiles.js';
 import {buildDecisionAssetClassEvidence} from '../../_lib/decision-asset-class-evidence.js';
 import {buildDecisionFormulaGovernance} from '../../_lib/decision-formula-governance.js';
+import {coalesceDecisionWork,decisionWorkKey} from '../../_lib/decision-performance-cache.js';
 
 const HORIZONS=Object.freeze({'1h':3_600_000,'4h':14_400_000,'12h':43_200_000,'1d':86_400_000,'3d':259_200_000,'7d':604_800_000});
 const TIMEFRAMES=Object.freeze(['15m','1h','4h','1d']);
@@ -608,9 +609,9 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
       selectedRangeSimilarMoves:resolvedSelection?buildSelectedRangeSimilarMoves(payload,{selection:resolvedSelection,interval:resolvedInterval,limit:5}):{schemaVersion:'qelly.selected-range-similar-moves/1.0.0',state:'NOT_SELECTED',analogs:[],reason:'Select a historical range before similarity research.'}
     };
     graph=calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liquidity,crossAsset);
-    const nextMoveResearch=buildDecisionNextMoveResearch(payload,{asset:resolvedAsset,interval:resolvedInterval,customBars:resolvedNextBars,paths:192});
-    graph={...graph,nextMoveResearch};
     quantCalibrationAnalogsSpan();
+    const nextMoveResearch=latency.measure('nextMoveCompute',()=>buildDecisionNextMoveResearch(payload,{asset:resolvedAsset,interval:resolvedInterval,customBars:resolvedNextBars,paths:192}));
+    graph={...graph,nextMoveResearch};
   }catch(error){
     quantCalibrationAnalogsSpan('error');
     if(error instanceof HttpError)throw error;
@@ -702,18 +703,22 @@ export async function onRequest({request,env}){
     const url=new URL(request.url);
     const selectionStart=Number(url.searchParams.get('selectionStart')),selectionEnd=Number(url.searchParams.get('selectionEnd'));
     const selection=url.searchParams.has('selectionStart')||url.searchParams.has('selectionEnd')?{start:selectionStart,end:selectionEnd}:null;
-    const result=await buildDecisionIntelligence(env,{
+    const params={
       asset:url.searchParams.get('asset')||'BTC',
       interval:url.searchParams.get('interval')||'15m',
       horizon:url.searchParams.get('horizon')||'4h',
       requestedRr:url.searchParams.get('rr')||'auto',
       customRr:url.searchParams.get('customRr'),
       nextBars:url.searchParams.get('nextBars'),
-      selection
-    });
+      selectionStart:selection?.start??null,
+      selectionEnd:selection?.end??null
+    };
+    const workKey=decisionWorkKey('decision-proven-graph',params,'decision-v1');
+    const work=await coalesceDecisionWork(workKey,()=>buildDecisionIntelligence(env,{asset:params.asset,interval:params.interval,horizon:params.horizon,requestedRr:params.requestedRr,customRr:params.customRr,nextBars:params.nextBars,selection}),{maxInflight:32});
+    const result={...work.value,performance:{...work.value.performance,requestCoalescing:{coalesced:work.coalesced,capacityBypass:work.capacityBypass,activeAtJoin:work.activeAtJoin,maxInflight:32}}};
     const serialization=estimateSerializedPayload(result);
     result.performance={...result.performance,serializationEstimateMs:serialization.serializationMs,responseBytesEstimate:serialization.responseBytes};
-    return responseJson(request,env,result,200,{cache:'public, max-age=10, stale-while-revalidate=30'});
+    return responseJson(request,env,result,200,{cache:'public, max-age=2, must-revalidate'});
   }catch(error){return errorResponse(request,env,error);}
 }
 
