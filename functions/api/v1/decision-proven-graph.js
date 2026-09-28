@@ -9,6 +9,7 @@ import {buildDecisionMacroContext,buildUnavailableDecisionEventRisk} from '../..
 import {providerResult} from '../../_lib/providers.js';
 import {buildDecisionContextBundle} from '../../_lib/decision-context.js';
 import {buildDecisionRangeEvidence} from '../../_lib/decision-range-evidence.js';
+import {buildDecisionRangeReplay,buildSelectedRangeSimilarMoves} from '../../_lib/decision-range-history.js';
 import {HttpError,enforceRateLimit,errorResponse,fetcher,responseJson} from '../../_lib/runtime.js';
 import {createDecisionLatencyTrace,estimateSerializedPayload} from '../../_lib/decision-latency.js';
 import {resilientJsonRequest,providerFailureHealth,providerResiliencePublicSummary} from '../../_lib/decision-provider-resilience.js';
@@ -601,7 +602,8 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
     multiTimeframe=assembleTimeframes(graph,timeframeSupport);
     graph={...graph,
       quant:{...graph.quant,calibration:buildDecisionWalkForwardCalibration(payload,{interval:resolvedInterval,horizonBars})},
-      historicalAnalogs:buildDecisionHistoricalAnalogs(payload,{interval:resolvedInterval,horizonBars,windowBars:100,limit:5})
+      historicalAnalogs:buildDecisionHistoricalAnalogs(payload,{interval:resolvedInterval,horizonBars,windowBars:100,limit:5}),
+      selectedRangeSimilarMoves:resolvedSelection?buildSelectedRangeSimilarMoves(payload,{selection:resolvedSelection,interval:resolvedInterval,limit:5}):{schemaVersion:'qelly.selected-range-similar-moves/1.0.0',state:'NOT_SELECTED',analogs:[],reason:'Select a historical range before similarity research.'}
     };
     graph=calibrateDecisionEvidence(graph,multiTimeframe,derivatives,liquidity,crossAsset);
     const nextMoveResearch=buildDecisionNextMoveResearch(payload,{asset:resolvedAsset,interval:resolvedInterval,customBars:resolvedNextBars,paths:192});
@@ -651,6 +653,15 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   };
   evidence.fundamentals={state:'unavailable',message:'No governed protocol-fundamental feed is connected to this Decision view.'};
   evidence.institutionalFlow={state:'unavailable',message:'No governed crypto ETF/fund/exchange-flow feed is connected to this Decision view.'};
+  const rangeReplay=resolvedSelection?buildDecisionRangeReplay({
+    candles:payload,
+    selection:resolvedSelection,
+    interval:resolvedInterval,
+    newsArticles:articles,
+    fundingRows:selectedFundingRows,
+    benchmarkCandles:selectedBenchmarkRows,
+    benchmark:benchmarkAsset
+  }):{schemaVersion:'qelly.decision-range-replay/1.0.0',state:'NOT_SELECTED',frames:[],reason:'Select a valid historical range before replay.'};
   const evidenceProfile=buildDecisionAssetEvidenceProfile({assetClass:'crypto',graph,multiTimeframe,evidence});
   evidence.profile=evidenceProfile;
   const assetClassEvidence=buildDecisionAssetClassEvidence({assetClass:'crypto',interval:resolvedInterval,horizon:resolvedHorizon,profile:evidenceProfile,evidence});
@@ -678,7 +689,7 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   const context=latency.measure('contextAndEvidenceGraph',()=>buildDecisionContextBundle(graph,{multiTimeframe,tradeResearch,evidence,horizon:resolvedHorizon}));
   const rangeEvidence=latency.measure('rangeEvidence',()=>buildDecisionRangeEvidence({graph,evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:'UTC'}));
   const performance=latency.snapshot({database:{used:false,ms:null},network:'Measure end-to-end separately at the client or external probe; server-side component timings exclude internet transit.'});
-  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence,evidenceProfile,assetClassEvidence,providerResilience,dataQuality,modelHealth,...context,rangeEvidence,performance};
+  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence,evidenceProfile,assetClassEvidence,providerResilience,dataQuality,modelHealth,...context,rangeEvidence,rangeReplay,selectedRangeSimilarMoves:graph.selectedRangeSimilarMoves,performance};
 }
 
 export async function onRequest({request,env}){
