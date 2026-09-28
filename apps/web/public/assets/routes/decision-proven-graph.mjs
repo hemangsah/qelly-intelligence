@@ -1195,7 +1195,13 @@ export async function renderDecisionProvenGraph(main,deps){
       if(index<0||!tabs.length)return;
       const nextIndex=event.key==='Home'?0:event.key==='End'?tabs.length-1:event.key==='ArrowRight'?(index+1)%tabs.length:(index-1+tabs.length)%tabs.length;
       const nextMode=tabs[nextIndex]?.dataset.dpgUiMode;
-      tabs[nextIndex]?.click();
+      if(!['simple','advanced','research'].includes(nextMode))return;
+      if(nextMode!==state.uiMode){
+        state.uiMode=nextMode;
+        emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'research_depth',action:'keyboard_select',state:nextMode});
+        draw();
+        main.querySelector('[data-dpg-mode-switcher]')?.scrollIntoView({behavior:motionBehavior(),block:'nearest'});
+      }
       requestAnimationFrame(()=>main.querySelector('[data-dpg-ui-mode="'+nextMode+'"]')?.focus());
     }));
     main.querySelector('[data-dpg-asset-picker-toggle]')?.addEventListener('click',()=>{state.assetPickerOpen=!state.assetPickerOpen;draw();if(state.assetPickerOpen)requestAnimationFrame(()=>main.querySelector('[data-dpg-asset-search]')?.focus());});
