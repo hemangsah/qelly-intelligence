@@ -3,7 +3,7 @@ const text=(value,fallback='UNAVAILABLE')=>String(value??fallback).trim()||fallb
 const uniqueBy=(items,key)=>{const seen=new Set();return items.filter(item=>{const value=key(item);if(!value||seen.has(value))return false;seen.add(value);return true;});};
 const RR_PRESETS=Object.freeze([1,2,3,4]);
 const LIFECYCLE=Object.freeze([
-  ['FORMING','◌'],['VALID','✓'],['TRIGGERED','↗'],['ACTIVE','●'],['WEAKENING','△'],
+  ['NO_TRADE','—'],['FORMING','◌'],['VALID','✓'],['TRIGGERED','↗'],['ACTIVE','●'],['WEAKENING','△'],
   ['T1','①'],['T2','②'],['T3','③'],['T4','④'],['INVALIDATED','×'],['EXPIRED','⌛']
 ]);
 

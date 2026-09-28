@@ -72,3 +72,20 @@ test('Wave CF R:R ladder preserves target feasibility and structural obstruction
   assert.equal(rr4.structuralObstruction,114);
   assert.equal(rr4.probabilityState,'UNCALIBRATED');
 });
+
+
+test('Wave CF represents NO TRADE as an explicit truthful current lifecycle state',()=>{
+  const data=fixture();
+  data.tradeResearch.status='NO_TRADE';
+  data.tradeResearch.action='NO_TRADE';
+  data.tradeResearch.lifecycle={state:'NO_TRADE',historyAvailable:false};
+  data.qellyView.action='NO TRADE';
+  const ux=buildDecisionScenarioUx(data,{requestedRr:'auto'});
+  const current=ux.lifecycle.filter(item=>item.current);
+  assert.equal(current.length,1);
+  assert.equal(current[0].id,'NO_TRADE');
+  assert.equal(current[0].label,'NO TRADE');
+  assert.equal(ux.lifecycle.find(item=>item.id==='FORMING').current,false);
+  assert.equal(ux.lifecycle.find(item=>item.id==='VALID').current,false);
+  assert.equal(ux.lifecycle.length,12);
+});
