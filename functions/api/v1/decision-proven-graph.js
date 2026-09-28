@@ -4,6 +4,7 @@ import {buildDecisionHistoricalAnalogs} from '../../_lib/decision-historical-ana
 import {normalizeDecisionLiquidity} from '../../_lib/decision-liquidity.js';
 import {buildFundingHistoryContext,buildDerivativesPositioningState} from '../../_lib/decision-derivatives.js';
 import {buildDecisionCrossAsset} from '../../_lib/decision-cross-asset.js';
+import {buildSelectedRangeCrossAssetAnalysis} from '../../_lib/decision-selected-cross-asset.js';
 import {buildDecisionNewsClusters} from '../../_lib/decision-news.js';
 import {buildDecisionMacroContext,buildUnavailableDecisionEventRisk} from '../../_lib/decision-macro-events.js';
 import {providerResult} from '../../_lib/providers.js';
@@ -569,6 +570,7 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   const selectedCrossAsset=resolvedSelection&&selectedAssetRows.length&&selectedBenchmarkRows.length
     ?buildDecisionCrossAsset(selectedAssetRows,selectedBenchmarkRows,{asset:resolvedAsset,benchmark:benchmarkAsset})
     :{state:'unavailable',asset:resolvedAsset,benchmark:benchmarkAsset,reason:resolvedSelection?'Not enough aligned benchmark observations inside the selected move.':'No chart range selected.'};
+  const selectedCrossAssetAnalysis=buildSelectedRangeCrossAssetAnalysis(payload,benchmarkPayload||[],{selection:resolvedSelection,asset:resolvedAsset,benchmark:benchmarkAsset,assetClass:'crypto',provider:'Hyperliquid candles'});
   const selectedFundingRows=resolvedSelection?(Array.isArray(fundingRows)?fundingRows:[]).filter(item=>{
     const time=finite(item?.time);
     return time!==null&&time>=resolvedSelection.start&&time<=resolvedSelection.end;
@@ -635,6 +637,7 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
     liquidity,
     crossAsset,
     selectedCrossAsset,
+    selectedCrossAssetAnalysis,
     macro,
     eventRisk,
     historicalDerivatives,
@@ -689,7 +692,7 @@ export async function buildDecisionIntelligence(env,{asset='BTC',interval='15m',
   const context=latency.measure('contextAndEvidenceGraph',()=>buildDecisionContextBundle(graph,{multiTimeframe,tradeResearch,evidence,horizon:resolvedHorizon}));
   const rangeEvidence=latency.measure('rangeEvidence',()=>buildDecisionRangeEvidence({graph,evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:'UTC'}));
   const performance=latency.snapshot({database:{used:false,ms:null},network:'Measure end-to-end separately at the client or external probe; server-side component timings exclude internet transit.'});
-  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence,evidenceProfile,assetClassEvidence,providerResilience,dataQuality,modelHealth,...context,rangeEvidence,rangeReplay,selectedRangeSimilarMoves:graph.selectedRangeSimilarMoves,performance};
+  return {...graph,horizon:resolvedHorizon,multiTimeframe,tradeResearch,evidence,evidenceProfile,assetClassEvidence,providerResilience,dataQuality,modelHealth,...context,rangeEvidence,rangeReplay,selectedRangeCrossAsset:selectedCrossAssetAnalysis,selectedRangeSimilarMoves:graph.selectedRangeSimilarMoves,performance};
 }
 
 export async function onRequest({request,env}){

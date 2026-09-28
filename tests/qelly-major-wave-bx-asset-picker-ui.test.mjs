@@ -110,3 +110,12 @@ test('Wave BX mobile picker has an explicit visual-viewport box',async()=>{
   const css=await readFile(new URL('../apps/web/public/assets/qelly-decision-proven-graph.css',import.meta.url),'utf8');
   assert.match(css,/@media\(max-width:760px\).*q-dpg-asset-picker__panel\{position:fixed;top:72px;right:auto;bottom:auto;left:10px;transform:none;width:calc\(100vw - 20px\);height:calc\(100dvh - 82px\);max-height:calc\(100dvh - 82px\);min-height:0;box-sizing:border-box/s);
 });
+
+
+test('Wave BX/CG fixed asset picker escapes local stacking context so mobile command controls remain top hit targets',async()=>{
+  const css=await readFile(new URL('../apps/web/public/assets/qelly-decision-proven-graph.css',import.meta.url),'utf8');
+  assert.match(css,/\.q-dpg-asset-picker\{position:relative;display:grid;gap:5px;min-width:190px;z-index:auto\}/);
+  assert.match(css,/\.q-dpg-asset-picker__panel\{position:fixed[^}]*z-index:280/);
+  assert.match(css,/@media\(max-width:760px\)/);
+  assert.match(css,/q-dpg-asset-picker__panel\{position:fixed;top:72px[^}]*z-index:340/);
+});

@@ -10,7 +10,9 @@ test('Wave CE Decision API returns selected-range replay and selected-range anal
   assert.match(api,/newsArticles:articles/);
   assert.match(api,/fundingRows:selectedFundingRows/);
   assert.match(api,/benchmarkCandles:selectedBenchmarkRows/);
-  assert.match(api,/rangeEvidence,rangeReplay,selectedRangeSimilarMoves:graph\.selectedRangeSimilarMoves,performance/);
+  assert.match(api,/rangeEvidence,rangeReplay/);
+  assert.match(api,/selectedRangeSimilarMoves:graph\.selectedRangeSimilarMoves/);
+  assert.match(api,/performance/);
 });
 
 
