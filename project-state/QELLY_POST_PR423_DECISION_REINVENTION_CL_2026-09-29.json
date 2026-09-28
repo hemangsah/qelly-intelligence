@@ -5,32 +5,106 @@
   "clStartingProduction": "454b481943a7ad5745256859df4bb6000424cfba",
   "overallState": "READY_FOR_CL_EXACT_HEAD_GATES",
   "waves": {
-    "BR": {"pr": 424, "mergeSha": "7d4a92f0af9963ef3a9d056aeec6d384842b5819"},
-    "BS": {"pr": 425, "mergeSha": "0cadc84e3c7803ba465a81a0eaa1b87ef8cad669"},
-    "BT": {"pr": 426, "mergeSha": "daa584aa7791294e037148991dcb1f99ea804149"},
-    "BU": {"pr": 427, "mergeSha": "d311f2caa0da726e79417b1089709e75f96eae49"},
-    "BV": {"pr": 428, "mergeSha": "4a9108f81c5440425c37aa022188d1cf0068194d"},
-    "BW": {"pr": 429, "mergeSha": "c874468501590e6b51a96a89c8b7028797364759"},
-    "BX": {"pr": 430, "mergeSha": "d1a032dac9b1cac6af8361286d1ba76534c01235"},
-    "BY": {"pr": 431, "mergeSha": "6c0e4875dec34328afb3c9cd40c556b722eaabc9"},
-    "BZ": {"pr": 432, "mergeSha": "940a765b5c20407da3fde479cfc85cc021888976"},
-    "CA": {"pr": 433, "mergeSha": "7d73e38cfd479333f0dbb34ec170f207badb2ab4"},
-    "CB": {"pr": 434, "mergeSha": "3dc66142ce077a4a3a5045e5e49237b00954f13d"},
-    "CC": {"pr": 435, "mergeSha": "be30bb4989e727639f49bc5481b678ea8382be3d"},
-    "CD": {"pr": 436, "mergeSha": "852bd3080d6481af5def35b76381dff5bb5023ec"},
-    "CE": {"pr": 437, "mergeSha": "a0b9ea3e87bd9eb6b5523f20d9dfbe367164c2bf"},
-    "CF": {"pr": 438, "mergeSha": "97a3d17b646f739f39e1c76019c8ccdd5e4dee6b"},
-    "CG": {"pr": 439, "mergeSha": "7ff6e362b5426df5b82b91ae367f2a1137f03aff"},
-    "CH": {"pr": 440, "mergeSha": "0246d4212d854d3434ae788fabd67c9768bae32a"},
-    "CI": {"pr": 441, "mergeSha": "5412c867c7c75d3714bf40ad378531703b907ccb"},
-    "CJ": {"pr": 446, "mergeSha": "2382e2597e6ca14a6c635c61f75a55158c9fc67c"},
-    "CK": {"pr": 447, "mergeSha": "29f35794a401dd5f6bc03d215356d17b88f42d99"},
-    "CL": {"state": "THIS_PR_EXACT_HEAD_GATES_REQUIRED"}
+    "BR": {
+      "pr": 424,
+      "mergeSha": "7d4a92f0af9963ef3a9d056aeec6d384842b5819"
+    },
+    "BS": {
+      "pr": 425,
+      "mergeSha": "0cadc84e3c7803ba465a81a0eaa1b87ef8cad669"
+    },
+    "BT": {
+      "pr": 426,
+      "mergeSha": "daa584aa7791294e037148991dcb1f99ea804149"
+    },
+    "BU": {
+      "pr": 427,
+      "mergeSha": "d311f2caa0da726e79417b1089709e75f96eae49"
+    },
+    "BV": {
+      "pr": 428,
+      "mergeSha": "4a9108f81c5440425c37aa022188d1cf0068194d"
+    },
+    "BW": {
+      "pr": 429,
+      "mergeSha": "c874468501590e6b51a96a89c8b7028797364759"
+    },
+    "BX": {
+      "pr": 430,
+      "mergeSha": "d1a032dac9b1cac6af8361286d1ba76534c01235"
+    },
+    "BY": {
+      "pr": 431,
+      "mergeSha": "6c0e4875dec34328afb3c9cd40c556b722eaabc9"
+    },
+    "BZ": {
+      "pr": 432,
+      "mergeSha": "940a765b5c20407da3fde479cfc85cc021888976"
+    },
+    "CA": {
+      "pr": 433,
+      "mergeSha": "7d73e38cfd479333f0dbb34ec170f207badb2ab4"
+    },
+    "CB": {
+      "pr": 434,
+      "mergeSha": "3dc66142ce077a4a3a5045e5e49237b00954f13d"
+    },
+    "CC": {
+      "pr": 435,
+      "mergeSha": "be30bb4989e727639f49bc5481b678ea8382be3d"
+    },
+    "CD": {
+      "pr": 436,
+      "mergeSha": "852bd3080d6481af5def35b76381dff5bb5023ec"
+    },
+    "CE": {
+      "pr": 437,
+      "mergeSha": "a0b9ea3e87bd9eb6b5523f20d9dfbe367164c2bf"
+    },
+    "CF": {
+      "pr": 438,
+      "mergeSha": "97a3d17b646f739f39e1c76019c8ccdd5e4dee6b"
+    },
+    "CG": {
+      "pr": 439,
+      "mergeSha": "7ff6e362b5426df5b82b91ae367f2a1137f03aff"
+    },
+    "CH": {
+      "pr": 440,
+      "mergeSha": "0246d4212d854d3434ae788fabd67c9768bae32a"
+    },
+    "CI": {
+      "pr": 441,
+      "mergeSha": "5412c867c7c75d3714bf40ad378531703b907ccb"
+    },
+    "CJ": {
+      "pr": 446,
+      "mergeSha": "2382e2597e6ca14a6c635c61f75a55158c9fc67c"
+    },
+    "CK": {
+      "pr": 447,
+      "mergeSha": "29f35794a401dd5f6bc03d215356d17b88f42d99"
+    },
+    "CL": {
+      "state": "THIS_PR_EXACT_HEAD_GATES_REQUIRED"
+    }
   },
   "hardening": [
-    {"pr": 443, "mergeSha": "4b88211a2e1439adf5a2a8fd01f4062be40bc356", "purpose": "CI mode focus preservation"},
-    {"pr": 445, "mergeSha": "c7ce64eef1ab9445e1aa5e29526da0b69813e1de", "purpose": "asset picker focus return"},
-    {"pr": 448, "mergeSha": "454b481943a7ad5745256859df4bb6000424cfba", "purpose": "deterministic CK first-paint vitals"}
+    {
+      "pr": 443,
+      "mergeSha": "4b88211a2e1439adf5a2a8fd01f4062be40bc356",
+      "purpose": "CI mode focus preservation"
+    },
+    {
+      "pr": 445,
+      "mergeSha": "c7ce64eef1ab9445e1aa5e29526da0b69813e1de",
+      "purpose": "asset picker focus return"
+    },
+    {
+      "pr": 448,
+      "mergeSha": "454b481943a7ad5745256859df4bb6000424cfba",
+      "purpose": "deterministic CK first-paint vitals"
+    }
   ],
   "productionIdentityAtClStart": {
     "environment": "production",
@@ -57,5 +131,19 @@
     "featureImplementationThroughCk": "COMPLETE",
     "clProductionAcceptance": "PENDING_EXACT_HEAD_GATES_AND_POST_MERGE_RELEASE_IDENTITY",
     "scientificProbability": "SAMPLE_DEPENDENT_NO_FABRICATED_PERCENT"
+  },
+  "securityAdvisors": {
+    "checkedAt": "2026-09-29",
+    "security": {
+      "state": "WARN",
+      "finding": "Leaked Password Protection Disabled",
+      "scope": "EXTERNAL_AUTH_CONFIGURATION",
+      "clDisposition": "EXPLICIT_UNRESOLVED_LIMITATION"
+    },
+    "performance": {
+      "state": "INFO",
+      "unusedIndexFindings": 34,
+      "clDisposition": "NO_BLIND_INDEX_DELETION"
+    }
   }
 }
