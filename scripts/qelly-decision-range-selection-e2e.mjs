@@ -112,7 +112,19 @@ const proxyDecision=async(route)=>{
     return;
   }
   const target=new URL(requestUrl.pathname+requestUrl.search,productionOrigin);
-  const response=await fetch(target,{headers:{accept:'application/json'}});
+  let response=null,lastError=null;
+  for(let attempt=0;attempt<3;attempt++){
+    try{
+      response=await fetch(target,{headers:{accept:'application/json'}});
+      if(response.ok||![429,500,502,503,504].includes(response.status))break;
+      await response.arrayBuffer().catch(()=>{});
+    }catch(error){
+      lastError=error;
+      if(attempt===2)throw error;
+    }
+    await new Promise(resolve=>setTimeout(resolve,200*(attempt+1)));
+  }
+  if(!response)throw lastError||new Error('Decision browser proxy could not reach canonical production');
   let body=await response.text();
   if(response.ok&&requestUrl.pathname.includes('/api/v1/decision-proven-graph')){
     try{
@@ -331,6 +343,7 @@ const exercise=async({name,viewport,touch=false})=>{
   await simpleTab.focus();
   await page.keyboard.press('ArrowRight');
   await page.waitForFunction(()=>document.querySelector('[data-dpg-ui-mode="advanced"]')?.getAttribute('aria-selected')==='true',{timeout:5000});
+  await page.waitForFunction(()=>document.activeElement?.matches?.('[data-dpg-ui-mode="advanced"]')===true,{timeout:5000});
   const advancedKeyboardFocus=await page.evaluate(()=>document.activeElement?.matches?.('[data-dpg-ui-mode="advanced"]')===true);
   if(!advancedKeyboardFocus)failures.push({type:'ci-mode-keyboard-focus'});
   await page.keyboard.press('ArrowLeft');
