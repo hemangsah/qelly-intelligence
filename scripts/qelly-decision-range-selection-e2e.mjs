@@ -354,6 +354,10 @@ const exercise=async({name,viewport,touch=false})=>{
   if(!researchRequired)failures.push({type:'decision-mode-research',text:researchText});
   await simpleTab.click();
   await page.locator('[data-dpg-mode-panel="simple"]').first().waitFor({state:'visible',timeout:10_000});
+  const selectRangeMode=page.locator('[data-dpg-chart-mode="select-range"]').first();
+  await selectRangeMode.waitFor({state:'visible',timeout:10_000});
+  await selectRangeMode.click();
+  await page.waitForFunction(()=>document.querySelector('[data-dpg-chart-mode="select-range"]')?.getAttribute('aria-pressed')==='true',null,{timeout:5000});
   const liveChart=page.locator('[data-dpg-chart]').first();
   await liveChart.waitFor({state:'visible',timeout:10_000});
   await liveChart.evaluate((node)=>node.scrollIntoView({block:'center',inline:'nearest'}));
