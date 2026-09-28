@@ -94,7 +94,7 @@ const outcomeFor=(candles,afterIndex,horizonBars,targetMoveAbsPct,intervalMs)=>{
 };
 
 export function buildDecisionRangeReplay({candles=[],selection=null,interval='15m',newsArticles=[],fundingRows=[],benchmarkCandles=[],benchmark='BTC'}={}){
-  const rows=normalizeCandles(candles),start=finite(selection?.start),end=finite(selection?.end),intervalMs=DECISION_INTERVALS[interval];
+  const rows=normalizeCandles(candles),start=parseTime(selection?.start),end=parseTime(selection?.end),intervalMs=DECISION_INTERVALS[interval];
   if(!intervalMs||!Number.isFinite(start)||!Number.isFinite(end)||start>=end)return {
     schemaVersion:'qelly.decision-range-replay/1.0.0',state:'NOT_SELECTED',frames:[],reason:'Select a valid historical range before replay.'
   };
@@ -150,7 +150,7 @@ export function buildDecisionRangeReplay({candles=[],selection=null,interval='15
 }
 
 export function buildSelectedRangeSimilarMoves(raw,{selection=null,interval='15m',limit=5}={}){
-  const candles=normalizeCandles(raw),start=finite(selection?.start),end=finite(selection?.end),intervalMs=DECISION_INTERVALS[interval];
+  const candles=normalizeCandles(raw),start=parseTime(selection?.start),end=parseTime(selection?.end),intervalMs=DECISION_INTERVALS[interval];
   if(!intervalMs||!Number.isFinite(start)||!Number.isFinite(end)||start>=end)return {
     schemaVersion:'qelly.selected-range-similar-moves/1.0.0',state:'NOT_SELECTED',analogs:[],reason:'Select a valid historical range before similarity research.'
   };

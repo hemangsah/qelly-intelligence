@@ -73,3 +73,19 @@ test('Wave CE fails closed when replay or similarity range is not in returned pr
   assert.equal(buildDecisionRangeReplay({candles,selection:outside,interval:'1m'}).state,'UNAVAILABLE');
   assert.equal(buildSelectedRangeSimilarMoves(candles,{selection:outside,interval:'1m'}).state,'UNAVAILABLE');
 });
+
+
+test('Wave CE accepts the real Decision graph ISO selected-range timestamp shape',()=>{
+  const isoSelection={
+    start:new Date(selection.start).toISOString(),
+    end:new Date(selection.end+STEP-1).toISOString()
+  };
+  const replay=buildDecisionRangeReplay({candles,selection:isoSelection,interval:'1m'});
+  const similar=buildSelectedRangeSimilarMoves(candles,{selection:isoSelection,interval:'1m',limit:6});
+  assert.equal(replay.state,'AVAILABLE');
+  assert.equal(replay.totalFrames,8);
+  assert.equal(replay.rangeStart,new Date(selection.start).toISOString());
+  assert.ok(['AVAILABLE','UNAVAILABLE'].includes(similar.state));
+  assert.equal(similar.target?.rangeStart,new Date(selection.start).toISOString());
+  assert.equal(similar.target?.windowBars,8);
+});
