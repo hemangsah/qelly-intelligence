@@ -269,7 +269,12 @@ const exercise=async({name,viewport,touch=false})=>{
   await page.locator('[data-dpg-asset-search]').first().focus();
   await page.keyboard.press('Escape');
   await assetPicker.waitFor({state:'hidden',timeout:5000});
-  const assetPickerFocusReturned=await page.evaluate(()=>document.activeElement?.matches?.('[data-dpg-asset-picker-toggle]')===true);
+  let assetPickerFocusReturned=true;
+  try{
+    await page.waitForFunction(()=>document.activeElement?.matches?.('[data-dpg-asset-picker-toggle]')===true,null,{timeout:2000});
+    await page.waitForTimeout(120);
+    assetPickerFocusReturned=await page.evaluate(()=>document.activeElement?.matches?.('[data-dpg-asset-picker-toggle]')===true);
+  }catch{assetPickerFocusReturned=false;}
   if(!assetPickerFocusReturned)failures.push({type:'ci-asset-picker-focus-return'});
   const setupFinder=page.locator('[data-dpg-setup-finder]').first();
   await setupFinder.waitFor({state:'visible',timeout:10_000});
