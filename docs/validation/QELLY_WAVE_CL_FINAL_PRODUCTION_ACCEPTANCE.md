@@ -1,29 +1,32 @@
-# QELLY Wave CL — Final Production Acceptance Candidate
+# QELLY Wave CL — Final Production Acceptance
 
 Date: 2026-09-29  
 Master-prompt origin: post PR #423 Decision Intelligence major reinvention / 100+ upgrades  
 Production branch: `release/qelly-global-public-beta`  
-CL starting production SHA: `454b481943a7ad5745256859df4bb6000424cfba`
+CL accepted runtime production SHA: `70438b7c2627be9f2dc3a0e5949e104110cde9f8`
 
 ## Executive result
 
-The post-PR423 Decision Intelligence implementation sequence has reached the final acceptance wave.
+The post-PR423 Decision Intelligence reinvention has completed its planned BR–CL engineering sequence.
 
-All planned implementation waves BR through CK are merged into the production branch. PR #448 is the production-line CK browser-evidence hotfix and the production branch is identical to its merge SHA `454b481943a7ad5745256859df4bb6000424cfba`.
+PR #449 was the CL acceptance PR. Its exact head `8ae10a4e518b4e84c1976dc2614e564abee770dd` passed the complete 10-workflow exact-head matrix and was squash-merged with an expected-head guard as `70438b7c2627be9f2dc3a0e5949e104110cde9f8`.
 
-Supabase `public.qelly_release_identity` records that exact source revision as a production Cloudflare release for `https://terminal.qellyintelligence.com`, with matching backend revision and status `recorded`.
+After merge, `release/qelly-global-public-beta` was verified identical to that merge SHA. The canonical terminal then exposed the same SHA through its governed `qelly-release.json` contract, and the authenticated release-identity sync recorded the exact SHA in Supabase `public.qelly_release_identity` with matching backend revision and status `recorded`.
 
-This CL change is deliberately proof-only. It does not alter provider coverage, market semantics, setup eligibility, probability math, model weights, trade research rules, database schema, or public routes.
+Engineering acceptance for the planned master-prompt waves is therefore **PASS, with explicit external/scientific limitations preserved below**.
 
-Final closure requires the exact CL PR head to pass the full repository gate matrix, be merged with an expected-head guard, deploy, and then be re-verified through the release-identity record. Missing evidence must remain missing; no gate is converted into a pass by documentation.
+This conclusion does not claim profitable trading performance, universal provider availability, causal certainty, or empirical calibration where the required evidence does not exist.
 
 ## START
 
 - Original reinvention baseline: PR #423 / `11ff35cdd934c357c800db4c8e1195a63247d291`.
-- Reconciled production base for CL: `454b481943a7ad5745256859df4bb6000424cfba`.
-- Production branch comparison at CL start: identical to `454b481943a7ad5745256859df4bb6000424cfba`.
-- Production release identity: recorded for the same SHA.
-- Canonical recorded public site: `https://terminal.qellyintelligence.com`.
+- CL starting production: `454b481943a7ad5745256859df4bb6000424cfba`.
+- CL exact tested head: `8ae10a4e518b4e84c1976dc2614e564abee770dd`.
+- CL acceptance PR: #449.
+- CL accepted runtime merge: `70438b7c2627be9f2dc3a0e5949e104110cde9f8`.
+- Canonical production site: `https://terminal.qellyintelligence.com`.
+- Canonical production release timestamp: `2026-09-28T21:27:49.529Z`.
+- Release-identity record created: `2026-09-28T21:32:41.082528Z`.
 
 ## WAVES
 
@@ -34,7 +37,7 @@ Final closure requires the exact CL PR head to pass the full repository gate mat
 | BT | #426 | `daa584aa7791294e037148991dcb1f99ea804149` | Historical news / event timeline |
 | BU | #427 | `d311f2caa0da726e79417b1089709e75f96eae49` | Source-bounded flow / participation evidence |
 | BV | #428 | `4a9108f81c5440425c37aa022188d1cf0068194d` | Simple / Advanced / Research Lab hierarchy |
-| BW | #429 | `c874468501590e6b51a96a89c8b7028797364759` | Contextual bottom-center QELLY Chat dock |
+| BW | #429 | `c874468501590e6b51a96a89c8b7028797364759` | Contextual QELLY Chat dock |
 | BX | #430 | `d1a032dac9b1cac6af8361286d1ba76534c01235` | Capability-driven asset picker |
 | BY | #431 | `6c0e4875dec34328afb3c9cd40c556b722eaabc9` | Asset-class evidence profiles |
 | BZ | #432 | `940a765b5c20407da3fde479cfc85cc021888976` | Find Setup Now + Aggressive Discovery |
@@ -51,156 +54,185 @@ Final closure requires the exact CL PR head to pass the full repository gate mat
 | CJ | #446 | `2382e2597e6ca14a6c635c61f75a55158c9fc67c` | Security + failure injection |
 | CK | #447 | `29f35794a401dd5f6bc03d215356d17b88f42d99` | Proof-first dead-code cleanup |
 | CK hotfix | #448 | `454b481943a7ad5745256859df4bb6000424cfba` | Deterministic first-paint Web Vitals evidence |
-| CL | this PR | exact head required | Final exact-head production acceptance |
+| CL | #449 | `70438b7c2627be9f2dc3a0e5949e104110cde9f8` | Exact-head final production acceptance |
+
+Planned master-prompt wave completion: **21 / 21 (100%)**.
 
 ## RANGE
 
-The merged implementation contains the dedicated range-selection E2E harness plus separate BR/BS/BT/BU/CE/CG tests.
-
-Acceptance surface:
-- persistent selected-range overlay and boundaries;
-- selected start/end, candle count, duration, move, high/low and timeframe;
+The accepted implementation includes:
+- persistent selected-range overlay and start/end boundaries;
+- start/end time, duration, candle count, move %, high/low and timeframe context;
 - explicit clear behavior;
-- selected-range evidence request supersession / cancellation;
+- exact-range evidence requests with supersession/cancellation protection;
 - time-bounded news/event evidence;
-- source-bounded participation/flow evidence;
-- replay / similar-move research;
+- source-bounded flow/participation evidence;
+- range replay and similar-move research;
 - selected-range cross-asset evidence;
-- mobile and keyboard coverage through the CI wave.
+- keyboard/mobile/accessibility coverage.
 
-CL does not restate causal certainty. Event/news/flow evidence can be observed, associated, inferred or unavailable; it is not automatically proof of causation.
+The CL Browser E2E gate separately passed the Decision selected-range interaction test after the complete desktop/mobile capture.
+
+Historical news, flow and cross-asset evidence remain classified by what the source can establish. Association or inferred participation is not automatically labeled causal proof.
 
 ## UI / UX
 
-The authoritative Decision surface now uses:
+The accepted Decision surface uses:
 - Simple Mode for the primary answer;
 - Advanced Mode for deeper evidence;
-- Research Lab for full research depth;
+- Research Lab for full depth;
 - one contextual bottom-center QELLY Chat dock;
 - capability-driven grouped asset selection;
-- redraw-safe focus preservation and picker focus return;
-- mobile-safe/reduced-motion/accessibility behavior from CI.
+- redraw-safe focus preservation;
+- mobile-safe and reduced-motion behavior.
 
-The master-prompt rule remains intact: advanced data is reorganized, not deleted merely to simplify the page.
+Advanced evidence was reorganized rather than deleted to manufacture visual simplicity.
 
 ## ASSETS
 
-Asset selection is capability-driven rather than a hard-coded six-asset control. The merged implementation includes grouped provider-backed capability metadata and asset-class evidence profiles.
+The hard-coded narrow asset control was replaced by a capability-driven provider-backed asset catalog and asset-class evidence profiles.
 
-Availability remains evidence/provider dependent. Unsupported or unlicensed classes must remain unavailable rather than being represented as live.
+This is an engineering capability expansion, not a claim that every global instrument has a licensed real-time feed. Unsupported or unlicensed classes remain unavailable instead of being represented as live.
 
 ## FIND SETUP
 
-The merged scanner/UI supports:
+The accepted scanner/UI supports:
 - Validated Setup;
 - Aggressive Discovery;
 - Current Asset / All Markets;
-- long / short direction filters;
+- long / short filters;
 - 1:1, 1:2, 1:3, 1:4, Auto and Custom R:R;
-- ranking modes including Highest Quality, Lowest Event Risk and Closest Candidate.
+- Highest Quality, Lowest Event Risk and Closest Candidate ranking modes.
 
-Aggressive Discovery does not override stale-data, provider-failure, critical-event, evidence-quality or probability-truthfulness gates. NO TRADE remains valid.
+Aggressive Discovery does not bypass stale-data, provider-failure, event-risk, evidence-quality or probability-truthfulness gates. **NO TRADE remains a valid output.**
 
 ## MODELS
 
-The Decision engine now has dedicated modules for:
+The accepted Decision architecture contains dedicated modules for:
 - quant / technical context;
 - deterministic SMC and price action;
 - formula governance and redundancy control;
-- feature/ensemble attribution;
-- fundamentals and macro where applicable;
-- liquidity/derivatives when real data exists;
+- feature / ensemble attribution;
+- fundamentals and macro when applicable;
+- liquidity / derivatives when real data exists;
 - asset-class weighting;
 - selected-range cross-asset evidence.
 
-A displayed metric is not automatically a decision weight. Relevant modules may receive zero weight.
+A displayed metric is not automatically assigned decision weight. A relevant module may legitimately receive zero weight.
 
 ## PROBABILITY
 
-Next Candle / Next Move is a research projection and must remain visually and semantically distinct from observed candles.
+Next Candle / Next Move remains a research projection and is visually/semantically distinct from observed candles.
 
-The strict probability boundary remains:
+The probability boundary remains:
 - calibrated probability is separate from confidence;
 - scenario probability is separate from analog frequency;
-- sample size and calibration state must be exposed where required;
-- 90%+ is not permitted merely because a model score is high;
-- high probability requires genuine independent empirical calibration and sufficient sample evidence.
+- sample size and calibration state remain first-class evidence;
+- **90%+ is not permitted merely because a model score is high**;
+- high probability requires independent empirical calibration and sufficient samples.
 
-This CL report makes no claim that the system is empirically profitable or that all probability outputs are calibrated.
+CL engineering acceptance does **not** convert insufficient empirical history into a calibrated-profitability claim.
 
 ## PERFORMANCE
 
-Wave CH introduced Decision caching/concurrency controls and corresponding regression coverage. PR #448 makes first-paint Web Vitals collection deterministic without weakening the existing thresholds.
+Wave CH added caching/concurrency controls and regression coverage. PR #448 stabilized the first-paint evidence collector without weakening FCP/LCP/CLS/INP thresholds.
 
-CL acceptance must use the repository's exact-head gates. Historical bounded latency and browser-stability measurements remain evidence with their original denominators; they are not silently promoted into a new production SLO certification.
+On the exact CL head, Browser E2E passed:
+- exact production-artifact validation;
+- cold/warm first-paint stability;
+- all 71 registered routes at desktop and mobile widths;
+- 142 expected renders;
+- accessibility/responsive interaction contracts;
+- screenshot/archive contract;
+- Decision selected-range interaction.
+
+Historical latency measurements retain their original denominators. CL does not silently promote them into stronger SLO claims.
 
 ## SECURITY
 
-Wave CJ explicitly covers:
+Wave CJ covers:
 - SSRF-shaped/unsupported asset rejection before provider fetch;
-- malformed/oversized selected-range rejection;
+- malformed/oversized range rejection;
 - malicious headline/XSS fixtures;
 - rate-limit preservation;
 - CSP/embed boundaries;
 - TradingView outbound URL allowlisting;
-- dependency/provider timeout/degradation paths;
-- stale/unavailable labeling without fabricated values.
+- provider/dependency degradation;
+- stale/unavailable labeling without fabricated observations.
 
-Wave CK removes only proven-dead Decision presentation CSS and retains compatibility aliases that still have executable ownership.
+Wave CK removes only proven-dead Decision presentation code and retains intentional compatibility ownership.
 
-Current Supabase security-advisor state was rechecked during CL. It reports one external warning: **Leaked Password Protection Disabled**. This is an Auth configuration warning outside the Decision code changes in BR–CK. It remains explicit and unresolved; CL does not relabel it as PASS.
+The live Supabase security advisor was rechecked during CL. It still reports one external warning: **Leaked Password Protection Disabled**. This is an Auth configuration limitation and remains unresolved rather than being relabeled as PASS. Supabase remediation guidance: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
+
+The performance advisor also reported unused-index informational findings; CL deliberately performed no blind index deletion.
 
 ## PRODUCTION
 
-At CL start:
-- release branch SHA: `454b481943a7ad5745256859df4bb6000424cfba`;
-- Supabase production release identity source revision: same SHA;
-- backend revision: same SHA;
-- release status: `recorded`;
-- recorded public site: `https://terminal.qellyintelligence.com`;
-- recorded release timestamp: `2026-09-28T21:00:05.266Z`;
-- recorded identity creation: `2026-09-28T21:05:02.171939Z`.
+PR #449 exact tested head:
+`8ae10a4e518b4e84c1976dc2614e564abee770dd`
 
-CL finalization is not complete merely because this report exists. The CL PR head must still pass exact-head gates, merge, deploy, and receive its own production release identity.
+Exact-head workflow matrix:
+1. Continuous Integration — PASS
+2. Production Parity — PASS
+3. Browser E2E — PASS
+4. GitHub Pages Mirror — PASS
+5. Container Build — PASS
+6. Live Terminal Acceptance — PASS
+7. Production Foundation Services — PASS
+8. Public Runtime — PASS
+9. Security Analysis — PASS
+10. Test Diagnostics — PASS
+
+Merge:
+- merge method: squash;
+- expected-head guard: used;
+- merge SHA: `70438b7c2627be9f2dc3a0e5949e104110cde9f8`;
+- release branch comparison after merge: identical.
+
+Canonical production identity after merge:
+- source revision: `70438b7c2627be9f2dc3a0e5949e104110cde9f8`;
+- backend revision: same;
+- frontend version: `0.9.0-preview.1`;
+- status: `recorded`;
+- public site: `https://terminal.qellyintelligence.com`;
+- mode: `cloudflare-pages-public-runtime`;
+- cloud sync: true;
+- authentication: true;
+- email delivery: true;
+- live providers: true;
+- protected writes: true;
+- build/release timestamp: `2026-09-28T21:27:49.529Z`;
+- identity record timestamp: `2026-09-28T21:32:41.082528Z`.
+
+The normal release-identity cron runs at minute 5 of each hour. For CL verification, the same authenticated fail-closed release-sync function was triggered after merge instead of waiting for the next cron. It fetched the canonical terminal release contract and only recorded the SHA after all of its built-in identity/capability checks passed.
 
 ## LIMITATIONS
 
-The final system must continue to expose, rather than conceal:
-- unavailable provider/data families;
-- licensing/redistribution limits;
-- stale/partial provider states;
-- insufficient calibration samples;
-- uncalibrated probability states;
-- research-only / non-execution boundaries;
-- lack of causal proof where evidence is only associated or inferred;
-- current external Supabase Auth warning: leaked-password protection disabled.
+Acceptance does not remove these boundaries:
+- provider or licensed-data families may be unavailable;
+- stale/partial states remain explicit;
+- empirical calibration remains sample-dependent;
+- research output is not trade execution;
+- evidence association is not automatically causal proof;
+- no profitability guarantee is established;
+- the external Supabase leaked-password-protection warning remains open.
 
-No documentation change can convert an unavailable feed, insufficient sample, failed gate or uncalibrated model into a pass.
+No unavailable feed, insufficient sample, failed provider or uncalibrated model is converted into a pass by this report.
 
 ## COMPLETION
 
-At the start of CL:
-- planned waves merged before CL: 20 / 21 = **95.2%**;
-- implementation waves BR through CK: **complete**;
-- CL production acceptance: **this wave**;
-- range-intelligence implementation: all planned range waves merged; exact-head CL acceptance pending;
-- universal asset coverage: capability-driven implementation complete, actual availability remains provider/licensing dependent;
-- scientific probability: calibration governance implemented; empirical calibration remains sample-dependent and is not represented by a fabricated percentage;
-- terminal production: exact pre-CL SHA is recorded in production; CL post-merge production identity remains to be proven.
+- planned waves: **21 / 21 — 100% engineering wave completion**;
+- range-intelligence implementation: **complete under the planned BR/BS/BT/BU/CE/CG scope and exact-head acceptance gates**;
+- UI hierarchy/chat/asset capability implementation: **complete under the planned scope**;
+- Find Setup / Aggressive Discovery implementation: **complete under governed safety gates**;
+- model/formula/SMC/fundamental/cross-asset engineering integration: **complete under the planned scope**;
+- CL exact-head gate matrix: **PASS 10 / 10**;
+- CL accepted runtime production identity: **PASS — exact SHA recorded**;
+- scientific probability/calibration: **governance implemented; empirical calibration remains evidence/sample dependent**;
+- external Supabase Auth warning: **OPEN / EXPLICIT LIMITATION**.
 
-## CL exact-head closure rule
+## Final acceptance
 
-This candidate may be closed only after all of the following are true for the exact CL PR head and subsequent merge:
+The post-PR423 master-prompt engineering sequence is closed at the accepted runtime production SHA `70438b7c2627be9f2dc3a0e5949e104110cde9f8`.
 
-1. focused and full tests pass;
-2. type/syntax/lint/design/environment/secret checks pass;
-3. production and frontend builds pass;
-4. product validation passes;
-5. Security Analysis passes;
-6. Public Runtime / Production Parity / Foundation / Container gates pass where configured;
-7. Browser E2E and mobile/visual evidence pass;
-8. no old UI flash, route crash, iframe lifecycle regression, critical console error or acceptance-threshold regression is introduced;
-9. merge uses the exact tested head;
-10. the merged release is recorded as the new production source revision in `public.qelly_release_identity`.
-
-Until those conditions are evidenced, state remains `READY_FOR_CL_EXACT_HEAD_GATES`, not final production closure.
+Final state: **PRODUCTION_ACCEPTED_WITH_EXPLICIT_EXTERNAL_LIMITATIONS**.
