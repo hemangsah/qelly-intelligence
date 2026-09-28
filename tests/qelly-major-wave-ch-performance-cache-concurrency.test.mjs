@@ -80,8 +80,8 @@ test('Wave CH range evidence uses settled edge cache, in-flight coalescing and l
 
 test('Wave CH browser aborts superseded range and Decision network work and batches reloads',async()=>{
   const route=await readFile(new URL('../apps/web/public/assets/routes/decision-proven-graph.mjs',import.meta.url),'utf8');
-  assert.match(route,/rangeEvidenceController=new AbortController\(\)/);
-  assert.match(route,/decisionLoadController=new AbortController\(\)/);
+  assert.match(route,/const controller=new AbortController\(\);rangeEvidenceController=controller/);
+  assert.match(route,/const controller=new AbortController\(\);decisionLoadController=controller/);
   assert.match(route,/signal:controller\.signal/);
   assert.match(route,/clearTimeout\(scheduledLoadTimer\)/);
   assert.match(route,/setTimeout\(\(\)=>\{scheduledLoadTimer=0;void load\(\);\},16\)/);
