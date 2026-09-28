@@ -58,7 +58,9 @@ test('Wave CJ retains explicit API rate-abuse and bounded-range controls',async(
   assert.match(decision,/enforceRateLimit\(env,'decision-proven-graph:'\+ip\(request\),\{limit:30,windowMs:60_000\}\)/);
   assert.match(range,/enforceRateLimit\(env,'decision-range-evidence:'\+ip\(request\),\{limit:12,windowMs:60_000\}\)/);
   assert.match(scan,/enforceRateLimit\(env,'decision-scan:'\+ip\(request\),\{limit:6,windowMs:60_000\}\)/);
-  assert.match(range,/end-start>90\*86_400_000/);
+  assert.match(range,/const MAX_RANGE_MS=90\*86_400_000/);
+  assert.match(range,/end-start>MAX_RANGE_MS/);
+  assert.match(range,/future_range/);
   assert.match(range,/unsupported_asset/);
   assert.match(range,/invalid_range/);
 });
@@ -89,7 +91,7 @@ test('Wave CJ preserves no-crash degradation for provider failures and aborted r
   ])assert.match(failure,marker);
   assert.match(route,/rangeEvidenceController\?\.abort\(\)/);
   assert.match(route,/state\.rangeEvidenceRequest\+=1/);
-  assert.match(route,/if\(requestId!==state\.rangeEvidenceRequest\)return false/);
+  assert.match(route,/if\(requestId!==state\.rangeEvidenceRequest\|\|selectionKey\(state\.selection\)!==key\|\|!state\.data\)return false/);
 });
 
 test('Wave CJ preserves CSP and embed isolation boundaries',async()=>{
