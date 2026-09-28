@@ -24,3 +24,11 @@ test('Wave CF styles preserve text-plus-icon lifecycle and responsive scenario h
   for(const token of ['q-dpg-cf-lifecycle','q-dpg-cf-scenario','q-dpg-cf-watch','q-dpg-cf-rr-card','is-current'])assert.ok(css.includes(token),token);
   assert.match(css,/@media\(max-width:480px\)/);
 });
+
+
+test('Wave CF Browser E2E explicitly validates the new scenario/setup/R:R experience on desktop and mobile',async()=>{
+  const e2e=await read('scripts/qelly-decision-range-selection-e2e.mjs');
+  for(const token of ['cf-setup-summary','cf-watch-next','cf-scenario-map','cf-rr-interaction','data-dpg-cf-rr="2"','STRICT CALIBRATION','waveCf'])assert.ok(e2e.includes(token),token);
+  assert.match(e2e,/cfWatchCount<3\|\|cfWatchCount>5/);
+  assert.match(e2e,/numeric<80/);
+});

@@ -178,6 +178,48 @@ const exercise=async({name,viewport,touch=false})=>{
   const activeThree=await page.locator('[data-dpg-next-move]').first().getAttribute('data-active-bars');
   if(activeThree!=='3')failures.push({type:'next-move-horizon',activeThree});
   await page.locator('[data-dpg-next-bars="1"]').first().click();
+
+  const cfSetup=page.locator('[data-dpg-cf-setup]').first();
+  await cfSetup.waitFor({state:'visible',timeout:10_000});
+  const cfSetupText=(await cfSetup.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  const cfSetupRequired=['current setup','direction','entry','stop','invalidation','selected r:r','setup probability','calibration','expiry','event risk','t1 / t2 / t3 / t4','lifecycle','r:r visual ladder'].every(label=>cfSetupText.includes(label));
+  const cfLifecycleCurrent=await cfSetup.locator('.q-dpg-cf-lifecycle .is-current').count();
+  const cfLifecycleIcons=await cfSetup.locator('.q-dpg-cf-lifecycle b').count();
+  const cfTargetCards=await cfSetup.locator('.q-dpg-cf-targets span').count();
+  const cfRrCards=await cfSetup.locator('[data-dpg-cf-rr-card]').count();
+  const cfRrIds=await cfSetup.locator('[data-dpg-cf-rr]').evaluateAll(nodes=>nodes.map(node=>node.getAttribute('data-dpg-cf-rr')));
+  const cfProbabilityText=String(await cfSetup.locator('.q-dpg-cf-setup__facts').innerText()).toUpperCase();
+  if(!cfSetupRequired||cfLifecycleCurrent!==1||cfLifecycleIcons<10||cfTargetCards!==4||cfRrCards!==6||JSON.stringify(cfRrIds)!==JSON.stringify(['1','2','3','4','auto','custom'])||(!cfProbabilityText.includes('UNCALIBRATED')&&!/%/.test(cfProbabilityText)))failures.push({type:'cf-setup-summary',cfSetupRequired,cfLifecycleCurrent,cfLifecycleIcons,cfTargetCards,cfRrCards,cfRrIds,cfProbabilityText,text:cfSetupText});
+
+  const cfWatch=page.locator('[data-dpg-cf-watch]').first();
+  await cfWatch.waitFor({state:'visible',timeout:10_000});
+  const cfWatchText=(await cfWatch.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  const cfWatchCount=await cfWatch.locator('li').count();
+  if(cfWatchCount<3||cfWatchCount>5||!cfWatchText.includes('what should i watch?')||!cfWatchText.includes('evidence triggers'))failures.push({type:'cf-watch-next',cfWatchCount,text:cfWatchText});
+
+  const cfScenarios=page.locator('[data-dpg-cf-scenarios]').first();
+  await cfScenarios.waitFor({state:'visible',timeout:10_000});
+  const cfScenarioText=(await cfScenarios.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  const cfScenarioCards=await cfScenarios.locator('[data-dpg-cf-scenario]').count();
+  const cfScenarioRequired=['scenario map','bull','base','bear','target zone','what must happen','invalidation','calibration','research only'].every(label=>cfScenarioText.includes(label));
+  const cfHighProbabilitySafe=await cfScenarios.locator('[data-dpg-cf-scenario]').evaluateAll(nodes=>nodes.every(node=>{
+    const value=String(node.querySelector('h3')?.textContent||'').trim();
+    const numeric=value.endsWith('%')?Number(value.slice(0,-1)):null;
+    if(!Number.isFinite(numeric)||numeric<80)return true;
+    const state=String(node.querySelector('header > span')?.textContent||'').toUpperCase();
+    return state.includes('STRICT CALIBRATION');
+  }));
+  if(cfScenarioCards<3||cfScenarioCards>4||!cfScenarioRequired||!cfHighProbabilitySafe)failures.push({type:'cf-scenario-map',cfScenarioCards,cfScenarioRequired,cfHighProbabilitySafe,text:cfScenarioText});
+
+  await page.locator('[data-dpg-cf-rr="2"]').first().click();
+  await page.waitForFunction(()=>document.querySelector('[data-dpg-rr]')?.value==='2',null,{timeout:10_000});
+  await page.waitForFunction(()=>document.querySelector('[data-dpg-cf-rr-card="2"]')?.classList.contains('is-active')===true,null,{timeout:10_000});
+  const cfRrTwoActive=await page.locator('[data-dpg-cf-rr-card="2"].is-active').count();
+  await page.locator('[data-dpg-cf-rr="auto"]').first().click();
+  await page.waitForFunction(()=>document.querySelector('[data-dpg-rr]')?.value==='auto',null,{timeout:10_000});
+  const cfRrAutoActive=await page.locator('[data-dpg-cf-rr-card="auto"].is-active').count();
+  if(cfRrTwoActive!==1||cfRrAutoActive!==1)failures.push({type:'cf-rr-interaction',cfRrTwoActive,cfRrAutoActive});
+
   const assetPickerToggle=page.locator('[data-dpg-asset-picker-toggle]').first();
   await assetPickerToggle.waitFor({state:'visible',timeout:10_000});
   await assetPickerToggle.click();
@@ -377,7 +419,7 @@ const exercise=async({name,viewport,touch=false})=>{
   const forbiddenFlowClaims=['identified whale','confirmed institution bought','confirmed institution sold'].some(label=>normalizedFlow.includes(label));
   if(!flowRequired||forbiddenFlowClaims)failures.push({type:'range-flow',text:flowText,flowRequired,forbiddenFlowClaims});
   await page.screenshot({path:path.join(outputDir,`decision-range-selected-${name}.png`),fullPage:true});
-  const result={name,viewport,touch,nextMove:{projectedState,nextMoveRequired,probabilitySafe,activeThree},assetPicker:{fitsViewport:pickerFitsViewport,required:pickerRequired,selectableCount,favoriteEth},setupFinder:{required:setupFinderRequired,aggressiveRequest:setupRequestOk,closestCandidate:closestCandidateRequired,closestInterval},decisionModes:{simpleDefault:true,advanced:advancedRequired,research:researchRequired},qellyDock:{centered:dockCentered,composer:dockComposerRequired,rangeAware:rangeAwareDock},persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,rangeTimeline:timelineRequired,rangeTimelineText:timelineText,rangeReplay:replayRequired&&replayScrubs,rangeReplayText:replayText,rangeSimilarMoves:similarRequired,rangeSimilarMovesText:similarText,rangeFlow:flowRequired,rangeFlowText:flowText,failures};
+  const result={name,viewport,touch,nextMove:{projectedState,nextMoveRequired,probabilitySafe,activeThree},waveCf:{setup:cfSetupRequired,lifecycleCurrent:cfLifecycleCurrent,watchCount:cfWatchCount,scenarioCards:cfScenarioCards,highProbabilitySafe:cfHighProbabilitySafe,rrCards:cfRrCards,rrInteractive:cfRrTwoActive===1&&cfRrAutoActive===1},assetPicker:{fitsViewport:pickerFitsViewport,required:pickerRequired,selectableCount,favoriteEth},setupFinder:{required:setupFinderRequired,aggressiveRequest:setupRequestOk,closestCandidate:closestCandidateRequired,closestInterval},decisionModes:{simpleDefault:true,advanced:advancedRequired,research:researchRequired},qellyDock:{centered:dockCentered,composer:dockComposerRequired,rangeAware:rangeAwareDock},persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,rangeTimeline:timelineRequired,rangeTimelineText:timelineText,rangeReplay:replayRequired&&replayScrubs,rangeReplayText:replayText,rangeSimilarMoves:similarRequired,rangeSimilarMovesText:similarText,rangeFlow:flowRequired,rangeFlowText:flowText,failures};
   results.push(result);
   await context.close();
 };
