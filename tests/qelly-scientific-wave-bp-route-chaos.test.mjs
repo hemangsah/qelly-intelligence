@@ -56,9 +56,9 @@ test('Wave BP unavailable chaos instrumentation fails the Browser E2E release ga
 });
 
 
-test('Wave BP remaining native Decision controls defer redraw while Wave BX asset changes use the picker path',async()=>{
+test('Wave BP remaining native Decision controls defer redraw while Wave CH batches superseded reloads',async()=>{
   const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
-  assert.match(route,/const scheduleLoad=\(\)=>setTimeout\(\(\)=>load\(\),0\)/);
+  assert.match(route,/const scheduleLoad=\(\)=>\{\s*if\(scheduledLoadTimer\)clearTimeout\(scheduledLoadTimer\);\s*scheduledLoadTimer=setTimeout\(\(\)=>\{scheduledLoadTimer=0;void load\(\);\},16\);\s*\}/);
   assert.match(route,/state\.draft=null;state\.selection=null;scheduleLoad\(\)/);
   assert.match(route,/feature:'risk_reward',action:'select',state:rrTelemetryState\(state\.rr\)\}\);\s*scheduleLoad\(\)/);
   assert.match(route,/state\.customRr=event\.currentTarget\.value;state\.scan=null;state\.scanError=null;scheduleLoad\(\)/);

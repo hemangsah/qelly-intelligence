@@ -1111,15 +1111,30 @@ export async function renderDecisionProvenGraph(main,deps){
     main.innerHTML='<section class="q-page q-dpg-page">'+stateBanner()+hero(data)+decisionModeSwitcher()+'<section class="q-dpg-controls q-dpg-controls--decision" aria-label="Decision controls">'+select('horizon',validHorizons(state.interval))+'<label><span>Risk / reward</span><select data-dpg-rr><option value="auto" '+(state.rr==='auto'?'selected':'')+'>Auto</option><option value="1" '+(state.rr==='1'?'selected':'')+'>1:1</option><option value="2" '+(state.rr==='2'?'selected':'')+'>1:2</option><option value="3" '+(state.rr==='3'?'selected':'')+'>1:3</option><option value="4" '+(state.rr==='4'?'selected':'')+'>1:4</option><option value="custom" '+(state.rr==='custom'?'selected':'')+'>Custom</option></select></label>'+(state.rr==='custom'?'<label><span>Custom R:R</span><input data-dpg-custom-rr type="number" min="0.5" max="10" step="0.1" value="'+escapeHtml(state.customRr)+'"></label>':'')+'<p>Public research · no sign-in required · no trade execution</p></section>'+setupDiscoveryControlsMarkup(state,escapeHtml)+(state.uiMode==='simple'?'':scannerFiltersMarkup(state,escapeHtml))+scannerMarkup(state.scan,{scanning:state.scanning,error:state.scanError,escapeHtml,mode:state.scanFilters.mode,ranking:state.scanFilters.ranking})+(state.loading?'<section class="q-dpg-state" role="status"><span class="q-spinner"></span><h2>Weighing fresh evidence</h2><p>Loading market observations and scenario ranges.</p></section>':'')+(state.error?'<section class="q-dpg-state q-dpg-state--error" role="alert"><h2>Live research unavailable</h2><p>'+escapeHtml(state.error)+'</p><button class="q-button q-button--secondary" data-dpg-refresh>Try again</button></section>':'')+(data?content(data):'')+'</section>'+(data?qellyChatDockMarkup(data):'');
     wire();bindDockViewportClearance();mountAdSlots(main);
   };
-  const scheduleLoad=()=>setTimeout(()=>load(),0);
+  let scheduledLoadTimer=0,rangeEvidenceController=null,decisionLoadController=null,decisionLoadRequest=0;
+  const scheduleLoad=()=>{
+    if(scheduledLoadTimer)clearTimeout(scheduledLoadTimer);
+    scheduledLoadTimer=setTimeout(()=>{scheduledLoadTimer=0;void load();},16);
+  };
+  const cancelRangeEvidenceRequest=()=>{
+    state.rangeEvidenceRequest+=1;
+    const hadActiveRequest=Boolean(rangeEvidenceController);
+    rangeEvidenceController?.abort();
+    rangeEvidenceController=null;
+    state.rangeEvidenceLoading=false;
+    state.rangeEvidenceError=null;
+    if(hadActiveRequest)emitRuntimeSignal({feature:'range_evidence',action:'abort',state:'superseded',surface:'decision'});
+  };
   const selectionKey=(selection)=>selection?String(selection.start)+'|'+String(selection.end):'';
   async function loadExactRangeEvidence(selection){
     if(!selection||!state.data)return false;
-    const key=selectionKey(selection),requestId=++state.rangeEvidenceRequest;
+    rangeEvidenceController?.abort();
+    const controller=new AbortController();rangeEvidenceController=controller;
+    const key=selectionKey(selection),requestId=++state.rangeEvidenceRequest,startedAt=performance.now();
     state.rangeEvidenceLoading=true;state.rangeEvidenceError=null;draw();
     try{
       const params=new URLSearchParams({asset:state.asset,interval:state.interval,horizon:state.horizon,rangeStart:String(selection.start),rangeEnd:String(selection.end),timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'});
-      const result=await api('/api/v1/decision-range-evidence?'+params.toString());
+      const result=await api('/api/v1/decision-range-evidence?'+params.toString(),{signal:controller.signal});
       if(requestId!==state.rangeEvidenceRequest||selectionKey(state.selection)!==key||!state.data)return false;
       state.data={
         ...state.data,
@@ -1128,11 +1143,14 @@ export async function renderDecisionProvenGraph(main,deps){
         rangeReplay:result?.rangeReplay||state.data.rangeReplay,
         selectedRangeSimilarMoves:result?.selectedRangeSimilarMoves||state.data.selectedRangeSimilarMoves
       };
+      emitRuntimeSignal({feature:'range_evidence',action:'latency',state:performance.now()-startedAt>=2000?'gte_2000ms':performance.now()-startedAt>=1000?'gte_1000ms':performance.now()-startedAt>=500?'500_999ms':'lt_500ms',surface:'decision'});
       return Boolean(result?.rangeEvidence);
     }catch(error){
+      if(error?.name==='AbortError'){emitRuntimeSignal({feature:'range_evidence',action:'abort',state:'network_cancelled',surface:'decision'});return false;}
       if(requestId===state.rangeEvidenceRequest)state.rangeEvidenceError=error?.message||'Exact historical range evidence is unavailable.';
       return false;
     }finally{
+      if(rangeEvidenceController===controller)rangeEvidenceController=null;
       if(requestId===state.rangeEvidenceRequest){state.rangeEvidenceLoading=false;draw();}
     }
   }
@@ -1141,8 +1159,7 @@ export async function renderDecisionProvenGraph(main,deps){
     const commitRangeSelection=async(targetSelector=null)=>{
       if(!state.draft)return false;
       state.selection=state.draft;state.rangeReplayIndex=0;
-      await load();
-      if(!state.data)return false;
+      if(!await load()||!state.data)return false;
       await loadExactRangeEvidence(state.selection);
       if(targetSelector)main.querySelector(targetSelector)?.scrollIntoView({behavior:'smooth',block:'start'});
       return true;
@@ -1185,7 +1202,7 @@ export async function renderDecisionProvenGraph(main,deps){
       state.asset=symbol;state.assetPickerOpen=false;state.assetQuery='';state.scan=null;state.scanError=null;state.rangeReplayIndex=0;
       state.assetRecent=recordDecisionAssetRecent(state.assetRecent,symbol);
       saveDecisionAssetPreferences({favorites:state.assetFavorites,recent:state.assetRecent});
-      state.chatDockOpen=false;state.rangeEvidenceRequest++;state.rangeEvidenceLoading=false;state.rangeEvidenceError=null;state.draft=null;state.selection=null;scheduleLoad();
+      state.chatDockOpen=false;cancelRangeEvidenceRequest();state.draft=null;state.selection=null;scheduleLoad();
     }));
     main.querySelectorAll('[data-dpg-next-bars]').forEach(button=>button.addEventListener('click',()=>{
       const value=button.dataset.dpgNextBars;
@@ -1205,7 +1222,7 @@ export async function renderDecisionProvenGraph(main,deps){
       const key=element.hasAttribute('data-dpg-interval')?'interval':'horizon';
       state[key]=element.value;
       if(key==='interval')state.horizon=normalizeHorizon(state.interval,state.horizon);
-      state.scan=null;state.scanError=null;state.chatDockOpen=false;state.rangeEvidenceRequest++;state.rangeEvidenceLoading=false;state.rangeEvidenceError=null;state.draft=null;state.selection=null;scheduleLoad();
+      state.scan=null;state.scanError=null;state.chatDockOpen=false;cancelRangeEvidenceRequest();state.draft=null;state.selection=null;scheduleLoad();
     }));
     main.querySelector('[data-dpg-rr]')?.addEventListener('change',(event)=>{
       state.rr=event.currentTarget.value;state.scan=null;state.scanError=null;
@@ -1230,7 +1247,7 @@ export async function renderDecisionProvenGraph(main,deps){
     main.querySelector('[data-dpg-ledger-track]')?.addEventListener('click',trackCurrentSetup);
     main.querySelectorAll('[data-dpg-ledger-observe]').forEach(button=>button.addEventListener('click',()=>observeTrackedSetup(button.dataset.dpgLedgerObserve)));
     main.querySelectorAll('[data-dpg-scan-filter]').forEach(element=>element.addEventListener('change',()=>{const key=element.dataset.dpgScanFilter;if(key){state.scanFilters[key]=element.value;state.scan=null;state.scanError=null;draw();}}));
-    main.querySelectorAll('[data-dpg-scan-asset]').forEach(button=>button.addEventListener('click',()=>{const symbol=String(button.dataset.dpgScanAsset||'').toUpperCase(),candidateInterval=String(button.dataset.dpgScanInterval||state.interval);if(!Array.isArray(state.assetCatalog?.selectableSymbols)||!state.assetCatalog.selectableSymbols.includes(symbol)||!INTERVAL_MS[candidateInterval])return;state.asset=symbol;state.interval=candidateInterval;state.horizon=normalizeHorizon(state.interval,state.horizon);state.assetRecent=recordDecisionAssetRecent(state.assetRecent,symbol);saveDecisionAssetPreferences({favorites:state.assetFavorites,recent:state.assetRecent});state.draft=null;state.selection=null;load();}));
+    main.querySelectorAll('[data-dpg-scan-asset]').forEach(button=>button.addEventListener('click',()=>{const symbol=String(button.dataset.dpgScanAsset||'').toUpperCase(),candidateInterval=String(button.dataset.dpgScanInterval||state.interval);if(!Array.isArray(state.assetCatalog?.selectableSymbols)||!state.assetCatalog.selectableSymbols.includes(symbol)||!INTERVAL_MS[candidateInterval])return;cancelRangeEvidenceRequest();state.asset=symbol;state.interval=candidateInterval;state.horizon=normalizeHorizon(state.interval,state.horizon);state.assetRecent=recordDecisionAssetRecent(state.assetRecent,symbol);saveDecisionAssetPreferences({favorites:state.assetFavorites,recent:state.assetRecent});state.draft=null;state.selection=null;void load();}));
     main.querySelector('[data-dpg-explain-header]')?.addEventListener('click',()=>{if(state.draft)void commitRangeSelection('.q-dpg-move');});
     main.querySelector('[data-dpg-explain-candle]')?.addEventListener('click',()=>{const candles=state.data?.market?.candles||[],intervalMs=INTERVAL_MS[state.interval],selected=state.draft&&state.draft.end-state.draft.start<intervalMs?state.draft:null,last=candles.at?.(-1);if(selected){void commitRangeSelection('.q-dpg-move');return;}if(last&&intervalMs){state.draft={start:last.time,end:last.time+intervalMs-1};void commitRangeSelection('.q-dpg-move');}});
     main.querySelector('[data-dpg-mtf-jump]')?.addEventListener('click',()=>main.querySelector('#qelly-decision-mtf')?.scrollIntoView({behavior:'smooth',block:'start'}));
@@ -1253,7 +1270,7 @@ export async function renderDecisionProvenGraph(main,deps){
     main.querySelector('[data-dpg-methodology-jump]')?.addEventListener('click',()=>main.querySelector('#qelly-decision-methodology')?.scrollIntoView({behavior:'smooth',block:'start'}));
     main.querySelectorAll('[data-dpg-refresh]').forEach(button=>button.addEventListener('click',load));main.querySelector('[data-dpg-export]')?.addEventListener('click',()=>{download(state.data);toast('Research package exported',{tone:'success'});});
     main.querySelector('[data-dpg-explain]')?.addEventListener('click',()=>{void commitRangeSelection('.q-dpg-move');});
-    main.querySelector('[data-dpg-clear]')?.addEventListener('click',()=>{state.rangeEvidenceRequest++;state.rangeEvidenceLoading=false;state.rangeEvidenceError=null;state.rangeReplayIndex=0;state.draft=null;state.selection=null;void load();});
+    main.querySelector('[data-dpg-clear]')?.addEventListener('click',()=>{cancelRangeEvidenceRequest();state.rangeReplayIndex=0;state.draft=null;state.selection=null;void load();});
     main.querySelectorAll('[data-dpg-chart-mode]').forEach(button=>button.addEventListener('click',()=>{state.chartMode=button.dataset.dpgChartMode||'select-range';draw();}));
     const keyboardSelection=()=>{
       const candles=state.data?.market?.candles||[],intervalMs=INTERVAL_MS[state.interval],startInput=main.querySelector('[data-dpg-range-start]'),endInput=main.querySelector('[data-dpg-range-end]');
@@ -1366,6 +1383,7 @@ export async function renderDecisionProvenGraph(main,deps){
       emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'eligible_setup',action:'count',state:eligibleCount>0?'nonzero':'zero',...(eligibleCount>0?{count:Math.min(100,eligibleCount)}:{})});
       const firstEligible=state.scan?.validatedSetup||state.scan?.candidates?.find?.(item=>item?.eligible);
       if(firstEligible?.asset&&firstEligible?.interval&&(firstEligible.asset!==state.asset||firstEligible.interval!==state.interval)){
+        cancelRangeEvidenceRequest();
         state.asset=firstEligible.asset;state.interval=firstEligible.interval;state.horizon=normalizeHorizon(state.interval,state.horizon);state.draft=null;state.selection=null;
         state.assetRecent=recordDecisionAssetRecent(state.assetRecent,state.asset);
         saveDecisionAssetPreferences({favorites:state.assetFavorites,recent:state.assetRecent});
@@ -1432,6 +1450,10 @@ export async function renderDecisionProvenGraph(main,deps){
   }
 
   async function load(){
+    if(scheduledLoadTimer){clearTimeout(scheduledLoadTimer);scheduledLoadTimer=0;}
+    const requestId=++decisionLoadRequest;
+    decisionLoadController?.abort();
+    const controller=new AbortController();decisionLoadController=controller;
     const observabilityStartedAt=startDecisionObservation();
     state.loading=true;state.error=null;draw();
     try{
@@ -1440,18 +1462,27 @@ export async function renderDecisionProvenGraph(main,deps){
       const rr='&rr='+encodeURIComponent(state.rr)+(state.rr==='custom'?'&customRr='+encodeURIComponent(state.customRr):'');
       const nextBars=state.nextMoveBars==='custom'?'&nextBars='+encodeURIComponent(state.nextMoveCustomBars):'';
       const previous=state.data?.decisionSnapshot||null;
-      const next=await api('/api/v1/decision-proven-graph?asset='+encodeURIComponent(state.asset)+'&interval='+encodeURIComponent(state.interval)+'&horizon='+encodeURIComponent(state.horizon)+rr+nextBars+range);
+      const next=await api('/api/v1/decision-proven-graph?asset='+encodeURIComponent(state.asset)+'&interval='+encodeURIComponent(state.interval)+'&horizon='+encodeURIComponent(state.horizon)+rr+nextBars+range,{signal:controller.signal});
+      if(requestId!==decisionLoadRequest)return false;
       state.previousSnapshot=previous&&next?.decisionSnapshot&&previous.asset===next.decisionSnapshot.asset&&previous.interval===next.decisionSnapshot.interval?previous:null;
       state.data=next;
       updateSlo(recordDecisionObservation({startedAt:observabilityStartedAt,data:next,rrState:rrTelemetryState(state.rr)}));
       void enrichDecisionNews(next);
       emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'decision_view',action:'result',state:telemetryToken(next?.qellyView?.action||'unavailable')});
       emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'calibration',action:'state',state:telemetryToken(next?.quant?.calibration?.state||'uncalibrated')});
+      return true;
     }catch(error){
-      state.data=null;state.previousSnapshot=null;state.error=error?.message||'Fresh market evidence could not be reached. No substitute data was generated.';
-      updateSlo(recordDecisionObservation({startedAt:observabilityStartedAt,rrState:rrTelemetryState(state.rr),failed:true}));
-      emitRuntimeSignal({feature:'decision',action:'failure',state:'unavailable',surface:'api'});
-    }finally{state.loading=false;draw();if(ledgerAuthenticated()&&!state.ledger&&!state.ledgerLoading)void loadLedger();}
+      if(error?.name==='AbortError'){emitRuntimeSignal({feature:'decision',action:'abort',state:'superseded',surface:'api'});return false;}
+      if(requestId===decisionLoadRequest){
+        state.data=null;state.previousSnapshot=null;state.error=error?.message||'Fresh market evidence could not be reached. No substitute data was generated.';
+        updateSlo(recordDecisionObservation({startedAt:observabilityStartedAt,rrState:rrTelemetryState(state.rr),failed:true}));
+        emitRuntimeSignal({feature:'decision',action:'failure',state:'unavailable',surface:'api'});
+      }
+      return false;
+    }finally{
+      if(decisionLoadController===controller)decisionLoadController=null;
+      if(requestId===decisionLoadRequest){state.loading=false;draw();if(ledgerAuthenticated()&&!state.ledger&&!state.ledgerLoading)void loadLedger();}
+    }
   }
   await loadAssetCatalog({redraw:false});
   await load();

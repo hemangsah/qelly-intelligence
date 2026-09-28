@@ -115,7 +115,7 @@ test('timeframe agreement measures aligned evidence across all observed frames',
   assert.match(result.graph.textAlternative[0],/QELLY VIEW NO TRADE/);
 });
 
-test('public endpoint validates controls and returns cacheable provider-derived evidence',async()=>{
+test('public endpoint validates controls and returns fresh provider-derived evidence',async()=>{
   const providerBodies=[];const now=candles.at(-1).t+900_000;
   const request=new Request('https://terminal.qellyintelligence.com/api/v1/decision-proven-graph?asset=BTC&interval=15m&horizon=4h');
   const response=await onRequest({request,env:{__fetch:async(url,options={})=>{
@@ -126,7 +126,7 @@ test('public endpoint validates controls and returns cacheable provider-derived 
     }
     return new Response(JSON.stringify({articles:[]}),{status:200,headers:{'content-type':'application/json'}});
   }}});
-  assert.equal(response.status,200);assert.match(response.headers.get('cache-control'),/stale-while-revalidate/);
+  assert.equal(response.status,200);assert.match(response.headers.get('cache-control'),/max-age=2/);assert.match(response.headers.get('cache-control'),/must-revalidate/);assert.doesNotMatch(response.headers.get('cache-control'),/stale-while-revalidate/);
   assert.ok(providerBodies.some(body=>body.type==='candleSnapshot'&&body.req.coin==='BTC'));
   assert.ok(providerBodies.some(body=>body.type==='metaAndAssetCtxs'));
   const body=await response.json();assert.equal(body.provenance.provider,'Hyperliquid');assert.equal(body.horizon,'4h');assert.ok(new Date(body.generatedAt).getTime()>0);assert.equal(body.multiTimeframe.state,'live');assert.ok(body.multiTimeframe.views.length>=4);assert.ok(body.qellyView.evidenceGate);assert.ok(body.confidence.breakdown);assert.match(body.confidence.calibration,/timeframe agreement/i);
