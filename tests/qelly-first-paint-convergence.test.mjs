@@ -63,6 +63,17 @@ test('current product header is visible before route readiness while main conten
   assert.doesNotMatch(html,/data-app-ready="false"\] \.q-app\{visibility:hidden/);
 });
 
+test('browser stability evidence settles buffered Web Vitals without weakening thresholds',async()=>{
+  const probe=await read('scripts/qelly-first-paint-stability.mjs');
+  assert.match(probe,/getEntriesByType\('paint'\).*first-contentful-paint/s);
+  assert.match(probe,/waitForFunction\(\(\{requiresInteraction\}\)=>/);
+  assert.match(probe,/timeout:1500,polling:50/);
+  assert.match(probe,/if\(Number\(vitals\.fcpMs\)>3000\)vitalRegressions\.push\('fcp'\)/);
+  assert.match(probe,/if\(Number\(vitals\.lcpMs\)>4000\)vitalRegressions\.push\('lcp'\)/);
+  assert.match(probe,/if\(Number\(vitals\.cls\)>0\.25\)vitalRegressions\.push\('cls'\)/);
+  assert.match(probe,/if\(representativeInteraction&&Number\(vitals\.inpMs\)>500\)vitalRegressions\.push\('inp'\)/);
+});
+
 test('browser stability evidence measures repeated route switching after forced GC',async()=>{
   const probe=await read('scripts/qelly-first-paint-stability.mjs');
   assert.match(probe,/runRouteCycleStabilityProbe/);
