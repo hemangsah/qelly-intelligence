@@ -1013,7 +1013,7 @@ export async function renderDecisionProvenGraph(main,deps){
     ];
     const expanded=state.chatDockOpen;
     return '<aside class="q-dpg-chat-dock" data-dpg-chat-dock data-open="'+(expanded?'true':'false')+'" aria-label="QELLY contextual research dock">'+
-      (expanded?'<section id="qelly-decision-chat-composer" class="q-dpg-chat-dock__composer" data-dpg-chat-dock-composer><header><div><small>QELLY CONTEXT DOCK</small><strong>'+escapeHtml(primary.state)+'</strong></div><button type="button" data-dpg-chat-dock-close aria-label="Close QELLY context composer">×</button></header><div class="q-dpg-chat-dock__chips" aria-label="QELLY quick research actions">'+chips.map(([kind,label])=>'<button type="button" data-dpg-chat-quick="'+kind+'">'+escapeHtml(label)+'</button>').join('')+'</div><form data-dpg-chat-form><label><span class="q-visually-hidden">Ask QELLY about the current Decision context</span><textarea rows="2" maxlength="1200" data-dpg-chat-input placeholder="'+escapeHtml(primary.label)+'…"></textarea></label><button type="submit">Open QELLY <span aria-hidden="true">↑</span></button></form><footer><span>'+escapeHtml(state.asset)+' · '+escapeHtml(state.interval)+' · '+escapeHtml(action)+'</span><small>Existing QELLY Chat · current Decision evidence · research only</small></footer></section>':'')+
+      '<section id="qelly-decision-chat-composer" class="q-dpg-chat-dock__composer" data-dpg-chat-dock-composer '+(expanded?'':'hidden')+'><header><div><small>QELLY CONTEXT DOCK</small><strong>'+escapeHtml(primary.state)+'</strong></div><button type="button" data-dpg-chat-dock-close aria-label="Close QELLY context composer">×</button></header><div class="q-dpg-chat-dock__chips" aria-label="QELLY quick research actions">'+chips.map(([kind,label])=>'<button type="button" data-dpg-chat-quick="'+kind+'">'+escapeHtml(label)+'</button>').join('')+'</div><form data-dpg-chat-form><label><span class="q-visually-hidden">Ask QELLY about the current Decision context</span><textarea rows="2" maxlength="1200" data-dpg-chat-input placeholder="'+escapeHtml(primary.label)+'…"></textarea></label><button type="submit">Open QELLY <span aria-hidden="true">↑</span></button></form><footer><span>'+escapeHtml(state.asset)+' · '+escapeHtml(state.interval)+' · '+escapeHtml(action)+'</span><small>Existing QELLY Chat · current Decision evidence · research only</small></footer></section>'+
       '<button type="button" class="q-dpg-chat-dock__bar" data-dpg-open-chat data-dpg-chat-dock-toggle aria-expanded="'+(expanded?'true':'false')+'" aria-controls="qelly-decision-chat-composer"><img src="./assets/brand/qelly-symbol.svg" width="32" height="32" alt=""><span><small>'+escapeHtml(primary.state)+'</small><strong>'+escapeHtml(primary.label)+'</strong><em>'+escapeHtml(state.asset)+' · '+escapeHtml(state.interval)+'</em></span><b aria-hidden="true">'+(expanded?'−':'↑')+'</b></button>'+
       '<span class="q-dpg-chat-dock__hint" aria-hidden="true">Grounded in the current Decision context</span>'+
     '</aside>';
@@ -1176,10 +1176,10 @@ export async function renderDecisionProvenGraph(main,deps){
       return true;
     };
     main.querySelector('[data-dpg-chat-dock-toggle]')?.addEventListener('click',()=>{state.chatDockOpen=!state.chatDockOpen;draw();if(state.chatDockOpen)requestAnimationFrame(()=>main.querySelector('[data-dpg-chat-input]')?.focus());});
-    main.querySelector('[data-dpg-chat-dock-close]')?.addEventListener('click',()=>{state.chatDockOpen=false;draw();});
+    main.querySelector('[data-dpg-chat-dock-close]')?.addEventListener('click',()=>{state.chatDockOpen=false;draw();requestAnimationFrame(()=>main.querySelector('[data-dpg-chat-dock-toggle]')?.focus());});
     main.querySelectorAll('[data-dpg-chat-quick]').forEach(button=>button.addEventListener('click',()=>openDecisionChat(decisionChatPrompt(button.dataset.dpgChatQuick,state.data))));
     main.querySelector('[data-dpg-chat-form]')?.addEventListener('submit',(event)=>{event.preventDefault();const input=main.querySelector('[data-dpg-chat-input]');openDecisionChat(decisionChatPrompt('custom',state.data,input?.value||''));});
-    main.querySelector('[data-dpg-chat-input]')?.addEventListener('keydown',(event)=>{if(event.key==='Escape'){event.preventDefault();state.chatDockOpen=false;draw();}});
+    main.querySelector('[data-dpg-chat-input]')?.addEventListener('keydown',(event)=>{if(event.key==='Escape'){event.preventDefault();state.chatDockOpen=false;draw();requestAnimationFrame(()=>main.querySelector('[data-dpg-chat-dock-toggle]')?.focus());}});
     main.querySelectorAll('[data-dpg-ui-mode],[data-dpg-ui-mode-jump]').forEach(button=>button.addEventListener('click',()=>{
       const next=button.dataset.dpgUiMode||button.dataset.dpgUiModeJump;
       if(!['simple','advanced','research'].includes(next)||next===state.uiMode)return;
@@ -1188,8 +1188,19 @@ export async function renderDecisionProvenGraph(main,deps){
       draw();
       main.querySelector('[data-dpg-mode-switcher]')?.scrollIntoView({behavior:motionBehavior(),block:'nearest'});
     }));
+    main.querySelectorAll('[data-dpg-ui-mode]').forEach((button)=>button.addEventListener('keydown',(event)=>{
+      if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+      event.preventDefault();
+      const tabs=[...main.querySelectorAll('[data-dpg-ui-mode]')],index=tabs.indexOf(button);
+      if(index<0||!tabs.length)return;
+      const nextIndex=event.key==='Home'?0:event.key==='End'?tabs.length-1:event.key==='ArrowRight'?(index+1)%tabs.length:(index-1+tabs.length)%tabs.length;
+      const nextMode=tabs[nextIndex]?.dataset.dpgUiMode;
+      tabs[nextIndex]?.click();
+      requestAnimationFrame(()=>main.querySelector('[data-dpg-ui-mode="'+nextMode+'"]')?.focus());
+    }));
     main.querySelector('[data-dpg-asset-picker-toggle]')?.addEventListener('click',()=>{state.assetPickerOpen=!state.assetPickerOpen;draw();if(state.assetPickerOpen)requestAnimationFrame(()=>main.querySelector('[data-dpg-asset-search]')?.focus());});
-    main.querySelector('[data-dpg-asset-picker-close]')?.addEventListener('click',()=>{state.assetPickerOpen=false;state.assetQuery='';draw();});
+    main.querySelector('[data-dpg-asset-picker-close]')?.addEventListener('click',()=>{state.assetPickerOpen=false;state.assetQuery='';draw();requestAnimationFrame(()=>main.querySelector('[data-dpg-asset-picker-toggle]')?.focus());});
+    main.querySelector('[data-dpg-asset-picker-panel]')?.addEventListener('keydown',(event)=>{if(event.key==='Escape'){event.preventDefault();state.assetPickerOpen=false;state.assetQuery='';draw();requestAnimationFrame(()=>main.querySelector('[data-dpg-asset-picker-toggle]')?.focus());}});
     main.querySelector('[data-dpg-asset-search]')?.addEventListener('input',(event)=>{
       state.assetQuery=event.currentTarget.value;
       const query=state.assetQuery.trim().toLowerCase();
