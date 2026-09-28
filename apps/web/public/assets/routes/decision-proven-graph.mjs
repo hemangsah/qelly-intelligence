@@ -1202,7 +1202,7 @@ export async function renderDecisionProvenGraph(main,deps){
         draw();
         main.querySelector('[data-dpg-mode-switcher]')?.scrollIntoView({behavior:motionBehavior(),block:'nearest'});
       }
-      requestAnimationFrame(()=>main.querySelector('[data-dpg-ui-mode="'+nextMode+'"]')?.focus());
+      main.querySelector('[data-dpg-ui-mode="'+nextMode+'"]')?.focus();
     }));
     main.querySelector('[data-dpg-asset-picker-toggle]')?.addEventListener('click',()=>{state.assetPickerOpen=!state.assetPickerOpen;draw();if(state.assetPickerOpen)requestAnimationFrame(()=>main.querySelector('[data-dpg-asset-search]')?.focus());});
     main.querySelector('[data-dpg-asset-picker-close]')?.addEventListener('click',()=>{state.assetPickerOpen=false;state.assetQuery='';draw();requestAnimationFrame(()=>main.querySelector('[data-dpg-asset-picker-toggle]')?.focus());});
