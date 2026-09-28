@@ -1118,9 +1118,11 @@ export async function renderDecisionProvenGraph(main,deps){
   const draw=()=>{
     if(chartGestureActive){chartGestureDeferredDraw=true;return;}
     chartGestureDeferredDraw=false;
+    const focusedMode=main.querySelector('[data-dpg-ui-mode]:focus')?.dataset.dpgUiMode||null;
     const data=state.data;
     main.innerHTML='<section class="q-page q-dpg-page">'+stateBanner()+hero(data)+decisionModeSwitcher()+'<section class="q-dpg-controls q-dpg-controls--decision" aria-label="Decision controls">'+select('horizon',validHorizons(state.interval))+'<label><span>Risk / reward</span><select data-dpg-rr><option value="auto" '+(state.rr==='auto'?'selected':'')+'>Auto</option><option value="1" '+(state.rr==='1'?'selected':'')+'>1:1</option><option value="2" '+(state.rr==='2'?'selected':'')+'>1:2</option><option value="3" '+(state.rr==='3'?'selected':'')+'>1:3</option><option value="4" '+(state.rr==='4'?'selected':'')+'>1:4</option><option value="custom" '+(state.rr==='custom'?'selected':'')+'>Custom</option></select></label>'+(state.rr==='custom'?'<label><span>Custom R:R</span><input data-dpg-custom-rr type="number" min="0.5" max="10" step="0.1" value="'+escapeHtml(state.customRr)+'"></label>':'')+'<p>Public research · no sign-in required · no trade execution</p></section>'+setupDiscoveryControlsMarkup(state,escapeHtml)+(state.uiMode==='simple'?'':scannerFiltersMarkup(state,escapeHtml))+scannerMarkup(state.scan,{scanning:state.scanning,error:state.scanError,escapeHtml,mode:state.scanFilters.mode,ranking:state.scanFilters.ranking})+(state.loading?'<section class="q-dpg-state" role="status"><span class="q-spinner"></span><h2>Weighing fresh evidence</h2><p>Loading market observations and scenario ranges.</p></section>':'')+(state.error?'<section class="q-dpg-state q-dpg-state--error" role="alert"><h2>Live research unavailable</h2><p>'+escapeHtml(state.error)+'</p><button class="q-button q-button--secondary" data-dpg-refresh>Try again</button></section>':'')+(data?content(data):'')+'</section>'+(data?qellyChatDockMarkup(data):'');
     wire();bindDockViewportClearance();mountAdSlots(main);
+    if(focusedMode)main.querySelector('[data-dpg-ui-mode="'+focusedMode+'"]')?.focus();
   };
   let scheduledLoadTimer=0,rangeEvidenceController=null,decisionLoadController=null,decisionLoadRequest=0;
   const scheduleLoad=()=>{
