@@ -27,3 +27,13 @@ test('Wave CE Browser E2E injects local range-history builders and proves replay
   const e2e=await readFile(new URL('../scripts/qelly-decision-range-selection-e2e.mjs',import.meta.url),'utf8');
   for(const token of ['buildDecisionRangeReplay','buildSelectedRangeSimilarMoves','range-replay','range-similar-moves','data-dpg-replay-slider','replayScrubs','similarRequired'])assert.ok(e2e.includes(token),token);
 });
+
+
+test('Wave CE Browser E2E accepts ISO or numeric selection bounds and fails loudly when replay fixture construction is unavailable',async()=>{
+  const e2e=await readFile(new URL('../scripts/qelly-decision-range-selection-e2e.mjs',import.meta.url),'utf8');
+  assert.match(e2e,/const fixtureEpochMs=\(value\)=>/);
+  assert.match(e2e,/Date\.parse\(String\(value\)\)/);
+  assert.doesNotMatch(e2e,/const selectedStart=Number\(payload\.selection\?\.start\),selectedEnd=Number\(payload\.selection\?\.end\)/);
+  assert.match(e2e,/CE browser fixture received invalid selected-range bounds/);
+  assert.match(e2e,/payload\.rangeReplay\?\.state!=='AVAILABLE'/);
+});

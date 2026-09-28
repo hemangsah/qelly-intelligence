@@ -18,6 +18,13 @@ const executablePath=process.env.QELLY_BROWSER_EXECUTABLE||'/usr/bin/chromium';
 const browser=await chromium.launch({headless:true,executablePath,args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
 const results=[];
 let latestSelectedPayload=null,lastScanRequest=null;
+const fixtureEpochMs=(value)=>{
+  if(value==null||value==='')return null;
+  const numeric=Number(value);
+  if(Number.isFinite(numeric))return Math.abs(numeric)<100_000_000_000?numeric*1000:numeric;
+  const parsed=Date.parse(String(value));
+  return Number.isFinite(parsed)?parsed:null;
+};
 
 const proxyDecision=async(route)=>{
   const requestUrl=new URL(route.request().url());
@@ -110,7 +117,9 @@ const proxyDecision=async(route)=>{
       payload.nextMoveResearch=buildDecisionNextMoveResearch(payload.market?.candles||[],{asset:payload.asset,interval:payload.interval,customBars,paths:128});
       if(requestUrl.searchParams.has('selectionStart')){
         payload.rangeEvidence=buildDecisionRangeEvidence({graph:payload,evidence:payload.evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:'UTC'});
-        const selectedStart=Number(payload.selection?.start),selectedEnd=Number(payload.selection?.end),selectedDuration=Math.max(60_000,selectedEnd-selectedStart),selectedCandles=payload.market?.candles||[];
+        const selectedStart=fixtureEpochMs(payload.selection?.start),selectedEnd=fixtureEpochMs(payload.selection?.end);
+        if(!Number.isFinite(selectedStart)||!Number.isFinite(selectedEnd)||!(selectedStart<selectedEnd))throw new Error('CE browser fixture received invalid selected-range bounds');
+        const selectedDuration=Math.max(60_000,selectedEnd-selectedStart),selectedCandles=payload.market?.candles||[];
         const fixtureNews=[
           {title:'Replay evidence available early',source:'fixture-replay.example',publishedAt:new Date(selectedStart+Math.min(selectedDuration*.2,3_600_000)).toISOString(),url:'https://fixture-replay.example/early'},
           {title:'Replay evidence available later',source:'fixture-replay.example',publishedAt:new Date(selectedStart+Math.min(selectedDuration*.75,8*3_600_000)).toISOString(),url:'https://fixture-replay.example/late'}
@@ -128,6 +137,7 @@ const proxyDecision=async(route)=>{
         }));
         payload.rangeReplay=buildDecisionRangeReplay({candles:selectedCandles,selection:payload.selection,interval:payload.interval,newsArticles:fixtureNews,fundingRows:fixtureFunding,benchmarkCandles:fixtureBenchmark,benchmark:payload.asset==='BTC'?'ETH':'BTC'});
         payload.selectedRangeSimilarMoves=buildSelectedRangeSimilarMoves(selectedCandles,{selection:payload.selection,interval:payload.interval,limit:5});
+        if(payload.rangeReplay?.state!=='AVAILABLE')throw new Error('CE browser fixture failed to construct an available no-hindsight replay');
         latestSelectedPayload=payload;
       }
       body=JSON.stringify(payload);
