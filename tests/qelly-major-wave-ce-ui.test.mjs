@@ -21,3 +21,9 @@ test('Wave CE UI exposes no-hindsight scrubber and descriptive selected-range an
   assert.match(css,/q-dpg-similar-moves__list/);
   assert.match(css,/@media\(max-width:620px\)/);
 });
+
+
+test('Wave CE Browser E2E injects local range-history builders and proves replay/similarity interactions',async()=>{
+  const e2e=await readFile(new URL('../scripts/qelly-decision-range-selection-e2e.mjs',import.meta.url),'utf8');
+  for(const token of ['buildDecisionRangeReplay','buildSelectedRangeSimilarMoves','range-replay','range-similar-moves','data-dpg-replay-slider','replayScrubs','similarRequired'])assert.ok(e2e.includes(token),token);
+});
