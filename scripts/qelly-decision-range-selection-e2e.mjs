@@ -347,9 +347,11 @@ const exercise=async({name,viewport,touch=false})=>{
   if(!researchRequired)failures.push({type:'decision-mode-research',text:researchText});
   await simpleTab.click();
   await page.locator('[data-dpg-mode-panel="simple"]').first().waitFor({state:'visible',timeout:10_000});
-  await chart.scrollIntoViewIfNeeded();
+  const liveChart=page.locator('[data-dpg-chart]').first();
+  await liveChart.waitFor({state:'visible',timeout:10_000});
+  await liveChart.evaluate((node)=>node.scrollIntoView({block:'center',inline:'nearest'}));
   await page.waitForTimeout(120);
-  const box=await chart.boundingBox();
+  const box=await page.locator('[data-dpg-chart]').first().boundingBox();
   if(!box)throw new Error(name+': chart bounding box unavailable');
   const start={x:box.x+box.width*.24,y:box.y+box.height*.54};
   const end={x:box.x+box.width*.53,y:box.y+box.height*.54};
