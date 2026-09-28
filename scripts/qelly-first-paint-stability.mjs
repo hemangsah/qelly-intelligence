@@ -423,6 +423,15 @@ try{
           await page.keyboard.press('Escape').catch(()=>{});
           await page.waitForTimeout(80);
         }
+        await page.waitForFunction(({requiresInteraction})=>{
+          const state=window.__QELLY_PERF_SIGNALS__,vitals=state?.webVitals;
+          if(!vitals)return false;
+          if(!Number.isFinite(vitals.fcpMs)){
+            const fcp=performance.getEntriesByType('paint').find((entry)=>entry.name==='first-contentful-paint');
+            if(fcp)vitals.fcpMs=Number(fcp.startTime.toFixed(2));
+          }
+          return Number.isFinite(vitals.fcpMs)&&Number.isFinite(vitals.lcpMs)&&Number.isFinite(vitals.cls)&&(!requiresInteraction||Number.isFinite(vitals.inpMs));
+        },{requiresInteraction:representativeInteraction},{timeout:1500,polling:50}).catch(()=>{});
         const performanceSignals=await page.evaluate(()=>({
           longTasks:Array.isArray(window.__QELLY_PERF_SIGNALS__?.longTasks)?window.__QELLY_PERF_SIGNALS__.longTasks:[],
           mutations:Number(window.__QELLY_PERF_SIGNALS__?.mutations||0),
