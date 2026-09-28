@@ -116,5 +116,6 @@ test('Wave BX/CG fixed asset picker escapes local stacking context so mobile com
   const css=await readFile(new URL('../apps/web/public/assets/qelly-decision-proven-graph.css',import.meta.url),'utf8');
   assert.match(css,/\.q-dpg-asset-picker\{position:relative;display:grid;gap:5px;min-width:190px;z-index:auto\}/);
   assert.match(css,/\.q-dpg-asset-picker__panel\{position:fixed[^}]*z-index:280/);
-  assert.match(css,/@media\(max-width:760px\)[^{]*\{[^}]*q-dpg-asset-picker__panel\{[^}]*z-index:340/s);
+  assert.match(css,/@media\(max-width:760px\)/);
+  assert.match(css,/q-dpg-asset-picker__panel\{position:fixed;top:72px[^}]*z-index:340/);
 });
