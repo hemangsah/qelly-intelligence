@@ -23,6 +23,8 @@ test('Wave CI provides accessible Decision depth tabs and focus restoration',asy
     assert.match(route,new RegExp('aria-labelledby="qelly-decision-tab-'+mode+'"'));
   }
   assert.match(route,/\['ArrowLeft','ArrowRight','Home','End'\]/);
+  assert.match(route,/focusedMode=main\.querySelector\('\[data-dpg-ui-mode\]:focus'\)/);
+  assert.match(route,/if\(focusedMode\)main\.querySelector\('\[data-dpg-ui-mode="'\+focusedMode\+'"'\]\)'/);
   assert.match(route,/data-dpg-chat-dock-close[\s\S]{0,260}data-dpg-chat-dock-toggle/);
   assert.match(route,/data-dpg-asset-picker-close[\s\S]{0,320}data-dpg-asset-picker-toggle/);
   assert.match(route,/data-dpg-asset-picker-panel[\s\S]{0,320}event\.key==='Escape'/);
