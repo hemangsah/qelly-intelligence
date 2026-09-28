@@ -95,3 +95,11 @@ test('Wave CH abort telemetry only emits when a range request was actually activ
   assert.match(route,/if\(hadActiveRequest\)emitRuntimeSignal/);
   assert.match(route,/if\(scheduledLoadTimer\)\{clearTimeout\(scheduledLoadTimer\);scheduledLoadTimer=0;\}/);
 });
+
+
+test('Wave CH aborts exact-range work for every scanner or clear-selection handoff',async()=>{
+  const route=await readFile(new URL('../apps/web/public/assets/routes/decision-proven-graph.mjs',import.meta.url),'utf8');
+  assert.match(route,/data-dpg-scan-asset[\s\S]{0,700}cancelRangeEvidenceRequest\(\)[\s\S]{0,700}state\.selection=null;void load\(\)/);
+  assert.match(route,/data-dpg-clear[\s\S]{0,260}cancelRangeEvidenceRequest\(\)[\s\S]{0,260}state\.selection=null;void load\(\)/);
+  assert.match(route,/if\(firstEligible\?\.asset[\s\S]{0,260}cancelRangeEvidenceRequest\(\)[\s\S]{0,360}state\.selection=null/);
+});
