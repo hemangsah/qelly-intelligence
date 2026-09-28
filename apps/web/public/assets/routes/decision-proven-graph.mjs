@@ -1207,8 +1207,8 @@ export async function renderDecisionProvenGraph(main,deps){
       main.querySelector('[data-dpg-ui-mode="'+nextMode+'"]')?.focus();
     }));
     main.querySelector('[data-dpg-asset-picker-toggle]')?.addEventListener('click',()=>{state.assetPickerOpen=!state.assetPickerOpen;draw();if(state.assetPickerOpen)requestAnimationFrame(()=>main.querySelector('[data-dpg-asset-search]')?.focus());});
-    main.querySelector('[data-dpg-asset-picker-close]')?.addEventListener('click',()=>{state.assetPickerOpen=false;state.assetQuery='';draw();requestAnimationFrame(()=>main.querySelector('[data-dpg-asset-picker-toggle]')?.focus());});
-    main.querySelector('[data-dpg-asset-picker-panel]')?.addEventListener('keydown',(event)=>{if(event.key==='Escape'){event.preventDefault();state.assetPickerOpen=false;state.assetQuery='';draw();requestAnimationFrame(()=>main.querySelector('[data-dpg-asset-picker-toggle]')?.focus());}});
+    main.querySelector('[data-dpg-asset-picker-close]')?.addEventListener('click',()=>{state.assetPickerOpen=false;state.assetQuery='';draw();main.querySelector('[data-dpg-asset-picker-toggle]')?.focus();});
+    main.querySelector('[data-dpg-asset-picker-panel]')?.addEventListener('keydown',(event)=>{if(event.key==='Escape'){event.preventDefault();state.assetPickerOpen=false;state.assetQuery='';draw();main.querySelector('[data-dpg-asset-picker-toggle]')?.focus();}});
     main.querySelector('[data-dpg-asset-search]')?.addEventListener('input',(event)=>{
       state.assetQuery=event.currentTarget.value;
       const query=state.assetQuery.trim().toLowerCase();
@@ -1219,7 +1219,7 @@ export async function renderDecisionProvenGraph(main,deps){
         group.hidden=!groupMatch&&rows.length>0&&!rows.some((row)=>!row.hidden);
       });
     });
-    main.querySelector('[data-dpg-asset-search]')?.addEventListener('keydown',(event)=>{if(event.key==='Escape'){event.preventDefault();state.assetPickerOpen=false;state.assetQuery='';draw();}});
+    main.querySelector('[data-dpg-asset-search]')?.addEventListener('keydown',(event)=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();state.assetPickerOpen=false;state.assetQuery='';draw();main.querySelector('[data-dpg-asset-picker-toggle]')?.focus();}});
     main.querySelectorAll('[data-dpg-asset-filter]').forEach((button)=>button.addEventListener('click',()=>{state.assetFilter=button.dataset.dpgAssetFilter||'all';state.assetQuery='';draw();requestAnimationFrame(()=>main.querySelector('[data-dpg-asset-search]')?.focus());}));
     main.querySelectorAll('[data-dpg-asset-favorite]').forEach((button)=>button.addEventListener('click',()=>{
       state.assetFavorites=toggleDecisionAssetFavorite(state.assetFavorites,button.dataset.dpgAssetFavorite);
