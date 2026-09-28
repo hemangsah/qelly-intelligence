@@ -289,6 +289,8 @@ const exercise=async({name,viewport,touch=false})=>{
   const setupRequestOk=lastScanRequest?.mode==='aggressive'&&lastScanRequest?.ranking==='lowest_event_risk'&&lastScanRequest?.assets==='BTC'&&lastScanRequest?.direction==='short'&&lastScanRequest?.rr==='auto';
   const closestInterval=await closestCandidate.locator('[data-dpg-scan-interval]').first().getAttribute('data-dpg-scan-interval');
   if(!closestCandidateRequired||!setupRequestOk||closestInterval!=='30m')failures.push({type:'setup-finder-aggressive',closestCandidateRequired,setupRequestOk,lastScanRequest,closestInterval,text:closestText});
+  await page.locator('[data-dpg-mode-switcher]').first().scrollIntoViewIfNeeded();
+  await page.waitForFunction(()=>document.querySelector('[data-dpg-chat-dock]')?.dataset.clearance==='clear',{timeout:5000});
   const chatDock=page.locator('[data-dpg-chat-dock]').first();
   await chatDock.waitFor({state:'visible',timeout:10_000});
   const chatDockToggle=page.locator('[data-dpg-chat-dock-toggle]').first();
