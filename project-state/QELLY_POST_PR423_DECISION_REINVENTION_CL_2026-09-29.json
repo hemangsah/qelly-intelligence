@@ -1,9 +1,9 @@
 {
-  "schemaVersion": "qelly.post-pr423-decision-reinvention-cl/1.0.0",
+  "schemaVersion": "qelly.post-pr423-decision-reinvention-cl/1.1.0",
   "date": "2026-09-29",
   "masterPromptBaseline": "11ff35cdd934c357c800db4c8e1195a63247d291",
   "clStartingProduction": "454b481943a7ad5745256859df4bb6000424cfba",
-  "overallState": "READY_FOR_CL_EXACT_HEAD_GATES",
+  "overallState": "PRODUCTION_ACCEPTED_WITH_EXPLICIT_EXTERNAL_LIMITATIONS",
   "waves": {
     "BR": {
       "pr": 424,
@@ -86,7 +86,12 @@
       "mergeSha": "29f35794a401dd5f6bc03d215356d17b88f42d99"
     },
     "CL": {
-      "state": "THIS_PR_EXACT_HEAD_GATES_REQUIRED"
+      "pr": 449,
+      "exactHead": "8ae10a4e518b4e84c1976dc2614e564abee770dd",
+      "mergeSha": "70438b7c2627be9f2dc3a0e5949e104110cde9f8",
+      "exactHeadGateMatrix": "PASS_10_OF_10",
+      "expectedHeadMergeGuard": true,
+      "productionIdentity": "PASS"
     }
   },
   "hardening": [
@@ -116,20 +121,61 @@
     "releasedAt": "2026-09-28T21:00:05.266Z",
     "recordedAt": "2026-09-28T21:05:02.171939Z"
   },
+  "acceptedRuntimeProduction": {
+    "environment": "production",
+    "sourceRevision": "70438b7c2627be9f2dc3a0e5949e104110cde9f8",
+    "backendVersion": "70438b7c2627be9f2dc3a0e5949e104110cde9f8",
+    "frontendVersion": "0.9.0-preview.1",
+    "status": "recorded",
+    "publicSiteUrl": "https://terminal.qellyintelligence.com",
+    "mode": "cloudflare-pages-public-runtime",
+    "cloudSync": true,
+    "authentication": true,
+    "emailDelivery": true,
+    "liveProviders": true,
+    "protectedWrites": true,
+    "releasedAt": "2026-09-28T21:27:49.529Z",
+    "recordedAt": "2026-09-28T21:32:41.082528Z",
+    "verification": "AUTHENTICATED_FAIL_CLOSED_RELEASE_SYNC"
+  },
+  "exactHeadGates": {
+    "continuousIntegration": "PASS",
+    "productionParity": "PASS",
+    "browserE2E": "PASS",
+    "githubPagesMirror": "PASS",
+    "containerBuild": "PASS",
+    "liveTerminalAcceptance": "PASS",
+    "productionFoundationServices": "PASS",
+    "publicRuntime": "PASS",
+    "securityAnalysis": "PASS",
+    "testDiagnostics": "PASS"
+  },
+  "browserAcceptance": {
+    "exactProductionArtifact": "PASS",
+    "firstPaintColdWarm": "PASS",
+    "registeredRoutes": 71,
+    "expectedRenders": 142,
+    "desktopMobileCapture": "PASS",
+    "accessibilityResponsive": "PASS",
+    "screenshotArchive": "PASS",
+    "decisionSelectedRangeInteraction": "PASS"
+  },
   "boundaries": {
     "researchOnly": true,
     "tradeExecution": false,
     "fabricatedProviderTruthAllowed": false,
     "noTradeRemainsValid": true,
     "probability90PlusRequiresIndependentCalibration": true,
-    "unsupportedAssetsMustRemainUnavailable": true
+    "unsupportedAssetsMustRemainUnavailable": true,
+    "profitabilityGuarantee": false,
+    "causalProofFromAssociation": false
   },
   "completion": {
     "plannedWaves": 21,
-    "mergedBeforeCl": 20,
-    "mergedBeforeClPercent": 95.2,
+    "completedWaves": 21,
+    "completedPercent": 100,
     "featureImplementationThroughCk": "COMPLETE",
-    "clProductionAcceptance": "PENDING_EXACT_HEAD_GATES_AND_POST_MERGE_RELEASE_IDENTITY",
+    "clProductionAcceptance": "PASS_EXACT_HEAD_AND_PRODUCTION_IDENTITY",
     "scientificProbability": "SAMPLE_DEPENDENT_NO_FABRICATED_PERCENT"
   },
   "securityAdvisors": {
@@ -138,12 +184,17 @@
       "state": "WARN",
       "finding": "Leaked Password Protection Disabled",
       "scope": "EXTERNAL_AUTH_CONFIGURATION",
-      "clDisposition": "EXPLICIT_UNRESOLVED_LIMITATION"
+      "clDisposition": "EXPLICIT_UNRESOLVED_LIMITATION",
+      "remediation": "https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection"
     },
     "performance": {
       "state": "INFO",
       "unusedIndexFindings": 34,
       "clDisposition": "NO_BLIND_INDEX_DELETION"
     }
+  },
+  "closureDocumentation": {
+    "purpose": "Record already-proven CL runtime acceptance without changing Decision runtime semantics.",
+    "runtimeSemanticChange": false
   }
 }
