@@ -166,6 +166,17 @@ const exercise=async({name,viewport,touch=false})=>{
   await page.goto(localOrigin+'/#/decision-provenance',{waitUntil:'domcontentloaded',timeout:45_000});
   const chart=page.locator('[data-dpg-chart]').first();
   await chart.waitFor({state:'visible',timeout:45_000});
+  const ciMotion=await page.evaluate(()=>{
+    const dock=document.querySelector('.q-dpg-chat-dock__bar'),mode=document.querySelector('[data-dpg-chart-mode]');
+    const dockStyle=dock?getComputedStyle(dock):null,modeStyle=mode?getComputedStyle(mode):null;
+    return {dockAnimation:dockStyle?.animationName||'',dockTransition:dockStyle?.transitionDuration||'',modeTransition:modeStyle?.transitionDuration||''};
+  });
+  if(ciMotion.dockAnimation!=='none'||(ciMotion.modeTransition&&ciMotion.modeTransition!=='0s'))failures.push({type:'ci-reduced-motion',...ciMotion});
+  const ciTouchTargets=await page.evaluate(()=>{
+    const selectors=['[data-dpg-chart-mode]','[data-dpg-asset-picker-toggle]','[data-dpg-chat-dock-toggle]'];
+    return selectors.map(selector=>{const node=document.querySelector(selector),rect=node?.getBoundingClientRect();return {selector,width:rect?.width||0,height:rect?.height||0};});
+  });
+  if(ciTouchTargets.some(item=>item.height<44||item.width<44))failures.push({type:'ci-touch-targets',targets:ciTouchTargets});
   const projectedRange=page.locator('[data-dpg-projected-range]').first();
   await projectedRange.waitFor({state:'visible',timeout:10_000});
   const projectedState=await projectedRange.getAttribute('data-projection-state');
@@ -255,8 +266,11 @@ const exercise=async({name,viewport,touch=false})=>{
   await page.waitForTimeout(60);
   const favoriteEth=await page.locator('[data-dpg-asset-select="ETH"]:visible').count();
   if(favoriteEth!==1)failures.push({type:'asset-picker-favorite',favoriteEth});
-  await page.locator('[data-dpg-asset-picker-close]').first().click();
+  await page.locator('[data-dpg-asset-search]').first().focus();
+  await page.keyboard.press('Escape');
   await assetPicker.waitFor({state:'hidden',timeout:5000});
+  const assetPickerFocusReturned=await page.evaluate(()=>document.activeElement?.matches?.('[data-dpg-asset-picker-toggle]')===true);
+  if(!assetPickerFocusReturned)failures.push({type:'ci-asset-picker-focus-return'});
   const setupFinder=page.locator('[data-dpg-setup-finder]').first();
   await setupFinder.waitFor({state:'visible',timeout:10_000});
   const setupFinderText=(await setupFinder.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
@@ -278,6 +292,9 @@ const exercise=async({name,viewport,touch=false})=>{
   const chatDock=page.locator('[data-dpg-chat-dock]').first();
   await chatDock.waitFor({state:'visible',timeout:10_000});
   const chatDockToggle=page.locator('[data-dpg-chat-dock-toggle]').first();
+  const collapsedComposer=page.locator('[data-dpg-chat-dock-composer]').first();
+  const composerTargetStable=await collapsedComposer.count()===1&&!await collapsedComposer.isVisible();
+  if(!composerTargetStable)failures.push({type:'ci-dock-aria-controls-target'});
   const dockBox=await chatDock.boundingBox();
   const dockCentered=Boolean(dockBox)&&Math.abs((dockBox.x+dockBox.width/2)-viewport.width/2)<=6&&dockBox.x>=0&&dockBox.x+dockBox.width<=viewport.width+1;
   const legacyDecisionChatControls=await page.locator('.q-dpg-hero__actions [data-dpg-open-chat],[data-dpg-range-action="chat"]').count();
@@ -291,6 +308,12 @@ const exercise=async({name,viewport,touch=false})=>{
   const dockComposerText=(await dockComposer.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
   const dockComposerRequired=['qelly context dock','explain qelly view','existing qelly chat','current decision evidence'].every(label=>dockComposerText.includes(label));
   if(!dockComposerRequired)failures.push({type:'qelly-dock-composer',text:dockComposerText});
+  await page.locator('[data-dpg-chat-input]').first().press('Escape');
+  await dockComposer.waitFor({state:'hidden',timeout:5000});
+  const dockFocusReturned=await page.evaluate(()=>document.activeElement?.matches?.('[data-dpg-chat-dock-toggle]')===true);
+  if(!dockFocusReturned)failures.push({type:'ci-dock-focus-return'});
+  await chatDockToggle.press('Enter');
+  await dockComposer.waitFor({state:'visible',timeout:5000});
   await page.locator('[data-dpg-chat-quick="view"]').first().click();
   const globalAssistant=page.locator('[data-q-ai-assistant]').first();
   await globalAssistant.waitFor({state:'visible',timeout:10_000});
@@ -303,6 +326,15 @@ const exercise=async({name,viewport,touch=false})=>{
   if(await simpleTab.getAttribute('aria-selected')!=='true')failures.push({type:'decision-mode-default',message:'Simple Mode is not the default'});
   if(await page.locator('[data-dpg-mode-panel="advanced"]').count())failures.push({type:'decision-mode-simple-leak',message:'Advanced panel rendered in Simple Mode'});
   if(await page.locator('[data-dpg-mode-panel="research"]').count())failures.push({type:'decision-mode-simple-leak',message:'Research panel rendered in Simple Mode'});
+  const simpleControls=await simpleTab.getAttribute('aria-controls'),simplePanelRole=await page.locator('#qelly-decision-panel-simple').getAttribute('role');
+  if(simpleControls!=='qelly-decision-panel-simple'||simplePanelRole!=='tabpanel')failures.push({type:'ci-mode-semantics',simpleControls,simplePanelRole});
+  await simpleTab.focus();
+  await page.keyboard.press('ArrowRight');
+  await page.waitForFunction(()=>document.querySelector('[data-dpg-ui-mode="advanced"]')?.getAttribute('aria-selected')==='true',{timeout:5000});
+  const advancedKeyboardFocus=await page.evaluate(()=>document.activeElement?.matches?.('[data-dpg-ui-mode="advanced"]')===true);
+  if(!advancedKeyboardFocus)failures.push({type:'ci-mode-keyboard-focus'});
+  await page.keyboard.press('ArrowLeft');
+  await page.waitForFunction(()=>document.querySelector('[data-dpg-ui-mode="simple"]')?.getAttribute('aria-selected')==='true',{timeout:5000});
   await advancedTab.click();
   await page.locator('[data-dpg-mode-panel="advanced"]').first().waitFor({state:'visible',timeout:10_000});
   const advancedText=(await page.locator('[data-dpg-mode-panel="advanced"]').first().innerText()).replace(/\s+/g,' ').toLowerCase();
@@ -341,6 +373,10 @@ const exercise=async({name,viewport,touch=false})=>{
   }
   const summary=page.locator('.q-dpg-range-summary').first();
   await summary.waitFor({state:'visible',timeout:10_000});
+  const spokenRange=String(await page.locator('[data-dpg-range-announcement]').first().textContent()||'').toLowerCase();
+  const spokenRangeComplete=['selected range from','candles','move','high','low'].every(label=>spokenRange.includes(label));
+  const sliderValueText=await page.locator('[data-dpg-range-start]').first().getAttribute('aria-valuetext');
+  if(!spokenRangeComplete||!sliderValueText||sliderValueText.toLowerCase().includes('unavailable'))failures.push({type:'ci-screen-reader-range',spokenRange,sliderValueText});
   const overlay=page.locator('[data-dpg-selection]').first();
   const hidden=await overlay.getAttribute('hidden');
   const candles=await page.locator('.q-dpg-candle.is-selected').count();
