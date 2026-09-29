@@ -15,7 +15,8 @@ const ASSET_ALIASES=Object.freeze({
 const TOPIC_RULES=Object.freeze([
   ['REGULATION_POLICY',['sec','regulator','regulation','regulatory','law','lawsuit','court','approval','approve','ban','license','compliance','policy']],
   ['ETF_INSTITUTIONAL',['etf','blackrock','fidelity','institutional','institution','asset manager','fund inflow','fund outflow','treasury','custody']],
-  ['MACRO_RATES',['fed','federal reserve','interest rate','rates','inflation','cpi','payroll','jobs report','dollar','yield','recession','central bank']],
+  ['MACRO_RATES',['fed','federal reserve','interest rate','rates','inflation','cpi','payroll','jobs report','dollar','yield','recession','central bank','gdp','pmi','employment','rate decision']],
+  ['GEOPOLITICS_SUPPLY',['war','conflict','invasion','sanction','sanctions','embargo','ceasefire','tariff','trade restriction','export ban','sovereign crisis','geopolitical','military strike','supply disruption']],
   ['DERIVATIVES_MARKET_STRUCTURE',['exchange','derivatives','future','futures','option','options','liquidation','funding','open interest','order book','volume']],
   ['NETWORK_PROTOCOL',['upgrade','fork','validator','network','protocol','mainnet','testnet','staking','transaction','blockchain']],
   ['SECURITY_INCIDENT',['hack','hacked','exploit','breach','stolen','vulnerability','attack']],
