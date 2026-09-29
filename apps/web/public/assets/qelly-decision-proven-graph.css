@@ -568,3 +568,19 @@ html:has(.q-ai-assistant:not([hidden])) .q-dpg-chat-dock{opacity:0;pointer-event
 .q-dpg-help:hover i[role="tooltip"],.q-dpg-help:focus i[role="tooltip"]{opacity:1;transform:translateY(0)}
 @media(max-width:620px){.q-dpg-education__grid{display:grid;grid-template-columns:1fr 1fr}.q-dpg-help i[role="tooltip"]{position:fixed;left:12px;right:12px;bottom:calc(88px + env(safe-area-inset-bottom));width:auto}}
 @media(prefers-reduced-motion:reduce){.q-dpg-help i[role="tooltip"]{transition:none}}
+
+
+/* Quant research library */
+.q-dpg-quant-research{margin:16px 0;padding:16px;border:1px solid var(--q-border,#2a3441);border-radius:16px;background:color-mix(in srgb,var(--q-surface,#111827) 94%,transparent)}
+.q-dpg-quant-research>header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:12px}
+.q-dpg-quant-research>header h2{margin:.2rem 0}.q-dpg-quant-research>header p{margin:.3rem 0 0;max-width:72ch}
+.q-dpg-quant-research__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.q-dpg-quant-research__grid article{padding:12px;border:1px solid var(--q-border,#2a3441);border-radius:12px}
+.q-dpg-quant-research__grid article>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:8px 0}
+.q-dpg-quant-research__grid span{display:grid;gap:2px}.q-dpg-quant-research__grid em{font-style:normal;font-size:.72rem;opacity:.68}.q-dpg-quant-research__grid strong{font-size:.9rem}
+.q-dpg-quant-research__inventory{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+.q-dpg-quant-research__inventory section{padding:10px;border:1px solid var(--q-border,#2a3441);border-radius:10px}
+.q-dpg-quant-research__inventory ul{list-style:none;padding:0;margin:0;display:grid;gap:7px}
+.q-dpg-quant-research__inventory li{display:grid;gap:2px}.q-dpg-quant-research__inventory li span,.q-dpg-quant-research__inventory li small{font-size:.75rem;opacity:.74}
+@media(max-width:760px){.q-dpg-quant-research__grid,.q-dpg-quant-research__inventory{grid-template-columns:1fr}.q-dpg-quant-research>header{display:grid}.q-dpg-quant-research__grid article>div{grid-template-columns:1fr 1fr}}
+@media(max-width:460px){.q-dpg-quant-research__grid article>div{grid-template-columns:1fr}}
