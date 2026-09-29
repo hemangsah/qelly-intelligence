@@ -92,7 +92,7 @@ test('optional benchmark dependence is descriptive and refuses to infer cointegr
   assert.equal(result.dependence.leadLag.rows.length,7);
   assert.equal(result.dependence.cointegration.state,'NOT_EVALUATED');
   assert.match(result.dependence.cointegration.reason,/not inferred/i);
-  assert.match(result.dependence.boundary,/does not become an independent BUY\/SELL vote/i);
+  assert.match(result.dependence.boundary,/do(?:es)? not become an independent BUY\/SELL vote/i);
 });
 
 test('helper formulas stay numerically safe on flat or insufficient inputs',()=>{
