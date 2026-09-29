@@ -38,6 +38,8 @@ const horizonResearch=(raw,{interval,bars,paths})=>{
   const order=ranked(modelProbabilities);
   const fan=distribution.fan.at(-1);
   const anchor=distribution.lastPrice;
+  const modelSeparation=round(Math.max(0,Number(order[0]?.[1]||0)-Number(order[1]?.[1]||0)),4);
+  const edgeState=!gate.probabilityPublishable?'UNCERTAIN':modelSeparation>=.10?'EDGE_PRESENT':'NO_EDGE';
   const expectedRangePct=anchor>0&&fan?round((fan.p75-fan.p25)/anchor*100,4):null;
   return {
     horizonBars:bars,
@@ -45,6 +47,9 @@ const horizonResearch=(raw,{interval,bars,paths})=>{
     modelProbabilities,
     publishedProbabilities:gate.probabilityPublishable?modelProbabilities:null,
     probabilityState:gate.state,
+    edgeState,
+    modelScenarioSeparation:modelSeparation,
+    edgeBoundary:'NO EDGE / UNCERTAIN is a conservative abstention label. EDGE PRESENT requires publishable calibrated probabilities and at least 10 percentage points of model scenario separation; it is not expected return, alpha, or a trade recommendation.',
     topScenario:{id:order[0][0],publishedProbability:gate.probabilityPublishable?order[0][1]:null},
     alternateScenario:{id:order[1][0],publishedProbability:gate.probabilityPublishable?order[1][1]:null},
     expectedRange:{p25:fan?.p25??null,p50:fan?.p50??null,p75:fan?.p75??null,widthPct:expectedRangePct},
