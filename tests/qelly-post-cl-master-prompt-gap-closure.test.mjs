@@ -58,6 +58,13 @@ test('Post-CL gap closure adds accessible user-education help for all required D
   assert.match(css,/\.q-dpg-help:hover i\[role="tooltip"\],\.q-dpg-help:focus i\[role="tooltip"\]/);
 });
 
+test('Post-CL gap closure renders required asset-row and quality-dimension metadata',async()=>{
+  const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
+  for(const field of ['asset.marketStatus','asset.providerStatus','asset.supportedTimeframes'])assert.ok(route.includes(field),field);
+  for(const label of ['Data Quality','Evidence Quality','Calibration Quality','MTF Agreement','Contradiction'])assert.ok(route.includes(label),label);
+  assert.match(route,/q-dpg-quality-matrix/);
+});
+
 test('Post-CL gap closure extends asset search to provider symbol exchange and currency',async()=>{
   const picker=await read('apps/web/public/assets/decision-asset-picker.mjs');
   for(const field of ['asset?.providerSymbol','asset?.exchange','asset?.currency'])assert.ok(picker.includes(field),field);
