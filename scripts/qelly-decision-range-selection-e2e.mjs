@@ -257,12 +257,10 @@ const exercise=async({name,viewport,touch=false})=>{
   if(visibleAssetRows!==1||visibleEth!==1)failures.push({type:'asset-picker-search',visibleAssetRows,visibleEth});
   await assetPicker.locator('[data-dpg-asset-favorite="ETH"]').first().click();
   const favoritesFilter=page.locator('[data-dpg-asset-filter="favorites"]').first();
-  const favoritesHitTarget=await favoritesFilter.evaluate((node)=>{
-    const rect=node.getBoundingClientRect(),hit=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);
-    return hit===node||Boolean(hit?.closest?.('[data-dpg-asset-filter="favorites"]'));
-  });
-  if(!favoritesHitTarget)failures.push({type:'asset-picker-filter-hit-target'});
-  await favoritesFilter.click();
+  await favoritesFilter.scrollIntoViewIfNeeded();
+  let favoritesActionable=true;
+  try{await favoritesFilter.click({trial:true,timeout:5000});}catch(error){favoritesActionable=false;failures.push({type:'asset-picker-filter-actionability',reason:String(error?.message||error).slice(0,240)});}
+  if(favoritesActionable)await favoritesFilter.click();
   await page.waitForTimeout(60);
   const favoriteEth=await page.locator('[data-dpg-asset-select="ETH"]:visible').count();
   if(favoriteEth!==1)failures.push({type:'asset-picker-favorite',favoriteEth});
@@ -277,10 +275,14 @@ const exercise=async({name,viewport,touch=false})=>{
   const timeframeCoverage=['1m','3m','5m','15m','30m','1h','2h','4h','1d'].every(value=>timeframeValues.includes(value))&&['SCALP','INTRADAY','SWING'].every(label=>timeframeGroups.includes(label));
   if(!timeframeCoverage)failures.push({type:'timeframe-picker-coverage',timeframeValues,timeframeGroups});
   const education=page.locator('.q-dpg-education').first();
+  await education.locator('summary').click();
   const educationText=(await education.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
   const educationRequired=['decision terms & help','r:r','invalidation','funding','oi','calibration','no trade','selected-range evidence'].every(label=>educationText.includes(label));
   const tooltipCount=await education.locator('[role="tooltip"]').count();
-  if(!educationRequired||tooltipCount<7)failures.push({type:'decision-education-help',educationRequired,tooltipCount,text:educationText});
+  const firstHelp=education.locator('.q-dpg-help').first();
+  await firstHelp.focus();
+  const firstTooltipVisible=await firstHelp.locator('[role="tooltip"]').evaluate(node=>getComputedStyle(node).opacity==='1');
+  if(!educationRequired||tooltipCount<7||!firstTooltipVisible)failures.push({type:'decision-education-help',educationRequired,tooltipCount,firstTooltipVisible,text:educationText});
   const setupFinder=page.locator('[data-dpg-setup-finder]').first();
   await setupFinder.waitFor({state:'visible',timeout:10_000});
   const setupFinderText=(await setupFinder.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
