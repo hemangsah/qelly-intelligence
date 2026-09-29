@@ -257,10 +257,12 @@ const exercise=async({name,viewport,touch=false})=>{
   if(visibleAssetRows!==1||visibleEth!==1)failures.push({type:'asset-picker-search',visibleAssetRows,visibleEth});
   await assetPicker.locator('[data-dpg-asset-favorite="ETH"]').first().click();
   const favoritesFilter=page.locator('[data-dpg-asset-filter="favorites"]').first();
-  await favoritesFilter.scrollIntoViewIfNeeded();
   let favoritesActionable=true;
-  try{await favoritesFilter.click({trial:true,timeout:5000});}catch(error){favoritesActionable=false;failures.push({type:'asset-picker-filter-actionability',reason:String(error?.message||error).slice(0,240)});}
-  if(favoritesActionable)await favoritesFilter.click();
+  try{
+    await favoritesFilter.waitFor({state:'visible',timeout:5000});
+    await favoritesFilter.click({trial:true,timeout:5000});
+  }catch(error){favoritesActionable=false;failures.push({type:'asset-picker-filter-actionability',reason:String(error?.message||error).slice(0,240)});}
+  if(favoritesActionable)await favoritesFilter.click({timeout:5000});
   await page.waitForTimeout(60);
   const favoriteEth=await page.locator('[data-dpg-asset-select="ETH"]:visible').count();
   if(favoriteEth!==1)failures.push({type:'asset-picker-favorite',favoriteEth});
