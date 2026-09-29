@@ -1,0 +1,364 @@
+{
+  "schemaVersion": "qelly.post-pr423-master-prompt-final-audit/1.0.0",
+  "date": "2026-09-30",
+  "masterPromptBaseline": "11ff35cdd934c357c800db4c8e1195a63247d291",
+  "overallState": "ENGINEERING_ACCEPTED_PROVIDER_LIMITED_WITH_EXPLICIT_EXTERNAL_LIMITATIONS",
+  "runtimeAcceptanceAnchor": "d95a7954d1733cc57ec893b757ee1adb78400539",
+  "engineeringWaves": {
+    "BR": {
+      "pr": 424,
+      "testedHead": "7cc514fc03acc0847dbf56dc8efbefae8659a6c6",
+      "mergeSha": "7d4a92f0af9963ef3a9d056aeec6d384842b5819",
+      "purpose": "Range Selection 2.0 + persistent overlay"
+    },
+    "BS": {
+      "pr": 425,
+      "testedHead": "8a087c8ea771af04453dad9a6f5900e0457f1c60",
+      "mergeSha": "0cadc84e3c7803ba465a81a0eaa1b87ef8cad669",
+      "purpose": "Bounded range evidence"
+    },
+    "BT": {
+      "pr": 426,
+      "testedHead": "9566c893bd746deeb182db784df609a2dd0d56e4",
+      "mergeSha": "daa584aa7791294e037148991dcb1f99ea804149",
+      "purpose": "Historical news / event timeline"
+    },
+    "BU": {
+      "pr": 427,
+      "testedHead": "ac0aa30c083c46a300a5f677b3f5e25816333879",
+      "mergeSha": "d311f2caa0da726e79417b1089709e75f96eae49",
+      "purpose": "Flow / participation evidence"
+    },
+    "BV": {
+      "pr": 428,
+      "testedHead": "18bb876998ca2684ce58df67b982121b1545fc3d",
+      "mergeSha": "4a9108f81c5440425c37aa022188d1cf0068194d",
+      "purpose": "Simple / Advanced / Research Lab"
+    },
+    "BW": {
+      "pr": 429,
+      "testedHead": "77d71525cab0af64b7e0d109167394e2e22971c0",
+      "mergeSha": "c874468501590e6b51a96a89c8b7028797364759",
+      "purpose": "Contextual QELLY Chat dock"
+    },
+    "BX": {
+      "pr": 430,
+      "testedHead": "d9771237de182c5e52514c791c5c269b5b11b33d",
+      "mergeSha": "d1a032dac9b1cac6af8361286d1ba76534c01235",
+      "purpose": "Capability-driven asset picker"
+    },
+    "BY": {
+      "pr": 431,
+      "testedHead": "fb3a71d9fb0e3b8bd7440e014ef69595dac94754",
+      "mergeSha": "6c0e4875dec34328afb3c9cd40c556b722eaabc9",
+      "purpose": "Asset-class evidence profiles"
+    },
+    "BZ": {
+      "pr": 432,
+      "testedHead": "f762e02790f5d6cbd50961cf54459e8cf3e73566",
+      "mergeSha": "940a765b5c20407da3fde479cfc85cc021888976",
+      "purpose": "Find Setup Now + Aggressive Discovery"
+    },
+    "CA": {
+      "pr": 433,
+      "testedHead": "3a16f8a000d41b934aec97b31d1988bde898b061",
+      "mergeSha": "7d73e38cfd479333f0dbb34ec170f207badb2ab4",
+      "purpose": "Next Candle / Next Move"
+    },
+    "CB": {
+      "pr": 434,
+      "testedHead": "643466d19c8162b3297b5a8afa73f0d01fd6089a",
+      "mergeSha": "3dc66142ce077a4a3a5045e5e49237b00954f13d",
+      "purpose": "Formula governance + attribution"
+    },
+    "CC": {
+      "pr": 435,
+      "testedHead": "1d54c18f18e375b5ed97352e3e6d482fb7ed093a",
+      "mergeSha": "be30bb4989e727639f49bc5481b678ea8382be3d",
+      "purpose": "SMC / price action"
+    },
+    "CD": {
+      "pr": 436,
+      "testedHead": "8e7ce16e5925e458497649c520bd2af5dc1d5dc9",
+      "mergeSha": "852bd3080d6481af5def35b76381dff5bb5023ec",
+      "purpose": "Fundamentals / macro / asset-class evidence"
+    },
+    "CE": {
+      "pr": 437,
+      "testedHead": "c30cf8fd3471dc00b147f79118f91dfa3bc3e88a",
+      "mergeSha": "a0b9ea3e87bd9eb6b5523f20d9dfbe367164c2bf",
+      "purpose": "Range replay + similar moves"
+    },
+    "CF": {
+      "pr": 438,
+      "testedHead": "76a491506e2480efa2eb4ca6cdddb98e06807db2",
+      "mergeSha": "97a3d17b646f739f39e1c76019c8ccdd5e4dee6b",
+      "purpose": "Scenario UX / setup summary"
+    },
+    "CG": {
+      "pr": 439,
+      "testedHead": "865b34755741bfc7f7df58c4b9032776e5df893e",
+      "mergeSha": "7ff6e362b5426df5b82b91ae367f2a1137f03aff",
+      "purpose": "Selected-range cross-asset analysis"
+    },
+    "CH": {
+      "pr": 440,
+      "testedHead": "d9214bbc0a59a5043290765b2eb924976c99d912",
+      "mergeSha": "0246d4212d854d3434ae788fabd67c9768bae32a",
+      "purpose": "Performance / cache / concurrency"
+    },
+    "CI": {
+      "pr": 441,
+      "testedHead": "3bfd1421545c36c0fd0023f25ee16ac73a445827",
+      "mergeSha": "5412c867c7c75d3714bf40ad378531703b907ccb",
+      "purpose": "Accessibility / mobile / visual polish"
+    },
+    "CJ": {
+      "pr": 446,
+      "testedHead": "d630d9299ca8f5d9176262631d269dd4ae60082a",
+      "mergeSha": "2382e2597e6ca14a6c635c61f75a55158c9fc67c",
+      "purpose": "Security + failure injection"
+    },
+    "CK": {
+      "pr": 447,
+      "testedHead": "385db8d6e38ff7eb296e99e4423b371063585745",
+      "mergeSha": "29f35794a401dd5f6bc03d215356d17b88f42d99",
+      "purpose": "Dead-code cleanup"
+    },
+    "CL": {
+      "pr": 449,
+      "testedHead": "8ae10a4e518b4e84c1976dc2614e564abee770dd",
+      "mergeSha": "70438b7c2627be9f2dc3a0e5949e104110cde9f8",
+      "purpose": "Exact-head final production acceptance"
+    }
+  },
+  "hardeningAndRemediation": [
+    {
+      "name": "CI focus hardening",
+      "pr": 443,
+      "testedHead": "9a9116f3950e7c6bbdfa50b7877ac7fd06c0ee45",
+      "mergeSha": "4b88211a2e1439adf5a2a8fd01f4062be40bc356"
+    },
+    {
+      "name": "Asset-picker focus hardening",
+      "pr": 445,
+      "testedHead": "06e0e95e5afacec2e835b5fc4aefd7ae0238f59f",
+      "mergeSha": "c7ce64eef1ab9445e1aa5e29526da0b69813e1de"
+    },
+    {
+      "name": "CK first-paint hotfix",
+      "pr": 448,
+      "testedHead": "245bfc4dfb8e6f9df341ba8009f00314a1199418",
+      "mergeSha": "454b481943a7ad5745256859df4bb6000424cfba"
+    },
+    {
+      "name": "CL closure documentation",
+      "pr": 450,
+      "testedHead": "2bb323437a80e2af72f739fbc5f7cd853b3b5536",
+      "mergeSha": "67db0a915a60f43db299dd5168ee0b97017660db"
+    },
+    {
+      "name": "Post-CL audited gap closure",
+      "pr": 451,
+      "testedHead": "e6078e7624e2fd2a910ac0df93a65d1e0d1140ca",
+      "mergeSha": "e2405ae3d36e167c6533ec3b0bb31cbcbbfe4699"
+    },
+    {
+      "name": "Glossary-focus E2E hardening",
+      "pr": 452,
+      "testedHead": "d3b5958e42a3c83742b774c3473ab26d922a83cc",
+      "mergeSha": "d8773911e8b3dc77be7367744fcc7f6747402149"
+    },
+    {
+      "name": "Asset-picker redraw E2E hardening",
+      "pr": 453,
+      "testedHead": "01fa801799e734372ab10a5e9946737f38b040ad",
+      "mergeSha": "d95a7954d1733cc57ec893b757ee1adb78400539"
+    }
+  ],
+  "assetCoverage": {
+    "requestedCategoryCount": 10,
+    "catalogRepresentedCategoryCount": 10,
+    "catalogCoveragePercent": 100,
+    "selectableCategoryCount": 1,
+    "selectableCategoryPercent": 10,
+    "referenceOnlyCategoryCount": 1,
+    "referenceOnlyCategoryPercent": 10,
+    "unavailableCategoryCount": 8,
+    "unavailableCategoryPercent": 80,
+    "selectableAssetCount": 6,
+    "selectableSymbols": [
+      "BTC",
+      "ETH",
+      "SOL",
+      "HYPE",
+      "XRP",
+      "DOGE"
+    ],
+    "selectableProvider": "Hyperliquid",
+    "forexState": "REFERENCE_ONLY",
+    "unsupportedCategories": [
+      "Indian indices",
+      "Indian stocks",
+      "Global stocks",
+      "Global indices",
+      "Metals",
+      "Commodities",
+      "Rates / Bonds",
+      "ETFs"
+    ]
+  },
+  "remediation": {
+    "timeframes": [
+      "1m",
+      "3m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "4h",
+      "1d"
+    ],
+    "universalIdentifierFields": [
+      "canonicalId",
+      "symbol",
+      "providerSymbol",
+      "name",
+      "assetClass",
+      "exchange",
+      "currency",
+      "category",
+      "region",
+      "venue",
+      "marketStatus",
+      "providerStatus",
+      "supportedTimeframes",
+      "capabilities"
+    ],
+    "similarSetupBridge": true,
+    "educationHelp": true,
+    "whyNot90": true,
+    "qualityDimensions": [
+      "Data Quality",
+      "Evidence Quality",
+      "Calibration Quality",
+      "MTF Agreement",
+      "Contradiction"
+    ],
+    "topThreeSetupComparison": true,
+    "rankingModes": [
+      "Highest Quality",
+      "Lowest Event Risk",
+      "Fastest Setup",
+      "Lowest Risk",
+      "Closest Candidate"
+    ],
+    "highestCalibratedProbabilityState": "UNAVAILABLE_UNTIL_GENUINE_TARGET_TOUCH_CALIBRATION",
+    "bestAvailableCandidateLanguage": true,
+    "nextMoveAbstention": [
+      "EDGE_PRESENT",
+      "NO_EDGE",
+      "UNCERTAIN"
+    ],
+    "probability90MinimumRelevantBucketSamples": 200
+  },
+  "browserAcceptance": {
+    "exactProductionArtifact": "PASS",
+    "coldWarmFirstPaint": "PASS",
+    "registeredRoutes": 71,
+    "expectedRenders": 142,
+    "desktopMobileCapture": "PASS",
+    "accessibilityResponsive": "PASS",
+    "screenshotArchive": "PASS",
+    "selectedRangeInteraction": "PASS",
+    "timeframeCoverage": true,
+    "educationHelp": true,
+    "similarSetupBridge": true,
+    "selectedRangeFailures": 0
+  },
+  "performance": {
+    "maxFcpMs": 972,
+    "maxLcpMs": 1128,
+    "maxCls": 0.00203,
+    "maxInpMs": 232,
+    "maxRouteTransitionMs": 238.9,
+    "maxLongTaskMs": 136,
+    "longTasksOver500": 0,
+    "firstPartyLongTasksOver500": 0,
+    "unexpectedNetworkFailures": 0,
+    "routeCycleStatus": "PASS",
+    "decisionChaosStatus": "PASS",
+    "decisionChaosDecisionRequests": 25,
+    "decisionChaosScannerRequests": 7,
+    "decisionChaosRefreshes": 3,
+    "decisionChaosControlChanges": 20,
+    "listenerStart": 210,
+    "listenerEnd": 210,
+    "iframeStart": 0,
+    "iframeEnd": 0,
+    "pendingIntervalsEnd": 0
+  },
+  "production": {
+    "publicSiteUrl": "https://terminal.qellyintelligence.com",
+    "sourceRevision": "d95a7954d1733cc57ec893b757ee1adb78400539",
+    "backendVersion": "d95a7954d1733cc57ec893b757ee1adb78400539",
+    "status": "recorded",
+    "mode": "cloudflare-pages-public-runtime",
+    "cloudSync": true,
+    "authentication": true,
+    "emailDelivery": true,
+    "liveProviders": true,
+    "protectedWrites": true,
+    "buildTimestamp": "2026-09-29T16:33:46.518Z",
+    "cloudflareDeploy": "PASS",
+    "canonicalStableSamples": 2,
+    "pushGates": {
+      "continuousIntegration": "PASS",
+      "containerBuild": "PASS",
+      "productionFoundationServices": "PASS",
+      "githubPagesMirror": "PASS",
+      "publicRuntime": "PASS",
+      "liveTerminalAcceptance": "PASS",
+      "securityAnalysis": "PASS",
+      "canonicalHashRouteGate": "PASS",
+      "browserE2E": "PASS"
+    },
+    "openPrCount": 0
+  },
+  "boundaries": {
+    "researchOnly": true,
+    "tradeExecution": false,
+    "fabricatedProviderTruthAllowed": false,
+    "unsupportedAssetsSelectable": false,
+    "noTradeRemainsValid": true,
+    "probability90PlusRequiresIndependentCalibration": true,
+    "empiricalCalibrationPercentFabricated": false,
+    "profitabilityGuarantee": false,
+    "causalProofFromAssociation": false
+  },
+  "securityAdvisors": {
+    "security": {
+      "state": "WARN",
+      "finding": "Leaked Password Protection Disabled",
+      "scope": "EXTERNAL_AUTH_CONFIGURATION",
+      "disposition": "EXPLICIT_UNRESOLVED_LIMITATION"
+    }
+  },
+  "completion": {
+    "engineeringWavesPercent": 100,
+    "auditedSourceSupportedRemediationPercent": 100,
+    "rangeInteractionOrchestrationPercent": 100,
+    "assetCatalogRepresentationPercent": 100,
+    "liveSelectableAssetCategoryPercent": 10,
+    "referenceOnlyAssetCategoryPercent": 10,
+    "unavailableAssetCategoryPercent": 80,
+    "scientificProbabilityGovernancePercent": 100,
+    "empiricalCalibrationPercent": null,
+    "productionRuntimeAcceptancePercent": 100
+  },
+  "documentation": {
+    "runtimeSemanticChange": false,
+    "note": "A documentation-only merge may advance repository/release SHA. The runtime acceptance anchor remains the functional evidence reference."
+  }
+}
