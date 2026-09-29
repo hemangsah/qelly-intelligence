@@ -30,9 +30,11 @@ test('Decision Intelligence hero exposes current evidence dimensions without inv
   assert.doesNotMatch(route,/pageHead\('QELLY Decision Intelligence'/);
 });
 
-test('Decision Intelligence safely exposes provider-supported 1m and 1d intervals',async()=>{
+test('Decision Intelligence safely exposes every provider-supported picker interval',async()=>{
   const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
-  assert.match(route,/\['1m','5m','15m','30m','1h','4h','1d'\]/);
+  assert.match(route,/\{'1m':60_000,'3m':180_000,'5m':300_000,'15m':900_000,'30m':1_800_000,'1h':3_600_000,'2h':7_200_000,'4h':14_400_000,'1d':86_400_000\}/);
+  assert.match(route,/\['SCALP',\['1m','3m','5m'\]\]/);
+  assert.match(route,/\['SWING',\['2h','4h','1d'\]\]/);
   assert.match(route,/validHorizons\(state\.interval\)/);
   assert.match(route,/normalizeHorizon\(state\.interval,state\.horizon\)/);
 });
