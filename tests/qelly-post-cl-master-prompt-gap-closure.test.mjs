@@ -58,6 +58,14 @@ test('Post-CL gap closure adds accessible user-education help for all required D
   assert.match(css,/\.q-dpg-help:hover i\[role="tooltip"\],\.q-dpg-help:focus i\[role="tooltip"\]/);
 });
 
+test('Post-CL gap closure renders a truthful top-three setup comparison',async()=>{
+  const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
+  assert.match(route,/Compare top 3 setup candidates/);
+  for(const label of ['Direction','R:R','Calibrated probability','Data quality','Event risk','Timeframe','Status'])assert.ok(route.includes(label),label);
+  assert.match(route,/Unavailable probability remains UNCALIBRATED/);
+  assert.match(route,/Evidence-triage confidence is not substituted as a win rate/);
+});
+
 test('Post-CL gap closure renders required asset-row and quality-dimension metadata',async()=>{
   const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
   for(const field of ['asset.marketStatus','asset.providerStatus','asset.supportedTimeframes'])assert.ok(route.includes(field),field);
