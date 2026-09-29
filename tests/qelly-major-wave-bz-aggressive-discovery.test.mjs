@@ -33,6 +33,8 @@ test('Wave BZ exposes validated/aggressive modes and bounded adjacent-timeframe 
   assert.equal(__decisionScanTest.RANKING_PREFERENCES.has('highest_quality'),true);
   assert.equal(__decisionScanTest.RANKING_PREFERENCES.has('lowest_event_risk'),true);
   assert.equal(__decisionScanTest.RANKING_PREFERENCES.has('closest_candidate'),true);
+  assert.equal(__decisionScanTest.RANKING_PREFERENCES.has('fastest_setup'),true);
+  assert.equal(__decisionScanTest.RANKING_PREFERENCES.has('lowest_risk'),true);
   assert.deepEqual(__decisionScanTest.aggressiveIntervals('15m','4h'),['15m','30m']);
   assert.equal(__decisionScanTest.searchVariants(['BTC','ETH'],{mode:'aggressive',interval:'15m',horizon:'4h'}).length,4);
 });
@@ -108,6 +110,29 @@ test('Wave BZ stale data and verified extreme event risk remain hard blockers',a
   });
   assert.equal(extreme.eligibleCount,0);
   assert.ok(extreme.closestCandidate.missingConditions.includes('critical_event_risk'));
+});
+
+test('Post-CL scanner can rank fastest validated setups and lowest research risk without using probability as a proxy',async()=>{
+  const now=Date.parse('2026-09-27T10:00:00.000Z');
+  const fastest=await runDecisionScan({},{
+    mode:'validated',ranking:'fastest_setup',assets:'BTC,ETH',now,
+    build:async(_env,{asset,interval})=>fixture(asset,{interval,selectedRatio:asset==='BTC'?1:2})
+  });
+  assert.equal(fastest.candidates[0].asset,'BTC');
+  assert.equal(fastest.candidates[0].trade.expectedResolutionState,'HEURISTIC');
+  assert.match(fastest.candidates[0].trade.expectedResolutionBoundary,/research heuristic/i);
+
+  const lowRisk=await runDecisionScan({},{
+    mode:'validated',ranking:'lowest_risk',assets:'BTC,ETH',now,
+    build:async(_env,{asset,interval})=>{
+      const item=fixture(asset,{interval});
+      if(asset==='ETH'){item.tradeResearch.stop.price=90;item.quant.volatility.regime='HIGH';item.eventRisk={state:'available',level:'HIGH'};item.liquidity={state:'live',spreadState:'WIDE',spreadBps:30};}
+      return item;
+    }
+  });
+  assert.equal(lowRisk.candidates[0].asset,'BTC');
+  assert.ok(lowRisk.candidates[0].researchRisk.score>lowRisk.candidates[1].researchRisk.score);
+  assert.match(lowRisk.candidates[0].researchRisk.boundary,/not personalized financial risk/i);
 });
 
 test('Wave BZ closest candidate is explicitly unvalidated with missing conditions and probability boundary',async()=>{
