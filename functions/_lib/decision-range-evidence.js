@@ -74,6 +74,9 @@ export function buildDecisionRangeEvidence({graph,evidence={},assetClass='crypto
     coverageDisclosure:'Relevant indexed news and events found for this exact selected window; absence of a result is not proof that no event occurred.'
   };
   const regulatoryClusters=(newsData.clusters||[]).filter(cluster=>(cluster.topicHints||[]).includes('REGULATION_POLICY'));
+  const macroClusters=(newsData.clusters||[]).filter(cluster=>(cluster.topicHints||[]).includes('MACRO_RATES'));
+  const geopoliticalClusters=(newsData.clusters||[]).filter(cluster=>(cluster.topicHints||[]).includes('GEOPOLITICS_SUPPLY'));
+  const fundamentalClusters=(newsData.clusters||[]).filter(cluster=>(cluster.topicHints||[]).some(topic=>['NETWORK_PROTOCOL','ADOPTION_CORPORATE','ETF_INSTITUTIONAL'].includes(topic)));
   const flowEvidence={
     actorIdentity:'UNAVAILABLE',
     actorIdentityDisclosure:'Actor identity unavailable unless a named buyer or seller is supported by an authorized public source.',
@@ -94,10 +97,10 @@ export function buildDecisionRangeEvidence({graph,evidence={},assetClass='crypto
     currentOnly('liquidity-current','Liquidity current context',evidence?.liquidity,'Current L2 is labeled CURRENT CONTEXT and is never backfilled into the selected historical range.'),
     currentOnly('derivatives-current','Derivatives current context',evidence?.derivatives,'Current OI, mark/oracle and live perpetual context are labeled CURRENT CONTEXT and are not evidence of the historical range.'),
     currentOnly('macro-current','Macro current context',evidence?.macro,'Connected macro references are current/delayed context only unless a historical release feed explicitly overlaps the selected range.'),
-    unavailable('macro-events','Historical macro releases','HISTORICAL_UNAVAILABLE','No verified machine-readable historical macro release feed is connected to this range engine yet.'),
-    unavailable('fundamentals','Fundamentals','HISTORICAL_UNAVAILABLE',assetClass==='crypto'?'No governed historical fundamental dataset is connected for this crypto range.':'No governed historical fundamental dataset is connected for this instrument.'),
+    family('macro-events','Historical macro / rates reporting',macroClusters.length?'INDEXED_NEWS_ONLY':'UNAVAILABLE','HISTORICAL_RANGE_BOUNDED',news.provider||null,{clusters:macroClusters,officialReleaseValuesAvailable:false},['Time-bounded indexed reporting is historical context only. QELLY does not invent an economic-calendar release, expected/actual/prior value, surprise, or causal impact when no verified structured release feed is connected.']),
+    family('fundamentals','Fundamental / protocol event reporting',fundamentalClusters.length?'INDEXED_NEWS_ONLY':'UNAVAILABLE','HISTORICAL_RANGE_BOUNDED',news.provider||null,{clusters:fundamentalClusters,structuredFundamentalDatasetAvailable:false},[assetClass==='crypto'?'Indexed protocol, adoption, ETF or institutional reporting can provide historical event context; a governed historical fundamental dataset is not connected.':'Indexed corporate/fundamental reporting can provide event context; a governed historical fundamental dataset is not connected.']),
     family('regulatory','Regulatory evidence',regulatoryClusters.length?'INDEXED_NEWS_ONLY':'UNAVAILABLE','HISTORICAL_RANGE_BOUNDED',news.provider||null,{clusters:regulatoryClusters},['News topic matching is contextual and does not establish causation or regulatory impact.']),
-    unavailable('geopolitics','Geopolitics','HISTORICAL_UNAVAILABLE','No dedicated structured geopolitical event feed is connected; generic timing-based causation is not inferred.'),
+    family('geopolitics','Geopolitical / supply-risk reporting',geopoliticalClusters.length?'INDEXED_NEWS_ONLY':'UNAVAILABLE','HISTORICAL_RANGE_BOUNDED',news.provider||null,{clusters:geopoliticalClusters,structuredGeopoliticalFeedAvailable:false},['Time-bounded indexed reporting can establish that a geopolitical or supply-risk story was reported in the selected window. It does not prove market causation, and no dedicated structured geopolitical event feed is implied.']),
     family('cross-asset','Cross-asset selected range',String(selectedCrossAsset?.state||'UNAVAILABLE').toUpperCase()==='AVAILABLE'?'AVAILABLE':'UNAVAILABLE','HISTORICAL_RANGE_BOUNDED',selectedCrossAsset?.provider||null,selectedCrossAsset,Array.isArray(selectedCrossAsset?.limitations)?selectedCrossAsset.limitations:[selectedCrossAsset?.reason||'Cross-asset evidence requires aligned benchmark observations inside the selected range.']),
     unavailable('sector-index','Sector / index','NOT_APPLICABLE',assetClass==='crypto'?'Sector/index decomposition is not applicable to the current crypto-only provider profile.':'Sector/index evidence is not connected.'),
     unavailable('on-chain','On-chain','HISTORICAL_UNAVAILABLE',evidence?.onChain?.message||'Authorized on-chain history is not connected.'),
@@ -117,7 +120,7 @@ export function buildDecisionRangeEvidence({graph,evidence={},assetClass='crypto
     'Timing correlation alone is not causation.',
     'Current-context liquidity, derivatives and macro values are separated from historical range evidence.',
     'Named buyer or seller identity is unavailable unless directly sourced.',
-    'Unavailable historical OI, liquidation, options, on-chain, macro-event and order-flow data are not synthesized from price action.'
+    'Unavailable historical OI, liquidation, options, on-chain, official macro-release values and order-flow data are not synthesized from price action.'
   ];
   const dataStory=`${graph?.asset||'The asset'} moved ${summary.returnPct===null?'an unquantified amount':(summary.returnPct>=0?'+':'')+summary.returnPct+'%'} across ${summary.candles} ${graph?.interval||''} candles. The strongest directly observed evidence is price/structure, volume and volatility inside the selected window; bounded news, settled funding and cross-asset evidence are attached only when their timestamps overlap. Current market context is shown separately and is not used as proof of what caused the historical move.`;
   return {
