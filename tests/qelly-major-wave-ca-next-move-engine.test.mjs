@@ -47,6 +47,9 @@ test('Wave CA produces 1/3/5 plus bounded custom research and never marks projec
     assert.equal(Object.values(item.modelProbabilities).reduce((sum,value)=>sum+value,0).toFixed(4),'1.0000');
     assert.ok(item.likelyBand.low<=item.expectedRange.p50&&item.expectedRange.p50<=item.likelyBand.high);
     assert.match(item.boundary,/not guarantees|withheld/i);
+    assert.ok(['EDGE_PRESENT','NO_EDGE','UNCERTAIN'].includes(item.edgeState));
+    assert.ok(Number.isFinite(Number(item.modelScenarioSeparation)));
+    assert.match(item.edgeBoundary,/not expected return/i);
   }
 });
 
