@@ -449,10 +449,22 @@ const probabilityCalibrationMarkup=(data,escapeHtml)=>{
   const sampleGate=Number.isFinite(Number(calibration.minimumSampleGate))?String(calibration.minimumSampleGate):'Unavailable';
   const diagnosticOnly=calibration.diagnosticMetricsOnly===true;
   const overlap=calibration.outcomeWindowOverlap===true?'YES':calibration.outcomeWindowOverlap===false?'NO':'UNAVAILABLE';
+  const resolvedSamples=Math.max(0,Number(calibration.sampleSize)||0);
+  const contradictions=Array.isArray(data?.qellyView?.contradictions)?data.qellyView.contradictions:[];
+  const eventLevel=String(data?.evidence?.eventRisk?.level||data?.eventRisk?.level||'UNAVAILABLE').toUpperCase();
+  const driftState=String(data?.modelHealth?.driftReadiness?.state||'UNMEASURED').toUpperCase();
+  const whyNot90=[];
+  if(resolvedSamples<200)whyNot90.push('Insufficient independent resolved sample for the strict 90% gate: n='+resolvedSamples+' / 200 required for the relevant reliability bucket unless a statistically justified pooled model is implemented.');
+  if(calibration.eligible!==true)whyNot90.push('Calibration is '+String(calibration.state||'UNCALIBRATED').replaceAll('_',' ').toLowerCase()+': '+String(calibration.reason||'independent calibration evidence has not cleared the publication gate.'));
+  if(contradictions.length)whyNot90.push('Conflicting evidence remains: '+contradictions.slice(0,2).join(' · ')+'.');
+  if(['HIGH','EXTREME'].includes(eventLevel))whyNot90.push('Event risk is '+eventLevel.toLowerCase()+', so a high-certainty presentation would be misleading.');
+  if(driftState.includes('DRIFT')||driftState.includes('DEGRADED'))whyNot90.push('Model-health drift state is '+driftState.replaceAll('_',' ').toLowerCase()+'.');
+  if(!whyNot90.length)whyNot90.push('A displayed 90%+ probability still requires the dedicated relevant-bucket >=200 independent-outcome gate, reliability evidence, confidence interval, acceptable Brier calibration and no critical contradiction. Evidence confidence alone cannot create 90%.');
+  const whyNot90Markup='<details class="q-dpg-why-not-90"><summary>Why not 90%?</summary><ul>'+whyNot90.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul><p>90%+ is never created because indicators agree, Aggressive Discovery is active, or the UI should look confident.</p></details>';
   return '<section class="q-dpg-model-calibration"><header><div><small>MODEL CALIBRATION · WALK-FORWARD</small><h2>'+escapeHtml(String(calibration.state||'UNCALIBRATED').replaceAll('_',' '))+'</h2><p>'+escapeHtml(calibration.reason||'Calibration evidence is unavailable.')+'</p></div><span>'+(calibration.eligible?'ELIGIBLE':diagnosticOnly?'DIAGNOSTIC ONLY':'NOT ELIGIBLE')+'</span></header>'+
     '<div class="q-dpg-model-calibration__metrics"><article><span>Resolved samples</span><strong>'+escapeHtml(String(calibration.sampleSize??0))+'</strong><small>independent sample gate '+escapeHtml(sampleGate)+'</small></article><article><span>Outcome separation</span><strong>'+escapeHtml(separation)+'</strong><small>overlap '+escapeHtml(overlap)+'</small></article><article><span>Brier score</span><strong>'+escapeHtml(brier)+'</strong><small>'+(diagnosticOnly?'diagnostic only':'lower is better')+'</small></article><article><span>Skill vs uniform</span><strong>'+escapeHtml(skill)+'</strong><small>'+(diagnosticOnly?'diagnostic only':'calibration diagnostic')+'</small></article><article><span>Reliability gap</span><strong>'+escapeHtml(gap)+'</strong><small>'+(diagnosticOnly?'diagnostic only':'lower is better')+'</small></article></div>'+
     (bins.length?'<details><summary>Reliability bins</summary><div class="q-dpg-reliability-bins">'+bins.map(bin=>'<span><em>'+Math.round(Number(bin.low)*100)+'–'+Math.round(Number(bin.high)*100)+'%</em><strong>'+Math.round(Number(bin.meanConfidence)*100)+'% conf / '+Math.round(Number(bin.hitRate)*100)+'% hit</strong><small>n='+escapeHtml(String(bin.sampleSize))+'</small></span>').join('')+'</div></details>':'')+
-    '<p class="q-dpg-calibration-method">'+escapeHtml(calibration.method||'')+(calibration.independenceGuard?' · '+escapeHtml(calibration.independenceGuard):'')+(calibration.leakageGuard?' · '+escapeHtml(calibration.leakageGuard):'')+'</p>'+
+    '<p class="q-dpg-calibration-method">'+escapeHtml(calibration.method||'')+(calibration.independenceGuard?' · '+escapeHtml(calibration.independenceGuard):'')+(calibration.leakageGuard?' · '+escapeHtml(calibration.leakageGuard):'')+'</p>'+whyNot90Markup+
   '</section>';
 };
 
