@@ -58,6 +58,12 @@ test('Post-CL gap closure adds accessible user-education help for all required D
   assert.match(css,/\.q-dpg-help:hover i\[role="tooltip"\],\.q-dpg-help:focus i\[role="tooltip"\]/);
 });
 
+test('Post-CL gap closure labels the unvalidated fallback as Best Available Candidate',async()=>{
+  const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
+  assert.match(route,/BEST AVAILABLE CANDIDATE · CLOSEST CANDIDATE · NOT YET VALIDATED/);
+  assert.match(route,/NO EDGE \/ UNCERTAIN/);
+});
+
 test('Post-CL gap closure renders a truthful top-three setup comparison',async()=>{
   const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
   assert.match(route,/Compare top 3 setup candidates/);
