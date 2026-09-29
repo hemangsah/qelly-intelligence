@@ -286,6 +286,8 @@ const compactCandidate=(result,{filters=normalizeFilters(),now=Date.now(),mode='
     researchPriorityComponents:Object.fromEntries(Object.entries(components).map(([key,value])=>[key,round(value,3)])),
     researchPriorityMeaning:'Evidence triage score only; it is not a probability, win rate, expected return or execution ranking.',
     evidence:{
+      dataQualityState:result?.dataQuality?.state||'UNAVAILABLE',
+      dataQualityScore:round(finite(result?.dataQuality?.score),3),
       qualityScore:round(finite(gate.qualityScore),3),
       calibrationGatedEvidenceConfidence:gate.calibrationEligible===true?round(finite(view.confidence),3):null,
       calibratedConfidence:gate.calibrationEligible===true?round(finite(view.confidence),3):null,
