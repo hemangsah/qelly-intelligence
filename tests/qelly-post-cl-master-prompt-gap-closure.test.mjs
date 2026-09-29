@@ -8,6 +8,11 @@ import {buildDecisionRangeEvidence} from '../functions/_lib/decision-range-evide
 
 const read=(path)=>readFile(new URL('../'+path,import.meta.url),'utf8');
 
+test('Post-CL gap closure preserves 3m and 2h through the shared Decision context bridge',async()=>{
+  const bridge=await read('apps/web/public/assets/decision-context-bridge.mjs');
+  assert.match(bridge,/DECISION_TIMEFRAMES=new Set\(\['1m','3m','5m','15m','30m','1h','2h','4h','1d'\]\)/);
+});
+
 test('Post-CL gap closure exposes backend-supported 3m and 2h timeframes',async()=>{
   assert.deepEqual(DECISION_PICKER_INTERVALS,['1m','3m','5m','15m','30m','1h','2h','4h','1d']);
   assert.deepEqual(__decisionScanTest.aggressiveIntervals('1m','4h'),['1m','3m']);
