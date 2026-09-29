@@ -8,10 +8,10 @@ import {createDecisionLatencyTrace} from '../../_lib/decision-latency.js';
 import {coalesceDecisionWork,decisionWorkKey,edgeCacheRequest,historicalRangeSettled,rangeEvidenceCacheKey,readEdgeJsonCache,writeEdgeJsonCache,DECISION_PERFORMANCE_CACHE_SCHEMA} from '../../_lib/decision-performance-cache.js';
 
 const ASSETS=new Set(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
-const INTERVALS=new Set(['1m','5m','15m','30m','1h','4h','1d']);
+const INTERVALS=new Set(['1m','3m','5m','15m','30m','1h','2h','4h','1d']);
 const MAX_RANGE_MS=90*86_400_000;
 const FUTURE_TOLERANCE_MS=5*60_000;
-const RANGE_EVIDENCE_SOURCE_VERSION='qelly.range-evidence.sources/2026-09-28.1';
+const RANGE_EVIDENCE_SOURCE_VERSION='qelly.range-evidence.sources/2026-09-29.2';
 const SETTLED_RANGE_EDGE_TTL_SECONDS=21_600;
 const ip=(request)=>request.headers.get('cf-connecting-ip')||request.headers.get('x-forwarded-for')?.split(',')[0]||'anonymous';
 const finiteTime=(value)=>{const number=Number(value);return Number.isFinite(number)&&number>0?number:null;};
