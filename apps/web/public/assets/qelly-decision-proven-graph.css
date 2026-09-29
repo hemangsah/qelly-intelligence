@@ -555,6 +555,9 @@ html:has(.q-ai-assistant:not([hidden])) .q-dpg-chat-dock{opacity:0;pointer-event
 }
 
 
+/* Post-CL master-prompt gap closure: explicit quality / comparison surfaces */
+.q-dpg-quality-matrix{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:10px 0 14px}.q-dpg-quality-matrix>span{display:grid;gap:3px;padding:9px;border:1px solid var(--q-border,#2a3441);border-radius:10px}.q-dpg-quality-matrix em{font-style:normal;font-size:.72rem;opacity:.72}.q-dpg-quality-matrix strong{font-size:.9rem}.q-dpg-quality-matrix small{font-size:.72rem;opacity:.78}.q-dpg-setup-comparison{margin:12px 0}.q-dpg-table-scroll{overflow:auto}.q-dpg-setup-comparison table{width:100%;border-collapse:collapse;min-width:760px}.q-dpg-setup-comparison th,.q-dpg-setup-comparison td{padding:8px 9px;border-bottom:1px solid var(--q-border,#2a3441);text-align:left;font-size:.82rem}.q-dpg-setup-comparison th{font-size:.72rem;letter-spacing:.03em;opacity:.72}.q-dpg-setup-comparison p{font-size:.78rem;opacity:.76}@media(max-width:900px){.q-dpg-quality-matrix{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.q-dpg-quality-matrix{grid-template-columns:1fr}}
+
 /* Post-CL master-prompt gap closure: education tooltips */
 .q-dpg-education{margin:12px 0;border:1px solid var(--q-border,#2a3441);border-radius:12px;background:color-mix(in srgb,var(--q-surface,#111827) 92%,transparent);padding:10px 12px}
 .q-dpg-education>summary{cursor:pointer;font-weight:700}
