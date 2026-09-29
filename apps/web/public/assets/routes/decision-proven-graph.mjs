@@ -985,6 +985,30 @@ export async function renderDecisionProvenGraph(main,deps){
       '<details><summary>Deterministic method boundary</summary><p>'+escapeHtml(smc?.methodology||'')+'</p><p>'+escapeHtml(pa?.methodology||'')+'</p><p>These rules do not identify institutional intent, smart-money actors, or causal flow. Overlapping structure features are handled by formula-governance redundancy control.</p></details></section>';
   };
 
+  const quantResearchMarkup=(data,escapeHtml)=>{
+    const q=data?.quant?.researchLibrary;
+    if(!q||q.state!=='DERIVED')return '';
+    const num=(value,suffix='')=>Number.isFinite(Number(value))?Number(value).toLocaleString(undefined,{maximumFractionDigits:4})+suffix:'Unavailable';
+    const state=(value)=>String(value||'UNAVAILABLE').replaceAll('_',' ');
+    const item=(label,value,suffix='')=>'<span><em>'+escapeHtml(label)+'</em><strong>'+escapeHtml(num(value,suffix))+'</strong></span>';
+    const formulas=Array.isArray(q.formulaCatalog)?q.formulaCatalog:[];
+    const families=new Map();
+    for(const formula of formulas){
+      if(!families.has(formula.family))families.set(formula.family,[]);
+      families.get(formula.family).push(formula);
+    }
+    const inventory=[...families.entries()].map(([family,rows])=>'<section><h3>'+escapeHtml(String(family).replaceAll('_',' '))+'</h3><ul>'+rows.map(formula=>'<li><strong>'+escapeHtml(formula.id)+'</strong><span>'+escapeHtml(String(formula.role).replaceAll('_',' '))+'</span><small>'+escapeHtml(formula.definition)+'</small></li>').join('')+'</ul></section>').join('');
+    return '<section class="q-dpg-quant-research" data-dpg-quant-research><header><div><small>ADVANCED QUANT RESEARCH LIBRARY</small><h2>'+escapeHtml(state(q.state))+' · '+escapeHtml(String(q.sampleSize))+' candles</h2><p>Formula breadth for research diagnostics. These metrics are descriptive/contextual by default and are not independent votes.</p></div><span>'+escapeHtml(String(formulas.length))+' governed formulas</span></header>'+
+      '<div class="q-dpg-quant-research__grid">'+
+        '<article><h3>Returns / volatility</h3><div>'+item('Cumulative',q.returns?.cumulativePct,'%')+item('Rolling 20',q.returns?.rolling20Pct,'%')+item('Realized vol',q.volatility?.realizedPct,'%')+item('EWMA vol',q.volatility?.ewmaPct,'%')+item('Parkinson',q.volatility?.parkinsonPct,'%')+item('Garman-Klass',q.volatility?.garmanKlassPct,'%')+item('Rogers-Satchell',q.volatility?.rogersSatchellPct,'%')+item('ATR %',q.volatility?.normalizedAtr14Pct,'%')+'</div><p>Volatility regime '+escapeHtml(state(q.volatility?.regime))+' · percentile '+escapeHtml(num(q.volatility?.percentile))+'</p></article>'+
+        '<article><h3>Distribution / risk</h3><div>'+item('Z-score',q.distribution?.zScore)+item('Robust Z',q.distribution?.robustZScore)+item('VaR 95',q.risk?.historicalVaR95Pct,'%')+item('ES 95',q.risk?.expectedShortfall95Pct,'%')+item('Max drawdown',q.risk?.maxDrawdownPct,'%')+item('Tail ratio',q.risk?.tailRatio)+'</div><p>Empirical tail and drawdown context; not a future-loss guarantee.</p></article>'+
+        '<article><h3>Trend / momentum</h3><div>'+item('OLS slope',q.trend?.olsSlopePctPerBar,'%/bar')+item('Robust slope',q.trend?.robustSlopePctPerBar,'%/bar')+item('Efficiency',q.trend?.efficiencyRatio)+item('ADX',q.trend?.adx14)+item('RSI',q.momentum?.rsi14)+item('ROC 14',q.momentum?.roc14Pct,'%')+item('MACD hist',q.momentum?.macd?.histogramPct,'%')+item('Stochastic',q.momentum?.stochasticK14)+'</div><p>SMA '+escapeHtml(state(q.trend?.sma?.state))+' · EMA '+escapeHtml(state(q.trend?.ema?.state))+' · trend age '+escapeHtml(num(q.trend?.trendAgeBars))+' bars.</p></article>'+
+        '<article><h3>Mean reversion / dependence</h3><div>'+item('Bollinger Z',q.meanReversion?.bollingerZ)+item('VWAP deviation',q.meanReversion?.vwapDeviationPct,'%')+item('Range position',q.meanReversion?.rangePosition)+item('Half-life',q.meanReversion?.halfLife?.halfLifeBars,' bars')+item('Benchmark corr',q.dependence?.correlation)+item('Beta',q.dependence?.beta)+item('Spread Z',q.dependence?.spreadZScore)+'</div><p>Half-life '+escapeHtml(state(q.meanReversion?.halfLife?.state))+' · benchmark dependence '+escapeHtml(state(q.dependence?.state))+' · cointegration '+escapeHtml(state(q.dependence?.cointegration?.state))+'.</p></article>'+
+      '</div>'+
+      '<details><summary>Formula definitions, roles and unavailable methods</summary><div class="q-dpg-quant-research__inventory">'+inventory+'</div><p>'+escapeHtml(q.boundary||'')+'</p><p>Block bootstrap: '+escapeHtml(state(q.forecasting?.blockBootstrap?.state))+' · Monte Carlo: '+escapeHtml(state(q.forecasting?.monteCarlo?.state))+' · state-space/Kalman: '+escapeHtml(state(q.forecasting?.stateSpace?.state))+'.</p></details>'+
+    '</section>';
+  };
+
   const formulaGovernanceMarkup=(data,escapeHtml)=>{
     const governance=data?.formulaGovernance||data?.qellyView?.formulaGovernance;
     if(!governance)return '';
@@ -1137,7 +1161,7 @@ export async function renderDecisionProvenGraph(main,deps){
     const advanced=simple+advancedDecisionContent(data);
     if(state.uiMode==='advanced')return advanced;
     const research='<section id="qelly-decision-panel-research" class="q-dpg-mode-panel q-dpg-mode-panel--research" data-dpg-mode-panel="research" role="tabpanel" aria-labelledby="qelly-decision-tab-research" tabindex="0"><header class="q-dpg-mode-panel__header"><div><small>RESEARCH LAB</small><h2>Calibration, model trace, raw diagnostics and provenance</h2></div><span>Expert surface · research-only</span></header>'+
-      outcomeLedgerMarkup(data)+whatChangedMarkup(state.previousSnapshot,data.decisionSnapshot,escapeHtml)+decisionTraceMarkup(data,escapeHtml)+secondaryResearchDiagnosticsMarkup(data,escapeHtml)+sloDiagnosticsMarkup(state.slo,escapeHtml)+
+      quantResearchMarkup(data,escapeHtml)+outcomeLedgerMarkup(data)+whatChangedMarkup(state.previousSnapshot,data.decisionSnapshot,escapeHtml)+decisionTraceMarkup(data,escapeHtml)+secondaryResearchDiagnosticsMarkup(data,escapeHtml)+sloDiagnosticsMarkup(state.slo,escapeHtml)+
       '<details id="qelly-decision-methodology" class="q-dpg-audit" open><summary>Methodology and sources</summary><div><section><h3>Market data</h3><p>'+escapeHtml(data.provenance.provider)+' public candles. <a href="'+escapeHtml(data.provenance.documentation)+'" target="_blank" rel="noopener">Source documentation ↗</a></p></section><section><h3>Method</h3><p>'+data.provenance.model.features.map(escapeHtml).join(' · ')+'</p><p>'+escapeHtml(data.confidence.calibration)+'</p></section><section><h3>Limits</h3><ul>'+data.provenance.model.limitations.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul></section></div></details>'+
     '</section>';
     return advanced+research;
