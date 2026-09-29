@@ -5,7 +5,7 @@ import {DECISION_ASSET_SYMBOLS} from '../../_lib/decision-asset-capabilities.js'
 import {coalesceDecisionWork,decisionWorkKey} from '../../_lib/decision-performance-cache.js';
 
 export const DECISION_SCAN_ASSETS=DECISION_ASSET_SYMBOLS;
-const INTERVALS=new Set(['1m','5m','15m','30m','1h','4h','1d']);
+const INTERVALS=new Set(['1m','3m','5m','15m','30m','1h','2h','4h','1d']);
 const HORIZONS=new Set(['1h','4h','12h','1d','3d','7d']);
 const RR_VALUES=new Set(['auto','1','2','3','4','custom']);
 const DIRECTIONS=new Set(['any','long','short']);
@@ -17,8 +17,8 @@ const FRESHNESS_FILTERS=new Set(['any','live','live_or_delayed']);
 const SETUP_FRESHNESS=new Set(['any','current']);
 const DISCOVERY_MODES=new Set(['validated','aggressive']);
 const RANKING_PREFERENCES=new Set(['highest_quality','lowest_event_risk','closest_candidate']);
-const INTERVAL_ORDER=Object.freeze(['1m','5m','15m','30m','1h','4h','1d']);
-const INTERVAL_MS=Object.freeze({'1m':60_000,'5m':300_000,'15m':900_000,'30m':1_800_000,'1h':3_600_000,'4h':14_400_000,'1d':86_400_000});
+const INTERVAL_ORDER=Object.freeze(['1m','3m','5m','15m','30m','1h','2h','4h','1d']);
+const INTERVAL_MS=Object.freeze({'1m':60_000,'3m':180_000,'5m':300_000,'15m':900_000,'30m':1_800_000,'1h':3_600_000,'2h':7_200_000,'4h':14_400_000,'1d':86_400_000});
 const HORIZON_MS=Object.freeze({'1h':3_600_000,'4h':14_400_000,'12h':43_200_000,'1d':86_400_000,'3d':259_200_000,'7d':604_800_000});
 const AGGRESSIVE_RELAXABLE_FILTER_FAILURES=new Set(['evidence_quality_below_minimum','mtf_agreement_below_minimum','live_liquidity_required','tight_liquidity_required','volatility_filter_mismatch','regime_filter_mismatch']);
 const FEASIBILITY_WEIGHT=Object.freeze({'HIGHLY FEASIBLE':1,FEASIBLE:.8,CONDITIONAL:.55,'LOW FEASIBILITY':.2,'NOT FEASIBLE':0,UNAVAILABLE:0});
