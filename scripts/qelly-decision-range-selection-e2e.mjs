@@ -483,7 +483,7 @@ const exercise=async({name,viewport,touch=false})=>{
   const similarSetupVisible=await similarSetupButton.isVisible().catch(()=>false);
   if(similarSetupVisible){
     await similarSetupButton.click();
-    await page.waitForFunction(()=>Boolean(window.__QELLY_E2E_LAST_SCAN_REQUEST__)||Boolean(document.querySelector('[data-dpg-closest-candidate]')),{timeout:20_000}).catch(()=>{});
+    for(let attempt=0;attempt<80&&!lastScanRequest;attempt+=1)await page.waitForTimeout(100);
   }
   const similarSetupBridge=similarSetupVisible&&lastScanRequest?.mode==='validated'&&lastScanRequest?.assets==='BTC'&&lastScanRequest?.ranking==='highest_quality'&&lastScanRequest?.direction==='any';
   if(!similarSetupBridge)failures.push({type:'range-similar-current-setup-bridge',similarSetupVisible,lastScanRequest});
