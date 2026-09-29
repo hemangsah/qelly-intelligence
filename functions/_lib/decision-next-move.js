@@ -16,7 +16,7 @@ const publicationGate=(probabilities,calibration)=>{
   const calibrated=calibration?.eligible===true;
   const elevated=probability>=.8,extreme=probability>=.9;
   const elevatedGate=calibrated&&Number(calibration.sampleSize)>=60&&Number(bin?.sampleSize)>=12&&Number(bin?.hitRate)>=Math.max(.7,probability-.1)&&Number(bin?.confidenceInterval95?.low)>=.5;
-  const extremeGate=calibrated&&Number(calibration.sampleSize)>=80&&Number(bin?.sampleSize)>=20&&Number(bin?.hitRate)>=.85&&Number(bin?.confidenceInterval95?.low)>=.65;
+  const extremeGate=calibrated&&Number(calibration.sampleSize)>=200&&Number(bin?.sampleSize)>=200&&Number(bin?.hitRate)>=.85&&Number(bin?.confidenceInterval95?.low)>=.65;
   const probabilityPublishable=calibrated&&(!elevated||(extreme?extremeGate:elevatedGate));
   return {
     scenario,modelProbability:round(probability,4),calibrated,
@@ -26,7 +26,7 @@ const publicationGate=(probabilities,calibration)=>{
     reliabilityBin:bin?{...bin}:null,
     calibratedLeadingProbability:calibrated&&bin&&Number(bin.sampleSize)>=8?round(bin.hitRate,4):null,
     calibratedLeadingProbabilityConfidenceInterval95:calibrated&&bin&&Number(bin.sampleSize)>=8?bin.confidenceInterval95:null,
-    rule:'Probabilities at or above 80% require stronger independent sample and reliability evidence; 90%+ additionally requires at least 80 independent outcomes, 20 observations in the matching reliability bin, >=85% empirical hit rate and a >=65% lower 95% confidence bound.'
+    rule:'Probabilities at or above 80% require stronger independent sample and reliability evidence; 90%+ requires at least 200 independent resolved outcomes in the relevant reliability bucket unless a statistically justified pooled model is implemented, plus >=85% empirical hit rate and a >=65% lower 95% confidence bound. No pooled-model exception is currently implemented.'
   };
 };
 
