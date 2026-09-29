@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {decisionAssetCapabilities,DECISION_PICKER_INTERVALS} from '../functions/_lib/decision-asset-capabilities.js';
 import {__decisionScanTest} from '../functions/api/v1/decision-scan.js';
+import {buildDecisionNewsClusters} from '../functions/_lib/decision-news.js';
+import {buildDecisionRangeEvidence} from '../functions/_lib/decision-range-evidence.js';
 
 const read=(path)=>readFile(new URL('../'+path,import.meta.url),'utf8');
 
@@ -54,4 +56,49 @@ test('Post-CL gap closure adds accessible user-education help for all required D
 test('Post-CL gap closure extends asset search to provider symbol exchange and currency',async()=>{
   const picker=await read('apps/web/public/assets/decision-asset-picker.mjs');
   for(const field of ['asset?.providerSymbol','asset?.exchange','asset?.currency'])assert.ok(picker.includes(field),field);
+});
+
+
+test('Post-CL gap closure classifies bounded macro geopolitical and fundamental reporting without manufacturing structured data',()=>{
+  const articles=[
+    {title:'Fed rate decision and CPI inflation outlook moves risk markets',source:'wire.example',publishedAt:'2026-09-20T10:00:00Z',url:'https://example.com/macro'},
+    {title:'Sanctions and export ban raise geopolitical supply disruption risk',source:'wire.example',publishedAt:'2026-09-20T10:05:00Z',url:'https://example.com/geopolitics'},
+    {title:'Bitcoin protocol upgrade and institutional ETF adoption expands',source:'wire.example',publishedAt:'2026-09-20T10:10:00Z',url:'https://example.com/fundamental'}
+  ];
+  const clustering=buildDecisionNewsClusters(articles,{asset:'BTC'});
+  const topics=new Set(clustering.clusters.flatMap(cluster=>cluster.topicHints||[]));
+  assert.equal(topics.has('MACRO_RATES'),true);
+  assert.equal(topics.has('GEOPOLITICS_SUPPLY'),true);
+  assert.equal(topics.has('NETWORK_PROTOCOL')||topics.has('ETF_INSTITUTIONAL')||topics.has('ADOPTION_CORPORATE'),true);
+
+  const start=Date.parse('2026-09-20T10:00:00Z');
+  const graph={
+    asset:'BTC',interval:'15m',
+    provenance:{provider:'Hyperliquid',dataFingerprint:'fixture'},
+    selection:{
+      start,end:start+30*60_000,candles:3,startPrice:100,endPrice:103,changePct:3,rangePct:4,
+      volatilityPct:1.2,volumeRatio:1.4,averageVolume:1200,structure:'HH_HL',regime:'TRENDING',
+      support:99,resistance:104,evidence:[]
+    },
+    market:{candles:[
+      {time:start-15*60_000,open:99,high:101,low:98,close:100,volume:800},
+      {time:start,open:100,high:102,low:99,close:101,volume:1000},
+      {time:start+15*60_000,open:101,high:103,low:100,close:102,volume:1200},
+      {time:start+30*60_000,open:102,high:104,low:101,close:103,volume:1400},
+      {time:start+45*60_000,open:103,high:104,low:102,close:103.5,volume:900}
+    ]}
+  };
+  const result=buildDecisionRangeEvidence({
+    graph,
+    evidence:{news:{state:'live',provider:'GDELT',articles,clusters:clustering.clusters,clustering}},
+    assetClass:'crypto',venue:'Hyperliquid',timezone:'UTC'
+  });
+  const byId=Object.fromEntries(result.evidenceFamilies.map(item=>[item.id,item]));
+  assert.equal(byId['macro-events'].state,'INDEXED_NEWS_ONLY');
+  assert.equal(byId.fundamentals.state,'INDEXED_NEWS_ONLY');
+  assert.equal(byId.geopolitics.state,'INDEXED_NEWS_ONLY');
+  assert.equal(byId['macro-events'].data.officialReleaseValuesAvailable,false);
+  assert.equal(byId.fundamentals.data.structuredFundamentalDatasetAvailable,false);
+  assert.equal(byId.geopolitics.data.structuredGeopoliticalFeedAvailable,false);
+  assert.match(byId.geopolitics.limitations.join(' '),/does not prove market causation/i);
 });
