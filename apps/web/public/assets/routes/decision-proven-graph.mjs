@@ -483,7 +483,18 @@ const healthQualityMarkup=(data,escapeHtml)=>{
   ].map(([label,value])=>'<span><em>'+escapeHtml(label)+'</em><strong>'+(Number.isFinite(Number(value))?Math.round(Number(value)*100)+'%':'Unavailable')+'</strong></span>').join('');
   const drift=health?.drift||{};
   const driftRows=Object.values(drift).slice(0,8).map(item=>'<li><strong>'+escapeHtml(String(item?.dimension||'drift').replaceAll('_',' '))+'</strong><span>'+escapeHtml(String(item?.state||'UNMEASURED'))+'</span><small>'+escapeHtml(item?.reason||'No longitudinal baseline is available.')+'</small></li>').join('');
-  return '<details class="q-dpg-health-quality"><summary>Model / data health · '+escapeHtml(String(quality?.state||'UNAVAILABLE').replaceAll('_',' '))+' · '+escapeHtml(String(health?.driftReadiness?.state||'BASELINE_UNAVAILABLE').replaceAll('_',' '))+'</summary>'+
+  const gate=data?.qellyView?.evidenceGate||{};
+  const calibration=data?.confidence?.probabilityCalibration||data?.quant?.calibration||{};
+  const contradiction=data?.contradictionAnalysis||{};
+  const qualityValue=(value)=>Number.isFinite(Number(value))?Math.round(Number(value)*100)+'%':'Unavailable';
+  const qualityMatrix='<div class="q-dpg-quality-matrix" aria-label="Decision quality dimensions">'+[
+    ['Data Quality',quality?.state||'UNAVAILABLE',score],
+    ['Evidence Quality',gate.qualityState||gate.state||'EVIDENCE',qualityValue(gate.qualityScore)],
+    ['Calibration Quality',calibration.state||'UNCALIBRATED','n='+String(calibration.sampleSize??0)],
+    ['MTF Agreement',gate.timeframeDirection||'UNAVAILABLE',qualityValue(gate.timeframeAgreement)],
+    ['Contradiction',contradiction.state||((data?.qellyView?.contradictions||[]).length?'PRESENT':'NONE'),qualityValue(contradiction.score)]
+  ].map(([label,stateValue,detail])=>'<span><em>'+escapeHtml(label)+'</em><strong>'+escapeHtml(String(stateValue).replaceAll('_',' '))+'</strong><small>'+escapeHtml(String(detail))+'</small></span>').join('')+'</div>';
+  return '<details class="q-dpg-health-quality"><summary>Model / data health · '+escapeHtml(String(quality?.state||'UNAVAILABLE').replaceAll('_',' '))+' · '+escapeHtml(String(health?.driftReadiness?.state||'BASELINE_UNAVAILABLE').replaceAll('_',' '))+'</summary>'+qualityMatrix+
     '<div class="q-dpg-health-quality__grid"><section><small>DATA QUALITY · NOT DIRECTION</small><h3>'+escapeHtml(String(quality?.state||'UNAVAILABLE').replaceAll('_',' '))+' · '+escapeHtml(score)+'</h3><p>Critical readiness: <strong>'+(quality?.eligibility?.criticalReady?'PASSED':'FAIL CLOSED')+'</strong></p><div class="q-dpg-health-quality__components">'+componentCards+'</div><p>Missing contextual capabilities: '+escapeHtml(String(missing.unavailableCount??0))+' / '+escapeHtml(String(missing.totalCapabilities??0))+'. '+escapeHtml(missing.scoringBoundary||'')+'</p><p>'+escapeHtml(quality?.boundary||'')+'</p></section>'+
     '<section><small>MODEL HEALTH · DRIFT READINESS</small><h3>'+escapeHtml(String(health?.state||'UNAVAILABLE').replaceAll('_',' '))+'</h3><p>Longitudinal drift: <strong>'+escapeHtml(String(health?.driftReadiness?.state||'UNMEASURED').replaceAll('_',' '))+'</strong></p><ul>'+driftRows+'</ul><p>'+escapeHtml(health?.driftReadiness?.boundary||'')+'</p><p>'+escapeHtml(health?.boundary||'')+'</p></section></div>'+
   '</details>';
@@ -768,7 +779,7 @@ export async function renderDecisionProvenGraph(main,deps){
     })).filter((group)=>mode==='all'||group.assets.length);
     const row=(group,asset)=>{
       const favorite=favorites.has(asset.symbol),search=decisionAssetSearchText(group,asset);
-      return '<div class="q-dpg-asset-row" data-dpg-asset-row data-search="'+escapeHtml(search)+'"><button type="button" data-dpg-asset-select="'+escapeHtml(asset.symbol)+'"><span><strong>'+escapeHtml(asset.symbol)+'</strong><small>'+escapeHtml(asset.name)+'</small></span><span><em>'+escapeHtml(asset.category||asset.assetClass||'Asset')+'</em><small>'+escapeHtml(asset.venue||'Provider')+' · '+escapeHtml(String(asset.supportedTimeframes?.length||0))+' timeframes</small></span><b>SUPPORTED DATA</b></button><button type="button" class="q-dpg-asset-favorite" data-dpg-asset-favorite="'+escapeHtml(asset.symbol)+'" aria-pressed="'+String(favorite)+'" aria-label="'+(favorite?'Remove '+escapeHtml(asset.symbol)+' from favorites':'Add '+escapeHtml(asset.symbol)+' to favorites')+'">'+(favorite?'★':'☆')+'</button></div>';
+      return '<div class="q-dpg-asset-row" data-dpg-asset-row data-search="'+escapeHtml(search)+'"><button type="button" data-dpg-asset-select="'+escapeHtml(asset.symbol)+'"><span><strong>'+escapeHtml(asset.symbol)+'</strong><small>'+escapeHtml(asset.name)+'</small></span><span><em>'+escapeHtml(asset.category||asset.assetClass||'Asset')+'</em><small>'+escapeHtml(asset.exchange||asset.venue||'Provider')+' · '+escapeHtml(String(asset.marketStatus||'status unavailable'))+' · '+escapeHtml(String(asset.providerStatus||'UNAVAILABLE'))+'</small><small>'+escapeHtml((asset.supportedTimeframes||[]).join(' · ')||'No supported timeframes')+'</small></span><b>SUPPORTED DATA</b></button><button type="button" class="q-dpg-asset-favorite" data-dpg-asset-favorite="'+escapeHtml(asset.symbol)+'" aria-pressed="'+String(favorite)+'" aria-label="'+(favorite?'Remove '+escapeHtml(asset.symbol)+' from favorites':'Add '+escapeHtml(asset.symbol)+' to favorites')+'">'+(favorite?'★':'☆')+'</button></div>';
     };
     const groupMarkup=(group)=>{
       const search=decisionAssetSearchText(group),supported=group.selectable&&group.assets?.length;
