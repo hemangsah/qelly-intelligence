@@ -34,5 +34,5 @@ export const recordDecisionAssetRecent=(recent,symbol)=>{
 
 export const decisionAssetSearchText=(group,asset=null)=>[
   group?.id,group?.label,group?.assetClass,group?.state,group?.reason,
-  asset?.symbol,asset?.name,asset?.assetClass,asset?.category,asset?.region,asset?.venue,asset?.providerStatus
+  asset?.symbol,asset?.providerSymbol,asset?.name,asset?.assetClass,asset?.category,asset?.region,asset?.exchange,asset?.venue,asset?.currency,asset?.providerStatus
 ].filter(Boolean).join(' ').toLowerCase();
