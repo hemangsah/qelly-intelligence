@@ -59,6 +59,14 @@ test('Post-CL gap closure extends asset search to provider symbol exchange and c
 });
 
 
+test('Post-CL gap closure explains why 90 percent is withheld from current evidence',async()=>{
+  const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
+  assert.match(route,/Why not 90%\?/);
+  assert.match(route,/n='\+resolvedSamples\+' \/ 200 required/);
+  assert.match(route,/Evidence confidence alone cannot create 90%/);
+  assert.match(route,/90%\+ is never created because indicators agree/);
+});
+
 test('Post-CL gap closure classifies bounded macro geopolitical and fundamental reporting without manufacturing structured data',()=>{
   const articles=[
     {title:'Fed rate decision and CPI inflation outlook moves risk markets',source:'wire.example',publishedAt:'2026-09-20T10:00:00Z',url:'https://example.com/macro'},
