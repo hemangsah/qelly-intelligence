@@ -4,7 +4,7 @@ import {decisionEvidenceProfileCatalog} from './decision-asset-evidence-profiles
 
 export const DECISION_ASSET_SYMBOLS=Object.freeze(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
 export const DECISION_ASSET_SET=new Set(DECISION_ASSET_SYMBOLS);
-export const DECISION_PICKER_INTERVALS=Object.freeze(['1m','5m','15m','30m','1h','4h','1d']);
+export const DECISION_PICKER_INTERVALS=Object.freeze(['1m','3m','5m','15m','30m','1h','2h','4h','1d']);
 
 const HYPERLIQUID_DOCS='https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint';
 const providerById=(id)=>providerCatalog().find((provider)=>provider.id===id)||null;
@@ -24,8 +24,11 @@ export const decisionAssetCapabilities=()=>{
   const cryptoAssets=DECISION_ASSET_SYMBOLS.map((symbol)=>cryptoBySymbol.get(symbol)).filter(Boolean).map((asset)=>({
     canonicalId:asset.canonicalId,
     symbol:asset.symbol,
+    providerSymbol:asset.symbol,
     name:asset.name,
     assetClass:'crypto',
+    exchange:'Hyperliquid',
+    currency:'USD',
     category:asset.category,
     region:'global',
     venue:'Hyperliquid',
