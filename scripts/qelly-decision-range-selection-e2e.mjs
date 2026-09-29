@@ -281,8 +281,21 @@ const exercise=async({name,viewport,touch=false})=>{
   const tooltipCount=await education.locator('[role="tooltip"]').count();
   const firstHelp=education.locator('.q-dpg-help').first();
   await firstHelp.focus();
-  const firstTooltipVisible=await firstHelp.locator('[role="tooltip"]').evaluate(node=>getComputedStyle(node).opacity==='1');
-  if(!educationRequired||tooltipCount<7||!firstTooltipVisible)failures.push({type:'decision-education-help',educationRequired,tooltipCount,firstTooltipVisible,text:educationText});
+  const firstTooltip=firstHelp.locator('[role="tooltip"]').first();
+  let firstTooltipVisible=true;
+  try{
+    await firstTooltip.waitFor({state:'attached',timeout:1000});
+    await page.waitForFunction(
+      (tooltipId)=>{
+        const node=document.getElementById(tooltipId);
+        return Boolean(node)&&getComputedStyle(node).opacity==='1';
+      },
+      await firstTooltip.getAttribute('id'),
+      {timeout:1000,polling:25}
+    );
+  }catch{firstTooltipVisible=false;}
+  const firstHelpFocused=await firstHelp.evaluate(node=>document.activeElement===node);
+  if(!educationRequired||tooltipCount<7||!firstHelpFocused||!firstTooltipVisible)failures.push({type:'decision-education-help',educationRequired,tooltipCount,firstHelpFocused,firstTooltipVisible,text:educationText});
   const setupFinder=page.locator('[data-dpg-setup-finder]').first();
   await setupFinder.waitFor({state:'visible',timeout:10_000});
   const setupFinderText=(await setupFinder.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
