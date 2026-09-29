@@ -257,12 +257,10 @@ const exercise=async({name,viewport,touch=false})=>{
   if(visibleAssetRows!==1||visibleEth!==1)failures.push({type:'asset-picker-search',visibleAssetRows,visibleEth});
   await assetPicker.locator('[data-dpg-asset-favorite="ETH"]').first().click();
   const favoritesFilter=page.locator('[data-dpg-asset-filter="favorites"]').first();
-  const favoritesHitTarget=await favoritesFilter.evaluate((node)=>{
-    const rect=node.getBoundingClientRect(),hit=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);
-    return hit===node||Boolean(hit?.closest?.('[data-dpg-asset-filter="favorites"]'));
-  });
-  if(!favoritesHitTarget)failures.push({type:'asset-picker-filter-hit-target'});
-  await favoritesFilter.click();
+  await favoritesFilter.scrollIntoViewIfNeeded();
+  let favoritesActionable=true;
+  try{await favoritesFilter.click({trial:true,timeout:5000});}catch(error){favoritesActionable=false;failures.push({type:'asset-picker-filter-actionability',reason:String(error?.message||error).slice(0,240)});}
+  if(favoritesActionable)await favoritesFilter.click();
   await page.waitForTimeout(60);
   const favoriteEth=await page.locator('[data-dpg-asset-select="ETH"]:visible').count();
   if(favoriteEth!==1)failures.push({type:'asset-picker-favorite',favoriteEth});
@@ -271,6 +269,20 @@ const exercise=async({name,viewport,touch=false})=>{
   await assetPicker.waitFor({state:'hidden',timeout:5000});
   const assetPickerFocusReturned=await page.evaluate(()=>document.activeElement?.matches?.('[data-dpg-asset-picker-toggle]')===true);
   if(!assetPickerFocusReturned)failures.push({type:'ci-asset-picker-focus-return'});
+  const timeframeSelect=page.locator('[data-dpg-interval]').first();
+  const timeframeValues=await timeframeSelect.locator('option').evaluateAll(nodes=>nodes.map(node=>node.value));
+  const timeframeGroups=await timeframeSelect.locator('optgroup').evaluateAll(nodes=>nodes.map(node=>node.label));
+  const timeframeCoverage=['1m','3m','5m','15m','30m','1h','2h','4h','1d'].every(value=>timeframeValues.includes(value))&&['SCALP','INTRADAY','SWING'].every(label=>timeframeGroups.includes(label));
+  if(!timeframeCoverage)failures.push({type:'timeframe-picker-coverage',timeframeValues,timeframeGroups});
+  const education=page.locator('.q-dpg-education').first();
+  await education.locator('summary').click();
+  const educationText=(await education.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  const educationRequired=['decision terms & help','r:r','invalidation','funding','oi','calibration','no trade','selected-range evidence'].every(label=>educationText.includes(label));
+  const tooltipCount=await education.locator('[role="tooltip"]').count();
+  const firstHelp=education.locator('.q-dpg-help').first();
+  await firstHelp.focus();
+  const firstTooltipVisible=await firstHelp.locator('[role="tooltip"]').evaluate(node=>getComputedStyle(node).opacity==='1');
+  if(!educationRequired||tooltipCount<7||!firstTooltipVisible)failures.push({type:'decision-education-help',educationRequired,tooltipCount,firstTooltipVisible,text:educationText});
   const setupFinder=page.locator('[data-dpg-setup-finder]').first();
   await setupFinder.waitFor({state:'visible',timeout:10_000});
   const setupFinderText=(await setupFinder.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
@@ -468,7 +480,16 @@ const exercise=async({name,viewport,touch=false})=>{
   const forbiddenFlowClaims=['identified whale','confirmed institution bought','confirmed institution sold'].some(label=>normalizedFlow.includes(label));
   if(!flowRequired||forbiddenFlowClaims)failures.push({type:'range-flow',text:flowText,flowRequired,forbiddenFlowClaims});
   await page.screenshot({path:path.join(outputDir,`decision-range-selected-${name}.png`),fullPage:true});
-  const result={name,viewport,touch,nextMove:{projectedState,nextMoveRequired,probabilitySafe,activeThree},waveCf:{setup:cfSetupRequired,lifecycleCurrent:cfLifecycleCurrent,watchCount:cfWatchCount,scenarioCards:cfScenarioCards,highProbabilitySafe:cfHighProbabilitySafe,rrCards:cfRrCards,rrInteractive:cfRrTwoActive===1&&cfRrAutoActive===1},assetPicker:{fitsViewport:pickerFitsViewport,required:pickerRequired,selectableCount,favoriteEth},setupFinder:{required:setupFinderRequired,aggressiveRequest:setupRequestOk,closestCandidate:closestCandidateRequired,closestInterval},decisionModes:{simpleDefault:true,advanced:advancedRequired,research:researchRequired},qellyDock:{centered:dockCentered,composer:dockComposerRequired,rangeAware:rangeAwareDock},persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,rangeCrossAsset:rangeCrossAssetRequired&&!forbiddenCrossAssetCausality,rangeCrossAssetClassification,rangeCrossAssetText,rangeTimeline:timelineRequired,rangeTimelineText:timelineText,rangeReplay:replayRequired&&replayScrubs,rangeReplayText:replayText,rangeSimilarMoves:similarRequired,rangeSimilarMovesText:similarText,rangeFlow:flowRequired,rangeFlowText:flowText,failures};
+  lastScanRequest=null;
+  const similarSetupButton=page.locator('[data-dpg-range-action="similar-setup"]').first();
+  const similarSetupVisible=await similarSetupButton.isVisible().catch(()=>false);
+  if(similarSetupVisible){
+    await similarSetupButton.click();
+    for(let attempt=0;attempt<80&&!lastScanRequest;attempt+=1)await page.waitForTimeout(100);
+  }
+  const similarSetupBridge=similarSetupVisible&&lastScanRequest?.mode==='validated'&&lastScanRequest?.assets==='BTC'&&lastScanRequest?.ranking==='highest_quality'&&lastScanRequest?.direction==='any';
+  if(!similarSetupBridge)failures.push({type:'range-similar-current-setup-bridge',similarSetupVisible,lastScanRequest});
+  const result={name,viewport,touch,timeframeCoverage,educationHelp:educationRequired&&tooltipCount>=7,similarSetupBridge,nextMove:{projectedState,nextMoveRequired,probabilitySafe,activeThree},waveCf:{setup:cfSetupRequired,lifecycleCurrent:cfLifecycleCurrent,watchCount:cfWatchCount,scenarioCards:cfScenarioCards,highProbabilitySafe:cfHighProbabilitySafe,rrCards:cfRrCards,rrInteractive:cfRrTwoActive===1&&cfRrAutoActive===1},assetPicker:{fitsViewport:pickerFitsViewport,required:pickerRequired,selectableCount,favoriteEth},setupFinder:{required:setupFinderRequired,aggressiveRequest:setupRequestOk,closestCandidate:closestCandidateRequired,closestInterval},decisionModes:{simpleDefault:true,advanced:advancedRequired,research:researchRequired},qellyDock:{centered:dockCentered,composer:dockComposerRequired,rangeAware:rangeAwareDock},persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,rangeCrossAsset:rangeCrossAssetRequired&&!forbiddenCrossAssetCausality,rangeCrossAssetClassification,rangeCrossAssetText,rangeTimeline:timelineRequired,rangeTimelineText:timelineText,rangeReplay:replayRequired&&replayScrubs,rangeReplayText:replayText,rangeSimilarMoves:similarRequired,rangeSimilarMovesText:similarText,rangeFlow:flowRequired,rangeFlowText:flowText,failures};
   results.push(result);
   await context.close();
 };

@@ -5,7 +5,7 @@ import {DECISION_ASSET_SYMBOLS} from '../../_lib/decision-asset-capabilities.js'
 import {coalesceDecisionWork,decisionWorkKey} from '../../_lib/decision-performance-cache.js';
 
 export const DECISION_SCAN_ASSETS=DECISION_ASSET_SYMBOLS;
-const INTERVALS=new Set(['1m','5m','15m','30m','1h','4h','1d']);
+const INTERVALS=new Set(['1m','3m','5m','15m','30m','1h','2h','4h','1d']);
 const HORIZONS=new Set(['1h','4h','12h','1d','3d','7d']);
 const RR_VALUES=new Set(['auto','1','2','3','4','custom']);
 const DIRECTIONS=new Set(['any','long','short']);
@@ -16,9 +16,9 @@ const EVENT_TOLERANCE=new Set(['any','low','medium','high']);
 const FRESHNESS_FILTERS=new Set(['any','live','live_or_delayed']);
 const SETUP_FRESHNESS=new Set(['any','current']);
 const DISCOVERY_MODES=new Set(['validated','aggressive']);
-const RANKING_PREFERENCES=new Set(['highest_quality','lowest_event_risk','closest_candidate']);
-const INTERVAL_ORDER=Object.freeze(['1m','5m','15m','30m','1h','4h','1d']);
-const INTERVAL_MS=Object.freeze({'1m':60_000,'5m':300_000,'15m':900_000,'30m':1_800_000,'1h':3_600_000,'4h':14_400_000,'1d':86_400_000});
+const RANKING_PREFERENCES=new Set(['highest_quality','lowest_event_risk','closest_candidate','fastest_setup','lowest_risk']);
+const INTERVAL_ORDER=Object.freeze(['1m','3m','5m','15m','30m','1h','2h','4h','1d']);
+const INTERVAL_MS=Object.freeze({'1m':60_000,'3m':180_000,'5m':300_000,'15m':900_000,'30m':1_800_000,'1h':3_600_000,'2h':7_200_000,'4h':14_400_000,'1d':86_400_000});
 const HORIZON_MS=Object.freeze({'1h':3_600_000,'4h':14_400_000,'12h':43_200_000,'1d':86_400_000,'3d':259_200_000,'7d':604_800_000});
 const AGGRESSIVE_RELAXABLE_FILTER_FAILURES=new Set(['evidence_quality_below_minimum','mtf_agreement_below_minimum','live_liquidity_required','tight_liquidity_required','volatility_filter_mismatch','regime_filter_mismatch']);
 const FEASIBILITY_WEIGHT=Object.freeze({'HIGHLY FEASIBLE':1,FEASIBLE:.8,CONDITIONAL:.55,'LOW FEASIBILITY':.2,'NOT FEASIBLE':0,UNAVAILABLE:0});
@@ -88,6 +88,22 @@ const rankingComponents=(result)=>{
 const researchPriority=(result)=>{
   const c=rankingComponents(result);
   return round(100*(.22*c.quality+.14*c.calibrationGatedEvidenceConfidence+.12*c.structure+.14*c.rr+.08*c.liquidity+.07*c.volatility+.08*c.contradiction+.05*c.eventRisk+.06*c.freshness+.04*c.targetCongestion),1);
+};
+const resolutionEstimate=(result,selected)=>{
+  const entry=finite(result?.tradeResearch?.entry?.preferred),target=finite(selected?.target),expectedMovePct=finite(result?.quant?.volatility?.expectedMovePct);
+  const horizonMs=HORIZON_MS[String(result?.horizon||'')],intervalMs=INTERVAL_MS[String(result?.interval||'')];
+  if(!(entry>0&&target>0&&expectedMovePct>0&&horizonMs>0&&intervalMs>0))return {ms:null,state:'UNAVAILABLE'};
+  const targetDistancePct=Math.abs(target/entry-1)*100;
+  const ratio=targetDistancePct/expectedMovePct;
+  const ms=Math.round(Math.min(horizonMs*4,Math.max(intervalMs,horizonMs*ratio)));
+  return {ms,targetDistancePct:round(targetDistancePct,3),expectedMovePct:round(expectedMovePct,3),state:'HEURISTIC',boundary:'Expected time-to-resolution is a research heuristic from target distance versus the current governed expected-move estimate; it is not a calibrated execution forecast.'};
+};
+const researchRisk=(result,selected)=>{
+  const c=rankingComponents(result),entry=finite(result?.tradeResearch?.entry?.preferred),stop=finite(result?.tradeResearch?.stop?.price);
+  const invalidationDistancePct=entry>0&&stop>0?Math.abs(entry-stop)/entry*100:null;
+  const invalidationScore=invalidationDistancePct===null?0:clamp(1-invalidationDistancePct/5);
+  const score=100*(.28*invalidationScore+.18*c.volatility+.18*c.eventRisk+.18*c.liquidity+.18*c.calibrationGatedEvidenceConfidence);
+  return {score:round(score,2),invalidationDistancePct:round(invalidationDistancePct,3),boundary:'Research-risk ranking combines relative invalidation distance, volatility, verified event risk, liquidity and calibration-gated evidence. It is not personalized financial risk, expected return or a recommendation.'};
 };
 
 const normalizeFilters=(filters={})=>({
@@ -232,6 +248,14 @@ const candidateComparator=(ranking)=>(left,right)=>{
   if(ranking==='lowest_event_risk'){
     const eventDelta=eventRiskScore(right)-eventRiskScore(left);
     if(eventDelta)return eventDelta;
+  }else if(ranking==='fastest_setup'){
+    const leftMs=finite(left?.trade?.expectedResolutionMs),rightMs=finite(right?.trade?.expectedResolutionMs);
+    if((leftMs!==null)!==(rightMs!==null))return leftMs!==null?-1:1;
+    if(leftMs!==null&&rightMs!==null&&leftMs!==rightMs)return leftMs-rightMs;
+  }else if(ranking==='lowest_risk'){
+    const leftRisk=finite(left?.researchRisk?.score),rightRisk=finite(right?.researchRisk?.score);
+    if((leftRisk!==null)!==(rightRisk!==null))return leftRisk!==null?-1:1;
+    if(leftRisk!==null&&rightRisk!==null&&leftRisk!==rightRisk)return rightRisk-leftRisk;
   }else if(ranking==='closest_candidate'){
     const distanceDelta=(left.validationDistance??999)-(right.validationDistance??999);
     if(distanceDelta)return distanceDelta;
@@ -264,6 +288,8 @@ const compactCandidate=(result,{filters=normalizeFilters(),now=Date.now(),mode='
     :action==='WAIT'?'WAIT'
     :'NO_ELIGIBLE_SETUP';
   const components=rankingComponents(result);
+  const resolution=resolutionEstimate(result,selected);
+  const risk=researchRisk(result,selected);
   const liquidity=result?.liquidity||result?.evidence?.liquidity||{};
   const event=result?.eventRisk||result?.evidence?.eventRisk||{};
   return {
@@ -285,7 +311,10 @@ const compactCandidate=(result,{filters=normalizeFilters(),now=Date.now(),mode='
     researchPriority:researchPriority(result),
     researchPriorityComponents:Object.fromEntries(Object.entries(components).map(([key,value])=>[key,round(value,3)])),
     researchPriorityMeaning:'Evidence triage score only; it is not a probability, win rate, expected return or execution ranking.',
+    researchRisk:risk,
     evidence:{
+      dataQualityState:result?.dataQuality?.state||'UNAVAILABLE',
+      dataQualityScore:round(finite(result?.dataQuality?.score),3),
       qualityScore:round(finite(gate.qualityScore),3),
       calibrationGatedEvidenceConfidence:gate.calibrationEligible===true?round(finite(view.confidence),3):null,
       calibratedConfidence:gate.calibrationEligible===true?round(finite(view.confidence),3):null,
@@ -330,6 +359,10 @@ const compactCandidate=(result,{filters=normalizeFilters(),now=Date.now(),mode='
       stop:finite(trade.stop?.price),
       target:finite(selected?.target),
       expiryAt:trade.expiryAt??null,
+      expectedResolutionMs:resolution.ms,
+      expectedResolutionState:resolution.state,
+      expectedResolutionBoundary:resolution.boundary||null,
+      targetDistancePct:resolution.targetDistancePct??null,
       targetTouchProbability:null,
       expectedValue:null
     },
@@ -519,5 +552,5 @@ export async function onRequest({request,env}){
 
 export const __decisionScanTest=Object.freeze({
   INTERVALS,HORIZONS,RR_VALUES,DIRECTIONS,LIQUIDITY_FILTERS,VOLATILITY_FILTERS,REGIME_FILTERS,EVENT_TOLERANCE,FRESHNESS_FILTERS,SETUP_FRESHNESS,DISCOVERY_MODES,RANKING_PREFERENCES,
-  resolveAssets,aggressiveIntervals,searchVariants,normalizeFilters,filterFailures,rankingComponents,researchPriority,feasibleDiscoveryTarget,coreValidationFailures,closestCandidateSummary,candidateComparator,compactCandidate,mapPool
+  resolveAssets,aggressiveIntervals,searchVariants,normalizeFilters,filterFailures,rankingComponents,researchPriority,resolutionEstimate,researchRisk,feasibleDiscoveryTarget,coreValidationFailures,closestCandidateSummary,candidateComparator,compactCandidate,mapPool
 });

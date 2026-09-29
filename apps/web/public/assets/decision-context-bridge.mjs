@@ -3,7 +3,7 @@ export const DECISION_CONTEXT_MAX_AGE_MS=15*60_000;
 export const RESEARCH_CONTEXT_KEY='qelly.research.flow-context.v1';
 export const RESEARCH_CONTEXT_MAX_AGE_MS=30*60_000;
 export const DECISION_ASSETS=new Set(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
-export const DECISION_TIMEFRAMES=new Set(['1m','5m','15m','30m','1h','4h','1d']);
+export const DECISION_TIMEFRAMES=new Set(['1m','3m','5m','15m','30m','1h','2h','4h','1d']);
 
 const normalizeAsset=(value)=>{
   const raw=String(value||'').trim().toUpperCase();
