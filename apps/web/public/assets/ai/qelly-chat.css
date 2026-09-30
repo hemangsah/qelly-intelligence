@@ -14,4 +14,17 @@
 .q-ai-composer>[data-q-ai-stop]{background:#7f3049}.q-ai-composer>[data-q-ai-stop][hidden]{display:none}.q-ai-composer>[data-q-ai-send][hidden]{display:none}
 
 
-.q-ai-launcher[hidden],html[data-production-route="decision-provenance"] .q-ai-launcher{display:none!important}
+.q-ai-launcher[hidden]{display:none!important}
+
+/* Wave CM — one terminal-wide bottom-center QELLY dock. */
+.q-ai-launcher{left:50%;right:auto;bottom:max(16px,env(safe-area-inset-bottom));transform:translateX(-50%);min-width:min(360px,calc(100vw - 32px));grid-template-columns:38px minmax(0,1fr) auto;isolation:isolate;background-size:180% 180%;animation:q-ai-dock-gradient 7s ease-in-out infinite}
+.q-ai-launcher:hover{transform:translate(-50%,-2px)}
+.q-ai-launcher.is-hidden{transform:translate(-50%,12px)}
+.q-ai-launcher>span{min-width:0}.q-ai-launcher>span>small{font-size:9px;letter-spacing:.08em;text-transform:uppercase}.q-ai-launcher>span>strong{font-size:12px}.q-ai-launcher>span>em{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(255,255,255,.72);font:600 10px/1.25 var(--q-font-sans);font-style:normal}
+.q-ai-launcher[data-clearance="chart"]{opacity:.12;pointer-events:none;transform:translate(-50%,12px)}
+.q-ai-assistant{left:50%;right:auto;bottom:max(16px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(560px,calc(100vw - 36px))}
+.q-ai-assistant.is-expanded{width:min(960px,calc(100vw - 56px))}
+.q-ai-message-copy{font-size:13px;line-height:1.62}.q-ai-welcome p{font-size:13px}.q-ai-welcome>div{font-size:11px}.q-ai-modebar button{font-size:11px}.q-ai-contextbar label>span{font-size:9px}.q-ai-contextbar select{font-size:11px}.q-ai-suggestions button{font-size:11px}.q-ai-message>header{font-size:10px}.q-ai-message>header em{font-size:8px}.q-ai-message-evidence span,.q-ai-message-tools button,.q-ai-followups button{font-size:9px}.q-ai-composer textarea{font-size:14px}.q-ai-assistant>footer{font-size:9px}.q-ai-assistant>footer small{font-size:9px}
+@keyframes q-ai-dock-gradient{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@media(max-width:640px){.q-ai-launcher{left:50%;right:auto;bottom:max(12px,env(safe-area-inset-bottom));width:min(320px,calc(100vw - 24px));min-width:0;border-radius:18px;padding:9px 10px}.q-ai-launcher>span{display:grid}.q-ai-launcher>i{display:none}.q-ai-assistant,.q-ai-assistant.is-expanded{left:0;right:0;bottom:0;transform:none;width:100vw;height:100dvh}}
+@media(prefers-reduced-motion:reduce){.q-ai-launcher{animation:none!important}}
