@@ -18,7 +18,9 @@ test('connected artifact contains one visible current shell and no legacy visibl
   assert.equal(inventory.staticCompatStyles,9);
   assert.match(html,/data-qelly-legacy-bindings="true" hidden aria-hidden="true"/);
   assert.match(html,/class="q-product-header" data-qelly-current-shell="true"/);
+  assert.doesNotMatch(html,/q-product-ai|data-v8-qelly-ai|data-qelly-chat-open/);
 });
+
 
 test('historical V5.3 compatibility styles are deterministic build-time resources rather than late stylesheet injection',async()=>{
   const html=convergePublicRuntimeHtml(await read('apps/web/public/index.html'));
