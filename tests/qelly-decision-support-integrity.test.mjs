@@ -24,12 +24,14 @@ test('authoritative Decision Intelligence retains research safety and core workf
     '1:3',
     '1:4',
     'Auto',
-    'Ask QELLY',
+    'Why NO TRADE?',
     'Sources / Methodology',
     'DECISION TRACE · EVIDENCE GRAPH',
     'WHAT CHANGED?'
   ])assert.match(route,new RegExp(phrase.replace(/[?]/g,'\\?')));
   assert.match(route,/Public research · no sign-in required · no trade execution/);
+  assert.match(route,/qelly:chat-context/);
+  assert.doesNotMatch(route,/data-dpg-open-chat/);
   assert.match(route,/NO TRADE/);
 });
 
