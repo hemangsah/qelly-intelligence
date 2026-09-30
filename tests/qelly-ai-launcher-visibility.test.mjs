@@ -14,7 +14,7 @@ test('Qelly AI launcher is excluded from generic button geometry overrides',asyn
   assert.match(polish,/button:not\(:disabled\):not\(\.q-ai-launcher\)/);
 });
 
-test('Qelly AI launcher and terminal triggers have a concrete assistant panel target',async()=>{
+test('Qelly AI dock is the single visible terminal launcher with a concrete assistant panel target',async()=>{
   const [source,shell,css]=await Promise.all([
     read('apps/web/public/assets/ai/qelly-chat.mjs'),
     read('apps/web/public/assets/qelly-production-shell.mjs'),
@@ -23,8 +23,7 @@ test('Qelly AI launcher and terminal triggers have a concrete assistant panel ta
   assert.match(source,/id="qelly-ai-assistant" data-q-ai-assistant/);
   assert.match(source,/root\.querySelector\('\[data-q-ai-assistant\]'\)/);
   assert.match(source,/launcher\.addEventListener\('click',[\s\S]{0,260}dockContext\.prompt[\s\S]{0,260}dockContext\.decisionContext/);
-  assert.match(shell,/data-v8-qelly-ai/);
-  assert.match(shell,/Open Qelly AI assistant/);
-  assert.match(shell,/CustomEvent\('qelly:open-ai'/);
-  assert.match(css,/\.q-product-ai\s*\{/);
+  assert.doesNotMatch(shell,/data-v8-qelly-ai|q-product-ai|Open Qelly AI assistant/);
+  assert.doesNotMatch(css,/\.q-product-ai\s*\{/);
+  assert.match(source,/document\.addEventListener\('qelly:open-ai'/);
 });
