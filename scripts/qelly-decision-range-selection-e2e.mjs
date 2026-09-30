@@ -374,31 +374,40 @@ const exercise=async({name,viewport,touch=false})=>{
   if(!researchRequired)failures.push({type:'decision-mode-research',text:researchText});
   await simpleTab.click();
   await page.locator('[data-dpg-mode-panel="simple"]').first().waitFor({state:'visible',timeout:10_000});
-  await chart.scrollIntoViewIfNeeded();
-  await page.waitForTimeout(120);
-  const box=await chart.boundingBox();
-  if(!box)throw new Error(name+': chart bounding box unavailable');
-  const start={x:box.x+box.width*.24,y:box.y+box.height*.54};
-  const end={x:box.x+box.width*.53,y:box.y+box.height*.54};
-  if(touch){
-    const cdp=await context.newCDPSession(page);
-    try{
-      await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:start.x,y:start.y,radiusX:2,radiusY:2,force:1}]});
-      for(let step=1;step<=8;step++){
-        const point={x:start.x+(end.x-start.x)*step/8,y:start.y};
-        await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:point.x,y:point.y,radiusX:2,radiusY:2,force:1}]});
-      }
-      await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
-    }finally{
-      await cdp.detach();
-    }
-  }else{
-    await page.mouse.move(start.x,start.y);
-    await page.mouse.down();
-    await page.mouse.move(end.x,end.y,{steps:12});
-    await page.mouse.up();
-  }
   const summary=page.locator('.q-dpg-range-summary').first();
+  const performRangeDrag=async()=>{
+    const liveChart=page.locator('[data-dpg-chart]').first();
+    await liveChart.waitFor({state:'visible',timeout:10_000});
+    await liveChart.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(120);
+    const box=await liveChart.boundingBox();
+    if(!box)throw new Error(name+': chart bounding box unavailable');
+    const start={x:box.x+box.width*.24,y:box.y+box.height*.54};
+    const end={x:box.x+box.width*.53,y:box.y+box.height*.54};
+    if(touch){
+      const cdp=await context.newCDPSession(page);
+      try{
+        await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:start.x,y:start.y,radiusX:2,radiusY:2,force:1}]});
+        for(let step=1;step<=8;step++){
+          const point={x:start.x+(end.x-start.x)*step/8,y:start.y};
+          await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:point.x,y:point.y,radiusX:2,radiusY:2,force:1}]});
+        }
+        await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+      }finally{
+        await cdp.detach();
+      }
+    }else{
+      await page.mouse.move(start.x,start.y);
+      await page.mouse.down();
+      await page.mouse.move(end.x,end.y,{steps:12});
+      await page.mouse.up();
+    }
+  };
+  await performRangeDrag();
+  if(!(await summary.isVisible().catch(()=>false))){
+    await page.waitForTimeout(250);
+    await performRangeDrag();
+  }
   await summary.waitFor({state:'visible',timeout:10_000});
   const spokenRange=String(await page.locator('[data-dpg-range-announcement]').first().textContent()||'').toLowerCase();
   const spokenRangeComplete=['selected range from','candles','move','high','low'].every(label=>spokenRange.includes(label));
