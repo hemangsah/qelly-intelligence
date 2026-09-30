@@ -185,6 +185,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
   const datasetButton=root.querySelector('[data-q-ai-datasets]'),datasetPanel=root.querySelector('[data-q-ai-dataset-panel]');
   const assetSelect=root.querySelector('[data-q-ai-asset]'),timeframeSelect=root.querySelector('[data-q-ai-timeframe]'),calculatorSelect=root.querySelector('[data-q-ai-calculator]'),calculatorField=root.querySelector('[data-q-ai-calculator-field]');
   let messages=restore(),sending=false,capability=null,mode='ask',asset='BTC',timeframe='15m',decisionContext=null,activeController=null;
+  let dockPrefill='';
 
   const requestContext=()=>({mode,asset,timeframe,calculatorId:calculatorSelect.value,decisionContext:mode==='decision'?decisionContext:null});
   const applyContext=(context={})=>{
@@ -239,7 +240,12 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
   }
 
   const setOpen=(open)=>{panel.hidden=!open;launcher.setAttribute('aria-expanded',String(open));launcher.classList.toggle('is-hidden',open);document.documentElement.classList.toggle('q-ai-open',open&&matchMedia('(max-width:640px)').matches);document.dispatchEvent(new CustomEvent('qelly:chat-open-state',{detail:{open}}));if(open)setTimeout(()=>input.focus(),50);};
-  const open=(prompt='',requestedMode='',expand=false,context={})=>{setOpen(true);applyContext({...context,mode:requestedMode||context.mode||mode});if(prompt&&!input.value)input.value=String(prompt).slice(0,2400);if(expand&&!matchMedia('(max-width:640px)').matches){panel.classList.add('is-expanded');const button=root.querySelector('[data-q-ai-expand]');button?.setAttribute('aria-pressed','true');if(button)button.textContent='Compact';}};
+  const seedDockPrefill=(prompt='')=>{
+    const next=String(prompt||'').slice(0,2400);
+    if(!next)return;
+    if(!input.value||input.value===dockPrefill){input.value=next;dockPrefill=next;}
+  };
+  const open=(prompt='',requestedMode='',expand=false,context={})=>{setOpen(true);applyContext({...context,mode:requestedMode||context.mode||mode});seedDockPrefill(prompt);if(expand&&!matchMedia('(max-width:640px)').matches){panel.classList.add('is-expanded');const button=root.querySelector('[data-q-ai-expand]');button?.setAttribute('aria-pressed','true');if(button)button.textContent='Compact';}};
   const close=()=>setOpen(false);
   const setBusy=(value)=>{sending=value;send.disabled=value;input.disabled=value;assetSelect.disabled=value;timeframeSelect.disabled=value;calculatorSelect.disabled=value;send.hidden=value;stop.hidden=!value;panel.classList.toggle('is-thinking',value);};
 
@@ -289,11 +295,12 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
   launcher.addEventListener('click',()=>open(dockContext.prompt,dockContext.mode,false,{asset:dockContext.asset||asset,timeframe:dockContext.timeframe||timeframe,calculatorId:dockContext.calculatorId||undefined,decisionContext:dockContext.decisionContext}));closeButton.addEventListener('click',close);
   form.addEventListener('submit',event=>{event.preventDefault();submit(input.value);});
   stop.addEventListener('click',()=>activeController?.abort());
+  input.addEventListener('input',()=>{if(input.value!==dockPrefill)dockPrefill='';});
   input.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();form.requestSubmit();}});
   root.querySelectorAll('[data-q-ai-mode]').forEach(button=>button.addEventListener('click',()=>applyContext({mode:button.dataset.qAiMode})));
   assetSelect.addEventListener('change',()=>{asset=assetSelect.value;});
   timeframeSelect.addEventListener('change',()=>{timeframe=timeframeSelect.value;});
-  root.querySelector('[data-q-ai-new]').addEventListener('click',()=>{activeController?.abort();messages=[];persist(messages);mode='ask';asset='BTC';timeframe='15m';decisionContext=null;applyContext({mode,asset,timeframe,decisionContext:null});render();input.value='';input.focus();});
+  root.querySelector('[data-q-ai-new]').addEventListener('click',()=>{activeController?.abort();messages=[];persist(messages);mode='ask';asset='BTC';timeframe='15m';decisionContext=null;applyContext({mode,asset,timeframe,decisionContext:null});render();input.value='';dockPrefill='';input.focus();});
   root.querySelector('[data-q-ai-expand]').addEventListener('click',event=>{const expanded=panel.classList.toggle('is-expanded');event.currentTarget.setAttribute('aria-pressed',String(expanded));event.currentTarget.textContent=expanded?'Compact':'Expand';});
   root.querySelector('[data-q-ai-export]').addEventListener('click',()=>{const blob=new Blob([JSON.stringify({schemaVersion:'qelly.chat.export/1.1.0',exportedAt:new Date().toISOString(),messages},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const anchor=document.createElement('a');anchor.href=url;anchor.download=`qelly-chat-${new Date().toISOString().slice(0,10)}.json`;anchor.click();setTimeout(()=>URL.revokeObjectURL(url),500);toast?.('Qelly conversation exported',{tone:'success'});});
   root.querySelector('[data-q-ai-clear]').addEventListener('click',()=>{activeController?.abort();messages=[];persist(messages);render();input.focus();});
