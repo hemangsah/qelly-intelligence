@@ -49,12 +49,14 @@ test('Wave CI styles visible focus, safe areas, touch targets and collapsed comp
   const [css,chatCss]=await Promise.all([read('apps/web/public/assets/qelly-decision-proven-graph.css'),read('apps/web/public/assets/ai/qelly-chat.css')]);
   assert.match(css,/Major Reinvention Wave CI: accessibility, mobile and visual polish/);
   assert.match(css,/\.q-dpg-sr-only\{/);
-  assert.doesNotMatch(css,/q-dpg-chat-dock/);\n  assert.match(chatCss,/\.q-ai-assistant\[hidden\]\{display:none!important\}/);
+  assert.doesNotMatch(css,/q-dpg-chat-dock/);
+  assert.match(chatCss,/\.q-ai-assistant\[hidden\]\{display:none!important\}/);
   assert.match(css,/:focus-visible\{outline:3px solid/);
   assert.match(css,/min-height:44px/);
   assert.match(css,/safe-area-inset-left/);
   assert.match(css,/safe-area-inset-right/);
-  assert.match(css,/safe-area-inset-bottom/);\n  assert.match(chatCss,/safe-area-inset-bottom/);
+  assert.match(css,/safe-area-inset-bottom/);
+  assert.match(chatCss,/safe-area-inset-bottom/);
   assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
   assert.match(css,/@media\(max-width:900px\)[\s\S]*?\.q-dpg-stage\{grid-template-columns:minmax\(0,1fr\)\}/);
 });
