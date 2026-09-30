@@ -33,7 +33,8 @@ test('Wave CK proves old chat and flat-picker presentation are retired while com
   assert.doesNotMatch(route,/q-dpg-hero__actions[^\n]*data-dpg-open-chat/);
   assert.doesNotMatch(route,/q-dpg-range-toolbar[^\n]*data-dpg-open-chat/);
   assert.doesNotMatch(route,/select\('asset'/);
-  assert.doesNotMatch(route,/q-dpg-chat-dock|data-dpg-open-chat|data-dpg-chat-dock-toggle/);\n  assert.match(route,/publishQellyChatContext/);
+  assert.doesNotMatch(route,/q-dpg-chat-dock|data-dpg-open-chat|data-dpg-chat-dock-toggle/);
+  assert.match(route,/publishQellyChatContext/);
   assert.match(route,/data-dpg-asset-picker-toggle/);
 });
 
