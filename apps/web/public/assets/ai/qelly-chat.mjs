@@ -270,7 +270,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
     }finally{activeController=null;setBusy(false);input.focus();}
   }
 
-  launcher.addEventListener('click',()=>open('',pageContext.mode,false,pageContext));closeButton.addEventListener('click',close);
+  launcher.addEventListener('click',()=>open());closeButton.addEventListener('click',close);
   form.addEventListener('submit',event=>{event.preventDefault();submit(input.value);});
   stop.addEventListener('click',()=>activeController?.abort());
   input.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();form.requestSubmit();}});
@@ -282,7 +282,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
   root.querySelector('[data-q-ai-export]').addEventListener('click',()=>{const blob=new Blob([JSON.stringify({schemaVersion:'qelly.chat.export/1.1.0',exportedAt:new Date().toISOString(),messages},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const anchor=document.createElement('a');anchor.href=url;anchor.download=`qelly-chat-${new Date().toISOString().slice(0,10)}.json`;anchor.click();setTimeout(()=>URL.revokeObjectURL(url),500);toast?.('Qelly conversation exported',{tone:'success'});});
   root.querySelector('[data-q-ai-clear]').addEventListener('click',()=>{activeController?.abort();messages=[];persist(messages);render();input.focus();});
   datasetButton.addEventListener('click',()=>{const expanded=datasetButton.getAttribute('aria-expanded')!=='true';datasetButton.setAttribute('aria-expanded',String(expanded));datasetPanel.hidden=!expanded;});
-  document.addEventListener('qelly:open-ai',event=>{const detail=event.detail||{};open(detail.prompt||'',detail.mode||'',detail.expand===true,{...pageContext,asset:detail.asset||pageContext.asset||asset,timeframe:detail.timeframe||pageContext.timeframe||timeframe,decisionContext:detail.decisionContext??pageContext.decisionContext??null});});
+  document.addEventListener('qelly:open-ai',event=>{const detail=event.detail||{};open(detail.prompt||'',detail.mode||'',event.detail?.expand===true,{...pageContext,asset:detail.asset||pageContext.asset||asset,timeframe:detail.timeframe||pageContext.timeframe||timeframe,decisionContext:detail.decisionContext??pageContext.decisionContext??null});});
   document.addEventListener(QELLY_CHAT_CONTEXT_EVENT,event=>{syncLauncherContext(event.detail);if(panel.hidden)return;applyContext({...pageContext,decisionContext:pageContext.decisionContext??decisionContext});});
   window.addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&event.key==='/'){event.preventDefault();panel.hidden?open('',pageContext.mode,false,pageContext):close();}if(event.key==='Escape'&&!panel.hidden)close();});
   window.addEventListener('hashchange',()=>syncLauncherContext(defaultQellyChatContext()));
