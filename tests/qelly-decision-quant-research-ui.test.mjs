@@ -36,3 +36,12 @@ test('quant research CSS remains responsive and visually subordinate to the prim
   assert.match(css,/\.q-dpg-quant-research__inventory/);
   assert.match(css,/@media\(max-width:760px\)/);
 });
+
+
+test('Decision redraw preserves expanded education state and focused glossary help target',async()=>{
+  const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
+  assert.match(route,/const educationWasOpen=Boolean\(main\.querySelector\('\.q-dpg-education\[open\]'\)\)/);
+  assert.match(route,/const focusedEducationHelp=main\.querySelector\('\.q-dpg-education \.q-dpg-help:focus'\)/);
+  assert.match(route,/if\(educationWasOpen&&education\)education\.open=true/);
+  assert.match(route,/if\(educationHelp\)educationHelp\.focus\(\{preventScroll:true\}\)/);
+});
