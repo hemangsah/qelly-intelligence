@@ -14,7 +14,8 @@ test('Wave CK removes only proven-dead pre-reinvention Decision CSS',async()=>{
     'q-dpg-timeframe',
     'q-dpg-scenarios',
     'q-dpg-selection-actions',
-    'q-dpg-status-icon'
+'q-dpg-status-icon',
+    'q-dpg-chat-dock'
   ];
   for(const token of retired){
     assert.equal(route.includes(token),false,token+' unexpectedly has a live Decision markup reference');
@@ -22,7 +23,6 @@ test('Wave CK removes only proven-dead pre-reinvention Decision CSS',async()=>{
   }
   for(const token of [
     'q-dpg-range-workbench',
-    'q-dpg-chat-dock',
     'data-dpg-asset-picker-toggle',
     'data-dpg-mode-panel'
   ])assert.ok(route.includes(token),token);
