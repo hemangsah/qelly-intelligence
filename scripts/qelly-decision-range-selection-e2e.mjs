@@ -167,13 +167,13 @@ const exercise=async({name,viewport,touch=false})=>{
   const chart=page.locator('[data-dpg-chart]').first();
   await chart.waitFor({state:'visible',timeout:45_000});
   const ciMotion=await page.evaluate(()=>{
-    const dock=document.querySelector('.q-dpg-chat-dock__bar'),mode=document.querySelector('[data-dpg-chart-mode]');
+    const dock=document.querySelector('[data-q-ai-launcher]'),mode=document.querySelector('[data-dpg-chart-mode]');
     const dockStyle=dock?getComputedStyle(dock):null,modeStyle=mode?getComputedStyle(mode):null;
     return {dockAnimation:dockStyle?.animationName||'',dockTransition:dockStyle?.transitionDuration||'',modeTransition:modeStyle?.transitionDuration||''};
   });
   if(ciMotion.dockAnimation!=='none'||(ciMotion.modeTransition&&ciMotion.modeTransition!=='0s'))failures.push({type:'ci-reduced-motion',...ciMotion});
   const ciTouchTargets=await page.evaluate(()=>{
-    const selectors=['[data-dpg-chart-mode]','[data-dpg-asset-picker-toggle]','[data-dpg-chat-dock-toggle]'];
+    const selectors=['[data-dpg-chart-mode]','[data-dpg-asset-picker-toggle]','[data-q-ai-launcher]'];
     return selectors.map(selector=>{const node=document.querySelector(selector),rect=node?.getBoundingClientRect();return {selector,width:rect?.width||0,height:rect?.height||0};});
   });
   if(ciTouchTargets.some(item=>item.height<44||item.width<44))failures.push({type:'ci-touch-targets',targets:ciTouchTargets});
@@ -316,32 +316,16 @@ const exercise=async({name,viewport,touch=false})=>{
   const setupRequestOk=lastScanRequest?.mode==='aggressive'&&lastScanRequest?.ranking==='lowest_event_risk'&&lastScanRequest?.assets==='BTC'&&lastScanRequest?.direction==='short'&&lastScanRequest?.rr==='auto';
   const closestInterval=await closestCandidate.locator('[data-dpg-scan-interval]').first().getAttribute('data-dpg-scan-interval');
   if(!closestCandidateRequired||!setupRequestOk||closestInterval!=='30m')failures.push({type:'setup-finder-aggressive',closestCandidateRequired,setupRequestOk,lastScanRequest,closestInterval,text:closestText});
-  const chatDock=page.locator('[data-dpg-chat-dock]').first();
+  const chatDock=page.locator('[data-q-ai-launcher]').first();
   await chatDock.waitFor({state:'visible',timeout:10_000});
-  const chatDockToggle=page.locator('[data-dpg-chat-dock-toggle]').first();
-  const collapsedComposer=page.locator('[data-dpg-chat-dock-composer]').first();
-  const composerTargetStable=await collapsedComposer.count()===1&&!await collapsedComposer.isVisible();
-  if(!composerTargetStable)failures.push({type:'ci-dock-aria-controls-target'});
   const dockBox=await chatDock.boundingBox();
   const dockCentered=Boolean(dockBox)&&Math.abs((dockBox.x+dockBox.width/2)-viewport.width/2)<=6&&dockBox.x>=0&&dockBox.x+dockBox.width<=viewport.width+1;
-  const legacyDecisionChatControls=await page.locator('.q-dpg-hero__actions [data-dpg-open-chat],[data-dpg-range-action="chat"]').count();
-  const genericLauncher=page.locator('[data-q-ai-launcher]').first();
-  const genericLauncherVisible=await genericLauncher.isVisible().catch(()=>false);
-  if(!dockCentered||legacyDecisionChatControls||genericLauncherVisible)failures.push({type:'qelly-dock-shell',dockCentered,legacyDecisionChatControls,genericLauncherVisible,dockBox});
-  await chatDockToggle.focus();
+  const legacyDecisionChatControls=await page.locator('[data-dpg-chat-dock],[data-dpg-chat-dock-toggle],[data-dpg-chat-quick],.q-dpg-hero__actions [data-dpg-open-chat],[data-dpg-range-action="chat"]').count();
+  const dockContextType=await chatDock.getAttribute('data-context-type');
+  const dockText=(await chatDock.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  if(!dockCentered||legacyDecisionChatControls||dockContextType!=='decision'||!dockText.includes('btc'))failures.push({type:'qelly-dock-shell',dockCentered,legacyDecisionChatControls,dockContextType,dockText,dockBox});
+  await chatDock.focus();
   await page.keyboard.press('Enter');
-  const dockComposer=page.locator('[data-dpg-chat-dock-composer]').first();
-  await dockComposer.waitFor({state:'visible',timeout:10_000});
-  const dockComposerText=(await dockComposer.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
-  const dockComposerRequired=['qelly context dock','explain qelly view','existing qelly chat','current decision evidence'].every(label=>dockComposerText.includes(label));
-  if(!dockComposerRequired)failures.push({type:'qelly-dock-composer',text:dockComposerText});
-  await page.locator('[data-dpg-chat-input]').first().press('Escape');
-  await dockComposer.waitFor({state:'hidden',timeout:5000});
-  const dockFocusReturned=await page.evaluate(()=>document.activeElement?.matches?.('[data-dpg-chat-dock-toggle]')===true);
-  if(!dockFocusReturned)failures.push({type:'ci-dock-focus-return'});
-  await chatDockToggle.press('Enter');
-  await dockComposer.waitFor({state:'visible',timeout:5000});
-  await page.locator('[data-dpg-chat-quick="view"]').first().click();
   const globalAssistant=page.locator('[data-q-ai-assistant]').first();
   await globalAssistant.waitFor({state:'visible',timeout:10_000});
   const assistantAsset=await page.locator('[data-q-ai-asset]').first().inputValue();
@@ -425,15 +409,15 @@ const exercise=async({name,viewport,touch=false})=>{
   const timestampsAvailable=!normalizedSummary.includes('time unavailable');
   if(!persistent)failures.push({type:'range-overlay',hidden,candles,boundaries,handles});
   if(!required||!timestampsAvailable)failures.push({type:'range-summary',text,required,timestampsAvailable});
-  const rangeDockText=(await page.locator('[data-dpg-chat-dock-toggle]').first().innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  const rangeDockText=(await page.locator('[data-q-ai-launcher]').first().innerText()).replace(/\s+/g,' ').trim().toLowerCase();
   const rangeAwareDock=rangeDockText.includes('selected range');
   if(!rangeAwareDock)failures.push({type:'qelly-dock-range-context',text:rangeDockText});
   await page.evaluate(()=>window.scrollBy(0,1));
   await page.waitForTimeout(80);
-  const clearanceProbe=await page.locator('[data-dpg-chat-dock]').first().evaluate((node)=>{
-    const workbench=document.querySelector('.q-dpg-range-workbench'),rect=workbench?.getBoundingClientRect(),style=getComputedStyle(node);
+  const clearanceProbe=await page.locator('.q-ai-root').first().evaluate((node)=>{
+    const workbench=document.querySelector('.q-dpg-range-workbench'),rect=workbench?.getBoundingClientRect(),launcher=document.querySelector('[data-q-ai-launcher]'),style=launcher?getComputedStyle(launcher):null;
     const reserved=112,zoneOverlap=Boolean(rect&&rect.bottom>innerHeight-reserved&&rect.top<innerHeight);
-    return {clearance:node.dataset.clearance||'unset',opacity:style.opacity,pointerEvents:style.pointerEvents,zoneOverlap};
+    return {clearance:node.dataset.clearance||'unset',opacity:style?.opacity||'',pointerEvents:style?.pointerEvents||'',zoneOverlap};
   });
   if(clearanceProbe.zoneOverlap&&(clearanceProbe.clearance!=='chart'||clearanceProbe.pointerEvents!=='none'))failures.push({type:'qelly-dock-chart-clearance',...clearanceProbe});
   await page.evaluate(()=>{
@@ -443,21 +427,15 @@ const exercise=async({name,viewport,touch=false})=>{
     const delta=Math.max(0,rect.bottom-(innerHeight-expandedReserved)+28);
     if(delta>0)window.scrollBy(0,delta);
   });
-  await page.waitForFunction(()=>document.querySelector('[data-dpg-chat-dock]')?.dataset.clearance==='clear',{timeout:5000});
-  const restoredDockBox=await page.locator('[data-dpg-chat-dock-toggle]').first().boundingBox();
+  await page.waitForFunction(()=>document.querySelector('.q-ai-root')?.dataset.clearance==='clear',{timeout:5000});
+  const restoredDockBox=await page.locator('[data-q-ai-launcher]').first().boundingBox();
   const dockRestored=Boolean(restoredDockBox)&&restoredDockBox.y>=0&&restoredDockBox.y+restoredDockBox.height<=viewport.height+1;
   if(!dockRestored)failures.push({type:'qelly-dock-clearance-return',restoredDockBox});
-  await page.locator('[data-dpg-chat-dock-toggle]').first().click();
-  const openDockState=await page.locator('[data-dpg-chat-dock]').first().getAttribute('data-clearance');
-  if(openDockState!=='clear')failures.push({type:'qelly-dock-open-clearance',openDockState});
-  const selectedQuickCount=await page.locator('[data-dpg-chat-quick="selected"]').count();
-  if(selectedQuickCount!==1)failures.push({type:'qelly-dock-range-action',selectedQuickCount});
-  const closeHitTarget=await page.locator('[data-dpg-chat-dock-close]').first().evaluate((node)=>{
-    const rect=node.getBoundingClientRect(),hit=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);
-    return hit===node||Boolean(hit?.closest?.('[data-dpg-chat-dock-close]'));
-  });
-  if(!closeHitTarget)failures.push({type:'qelly-dock-close-hit-target'});
-  await page.locator('[data-dpg-chat-dock-close]').first().click();
+  await page.locator('[data-q-ai-launcher]').first().click();
+  await page.locator('[data-q-ai-assistant]').first().waitFor({state:'visible',timeout:5000});
+  const selectedComposerValue=await page.locator('[data-q-ai-form] textarea').first().inputValue();
+  if(!selectedComposerValue.toLowerCase().includes('selected historical'))failures.push({type:'qelly-dock-range-action',selectedComposerValue});
+  await page.locator('[data-q-ai-close]').first().click();
   await page.locator('[data-dpg-explain]').first().click();
   const intelligence=page.locator('[data-dpg-range-intelligence]').first();
   await intelligence.waitFor({state:'visible',timeout:45_000});
