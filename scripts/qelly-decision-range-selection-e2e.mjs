@@ -39,8 +39,9 @@ const fixtureCandlesFor=(asset='BTC',interval='15m',endTime=fixtureNow,points=50
   });
 };
 const fixtureProviderFetch=async(url,options={})=>{
-  const target=String(url);
-  if(target.includes('api.hyperliquid.xyz')){
+  let target;
+  try{target=new URL(String(url));}catch{return new Response(JSON.stringify({}),{status:400,headers:{'content-type':'application/json'}});}
+  if(target.protocol==='https:'&&target.hostname==='api.hyperliquid.xyz'){
     let body={};
     try{body=JSON.parse(options?.body||'{}');}catch{}
     if(body.type==='candleSnapshot'){
@@ -69,7 +70,7 @@ const fixtureProviderFetch=async(url,options={})=>{
     }
     return new Response(JSON.stringify({}),{status:200,headers:{'content-type':'application/json'}});
   }
-  if(target.includes('api.gdeltproject.org'))return new Response(JSON.stringify({articles:[]}),{status:200,headers:{'content-type':'application/json'}});
+  if(target.protocol==='https:'&&target.hostname==='api.gdeltproject.org')return new Response(JSON.stringify({articles:[]}),{status:200,headers:{'content-type':'application/json'}});
   return new Response(JSON.stringify({}),{status:200,headers:{'content-type':'application/json'}});
 };
 const fixtureDecisionPayload=async(requestUrl)=>{
