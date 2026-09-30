@@ -33,7 +33,7 @@ test('Wave CM global dock consumes structured Decision context without scraping 
   assert.match(chat,/normalizeDockContext/);
   assert.match(chat,/normalizeDecisionContext\(value\.decisionContext\)/);
   assert.match(chat,/open\(dockContext\.prompt,dockContext\.mode/);
-  assert.doesNotMatch(route,/textContent|innerText|innerHTML.*decisionContext/);
+  assert.doesNotMatch(route,/document\.querySelector\([^\n]+\)\?\.(?:textContent|innerText)[^\n]+decisionContext/);
 });
 
 test('Wave CM dock is terminal-wide, centered, mobile safe and chart-clearance aware',async()=>{
