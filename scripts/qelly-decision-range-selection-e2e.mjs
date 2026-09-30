@@ -575,7 +575,7 @@ try{
   await server.evidenceUpstream?.server?.close?.();
 }
 
-const report={status:results.every(item=>item.failures.length===0)?'passed':'failed',productionBackend:productionOrigin,frontendHead:process.env.QELLY_SCREEN_EVIDENCE_SHA||process.env.GITHUB_SHA||null,results};
+const report={status:results.every(item=>item.failures.length===0)?'passed':'failed',evidenceBackend:'deterministic-governed-provider-fixture',liveProductionTruthValidatedSeparately:true,frontendHead:process.env.QELLY_SCREEN_EVIDENCE_SHA||process.env.GITHUB_SHA||null,results};
 await writeFile(path.join(outputDir,'report.json'),JSON.stringify(report,null,2));
 console.log(JSON.stringify(report,null,2));
 if(report.status!=='passed')process.exitCode=1;
