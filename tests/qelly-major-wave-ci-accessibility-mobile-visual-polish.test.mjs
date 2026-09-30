@@ -31,7 +31,8 @@ test('Wave CI provides accessible Decision depth tabs and focus restoration',asy
   assert.match(route,/if\(focusedMode\)main\.querySelector\('\[data-dpg-ui-mode="'[\s\S]{0,100}\?\.focus\(\)/);
   assert.match(route,/focusedStableControl==='asset-picker'[\s\S]{0,140}data-dpg-asset-picker-toggle[\s\S]{0,100}focus\(\{preventScroll:true\}\)/);
   assert.match(route,/applyPendingFocus\(\)/);
-  assert.match(route,/data-dpg-chat-dock-close[\s\S]{0,260}data-dpg-chat-dock-toggle/);
+  assert.match(route,/publishDecisionChatContext\(data\)/);
+  assert.match(route,/qelly:chat-open-state/);
   assert.match(route,/data-dpg-asset-picker-close[\s\S]{0,360}queueFocusAfterDraw\('\[data-dpg-asset-picker-toggle\]'\)/);
   assert.match(route,/data-dpg-asset-picker-panel[\s\S]{0,360}event\.key==='Escape'[\s\S]{0,220}event\.stopPropagation\(\)[\s\S]{0,220}queueFocusAfterDraw\('\[data-dpg-asset-picker-toggle\]'\)/);
   assert.match(route,/data-dpg-asset-search[\s\S]{0,300}event\.key==='Escape'[\s\S]{0,220}event\.stopPropagation\(\)[\s\S]{0,220}queueFocusAfterDraw\('\[data-dpg-asset-picker-toggle\]'\)/);
@@ -49,7 +50,7 @@ test('Wave CI styles visible focus, safe areas, touch targets and collapsed comp
   const css=await read('apps/web/public/assets/qelly-decision-proven-graph.css');
   assert.match(css,/Major Reinvention Wave CI: accessibility, mobile and visual polish/);
   assert.match(css,/\.q-dpg-sr-only\{/);
-  assert.match(css,/\.q-dpg-chat-dock__composer\[hidden\]\{display:none!important\}/);
+  assert.doesNotMatch(css,/q-dpg-chat-dock/);
   assert.match(css,/:focus-visible\{outline:3px solid/);
   assert.match(css,/min-height:44px/);
   assert.match(css,/safe-area-inset-left/);
