@@ -60,3 +60,11 @@ test('Wave CM preserves one authoritative assistant handoff and open-state signa
   assert.match(chat,/decisionContext:event\.detail\?\.decisionContext\?\?null/);
   assert.match(chat,/globalThis\.__QELLY_CHAT_CONTEXT__/);
 });
+
+
+test('Wave CM deterministic browser fixture validates provider hosts exactly',async()=>{
+  const browser=await read('scripts/qelly-decision-range-selection-e2e.mjs');
+  assert.match(browser,/target\.protocol==='https:'&&target\.hostname==='api\.hyperliquid\.xyz'/);
+  assert.match(browser,/target\.protocol==='https:'&&target\.hostname==='api\.gdeltproject\.org'/);
+  assert.doesNotMatch(browser,/target\.includes\('api\.(?:hyperliquid\.xyz|gdeltproject\.org)'\)/);
+});
