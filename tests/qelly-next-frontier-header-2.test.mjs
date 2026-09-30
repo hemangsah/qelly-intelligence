@@ -21,10 +21,11 @@ test('Header 2.0 exposes complete live Decision identity and action semantics',a
     'Explain Candle',
     'Compare Timeframes',
     'Compare Asset',
-    'Ask QELLY',
+    'Why NO TRADE?',
     'Sources / Methodology'
   ])assert.ok(route.includes(phrase),`missing Header 2.0 phrase: ${phrase}`);
   assert.match(route,/data-dpg-explain-candle/);
+  assert.match(route,/qelly:chat-context/);
   assert.match(route,/data-dpg-compare-asset/);
   assert.match(route,/canonicalDecisionAsset/);
   assert.match(route,/navigate\('comparison-lab',assetId\)/);
