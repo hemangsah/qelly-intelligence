@@ -89,6 +89,13 @@ const FORMULAS=Object.freeze([
   ['momentum-z-score','momentum','research_context','Latest rolling ROC standardized by historical rolling ROC distribution.'],
   ['momentum-acceleration','momentum','research_context','Difference between recent and preceding short-horizon ROC.'],
   ['stochastic','momentum','research_context','Close location within the 14-bar high/low range.'],
+  ['donchian-channel','technical','research_context','20-bar prior high/low channel with current close position and breakout state.'],
+  ['ichimoku-cloud','technical','research_context','Unshifted current Tenkan/Kijun and 52-bar cloud context; descriptive only.'],
+  ['obv','technical','context_only','On-balance volume accumulation from close direction and observed bar volume.'],
+  ['mfi','technical','context_only','14-bar Money Flow Index from typical-price direction and observed bar volume.'],
+  ['cmf','technical','context_only','20-bar Chaikin Money Flow from close location and observed bar volume.'],
+  ['classic-pivots','technical','research_context','Classic pivot, S1/S2 and R1/R2 levels from the previous completed bar.'],
+  ['supertrend','technical','redundant_excluded','Explicitly excluded from voting because ATR, trend structure and breakout/retest evidence already cover its role.'],
   ['bollinger-z','mean_reversion','research_context','Close deviation from SMA20 in standard-deviation units.'],
   ['rolling-deviation','mean_reversion','research_context','Percent deviation of close from SMA20.'],
   ['range-position','mean_reversion','research_context','Close position within the recent high/low range.'],
@@ -213,6 +220,81 @@ const rollingRocSeries=(closes,period=14)=>{
   return output;
 };
 
+const windowMidpoint=(rows,period)=>{
+  if(rows.length<period)return null;
+  const window=rows.slice(-period),high=Math.max(...window.map(item=>item.high)),low=Math.min(...window.map(item=>item.low));
+  return {high,low,mid:(high+low)/2};
+};
+
+const donchianChannel=(rows,period=20)=>{
+  if(rows.length<period+1)return {state:'UNAVAILABLE',period,upper:null,lower:null,middle:null,position:null};
+  const prior=rows.slice(-(period+1),-1),upper=Math.max(...prior.map(item=>item.high)),lower=Math.min(...prior.map(item=>item.low)),middle=(upper+lower)/2,current=rows.at(-1).close;
+  const position=current>upper?'UPPER_BREAK':current<lower?'LOWER_BREAK':current>=middle?'UPPER_HALF':'LOWER_HALF';
+  return {state:'AVAILABLE',period,upper:round(upper,6),lower:round(lower,6),middle:round(middle,6),position};
+};
+
+const ichimokuContext=(rows)=>{
+  if(rows.length<52)return {state:'UNAVAILABLE',tenkan:null,kijun:null,spanA:null,spanB:null,cloudPosition:null,reason:'At least 52 validated OHLC bars are required.'};
+  const p9=windowMidpoint(rows,9),p26=windowMidpoint(rows,26),p52=windowMidpoint(rows,52),tenkan=p9.mid,kijun=p26.mid,spanA=(tenkan+kijun)/2,spanB=p52.mid,current=rows.at(-1).close,top=Math.max(spanA,spanB),bottom=Math.min(spanA,spanB);
+  return {state:'AVAILABLE',tenkan:round(tenkan,6),kijun:round(kijun,6),spanA:round(spanA,6),spanB:round(spanB,6),cloudPosition:current>top?'ABOVE':current<bottom?'BELOW':'INSIDE',boundary:'Current unshifted cloud context only; it is not an independent directional vote.'};
+};
+
+const onBalanceVolume=(rows)=>{
+  if(rows.length<2)return {state:'UNAVAILABLE',value:null,change20:null};
+  const series=[0];
+  for(let i=1;i<rows.length;i++){
+    const delta=rows[i].close>rows[i-1].close?rows[i].volume:rows[i].close<rows[i-1].close?-rows[i].volume:0;
+    series.push(series.at(-1)+delta);
+  }
+  const start=Math.max(0,series.length-21);
+  return {state:'AVAILABLE',value:round(series.at(-1),2),change20:round(series.at(-1)-series[start],2)};
+};
+
+const moneyFlowIndex=(rows,period=14)=>{
+  if(rows.length<period+1)return {state:'UNAVAILABLE',period,value:null};
+  const slice=rows.slice(-(period+1)),flows=[];
+  for(let i=1;i<slice.length;i++){
+    const current=(slice[i].high+slice[i].low+slice[i].close)/3,previous=(slice[i-1].high+slice[i-1].low+slice[i-1].close)/3,raw=current*slice[i].volume;
+    flows.push({positive:current>previous?raw:0,negative:current<previous?raw:0});
+  }
+  const positive=flows.reduce((sum,item)=>sum+item.positive,0),negative=flows.reduce((sum,item)=>sum+item.negative,0);
+  const value=negative===0?(positive>0?100:50):100-(100/(1+positive/negative));
+  return {state:'AVAILABLE',period,value:round(value,3),positiveFlow:round(positive,2),negativeFlow:round(negative,2)};
+};
+
+const chaikinMoneyFlow=(rows,period=20)=>{
+  if(rows.length<period)return {state:'UNAVAILABLE',period,value:null};
+  const slice=rows.slice(-period);let flow=0,volume=0;
+  for(const item of slice){
+    const range=item.high-item.low,multiplier=range>0?((item.close-item.low)-(item.high-item.close))/range:0;
+    flow+=multiplier*item.volume;volume+=item.volume;
+  }
+  return {state:'AVAILABLE',period,value:round(volume>0?flow/volume:0,4)};
+};
+
+const classicPivots=(rows)=>{
+  if(rows.length<2)return {state:'UNAVAILABLE',pivot:null,r1:null,r2:null,s1:null,s2:null};
+  const previous=rows.at(-2),pivot=(previous.high+previous.low+previous.close)/3,range=previous.high-previous.low;
+  return {state:'AVAILABLE',pivot:round(pivot,6),r1:round(2*pivot-previous.low,6),r2:round(pivot+range,6),s1:round(2*pivot-previous.high,6),s2:round(pivot-range,6),sourceTime:previous.time};
+};
+
+const technicalAudit=(technical)=>[
+  {id:'rsi',state:'IMPLEMENTED',role:'research_context'},
+  {id:'macd',state:'IMPLEMENTED',role:'research_context'},
+  {id:'adx',state:'IMPLEMENTED',role:'relevance_modifier'},
+  {id:'atr',state:'IMPLEMENTED',role:'risk_context'},
+  {id:'bollinger',state:'IMPLEMENTED',role:'research_context'},
+  {id:'donchian',state:technical.donchian.state==='AVAILABLE'?'IMPLEMENTED':'UNAVAILABLE',role:'research_context'},
+  {id:'ichimoku',state:technical.ichimoku.state==='AVAILABLE'?'IMPLEMENTED_RESEARCH_ONLY':'UNAVAILABLE',role:'research_context'},
+  {id:'vwap',state:'IMPLEMENTED',role:'research_context'},
+  {id:'obv',state:technical.obv.state==='AVAILABLE'?'IMPLEMENTED_RESEARCH_ONLY':'UNAVAILABLE',role:'context_only'},
+  {id:'mfi',state:technical.mfi.state==='AVAILABLE'?'IMPLEMENTED_RESEARCH_ONLY':'UNAVAILABLE',role:'context_only'},
+  {id:'cmf',state:technical.cmf.state==='AVAILABLE'?'IMPLEMENTED_RESEARCH_ONLY':'UNAVAILABLE',role:'context_only'},
+  {id:'supertrend',state:'EXCLUDED_REDUNDANT',role:'redundant_excluded',reason:'ATR, deterministic trend structure and breakout/retest evidence already cover its research role; no extra vote is added.'},
+  {id:'pivots',state:technical.pivots.state==='AVAILABLE'?'IMPLEMENTED_RESEARCH_ONLY':'UNAVAILABLE',role:'research_context'},
+  {id:'moving-averages',state:'IMPLEMENTED',role:'research_context'}
+];
+
 const halfLife=(closes)=>{
   const logs=closes.slice(-80).map(Math.log);
   if(logs.length<30)return {state:'UNAVAILABLE',halfLifeBars:null,phi:null,r2:null,reason:'At least 30 observations are required.'};
@@ -324,6 +406,17 @@ export function buildDecisionQuantResearch(input,{intervalMs,riskFreePerBar=0,be
   const weighted=recent20Rows.reduce((acc,item)=>{const typical=(item.high+item.low+item.close)/3;acc.pv+=typical*item.volume;acc.v+=item.volume;return acc;},{pv:0,v:0});
   const vwap=weighted.v>0?weighted.pv/weighted.v:null,vwapDeviation=vwap>0?currentClose/vwap-1:null,half=halfLife(closes);
 
+  const technical={
+    donchian:donchianChannel(rows,20),
+    ichimoku:ichimokuContext(rows),
+    obv:onBalanceVolume(rows),
+    mfi:moneyFlowIndex(rows,14),
+    cmf:chaikinMoneyFlow(rows,20),
+    pivots:classicPivots(rows),
+    supertrend:{state:'EXCLUDED_REDUNDANT',reason:'ATR, deterministic trend structure and breakout/retest evidence already cover its research role; adding Supertrend as another vote would double-count trend/volatility evidence.'}
+  };
+  technical.audit=technicalAudit(technical);
+
   const dep=dependence(rows,benchmarkCandles);
   const relativeReturn=dep.state==='AVAILABLE'?dep.relativeStrengthPct:null;
 
@@ -395,6 +488,7 @@ export function buildDecisionQuantResearch(input,{intervalMs,riskFreePerBar=0,be
       bollingerZ:round(bollingerZ,4),rollingDeviationPct:round((rollingDeviation??0)*100,4),rangePosition:round(rangePosition,4),
       vwap:round(vwap,6),vwapDeviationPct:round((vwapDeviation??0)*100,4),halfLife:half
     },
+    technical,
     dependence:dep,
     forecasting:{
       empiricalDistribution:{sampleSize:log.length,q05Pct:round((q05??0)*100,5),q50Pct:round((q50??0)*100,5),q95Pct:round((q95??0)*100,5)},
@@ -407,5 +501,6 @@ export function buildDecisionQuantResearch(input,{intervalMs,riskFreePerBar=0,be
 
 export const QUANT_RESEARCH_FORMULAS=FORMULAS;
 export const __decisionQuantResearchTest=Object.freeze({
-  arithmeticReturns,logReturns,sma,emaSeries,ols,theilSenSlope,directionalMovement,rsi,trueRanges,rollingVolatility,drawdowns,rollingRocSeries,halfLife,dependence
+  arithmeticReturns,logReturns,sma,emaSeries,ols,theilSenSlope,directionalMovement,rsi,trueRanges,rollingVolatility,drawdowns,rollingRocSeries,
+  windowMidpoint,donchianChannel,ichimokuContext,onBalanceVolume,moneyFlowIndex,chaikinMoneyFlow,classicPivots,technicalAudit,halfLife,dependence
 });
