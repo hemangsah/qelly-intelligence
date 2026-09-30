@@ -178,7 +178,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
     if(titleNode)titleNode.textContent=dockContext.actionLabel;
     if(metaNode)metaNode.textContent=dockContext.meta;
   };
-  const syncLauncherRoute=()=>{renderDockContext();};
+  const syncLauncherRoute=()=>{root.dataset.clearance='clear';renderDockContext();};
   renderDockContext();
   const form=root.querySelector('[data-q-ai-form]'),input=form.querySelector('textarea'),send=root.querySelector('[data-q-ai-send]'),stop=root.querySelector('[data-q-ai-stop]');
   const thread=root.querySelector('[data-q-ai-thread]'),suggestionsNode=root.querySelector('[data-q-ai-suggestions]');
@@ -238,7 +238,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
     suggestionsNode.querySelectorAll('[data-q-ai-suggestion]').forEach(button=>button.addEventListener('click',()=>submit(button.dataset.qAiSuggestion)));
   }
 
-  const setOpen=(open)=>{panel.hidden=!open;launcher.setAttribute('aria-expanded',String(open));launcher.classList.toggle('is-hidden',open);document.documentElement.classList.toggle('q-ai-open',open&&matchMedia('(max-width:640px)').matches);if(open)setTimeout(()=>input.focus(),50);};
+  const setOpen=(open)=>{panel.hidden=!open;launcher.setAttribute('aria-expanded',String(open));launcher.classList.toggle('is-hidden',open);document.documentElement.classList.toggle('q-ai-open',open&&matchMedia('(max-width:640px)').matches);document.dispatchEvent(new CustomEvent('qelly:chat-open-state',{detail:{open}}));if(open)setTimeout(()=>input.focus(),50);};
   const open=(prompt='',requestedMode='',expand=false,context={})=>{setOpen(true);applyContext({...context,mode:requestedMode||context.mode||mode});if(prompt&&!input.value)input.value=String(prompt).slice(0,2400);if(expand&&!matchMedia('(max-width:640px)').matches){panel.classList.add('is-expanded');const button=root.querySelector('[data-q-ai-expand]');button?.setAttribute('aria-pressed','true');if(button)button.textContent='Compact';}};
   const close=()=>setOpen(false);
   const setBusy=(value)=>{sending=value;send.disabled=value;input.disabled=value;assetSelect.disabled=value;timeframeSelect.disabled=value;calculatorSelect.disabled=value;send.hidden=value;stop.hidden=!value;panel.classList.toggle('is-thinking',value);};
