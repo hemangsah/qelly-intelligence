@@ -5,7 +5,7 @@ import {readFile} from 'node:fs/promises';
 const read=(path)=>readFile(new URL('../'+path,import.meta.url),'utf8');
 
 test('Wave CI exposes a complete spoken range summary and keyboard-equivalent controls',async()=>{
-  const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
+  const [route,chat]=await Promise.all([read('apps/web/public/assets/routes/decision-proven-graph.mjs'),read('apps/web/public/assets/ai/qelly-chat.mjs')]);
   assert.match(route,/data-dpg-range-announcement role="status" aria-live="polite" aria-atomic="true"/);
   assert.match(route,/Selected range from/);
   assert.match(route,/aria-valuetext="/);
@@ -14,7 +14,7 @@ test('Wave CI exposes a complete spoken range summary and keyboard-equivalent co
 });
 
 test('Wave CI provides accessible Decision depth tabs and focus restoration',async()=>{
-  const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
+  const [route,chat]=await Promise.all([read('apps/web/public/assets/routes/decision-proven-graph.mjs'),read('apps/web/public/assets/ai/qelly-chat.mjs')]);
   assert.match(route,/id="qelly-decision-tab-'\+id\+'"/);
   assert.match(route,/aria-controls="qelly-decision-panel-'\+id\+'"/);
   assert.match(route,/tabindex="'\+\(state\.uiMode===id\?'0':'-1'\)\+'"/);
@@ -46,15 +46,15 @@ test('Wave CI respects reduced motion for programmatic scrolling',async()=>{
 });
 
 test('Wave CI styles visible focus, safe areas, touch targets and collapsed composer semantics',async()=>{
-  const css=await read('apps/web/public/assets/qelly-decision-proven-graph.css');
+  const [css,chatCss]=await Promise.all([read('apps/web/public/assets/qelly-decision-proven-graph.css'),read('apps/web/public/assets/ai/qelly-chat.css')]);
   assert.match(css,/Major Reinvention Wave CI: accessibility, mobile and visual polish/);
   assert.match(css,/\.q-dpg-sr-only\{/);
-  assert.match(css,/\.q-dpg-chat-dock__composer\[hidden\]\{display:none!important\}/);
+  assert.doesNotMatch(css,/q-dpg-chat-dock/);\n  assert.match(chatCss,/\.q-ai-assistant\[hidden\]\{display:none!important\}/);
   assert.match(css,/:focus-visible\{outline:3px solid/);
   assert.match(css,/min-height:44px/);
   assert.match(css,/safe-area-inset-left/);
   assert.match(css,/safe-area-inset-right/);
-  assert.match(css,/safe-area-inset-bottom/);
+  assert.match(css,/safe-area-inset-bottom/);\n  assert.match(chatCss,/safe-area-inset-bottom/);
   assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
   assert.match(css,/@media\(max-width:900px\)[\s\S]*?\.q-dpg-stage\{grid-template-columns:minmax\(0,1fr\)\}/);
 });
