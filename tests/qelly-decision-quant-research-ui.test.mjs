@@ -45,3 +45,10 @@ test('Decision redraw preserves expanded education state and focused glossary he
   assert.match(route,/if\(educationWasOpen&&education\)education\.open=true/);
   assert.match(route,/if\(educationHelp\)educationHelp\.focus\(\{preventScroll:true\}\)/);
 });
+
+
+test('Research Lab exposes the technical indicator audit without promoting redundant Supertrend voting',async()=>{
+  const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
+  for(const label of ['Technical indicator audit','Donchian upper','Donchian lower','MFI 14','CMF 20','OBV Δ20','Pivot','Supertrend'])assert.ok(route.includes(label),label);
+  assert.match(route,/Redundant indicators remain excluded from voting/);
+});

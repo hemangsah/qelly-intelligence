@@ -116,3 +116,28 @@ test('Decision graph exposes the research library without changing execution or 
   assert.ok(graph.provenance.model.features.includes('governed quant research library'));
   assert.match(graph.provenance.model.limitations.join(' '),/does not become an independent directional vote/i);
 });
+
+
+test('technical indicator audit is explicit, finite and non-voting',()=>{
+  const result=buildDecisionQuantResearch(candles(),{intervalMs:900_000});
+  const technical=result.technical;
+  assert.equal(technical.donchian.state,'AVAILABLE');
+  assert.equal(technical.ichimoku.state,'AVAILABLE');
+  assert.equal(technical.obv.state,'AVAILABLE');
+  assert.equal(technical.mfi.state,'AVAILABLE');
+  assert.equal(technical.cmf.state,'AVAILABLE');
+  assert.equal(technical.pivots.state,'AVAILABLE');
+  for(const value of [
+    technical.donchian.upper,technical.donchian.lower,technical.donchian.middle,
+    technical.ichimoku.tenkan,technical.ichimoku.kijun,technical.ichimoku.spanA,technical.ichimoku.spanB,
+    technical.obv.value,technical.obv.change20,technical.mfi.value,technical.cmf.value,
+    technical.pivots.pivot,technical.pivots.r1,technical.pivots.r2,technical.pivots.s1,technical.pivots.s2
+  ])assert.equal(Number.isFinite(value),true,String(value));
+  assert.ok(['ABOVE','BELOW','INSIDE'].includes(technical.ichimoku.cloudPosition));
+  assert.equal(technical.supertrend.state,'EXCLUDED_REDUNDANT');
+  assert.match(technical.supertrend.reason,/double-count|already cover/i);
+  const audit=new Map(technical.audit.map(item=>[item.id,item]));
+  for(const id of ['rsi','macd','adx','atr','bollinger','donchian','ichimoku','vwap','obv','mfi','cmf','supertrend','pivots','moving-averages'])assert.equal(audit.has(id),true,id);
+  assert.equal(audit.get('supertrend').state,'EXCLUDED_REDUNDANT');
+  assert.equal(audit.get('supertrend').role,'redundant_excluded');
+});
