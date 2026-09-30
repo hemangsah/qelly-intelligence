@@ -248,11 +248,11 @@ test('Wave Y frontend hands Decision horizon R:R selection and prior snapshot to
     read('functions/_lib/finance-intelligence.js')
   ]);
   for(const phrase of [
-    'decisionContext:{',
-    'horizon:state.horizon',
+    'const selection=state.selection||state.draft||null',
+    'decisionContext:{horizon:state.horizon',
     'rr:state.rr',
-    'selection:state.selection||state.draft||null',
-    'previousSnapshot:state.previousSnapshot||null'
+    'selection,previousSnapshot:state.previousSnapshot||null',
+    'qelly:chat-context'
   ])assert.ok(decisionRoute.includes(phrase),phrase);
   assert.match(chat,/decisionContext:mode==='decision'\?decisionContext:null/);
   assert.match(chat,/normalizeDecisionContext/);
