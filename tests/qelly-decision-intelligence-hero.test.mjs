@@ -23,11 +23,12 @@ test('single-candle selection produces truthful evidence instead of being reject
 
 test('Decision Intelligence hero exposes current evidence dimensions without inventing data',async()=>{
   const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
-  for(const phrase of ['QELLY Decision Intelligence','FLAGSHIP RESEARCH WORKSPACE','Evidence quality','Calibrated confidence','Scenario','MTF agreement','Regime','Volatility','Timeframe','Observed ','Find Setup Now','Explain This Move','Explain Candle','Compare Timeframes','Compare Asset','Ask QELLY','Sources / Methodology'])assert.match(route,new RegExp(phrase));
+  for(const phrase of ['QELLY Decision Intelligence','FLAGSHIP RESEARCH WORKSPACE','Evidence quality','Calibrated confidence','Scenario','MTF agreement','Regime','Volatility','Timeframe','Observed ','Find Setup Now','Explain This Move','Explain Candle','Compare Timeframes','Compare Asset','Why NO TRADE?','Sources / Methodology'])assert.match(route,new RegExp(phrase));
   assert.match(route,/data-dpg-asset/);
   assert.match(route,/data-dpg-interval/);
   assert.match(route,/stateBanner\(\)\+hero\(data\)/);
   assert.doesNotMatch(route,/pageHead\('QELLY Decision Intelligence'/);
+  assert.match(route,/qelly:chat-context/);
 });
 
 test('Decision Intelligence safely exposes every provider-supported picker interval',async()=>{
