@@ -3,54 +3,53 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 const read=(path)=>readFile(new URL('../'+path,import.meta.url),'utf8');
 
-test('Wave BW replaces legacy Decision chat buttons with one contextual bottom-center dock',async()=>{
-  const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
-  for(const phrase of ['QELLY CONTEXT DOCK','Ask QELLY about selected range','Explain this setup','Why NO TRADE?','What changed?','Ask QELLY about this move'])assert.ok(route.includes(phrase),phrase);
-  assert.match(route,/data-dpg-chat-dock/);
-  assert.match(route,/data-dpg-chat-form/);
-  assert.match(route,/q-dpg-chat-dock__bar" data-dpg-open-chat data-dpg-chat-dock-toggle/);
-  assert.doesNotMatch(route,/q-dpg-hero__actions[^\n]*data-dpg-open-chat/);
-  assert.doesNotMatch(route,/data-dpg-range-action="chat"/);
-  assert.doesNotMatch(route,/mode:'decision-range'/);
-  assert.match(route,/!state\.chatDockOpen&&rect\.bottom>window\.innerHeight-reserved/);
-});
-
-test('Wave BW hands the current Decision context into the existing authoritative QELLY chat path',async()=>{
-  const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
-  for(const phrase of ['qelly:open-ai',"mode:'decision'",'decisionContext:{','horizon:state.horizon','rr:state.rr','selection:state.selection||state.draft||null','previousSnapshot:state.previousSnapshot||null'])assert.ok(route.includes(phrase),phrase);
-  assert.doesNotMatch(route,/\/api\/v1\/intelligence\/chat/);
-  assert.match(route,/Existing QELLY Chat · current Decision evidence/);
-});
-
-test('Wave BW hides only the generic launcher on Decision without creating a second assistant',async()=>{
-  const [chat,css]=await Promise.all([
+test('Wave CM supersedes the Wave BW Decision-only dock with one global owner',async()=>{
+  const [route,chat,css]=await Promise.all([
+    read('apps/web/public/assets/routes/decision-proven-graph.mjs'),
     read('apps/web/public/assets/ai/qelly-chat.mjs'),
     read('apps/web/public/assets/ai/qelly-chat.css')
   ]);
-  assert.match(chat,/decisionRouteActive/);
-  assert.match(chat,/launcher\.hidden=decisionRouteActive\(\)/);
-  assert.match(chat,/window\.addEventListener\('hashchange',syncLauncherRoute\)/);
-  assert.match(css,/q-ai-launcher\[hidden\]/);
-  assert.match(css,/data-production-route="decision-provenance"/);
-  assert.match(css,/\.q-ai-root\{position:relative;z-index:320\}/);
-  assert.match(css,/\.q-ai-assistant\{position:fixed;right:18px;bottom:18px;z-index:322/);
+  assert.doesNotMatch(route,/qellyChatDockMarkup|data-dpg-chat-dock|data-dpg-chat-quick|chatDockOpen/);
+  assert.match(route,/qelly:chat-context/);
+  assert.match(route,/qelly:chat-clearance/);
+  for(const phrase of ["contextType:'decision'","actionLabel:primary.label","mode:'decision'","selection,previousSnapshot:state.previousSnapshot||null","Why NO TRADE?","Explain selected move"])assert.ok(route.includes(phrase),phrase);
   assert.equal((chat.match(/id="qelly-ai-assistant"/g)||[]).length,1);
-});
-
-test('Wave BW dock is centered, mobile safe, animated and reduced-motion aware',async()=>{
-  const css=await read('apps/web/public/assets/qelly-decision-proven-graph.css');
-  assert.match(css,/\.q-dpg-chat-dock\{position:fixed;left:50%;bottom:max\(16px,env\(safe-area-inset-bottom/);
-  assert.match(css,/transform:translateX\(-50%\)/);
-  assert.match(css,/@keyframes q-dpg-chat-border/);
-  assert.match(css,/@keyframes q-dpg-chat-rise/);
-  assert.match(css,/@media\(max-width:640px\)/);
-  assert.match(css,/env\(safe-area-inset-bottom/);
+  assert.doesNotMatch(chat,/decisionRouteActive/);
+  assert.doesNotMatch(chat,/launcher\.hidden=decisionRouteActive/);
+  assert.match(chat,/qelly:chat-context/);
+  assert.match(chat,/qelly:chat-clearance/);
+  assert.match(css,/left:50%/);
+  assert.match(css,/bottom:max\(16px,env\(safe-area-inset-bottom/);
+  assert.match(css,/@keyframes q-ai-dock-border/);
   assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
-  assert.match(css,/q-dpg-chat-dock\[data-clearance="chart"\]/);
-  assert.match(css,/pointer-events:none/);
 });
 
-test('Wave BW Browser E2E proves desktop/mobile shell, handoff and selected-range context',async()=>{
-  const e2e=await read('scripts/qelly-decision-range-selection-e2e.mjs');
-  for(const phrase of ['qelly-dock-shell','qelly-dock-composer','qelly-dock-handoff','qelly-dock-range-context','qelly-dock-range-action','qelly-dock-chart-clearance','qelly-dock-clearance-return','qelly-dock-open-clearance','qelly-dock-close-hit-target','data-dpg-chat-quick="view"','data-dpg-chat-quick="selected"'])assert.ok(e2e.includes(phrase),phrase);
+test('Wave CM global dock consumes structured Decision context without scraping route prose',async()=>{
+  const [route,chat]=await Promise.all([
+    read('apps/web/public/assets/routes/decision-proven-graph.mjs'),
+    read('apps/web/public/assets/ai/qelly-chat.mjs')
+  ]);
+  for(const phrase of ['horizon:state.horizon','rr:state.rr','customRr:state.rr===\'custom\'?state.customRr:null','selection,previousSnapshot:state.previousSnapshot||null'])assert.ok(route.includes(phrase),phrase);
+  assert.match(chat,/normalizeDockContext/);
+  assert.match(chat,/normalizeDecisionContext\(value\.decisionContext\)/);
+  assert.match(chat,/open\(dockContext\.prompt,dockContext\.mode/);
+  assert.doesNotMatch(route,/textContent|innerText|innerHTML.*decisionContext/);
+});
+
+test('Wave CM dock is terminal-wide, centered, mobile safe and chart-clearance aware',async()=>{
+  const css=await read('apps/web/public/assets/ai/qelly-chat.css');
+  assert.match(css,/\.q-ai-launcher\{/);
+  assert.match(css,/transform:translateX\(-50%\)/);
+  assert.match(css,/env\(safe-area-inset-bottom/);
+  assert.match(css,/q-ai-root\[data-clearance="chart"\]/);
+  assert.match(css,/@media\(max-width:640px\)/);
+  assert.doesNotMatch(css,/data-production-route="decision-provenance"[^\n]*q-ai-launcher/);
+});
+
+test('Wave CM preserves one authoritative assistant handoff and open-state signal',async()=>{
+  const chat=await read('apps/web/public/assets/ai/qelly-chat.mjs');
+  assert.match(chat,/document\.dispatchEvent\(new CustomEvent\('qelly:chat-open-state'/);
+  assert.match(chat,/document\.addEventListener\('qelly:open-ai'/);
+  assert.match(chat,/decisionContext:event\.detail\?\.decisionContext\?\?null/);
+  assert.match(chat,/globalThis\.__QELLY_CHAT_CONTEXT__/);
 });
