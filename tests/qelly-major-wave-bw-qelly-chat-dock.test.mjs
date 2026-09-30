@@ -18,7 +18,9 @@ test('Wave CM supersedes the Wave BW Decision-only dock with one global owner',a
   assert.doesNotMatch(chat,/launcher\.hidden=decisionRouteActive/);
   assert.match(chat,/qelly:chat-context/);
   assert.match(chat,/qelly:chat-clearance/);
-  assert.match(css,/left:50%/);
+  assert.match(css,/left:0;/);
+  assert.match(css,/right:0;/);
+  assert.match(css,/margin-inline:auto/);
   assert.match(css,/bottom:max\(16px,env\(safe-area-inset-bottom/);
   assert.match(css,/@keyframes q-ai-dock-border/);
   assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
@@ -33,13 +35,18 @@ test('Wave CM global dock consumes structured Decision context without scraping 
   assert.match(chat,/normalizeDockContext/);
   assert.match(chat,/normalizeDecisionContext\(value\.decisionContext\)/);
   assert.match(chat,/open\(dockContext\.prompt,dockContext\.mode/);
+  assert.match(chat,/let dockPrefill=''/);
+  assert.match(chat,/if\(!input\.value\|\|input\.value===dockPrefill\)\{input\.value=next;dockPrefill=next;\}/);
+  assert.match(chat,/input\.addEventListener\('input',[\s\S]{0,120}dockPrefill=''/);
   assert.doesNotMatch(route,/document\.querySelector\([^\n]+\)\?\.(?:textContent|innerText)[^\n]+decisionContext/);
 });
 
 test('Wave CM dock is terminal-wide, centered, mobile safe and chart-clearance aware',async()=>{
   const css=await read('apps/web/public/assets/ai/qelly-chat.css');
   assert.match(css,/\.q-ai-launcher\{/);
-  assert.match(css,/transform:translateX\(-50%\)/);
+  assert.match(css,/margin-inline:auto/);
+  assert.match(css,/\.q-ai-launcher\{[\s\S]*?transform:none/);
+  assert.doesNotMatch(css,/translateX\(-50%\)/);
   assert.match(css,/env\(safe-area-inset-bottom/);
   assert.match(css,/q-ai-root\[data-clearance="chart"\]/);
   assert.match(css,/@media\(max-width:640px\)/);
