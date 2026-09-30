@@ -330,7 +330,8 @@ const exercise=async({name,viewport,touch=false})=>{
   await globalAssistant.waitFor({state:'visible',timeout:10_000});
   const assistantAsset=await page.locator('[data-q-ai-asset]').first().inputValue();
   const assistantTimeframe=await page.locator('[data-q-ai-timeframe]').first().inputValue();
-  if(assistantAsset!=='BTC'||!assistantTimeframe)failures.push({type:'qelly-dock-handoff',assistantAsset,assistantTimeframe});
+  const dockComposerRequired=await page.locator('[data-q-ai-form] textarea').first().isVisible().catch(()=>false);
+  if(assistantAsset!=='BTC'||!assistantTimeframe||!dockComposerRequired)failures.push({type:'qelly-dock-handoff',assistantAsset,assistantTimeframe,dockComposerRequired});
   await page.locator('[data-q-ai-close]').first().click();
   await globalAssistant.waitFor({state:'hidden',timeout:10_000});
   const simpleTab=page.locator('[data-dpg-ui-mode="simple"]').first(),advancedTab=page.locator('[data-dpg-ui-mode="advanced"]').first(),researchTab=page.locator('[data-dpg-ui-mode="research"]').first();
