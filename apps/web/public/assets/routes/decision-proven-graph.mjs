@@ -1055,8 +1055,8 @@ export async function renderDecisionProvenGraph(main,deps){
     const primary=selection?{label:'Explain selected move',state:'SELECTED RANGE'}:hasSetup?{label:'Explain this setup',state:'SETUP CONTEXT'}:action==='NO TRADE'?{label:'Why NO TRADE?',state:'NO TRADE CONTEXT'}:hasChange?{label:'What changed?',state:'DECISION CHANGE'}:{label:'Explain this Decision',state:'QELLY VIEW'};
     publishQellyChatContext({
       route:'decision-provenance',contextType:'decision',kicker:primary.state,label:primary.label,
-      meta:state.asset+' · '+state.interval+' · '+action,mode:'decision',asset:state.asset,timeframe:state.interval,
-      decisionContext:{horizon:state.horizon,rr:state.rr,customRr:state.customRr,selection,previousSnapshot:state.previousSnapshot||null},
+      meta:'Ask QELLY · '+state.asset+' · '+state.interval+' · '+action,mode:'decision',asset:state.asset,timeframe:state.interval,
+      decisionContext:{horizon:state.horizon,rr:state.rr,customRr:state.customRr,selection:state.selection||state.draft||null,previousSnapshot:state.previousSnapshot||null},
       quickPrompts:[decisionChatPrompt('view',data),...(selection?[decisionChatPrompt('selected',data)]:[]),...(hasSetup?[decisionChatPrompt('setup',data)]:[]),...(action==='NO TRADE'?[decisionChatPrompt('no-trade',data)]:[]),...(hasChange?[decisionChatPrompt('changed',data)]:[])].slice(0,4)
     });
   };
