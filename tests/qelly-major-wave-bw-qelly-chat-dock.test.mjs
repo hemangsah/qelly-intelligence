@@ -1,56 +1,47 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {defaultQellyChatContext,normalizeQellyChatPageContext} from '../apps/web/public/assets/qelly-chat-context.mjs';
+
 const read=(path)=>readFile(new URL('../'+path,import.meta.url),'utf8');
 
-test('Wave BW replaces legacy Decision chat buttons with one contextual bottom-center dock',async()=>{
-  const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
-  for(const phrase of ['QELLY CONTEXT DOCK','Ask QELLY about selected range','Explain this setup','Why NO TRADE?','What changed?','Ask QELLY about this move'])assert.ok(route.includes(phrase),phrase);
-  assert.match(route,/data-dpg-chat-dock/);
-  assert.match(route,/data-dpg-chat-form/);
-  assert.match(route,/q-dpg-chat-dock__bar" data-dpg-open-chat data-dpg-chat-dock-toggle/);
-  assert.doesNotMatch(route,/q-dpg-hero__actions[^\n]*data-dpg-open-chat/);
-  assert.doesNotMatch(route,/data-dpg-range-action="chat"/);
-  assert.doesNotMatch(route,/mode:'decision-range'/);
-  assert.match(route,/!state\.chatDockOpen&&rect\.bottom>window\.innerHeight-reserved/);
-});
-
-test('Wave BW hands the current Decision context into the existing authoritative QELLY chat path',async()=>{
-  const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
-  for(const phrase of ['qelly:open-ai',"mode:'decision'",'decisionContext:{','horizon:state.horizon','rr:state.rr','selection:state.selection||state.draft||null','previousSnapshot:state.previousSnapshot||null'])assert.ok(route.includes(phrase),phrase);
-  assert.doesNotMatch(route,/\/api\/v1\/intelligence\/chat/);
-  assert.match(route,/Existing QELLY Chat · current Decision evidence/);
-});
-
-test('Wave BW hides only the generic launcher on Decision without creating a second assistant',async()=>{
-  const [chat,css]=await Promise.all([
+test('Wave CM supersedes the route-local Decision dock with one terminal-wide QELLY dock',async()=>{
+  const [route,chat,css]=await Promise.all([
+    read('apps/web/public/assets/routes/decision-proven-graph.mjs'),
     read('apps/web/public/assets/ai/qelly-chat.mjs'),
     read('apps/web/public/assets/ai/qelly-chat.css')
   ]);
-  assert.match(chat,/decisionRouteActive/);
-  assert.match(chat,/launcher\.hidden=decisionRouteActive\(\)/);
-  assert.match(chat,/window\.addEventListener\('hashchange',syncLauncherRoute\)/);
-  assert.match(css,/q-ai-launcher\[hidden\]/);
-  assert.match(css,/data-production-route="decision-provenance"/);
-  assert.match(css,/\.q-ai-root\{position:relative;z-index:320\}/);
-  assert.match(css,/\.q-ai-assistant\{position:fixed;right:18px;bottom:18px;z-index:322/);
+  assert.match(route,/publishQellyChatContext/);
+  assert.doesNotMatch(route,/q-dpg-chat-dock|data-dpg-chat-dock|chatDockOpen/);
+  assert.doesNotMatch(chat,/decisionRouteActive|launcher\.hidden=decisionRouteActive/);
   assert.equal((chat.match(/id="qelly-ai-assistant"/g)||[]).length,1);
+  assert.match(css,/\.q-ai-launcher\{left:50%;right:auto;bottom:max\(16px,env\(safe-area-inset-bottom\)\);transform:translateX\(-50%\)/);
+  assert.match(css,/data-clearance="chart"/);
 });
 
-test('Wave BW dock is centered, mobile safe, animated and reduced-motion aware',async()=>{
-  const css=await read('apps/web/public/assets/qelly-decision-proven-graph.css');
-  assert.match(css,/\.q-dpg-chat-dock\{position:fixed;left:50%;bottom:max\(16px,env\(safe-area-inset-bottom/);
-  assert.match(css,/transform:translateX\(-50%\)/);
-  assert.match(css,/@keyframes q-dpg-chat-border/);
-  assert.match(css,/@keyframes q-dpg-chat-rise/);
-  assert.match(css,/@media\(max-width:640px\)/);
-  assert.match(css,/env\(safe-area-inset-bottom/);
-  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
-  assert.match(css,/q-dpg-chat-dock\[data-clearance="chart"\]/);
-  assert.match(css,/pointer-events:none/);
+test('Wave CM uses bounded structured page context instead of scraping route prose',async()=>{
+  const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
+  for(const phrase of ["route:'decision-provenance'","contextType:'decision'","mode:'decision'","asset:state.asset","timeframe:state.interval","decisionContext:{horizon:state.horizon","selection","previousSnapshot:state.previousSnapshot||null"])assert.ok(route.includes(phrase),phrase);
+  const context=normalizeQellyChatPageContext({route:'decision-provenance',label:'Explain this setup',mode:'decision',asset:'BTC',timeframe:'15m',quickPrompts:['a','b']});
+  assert.equal(context.mode,'decision');
+  assert.equal(context.asset,'BTC');
+  assert.deepEqual(context.quickPrompts,['a','b']);
+  assert.equal(defaultQellyChatContext('market').label,'Summarize this Market Pulse');
 });
 
-test('Wave BW Browser E2E proves desktop/mobile shell, handoff and selected-range context',async()=>{
+test('Wave CM keeps Decision handoff fail closed and global assistant grounded',async()=>{
+  const [chat,endpoint]=await Promise.all([
+    read('apps/web/public/assets/ai/qelly-chat.mjs'),
+    read('functions/api/v1/intelligence/chat.js')
+  ]);
+  for(const phrase of ['QELLY_CHAT_CONTEXT_EVENT','normalizeQellyChatPageContext','pageContext','decisionContext:pageContext.decisionContext','new AbortController()','Generation cancelled. No partial or unvalidated answer was accepted.'])assert.ok(chat.includes(phrase),phrase);
+  assert.match(endpoint,/normalizeDecisionChatContext\(body\.decisionContext\)/);
+  assert.match(endpoint,/unvalidatedStreaming:false/);
+});
+
+test('Wave CM Browser E2E proves global dock centering, context handoff, range context and chart clearance',async()=>{
   const e2e=await read('scripts/qelly-decision-range-selection-e2e.mjs');
-  for(const phrase of ['qelly-dock-shell','qelly-dock-composer','qelly-dock-handoff','qelly-dock-range-context','qelly-dock-range-action','qelly-dock-chart-clearance','qelly-dock-clearance-return','qelly-dock-open-clearance','qelly-dock-close-hit-target','data-dpg-chat-quick="view"','data-dpg-chat-quick="selected"'])assert.ok(e2e.includes(phrase),phrase);
+  for(const phrase of ['qelly-global-dock-shell','qelly-global-dock-context','qelly-global-dock-range-context','qelly-global-dock-chart-clearance','qelly-global-dock-clearance-return','qelly-global-dock-close-hit-target','data-q-ai-launcher','data-q-ai-mode="decision"'])assert.ok(e2e.includes(phrase),phrase);
+  assert.equal((e2e.match(/data-dpg-chat-dock/g)||[]).length,1);
+  assert.match(e2e,/legacyDecisionChatControls/);
 });
