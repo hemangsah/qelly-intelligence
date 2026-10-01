@@ -15,14 +15,14 @@ const STATIC_NAV_MARKUP=Array.isArray(routeRegistry.productCategories)&&routeReg
   :'<a href="#/decision-provenance" data-product-route="decision-provenance">Decision</a><a href="#/news-research" data-product-route="news-research">Qelly Chat</a><a href="#/market" data-product-route="market">Markets</a><a href="#/research-workspace" data-product-route="research-workspace">Research</a><a href="#/calculator-center" data-product-route="calculator-center">Tools</a>';
 
 const STATIC_HEADER_CONTEXT=Array.isArray(routeRegistry.productCategories)&&routeRegistry.productCategories.length
-  ?'${STATIC_HEADER_CONTEXT}'
+  ?'<div class="q-product-context" data-q-product-context aria-live="polite"><small data-q-product-category-label>Qelly</small><strong data-q-product-page-title>Qelly</strong></div>'
   :'';
 
 const CURRENT_HEADER=`
 <header class="q-product-header" data-qelly-current-shell="true" aria-label="Qelly product navigation">
   <a class="q-product-brand" href="#/market" aria-label="Qelly Intelligence home"><span class="q-product-brand__mark"><img src="./assets/brand/qelly-symbol.svg" width="28" height="28" alt=""></span><span><strong>Qelly</strong><small>Market intelligence</small></span></a>
   <button class="q-product-menu" type="button" aria-expanded="false" aria-controls="q-product-navigation"><span aria-hidden="true">☰</span><span>Menu</span></button>
-  <nav id="q-product-navigation" class="q-product-nav" aria-label="Primary product categories">${STATIC_NAV_MARKUP}</nav><div class="q-product-context" data-q-product-context aria-live="polite"><small data-q-product-category-label>Qelly</small><strong data-q-product-page-title>Qelly</strong></div>
+  <nav id="q-product-navigation" class="q-product-nav" aria-label="Primary product categories">${STATIC_NAV_MARKUP}</nav>${STATIC_HEADER_CONTEXT}
   <form class="q-product-search" role="search"><label class="q-visually-hidden" for="q-product-search-input">Search Qelly</label><input id="q-product-search-input" name="q" type="search" autocomplete="off" placeholder="Search Qelly"><button type="submit" aria-label="Search Qelly"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg><span class="q-visually-hidden">Search</span></button></form>
   <div class="q-product-actions"><button class="q-product-system" type="button" data-product-route="status" aria-label="Open system status"><span class="q-product-system__dot" data-state="live"></span><span>Data status</span></button><button class="q-product-system" type="button" data-v8-appearance="true" aria-label="Switch to light appearance"><span aria-hidden="true">◐</span><span>Light</span></button><a class="q-product-account" href="#/auth-login" aria-label="Sign in to Qelly"><span aria-hidden="true">●</span><span>Sign in</span></a></div>
 </header>
