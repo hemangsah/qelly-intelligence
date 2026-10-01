@@ -1,11 +1,39 @@
+import * as routeRegistry from '../apps/web/public/assets/route-registry.mjs';
+const {routeDefinitions}=routeRegistry;
+
+export function prepaintRouteTitles(){
+  return Object.fromEntries(routeDefinitions.map((route)=>[route.route,route.seoTitle??route.label+' · Qelly Intelligence']));
+}
+
+export function prepaintRouteContexts(){
+  return Object.fromEntries(routeDefinitions.map(route=>[route.route,{
+    shortTitle:route.shortTitle??route.label,
+    categoryLabel:route.categoryLabel??'Qelly'
+  }]));
+}
+
+const escapeNav=(value)=>String(value??'').replace(/[&<>'"]/g,(character)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
+const staticCategoryMarkup=(category)=>{
+  const id=String(category.id).replace(/[^a-z0-9_-]/gi,'-');
+  return `<div class="q-product-category" data-product-category="${escapeNav(category.id)}"><button class="q-product-category__trigger" type="button" data-product-category-toggle="${escapeNav(category.id)}" aria-expanded="false" aria-haspopup="true" aria-controls="q-product-category-${id}">${escapeNav(category.label)}<span aria-hidden="true">⌄</span></button><div class="q-product-category__menu" id="q-product-category-${id}" data-product-category-menu="${escapeNav(category.id)}" role="group" aria-label="${escapeNav(category.label)} destinations" hidden>${category.routes.map((route)=>`<a href="#/${escapeNav(route.route)}" data-product-route="${escapeNav(route.route)}"><span>${route.icon}</span><span><strong>${escapeNav(route.shortTitle)}</strong><small>${escapeNav(route.description)}</small></span></a>`).join('')}</div></div>`;
+};
+const STATIC_NAV_MARKUP=Array.isArray(routeRegistry.productCategories)&&routeRegistry.productCategories.length
+  ?routeRegistry.productCategories.map(staticCategoryMarkup).join('')
+  :'<a href="#/decision-provenance" data-product-route="decision-provenance">Decision</a><a href="#/news-research" data-product-route="news-research">Qelly Chat</a><a href="#/market" data-product-route="market">Markets</a><a href="#/research-workspace" data-product-route="research-workspace">Research</a><a href="#/calculator-center" data-product-route="calculator-center">Tools</a>';
+
+const STATIC_HEADER_CONTEXT=Array.isArray(routeRegistry.productCategories)&&routeRegistry.productCategories.length
+  ?'<div class="q-product-context" data-q-product-context aria-live="polite"><small data-q-product-category-label>Qelly</small><strong data-q-product-page-title>Qelly</strong></div>'
+  :'';
+
 const CURRENT_HEADER=`
 <header class="q-product-header" data-qelly-current-shell="true" aria-label="Qelly product navigation">
   <a class="q-product-brand" href="#/market" aria-label="Qelly Intelligence home"><span class="q-product-brand__mark"><img src="./assets/brand/qelly-symbol.svg" width="28" height="28" alt=""></span><span><strong>Qelly</strong><small>Market intelligence</small></span></a>
   <button class="q-product-menu" type="button" aria-expanded="false" aria-controls="q-product-navigation"><span aria-hidden="true">☰</span><span>Menu</span></button>
-  <nav id="q-product-navigation" class="q-product-nav" aria-label="Primary"><a href="#/decision-provenance" data-product-route="decision-provenance">Decision</a><a href="#/news-research" data-product-route="news-research">Qelly Chat</a><a href="#/market" data-product-route="market">Markets</a><a href="#/research-workspace" data-product-route="research-workspace">Research</a><a href="#/calculator-center" data-product-route="calculator-center">Tools</a></nav>
+  <nav id="q-product-navigation" class="q-product-nav" aria-label="Primary product categories">${STATIC_NAV_MARKUP}</nav>${STATIC_HEADER_CONTEXT}
   <form class="q-product-search" role="search"><label class="q-visually-hidden" for="q-product-search-input">Search Qelly</label><input id="q-product-search-input" name="q" type="search" autocomplete="off" placeholder="Search Qelly"><button type="submit" aria-label="Search Qelly"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg><span class="q-visually-hidden">Search</span></button></form>
   <div class="q-product-actions"><button class="q-product-system" type="button" data-product-route="status" aria-label="Open system status"><span class="q-product-system__dot" data-state="live"></span><span>Data status</span></button><button class="q-product-system" type="button" data-v8-appearance="true" aria-label="Switch to light appearance"><span aria-hidden="true">◐</span><span>Light</span></button><a class="q-product-account" href="#/auth-login" aria-label="Sign in to Qelly"><span aria-hidden="true">●</span><span>Sign in</span></a></div>
 </header>
+<script src="./assets/qelly-prepaint-header.js"></script>
 <div data-qelly-legacy-bindings="true" hidden aria-hidden="true">
   <div id="macro-strip"></div><div id="workspace-switcher"></div>
   <button id="rail-toggle" type="button" aria-expanded="false"></button>
@@ -35,6 +63,12 @@ const classicTag=(file)=>new RegExp('\\s*<script\\s+src="\\./assets/'+escaped(fi
 
 export function convergePublicRuntimeHtml(source){
   let html=String(source);
+  const prepaintScript='<script src="./assets/qelly-prepaint-bootstrap.js"></script>';
+  const routeMapScript='<script src="./assets/qelly-prepaint-route-identities.js"></script>';
+  if(!html.includes(routeMapScript)){
+    if(!html.includes(prepaintScript))throw new Error('Canonical prepaint bootstrap missing');
+    html=html.replace(prepaintScript,`${routeMapScript}\n  ${prepaintScript}`);
+  }
   const shellPattern=/<header class="q-global-strip"[\s\S]*?<div id="context-shelf" class="q-context-shelf"><\/div>\s*/;
   if(!shellPattern.test(html)&&!html.includes('data-qelly-current-shell="true"'))throw new Error('Legacy Qelly shell prefix was not found for convergence');
   if(shellPattern.test(html))html=html.replace(shellPattern,CURRENT_HEADER+'\n');

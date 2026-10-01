@@ -1,0 +1,139 @@
+/* Wave CP: single semantic presentation contract; aliases resolve from the
+   authoritative production/theme palettes, including system-resolved mode. */
+:root{
+  --bg:var(--q-canvas);
+  --surface:var(--q-surface);
+  --surface-elevated:var(--q-surface-elevated);
+  --text:var(--q-text);
+  --text-muted:var(--q-muted);
+  --border:var(--q-border);
+  --accent:var(--q-accent);
+  --positive:var(--q-positive);
+  --negative:var(--q-negative);
+  --warning:var(--q-warning);
+  --info:var(--q-informational);
+  --focus:var(--q-focus);
+  --overlay:rgba(0,0,0,.72);
+  --chart-grid:var(--q-chart-grid);
+  --q-ds-dialog:var(--surface-elevated);
+  --q-ds-chat-assistant:var(--surface);
+  --q-ds-chat-user:var(--accent);
+}
+:root[data-appearance="light"],
+:root[data-resolved-appearance="light"]{
+  --overlay:rgba(24,24,29,.38);
+  --q-ds-dialog:#fff;
+  --q-ds-chat-assistant:#fff;
+  --q-ds-chat-user:#7d183f;
+}
+:root[data-appearance="high-contrast"],
+:root[data-resolved-appearance="high-contrast"]{
+  --overlay:rgba(0,0,0,.9);
+  --q-ds-dialog:var(--q-surface);
+  --q-ds-chat-assistant:var(--q-surface);
+  --q-ds-chat-user:var(--q-accent);
+}
+/* Accessible text is inherited from semantic theme tokens, not a dark-only
+   fixed color. No route or data truth-state is restyled or misrepresented. */
+html[data-production-system="v8"] body #app #main{
+  color:var(--text);
+  background:var(--bg);
+}
+html[data-production-system="v8"] body #app :is(.q-product-category__menu,.q-feature-navigation,.q-product-search input){
+  color:var(--text);
+  border-color:var(--border);
+}
+html[data-production-system="v8"] body #app .q-product-category__menu{
+  background:var(--q-ds-dialog);
+}
+html[data-production-system="v8"] body #app .q-product-category__menu :is(strong,a){
+  color:var(--text);
+}
+html[data-production-system="v8"] body #app .q-product-category__menu small{
+  color:var(--text-muted);
+  font-size:12px;
+  line-height:1.45;
+}
+html[data-production-system="v8"] body #app .q-product-context small{
+  color:var(--text-muted);
+  font-size:11px;
+}
+html[data-production-system="v8"] body #app .q-product-context strong{
+  color:var(--text);
+  font-size:13px;
+}
+/* The global chat lives outside #main and therefore needs its own typography
+   and color contract rather than inheriting route-specific CSS overrides. */
+html .q-ai-root .q-ai-assistant{
+  background:var(--q-ds-dialog);
+  color:var(--text);
+  border-color:var(--border);
+}
+html .q-ai-root .q-ai-header,
+html .q-ai-root .q-ai-composer{
+  background:var(--surface-elevated);
+  color:var(--text);
+  border-color:var(--border);
+}
+html .q-ai-root .q-ai-message--assistant{
+  background:var(--q-ds-chat-assistant);
+  color:var(--text);
+  border:1px solid var(--border);
+}
+html .q-ai-root .q-ai-message--user{
+  background:var(--q-ds-chat-user);
+  color:#fff;
+}
+html .q-ai-root .q-ai-message--user :is(header,header em,.q-ai-message-copy){
+  color:#fff;
+}
+html .q-ai-root .q-ai-thread{
+  color:var(--text);
+  background:var(--bg);
+}
+html .q-ai-root :is(.q-ai-contextbar select,.q-ai-composer textarea,.q-ai-dataset-panel){
+  background:var(--surface);
+  color:var(--text);
+  border-color:var(--border);
+}
+html .q-ai-root :is(.q-ai-welcome p,.q-ai-message-sources summary,.q-ai-assistant>footer,.q-ai-assistant>footer small){
+  color:var(--text-muted);
+}
+html .q-ai-root :is(.q-ai-message-copy,.q-ai-welcome p,.q-ai-composer textarea){
+  font-size:14px;
+  line-height:1.6;
+}
+html .q-ai-root :is(.q-ai-contextbar select,.q-ai-modebar button,.q-ai-suggestions button,.q-ai-message-tools button,.q-ai-followups button,.q-ai-assistant>footer){
+  font-size:12px;
+  line-height:1.4;
+}
+html .q-ai-root :is(.q-ai-message>header,.q-ai-message-sources summary,.q-ai-message-sources strong,.q-ai-assistant>footer small){
+  font-size:11px;
+  line-height:1.45;
+}
+html .q-ai-root :is(button,a,input,select,textarea):focus-visible,
+html[data-production-system="v8"] body #app :is(button,a,input,select,textarea):focus-visible{
+  outline:2px solid var(--focus);
+  outline-offset:2px;
+}
+html .q-ai-root :is(.q-ai-suggestions button,.q-ai-message-actions button,.q-ai-followups button){
+  min-height:44px;
+}
+html[data-production-system="v8"] body #app .q-product-category__trigger{
+  min-height:44px;
+}
+@media(max-width:640px){
+  html .q-ai-root .q-ai-composer textarea{
+    font-size:16px; /* avoid mobile zoom */
+  }
+  html .q-ai-root .q-ai-assistant{
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  html .q-ai-root :is(.q-ai-launcher,.q-ai-assistant,.q-ai-brand small i),
+  html[data-production-system="v8"] .q-product-category__trigger>span{
+    animation:none!important;
+    transition:none!important;
+  }
+}
