@@ -1,5 +1,9 @@
 import {routeDefinitions} from '../apps/web/public/assets/route-registry.mjs';
 
+export function prepaintRouteTitles(){
+  return Object.fromEntries(routeDefinitions.map((route)=>[route.route,route.seoTitle??route.label+' · Qelly Intelligence']));
+}
+
 const CURRENT_HEADER=`
 <header class="q-product-header" data-qelly-current-shell="true" aria-label="Qelly product navigation">
   <a class="q-product-brand" href="#/market" aria-label="Qelly Intelligence home"><span class="q-product-brand__mark"><img src="./assets/brand/qelly-symbol.svg" width="28" height="28" alt=""></span><span><strong>Qelly</strong><small>Market intelligence</small></span></a>
@@ -37,12 +41,11 @@ const classicTag=(file)=>new RegExp('\\s*<script\\s+src="\\./assets/'+escaped(fi
 
 export function convergePublicRuntimeHtml(source){
   let html=String(source);
-  const titleMap=Object.fromEntries(routeDefinitions.map((route)=>[route.route,route.seoTitle??route.label+' · Qelly Intelligence']));
-  const titlePayload=JSON.stringify(titleMap).replace(/</g,'\\u003c');
   const prepaintScript='<script src="./assets/qelly-prepaint-bootstrap.js"></script>';
-  if(!html.includes('id="qelly-prepaint-route-identities"')){
+  const routeMapScript='<script src="./assets/qelly-prepaint-route-identities.js"></script>';
+  if(!html.includes(routeMapScript)){
     if(!html.includes(prepaintScript))throw new Error('Canonical prepaint bootstrap missing');
-    html=html.replace(prepaintScript,`<script id="qelly-prepaint-route-identities" type="application/json">${titlePayload}</script>\n  ${prepaintScript}`);
+    html=html.replace(prepaintScript,`${routeMapScript}\n  ${prepaintScript}`);
   }
   const shellPattern=/<header class="q-global-strip"[\s\S]*?<div id="context-shelf" class="q-context-shelf"><\/div>\s*/;
   if(!shellPattern.test(html)&&!html.includes('data-qelly-current-shell="true"'))throw new Error('Legacy Qelly shell prefix was not found for convergence');
