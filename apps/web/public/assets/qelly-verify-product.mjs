@@ -1,4 +1,5 @@
 import {analyzeTrades,parseTradeCsv,sampleTradeCsv} from './qelly-verify-engine.mjs';
+import {parseMt5Html,parseMt5Xlsx,MT5_REPORT_LIMITS} from './qelly-mt5-report-parser.mjs';
 import {QELLY_VERIFY_METHODOLOGY,QELLY_VERIFY_METHODOLOGY_VERSION,QELLY_VERIFY_REPORT_SCHEMA} from './qelly-verify-methodology.mjs';
 import {composeStrategyEvidenceReport} from './qelly-verify-report.mjs';
 import {applyV53VerifyCanonical} from './qelly-v53-verify-canonical.mjs';
@@ -15,9 +16,9 @@ const scoreTone=(value,inverted=false)=>{const score=inverted?100-Number(value):
 
 function verifyShell(evidence=null,validation=null,sourceName='No file selected'){
   return `<section class="q-verify-page" data-qelly-verify-surface>
-    <header class="q-verify-hero"><div class="q-verify-hero__copy"><p class="q-verify-kicker">Qelly Verify · Strategy Intelligence Report</p><h1>Put your strategy through evidence, not belief.</h1><p>Upload an MT5 trade-history export or structured trade CSV. Qelly validates rows, measures performance and observed risk, tests trade-order sensitivity and produces a versioned evidence report.</p><div class="q-verify-flow" aria-label="Qelly Verify workflow"><span>Upload</span><i>→</i><span>Validate</span><i>→</i><span>Analyze</span><i>→</i><span>Decide</span></div><p class="q-verify-method-link"><a href="#/qelly-verify?view=methodology">Read the public evidence methodology</a></p></div>
+    <header class="q-verify-hero"><div class="q-verify-hero__copy"><p class="q-verify-kicker">Qelly Verify · Strategy Intelligence Report</p><h1>Put your strategy through evidence, not belief.</h1><p>Upload an MT5 Deals HTML/XLSX report or structured trade CSV. Qelly validates realized deal rows, measures performance and observed risk, tests trade-order sensitivity and produces a versioned evidence report.</p><div class="q-verify-flow" aria-label="Qelly Verify workflow"><span>Upload</span><i>→</i><span>Validate</span><i>→</i><span>Analyze</span><i>→</i><span>Decide</span></div><p class="q-verify-method-link"><a href="#/qelly-verify?view=methodology">Read the public evidence methodology</a></p></div>
       <aside class="q-verify-boundary"><strong>Local-only prototype evidence workflow</strong><p>Your file is processed in this browser and is not uploaded. No live AI model, order execution or personalized financial recommendation is active.</p><dl><div><dt>Data transfer</dt><dd>None</dd></div><div><dt>Method</dt><dd>${escapeHtml(QELLY_VERIFY_METHODOLOGY_VERSION)}</dd></div><div><dt>Execution</dt><dd>Disabled</dd></div></dl></aside></header>
-    <section class="q-verify-workspace"><article class="q-verify-upload-card"><div><p class="q-verify-kicker">Step 1 · Strategy evidence</p><h2>Upload a trade CSV</h2><p>Required: a numeric <code>pnl</code>, <code>profit</code> or <code>net_profit</code> column. Optional fields include symbol, side, entry time, exit time and fees.</p></div><label class="q-verify-dropzone" data-verify-dropzone><input type="file" accept=".csv,.txt,text/csv,text/plain" data-verify-file><span class="q-verify-dropzone__icon" aria-hidden="true">⇧</span><strong>Choose or drop a CSV file</strong><small>Maximum 5 MB · up to 100,000 trade rows · processed locally</small></label><div class="q-verify-upload-actions"><button type="button" class="q-button q-button--secondary" data-verify-sample>Run governed sample</button><button type="button" class="q-button q-button--ghost" data-verify-download-sample>Download sample CSV</button>${evidence?'<button type="button" class="q-button q-button--ghost" data-verify-reset>Clear report</button>':''}</div><p class="q-verify-file-state" role="status" aria-live="polite" data-verify-status>${escapeHtml(sourceName)}</p></article>${reportMarkup(evidence,validation)}</section>
+    <section class="q-verify-workspace"><article class="q-verify-upload-card"><div><p class="q-verify-kicker">Step 1 · Strategy evidence</p><h2>Import local MT5 reports or trade CSV</h2><p>Supported: structured CSV; MT5 HTML/XLSX containing Deals with Type, Direction, and numeric Profit. Only realized closing buy/sell deals are analyzed. Entry-side costs, account cash flows and external authenticity remain unverified.</p></div><label class="q-verify-dropzone" data-verify-dropzone><input type="file" accept=".csv,.txt,.htm,.html,.xlsx,text/csv,text/plain,text/html,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" data-verify-file><span class="q-verify-dropzone__icon" aria-hidden="true">⇧</span><strong>Choose or drop CSV, MT5 HTML or MT5 XLSX</strong><small>Maximum 5 MB · up to 100,000 realized closing deals · processed locally · no workbook macros</small></label><div class="q-verify-upload-actions"><button type="button" class="q-button q-button--secondary" data-verify-sample>Run governed sample</button><button type="button" class="q-button q-button--ghost" data-verify-download-sample>Download sample CSV</button>${evidence?'<button type="button" class="q-button q-button--ghost" data-verify-reset>Clear report</button>':''}</div><p class="q-verify-file-state" role="status" aria-live="polite" data-verify-status>${escapeHtml(sourceName)}</p></article>${reportMarkup(evidence,validation)}</section>
   </section>`;
 }
 
@@ -61,8 +62,32 @@ function bind(){
   main?.querySelector('[data-verify-sample]')?.addEventListener('click',()=>analyzeText(sampleTradeCsv(),'Qelly governed strategy sample.csv'));main?.querySelector('[data-verify-download-sample]')?.addEventListener('click',()=>download('qelly-verify-sample.csv',sampleTradeCsv(),'text/csv'));main?.querySelector('[data-verify-reset]')?.addEventListener('click',()=>{current=null;renderVerify();});main?.querySelector('[data-verify-export]')?.addEventListener('click',()=>{if(current?.evidence)download(`qelly-strategy-evidence-${current.evidence.reportId}.json`,JSON.stringify(current.evidence,null,2),'application/json');});main?.querySelector('[data-verify-print]')?.addEventListener('click',()=>window.print());
 }
 
-async function analyzeFile(file){const status=main?.querySelector('[data-verify-status]');if(!file)return;if(file.size>MAX_FILE_BYTES){if(status)status.textContent='File rejected: the 5 MB local-analysis limit was exceeded.';return;}if(status)status.textContent=`Reading ${file.name} locally…`;main?.setAttribute('aria-busy','true');try{await analyzeText(await file.text(),file.name);}catch(error){renderError(error,file.name);}finally{main?.setAttribute('aria-busy','false');}}
-async function analyzeText(sourceText,sourceName){await new Promise(resolve=>setTimeout(resolve,0));try{const parsed=parseTradeCsv(sourceText);const analysis=analyzeTrades(parsed.trades,{sourceName});const evidence=await composeStrategyEvidenceReport({analysis,validation:parsed.validation,sourceText,sourceName});current={validation:parsed.validation,evidence};renderVerify();}catch(error){renderError(error,sourceName);}}
+async function analyzeFile(file){
+  const status=main?.querySelector('[data-verify-status]');if(!file)return;
+  if(file.size>MAX_FILE_BYTES){if(status)status.textContent='File rejected: the 5 MB local-analysis limit was exceeded.';return;}
+  const extension=file.name.toLowerCase().split('.').pop();
+  const format=extension==='xlsx'?'mt5-xlsx':['htm','html'].includes(extension)?'mt5-html':['csv','txt'].includes(extension)?'csv':null;
+  if(!format){if(status)status.textContent='Unsupported file type. Choose MT5 XLSX, MT5 HTML or trade CSV.';return;}
+  if(status)status.textContent=`Reading ${file.name} locally…`;
+  main?.setAttribute('aria-busy','true');
+  try{
+    const source=format==='mt5-xlsx'?new Uint8Array(await file.arrayBuffer()):await file.text();
+    await analyzeText(source,file.name,format);
+  }catch(error){renderError(error,file.name);}
+  finally{main?.setAttribute('aria-busy','false');}
+}
+async function analyzeText(sourceText,sourceName,format='csv'){
+  await new Promise(resolve=>setTimeout(resolve,0));
+  try{
+    const parsed=format==='mt5-html'?parseMt5Html(sourceText,{maxRows:MT5_REPORT_LIMITS.rows})
+      :format==='mt5-xlsx'?await parseMt5Xlsx(sourceText,{maxRows:MT5_REPORT_LIMITS.rows})
+      :parseTradeCsv(sourceText);
+    const analysis=analyzeTrades(parsed.trades,{sourceName});
+    const evidence=await composeStrategyEvidenceReport({analysis,validation:parsed.validation,sourceText,sourceName});
+    current={validation:parsed.validation,evidence};
+    renderVerify();
+  }catch(error){renderError(error,sourceName);}
+}
 function renderError(error,sourceName){current=null;renderVerify();const status=main?.querySelector('[data-verify-status]');if(status){status.classList.add('is-error');status.textContent=`${sourceName}: ${error?.message||'The file could not be analyzed.'}`;}}
 
 export function renderVerify(){
