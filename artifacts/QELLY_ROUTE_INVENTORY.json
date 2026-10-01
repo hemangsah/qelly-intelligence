@@ -277,7 +277,7 @@
     {
       "index": 35,
       "route": "news-research",
-      "label": "Qelly Chat & Research",
+      "label": "QELLY Chat",
       "section": "Discover",
       "public": true,
       "implementation": "runnable-route"
@@ -341,7 +341,7 @@
     {
       "index": 43,
       "route": "market",
-      "label": "Market Command",
+      "label": "Market Pulse",
       "section": "Intelligence",
       "public": true,
       "implementation": "runnable-route"

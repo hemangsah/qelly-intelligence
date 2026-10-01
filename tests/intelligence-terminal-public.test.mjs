@@ -10,7 +10,7 @@ const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 test('Qelly Chat and research is a visible public product destination',()=>{
   const route=routeDefinitions.find((item)=>item.route==='news-research');
   assert.equal(route?.public,true);
-  assert.equal(route?.label,'Qelly Chat & Research');
+  assert.equal(route?.label,'QELLY Chat');
   assert.equal(__intelligenceTerminalTest.AI_PROVIDERS.length,8);
   assert.ok(__intelligenceTerminalTest.NEWS_SOURCES.length>=4);
   assert.ok(__intelligenceTerminalTest.COMMUNITY_LINKS.some((item)=>item.name.includes('X')));

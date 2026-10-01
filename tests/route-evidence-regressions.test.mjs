@@ -87,7 +87,7 @@ test('accessibility evidence validates the built frontend and exact route identi
   assert.doesNotMatch(harness,/COMPILED_FONT/);
   assert.match(harness,/dist\/frontend\/assets\/route-registry\.mjs/);
   assert.match(harness,/asset=local_public_file\(parsed\.path\)/);
-  assert.match(harness,/expected_title=f"\{route_labels\[route_key\]\} · Qelly Intelligence"/);
+  assert.match(harness,/expected_title=route_titles\[route_key\]/);
   assert.match(harness,/expected_hash=f'#\/\{route_path\}'/);
   assert.match(harness,/page\.wait_for_function/);
   assert.match(harness,/document\.title===expectedTitle/);

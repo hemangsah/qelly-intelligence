@@ -44,10 +44,11 @@ test('current header can paint before route readiness while route content remain
   assert.doesNotMatch(html,/html\[data-app-ready="false"\] \.q-app\{visibility:hidden/);
 });
 
-test('production runtime binds an existing current header instead of replacing it',async()=>{
+test('production runtime converges the existing current header to registry ownership before binding it',async()=>{
   const runtime=await read('apps/web/public/assets/qelly-public-runtime.mjs');
   assert.match(runtime,/q-product-header\[data-qelly-current-shell="true"\]/);
-  assert.match(runtime,/if\(!header\.matches\('\.q-product-header\[data-qelly-current-shell="true"\]'\)\)/);
+  assert.match(runtime,/header\.dataset\.qellyRouteRegistryOwner!=='true'/);
+  assert.match(runtime,/header\.innerHTML=productHeaderMarkup\(\)/);
   assert.match(runtime,/bindProductHeader\(header\)/);
   assert.match(runtime,/syncProductHeaderState\(header\)/);
   assert.match(runtime,/if\(shellAlreadyParsed\)install\(\)/);

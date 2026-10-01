@@ -2,7 +2,7 @@ import { installAccessibility, announce, openDialog, closeDialog } from '../pack
 import { button, toast, commandDialog, dataStateIndicator, escapeHtml, sourceDisclosure } from '../packages/ui-primitives/primitives.mjs';
 import { QellyDataGrid } from '../packages/data-grid/data-grid.mjs';
 import { QellyChartShell } from '../packages/charting/chart-shell.mjs';
-import { productDomains, routeDefinitions } from './route-registry.mjs';
+import { productDomains, routeDefinitions, routeIdentityFor } from './route-registry.mjs';
 import { parseHashRoute } from './hash-route-state.mjs';
 import {bindPublicRecoveryActions,installPublicRecoveryChrome,isPublicRecoveryRoute,publicRecoveryMarkup} from './qelly-public-recovery.mjs';
 import { personaFor, personaPreferencePatch } from './persona-profiles.mjs';
@@ -397,7 +397,7 @@ function renderRoute(){
     main.setAttribute('aria-busy','true');
     main.innerHTML=loadingPage(definition?.label??'Loading route');
   }
-  if(!/^#\/theme-lab(?:\/|$)/.test(location.hash))document.title=`${definition?.label??'Qelly Intelligence'} · Qelly Intelligence`;
+  if(!/^#\/theme-lab(?:\/|$)/.test(location.hash))document.title=definition?.seoTitle??'Qelly Intelligence';
   routeRenderTail=routeRenderTail.catch(()=>undefined).then(()=>request===routeRenderRequest?performRouteRender(request,controller):undefined);
   return routeRenderTail;
 }
@@ -529,13 +529,13 @@ async function performRouteRender(request,controller) {
       main.dataset.pageKind=currentDefinition?.kind??'analytical';
       main.setAttribute('aria-busy','true');
       main.innerHTML=loadingPage(currentDefinition?.label??'Loading route');
-      if(!/^#\/theme-lab(?:\/|$)/.test(location.hash))document.title=`${currentDefinition?.label??'Qelly Intelligence'} · Qelly Intelligence`;
+      if(!/^#\/theme-lab(?:\/|$)/.test(location.hash))document.title=currentDefinition?.seoTitle??'Qelly Intelligence';
       return;
     }
     if(activeRouteController===controller)activeRouteController=null;
     main.setAttribute('aria-busy', 'false');
     main.focus({ preventScroll:true });
-    if(!/^#\/theme-lab(?:\/|$)/.test(location.hash))document.title = `${definition?.label ?? 'Qelly Intelligence'} · Qelly Intelligence`;
+    if(!/^#\/theme-lab(?:\/|$)/.test(location.hash))document.title = definition?.seoTitle ?? 'Qelly Intelligence';
   }
 }
 
@@ -1067,11 +1067,25 @@ async function openContract(name) {
 }
 
 function openCommands() {
+  const routes=routeDefinitions.filter((item)=>!item.hidden&&(!staticVisualPreview||staticPreviewRoutes.has(item.route)));
   commandDialog([
-    ...routeDefinitions.filter((item)=>!item.hidden&&(!staticVisualPreview||staticPreviewRoutes.has(item.route))).map((item,index)=>({label:item.label,hint:index<9?`Alt ${index+1}`:'Command',run:()=>navigate(item.route)})),
-    {label:'Open Bitcoin dossier',hint:'BTC',run:()=>navigate('asset','BTC')},
-    {label:'Preview stale state',hint:'Validation',run:()=>{state.previewState='stale';document.getElementById('state-selector').value='stale';renderRoute();}},
-    {label:'Reset preview state',hint:'Default',run:()=>{state.previewState='default';document.getElementById('state-selector').value='default';renderRoute();}}
+    ...routes.map((item,index)=>({
+      label:item.shortTitle,
+      description:item.description,
+      group:item.categoryLabel,
+      kind:'navigation',
+      icon:item.icon,
+      shortcut:index<9?`⌥${index+1}`:'',
+      run:()=>navigate(item.route)
+    })),
+    {label:'Ask QELLY',description:'Open the global QELLY Chat research workspace.',group:'Actions',kind:'action',run:()=>navigate('news-research')},
+    {label:'Open Market Pulse',description:routeIdentityFor('market')?.description??'Open market intelligence.',group:'Actions',kind:'action',run:()=>navigate('market')},
+    {label:'Open Decision Intelligence',description:routeIdentityFor('decision-provenance')?.description??'Open governed decision research.',group:'Actions',kind:'action',run:()=>navigate('decision-provenance')},
+    {label:'Switch theme',description:'Toggle the current appearance without leaving the workspace.',group:'Actions',kind:'action',run:()=>{if(window.QellyThemeStudio?.toggleAppearance)void window.QellyThemeStudio.toggleAppearance({notify:true});else navigate('theme-lab');}},
+    {label:'Open profile',description:'Open profile and session security.',group:'Account',kind:'action',run:()=>navigate('account-session')},
+    {label:'Open Bitcoin dossier',description:'Open the canonical BTC asset dossier.',group:'Assets',kind:'asset',shortcut:'BTC',run:()=>navigate('asset','BTC')},
+    {label:'Preview stale state',description:'Validation-only stale-state preview.',group:'Validation',kind:'action',run:()=>{state.previewState='stale';document.getElementById('state-selector').value='stale';renderRoute();}},
+    {label:'Reset preview state',description:'Return validation preview to the default state.',group:'Validation',kind:'action',run:()=>{state.previewState='default';document.getElementById('state-selector').value='default';renderRoute();}}
   ]);
 }
 

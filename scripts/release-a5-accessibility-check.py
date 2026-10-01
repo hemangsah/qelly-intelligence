@@ -31,7 +31,7 @@ def request_json(base,path,authenticated=False):
         return json.loads(response.read().decode('utf-8'))
 
 route_json=subprocess.check_output(['node','--input-type=module','-e',"import {routeDefinitions} from './dist/frontend/assets/route-registry.mjs'; console.log(JSON.stringify(routeDefinitions));"],cwd=ROOT,text=True)
-route_labels={item['route']:item['label'] for item in json.loads(route_json)}
+route_titles={item['route']:item.get('seoTitle') or f"{item['label']} · Qelly Intelligence" for item in json.loads(route_json)}
 runtime=tempfile.mkdtemp(prefix='qelly-a5-a11y-')
 launcher=r'''
 import { startServer } from './src/server/server.mjs';
@@ -127,7 +127,7 @@ try:
                         with urllib.request.urlopen(request,timeout=20) as proxied: route_obj.fulfill(status=proxied.status,headers={k:v for k,v in proxied.headers.items() if k.lower() not in {'content-encoding','transfer-encoding','connection','content-length','set-cookie'}},body=proxied.read())
                     except urllib.error.HTTPError as exc: route_obj.fulfill(status=exc.code,headers={k:v for k,v in exc.headers.items() if k.lower() not in {'content-encoding','transfer-encoding','connection','content-length','set-cookie'}},body=exc.read())
                 page.route('**/*',proxy); failures=[]; checks={}; focus=None
-                expected_title=f"{route_labels[route_key]} · Qelly Intelligence"; expected_hash=f'#/{route_path}'
+                expected_title=route_titles[route_key]; expected_hash=f'#/{route_path}'
                 try:
                     page.goto(f'https://qelly.test/#/{route_path}',wait_until='domcontentloaded',timeout=30000)
                     page.wait_for_selector('main#main h1',timeout=20000)

@@ -85,7 +85,7 @@ const routes = [
   { section:'Discover', route:'dex-discovery', label:'DEX Discovery', icon:icon('dex'), meta:'W5', public:true },
   { section:'Discover', route:'global-charts', label:'Global Charts', icon:icon('chart'), meta:'W5', public:true },
   { section:'Discover', route:'converter', label:'FX Reference Converter', icon:icon('convert'), meta:'Public', public:true },
-  { section:'Discover', route:'news-research', label:'Qelly Chat & Research', icon:icon('news'), meta:'Flagship', public:true },
+  { section:'Discover', route:'news-research', label:'QELLY Chat', icon:icon('news'), meta:'Flagship', public:true },
   { section:'Discover', route:'trust-center', label:'Research Methodology', icon:icon('trust'), meta:'Public', public:true },
   { section:'Intelligence', route:'asset-intelligence', label:'Asset Intelligence', icon:icon('asset'), meta:'Public', public:true },
   { section:'Intelligence', route:'advanced-chart', label:'Advanced Chart Studio', icon:icon('chart'), meta:'Public', public:true },
@@ -93,7 +93,7 @@ const routes = [
   { section:'Intelligence', route:'filing-workspace', label:'Filing Workspace', icon:icon('research'), meta:'Public', public:true },
   { section:'Intelligence', route:'event-calendar', label:'Event Calendar', icon:icon('schedule'), meta:'Public', public:true },
   { section:'Intelligence', route:'comparison-lab', label:'Comparison Lab', icon:icon('compare'), meta:'Public', public:true },
-  { section:'Intelligence', route:'market', label:'Market Command', icon:icon('market'), meta:'W1' , public:true },
+  { section:'Intelligence', route:'market', label:'Market Pulse', icon:icon('market'), meta:'W1' , public:true },
   { section:'Intelligence', route:'rankings', label:'Legacy Rankings', icon:icon('ranking'), meta:'W1' },
   { section:'Workspace', route:'asset', label:'Asset Dossier', icon:icon('asset'), meta:'W1' , public:true },
   { section:'Workspace', route:'watchlist', label:'Watchlists', icon:icon('watch'), meta:'W7' },
@@ -237,14 +237,94 @@ function routeKind(route){
   return 'analytical';
 }
 
-export const routeDefinitions = routes.map((item)=>({
-  ...item,
-  ...(FEATURE_GUIDE[item.route]??{}),
-  domain:explicitDomain[item.route]??'markets',
-  kind:routeKind(item.route)
-}));
+const PRODUCT_CATEGORY_BLUEPRINTS=Object.freeze([
+  {id:'discover',label:'Discover',shortLabel:'Discover',defaultRoute:'market',routes:['market','search','asset','asset-rankings','discovery-hub','categories','venues','live-markets','advanced-chart']},
+  {id:'decide',label:'Decide',shortLabel:'Decide',defaultRoute:'decision-provenance',routes:['decision-provenance','screener-lab','comparison-lab','alert-center']},
+  {id:'research',label:'Research',shortLabel:'Research',defaultRoute:'news-research',routes:['news-research','research-workspace','qelly-verify','trust-center','event-calendar','fundamentals-estimates','filing-workspace','formula-screener']},
+  {id:'tools',label:'Tools',shortLabel:'Tools',defaultRoute:'calculator-center',routes:['calculator-center','india-finance','indicator-library','formula-library','converter']},
+  {id:'account',label:'Account',shortLabel:'Account',defaultRoute:'account-session',routes:['account-session','watchlist','notification-center','saved-calculations','theme-personas']}
+]);
+
+const CATEGORY_BY_ROUTE=new Map(PRODUCT_CATEGORY_BLUEPRINTS.flatMap((category)=>category.routes.map((route)=>[route,category.id])));
+const ROUTE_IDENTITY_OVERRIDES=Object.freeze({
+  market:{pageTitle:'Market Pulse',shortTitle:'Market Pulse',category:'discover',chatContextType:'market',description:'Scan the governed market picture, source state and cross-asset context from one customer-facing surface.'},
+  'news-research':{pageTitle:'QELLY Chat',shortTitle:'QELLY Chat',category:'research',chatContextType:'research',description:'Ask QELLY and build evidence-backed market research with governed tools and source context.'},
+  'decision-provenance':{pageTitle:'Decision Intelligence',shortTitle:'Decision',category:'decide',chatContextType:'decision'},
+  asset:{pageTitle:'Asset Dossier',shortTitle:'Asset Dossier',category:'discover',chatContextType:'asset'},
+  search:{pageTitle:'Universal Search',shortTitle:'Search',category:'discover',chatContextType:'search'},
+  'calculator-center':{pageTitle:'Calculator Center',shortTitle:'Calculators',category:'tools',chatContextType:'calculator'},
+  'research-workspace':{pageTitle:'Research Workspace',shortTitle:'Research',category:'research',chatContextType:'research'},
+  'qelly-verify':{pageTitle:'QELLY Verify',shortTitle:'Verify',category:'research',chatContextType:'evidence'},
+  'account-session':{pageTitle:'Profile & Security',shortTitle:'Profile',category:'account',chatContextType:'account'},
+  watchlist:{pageTitle:'Watchlists',shortTitle:'Watchlists',category:'account',chatContextType:'workspace'},
+  'theme-personas':{pageTitle:'Preferences & Themes',shortTitle:'Preferences',category:'account',chatContextType:'account'}
+});
+
+const fallbackCategory=(item)=>{
+  if(CATEGORY_BY_ROUTE.has(item.route))return CATEGORY_BY_ROUTE.get(item.route);
+  if(accessRoutes.has(item.route))return 'account';
+  if(researchRoutes.has(item.route))return 'research';
+  if(item.section==='Tools'||explicitDomain[item.route]==='tools')return 'tools';
+  if(operationalRoutes.has(item.route))return 'system';
+  return 'discover';
+};
+
+const categoryLabel=(id)=>PRODUCT_CATEGORY_BLUEPRINTS.find((item)=>item.id===id)?.label??'System';
+const categoryDefaultRoute=(id)=>PRODUCT_CATEGORY_BLUEPRINTS.find((item)=>item.id===id)?.defaultRoute??'feature-universe';
+const breadcrumb=(label,route)=>Object.freeze({label,route});
+
+export const routeDefinitions = routes.map((item)=>{
+  const guide=FEATURE_GUIDE[item.route]??{};
+  const override=ROUTE_IDENTITY_OVERRIDES[item.route]??{};
+  const category=override.category??fallbackCategory(item);
+  const pageTitle=override.pageTitle??item.label;
+  const shortTitle=override.shortTitle??pageTitle;
+  const description=override.description??guide.purpose??pageTitle;
+  const canonical='#/'+item.route;
+  const featureFlags=Object.freeze({
+    public:item.public===true,
+    hidden:item.hidden===true,
+    anonymousOnly:item.anonymousOnly===true
+  });
+  return Object.freeze({
+    ...item,
+    ...guide,
+    label:item.label,
+    pageTitle,
+    shortTitle,
+    category,
+    categoryLabel:categoryLabel(category),
+    description,
+    chatContextType:override.chatContextType??(routeKind(item.route)==='operational'?'operations':routeKind(item.route)),
+    seoTitle:override.seoTitle??pageTitle+' · Qelly Intelligence',
+    canonical,
+    breadcrumbs:Object.freeze([
+      breadcrumb('Qelly','feature-universe'),
+      breadcrumb(categoryLabel(category),categoryDefaultRoute(category)),
+      breadcrumb(shortTitle,item.route)
+    ]),
+    featureFlags,
+    domain:explicitDomain[item.route]??'markets',
+    kind:routeKind(item.route)
+  });
+});
+
+const ROUTE_BY_ID=new Map(routeDefinitions.map((item)=>[item.route,item]));
+
+export const productCategories=Object.freeze(PRODUCT_CATEGORY_BLUEPRINTS.map((category)=>Object.freeze({
+  ...category,
+  routes:Object.freeze(category.routes.map((route)=>ROUTE_BY_ID.get(route)).filter(Boolean))
+})));
+
+export function routeIdentityFor(route){
+  return ROUTE_BY_ID.get(route)??null;
+}
+
+export function categoryForRoute(route){
+  return routeIdentityFor(route)?.category??'discover';
+}
 
 export function domainForRoute(route){
-  return routeDefinitions.find((item)=>item.route===route)?.domain??'markets';
+  return routeIdentityFor(route)?.domain??'markets';
 }
 
