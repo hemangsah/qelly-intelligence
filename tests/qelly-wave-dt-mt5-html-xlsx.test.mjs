@@ -56,7 +56,7 @@ test('XLSX reader processes bounded inline-string worksheet without executing ma
   const columns=['Time','Deal','Symbol','Type','Direction','Commission','Fee','Swap','Profit'];
   const values=[['2026.10.01','1','EURUSD','buy','out','-1','0','0','10'],['2026.10.02','2','EURUSD','sell','out by','-1','0','0','-3'],['2026.10.03','3','EURUSD','buy','in','-1','0','0','12'],['2026.10.04','4','EURUSD','buy','out','-1','0','0','13'],['2026.10.05','5','EURUSD','sell','out','-1','0','0','7'],['2026.10.06','6','EURUSD','sell','inout','-1','0','0','9'],['2026.10.07','7','EURUSD','buy','out','-1','0','0','8']];
   const xml='<?xml version="1.0"?><worksheet><sheetData>'+xRow(1,columns)+values.map((row,i)=>xRow(i+2,row)).join('')+'</sheetData></worksheet>';
-  const archive=storedXlsx([['xl/worksheets/sheet1.xml',xml],['xl/vbaProject.bin','DO NOT EXECUTE']]);
+  const archive=storedXlsx([['xl/worksheets/sheet1.xml',xml]]);
   const parsed=await parseMt5Xlsx(archive);
   assert.equal(parsed.validation.mt5.format,'mt5-xlsx');
   assert.deepEqual(parsed.trades.map(t=>t.pnl),[9,-4,12,6,8,7]);
@@ -66,6 +66,8 @@ test('XLSX reader processes bounded inline-string worksheet without executing ma
 test('XLSX ZIP rejects corrupt, unsafe, oversized and unsupported file shapes',async()=>{
   await assert.rejects(parseMt5Xlsx(new Uint8Array([1,2,3])),e=>e.code==='mt5_xlsx_invalid');
   await assert.rejects(parseMt5Xlsx(storedXlsx([['../xl/worksheets/sheet1.xml','x']])),e=>e.code==='mt5_xlsx_invalid_path');
+  await assert.rejects(parseMt5Xlsx(storedXlsx([['xl/vbaProject.bin','malicious'],['xl/worksheets/sheet1.xml','<worksheet/>']])),e=>e.code==='mt5_xlsx_unsupported');
+  await assert.rejects(parseMt5Xlsx(storedXlsx([['xl/worksheets/sheet1.xml','<worksheet><f>1+2</f></worksheet>']])),e=>e.code==='mt5_xlsx_unsupported');
   assert.equal(MT5_REPORT_LIMITS.fileBytes,5*1024*1024);
 });
 test('Evidence fingerprints XLSX raw bytes and explicitly discloses incomplete net costs',async()=>{
