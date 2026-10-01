@@ -64,10 +64,11 @@ test('Wave CO fails safely for missing or malformed route metadata and removes l
 test('Wave CO synchronously initializes canonical header context after the static header and before route hydration',async()=>{
   const index=convergePublicRuntimeHtml(await read('apps/web/public/index.html'));
   const headTag='<script src="./assets/qelly-prepaint-header.js"></script>';
-  const headerClose=index.indexOf('</header>',index.indexOf('data-qelly-current-shell="true"'));
-  const scriptAt=index.indexOf(headTag);
-  const hiddenAt=index.indexOf('data-qelly-legacy-bindings="true"');
-  const appReadyAt=index.indexOf('qelly-app-ready.mjs');
+  const headerStart=index.indexOf('<header class="q-product-header" data-qelly-current-shell="true"');
+  const headerClose=index.indexOf('</header>',headerStart);
+  const scriptAt=index.indexOf(headTag,headerClose);
+  const hiddenAt=index.indexOf('<div data-qelly-legacy-bindings="true"',scriptAt);
+  const appReadyAt=index.lastIndexOf('src="./assets/qelly-app-ready.mjs"');
   assert.ok(headerClose>0&&scriptAt>headerClose&&hiddenAt>scriptAt&&appReadyAt>scriptAt);
   assert.equal(index.split(headTag).length-1,1);
   const contexts=prepaintRouteContexts();
