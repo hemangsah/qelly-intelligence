@@ -96,7 +96,7 @@ for(const [packageName,preferred,target] of [['@fontsource-variable/ibm-plex-san
 }
 
 const prepaintRoutes=JSON.stringify(prepaintRouteTitles()).replace(/</g,'\\u003c');
-await writeFile(path.join(output,'assets/qelly-prepaint-route-identities.js'),`window.__QELLY_PREPAINT_ROUTE_TITLES__=Object.freeze(${prepaintRoutes});\\n`);
+await writeFile(path.join(output,'assets/qelly-prepaint-route-identities.js'),`window.__QELLY_PREPAINT_ROUTE_TITLES__=Object.freeze(${prepaintRoutes});\n`);
 
 const indexPath=path.join(output,'index.html');let index=await readFile(indexPath,'utf8');
 if(basePath!=='/')index=index.replace('<head>',`<head>\n  <base href="${basePath}">`);
