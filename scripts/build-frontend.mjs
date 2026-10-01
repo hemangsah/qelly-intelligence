@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {AUTH_EMAIL_CANARY,CANONICAL_QELLY_PUBLIC_SITE} from '../functions/_lib/email-capability.js';
 import {effectiveDeploymentEnvironment} from './deployment-environment.mjs';
-import {convergePublicRuntimeHtml,prepaintRouteTitles} from './public-shell-convergence.mjs';
+import {convergePublicRuntimeHtml,prepaintRouteTitles,prepaintRouteContexts} from './public-shell-convergence.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const output=path.join(root,'dist/frontend');
@@ -96,7 +96,8 @@ for(const [packageName,preferred,target] of [['@fontsource-variable/ibm-plex-san
 }
 
 const prepaintRoutes=JSON.stringify(prepaintRouteTitles()).replace(/</g,'\\u003c');
-await writeFile(path.join(output,'assets/qelly-prepaint-route-identities.js'),`window.__QELLY_PREPAINT_ROUTE_TITLES__=Object.freeze(${prepaintRoutes});\n`);
+const prepaintContexts=JSON.stringify(prepaintRouteContexts()).replace(/</g,'\\u003c');
+await writeFile(path.join(output,'assets/qelly-prepaint-route-identities.js'),`window.__QELLY_PREPAINT_ROUTE_TITLES__=Object.freeze(${prepaintRoutes});\nwindow.__QELLY_PREPAINT_ROUTE_CONTEXTS__=Object.freeze(${prepaintContexts});\n`);
 
 const indexPath=path.join(output,'index.html');let index=await readFile(indexPath,'utf8');
 if(basePath!=='/')index=index.replace('<head>',`<head>\n  <base href="${basePath}">`);
