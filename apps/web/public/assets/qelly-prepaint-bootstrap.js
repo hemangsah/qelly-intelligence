@@ -18,8 +18,7 @@
   const route=(location.hash||'').replace(/^#\/?/,'').split(/[/?#]/)[0]||'feature-universe';
   root.dataset.prepaintRoute=route;
   try{
-    const payload=document.getElementById('qelly-prepaint-route-identities')?.textContent;
-    const titles=payload?JSON.parse(payload):null;
+    const titles=window.__QELLY_PREPAINT_ROUTE_TITLES__||null;
     const title=titles&&Object.prototype.hasOwnProperty.call(titles,route)?titles[route]:null;
     if(typeof title==='string'&&title.length>0&&title.length<=200)document.title=title;
   }catch{
