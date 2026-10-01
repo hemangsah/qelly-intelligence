@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import {convergePublicRuntimeHtml,prepaintRouteTitles} from '../scripts/public-shell-convergence.mjs';
-import {routeDefinitions} from '../apps/web/public/assets/route-registry.mjs';
+import * as registry from '../apps/web/public/assets/route-registry.mjs';
+const {routeDefinitions}=registry;
 
 const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
 
@@ -13,6 +14,12 @@ test('Wave CO builds one CSP-safe registry-derived external route identity scrip
   const prepaint='<script src="./assets/qelly-prepaint-bootstrap.js"></script>';
   assert.ok(index.indexOf(marker)>0&&index.indexOf(marker)<index.indexOf(prepaint));
   assert.equal(index.split(marker).length,2,'one authoritative external map owner');
+  if(Array.isArray(registry.productCategories)&&registry.productCategories.length){
+    assert.equal((index.match(/data-product-category="/g)||[]).length,registry.productCategories.length);
+    assert.match(index,/data-q-product-page-title>Qelly<\\/strong>/);
+    assert.match(index,/aria-label="Primary product categories"/);
+  }
+
   assert.doesNotMatch(index,/script id="qelly-prepaint-route-identities"/);
   const map=prepaintRouteTitles();
   assert.deepEqual(Object.keys(map).sort(),routeDefinitions.map(item=>item.route).sort());
