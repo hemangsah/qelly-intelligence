@@ -35,6 +35,10 @@ if context_marker not in source:
     raise SystemExit('accessibility evidence browser-context contract changed; update service-worker isolation')
 
 patched_source = source.replace(legacy_import, evidence_import, 1)
+missing_route_guard='route_key not in route_labels'
+if missing_route_guard not in patched_source:
+    raise SystemExit('accessibility evidence route-title guard changed')
+patched_source=patched_source.replace(missing_route_guard,'route_key not in route_titles',1)
 patched_source = patched_source.replace(external_marker, tradingview_hook + external_marker, 1)
 # Playwright page routing does not intercept Service Worker network requests.
 # The synthetic qelly.test evidence origin therefore cannot load qelly-service-worker.js
