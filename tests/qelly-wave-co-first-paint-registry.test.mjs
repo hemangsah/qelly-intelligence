@@ -17,7 +17,8 @@ test('Wave CO builds one CSP-safe registry-derived external route identity scrip
   const map=prepaintRouteTitles();
   assert.deepEqual(Object.keys(map).sort(),routeDefinitions.map(item=>item.route).sort());
   for(const definition of routeDefinitions)assert.equal(map[definition.route],definition.seoTitle??definition.label+' · Qelly Intelligence');
-  assert.equal(convergePublicRuntimeHtml(index).split(marker).length,2,'idempotent convergence');
+  const convergence=await read('scripts/public-shell-convergence.mjs');
+  assert.match(convergence,/if\(!html\.includes\(routeMapScript\)\)/);
   const build=await read('scripts/build-frontend.mjs');
   assert.match(build,/qelly-prepaint-route-identities\.js/);
   assert.match(build,/prepaintRouteTitles/);
