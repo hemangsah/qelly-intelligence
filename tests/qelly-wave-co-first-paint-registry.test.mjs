@@ -16,7 +16,7 @@ test('Wave CO builds one CSP-safe registry-derived external route identity scrip
   assert.equal(index.split(marker).length,2,'one authoritative external map owner');
   if(Array.isArray(registry.productCategories)&&registry.productCategories.length){
     assert.equal((index.match(/data-product-category="/g)||[]).length,registry.productCategories.length);
-    assert.match(index,/data-q-product-page-title>Qelly<\\/strong>/);
+    assert.ok(index.includes('data-q-product-page-title>Qelly</strong>'));
     assert.match(index,/aria-label="Primary product categories"/);
   }
 
