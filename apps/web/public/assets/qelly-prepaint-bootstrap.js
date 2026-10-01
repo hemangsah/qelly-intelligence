@@ -13,4 +13,16 @@
   root.dataset.themePersona=saved.persona||'quant-operator';
   root.style.colorScheme=appearance==='light'?'light':'dark';
   root.dataset.themeReady='true';
+  // The build embeds a sanitized snapshot of the authoritative route registry
+  // before this blocking script. Route identity is set before the first paint.
+  const route=(location.hash||'').replace(/^#\\/?/,'').split(/[/?#]/)[0]||'feature-universe';
+  root.dataset.prepaintRoute=route;
+  try{
+    const payload=document.getElementById('qelly-prepaint-route-identities')?.textContent;
+    const titles=payload?JSON.parse(payload):null;
+    const title=titles&&Object.prototype.hasOwnProperty.call(titles,route)?titles[route]:null;
+    if(typeof title==='string'&&title.length>0&&title.length<=200)document.title=title;
+  }catch{
+    // Keep the safe static title when an unbuilt development page lacks the map.
+  }
 })();
