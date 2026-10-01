@@ -77,12 +77,13 @@ test('Wave BR range summary contains required range facts and actions',async()=>
   for(const phrase of [
     'Start','End','Duration','Candles','Move','Absolute','High','Low',
     'Explain This Move','News & Events','Flow / Participation Evidence',
-    'Compare Before vs After','Find Similar History','Ask QELLY',
+    'Compare Before vs After','Find Similar History','Explain selected move',
     'Create Research Note','Clear'
   ])assert.ok(route.includes(phrase),phrase);
   assert.match(route,/Selected range start candle/);
   assert.match(route,/Selected range end candle/);
   assert.match(route,/role="status" aria-live="polite"/);
+  assert.match(route,/qelly:chat-context/);
 });
 
 test('Wave BR clears stale selection on asset/timeframe changes and keeps selection through evidence loads',async()=>{

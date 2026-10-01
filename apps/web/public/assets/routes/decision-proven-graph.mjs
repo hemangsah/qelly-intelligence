@@ -750,7 +750,7 @@ export async function renderDecisionProvenGraph(main,deps){
   installStyles();const {api,stateBanner,escapeHtml,toast,navigate}=deps;
   const chatContext=readChatDecisionContext();
   const assetPreferences=readDecisionAssetPreferences();
-  let state={asset:chatContext.asset,interval:chatContext.interval,horizon:normalizeHorizon(chatContext.interval,'4h'),rr:'auto',customRr:'2.5',nextMoveBars:'1',nextMoveCustomBars:'8',chartMode:'select-range',uiMode:'simple',chatDockOpen:false,assetCatalog:null,assetCatalogError:null,assetPickerOpen:false,assetFilter:'all',assetQuery:'',assetFavorites:assetPreferences.favorites,assetRecent:assetPreferences.recent,loading:true,data:null,previousSnapshot:null,error:null,draft:null,selection:null,rangeEvidenceLoading:false,rangeEvidenceError:null,rangeEvidenceRequest:0,rangeReplayIndex:0,scanning:false,scan:null,scanError:null,ledger:null,ledgerLoading:false,ledgerError:null,ledgerMutating:false,slo:null,scanFilters:{mode:'validated',ranking:'highest_quality',universe:'all',direction:'any',minEvidenceQuality:'0',minCalibratedConfidence:'0',minMtfAgreement:'0',liquidity:'any',volatility:'any',regime:'any',eventRiskTolerance:'any',freshness:'live_or_delayed'}};
+  let state={asset:chatContext.asset,interval:chatContext.interval,horizon:normalizeHorizon(chatContext.interval,'4h'),rr:'auto',customRr:'2.5',nextMoveBars:'1',nextMoveCustomBars:'8',chartMode:'select-range',uiMode:'simple',assetCatalog:null,assetCatalogError:null,assetPickerOpen:false,assetFilter:'all',assetQuery:'',assetFavorites:assetPreferences.favorites,assetRecent:assetPreferences.recent,loading:true,data:null,previousSnapshot:null,error:null,draft:null,selection:null,rangeEvidenceLoading:false,rangeEvidenceError:null,rangeEvidenceRequest:0,rangeReplayIndex:0,scanning:false,scan:null,scanError:null,ledger:null,ledgerLoading:false,ledgerError:null,ledgerMutating:false,slo:null,scanFilters:{mode:'validated',ranking:'highest_quality',universe:'all',direction:'any',minEvidenceQuality:'0',minCalibratedConfidence:'0',minMtfAgreement:'0',liquidity:'any',volatility:'any',regime:'any',eventRiskTolerance:'any',freshness:'live_or_delayed'}};
   let chartGestureActive=false,chartGestureDeferredDraw=false,pendingFocusSelector=null;
   const queueFocusAfterDraw=(selector)=>{pendingFocusSelector=selector;};
   const applyPendingFocus=()=>{
@@ -1046,44 +1046,23 @@ export async function renderDecisionProvenGraph(main,deps){
     if(kind==='changed')return 'Explain what changed in the current '+state.asset+' Decision Intelligence view versus the previous comparable snapshot. Use only evidence-backed changes and distinguish unchanged evidence from new evidence.';
     return 'Explain the current '+state.asset+' Decision Intelligence view ('+action+'). Cover the primary answer, setup or no-trade state, evidence gate, strongest support and contradiction, selected R:R, calibration, event risk, selected range if any, and what to watch next.';
   };
-  const openDecisionChat=(prompt)=>{
-    document.dispatchEvent(new CustomEvent('qelly:open-ai',{detail:{
-      mode:'decision',
-      asset:state.asset,
-      timeframe:state.interval,
-      expand:true,
-      decisionContext:{
-        horizon:state.horizon,
-        rr:state.rr,
-        customRr:state.rr==='custom'?state.customRr:null,
-        selection:state.selection||state.draft||null,
-        previousSnapshot:state.previousSnapshot||null
-      },
-      prompt
-    }}));
-    state.chatDockOpen=false;
-    draw();
-  };
-  const qellyChatDockMarkup=(data)=>{
-    if(!data)return '';
-    const selection=state.selection||state.draft||null,trade=data.tradeResearch||{},action=data.qellyView?.action||'NO TRADE';
+  const decisionChatContext=(data)=>{
+    const selection=state.selection||state.draft||null,trade=data?.tradeResearch||{},action=data?.qellyView?.action||'NO TRADE';
     const lifecycle=String(trade.lifecycle?.state||trade.status||'NO_TRADE');
     const hasSetup=trade.status==='VALID'||['VALID','TRIGGERED','ACTIVE'].includes(lifecycle);
-    const hasChange=Boolean(state.previousSnapshot&&data.decisionSnapshot);
-    const primary=selection?{kind:'selected',label:'Ask QELLY about selected range',state:'SELECTED RANGE'}:hasSetup?{kind:'setup',label:'Explain this setup',state:'SETUP CONTEXT'}:action==='NO TRADE'?{kind:'no-trade',label:'Why NO TRADE?',state:'NO TRADE CONTEXT'}:hasChange?{kind:'changed',label:'What changed?',state:'DECISION CHANGE'}:{kind:'view',label:'Ask QELLY about this move',state:'QELLY VIEW'};
-    const chips=[
-      ['view','Explain QELLY VIEW'],
-      ...(selection?[['selected','Explain selected move']]:[]),
-      ...(hasSetup?[['setup','Explain this setup']]:[]),
-      ...(action==='NO TRADE'?[['no-trade','Why NO TRADE?']]:[]),
-      ...(hasChange?[['changed','What changed?']]:[])
-    ];
-    const expanded=state.chatDockOpen;
-    return '<aside class="q-dpg-chat-dock" data-dpg-chat-dock data-open="'+(expanded?'true':'false')+'" aria-label="QELLY contextual research dock">'+
-      '<section id="qelly-decision-chat-composer" class="q-dpg-chat-dock__composer" data-dpg-chat-dock-composer '+(expanded?'':'hidden')+'><header><div><small>QELLY CONTEXT DOCK</small><strong>'+escapeHtml(primary.state)+'</strong></div><button type="button" data-dpg-chat-dock-close aria-label="Close QELLY context composer">×</button></header><div class="q-dpg-chat-dock__chips" aria-label="QELLY quick research actions">'+chips.map(([kind,label])=>'<button type="button" data-dpg-chat-quick="'+kind+'">'+escapeHtml(label)+'</button>').join('')+'</div><form data-dpg-chat-form><label><span class="q-visually-hidden">Ask QELLY about the current Decision context</span><textarea rows="2" maxlength="1200" data-dpg-chat-input placeholder="'+escapeHtml(primary.label)+'…"></textarea></label><button type="submit">Open QELLY <span aria-hidden="true">↑</span></button></form><footer><span>'+escapeHtml(state.asset)+' · '+escapeHtml(state.interval)+' · '+escapeHtml(action)+'</span><small>Existing QELLY Chat · current Decision evidence · research only</small></footer></section>'+
-      '<button type="button" class="q-dpg-chat-dock__bar" data-dpg-open-chat data-dpg-chat-dock-toggle aria-expanded="'+(expanded?'true':'false')+'" aria-controls="qelly-decision-chat-composer"><img src="./assets/brand/qelly-symbol.svg" width="32" height="32" alt=""><span><small>'+escapeHtml(primary.state)+'</small><strong>'+escapeHtml(primary.label)+'</strong><em>'+escapeHtml(state.asset)+' · '+escapeHtml(state.interval)+'</em></span><b aria-hidden="true">'+(expanded?'−':'↑')+'</b></button>'+
-      '<span class="q-dpg-chat-dock__hint" aria-hidden="true">Grounded in the current Decision context</span>'+
-    '</aside>';
+    const hasChange=Boolean(state.previousSnapshot&&data?.decisionSnapshot);
+    const primary=selection?{kind:'selected',label:'Explain selected move',state:'SELECTED RANGE'}:hasSetup?{kind:'setup',label:'Explain this setup',state:'SETUP CONTEXT'}:action==='NO TRADE'?{kind:'no-trade',label:'Why NO TRADE?',state:'NO TRADE CONTEXT'}:hasChange?{kind:'changed',label:'What changed?',state:'DECISION CHANGE'}:{kind:'view',label:'Analyze this asset',state:'QELLY VIEW'};
+    return {
+      route:'decision-provenance',contextType:'decision',stateLabel:primary.state,actionLabel:primary.label,
+      meta:state.asset+' · '+state.interval+' · '+action,mode:'decision',asset:state.asset,timeframe:state.interval,
+      decisionContext:{horizon:state.horizon,rr:state.rr,customRr:state.rr==='custom'?state.customRr:null,selection,previousSnapshot:state.previousSnapshot||null},
+      prompt:decisionChatPrompt(primary.kind,data)
+    };
+  };
+  const publishDecisionChatContext=(data)=>{
+    const detail=decisionChatContext(data);
+    globalThis.__QELLY_CHAT_CONTEXT__=detail;
+    document.dispatchEvent(new CustomEvent('qelly:chat-context',{detail}));
   };
 
   const nextMoveResearchMarkup=(data)=>{
@@ -1186,26 +1165,28 @@ export async function renderDecisionProvenGraph(main,deps){
     const controller=new AbortController();
     activeDecisionDockClearanceCleanup=()=>controller.abort();
     const sync=()=>{
-      const dock=main.querySelector('[data-dpg-chat-dock]'),workbench=main.querySelector('.q-dpg-range-workbench');
-      if(!dock||!workbench)return;
+      const workbench=main.querySelector('.q-dpg-range-workbench');
+      if(!workbench)return;
       const rect=workbench.getBoundingClientRect(),reserved=112;
-      const overlapsBottomZone=!state.chatDockOpen&&rect.bottom>window.innerHeight-reserved&&rect.top<window.innerHeight;
-      dock.dataset.clearance=overlapsBottomZone?'chart':'clear';
+      const assistantOpen=document.querySelector('[data-q-ai-assistant]')?.hidden===false;
+      const overlapsBottomZone=!assistantOpen&&rect.bottom>window.innerHeight-reserved&&rect.top<window.innerHeight;
+      document.dispatchEvent(new CustomEvent('qelly:chat-clearance',{detail:{route:'decision-provenance',state:overlapsBottomZone?'chart':'clear'}}));
     };
     window.addEventListener('scroll',sync,{passive:true,signal:controller.signal});
     window.addEventListener('resize',sync,{passive:true,signal:controller.signal});
+    document.addEventListener('qelly:chat-open-state',sync,{signal:controller.signal});
     requestAnimationFrame(sync);
   };
   const draw=()=>{
     if(chartGestureActive){chartGestureDeferredDraw=true;return;}
     chartGestureDeferredDraw=false;
     const focusedMode=main.querySelector('[data-dpg-ui-mode]:focus')?.dataset.dpgUiMode||null;
-    const focusedStableControl=main.querySelector('[data-dpg-asset-picker-toggle]:focus')?'asset-picker':main.querySelector('[data-dpg-chat-dock-toggle]:focus')?'chat-dock':null;
+    const focusedStableControl=main.querySelector('[data-dpg-asset-picker-toggle]:focus')?'asset-picker':null;
     const educationWasOpen=Boolean(main.querySelector('.q-dpg-education[open]'));
     const focusedEducationHelp=main.querySelector('.q-dpg-education .q-dpg-help:focus')?.getAttribute('aria-describedby')||null;
     const data=state.data;
-    main.innerHTML='<section class="q-page q-dpg-page">'+stateBanner()+hero(data)+decisionModeSwitcher()+'<section class="q-dpg-controls q-dpg-controls--decision" aria-label="Decision controls">'+select('horizon',validHorizons(state.interval))+'<label><span>Risk / reward</span><select data-dpg-rr><option value="auto" '+(state.rr==='auto'?'selected':'')+'>Auto</option><option value="1" '+(state.rr==='1'?'selected':'')+'>1:1</option><option value="2" '+(state.rr==='2'?'selected':'')+'>1:2</option><option value="3" '+(state.rr==='3'?'selected':'')+'>1:3</option><option value="4" '+(state.rr==='4'?'selected':'')+'>1:4</option><option value="custom" '+(state.rr==='custom'?'selected':'')+'>Custom</option></select></label>'+(state.rr==='custom'?'<label><span>Custom R:R</span><input data-dpg-custom-rr type="number" min="0.5" max="10" step="0.1" value="'+escapeHtml(state.customRr)+'"></label>':'')+'<p>Public research · no sign-in required · no trade execution</p></section>'+decisionEducationMarkup()+setupDiscoveryControlsMarkup(state,escapeHtml)+(state.uiMode==='simple'?'':scannerFiltersMarkup(state,escapeHtml))+scannerMarkup(state.scan,{scanning:state.scanning,error:state.scanError,escapeHtml,mode:state.scanFilters.mode,ranking:state.scanFilters.ranking})+(state.loading?'<section class="q-dpg-state" role="status"><span class="q-spinner"></span><h2>Weighing fresh evidence</h2><p>Loading market observations and scenario ranges.</p></section>':'')+(state.error?'<section class="q-dpg-state q-dpg-state--error" role="alert"><h2>Live research unavailable</h2><p>'+escapeHtml(state.error)+'</p><button class="q-button q-button--secondary" data-dpg-refresh>Try again</button></section>':'')+(data?content(data):'')+'</section>'+(data?qellyChatDockMarkup(data):'');
-    wire();bindDockViewportClearance();mountAdSlots(main);
+    main.innerHTML='<section class="q-page q-dpg-page">'+stateBanner()+hero(data)+decisionModeSwitcher()+'<section class="q-dpg-controls q-dpg-controls--decision" aria-label="Decision controls">'+select('horizon',validHorizons(state.interval))+'<label><span>Risk / reward</span><select data-dpg-rr><option value="auto" '+(state.rr==='auto'?'selected':'')+'>Auto</option><option value="1" '+(state.rr==='1'?'selected':'')+'>1:1</option><option value="2" '+(state.rr==='2'?'selected':'')+'>1:2</option><option value="3" '+(state.rr==='3'?'selected':'')+'>1:3</option><option value="4" '+(state.rr==='4'?'selected':'')+'>1:4</option><option value="custom" '+(state.rr==='custom'?'selected':'')+'>Custom</option></select></label>'+(state.rr==='custom'?'<label><span>Custom R:R</span><input data-dpg-custom-rr type="number" min="0.5" max="10" step="0.1" value="'+escapeHtml(state.customRr)+'"></label>':'')+'<p>Public research · no sign-in required · no trade execution</p></section>'+decisionEducationMarkup()+setupDiscoveryControlsMarkup(state,escapeHtml)+(state.uiMode==='simple'?'':scannerFiltersMarkup(state,escapeHtml))+scannerMarkup(state.scan,{scanning:state.scanning,error:state.scanError,escapeHtml,mode:state.scanFilters.mode,ranking:state.scanFilters.ranking})+(state.loading?'<section class="q-dpg-state" role="status"><span class="q-spinner"></span><h2>Weighing fresh evidence</h2><p>Loading market observations and scenario ranges.</p></section>':'')+(state.error?'<section class="q-dpg-state q-dpg-state--error" role="alert"><h2>Live research unavailable</h2><p>'+escapeHtml(state.error)+'</p><button class="q-button q-button--secondary" data-dpg-refresh>Try again</button></section>':'')+(data?content(data):'')+'</section>';
+    publishDecisionChatContext(data);wire();bindDockViewportClearance();mountAdSlots(main);
     const education=main.querySelector('.q-dpg-education');
     if(educationWasOpen&&education)education.open=true;
     const educationHelp=focusedEducationHelp&&education
@@ -1214,7 +1195,6 @@ export async function renderDecisionProvenGraph(main,deps){
     if(educationHelp)educationHelp.focus({preventScroll:true});
     else if(focusedMode)main.querySelector('[data-dpg-ui-mode="'+focusedMode+'"]')?.focus();
     else if(focusedStableControl==='asset-picker')main.querySelector('[data-dpg-asset-picker-toggle]')?.focus({preventScroll:true});
-    else if(focusedStableControl==='chat-dock')main.querySelector('[data-dpg-chat-dock-toggle]')?.focus({preventScroll:true});
     applyPendingFocus();
   };
   let scheduledLoadTimer=0,rangeEvidenceController=null,decisionLoadController=null,decisionLoadRequest=0;
@@ -1270,11 +1250,6 @@ export async function renderDecisionProvenGraph(main,deps){
       if(targetSelector)main.querySelector(targetSelector)?.scrollIntoView({behavior:motionBehavior(),block:'start'});
       return true;
     };
-    main.querySelector('[data-dpg-chat-dock-toggle]')?.addEventListener('click',()=>{state.chatDockOpen=!state.chatDockOpen;draw();if(state.chatDockOpen)requestAnimationFrame(()=>main.querySelector('[data-dpg-chat-input]')?.focus());});
-    main.querySelector('[data-dpg-chat-dock-close]')?.addEventListener('click',()=>{state.chatDockOpen=false;draw();requestAnimationFrame(()=>main.querySelector('[data-dpg-chat-dock-toggle]')?.focus());});
-    main.querySelectorAll('[data-dpg-chat-quick]').forEach(button=>button.addEventListener('click',()=>openDecisionChat(decisionChatPrompt(button.dataset.dpgChatQuick,state.data))));
-    main.querySelector('[data-dpg-chat-form]')?.addEventListener('submit',(event)=>{event.preventDefault();const input=main.querySelector('[data-dpg-chat-input]');openDecisionChat(decisionChatPrompt('custom',state.data,input?.value||''));});
-    main.querySelector('[data-dpg-chat-input]')?.addEventListener('keydown',(event)=>{if(event.key==='Escape'){event.preventDefault();state.chatDockOpen=false;draw();requestAnimationFrame(()=>main.querySelector('[data-dpg-chat-dock-toggle]')?.focus());}});
     main.querySelectorAll('[data-dpg-ui-mode],[data-dpg-ui-mode-jump]').forEach(button=>button.addEventListener('click',()=>{
       const next=button.dataset.dpgUiMode||button.dataset.dpgUiModeJump;
       if(!['simple','advanced','research'].includes(next)||next===state.uiMode)return;
@@ -1325,7 +1300,7 @@ export async function renderDecisionProvenGraph(main,deps){
       state.asset=symbol;state.assetPickerOpen=false;state.assetQuery='';state.scan=null;state.scanError=null;state.rangeReplayIndex=0;
       state.assetRecent=recordDecisionAssetRecent(state.assetRecent,symbol);
       saveDecisionAssetPreferences({favorites:state.assetFavorites,recent:state.assetRecent});
-      state.chatDockOpen=false;cancelRangeEvidenceRequest();state.draft=null;state.selection=null;scheduleLoad();
+      cancelRangeEvidenceRequest();state.draft=null;state.selection=null;scheduleLoad();
     }));
     main.querySelectorAll('[data-dpg-next-bars]').forEach(button=>button.addEventListener('click',()=>{
       const value=button.dataset.dpgNextBars;
@@ -1345,7 +1320,7 @@ export async function renderDecisionProvenGraph(main,deps){
       const key=element.hasAttribute('data-dpg-interval')?'interval':'horizon';
       state[key]=element.value;
       if(key==='interval')state.horizon=normalizeHorizon(state.interval,state.horizon);
-      state.scan=null;state.scanError=null;state.chatDockOpen=false;cancelRangeEvidenceRequest();state.draft=null;state.selection=null;scheduleLoad();
+      state.scan=null;state.scanError=null;cancelRangeEvidenceRequest();state.draft=null;state.selection=null;scheduleLoad();
     }));
     main.querySelector('[data-dpg-rr]')?.addEventListener('change',(event)=>{
       state.rr=event.currentTarget.value;state.scan=null;state.scanError=null;

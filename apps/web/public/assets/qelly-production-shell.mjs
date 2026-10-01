@@ -252,18 +252,6 @@ function simplifyHeader(){
     account.setAttribute('aria-label',authenticated?'Open Qelly account':'Sign in to Qelly');
   }
   const actions=header.querySelector('.q-product-actions');
-  if(actions&&!actions.querySelector('[data-v8-qelly-ai]')){
-    const button=document.createElement('button');
-    button.type='button';
-    button.className='q-product-ai';
-    button.dataset.v8QellyAi='true';
-    button.setAttribute('aria-label','Open Qelly AI assistant and Qelly Chat intelligence workspace');
-    button.setAttribute('aria-controls','qelly-ai-assistant');
-    button.setAttribute('aria-haspopup','dialog');
-    button.innerHTML='<span aria-hidden="true">✦</span><span>Qelly Chat</span>';
-    button.addEventListener('click',()=>document.dispatchEvent(new CustomEvent('qelly:open-ai',{detail:{source:'product-header'}})));
-    actions.insertBefore(button,account||null);
-  }
   if(actions&&!actions.querySelector('[data-v8-appearance]')){
     const button=document.createElement('button');
     button.type='button';
@@ -276,7 +264,7 @@ function simplifyHeader(){
         else location.hash='#/theme-lab';
       }finally{button.disabled=false;syncAppearanceButton(button);}
     });
-    actions.insertBefore(button,actions.querySelector('[data-v8-qelly-ai]')||account||null);
+    actions.insertBefore(button,account||null);
   }
   syncAppearanceButton(actions?.querySelector('[data-v8-appearance]'));
   setAccessHeaderMode(header,ACCESS_ROUTES.has(routeName()));

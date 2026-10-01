@@ -9,16 +9,83 @@ import {buildDecisionNextMoveResearch} from '../functions/_lib/decision-next-mov
 import {decisionAssetCapabilities} from '../functions/_lib/decision-asset-capabilities.js';
 import {buildDecisionRangeReplay,buildSelectedRangeSimilarMoves} from '../functions/_lib/decision-range-history.js';
 import {buildSelectedRangeCrossAssetAnalysis} from '../functions/_lib/decision-selected-cross-asset.js';
+import {buildDecisionIntelligence} from '../functions/api/v1/decision-proven-graph.js';
 
 const outputDir=path.resolve('preview/decision-range-e2e');
 await mkdir(outputDir,{recursive:true});
-const productionOrigin='https://terminal.qellyintelligence.com';
 const server=await startServer({port:0,host:'127.0.0.1'});
 const localOrigin=`http://127.0.0.1:${server.port}`;
 const executablePath=process.env.QELLY_BROWSER_EXECUTABLE||'/usr/bin/chromium';
 const browser=await chromium.launch({headless:true,executablePath,args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
 const results=[];
 let latestSelectedPayload=null,lastScanRequest=null;
+const FIXTURE_INTERVAL_MS=Object.freeze({'1m':60_000,'3m':180_000,'5m':300_000,'15m':900_000,'30m':1_800_000,'1h':3_600_000,'2h':7_200_000,'4h':14_400_000,'8h':28_800_000,'12h':43_200_000,'1d':86_400_000});
+const FIXTURE_ASSETS=Object.freeze(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
+const FIXTURE_BASE=Object.freeze({BTC:84_000,ETH:3_100,SOL:145,HYPE:42,XRP:2.6,DOGE:.22});
+const fixtureNow=Date.now()-1_000;
+const fixtureCandlesFor=(asset='BTC',interval='15m',endTime=fixtureNow,points=500)=>{
+  const symbol=FIXTURE_ASSETS.includes(String(asset).toUpperCase())?String(asset).toUpperCase():'BTC';
+  const step=FIXTURE_INTERVAL_MS[interval]||FIXTURE_INTERVAL_MS['15m'];
+  const count=Math.max(180,Math.min(500,Number(points)||500));
+  const base=FIXTURE_BASE[symbol]||100;
+  return Array.from({length:count},(_,index)=>{
+    const drift=(index-count*.55)*.0007;
+    const wave=Math.sin(index/7)*.012+Math.sin(index/19)*.008;
+    const close=base*(1+drift+wave);
+    const open=close*(1-Math.sin(index/5)*.0018);
+    const high=Math.max(open,close)*(1.0045+Math.abs(Math.sin(index/11))*.002);
+    const low=Math.min(open,close)*(1-.0045-Math.abs(Math.cos(index/13))*.002);
+    return {t:Number(endTime)-(count-1-index)*step,o:String(open),h:String(high),l:String(low),c:String(close),v:String(800+index*3),n:40+index};
+  });
+};
+const fixtureProviderFetch=async(url,options={})=>{
+  let target;
+  try{target=new URL(String(url));}catch{return new Response(JSON.stringify({}),{status:400,headers:{'content-type':'application/json'}});}
+  if(target.protocol==='https:'&&target.hostname==='api.hyperliquid.xyz'){
+    let body={};
+    try{body=JSON.parse(options?.body||'{}');}catch{}
+    if(body.type==='candleSnapshot'){
+      const req=body.req||{},interval=String(req.interval||'15m'),endTime=Number(req.endTime)||fixtureNow,step=FIXTURE_INTERVAL_MS[interval]||FIXTURE_INTERVAL_MS['15m'];
+      const requested=Math.ceil(Math.max(step,(endTime-(Number(req.startTime)||endTime-step*500)))/step);
+      return new Response(JSON.stringify(fixtureCandlesFor(req.coin,interval,endTime,requested)),{status:200,headers:{'content-type':'application/json'}});
+    }
+    if(body.type==='metaAndAssetCtxs'){
+      const universe=FIXTURE_ASSETS.map(name=>({name}));
+      const contexts=FIXTURE_ASSETS.map((name,index)=>{
+        const mark=FIXTURE_BASE[name]*(1+index*.001);
+        return {funding:String(.00005+index*.00001),openInterest:String(900+index*120),markPx:String(mark),oraclePx:String(mark*.9995),dayNtlVlm:String(80_000_000+index*7_500_000),premium:String(.0001+index*.00002),prevDayPx:String(mark*.992)};
+      });
+      return new Response(JSON.stringify([{universe},contexts]),{status:200,headers:{'content-type':'application/json'}});
+    }
+    if(body.type==='l2Book'){
+      const base=FIXTURE_BASE[String(body.coin||'BTC').toUpperCase()]||100;
+      const bids=Array.from({length:20},(_,i)=>({px:String(base*(1-.0003*(i+1))),sz:String(3+i*.2),n:8+i}));
+      const asks=Array.from({length:20},(_,i)=>({px:String(base*(1+.0003*(i+1))),sz:String(2.8+i*.18),n:7+i}));
+      return new Response(JSON.stringify({time:fixtureNow,levels:[bids,asks]}),{status:200,headers:{'content-type':'application/json'}});
+    }
+    if(body.type==='fundingHistory'){
+      const start=Number(body.startTime)||fixtureNow-72*3_600_000,end=Number(body.endTime)||fixtureNow;
+      const rows=Array.from({length:12},(_,i)=>({time:start+(end-start)*(i+1)/12,fundingRate:.00004+i*.000002,premium:.00008+i*.000003}));
+      return new Response(JSON.stringify(rows),{status:200,headers:{'content-type':'application/json'}});
+    }
+    return new Response(JSON.stringify({}),{status:200,headers:{'content-type':'application/json'}});
+  }
+  if(target.protocol==='https:'&&target.hostname==='api.gdeltproject.org')return new Response(JSON.stringify({articles:[]}),{status:200,headers:{'content-type':'application/json'}});
+  return new Response(JSON.stringify({}),{status:200,headers:{'content-type':'application/json'}});
+};
+const fixtureDecisionPayload=async(requestUrl)=>{
+  const asset=String(requestUrl.searchParams.get('asset')||'BTC').toUpperCase();
+  const interval=requestUrl.searchParams.get('interval')||'15m';
+  const horizon=requestUrl.searchParams.get('horizon')||'4h';
+  const requestedRr=requestUrl.searchParams.get('rr')||'auto';
+  const customRr=requestUrl.searchParams.get('customRr');
+  const nextBars=requestUrl.searchParams.get('nextBars');
+  const selection=requestUrl.searchParams.has('selectionStart')||requestUrl.searchParams.has('selectionEnd')
+    ?{start:Number(requestUrl.searchParams.get('selectionStart')),end:Number(requestUrl.searchParams.get('selectionEnd'))}
+    :null;
+  return buildDecisionIntelligence({__fetch:fixtureProviderFetch},{asset,interval,horizon,requestedRr,customRr,nextBars,selection,now:fixtureNow});
+};
+
 const fixtureEpochMs=(value)=>{
   if(value==null||value==='')return null;
   const numeric=Number(value);
@@ -111,12 +178,12 @@ const proxyDecision=async(route)=>{
     await route.fulfill({status:200,contentType:'application/json; charset=utf-8',body});
     return;
   }
-  const target=new URL(requestUrl.pathname+requestUrl.search,productionOrigin);
-  const response=await fetch(target,{headers:{accept:'application/json'}});
-  let body=await response.text();
-  if(response.ok&&requestUrl.pathname.includes('/api/v1/decision-proven-graph')){
+  let responseStatus=200,body='{}';
+  if(requestUrl.pathname.includes('/api/v1/decision-news-context')){
+    body=JSON.stringify({state:'live',provider:'fixture-governed-test',articles:[],observedAt:new Date(fixtureNow).toISOString(),boundary:'Deterministic browser-test news context only; production news truth is validated by separate live-runtime gates.'});
+  }else if(requestUrl.pathname.includes('/api/v1/decision-proven-graph')){
     try{
-      const payload=JSON.parse(body),customBars=requestUrl.searchParams.has('nextBars')?Number(requestUrl.searchParams.get('nextBars')):null;
+      const payload=await fixtureDecisionPayload(requestUrl),customBars=requestUrl.searchParams.has('nextBars')?Number(requestUrl.searchParams.get('nextBars')):null;
       payload.nextMoveResearch=buildDecisionNextMoveResearch(payload.market?.candles||[],{asset:payload.asset,interval:payload.interval,customBars,paths:128});
       if(requestUrl.searchParams.has('selectionStart')){
         const selectedStart=fixtureEpochMs(payload.selection?.start),selectedEnd=fixtureEpochMs(payload.selection?.end);
@@ -147,9 +214,12 @@ const proxyDecision=async(route)=>{
         latestSelectedPayload=payload;
       }
       body=JSON.stringify(payload);
-    }catch{}
+    }catch(error){
+      responseStatus=503;
+      body=JSON.stringify({error:{code:'fixture_decision_build_failed',message:String(error?.message||error)}});
+    }
   }
-  await route.fulfill({status:response.status,contentType:response.headers.get('content-type')||'application/json; charset=utf-8',body});
+  await route.fulfill({status:responseStatus,contentType:'application/json; charset=utf-8',body});
 };
 
 const exercise=async({name,viewport,touch=false})=>{
@@ -167,13 +237,13 @@ const exercise=async({name,viewport,touch=false})=>{
   const chart=page.locator('[data-dpg-chart]').first();
   await chart.waitFor({state:'visible',timeout:45_000});
   const ciMotion=await page.evaluate(()=>{
-    const dock=document.querySelector('.q-dpg-chat-dock__bar'),mode=document.querySelector('[data-dpg-chart-mode]');
+    const dock=document.querySelector('[data-q-ai-launcher]'),mode=document.querySelector('[data-dpg-chart-mode]');
     const dockStyle=dock?getComputedStyle(dock):null,modeStyle=mode?getComputedStyle(mode):null;
     return {dockAnimation:dockStyle?.animationName||'',dockTransition:dockStyle?.transitionDuration||'',modeTransition:modeStyle?.transitionDuration||''};
   });
   if(ciMotion.dockAnimation!=='none'||(ciMotion.modeTransition&&ciMotion.modeTransition!=='0s'))failures.push({type:'ci-reduced-motion',...ciMotion});
   const ciTouchTargets=await page.evaluate(()=>{
-    const selectors=['[data-dpg-chart-mode]','[data-dpg-asset-picker-toggle]','[data-dpg-chat-dock-toggle]'];
+    const selectors=['[data-dpg-chart-mode]','[data-dpg-asset-picker-toggle]','[data-q-ai-launcher]'];
     return selectors.map(selector=>{const node=document.querySelector(selector),rect=node?.getBoundingClientRect();return {selector,width:rect?.width||0,height:rect?.height||0};});
   });
   if(ciTouchTargets.some(item=>item.height<44||item.width<44))failures.push({type:'ci-touch-targets',targets:ciTouchTargets});
@@ -316,37 +386,22 @@ const exercise=async({name,viewport,touch=false})=>{
   const setupRequestOk=lastScanRequest?.mode==='aggressive'&&lastScanRequest?.ranking==='lowest_event_risk'&&lastScanRequest?.assets==='BTC'&&lastScanRequest?.direction==='short'&&lastScanRequest?.rr==='auto';
   const closestInterval=await closestCandidate.locator('[data-dpg-scan-interval]').first().getAttribute('data-dpg-scan-interval');
   if(!closestCandidateRequired||!setupRequestOk||closestInterval!=='30m')failures.push({type:'setup-finder-aggressive',closestCandidateRequired,setupRequestOk,lastScanRequest,closestInterval,text:closestText});
-  const chatDock=page.locator('[data-dpg-chat-dock]').first();
+  const chatDock=page.locator('[data-q-ai-launcher]').first();
   await chatDock.waitFor({state:'visible',timeout:10_000});
-  const chatDockToggle=page.locator('[data-dpg-chat-dock-toggle]').first();
-  const collapsedComposer=page.locator('[data-dpg-chat-dock-composer]').first();
-  const composerTargetStable=await collapsedComposer.count()===1&&!await collapsedComposer.isVisible();
-  if(!composerTargetStable)failures.push({type:'ci-dock-aria-controls-target'});
   const dockBox=await chatDock.boundingBox();
   const dockCentered=Boolean(dockBox)&&Math.abs((dockBox.x+dockBox.width/2)-viewport.width/2)<=6&&dockBox.x>=0&&dockBox.x+dockBox.width<=viewport.width+1;
-  const legacyDecisionChatControls=await page.locator('.q-dpg-hero__actions [data-dpg-open-chat],[data-dpg-range-action="chat"]').count();
-  const genericLauncher=page.locator('[data-q-ai-launcher]').first();
-  const genericLauncherVisible=await genericLauncher.isVisible().catch(()=>false);
-  if(!dockCentered||legacyDecisionChatControls||genericLauncherVisible)failures.push({type:'qelly-dock-shell',dockCentered,legacyDecisionChatControls,genericLauncherVisible,dockBox});
-  await chatDockToggle.focus();
+  const legacyDecisionChatControls=await page.locator('[data-dpg-chat-dock],[data-dpg-chat-dock-toggle],[data-dpg-chat-quick],.q-dpg-hero__actions [data-dpg-open-chat],[data-dpg-range-action="chat"]').count();
+  const dockContextType=await chatDock.getAttribute('data-context-type');
+  const dockText=(await chatDock.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  if(!dockCentered||legacyDecisionChatControls||dockContextType!=='decision'||!dockText.includes('btc'))failures.push({type:'qelly-dock-shell',dockCentered,legacyDecisionChatControls,dockContextType,dockText,dockBox});
+  await chatDock.focus();
   await page.keyboard.press('Enter');
-  const dockComposer=page.locator('[data-dpg-chat-dock-composer]').first();
-  await dockComposer.waitFor({state:'visible',timeout:10_000});
-  const dockComposerText=(await dockComposer.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
-  const dockComposerRequired=['qelly context dock','explain qelly view','existing qelly chat','current decision evidence'].every(label=>dockComposerText.includes(label));
-  if(!dockComposerRequired)failures.push({type:'qelly-dock-composer',text:dockComposerText});
-  await page.locator('[data-dpg-chat-input]').first().press('Escape');
-  await dockComposer.waitFor({state:'hidden',timeout:5000});
-  const dockFocusReturned=await page.evaluate(()=>document.activeElement?.matches?.('[data-dpg-chat-dock-toggle]')===true);
-  if(!dockFocusReturned)failures.push({type:'ci-dock-focus-return'});
-  await chatDockToggle.press('Enter');
-  await dockComposer.waitFor({state:'visible',timeout:5000});
-  await page.locator('[data-dpg-chat-quick="view"]').first().click();
   const globalAssistant=page.locator('[data-q-ai-assistant]').first();
   await globalAssistant.waitFor({state:'visible',timeout:10_000});
   const assistantAsset=await page.locator('[data-q-ai-asset]').first().inputValue();
   const assistantTimeframe=await page.locator('[data-q-ai-timeframe]').first().inputValue();
-  if(assistantAsset!=='BTC'||!assistantTimeframe)failures.push({type:'qelly-dock-handoff',assistantAsset,assistantTimeframe});
+  const dockComposerRequired=await page.locator('[data-q-ai-form] textarea').first().isVisible().catch(()=>false);
+  if(assistantAsset!=='BTC'||!assistantTimeframe||!dockComposerRequired)failures.push({type:'qelly-dock-handoff',assistantAsset,assistantTimeframe,dockComposerRequired});
   await page.locator('[data-q-ai-close]').first().click();
   await globalAssistant.waitFor({state:'hidden',timeout:10_000});
   const simpleTab=page.locator('[data-dpg-ui-mode="simple"]').first(),advancedTab=page.locator('[data-dpg-ui-mode="advanced"]').first(),researchTab=page.locator('[data-dpg-ui-mode="research"]').first();
@@ -425,15 +480,15 @@ const exercise=async({name,viewport,touch=false})=>{
   const timestampsAvailable=!normalizedSummary.includes('time unavailable');
   if(!persistent)failures.push({type:'range-overlay',hidden,candles,boundaries,handles});
   if(!required||!timestampsAvailable)failures.push({type:'range-summary',text,required,timestampsAvailable});
-  const rangeDockText=(await page.locator('[data-dpg-chat-dock-toggle]').first().innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  const rangeDockText=(await page.locator('[data-q-ai-launcher]').first().innerText()).replace(/\s+/g,' ').trim().toLowerCase();
   const rangeAwareDock=rangeDockText.includes('selected range');
   if(!rangeAwareDock)failures.push({type:'qelly-dock-range-context',text:rangeDockText});
   await page.evaluate(()=>window.scrollBy(0,1));
   await page.waitForTimeout(80);
-  const clearanceProbe=await page.locator('[data-dpg-chat-dock]').first().evaluate((node)=>{
-    const workbench=document.querySelector('.q-dpg-range-workbench'),rect=workbench?.getBoundingClientRect(),style=getComputedStyle(node);
+  const clearanceProbe=await page.locator('.q-ai-root').first().evaluate((node)=>{
+    const workbench=document.querySelector('.q-dpg-range-workbench'),rect=workbench?.getBoundingClientRect(),launcher=document.querySelector('[data-q-ai-launcher]'),style=launcher?getComputedStyle(launcher):null;
     const reserved=112,zoneOverlap=Boolean(rect&&rect.bottom>innerHeight-reserved&&rect.top<innerHeight);
-    return {clearance:node.dataset.clearance||'unset',opacity:style.opacity,pointerEvents:style.pointerEvents,zoneOverlap};
+    return {clearance:node.dataset.clearance||'unset',opacity:style?.opacity||'',pointerEvents:style?.pointerEvents||'',zoneOverlap};
   });
   if(clearanceProbe.zoneOverlap&&(clearanceProbe.clearance!=='chart'||clearanceProbe.pointerEvents!=='none'))failures.push({type:'qelly-dock-chart-clearance',...clearanceProbe});
   await page.evaluate(()=>{
@@ -443,21 +498,15 @@ const exercise=async({name,viewport,touch=false})=>{
     const delta=Math.max(0,rect.bottom-(innerHeight-expandedReserved)+28);
     if(delta>0)window.scrollBy(0,delta);
   });
-  await page.waitForFunction(()=>document.querySelector('[data-dpg-chat-dock]')?.dataset.clearance==='clear',{timeout:5000});
-  const restoredDockBox=await page.locator('[data-dpg-chat-dock-toggle]').first().boundingBox();
+  await page.waitForFunction(()=>document.querySelector('.q-ai-root')?.dataset.clearance==='clear',{timeout:5000});
+  const restoredDockBox=await page.locator('[data-q-ai-launcher]').first().boundingBox();
   const dockRestored=Boolean(restoredDockBox)&&restoredDockBox.y>=0&&restoredDockBox.y+restoredDockBox.height<=viewport.height+1;
   if(!dockRestored)failures.push({type:'qelly-dock-clearance-return',restoredDockBox});
-  await page.locator('[data-dpg-chat-dock-toggle]').first().click();
-  const openDockState=await page.locator('[data-dpg-chat-dock]').first().getAttribute('data-clearance');
-  if(openDockState!=='clear')failures.push({type:'qelly-dock-open-clearance',openDockState});
-  const selectedQuickCount=await page.locator('[data-dpg-chat-quick="selected"]').count();
-  if(selectedQuickCount!==1)failures.push({type:'qelly-dock-range-action',selectedQuickCount});
-  const closeHitTarget=await page.locator('[data-dpg-chat-dock-close]').first().evaluate((node)=>{
-    const rect=node.getBoundingClientRect(),hit=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);
-    return hit===node||Boolean(hit?.closest?.('[data-dpg-chat-dock-close]'));
-  });
-  if(!closeHitTarget)failures.push({type:'qelly-dock-close-hit-target'});
-  await page.locator('[data-dpg-chat-dock-close]').first().click();
+  await page.locator('[data-q-ai-launcher]').first().click();
+  await page.locator('[data-q-ai-assistant]').first().waitFor({state:'visible',timeout:5000});
+  const selectedComposerValue=await page.locator('[data-q-ai-form] textarea').first().inputValue();
+  if(!selectedComposerValue.toLowerCase().includes('selected historical'))failures.push({type:'qelly-dock-range-action',selectedComposerValue});
+  await page.locator('[data-q-ai-close]').first().click();
   await page.locator('[data-dpg-explain]').first().click();
   const intelligence=page.locator('[data-dpg-range-intelligence]').first();
   await intelligence.waitFor({state:'visible',timeout:45_000});
@@ -527,7 +576,7 @@ try{
   await server.evidenceUpstream?.server?.close?.();
 }
 
-const report={status:results.every(item=>item.failures.length===0)?'passed':'failed',productionBackend:productionOrigin,frontendHead:process.env.QELLY_SCREEN_EVIDENCE_SHA||process.env.GITHUB_SHA||null,results};
+const report={status:results.every(item=>item.failures.length===0)?'passed':'failed',evidenceBackend:'deterministic-governed-provider-fixture',liveProductionTruthValidatedSeparately:true,frontendHead:process.env.QELLY_SCREEN_EVIDENCE_SHA||process.env.GITHUB_SHA||null,results};
 await writeFile(path.join(outputDir,'report.json'),JSON.stringify(report,null,2));
 console.log(JSON.stringify(report,null,2));
 if(report.status!=='passed')process.exitCode=1;

@@ -85,7 +85,8 @@ test('Formula Screener remains supporting evidence and uses bounded metric compu
   assert.match(route,/storeDecisionContext/);
   assert.match(app,/source:'asset-dossier'/);
   assert.match(app,/source:'asset-dossier-unavailable'/);
-  assert.match(decisionRoute,/data-dpg-open-chat/);
+  assert.doesNotMatch(decisionRoute,/data-dpg-open-chat/);
+  assert.match(decisionRoute,/qelly:chat-context/);
   assert.match(decisionRoute,/mode:'decision'/);
   assert.match(decisionRoute,/timeframe:state\.interval/);
   assert.match(chat,/storeDecisionContext/);

@@ -30,9 +30,10 @@ test('master acceptance: Decision is the live evidence workspace with complete R
     read('functions/_lib/decision-context.js'),
     read('functions/_lib/qelly-chat-tools.js')
   ]);
-  for(const phrase of ['Find Setup Now','1:1','1:2','1:3','1:4','Auto','Custom','Past','Present','Future','Ask QELLY','NO TRADE'])assert.ok(ui.toLowerCase().includes(phrase.toLowerCase()),`missing Decision UI phrase: ${phrase}`);
+  for(const phrase of ['Find Setup Now','1:1','1:2','1:3','1:4','Auto','Custom','Past','Present','Future','Why NO TRADE?','NO TRADE'])assert.ok(ui.toLowerCase().includes(phrase.toLowerCase()),`missing Decision UI phrase: ${phrase}`);
   assert.match(ui,/data-dpg-chart/);
-  assert.match(ui,/data-dpg-open-chat/);
+  assert.doesNotMatch(ui,/data-dpg-open-chat/);
+  assert.match(ui,/qelly:chat-context/);
   assert.match(ui,/decisionSnapshot/i);
   assert.match(api,/Use GET for public Decision Intelligence/);
   assert.match(api,/liquidations:\{state:'unavailable'/);

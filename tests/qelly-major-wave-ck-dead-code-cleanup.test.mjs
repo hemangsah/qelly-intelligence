@@ -22,10 +22,11 @@ test('Wave CK removes only proven-dead pre-reinvention Decision CSS',async()=>{
   }
   for(const token of [
     'q-dpg-range-workbench',
-    'q-dpg-chat-dock',
     'data-dpg-asset-picker-toggle',
     'data-dpg-mode-panel'
   ])assert.ok(route.includes(token),token);
+  assert.equal(route.includes('q-dpg-chat-dock'),false,'Decision-local chat dock must remain retired');
+  assert.equal(css.includes('q-dpg-chat-dock'),false,'Decision-local chat dock CSS must remain retired');
 });
 
 test('Wave CK proves old chat and flat-picker presentation are retired while compatibility stays intentional',async()=>{
@@ -33,7 +34,8 @@ test('Wave CK proves old chat and flat-picker presentation are retired while com
   assert.doesNotMatch(route,/q-dpg-hero__actions[^\n]*data-dpg-open-chat/);
   assert.doesNotMatch(route,/q-dpg-range-toolbar[^\n]*data-dpg-open-chat/);
   assert.doesNotMatch(route,/select\('asset'/);
-  assert.match(route,/q-dpg-chat-dock__bar" data-dpg-open-chat data-dpg-chat-dock-toggle/);
+  assert.doesNotMatch(route,/q-dpg-chat-dock|data-dpg-open-chat|data-dpg-chat-quick/);
+  assert.match(route,/qelly:chat-context/);
   assert.match(route,/data-dpg-asset-picker-toggle/);
 });
 

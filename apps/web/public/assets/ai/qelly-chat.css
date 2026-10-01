@@ -14,4 +14,50 @@
 .q-ai-composer>[data-q-ai-stop]{background:#7f3049}.q-ai-composer>[data-q-ai-stop][hidden]{display:none}.q-ai-composer>[data-q-ai-send][hidden]{display:none}
 
 
-.q-ai-launcher[hidden],html[data-production-route="decision-provenance"] .q-ai-launcher{display:none!important}
+.q-ai-launcher[hidden]{display:none!important}
+
+
+/* Wave CM — one authoritative terminal-wide QELLY Chat dock. */
+.q-ai-launcher{
+  left:0;
+  right:0;
+  margin-inline:auto;
+  bottom:max(16px,env(safe-area-inset-bottom,0px));
+  width:min(560px,calc(100vw - 28px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)));
+  min-width:0;
+  grid-template-columns:38px minmax(0,1fr) auto;
+  border:1px solid transparent;
+  background:
+    linear-gradient(color-mix(in srgb,var(--q-surface) 92%,#08090d 8%),color-mix(in srgb,var(--q-surface) 92%,#08090d 8%)) padding-box,
+    linear-gradient(100deg,color-mix(in srgb,var(--q-accent) 62%,transparent),color-mix(in srgb,#60a5fa 38%,var(--q-accent) 62%),color-mix(in srgb,var(--q-accent) 56%,transparent)) border-box;
+  background-size:100% 100%,220% 100%;
+  transform:none;
+  animation:q-ai-dock-border 7s linear infinite;
+}
+.q-ai-launcher:hover,.q-ai-launcher:focus-visible{transform:translateY(-2px)}
+.q-ai-launcher:focus-visible{outline:2px solid var(--q-accent);outline-offset:3px}
+.q-ai-launcher.is-hidden{opacity:0;pointer-events:none;transform:translateY(12px)}
+.q-ai-launcher>span{min-width:0}
+.q-ai-launcher>span small{order:-1;text-transform:uppercase;letter-spacing:.1em}
+.q-ai-launcher>span strong{font-size:12px;overflow-wrap:anywhere}
+.q-ai-launcher>span em{font:650 9px/1.25 var(--q-font-sans);font-style:normal;color:rgba(255,255,255,.65);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.q-ai-assistant{
+  left:0;
+  right:0;
+  margin-inline:auto;
+  bottom:max(16px,env(safe-area-inset-bottom,0px));
+  transform:none;
+}
+.q-ai-root[data-clearance="chart"] .q-ai-launcher:not(.is-hidden){opacity:0;pointer-events:none;transform:translateY(calc(100% + 28px))}
+@keyframes q-ai-dock-border{to{background-position:0 0,-220% 0}}
+@media(max-width:640px){
+  .q-ai-launcher{left:0;right:0;margin-inline:auto;bottom:max(10px,env(safe-area-inset-bottom,0px));width:calc(100vw - 20px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));min-width:0;border-radius:17px;padding:8px 10px;transform:none}
+  .q-ai-launcher:hover,.q-ai-launcher:focus-visible{transform:none}
+  .q-ai-launcher>span,.q-ai-launcher>i{display:grid}
+  .q-ai-launcher>i{display:none}
+  .q-ai-assistant,.q-ai-assistant.is-expanded{inset:0;transform:none;width:100vw;height:100dvh;border-radius:0}
+}
+@media(prefers-reduced-motion:reduce){
+  .q-ai-launcher{animation:none!important}
+  .q-ai-launcher:hover,.q-ai-launcher:focus-visible{transform:none}
+}
