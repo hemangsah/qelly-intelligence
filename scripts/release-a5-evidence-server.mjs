@@ -158,6 +158,16 @@ export async function startServer(options={}){
   const host=options.host??'127.0.0.1';
   const server=http.createServer(async(request,response)=>{
     const url=new URL(request.url,`http://${request.headers.host??'127.0.0.1'}`);
+    // Cloudflare bootstrap exists on the deployed Pages runtime. The local
+    // evidence server must return its anonymous envelope itself instead of
+    // proxying to the older Node API where /bootstrap is not implemented.
+    if(request.method==='GET'&&url.pathname==='/api/v1/bootstrap'){
+      return sendJson(response,200,{
+        schemaVersion:1,generatedAt:FIXED_TIME,
+        config:{productName:'Qelly Intelligence',auth:{authenticated:hasEvidenceSession(request),mode:'evidence-fixture'},releaseSha:'evidence-fixture',defaultRoute:'market'},
+        context:null,preferences:null,evidenceBoundary:'isolated-public-bootstrap-fixture'
+      });
+    }
     if(request.method==='GET'&&url.pathname==='/api/v1/platform/capabilities')return sendJson(response,200,capabilityInventory());
     if(request.method==='GET'&&url.pathname==='/api/v1/providers/status')return sendJson(response,200,{providers:providerPolicies(),releaseSha:'evidence-fixture'});
     if(request.method==='GET'&&url.pathname==='/api/v1/providers/ecb')return sendJson(response,200,evidenceEcb());

@@ -16,6 +16,16 @@ const PUBLIC_V1_API_PATHS=Object.freeze([
   '/api/v1/production-foundation/status',
   '/api/v1/platform/capabilities',
   '/api/v1/search',
+  // Legacy deterministic discovery endpoints are PUBLIC READ contracts.
+  // Never include /discovery/saved, account routes or mutation endpoints here.
+  '/api/v1/discovery/overview',
+  '/api/v1/discovery/rankings',
+  '/api/v1/discovery/prediction-markets',
+  '/api/v1/discovery/news',
+  '/api/v1/discovery/research',
+  '/api/v1/discovery/methodologies',
+  '/api/v1/discovery/coverage',
+  '/api/v1/discovery/status',
   '/api/v1/discovery/categories',
   '/api/v1/discovery/venues',
   '/api/v1/discovery/dex',
@@ -49,7 +59,12 @@ const PUBLIC_V1_TEMPLATE_ROUTES=Object.freeze([
   '/api/v1/public/markets/assets/:id',
   '/api/v1/public/markets/assets/:id/candles',
   '/api/v1/calculations/formulas/:id',
-  '/api/v1/indicators/:id'
+  '/api/v1/indicators/:id',
+  '/api/v1/discovery/categories/:id',
+  '/api/v1/discovery/venues/:id',
+  '/api/v1/discovery/dex/:id',
+  '/api/v1/discovery/research/:id',
+  '/api/v1/discovery/methodologies/:id'
 ]);
 
 const TOP_LEVEL_PUBLIC_SET=new Set(TOP_LEVEL_PUBLIC_API_ROUTES);
