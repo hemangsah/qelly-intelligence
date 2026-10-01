@@ -5,6 +5,13 @@ export function prepaintRouteTitles(){
   return Object.fromEntries(routeDefinitions.map((route)=>[route.route,route.seoTitle??route.label+' · Qelly Intelligence']));
 }
 
+export function prepaintRouteContexts(){
+  return Object.fromEntries(routeDefinitions.map(route=>[route.route,{
+    shortTitle:route.shortTitle??route.label,
+    categoryLabel:route.categoryLabel??'Qelly'
+  }]));
+}
+
 const escapeNav=(value)=>String(value??'').replace(/[&<>'"]/g,(character)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
 const staticCategoryMarkup=(category)=>{
   const id=String(category.id).replace(/[^a-z0-9_-]/gi,'-');
@@ -26,6 +33,7 @@ const CURRENT_HEADER=`
   <form class="q-product-search" role="search"><label class="q-visually-hidden" for="q-product-search-input">Search Qelly</label><input id="q-product-search-input" name="q" type="search" autocomplete="off" placeholder="Search Qelly"><button type="submit" aria-label="Search Qelly"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg><span class="q-visually-hidden">Search</span></button></form>
   <div class="q-product-actions"><button class="q-product-system" type="button" data-product-route="status" aria-label="Open system status"><span class="q-product-system__dot" data-state="live"></span><span>Data status</span></button><button class="q-product-system" type="button" data-v8-appearance="true" aria-label="Switch to light appearance"><span aria-hidden="true">◐</span><span>Light</span></button><a class="q-product-account" href="#/auth-login" aria-label="Sign in to Qelly"><span aria-hidden="true">●</span><span>Sign in</span></a></div>
 </header>
+<script src="./assets/qelly-prepaint-header.js"></script>
 <div data-qelly-legacy-bindings="true" hidden aria-hidden="true">
   <div id="macro-strip"></div><div id="workspace-switcher"></div>
   <button id="rail-toggle" type="button" aria-expanded="false"></button>
