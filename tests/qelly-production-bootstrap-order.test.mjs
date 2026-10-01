@@ -28,7 +28,7 @@ test('connected production artifact converges to the current shell before the ap
 
 test('production build applies public shell convergence only to connected runtime artifacts',async()=>{
   const build=await read('scripts/build-frontend.mjs');
-  assert.match(build,/import \{convergePublicRuntimeHtml,prepaintRouteTitles\} from '\.\/public-shell-convergence\.mjs'/);
+  assert.match(build,/import \{convergePublicRuntimeHtml,prepaintRouteTitles,prepaintRouteContexts\} from '\.\/public-shell-convergence\.mjs'/);
   assert.match(build,/index=convergePublicRuntimeHtml\(index\)/);
   assert.match(build,/publicRuntimeEnabled/);
   const source=await read('apps/web/public/index.html');
