@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {deflateRawSync} from 'node:zlib';
 import {parseMt5Html,parseMt5Xlsx,MT5_REPORT_LIMITS,__mt5ParserTest} from '../apps/web/public/assets/qelly-mt5-report-parser.mjs';
 import {analyzeTrades} from '../apps/web/public/assets/qelly-verify-engine.mjs';
 import {composeStrategyEvidenceReport,fingerprintSource} from '../apps/web/public/assets/qelly-verify-report.mjs';
@@ -9,13 +10,13 @@ const deal=(id,{type='buy',direction='out',profit='10.50',commission='-0.25',fee
 const sample='<html><body><table><tr><th>Strategy Tester Report</th></tr><tr><td>Net Profit</td><td>99999</td></tr>'+header+deal(1)+deal(2,{type:'sell',direction:'out by',profit:'(5.00)'})+deal(3,{direction:'in',profit:'1000'})+deal(4,{direction:'in/out',profit:'15.0'})+deal(5,{direction:'out',profit:'3.00'})+deal(6,{direction:'out',profit:'4.00'})+deal(7,{type:'balance',profit:'10000'})+deal(8,{direction:'out',profit:'6.00'})+'</table><script>throw Error("NEVER EXECUTE HTML")</script></body></html>';
 const s16=(buf,at,val)=>buf.writeUInt16LE(val,at);
 const s32=(buf,at,val)=>buf.writeUInt32LE(val>>>0,at);
-function storedXlsx(entries){
+function storedXlsx(entries,{deflate=false}={}){
   const local=[],central=[];let offset=0;
   for(const [name,body] of entries){
-    const nameBytes=Buffer.from(name),raw=Buffer.from(body);const a=Buffer.alloc(30);s32(a,0,0x04034b50);s16(a,4,20);s16(a,8,0);s32(a,18,raw.length);s32(a,22,raw.length);s16(a,26,nameBytes.length);
-    local.push(a,nameBytes,raw);
-    const z=Buffer.alloc(46);s32(z,0,0x02014b50);s16(z,4,20);s16(z,6,20);s32(z,20,raw.length);s32(z,24,raw.length);s16(z,28,nameBytes.length);s32(z,42,offset);
-    central.push(z,nameBytes);offset+=a.length+nameBytes.length+raw.length;
+    const nameBytes=Buffer.from(name),raw=Buffer.from(body),packed=deflate?deflateRawSync(raw):raw;const a=Buffer.alloc(30);s32(a,0,0x04034b50);s16(a,4,20);s16(a,8,deflate?8:0);s32(a,18,packed.length);s32(a,22,raw.length);s16(a,26,nameBytes.length);
+    local.push(a,nameBytes,packed);
+    const z=Buffer.alloc(46);s32(z,0,0x02014b50);s16(z,4,20);s16(z,6,20);s16(z,10,deflate?8:0);s32(z,20,packed.length);s32(z,24,raw.length);s16(z,28,nameBytes.length);s32(z,42,offset);
+    central.push(z,nameBytes);offset+=a.length+nameBytes.length+packed.length;
   }
   const directory=Buffer.concat(central),tail=Buffer.alloc(22);s32(tail,0,0x06054b50);s16(tail,8,entries.length);s16(tail,10,entries.length);s32(tail,12,directory.length);s32(tail,16,offset);
   return new Uint8Array(Buffer.concat([...local,directory,tail]));
@@ -62,6 +63,20 @@ test('XLSX reader processes bounded inline-string worksheet without executing ma
   assert.deepEqual(parsed.trades.map(t=>t.pnl),[9,-4,12,6,8,7]);
   assert.equal(parsed.validation.mt5.openDealsExcluded,1);
   assert.equal(analyzeTrades(parsed.trades).sample.trades,6);
+});
+test('real deflated MT5 XLSX workbook is decoded locally with streaming size enforcement',async()=>{
+  const columns=['Time','Deal','Symbol','Type','Direction','Commission','Fee','Swap','Profit'];
+  const rows=[columns,...Array.from({length:8},(_,i)=>['2026.10.01',String(i+1),'EURUSD','buy',i===0?'in':'out','-1','0','0',String(i+2)])];
+  const xml='<worksheet><sheetData>'+rows.map((row,i)=>xRow(i+1,row)).join('')+'</sheetData></worksheet>';
+  const packed=storedXlsx([['xl/worksheets/sheet1.xml',xml]],{deflate:true});
+  if(typeof DecompressionStream!=='function'){
+    await assert.rejects(parseMt5Xlsx(packed),e=>e.code==='mt5_xlsx_decompression_unavailable');
+    return;
+  }
+  const parsed=await parseMt5Xlsx(packed);
+  assert.equal(parsed.trades.length,7);
+  assert.equal(parsed.trades[0].pnl,2);
+  assert.equal(parsed.validation.mt5.openDealsExcluded,1);
 });
 test('XLSX ZIP rejects corrupt, unsafe, oversized and unsupported file shapes',async()=>{
   await assert.rejects(parseMt5Xlsx(new Uint8Array([1,2,3])),e=>e.code==='mt5_xlsx_invalid');
