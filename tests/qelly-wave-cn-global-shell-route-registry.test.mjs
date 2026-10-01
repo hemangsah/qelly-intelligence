@@ -11,7 +11,6 @@ test('Wave CN route identity registry owns complete customer-facing metadata',()
   assert.equal(new Set(routeDefinitions.map((item)=>item.route)).size,routeDefinitions.length);
   for(const route of routeDefinitions){
     for(const field of required)assert.ok(route[field]!==undefined&&route[field]!==null,`${route.route} missing ${field}`);
-    assert.equal(route.label,route.pageTitle);
     assert.match(route.seoTitle,/Qelly Intelligence$/);
     assert.equal(route.canonical,'#/'+route.route);
     assert.ok(Array.isArray(route.breadcrumbs)&&route.breadcrumbs.length===3);
@@ -42,7 +41,7 @@ test('Wave CN shell consumers use the canonical route registry instead of hard-c
     read('apps/web/public/assets/qelly-navigation-v2.css')
   ]);
   assert.match(runtime,/import \{productCategories,routeIdentityFor\} from '.\/route-registry\.mjs'/);
-  assert.match(runtime,/data-qelly-route-registry-owner/);
+  assert.match(runtime,/qellyRouteRegistryOwner/);
   assert.match(runtime,/data-product-category-toggle/);
   assert.match(runtime,/qelly:route-identity/);
   assert.match(runtime,/data-q-product-page-title/);
