@@ -18,4 +18,7 @@ test('Wave CN browser evidence uses canonical SEO titles rather than legacy menu
   assert.match(batch,/expected_title = definition\.get\('seoTitle'\)/);
   assert.equal((adapter.match(/definition\.get\('seoTitle'\)/g)||[]).length,2);
   assert.match(adapter,/detail_route_evidence/);
+  const accessibility=await readFile(new URL('../scripts/release-a5-accessibility-check.py',import.meta.url),'utf8');
+  assert.match(accessibility,/route_titles=\{item\['route'\]:item\.get\('seoTitle'\)/);
+  assert.match(accessibility,/expected_title=route_titles\[route_key\]/);
 });
