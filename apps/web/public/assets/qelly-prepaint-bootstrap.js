@@ -15,7 +15,7 @@
   root.dataset.themeReady='true';
   // The build embeds a sanitized snapshot of the authoritative route registry
   // before this blocking script. Route identity is set before the first paint.
-  const route=(location.hash||'').replace(/^#\\/?/,'').split(/[/?#]/)[0]||'feature-universe';
+  const route=(location.hash||'').replace(/^#\/?/,'').split(/[/?#]/)[0]||'feature-universe';
   root.dataset.prepaintRoute=route;
   try{
     const payload=document.getElementById('qelly-prepaint-route-identities')?.textContent;
