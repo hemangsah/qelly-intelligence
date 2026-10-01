@@ -44,11 +44,11 @@ test('Wave BH route identities and visible labels are unique and every route has
 
 test('Wave BH priority research surfaces use canonical public labels and access states',()=>{
   const expected={
-    market:['Market Command',true],
+    market:['Market Pulse',true],
     'decision-provenance':['Decision Intelligence',true],
     'formula-screener':['Formula Screener',true],
     asset:['Asset Dossier',true],
-    'news-research':['Qelly Chat & Research',true],
+    'news-research':['QELLY Chat',true],
     search:['Universal Search',true],
     'india-finance':['India Finance & SIP',true],
     'alert-center':['Alert Rules',true],
