@@ -14,6 +14,10 @@ const STATIC_NAV_MARKUP=Array.isArray(routeRegistry.productCategories)&&routeReg
   ?routeRegistry.productCategories.map(staticCategoryMarkup).join('')
   :'<a href="#/decision-provenance" data-product-route="decision-provenance">Decision</a><a href="#/news-research" data-product-route="news-research">Qelly Chat</a><a href="#/market" data-product-route="market">Markets</a><a href="#/research-workspace" data-product-route="research-workspace">Research</a><a href="#/calculator-center" data-product-route="calculator-center">Tools</a>';
 
+const STATIC_HEADER_CONTEXT=Array.isArray(routeRegistry.productCategories)&&routeRegistry.productCategories.length
+  ?'${STATIC_HEADER_CONTEXT}'
+  :'';
+
 const CURRENT_HEADER=`
 <header class="q-product-header" data-qelly-current-shell="true" aria-label="Qelly product navigation">
   <a class="q-product-brand" href="#/market" aria-label="Qelly Intelligence home"><span class="q-product-brand__mark"><img src="./assets/brand/qelly-symbol.svg" width="28" height="28" alt=""></span><span><strong>Qelly</strong><small>Market intelligence</small></span></a>
