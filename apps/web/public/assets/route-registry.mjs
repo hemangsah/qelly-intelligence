@@ -241,7 +241,7 @@ const PRODUCT_CATEGORY_BLUEPRINTS=Object.freeze([
   {id:'discover',label:'Discover',shortLabel:'Discover',defaultRoute:'market',routes:['market','search','asset','asset-rankings','discovery-hub','categories','venues','live-markets','advanced-chart']},
   {id:'decide',label:'Decide',shortLabel:'Decide',defaultRoute:'decision-provenance',routes:['decision-provenance','screener-lab','comparison-lab','alert-center']},
   {id:'research',label:'Research',shortLabel:'Research',defaultRoute:'news-research',routes:['news-research','research-workspace','qelly-verify','trust-center','event-calendar','fundamentals-estimates','filing-workspace','formula-screener']},
-  {id:'tools',label:'Tools',shortLabel:'Tools',defaultRoute:'calculator-center',routes:['calculator-center','india-finance','indicator-library','formula-library','saved-calculations','converter']},
+  {id:'tools',label:'Tools',shortLabel:'Tools',defaultRoute:'calculator-center',routes:['calculator-center','india-finance','indicator-library','formula-library','converter']},
   {id:'account',label:'Account',shortLabel:'Account',defaultRoute:'account-session',routes:['account-session','watchlist','notification-center','saved-calculations','theme-personas']}
 ]);
 
