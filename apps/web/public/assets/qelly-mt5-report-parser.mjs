@@ -108,6 +108,8 @@ async function unzipXml(bytes){
     const name=assertPath(decoder.decode(bytes.subarray(offset+46,offset+46+nameLength)));
     offset+=46+nameLength+extra+comment;
     if(flags&1||![0,8].includes(method)||unpacked>MT5_REPORT_LIMITS.entryBytes||packed>MT5_REPORT_LIMITS.fileBytes)fail('mt5_xlsx_unsupported','Encrypted, unsupported or oversized XLSX entries are rejected.');
+    if(/(?:^|\/)(?:vbaProject\.bin|externalLinks|embeddings)(?:\/|$)/i.test(name))fail('mt5_xlsx_unsupported','Macro-enabled, externally linked and embedded-object XLSX workbooks are not supported. Export a plain MT5 XLSX report instead.');
+    if(out.has(name))fail('mt5_xlsx_invalid','Duplicate XLSX archive entry names are not supported.');
     totalInflated+=unpacked;
     if(totalInflated>MT5_REPORT_LIMITS.totalInflatedBytes)fail('mt5_xlsx_limit','The decompressed XLSX workbook exceeds 48 MB.');
     if(!/^xl\/(?:worksheets\/[^/]+\.xml|sharedStrings\.xml)$/i.test(name))continue;
@@ -119,12 +121,27 @@ async function unzipXml(bytes){
     if(method===0)inflated=body;
     else{
       if(typeof DecompressionStream!=='function')fail('mt5_xlsx_decompression_unavailable','Your browser cannot decompress this XLSX workbook locally. Export MT5 CSV instead.');
-      try{inflated=new Uint8Array(await new Response(new Blob([body]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());}
-      catch{fail('mt5_xlsx_decompression_failed','The XLSX sheet could not be decompressed. Export a CSV instead.');}
+      let reader;
+      try{
+        reader=new Blob([body]).stream().pipeThrough(new DecompressionStream('deflate-raw')).getReader();
+        const chunks=[];let received=0;
+        for(;;){
+          const {done,value}=await reader.read();if(done)break;
+          received+=value.byteLength;
+          if(received>unpacked||received>MT5_REPORT_LIMITS.entryBytes){await reader.cancel();fail('mt5_xlsx_limit','XLSX decompression exceeded its declared safe size.');}
+          chunks.push(value);
+        }
+        inflated=new Uint8Array(received);let written=0;
+        for(const chunk of chunks){inflated.set(chunk,written);written+=chunk.byteLength;}
+      }catch(error){
+        if(error?.code==='mt5_xlsx_limit')throw error;
+        try{await reader?.cancel();}catch{}
+        fail('mt5_xlsx_decompression_failed','The XLSX sheet could not be decompressed. Export a CSV instead.');
+      }
     }
     if(inflated.byteLength!==unpacked||inflated.byteLength>MT5_REPORT_LIMITS.entryBytes)fail('mt5_xlsx_invalid','The XLSX decompressed entry size does not match its ZIP metadata.');
     const xml=decoder.decode(inflated);
-    if(/<!DOCTYPE|<!ENTITY/i.test(xml))fail('mt5_xlsx_unsupported','XLSX worksheets containing document entities are rejected.');
+    if(/<!DOCTYPE|<!ENTITY|<f(?:\s|>)/i.test(xml))fail('mt5_xlsx_unsupported','XLSX documents containing entity definitions or formula-derived cells are rejected. Export a static MT5 report.');
     out.set(name,xml);
   }
   return out;
