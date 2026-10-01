@@ -11,7 +11,7 @@ test('Qelly Chat is a dedicated flagship route with eight grounded workflows',as
   ]);
   assert.deepEqual(__qellyChatWorkspaceTest.MODES.map((mode)=>mode.id),['ask','research','compare','explain','calculate','decision','asset','india']);
   assert.match(app,/case 'news-research': await renderQellyChatWorkspace/);
-  assert.match(registry,/route:'news-research'.*label:'Qelly Chat & Research'.*public:true/);
+  assert.match(registry,/route:'news-research'.*label:'QELLY Chat'.*public:true/);
   assert.match(runtime,/\['Qelly Chat','news-research'\]/);
   for(const phrase of ['Ask → Tool → Ground → Verify → Decide','bounded read-only tools','Decision Intelligence','human in control','Source list updated','Source status','Research engine','Connected sources','Tool modes'])assert.match(route,new RegExp(phrase));
   assert.doesNotMatch(route,/Answer runtime|governed datasets|Connected datasets|Decision Provenance|Evidence registry|Access catalog generated|not provider freshness|Access catalog timestamp|Source-state policy|Decision Command Center/);
