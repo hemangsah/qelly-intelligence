@@ -15,15 +15,14 @@ const prohibitedPrimaryCopy=[
   'Secure identity foundation'
 ];
 
-test('production controller exposes a product header and market-first root',async()=>{
-  const controller=await read('apps/web/public/assets/qelly-public-runtime.mjs');
-  assert.match(controller,/Markets/);
-  assert.match(controller,/Research/);
-  assert.match(controller,/Formulas/);
-  assert.match(controller,/Indicators/);
-  assert.match(controller,/Calculators/);
-  assert.match(controller,/Saved/);
-  assert.match(controller,/Account/);
+test('production controller exposes a registry-owned product header and market-first root',async()=>{
+  const [controller,registry]=await Promise.all([
+    read('apps/web/public/assets/qelly-public-runtime.mjs'),
+    read('apps/web/public/assets/route-registry.mjs')
+  ]);
+  assert.match(controller,/import \{productCategories,routeIdentityFor\} from '.\/route-registry\.mjs'/);
+  assert.match(controller,/return productCategories/);
+  for(const label of ['Market Pulse','Research','Formula Library','Indicator Library','Quant Calculator Center','Saved Calculations','Profile & Security'])assert.ok(registry.includes(label),label);
   assert.match(controller,/renderMarketHomepage/);
   assert.doesNotMatch(controller,/Release ·/);
   assert.doesNotMatch(controller,/Network · online/);

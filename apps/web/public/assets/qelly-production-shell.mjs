@@ -237,7 +237,6 @@ function simplifyHeader(){
   header.dataset.productionShell='v8';
   const brand=header.querySelector('.q-product-brand');
   brand?.style.setProperty('display','inline-flex','important');
-  header.querySelector('a[data-product-route="calculator-center"]')?.replaceChildren(document.createTextNode('Tools'));
   const search=header.querySelector('#q-product-search-input');
   if(search)search.placeholder='Search Qelly';
   const system=header.querySelector('.q-product-system span:last-child');

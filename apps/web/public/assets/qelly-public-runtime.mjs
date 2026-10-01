@@ -1,3 +1,5 @@
+import {productCategories,routeIdentityFor} from './route-registry.mjs';
+
 const config=window.__QELLY_CONFIG__||{};
 const initialHash=location.hash;
 let releaseIdentity={releaseSha:config.releaseSha||'unresolved',workflowRun:null,deployedAt:null,mode:config.deploymentStage||'unknown'};
@@ -14,23 +16,31 @@ const displayTime=(value)=>{if(!value)return 'Not reported';const date=new Date(
 const stateLabel=(value)=>({live:'Live','live-public':'Live',fresh:'Fresh',cached:'Cached',stale:'Stale',delayed:'Delayed',unavailable:'Unavailable',offline:'Offline',degraded:'Degraded',simulated:'Deterministic'}[String(value||'').toLowerCase()]||String(value||'Unavailable'));
 const stateClass=(value)=>{const state=String(value||'unavailable').toLowerCase();if(state.includes('live')||state==='fresh')return'live';if(state==='cached')return'cached';if(state==='stale'||state==='delayed'||state==='degraded')return'delayed';if(state==='offline')return'offline';return'unavailable';};
 const formatPrice=(value,currency='USD')=>Number.isFinite(Number(value))?new Intl.NumberFormat(undefined,{style:'currency',currency,maximumFractionDigits:Number(value)>=100?2:6}).format(Number(value)):'Unavailable';
-const humanRoute=(route)=>({market:'Markets','asset-rankings':'Market rankings','research-workspace':'Research','formula-library':'Formulas','indicator-library':'Indicators','calculator-center':'Calculators','saved-calculations':'Saved work','auth-login':'Account','auth-register':'Create account','auth-recovery':'Account recovery','account-session':'Account','live-markets':'Live markets'}[route]||route.split('-').map((part)=>part.charAt(0).toUpperCase()+part.slice(1)).join(' '));
+const routeIdentity=()=>routeIdentityFor(routeFromHash())??routeIdentityFor('feature-universe');
+const humanRoute=(route)=>routeIdentityFor(route)?.shortTitle??String(route||'Qelly').split('-').map((part)=>part.charAt(0).toUpperCase()+part.slice(1)).join(' ');
+const categoryMenuId=(id)=>'q-product-category-'+String(id).replace(/[^a-z0-9_-]/gi,'-');
 
 function productNav(){
-  return[
-    ['Decision','decision-provenance'],
-    ['Qelly Chat','news-research'],
-    ['Markets','market'],
-    ['Research','research-workspace'],
-    ['Tools','calculator-center']
-  ];
+  return productCategories;
+}
+
+function categoryMarkup(category){
+  const menuId=categoryMenuId(category.id);
+  return `<div class="q-product-category" data-product-category="${escapeHtml(category.id)}">
+    <button class="q-product-category__trigger" type="button" data-product-category-toggle="${escapeHtml(category.id)}" aria-expanded="false" aria-haspopup="true" aria-controls="${menuId}">${escapeHtml(category.label)}<span aria-hidden="true">⌄</span></button>
+    <div class="q-product-category__menu" id="${menuId}" data-product-category-menu="${escapeHtml(category.id)}" role="group" aria-label="${escapeHtml(category.label)} destinations" hidden>
+      ${category.routes.map((route)=>`<a href="#/${escapeHtml(route.route)}" data-product-route="${escapeHtml(route.route)}"><span>${route.icon}</span><span><strong>${escapeHtml(route.shortTitle)}</strong><small>${escapeHtml(route.description)}</small></span></a>`).join('')}
+    </div>
+  </div>`;
 }
 
 function productHeaderMarkup(){
+  const identity=routeIdentity();
   return `
     <a class="q-product-brand" href="#/market" aria-label="Qelly Intelligence home"><span class="q-product-brand__mark"><img src="./assets/brand/qelly-symbol.svg" width="28" height="28" alt=""></span><span><strong>Qelly</strong><small>Market intelligence</small></span></a>
     <button class="q-product-menu" type="button" aria-expanded="false" aria-controls="q-product-navigation"><span aria-hidden="true">☰</span><span>Menu</span></button>
-    <nav id="q-product-navigation" class="q-product-nav" aria-label="Primary">${productNav().map(([label,route])=>`<a href="#/${route}" data-product-route="${route}">${label}</a>`).join('')}</nav>
+    <nav id="q-product-navigation" class="q-product-nav" aria-label="Primary product categories">${productNav().map(categoryMarkup).join('')}</nav>
+    <div class="q-product-context" data-q-product-context aria-live="polite"><small data-q-product-category-label>${escapeHtml(identity?.categoryLabel||'Discover')}</small><strong data-q-product-page-title>${escapeHtml(identity?.shortTitle||'Qelly')}</strong></div>
     <form class="q-product-search" role="search"><label class="q-visually-hidden" for="q-product-search-input">Search Qelly</label><input id="q-product-search-input" name="q" type="search" autocomplete="off" placeholder="Search Qelly"><button type="submit" aria-label="Search Qelly"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg><span class="q-visually-hidden">Search</span></button></form>
     <div class="q-product-actions"><button class="q-product-system" type="button" data-product-route="status" aria-label="Open system status"><span class="q-product-system__dot"></span><span>Data status</span></button><button class="q-product-system" type="button" data-v8-appearance="true" aria-label="Toggle appearance"><span aria-hidden="true">◐</span><span>Appearance</span></button><a class="q-product-account" href="#/auth-login" aria-label="Sign in to Qelly"><span aria-hidden="true">●</span><span>Sign in</span></a></div>`;
 }
@@ -56,17 +66,40 @@ function syncProductHeaderState(header){
   }
 }
 
+function closeProductCategories(header,except=null){
+  header.querySelectorAll('[data-product-category]').forEach((category)=>{
+    if(except&&category===except)return;
+    category.classList.remove('is-open');
+    category.querySelector('[data-product-category-toggle]')?.setAttribute('aria-expanded','false');
+    const menu=category.querySelector('[data-product-category-menu]');if(menu)menu.hidden=true;
+  });
+}
+function setProductCategoryOpen(header,category,open){
+  closeProductCategories(header,open?category:null);
+  category.classList.toggle('is-open',open);
+  category.querySelector('[data-product-category-toggle]')?.setAttribute('aria-expanded',String(open));
+  const menu=category.querySelector('[data-product-category-menu]');if(menu)menu.hidden=!open;
+}
 function bindProductHeader(header){
   if(header.dataset.qellyProductHeaderBound==='true')return;
   header.dataset.qellyProductHeaderBound='true';
-  header.querySelector('.q-product-menu')?.addEventListener('click',(event)=>{const open=header.classList.toggle('is-menu-open');event.currentTarget.setAttribute('aria-expanded',String(open));if(open)header.querySelector('#q-product-navigation a')?.focus();});
-  header.querySelectorAll('[data-product-route]').forEach((element)=>element.addEventListener('click',(event)=>{event.preventDefault();header.classList.remove('is-menu-open');header.querySelector('.q-product-menu')?.setAttribute('aria-expanded','false');navigate(element.dataset.productRoute);}));
+  header.querySelector('.q-product-menu')?.addEventListener('click',(event)=>{const open=header.classList.toggle('is-menu-open');event.currentTarget.setAttribute('aria-expanded',String(open));if(open)header.querySelector('[data-product-category-toggle]')?.focus();else closeProductCategories(header);});
+  header.querySelectorAll('[data-product-category]').forEach((category)=>{
+    const toggle=category.querySelector('[data-product-category-toggle]');
+    toggle?.addEventListener('click',(event)=>{event.stopPropagation();setProductCategoryOpen(header,category,toggle.getAttribute('aria-expanded')!=='true');});
+    toggle?.addEventListener('keydown',(event)=>{if(event.key==='ArrowDown'){event.preventDefault();setProductCategoryOpen(header,category,true);category.querySelector('[data-product-route]')?.focus();}if(event.key==='Escape'){event.preventDefault();setProductCategoryOpen(header,category,false);toggle.focus();}});
+    category.addEventListener('mouseenter',()=>{if(matchMedia('(hover:hover) and (min-width:761px)').matches)setProductCategoryOpen(header,category,true);});
+    category.addEventListener('mouseleave',()=>{if(matchMedia('(hover:hover) and (min-width:761px)').matches)setProductCategoryOpen(header,category,false);});
+    category.addEventListener('focusout',(event)=>{if(!category.contains(event.relatedTarget))setProductCategoryOpen(header,category,false);});
+  });
+  header.querySelectorAll('[data-product-route]').forEach((element)=>element.addEventListener('click',(event)=>{event.preventDefault();header.classList.remove('is-menu-open');header.querySelector('.q-product-menu')?.setAttribute('aria-expanded','false');closeProductCategories(header);navigate(element.dataset.productRoute);}));
   header.querySelector('.q-product-search')?.addEventListener('submit',(event)=>{event.preventDefault();const query=new FormData(event.currentTarget).get('q')?.toString().trim();navigate('search',query?`q=${encodeURIComponent(query)}`:'');});
   header.querySelector('[data-v8-appearance]')?.addEventListener('click',async(event)=>{
     const button=event.currentTarget;button.disabled=true;
     try{if(window.QellyThemeStudio?.toggleAppearance)await window.QellyThemeStudio.toggleAppearance({notify:false});else navigate('theme-lab');}
     finally{button.disabled=false;syncProductHeaderState(header);}
   });
+  document.addEventListener('click',(event)=>{if(!header.contains(event.target))closeProductCategories(header);});
 }
 
 function buildProductHeader(){
@@ -78,9 +111,10 @@ function buildProductHeader(){
     return;
   }
   headerRetryCount=0;
-  if(!header.matches('.q-product-header[data-qelly-current-shell="true"]')){
+  if(header.dataset.qellyRouteRegistryOwner!=='true'){
     header.className='q-product-header';
     header.dataset.qellyCurrentShell='true';
+    header.dataset.qellyRouteRegistryOwner='true';
     header.setAttribute('aria-label','Qelly product navigation');
     header.innerHTML=productHeaderMarkup();
   }
@@ -89,8 +123,18 @@ function buildProductHeader(){
   updateHeaderRoute();
 }
 function updateHeaderRoute(){
-  const route=routeFromHash();
-  document.querySelectorAll('[data-product-route]').forEach((element)=>{const current=element.dataset.productRoute===route;element.classList.toggle('is-active',current);if(element.tagName==='A')element.setAttribute('aria-current',current?'page':'false');});
+  const route=routeFromHash(),identity=routeIdentityFor(route)??routeIdentityFor('feature-universe');
+  const header=document.querySelector('.q-product-header[data-qelly-current-shell="true"]');
+  document.querySelectorAll('[data-product-route]').forEach((element)=>{const current=element.dataset.productRoute===route;element.classList.toggle('is-active',current);if(element.tagName==='A'){if(current)element.setAttribute('aria-current','page');else element.removeAttribute('aria-current');}});
+  header?.querySelectorAll('[data-product-category]').forEach((category)=>category.classList.toggle('is-current',category.dataset.productCategory===identity?.category));
+  const categoryNode=header?.querySelector('[data-q-product-category-label]'),titleNode=header?.querySelector('[data-q-product-page-title]');
+  if(categoryNode)categoryNode.textContent=identity?.categoryLabel||'Discover';
+  if(titleNode)titleNode.textContent=identity?.shortTitle||'Qelly';
+  if(identity){
+    document.documentElement.dataset.routeIdentity=identity.route;
+    document.documentElement.dataset.routeCategory=identity.category;
+    document.dispatchEvent(new CustomEvent('qelly:route-identity',{detail:identity}));
+  }
 }
 
 function applySessionState(detail){

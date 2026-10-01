@@ -1,4 +1,5 @@
 import {storeDecisionContext} from '../decision-context-bridge.mjs';
+import {routeIdentityFor} from '../route-registry.mjs';
 const STORAGE_KEY='qelly.intelligence.chat.v1';
 const DECISION_DRAFT_KEY='qelly.decision.draft.v1';
 const MAX_MESSAGES=24;
@@ -146,15 +147,16 @@ const currentRoute=()=>String(globalThis.location?.hash||'').replace(/^#\/?/,'')
 const safeDockText=(value,fallback,max=96)=>String(value??fallback).replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max)||fallback;
 const normalizeDockContext=(value={})=>{
   const route=safeDockText(value.route,currentRoute(),64);
+  const identity=routeIdentityFor(route);
   const mode=CHAT_MODES.some(item=>item.id===value.mode)?value.mode:'ask';
   const asset=CHAT_ASSETS.includes(value.asset)?value.asset:null;
   const timeframe=CHAT_TIMEFRAMES.includes(value.timeframe)?value.timeframe:null;
   return Object.freeze({
     route,
-    contextType:safeDockText(value.contextType,'page',48),
-    stateLabel:safeDockText(value.stateLabel,'QELLY CHAT',48),
-    actionLabel:safeDockText(value.actionLabel,'Ask Qelly',80),
-    meta:safeDockText(value.meta,'Current page context',96),
+    contextType:safeDockText(value.contextType,identity?.chatContextType||'page',48),
+    stateLabel:safeDockText(value.stateLabel,(identity?.categoryLabel||'QELLY CHAT').toUpperCase(),48),
+    actionLabel:safeDockText(value.actionLabel,'Ask QELLY',80),
+    meta:safeDockText(value.meta,identity?.shortTitle||'Current page context',96),
     prompt:safeDockText(value.prompt,'',1200),
     mode,
     asset,

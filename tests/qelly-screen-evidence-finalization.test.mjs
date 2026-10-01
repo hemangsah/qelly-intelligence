@@ -24,7 +24,7 @@ test('screen evidence authenticates through an explicit local fixture identity',
 
 test('every screenshot must prove route identity rather than only render a heading',async()=>{
   const harness=await read('scripts/release-a5-screen-batch-v2.py');
-  assert.match(harness,/expected_title = f"\{definition\['label'\]\} · Qelly Intelligence"/);
+  assert.match(harness,/expected_title = definition\.get\('seoTitle'\) or f"\{definition\['label'\]\} · Qelly Intelligence"/);
   assert.match(harness,/expected_hash = f'#\/\{route_name\}'/);
   assert.match(harness,/if title != expected_title:/);
   assert.match(harness,/if resolved_hash != expected_hash:/);

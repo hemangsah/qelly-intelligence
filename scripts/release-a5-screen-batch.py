@@ -40,13 +40,13 @@ context_isolation = """                    reduced_motion='reduce',
                     service_workers='block',
                 ),
 """
-detail_route_marker = """                expected_title = f\"{definition['label']} · Qelly Intelligence\"
+detail_route_marker = """                expected_title = definition.get('seoTitle') or f\"{definition['label']} · Qelly Intelligence\"
                 expected_hash = f'#/{route_name}'
                 try:
                     page.goto(
                         f'{EXPECTED_ORIGIN}/#/{route_name}',
 """
-detail_route_evidence = """                expected_title = f\"{definition['label']} · Qelly Intelligence\"
+detail_route_evidence = """                expected_title = definition.get('seoTitle') or f\"{definition['label']} · Qelly Intelligence\"
                 governed_detail_assets = {
                     'formula-detail': 'position-size',
                     'calculator-detail': 'position-size',

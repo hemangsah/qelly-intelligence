@@ -406,7 +406,7 @@ try:
                 page_height = None
                 status = 'passed'
                 screenshot = OUT / f'{route_name}__{viewport_name}.png'
-                expected_title = f"{definition['label']} · Qelly Intelligence"
+                expected_title = definition.get('seoTitle') or f"{definition['label']} · Qelly Intelligence"
                 expected_hash = f'#/{route_name}'
                 try:
                     page.goto(
