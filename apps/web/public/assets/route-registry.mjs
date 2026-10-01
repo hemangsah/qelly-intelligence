@@ -271,6 +271,7 @@ const fallbackCategory=(item)=>{
 
 const categoryLabel=(id)=>PRODUCT_CATEGORY_BLUEPRINTS.find((item)=>item.id===id)?.label??'System';
 const categoryDefaultRoute=(id)=>PRODUCT_CATEGORY_BLUEPRINTS.find((item)=>item.id===id)?.defaultRoute??'feature-universe';
+const breadcrumb=(label,route)=>Object.freeze({label,route});
 
 export const routeDefinitions = routes.map((item)=>{
   const guide=FEATURE_GUIDE[item.route]??{};
@@ -288,7 +289,7 @@ export const routeDefinitions = routes.map((item)=>{
   return Object.freeze({
     ...item,
     ...guide,
-    label:pageTitle,
+    label:item.label,
     pageTitle,
     shortTitle,
     category,
@@ -298,9 +299,9 @@ export const routeDefinitions = routes.map((item)=>{
     seoTitle:override.seoTitle??pageTitle+' · Qelly Intelligence',
     canonical,
     breadcrumbs:Object.freeze([
-      Object.freeze({label:'Qelly',route:'feature-universe'}),
-      Object.freeze({label:categoryLabel(category),route:categoryDefaultRoute(category)}),
-      Object.freeze({label:shortTitle,route:item.route})
+      breadcrumb('Qelly','feature-universe'),
+      breadcrumb(categoryLabel(category),categoryDefaultRoute(category)),
+      breadcrumb(shortTitle,item.route)
     ]),
     featureFlags,
     domain:explicitDomain[item.route]??'markets',
