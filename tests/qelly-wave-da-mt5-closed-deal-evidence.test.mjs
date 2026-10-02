@@ -47,3 +47,7 @@ test('no losses or unknown costs are represented as unavailable, not fake zero r
  assert.equal(v.costs.swap.coveragePct,0);assert.equal(v.metrics.maxClosedDealDrawdown,0);
  assert.equal(v.metrics.recoveryFactor,null);
 });
+
+test('statistical output never implies predictive certainty and skips small samples',()=>{
+ const v=analyzeMt5ClosedDeals(data,validation);assert.equal(v.statisticalEvidence.bootstrapMean95,null);assert.match(v.statisticalEvidence.status,/INSUFFICIENT/);
+});
