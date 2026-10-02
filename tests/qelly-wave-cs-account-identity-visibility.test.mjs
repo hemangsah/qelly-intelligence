@@ -33,7 +33,8 @@ test('account page presents truthful read-only inventory and gates actual MFA an
  assert.match(source,/linked\.items\.map\(item/);
  assert.match(source,/Linking or unlinking additional providers is not enabled/);
  assert.match(source,/api\('\/api\/v1\/auth\/mfa\/status'\)\.catch\(\(\)=>null\)/);
- assert.match(source,/api\('\/api\/v1\/auth\/passkeys'\)\.catch\(\(\)=>null\)/);
+ assert.doesNotMatch(source,/api\('\/api\/v1\/auth\/passkeys'/);
+ assert.match(source,/const passkeysReady=false/);
  assert.match(source,/mfaReady\?'<a class="q-v6-security-action"/);
  assert.match(source,/passkeysReady\?'<a class="q-v6-security-action"/);
  assert.doesNotMatch(source,/api\('\/api\/v1\/auth\/identities\/link'/);
