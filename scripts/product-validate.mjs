@@ -153,7 +153,7 @@ const checks = {
   version: pkg.version === productVersion,
   requiredFiles: missingFiles.length === 0,
   forbiddenPublicAssetsAbsent: presentForbiddenPublicFiles.length === 0,
-  routes: routes.length === 71 && new Set(routes).size === routes.length,
+  routes: routes.length === 72 && new Set(routes).size === routes.length,
   routeRegistry: routeNames.length === routes.length && routes.every((route) => routeNames.includes(route)) && routeNames.every((route) => routes.includes(route)),
   routeInventory: routeInventoryRoutes.length === routes.length && routes.every((route) => routeInventoryRoutes.includes(route)) && routeInventoryRoutes.every((route) => routes.includes(route)),
   apiContracts: apiRoutes.length === 211 && new Set(apiRoutes).size === apiRoutes.length,
