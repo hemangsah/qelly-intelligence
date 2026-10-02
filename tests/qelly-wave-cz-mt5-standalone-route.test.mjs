@@ -17,6 +17,12 @@ test('standalone MT5 Analyzer is a first-class public tool with coherent identit
  assert.equal(found[0].canonical,'#/mt5-report-analyzer');
  assert.equal(found[0].breadcrumbs.at(-1).route,'mt5-report-analyzer');
 });
+test('Release and smoke checks require the expanded canonical route set',async()=>{
+ const [releaseCheck,smoke]=await Promise.all([read('scripts/release-check.mjs'),read('scripts/smoke.mjs')]);
+ assert.match(releaseCheck,/routes\.length !== 72/);
+ assert.match(smoke,/config\.routes\.length === 72/);
+ assert.match(smoke,/config\.routes\.includes\('mt5-report-analyzer'\)/);
+});
 test('one authoritative route invokes dedicated renderer and clears local files before leaving',async()=>{
  const app=await read('apps/web/public/assets/app.js');
  assert.match(app,/renderMt5ReportAnalyzer=lazyRoute\('\.\/qelly-mt5-analyzer-route\.mjs','renderMt5ReportAnalyzer'\)/);
