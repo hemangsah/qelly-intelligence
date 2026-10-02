@@ -109,6 +109,8 @@ jobs:
         run: node scripts/qelly-first-paint-stability.mjs
       - name: Capture every registered route at desktop and mobile widths
         run: npm run browser:all
+      - name: Verify local MT5 HTML and XLSX upload interactions
+        run: node scripts/qelly-mt5-upload-e2e.mjs
       - name: Validate accessibility and responsive interaction contracts
         run: |
           npm run a11y
@@ -141,6 +143,7 @@ jobs:
             preview/RELEASE_A5_ALL_SCREENS_LOG.json
             preview/first-paint-stability
             preview/decision-range-e2e
+            preview/mt5-upload-e2e
             validation/RELEASE_A5_ACCESSIBILITY_REGRESSION.json
           include-hidden-files: true
           if-no-files-found: warn

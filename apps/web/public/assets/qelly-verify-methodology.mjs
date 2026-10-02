@@ -64,7 +64,7 @@ export const QELLY_VERIFY_METHODOLOGY=freeze({
     overfittingRisk:'Inverse evidence heuristic derived from robustness, quality and concentration. It is a warning index, not an estimated probability of overfitting.'
   }),
   reproducibility:freeze({
-    input:'Normalized UTF-8 file text is fingerprinted with SHA-256 when Web Crypto is available; a labelled deterministic fallback is used otherwise.',
+    input:'CSV and HTML normalized UTF-8 source text is fingerprinted with SHA-256; XLSX is fingerprinted from its raw file bytes. A labelled deterministic fallback is used when Web Crypto is unavailable.',
     engine:'Every export records report schema, methodology version, engine version and generation time.',
     randomness:'Sequence stress uses a deterministic seed derived from uploaded P&L values.',
     interpretation:'Numerical reproducibility does not establish external validity.'

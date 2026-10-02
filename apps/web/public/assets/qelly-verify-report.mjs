@@ -17,13 +17,15 @@ function fnv1a(value){
 }
 
 export async function fingerprintSource(source){
-  const normalized=normalizedSource(source);
-  if(globalThis.crypto?.subtle&&globalThis.TextEncoder){
-    const encoded=new TextEncoder().encode(normalized);
+  const binary=source instanceof Uint8Array?source:source instanceof ArrayBuffer?new Uint8Array(source):null;
+  const normalized=binary?null:normalizedSource(source);
+  const encoded=binary||new TextEncoder().encode(normalized);
+  if(globalThis.crypto?.subtle){
     const digest=await globalThis.crypto.subtle.digest('SHA-256',encoded);
-    return freeze({algorithm:'SHA-256',value:[...new Uint8Array(digest)].map(byte=>byte.toString(16).padStart(2,'0')).join(''),normalizedBytes:encoded.byteLength});
+    return freeze({algorithm:'SHA-256',value:[...new Uint8Array(digest)].map(byte=>byte.toString(16).padStart(2,'0')).join(''),normalizedBytes:encoded.byteLength,encoding:binary?'raw-file-bytes':'normalized-utf8'});
   }
-  return freeze({algorithm:'FNV-1A-32-FALLBACK',value:fnv1a(normalized),normalizedBytes:normalized.length});
+  const fallback=binary?[...binary].map(byte=>String.fromCharCode(byte)).join(''):normalized;
+  return freeze({algorithm:'FNV-1A-32-FALLBACK',value:fnv1a(fallback),normalizedBytes:encoded.byteLength,encoding:binary?'raw-file-bytes':'normalized-utf8'});
 }
 
 function postureFor(analysis){
@@ -60,6 +62,11 @@ function dataQuality(validation){
   if(!validation.detectedFields?.openedAt&&!validation.detectedFields?.closedAt)issues.push('No mapped timestamps: chronological and holding-period diagnostics are limited.');
   if(!validation.detectedFields?.fees)issues.push('No mapped fees: transaction-cost sensitivity is not assessed.');
   if(!validation.detectedFields?.symbol)issues.push('No mapped symbol: instrument-level concentration is not assessed.');
+  if(validation.mt5){
+    issues.push('MT5 realized-deal parsing only: entry-side commission, deposits, withdrawals and unmatched position costs are not reconciled; reported P&L is not guaranteed to equal account net performance.');
+    if(validation.mt5.closingDealsWithMissingCosts)issues.push(`${validation.mt5.closingDealsWithMissingCosts} closing deal(s) had missing or non-numeric reported costs. P&L includes only known cost values.`);
+    issues.push('MT5 source authenticity, broker signature and independent execution records have not been verified.');
+  }
   if(!issues.length)issues.push('No primary parsing limitation fired; source authenticity and point-in-time integrity remain unverified.');
   return freeze({
     state:'COMPUTED',
@@ -139,7 +146,7 @@ export async function composeStrategyEvidenceReport({analysis,validation,sourceT
     }),
     sequenceStress:freeze({...analysis.stress,state:'COMPUTED',method:'deterministic-seeded-trade-order-shuffle'}),
     allocationResearch:freeze({...analysis.allocation,state:'HEURISTIC',boundary:'Not personalized position sizing; portfolio and execution context are not assessed.'}),
-    warnings:freeze([...analysis.warnings]),
+    warnings:freeze([...analysis.warnings,...(validation.mt5?['MT5 imported closes are not fully reconciled to entry-side costs, deposits or broker statements.']:[])]),
     failureConditions:failureConditions(analysis,validation),
     limitations:freeze([...analysis.limitations,...QELLY_VERIFY_METHODOLOGY.notAssessed.map(entry=>`${entry.label}: ${entry.description}`)]),
     provenance:freeze({

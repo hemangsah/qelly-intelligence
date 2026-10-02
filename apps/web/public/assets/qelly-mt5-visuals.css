@@ -1,0 +1,21 @@
+.q-mt5-report{display:grid;gap:22px;padding-block:20px;color:var(--text,#e7edf4)}
+.q-mt5-report header h3{font-size:clamp(20px,2.5vw,28px);line-height:1.25;margin:6px 0}
+.q-mt5-report header p{font-size:14px;line-height:1.5;color:var(--text-muted,#a7b5c2)}
+.q-mt5-eyebrow{font-size:12px;font-weight:750;letter-spacing:.11em;text-transform:uppercase}
+.q-mt5-disclosure{font-size:14px;line-height:1.65;padding:14px 18px;border-inline-start:4px solid var(--warning,#dca842);background:var(--surface-elevated,rgba(255,255,255,.06))}
+.q-mt5-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.q-mt5-kpi{padding:17px;border:1px solid var(--border,#637487);border-radius:13px;background:var(--surface,#17232e)}
+.q-mt5-kpi span,.q-mt5-kpi small{display:block;font-size:12px;line-height:1.5;color:var(--text-muted,#acb8c4)}
+.q-mt5-kpi strong{display:block;margin:7px 0;font-size:clamp(21px,2vw,29px);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.q-mt5-charts,.q-mt5-breakdowns{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px}
+.q-mt5-chart,.q-mt5-breakdown,.q-mt5-statistical,.q-mt5-notes{min-width:0;padding:17px;border:1px solid var(--border,#637487);border-radius:14px;background:var(--surface,#17232e)}
+.q-mt5-chart{margin:0}.q-mt5-chart svg{display:block;width:100%;height:auto}
+.q-mt5-line{fill:none;stroke:var(--accent,#79a7f3);stroke-width:2;vector-effect:non-scaling-stroke}.q-mt5-line-loss{stroke:var(--negative,#df6972)}.q-mt5-zero-line{stroke:var(--border,#778798);stroke-width:1;stroke-dasharray:5 4}
+.q-mt5-chart figcaption,.q-mt5-limit{font-size:13px;line-height:1.55;color:var(--text-muted,#acb8c4)}
+.q-mt5-breakdown{overflow-x:auto}.q-mt5-breakdown h4,.q-mt5-statistical h4,.q-mt5-notes h4{font-size:16px;margin:0 0 12px}
+.q-mt5-breakdown table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+.q-mt5-breakdown th,.q-mt5-breakdown td{padding:10px 7px;border-bottom:1px solid var(--border,#778798);text-align:right;white-space:nowrap}
+.q-mt5-breakdown th:first-child{text-align:left}.q-mt5-small-n{color:var(--warning,#dca842);font-size:11px}
+.q-mt5-statistical p,.q-mt5-notes li{font-size:13px;line-height:1.65}.q-mt5-notes ul{padding-inline-start:18px}
+@media(max-width:620px){.q-mt5-charts,.q-mt5-breakdowns{grid-template-columns:minmax(0,1fr)}.q-mt5-chart,.q-mt5-breakdown{padding:12px}}
+@media(prefers-reduced-motion:reduce){.q-mt5-report *{animation:none!important;transition:none!important}}
