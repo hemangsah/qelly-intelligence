@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js@2.112.4/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.4";
+import {shouldReuseEcbDailyCache} from "./cache-freshness.mjs";
 
 const ECB_HISTORY_URL="https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml";
 const ECB_DAILY_URL="https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml";
@@ -57,7 +58,10 @@ Deno.serve(async(req)=>{
 
   const now=new Date();
   const {data:cached}=await admin.from("qelly_provider_cache").select("observation_time,ingestion_time,expires_at,stale_until,payload,truth_state").eq("provider_id",PROVIDER_KEY).eq("cache_key",CACHE_KEY).maybeSingle();
-  if(cached?.expires_at&&new Date(cached.expires_at).getTime()>now.getTime()){
+  // Weekday cron runs once after ECB publication. An unexpired 36-hour
+  // cache must not suppress a NEW UTC ingestion date: that previously
+  // caused every-other-business-day reference-rate freshness.
+  if(shouldReuseEcbDailyCache(cached,now)){
     return reply(200,{ok:true,provider:PROVIDER_KEY,reused:true,stale:false,truthState:cached.truth_state,observationTime:cached.observation_time,ingestionTime:cached.ingestion_time,count:Object.keys(cached.payload?.rates||{}).length,historyDays:Number(cached.payload?.historyDays)||0,historyPointCount:Number(cached.payload?.historyPointCount)||0,actor:"scheduler"});
   }
 
