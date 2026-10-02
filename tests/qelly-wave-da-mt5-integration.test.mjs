@@ -12,6 +12,8 @@ test('real MT5 HTML flows through parsed closing deals, advanced metrics and the
  const parsed=parseMt5Html(doc(15)),detail=analyzeMt5ClosedDeals(parsed.trades,parsed.validation),general=analyzeTrades(parsed.trades);
  assert.equal(detail.sample.deals,15);
  assert.equal(detail.metrics.netPnl,general.performance.netProfit);
+ assert.equal(parsed.trades[0].commission,-0.1);
+ assert.equal(parsed.trades[0].fees,-0.1);
  assert.equal(detail.costs.commission.coveragePct,100);
  const html=renderMt5ClosedDealEvidence(detail);
  assert.match(html,/MT5 Report Analyzer/);assert.match(html,/account currency unverified/);assert.match(html,/not account equity/i);

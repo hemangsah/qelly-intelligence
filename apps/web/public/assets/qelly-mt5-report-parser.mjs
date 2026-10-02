@@ -49,16 +49,17 @@ function parseRows(rows,{sourceFormat,maxRows=MT5_REPORT_LIMITS.rows}={}){
     if(!['out','out by','inout','in out','close','close by'].includes(entry)){skippedOpen++;continue;}
     if(closed>=maxRows)fail('mt5_report_row_limit','The MT5 report exceeds the local realized-deal limit.');
     const rawProfit=num(at('profit'));if(rawProfit===null){unpriced++;if(invalidExamples.length<10)invalidExamples.push({row:i+1,reason:'Closing deal has no numeric realized profit'});continue;}
-    const fields=['commission','fee','swap'];let knownCost=0,missingCost=false;
+    const fields=['commission','fee','swap'];let knownCost=0,missingCost=false;const closingCosts={commission:null,fee:null,swap:null};
     for(const name of fields){
       if(mapping[name]<0)continue;
       const raw=at(name);const n=num(raw);
       if(n===null){missingCost=true;continue;}
+      closingCosts[name]=n;
       knownCost+=n;
     }
     if(missingCost)unknownCost++;
     const time=at('time'),symbol=at('symbol');
-    trades.push(Object.freeze({index:trades.length+1,pnl:Math.round((rawProfit+knownCost)*1e8)/1e8,fees:Math.round(knownCost*1e8)/1e8,openedAt:null,closedAt:time||null,symbol:symbol||null,side:kind,dealId:at('deal')||null,positionId:at('position')||null}));
+    trades.push(Object.freeze({index:trades.length+1,pnl:Math.round((rawProfit+knownCost)*1e8)/1e8,fees:Math.round(knownCost*1e8)/1e8,commission:closingCosts.commission,fee:closingCosts.fee,swap:closingCosts.swap,openedAt:null,closedAt:time||null,symbol:symbol||null,side:kind,dealId:at('deal')||null,positionId:at('position')||null}));
     closed++;
   }
   if(!found)fail('mt5_deals_table_missing','No supported MT5 Deals table was found. A report must include Profit, Type, Direction and Time or Deal headers.');
