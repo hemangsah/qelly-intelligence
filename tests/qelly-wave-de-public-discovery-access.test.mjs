@@ -12,10 +12,11 @@ test('discovery saved workspace and mutation routes remain private',()=>{
   assert.equal(isPublicApiContractRoute('/api/v1/discovery/research/:id'),true);
   assert.equal(isPublicApiContractRoute('/api/v1/discovery/saved'),false);
 });
-test('evidence runtime owns public anonymous bootstrap but does not invent production account access',async()=>{
+test('isolated screenshot adapter never spoofs authenticated bootstrap without a real session context',async()=>{
   const src=await readFile(new URL('../scripts/release-a5-evidence-server.mjs',import.meta.url),'utf8');
-  assert.match(src,/url.pathname==='\/api\/v1\/bootstrap'/);
-  assert.match(src,/evidenceBoundary:'isolated-public-bootstrap-fixture'/);
+  assert.doesNotMatch(src,/if\(request\.method==='GET'&&url\.pathname==='\/api\/v1\/bootstrap'\)/);
+  assert.doesNotMatch(src,/evidenceBoundary:'isolated-public-bootstrap-fixture'/);
+  assert.match(src,/return proxyToLegacy\(request,response,legacy\.port\)/);
   assert.match(src,/if\(!hasEvidenceSession\(request\)\)return sessionRequired\(response,'The evidence profile contract/);
   assert.match(src,/if\(!hasEvidenceSession\(request\)\)return sessionRequired\(response,'The evidence data-plane contract/);
 });
