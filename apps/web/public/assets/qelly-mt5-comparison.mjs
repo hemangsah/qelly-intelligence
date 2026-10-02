@@ -2,7 +2,7 @@
  * No fabricated currency, position matching, account equity or causal claims. */
 const round=(value,places=3)=>Number.isFinite(value)?Number(value.toFixed(places)):null;
 const cleanMetric=value=>typeof value==='number'&&Number.isFinite(value)?value:null;
-const groupByKey=(groups)=>new Map((Array.isArray(groups)?groups:[]).filter(x=>x&&typeof x.key==='string'&&x.key.length<=40).map(x=>[x.key,x]));
+const groupByKey=(groups)=>new Map((Array.isArray(groups)?groups:[]).filter(x=>x&&(typeof x.key==='string'||Number.isInteger(x.key))&&String(x.key).length<=40).map(x=>[String(x.key),x]));
 const dimension=(name,a,b,{minimum=1,rate=false}={})=>{
   const valid=cleanMetric(a)!==null&&cleanMetric(b)!==null;
   const enough=valid&&minimum>=30;

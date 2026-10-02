@@ -38,3 +38,8 @@ test('unvalidated, malformed and empty reports fail closed',()=>{
  assert.throws(()=>compareMt5ClosedDealReports({},build(40)),/validated MT5/);
  assert.throws(()=>compareMt5ClosedDealReports(build(40),{schema:'qelly.mt5.closed-deals/1.0'}),/validated MT5/);
 });
+
+test('numeric report-clock hour groups are compared rather than silently dropped',()=>{
+ const x=compareMt5ClosedDealReports(build(34),build(40));
+ assert.ok(x.groups.hour.some(group=>group.key==='10'&&group.reportA?.trades>0));
+});
