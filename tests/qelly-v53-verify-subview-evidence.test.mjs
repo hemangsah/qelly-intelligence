@@ -17,7 +17,7 @@ const WORKFLOW='.github/workflows/verify-evidence.yml';
 test('Qelly Verify is a canonical public Evidence route with methodology owned by the same lazy route',async()=>{
   const [registry,router,app,product]=await Promise.all([read(REGISTRY),read(ROUTER),read(APP),read(PRODUCT)]);
   const routes=[...registry.matchAll(/route:'([^']+)'/g)].map(match=>match[1]);
-  assert.equal(routes.length,71);
+  assert.equal(routes.length,72);
   assert.equal(routes.includes('qelly-verify'),true);
   assert.equal(routes.includes('evidence-methodology'),false);
   assert.match(registry,/route:'qelly-verify', label:'Qelly Verify'.*public:true/);

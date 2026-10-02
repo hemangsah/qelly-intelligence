@@ -57,6 +57,7 @@ const renderQuarantineReview=lazyRoute('./routes/quarantine-review.mjs','renderQ
 const renderStagingAssurance=lazyRoute('./routes/staging-assurance.mjs','renderStagingAssurance');
 const renderDecisionProvenance=lazyRoute('./routes/decision-provenance.mjs','renderDecisionProvenance');
 const renderQellyVerify=lazyRoute('./qelly-verify-product.mjs','renderVerify');
+const renderMt5ReportAnalyzer=lazyRoute('./qelly-mt5-analyzer-route.mjs','renderMt5ReportAnalyzer');
 const renderQellyVerifyMethodology=lazyRoute('./qelly-verify-product.mjs','renderMethodology');
 const renderQellyChatWorkspace=lazyRoute('./routes/qelly-chat-workspace.mjs','renderQellyChatWorkspace');
 const renderCalculatorCenter=lazyRoute('./routes/calculator-center.mjs','renderCalculatorCenter');
@@ -79,7 +80,7 @@ const renderConverterWorkspace=lazyRoute('./routes/converter.mjs','renderConvert
 const runtimeConfig=Object.freeze({...window.__QELLY_CONFIG__});
 const staticVisualPreview=runtimeConfig.staticVisualPreview===true;
 const staticPreviewApi=staticVisualPreview?await import('./static-preview-api.mjs'):null;
-const staticPreviewRoutes=new Set(['market','asset-rankings','asset','decision-provenance','feature-universe','about-qelly','theme-personas','auth-login','auth-register','auth-recovery','calculator-center','india-finance','indicator-library','formula-library','saved-calculations','formula-detail','indicator-detail','calculator-detail','saved-calculation-detail','news-research']);
+const staticPreviewRoutes=new Set(['market','asset-rankings','asset','decision-provenance','feature-universe','about-qelly','theme-personas','auth-login','auth-register','auth-recovery','calculator-center','mt5-report-analyzer','india-finance','indicator-library','formula-library','saved-calculations','formula-detail','indicator-detail','calculator-detail','saved-calculation-detail','news-research']);
 const apiBaseUrl=String(runtimeConfig.apiBaseUrl??'').replace(/\/$/,'');
 const apiUrl=(path)=>apiBaseUrl?new URL(path,`${apiBaseUrl}/`).toString():path;
 
@@ -387,6 +388,8 @@ function navigate(route, asset = null) {
 function renderRoute(){
   const request=++routeRenderRequest;
   activeRouteController?.abort();
+  window.__qellyMt5AnalyzerCleanup?.();
+  window.__qellyMt5AnalyzerCleanup=null;
   window.__qellyLiveMarketCleanup?.();
   window.__qellyLiveMarketCleanup=null;
   window.__qellyMarketV6Cleanup?.();
@@ -505,6 +508,7 @@ async function performRouteRender(request,controller) {
       case 'stream-operations': await renderStreamOperations(main); break;
       case 'observability': await renderObservability(main); break;
       case 'decision-provenance': await renderDecisionProvenance(main,{api,pageHead,stateBanner,escapeHtml,toast,renderRoute,navigate}); break;
+      case 'mt5-report-analyzer': await renderMt5ReportAnalyzer(main); break;
       case 'qelly-verify':
         if(state.routeQuery?.get?.('view')==='methodology')await renderQellyVerifyMethodology();
         else await renderQellyVerify();

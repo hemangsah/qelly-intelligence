@@ -100,6 +100,38 @@ async function scenario(browser,name,viewport){
     await page.locator('.q-verify-score-grid .q-verify-score').first().waitFor({state:'visible',timeout:20000});
     assert.equal(await page.locator('.q-mt5-report').count(),0);
     entry.checks.push('existing CSV sample remains unaffected');
+
+    // Wave CZ: exercise the new standalone public tool, its local-only dual
+    // import, read-only export, memory cleanup and HTML inertness.
+    await page.evaluate(()=>{location.hash='#/mt5-report-analyzer';});
+    await page.locator('[data-mt5-route-input="A"]').waitFor({state:'attached',timeout:30000});
+    await page.locator('[data-mt5-route-input="A"]').setInputFiles({name:'route-a.html',mimeType:'text/html',buffer:Buffer.from(html(6),'utf8')});
+    await page.waitForFunction(()=>document.querySelector('#q-mt5-route-status-A')?.textContent?.includes('validated closing deals'),null,{timeout:30000});
+    assert.equal(await page.locator('.q-mt5-route-primary .q-mt5-chart svg[role="img"]').count(),2);
+    assert.equal(await page.evaluate(()=>window.__qellyMt5UploadXss===true),false);
+    await page.locator('[data-mt5-route-input="B"]').setInputFiles({name:'route-b.xlsx',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',buffer:workbook()});
+    await page.locator('[data-mt5-comparison-result]').waitFor({state:'visible',timeout:30000});
+    const routeSaved=page.waitForEvent('download',{timeout:15000});
+    await page.locator('[data-mt5-route-export]').click();
+    const routeDownload=await routeSaved;
+    const routeData=JSON.parse(await readFile(await routeDownload.path(),'utf8'));
+    assert.equal(routeData.schema,'qelly.mt5.share-safe-local/1.0');
+    assert.equal(routeData.reportA.sample.deals,6);
+    assert.equal(routeData.comparison.comparability.monetaryDeltas,'WITHHELD_UNVERIFIED_CURRENCY');
+    assert.equal(routeData.privacy.sourceRowsIncluded,false);
+    assert.doesNotMatch(JSON.stringify(routeData),/window.__qellyMt5UploadXss|PRIVATE_PASSWORD/);
+    await page.screenshot({path:path.join(out,name+'-standalone-mt5.png'),fullPage:true});
+    await page.locator('[data-mt5-route-reset]').click();
+    assert.equal(await page.locator('.q-mt5-route-empty').count(),1);
+    assert.equal(await page.locator('[data-mt5-comparison-result]').count(),0);
+    await page.locator('[data-mt5-route-input="A"]').setInputFiles({name:'route-a.html',mimeType:'text/html',buffer:Buffer.from(html(6),'utf8')});
+    await page.waitForFunction(()=>document.querySelector('#q-mt5-route-status-A')?.textContent?.includes('validated closing deals'),null,{timeout:30000});
+    await page.evaluate(()=>{location.hash='#/market';});
+    await page.locator('[data-mt5-analyzer-route]').waitFor({state:'detached',timeout:30000});
+    await page.evaluate(()=>{location.hash='#/mt5-report-analyzer';});
+    await page.locator('.q-mt5-route-empty').waitFor({state:'visible',timeout:30000});
+    assert.equal(await page.locator('[data-mt5-route-export]').isDisabled(),true);
+    entry.checks.push('standalone MT5 HTML/XLSX reports, derived export, inert HTML and leave-route data cleanup');
     assert.deepEqual(uploads,[]);
     assert.deepEqual(errors,[]);
     entry.status='passed';
