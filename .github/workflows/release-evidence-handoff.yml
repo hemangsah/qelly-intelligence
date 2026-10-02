@@ -1,29 +1,19 @@
 name: Release Evidence Handoff
 on:
-  issue_comment:
-    types: [created, edited]
   check_run:
     types: [completed]
 permissions:
   contents: read
   pull-requests: read
 concurrency:
-  group: qelly-cloudflare-evidence-${{ github.event_name }}-${{ github.event.issue.number || github.event.check_run.id || github.run_id }}
+  group: qelly-cloudflare-evidence-${{ github.event.check_run.head_sha || github.run_id }}
   cancel-in-progress: true
 jobs:
   exact-pr-evidence:
     if: >-
-      (
-        github.event_name == 'issue_comment' &&
-        github.event.issue.pull_request &&
-        github.actor == 'cloudflare-workers-and-pages[bot]' &&
-        contains(github.event.comment.body, 'Deploy successful!')
-      ) ||
-      (
-        github.event_name == 'check_run' &&
-        github.event.check_run.name == 'Cloudflare Pages' &&
-        github.event.check_run.conclusion == 'success'
-      )
+      github.event_name == 'check_run' &&
+      github.event.check_run.name == 'Cloudflare Pages' &&
+      github.event.check_run.conclusion == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     env:
@@ -37,7 +27,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           EVENT_NAME: ${{ github.event_name }}
           CHECK_RUN_URL: ${{ github.event.check_run.url || '' }}
-          COMMENT_PR_URL: ${{ github.event.issue.pull_request.url || '' }}
           GITHUB_API_URL: ${{ github.api_url }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
@@ -51,35 +40,30 @@ jobs:
               "$1"
           }
 
-          if [ "$EVENT_NAME" = 'check_run' ]; then
-            test -n "$CHECK_RUN_URL"
-            check_json="$(api_get "$CHECK_RUN_URL")"
-            test "$(jq -r '.name' <<<"$check_json")" = 'Cloudflare Pages'
-            test "$(jq -r '.conclusion' <<<"$check_json")" = 'success'
-            test "$(jq -r '.app.slug' <<<"$check_json")" = 'cloudflare-workers-and-pages'
-            jq -e '.output.summary | type == "string" and contains("Deploy successful!")' <<<"$check_json" >/dev/null
+          # One authoritative signal per Cloudflare deployment: a verified
+          # successful Cloudflare Pages check, never its duplicate bot comment.
+          test "$EVENT_NAME" = 'check_run'
+          test -n "$CHECK_RUN_URL"
+          check_json="$(api_get "$CHECK_RUN_URL")"
+          test "$(jq -r '.name' <<<"$check_json")" = 'Cloudflare Pages'
+          test "$(jq -r '.conclusion' <<<"$check_json")" = 'success'
+          test "$(jq -r '.app.slug' <<<"$check_json")" = 'cloudflare-workers-and-pages'
+          jq -e '.output.summary | type == "string" and contains("Deploy successful!")' <<<"$check_json" >/dev/null
 
-            sha="$(jq -r '.head_sha' <<<"$check_json")"
-            test "${#sha}" -eq 40
-            pr_url="$(jq -r '.pull_requests[0].url // empty' <<<"$check_json")"
+          sha="$(jq -r '.head_sha' <<<"$check_json")"
+          test "${#sha}" -eq 40
+          pr_url="$(jq -r '.pull_requests[0].url // empty' <<<"$check_json")"
 
-            if [ -z "$pr_url" ]; then
-              pulls_json="$(api_get "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/commits/$sha/pulls")"
-              pr_url="$(jq -r --arg sha "$sha" '[.[] | select(.state == "open" and .head.sha == $sha)][0].url // empty' <<<"$pulls_json")"
-            fi
+          if [ -z "$pr_url" ]; then
+            pulls_json="$(api_get "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/commits/$sha/pulls")"
+            pr_url="$(jq -r --arg sha "$sha" '[.[] | select(.state == "open" and .head.sha == $sha)][0].url // empty' <<<"$pulls_json")"
+          fi
 
-            if [ -z "$pr_url" ]; then
-              echo 'Verified Cloudflare deployment has no open pull request; exact-PR evidence is intentionally not applicable.'
-              echo "eligible=false" >> "$GITHUB_OUTPUT"
-              echo "sha=$sha" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-          else
-            test "$EVENT_NAME" = 'issue_comment'
-            test -n "$COMMENT_PR_URL"
-            pr_url="$COMMENT_PR_URL"
-            sha="$(api_get "$pr_url" | jq -r '.head.sha')"
-            test "${#sha}" -eq 40
+          if [ -z "$pr_url" ]; then
+            echo 'Verified Cloudflare deployment has no open pull request; exact-PR evidence is intentionally not applicable.'
+            echo "eligible=false" >> "$GITHUB_OUTPUT"
+            echo "sha=$sha" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
           pr_json="$(api_get "$pr_url")"
