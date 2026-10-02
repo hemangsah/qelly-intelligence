@@ -4,7 +4,7 @@ const sum=a=>a.reduce((s,n)=>s+n,0);
 export function mt5ReportClock(value){
  const m=/^(\d{4})[.-](\d{1,2})[.-](\d{1,2})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(String(value??'').trim());
  if(!m)return null;
- const [y,mo,d,h,min,sec=0]=m.slice(1).map(Number),date=new Date(Date.UTC(y,mo-1,d,h,min,sec));
+ const [y,mo,d,h,min]=m.slice(1,6).map(Number),sec=m[6]===undefined?0:Number(m[6]),date=new Date(Date.UTC(y,mo-1,d,h,min,sec));
  if(y<1970||y>2200||h>23||min>59||sec>59||date.getUTCFullYear()!==y||date.getUTCMonth()!==mo-1||date.getUTCDate()!==d)return null;
  return {ms:date.getTime(),weekday:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][date.getUTCDay()],hour:h,month:String(y)+'-'+String(mo).padStart(2,'0')};
 }
