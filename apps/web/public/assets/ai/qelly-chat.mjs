@@ -25,7 +25,18 @@ const MODE_SUGGESTIONS=Object.freeze({
 });
 
 const esc=(value)=>String(value??'').replace(/[&<>'"]/g,(character)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
-const safeUrl=(value)=>{try{const url=new URL(String(value));return url.protocol==='https:'?url.toString():'#';}catch{return '#';}};
+const safeUrl=(value)=>{
+  try{
+    const url=new URL(String(value));
+    if(url.protocol!=='https:'||url.username||url.password)return '#';
+    // Evidence receipts must not place signed URLs or provider credentials
+    // into visible citations, browser navigation or the clipboard.
+    for(const name of url.searchParams.keys()){
+      if(/^(?:token|access_token|api_key|apikey|key|secret|signature|sig|auth)$/i.test(name))return '#';
+    }
+    return url.toString();
+  }catch{return '#';}
+};
 const suggestionsFor=(mode)=>MODE_SUGGESTIONS[mode]||MODE_SUGGESTIONS.ask;
 const DECISION_HORIZONS=new Set(['1h','4h','12h','1d','3d','7d']);
 const DECISION_RR=new Set(['auto','1','2','3','4','custom']);
@@ -138,7 +149,7 @@ function shellMarkup(){
     <div class="q-ai-contextbar" aria-label="Qelly research context"><label><span>Asset</span><select data-q-ai-asset>${CHAT_ASSETS.map(item=>`<option value="${item}">${item}</option>`).join('')}</select></label><label><span>Timeframe</span><select data-q-ai-timeframe>${CHAT_TIMEFRAMES.map(item=>`<option value="${item}" ${item==='15m'?'selected':''}>${item}</option>`).join('')}</select></label><label data-q-ai-calculator-field hidden><span>Calculator</span><select data-q-ai-calculator>${CHAT_CALCULATORS.map(([id,label])=>`<option value="${id}">${label}</option>`).join('')}</select></label></div>
     <div class="q-ai-thread" data-q-ai-thread aria-live="polite" aria-relevant="additions text"></div>
     <div class="q-ai-suggestions" data-q-ai-suggestions></div>
-    <form class="q-ai-composer" data-q-ai-form><label><span class="q-visually-hidden">Ask Qelly a finance question</span><textarea name="message" rows="1" maxlength="2400" placeholder="Ask about markets, evidence, risk or QELLY tools…" required></textarea></label><button type="button" data-q-ai-stop hidden><span>Stop</span><b aria-hidden="true">■</b></button><button type="submit" data-q-ai-send><span>Send</span><b aria-hidden="true">↑</b></button></form>
+    <form class="q-ai-composer" data-q-ai-form><label><span class="q-visually-hidden">Ask Qelly a finance question</span><textarea name="message" rows="1" maxlength="2400" placeholder="Ask about markets, evidence, risk or QELLY tools…" aria-describedby="q-ai-composer-help" required></textarea><span class="q-visually-hidden" id="q-ai-composer-help">Enter sends your question. Shift plus Enter inserts a new line. Escape closes the non-modal assistant.</span></label><button type="button" data-q-ai-stop hidden><span>Stop</span><b aria-hidden="true">■</b></button><button type="submit" data-q-ai-send><span>Send</span><b aria-hidden="true">↑</b></button></form>
     <footer><span>Connected evidence + QELLY tool receipts + model inference</span><div><button type="button" data-q-ai-export>Export</button><button type="button" data-q-ai-clear>Clear</button></div><small>Research only · no trade execution · unvalidated streaming disabled</small></footer>
   </aside>`;
 }
@@ -225,7 +236,23 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
     thread.querySelectorAll('[data-q-ai-copy-sources]').forEach(button=>button.addEventListener('click',async()=>{const message=messages[Number(button.dataset.qAiCopySources)];const text=(message?.sources||[]).filter(source=>safeUrl(source.url)!=='#').map((source,index)=>`[${index+1}] ${source.title} · ${source.truthState}${source.observedAt?` · ${source.observedAt}`:''}\n${safeUrl(source.url)}`).join('\n\n');if(!text)return;try{await navigator.clipboard.writeText(text);toast?.('Citation links copied',{tone:'success'});}catch{toast?.('Copy is unavailable in this browser.',{tone:'danger'});}}));
     thread.querySelectorAll('[data-q-ai-compact]').forEach(button=>button.addEventListener('click',()=>{const article=button.closest('.q-ai-message');const compact=article.classList.toggle('is-compact');button.textContent=compact?'Expand':'Compact';}));
     thread.querySelectorAll('[data-q-ai-verify]').forEach(button=>button.addEventListener('click',()=>{const message=messages[Number(button.dataset.qAiVerify)];try{sessionStorage.setItem('qelly.verify.chat-evidence.v1',JSON.stringify({createdAt:new Date().toISOString(),content:message?.content,sources:message?.sources||[],tools:message?.tools||[]}));}catch{}navigate?.('qelly-verify');close();}));
-    thread.querySelectorAll('[data-q-ai-decision]').forEach(button=>button.addEventListener('click',()=>{const message=messages[Number(button.dataset.qAiDecision)];try{const createdAt=new Date().toISOString();sessionStorage.setItem(DECISION_DRAFT_KEY,JSON.stringify({createdAt,thesis:message?.content||'',sources:message?.sources||[],tools:message?.tools||[],truthState:message?.truthState||null}));sessionStorage.setItem(DECISION_CONTEXT_KEY,JSON.stringify({createdAt,asset:message?.asset||asset,timeframe:message?.timeframe||timeframe}));}catch{}navigate?.('decision-provenance');close();}));
+    thread.querySelectorAll('[data-q-ai-decision]').forEach(button=>button.addEventListener('click',()=>{
+      const message=messages[Number(button.dataset.qAiDecision)];
+      const createdAt=new Date().toISOString();
+      let draftSaved=false;
+      try{
+        sessionStorage.setItem(DECISION_DRAFT_KEY,JSON.stringify({
+          createdAt,thesis:message?.content||'',sources:message?.sources||[],
+          tools:message?.tools||[],truthState:message?.truthState||null
+        }));
+        draftSaved=true;
+      }catch{}
+      const contextSaved=storeDecisionContext({
+        asset:message?.asset||asset,timeframe:message?.timeframe||timeframe,source:'qelly-chat'
+      });
+      if(!contextSaved||!draftSaved)toast?.('Some decision context could not be saved. Verify the asset and evidence in the destination.',{tone:'warning'});
+      navigate?.('decision-provenance');close();
+    }));
     thread.querySelectorAll('[data-q-ai-retry]').forEach(button=>button.addEventListener('click',()=>retryFrom(button.dataset.qAiRetry)));
     thread.querySelectorAll('[data-q-ai-followup]').forEach(button=>button.addEventListener('click',()=>submit(button.dataset.qAiFollowup)));
   };
@@ -289,7 +316,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
       persist(messages);render();
     }catch(error){
       const cancelled=error?.name==='AbortError';
-      messages.push({role:'assistant',content:cancelled?'Generation cancelled. No partial or unvalidated answer was accepted.':`Qelly could not complete that request. ${error.message||'Please retry.'}`,sources:[],tools:[],actions:[{route:'market',label:'Open Market Command'}],followUps:cancelled?[]:['Retry the last question.','Inspect available evidence first.'],truthState:cancelled?'cancelled':'model_unavailable_fallback',generatedAt:new Date().toISOString(),mode,asset,timeframe,retryable:!cancelled});
+      messages.push({role:'assistant',content:cancelled?'Generation cancelled. No partial or unvalidated answer was accepted.':`Qelly could not complete that request. ${error.message||'Please retry.'}`,sources:[],tools:[],actions:[{route:'market',label:'Open market overview'}],followUps:cancelled?[]:['Retry the last question.','Inspect available evidence first.'],truthState:cancelled?'cancelled':'model_unavailable_fallback',generatedAt:new Date().toISOString(),mode,asset,timeframe,retryable:!cancelled});
       persist(messages);render();if(!cancelled)toast?.('Qelly Intelligence could not complete that request.',{tone:'danger'});
     }finally{activeController=null;setBusy(false);input.focus();}
   }
@@ -298,7 +325,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
   form.addEventListener('submit',event=>{event.preventDefault();submit(input.value);});
   stop.addEventListener('click',()=>activeController?.abort());
   input.addEventListener('input',()=>{if(input.value!==dockPrefill)dockPrefill='';});
-  input.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();form.requestSubmit();}});
+  input.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing&&!event.ctrlKey&&!event.metaKey&&!event.altKey){event.preventDefault();form.requestSubmit();}});
   root.querySelectorAll('[data-q-ai-mode]').forEach(button=>button.addEventListener('click',()=>applyContext({mode:button.dataset.qAiMode})));
   assetSelect.addEventListener('change',()=>{asset=assetSelect.value;});
   timeframeSelect.addEventListener('change',()=>{timeframe=timeframeSelect.value;});
