@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {analyzeMt5ClosedDeals} from '../apps/web/public/assets/qelly-mt5-advanced-metrics.mjs';
 import {renderMt5ClosedDealEvidence} from '../apps/web/public/assets/qelly-mt5-visuals.mjs';
-const report=()=>analyzeMt5ClosedDeals(Array.from({length:50},(_,i)=>({pnl:i%3===0?-2:4,side:i%2?'sell':'buy',symbol:i%5?'EURUSD':'<img src=x onerror=alert(1)>'})),{mt5:{format:'mt5-html'}});
+const report=()=>analyzeMt5ClosedDeals(Array.from({length:50},(_,i)=>({pnl:i%3===0?-2:4,side:i%2?'sell':'buy',symbol:i===0?'rare-symbol':i%5?'EURUSD':'<img src=x onerror=alert(1)>'})),{mt5:{format:'mt5-html'}});
 test('static report renders accessible closed-deal-only charts without executing uploaded values',()=>{
  const html=renderMt5ClosedDealEvidence(report());
  assert.match(html,/role="img"/);assert.match(html,/NOT broker account equity/);
