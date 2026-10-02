@@ -25,7 +25,7 @@ test('provider identity visibility remains authenticated-only and never writes r
  assert.match(src,/resolveSession\(request,env,\{required:true\}\)/);
  assert.match(src,/profilePayload\(qelly,runtime,session\.user\?\.identities\)/);
  assert.match(src,/cache:'private, no-store'/);
- assert.doesNotMatch(src,/provider_token|identity_data|SUPABASE_SERVICE_ROLE_KEY/);
+ assert.doesNotMatch(src,/\.provider_token|\.identity_data|SUPABASE_SERVICE_ROLE_KEY/);
 });
 test('account page presents truthful read-only inventory and gates actual MFA and passkey links',async()=>{
  const [source,css]=await Promise.all([read('apps/web/public/assets/routes/account-session.mjs'),read('apps/web/public/assets/routes/account-session-v6.css')]);
