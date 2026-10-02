@@ -2,6 +2,7 @@ import {listFormulaDefinitions} from '../calculation/formula-engine-extended.mjs
 
 const CALCULATOR_DENSITY_STYLESHEET=new URL('../qelly-v54-calculator-progressive-density.css',import.meta.url).href;
 const QUANT_V6_STYLESHEET=new URL('../qelly-v6-quant-workbench.css',import.meta.url).href;
+const WAVE_CQ_STYLESHEET=new URL('../qelly-wave-cq-calculator-experience.css',import.meta.url).href;
 const FEATURED_IDS=['position-size','risk-reward','cagr','black-scholes','kelly-criterion','maximum-drawdown'];
 const titleCase=(value)=>String(value||'General').replaceAll('-',' ').replace(/\b\w/g,(letter)=>letter.toUpperCase());
 const domainOf=(definition)=>definition.domain??definition.category??'general';
@@ -11,7 +12,8 @@ const requiredCount=(definition)=>Array.isArray(definition.inputSchema?.required
 function activateCalculatorDensity(){
   for(const [selector,href,dataset] of [
     ['link[data-qelly-v54-calculator-density="active"]',CALCULATOR_DENSITY_STYLESHEET,'qellyV54CalculatorDensity'],
-    ['link[data-qelly-v6-quant-workbench="active"]',QUANT_V6_STYLESHEET,'qellyV6QuantWorkbench']
+    ['link[data-qelly-v6-quant-workbench="active"]',QUANT_V6_STYLESHEET,'qellyV6QuantWorkbench'],
+    ['link[data-qelly-wave-cq-calculator-experience="active"]',WAVE_CQ_STYLESHEET,'qellyWaveCqCalculatorExperience']
   ]){
     if(document.querySelector(selector))continue;
     const link=document.createElement('link');link.rel='stylesheet';link.href=href;link.dataset[dataset]='active';document.head.append(link);
@@ -39,6 +41,13 @@ export async function renderCalculatorCenter(main,{pageHead,escapeHtml,navigate}
     <div class="q-v6-deterministic-banner"><span class="q-status q-status--deterministic">DETERMINISTIC LOCAL</span><p>Calculations run in your browser from the values you provide. No provider quote, broker account, exchange credential, custody service or execution path is consulted. If cloud sync is opted in, an explicit Save can synchronize the resulting record through the authenticated RLS workspace.</p></div>
     <section class="q-v6-quant-kpis" aria-label="Calculator library evidence"><div><span>Methods</span><strong>${definitions.length}</strong><small>registered deterministic calculators</small></div><div><span>Domains</span><strong>${domains.length}</strong><small>quantitative categories</small></div><div><span>Versioned</span><strong>${versioned}/${definitions.length}</strong><small>method identity exposed</small></div><div><span>Typical inputs</span><strong>${averageFields}</strong><small>average structured fields</small></div><div><span>Execution</span><strong>OFF</strong><small>analysis only</small></div></section>
 
+    <section class="q-cq-discovery" aria-labelledby="calculator-discovery-title">
+      <div class="q-cq-discovery__heading"><div><p class="q-eyebrow">Find a method</p><h2 id="calculator-discovery-title">One library. Every documented calculation.</h2><p>Search the full deterministic catalog without leaving this page. Filter by quantitative domain or jump into a priority workflow.</p></div><span class="q-cq-discovery__count" aria-label="${definitions.length} documented calculators">${definitions.length} methods</span></div>
+      <label class="q-cq-quick-search" for="calculator-quick-search"><span class="q-cq-quick-search__icon" aria-hidden="true">⌕</span><span class="q-cq-quick-search__body"><strong>Search all calculators</strong><input id="calculator-quick-search" type="search" placeholder="Search method, formula ID, risk or portfolio topic" aria-controls="calculator-complete-library" autocomplete="off"></span><span class="q-cq-quick-search__hint">Full library ↓</span></label>
+      <div class="q-cq-domain-head"><h3>Explore by category</h3><span>Choose a specialty to open filtered methods</span></div>
+      <div class="q-cq-domain-list" id="calculator-domain-chip-list" role="group" aria-label="Filter calculator library by quantitative category"><button type="button" class="q-cq-domain-chip is-active" data-domain="" aria-pressed="true"><span>All methods</span><small>${definitions.length}</small></button>${domains.map((item)=>`<button type="button" class="q-cq-domain-chip" data-domain="${escapeHtml(item)}" aria-pressed="false"><span>${escapeHtml(titleCase(item))}</span><small>${definitions.filter((definition)=>domainOf(definition)===item).length}</small></button>`).join('')}</div>
+    </section>
+
     <section class="q-calculator-featured" aria-labelledby="calculator-featured-title">
       <div class="q-calculator-section-head"><div><p class="q-eyebrow">Priority workflows</p><h2 id="calculator-featured-title">Start with a proven calculation</h2><p>Common risk, return, portfolio and derivative methods with structured inputs and version-aware evidence.</p></div><span class="q-truth-pill is-cached">${featuredLabel}</span></div>
       <div class="q-calculator-card-grid is-featured" data-experience-grid>${featured.map((definition)=>card(definition,{featured:true})).join('')}</div>
@@ -62,6 +71,8 @@ export async function renderCalculatorCenter(main,{pageHead,escapeHtml,navigate}
   </section>`;
 
   const disclosure=main.querySelector('#calculator-complete-library');
+  const quickSearch=main.querySelector('#calculator-quick-search');
+  const domainChips=[...main.querySelectorAll('#calculator-domain-chip-list [data-domain]')];
   const search=main.querySelector('#calculator-search'),domain=main.querySelector('#calculator-domain'),catalog=main.querySelector('#calculator-catalog'),count=main.querySelector('#calculator-result-count'),empty=main.querySelector('#calculator-empty');
   let catalogMaterialized=false;
   const render=()=>{
@@ -71,13 +82,16 @@ export async function renderCalculatorCenter(main,{pageHead,escapeHtml,navigate}
     const filtered=definitions.filter((definition)=>{const itemDomain=domainOf(definition);return(!category||itemDomain===category)&&(!query||`${definition.name} ${definition.description} ${definition.formulaId} ${itemDomain}`.toLowerCase().includes(query));});
     catalog.innerHTML=filtered.map((definition)=>card(definition)).join('');
     count.textContent=`${filtered.length} ${filtered.length===1?'tool':'tools'}`;
+    for(const chip of domainChips){const active=chip.dataset.domain===category;chip.classList.toggle('is-active',active);chip.setAttribute('aria-pressed',String(active));}
     empty.hidden=filtered.length>0;
     catalog.hidden=filtered.length===0;
   };
   disclosure.addEventListener('toggle',()=>{if(disclosure.open)render();});
-  search.addEventListener('input',render);
+  quickSearch.addEventListener('input',()=>{search.value=quickSearch.value;disclosure.open=true;render();});
+  search.addEventListener('input',()=>{quickSearch.value=search.value;render();});
   domain.addEventListener('change',render);
-  main.querySelector('[data-action="clear-filters"]').addEventListener('click',()=>{search.value='';domain.value='';render();search.focus();});
+  for(const chip of domainChips){chip.addEventListener('click',()=>{domain.value=chip.dataset.domain;disclosure.open=true;render();});}
+  main.querySelector('[data-action="clear-filters"]').addEventListener('click',()=>{search.value='';quickSearch.value='';domain.value='';render();search.focus();});
   main.querySelector('[data-action="formula-library"]').addEventListener('click',()=>navigate('formula-library'));
   main.querySelector('[data-action="saved"]').addEventListener('click',()=>navigate('saved-calculations'));
 }
