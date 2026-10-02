@@ -158,6 +158,9 @@ export async function startServer(options={}){
   const host=options.host??'127.0.0.1';
   const server=http.createServer(async(request,response)=>{
     const url=new URL(request.url,`http://${request.headers.host??'127.0.0.1'}`);
+    // Keep bootstrap delegated to the legacy server in isolated evidence runs.
+    // A synthetic authenticated=true envelope with null context/preferences
+    // overrides valid fixture session state during global first paint.
     if(request.method==='GET'&&url.pathname==='/api/v1/platform/capabilities')return sendJson(response,200,capabilityInventory());
     if(request.method==='GET'&&url.pathname==='/api/v1/providers/status')return sendJson(response,200,{providers:providerPolicies(),releaseSha:'evidence-fixture'});
     if(request.method==='GET'&&url.pathname==='/api/v1/providers/ecb')return sendJson(response,200,evidenceEcb());
