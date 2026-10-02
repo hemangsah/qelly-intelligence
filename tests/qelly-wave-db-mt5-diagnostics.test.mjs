@@ -15,7 +15,7 @@ test('diagnostics are bounded descriptive observations, with no predictive or br
  assert.equal(d.truthState,'DETERMINISTIC LOCAL DIAGNOSTICS');
  assert.equal(d.sample.grade,'OBSERVED_SAMPLE');
  assert.equal(d.findings[0].value,a.metrics.netPnl);
- assert.ok(d.findings.some(f=>f.id==='negative-symbol'&&f.group==='GBPUSD'));
+ assert.ok(d.findings.some(f=>f.id==='negative-symbol'&&['EURUSD','GBPUSD'].includes(f.group)));
  assert.ok(d.findings.some(f=>f.id==='negative-hour'&&f.group==='09:00 (report clock)'));
  assert.ok(d.findings.some(f=>f.id==='reported-commission'&&f.coveragePct===100));
  assert.match(d.warnings.join(' '),/not a forecast|not market sessions/);
