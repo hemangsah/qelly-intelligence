@@ -6,7 +6,8 @@ test('Cloudflare deployment evidence has exactly one authoritative event trigger
   const yaml=await readFile(path,'utf8');
   assert.match(yaml,/on:\n  check_run:\n    types: \[completed\]\npermissions:/);
   assert.doesNotMatch(yaml,/issue_comment|COMMENT_PR_URL|github\.event\.comment/);
-  assert.match(yaml,/github\.event\.check_run\.head_sha \|\| github\.run_id/);
+  assert.ok(yaml.includes("format('qelly-cloudflare-evidence-{0}', github.event.check_run.head_sha)"));
+  assert.ok(yaml.includes("format('qelly-unrelated-check-{0}', github.run_id)"));
   assert.match(yaml,/cancel-in-progress: true/);
   assert.match(yaml,/github\.event\.check_run\.conclusion == 'success'/);
 });
