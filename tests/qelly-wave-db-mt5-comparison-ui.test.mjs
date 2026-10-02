@@ -9,7 +9,7 @@ test('comparison renderer exposes a source-safe side-by-side view with no invent
  const html=renderMt5Comparison(report,{nameA:'<script>alert(1)</script>.html',nameB:'alpha.xlsx'});
  assert.match(html,/Report A versus Report B/);
  assert.match(html,/Withheld \(currency unverified\)/);
- assert.match(html,/Not available|Sample/);
+ assert.match(html,/OBSERVED SAMPLES|LIMITED SAMPLE/);
  assert.doesNotMatch(html,/<script>alert\(1\)<\/script>/);
  assert.match(html,/&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
  assert.match(html,/role="note"/);
