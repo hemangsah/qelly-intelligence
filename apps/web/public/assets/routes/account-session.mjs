@@ -12,17 +12,18 @@ function ensureStyles(){
 
 export async function renderAccountSession(main,{api,pageHead,escapeHtml,toast,onLoggedOut,onAuthenticated}){
   ensureStyles();
-  const [profile,sessions,mfaStatus,passkeyStatus]=await Promise.all([
+  const [profile,sessions,mfaStatus]=await Promise.all([
     api('/api/v1/profile'),
     api('/api/v1/sessions').catch(()=>({scope:'current-session-only',items:[]})),
-    api('/api/v1/auth/mfa/status').catch(()=>null),
-    api('/api/v1/auth/passkeys').catch(()=>null)
+    api('/api/v1/auth/mfa/status').catch(()=>null)
   ]);
   const current=sessions.items?.find(item=>item.current)||sessions.items?.[0]||null;
   const linked=profile.linkedIdentities||{state:'unavailable',items:[],readOnly:true,linkingEnabled:false};
   const providerListingAvailable=linked.state==='available'&&Array.isArray(linked.items);
   const mfaReady=Boolean(mfaStatus&&mfaStatus.unavailable!==true&&(mfaStatus.available===true||mfaStatus.enabled!==undefined));
-  const passkeysReady=Boolean(passkeyStatus&&Array.isArray(passkeyStatus.items)&&typeof passkeyStatus.rpId==='string'&&passkeyStatus.rpId.length>0);
+  // The canonical Cloudflare API does not yet own a passkey-inventory endpoint.
+  // Leave navigation explicitly unavailable rather than calling the legacy-only URL.
+  const passkeysReady=false;
   const user=profile.user||{},settings=profile.profile||{},workspace=profile.workspace||{},session=profile.session||{};
   const profileCapabilities=profile.capabilities||{};
   const cloudProfile=profileCapabilities.profilePersistence==='cloud-rls';
