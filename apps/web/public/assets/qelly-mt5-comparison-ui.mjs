@@ -39,6 +39,6 @@ export function renderMt5Comparison(report,{nameA='Report A',nameB='Report B'}={
    '<thead><tr><th scope="col">Group</th><th scope="col">A deals</th><th scope="col">B deals</th><th scope="col">A win %</th><th scope="col">B win %</th></tr></thead><tbody>'+groupRows(data,12)+'</tbody></table></div></section>';
  }
  out+='<section class="q-mt5-compare-warnings"><h4>Interpretation and data limits</h4><ul>'+report.warnings.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></section>'+
-   '<p class="q-mt5-compare-privacy">Files are processed locally and discarded after parsing. This comparison is held in browser memory only until you clear it or leave the page.</p></section>';
+   '<p class="q-mt5-compare-privacy">Files are processed locally and discarded after parsing. This comparison is held in browser memory only until you clear it or reload this tab.</p></section>';
  return out;
 }

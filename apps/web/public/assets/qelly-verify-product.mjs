@@ -18,7 +18,6 @@ let current=null;
 let comparison={A:null,B:null};
 let comparisonError='';
 const comparisonGeneration={A:0,B:0};
-window.addEventListener('hashchange',()=>{if(!location.hash.startsWith('#/qelly-verify')){comparison={A:null,B:null};comparisonError='';comparisonGeneration.A++;comparisonGeneration.B++;}});
 
 const escapeHtml=value=>String(value??'').replace(/[&<>'"]/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
 const number=(value,digits=2)=>value==null?'—':new Intl.NumberFormat(undefined,{maximumFractionDigits:digits}).format(Number(value));
@@ -92,9 +91,9 @@ function bind(){
 
 async function loadComparisonFile(file,slot){
  if(!['A','B'].includes(slot))return;
- if(file.size>MAX_FILE_BYTES){comparisonError='Report '+slot+': 5 MB limit exceeded.';renderVerify();return;}
+ if(file.size>MAX_FILE_BYTES){++comparisonGeneration[slot];comparison[slot]=null;comparisonError='Report '+slot+': 5 MB limit exceeded.';renderVerify();return;}
  const ext=file.name.toLowerCase().split('.').pop();
- if(!['html','htm','xlsx'].includes(ext)){comparisonError='Report '+slot+': choose MT5 HTML or XLSX.';renderVerify();return;}
+ if(!['html','htm','xlsx'].includes(ext)){++comparisonGeneration[slot];comparison[slot]=null;comparisonError='Report '+slot+': choose MT5 HTML or XLSX.';renderVerify();return;}
  const generation=++comparisonGeneration[slot];
  comparisonError='Reading Report '+slot+' locally…';
  const status=main?.querySelector('[data-mt5-compare-status]');if(status)status.textContent=comparisonError;

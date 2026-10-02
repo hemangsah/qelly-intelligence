@@ -9,7 +9,7 @@ test('comparison accepts two independent local MT5 reports and leaves CSV intact
  }
  assert.match(source,/parseTradeCsv\(sourceText\)/);
  assert.match(source,/renderMt5ClosedDealEvidence\(mt5Report\)/);
- assert.match(source,/window\.addEventListener\('hashchange'/);
+ assert.doesNotMatch(source,/window\.addEventListener\('hashchange'/);
  assert.match(source,/ensureComparisonStyles\(\)/);
  assert.doesNotMatch(source,/fetch\(/);
 });
@@ -17,6 +17,7 @@ test('local comparison sets size and type boundaries and exports metrics, never 
  const source=await load('apps/web/public/assets/qelly-verify-product.mjs');
  const css=await load('apps/web/public/assets/qelly-mt5-comparison.css');
  assert.match(source,/5 MB limit exceeded/);
+ assert.match(source,/\+\+comparisonGeneration\[slot\];comparison\[slot\]=null/);
  assert.match(source,/choose MT5 HTML or XLSX/);
  assert.match(source,/qelly-mt5-comparison-share-safe\.json/);
  assert.match(css,/focus-visible/);
