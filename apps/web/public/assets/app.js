@@ -144,7 +144,15 @@ const api = async (path, options = {}) => {
 };
 
 async function loadAuthenticatedState(){
-  [state.prefs,state.overview,state.identity]=await Promise.all([api('/api/v1/preferences/layout'),api('/api/v1/market/overview'),api('/api/v1/session/context')]);
+  const [layout,overview,identity]=await Promise.all([api('/api/v1/preferences/layout'),api('/api/v1/market/overview'),api('/api/v1/session/context')]);
+  // A newly provisioned workspace can legitimately have no saved layout.
+  // Preserve authenticated route rendering with safe local defaults, but do
+  // not treat missing identity or a failed API request as an authenticated user.
+  if(!identity?.user||!identity?.workspace)throw new Error('Authenticated workspace context is unavailable');
+  const persisted=layout&&typeof layout==='object'&&!Array.isArray(layout)?layout:{};
+  state.prefs={...defaultPreferences,...Object.fromEntries(Object.entries(persisted).filter(([key,value])=>Object.hasOwn(defaultPreferences,key)&&value!=null))};
+  state.overview=overview??anonymousOverview;
+  state.identity=identity;
   state.authenticated=true;
 }
 
