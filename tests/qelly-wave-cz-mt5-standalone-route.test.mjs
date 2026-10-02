@@ -2,11 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {routeDefinitions} from '../apps/web/public/assets/route-registry.mjs';
+import {routes as serverRoutes} from '../src/server/route-manifest.mjs';
 import {renderMt5ReportAnalyzer} from '../apps/web/public/assets/qelly-mt5-analyzer-route.mjs';
 const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
 test('standalone MT5 Analyzer is a first-class public tool with coherent identity',()=>{
  const found=routeDefinitions.filter(x=>x.route==='mt5-report-analyzer');
  assert.equal(found.length,1);
+ assert.equal(serverRoutes.length,72);
+ assert.equal(serverRoutes.filter(route=>route==='mt5-report-analyzer').length,1);
+ assert.deepEqual(new Set(serverRoutes),new Set(routeDefinitions.map(route=>route.route)));
  assert.equal(found[0].featureFlags.public,true);
  assert.equal(found[0].domain,'tools');assert.equal(found[0].category,'tools');
  assert.equal(found[0].pageTitle,'MT5 Report Analyzer');
