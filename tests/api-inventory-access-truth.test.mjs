@@ -88,7 +88,12 @@ test('canonical request matcher resolves exact and template public paths while f
     '/api/v1/public/markets/assets/:id',
     '/api/v1/public/markets/assets/:id/candles',
     '/api/v1/calculations/formulas/:id',
-    '/api/v1/indicators/:id'
+    '/api/v1/indicators/:id',
+    '/api/v1/discovery/categories/:id',
+    '/api/v1/discovery/venues/:id',
+    '/api/v1/discovery/dex/:id',
+    '/api/v1/discovery/research/:id',
+    '/api/v1/discovery/methodologies/:id'
   ]);
 });
 
