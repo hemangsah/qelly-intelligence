@@ -75,6 +75,27 @@ async function scenario(browser,name,viewport){
     assert.equal(await page.locator('.q-verify-score-grid .q-verify-score').count(),0);
     assert.match(await page.locator('.q-mt5-report').innerText(),/LIMITED SAMPLE/);
     entry.checks.push('two-deal descriptive-only state without fabricated heuristic scoring');
+    await page.locator('[data-mt5-compare-file="A"]').setInputFiles({name:'compare-a.html',mimeType:'text/html',buffer:Buffer.from(html(6),'utf8')});
+    await page.waitForFunction(()=>document.querySelector('#q-mt5-compare-status-A')?.textContent?.includes('closing deals'),null,{timeout:20000});
+    await page.locator('[data-mt5-compare-file="B"]').setInputFiles({name:'compare-b.xlsx',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',buffer:workbook()});
+    await page.locator('[data-mt5-comparison-result]').waitFor({state:'visible',timeout:30000});
+    assert.match(await page.locator('[data-mt5-comparison-result]').innerText(),/LIMITED SAMPLE/);
+    assert.match(await page.locator('[data-mt5-comparison-result]').innerText(),/Withheld \(currency unverified\)/);
+    assert.equal(await page.evaluate(()=>window.__qellyMt5UploadXss===true),false);
+    const comparisonSaved=page.waitForEvent('download',{timeout:15000});
+    await page.locator('[data-mt5-compare-export]').click();
+    const comparisonDownload=await comparisonSaved;
+    const comparisonData=JSON.parse(await readFile(await comparisonDownload.path(),'utf8'));
+    assert.equal(comparisonData.schema,'qelly.mt5.closed-deal-comparison/1.0');
+    assert.equal(comparisonData.comparability.monetaryDeltas,'WITHHELD_UNVERIFIED_CURRENCY');
+    assert.equal(comparisonData.privacy.sourceRowsIncluded,false);
+    assert.equal(comparisonData.reportA.deals,6);
+    assert.equal(comparisonData.reportB.deals,6);
+    await page.screenshot({path:path.join(out,name+'-comparison.png'),fullPage:true});
+    await page.locator('[data-mt5-compare-reset]').click();
+    assert.equal(await page.locator('[data-mt5-comparison-result]').count(),0);
+    entry.checks.push('Local HTML+XLSX report comparison, limited-sample suppression, share-safe JSON export, in-memory clear');
+
     await page.locator('[data-verify-sample]').click();
     await page.locator('.q-verify-score-grid .q-verify-score').first().waitFor({state:'visible',timeout:20000});
     assert.equal(await page.locator('.q-mt5-report').count(),0);
