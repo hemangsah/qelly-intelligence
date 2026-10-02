@@ -1,3 +1,4 @@
+import {renderMt5ObservedDiagnostics} from './qelly-mt5-diagnostics.mjs';
 /* Wave DA presentational renderer. Input must be normalized, non-sensitive MT5 evidence. */
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=(v,d=2)=>typeof v==='number'&&Number.isFinite(v)?new Intl.NumberFormat('en',{maximumFractionDigits:d}).format(v):'Not available';
@@ -43,5 +44,5 @@ export function renderMt5ClosedDealEvidence(report,{id='mt5-evidence'}={}){
  '</div><div class="q-mt5-charts">'+chart(series.points,'cumulative','Cumulative closed-deal P&L',prefix)+chart(series.points,'drawdown','Closed-deal underwater drawdown',prefix)+'</div>'+
  '<p class="q-mt5-limit">Curve order: '+(series.chronological?'all available report timestamps are nondecreasing':'unverified; follows report row order')+'. No account equity, open trade marks or deposits are inferred.</p>'+
  '<div class="q-mt5-breakdowns">'+breakdown('By symbol',g.symbol)+breakdown('By direction',g.side)+breakdown('By report-clock hour',g.hour)+breakdown('By weekday',g.weekday)+'</div>'+
- statistical+'<section class="q-mt5-notes"><h4>Validation and limitations</h4><ul>'+report.warnings.map(w=>'<li>'+esc(w)+'</li>').join('')+'</ul></section></section>';
+ statistical+renderMt5ObservedDiagnostics(report)+'<section class="q-mt5-notes"><h4>Validation and limitations</h4><ul>'+report.warnings.map(w=>'<li>'+esc(w)+'</li>').join('')+'</ul></section></section>';
 }

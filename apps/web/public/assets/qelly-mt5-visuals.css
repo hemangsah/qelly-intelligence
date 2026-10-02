@@ -19,3 +19,18 @@
 .q-mt5-statistical p,.q-mt5-notes li{font-size:13px;line-height:1.65}.q-mt5-notes ul{padding-inline-start:18px}
 @media(max-width:620px){.q-mt5-charts,.q-mt5-breakdowns{grid-template-columns:minmax(0,1fr)}.q-mt5-chart,.q-mt5-breakdown{padding:12px}}
 @media(prefers-reduced-motion:reduce){.q-mt5-report *{animation:none!important;transition:none!important}}
+
+/* Bounded report-grounded diagnostics; uses existing semantic dark/light tokens. */
+.q-mt5-diagnostics{display:grid;gap:14px;min-width:0;padding:18px;border:1px solid var(--border,#637487);border-radius:14px;background:var(--surface,#17232e)}
+.q-mt5-diagnostics header h4{font-size:clamp(19px,2.1vw,24px);margin:4px 0 8px}
+.q-mt5-diagnostics header p,.q-mt5-diagnostics details,.q-mt5-diagnostic-boundary{color:var(--text-muted,#a7b5c2);font-size:13px;line-height:1.65}
+.q-mt5-diagnostic-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
+.q-mt5-diagnostic-card{min-width:0;padding:16px;border:1px solid var(--border,#637487);border-radius:12px;background:var(--surface-elevated,rgba(255,255,255,.055));overflow-wrap:anywhere}
+.q-mt5-diagnostic-card h5{font-size:15px;line-height:1.4;margin:8px 0}.q-mt5-diagnostic-card p{margin:8px 0;font-size:13px;line-height:1.55}.q-mt5-diagnostic-card small{display:block;font-size:12px;line-height:1.6;color:var(--text-muted,#a7b5c2)}
+.q-mt5-diagnostic-state{display:inline-block;border:1px solid var(--border,#637487);padding:4px 8px;border-radius:999px;font-size:10px;letter-spacing:.05em}
+.q-mt5-diagnostic-value{font-size:clamp(21px,2.5vw,29px)!important;font-weight:700;font-variant-numeric:tabular-nums}
+.q-mt5-diagnostics summary{cursor:pointer;padding:8px 0;font-weight:650;color:var(--text,#e7edf4)}
+.q-mt5-diagnostics summary:focus-visible{outline:2px solid var(--accent,#79a7f3);outline-offset:3px}
+.q-mt5-diagnostics ul{padding-left:20px}.q-mt5-diagnostics li{margin-block:5px}
+.q-mt5-diagnostic-boundary{padding:13px 15px;border-inline-start:3px solid var(--warning,#dca842);background:var(--surface-elevated,rgba(255,255,255,.045))}
+@media(max-width:620px){.q-mt5-diagnostics{padding:12px}.q-mt5-diagnostic-grid{grid-template-columns:minmax(0,1fr)}}
