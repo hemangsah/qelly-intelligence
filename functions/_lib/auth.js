@@ -13,6 +13,7 @@ import {
   randomToken,
   refreshSession,
   requireCsrf,
+  requireOrigin,
   responseJson,
   resolveSession,
   safeEmail,
@@ -238,9 +239,37 @@ export async function handleAuth(context,path,method){
 
   if(path==='auth/logout'&&method==='POST'){
     await requireCsrf(request);
-    const session=await resolveSession(request,env);
-    if(session)await supabaseRequest(env,'/auth/v1/logout',{method:'POST',token:session.accessToken,body:{scope:'local'}}).catch(()=>null);
-    return responseJson(request,env,{loggedOut:true},200,{cookies:clearSessionCookies()});
+    let session=null,remoteRevocation='not_applicable';
+    try{session=await resolveSession(request,env);}
+    catch(error){
+      if(!(error instanceof HttpError)||error.status<500)throw error;
+      remoteRevocation='unverified';
+    }
+    if(session){
+      try{
+        // GoTrue accepts scope as a query parameter. A JSON scope field is not
+        // the documented contract and must never silently sign out all devices.
+        await supabaseRequest(env,'/auth/v1/logout?scope=local',{method:'POST',token:session.accessToken});
+        remoteRevocation='confirmed';
+      }catch{remoteRevocation='unverified';}
+    }
+    return responseJson(request,env,{loggedOut:true,scope:'this_browser',remoteRevocation},200,{cookies:clearSessionCookies()});
+  }
+
+  if(path==='auth/logout-all'&&method==='POST'){
+    requireOrigin(request,env);
+    await requireCsrf(request);
+    const session=await resolveSession(request,env,{required:true});
+    await enforceRateLimit(env,'auth-global-logout:'+await hashKey(session.user.id),{limit:4,windowMs:60_000});
+    // A confirmed GoTrue global sign-out revokes refresh tokens; previously
+    // issued JWT access tokens remain valid until their existing expiry.
+    // Never clear local cookies or claim success when global revocation fails.
+    await supabaseRequest(env,'/auth/v1/logout?scope=global',{method:'POST',token:session.accessToken});
+    return responseJson(request,env,{
+      loggedOut:true,scope:'global',remoteRevocation:'confirmed',
+      refreshTokens:'revoked',existingAccessTokens:'valid_until_expiry',
+      otherDeviceInventory:'unavailable'
+    },200,{cookies:clearSessionCookies()});
   }
 
   if(path==='auth/recovery/request'&&method==='POST'){
