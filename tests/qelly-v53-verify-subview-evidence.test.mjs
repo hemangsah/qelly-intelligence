@@ -105,7 +105,8 @@ test('dedicated evidence harness proves alias normalization and accepted Verify 
   assert.match(script,/task-first accepted-lock composition; no duplicate mobile top shelf required/);
   assert.doesNotMatch(script,/shellMode:innerWidth<=920\?'shelf':'worldclass'/);
   assert.match(script,/aliasNormalized/);
-  assert.match(workflow,/manifest\.canonicalRouteCount===71/);
+  assert.match(workflow,/manifest\.canonicalRouteCount===registeredRoutes/);
+  assert.match(workflow,/registeredRoutes>=72&&uniqueRoutes/);
   assert.match(workflow,/manifest\.canonicalRoute==='qelly-verify'/);
   assert.match(workflow,/manifest\.methodologyHostRoute==='qelly-verify'/);
   assert.match(workflow,/manifest\.renderCount===18/);

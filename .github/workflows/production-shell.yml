@@ -78,11 +78,14 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           import {readFile,readdir} from 'node:fs/promises';
+          import {routeDefinitions} from './apps/web/public/assets/route-registry.mjs';
           const root='preview/v53-production-shell-evidence';
           const manifest=JSON.parse(await readFile(`${root}/manifest.json`,'utf8'));
+          const registeredRoutes=routeDefinitions.length;
+          const uniqueRoutes=new Set(routeDefinitions.map(item=>item.route)).size===registeredRoutes;
           const files=await readdir(root);
           const pngs=files.filter(name=>name.endsWith('.png'));
-          const ok=manifest.status==='passed'&&manifest.canonicalRouteCount===71&&manifest.renderCount===10&&manifest.expectedRenderCount===10&&manifest.failureCount===0&&pngs.length===10;
+          const ok=manifest.status==='passed'&&registeredRoutes>=72&&uniqueRoutes&&manifest.canonicalRouteCount===registeredRoutes&&manifest.renderCount===10&&manifest.expectedRenderCount===10&&manifest.failureCount===0&&pngs.length===10;
           console.log(JSON.stringify({status:manifest.status,canonicalRouteCount:manifest.canonicalRouteCount,routes:manifest.routes,renderCount:manifest.renderCount,expectedRenderCount:manifest.expectedRenderCount,failureCount:manifest.failureCount,pngs:pngs.length,expectedShellHeightPx:manifest.expectedShellHeightPx},null,2));
           if(!ok)process.exit(1);
           NODE
