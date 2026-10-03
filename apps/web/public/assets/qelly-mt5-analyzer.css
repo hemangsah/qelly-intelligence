@@ -18,6 +18,8 @@
 .q-mt5-route-clear,.q-mt5-route-controls button{min-height:42px;padding:10px 16px;border:1px solid var(--border,#637487);border-radius:10px;background:var(--surface-elevated,rgba(255,255,255,.07));color:var(--text,#e7edf4);font-size:13px;font-weight:650;cursor:pointer}
 .q-mt5-route-clear{margin-top:12px}.q-mt5-route-controls{display:flex;gap:12px;flex-wrap:wrap}
 .q-mt5-route-controls button[disabled]{opacity:.45;cursor:not-allowed}
+.q-mt5-route-share-note{margin:-12px 0 0;color:var(--text-muted,#a7b5c2);font-size:12px;line-height:1.6;max-width:90ch}
+.q-mt5-route-controls [data-mt5-route-chat]{border-color:var(--accent,#79a7f3);font-weight:750}
 .q-mt5-route-clear:focus-visible,.q-mt5-route-controls button:focus-visible,.q-mt5-route-links a:focus-visible{outline:2px solid var(--accent,#79a7f3);outline-offset:3px}
 .q-mt5-route-primary>header h2{font-size:clamp(19px,2.3vw,28px);overflow-wrap:anywhere;margin:4px 0 14px}
 .q-mt5-route-primary .q-mt5-report{padding:0}.q-mt5-route-pair{min-width:0}
