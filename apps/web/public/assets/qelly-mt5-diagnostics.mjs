@@ -60,11 +60,31 @@ export function buildMt5ObservedDiagnostics(report){
    }));
   }
  }
+ const lossCount=Number.isSafeInteger(report.sample?.losses)?report.sample.losses:0;
+ if(finite(m.largestLossContributionPct)&&lossCount>0){
+  findings.push(Object.freeze({
+   id:'largest-loss-share',label:'Largest observed single closing-deal loss share',
+   value:round(m.largestLossContributionPct,2),units:'percent of aggregate observed losing closing-deal P&L',
+   sampleCount:lossCount,shareBasis:'gross negative closing-deal P&L',
+   evidence:'Largest losing close '+round(m.largestLosingDealPnl)+' / total gross losing close magnitude '+round(m.grossLoss)+'. Individual closing deals may be partial position exits; no account-currency or entry-cost verification.',
+   state:limited?'LIMITED_SAMPLE':lossCount<5?'SMALL_LOSS_SET':'OBSERVED_SAMPLE'
+  }));
+ }else gaps.push('No observed losing closing deal supports a largest-loss contribution calculation.');
+ if(report.series?.uniqueChronological===true&&Number.isSafeInteger(m.longestUnderwaterClosingDeals)){
+  if(m.longestUnderwaterClosingDeals>0)findings.push(Object.freeze({
+   id:'longest-underwater-deals',label:'Longest closing-deal sequence below its prior cumulative P&L high',
+   value:m.longestUnderwaterClosingDeals,units:'consecutive strictly time-ordered closing deals, not elapsed time',
+   sampleCount:n,
+   evidence:'Measured on all normalized closing deals, not the downsampled chart. Report timestamps are strictly increasing; the P&L baseline begins at zero and is not broker account equity.',
+   state:limited?'LIMITED_SAMPLE':'OBSERVED_SAMPLE'
+  }));
+ }else gaps.push('A strictly increasing, unambiguous broker report-clock sequence is unavailable; longest underwater closing-deal span is withheld.');
  const warnings=[
   'Descriptive analysis of this uploaded sample only; not a forecast or evidence that a strategy caused the observed result.',
   'Currency, account equity, balance, deposits, exposure, entry-side costs and source authenticity have not been independently verified.',
   'Bucket P&L aggregates realized closing deals; buckets with fewer than five deals are excluded from negative-net highlights.',
-  'Reported clock hours are not market sessions because the broker timezone is unverified.'
+  'Reported clock hours are not market sessions because the broker timezone is unverified.',
+  'Single-deal loss contribution and closing-deal underwater spans are descriptive local-sequence observations, not future loss probabilities, position-level risk or broker account-equity drawdown.'
  ];
  if(limited)warnings.push('LIMITED SAMPLE: fewer than 30 closing deals; no statistical or causal subgroup conclusions are supported.');
  if(report.series?.chronological!==true)warnings.push('Report ordering is unverified; no time-sequence or drawdown-cluster conclusion is supported.');
