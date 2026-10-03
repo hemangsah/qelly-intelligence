@@ -55,7 +55,7 @@ test('standalone UI has responsive keyboard-accessible upload and cleared memory
 test('browser acceptance exercises separate route without weakening QELLY Verify or sample governance',async()=>{
  const script=await read('scripts/qelly-mt5-upload-e2e.mjs');
  for(const s of ['#/qelly-verify','#/mt5-report-analyzer','data-mt5-route-input="A"',
-  'data-mt5-route-input="B"','data-mt5-route-reset','qelly.mt5.share-safe-local/1.0',
+  'data-mt5-route-input="B"','data-mt5-route-reset','qelly.mt5.share-safe-local/1.1',
   'window.__qellyMt5UploadXss','location.hash=\'#/market\'','q-mt5-route-empty','standalone-mt5.png']){
   assert.ok(script.includes(s),s);
  }
