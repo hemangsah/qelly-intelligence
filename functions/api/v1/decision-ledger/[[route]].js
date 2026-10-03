@@ -58,9 +58,13 @@ export const researchHistoryBoundary=(setups,observations,{setupLimit=2000,obser
 
 export const buildResearchOutcomeAudit=(setups,observations,{setupLimit=2000,observationLimit=5000}={})=>{
   const sampleBoundary=researchHistoryBoundary(setups,observations,{setupLimit,observationLimit});
-  const dataQuality=auditDecisionOutcomeData(setups||[],observations||[]);
-  const contaminated=dataQuality.state==='CONTAMINATED';
   const incomplete=!sampleBoundary.historyComplete;
+  const visibleQuality=auditDecisionOutcomeData(setups||[],observations||[]);
+  const dataQuality=incomplete
+    ?{...visibleQuality,scientificallyUsable:false,assessmentScope:'CAPPED_VISIBLE_SAMPLE',
+        boundary:visibleQuality.boundary+' The source history hit a retrieval cap; the visible data-quality result cannot establish complete-workspace integrity.'}
+    :{...visibleQuality,assessmentScope:'COMPLETE_WITHIN_RETRIEVAL_LIMITS'};
+  const contaminated=dataQuality.state==='CONTAMINATED';
   const blocked={schemaVersion:'qelly.target-touch-calibration/1.0.0',
     state:'UNCALIBRATED',eligible:false,eligibleResolvedSetups:0,minimumSampleGate:50,metrics:{}};
   const calibration=contaminated
