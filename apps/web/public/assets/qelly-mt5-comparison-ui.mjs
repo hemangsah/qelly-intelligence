@@ -2,9 +2,9 @@
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const n=(value,d=2)=>typeof value==='number'&&Number.isFinite(value)?new Intl.NumberFormat('en',{maximumFractionDigits:d}).format(value):'Not available';
 const diff=(value,unit='')=>typeof value==='number'&&Number.isFinite(value)?(value>0?'+':'')+n(value,2)+unit:'Withheld';
-const paired=(label,a,b,{money=false,ratio=false,delta=null}={})=>
+const paired=(label,a,b,{money=false,ratio=false,delta=null,notComparable=false}={})=>
   '<tr><th scope="row">'+esc(label)+'</th><td>'+n(a,ratio?3:2)+'</td><td>'+n(b,ratio?3:2)+'</td><td>'+
-  (money?'Withheld (currency unverified)':diff(delta,ratio?'':' percentage points'))+'</td></tr>';
+  (money?'Withheld (currency unverified)':notComparable?'Not comparable (distinct denominators)':diff(delta,ratio?'':' percentage points'))+'</td></tr>';
 const sample=({label,name,report})=>
   '<article class="q-mt5-compare-card"><span class="q-mt5-compare-index">'+esc(label)+'</span><strong>'+esc(name||'Local report')+
   '</strong><dl><div><dt>Closing deals</dt><dd>'+n(report.deals,0)+'</dd></div><div><dt>Win rate</dt><dd>'+n(report.winRatePct,2)+
@@ -31,7 +31,10 @@ export function renderMt5Comparison(report,{nameA='Report A',nameB='Report B'}={
    paired('Observed net P&L',report.reportA.netPnl,report.reportB.netPnl,{money:true})+
    paired('Average P&L per deal',report.reportA.expectancy,report.reportB.expectancy,{money:true})+
    paired('Loss streak (deals)',report.reportA.consecutiveLosses,report.reportB.consecutiveLosses)+
-   '</tbody></table></div>';
+   paired('Largest winning close share (%)',report.reportA.profitConcentration?.pct,report.reportB.profitConcentration?.pct,{notComparable:true})+
+   paired('Largest losing close share (%)',report.reportA.lossConcentration?.pct,report.reportB.lossConcentration?.pct,{notComparable:true})+
+   '</tbody></table></div>'+
+   '<p class="q-mt5-compare-boundary" role="note">Single-close shares use each report\'s own gross profit or loss. Report A: '+esc(report.reportA.profitConcentration?.state??'UNAVAILABLE')+' across '+n(report.reportA.profitConcentration?.closes,0)+' winning closes and '+esc(report.reportA.lossConcentration?.state??'UNAVAILABLE')+' across '+n(report.reportA.lossConcentration?.closes,0)+' losing closes. Report B: '+esc(report.reportB.profitConcentration?.state??'UNAVAILABLE')+' across '+n(report.reportB.profitConcentration?.closes,0)+' winning closes and '+esc(report.reportB.lossConcentration?.state??'UNAVAILABLE')+' across '+n(report.reportB.lossConcentration?.closes,0)+' losing closes. These values are descriptive, not return on capital, matched-position risk or forecasts.</p>';
  const tables=[['By symbol',report.symbols],['By direction',report.groups.side],['By report-clock hour',report.groups.hour]];
  for(const [title,data] of tables){
    if(!data?.length)continue;
