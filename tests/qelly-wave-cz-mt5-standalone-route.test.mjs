@@ -39,7 +39,8 @@ test('MT5 HTML/XLSX analysis reuses validated parser and never transports or per
   assert.ok(m.includes(token),token);
  }
  assert.doesNotMatch(m,/localStorage|sessionStorage|indexedDB|navigator\.sendBeacon|fetch\(|XMLHttpRequest|service_role|password:/);
- assert.match(m,/rawFilesRetained:false,sourceRowsIncluded:false,accountIdentifiersIncluded:false,uploaded:false/);
+ const sharing=await read('apps/web/public/assets/qelly-mt5-share-safe.mjs');
+ assert.match(sharing,/rawFilesRetained:false,sourceRowsIncluded:false,accountIdentifiersIncluded:false,uploaded:false/);
  assert.throws(()=>renderMt5ReportAnalyzer(null),/existing QELLY main/);
 });
 test('standalone UI has responsive keyboard-accessible upload and cleared memory state',async()=>{
@@ -55,7 +56,7 @@ test('standalone UI has responsive keyboard-accessible upload and cleared memory
 test('browser acceptance exercises separate route without weakening QELLY Verify or sample governance',async()=>{
  const script=await read('scripts/qelly-mt5-upload-e2e.mjs');
  for(const s of ['#/qelly-verify','#/mt5-report-analyzer','data-mt5-route-input="A"',
-  'data-mt5-route-input="B"','data-mt5-route-reset','qelly.mt5.share-safe-local/1.0',
+  'data-mt5-route-input="B"','data-mt5-route-reset','qelly.mt5.share-safe-local/1.1',
   'window.__qellyMt5UploadXss','location.hash=\'#/market\'','q-mt5-route-empty','standalone-mt5.png']){
   assert.ok(script.includes(s),s);
  }
