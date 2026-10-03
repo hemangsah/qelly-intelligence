@@ -65,5 +65,7 @@ test('canonical Cloudflare route owns platform readiness and the UI consumes its
   assert.match(ui,/Qelly service status/);
   assert.match(ui,/Service checks/);
   assert.match(ui,/customer-readable view/);
-  assert.doesNotMatch(ui,/Data source permissions|Financial safety boundary|providerPolicyMessage|provider-policy-matrix/);
+  assert.doesNotMatch(ui,/Data source permissions|Financial safety boundary|provider-policy-matrix/);
+  assert.match(ui,/providerPolicyMessage/);
+  assert.match(ui,/data-provenance="governed-provider-coverage"/);
 });
