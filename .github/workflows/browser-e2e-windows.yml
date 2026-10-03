@@ -160,14 +160,18 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $manifest = Get-Content 'preview/release-a5-all-screens/manifest.json' -Raw -Encoding utf8 | ConvertFrom-Json
+          $expectedRoutes = [int](node --input-type=module -e "import {routeDefinitions} from './apps/web/public/assets/route-registry.mjs'; const ids=routeDefinitions.map(item=>item.route); if(new Set(ids).size!==ids.length)process.exit(1); process.stdout.write(String(ids.length));")
+          if ($LASTEXITCODE -ne 0 -or $expectedRoutes -lt 72) { throw 'Invalid canonical route count' }
+          $expectedRenders = 2 * $expectedRoutes
           $pngCount = (Get-ChildItem 'preview/release-a5-all-screens' -Filter '*.png').Count
           $archives = @(Get-ChildItem 'preview' -Filter 'QELLY_ALL_SCREENS_*.zip')
           if ($manifest.status -ne 'passed') { throw 'Manifest did not pass' }
-          if ([int]$manifest.routeCount -ne 71) { throw "Expected 71 routes, received $($manifest.routeCount)" }
-          if ([int]$manifest.renderCount -ne 142 -or [int]$manifest.expectedRenderCount -ne 142) { throw 'Expected 142 route-viewport renders' }
+          if ([int]$manifest.routeCount -ne $expectedRoutes) { throw "Expected $expectedRoutes routes, received $($manifest.routeCount)" }
+          if ([int]$manifest.renderCount -ne $expectedRenders -or [int]$manifest.expectedRenderCount -ne $expectedRenders) { throw "Expected $expectedRenders route-viewport renders" }
           if ([int]$manifest.failed -ne 0 -or $manifest.missing.Count -ne 0) { throw 'Screen evidence contains failed or missing renders' }
-          if ($pngCount -ne 142) { throw "Expected 142 PNG files, received $pngCount" }
-          if ($archives.Count -ne 1 -or $archives[0].Length -le 0) { throw 'Exact screenshot ZIP is missing or empty' }
+          if ($pngCount -ne $expectedRenders) { throw "Expected $expectedRenders PNG files, received $pngCount" }
+          $expectedArchive = 'QELLY_ALL_SCREENS_' + $env:QELLY_SCREEN_EVIDENCE_SHA.Substring(0,12) + '.zip'
+          if ($archives.Count -ne 1 -or $archives[0].Name -ne $expectedArchive -or $archives[0].Length -le 0) { throw 'Exact screenshot ZIP is missing, mismatched or empty' }
           Write-Host ($manifest | ConvertTo-Json -Depth 4)
           Write-Host "Archive: $($archives[0].FullName) ($($archives[0].Length) bytes)"
       - name: Upload complete Windows evidence

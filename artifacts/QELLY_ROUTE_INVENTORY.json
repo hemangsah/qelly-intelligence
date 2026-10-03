@@ -1,6 +1,6 @@
 {
   "productVersion": "0.9.0-preview.1",
-  "count": 71,
+  "count": 72,
   "items": [
     {
       "index": 1,
@@ -124,6 +124,14 @@
     },
     {
       "index": 16,
+      "route": "mt5-report-analyzer",
+      "label": "MT5 Report Analyzer",
+      "section": "Tools",
+      "public": true,
+      "implementation": "runnable-route"
+    },
+    {
+      "index": 17,
       "route": "india-finance",
       "label": "India Finance & SIP",
       "section": "Tools",
@@ -131,7 +139,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 17,
+      "index": 18,
       "route": "indicator-library",
       "label": "Indicator Library",
       "section": "Tools",
@@ -139,7 +147,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 18,
+      "index": 19,
       "route": "formula-library",
       "label": "Formula Library",
       "section": "Tools",
@@ -147,7 +155,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 19,
+      "index": 20,
       "route": "saved-calculations",
       "label": "Saved Calculations",
       "section": "Tools",
@@ -155,7 +163,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 20,
+      "index": 21,
       "route": "formula-detail",
       "label": "Formula Detail",
       "section": "Detail",
@@ -163,7 +171,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 21,
+      "index": 22,
       "route": "indicator-detail",
       "label": "Indicator Detail",
       "section": "Detail",
@@ -171,7 +179,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 22,
+      "index": 23,
       "route": "calculator-detail",
       "label": "Calculator Detail",
       "section": "Detail",
@@ -179,7 +187,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 23,
+      "index": 24,
       "route": "saved-calculation-detail",
       "label": "Saved Calculation Detail",
       "section": "Detail",
@@ -187,7 +195,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 24,
+      "index": 25,
       "route": "theme-personas",
       "label": "Theme Personas",
       "section": "Experience",
@@ -195,7 +203,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 25,
+      "index": 26,
       "route": "feature-universe",
       "label": "Feature Universe",
       "section": "Experience",
@@ -203,7 +211,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 26,
+      "index": 27,
       "route": "about-qelly",
       "label": "About Qelly",
       "section": "Company",
@@ -211,7 +219,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 27,
+      "index": 28,
       "route": "discovery-hub",
       "label": "Discovery Overview",
       "section": "Discover",
@@ -219,7 +227,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 28,
+      "index": 29,
       "route": "asset-rankings",
       "label": "Asset Rankings",
       "section": "Discover",
@@ -227,7 +235,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 29,
+      "index": 30,
       "route": "search",
       "label": "Universal Search",
       "section": "Discover",
@@ -235,7 +243,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 30,
+      "index": 31,
       "route": "categories",
       "label": "Categories",
       "section": "Discover",
@@ -243,7 +251,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 31,
+      "index": 32,
       "route": "venues",
       "label": "Venues",
       "section": "Discover",
@@ -251,7 +259,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 32,
+      "index": 33,
       "route": "dex-discovery",
       "label": "DEX Discovery",
       "section": "Discover",
@@ -259,7 +267,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 33,
+      "index": 34,
       "route": "global-charts",
       "label": "Global Charts",
       "section": "Discover",
@@ -267,7 +275,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 34,
+      "index": 35,
       "route": "converter",
       "label": "FX Reference Converter",
       "section": "Discover",
@@ -275,7 +283,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 35,
+      "index": 36,
       "route": "news-research",
       "label": "QELLY Chat",
       "section": "Discover",
@@ -283,7 +291,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 36,
+      "index": 37,
       "route": "trust-center",
       "label": "Research Methodology",
       "section": "Discover",
@@ -291,7 +299,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 37,
+      "index": 38,
       "route": "asset-intelligence",
       "label": "Asset Intelligence",
       "section": "Intelligence",
@@ -299,7 +307,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 38,
+      "index": 39,
       "route": "advanced-chart",
       "label": "Advanced Chart Studio",
       "section": "Intelligence",
@@ -307,7 +315,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 39,
+      "index": 40,
       "route": "fundamentals-estimates",
       "label": "Fundamentals & Estimates",
       "section": "Intelligence",
@@ -315,7 +323,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 40,
+      "index": 41,
       "route": "filing-workspace",
       "label": "Filing Workspace",
       "section": "Intelligence",
@@ -323,7 +331,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 41,
+      "index": 42,
       "route": "event-calendar",
       "label": "Event Calendar",
       "section": "Intelligence",
@@ -331,7 +339,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 42,
+      "index": 43,
       "route": "comparison-lab",
       "label": "Comparison Lab",
       "section": "Intelligence",
@@ -339,7 +347,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 43,
+      "index": 44,
       "route": "market",
       "label": "Market Pulse",
       "section": "Intelligence",
@@ -347,7 +355,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 44,
+      "index": 45,
       "route": "rankings",
       "label": "Legacy Rankings",
       "section": "Intelligence",
@@ -355,7 +363,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 45,
+      "index": 46,
       "route": "asset",
       "label": "Asset Dossier",
       "section": "Workspace",
@@ -363,7 +371,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 46,
+      "index": 47,
       "route": "watchlist",
       "label": "Watchlists",
       "section": "Workspace",
@@ -371,7 +379,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 47,
+      "index": 48,
       "route": "alert-center",
       "label": "Alert Rules",
       "section": "Workspace",
@@ -379,7 +387,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 48,
+      "index": 49,
       "route": "notification-center",
       "label": "Notifications",
       "section": "Workspace",
@@ -387,7 +395,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 49,
+      "index": 50,
       "route": "screener-lab",
       "label": "Screener Lab",
       "section": "Workspace",
@@ -395,7 +403,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 50,
+      "index": 51,
       "route": "portfolio-analytics",
       "label": "Portfolio Analytics",
       "section": "Workspace",
@@ -403,7 +411,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 51,
+      "index": 52,
       "route": "research-workspace",
       "label": "Research Workspace",
       "section": "Workspace",
@@ -411,7 +419,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 52,
+      "index": 53,
       "route": "onboarding",
       "label": "Guided Onboarding",
       "section": "Workspace",
@@ -419,7 +427,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 53,
+      "index": 54,
       "route": "notification-schedules",
       "label": "Notification Schedules",
       "section": "Workspace",
@@ -427,7 +435,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 54,
+      "index": 55,
       "route": "formula-screener",
       "label": "Formula Screener",
       "section": "Workspace",
@@ -435,7 +443,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 55,
+      "index": 56,
       "route": "portfolio-attribution",
       "label": "Portfolio Attribution",
       "section": "Workspace",
@@ -443,7 +451,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 56,
+      "index": 57,
       "route": "import-center",
       "label": "Import Center",
       "section": "Workspace",
@@ -451,7 +459,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 57,
+      "index": 58,
       "route": "research-history",
       "label": "Research History",
       "section": "Workspace",
@@ -459,7 +467,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 58,
+      "index": 59,
       "route": "migration-center",
       "label": "Migration Center",
       "section": "Operations",
@@ -467,7 +475,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 59,
+      "index": 60,
       "route": "theme-lab",
       "label": "Theme Studio",
       "section": "Platform",
@@ -475,7 +483,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 60,
+      "index": 61,
       "route": "identity-access",
       "label": "Identity & Access",
       "section": "Control",
@@ -483,7 +491,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 61,
+      "index": 62,
       "route": "data-mesh",
       "label": "Provider Runtime",
       "section": "Control",
@@ -491,7 +499,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 62,
+      "index": 63,
       "route": "instrument-master",
       "label": "Instrument Master",
       "section": "Control",
@@ -499,7 +507,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 63,
+      "index": 64,
       "route": "timeseries-lab",
       "label": "Time Series Lab",
       "section": "Data Plane",
@@ -507,7 +515,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 64,
+      "index": 65,
       "route": "stream-operations",
       "label": "Stream Operations",
       "section": "Data Plane",
@@ -515,7 +523,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 65,
+      "index": 66,
       "route": "observability",
       "label": "Observability Center",
       "section": "Operations",
@@ -523,7 +531,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 66,
+      "index": 67,
       "route": "decision-provenance",
       "label": "Decision Intelligence",
       "section": "Evidence",
@@ -531,7 +539,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 67,
+      "index": 68,
       "route": "qelly-verify",
       "label": "Qelly Verify",
       "section": "Evidence",
@@ -539,7 +547,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 68,
+      "index": 69,
       "route": "security-evidence",
       "label": "Security Evidence",
       "section": "Evidence",
@@ -547,7 +555,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 69,
+      "index": 70,
       "route": "category-detail",
       "label": "Category Detail",
       "section": "Detail",
@@ -555,7 +563,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 70,
+      "index": 71,
       "route": "venue-detail",
       "label": "Venue Detail",
       "section": "Detail",
@@ -563,7 +571,7 @@
       "implementation": "runnable-route"
     },
     {
-      "index": 71,
+      "index": 72,
       "route": "research-article",
       "label": "Research Article",
       "section": "Detail",

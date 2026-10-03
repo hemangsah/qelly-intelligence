@@ -17,7 +17,7 @@ const WORKFLOW='.github/workflows/verify-evidence.yml';
 test('Qelly Verify is a canonical public Evidence route with methodology owned by the same lazy route',async()=>{
   const [registry,router,app,product]=await Promise.all([read(REGISTRY),read(ROUTER),read(APP),read(PRODUCT)]);
   const routes=[...registry.matchAll(/route:'([^']+)'/g)].map(match=>match[1]);
-  assert.equal(routes.length,71);
+  assert.equal(routes.length,72);
   assert.equal(routes.includes('qelly-verify'),true);
   assert.equal(routes.includes('evidence-methodology'),false);
   assert.match(registry,/route:'qelly-verify', label:'Qelly Verify'.*public:true/);
@@ -119,13 +119,14 @@ test('Wave 4 raises complete-route denominators without weakening representative
     read('.github/workflows/browser-e2e-windows.yml'),
     read('.github/workflows/responsive-e2e.yml')
   ]);
-  assert.match(allScreens,/manifest\.routeCount===71/);
-  assert.match(allScreens,/manifest\.renderCount===142/);
-  assert.match(allScreens,/pngs\.length===142/);
-  assert.match(windows,/manifest\.routeCount -ne 71/);
-  assert.match(windows,/manifest\.renderCount -ne 142/);
-  assert.match(windows,/pngCount -ne 142/);
-  assert.match(responsive,/manifest\.canonicalRouteCount===71/);
+  assert.match(allScreens,/manifest\.routeCount===expectedRoutes/);
+  assert.match(allScreens,/manifest\.renderCount===expectedRenders/);
+  assert.match(allScreens,/pngs\.length===expectedRenders/);
+  assert.match(windows,/manifest\.routeCount -ne \$expectedRoutes/);
+  assert.match(windows,/manifest\.renderCount -ne \$expectedRenders/);
+  assert.match(windows,/pngCount -ne \$expectedRenders/);
+  assert.match(responsive,/manifest\.canonicalRouteCount===registeredRoutes/);
+  assert.doesNotMatch(allScreens,/manifest\.routeCount===71|manifest\.renderCount===142/);
   assert.match(responsive,/manifest\.representativeRouteCount===manifest\.routes\.length/);
   assert.match(responsive,/manifest\.representativeRouteCount>=17/);
   assert.match(responsive,/manifest\.routes\.includes\('asset-intelligence'\)/);

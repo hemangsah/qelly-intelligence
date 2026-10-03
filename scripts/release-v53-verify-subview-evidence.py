@@ -231,7 +231,7 @@ def main():
     if not (ROOT/'dist/frontend/index.html').is_file():
         raise SystemExit('built frontend missing; run npm run build:frontend first')
     definitions=route_definitions()
-    if len(definitions)!=71:
+    if len(definitions)!=72:
         raise SystemExit(f'canonical route count changed unexpectedly: {len(definitions)}')
     index={item['route']:position for position,item in enumerate(definitions)}
     if 'qelly-verify' not in index:

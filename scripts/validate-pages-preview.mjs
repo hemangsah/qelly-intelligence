@@ -189,9 +189,9 @@ for (const phrase of ["import { parseHashRoute } from './hash-route-state.mjs'",
 assert(!/from\s+["']\/packages\//.test(app), 'app.js contains root-relative package imports');
 
 const routeRegistry = await import(`${pathToFileURL(path.join(output, 'assets/route-registry.mjs')).href}?review=${Date.now()}`);
-assert(routeRegistry.routeDefinitions.length === 71, 'Static preview route registry must contain exactly 71 routes');
 const routeIds = new Set(routeRegistry.routeDefinitions.map(item => item.route));
-for (const route of ['qelly-verify', 'calculator-center', 'india-finance', 'indicator-library', 'formula-library', 'saved-calculations', 'formula-detail', 'indicator-detail', 'calculator-detail', 'saved-calculation-detail']) {
+assert(routeRegistry.routeDefinitions.length >= 72 && routeIds.size === routeRegistry.routeDefinitions.length, 'Static preview route inventory must include all unique registered routes');
+for (const route of ['qelly-verify', 'mt5-report-analyzer', 'calculator-center', 'india-finance', 'indicator-library', 'formula-library', 'saved-calculations', 'formula-detail', 'indicator-detail', 'calculator-detail', 'saved-calculation-detail']) {
   assert(routeIds.has(route), `Missing public/static route ${route}`);
 }
 
@@ -260,7 +260,7 @@ console.log(JSON.stringify({
   output: path.relative(root, output),
   basePath: expectedBasePath,
   files: names.length,
-  routeCount: 71,
+  routeCount: routeRegistry.routeDefinitions.length,
   formulaCount: 151,
   indicatorCount: 54,
   detailRoutes: 4,
