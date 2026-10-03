@@ -62,7 +62,7 @@ export function buildMt5LocalResearchNote(a,b=null){
   lines.push('','## Descriptive report comparison','','Both reports are separate observed samples. Currency, exposure, period, account equity, funding and full costs have not been independently matched. **All monetary differences and strategy rankings are withheld.**','');
   lines.push('| Descriptive comparison | Report A | Report B | Status |','| --- | ---: | ---: | --- |');
   for(const d of c.dimensions.slice(0,8)){
-   const delta=typeof d.delta==='number'?'Observed difference '+value(d.delta):d.comparisonState==='LIMITED_SAMPLE'?'Insufficient sample':'Unavailable';
+   const delta=typeof d.delta==='number'?'Observed difference '+value(d.delta):d.comparisonState==='LIMITED_SAMPLE'?'Insufficient sample':d.comparisonState==='SIDE_BY_SIDE_ONLY'?'Not comparable (distinct denominators)':'Unavailable';
    lines.push('| '+d.label+' | '+value(d.reportA)+' | '+value(d.reportB)+' | '+delta+' |');
   }
   lines.push('','No causal attribution or matched-position equivalence is implied.');
