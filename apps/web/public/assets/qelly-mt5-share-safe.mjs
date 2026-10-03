@@ -11,7 +11,7 @@ function snapshotReport(r){
  const metrics=numericObject(r.metrics,METRICS);
  const costs=Object.fromEntries(['commission','fee','swap'].map(key=>[key,numericObject(r.costs?.[key],['knownTotal','coveragePct'])]));
  const groups=Object.fromEntries(['symbol','side','weekday','hour','month'].map(key=>[key,(Array.isArray(r.groups?.[key])?r.groups[key]:[]).slice(0,1000).map(item=>({
-  key:key==='symbol'&&/^[A-Za-z0-9._/-]{1,16}$/.test(String(item.key))?String(item.key)
+  key:key==='symbol'&&/^(?=.*[A-Za-z])[A-Za-z0-9._/-]{1,16}$/.test(String(item.key))?String(item.key)
     :key==='side'&&/^(?:buy|sell)$/.test(String(item.key))?String(item.key)
     :key==='hour'&&/^(?:[01]?\d|2[0-3])$/.test(String(item.key))?String(item.key)
     :key==='weekday'&&/^(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)$/.test(String(item.key))?String(item.key)
@@ -35,16 +35,36 @@ function snapshotReport(r){
 const round=x=>typeof x==='number'&&Number.isFinite(x)?Number(x.toFixed(4)):null;
 const label=(id,group)=>{
  if(id==='negative-side'&&/^(buy|sell)$/i.test(String(group)))return String(group).toLowerCase();
- if(id==='negative-symbol'&&/^[A-Za-z0-9._/-]{1,16}$/.test(String(group)))return String(group);
+ if(id==='negative-symbol'&&/^(?=.*[A-Za-z])[A-Za-z0-9._/-]{1,16}$/.test(String(group)))return String(group);
  if(id==='negative-hour'&&/^(?:[01]\d|2[0-3]):00 \(report clock\)$/.test(String(group)))return String(group);
  return '(reported bucket label withheld)';
 };
+
+const sanitizedDiagnostics=d=>({
+ ...d,findings:d.findings.map(item=>Object.hasOwn(item,'group')?{...item,group:label(item.id,item.group)}:item)
+});
+const allowGroupKey=(kind,key)=>{
+ const raw=String(key);
+ if(kind==='side'&&/^(buy|sell)$/.test(raw))return raw;
+ if(kind==='hour'&&/^(?:[01]?\d|2[0-3])$/.test(raw))return raw;
+ if(kind==='weekday'&&/^(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)$/.test(raw))return raw;
+ if(kind==='month'&&/^\d{4}-(?:0[1-9]|1[0-2])$/.test(raw))return raw;
+ return '(withheld label)';
+};
+const sanitizedComparison=c=>{
+ if(!c)return null;
+ return {...c,
+  symbols:c.symbols.map(item=>({...item,symbol:label('negative-symbol',item.symbol)})),
+  groups:Object.fromEntries(Object.entries(c.groups).map(([kind,items])=>[kind,items.map(item=>({...item,key:allowGroupKey(kind,item.key)}))]))
+ };
+};
+
 const privacy=Object.freeze({rawFilesRetained:false,sourceRowsIncluded:false,accountIdentifiersIncluded:false,uploaded:false});
 export function buildMt5ShareSafePackage(a,b=null){
- const diagnosticsA=buildMt5ObservedDiagnostics(a);
- const diagnosticsB=b?buildMt5ObservedDiagnostics(b):null;
+ const diagnosticsA=sanitizedDiagnostics(buildMt5ObservedDiagnostics(a));
+ const diagnosticsB=b?sanitizedDiagnostics(buildMt5ObservedDiagnostics(b)):null;
  const reportA=snapshotReport(a);
- const comparison=b?compareMt5ClosedDealReports(a,b):null;
+ const comparison=b?sanitizedComparison(compareMt5ClosedDealReports(a,b)):null;
  return {
   schema:'qelly.mt5.share-safe-local/1.1',truthState:'DETERMINISTIC LOCAL ANALYSIS',
   reportA,diagnosticsA,diagnosticsB,comparison,privacy
