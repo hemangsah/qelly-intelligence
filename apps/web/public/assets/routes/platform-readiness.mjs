@@ -19,7 +19,7 @@ export function providerDisplayModel(raw={}){
  const capabilityIds=Array.isArray(raw?.capabilities)?raw.capabilities.slice(0,8):[];
  const capabilities=capabilityIds.map(key=>CAPABILITY_LABELS[key]||null).filter(Boolean);
  const policy=demo?'Deterministic local samples; no live market feed.'
-   :enabled?providerPolicyMessage(raw):providerPolicyMessage(raw);
+   :providerPolicyMessage(raw);
  const health=demo?'Local sample only; no independent provider status.'
    :!enabled?'Not polled while display approval is pending.'
    :String(raw?.healthState||'not-reported')==='enabled-health-not-sampled'
@@ -35,7 +35,15 @@ export function providerDisplayModel(raw={}){
 }
 
 
+function ensureProviderCoverageStyles(){
+ if(document.querySelector('link[data-qelly-provider-coverage]'))return;
+ const style=document.createElement('link');
+ style.rel='stylesheet';style.href='/assets/routes/platform-readiness-provider-coverage.css';
+ style.dataset.qellyProviderCoverage='true';document.head.append(style);
+}
+
 export async function renderPlatformReadiness(main,{api,pageHead,escapeHtml}){
+ ensureProviderCoverageStyles();
  const data=await api('/api/v1/platform/readiness');
  const summary=data.summary||{ready:0,partial:0,deferred:0,blocked:0};
  const gates=Array.isArray(data.gates)?data.gates:[];
