@@ -41,7 +41,7 @@ const researchObservationRows=async(env,session,workspaceId,{limit=5000}={})=>{
 // Research audits must not promote a bounded workspace sample to a complete
 // scientific history. Reaching a cap is conservatively treated as incomplete.
 export const parseExactCount=(contentRange)=>{
-  const match=String(contentRange||'').trim().match(/^(?:\\d+-\\d+|\\*)\\/(\\d+)$/);
+  const match=String(contentRange||'').trim().match(/^(?:\d+-\d+|\*)\/(\d+)$/);
   if(!match)return null;
   const count=Number(match[1]);
   return Number.isSafeInteger(count)&&count>=0?count:null;
