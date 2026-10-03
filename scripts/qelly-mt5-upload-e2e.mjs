@@ -44,9 +44,10 @@ async function loadFile(page,name,content,mime){
 }
 async function scenario(browser,name,viewport){
   const context=await browser.newContext({viewport,reducedMotion:'reduce',acceptDownloads:true});
-  const page=await context.newPage(),errors=[],uploads=[];
+  const page=await context.newPage(),errors=[],uploads=[],chatPosts=[];
   page.on('pageerror',e=>errors.push(e.message));
   page.on('request',request=>{if(['POST','PUT','PATCH'].includes(request.method())&&/\/api\/v1\/(?:verify|imports|files|storage|analysis)/i.test(new URL(request.url()).pathname))uploads.push({method:request.method(),url:request.url()});});
+  page.on('request',request=>{if(request.method()==='POST'&&/\/api\/v1\/intelligence\/chat/.test(new URL(request.url()).pathname))chatPosts.push(request.url());});
   const entry={name,viewport,checks:[],errors:[],uploads:[]};
   try{
     await page.goto(origin+'/#/qelly-verify',{waitUntil:'domcontentloaded',timeout:25000});
@@ -115,11 +116,26 @@ async function scenario(browser,name,viewport){
     await page.locator('[data-mt5-route-export]').click();
     const routeDownload=await routeSaved;
     const routeData=JSON.parse(await readFile(await routeDownload.path(),'utf8'));
-    assert.equal(routeData.schema,'qelly.mt5.share-safe-local/1.0');
+    assert.equal(routeData.schema,'qelly.mt5.share-safe-local/1.1');
+    assert.equal(routeData.diagnosticsA.schema,'qelly.mt5.closed-deal-diagnostics/1.0');
+    assert.equal(routeData.diagnosticsB.schema,'qelly.mt5.closed-deal-diagnostics/1.0');
+    assert.equal(routeData.diagnosticsA.sample.deals,6);
+    assert.equal(routeData.diagnosticsB.sample.deals,6);
     assert.equal(routeData.reportA.sample.deals,6);
     assert.equal(routeData.comparison.comparability.monetaryDeltas,'WITHHELD_UNVERIFIED_CURRENCY');
     assert.equal(routeData.privacy.sourceRowsIncluded,false);
+    assert.equal(routeData.privacy.accountIdentifiersIncluded,false);
     assert.doesNotMatch(JSON.stringify(routeData),/window.__qellyMt5UploadXss|PRIVATE_PASSWORD/);
+    await page.locator('[data-mt5-route-chat]').click();
+    await page.locator('[data-q-ai-assistant]:not([hidden])').waitFor({state:'visible',timeout:10000});
+    const draft=await page.locator('[data-q-ai-form] textarea').inputValue();
+    assert.match(draft,/user-supplied, browser-local MT5 aggregate summary/);
+    assert.match(draft,/Report A: 6 realized closing deals/);
+    assert.match(draft,/Report B: 6 realized closing deals/);
+    assert.equal(draft.length<=2200,true);
+    assert.deepEqual(chatPosts,[],'Opening the Chat draft must not send any report data');
+    await page.locator('[data-q-ai-close]').click();
+    entry.checks.push('explicit aggregate-only MT5 Chat prefill without automatic network submission');
     await page.screenshot({path:path.join(out,name+'-standalone-mt5.png'),fullPage:true});
     await page.locator('[data-mt5-route-reset]').click();
     assert.equal(await page.locator('.q-mt5-route-empty').count(),1);
