@@ -1,4 +1,5 @@
 import {assuranceLabel,authenticationMethodLabel} from '../customer-copy.mjs';
+import {installPrivateAvatarControls} from '../qelly-profile-avatar.mjs';
 
 const esc=(value,escapeHtml)=>escapeHtml(value??'—');
 const date=(value)=>{const parsed=new Date(value||'');return Number.isNaN(parsed.getTime())?'Not supplied':parsed.toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});};
@@ -26,6 +27,16 @@ export async function renderAccountSession(main,{api,pageHead,escapeHtml,toast,o
   const passkeysReady=false;
   const user=profile.user||{},settings=profile.profile||{},workspace=profile.workspace||{},session=profile.session||{};
   const profileCapabilities=profile.capabilities||{};
+  const avatarSupported=profileCapabilities.avatarStorage==='private-rls';
+  const avatarEditorMarkup=avatarSupported?[
+   '<section class="q-panel q-v6-avatar-panel" data-avatar-widget aria-labelledby="q-v6-avatar-heading">',
+   '<div class="q-panel-head"><div><p class="q-eyebrow">Private photo</p><h2 id="q-v6-avatar-heading">Profile photo</h2><p>Choose a JPEG, PNG or WebP (up to 5 MiB), adjust a square crop, then save a private PNG. Your original photo remains on this device.</p></div></div>',
+   '<div class="q-v6-avatar-workspace"><div class="q-v6-avatar-choices"><label for="q-v6-avatar-file" class="q-button q-button--secondary">Choose photo</label><input id="q-v6-avatar-file" data-avatar-file type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="q-v6-avatar-help"><button class="q-button q-button--secondary" type="button" data-avatar-remove hidden>Remove saved photo</button></div>',
+   '<p id="q-v6-avatar-help" class="q-muted-copy">Only your authenticated account can access this photo. Use the crop preview arrows or drag to position it.</p>',
+   '<div class="q-v6-avatar-editor" data-avatar-editor hidden><canvas data-avatar-canvas width="256" height="256" tabindex="0" role="img" aria-label="Square photo crop preview. Drag or use arrow keys to position.">Photo crop preview</canvas>',
+   '<label class="q-v6-avatar-zoom">Zoom <input data-avatar-zoom type="range" min="1" max="2.5" step="0.05" value="1"></label><div class="q-v6-avatar-editor-buttons"><button type="button" class="q-button q-button--primary" data-avatar-save>Save private photo</button><button type="button" class="q-button q-button--secondary" data-avatar-cancel>Cancel</button></div></div>',
+   '<p class="q-v6-avatar-status" data-avatar-status role="status" aria-live="polite">Checking private photo storage…</p></div></section>'
+  ].join(''):'';
   const cloudProfile=profileCapabilities.profilePersistence==='cloud-rls';
   const cloudSyncAvailable=cloudProfile&&profileCapabilities.cloudSync===true;
   const cloudSyncCopy=cloudSyncAvailable
@@ -41,9 +52,10 @@ export async function renderAccountSession(main,{api,pageHead,escapeHtml,toast,o
   main.innerHTML=`<section class="q-page q-v6-account-page" data-profile-storage="${cloudProfile?'secure-cloud':'this-device'}">
     ${pageHead('Qelly Intelligence · Account','Profile & Security','Manage the profile, preferences and current browser session connected to your Qelly account.',`<button class="q-button q-button--secondary" data-refresh>Refresh session</button><button class="q-button q-button--primary" data-save-profile>Save changes</button>`)}
     <div class="q-v6-account-hero">
-      <section class="q-panel q-v6-identity-card"><div class="q-v6-identity-primary"><div class="q-v6-avatar" aria-hidden="true">${escapeHtml(initials(settings.displayName||user.displayName||user.email))}</div><div><p class="q-eyebrow">Your Qelly account</p><h2>${esc(settings.displayName||user.displayName,escapeHtml)}</h2><p>${esc(user.email,escapeHtml)}</p></div></div><div class="q-v6-identity-tags"><span class="q-status q-status--${user.emailConfirmedAt?'live':'warning'}">${user.emailConfirmedAt?'Email verified':'Verify email'}</span><span class="q-status q-status--live">${storageLabel} profile</span><span class="q-status q-status--cached">Research workspace</span></div></section>
+      <section class="q-panel q-v6-identity-card"><div class="q-v6-identity-primary"><div class="q-v6-avatar-visual"><div class="q-v6-avatar" data-avatar-initials aria-hidden="true">${escapeHtml(initials(settings.displayName||user.displayName||user.email))}</div><img class="q-v6-avatar-image" data-avatar-image alt="Your profile photo" hidden></div><div><p class="q-eyebrow">Your Qelly account</p><h2>${esc(settings.displayName||user.displayName,escapeHtml)}</h2><p>${esc(user.email,escapeHtml)}</p></div></div><div class="q-v6-identity-tags"><span class="q-status q-status--${user.emailConfirmedAt?'live':'warning'}">${user.emailConfirmedAt?'Email verified':'Verify email'}</span><span class="q-status q-status--live">${storageLabel} profile</span><span class="q-status q-status--cached">Research workspace</span></div></section>
       <section class="q-panel q-v6-security-card"><div class="q-panel-head"><div><p class="q-eyebrow">Session health</p><h2>Signed in securely</h2><p>This browser has an active account session.</p></div><span class="q-status q-status--live">Active</span></div><div class="q-v6-security-list"><div class="q-v6-security-row"><span>Sign-in</span><strong>${escapeHtml(method)}</strong></div><div class="q-v6-security-row"><span>Protection</span><strong>${escapeHtml(assurance)}</strong></div><div class="q-v6-security-row"><span>Active until</span><strong>${escapeHtml(date(expiresAt))}</strong></div><div class="q-v6-security-row"><span>Account created</span><strong>${escapeHtml(date(user.accountCreatedAt))}</strong></div><div class="q-v6-security-row"><span>Last sign-in</span><strong>${escapeHtml(date(user.lastSignInAt))}</strong></div></div></section>
     </div>
+    ${avatarEditorMarkup}
     <div class="q-v6-profile-layout">
       <section class="q-panel q-v6-profile-card"><div class="q-panel-head"><div><p class="q-eyebrow">Personalization</p><h2>Profile preferences</h2><p>Choose how currencies, dates and your identity appear throughout Qelly.</p></div><span class="q-status q-status--${cloudProfile?'live':'cached'}">${storageLabel}</span></div><form id="v6-profile-form" class="q-panel-body q-v6-profile-form">
         <label class="q-setting q-setting--wide"><span>Display name</span><input name="displayName" maxlength="80" required value="${esc(settings.displayName||'',escapeHtml)}" autocomplete="name"></label>
@@ -67,6 +79,7 @@ export async function renderAccountSession(main,{api,pageHead,escapeHtml,toast,o
     </div>
   </section>`;
 
+  if(avatarSupported)installPrivateAvatarControls({main,api,toast});
   const form=main.querySelector('#v6-profile-form');
   const save=async()=>{const data=new FormData(form);const payload={displayName:String(data.get('displayName')||''),baseCurrency:String(data.get('baseCurrency')||'USD'),timezone:String(data.get('timezone')||'UTC')};if(cloudSyncAvailable)payload.cloudSyncOptIn=Boolean(form.elements.cloudSyncOptIn.checked);try{await api('/api/v1/profile',{method:'PATCH',body:JSON.stringify(payload)});toast('Profile preferences saved',{tone:'success'});await onAuthenticated('account-session');}catch(error){toast(error.message,{tone:'danger'});}};
   form.addEventListener('submit',(event)=>{event.preventDefault();void save();});
