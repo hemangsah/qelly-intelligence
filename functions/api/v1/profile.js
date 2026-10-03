@@ -29,11 +29,27 @@ const safeCurrency=(value)=>{
   return currency;
 };
 
-const profilePayload=(context,runtime={capabilities:{}},identities)=>({
+// Only timestamps supplied by the authenticated GoTrue /auth/v1/user response.
+// Missing or malformed identity dates remain null, never inferred from profile rows.
+const identityDate=value=>{
+  if(typeof value!=='string'||value.length>64||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/.test(value))return null;
+  const epoch=Date.parse(value);
+  if(!Number.isFinite(epoch))return null;
+  const normalized=new Date(epoch).toISOString();
+  return normalized.slice(0,10)===value.slice(0,10)?normalized:null;
+};
+const verifiedIdentityDates=user=>Object.freeze({
+  accountCreatedAt:identityDate(user?.created_at),
+  lastSignInAt:identityDate(user?.last_sign_in_at)
+});
+
+const profilePayload=(context,runtime={capabilities:{}},identities,observedIdentity={})=>({
   user:{
     userId:context.user.userId,
     email:context.user.email,
     emailConfirmedAt:context.user.emailConfirmedAt,
+    accountCreatedAt:observedIdentity.accountCreatedAt||null,
+    lastSignInAt:observedIdentity.lastSignInAt||null,
     displayName:context.profile?.display_name||context.user.displayName||null
   },
   profile:{
@@ -71,7 +87,7 @@ export async function onRequest(context){
 
     if(method==='GET'){
       const qelly=await bootstrapContext(env,session);
-      return responseJson(request,env,profilePayload(qelly,runtime,session.user?.identities),200,{cookies:session.cookies,cache:'private, no-store'});
+      return responseJson(request,env,profilePayload(qelly,runtime,session.user?.identities,verifiedIdentityDates(session.user)),200,{cookies:session.cookies,cache:'private, no-store'});
     }
 
     await requireCsrf(request);
@@ -92,8 +108,8 @@ export async function onRequest(context){
     });
     if(!rows?.length)throw new HttpError(404,'profile_not_found','Profile was not found');
     const qelly=await bootstrapContext(env,session);
-    return responseJson(request,env,{updated:true,...profilePayload(qelly,runtime,session.user?.identities)},200,{cookies:session.cookies,cache:'private, no-store'});
+    return responseJson(request,env,{updated:true,...profilePayload(qelly,runtime,session.user?.identities,verifiedIdentityDates(session.user))},200,{cookies:session.cookies,cache:'private, no-store'});
   }catch(error){return errorResponse(request,env,error);}
 }
 
-export const __profileRouteTest=Object.freeze({BASE_CURRENCIES,IDENTITY_PROVIDER_LABELS,sanitizedLinkedIdentities,safeTimezone,safeCurrency,profilePayload});
+export const __profileRouteTest=Object.freeze({BASE_CURRENCIES,IDENTITY_PROVIDER_LABELS,sanitizedLinkedIdentities,safeTimezone,safeCurrency,identityDate,verifiedIdentityDates,profilePayload});
