@@ -257,7 +257,7 @@ export const errorResponse=(request,env,error)=>{
   return new Response(JSON.stringify({error:{code:failure.code,message:failure.message,details:failure.details,retryable:failure.retryable},correlationId:id,timestamp:new Date().toISOString()}),{status:failure.status||500,headers});
 };
 
-export const supabaseRequest=async(env,path,{method='GET',body,token,headers={},timeoutMs=8000}={})=>{
+export const supabaseRequest=async(env,path,{method='GET',body,token,headers={},timeoutMs=8000,responseMeta=false}={})=>{
   const config=publicRuntimeConfig(env);
   const key=config.supabasePublishableKey;
   const controller=new AbortController();
@@ -280,10 +280,16 @@ export const supabaseRequest=async(env,path,{method='GET',body,token,headers={},
     try{payload=JSON.parse(text);}catch{payload={message:text.slice(0,500)};}
   }
   if(!response.ok)throw new HttpError(response.status===401?401:response.status===403?403:response.status===429?429:response.status>=500?503:400,payload?.code||payload?.error_code||'supabase_request_failed',payload?.msg||payload?.message||payload?.error_description||payload?.error||`Supabase request failed (${response.status})`,{retryable:response.status===429||response.status>=500});
-  return payload;
+  return responseMeta?{data:payload,contentRange:response.headers.get('content-range')}:payload;
 };
 
-export const restRequest=(env,token,path,{method='GET',body,prefer}={})=>supabaseRequest(env,`/rest/v1/${path}`,{method,body,token,headers:prefer?{Prefer:prefer}:{}});
+// A research-only exact count is read from the same RLS-scoped REST response.
+// Ordinary callers retain their existing payload-only return type.
+export const restRequest=(env,token,path,{method='GET',body,prefer,exactCount=false}={})=>supabaseRequest(env,`/rest/v1/${path}`,{
+  method,body,token,
+  headers:exactCount?{Prefer:[prefer,'count=exact'].filter(Boolean).join(',')}:prefer?{Prefer:prefer}:{},
+  responseMeta:exactCount
+});
 
 const decodeJwt=(token)=>{
   const parts=String(token||'').split('.');
