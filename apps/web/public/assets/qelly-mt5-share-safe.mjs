@@ -73,29 +73,45 @@ export function buildMt5ShareSafePackage(a,b=null){
 }
 export function buildMt5ChatDraft(a,b=null){
  const da=buildMt5ObservedDiagnostics(a),db=b?buildMt5ObservedDiagnostics(b):null;
- const line=(r,d,name)=>{
+ // Do not copy untrusted report properties into a prompt: only normalized
+ // numbers, diagnosed states and strictly bounded/allowlisted bucket labels.
+ const line=(r,d,name,groupLimit)=>{
   const m=r.metrics;
   const statements=[
    name+': '+d.sample.deals+' realized closing deals ('+d.sample.grade.replaceAll('_',' ').toLowerCase()+').',
    'Observed net P&L '+round(m.netPnl)+' (currency unverified); win rate '+round(m.winRatePct)+'%; profit factor '+(round(m.profitFactor)??'unavailable')+'.'
   ];
-  for(const item of d.findings.filter(x=>x.id.startsWith('negative-')).slice(0,3)){
+  const negative=d.findings.filter(x=>x.id.startsWith('negative-'));
+  for(const item of negative.slice(0,groupLimit)){
    statements.push('Largest eligible negative-net '+item.id.slice(9)+' bucket '+label(item.id,item.group)+': '+round(item.value)+' unverified units across '+item.sampleCount+' closes.');
   }
-  const missing=d.unavailable.length?'Insufficient evidence: '+d.unavailable.length+' subgroup/cost coverage gaps.':'';
+  if(negative.length>groupLimit)statements.push('Additional negative-net subgroup details omitted to respect the private Chat draft limit.');
+  for(const [id,kind] of [['largest-profit-share','winning'],['largest-loss-share','losing']]){
+   const finding=d.findings.find(item=>item.id===id);
+   if(finding){
+    statements.push('Largest '+kind+' close: '+round(finding.value)+'% of observed gross '+kind+' closing-deal P&L across '+finding.sampleCount+' '+kind+' closes ('+finding.state.replaceAll('_',' ').toLowerCase()+').');
+   }else statements.push('Largest '+kind+' close share unavailable: no observed '+kind+' closes.');
+  }
+  const missing=d.unavailable.length?'Insufficient evidence: '+d.unavailable.length+' diagnostic/coverage gaps.':'';
   if(missing)statements.push(missing);
   return statements.join('\n');
  };
- const blocks=[
-  'Review this user-supplied, browser-local MT5 aggregate summary. It has NOT been verified by QELLY Chat or any broker. Explain only the descriptive closing-deal observations, missingness and relevant validation questions; do not infer cause, recommend trading, predict results, or present a strategy ranking.',
-  line(a,da,'Report A')
- ];
- if(b){
-  blocks.push(line(b,db,'Report B'));
-  blocks.push('Comparison: monetary deltas are withheld because account currencies, capital, exposure, periods and full trading costs are unverified.');
+ const header='Review this user-supplied, browser-local MT5 aggregate summary. It has NOT been verified by QELLY Chat or any broker. Explain only descriptive closing-deal observations, missingness and validation questions; do not infer causes, recommend trades, predict results, or rank strategies.';
+ const limits='Limits: close-level concentration is not position-level risk, return on capital or a forecast. Broker timezone, account equity, floating P&L, deposits, capital and entry-side costs are unverified. No raw trade rows, tickets, filenames or broker account identifiers were shared.';
+ const draftWithLimit=groupLimit=>{
+  const blocks=[header,line(a,da,'Report A',groupLimit)];
+  if(b){
+   blocks.push(line(b,db,'Report B',groupLimit));
+   blocks.push('Comparison: monetary deltas withheld because account currencies, capital, exposure, periods and full costs are unverified.');
+  }
+  blocks.push(limits);
+  return blocks.join('\n\n');
+ };
+ // In a dense two-report comparison retain the aggregate risk receipts before
+ // dropping optional subgroup highlights. Never truncate text mid-evidence.
+ for(const limit of [3,2,1,0]){
+  const draft=draftWithLimit(limit);
+  if(draft.length<=2200)return draft;
  }
- blocks.push('Limits: broker timezone, account equity, floating P&L, deposits, starting capital and entry-side costs are not validated. No raw trade rows, tickets, filenames or broker account identifiers were shared.');
- const draft=blocks.join('\n\n');
- if(draft.length>2200)throw new RangeError('MT5 Chat draft exceeds the governed local summary limit');
- return draft;
+ throw new RangeError('MT5 Chat draft exceeds the governed local summary limit');
 }
