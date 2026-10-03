@@ -53,6 +53,18 @@ test('unknown or malformed provider state fails closed instead of advertising co
  assert.equal(y.truthState,'UNAVAILABLE');
  assert.equal(y.observation,null);
 });
+test('unrecognized providers and inherited object keys can never advertise market availability',()=>{
+ for(const id of ['future-unapproved','constructor','__proto__']){
+  const row=providerDisplayModel({id,enabled:true,truthState:'LIVE',observedAt:'2026-10-03T08:00:00.000Z',capabilities:['quote','constructor','__proto__']});
+  assert.equal(row.name,'Unidentified provider');
+  assert.equal(row.enabled,false);
+  assert.equal(row.truthState,'UNAVAILABLE');
+  assert.equal(row.observation,null);
+  assert.deepEqual(row.capabilities,[]);
+ }
+ const known=providerDisplayModel({id:'ecb',enabled:true,truthState:'DELAYED',capabilities:['fx-reference-rates','constructor']});
+ assert.deepEqual(known.capabilities,['FX reference rates']);
+});
 test('public readiness UI renders bounded policy provenance with escaping and explicit missing metrics',async()=>{
  const [ui,backend]=await Promise.all([
   readFile(new URL('../apps/web/public/assets/routes/platform-readiness.mjs',import.meta.url),'utf8'),
