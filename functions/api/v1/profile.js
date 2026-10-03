@@ -72,6 +72,7 @@ const profilePayload=(context,runtime={capabilities:{}},identities,observedIdent
     profilePersistence:'cloud-rls',
     workspacePersistence:'cloud-rls',
     cloudSync:runtime?.capabilities?.cloudSync===true,
+    globalSignOut:true,
     execution:false
   }
 });

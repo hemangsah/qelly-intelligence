@@ -23,7 +23,7 @@ export const unavailableCapabilities=Object.freeze([
   capability('search','Universal search','discovery','high',['search'],'Universal search is not yet backed by a canonical cross-domain index.'),
   capability('secure-imports','Secure import vault & quarantine','security','medium',['secure-imports','secure-imports/**'],'Secure import quarantine/rescan requires an accepted production file-scanning pipeline that is not yet enabled.'),
   capability('secret-protection','Secret protection rotation','security','low',['security/secret-protection/**'],'Secret rotation is an operator capability and is not exposed as an end-user production API.'),
-  capability('remote-session-control','Remote session control','identity','medium',['sessions/**'],'Only the current-browser session summary is implemented; multi-device revoke/control is unavailable.'),
+  capability('remote-session-control','Remote session control','identity','medium',['sessions/**'],'Only the current-browser session summary and global refresh-session revocation are implemented; per-device inventory and selective device revocation remain unavailable.'),
   capability('streams','Realtime streams','market-data','high',['streams/**'],'Bounded governed time-series history is now promoted; realtime streaming remains unavailable until a rights-safe streaming provider contract is proven.'),
   capability('workspaces','Workspace management','workspace','high',['workspaces','workspaces/**'],'Workspace switching/management beyond the bootstrapped current workspace is not yet promoted to the canonical API.')
 ]);
