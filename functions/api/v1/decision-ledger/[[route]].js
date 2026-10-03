@@ -61,20 +61,22 @@ export const buildResearchOutcomeAudit=(setups,observations,{setupLimit=2000,obs
   const dataQuality=auditDecisionOutcomeData(setups||[],observations||[]);
   const contaminated=dataQuality.state==='CONTAMINATED';
   const incomplete=!sampleBoundary.historyComplete;
-  const calibration=contaminated||incomplete
-    ?{
-        schemaVersion:'qelly.target-touch-calibration/1.0.0',
-        state:'UNCALIBRATED',eligible:false,eligibleResolvedSetups:0,
-        minimumSampleGate:50,metrics:{},
-        reason:contaminated
-          ?'Outcome data-quality gate failed. Contaminated labels are excluded from scientific calibration.'
-          :'Research setup or observation history reached its retrieval cap. An incomplete sample cannot establish uncontaminated scientific outcomes.',
-        qualityGate:contaminated?'BLOCKED':'BLOCKED_INCOMPLETE_HISTORY'
+  const blocked={schemaVersion:'qelly.target-touch-calibration/1.0.0',
+    state:'UNCALIBRATED',eligible:false,eligibleResolvedSetups:0,minimumSampleGate:50,metrics:{}};
+  const calibration=contaminated
+    ?{...blocked,
+        reason:'Outcome data-quality gate failed. Contaminated labels are excluded from scientific calibration.',
+        qualityGate:'BLOCKED'
       }
-    :{
-        ...buildTargetTouchCalibration(setups||[],{minSamples:50,warmup:20,minSegmentSamples:50,historyLimitReached:false}),
-        qualityGate:dataQuality.state==='VALID'?'PASSED':dataQuality.state
-      };
+    :incomplete
+      ?{...blocked,
+          reason:'Research setup or observation history reached its retrieval cap. An incomplete sample cannot establish uncontaminated scientific outcomes.',
+          qualityGate:'BLOCKED_INCOMPLETE_HISTORY'
+        }
+      :{
+          ...buildTargetTouchCalibration(setups||[],{minSamples:50,warmup:20,minSegmentSamples:50,historyLimitReached:false}),
+          qualityGate:dataQuality.state==='VALID'?'PASSED':dataQuality.state
+        };
   return Object.freeze({dataQuality,calibration,sampleBoundary});
 };
 
