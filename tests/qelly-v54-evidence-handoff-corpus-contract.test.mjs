@@ -17,5 +17,5 @@ test('source Browser E2E still enforces full route-derived, accessibility and ar
  assert.match(browser,/manifest\.routeCount===expectedRoutes/);
  assert.match(browser,/manifest\.status==='passed'/);
  assert.match(browser,/accessibility\.status==='passed'/);
- assert.match(browser,/archives\.length===1&&archiveSize>0/);
+ assert.match(browser,/archives\.length===1&&archives\[0\]===exactArchive&&archiveSize>0/);
 });
