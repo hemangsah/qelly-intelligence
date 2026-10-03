@@ -24,7 +24,9 @@ const fixture=(logoutStatus=204)=>{const calls=[];
  return{env,calls};
 };
 test('global sign-out uses the documented GoTrue global query scope and clears this browser only after success',async()=>{
- const {env,calls}=fixture(),r=await handleAuth({request:request('auth/logout-all'),env},'auth/logout-all','POST');
+ const {env,calls}=fixture(),signedRequest=request('auth/logout-all');
+ const expectedToken=signedRequest.headers.get('cookie').match(/qelly_sb_access=([^;]+)/)[1];
+ const r=await handleAuth({request:signedRequest,env},'auth/logout-all','POST');
  assert.equal(r.status,200);
  const out=await r.json();
  assert.equal(out.scope,'global');assert.equal(out.remoteRevocation,'confirmed');
@@ -32,7 +34,7 @@ test('global sign-out uses the documented GoTrue global query scope and clears t
  assert.equal(out.otherDeviceInventory,'unavailable');
  const global=calls.filter(c=>c.url===sb+'/auth/v1/logout?scope=global');
  assert.equal(global.length,1);
- assert.equal(global[0].headers.Authorization,'Bearer '+jwt());
+ assert.equal(global[0].headers.Authorization,'Bearer '+expectedToken);
  assert.match(r.headers.get('set-cookie')||'',/qelly_sb_access=/);
  assert.equal(calls.filter(c=>c.url.includes('scope=local')).length,0);
 });
