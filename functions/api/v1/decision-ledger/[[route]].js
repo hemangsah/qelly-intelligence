@@ -32,32 +32,42 @@ const calibrationRows=async(env,session,workspaceId,{limit=2000}={})=>{
 };
 const researchSetupRows=async(env,session,workspaceId,{limit=2000}={})=>{
   const params=new URLSearchParams({select:'*',workspace_id:`eq.${workspaceId}`,order:'created_observed_at.asc',limit:String(limit)});
-  return restRequest(env,session.accessToken,`qelly_decision_setups?${params.toString()}`);
+  return restRequest(env,session.accessToken,`qelly_decision_setups?${params.toString()}`,{exactCount:true});
 };
 const researchObservationRows=async(env,session,workspaceId,{limit=5000}={})=>{
   const params=new URLSearchParams({select:'*',workspace_id:`eq.${workspaceId}`,order:'observed_at.asc',limit:String(limit)});
-  return restRequest(env,session.accessToken,`qelly_decision_setup_observations?${params.toString()}`);
+  return restRequest(env,session.accessToken,`qelly_decision_setup_observations?${params.toString()}`,{exactCount:true});
 };
 // Research audits must not promote a bounded workspace sample to a complete
 // scientific history. Reaching a cap is conservatively treated as incomplete.
-export const researchHistoryBoundary=(setups,observations,{setupLimit=2000,observationLimit=5000}={})=>{
+export const parseExactCount=(contentRange)=>{
+  const match=String(contentRange||'').trim().match(/^(?:\\d+-\\d+|\\*)\\/(\\d+)$/);
+  if(!match)return null;
+  const count=Number(match[1]);
+  return Number.isSafeInteger(count)&&count>=0?count:null;
+};
+
+export const researchHistoryBoundary=(setups,observations,{setupLimit=2000,observationLimit=5000,verifiedSetupTotal=null,verifiedObservationTotal=null}={})=>{
   const setupCount=Array.isArray(setups)?setups.length:0;
   const observationCount=Array.isArray(observations)?observations.length:0;
   const setupLimitReached=setupCount>=setupLimit;
   const observationLimitReached=observationCount>=observationLimit;
-  const historyComplete=!setupLimitReached&&!observationLimitReached;
+  const setupCountVerified=Number.isSafeInteger(verifiedSetupTotal)&&verifiedSetupTotal===setupCount;
+  const observationCountVerified=Number.isSafeInteger(verifiedObservationTotal)&&verifiedObservationTotal===observationCount;
+  const historyComplete=!setupLimitReached&&!observationLimitReached&&setupCountVerified&&observationCountVerified;
   return Object.freeze({
     setupLimit,observationLimit,setupCount,observationCount,
+    verifiedSetupTotal,verifiedObservationTotal,setupCountVerified,observationCountVerified,
     setupLimitReached,observationLimitReached,historyComplete,
     state:historyComplete?'COMPLETE_WITHIN_RETRIEVAL_LIMITS':'INCOMPLETE_RETRIEVAL',
     boundary:historyComplete
       ?'No research retrieval cap was reached; observational validity is checked separately.'
-      :'At least one research retrieval cap was reached. Unseen setups or observations could change outcome labels; scientific calibration is withheld.'
+      :'A research retrieval cap was reached or exact workspace totals do not match the returned rows. Unseen setups or observations could change outcome labels; scientific calibration is withheld.'
   });
 };
 
-export const buildResearchOutcomeAudit=(setups,observations,{setupLimit=2000,observationLimit=5000}={})=>{
-  const sampleBoundary=researchHistoryBoundary(setups,observations,{setupLimit,observationLimit});
+export const buildResearchOutcomeAudit=(setups,observations,{setupLimit=2000,observationLimit=5000,verifiedSetupTotal=null,verifiedObservationTotal=null}={})=>{
+  const sampleBoundary=researchHistoryBoundary(setups,observations,{setupLimit,observationLimit,verifiedSetupTotal,verifiedObservationTotal});
   const incomplete=!sampleBoundary.historyComplete;
   const visibleQuality=auditDecisionOutcomeData(setups||[],observations||[]);
   const dataQuality=incomplete
@@ -74,7 +84,7 @@ export const buildResearchOutcomeAudit=(setups,observations,{setupLimit=2000,obs
       }
     :incomplete
       ?{...blocked,
-          reason:'Research setup or observation history reached its retrieval cap. An incomplete sample cannot establish uncontaminated scientific outcomes.',
+          reason:'Research setup or observation history is incomplete, capped, or lacks verified exact workspace totals. Scientific calibration is withheld.',
           qualityGate:'BLOCKED_INCOMPLETE_HISTORY'
         }
       :{
@@ -115,11 +125,15 @@ async function handleLedger(context,relative,method,session,qelly){
 
   if(relative==='research-audit'&&method==='GET'){
     const setupLimit=2000,observationLimit=5000;
-    const [setups,observations]=await Promise.all([
+    const [setupPage,observationPage]=await Promise.all([
       researchSetupRows(env,session,workspaceId,{limit:setupLimit}),
       researchObservationRows(env,session,workspaceId,{limit:observationLimit})
     ]);
-    const {dataQuality,calibration,sampleBoundary}=buildResearchOutcomeAudit(setups,observations,{setupLimit,observationLimit});
+    const setups=Array.isArray(setupPage?.data)?setupPage.data:[];
+    const observations=Array.isArray(observationPage?.data)?observationPage.data:[];
+    const verifiedSetupTotal=parseExactCount(setupPage?.contentRange);
+    const verifiedObservationTotal=parseExactCount(observationPage?.contentRange);
+    const {dataQuality,calibration,sampleBoundary}=buildResearchOutcomeAudit(setups,observations,{setupLimit,observationLimit,verifiedSetupTotal,verifiedObservationTotal});
     return responseJson(request,env,{
       dataQuality,
       calibration,
@@ -210,4 +224,4 @@ export async function onRequest(context){
   }
 }
 
-export const __decisionLedgerApiTest=Object.freeze({routePath,limitFor,decisionArgs,argsFromRow,calibrationRows,researchSetupRows,researchObservationRows,researchHistoryBoundary,buildResearchOutcomeAudit});
+export const __decisionLedgerApiTest=Object.freeze({routePath,limitFor,decisionArgs,argsFromRow,calibrationRows,researchSetupRows,researchObservationRows,parseExactCount,researchHistoryBoundary,buildResearchOutcomeAudit});
