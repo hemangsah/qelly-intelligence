@@ -38,6 +38,46 @@ const researchObservationRows=async(env,session,workspaceId,{limit=5000}={})=>{
   const params=new URLSearchParams({select:'*',workspace_id:`eq.${workspaceId}`,order:'observed_at.asc',limit:String(limit)});
   return restRequest(env,session.accessToken,`qelly_decision_setup_observations?${params.toString()}`);
 };
+// Research audits must not promote a bounded workspace sample to a complete
+// scientific history. Reaching a cap is conservatively treated as incomplete.
+export const researchHistoryBoundary=(setups,observations,{setupLimit=2000,observationLimit=5000}={})=>{
+  const setupCount=Array.isArray(setups)?setups.length:0;
+  const observationCount=Array.isArray(observations)?observations.length:0;
+  const setupLimitReached=setupCount>=setupLimit;
+  const observationLimitReached=observationCount>=observationLimit;
+  const historyComplete=!setupLimitReached&&!observationLimitReached;
+  return Object.freeze({
+    setupLimit,observationLimit,setupCount,observationCount,
+    setupLimitReached,observationLimitReached,historyComplete,
+    state:historyComplete?'COMPLETE_WITHIN_RETRIEVAL_LIMITS':'INCOMPLETE_RETRIEVAL',
+    boundary:historyComplete
+      ?'No research retrieval cap was reached; observational validity is checked separately.'
+      :'At least one research retrieval cap was reached. Unseen setups or observations could change outcome labels; scientific calibration is withheld.'
+  });
+};
+
+export const buildResearchOutcomeAudit=(setups,observations,{setupLimit=2000,observationLimit=5000}={})=>{
+  const sampleBoundary=researchHistoryBoundary(setups,observations,{setupLimit,observationLimit});
+  const dataQuality=auditDecisionOutcomeData(setups||[],observations||[]);
+  const contaminated=dataQuality.state==='CONTAMINATED';
+  const incomplete=!sampleBoundary.historyComplete;
+  const calibration=contaminated||incomplete
+    ?{
+        schemaVersion:'qelly.target-touch-calibration/1.0.0',
+        state:'UNCALIBRATED',eligible:false,eligibleResolvedSetups:0,
+        minimumSampleGate:50,metrics:{},
+        reason:contaminated
+          ?'Outcome data-quality gate failed. Contaminated labels are excluded from scientific calibration.'
+          :'Research setup or observation history reached its retrieval cap. An incomplete sample cannot establish uncontaminated scientific outcomes.',
+        qualityGate:contaminated?'BLOCKED':'BLOCKED_INCOMPLETE_HISTORY'
+      }
+    :{
+        ...buildTargetTouchCalibration(setups||[],{minSamples:50,warmup:20,minSegmentSamples:50,historyLimitReached:false}),
+        qualityGate:dataQuality.state==='VALID'?'PASSED':dataQuality.state
+      };
+  return Object.freeze({dataQuality,calibration,sampleBoundary});
+};
+
 const requireSetup=async(env,session,workspaceId,id)=>{
   const rows=await setupRows(env,session,workspaceId,{id,limit:1});
   if(!rows?.length)throw new HttpError(404,'decision_setup_not_found','Tracked Decision setup was not found');
@@ -73,32 +113,12 @@ async function handleLedger(context,relative,method,session,qelly){
       researchSetupRows(env,session,workspaceId,{limit:setupLimit}),
       researchObservationRows(env,session,workspaceId,{limit:observationLimit})
     ]);
-    const dataQuality=auditDecisionOutcomeData(setups||[],observations||[]);
-    const calibration=dataQuality.state==='CONTAMINATED'
-      ?{
-          schemaVersion:'qelly.target-touch-calibration/1.0.0',
-          state:'UNCALIBRATED',
-          eligible:false,
-          eligibleResolvedSetups:0,
-          minimumSampleGate:50,
-          metrics:{},
-          reason:'Outcome data-quality gate failed. Contaminated labels are excluded from scientific calibration.',
-          qualityGate:'BLOCKED'
-        }
-      :{
-          ...buildTargetTouchCalibration(setups||[],{minSamples:50,warmup:20,minSegmentSamples:50,historyLimitReached:(setups||[]).length>=setupLimit}),
-          qualityGate:dataQuality.state==='VALID'?'PASSED':dataQuality.state
-        };
+    const {dataQuality,calibration,sampleBoundary}=buildResearchOutcomeAudit(setups,observations,{setupLimit,observationLimit});
     return responseJson(request,env,{
       dataQuality,
       calibration,
-      sampleBoundary:{
-        setupLimit,
-        observationLimit,
-        setupLimitReached:(setups||[]).length>=setupLimit,
-        observationLimitReached:(observations||[]).length>=observationLimit
-      },
-      boundary:'This audit uses only persisted observed Decision setup history. Empty history is reported as NO_OBSERVED_DATA; contaminated history is never calibrated.'
+      sampleBoundary,
+      boundary:'This audit uses only persisted observed Decision setup history. Empty history is NO_OBSERVED_DATA; contaminated or incomplete observation histories are never calibrated.'
     });
   }
 
@@ -184,4 +204,4 @@ export async function onRequest(context){
   }
 }
 
-export const __decisionLedgerApiTest=Object.freeze({routePath,limitFor,decisionArgs,argsFromRow,calibrationRows,researchSetupRows,researchObservationRows});
+export const __decisionLedgerApiTest=Object.freeze({routePath,limitFor,decisionArgs,argsFromRow,calibrationRows,researchSetupRows,researchObservationRows,researchHistoryBoundary,buildResearchOutcomeAudit});
