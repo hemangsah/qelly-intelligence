@@ -47,7 +47,7 @@ test('unknown or malformed provider state fails closed instead of advertising co
  const x=providerDisplayModel({id:'malformed',enabled:'true',truthState:'LIVE',capabilities:['unexpected-capability','quote']});
  assert.equal(x.truthState,'UNAVAILABLE');
  assert.equal(x.enabled,false);
- assert.deepEqual(x.capabilities,['Quotes']);
+ assert.deepEqual(x.capabilities,[]); // Unregistered feeds may not advertise any licensed coverage
  assert.equal(x.observation,null);
  const y=providerDisplayModel({id:'not-trusted',enabled:true,truthState:'PREDICTIVE',observedAt:'not a date'});
  assert.equal(y.truthState,'UNAVAILABLE');
