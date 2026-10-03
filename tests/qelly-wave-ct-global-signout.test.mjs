@@ -82,3 +82,12 @@ test('source contract never claims immediate JWT revocation or requires administ
  assert.match(source,/requireOrigin\(request,env\)/);
  assert.doesNotMatch(source,/SUPABASE_SERVICE_ROLE_KEY/);
 });
+
+test('the new logout endpoint is covered by both canonical Cloudflare and server API inventories',async()=>{
+ const [parity,manifest]=await Promise.all([
+  readFile(new URL('../tests/qelly-cloudflare-browser-api-parity.test.mjs',import.meta.url),'utf8'),
+  readFile(new URL('../src/server/route-manifest.mjs',import.meta.url),'utf8')
+ ]);
+ assert.ok(parity.includes("'/api/v1/auth/logout-all'"));
+ assert.ok(manifest.includes("'/api/v1/auth/logout-all'"));
+});
