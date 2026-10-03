@@ -5,6 +5,7 @@ import {analyzeMt5ClosedDeals} from './qelly-mt5-advanced-metrics.mjs';
 import {renderMt5ClosedDealEvidence} from './qelly-mt5-visuals.mjs';
 import {compareMt5ClosedDealReports} from './qelly-mt5-comparison.mjs';
 import {renderMt5Comparison} from './qelly-mt5-comparison-ui.mjs';
+import {buildMt5ShareSafePackage,buildMt5ChatDraft} from './qelly-mt5-share-safe.mjs';
 
 const MAX_BYTES=5*1024*1024;
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -23,11 +24,6 @@ function ensureStyles(){
   link.dataset.qellyMt5Style=id;document.head.append(link);
  }
 }
-const metricReport=r=>({
- schema:r.schema,truthState:r.truthState,sample:r.sample,metrics:r.metrics,
- costs:r.costs,groups:r.groups,series:r.series,
- statisticalEvidence:r.statisticalEvidence,warnings:r.warnings,unavailable:r.unavailable
-});
 function download(name,payload){
  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
  const url=URL.createObjectURL(blob);
@@ -61,7 +57,9 @@ function mainMarkup(){
  '<small>Unverified: account currency, broker timezone, entry-side costs and external report authenticity.</small></aside></header>'+
  '<section class="q-mt5-route-grid" aria-label="Choose local MT5 reports">'+slotMarkup('A')+slotMarkup('B')+'</section>'+
  '<section class="q-mt5-route-controls"><button type="button" data-mt5-route-reset'+(!one&&!other?' disabled':'')+'>Clear both reports</button>'+
- '<button type="button" data-mt5-route-export'+(!one?' disabled':'')+'>Export share-safe analysis JSON</button></section>'+
+ '<button type="button" data-mt5-route-export'+(!one?' disabled':'')+'>Export share-safe analysis JSON</button>'+
+ '<button type="button" data-mt5-route-chat'+(!one?' disabled':'')+'>Review aggregate findings in QELLY Chat</button></section>'+
+ '<p class="q-mt5-route-share-note">Chat opens an editable draft containing only derived, user-supplied statistics. Nothing is sent by opening it. If you press Send, the summary is sent to QELLY Chat and may be retained in this browser session.</p>'+
  (one?'<section class="q-mt5-route-primary" aria-label="Primary MT5 report"><header><p class="q-mt5-route-step">Observed evidence</p><h2>'+esc(one.name)+'</h2></header>'+
  renderMt5ClosedDealEvidence(one.report,{id:'mt5-analyzer-primary'})+'</section>':
  '<section class="q-mt5-route-empty"><h2>Your MT5 analysis will appear here</h2>'+
@@ -90,13 +88,12 @@ function render(){
  owner.querySelector('[data-mt5-route-reset]')?.addEventListener('click',()=>{clearAll();render();});
  owner.querySelector('[data-mt5-route-export]')?.addEventListener('click',()=>{
   if(!reports.A)return;
-  const packageBody={
-   schema:'qelly.mt5.share-safe-local/1.0',truthState:'DETERMINISTIC LOCAL ANALYSIS',
-   reportA:metricReport(reports.A.report),
-   comparison:reports.B?compareMt5ClosedDealReports(reports.A.report,reports.B.report):null,
-   privacy:{rawFilesRetained:false,sourceRowsIncluded:false,accountIdentifiersIncluded:false,uploaded:false}
-  };
-  download('qelly-mt5-analyzer-share-safe.json',packageBody);
+  download('qelly-mt5-analyzer-share-safe.json',buildMt5ShareSafePackage(reports.A.report,reports.B?.report??null));
+ });
+ owner.querySelector('[data-mt5-route-chat]')?.addEventListener('click',()=>{
+  if(!reports.A)return;
+  const prompt=buildMt5ChatDraft(reports.A.report,reports.B?.report??null);
+  document.dispatchEvent(new CustomEvent('qelly:open-ai',{detail:{prompt,mode:'explain'}}));
  });
  document.title='MT5 Report Analyzer · Qelly Intelligence';
 }
