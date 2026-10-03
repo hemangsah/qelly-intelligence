@@ -98,23 +98,13 @@ jobs:
             echo "eligible=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          mkdir -p dist/release-evidence-handoff
-          jq -n --arg sha "$sha" \
-            --argjson pr "$(jq '.number' <<<"$pr_json")" \
-            --argjson browserRun "$BROWSER_RUN_ID" \
-            --argjson archiveId "$archive_id" \
-            --argjson archiveBytes "$archive_size" \
-            --argjson cloudflareCheck "$cf_id" \
-            '{schema:"qelly.exact-head-evidence-handoff/2.0",headSha:$sha,prNumber:$pr,
-              browser:{runId:$browserRun,conclusion:"success",completeArchiveId:$archiveId,
-                completeArchiveBytes:$archiveBytes,validatedInSourceWorkflow:true},
-              cloudflare:{checkRunId:$cloudflareCheck,app:"cloudflare-workers-and-pages",
-                conclusion:"success",deploySummaryVerified:true},
-              noDuplicateScreenshotCapture:true}' > dist/release-evidence-handoff/receipt.json
           echo "eligible=true" >> "$GITHUB_OUTPUT"
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
           echo "pr=$pr_url" >> "$GITHUB_OUTPUT"
+          echo "pr_number=$(jq -r '.number' <<<"$pr_json")" >> "$GITHUB_OUTPUT"
           echo "archive_id=$archive_id" >> "$GITHUB_OUTPUT"
+          echo "archive_size=$archive_size" >> "$GITHUB_OUTPUT"
+          echo "cloudflare_check_id=$cf_id" >> "$GITHUB_OUTPUT"
       - name: Checkout verified exact PR head
         if: steps.pr.outputs.eligible == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -129,6 +119,19 @@ jobs:
           test "$(git rev-parse HEAD)" = "${{ steps.pr.outputs.sha }}"
           test -f .github/workflows/browser-e2e.yml
           test -f scripts/release-a5-screen-package.py
+          mkdir -p dist/release-evidence-handoff
+          jq -n --arg sha "${{ steps.pr.outputs.sha }}" \
+            --argjson pr "${{ steps.pr.outputs.pr_number }}" \
+            --argjson browserRun "${{ github.event.workflow_run.id }}" \
+            --argjson archiveId "${{ steps.pr.outputs.archive_id }}" \
+            --argjson archiveBytes "${{ steps.pr.outputs.archive_size }}" \
+            --argjson cloudflareCheck "${{ steps.pr.outputs.cloudflare_check_id }}" \
+            '{schema:"qelly.exact-head-evidence-handoff/2.0",headSha:$sha,prNumber:$pr,
+              browser:{runId:$browserRun,conclusion:"success",completeArchiveId:$archiveId,
+                completeArchiveBytes:$archiveBytes,validatedInSourceWorkflow:true},
+              cloudflare:{checkRunId:$cloudflareCheck,app:"cloudflare-workers-and-pages",
+                conclusion:"success",deploySummaryVerified:true},
+              noDuplicateScreenshotCapture:true}' > dist/release-evidence-handoff/receipt.json
           test -s dist/release-evidence-handoff/receipt.json
           jq -e --arg sha "${{ steps.pr.outputs.sha }}" \
             '.headSha == $sha and .browser.conclusion == "success" and .cloudflare.conclusion == "success" and .noDuplicateScreenshotCapture == true' \
