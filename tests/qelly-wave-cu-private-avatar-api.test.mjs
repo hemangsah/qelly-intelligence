@@ -7,7 +7,6 @@ const UID='11111111-1111-4111-8111-111111111111';
 const SITE='https://terminal.qellyintelligence.com';
 const SB='https://project.supabase.co';
 const KEY='sb_publishable_ci_public_0123456789';
-const hex=Buffer.from;
 const crc=(source)=>{let x=0xffffffff;for(const value of source){x^=value;for(let i=0;i<8;i++)x=x&1?0xedb88320^(x>>>1):x>>>1;}return(x^0xffffffff)>>>0;};
 function chunk(name,body){const nameBytes=Buffer.from(name,'ascii'),length=Buffer.alloc(4),tail=Buffer.alloc(4);length.writeUInt32BE(body.length);tail.writeUInt32BE(crc(Buffer.concat([nameBytes,body])));return Buffer.concat([length,nameBytes,body,tail]);}
 function png(width=1,height=1){
@@ -47,16 +46,19 @@ test('PNG parser validates signature, CRC, dimensions and exact IEND',()=>{
 });
 test('authenticated avatar upload uses only JWT-scoped Storage with bounded canonical key',async()=>{
  const {env,calls}=harness();
- const response=await onRequest({request:req('POST',{pngDataUrl:DATA}),env});
- assert.equal(response.status,200,await response.text().catch(()=>''));const body=await response.clone().json();
+ const request=req('POST',{pngDataUrl:DATA});
+ const auth=request.headers.get('cookie').match(/qelly_sb_access=([^;]+)/)[1];
+ const response=await onRequest({request,env});
+ const body=await response.json();
+ assert.equal(response.status,200,JSON.stringify(body));
  assert.deepEqual({saved:body.saved,private:body.private,format:body.format},{saved:true,private:true,format:'png'});
  const storage=calls.find(x=>x.url.includes('/storage/v1/object/'));
  assert.equal(storage.url,SB+'/storage/v1/object/qelly-private-avatars/'+UID+'/avatar.png');
- assert.equal(storage.headers.Authorization,'Bearer '+token());
+ assert.equal(storage.headers.Authorization,'Bearer '+auth);
  assert.equal(storage.headers['x-upsert'],'true');
  assert.equal(storage.headers['Content-Type'],'image/png');
  assert.ok(storage.body instanceof Uint8Array);
- assert.doesNotMatch(JSON.stringify(calls.map(x=>x.url)),/service_role|/);
+ assert.doesNotMatch(JSON.stringify(calls.map(x=>x.url)),/service_role/);
 });
 test('private GET serves PNG with no-store, nosniff and exact user-only storage path',async()=>{
  const {env,calls}=harness();
