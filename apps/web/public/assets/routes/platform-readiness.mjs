@@ -10,14 +10,15 @@ const POLICY_TRUTH=new Set(['LIVE','DELAYED','CACHED','STALE','UNAVAILABLE']);
 export function providerDisplayModel(raw={}){
  const id=String(raw?.id||'unidentified').slice(0,64);
  const demo=id==='qelly-governed-demo';
- const enabled=raw?.enabled===true&&!demo;
+ const known=Object.hasOwn(PROVIDER_NAMES,id);
+ const enabled=known&&raw?.enabled===true&&!demo;
  const observed=typeof raw?.observedAt==='string'&&raw.observedAt.length<=40
     &&/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(raw.observedAt)
     &&Number.isFinite(Date.parse(raw.observedAt))?raw.observedAt:null;
  const sourceTruth=String(raw?.truthState||'UNAVAILABLE').toUpperCase();
  const truthState=demo?'SIMULATED':enabled&&POLICY_TRUTH.has(sourceTruth)?sourceTruth:'UNAVAILABLE';
  const capabilityIds=Array.isArray(raw?.capabilities)?raw.capabilities.slice(0,8):[];
- const capabilities=capabilityIds.map(key=>CAPABILITY_LABELS[key]||null).filter(Boolean);
+ const capabilities=known?capabilityIds.map(key=>Object.hasOwn(CAPABILITY_LABELS,String(key))?CAPABILITY_LABELS[key]:null).filter(Boolean):[];
  const policy=demo?'Deterministic local samples; no live market feed.'
    :providerPolicyMessage(raw);
  const health=demo?'Local sample only; no independent provider status.'
@@ -26,7 +27,7 @@ export function providerDisplayModel(raw={}){
      ?'Policy enabled; runtime health has not been measured.'
      :humanizeOperationalState(raw?.healthState,{fallback:'Runtime health not reported.'});
  return Object.freeze({
-  id,name:PROVIDER_NAMES[id]||'Unidentified provider',enabled,truthState,
+  id,name:known?PROVIDER_NAMES[id]:'Unidentified provider',enabled,truthState,
   approval:demo?'Simulation only':enabled?'Policy enabled':'Display unavailable',
   policy,health,capabilities,
   observation:enabled&&observed?observed:null,
