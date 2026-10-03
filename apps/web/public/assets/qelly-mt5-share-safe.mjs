@@ -64,10 +64,11 @@ export function buildMt5ShareSafePackage(a,b=null){
  const diagnosticsA=sanitizedDiagnostics(buildMt5ObservedDiagnostics(a));
  const diagnosticsB=b?sanitizedDiagnostics(buildMt5ObservedDiagnostics(b)):null;
  const reportA=snapshotReport(a);
+ const reportB=b?snapshotReport(b):null;
  const comparison=b?sanitizedComparison(compareMt5ClosedDealReports(a,b)):null;
  return {
   schema:'qelly.mt5.share-safe-local/1.1',truthState:'DETERMINISTIC LOCAL ANALYSIS',
-  reportA,diagnosticsA,diagnosticsB,comparison,privacy
+  reportA,reportB,diagnosticsA,diagnosticsB,comparison,privacy
  };
 }
 export function buildMt5ChatDraft(a,b=null){
