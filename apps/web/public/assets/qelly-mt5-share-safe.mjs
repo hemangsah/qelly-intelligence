@@ -4,7 +4,7 @@
 import {buildMt5ObservedDiagnostics} from './qelly-mt5-diagnostics.mjs';
 import {compareMt5ClosedDealReports} from './qelly-mt5-comparison.mjs';
 
-const METRICS=['netPnl','grossProfit','grossLoss','profitFactor','expectedPnlPerDeal','winRatePct','maxClosedDealDrawdown','recoveryFactor','maxConsecutiveWins','maxConsecutiveLosses','sharpe','sortino','calmar','relativeAccountDrawdown'];
+const METRICS=['netPnl','grossProfit','grossLoss','profitFactor','expectedPnlPerDeal','winRatePct','maxClosedDealDrawdown','recoveryFactor','maxConsecutiveWins','maxConsecutiveLosses','largestLosingDealPnl','largestLossContributionPct','longestUnderwaterClosingDeals','sharpe','sortino','calmar','relativeAccountDrawdown'];
 const numericObject=(value,keys)=>Object.fromEntries(keys.map(key=>[key,typeof value?.[key]==='number'&&Number.isFinite(value[key])?value[key]:null]));
 function snapshotReport(r){
  const sample={...numericObject(r.sample,['deals','wins','losses','flat']),grade:r.sample.grade};
@@ -18,7 +18,7 @@ function snapshotReport(r){
     :key==='month'&&/^\d{4}-(?:0[1-9]|1[0-2])$/.test(String(item.key))?String(item.key):'(withheld label)',
   ...numericObject(item,['count','net','wins','losses','winRatePct'])
  }))]));
- const series={chronological:r.series?.chronological===true,total:r.series?.total,points:(r.series?.points||[]).slice(0,160).map(item=>numericObject(item,['index','cumulative','drawdown']))};
+ const series={chronological:r.series?.chronological===true,uniqueChronological:r.series?.uniqueChronological===true,total:r.series?.total,points:(r.series?.points||[]).slice(0,160).map(item=>numericObject(item,['index','cumulative','drawdown']))};
  const stats=r.statisticalEvidence||{};
  const statisticalEvidence={
   ...numericObject(stats,['sampleSize','meanPnl','sampleSd','descriptiveSkew','descriptiveExcessKurtosis','bootstrapRuns','reorderRuns','reorderedDrawdown95']),
