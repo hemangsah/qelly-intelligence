@@ -34,16 +34,17 @@ export function installPrivateAvatarControls({main,api,toast}){
  const image=main.querySelector('[data-avatar-image]');
  const initials=main.querySelector('[data-avatar-initials]');
  const controller=new AbortController();
- let bitmap=null,photoUrl=null,panX=0,panY=0,zoom=1,drag=null,busy=false,disposed=false;
+ let bitmap=null,photoUrl=null,panX=0,panY=0,zoom=1,drag=null,busy=false,disposed=false,selectionSeq=0,refreshSeq=0;
  const setStatus=(value)=>{if(!disposed)status.textContent=value;};
  const setBusy=(value)=>{
-  busy=value;for(const control of [save,remove,input,zoomSlider])control.disabled=value;
+  busy=value;for(const control of [save,remove,input,zoomSlider,cancel])control.disabled=value;
  };
  const releasePhoto=()=>{
   if(photoUrl){URL.revokeObjectURL(photoUrl);photoUrl=null;}
   image.hidden=true;image.removeAttribute('src');initials.hidden=false;remove.hidden=true;
  };
  const closeEditor=()=>{
+  selectionSeq++;
   if(bitmap){bitmap.close?.();bitmap=null;}
   editor.hidden=true;input.value='';drag=null;panX=0;panY=0;zoom=1;zoomSlider.value='1';
  };
@@ -56,31 +57,33 @@ export function installPrivateAvatarControls({main,api,toast}){
   context.drawImage(bitmap,crop.x,crop.y,crop.width,crop.height);
  };
  const refresh=async()=>{
+  const revision=++refreshSeq;
   const response=await fetch('/api/v1/profile/avatar',{credentials:'include',cache:'no-store',signal:controller.signal});
-  if(disposed)return;
+  if(disposed||revision!==refreshSeq)return;
   if(response.status===204){releasePhoto();setStatus('No profile photo saved.');return;}
   if(!response.ok)throw new Error('Private photo storage is unavailable ('+response.status+').');
   if((response.headers.get('content-type')||'').split(';')[0].trim()!=='image/png')throw new Error('Private photo could not be verified.');
   const blob=await response.blob();
-  if(disposed)return;
+  if(disposed||revision!==refreshSeq)return;
   if(blob.size>AVATAR_RESULT_LIMIT)throw new Error('Stored photo exceeds the permitted limit.');
   releasePhoto();
   photoUrl=URL.createObjectURL(blob);image.src=photoUrl;image.hidden=false;initials.hidden=true;remove.hidden=false;
   setStatus('Your private profile photo is saved.');
  };
  const select=async()=>{
+  const revision=++selectionSeq;
   const file=input.files?.[0];if(!file)return;
   if(!TYPES.has(file.type)||file.size<1||file.size>AVATAR_SOURCE_LIMIT){
    closeEditor();setStatus('Choose a JPEG, PNG or WebP image smaller than 5 MiB.');return;
   }
   try{
    const next=await createImageBitmap(file,{imageOrientation:'from-image'});
-   if(disposed){next.close?.();return;}
+   if(disposed||revision!==selectionSeq){next.close?.();return;}
    if(bitmap)bitmap.close?.();
    bitmap=next;zoom=1;panX=0;panY=0;zoomSlider.value='1';
    editor.hidden=false;paint();
    setStatus('Drag the image or use the arrow keys to position the square crop. Adjust Zoom, then save.');
-  }catch{closeEditor();setStatus('This image cannot be decoded safely. Please choose another image.');}
+  }catch{if(!disposed&&revision===selectionSeq){closeEditor();setStatus('This image cannot be decoded safely. Please choose another image.');}}
  };
  input.addEventListener('change',()=>{void select();});
  zoomSlider.addEventListener('input',()=>{zoom=Number(zoomSlider.value);paint();});
@@ -108,9 +111,10 @@ export function installPrivateAvatarControls({main,api,toast}){
  cancel.addEventListener('click',()=>{closeEditor();setStatus('Crop discarded.');});
  save.addEventListener('click',async()=>{
   if(!bitmap||busy||disposed)return;
-  setBusy(true);setStatus('Saving your private cropped image…');
+  ++refreshSeq;setBusy(true);setStatus('Saving your private cropped image…');
   try{
    const blob=await new Promise((resolve,reject)=>canvas.toBlob(result=>result?resolve(result):reject(new Error('Unable to encode PNG.')),'image/png'));
+   if(disposed)return;
    if(blob.type!=='image/png'||blob.size>AVATAR_RESULT_LIMIT)throw new Error('Cropped PNG must be smaller than 2 MiB.');
    await api('/api/v1/profile/avatar',{method:'POST',body:JSON.stringify({pngDataUrl:await blobToDataUrl(blob)})});
    if(disposed)return;
@@ -120,7 +124,7 @@ export function installPrivateAvatarControls({main,api,toast}){
  });
  remove.addEventListener('click',async()=>{
   if(busy||disposed)return;
-  setBusy(true);setStatus('Removing your private photo…');
+  ++refreshSeq;setBusy(true);setStatus('Removing your private photo…');
   try{
    await api('/api/v1/profile/avatar',{method:'DELETE',body:'{}'});
    if(disposed)return;
@@ -129,7 +133,7 @@ export function installPrivateAvatarControls({main,api,toast}){
   finally{if(!disposed)setBusy(false);}
  });
  const cleanup=()=>{
-  if(disposed)return;disposed=true;controller.abort();closeEditor();releasePhoto();
+  if(disposed)return;disposed=true;++refreshSeq;controller.abort();closeEditor();releasePhoto();
   window.removeEventListener('hashchange',onRouteChange);
   if(globalThis.__qellyAvatarCleanup===cleanup)globalThis.__qellyAvatarCleanup=null;
  };
