@@ -66,4 +66,15 @@ test('public readiness UI renders bounded policy provenance with escaping and ex
  assert.match(backend,/providerTruthState\(policy,evidence\.providerFreshness\)/);
  assert.match(backend,/providerPolicyState\(policy\)/);
  assert.doesNotMatch(ui,/fetch\(['"]https:\/\/api\.binance\.com|fetch\(['"]https:\/\/api\.exchange\.coinbase\.com/);
+ 
+ assert.match(ui,/ensureProviderCoverageStyles\(\);/);
+ assert.match(ui,/platform-readiness-provider-coverage\.css/);
+});
+test('the independent provider evidence section remains legible across mobile and themes',async()=>{
+ const css=await readFile(new URL('../apps/web/public/assets/routes/platform-readiness-provider-coverage.css',import.meta.url),'utf8');
+ assert.match(css,/font-size:15px/);
+ assert.match(css,/font-size:12px/);
+ assert.match(css,/@media\(max-width:650px\)/);
+ assert.match(css,/prefers-reduced-motion/);
+ assert.doesNotMatch(css,/font-size:[89]px|#[0-9a-fA-F]{3,8}/);
 });
