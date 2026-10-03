@@ -94,7 +94,7 @@ export function buildMt5ObservedDiagnostics(report){
   'Currency, account equity, balance, deposits, exposure, entry-side costs and source authenticity have not been independently verified.',
   'Bucket P&L aggregates realized closing deals; buckets with fewer than five deals are excluded from negative-net highlights.',
   'Reported clock hours are not market sessions because the broker timezone is unverified.',
-  'Single-deal profit/loss concentration and closing-deal underwater spans are descriptive local-sequence observations, not investment returns, future probabilities, position-level risk or broker account-equity drawdown.'
+  'Single-deal loss contribution and closing-deal underwater spans are descriptive local-sequence observations, not future loss probabilities, position-level risk or broker account-equity drawdown. Single-deal profit concentration is also descriptive, not investment returns, future probabilities or evidence of a strategy advantage.'
  ];
  if(limited)warnings.push('LIMITED SAMPLE: fewer than 30 closing deals; no statistical or causal subgroup conclusions are supported.');
  if(report.series?.chronological!==true)warnings.push('Report ordering is unverified; no time-sequence or drawdown-cluster conclusion is supported.');
