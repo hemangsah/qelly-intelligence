@@ -4,7 +4,34 @@
 import {buildMt5ObservedDiagnostics} from './qelly-mt5-diagnostics.mjs';
 import {compareMt5ClosedDealReports} from './qelly-mt5-comparison.mjs';
 
-const SNAPSHOT_KEYS=['schema','truthState','sample','metrics','costs','groups','series','statisticalEvidence','warnings','unavailable'];
+const METRICS=['netPnl','grossProfit','grossLoss','profitFactor','expectedPnlPerDeal','winRatePct','maxClosedDealDrawdown','recoveryFactor','maxConsecutiveWins','maxConsecutiveLosses','sharpe','sortino','calmar','relativeAccountDrawdown'];
+const numericObject=(value,keys)=>Object.fromEntries(keys.map(key=>[key,typeof value?.[key]==='number'&&Number.isFinite(value[key])?value[key]:null]));
+function snapshotReport(r){
+ const sample={...numericObject(r.sample,['deals','wins','losses','flat']),grade:r.sample.grade};
+ const metrics=numericObject(r.metrics,METRICS);
+ const costs=Object.fromEntries(['commission','fee','swap'].map(key=>[key,numericObject(r.costs?.[key],['knownTotal','coveragePct'])]));
+ const groups=Object.fromEntries(['symbol','side','weekday','hour','month'].map(key=>[key,(Array.isArray(r.groups?.[key])?r.groups[key]:[]).slice(0,1000).map(item=>({
+  key:key==='symbol'&&/^[A-Za-z0-9._/-]{1,16}$/.test(String(item.key))?String(item.key)
+    :key==='side'&&/^(?:buy|sell)$/.test(String(item.key))?String(item.key)
+    :key==='hour'&&/^(?:[01]?\d|2[0-3])$/.test(String(item.key))?String(item.key)
+    :key==='weekday'&&/^(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)$/.test(String(item.key))?String(item.key)
+    :key==='month'&&/^\d{4}-(?:0[1-9]|1[0-2])$/.test(String(item.key))?String(item.key):'(withheld label)',
+  ...numericObject(item,['count','net','wins','losses','winRatePct'])
+ }))]));
+ const series={chronological:r.series?.chronological===true,total:r.series?.total,points:(r.series?.points||[]).slice(0,160).map(item=>numericObject(item,['index','cumulative','drawdown']))};
+ const stats=r.statisticalEvidence||{};
+ const statisticalEvidence={
+  ...numericObject(stats,['sampleSize','meanPnl','sampleSd','descriptiveSkew','descriptiveExcessKurtosis','bootstrapRuns','reorderRuns','reorderedDrawdown95']),
+  status:String(stats.status||'unavailable').slice(0,70),
+  bootstrapMean95:Array.isArray(stats.bootstrapMean95)?stats.bootstrapMean95.slice(0,2).map(x=>typeof x==='number'&&Number.isFinite(x)?x:null):null,
+  resamplingBoundary:typeof stats.resamplingBoundary==='string'?stats.resamplingBoundary.slice(0,200):null,
+  assumptions:Array.isArray(stats.assumptions)?stats.assumptions.slice(0,4).map(x=>String(x).slice(0,220)):[]
+ };
+ return {schema:r.schema,truthState:r.truthState,sample,metrics,costs,groups,series,statisticalEvidence,
+  warnings:Array.isArray(r.warnings)?r.warnings.slice(0,15).map(x=>String(x).slice(0,250)):[],
+  unavailable:Array.isArray(r.unavailable)?r.unavailable.slice(0,15).map(x=>String(x).slice(0,180)):[]
+ };
+}
 const round=x=>typeof x==='number'&&Number.isFinite(x)?Number(x.toFixed(4)):null;
 const label=(id,group)=>{
  if(id==='negative-side'&&/^(buy|sell)$/i.test(String(group)))return String(group).toLowerCase();
@@ -16,7 +43,7 @@ const privacy=Object.freeze({rawFilesRetained:false,sourceRowsIncluded:false,acc
 export function buildMt5ShareSafePackage(a,b=null){
  const diagnosticsA=buildMt5ObservedDiagnostics(a);
  const diagnosticsB=b?buildMt5ObservedDiagnostics(b):null;
- const reportA=Object.fromEntries(SNAPSHOT_KEYS.map(key=>[key,a[key]]));
+ const reportA=snapshotReport(a);
  const comparison=b?compareMt5ClosedDealReports(a,b):null;
  return {
   schema:'qelly.mt5.share-safe-local/1.1',truthState:'DETERMINISTIC LOCAL ANALYSIS',
