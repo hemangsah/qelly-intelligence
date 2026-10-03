@@ -86,7 +86,8 @@ test('authenticated research route binds workspace-scoped rows and never silentl
  assert.match(api,/relative==='research-audit'/);
  assert.match(api,/buildResearchOutcomeAudit\(setups,observations,\{setupLimit,observationLimit\}\)/);
  assert.match(api,/workspace_id:\`eq\.\$\{workspaceId\}\`/);
- assert.match(api,/qualityGate:contaminated\?'BLOCKED':'BLOCKED_INCOMPLETE_HISTORY'/);
+ assert.match(api,/qualityGate:'BLOCKED'/);
+ assert.match(api,/qualityGate:'BLOCKED_INCOMPLETE_HISTORY'/);
  assert.match(api,/historyComplete/);
  assert.match(api,/NO_OBSERVED_DATA/);
 });
