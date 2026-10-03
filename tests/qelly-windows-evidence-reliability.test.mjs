@@ -29,9 +29,11 @@ test('Windows evidence retries only proven transient filesystem and loopback fai
 
   assert.doesNotMatch(source,/continue-on-error\s*:\s*true/);
   assert.doesNotMatch(source,/exit\s+0/);
-  assert.match(source,/if \(\[int\]\$manifest\.routeCount -ne 71\)/);
-  assert.match(source,/\[int\]\$manifest\.renderCount -ne 142/);
-  assert.match(source,/\$pngCount -ne 142/);
+  assert.match(source,/if \(\[int\]\$manifest\.routeCount -ne \$expectedRoutes\)/);
+  assert.match(source,/\[int\]\$manifest\.renderCount -ne \$expectedRenders/);
+  assert.match(source,/\$pngCount -ne \$expectedRenders/);
+  assert.match(source,/\$expectedRenders = 2 \* \$expectedRoutes/);
+  assert.match(source,/\$expectedArchive/);
   assert.match(source,/\$manifest\.failed -ne 0/);
   assert.match(source,/\$manifest\.missing\.Count -ne 0/);
 });
