@@ -39,7 +39,8 @@ test('MT5 HTML/XLSX analysis reuses validated parser and never transports or per
   assert.ok(m.includes(token),token);
  }
  assert.doesNotMatch(m,/localStorage|sessionStorage|indexedDB|navigator\.sendBeacon|fetch\(|XMLHttpRequest|service_role|password:/);
- assert.match(m,/rawFilesRetained:false,sourceRowsIncluded:false,accountIdentifiersIncluded:false,uploaded:false/);
+ const sharing=await read('apps/web/public/assets/qelly-mt5-share-safe.mjs');
+ assert.match(sharing,/rawFilesRetained:false,sourceRowsIncluded:false,accountIdentifiersIncluded:false,uploaded:false/);
  assert.throws(()=>renderMt5ReportAnalyzer(null),/existing QELLY main/);
 });
 test('standalone UI has responsive keyboard-accessible upload and cleared memory state',async()=>{
