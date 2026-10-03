@@ -61,3 +61,16 @@ test('browser acceptance exercises separate route without weakening QELLY Verify
  }
  assert.match(script,/assert\.deepEqual\(uploads,\[\]\)/);
 });
+
+test('full-screen browser evidence follows registered route count and exact archive head',async()=>{
+ const workflow=await read('.github/workflows/browser-e2e.yml');
+ assert.match(workflow,/routeDefinitions\.length/);
+ assert.match(workflow,/expectedRenders=expectedRoutes\*2/);
+ assert.match(workflow,/pngs\.length===expectedRenders/);
+ assert.match(workflow,/manifest\.routeCount===expectedRoutes/);
+ assert.match(workflow,/manifest\.expectedRenderCount===expectedRenders/);
+ assert.match(workflow,/QELLY_SCREEN_EVIDENCE_SHA\.slice\(0,12\)/);
+ assert.match(workflow,/accessibility\.status==='passed'/);
+ assert.match(workflow,/Verify Decision selected-range interaction/);
+ assert.doesNotMatch(workflow,/manifest\.routeCount===71|manifest\.renderCount===142/);
+});
