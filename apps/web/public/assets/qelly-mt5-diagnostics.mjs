@@ -60,6 +60,16 @@ export function buildMt5ObservedDiagnostics(report){
    }));
   }
  }
+ const winCount=Number.isSafeInteger(report.sample?.wins)?report.sample.wins:0;
+ if(finite(m.largestProfitContributionPct)&&finite(m.largestWinningDealPnl)&&winCount>0){
+  findings.push(Object.freeze({
+   id:'largest-profit-share',label:'Largest observed single closing-deal profit share',
+   value:round(m.largestProfitContributionPct,2),units:'percent of aggregate observed winning closing-deal P&L',
+   sampleCount:winCount,shareBasis:'gross positive closing-deal P&L',
+   evidence:'Largest winning close '+round(m.largestWinningDealPnl)+' / total gross winning close P&L '+round(m.grossProfit)+'. Individual closes may be partial position exits; account currency, capital and entry-side costs are unverified.',
+   state:limited?'LIMITED_SAMPLE':winCount<5?'SMALL_WIN_SET':'OBSERVED_SAMPLE'
+  }));
+ }else gaps.push('No observed winning closing deal supports a largest-profit contribution calculation.');
  const lossCount=Number.isSafeInteger(report.sample?.losses)?report.sample.losses:0;
  if(finite(m.largestLossContributionPct)&&lossCount>0){
   findings.push(Object.freeze({
@@ -84,7 +94,7 @@ export function buildMt5ObservedDiagnostics(report){
   'Currency, account equity, balance, deposits, exposure, entry-side costs and source authenticity have not been independently verified.',
   'Bucket P&L aggregates realized closing deals; buckets with fewer than five deals are excluded from negative-net highlights.',
   'Reported clock hours are not market sessions because the broker timezone is unverified.',
-  'Single-deal loss contribution and closing-deal underwater spans are descriptive local-sequence observations, not future loss probabilities, position-level risk or broker account-equity drawdown.'
+  'Single-deal loss contribution and closing-deal underwater spans are descriptive local-sequence observations, not future loss probabilities, position-level risk or broker account-equity drawdown. Single-deal profit concentration is also descriptive, not investment returns, future probabilities or evidence of a strategy advantage.'
  ];
  if(limited)warnings.push('LIMITED SAMPLE: fewer than 30 closing deals; no statistical or causal subgroup conclusions are supported.');
  if(report.series?.chronological!==true)warnings.push('Report ordering is unverified; no time-sequence or drawdown-cluster conclusion is supported.');

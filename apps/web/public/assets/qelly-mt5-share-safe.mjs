@@ -4,7 +4,7 @@
 import {buildMt5ObservedDiagnostics} from './qelly-mt5-diagnostics.mjs';
 import {compareMt5ClosedDealReports} from './qelly-mt5-comparison.mjs';
 
-const METRICS=['netPnl','grossProfit','grossLoss','profitFactor','expectedPnlPerDeal','winRatePct','maxClosedDealDrawdown','recoveryFactor','maxConsecutiveWins','maxConsecutiveLosses','largestLosingDealPnl','largestLossContributionPct','longestUnderwaterClosingDeals','sharpe','sortino','calmar','relativeAccountDrawdown'];
+const METRICS=['netPnl','grossProfit','grossLoss','profitFactor','expectedPnlPerDeal','winRatePct','maxClosedDealDrawdown','recoveryFactor','maxConsecutiveWins','maxConsecutiveLosses','largestWinningDealPnl','largestProfitContributionPct','largestLosingDealPnl','largestLossContributionPct','longestUnderwaterClosingDeals','sharpe','sortino','calmar','relativeAccountDrawdown'];
 const numericObject=(value,keys)=>Object.fromEntries(keys.map(key=>[key,typeof value?.[key]==='number'&&Number.isFinite(value[key])?value[key]:null]));
 function snapshotReport(r){
  const sample={...numericObject(r.sample,['deals','wins','losses','flat']),grade:r.sample.grade};
