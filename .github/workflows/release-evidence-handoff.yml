@@ -1,35 +1,35 @@
 name: Release Evidence Handoff
 on:
-  check_run:
+  workflow_run:
+    workflows: ['Browser E2E']
     types: [completed]
 permissions:
   contents: read
+  actions: read
+  checks: read
   pull-requests: read
 concurrency:
-  group: ${{ github.event.check_run.name == 'Cloudflare Pages' && github.event.check_run.app.slug == 'cloudflare-workers-and-pages' && github.event.check_run.conclusion == 'success' && github.event.check_run.head_sha != '' && format('qelly-cloudflare-evidence-{0}', github.event.check_run.head_sha) || format('qelly-unrelated-check-{0}', github.run_id) }}
+  group: qelly-browser-evidence-handoff-${{ github.event.workflow_run.id }}
   cancel-in-progress: true
 jobs:
   exact-pr-evidence:
     if: >-
-      github.event_name == 'check_run' &&
-      github.event.check_run.name == 'Cloudflare Pages' &&
-      github.event.check_run.conclusion == 'success' &&
-      github.event.check_run.app.slug == 'cloudflare-workers-and-pages'
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.name == 'Browser E2E' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
-    env:
-      QELLY_SCREEN_BATCH_SIZE: '10'
-      PYTHONUTF8: '1'
-      PYTHONIOENCODING: 'utf-8'
+    timeout-minutes: 8
     steps:
-      - name: Resolve and verify exact Cloudflare pull-request head
+      - name: Resolve completed exact-head browser archive and trustworthy Cloudflare preview
         id: pr
         env:
           GH_TOKEN: ${{ github.token }}
-          EVENT_NAME: ${{ github.event_name }}
-          CHECK_RUN_URL: ${{ github.event.check_run.url || '' }}
           GITHUB_API_URL: ${{ github.api_url }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          BROWSER_RUN_URL: ${{ github.event.workflow_run.url }}
+          BROWSER_RUN_ID: ${{ github.event.workflow_run.id }}
+          BROWSER_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           set -euo pipefail
           api_get() {
@@ -40,142 +40,122 @@ jobs:
               -H 'X-GitHub-Api-Version: 2022-11-28' \
               "$1"
           }
-
-          # One authoritative signal per Cloudflare deployment: a verified
-          # successful Cloudflare Pages check, never its duplicate bot comment.
-          test "$EVENT_NAME" = 'check_run'
-          test -n "$CHECK_RUN_URL"
-          check_json="$(api_get "$CHECK_RUN_URL")"
-          test "$(jq -r '.name' <<<"$check_json")" = 'Cloudflare Pages'
-          test "$(jq -r '.conclusion' <<<"$check_json")" = 'success'
-          test "$(jq -r '.app.slug' <<<"$check_json")" = 'cloudflare-workers-and-pages'
-          jq -e '.output.summary | type == "string" and contains("Deploy successful!")' <<<"$check_json" >/dev/null
-
-          sha="$(jq -r '.head_sha' <<<"$check_json")"
+          run_json="$(api_get "$BROWSER_RUN_URL")"
+          test "$(jq -r '.id' <<<"$run_json")" = "$BROWSER_RUN_ID"
+          test "$(jq -r '.name' <<<"$run_json")" = 'Browser E2E'
+          test "$(jq -r '.event' <<<"$run_json")" = 'pull_request'
+          test "$(jq -r '.status' <<<"$run_json")" = 'completed'
+          test "$(jq -r '.conclusion' <<<"$run_json")" = 'success'
+          sha="$(jq -r '.head_sha' <<<"$run_json")"
+          test "$sha" = "$BROWSER_HEAD_SHA"
           test "${#sha}" -eq 40
-          pr_url="$(jq -r '.pull_requests[0].url // empty' <<<"$check_json")"
+          test "$(jq -r '.head_repository.full_name' <<<"$run_json")" = "$GITHUB_REPOSITORY"
 
+          # Browser E2E API runs sometimes return pull_requests: []. Resolve
+          # the matching open PR by commit, never guess from an empty array.
+          pulls_json="$(api_get "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/commits/$sha/pulls")"
+          pr_url="$(jq -r --arg sha "$sha" \
+            '[.[] | select(.state == "open" and .head.sha == $sha and .base.ref == "release/qelly-global-public-beta")][0].url // empty' <<<"$pulls_json")"
           if [ -z "$pr_url" ]; then
-            pulls_json="$(api_get "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/commits/$sha/pulls")"
-            pr_url="$(jq -r --arg sha "$sha" '[.[] | select(.state == "open" and .head.sha == $sha)][0].url // empty' <<<"$pulls_json")"
-          fi
-
-          if [ -z "$pr_url" ]; then
-            echo 'Verified Cloudflare deployment has no open pull request; exact-PR evidence is intentionally not applicable.'
+            echo 'No current open release PR at the verified Browser E2E head; handoff is inapplicable.'
             echo "eligible=false" >> "$GITHUB_OUTPUT"
-            echo "sha=$sha" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-
           pr_json="$(api_get "$pr_url")"
-          state="$(jq -r '.state' <<<"$pr_json")"
-          if [ "$state" != 'open' ]; then
-            echo 'Verified Cloudflare deployment belongs to a closed pull request; exact-PR evidence is intentionally not applicable.'
-            echo "eligible=false" >> "$GITHUB_OUTPUT"
-            echo "sha=$sha" >> "$GITHUB_OUTPUT"
-            echo "pr_url=$pr_url" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
           current_sha="$(jq -r '.head.sha' <<<"$pr_json")"
-          test "${#current_sha}" -eq 40
           if [ "$current_sha" != "$sha" ]; then
-            echo 'Verified Cloudflare deployment belongs to a superseded pull-request head; exact-PR evidence is intentionally not applicable.'
+            echo 'Browser run belongs to a superseded pull-request head; exact-PR evidence is intentionally not applicable.'
             echo "eligible=false" >> "$GITHUB_OUTPUT"
-            echo "sha=$sha" >> "$GITHUB_OUTPUT"
-            echo "pr_url=$pr_url" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+          test "$(jq -r '.base.ref' <<<"$pr_json")" = 'release/qelly-global-public-beta'
 
+          artifacts_json="$(api_get "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/$BROWSER_RUN_ID/artifacts?per_page=100")"
+          archive_name="qelly-complete-all-screens-$sha"
+          archive="$(jq -c --arg name "$archive_name" \
+            '[.artifacts[] | select(.name == $name and .expired == false and .size_in_bytes > 1000000)][0] // empty' <<<"$artifacts_json")"
+          test -n "$archive" || { echo 'Exact-head Browser E2E evidence artifact is absent or expired.' >&2; exit 1; }
+          archive_id="$(jq -r '.id' <<<"$archive")"
+          archive_size="$(jq -r '.size_in_bytes' <<<"$archive")"
+          test "$archive_id" -gt 0
+
+          # Require the current trusted Cloudflare Pages check, not a comment,
+          # a bot claim or a prior success at a different revision.
+          checks_json="$(api_get "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/commits/$sha/check-runs?per_page=100")"
+          cf="$(jq -c --arg sha "$sha" \
+            '[.check_runs[] | select(.name == "Cloudflare Pages" and .app.slug == "cloudflare-workers-and-pages" and .head_sha == $sha)] | sort_by(.completed_at // .started_at // "") | last // empty' <<<"$checks_json")"
+          test -n "$cf" || { echo 'No trusted Cloudflare Pages check at the exact browser head.' >&2; exit 1; }
+          test "$(jq -r '.status' <<<"$cf")" = 'completed'
+          test "$(jq -r '.conclusion' <<<"$cf")" = 'success'
+          jq -e '.output.summary | type == "string" and contains("Deploy successful!")' <<<"$cf" >/dev/null
+          cf_id="$(jq -r '.id' <<<"$cf")"
+          test "$cf_id" -gt 0
+
+          # Revalidate current PR head after both external evidence queries.
+          pr_json="$(api_get "$pr_url")"
+          if [ "$(jq -r '.head.sha' <<<"$pr_json")" != "$sha" ] || [ "$(jq -r '.state' <<<"$pr_json")" != 'open' ]; then
+            echo 'PR advanced or closed while evidence was being reconciled; skip superseded receipt.'
+            echo "eligible=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           echo "eligible=true" >> "$GITHUB_OUTPUT"
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
-          echo "pr_url=$pr_url" >> "$GITHUB_OUTPUT"
-      - name: Checkout exact pull-request head
+          echo "pr=$pr_url" >> "$GITHUB_OUTPUT"
+          echo "pr_number=$(jq -r '.number' <<<"$pr_json")" >> "$GITHUB_OUTPUT"
+          echo "archive_id=$archive_id" >> "$GITHUB_OUTPUT"
+          echo "archive_size=$archive_size" >> "$GITHUB_OUTPUT"
+          echo "cloudflare_check_id=$cf_id" >> "$GITHUB_OUTPUT"
+      - name: Checkout verified exact PR head
         if: steps.pr.outputs.eligible == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ steps.pr.outputs.sha }}
           fetch-depth: 1
           persist-credentials: false
-      - name: Guard exact pull-request head
-        if: steps.pr.outputs.eligible == 'true'
-        run: test "$(git rev-parse HEAD)" = "${{ steps.pr.outputs.sha }}"
-      - name: Set up Node
-        if: steps.pr.outputs.eligible == 'true'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
-        with:
-          node-version: '22'
-          cache: npm
-      - name: Set up Python
-        if: steps.pr.outputs.eligible == 'true'
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
-        with:
-          python-version: '3.12'
-      - name: Install locked dependencies
-        if: steps.pr.outputs.eligible == 'true'
-        run: npm ci --ignore-scripts
-      - name: Install browser evidence runtime
+      - name: Confirm exact head and source evidence contract
         if: steps.pr.outputs.eligible == 'true'
         run: |
-          python -m pip install --disable-pip-version-check playwright pillow
-          python -m playwright install --with-deps chromium
-          chromium_path="$(python - <<'PY'
-          from playwright.sync_api import sync_playwright
-          with sync_playwright() as playwright:
-              print(playwright.chromium.executable_path)
-          PY
-          )"
-          test -x "$chromium_path"
-          sudo ln -sf "$chromium_path" /usr/bin/chromium
-      - name: Validate source and production build
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ steps.pr.outputs.sha }}"
+          test -f .github/workflows/browser-e2e.yml
+          test -f scripts/release-a5-screen-package.py
+          mkdir -p dist/release-evidence-handoff
+          jq -n --arg sha "${{ steps.pr.outputs.sha }}" \
+            --argjson pr "${{ steps.pr.outputs.pr_number }}" \
+            --argjson browserRun "${{ github.event.workflow_run.id }}" \
+            --argjson archiveId "${{ steps.pr.outputs.archive_id }}" \
+            --argjson archiveBytes "${{ steps.pr.outputs.archive_size }}" \
+            --argjson cloudflareCheck "${{ steps.pr.outputs.cloudflare_check_id }}" \
+            '{schema:"qelly.exact-head-evidence-handoff/2.0",headSha:$sha,prNumber:$pr,
+              browser:{runId:$browserRun,conclusion:"success",completeArchiveId:$archiveId,
+                completeArchiveBytes:$archiveBytes,validatedInSourceWorkflow:true},
+              cloudflare:{checkRunId:$cloudflareCheck,app:"cloudflare-workers-and-pages",
+                conclusion:"success",deploySummaryVerified:true},
+              noDuplicateScreenshotCapture:true}' > dist/release-evidence-handoff/receipt.json
+          test -s dist/release-evidence-handoff/receipt.json
+          jq -e --arg sha "${{ steps.pr.outputs.sha }}" \
+            '.headSha == $sha and .browser.conclusion == "success" and .cloudflare.conclusion == "success" and .noDuplicateScreenshotCapture == true' \
+            dist/release-evidence-handoff/receipt.json >/dev/null
+      - name: Publish small exact-head evidence receipt
         if: steps.pr.outputs.eligible == 'true'
-        run: |
-          npm run env:check
-          npm run typecheck
-          npm run lint
-          npm run validate:design
-          npm run security:scan
-          npm test
-          npm run build:frontend
-      - name: Capture all registered screens
-        if: steps.pr.outputs.eligible == 'true'
-        env:
-          QELLY_SCREEN_EVIDENCE_SHA: ${{ steps.pr.outputs.sha }}
-        run: npm run browser:all
-      - name: Run accessibility regression and rebuild archive
-        if: steps.pr.outputs.eligible == 'true'
-        env:
-          QELLY_SCREEN_EVIDENCE_SHA: ${{ steps.pr.outputs.sha }}
-        run: |
-          npm run a11y
-          cp validation/RELEASE_A5_ACCESSIBILITY_REGRESSION.json preview/release-a5-all-screens/accessibility-regression.json
-          python -X utf8 scripts/release-a5-screen-package.py
-      - name: Verify final evidence contract
-        if: steps.pr.outputs.eligible == 'true'
-        run: |
-          node --input-type=module <<'NODE'
-          import {readFile,readdir,stat} from 'node:fs/promises';
-          const manifest=JSON.parse(await readFile('preview/release-a5-all-screens/manifest.json','utf8'));
-          const accessibility=JSON.parse(await readFile('preview/release-a5-all-screens/accessibility-regression.json','utf8'));
-          const files=await readdir('preview/release-a5-all-screens');
-          const pngs=files.filter(name=>name.endsWith('.png'));
-          const archives=(await readdir('preview')).filter(name=>/^QELLY_ALL_SCREENS_[0-9a-f]{12}\.zip$/.test(name));
-          const archiveSize=archives.length===1?(await stat(`preview/${archives[0]}`)).size:0;
-          const expectedRenderCount=manifest.routeCount*manifest.viewportCount;
-          const valid=manifest.status==='passed'&&Number.isInteger(manifest.routeCount)&&manifest.routeCount>0&&Number.isInteger(manifest.viewportCount)&&manifest.viewportCount>0&&manifest.renderCount===expectedRenderCount&&manifest.expectedRenderCount===expectedRenderCount&&manifest.failed===0&&Array.isArray(manifest.missing)&&manifest.missing.length===0&&pngs.length===expectedRenderCount&&accessibility.status==='passed'&&archives.length===1&&archiveSize>0;
-          console.log(JSON.stringify({manifest,expectedRenderCount,accessibilityStatus:accessibility.status,pngCount:pngs.length,archives,archiveSize},null,2));
-          if(!valid)process.exit(1);
-          NODE
-      - name: Upload complete or diagnostic exact-head evidence
-        if: ${{ always() && steps.pr.outputs.eligible == 'true' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: qelly-blueprint-evidence-${{ steps.pr.outputs.sha }}
-          path: |
-            preview/QELLY_ALL_SCREENS_*.zip
-            preview/release-a5-all-screens
-            preview/RELEASE_A5_ALL_SCREENS_LOG.json
-            validation/RELEASE_A5_ACCESSIBILITY_REGRESSION.json
-          include-hidden-files: true
-          if-no-files-found: warn
+          name: qelly-verified-evidence-receipt-${{ steps.pr.outputs.sha }}
+          path: dist/release-evidence-handoff/receipt.json
+          if-no-files-found: error
           retention-days: 30
+      - name: Link already validated full browser archive
+        if: steps.pr.outputs.eligible == 'true'
+        env:
+          BROWSER_RUN_ID: ${{ github.event.workflow_run.id }}
+          GH_REPO: ${{ github.repository }}
+          PR_URL: ${{ steps.pr.outputs.pr }}
+          ARCHIVE_ID: ${{ steps.pr.outputs.archive_id }}
+        run: |
+          {
+            echo '## Exact-head release evidence'
+            echo "PR: $PR_URL"
+            echo "Browser E2E: https://github.com/$GH_REPO/actions/runs/$BROWSER_RUN_ID"
+            echo "Verified screenshot archive: https://github.com/$GH_REPO/actions/runs/$BROWSER_RUN_ID/artifacts/$ARCHIVE_ID"
+            echo 'Original Browser E2E run performed screenshot capture, 72-route completeness checks, accessibility and archive verification. This handoff did not recapture screenshots.'
+          } >> "$GITHUB_STEP_SUMMARY"
