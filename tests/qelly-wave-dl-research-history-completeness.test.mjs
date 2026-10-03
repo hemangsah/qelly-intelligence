@@ -38,6 +38,8 @@ test('a complete valid bounded sample is audited independently of insufficient c
 test('reaching a setup retrieval limit with otherwise valid observations blocks scientific calibration',()=>{
  const x=buildResearchOutcomeAudit([row(0),row(1)],[obs(0),obs(1)],{setupLimit:2,observationLimit:3});
  assert.equal(x.dataQuality.state,'VALID');
+ assert.equal(x.dataQuality.scientificallyUsable,false);
+ assert.equal(x.dataQuality.assessmentScope,'CAPPED_VISIBLE_SAMPLE');
  assert.equal(x.sampleBoundary.setupLimitReached,true);
  assert.equal(x.sampleBoundary.observationLimitReached,false);
  assert.equal(x.calibration.qualityGate,'BLOCKED_INCOMPLETE_HISTORY');
@@ -50,6 +52,7 @@ test('reaching an observation cap with otherwise valid setups blocks calibration
  assert.equal(x.dataQuality.state,'VALID');
  assert.equal(x.sampleBoundary.setupLimitReached,false);
  assert.equal(x.sampleBoundary.observationLimitReached,true);
+ assert.equal(x.dataQuality.scientificallyUsable,false);
  assert.equal(x.calibration.qualityGate,'BLOCKED_INCOMPLETE_HISTORY');
  assert.equal(x.calibration.eligibleResolvedSetups,0);
  assert.match(x.sampleBoundary.boundary,/unseen setups or observations/i);
