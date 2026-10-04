@@ -38,7 +38,8 @@ async function start(){
       });
       return;
     }
-    setState('Email verified','Your Supabase identity and Qelly workspace are ready.','success');
+    if(flow==='oauth')setState('Signed in securely','Your verified identity has been connected to this Qelly browser session.','success');
+    else setState('Email verified','Your Supabase identity and Qelly workspace are ready.','success');
     redirect('account-session');
   }catch(error){
     setState('Authentication could not be completed',error.message,'error');

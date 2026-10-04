@@ -19,6 +19,15 @@ export async function renderAuthLogin(main,{api,toast,navigate,onAuthenticated,s
   const requestedReturn=state?.routeQuery?.get?.('returnTo')||storedReturn||'account-session';
   if(status.authenticated){sessionStorage.removeItem('qelly.returnTo');navigate(requestedReturn);return;}
   const emailDelivery=state?.config?.auth?.emailDeliveryAvailable===true;
+  const identityLabels=Object.freeze({google:'Google',apple:'Apple',linkedin:'LinkedIn',facebook:'Facebook'});
+  const identityScopes=Object.freeze({google:'openid email profile',apple:'email name',linkedin:'openid email profile',facebook:'email public_profile'});
+  const providerResponse=await api('/api/v1/auth/oauth/providers').catch(()=>({providers:[]}));
+  const oauthProviders=(Array.isArray(providerResponse?.providers)?providerResponse.providers:[])
+    .filter(item=>Object.hasOwn(identityLabels,item?.id)&&item?.label===identityLabels[item.id]);
+  const oauthMarkup=oauthProviders.length
+    ?`<div class="q-auth-oauth" aria-label="Social identity providers"><p class="q-muted-copy">Or continue with a verified identity provider</p><div class="q-auth-oauth__grid">${oauthProviders.map(item=>`<button type="button" class="q-button q-button--secondary" data-oauth-provider="${item.id}">Continue with ${identityLabels[item.id]}</button>`).join('')}</div><small>Qelly requests only your basic identity. No inbox, contacts, posts or calendar permissions.</small></div>`
+    :'';
+
   main.innerHTML=`<section class="q-auth-page" data-production-auth="true">
     <div class="q-auth-hero"><div><p class="q-eyebrow">Qelly account</p><h1>Sign in to Qelly</h1><p>Access your saved research, calculations and workspace preferences.</p></div><div class="q-auth-proof-grid"><article><strong>Private</strong><span>Secure browser session</span></article><article><strong>Scoped</strong><span>Your workspace only</span></article><article><strong>Read-only</strong><span>No trading or custody</span></article></div></div>
     <div class="q-auth-card"><div><p class="q-eyebrow">Welcome back</p><h2>Continue to your workspace</h2><p class="q-muted-copy">Enter the email and password used when your Qelly account was created.</p></div>
@@ -30,12 +39,38 @@ export async function renderAuthLogin(main,{api,toast,navigate,onAuthenticated,s
         ${emailDelivery?'<button class="q-auth-secondary-link" type="button" data-recovery>Forgot password?</button>':''}
         <p id="login-error" class="q-form-error" role="alert" aria-live="polite"></p>
       </form>
+      ${oauthMarkup}
       <div class="q-auth-footer">${emailDelivery?'<span>New to Qelly?</span><button class="q-button q-button--ghost" type="button" data-register>Create account</button>':''}<button class="q-button q-button--ghost" type="button" data-home>Return home</button></div>
     </div>
   </section>`;
   const form=main.querySelector('#login-form');
   const error=main.querySelector('#login-error');
   const password=main.querySelector('input[name=password]');
+  main.querySelectorAll('[data-oauth-provider]').forEach(button=>button.addEventListener('click',async()=>{
+    const provider=button.dataset.oauthProvider;
+    if(!oauthProviders.some(item=>item.id===provider))return;
+    button.disabled=true;
+    button.setAttribute('aria-busy','true');
+    error.textContent='';
+    try{
+      const result=await api('/api/v1/auth/oauth/start',{method:'POST',body:JSON.stringify({provider}),skipCsrf:true});
+      const redirect=new URL(result?.url||'');
+      if(redirect.protocol!=='https:'||redirect.username||redirect.password
+        ||redirect.origin!==providerResponse.authorizeOrigin
+        ||redirect.pathname!=='/auth/v1/authorize'
+        ||redirect.searchParams.get('provider')!==({linkedin:'linkedin_oidc'}[provider]||provider)
+        ||redirect.searchParams.get('scopes')!==identityScopes[provider]){
+        throw new Error('Unverified OAuth redirect');
+      }
+      sessionStorage.setItem('qelly.returnTo',requestedReturn);
+      window.location.assign(redirect.toString());
+    }catch{
+      error.textContent='This identity provider is unavailable. Your account has not changed.';
+      button.disabled=false;
+      button.removeAttribute('aria-busy');
+    }
+  }));
+
   main.querySelector('[data-password-toggle]').addEventListener('click',(event)=>{
     const visible=password.type==='text';
     password.type=visible?'password':'text';
