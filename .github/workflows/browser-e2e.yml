@@ -99,6 +99,8 @@ jobs:
         run: npm run browser:all
       - name: Verify local MT5 HTML and XLSX upload interactions
         run: node scripts/qelly-mt5-upload-e2e.mjs
+      - name: Verify global chat keyboard focus and mobile containment
+        run: node scripts/qelly-chat-keyboard-e2e.mjs
       - name: Validate accessibility and responsive interaction contracts
         run: |
           npm run a11y
@@ -149,6 +151,7 @@ jobs:
             preview/first-paint-stability
             preview/decision-range-e2e
             preview/mt5-upload-e2e
+            preview/chat-keyboard-e2e
             validation/RELEASE_A5_ACCESSIBILITY_REGRESSION.json
           include-hidden-files: true
           if-no-files-found: warn
