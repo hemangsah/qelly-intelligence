@@ -5,9 +5,46 @@ export const AVATAR_SOURCE_LIMIT=5*1024*1024;
 export const AVATAR_RESULT_LIMIT=2*1024*1024;
 export const AVATAR_CROP_SIZE=256;
 const TYPES=new Set(['image/jpeg','image/png','image/webp']);
+export function avatarSourceDimensions(bytes,type){
+ if(!(bytes instanceof Uint8Array)||bytes.length<24||bytes.length>AVATAR_SOURCE_LIMIT||!TYPES.has(type))throw new RangeError('Choose a bounded JPEG, PNG or WebP image.');
+ const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
+ const text=(offset,length)=>String.fromCharCode(...bytes.subarray(offset,offset+length));
+ let width,height;
+ if(type==='image/png'&&[137,80,78,71,13,10,26,10].every((value,i)=>bytes[i]===value)&&text(12,4)==='IHDR'){
+  width=view.getUint32(16);height=view.getUint32(20);
+ }else if(type==='image/jpeg'&&bytes[0]===255&&bytes[1]===216){
+  let offset=2;
+  while(offset+4<=bytes.length){
+   if(bytes[offset++]!==255)break;
+   while(bytes[offset]===255)offset++;
+   const marker=bytes[offset++];
+   if(marker===217||marker===218)break;
+   if(marker===1||(marker>=208&&marker<=215))continue;
+   if(offset+2>bytes.length)break;
+   const length=view.getUint16(offset);
+   if(length<2||offset+length>bytes.length)break;
+   if([192,193,194,195,197,198,199,201,202,203,205,206,207].includes(marker)){
+    if(length<8)break;height=view.getUint16(offset+3);width=view.getUint16(offset+5);break;
+   }
+   offset+=length;
+  }
+ }else if(type==='image/webp'&&text(0,4)==='RIFF'&&text(8,4)==='WEBP'){
+  const chunk=text(12,4);
+  if(chunk==='VP8X'&&bytes.length>=30&&(bytes[20]&2)===0){
+   width=1+bytes[24]+(bytes[25]<<8)+(bytes[26]<<16);height=1+bytes[27]+(bytes[28]<<8)+(bytes[29]<<16);
+  }else if(chunk==='VP8L'&&bytes.length>=25&&bytes[20]===47){
+   const packed=view.getUint32(21,true);width=(packed&16383)+1;height=((packed>>>14)&16383)+1;
+  }else if(chunk==='VP8 '&&bytes.length>=30&&bytes[23]===157&&bytes[24]===1&&bytes[25]===42){
+   width=view.getUint16(26,true)&16383;height=view.getUint16(28,true)&16383;
+  }
+ }
+ // Inspect the container before allocating decoded pixel memory.
+ calculateAvatarCrop(width,height);
+ return {width,height};
+}
 export const calculateAvatarCrop=(width,height,zoom=1,panX=0,panY=0)=>{
  if(!Number.isFinite(width)||!Number.isFinite(height)||width<1||height<1||width>8192||height>8192||
-    width*height>24_000_000||!Number.isFinite(zoom)||zoom<1||zoom>2.5)throw new RangeError('Image dimensions or zoom exceed avatar limits');
+    width*height>24_000_000||!Number.isFinite(zoom)||zoom<1||zoom>2.5||!Number.isFinite(panX)||!Number.isFinite(panY))throw new RangeError('Image dimensions or zoom exceed avatar limits');
  const factor=Math.max(AVATAR_CROP_SIZE/width,AVATAR_CROP_SIZE/height)*zoom;
  const scaledWidth=width*factor,scaledHeight=height*factor;
  const maxX=Math.max(0,(scaledWidth-AVATAR_CROP_SIZE)/2),maxY=Math.max(0,(scaledHeight-AVATAR_CROP_SIZE)/2);
@@ -20,9 +57,9 @@ const blobToDataUrl=async(blob)=>{
  return 'data:image/png;base64,'+btoa(parts.join(''));
 };
 export function installPrivateAvatarControls({main,api,toast}){
+ globalThis.__qellyAvatarCleanup?.();
  const widget=main?.querySelector('[data-avatar-widget]');
  if(!widget)return ()=>{};
- globalThis.__qellyAvatarCleanup?.();
  const input=widget.querySelector('[data-avatar-file]');
  const canvas=widget.querySelector('[data-avatar-canvas]');
  const editor=widget.querySelector('[data-avatar-editor]');
@@ -77,6 +114,8 @@ export function installPrivateAvatarControls({main,api,toast}){
    closeEditor();setStatus('Choose a JPEG, PNG or WebP image smaller than 5 MiB.');return;
   }
   try{
+   avatarSourceDimensions(new Uint8Array(await file.arrayBuffer()),file.type);
+   if(disposed||revision!==selectionSeq)return;
    const next=await createImageBitmap(file,{imageOrientation:'from-image'});
    if(disposed||revision!==selectionSeq){next.close?.();return;}
    if(bitmap)bitmap.close?.();
