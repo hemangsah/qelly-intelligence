@@ -1,4 +1,5 @@
-const finite=(value)=>value==null||value===''?null:Number.isFinite(Number(value))?Number(value):null;
+import {isFiniteDecisionEvidence} from './decision-numeric-evidence.mjs';
+const finite=(value)=>isFiniteDecisionEvidence(value)?Number(value):null;
 const text=(value,fallback='UNAVAILABLE')=>String(value??fallback).trim()||fallback;
 const uniqueBy=(items,key)=>{const seen=new Set();return items.filter(item=>{const value=key(item);if(!value||seen.has(value))return false;seen.add(value);return true;});};
 const RR_PRESETS=Object.freeze([1,2,3,4]);

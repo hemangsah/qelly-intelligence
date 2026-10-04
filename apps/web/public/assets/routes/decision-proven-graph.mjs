@@ -1,3 +1,4 @@
+import {isFiniteDecisionEvidence,formatDecisionProbability} from '../decision-numeric-evidence.mjs';
 import {adSlot,mountAdSlots} from '../qelly-ad-slot.mjs';
 import {DECISION_CONTEXT_KEY as CHAT_DECISION_CONTEXT_KEY,DECISION_ASSETS,consumeDecisionContext as readChatDecisionContext,storeResearchContext} from '../decision-context-bridge.mjs';
 import {startDecisionObservation,recordDecisionObservation,recordScannerObservation,recordTargetTouchSample} from '../decision-observability.mjs';
@@ -7,10 +8,10 @@ import {readDecisionAssetPreferences,saveDecisionAssetPreferences,toggleDecision
 import {buildDecisionScenarioUx} from '../decision-scenario-ux.mjs';
 const STYLESHEET=new URL('../qelly-decision-proven-graph.css',import.meta.url).href;
 const installStyles=()=>{if(!document.querySelector('link[data-decision-proven-graph]')){const link=document.createElement('link');link.rel='stylesheet';link.href=STYLESHEET;link.dataset.decisionProvenGraph='v2';document.head.append(link);}};
-const money=(value)=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:Number(value)>=100?0:2}).format(value);
-const pct=(value)=>Number(value).toFixed(2)+'%';
-const compactMoney=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',maximumFractionDigits:2}).format(Number(value)):'Unavailable';
-const compactNumber=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?new Intl.NumberFormat('en-US',{notation:'compact',maximumFractionDigits:3}).format(Number(value)):'Unavailable';
+const money=(value)=>isFiniteDecisionEvidence(value)?new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:Number(value)>=100?0:2}).format(value):'Unavailable';
+const pct=(value)=>isFiniteDecisionEvidence(value)?Number(value).toFixed(2)+'%':'Unavailable';
+const compactMoney=(value)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',maximumFractionDigits:2}).format(Number(value)):'Unavailable';
+const compactNumber=(value)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?new Intl.NumberFormat('en-US',{notation:'compact',maximumFractionDigits:3}).format(Number(value)):'Unavailable';
 const download=(value)=>{const blob=new Blob([JSON.stringify(value,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const anchor=document.createElement('a');anchor.href=url;anchor.download='qelly-decision-intelligence-'+value.asset.toLowerCase()+'-'+value.interval+'.json';anchor.click();setTimeout(()=>URL.revokeObjectURL(url),500);};
 const INTERVAL_MS=Object.freeze({'1m':60_000,'3m':180_000,'5m':300_000,'15m':900_000,'30m':1_800_000,'1h':3_600_000,'2h':7_200_000,'4h':14_400_000,'1d':86_400_000});
 const HORIZON_MS=Object.freeze({'1h':3_600_000,'4h':14_400_000,'12h':43_200_000,'1d':86_400_000,'3d':259_200_000,'7d':604_800_000});
@@ -51,7 +52,7 @@ const formatRangeDuration=(milliseconds)=>{
   return days+'d'+(remainingHours?' '+remainingHours+'h':'');
 };
 const selectionIndexBounds=(candles,selection,intervalMs)=>{
-  if(!selection||!Array.isArray(candles)||!candles.length||!Number.isFinite(Number(intervalMs)))return null;
+  if(!selection||!Array.isArray(candles)||!candles.length||!isFiniteDecisionEvidence(intervalMs))return null;
   const start=Number(selection.start),end=Number(selection.end);
   if(!Number.isFinite(start)||!Number.isFinite(end))return null;
   const low=Math.min(start,end),high=Math.max(start,end);
@@ -68,12 +69,12 @@ const selectionIndexBounds=(candles,selection,intervalMs)=>{
   return first>=0&&last>=first?{startIndex:first,endIndex:last}:null;
 };
 const buildRangeSelection=(candles,startIndex,endIndex,intervalMs)=>{
-  if(!Array.isArray(candles)||!candles.length||!Number.isFinite(Number(intervalMs)))return null;
+  if(!Array.isArray(candles)||!candles.length||!isFiniteDecisionEvidence(intervalMs))return null;
   const a=clamp(Math.min(Number(startIndex),Number(endIndex)),0,candles.length-1);
   const b=clamp(Math.max(Number(startIndex),Number(endIndex)),0,candles.length-1);
   const start=candleTime(candles[a]),last=candleTime(candles[b]);
   if(!Number.isFinite(start)||!Number.isFinite(last))return null;
-  const singleEnd=b===a&&Number.isFinite(Number(candles[a]?.time))?candles[a].time+intervalMs-1:null;
+  const singleEnd=b===a&&isFiniteDecisionEvidence(candles[a]?.time)?candles[a].time+intervalMs-1:null;
   return {start,end:singleEnd??last+Number(intervalMs)-1,startIndex:a,endIndex:b};
 };
 const rangeSelectionMetrics=(candles,selection,interval)=>{
@@ -98,8 +99,8 @@ const rangeSelectionSummary=(state,data,escapeHtml)=>{
   const total=Math.max(0,candles.length-1);
   const startIndex=metrics?.startIndex??Math.max(0,total-19),endIndex=metrics?.endIndex??total;
   const metric=(label,value)=>'<span><em>'+escapeHtml(label)+'</em><strong>'+escapeHtml(value)+'</strong></span>';
-  const number=(value,digits=2)=>Number.isFinite(Number(value))?Number(value).toLocaleString(undefined,{maximumFractionDigits:digits}):'Unavailable';
-  const signed=(value,suffix='')=>Number.isFinite(Number(value))?(Number(value)>=0?'+':'')+number(value,2)+suffix:'Unavailable';
+  const number=(value,digits=2)=>isFiniteDecisionEvidence(value)?Number(value).toLocaleString(undefined,{maximumFractionDigits:digits}):'Unavailable';
+  const signed=(value,suffix='')=>isFiniteDecisionEvidence(value)?(Number(value)>=0?'+':'')+number(value,2)+suffix:'Unavailable';
   const sliderTime=(index,end=false)=>{
     const time=candleTime(candles[clamp(Number(index),0,total)]);
     return Number.isFinite(time)?displayTime(time+(end&&intervalMs?intervalMs-1:0)):'Time unavailable';
@@ -140,11 +141,11 @@ const derivativesContext=(data,escapeHtml)=>{
   if(!derivatives||derivatives.state!=='live'){
     return '<section class="q-dpg-derivatives"><header><div><small>DERIVATIVES CONTEXT</small><h2>Funding and open interest unavailable</h2></div><span>Not inferred</span></header><p>'+escapeHtml(derivatives?.message||'Current perpetual-market context could not be verified, so Qelly does not create substitute values.')+'</p><p class="q-dpg-derivatives__limit">Funding history, OI change, basis change, price/OI quadrant and liquidations remain unavailable unless separately verified.</p></section>';
   }
-  const pct=(value,digits=4)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Number(value).toFixed(digits)+'%':'Unavailable';
-  const bps=(value,digits=3)=>value!=null&&value!==''&&Number.isFinite(Number(value))?(Number(value)>=0?'+':'')+Number(value).toFixed(digits)+' bps':'Unavailable';
-  const percentile=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Math.round(Number(value)*100)+'%':'Unavailable';
-  const ratio=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Number(value).toFixed(2)+'x':'Unavailable';
-  const price=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?money(Number(value)):'Unavailable';
+  const pct=(value,digits=4)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?Number(value).toFixed(digits)+'%':'Unavailable';
+  const bps=(value,digits=3)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?(Number(value)>=0?'+':'')+Number(value).toFixed(digits)+' bps':'Unavailable';
+  const percentile=(value)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?Math.round(Number(value)*100)+'%':'Unavailable';
+  const ratio=(value)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?Number(value).toFixed(2)+'x':'Unavailable';
+  const price=(value)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?money(Number(value)):'Unavailable';
   const history=derivatives.fundingHistory||{};
   return '<section class="q-dpg-derivatives"><header><div><small>DERIVATIVES CONTEXT · CURRENT + SETTLED HISTORY</small><h2>Funding, premium, basis and open interest</h2></div><span>'+escapeHtml(derivatives.provider)+' · '+new Date(derivatives.observedAt).toLocaleString()+'</span></header>'+
     '<div class="q-dpg-derivatives__grid">'+
@@ -175,8 +176,8 @@ const derivativesContext=(data,escapeHtml)=>{
 const crossAssetContext=(data,escapeHtml)=>{
   const context=data?.evidence?.crossAsset||data?.crossAsset;
   if(!context||context.state!=='available')return '<section class="q-dpg-cross-asset"><header><div><small>CROSS-ASSET</small><h2>Dependence unavailable</h2></div><span>Not inferred</span></header><p>'+escapeHtml(context?.reason||'A same-venue benchmark series is unavailable, so correlation and beta are not inferred.')+'</p></section>';
-  const percent=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?(Number(value)>=0?'+':'')+Number(value).toFixed(2)+'%':'Unavailable';
-  const number=(value,digits=3)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Number(value).toFixed(digits):'Unavailable';
+  const percent=(value)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?(Number(value)>=0?'+':'')+Number(value).toFixed(2)+'%':'Unavailable';
+  const number=(value,digits=3)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?Number(value).toFixed(digits):'Unavailable';
   const lead=context.leadLag||{},spread=context.spread||{},cointegration=context.cointegration||{};
   const lagLabel=lead.relation==='CONTEMPORANEOUS'?'Same bar':lead.relation==='BENCHMARK_LEADS'?context.benchmark+' leads '+Math.abs(Number(lead.bestLagBars||0))+' bars':lead.relation==='ASSET_LEADS'?context.asset+' leads '+Math.abs(Number(lead.bestLagBars||0))+' bars':'Unavailable';
   return '<section class="q-dpg-cross-asset"><header><div><small>CROSS-ASSET · DESCRIPTIVE ONLY</small><h2>'+escapeHtml(context.asset)+' vs '+escapeHtml(context.benchmark)+'</h2></div><span>NO ELIGIBILITY IMPACT</span></header><div class="q-dpg-cross-asset__grid">'+
@@ -199,7 +200,7 @@ const macroContext=(data,escapeHtml)=>{
   const macro=data?.evidence?.macro||data?.macro;
   const state=String(macro?.state||'unavailable').toUpperCase();
   if(!macro||macro.state!=='available')return '<section class="q-dpg-macro"><header><div><small>MACRO CONTEXT</small><h2>'+escapeHtml(String(macro?.level||'UNAVAILABLE'))+'</h2></div><span>'+escapeHtml(state.replaceAll('_',' '))+'</span></header><p>'+escapeHtml(macro?.reason||'A governed macro reference is unavailable, so QELLY does not infer DXY, yields or policy-rate effects.')+'</p><p class="q-dpg-macro__limit">'+escapeHtml(macro?.cadenceBoundary||'Slow reference data is not substituted for current market evidence.')+'</p></section>';
-  const fx=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Number(value).toFixed(4):'Unavailable';
+  const fx=(value)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?Number(value).toFixed(4):'Unavailable';
   const unavailable=Array.isArray(macro.unavailableSeries)?macro.unavailableSeries.map(value=>String(value).replaceAll('_',' ')).join(' · '):'DXY · yields · indexes · commodities · policy/economic releases';
   return '<section class="q-dpg-macro"><header><div><small>MACRO CONTEXT · GOVERNED REFERENCE</small><h2>ECB daily FX reference</h2></div><span>NO INTRADAY ELIGIBILITY IMPACT</span></header>'+
     '<div class="q-dpg-macro__grid">'+
@@ -217,8 +218,8 @@ const macroContext=(data,escapeHtml)=>{
 const marketStructureContext=(data,escapeHtml)=>{
   const structure=data?.quant?.structure;
   if(!structure||structure.state==='UNAVAILABLE')return '<section class="q-dpg-structure"><header><div><small>MARKET STRUCTURE</small><h2>Structure unavailable</h2></div><span>Not inferred</span></header><p>There are not enough verified candles to classify swing structure.</p></section>';
-  const price=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?money(Number(value)):'Unavailable';
-  const pctValue=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Number(value).toFixed(2)+'%':'Unavailable';
+  const price=(value)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?money(Number(value)):'Unavailable';
+  const pctValue=(value)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?Number(value).toFixed(2)+'%':'Unavailable';
   const swingCount=(side)=>Array.isArray(structure?.swings?.[side])?structure.swings[side].length:0;
   return '<section class="q-dpg-structure"><header><div><small>MARKET STRUCTURE · OBSERVED · 2.0</small><h2>'+escapeHtml(String(structure.state).replaceAll('_',' '))+'</h2></div><span>'+escapeHtml(String(structure.bias||'MIXED').replaceAll('_',' '))+' · '+escapeHtml(String(structure.strengthState||'UNAVAILABLE'))+'</span></header>'+
     '<div class="q-dpg-structure__grid">'+
@@ -231,7 +232,7 @@ const marketStructureContext=(data,escapeHtml)=>{
       '<article><span>Rejection</span><strong>'+escapeHtml(String(structure.rejectionState||'NONE').replaceAll('_',' '))+'</strong><small>Observed wick rejection near structure</small></article>'+
       '<article><span>Potential exhaustion</span><strong>'+escapeHtml(String(structure.exhaustionState||'NONE').replaceAll('_',' '))+'</strong><small>Descriptive heuristic, not a reversal forecast</small></article>'+
       '<article><span>Compression</span><strong>'+escapeHtml(String(structure.compressionState||'UNAVAILABLE'))+'</strong><small>Range ratio '+escapeHtml(String(structure.compressionRatio??'—'))+'</small></article>'+
-      '<article><span>Range position</span><strong>'+(Number.isFinite(Number(structure.rangePosition))?(Number(structure.rangePosition)*100).toFixed(0)+'%':'Unavailable')+'</strong><small>'+price(structure.rangeLow)+' → '+price(structure.rangeHigh)+'</small></article>'+
+      '<article><span>Range position</span><strong>'+(isFiniteDecisionEvidence(structure.rangePosition)?(Number(structure.rangePosition)*100).toFixed(0)+'%':'Unavailable')+'</strong><small>'+price(structure.rangeLow)+' → '+price(structure.rangeHigh)+'</small></article>'+
       '<article><span>Structural strength</span><strong>'+escapeHtml(String(structure.strengthState||'UNAVAILABLE'))+'</strong><small>Score '+escapeHtml(String(structure.strengthScore??'—'))+' / 9</small></article>'+
       '<article><span>Failed breakout</span><strong>'+escapeHtml(String(structure.failedBreakout||'NONE').replaceAll('_',' '))+'</strong><small>Close returned through prior range boundary</small></article>'+
     '</div>'+
@@ -241,11 +242,11 @@ const marketStructureContext=(data,escapeHtml)=>{
 const liquidityContext=(data,escapeHtml)=>{
   const liquidity=data?.evidence?.liquidity||data?.liquidity;
   if(!liquidity||liquidity.state!=='live')return '<section class="q-dpg-liquidity"><header><div><small>LIQUIDITY / MICROSTRUCTURE</small><h2>Order-book context unavailable</h2></div><span>Not inferred</span></header><p>'+escapeHtml(liquidity?.reason||'A verified two-sided L2 snapshot is unavailable, so spread and book imbalance are not inferred.')+'</p><p class="q-dpg-liquidity__limit">Trade imbalance, aggressive flow, volume delta, CVD, liquidation flow and historical book depth remain unavailable unless separately sourced.</p></section>';
-  const price=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?money(Number(value)):'Unavailable';
-  const bps=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Number(value).toFixed(2)+' bps':'Unavailable';
-  const imbalance=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?(Number(value)*100).toFixed(1)+'%':'Unavailable';
+  const price=(value)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?money(Number(value)):'Unavailable';
+  const bps=(value)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?Number(value).toFixed(2)+' bps':'Unavailable';
+  const imbalance=(value)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?(Number(value)*100).toFixed(1)+'%':'Unavailable';
   const depth=(bid,ask)=>compactMoney(bid)+' / '+compactMoney(ask);
-  const band=(value)=>Number.isFinite(Number(value?.bps))?escapeHtml(String(value.bps))+' bps · '+escapeHtml(compactMoney(value.bidUsd))+' / '+escapeHtml(compactMoney(value.askUsd))+' · '+escapeHtml(String(value.coverage||'UNAVAILABLE').replaceAll('_',' ')):'Unavailable';
+  const band=(value)=>isFiniteDecisionEvidence(value?.bps)?escapeHtml(String(value.bps))+' bps · '+escapeHtml(compactMoney(value.bidUsd))+' / '+escapeHtml(compactMoney(value.askUsd))+' · '+escapeHtml(String(value.coverage||'UNAVAILABLE').replaceAll('_',' ')):'Unavailable';
   const bands=Array.isArray(liquidity.visibleDepthBands)?liquidity.visibleDepthBands:[];
   const band10=bands.find(item=>Number(item?.bps)===10);
   return '<section class="q-dpg-liquidity"><header><div><small>LIQUIDITY / L2 · CURRENT · MICROSTRUCTURE 2.0</small><h2>'+escapeHtml(String(liquidity.spreadState||'UNAVAILABLE'))+' spread · '+escapeHtml(String(liquidity.depthConsensus||'UNAVAILABLE').replaceAll('_',' '))+'</h2></div><span>'+escapeHtml(liquidity.provider||'Provider')+(liquidity.observedAt?' · '+escapeHtml(displayTime(liquidity.observedAt)):'')+'</span></header>'+
@@ -260,8 +261,8 @@ const liquidityContext=(data,escapeHtml)=>{
       '<article><span>Book imbalance</span><strong>'+escapeHtml(imbalance(liquidity.top5Imbalance))+'</strong><small>Top-5 · '+escapeHtml(String(liquidity.imbalanceState||'UNAVAILABLE').replaceAll('_',' '))+'</small></article>'+
       '<article><span>Top-10 imbalance</span><strong>'+escapeHtml(imbalance(liquidity.top10Imbalance))+'</strong><small>'+escapeHtml(String(liquidity.top10ImbalanceState||'UNAVAILABLE').replaceAll('_',' '))+'</small></article>'+
       '<article><span>Depth consensus</span><strong>'+escapeHtml(String(liquidity.depthConsensus||'UNAVAILABLE').replaceAll('_',' '))+'</strong><small>Top-1 / top-5 / top-10 agreement</small></article>'+
-      '<article><span>Top-1 concentration</span><strong>'+(Number.isFinite(Number(liquidity.depthConcentrationTop1))?(Number(liquidity.depthConcentrationTop1)*100).toFixed(1)+'%':'Unavailable')+'</strong><small>Displayed top level / top-10 depth</small></article>'+
-      '<article><span>Top-5 concentration</span><strong>'+(Number.isFinite(Number(liquidity.depthConcentrationTop5))?(Number(liquidity.depthConcentrationTop5)*100).toFixed(1)+'%':'Unavailable')+'</strong><small>First 5 displayed levels / top-10 depth</small></article>'+
+      '<article><span>Top-1 concentration</span><strong>'+(isFiniteDecisionEvidence(liquidity.depthConcentrationTop1)?(Number(liquidity.depthConcentrationTop1)*100).toFixed(1)+'%':'Unavailable')+'</strong><small>Displayed top level / top-10 depth</small></article>'+
+      '<article><span>Top-5 concentration</span><strong>'+(isFiniteDecisionEvidence(liquidity.depthConcentrationTop5)?(Number(liquidity.depthConcentrationTop5)*100).toFixed(1)+'%':'Unavailable')+'</strong><small>First 5 displayed levels / top-10 depth</small></article>'+
       '<article><span>Visible book coverage</span><strong>'+escapeHtml(bps(liquidity.visibleBidCoverageBps))+' / '+escapeHtml(bps(liquidity.visibleAskCoverageBps))+'</strong><small>Bid / ask distance from mid across returned levels</small></article>'+
       '<article><span>Largest visible level gap</span><strong>'+escapeHtml(bps(liquidity.maxBidLevelGapBps))+' / '+escapeHtml(bps(liquidity.maxAskLevelGapBps))+'</strong><small>Bid / ask adjacent-level gap; snapshot only</small></article>'+
       '<article><span>Visible 10 bps depth B / A</span><strong>'+band(band10)+'</strong><small>Lower bound if returned book does not span the full band</small></article>'+
@@ -290,11 +291,11 @@ const newsResearchContext=(data,escapeHtml)=>{
   const clusters=Array.isArray(news.clusters)?news.clusters:[];
   if(state==='PENDING'&&!clusters.length)return '<section class="q-dpg-news"><header><div><small>NEWS CONTEXT · POST-DECISION</small><h2>Context enrichment pending</h2></div><span>NO ELIGIBILITY IMPACT</span></header><p>'+escapeHtml(news.boundary||'Full contextual news is deferred and cannot change the current Decision snapshot.')+'</p></section>';
   if(!clusters.length)return '<section class="q-dpg-news"><header><div><small>NEWS CONTEXT · POST-DECISION</small><h2>'+escapeHtml(state.replaceAll('_',' '))+'</h2></div><span>CONTEXT ONLY</span></header><p>'+escapeHtml(news.boundary||'No clustered headline context is available. No news impact is inferred.')+'</p></section>';
-  const threshold=Number.isFinite(Number(clustering.similarityThreshold))?Math.round(Number(clustering.similarityThreshold)*100)+'%':'Unavailable';
+  const threshold=isFiniteDecisionEvidence(clustering.similarityThreshold)?Math.round(Number(clustering.similarityThreshold)*100)+'%':'Unavailable';
   const cards=clusters.slice(0,5).map(cluster=>{
     const rep=cluster.representative||{};
     const topics=Array.isArray(cluster.topicHints)&&cluster.topicHints.length?cluster.topicHints.slice(0,4).map(value=>String(value).replaceAll('_',' ')).join(' · '):'No keyword topic hint';
-    const similarity=Number.isFinite(Number(cluster.meanTitleSimilarity))?Math.round(Number(cluster.meanTitleSimilarity)*100)+'%':'Unavailable';
+    const similarity=isFiniteDecisionEvidence(cluster.meanTitleSimilarity)?Math.round(Number(cluster.meanTitleSimilarity)*100)+'%':'Unavailable';
     return '<article><header><span>'+escapeHtml(String(cluster.relevanceState||'QUERY_CONTEXT_ONLY').replaceAll('_',' '))+'</span><strong>'+escapeHtml(String(cluster.articleCount??1))+' report'+(Number(cluster.articleCount)===1?'':'s')+'</strong></header><h3>'+(rep.url?'<a href="'+escapeHtml(rep.url)+'" target="_blank" rel="noopener">'+escapeHtml(rep.title||'Headline')+'</a>':escapeHtml(rep.title||'Headline'))+'</h3><p>'+escapeHtml(rep.source||'Source unavailable')+(rep.publishedAt?' · '+escapeHtml(displayTime(rep.publishedAt)):'')+'</p><small>'+escapeHtml(topics)+' · '+escapeHtml(String(cluster.sourceCount??0))+' source'+(Number(cluster.sourceCount)===1?'':'s')+' · mean lexical similarity '+escapeHtml(similarity)+'</small></article>';
   }).join('');
   return '<section class="q-dpg-news"><header><div><small>NEWS CONTEXT · DEDUPLICATED VIEW</small><h2>'+escapeHtml(String(clustering.clusterCount??clusters.length))+' clusters from '+escapeHtml(String(clustering.articleCount??0))+' reports</h2></div><span>NO ELIGIBILITY IMPACT</span></header><div class="q-dpg-news__meta"><span><em>Duplicate reports</em><strong>'+escapeHtml(String(clustering.duplicateCount??0))+'</strong></span><span><em>Lexical threshold</em><strong>'+escapeHtml(threshold)+'</strong></span><span><em>Provider state</em><strong>'+escapeHtml(state.replaceAll('_',' '))+'</strong></span></div><div class="q-dpg-news__grid">'+cards+'</div><p>'+escapeHtml(clustering.method||'Deterministic headline clustering.')+'</p><p class="q-dpg-news__limit">'+escapeHtml(clustering.boundary||'Headline clusters are contextual audit metadata only and have no eligibility impact.')+'</p></section>';
@@ -315,12 +316,12 @@ const tradeResearchMarkup=(data,escapeHtml)=>{
   const entryReady=['VALID','TRIGGERED','ACTIVE'].includes(lifecycleState);
   const status=trade.status==='VALID'&&entryReady?'live':trade.status==='VALID'?'delayed':'warning';
   const title=trade.status!=='VALID'?'No valid setup':entryReady?'Evidence-qualified setup':'Setup forming — entry not ready';
-  const netRr=(item)=>Number.isFinite(Number(item?.netRiskReward))?'Net 1:'+Number(item.netRiskReward).toFixed(2):'Net R:R unavailable';
+  const netRr=(item)=>isFiniteDecisionEvidence(item?.netRiskReward)?'Net 1:'+Number(item.netRiskReward).toFixed(2):'Net R:R unavailable';
   const matrixMarkup=matrix.length?matrix.map(item=>
     '<article class="q-dpg-rr-card q-dpg-rr-card--'+escapeHtml(String(item.feasibility||'unavailable').toLowerCase().replace(/\s+/g,'-'))+'">'+
       '<span>'+escapeHtml(item.label)+'</span><strong>'+money(item.target)+'</strong><small>'+escapeHtml(item.feasibility)+'</small>'+
       '<p>'+escapeHtml(item.feasibilityReason)+'</p>'+
-      (Number.isFinite(Number(item.structuralBarrier))?'<em>Barrier '+money(item.structuralBarrier)+(Number.isFinite(Number(item.structuralBarrierRr))?' · 1:'+escapeHtml(String(item.structuralBarrierRr)):'')+'</em>':'')+
+      (isFiniteDecisionEvidence(item.structuralBarrier)?'<em>Barrier '+money(item.structuralBarrier)+(isFiniteDecisionEvidence(item.structuralBarrierRr)?' · 1:'+escapeHtml(String(item.structuralBarrierRr)):'')+'</em>':'')+
       '<em>'+escapeHtml(netRr(item))+' · '+escapeHtml(String(item.costState||'UNAVAILABLE'))+'</em>'+
       '<em>Target-touch probability: uncalibrated</em>'+
     '</article>'
@@ -328,10 +329,10 @@ const tradeResearchMarkup=(data,escapeHtml)=>{
   const structuralMarkup=structuralTargets.length?'<div class="q-dpg-structural-targets"><strong>Structural alternative</strong>'+structuralTargets.map(item=>'<span><em>'+escapeHtml(item.label)+'</em><b>'+money(item.target)+'</b><small>'+escapeHtml(item.feasibility)+' · '+escapeHtml(item.feasibilityReason)+'</small></span>').join('')+'</div>':'';
   const invalidation=trade.invalidation||{};
   const invalidationOrder=[['Price',invalidation.price],['Structure',invalidation.structural],['Evidence',invalidation.evidence],['Time',invalidation.time],['Event',invalidation.event],['Regime',invalidation.regime],['Liquidity',invalidation.liquidity]];
-  const invalidationMarkup=trade.entry?'<section class="q-dpg-invalidation"><header><div><small>INVALIDATION LAYERS</small><h3>What cancels or weakens this setup</h3></div><span>Price stop ≠ full thesis invalidation</span></header><div>'+invalidationOrder.map(([label,item])=>'<article><span>'+label+'</span><strong>'+escapeHtml(String(item?.state||'UNAVAILABLE').replaceAll('_',' '))+'</strong>'+(Number.isFinite(Number(item?.price))?'<b>'+money(item.price)+'</b>':'')+(item?.at?'<b>'+escapeHtml(displayTime(item.at))+'</b>':'')+'<p>'+escapeHtml(item?.condition||'No verified condition is available.')+'</p></article>').join('')+'</div></section>':'';
+  const invalidationMarkup=trade.entry?'<section class="q-dpg-invalidation"><header><div><small>INVALIDATION LAYERS</small><h3>What cancels or weakens this setup</h3></div><span>Price stop ≠ full thesis invalidation</span></header><div>'+invalidationOrder.map(([label,item])=>'<article><span>'+label+'</span><strong>'+escapeHtml(String(item?.state||'UNAVAILABLE').replaceAll('_',' '))+'</strong>'+(isFiniteDecisionEvidence(item?.price)?'<b>'+money(item.price)+'</b>':'')+(item?.at?'<b>'+escapeHtml(displayTime(item.at))+'</b>':'')+'<p>'+escapeHtml(item?.condition||'No verified condition is available.')+'</p></article>').join('')+'</div></section>':'';
   const targetMarkup=targets.length?'<div class="q-dpg-target-ladder"><strong>Feasible target ladder</strong><div>'+targets.map(item=>'<span><em>T'+escapeHtml(String(item.rank))+' · '+escapeHtml(item.label)+'</em><b>'+money(item.price)+'</b><small>'+escapeHtml(item.source||'MODEL')+' · '+escapeHtml(item.feasibility)+'</small></span>').join('')+'</div></div>':'';
   return '<section class="q-dpg-trade-research"><header><div><small>CURRENT SETUP · RESEARCH ONLY</small><h2>'+title+'</h2><p>'+escapeHtml(trade.reason)+'</p></div><span class="q-status q-status--'+status+'">'+escapeHtml(lifecycleState)+'</span></header>'+
-    (trade.entry?'<div class="q-dpg-trade-summary"><article><span>Entry state</span><strong>'+escapeHtml(trade.entry.method)+'</strong><small>'+money(trade.entry.preferred)+' · '+money(trade.entry.zone[0])+' – '+money(trade.entry.zone[1])+'</small></article><article><span>Price stop</span><strong>'+money(trade.stop.price)+'</strong><small>'+escapeHtml(String(trade.stop.distancePct??'—'))+'% from price · '+escapeHtml(trade.stop.reason||'Risk boundary')+'</small></article><article><span>Selected R:R</span><strong>'+(selected?escapeHtml(selected.label):'None')+'</strong><small>'+(selected?escapeHtml(selected.feasibility)+' · '+escapeHtml(netRr(selected)):'Not supported')+'</small></article><article><span>Setup expiry</span><strong>'+(trade.expiryAt?escapeHtml(displayTime(trade.expiryAt)):'Unavailable')+'</strong><small>'+(Number.isFinite(Number(trade.expiryBars))?escapeHtml(String(trade.expiryBars))+' bars · ':'')+'reassess after expiry or evidence change</small></article></div>':'')+
+    (trade.entry?'<div class="q-dpg-trade-summary"><article><span>Entry state</span><strong>'+escapeHtml(trade.entry.method)+'</strong><small>'+money(trade.entry.preferred)+' · '+money(trade.entry.zone[0])+' – '+money(trade.entry.zone[1])+'</small></article><article><span>Price stop</span><strong>'+money(trade.stop.price)+'</strong><small>'+escapeHtml(String(trade.stop.distancePct??'—'))+'% from price · '+escapeHtml(trade.stop.reason||'Risk boundary')+'</small></article><article><span>Selected R:R</span><strong>'+(selected?escapeHtml(selected.label):'None')+'</strong><small>'+(selected?escapeHtml(selected.feasibility)+' · '+escapeHtml(netRr(selected)):'Not supported')+'</small></article><article><span>Setup expiry</span><strong>'+(trade.expiryAt?escapeHtml(displayTime(trade.expiryAt)):'Unavailable')+'</strong><small>'+(isFiniteDecisionEvidence(trade.expiryBars)?escapeHtml(String(trade.expiryBars))+' bars · ':'')+'reassess after expiry or evidence change</small></article></div>':'')+
     (trade.entry?'<div class="q-dpg-entry-logic"><strong>Entry logic · '+escapeHtml(trade.entry.method)+'</strong><p>'+escapeHtml(trade.entry.trigger||'')+'</p><span><b>Confirmation</b>'+escapeHtml(trade.entry.confirmationCondition||'')+'</span><span><b>Invalid entry</b>'+escapeHtml(trade.entry.invalidEntryCondition||'')+'</span></div>':'')+
     '<div class="q-dpg-lifecycle"><strong>Lifecycle</strong><span>'+escapeHtml(lifecycleState)+'</span><p>'+escapeHtml(lifecycle.reason||'')+'</p><small>'+(lifecycle.historyAvailable?'Observed transition history available.':'No triggered/active history is backfilled without persisted prior state.')+'</small></div>'+
     '<div class="q-dpg-rr-grid">'+matrixMarkup+'</div>'+structuralMarkup+targetMarkup+invalidationMarkup+
@@ -344,18 +345,18 @@ const tradeResearchMarkup=(data,escapeHtml)=>{
 const calibration=(view,escapeHtml)=>{
   const gate=view.evidenceGate||{};
   const scenario=view.scenario||{};
-  const agreement=Number.isFinite(Number(gate.timeframeAgreement))?Math.round(Number(gate.timeframeAgreement)*100)+'%':'Unavailable';
-  const edge=Number.isFinite(Number(scenario.gap))?Math.round(Number(scenario.gap)*100)+' pts':'Unavailable';
+  const agreement=isFiniteDecisionEvidence(gate.timeframeAgreement)?Math.round(Number(gate.timeframeAgreement)*100)+'%':'Unavailable';
+  const edge=isFiniteDecisionEvidence(scenario.gap)?Math.round(Number(scenario.gap)*100)+' pts':'Unavailable';
   const risk=view.riskState?.label||'Unknown';
   const contradictions=Array.isArray(view.contradictions)?view.contradictions:[];
   const weights=gate.confidenceWeights||{};
-  const component=(label,key,score,detail='')=>'<article><span>'+escapeHtml(label)+'</span><strong>'+(Number.isFinite(Number(score))?Math.round(Number(score)*100)+'%':'Unavailable')+'</strong><small>'+(Number.isFinite(Number(weights[key]))?Math.round(Number(weights[key])*100)+'% weight':'weight unavailable')+(detail?' · '+escapeHtml(detail):'')+'</small></article>';
+  const component=(label,key,score,detail='')=>'<article><span>'+escapeHtml(label)+'</span><strong>'+(isFiniteDecisionEvidence(score)?Math.round(Number(score)*100)+'%':'Unavailable')+'</strong><small>'+(isFiniteDecisionEvidence(weights[key])?Math.round(Number(weights[key])*100)+'% weight':'weight unavailable')+(detail?' · '+escapeHtml(detail):'')+'</small></article>';
   const confidenceAudit=
     component('Freshness','freshness',gate.freshness)+
     component('History depth','sampleDepth',gate.sampleDepth)+
     component('Scenario separation','scenarioSeparation',gate.scenarioSeparation)+
-    component('MTF evidence','timeframeEvidence',gate.timeframeEvidence,(Number.isFinite(Number(gate.timeframeAgreement))&&Number.isFinite(Number(gate.timeframeCoverage)))?'agreement '+Math.round(Number(gate.timeframeAgreement)*100)+'% × coverage '+Math.round(Number(gate.timeframeCoverage)*100)+'%':'');
-  const preliminary=Number.isFinite(Number(gate.preliminaryModelConfidence))?Math.round(Number(gate.preliminaryModelConfidence)*100)+'%':'Unavailable';
+    component('MTF evidence','timeframeEvidence',gate.timeframeEvidence,(isFiniteDecisionEvidence(gate.timeframeAgreement)&&isFiniteDecisionEvidence(gate.timeframeCoverage))?'agreement '+Math.round(Number(gate.timeframeAgreement)*100)+'% × coverage '+Math.round(Number(gate.timeframeCoverage)*100)+'%':'');
+  const preliminary=isFiniteDecisionEvidence(gate.preliminaryModelConfidence)?Math.round(Number(gate.preliminaryModelConfidence)*100)+'%':'Unavailable';
   return '<details class="q-dpg-confidence-audit"><summary>Evidence confidence diagnostics</summary><div class="q-dpg-calibration"><article><span>Scenario edge</span><strong>'+escapeHtml(edge)+'</strong><small>'+escapeHtml(String(scenario.leading||'BALANCED'))+'</small></article><article><span>Timeframe agreement</span><strong>'+escapeHtml(agreement)+'</strong><small>'+escapeHtml(String(gate.timeframeAligned??0)+'/'+String(gate.timeframeTotal??0)+' observed')+'</small></article><article><span>Risk state</span><strong>'+escapeHtml(risk)+'</strong><small>ATR '+escapeHtml(String(view.riskState?.atrPct??'—'))+'%</small></article><article><span>Signal gate</span><strong>'+(gate.directionalEligible?'CLEARED':'NOT CLEARED')+'</strong><small>Base view '+escapeHtml(String(gate.baseAction||view.action))+'</small></article>'+confidenceAudit+'<article><span>Preliminary model confidence</span><strong>'+escapeHtml(preliminary)+'</strong><small>'+((gate.preliminaryModelConfidenceReused===false)?'AUDIT ONLY · NOT REUSED':'reuse state unavailable')+'</small></article></div>'+(contradictions.length?'<div class="q-dpg-contradictions"><strong>Conflicting evidence</strong><ul>'+contradictions.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul></div>':'')+'<p class="q-dpg-confidence-note">Evidence confidence is one weighted decomposition. Freshness, history depth, scenario separation and coverage-adjusted MTF agreement each enter once. Preliminary model confidence is audit-only and not reused. This is not a success probability.</p></details>';
 };
 
@@ -412,15 +413,15 @@ const scannerMarkup=(scan,{scanning=false,error=null,escapeHtml,mode='validated'
   const closest=scan.closestCandidate||null;
   const closestMarkup=closest?'<article class="q-dpg-closest-candidate" data-dpg-closest-candidate><header><div><small>BEST AVAILABLE CANDIDATE · CLOSEST CANDIDATE · NOT YET VALIDATED</small><h3>'+escapeHtml(String(closest.asset||'—'))+' · '+escapeHtml(String(closest.interval||scan.interval||'—'))+' · '+escapeHtml(String(closest.direction||'NO TRADE'))+'</h3></div><span>RESEARCH ONLY</span></header><div><span><em>Possible trigger</em><strong>'+escapeHtml(String(closest.possibleTrigger||'Unavailable'))+'</strong></span><span><em>Probability state</em><strong>'+escapeHtml(String(closest.probabilityState||'UNCALIBRATED').replaceAll('_',' '))+'</strong></span><span><em>Event risk</em><strong>'+escapeHtml(String(closest.eventRisk?.level||'UNAVAILABLE'))+'</strong></span><span><em>Research priority</em><strong>'+escapeHtml(closest.researchPriority==null?'—':String(closest.researchPriority))+'</strong><small>not a win probability</small></span></div><p><strong>Missing conditions:</strong> '+escapeHtml((closest.missingConditions||[]).map(item=>String(item).replaceAll('_',' ')).join(' · ')||'No missing-condition detail supplied.')+'</p>'+(Array.isArray(closest.whatMustHappen)&&closest.whatMustHappen.length?'<ul>'+closest.whatMustHappen.slice(0,6).map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul>':'')+(closest.contradiction?'<p><strong>Contradiction:</strong> '+escapeHtml(String(closest.contradiction))+'</p>':'')+'<footer><span>'+escapeHtml(closest.boundary||'This candidate is not validated.')+'</span><button type="button" class="q-button q-button--secondary" data-dpg-scan-asset="'+escapeHtml(String(closest.asset||''))+'" data-dpg-scan-interval="'+escapeHtml(String(closest.interval||scan.interval||''))+'">Inspect candidate</button></footer></article>':'';
   const comparisonRows=candidates.slice(0,3).map((item,index)=>{
-    const calibratedProbability=Number.isFinite(Number(item?.trade?.targetTouchProbability))?Math.round(Number(item.trade.targetTouchProbability)*100)+'%':'UNCALIBRATED';
-    const dataQuality=Number.isFinite(Number(item?.evidence?.dataQualityScore))?Math.round(Number(item.evidence.dataQualityScore)*100)+'%':String(item?.evidence?.dataQualityState||'UNAVAILABLE').replaceAll('_',' ');
+    const calibratedProbability=isFiniteDecisionEvidence(item?.trade?.targetTouchProbability)?Math.round(Number(item.trade.targetTouchProbability)*100)+'%':'UNCALIBRATED';
+    const dataQuality=isFiniteDecisionEvidence(item?.evidence?.dataQualityScore)?Math.round(Number(item.evidence.dataQualityScore)*100)+'%':String(item?.evidence?.dataQualityState||'UNAVAILABLE').replaceAll('_',' ');
     return '<tr><td>#'+(index+1)+' · '+escapeHtml(String(item.asset||'—'))+'</td><td>'+escapeHtml(String(item.action||'NO TRADE'))+'</td><td>'+escapeHtml(String(item.trade?.rr||'—'))+'</td><td>'+escapeHtml(calibratedProbability)+'</td><td>'+escapeHtml(dataQuality)+'</td><td>'+escapeHtml(String(item.eventRisk?.level||'UNAVAILABLE'))+'</td><td>'+escapeHtml(String(item.interval||scan.interval||'—'))+'</td><td>'+escapeHtml(String(item.state||'UNAVAILABLE').replaceAll('_',' '))+'</td></tr>';
   }).join('');
   const comparisonMarkup=comparisonRows?'<details class="q-dpg-setup-comparison"><summary>Compare top 3 setup candidates</summary><div class="q-dpg-table-scroll"><table><thead><tr><th>Asset</th><th>Direction</th><th>R:R</th><th>Calibrated probability</th><th>Data quality</th><th>Event risk</th><th>Timeframe</th><th>Status</th></tr></thead><tbody>'+comparisonRows+'</tbody></table></div><p>Unavailable probability remains UNCALIBRATED. Evidence-triage confidence is not substituted as a win rate or target-touch probability.</p></details>':'';
   const rows=candidates.map((item,index)=>{
     const trade=item.trade||{},evidence=item.evidence||{},market=item.market||{};
     const tone=item.eligible?'positive':item.action==='SELL'?'negative':item.conditional?'warning':'muted';
-    const score=Number.isFinite(Number(item.researchPriority))?Number(item.researchPriority).toFixed(1):'—';
+    const score=isFiniteDecisionEvidence(item.researchPriority)?Number(item.researchPriority).toFixed(1):'—';
     const rr=trade.rr||'—';
     const calibration=evidence.calibrationState||'UNCALIBRATED';
     const failures=Array.isArray(item.filterFailures)?item.filterFailures:[];
@@ -447,13 +448,13 @@ const scannerMarkup=(scan,{scanning=false,error=null,escapeHtml,mode='validated'
 const probabilityCalibrationMarkup=(data,escapeHtml)=>{
   const calibration=data?.confidence?.probabilityCalibration||data?.quant?.calibration;
   if(!calibration)return '';
-  const pctValue=(value)=>Number.isFinite(Number(value))?(Number(value)*100).toFixed(1)+'%':'Unavailable';
-  const brier=Number.isFinite(Number(calibration.brierScore))?Number(calibration.brierScore).toFixed(4):'Unavailable';
-  const skill=Number.isFinite(Number(calibration.skillScore))?pctValue(calibration.skillScore):'Unavailable';
-  const gap=Number.isFinite(Number(calibration.reliabilityGap))?pctValue(calibration.reliabilityGap):'Unavailable';
+  const pctValue=(value)=>isFiniteDecisionEvidence(value)?(Number(value)*100).toFixed(1)+'%':'Unavailable';
+  const brier=isFiniteDecisionEvidence(calibration.brierScore)?Number(calibration.brierScore).toFixed(4):'Unavailable';
+  const skill=isFiniteDecisionEvidence(calibration.skillScore)?pctValue(calibration.skillScore):'Unavailable';
+  const gap=isFiniteDecisionEvidence(calibration.reliabilityGap)?pctValue(calibration.reliabilityGap):'Unavailable';
   const bins=Array.isArray(calibration.reliabilityBins)?calibration.reliabilityBins:[];
-  const separation=Number.isFinite(Number(calibration.minimumOutcomeSeparationBars))?String(calibration.minimumOutcomeSeparationBars)+' bars':'Unavailable';
-  const sampleGate=Number.isFinite(Number(calibration.minimumSampleGate))?String(calibration.minimumSampleGate):'Unavailable';
+  const separation=isFiniteDecisionEvidence(calibration.minimumOutcomeSeparationBars)?String(calibration.minimumOutcomeSeparationBars)+' bars':'Unavailable';
+  const sampleGate=isFiniteDecisionEvidence(calibration.minimumSampleGate)?String(calibration.minimumSampleGate):'Unavailable';
   const diagnosticOnly=calibration.diagnosticMetricsOnly===true;
   const overlap=calibration.outcomeWindowOverlap===true?'YES':calibration.outcomeWindowOverlap===false?'NO':'UNAVAILABLE';
   const resolvedSamples=Math.max(0,Number(calibration.sampleSize)||0);
@@ -479,7 +480,7 @@ const healthQualityMarkup=(data,escapeHtml)=>{
   const quality=data?.dataQuality;
   const health=data?.modelHealth;
   if(!quality&&!health)return '';
-  const score=Number.isFinite(Number(quality?.score))?Math.round(Number(quality.score)*100)+'%':'Unavailable';
+  const score=isFiniteDecisionEvidence(quality?.score)?Math.round(Number(quality.score)*100)+'%':'Unavailable';
   const missing=quality?.missingness||{};
   const components=quality?.components||{};
   const componentCards=[
@@ -487,13 +488,13 @@ const healthQualityMarkup=(data,escapeHtml)=>{
     ['Freshness',components?.freshness?.score],
     ['Provider health',components?.providerHealth?.score],
     ['Consistency',components?.consistency?.score]
-  ].map(([label,value])=>'<span><em>'+escapeHtml(label)+'</em><strong>'+(Number.isFinite(Number(value))?Math.round(Number(value)*100)+'%':'Unavailable')+'</strong></span>').join('');
+  ].map(([label,value])=>'<span><em>'+escapeHtml(label)+'</em><strong>'+(isFiniteDecisionEvidence(value)?Math.round(Number(value)*100)+'%':'Unavailable')+'</strong></span>').join('');
   const drift=health?.drift||{};
   const driftRows=Object.values(drift).slice(0,8).map(item=>'<li><strong>'+escapeHtml(String(item?.dimension||'drift').replaceAll('_',' '))+'</strong><span>'+escapeHtml(String(item?.state||'UNMEASURED'))+'</span><small>'+escapeHtml(item?.reason||'No longitudinal baseline is available.')+'</small></li>').join('');
   const gate=data?.qellyView?.evidenceGate||{};
   const calibration=data?.confidence?.probabilityCalibration||data?.quant?.calibration||{};
   const contradiction=data?.contradictionAnalysis||{};
-  const qualityValue=(value)=>Number.isFinite(Number(value))?Math.round(Number(value)*100)+'%':'Unavailable';
+  const qualityValue=(value)=>isFiniteDecisionEvidence(value)?Math.round(Number(value)*100)+'%':'Unavailable';
   const qualityMatrix='<div class="q-dpg-quality-matrix" aria-label="Decision quality dimensions">'+[
     ['Data Quality',quality?.state||'UNAVAILABLE',score],
     ['Evidence Quality',gate.qualityState||gate.state||'EVIDENCE',qualityValue(gate.qualityScore)],
@@ -516,8 +517,8 @@ const primaryResearchSummary=(data,escapeHtml)=>{
   const support=contradiction.strongestSupport||((Array.isArray(view.why)&&view.why.length)?view.why[0]:'No single supporting factor is dominant.');
   const conflict=contradiction.strongestContradiction||((Array.isArray(view.contradictions)&&view.contradictions.length)?view.contradictions[0]:'No explicit contradiction is dominant.');
   const entry=trade?.entry?money(trade.entry.preferred)+' · '+String(trade.entry.method||'entry'):'No evidence-qualified entry';
-  const invalidation=Number.isFinite(Number(trade?.stop?.price))?money(trade.stop.price):(trade?.invalidation?.price?.condition||'No active price invalidation');
-  const target=selected&&Number.isFinite(Number(selected.target))?money(selected.target):'No selected target';
+  const invalidation=isFiniteDecisionEvidence(trade?.stop?.price)?money(trade.stop.price):(trade?.invalidation?.price?.condition||'No active price invalidation');
+  const target=selected&&isFiniteDecisionEvidence(selected.target)?money(selected.target):'No selected target';
   const rr=selected?.label||'No selected R:R';
   const eventLabel=String(event.level||'UNAVAILABLE').replaceAll('_',' ');
   const eventState=String(event.state||'unavailable').replaceAll('_',' ');
@@ -546,13 +547,13 @@ const historicalAnalogsMarkup=(data,escapeHtml)=>{
   const context=data?.historicalAnalogs;
   if(!context)return '';
   const analogs=Array.isArray(context.analogs)?context.analogs:[];
-  const gatePct=Number.isFinite(Number(context.minimumSimilarity))?Math.round(Number(context.minimumSimilarity)*100)+'%':'Unavailable';
+  const gatePct=isFiniteDecisionEvidence(context.minimumSimilarity)?Math.round(Number(context.minimumSimilarity)*100)+'%':'Unavailable';
   if(!analogs.length)return '<section class="q-dpg-analogs"><header><div><small>HISTORICAL ANALOGS · DESCRIPTIVE ONLY</small><h2>Comparable history unavailable</h2></div><span>NO ELIGIBILITY IMPACT</span></header><div class="q-dpg-analog-summary"><span><em>Similarity floor</em><strong>'+escapeHtml(gatePct)+'</strong></span><span><em>Sampled windows</em><strong>'+escapeHtml(String(context.sampledWindows??0))+'</strong></span><span><em>Similarity-qualified</em><strong>'+escapeHtml(String(context.similarityEligibleWindows??0))+'</strong></span><span><em>Rejected by similarity</em><strong>'+escapeHtml(String(context.similarityRejectedWindows??0))+'</strong></span></div><p>'+escapeHtml(context.reason||'No prior window cleared the bounded analog policy.')+'</p><div class="q-dpg-analog-boundary"><strong>Selection boundary</strong><p>'+escapeHtml(context.selectionPolicy?.thresholdSelection||'Similarity policy unavailable.')+'</p><p>'+escapeHtml(context.leakageGuard||'')+'</p></div></section>';
   const summary=context.summary||{};
   const interval=summary.positiveShareInterval95||{};
-  const duration=(value)=>Number.isFinite(Number(value))?(Number(value)>=86400000?(Number(value)/86400000).toFixed(1)+'d':(Number(value)/3600000).toFixed(1)+'h'):'Unavailable';
-  const pctValue=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Number(value).toFixed(2)+'%':'Unavailable';
-  const share=(value)=>Number.isFinite(Number(value))?Math.round(Number(value)*100)+'%':'Unavailable';
+  const duration=(value)=>isFiniteDecisionEvidence(value)?(Number(value)>=86400000?(Number(value)/86400000).toFixed(1)+'d':(Number(value)/3600000).toFixed(1)+'h'):'Unavailable';
+  const pctValue=(value)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?Number(value).toFixed(2)+'%':'Unavailable';
+  const share=(value)=>isFiniteDecisionEvidence(value)?Math.round(Number(value)*100)+'%':'Unavailable';
   const cards=analogs.map(item=>'<article><header><span>#'+escapeHtml(String(item.rank))+'</span><strong>'+escapeHtml(displayTime(item.observedAt))+'</strong><em>'+Math.round(Number(item.similarity)*100)+'% similar</em></header><div><span><small>Regime</small><strong>'+escapeHtml(String(item.regime||'UNAVAILABLE'))+'</strong></span><span><small>Volatility</small><strong>'+escapeHtml(String(item.volatilityRegime||'UNKNOWN'))+'</strong></span><span><small>Forward return</small><strong>'+escapeHtml(pctValue(item.forwardReturnPct))+'</strong></span><span><small>Favorable / adverse</small><strong>'+escapeHtml(pctValue(item.maxFavorablePct))+' / '+escapeHtml(pctValue(item.maxAdversePct))+'</strong></span><span><small>Resolved</small><strong>'+escapeHtml(duration(item.timeToResolutionMs))+'</strong></span></div></article>').join('');
   return '<section class="q-dpg-analogs"><header><div><small>HISTORICAL ANALOGS · DESCRIPTIVE ONLY</small><h2>Nearest prior market states</h2><p>'+escapeHtml(context.method||'')+'</p></div><span>NO ELIGIBILITY IMPACT</span></header>'+
     '<div class="q-dpg-analog-summary">'+
@@ -582,9 +583,9 @@ const pastPresentFutureMarkup=(data,escapeHtml)=>{
   const analogSummary=past.historicalAnalogs?.summary;
   const scenario=future.scenarios||{},details=future.scenarioDetails||{};
   const targets=Array.isArray(future.targetFeasibility)?future.targetFeasibility:[];
-  const probability=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?(Number(value)*100).toFixed(1)+'%':'Unavailable';
-  const pctValue=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?(Number(value)>=0?'+':'')+Number(value).toFixed(2)+'%':'Unavailable';
-  const price=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?money(value):'Unavailable';
+  const probability=(value)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?(Number(value)*100).toFixed(1)+'%':'Unavailable';
+  const pctValue=(value)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?(Number(value)>=0?'+':'')+Number(value).toFixed(2)+'%':'Unavailable';
+  const price=(value)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?money(value):'Unavailable';
   const stateText=(value)=>String(value||'UNAVAILABLE').replaceAll('_',' ');
   const evidenceList=(items,empty)=>Array.isArray(items)&&items.length?'<ul>'+items.slice(0,4).map(item=>'<li><strong>'+escapeHtml(item.title||item.type||'Evidence')+'</strong><span>'+escapeHtml(item.detail||item.direction||'')+'</span></li>').join('')+'</ul>':'<p>'+escapeHtml(empty)+'</p>';
   const newsItems=Array.isArray(past.newsTimeline?.items)?past.newsTimeline.items:[];
@@ -613,12 +614,12 @@ const pastPresentFutureMarkup=(data,escapeHtml)=>{
     ['Setup',currentSetup.status]
   ].map(([label,value])=>'<span><em>'+escapeHtml(String(label))+'</em><b>'+escapeHtml(stateText(value))+'</b></span>').join('');
   const targetRows=targets.length
-    ?targets.map(item=>'<li><span>'+escapeHtml(item.label||'Target')+'</span><strong>'+escapeHtml(stateText(item.feasibility))+'</strong><small>'+(Number.isFinite(Number(item.target))?money(item.target):'Target unavailable')+(item.structuralBarrier!==null&&item.structuralBarrier!==undefined?' · barrier '+money(item.structuralBarrier):'')+'</small></li>').join('')
+    ?targets.map(item=>'<li><span>'+escapeHtml(item.label||'Target')+'</span><strong>'+escapeHtml(stateText(item.feasibility))+'</strong><small>'+(isFiniteDecisionEvidence(item.target)?money(item.target):'Target unavailable')+(item.structuralBarrier!==null&&item.structuralBarrier!==undefined?' · barrier '+money(item.structuralBarrier):'')+'</small></li>').join('')
     :'<li><span>Targets</span><strong>Unavailable</strong><small>No evidence-qualified target ladder.</small></li>';
   const tail=future.tail;
   return '<section class="q-dpg-ppf q-dpg-ppf--v2" aria-label="Past Present Future">'+
     '<article><header><small>PAST · WHY DID IT HAPPEN?</small><h2>Observed context</h2></header>'+pastBody+'<div class="q-dpg-ppf__meta">'+analogBody+'</div><p class="q-dpg-ppf__boundary">'+escapeHtml(past.context||'Historical context is descriptive only.')+'</p></article>'+
-    '<article><header><small>PRESENT · WHAT IS HAPPENING NOW?</small><h2>'+escapeHtml(stateText(present.qellyView?.action||'NO TRADE'))+'</h2></header><strong>'+escapeHtml(String(present.marketState?.label||'Market state unavailable'))+'</strong><p>'+escapeHtml(present.qellyView?.label||'')+'</p><div class="q-dpg-ppf__facts">'+presentFacts+'</div><div class="q-dpg-ppf__meta"><small>Evidence quality</small><span>'+probability(present.qellyView?.evidenceQuality)+'</span><small>Confidence</small><span>'+probability(present.qellyView?.confidence)+'</span><small>Contradiction</small><span>'+escapeHtml(stateText(present.contradiction?.state))+'</span><small>Entry</small><span>'+escapeHtml(stateText(currentSetup.entry?.method))+(Number.isFinite(Number(currentSetup.entry?.preferred))?' · '+price(currentSetup.entry.preferred):'')+'</span><small>Stop</small><span>'+price(currentSetup.stop?.price)+'</span><small>Expiry</small><span>'+(currentSetup.expiryAt?escapeHtml(displayTime(currentSetup.expiryAt)):'Unavailable')+'</span></div></article>'+
+    '<article><header><small>PRESENT · WHAT IS HAPPENING NOW?</small><h2>'+escapeHtml(stateText(present.qellyView?.action||'NO TRADE'))+'</h2></header><strong>'+escapeHtml(String(present.marketState?.label||'Market state unavailable'))+'</strong><p>'+escapeHtml(present.qellyView?.label||'')+'</p><div class="q-dpg-ppf__facts">'+presentFacts+'</div><div class="q-dpg-ppf__meta"><small>Evidence quality</small><span>'+probability(present.qellyView?.evidenceQuality)+'</span><small>Confidence</small><span>'+probability(present.qellyView?.confidence)+'</span><small>Contradiction</small><span>'+escapeHtml(stateText(present.contradiction?.state))+'</span><small>Entry</small><span>'+escapeHtml(stateText(currentSetup.entry?.method))+(isFiniteDecisionEvidence(currentSetup.entry?.preferred)?' · '+price(currentSetup.entry.preferred):'')+'</span><small>Stop</small><span>'+price(currentSetup.stop?.price)+'</span><small>Expiry</small><span>'+(currentSetup.expiryAt?escapeHtml(displayTime(currentSetup.expiryAt)):'Unavailable')+'</span></div></article>'+
     '<article><header><small>FUTURE · PROBABLE SCENARIOS</small><h2>Scenario map</h2></header><strong>'+probability(scenario.bull)+' bull · '+probability(scenario.base)+' base · '+probability(scenario.bear)+' bear</strong><p>Horizon '+escapeHtml(String(future.horizon||'Unavailable'))+' · modelled range '+price(future.expectedRange?.p05)+' to '+price(future.expectedRange?.p95)+'.</p><div class="q-dpg-ppf__scenarios">'+scenarioCard('Bull',details.bull)+scenarioCard('Base',details.base)+scenarioCard('Bear',details.bear)+'</div>'+
       (tail?'<details class="q-dpg-ppf__tail"><summary>Tail bounds</summary><p>'+price(tail.lower)+' → '+price(tail.upper)+' · nominal combined tail mass '+Math.round(Number(tail.combinedNominalTailMass||0)*100)+'%.</p><p>'+escapeHtml(tail.boundary||'')+'</p></details>':'')+
       '<div class="q-dpg-ppf__probability-boundary"><strong>'+escapeHtml(stateText(future.probabilityCalibration?.state))+'</strong><p>'+escapeHtml(future.probabilityCalibration?.boundary||future.boundary||'')+'</p></div><ul class="q-dpg-ppf__targets">'+targetRows+'</ul><p><strong>What changes the view:</strong> '+escapeHtml(future.whatChangesView||'Reassess when fresh evidence changes.')+'</p></article>'+
@@ -633,7 +634,7 @@ const contradictionMarkup=(data,escapeHtml)=>{
   const contradictions=Array.isArray(context.contradictions)?context.contradictions:[];
   const neutral=Array.isArray(context.neutral)?context.neutral:[];
   const list=(items,empty)=>items.length?'<ul>'+items.slice(0,6).map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul>':'<p>'+escapeHtml(empty)+'</p>';
-  return '<section class="q-dpg-contradiction-map"><header><div><small>CONTRADICTION ENGINE</small><h2>'+escapeHtml(String(context.state||'MIXED').replaceAll('_',' '))+'</h2></div><span>Score '+(Number.isFinite(Number(context.score))?Math.round(Number(context.score)*100)+'%':'Unavailable')+'</span></header><div><article><h3>Supporting context</h3>'+list(support,'No supporting evidence summary is available.')+'</article><article><h3>Contradictions</h3>'+list(contradictions,'No unresolved contradiction is currently recorded.')+'</article><article><h3>Neutral / unavailable</h3>'+list(neutral,'No neutral evidence boundary is recorded.')+'</article></div><p>'+escapeHtml(context.note||'')+'</p></section>';
+  return '<section class="q-dpg-contradiction-map"><header><div><small>CONTRADICTION ENGINE</small><h2>'+escapeHtml(String(context.state||'MIXED').replaceAll('_',' '))+'</h2></div><span>Score '+(isFiniteDecisionEvidence(context.score)?Math.round(Number(context.score)*100)+'%':'Unavailable')+'</span></header><div><article><h3>Supporting context</h3>'+list(support,'No supporting evidence summary is available.')+'</article><article><h3>Contradictions</h3>'+list(contradictions,'No unresolved contradiction is currently recorded.')+'</article><article><h3>Neutral / unavailable</h3>'+list(neutral,'No neutral evidence boundary is recorded.')+'</article></div><p>'+escapeHtml(context.note||'')+'</p></section>';
 };
 
 const decisionTraceMarkup=(data,escapeHtml)=>{
@@ -642,7 +643,7 @@ const decisionTraceMarkup=(data,escapeHtml)=>{
   const nodes=Array.isArray(trace.nodes)?trace.nodes:[];
   const pipeline=Array.isArray(trace.pipeline)?trace.pipeline:[];
   const edges=Array.isArray(trace.textAlternative)?trace.textAlternative:[];
-  const confidence=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Math.round(Number(value)*100)+'%':'Not quantified';
+  const confidence=(value)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?Math.round(Number(value)*100)+'%':'Not quantified';
   const nodeMarkup=nodes.map(node=>'<article><div><small>'+escapeHtml(String(node.kind||'evidence').replaceAll('-',' '))+'</small><strong>'+escapeHtml(node.label||node.id)+'</strong></div><span>'+escapeHtml(String(node.freshness||'UNAVAILABLE'))+' · '+escapeHtml(String(node.importance||'MEDIUM'))+' · '+escapeHtml(String(node.supportState||node.role||'NEUTRAL').replaceAll('_',' '))+'</span><p>'+escapeHtml(node.source||'QELLY derived research')+'</p><small>Confidence: '+escapeHtml(confidence(node.confidence))+'</small><details><summary>Method and limits</summary><p>'+escapeHtml(node.method||node.methodology||'')+'</p><ul>'+(Array.isArray(node.limitations)?node.limitations.map(item=>'<li>'+escapeHtml(item)+'</li>').join(''):'')+'</ul></details></article>').join('');
   const pipelineMarkup=pipeline.length?'<ol class="q-dpg-trace__pipeline">'+pipeline.map(item=>'<li><span>'+escapeHtml(String(item.order))+'</span><div><small>'+escapeHtml(String(item.stage||'STAGE').replaceAll('_',' '))+'</small><strong>'+escapeHtml(item.label||item.id)+'</strong><em>'+escapeHtml(String(item.freshness||'UNAVAILABLE'))+' · '+escapeHtml(String(item.supportState||'NEUTRAL').replaceAll('_',' '))+'</em></div></li>').join('')+'</ol>':'';
   return '<section class="q-dpg-trace q-dpg-trace--v2"><header><div><small>DECISION TRACE · EVIDENCE GRAPH 2.0</small><h2>Raw observation → normalized data → evidence → setup → outcome</h2><p>'+escapeHtml(trace.boundary||'')+'</p></div><span>NO SECOND DECISION ENGINE</span></header>'+pipelineMarkup+
@@ -713,12 +714,12 @@ const whatChangedMarkup=(previous,current,escapeHtml)=>{
   const renderValue=(key,value)=>{
     if(value===null||value===undefined||value==='')return 'Unavailable';
     if(['confidence','evidenceQuality','timeframeAgreement','contradictionScore'].includes(key))return (Number(value)*100).toFixed(1)+'%';
-    if(['price','entryPreferred','selectedTarget','stopPrice','invalidationPrice'].includes(key)&&Number.isFinite(Number(value)))return money(value);
-    if(key==='openInterestNotionalUsd'&&Number.isFinite(Number(value)))return compactMoney(value);
-    if(key==='fundingPct'&&Number.isFinite(Number(value)))return Number(value).toFixed(5)+'%';
-    if(['fundingChangeBps','liquiditySpreadBps'].includes(key)&&Number.isFinite(Number(value)))return Number(value).toFixed(3)+' bps';
-    if(key==='macroUsdInr'&&Number.isFinite(Number(value)))return Number(value).toFixed(4);
-    if(key==='calibrationBrierScore'&&Number.isFinite(Number(value)))return Number(value).toFixed(4);
+    if(['price','entryPreferred','selectedTarget','stopPrice','invalidationPrice'].includes(key)&&isFiniteDecisionEvidence(value))return money(value);
+    if(key==='openInterestNotionalUsd'&&isFiniteDecisionEvidence(value))return compactMoney(value);
+    if(key==='fundingPct'&&isFiniteDecisionEvidence(value))return Number(value).toFixed(5)+'%';
+    if(['fundingChangeBps','liquiditySpreadBps'].includes(key)&&isFiniteDecisionEvidence(value))return Number(value).toFixed(3)+' bps';
+    if(key==='macroUsdInr'&&isFiniteDecisionEvidence(value))return Number(value).toFixed(4);
+    if(key==='calibrationBrierScore'&&isFiniteDecisionEvidence(value))return Number(value).toFixed(4);
     return String(value).replaceAll('_',' ');
   };
   const reasonFor=(key)=>String(current?.changeReasons?.[key]||'');
@@ -802,10 +803,10 @@ export async function renderDecisionProvenGraph(main,deps){
     const change=last&&previous&&previous.close?((last.close/previous.close-1)*100):null;
     const freshness=data?.truthState||'CONNECTING';
     const marketState=data?.market?.currentState?.label||'Loading market state';
-    const quality=Number.isFinite(Number(gate.qualityScore))?Math.round(Number(gate.qualityScore)*100)+'%':'Unavailable';
-    const confidence=Number.isFinite(Number(view.confidence))?Math.round(Number(view.confidence)*100)+'%':'Unavailable';
-    const agreement=Number.isFinite(Number(gate.timeframeAgreement))?Math.round(Number(gate.timeframeAgreement)*100)+'%':'Unavailable';
-    const probabilities=[['Bull',scenario.bull],['Base',scenario.base],['Bear',scenario.bear]].filter(([,value])=>Number.isFinite(Number(value))).sort((a,b)=>Number(b[1])-Number(a[1]));
+    const quality=isFiniteDecisionEvidence(gate.qualityScore)?Math.round(Number(gate.qualityScore)*100)+'%':'Unavailable';
+    const confidence=isFiniteDecisionEvidence(view.confidence)?Math.round(Number(view.confidence)*100)+'%':'Unavailable';
+    const agreement=isFiniteDecisionEvidence(gate.timeframeAgreement)?Math.round(Number(gate.timeframeAgreement)*100)+'%':'Unavailable';
+    const probabilities=[['Bull',scenario.bull],['Base',scenario.base],['Bear',scenario.bear]].filter(([,value])=>isFiniteDecisionEvidence(value)).sort((a,b)=>Number(b[1])-Number(a[1]));
     const scenarioLead=probabilities.length?probabilities[0][0]+' '+Math.round(Number(probabilities[0][1])*100)+'%':'Unavailable';
     const regime=data?.market?.currentState?.trend||'Unavailable';
     const volatility=view.riskState?.label||'Unavailable';
@@ -838,8 +839,8 @@ export async function renderDecisionProvenGraph(main,deps){
     const current=sourceSetupId?items.find(item=>item.sourceSetupId===sourceSetupId):null;
     const trackable=data?.truthState==='LIVE'&&trade?.status==='VALID'&&['FORMING','TRIGGERED','VALID'].includes(String(trade?.lifecycle?.state||''));
     const terminal=Boolean(current?.resolvedAt);
-    const metric=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?Number(value).toFixed(2)+'R':'—';
-    const pct=(value)=>value!=null&&value!==''&&Number.isFinite(Number(value))?(Number(value)*100).toFixed(1)+'%':'Unavailable';
+    const metric=(value)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?Number(value).toFixed(2)+'R':'—';
+    const pct=(value)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?(Number(value)*100).toFixed(1)+'%':'Unavailable';
     const rows=items.slice(0,6).map(item=>'<article><div><strong>'+escapeHtml(item.asset)+' · '+escapeHtml(item.timeframe)+'</strong><small>'+escapeHtml(displayTime(item.createdAt))+' · '+escapeHtml(String(item.requestedRr||'auto'))+'</small></div><span class="q-status q-status--'+(['INVALIDATED','EXPIRED'].includes(item.latestStatus)?'warning':item.resolvedAt?'live':'cached')+'">'+escapeHtml(String(item.latestStatus||'FORMING').replaceAll('_',' '))+'</span><dl><div><dt>MFE</dt><dd>'+escapeHtml(metric(item.metrics?.mfeR))+'</dd></div><div><dt>MAE</dt><dd>'+escapeHtml(metric(item.metrics?.maeR))+'</dd></div><div><dt>Highest target</dt><dd>'+escapeHtml(item.metrics?.highestTarget||'—')+'</dd></div><div><dt>Outcome</dt><dd>'+escapeHtml(item.resolvedOutcome?.state||'OPEN')+'</dd></div></dl>'+(item.resolvedAt?'':'<button class="q-button q-button--secondary" data-dpg-ledger-observe="'+escapeHtml(item.id)+'" '+(state.ledgerMutating?'disabled':'')+'>Observe outcome now</button>')+'</article>').join('');
     const currentAction=current
       ?'<div class="q-dpg-ledger__current"><span>Current setup</span><strong>'+escapeHtml(current.latestStatus||'FORMING')+'</strong>'+(terminal?'<small>'+escapeHtml(current.resolvedOutcome?.state||'Resolved')+'</small>':'<button class="q-button q-button--secondary" data-dpg-ledger-observe="'+escapeHtml(current.id)+'" '+(state.ledgerMutating?'disabled':'')+'>Observe current setup</button>')+'</div>'
@@ -877,7 +878,7 @@ export async function renderDecisionProvenGraph(main,deps){
     if(!flow)return state.rangeEvidenceLoading?'<section id="qelly-decision-range-flow" class="q-dpg-range-flow q-dpg-range-flow--loading" data-dpg-range-flow><header><div><small>FLOW / PARTICIPATION EVIDENCE</small><h3>Loading source-bounded participation evidence…</h3></div><span>ACTOR IDENTITY UNAVAILABLE</span></header></section>':'';
     const sections=flow.sections||{},observed=sections.observedOrderFlow||{},unknown=sections.unknownActorActivity||{},funding=unknown.settledFunding||{},proxy=observed.participationProxy||{};
     const status=(value)=>String(value||'UNAVAILABLE').replaceAll('_',' ');
-    const metric=(value,suffix='')=>value!=null&&value!==''&&Number.isFinite(Number(value))?Number(value).toLocaleString(undefined,{maximumFractionDigits:4})+suffix:'Unavailable';
+    const metric=(value,suffix='')=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?Number(value).toLocaleString(undefined,{maximumFractionDigits:4})+suffix:'Unavailable';
     const block=(title,item,body)=>'<article><header><span>'+escapeHtml(title)+'</span><strong>'+escapeHtml(status(item?.state))+'</strong></header>'+body+'</article>';
     const named=sections.knownNamedFlows||{},institutional=sections.publicInstitutionalData||{};
     return '<section id="qelly-decision-range-flow" class="q-dpg-range-flow" data-dpg-range-flow><header><div><small>FLOW / PARTICIPATION EVIDENCE · EXACT RANGE</small><h3>What the data can — and cannot — say about buying / selling</h3></div><span>'+escapeHtml(status(flow.actorIdentity==='UNAVAILABLE'?'ACTOR_IDENTITY_UNAVAILABLE':flow.actorIdentity))+'</span></header>'+
@@ -897,7 +898,7 @@ export async function renderDecisionProvenGraph(main,deps){
     const replay=data?.rangeReplay;
     if(!replay||replay.state!=='AVAILABLE'||!Array.isArray(replay.frames)||!replay.frames.length)return '';
     const max=replay.frames.length-1,index=clamp(Number(state.rangeReplayIndex)||0,0,max),frame=replay.frames[index],known=frame.knownRange||{},available=frame.evidenceAvailableAsOf||{},news=available.news||{},funding=available.settledFunding||{},benchmark=available.benchmark||{};
-    const value=(input,suffix='')=>input!=null&&input!==''&&Number.isFinite(Number(input))?Number(input).toLocaleString(undefined,{maximumFractionDigits:4})+suffix:'Unavailable';
+    const value=(input,suffix='')=>input!=null&&input!==''&&isFiniteDecisionEvidence(input)?Number(input).toLocaleString(undefined,{maximumFractionDigits:4})+suffix:'Unavailable';
     const latestNews=Array.isArray(news.latest)?news.latest:[];
     return '<section class="q-dpg-range-replay" data-dpg-range-replay><header><div><small>RANGE REPLAY · NO HINDSIGHT</small><h3>Candle '+escapeHtml(String(frame.candleNumber))+' / '+escapeHtml(String(frame.totalCandles))+'</h3></div><span>AVAILABLE AS OF '+escapeHtml(displayTime(frame.observedAt))+'</span></header>'+
       '<p>'+escapeHtml(frame.boundary||replay.hindsightGuard||'Future evidence is hidden until its timestamp arrives.')+'</p>'+
@@ -911,8 +912,8 @@ export async function renderDecisionProvenGraph(main,deps){
     const context=data?.selectedRangeSimilarMoves;
     if(!context||context.state==='NOT_SELECTED')return '';
     const analogs=Array.isArray(context.analogs)?context.analogs:[],summary=context.summary||{};
-    const value=(input,suffix='')=>input!=null&&input!==''&&Number.isFinite(Number(input))?Number(input).toLocaleString(undefined,{maximumFractionDigits:3})+suffix:'Unavailable';
-    const duration=(input)=>Number.isFinite(Number(input))?(Number(input)>=86_400_000?(Number(input)/86_400_000).toFixed(1)+'d':(Number(input)/3_600_000).toFixed(1)+'h'):'Unavailable';
+    const value=(input,suffix='')=>input!=null&&input!==''&&isFiniteDecisionEvidence(input)?Number(input).toLocaleString(undefined,{maximumFractionDigits:3})+suffix:'Unavailable';
+    const duration=(input)=>isFiniteDecisionEvidence(input)?(Number(input)>=86_400_000?(Number(input)/86_400_000).toFixed(1)+'d':(Number(input)/3_600_000).toFixed(1)+'h'):'Unavailable';
     const cards=analogs.map(item=>'<article><header><span>#'+escapeHtml(String(item.rank))+'</span><strong>'+escapeHtml(displayTime(item.rangeStart))+' → '+escapeHtml(displayTime(item.rangeEnd))+'</strong><em>'+escapeHtml(String(Math.round(Number(item.similarity||0)*100)))+'% similar</em></header><div><span><small>Matched move</small><strong>'+escapeHtml(value(item.observedFeatures?.returnPct,'%'))+'</strong></span><span><small>Post-range return</small><strong>'+escapeHtml(value(item.outcome?.forwardReturnPct,'%'))+'</strong></span><span><small>MFE / MAE</small><strong>'+escapeHtml(value(item.outcome?.maxFavorablePct,'%'))+' / '+escapeHtml(value(item.outcome?.maxAdversePct,'%'))+'</strong></span><span><small>Resolution</small><strong>'+escapeHtml(duration(item.outcome?.timeToResolutionMs))+'</strong></span></div></article>').join('');
     return '<section class="q-dpg-similar-moves" data-dpg-similar-moves><header><div><small>FIND SIMILAR MOVES · SELECTED RANGE</small><h3>'+escapeHtml(analogs.length?String(summary.count??analogs.length)+' leakage-safe matches':'No safe prior match in returned history')+'</h3></div><span>DESCRIPTIVE ONLY · NOT CALIBRATION</span></header>'+
       '<p>'+escapeHtml(context.method||context.reason||'Prior equal-length selected ranges are matched using observed features only.')+'</p>'+
@@ -924,7 +925,7 @@ export async function renderDecisionProvenGraph(main,deps){
   const selectedRangeCrossAssetMarkup=(range)=>{
     const family=(range?.evidenceFamilies||[]).find(item=>item.id==='cross-asset'),context=family?.data||{};
     if(!family)return '';
-    const value=(input,suffix='')=>input!=null&&input!==''&&Number.isFinite(Number(input))?(Number(input)>=0&&suffix==='%'?'+':'')+Number(input).toLocaleString(undefined,{maximumFractionDigits:4})+suffix:'Unavailable';
+    const value=(input,suffix='')=>input!=null&&input!==''&&isFiniteDecisionEvidence(input)?(Number(input)>=0&&suffix==='%'?'+':'')+Number(input).toLocaleString(undefined,{maximumFractionDigits:4})+suffix:'Unavailable';
     const label=(input)=>String(input||'UNAVAILABLE').replaceAll('_',' ');
     if(family.state!=='AVAILABLE'||context.state!=='AVAILABLE')return '<section class="q-dpg-range-cross-asset q-dpg-range-cross-asset--unavailable" data-dpg-range-cross-asset><header><div><small>CROSS-ASSET · SELECTED RANGE</small><h3>Pairwise comparison unavailable</h3></div><span>PAIRWISE · DESCRIPTIVE ONLY</span></header><p>'+escapeHtml(context.dataStory||family.limitations?.[0]||'Not enough aligned benchmark observations exist inside this exact range.')+'</p></section>';
     const windows=context.windows||{},during=windows.during||context.selectedRange||{},classification=context.classification||{};
@@ -935,7 +936,7 @@ export async function renderDecisionProvenGraph(main,deps){
   const rangeEvidenceMarkup=(data)=>{
     const range=data?.rangeEvidence;if(!range||range.state!=='AVAILABLE'||!range.summary)return '';
     const summary=range.summary,coverage=Array.isArray(range.coverage)?range.coverage:[],comparison=range.comparison||{};
-    const value=(input,suffix='')=>input!=null&&input!==''&&Number.isFinite(Number(input))?Number(input).toLocaleString(undefined,{maximumFractionDigits:4})+suffix:'Unavailable';
+    const value=(input,suffix='')=>input!=null&&input!==''&&isFiniteDecisionEvidence(input)?Number(input).toLocaleString(undefined,{maximumFractionDigits:4})+suffix:'Unavailable';
     const scope=(item)=>String(item?.temporalScope||'UNAVAILABLE').replaceAll('_',' ');
     const card=(label,item)=>'<article><span>'+escapeHtml(label)+'</span><strong>'+escapeHtml(item?.state||'UNAVAILABLE')+'</strong><small>'+escapeHtml(scope(item))+'</small></article>';
     const windowCard=(label,item)=>'<article><span>'+escapeHtml(label)+'</span><strong>'+escapeHtml(value(item?.returnPct,'%'))+'</strong><small>'+escapeHtml(String(item?.samples??0))+' candles · range '+escapeHtml(value(item?.rangePct,'%'))+' · vol '+escapeHtml(value(item?.realizedVolatilityPct,'%'))+'</small></article>';
@@ -969,7 +970,7 @@ export async function renderDecisionProvenGraph(main,deps){
     const modules=Array.isArray(policy.modules)?[...policy.modules]:[];
     const top=modules.sort((a,b)=>(Number(b.baseRelevanceWeight)||0)-(Number(a.baseRelevanceWeight)||0)||String(a.label||'').localeCompare(String(b.label||'')));
     const label=(value)=>String(value||'UNAVAILABLE').replaceAll('_',' ');
-    const pct=(value)=>Number.isFinite(Number(value))?Math.round(Number(value)*100)+'%':'—';
+    const pct=(value)=>isFiniteDecisionEvidence(value)?Math.round(Number(value)*100)+'%':'—';
     const cards=top.map(item=>'<article data-asset-class-evidence="'+escapeHtml(item.id)+'" data-state="'+escapeHtml(item.state)+'"><header><strong>'+escapeHtml(item.label)+'</strong><span>'+escapeHtml(label(item.state))+'</span></header><div><b>'+escapeHtml(pct(item.baseRelevanceWeight))+'</b><small>base relevance</small><b>'+escapeHtml(pct(item.effectiveRelevanceWeight))+'</b><small>effective</small></div><p>'+escapeHtml(item.decisionRole||'CONTEXT ONLY')+' · directional weight '+escapeHtml(String(item.directionalWeight??0))+'</p><small>'+escapeHtml(item.sourceRequirement||item.purpose||'')+'</small></article>').join('');
     const missing=(policy.missingHighRelevance||[]).map(item=>'<li><strong>'+escapeHtml(item.label||item.id)+'</strong><span>'+escapeHtml(pct(item.baseRelevanceWeight))+' relevance · unavailable</span><small>'+escapeHtml(item.sourceRequirement||'Governed source required')+'</small></li>').join('');
     return '<section class="q-dpg-asset-class-weighting" data-dpg-asset-class-weighting><header><div><small>ASSET-CLASS FUNDAMENTAL / MACRO WEIGHTING</small><h2>'+escapeHtml(policy.label||policy.profileId||'Evidence policy')+' · '+escapeHtml(label(policy.band))+'</h2><p>Relevance changes with timeframe and research horizon. Missing data never receives effective weight.</p></div><span>'+escapeHtml(String(policy.coverage?.available??0))+' available · '+escapeHtml(String(policy.coverage?.highRelevanceMissing??0))+' high-relevance missing</span></header><div class="q-dpg-asset-class-weighting__summary"><span><em>Interval</em><strong>'+escapeHtml(policy.interval||'—')+'</strong></span><span><em>Horizon</em><strong>'+escapeHtml(policy.horizon||'—')+'</strong></span><span><em>Effective relevance</em><strong>'+escapeHtml(String(policy.coverage?.effectiveRelevanceTotal??0))+'</strong></span><span><em>Directional re-vote</em><strong>0 · prohibited</strong></span></div><details><summary>Evidence relevance receipts</summary><div class="q-dpg-asset-class-weighting__modules">'+cards+'</div>'+(missing?'<h3>High-relevance evidence still missing</h3><ul>'+missing+'</ul>':'')+'<p>'+escapeHtml(policy.boundary||'')+'</p><p>'+escapeHtml(policy.providerBoundary||'')+'</p></details></section>';
@@ -990,7 +991,7 @@ export async function renderDecisionProvenGraph(main,deps){
   const quantResearchMarkup=(data,escapeHtml)=>{
     const q=data?.quant?.researchLibrary;
     if(!q||q.state!=='DERIVED')return '';
-    const num=(value,suffix='')=>Number.isFinite(Number(value))?Number(value).toLocaleString(undefined,{maximumFractionDigits:4})+suffix:'Unavailable';
+    const num=(value,suffix='')=>isFiniteDecisionEvidence(value)?Number(value).toLocaleString(undefined,{maximumFractionDigits:4})+suffix:'Unavailable';
     const state=(value)=>String(value||'UNAVAILABLE').replaceAll('_',' ');
     const item=(label,value,suffix='')=>'<span><em>'+escapeHtml(label)+'</em><strong>'+escapeHtml(num(value,suffix))+'</strong></span>';
     const formulas=Array.isArray(q.formulaCatalog)?q.formulaCatalog:[];
@@ -1018,7 +1019,7 @@ export async function renderDecisionProvenGraph(main,deps){
     const contributors=Array.isArray(governance.topContributors)?governance.topContributors:[];
     const features=Array.isArray(governance.features)?governance.features:[];
     const groups=Array.isArray(governance.redundancyGroups)?governance.redundancyGroups:[];
-    const score=(value)=>Number.isFinite(Number(value))?(Number(value)>=0?'+':'')+Number(value).toFixed(3):'—';
+    const score=(value)=>isFiniteDecisionEvidence(value)?(Number(value)>=0?'+':'')+Number(value).toFixed(3):'—';
     const cards=contributors.slice(0,8).map((item,index)=>'<article><span>#'+(index+1)+' · '+escapeHtml(String(item.family||'formula').replaceAll('_',' '))+'</span><strong>'+escapeHtml(item.label||item.id)+'</strong><b>'+escapeHtml(String(item.direction||'NEUTRAL').replaceAll('_',' '))+' · '+escapeHtml(score(item.contribution))+'</b><small>'+escapeHtml(String(item.role||'context').replaceAll('_',' '))+(item.suppressedBy?' · suppressed by '+escapeHtml(item.suppressedBy):'')+'</small></article>').join('');
     const inventory=features.map(item=>'<li><strong>'+escapeHtml(item.label||item.id)+'</strong><span>'+escapeHtml(String(item.family||''))+' · '+escapeHtml(String(item.role||''))+' · '+escapeHtml(String(item.state||'UNAVAILABLE'))+'</span><small>strength '+escapeHtml(String(item.strength??'—'))+' · reliability '+escapeHtml(String(item.reliability??'—'))+' · relevance '+escapeHtml(String(item.relevance??'—'))+(item.suppressedBy?' · REDUNDANCY-SUPPRESSED BY '+escapeHtml(item.suppressedBy):'')+'</small></li>').join('');
     const redundancy=groups.map(group=>'<li><strong>'+escapeHtml(group.group)+'</strong><span>Primary '+escapeHtml(group.primary||'none')+'</span><small>'+(group.suppressed?.length?'Suppressed '+escapeHtml(group.suppressed.join(', ')):'No redundant feature suppressed')+'</small></li>').join('');
@@ -1073,9 +1074,9 @@ export async function renderDecisionProvenGraph(main,deps){
     const item=(research.horizons||[]).find(entry=>Number(entry.horizonBars)===requested)||research.nextCandle;
     if(!item)return '';
     const probabilities=item.publishedProbabilities;
-    const probability=(key)=>probabilities&&Number.isFinite(Number(probabilities[key]))?(Number(probabilities[key])*100).toFixed(1)+'%':'UNCALIBRATED';
-    const moneyOrUnavailable=(value)=>Number.isFinite(Number(value))?money(Number(value)):'Unavailable';
-    const pctOrUnavailable=(value)=>Number.isFinite(Number(value))?Number(value).toFixed(2)+'%':'Unavailable';
+    const probability=(key)=>probabilities&&isFiniteDecisionEvidence(probabilities[key])?(Number(probabilities[key])*100).toFixed(1)+'%':'UNCALIBRATED';
+    const moneyOrUnavailable=(value)=>isFiniteDecisionEvidence(value)?money(Number(value)):'Unavailable';
+    const pctOrUnavailable=(value)=>isFiniteDecisionEvidence(value)?Number(value).toFixed(2)+'%':'Unavailable';
     const ci=item.calibration?.calibratedLeadingProbabilityConfidenceInterval95;
     const top=String(item.topScenario?.id||'unavailable').toUpperCase(),alternate=String(item.alternateScenario?.id||'unavailable').toUpperCase();
     const controls=[['1','Next candle'],['3','3 candles'],['5','5 candles'],['custom','Custom']].map(([value,label])=>'<button type="button" data-dpg-next-bars="'+value+'" class="'+(state.nextMoveBars===value?'is-active':'')+'" aria-pressed="'+(state.nextMoveBars===value?'true':'false')+'">'+label+'</button>').join('');
@@ -1093,14 +1094,14 @@ export async function renderDecisionProvenGraph(main,deps){
 
   const cfScenarioUx=(data)=>buildDecisionScenarioUx(data,{requestedRr:state.rr,customRr:state.customRr});
   const cfProbability=(item)=>{
-    if(Number.isFinite(Number(item?.publishedProbability)))return (Number(item.publishedProbability)*100).toFixed(1)+'%';
+    if(isFiniteDecisionEvidence(item?.publishedProbability))return (Number(item.publishedProbability)*100).toFixed(1)+'%';
     return 'UNCALIBRATED';
   };
   const cfScenarioMarkup=(data)=>{
     const ux=cfScenarioUx(data),cards=ux.scenarios||[];
     const card=(item)=>{
-      const target=item.targetRange&&Number.isFinite(Number(item.targetRange.low))&&Number.isFinite(Number(item.targetRange.high))?money(item.targetRange.low)+' → '+money(item.targetRange.high):'Unavailable';
-      const modelShare=Number.isFinite(Number(item.modelScenarioShare))?(Number(item.modelScenarioShare)*100).toFixed(1)+'% model share':'No publishable model share';
+      const target=item.targetRange&&isFiniteDecisionEvidence(item.targetRange.low)&&isFiniteDecisionEvidence(item.targetRange.high)?money(item.targetRange.low)+' → '+money(item.targetRange.high):'Unavailable';
+      const modelShare=isFiniteDecisionEvidence(item.modelScenarioShare)?(Number(item.modelScenarioShare)*100).toFixed(1)+'% model share':'No publishable model share';
       const sample=Number(item.calibrationSampleSize)||0,gate=Number(item.calibrationMinimumSampleGate)||0;
       return '<article class="q-dpg-cf-scenario q-dpg-cf-scenario--'+escapeHtml(item.id)+'" data-dpg-cf-scenario="'+escapeHtml(item.id)+'"><header><div><small>'+escapeHtml(item.label)+'</small><h3>'+escapeHtml(cfProbability(item))+'</h3></div><span>'+escapeHtml(String(item.probabilityState||'UNCALIBRATED').replaceAll('_',' '))+'</span></header><dl><div><dt>Target zone</dt><dd>'+escapeHtml(target)+'</dd></div><div><dt>What must happen</dt><dd>'+escapeHtml(item.whatMustHappen||'Unavailable')+'</dd></div><div><dt>Invalidation</dt><dd>'+escapeHtml(item.invalidation||'Unavailable')+'</dd></div><div><dt>Calibration</dt><dd>n='+escapeHtml(String(sample))+(gate?' / gate '+escapeHtml(String(gate)):'')+'</dd></div></dl>'+(item.publishedProbability==null&&item.modelScenarioShare!=null?'<p><strong>'+escapeHtml(modelShare)+'</strong> · research model output, not published as calibrated probability.</p>':'')+(item.tailBoundary?'<p>'+escapeHtml(item.whatChanges||'Tail bounds are modelled distribution limits only.')+'</p>':'')+'</article>';
     };
@@ -1113,19 +1114,19 @@ export async function renderDecisionProvenGraph(main,deps){
   };
   const cfSetupSummaryMarkup=(data)=>{
     const ux=cfScenarioUx(data),setup=ux.setup||{},current=ux.lifecycle?.find(item=>item.current)||{icon:'•',label:setup.status||'NO TRADE'},entry=setup.entry;
-    const entryText=entry&&Number.isFinite(Number(entry.preferred))?money(entry.preferred)+' · '+escapeHtml(entry.method):'No evidence-qualified entry';
-    const zone=entry?.zone?.length===2&&entry.zone.every(value=>Number.isFinite(Number(value)))?money(entry.zone[0])+' – '+money(entry.zone[1]):'Unavailable';
+    const entryText=entry&&isFiniteDecisionEvidence(entry.preferred)?money(entry.preferred)+' · '+escapeHtml(entry.method):'No evidence-qualified entry';
+    const zone=entry?.zone?.length===2&&entry.zone.every(value=>isFiniteDecisionEvidence(value))?money(entry.zone[0])+' – '+money(entry.zone[1]):'Unavailable';
     const invalidation=setup.invalidation?.price;
-    const invalidationText=Number.isFinite(Number(invalidation?.price))?money(invalidation.price):escapeHtml(invalidation?.condition||'No active price invalidation');
-    const probability=Number.isFinite(Number(setup.probability))?(Number(setup.probability)*100).toFixed(1)+'%':'UNCALIBRATED';
-    const targets=(setup.targets||[]).map(item=>'<span><em>'+escapeHtml(item.id)+' · 1:'+escapeHtml(String(item.ratio))+'</em><strong>'+(Number.isFinite(Number(item.target))?money(item.target):'Unavailable')+'</strong><small>'+escapeHtml(String(item.feasibility||'UNAVAILABLE'))+(Number.isFinite(Number(item.structuralObstruction))?' · obstruction '+money(item.structuralObstruction):'')+'</small></span>').join('');
+    const invalidationText=isFiniteDecisionEvidence(invalidation?.price)?money(invalidation.price):escapeHtml(invalidation?.condition||'No active price invalidation');
+    const probability=formatDecisionProbability(setup.probability);
+    const targets=(setup.targets||[]).map(item=>'<span><em>'+escapeHtml(item.id)+' · 1:'+escapeHtml(String(item.ratio))+'</em><strong>'+(isFiniteDecisionEvidence(item.target)?money(item.target):'Unavailable')+'</strong><small>'+escapeHtml(String(item.feasibility||'UNAVAILABLE'))+(isFiniteDecisionEvidence(item.structuralObstruction)?' · obstruction '+money(item.structuralObstruction):'')+'</small></span>').join('');
     const stages=(ux.lifecycle||[]).map(item=>'<span class="'+(item.current?'is-current':'')+'" data-state="'+escapeHtml(item.state)+'"><b aria-hidden="true">'+escapeHtml(item.icon)+'</b><em>'+escapeHtml(item.label)+'</em><small>'+escapeHtml(item.current?'CURRENT':item.state.replaceAll('_',' '))+'</small></span>').join('');
     const rrCards=(ux.rrLadder||[]).map(item=>{
-      const target=Number.isFinite(Number(item.target))?money(item.target):'Unavailable';
-      const obstruction=Number.isFinite(Number(item.structuralObstruction))?'Obstruction '+money(item.structuralObstruction):'No verified obstruction before target';
+      const target=isFiniteDecisionEvidence(item.target)?money(item.target):'Unavailable';
+      const obstruction=isFiniteDecisionEvidence(item.structuralObstruction)?'Obstruction '+money(item.structuralObstruction):'No verified obstruction before target';
       return '<article class="q-dpg-cf-rr-card '+(item.active?'is-active':'')+'" data-dpg-cf-rr-card="'+escapeHtml(item.id)+'"><button type="button" data-dpg-cf-rr="'+escapeHtml(item.id)+'" aria-pressed="'+String(item.active)+'"><span>'+escapeHtml(item.label)+'</span><strong>'+escapeHtml(target)+'</strong><small>'+escapeHtml(String(item.feasibility||'UNAVAILABLE'))+'</small></button><p>'+escapeHtml(String(item.probabilityState||'UNCALIBRATED'))+' · '+escapeHtml(obstruction)+'</p>'+(item.id==='custom'&&item.active?'<label><span>Custom R:R</span><input type="number" min="0.5" max="10" step="0.1" value="'+escapeHtml(String(state.customRr))+'" data-dpg-cf-custom-rr></label>':'')+'</article>';
     }).join('');
-    return '<section class="q-dpg-cf-setup" data-dpg-cf-setup><header><div><small>CURRENT SETUP · ONE CLEAN SUMMARY</small><h2>'+escapeHtml(setup.direction||'NO TRADE')+' · '+escapeHtml(String(setup.status||'NO_TRADE').replaceAll('_',' '))+'</h2><p>'+escapeHtml(setup.reason||'No setup explanation is available.')+'</p></div><span class="q-dpg-cf-status"><b aria-hidden="true">'+escapeHtml(current.icon)+'</b>'+escapeHtml(current.label)+'</span></header><div class="q-dpg-cf-setup__facts"><span><em>Direction</em><strong>'+escapeHtml(setup.direction||'NO TRADE')+'</strong></span><span><em>Entry</em><strong>'+entryText+'</strong><small>'+escapeHtml(zone)+'</small></span><span><em>Stop</em><strong>'+(Number.isFinite(Number(setup.stop))?money(setup.stop):'Unavailable')+'</strong></span><span><em>Invalidation</em><strong>'+invalidationText+'</strong></span><span><em>Selected R:R</em><strong>'+escapeHtml(setup.selectedRr||'None')+'</strong><small>'+escapeHtml(setup.selectedFeasibility||'UNAVAILABLE')+'</small></span><span><em>Setup probability</em><strong>'+escapeHtml(probability)+'</strong><small>'+escapeHtml(setup.probabilityState||'UNCALIBRATED')+'</small></span><span><em>Calibration</em><strong>'+escapeHtml(String(setup.modelCalibrationState||'UNCALIBRATED').replaceAll('_',' '))+'</strong><small>setup target-touch probability remains separate</small></span><span><em>Expiry</em><strong>'+(setup.expiryAt?escapeHtml(displayTime(setup.expiryAt)):'Unavailable')+'</strong></span><span><em>Event risk</em><strong>'+escapeHtml(String(setup.eventRisk?.level||'UNAVAILABLE'))+'</strong><small>'+escapeHtml(String(setup.eventRisk?.state||'UNAVAILABLE'))+'</small></span></div><div class="q-dpg-cf-targets"><strong>T1 / T2 / T3 / T4</strong><div>'+targets+'</div></div><div class="q-dpg-cf-lifecycle" aria-label="Setup lifecycle status"><strong>Lifecycle · text + icon</strong><div>'+stages+'</div><p>Target milestones are never marked reached without persisted observed setup history.</p></div><section class="q-dpg-cf-rr" data-dpg-cf-rr-ladder><header><div><small>R:R VISUAL LADDER</small><h3>1:1 · 1:2 · 1:3 · 1:4 · Auto · Custom</h3></div><span>target · feasibility · probability state · obstruction</span></header><div>'+rrCards+'</div></section><p class="q-dpg-cf-setup__boundary">'+escapeHtml(setup.probabilityBoundary||'Target-touch probability is not fabricated.')+'</p></section>';
+    return '<section class="q-dpg-cf-setup" data-dpg-cf-setup><header><div><small>CURRENT SETUP · ONE CLEAN SUMMARY</small><h2>'+escapeHtml(setup.direction||'NO TRADE')+' · '+escapeHtml(String(setup.status||'NO_TRADE').replaceAll('_',' '))+'</h2><p>'+escapeHtml(setup.reason||'No setup explanation is available.')+'</p></div><span class="q-dpg-cf-status"><b aria-hidden="true">'+escapeHtml(current.icon)+'</b>'+escapeHtml(current.label)+'</span></header><div class="q-dpg-cf-setup__facts"><span><em>Direction</em><strong>'+escapeHtml(setup.direction||'NO TRADE')+'</strong></span><span><em>Entry</em><strong>'+entryText+'</strong><small>'+escapeHtml(zone)+'</small></span><span><em>Stop</em><strong>'+(isFiniteDecisionEvidence(setup.stop)?money(setup.stop):'Unavailable')+'</strong></span><span><em>Invalidation</em><strong>'+invalidationText+'</strong></span><span><em>Selected R:R</em><strong>'+escapeHtml(setup.selectedRr||'None')+'</strong><small>'+escapeHtml(setup.selectedFeasibility||'UNAVAILABLE')+'</small></span><span><em>Setup probability</em><strong>'+escapeHtml(probability)+'</strong><small>'+escapeHtml(setup.probabilityState||'UNCALIBRATED')+'</small></span><span><em>Calibration</em><strong>'+escapeHtml(String(setup.modelCalibrationState||'UNCALIBRATED').replaceAll('_',' '))+'</strong><small>setup target-touch probability remains separate</small></span><span><em>Expiry</em><strong>'+(setup.expiryAt?escapeHtml(displayTime(setup.expiryAt)):'Unavailable')+'</strong></span><span><em>Event risk</em><strong>'+escapeHtml(String(setup.eventRisk?.level||'UNAVAILABLE'))+'</strong><small>'+escapeHtml(String(setup.eventRisk?.state||'UNAVAILABLE'))+'</small></span></div><div class="q-dpg-cf-targets"><strong>T1 / T2 / T3 / T4</strong><div>'+targets+'</div></div><div class="q-dpg-cf-lifecycle" aria-label="Setup lifecycle status"><strong>Lifecycle · text + icon</strong><div>'+stages+'</div><p>Target milestones are never marked reached without persisted observed setup history.</p></div><section class="q-dpg-cf-rr" data-dpg-cf-rr-ladder><header><div><small>R:R VISUAL LADDER</small><h3>1:1 · 1:2 · 1:3 · 1:4 · Auto · Custom</h3></div><span>target · feasibility · probability state · obstruction</span></header><div>'+rrCards+'</div></section><p class="q-dpg-cf-setup__boundary">'+escapeHtml(setup.probabilityBoundary||'Target-touch probability is not fabricated.')+'</p></section>';
   };
 
   const content=(data)=>{
