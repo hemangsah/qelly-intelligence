@@ -184,6 +184,11 @@ async function scenario(browser,name,viewport){
     await page.waitForTimeout(1500);
     assert.match(await page.locator('.q-verify-report__head').innerText(),/newest-two-deals.html/);
     await page.locator('[data-verify-file]').setInputFiles({name:'delayed-deals.html',mimeType:'text/html',buffer:Buffer.from(html(6))});
+    await page.locator('[data-verify-reset]').click();
+    await page.waitForTimeout(1500);
+    assert.equal(await page.locator('[data-verify-export]').count(),0,'clearing an in-flight read invalidates its completion');
+    assert.equal(await page.locator('.q-verify-report').count(),0);
+    await page.locator('[data-verify-file]').setInputFiles({name:'delayed-deals.html',mimeType:'text/html',buffer:Buffer.from(html(6))});
     await page.evaluate(()=>{location.hash='#/market';});
     await page.locator('[data-v53-verify-primary]').waitFor({state:'detached',timeout:15000});
     await page.waitForTimeout(1500);
