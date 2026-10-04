@@ -10,6 +10,7 @@ import {decisionAssetCapabilities} from '../functions/_lib/decision-asset-capabi
 import {buildDecisionRangeReplay,buildSelectedRangeSimilarMoves} from '../functions/_lib/decision-range-history.js';
 import {buildSelectedRangeCrossAssetAnalysis} from '../functions/_lib/decision-selected-cross-asset.js';
 import {buildDecisionIntelligence} from '../functions/api/v1/decision-proven-graph.js';
+import {buildDecisionScenarioUx} from '../apps/web/public/assets/decision-scenario-ux.mjs';
 
 const outputDir=path.resolve('preview/decision-range-e2e');
 await mkdir(outputDir,{recursive:true});
@@ -18,7 +19,7 @@ const localOrigin=`http://127.0.0.1:${server.port}`;
 const executablePath=process.env.QELLY_BROWSER_EXECUTABLE||'/usr/bin/chromium';
 const browser=await chromium.launch({headless:true,executablePath,args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
 const results=[];
-let latestSelectedPayload=null,lastScanRequest=null;
+let latestSelectedPayload=null,lastScanRequest=null,latestDecisionFixture=null;
 const FIXTURE_INTERVAL_MS=Object.freeze({'1m':60_000,'3m':180_000,'5m':300_000,'15m':900_000,'30m':1_800_000,'1h':3_600_000,'2h':7_200_000,'4h':14_400_000,'8h':28_800_000,'12h':43_200_000,'1d':86_400_000});
 const FIXTURE_ASSETS=Object.freeze(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
 const FIXTURE_BASE=Object.freeze({BTC:84_000,ETH:3_100,SOL:145,HYPE:42,XRP:2.6,DOGE:.22});
@@ -185,6 +186,7 @@ const proxyDecision=async(route)=>{
     try{
       const payload=await fixtureDecisionPayload(requestUrl),customBars=requestUrl.searchParams.has('nextBars')?Number(requestUrl.searchParams.get('nextBars')):null;
       payload.nextMoveResearch=buildDecisionNextMoveResearch(payload.market?.candles||[],{asset:payload.asset,interval:payload.interval,customBars,paths:128});
+      latestDecisionFixture=payload;
       if(requestUrl.searchParams.has('selectionStart')){
         const selectedStart=fixtureEpochMs(payload.selection?.start),selectedEnd=fixtureEpochMs(payload.selection?.end);
         if(!Number.isFinite(selectedStart)||!Number.isFinite(selectedEnd)||!(selectedStart<selectedEnd))throw new Error('CE browser fixture received invalid selected-range bounds');
@@ -223,6 +225,7 @@ const proxyDecision=async(route)=>{
 };
 
 const exercise=async({name,viewport,touch=false})=>{
+  latestDecisionFixture=null;
   const context=await browser.newContext({viewport,serviceWorkers:'block',reducedMotion:'reduce',hasTouch:touch,isMobile:touch});
   const page=await context.newPage();
   const failures=[];
@@ -276,6 +279,11 @@ const exercise=async({name,viewport,touch=false})=>{
   const cfRrCards=await cfSetup.locator('[data-dpg-cf-rr-card]').count();
   const cfRrIds=await cfSetup.locator('[data-dpg-cf-rr]').evaluateAll(nodes=>nodes.map(node=>node.getAttribute('data-dpg-cf-rr')));
   const cfProbabilityText=String(await cfSetup.locator('.q-dpg-cf-setup__facts').innerText()).toUpperCase();
+  const expectedUx=buildDecisionScenarioUx(latestDecisionFixture);
+  const setupProbability=await cfSetup.locator('.q-dpg-cf-setup__facts > span').filter({has:page.locator('em',{hasText:'Setup probability'})}).locator('strong').innerText();
+  if(expectedUx.setup.probability===null&&setupProbability!=='UNCALIBRATED')failures.push({type:'missing-setup-probability-must-not-be-zero',setupProbability});
+  const stopDisplay=await cfSetup.locator('.q-dpg-cf-setup__facts > span').filter({has:page.locator('em',{hasText:'Stop'})}).locator('strong').innerText();
+  if(expectedUx.setup.stop===null&&stopDisplay!=='Unavailable')failures.push({type:'missing-stop-must-not-be-zero',stopDisplay});
   if(!cfSetupRequired||cfLifecycleCurrent!==1||cfLifecycleIcons<10||cfTargetCards!==4||cfRrCards!==6||JSON.stringify(cfRrIds)!==JSON.stringify(['1','2','3','4','auto','custom'])||(!cfProbabilityText.includes('UNCALIBRATED')&&!/%/.test(cfProbabilityText)))failures.push({type:'cf-setup-summary',cfSetupRequired,cfLifecycleCurrent,cfLifecycleIcons,cfTargetCards,cfRrCards,cfRrIds,cfProbabilityText,text:cfSetupText});
 
   const cfWatch=page.locator('[data-dpg-cf-watch]').first();
@@ -288,6 +296,12 @@ const exercise=async({name,viewport,touch=false})=>{
   await cfScenarios.waitFor({state:'visible',timeout:10_000});
   const cfScenarioText=(await cfScenarios.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
   const cfScenarioCards=await cfScenarios.locator('[data-dpg-cf-scenario]').count();
+  const withheldScenarios=expectedUx.scenarios.filter(item=>item.publishedProbability===null);
+  if(!withheldScenarios.length)failures.push({type:'missing-probability-fixture-not-exercised'});
+  for(const scenario of withheldScenarios){
+    const displayed=await cfScenarios.locator('[data-dpg-cf-scenario="'+scenario.id+'"]').locator('h3').innerText();
+    if(displayed!=='UNCALIBRATED')failures.push({type:'withheld-scenario-must-not-be-zero',scenario:scenario.id,displayed});
+  }
   const cfScenarioRequired=['scenario map','bull','base','bear','target zone','what must happen','invalidation','calibration','research only'].every(label=>cfScenarioText.includes(label));
   const cfHighProbabilitySafe=await cfScenarios.locator('[data-dpg-cf-scenario]').evaluateAll(nodes=>nodes.every(node=>{
     const value=String(node.querySelector('h3')?.textContent||'').trim();
