@@ -14,7 +14,7 @@ let executablePath;
 for(const candidate of executableCandidates){if(await access(candidate).then(()=>true,()=>false)){executablePath=candidate;break;}}
 
 const routes=[
-  ['market','Governed Market Terminal'],
+  ['market','Market Pulse'],
   ['qelly-verify','Qelly Verify'],
   ['live-markets','Global Market Network'],
   ['formula-library','Formulas'],
@@ -45,7 +45,7 @@ const waitReady=async(expectedHash,expectedHeading)=>{
 
 try{
   await page.goto(`${baseUrl}/#/market`,{waitUntil:'domcontentloaded',timeout:30_000});
-  await waitReady('market','Governed Market Terminal');
+  await waitReady('market','Market Pulse');
   let previous=(await page.locator('main#main h1').first().textContent())?.trim()||'';
   for(const [route,expectedHeading] of routes.slice(1)){
     const started=Date.now();
