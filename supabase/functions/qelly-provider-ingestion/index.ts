@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js@2.112.4/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.4";
 import {shouldReuseEcbDailyCache} from "./cache-freshness.mjs";
+import {measureEcbAttempt} from "./measured-attempt.mjs";
 
 const ECB_HISTORY_URL="https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml";
 const ECB_DAILY_URL="https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml";
@@ -38,10 +39,10 @@ function parseDays(xml:string,minDays=1){
 
 async function fetchDays(url:string,timeoutMs:number,minDays:number){
   const upstream=await fetch(url,{headers:{accept:"application/xml,text/xml;q=0.9"},signal:AbortSignal.timeout(timeoutMs),cache:"no-store"});
-  if(!upstream.ok)throw new Error(`ECB HTTP ${upstream.status}`);
+  if(!upstream.ok)throw Object.assign(new Error(`ECB HTTP ${upstream.status}`),{httpStatus:upstream.status});
   const text=await upstream.text();
   if(text.length>5000000)throw new Error("ECB payload too large");
-  return parseDays(text,minDays);
+  return {days:parseDays(text,minDays),httpStatus:upstream.status};
 }
 
 Deno.serve(async(req)=>{
@@ -66,12 +67,13 @@ Deno.serve(async(req)=>{
   }
 
   const hadHistoryBackfill=cached?.payload?.history90dBackfilled===true;
-  const attempts:Array<{source:string;error?:string}>=[];
+  const attempts:Array<{source:string;error?:string;measurementPersisted:boolean}>=[];
   let history:RateDay[]|null=null;
   let sourceUrl="";
   const trySource=async(source:string,timeoutMs:number,minDays:number)=>{
-    try{const days=await fetchDays(source,timeoutMs,minDays);attempts.push({source});return days;}
-    catch(error){attempts.push({source,error:String((error as Error)?.message||error)});return null;}
+    const measured=await measureEcbAttempt({source,operation:()=>fetchDays(source,timeoutMs,minDays),persist:(row:any,signal:AbortSignal)=>admin.from("qelly_runtime_jobs").insert(row).abortSignal(signal)});
+    attempts.push({source,...(measured.error?{error:String(measured.error.message||measured.error)}:{}),measurementPersisted:measured.persisted});
+    return measured.days as RateDay[]|null;
   };
 
   if(hadHistoryBackfill){
