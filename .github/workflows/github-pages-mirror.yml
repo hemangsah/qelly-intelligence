@@ -104,7 +104,7 @@ jobs:
           ! grep -F 'Deterministic demo data · backend unavailable' dist/frontend/index.html
       - name: Configure GitHub Pages
         if: github.event_name != 'pull_request'
-        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - name: Upload governed terminal mirror
         if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
@@ -141,7 +141,7 @@ jobs:
           node-version: '22'
       - name: Deploy GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
       - name: Wait for canonical Cloudflare runtime SHA
         id: convergence
         env:
@@ -177,7 +177,7 @@ jobs:
           ! grep -F 'SIMULATED REFERENCE DATA' /tmp/qelly-mirror.html
       - name: Upload canonical convergence evidence
         if: always() && steps.convergence.outcome != 'skipped'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: qelly-pages-canonical-convergence-${{ github.sha }}
           path: dist/live-public-verification/http
