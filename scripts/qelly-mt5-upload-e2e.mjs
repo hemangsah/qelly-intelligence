@@ -82,6 +82,23 @@ async function scenario(browser,name,viewport){
       for(const appearance of ['light','dark'])entry.verifyThemeEvidence.push({width,...await verifyThemeSurfaces(page,appearance)});
     }
     await page.setViewportSize(viewport);
+    if(name==='desktop'){
+      const startedWorker=page.waitForEvent('worker',{timeout:10000});
+      await page.locator('[data-verify-file]').setInputFiles({name:'verify-background-large.html',mimeType:'text/html',buffer:Buffer.from(html(20000),'utf8')});
+      assert.match((await startedWorker).url(),/qelly-verify-analysis-worker.mjs$/);
+      const responsive=await page.evaluate(()=>new Promise(resolve=>{
+        const started=performance.now();let frames=0,pendingFrames=0;
+        const tick=()=>{frames++;if(document.querySelector('#main')?.getAttribute('aria-busy')==='true')pendingFrames++;if(performance.now()-started>=200)resolve({frames,pendingFrames});else requestAnimationFrame(tick);};requestAnimationFrame(tick);
+      }));
+      assert.ok(responsive.frames>=3,'Verify UI must keep rendering during background processing');
+      assert.ok(responsive.pendingFrames>=1,'Verify probe must observe active processing');
+      await page.locator('[data-verify-reset]').click();
+      await page.waitForTimeout(500);
+      assert.equal(await page.locator('.q-verify-report').count(),0);
+      assert.equal(await page.locator('[data-verify-export]').count(),0);
+      entry.verifyWorkerResponsiveness=responsive;
+      entry.checks.push('Verify uses its actual local worker; frame callbacks continue; in-flight clear rejects late report/export');
+    }
     await page.locator('[data-v53-verify-formula]').selectOption('compound-interest');
     await page.waitForFunction(()=>document.querySelector('.q-v53-verify-context-list')?.textContent.includes('compound-interest'));
     assert.match(await page.locator('.q-v53-verify-sensitivity').innerText(),/Base/);

@@ -59,7 +59,8 @@ test('report refuses incomplete analysis inputs',async()=>{
 test('product renders full report modules and public evidence methodology without network analysis',async()=>{
   const product=await read('apps/web/public/assets/qelly-verify-product.mjs');
   for(const phrase of ['Qelly Strategy Evidence Report','Executive evidence posture','Evidence coverage','Explicitly not assessed','Evidence provenance','Failure conditions','public evidence methodology','Every conclusion needs an evidence state'])assert.match(product,new RegExp(phrase,'i'));
-  assert.match(product,/composeStrategyEvidenceReport/);
+  assert.match(product,/createLocalVerifyTask/);
+  assert.match(await read('apps/web/public/assets/qelly-verify-local-analysis.mjs'),/composeStrategyEvidenceReport/);
   assert.match(product,/data-verify-print/);
   assert.match(product,/data-verify-export/);
   assert.doesNotMatch(product,/fetch\s*\(/);

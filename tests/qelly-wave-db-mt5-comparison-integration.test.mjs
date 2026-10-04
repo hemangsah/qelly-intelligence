@@ -4,10 +4,11 @@ import {readFile} from 'node:fs/promises';
 const load=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
 test('comparison accepts two independent local MT5 reports and leaves CSV intact',async()=>{
  const source=await load('apps/web/public/assets/qelly-verify-product.mjs');
- for(const marker of ['data-qelly-mt5-comparison','data-mt5-compare-file','data-mt5-compare-export','data-mt5-compare-reset','compareMt5ClosedDealReports(comparison.A.report,comparison.B.report)','renderMt5Comparison(compareMt5ClosedDealReports','parseMt5Html(bytes','parseMt5Xlsx(bytes','comparisonGeneration[slot]!==generation']){
+ for(const marker of ['data-qelly-mt5-comparison','data-mt5-compare-file','data-mt5-compare-export','data-mt5-compare-reset','compareMt5ClosedDealReports(comparison.A.report,comparison.B.report)','renderMt5Comparison(compareMt5ClosedDealReports','createLocalMt5Task({source:bytes','comparisonGeneration[slot]!==generation']){
   assert.ok(source.includes(marker),marker);
  }
- assert.match(source,/parseTradeCsv\(sourceText\)/);
+ const processor=await load('apps/web/public/assets/qelly-verify-local-analysis.mjs');
+ assert.match(processor,/parseTradeCsv\(sourceText\)/);
  assert.match(source,/renderMt5ClosedDealEvidence\(mt5Report\)/);
  assert.doesNotMatch(source,/window\.addEventListener\('hashchange'/);
  assert.match(source,/ensureComparisonStyles\(\)/);

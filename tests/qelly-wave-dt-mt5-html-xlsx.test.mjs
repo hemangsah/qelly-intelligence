@@ -99,8 +99,10 @@ test('Evidence fingerprints XLSX raw bytes and explicitly discloses incomplete n
 test('Verify file picker supports CSV/MT5 HTML/XLSX but keeps local-only boundary',async()=>{
   const source=await readFile(new URL('../apps/web/public/assets/qelly-verify-product.mjs',import.meta.url),'utf8');
   assert.match(source,/\.htm,\.html,\.xlsx/);
-  assert.match(source,/parseMt5Html\(sourceText/);
-  assert.match(source,/await parseMt5Xlsx\(sourceText/);
+  const processor=await readFile(new URL('../apps/web/public/assets/qelly-verify-local-analysis.mjs',import.meta.url),'utf8');
+  assert.match(processor,/parseMt5Html\(sourceText/);
+  assert.match(processor,/await parseMt5Xlsx\(sourceText/);
+  assert.match(source,/createLocalVerifyTask/);
   assert.match(source,/new Uint8Array\(await file\.arrayBuffer\(\)\)/);
   assert.doesNotMatch(source,/fetch\s*\(/);
   assert.doesNotMatch(source,/executeTrade|placeOrder|wallet\.sign/);

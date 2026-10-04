@@ -27,8 +27,11 @@ test('small MT5 reports yield descriptive evidence without invoking general heur
 });
 test('MT5 integration is conditional; CSV remains unchanged and no upload/network path is added',async()=>{
  const product=await read('apps/web/public/assets/qelly-verify-product.mjs');
- for(const marker of ["parsed.validation.mt5?analyzeMt5ClosedDeals","parsed.trades.length>=5&&parsed.trades.length<=5000","renderMt5ClosedDealEvidence(mt5Report)","mt5ClosedDealAnalysis:current.mt5Report","new URL('./qelly-mt5-visuals.css'"])assert.ok(product.includes(marker),marker);
- assert.match(product,/parseTradeCsv\(sourceText\)/);
+ const processor=await read('apps/web/public/assets/qelly-verify-local-analysis.mjs');
+ for(const marker of ["parsed.validation.mt5?analyzeMt5ClosedDeals","parsed.trades.length>=5&&parsed.trades.length<=5000"])assert.ok(processor.includes(marker),marker);
+ for(const marker of ["createLocalVerifyTask","renderMt5ClosedDealEvidence(mt5Report)","mt5ClosedDealAnalysis:current.mt5Report","new URL('./qelly-mt5-visuals.css'"])assert.ok(product.includes(marker),marker);
+ assert.match(processor,/parseTradeCsv\(sourceText\)/);
+ assert.doesNotMatch(processor,/fetch\(/);
  assert.doesNotMatch(product,/fetch\(/);
  assert.match(product,/data-qelly-mt5-evidence/);
 });
