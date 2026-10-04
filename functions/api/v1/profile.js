@@ -43,7 +43,7 @@ const verifiedIdentityDates=user=>Object.freeze({
   lastSignInAt:identityDate(user?.last_sign_in_at)
 });
 
-const profilePayload=(context,runtime={capabilities:{}},identities,observedIdentity={})=>({
+const profilePayload=(context,runtime={capabilities:{}},identities,observedIdentity={},avatarVerified=false)=>({
   user:{
     userId:context.user.userId,
     email:context.user.email,
@@ -73,6 +73,7 @@ const profilePayload=(context,runtime={capabilities:{}},identities,observedIdent
     workspacePersistence:'cloud-rls',
     cloudSync:runtime?.capabilities?.cloudSync===true,
     globalSignOut:true,
+    avatarStorage:avatarVerified===true?'private-rls':'unavailable',
     execution:false
   }
 });
@@ -88,7 +89,7 @@ export async function onRequest(context){
 
     if(method==='GET'){
       const qelly=await bootstrapContext(env,session);
-      return responseJson(request,env,profilePayload(qelly,runtime,session.user?.identities,verifiedIdentityDates(session.user)),200,{cookies:session.cookies,cache:'private, no-store'});
+      return responseJson(request,env,profilePayload(qelly,runtime,session.user?.identities,verifiedIdentityDates(session.user),env.QELLY_PRIVATE_AVATARS_VERIFIED==='true'),200,{cookies:session.cookies,cache:'private, no-store'});
     }
 
     await requireCsrf(request);
@@ -109,7 +110,7 @@ export async function onRequest(context){
     });
     if(!rows?.length)throw new HttpError(404,'profile_not_found','Profile was not found');
     const qelly=await bootstrapContext(env,session);
-    return responseJson(request,env,{updated:true,...profilePayload(qelly,runtime,session.user?.identities,verifiedIdentityDates(session.user))},200,{cookies:session.cookies,cache:'private, no-store'});
+    return responseJson(request,env,{updated:true,...profilePayload(qelly,runtime,session.user?.identities,verifiedIdentityDates(session.user),env.QELLY_PRIVATE_AVATARS_VERIFIED==='true')},200,{cookies:session.cookies,cache:'private, no-store'});
   }catch(error){return errorResponse(request,env,error);}
 }
 

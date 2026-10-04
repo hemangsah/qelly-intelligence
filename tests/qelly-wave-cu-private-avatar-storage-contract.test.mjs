@@ -28,7 +28,9 @@ test('authenticated own-identity RLS strictly constrains every avatar Storage op
 });
 test('storage foundation cannot silently enable a UI or persist uploaded MT5 data',async()=>{
  const ui=await readFile(new URL('../apps/web/public/assets/routes/account-session.mjs',import.meta.url),'utf8');
- assert.doesNotMatch(ui,/data-avatar-upload|data-avatar-remove|\/api\/v1\/profile\/avatar/);
+ assert.match(ui,/avatarSupported=profileCapabilities\.avatarStorage==='private-rls'/);
+ assert.match(ui,/avatarEditorMarkup=avatarSupported\?/);
+ assert.match(ui,/if\(avatarSupported\)installPrivateAvatarControls/);
  assert.doesNotMatch(sql,/mt5-report|qelly_private_mt5_reports|create policy.+mt5/i);
  assert.match(sql,/Foundation only/);
 });

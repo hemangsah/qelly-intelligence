@@ -23,7 +23,7 @@ test('only authenticated provider metadata is surfaced; never identities or OAut
 test('provider identity visibility remains authenticated-only and never writes raw provider payloads',async()=>{
  const src=await read('functions/api/v1/profile.js');
  assert.match(src,/resolveSession\(request,env,\{required:true\}\)/);
- assert.match(src,/profilePayload\(qelly,runtime,session\.user\?\.identities,verifiedIdentityDates\(session\.user\)\)/);
+ assert.match(src,/profilePayload\(qelly,runtime,session\.user\?\.identities,verifiedIdentityDates\(session\.user\),env\.QELLY_PRIVATE_AVATARS_VERIFIED==='true'\)/);
  assert.match(src,/cache:'private, no-store'/);
  assert.doesNotMatch(src,/\.provider_token|\.identity_data|SUPABASE_SERVICE_ROLE_KEY/);
 });
