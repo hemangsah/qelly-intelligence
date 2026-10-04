@@ -93,14 +93,14 @@ jobs:
           test -s dist/frontend/assets/routes/notification-triage-v2.css
           test -s dist/frontend/assets/routes/screener-lab-v2.css
           grep -F "renderGovernedTrustCenterV2" dist/frontend/assets/app.js
+      - name: Verify global chat keyboard focus and mobile containment
+        run: node scripts/qelly-chat-keyboard-e2e.mjs
       - name: Validate cold and warm first-paint stability
         run: node scripts/qelly-first-paint-stability.mjs
       - name: Capture every registered route in both themes at desktop and mobile widths
         run: npm run browser:all
       - name: Verify local MT5 HTML and XLSX upload interactions
         run: node scripts/qelly-mt5-upload-e2e.mjs
-      - name: Verify global chat keyboard focus and mobile containment
-        run: node scripts/qelly-chat-keyboard-e2e.mjs
       - name: Validate accessibility and responsive interaction contracts
         run: |
           npm run a11y

@@ -12,8 +12,9 @@ try{
   for(const route of ['mt5-report-analyzer','decision-provenance','news-research']){
     for(const width of [1440,390])for(const appearance of ['dark','light']){
       const context=await browser.newContext({viewport:{width,height:900},colorScheme:appearance,reducedMotion:'reduce',serviceWorkers:'block'});
-      await context.addInitScript(value=>localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({appearance:value,contrast:'standard',density:'comfortable',chartStyle:'institutional',accent:'rose',fontScale:1,motion:'reduced'})),appearance);
-      const page=await context.newPage();let posts=0;
+      await context.addInitScript(value=>localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({version:2,appearance:value})),appearance);
+      const page=await context.newPage();let posts=0;const pageErrors=[];
+      page.on('pageerror',error=>pageErrors.push(error.message));
       await context.route('**/api/v1/user/layout-preferences',async route=>{
         if(route.request().method()!=='GET')return route.continue();
         const response=await route.fetch();const preferences=await response.json();
@@ -24,10 +25,13 @@ try{
         await page.goto(`http://127.0.0.1:${server.port}/#/${route}`,{waitUntil:'domcontentloaded'});
         await page.locator('main#main h1').waitFor({state:'visible',timeout:30000});
         await page.locator('[data-q-ai-launcher]').waitFor({state:'attached'});
-        await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
-        await page.evaluate(()=>{const fixture=document.createElement('button');fixture.id='chat-preexisting-inert-fixture';fixture.inert=true;fixture.textContent='Inert fixture';document.body.append(fixture);});
         const trigger=page.locator('[data-v8-appearance]');
         await trigger.waitFor({state:'visible'});
+        if(await page.locator('html').getAttribute('data-resolved-appearance')!==appearance){
+          await page.getByRole('button',{name:'Switch to '+appearance+' appearance',exact:true}).click();
+        }
+        await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
+        await page.evaluate(()=>{const fixture=document.createElement('button');fixture.id='chat-preexisting-inert-fixture';fixture.inert=true;fixture.textContent='Inert fixture';document.body.append(fixture);});
         await page.evaluate(()=>{const modal=document.createElement('dialog');modal.id='chat-native-modal-fixture';modal.innerHTML='<button>Native modal fixture</button>';document.body.append(modal);modal.showModal();});
         await page.locator('#chat-native-modal-fixture button').focus();
         await page.keyboard.press('Control+/');
@@ -69,7 +73,8 @@ try{
         assert.equal(posts,0,'Keyboard checks must send no chat messages');
         results.push({route,width,appearance,status:'passed',posts});
       }catch(error){
-        results.push({route,width,appearance,status:'failed',error:String(error.message)});
+        const diagnostic={route,width,appearance,status:'failed',error:String(error.message),pageErrors,resolvedAppearance:await page.locator('html').getAttribute('data-resolved-appearance')};
+        results.push(diagnostic);console.error(JSON.stringify(diagnostic));
         await page.screenshot({path:`${out}/${route}-${width}-${appearance}-failed.png`,fullPage:true}).catch(()=>{});
         throw error;
       }finally{await context.close();}
