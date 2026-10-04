@@ -43,4 +43,3 @@ test('Wave BP keeps the full Browser E2E and accessibility pipeline intact',asyn
   assert.match(workflow,/Validate accessibility and responsive interaction contracts/);
   assert.match(workflow,/Verify screenshot and archive contract/);
 });
-
