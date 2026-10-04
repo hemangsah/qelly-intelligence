@@ -37,6 +37,7 @@ export async function renderAccountSession(main,{api,pageHead,escapeHtml,toast,o
    '<label class="q-v6-avatar-zoom">Zoom <input data-avatar-zoom type="range" min="1" max="2.5" step="0.05" value="1"></label><div class="q-v6-avatar-editor-buttons"><button type="button" class="q-button q-button--primary" data-avatar-save>Save private photo</button><button type="button" class="q-button q-button--secondary" data-avatar-cancel>Cancel</button></div></div>',
    '<p class="q-v6-avatar-status" data-avatar-status role="status" aria-live="polite">Checking private photo storage…</p></div></section>'
   ].join(''):'';
+  const globalSignOutAvailable=profileCapabilities.globalSignOut===true;
   const cloudProfile=profileCapabilities.profilePersistence==='cloud-rls';
   const cloudSyncAvailable=cloudProfile&&profileCapabilities.cloudSync===true;
   const cloudSyncCopy=cloudSyncAvailable
@@ -74,8 +75,8 @@ export async function renderAccountSession(main,{api,pageHead,escapeHtml,toast,o
       </div>
     </section>
     <div class="q-two-column q-v6-account-lower">
-      <section class="q-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Current browser session</p><h2>Session controls</h2><p>This page shows this browser only; it is not a complete multi-device session inventory.</p></div><span class="q-status q-status--${current?'live':'cached'}">${current?'Current':'Checking'}</span></div><div class="q-panel-body"><div class="q-v6-security-list">${current?`<div class="q-v6-security-row"><span>Browser</span><strong>Current signed-in browser</strong></div><div class="q-v6-security-row"><span>Sign-in method</span><strong>${escapeHtml(authenticationMethodLabel(current.authenticationMethod))}</strong></div><div class="q-v6-security-row"><span>Session expiry</span><strong>${escapeHtml(date(current.expiresAt))}</strong></div>`:'<div class="q-empty-state"><strong>Session details are refreshing</strong><p>You can continue using Qelly or refresh this session.</p></div>'}</div><div class="q-v6-account-actions"><button class="q-button q-button--secondary" data-refresh>Refresh this session</button><a class="q-button q-button--secondary" href="#/account-recovery">Account recovery</a><button class="q-button q-button--primary" data-logout>Sign out this browser</button></div></div></section>
-      <section class="q-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Account protection</p><h2>Security tools</h2><p>Clear controls for what is available today and what is coming next.</p></div><span class="q-status q-status--live">Protected</span></div><div class="q-panel-body q-v6-capability-grid"><article class="q-v6-capability-card"><div class="q-v6-capability-icon">01</div><strong>Password recovery</strong><small>Request a secure recovery email whenever you need it.</small><span class="q-status q-status--live">Available</span></article><article class="q-v6-capability-card"><div class="q-v6-capability-icon">02</div><strong>Multi-factor authentication</strong><small>${mfaReady?'Set up or review additional sign-in verification.':'Not available in this workspace yet.'}</small><span class="q-status q-status--${mfaReady?'live':'cached'}">${mfaReady?'Available':'Coming soon'}</span>${mfaReady?'<a class="q-v6-security-action" href="#/security-setup">Security setup</a>':''}</article><article class="q-v6-capability-card"><div class="q-v6-capability-icon">03</div><strong>Other devices</strong><small>Reviewing and signing out other devices is being prepared.</small><span class="q-status q-status--cached">Coming soon</span></article><article class="q-v6-capability-card"><div class="q-v6-capability-icon">04</div><strong>Profile protection</strong><small>Your account controls who can access this profile and workspace.</small><span class="q-status q-status--live">Active</span></article><article class="q-v6-capability-card"><div class="q-v6-capability-icon">05</div><strong>Passkeys</strong><small>${passkeysReady?'Manage passwordless authentication for this account.':'Not available in this workspace yet.'}</small><span class="q-status q-status--${passkeysReady?'live':'cached'}">${passkeysReady?'Available':'Coming soon'}</span>${passkeysReady?'<a class="q-v6-security-action" href="#/passkey-center">Manage passkeys</a>':''}</article></div></section>
+      <section class="q-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Current browser session</p><h2>Session controls</h2><p>This page shows this browser only; it is not a complete multi-device session inventory.</p></div><span class="q-status q-status--${current?'live':'cached'}">${current?'Current':'Checking'}</span></div><div class="q-panel-body"><div class="q-v6-security-list">${current?`<div class="q-v6-security-row"><span>Browser</span><strong>Current signed-in browser</strong></div><div class="q-v6-security-row"><span>Sign-in method</span><strong>${escapeHtml(authenticationMethodLabel(current.authenticationMethod))}</strong></div><div class="q-v6-security-row"><span>Session expiry</span><strong>${escapeHtml(date(current.expiresAt))}</strong></div>`:'<div class="q-empty-state"><strong>Session details are refreshing</strong><p>You can continue using Qelly or refresh this session.</p></div>'}</div><div class="q-v6-account-actions"><button class="q-button q-button--secondary" data-refresh>Refresh this session</button><a class="q-button q-button--secondary" href="#/account-recovery">Account recovery</a><button class="q-button q-button--primary" data-logout>Sign out this browser</button>${globalSignOutAvailable?`<button class="q-button q-button--secondary" type="button" data-logout-all-show aria-expanded="false" aria-controls="q-v6-signout-all-confirm">Sign out all devices</button>`:""}</div>${globalSignOutAvailable?`<div class="q-v6-signout-all-confirm" id="q-v6-signout-all-confirm" data-logout-all-confirm role="group" aria-label="Confirm sign out all devices" hidden><p>Signing out everywhere revokes refresh tokens for your account. Already-issued access tokens can remain valid until they expire. You will need to sign in again on this browser.</p><div><button type="button" class="q-button q-button--primary" data-logout-all-confirm-button>Confirm sign out all devices</button><button type="button" class="q-button q-button--secondary" data-logout-all-cancel>Cancel</button></div></div>`:""}</div></section>
+      <section class="q-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Account protection</p><h2>Security tools</h2><p>Clear controls for what is available today and what is coming next.</p></div><span class="q-status q-status--live">Protected</span></div><div class="q-panel-body q-v6-capability-grid"><article class="q-v6-capability-card"><div class="q-v6-capability-icon">01</div><strong>Password recovery</strong><small>Request a secure recovery email whenever you need it.</small><span class="q-status q-status--live">Available</span></article><article class="q-v6-capability-card"><div class="q-v6-capability-icon">02</div><strong>Multi-factor authentication</strong><small>${mfaReady?'Set up or review additional sign-in verification.':'Not available in this workspace yet.'}</small><span class="q-status q-status--${mfaReady?'live':'cached'}">${mfaReady?'Available':'Coming soon'}</span>${mfaReady?'<a class="q-v6-security-action" href="#/security-setup">Security setup</a>':''}</article><article class="q-v6-capability-card"><div class="q-v6-capability-icon">03</div><strong>Other devices</strong><small>${globalSignOutAvailable?'Sign out all devices revokes refresh sessions. A full device inventory is not available.':'Managing other-device sessions is not available in this workspace.'}</small><span class="q-status q-status--cached">${globalSignOutAvailable?'Global sign-out':'Coming soon'}</span></article><article class="q-v6-capability-card"><div class="q-v6-capability-icon">04</div><strong>Profile protection</strong><small>Your account controls who can access this profile and workspace.</small><span class="q-status q-status--live">Active</span></article><article class="q-v6-capability-card"><div class="q-v6-capability-icon">05</div><strong>Passkeys</strong><small>${passkeysReady?'Manage passwordless authentication for this account.':'Not available in this workspace yet.'}</small><span class="q-status q-status--${passkeysReady?'live':'cached'}">${passkeysReady?'Available':'Coming soon'}</span>${passkeysReady?'<a class="q-v6-security-action" href="#/passkey-center">Manage passkeys</a>':''}</article></div></section>
     </div>
   </section>`;
 
@@ -85,6 +86,37 @@ export async function renderAccountSession(main,{api,pageHead,escapeHtml,toast,o
   form.addEventListener('submit',(event)=>{event.preventDefault();void save();});
   main.querySelectorAll('[data-save-profile]').forEach((button)=>button.addEventListener('click',()=>void save()));
   main.querySelector('[data-reset-profile]')?.addEventListener('click',()=>form.reset());
-  main.querySelectorAll('[data-logout]').forEach((button)=>button.addEventListener('click',async()=>{try{await api('/api/v1/auth/logout',{method:'POST',body:'{}'});toast('Signed out from this browser',{tone:'success'});await onLoggedOut();}catch(error){toast(error.message,{tone:'danger'});}}));
+  main.querySelectorAll('[data-logout]').forEach((button)=>button.addEventListener('click',async()=>{
+    try{
+      const result=await api('/api/v1/auth/logout',{method:'POST',body:'{}'});
+      if(result.remoteRevocation==='unverified')toast('Signed out here; remote session revocation could not be verified',{tone:'warning'});
+      else toast('Signed out from this browser',{tone:'success'});
+      await onLoggedOut();
+    }catch(error){toast(error.message,{tone:'danger'});}
+  }));
+  if(globalSignOutAvailable){
+    const trigger=main.querySelector('[data-logout-all-show]');
+    const panel=main.querySelector('[data-logout-all-confirm]');
+    const confirm=main.querySelector('[data-logout-all-confirm-button]');
+    const cancel=main.querySelector('[data-logout-all-cancel]');
+    trigger?.addEventListener('click',()=>{
+      panel.hidden=false;trigger.setAttribute('aria-expanded','true');confirm.focus();
+    });
+    cancel?.addEventListener('click',()=>{
+      panel.hidden=true;trigger.setAttribute('aria-expanded','false');trigger.focus();
+    });
+    confirm?.addEventListener('click',async()=>{
+      confirm.disabled=true;cancel.disabled=true;
+      try{
+        const result=await api('/api/v1/auth/logout-all',{method:'POST',body:'{}'});
+        if(result.remoteRevocation!=='confirmed')throw new Error('Global session revocation could not be verified.');
+        toast('Refresh sessions revoked on all devices. Existing access tokens may remain valid until expiry.',{tone:'success'});
+        await onLoggedOut();
+      }catch(error){
+        toast(error.message||'Global sign-out could not be completed. Please retry.',{tone:'danger'});
+        confirm.disabled=false;cancel.disabled=false;
+      }
+    });
+  }
   main.querySelectorAll('[data-refresh]').forEach((button)=>button.addEventListener('click',async()=>{try{await api('/api/v1/auth/refresh',{method:'POST',body:'{}'});toast('Current browser session refreshed',{tone:'success'});await onAuthenticated('account-session');}catch(error){toast(error.message,{tone:'danger'});}}));
 }

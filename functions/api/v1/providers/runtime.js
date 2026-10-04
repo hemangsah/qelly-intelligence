@@ -10,11 +10,17 @@ const legacyProviderItem=(provider,runtime)=>{
     status:enabled?'enabled':'disabled',
     selectionRole:enabled?(reference?'reference':'market-data'):'rights-blocked',
     capabilities:[...(provider.capabilities||[])],
-    breaker:{state:enabled?'closed':'disabled'},
+    breaker:{state:enabled?'not-observed':'disabled',failureCount:null},
     quality:{
-      score:enabled?100:0,
-      latencyMs:'n/a ',
-      freshnessClass:enabled?(reference?'daily-reference':'provider-defined'):'unavailable'
+      score:null,
+      latencyMs:null,
+      failureCount:null,
+      quotaRemaining:null,
+      lastSuccessAt:null,
+      observedAt:null,
+      status:enabled?'UNMEASURED':'NOT_CALLED',
+      freshnessClass:enabled?(reference?'daily-reference-schedule-not-verified':'provider-defined-not-measured'):'unavailable',
+      boundary:'Policy inventory only. This endpoint has not probed availability, latency, quotas, request failures or source freshness.'
     },
     termsState:provider.termsState||null,
     reason:provider.reason||null,
@@ -33,7 +39,9 @@ const runtimeProviderInventory=(runtime)=>{
     termsState:provider.termsState||null,
     reason:provider.reason||null,
     termsUrl:provider.termsUrl||null,
-    runtimeState:provider.enabled&&runtime.capabilities.liveProviders?(provider.id==='ecb'?'REFERENCE_ENABLED':'ENABLED'):'UNAVAILABLE'
+    runtimeState:provider.enabled&&runtime.capabilities.liveProviders?(provider.id==='ecb'?'REFERENCE_ENABLED':'ENABLED'):'UNAVAILABLE',
+    healthState:provider.enabled&&runtime.capabilities.liveProviders?'UNMEASURED':'NOT_CALLED',
+    observedAt:null
   }));
   return {
     generatedAt:new Date().toISOString(),
@@ -44,7 +52,7 @@ const runtimeProviderInventory=(runtime)=>{
     liveProviderFeatureEnabled:Boolean(runtime.capabilities.liveProviders),
     providers,
     items:providerCatalog().map((provider)=>legacyProviderItem(provider,runtime)),
-    guardrails:{readOnly:true,execution:false,credentialsExposed:false,policyDisabledProvidersAreNotCalled:true}
+    guardrails:{readOnly:true,execution:false,credentialsExposed:false,policyDisabledProvidersAreNotCalled:true,healthMetricsAreMeasured:false,providerProbesPerformed:false}
   };
 };
 

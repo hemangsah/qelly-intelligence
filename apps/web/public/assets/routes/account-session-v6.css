@@ -48,3 +48,11 @@
 .q-v6-avatar-status{font-size:13px;line-height:1.6;min-height:21px;color:var(--q-text-muted,#a8acb6);margin:0}
 @media(max-width:660px){.q-v6-avatar-panel .q-panel-head{padding:16px 16px 4px}.q-v6-avatar-workspace{padding:10px 16px 18px}.q-v6-avatar-editor{grid-template-columns:minmax(0,1fr)}.q-v6-avatar-editor canvas{grid-row:auto;max-width:256px}.q-v6-avatar-editor-buttons .q-button{min-height:44px}}
 @media(prefers-reduced-motion:reduce){.q-v6-avatar-panel *{animation:none!important;transition:none!important}}
+/* Wave CT: deliberate global sign-out confirmation with accessible focus and no false session inventory. */
+.q-v6-signout-all-confirm{display:grid;gap:12px;margin-top:18px;padding:16px;border:1px solid var(--border,rgba(255,255,255,.19));border-radius:14px;background:var(--surface-elevated,rgba(255,255,255,.055))}
+.q-v6-signout-all-confirm[hidden]{display:none!important}
+.q-v6-signout-all-confirm p{margin:0;font-size:13px;line-height:1.6;color:var(--q-text-muted,#a8acb6)}
+.q-v6-signout-all-confirm>div{display:flex;flex-wrap:wrap;gap:10px}
+.q-v6-signout-all-confirm .q-button{min-height:44px}
+.q-v6-signout-all-confirm .q-button:focus-visible{outline:3px solid var(--q-accent,#9eb9fc);outline-offset:3px}
+@media(max-width:560px){.q-v6-signout-all-confirm>div .q-button{width:100%}}

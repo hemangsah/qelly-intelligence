@@ -97,7 +97,7 @@ const truthLabel=(value)=>({
 
 const conversationalReply=(message)=>{
   const normalized=String(message??'').trim().toLowerCase().replace(/[.!?]+$/g,'').trim();
-  if(/^(hi|hello|hey|hiya|good morning|good afternoon|good evening)$/.test(normalized))return 'Hi — I’m Qelly Intelligence AI. I can help you explore markets, compare assets and economies, explain financial concepts, run registered calculators, and inspect the sources behind data-backed answers. What would you like to research?';
+  if(/^(hi|hello|hey|hiya|good morning|good afternoon|good evening)$/.test(normalized))return 'Hi! What would you like to explore?';
   if(/^(who are you|what are you|what is qelly|tell me about yourself)$/.test(normalized))return 'I’m Qelly Intelligence AI, the evidence-first research assistant for Qelly Intelligence. I use connected, source-labelled datasets and bounded QELLY tools, and I disclose delayed, display-only, restricted or unavailable coverage.';
   if(/^(thanks|thank you|thankyou|cheers)$/.test(normalized))return 'You’re welcome. I’m ready to research, compare, explain, calculate with registered tools, review Decision Intelligence, or inspect an Asset Dossier.';
   return null;
@@ -177,6 +177,10 @@ const normalizeDockContext=(value={})=>{
   });
 };
 
+export function dockOverlapsControls(dock,controls=[]){
+  return controls.some(box=>box.width>0&&box.height>0&&box.left<dock.right&&box.right>dock.left&&box.top<dock.bottom&&box.bottom>dock.top);
+}
+
 export function installQellyChat({api,navigate,toast,staticVisualPreview=false}={}){
   if(document.querySelector('[data-q-ai-launcher]'))return;
   const root=document.createElement('div');root.className='q-ai-root';root.innerHTML=shellMarkup();document.body.append(root);
@@ -191,7 +195,29 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
     if(titleNode)titleNode.textContent=dockContext.actionLabel;
     if(metaNode)metaNode.textContent=dockContext.meta;
   };
-  const syncLauncherRoute=()=>{root.dataset.clearance='clear';renderDockContext();};
+  let chartClearance=false,clearanceFrame=null;
+  const syncClearance=()=>{
+    clearanceFrame=null;
+    const box=launcher.getBoundingClientRect();
+    const bottom=Number.parseFloat(getComputedStyle(launcher).bottom)||0;
+    const dock={left:(innerWidth-box.width)/2,right:(innerWidth+box.width)/2,top:innerHeight-bottom-box.height,bottom:innerHeight-bottom};
+    const controls=[...document.querySelectorAll('#main :is(button,a,input,select,textarea,label),[role="dialog"]')].filter(node=>{
+      const style=getComputedStyle(node);
+      return style.visibility!=='hidden'&&style.display!=='none';
+    }).map(node=>node.getBoundingClientRect());
+    const blocked=chartClearance||dockOverlapsControls(dock,controls);
+    root.dataset.clearance=chartClearance?'chart':blocked?'interactive':'clear';
+    launcher.tabIndex=blocked?-1:0;
+    launcher.setAttribute('aria-hidden',String(blocked));
+  };
+  const scheduleClearance=()=>{if(clearanceFrame===null)clearanceFrame=requestAnimationFrame(syncClearance);};
+  const syncLauncherRoute=()=>{chartClearance=false;renderDockContext();scheduleClearance();};
+  document.addEventListener('scroll',scheduleClearance,{passive:true,capture:true});
+  window.addEventListener('resize',scheduleClearance,{passive:true});
+  document.addEventListener('focusin',scheduleClearance);
+  const clearanceObserver=new MutationObserver(scheduleClearance);
+  clearanceObserver.observe(document.getElementById('main')||document.body,{childList:true,subtree:true});
+  scheduleClearance();
   renderDockContext();
   const form=root.querySelector('[data-q-ai-form]'),input=form.querySelector('textarea'),send=root.querySelector('[data-q-ai-send]'),stop=root.querySelector('[data-q-ai-stop]');
   const thread=root.querySelector('[data-q-ai-thread]'),suggestionsNode=root.querySelector('[data-q-ai-suggestions]');
@@ -336,7 +362,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
   datasetButton.addEventListener('click',()=>{const expanded=datasetButton.getAttribute('aria-expanded')!=='true';datasetButton.setAttribute('aria-expanded',String(expanded));datasetPanel.hidden=!expanded;});
   document.addEventListener('qelly:open-ai',event=>open(event.detail?.prompt||'',event.detail?.mode||'',event.detail?.expand===true,{asset:event.detail?.asset||asset,timeframe:event.detail?.timeframe||timeframe,decisionContext:event.detail?.decisionContext??null}));
   document.addEventListener('qelly:chat-context',event=>{dockContext=normalizeDockContext(event.detail||{});globalThis.__QELLY_CHAT_CONTEXT__=dockContext;renderDockContext();});
-  document.addEventListener('qelly:chat-clearance',event=>{root.dataset.clearance=event.detail?.state==='chart'?'chart':'clear';});
+  document.addEventListener('qelly:chat-clearance',event=>{chartClearance=event.detail?.state==='chart';scheduleClearance();});
   window.addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&event.key==='/'){event.preventDefault();panel.hidden?open():close();}if(event.key==='Escape'&&!panel.hidden)close();});
   window.addEventListener('hashchange',syncLauncherRoute);
   renderSuggestions();applyContext({mode,asset,timeframe});render();
