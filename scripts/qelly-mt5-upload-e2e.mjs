@@ -220,6 +220,25 @@ async function scenario(browser,name,viewport){
     // import, read-only export, memory cleanup and HTML inertness.
     await page.evaluate(()=>{location.hash='#/mt5-report-analyzer';});
     await page.locator('[data-mt5-route-input="A"]').waitFor({state:'attached',timeout:30000});
+    for(const appearance of ['light','dark']){
+      const switcher=page.getByRole('button',{name:'Switch to '+appearance+' appearance',exact:true});
+      if(await switcher.count())await switcher.click();
+      await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
+      const links=await page.locator('.q-mt5-route-links a').evaluateAll(nodes=>nodes.map(node=>{
+        const rgba=value=>value.match(/[\d.]+/g).map(Number);
+        const lum=value=>value.slice(0,3).map(x=>{x/=255;return x<=.04045?x/12.92:((x+.055)/1.055)**2.4;}).reduce((sum,x,i)=>sum+x*[.2126,.7152,.0722][i],0);
+        let parent=node,background;
+        while(parent){const value=rgba(getComputedStyle(parent).backgroundColor);if((value[3]??1)===1){background=value;break;}parent=parent.parentElement;}
+        if(!background)throw new Error('No opaque MT5 link background');
+        const fg=lum(rgba(getComputedStyle(node).color)),bg=lum(background);
+        return {text:node.textContent,ratio:(Math.max(fg,bg)+.05)/(Math.min(fg,bg)+.05)};
+      }));
+      assert.equal(links.length,2,'both MT5 companion navigation links are required');
+      for(const link of links)assert.ok(link.ratio>=4.5,appearance+' MT5 link '+link.text+' contrast '+link.ratio);
+      entry.checks.push({check:'MT5 header link readability',appearance,minimumContrast:Math.min(...links.map(link=>link.ratio))});
+      await page.screenshot({path:path.join(out,name+'-standalone-links-'+appearance+'.png'),fullPage:true});
+    }
+
     if(name==='desktop'){
       const large=Buffer.from(html(20000));assert.ok(large.length<5*1024*1024);
       const workerStarted=page.waitForEvent('worker',{timeout:15000});

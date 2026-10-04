@@ -106,6 +106,7 @@ jobs:
           python -X utf8 scripts/release-a5-screen-package.py
       - name: Verify screenshot and archive contract
         run: |
+          node scripts/qelly-screen-package-integrity.mjs
           node --input-type=module <<'NODE'
           import {readFile,readdir,stat} from 'node:fs/promises';
           import {routeDefinitions} from './apps/web/public/assets/route-registry.mjs';
@@ -129,6 +130,7 @@ jobs:
             &&manifest.renderCount===expectedRenders&&manifest.expectedRenderCount===expectedRenders
             &&pngs.length===expectedRenders&&manifest.failed===0&&manifest.missing.length===0
             &&accessibility.status==='passed'&&accessibility.checks>0
+            &&validateScreenThemeMatrix({...accessibility,renders:accessibility.results,renderCount:accessibility.checks,expectedRenderCount:accessibility.expectedChecks},routeDefinitions).passed
             &&archives.length===1&&archives[0]===exactArchive&&archiveSize>0;
           console.log(JSON.stringify({expectedRoutes,expectedRenders,routeCount:manifest.routeCount,renderCount:manifest.renderCount,pngs:pngs.length,accessibilityChecks:accessibility.checks,accessibilityStatus:accessibility.status,archives,archiveSize,status:manifest.status},null,2));
           if(!ok)process.exit(1);

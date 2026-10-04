@@ -18,7 +18,11 @@ export function validateScreenThemeMatrix(manifest, definitions) {
 }
 if(process.argv[1]&&pathToFileURL(process.argv[1]).href===import.meta.url){
   const {routeDefinitions}=await import('../apps/web/public/assets/route-registry.mjs');
-  const result=validateScreenThemeMatrix(JSON.parse(await readFile('preview/release-a5-all-screens/manifest.json','utf8')),routeDefinitions);
+  const accessibility=process.argv[2]==='accessibility';
+  const file=accessibility?'preview/release-a5-all-screens/accessibility-regression.json':'preview/release-a5-all-screens/manifest.json';
+  const manifest=JSON.parse(await readFile(file,'utf8'));
+  const matrix=accessibility?{...manifest,renders:manifest.results,renderCount:manifest.checks,expectedRenderCount:manifest.expectedChecks}:manifest;
+  const result=validateScreenThemeMatrix(matrix,routeDefinitions);
   console.log(JSON.stringify(result,null,2));
   if(!result.passed)process.exitCode=1;
 }
