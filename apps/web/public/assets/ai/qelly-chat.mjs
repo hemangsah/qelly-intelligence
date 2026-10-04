@@ -149,7 +149,7 @@ function shellMarkup(){
     <div class="q-ai-contextbar" aria-label="Qelly research context"><label><span>Asset</span><select data-q-ai-asset>${CHAT_ASSETS.map(item=>`<option value="${item}">${item}</option>`).join('')}</select></label><label><span>Timeframe</span><select data-q-ai-timeframe>${CHAT_TIMEFRAMES.map(item=>`<option value="${item}" ${item==='15m'?'selected':''}>${item}</option>`).join('')}</select></label><label data-q-ai-calculator-field hidden><span>Calculator</span><select data-q-ai-calculator>${CHAT_CALCULATORS.map(([id,label])=>`<option value="${id}">${label}</option>`).join('')}</select></label></div>
     <div class="q-ai-thread" data-q-ai-thread aria-live="polite" aria-relevant="additions text"></div>
     <div class="q-ai-suggestions" data-q-ai-suggestions></div>
-    <form class="q-ai-composer" data-q-ai-form><label><span class="q-visually-hidden">Ask Qelly a finance question</span><textarea name="message" rows="1" maxlength="2400" placeholder="Ask about markets, evidence, risk or QELLY tools…" aria-describedby="q-ai-composer-help" required></textarea><span class="q-visually-hidden" id="q-ai-composer-help">Enter sends your question. Shift plus Enter inserts a new line. Escape closes the non-modal assistant.</span></label><button type="button" data-q-ai-stop hidden><span>Stop</span><b aria-hidden="true">■</b></button><button type="submit" data-q-ai-send><span>Send</span><b aria-hidden="true">↑</b></button></form>
+    <form class="q-ai-composer" data-q-ai-form><label><span class="q-visually-hidden">Ask Qelly a finance question</span><textarea name="message" rows="1" maxlength="2400" placeholder="Ask about markets, evidence, risk or QELLY tools…" aria-describedby="q-ai-composer-help" required></textarea><span class="q-visually-hidden" id="q-ai-composer-help">Enter sends your question. Shift plus Enter inserts a new line. Escape closes the assistant.</span></label><button type="button" data-q-ai-stop hidden><span>Stop</span><b aria-hidden="true">■</b></button><button type="submit" data-q-ai-send><span>Send</span><b aria-hidden="true">↑</b></button></form>
     <footer><span>Connected evidence + QELLY tool receipts + model inference</span><div><button type="button" data-q-ai-export>Export</button><button type="button" data-q-ai-clear>Clear</button></div><small>Research only · no trade execution · unvalidated streaming disabled</small></footer>
   </aside>`;
 }
@@ -294,13 +294,59 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
     suggestionsNode.querySelectorAll('[data-q-ai-suggestion]').forEach(button=>button.addEventListener('click',()=>submit(button.dataset.qAiSuggestion)));
   }
 
-  const setOpen=(open)=>{panel.hidden=!open;launcher.setAttribute('aria-expanded',String(open));launcher.classList.toggle('is-hidden',open);document.documentElement.classList.toggle('q-ai-open',open&&matchMedia('(max-width:640px)').matches);document.dispatchEvent(new CustomEvent('qelly:chat-open-state',{detail:{open}}));if(open)setTimeout(()=>input.focus(),50);};
+  const mobileChat=matchMedia('(max-width:640px)');
+  const inertedByChat=new Set();
+  let returnFocus=null,focusTimer=null;
+  const focusChat=()=>{(input.disabled?closeButton:input).focus();};
+  const focusable=node=>node?.isConnected&&!node.closest('[inert],[hidden],[aria-hidden="true"]')&&!node.disabled&&node.getClientRects().length>0&&getComputedStyle(node).visibility!=='hidden';
+  const syncChatBoundary=()=>{
+    const modal=!panel.hidden&&mobileChat.matches;
+    panel.setAttribute('aria-modal',String(modal));
+    document.documentElement.classList.toggle('q-ai-open',modal);
+    if(modal){
+      for(const sibling of document.body.children){
+        if(sibling===root||sibling.contains(root)||sibling.inert)continue;
+        sibling.inert=true;inertedByChat.add(sibling);
+      }
+      if(!panel.contains(document.activeElement))focusChat();
+    }else{
+      for(const sibling of inertedByChat)sibling.inert=false;
+      inertedByChat.clear();
+    }
+  };
+  mobileChat.addEventListener('change',syncChatBoundary);
+  const boundaryObserver=new MutationObserver(()=>{if(!panel.hidden&&mobileChat.matches)syncChatBoundary();});
+  boundaryObserver.observe(document.body,{childList:true});
+  panel.addEventListener('keydown',event=>{
+    if(event.key!=='Tab'||panel.hidden||!mobileChat.matches)return;
+    const nodes=[...panel.querySelectorAll('button,input,select,textarea,a[href],[tabindex]')].filter(node=>focusable(node)&&node.tabIndex>=0);
+    const first=nodes[0],last=nodes.at(-1),active=document.activeElement;
+    if(!first){event.preventDefault();closeButton.focus();return;}
+    if(!panel.contains(active)||(event.shiftKey&&active===first)||(!event.shiftKey&&active===last)){
+      event.preventDefault();(event.shiftKey?last:first).focus();
+    }
+  });
+  document.addEventListener('focusin',()=>{
+    if(!panel.hidden&&mobileChat.matches&&!panel.contains(document.activeElement))focusChat();
+  });
+  const setOpen=(open)=>{
+    if(open&&panel.hidden)returnFocus=document.activeElement;
+    if(focusTimer!==null){clearTimeout(focusTimer);focusTimer=null;}
+    panel.hidden=!open;launcher.setAttribute('aria-expanded',String(open));launcher.classList.toggle('is-hidden',open);
+    syncChatBoundary();
+    document.dispatchEvent(new CustomEvent('qelly:chat-open-state',{detail:{open}}));
+    if(open)focusTimer=setTimeout(()=>{focusTimer=null;if(!panel.hidden)focusChat();},50);
+    else{
+      const target=focusable(returnFocus)?returnFocus:focusable(launcher)?launcher:document.getElementById('main');
+      target?.focus();returnFocus=null;
+    }
+  };
   const seedDockPrefill=(prompt='')=>{
     const next=String(prompt||'').slice(0,2400);
     if(!next)return;
     if(!input.value||input.value===dockPrefill){input.value=next;dockPrefill=next;}
   };
-  const open=(prompt='',requestedMode='',expand=false,context={})=>{setOpen(true);applyContext({...context,mode:requestedMode||context.mode||mode});seedDockPrefill(prompt);if(expand&&!matchMedia('(max-width:640px)').matches){panel.classList.add('is-expanded');const button=root.querySelector('[data-q-ai-expand]');button?.setAttribute('aria-pressed','true');if(button)button.textContent='Compact';}};
+  const open=(prompt='',requestedMode='',expand=false,context={})=>{if(panel.hidden&&document.querySelector('dialog[open]'))return;setOpen(true);applyContext({...context,mode:requestedMode||context.mode||mode});seedDockPrefill(prompt);if(expand&&!matchMedia('(max-width:640px)').matches){panel.classList.add('is-expanded');const button=root.querySelector('[data-q-ai-expand]');button?.setAttribute('aria-pressed','true');if(button)button.textContent='Compact';}};
   const close=()=>setOpen(false);
   const setBusy=(value)=>{sending=value;send.disabled=value;input.disabled=value;assetSelect.disabled=value;timeframeSelect.disabled=value;calculatorSelect.disabled=value;send.hidden=value;stop.hidden=!value;panel.classList.toggle('is-thinking',value);};
 
@@ -363,7 +409,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
   document.addEventListener('qelly:open-ai',event=>open(event.detail?.prompt||'',event.detail?.mode||'',event.detail?.expand===true,{asset:event.detail?.asset||asset,timeframe:event.detail?.timeframe||timeframe,decisionContext:event.detail?.decisionContext??null}));
   document.addEventListener('qelly:chat-context',event=>{dockContext=normalizeDockContext(event.detail||{});globalThis.__QELLY_CHAT_CONTEXT__=dockContext;renderDockContext();});
   document.addEventListener('qelly:chat-clearance',event=>{chartClearance=event.detail?.state==='chart';scheduleClearance();});
-  window.addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&event.key==='/'){event.preventDefault();panel.hidden?open():close();}if(event.key==='Escape'&&!panel.hidden)close();});
+  window.addEventListener('keydown',event=>{if(document.querySelector('dialog[open]'))return;if((event.ctrlKey||event.metaKey)&&event.key==='/'){event.preventDefault();panel.hidden?open():close();}if(event.key==='Escape'&&!panel.hidden)close();});
   window.addEventListener('hashchange',syncLauncherRoute);
   renderSuggestions();applyContext({mode,asset,timeframe});render();
   loadCapability().catch(()=>{root.querySelector('[data-q-ai-status]').textContent=staticVisualPreview?'Static preview':'Dataset service reconnecting';root.querySelector('[data-q-ai-status-dot]').dataset.state='reference';});
