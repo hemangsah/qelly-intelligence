@@ -115,7 +115,7 @@ export function applyV53VerifyCanonical(){
     const details=document.createElement('details');
     details.className='q-v53-strategy-tools';
     const summary=document.createElement('summary');
-    summary.textContent='Strategy evidence tools · CSV analysis';
+    summary.textContent='Strategy evidence tools · MT5 reports and CSV analysis';
     workspace.before(details);
     const boundary=hero?.querySelector('.q-verify-boundary');
     details.append(summary);

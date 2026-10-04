@@ -55,7 +55,7 @@ test('accepted V5.3 Verify composition remains available as a governed evidence 
   assert.doesNotMatch(canonical,/<time>00:00:00<\/time>/);
   assert.match(canonical,/No formula-specific assumptions are declared/);
   assert.match(canonical,/const assumptionSummary=assumptions\.length/);
-  assert.match(canonical,/Strategy evidence tools · CSV analysis/);
+  assert.match(canonical,/Strategy evidence tools · MT5 reports and CSV analysis/);
   assert.match(canonical,/q-v53-strategy-tools/);
   assert.match(canonical,/const boundary=hero\?\.querySelector\('\.q-verify-boundary'\)/);
   assert.match(canonical,/if\(boundary\)details\.append\(boundary\)/);
