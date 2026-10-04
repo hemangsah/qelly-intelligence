@@ -163,6 +163,36 @@ async function scenario(browser,name,viewport){
     await page.locator('.q-verify-score-grid .q-verify-score').first().waitFor({state:'visible',timeout:20000});
     assert.equal(await page.locator('.q-mt5-report').count(),0);
     entry.checks.push('existing CSV sample remains unaffected');
+    for(const fixture of [{name:'oversized.html',buffer:Buffer.alloc(5*1024*1024+1),message:/5 MB/},{name:'unsupported.exe',buffer:Buffer.from('unsupported'),message:/Unsupported file type/}]){
+      await page.locator('[data-verify-file]').setInputFiles({name:fixture.name,mimeType:'application/octet-stream',buffer:fixture.buffer});
+      await page.locator('[data-verify-status].is-error').waitFor({state:'visible',timeout:10000});
+      assert.match(await page.locator('[data-verify-status]').innerText(),fixture.message);
+      assert.equal(await page.locator('[data-verify-export]').count(),0,'rejected new input clears stale export');
+      assert.equal(await page.locator('.q-verify-score-grid').count(),0);
+      await page.locator('[data-verify-sample]').click();
+      await page.locator('[data-verify-export]').waitFor({state:'visible',timeout:15000});
+    }
+    // Delay only this synthetic fixture's local File read to reproduce overlap.
+    await page.evaluate(()=>{
+      const original=File.prototype.text;
+      File.prototype.text=async function(){if(this.name==='delayed-deals.html')await new Promise(resolve=>setTimeout(resolve,1200));return original.call(this);};
+    });
+    await page.locator('[data-verify-file]').setInputFiles({name:'delayed-deals.html',mimeType:'text/html',buffer:Buffer.from(html(6))});
+    assert.equal(await page.locator('[data-verify-export]').count(),0,'new read clears previous export immediately');
+    await page.locator('[data-verify-file]').setInputFiles({name:'newest-two-deals.html',mimeType:'text/html',buffer:Buffer.from(html(2))});
+    await page.locator('.q-verify-mt5-only').waitFor({state:'visible',timeout:15000});
+    await page.waitForTimeout(1500);
+    assert.match(await page.locator('.q-verify-report__head').innerText(),/newest-two-deals.html/);
+    await page.locator('[data-verify-file]').setInputFiles({name:'delayed-deals.html',mimeType:'text/html',buffer:Buffer.from(html(6))});
+    await page.evaluate(()=>{location.hash='#/market';});
+    await page.locator('[data-v53-verify-primary]').waitFor({state:'detached',timeout:15000});
+    await page.waitForTimeout(1500);
+    assert.equal(await page.locator('.q-verify-report').count(),0,'late local read must not replace another route');
+    await page.evaluate(()=>{location.hash='#/qelly-verify';});
+    await page.locator('[data-verify-file]').waitFor({state:'attached',timeout:15000});
+    assert.equal(await page.locator('[data-verify-export]').count(),0,'returning to Verify must not restore old local analysis');
+    entry.checks.push('oversized/unsupported new input clears stale exports; delayed older read cannot overwrite latest file or another route; route leave clears local report');
+
 
     // Wave CZ: exercise the new standalone public tool, its local-only dual
     // import, read-only export, memory cleanup and HTML inertness.

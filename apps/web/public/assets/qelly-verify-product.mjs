@@ -16,6 +16,9 @@ const ensureComparisonStyles=()=>{if(document.querySelector('link[data-qelly-mt5
 const MT5_VISUAL_STYLESHEET=new URL('./qelly-mt5-visuals.css',import.meta.url).href;
 const ensureMt5Styles=()=>{if(document.querySelector('link[data-qelly-mt5-evidence]'))return;const link=document.createElement('link');link.rel='stylesheet';link.href=MT5_VISUAL_STYLESHEET;link.dataset.qellyMt5Evidence='active';document.head.append(link);};
 let current=null;
+let primaryGeneration=0;
+const isVerifyRoute=()=>window.location.hash.split("?")[0]==="#/qelly-verify"&&new URLSearchParams(window.location.hash.split("?")[1]||"").get("view")!=="methodology";
+const isCurrentPrimary=token=>token===primaryGeneration&&isVerifyRoute()&&main?.dataset.qellyVerifyOwner==="true";
 let comparison={A:null,B:null};
 let comparisonError='';
 const comparisonGeneration={A:0,B:0};
@@ -87,7 +90,7 @@ function bind(){
   main?.querySelector('[data-mt5-compare-export]')?.addEventListener('click',()=>{if(comparison.A&&comparison.B){const result=compareMt5ClosedDealReports(comparison.A.report,comparison.B.report);download('qelly-mt5-comparison-share-safe.json',JSON.stringify(result,null,2),'application/json');}});
   const input=main?.querySelector('[data-verify-file]');const dropzone=main?.querySelector('[data-verify-dropzone]');
   input?.addEventListener('change',()=>{const file=input.files?.[0];if(file)analyzeFile(file);});dropzone?.addEventListener('dragover',event=>{event.preventDefault();dropzone.classList.add('is-dragging');});dropzone?.addEventListener('dragleave',()=>dropzone.classList.remove('is-dragging'));dropzone?.addEventListener('drop',event=>{event.preventDefault();dropzone.classList.remove('is-dragging');const file=event.dataTransfer?.files?.[0];if(file)analyzeFile(file);});
-  main?.querySelector('[data-verify-sample]')?.addEventListener('click',()=>analyzeText(sampleTradeCsv(),'Qelly governed strategy sample.csv'));main?.querySelector('[data-verify-download-sample]')?.addEventListener('click',()=>download('qelly-verify-sample.csv',sampleTradeCsv(),'text/csv'));main?.querySelector('[data-verify-reset]')?.addEventListener('click',()=>{current=null;renderVerify();});main?.querySelector('[data-verify-export]')?.addEventListener('click',()=>{if(!current?.evidence&&!current?.mt5Report)return;const documentBody=current.evidence?(current.mt5Report?{...current.evidence,mt5ClosedDealAnalysis:current.mt5Report,mt5ObservedDiagnostics:buildMt5ObservedDiagnostics(current.mt5Report)}:current.evidence):{schema:'qelly.mt5.limited-sample/1.0',sourceName:current.sourceName,mt5ClosedDealAnalysis:current.mt5Report,mt5ObservedDiagnostics:buildMt5ObservedDiagnostics(current.mt5Report)};const suffix=current.evidence?.reportId||'observed-closing-deals';download(`qelly-strategy-evidence-${suffix}.json`,JSON.stringify(documentBody,null,2),'application/json');});main?.querySelector('[data-verify-print]')?.addEventListener('click',()=>window.print());
+  main?.querySelector('[data-verify-sample]')?.addEventListener('click',()=>analyzeText(sampleTradeCsv(),'Qelly governed strategy sample.csv'));main?.querySelector('[data-verify-download-sample]')?.addEventListener('click',()=>download('qelly-verify-sample.csv',sampleTradeCsv(),'text/csv'));main?.querySelector('[data-verify-reset]')?.addEventListener('click',()=>{primaryGeneration++;current=null;renderVerify();});main?.querySelector('[data-verify-export]')?.addEventListener('click',()=>{if(!current?.evidence&&!current?.mt5Report)return;const documentBody=current.evidence?(current.mt5Report?{...current.evidence,mt5ClosedDealAnalysis:current.mt5Report,mt5ObservedDiagnostics:buildMt5ObservedDiagnostics(current.mt5Report)}:current.evidence):{schema:'qelly.mt5.limited-sample/1.0',sourceName:current.sourceName,mt5ClosedDealAnalysis:current.mt5Report,mt5ObservedDiagnostics:buildMt5ObservedDiagnostics(current.mt5Report)};const suffix=current.evidence?.reportId||'observed-closing-deals';download(`qelly-strategy-evidence-${suffix}.json`,JSON.stringify(documentBody,null,2),'application/json');});main?.querySelector('[data-verify-print]')?.addEventListener('click',()=>window.print());
 }
 
 async function loadComparisonFile(file,slot){
@@ -96,49 +99,62 @@ async function loadComparisonFile(file,slot){
  const ext=file.name.toLowerCase().split('.').pop();
  if(!['html','htm','xlsx'].includes(ext)){++comparisonGeneration[slot];comparison[slot]=null;comparisonError='Report '+slot+': choose MT5 HTML or XLSX.';renderVerify();return;}
  const generation=++comparisonGeneration[slot];
- comparisonError='Reading Report '+slot+' locally…';
- const status=main?.querySelector('[data-mt5-compare-status]');if(status)status.textContent=comparisonError;
+ comparison[slot]=null;comparisonError='Reading Report '+slot+' locally…';
+ renderVerify();
+ const drawer=main?.querySelector('details.q-v53-strategy-tools');if(drawer)drawer.open=true;
  try{
   const bytes=ext==='xlsx'?new Uint8Array(await file.arrayBuffer()):await file.text();
   const parsed=ext==='xlsx'?await parseMt5Xlsx(bytes,{maxRows:MT5_REPORT_LIMITS.rows}):parseMt5Html(bytes,{maxRows:MT5_REPORT_LIMITS.rows});
   const report=analyzeMt5ClosedDeals(parsed.trades,parsed.validation);
-  if(comparisonGeneration[slot]!==generation)return;
+  if(comparisonGeneration[slot]!==generation||!isVerifyRoute())return;
   comparison[slot]={name:String(file.name).slice(0,140),report};comparisonError='';
  }catch(error){
-  if(comparisonGeneration[slot]!==generation)return;
+  if(comparisonGeneration[slot]!==generation||!isVerifyRoute())return;
   comparison[slot]=null;comparisonError='Report '+slot+': '+String(error?.message||'Unsupported MT5 Deals report').slice(0,250);
  }
  renderVerify();
 }
+function beginPrimaryAnalysis(sourceName){
+  const token=++primaryGeneration;
+  current=null;renderVerify();
+  const status=main?.querySelector('[data-verify-status]');
+  if(status){status.textContent=`Reading ${sourceName} locally…`;const drawer=status.closest('details');if(drawer)drawer.open=true;}
+  main?.setAttribute('aria-busy','true');
+  return token;
+}
 async function analyzeFile(file){
-  const status=main?.querySelector('[data-verify-status]');if(!file)return;
-  if(file.size>MAX_FILE_BYTES){if(status)status.textContent='File rejected: the 5 MB local-analysis limit was exceeded.';return;}
+  if(!file||!isVerifyRoute())return;
+  const token=beginPrimaryAnalysis(file.name);
+  const reject=message=>{if(isCurrentPrimary(token))renderError(new Error(message),file.name);};
+  if(file.size>MAX_FILE_BYTES){reject('File rejected: the 5 MB local-analysis limit was exceeded.');return;}
   const extension=file.name.toLowerCase().split('.').pop();
   const format=extension==='xlsx'?'mt5-xlsx':['htm','html'].includes(extension)?'mt5-html':['csv','txt'].includes(extension)?'csv':null;
-  if(!format){if(status)status.textContent='Unsupported file type. Choose MT5 XLSX, MT5 HTML or trade CSV.';return;}
-  if(status)status.textContent=`Reading ${file.name} locally…`;
-  main?.setAttribute('aria-busy','true');
+  if(!format){reject('Unsupported file type. Choose MT5 XLSX, MT5 HTML or trade CSV.');return;}
   try{
     const source=format==='mt5-xlsx'?new Uint8Array(await file.arrayBuffer()):await file.text();
-    await analyzeText(source,file.name,format);
-  }catch(error){renderError(error,file.name);}
-  finally{main?.setAttribute('aria-busy','false');}
+    if(!isCurrentPrimary(token))return;
+    await analyzeText(source,file.name,format,token);
+  }catch(error){if(isCurrentPrimary(token))renderError(error,file.name);}
+  finally{if(isCurrentPrimary(token))main?.setAttribute('aria-busy','false');}
 }
-async function analyzeText(sourceText,sourceName,format='csv'){
+async function analyzeText(sourceText,sourceName,format='csv',token=beginPrimaryAnalysis(sourceName)){
   await new Promise(resolve=>setTimeout(resolve,0));
+  if(!isCurrentPrimary(token))return;
   try{
     const parsed=format==='mt5-html'?parseMt5Html(sourceText,{maxRows:MT5_REPORT_LIMITS.rows})
       :format==='mt5-xlsx'?await parseMt5Xlsx(sourceText,{maxRows:MT5_REPORT_LIMITS.rows})
       :parseTradeCsv(sourceText);
+    if(!isCurrentPrimary(token))return;
     const mt5Report=parsed.validation.mt5?analyzeMt5ClosedDeals(parsed.trades,parsed.validation):null;
     // The general heuristic engine has a 5-deal minimum and bounded MT5
     // resampling window. Show local, descriptive MT5 evidence outside it.
     const generalEngineEligible=!mt5Report||(parsed.trades.length>=5&&parsed.trades.length<=5000);
     const analysis=generalEngineEligible?analyzeTrades(parsed.trades,{sourceName}):null;
     const evidence=analysis?await composeStrategyEvidenceReport({analysis,validation:parsed.validation,sourceText,sourceName}):null;
+    if(!isCurrentPrimary(token))return;
     current={validation:parsed.validation,evidence,mt5Report,sourceName};
     renderVerify();
-  }catch(error){renderError(error,sourceName);}
+  }catch(error){if(isCurrentPrimary(token))renderError(error,sourceName);}
 }
 function renderError(error,sourceName){
   current=null;renderVerify();
@@ -167,6 +183,7 @@ export function renderVerify(){
 }
 export function renderMethodology(){
   if(!main)return;
+  resetVerifyState();
   main.dataset.qellyVerifyOwner='methodology';
   document.documentElement.dataset.qellyVerifySubview='methodology';
   main.setAttribute('aria-busy','false');
@@ -174,5 +191,5 @@ export function renderMethodology(){
   document.title='Qelly Evidence Methodology · Qelly Intelligence';
   main.focus({preventScroll:true});
 }
-export function resetVerifyState(){current=null;comparison={A:null,B:null};comparisonError='';comparisonGeneration.A++;comparisonGeneration.B++;}
+export function resetVerifyState(){primaryGeneration++;current=null;comparison={A:null,B:null};comparisonError='';comparisonGeneration.A++;comparisonGeneration.B++;}
 window.QellyVerify=Object.freeze({render:renderVerify,renderMethodology,reset:resetVerifyState,analyzeTrades,parseTradeCsv,sampleTradeCsv,composeStrategyEvidenceReport,methodology:QELLY_VERIFY_METHODOLOGY});
