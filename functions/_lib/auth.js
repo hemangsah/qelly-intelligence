@@ -24,10 +24,11 @@ import {
 } from './runtime.js';
 import {handleGovernance} from './governance.js';
 import {canonicalTimezone,recognizedTimezone} from './timezone.js';
+import {approvedOAuthProvider,enabledOAuthProviders,publicOAuthProviders,oauthAuthorizeUrl} from './qelly-oauth-providers.js';
 
 const AUTH_TRANSACTION_COOKIE='qelly_auth_transaction';
 const AUTH_TRANSACTION_TTL_MS=60*60*1000;
-const AUTH_FLOWS=new Set(['signup','recovery']);
+const AUTH_FLOWS=new Set(['signup','recovery','oauth']);
 
 const base64UrlEncode=(value)=>{
   const bytes=new TextEncoder().encode(JSON.stringify(value));
@@ -132,6 +133,33 @@ const validateCallback=async(request,body)=>{
 
 export async function handleAuth(context,path,method){
   const {request,env}=context;
+
+  if(path==='auth/oauth/providers'&&method==='GET'){
+    const configured=publicRuntimeConfig(env,request.url);
+    return responseJson(request,env,{
+      providers:configured.capabilities.authentication?publicOAuthProviders(env):[],
+      authorizeOrigin:new URL(configured.supabaseUrl).origin,
+      boundary:'Identity only: no Gmail, mailbox, contacts, posting or calendar access.'
+    });
+  }
+
+  if(path==='auth/oauth/start'&&method==='POST'){
+    requireOrigin(request,env);
+    const configured=publicRuntimeConfig(env,request.url);
+    if(!configured.capabilities.authentication)throw new HttpError(503,'oauth_unavailable','Social sign-in is not configured');
+    const body=await jsonBody(request,4096);
+    const provider=approvedOAuthProvider(body.provider);
+    if(!provider||!enabledOAuthProviders(env).some(item=>item.id===provider.id)){
+      throw new HttpError(503,'oauth_provider_not_verified','This identity provider is not verified or enabled');
+    }
+    await enforceRateLimit(env,'auth-oauth-start:'+provider.id+':'+await hashKey(request.headers.get('cf-connecting-ip')||'unknown'));
+    const transaction=await issueAuthTransaction('oauth');
+    const url=oauthAuthorizeUrl(configured,transaction,provider.id);
+    return responseJson(request,env,{
+      provider:provider.id,url,callbackMode:'pkce-code',
+      grantedScopes:provider.scopes
+    },200,{cookies:[transaction.cookie]});
+  }
 
   if(path==='auth/register'&&method==='POST'){
     const body=await jsonBody(request);
@@ -317,6 +345,7 @@ export async function handleAuth(context,path,method){
 export const __authTest=Object.freeze({
   AUTH_TRANSACTION_COOKIE,
   AUTH_TRANSACTION_TTL_MS,
+  AUTH_FLOWS,
   issueAuthTransaction,
   readAuthTransaction,
   validateCallback,
