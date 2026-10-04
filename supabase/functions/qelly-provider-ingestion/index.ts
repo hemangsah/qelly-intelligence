@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js@2.112.4/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.4";
 import {shouldReuseEcbDailyCache} from "./cache-freshness.mjs";
 import {measureEcbAttempt} from "./measured-attempt.mjs";
+import {readEcbHealth} from "./health-summary.mjs";
 
 const ECB_HISTORY_URL="https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml";
 const ECB_DAILY_URL="https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml";
@@ -52,6 +53,18 @@ Deno.serve(async(req)=>{
   const url=Deno.env.get("SUPABASE_URL"),serviceKey=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if(!url||!serviceKey)return reply(503,{ok:false,error:"SERVICE_CONFIGURATION_MISSING"});
   const admin=createClient(url,serviceKey,{auth:{persistSession:false,autoRefreshToken:false}});
+  const action=new URL(req.url).searchParams.get("action");
+  if(action&&action!=="health")return reply(400,{ok:false,error:"UNKNOWN_ACTION"});
+  if(action==="health"){
+    try{
+      const health=await readEcbHealth(({start,end,limit,signal}:any)=>admin.from("qelly_runtime_jobs")
+        .select("status,started_at,finished_at,input_summary,output_summary")
+        .eq("subsystem","provider-ingestion").eq("job_type","ecb-http-attempt")
+        .gte("finished_at",start).lte("finished_at",end).order("finished_at",{ascending:false})
+        .limit(limit).abortSignal(signal));
+      return reply(200,{ok:true,health});
+    }catch{return reply(503,{ok:false,error:"PROVIDER_MEASUREMENTS_UNAVAILABLE"});}
+  }
 
   const {data:provider,error:providerError}=await admin.from("qelly_providers").select("id,provider_key,display_name,lifecycle_status,commercial_rights_status,redistribution_rights_status,attribution").eq("provider_key",PROVIDER_KEY).single();
   if(providerError||!provider)return reply(503,{ok:false,error:"PROVIDER_REGISTRY_UNAVAILABLE"});
