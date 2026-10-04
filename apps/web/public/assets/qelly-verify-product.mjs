@@ -16,6 +16,10 @@ const ensureComparisonStyles=()=>{if(document.querySelector('link[data-qelly-mt5
 const MT5_VISUAL_STYLESHEET=new URL('./qelly-mt5-visuals.css',import.meta.url).href;
 const ensureMt5Styles=()=>{if(document.querySelector('link[data-qelly-mt5-evidence]'))return;const link=document.createElement('link');link.rel='stylesheet';link.href=MT5_VISUAL_STYLESHEET;link.dataset.qellyMt5Evidence='active';document.head.append(link);};
 let current=null;
+let primaryGeneration=0;
+let primaryPending=false;
+const isVerifyRoute=()=>window.location.hash.split("?")[0]==="#/qelly-verify"&&new URLSearchParams(window.location.hash.split("?")[1]||"").get("view")!=="methodology";
+const isCurrentPrimary=token=>token===primaryGeneration&&isVerifyRoute()&&main?.dataset.qellyVerifyOwner==="true";
 let comparison={A:null,B:null};
 let comparisonError='';
 const comparisonGeneration={A:0,B:0};
@@ -41,7 +45,7 @@ function verifyShell(evidence=null,validation=null,sourceName='No file selected'
   return `<section class="q-verify-page" data-qelly-verify-surface>
     <header class="q-verify-hero"><div class="q-verify-hero__copy"><p class="q-verify-kicker">Qelly Verify · Strategy Intelligence Report</p><h1>Put your strategy through evidence, not belief.</h1><p>Upload an MT5 Deals HTML/XLSX report or structured trade CSV. Qelly validates realized deal rows, measures performance and observed risk, tests trade-order sensitivity and produces a versioned evidence report.</p><div class="q-verify-flow" aria-label="Qelly Verify workflow"><span>Upload</span><i>→</i><span>Validate</span><i>→</i><span>Analyze</span><i>→</i><span>Decide</span></div><p class="q-verify-method-link"><a href="#/qelly-verify?view=methodology">Read the public evidence methodology</a></p></div>
       <aside class="q-verify-boundary"><strong>Local-only prototype evidence workflow</strong><p>Your file is processed in this browser and is not uploaded. No live AI model, order execution or personalized financial recommendation is active.</p><dl><div><dt>Data transfer</dt><dd>None</dd></div><div><dt>Method</dt><dd>${escapeHtml(QELLY_VERIFY_METHODOLOGY_VERSION)}</dd></div><div><dt>Execution</dt><dd>Disabled</dd></div></dl></aside></header>
-    <section class="q-verify-workspace"><article class="q-verify-upload-card"><div><p class="q-verify-kicker">Step 1 · Strategy evidence</p><h2>Import local MT5 reports or trade CSV</h2><p>Supported: structured CSV; MT5 HTML/XLSX containing Deals with Type, Direction, and numeric Profit. Only realized closing buy/sell deals are analyzed. Entry-side costs, account cash flows and external authenticity remain unverified.</p></div><label class="q-verify-dropzone" data-verify-dropzone><input type="file" accept=".csv,.txt,.htm,.html,.xlsx,text/csv,text/plain,text/html,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" data-verify-file><span class="q-verify-dropzone__icon" aria-hidden="true">⇧</span><strong>Choose or drop CSV, MT5 HTML or MT5 XLSX</strong><small>Maximum 5 MB · up to 100,000 realized closing deals · processed locally · no workbook macros</small></label><div class="q-verify-upload-actions"><button type="button" class="q-button q-button--secondary" data-verify-sample>Run governed sample</button><button type="button" class="q-button q-button--ghost" data-verify-download-sample>Download sample CSV</button>${evidence?'<button type="button" class="q-button q-button--ghost" data-verify-reset>Clear report</button>':''}</div><p class="q-verify-file-state" role="status" aria-live="polite" data-verify-status>${escapeHtml(sourceName)}</p></article>${comparisonShell()}${reportMarkup(evidence,validation,mt5Report,sourceName)}</section>
+    <section class="q-verify-workspace"><article class="q-verify-upload-card"><div><p class="q-verify-kicker">Step 1 · Strategy evidence</p><h2>Import local MT5 reports or trade CSV</h2><p>Supported: structured CSV; MT5 HTML/XLSX containing Deals with Type, Direction, and numeric Profit. Only realized closing buy/sell deals are analyzed. Entry-side costs, account cash flows and external authenticity remain unverified.</p></div><label class="q-verify-dropzone" data-verify-dropzone><input type="file" accept=".csv,.txt,.htm,.html,.xlsx,text/csv,text/plain,text/html,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" data-verify-file><span class="q-verify-dropzone__icon" aria-hidden="true">⇧</span><strong>Choose or drop CSV, MT5 HTML or MT5 XLSX</strong><small>Maximum 5 MB · up to 100,000 realized closing deals · processed locally · no workbook macros</small></label><div class="q-verify-upload-actions"><button type="button" class="q-button q-button--secondary" data-verify-sample>Run governed sample</button><button type="button" class="q-button q-button--ghost" data-verify-download-sample>Download sample CSV</button>${evidence||mt5Report||primaryPending?'<button type="button" class="q-button q-button--ghost" data-verify-reset>Clear report</button>':''}</div><p class="q-verify-file-state" role="status" aria-live="polite" data-verify-status>${escapeHtml(sourceName)}</p></article>${comparisonShell()}${reportMarkup(evidence,validation,mt5Report,sourceName)}</section>
   </section>`;
 }
 
@@ -87,7 +91,7 @@ function bind(){
   main?.querySelector('[data-mt5-compare-export]')?.addEventListener('click',()=>{if(comparison.A&&comparison.B){const result=compareMt5ClosedDealReports(comparison.A.report,comparison.B.report);download('qelly-mt5-comparison-share-safe.json',JSON.stringify(result,null,2),'application/json');}});
   const input=main?.querySelector('[data-verify-file]');const dropzone=main?.querySelector('[data-verify-dropzone]');
   input?.addEventListener('change',()=>{const file=input.files?.[0];if(file)analyzeFile(file);});dropzone?.addEventListener('dragover',event=>{event.preventDefault();dropzone.classList.add('is-dragging');});dropzone?.addEventListener('dragleave',()=>dropzone.classList.remove('is-dragging'));dropzone?.addEventListener('drop',event=>{event.preventDefault();dropzone.classList.remove('is-dragging');const file=event.dataTransfer?.files?.[0];if(file)analyzeFile(file);});
-  main?.querySelector('[data-verify-sample]')?.addEventListener('click',()=>analyzeText(sampleTradeCsv(),'Qelly governed strategy sample.csv'));main?.querySelector('[data-verify-download-sample]')?.addEventListener('click',()=>download('qelly-verify-sample.csv',sampleTradeCsv(),'text/csv'));main?.querySelector('[data-verify-reset]')?.addEventListener('click',()=>{current=null;renderVerify();});main?.querySelector('[data-verify-export]')?.addEventListener('click',()=>{if(!current?.evidence&&!current?.mt5Report)return;const documentBody=current.evidence?(current.mt5Report?{...current.evidence,mt5ClosedDealAnalysis:current.mt5Report,mt5ObservedDiagnostics:buildMt5ObservedDiagnostics(current.mt5Report)}:current.evidence):{schema:'qelly.mt5.limited-sample/1.0',sourceName:current.sourceName,mt5ClosedDealAnalysis:current.mt5Report,mt5ObservedDiagnostics:buildMt5ObservedDiagnostics(current.mt5Report)};const suffix=current.evidence?.reportId||'observed-closing-deals';download(`qelly-strategy-evidence-${suffix}.json`,JSON.stringify(documentBody,null,2),'application/json');});main?.querySelector('[data-verify-print]')?.addEventListener('click',()=>window.print());
+  main?.querySelector('[data-verify-sample]')?.addEventListener('click',()=>analyzeText(sampleTradeCsv(),'Qelly governed strategy sample.csv'));main?.querySelector('[data-verify-download-sample]')?.addEventListener('click',()=>download('qelly-verify-sample.csv',sampleTradeCsv(),'text/csv'));main?.querySelector('[data-verify-reset]')?.addEventListener('click',()=>{primaryGeneration++;primaryPending=false;current=null;renderVerify();});main?.querySelector('[data-verify-export]')?.addEventListener('click',()=>{if(!current?.evidence&&!current?.mt5Report)return;const documentBody=current.evidence?(current.mt5Report?{...current.evidence,mt5ClosedDealAnalysis:current.mt5Report,mt5ObservedDiagnostics:buildMt5ObservedDiagnostics(current.mt5Report)}:current.evidence):{schema:'qelly.mt5.limited-sample/1.0',sourceName:current.sourceName,mt5ClosedDealAnalysis:current.mt5Report,mt5ObservedDiagnostics:buildMt5ObservedDiagnostics(current.mt5Report)};const suffix=current.evidence?.reportId||'observed-closing-deals';download(`qelly-strategy-evidence-${suffix}.json`,JSON.stringify(documentBody,null,2),'application/json');});main?.querySelector('[data-verify-print]')?.addEventListener('click',()=>window.print());
 }
 
 async function loadComparisonFile(file,slot){
@@ -96,52 +100,65 @@ async function loadComparisonFile(file,slot){
  const ext=file.name.toLowerCase().split('.').pop();
  if(!['html','htm','xlsx'].includes(ext)){++comparisonGeneration[slot];comparison[slot]=null;comparisonError='Report '+slot+': choose MT5 HTML or XLSX.';renderVerify();return;}
  const generation=++comparisonGeneration[slot];
- comparisonError='Reading Report '+slot+' locally…';
- const status=main?.querySelector('[data-mt5-compare-status]');if(status)status.textContent=comparisonError;
+ comparison[slot]=null;comparisonError='Reading Report '+slot+' locally…';
+ renderVerify();
+ const drawer=main?.querySelector('details.q-v53-strategy-tools');if(drawer)drawer.open=true;
  try{
   const bytes=ext==='xlsx'?new Uint8Array(await file.arrayBuffer()):await file.text();
   const parsed=ext==='xlsx'?await parseMt5Xlsx(bytes,{maxRows:MT5_REPORT_LIMITS.rows}):parseMt5Html(bytes,{maxRows:MT5_REPORT_LIMITS.rows});
   const report=analyzeMt5ClosedDeals(parsed.trades,parsed.validation);
-  if(comparisonGeneration[slot]!==generation)return;
+  if(comparisonGeneration[slot]!==generation||!isVerifyRoute())return;
   comparison[slot]={name:String(file.name).slice(0,140),report};comparisonError='';
  }catch(error){
-  if(comparisonGeneration[slot]!==generation)return;
+  if(comparisonGeneration[slot]!==generation||!isVerifyRoute())return;
   comparison[slot]=null;comparisonError='Report '+slot+': '+String(error?.message||'Unsupported MT5 Deals report').slice(0,250);
  }
  renderVerify();
 }
+function beginPrimaryAnalysis(sourceName){
+  const token=++primaryGeneration;
+  current=null;primaryPending=true;renderVerify();
+  const status=main?.querySelector('[data-verify-status]');
+  if(status){status.textContent=`Reading ${sourceName} locally…`;const drawer=status.closest('details');if(drawer)drawer.open=true;}
+  main?.setAttribute('aria-busy','true');
+  return token;
+}
 async function analyzeFile(file){
-  const status=main?.querySelector('[data-verify-status]');if(!file)return;
-  if(file.size>MAX_FILE_BYTES){if(status)status.textContent='File rejected: the 5 MB local-analysis limit was exceeded.';return;}
+  if(!file||!isVerifyRoute())return;
+  const token=beginPrimaryAnalysis(file.name);
+  const reject=message=>{if(isCurrentPrimary(token))renderError(new Error(message),file.name);};
+  if(file.size>MAX_FILE_BYTES){reject('File rejected: the 5 MB local-analysis limit was exceeded.');return;}
   const extension=file.name.toLowerCase().split('.').pop();
   const format=extension==='xlsx'?'mt5-xlsx':['htm','html'].includes(extension)?'mt5-html':['csv','txt'].includes(extension)?'csv':null;
-  if(!format){if(status)status.textContent='Unsupported file type. Choose MT5 XLSX, MT5 HTML or trade CSV.';return;}
-  if(status)status.textContent=`Reading ${file.name} locally…`;
-  main?.setAttribute('aria-busy','true');
+  if(!format){reject('Unsupported file type. Choose MT5 XLSX, MT5 HTML or trade CSV.');return;}
   try{
     const source=format==='mt5-xlsx'?new Uint8Array(await file.arrayBuffer()):await file.text();
-    await analyzeText(source,file.name,format);
-  }catch(error){renderError(error,file.name);}
-  finally{main?.setAttribute('aria-busy','false');}
+    if(!isCurrentPrimary(token))return;
+    await analyzeText(source,file.name,format,token);
+  }catch(error){if(isCurrentPrimary(token))renderError(error,file.name);}
+  finally{if(isCurrentPrimary(token))main?.setAttribute('aria-busy','false');}
 }
-async function analyzeText(sourceText,sourceName,format='csv'){
+async function analyzeText(sourceText,sourceName,format='csv',token=beginPrimaryAnalysis(sourceName)){
   await new Promise(resolve=>setTimeout(resolve,0));
+  if(!isCurrentPrimary(token))return;
   try{
     const parsed=format==='mt5-html'?parseMt5Html(sourceText,{maxRows:MT5_REPORT_LIMITS.rows})
       :format==='mt5-xlsx'?await parseMt5Xlsx(sourceText,{maxRows:MT5_REPORT_LIMITS.rows})
       :parseTradeCsv(sourceText);
+    if(!isCurrentPrimary(token))return;
     const mt5Report=parsed.validation.mt5?analyzeMt5ClosedDeals(parsed.trades,parsed.validation):null;
     // The general heuristic engine has a 5-deal minimum and bounded MT5
     // resampling window. Show local, descriptive MT5 evidence outside it.
     const generalEngineEligible=!mt5Report||(parsed.trades.length>=5&&parsed.trades.length<=5000);
     const analysis=generalEngineEligible?analyzeTrades(parsed.trades,{sourceName}):null;
     const evidence=analysis?await composeStrategyEvidenceReport({analysis,validation:parsed.validation,sourceText,sourceName}):null;
-    current={validation:parsed.validation,evidence,mt5Report,sourceName};
+    if(!isCurrentPrimary(token))return;
+    primaryPending=false;current={validation:parsed.validation,evidence,mt5Report,sourceName};
     renderVerify();
-  }catch(error){renderError(error,sourceName);}
+  }catch(error){if(isCurrentPrimary(token))renderError(error,sourceName);}
 }
 function renderError(error,sourceName){
-  current=null;renderVerify();
+  primaryPending=false;current=null;renderVerify();
   const status=main?.querySelector('[data-verify-status]');
   if(status){
     status.classList.add('is-error');
@@ -167,6 +184,7 @@ export function renderVerify(){
 }
 export function renderMethodology(){
   if(!main)return;
+  resetVerifyState();
   main.dataset.qellyVerifyOwner='methodology';
   document.documentElement.dataset.qellyVerifySubview='methodology';
   main.setAttribute('aria-busy','false');
@@ -174,5 +192,5 @@ export function renderMethodology(){
   document.title='Qelly Evidence Methodology · Qelly Intelligence';
   main.focus({preventScroll:true});
 }
-export function resetVerifyState(){current=null;comparison={A:null,B:null};comparisonError='';comparisonGeneration.A++;comparisonGeneration.B++;}
+export function resetVerifyState(){primaryGeneration++;primaryPending=false;current=null;comparison={A:null,B:null};comparisonError='';comparisonGeneration.A++;comparisonGeneration.B++;}
 window.QellyVerify=Object.freeze({render:renderVerify,renderMethodology,reset:resetVerifyState,analyzeTrades,parseTradeCsv,sampleTradeCsv,composeStrategyEvidenceReport,methodology:QELLY_VERIFY_METHODOLOGY});
