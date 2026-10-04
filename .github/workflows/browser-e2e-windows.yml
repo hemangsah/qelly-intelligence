@@ -162,6 +162,10 @@ jobs:
           $manifest = Get-Content 'preview/release-a5-all-screens/manifest.json' -Raw -Encoding utf8 | ConvertFrom-Json
           $expectedRoutes = [int](node --input-type=module -e "import {routeDefinitions} from './apps/web/public/assets/route-registry.mjs'; const ids=routeDefinitions.map(item=>item.route); if(new Set(ids).size!==ids.length)process.exit(1); process.stdout.write(String(ids.length));")
           if ($LASTEXITCODE -ne 0 -or $expectedRoutes -lt 72) { throw 'Invalid canonical route count' }
+          node scripts/qelly-screen-package-integrity.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Screen package checksum verification failed' }
+          node scripts/qelly-screen-theme-contract.mjs accessibility
+          if ($LASTEXITCODE -ne 0) { throw 'Incomplete accessibility theme matrix' }
           node scripts/qelly-screen-theme-contract.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Route-viewport-theme membership failed' }
           $expectedRenders = 4 * $expectedRoutes

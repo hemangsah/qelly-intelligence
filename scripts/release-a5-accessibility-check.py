@@ -31,7 +31,8 @@ def request_json(base,path,authenticated=False):
         return json.loads(response.read().decode('utf-8'))
 
 route_json=subprocess.check_output(['node','--input-type=module','-e',"import {routeDefinitions} from './dist/frontend/assets/route-registry.mjs'; console.log(JSON.stringify(routeDefinitions));"],cwd=ROOT,text=True)
-route_titles={item['route']:item.get('seoTitle') or f"{item['label']} · Qelly Intelligence" for item in json.loads(route_json)}
+route_definitions=json.loads(route_json)
+route_titles={item['route']:item.get('seoTitle') or f"{item['label']} · Qelly Intelligence" for item in route_definitions}
 runtime=tempfile.mkdtemp(prefix='qelly-a5-a11y-')
 launcher=r'''
 import { startServer } from './src/server/server.mjs';
@@ -46,7 +47,7 @@ EVALUATE=r'''() => {
  const controls=[...document.querySelectorAll('button,input,select,textarea,a[href]')].filter(visible);
  const named=el=>Boolean((el.getAttribute('aria-label')||el.getAttribute('title')||(el.textContent||'').trim()||(el.labels&&[...el.labels].some(l=>(l.textContent||'').trim()))));
  const ids=[...document.querySelectorAll('[id]')].map(x=>x.id);
- return {lang:document.documentElement.lang,title:document.title,skipLink:!!document.querySelector('a.skip-link[href="#main"]'),mainCount:document.querySelectorAll('main#main').length,h1Count:document.querySelectorAll('main#main h1').length,unlabeled:controls.filter(x=>!named(x)).map(x=>({tag:x.tagName,id:x.id||null})).slice(0,10),missingAlt:[...document.querySelectorAll('img:not([alt])')].length,positiveTabindex:[...document.querySelectorAll('[tabindex]')].filter(x=>Number(x.getAttribute('tabindex'))>0).length,duplicateIds:[...new Set(ids.filter((id,i)=>ids.indexOf(id)!==i))],overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,controls:controls.length,reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches,fontStatus:document.fonts.status};
+ return {lang:document.documentElement.lang,title:document.title,skipLink:!!document.querySelector('a.skip-link[href="#main"]'),mainCount:document.querySelectorAll('main#main').length,h1Count:document.querySelectorAll('main#main h1').length,unlabeled:controls.filter(x=>!named(x)).map(x=>({tag:x.tagName,id:x.id||null})).slice(0,10),missingAlt:[...document.querySelectorAll('img:not([alt])')].length,positiveTabindex:[...document.querySelectorAll('[tabindex]')].filter(x=>Number(x.getAttribute('tabindex'))>0).length,duplicateIds:[...new Set(ids.filter((id,i)=>ids.indexOf(id)!==i))],overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,controls:controls.length,reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches,resolvedAppearance:document.documentElement.dataset.resolvedAppearance,fontStatus:document.fonts.status};
 }'''
 SAVED_SEED={'schemaVersion':2,'items':[{'id':'prompt2b-review-saved','name':'Prompt 2B Review Present Value','savedAt':'2026-07-30T00:00:00.000Z','updatedAt':'2026-07-30T00:05:00.000Z','schemaVersion':2,'version':2,'formulaVersion':'2.0.0','indicatorVersion':None,'indiaRuleVersion':None,'effectiveDate':'2026-07-30','result':{'status':'success','formulaId':'fresh-present-value','formulaVersion':'2.0.0','outputs':{'value':100},'truthState':'FRESH_REIMPLEMENTATION_2026'},'notes':'Accessibility review seed','tags':['prompt2b','a11y'],'favorite':True,'revisions':[{'revisionId':'a11y-r1','version':1,'createdAt':'2026-07-30T00:00:00.000Z','restoredFrom':None,'name':'Prompt 2B Review Present Value','result':{'status':'success','formulaId':'fresh-present-value','formulaVersion':'2.0.0','outputs':{'value':100}},'notes':'Baseline','tags':['prompt2b'],'favorite':False,'formulaVersion':'2.0.0','indicatorVersion':None,'indiaRuleVersion':None,'effectiveDate':'2026-07-30'},{'revisionId':'a11y-r2','version':2,'createdAt':'2026-07-30T00:05:00.000Z','restoredFrom':None,'name':'Prompt 2B Review Present Value','result':{'status':'success','formulaId':'fresh-present-value','formulaVersion':'2.0.0','outputs':{'value':100}},'notes':'Accessibility review seed','tags':['prompt2b','a11y'],'favorite':True,'formulaVersion':'2.0.0','indicatorVersion':None,'indiaRuleVersion':None,'effectiveDate':'2026-07-30'}]}]}
 
@@ -61,28 +62,19 @@ try:
     if anonymous_config.get('auth',{}).get('authenticated') is not False: raise RuntimeError('anonymous accessibility preflight did not remain anonymous')
     if authenticated_config.get('auth',{}).get('authenticated') is not True: raise RuntimeError('authenticated accessibility preflight failed /api/v1/config')
     if authenticated_status.get('authenticated') is not True: raise RuntimeError('authenticated accessibility preflight failed /api/v1/auth/status')
-    routes=[
-        ('auth-login','auth-login',False),('auth-register','auth-register',False),('auth-recovery','auth-recovery',False),
-        ('account-session','account-session',True),('onboarding','onboarding',True),('discovery-hub','discovery-hub',True),
-        ('live-markets','live-markets',True),('identity-access','identity-access',True),('security-evidence','security-evidence',True),
-        ('security-setup','security-setup',True),('secure-import-vault','secure-import-vault',True),('passkey-center','passkey-center',True),
-        ('account-recovery','account-recovery',True),('delivery-operations','delivery-operations',True),('platform-readiness','platform-readiness',True),
-        ('secret-rotation','secret-rotation',True),('quarantine-review','quarantine-review',True),('staging-assurance','staging-assurance',True),
-        ('calculator-center','calculator-center',False),('india-finance','india-finance',False),('indicator-library','indicator-library',False),
-        ('formula-library','formula-library',False),('saved-calculations','saved-calculations',False),
-        ('formula-detail','formula-detail/fresh-present-value',False),('indicator-detail','indicator-detail/fresh-price-momentum',False),
-        ('calculator-detail','calculator-detail/fresh-present-value',False),('saved-calculation-detail','saved-calculation-detail/prompt2b-review-saved',False)
-    ]
-    if len(routes)!=27: raise RuntimeError(f'Expected 27 unique routes, received {len(routes)}')
+    fixture_paths={'formula-detail':'formula-detail/fresh-present-value','indicator-detail':'indicator-detail/fresh-price-momentum','calculator-detail':'calculator-detail/fresh-present-value','saved-calculation-detail':'saved-calculation-detail/prompt2b-review-saved'}
+    routes=[(item['route'],fixture_paths.get(item['route'],item['route']),item.get('public') is not True) for item in route_definitions]
+    if len({route for route,_,_ in routes})!=len(route_definitions): raise RuntimeError('Duplicate canonical accessibility routes')
     missing_labels=[route_key for route_key,_,_ in routes if route_key not in route_labels]
     if missing_labels: raise RuntimeError(f'Missing governed route labels: {missing_labels}')
-    viewports=[('desktop',{'width':1440,'height':1000}),('mobile',{'width':390,'height':844})]; results=[]
+    viewports=[('desktop',{'width':1440,'height':1000},'dark'),('desktop',{'width':1440,'height':1000},'light'),('mobile',{'width':390,'height':844},'dark'),('mobile',{'width':390,'height':844},'light')]; results=[]
     with sync_playwright() as p:
         browser=p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--disable-dev-shm-usage'])
-        for vname,viewport in viewports:
+        for vname,viewport,appearance in viewports:
             for route_key,route_path,auth in routes:
-                context=browser.new_context(viewport=viewport,reduced_motion='reduce' if vname=='mobile' else 'no-preference')
+                context=browser.new_context(viewport=viewport,color_scheme=appearance,reduced_motion='reduce' if vname=='mobile' else 'no-preference')
                 context.add_init_script("sessionStorage.setItem('qelly.brand.opening.v1','seen');localStorage.setItem('qelly.calculations.v1',"+json.dumps(json.dumps(SAVED_SEED))+');')
+                context.add_init_script("localStorage.setItem('qelly.theme-intelligence.v2',"+json.dumps(json.dumps({'version':2,'appearance':appearance}))+');')
                 page=context.new_page(); errors=[]; observations=[]
                 def on_console(message):
                     if message.type!='error': return
@@ -119,6 +111,9 @@ try:
                         route_obj.fulfill(status=200,headers={'Content-Type':'application/json; charset=utf-8'},body=json.dumps({'authenticated':False,'mode':'anonymous-test-runtime','productionFoundation':{'developmentIdentityEnabled':True}})); return
                     if parsed.netloc=='unpkg.com': route_obj.fulfill(status=200,headers={'Content-Type':'application/javascript'},body='window.LightweightCharts=window.LightweightCharts||undefined;'); return
                     if parsed.path.startswith('/api/v1/stream/'): route_obj.fulfill(status=200,headers={'Content-Type':'text/event-stream'},body='event: stream.heartbeat.v1\ndata: {"status":"a11y"}\n\n'); return
+                    if parsed.path=='/api/v1/preferences/layout' and route_obj.request.method=='GET':
+                        saved=request_json(base,parsed.path,authenticated=is_authenticated)
+                        route_obj.fulfill(status=200,headers={'Content-Type':'application/json; charset=utf-8'},body=json.dumps({**saved,'appearance':appearance})); return
                     target=base+parsed.path+('?' + parsed.query if parsed.query else ''); data=route_obj.request.post_data.encode() if route_obj.request.post_data else None
                     headers={k:v for k,v in route_obj.request.headers.items() if k.lower() not in {'host','content-length','accept-encoding','connection','origin','referer','cookie','x-qelly-session-id'}}
                     if is_authenticated: headers['X-Qelly-Session-Id']=SESSION_ID
@@ -132,6 +127,7 @@ try:
                     page.goto(f'https://qelly.test/#/{route_path}',wait_until='domcontentloaded',timeout=30000)
                     page.wait_for_selector('main#main h1',timeout=20000)
                     page.wait_for_function("([expectedTitle,expectedHash])=>document.title===expectedTitle&&location.hash.split('?')[0]===expectedHash&&document.querySelector('main#main')?.getAttribute('aria-busy')!=='true'",arg=[expected_title,expected_hash],timeout=20000)
+                    page.wait_for_function("expected=>document.documentElement.dataset.resolvedAppearance===expected",arg=appearance,timeout=10000)
                     page.evaluate('document.fonts?.ready'); page.wait_for_timeout(180); checks=page.evaluate(EVALUATE); page.keyboard.press('Tab'); focus=page.evaluate("({tag:document.activeElement?.tagName,id:document.activeElement?.id||null})")
                     if checks['lang']!='en': failures.append('html-lang')
                     if checks['title']!=expected_title: failures.append('title')
@@ -148,12 +144,12 @@ try:
                     if errors: failures.append('console-errors')
                 except Exception as exc:
                     failures=['render-failure']; errors.append({'type':'render','text':str(exc),'title':page.title(),'hash':page.evaluate("location.hash.split('?')[0]"),'ariaBusy':page.locator('main#main').get_attribute('aria-busy')})
-                results.append({'route':route_key,'path':route_path,'viewport':vname,'dimensions':viewport,'authenticated':auth,'expectedTitle':expected_title,'expectedHash':expected_hash,'checks':checks,'firstTabFocus':focus,'consoleErrors':errors,'networkObservations':observations,'criticalFailures':failures,'status':'passed' if not failures else 'failed'}); context.close()
+                results.append({'route':route_key,'path':route_path,'viewport':vname,'appearance':appearance,'resolvedAppearance':checks.get('resolvedAppearance'),'dimensions':viewport,'authenticated':auth,'expectedTitle':expected_title,'expectedHash':expected_hash,'checks':checks,'firstTabFocus':focus,'consoleErrors':errors,'networkObservations':observations,'criticalFailures':failures,'status':'passed' if not failures else 'failed'}); context.close()
         browser.close()
-    failed=[item for item in results if item['status']=='failed']; expected_checks=54
+    failed=[item for item in results if item['status']=='failed']; expected_checks=len(route_definitions)*4
     if len(results)!=expected_checks: failed.append({'route':'denominator','criticalFailures':[f'{len(results)}/{expected_checks}'],'status':'failed'})
     failed_result_count=len([item for item in results if item['status']=='failed'])
-    log={'release':'Prompt 2B final','generatedAt':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),'method':'automated semantic, keyboard-entry, exact-font and responsive regression; not an independent WCAG certification','routeCount':len(routes),'viewportCount':len(viewports),'expectedChecks':expected_checks,'checks':len(results),'passed':len(results)-failed_result_count,'failed':len(failed),'results':results,'status':'passed' if not failed else 'failed'}
+    log={'release':'QELLY terminal accessibility','generatedAt':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),'method':'automated semantic, keyboard-entry, exact-font and responsive regression; not an independent WCAG certification','routeCount':len(routes),'viewportCount':2,'themeCount':2,'duplicateCount':len(results)-len({(item['route'],item['viewport'],item['appearance']) for item in results}),'expectedChecks':expected_checks,'checks':len(results),'passed':len(results)-failed_result_count,'failed':len(failed),'results':results,'status':'passed' if not failed else 'failed'}
     (ROOT/'validation'/'RELEASE_A5_ACCESSIBILITY_REGRESSION.json').write_text(json.dumps(log,indent=2)+'\n'); print(json.dumps({'release':log['release'],'checks':log['checks'],'expectedChecks':expected_checks,'passed':log['passed'],'failed':log['failed'],'failures':failed},indent=2))
     if failed: raise SystemExit(1)
 finally:

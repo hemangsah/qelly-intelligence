@@ -4,7 +4,7 @@
 .q-mt5-route-hero h1{font-size:clamp(25px,3.2vw,43px);line-height:1.15;margin:8px 0 14px}
 .q-mt5-route-hero p,.q-mt5-route-hero small,.q-mt5-route-empty p,.q-mt5-route-pair-help{font-size:14px;line-height:1.65;color:var(--text-muted,#a7b5c2)}
 .q-mt5-route-hero aside strong{display:block;margin-bottom:8px;font-size:18px}.q-mt5-route-hero aside small{display:block}
-.q-mt5-route-links{display:flex;flex-wrap:wrap;gap:15px;margin-top:18px}.q-mt5-route-links a{color:var(--accent,#79a7f3);text-underline-offset:4px}
+.q-mt5-route-links{display:flex;flex-wrap:wrap;gap:15px;margin-top:18px}.q-mt5-route-links a{color:var(--text,#e7edf4);text-underline-offset:4px}
 .q-mt5-route-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 .q-mt5-route-upload-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
 .q-mt5-route-step,.q-mt5-eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.11em;font-weight:750}

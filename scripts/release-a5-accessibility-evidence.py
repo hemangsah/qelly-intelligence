@@ -18,10 +18,11 @@ tradingview_hook = """                    if parsed.netloc=='s3.tradingview.com'
                         )
                         return
 """
-context_marker = """                context=browser.new_context(viewport=viewport,reduced_motion='reduce' if vname=='mobile' else 'no-preference')
+context_marker = """                context=browser.new_context(viewport=viewport,color_scheme=appearance,reduced_motion='reduce' if vname=='mobile' else 'no-preference')
 """
 context_isolation = """                context=browser.new_context(
                     viewport=viewport,
+                    color_scheme=appearance,
                     reduced_motion='reduce' if vname=='mobile' else 'no-preference',
                     service_workers='block',
                 )

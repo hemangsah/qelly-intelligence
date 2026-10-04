@@ -29,8 +29,8 @@ Public production deployment is verified separately by the Cloudflare release wo
 ''')
 checksums={}
 for path in sorted(OUT.iterdir()):
-    if path.is_file(): checksums[path.name]=hashlib.sha256(path.read_bytes()).hexdigest()
-(OUT/'checksums.json').write_text(json.dumps({'schemaVersion':1,'commitSha':sha,'files':checksums},indent=2)+'\n')
+    if path.is_file() and path.name!='checksums.json': checksums[path.name]=hashlib.sha256(path.read_bytes()).hexdigest()
+(OUT/'checksums.json').write_text(json.dumps({'schemaVersion':1,'commitSha':sha,'excludedFiles':['checksums.json'],'files':checksums},indent=2)+'\n')
 with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) as bundle:
     prefix=f'qelly-all-screens-{short}'
     for path in sorted(OUT.iterdir()):
