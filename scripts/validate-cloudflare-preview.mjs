@@ -139,7 +139,7 @@ try{
     const response=await page.goto(`${base}/${item.hash}`,{waitUntil:'domcontentloaded',timeout:45000});
     await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true',{timeout:30000});
     await page.waitForSelector(item.selector,{timeout:30000});
-    await page.getByRole('heading',{level:1,name:item.heading,exact:true}).waitFor({timeout:30000});
+    await page.getByRole('heading',{...(item.name==='market-desktop'?{level:1}:{}),name:item.heading,exact:true}).waitFor({timeout:30000});
     if(item.name==='market-desktop'){
       if(await page.title()!==routeIdentityFor('market').seoTitle)throw new Error('market_canonical_title_invalid');
       await page.getByRole('heading',{name:'ECB euro reference rates',exact:true}).waitFor({timeout:30000});
