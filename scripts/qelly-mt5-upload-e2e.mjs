@@ -33,6 +33,7 @@ const workbook=()=>{
   const xml='<?xml version="1.0" encoding="UTF-8"?><worksheet><sheetData>'+rows.map((row,i)=>sheetRow(i+1,row)).join('')+'</sheetData></worksheet>';
   return zip([['[Content_Types].xml','<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="xml" ContentType="application/xml"/></Types>'],['xl/workbook.xml','<workbook><sheets><sheet name="MT5 Deals" sheetId="1" r:id="rId1"/></sheets></workbook>'],['xl/worksheets/sheet1.xml',xml]]);
 };
+const damagedWorkbook=()=>{const bytes=workbook(),at=bytes.indexOf(Buffer.from('<t>EURUSD</t>'));assert.ok(at>=0);bytes[at+3]='X'.charCodeAt(0);return bytes;};
 async function loadFile(page,name,content,mime){
   await page.locator('[data-verify-file]').setInputFiles({name,mimeType:mime,buffer:Buffer.isBuffer(content)?content:Buffer.from(content,'utf8')});
   await page.waitForFunction((filename)=>{
@@ -71,6 +72,32 @@ async function scenario(browser,name,viewport){
       entry.checks.push('stored XLSX closing-deal import and rendered charts');
       await page.screenshot({path:path.join(out,'desktop-xlsx.png'),fullPage:true});
     }
+    await page.locator('[data-verify-file]').setInputFiles({name:'checksum-damaged.xlsx',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',buffer:damagedWorkbook()});
+    await page.locator('[data-verify-status].is-error').waitFor({state:'visible',timeout:20000});
+    assert.match(await page.locator('[data-verify-status]').innerText(),/checksum does not match/i);
+    assert.equal(await page.locator('.q-mt5-report').count(),0);
+    await page.screenshot({path:path.join(out,name+'-checksum-rejected.png'),fullPage:true});
+    for(const appearance of ['light','dark']){
+      const switcher=page.getByRole('button',{name:'Switch to '+appearance+' appearance',exact:true});
+      const current=await page.locator('html').getAttribute('data-resolved-appearance');
+      if(current!==appearance){
+        assert.equal(await switcher.count(),1,'the '+appearance+' appearance control must be available');
+        await switcher.click();
+      }
+      await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
+      const contrast=await page.locator('[data-verify-status].is-error').evaluate(node=>{
+        const style=getComputedStyle(node),rgb=value=>value.match(/[\d.]+/g).map(Number);
+        const luminance=value=>rgb(value).slice(0,3).map(x=>{x/=255;return x<=.04045?x/12.92:((x+.055)/1.055)**2.4;}).reduce((sum,x,i)=>sum+x*[.2126,.7152,.0722][i],0);
+        const foreground=luminance(style.color),background=luminance(style.backgroundColor);
+        return {ratio:(Math.max(foreground,background)+.05)/(Math.min(foreground,background)+.05),alpha:rgb(style.backgroundColor)[3]??1};
+      });
+      assert.equal(contrast.alpha,1,'error message must have an opaque theme surface');
+      assert.ok(contrast.ratio>=4.5,appearance+' Verify rejection must meet normal-text contrast');
+      assert.equal(await page.locator('[data-verify-status].is-error').isVisible(),true);
+      await page.screenshot({path:path.join(out,name+'-checksum-rejected-'+appearance+'.png'),fullPage:true});
+    }
+    entry.checks.push('damaged XLSX checksum is visible and clears previous Verify analysis');
+    entry.checks.push('Verify rejection remains visible with >=4.5:1 contrast in light and dark appearance');
     await loadFile(page,'two-deals.html',html(2),'text/html');
     assert.equal(await page.locator('.q-verify-mt5-only').count(),1);
     assert.equal(await page.locator('.q-verify-score-grid .q-verify-score').count(),0);
@@ -151,6 +178,14 @@ async function scenario(browser,name,viewport){
     await page.locator('[data-q-ai-close]').click();
     entry.checks.push('explicit aggregate-only MT5 Chat prefill without automatic network submission');
     await page.screenshot({path:path.join(out,name+'-standalone-mt5.png'),fullPage:true});
+    await page.locator('[data-mt5-route-input="A"]').setInputFiles({name:'route-checksum-damaged.xlsx',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',buffer:damagedWorkbook()});
+    await page.waitForFunction(()=>document.querySelector('#q-mt5-route-status-A')?.textContent?.includes('checksum does not match'),null,{timeout:20000});
+    assert.equal(await page.locator('.q-mt5-route-primary').count(),0);
+    assert.equal(await page.locator('[data-mt5-comparison-result]').count(),0);
+    assert.equal(await page.locator('[data-mt5-route-export]').isDisabled(),true);
+    assert.equal(await page.locator('[data-mt5-route-chat]').isDisabled(),true);
+    await page.screenshot({path:path.join(out,name+'-standalone-checksum-rejected.png'),fullPage:true});
+    entry.checks.push('standalone invalid XLSX clears stale primary/comparison and disables export/Chat');
     await page.locator('[data-mt5-route-reset]').click();
     assert.equal(await page.locator('[data-mt5-route-note]').isDisabled(),true);
     assert.equal(await page.locator('.q-mt5-route-empty').count(),1);

@@ -140,7 +140,17 @@ async function analyzeText(sourceText,sourceName,format='csv'){
     renderVerify();
   }catch(error){renderError(error,sourceName);}
 }
-function renderError(error,sourceName){current=null;renderVerify();const status=main?.querySelector('[data-verify-status]');if(status){status.classList.add('is-error');status.textContent=`${sourceName}: ${error?.message||'The file could not be analyzed.'}`;}}
+function renderError(error,sourceName){
+  current=null;renderVerify();
+  const status=main?.querySelector('[data-verify-status]');
+  if(status){
+    status.classList.add('is-error');
+    status.textContent=`${sourceName}: ${error?.message||'The file could not be analyzed.'}`;
+    // Rendering clears the old report and recreates the secondary tool drawer.
+    // Keep the rejection visible instead of hiding it in the closed drawer.
+    const drawer=status.closest('details');if(drawer)drawer.open=true;
+  }
+}
 
 export function renderVerify(){
   if(!main)return;

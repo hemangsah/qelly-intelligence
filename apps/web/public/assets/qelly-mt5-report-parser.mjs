@@ -91,32 +91,58 @@ export function parseMt5Html(source,{maxRows=MT5_REPORT_LIMITS.rows}={}){
 }
 const le16=(v,n)=>v.getUint16(n,true),le32=(v,n)=>v.getUint32(n,true);
 const bytesInput=value=>value instanceof Uint8Array?value:value instanceof ArrayBuffer?new Uint8Array(value):null;
-const assertPath=name=>{if(!name||name.startsWith('/')||name.includes('\\')||name.split('/').includes('..'))fail('mt5_xlsx_invalid_path','The XLSX archive contains an unsafe entry path.');return name;};
+const assertPath=name=>{if(!name||name.startsWith('/')||/[\\:\u0000-\u001f\u007f]/.test(name)||name.split('/').some(p=>p==='..'||p==='.')||name.includes('//'))fail('mt5_xlsx_invalid_path','The XLSX archive contains an unsafe entry path.');return name;};
+const CRC_TABLE=Uint32Array.from({length:256},(_,index)=>{let n=index;for(let i=0;i<8;i++)n=n&1?0xedb88320^(n>>>1):n>>>1;return n>>>0;});
+const archiveCrc32=bytes=>{let crc=0xffffffff;for(const b of bytes)crc=CRC_TABLE[(crc^b)&255]^(crc>>>8);return(crc^0xffffffff)>>>0;};
 async function unzipXml(bytes){
   if(bytes.byteLength>MT5_REPORT_LIMITS.fileBytes)fail('mt5_file_too_large','MT5 XLSX files must not exceed 5 MB.');
   const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
   let end=-1;
-  for(let p=bytes.length-22;p>=Math.max(0,bytes.length-65557);p--)if(le32(view,p)===0x06054b50){end=p;break;}
+  for(let p=bytes.length-22;p>=Math.max(0,bytes.length-65557);p--)if(le32(view,p)===0x06054b50&&p+22+le16(view,p+20)===bytes.length){end=p;break;}
   if(end<0)fail('mt5_xlsx_invalid','The file is not a valid XLSX ZIP archive.');
   const count=le16(view,end+10),directorySize=le32(view,end+12),directoryStart=le32(view,end+16);
-  if(count>MT5_REPORT_LIMITS.zipEntries||directoryStart+directorySize>bytes.length)fail('mt5_xlsx_limit','The XLSX archive exceeds the safe local limits.');
-  const out=new Map(),decoder=new TextDecoder('utf-8',{fatal:true});
+  if(le16(view,end+4)!==0||le16(view,end+6)!==0||le16(view,end+8)!==count||count===65535||directorySize===0xffffffff||directoryStart===0xffffffff)fail('mt5_xlsx_unsupported','Split and ZIP64 XLSX archives are not supported. Export a plain MT5 XLSX report.');
+  if(count>MT5_REPORT_LIMITS.zipEntries)fail('mt5_xlsx_limit','The XLSX archive exceeds the safe local limits.');
+  if(directoryStart+directorySize!==end)fail('mt5_xlsx_invalid','The XLSX central-directory bounds are inconsistent.');
+  const out=new Map(),names=new Set(),ranges=[],decoder=new TextDecoder('utf-8',{fatal:true});
+  const decode=value=>{try{return decoder.decode(value);}catch{fail('mt5_xlsx_invalid','The XLSX entry contains invalid UTF-8 data.');}};
   let offset=directoryStart,totalInflated=0;
   for(let i=0;i<count;i++){
-    if(offset+46>bytes.length||le32(view,offset)!==0x02014b50)fail('mt5_xlsx_invalid','Invalid XLSX ZIP central directory.');
-    const flags=le16(view,offset+8),method=le16(view,offset+10),packed=le32(view,offset+20),unpacked=le32(view,offset+24),nameLength=le16(view,offset+28),extra=le16(view,offset+30),comment=le16(view,offset+32),localOffset=le32(view,offset+42);
-    if(offset+46+nameLength+extra+comment>bytes.length)fail('mt5_xlsx_invalid','Invalid XLSX entry metadata.');
-    const name=assertPath(decoder.decode(bytes.subarray(offset+46,offset+46+nameLength)));
+    if(offset+46>end||le32(view,offset)!==0x02014b50)fail('mt5_xlsx_invalid','Invalid XLSX ZIP central directory.');
+    const version=le16(view,offset+6),flags=le16(view,offset+8),method=le16(view,offset+10),crc=le32(view,offset+16),packed=le32(view,offset+20),unpacked=le32(view,offset+24),nameLength=le16(view,offset+28),extra=le16(view,offset+30),comment=le16(view,offset+32),localOffset=le32(view,offset+42);
+    if(offset+46+nameLength+extra+comment>end)fail('mt5_xlsx_invalid','Invalid XLSX entry metadata.');
+    if(version>20||le16(view,offset+34)!==0||(flags&~0x080e)!==0||(method===0&&(flags&6)!==0))fail('mt5_xlsx_unsupported','Encrypted, split or unsupported XLSX ZIP features are rejected.');
+    const name=assertPath(decode(bytes.subarray(offset+46,offset+46+nameLength)));
     offset+=46+nameLength+extra+comment;
     if(flags&1||![0,8].includes(method)||unpacked>MT5_REPORT_LIMITS.entryBytes||packed>MT5_REPORT_LIMITS.fileBytes)fail('mt5_xlsx_unsupported','Encrypted, unsupported or oversized XLSX entries are rejected.');
     if(/(?:^|\/)(?:vbaProject\.bin|externalLinks|embeddings)(?:\/|$)/i.test(name))fail('mt5_xlsx_unsupported','Macro-enabled, externally linked and embedded-object XLSX workbooks are not supported. Export a plain MT5 XLSX report instead.');
-    if(out.has(name))fail('mt5_xlsx_invalid','Duplicate XLSX archive entry names are not supported.');
+    if(names.has(name.toLowerCase()))fail('mt5_xlsx_invalid','Duplicate XLSX archive entry names are not supported.');
+    names.add(name.toLowerCase());
     totalInflated+=unpacked;
     if(totalInflated>MT5_REPORT_LIMITS.totalInflatedBytes)fail('mt5_xlsx_limit','The decompressed XLSX workbook exceeds 48 MB.');
+    if(localOffset+30>directoryStart||le32(view,localOffset)!==0x04034b50)fail('mt5_xlsx_invalid','Invalid XLSX local entry.');
+    const localNameLength=le16(view,localOffset+26),start=localOffset+30+localNameLength+le16(view,localOffset+28);
+    if(start+packed>directoryStart)fail('mt5_xlsx_invalid','Truncated or overlapping XLSX compressed data.');
+    if(le16(view,localOffset+4)!==version||le16(view,localOffset+6)!==flags||le16(view,localOffset+8)!==method||decode(bytes.subarray(localOffset+30,localOffset+30+localNameLength))!==name)fail('mt5_xlsx_invalid','The XLSX local header disagrees with its central directory.');
+    const deferred=Boolean(flags&8);
+    for(const [field,expected] of [[14,crc],[18,packed],[22,unpacked]]){
+      const localValue=le32(view,localOffset+field);
+      if(localValue!==expected&&(!deferred||localValue!==0))fail('mt5_xlsx_invalid','The XLSX local entry size or checksum metadata is inconsistent.');
+    }
+    let entryEnd=start+packed;
+    if(deferred){
+      if(entryEnd+12>directoryStart)fail('mt5_xlsx_invalid','The XLSX data descriptor is missing.');
+      // APPNOTE permits descriptors with or without the optional signature.
+      // Try the signature form first, including the rare CRC/signature collision.
+      const candidates=le32(view,entryEnd)===0x08074b50?[entryEnd+4,entryEnd]:[entryEnd];
+      const descriptor=candidates.find(p=>p+12<=directoryStart&&le32(view,p)===crc&&le32(view,p+4)===packed&&le32(view,p+8)===unpacked);
+      if(descriptor===undefined)fail('mt5_xlsx_invalid','The XLSX data descriptor disagrees with its central directory.');
+      entryEnd=descriptor+12;
+    }
+    if(method===0&&packed!==unpacked)fail('mt5_xlsx_invalid','Stored XLSX entry sizes are inconsistent.');
+    if(ranges.some(([a,b])=>localOffset<b&&entryEnd>a))fail('mt5_xlsx_invalid','Overlapping XLSX entries are rejected.');
+    ranges.push([localOffset,entryEnd]);
     if(!/^xl\/(?:worksheets\/[^/]+\.xml|sharedStrings\.xml)$/i.test(name))continue;
-    if(localOffset+30>bytes.length||le32(view,localOffset)!==0x04034b50)fail('mt5_xlsx_invalid','Invalid XLSX local entry.');
-    const start=localOffset+30+le16(view,localOffset+26)+le16(view,localOffset+28);
-    if(start+packed>bytes.length)fail('mt5_xlsx_invalid','Truncated XLSX compressed data.');
     const body=bytes.subarray(start,start+packed);
     let inflated;
     if(method===0)inflated=body;
@@ -141,10 +167,12 @@ async function unzipXml(bytes){
       }
     }
     if(inflated.byteLength!==unpacked||inflated.byteLength>MT5_REPORT_LIMITS.entryBytes)fail('mt5_xlsx_invalid','The XLSX decompressed entry size does not match its ZIP metadata.');
-    const xml=decoder.decode(inflated);
-    if(/<!DOCTYPE|<!ENTITY|<f(?:\s|>)/i.test(xml))fail('mt5_xlsx_unsupported','XLSX documents containing entity definitions or formula-derived cells are rejected. Export a static MT5 report.');
+    if(archiveCrc32(inflated)!==crc)fail('mt5_xlsx_checksum_invalid','The XLSX worksheet or shared-string checksum does not match. Export the report again.');
+    const xml=decode(inflated);
+    if(/<!DOCTYPE|<!ENTITY|<(?:[A-Za-z_][\w.-]*:)?f(?:\s|\/?>)/i.test(xml))fail('mt5_xlsx_unsupported','XLSX documents containing entity definitions or formula-derived cells are rejected. Export a static MT5 report.');
     out.set(name,xml);
   }
+  if(offset!==end)fail('mt5_xlsx_invalid','The XLSX directory entry count does not match its declared size.');
   return out;
 }
 const colNumber=(reference)=>{const letters=/^[A-Z]+/i.exec(reference||'')?.[0]||'';let n=0;for(const ch of letters.toUpperCase())n=n*26+ch.charCodeAt(0)-64;return n-1;};

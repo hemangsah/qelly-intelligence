@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {deflateRawSync} from 'node:zlib';
+import {deflateRawSync,crc32} from 'node:zlib';
 import {parseMt5Html,parseMt5Xlsx,MT5_REPORT_LIMITS,__mt5ParserTest} from '../apps/web/public/assets/qelly-mt5-report-parser.mjs';
 import {analyzeTrades} from '../apps/web/public/assets/qelly-verify-engine.mjs';
 import {composeStrategyEvidenceReport,fingerprintSource} from '../apps/web/public/assets/qelly-verify-report.mjs';
@@ -14,9 +14,9 @@ function storedXlsx(entries,{deflate=false}={}){
   const local=[],central=[];let offset=0;
   for(const [name,body] of entries){
     const nameBytes=Buffer.from(name),raw=Buffer.from(body),packed=deflate?deflateRawSync(raw):raw;const a=Buffer.alloc(30);s32(a,0,0x04034b50);s16(a,4,20);s16(a,8,deflate?8:0);s32(a,18,packed.length);s32(a,22,raw.length);s16(a,26,nameBytes.length);
-    local.push(a,nameBytes,packed);
+    s32(a,14,crc32(raw));local.push(a,nameBytes,packed);
     const z=Buffer.alloc(46);s32(z,0,0x02014b50);s16(z,4,20);s16(z,6,20);s16(z,10,deflate?8:0);s32(z,20,packed.length);s32(z,24,raw.length);s16(z,28,nameBytes.length);s32(z,42,offset);
-    central.push(z,nameBytes);offset+=a.length+nameBytes.length+packed.length;
+    s32(z,16,crc32(raw));central.push(z,nameBytes);offset+=a.length+nameBytes.length+packed.length;
   }
   const directory=Buffer.concat(central),tail=Buffer.alloc(22);s32(tail,0,0x06054b50);s16(tail,8,entries.length);s16(tail,10,entries.length);s32(tail,12,directory.length);s32(tail,16,offset);
   return new Uint8Array(Buffer.concat([...local,directory,tail]));
