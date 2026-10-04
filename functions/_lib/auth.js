@@ -138,11 +138,13 @@ export async function handleAuth(context,path,method){
     const configured=publicRuntimeConfig(env,request.url);
     return responseJson(request,env,{
       providers:configured.capabilities.authentication?publicOAuthProviders(env):[],
+      authorizeOrigin:new URL(configured.supabaseUrl).origin,
       boundary:'Identity only: no Gmail, mailbox, contacts, posting or calendar access.'
     });
   }
 
   if(path==='auth/oauth/start'&&method==='POST'){
+    requireOrigin(request,env);
     const configured=publicRuntimeConfig(env,request.url);
     if(!configured.capabilities.authentication)throw new HttpError(503,'oauth_unavailable','Social sign-in is not configured');
     const body=await jsonBody(request,4096);

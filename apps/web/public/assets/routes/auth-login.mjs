@@ -56,6 +56,7 @@ export async function renderAuthLogin(main,{api,toast,navigate,onAuthenticated,s
       const result=await api('/api/v1/auth/oauth/start',{method:'POST',body:JSON.stringify({provider}),skipCsrf:true});
       const redirect=new URL(result?.url||'');
       if(redirect.protocol!=='https:'||redirect.username||redirect.password
+        ||redirect.origin!==providerResponse.authorizeOrigin
         ||redirect.pathname!=='/auth/v1/authorize'
         ||redirect.searchParams.get('provider')!==({linkedin:'linkedin_oidc'}[provider]||provider)
         ||redirect.searchParams.get('scopes')!==identityScopes[provider]){

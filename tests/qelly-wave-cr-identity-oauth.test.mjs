@@ -38,6 +38,7 @@ test('Wave CR fails closed before independently verified provider configuration'
   assert.equal(response.status,200);
   const payload=await response.json();
   assert.deepEqual(payload.providers,[]);
+  assert.equal(payload.authorizeOrigin,env.QELLY_PUBLIC_SUPABASE_URL);
   assert.match(payload.boundary,/no Gmail, mailbox, contacts, posting or calendar access/);
   assert.ok(__authTest.AUTH_FLOWS.has('oauth'));
 });
@@ -75,10 +76,20 @@ test('Wave CR frontend renders attested providers only and keeps PKCE tokens ser
   assert.match(route,/Object\.hasOwn\(identityLabels/);
   assert.match(route,/redirect\.searchParams\.get\('scopes'\)!==identityScopes\[provider\]/);
   assert.match(route,/No inbox, contacts, posts or calendar permissions/);
+  assert.match(route,/redirect\.origin!==providerResponse\.authorizeOrigin/);
   assert.doesNotMatch(route,/provider_token|provider_refresh_token|mail\.google|gmail\.readonly|gmail\.modify/);
   assert.match(callback,/flow==='oauth'/);
   assert.match(callback,/clearSensitiveUrl\(\)/);
   assert.match(backend,/cookie:cookie\(AUTH_TRANSACTION_COOKIE/);
   assert.match(backend,/responseJson\(request,env,\{[\s\S]*callbackMode:'pkce-code'/);
   assert.doesNotMatch(backend,/provider_access_token|provider_refresh_token/);
+});
+
+test('OAuth initiation rejects missing and foreign origins before issuing transaction cookies',async()=>{
+ for(const origin of [undefined,'https://foreign.example']){
+  const request=new Request('https://terminal.qellyintelligence.com/api/v1/auth/oauth/start',{method:'POST',headers:{'Content-Type':'application/json',...(origin?{Origin:origin}:{})},body:JSON.stringify({provider:'google'})});
+  await assert.rejects(()=>handleAuth({request,env:{...env,QELLY_OAUTH_GOOGLE_VERIFIED:'true'}},'auth/oauth/start','POST'),error=>error.status===403&&/^csrf_origin_/.test(error.code));
+ }
+ const request=new Request('https://terminal.qellyintelligence.com/api/v1/auth/oauth/start',{method:'POST',headers:{'Content-Type':'application/json',Origin:env.QELLY_PUBLIC_SITE_URL},body:JSON.stringify({provider:'google',scopes:'gmail.readonly',redirect:'https://foreign.example'})});
+ await assert.rejects(()=>handleAuth({request,env},'auth/oauth/start','POST'),error=>error.status===503&&error.code==='oauth_provider_not_verified');
 });
