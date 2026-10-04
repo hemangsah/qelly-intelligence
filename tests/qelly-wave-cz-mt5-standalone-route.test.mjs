@@ -31,10 +31,12 @@ test('one authoritative route invokes dedicated renderer and clears local files 
  assert.match(app,/window\.__qellyMt5AnalyzerCleanup=null/);
 });
 test('MT5 HTML/XLSX analysis reuses validated parser and never transports or persists source files',async()=>{
- const m=await read('apps/web/public/assets/qelly-mt5-analyzer-route.mjs');
+ const route=await read('apps/web/public/assets/qelly-mt5-analyzer-route.mjs');
+ const processor=await read('apps/web/public/assets/qelly-mt5-local-analysis.mjs');
+ const m=route+'\n'+processor;
  for(const token of ['parseMt5Html','parseMt5Xlsx','MT5_REPORT_LIMITS.rows','analyzeMt5ClosedDeals',
   'renderMt5ClosedDealEvidence','compareMt5ClosedDealReports',
-  'renderMt5Comparison','MAX_BYTES=5*1024*1024','file.arrayBuffer()','file.text()',
+  'renderMt5Comparison','MAX_BYTES=5*1024*1024','file.arrayBuffer()','createLocalMt5Task','tasks[slot]?.cancel()',
   'generation[slot]!==token','resetMt5ReportAnalyzer','data-mt5-route-drop']){
   assert.ok(m.includes(token),token);
  }

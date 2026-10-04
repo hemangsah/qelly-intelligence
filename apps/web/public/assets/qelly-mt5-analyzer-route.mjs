@@ -1,7 +1,6 @@
 /* Wave CZ: dedicated, browser-local MT5 closing-deal analyzer.
  * Reuses the audited QELLY Verify parser and metrics; does not persist raw files. */
-import {parseMt5Html,parseMt5Xlsx,MT5_REPORT_LIMITS} from './qelly-mt5-report-parser.mjs';
-import {analyzeMt5ClosedDeals} from './qelly-mt5-advanced-metrics.mjs';
+import {createLocalMt5Task} from './qelly-mt5-worker-client.mjs';
 import {renderMt5ClosedDealEvidence} from './qelly-mt5-visuals.mjs';
 import {compareMt5ClosedDealReports} from './qelly-mt5-comparison.mjs';
 import {renderMt5Comparison} from './qelly-mt5-comparison-ui.mjs';
@@ -15,6 +14,7 @@ let reports={A:null,B:null};
 let errors={A:'',B:''};
 let loading={A:false,B:false};
 let generation={A:0,B:0};
+const tasks={A:null,B:null};
 const stylePaths=['./qelly-mt5-analyzer.css','./qelly-mt5-visuals.css','./qelly-mt5-comparison.css'];
 function ensureStyles(){
  for(const path of stylePaths){
@@ -51,7 +51,7 @@ function slotMarkup(slot){
  '<small>5 MB maximum · closing deals only · file never leaves this browser</small>'+
  '<input type="file" accept=".html,.htm,.xlsx,text/html,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" data-mt5-route-input="'+slot+'" aria-describedby="q-mt5-route-status-'+slot+'">'+
  '</label><p role="status" aria-live="polite" id="q-mt5-route-status-'+slot+'">'+esc(slotStatus(slot))+'</p>'+
- (value?'<button type="button" data-mt5-route-clear="'+slot+'" class="q-mt5-route-clear">Clear Report '+slot+'</button>':'')+
+ (value||loading[slot]?'<button type="button" data-mt5-route-clear="'+slot+'" class="q-mt5-route-clear">Clear Report '+slot+'</button>':'')+
  '</article>';
 }
 function mainMarkup(){
@@ -63,7 +63,7 @@ function mainMarkup(){
  '<aside><strong>Private by default</strong><p>HTML and XLSX are parsed as local data. No macros, scripts, network upload, account equity fabrication or trading execution.</p>'+
  '<small>Unverified: account currency, broker timezone, entry-side costs and external report authenticity.</small></aside></header>'+
  '<section class="q-mt5-route-grid" aria-label="Choose local MT5 reports">'+slotMarkup('A')+slotMarkup('B')+'</section>'+
- '<section class="q-mt5-route-controls"><button type="button" data-mt5-route-reset'+(!one&&!other?' disabled':'')+'>Clear both reports</button>'+
+ '<section class="q-mt5-route-controls"><button type="button" data-mt5-route-reset'+(!one&&!other&&!loading.A&&!loading.B?' disabled':'')+'>Clear both reports</button>'+
  '<button type="button" data-mt5-route-export'+(!one?' disabled':'')+'>Export share-safe analysis JSON</button>'+ 
  '<button type="button" data-mt5-route-note'+(!one?' disabled':'')+'>Download local research note (.md)</button>'+ 
  '<button type="button" data-mt5-route-chat'+(!one?' disabled':'')+'>Review aggregate findings in QELLY Chat</button></section>'+
@@ -111,17 +111,18 @@ function render(){
 }
 function clearSlot(slot){
  if(slot!=='A'&&slot!=='B')return;
- generation[slot]++;reports[slot]=null;errors[slot]='';loading[slot]=false;
+ generation[slot]++;tasks[slot]?.cancel();tasks[slot]=null;reports[slot]=null;errors[slot]='';loading[slot]=false;
  render();
 }
 function clearAll(){
  for(const slot of ['A','B']){
-  generation[slot]++;reports[slot]=null;errors[slot]='';loading[slot]=false;
+  generation[slot]++;tasks[slot]?.cancel();tasks[slot]=null;reports[slot]=null;errors[slot]='';loading[slot]=false;
  }
 }
 async function importFile(file,slot){
  if(!owner||!['A','B'].includes(slot))return;
  const token=++generation[slot];
+ tasks[slot]?.cancel();tasks[slot]=null;
  reports[slot]=null;errors[slot]='';loading[slot]=true;render();
  try{
   const extension=String(file.name||'').toLowerCase().split('.').pop();
@@ -130,17 +131,18 @@ async function importFile(file,slot){
   const mime=String(file.type||'');
   if(mime&&!['text/html','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/octet-stream'].includes(mime))
     throw new Error('File format and MIME type do not agree with a supported MT5 export.');
-  const parsed=extension==='xlsx'?
-   await parseMt5Xlsx(new Uint8Array(await file.arrayBuffer()),{maxRows:MT5_REPORT_LIMITS.rows}):
-   parseMt5Html(await file.text(),{maxRows:MT5_REPORT_LIMITS.rows});
-  const report=analyzeMt5ClosedDeals(parsed.trades,parsed.validation);
+  const source=new Uint8Array(await file.arrayBuffer());
+  if(generation[slot]!==token||!owner)return;
+  const task=createLocalMt5Task({source,format:extension==='xlsx'?'xlsx':'html'});
+  tasks[slot]=task;
+  const report=await task.promise;
   if(generation[slot]!==token||!owner)return;
   reports[slot]={name:String(file.name).slice(0,120),report};
  }catch(error){
   if(generation[slot]!==token||!owner)return;
   errors[slot]=String(error?.message||'Unsupported MT5 Deals report').slice(0,240);
  }finally{
-  if(generation[slot]===token&&owner){loading[slot]=false;render();}
+  if(generation[slot]===token&&owner){tasks[slot]=null;loading[slot]=false;render();}
  }
 }
 export function resetMt5ReportAnalyzer(){

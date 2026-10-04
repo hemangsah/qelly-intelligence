@@ -203,6 +203,27 @@ async function scenario(browser,name,viewport){
     // import, read-only export, memory cleanup and HTML inertness.
     await page.evaluate(()=>{location.hash='#/mt5-report-analyzer';});
     await page.locator('[data-mt5-route-input="A"]').waitFor({state:'attached',timeout:30000});
+    if(name==='desktop'){
+      const large=Buffer.from(html(20000));assert.ok(large.length<5*1024*1024);
+      const workerStarted=page.waitForEvent('worker',{timeout:15000});
+      await page.locator('[data-mt5-route-input="A"]').setInputFiles({name:'large-synthetic.html',mimeType:'text/html',buffer:large});
+      const worker=await workerStarted;
+      assert.match(worker.url(),/qelly-mt5-analysis-worker.mjs$/);
+      const responsiveness=await page.evaluate(()=>new Promise(resolve=>{
+        const started=performance.now();let frames=0,readingFrames=0;
+        const tick=()=>{frames++;if(document.querySelector('#q-mt5-route-status-A')?.textContent.includes('Parsing'))readingFrames++;if(performance.now()-started>=200)resolve({frames,readingFrames});else requestAnimationFrame(tick);};requestAnimationFrame(tick);
+      }));
+      assert.ok(responsiveness.frames>=3,'UI frame callbacks must continue during local background analysis');
+      assert.ok(responsiveness.readingFrames>=1,'probe must observe analysis still in progress');
+      assert.equal(await page.locator('[data-mt5-route-clear="A"]').isEnabled(),true);
+      await page.locator('[data-mt5-route-clear="A"]').click();
+      await page.waitForTimeout(500);
+      assert.equal(await page.locator('.q-mt5-route-primary').count(),0);
+      assert.equal(await page.locator('[data-mt5-route-export]').isDisabled(),true);
+      entry.checks.push('20,000-deal synthetic file starts local module worker; UI frame callbacks continue; in-flight clear terminates ownership and keeps exports disabled');
+      entry.workerResponsiveness=responsiveness;
+    }
+
     await page.locator('[data-mt5-route-input="A"]').setInputFiles({name:'route-a.html',mimeType:'text/html',buffer:Buffer.from(html(6),'utf8')});
     await page.waitForFunction(()=>document.querySelector('#q-mt5-route-status-A')?.textContent?.includes('validated closing deals'),null,{timeout:30000});
     assert.equal(await page.locator('.q-mt5-route-primary .q-mt5-chart svg[role="img"]').count(),2);
