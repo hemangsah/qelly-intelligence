@@ -57,7 +57,34 @@ test('production verifier fetches build, generated config and API config before 
   assert.match(source,/\/BUILD_INFO\.json\?/);assert.match(source,/\/qelly-config\.js\?/);assert.match(source,/\/api\/v1\/config\?/);assert.match(source,/browserConfig:browserConfigStatus===200/);assert.match(source,/apiConfig:apiConfigStatus===200/);assert.match(source,/readinessStatus===200/);assert.match(source,/readinessProven/);
 });
 
-test('Cloudflare evidence handoff verifies PR checks, no-ops main deployments, and retains exact-head guards',async()=>{
-  const source=await readFile(new URL('../.github/workflows/release-evidence-handoff.yml',import.meta.url),'utf8');
-  assert.doesNotMatch(source,/issue_comment:\s*\n\s*types:\s*\[created, edited\]|github\.event\.comment/);assert.match(source,/check_run:\s*\n\s*types:\s*\[completed\]/);assert.match(source,/group: qelly-cloudflare-evidence-\$\{\{ github\.event\.check_run\.head_sha \|\| github\.run_id \}\}/);assert.match(source,/cancel-in-progress: true/);assert.match(source,/github\.event\.check_run\.name == 'Cloudflare Pages'/);assert.match(source,/github\.event\.check_run\.conclusion == 'success'/);assert.match(source,/CHECK_RUN_URL:/);assert.match(source,/check_json="\$\(api_get "\$CHECK_RUN_URL"\)"/);assert.match(source,/\.app\.slug/);assert.match(source,/cloudflare-workers-and-pages/);assert.match(source,/\.output\.summary \| type == "string" and contains\("Deploy successful!"\)/);assert.match(source,/commits\/\$sha\/pulls/);assert.match(source,/select\(\.state == "open" and \.head\.sha == \$sha\)/);assert.match(source,/Verified Cloudflare deployment has no open pull request; exact-PR evidence is intentionally not applicable\./);assert.match(source,/Verified Cloudflare deployment belongs to a closed pull request; exact-PR evidence is intentionally not applicable\./);assert.match(source,/if \[ "\$current_sha" != "\$sha" \]; then/);assert.match(source,/Verified Cloudflare deployment belongs to a superseded pull-request head; exact-PR evidence is intentionally not applicable\./);assert.match(source,/echo "eligible=false" >> "\$GITHUB_OUTPUT"/);assert.match(source,/echo "eligible=true" >> "\$GITHUB_OUTPUT"/);assert.doesNotMatch(source,/test -n "\$pr_url"/);assert.doesNotMatch(source,/test "\$current_sha" = "\$sha"/);assert.match(source,/if: steps\.pr\.outputs\.eligible == 'true'\s*\n\s*uses: actions\/checkout/);assert.match(source,/ref: \$\{\{ steps\.pr\.outputs\.sha \}\}/);assert.match(source,/Guard exact pull-request head/);assert.match(source,/git rev-parse HEAD/);assert.match(source,/Capture all registered screens\s*\n\s*if: steps\.pr\.outputs\.eligible == 'true'/);assert.match(source,/const expectedRenderCount=manifest\.routeCount\*manifest\.viewportCount;/);assert.match(source,/manifest\.renderCount===expectedRenderCount/);assert.match(source,/manifest\.expectedRenderCount===expectedRenderCount/);assert.match(source,/pngs\.length===expectedRenderCount/);assert.doesNotMatch(source,/manifest\.routeCount===70|manifest\.renderCount===140|manifest\.expectedRenderCount===140/);assert.match(source,/accessibility\.status==='passed'/);assert.match(source,/always\(\) && steps\.pr\.outputs\.eligible == 'true'/);assert.match(source,/contents: read/);assert.match(source,/pull-requests: read/);assert.doesNotMatch(source,/contents:\s*write|pull-requests:\s*write|deployments:\s*write/);assert.doesNotMatch(source,/\bwrangler\b|cloudflare\/pages-action|gh\s+pr\s+merge|\/merge\b/);
+test('handoff follows successful Browser E2E PR evidence and independently authenticates Cloudflare preview',async()=>{
+ const source=await readFile(new URL('../.github/workflows/release-evidence-handoff.yml',import.meta.url),'utf8');
+ const browser=await readFile(new URL('../.github/workflows/browser-e2e.yml',import.meta.url),'utf8');
+ assert.match(source,/on:\n  workflow_run:\n    workflows: \['Browser E2E'\]\n    types: \[completed\]/);
+ assert.doesNotMatch(source,/^  check_run:|issue_comment:|github\.event\.comment/m);
+ assert.match(source,/github\.event\.workflow_run\.conclusion == 'success'/);
+ assert.match(source,/github\.event\.workflow_run\.event == 'pull_request'/);
+ assert.match(source,/cancel-in-progress: true/);
+ assert.match(source,/commits\/\$sha\/pulls/);
+ assert.match(source,/select\(\.state == "open" and \.head\.sha == \$sha/);
+ assert.match(source,/if \[ "\$current_sha" != "\$sha" \]; then/);
+ assert.match(source,/qelly-complete-all-screens-\$sha/);
+ assert.match(source,/\.expired == false and \.size_in_bytes > 1000000/);
+ assert.match(source,/\.app\.slug == "cloudflare-workers-and-pages"/);
+ assert.match(source,/\.output\.summary \| type == "string" and contains\("Deploy successful!"\)/);
+ assert.match(source,/echo "eligible=false" >> "\$GITHUB_OUTPUT"/);
+ assert.match(source,/echo "eligible=true" >> "\$GITHUB_OUTPUT"/);
+ assert.match(source,/ref: \$\{\{ steps\.pr\.outputs\.sha \}\}/);
+ assert.match(source,/test "\$\(git rev-parse HEAD\)" = "\$\{\{ steps\.pr\.outputs\.sha \}\}"/);
+ assert.match(source,/qelly-verified-evidence-receipt-/);
+ assert.doesNotMatch(source,/npm run browser:all|npm run a11y|playwright install|npm ci/);
+ assert.match(browser,/manifest\.status==='passed'/);
+ assert.match(browser,/manifest\.failed===0/);
+ assert.match(browser,/pngs\.length===expectedRenders/);
+ assert.match(browser,/accessibility\.status==='passed'/);
+ assert.match(browser,/archives\.length===1&&archives\[0\]===exactArchive&&archiveSize>0/);
+ assert.match(source,/contents: read/);
+ assert.match(source,/pull-requests: read/);
+ assert.doesNotMatch(source,/contents:\s*write|pull-requests:\s*write|deployments:\s*write/);
+ assert.doesNotMatch(source,/\bwrangler\b|cloudflare\/pages-action|gh\s+pr\s+merge|\/merge\b/);
 });

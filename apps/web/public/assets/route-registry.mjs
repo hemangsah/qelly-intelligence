@@ -66,6 +66,7 @@ const routes = [
   { section:'Operations', route:'staging-assurance', label:'Staging Assurance', icon:icon('check'), meta:'A5' },
   { section:'Live', route:'live-markets', label:'Global Market Network', icon:icon('activity'), meta:'P22', public:true },
   { section:'Tools', route:'calculator-center', label:'Quant Calculator Center', icon:icon('calculator'), meta:'W1', public:true },
+  { section:'Tools', route:'mt5-report-analyzer', label:'MT5 Report Analyzer', icon:icon('upload'), meta:'Flagship', public:true },
   { section:'Tools', route:'india-finance', label:'India Finance & SIP', icon:icon('calculator'), meta:'W1', public:true },
   { section:'Tools', route:'indicator-library', label:'Indicator Library', icon:icon('chart'), meta:'W1', public:true },
   { section:'Tools', route:'formula-library', label:'Formula Library', icon:icon('formula'), meta:'W1', public:true },
@@ -195,13 +196,14 @@ const FEATURE_GUIDE=Object.freeze({
   'observability':{purpose:'Inspect traces, metrics, logs and service health.',useCase:'Use when investigating performance or runtime failures.'},
   'decision-provenance':{purpose:'Turn market evidence into an auditable research decision.',useCase:'Use when assumptions, evidence and invalidation must stay connected.'},
   'qelly-verify':{purpose:'Verify strategy evidence from an uploaded trade file.',useCase:'Use when testing reported performance against reproducible analysis.'},
+  'mt5-report-analyzer':{purpose:'Analyze local MT5 HTML/XLSX closing deals and compare two reports without uploading files.',useCase:'Use when reviewing a trading report and separating observed P&L from unverified broker account equity.'},
   'security-evidence':{purpose:'Review security controls and audit evidence.',useCase:'Use when proving platform safeguards to an operator or reviewer.'}
 });
 
 export const productDomains = [
   { id:'home', label:'Home', shortLabel:'Home', icon:icon('brand'), defaultRoute:'feature-universe', destinations:['Home','Product','Company','Learning'] },
   { id:'markets', label:'Markets', shortLabel:'Markets', icon:icon('market'), defaultRoute:'market', destinations:['Markets','Discovery','Assets','Derivatives','Exchanges','Charts','Screener'] },
-  { id:'tools', label:'Calculators', shortLabel:'Tools', icon:icon('calculator'), defaultRoute:'calculator-center', destinations:['Quant calculators','India finance','Indicators','Formula library','Saved calculations'] },
+  { id:'tools', label:'Calculators', shortLabel:'Tools', icon:icon('calculator'), defaultRoute:'calculator-center', destinations:['Quant calculators','MT5 reports','India finance','Indicators','Formula library','Saved calculations'] },
   { id:'research', label:'Research', shortLabel:'Research', icon:icon('research'), defaultRoute:'news-research', destinations:['Research','News','Events','Learning'] },
   { id:'workspaces', label:'Workspaces', shortLabel:'Work', icon:icon('portfolio'), defaultRoute:'watchlist', destinations:['Portfolio','Watchlists','Alerts','Workspaces','Settings'] },
   { id:'evidence', label:'Evidence', shortLabel:'Evidence', icon:icon('evidence'), defaultRoute:'decision-provenance', destinations:['Decision Intelligence','Qelly Verify','Evidence','Trust'] },
@@ -213,7 +215,7 @@ export const productDomains = [
 
 const explicitDomain = {
   'feature-universe':'home','about-qelly':'home',
-  'calculator-center':'tools','india-finance':'tools','indicator-library':'tools','formula-library':'tools','saved-calculations':'tools','formula-detail':'tools','indicator-detail':'tools','calculator-detail':'tools','saved-calculation-detail':'tools',
+  'calculator-center':'tools','mt5-report-analyzer':'tools','india-finance':'tools','indicator-library':'tools','formula-library':'tools','saved-calculations':'tools','formula-detail':'tools','indicator-detail':'tools','calculator-detail':'tools','saved-calculation-detail':'tools',
   market:'markets',rankings:'markets','asset-rankings':'markets','discovery-hub':'markets',search:'markets',categories:'markets','category-detail':'markets',venues:'markets','venue-detail':'markets','dex-discovery':'markets','global-charts':'markets',converter:'markets',asset:'markets','asset-intelligence':'markets','advanced-chart':'markets','live-markets':'markets',
   'news-research':'research','research-article':'research','research-workspace':'research','research-history':'research','filing-workspace':'research','fundamentals-estimates':'research','event-calendar':'research','comparison-lab':'research',
   watchlist:'workspaces','alert-center':'workspaces','notification-center':'workspaces','notification-schedules':'workspaces','screener-lab':'workspaces','formula-screener':'workspaces','portfolio-analytics':'workspaces','portfolio-attribution':'workspaces',onboarding:'workspaces','import-center':'workspaces',
@@ -241,7 +243,7 @@ const PRODUCT_CATEGORY_BLUEPRINTS=Object.freeze([
   {id:'discover',label:'Discover',shortLabel:'Discover',defaultRoute:'market',routes:['market','search','asset','asset-rankings','discovery-hub','categories','venues','live-markets','advanced-chart']},
   {id:'decide',label:'Decide',shortLabel:'Decide',defaultRoute:'decision-provenance',routes:['decision-provenance','screener-lab','comparison-lab','alert-center']},
   {id:'research',label:'Research',shortLabel:'Research',defaultRoute:'news-research',routes:['news-research','research-workspace','qelly-verify','trust-center','event-calendar','fundamentals-estimates','filing-workspace','formula-screener']},
-  {id:'tools',label:'Tools',shortLabel:'Tools',defaultRoute:'calculator-center',routes:['calculator-center','india-finance','indicator-library','formula-library','converter']},
+  {id:'tools',label:'Tools',shortLabel:'Tools',defaultRoute:'calculator-center',routes:['calculator-center','mt5-report-analyzer','india-finance','indicator-library','formula-library','converter']},
   {id:'account',label:'Account',shortLabel:'Account',defaultRoute:'account-session',routes:['account-session','watchlist','notification-center','saved-calculations','theme-personas']}
 ]);
 
@@ -255,6 +257,7 @@ const ROUTE_IDENTITY_OVERRIDES=Object.freeze({
   'calculator-center':{pageTitle:'Calculator Center',shortTitle:'Calculators',category:'tools',chatContextType:'calculator'},
   'research-workspace':{pageTitle:'Research Workspace',shortTitle:'Research',category:'research',chatContextType:'research'},
   'qelly-verify':{pageTitle:'QELLY Verify',shortTitle:'Verify',category:'research',chatContextType:'evidence'},
+  'mt5-report-analyzer':{pageTitle:'MT5 Report Analyzer',shortTitle:'MT5 Analyzer',category:'tools',chatContextType:'evidence'},
   'account-session':{pageTitle:'Profile & Security',shortTitle:'Profile',category:'account',chatContextType:'account'},
   watchlist:{pageTitle:'Watchlists',shortTitle:'Watchlists',category:'account',chatContextType:'workspace'},
   'theme-personas':{pageTitle:'Preferences & Themes',shortTitle:'Preferences',category:'account',chatContextType:'account'}

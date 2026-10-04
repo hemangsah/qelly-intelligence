@@ -1,0 +1,22 @@
+.q-mt5-comparison{display:grid;gap:16px;margin:20px 0;padding:clamp(16px,2vw,28px);border:1px solid var(--border,#64788b);border-radius:16px;background:var(--surface,#142530);color:var(--text,#ebf1f7)}
+.q-mt5-comparison header h2,.q-mt5-compare-result h3{margin:5px 0;font-size:clamp(19px,2.2vw,27px);line-height:1.25}
+.q-mt5-comparison header p,.q-mt5-compare-result header p{max-width:70ch;font-size:14px;line-height:1.55;color:var(--text-muted,#a9b8c5)}
+.q-mt5-compare-inputs,.q-mt5-compare-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.q-mt5-compare-input,.q-mt5-compare-card{display:grid;gap:9px;min-width:0;padding:15px;border:1px solid var(--border,#64788b);border-radius:12px;background:var(--surface-elevated,#223643)}
+.q-mt5-compare-input strong,.q-mt5-compare-card strong{font-size:15px;overflow-wrap:anywhere}
+.q-mt5-compare-input input{width:100%;max-width:100%;font-size:14px;color:var(--text,#ebf1f7)}
+.q-mt5-compare-input input::file-selector-button,.q-mt5-compare-controls button{min-height:44px;padding:10px 14px;border:1px solid var(--border,#64788b);border-radius:10px;background:var(--surface,#142530);color:var(--text,#ebf1f7);font-size:14px;cursor:pointer}
+.q-mt5-compare-input small,.q-mt5-compare-card small,.q-mt5-compare-privacy{font-size:12px;line-height:1.5;color:var(--text-muted,#a9b8c5)}
+.q-mt5-compare-index,.q-mt5-compare-kicker{font-size:12px;font-weight:750;letter-spacing:.08em;text-transform:uppercase}
+.q-mt5-compare-result{display:grid;gap:18px;margin-top:7px}
+.q-mt5-compare-card dl{display:grid;gap:7px;margin:0}.q-mt5-compare-card dl>div{display:flex;justify-content:space-between;gap:8px}.q-mt5-compare-card dd{margin:0;font-variant-numeric:tabular-nums}
+.q-mt5-compare-boundary{padding:12px 15px;border-left:4px solid var(--warning,#d6aa49);background:var(--surface-elevated,#223643);font-size:13px;line-height:1.6}
+.q-mt5-compare-scroll{max-width:100%;overflow:auto}.q-mt5-compare-scroll table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:13px}
+.q-mt5-compare-scroll caption{text-align:left;padding:9px 0;font-size:13px;font-weight:700;color:var(--text-muted,#a9b8c5)}
+.q-mt5-compare-scroll :is(th,td){padding:11px 8px;border-bottom:1px solid var(--border,#64788b);text-align:right;white-space:nowrap}
+.q-mt5-compare-scroll :is(th,td):first-child{text-align:left}.q-mt5-compare-breakdown h4,.q-mt5-compare-warnings h4{font-size:16px;margin:4px 0}
+.q-mt5-compare-warnings ul{padding-left:20px}.q-mt5-compare-warnings li{font-size:13px;line-height:1.65;margin:5px 0}
+.q-mt5-compare-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.q-mt5-compare-controls button:focus-visible,.q-mt5-compare-input input:focus-visible{outline:2px solid var(--focus,#7eaeff);outline-offset:3px}
+@media(max-width:690px){.q-mt5-compare-inputs,.q-mt5-compare-card-grid{grid-template-columns:minmax(0,1fr)}.q-mt5-comparison{padding:15px}}
+@media(prefers-reduced-motion:reduce){.q-mt5-comparison *{animation:none!important;transition:none!important}}

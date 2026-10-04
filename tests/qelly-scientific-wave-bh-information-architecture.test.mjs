@@ -21,7 +21,7 @@ test('Wave BH committed route inventories exactly match the canonical route regi
   ]);
   const inventory=JSON.parse(jsonText);
   const rows=routeRows();
-  assert.equal(rows.length,71);
+  assert.equal(rows.length,72);
   assert.equal(inventory.count,rows.length);
   assert.deepEqual(inventory.items,rows);
   assert.equal(csvText,csv(rows,['index','route','label','section','public','implementation']));

@@ -1,0 +1,11 @@
+/* Governed provider evidence: deliberate readable density across desktop/mobile. */
+.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-record-row{align-items:flex-start;gap:20px;border-radius:14px;padding:16px}
+.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-record-row>span:first-child{flex:1 1 420px;display:grid;gap:7px;min-width:0}
+.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-record-row strong{font-size:15px;line-height:1.4}
+.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-record-row small{display:block;font-size:12px;line-height:1.6;overflow-wrap:anywhere;max-width:85ch}
+.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-record-row>span:last-child{display:flex;align-items:flex-start;justify-content:flex-end;flex-wrap:wrap;gap:8px;min-width:155px;max-width:260px}
+.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-status{font-size:10px;line-height:1.3;white-space:normal;overflow-wrap:anywhere}
+.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-panel-head p{font-size:12px;line-height:1.5;max-width:82ch}
+.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-muted-copy{font-size:12px;line-height:1.55}
+@media(max-width:650px){.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-record-row{flex-direction:column;gap:12px}.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-record-row>span:first-child{flex:auto;width:100%}.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-record-row>span:last-child{min-width:0;max-width:100%;width:100%;justify-content:flex-start}}
+@media(prefers-reduced-motion:reduce){.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] *{animation:none!important;transition:none!important}}

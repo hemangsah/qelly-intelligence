@@ -7,7 +7,7 @@ const read=(path)=>readFile(new URL(path,import.meta.url),'utf8');
 
 test('every visible navigation feature has a distinct purpose and concrete use case',()=>{
   const visible=routeDefinitions.filter((route)=>!route.hidden);
-  assert.equal(visible.length,64);
+  assert.equal(visible.length,65);
   for(const route of visible){
     assert.ok(route.purpose?.length>=28,`${route.route} needs a useful purpose`);
     assert.match(route.useCase??'',/^Use (when|before|for|during)/,`${route.route} needs a concrete use case`);

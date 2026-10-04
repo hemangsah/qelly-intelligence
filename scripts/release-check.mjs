@@ -101,8 +101,8 @@ const result = {
 };
 const bad = Object.entries(result).filter(([, value]) => value === false || value == null);
 if (pkg.version !== productVersion
-  || routes.length !== 71
-  || apiRoutes.length !== 211
+  || routes.length !== 72
+  || apiRoutes.length !== 212
   || contracts.size !== 18
   || schemas.length !== 72
   || bad.length) {
