@@ -114,7 +114,7 @@ jobs:
           foreach ($entry in $commands) {
             Invoke-QellyNpmValidation -Script $entry.script -AllowFsRetry $entry.retryFs -IsTest $entry.isTest
           }
-      - name: Capture every registered route at desktop and mobile widths
+      - name: Capture every registered route in both themes at desktop and mobile widths
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -162,12 +162,20 @@ jobs:
           $manifest = Get-Content 'preview/release-a5-all-screens/manifest.json' -Raw -Encoding utf8 | ConvertFrom-Json
           $expectedRoutes = [int](node --input-type=module -e "import {routeDefinitions} from './apps/web/public/assets/route-registry.mjs'; const ids=routeDefinitions.map(item=>item.route); if(new Set(ids).size!==ids.length)process.exit(1); process.stdout.write(String(ids.length));")
           if ($LASTEXITCODE -ne 0 -or $expectedRoutes -lt 72) { throw 'Invalid canonical route count' }
-          $expectedRenders = 2 * $expectedRoutes
+          node scripts/qelly-screen-theme-contract.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Route-viewport-theme membership failed' }
+          $expectedRenders = 4 * $expectedRoutes
+          if ($manifest.themeCount -ne 2 -or $manifest.viewportCount -ne 2 -or $manifest.duplicateCount -ne 0) { throw 'Incomplete theme matrix' }
+          $keys = @($manifest.renders | ForEach-Object {
+            if ($_.appearance -notin @('dark','light') -or $_.resolvedAppearance -ne $_.appearance) { throw 'Screenshot theme mismatch' }
+            "$($_.route)/$($_.viewport)/$($_.appearance)"
+          } | Sort-Object -Unique)
+          if ($keys.Count -ne $expectedRenders) { throw 'Incomplete unique route-viewport-theme matrix' }
           $pngCount = (Get-ChildItem 'preview/release-a5-all-screens' -Filter '*.png').Count
           $archives = @(Get-ChildItem 'preview' -Filter 'QELLY_ALL_SCREENS_*.zip')
           if ($manifest.status -ne 'passed') { throw 'Manifest did not pass' }
           if ([int]$manifest.routeCount -ne $expectedRoutes) { throw "Expected $expectedRoutes routes, received $($manifest.routeCount)" }
-          if ([int]$manifest.renderCount -ne $expectedRenders -or [int]$manifest.expectedRenderCount -ne $expectedRenders) { throw "Expected $expectedRenders route-viewport renders" }
+          if ([int]$manifest.renderCount -ne $expectedRenders -or [int]$manifest.expectedRenderCount -ne $expectedRenders) { throw "Expected $expectedRenders route-viewport-theme renders" }
           if ([int]$manifest.failed -ne 0 -or $manifest.missing.Count -ne 0) { throw 'Screen evidence contains failed or missing renders' }
           if ($pngCount -ne $expectedRenders) { throw "Expected $expectedRenders PNG files, received $pngCount" }
           $expectedArchive = 'QELLY_ALL_SCREENS_' + $env:QELLY_SCREEN_EVIDENCE_SHA.Substring(0,12) + '.zip'
