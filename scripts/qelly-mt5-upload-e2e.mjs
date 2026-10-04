@@ -43,6 +43,28 @@ async function loadFile(page,name,content,mime){
   const errors=await page.locator('[data-verify-status].is-error').count();
   assert.equal(errors,0,'upload must not expose an error state');
 }
+async function verifyThemeSurfaces(page,appearance){
+  const switcher=page.getByRole('button',{name:'Switch to '+appearance+' appearance',exact:true});
+  if(await page.locator('html').getAttribute('data-resolved-appearance')!==appearance)await switcher.click();
+  await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
+  const samples=await page.locator('.q-v53-verify-kpis span,.q-v53-verify-kpis strong,.q-v53-verify-result span,.q-v53-verify-result strong,.q-v53-verify-context-boundary,.q-v53-verify-evidence dt,.q-v53-verify-evidence dd,.q-v53-verify-activity strong,.q-v53-verify-activity span').evaluateAll(nodes=>nodes.filter(node=>node.getClientRects().length).map(node=>{
+    const rgba=value=>value.match(/[\d.]+/g).map(Number);
+    const lum=value=>value.slice(0,3).map(x=>{x/=255;return x<=.04045?x/12.92:((x+.055)/1.055)**2.4;}).reduce((sum,x,i)=>sum+x*[.2126,.7152,.0722][i],0);
+    const style=getComputedStyle(node);let parent=node,background;
+    while(parent){const value=rgba(getComputedStyle(parent).backgroundColor);if((value[3]??1)===1){background=value;break;}parent=parent.parentElement;}
+    if(!background)throw new Error('No opaque background for '+node.textContent);
+    const fg=lum(rgba(style.color)),bg=lum(background);
+    return {text:node.textContent.slice(0,80),ratio:(Math.max(fg,bg)+.05)/(Math.min(fg,bg)+.05)};
+  }));
+  assert.ok(samples.length>=20,'Verify theme test must observe populated formula/evidence surfaces');
+  for(const sample of samples)assert.ok(sample.ratio>=4.5,appearance+' '+sample.text+' contrast '+sample.ratio);
+  const bounds=await page.locator('.q-v53-verify-primary,.q-v53-verify-columns,.q-v53-verify-inspector').evaluateAll(nodes=>nodes.map(node=>({name:node.className,width:node.clientWidth,overflow:node.scrollWidth-node.clientWidth})));
+  for(const item of bounds)assert.ok(item.overflow<=1,item.name+' must not clip content at '+item.width+'px');
+  assert.equal(await page.locator('[data-v53-verify-primary] .q-v53-verify-actions a').count(),3);
+  await page.screenshot({path:path.join(out,'verify-'+page.viewportSize().width+'-'+appearance+'.png'),fullPage:true});
+  return {appearance,minimumContrast:Math.min(...samples.map(x=>x.ratio)),samples:samples.length,bounds};
+}
+
 async function scenario(browser,name,viewport){
   const context=await browser.newContext({viewport,reducedMotion:'reduce',acceptDownloads:true});
   const page=await context.newPage(),errors=[],uploads=[],chatPosts=[];
@@ -53,6 +75,19 @@ async function scenario(browser,name,viewport){
   try{
     await page.goto(origin+'/#/qelly-verify',{waitUntil:'domcontentloaded',timeout:25000});
     await page.locator('[data-verify-file]').waitFor({state:'attached',timeout:30000});
+    await page.locator('[data-v53-verify-formula]').waitFor({state:'visible',timeout:30000});
+    entry.verifyThemeEvidence=[];
+    for(const width of name==='desktop'?[1440,1280]:[390]){
+      await page.setViewportSize({width,height:viewport.height});
+      for(const appearance of ['light','dark'])entry.verifyThemeEvidence.push({width,...await verifyThemeSurfaces(page,appearance)});
+    }
+    await page.setViewportSize(viewport);
+    await page.locator('[data-v53-verify-formula]').selectOption('compound-interest');
+    await page.waitForFunction(()=>document.querySelector('.q-v53-verify-context-list')?.textContent.includes('compound-interest'));
+    assert.match(await page.locator('.q-v53-verify-sensitivity').innerText(),/Base/);
+    await page.locator('[data-v53-verify-formula]').selectOption('absolute-return');
+    await page.waitForFunction(()=>document.querySelector('.q-v53-verify-result strong')?.textContent==='1,800');
+    entry.checks.push('Verify formula switching and populated light/dark contrast and unclipped reference/evidence panels at desktop, expanded-navigation width and mobile');
     await loadFile(page,'six-deals.html',html(6),'text/html');
     assert.equal(await page.locator('.q-mt5-chart svg[role="img"]').count(),2);
     assert.equal(await page.locator('.q-verify-score-grid .q-verify-score').count(),3);
