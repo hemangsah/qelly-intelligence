@@ -166,8 +166,10 @@ try:
         'fixtureSession': SESSION_ID,
     }
     viewports = [
-        ('desktop', {'width': 1440, 'height': 1000}),
-        ('mobile', {'width': 390, 'height': 844}),
+        ('desktop', {'width': 1440, 'height': 1000}, 'dark'),
+        ('desktop', {'width': 1440, 'height': 1000}, 'light'),
+        ('mobile', {'width': 390, 'height': 844}, 'dark'),
+        ('mobile', {'width': 390, 'height': 844}, 'light'),
     ]
     results = []
 
@@ -176,16 +178,18 @@ try:
             headless=True,
             args=['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
         )
-        for viewport_name, viewport in viewports:
+        for viewport_name, viewport, appearance in viewports:
             contexts = {
                 False: browser.new_context(
                     viewport=viewport,
                     device_scale_factor=1,
+                    color_scheme=appearance,
                     reduced_motion='reduce',
                 ),
                 True: browser.new_context(
                     viewport=viewport,
                     device_scale_factor=1,
+                    color_scheme=appearance,
                     reduced_motion='reduce',
                 ),
             }
@@ -193,6 +197,12 @@ try:
                 route_name = definition['route']
                 authenticated = route_name not in public_routes
                 page = contexts[authenticated].new_page()
+                # Isolated fixture preferences exercise actual prepaint and theme hydration.
+                page.add_init_script(
+                    "localStorage.setItem('qelly.theme-intelligence.v2',"
+                    + json.dumps(json.dumps({'version': 2, 'appearance': appearance}))
+                    + ');'
+                )
                 errors = []
                 observations = []
 
@@ -316,6 +326,15 @@ try:
                         )
                         return
 
+                    if parsed.path == '/api/v1/preferences/layout' and route_object.request.method == 'GET':
+                        saved = request_json(base, parsed.path, authenticated=authenticated)
+                        route_object.fulfill(
+                            status=200,
+                            headers={'Content-Type': 'application/json; charset=utf-8'},
+                            body=json.dumps({**saved, 'appearance': appearance}),
+                        )
+                        return
+
                     target = base + parsed.path + (
                         '?' + parsed.query if parsed.query else ''
                     )
@@ -402,10 +421,11 @@ try:
                 heading = None
                 title = None
                 resolved_hash = None
+                resolved_appearance = None
                 overflow = None
                 page_height = None
                 status = 'passed'
-                screenshot = OUT / f'{route_name}__{viewport_name}.png'
+                screenshot = OUT / f'{route_name}__{viewport_name}__{appearance}.png'
                 expected_title = definition.get('seoTitle') or f"{definition['label']} · Qelly Intelligence"
                 expected_hash = f'#/{route_name}'
                 try:
@@ -421,6 +441,11 @@ try:
                     )
                     page.evaluate('document.fonts?.ready')
                     page.wait_for_timeout(500)
+                    page.wait_for_function(
+                        "expected => document.documentElement.dataset.resolvedAppearance === expected",
+                        arg=appearance, timeout=10000,
+                    )
+                    resolved_appearance = page.evaluate('document.documentElement.dataset.resolvedAppearance')
                     heading = page.locator('main#main h1').first.text_content()
                     title = page.title()
                     resolved_hash = page.evaluate('location.hash.split("?")[0]')
@@ -485,6 +510,8 @@ try:
                     'authenticatedFixture': authenticated,
                     'evidenceBoundary': 'verified-governed-local-test-runtime',
                     'viewport': viewport_name,
+                    'appearance': appearance,
+                    'resolvedAppearance': resolved_appearance,
                     'dimensions': viewport,
                     'pageHeightPx': page_height,
                     'heading': heading,

@@ -39,7 +39,8 @@ test('Wave BP keeps the full Browser E2E and accessibility pipeline intact',asyn
   const workflow=await read('.github/workflows/browser-e2e.yml');
   assert.match(workflow,/Validate cold and warm first-paint stability/);
   assert.match(workflow,/node scripts\/qelly-first-paint-stability\.mjs/);
-  assert.match(workflow,/Capture every registered route at desktop and mobile widths/);
+  assert.match(workflow,/Capture every registered route in both themes at desktop and mobile widths/);
   assert.match(workflow,/Validate accessibility and responsive interaction contracts/);
   assert.match(workflow,/Verify screenshot and archive contract/);
 });
+

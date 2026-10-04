@@ -68,7 +68,7 @@ test('browser acceptance exercises separate route without weakening QELLY Verify
 test('full-screen browser evidence follows registered route count and exact archive head',async()=>{
  const workflow=await read('.github/workflows/browser-e2e.yml');
  assert.match(workflow,/routeDefinitions\.length/);
- assert.match(workflow,/expectedRenders=expectedRoutes\*2/);
+ assert.match(workflow,/expectedRenders=expectedRoutes\*4/);
  assert.match(workflow,/pngs\.length===expectedRenders/);
  assert.match(workflow,/manifest\.routeCount===expectedRoutes/);
  assert.match(workflow,/manifest\.expectedRenderCount===expectedRenders/);

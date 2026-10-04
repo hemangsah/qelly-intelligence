@@ -12,7 +12,7 @@ test('handoff reuses the complete, already validated Browser E2E evidence corpus
  assert.doesNotMatch(handoff,/npm run browser:all|npm run a11y|playwright install|npm ci/);
 });
 test('source Browser E2E still enforces full route-derived, accessibility and archive contracts',()=>{
- assert.match(browser,/expectedRenders=expectedRoutes\*2/);
+ assert.match(browser,/expectedRenders=expectedRoutes\*4/);
  assert.match(browser,/pngs\.length===expectedRenders/);
  assert.match(browser,/manifest\.routeCount===expectedRoutes/);
  assert.match(browser,/manifest\.status==='passed'/);
