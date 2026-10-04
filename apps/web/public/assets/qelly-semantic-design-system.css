@@ -64,6 +64,22 @@ html[data-production-system="v8"] body #app .q-product-context strong{
 }
 /* The global chat lives outside #main and therefore needs its own typography
    and color contract rather than inheriting route-specific CSS overrides. */
+html .q-ai-root .q-ai-launcher{
+  color:var(--text);
+}
+html .q-ai-root .q-ai-launcher :is(small,em,i){
+  color:var(--text-muted);
+  font-size:12px;
+  line-height:1.35;
+}
+html .q-ai-root .q-ai-launcher strong{
+  color:var(--text);
+  font-size:15px;
+}
+html .q-ai-root[data-clearance="interactive"] .q-ai-launcher{
+  opacity:0;
+  pointer-events:none;
+}
 html .q-ai-root .q-ai-assistant{
   background:var(--q-ds-dialog);
   color:var(--text);
