@@ -16,10 +16,12 @@ const grouped=(rows,key)=>{
 };
 export function analyzeMt5ClosedDeals(trades,validation={}){
  if(!validation?.mt5||!Array.isArray(trades)||!trades.length||trades.length>100000)throw new TypeError('Validated MT5 closing deals required');
- let balance=0,peak=0,maxDrawdown=0,winRun=0,lossRun=0,maxWins=0,maxLosses=0;
+ let balance=0,peak=0,maxDrawdown=0,winRun=0,lossRun=0,maxWins=0,maxLosses=0,underwaterRun=0,longestUnderwater=0;
  const rows=trades.map((t,i)=>{
    if(typeof t?.pnl!=='number'||!Number.isFinite(t.pnl))throw new TypeError('Nonfinite closing-deal P&L at row '+(i+1));
    balance+=t.pnl;peak=Math.max(peak,balance);maxDrawdown=Math.max(maxDrawdown,peak-balance);
+   underwaterRun=peak-balance>1e-8?underwaterRun+1:0;
+   longestUnderwater=Math.max(longestUnderwater,underwaterRun);
    winRun=t.pnl>0?winRun+1:0;lossRun=t.pnl<0?lossRun+1:0;maxWins=Math.max(maxWins,winRun);maxLosses=Math.max(maxLosses,lossRun);
    const clock=mt5ReportClock(t.closedAt),side=String(t.side??'').toLowerCase();
    const record={index:i+1,pnl:t.pnl,cumulative:r(balance,8),drawdown:r(peak-balance,8),symbol:typeof t.symbol==='string'?t.symbol.trim().slice(0,40)||null:null,side:['buy','sell'].includes(side)?side:null,ms:clock?.ms??null,weekday:clock?.weekday??null,hour:clock?.hour??null,month:clock?.month??null};
@@ -28,11 +30,21 @@ export function analyzeMt5ClosedDeals(trades,validation={}){
  });
  const wins=rows.filter(t=>t.pnl>0),losses=rows.filter(t=>t.pnl<0),profit=sum(wins.map(t=>t.pnl)),loss=-sum(losses.map(t=>t.pnl));
  const calendar=rows.filter(t=>t.ms!==null),chronological=calendar.length===rows.length&&rows.every((t,i)=>!i||t.ms>=rows[i-1].ms);
+ const uniqueChronological=calendar.length===rows.length&&rows.every((t,i)=>!i||t.ms>rows[i-1].ms);
+ const averageWinningClose=wins.length?r(profit/wins.length):null;
+ const averageLosingClose=losses.length?r(loss/losses.length):null;
+ const payoffRatio=wins.length&&losses.length&&loss>0?r((profit/wins.length)/(loss/losses.length)):null;
+ const largestWinningDeal=wins.length?wins.reduce((max,row)=>Math.max(max,row.pnl),0):null;
+ const largestProfitContributionPct=largestWinningDeal!==null&&profit>0?r(100*largestWinningDeal/profit,2):null;
+ const largestLosingDeal=losses.length?losses.reduce((max,row)=>Math.max(max,-row.pnl),0):null;
+ const largestLossContributionPct=largestLosingDeal!==null&&loss>0?r(100*largestLosingDeal/loss,2):null;
  const costs={};for(const field of ['commission','fee','swap']){const known=rows.map(t=>t[field]).filter(t=>t!==null);costs[field]={knownTotal:known.length?r(sum(known)):null,coveragePct:r(100*known.length/rows.length,2)};}
  const stride=Math.max(1,Math.ceil(rows.length/160)),points=rows.filter((t,i)=>!i||i===rows.length-1||i%stride===0).map(t=>({index:t.index,cumulative:t.cumulative,drawdown:t.drawdown}));
  const warnings=['This is a realized closing-deal P&L sequence, not account equity or account balance.','Entry-side costs, deposits, withdrawals and floating P&L are not reconciled.'];
  if(rows.length<30)warnings.push('LIMITED SAMPLE: fewer than 30 closing deals.');if(!chronological)warnings.push('Execution ordering is unverified; source deal order is used.');
+ if(chronological&&!uniqueChronological)warnings.push('Some closing deals share the same report-clock timestamp; their exact order is not verifiable. Longest underwater span is withheld.');
  if(calendar.length)warnings.push('Calendar groupings use exported report time without a verified broker timezone.');
  if(validation.mt5.closingDealsWithMissingCosts)warnings.push('Some closing-deal cost cells are missing or invalid.');
- return {statisticalEvidence:mt5SampleStatistics(rows.map(x=>x.pnl)),schema:'qelly.mt5.closed-deals/1.0',truthState:'DETERMINISTIC LOCAL ANALYSIS',sample:{deals:rows.length,wins:wins.length,losses:losses.length,flat:rows.length-wins.length-losses.length,grade:rows.length<30?'LIMITED SAMPLE':'OBSERVED SAMPLE'},metrics:{netPnl:r(balance),grossProfit:r(profit),grossLoss:r(loss),profitFactor:loss>0?r(profit/loss):null,expectedPnlPerDeal:r(balance/rows.length),winRatePct:r(100*wins.length/rows.length,2),maxClosedDealDrawdown:r(maxDrawdown),recoveryFactor:maxDrawdown>0?r(balance/maxDrawdown):null,maxConsecutiveWins:maxWins,maxConsecutiveLosses:maxLosses,sharpe:null,sortino:null,calmar:null,relativeAccountDrawdown:null},costs,groups:{symbol:grouped(rows,'symbol'),side:grouped(rows,'side'),weekday:grouped(calendar,'weekday'),hour:grouped(calendar,'hour'),month:grouped(calendar,'month')},series:{chronological,total:rows.length,points},warnings,unavailable:['Broker account equity/balance','Starting capital and relative account drawdown','Verified timezone','Holding time','Entry risk and position-level R multiples','Annualized Sharpe, Sortino and Calmar']};
+ if(!wins.length||!losses.length)warnings.push('Missing positive or negative closing-deal evidence: average winning/losing close and payoff ratio require eligible closes; flat closes count only in total-deal rates.');
+ return {statisticalEvidence:mt5SampleStatistics(rows.map(x=>x.pnl)),schema:'qelly.mt5.closed-deals/1.0',truthState:'DETERMINISTIC LOCAL ANALYSIS',sample:{deals:rows.length,wins:wins.length,losses:losses.length,flat:rows.length-wins.length-losses.length,grade:rows.length<30?'LIMITED SAMPLE':'OBSERVED SAMPLE'},metrics:{netPnl:r(balance),grossProfit:r(profit),grossLoss:r(loss),profitFactor:loss>0?r(profit/loss):null,expectedPnlPerDeal:r(balance/rows.length),winRatePct:r(100*wins.length/rows.length,2),lossRatePct:r(100*losses.length/rows.length,2),averageWinningClose,averageLosingClose,payoffRatio,maxClosedDealDrawdown:r(maxDrawdown),recoveryFactor:maxDrawdown>0?r(balance/maxDrawdown):null,maxConsecutiveWins:maxWins,maxConsecutiveLosses:maxLosses,largestWinningDealPnl:largestWinningDeal===null?null:r(largestWinningDeal),largestProfitContributionPct,largestLosingDealPnl:largestLosingDeal===null?null:r(-largestLosingDeal),largestLossContributionPct,longestUnderwaterClosingDeals:uniqueChronological?longestUnderwater:null,sharpe:null,sortino:null,calmar:null,relativeAccountDrawdown:null},costs,groups:{symbol:grouped(rows,'symbol'),side:grouped(rows,'side'),weekday:grouped(calendar,'weekday'),hour:grouped(calendar,'hour'),month:grouped(calendar,'month')},series:{chronological,uniqueChronological,total:rows.length,points},warnings,unavailable:['Broker account equity/balance','Starting capital and relative account drawdown','Verified timezone','Holding time','Entry risk and position-level R multiples','Annualized Sharpe, Sortino and Calmar']};
 }

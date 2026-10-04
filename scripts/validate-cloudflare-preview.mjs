@@ -1,6 +1,7 @@
 import {mkdir,writeFile} from 'node:fs/promises';
 import {chromium} from 'playwright';
 import {fileURLToPath} from 'node:url';
+import {routeIdentityFor} from '../apps/web/public/assets/route-registry.mjs';
 
 const base=String(process.env.QELLY_PREVIEW_URL||'https://qelly-intelligence.pages.dev').replace(/\/$/,'');
 const expectedSha=String(process.env.QELLY_EXPECTED_HEAD_SHA||'').trim();
@@ -124,7 +125,7 @@ const browserEvidence=[];
 const browser=await chromium.launch({headless:true});
 try{
   const cases=[
-    {name:'market-desktop',hash:'#/market',width:1440,height:1000,selector:'.q-market-home',heading:'Governed Market Terminal'},
+    {name:'market-desktop',hash:'#/market',width:1440,height:1000,selector:'[data-market-runtime="v7-public-no-fabrication"]',heading:routeIdentityFor('market').pageTitle},
     {name:'auth-mobile',hash:'#/auth-login',width:390,height:844,selector:'.q-auth-page',heading:'Sign in to Qelly'},
     {name:'formula-mobile',hash:'#/formula-detail/position-size',width:390,height:844,selector:'.q-formula-detail-page',heading:'Worked calculation'}
   ];
@@ -138,11 +139,11 @@ try{
     const response=await page.goto(`${base}/${item.hash}`,{waitUntil:'domcontentloaded',timeout:45000});
     await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true',{timeout:30000});
     await page.waitForSelector(item.selector,{timeout:30000});
-    await page.getByRole('heading',{name:item.heading,exact:item.name!=='market-desktop'}).waitFor({timeout:30000});
+    await page.getByRole('heading',{...(item.name==='market-desktop'?{level:1}:{}),name:item.heading,exact:true}).waitFor({timeout:30000});
     if(item.name==='market-desktop'){
-      await page.waitForSelector('[data-provider="coinbase"]',{timeout:30000});
-      await page.waitForSelector('[data-provider="ecb"]',{timeout:30000});
-      await page.waitForSelector('[data-provider="binance"]',{timeout:30000});
+      if(await page.title()!==routeIdentityFor('market').seoTitle)throw new Error('market_canonical_title_invalid');
+      await page.getByRole('heading',{name:'ECB euro reference rates',exact:true}).waitFor({timeout:30000});
+      await page.getByText('Not used in Qelly calculations, risk, alerts or decisions.',{exact:true}).waitFor({timeout:30000});
     }
     if(item.name==='auth-mobile'){
       await page.getByRole('button',{name:'Sign in',exact:true}).waitFor();

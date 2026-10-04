@@ -37,7 +37,7 @@ const state={
   },
   rrSelections:{},
   calibrationStates:{},
-  targetTouch:{state:'UNAVAILABLE',sampleSize:0,minimumSampleGate:null,observedSetups:0}
+  targetTouch:{state:'UNAVAILABLE',sampleSize:null,minimumSampleGate:null,observedSetups:null}
 };
 
 const now=()=>globalThis.performance?.now?.()??Date.now();
@@ -167,18 +167,22 @@ export function recordScannerObservation({startedAt,scan,failed=false}={}){
 export function recordTargetTouchSample(ledger){
   install();
   if(!ledger||typeof ledger!=='object'){
-    state.targetTouch={state:'UNAVAILABLE',sampleSize:0,minimumSampleGate:null,observedSetups:0};
+    state.targetTouch={state:'UNAVAILABLE',sampleSize:null,minimumSampleGate:null,observedSetups:null};
     emitSignal({feature:'target_touch_sample',action:'observe',state:'unavailable',surface:'workspace'});
     return decisionObservabilitySnapshot();
   }
-  const sampleSize=Math.max(0,Number(ledger.calibrationEligible)||0);
+  const historyVerified=ledger.calibrationHistoryComplete===true;
+  const totalVerified=ledger.totalCountVerified===true&&Number.isSafeInteger(ledger.observedSetups)&&ledger.observedSetups>=0;
+  const sampleSize=historyVerified?Math.max(0,Number(ledger.calibrationEligible)||0):null;
   state.targetTouch={
     state:String(ledger.calibrationState||ledger.calibration?.state||'UNCALIBRATED').toUpperCase(),
     sampleSize,
-    minimumSampleGate:Number.isFinite(Number(ledger.minimumSampleGate))?Number(ledger.minimumSampleGate):null,
-    observedSetups:Math.max(0,Number(ledger.observedSetups)||0)
+    minimumSampleGate:ledger.minimumSampleGate!=null&&Number.isFinite(Number(ledger.minimumSampleGate))?Number(ledger.minimumSampleGate):null,
+    observedSetups:totalVerified?ledger.observedSetups:null,
+    totalCountVerified:totalVerified,
+    calibrationHistoryComplete:historyVerified
   };
-  emitSignal({feature:'target_touch_sample',action:'observe',state:sampleBucket(sampleSize),surface:'workspace'});
+  emitSignal({feature:'target_touch_sample',action:'observe',state:historyVerified?sampleBucket(sampleSize):'unverified',surface:'workspace'});
   return decisionObservabilitySnapshot();
 }
 
@@ -253,7 +257,7 @@ export function resetDecisionObservabilityForTest(){
   for(const key of Object.keys(state.counters))state.counters[key]=0;
   state.rrSelections={};
   state.calibrationStates={};
-  state.targetTouch={state:'UNAVAILABLE',sampleSize:0,minimumSampleGate:null,observedSetups:0};
+  state.targetTouch={state:'UNAVAILABLE',sampleSize:null,minimumSampleGate:null,observedSetups:null};
 }
 
 if(typeof globalThis.window==='object'){

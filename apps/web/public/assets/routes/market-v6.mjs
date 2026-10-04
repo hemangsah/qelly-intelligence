@@ -193,7 +193,7 @@ export async function renderMarketV6(main,deps){
       </div>
     </section>
 
-    <section class="q-panel q-public-data-board"><div class="q-panel-head"><div><p class="q-eyebrow">Market data sources</p><h2>Global public data board</h2><p>Official/public feeds keep their own cadence, attribution and truth state. Reference observations are never presented as tradable quotes.</p></div><span class="q-status q-status--cached" data-public-source-status>LOADING SOURCES</span></div><div class="q-panel-body q-public-source-grid" data-public-source-grid><div class="q-empty-state"><strong>Connecting public data network</strong><p>Slow reference providers load in the background and never block Market Command.</p></div></div></section>
+    <section class="q-panel q-public-data-board"><div class="q-panel-head"><div><p class="q-eyebrow">Market data sources</p><h2>Global public data board</h2><p>Official/public feeds keep their own cadence, attribution and truth state. Reference observations are never presented as tradable quotes.</p></div><span class="q-status q-status--cached" data-public-source-status>LOADING SOURCES</span></div><div class="q-panel-body q-public-source-grid" data-public-source-grid><div class="q-empty-state"><strong>Connecting public data network</strong><p>Slow reference providers load in the background and never block Market Pulse.</p></div></div></section>
 
     ${adSlot('market-intelligence-inline')}
 

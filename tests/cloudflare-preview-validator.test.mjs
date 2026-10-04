@@ -16,6 +16,20 @@ test('Cloudflare preview validation follows current no-fabrication and readiness
   assert.doesNotMatch(source,/origin:true/);
 });
 
+test('preview and navigation checks accept the canonical Market Pulse shell and preserve reference boundaries',async()=>{
+  const [preview,navigation]=await Promise.all([read('scripts/validate-cloudflare-preview.mjs'),read('scripts/verify-navigation-runtime.mjs')]);
+  assert.match(preview,/routeIdentityFor\('market'\)\.pageTitle/);
+  assert.match(preview,/routeIdentityFor\('market'\)\.seoTitle/);
+  assert.match(preview,/v7-public-no-fabrication/);
+  assert.match(preview,/ECB euro reference rates/);
+  assert.match(preview,/Not used in Qelly calculations, risk, alerts or decisions\./);
+  assert.match(navigation,/\['market','Market Pulse'\]/);
+  for(const source of [preview,navigation])assert.doesNotMatch(source,/Governed Market Terminal/);
+  const market=await read('apps/web/public/assets/routes/market-v6.mjs');
+  assert.doesNotMatch(market,/Market Command/);
+  assert.match(market,/never block Market Pulse/);
+});
+
 test('Cloudflare preview workflow requires an explicit immutable preview and exact SHA',async()=>{
   const workflow=await read('.github/workflows/cloudflare-preview.yml');
   assert.match(workflow,/workflow_dispatch:/);

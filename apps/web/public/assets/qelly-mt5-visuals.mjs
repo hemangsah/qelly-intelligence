@@ -40,6 +40,11 @@ export function renderMt5ClosedDealEvidence(report,{id='mt5-evidence'}={}){
  metric('Gross profit',num(m.grossProfit,4),'observed closing deals')+metric('Gross loss',num(m.grossLoss,4),'absolute amount')+
  metric('Profit factor',num(m.profitFactor,3),m.profitFactor===null?'no observed gross loss':'profit / loss')+
  metric('Mean per closed deal',num(m.expectedPnlPerDeal,4),'historical sample only')+
+ metric('Observed win rate',num(m.winRatePct,2)+'%','all closing deals incl. flat')+
+ metric('Observed loss rate',num(m.lossRatePct,2)+'%','all closing deals incl. flat')+
+ metric('Average winning close',num(m.averageWinningClose,4),s.wins+' observed winning closes')+
+ metric('Average losing close',num(m.averageLosingClose,4),s.losses+' observed losing closes; absolute loss')+
+ metric('Payoff ratio',num(m.payoffRatio,3),m.payoffRatio===null?'wins and losses both required':'average win / absolute average loss')+
  metric('Observed drawdown',num(m.maxClosedDealDrawdown,4),'closed-deal sequence')+
  '</div><div class="q-mt5-charts">'+chart(series.points,'cumulative','Cumulative closed-deal P&L',prefix)+chart(series.points,'drawdown','Closed-deal underwater drawdown',prefix)+'</div>'+
  '<p class="q-mt5-limit">Curve order: '+(series.chronological?'all available report timestamps are nondecreasing':'unverified; follows report row order')+'. No account equity, open trade marks or deposits are inferred.</p>'+

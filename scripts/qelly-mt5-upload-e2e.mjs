@@ -126,6 +126,20 @@ async function scenario(browser,name,viewport){
     assert.equal(routeData.privacy.sourceRowsIncluded,false);
     assert.equal(routeData.privacy.accountIdentifiersIncluded,false);
     assert.doesNotMatch(JSON.stringify(routeData),/window.__qellyMt5UploadXss|PRIVATE_PASSWORD/);
+    assert.equal(routeData.reportB.sample.deals,6);
+    const noteSaved=page.waitForEvent('download',{timeout:15000});
+    await page.locator('[data-mt5-route-note]').click();
+    const noteDownload=await noteSaved;
+    assert.equal(noteDownload.suggestedFilename(),'qelly-mt5-research-note.md');
+    const note=await readFile(await noteDownload.path(),'utf8');
+    assert.match(note,/^# QELLY MT5 Research Note/m);
+    assert.match(note,/## Report A/);
+    assert.match(note,/## Report B/);
+    assert.match(note,/LIMITED SAMPLE/);
+    assert.match(note,/All monetary differences and strategy rankings are withheld/);
+    assert.doesNotMatch(note,/route-a\.html|route-b\.xlsx|PRIVATE_PASSWORD/);
+    assert.deepEqual(chatPosts,[],'Markdown export must not send a chat request');
+    entry.checks.push('local Markdown note is a user-invoked, dual-report, account-redacted download');
     await page.locator('[data-mt5-route-chat]').click();
     await page.locator('[data-q-ai-assistant]:not([hidden])').waitFor({state:'visible',timeout:10000});
     const draft=await page.locator('[data-q-ai-form] textarea').inputValue();
@@ -138,6 +152,7 @@ async function scenario(browser,name,viewport){
     entry.checks.push('explicit aggregate-only MT5 Chat prefill without automatic network submission');
     await page.screenshot({path:path.join(out,name+'-standalone-mt5.png'),fullPage:true});
     await page.locator('[data-mt5-route-reset]').click();
+    assert.equal(await page.locator('[data-mt5-route-note]').isDisabled(),true);
     assert.equal(await page.locator('.q-mt5-route-empty').count(),1);
     assert.equal(await page.locator('[data-mt5-comparison-result]').count(),0);
     await page.locator('[data-mt5-route-input="A"]').setInputFiles({name:'route-a.html',mimeType:'text/html',buffer:Buffer.from(html(6),'utf8')});
@@ -147,6 +162,7 @@ async function scenario(browser,name,viewport){
     await page.evaluate(()=>{location.hash='#/mt5-report-analyzer';});
     await page.locator('.q-mt5-route-empty').waitFor({state:'visible',timeout:30000});
     assert.equal(await page.locator('[data-mt5-route-export]').isDisabled(),true);
+    assert.equal(await page.locator('[data-mt5-route-note]').isDisabled(),true);
     entry.checks.push('standalone MT5 HTML/XLSX reports, derived export, inert HTML and leave-route data cleanup');
     assert.deepEqual(uploads,[]);
     assert.deepEqual(errors,[]);
