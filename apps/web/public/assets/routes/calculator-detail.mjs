@@ -67,7 +67,7 @@ export async function renderCalculatorDetail(main,{pageHead,escapeHtml,toast,nav
   let result=null,input=null;
   const form=main.querySelector('#calculator-structured-form'),editor=main.querySelector('#calculator-detail-input'),errors=main.querySelector('#calculator-detail-errors'),evidence=main.querySelector('#calculator-detail-evidence'),primary=main.querySelector('#calculator-detail-primary'),summary=main.querySelector('#calculator-detail-summary');
   const actionButtons=()=>main.querySelectorAll('[data-action="save"],[data-action="copy"],[data-action="json"],[data-action="csv"],[data-action="share"]');
-  const enableActions=(enabled)=>actionButtons().forEach((button)=>button.disabled=!enabled);
+  const enableActions=(enabled)=>actionButtons().forEach((button)=>{button.disabled=!enabled;button.setAttribute('aria-disabled',String(!enabled));});
   const clearFieldErrors=()=>main.querySelectorAll('[data-field-error]').forEach((element)=>element.textContent='');
   const readStructured=()=>{const values={};for(const field of fields){const control=form.elements[field.key];if(!control)continue;const value=serializeField(field,control.value);if(value!==undefined)values[field.key]=value;}return values;};
   const updateStructured=(values)=>{for(const field of fields){const control=form.elements[field.key];if(!control||values[field.key]===undefined)continue;control.value=field.type==='array'||field.type==='object'?JSON.stringify(values[field.key],null,2):String(values[field.key]);}editor.value=JSON.stringify(values,null,2);};

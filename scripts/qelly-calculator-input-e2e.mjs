@@ -40,16 +40,28 @@ try{
         assert.match(await page.locator('#calculator-detail-errors').innerText(),/correct the highlighted values/);
         assert.equal(await page.locator('[data-action="save"]').isDisabled(),true);
         assert.equal(await page.locator('[data-action="json"]').isDisabled(),true);
+        assert.equal(await page.locator('[data-action="save"]').getAttribute('aria-disabled'),'true');
       }else{
         await page.waitForFunction(()=>document.querySelector('#calculator-detail-evidence').classList.contains('q-calculation-result-list'));
         const number=Number((await page.locator('.q-calculation-result strong').first().innerText()).replaceAll(',',''));
         assert.ok(Math.abs(number-scenario.expected)<0.011,`${scenario.id}: ${number} differs from ${scenario.expected}`);
         assert.equal(await page.locator('#calculator-detail-errors').innerText(),'');
         assert.equal(await page.locator('[data-action="save"]').isEnabled(),true);
+        for(const action of ['save','copy','json','csv','share']){
+          assert.equal(await page.locator(`[data-action="${action}"]`).isEnabled(),true);
+          assert.equal(await page.locator(`[data-action="${action}"]`).getAttribute('aria-disabled'),'false');
+        }
       }
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
       assert.equal(writes,0,'Calculator acceptance must not save data or send chat');
       await page.screenshot({path:`${out}/${scenario.id}-${width}-${appearance}.png`,fullPage:true});
+      if(!scenario.reject){
+        await page.locator('[data-action="reset"]').click();
+        for(const action of ['save','copy','json','csv','share']){
+          assert.equal(await page.locator(`[data-action="${action}"]`).isDisabled(),true);
+          assert.equal(await page.locator(`[data-action="${action}"]`).getAttribute('aria-disabled'),'true');
+        }
+      }
       results.push({formulaId:scenario.id,width,appearance,status:'passed',writes});
     }catch(error){results.push({formulaId:scenario.id,width,appearance,status:'failed',error:error.message});await page.screenshot({path:`${out}/${scenario.id}-${width}-${appearance}-failed.png`,fullPage:true}).catch(()=>{});throw error;}
     finally{await context.close();}
