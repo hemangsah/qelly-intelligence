@@ -138,7 +138,7 @@ jobs:
             dist/release-evidence-handoff/receipt.json >/dev/null
       - name: Publish small exact-head evidence receipt
         if: steps.pr.outputs.eligible == 'true'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: qelly-verified-evidence-receipt-${{ steps.pr.outputs.sha }}
           path: dist/release-evidence-handoff/receipt.json

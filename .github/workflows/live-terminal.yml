@@ -35,7 +35,7 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
       - name: Set up Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '22'
           cache: npm
@@ -114,7 +114,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 1
       - name: Set up Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '22'
           cache: npm
@@ -227,7 +227,7 @@ jobs:
           NODE
       - name: Upload V8 live terminal and convergence evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: qelly-live-terminal-acceptance-${{ github.sha }}
           path: |
