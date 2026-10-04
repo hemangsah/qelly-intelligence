@@ -3,20 +3,8 @@ on:
   pull_request:
     branches: [main, release/qelly-global-public-beta]
     types: [opened, synchronize, reopened]
-    paths:
-      - 'apps/web/public/**'
-      - 'functions/**'
-      - 'packages/**'
-      - 'scripts/release-a5-*'
-      - 'scripts/qelly-first-paint-stability.mjs'
-      - 'scripts/qelly-decision-range-selection-e2e.mjs'
-      - 'scripts/finalize-public-runtime.mjs'
-      - 'scripts/finalize-governed-discovery.mjs'
-      - 'src/server/**'
-      - 'tests/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/browser-e2e.yml'
+    # Required by branch protection: every PR head must produce this check,
+    # including workflow-only and documentation-only maintenance.
   push:
     branches: [main, release/qelly-global-public-beta]
   workflow_dispatch:

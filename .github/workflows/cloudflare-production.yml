@@ -24,7 +24,7 @@ jobs:
           set -euo pipefail
           test "$GITHUB_REF" = "refs/heads/release/qelly-global-public-beta"
           test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with: {node-version: '22', cache: npm}
       - run: npm ci --ignore-scripts
       - name: Wait for stable Cloudflare runtime convergence
@@ -108,7 +108,7 @@ jobs:
             if(pageErrors.length||criticalRequestFailures.length||criticalConsoleErrors.length||failingResponses.length)throw new Error(`critical_browser_errors_${JSON.stringify({pageErrors,criticalRequestFailures,criticalConsoleErrors,failingResponses})}`);
           })().catch(e=>{console.error(e);process.exit(1)});
           NODE
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: qelly-live-production-verification-${{ github.sha }}

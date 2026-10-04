@@ -24,7 +24,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '22'
           cache: npm
@@ -101,14 +101,14 @@ jobs:
           printf '{"headSha":"%s","baseSha":"150025b9662404e5f98cd397c74c5d8be386460c","fallbackSha":"603cece3091dc59cfb72680914e7056b40058022","workflowRun":"%s"}\n' "${GITHUB_SHA}" "${GITHUB_RUN_ID}" > dist/production-restoration-evidence/manifest.json
           find dist/production-restoration-evidence -type f -print0 | sort -z | xargs -0 sha256sum > dist/production-restoration-evidence/SHA256SUMS.txt
       - name: Upload exact built runtime
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: qelly-restoration-build-${{ github.sha }}
           path: dist/frontend
           if-no-files-found: error
           retention-days: 7
       - name: Upload build evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: qelly-restoration-build-evidence-${{ github.sha }}
           path: dist/production-restoration-evidence
@@ -213,7 +213,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 1
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '22'
           cache: npm
@@ -251,7 +251,7 @@ jobs:
           fi
       - name: Upload browser evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: qelly-browser-${{ matrix.case }}-${{ matrix.width }}x${{ matrix.height }}-${{ github.sha }}
           path: dist/production-restoration-browser/${{ matrix.case }}-${{ matrix.width }}x${{ matrix.height }}
