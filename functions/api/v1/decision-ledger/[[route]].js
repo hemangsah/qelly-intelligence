@@ -10,11 +10,11 @@ const routePath=(context)=>{
 };
 const ensureUuid=(value)=>{const id=String(value||'');if(!UUID.test(id))throw new HttpError(400,'decision_setup_id_invalid','Decision setup identifier is invalid');return id;};
 const limitFor=(url)=>Math.max(1,Math.min(100,Number.parseInt(url.searchParams.get('limit')||'25',10)||25));
-const setupRows=async(env,session,workspaceId,{id=null,sourceSetupId=null,limit=25}={})=>{
+const setupRows=async(env,session,workspaceId,{id=null,sourceSetupId=null,limit=25,exactCount=false}={})=>{
   const params=new URLSearchParams({select:'*',workspace_id:`eq.${workspaceId}`,order:'created_observed_at.desc',limit:String(limit)});
   if(id)params.set('id',`eq.${id}`);
   if(sourceSetupId)params.set('source_setup_id',`eq.${sourceSetupId}`);
-  return restRequest(env,session.accessToken,`qelly_decision_setups?${params.toString()}`);
+  return restRequest(env,session.accessToken,`qelly_decision_setups?${params.toString()}`,exactCount?{exactCount:true}:{});
 };
 const observationRows=async(env,session,workspaceId,setupId)=>{
   const params=new URLSearchParams({select:'*',workspace_id:`eq.${workspaceId}`,setup_id:`eq.${setupId}`,order:'observed_at.asc',limit:'500'});
@@ -28,7 +28,7 @@ const calibrationRows=async(env,session,workspaceId,{limit=2000}={})=>{
     order:'resolved_at.asc',
     limit:String(limit)
   });
-  return restRequest(env,session.accessToken,`qelly_decision_setups?${params.toString()}`);
+  return restRequest(env,session.accessToken,`qelly_decision_setups?${params.toString()}`,{exactCount:true});
 };
 const researchSetupRows=async(env,session,workspaceId,{limit=2000}={})=>{
   const params=new URLSearchParams({select:'*',workspace_id:`eq.${workspaceId}`,order:'created_observed_at.asc',limit:String(limit)});
@@ -94,6 +94,27 @@ export const buildResearchOutcomeAudit=(setups,observations,{setupLimit=2000,obs
   return Object.freeze({dataQuality,calibration,sampleBoundary});
 };
 
+// The visible page and resolved calibration history have independent RLS-scoped
+// totals. Neither a truncated page nor a missing total may masquerade as zero.
+export const buildLedgerPageEvidence=(page,historyPage,{historyLimit=2000}={})=>{
+  const rows=Array.isArray(page?.data)?page.data:[];
+  const history=Array.isArray(historyPage?.data)?historyPage.data:[];
+  const total=parseExactCount(page?.contentRange);
+  const resolvedTotal=parseExactCount(historyPage?.contentRange);
+  const totalCountVerified=total!==null&&total>=rows.length;
+  const calibrationHistoryComplete=resolvedTotal!==null&&resolvedTotal===history.length&&history.length<historyLimit;
+  const calibration=calibrationHistoryComplete
+    ?{...buildTargetTouchCalibration(history,{minSamples:50,warmup:20,minSegmentSamples:50,historyLimitReached:false}),qualityGate:'VERIFIED_COMPLETE_RESOLVED_HISTORY'}
+    :{schemaVersion:'qelly.target-touch-calibration/1.0.0',state:'UNCALIBRATED',eligible:false,
+        eligibleResolvedSetups:0,minimumSampleGate:50,metrics:{},calibratedMetrics:[],historyLimitReached:true,
+        qualityGate:'BLOCKED_INCOMPLETE_HISTORY',
+        reason:'Resolved setup history is capped, truncated or lacks an exact workspace count. No target-touch probability may be reported.'};
+  return Object.freeze({rows,observedSetups:totalCountVerified?total:null,visibleSetups:rows.length,
+    totalCountVerified,hasMore:totalCountVerified?total>rows.length:null,
+    resolvedHistoryTotal:calibrationHistoryComplete?resolvedTotal:null,
+    calibrationHistoryComplete,calibration});
+};
+
 const requireSetup=async(env,session,workspaceId,id)=>{
   const rows=await setupRows(env,session,workspaceId,{id,limit:1});
   if(!rows?.length)throw new HttpError(404,'decision_setup_not_found','Tracked Decision setup was not found');
@@ -144,20 +165,25 @@ async function handleLedger(context,relative,method,session,qelly){
 
   if(!relative&&method==='GET'){
     const historyLimit=2000;
-    const [rows,history]=await Promise.all([
-      setupRows(env,session,workspaceId,{limit:limitFor(url)}),
+    const [page,historyPage]=await Promise.all([
+      setupRows(env,session,workspaceId,{limit:limitFor(url),exactCount:true}),
       calibrationRows(env,session,workspaceId,{limit:historyLimit})
     ]);
-    const items=(rows||[]).map(setupRowToClient);
-    const calibration=buildTargetTouchCalibration(history||[],{minSamples:50,warmup:20,minSegmentSamples:50,historyLimitReached:(history||[]).length>=historyLimit});
+    const evidence=buildLedgerPageEvidence(page,historyPage,{historyLimit});
+    const items=evidence.rows.map(setupRowToClient);
+    const calibration=evidence.calibration;
     return responseJson(request,env,{
       items,
-      observedSetups:items.length,
+      observedSetups:evidence.observedSetups,
+      visibleSetups:evidence.visibleSetups,
+      totalCountVerified:evidence.totalCountVerified,
+      hasMore:evidence.hasMore,
+      calibrationHistoryComplete:evidence.calibrationHistoryComplete,
       calibrationEligible:calibration.eligibleResolvedSetups,
       calibrationState:calibration.state,
       minimumSampleGate:calibration.minimumSampleGate,
       calibration,
-      boundary:'Only setups created after tracking began are included. No historical setups are fabricated or backfilled.'
+      boundary:'Only setups created after tracking began are included. No historical setups are fabricated or backfilled. Totals are available only when verified by an exact RLS-scoped count; target-touch calibration requires complete resolved history.'
     });
   }
 
@@ -224,4 +250,4 @@ export async function onRequest(context){
   }
 }
 
-export const __decisionLedgerApiTest=Object.freeze({routePath,limitFor,decisionArgs,argsFromRow,calibrationRows,researchSetupRows,researchObservationRows,parseExactCount,researchHistoryBoundary,buildResearchOutcomeAudit});
+export const __decisionLedgerApiTest=Object.freeze({routePath,limitFor,decisionArgs,argsFromRow,calibrationRows,researchSetupRows,researchObservationRows,parseExactCount,researchHistoryBoundary,buildResearchOutcomeAudit,buildLedgerPageEvidence});
