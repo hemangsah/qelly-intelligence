@@ -106,16 +106,19 @@ test('Wave BM records the real target-touch ledger sample and does not substitut
     calibrationState:'UNCALIBRATED',
     calibrationEligible:7,
     minimumSampleGate:50,
-    observedSetups:9
+    observedSetups:9,
+    totalCountVerified:true,
+    calibrationHistoryComplete:true
   });
   let snapshot=decisionObservabilitySnapshot();
   assert.deepEqual(snapshot.decision.targetTouchSample,{
-    state:'UNCALIBRATED',sampleSize:7,minimumSampleGate:50,observedSetups:9
+    state:'UNCALIBRATED',sampleSize:7,minimumSampleGate:50,observedSetups:9,
+    totalCountVerified:true,calibrationHistoryComplete:true
   });
   recordTargetTouchSample(null);
   snapshot=decisionObservabilitySnapshot();
   assert.deepEqual(snapshot.decision.targetTouchSample,{
-    state:'UNAVAILABLE',sampleSize:0,minimumSampleGate:null,observedSetups:0
+    state:'UNAVAILABLE',sampleSize:null,minimumSampleGate:null,observedSetups:null
   });
 });
 
