@@ -1,12 +1,11 @@
 import {buildMt5ObservedDiagnostics} from './qelly-mt5-diagnostics.mjs';
 import {analyzeTrades,parseTradeCsv,sampleTradeCsv} from './qelly-verify-engine.mjs';
-import {parseMt5Html,parseMt5Xlsx,MT5_REPORT_LIMITS} from './qelly-mt5-report-parser.mjs';
-import {analyzeMt5ClosedDeals} from './qelly-mt5-advanced-metrics.mjs';
+import {composeStrategyEvidenceReport} from './qelly-verify-report.mjs';
+import {createLocalMt5Task,createLocalVerifyTask} from './qelly-mt5-worker-client.mjs';
 import {renderMt5ClosedDealEvidence} from './qelly-mt5-visuals.mjs';
 import {compareMt5ClosedDealReports} from './qelly-mt5-comparison.mjs';
 import {renderMt5Comparison} from './qelly-mt5-comparison-ui.mjs';
 import {QELLY_VERIFY_METHODOLOGY,QELLY_VERIFY_METHODOLOGY_VERSION,QELLY_VERIFY_REPORT_SCHEMA} from './qelly-verify-methodology.mjs';
-import {composeStrategyEvidenceReport} from './qelly-verify-report.mjs';
 import {applyV53VerifyCanonical} from './qelly-v53-verify-canonical.mjs';
 
 const main=document.getElementById('main');
@@ -18,6 +17,10 @@ const ensureMt5Styles=()=>{if(document.querySelector('link[data-qelly-mt5-eviden
 let current=null;
 let primaryGeneration=0;
 let primaryPending=false;
+let primaryTask=null;
+const comparisonTasks={A:null,B:null};
+const comparisonPending={A:false,B:false};
+function cancelComparison(slot){comparisonTasks[slot]?.cancel();comparisonTasks[slot]=null;comparisonPending[slot]=false;}
 const isVerifyRoute=()=>window.location.hash.split("?")[0]==="#/qelly-verify"&&new URLSearchParams(window.location.hash.split("?")[1]||"").get("view")!=="methodology";
 const isCurrentPrimary=token=>token===primaryGeneration&&isVerifyRoute()&&main?.dataset.qellyVerifyOwner==="true";
 let comparison={A:null,B:null};
@@ -39,7 +42,7 @@ function comparisonShell(){
  '<header><p class="q-verify-kicker">Step 2 · Local A/B comparison</p><h2>Compare two MT5 reports</h2><p>Select two separate HTML or XLSX Deals reports. Files remain local; differences are descriptive and monetary deltas are withheld until account currencies can be verified.</p></header>'+
  '<div class="q-mt5-compare-inputs">'+inputs+'</div><p role="status" aria-live="polite" data-mt5-compare-status>'+escapeHtml(comparisonError||(ready?'Both reports parsed locally.':'Choose both reports to see a governed comparison.'))+'</p>'+
  '<div class="q-mt5-compare-controls"><button type="button" data-mt5-compare-export'+(ready?'':' disabled')+'>Export share-safe comparison JSON</button>'+
- '<button type="button" data-mt5-compare-reset'+(!comparison.A&&!comparison.B?' disabled':'')+'>Clear both reports</button></div>'+result+'</section>';
+ '<button type="button" data-mt5-compare-reset'+(!comparison.A&&!comparison.B&&!comparisonPending.A&&!comparisonPending.B?' disabled':'')+'>Clear both reports</button></div>'+result+'</section>';
 }
 function verifyShell(evidence=null,validation=null,sourceName='No file selected',mt5Report=null){
   return `<section class="q-verify-page" data-qelly-verify-surface>
@@ -87,35 +90,40 @@ function methodologyMarkup(){
 
 function bind(){
   main?.querySelectorAll('[data-mt5-compare-file]').forEach(input=>input.addEventListener('change',()=>{const file=input.files?.[0];if(file)loadComparisonFile(file,input.dataset.mt5CompareFile);}));
-  main?.querySelector('[data-mt5-compare-reset]')?.addEventListener('click',()=>{comparison={A:null,B:null};comparisonError='';comparisonGeneration.A++;comparisonGeneration.B++;renderVerify();});
+  main?.querySelector('[data-mt5-compare-reset]')?.addEventListener('click',()=>{cancelComparison('A');cancelComparison('B');comparison={A:null,B:null};comparisonError='';comparisonGeneration.A++;comparisonGeneration.B++;renderVerify();});
   main?.querySelector('[data-mt5-compare-export]')?.addEventListener('click',()=>{if(comparison.A&&comparison.B){const result=compareMt5ClosedDealReports(comparison.A.report,comparison.B.report);download('qelly-mt5-comparison-share-safe.json',JSON.stringify(result,null,2),'application/json');}});
   const input=main?.querySelector('[data-verify-file]');const dropzone=main?.querySelector('[data-verify-dropzone]');
   input?.addEventListener('change',()=>{const file=input.files?.[0];if(file)analyzeFile(file);});dropzone?.addEventListener('dragover',event=>{event.preventDefault();dropzone.classList.add('is-dragging');});dropzone?.addEventListener('dragleave',()=>dropzone.classList.remove('is-dragging'));dropzone?.addEventListener('drop',event=>{event.preventDefault();dropzone.classList.remove('is-dragging');const file=event.dataTransfer?.files?.[0];if(file)analyzeFile(file);});
-  main?.querySelector('[data-verify-sample]')?.addEventListener('click',()=>analyzeText(sampleTradeCsv(),'Qelly governed strategy sample.csv'));main?.querySelector('[data-verify-download-sample]')?.addEventListener('click',()=>download('qelly-verify-sample.csv',sampleTradeCsv(),'text/csv'));main?.querySelector('[data-verify-reset]')?.addEventListener('click',()=>{primaryGeneration++;primaryPending=false;current=null;renderVerify();});main?.querySelector('[data-verify-export]')?.addEventListener('click',()=>{if(!current?.evidence&&!current?.mt5Report)return;const documentBody=current.evidence?(current.mt5Report?{...current.evidence,mt5ClosedDealAnalysis:current.mt5Report,mt5ObservedDiagnostics:buildMt5ObservedDiagnostics(current.mt5Report)}:current.evidence):{schema:'qelly.mt5.limited-sample/1.0',sourceName:current.sourceName,mt5ClosedDealAnalysis:current.mt5Report,mt5ObservedDiagnostics:buildMt5ObservedDiagnostics(current.mt5Report)};const suffix=current.evidence?.reportId||'observed-closing-deals';download(`qelly-strategy-evidence-${suffix}.json`,JSON.stringify(documentBody,null,2),'application/json');});main?.querySelector('[data-verify-print]')?.addEventListener('click',()=>window.print());
+  main?.querySelector('[data-verify-sample]')?.addEventListener('click',()=>analyzeText(sampleTradeCsv(),'Qelly governed strategy sample.csv'));main?.querySelector('[data-verify-download-sample]')?.addEventListener('click',()=>download('qelly-verify-sample.csv',sampleTradeCsv(),'text/csv'));main?.querySelector('[data-verify-reset]')?.addEventListener('click',()=>{primaryTask?.cancel();primaryTask=null;primaryGeneration++;primaryPending=false;current=null;renderVerify();});main?.querySelector('[data-verify-export]')?.addEventListener('click',()=>{if(!current?.evidence&&!current?.mt5Report)return;const documentBody=current.evidence?(current.mt5Report?{...current.evidence,mt5ClosedDealAnalysis:current.mt5Report,mt5ObservedDiagnostics:buildMt5ObservedDiagnostics(current.mt5Report)}:current.evidence):{schema:'qelly.mt5.limited-sample/1.0',sourceName:current.sourceName,mt5ClosedDealAnalysis:current.mt5Report,mt5ObservedDiagnostics:buildMt5ObservedDiagnostics(current.mt5Report)};const suffix=current.evidence?.reportId||'observed-closing-deals';download(`qelly-strategy-evidence-${suffix}.json`,JSON.stringify(documentBody,null,2),'application/json');});main?.querySelector('[data-verify-print]')?.addEventListener('click',()=>window.print());
 }
 
 async function loadComparisonFile(file,slot){
- if(!['A','B'].includes(slot))return;
+ if(!['A','B'].includes(slot)||!isVerifyRoute())return;
+ cancelComparison(slot);
  if(file.size>MAX_FILE_BYTES){++comparisonGeneration[slot];comparison[slot]=null;comparisonError='Report '+slot+': 5 MB limit exceeded.';renderVerify();return;}
  const ext=file.name.toLowerCase().split('.').pop();
  if(!['html','htm','xlsx'].includes(ext)){++comparisonGeneration[slot];comparison[slot]=null;comparisonError='Report '+slot+': choose MT5 HTML or XLSX.';renderVerify();return;}
  const generation=++comparisonGeneration[slot];
+ comparisonPending[slot]=true;
  comparison[slot]=null;comparisonError='Reading Report '+slot+' locally…';
  renderVerify();
  const drawer=main?.querySelector('details.q-v53-strategy-tools');if(drawer)drawer.open=true;
  try{
-  const bytes=ext==='xlsx'?new Uint8Array(await file.arrayBuffer()):await file.text();
-  const parsed=ext==='xlsx'?await parseMt5Xlsx(bytes,{maxRows:MT5_REPORT_LIMITS.rows}):parseMt5Html(bytes,{maxRows:MT5_REPORT_LIMITS.rows});
-  const report=analyzeMt5ClosedDeals(parsed.trades,parsed.validation);
+  const bytes=new Uint8Array(await file.arrayBuffer());
+  if(comparisonGeneration[slot]!==generation||!isVerifyRoute())return;
+  const task=createLocalMt5Task({source:bytes,format:ext==='xlsx'?'xlsx':'html'});comparisonTasks[slot]=task;
+  const report=await task.promise;
   if(comparisonGeneration[slot]!==generation||!isVerifyRoute())return;
   comparison[slot]={name:String(file.name).slice(0,140),report};comparisonError='';
  }catch(error){
   if(comparisonGeneration[slot]!==generation||!isVerifyRoute())return;
   comparison[slot]=null;comparisonError='Report '+slot+': '+String(error?.message||'Unsupported MT5 Deals report').slice(0,250);
  }
- renderVerify();
+ if(comparisonGeneration[slot]!==generation||!isVerifyRoute())return;
+ comparisonTasks[slot]=null;comparisonPending[slot]=false;renderVerify();
 }
 function beginPrimaryAnalysis(sourceName){
+  primaryTask?.cancel();primaryTask=null;
   const token=++primaryGeneration;
   current=null;primaryPending=true;renderVerify();
   const status=main?.querySelector('[data-verify-status]');
@@ -142,23 +150,15 @@ async function analyzeText(sourceText,sourceName,format='csv',token=beginPrimary
   await new Promise(resolve=>setTimeout(resolve,0));
   if(!isCurrentPrimary(token))return;
   try{
-    const parsed=format==='mt5-html'?parseMt5Html(sourceText,{maxRows:MT5_REPORT_LIMITS.rows})
-      :format==='mt5-xlsx'?await parseMt5Xlsx(sourceText,{maxRows:MT5_REPORT_LIMITS.rows})
-      :parseTradeCsv(sourceText);
+    const task=createLocalVerifyTask({source:sourceText,sourceName,format});primaryTask=task;
+    const {validation,evidence,mt5Report}=await task.promise;
     if(!isCurrentPrimary(token))return;
-    const mt5Report=parsed.validation.mt5?analyzeMt5ClosedDeals(parsed.trades,parsed.validation):null;
-    // The general heuristic engine has a 5-deal minimum and bounded MT5
-    // resampling window. Show local, descriptive MT5 evidence outside it.
-    const generalEngineEligible=!mt5Report||(parsed.trades.length>=5&&parsed.trades.length<=5000);
-    const analysis=generalEngineEligible?analyzeTrades(parsed.trades,{sourceName}):null;
-    const evidence=analysis?await composeStrategyEvidenceReport({analysis,validation:parsed.validation,sourceText,sourceName}):null;
-    if(!isCurrentPrimary(token))return;
-    primaryPending=false;current={validation:parsed.validation,evidence,mt5Report,sourceName};
+    primaryTask=null;primaryPending=false;current={validation,evidence,mt5Report,sourceName};
     renderVerify();
   }catch(error){if(isCurrentPrimary(token))renderError(error,sourceName);}
 }
 function renderError(error,sourceName){
-  primaryPending=false;current=null;renderVerify();
+  primaryTask=null;primaryPending=false;current=null;renderVerify();
   const status=main?.querySelector('[data-verify-status]');
   if(status){
     status.classList.add('is-error');
@@ -173,7 +173,7 @@ export function renderVerify(){
   if(!main)return;
   main.dataset.qellyVerifyOwner='true';
   document.documentElement.dataset.qellyVerifySubview='qelly-verify';
-  main.setAttribute('aria-busy','false');
+  main.setAttribute('aria-busy',String(primaryPending||comparisonPending.A||comparisonPending.B));
   if(current?.mt5Report)ensureMt5Styles();
   ensureComparisonStyles();
   main.innerHTML=verifyShell(current?.evidence,current?.validation,current?.evidence?.source?.name||current?.sourceName,current?.mt5Report);
@@ -192,5 +192,5 @@ export function renderMethodology(){
   document.title='Qelly Evidence Methodology · Qelly Intelligence';
   main.focus({preventScroll:true});
 }
-export function resetVerifyState(){primaryGeneration++;primaryPending=false;current=null;comparison={A:null,B:null};comparisonError='';comparisonGeneration.A++;comparisonGeneration.B++;}
+export function resetVerifyState(){primaryTask?.cancel();primaryTask=null;cancelComparison('A');cancelComparison('B');primaryGeneration++;primaryPending=false;current=null;comparison={A:null,B:null};comparisonError='';comparisonGeneration.A++;comparisonGeneration.B++;}
 window.QellyVerify=Object.freeze({render:renderVerify,renderMethodology,reset:resetVerifyState,analyzeTrades,parseTradeCsv,sampleTradeCsv,composeStrategyEvidenceReport,methodology:QELLY_VERIFY_METHODOLOGY});
