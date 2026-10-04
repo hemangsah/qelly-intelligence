@@ -79,7 +79,11 @@ async function scenario(browser,name,viewport){
     await page.screenshot({path:path.join(out,name+'-checksum-rejected.png'),fullPage:true});
     for(const appearance of ['light','dark']){
       const switcher=page.getByRole('button',{name:'Switch to '+appearance+' appearance',exact:true});
-      if(await switcher.count())await switcher.click();
+      const current=await page.locator('html').getAttribute('data-resolved-appearance');
+      if(current!==appearance){
+        assert.equal(await switcher.count(),1,'the '+appearance+' appearance control must be available');
+        await switcher.click();
+      }
       await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
       const contrast=await page.locator('[data-verify-status].is-error').evaluate(node=>{
         const style=getComputedStyle(node),rgb=value=>value.match(/[\d.]+/g).map(Number);

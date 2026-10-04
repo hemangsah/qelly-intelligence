@@ -239,11 +239,22 @@ html[data-production-system="v8"] .q-product-category__menu a small{
 @media(max-width:760px){
   html[data-production-system="v8"] body #app header.q-product-header{
     grid-template-areas:"brand menu context actions"!important;
-    grid-template-columns:44px 42px minmax(70px,1fr) max-content!important;
+    grid-template-columns:44px 42px minmax(0,1fr) max-content!important;
   }
   html[data-production-system="v8"] body #app header.q-product-header>.q-product-context{padding-inline:8px}
   html[data-production-system="v8"] .q-product-context small{display:none}
   html[data-production-system="v8"] .q-product-category__menu{grid-template-columns:1fr}
+}
+/* The general mobile system-button rule also hid the appearance switch.
+   Keep its actual control available without squeezing account/menu access. */
+@media(max-width:768px){
+  html[data-production-system="v8"] body #app header.q-product-header .q-product-system[data-v8-appearance]{display:inline-flex!important;flex:0 0 44px!important;width:44px!important;min-width:44px!important;min-height:44px!important;padding:0!important;justify-content:center!important}
+  html[data-production-system="v8"] body #app header.q-product-header .q-product-system[data-v8-appearance] span:last-child{display:none!important}
+  html[data-production-system="v8"] body #app header.q-product-header .q-product-account{flex:0 0 44px!important;width:44px!important;min-width:44px!important;min-height:44px!important;padding:0!important;justify-content:center!important}
+}
+@media(max-width:360px){
+  html[data-production-system="v8"] body #app header.q-product-header{grid-template-areas:"brand menu actions"!important;grid-template-columns:44px 42px minmax(0,1fr)!important}
+  html[data-production-system="v8"] body #app header.q-product-header>.q-product-context{display:none!important}
 }
 @media(prefers-reduced-motion:reduce){
   html[data-production-system="v8"] .q-product-category__trigger>span{transition:none}
