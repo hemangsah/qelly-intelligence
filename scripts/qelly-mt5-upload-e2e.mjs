@@ -77,7 +77,23 @@ async function scenario(browser,name,viewport){
     assert.match(await page.locator('[data-verify-status]').innerText(),/checksum does not match/i);
     assert.equal(await page.locator('.q-mt5-report').count(),0);
     await page.screenshot({path:path.join(out,name+'-checksum-rejected.png'),fullPage:true});
+    for(const appearance of ['light','dark']){
+      const switcher=page.getByRole('button',{name:'Switch to '+appearance+' appearance',exact:true});
+      if(await switcher.count())await switcher.click();
+      await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
+      const contrast=await page.locator('[data-verify-status].is-error').evaluate(node=>{
+        const style=getComputedStyle(node),rgb=value=>value.match(/[\d.]+/g).map(Number);
+        const luminance=value=>rgb(value).slice(0,3).map(x=>{x/=255;return x<=.04045?x/12.92:((x+.055)/1.055)**2.4;}).reduce((sum,x,i)=>sum+x*[.2126,.7152,.0722][i],0);
+        const foreground=luminance(style.color),background=luminance(style.backgroundColor);
+        return {ratio:(Math.max(foreground,background)+.05)/(Math.min(foreground,background)+.05),alpha:rgb(style.backgroundColor)[3]??1};
+      });
+      assert.equal(contrast.alpha,1,'error message must have an opaque theme surface');
+      assert.ok(contrast.ratio>=4.5,appearance+' Verify rejection must meet normal-text contrast');
+      assert.equal(await page.locator('[data-verify-status].is-error').isVisible(),true);
+      await page.screenshot({path:path.join(out,name+'-checksum-rejected-'+appearance+'.png'),fullPage:true});
+    }
     entry.checks.push('damaged XLSX checksum is visible and clears previous Verify analysis');
+    entry.checks.push('Verify rejection remains visible with >=4.5:1 contrast in light and dark appearance');
     await loadFile(page,'two-deals.html',html(2),'text/html');
     assert.equal(await page.locator('.q-verify-mt5-only').count(),1);
     assert.equal(await page.locator('.q-verify-score-grid .q-verify-score').count(),0);
