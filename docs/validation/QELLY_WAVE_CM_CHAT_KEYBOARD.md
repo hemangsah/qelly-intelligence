@@ -10,6 +10,7 @@ focus is cancelled on close. On mobile, the assistant reports aria-modal=true,
 makes page siblings inert and cycles Tab/Shift+Tab inside visible enabled chat
 controls. Existing inert state is retained. Breakpoint changes update the modal
 boundary and restore only siblings made inert by chat.
+Native modal dialogs retain precedence over chat opening and keyboard shortcuts.
 
 The required browser job verifies three representative global routes in both
 themes at desktop/mobile widths (12 cases), 70 Tab movements in each mobile case,

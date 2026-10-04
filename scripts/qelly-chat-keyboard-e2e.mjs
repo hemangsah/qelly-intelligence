@@ -28,6 +28,13 @@ try{
         await page.evaluate(()=>{const fixture=document.createElement('button');fixture.id='chat-preexisting-inert-fixture';fixture.inert=true;fixture.textContent='Inert fixture';document.body.append(fixture);});
         const trigger=page.locator('[data-v8-appearance]');
         await trigger.waitFor({state:'visible'});
+        await page.evaluate(()=>{const modal=document.createElement('dialog');modal.id='chat-native-modal-fixture';modal.innerHTML='<button>Native modal fixture</button>';document.body.append(modal);modal.showModal();});
+        await page.locator('#chat-native-modal-fixture button').focus();
+        await page.keyboard.press('Control+/');
+        assert.equal(await page.locator('[data-q-ai-assistant]').evaluate(node=>node.hidden),true,'Chat must defer to an open native modal');
+        await page.keyboard.press('Escape');
+        await page.waitForFunction(()=>!document.querySelector('#chat-native-modal-fixture').open);
+        await page.locator('#chat-native-modal-fixture').evaluate(node=>node.remove());
         await trigger.focus();await page.keyboard.press('Control+/');
         const panel=page.locator('[data-q-ai-assistant]');
         await panel.waitFor({state:'visible'});

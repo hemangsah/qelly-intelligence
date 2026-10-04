@@ -297,6 +297,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
   const mobileChat=matchMedia('(max-width:640px)');
   const inertedByChat=new Set();
   let returnFocus=null,focusTimer=null;
+  const focusChat=()=>{(input.disabled?closeButton:input).focus();};
   const focusable=node=>node?.isConnected&&!node.closest('[inert],[hidden],[aria-hidden="true"]')&&!node.disabled&&node.getClientRects().length>0&&getComputedStyle(node).visibility!=='hidden';
   const syncChatBoundary=()=>{
     const modal=!panel.hidden&&mobileChat.matches;
@@ -307,7 +308,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
         if(sibling===root||sibling.contains(root)||sibling.inert)continue;
         sibling.inert=true;inertedByChat.add(sibling);
       }
-      if(!panel.contains(document.activeElement))input.focus();
+      if(!panel.contains(document.activeElement))focusChat();
     }else{
       for(const sibling of inertedByChat)sibling.inert=false;
       inertedByChat.clear();
@@ -326,7 +327,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
     }
   });
   document.addEventListener('focusin',()=>{
-    if(!panel.hidden&&mobileChat.matches&&!panel.contains(document.activeElement))input.focus();
+    if(!panel.hidden&&mobileChat.matches&&!panel.contains(document.activeElement))focusChat();
   });
   const setOpen=(open)=>{
     if(open&&panel.hidden)returnFocus=document.activeElement;
@@ -334,7 +335,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
     panel.hidden=!open;launcher.setAttribute('aria-expanded',String(open));launcher.classList.toggle('is-hidden',open);
     syncChatBoundary();
     document.dispatchEvent(new CustomEvent('qelly:chat-open-state',{detail:{open}}));
-    if(open)focusTimer=setTimeout(()=>{focusTimer=null;if(!panel.hidden)input.focus();},50);
+    if(open)focusTimer=setTimeout(()=>{focusTimer=null;if(!panel.hidden)focusChat();},50);
     else{
       const target=focusable(returnFocus)?returnFocus:focusable(launcher)?launcher:document.getElementById('main');
       target?.focus();returnFocus=null;
@@ -345,7 +346,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
     if(!next)return;
     if(!input.value||input.value===dockPrefill){input.value=next;dockPrefill=next;}
   };
-  const open=(prompt='',requestedMode='',expand=false,context={})=>{setOpen(true);applyContext({...context,mode:requestedMode||context.mode||mode});seedDockPrefill(prompt);if(expand&&!matchMedia('(max-width:640px)').matches){panel.classList.add('is-expanded');const button=root.querySelector('[data-q-ai-expand]');button?.setAttribute('aria-pressed','true');if(button)button.textContent='Compact';}};
+  const open=(prompt='',requestedMode='',expand=false,context={})=>{if(panel.hidden&&document.querySelector('dialog[open]'))return;setOpen(true);applyContext({...context,mode:requestedMode||context.mode||mode});seedDockPrefill(prompt);if(expand&&!matchMedia('(max-width:640px)').matches){panel.classList.add('is-expanded');const button=root.querySelector('[data-q-ai-expand]');button?.setAttribute('aria-pressed','true');if(button)button.textContent='Compact';}};
   const close=()=>setOpen(false);
   const setBusy=(value)=>{sending=value;send.disabled=value;input.disabled=value;assetSelect.disabled=value;timeframeSelect.disabled=value;calculatorSelect.disabled=value;send.hidden=value;stop.hidden=!value;panel.classList.toggle('is-thinking',value);};
 
@@ -408,7 +409,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
   document.addEventListener('qelly:open-ai',event=>open(event.detail?.prompt||'',event.detail?.mode||'',event.detail?.expand===true,{asset:event.detail?.asset||asset,timeframe:event.detail?.timeframe||timeframe,decisionContext:event.detail?.decisionContext??null}));
   document.addEventListener('qelly:chat-context',event=>{dockContext=normalizeDockContext(event.detail||{});globalThis.__QELLY_CHAT_CONTEXT__=dockContext;renderDockContext();});
   document.addEventListener('qelly:chat-clearance',event=>{chartClearance=event.detail?.state==='chart';scheduleClearance();});
-  window.addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&event.key==='/'){event.preventDefault();panel.hidden?open():close();}if(event.key==='Escape'&&!panel.hidden)close();});
+  window.addEventListener('keydown',event=>{if(document.querySelector('dialog[open]'))return;if((event.ctrlKey||event.metaKey)&&event.key==='/'){event.preventDefault();panel.hidden?open():close();}if(event.key==='Escape'&&!panel.hidden)close();});
   window.addEventListener('hashchange',syncLauncherRoute);
   renderSuggestions();applyContext({mode,asset,timeframe});render();
   loadCapability().catch(()=>{root.querySelector('[data-q-ai-status]').textContent=staticVisualPreview?'Static preview':'Dataset service reconnecting';root.querySelector('[data-q-ai-status-dot]').dataset.state='reference';});
