@@ -13,7 +13,7 @@ try{
     for(const width of [1440,390])for(const appearance of ['dark','light']){
       const context=await browser.newContext({viewport:{width,height:900},colorScheme:appearance,reducedMotion:'reduce',serviceWorkers:'block'});
       await context.addInitScript(value=>localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({version:2,appearance:value})),appearance);
-      const page=await context.newPage();let posts=0;const pageErrors=[];
+      const page=await context.newPage();let posts=0,appearanceControlInitiallyDisabled=null;const pageErrors=[];
       page.on('pageerror',error=>pageErrors.push(error.message));
       await context.route('**/api/v1/user/layout-preferences',async route=>{
         if(route.request().method()!=='GET')return route.continue();
@@ -39,7 +39,11 @@ try{
         await page.keyboard.press('Escape');
         await page.waitForFunction(()=>!document.querySelector('#chat-native-modal-fixture').open);
         await page.locator('#chat-native-modal-fixture').evaluate(node=>node.remove());
-        await trigger.focus();await page.keyboard.press('Control+/');
+        appearanceControlInitiallyDisabled=await trigger.evaluate(node=>node.disabled);
+        await page.waitForFunction(()=>{const button=document.querySelector('[data-v8-appearance]');return button&&!button.disabled;});
+        await trigger.focus();
+        assert.equal(await trigger.evaluate(node=>node===document.activeElement),true,'Prior control must own focus before opening Chat');
+        await page.keyboard.press('Control+/');
         const panel=page.locator('[data-q-ai-assistant]');
         await panel.waitFor({state:'visible'});
         await page.waitForFunction(()=>document.activeElement?.matches('[data-q-ai-form] textarea'));
@@ -99,9 +103,9 @@ try{
         await page.waitForTimeout(80);
         assert.equal(await trigger.evaluate(node=>node===document.activeElement),true,'A cancelled opening timer must not steal restored focus');
         assert.equal(posts,0,'Keyboard checks must send no chat messages');
-        results.push({route,width,appearance,status:'passed',posts,composerGeometryStates:geometryStates.length});
+        results.push({route,width,appearance,status:'passed',posts,composerGeometryStates:geometryStates.length,appearanceControlInitiallyDisabled});
       }catch(error){
-        const diagnostic={route,width,appearance,status:'failed',error:String(error.message),pageErrors,resolvedAppearance:await page.locator('html').getAttribute('data-resolved-appearance')};
+        const diagnostic={route,width,appearance,status:'failed',error:String(error.message),pageErrors,appearanceControlInitiallyDisabled,focus:await page.evaluate(()=>({activeTag:document.activeElement?.tagName,activeLabel:document.activeElement?.getAttribute('aria-label'),appearanceDisabled:document.querySelector('[data-v8-appearance]')?.disabled})),resolvedAppearance:await page.locator('html').getAttribute('data-resolved-appearance')};
         results.push(diagnostic);console.error(JSON.stringify(diagnostic));
         await page.screenshot({path:`${out}/${route}-${width}-${appearance}-failed.png`,fullPage:true}).catch(()=>{});
         throw error;
