@@ -38,7 +38,8 @@ async function start(){
       });
       return;
     }
-    if(flow==='oauth')setState('Signed in securely','Your verified identity has been connected to this Qelly browser session.','success');
+    if(flow==='oauth-link')setState('Sign-in method connected','The identity service verified this provider on the same Qelly account that started the linking transaction.','success');
+    else if(flow==='oauth')setState('Signed in securely','Your verified identity has been connected to this Qelly browser session.','success');
     else setState('Email verified','Your Supabase identity and Qelly workspace are ready.','success');
     redirect('account-session');
   }catch(error){

@@ -21,6 +21,8 @@ export async function renderAccountSession(main,{api,pageHead,escapeHtml,toast,o
   const current=sessions.items?.find(item=>item.current)||sessions.items?.[0]||null;
   const linked=profile.linkedIdentities||{state:'unavailable',items:[],readOnly:true,linkingEnabled:false};
   const providerListingAvailable=linked.state==='available'&&Array.isArray(linked.items);
+  const identityLabels={google:'Google',apple:'Apple',linkedin:'LinkedIn',facebook:'Facebook'};
+  const linkable=providerListingAvailable&&linked.linkingEnabled===true&&Array.isArray(linked.availableProviders)?linked.availableProviders.filter(item=>Object.hasOwn(identityLabels,item?.id)):[];
   const mfaReady=Boolean(mfaStatus&&mfaStatus.unavailable!==true&&(mfaStatus.available===true||mfaStatus.enabled!==undefined));
   // The canonical Cloudflare API does not yet own a passkey-inventory endpoint.
   // Leave navigation explicitly unavailable rather than calling the legacy-only URL.
@@ -71,7 +73,9 @@ export async function renderAccountSession(main,{api,pageHead,escapeHtml,toast,o
       <div class="q-panel-head"><div><p class="q-eyebrow">Account identity</p><h2 id="q-v6-linked-identities-title">Linked sign-in methods</h2><p>Only the identity providers reported for this signed-in user are shown. No provider tokens, contacts, mailbox permissions or external account data are displayed.</p></div><span class="q-status q-status--${providerListingAvailable?'cached':'unavailable'}">${providerListingAvailable?'Verified session':'Unavailable'}</span></div>
       <div class="q-panel-body q-v6-identity-list">
         ${providerListingAvailable?(linked.items.length?linked.items.map(item=>`<div class="q-v6-linked-identity"><div><strong>${escapeHtml(item.label)}</strong><small>${item.linkedAt?'Linked '+escapeHtml(date(item.linkedAt)):'Link date not reported'}</small></div><span class="q-status q-status--cached">Linked</span></div>`).join(''):'<p class="q-muted-copy">The identity service returned no linked sign-in methods.</p>'):'<p class="q-muted-copy">Identity details are not available from this session. No account-linking state has been inferred.</p>'}
-        <p class="q-v6-linked-boundary">Linking or unlinking additional providers is not enabled. Each provider requires verified identity-only consent and a separately verified manual-linking configuration before it can be connected.</p>
+        <p class="q-v6-linked-boundary">${linkable.length?'Connect another sign-in method to this account. You must have signed in within the last 10 minutes. Consent uses only your identity, email and basic profile; no inbox, contacts, posts or calendar permissions. Unlinking is unavailable.':'Linking or unlinking additional providers is not enabled. Each provider requires verified identity-only consent and a separately verified manual-linking configuration before it can be connected.'}</p>
+        ${linkable.map(item=>`<button type="button" class="q-button q-button--secondary" data-link-provider="${item.id}">Connect ${identityLabels[item.id]}</button>`).join('')}
+        <div data-link-consent role="group" aria-label="Confirm connecting sign-in method" hidden><p data-link-consent-copy></p><button type="button" class="q-button q-button--primary" data-link-confirm>Continue to identity consent</button><button type="button" class="q-button q-button--secondary" data-link-cancel>Cancel</button><p role="status" data-link-status></p></div>
       </div>
     </section>
     <div class="q-two-column q-v6-account-lower">
@@ -81,6 +85,26 @@ export async function renderAccountSession(main,{api,pageHead,escapeHtml,toast,o
   </section>`;
 
   if(avatarSupported)installPrivateAvatarControls({main,api,toast});
+  const linkConsent=main.querySelector('[data-link-consent]');
+  const linkConfirm=main.querySelector('[data-link-confirm]');
+  let selectedProvider=null;
+  main.querySelectorAll('[data-link-provider]').forEach(button=>button.addEventListener('click',()=>{
+    selectedProvider=button.dataset.linkProvider;
+    main.querySelector('[data-link-consent-copy]').textContent=`Connect ${identityLabels[selectedProvider]} to this signed-in Qelly account using identity-only consent? Existing accounts are not merged.`;
+    main.querySelector('[data-link-status]').textContent='';linkConsent.hidden=false;linkConfirm.focus();
+  }));
+  main.querySelector('[data-link-cancel]')?.addEventListener('click',()=>{linkConsent.hidden=true;const button=main.querySelector(`[data-link-provider="${selectedProvider}"]`);selectedProvider=null;button?.focus();});
+  linkConfirm?.addEventListener('click',async()=>{
+    const provider=selectedProvider;if(!provider||!linkable.some(item=>item.id===provider))return;
+    const controls=[...main.querySelectorAll('[data-link-provider],[data-link-confirm],[data-link-cancel]')];controls.forEach(button=>button.disabled=true);
+    try{
+      const result=await api('/api/v1/auth/oauth/link',{method:'POST',body:JSON.stringify({provider})});
+      const url=new URL(result.url);
+      const origins={google:'https://accounts.google.com',apple:'https://appleid.apple.com',linkedin:'https://www.linkedin.com',facebook:'https://www.facebook.com'};
+      if(result.provider!==provider||url.origin!==origins[provider]||url.username||url.password||url.hash)throw new Error('The identity consent destination could not be verified.');
+      location.assign(url.toString());
+    }catch(error){main.querySelector('[data-link-status]').textContent=error.message;controls.forEach(button=>button.disabled=false);}
+  });
   const form=main.querySelector('#v6-profile-form');
   const save=async()=>{const data=new FormData(form);const payload={displayName:String(data.get('displayName')||''),baseCurrency:String(data.get('baseCurrency')||'USD'),timezone:String(data.get('timezone')||'UTC')};if(cloudSyncAvailable)payload.cloudSyncOptIn=Boolean(form.elements.cloudSyncOptIn.checked);try{await api('/api/v1/profile',{method:'PATCH',body:JSON.stringify(payload)});toast('Profile preferences saved',{tone:'success'});await onAuthenticated('account-session');}catch(error){toast(error.message,{tone:'danger'});}};
   form.addEventListener('submit',(event)=>{event.preventDefault();void save();});

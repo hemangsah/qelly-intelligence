@@ -1,3 +1,4 @@
+import {sessionAuthenticationMethod,authenticationEvidence} from './qelly-session-evidence.js';
 export const ACCESS_COOKIE='qelly_sb_access';
 export const REFRESH_COOKIE='qelly_sb_refresh';
 export const CSRF_COOKIE='qelly_csrf';
@@ -375,7 +376,7 @@ export const bootstrapContext=async(env,session)=>{
     organization:{organizationId:workspace.id,name:workspace.name},
     workspace:{workspaceId:workspace.id,name:workspace.name},
     profile,
-    session:{authenticationMethod:'supabase-email-password',assurance:'email',expiresAt:new Date(Number(session.claims.exp)*1000).toISOString()}
+    session:{authenticationMethod:sessionAuthenticationMethod(session.claims),authenticatedAt:authenticationEvidence(session.claims)?.authenticatedAt??null,assurance:session.claims.aal==='aal2'?'aal2':'aal1',expiresAt:new Date(Number(session.claims.exp)*1000).toISOString()}
   };
 };
 
