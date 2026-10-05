@@ -46,6 +46,34 @@ try{
         assert.equal(await panel.getAttribute('aria-modal'),String(width===390));
         const backgroundInert=()=>page.locator('main#main').evaluate(node=>!!node.closest('[inert]'));
         assert.equal(await backgroundInert(),width===390);
+        const composerGeometry=async(label)=>{
+          const geometry=await panel.evaluate(node=>{
+            const rect=(selector)=>{const element=selector===':scope'?node:node.querySelector(selector),box=element.getBoundingClientRect();return {top:box.top,bottom:box.bottom,left:box.left,right:box.right,height:box.height,visible:getComputedStyle(element).display!=='none'};};
+            return {panel:rect(':scope'),thread:rect('.q-ai-thread'),composer:rect('.q-ai-composer'),input:rect('.q-ai-composer textarea'),send:rect('[data-q-ai-send]'),footer:rect(':scope > footer')};
+          });
+          assert.ok(geometry.input.height>=48,`${label}: usable input height`);
+          assert.ok(geometry.composer.top>=geometry.thread.bottom-1,`${label}: composer clears the thread`);
+          for(const control of [geometry.input,geometry.send]){
+            assert.ok(control.top>=geometry.composer.top-1&&control.bottom<=geometry.composer.bottom+1,`${label}: composer contains its controls`);
+            assert.ok(control.left>=geometry.panel.left-1&&control.right<=geometry.panel.right+1,`${label}: controls stay inside the panel`);
+          }
+          assert.ok(geometry.composer.bottom<=geometry.panel.bottom+1,`${label}: composer stays visible`);
+          if(geometry.footer.visible)assert.ok(geometry.footer.top>=geometry.composer.bottom-1,`${label}: footer clears composer`);
+          return geometry;
+        };
+        const geometryStates=[];
+        geometryStates.push(await composerGeometry('welcome'));
+        await panel.locator('[data-q-ai-datasets]').click();
+        geometryStates.push(await composerGeometry('evidence open'));
+        await panel.locator('[data-q-ai-datasets]').click();
+        // Isolated no-message fixture reproduces the optional row hidden after an answer.
+        await panel.locator('.q-ai-suggestions').evaluate(node=>{node.hidden=true;});
+        geometryStates.push(await composerGeometry('suggestions hidden'));
+        await panel.locator('[data-q-ai-datasets]').click();
+        geometryStates.push(await composerGeometry('suggestions hidden, evidence open'));
+        await panel.locator('[data-q-ai-datasets]').click();
+        await panel.locator('.q-ai-suggestions').evaluate(node=>{node.hidden=false;});
+        await panel.locator('[data-q-ai-form] textarea').focus();
         if(width===390){
           for(const key of ['Tab','Shift+Tab'])for(let n=0;n<35;n++){
             await page.keyboard.press(key);
@@ -71,7 +99,7 @@ try{
         await page.waitForTimeout(80);
         assert.equal(await trigger.evaluate(node=>node===document.activeElement),true,'A cancelled opening timer must not steal restored focus');
         assert.equal(posts,0,'Keyboard checks must send no chat messages');
-        results.push({route,width,appearance,status:'passed',posts});
+        results.push({route,width,appearance,status:'passed',posts,composerGeometryStates:geometryStates.length});
       }catch(error){
         const diagnostic={route,width,appearance,status:'failed',error:String(error.message),pageErrors,resolvedAppearance:await page.locator('html').getAttribute('data-resolved-appearance')};
         results.push(diagnostic);console.error(JSON.stringify(diagnostic));
