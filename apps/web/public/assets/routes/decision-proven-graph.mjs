@@ -1595,6 +1595,7 @@ export async function renderDecisionProvenGraph(main,deps){
       if(requestId===decisionLoadRequest){state.loading=false;draw();if(ledgerAuthenticated()&&!state.ledger&&!state.ledgerLoading)void loadLedger();}
     }
   }
+  draw();
   await loadAssetCatalog({redraw:false});
   await load();
 }

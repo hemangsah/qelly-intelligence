@@ -19,6 +19,7 @@ const localOrigin=`http://127.0.0.1:${server.port}`;
 const executablePath=process.env.QELLY_BROWSER_EXECUTABLE||'/usr/bin/chromium';
 const browser=await chromium.launch({headless:true,executablePath,args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
 const results=[];
+const initialLoadingResults=[];
 let latestSelectedPayload=null,lastScanRequest=null,latestDecisionFixture=null;
 const FIXTURE_INTERVAL_MS=Object.freeze({'1m':60_000,'3m':180_000,'5m':300_000,'15m':900_000,'30m':1_800_000,'1h':3_600_000,'2h':7_200_000,'4h':14_400_000,'8h':28_800_000,'12h':43_200_000,'1d':86_400_000});
 const FIXTURE_ASSETS=Object.freeze(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
@@ -581,7 +582,32 @@ const exercise=async({name,viewport,touch=false})=>{
   await context.close();
 };
 
+const exerciseInitialLoading=async(width,appearance)=>{
+  const context=await browser.newContext({viewport:{width,height:844},colorScheme:appearance,serviceWorkers:'block',reducedMotion:'reduce'});
+  const page=await context.newPage();let releaseCatalog,markRequested,decisionRequests=0;
+  const gate=new Promise(resolve=>{releaseCatalog=resolve;}),requested=new Promise(resolve=>{markRequested=resolve;});
+  await context.route('**/api/v1/user/layout-preferences',async route=>{if(route.request().method()!=='GET')return route.continue();const response=await route.fetch();await route.fulfill({response,json:{...await response.json(),appearance}});});
+  await page.route('**/api/v1/decision-assets**',async route=>{markRequested();await gate;await proxyDecision(route);});
+  await page.route('**/api/v1/decision-proven-graph**',async route=>{decisionRequests++;await proxyDecision(route);});
+  await page.route('**/api/v1/decision-news-context**',proxyDecision);
+  try{
+    await page.goto(localOrigin+'/#/decision-provenance',{waitUntil:'domcontentloaded',timeout:45000});
+    await Promise.race([requested,new Promise((_,reject)=>setTimeout(()=>reject(new Error('Capability request did not start')),10000))]);
+    await page.getByRole('heading',{name:'Weighing fresh evidence',exact:true}).waitFor({state:'visible',timeout:5000});
+    await page.locator('[data-v8-appearance]').waitFor({state:'visible'});
+    if(await page.locator('html').getAttribute('data-resolved-appearance')!==appearance)await page.getByRole('button',{name:'Switch to '+appearance+' appearance',exact:true}).click();
+    await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
+    if(decisionRequests!==0||await page.locator('[data-dpg-chart]').count()!==0)throw new Error('Decision evidence appeared before capability validation');
+    if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1))throw new Error('Loading state overflows viewport');
+    await page.screenshot({path:path.join(outputDir,'initial-loading-'+width+'-'+appearance+'.png'),fullPage:true});
+    releaseCatalog();await page.locator('[data-dpg-chart]').first().waitFor({state:'visible',timeout:45000});
+    if(!decisionRequests||await page.getByRole('heading',{name:'Weighing fresh evidence',exact:true}).count())throw new Error('Loading state did not resolve to validated evidence');
+    initialLoadingResults.push({width,appearance,status:'passed',catalogHeldBeforeDecision:true,fixture:'synthetic governed provider'});
+  }finally{releaseCatalog();await context.close();}
+};
+
 try{
+  for(const width of [1440,390])for(const appearance of ['dark','light'])await exerciseInitialLoading(width,appearance);
   await exercise({name:'desktop',viewport:{width:1440,height:1000}});
   await exercise({name:'mobile',viewport:{width:390,height:844},touch:true});
 }finally{
@@ -590,7 +616,7 @@ try{
   await server.evidenceUpstream?.server?.close?.();
 }
 
-const report={status:results.every(item=>item.failures.length===0)?'passed':'failed',evidenceBackend:'deterministic-governed-provider-fixture',liveProductionTruthValidatedSeparately:true,frontendHead:process.env.QELLY_SCREEN_EVIDENCE_SHA||process.env.GITHUB_SHA||null,results};
+const report={status:results.every(item=>item.failures.length===0)&&initialLoadingResults.length===4?'passed':'failed',initialLoadingCases:initialLoadingResults.length,initialLoadingResults,evidenceBackend:'deterministic-governed-provider-fixture',liveProductionTruthValidatedSeparately:true,frontendHead:process.env.QELLY_SCREEN_EVIDENCE_SHA||process.env.GITHUB_SHA||null,results};
 await writeFile(path.join(outputDir,'report.json'),JSON.stringify(report,null,2));
 console.log(JSON.stringify(report,null,2));
 if(report.status!=='passed')process.exitCode=1;
