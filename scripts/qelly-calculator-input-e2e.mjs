@@ -1,12 +1,13 @@
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
+import {buildPublicConverter} from '../functions/_lib/public-converter.js';
 import {startServer} from './release-a5-evidence-server.mjs';
 
 const out='preview/calculator-input-e2e';await mkdir(out,{recursive:true});
 const server=await startServer({port:0,host:'127.0.0.1'});
 const browser=await chromium.launch({headless:true,executablePath:process.env.QELLY_BROWSER_EXECUTABLE||'/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
-const results=[];
+const results=[],converterReferenceDateResults=[];
 const scenarios=[
   {id:'sip-future-value',inputs:{monthlyContribution:1000,annualReturnPercent:-12,years:1},expected:Array.from({length:12},(_,n)=>1000*0.99**n).reduce((a,b)=>a+b,0)},
   {id:'compound-interest',inputs:{principal:1000,annualRatePercent:-10,years:2,compoundsPerYear:1},expected:810},
@@ -66,9 +67,30 @@ try{
     }catch(error){results.push({formulaId:scenario.id,width,appearance,status:'failed',error:error.message});await page.screenshot({path:`${out}/${scenario.id}-${width}-${appearance}-failed.png`,fullPage:true}).catch(()=>{});throw error;}
     finally{await context.close();}
   }
+  for(const width of [1440,390])for(const appearance of ['dark','light']){
+    const context=await browser.newContext({viewport:{width,height:900},colorScheme:appearance,reducedMotion:'reduce',serviceWorkers:'block'});
+    await context.addInitScript(value=>localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({version:2,appearance:value})),appearance);
+    const page=await context.newPage();let writes=0;
+    page.on('request',request=>{if(request.method()==='POST'&&/\/api\/v1\/(intelligence\/chat|user\/calculations)/.test(new URL(request.url()).pathname))writes++;});
+    await context.route('**/api/v1/user/layout-preferences',async route=>{if(route.request().method()!=='GET')return route.continue();const response=await route.fetch();await route.fulfill({response,json:{...await response.json(),appearance}});});
+    const fixture=buildPublicConverter({truthState:'cached_provider',observationTime:'2026-10-05T16:00:00.000Z',ingestionTime:'2026-10-05T15:00:00.000Z',data:{date:'2026-10-05',base:'EUR',rates:{USD:1.12,INR:107.89}}});
+    await context.route('**/api/v1/discovery/converter',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(fixture)}));
+    try{
+      await page.goto('http://127.0.0.1:'+server.port+'/#/converter',{waitUntil:'domcontentloaded'});
+      await page.locator('[data-converter-state="reference-workbench-available"]').waitFor({state:'visible',timeout:30000});
+      await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
+      const metrics=await page.locator('.q-cv-metrics').innerText(),receipt=await page.locator('.q-cv-audit').innerText();
+      for(const text of [metrics,receipt]){assert.match(text,/Reference date/);assert.match(text,/2026-10-05/);assert.match(text,/Exact publication time unavailable/);}
+      assert.equal(fixture.observation.observedAt,null);assert.equal(fixture.observation.observationTimePrecision,'date');
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);assert.equal(writes,0);
+      await page.screenshot({path:out+'/converter-reference-date-'+width+'-'+appearance+'.png',fullPage:true});
+      converterReferenceDateResults.push({width,appearance,status:'passed',writes,fixture:'synthetic date-only ECB reference'});
+    }catch(error){converterReferenceDateResults.push({width,appearance,status:'failed',error:error.message});throw error;}
+    finally{await context.close();}
+  }
 }finally{
-  const status=results.length===16&&results.every(item=>item.status==='passed')?'passed':'failed';
-  await writeFile(`${out}/report.json`,JSON.stringify({schema:'qelly.calculator.input-acceptance/1.0',releaseSha:process.env.QELLY_SCREEN_EVIDENCE_SHA||null,expectedCases:16,cases:results.length,status,results},null,2)+'\n');
+  const status=results.length===16&&results.every(item=>item.status==='passed')&&converterReferenceDateResults.length===4&&converterReferenceDateResults.every(item=>item.status==='passed')?'passed':'failed';
+  await writeFile(`${out}/report.json`,JSON.stringify({schema:'qelly.calculator.input-acceptance/1.0',releaseSha:process.env.QELLY_SCREEN_EVIDENCE_SHA||null,expectedCases:16,cases:results.length,status,results,converterReferenceDateCases:converterReferenceDateResults.length,converterReferenceDateResults},null,2)+'\n');
   console.log(JSON.stringify({calculatorInputCases:results.length,status}));
   await browser.close();await new Promise(resolve=>server.server.close(resolve));await new Promise(resolve=>server.evidenceUpstream.server.close(resolve));
 }
