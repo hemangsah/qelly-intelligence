@@ -117,7 +117,7 @@ export function buildPublicResearchToolReceipt(financeContext={}){
     truthState:available.length?'mixed':'unavailable',freshness:'mixed-source',
     observedAt:available.map(item=>item.observedAt).filter(Boolean).sort().at(-1)??financeContext.generatedAt??null,
     source:'QELLY connected public-source ledger',
-    data:{sources:citations.map(item=>({id:item.id,title:item.title,truthState:item.truthState,observedAt:item.observedAt,url:item.url}))},
+    data:{sources:citations.map(item=>({id:item.id,title:item.title,truthState:item.truthState,observedAt:item.observedAt,observedDate:item.observedDate??null,observationTimePrecision:item.observationTimePrecision??null,url:item.url}))},
     limitations:['This is a bounded source ledger, not unrestricted web search or private-workspace retrieval.','Each source keeps its own truth state and timestamp; mixed evidence is not collapsed into a false single freshness claim.']
   });
 }
@@ -177,7 +177,7 @@ export function buildIndiaToolReceipt(financeContext={}){
     source:[worldBankSource?.title,ecbSource?.title].filter(Boolean).join(' · ')||'QELLY India Finance',
     data:{
       worldBank:macro,
-      ecbReference:{base:ecb.base??'EUR',inr:ecb.rates?.INR??null,observedAt:ecb.observedAt??null,truthState:ecb.truthState??ecbSource?.truthState??'unavailable',freshness:ecb.freshness??ecb.truthState??ecbSource?.truthState??'unavailable'},
+      ecbReference:{base:ecb.base??'EUR',inr:ecb.rates?.INR??null,observedAt:ecb.observedAt??null,observedDate:ecb.observedDate??null,observationTimePrecision:ecb.observationTimePrecision??null,truthState:ecb.truthState??ecbSource?.truthState??'unavailable',freshness:ecb.freshness??ecb.truthState??ecbSource?.truthState??'unavailable'},
       displayOnlyCoverage:['Nifty 50','Sensex','Bank Nifty','USD/INR','Gold']
     },
     limitations:['India benchmark widgets are official TradingView display-only surfaces; QELLY Chat does not ingest their displayed values as evidence.','No verified live India VIX, FII/DII, breadth, yield or corporate-action feed is connected here.','World Bank and ECB observations are delayed reference data, not live exchange prices.']

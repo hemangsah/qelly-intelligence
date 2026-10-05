@@ -15,6 +15,7 @@ export function providerDisplayModel(raw={}){
  const observed=typeof raw?.observedAt==='string'&&raw.observedAt.length<=40
     &&/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(raw.observedAt)
     &&Number.isFinite(Date.parse(raw.observedAt))?raw.observedAt:null;
+ const date=typeof raw?.observedDate==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(raw.observedDate)&&Number.isFinite(Date.parse(raw.observedDate+'T00:00:00Z'))&&new Date(raw.observedDate+'T00:00:00Z').toISOString().slice(0,10)===raw.observedDate?raw.observedDate:null;
  const sourceTruth=String(raw?.truthState||'UNAVAILABLE').toUpperCase();
  const truthState=demo?'SIMULATED':enabled&&POLICY_TRUTH.has(sourceTruth)?sourceTruth:'UNAVAILABLE';
  const capabilityIds=Array.isArray(raw?.capabilities)?raw.capabilities.slice(0,8):[];
@@ -30,7 +31,7 @@ export function providerDisplayModel(raw={}){
   id,name:known?PROVIDER_NAMES[id]:'Unidentified provider',enabled,truthState,
   approval:demo?'Simulation only':enabled?'Policy enabled':'Display unavailable',
   policy,health,capabilities,
-  observation:enabled&&observed?observed:null,
+  observation:enabled&&date?`Reference date ${date}; exact publication time unavailable`:enabled&&observed?observed:null,
   latencyState:'Not measured',quotaState:'Not reported',failureCount:null
  });
 }

@@ -124,7 +124,9 @@ const normalizeEcb=(entry)=>{
     name:'European Central Bank reference rates',
     truthState:available?declared:'unavailable',
     freshness:available?(entry.freshness??declared):'unavailable',
-    observedAt:entry?.observationTime??entry?.observedAt??null,
+    observedAt:entry?.observationTimePrecision==='date'?null:entry?.observationTime??entry?.observedAt??null,
+    observedDate:entry?.observationDate??null,
+    observationTimePrecision:entry?.observationTimePrecision??null,
     fetchedAt:entry?.ingestionTime??entry?.ingestedAt??null,
     base:entry?.data?.base??'EUR',
     rates:available?rates:null,
@@ -149,7 +151,7 @@ export async function buildFinanceContext(context,message,{networkLoader=buildEx
     citation('hyperliquid-public','Hyperliquid public API','https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint',sources.hyperliquid?.truthState,sources.hyperliquid?.observedAt,'Public crypto perpetual mid-prices; no trading actions.'),
     citation('alternative-me','Alternative.me Crypto API','https://alternative.me/crypto/api/',sources['alternative-me']?.truthState,sources['alternative-me']?.observedAt,'Crypto reference observations and sentiment index.'),
     citation('world-bank','World Bank Indicators API','https://datahelpdesk.worldbank.org/knowledgebase/articles/889392',worldBank.truthState,worldBank.observedAt,'Annual country macroeconomic reference observations.'),
-    citation('ecb-reference','European Central Bank','https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html',ecb.truthState,ecb.observedAt,'Attributed euro foreign-exchange reference rates.')
+    {...citation('ecb-reference','European Central Bank','https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html',ecb.truthState,ecb.observedAt,'Attributed euro foreign-exchange reference rates.'),observedDate:ecb.observedDate,observationTimePrecision:ecb.observationTimePrecision}
   ];
   const resolvedMode=normalizeChatMode(mode),resolvedAsset=normalizeChatAsset(asset);
   const base={
@@ -189,7 +191,7 @@ export function groundedFallbackAnswer(message,financeContext){
     '',
     mids.length?`${quoteState[0].toUpperCase()}${quoteState.slice(1)} crypto reference: ${mids.map((item)=>`${item.symbol} ${Number(item.mid).toLocaleString('en-US',{maximumFractionDigits:6})}`).join(' · ')} · observed ${quoteSource.observedAt??'time unavailable'} [hyperliquid-public].`:'Crypto reference data is currently unavailable.',
     macro.length?`World Bank reference: ${macro.map((item)=>`${item.country} ${item.indicator} ${Number(item.value).toLocaleString('en-US',{maximumFractionDigits:2})}${item.unit==='%'?'%':` ${item.unit}`} (${item.year})`).join(' · ')}.`:'No matching World Bank observation was returned.',
-    Object.keys(rates).length?`ECB reference (${observations.ecb.truthState??'freshness unavailable'}): EUR/USD ${rates.USD??'unavailable'} · EUR/INR ${rates.INR??'unavailable'} · observed ${observations.ecb.observedAt??'time unavailable'} [ecb-reference].`:'ECB reference rates are currently unavailable.',
+    Object.keys(rates).length?`ECB reference (${observations.ecb.truthState??'freshness unavailable'}): EUR/USD ${rates.USD??'unavailable'} · EUR/INR ${rates.INR??'unavailable'} · ${observations.ecb.observedDate?`reference date ${observations.ecb.observedDate} · exact publication time unavailable`:`observed ${observations.ecb.observedAt??'time unavailable'}`} [ecb-reference].`:'ECB reference rates are currently unavailable.',
     '',
     'Generative inference is not available in this request, so I am returning the verified dataset observations without inventing an interpretation. This is research information, not financial advice.'
   ];

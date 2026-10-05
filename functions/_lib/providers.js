@@ -1,4 +1,5 @@
 import {HttpError,fetcher} from './runtime.js';
+import {ecbReferenceDate,withEcbReferenceDate} from './ecb-reference-date.js';
 
 const SAFE_SYMBOL=/^[A-Z0-9-]{3,30}$/;
 const BINANCE_INTERVALS=new Set(['1m','5m','15m','30m','1h','4h','1d']);
@@ -106,11 +107,11 @@ const live=async(env,provider,capability,source,params={})=>{
   if(provider==='ecb'){
     const xml=await fetchText(env,'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml');
     const date=xml.match(/time=['"](\d{4}-\d{2}-\d{2})['"]/)?.[1];
-    if(!date)throw new HttpError(503,'provider_schema_invalid','ECB observation date is missing');
+    if(!ecbReferenceDate(date))throw new HttpError(503,'provider_schema_invalid','ECB reference date is missing or invalid');
     const rates={EUR:1};
     for(const match of xml.matchAll(/currency=['"]([A-Z]{3})['"]\s+rate=['"]([0-9.]+)['"]/g))rates[match[1]]=number(match[2],match[1]);
     if(Object.keys(rates).length<5)throw new HttpError(503,'provider_schema_invalid','ECB rate set is incomplete');
-    return {provider:'ecb-reference-rates',sourceIdentifier:'EUR',truthState:'delayed_provider',observationTime:`${date}T16:00:00.000Z`,ingestionTime,freshness:'daily-working-day-reference',quality:'official-central-bank-reference',confidence:.99,attribution:'European Central Bank euro foreign exchange reference rates',license:'ECB/ESCB reuse conditions apply; source attribution and modification disclosure required',data:{base:'EUR',date,rates}};
+    return withEcbReferenceDate({provider:'ecb-reference-rates',sourceIdentifier:'EUR',truthState:'delayed_provider',ingestionTime,freshness:'daily-working-day-reference',quality:'official-central-bank-reference',confidence:.99,attribution:'European Central Bank euro foreign exchange reference rates',license:'ECB/ESCB reuse conditions apply; source attribution and modification disclosure required',data:{base:'EUR',date,rates}});
   }
   throw new HttpError(404,'provider_not_found','Provider is not supported');
 };
@@ -152,6 +153,7 @@ export async function providerResult(context,provider,capability,source,params={
   const cache=globalThis.caches?.default;
   const cachedResponse=cache?await cache.match(key):null;
   const cached=cachedResponse?await cachedResponse.json().catch(()=>null):null;
+  if(provider==='ecb'&&cached?.payload)cached.payload=withEcbReferenceDate(cached.payload);
   const now=Date.now();
   if(cached&&new Date(cached.freshUntil).getTime()>now)return {...cached.payload,truthState:'cached_provider',cache:{hit:true,stale:false,cachedAt:cached.cachedAt}};
   try{

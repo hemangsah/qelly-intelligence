@@ -1,8 +1,8 @@
 import {providerCatalog} from './providers.js';
 import {readinessSnapshot} from './readiness.js';
 
-const gate=(id,label,status,detail,{kind='infrastructure',truthState=null,observedAt=null,required=true}={})=>Object.freeze({
-  id,label,status,detail,kind,truthState,observedAt,required
+const gate=(id,label,status,detail,{kind='infrastructure',truthState=null,observedAt=null,observedDate=null,required=true}={})=>Object.freeze({
+  id,label,status,detail,kind,truthState,observedAt,observedDate,required
 });
 
 const statusForProof=(check,{optionalStatus='deferred',failureStatus='blocked'}={})=>{
@@ -47,7 +47,7 @@ export function platformReadinessSnapshot(runtime,evidence={},policies=providerC
     gate('supabase','Supabase Auth / persistence',statusForProof(readiness.checks.supabase),readiness.checks.supabase.state,{kind:'infrastructure',truthState:readiness.checks.supabase.proven?'LIVE':'UNAVAILABLE'}),
     gate('auth-email','Authentication email delivery',statusForProof(readiness.checks.authEmail),readiness.checks.authEmail.state,{kind:'infrastructure',truthState:readiness.checks.authEmail.proven?'AUDIT':'UNAVAILABLE',observedAt:readiness.checks.authEmail.evidence?.verifiedAt||null}),
     gate('rls-isolation','Workspace RLS isolation',statusForProof(readiness.checks.rlsIsolation),readiness.checks.rlsIsolation.state,{kind:'security',truthState:readiness.checks.rlsIsolation.proven?'AUDIT':'UNAVAILABLE',observedAt:readiness.checks.rlsIsolation.evidence?.verifiedAt||null}),
-    gate('ecb-reference','ECB reference-rate freshness',statusForProof(ecbCheck,{optionalStatus:'deferred',failureStatus:'partial'}),ecbCheck.state,{kind:'reference-data',truthState:providerTruthState(ecb,evidence.providerFreshness),observedAt:evidence.providerFreshness?.observedAt||null,required:ecbCheck.required}),
+    gate('ecb-reference','ECB reference-rate freshness',statusForProof(ecbCheck,{optionalStatus:'deferred',failureStatus:'partial'}),ecbCheck.state,{kind:'reference-data',truthState:providerTruthState(ecb,evidence.providerFreshness),observedAt:evidence.providerFreshness?.observedAt||null,observedDate:evidence.providerFreshness?.observedDate||null,required:ecbCheck.required}),
     gate('binance-market-data','Binance market display rights',policyById.get('binance')?.enabled?'ready':'deferred',policyById.get('binance')?.reason||policyById.get('binance')?.termsState||'enabled',{kind:'market-data-rights',truthState:policyById.get('binance')?.enabled?'LIVE':'UNAVAILABLE',required:false}),
     gate('coinbase-market-data','Coinbase market display rights',policyById.get('coinbase')?.enabled?'ready':'deferred',policyById.get('coinbase')?.reason||policyById.get('coinbase')?.termsState||'enabled',{kind:'market-data-rights',truthState:policyById.get('coinbase')?.enabled?'LIVE':'UNAVAILABLE',required:false}),
     gate('governed-demo','Qelly governed demonstration', 'ready','Deterministic local market observations remain explicitly SIMULATED and non-executable.',{kind:'fallback',truthState:'SIMULATED',required:false})
@@ -61,6 +61,8 @@ export function platformReadinessSnapshot(runtime,evidence={},policies=providerC
     healthState:providerHealthState(policy,evidence.providerFreshness),
     truthState:providerTruthState(policy,evidence.providerFreshness),
     observedAt:policy.id==='ecb'?evidence.providerFreshness?.observedAt||null:null,
+    observedDate:policy.id==='ecb'?evidence.providerFreshness?.observedDate||null:null,
+    observationTimePrecision:policy.id==='ecb'?evidence.providerFreshness?.observationTimePrecision||null:null,
     termsState:policy.termsState||null,
     reason:policy.reason||null,
     termsUrl:policy.termsUrl||null
