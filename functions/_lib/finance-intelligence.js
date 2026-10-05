@@ -255,7 +255,7 @@ const decisionFallbackAnswer=(message,financeContext)=>{
     addBoundary();return lines.join('\n');
   }
 
-  if(/r\s*:?\s*r|risk.?reward|feasib|target/.test(normalized)){
+  if(/\b(?:r\s*[:/]?\s*r|risk[\s/-]*reward|(?:in)?feasib(?:le|ility)|targets?)\b/.test(normalized)){
     const matrix=asArray(trade.rrMatrix);
     const selected=trade.selectedRr||null;
     lines.push(
