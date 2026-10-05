@@ -61,3 +61,13 @@
   .q-ai-launcher{animation:none!important}
   .q-ai-launcher:hover,.q-ai-launcher:focus-visible{transform:none}
 }
+/* Optional evidence/suggestion rows must not move the flexible thread row. */
+.q-ai-assistant>.q-ai-header{grid-row:1}
+.q-ai-assistant>.q-ai-dataset-panel{grid-row:2}
+.q-ai-assistant>.q-ai-modebar{grid-row:3}
+.q-ai-assistant>.q-ai-contextbar{grid-row:4}
+.q-ai-assistant>.q-ai-thread{grid-row:5}
+.q-ai-assistant>.q-ai-suggestions{grid-row:6}
+.q-ai-assistant>.q-ai-composer{grid-row:7}
+.q-ai-assistant>footer{grid-row:8}
+.q-ai-composer>label{display:block;min-width:0}
