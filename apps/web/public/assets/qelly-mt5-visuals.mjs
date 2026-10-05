@@ -8,9 +8,10 @@ const polyline=(points,field)=>{
  const numbers=points.map(x=>x[field]).filter(x=>typeof x==='number'&&Number.isFinite(x));
  if(numbers.length!==points.length)return '';
  const lo=field==='drawdown'?0:Math.min(0,...numbers),hi=Math.max(field==='drawdown'?1:0,...numbers),span=Math.max(hi-lo,1e-8);
- const x=i=>30+(i/Math.max(1,points.length-1))*660;
+ const first=points[0].index,last=points.at(-1).index;
+ const x=p=>30+((p.index-first)/Math.max(1,last-first))*660;
  const y=v=>field==='drawdown'?16+((v-lo)/span)*172:16+((hi-v)/span)*172;
- return points.map((p,i)=>(i?'L':'M')+x(i).toFixed(2)+' '+y(p[field]).toFixed(2)).join(' ');
+ return points.map((p,i)=>(i?'L':'M')+x(p).toFixed(2)+' '+y(p[field]).toFixed(2)).join(' ');
 };
 const chart=(points,field,title,prefix)=>{
  const key=prefix+'-'+field,titleId=key+'-title',descId=key+'-desc';
@@ -18,7 +19,7 @@ const chart=(points,field,title,prefix)=>{
  return '<figure class="q-mt5-chart"><svg role="img" viewBox="0 0 720 210" aria-labelledby="'+esc(titleId)+' '+esc(descId)+'">'+
  '<title id="'+esc(titleId)+'">'+esc(title)+'</title><desc id="'+esc(descId)+'">Source-order closed-deal sequence; not broker account equity or balance.</desc>'+
  '<path class="q-mt5-zero-line" d="M30 188 H690"></path><path class="q-mt5-line '+(field==='drawdown'?'q-mt5-line-loss':'')+'" d="'+polyline(points,field)+'"></path>'+
- '</svg><figcaption>'+esc(title)+' · '+points.length+' plotted points, sourced from validated closing deals.</figcaption></figure>';
+ '</svg><figcaption>'+esc(title)+' · '+points.length+' plotted points, sourced from validated closing deals. Large reports are sampled; global P&amp;L extremes and the worst drawdown are retained. Horizontal spacing follows closing-deal positions, not elapsed time.</figcaption></figure>';
 };
 const breakdown=(name,entries)=>{
  if(!entries?.length)return '';
