@@ -141,7 +141,7 @@ export async function handleIntelligenceChat(context){
       inference:{provider:'qelly-conversation-router',model:null,state:'conversational',reason:null},
       sources:[],
       datasets:{connected:0,catalogued:0,used:0},
-      actions:[{route:'market',label:'Open Market Command'},{route:'research-workspace',label:'Open Research Workspace'}],
+      actions:[{route:'market',label:'Open Market Pulse'},{route:'research-workspace',label:'Open Research Workspace'}],
       followUps:followUps(mode,asset),
       tools:[],
       disclaimer:'Research information only · not personalized financial advice · no execution',

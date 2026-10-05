@@ -114,9 +114,10 @@ function toolList(tools=[]){
   return `<details class="q-ai-message-tools-used"><summary>${tools.length} QELLY tool ${tools.length===1?'receipt':'receipts'}</summary><div>${tools.map((tool)=>`<article><span>${esc(tool.id)}</span><strong>${esc(tool.label||tool.id)}</strong><em data-state="${esc(tool.truthState||'unavailable')}">${esc(tool.truthState||'unavailable')}</em><small>${esc(tool.source||'QELLY')} · freshness ${esc(tool.freshness||tool.truthState||'unavailable')}${tool.observedAt?` · ${esc(tool.observedAt)}`:''}</small>${tool.limitations?.[0]?`<p>${esc(tool.limitations[0])}</p>`:''}</article>`).join('')}</div></details>`;
 }
 
+const routeActionLabel=(action)=>['market','news-research'].includes(action?.route)?`Open ${routeIdentityFor(action.route).pageTitle}`:action?.label;
 function actionList(actions=[],messageIndex=-1){
   if(!actions.length)return '';
-  return `<div class="q-ai-message-actions">${actions.map((action)=>`<button type="button" data-q-ai-route="${esc(action.route)}" data-q-ai-action-message="${messageIndex}">${esc(action.label)} <span aria-hidden="true">→</span></button>`).join('')}</div>`;
+  return `<div class="q-ai-message-actions">${actions.map((action)=>`<button type="button" data-q-ai-route="${esc(action.route)}" data-q-ai-action-message="${messageIndex}">${esc(routeActionLabel(action))} <span aria-hidden="true">→</span></button>`).join('')}</div>`;
 }
 function followUpList(items=[]){
   if(!items.length)return '';
@@ -415,4 +416,4 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
   loadCapability().catch(()=>{root.querySelector('[data-q-ai-status]').textContent=staticVisualPreview?'Static preview':'Dataset service reconnecting';root.querySelector('[data-q-ai-status-dot]').dataset.state='reference';});
 }
 
-export const __qellyChatTest=Object.freeze({currentRoute,safeDockText,normalizeDockContext,STORAGE_KEY,DECISION_DRAFT_KEY,MAX_MESSAGES,CHAT_MODES,CHAT_ASSETS,CHAT_TIMEFRAMES,CHAT_CALCULATORS,MODE_SUGGESTIONS,DECISION_HORIZONS,DECISION_RR,DECISION_SNAPSHOT_KEYS,truthLabel,safeUrl,conversationalReply,suggestionsFor,normalizeDecisionContext});
+export const __qellyChatTest=Object.freeze({currentRoute,safeDockText,normalizeDockContext,routeActionLabel,STORAGE_KEY,DECISION_DRAFT_KEY,MAX_MESSAGES,CHAT_MODES,CHAT_ASSETS,CHAT_TIMEFRAMES,CHAT_CALCULATORS,MODE_SUGGESTIONS,DECISION_HORIZONS,DECISION_RR,DECISION_SNAPSHOT_KEYS,truthLabel,safeUrl,conversationalReply,suggestionsFor,normalizeDecisionContext});
