@@ -593,6 +593,8 @@ const exerciseInitialLoading=async(width,appearance)=>{
   try{
     await page.goto(localOrigin+'/#/decision-provenance',{waitUntil:'domcontentloaded',timeout:45000});
     await Promise.race([requested,new Promise((_,reject)=>setTimeout(()=>reject(new Error('Capability request did not start')),10000))]);
+    const closeFeatures=page.getByRole('button',{name:'Hide all Qelly features',exact:true});
+    if(await closeFeatures.count())await closeFeatures.click();
     await page.getByRole('heading',{name:'Weighing fresh evidence',exact:true}).waitFor({state:'visible',timeout:5000});
     await page.locator('[data-v8-appearance]').waitFor({state:'visible'});
     if(await page.locator('html').getAttribute('data-resolved-appearance')!==appearance)await page.getByRole('button',{name:'Switch to '+appearance+' appearance',exact:true}).click();
@@ -603,6 +605,10 @@ const exerciseInitialLoading=async(width,appearance)=>{
     releaseCatalog();await page.locator('[data-dpg-chart]').first().waitFor({state:'visible',timeout:45000});
     if(!decisionRequests||await page.getByRole('heading',{name:'Weighing fresh evidence',exact:true}).count())throw new Error('Loading state did not resolve to validated evidence');
     initialLoadingResults.push({width,appearance,status:'passed',catalogHeldBeforeDecision:true,fixture:'synthetic governed provider'});
+  }catch(error){
+    await page.screenshot({path:path.join(outputDir,'initial-loading-'+width+'-'+appearance+'-failed.png'),fullPage:true}).catch(()=>{});
+    await writeFile(path.join(outputDir,'initial-loading-'+width+'-'+appearance+'-failure.json'),JSON.stringify({message:error.message,decisionRequests,mainText:await page.locator('main').innerText().catch(()=>''),fixture:'synthetic governed provider'},null,2));
+    throw error;
   }finally{releaseCatalog();await context.close();}
 };
 
