@@ -16,6 +16,7 @@ const EXACT_IMPLEMENTED=new Set(['/api/v1/config','/api/v1/health','/api/v1/read
 const RETIRED_DEAD_CODE=new Set(['/api/v1/watchlist']);
 
 function cloudflareImplementationState(apiPath){
+ if(apiPath==='/api/v1/auth/oauth/link')return 'implemented';
  if(RETIRED_DEAD_CODE.has(apiPath))return 'retired-dead-code';
  if(apiPath==='/api/v1/discovery/fundamentals-estimates')return 'implemented';
  if(apiPath==='/api/v1/discovery/filing-workspace')return 'implemented';

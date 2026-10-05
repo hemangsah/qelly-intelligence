@@ -25,10 +25,11 @@ import {
 import {handleGovernance} from './governance.js';
 import {canonicalTimezone,recognizedTimezone} from './timezone.js';
 import {approvedOAuthProvider,enabledOAuthProviders,publicOAuthProviders,oauthAuthorizeUrl} from './qelly-oauth-providers.js';
+import {LINK_TTL_MS,linkingProviders,requireRecentLinkSession,assertLinkSession,identityLinkAuthorizePath,validatedIdentityConsentUrl} from './qelly-identity-linking.js';
 
 const AUTH_TRANSACTION_COOKIE='qelly_auth_transaction';
 const AUTH_TRANSACTION_TTL_MS=60*60*1000;
-const AUTH_FLOWS=new Set(['signup','recovery','oauth']);
+const AUTH_FLOWS=new Set(['signup','recovery','oauth','oauth-link']);
 
 const base64UrlEncode=(value)=>{
   const bytes=new TextEncoder().encode(JSON.stringify(value));
@@ -66,7 +67,7 @@ const constantTimeEqual=async(leftValue,rightValue)=>{
   return difference===0;
 };
 
-const issueAuthTransaction=async(flow)=>{
+const issueAuthTransaction=async(flow,binding={})=>{
   if(!AUTH_FLOWS.has(flow))throw new HttpError(400,'auth_flow_invalid','Authentication flow is invalid');
   const verifier=randomToken();
   const challenge=base64UrlBytes(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier))));
@@ -76,13 +77,14 @@ const issueAuthTransaction=async(flow)=>{
     state:randomToken(),
     nonce:randomToken(),
     verifier,
-    issuedAt:Date.now()
+    issuedAt:Date.now(),
+    ...(flow==='oauth-link'?{userId:binding.userId,sessionId:binding.sessionId,provider:binding.provider}:{})
   };
   return {
     ...transaction,
     challenge,
     cookie:cookie(AUTH_TRANSACTION_COOKIE,base64UrlEncode(transaction),{
-      maxAge:AUTH_TRANSACTION_TTL_MS/1000,
+      maxAge:(flow==='oauth-link'?LINK_TTL_MS:AUTH_TRANSACTION_TTL_MS)/1000,
       sameSite:'Lax'
     })
   };
@@ -161,6 +163,24 @@ export async function handleAuth(context,path,method){
     },200,{cookies:[transaction.cookie]});
   }
 
+  if(path==='auth/oauth/link'&&method==='POST'){
+    requireOrigin(request,env);
+    const session=await resolveSession(request,env,{required:true});
+    await requireCsrf(request);
+    const configured=publicRuntimeConfig(env,request.url);
+    const body=await jsonBody(request,4096);
+    const provider=approvedOAuthProvider(body.provider);
+    if(!configured.capabilities.authentication||!provider||!linkingProviders(env).some(item=>item.id===provider.id))throw new HttpError(503,'identity_link_not_verified','Manual identity linking is not verified for this provider');
+    const binding=requireRecentLinkSession(session);
+    if(!Array.isArray(session.user.identities))throw new HttpError(503,'identity_inventory_unavailable','Verified identity inventory is required before linking');
+    if(session.user.identities.some(item=>item?.provider===provider.supabaseProvider))throw new HttpError(409,'identity_already_linked','This provider is already connected to your account');
+    await enforceRateLimit(env,`identity-link:${session.user.id}:${provider.id}`,{limit:10});
+    const transaction=await issueAuthTransaction('oauth-link',{...binding,provider:provider.id});
+    const result=await supabaseRequest(env,identityLinkAuthorizePath(configured,transaction,provider.id),{token:session.accessToken});
+    const url=validatedIdentityConsentUrl(result?.url,provider.id,configured);
+    return responseJson(request,env,{provider:provider.id,url,callbackMode:'pkce-code',grantedScopes:provider.scopes},200,{cookies:[...session.cookies,transaction.cookie],cache:'private, no-store'});
+  }
+
   if(path==='auth/register'&&method==='POST'){
     const body=await jsonBody(request);
     const email=safeEmail(body.email);
@@ -222,12 +242,22 @@ export async function handleAuth(context,path,method){
   if(path==='auth/callback'&&method==='POST'){
     const body=await jsonBody(request,20_000);
     const transaction=await validateCallback(request,body);
+    if(transaction.flow==='oauth-link'){
+      requireOrigin(request,env);
+      const current=await resolveSession(request,env,{required:true});
+      assertLinkSession(transaction,current);
+      if(!linkingProviders(env).some(provider=>provider.id===transaction.provider))throw new HttpError(503,'identity_link_not_verified','Manual identity linking is no longer enabled');
+    }
     const providerSession=await supabaseRequest(env,'/auth/v1/token?grant_type=pkce',{
       method:'POST',
       body:{auth_code:transaction.code,code_verifier:transaction.verifier}
     });
     if(!providerSession?.access_token||!providerSession?.refresh_token)throw new HttpError(401,'auth_code_exchange_failed','Authentication code exchange failed');
     const verified=await verifyAccess(env,providerSession.access_token);
+    if(transaction.flow==='oauth-link'){
+      const provider=approvedOAuthProvider(transaction.provider);
+      if(verified.user.id!==transaction.userId||!Array.isArray(verified.user.identities)||!verified.user.identities.some(item=>item?.provider===provider.supabaseProvider))throw new HttpError(403,'identity_link_result_mismatch','The identity service did not verify the expected account and provider. Your browser session was not replaced.');
+    }
     const qelly=await bootstrapContext(env,{...verified,accessToken:providerSession.access_token,refreshToken:providerSession.refresh_token});
     const csrf=randomToken();
     return responseJson(request,env,{

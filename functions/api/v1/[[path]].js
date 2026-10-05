@@ -1,6 +1,7 @@
 import {HttpError,SECURITY_HEADERS,bootstrapContext,correlationId,corsHeaders,enforceRateLimit,errorResponse,publicRuntimeConfigForRequest,requireOrigin,responseJson,resolveSession,stableUuid,validateJwtClaims} from '../../_lib/runtime.js';
 import {effectivePublicRuntimeConfig} from '../../_lib/email-capability.js';
 import {handleAuth} from '../../_lib/auth.js';
+import {sessionAuthenticationMethod,authenticationEvidence} from '../../_lib/qelly-identity-linking.js';
 import {handleData,__dataTest} from '../../_lib/data.js';
 import {handleEvidence,__evidenceTest} from '../../_lib/evidence.js';
 import {providerCatalog,providerResult} from '../../_lib/providers.js';
@@ -288,7 +289,7 @@ export async function route(context){
   const qelly=await bootstrapContext(env,session);
   if(path==='session/context'&&method==='GET')return responseJson(request,env,qelly,200,{cookies:session.cookies});
   if(path==='preferences/layout')throw new HttpError(503,'preferences_route_owner_mismatch','Preferences are owned by the dedicated /api/v1/preferences/layout function; the generic API fallback will not return browser-local defaults.',{retryable:false});
-  if(path==='sessions'&&method==='GET')return responseJson(request,env,{scope:'current-session-only',items:[{sessionId:`supabase-${session.user.id.slice(0,8)}`,authenticationMethod:'supabase-email-password',expiresAt:new Date(Number(session.claims.exp)*1000).toISOString(),current:true,revokedAt:null}]});
+  if(path==='sessions'&&method==='GET')return responseJson(request,env,{scope:'current-session-only',items:[{sessionId:'current-browser',authenticationMethod:sessionAuthenticationMethod(session.claims),authenticatedAt:authenticationEvidence(session.claims)?.authenticatedAt??null,expiresAt:new Date(Number(session.claims.exp)*1000).toISOString(),current:true,revokedAt:null}]},200,{cookies:session.cookies,cache:'private, no-store'});
   const data=await handleData(context,path,segments,method,session,qelly);
   if(data)return data;
   const evidence=await handleEvidence(context,path,segments,method,session,qelly);
