@@ -422,7 +422,7 @@ export function suggestedRoutes(message,mode='ask'){
   if(/calculate|formula|return|risk|option|black.scholes/.test(value))return [{route:'calculator-center',label:'Open calculators'}];
   if(/source|verify|evidence|claim/.test(value))return [{route:'qelly-verify',label:'Verify evidence'}];
   if(/research|filing|thesis/.test(value))return [{route:'research-workspace',label:'Research workspace'}];
-  return [{route:'market',label:'Market Command'},{route:'news-research',label:'Qelly Chat & Research'}];
+  return [{route:'market',label:'Open Market Pulse'},{route:'news-research',label:'Open QELLY Chat'}];
 }
 
 export const __financeIntelligenceTest=Object.freeze({WORLD_BANK_INDICATORS,COUNTRY_ALIASES,MODE_DIRECTIVES,AI_TIMEOUT_MS,finiteOrNull,safeText,numericTokens,unsupportedNumericClaims,systemPrompt,normalizeEcb,decisionReceipt,displayNumber,displayPercent,displayState,decisionDataLimits,decisionFallbackAnswer,toolFallbackLines,groundedToolFallbackAnswer});

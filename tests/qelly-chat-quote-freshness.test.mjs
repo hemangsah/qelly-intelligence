@@ -1,9 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {buildFinanceContext,groundedFallbackAnswer,runGroundedFinanceInference} from '../functions/_lib/finance-intelligence.js';
+import {buildFinanceContext,groundedFallbackAnswer,runGroundedFinanceInference,suggestedRoutes} from '../functions/_lib/finance-intelligence.js';
+import {__qellyChatTest as chat} from '../apps/web/public/assets/ai/qelly-chat.mjs';
 
 const observedAt='2026-10-05T10:00:00Z';
 const contextFor=(truthState)=>({observations:{hyperliquid:[{symbol:'BTC',mid:80000}]},citations:[{id:'hyperliquid-public',truthState,observedAt}],tools:[]});
+
+test('new and restored Chat route actions use current public route identities',()=>{
+  assert.deepEqual(suggestedRoutes('What is BTC?'),[{route:'market',label:'Open Market Pulse'},{route:'news-research',label:'Open QELLY Chat'}]);
+  assert.equal(chat.routeActionLabel({route:'market',label:'Market Command'}),'Open Market Pulse');
+  assert.equal(chat.routeActionLabel({route:'news-research',label:'Qelly Chat & Research'}),'Open QELLY Chat');
+  assert.equal(chat.routeActionLabel({route:'decision-provenance',label:'Verify this decision'}),'Verify this decision');
+});
 
 test('fallback quotes retain live, cached or delayed provenance and observation time',()=>{
   for(const truthState of ['live','cached','delayed']){
