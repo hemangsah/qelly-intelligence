@@ -57,7 +57,16 @@ const enumValues=Object.freeze({
 const titleOverrides=Object.freeze({accountValue:'Account value',riskPercent:'Risk percentage',riskAmount:'Risk amount',entry:'Entry price',stop:'Stop-loss price',multiplier:'Contract multiplier',estimatedFees:'Estimated fees',slippagePerUnit:'Slippage per unit',quantityStep:'Quantity step',annualReturnPercent:'Annual return',annualRatePercent:'Annual interest rate',returnsPercent:'Periodic returns',confidencePercent:'Confidence level',riskFreeRatePercent:'Risk-free rate',dividendYieldPercent:'Dividend yield',volatilityPercent:'Volatility',timeYears:'Time to expiry',knownOptionPrice:'Known option price',faceValue:'Face value',couponRatePercent:'Coupon rate',yieldPercent:'Yield to maturity',quoteToAccountRate:'Quote-to-account conversion rate'});
 const descriptionOverrides=Object.freeze({accountValue:'Total account equity used as the risk base.',riskPercent:'Maximum account percentage allocated to this calculation.',entry:'Planned entry price.',stop:'Price at which the risk assumption ends.',multiplier:'Value represented by one unit or contract.',estimatedFees:'Estimated fixed fees included in the risk budget.',slippagePerUnit:'Expected adverse price movement per unit.',quantityStep:'Smallest tradable quantity increment.',returnsPercent:'Enter a JSON array of periodic percentage returns.',cashflows:'Enter a JSON array of amount and ISO-date objects.',covarianceMatrix:'Enter a square JSON covariance matrix.',weights:'Enter a JSON array of portfolio weights.'});
 const humanize=(value)=>String(value).replace(/([a-z0-9])([A-Z])/g,'$1 $2').replace(/[-_]+/g,' ').replace(/^./,(character)=>character.toUpperCase());
-const unitFor=(key)=>/percent|rate|probability|volatility|yield/i.test(key)?'%':/price|value|amount|notional|equity|fee|cost|principal|payment|income|salary|balance|contribution|withdrawal|goal|spot|strike|pnl/i.test(key)?'currency':/years|timeYears/i.test(key)?'years':/months|tenure/i.test(key)?'months':/days/i.test(key)?'days':/quantity|units|contracts|shares/i.test(key)?'units':'';
+const ratioFields=new Set(['quoteToAccountRate','priceRatio']);
+const signedPercentFields=new Set(['annualReturnPercent','annualStepUpPercent','inflationPercent','targetReturnPercent','riskFreeRatePercent','dividendYieldPercent','yieldPercent','aprPercent','apyPercent']);
+const numericBoundsFor=(key,definition)=>{
+  if(signedPercentFields.has(key))return{};
+  if(key==='annualRatePercent')return /^loan-/.test(definition?.formulaId||'')?{minimum:0}:{};
+  if(key==='volatilityPercent'||key==='couponRatePercent')return{minimum:0};
+  if(key==='confidencePercent'&&['historical-var','expected-shortfall'].includes(definition?.formulaId))return{minimum:0,maximum:99.99};
+  return /percent|probability/i.test(key)?{minimum:0,maximum:100}:{};
+};
+const unitFor=(key)=>ratioFields.has(key)?'ratio':/percent|rate|probability|volatility|yield/i.test(key)?'%':/price|value|amount|notional|equity|fee|cost|principal|payment|income|salary|balance|contribution|withdrawal|goal|spot|strike|pnl/i.test(key)?'currency':/years|timeYears/i.test(key)?'years':/months|tenure/i.test(key)?'months':/days/i.test(key)?'days':/quantity|units|contracts|shares/i.test(key)?'units':'';
 const typeFor=(value)=>Array.isArray(value)?'array':value&&typeof value==='object'?'object':typeof value==='number'?'number':typeof value==='boolean'?'boolean':'string';
 
 export function inputContractFor(definition){
@@ -65,7 +74,7 @@ export function inputContractFor(definition){
   const nativeExample=definition?.referenceVector?.inputs;
   if(nativeSchema?.properties&&Object.keys(nativeSchema.properties).length)return{schema:nativeSchema,example:nativeExample||examples[definition.formulaId]||{}};
   const example=nativeExample&&Object.keys(nativeExample).length?nativeExample:examples[definition?.formulaId]||{};
-  const properties=Object.fromEntries(Object.entries(example).map(([key,value])=>[key,{type:typeFor(value),title:titleOverrides[key]||humanize(key),description:descriptionOverrides[key]||`Enter ${humanize(key).toLowerCase()} for this calculation.`,unit:unitFor(key),...(enumValues[key]?{enum:enumValues[key]}:{}),...(typeof value==='number'&&/percent|probability/i.test(key)?{minimum:0,maximum:100}:{}),example:value}]));
+  const properties=Object.fromEntries(Object.entries(example).map(([key,value])=>[key,{type:typeFor(value),title:titleOverrides[key]||humanize(key),description:descriptionOverrides[key]||`Enter ${humanize(key).toLowerCase()} for this calculation.`,unit:unitFor(key),...(enumValues[key]?{enum:enumValues[key]}:{}),...(typeof value==='number'?numericBoundsFor(key,definition):{}),example:value}]));
   return{schema:{type:'object',required:Object.keys(example).filter((key)=>!['estimatedFees','slippagePerUnit','quantityStep','roundingMode','feePerUnit','riskAmount','fraction','maximumRiskPercent','dividendYieldPercent','totalCosts','fixedCosts','statutoryCosts','timing','direction','side','periodsPerYear','compoundsPerYear','frequency','targetReturnPercent','riskFreeRatePercent','annualStepUpPercent','currentSavings','inflationPercent','maintenanceMarginPercent','closeFeePercent','quoteToAccountRate'].includes(key)),properties},example};
 }
 
