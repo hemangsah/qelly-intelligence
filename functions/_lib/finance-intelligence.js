@@ -114,16 +114,22 @@ export async function worldBankQuestionContext(message,{fetchImpl=globalThis.fet
   }
 }
 
-const normalizeEcb=(entry)=>({
-  id:'ecb-reference',
-  name:'European Central Bank reference rates',
-  truthState:entry?.data?.rates?'delayed':'unavailable',
-  observedAt:entry?.observedAt??null,
-  fetchedAt:entry?.ingestedAt??nowIso(),
-  base:entry?.data?.base??'EUR',
-  rates:entry?.data?.rates??null,
-  attribution:entry?.attribution??'European Central Bank'
-});
+const normalizeEcb=(entry)=>{
+  const declared=new Map([['delayed_provider','delayed'],['cached_provider','cached'],['stale_provider','stale'],['delayed','delayed'],['cached','cached'],['stale','stale']]).get(entry?.truthState);
+  const rates=declared&&entry?.data?.base==='EUR'?Object.fromEntries(Object.entries(entry.data.rates||{}).filter(([currency,value])=>/^[A-Z]{3}$/.test(currency)&&finiteOrNull(value)!==null&&finiteOrNull(value)>0).map(([currency,value])=>[currency,finiteOrNull(value)])):{};
+  const available=Object.keys(rates).length>0;
+  return {
+    id:'ecb-reference',
+    name:'European Central Bank reference rates',
+    truthState:available?declared:'unavailable',
+    freshness:available?(entry.freshness??declared):'unavailable',
+    observedAt:entry?.observationTime??entry?.observedAt??null,
+    fetchedAt:entry?.ingestionTime??entry?.ingestedAt??null,
+    base:entry?.data?.base??'EUR',
+    rates:available?rates:null,
+    attribution:entry?.attribution??'European Central Bank'
+  };
+};
 
 const citation=(id,title,url,truthState,observedAt,description)=>({id,title,url,truthState,observedAt:observedAt??null,description});
 
@@ -182,7 +188,7 @@ export function groundedFallbackAnswer(message,financeContext){
     '',
     mids.length?`${quoteState[0].toUpperCase()}${quoteState.slice(1)} crypto reference: ${mids.map((item)=>`${item.symbol} ${Number(item.mid).toLocaleString('en-US',{maximumFractionDigits:6})}`).join(' · ')} · observed ${quoteSource.observedAt??'time unavailable'} [hyperliquid-public].`:'Crypto reference data is currently unavailable.',
     macro.length?`World Bank reference: ${macro.map((item)=>`${item.country} ${item.indicator} ${Number(item.value).toLocaleString('en-US',{maximumFractionDigits:2})}${item.unit==='%'?'%':` ${item.unit}`} (${item.year})`).join(' · ')}.`:'No matching World Bank observation was returned.',
-    Object.keys(rates).length?`ECB reference: EUR/USD ${rates.USD??'unavailable'} · EUR/INR ${rates.INR??'unavailable'} · observed ${observations.ecb.observedAt??'time unavailable'}.`:'ECB reference rates are currently unavailable.',
+    Object.keys(rates).length?`ECB reference (${observations.ecb.truthState??'freshness unavailable'}): EUR/USD ${rates.USD??'unavailable'} · EUR/INR ${rates.INR??'unavailable'} · observed ${observations.ecb.observedAt??'time unavailable'} [ecb-reference].`:'ECB reference rates are currently unavailable.',
     '',
     'Generative inference is not available in this request, so I am returning the verified dataset observations without inventing an interpretation. This is research information, not financial advice.'
   ];
@@ -374,7 +380,7 @@ const toolFallbackLines=(financeContext)=>asArray(financeContext?.tools).flatMap
   if(tool?.id==='formula-screener'&&tool.data)return [`Formula Screener: ${tool.data.formula?.label||tool.data.formula||'registered metric'} · ${(tool.data.rows||[]).map(row=>`${row.asset} ${row.value??'unavailable'}`).join(' · ')||'no verified rows'} · freshness ${tool.freshness}.`];
   if(tool?.id==='event-calendar')return [`Event Calendar: ${tool.truthState}. ${tool.limitations?.[0]||'No live event evidence was inferred.'}`];
   if(tool?.id==='qelly-verify')return [`QELLY Verify: ${tool.truthState}. ${tool.limitations?.[0]||'User evidence is required.'}`];
-  if(tool?.id==='india-finance'&&tool.data)return [`India Finance: delayed/reference evidence is available from ${tool.source}; live TradingView benchmark values are display-only and are not ingested into this answer.`];
+  if(tool?.id==='india-finance'&&tool.data)return [`India Finance: ${tool.truthState} reference evidence from ${tool.source}; live TradingView benchmark values are display-only and are not ingested into this answer.`];
   return [];
 });
 const groundedToolFallbackAnswer=(message,financeContext,mode='ask')=>{

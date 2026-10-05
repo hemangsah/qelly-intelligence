@@ -168,15 +168,16 @@ export function buildIndiaToolReceipt(financeContext={}){
   const citations=Array.isArray(financeContext.citations)?financeContext.citations:[];
   const worldBankSource=citations.find(item=>item.id==='world-bank');
   const ecbSource=citations.find(item=>item.id==='ecb-reference');
-  const truthState=macro.length?'delayed':(ecb.rates?'delayed':'unavailable');
+  const ecbTruth=ecb.truthState??ecbSource?.truthState;
+  const truthState=macro.length?'delayed':(ecb.rates&&['delayed','cached','stale'].includes(ecbTruth)?ecbTruth:'unavailable');
   return receipt('india-finance','QELLY India Finance evidence',{
     truthState,
-    freshness:'delayed-reference',
+    freshness:macro.length?'delayed-reference':ecb.freshness??truthState,
     observedAt:worldBankSource?.observedAt??ecbSource?.observedAt??null,
     source:[worldBankSource?.title,ecbSource?.title].filter(Boolean).join(' · ')||'QELLY India Finance',
     data:{
       worldBank:macro,
-      ecbReference:{base:ecb.base??'EUR',inr:ecb.rates?.INR??null,observedAt:ecb.observedAt??null},
+      ecbReference:{base:ecb.base??'EUR',inr:ecb.rates?.INR??null,observedAt:ecb.observedAt??null,truthState:ecb.truthState??ecbSource?.truthState??'unavailable',freshness:ecb.freshness??ecb.truthState??ecbSource?.truthState??'unavailable'},
       displayOnlyCoverage:['Nifty 50','Sensex','Bank Nifty','USD/INR','Gold']
     },
     limitations:['India benchmark widgets are official TradingView display-only surfaces; QELLY Chat does not ingest their displayed values as evidence.','No verified live India VIX, FII/DII, breadth, yield or corporate-action feed is connected here.','World Bank and ECB observations are delayed reference data, not live exchange prices.']
