@@ -1,5 +1,6 @@
 import {calculateFormula,getFormulaDefinition} from '../../apps/web/public/assets/calculation/formula-engine-extended.mjs';
 import {buildAssetRankings} from './market-network.js';
+import {finiteEvidenceValue} from './numeric-evidence.js';
 import {buildPublicAssetIntelligence} from './public-asset-intelligence.js';
 import {buildUniversalSearch} from './public-search.js';
 import {buildPublicEventCalendar} from './public-event-calendar.js';
@@ -31,13 +32,16 @@ export function buildMarketToolReceipt(sources={},asset='BTC'){
   const source=sources.hyperliquid||{};
   const rows=Array.isArray(source.data)?source.data:[];
   const row=rows.find(item=>String(item?.symbol||'').toUpperCase()===symbol)||null;
-  const truthState=row?state(source.truthState||'live'):'unavailable';
+  const value=finiteEvidenceValue(row?.mid);
+  const sourceState=state(source.truthState);
+  const usable=value!==null&&value>0&&['live','cached','delayed'].includes(sourceState);
+  const truthState=usable?sourceState:'unavailable';
   return receipt('public-market-data','QELLY public market data',{
     truthState,
     freshness:truthState,
     observedAt:source.observedAt??null,
     source:'Hyperliquid public market source',
-    data:row?{symbol,mid:Number.isFinite(Number(row.mid))?Number(row.mid):null,provider:'Hyperliquid'}:{symbol,mid:null,provider:'Hyperliquid'},
+    data:{symbol,mid:usable?value:null,provider:'Hyperliquid'},
     limitations:[
       'This is governed public crypto market context only; it is not an order, execution receipt or personalized recommendation.',
       'A perpetual-market mid is context, not a guaranteed executable spot price.'

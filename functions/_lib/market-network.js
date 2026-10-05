@@ -1,10 +1,11 @@
 import {providerDirectory,providerDirectorySummary} from './provider-directory.js';
+import {finiteEvidenceValue} from './numeric-evidence.js';
 
 const REQUEST_TIMEOUT_MS=7000;
 const SOURCE_CACHE_TTL=Object.freeze({hyperliquid:8,'alternative-me':60,'world-bank':3600,imf:21600});
 
 const nowIso=()=>new Date().toISOString();
-const finiteOrNull=(value)=>Number.isFinite(Number(value))?Number(value):null;
+const finiteOrNull=finiteEvidenceValue;
 const normalizedTruthState=(source)=>{
   const state=String(source?.truthState||source?.state||'unavailable').toLowerCase();
   if(state==='unavailable'||source?.data==null)return 'unavailable';
@@ -433,7 +434,8 @@ async function hyperliquidMids(){
   try{
     const payload=await fetchJson('https://api.hyperliquid.xyz/info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'allMids'})});
     const preferred=['BTC','ETH','SOL','HYPE','XRP','DOGE'];
-    const rows=preferred.filter((symbol)=>payload?.[symbol]!=null).map((symbol)=>({symbol,mid:finiteOrNull(payload[symbol])}));
+    const rows=preferred.map((symbol)=>({symbol,mid:finiteOrNull(payload?.[symbol])})).filter((row)=>row.mid!==null&&row.mid>0);
+    if(!rows.length)return unavailable('hyperliquid','Hyperliquid',{reason:'No valid positive midpoint observations were supplied.',attribution:'Hyperliquid public API'});
     return success('hyperliquid','Hyperliquid',rows,{
       observedAt:nowIso(),
       attribution:'Hyperliquid public API',
@@ -453,6 +455,7 @@ async function worldBankMacro(){
     const payload=await fetchJson(url);
     const records=Array.isArray(payload)&&Array.isArray(payload[1])?payload[1]:[];
     const rows=records.map((row)=>({countryId:String(row.countryiso3code??''),country:String(row.country?.value??''),year:String(row.date??''),gdpGrowthPct:finiteOrNull(row.value)})).filter((row)=>row.countryId&&row.gdpGrowthPct!=null);
+    if(!rows.length)return unavailable('world-bank','World Bank',{reason:'No numeric GDP growth observations were supplied.',attribution:'World Bank Indicators API'});
     return success('world-bank','World Bank',rows,{
       state:'reference_external',
       observedAt:null,
