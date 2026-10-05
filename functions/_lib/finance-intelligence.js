@@ -1,5 +1,6 @@
 import {buildExternalMarketNetwork} from './market-network.js';
 import {providerResult} from './providers.js';
+import {finiteEvidenceValue} from './numeric-evidence.js';
 import {buildAssetToolReceipt,buildEventCalendarToolReceipt,buildFormulaScreenerToolReceipt,buildIndiaToolReceipt,buildMarketToolReceipt,buildPublicResearchToolReceipt,buildSearchToolReceipt,buildVerifyToolReceipt,normalizeChatAsset,normalizeChatMode} from './qelly-chat-tools.js';
 
 export const DEFAULT_QELLY_AI_MODEL='@cf/meta/llama-3.1-8b-instruct-fp8';
@@ -51,7 +52,7 @@ const COUNTRY_ALIASES=Object.freeze([
 ]);
 
 const nowIso=()=>new Date().toISOString();
-const finiteOrNull=(value)=>Number.isFinite(Number(value))?Number(value):null;
+const finiteOrNull=finiteEvidenceValue;
 const safeText=(value,max=2400)=>String(value??'').trim().slice(0,max);
 const asArray=(value)=>Array.isArray(value)?value:[];
 const numericTokens=(value)=>new Set((String(value??'').match(/-?\d[\d,]*(?:\.\d+)?/g)||[]).map((token)=>token.replaceAll(',','').replace(/^(-?)0+(?=\d)/,'$1')));
@@ -147,7 +148,7 @@ export async function buildFinanceContext(context,message,{networkLoader=buildEx
     generatedAt:nowIso(),
     question:safeText(message),
     observations:{
-      hyperliquid:asArray(sources.hyperliquid?.data).slice(0,12),
+      hyperliquid:asArray(sources.hyperliquid?.data).filter((item)=>finiteOrNull(item?.mid)!==null&&finiteOrNull(item.mid)>0).slice(0,12),
       crypto:sources['alternative-me']?.data??null,
       worldBank,
       ecb
@@ -170,8 +171,8 @@ export async function buildFinanceContext(context,message,{networkLoader=buildEx
 
 export function groundedFallbackAnswer(message,financeContext){
   const observations=financeContext?.observations||{};
-  const mids=asArray(observations.hyperliquid).filter((item)=>item?.mid!=null).slice(0,6);
-  const macro=asArray(observations.worldBank?.observations).slice(0,10);
+  const mids=asArray(observations.hyperliquid).filter((item)=>finiteOrNull(item?.mid)!==null&&finiteOrNull(item.mid)>0).slice(0,6);
+  const macro=asArray(observations.worldBank?.observations).filter((item)=>finiteOrNull(item?.value)!==null).slice(0,10);
   const rates=observations.ecb?.rates||{};
   const lines=[
     `I checked the connected Qelly finance datasets for “${safeText(message,180)}”.`,
@@ -216,8 +217,8 @@ const MODE_DIRECTIVES=Object.freeze({
 
 const AI_TIMEOUT_MS=12_000;
 const decisionReceipt=(financeContext)=>asArray(financeContext?.tools).find(tool=>tool?.id==='decision-intelligence'&&tool?.data)||null;
-const displayNumber=(value,{digits=2,suffix=''}={})=>Number.isFinite(Number(value))?Number(value).toLocaleString('en-US',{maximumFractionDigits:digits})+suffix:'unavailable';
-const displayPercent=(value,{probability=false,digits=1}={})=>Number.isFinite(Number(value))?((probability?Number(value)*100:Number(value)).toFixed(digits)+'%'):'unavailable';
+const displayNumber=(value,{digits=2,suffix=''}={})=>{const number=finiteOrNull(value);return number===null?'unavailable':number.toLocaleString('en-US',{maximumFractionDigits:digits})+suffix;};
+const displayPercent=(value,{probability=false,digits=1}={})=>{const number=finiteOrNull(value);return number===null?'unavailable':(probability?number*100:number).toFixed(digits)+'%';};
 const displayState=(value)=>String(value??'UNAVAILABLE').replaceAll('_',' ');
 const decisionDataLimits=(data)=>{
   const availability=data?.evidence?.availability||{};
@@ -364,7 +365,7 @@ const decisionFallbackAnswer=(message,financeContext)=>{
   return lines.join('\n');
 };
 const toolFallbackLines=(financeContext)=>asArray(financeContext?.tools).flatMap((tool)=>{
-  if(tool?.id==='decision-intelligence'&&tool.data)return [`Decision Intelligence: ${tool.data.asset} ${tool.data.interval} · QELLY VIEW ${tool.data.action} · evidence confidence ${Math.round(Number(tool.data.confidence||0)*100)}% · truth state ${tool.truthState} · freshness ${tool.freshness}.`];
+  if(tool?.id==='decision-intelligence'&&tool.data)return [`Decision Intelligence: ${tool.data.asset} ${tool.data.interval} · QELLY VIEW ${tool.data.action} · evidence confidence ${displayPercent(tool.data.confidence,{probability:true,digits:0})} · truth state ${tool.truthState} · freshness ${tool.freshness}.`];
   if(tool?.id==='asset-dossier'&&tool.data)return [`Asset Dossier: ${tool.data.symbol} · ${tool.data.observation?.priceUsd??'price unavailable'} USD · source ${tool.source} · truth state ${tool.truthState} · freshness ${tool.freshness}.`];
   if(tool?.id==='public-market-data'&&tool.data)return [`Public market context: ${tool.data.symbol} ${tool.data.mid??'price unavailable'} · source ${tool.source} · truth state ${tool.truthState} · freshness ${tool.freshness}.`];
   if(tool?.id==='formula-screener'&&tool.data)return [`Formula Screener: ${tool.data.formula?.label||tool.data.formula||'registered metric'} · ${(tool.data.rows||[]).map(row=>`${row.asset} ${row.value??'unavailable'}`).join(' · ')||'no verified rows'} · freshness ${tool.freshness}.`];
