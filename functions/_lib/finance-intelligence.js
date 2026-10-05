@@ -55,6 +55,7 @@ const nowIso=()=>new Date().toISOString();
 const finiteOrNull=finiteEvidenceValue;
 const safeText=(value,max=2400)=>String(value??'').trim().slice(0,max);
 const asArray=(value)=>Array.isArray(value)?value:[];
+const usableQuoteState=(value)=>['live','cached','delayed'].includes(value);
 const numericTokens=(value)=>new Set((String(value??'').match(/-?\d[\d,]*(?:\.\d+)?/g)||[]).map((token)=>token.replaceAll(',','').replace(/^(-?)0+(?=\d)/,'$1')));
 const unsupportedNumericClaims=(answer,message,financeContext)=>{
   const allowed=numericTokens(`${message}\n${JSON.stringify(financeContext)}`);
@@ -148,7 +149,7 @@ export async function buildFinanceContext(context,message,{networkLoader=buildEx
     generatedAt:nowIso(),
     question:safeText(message),
     observations:{
-      hyperliquid:asArray(sources.hyperliquid?.data).filter((item)=>finiteOrNull(item?.mid)!==null&&finiteOrNull(item.mid)>0).slice(0,12),
+      hyperliquid:usableQuoteState(sources.hyperliquid?.truthState)?asArray(sources.hyperliquid?.data).filter((item)=>finiteOrNull(item?.mid)!==null&&finiteOrNull(item.mid)>0).slice(0,12):[],
       crypto:sources['alternative-me']?.data??null,
       worldBank,
       ecb
@@ -171,13 +172,15 @@ export async function buildFinanceContext(context,message,{networkLoader=buildEx
 
 export function groundedFallbackAnswer(message,financeContext){
   const observations=financeContext?.observations||{};
-  const mids=asArray(observations.hyperliquid).filter((item)=>finiteOrNull(item?.mid)!==null&&finiteOrNull(item.mid)>0).slice(0,6);
+  const quoteSource=asArray(financeContext?.citations).find((item)=>item?.id==='hyperliquid-public');
+  const quoteState=quoteSource?.truthState;
+  const mids=usableQuoteState(quoteState)?asArray(observations.hyperliquid).filter((item)=>finiteOrNull(item?.mid)!==null&&finiteOrNull(item.mid)>0).slice(0,6):[];
   const macro=asArray(observations.worldBank?.observations).filter((item)=>finiteOrNull(item?.value)!==null).slice(0,10);
   const rates=observations.ecb?.rates||{};
   const lines=[
     `I checked the connected Qelly finance datasets for “${safeText(message,180)}”.`,
     '',
-    mids.length?`Live crypto reference: ${mids.map((item)=>`${item.symbol} ${Number(item.mid).toLocaleString('en-US',{maximumFractionDigits:6})}`).join(' · ')}.`:'Live crypto reference data is currently unavailable.',
+    mids.length?`${quoteState[0].toUpperCase()}${quoteState.slice(1)} crypto reference: ${mids.map((item)=>`${item.symbol} ${Number(item.mid).toLocaleString('en-US',{maximumFractionDigits:6})}`).join(' · ')} · observed ${quoteSource.observedAt??'time unavailable'} [hyperliquid-public].`:'Crypto reference data is currently unavailable.',
     macro.length?`World Bank reference: ${macro.map((item)=>`${item.country} ${item.indicator} ${Number(item.value).toLocaleString('en-US',{maximumFractionDigits:2})}${item.unit==='%'?'%':` ${item.unit}`} (${item.year})`).join(' · ')}.`:'No matching World Bank observation was returned.',
     Object.keys(rates).length?`ECB reference: EUR/USD ${rates.USD??'unavailable'} · EUR/INR ${rates.INR??'unavailable'} · observed ${observations.ecb.observedAt??'time unavailable'}.`:'ECB reference rates are currently unavailable.',
     '',

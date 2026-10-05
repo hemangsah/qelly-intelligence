@@ -45,7 +45,7 @@ test('Decision Chat fallback never invents zero confidence, entries or stops',()
 });
 
 test('generic Chat fallback excludes malformed quotes and macro rows without losing a real zero',()=>{
-  const answer=groundedFallbackAnswer('Compare evidence',{observations:{hyperliquid:[{symbol:'BTC',mid:''},{symbol:'ETH',mid:-1},{symbol:'SOL',mid:100}],worldBank:{observations:[{country:'India',indicator:'GDP growth',value:null},{country:'United States',indicator:'GDP growth',value:0,unit:'%',year:'2025'}]}}});
+  const answer=groundedFallbackAnswer('Compare evidence',{citations:[{id:'hyperliquid-public',truthState:'live'}],observations:{hyperliquid:[{symbol:'BTC',mid:''},{symbol:'ETH',mid:-1},{symbol:'SOL',mid:100}],worldBank:{observations:[{country:'India',indicator:'GDP growth',value:null},{country:'United States',indicator:'GDP growth',value:0,unit:'%',year:'2025'}]}}});
   assert.match(answer,/SOL 100/);assert.doesNotMatch(answer,/BTC 0|ETH -1|India GDP growth/);assert.match(answer,/United States GDP growth 0%/);
 });
 
