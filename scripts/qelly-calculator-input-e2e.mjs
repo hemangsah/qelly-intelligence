@@ -78,6 +78,8 @@ try{
     try{
       await page.goto('http://127.0.0.1:'+server.port+'/#/converter',{waitUntil:'domcontentloaded'});
       await page.locator('[data-converter-state="reference-workbench-available"]').waitFor({state:'visible',timeout:30000});
+      await page.locator('[data-v8-appearance]').waitFor({state:'visible'});
+      if(await page.locator('html').getAttribute('data-resolved-appearance')!==appearance)await page.getByRole('button',{name:'Switch to '+appearance+' appearance',exact:true}).click();
       await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
       const metrics=await page.locator('.q-cv-metrics').innerText(),receipt=await page.locator('.q-cv-audit').innerText();
       for(const text of [metrics,receipt]){assert.match(text,/Reference date/);assert.match(text,/2026-10-05/);assert.match(text,/Exact publication time unavailable/);}
