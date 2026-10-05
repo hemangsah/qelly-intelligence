@@ -103,7 +103,25 @@ try{
         await page.waitForTimeout(80);
         assert.equal(await trigger.evaluate(node=>node===document.activeElement),true,'A cancelled opening timer must not steal restored focus');
         assert.equal(posts,0,'Keyboard checks must send no chat messages');
-        results.push({route,width,appearance,status:'passed',posts,composerGeometryStates:geometryStates.length,appearanceControlInitiallyDisabled});
+        // Restore the same production renderer's answered state without a POST.
+        // Citations and Retry expose six actions, unlike the welcome-only state.
+        await page.evaluate(()=>sessionStorage.setItem('qelly.intelligence.chat.v1',JSON.stringify([{role:'assistant',content:'Isolated restored-answer containment fixture. '+('unbroken_observation_locator_'.repeat(20)),sources:[{id:'fixture',title:'Fixture citation',url:'https://example.invalid/fixture',truthState:'delayed'}],truthState:'model_unavailable_fallback',retryable:true,mode:'ask',asset:'BTC',timeframe:'15m'}])));
+        await page.reload({waitUntil:'domcontentloaded'});
+        await page.locator('[data-q-ai-launcher]').waitFor({state:'attached'});
+        await page.keyboard.press('Control+/');await panel.waitFor({state:'visible'});
+        const message=panel.locator('.q-ai-message--assistant');await message.waitFor({state:'visible'});
+        await panel.getByRole('button',{name:'Copy citations',exact:true}).waitFor({state:'visible'});
+        const containment=await message.evaluate(node=>{
+          const rect=node.getBoundingClientRect(),thread=node.closest('.q-ai-thread');
+          return {threadWidth:thread.clientWidth,threadScrollWidth:thread.scrollWidth,messageWidth:node.clientWidth,messageScrollWidth:node.scrollWidth,controls:[...node.querySelectorAll('.q-ai-message-tools button')].map(button=>{const box=button.getBoundingClientRect();return {label:button.textContent,left:box.left,right:box.right,height:box.height,clientWidth:button.clientWidth,scrollWidth:button.scrollWidth};}),left:rect.left,right:rect.right};
+        });
+        assert.ok(containment.threadScrollWidth<=containment.threadWidth+1,'Restored answer must not create horizontal thread scrolling');
+        assert.ok(containment.messageScrollWidth<=containment.messageWidth+1,'Restored message content must fit its card');
+        assert.equal(containment.controls.length,6);
+        for(const control of containment.controls){assert.ok(control.left>=containment.left-1&&control.right<=containment.right+1,control.label+' stays within its message');assert.ok(control.scrollWidth<=control.clientWidth+1,control.label+' text is not clipped');}
+        await page.screenshot({path:`${out}/${route}-${width}-${appearance}-restored-answer.png`,fullPage:true});
+        assert.equal(posts,0,'Restored answer acceptance must send no Chat request');
+        results.push({route,width,appearance,status:'passed',posts,composerGeometryStates:geometryStates.length,appearanceControlInitiallyDisabled,messageContainmentChecks:1,containment});
       }catch(error){
         const diagnostic={route,width,appearance,status:'failed',error:String(error.message),pageErrors,appearanceControlInitiallyDisabled,focus:await page.evaluate(()=>({activeTag:document.activeElement?.tagName,activeLabel:document.activeElement?.getAttribute('aria-label'),appearanceDisabled:document.querySelector('[data-v8-appearance]')?.disabled})),resolvedAppearance:await page.locator('html').getAttribute('data-resolved-appearance')};
         results.push(diagnostic);console.error(JSON.stringify(diagnostic));
