@@ -3,11 +3,12 @@ import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {buildPublicConverter} from '../functions/_lib/public-converter.js';
 import {startServer} from './release-a5-evidence-server.mjs';
+import {STANDALONE_PUBLIC_PAGES} from './install-standalone-public-shell.mjs';
 
 const out='preview/calculator-input-e2e';await mkdir(out,{recursive:true});
 const server=await startServer({port:0,host:'127.0.0.1'});
 const browser=await chromium.launch({headless:true,executablePath:process.env.QELLY_BROWSER_EXECUTABLE||'/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
-const results=[],converterReferenceDateResults=[],publicCalculatorValidationResults=[],publicCalculatorThemeResults=[],publicCalculatorCloudPreferenceResults=[];
+const results=[],converterReferenceDateResults=[],publicCalculatorValidationResults=[],publicCalculatorThemeResults=[],publicCalculatorCloudPreferenceResults=[],publicCalculatorShellResults=[],standalonePublicShellResults=[],publicCalculatorHandoffResults=[];
 const scenarios=[
   {id:'sip-future-value',inputs:{monthlyContribution:1000,annualReturnPercent:-12,years:1},expected:Array.from({length:12},(_,n)=>1000*0.99**n).reduce((a,b)=>a+b,0)},
   {id:'compound-interest',inputs:{principal:1000,annualRatePercent:-10,years:2,compoundsPerYear:1},expected:810},
@@ -177,9 +178,98 @@ try{
     }catch(error){publicCalculatorCloudPreferenceResults.push({width,appearance,status:'failed',error:error.message});throw error;}
     finally{await context.close();}
   }
+  for(const surface of ['library','calculator'])for(const width of [1440,390])for(const appearance of ['dark','light']){
+    const context=await browser.newContext({viewport:{width,height:900},colorScheme:appearance,reducedMotion:'reduce',serviceWorkers:'block'});
+    await context.addInitScript(value=>localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({version:2,appearance:value})),appearance);
+    await context.route('**/api/v1/config',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({auth:{authenticated:false},csrf:{token:'synthetic-public-shell'}})}));
+    await context.route('**/api/v1/intelligence/chat',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({assistant:{inferenceAvailable:false},datasets:{connected:0,catalogued:0,items:[]}})}));
+    const page=await context.newPage();let writes=0;page.on('request',request=>{if(['POST','PUT','PATCH','DELETE'].includes(request.method()))writes++;});
+    try{
+      const pathname=surface==='library'?'/calculators/index.html':'/calculators/kelly-criterion-calculator/index.html';
+      await page.goto('http://127.0.0.1:'+server.port+pathname,{waitUntil:'domcontentloaded'});
+      const title=await page.title(),launcher=page.locator('[data-q-ai-launcher]'),panel=page.locator('[data-q-ai-assistant]');
+      await launcher.waitFor({state:'visible'});assert.equal(await launcher.count(),1);assert.equal(await page.locator('.q-cn-global-categories details').count(),5);
+      assert.equal(await page.locator('[data-q-ai-launch-meta]').innerText(),surface==='library'?'Financial calculator library':'Kelly Criterion Calculator');
+      const box=await launcher.boundingBox();assert.ok(Math.abs(box.x+box.width/2-width/2)<2);assert.ok(box.y>=0&&box.y+box.height<=900);
+      await page.locator('.q-cn-global-categories summary').first().click();assert.equal(await page.locator('.q-cn-global-categories details[open]').count(),1);
+      await page.locator('.q-cn-global-categories summary').first().press('Escape');assert.equal(await page.locator('.q-cn-global-categories details[open]').count(),0);
+      if(surface==='calculator')await page.locator('#calc-winProbability').fill('17.25');
+      await launcher.click();await panel.waitFor({state:'visible'});
+      await page.waitForFunction(()=>[...document.querySelectorAll('.q-ai-root img')].every(image=>image.complete&&image.naturalWidth>0));
+      const draft=await page.locator('[data-q-ai-form] textarea').inputValue();assert.doesNotMatch(draft,/17\.25|winProbability|averageWin/);
+      assert.equal(await page.getByRole('button',{name:'Send question',exact:true}).count(),1);
+      const geometry=await panel.boundingBox();assert.ok(geometry.x>=-1&&geometry.y>=-1&&geometry.x+geometry.width<=width+1&&geometry.y+geometry.height<=901);
+      if(width===390){assert.equal(await panel.getAttribute('aria-modal'),'true');assert.equal(await page.locator('#main').evaluate(node=>node.inert),true);}
+      await page.screenshot({path:out+'/public-shell-'+surface+'-'+width+'-'+appearance+'.png',fullPage:false});
+      await page.locator('[data-q-ai-form] textarea').press('Escape');assert.equal(await panel.isVisible(),false);
+      if(width===390)assert.equal(await page.locator('#main').evaluate(node=>node.inert),false);
+      assert.equal(await page.title(),title);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);assert.equal(writes,0);
+      publicCalculatorShellResults.push({surface,width,appearance,status:'passed',writes,oneSharedAssistant:true,centered:true,categories:5,inputValuesExcluded:true,keyboardClose:true,mobileBoundaryRestored:true});
+    }catch(error){publicCalculatorShellResults.push({surface,width,appearance,status:'failed',error:error.message});throw error;}
+    finally{await context.close();}
+  }
+
+  for(const width of [1440,390])for(const appearance of ['dark','light']){
+    const context=await browser.newContext({viewport:{width,height:900},colorScheme:appearance,reducedMotion:'reduce',serviceWorkers:'block'});
+    await context.addInitScript(value=>localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({version:2,appearance:value})),appearance);
+    await context.route('**/api/v1/config',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({auth:{authenticated:false},csrf:{token:'synthetic-receipt-handoff'}})}));
+    await context.route('**/api/v1/intelligence/chat',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({assistant:{inferenceAvailable:false},datasets:{connected:0,catalogued:0,items:[]}})}));
+    const page=await context.newPage();let writes=0;page.on('request',request=>{if(['POST','PUT','PATCH','DELETE'].includes(request.method()))writes++;});
+    try{
+      await page.goto('http://127.0.0.1:'+server.port+'/calculators/kelly-criterion-calculator/index.html',{waitUntil:'domcontentloaded'});
+      const explain=page.locator('[data-explain-result]'),input=page.locator('[data-q-ai-form] textarea'),panel=page.locator('[data-q-ai-assistant]');
+      await page.locator('[data-q-ai-launcher]').waitFor({state:'visible'});
+      await page.locator('#calc-winProbability').fill('17.25');await explain.waitFor({state:'visible'});await page.waitForFunction(()=>!document.querySelector('[data-explain-result]').disabled);
+      assert.equal(await panel.isVisible(),false);await explain.click();await panel.waitFor({state:'visible'});
+      const draft=await input.inputValue(),snapshot=JSON.parse(draft.slice(draft.indexOf('\n')+1));
+      assert.equal(snapshot.formulaId,'kelly-criterion');assert.equal(snapshot.inputs.winProbability,17.25);assert.equal(snapshot.outputs.fractionalKelly,0);assert.ok(draft.length<=2200);assert.match(await page.locator('[data-explain-status]').innerText(),/Send shares/);
+      await page.screenshot({path:out+'/public-receipt-handoff-'+width+'-'+appearance+'.png',fullPage:false});
+      await input.fill('Synthetic unsent draft to preserve');await input.press('Escape');await explain.click();assert.equal(await input.inputValue(),'Synthetic unsent draft to preserve');assert.equal(await panel.isVisible(),false);assert.match(await page.locator('[data-explain-status]').innerText(),/preserved/);
+      await page.locator('[data-q-ai-launcher]').click();await input.fill('');await input.press('Escape');await page.locator('#calc-winProbability').fill('0');await page.waitForFunction(()=>!document.querySelector('[data-explain-result]').disabled);await explain.click();
+      const zero=await input.inputValue(),zeroReceipt=JSON.parse(zero.slice(zero.indexOf('\n')+1));assert.equal(zeroReceipt.inputs.winProbability,0);assert.equal(zeroReceipt.outputs.fractionalKelly,0);await input.press('Escape');
+      await page.locator('#calc-winProbability').fill('101');await page.waitForFunction(()=>document.querySelector('[data-calculator-status]').dataset.state==='error');assert.equal(await explain.isEnabled(),false);assert.equal(await panel.isVisible(),false);
+      assert.equal(writes,0);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
+      publicCalculatorHandoffResults.push({width,appearance,status:'passed',writes,explicitDraft:true,receiptVerified:true,unsentDraftPreserved:true,zeroPreserved:true,invalidDisabled:true});
+    }catch(error){publicCalculatorHandoffResults.push({width,appearance,status:'failed',error:error.message});throw error;}
+    finally{await context.close();}
+  }
+  for(const surface of STANDALONE_PUBLIC_PAGES)for(const width of [1440,390])for(const appearance of ['dark','light']){
+    const context=await browser.newContext({viewport:{width,height:900},colorScheme:appearance,reducedMotion:'reduce',serviceWorkers:'block'});
+    await context.addInitScript(value=>localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({version:2,appearance:value})),appearance);
+    await context.route('**/api/v1/config',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({auth:{authenticated:false},csrf:{token:'synthetic-standalone-shell'}})}));
+    await context.route('**/api/v1/intelligence/chat',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({assistant:{inferenceAvailable:false},datasets:{connected:0,catalogued:0,items:[]}})}));
+    await context.route('**/api/v1/public/markets/assets/**',route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:{message:'Synthetic unavailable provider fixture'}})}));
+    const page=await context.newPage();let writes=0;page.on('request',request=>{if(['POST','PUT','PATCH','DELETE'].includes(request.method()))writes++;});
+    try{
+      await page.goto('http://127.0.0.1:'+server.port+'/'+surface.path+'?private=synthetic-context-must-not-copy#synthetic-fragment-must-not-copy',{waitUntil:'domcontentloaded'});
+      const title=await page.title(),launcher=page.locator('[data-q-ai-launcher]'),panel=page.locator('[data-q-ai-assistant]');
+      await launcher.waitFor({state:'visible'});assert.equal(await launcher.count(),1);assert.equal(await page.locator('.q-cn-global-categories details').count(),5);
+      assert.equal(await page.locator('[data-q-ai-launch-meta]').innerText(),title);
+      assert.equal(await page.locator('html').getAttribute('data-resolved-appearance'),appearance);
+      const contrast=await page.evaluate(()=>{
+        const rgb=value=>value.match(/[\d.]+/g).slice(0,3).map(Number),linear=value=>{const c=value/255;return c<=.04045?c/12.92:((c+.055)/1.055)**2.4;},lum=value=>{const c=rgb(value).map(linear);return .2126*c[0]+.7152*c[1]+.0722*c[2];};
+        const style=getComputedStyle(document.body),a=lum(style.color),b=lum(style.backgroundColor);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+      });assert.ok(contrast>=4.5);
+      const box=await launcher.boundingBox();assert.ok(Math.abs(box.x+box.width/2-width/2)<2);
+      await page.locator('.q-cn-global-categories summary').first().click();assert.equal(await page.locator('.q-cn-global-categories details[open]').count(),1);
+      assert.ok((await page.locator('.q-cn-global-categories details[open] a').allTextContents()).every(label=>label.trim().length>0));
+      await page.locator('.q-cn-global-categories summary').first().press('Escape');assert.equal(await page.locator('.q-cn-global-categories details[open]').count(),0);
+      await launcher.click();await panel.waitFor({state:'visible'});await page.waitForFunction(()=>[...document.querySelectorAll('.q-ai-root img')].every(image=>image.complete&&image.naturalWidth>0));
+      const draft=await page.locator('[data-q-ai-form] textarea').inputValue();assert.doesNotMatch(draft,/synthetic-context-must-not-copy|synthetic-fragment-must-not-copy/);
+      if(surface.asset)assert.equal(await page.locator('[data-q-ai-asset]').inputValue(),surface.asset);
+      const headerTargets=await page.locator('.q-ai-header button:visible').evaluateAll(nodes=>nodes.map(node=>{const box=node.getBoundingClientRect(),parent=node.closest('[data-q-ai-assistant]').getBoundingClientRect();return {height:box.height,withinPanel:box.x>=parent.x-1&&box.right<=parent.right+1};}));assert.ok(headerTargets.every(target=>target.height>=44&&target.withinPanel));
+      if(width===390){assert.equal(await panel.getAttribute('aria-modal'),'true');assert.equal(await page.locator('#main').evaluate(node=>node.inert),true);}
+      const geometry=await panel.boundingBox();assert.ok(geometry.x>=-1&&geometry.y>=-1&&geometry.x+geometry.width<=width+1&&geometry.y+geometry.height<=901);
+      await page.screenshot({path:out+'/standalone-shell-'+surface.path.replaceAll('/','-')+'-'+width+'-'+appearance+'.png',fullPage:false});
+      await page.locator('[data-q-ai-form] textarea').press('Escape');assert.equal(await panel.isVisible(),false);if(width===390)assert.equal(await page.locator('#main').evaluate(node=>node.inert),false);
+      assert.equal(await page.title(),title);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);assert.equal(writes,0);
+      standalonePublicShellResults.push({path:surface.path,width,appearance,status:'passed',writes,contrast,titlePreserved:true,categories:5,contextPreserved:true,privateUrlExcluded:true,imagesLoaded:true,mobileBoundaryRestored:true});
+    }catch(error){standalonePublicShellResults.push({path:surface.path,width,appearance,status:'failed',error:error.message});throw error;}
+    finally{await context.close();}
+  }
 }finally{
-  const status=results.length===16&&results.every(item=>item.status==='passed')&&converterReferenceDateResults.length===4&&converterReferenceDateResults.every(item=>item.status==='passed')&&publicCalculatorValidationResults.length===4&&publicCalculatorValidationResults.every(item=>item.status==='passed')&&publicCalculatorThemeResults.length===8&&publicCalculatorThemeResults.every(item=>item.status==='passed')&&publicCalculatorCloudPreferenceResults.length===4&&publicCalculatorCloudPreferenceResults.every(item=>item.status==='passed')?'passed':'failed';
-  await writeFile(`${out}/report.json`,JSON.stringify({schema:'qelly.calculator.input-acceptance/1.0',releaseSha:process.env.QELLY_SCREEN_EVIDENCE_SHA||null,expectedCases:16,cases:results.length,status,results,converterReferenceDateCases:converterReferenceDateResults.length,converterReferenceDateResults,publicCalculatorValidationCases:publicCalculatorValidationResults.length,publicCalculatorValidationResults,publicCalculatorThemeCases:publicCalculatorThemeResults.length,publicCalculatorThemeResults,publicCalculatorCloudPreferenceCases:publicCalculatorCloudPreferenceResults.length,publicCalculatorCloudPreferenceResults},null,2)+'\n');
+  const status=results.length===16&&results.every(item=>item.status==='passed')&&converterReferenceDateResults.length===4&&converterReferenceDateResults.every(item=>item.status==='passed')&&publicCalculatorValidationResults.length===4&&publicCalculatorValidationResults.every(item=>item.status==='passed')&&publicCalculatorThemeResults.length===8&&publicCalculatorThemeResults.every(item=>item.status==='passed')&&publicCalculatorCloudPreferenceResults.length===4&&publicCalculatorCloudPreferenceResults.every(item=>item.status==='passed')&&publicCalculatorShellResults.length===8&&publicCalculatorShellResults.every(item=>item.status==='passed')&&publicCalculatorHandoffResults.length===4&&publicCalculatorHandoffResults.every(item=>item.status==='passed')&&standalonePublicShellResults.length===44&&standalonePublicShellResults.every(item=>item.status==='passed')?'passed':'failed';
+  await writeFile(`${out}/report.json`,JSON.stringify({schema:'qelly.calculator.input-acceptance/1.0',releaseSha:process.env.QELLY_SCREEN_EVIDENCE_SHA||null,expectedCases:16,cases:results.length,status,results,converterReferenceDateCases:converterReferenceDateResults.length,converterReferenceDateResults,publicCalculatorValidationCases:publicCalculatorValidationResults.length,publicCalculatorValidationResults,publicCalculatorThemeCases:publicCalculatorThemeResults.length,publicCalculatorThemeResults,publicCalculatorCloudPreferenceCases:publicCalculatorCloudPreferenceResults.length,publicCalculatorCloudPreferenceResults,publicCalculatorShellCases:publicCalculatorShellResults.length,publicCalculatorShellResults,standalonePublicShellCases:standalonePublicShellResults.length,standalonePublicShellResults,publicCalculatorHandoffCases:publicCalculatorHandoffResults.length,publicCalculatorHandoffResults},null,2)+'\n');
   console.log(JSON.stringify({calculatorInputCases:results.length,status}));
   await browser.close();await new Promise(resolve=>server.server.close(resolve));await new Promise(resolve=>server.evidenceUpstream.server.close(resolve));
 }

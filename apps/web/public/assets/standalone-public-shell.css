@@ -1,0 +1,15 @@
+:root{--bg:var(--q-canvas,#08090d);--surface:var(--q-surface,#111319);--surface2:var(--q-raised,#171a22);--line:var(--q-border,#292e39);--text:var(--q-text,#f4f2f3);--muted:var(--q-secondary,#a29ba1);--rose:var(--q-focus,#e47799);--ink:var(--text);--paper:var(--bg);--panel:var(--surface);--accent:var(--q-accent,#9f2f55)}
+:root{background:var(--bg);color:var(--text)}body[data-qelly-standalone-shell]{background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
+[data-qelly-standalone-shell]>.q-cn-nav{width:min(1120px,calc(100% - 32px));margin:auto;display:flex;align-items:center;justify-content:space-between;min-height:64px;border-bottom:1px solid var(--line);font-size:14px}
+.q-cn-brand{color:var(--text);font-weight:800;text-decoration:none}.q-cn-brand span{color:var(--rose)}
+[data-public-appearance]{min-height:44px;border:1px solid var(--line);border-radius:9px;padding:0 12px;background:var(--surface2);color:var(--text);font:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--rose);outline-offset:3px}
+[data-qelly-standalone-shell] .qar-hero>p:not(.qar-eyebrow),[data-qelly-standalone-shell] .qar-card p{color:var(--muted)}
+[data-qelly-standalone-shell] .qar-stats div,[data-qelly-standalone-shell] .qar-source,[data-qelly-standalone-shell] .qar-disclosure,[data-qelly-standalone-shell] .q-legal__notice{background:var(--surface);border-color:var(--line)}
+[data-qelly-standalone-shell] .q-legal a{color:var(--rose)}
+[data-qelly-standalone-shell] .q-legal footer{border-color:var(--line)}
+[data-qelly-standalone-shell] .qar-state.is-live{color:var(--q-positive,#4fd19a);border-color:currentColor}
+[data-qelly-standalone-shell] .qar-state:is(.is-delayed,.is-stale){color:var(--q-warning,#e6bd69);border-color:currentColor}
+[data-qelly-standalone-shell] .qar-state.is-unavailable,[data-qelly-standalone-shell] .qar-unavailable{color:var(--q-negative,#ff9cae)}
+[data-qelly-standalone-shell] .q-ai-root :is(input,select,textarea){background:var(--surface);color:var(--text);font:inherit;min-width:0}
+[data-qelly-standalone-shell] .q-ai-root .q-ai-launcher :is(small,em,i){color:var(--muted)}
