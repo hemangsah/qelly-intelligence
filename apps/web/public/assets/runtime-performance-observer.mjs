@@ -13,7 +13,7 @@ const PROVIDER_HOSTS=Object.freeze({
 const state={
   installed:false,
   installedAt:null,
-  webVitals:{fcpMs:null,lcpMs:null,cls:0,inpMs:null,interactionCount:0},
+  webVitals:{fcpMs:null,lcpMs:null,cls:null,inpMs:null,interactionCount:0},
   navigation:{domContentLoadedMs:null,responseStartMs:null,loadEventMs:null},
   routes:[],
   longTasks:[],
@@ -22,6 +22,10 @@ const state={
 };
 const observers=[];
 const interactionDurations=new Map();
+let layoutShiftWindowStart=null;
+let layoutShiftWindowLast=null;
+let layoutShiftWindowValue=0;
+let layoutShiftMaximum=0;
 
 const now=()=>globalThis.performance?.now?.()??Date.now();
 const round=(value,digits=2)=>Number.isFinite(Number(value))?Number(Number(value).toFixed(digits)):null;
@@ -62,6 +66,8 @@ const emit=(detail)=>{
 };
 const observe=(type,callback,options={})=>{
   if(typeof globalThis.PerformanceObserver!=='function')return false;
+  const supportedTypes=globalThis.PerformanceObserver.supportedEntryTypes;
+  if(Array.isArray(supportedTypes)&&!supportedTypes.includes(type))return false;
   try{
     const observer=new PerformanceObserver(callback);
     observer.observe({type,buffered:true,...options});
@@ -144,9 +150,24 @@ export function installRuntimePerformanceObserver(){
   observe('largest-contentful-paint',(list)=>{
     for(const entry of list.getEntries())state.webVitals.lcpMs=round(entry.startTime);
   });
-  observe('layout-shift',(list)=>{
-    for(const entry of list.getEntries())if(!entry.hadRecentInput)state.webVitals.cls=round(Number(state.webVitals.cls||0)+Number(entry.value||0),5);
+  // CLS uses the largest burst: gaps <1s and a total window <5s.
+  // Unsupported observation remains unavailable, not an invented zero.
+  const layoutShiftObserved=observe('layout-shift',(list)=>{
+    for(const entry of list.getEntries()){
+      const time=entry.startTime,value=entry.value;
+      if(entry.hadRecentInput||typeof time!=='number'||!Number.isFinite(time)||time<0||typeof value!=='number'||!Number.isFinite(value)||value<0)continue;
+      if(layoutShiftWindowLast!==null&&time>=layoutShiftWindowLast&&time-layoutShiftWindowLast<1000&&time-layoutShiftWindowStart<5000){
+        layoutShiftWindowValue+=value;
+      }else{
+        layoutShiftWindowStart=time;
+        layoutShiftWindowValue=value;
+      }
+      layoutShiftWindowLast=time;
+      layoutShiftMaximum=Math.max(layoutShiftMaximum,layoutShiftWindowValue);
+      state.webVitals.cls=round(layoutShiftMaximum,5);
+    }
   });
+  if(layoutShiftObserved&&state.webVitals.cls===null)state.webVitals.cls=0;
   observe('event',(list)=>{
     for(const entry of list.getEntries()){
       const id=Number(entry.interactionId||0);
