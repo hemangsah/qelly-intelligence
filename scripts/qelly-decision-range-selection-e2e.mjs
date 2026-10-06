@@ -603,6 +603,8 @@ const exerciseInitialLoading=async(width,appearance)=>{
     await page.goto(localOrigin+'/#/decision-provenance',{waitUntil:'domcontentloaded',timeout:45000});
     await Promise.race([stylesRequested,new Promise((_,reject)=>setTimeout(()=>reject(new Error('Decision style request did not start')),10000))]);
     await page.waitForTimeout(150);
+    const resourceHints=await page.locator('link[data-qelly-decision-preload]').evaluateAll(nodes=>nodes.map(node=>({rel:node.rel,as:node.as,path:new URL(node.href).pathname})));
+    if(resourceHints.length!==2||!resourceHints.some(h=>h.rel==='preload'&&h.as==='style'&&h.path==='/assets/qelly-decision-proven-graph.css')||!resourceHints.some(h=>h.rel==='modulepreload'&&h.path==='/assets/routes/decision-provenance.mjs'))throw new Error('Decision prepaint resource hints are missing or point to the wrong asset');
     if(await page.locator('.q-dpg-page').count()!==0||decisionRequests!==0)throw new Error('Decision content was exposed before its layout stylesheet loaded');
     if(!await page.locator('.q-product-header').isVisible())throw new Error('Header disappeared while route styling was pending');
     await page.screenshot({path:path.join(outputDir,'stylesheet-pending-'+width+'-'+appearance+'.png'),fullPage:false});
@@ -657,7 +659,7 @@ const exerciseInitialLoading=async(width,appearance)=>{
     }));
     if(!sloCardReadability.length||sloCardReadability.some(card=>!card.contentFits||!card.textContained))throw new Error('SLO diagnostic text overlaps or escapes its card: '+JSON.stringify(sloCardReadability));
     await page.screenshot({path:path.join(outputDir,'unobserved-slo-'+width+'-'+appearance+'.png'),fullPage:false});
-    initialLoadingResults.push({width,appearance,status:'passed',stylesheetReadyBeforeContent:true,catalogHeldBeforeDecision:true,lightPanelContrast,unobservedScannerSlo,sloCardReadability,macroReferenceDate,fixture:'synthetic governed provider'});
+    initialLoadingResults.push({width,appearance,status:'passed',resourceHints,stylesheetReadyBeforeContent:true,catalogHeldBeforeDecision:true,lightPanelContrast,unobservedScannerSlo,sloCardReadability,macroReferenceDate,fixture:'synthetic governed provider'});
   }catch(error){
     await page.screenshot({path:path.join(outputDir,'initial-loading-'+width+'-'+appearance+'-failed.png'),fullPage:true}).catch(()=>{});
     await writeFile(path.join(outputDir,'initial-loading-'+width+'-'+appearance+'-failure.json'),JSON.stringify({message:error.message,decisionRequests,mainText:await page.locator('main').innerText().catch(()=>''),fixture:'synthetic governed provider'},null,2));
@@ -678,6 +680,7 @@ try{
 const report={status:results.every(item=>item.failures.length===0)&&initialLoadingResults.length===4?'passed':'failed',initialLoadingCases:initialLoadingResults.length,unobservedScannerSloCases:initialLoadingResults.filter(row=>row.unobservedScannerSlo?.state==='UNAVAILABLE').length,initialLoadingResults,evidenceBackend:'deterministic-governed-provider-fixture',liveProductionTruthValidatedSeparately:true,frontendHead:process.env.QELLY_SCREEN_EVIDENCE_SHA||process.env.GITHUB_SHA||null,results};
 report.sloCardReadabilityCases=initialLoadingResults.filter(row=>row.sloCardReadability?.length&&row.sloCardReadability.every(card=>card.contentFits&&card.textContained)).length;
 report.stylesheetReadinessCases=initialLoadingResults.filter(row=>row.stylesheetReadyBeforeContent).length;
+report.resourceHintCases=initialLoadingResults.filter(row=>row.resourceHints?.length===2).length;
 report.macroReferenceDateCases=initialLoadingResults.filter(row=>row.macroReferenceDate?.date===fixtureReferenceDate&&row.macroReferenceDate?.boundary.includes('exact publication time unavailable')).length;
 await writeFile(path.join(outputDir,'report.json'),JSON.stringify(report,null,2));
 console.log(JSON.stringify(report,null,2));

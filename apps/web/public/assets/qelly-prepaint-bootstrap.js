@@ -17,6 +17,18 @@
   // before this blocking script. Route identity is set before the first paint.
   const route=(location.hash||'').replace(/^#\/?/,'').split(/[/?#]/)[0]||'feature-universe';
   root.dataset.prepaintRoute=route;
+  // Fetch only this route's local critical resources while its module graph is
+  // still loading. Preload does not apply CSS or alter the stylesheet cascade.
+  if(route==='decision-provenance'&&document.head){
+    for(const [rel,as,href] of [
+      ['preload','style','./assets/qelly-decision-proven-graph.css'],
+      ['modulepreload','script','./assets/routes/decision-provenance.mjs']
+    ]){
+      if(document.querySelector('link[data-qelly-decision-preload="'+as+'"]'))continue;
+      const link=document.createElement('link');link.rel=rel;link.as=as;link.href=href;
+      link.setAttribute('data-qelly-decision-preload',as);document.head.append(link);
+    }
+  }
   try{
     const titles=window.__QELLY_PREPAINT_ROUTE_TITLES__||null;
     const title=titles&&Object.prototype.hasOwnProperty.call(titles,route)?titles[route]:null;

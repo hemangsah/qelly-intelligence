@@ -7,7 +7,7 @@ import {startServer} from './release-a5-evidence-server.mjs';
 const out='preview/calculator-input-e2e';await mkdir(out,{recursive:true});
 const server=await startServer({port:0,host:'127.0.0.1'});
 const browser=await chromium.launch({headless:true,executablePath:process.env.QELLY_BROWSER_EXECUTABLE||'/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
-const results=[],converterReferenceDateResults=[];
+const results=[],converterReferenceDateResults=[],publicCalculatorValidationResults=[];
 const scenarios=[
   {id:'sip-future-value',inputs:{monthlyContribution:1000,annualReturnPercent:-12,years:1},expected:Array.from({length:12},(_,n)=>1000*0.99**n).reduce((a,b)=>a+b,0)},
   {id:'compound-interest',inputs:{principal:1000,annualRatePercent:-10,years:2,compoundsPerYear:1},expected:810},
@@ -90,9 +90,36 @@ try{
     }catch(error){converterReferenceDateResults.push({width,appearance,status:'failed',error:error.message});throw error;}
     finally{await context.close();}
   }
+  for(const width of [1440,390])for(const colorScheme of ['dark','light']){
+    const context=await browser.newContext({viewport:{width,height:900},colorScheme,reducedMotion:'reduce',serviceWorkers:'block'});
+    const page=await context.newPage();let writes=0;
+    page.on('request',request=>{if(request.method()==='POST')writes++;});
+    const url=`http://127.0.0.1:${server.port}/calculators/kelly-criterion-calculator/index.html`;
+    const status=page.locator('[data-calculator-status]'),output=page.locator('[data-calculator-result]');
+    try{
+      await page.goto(url,{waitUntil:'domcontentloaded'});
+      await page.waitForFunction(()=>document.querySelector('[data-calculator-status]')?.dataset.state==='success');
+      await page.locator('#calc-winProbability').fill('');await page.getByRole('button',{name:'Calculate',exact:true}).click();
+      assert.equal(await status.getAttribute('data-state'),'error');assert.match(await output.innerText(),/required/);assert.equal(await output.locator('article').count(),0);
+      await page.screenshot({path:`${out}/public-required-blank-${width}-${colorScheme}.png`,fullPage:true});
+      await page.locator('#calc-winProbability').fill('0');await page.getByRole('button',{name:'Calculate',exact:true}).click();
+      assert.equal(await status.getAttribute('data-state'),'success');assert.match(await output.innerText(),/-0.555556/);
+      await page.getByRole('button',{name:'Reset',exact:true}).click();
+      assert.equal(await page.locator('#calc-winProbability').inputValue(),'55');assert.equal(await status.getAttribute('data-state'),'success');
+      await page.locator('#calc-fraction').fill('');await page.locator('#calc-maximumRiskPercent').fill('');await page.getByRole('button',{name:'Calculate',exact:true}).click();
+      assert.equal(await status.getAttribute('data-state'),'success');assert.match(await output.innerText(),/0.15/);assert.match(await output.innerText(),/0.25/);
+      await page.goto(url+'#q='+encodeURIComponent(JSON.stringify({winProbability:101})),{waitUntil:'domcontentloaded'});await page.reload({waitUntil:'domcontentloaded'});
+      await page.waitForFunction(()=>document.querySelector('[data-calculator-status]')?.dataset.state==='error');
+      assert.equal(await output.locator('article').count(),0);assert.doesNotMatch(await status.innerText(),/Loaded shared inputs/);
+      await page.screenshot({path:`${out}/public-invalid-shared-${width}-${colorScheme}.png`,fullPage:true});
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);assert.equal(writes,0);
+      publicCalculatorValidationResults.push({width,colorScheme,status:'passed',writes,checks:['required-blank','explicit-zero','registered-reset','optional-defaults','invalid-shared-state']});
+    }catch(error){publicCalculatorValidationResults.push({width,colorScheme,status:'failed',error:error.message});throw error;}
+    finally{await context.close();}
+  }
 }finally{
-  const status=results.length===16&&results.every(item=>item.status==='passed')&&converterReferenceDateResults.length===4&&converterReferenceDateResults.every(item=>item.status==='passed')?'passed':'failed';
-  await writeFile(`${out}/report.json`,JSON.stringify({schema:'qelly.calculator.input-acceptance/1.0',releaseSha:process.env.QELLY_SCREEN_EVIDENCE_SHA||null,expectedCases:16,cases:results.length,status,results,converterReferenceDateCases:converterReferenceDateResults.length,converterReferenceDateResults},null,2)+'\n');
+  const status=results.length===16&&results.every(item=>item.status==='passed')&&converterReferenceDateResults.length===4&&converterReferenceDateResults.every(item=>item.status==='passed')&&publicCalculatorValidationResults.length===4&&publicCalculatorValidationResults.every(item=>item.status==='passed')?'passed':'failed';
+  await writeFile(`${out}/report.json`,JSON.stringify({schema:'qelly.calculator.input-acceptance/1.0',releaseSha:process.env.QELLY_SCREEN_EVIDENCE_SHA||null,expectedCases:16,cases:results.length,status,results,converterReferenceDateCases:converterReferenceDateResults.length,converterReferenceDateResults,publicCalculatorValidationCases:publicCalculatorValidationResults.length,publicCalculatorValidationResults},null,2)+'\n');
   console.log(JSON.stringify({calculatorInputCases:results.length,status}));
   await browser.close();await new Promise(resolve=>server.server.close(resolve));await new Promise(resolve=>server.evidenceUpstream.server.close(resolve));
 }
