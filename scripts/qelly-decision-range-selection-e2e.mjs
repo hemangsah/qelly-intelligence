@@ -596,6 +596,7 @@ const exerciseInitialLoading=async(width,appearance)=>{
     const closeFeatures=page.getByRole('button',{name:'Hide all Qelly features',exact:true});
     if(await closeFeatures.count())await closeFeatures.click();
     await page.getByRole('heading',{name:'Weighing fresh evidence',exact:true}).waitFor({state:'visible',timeout:5000});
+    if(await page.locator('html').getAttribute('data-app-ready')!=='true'||await page.locator('main').getAttribute('aria-busy')!=='true')throw new Error('Pending feedback must reveal startup while retaining busy semantics');
     await page.locator('[data-v8-appearance]').waitFor({state:'visible'});
     if(await page.locator('html').getAttribute('data-resolved-appearance')!==appearance)await page.getByRole('button',{name:'Switch to '+appearance+' appearance',exact:true}).click();
     await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
