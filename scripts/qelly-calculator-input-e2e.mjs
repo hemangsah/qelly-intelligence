@@ -269,7 +269,7 @@ try{
   }
   for(const width of [1440,390])for(const appearance of ['dark','light']){
     const context=await browser.newContext({viewport:{width,height:900},colorScheme:appearance,reducedMotion:'reduce',serviceWorkers:'block'});
-    await context.addInitScript(value=>localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({version:2,appearance:value})),appearance);
+    await context.addInitScript(value=>{if(!localStorage.getItem('qelly.theme-intelligence.v2'))localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({version:2,appearance:value}));},appearance);
     const page=await context.newPage();let writes=0;page.on('request',request=>{if(['POST','PUT','PATCH','DELETE'].includes(request.method()))writes++;});
     try{
       await page.goto('http://127.0.0.1:'+server.port+'/auth/callback.html?flow=oauth&private=synthetic-callback-must-not-copy#synthetic-fragment-must-not-copy',{waitUntil:'domcontentloaded'});
