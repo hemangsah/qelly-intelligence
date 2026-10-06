@@ -626,7 +626,13 @@ const exerciseInitialLoading=async(width,appearance)=>{
       if(!selectedModeSubtitleReadable)throw new Error('Selected Decision mode subtitle does not inherit its readable selected foreground');
       await page.screenshot({path:path.join(outputDir,'light-panels-'+width+'.png'),fullPage:true});
     }
-    initialLoadingResults.push({width,appearance,status:'passed',catalogHeldBeforeDecision:true,lightPanelContrast,fixture:'synthetic governed provider'});
+    await page.getByRole('tab',{name:/Research Lab/}).click();
+    await page.locator('.q-dpg-slo summary').click();
+    const scannerSlo=page.locator('.q-dpg-slo .q-dpg-reliability-bins > span').filter({hasText:'scannerLatencyP95Ms'});
+    const unobservedScannerSlo={state:await scannerSlo.locator('strong').innerText(),valueText:await scannerSlo.locator('small').innerText()};
+    if(unobservedScannerSlo.state!=='UNAVAILABLE'||!unobservedScannerSlo.valueText.startsWith('value unavailable')||!unobservedScannerSlo.valueText.includes('n=0/20'))throw new Error('An unobserved scanner latency became a numeric measurement or SLO pass');
+    await page.screenshot({path:path.join(outputDir,'unobserved-slo-'+width+'-'+appearance+'.png'),fullPage:false});
+    initialLoadingResults.push({width,appearance,status:'passed',catalogHeldBeforeDecision:true,lightPanelContrast,unobservedScannerSlo,fixture:'synthetic governed provider'});
   }catch(error){
     await page.screenshot({path:path.join(outputDir,'initial-loading-'+width+'-'+appearance+'-failed.png'),fullPage:true}).catch(()=>{});
     await writeFile(path.join(outputDir,'initial-loading-'+width+'-'+appearance+'-failure.json'),JSON.stringify({message:error.message,decisionRequests,mainText:await page.locator('main').innerText().catch(()=>''),fixture:'synthetic governed provider'},null,2));
@@ -644,7 +650,7 @@ try{
   await server.evidenceUpstream?.server?.close?.();
 }
 
-const report={status:results.every(item=>item.failures.length===0)&&initialLoadingResults.length===4?'passed':'failed',initialLoadingCases:initialLoadingResults.length,initialLoadingResults,evidenceBackend:'deterministic-governed-provider-fixture',liveProductionTruthValidatedSeparately:true,frontendHead:process.env.QELLY_SCREEN_EVIDENCE_SHA||process.env.GITHUB_SHA||null,results};
+const report={status:results.every(item=>item.failures.length===0)&&initialLoadingResults.length===4?'passed':'failed',initialLoadingCases:initialLoadingResults.length,unobservedScannerSloCases:initialLoadingResults.filter(row=>row.unobservedScannerSlo?.state==='UNAVAILABLE').length,initialLoadingResults,evidenceBackend:'deterministic-governed-provider-fixture',liveProductionTruthValidatedSeparately:true,frontendHead:process.env.QELLY_SCREEN_EVIDENCE_SHA||process.env.GITHUB_SHA||null,results};
 await writeFile(path.join(outputDir,'report.json'),JSON.stringify(report,null,2));
 console.log(JSON.stringify(report,null,2));
 if(report.status!=='passed')process.exitCode=1;
