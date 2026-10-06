@@ -233,6 +233,7 @@ try{
       await launcher.click();await panel.waitFor({state:'visible'});await page.waitForFunction(()=>[...document.querySelectorAll('.q-ai-root img')].every(image=>image.complete&&image.naturalWidth>0));
       const draft=await page.locator('[data-q-ai-form] textarea').inputValue();assert.doesNotMatch(draft,/synthetic-context-must-not-copy|synthetic-fragment-must-not-copy/);
       if(surface.asset)assert.equal(await page.locator('[data-q-ai-asset]').inputValue(),surface.asset);
+      const headerTargets=await page.locator('.q-ai-header button:visible').evaluateAll(nodes=>nodes.map(node=>{const box=node.getBoundingClientRect(),parent=node.closest('[data-q-ai-assistant]').getBoundingClientRect();return {height:box.height,withinPanel:box.x>=parent.x-1&&box.right<=parent.right+1};}));assert.ok(headerTargets.every(target=>target.height>=44&&target.withinPanel));
       if(width===390){assert.equal(await panel.getAttribute('aria-modal'),'true');assert.equal(await page.locator('#main').evaluate(node=>node.inert),true);}
       const geometry=await panel.boundingBox();assert.ok(geometry.x>=-1&&geometry.y>=-1&&geometry.x+geometry.width<=width+1&&geometry.y+geometry.height<=901);
       await page.screenshot({path:out+'/standalone-shell-'+surface.path.replaceAll('/','-')+'-'+width+'-'+appearance+'.png',fullPage:false});
