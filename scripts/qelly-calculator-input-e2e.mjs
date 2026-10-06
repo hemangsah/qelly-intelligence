@@ -7,7 +7,7 @@ import {startServer} from './release-a5-evidence-server.mjs';
 const out='preview/calculator-input-e2e';await mkdir(out,{recursive:true});
 const server=await startServer({port:0,host:'127.0.0.1'});
 const browser=await chromium.launch({headless:true,executablePath:process.env.QELLY_BROWSER_EXECUTABLE||'/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
-const results=[],converterReferenceDateResults=[],publicCalculatorValidationResults=[];
+const results=[],converterReferenceDateResults=[],publicCalculatorValidationResults=[],publicCalculatorThemeResults=[],publicCalculatorCloudPreferenceResults=[];
 const scenarios=[
   {id:'sip-future-value',inputs:{monthlyContribution:1000,annualReturnPercent:-12,years:1},expected:Array.from({length:12},(_,n)=>1000*0.99**n).reduce((a,b)=>a+b,0)},
   {id:'compound-interest',inputs:{principal:1000,annualRatePercent:-10,years:2,compoundsPerYear:1},expected:810},
@@ -117,9 +117,69 @@ try{
     }catch(error){publicCalculatorValidationResults.push({width,colorScheme,status:'failed',error:error.message});throw error;}
     finally{await context.close();}
   }
+
+  for(const surface of ['library','calculator'])for(const width of [1440,390])for(const appearance of ['dark','light']){
+    const context=await browser.newContext({viewport:{width,height:900},colorScheme:appearance,reducedMotion:'reduce',serviceWorkers:'block'});
+    await context.addInitScript(value=>{if(!localStorage.getItem('qelly.theme-intelligence.v2'))localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({version:2,appearance:value}));},appearance);
+    await context.route('**/api/v1/config',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({auth:{authenticated:false}})}));
+    const page=await context.newPage();let writes=0;page.on('request',request=>{if(request.method()==='POST'||request.method()==='PUT')writes++;});
+    try{
+      const pathname=surface==='library'?'/calculators/index.html':'/calculators/kelly-criterion-calculator/index.html';
+      await page.goto('http://127.0.0.1:'+server.port+pathname,{waitUntil:'domcontentloaded'});
+      await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
+      const title=await page.title();
+      const colors=await page.locator(surface==='library'?'.q-cn-directory-grid>a':'.q-cn-card').first().evaluate(node=>({text:getComputedStyle(node).color,background:getComputedStyle(node).backgroundColor}));
+      const luminance=color=>{const rgb=color.match(/[\d.]+/g).slice(0,3).map(Number).map(value=>{const s=value/255;return s<=.04045?s/12.92:((s+.055)/1.055)**2.4;});return .2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2];};
+      const foreground=luminance(colors.text),background=luminance(colors.background),contrast=(Math.max(foreground,background)+.05)/(Math.min(foreground,background)+.05);
+      assert.ok(contrast>=4.5,'Actual public calculator text must meet contrast');
+      await page.screenshot({path:out+'/public-theme-'+surface+'-'+width+'-'+appearance+'.png',fullPage:true});
+      const next=appearance==='light'?'dark':'light';
+      await page.getByRole('button',{name:'Switch to '+next+' appearance',exact:true}).click();
+      await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,next);
+      await page.reload({waitUntil:'domcontentloaded'});await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,next);
+      assert.equal(await page.title(),title);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);assert.equal(writes,0);
+      if(surface==='calculator')assert.equal(await page.locator('[data-calculator-status]').getAttribute('data-state'),'success');
+      publicCalculatorThemeResults.push({surface,width,appearance,persistedAppearance:next,contrast,status:'passed',writes});
+    }catch(error){publicCalculatorThemeResults.push({surface,width,appearance,status:'failed',error:error.message});throw error;}
+    finally{await context.close();}
+  }
+
+  for(const width of [1440,390])for(const appearance of ['dark','light']){
+    const context=await browser.newContext({viewport:{width,height:900},colorScheme:appearance,reducedMotion:'reduce',serviceWorkers:'block'});
+    let saved={appearance,revision:1},deny=false;const writes=[];
+    await context.route('**/api/v1/config',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({auth:{authenticated:true},csrf:{token:'synthetic-theme-csrf'}})}));
+    await context.route('**/api/v1/preferences/layout',async route=>{
+      if(route.request().method()==='PUT'){
+        const request=route.request(),body=request.postDataJSON();writes.push({body,csrf:request.headers()['x-qelly-csrf'],revision:request.headers()['if-match-revision'],denied:deny});
+        if(deny)return route.fulfill({status:409,contentType:'application/json',body:JSON.stringify({error:{message:'Synthetic revision conflict'}})});
+        saved={...body,revision:saved.revision+1};
+      }
+      return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(saved)});
+    });
+    const page=await context.newPage();
+    try{
+      await page.goto('http://127.0.0.1:'+server.port+'/calculators/kelly-criterion-calculator/index.html',{waitUntil:'domcontentloaded'});
+      await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
+      const next=appearance==='light'?'dark':'light';
+      const savedResponse=page.waitForResponse(response=>response.url().endsWith('/api/v1/preferences/layout')&&response.request().method()==='PUT');
+      await page.getByRole('button',{name:'Switch to '+next+' appearance',exact:true}).click();assert.equal((await savedResponse).status(),200);
+      assert.equal(writes.length,1);assert.equal(writes[0].csrf,'synthetic-theme-csrf');assert.equal(writes[0].revision,'1');assert.equal(writes[0].body.appearance,next);assert.doesNotMatch(JSON.stringify(writes[0].body),/winProbability|averageWin|calculator|locationHash/);
+      await page.reload({waitUntil:'domcontentloaded'});await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,next);
+      deny=true;const deniedResponse=page.waitForResponse(response=>response.url().endsWith('/api/v1/preferences/layout')&&response.request().method()==='PUT');
+      await page.getByRole('button',{name:'Switch to '+appearance+' appearance',exact:true}).click();assert.equal((await deniedResponse).status(),409);
+      await page.waitForFunction(()=>document.querySelector('[data-public-appearance]').title.includes('cloud preference save failed'));
+      assert.equal(await page.locator('html').getAttribute('data-resolved-appearance'),appearance);assert.equal(saved.appearance,next);assert.equal(writes.length,2);assert.equal(writes[1].revision,'2');
+      await page.screenshot({path:out+'/public-cloud-theme-failure-'+width+'-'+appearance+'.png',fullPage:true});
+      deny=false;const retryResponse=page.waitForResponse(response=>response.url().endsWith('/api/v1/preferences/layout')&&response.request().method()==='PUT');
+      await page.getByRole('button',{name:'Switch to '+next+' appearance',exact:true}).click();assert.equal((await retryResponse).status(),200);
+      assert.equal(writes.length,3);assert.equal(writes[2].revision,'2');assert.equal(saved.appearance,next);assert.equal(await page.locator('[data-public-appearance]').getAttribute('title'),'');
+      publicCalculatorCloudPreferenceResults.push({width,appearance,status:'passed',fixtureOnly:true,realWrites:0,successfulPreferenceWrites:2,failedPreferenceWrites:1,csrfPreserved:true,revisionPreserved:true,calculatorValuesExcluded:true,failedSaveStayedLocal:true,explicitRetryRecovered:true});
+    }catch(error){publicCalculatorCloudPreferenceResults.push({width,appearance,status:'failed',error:error.message});throw error;}
+    finally{await context.close();}
+  }
 }finally{
-  const status=results.length===16&&results.every(item=>item.status==='passed')&&converterReferenceDateResults.length===4&&converterReferenceDateResults.every(item=>item.status==='passed')&&publicCalculatorValidationResults.length===4&&publicCalculatorValidationResults.every(item=>item.status==='passed')?'passed':'failed';
-  await writeFile(`${out}/report.json`,JSON.stringify({schema:'qelly.calculator.input-acceptance/1.0',releaseSha:process.env.QELLY_SCREEN_EVIDENCE_SHA||null,expectedCases:16,cases:results.length,status,results,converterReferenceDateCases:converterReferenceDateResults.length,converterReferenceDateResults,publicCalculatorValidationCases:publicCalculatorValidationResults.length,publicCalculatorValidationResults},null,2)+'\n');
+  const status=results.length===16&&results.every(item=>item.status==='passed')&&converterReferenceDateResults.length===4&&converterReferenceDateResults.every(item=>item.status==='passed')&&publicCalculatorValidationResults.length===4&&publicCalculatorValidationResults.every(item=>item.status==='passed')&&publicCalculatorThemeResults.length===8&&publicCalculatorThemeResults.every(item=>item.status==='passed')&&publicCalculatorCloudPreferenceResults.length===4&&publicCalculatorCloudPreferenceResults.every(item=>item.status==='passed')?'passed':'failed';
+  await writeFile(`${out}/report.json`,JSON.stringify({schema:'qelly.calculator.input-acceptance/1.0',releaseSha:process.env.QELLY_SCREEN_EVIDENCE_SHA||null,expectedCases:16,cases:results.length,status,results,converterReferenceDateCases:converterReferenceDateResults.length,converterReferenceDateResults,publicCalculatorValidationCases:publicCalculatorValidationResults.length,publicCalculatorValidationResults,publicCalculatorThemeCases:publicCalculatorThemeResults.length,publicCalculatorThemeResults,publicCalculatorCloudPreferenceCases:publicCalculatorCloudPreferenceResults.length,publicCalculatorCloudPreferenceResults},null,2)+'\n');
   console.log(JSON.stringify({calculatorInputCases:results.length,status}));
   await browser.close();await new Promise(resolve=>server.server.close(resolve));await new Promise(resolve=>server.evidenceUpstream.server.close(resolve));
 }

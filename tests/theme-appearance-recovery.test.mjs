@@ -14,13 +14,15 @@ test('legacy porcelain preset resolves to the canonical light Porcelain Signal f
 
 test('browser theme bridge preserves full legacy preset semantics and persists appearance through canonical preferences',async()=>{
   const source=await read('apps/web/public/assets/theme-intelligence-bootstrap.mjs');
+  const transport=await read('apps/web/public/assets/theme-preference-store.mjs');
   assert.match(source,/'porcelain-burgundy':\{themeFamily:'porcelain-signal',persona:'investor-compound',appearance:'light'\}/);
   assert.match(source,/async function applyAndPersistTheme/);
   assert.match(source,/themeIntelligence\.apply\(complete\)/);
   assert.match(source,/themeIntelligence\.commit\(\)/);
   assert.match(source,/await persistPreference\(preference\)/);
-  assert.match(source,/method:'PUT'/);
-  assert.match(source,/\/api\/v1\/preferences\/layout/);
+  assert.match(source,/await cloudPreferences\.persist\(localState\.prefs\)/);
+  assert.match(transport,/method:'PUT'/);
+  assert.match(transport,/\/api\/v1\/preferences\/layout/);
   assert.match(source,/toggleAppearance/);
   assert.match(source,/qelly:appearance-changed/);
 });

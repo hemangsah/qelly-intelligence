@@ -1,4 +1,5 @@
 // Compatibility bridge for the retained core module's browser global export.
+import {createThemePreferenceStore} from './theme-preference-store.mjs';
 globalThis.TYPOGRAPHY_LOCK='IBM Plex Sans Variable permanent canonical font · GT Eesti inactive licence gate';
 const {themeIntelligence,migrateThemeConfig,preferencePatch,PERSONAS}=await import('./theme-intelligence.mjs');
 let studioRendererPromise=null;
@@ -10,11 +11,10 @@ const main=()=>document.getElementById('main');
 const localState={prefs:migrateThemeConfig({})};
 let mounted=false;
 let observer=null;
-let csrfToken=null;
 let authenticated=false;
 let applying=false;
 const apiBase=String(window.__QELLY_CONFIG__?.apiBaseUrl??'').replace(/\/$/,'');
-const apiPath=(pathname)=>apiBase?new URL(pathname,`${apiBase}/`).toString():pathname;
+const cloudPreferences=createThemePreferenceStore({apiBase,staticVisualPreview:window.__QELLY_CONFIG__?.staticVisualPreview===true});
 const LEGACY_THEME_PRESETS=Object.freeze({
   'burgundy-command':{themeFamily:'sovereign-obsidian',persona:'scalper-velocity',appearance:'dark'},
   'porcelain-burgundy':{themeFamily:'porcelain-signal',persona:'investor-compound',appearance:'light'},
@@ -35,21 +35,15 @@ function navigate(route,child=''){
   location.hash=next;
 }
 async function hydrateAuthenticatedPreferences(){
-  if(window.__QELLY_CONFIG__?.staticVisualPreview)return;
   try{
-    const config=await fetch(apiPath('/api/v1/config'),{credentials:'include'}).then((response)=>response.ok?response.json():null);
-    authenticated=Boolean(config?.auth?.authenticated);csrfToken=config?.csrf?.token??null;
-    if(!authenticated)return;
-    const saved=await fetch(apiPath('/api/v1/preferences/layout'),{credentials:'include'}).then((response)=>response.ok?response.json():null);
+    const saved=await cloudPreferences.hydrate();authenticated=cloudPreferences.authenticated;
     if(saved){localState.prefs={...saved,...preferencePatch(migrateThemeConfig(saved))};themeIntelligence.start(localState.prefs);}
   }catch{}
 }
 async function persistPreference(patch){
   localState.prefs={...localState.prefs,...patch};
   if(!authenticated)return localState.prefs;
-  const response=await fetch(apiPath('/api/v1/preferences/layout'),{method:'PUT',credentials:'include',headers:{'Content-Type':'application/json','X-Qelly-CSRF':csrfToken??'',...(localState.prefs.revision!=null?{'If-Match-Revision':String(localState.prefs.revision)}:{})},body:JSON.stringify(localState.prefs)});
-  if(!response.ok)throw new Error((await response.json().catch(()=>null))?.error?.message??`Preference save failed (${response.status})`);
-  localState.prefs=await response.json();return localState.prefs;
+  localState.prefs=await cloudPreferences.persist(localState.prefs);return localState.prefs;
 }
 async function applyAndPersistTheme(patch,{notify=true}={}){
   const profile=patch.persona?PERSONAS.find((item)=>item.id===patch.persona):null;

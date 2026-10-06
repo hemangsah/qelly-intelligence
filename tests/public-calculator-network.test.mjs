@@ -25,6 +25,16 @@ test('calculator generator emits a crawlable collection hub plus 36 substantive 
     assert.equal(result.directory,true);
     assert.equal(result.sitemapEntries,37);
 
+    // Every generated URL must select appearance before loading its CSS while
+    // retaining its own crawlable title and a single usable theme control.
+    for(const item of [{slug:'',title:'Financial Calculator Library'},...PUBLIC_CALCULATORS]){
+      const generated=await readFile(path.join(output,'calculators',item.slug,'index.html'),'utf8');
+      assert.equal((generated.match(/data-public-appearance/g)||[]).length,1);
+      assert.ok(generated.indexOf('/assets/qelly-prepaint-bootstrap.js')<generated.indexOf('/assets/calculator-network.css'));
+      assert.ok(generated.includes(`<title>${item.title} | QELLY Intelligence</title>`));
+      assert.equal((generated.match(/src="\/assets\/public-calculator-theme.mjs"/g)||[]).length,1);
+    }
+
     const directory=await readFile(path.join(output,'calculators','index.html'),'utf8');
     for(const value of [
       '<link rel="canonical" href="https://terminal.qellyintelligence.com/calculators/">',
