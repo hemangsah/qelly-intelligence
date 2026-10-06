@@ -18,6 +18,9 @@ test('invalid, tampered or mismatched-version receipts cannot prepare a draft',(
 test('explicit zero is preserved in the receipt draft',()=>{
   const current=calculateFormula('kelly-criterion',{...inputs,winProbability:0}),draft=publicCalculatorExplanationDraft(current),snapshot=JSON.parse(draft.slice(draft.indexOf('\n')+1));assert.equal(snapshot.inputs.winProbability,0);assert.ok(Math.abs(snapshot.outputs.fullKelly+1/1.8)<1e-12);assert.equal(snapshot.outputs.fractionalKelly,0);
 });
+test('nested objects without a registered property schema cannot leak unrelated fields',()=>{
+  const current=calculateFormula('xirr',{cashflows:[{date:'2025-01-01',amount:-1000,unrelatedCredential:'synthetic-private-nested'},{date:'2026-01-01',amount:1100}]});assert.equal(current.status,'success');assert.throws(()=>publicCalculatorExplanationDraft(current),/input structure/);
+});
 test('large valid series are rejected rather than silently truncated into an incomplete draft',()=>{
   const current=calculateFormula('maximum-drawdown',{values:Array.from({length:1000},(_,i)=>100+i*.012345)});assert.equal(current.status,'success');assert.throws(()=>publicCalculatorExplanationDraft(current),/too large/);
 });
