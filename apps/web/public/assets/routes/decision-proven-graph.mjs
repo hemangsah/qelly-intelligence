@@ -6,8 +6,9 @@ import {evaluateDecisionSlos} from '../decision-slos.mjs';
 import {buildDecisionResearchNote,downloadDecisionResearchNote} from '../decision-research-note.mjs';
 import {readDecisionAssetPreferences,saveDecisionAssetPreferences,toggleDecisionAssetFavorite,recordDecisionAssetRecent,decisionAssetSearchText} from '../decision-asset-picker.mjs';
 import {buildDecisionScenarioUx} from '../decision-scenario-ux.mjs';
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 const STYLESHEET=new URL('../qelly-decision-proven-graph.css',import.meta.url).href;
-const installStyles=()=>{if(!document.querySelector('link[data-decision-proven-graph]')){const link=document.createElement('link');link.rel='stylesheet';link.href=STYLESHEET;link.dataset.decisionProvenGraph='v2';document.head.append(link);}};
+const installStyles=(signal)=>ensureRouteStylesheet(STYLESHEET,{attribute:'data-decision-proven-graph',value:'v2',signal});
 const money=(value)=>isFiniteDecisionEvidence(value)?new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:Number(value)>=100?0:2}).format(value):'Unavailable';
 const pct=(value)=>isFiniteDecisionEvidence(value)?Number(value).toFixed(2)+'%':'Unavailable';
 const compactMoney=(value)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',maximumFractionDigits:2}).format(Number(value)):'Unavailable';
@@ -753,7 +754,7 @@ const sloDiagnosticsMarkup=(slo,escapeHtml)=>{
 let activeDecisionDockClearanceCleanup=()=>{};
 
 export async function renderDecisionProvenGraph(main,deps){
-  installStyles();const {api,stateBanner,escapeHtml,toast,navigate}=deps;
+  await installStyles(deps.signal);const {api,stateBanner,escapeHtml,toast,navigate}=deps;
   const chatContext=readChatDecisionContext();
   const assetPreferences=readDecisionAssetPreferences();
   let state={asset:chatContext.asset,interval:chatContext.interval,horizon:normalizeHorizon(chatContext.interval,'4h'),rr:'auto',customRr:'2.5',nextMoveBars:'1',nextMoveCustomBars:'8',chartMode:'select-range',uiMode:'simple',assetCatalog:null,assetCatalogError:null,assetPickerOpen:false,assetFilter:'all',assetQuery:'',assetFavorites:assetPreferences.favorites,assetRecent:assetPreferences.recent,loading:true,data:null,previousSnapshot:null,error:null,draft:null,selection:null,rangeEvidenceLoading:false,rangeEvidenceError:null,rangeEvidenceRequest:0,rangeReplayIndex:0,scanning:false,scan:null,scanError:null,ledger:null,ledgerLoading:false,ledgerError:null,ledgerMutating:false,slo:null,scanFilters:{mode:'validated',ranking:'highest_quality',universe:'all',direction:'any',minEvidenceQuality:'0',minCalibratedConfidence:'0',minMtfAgreement:'0',liquidity:'any',volatility:'any',regime:'any',eventRiskTolerance:'any',freshness:'live_or_delayed'}};
