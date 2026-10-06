@@ -1,9 +1,11 @@
-import {HttpError,correlationId,enforceRateLimit,errorResponse,jsonBody,responseJson} from '../../../_lib/runtime.js';
+import {HttpError,correlationId,enforceRateLimit,errorResponse,jsonBody,responseJson,publicRuntimeConfigForRequest} from '../../../_lib/runtime.js';
+import {elapsedMs,notAttemptedExecution,modelTelemetry} from '../../../_lib/qelly-model-provenance.js';
 import {DEFAULT_QELLY_AI_MODEL,buildFinanceContext,datasetRegistry,runGroundedFinanceInference,suggestedRoutes} from '../../../_lib/finance-intelligence.js';
 import {CHAT_ASSETS,CHAT_MODES,CHAT_TIMEFRAMES,FEATURED_CALCULATORS,buildCalculatorToolReceipt,compactDecisionToolReceipt,normalizeChatAsset,normalizeChatMode,normalizeChatTimeframe} from '../../../_lib/qelly-chat-tools.js';
 import {buildDecisionIntelligence} from '../decision-proven-graph.js';
 
 const clientKey=(request)=>request.headers.get('CF-Connecting-IP')||request.headers.get('x-forwarded-for')||'unknown';
+const inferenceDiagnostics=new WeakMap();
 const safeHistory=(value)=>Array.isArray(value)?value.slice(-12).map((item)=>({role:item?.role==='assistant'?'assistant':'user',content:String(item?.content??'').trim().slice(0,2000)})).filter((item)=>item.content):[];
 const requireSameOrigin=(request)=>{
   const origin=request.headers.get('origin');
@@ -138,10 +140,10 @@ export async function handleIntelligenceChat(context){
       asset,
       timeframe,
       truthState:'conversational',
-      inference:{provider:'qelly-conversation-router',model:null,state:'conversational',reason:null},
+      inference:{provider:'qelly-conversation-router',model:null,state:'conversational',reason:null,execution:notAttemptedExecution('conversational_answer')},
       sources:[],
       datasets:{connected:0,catalogued:0,used:0},
-      actions:[{route:'market',label:'Open Market Command'},{route:'research-workspace',label:'Open Research Workspace'}],
+      actions:[{route:'market',label:'Open Market Pulse'},{route:'research-workspace',label:'Open Research Workspace'}],
       followUps:followUps(mode,asset),
       tools:[],
       disclaimer:'Research information only · not personalized financial advice · no execution',
@@ -152,16 +154,19 @@ export async function handleIntelligenceChat(context){
     const calculator=buildCalculatorToolReceipt(body.calculator||{formulaId:FEATURED_CALCULATORS[0]});
     return responseJson(request,sameOriginResponseEnv(request,env),{
       id:crypto.randomUUID(),role:'assistant',content:calculatorAnswer(calculator),generatedAt:new Date().toISOString(),
-      mode,asset,timeframe,truthState:'grounded_calculator',inference:{provider:'qelly-formula-engine',model:null,state:calculator.truthState,reason:null},
+      mode,asset,timeframe,truthState:'grounded_calculator',inference:{provider:'qelly-formula-engine',model:null,state:calculator.truthState,reason:null,execution:notAttemptedExecution('deterministic_calculator')},
       sources:[],datasets:{connected:0,catalogued:0,used:0},tools:[calculator],actions:suggestedRoutes(message,mode),followUps:followUps(mode,asset),
       evidence:{used:calculator.truthState==='deterministic'?1:0,available:calculator.truthState==='deterministic'?[calculator.id]:[],unavailable:calculator.truthState==='deterministic'?[]:[calculator.id],generatedAt:new Date().toISOString(),noFabricatedFallback:true},
       disclaimer:'Deterministic educational calculation · not personalized financial advice · no execution',correlationId:correlationId(request)
     });
   }
   const contextBuilder=typeof env.__buildFinanceContext==='function'?env.__buildFinanceContext:buildFinanceContext;
+  const evidenceStarted=performance.now();
   const financeContext=await contextBuilder(context,message,{mode,asset});
+  const evidenceBuildDurationMs=elapsedMs(evidenceStarted);
   const tools=[...(Array.isArray(financeContext.tools)?financeContext.tools:[])];
   let extraSources=[];
+  const decisionStarted=performance.now();
   if(mode==='decision'){
     const decisionBuilder=typeof env.__buildDecisionIntelligence==='function'?env.__buildDecisionIntelligence:buildDecisionIntelligence;
     try{
@@ -180,10 +185,14 @@ export async function handleIntelligenceChat(context){
     }
   }
   const groundedContext={...financeContext,tools};
+  const decisionToolsDurationMs=mode==='decision'?elapsedMs(decisionStarted):null;
   const inference=await runGroundedFinanceInference(env,{message,history,financeContext:groundedContext,mode});
   const sources=[...(financeContext.citations||[]),...extraSources];
   const availableSources=sources.filter((source)=>source?.truthState&&source.truthState!=='unavailable');
   const availableTools=tools.filter((tool)=>tool?.truthState&&!['unavailable','invalid_input','input_required'].includes(tool.truthState));
+  const releaseSha=publicRuntimeConfigForRequest(env,request.url).releaseSha;
+  const execution={...inference.execution,releaseSha,evidenceBuildDurationMs,decisionToolsDurationMs,timingBoundary:'Observed request phases; not a latency SLO. A response timeout does not attest that upstream compute was cancelled.'};
+  inferenceDiagnostics.set(request,{inferenceState:inference.state,...modelTelemetry(execution),releaseSha,evidenceBuildDurationMs,decisionToolsDurationMs,availableSourceCount:availableSources.length,availableToolCount:availableTools.length});
   return responseJson(request,sameOriginResponseEnv(request,env),{
     id:crypto.randomUUID(),
     role:'assistant',
@@ -191,7 +200,7 @@ export async function handleIntelligenceChat(context){
     generatedAt:new Date().toISOString(),
     mode,asset,timeframe,
     truthState:inference.state,
-    inference:{provider:inference.provider,model:inference.model,state:inference.state,reason:inference.reason??null},
+    inference:{provider:inference.provider,model:inference.model,state:inference.state,reason:inference.reason??null,execution},
     sources,
     datasets:financeContext.datasetSummary,
     tools,
@@ -209,7 +218,8 @@ export async function onRequest(context){
   try{response=await handleIntelligenceChat(context);return response;}
   catch(error){response=errorResponse(context.request,sameOriginResponseEnv(context.request,context.env),error);return response;}
   finally{
-    try{console.log(JSON.stringify({event:'qelly_intelligence_chat',correlationId:correlationId(context.request),method:context.request.method,status:response?.status??500,durationMs:Date.now()-started,promptLogged:false,bodyLogged:false}));}catch{}
+    try{console.log(JSON.stringify({event:'qelly_intelligence_chat',correlationId:correlationId(context.request),method:context.request.method,status:response?.status??500,durationMs:Date.now()-started,...inferenceDiagnostics.get(context.request),promptLogged:false,bodyLogged:false}));}catch{}
+    inferenceDiagnostics.delete(context.request);
   }
 }
 

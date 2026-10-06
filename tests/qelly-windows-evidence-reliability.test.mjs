@@ -32,7 +32,7 @@ test('Windows evidence retries only proven transient filesystem and loopback fai
   assert.match(source,/if \(\[int\]\$manifest\.routeCount -ne \$expectedRoutes\)/);
   assert.match(source,/\[int\]\$manifest\.renderCount -ne \$expectedRenders/);
   assert.match(source,/\$pngCount -ne \$expectedRenders/);
-  assert.match(source,/\$expectedRenders = 2 \* \$expectedRoutes/);
+  assert.match(source,/\$expectedRenders = 4 \* \$expectedRoutes/);
   assert.match(source,/\$expectedArchive/);
   assert.match(source,/\$manifest\.failed -ne 0/);
   assert.match(source,/\$manifest\.missing\.Count -ne 0/);

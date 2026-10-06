@@ -7,7 +7,8 @@ if not manifest_path.exists(): raise SystemExit('screen manifest is missing')
 manifest=json.loads(manifest_path.read_text())
 if manifest.get('status')!='passed': raise SystemExit('screen manifest is not passing')
 expected=int(manifest.get('expectedRenderCount') or 0)
-images=sorted(OUT.glob('*__desktop.png'))+sorted(OUT.glob('*__mobile.png'))
+images=sorted(OUT.glob('*__desktop__dark.png'))+sorted(OUT.glob('*__desktop__light.png'))+sorted(OUT.glob('*__mobile__dark.png'))+sorted(OUT.glob('*__mobile__light.png'))
+if manifest.get('themeCount')!=2 or manifest.get('viewportCount')!=2 or manifest.get('duplicateCount')!=0: raise SystemExit('incomplete theme evidence')
 if len(images)!=expected: raise SystemExit(f'expected {expected} screenshots, found {len(images)}')
 sha=os.environ.get('QELLY_SCREEN_EVIDENCE_SHA','').strip()
 if not sha:
@@ -20,7 +21,7 @@ readme.write_text(f'''# Qelly complete screen evidence
 
 Exact source commit: `{sha}`
 
-This package contains {manifest['renderCount']} full-page PNG captures across {manifest['routeCount']} registered product routes at desktop and mobile viewports, plus manifests and contact sheets.
+This package contains {manifest['renderCount']} full-page PNG captures across {manifest['routeCount']} registered product routes at desktop and mobile viewports in dark and light appearance, plus manifests and contact sheets.
 
 Evidence boundary: {manifest['evidenceBoundary']}.
 
@@ -28,8 +29,8 @@ Public production deployment is verified separately by the Cloudflare release wo
 ''')
 checksums={}
 for path in sorted(OUT.iterdir()):
-    if path.is_file(): checksums[path.name]=hashlib.sha256(path.read_bytes()).hexdigest()
-(OUT/'checksums.json').write_text(json.dumps({'schemaVersion':1,'commitSha':sha,'files':checksums},indent=2)+'\n')
+    if path.is_file() and path.name!='checksums.json': checksums[path.name]=hashlib.sha256(path.read_bytes()).hexdigest()
+(OUT/'checksums.json').write_text(json.dumps({'schemaVersion':1,'commitSha':sha,'excludedFiles':['checksums.json'],'files':checksums},indent=2)+'\n')
 with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) as bundle:
     prefix=f'qelly-all-screens-{short}'
     for path in sorted(OUT.iterdir()):

@@ -15,6 +15,10 @@
 .q-v6-linked-identities .q-panel-head h2{font-size:clamp(19px,2.2vw,25px);line-height:1.3;color:var(--text,var(--q-text))}
 .q-v6-linked-identities .q-panel-head p:not(.q-eyebrow){font-size:14px;line-height:1.55;color:var(--text-muted,var(--q-text-muted));max-width:68ch}
 .q-v6-identity-list{padding:10px 24px 24px;display:grid;gap:11px}
+.q-v6-identity-list [data-link-consent]{padding:16px;border:1px solid var(--border);border-radius:12px;min-width:0}
+.q-v6-identity-list [data-link-consent][hidden]{display:none}
+.q-v6-identity-list [data-link-provider],.q-v6-identity-list [data-link-confirm],.q-v6-identity-list [data-link-cancel]{min-height:44px;white-space:normal}
+.q-v6-identity-list [data-link-status]{overflow-wrap:anywhere}
 .q-v6-linked-identity{display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:64px;padding:14px 17px;border:1px solid var(--border,rgba(255,255,255,.12));border-radius:13px;background:var(--surface-elevated,rgba(255,255,255,.05))}
 .q-v6-linked-identity strong,.q-v6-linked-identity small{display:block}
 .q-v6-linked-identity strong{font-size:14px;color:var(--text,var(--q-text))}

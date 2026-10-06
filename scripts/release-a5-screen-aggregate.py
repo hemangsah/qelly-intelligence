@@ -6,14 +6,15 @@ OUT=ROOT/'preview'/'release-a5-all-screens'
 parts=sorted(OUT.glob('batch-*.json'))
 results=[]
 for part in parts: results.extend(json.loads(part.read_text())['results'])
-by={(item['route'],item['viewport']):item for item in results}
+by={(item['route'],item['viewport'],item['appearance']):item for item in results}
+duplicate_count=len(results)-len(by)
 route_json=subprocess.check_output(['node','--input-type=module','-e',"import {routeDefinitions} from './apps/web/public/assets/route-registry.mjs'; console.log(JSON.stringify(routeDefinitions));"],cwd=ROOT,text=True)
 defs=json.loads(route_json)
-missing=[(definition['route'],viewport) for definition in defs for viewport in ('desktop','mobile') if (definition['route'],viewport) not in by or not (ROOT/by[(definition['route'],viewport)]['file']).exists()]
-ordered=[by[(definition['route'],viewport)] for viewport in ('desktop','mobile') for definition in defs if (definition['route'],viewport) in by]
+missing=[(definition['route'],viewport,appearance) for definition in defs for viewport in ('desktop','mobile') for appearance in ('dark','light') if (definition['route'],viewport,appearance) not in by or not (ROOT/by[(definition['route'],viewport,appearance)]['file']).exists()]
+ordered=[by[(definition['route'],viewport,appearance)] for viewport in ('desktop','mobile') for appearance in ('dark','light') for definition in defs if (definition['route'],viewport,appearance) in by]
 
-def contact_sheet(viewport):
-    items=[by[(definition['route'],viewport)] for definition in defs if (definition['route'],viewport) in by]
+def contact_sheet(viewport, appearance):
+    items=[by[(definition['route'],viewport,appearance)] for definition in defs if (definition['route'],viewport,appearance) in by]
     cards=[]
     for item in items:
         image=Image.open(ROOT/item['file']).convert('RGB')
@@ -28,26 +29,28 @@ def contact_sheet(viewport):
     rows=(len(cards)+columns-1)//columns
     sheet=Image.new('RGB',(columns*390,max(rows,1)*292),'white')
     for index,card in enumerate(cards): sheet.paste(card,((index%columns)*390,(index//columns)*292))
-    path=OUT/f'contact-sheet-{viewport}.jpg'
+    path=OUT/f'contact-sheet-{viewport}-{appearance}.jpg'
     sheet.save(path,quality=90,optimize=True)
     return str(path.relative_to(ROOT))
 
-failures=[item for item in ordered if item['status']!='passed']
+failures=[item for item in ordered if item['status']!='passed' or item.get('resolvedAppearance')!=item['appearance']]
 log={
-    'schemaVersion':2,
+    'schemaVersion':3,
     'generatedAt':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),
     'evidenceBoundary':'governed local test runtime; authenticated routes use an isolated test identity and no production user data',
     'routeCount':len(defs),
     'viewportCount':2,
+    'themeCount':2,
+    'duplicateCount':duplicate_count,
     'renderCount':len(ordered),
-    'expectedRenderCount':len(defs)*2,
+    'expectedRenderCount':len(defs)*4,
     'passed':len(ordered)-len(failures),
     'failed':len(failures),
-    'missing':[{'route':route,'viewport':viewport} for route,viewport in missing],
+    'missing':[{'route':route,'viewport':viewport,'appearance':appearance} for route,viewport,appearance in missing],
     'consoleErrorCount':sum(len(item['consoleErrors']) for item in ordered),
-    'contactSheets':{'desktop':contact_sheet('desktop'),'mobile':contact_sheet('mobile')},
+    'contactSheets':{f'{viewport}-{appearance}':contact_sheet(viewport,appearance) for viewport in ('desktop','mobile') for appearance in ('dark','light')},
     'renders':ordered,
-    'status':'passed' if not failures and not missing and len(ordered)==len(defs)*2 else 'failed'
+    'status':'passed' if not failures and not missing and not duplicate_count and len(ordered)==len(defs)*4 else 'failed'
 }
 (OUT/'manifest.json').write_text(json.dumps(log,indent=2)+'\n')
 (ROOT/'preview'/'RELEASE_A5_ALL_SCREENS_LOG.json').write_text(json.dumps(log,indent=2)+'\n')

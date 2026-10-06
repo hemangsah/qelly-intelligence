@@ -74,3 +74,5 @@ jobs:
           wait "$second"
       - name: Verify PostgreSQL platform, migration 108, persisted domains, and Redis jobs
         run: node scripts/production-dependency-integration.mjs
+      - name: Verify release acceptance metadata survives repeated synchronization
+        run: node scripts/qelly-release-metadata-integration.mjs

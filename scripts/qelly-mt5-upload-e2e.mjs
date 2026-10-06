@@ -13,6 +13,10 @@ const results=[];
 const header='<tr><th>Time</th><th>Deal</th><th>Symbol</th><th>Type</th><th>Direction</th><th>Commission</th><th>Fee</th><th>Swap</th><th>Profit</th></tr>';
 const deal=(i,profit)=>'<tr>'+['2026.10.'+String(i).padStart(2,'0')+' 11:30',String(i),'EURUSD',i%2?'buy':'sell','out','-0.1','0','0',String(profit)].map(x=>'<td>'+x+'</td>').join('')+'</tr>';
 const html=n=>'<html><body><table>'+header+Array.from({length:n},(_,i)=>deal(i+1,i%3?-2:4)).join('')+'</table><script>window.__qellyMt5UploadXss=true</script></body></html>';
+const extremaHtml=()=>'<html><body><table>'+header+Array.from({length:1000},(_,i)=>{
+ const clock=new Date(Date.UTC(2026,0,1,0,i)).toISOString().slice(0,19).replace('T',' ').replaceAll('-','.');
+ return '<tr>'+[clock,i+1,'EURUSD','buy','out',0,0,0,i===50?-100:i===51?100:0].map(value=>'<td>'+value+'</td>').join('')+'</tr>';
+}).join('')+'</table></body></html>';
 const crc32=value=>{let c=0xffffffff;for(const b of value){c^=b;for(let n=0;n<8;n++)c=c&1?(c>>>1)^0xedb88320:c>>>1;}return(c^0xffffffff)>>>0;};
 function zip(entries){
   const local=[],central=[];let offset=0;
@@ -220,6 +224,25 @@ async function scenario(browser,name,viewport){
     // import, read-only export, memory cleanup and HTML inertness.
     await page.evaluate(()=>{location.hash='#/mt5-report-analyzer';});
     await page.locator('[data-mt5-route-input="A"]').waitFor({state:'attached',timeout:30000});
+    for(const appearance of ['light','dark']){
+      const switcher=page.getByRole('button',{name:'Switch to '+appearance+' appearance',exact:true});
+      if(await switcher.count())await switcher.click();
+      await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
+      const links=await page.locator('.q-mt5-route-links a').evaluateAll(nodes=>nodes.map(node=>{
+        const rgba=value=>value.match(/[\d.]+/g).map(Number);
+        const lum=value=>value.slice(0,3).map(x=>{x/=255;return x<=.04045?x/12.92:((x+.055)/1.055)**2.4;}).reduce((sum,x,i)=>sum+x*[.2126,.7152,.0722][i],0);
+        let parent=node,background;
+        while(parent){const value=rgba(getComputedStyle(parent).backgroundColor);if((value[3]??1)===1){background=value;break;}parent=parent.parentElement;}
+        if(!background)throw new Error('No opaque MT5 link background');
+        const fg=lum(rgba(getComputedStyle(node).color)),bg=lum(background);
+        return {text:node.textContent,ratio:(Math.max(fg,bg)+.05)/(Math.min(fg,bg)+.05)};
+      }));
+      assert.equal(links.length,2,'both MT5 companion navigation links are required');
+      for(const link of links)assert.ok(link.ratio>=4.5,appearance+' MT5 link '+link.text+' contrast '+link.ratio);
+      entry.checks.push({check:'MT5 header link readability',appearance,minimumContrast:Math.min(...links.map(link=>link.ratio))});
+      await page.screenshot({path:path.join(out,name+'-standalone-links-'+appearance+'.png'),fullPage:true});
+    }
+
     if(name==='desktop'){
       const large=Buffer.from(html(20000));assert.ok(large.length<5*1024*1024);
       const workerStarted=page.waitForEvent('worker',{timeout:15000});
@@ -241,6 +264,23 @@ async function scenario(browser,name,viewport){
       entry.workerResponsiveness=responsiveness;
     }
 
+    await page.locator('[data-mt5-route-input="A"]').setInputFiles({name:'synthetic-chart-extrema.html',mimeType:'text/html',buffer:Buffer.from(extremaHtml(),'utf8')});
+    await page.waitForFunction(()=>document.querySelector('#q-mt5-route-status-A')?.textContent?.includes('1000 validated closing deals'),null,{timeout:30000});
+    const extremaSaved=page.waitForEvent('download',{timeout:15000});
+    await page.locator('[data-mt5-route-export]').click();
+    const extremaDownload=await extremaSaved,extremaData=JSON.parse(await readFile(await extremaDownload.path(),'utf8'));
+    assert.equal(extremaData.reportA.metrics.maxClosedDealDrawdown,100);
+    assert.equal(Math.max(...extremaData.reportA.series.points.map(point=>point.drawdown)),100);
+    assert.ok(extremaData.reportA.series.points.some(point=>point.index===52&&point.cumulative===0));
+    for(const appearance of ['light','dark']){
+      if(await page.locator('html').getAttribute('data-resolved-appearance')!==appearance)await page.getByRole('button',{name:'Switch to '+appearance+' appearance',exact:true}).click();
+      await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
+      assert.match(await page.locator('.q-mt5-route-primary .q-mt5-chart').first().locator('.q-mt5-line').getAttribute('d'),/L63\.03 188\.00/);
+      assert.match(await page.locator('.q-mt5-route-primary .q-mt5-chart').first().innerText(),/Large reports are sampled/);
+      await page.screenshot({path:path.join(out,name+'-chart-extrema-'+appearance+'.png'),fullPage:true});
+    }
+    entry.chartExtremaCases=2;
+    entry.checks.push('1,000-deal synthetic dip/recovery retained in local export and both-theme rendered curves with proportional deal-position spacing');
     await page.locator('[data-mt5-route-input="A"]').setInputFiles({name:'route-a.html',mimeType:'text/html',buffer:Buffer.from(html(6),'utf8')});
     await page.waitForFunction(()=>document.querySelector('#q-mt5-route-status-A')?.textContent?.includes('validated closing deals'),null,{timeout:30000});
     assert.equal(await page.locator('.q-mt5-route-primary .q-mt5-chart svg[role="img"]').count(),2);

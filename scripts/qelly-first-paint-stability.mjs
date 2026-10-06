@@ -328,7 +328,7 @@ try{
       const context=await browser.newContext({viewport,device_scale_factor:1,reduced_motion:'reduce'});
       const page=await context.newPage();
       await page.addInitScript(()=>{
-        const state={longTasks:[],mutations:0,webVitals:{fcpMs:null,lcpMs:null,cls:0,inpMs:null,interactionCount:0},interactionDurations:{}};
+        const state={longTasks:[],mutations:0,webVitals:{fcpMs:null,lcpMs:null,cls:null,inpMs:null,interactionCount:0},interactionDurations:{}};
         Object.defineProperty(window,'__QELLY_PERF_SIGNALS__',{value:state,configurable:true});
         try{
           new PerformanceObserver((list)=>{
@@ -359,11 +359,19 @@ try{
           }).observe({type:'largest-contentful-paint',buffered:true});
         }catch{}
         try{
+          let windowStart=null,lastShift=null,windowValue=0,maximum=0;
+          if(Array.isArray(PerformanceObserver.supportedEntryTypes)&&!PerformanceObserver.supportedEntryTypes.includes('layout-shift'))throw new Error('Layout shift observation unavailable');
           new PerformanceObserver((list)=>{
             for(const entry of list.getEntries()){
-              if(!entry.hadRecentInput)state.webVitals.cls=Number((state.webVitals.cls+Number(entry.value||0)).toFixed(5));
+              const value=entry.value,time=entry.startTime;
+              if(entry.hadRecentInput||!Number.isFinite(value)||value<=0||!Number.isFinite(time))continue;
+              if(lastShift!==null&&time-lastShift<1000&&time-windowStart<5000)windowValue+=value;
+              else{windowStart=time;windowValue=value;}
+              lastShift=time;maximum=Math.max(maximum,windowValue);
+              state.webVitals.cls=Number(maximum.toFixed(5));
             }
           }).observe({type:'layout-shift',buffered:true});
+          state.webVitals.cls=0;
         }catch{}
         try{
           new PerformanceObserver((list)=>{

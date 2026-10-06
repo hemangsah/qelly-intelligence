@@ -1,6 +1,7 @@
 import {AUTH_EMAIL_CANARY,CANONICAL_QELLY_PUBLIC_SITE} from './email-capability.js';
 import {providerResult} from './providers.js';
 import {fetcher} from './runtime.js';
+import {ecbReferenceDate} from './ecb-reference-date.js';
 
 export const RLS_ISOLATION_CANARY=Object.freeze({
   proven:true,
@@ -42,18 +43,22 @@ const ecbFreshnessCanary=async(context)=>{
   try{
     const result=await providerResult(context,'ecb','fx-reference-rates','EUR');
     const truthState=String(result?.truthState||'unavailable');
-    const observedAt=Date.parse(String(result?.observationTime||''));
-    const ageMs=Number.isFinite(observedAt)?Date.now()-observedAt:Number.POSITIVE_INFINITY;
+    const observedDate=ecbReferenceDate(result?.observationDate);
+    const today=new Date().toISOString().slice(0,10);
+    const ageMs=observedDate?Date.parse(today+'T00:00:00Z')-Date.parse(observedDate+'T00:00:00Z'):Number.POSITIVE_INFINITY;
     const rates=result?.data?.rates;
     const rateCount=rates&&typeof rates==='object'?Object.keys(rates).length:0;
     const acceptableTruth=new Set(['live_provider','cached_provider','delayed_provider']);
-    const proven=acceptableTruth.has(truthState)&&ageMs>=-6*60*60*1000&&ageMs<=ECB_REFERENCE_MAX_AGE_MS&&rateCount>=5;
+    const proven=acceptableTruth.has(truthState)&&ageMs>=0&&ageMs<=ECB_REFERENCE_MAX_AGE_MS&&rateCount>=5;
     return frozenEvidence({
       proven,
       state:proven?'ecb_reference_freshness_proven':'ecb_reference_freshness_not_proven',
       provider:'ecb',
       truthState,
-      observedAt:Number.isFinite(observedAt)?new Date(observedAt).toISOString():null,
+      observedAt:null,
+      observedDate,
+      observationTimePrecision:'date',
+      freshnessBoundary:'Reference-date calendar age; exact publication time is unavailable.',
       rateCount,
       scope:'read_only_attributed_reference_data',
       transactionUse:'not_for_transaction_execution'

@@ -93,9 +93,15 @@ jobs:
           test -s dist/frontend/assets/routes/notification-triage-v2.css
           test -s dist/frontend/assets/routes/screener-lab-v2.css
           grep -F "renderGovernedTrustCenterV2" dist/frontend/assets/app.js
+      - name: Verify global chat keyboard focus and mobile containment
+        run: node scripts/qelly-chat-keyboard-e2e.mjs
+      - name: Verify signed calculator scenarios and input boundaries
+        run: node scripts/qelly-calculator-input-e2e.mjs
+      - name: Verify identity linking consent and fail-closed profile controls
+        run: node scripts/qelly-identity-linking-e2e.mjs
       - name: Validate cold and warm first-paint stability
         run: node scripts/qelly-first-paint-stability.mjs
-      - name: Capture every registered route at desktop and mobile widths
+      - name: Capture every registered route in both themes at desktop and mobile widths
         run: npm run browser:all
       - name: Verify local MT5 HTML and XLSX upload interactions
         run: node scripts/qelly-mt5-upload-e2e.mjs
@@ -106,24 +112,31 @@ jobs:
           python -X utf8 scripts/release-a5-screen-package.py
       - name: Verify screenshot and archive contract
         run: |
+          node scripts/qelly-screen-package-integrity.mjs
           node --input-type=module <<'NODE'
           import {readFile,readdir,stat} from 'node:fs/promises';
           import {routeDefinitions} from './apps/web/public/assets/route-registry.mjs';
           const manifest=JSON.parse(await readFile('preview/release-a5-all-screens/manifest.json','utf8'));
+          const {validateScreenThemeMatrix}=await import('./scripts/qelly-screen-theme-contract.mjs');
+          const matrix=validateScreenThemeMatrix(manifest,routeDefinitions);
           const accessibility=JSON.parse(await readFile('preview/release-a5-all-screens/accessibility-regression.json','utf8'));
           const files=await readdir('preview/release-a5-all-screens');
           const pngs=files.filter(name=>name.endsWith('.png'));
           const archives=(await readdir('preview')).filter(name=>/^QELLY_ALL_SCREENS_[0-9a-f]{12}\.zip$/.test(name));
           const archiveSize=archives.length===1?(await stat(`preview/${archives[0]}`)).size:0;
           const expectedRoutes=routeDefinitions.length;
-          const expectedRenders=expectedRoutes*2;
+          const expectedRenders=expectedRoutes*4;
           const registered=new Set(routeDefinitions.map(route=>route.route));
           const exactArchive='QELLY_ALL_SCREENS_'+process.env.QELLY_SCREEN_EVIDENCE_SHA.slice(0,12)+'.zip';
-          const ok=expectedRoutes>=72&&registered.size===expectedRoutes
+          const ok=matrix.passed&&expectedRoutes>=72&&registered.size===expectedRoutes
             &&manifest.status==='passed'&&manifest.routeCount===expectedRoutes
+            &&manifest.themeCount===2&&manifest.viewportCount===2&&manifest.duplicateCount===0
+            &&manifest.renders.every(item=>['dark','light'].includes(item.appearance)&&item.resolvedAppearance===item.appearance)
+            &&new Set(manifest.renders.map(item=>`${item.route}/${item.viewport}/${item.appearance}`)).size===expectedRenders
             &&manifest.renderCount===expectedRenders&&manifest.expectedRenderCount===expectedRenders
             &&pngs.length===expectedRenders&&manifest.failed===0&&manifest.missing.length===0
             &&accessibility.status==='passed'&&accessibility.checks>0
+            &&validateScreenThemeMatrix({...accessibility,renders:accessibility.results,renderCount:accessibility.checks,expectedRenderCount:accessibility.expectedChecks},routeDefinitions).passed
             &&archives.length===1&&archives[0]===exactArchive&&archiveSize>0;
           console.log(JSON.stringify({expectedRoutes,expectedRenders,routeCount:manifest.routeCount,renderCount:manifest.renderCount,pngs:pngs.length,accessibilityChecks:accessibility.checks,accessibilityStatus:accessibility.status,archives,archiveSize,status:manifest.status},null,2));
           if(!ok)process.exit(1);
@@ -142,6 +155,9 @@ jobs:
             preview/first-paint-stability
             preview/decision-range-e2e
             preview/mt5-upload-e2e
+            preview/chat-keyboard-e2e
+            preview/calculator-input-e2e
+            preview/identity-linking-e2e
             validation/RELEASE_A5_ACCESSIBILITY_REGRESSION.json
           include-hidden-files: true
           if-no-files-found: warn

@@ -1,5 +1,6 @@
 import {storeDecisionContext} from '../decision-context-bridge.mjs';
 import {routeIdentityFor} from '../route-registry.mjs';
+const sourceObservationLabel=source=>source?.observedDate?`reference date ${source.observedDate} · exact publication time unavailable`:source?.observedAt??'';
 const STORAGE_KEY='qelly.intelligence.chat.v1';
 const DECISION_DRAFT_KEY='qelly.decision.draft.v1';
 const MAX_MESSAGES=24;
@@ -106,7 +107,7 @@ const conversationalReply=(message)=>{
 function sourceList(sources=[]){
   const available=sources.filter((source)=>source?.truthState&&source.truthState!=='unavailable'&&safeUrl(source.url)!=='#');
   if(!available.length)return '';
-  return `<details class="q-ai-message-sources"><summary>${available.length} ${available.length===1?'source':'sources'} and freshness</summary><div>${available.map((source,index)=>`<a href="${esc(safeUrl(source.url))}" target="_blank" rel="noopener noreferrer nofollow"><span>${index+1}</span><strong>${esc(source.title)}</strong><small>${esc(source.truthState)}${source.observedAt?` · ${esc(source.observedAt)}`:''}</small></a>`).join('')}</div></details>`;
+  return `<details class="q-ai-message-sources"><summary>${available.length} ${available.length===1?'source':'sources'} and freshness</summary><div>${available.map((source,index)=>`<a href="${esc(safeUrl(source.url))}" target="_blank" rel="noopener noreferrer nofollow"><span>${index+1}</span><strong>${esc(source.title)}</strong><small>${esc(source.truthState)}${sourceObservationLabel(source)?` · ${esc(sourceObservationLabel(source))}`:''}</small></a>`).join('')}</div></details>`;
 }
 
 function toolList(tools=[]){
@@ -114,9 +115,10 @@ function toolList(tools=[]){
   return `<details class="q-ai-message-tools-used"><summary>${tools.length} QELLY tool ${tools.length===1?'receipt':'receipts'}</summary><div>${tools.map((tool)=>`<article><span>${esc(tool.id)}</span><strong>${esc(tool.label||tool.id)}</strong><em data-state="${esc(tool.truthState||'unavailable')}">${esc(tool.truthState||'unavailable')}</em><small>${esc(tool.source||'QELLY')} · freshness ${esc(tool.freshness||tool.truthState||'unavailable')}${tool.observedAt?` · ${esc(tool.observedAt)}`:''}</small>${tool.limitations?.[0]?`<p>${esc(tool.limitations[0])}</p>`:''}</article>`).join('')}</div></details>`;
 }
 
+const routeActionLabel=(action)=>['market','news-research'].includes(action?.route)?`Open ${routeIdentityFor(action.route).pageTitle}`:action?.label;
 function actionList(actions=[],messageIndex=-1){
   if(!actions.length)return '';
-  return `<div class="q-ai-message-actions">${actions.map((action)=>`<button type="button" data-q-ai-route="${esc(action.route)}" data-q-ai-action-message="${messageIndex}">${esc(action.label)} <span aria-hidden="true">→</span></button>`).join('')}</div>`;
+  return `<div class="q-ai-message-actions">${actions.map((action)=>`<button type="button" data-q-ai-route="${esc(action.route)}" data-q-ai-action-message="${messageIndex}">${esc(routeActionLabel(action))} <span aria-hidden="true">→</span></button>`).join('')}</div>`;
 }
 function followUpList(items=[]){
   if(!items.length)return '';
@@ -149,7 +151,7 @@ function shellMarkup(){
     <div class="q-ai-contextbar" aria-label="Qelly research context"><label><span>Asset</span><select data-q-ai-asset>${CHAT_ASSETS.map(item=>`<option value="${item}">${item}</option>`).join('')}</select></label><label><span>Timeframe</span><select data-q-ai-timeframe>${CHAT_TIMEFRAMES.map(item=>`<option value="${item}" ${item==='15m'?'selected':''}>${item}</option>`).join('')}</select></label><label data-q-ai-calculator-field hidden><span>Calculator</span><select data-q-ai-calculator>${CHAT_CALCULATORS.map(([id,label])=>`<option value="${id}">${label}</option>`).join('')}</select></label></div>
     <div class="q-ai-thread" data-q-ai-thread aria-live="polite" aria-relevant="additions text"></div>
     <div class="q-ai-suggestions" data-q-ai-suggestions></div>
-    <form class="q-ai-composer" data-q-ai-form><label><span class="q-visually-hidden">Ask Qelly a finance question</span><textarea name="message" rows="1" maxlength="2400" placeholder="Ask about markets, evidence, risk or QELLY tools…" aria-describedby="q-ai-composer-help" required></textarea><span class="q-visually-hidden" id="q-ai-composer-help">Enter sends your question. Shift plus Enter inserts a new line. Escape closes the non-modal assistant.</span></label><button type="button" data-q-ai-stop hidden><span>Stop</span><b aria-hidden="true">■</b></button><button type="submit" data-q-ai-send><span>Send</span><b aria-hidden="true">↑</b></button></form>
+    <form class="q-ai-composer" data-q-ai-form><label><span class="q-visually-hidden">Ask Qelly a finance question</span><textarea name="message" rows="1" maxlength="2400" placeholder="Ask about markets, evidence, risk or QELLY tools…" aria-describedby="q-ai-composer-help" required></textarea><span class="q-visually-hidden" id="q-ai-composer-help">Enter sends your question. Shift plus Enter inserts a new line. Escape closes the assistant.</span></label><button type="button" data-q-ai-stop hidden><span>Stop</span><b aria-hidden="true">■</b></button><button type="submit" data-q-ai-send><span>Send</span><b aria-hidden="true">↑</b></button></form>
     <footer><span>Connected evidence + QELLY tool receipts + model inference</span><div><button type="button" data-q-ai-export>Export</button><button type="button" data-q-ai-clear>Clear</button></div><small>Research only · no trade execution · unvalidated streaming disabled</small></footer>
   </aside>`;
 }
@@ -259,7 +261,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
       close();
     }));
     thread.querySelectorAll('[data-q-ai-copy]').forEach(button=>button.addEventListener('click',async()=>{const message=messages[Number(button.dataset.qAiCopy)];if(!message)return;try{await navigator.clipboard.writeText(message.content);toast?.('Qelly answer copied',{tone:'success'});}catch{toast?.('Copy is unavailable in this browser.',{tone:'danger'});}}));
-    thread.querySelectorAll('[data-q-ai-copy-sources]').forEach(button=>button.addEventListener('click',async()=>{const message=messages[Number(button.dataset.qAiCopySources)];const text=(message?.sources||[]).filter(source=>safeUrl(source.url)!=='#').map((source,index)=>`[${index+1}] ${source.title} · ${source.truthState}${source.observedAt?` · ${source.observedAt}`:''}\n${safeUrl(source.url)}`).join('\n\n');if(!text)return;try{await navigator.clipboard.writeText(text);toast?.('Citation links copied',{tone:'success'});}catch{toast?.('Copy is unavailable in this browser.',{tone:'danger'});}}));
+    thread.querySelectorAll('[data-q-ai-copy-sources]').forEach(button=>button.addEventListener('click',async()=>{const message=messages[Number(button.dataset.qAiCopySources)];const text=(message?.sources||[]).filter(source=>safeUrl(source.url)!=='#').map((source,index)=>`[${index+1}] ${source.title} · ${source.truthState}${sourceObservationLabel(source)?` · ${sourceObservationLabel(source)}`:''}\n${safeUrl(source.url)}`).join('\n\n');if(!text)return;try{await navigator.clipboard.writeText(text);toast?.('Citation links copied',{tone:'success'});}catch{toast?.('Copy is unavailable in this browser.',{tone:'danger'});}}));
     thread.querySelectorAll('[data-q-ai-compact]').forEach(button=>button.addEventListener('click',()=>{const article=button.closest('.q-ai-message');const compact=article.classList.toggle('is-compact');button.textContent=compact?'Expand':'Compact';}));
     thread.querySelectorAll('[data-q-ai-verify]').forEach(button=>button.addEventListener('click',()=>{const message=messages[Number(button.dataset.qAiVerify)];try{sessionStorage.setItem('qelly.verify.chat-evidence.v1',JSON.stringify({createdAt:new Date().toISOString(),content:message?.content,sources:message?.sources||[],tools:message?.tools||[]}));}catch{}navigate?.('qelly-verify');close();}));
     thread.querySelectorAll('[data-q-ai-decision]').forEach(button=>button.addEventListener('click',()=>{
@@ -294,13 +296,59 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
     suggestionsNode.querySelectorAll('[data-q-ai-suggestion]').forEach(button=>button.addEventListener('click',()=>submit(button.dataset.qAiSuggestion)));
   }
 
-  const setOpen=(open)=>{panel.hidden=!open;launcher.setAttribute('aria-expanded',String(open));launcher.classList.toggle('is-hidden',open);document.documentElement.classList.toggle('q-ai-open',open&&matchMedia('(max-width:640px)').matches);document.dispatchEvent(new CustomEvent('qelly:chat-open-state',{detail:{open}}));if(open)setTimeout(()=>input.focus(),50);};
+  const mobileChat=matchMedia('(max-width:640px)');
+  const inertedByChat=new Set();
+  let returnFocus=null,focusTimer=null;
+  const focusChat=()=>{(input.disabled?closeButton:input).focus();};
+  const focusable=node=>node?.isConnected&&!node.closest('[inert],[hidden],[aria-hidden="true"]')&&!node.disabled&&node.getClientRects().length>0&&getComputedStyle(node).visibility!=='hidden';
+  const syncChatBoundary=()=>{
+    const modal=!panel.hidden&&mobileChat.matches;
+    panel.setAttribute('aria-modal',String(modal));
+    document.documentElement.classList.toggle('q-ai-open',modal);
+    if(modal){
+      for(const sibling of document.body.children){
+        if(sibling===root||sibling.contains(root)||sibling.inert)continue;
+        sibling.inert=true;inertedByChat.add(sibling);
+      }
+      if(!panel.contains(document.activeElement))focusChat();
+    }else{
+      for(const sibling of inertedByChat)sibling.inert=false;
+      inertedByChat.clear();
+    }
+  };
+  mobileChat.addEventListener('change',syncChatBoundary);
+  const boundaryObserver=new MutationObserver(()=>{if(!panel.hidden&&mobileChat.matches)syncChatBoundary();});
+  boundaryObserver.observe(document.body,{childList:true});
+  panel.addEventListener('keydown',event=>{
+    if(event.key!=='Tab'||panel.hidden||!mobileChat.matches)return;
+    const nodes=[...panel.querySelectorAll('button,input,select,textarea,a[href],[tabindex]')].filter(node=>focusable(node)&&node.tabIndex>=0);
+    const first=nodes[0],last=nodes.at(-1),active=document.activeElement;
+    if(!first){event.preventDefault();closeButton.focus();return;}
+    if(!panel.contains(active)||(event.shiftKey&&active===first)||(!event.shiftKey&&active===last)){
+      event.preventDefault();(event.shiftKey?last:first).focus();
+    }
+  });
+  document.addEventListener('focusin',()=>{
+    if(!panel.hidden&&mobileChat.matches&&!panel.contains(document.activeElement))focusChat();
+  });
+  const setOpen=(open)=>{
+    if(open&&panel.hidden)returnFocus=document.activeElement;
+    if(focusTimer!==null){clearTimeout(focusTimer);focusTimer=null;}
+    panel.hidden=!open;launcher.setAttribute('aria-expanded',String(open));launcher.classList.toggle('is-hidden',open);
+    syncChatBoundary();
+    document.dispatchEvent(new CustomEvent('qelly:chat-open-state',{detail:{open}}));
+    if(open)focusTimer=setTimeout(()=>{focusTimer=null;if(!panel.hidden)focusChat();},50);
+    else{
+      const target=focusable(returnFocus)?returnFocus:focusable(launcher)?launcher:document.getElementById('main');
+      target?.focus();returnFocus=null;
+    }
+  };
   const seedDockPrefill=(prompt='')=>{
     const next=String(prompt||'').slice(0,2400);
     if(!next)return;
     if(!input.value||input.value===dockPrefill){input.value=next;dockPrefill=next;}
   };
-  const open=(prompt='',requestedMode='',expand=false,context={})=>{setOpen(true);applyContext({...context,mode:requestedMode||context.mode||mode});seedDockPrefill(prompt);if(expand&&!matchMedia('(max-width:640px)').matches){panel.classList.add('is-expanded');const button=root.querySelector('[data-q-ai-expand]');button?.setAttribute('aria-pressed','true');if(button)button.textContent='Compact';}};
+  const open=(prompt='',requestedMode='',expand=false,context={})=>{if(panel.hidden&&document.querySelector('dialog[open]'))return;setOpen(true);applyContext({...context,mode:requestedMode||context.mode||mode});seedDockPrefill(prompt);if(expand&&!matchMedia('(max-width:640px)').matches){panel.classList.add('is-expanded');const button=root.querySelector('[data-q-ai-expand]');button?.setAttribute('aria-pressed','true');if(button)button.textContent='Compact';}};
   const close=()=>setOpen(false);
   const setBusy=(value)=>{sending=value;send.disabled=value;input.disabled=value;assetSelect.disabled=value;timeframeSelect.disabled=value;calculatorSelect.disabled=value;send.hidden=value;stop.hidden=!value;panel.classList.toggle('is-thinking',value);};
 
@@ -363,10 +411,10 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
   document.addEventListener('qelly:open-ai',event=>open(event.detail?.prompt||'',event.detail?.mode||'',event.detail?.expand===true,{asset:event.detail?.asset||asset,timeframe:event.detail?.timeframe||timeframe,decisionContext:event.detail?.decisionContext??null}));
   document.addEventListener('qelly:chat-context',event=>{dockContext=normalizeDockContext(event.detail||{});globalThis.__QELLY_CHAT_CONTEXT__=dockContext;renderDockContext();});
   document.addEventListener('qelly:chat-clearance',event=>{chartClearance=event.detail?.state==='chart';scheduleClearance();});
-  window.addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&event.key==='/'){event.preventDefault();panel.hidden?open():close();}if(event.key==='Escape'&&!panel.hidden)close();});
+  window.addEventListener('keydown',event=>{if(document.querySelector('dialog[open]'))return;if((event.ctrlKey||event.metaKey)&&event.key==='/'){event.preventDefault();panel.hidden?open():close();}if(event.key==='Escape'&&!panel.hidden)close();});
   window.addEventListener('hashchange',syncLauncherRoute);
   renderSuggestions();applyContext({mode,asset,timeframe});render();
   loadCapability().catch(()=>{root.querySelector('[data-q-ai-status]').textContent=staticVisualPreview?'Static preview':'Dataset service reconnecting';root.querySelector('[data-q-ai-status-dot]').dataset.state='reference';});
 }
 
-export const __qellyChatTest=Object.freeze({currentRoute,safeDockText,normalizeDockContext,STORAGE_KEY,DECISION_DRAFT_KEY,MAX_MESSAGES,CHAT_MODES,CHAT_ASSETS,CHAT_TIMEFRAMES,CHAT_CALCULATORS,MODE_SUGGESTIONS,DECISION_HORIZONS,DECISION_RR,DECISION_SNAPSHOT_KEYS,truthLabel,safeUrl,conversationalReply,suggestionsFor,normalizeDecisionContext});
+export const __qellyChatTest=Object.freeze({currentRoute,safeDockText,normalizeDockContext,routeActionLabel,STORAGE_KEY,DECISION_DRAFT_KEY,MAX_MESSAGES,CHAT_MODES,CHAT_ASSETS,CHAT_TIMEFRAMES,CHAT_CALCULATORS,MODE_SUGGESTIONS,DECISION_HORIZONS,DECISION_RR,DECISION_SNAPSHOT_KEYS,truthLabel,safeUrl,conversationalReply,suggestionsFor,normalizeDecisionContext});

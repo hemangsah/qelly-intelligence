@@ -108,7 +108,7 @@ test('short social messages use the immediate Qelly conversational path',async()
 test('finance context composes governed providers and route suggestions',async()=>{
   const context=await buildFinanceContext({env:{}},'India inflation',{
     networkLoader:async()=>({sources:{hyperliquid:{data:[{symbol:'BTC',mid:1}],truthState:'live'},'alternative-me':{data:null,truthState:'unavailable'}}}),
-    providerLoader:async()=>({data:{base:'EUR',rates:{USD:1.1}},observedAt:'2026-08-25',attribution:'ECB'}),
+    providerLoader:async()=>({truthState:'delayed_provider',data:{base:'EUR',rates:{USD:1.1}},observationTime:'2026-08-25',attribution:'ECB'}),
     worldBankLoader:async()=>({truthState:'delayed',observations:[{country:'India',indicator:'Inflation',value:4,unit:'%',year:'2025'}]})
   });
   assert.equal(context.observations.hyperliquid[0].symbol,'BTC');

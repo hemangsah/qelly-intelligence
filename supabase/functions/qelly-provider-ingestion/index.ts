@@ -3,6 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.112.4";
 import {shouldReuseEcbDailyCache} from "./cache-freshness.mjs";
 import {measureEcbAttempt} from "./measured-attempt.mjs";
 import {readEcbHealth} from "./health-summary.mjs";
+import {probeEcbHealth} from "./health-probe.mjs";
 
 const ECB_HISTORY_URL="https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml";
 const ECB_DAILY_URL="https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml";
@@ -54,7 +55,7 @@ Deno.serve(async(req)=>{
   if(!url||!serviceKey)return reply(503,{ok:false,error:"SERVICE_CONFIGURATION_MISSING"});
   const admin=createClient(url,serviceKey,{auth:{persistSession:false,autoRefreshToken:false}});
   const action=new URL(req.url).searchParams.get("action");
-  if(action&&action!=="health")return reply(400,{ok:false,error:"UNKNOWN_ACTION"});
+  if(action&&action!=="health"&&action!=="probe")return reply(400,{ok:false,error:"UNKNOWN_ACTION"});
   if(action==="health"){
     try{
       const health=await readEcbHealth(({start,end,limit,signal}:any)=>admin.from("qelly_runtime_jobs")
@@ -69,6 +70,11 @@ Deno.serve(async(req)=>{
   const {data:provider,error:providerError}=await admin.from("qelly_providers").select("id,provider_key,display_name,lifecycle_status,commercial_rights_status,redistribution_rights_status,attribution").eq("provider_key",PROVIDER_KEY).single();
   if(providerError||!provider)return reply(503,{ok:false,error:"PROVIDER_REGISTRY_UNAVAILABLE"});
   if(provider.lifecycle_status!=="active"||provider.commercial_rights_status!=="allowed"||provider.redistribution_rights_status!=="allowed")return reply(409,{ok:false,error:"PROVIDER_RIGHTS_NOT_ESTABLISHED",provider:PROVIDER_KEY});
+
+  if(action==="probe"){
+    const probe=await probeEcbHealth({fetchDaily:(source:string)=>fetchDays(source,7000,1),persist:(row:any,signal:AbortSignal)=>admin.from("qelly_runtime_jobs").insert(row).abortSignal(signal)});
+    return reply(probe.status,probe.body);
+  }
 
   const now=new Date();
   const {data:cached}=await admin.from("qelly_provider_cache").select("observation_time,ingestion_time,expires_at,stale_until,payload,truth_state").eq("provider_id",PROVIDER_KEY).eq("cache_key",CACHE_KEY).maybeSingle();

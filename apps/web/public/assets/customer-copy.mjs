@@ -68,7 +68,10 @@ export function authenticationMethodLabel(value){
   const normalized=normalize(value).toLowerCase();
   if(normalized.includes('email')&&normalized.includes('password'))return 'Email and password';
   if(normalized.includes('magic'))return 'Email sign-in link';
-  if(normalized.includes('oauth'))return 'Connected account';
+    if(normalized.includes('oauth'))return 'Connected account';
+    if(normalized==='supabase-otp')return 'One-time password';
+    if(normalized==='supabase-sso/saml')return 'Organization sign-in';
+    if(normalized==='supabase-recovery')return 'Account recovery';
   return normalized?'Secure sign-in':'Signed-in session';
 }
 

@@ -1,5 +1,6 @@
 import {calculateFormula,getFormulaDefinition} from '../../apps/web/public/assets/calculation/formula-engine-extended.mjs';
 import {buildAssetRankings} from './market-network.js';
+import {finiteEvidenceValue} from './numeric-evidence.js';
 import {buildPublicAssetIntelligence} from './public-asset-intelligence.js';
 import {buildUniversalSearch} from './public-search.js';
 import {buildPublicEventCalendar} from './public-event-calendar.js';
@@ -31,13 +32,16 @@ export function buildMarketToolReceipt(sources={},asset='BTC'){
   const source=sources.hyperliquid||{};
   const rows=Array.isArray(source.data)?source.data:[];
   const row=rows.find(item=>String(item?.symbol||'').toUpperCase()===symbol)||null;
-  const truthState=row?state(source.truthState||'live'):'unavailable';
+  const value=finiteEvidenceValue(row?.mid);
+  const sourceState=state(source.truthState);
+  const usable=value!==null&&value>0&&['live','cached','delayed'].includes(sourceState);
+  const truthState=usable?sourceState:'unavailable';
   return receipt('public-market-data','QELLY public market data',{
     truthState,
     freshness:truthState,
     observedAt:source.observedAt??null,
     source:'Hyperliquid public market source',
-    data:row?{symbol,mid:Number.isFinite(Number(row.mid))?Number(row.mid):null,provider:'Hyperliquid'}:{symbol,mid:null,provider:'Hyperliquid'},
+    data:{symbol,mid:usable?value:null,provider:'Hyperliquid'},
     limitations:[
       'This is governed public crypto market context only; it is not an order, execution receipt or personalized recommendation.',
       'A perpetual-market mid is context, not a guaranteed executable spot price.'
@@ -113,7 +117,7 @@ export function buildPublicResearchToolReceipt(financeContext={}){
     truthState:available.length?'mixed':'unavailable',freshness:'mixed-source',
     observedAt:available.map(item=>item.observedAt).filter(Boolean).sort().at(-1)??financeContext.generatedAt??null,
     source:'QELLY connected public-source ledger',
-    data:{sources:citations.map(item=>({id:item.id,title:item.title,truthState:item.truthState,observedAt:item.observedAt,url:item.url}))},
+    data:{sources:citations.map(item=>({id:item.id,title:item.title,truthState:item.truthState,observedAt:item.observedAt,observedDate:item.observedDate??null,observationTimePrecision:item.observationTimePrecision??null,url:item.url}))},
     limitations:['This is a bounded source ledger, not unrestricted web search or private-workspace retrieval.','Each source keeps its own truth state and timestamp; mixed evidence is not collapsed into a false single freshness claim.']
   });
 }
@@ -164,15 +168,16 @@ export function buildIndiaToolReceipt(financeContext={}){
   const citations=Array.isArray(financeContext.citations)?financeContext.citations:[];
   const worldBankSource=citations.find(item=>item.id==='world-bank');
   const ecbSource=citations.find(item=>item.id==='ecb-reference');
-  const truthState=macro.length?'delayed':(ecb.rates?'delayed':'unavailable');
+  const ecbTruth=ecb.truthState??ecbSource?.truthState;
+  const truthState=macro.length?'delayed':(ecb.rates&&['delayed','cached','stale'].includes(ecbTruth)?ecbTruth:'unavailable');
   return receipt('india-finance','QELLY India Finance evidence',{
     truthState,
-    freshness:'delayed-reference',
+    freshness:macro.length?'delayed-reference':ecb.freshness??truthState,
     observedAt:worldBankSource?.observedAt??ecbSource?.observedAt??null,
     source:[worldBankSource?.title,ecbSource?.title].filter(Boolean).join(' · ')||'QELLY India Finance',
     data:{
       worldBank:macro,
-      ecbReference:{base:ecb.base??'EUR',inr:ecb.rates?.INR??null,observedAt:ecb.observedAt??null},
+      ecbReference:{base:ecb.base??'EUR',inr:ecb.rates?.INR??null,observedAt:ecb.observedAt??null,observedDate:ecb.observedDate??null,observationTimePrecision:ecb.observationTimePrecision??null,truthState:ecb.truthState??ecbSource?.truthState??'unavailable',freshness:ecb.freshness??ecb.truthState??ecbSource?.truthState??'unavailable'},
       displayOnlyCoverage:['Nifty 50','Sensex','Bank Nifty','USD/INR','Gold']
     },
     limitations:['India benchmark widgets are official TradingView display-only surfaces; QELLY Chat does not ingest their displayed values as evidence.','No verified live India VIX, FII/DII, breadth, yield or corporate-action feed is connected here.','World Bank and ECB observations are delayed reference data, not live exchange prices.']
