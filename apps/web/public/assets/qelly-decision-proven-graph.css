@@ -549,6 +549,14 @@
 @media(prefers-reduced-motion:reduce){.q-dpg-help i[role="tooltip"]{transition:none}}
 
 
+/* Match evidence panels and chart annotations to the resolved light palette. */
+html[data-appearance="light"] :is(.q-dpg-controls,.q-dpg-view,.q-dpg-hero,.q-dpg-trade-research,.q-dpg-scanner,.q-dpg-model-calibration,.q-dpg-analogs,.q-dpg-setup-finder,.q-dpg-formula-governance,.q-dpg-smc-pa,.q-dpg-asset-class-weighting,.q-dpg-cf-setup,.q-dpg-cf-scenarios,.q-dpg-stage,.q-dpg-chart-help){background:var(--surface);color:var(--text)}
+html[data-appearance="light"] .q-dpg-chart text{fill:var(--text-muted)}
+html[data-appearance="light"] .q-dpg-grid path{stroke:var(--border)}
+html[data-appearance="light"] .q-dpg-ranked em{color:var(--q-accent,var(--dpg-wine))}
+html[data-appearance="light"] .q-dpg-ranked li>span{color:var(--q-accent-text,#fff)}
+html[data-appearance] .q-dpg-ui-mode[aria-selected="true"] small{color:inherit}
+
 /* Quant research library */
 .q-dpg-quant-research{margin:16px 0;padding:16px;border:1px solid var(--q-border,#2a3441);border-radius:16px;background:color-mix(in srgb,var(--q-surface,#111827) 94%,transparent)}
 .q-dpg-quant-research>header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:12px}

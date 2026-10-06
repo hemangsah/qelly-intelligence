@@ -610,7 +610,23 @@ const exerciseInitialLoading=async(width,appearance)=>{
     await page.screenshot({path:path.join(outputDir,'initial-loading-'+width+'-'+appearance+'.png'),fullPage:true});
     releaseCatalog();await page.locator('[data-dpg-chart]').first().waitFor({state:'visible',timeout:45000});
     if(!decisionRequests||await page.getByRole('heading',{name:'Weighing fresh evidence',exact:true}).count())throw new Error('Loading state did not resolve to validated evidence');
-    initialLoadingResults.push({width,appearance,status:'passed',catalogHeldBeforeDecision:true,fixture:'synthetic governed provider'});
+    let lightPanelContrast=null;
+    if(appearance==='light'){
+      lightPanelContrast=await page.evaluate(()=>{
+        const rgb=value=>value.match(/[\d.]+/g).slice(0,3).map(Number);
+        const luminance=value=>rgb(value).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((total,v,i)=>total+v*[.2126,.7152,.0722][i],0);
+        return ['.q-dpg-controls','.q-dpg-view','.q-dpg-setup-finder','.q-dpg-cf-setup','.q-dpg-stage'].map(selector=>{
+          const element=document.querySelector(selector),style=getComputedStyle(element);
+          const background=luminance(style.backgroundColor),foreground=luminance(style.color);
+          return {selector,background:style.backgroundColor,gradient:style.backgroundImage,contrast:(Math.max(background,foreground)+.05)/(Math.min(background,foreground)+.05)};
+        });
+      });
+      if(lightPanelContrast.some(panel=>panel.gradient!=='none'||panel.contrast<4.5))throw new Error('Light Decision evidence panel retains dark background or insufficient text contrast');
+      const selectedModeSubtitleReadable=await page.evaluate(()=>{const tab=document.querySelector('.q-dpg-ui-mode[aria-selected="true"]');return getComputedStyle(tab.querySelector('small')).color===getComputedStyle(tab).color;});
+      if(!selectedModeSubtitleReadable)throw new Error('Selected Decision mode subtitle does not inherit its readable selected foreground');
+      await page.screenshot({path:path.join(outputDir,'light-panels-'+width+'.png'),fullPage:true});
+    }
+    initialLoadingResults.push({width,appearance,status:'passed',catalogHeldBeforeDecision:true,lightPanelContrast,fixture:'synthetic governed provider'});
   }catch(error){
     await page.screenshot({path:path.join(outputDir,'initial-loading-'+width+'-'+appearance+'-failed.png'),fullPage:true}).catch(()=>{});
     await writeFile(path.join(outputDir,'initial-loading-'+width+'-'+appearance+'-failure.json'),JSON.stringify({message:error.message,decisionRequests,mainText:await page.locator('main').innerText().catch(()=>''),fixture:'synthetic governed provider'},null,2));
