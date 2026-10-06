@@ -421,6 +421,11 @@ const exercise=async({name,viewport,touch=false})=>{
   await globalAssistant.waitFor({state:'hidden',timeout:10_000});
   const simpleTab=page.locator('[data-dpg-ui-mode="simple"]').first(),advancedTab=page.locator('[data-dpg-ui-mode="advanced"]').first(),researchTab=page.locator('[data-dpg-ui-mode="research"]').first();
   if(await simpleTab.getAttribute('aria-selected')!=='true')failures.push({type:'decision-mode-default',message:'Simple Mode is not the default'});
+  const retailScenarioText=(await page.locator('[data-dpg-leading-scenario]').innerText()).replace(/\s+/g,' ').trim();
+  const scenarioScores=Object.entries(latestDecisionFixture?.qellyView?.scenario||{}).filter(([id,value])=>['bull','base','bear'].includes(id)&&value!==null&&value!==''&&Number.isFinite(Number(value))).sort((a,b)=>Number(b[1])-Number(a[1]));
+  const expectedScenarioShare=scenarioScores.length?scenarioScores[0][0][0].toUpperCase()+scenarioScores[0][0].slice(1)+' · '+Math.round(Number(scenarioScores[0][1])*100)+'% share':'Unavailable';
+  const retailScenarioSummaryPassed=retailScenarioText.toLowerCase().includes('leading model scenario')&&retailScenarioText.includes(expectedScenarioShare)&&retailScenarioText.includes('Research model share, not a calibrated probability.');
+  if(!retailScenarioSummaryPassed)failures.push({type:'retail-scenario-probability-boundary',retailScenarioText,expectedScenarioShare});
   if(await page.locator('[data-dpg-mode-panel="advanced"]').count())failures.push({type:'decision-mode-simple-leak',message:'Advanced panel rendered in Simple Mode'});
   if(await page.locator('[data-dpg-mode-panel="research"]').count())failures.push({type:'decision-mode-simple-leak',message:'Research panel rendered in Simple Mode'});
   const simpleControls=await simpleTab.getAttribute('aria-controls'),simplePanelRole=await page.locator('#qelly-decision-panel-simple').getAttribute('role');
@@ -577,7 +582,7 @@ const exercise=async({name,viewport,touch=false})=>{
   }
   const similarSetupBridge=similarSetupVisible&&lastScanRequest?.mode==='validated'&&lastScanRequest?.assets==='BTC'&&lastScanRequest?.ranking==='highest_quality'&&lastScanRequest?.direction==='any';
   if(!similarSetupBridge)failures.push({type:'range-similar-current-setup-bridge',similarSetupVisible,lastScanRequest});
-  const result={name,viewport,touch,timeframeCoverage,educationHelp:educationRequired&&tooltipCount>=7,similarSetupBridge,nextMove:{projectedState,nextMoveRequired,probabilitySafe,activeThree},waveCf:{setup:cfSetupRequired,lifecycleCurrent:cfLifecycleCurrent,watchCount:cfWatchCount,scenarioCards:cfScenarioCards,highProbabilitySafe:cfHighProbabilitySafe,rrCards:cfRrCards,rrInteractive:cfRrTwoActive===1&&cfRrAutoActive===1},assetPicker:{fitsViewport:pickerFitsViewport,required:pickerRequired,selectableCount,favoriteEth},setupFinder:{required:setupFinderRequired,aggressiveRequest:setupRequestOk,closestCandidate:closestCandidateRequired,closestInterval},decisionModes:{simpleDefault:true,advanced:advancedRequired,research:researchRequired},qellyDock:{centered:dockCentered,composer:dockComposerRequired,rangeAware:rangeAwareDock},persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,rangeCrossAsset:rangeCrossAssetRequired&&!forbiddenCrossAssetCausality,rangeCrossAssetClassification,rangeCrossAssetText,rangeTimeline:timelineRequired,rangeTimelineText:timelineText,rangeReplay:replayRequired&&replayScrubs,rangeReplayText:replayText,rangeSimilarMoves:similarRequired,rangeSimilarMovesText:similarText,rangeFlow:flowRequired,rangeFlowText:flowText,failures};
+  const result={name,viewport,touch,retailScenarioSummaryPassed,retailScenarioText,timeframeCoverage,educationHelp:educationRequired&&tooltipCount>=7,similarSetupBridge,nextMove:{projectedState,nextMoveRequired,probabilitySafe,activeThree},waveCf:{setup:cfSetupRequired,lifecycleCurrent:cfLifecycleCurrent,watchCount:cfWatchCount,scenarioCards:cfScenarioCards,highProbabilitySafe:cfHighProbabilitySafe,rrCards:cfRrCards,rrInteractive:cfRrTwoActive===1&&cfRrAutoActive===1},assetPicker:{fitsViewport:pickerFitsViewport,required:pickerRequired,selectableCount,favoriteEth},setupFinder:{required:setupFinderRequired,aggressiveRequest:setupRequestOk,closestCandidate:closestCandidateRequired,closestInterval},decisionModes:{simpleDefault:true,advanced:advancedRequired,research:researchRequired},qellyDock:{centered:dockCentered,composer:dockComposerRequired,rangeAware:rangeAwareDock},persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,rangeCrossAsset:rangeCrossAssetRequired&&!forbiddenCrossAssetCausality,rangeCrossAssetClassification,rangeCrossAssetText,rangeTimeline:timelineRequired,rangeTimelineText:timelineText,rangeReplay:replayRequired&&replayScrubs,rangeReplayText:replayText,rangeSimilarMoves:similarRequired,rangeSimilarMovesText:similarText,rangeFlow:flowRequired,rangeFlowText:flowText,failures};
   results.push(result);
   await context.close();
 };
@@ -605,7 +610,23 @@ const exerciseInitialLoading=async(width,appearance)=>{
     await page.screenshot({path:path.join(outputDir,'initial-loading-'+width+'-'+appearance+'.png'),fullPage:true});
     releaseCatalog();await page.locator('[data-dpg-chart]').first().waitFor({state:'visible',timeout:45000});
     if(!decisionRequests||await page.getByRole('heading',{name:'Weighing fresh evidence',exact:true}).count())throw new Error('Loading state did not resolve to validated evidence');
-    initialLoadingResults.push({width,appearance,status:'passed',catalogHeldBeforeDecision:true,fixture:'synthetic governed provider'});
+    let lightPanelContrast=null;
+    if(appearance==='light'){
+      lightPanelContrast=await page.evaluate(()=>{
+        const rgb=value=>value.match(/[\d.]+/g).slice(0,3).map(Number);
+        const luminance=value=>rgb(value).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((total,v,i)=>total+v*[.2126,.7152,.0722][i],0);
+        return ['.q-dpg-controls','.q-dpg-view','.q-dpg-setup-finder','.q-dpg-cf-setup','.q-dpg-stage'].map(selector=>{
+          const element=document.querySelector(selector),style=getComputedStyle(element);
+          const background=luminance(style.backgroundColor),foreground=luminance(style.color);
+          return {selector,background:style.backgroundColor,gradient:style.backgroundImage,contrast:(Math.max(background,foreground)+.05)/(Math.min(background,foreground)+.05)};
+        });
+      });
+      if(lightPanelContrast.some(panel=>panel.gradient!=='none'||panel.contrast<4.5))throw new Error('Light Decision evidence panel retains dark background or insufficient text contrast');
+      const selectedModeSubtitleReadable=await page.evaluate(()=>{const tab=document.querySelector('.q-dpg-ui-mode[aria-selected="true"]');return getComputedStyle(tab.querySelector('small')).color===getComputedStyle(tab).color;});
+      if(!selectedModeSubtitleReadable)throw new Error('Selected Decision mode subtitle does not inherit its readable selected foreground');
+      await page.screenshot({path:path.join(outputDir,'light-panels-'+width+'.png'),fullPage:true});
+    }
+    initialLoadingResults.push({width,appearance,status:'passed',catalogHeldBeforeDecision:true,lightPanelContrast,fixture:'synthetic governed provider'});
   }catch(error){
     await page.screenshot({path:path.join(outputDir,'initial-loading-'+width+'-'+appearance+'-failed.png'),fullPage:true}).catch(()=>{});
     await writeFile(path.join(outputDir,'initial-loading-'+width+'-'+appearance+'-failure.json'),JSON.stringify({message:error.message,decisionRequests,mainText:await page.locator('main').innerText().catch(()=>''),fixture:'synthetic governed provider'},null,2));
