@@ -38,6 +38,8 @@ test('calculator generator emits a crawlable collection hub plus 36 substantive 
       assert.ok(generated.includes('aria-label="Qelly product categories"'));
       assert.ok(generated.includes('id="main" tabindex="-1"'));
       assert.ok(generated.includes('/assets/ai/qelly-chat.css'));
+      assert.equal((generated.match(/data-explain-result/g)||[]).length,item.slug?1:0);
+      if(item.slug){assert.ok(generated.includes('data-explain-result disabled'));assert.ok(generated.includes('Nothing is shared with QELLY until you choose Send.'));}
     }
 
     const directory=await readFile(path.join(output,'calculators','index.html'),'utf8');
