@@ -25,6 +25,7 @@ const FIXTURE_INTERVAL_MS=Object.freeze({'1m':60_000,'3m':180_000,'5m':300_000,'
 const FIXTURE_ASSETS=Object.freeze(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
 const FIXTURE_BASE=Object.freeze({BTC:84_000,ETH:3_100,SOL:145,HYPE:42,XRP:2.6,DOGE:.22});
 const fixtureNow=Date.now()-1_000;
+const fixtureReferenceDate=new Date(fixtureNow).toISOString().slice(0,10);
 const fixtureCandlesFor=(asset='BTC',interval='15m',endTime=fixtureNow,points=500)=>{
   const symbol=FIXTURE_ASSETS.includes(String(asset).toUpperCase())?String(asset).toUpperCase():'BTC';
   const step=FIXTURE_INTERVAL_MS[interval]||FIXTURE_INTERVAL_MS['15m'];
@@ -43,6 +44,7 @@ const fixtureCandlesFor=(asset='BTC',interval='15m',endTime=fixtureNow,points=50
 const fixtureProviderFetch=async(url,options={})=>{
   let target;
   try{target=new URL(String(url));}catch{return new Response(JSON.stringify({}),{status:400,headers:{'content-type':'application/json'}});}
+  if(target.protocol==='https:'&&target.hostname==='www.ecb.europa.eu'&&target.pathname==='/stats/eurofxref/eurofxref-daily.xml')return new Response('<Cube time="'+fixtureReferenceDate+'"><Cube currency="USD" rate="1.1"/><Cube currency="INR" rate="90"/><Cube currency="GBP" rate="0.85"/><Cube currency="JPY" rate="160"/><Cube currency="CHF" rate="0.95"/></Cube>',{status:200,headers:{'content-type':'application/xml'}});
   if(target.protocol==='https:'&&target.hostname==='api.hyperliquid.xyz'){
     let body={};
     try{body=JSON.parse(options?.body||'{}');}catch{}
@@ -626,6 +628,12 @@ const exerciseInitialLoading=async(width,appearance)=>{
       if(!selectedModeSubtitleReadable)throw new Error('Selected Decision mode subtitle does not inherit its readable selected foreground');
       await page.screenshot({path:path.join(outputDir,'light-panels-'+width+'.png'),fullPage:true});
     }
+    await page.getByRole('tab',{name:/Advanced/}).click();
+    const macroDateCard=page.locator('.q-dpg-macro__grid > article').filter({hasText:'Reference date'});
+    const macroReferenceDate={date:await macroDateCard.locator('strong').innerText(),boundary:await macroDateCard.locator('small').innerText(),fixtureReferenceDate};
+    if(macroReferenceDate.date!==fixtureReferenceDate||!macroReferenceDate.boundary.includes('exact publication time unavailable'))throw new Error('Decision macro reference date was lost or a publication clock was fabricated');
+    await macroDateCard.scrollIntoViewIfNeeded();
+    await page.screenshot({path:path.join(outputDir,'macro-reference-date-'+width+'-'+appearance+'.png'),fullPage:false});
     await page.getByRole('tab',{name:/Research Lab/}).click();
     await page.locator('.q-dpg-slo summary').click();
     const scannerSlo=page.locator('.q-dpg-slo .q-dpg-reliability-bins > span').filter({hasText:'scannerLatencyP95Ms'});
@@ -641,7 +649,7 @@ const exerciseInitialLoading=async(width,appearance)=>{
     }));
     if(!sloCardReadability.length||sloCardReadability.some(card=>!card.contentFits||!card.textContained))throw new Error('SLO diagnostic text overlaps or escapes its card: '+JSON.stringify(sloCardReadability));
     await page.screenshot({path:path.join(outputDir,'unobserved-slo-'+width+'-'+appearance+'.png'),fullPage:false});
-    initialLoadingResults.push({width,appearance,status:'passed',catalogHeldBeforeDecision:true,lightPanelContrast,unobservedScannerSlo,sloCardReadability,fixture:'synthetic governed provider'});
+    initialLoadingResults.push({width,appearance,status:'passed',catalogHeldBeforeDecision:true,lightPanelContrast,unobservedScannerSlo,sloCardReadability,macroReferenceDate,fixture:'synthetic governed provider'});
   }catch(error){
     await page.screenshot({path:path.join(outputDir,'initial-loading-'+width+'-'+appearance+'-failed.png'),fullPage:true}).catch(()=>{});
     await writeFile(path.join(outputDir,'initial-loading-'+width+'-'+appearance+'-failure.json'),JSON.stringify({message:error.message,decisionRequests,mainText:await page.locator('main').innerText().catch(()=>''),fixture:'synthetic governed provider'},null,2));
@@ -661,6 +669,7 @@ try{
 
 const report={status:results.every(item=>item.failures.length===0)&&initialLoadingResults.length===4?'passed':'failed',initialLoadingCases:initialLoadingResults.length,unobservedScannerSloCases:initialLoadingResults.filter(row=>row.unobservedScannerSlo?.state==='UNAVAILABLE').length,initialLoadingResults,evidenceBackend:'deterministic-governed-provider-fixture',liveProductionTruthValidatedSeparately:true,frontendHead:process.env.QELLY_SCREEN_EVIDENCE_SHA||process.env.GITHUB_SHA||null,results};
 report.sloCardReadabilityCases=initialLoadingResults.filter(row=>row.sloCardReadability?.length&&row.sloCardReadability.every(card=>card.contentFits&&card.textContained)).length;
+report.macroReferenceDateCases=initialLoadingResults.filter(row=>row.macroReferenceDate?.date===fixtureReferenceDate&&row.macroReferenceDate?.boundary.includes('exact publication time unavailable')).length;
 await writeFile(path.join(outputDir,'report.json'),JSON.stringify(report,null,2));
 console.log(JSON.stringify(report,null,2));
 if(report.status!=='passed')process.exitCode=1;
