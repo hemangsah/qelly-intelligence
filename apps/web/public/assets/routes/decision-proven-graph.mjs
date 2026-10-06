@@ -807,7 +807,7 @@ export async function renderDecisionProvenGraph(main,deps){
     const confidence=isFiniteDecisionEvidence(view.confidence)?Math.round(Number(view.confidence)*100)+'%':'Unavailable';
     const agreement=isFiniteDecisionEvidence(gate.timeframeAgreement)?Math.round(Number(gate.timeframeAgreement)*100)+'%':'Unavailable';
     const probabilities=[['Bull',scenario.bull],['Base',scenario.base],['Bear',scenario.bear]].filter(([,value])=>isFiniteDecisionEvidence(value)).sort((a,b)=>Number(b[1])-Number(a[1]));
-    const scenarioLead=probabilities.length?probabilities[0][0]+' '+Math.round(Number(probabilities[0][1])*100)+'%':'Unavailable';
+    const scenarioLead=probabilities.length?probabilities[0][0]+' · '+Math.round(Number(probabilities[0][1])*100)+'% share':'Unavailable';
     const regime=data?.market?.currentState?.trend||'Unavailable';
     const volatility=view.riskState?.label||'Unavailable';
     const provider=data?.provenance?.provider||'Hyperliquid';
@@ -820,7 +820,7 @@ export async function renderDecisionProvenGraph(main,deps){
       '<div class="q-dpg-hero__view"><small>QELLY VIEW</small><h2>'+escapeHtml(action)+'</h2><p>'+escapeHtml(label)+'</p><div class="q-dpg-hero__metrics">'+
         '<span><em>Evidence quality</em><strong>'+escapeHtml(quality)+'</strong></span>'+
         '<span><em>Evidence confidence</em><strong>'+escapeHtml(confidence)+'</strong><small>Calibrated confidence is separate and remains calibration-gated.</small></span>'+
-        '<span><em>Scenario</em><strong>'+escapeHtml(scenarioLead)+'</strong></span>'+
+        '<span data-dpg-leading-scenario><em>Leading model scenario</em><strong>'+escapeHtml(scenarioLead)+'</strong><small>Research model share, not a calibrated probability.</small></span>'+
         '<span><em>MTF agreement</em><strong>'+escapeHtml(agreement)+'</strong></span>'+
         '<span><em>Regime</em><strong>'+escapeHtml(String(regime))+'</strong></span>'+
         '<span><em>Volatility</em><strong>'+escapeHtml(volatility)+'</strong></span>'+
