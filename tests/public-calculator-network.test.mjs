@@ -33,6 +33,11 @@ test('calculator generator emits a crawlable collection hub plus 36 substantive 
       assert.ok(generated.indexOf('/assets/qelly-prepaint-bootstrap.js')<generated.indexOf('/assets/calculator-network.css'));
       assert.ok(generated.includes(`<title>${item.title} | QELLY Intelligence</title>`));
       assert.equal((generated.match(/src="\/assets\/public-calculator-theme.mjs"/g)||[]).length,1);
+      assert.equal((generated.match(/src="\/assets\/public-calculator-shell.mjs"/g)||[]).length,1);
+      assert.equal((generated.match(/<details>/g)||[]).length,5);
+      assert.ok(generated.includes('aria-label="Qelly product categories"'));
+      assert.ok(generated.includes('id="main" tabindex="-1"'));
+      assert.ok(generated.includes('/assets/ai/qelly-chat.css'));
     }
 
     const directory=await readFile(path.join(output,'calculators','index.html'),'utf8');
