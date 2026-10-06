@@ -1,12 +1,12 @@
 import {calculateFormula} from './calculation/formula-engine-extended.mjs';
 import {mountAdSlots} from './qelly-ad-slot.mjs';
+import {collectPublicCalculatorInputs} from './calculation/public-calculator-inputs.mjs';
 
 const config=JSON.parse(document.querySelector('#q-calculator-config')?.textContent||'{}');
 const form=document.querySelector('[data-calculator-form]');
 const result=document.querySelector('[data-calculator-result]');
 const status=document.querySelector('[data-calculator-status]');
 const humanize=(value)=>String(value).replace(/([a-z0-9])([A-Z])/g,'$1 $2').replace(/[-_]+/g,' ').replace(/^./,letter=>letter.toUpperCase());
-const parse=(element,schema)=>{if(schema.type==='boolean')return element.checked;if(schema.type==='number')return Number(element.value);if(schema.type==='array'||schema.type==='object')return JSON.parse(element.value);return element.value;};
 const format=(value)=>typeof value==='number'?new Intl.NumberFormat(undefined,{maximumFractionDigits:6}).format(value):value==null?'Not available':typeof value==='object'?JSON.stringify(value):String(value);
 const emit=(type)=>document.dispatchEvent(new CustomEvent('qelly:calculator-event',{detail:{type,calculator:config.slug}}));
 const node=(tag,{className,text,attributes}={})=>{
@@ -24,6 +24,7 @@ function fieldFor(key,schema){
     const label=node('label',{className:'q-cn-check',attributes:{for:id}});
     const input=node('input',{attributes:{id,name:key,type:'checkbox'}});
     input.checked=Boolean(value);
+    input.defaultChecked=input.checked;
     label.append(input,node('span',{text:schema.title||humanize(key)}));
     return label;
   }
@@ -38,14 +39,17 @@ function fieldFor(key,schema){
     for(const item of schema.enum){
       const option=node('option',{text:item,attributes:{value:item}});
       option.selected=String(item)===String(value);
+      option.defaultSelected=option.selected;
       control.append(option);
     }
   }else if(schema.type==='array'||schema.type==='object'){
     control=node('textarea',{attributes:{id,name:key,rows:'3'}});
     control.value=JSON.stringify(value);
+    control.defaultValue=control.value;
   }else{
     control=node('input',{attributes:{id,name:key,type:schema.type==='number'?'number':'text'}});
     control.value=value??'';
+    control.defaultValue=control.value;
     if(schema.type==='number')control.step='any';
   }
 
@@ -59,9 +63,7 @@ function mountFields(){
   form.replaceChildren(fragment);
 }
 function collectInputs(){
-  const inputs={};
-  for(const [key,schema] of Object.entries(config.schema.properties||{})){const element=form.elements.namedItem(key);inputs[key]=parse(element,schema);}
-  return inputs;
+  return collectPublicCalculatorInputs(config.schema,key=>form.elements.namedItem(key));
 }
 function applyInputs(inputs){
   if(!inputs||typeof inputs!=='object'||Array.isArray(inputs))return false;
@@ -109,10 +111,12 @@ function calculate(){
     status.textContent=`Calculated locally · ${receipt.formulaVersion} · ${new Date(receipt.calculatedAt).toLocaleString()}`;
     status.dataset.state='success';
     emit('calculation_completed');
+    return true;
   }catch(error){
     renderError(error);
     status.textContent='Result unavailable until every input is valid.';
     status.dataset.state='error';
+    return false;
   }
 }
 
@@ -123,5 +127,5 @@ let timer;form.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeou
 document.querySelector('[data-reset]')?.addEventListener('click',()=>{history.replaceState(null,'',location.pathname+location.search);form.reset();calculate();});
 document.querySelector('[data-share]')?.addEventListener('click',async()=>{try{const url=shareUrl(collectInputs());if(navigator.share)await navigator.share({title:document.title,url});else await navigator.clipboard.writeText(url);status.textContent='Share link ready · inputs are stored only in the URL fragment, not on QELLY servers.';status.dataset.state='success';emit('share');}catch(error){status.textContent=error?.message||'Share is unavailable in this browser.';status.dataset.state='error';}});
 document.querySelectorAll('[data-related]').forEach(link=>link.addEventListener('click',()=>emit('related_calculator_click')));
-mountAdSlots(document);emit('calculator_page_view');calculate();
-if(loadedSharedState){status.textContent='Loaded shared inputs from this URL fragment · calculation remains local.';status.dataset.state='success';}
+mountAdSlots(document);emit('calculator_page_view');const initialCalculationSucceeded=calculate();
+if(loadedSharedState&&initialCalculationSucceeded){status.textContent='Loaded shared inputs from this URL fragment · calculation remains local.';status.dataset.state='success';}
