@@ -3,6 +3,7 @@ const SOURCES=new Set([
  'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml'
 ]);
 const status=value=>Number.isInteger(value)&&value>=100&&value<=599?value:null;
+export const ecbReferenceDate=(value,latestDate=new Date().toISOString().slice(0,10))=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value+'T00:00:00Z'))&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value&&value<=latestDate?value:null;
 
 // One record means one actual HTTP + schema-validation attempt, never a cache
 // read or a provider-wide health/SLO estimate. No response bodies or tokens.
@@ -14,6 +15,7 @@ export async function measureEcbAttempt({source,operation,persist,clock=()=>perf
  const elapsed=clock()-start,finishedAt=wallClock().toISOString();
  const days=Array.isArray(result?.days)?result.days:null;
  const succeeded=!error&&days?.length>0;
+ const referenceDate=succeeded?ecbReferenceDate(days.at(-1)?.date,finishedAt.slice(0,10)):null;
  const row={
   subsystem:'provider-ingestion',job_type:'ecb-http-attempt',
   status:succeeded?'succeeded':'failed',truth_state:succeeded?'delayed':'error',
@@ -24,7 +26,7 @@ export async function measureEcbAttempt({source,operation,persist,clock=()=>perf
    latencyMs:Number.isFinite(elapsed)&&elapsed>=0?Math.round(elapsed):null,
    httpStatus:status(result?.httpStatus??error?.httpStatus),
    validatedDays:succeeded?days.length:0,
-   observationTime:succeeded?days.at(-1)?.observedAt??null:null,
+   observationTime:null,referenceDate,observationTimePrecision:referenceDate?'date':'unavailable',
    referenceOnly:true,quotaRemaining:null,providerWideAvailability:null
   },
   error_summary:succeeded?{}:{code:error?.name==='TimeoutError'||error?.name==='AbortError'?'upstream_timeout':status(error?.httpStatus)?'upstream_http_failure':'source_read_or_schema_failure'}

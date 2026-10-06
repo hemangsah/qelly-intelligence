@@ -3,14 +3,14 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {measureEcbAttempt} from '../supabase/functions/qelly-provider-ingestion/measured-attempt.mjs';
 const source='https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml';
-const days=[{observedAt:'2026-10-02T00:00:00Z',rates:{USD:1.1}}];
+const days=[{date:'2026-10-02',observedAt:'2026-10-02T00:00:00Z',rates:{USD:1.1}}];
 const clocks=()=>{let i=0;return{clock:()=>[100,143.6][i++],wallClock:()=>new Date('2026-10-04T02:00:00Z')};};
 
 test('real ECB operation measures latency and schema result, without inventing quotas or provider-wide health',async()=>{
  let row;const measured=await measureEcbAttempt({source,operation:async()=>({days,httpStatus:200}),persist:async value=>{row=value;return{error:null};},...clocks()});
  assert.equal(measured.persisted,true);assert.equal(measured.days,days);
  assert.equal(row.status,'succeeded');assert.equal(row.truth_state,'delayed');
- assert.deepEqual(row.output_summary,{measurementScope:'edge-http-and-schema-validation',latencyMs:44,httpStatus:200,validatedDays:1,observationTime:'2026-10-02T00:00:00Z',referenceOnly:true,quotaRemaining:null,providerWideAvailability:null});
+ assert.deepEqual(row.output_summary,{measurementScope:'edge-http-and-schema-validation',latencyMs:44,httpStatus:200,validatedDays:1,observationTime:null,referenceDate:'2026-10-02',observationTimePrecision:'date',referenceOnly:true,quotaRemaining:null,providerWideAvailability:null});
  assert.equal(row.input_summary.instrumentationVersion,'ecb-http-attempt-v1');
  assert.doesNotMatch(JSON.stringify(row),/USD|1\.1/);
 });
@@ -19,6 +19,14 @@ test('failed and timeout attempts retain measured status but never log raw error
   let row;const measured=await measureEcbAttempt({source,operation:async()=>{throw error;},persist:async value=>{row=value;return{};},...clocks()});
   assert.equal(measured.days,null);assert.equal(measured.error,error);assert.equal(row.status,'failed');assert.equal(row.output_summary.validatedDays,0);
   assert.equal(row.output_summary.httpStatus,error.httpStatus??null);assert.doesNotMatch(JSON.stringify(row),/TOKEN|PRIVATE/);
+ }
+});
+test('attempt metadata does not infer a precise clock or reference date from a database date slot',async()=>{
+ for(const date of [undefined,'2026-02-30','2099-01-01']){
+  const measured=await measureEcbAttempt({source,operation:async()=>({days:[{date,observedAt:'2026-10-02T00:00:00Z'}],httpStatus:200}),persist:async()=>({}),...clocks()});
+  assert.equal(measured.row.output_summary.observationTime,null);
+  assert.equal(measured.row.output_summary.referenceDate,null);
+  assert.equal(measured.row.output_summary.observationTimePrecision,'unavailable');
  }
 });
 test('persistence failure cannot destroy reference data or claim history was stored',async()=>{
