@@ -1,11 +1,15 @@
 import {calculateFormula} from './calculation/formula-engine-extended.mjs';
 import {mountAdSlots} from './qelly-ad-slot.mjs';
 import {collectPublicCalculatorInputs} from './calculation/public-calculator-inputs.mjs';
+import {publicCalculatorExplanationDraft} from './calculation/public-calculator-explanation.mjs';
 
 const config=JSON.parse(document.querySelector('#q-calculator-config')?.textContent||'{}');
 const form=document.querySelector('[data-calculator-form]');
 const result=document.querySelector('[data-calculator-result]');
 const status=document.querySelector('[data-calculator-status]');
+const explainButton=document.querySelector('[data-explain-result]'),explainStatus=document.querySelector('[data-explain-status]');
+let explanationDraft=null,latestReceipt=null,lastPreparedDraft='';
+const invalidateExplanation=()=>{explanationDraft=null;latestReceipt=null;if(explainButton)explainButton.disabled=true;if(explainStatus)explainStatus.textContent='';};
 const humanize=(value)=>String(value).replace(/([a-z0-9])([A-Z])/g,'$1 $2').replace(/[-_]+/g,' ').replace(/^./,letter=>letter.toUpperCase());
 const format=(value)=>typeof value==='number'?new Intl.NumberFormat(undefined,{maximumFractionDigits:6}).format(value):value==null?'Not available':typeof value==='object'?JSON.stringify(value):String(value);
 const emit=(type)=>document.dispatchEvent(new CustomEvent('qelly:calculator-event',{detail:{type,calculator:config.slug}}));
@@ -108,11 +112,13 @@ function calculate(){
     const receipt=calculateFormula(config.formulaId,inputs);
     if(receipt.status!=='success')throw new Error(receipt.validationErrors?.[0]?.message||'Check the inputs.');
     renderOutputs(receipt.outputs);
+    latestReceipt=receipt;explanationDraft=null;if(explainButton)explainButton.disabled=false;if(explainStatus)explainStatus.textContent='';
     status.textContent=`Calculated locally · ${receipt.formulaVersion} · ${new Date(receipt.calculatedAt).toLocaleString()}`;
     status.dataset.state='success';
     emit('calculation_completed');
     return true;
   }catch(error){
+    invalidateExplanation();
     renderError(error);
     status.textContent='Result unavailable until every input is valid.';
     status.dataset.state='error';
@@ -123,7 +129,19 @@ function calculate(){
 mountFields();
 const loadedSharedState=loadSharedInputs();
 form.addEventListener('submit',event=>{event.preventDefault();calculate();});
-let timer;form.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(calculate,160);});
+let timer;form.addEventListener('input',()=>{invalidateExplanation();clearTimeout(timer);timer=setTimeout(calculate,160);});
+explainButton?.addEventListener('click',()=>{
+  if(!calculate()||!latestReceipt)return;
+  try{explanationDraft=publicCalculatorExplanationDraft(latestReceipt);}
+  catch(error){explainButton.disabled=true;explainStatus.textContent=error.message;return;}
+  const input=document.querySelector('[data-q-ai-form] textarea');
+  if(!input){explainStatus.textContent='Chat is still loading. Try again shortly.';return;}
+  const current=input.value.trim();
+  if(current&&input.value!==globalThis.__QELLY_CHAT_CONTEXT__?.prompt&&input.value!==lastPreparedDraft){explainStatus.textContent='Your unsent Chat draft was preserved. Clear its text, then choose Explain result again.';return;}
+  document.dispatchEvent(new CustomEvent('qelly:open-ai',{detail:{prompt:explanationDraft,mode:'explain'}}));
+  if(input.value!==explanationDraft){explainStatus.textContent='Your unsent Chat draft was preserved. Clear its text, then choose Explain result again.';return;}
+  lastPreparedDraft=explanationDraft;explainStatus.textContent='Draft prepared locally. Review it in Chat; Send shares these inputs and this result with QELLY.';
+});
 document.querySelector('[data-reset]')?.addEventListener('click',()=>{history.replaceState(null,'',location.pathname+location.search);form.reset();calculate();});
 document.querySelector('[data-share]')?.addEventListener('click',async()=>{try{const url=shareUrl(collectInputs());if(navigator.share)await navigator.share({title:document.title,url});else await navigator.clipboard.writeText(url);status.textContent='Share link ready · inputs are stored only in the URL fragment, not on QELLY servers.';status.dataset.state='success';emit('share');}catch(error){status.textContent=error?.message||'Share is unavailable in this browser.';status.dataset.state='error';}});
 document.querySelectorAll('[data-related]').forEach(link=>link.addEventListener('click',()=>emit('related_calculator_click')));
