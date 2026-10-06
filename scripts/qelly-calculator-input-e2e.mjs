@@ -194,6 +194,7 @@ try{
       await page.locator('.q-cn-global-categories summary').first().press('Escape');assert.equal(await page.locator('.q-cn-global-categories details[open]').count(),0);
       if(surface==='calculator')await page.locator('#calc-winProbability').fill('17.25');
       await launcher.click();await panel.waitFor({state:'visible'});
+      await page.waitForFunction(()=>[...document.querySelectorAll('.q-ai-root img')].every(image=>image.complete&&image.naturalWidth>0));
       const draft=await page.locator('[data-q-ai-form] textarea').inputValue();assert.doesNotMatch(draft,/17\.25|winProbability|averageWin/);
       assert.equal(await page.getByRole('button',{name:'Send question',exact:true}).count(),1);
       const geometry=await panel.boundingBox();assert.ok(geometry.x>=-1&&geometry.y>=-1&&geometry.x+geometry.width<=width+1&&geometry.y+geometry.height<=901);
