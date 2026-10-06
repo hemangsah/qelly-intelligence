@@ -41,9 +41,10 @@ const state={
 };
 
 const now=()=>globalThis.performance?.now?.()??Date.now();
-const boundedPush=(list,value,max)=>{if(!Number.isFinite(Number(value)))return;list.push(Number(value));if(list.length>max)list.splice(0,list.length-max);};
+const measuredNumber=value=>typeof value==='number'&&Number.isFinite(value)&&value>=0;
+const boundedPush=(list,value,max)=>{if(!measuredNumber(value))return;list.push(value);if(list.length>max)list.splice(0,list.length-max);};
 const increment=(object,key,count=1)=>{const safe=String(key||'unknown').toLowerCase().replace(/[^a-z0-9_.:-]+/g,'_').slice(0,64)||'unknown';object[safe]=(object[safe]||0)+Math.max(0,Number(count)||0);};
-const round=(value,digits=2)=>Number.isFinite(Number(value))?Number(Number(value).toFixed(digits)):null;
+const round=(value,digits=2)=>measuredNumber(value)?Number(value.toFixed(digits)):null;
 const quantile=(values,p)=>{
   const sorted=(Array.isArray(values)?values:[]).filter(Number.isFinite).sort((a,b)=>a-b);
   if(!sorted.length)return null;
@@ -90,8 +91,8 @@ const recordProviderLatency=(data)=>{
   for(const [key,label] of Object.entries(PROVIDER_COMPONENTS)){
     const component=components?.[key];
     const provider=observed?.[key];
-    const ms=Number(component?.ms);
-    if(Number.isFinite(ms)){
+    const ms=component?.ms;
+    if(measuredNumber(ms)){
       state.providerLatency[label]??=[];
       boundedPush(state.providerLatency[label],ms,MAX_PROVIDER_SAMPLES);
     }
