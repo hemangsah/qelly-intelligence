@@ -196,6 +196,11 @@ const crossAssetContext=(data,escapeHtml)=>{
   '</div><p>'+escapeHtml(context.method||'')+'</p><p class="q-dpg-cross-asset__limit">Correlation, beta, relative strength, spread z-score and exploratory lag are window-dependent descriptive context. Correlation is not causation; cointegration is not claimed. This panel does not independently create BUY, SELL or NO TRADE eligibility.</p></section>';
 };
 
+const calendarReferenceDate=value=>{
+  if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return null;
+  const date=new Date(value+'T00:00:00.000Z');
+  return Number.isFinite(date.getTime())&&date.toISOString().slice(0,10)===value?value:null;
+};
 const macroContext=(data,escapeHtml)=>{
   const macro=data?.evidence?.macro||data?.macro;
   const state=String(macro?.state||'unavailable').toUpperCase();
@@ -207,7 +212,7 @@ const macroContext=(data,escapeHtml)=>{
       '<article><span>EUR / USD</span><strong>'+fx(macro.fxReference?.eurUsd)+'</strong><small>ECB quote per EUR</small></article>'+
       '<article><span>USD / INR</span><strong>'+fx(macro.fxReference?.usdInr)+'</strong><small>derived from same-day ECB EUR crosses</small></article>'+
       '<article><span>EUR / INR</span><strong>'+fx(macro.fxReference?.eurInr)+'</strong><small>ECB quote per EUR</small></article>'+
-      '<article><span>Observed</span><strong>'+escapeHtml(displayTime(macro.observedAt))+'</strong><small>'+escapeHtml(String(macro.freshness||'daily reference').replaceAll('_',' '))+'</small></article>'+
+      '<article><span>Reference date</span><strong>'+escapeHtml(calendarReferenceDate(macro.referenceDate)||'Date unavailable')+'</strong><small>'+escapeHtml(String(macro.freshness||'daily reference').replaceAll('_',' '))+' · exact publication time unavailable</small></article>'+
       '<article><span>Provider</span><strong>European Central Bank</strong><small>'+escapeHtml(String(macro.quality||'official reference').replaceAll('_',' '))+'</small></article>'+
       '<article><span>Intraday feed</span><strong>NOT CONNECTED</strong><small>reference-only context</small></article>'+
     '</div>'+
@@ -1600,4 +1605,4 @@ export async function renderDecisionProvenGraph(main,deps){
   await load();
 }
 
-export const __decisionProvenGraphRouteTest=Object.freeze({CHAT_DECISION_CONTEXT_KEY,DECISION_ASSETS,readChatDecisionContext,storeResearchContext,normalizeHorizon,validHorizons,telemetryToken,rrTelemetryState,canonicalDecisionAsset,displayTime,formatRangeDuration,selectionIndexBounds,buildRangeSelection,rangeSelectionMetrics});
+export const __decisionProvenGraphRouteTest=Object.freeze({CHAT_DECISION_CONTEXT_KEY,DECISION_ASSETS,readChatDecisionContext,storeResearchContext,normalizeHorizon,validHorizons,telemetryToken,rrTelemetryState,canonicalDecisionAsset,displayTime,formatRangeDuration,selectionIndexBounds,buildRangeSelection,rangeSelectionMetrics,macroContext});

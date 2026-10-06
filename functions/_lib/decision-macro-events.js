@@ -1,3 +1,4 @@
+import {ecbReferenceDate} from './ecb-reference-date.js';
 const finite=(value)=>value==null||value===''?null:Number.isFinite(Number(value))?Number(value):null;
 const round=(value,digits=6)=>Number.isFinite(value)?Number(value.toFixed(digits)):null;
 
@@ -6,6 +7,8 @@ const macroUnavailable=(reason='Governed macro reference data is unavailable.')=
   level:'UNAVAILABLE',
   provider:null,
   observedAt:null,
+  referenceDate:null,
+  observationTimePrecision:'unavailable',
   freshness:'UNAVAILABLE',
   intradayFeedConnected:false,
   eligibilityImpact:'none',
@@ -20,11 +23,14 @@ export function buildDecisionMacroContext(providerResult){
   const usd=finite(rates?.USD),inr=finite(rates?.INR);
   if(!rates||usd===null||usd<=0||inr===null||inr<=0)return macroUnavailable(providerResult?.fallbackReason||'ECB reference-rate data is unavailable or incomplete.');
   const stale=String(providerResult?.truthState||'').toLowerCase().includes('stale');
+  const referenceDate=ecbReferenceDate(providerResult?.data?.date??providerResult?.observationDate);
   return {
     state:'available',
     level:'DAILY_REFERENCE',
     provider:providerResult?.provider||'ecb-reference-rates',
-    observedAt:providerResult?.observationTime||null,
+    observedAt:null,
+    referenceDate,
+    observationTimePrecision:referenceDate?'date':'unavailable',
     ingestionTime:providerResult?.ingestionTime||null,
     freshness:providerResult?.freshness||'daily-working-day-reference',
     truthState:providerResult?.truthState||'delayed_provider',
