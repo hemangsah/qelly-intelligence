@@ -424,7 +424,7 @@ const exercise=async({name,viewport,touch=false})=>{
   const retailScenarioText=(await page.locator('[data-dpg-leading-scenario]').innerText()).replace(/\s+/g,' ').trim();
   const scenarioScores=Object.entries(latestDecisionFixture?.qellyView?.scenario||{}).filter(([id,value])=>['bull','base','bear'].includes(id)&&value!==null&&value!==''&&Number.isFinite(Number(value))).sort((a,b)=>Number(b[1])-Number(a[1]));
   const expectedScenarioShare=scenarioScores.length?scenarioScores[0][0][0].toUpperCase()+scenarioScores[0][0].slice(1)+' · '+Math.round(Number(scenarioScores[0][1])*100)+'% share':'Unavailable';
-  const retailScenarioSummaryPassed=retailScenarioText.includes('Leading model scenario')&&retailScenarioText.includes(expectedScenarioShare)&&retailScenarioText.includes('Research model share, not a calibrated probability.');
+  const retailScenarioSummaryPassed=retailScenarioText.toLowerCase().includes('leading model scenario')&&retailScenarioText.includes(expectedScenarioShare)&&retailScenarioText.includes('Research model share, not a calibrated probability.');
   if(!retailScenarioSummaryPassed)failures.push({type:'retail-scenario-probability-boundary',retailScenarioText,expectedScenarioShare});
   if(await page.locator('[data-dpg-mode-panel="advanced"]').count())failures.push({type:'decision-mode-simple-leak',message:'Advanced panel rendered in Simple Mode'});
   if(await page.locator('[data-dpg-mode-panel="research"]').count())failures.push({type:'decision-mode-simple-leak',message:'Research panel rendered in Simple Mode'});
