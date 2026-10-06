@@ -62,9 +62,10 @@ test('link initiation enforces Origin, authentication, CSRF and no provider/sess
   for(const config of [{origin:'https://evil.example'},{origin:null},{csrf:false}])await assert.rejects(()=>handleAuth({request:request('auth/oauth/link',{provider:'google'},config),env},'auth/oauth/link','POST'),error=>error.status===403);
   assert.equal(calls.filter(call=>call.url.includes('/identities/authorize')).length,0);
   await assert.rejects(()=>handleAuth({request:request('auth/oauth/link',{provider:'google'}),env:{...env,QELLY_MANUAL_IDENTITY_LINKING_VERIFIED:'false'}},'auth/oauth/link','POST'),error=>error.code==='identity_link_not_verified');
-  const response=await handleAuth({request:request('auth/oauth/link',{provider:'google',userId:otherId,scope:'gmail.modify',redirect:'https://evil.example'}),env},'auth/oauth/link','POST');
+  const initiatingAccess=token(claims());
+  const response=await handleAuth({request:request('auth/oauth/link',{provider:'google',userId:otherId,scope:'gmail.modify',redirect:'https://evil.example'},{access:initiatingAccess}),env},'auth/oauth/link','POST');
   assert.equal(response.status,200);const payload=await response.json();assert.equal(payload.grantedScopes,'openid email profile');
-  const call=calls.find(call=>call.url.includes('/identities/authorize'));assert.equal(call.options.headers.Authorization,'Bearer '+token(claims()));assert.equal(new URL(call.url).searchParams.get('scopes'),'openid email profile');
+  const call=calls.find(call=>call.url.includes('/identities/authorize'));assert.equal(call.options.headers.Authorization,'Bearer '+initiatingAccess);assert.equal(new URL(call.url).searchParams.get('scopes'),'openid email profile');
   const cookies=response.headers.get('set-cookie');assert.match(cookies,/HttpOnly/);assert.match(cookies,/Max-Age=600/);assert.doesNotMatch(JSON.stringify(payload),/userId|sessionId|verifier|access_token|refresh_token/);
 });
 
