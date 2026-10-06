@@ -157,7 +157,7 @@ function shellMarkup(){
   </aside>`;
 }
 
-const currentRoute=()=>/^\/calculators(?:\/|$)/.test(globalThis.location?.pathname||'')?'calculator-center':String(globalThis.location?.hash||'').replace(/^#\/?/,'').split(/[/?#]/)[0]||'feature-universe';
+const currentRoute=()=>routeIdentityFor(globalThis.document?.body?.dataset?.qellyChatRoute)?.route||(/^\/calculators(?:\/|$)/.test(globalThis.location?.pathname||'')?'calculator-center':String(globalThis.location?.hash||'').replace(/^#\/?/,'').split(/[/?#]/)[0]||'feature-universe');
 const safeDockText=(value,fallback,max=96)=>String(value??fallback).replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max)||fallback;
 const normalizeDockContext=(value={})=>{
   const route=safeDockText(value.route,currentRoute(),64);
