@@ -591,7 +591,9 @@ const exercise=async({name,viewport,touch=false})=>{
 
 const exerciseInitialLoading=async(width,appearance)=>{
   const context=await browser.newContext({viewport:{width,height:844},colorScheme:appearance,serviceWorkers:'block',reducedMotion:'reduce'});
-  const page=await context.newPage();let releaseCatalog,markRequested,decisionRequests=0;
+  const page=await context.newPage();let releaseCatalog,markRequested,decisionRequests=0,releaseStyles,markStyleRequested;
+  const stylesGate=new Promise(resolve=>{releaseStyles=resolve;}),stylesRequested=new Promise(resolve=>{markStyleRequested=resolve;});
+  await page.route('**/assets/qelly-decision-proven-graph.css',async route=>{markStyleRequested();await stylesGate;await route.continue();});
   const gate=new Promise(resolve=>{releaseCatalog=resolve;}),requested=new Promise(resolve=>{markRequested=resolve;});
   await context.route('**/api/v1/user/layout-preferences',async route=>{if(route.request().method()!=='GET')return route.continue();const response=await route.fetch();await route.fulfill({response,json:{...await response.json(),appearance}});});
   await page.route('**/api/v1/decision-assets**',async route=>{markRequested();await gate;await proxyDecision(route);});
@@ -599,6 +601,12 @@ const exerciseInitialLoading=async(width,appearance)=>{
   await page.route('**/api/v1/decision-news-context**',proxyDecision);
   try{
     await page.goto(localOrigin+'/#/decision-provenance',{waitUntil:'domcontentloaded',timeout:45000});
+    await Promise.race([stylesRequested,new Promise((_,reject)=>setTimeout(()=>reject(new Error('Decision style request did not start')),10000))]);
+    await page.waitForTimeout(150);
+    if(await page.locator('.q-dpg-page').count()!==0||decisionRequests!==0)throw new Error('Decision content was exposed before its layout stylesheet loaded');
+    if(!await page.locator('.q-product-header').isVisible())throw new Error('Header disappeared while route styling was pending');
+    await page.screenshot({path:path.join(outputDir,'stylesheet-pending-'+width+'-'+appearance+'.png'),fullPage:false});
+    releaseStyles();
     await Promise.race([requested,new Promise((_,reject)=>setTimeout(()=>reject(new Error('Capability request did not start')),10000))]);
     const closeFeatures=page.getByRole('button',{name:'Hide all Qelly features',exact:true});
     if(await closeFeatures.count())await closeFeatures.click();
@@ -649,12 +657,12 @@ const exerciseInitialLoading=async(width,appearance)=>{
     }));
     if(!sloCardReadability.length||sloCardReadability.some(card=>!card.contentFits||!card.textContained))throw new Error('SLO diagnostic text overlaps or escapes its card: '+JSON.stringify(sloCardReadability));
     await page.screenshot({path:path.join(outputDir,'unobserved-slo-'+width+'-'+appearance+'.png'),fullPage:false});
-    initialLoadingResults.push({width,appearance,status:'passed',catalogHeldBeforeDecision:true,lightPanelContrast,unobservedScannerSlo,sloCardReadability,macroReferenceDate,fixture:'synthetic governed provider'});
+    initialLoadingResults.push({width,appearance,status:'passed',stylesheetReadyBeforeContent:true,catalogHeldBeforeDecision:true,lightPanelContrast,unobservedScannerSlo,sloCardReadability,macroReferenceDate,fixture:'synthetic governed provider'});
   }catch(error){
     await page.screenshot({path:path.join(outputDir,'initial-loading-'+width+'-'+appearance+'-failed.png'),fullPage:true}).catch(()=>{});
     await writeFile(path.join(outputDir,'initial-loading-'+width+'-'+appearance+'-failure.json'),JSON.stringify({message:error.message,decisionRequests,mainText:await page.locator('main').innerText().catch(()=>''),fixture:'synthetic governed provider'},null,2));
     throw error;
-  }finally{releaseCatalog();await context.close();}
+  }finally{releaseStyles();releaseCatalog();await context.close();}
 };
 
 try{
@@ -669,6 +677,7 @@ try{
 
 const report={status:results.every(item=>item.failures.length===0)&&initialLoadingResults.length===4?'passed':'failed',initialLoadingCases:initialLoadingResults.length,unobservedScannerSloCases:initialLoadingResults.filter(row=>row.unobservedScannerSlo?.state==='UNAVAILABLE').length,initialLoadingResults,evidenceBackend:'deterministic-governed-provider-fixture',liveProductionTruthValidatedSeparately:true,frontendHead:process.env.QELLY_SCREEN_EVIDENCE_SHA||process.env.GITHUB_SHA||null,results};
 report.sloCardReadabilityCases=initialLoadingResults.filter(row=>row.sloCardReadability?.length&&row.sloCardReadability.every(card=>card.contentFits&&card.textContained)).length;
+report.stylesheetReadinessCases=initialLoadingResults.filter(row=>row.stylesheetReadyBeforeContent).length;
 report.macroReferenceDateCases=initialLoadingResults.filter(row=>row.macroReferenceDate?.date===fixtureReferenceDate&&row.macroReferenceDate?.boundary.includes('exact publication time unavailable')).length;
 await writeFile(path.join(outputDir,'report.json'),JSON.stringify(report,null,2));
 console.log(JSON.stringify(report,null,2));
