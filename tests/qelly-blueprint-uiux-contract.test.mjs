@@ -50,9 +50,11 @@ test('application shell preserves accessibility and no broken font preload',asyn
 
 test('theme controls expose accessible names and governed persistence boundaries',async()=>{
   const bootstrap=await read('apps/web/public/assets/theme-intelligence-bootstrap.mjs');
+  const transport=await read('apps/web/public/assets/theme-preference-store.mjs');
   assert.match(bootstrap,/setAttribute\('aria-label','Open Theme Studio'\)/);
-  assert.match(bootstrap,/credentials:'include'/);
-  assert.match(bootstrap,/X-Qelly-CSRF/);
+  assert.match(bootstrap,/createThemePreferenceStore/);
+  assert.match(transport,/credentials:'include'/);
+  assert.match(transport,/X-Qelly-CSRF/);
   assert.match(bootstrap,/staticVisualPreview/);
   assert.match(bootstrap,/high-contrast/);
 });
