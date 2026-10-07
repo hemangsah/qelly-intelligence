@@ -10,8 +10,8 @@ try{
  for(const width of [1440,390])for(const appearance of ['dark','light']){
   const context=await browser.newContext({viewport:{width,height:900},colorScheme:appearance,reducedMotion:'reduce',serviceWorkers:'block'});
   await context.addInitScript(value=>localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({version:2,appearance:value})),appearance);
-  const page=await context.newPage();let writes=0,missing=false;
-  page.on('request',request=>{if(!['GET','HEAD','OPTIONS'].includes(request.method())&&new URL(request.url()).pathname.startsWith('/api/v1/'))writes++;});
+  const page=await context.newPage();let writes=0,missing=false;const mutations=[];
+  page.on('request',request=>{if(!['GET','HEAD','OPTIONS'].includes(request.method())&&new URL(request.url()).pathname.startsWith('/api/v1/')){writes++;mutations.push({method:request.method(),path:new URL(request.url()).pathname});}});
   await page.route('**/api/v1/user/layout-preferences',async route=>{if(route.request().method()!=='GET')return route.continue();const response=await route.fetch();await route.fulfill({response,json:{...await response.json(),appearance}});});
   const fixture=()=>missing?{...source,observationDate:null,data:{rates:{}}}:source;
   await page.route('**/api/v1/providers/ecb*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(fixture())}));
@@ -29,7 +29,7 @@ try{
    await page.screenshot({path:out+'/market-ecb-'+width+'-'+appearance+'.png',fullPage:true});
    missing=true;await page.reload({waitUntil:'domcontentloaded'});await page.getByText('ECB observations unavailable',{exact:true}).first().waitFor({state:'visible',timeout:30000});
    await page.locator('.q-public-source-card[data-source="ecb"]').waitFor({state:'visible',timeout:30000});assert.equal(await page.locator('.q-v7-rate-card').count(),0);
-   assert.match(await page.locator('.q-v7-reference-panel').innerText(),/Reference date not supplied/);assert.equal(await page.locator('[data-public-source-status]').innerText(),'0 SOURCES AVAILABLE');assert.equal(writes,0);
+   assert.match(await page.locator('.q-v7-reference-panel').innerText(),/Reference date not supplied/);assert.equal(await page.locator('[data-public-source-status]').innerText(),'0 SOURCES AVAILABLE');assert.equal(writes,0,'Unexpected API mutations: '+JSON.stringify(mutations));
    results.push({width,appearance,status:'passed',referenceDate:'2026-10-06',intradayTimestampInvented:false,ecbSourceAttributed:true,missingObservationsFailClosed:true,writes});
   }catch(error){results.push({width,appearance,status:'failed',error:error.message});throw error;}finally{await context.close();}
  }
