@@ -11,7 +11,7 @@ try{
   await context.addInitScript(value=>localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({version:2,appearance:value})),appearance);
   await context.route('**/api/v1/preferences/layout',async route=>{if(route.request().method()!=='GET')return route.continue();const response=await route.fetch(),data=await response.json();await route.fulfill({response,json:{...data,appearance}});});
   const page=await context.newPage();activePage=page;await page.goto('http://127.0.0.1:'+server.port+'/#/market',{waitUntil:'domcontentloaded'});await page.locator('[data-product-category-toggle="tools"]').waitFor({state:'attached'});
-  if(width<1240)await page.locator('.q-product-menu').click();
+  await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
   for(const name of ['Tools','Decision']){
    const toggle=page.locator('[data-product-category-toggle]').filter({hasText:name==='Decision'?'Decide':name}).first(),category=toggle.locator('..'),menu=category.locator('[data-product-category-menu]');
    for(let i=0;i<25;i++){
@@ -30,9 +30,15 @@ try{
   await page.screenshot({path:out+'/header-'+appearance+'-'+scale+'.png'});await context.close();
  }
  for(const appearance of ['dark','light']){
-  const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true,colorScheme:appearance,serviceWorkers:'block'});const page=await context.newPage();
+  const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true,colorScheme:appearance,serviceWorkers:'block'});
+  await context.addInitScript(value=>localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({version:2,appearance:value})),appearance);
+  await context.route('**/api/v1/preferences/layout',async route=>{if(route.request().method()!=='GET')return route.continue();const response=await route.fetch(),data=await response.json();await route.fulfill({response,json:{...data,appearance}});});const page=await context.newPage();
   await page.goto('http://127.0.0.1:'+server.port+'/#/market',{waitUntil:'domcontentloaded'});await page.locator('.q-product-menu').tap();
-  const tools=page.locator('[data-product-category-toggle="tools"]');await tools.tap();assert.equal(await tools.getAttribute('aria-expanded'),'true');await tools.tap();assert.equal(await tools.getAttribute('aria-expanded'),'false');results.push({appearance,width:390,touchToggle:true});await context.close();
+  await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
+  const directory=page.locator('#q-feature-navigation');await directory.waitFor({state:'visible'});
+  await directory.locator('[data-feature-domain-filter="tools"]').tap();await directory.locator('[data-feature-route="calculator-center"]').waitFor({state:'visible'});
+  await directory.locator('[data-feature-domain-filter="evidence"]').tap();await directory.locator('[data-feature-route="decision-provenance"]').waitFor({state:'visible'});
+  results.push({appearance,width:390,touchDirectoryNavigation:true,toolsReachable:true,decisionReachable:true});await context.close();
  }
 }catch(error){const diagnostic={status:'failed',error:error.stack,results,ui:await activePage?.evaluate(()=>({focus:document.activeElement?.outerHTML,categories:[...document.querySelectorAll('[data-product-category-toggle]')].map(n=>({text:n.textContent,expanded:n.getAttribute('aria-expanded')}))})).catch(()=>null)};console.error(JSON.stringify(diagnostic));await writeFile(out+'/report.json',JSON.stringify(diagnostic,null,2)+'\n');throw error;}finally{await browser.close();await new Promise(resolve=>server.server.close(resolve));await new Promise(resolve=>server.evidenceUpstream.server.close(resolve));}
 await writeFile(out+'/report.json',JSON.stringify({status:'passed',transitions:300,results,boundary:'Isolated production-code fixture; actual preview/production Browser Use, full route E2E and browser zoom remain independently required.'},null,2)+'\n');console.log(JSON.stringify({status:'passed',transitions:300,cases:results.length}));

@@ -192,7 +192,7 @@ html[data-production-system="v8"] .q-product-category__menu{
   background:color-mix(in srgb,var(--q-chrome) 98%,transparent);box-shadow:0 22px 64px rgba(0,0,0,.28);
   backdrop-filter:blur(18px);
 }
-@media(min-width:1240px){html[data-production-system="v8"] .q-product-category__menu::before{content:"";position:absolute;left:0;right:0;top:-12px;height:12px}}
+@media(min-width:901px){html[data-production-system="v8"] .q-product-category__menu::before{content:"";position:absolute;left:0;right:0;top:-12px;height:12px}}
 html[data-production-system="v8"] .q-product-category__menu[hidden]{display:none!important}
 html[data-production-system="v8"] .q-product-category__menu a{
   display:grid;grid-template-columns:24px minmax(0,1fr);gap:9px;align-items:start;min-width:0;min-height:58px;
@@ -212,7 +212,7 @@ html[data-production-system="v8"] .q-product-category__menu a small{
   display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;color:var(--q-muted);font-size:10px;line-height:1.35;
 }
 
-@media(max-width:1239px){
+@media(max-width:900px){
   html[data-production-system="v8"] body #app header.q-product-header{
     grid-template-areas:"brand menu context search actions"!important;
     grid-template-columns:148px 42px minmax(96px,140px) minmax(180px,1fr) max-content!important;
@@ -245,6 +245,13 @@ html[data-production-system="v8"] .q-product-category__menu a small{
   html[data-production-system="v8"] body #app header.q-product-header>.q-product-context{padding-inline:8px}
   html[data-production-system="v8"] .q-product-context small{display:none}
   html[data-production-system="v8"] .q-product-category__menu{grid-template-columns:1fr}
+}
+@media(min-width:901px) and (max-width:1239px){
+  html[data-production-system="v8"] body #app header.q-product-header{grid-template-areas:"brand menu nav search actions"!important;grid-template-columns:44px 42px max-content minmax(150px,1fr) max-content!important}
+  html[data-production-system="v8"] body #app header.q-product-header>.q-product-nav{display:flex!important}
+  html[data-production-system="v8"] body #app header.q-product-header>.q-product-brand{width:44px!important;max-width:44px!important}
+  html[data-production-system="v8"] body #app header.q-product-header>.q-product-brand>span:last-child,
+  html[data-production-system="v8"] body #app header.q-product-header>.q-product-context{display:none!important}
 }
 /* The general mobile system-button rule also hid the appearance switch.
    Keep its actual control available without squeezing account/menu access. */
