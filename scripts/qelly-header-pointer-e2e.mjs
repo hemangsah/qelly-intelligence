@@ -2,15 +2,30 @@ import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {startServer} from './release-a5-evidence-server.mjs';
-const out='preview/header-pointer-e2e';await mkdir(out,{recursive:true});
-const server=await startServer({port:0,host:'127.0.0.1'}),browser=await chromium.launch({headless:true,executablePath:process.env.QELLY_BROWSER_EXECUTABLE||'/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage']});
-const results=[];let activePage=null;
+const live=process.env.QELLY_HEADER_LIVE==='true';
+const out=live?'preview/header-live-e2e':'preview/header-pointer-e2e';await mkdir(out,{recursive:true});
+const server=live?null:await startServer({port:0,host:'127.0.0.1'}),browser=await chromium.launch({headless:true,executablePath:process.env.QELLY_BROWSER_EXECUTABLE||'/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage']});
+const results=[];let activePage=null,blockedWrites=0;
+let site=server?'http://127.0.0.1:'+server.port:'https://terminal.qellyintelligence.com';
+if(live){
+ const sha=process.env.QELLY_SCREEN_EVIDENCE_SHA;assert.match(sha||'',/^[a-f0-9]{40}$/);
+ if(process.env.QELLY_HEADER_PREVIEW==='true'){
+  const response=await fetch('https://api.github.com/repos/'+process.env.GITHUB_REPOSITORY+'/commits/'+sha+'/check-runs',{headers:{authorization:'Bearer '+process.env.GH_TOKEN,accept:'application/vnd.github+json'}});assert.equal(response.status,200);
+  const checks=await response.json(),check=checks.check_runs.find(c=>c.name==='Cloudflare Pages'&&c.conclusion==='success');
+  const id=check?.details_url?.match(/pages\/view\/qelly-intelligence\/([a-f0-9]{8})-/)?.[1];assert.ok(id,'Exact preview deployment check missing');site='https://'+id+'.qelly-intelligence.pages.dev';
+ }
+ let matched=false;for(let attempt=0;attempt<60;attempt++){try{const r=await fetch(site+'/qelly-release.json',{cache:'no-store',signal:AbortSignal.timeout(10000)});matched=r.ok&&(await r.json()).releaseSha===sha;}catch{}if(matched)break;await new Promise(r=>setTimeout(r,10000));}assert.equal(matched,true,'Exact public release identity required');
+}
+async function configure(context,appearance){
+ if(live){await context.route('**/*',async r=>{if(['GET','HEAD','OPTIONS'].includes(r.request().method()))await r.continue();else{blockedWrites++;await r.abort();}});}
+ else await context.route('**/api/v1/preferences/layout',async route=>{if(route.request().method()!=='GET')return route.continue();const response=await route.fetch(),data=await response.json();await route.fulfill({response,json:{...data,appearance}});});
+}
 try{
  for(const appearance of ['dark','light'])for(const scale of [1,1.25,1.5]){
   const width=Math.round(1440/scale),context=await browser.newContext({viewport:{width,height:900},colorScheme:appearance,reducedMotion:'reduce',serviceWorkers:'block'});
   await context.addInitScript(value=>localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({version:2,appearance:value})),appearance);
-  await context.route('**/api/v1/preferences/layout',async route=>{if(route.request().method()!=='GET')return route.continue();const response=await route.fetch(),data=await response.json();await route.fulfill({response,json:{...data,appearance}});});
-  const page=await context.newPage();activePage=page;await page.goto('http://127.0.0.1:'+server.port+'/#/market',{waitUntil:'domcontentloaded'});await page.locator('[data-product-category-toggle="tools"]').waitFor({state:'attached'});
+  await configure(context,appearance);
+  const page=await context.newPage();activePage=page;await page.goto(site+'/#/market',{waitUntil:'domcontentloaded'});await page.locator('[data-product-category-toggle="tools"]').waitFor({state:'attached'});
   await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
   for(const name of ['Tools','Decision']){
    const toggle=page.locator('[data-product-category-toggle]').filter({hasText:name==='Decision'?'Decide':name}).first(),category=toggle.locator('..'),menu=category.locator('[data-product-category-menu]');
@@ -32,13 +47,13 @@ try{
  for(const appearance of ['dark','light']){
   const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true,colorScheme:appearance,serviceWorkers:'block'});
   await context.addInitScript(value=>localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({version:2,appearance:value})),appearance);
-  await context.route('**/api/v1/preferences/layout',async route=>{if(route.request().method()!=='GET')return route.continue();const response=await route.fetch(),data=await response.json();await route.fulfill({response,json:{...data,appearance}});});const page=await context.newPage();
-  await page.goto('http://127.0.0.1:'+server.port+'/#/market',{waitUntil:'domcontentloaded'});await page.locator('.q-product-menu').tap();
+  await configure(context,appearance);const page=await context.newPage();
+  await page.goto(site+'/#/market',{waitUntil:'domcontentloaded'});await page.locator('.q-product-menu').tap();
   await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
   const directory=page.locator('#q-feature-navigation');await directory.waitFor({state:'visible'});
   await directory.locator('[data-feature-domain-filter="tools"]').tap();await directory.locator('[data-feature-route="calculator-center"]').waitFor({state:'visible'});
   await directory.locator('[data-feature-domain-filter="evidence"]').tap();await directory.locator('[data-feature-route="decision-provenance"]').waitFor({state:'visible'});
-  results.push({appearance,width:390,touchDirectoryNavigation:true,toolsReachable:true,decisionReachable:true});await context.close();
+  await page.screenshot({path:out+'/header-'+appearance+'-mobile.png'});results.push({appearance,width:390,touchDirectoryNavigation:true,toolsReachable:true,decisionReachable:true});await context.close();
  }
-}catch(error){const diagnostic={status:'failed',error:error.stack,results,ui:await activePage?.evaluate(()=>({focus:document.activeElement?.outerHTML,categories:[...document.querySelectorAll('[data-product-category-toggle]')].map(n=>({text:n.textContent,expanded:n.getAttribute('aria-expanded')}))})).catch(()=>null)};console.error(JSON.stringify(diagnostic));await writeFile(out+'/report.json',JSON.stringify(diagnostic,null,2)+'\n');throw error;}finally{await browser.close();await new Promise(resolve=>server.server.close(resolve));await new Promise(resolve=>server.evidenceUpstream.server.close(resolve));}
-await writeFile(out+'/report.json',JSON.stringify({status:'passed',transitions:300,results,boundary:'Isolated production-code fixture; actual preview/production Browser Use, full route E2E and browser zoom remain independently required.'},null,2)+'\n');console.log(JSON.stringify({status:'passed',transitions:300,cases:results.length}));
+}catch(error){const diagnostic={status:'failed',error:error.stack,results,ui:await activePage?.evaluate(()=>({focus:document.activeElement?.outerHTML,categories:[...document.querySelectorAll('[data-product-category-toggle]')].map(n=>({text:n.textContent,expanded:n.getAttribute('aria-expanded')}))})).catch(()=>null)};console.error(JSON.stringify(diagnostic));await writeFile(out+'/report.json',JSON.stringify(diagnostic,null,2)+'\n');throw error;}finally{await browser.close();if(server){await new Promise(resolve=>server.server.close(resolve));await new Promise(resolve=>server.evidenceUpstream.server.close(resolve));}}
+await writeFile(out+'/report.json',JSON.stringify({status:'passed',transitions:300,results,site,live,blockedWrites,outgoingWrites:0,boundary:'Effective viewport testing is not actual browser zoom. Live mode uses actual governed responses, exact release identity and aborts all writes; isolated mode uses the evidence fixture.'},null,2)+'\n');console.log(JSON.stringify({status:'passed',transitions:300,cases:results.length}));
