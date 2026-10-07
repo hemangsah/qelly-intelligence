@@ -99,6 +99,8 @@ jobs:
         run: node scripts/qelly-calculator-input-e2e.mjs
       - name: Verify identity linking consent and fail-closed profile controls
         run: node scripts/qelly-identity-linking-e2e.mjs
+      - name: Verify Market Pulse daily ECB reference provenance
+        run: node scripts/qelly-market-ecb-date-e2e.mjs
       - name: Validate cold and warm first-paint stability
         run: node scripts/qelly-first-paint-stability.mjs
       - name: Capture every registered route in both themes at desktop and mobile widths
@@ -158,6 +160,7 @@ jobs:
             preview/chat-keyboard-e2e
             preview/calculator-input-e2e
             preview/identity-linking-e2e
+            preview/market-ecb-date-e2e
             validation/RELEASE_A5_ACCESSIBILITY_REGRESSION.json
           include-hidden-files: true
           if-no-files-found: warn
