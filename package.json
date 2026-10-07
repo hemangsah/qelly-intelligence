@@ -54,7 +54,7 @@
     "@fontsource-variable/ibm-plex-sans": "5.2.8",
     "@fontsource-variable/manrope": "5.2.8",
     "@fontsource-variable/plus-jakarta-sans": "5.2.8",
-    "playwright": "^1.62.0",
+    "playwright": "^1.63.0",
     "pngjs": "^7.0.0"
   }
 }
