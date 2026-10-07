@@ -13,7 +13,7 @@ try{
   const page=await context.newPage();activePage=page;await page.goto('http://127.0.0.1:'+server.port+'/#/market',{waitUntil:'domcontentloaded'});await page.locator('[data-product-category-toggle="tools"]').waitFor({state:'attached'});
   if(width<1240)await page.locator('.q-product-menu').click();
   for(const name of ['Tools','Decision']){
-   const toggle=page.locator('[data-product-category-toggle]').filter({hasText:name}).first(),category=toggle.locator('..'),menu=category.locator('[data-product-category-menu]');
+   const toggle=page.locator('[data-product-category-toggle]').filter({hasText:name==='Decision'?'Decide':name}).first(),category=toggle.locator('..'),menu=category.locator('[data-product-category-menu]');
    for(let i=0;i<25;i++){
     await page.mouse.move(width-10,880);await page.waitForTimeout(280);
     const trigger=await toggle.boundingBox();await page.mouse.move(trigger.x+trigger.width/2,trigger.y+trigger.height/2);await menu.waitFor({state:'visible'});

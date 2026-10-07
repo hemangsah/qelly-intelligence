@@ -92,12 +92,12 @@ function bindProductHeader(header){
   header.querySelectorAll('[data-product-category]').forEach((category)=>{
     const toggle=category.querySelector('[data-product-category-toggle]');
     toggle?.addEventListener('click',(event)=>{event.stopPropagation();setProductCategoryOpen(header,category,toggle.getAttribute('aria-expanded')!=='true');});
-    toggle?.addEventListener('keydown',(event)=>{if(event.key==='ArrowDown'){event.preventDefault();setProductCategoryOpen(header,category,true);category.querySelector('[data-product-route]')?.focus();}if(event.key==='Escape'){event.preventDefault();setProductCategoryOpen(header,category,false);toggle.focus();}});
+    toggle?.addEventListener('keydown',(event)=>{if(event.key==='ArrowDown'){event.preventDefault();setProductCategoryOpen(header,category,true);category.querySelector('[data-product-route]')?.focus();}if(event.key==='Escape'){event.preventDefault();event.stopPropagation();setProductCategoryOpen(header,category,false);toggle.focus();}});
     category.addEventListener('pointerenter',event=>{cancelCategoryClose(category);if(event.pointerType!=='touch'&&matchMedia('(hover:hover) and (min-width:761px)').matches)setProductCategoryOpen(header,category,true);});
     category.addEventListener('pointerleave',event=>{if(event.pointerType!=='touch'&&matchMedia('(hover:hover) and (min-width:761px)').matches)scheduleCategoryClose(header,category);});
     category.addEventListener('focusin',()=>cancelCategoryClose(category));
     category.addEventListener('focusout',event=>{if(!category.contains(event.relatedTarget))scheduleCategoryClose(header,category);});
-    category.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();setProductCategoryOpen(header,category,false);toggle?.focus();}});
+    category.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();setProductCategoryOpen(header,category,false);toggle?.focus();}});
   });
   header.querySelectorAll('[data-product-route]').forEach((element)=>element.addEventListener('click',(event)=>{event.preventDefault();header.classList.remove('is-menu-open');header.querySelector('.q-product-menu')?.setAttribute('aria-expanded','false');closeProductCategories(header);navigate(element.dataset.productRoute);}));
   header.querySelector('.q-product-search')?.addEventListener('submit',(event)=>{event.preventDefault();const query=new FormData(event.currentTarget).get('q')?.toString().trim();navigate('search',query?`q=${encodeURIComponent(query)}`:'');});
