@@ -12,14 +12,14 @@ try{
   await context.addInitScript(value=>localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({version:2,appearance:value})),appearance);
   const page=await context.newPage();let writes=0,missing=false;const mutations=[];
   page.on('request',request=>{if(!['GET','HEAD','OPTIONS'].includes(request.method())&&new URL(request.url()).pathname.startsWith('/api/v1/')){writes++;mutations.push({method:request.method(),path:new URL(request.url()).pathname});}});
-  await page.route('**/api/v1/user/layout-preferences',async route=>{if(route.request().method()!=='GET')return route.continue();const response=await route.fetch();await route.fulfill({response,json:{...await response.json(),appearance}});});
+  await page.route('**/api/v1/preferences/layout',async route=>{if(route.request().method()!=='GET')return route.continue();const response=await route.fetch();await route.fulfill({response,json:{...await response.json(),appearance}});});
   const fixture=()=>missing?{...source,observationDate:null,data:{rates:{}}}:source;
   await page.route('**/api/v1/providers/ecb*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(fixture())}));
   await page.route('**/api/v1/market/network',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({sources:{ecb:fixture()}})}));
   try{
    await page.goto('http://127.0.0.1:'+server.port+'/#/market',{waitUntil:'domcontentloaded'});
    await page.locator('[data-market-runtime="v7-public-no-fabrication"]').waitFor({state:'visible',timeout:30000});
-   if(await page.locator('html').getAttribute('data-resolved-appearance')!==appearance)await page.getByRole('button',{name:'Switch to '+appearance+' appearance',exact:true}).click();
+   await page.waitForFunction(expected=>document.documentElement.dataset.resolvedAppearance===expected,appearance,{timeout:10000});
    const panel=page.locator('.q-v7-reference-panel'),card=page.locator('.q-public-source-card[data-source="ecb"]');
    await card.waitFor({state:'visible',timeout:30000});
    assert.match(await panel.innerText(),/Reference date 2026-10-06 · daily/);assert.doesNotMatch(await panel.innerText(),/Observed: Not supplied|Observed.*00:00/);
