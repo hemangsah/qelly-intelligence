@@ -34,7 +34,7 @@ try{
     const trigger=await toggle.boundingBox();await page.mouse.move(trigger.x+trigger.width/2,trigger.y+trigger.height/2);await menu.waitFor({state:'visible'});
     const target=await menu.locator('a').first().boundingBox();assert.ok(target);const steps=i%3===0?4:i%3===1?16:32;
     await page.mouse.move(target.x+Math.min(target.width/2,80),target.y+target.height/2,{steps});
-    await page.waitForTimeout(i%3===2?350:40);assert.equal(await toggle.getAttribute('aria-expanded'),'true',name+' pointer travel '+i);
+    await page.waitForTimeout(i%3===2?350:40);assert.equal(await toggle.getAttribute('aria-expanded'),'true',name+' pointer travel '+i);if(i===0){const descriptions=await menu.locator('small').evaluateAll(nodes=>nodes.map(n=>({fontSize:parseFloat(getComputedStyle(n).fontSize),clipped:n.scrollHeight>n.clientHeight+1||n.scrollWidth>n.clientWidth+1})));assert.ok(descriptions.length>0);assert.ok(descriptions.every(n=>n.fontSize>=12&&!n.clipped),'Menu descriptions must remain readable and unclipped');}
    }
    await toggle.focus();await page.keyboard.press('ArrowDown');assert.equal(await menu.locator('a').first().evaluate(n=>n===document.activeElement),true);
    await page.keyboard.press('Escape');assert.equal(await toggle.getAttribute('aria-expanded'),'false');assert.equal(await toggle.evaluate(n=>n===document.activeElement),true);
