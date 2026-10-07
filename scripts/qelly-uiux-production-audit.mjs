@@ -6,7 +6,7 @@ const site='https://terminal.qellyintelligence.com',sha=process.env.QELLY_UIUX_B
 const appearance=process.env.QELLY_UIUX_APPEARANCE,width=Number(process.env.QELLY_UIUX_WIDTH),out='uiux-audit';
 assert.match(sha||'',/^[a-f0-9]{40}$/);assert.ok(['dark','light'].includes(appearance));assert.ok([390,1440].includes(width));
 await mkdir(out,{recursive:true});
-async function identity(){const r=await fetch(site+'/release.json',{cache:'no-store'});assert.equal(r.status,200);assert.equal((await r.json()).releaseSha,sha);}
+async function identity(){const r=await fetch(site+'/qelly-release.json',{cache:'no-store',signal:AbortSignal.timeout(20000)});assert.equal(r.status,200);assert.match(r.headers.get('content-type')||'',/json/);assert.equal((await r.json()).releaseSha,sha);}
 await identity();
 const browser=await chromium.launch({headless:true});const results=[],ownership=new Map();
 let protectedWritesAttempted=0;
