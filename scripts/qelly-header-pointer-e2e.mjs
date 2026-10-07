@@ -4,13 +4,13 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {startServer} from './release-a5-evidence-server.mjs';
 const out='preview/header-pointer-e2e';await mkdir(out,{recursive:true});
 const server=await startServer({port:0,host:'127.0.0.1'}),browser=await chromium.launch({headless:true,executablePath:process.env.QELLY_BROWSER_EXECUTABLE||'/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage']});
-const results=[];
+const results=[];let activePage=null;
 try{
  for(const appearance of ['dark','light'])for(const scale of [1,1.25,1.5]){
   const width=Math.round(1440/scale),context=await browser.newContext({viewport:{width,height:900},colorScheme:appearance,reducedMotion:'reduce',serviceWorkers:'block'});
   await context.addInitScript(value=>localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({version:2,appearance:value})),appearance);
   await context.route('**/api/v1/preferences/layout',async route=>{if(route.request().method()!=='GET')return route.continue();const response=await route.fetch(),data=await response.json();await route.fulfill({response,json:{...data,appearance}});});
-  const page=await context.newPage();await page.goto('http://127.0.0.1:'+server.port+'/#/market',{waitUntil:'domcontentloaded'});await page.locator('[data-product-category-toggle="tools"]').waitFor({state:'attached'});
+  const page=await context.newPage();activePage=page;await page.goto('http://127.0.0.1:'+server.port+'/#/market',{waitUntil:'domcontentloaded'});await page.locator('[data-product-category-toggle="tools"]').waitFor({state:'attached'});
   if(width<1240)await page.locator('.q-product-menu').click();
   for(const name of ['Tools','Decision']){
    const toggle=page.locator('[data-product-category-toggle]').filter({hasText:name}).first(),category=toggle.locator('..'),menu=category.locator('[data-product-category-menu]');
@@ -34,5 +34,5 @@ try{
   await page.goto('http://127.0.0.1:'+server.port+'/#/market',{waitUntil:'domcontentloaded'});await page.locator('.q-product-menu').tap();
   const tools=page.locator('[data-product-category-toggle="tools"]');await tools.tap();assert.equal(await tools.getAttribute('aria-expanded'),'true');await tools.tap();assert.equal(await tools.getAttribute('aria-expanded'),'false');results.push({appearance,width:390,touchToggle:true});await context.close();
  }
-}finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
+}catch(error){const diagnostic={status:'failed',error:error.stack,results,ui:await activePage?.evaluate(()=>({focus:document.activeElement?.outerHTML,categories:[...document.querySelectorAll('[data-product-category-toggle]')].map(n=>({text:n.textContent,expanded:n.getAttribute('aria-expanded')}))})).catch(()=>null)};console.error(JSON.stringify(diagnostic));await writeFile(out+'/report.json',JSON.stringify(diagnostic,null,2)+'\n');throw error;}finally{await browser.close();await new Promise(resolve=>server.server.close(resolve));await new Promise(resolve=>server.evidenceUpstream.server.close(resolve));}
 await writeFile(out+'/report.json',JSON.stringify({status:'passed',transitions:300,results,boundary:'Isolated production-code fixture; actual preview/production Browser Use, full route E2E and browser zoom remain independently required.'},null,2)+'\n');console.log(JSON.stringify({status:'passed',transitions:300,cases:results.length}));
