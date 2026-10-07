@@ -111,6 +111,13 @@ jobs:
         run: node scripts/qelly-header-pointer-e2e.mjs
       - name: Verify global chat keyboard focus and mobile containment
         run: node scripts/qelly-chat-keyboard-e2e.mjs
+      - name: Upload focused Chat control clearance evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-chat-clearance-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/chat-keyboard-e2e
+          if-no-files-found: warn
       - name: Verify signed calculator scenarios and input boundaries
         run: node scripts/qelly-calculator-input-e2e.mjs
       - name: Verify identity linking consent and fail-closed profile controls
