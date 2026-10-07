@@ -31,9 +31,9 @@ function zip(entries){
   return Buffer.concat([...local,directory,end]);
 }
 const sheetRow=(n,cells)=>'<row r="'+n+'">'+cells.map((value,i)=>'<c r="'+String.fromCharCode(65+i)+n+'" t="inlineStr"><is><t>'+String(value)+'</t></is></c>').join('')+'</row>';
-const workbook=()=>{
+const workbook=({duplicate=false}={})=>{
   const headers=['Time','Deal','Symbol','Type','Direction','Commission','Fee','Swap','Profit'];
-  const rows=[headers,...Array.from({length:6},(_,i)=>['2026.10.'+String(i+1).padStart(2,'0')+' 11:30',i+1,'EURUSD',i%2?'buy':'sell','out','-0.1',0,0,i%3?-2:4])];
+  const rows=[headers,...Array.from({length:6},(_,i)=>['2026.10.'+String(i+1).padStart(2,'0')+' 11:30',duplicate&&i===1?1:i+1,'EURUSD',i%2?'buy':'sell','out','-0.1',0,0,i%3?-2:4])];
   const xml='<?xml version="1.0" encoding="UTF-8"?><worksheet><sheetData>'+rows.map((row,i)=>sheetRow(i+1,row)).join('')+'</sheetData></worksheet>';
   return zip([['[Content_Types].xml','<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="xml" ContentType="application/xml"/></Types>'],['xl/workbook.xml','<workbook><sheets><sheet name="MT5 Deals" sheetId="1" r:id="rId1"/></sheets></workbook>'],['xl/worksheets/sheet1.xml',xml]]);
 };
@@ -334,6 +334,23 @@ async function scenario(browser,name,viewport){
     assert.equal(await page.locator('[data-mt5-route-chat]').isDisabled(),true);
     await page.screenshot({path:path.join(out,name+'-standalone-checksum-rejected.png'),fullPage:true});
     entry.checks.push('standalone invalid XLSX clears stale primary/comparison and disables export/Chat');
+    entry.duplicateTicketCases=0;
+    for(const appearance of ['light','dark']){
+      if(await page.locator('html').getAttribute('data-resolved-appearance')!==appearance)await page.getByRole('button',{name:'Switch to '+appearance+' appearance',exact:true}).click();
+      await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
+      for(const fixture of [{name:'duplicate-tickets.html',type:'text/html',buffer:Buffer.from('<table>'+header+deal(1,10)+deal(1,-3)+'</table>')},{name:'duplicate-tickets.xlsx',type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',buffer:workbook({duplicate:true})}]){
+        await page.locator('[data-mt5-route-input="A"]').setInputFiles({name:'valid-before-duplicate.html',mimeType:'text/html',buffer:Buffer.from(html(6))});
+        await page.locator('.q-mt5-route-primary .q-mt5-report').waitFor({state:'visible',timeout:30000});
+        await page.locator('[data-mt5-route-input="A"]').setInputFiles({name:fixture.name,mimeType:fixture.type,buffer:fixture.buffer});
+        await page.waitForFunction(()=>document.querySelector('#q-mt5-route-status-A')?.textContent.includes('Duplicate MT5 closing-deal tickets'),null,{timeout:30000});
+        assert.equal(await page.locator('.q-mt5-route-primary').count(),0);
+        assert.equal(await page.locator('[data-mt5-comparison-result]').count(),0);
+        for(const action of ['export','note','chat'])assert.equal(await page.locator('[data-mt5-route-'+action+']').isDisabled(),true);
+        await page.screenshot({path:path.join(out,name+'-duplicate-'+fixture.name.split('.').at(-1)+'-'+appearance+'.png'),fullPage:true});
+        entry.duplicateTicketCases++;
+      }
+    }
+    entry.checks.push('duplicate HTML/XLSX tickets reject totals and clear previous report/export/Chat in both appearances');
     await page.locator('[data-mt5-route-reset]').click();
     assert.equal(await page.locator('[data-mt5-route-note]').isDisabled(),true);
     assert.equal(await page.locator('.q-mt5-route-empty').count(),1);

@@ -3,6 +3,7 @@ import {mountTradingViewDisplay,mountTradingViewWidget,tradingViewAppearance,tra
 import {mountTradingViewMarketGrid} from '../market/tradingview-market-grid.mjs';
 import {mountCoinMarketCapWidgets,mountHyperliquidStream,mountXTimeline,PROVIDER_PORTALS} from '../market/external-intelligence-widgets.mjs';
 import {truthLabel} from '../customer-copy.mjs';
+import {ecbReferenceCaption,ecbReferenceRates} from '../market-ecb-reference.mjs';
 
 const EXTERNAL_SYMBOLS=Object.freeze([
   ['BTCUSDT','BTC / USDT'],
@@ -36,16 +37,15 @@ const tone=(value)=>{const state=String(value||'').toUpperCase();if(['ENABLED','
 const date=(value)=>{const parsed=new Date(value||'');return Number.isNaN(parsed.getTime())?'Not supplied':parsed.toLocaleString('en-IN');};
 const value=(input)=>input==null||input===''?'—':new Intl.NumberFormat('en-IN',{maximumFractionDigits:6}).format(Number(input));
 function governedRates(ecb,escapeHtml){
-  const rates=ecb?.data?.rates||{};
-  const preferred=['USD','INR','GBP','JPY','CHF','CNY','CAD','AUD','SGD','AED'];
-  const rows=preferred.filter(code=>rates[code]!=null).map(code=>[code,rates[code]]);
+  const rows=ecbReferenceRates(ecb);
   if(!rows.length)return '<div class="q-empty-state"><strong>ECB observations unavailable</strong><p>No approved reference observations were returned. Qelly will not substitute generated values.</p></div>';
-  const observedAt=ecb?.observationTime||ecb?.observedAt||null;
-  return rows.map(([code,rate])=>`<article class="q-v7-rate-card"><span>EUR / ${escapeHtml(code)}</span><strong>${escapeHtml(value(rate))}</strong><small>Observed ${escapeHtml(date(observedAt))}</small></article>`).join('');
+  const caption=ecbReferenceCaption(ecb);
+  return rows.map(([code,rate])=>`<article class="q-v7-rate-card"><span>EUR / ${escapeHtml(code)}</span><strong>${escapeHtml(value(rate))}</strong><small>${escapeHtml(caption)}</small></article>`).join('');
 }
 
 function sourceRows(source,escapeHtml){
   const rows=Array.isArray(source?.data)?source.data:[];
+  if(source?.id==='ecb')return governedRates(source,escapeHtml);
   if(source?.id==='alternative-me'){
     const assets=Array.isArray(source?.data?.assets)?source.data.assets.slice(0,5):[];
     const sentiment=source?.data?.sentiment;
@@ -66,11 +66,11 @@ function networkSourceCard(source,escapeHtml){
 
 function populateNetworkSections(root,network,escapeHtml){
   if(!root?.isConnected)return;
-  const networkSources=Object.values(network?.sources||{});
+  const networkSources=Object.entries(network?.sources||{}).map(([id,source])=>id==='ecb'?{...source,id:'ecb',label:'European Central Bank',truthState:ecbReferenceRates(source).length?source?.truthState:'unavailable',attribution:source?.attribution||'European Central Bank',cadence:'Daily reference rates · not executable quotes',docsUrl:'https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html'}:source);
   const sourceGrid=root.querySelector('[data-public-source-grid]');
   const sourceStatus=root.querySelector('[data-public-source-status]');
   if(sourceGrid)sourceGrid.innerHTML=networkSources.map((source)=>networkSourceCard(source,escapeHtml)).join('')||'<div class="q-empty-state"><strong>Public data network unavailable</strong><p>No source values were substituted.</p></div>';
-  if(sourceStatus){sourceStatus.className=`q-status q-status--${networkSources.some((source)=>source?.truthState==='live')?'live':'delayed'}`;sourceStatus.textContent=`${networkSources.filter((source)=>source?.data!=null).length} SOURCES AVAILABLE`;}
+  if(sourceStatus){sourceStatus.className=`q-status q-status--${networkSources.some((source)=>source?.truthState==='live')?'live':'delayed'}`;sourceStatus.textContent=`${networkSources.filter((source)=>source?.id==='ecb'?ecbReferenceRates(source).length>0:source?.data!=null).length} SOURCES AVAILABLE`;}
 }
 
 function panelConfig(panel,{symbol,interval}){
@@ -139,9 +139,9 @@ export async function renderMarketV6(main,deps){
   const ecb=await api('/api/v1/providers/ecb?capability=fx-reference-rates&symbol=EUR').catch(()=>null);
   const symbolOptions=EXTERNAL_SYMBOLS.map(([id,label])=>`<option value="${id}">${label}</option>`).join('');
   const intervalOptions=INTERVALS.map(([id,label])=>`<option value="${id}">${label}</option>`).join('');
-  const ecbObservedAt=ecb?.observationTime||ecb?.observedAt||null;
+  const ecbCaption=ecbReferenceCaption(ecb);
   const ecbIngestedAt=ecb?.ingestionTime||ecb?.ingestedAt||null;
-  const ecbTruth=String(ecb?.truthState||'unavailable').toUpperCase();
+  const ecbTruth=ecbReferenceRates(ecb).length?String(ecb?.truthState||'unavailable').toUpperCase():'UNAVAILABLE';
 
   main.innerHTML=`<section class="q-page q-market-home q-v7-public-market" data-market-runtime="v7-public-no-fabrication" data-qelly-v7-public-market="true">
     ${pageHead('Qelly Intelligence · Market Pulse','Market Pulse','Explore live market charts and reference observations with clear source and freshness. Missing market data is never replaced with invented values.',`<a class="q-button q-button--secondary" href="https://www.tradingview.com/markets/" target="_blank" rel="noopener noreferrer nofollow">TradingView Markets ↗</a><a class="q-button q-button--primary" href="#/research-workspace">Open research workspace</a>`)}
@@ -197,7 +197,7 @@ export async function renderMarketV6(main,deps){
 
     ${adSlot('market-intelligence-inline')}
 
-    <section class="q-panel q-v7-reference-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Approved reference observations</p><h2>ECB euro reference rates</h2><p>Source timing is preserved. Reference rates are informational and are not tradable quotes.</p></div><span class="q-status q-status--${tone(ecb?.truthState)}">${escapeHtml(truthLabel(ecbTruth))}</span></div><div class="q-panel-body"><div class="q-v7-rate-grid">${governedRates(ecb,escapeHtml)}</div><div class="q-v7-evidence-strip"><span>Source: European Central Bank</span><span>Observed: ${escapeHtml(date(ecbObservedAt))}</span><span>Updated: ${escapeHtml(date(ecbIngestedAt))}</span><span>Research only</span></div></div></section>
+    <section class="q-panel q-v7-reference-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Approved reference observations</p><h2>ECB euro reference rates</h2><p>Source timing is preserved. Reference rates are informational and are not tradable quotes.</p></div><span class="q-status q-status--${tone(ecbTruth)}">${escapeHtml(truthLabel(ecbTruth))}</span></div><div class="q-panel-body"><div class="q-v7-rate-grid">${governedRates(ecb,escapeHtml)}</div><div class="q-v7-evidence-strip"><span>Source: European Central Bank</span><span>${escapeHtml(ecbCaption)}</span><span>Intraday observation time not supplied</span><span>Retrieved: ${escapeHtml(date(ecbIngestedAt))}</span><span>Research only</span></div></div></section>
 
   </section>`;
 
