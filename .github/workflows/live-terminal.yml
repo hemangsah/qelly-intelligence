@@ -8,8 +8,7 @@ on:
       - 'functions/**'
       - 'scripts/**'
       - 'tests/**'
-      - '.github/workflows/live-terminal.yml'
-      - '.github/workflows/github-pages-mirror.yml'
+      - '.github/workflows/**'
       - 'package.json'
       - 'package-lock.json'
   push:
