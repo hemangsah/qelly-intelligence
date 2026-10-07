@@ -102,6 +102,13 @@ jobs:
           QELLY_HEADER_PREVIEW: ${{ github.event_name == 'pull_request' }}
           GH_TOKEN: ${{ github.token }}
         run: node scripts/qelly-header-pointer-e2e.mjs
+      - name: Verify exact deployed header at actual browser zoom
+        env:
+          QELLY_HEADER_LIVE: 'true'
+          QELLY_HEADER_ACTUAL_ZOOM: 'true'
+          QELLY_HEADER_PREVIEW: ${{ github.event_name == 'pull_request' }}
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/qelly-header-pointer-e2e.mjs
       - name: Verify global chat keyboard focus and mobile containment
         run: node scripts/qelly-chat-keyboard-e2e.mjs
       - name: Verify signed calculator scenarios and input boundaries
@@ -162,6 +169,7 @@ jobs:
           path: |
             preview/header-pointer-e2e
             preview/header-live-e2e
+            preview/header-zoom-e2e
       - name: Upload complete or diagnostic screen evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
