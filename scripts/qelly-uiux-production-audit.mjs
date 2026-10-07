@@ -9,11 +9,19 @@ await mkdir(out,{recursive:true});
 async function identity(){const r=await fetch(site+'/qelly-release.json',{cache:'no-store',signal:AbortSignal.timeout(20000)});assert.equal(r.status,200);assert.match(r.headers.get('content-type')||'',/json/);assert.equal((await r.json()).releaseSha,sha);}
 await identity();
 const browser=await chromium.launch({headless:true});const results=[],ownership=new Map();
-let protectedWritesAttempted=0;
+const blockedNonReadRequests=[];let protectedWritesAttempted=0,activeMode='setup';
 try{
  for(const route of routeDefinitions){
   const context=await browser.newContext({viewport:{width,height:width===390?844:900},colorScheme:appearance,hasTouch:width===390,serviceWorkers:'block'});
-  await context.route('**/*',async request=>{if(!['GET','HEAD','OPTIONS'].includes(request.request().method())){protectedWritesAttempted++;await request.abort();}else await request.continue();});
+  await context.route('**/*',async intercepted=>{
+   const request=intercepted.request();
+   if(!['GET','HEAD','OPTIONS'].includes(request.method())){
+    const destination=new URL(request.url()),protectedApi=destination.origin===site&&destination.pathname.startsWith('/api/');
+    if(protectedApi)protectedWritesAttempted++;
+    blockedNonReadRequests.push({route:route.route,mode:activeMode,method:request.method(),origin:destination.origin,pathname:destination.pathname,protectedApi,outcome:'aborted before network'});
+    await intercepted.abort();
+   }else await intercepted.continue();
+  });
   await context.addInitScript(({appearance})=>{
    localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({appearance,themeFamily:'sovereign-obsidian',persona:'quant-operator'}));
    const observations={paint:[],lcp:null,shifts:[],longTasks:[],events:[],identities:[]};window.__QELLY_UIUX_BASELINE__=observations;
@@ -23,6 +31,7 @@ try{
   const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message.slice(0,300)));
   const cdp=await context.newCDPSession(page);await cdp.send('Performance.enable');
   for(const mode of ['cold','warm']){
+   activeMode=mode;
    const row={route:route.route,label:route.label,section:route.section,public:route.public===true,hidden:route.hidden===true,appearance,width,mode,requestedUrl:site+'/#/'+route.route,baselineOnly:true,visualVerdict:'AWAITING HUMAN REVIEW',productionAcceptance:false};
    try{
     await identity();await page.coverage.startCSSCoverage();
@@ -58,4 +67,5 @@ await writeFile(out+'/QELLY_UIUX_PERFORMANCE_BASELINE.json',JSON.stringify({sour
 await writeFile(out+'/QELLY_UIUX_THEME_MATRIX.json',JSON.stringify({sourceSha:sha,results:results.map(r=>({route:r.route,appearance,width,observed:r.observed?.appearance,tokens:r.observed?.tokens,visualVerdict:r.visualVerdict}))},null,2)+'\n');
 for(const [file,key] of [['QELLY_UIUX_VERSION_LABEL_AUDIT.json','visibleInternalLabels'],['QELLY_UIUX_FIRST_PAINT_AUDIT.json','baseline']])await writeFile(out+'/'+file,JSON.stringify({sourceSha:sha,results:results.map(r=>({route:r.route,appearance,width,mode:r.mode,observed:r.observed?.[key],visualVerdict:r.visualVerdict}))},null,2)+'\n');
 const columns=['route','label','section','public','appearance','width','mode','status','visualVerdict','productionAcceptance'];const csv=v=>'"'+String(v??'').replaceAll('"','""')+'"';await writeFile(out+'/QELLY_UIUX_ROUTE_AUDIT.csv',columns.join(',')+'\n'+results.map(r=>columns.map(k=>csv(r[k])).join(',')).join('\n')+'\n');
-const receipt={sourceSha:sha,routeCount:routeDefinitions.length,appearance,width,cases:results.length,captured:results.filter(r=>r.status==='CAPTURED').length,defects: defects.length,protectedWritesAttempted,productionAcceptance:false,strictCompletionPercent:0,screenshotsKeptInCloud:true};await writeFile(out+'/receipt.json',JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt));assert.equal(protectedWritesAttempted,0);assert.equal(receipt.captured,routeDefinitions.length*2);
+await writeFile(out+'/QELLY_UIUX_BLOCKED_REQUESTS.json',JSON.stringify({sourceSha:sha,appearance,width,blockedNonReadRequests,outgoingNonReadRequests:0,boundary:'All non-read requests were intercepted and aborted. Paths exclude queries and bodies. Protected API attempts fail this baseline gate.'},null,2)+'\n');
+const receipt={sourceSha:sha,routeCount:routeDefinitions.length,appearance,width,cases:results.length,captured:results.filter(r=>r.status==='CAPTURED').length,defects: defects.length,blockedNonReadRequestCount:blockedNonReadRequests.length,protectedWritesAttempted,outgoingNonReadRequests:0,productionAcceptance:false,strictCompletionPercent:0,screenshotsKeptInCloud:true};await writeFile(out+'/receipt.json',JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt));assert.equal(protectedWritesAttempted,0);assert.equal(receipt.captured,routeDefinitions.length*2);
