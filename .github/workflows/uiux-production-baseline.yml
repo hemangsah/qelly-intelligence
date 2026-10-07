@@ -1,0 +1,59 @@
+name: UIUX Production Baseline
+on:
+  pull_request:
+    branches: [release/qelly-global-public-beta]
+    paths:
+      - scripts/qelly-uiux-production-audit.mjs
+      - .github/workflows/uiux-production-baseline.yml
+  workflow_dispatch:
+    inputs:
+      production_sha:
+        description: Exact production revision to audit
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: qelly-uiux-baseline-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  audit-live-routes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        appearance: [dark, light]
+        width: [1440, 390]
+    env:
+      QELLY_UIUX_BASE_SHA: ${{ inputs.production_sha || '07979b7a3fab5d890e3255e47616c540531e87ae' }}
+      QELLY_UIUX_APPEARANCE: ${{ matrix.appearance }}
+      QELLY_UIUX_WIDTH: ${{ matrix.width }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked cloud-only audit dependencies
+        run: npm ci --ignore-scripts
+      - name: Install cloud Chromium
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Audit actual production routes without protected writes
+        run: node scripts/qelly-uiux-production-audit.mjs
+      - name: Keep baseline screens and measurements in cloud
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-uiux-baseline-${{ env.QELLY_UIUX_BASE_SHA }}-${{ matrix.appearance }}-${{ matrix.width }}
+          path: uiux-audit
+          retention-days: 30
+      - name: Publish compact receipt
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-uiux-baseline-receipt-${{ matrix.appearance }}-${{ matrix.width }}
+          path: uiux-audit/receipt.json
+          retention-days: 30
