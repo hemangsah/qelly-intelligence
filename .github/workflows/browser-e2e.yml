@@ -93,6 +93,15 @@ jobs:
           test -s dist/frontend/assets/routes/notification-triage-v2.css
           test -s dist/frontend/assets/routes/screener-lab-v2.css
           grep -F "renderGovernedTrustCenterV2" dist/frontend/assets/app.js
+      - name: Verify canonical brand tokens and engine ownership
+        run: node scripts/qelly-brand-foundation-e2e.mjs
+      - name: Upload focused canonical brand evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qelly-brand-foundation-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/brand-foundation-e2e
+          if-no-files-found: warn
       - name: Verify global chat keyboard focus and mobile containment
         run: node scripts/qelly-chat-keyboard-e2e.mjs
       - name: Verify signed calculator scenarios and input boundaries
