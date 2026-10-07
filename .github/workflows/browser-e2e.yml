@@ -10,6 +10,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  checks: read
 concurrency:
   group: qelly-all-screens-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -93,6 +94,21 @@ jobs:
           test -s dist/frontend/assets/routes/notification-triage-v2.css
           test -s dist/frontend/assets/routes/screener-lab-v2.css
           grep -F "renderGovernedTrustCenterV2" dist/frontend/assets/app.js
+      - name: Verify header pointer travel, keyboard, touch and search geometry
+        run: node scripts/qelly-header-pointer-e2e.mjs
+      - name: Verify exact deployed header with actual governed responses
+        env:
+          QELLY_HEADER_LIVE: 'true'
+          QELLY_HEADER_PREVIEW: ${{ github.event_name == 'pull_request' }}
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/qelly-header-pointer-e2e.mjs
+      - name: Verify exact deployed header at actual browser zoom
+        env:
+          QELLY_HEADER_LIVE: 'true'
+          QELLY_HEADER_ACTUAL_ZOOM: 'true'
+          QELLY_HEADER_PREVIEW: ${{ github.event_name == 'pull_request' }}
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/qelly-header-pointer-e2e.mjs
       - name: Verify DEX research interactions and unavailable data boundaries
         run: node scripts/qelly-dex-workstation-e2e.mjs
       - name: Upload DEX research interaction evidence
@@ -153,6 +169,15 @@ jobs:
           NODE
       - name: Verify Decision selected-range interaction
         run: node scripts/qelly-decision-range-selection-e2e.mjs
+      - name: Upload focused header interaction evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-header-pointer-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: |
+            preview/header-pointer-e2e
+            preview/header-live-e2e
+            preview/header-zoom-e2e
       - name: Upload complete or diagnostic screen evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
