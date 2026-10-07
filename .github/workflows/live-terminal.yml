@@ -225,6 +225,8 @@ jobs:
             fs.writeFileSync('dist/live-terminal-acceptance/browser-evidence.json',JSON.stringify({canonical,mirror},null,2));
           })().catch(error=>{console.error(error);process.exit(1);});
           NODE
+      - name: Verify actual canonical MT5 duplicate upload failure behavior
+        run: node scripts/qelly-mt5-public-duplicate-e2e.mjs
       - name: Upload V8 live terminal and convergence evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -233,5 +235,6 @@ jobs:
           path: |
             dist/live-terminal-acceptance
             dist/live-public-verification/http
+            preview/mt5-public-duplicate-e2e
           if-no-files-found: error
           retention-days: 14
