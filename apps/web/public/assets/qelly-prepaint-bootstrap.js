@@ -12,6 +12,9 @@
   root.dataset.themeFamily=saved.themeFamily||'sovereign-obsidian';
   root.dataset.themePersona=saved.persona||'quant-operator';
   root.style.colorScheme=appearance==='light'?'light':'dark';
+  const brand=globalThis.__QELLY_BRAND_TOKENS__?.[appearance==='light'?'light':'dark'];
+  if(brand&&!['high-contrast','oled'].includes(appearance)){for(const [key,value]of Object.entries(brand))root.style.setProperty('--q-'+key.replace(/[A-Z]/g,c=>'-'+c.toLowerCase()),value);}
+
   root.dataset.themeReady='true';
   // The build embeds a sanitized snapshot of the authoritative route registry
   // before this blocking script. Route identity is set before the first paint.
