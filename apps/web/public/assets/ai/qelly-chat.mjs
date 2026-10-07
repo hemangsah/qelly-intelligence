@@ -1,5 +1,6 @@
 import {storeDecisionContext} from '../decision-context-bridge.mjs';
 import {routeIdentityFor} from '../route-registry.mjs';
+const sourceObservationLabel=source=>source?.observedDate?`reference date ${source.observedDate} · exact publication time unavailable`:source?.observedAt??'';
 const STORAGE_KEY='qelly.intelligence.chat.v1';
 const DECISION_DRAFT_KEY='qelly.decision.draft.v1';
 const MAX_MESSAGES=24;
@@ -106,7 +107,7 @@ const conversationalReply=(message)=>{
 function sourceList(sources=[]){
   const available=sources.filter((source)=>source?.truthState&&source.truthState!=='unavailable'&&safeUrl(source.url)!=='#');
   if(!available.length)return '';
-  return `<details class="q-ai-message-sources"><summary>${available.length} ${available.length===1?'source':'sources'} and freshness</summary><div>${available.map((source,index)=>`<a href="${esc(safeUrl(source.url))}" target="_blank" rel="noopener noreferrer nofollow"><span>${index+1}</span><strong>${esc(source.title)}</strong><small>${esc(source.truthState)}${source.observedAt?` · ${esc(source.observedAt)}`:''}</small></a>`).join('')}</div></details>`;
+  return `<details class="q-ai-message-sources"><summary>${available.length} ${available.length===1?'source':'sources'} and freshness</summary><div>${available.map((source,index)=>`<a href="${esc(safeUrl(source.url))}" target="_blank" rel="noopener noreferrer nofollow"><span>${index+1}</span><strong>${esc(source.title)}</strong><small>${esc(source.truthState)}${sourceObservationLabel(source)?` · ${esc(sourceObservationLabel(source))}`:''}</small></a>`).join('')}</div></details>`;
 }
 
 function toolList(tools=[]){
@@ -141,21 +142,22 @@ function messageMarkup(message,index){
   </article>`;
 }
 
+const brandUrl=new URL('../brand/qelly-symbol.svg',import.meta.url).href;
 function shellMarkup(){
-  return `<button class="q-ai-launcher" type="button" data-q-ai-launcher data-q-ai-dock-toggle aria-controls="qelly-ai-assistant" aria-expanded="false"><img src="./assets/brand/qelly-symbol.svg" width="38" height="38" alt=""><span><small data-q-ai-launch-state>QELLY CHAT</small><strong data-q-ai-launch-title>Ask Qelly</strong><em data-q-ai-launch-meta>Current page context</em></span><i aria-hidden="true">⌘ /</i></button>
+  return `<button class="q-ai-launcher" type="button" data-q-ai-launcher data-q-ai-dock-toggle aria-controls="qelly-ai-assistant" aria-expanded="false"><img src="${esc(brandUrl)}" width="38" height="38" alt=""><span><small data-q-ai-launch-state>QELLY CHAT</small><strong data-q-ai-launch-title>Ask Qelly</strong><em data-q-ai-launch-meta>Current page context</em></span><i aria-hidden="true">⌘ /</i></button>
   <aside class="q-ai-assistant" id="qelly-ai-assistant" data-q-ai-assistant role="dialog" aria-label="Qelly Intelligence financial research assistant" aria-modal="false" hidden>
-    <header class="q-ai-header"><div class="q-ai-brand"><img src="./assets/brand/qelly-symbol.svg" width="36" height="36" alt=""><span><strong>Qelly Intelligence</strong><small><i data-q-ai-status-dot></i><span data-q-ai-status>Connecting to datasets…</span></small></span></div><div><button type="button" data-q-ai-new>New</button><button type="button" data-q-ai-expand aria-pressed="false">Expand</button><button type="button" data-q-ai-datasets aria-expanded="false" aria-controls="q-ai-dataset-panel">Evidence</button><button type="button" data-q-ai-close aria-label="Close Qelly Intelligence">×</button></div></header>
+    <header class="q-ai-header"><div class="q-ai-brand"><img src="${esc(brandUrl)}" width="36" height="36" alt=""><span><strong>Qelly Intelligence</strong><small><i data-q-ai-status-dot></i><span data-q-ai-status>Connecting to datasets…</span></small></span></div><div><button type="button" data-q-ai-new>New</button><button type="button" data-q-ai-expand aria-pressed="false">Expand</button><button type="button" data-q-ai-datasets aria-expanded="false" aria-controls="q-ai-dataset-panel">Evidence</button><button type="button" data-q-ai-close aria-label="Close Qelly Intelligence">×</button></div></header>
     <section class="q-ai-dataset-panel" id="q-ai-dataset-panel" data-q-ai-dataset-panel hidden><div><strong>Finance data coverage</strong><span data-q-ai-dataset-summary>Checking source registry…</span></div><div data-q-ai-dataset-list></div><p>Qelly connects only authorized sources. Restricted institutional datasets remain clearly labelled and are never scraped.</p></section>
     <div class="q-ai-modebar" role="toolbar" aria-label="Qelly analysis mode">${CHAT_MODES.map((item)=>`<button type="button" data-q-ai-mode="${item.id}" aria-pressed="${item.id==='ask'?'true':'false'}">${item.label}</button>`).join('')}</div>
     <div class="q-ai-contextbar" aria-label="Qelly research context"><label><span>Asset</span><select data-q-ai-asset>${CHAT_ASSETS.map(item=>`<option value="${item}">${item}</option>`).join('')}</select></label><label><span>Timeframe</span><select data-q-ai-timeframe>${CHAT_TIMEFRAMES.map(item=>`<option value="${item}" ${item==='15m'?'selected':''}>${item}</option>`).join('')}</select></label><label data-q-ai-calculator-field hidden><span>Calculator</span><select data-q-ai-calculator>${CHAT_CALCULATORS.map(([id,label])=>`<option value="${id}">${label}</option>`).join('')}</select></label></div>
     <div class="q-ai-thread" data-q-ai-thread aria-live="polite" aria-relevant="additions text"></div>
     <div class="q-ai-suggestions" data-q-ai-suggestions></div>
-    <form class="q-ai-composer" data-q-ai-form><label><span class="q-visually-hidden">Ask Qelly a finance question</span><textarea name="message" rows="1" maxlength="2400" placeholder="Ask about markets, evidence, risk or QELLY tools…" aria-describedby="q-ai-composer-help" required></textarea><span class="q-visually-hidden" id="q-ai-composer-help">Enter sends your question. Shift plus Enter inserts a new line. Escape closes the assistant.</span></label><button type="button" data-q-ai-stop hidden><span>Stop</span><b aria-hidden="true">■</b></button><button type="submit" data-q-ai-send><span>Send</span><b aria-hidden="true">↑</b></button></form>
+    <form class="q-ai-composer" data-q-ai-form><label><span class="q-visually-hidden">Ask Qelly a finance question</span><textarea name="message" rows="1" maxlength="2400" placeholder="Ask about markets, evidence, risk or QELLY tools…" aria-describedby="q-ai-composer-help" required></textarea><span class="q-visually-hidden" id="q-ai-composer-help">Enter sends your question. Shift plus Enter inserts a new line. Escape closes the assistant.</span></label><button type="button" aria-label="Stop response" data-q-ai-stop hidden><span>Stop</span><b aria-hidden="true">■</b></button><button type="submit" aria-label="Send question" data-q-ai-send><span>Send</span><b aria-hidden="true">↑</b></button></form>
     <footer><span>Connected evidence + QELLY tool receipts + model inference</span><div><button type="button" data-q-ai-export>Export</button><button type="button" data-q-ai-clear>Clear</button></div><small>Research only · no trade execution · unvalidated streaming disabled</small></footer>
   </aside>`;
 }
 
-const currentRoute=()=>String(globalThis.location?.hash||'').replace(/^#\/?/,'').split(/[/?#]/)[0]||'feature-universe';
+const currentRoute=()=>routeIdentityFor(globalThis.document?.body?.dataset?.qellyChatRoute)?.route||(/^\/calculators(?:\/|$)/.test(globalThis.location?.pathname||'')?'calculator-center':String(globalThis.location?.hash||'').replace(/^#\/?/,'').split(/[/?#]/)[0]||'feature-universe');
 const safeDockText=(value,fallback,max=96)=>String(value??fallback).replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max)||fallback;
 const normalizeDockContext=(value={})=>{
   const route=safeDockText(value.route,currentRoute(),64);
@@ -260,7 +262,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
       close();
     }));
     thread.querySelectorAll('[data-q-ai-copy]').forEach(button=>button.addEventListener('click',async()=>{const message=messages[Number(button.dataset.qAiCopy)];if(!message)return;try{await navigator.clipboard.writeText(message.content);toast?.('Qelly answer copied',{tone:'success'});}catch{toast?.('Copy is unavailable in this browser.',{tone:'danger'});}}));
-    thread.querySelectorAll('[data-q-ai-copy-sources]').forEach(button=>button.addEventListener('click',async()=>{const message=messages[Number(button.dataset.qAiCopySources)];const text=(message?.sources||[]).filter(source=>safeUrl(source.url)!=='#').map((source,index)=>`[${index+1}] ${source.title} · ${source.truthState}${source.observedAt?` · ${source.observedAt}`:''}\n${safeUrl(source.url)}`).join('\n\n');if(!text)return;try{await navigator.clipboard.writeText(text);toast?.('Citation links copied',{tone:'success'});}catch{toast?.('Copy is unavailable in this browser.',{tone:'danger'});}}));
+    thread.querySelectorAll('[data-q-ai-copy-sources]').forEach(button=>button.addEventListener('click',async()=>{const message=messages[Number(button.dataset.qAiCopySources)];const text=(message?.sources||[]).filter(source=>safeUrl(source.url)!=='#').map((source,index)=>`[${index+1}] ${source.title} · ${source.truthState}${sourceObservationLabel(source)?` · ${sourceObservationLabel(source)}`:''}\n${safeUrl(source.url)}`).join('\n\n');if(!text)return;try{await navigator.clipboard.writeText(text);toast?.('Citation links copied',{tone:'success'});}catch{toast?.('Copy is unavailable in this browser.',{tone:'danger'});}}));
     thread.querySelectorAll('[data-q-ai-compact]').forEach(button=>button.addEventListener('click',()=>{const article=button.closest('.q-ai-message');const compact=article.classList.toggle('is-compact');button.textContent=compact?'Expand':'Compact';}));
     thread.querySelectorAll('[data-q-ai-verify]').forEach(button=>button.addEventListener('click',()=>{const message=messages[Number(button.dataset.qAiVerify)];try{sessionStorage.setItem('qelly.verify.chat-evidence.v1',JSON.stringify({createdAt:new Date().toISOString(),content:message?.content,sources:message?.sources||[],tools:message?.tools||[]}));}catch{}navigate?.('qelly-verify');close();}));
     thread.querySelectorAll('[data-q-ai-decision]').forEach(button=>button.addEventListener('click',()=>{

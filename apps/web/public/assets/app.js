@@ -507,7 +507,7 @@ async function performRouteRender(request,controller) {
       case 'timeseries-lab': await renderTimeSeriesLab(main); break;
       case 'stream-operations': await renderStreamOperations(main); break;
       case 'observability': await renderObservability(main); break;
-      case 'decision-provenance': await renderDecisionProvenance(main,{api,pageHead,stateBanner,escapeHtml,toast,renderRoute,navigate}); break;
+      case 'decision-provenance': await renderDecisionProvenance(main,{api,pageHead,stateBanner,escapeHtml,toast,renderRoute,navigate,signal:controller.signal}); break;
       case 'mt5-report-analyzer': await renderMt5ReportAnalyzer(main); break;
       case 'qelly-verify':
         if(state.routeQuery?.get?.('view')==='methodology')await renderQellyVerifyMethodology();

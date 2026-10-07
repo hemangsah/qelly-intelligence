@@ -232,6 +232,8 @@ export function buildTradeResearch(graph,{requestedRr='auto',customRr=null,now=n
         level:macro?.level||'UNAVAILABLE',
         provider:macro?.provider||null,
         observedAt:macro?.observedAt||null,
+        referenceDate:macro?.referenceDate||null,
+        observationTimePrecision:macro?.observationTimePrecision||'unavailable',
         freshness:macro?.freshness||'UNAVAILABLE',
         intradayFeedConnected:macro?.intradayFeedConnected===true,
         eurUsd:finite(macro?.fxReference?.eurUsd),

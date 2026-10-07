@@ -422,6 +422,7 @@ try:
                 title = None
                 resolved_hash = None
                 resolved_appearance = None
+                stylesheet_contract = None
                 overflow = None
                 page_height = None
                 status = 'passed'
@@ -446,6 +447,9 @@ try:
                         arg=appearance, timeout=10000,
                     )
                     resolved_appearance = page.evaluate('document.documentElement.dataset.resolvedAppearance')
+                    stylesheet_contract = page.evaluate('document.documentElement.dataset.productionStylesheets')
+                    if stylesheet_contract != 'stable':
+                        errors.append({'type': 'stylesheet-contract', 'text': f'Required local stylesheet identities: {stylesheet_contract!r}'})
                     heading = page.locator('main#main h1').first.text_content()
                     title = page.title()
                     resolved_hash = page.evaluate('location.hash.split("?")[0]')
@@ -512,6 +516,7 @@ try:
                     'viewport': viewport_name,
                     'appearance': appearance,
                     'resolvedAppearance': resolved_appearance,
+                    'stylesheetContract': stylesheet_contract,
                     'dimensions': viewport,
                     'pageHeightPx': page_height,
                     'heading': heading,

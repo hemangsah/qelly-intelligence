@@ -6,9 +6,9 @@ const root=document.documentElement;
 const main=document.getElementById('main');
 const ROUTE_REPAIR_STYLESHEET=new URL('./qelly-route-repairs.css',import.meta.url).href;
 const ROUTE_CONVERGENCE_STYLESHEET=new URL('./qelly-route-convergence.css',import.meta.url).href;
-const PREMIUM_THEME_STYLESHEET=new URL('./qelly-premium-theme.css?v=20260825-premium1',import.meta.url).href;
-const PRODUCT_EXPERIENCE_STYLESHEET=new URL('./qelly-product-experience.css?v=20260827-experience6',import.meta.url).href;
-const NAVIGATION_V2_STYLESHEET=new URL('./qelly-navigation-v2.css?v=20260829-navigation1',import.meta.url).href;
+const PREMIUM_THEME_STYLESHEET=new URL('./qelly-premium-theme.css',import.meta.url).href;
+const PRODUCT_EXPERIENCE_STYLESHEET=new URL('./qelly-product-experience.css',import.meta.url).href;
+const NAVIGATION_V2_STYLESHEET=new URL('./qelly-navigation-v2.css',import.meta.url).href;
 // Legacy audit contract: const desiredTail=[canonical,repairs,convergence,premiumTheme,productExperience].filter(Boolean)
 const CUSTOMER_ROUTES=new Set([
   'feature-universe','market','asset-rankings','asset','calculator-center','calculator-detail','india-finance',
@@ -26,9 +26,16 @@ const FEATURE_ROUTES=routeDefinitions.filter((route)=>route.public===true&&!rout
 const FEATURE_DOMAINS=productDomains.filter((domain)=>FEATURE_ROUTES.some((route)=>route.domain===domain.id));
 
 function verifyCanonicalStylesheetContract(){
-  const byHref=(href)=>Array.from(document.querySelectorAll('link[rel="stylesheet"]')).find((node)=>node.href===href);
+  // The build owns cache revisions; this contract checks the required local
+  // stylesheet identities, not obsolete query strings embedded in this module.
+  const byHref=(href)=>{
+    const expected=new URL(href);
+    return Array.from(document.querySelectorAll('link[rel="stylesheet"]')).find((node)=>{
+      try{const actual=new URL(node.href,document.baseURI);return actual.origin===expected.origin&&actual.pathname===expected.pathname;}catch{return false;}
+    });
+  };
   const required=[
-    ['production-shell',document.querySelector('link[href$="qelly-production-shell.css"]')],
+    ['production-shell',byHref(new URL('./qelly-production-shell.css',import.meta.url).href)],
     ['route-repairs',byHref(ROUTE_REPAIR_STYLESHEET)],
     ['route-convergence',byHref(ROUTE_CONVERGENCE_STYLESHEET)],
     ['premium-theme',byHref(PREMIUM_THEME_STYLESHEET)],

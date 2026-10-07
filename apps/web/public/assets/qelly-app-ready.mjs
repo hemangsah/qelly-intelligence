@@ -34,7 +34,9 @@ window.addEventListener('unhandledrejection',()=>fail('QELLY_STARTUP_PROMISE_REJ
 
 const routeReady=new Promise((resolve)=>{
   if(!main){resolve();return;}
-  const complete=()=>main.childElementCount>0&&main.getAttribute('aria-busy')!=='true';
+  // An explicitly owned loading status is useful first paint even while the
+  // route's data request is pending. Keep aria-busy truthful for that request.
+  const complete=()=>main.childElementCount>0&&(main.getAttribute('aria-busy')!=='true'||Boolean(main.querySelector('[data-qelly-startup-feedback="true"][role="status"]')));
   if(complete()){resolve();return;}
   const observer=new MutationObserver(()=>{
     if(complete()){

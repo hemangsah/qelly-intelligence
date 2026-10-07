@@ -1,3 +1,4 @@
+import {ecbReferenceDate} from './measured-attempt.mjs';
 export const HEALTH_LIMIT=200;
 export const HEALTH_WINDOW_MS=7*24*60*60*1000;
 const SOURCES=new Set(['https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml','https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml']);
@@ -17,7 +18,11 @@ export function summarizeEcbAttempts(rows,{now=new Date(),truncated=false}={}){
  const success=valid.filter(row=>row.status==='succeeded');
  const latencies=valid.map(row=>row.output_summary.latencyMs).filter(n=>Number.isFinite(n)&&n>=0).sort((a,b)=>a-b);
  const latest=valid[0];
- const observed=success[0]?.output_summary.observationTime;
+ const reference=success[0]?.output_summary;
+ // Older approved ECB attempts stored the reference date in a midnight slot.
+ // Preserve the date, never present that slot as a precise publication clock.
+ const legacyDate=typeof reference?.observationTime==='string'?reference.observationTime.slice(0,10):null;
+ const date=ecbReferenceDate(reference?.referenceDate??legacyDate,now.toISOString().slice(0,10));
  return {
   provider:'ecb',scope:'stored-edge-http-and-schema-validation-attempts',referenceOnly:true,
   generatedAt:now.toISOString(),windowStart:new Date(start).toISOString(),windowEnd:now.toISOString(),
@@ -27,7 +32,7 @@ export function summarizeEcbAttempts(rows,{now=new Date(),truncated=false}={}){
   lastAttemptAt:latest?.finished_at??null,lastAttemptStatus:latest?.status??null,lastSuccessAt:success[0]?.finished_at??null,
   lastFailureAt:valid.find(row=>row.status==='failed')?.finished_at??null,
   lastLatencyMs:latest&&Number.isFinite(latest.output_summary.latencyMs)&&latest.output_summary.latencyMs>=0?latest.output_summary.latencyMs:null,
-  lastReferenceObservationAt:observed&&Number.isFinite(Date.parse(observed))&&Date.parse(observed)<=end?new Date(observed).toISOString():null,
+  lastReferenceObservationAt:null,lastReferenceDate:date,referenceTimePrecision:date?'date':'unavailable',
   latency:{sampleCount:latencies.length,minimumSamples:20,method:'nearest-rank',p50Ms:percentile(latencies,.5),p90Ms:percentile(latencies,.9),p95Ms:percentile(latencies,.95)},
   quotaRemaining:null,providerWideAvailability:null,sloState:'BASELINE_NOT_ESTABLISHED',
   boundary:'Stored attempts exclude cache hits and unobserved requests. Counts describe this bounded sample only; they do not measure provider-wide uptime, quotas, execution quotes or an SLO.'

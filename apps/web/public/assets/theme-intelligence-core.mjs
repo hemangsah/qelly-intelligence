@@ -1,4 +1,4 @@
-import {FONT_STACK,VERSION,STORAGE_KEY,LEGACY_KEY,freeze,APPEARANCE_MODES,THEME_FAMILIES,PERSONAS,ALPHA_INTENSITIES,ALPHA_PACKS,DEFAULT_THEME_CONFIG} from './theme-intelligence-data.mjs';
+import {FONT_STACK,TYPOGRAPHY_LOCK,VERSION,STORAGE_KEY,LEGACY_KEY,freeze,APPEARANCE_MODES,THEME_FAMILIES,PERSONAS,ALPHA_INTENSITIES,ALPHA_PACKS,DEFAULT_THEME_CONFIG} from './theme-intelligence-data.mjs';
 
 const byId=(items,id)=>items.find((item)=>item.id===id);
 const legacyMap=freeze({'burgundy-command':{themeFamily:'sovereign-obsidian',persona:'scalper-velocity'},'porcelain-burgundy':{themeFamily:'porcelain-signal',persona:'investor-compound',appearance:'light'},'burgundy-night':{themeFamily:'crimson-vector',persona:'aggressive-alpha'},'graphite-terminal':{themeFamily:'obsidian-strike',persona:'quant-operator'},'midnight-research':{themeFamily:'monochrome-ledger',persona:'research-oracle'},'high-contrast':{themeFamily:'signal-access',persona:'signal-access',appearance:'high-contrast'}});

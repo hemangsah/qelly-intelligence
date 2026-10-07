@@ -12,16 +12,19 @@ const POLICY=Object.freeze({
   repeatedLongTasks:{target:0,minSamples:10,comparison:'lte',source:'captured route samples'}
 });
 
+const measuredNumber=value=>typeof value==='number'&&Number.isFinite(value)&&value>=0;
+const measuredCount=value=>measuredNumber(value)&&Number.isInteger(value);
+const count=value=>measuredCount(value)?value:0;
 const round=(value,digits=4)=>Number.isFinite(Number(value))?Number(Number(value).toFixed(digits)):null;
-const safeRate=(numerator,denominator)=>denominator>0?Number(numerator||0)/denominator:null;
+const safeRate=(numerator,denominator)=>measuredCount(numerator)&&measuredCount(denominator)&&denominator>0&&numerator<=denominator?numerator/denominator:null;
 const evaluate=(name,{value=null,sampleSize=0,available=true,reason=null}={})=>{
   const policy=POLICY[name];
   if(!policy)return {name,state:'UNAVAILABLE',value:null,sampleSize:0,target:null,reason:'Unknown SLO metric.'};
-  if(!available||!Number.isFinite(Number(value)))return {
-    name,state:'UNAVAILABLE',value:null,sampleSize:Number(sampleSize)||0,target:policy.target,minSamples:policy.minSamples,
+  if(!available||!measuredNumber(value)||!measuredCount(sampleSize))return {
+    name,state:'UNAVAILABLE',value:null,sampleSize:count(sampleSize),target:policy.target,minSamples:policy.minSamples,
     comparison:policy.comparison,source:policy.source,reason:reason||'Metric has not been observed.'
   };
-  const n=Math.max(0,Number(sampleSize)||0);
+  const n=sampleSize;
   if(n<policy.minSamples)return {
     name,state:'INSUFFICIENT_SAMPLE',value:round(value),sampleSize:n,target:policy.target,minSamples:policy.minSamples,
     comparison:policy.comparison,source:policy.source,reason:'Minimum measurement sample has not been reached.'
@@ -33,9 +36,9 @@ const evaluate=(name,{value=null,sampleSize=0,available=true,reason=null}={})=>{
   };
 };
 const providerSlo=(name,observations,failures)=>{
-  const sampleSize=Math.max(0,Number(observations)||0);
+  const sampleSize=count(observations);
   return evaluate('providerFailureRate',{
-    value:safeRate(Number(failures)||0,sampleSize),
+    value:safeRate(failures===undefined?0:failures,sampleSize),
     sampleSize,
     available:sampleSize>0,
     reason:'No provider attempts have been observed.'
@@ -43,10 +46,10 @@ const providerSlo=(name,observations,failures)=>{
 };
 
 export function evaluateDecisionSlos(snapshot={}){
-  const decisions=Math.max(0,Number(snapshot?.decision?.observations)||0);
-  const scans=Math.max(0,Number(snapshot?.decision?.scanRuns)||0);
+  const decisions=count(snapshot?.decision?.observations);
+  const scans=count(snapshot?.decision?.scanRuns);
   const exposures=decisions+scans;
-  const routeSamples=Math.max(0,Number(snapshot?.browser?.routeSampleCount)||0);
+  const routeSamples=count(snapshot?.browser?.routeSampleCount);
   const webVitals=snapshot?.browser?.webVitals||{};
   const reliability=snapshot?.reliability||{};
   const providerObservations=reliability.providerObservations||{};
@@ -58,17 +61,17 @@ export function evaluateDecisionSlos(snapshot={}){
     decisionLatencyP95Ms:evaluate('decisionLatencyP95Ms',{
       value:snapshot?.latency?.decision?.p95Ms,
       sampleSize:snapshot?.latency?.decision?.sampleSize,
-      available:Number.isFinite(Number(snapshot?.latency?.decision?.p95Ms))
+      available:measuredNumber(snapshot?.latency?.decision?.p95Ms)
     }),
     scannerLatencyP95Ms:evaluate('scannerLatencyP95Ms',{
       value:snapshot?.latency?.scanner?.p95Ms,
       sampleSize:snapshot?.latency?.scanner?.sampleSize,
-      available:Number.isFinite(Number(snapshot?.latency?.scanner?.p95Ms))
+      available:measuredNumber(snapshot?.latency?.scanner?.p95Ms)
     }),
     staleEvidenceRate:evaluate('staleEvidenceRate',{
       value:reliability.staleEvidenceRate,
       sampleSize:reliability.observedEvidenceCount,
-      available:Number.isFinite(Number(reliability.staleEvidenceRate))
+      available:measuredNumber(reliability.staleEvidenceRate)&&reliability.staleEvidenceRate<=1
     }),
     routeErrorRate:evaluate('routeErrorRate',{
       value:safeRate(reliability.routeErrors,exposures),sampleSize:exposures,available:exposures>0
@@ -80,13 +83,13 @@ export function evaluateDecisionSlos(snapshot={}){
       value:snapshot?.browser?.memoryAnomalies,sampleSize:routeSamples,available:routeSamples>0
     }),
     lcpMs:evaluate('lcpMs',{
-      value:webVitals.lcpMs,sampleSize:Number.isFinite(Number(webVitals.lcpMs))?1:0,available:Number.isFinite(Number(webVitals.lcpMs))
+      value:webVitals.lcpMs,sampleSize:measuredNumber(webVitals.lcpMs)?1:0,available:measuredNumber(webVitals.lcpMs)
     }),
     inpMs:evaluate('inpMs',{
-      value:webVitals.inpMs,sampleSize:Number.isFinite(Number(webVitals.inpMs))?1:0,available:Number.isFinite(Number(webVitals.inpMs))
+      value:webVitals.inpMs,sampleSize:measuredNumber(webVitals.inpMs)?1:0,available:measuredNumber(webVitals.inpMs)
     }),
     cls:evaluate('cls',{
-      value:webVitals.cls,sampleSize:Number.isFinite(Number(webVitals.cls))?1:0,available:Number.isFinite(Number(webVitals.cls))
+      value:webVitals.cls,sampleSize:measuredNumber(webVitals.cls)?1:0,available:measuredNumber(webVitals.cls)
     }),
     repeatedLongTasks:evaluate('repeatedLongTasks',{
       value:snapshot?.browser?.longTasksOverRepeated,sampleSize:routeSamples,available:routeSamples>0

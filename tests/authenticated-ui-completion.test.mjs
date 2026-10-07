@@ -29,8 +29,9 @@ test('persistent assistant branding reserves image geometry and reduced motion c
     read('apps/web/public/assets/app.css'),
     read('apps/web/public/assets/qelly-product-experience.css')
   ]);
-  assert.match(assistant,/qelly-symbol\.svg" width="38" height="38"/);
-  assert.match(assistant,/qelly-symbol\.svg" width="36" height="36"/);
+  assert.match(assistant,/new URL\('\.\.\/brand\/qelly-symbol\.svg',import\.meta\.url\)/);
+  assert.match(assistant,/src="\$\{esc\(brandUrl\)\}" width="38" height="38"/);
+  assert.match(assistant,/src="\$\{esc\(brandUrl\)\}" width="36" height="36"/);
   assert.match(appCss,/@media \(prefers-reduced-motion:reduce\)[\s\S]*#app\.q-app\.q-app\.q-app #main \*[\s\S]*#q-feature-navigation\.q-feature-navigation \*[\s\S]*animation:none!important;[\s\S]*transition:none!important;/);
   assert.match(productCss,/\.q-product-header :where\(\.q-product-menu,\.q-product-system,\.q-product-account\)\{height:44px!important;min-height:44px!important/);
   assert.match(productCss,/header\.q-product-header>\.q-product-menu\{display:none!important;grid-area:menu!important;width:max-content!important;max-width:100%!important;justify-self:end!important\}/);

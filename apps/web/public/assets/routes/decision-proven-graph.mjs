@@ -6,8 +6,9 @@ import {evaluateDecisionSlos} from '../decision-slos.mjs';
 import {buildDecisionResearchNote,downloadDecisionResearchNote} from '../decision-research-note.mjs';
 import {readDecisionAssetPreferences,saveDecisionAssetPreferences,toggleDecisionAssetFavorite,recordDecisionAssetRecent,decisionAssetSearchText} from '../decision-asset-picker.mjs';
 import {buildDecisionScenarioUx} from '../decision-scenario-ux.mjs';
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 const STYLESHEET=new URL('../qelly-decision-proven-graph.css',import.meta.url).href;
-const installStyles=()=>{if(!document.querySelector('link[data-decision-proven-graph]')){const link=document.createElement('link');link.rel='stylesheet';link.href=STYLESHEET;link.dataset.decisionProvenGraph='v2';document.head.append(link);}};
+const installStyles=(signal)=>ensureRouteStylesheet(STYLESHEET,{attribute:'data-decision-proven-graph',value:'v2',signal});
 const money=(value)=>isFiniteDecisionEvidence(value)?new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:Number(value)>=100?0:2}).format(value):'Unavailable';
 const pct=(value)=>isFiniteDecisionEvidence(value)?Number(value).toFixed(2)+'%':'Unavailable';
 const compactMoney=(value)=>value!=null&&value!==''&&isFiniteDecisionEvidence(value)?new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',maximumFractionDigits:2}).format(Number(value)):'Unavailable';
@@ -196,6 +197,11 @@ const crossAssetContext=(data,escapeHtml)=>{
   '</div><p>'+escapeHtml(context.method||'')+'</p><p class="q-dpg-cross-asset__limit">Correlation, beta, relative strength, spread z-score and exploratory lag are window-dependent descriptive context. Correlation is not causation; cointegration is not claimed. This panel does not independently create BUY, SELL or NO TRADE eligibility.</p></section>';
 };
 
+const calendarReferenceDate=value=>{
+  if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return null;
+  const date=new Date(value+'T00:00:00.000Z');
+  return Number.isFinite(date.getTime())&&date.toISOString().slice(0,10)===value?value:null;
+};
 const macroContext=(data,escapeHtml)=>{
   const macro=data?.evidence?.macro||data?.macro;
   const state=String(macro?.state||'unavailable').toUpperCase();
@@ -207,7 +213,7 @@ const macroContext=(data,escapeHtml)=>{
       '<article><span>EUR / USD</span><strong>'+fx(macro.fxReference?.eurUsd)+'</strong><small>ECB quote per EUR</small></article>'+
       '<article><span>USD / INR</span><strong>'+fx(macro.fxReference?.usdInr)+'</strong><small>derived from same-day ECB EUR crosses</small></article>'+
       '<article><span>EUR / INR</span><strong>'+fx(macro.fxReference?.eurInr)+'</strong><small>ECB quote per EUR</small></article>'+
-      '<article><span>Observed</span><strong>'+escapeHtml(displayTime(macro.observedAt))+'</strong><small>'+escapeHtml(String(macro.freshness||'daily reference').replaceAll('_',' '))+'</small></article>'+
+      '<article><span>Reference date</span><strong>'+escapeHtml(calendarReferenceDate(macro.referenceDate)||'Date unavailable')+'</strong><small>'+escapeHtml(String(macro.freshness||'daily reference').replaceAll('_',' '))+' · exact publication time unavailable</small></article>'+
       '<article><span>Provider</span><strong>European Central Bank</strong><small>'+escapeHtml(String(macro.quality||'official reference').replaceAll('_',' '))+'</small></article>'+
       '<article><span>Intraday feed</span><strong>NOT CONNECTED</strong><small>reference-only context</small></article>'+
     '</div>'+
@@ -748,7 +754,7 @@ const sloDiagnosticsMarkup=(slo,escapeHtml)=>{
 let activeDecisionDockClearanceCleanup=()=>{};
 
 export async function renderDecisionProvenGraph(main,deps){
-  installStyles();const {api,stateBanner,escapeHtml,toast,navigate}=deps;
+  await installStyles(deps.signal);const {api,stateBanner,escapeHtml,toast,navigate}=deps;
   const chatContext=readChatDecisionContext();
   const assetPreferences=readDecisionAssetPreferences();
   let state={asset:chatContext.asset,interval:chatContext.interval,horizon:normalizeHorizon(chatContext.interval,'4h'),rr:'auto',customRr:'2.5',nextMoveBars:'1',nextMoveCustomBars:'8',chartMode:'select-range',uiMode:'simple',assetCatalog:null,assetCatalogError:null,assetPickerOpen:false,assetFilter:'all',assetQuery:'',assetFavorites:assetPreferences.favorites,assetRecent:assetPreferences.recent,loading:true,data:null,previousSnapshot:null,error:null,draft:null,selection:null,rangeEvidenceLoading:false,rangeEvidenceError:null,rangeEvidenceRequest:0,rangeReplayIndex:0,scanning:false,scan:null,scanError:null,ledger:null,ledgerLoading:false,ledgerError:null,ledgerMutating:false,slo:null,scanFilters:{mode:'validated',ranking:'highest_quality',universe:'all',direction:'any',minEvidenceQuality:'0',minCalibratedConfidence:'0',minMtfAgreement:'0',liquidity:'any',volatility:'any',regime:'any',eventRiskTolerance:'any',freshness:'live_or_delayed'}};
@@ -807,7 +813,7 @@ export async function renderDecisionProvenGraph(main,deps){
     const confidence=isFiniteDecisionEvidence(view.confidence)?Math.round(Number(view.confidence)*100)+'%':'Unavailable';
     const agreement=isFiniteDecisionEvidence(gate.timeframeAgreement)?Math.round(Number(gate.timeframeAgreement)*100)+'%':'Unavailable';
     const probabilities=[['Bull',scenario.bull],['Base',scenario.base],['Bear',scenario.bear]].filter(([,value])=>isFiniteDecisionEvidence(value)).sort((a,b)=>Number(b[1])-Number(a[1]));
-    const scenarioLead=probabilities.length?probabilities[0][0]+' '+Math.round(Number(probabilities[0][1])*100)+'%':'Unavailable';
+    const scenarioLead=probabilities.length?probabilities[0][0]+' · '+Math.round(Number(probabilities[0][1])*100)+'% share':'Unavailable';
     const regime=data?.market?.currentState?.trend||'Unavailable';
     const volatility=view.riskState?.label||'Unavailable';
     const provider=data?.provenance?.provider||'Hyperliquid';
@@ -820,7 +826,7 @@ export async function renderDecisionProvenGraph(main,deps){
       '<div class="q-dpg-hero__view"><small>QELLY VIEW</small><h2>'+escapeHtml(action)+'</h2><p>'+escapeHtml(label)+'</p><div class="q-dpg-hero__metrics">'+
         '<span><em>Evidence quality</em><strong>'+escapeHtml(quality)+'</strong></span>'+
         '<span><em>Evidence confidence</em><strong>'+escapeHtml(confidence)+'</strong><small>Calibrated confidence is separate and remains calibration-gated.</small></span>'+
-        '<span><em>Scenario</em><strong>'+escapeHtml(scenarioLead)+'</strong></span>'+
+        '<span data-dpg-leading-scenario><em>Leading model scenario</em><strong>'+escapeHtml(scenarioLead)+'</strong><small>Research model share, not a calibrated probability.</small></span>'+
         '<span><em>MTF agreement</em><strong>'+escapeHtml(agreement)+'</strong></span>'+
         '<span><em>Regime</em><strong>'+escapeHtml(String(regime))+'</strong></span>'+
         '<span><em>Volatility</em><strong>'+escapeHtml(volatility)+'</strong></span>'+
@@ -1188,7 +1194,7 @@ export async function renderDecisionProvenGraph(main,deps){
     const educationWasOpen=Boolean(main.querySelector('.q-dpg-education[open]'));
     const focusedEducationHelp=main.querySelector('.q-dpg-education .q-dpg-help:focus')?.getAttribute('aria-describedby')||null;
     const data=state.data;
-    main.innerHTML='<section class="q-page q-dpg-page">'+stateBanner()+hero(data)+decisionModeSwitcher()+'<section class="q-dpg-controls q-dpg-controls--decision" aria-label="Decision controls">'+select('horizon',validHorizons(state.interval))+'<label><span>Risk / reward</span><select data-dpg-rr><option value="auto" '+(state.rr==='auto'?'selected':'')+'>Auto</option><option value="1" '+(state.rr==='1'?'selected':'')+'>1:1</option><option value="2" '+(state.rr==='2'?'selected':'')+'>1:2</option><option value="3" '+(state.rr==='3'?'selected':'')+'>1:3</option><option value="4" '+(state.rr==='4'?'selected':'')+'>1:4</option><option value="custom" '+(state.rr==='custom'?'selected':'')+'>Custom</option></select></label>'+(state.rr==='custom'?'<label><span>Custom R:R</span><input data-dpg-custom-rr type="number" min="0.5" max="10" step="0.1" value="'+escapeHtml(state.customRr)+'"></label>':'')+'<p>Public research · no sign-in required · no trade execution</p></section>'+decisionEducationMarkup()+setupDiscoveryControlsMarkup(state,escapeHtml)+(state.uiMode==='simple'?'':scannerFiltersMarkup(state,escapeHtml))+scannerMarkup(state.scan,{scanning:state.scanning,error:state.scanError,escapeHtml,mode:state.scanFilters.mode,ranking:state.scanFilters.ranking})+(state.loading?'<section class="q-dpg-state" role="status"><span class="q-spinner"></span><h2>Weighing fresh evidence</h2><p>Loading market observations and scenario ranges.</p></section>':'')+(state.error?'<section class="q-dpg-state q-dpg-state--error" role="alert"><h2>Live research unavailable</h2><p>'+escapeHtml(state.error)+'</p><button class="q-button q-button--secondary" data-dpg-refresh>Try again</button></section>':'')+(data?content(data):'')+'</section>';
+    main.innerHTML='<section class="q-page q-dpg-page">'+stateBanner()+hero(data)+decisionModeSwitcher()+'<section class="q-dpg-controls q-dpg-controls--decision" aria-label="Decision controls">'+select('horizon',validHorizons(state.interval))+'<label><span>Risk / reward</span><select data-dpg-rr><option value="auto" '+(state.rr==='auto'?'selected':'')+'>Auto</option><option value="1" '+(state.rr==='1'?'selected':'')+'>1:1</option><option value="2" '+(state.rr==='2'?'selected':'')+'>1:2</option><option value="3" '+(state.rr==='3'?'selected':'')+'>1:3</option><option value="4" '+(state.rr==='4'?'selected':'')+'>1:4</option><option value="custom" '+(state.rr==='custom'?'selected':'')+'>Custom</option></select></label>'+(state.rr==='custom'?'<label><span>Custom R:R</span><input data-dpg-custom-rr type="number" min="0.5" max="10" step="0.1" value="'+escapeHtml(state.customRr)+'"></label>':'')+'<p>Public research · no sign-in required · no trade execution</p></section>'+decisionEducationMarkup()+setupDiscoveryControlsMarkup(state,escapeHtml)+(state.uiMode==='simple'?'':scannerFiltersMarkup(state,escapeHtml))+scannerMarkup(state.scan,{scanning:state.scanning,error:state.scanError,escapeHtml,mode:state.scanFilters.mode,ranking:state.scanFilters.ranking})+(state.loading?'<section class="q-dpg-state" role="status" data-qelly-startup-feedback="true"><span class="q-spinner"></span><h2>Weighing fresh evidence</h2><p>Loading market observations and scenario ranges.</p></section>':'')+(state.error?'<section class="q-dpg-state q-dpg-state--error" role="alert"><h2>Live research unavailable</h2><p>'+escapeHtml(state.error)+'</p><button class="q-button q-button--secondary" data-dpg-refresh>Try again</button></section>':'')+(data?content(data):'')+'</section>';
     publishDecisionChatContext(data);wire();bindDockViewportClearance();mountAdSlots(main);
     const education=main.querySelector('.q-dpg-education');
     if(educationWasOpen&&education)education.open=true;
@@ -1595,8 +1601,9 @@ export async function renderDecisionProvenGraph(main,deps){
       if(requestId===decisionLoadRequest){state.loading=false;draw();if(ledgerAuthenticated()&&!state.ledger&&!state.ledgerLoading)void loadLedger();}
     }
   }
+  draw();
   await loadAssetCatalog({redraw:false});
   await load();
 }
 
-export const __decisionProvenGraphRouteTest=Object.freeze({CHAT_DECISION_CONTEXT_KEY,DECISION_ASSETS,readChatDecisionContext,storeResearchContext,normalizeHorizon,validHorizons,telemetryToken,rrTelemetryState,canonicalDecisionAsset,displayTime,formatRangeDuration,selectionIndexBounds,buildRangeSelection,rangeSelectionMetrics});
+export const __decisionProvenGraphRouteTest=Object.freeze({CHAT_DECISION_CONTEXT_KEY,DECISION_ASSETS,readChatDecisionContext,storeResearchContext,normalizeHorizon,validHorizons,telemetryToken,rrTelemetryState,canonicalDecisionAsset,displayTime,formatRangeDuration,selectionIndexBounds,buildRangeSelection,rangeSelectionMetrics,macroContext});

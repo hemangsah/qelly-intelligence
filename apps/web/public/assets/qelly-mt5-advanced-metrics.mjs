@@ -2,6 +2,20 @@ import {mt5SampleStatistics} from './qelly-mt5-statistics.mjs';
 /* Wave DA. Realized closing-deal evidence, not broker account equity. */
 const r=(n,d=4)=>Number.isFinite(n)?Number(n.toFixed(d)):null;
 const sum=a=>a.reduce((s,n)=>s+n,0);
+const chartPoints=rows=>{
+ const stride=Math.max(1,Math.ceil(rows.length/160)),indices=new Set([0,rows.length-1]);
+ let low=0,high=0,trough=0,peakValue=0,peakIndex=null,drawdownPeak=null;
+ for(let i=0;i<rows.length;i++){
+  if(i%stride===0)indices.add(i);
+  if(rows[i].cumulative<rows[low].cumulative)low=i;
+  if(rows[i].cumulative>rows[high].cumulative)high=i;
+  if(rows[i].cumulative>peakValue){peakValue=rows[i].cumulative;peakIndex=i;}
+  if(rows[i].drawdown>rows[trough].drawdown){trough=i;drawdownPeak=peakIndex;}
+ }
+ // Retain the observed extremes and adjacent closes, including a rapid recovery.
+ for(const index of [low,high,trough,drawdownPeak])if(index!==null)for(const neighbor of [index-1,index,index+1])if(neighbor>=0&&neighbor<rows.length)indices.add(neighbor);
+ return [...indices].sort((a,b)=>a-b).map(i=>({index:rows[i].index,cumulative:rows[i].cumulative,drawdown:rows[i].drawdown}));
+};
 export function mt5ReportClock(value){
  const m=/^(\d{4})[.-](\d{1,2})[.-](\d{1,2})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(String(value??'').trim());
  if(!m)return null;
@@ -39,7 +53,7 @@ export function analyzeMt5ClosedDeals(trades,validation={}){
  const largestLosingDeal=losses.length?losses.reduce((max,row)=>Math.max(max,-row.pnl),0):null;
  const largestLossContributionPct=largestLosingDeal!==null&&loss>0?r(100*largestLosingDeal/loss,2):null;
  const costs={};for(const field of ['commission','fee','swap']){const known=rows.map(t=>t[field]).filter(t=>t!==null);costs[field]={knownTotal:known.length?r(sum(known)):null,coveragePct:r(100*known.length/rows.length,2)};}
- const stride=Math.max(1,Math.ceil(rows.length/160)),points=rows.filter((t,i)=>!i||i===rows.length-1||i%stride===0).map(t=>({index:t.index,cumulative:t.cumulative,drawdown:t.drawdown}));
+ const points=chartPoints(rows);
  const warnings=['This is a realized closing-deal P&L sequence, not account equity or account balance.','Entry-side costs, deposits, withdrawals and floating P&L are not reconciled.'];
  if(rows.length<30)warnings.push('LIMITED SAMPLE: fewer than 30 closing deals.');if(!chronological)warnings.push('Execution ordering is unverified; source deal order is used.');
  if(chronological&&!uniqueChronological)warnings.push('Some closing deals share the same report-clock timestamp; their exact order is not verifiable. Longest underwater span is withheld.');
