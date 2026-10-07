@@ -31,6 +31,8 @@ try{
           await page.getByRole('button',{name:'Switch to '+appearance+' appearance',exact:true}).click();
         }
         await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
+        await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true'&&document.documentElement.dataset.brandReady==='true');
+        await page.locator('.qelly-opening').waitFor({state:'hidden'});
         // An isolated page control reproduces the dock hit-test collision without sending a message.
         const clearanceGeometry=await page.evaluate(()=>{
           document.dispatchEvent(new CustomEvent('qelly:chat-clearance',{detail:{state:'clear'}}));
