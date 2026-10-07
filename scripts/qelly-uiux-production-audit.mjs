@@ -1,5 +1,6 @@
 import {chromium} from 'playwright';
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,writeFile,readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 import {routeDefinitions} from '../apps/web/public/assets/route-registry.mjs';
 const site='https://terminal.qellyintelligence.com',sha=process.env.QELLY_UIUX_BASE_SHA;
@@ -8,15 +9,29 @@ assert.match(sha||'',/^[a-f0-9]{40}$/);assert.ok(['dark','light'].includes(appea
 await mkdir(out,{recursive:true});
 async function identity(){const r=await fetch(site+'/qelly-release.json',{cache:'no-store',signal:AbortSignal.timeout(20000)});assert.equal(r.status,200);assert.match(r.headers.get('content-type')||'',/json/);assert.equal((await r.json()).releaseSha,sha);}
 await identity();
+// The sole POST exception is an existing public, read-only calculation. Pin its
+// reviewed handler so a future business-state mutation cannot inherit this exception.
+const formulaHandler=await readFile(new URL('../functions/api/v1/formula-screener.js',import.meta.url));
+const formulaHandlerBlob=createHash('sha1').update(Buffer.from('blob '+formulaHandler.length+'\0')).update(formulaHandler).digest('hex');
+assert.equal(formulaHandlerBlob,'2da33e94c01c039297404d864f8c2b1c8d4a3ec2');
 const browser=await chromium.launch({headless:true});const results=[],ownership=new Map();
-const blockedNonReadRequests=[];let protectedWritesAttempted=0,activeMode='setup';
+const blockedNonReadRequests=[],allowedPublicCalculations=[];let protectedWritesAttempted=0,activeMode='setup';
 try{
  for(const route of routeDefinitions){
   const context=await browser.newContext({viewport:{width,height:width===390?844:900},colorScheme:appearance,hasTouch:width===390,serviceWorkers:'block'});
   await context.route('**/*',async intercepted=>{
    const request=intercepted.request();
    if(!['GET','HEAD','OPTIONS'].includes(request.method())){
-    const destination=new URL(request.url()),protectedApi=destination.origin===site&&destination.pathname.startsWith('/api/');
+    const destination=new URL(request.url());
+    if(request.method()==='POST'&&destination.origin===site&&destination.pathname==='/api/v1/formula-screener'&&!destination.search){
+     let body;try{body=request.postDataJSON();}catch{}
+     const supportedAssets=['BTC','ETH','SOL','HYPE','XRP','DOGE'];
+     if(body&&Object.keys(body).every(k=>['formula','assets'].includes(k))&&['momentum_quality','trend_efficiency','rsi_impulse'].includes(body.formula)&&Array.isArray(body.assets)&&body.assets.length>=1&&body.assets.length<=6&&body.assets.every(a=>supportedAssets.includes(a))){
+      allowedPublicCalculations.push({route:route.route,mode:activeMode,method:'POST',origin:destination.origin,pathname:destination.pathname,handlerBlob:formulaHandlerBlob,outcome:'existing public read-only calculation; no business-state persistence'});
+      await intercepted.continue();return;
+     }
+    }
+    const protectedApi=destination.origin===site&&destination.pathname.startsWith('/api/');
     if(protectedApi)protectedWritesAttempted++;
     blockedNonReadRequests.push({route:route.route,mode:activeMode,method:request.method(),origin:destination.origin,pathname:destination.pathname,protectedApi,outcome:'aborted before network'});
     await intercepted.abort();
@@ -67,5 +82,5 @@ await writeFile(out+'/QELLY_UIUX_PERFORMANCE_BASELINE.json',JSON.stringify({sour
 await writeFile(out+'/QELLY_UIUX_THEME_MATRIX.json',JSON.stringify({sourceSha:sha,results:results.map(r=>({route:r.route,appearance,width,observed:r.observed?.appearance,tokens:r.observed?.tokens,visualVerdict:r.visualVerdict}))},null,2)+'\n');
 for(const [file,key] of [['QELLY_UIUX_VERSION_LABEL_AUDIT.json','visibleInternalLabels'],['QELLY_UIUX_FIRST_PAINT_AUDIT.json','baseline']])await writeFile(out+'/'+file,JSON.stringify({sourceSha:sha,results:results.map(r=>({route:r.route,appearance,width,mode:r.mode,observed:r.observed?.[key],visualVerdict:r.visualVerdict}))},null,2)+'\n');
 const columns=['route','label','section','public','appearance','width','mode','status','visualVerdict','productionAcceptance'];const csv=v=>'"'+String(v??'').replaceAll('"','""')+'"';await writeFile(out+'/QELLY_UIUX_ROUTE_AUDIT.csv',columns.join(',')+'\n'+results.map(r=>columns.map(k=>csv(r[k])).join(',')).join('\n')+'\n');
-await writeFile(out+'/QELLY_UIUX_BLOCKED_REQUESTS.json',JSON.stringify({sourceSha:sha,appearance,width,blockedNonReadRequests,outgoingNonReadRequests:0,boundary:'All non-read requests were intercepted and aborted. Paths exclude queries and bodies. Protected API attempts fail this baseline gate.'},null,2)+'\n');
-const receipt={sourceSha:sha,routeCount:routeDefinitions.length,appearance,width,cases:results.length,captured:results.filter(r=>r.status==='CAPTURED').length,defects: defects.length,blockedNonReadRequestCount:blockedNonReadRequests.length,protectedWritesAttempted,outgoingNonReadRequests:0,productionAcceptance:false,strictCompletionPercent:0,screenshotsKeptInCloud:true};await writeFile(out+'/receipt.json',JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt));assert.equal(protectedWritesAttempted,0);assert.equal(receipt.captured,routeDefinitions.length*2);
+await writeFile(out+'/QELLY_UIUX_BLOCKED_REQUESTS.json',JSON.stringify({sourceSha:sha,appearance,width,blockedNonReadRequests,allowedPublicCalculations,outgoingProtectedWrites:0,boundary:'All unknown non-read requests are aborted. One reviewed hash-pinned public calculation POST is allowed only with supported formula/assets inputs. Paths exclude queries and bodies. Protected API attempts still fail this baseline gate.'},null,2)+'\n');
+const receipt={sourceSha:sha,routeCount:routeDefinitions.length,appearance,width,cases:results.length,captured:results.filter(r=>r.status==='CAPTURED').length,defects: defects.length,blockedNonReadRequestCount:blockedNonReadRequests.length,allowedPublicCalculationCount:allowedPublicCalculations.length,protectedWritesAttempted,outgoingProtectedWrites:0,formulaHandlerBlob,productionAcceptance:false,strictCompletionPercent:0,screenshotsKeptInCloud:true};await writeFile(out+'/receipt.json',JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt));assert.equal(protectedWritesAttempted,0);assert.equal(receipt.captured,routeDefinitions.length*2);
