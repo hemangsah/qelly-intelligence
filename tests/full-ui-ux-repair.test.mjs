@@ -152,7 +152,7 @@ test('production exposes the public consumer registry through one responsive fea
   assert.match(convergence, /@media\(prefers-reduced-motion:reduce\)/);
 });
 
-test('legacy production polish remains loaded and motion-safe outside the owned Market presentation', async () => {
+test('legacy production polish remains loaded and motion-safe outside source-owned routes', async () => {
   const [index, css, motion, worker] = await Promise.all([
     read('apps/web/public/index.html'),
     read('apps/web/public/assets/qelly-modern-interaction-polish.css'),
@@ -163,7 +163,7 @@ test('legacy production polish remains loaded and motion-safe outside the owned 
   assert.match(css, /--q-modern-radius-xl:32px/);
   assert.match(css, /header\.q-product-header[\s\S]*border-radius:0 0 var\(--q-modern-radius-lg\)/);
   assert.match(css, /:where\(button:not\(\.q-product-brand__mark\):not\(\.q-ai-launcher\),a\.q-button,\[role="button"\],\[role="tab"\]\)[\s\S]*border-radius:999px!important/);
-  assert.match(css, /#main \.q-page-actions \.q-button:not\(:where\(\.q-v7-public-market \*\)\)\{border-radius:999px!important/);
+  assert.match(css, /#main \.q-page-actions \.q-button:not\(:where\(\.q-v7-public-market \*\)\):not\(:where\(\.q-about-v2-page \*\)\)\{border-radius:999px!important/);
   assert.match(css, /\.q-product-search\{[\s\S]*border-radius:999px!important/);
   assert.match(css, /Designer pass: normalize every surviving legacy route family/);
   assert.match(css, /\.q-mn-card,[\s\S]*\.q-v7-provider-card,[\s\S]*\.q-mi-kpi/);
