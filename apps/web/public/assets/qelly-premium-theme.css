@@ -197,7 +197,7 @@ html[data-production-system="v8"] body #app #main>.q-access-gate{
   padding:clamp(28px,3.4vw,60px) clamp(18px,4vw,72px) clamp(88px,7vw,128px)!important;
 }
 
-html[data-production-system="v8"] body #app #main .q-page-head{
+html[data-production-system="v8"] body #app #main .q-page-head:not(:where(.q-about-v2-page *)){
   position:relative!important;margin:0 0 clamp(26px,3.2vw,48px)!important;
   padding:clamp(8px,1.2vw,18px) 0 clamp(22px,2.6vw,38px)!important;
   border:0!important;background:transparent!important;box-shadow:none!important;
@@ -206,12 +206,12 @@ html[data-production-system="v8"] body #app #main .q-page-head::after{
   content:"";position:absolute;left:0;bottom:0;width:min(160px,24vw);height:2px;border-radius:99px;
   background:linear-gradient(90deg,var(--q-accent),transparent);
 }
-html[data-production-system="v8"] body #app #main h1{
+html[data-production-system="v8"] body #app #main h1:not(:where(.q-about-v2-page *)){
   max-width:22ch!important;margin-block:.14em!important;
   color:var(--q-text)!important;font-size:clamp(38px,4.1vw,72px)!important;
   font-weight:650!important;line-height:.98!important;letter-spacing:-.052em!important;
 }
-html[data-production-system="v8"] body #app #main h2{letter-spacing:-.032em!important}
+html[data-production-system="v8"] body #app #main h2:not(:where(.q-about-v2-page *)){letter-spacing:-.032em!important}
 html[data-production-system="v8"] body #app #main .q-eyebrow,
 html[data-production-system="v8"] body #app #main .q-market-kicker{color:var(--q-accent-strong)!important;letter-spacing:.1em!important}
 html[data-production-system="v8"] body #app #main .q-eyebrow::before{width:26px!important;background:linear-gradient(90deg,var(--q-accent),var(--q-accent-strong))!important}
@@ -225,7 +225,7 @@ html[data-production-system="v8"] body #app #main :where(
   .q-saved-card,.q-chart-shell,.q-empty-state,.q-truth-callout,.q-result-priority,
   .q-indicator-mini-chart,.q-verify-hero,.q-v53-verify-workbench,
   [class$="-card"],[class*="-card "],[class$="-panel"],[class*="-panel "]
-){
+):not(:where(.q-about-v2-page *)){
   border:0!important;border-radius:22px!important;
   background:var(--q-luxe-panel)!important;
   box-shadow:var(--q-luxe-shadow-soft),var(--q-luxe-inset)!important;
@@ -251,7 +251,7 @@ html[data-production-system="v8"] body #app #main :where(
   .q-v7-boundary-ribbon,.q-v7-evidence-strip,.q-home-principles,.q-control-row,
   .q-chart-toolbar,.q-mn-chart-controls,.q-filter-bar,.q-toolbar,.q-page-actions,
   .q-calculator-actions,.q-result-actions,.q-actions,.q-grid-footer
-){
+):not(:where(.q-about-v2-page *)){
   border:0!important;border-radius:18px!important;
   background:color-mix(in srgb,var(--q-surfacealt) 72%,transparent)!important;
   box-shadow:var(--q-luxe-inset)!important;
@@ -273,8 +273,8 @@ html[data-production-system="v8"] body #app #main :where(input:not([type="checkb
 html[data-production-system="v8"] body #app #main :where(input,select,textarea):focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--q-accent) 26%,transparent),var(--q-luxe-inset)!important}
 
 html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:where(.q-about-v2-page *)){border:0!important;border-radius:999px!important}
-html[data-production-system="v8"] body #app #main .q-button--secondary{background:var(--q-surfacealt)!important;box-shadow:var(--q-luxe-inset)!important}
-html[data-production-system="v8"] body #app #main .q-button--primary{background:linear-gradient(135deg,#ad315f,#711632)!important;color:#fff!important;box-shadow:0 12px 30px rgba(113,22,50,.3)!important}
+html[data-production-system="v8"] body #app #main .q-button--secondary:not(:where(.q-about-v2-page *)){background:var(--q-surfacealt)!important;box-shadow:var(--q-luxe-inset)!important}
+html[data-production-system="v8"] body #app #main .q-button--primary:not(:where(.q-about-v2-page *)){background:linear-gradient(135deg,#ad315f,#711632)!important;color:#fff!important;box-shadow:0 12px 30px rgba(113,22,50,.3)!important}
 
 html[data-production-system="v8"] body #app #main :where(.q-grid-scroll,.q-table-wrap,.q-mn-table-wrap,.q-chart-table,.q-audit-table,.q-mi-table-wrap,[class$="-table-wrap"],[class*="-table-wrap "]){
   border:0!important;border-radius:18px!important;background:var(--q-luxe-panel)!important;box-shadow:var(--q-luxe-shadow-soft),var(--q-luxe-inset)!important;
@@ -285,13 +285,13 @@ html[data-production-system="v8"] body #app #main tbody tr:hover{background:colo
 /* Controls that read as actions must also behave like actions on touch and
    keyboard devices. Checkboxes and radios retain their native geometry while
    their associated labels provide the larger hit area. */
-html[data-production-system="v8"] body #app #main button,
-html[data-production-system="v8"] body #app #main a.q-button,
-html[data-production-system="v8"] body #app #main a.q-mn-link,
-html[data-production-system="v8"] body #app #main [role="button"],
-html[data-production-system="v8"] body #app #main select,
-html[data-production-system="v8"] body #app #main input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
-html[data-production-system="v8"] body #app #main textarea{
+html[data-production-system="v8"] body #app #main button:not(:where(.q-about-v2-page *)),
+html[data-production-system="v8"] body #app #main a.q-button:not(:where(.q-about-v2-page *)),
+html[data-production-system="v8"] body #app #main a.q-mn-link:not(:where(.q-about-v2-page *)),
+html[data-production-system="v8"] body #app #main [role="button"]:not(:where(.q-about-v2-page *)),
+html[data-production-system="v8"] body #app #main select:not(:where(.q-about-v2-page *)),
+html[data-production-system="v8"] body #app #main input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(:where(.q-about-v2-page *)),
+html[data-production-system="v8"] body #app #main textarea:not(:where(.q-about-v2-page *)){
   min-height:44px!important;
 }
 html[data-production-system="v8"] body #app #main button,
@@ -345,7 +345,7 @@ html[data-production-system="v8"] body #app #main [role="button"]{min-width:44px
   html[data-production-system="v8"] body #app #main>.q-decision-workspace,
   html[data-production-system="v8"] body #app #main>.q-auth-page,
   html[data-production-system="v8"] body #app #main>.q-access-gate{padding:24px 14px 92px!important}
-  html[data-production-system="v8"] body #app #main h1{font-size:clamp(34px,11vw,52px)!important}
+  html[data-production-system="v8"] body #app #main h1:not(:where(.q-about-v2-page *)){font-size:clamp(34px,11vw,52px)!important}
   html[data-production-system="v8"] body #app #main .q-v7-side-stack{grid-template-columns:1fr!important}
   html[data-production-system="v8"] body #app #main .q-v7-boundary-ribbon{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
   html[data-production-system="v8"] body #app #main .q-v7-chart-stage{min-height:430px!important}
