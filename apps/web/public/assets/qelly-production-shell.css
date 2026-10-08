@@ -323,7 +323,7 @@ body {
   letter-spacing: -.025em !important;
 }
 
-#main h3 { font-size: 15px !important; line-height: 1.3 !important; }
+#main h3:not(:where(.q-cv-page *)) { font-size: 15px !important; line-height: 1.3 !important; }
 
 .q-page-head,
 .q-ti-hero,
