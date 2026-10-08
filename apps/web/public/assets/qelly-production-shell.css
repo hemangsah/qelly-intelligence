@@ -294,7 +294,7 @@ body {
 
 #main :where(.q-eyebrow, small, time, kbd, .q-status, .q-nav-meta, .q-kpi-label,
   .q-source-line, .q-panel-head p, .q-card small, .q-record-row small,
-  .q-ti-field span, .q-ti-validation, .q-ti-audit-item span):not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)){
+  .q-ti-field span, .q-ti-validation, .q-ti-audit-item span):not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market p:not(.q-eyebrow))){
   font-size: 12px !important;
   line-height: 1.4 !important;
   letter-spacing: .01em !important;
@@ -385,13 +385,13 @@ body {
   outline-offset: 2px !important;
 }
 
-.q-panel:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)),
-.q-card:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)),
-.q-kpi:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)),
-.q-record-row:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)),
-.q-choice-row:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)),
-.q-context-block:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)),
-.q-empty-state:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)),
+.q-panel:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)),
+.q-card:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)),
+.q-kpi:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)),
+.q-record-row:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)),
+.q-choice-row:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)),
+.q-context-block:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)),
+.q-empty-state:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)),
 [class*="-card"]:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)){
   border-color: var(--q-border) !important;
   background: var(--q-surface) !important;
@@ -400,14 +400,14 @@ body {
   box-shadow: none !important;
 }
 
-.q-panel:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)),
-.q-card:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)),
-.q-kpi:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)),
-.q-empty-state:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)),
+.q-panel:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)),
+.q-card:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)),
+.q-kpi:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)),
+.q-empty-state:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)),
 [class*="-card"]:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)){ border-radius: 12px !important; }
 
-.q-panel-head:not(:where(.q-mt5-route *)),
-.q-card > header:not(:where(.q-mt5-route *)),
+.q-panel-head:not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)),
+.q-card > header:not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)),
 .q-panel > header:not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)){
   min-height: 0 !important;
   padding: 15px 17px !important;
@@ -883,7 +883,7 @@ html[data-production-system="v8"] body #app #main :where(
   button,.q-button,.q-status,.q-eyebrow,.q-kpi-label,.q-kpi-meta span,
   .q-panel p,.q-card p,.q-record-row small,.q-choice-row small,
   caption,time,kbd,[class*="-meta"],[class*="-eyebrow"],[class*="-kicker"]
-):not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)){
+):not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market p:not(.q-eyebrow))){
   font-size: 12px !important;
   line-height: 1.4 !important;
   letter-spacing: .01em !important;
