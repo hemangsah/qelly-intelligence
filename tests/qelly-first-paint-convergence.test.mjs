@@ -52,10 +52,10 @@ test('protected-route convergence has no global guard reconciliation ladder',asy
   await assert.rejects(read('apps/web/public/assets/qelly-product-route-guard.mjs'),{code:'ENOENT'});
 });
 
-test('normal routes are not globally restyled by the idle theme visual enhancer',async()=>{
+test('the visual enhancer retains engine-owned tokens on every route',async()=>{
   const visual=await read('apps/web/public/assets/theme-intelligence-visual-correction.mjs');
-  assert.match(visual,/syncVisualDatasets\(\{releaseTokens:Boolean\(page\)\}\)/);
-  assert.match(visual,/if\(releaseTokens\)releaseVisualStyleTokens\(root\)/);
+  assert.match(visual,/function syncVisualDatasets\(\)/);
+  assert.doesNotMatch(visual,/releaseVisualStyleTokens|VISUAL_STYLE_KEYS|root\.style\.removeProperty/);
 });
 
 test('current product header is visible before route readiness while main content remains gated',async()=>{
