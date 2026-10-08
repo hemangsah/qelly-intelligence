@@ -82,7 +82,7 @@ html[data-ui-lock-v53="active"][data-product-surface="production"] .q-product-se
   background:#151014;
   overflow:hidden;
 }
-html[data-ui-lock-v53="active"][data-product-surface="production"] .q-product-search input:not(:where(.q-dpg-page *)){
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-product-search input{
   width:100%;
   min-height:30px!important;
   padding:5px 10px!important;
