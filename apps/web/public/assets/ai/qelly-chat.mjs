@@ -208,8 +208,10 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
       const style=getComputedStyle(node);
       return style.visibility!=='hidden'&&style.display!=='none';
     }).map(node=>node.getBoundingClientRect());
-    const blocked=chartClearance||dockOverlapsControls(dock,controls);
-    root.dataset.clearance=chartClearance?'chart':blocked?'interactive':'clear';
+    const plots=[...document.querySelectorAll('#main [data-qelly-chat-plot]')].filter(node=>{const style=getComputedStyle(node);return style.visibility!=='hidden'&&style.display!=='none';}).map(node=>node.getBoundingClientRect());
+    const plotClearance=chartClearance||dockOverlapsControls(dock,plots);
+    const blocked=plotClearance||dockOverlapsControls(dock,controls);
+    root.dataset.clearance=plotClearance?'chart':blocked?'interactive':'clear';
     launcher.tabIndex=blocked?-1:0;
     launcher.setAttribute('aria-hidden',String(blocked));
   };
@@ -220,6 +222,11 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
   document.addEventListener('focusin',scheduleClearance);
   const clearanceObserver=new MutationObserver(scheduleClearance);
   clearanceObserver.observe(document.getElementById('main')||document.body,{childList:true,subtree:true});
+  const readinessObserver=new MutationObserver(scheduleClearance);
+  readinessObserver.observe(document.documentElement,{attributes:true,attributeFilter:['data-app-ready','data-brand-ready','data-resolved-appearance']});
+  const layoutObserver=new ResizeObserver(scheduleClearance);
+  layoutObserver.observe(document.getElementById('main')||document.body);
+  layoutObserver.observe(launcher);
   scheduleClearance();
   renderDockContext();
   const form=root.querySelector('[data-q-ai-form]'),input=form.querySelector('textarea'),send=root.querySelector('[data-q-ai-send]'),stop=root.querySelector('[data-q-ai-stop]');
