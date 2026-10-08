@@ -242,7 +242,7 @@ html[data-ui-lock-v53="active"][data-product-surface="production"] .q-page-head 
   font-size:10px!important;
   line-height:1.35!important;
 }
-html[data-ui-lock-v53="active"][data-product-surface="production"] .q-page-actions .q-button{
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-page-actions .q-button:not(:where(.q-about-v2-page *)){
   min-height:28px!important;
   padding:4px 9px!important;
   border-radius:5px!important;
