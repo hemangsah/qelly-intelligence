@@ -453,7 +453,7 @@ body {
 
 input:not(:where(.q-cv-page *)),
 select:not(:where(.q-cv-page *)),
-textarea:not(:where(.q-cv-page *)){
+textarea:not(:where(.q-cv-page *)):not(:where(.q-ai-root *)){
   border-color: var(--q-border) !important;
   background: var(--q-surfacealt) !important;
   color: var(--q-text) !important;
