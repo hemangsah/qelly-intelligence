@@ -225,7 +225,7 @@ html[data-production-system="v8"] body #app #main :where(
   .q-saved-card,.q-chart-shell,.q-empty-state,.q-truth-callout,.q-result-priority,
   .q-indicator-mini-chart,.q-verify-hero,.q-v53-verify-workbench,
   [class$="-card"],[class*="-card "],[class$="-panel"],[class*="-panel "]
-):not(:where(.q-dossier *)):not(:where(.q-mt5-route *)){
+):not(:where(.q-dossier *)):not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)){
   border:0!important;border-radius:22px!important;
   background:var(--q-luxe-panel)!important;
   box-shadow:var(--q-luxe-shadow-soft),var(--q-luxe-inset)!important;
@@ -294,8 +294,8 @@ html[data-production-system="v8"] body #app #main input:not([type="checkbox"]):n
 html[data-production-system="v8"] body #app #main textarea:not(:where(.q-about-v2-page *)){
   min-height:44px!important;
 }
-html[data-production-system="v8"] body #app #main button,
-html[data-production-system="v8"] body #app #main [role="button"]{min-width:44px!important}
+html[data-production-system="v8"] body #app #main button:not(:where(.q-about-v2-page *)),
+html[data-production-system="v8"] body #app #main [role="button"]:not(:where(.q-about-v2-page *)){min-width:44px!important}
 
 
 /* Wide screens keep the product inventory visible as a quiet dock. It can be
@@ -379,4 +379,4 @@ html[data-production-system="v8"] body #app #main :where(.q-governed-unavailable
 html[data-production-system="v8"] body #app #main :where(.q-governed-unavailable,.q-governed-trust-center,.q-platform-readiness-v6,.q-canonical-rescue) .q-record-row small{font-size:12px!important;line-height:1.55!important;overflow-wrap:anywhere!important}
 html[data-production-system="v8"] body #app #main :where(.q-governed-unavailable,.q-governed-trust-center,.q-platform-readiness-v6,.q-canonical-rescue) .q-record-row .q-status:not(:where(.q-about-v2-page *)){white-space:normal!important;text-align:center!important;flex:0 0 auto!important}
 html[data-production-system="v8"] body #app #main .q-empty-state:not(:where(.q-mt5-route *)){border:0!important;border-radius:18px!important;background:rgba(126,28,58,.075)!important;box-shadow:inset 0 1px rgba(255,255,255,.05)!important}
-@media(max-width:620px):not(:where(.q-about-v2-page *)){html[data-production-system="v8"] body #app #main :where(.q-governed-unavailable,.q-governed-trust-center,.q-platform-readiness-v6,.q-canonical-rescue) .q-record-row{align-items:flex-start!important}html[data-production-system="v8"] body #app #main :where(.q-governed-unavailable,.q-governed-trust-center,.q-platform-readiness-v6,.q-canonical-rescue) .q-record-row>.q-status{align-self:flex-start!important}}
+@media(max-width:620px):not(:where(.q-about-v2-page *)){html[data-production-system="v8"] body #app #main :where(.q-governed-unavailable,.q-governed-trust-center,.q-platform-readiness-v6,.q-canonical-rescue) .q-record-row{align-items:flex-start!important}html[data-production-system="v8"] body #app #main :where(.q-governed-unavailable,.q-governed-trust-center,.q-platform-readiness-v6,.q-canonical-rescue) .q-record-row>.q-status:not(:where(.q-about-v2-page *)){align-self:flex-start!important}}
