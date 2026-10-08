@@ -258,13 +258,13 @@ html[data-production-system="v8"] body #app #main :where(
 }
 
 html[data-production-system="v8"] body #app #main .q-v7-boundary-ribbon{gap:1px!important;overflow:hidden!important;padding:0!important;background:var(--q-border)!important}
-html[data-production-system="v8"] body #app #main .q-v7-boundary-ribbon>div{border:0!important;background:var(--q-surface)!important;padding:clamp(17px,2vw,26px)!important}
+html[data-production-system="v8"] body #app #main .q-v7-boundary-ribbon>div:not(:where(.q-v7-public-market *)){border:0!important;background:var(--q-surface)!important;padding:clamp(17px,2vw,26px)!important}
 
 html[data-production-system="v8"] body #app #main .q-v7-market-grid{
   grid-template-columns:minmax(0,1fr) minmax(280px,340px)!important;
   gap:clamp(18px,2.4vw,34px)!important;
 }
-html[data-production-system="v8"] body #app #main .q-v7-chart-stage{min-height:clamp(430px,55vh,680px)!important;border:0!important;border-radius:18px!important;background:#090a0c!important;overflow:hidden!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.045)!important}
+html[data-production-system="v8"] body #app #main .q-v7-chart-stage:not(:where(.q-v7-public-market *)){min-height:clamp(430px,55vh,680px)!important;border:0!important;border-radius:18px!important;background:#090a0c!important;overflow:hidden!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.045)!important}
 html[data-production-system="v8"] body #app #main .q-v7-side-stack{width:auto!important}
 
 html[data-production-system="v8"] body #app #main :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea){

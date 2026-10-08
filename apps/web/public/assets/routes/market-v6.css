@@ -146,13 +146,13 @@ html[data-product-surface="production"] .q-v7-public-market .q-v6-market-boundar
 }
 
 /* Market owns its presentation; legacy decoration is released at its source. */
-.q-v7-public-market{font-size:16px;line-height:1.55}
-.q-v7-public-market :where(section,article,aside,header,footer,.q-panel-head,.q-panel-body,.q-chart-attribution,.q-setting,.q-status,.q-market-principle__rules span,.q-public-source-values>div){border:0;border-radius:0;box-shadow:none}
-.q-v7-public-market :where(button,.q-button,input,select){min-height:44px;border:0;border-radius:0;box-shadow:none}
-.q-v7-public-market p:not(.q-eyebrow){font-size:16px;line-height:1.55}
-.q-v7-public-market .q-v6-market-controls>.q-setting{display:grid;align-content:end;gap:6px;min-width:0;margin:0;padding:0}
-.q-v7-public-market .q-chart-attribution{font-size:12px;flex-wrap:wrap;padding:14px 0}
-.q-v7-public-market .q-public-source-card{background:transparent;padding:18px 0}
-.q-v7-public-market .q-market-widget-card{background:transparent;padding:18px 0}
-.q-v7-public-market .q-market-widget-stage{background:var(--q-surface)}
-.q-v7-public-market .q-v7-rate-card{background:transparent}
+html[data-product-surface="production"] body #app #main .q-v7-public-market{font-size:16px;line-height:1.55}
+html[data-product-surface="production"] body #app #main .q-v7-public-market :where(section,article,aside,header,footer,.q-panel-head,.q-panel-body,.q-chart-attribution,.q-setting,.q-status,.q-market-principle__rules span,.q-public-source-values>div){border:0;border-radius:0;box-shadow:none}
+html[data-product-surface="production"] body #app #main .q-v7-public-market :where(button,.q-button,input,select){min-height:44px;border:0;border-radius:0;box-shadow:none}
+html[data-product-surface="production"] body #app #main .q-v7-public-market p:not(.q-eyebrow){font-size:16px;line-height:1.55}
+html[data-product-surface="production"] body #app #main .q-v7-public-market .q-v6-market-controls>.q-setting{display:grid;align-content:end;gap:6px;min-width:0;margin:0;padding:0}
+html[data-product-surface="production"] body #app #main .q-v7-public-market .q-chart-attribution{font-size:12px;flex-wrap:wrap;padding:14px 0}
+html[data-product-surface="production"] body #app #main .q-v7-public-market .q-public-source-card{background:transparent;padding:18px 0}
+html[data-product-surface="production"] body #app #main .q-v7-public-market .q-market-widget-card{background:transparent;padding:18px 0}
+html[data-product-surface="production"] body #app #main .q-v7-public-market .q-market-widget-stage{background:var(--q-surface)}
+html[data-product-surface="production"] body #app #main .q-v7-public-market .q-v7-rate-card{background:transparent}

@@ -269,11 +269,11 @@ html[data-production-system="v8"] body #app #main :where(.q-mn-status,.q-mi-kpi,
 
 /* Market-terminal inner surfaces used a compact utility geometry that did not
    inherit from the card selector. Keep boundary data and display attribution
-   visually distinct, but no longer visually dated. */
+   visually distinct:not(:where(.q-v7-public-market *)), but no longer visually dated. */
 html[data-production-system="v8"] body #app :where(
   .q-v7-boundary-ribbon,.q-v7-chart-stage,.q-v6-market-tradingview,
   .qelly-tradingview-fallback,.q-v6-market-boundary
-){
+):not(:where(.q-v7-public-market *)){
   border-radius:var(--q-modern-radius-lg)!important;
   overflow:hidden;
 }
@@ -316,7 +316,7 @@ html[data-production-system="v8"] :where(.q-product-nav,.q-context-shelf,.q-it-t
     .q-provider-card,.q-research-card,.q-notification-card,.q-category-card,
     .q-venue-card,.q-dex-card,.q-feature-card,.q-calculator-card,.q-saved-card,
     .q-about-page article,.q-verify-page article
-  ):hover{
+  ):hover:not(:where(.q-v7-public-market *)){
     transform:translateY(-4px)!important;
     border-color:color-mix(in srgb,var(--q-accent) 43%,var(--q-border))!important;
     box-shadow:0 24px 66px color-mix(in srgb,#000 27%,transparent),0 0 0 1px color-mix(in srgb,var(--q-accent) 17%,transparent)!important;
@@ -430,11 +430,11 @@ html[data-production-system="v8"] body #app #main :where(.q-v7-rate-grid,.q-prov
   grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));
   gap:clamp(10px,1.25vw,18px)!important;
 }
-html[data-production-system="v8"] body #app #main :where(.q-v7-rate-grid>*,.q-provider-grid>*,.q-contract-grid>*,.q-metric-grid>*,.q-kpi-grid>*,.q-mn-status-grid>*){
+html[data-production-system="v8"] body #app #main :where(.q-v7-rate-grid>*,.q-provider-grid>*,.q-contract-grid>*,.q-metric-grid>*,.q-kpi-grid>*,.q-mn-status-grid>*):not(:where(.q-v7-public-market *)){
   min-width:0;
   border-radius:var(--q-modern-radius-md)!important;
 }
-html[data-production-system="v8"] body #app #main :where(.q-v7-boundary-ribbon,.q-v6-market-boundary,.q-result-priority,.q-truth-callout){
+html[data-production-system="v8"] body #app #main :where(.q-v7-boundary-ribbon,.q-v6-market-boundary,.q-result-priority,.q-truth-callout):not(:where(.q-v7-public-market *)){
   border-color:color-mix(in srgb,var(--q-accent) 27%,var(--q-border))!important;
   background:linear-gradient(105deg,color-mix(in srgb,var(--q-accent) 10%,var(--q-surface)),color-mix(in srgb,var(--q-surfacealt) 90%,transparent))!important;
   box-shadow:inset 3px 0 0 color-mix(in srgb,var(--q-accent) 68%,transparent),0 10px 30px color-mix(in srgb,#000 14%,transparent)!important;
