@@ -422,7 +422,7 @@ body {
 .q-kpi { min-height: 116px !important; padding: 16px !important; }
 .q-kpi-value { font-size: clamp(22px, 2.1vw, 32px) !important; }
 
-.q-status:not(:where(.q-v7-public-market *)){
+.q-status:not(:where(.q-v7-public-market *)):not(.q-dossier *){
   min-height: 22px !important;
   padding: 3px 8px !important;
   border-radius: 999px !important;
