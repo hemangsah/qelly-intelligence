@@ -229,7 +229,7 @@ html[data-production-system="v8"] body #app #main :where(tbody tr:hover td){back
 html[data-production-system="v8"] body #app #main :where(
   .q-status,.q-badge,.q-chip,.q-tag,.q-capability,.q-mi-pill,
   [class$="-badge"],[class*="-badge "],[class$="-chip"],[class*="-chip "]
-){
+):not(.q-dossier *){
   border-radius:999px!important;
   min-height:26px;
   display:inline-flex;
