@@ -76,10 +76,6 @@ html .q-ai-root .q-ai-launcher strong{
   color:var(--text);
   font-size:15px;
 }
-html .q-ai-root[data-clearance="interactive"] .q-ai-launcher{
-  opacity:0;
-  pointer-events:none;
-}
 html .q-ai-root .q-ai-assistant{
   background:var(--q-ds-dialog);
   color:var(--text);
