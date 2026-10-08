@@ -77,7 +77,16 @@ function enhanceCommandPalette(dialog){
 }
 
 function positionTooltip(stage,clientX,clientY){const tooltip=stage.querySelector('[data-mi-chart-tooltip]:not([hidden])');if(!tooltip)return;const rect=stage.getBoundingClientRect();tooltip.style.transform='none';tooltip.style.visibility='hidden';tooltip.style.left='0px';tooltip.style.top='0px';const tip=tooltip.getBoundingClientRect();const gap=10,pad=8;const anchorX=Number.isFinite(clientX)?clientX-rect.left:rect.width*.76;const anchorY=Number.isFinite(clientY)?clientY-rect.top:rect.height*.28;const minX=Math.max(pad,pad-rect.left);const maxX=Math.max(minX,Math.min(rect.width-tip.width-pad,innerWidth-rect.left-tip.width-pad));let left=anchorX+gap<=maxX?anchorX+gap:anchorX-tip.width-gap;left=Math.max(minX,Math.min(maxX,left));const minY=Math.max(pad,pad-rect.top);const maxY=Math.max(minY,Math.min(rect.height-tip.height-pad,innerHeight-rect.top-tip.height-pad));let top=anchorY-tip.height-gap; if(top<minY)top=anchorY+gap;top=Math.max(minY,Math.min(maxY,top));tooltip.style.left=`${Math.round(left)}px`;tooltip.style.top=`${Math.round(top)}px`;tooltip.style.visibility='visible';tooltip.dataset.placement=left<anchorX?'left':'right';}
-function bindTooltip(stage){if(stage.dataset.edgeSafe==='true')return;stage.dataset.edgeSafe='true';const schedule=(event)=>requestAnimationFrame(()=>positionTooltip(stage,event?.clientX,event?.clientY));stage.addEventListener('pointermove',schedule,true);stage.addEventListener('pointerdown',schedule,true);stage.addEventListener('pointerenter',schedule,true);stage.addEventListener('keydown',()=>requestAnimationFrame(()=>positionTooltip(stage)),true);new MutationObserver(()=>requestAnimationFrame(()=>positionTooltip(stage))).observe(stage.querySelector('[data-mi-chart-tooltip]')??stage,{attributes:true,attributeFilter:['hidden','style']});requestAnimationFrame(()=>positionTooltip(stage));}
+function bindTooltip(stage){
+  if(stage.dataset.edgeSafe==='true')return;stage.dataset.edgeSafe='true';
+  const target=stage.querySelector('[data-mi-chart-tooltip]')??stage;let frame=null,anchor=null;
+  const observe=()=>observer.observe(target,{attributes:true,attributeFilter:['hidden','style']});
+  const flush=()=>{frame=null;if(!stage.isConnected){observer.disconnect();return;}observer.disconnect();try{positionTooltip(stage,anchor?.clientX,anchor?.clientY);}finally{observe();}};
+  const schedule=(event)=>{if(Number.isFinite(event?.clientX)&&Number.isFinite(event?.clientY))anchor={clientX:event.clientX,clientY:event.clientY};if(frame===null)frame=requestAnimationFrame(flush);};
+  const observer=new MutationObserver(()=>schedule());observe();
+  stage.addEventListener('pointermove',schedule,true);stage.addEventListener('pointerdown',schedule,true);stage.addEventListener('pointerenter',schedule,true);
+  stage.addEventListener('keydown',()=>{anchor=null;schedule();},true);schedule();
+}
 
 export function enhanceThemeIntelligenceVisuals(root=document){const scope=root instanceof Element||root instanceof Document?root:document;const page=scope.querySelector?.('.q-ti-page')??(scope.matches?.('.q-ti-page')?scope:null);syncVisualDatasets({releaseTokens:Boolean(page)});if(page){enhanceGallery(page);enhanceStudio(page);}scope.querySelectorAll?.('dialog.q-command-dialog').forEach(enhanceCommandPalette);scope.querySelectorAll?.('.q-mi-chart-stage').forEach(bindTooltip);}
 
