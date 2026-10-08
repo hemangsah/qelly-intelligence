@@ -166,7 +166,7 @@ function annotateNavLinks(scope=document){
 function annotateEvidence(scope=document){
   scope.querySelectorAll?.('.q-panel,.q-card,.q-research-card,.q-research-evidence-card,.q-research-inspector-block').forEach((panel)=>{
     const hasEvidence=Boolean(panel.querySelector('.q-source-line,[data-evidence],[data-source],[data-provenance],.q-evidence,.q-methodology'))||panel.matches('[data-evidence],[data-source],[data-provenance]');
-    panel.dataset.v53EvidenceAdjacent=hasEvidence?'true':'false';
+    setPresentationAttribute(panel,'data-v53-evidence-adjacent',hasEvidence?'true':'false');
   });
 }
 
@@ -174,23 +174,19 @@ function ensureProductionStatus(){
   document.querySelector('.q-v53-product-status')?.remove();
 }
 
+function setPresentationAttribute(node,name,value){if(node&&node.getAttribute(name)!==value)node.setAttribute(name,value);}
 function annotateShell(){
   ensureProductionStatus();
-  document.querySelector('.q-global-strip')?.setAttribute('data-qelly-shell-layer','system-strip');
-  document.querySelector('.q-command-bar,.q-product-header')?.setAttribute('data-qelly-shell-layer','command-bar');
-  document.querySelector('.q-v53-product-status')?.setAttribute('data-qelly-shell-layer','system-strip');
-  rail?.setAttribute('data-qelly-shell-layer','navigation-rail');
-  document.getElementById('context-shelf')?.setAttribute('data-qelly-shell-layer','context-bar');
-  main?.setAttribute('data-qelly-shell-layer','analytical-workspace');
-  if(contextDrawer){
-    contextDrawer.setAttribute('data-qelly-shell-layer','intelligence-inspector');
-    contextDrawer.setAttribute('aria-label','Intelligence Inspector — source context');
-  }
-  if(compareTray){
-    compareTray.setAttribute('data-qelly-shell-layer','activity-tray');
-    compareTray.classList.add('q-v53-activity-tray');
-    compareTray.setAttribute('aria-label','Activity and intelligence actions');
-  }
+  setPresentationAttribute(document.querySelector('.q-global-strip'),'data-qelly-shell-layer','system-strip');
+  setPresentationAttribute(document.querySelector('.q-command-bar,.q-product-header'),'data-qelly-shell-layer','command-bar');
+  setPresentationAttribute(rail,'data-qelly-shell-layer','navigation-rail');
+  setPresentationAttribute(document.getElementById('context-shelf'),'data-qelly-shell-layer','context-bar');
+  setPresentationAttribute(main,'data-qelly-shell-layer','analytical-workspace');
+  setPresentationAttribute(contextDrawer,'data-qelly-shell-layer','intelligence-inspector');
+  setPresentationAttribute(contextDrawer,'aria-label','Intelligence Inspector — source context');
+  setPresentationAttribute(compareTray,'data-qelly-shell-layer','activity-tray');
+  setPresentationAttribute(compareTray,'aria-label','Activity and intelligence actions');
+  if(compareTray&&!compareTray.classList.contains('q-v53-activity-tray'))compareTray.classList.add('q-v53-activity-tray');
 }
 
 function storedRailPreference(){
@@ -216,8 +212,8 @@ function persistRailPreference(){
 function markRoute(){
   if(!main)return;
   const route=location.hash.replace(/^#\//,'').split(/[?/#]/)[0]||'market';
-  main.dataset.v53Route=route;
-  root.dataset.v53Route=route;
+  setPresentationAttribute(main,'data-v53-route',route);
+  setPresentationAttribute(root,'data-v53-route',route);
 }
 
 function refresh(scope=document){
@@ -236,16 +232,13 @@ const reducedMotionMedia=matchMedia(REDUCED_MOTION_QUERY);
 reducedMotionMedia.addEventListener?.('change',()=>requestAnimationFrame(()=>revealReducedMotionContent(document)));
 window.addEventListener('hashchange',()=>requestAnimationFrame(()=>refresh(main||document)));
 
+function coalesceFrame(callback){let frame=null;return()=>{if(frame===null)frame=requestAnimationFrame(()=>{frame=null;callback();});};}
 if(main){
-  const observer=new MutationObserver((mutations)=>{
-    const relevant=mutations.some((mutation)=>(mutation.type==='childList'&&mutation.addedNodes.length)||mutation.type==='attributes');
-    if(!relevant)return;
-    requestAnimationFrame(()=>refresh(main));
-  });
+  const schedule=coalesceFrame(()=>refresh(main));
+  const observer=new MutationObserver(mutations=>{if(mutations.some(mutation=>(mutation.type==='childList'&&mutation.addedNodes.length)||mutation.type==='attributes'))schedule();});
   observer.observe(main,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
 }
-
-const shellObserver=new MutationObserver(()=>requestAnimationFrame(()=>annotateShell()));
+const shellObserver=new MutationObserver(coalesceFrame(annotateShell));
 shellObserver.observe(document.getElementById('app')||document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
 
 activateVisibleRefinement();
