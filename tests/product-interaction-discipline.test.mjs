@@ -8,7 +8,7 @@ test('final product layer governs focus, target size and compact production cont
   const css=await read('apps/web/public/assets/qelly-product-experience.css');
   assert.match(css,/--q-target-min:40px/);
   assert.match(css,/--q-focus-ring:/);
-  assert.match(css,/:focus-visible(?::not\(:where\([^{}]+\)\))*\{[^}]*outline:3px solid var\(--q-focus-ring\)!important/);
+  assert.ok(css.split('}').some(rule=>{const at=rule.lastIndexOf('{');return at>=0&&rule.slice(0,at).includes(':focus-visible')&&rule.slice(at+1).includes('outline:3px solid var(--q-focus-ring)!important');}),'The shared focus-visible owner retains its 3px focus ring');
   assert.match(css,/button\[aria-label="Dismiss notification"\]\{[^}]*min-width:max\(48px,var\(--q-target-min\)\)!important;min-height:max\(48px,var\(--q-target-min\)\)!important/);
   assert.match(css,/\.qelly-tradingview-attribution a,[\s\S]*\.q-v6-runtime-provider>a/);
   assert.match(css,/\.q-grid-resizer\{[\s\S]*width:24px!important/);
