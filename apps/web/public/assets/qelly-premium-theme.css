@@ -225,7 +225,7 @@ html[data-production-system="v8"] body #app #main :where(
   .q-saved-card,.q-chart-shell,.q-empty-state,.q-truth-callout,.q-result-priority,
   .q-indicator-mini-chart,.q-verify-hero,.q-v53-verify-workbench,
   [class$="-card"],[class*="-card "],[class$="-panel"],[class*="-panel "]
-):not(:where(.q-dossier *)):not(:where(.q-cv-page *)):not(:where(.q-about-v2-page *)){
+):not(:where(.q-dossier *)):not(:where(.q-cv-page *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)){
   border:0!important;border-radius:22px!important;
   background:var(--q-luxe-panel)!important;
   box-shadow:var(--q-luxe-shadow-soft),var(--q-luxe-inset)!important;

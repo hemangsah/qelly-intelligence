@@ -93,7 +93,7 @@ html[data-production-system="v8"] :where(button:not(.q-product-brand__mark):not(
   transform:translate3d(var(--magnet-x,0px),calc(var(--magnet-y,0px) - var(--q-hover-lift)),0) scale(var(--q-press-scale))!important;
   transition:transform var(--q-modern-fast) var(--q-modern-ease),box-shadow var(--q-modern-fast) ease,border-color var(--q-modern-fast) ease,background var(--q-modern-fast) ease,color var(--q-modern-fast) ease!important;
 }
-html[data-production-system="v8"] body #app .q-product-header .q-product-search button:not(:where(.q-about-v2-page *)),
+html[data-production-system="v8"] body #app .q-product-header .q-product-search button:not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)),
 html[data-production-system="v8"] body #app #main .q-page-actions .q-button:not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)){border-radius:999px!important}
 html[data-production-system="v8"] :where(button:not(:disabled):not(.q-ai-launcher),a.q-button,[role="button"],[role="tab"]):hover:not(:where(.q-dossier *)):not(:where(.q-cv-page *)):not(:where(.q-ai-root *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)){
   --q-hover-lift:2px;
@@ -107,7 +107,7 @@ html[data-production-system="v8"] #main :where(
   .q-it-provider,.q-it-news-grid article,.q-category-card,.q-venue-card,.q-dex-card,
   .q-provider-card,.q-research-card,.q-notification-card,.q-article-shell,.q-asset-hero,
   .q-persona-card,.q-market-pulse-card,.q-feature-card,.q-calculator-card,.q-saved-card
-):not(:where(.q-cv-page *)){
+):not(:where(.q-cv-page *)):not(:where(.q-v7-public-market *)){
   border-radius:var(--q-modern-radius-lg)!important;
   transition:transform var(--q-modern-standard) var(--q-modern-ease),box-shadow var(--q-modern-standard) var(--q-modern-ease),border-color var(--q-modern-standard) ease,background var(--q-modern-standard) ease!important;
 }
@@ -115,7 +115,7 @@ html[data-production-system="v8"] #main :where(
   .q-panel,.q-it-provider,.q-it-news-grid article,.q-category-card,.q-venue-card,.q-dex-card,
   .q-provider-card,.q-research-card,.q-notification-card,.q-persona-card,.q-market-pulse-card,
   .q-feature-card,.q-calculator-card,.q-saved-card
-):not(.q-motion-item):hover:not(:where(.q-cv-page *)){
+):not(.q-motion-item):hover:not(:where(.q-cv-page *)):not(:where(.q-v7-public-market *)){
   transform:translateY(-3px);
   border-color:color-mix(in srgb,var(--q-accent) 38%,var(--q-border))!important;
   box-shadow:var(--q-modern-shadow-hover)!important;
@@ -160,7 +160,7 @@ html[data-production-system="v8"] body #app #main :where(
   .q-result-priority,.q-indicator-mini-chart,.q-verify-hero,.q-v53-verify-workbench,
   [class$="-card"],[class*="-card "],[class$="-panel"],[class*="-panel "],
   [class$="-hero"],[class*="-hero "],[class$="-kpi"],[class*="-kpi "]
-):not(:where(.q-dx-page *)):not(:where(.q-dossier *)):not(:where(.q-cv-page *)):not(:where(.q-about-v2-page *)){
+):not(:where(.q-dx-page *)):not(:where(.q-dossier *)):not(:where(.q-cv-page *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)){
   border-radius:var(--q-modern-radius-lg)!important;
   border-color:var(--q-modern-hairline)!important;
   box-shadow:0 14px 42px color-mix(in srgb,#000 17%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 5%,transparent)!important;
@@ -205,7 +205,7 @@ html[data-production-system="v8"] body #app #main :where(
 html[data-production-system="v8"] body #app #main :where(
   .q-chart-toolbar button,.q-mn-chart-controls button,.q-row-actions button,
   .q-mi-chart-controls button,.q-filter-bar button,.q-toolbar button
-):not(:where(.q-dossier *)):not(:where(.q-cv-page *)){border-radius:999px!important;min-height:38px!important;padding-inline:13px!important}
+):not(:where(.q-dossier *)):not(:where(.q-cv-page *)):not(:where(.q-v7-public-market *)){border-radius:999px!important;min-height:38px!important;padding-inline:13px!important}
 
 html[data-production-system="v8"] body #app #main :where(
   .q-grid-scroll,.q-table-wrap,.q-mn-table-wrap,.q-chart-table,.q-audit-table,
@@ -229,7 +229,7 @@ html[data-production-system="v8"] body #app #main :where(tbody tr:hover td){back
 html[data-production-system="v8"] body #app #main :where(
   .q-status,.q-badge,.q-chip,.q-tag,.q-capability,.q-mi-pill,
   [class$="-badge"],[class*="-badge "],[class$="-chip"],[class*="-chip "]
-):not(.q-dossier *):not(:where(.q-cv-page *)):not(:where(.q-about-v2-page *)){
+):not(.q-dossier *):not(:where(.q-cv-page *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)){
   border-radius:999px!important;
   min-height:26px;
   display:inline-flex;
