@@ -24,7 +24,10 @@ test('Universal Search has a broad purpose-distinct governed corpus',()=>{
 
 test('supported public assets are searchable without live ranking evidence',()=>{
   const btc=buildUniversalSearch({q:'BTC'});
-  assert.equal(btc.total,1);
+  assert.equal(btc.total,2);
+  assert.ok(btc.items.some(item=>item.id==='converter'),'Crypto converter is discoverable alongside the canonical asset');
+  const ondo=buildUniversalSearch({q:'ONDO',types:'feature'});
+  assert.ok(ondo.items.some(item=>item.id==='converter'));
   assert.equal(btc.items[0].id,'QI-CRYPTO-BTC');
   assert.equal(btc.items[0].source,'Qelly public asset catalog');
   assert.equal(btc.items[0].truthState,'catalog');
