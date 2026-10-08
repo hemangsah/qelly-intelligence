@@ -26,18 +26,18 @@ html[data-production-system="v8"] body{overflow-x:clip!important;overflow-y:visi
 
 /* One interaction contract for every route: visible keyboard focus, honest
    disabled states, consistent pressed feedback, and comfortable hit areas. */
-html[data-production-system="v8"] :where(button,a[href],input,select,textarea,[role="button"],[role="link"],[role="tab"]){
+html[data-production-system="v8"] :where(button,a[href],input,select,textarea,[role="button"],[role="link"],[role="tab"]):not(:where(.q-dossier *)){
   touch-action:manipulation;
 }
-html[data-production-system="v8"] :where(button,a[href],input,select,textarea,[role="button"],[role="link"],[role="tab"]):focus-visible{
+html[data-production-system="v8"] :where(button,a[href],input,select,textarea,[role="button"],[role="link"],[role="tab"]):focus-visible:not(:where(.q-dossier *)){
   outline:3px solid var(--q-focus-ring)!important;
   outline-offset:3px!important;
   box-shadow:0 0 0 5px color-mix(in srgb,var(--q-focus-ring) 18%,transparent)!important;
 }
-html[data-production-system="v8"] :where(button:disabled,[aria-disabled="true"]){
+html[data-production-system="v8"] :where(button:disabled,[aria-disabled="true"]):not(:where(.q-dossier *)){
   cursor:not-allowed!important;filter:saturate(.55)!important;opacity:.58!important;
 }
-html[data-production-system="v8"] :where(button,a[href],[role="button"],[role="link"],[role="tab"]).is-interacting{
+html[data-production-system="v8"] :where(button,a[href],[role="button"],[role="link"],[role="tab"]).is-interacting:not(:where(.q-dossier *)){
   transform:translateY(0) scale(.985)!important;filter:brightness(.98)!important;
 }
 html[data-production-system="v8"] button[aria-label="Dismiss notification"]{
@@ -150,15 +150,15 @@ html[data-production-system="v8"] body #app #main :where(.q-button,button,[role=
 
 /* Tonal hierarchy replaces old outlines and oversized rounding. */
 html[data-production-system="v8"] body #app #main :where(
-  .q-panel,.q-mn-panel,.q-mn-card,.q-kpi,.q-metric-card,.q-mi-kpi,.q-mi-regime,
-  .q-auth-card,.q-auth-hero,.q-access-gate,.q-it-hero,.q-it-guide,.q-it-panel,
-  .q-it-provider,.q-category-card,.q-venue-card,.q-dex-card,.q-provider-card,
-  .q-research-card,.q-notification-card,.q-article-shell,.q-asset-hero,
-  .q-persona-card,.q-market-pulse-card,.q-feature-card,.q-calculator-card,
-  .q-saved-card,.q-chart-shell,.q-empty-state,.q-truth-callout,.q-result-priority,
-  .q-indicator-mini-chart,.q-verify-hero,.q-v53-verify-workbench,
+  .q-panel,.q-mn-panel,.q-mn-card,.q-kpi,.q-metric-card,.q-mi-kpi,.q-mi-regime:not(:where(.q-dossier *)),
+  .q-auth-card,.q-auth-hero,.q-access-gate,.q-it-hero,.q-it-guide,.q-it-panel:not(:where(.q-dossier *)),
+  .q-it-provider,.q-category-card,.q-venue-card,.q-dex-card,.q-provider-card:not(:where(.q-dossier *)),
+  .q-research-card,.q-notification-card,.q-article-shell,.q-asset-hero:not(:where(.q-dossier *)),
+  .q-persona-card,.q-market-pulse-card,.q-feature-card,.q-calculator-card:not(:where(.q-dossier *)),
+  .q-saved-card,.q-chart-shell,.q-empty-state,.q-truth-callout,.q-result-priority:not(:where(.q-dossier *)),
+  .q-indicator-mini-chart,.q-verify-hero,.q-v53-verify-workbench:not(:where(.q-dossier *)),
   [class$="-card"],[class*="-card "],[class$="-panel"],[class*="-panel "]
-){
+):not(:where(.q-dossier *)){
   border:0!important;border-radius:var(--q-radius-surface)!important;background:var(--q-luxe-panel)!important;box-shadow:var(--q-elevation-rest)!important;
 }
 html[data-production-system="v8"] body #app #main :where(.q-it-hero,.q-verify-hero,.q-auth-hero,.q-asset-hero,.q-home-lead,.q-market-safety,.q-about-hero){

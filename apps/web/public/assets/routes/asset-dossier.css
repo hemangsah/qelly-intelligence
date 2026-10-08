@@ -1,0 +1,59 @@
+.q-dossier{display:grid;gap:32px;min-width:0}
+#main .q-dossier :where(p,dt,dd,button){font-size:15px;line-height:1.6}
+.q-dossier-heading{display:flex;justify-content:space-between;align-items:end;gap:24px}
+.q-dossier-heading p{margin:0 0 8px;color:var(--q-text-secondary)}
+.q-dossier-heading h1{margin:0 0 8px}
+.q-dossier-heading h1 small{display:inline-block;color:var(--q-text-secondary)}
+.q-dossier-quote{display:grid;justify-items:end;gap:8px;min-width:0}
+.q-dossier-quote strong{font-variant-numeric:tabular-nums;font-size:clamp(28px,3vw,44px);line-height:1.15;letter-spacing:-.04em}
+.q-dossier-quote .is-positive{color:var(--q-positive)}
+.q-dossier-quote .is-negative{color:var(--q-negative)}
+.q-dossier-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;margin:0}
+.q-dossier-metrics>div{display:grid;align-content:start;gap:6px;min-width:0;padding:8px 0}
+.q-dossier-metrics dt{color:var(--q-text-secondary)}
+#main .q-dossier .q-dossier-metrics dd{margin:0;font-size:clamp(20px,2vw,30px);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.q-dossier-metrics small{color:var(--q-text-secondary)}
+.q-dossier #asset-chart{min-width:0;align-self:stretch;border:0;border-radius:0;background:transparent;box-shadow:none;overflow:visible}
+.q-dossier .q-chart-header{gap:20px;padding:0 0 16px;border:0;background:transparent}
+.q-dossier .q-chart-header h2{margin:4px 0 0}
+.q-dossier .q-chart-toolbar{gap:8px;padding:0 0 16px;border:0;border-radius:0;background:transparent;backdrop-filter:none}
+.q-dossier .q-chart-toolbar button,.q-dossier-actions button,.q-dossier-evidence button{min-height:44px;border:0;border-radius:0;padding:10px 14px;background:var(--q-surface-alt);color:var(--q-text);font:inherit;cursor:pointer;box-shadow:none;transform:none}
+.q-dossier .q-chart-toolbar button:hover,.q-dossier-actions button:hover,.q-dossier-evidence button:hover{background:var(--q-surface-elevated);color:var(--q-accent-strong)}
+.q-dossier .q-chart-visual{padding:0}
+.q-dossier .q-chart-visual svg{height:clamp(280px,32vw,430px);min-height:0}
+.q-dossier .q-chart-table{max-height:320px;border:0;border-radius:0;background:transparent;box-shadow:none;overflow:auto}
+.q-dossier .q-chart-table :is(th,td){border:0;padding:10px 12px}
+.q-dossier .q-source-line{display:flex;flex-wrap:wrap;gap:8px 24px;padding:16px 0 0;border:0;line-height:1.6}
+.q-dossier-volume{display:grid;gap:14px;min-width:0}
+.q-dossier-volume h2,.q-dossier-evidence h2,.q-dossier-research h2{margin:0 0 8px}
+.q-dossier-volume p,.q-dossier-evidence p,.q-dossier-research p{margin:0;color:var(--q-text-secondary);max-width:78ch}
+.q-dossier-volume figure{margin:0;min-width:0}
+.q-dossier-volume svg{display:block;width:100%;height:160px;color:var(--q-accent-strong)}
+.q-dossier-volume figcaption{display:flex;justify-content:space-between;gap:24px;margin-top:8px;color:var(--q-text-secondary);font-size:12px}
+.q-dossier-volume details{border:0;border-radius:0;padding:0;background:transparent;box-shadow:none}
+.q-dossier-volume summary{display:flex;align-items:center;min-height:44px;color:var(--q-accent-strong);cursor:pointer}
+.q-dossier-volume table{width:100%;border-collapse:collapse}
+.q-dossier-volume :is(th,td){border:0;padding:10px;text-align:left;overflow-wrap:anywhere}
+.q-dossier-volume td:last-child{font-variant-numeric:tabular-nums}
+.q-dossier-evidence{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:32px;align-items:start}
+.q-dossier-evidence dl{display:grid;gap:18px;margin:0}
+.q-dossier-evidence dl>div{display:grid;grid-template-columns:minmax(120px,.7fr) minmax(0,1fr);gap:20px}
+.q-dossier-evidence dt{color:var(--q-text-secondary)}
+.q-dossier-evidence dd{margin:0;overflow-wrap:anywhere}
+.q-dossier-evidence button{justify-self:start;margin-top:16px}
+.q-dossier-research{display:grid;gap:14px}
+.q-dossier-actions{display:flex;flex-wrap:wrap;gap:8px}
+.q-dossier-state{display:grid;gap:18px;max-width:80ch;padding-block:24px}
+.q-dossier-state h1,.q-dossier-state p{margin:0}
+@media(max-width:700px){
+ .q-dossier{gap:28px}
+ .q-dossier-heading{display:grid;gap:20px}
+ .q-dossier-quote{justify-items:start}
+ .q-dossier-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+ .q-dossier .q-chart-header{display:grid;gap:12px}
+ .q-dossier .q-chart-value{flex-wrap:wrap}
+ .q-dossier .q-chart-visual svg{height:280px}
+ .q-dossier-evidence{grid-template-columns:minmax(0,1fr);gap:22px}
+ .q-dossier-evidence dl>div{grid-template-columns:minmax(95px,.6fr) minmax(0,1fr);gap:14px}
+ .q-dossier-actions button{flex:1 1 140px}
+}

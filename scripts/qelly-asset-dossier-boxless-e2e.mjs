@@ -1,0 +1,37 @@
+import {chromium} from 'playwright';
+import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {startServer} from './release-a5-evidence-server.mjs';
+const out='preview/asset-dossier-boxless-e2e';await mkdir(out,{recursive:true});
+const server=await startServer({port:0,host:'127.0.0.1'});
+const browser=await chromium.launch({headless:true,executablePath:process.env.QELLY_BROWSER_EXECUTABLE||'/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
+const results=[];let active;
+try{
+ for(const appearance of ['dark','light'])for(const width of [1440,1024,768,390,320]){
+  const context=await browser.newContext({viewport:{width,height:900},colorScheme:appearance,reducedMotion:'reduce',serviceWorkers:'block'});
+  await context.addInitScript(a=>localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({version:2,appearance:a})),appearance);
+  const page=active=await context.newPage();let nonReadRequests=0;let candlePayload;
+  await context.route('**/*',route=>{if(!['GET','HEAD','OPTIONS'].includes(route.request().method())){nonReadRequests++;return route.abort();}return route.continue();});
+  await context.route('**/api/v1/user/layout-preferences',async route=>{const response=await route.fetch();await route.fulfill({response,json:{...await response.json(),appearance}});});
+  await context.route('**/api/v1/public/markets/assets/QI-CRYPTO-BTC/candles?*',async route=>{const response=await route.fetch();candlePayload=await response.json();await route.fulfill({response,json:candlePayload});});
+  await page.goto(`http://127.0.0.1:${server.port}/#/asset/QI-CRYPTO-BTC`,{waitUntil:'domcontentloaded'});
+  await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true'&&document.documentElement.dataset.brandReady==='true');await page.locator('.qelly-opening').waitFor({state:'hidden'});
+  await page.locator('.q-dossier #asset-chart svg polyline').waitFor({state:'visible'});
+  const layout=await page.locator('.q-dossier').evaluate(root=>{const rect=root.getBoundingClientRect(),chart=root.querySelector('#asset-chart').getBoundingClientRect(),style=getComputedStyle(root),rail=getComputedStyle(root.querySelector('.q-dossier-metrics'));return {rootWidth:rect.width,chartWidth:chart.width,contentWidth:rect.width-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight),columns:rail.gridTemplateColumns.split(' ').length,overflow:document.documentElement.scrollWidth>innerWidth+1,bodyText:parseFloat(getComputedStyle(root.querySelector('.q-dossier-volume p')).fontSize)};});
+  assert.ok(layout.chartWidth>=layout.contentWidth*.98,'Price chart must use the available editorial width');assert.equal(layout.columns,width<=700?2:4);assert.equal(layout.overflow,false);assert.ok(layout.bodyText>=14);
+  const surfaces=await page.locator('.q-dossier-heading,.q-dossier-metrics>div,#asset-chart,.q-chart-header,.q-chart-toolbar,.q-dossier-volume details,.q-dossier-evidence,.q-dossier-research,.q-dossier-actions button').evaluateAll(nodes=>nodes.map(node=>{const s=getComputedStyle(node);return {className:node.className,borders:[s.borderTopWidth,s.borderRightWidth,s.borderBottomWidth,s.borderLeftWidth],shadow:s.boxShadow};}));
+  assert.ok(surfaces.length>=12);for(const surface of surfaces){assert.deepEqual(surface.borders,['0px','0px','0px','0px'],JSON.stringify(surface));assert.equal(surface.shadow,'none',JSON.stringify(surface));}
+  assert.equal(await page.locator('.q-dossier .q-panel,.q-dossier .q-kpi,.q-dossier .q-asset-hero').count(),0);
+  assert.ok(candlePayload?.points?.length);const last=candlePayload.points.slice(-24),expected=last.filter(p=>Number.isFinite(p.volume)&&p.volume>=0).length;
+  if(expected===last.length){assert.equal(await page.locator('.q-dossier-volume svg rect').count(),last.length);await page.getByText('View hourly volume data',{exact:true}).click();assert.equal(await page.locator('.q-dossier-volume tbody tr').count(),last.length);const values=await page.locator('.q-dossier-volume tbody td:last-child').allTextContents();assert.deepEqual(values,last.map(p=>new Intl.NumberFormat('en-US',{maximumFractionDigits:4}).format(p.volume)));await page.getByText('View hourly volume data',{exact:true}).click();}
+  const zoom=page.locator('#asset-chart [data-chart="zoom-in"]'),table=page.locator('#asset-chart [data-chart="table"]');await zoom.click();await table.click();assert.equal(await table.getAttribute('aria-expanded'),'true');assert.ok(await page.locator('#asset-chart tbody tr').count()>0);await table.click();
+  await page.locator('[data-action="asset-source"]').click();await page.getByRole('dialog').waitFor({state:'visible'});await page.keyboard.press('Escape');await page.getByRole('dialog').waitFor({state:'hidden'});
+  await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));await page.screenshot({path:`${out}/asset-${appearance}-${width}.png`,fullPage:true});
+  assert.equal(nonReadRequests,0);results.push({appearance,width,layout,surfaces,volumeRows:expected,chartTableAndZoom:true,dataDetailsDialog:true,nonReadRequests});await context.close();
+ }
+ const context=await browser.newContext({viewport:{width:390,height:900},reducedMotion:'reduce',serviceWorkers:'block'}),page=active=await context.newPage();
+ await context.route('**/api/v1/public/markets/assets/QI-CRYPTO-BTC*',route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:{code:'provider_unavailable',message:'Provider temporarily unavailable',retryable:true}})}));
+ await page.goto(`http://127.0.0.1:${server.port}/#/asset/QI-CRYPTO-BTC`,{waitUntil:'domcontentloaded'});await page.getByRole('heading',{name:'Market evidence unavailable'}).waitFor();assert.equal(await page.locator('#asset-chart,.q-dossier-volume svg').count(),0);assert.equal(await page.locator('[data-action="asset-retry"]').count(),1);await page.screenshot({path:out+'/asset-outage.png'});await context.close();
+ await writeFile(out+'/report.json',JSON.stringify({status:'passed',sourceSha:process.env.QELLY_SCREEN_EVIDENCE_SHA,results,outageFailsClosed:true,boundary:'Existing governed fixture API data, source-owner layout and interactions. Full UK, actual deployed visual acceptance and shared Chat clearance require separate evidence.'},null,2));
+}catch(error){if(active&&!active.isClosed())await active.screenshot({path:out+'/failure.png',fullPage:true}).catch(()=>{});await writeFile(out+'/report.json',JSON.stringify({status:'failed',sourceSha:process.env.QELLY_SCREEN_EVIDENCE_SHA,error:error.stack,results},null,2));throw error;}
+finally{await browser.close();await new Promise(resolve=>server.server.close(resolve));await new Promise(resolve=>server.evidenceUpstream.server.close(resolve));}

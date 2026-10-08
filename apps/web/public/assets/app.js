@@ -2,6 +2,7 @@ import { installAccessibility, announce, openDialog, closeDialog } from '../pack
 import { button, toast, commandDialog, dataStateIndicator, escapeHtml, sourceDisclosure } from '../packages/ui-primitives/primitives.mjs';
 import { QellyDataGrid } from '../packages/data-grid/data-grid.mjs';
 import { QellyChartShell } from '../packages/charting/chart-shell.mjs';
+import {ensureRouteStylesheet} from './route-stylesheet-readiness.mjs';
 import { productDomains, routeDefinitions, routeIdentityFor } from './route-registry.mjs';
 import { parseHashRoute } from './hash-route-state.mjs';
 import {bindPublicRecoveryActions,installPublicRecoveryChrome,isPublicRecoveryRoute,publicRecoveryMarkup} from './qelly-public-recovery.mjs';
@@ -667,6 +668,7 @@ async function renderLegacyRankings(main) {
 }
 
 async function renderAsset(main) {
+  await ensureRouteStylesheet(new URL('./routes/asset-dossier.css',import.meta.url).href,{attribute:'data-qelly-asset-dossier',value:'true'});
   const id=state.asset||'QI-CRYPTO-BTC';
   let data,candles;
   try{
@@ -675,7 +677,7 @@ async function renderAsset(main) {
       api(`/api/v1/public/markets/assets/${encodeURIComponent(id)}/candles?interval=1h&limit=168`)
     ]);
   }catch(error){
-    main.innerHTML=`<section class="q-page">${stateBanner()}<section class="q-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Asset Dossier</p><h1>Market evidence unavailable</h1><p>Current public market observations for this asset could not be loaded. No substitute price or chart has been generated.</p></div><span class="q-status q-status--unavailable">Unavailable</span></div><div class="q-panel-body"><p>${escapeHtml(error?.message||'Retry shortly or continue with research tools that do not require this market observation.')}</p><div class="q-action-row"><button class="q-button q-button--primary" data-action="asset-retry">Retry</button><button class="q-button" data-action="asset-decision">Decision Intelligence</button><button class="q-button" data-action="asset-formula">Formula Evidence</button><button class="q-button" data-action="asset-news">News &amp; research</button></div></div></section></section>`;
+    main.innerHTML=`<section class="q-page q-dossier">${stateBanner()}<section class="q-dossier-state"><p class="q-eyebrow">Asset Dossier</p><h1>Market evidence unavailable</h1><p>Current public market observations for this asset could not be loaded. No substitute price or chart has been generated.</p><p role="status">${escapeHtml(error?.message||'Retry shortly or continue with research tools that do not require this market observation.')}</p><div class="q-dossier-actions"><button data-action="asset-retry">Retry</button><button data-action="asset-decision">Decision Intelligence</button><button data-action="asset-formula">Formula Evidence</button><button data-action="asset-news">News &amp; research</button></div></section></section>`;
     main.querySelector('[data-action="asset-retry"]')?.addEventListener('click',()=>renderAsset(main),{once:true});
     main.querySelector('[data-action="asset-decision"]')?.addEventListener('click',()=>{storeDecisionContext({asset:id,timeframe:'1h',source:'asset-dossier-unavailable'});navigate('decision-provenance');});
     main.querySelector('[data-action="asset-formula"]')?.addEventListener('click',()=>{storeResearchContext({asset:id,timeframe:'1h',source:'asset-dossier-unavailable'});navigate('formula-screener');});
@@ -695,22 +697,27 @@ async function renderAsset(main) {
     ['24h low',low24h==null?'N/A':new Intl.NumberFormat('en-US',{style:'currency',currency:data.currency,maximumFractionDigits:6}).format(low24h),low24h==null?'unavailable':freshness,'Observed range'],
     ['24h range risk',rangeRiskPct==null?'N/A':`${rangeRiskPct.toFixed(2)}%`,rangeRiskPct==null?'unavailable':freshness,'High-low width vs current price']
   ];
-  main.innerHTML=`<section class="q-page">${stateBanner()}
-    <div class="q-asset-hero">
-      <div class="q-asset-identity"><span class="q-asset-icon">${escapeHtml(data.symbol.slice(0,2))}</span><div><p class="q-eyebrow" style="color:rgba(255,255,255,.72)!important">Market snapshot</p><h1>${escapeHtml(data.name)} <small style="font-size:12px;opacity:.72">${escapeHtml(data.symbol)}</small></h1><p>${escapeHtml(data.category)} · public research</p></div></div>
-      <div class="q-asset-price"><span class="q-status q-status--${freshness}">${escapeHtml(data.source.qualityState)}</span><strong>${escapeHtml(price)}</strong><span class="${(change24h??0)>=0?'is-positive':'is-negative'}">${change24h==null?'24h unavailable':`${change24h>=0?'+':''}${change24h.toFixed(2)}%`}</span></div>
-    </div>
-    <div class="q-kpi-grid">${stats.map(([label,value,status,meta])=>`<article class="q-kpi"><div class="q-kpi-label">${escapeHtml(label)}</div><div class="q-kpi-value">${escapeHtml(value)}</div><div class="q-kpi-meta"><span>${escapeHtml(meta)}</span><span class="q-status q-status--${status}">${escapeHtml(status)}</span></div></article>`).join('')}</div>
-    <div class="q-dashboard-grid">
-      <div id="asset-chart"></div>
-      <div class="q-dashboard-stack">
-        <section class="q-panel"><div class="q-panel-head"><div><h2>Evidence &amp; freshness</h2><p>Source, timing and data quality stay visible without dominating the market view.</p></div><button class="q-button q-button--ghost" data-action="asset-source">Data details</button></div>
-          <div class="q-panel-body"><div class="q-context-block"><dl><dt>Source</dt><dd>${escapeHtml(data.source.providerName)}</dd><dt>Last observed</dt><dd>${escapeHtml(data.source.observationTime)}</dd><dt>Freshness</dt><dd>${escapeHtml(freshness)}</dd><dt>Data quality</dt><dd>${escapeHtml(data.source.qualityState)}</dd></dl></div><div class="q-truth-callout is-compact"><span class="q-status q-status--${data.source.degraded?'warning':'live'}">${data.source.degraded?'degraded':'available'}</span><p>${escapeHtml(data.source.fallbackReason??'Public market observations are shown with their current source and freshness state.')}</p></div></div>
-        </section>
-        <section class="q-panel"><div class="q-panel-head"><div><h2>Continue analysis</h2><p>Move from the snapshot into quantitative evidence, catalysts and scheduled events.</p></div></div><div class="q-panel-body"><div class="q-action-row"><button class="q-button q-button--primary" data-action="asset-decision">Decision Intelligence</button><button class="q-button" data-action="asset-formula">Formula Evidence</button><button class="q-button" data-action="asset-intelligence">Asset Intelligence</button><button class="q-button" data-action="asset-news">News &amp; research</button><button class="q-button" data-action="asset-events">Events</button></div><p class="q-muted-copy">Research flow: dossier → Decision Intelligence → formula evidence → Qelly Chat. Asset context is preserved in-session; each surface remains independently evidence-gated.</p></div></section>
-      </div>
-    </div>
+  const volumePoints=candles.points.slice(-24);
+  const volumeAvailable=volumePoints.length>0&&volumePoints.every(point=>Number.isFinite(point.volume)&&point.volume>=0&&Number.isFinite(point.time));
+  const maximumVolume=volumeAvailable?Math.max(...volumePoints.map(point=>point.volume)):0;
+  const volumeLabel=point=>new Date(point.time*1000).toLocaleString('en-US',{month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+  const volumeNumber=value=>new Intl.NumberFormat('en-US',{maximumFractionDigits:4}).format(value);
+  const volumeMarkup=volumeAvailable?`<figure><svg viewBox="0 0 960 180" preserveAspectRatio="none" role="img" aria-labelledby="asset-volume-title asset-volume-desc" data-qelly-chat-plot><title id="asset-volume-title">${escapeHtml(data.symbol)} hourly traded volume</title><desc id="asset-volume-desc">${volumePoints.length} provider-reported hourly base-volume observations. Maximum ${escapeHtml(volumeNumber(maximumVolume))} ${escapeHtml(data.symbol)}. A full data table follows.</desc>${volumePoints.map((point,index)=>{const slot=960/volumePoints.length,height=maximumVolume>0?point.volume/maximumVolume*172:0;return `<rect x="${(index*slot+slot*.15).toFixed(2)}" y="${(180-height).toFixed(2)}" width="${(slot*.7).toFixed(2)}" height="${height.toFixed(2)}" fill="currentColor"><title>${escapeHtml(volumeLabel(point))}: ${escapeHtml(volumeNumber(point.volume))} ${escapeHtml(data.symbol)}</title></rect>`;}).join('')}</svg><figcaption><span>${escapeHtml(volumeLabel(volumePoints[0]))}</span><span>${escapeHtml(volumeLabel(volumePoints.at(-1)))}</span></figcaption></figure><details><summary>View hourly volume data</summary><table><caption>Hourly volume in ${escapeHtml(data.symbol)} · displayed in your local timezone</caption><thead><tr><th scope="col">Observation time</th><th scope="col">Base volume (${escapeHtml(data.symbol)})</th></tr></thead><tbody>${volumePoints.map(point=>`<tr><td>${escapeHtml(volumeLabel(point))}</td><td>${escapeHtml(volumeNumber(point.volume))}</td></tr>`).join('')}</tbody></table></details>`:'<p>Hourly volume is unavailable for these observations. No substitute series has been generated.</p>';
+  main.innerHTML=`<section class="q-page q-dossier">${stateBanner()}
+    <header class="q-dossier-heading">
+      <div><p class="q-eyebrow">Asset Dossier</p><h1>${escapeHtml(data.name)} <small>${escapeHtml(data.symbol)}</small></h1><p>${escapeHtml(data.category)} · public research · hourly observations</p></div>
+      <div class="q-dossier-quote"><strong>${escapeHtml(price)}</strong><span class="${(change24h??0)>=0?'is-positive':'is-negative'}">${change24h==null?'24h unavailable':`${change24h>=0?'+':''}${change24h.toFixed(2)}% over 24h`}</span><span class="q-status q-status--${freshness}">${escapeHtml(data.source.qualityState)}</span></div>
+    </header>
+    <dl class="q-dossier-metrics" aria-label="24-hour market observations">${stats.map(([label,value,status,meta])=>`<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd><small>${escapeHtml(meta)} · ${escapeHtml(status)}</small></div>`).join('')}</dl>
+    <section aria-label="Price history"><div id="asset-chart"></div></section>
+    <section class="q-dossier-volume" aria-labelledby="asset-volume-heading"><div><h2 id="asset-volume-heading">Hourly trading activity</h2><p>Provider-reported volume in ${escapeHtml(data.symbol)}, for the latest ${volumeAvailable?volumePoints.length:'available'} hourly observations. Base volume is not USD turnover or order flow.</p></div>${volumeMarkup}</section>
+    <section class="q-dossier-evidence" aria-labelledby="asset-evidence-heading">
+      <div><h2 id="asset-evidence-heading">Evidence &amp; freshness</h2><p>${escapeHtml(data.source.fallbackReason??'Public market observations are shown with their current source and freshness state.')}</p><button data-action="asset-source">Data details</button></div>
+      <dl><div><dt>Source</dt><dd>${escapeHtml(data.source.providerName)}</dd></div><div><dt>Snapshot observed</dt><dd>${escapeHtml(data.source.observationTime)}</dd></div><div><dt>Chart observed</dt><dd>${escapeHtml(candles.source.observedAt)}</dd></div><div><dt>Freshness</dt><dd>${escapeHtml(freshness)}</dd></div><div><dt>Data quality</dt><dd>${escapeHtml(data.source.qualityState)}${data.source.degraded?' · degraded':''}</dd></div></dl>
+    </section>
+    <section class="q-dossier-research" aria-labelledby="asset-research-heading"><div><h2 id="asset-research-heading">Continue analysis</h2><p>Explore quantitative evidence, catalysts and scheduled events. Your asset context follows you into Decision Intelligence, Formula Evidence and news research.</p></div><div class="q-dossier-actions"><button data-action="asset-decision">Decision Intelligence</button><button data-action="asset-formula">Formula Evidence</button><button data-action="asset-intelligence">Asset Intelligence</button><button data-action="asset-news">News &amp; research</button><button data-action="asset-events">Events</button></div></section>
   </section>`;
+
   const series=candles.points.map((point)=>({label:new Date(point.time*1000).toLocaleString('en-US',{month:'short',day:'2-digit',hour:'2-digit'}),value:Number(point.close)}));
   new QellyChartShell(document.getElementById('asset-chart'),{title:`${data.symbol} market price history`,series,metadata:{source:candles.source.attribution,observedAt:candles.source.observedAt,receivedAt:candles.source.observedAt,confidence:candles.source.mode==='live-public'?.96:.72,freshnessClass:candles.source.mode==='live-public'?'live':'simulated'},currency:data.currency});
   main.querySelector('[data-action="asset-source"]')?.addEventListener('click',()=>openJsonDialog(`${data.name} data details`,data,'Source details and raw public observation'));

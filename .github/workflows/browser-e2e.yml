@@ -94,6 +94,15 @@ jobs:
           test -s dist/frontend/assets/routes/notification-triage-v2.css
           test -s dist/frontend/assets/routes/screener-lab-v2.css
           grep -F "renderGovernedTrustCenterV2" dist/frontend/assets/app.js
+      - name: Verify boxless Asset Dossier geometry and existing volume evidence
+        run: node scripts/qelly-asset-dossier-boxless-e2e.mjs
+      - name: Upload focused Asset Dossier evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-asset-dossier-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/asset-dossier-boxless-e2e
+          if-no-files-found: warn
       - name: Verify header pointer travel, keyboard, touch and search geometry
         run: node scripts/qelly-header-pointer-e2e.mjs
       - name: Verify exact deployed header with actual governed responses
