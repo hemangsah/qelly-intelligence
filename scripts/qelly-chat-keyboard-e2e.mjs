@@ -147,7 +147,9 @@ try{
         assert.doesNotMatch(citationText,/2026-10-05T16:00/);
         await page.screenshot({path:`${out}/${route}-${width}-${appearance}-restored-answer.png`,fullPage:true});
         assert.equal(posts,0,'Restored answer acceptance must send no Chat request');
-        results.push({route,width,appearance,status:'passed',posts,composerGeometryStates:geometryStates.length,appearanceControlInitiallyDisabled,messageContainmentChecks:1,referenceDateCases:1,controlClearance:clearance,containment,presentation});
+        const newConversation=panel.getByRole('button',{name:'New',exact:true});await newConversation.waitFor({state:'visible'});await newConversation.click();assert.equal(await panel.locator('.q-ai-message').count(),0);assert.equal(await panel.locator('.q-ai-welcome').isVisible(),true);assert.equal(posts,0);
+
+        results.push({route,width,appearance,status:'passed',posts,composerGeometryStates:geometryStates.length,appearanceControlInitiallyDisabled,messageContainmentChecks:1,referenceDateCases:1,controlClearance:clearance,containment,presentation,newConversationAccessible:true});
       }catch(error){
         const diagnostic={route,width,appearance,status:'failed',error:String(error.message),pageErrors,appearanceControlInitiallyDisabled,focus:await page.evaluate(()=>({activeTag:document.activeElement?.tagName,activeLabel:document.activeElement?.getAttribute('aria-label'),appearanceDisabled:document.querySelector('[data-v8-appearance]')?.disabled})),resolvedAppearance:await page.locator('html').getAttribute('data-resolved-appearance')};
         results.push(diagnostic);console.error(JSON.stringify(diagnostic));

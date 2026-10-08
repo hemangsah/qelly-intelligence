@@ -109,7 +109,11 @@
  .q-ai-launcher>i{display:none}
  .q-ai-assistant,.q-ai-assistant.is-expanded{inset:0;width:100vw;height:100dvh;border-radius:0}
  .q-ai-header{padding: max(12px,env(safe-area-inset-top)) 12px 8px}
- .q-ai-header :is([data-q-ai-new],[data-q-ai-expand]){display:none}
+ .q-ai-header [data-q-ai-expand]{display:none}
+ .q-ai-brand{flex:1 1 0}
+ .q-ai-brand>span{overflow:hidden}
+ .q-ai-brand strong,.q-ai-brand [data-q-ai-status]{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .q-ai-header>div:last-child{flex:0 0 auto}
  .q-ai-brand strong{font-size:15px}
  .q-ai-thread{padding:16px;gap:24px}
  .q-ai-dataset-panel>div:nth-child(2){grid-template-columns:minmax(0,1fr)}
