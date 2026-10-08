@@ -114,6 +114,15 @@ jobs:
           name: qelly-tooltip-performance-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/tooltip-performance-e2e
           if-no-files-found: warn
+      - name: Verify boxless Asset Dossier geometry and existing volume evidence
+        run: node scripts/qelly-asset-dossier-boxless-e2e.mjs
+      - name: Upload focused Asset Dossier evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-asset-dossier-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/asset-dossier-boxless-e2e
+          if-no-files-found: warn
       - name: Measure shell annotation feedback and external-update behavior
         env:
           GH_TOKEN: ${{ github.token }}
