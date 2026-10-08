@@ -208,8 +208,10 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
       const style=getComputedStyle(node);
       return style.visibility!=='hidden'&&style.display!=='none';
     }).map(node=>node.getBoundingClientRect());
-    const blocked=chartClearance||dockOverlapsControls(dock,controls);
-    root.dataset.clearance=chartClearance?'chart':blocked?'interactive':'clear';
+    const plots=[...document.querySelectorAll('#main [data-qelly-chat-plot]')].filter(node=>{const style=getComputedStyle(node);return style.visibility!=='hidden'&&style.display!=='none';}).map(node=>node.getBoundingClientRect());
+    const plotClearance=chartClearance||dockOverlapsControls(dock,plots);
+    const blocked=plotClearance||dockOverlapsControls(dock,controls);
+    root.dataset.clearance=plotClearance?'chart':blocked?'interactive':'clear';
     launcher.tabIndex=blocked?-1:0;
     launcher.setAttribute('aria-hidden',String(blocked));
   };
