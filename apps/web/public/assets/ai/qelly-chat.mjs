@@ -208,7 +208,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
       const style=getComputedStyle(node);
       return style.visibility!=='hidden'&&style.display!=='none';
     }).map(node=>node.getBoundingClientRect());
-    const plots=[...document.querySelectorAll('#main [data-qelly-chat-plot]')].filter(node=>{const style=getComputedStyle(node);return style.visibility!=='hidden'&&style.display!=='none';}).map(node=>node.getBoundingClientRect());
+    const plots=[...document.querySelectorAll('#main [data-qelly-chat-plot], #main .q-v6-market-tradingview')].filter(node=>{const style=getComputedStyle(node);return style.visibility!=='hidden'&&style.display!=='none';}).map(node=>node.getBoundingClientRect());
     const plotClearance=chartClearance||dockOverlapsControls(dock,plots);
     const blocked=plotClearance||dockOverlapsControls(dock,controls);
     root.dataset.clearance=plotClearance?'chart':blocked?'interactive':'clear';
