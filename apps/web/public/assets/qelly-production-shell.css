@@ -214,7 +214,7 @@ body {
   background: transparent !important;
 }
 
-.q-product-search input {
+.q-product-search input:not(:where(.q-mt5-route *)){
   width: 100% !important;
   height: 44px !important;
   padding: 0 12px !important;
@@ -228,9 +228,9 @@ body {
 
 .q-product-search input::placeholder { color: var(--q-muted) !important; }
 
-.q-product-search button,
-.q-product-account,
-.q-product-system {
+.q-product-search button:not(:where(.q-mt5-route *)),
+.q-product-account:not(:where(.q-mt5-route *)),
+.q-product-system:not(:where(.q-mt5-route *)){
   min-height: 44px !important;
   padding: 0 12px !important;
   border: 1px solid var(--q-border) !important;
@@ -294,7 +294,7 @@ body {
 
 #main :where(.q-eyebrow, small, time, kbd, .q-status, .q-nav-meta, .q-kpi-label,
   .q-source-line, .q-panel-head p, .q-card small, .q-record-row small,
-  .q-ti-field span, .q-ti-validation, .q-ti-audit-item span) {
+  .q-ti-field span, .q-ti-validation, .q-ti-audit-item span):not(:where(.q-mt5-route *)){
   font-size: 12px !important;
   line-height: 1.4 !important;
   letter-spacing: .01em !important;
@@ -359,7 +359,7 @@ body {
   border-radius: 8px;
 }
 
-.q-button {
+.q-button:not(:where(.q-mt5-route *)){
   padding: 0 14px !important;
   border: 1px solid var(--q-border) !important;
   background: var(--q-surface) !important;
@@ -385,14 +385,14 @@ body {
   outline-offset: 2px !important;
 }
 
-.q-panel,
-.q-card,
-.q-kpi,
-.q-record-row,
-.q-choice-row,
-.q-context-block,
-.q-empty-state,
-[class*="-card"] {
+.q-panel:not(:where(.q-mt5-route *)),
+.q-card:not(:where(.q-mt5-route *)),
+.q-kpi:not(:where(.q-mt5-route *)),
+.q-record-row:not(:where(.q-mt5-route *)),
+.q-choice-row:not(:where(.q-mt5-route *)),
+.q-context-block:not(:where(.q-mt5-route *)),
+.q-empty-state:not(:where(.q-mt5-route *)),
+[class*="-card"]:not(:where(.q-mt5-route *)){
   border-color: var(--q-border) !important;
   background: var(--q-surface) !important;
   background-image: none !important;
@@ -400,15 +400,15 @@ body {
   box-shadow: none !important;
 }
 
-.q-panel,
-.q-card,
-.q-kpi,
-.q-empty-state,
-[class*="-card"] { border-radius: 12px !important; }
+.q-panel:not(:where(.q-mt5-route *)),
+.q-card:not(:where(.q-mt5-route *)),
+.q-kpi:not(:where(.q-mt5-route *)),
+.q-empty-state:not(:where(.q-mt5-route *)),
+[class*="-card"]:not(:where(.q-mt5-route *)){ border-radius: 12px !important; }
 
-.q-panel-head,
-.q-card > header,
-.q-panel > header {
+.q-panel-head:not(:where(.q-mt5-route *)),
+.q-card > header:not(:where(.q-mt5-route *)),
+.q-panel > header:not(:where(.q-mt5-route *)){
   min-height: 0 !important;
   padding: 15px 17px !important;
   border-color: var(--q-border) !important;
@@ -422,7 +422,7 @@ body {
 .q-kpi { min-height: 116px !important; padding: 16px !important; }
 .q-kpi-value { font-size: clamp(22px, 2.1vw, 32px) !important; }
 
-.q-status:not(.q-dossier *) {
+.q-status:not(.q-dossier *):not(:where(.q-mt5-route *)){
   min-height: 22px !important;
   padding: 3px 8px !important;
   border-radius: 999px !important;
@@ -451,9 +451,9 @@ body {
   padding: 28px !important;
 }
 
-input,
-select,
-textarea {
+input:not(:where(.q-mt5-route *)),
+select:not(:where(.q-mt5-route *)),
+textarea:not(:where(.q-mt5-route *)){
   border-color: var(--q-border) !important;
   background: var(--q-surfacealt) !important;
   color: var(--q-text) !important;
@@ -864,7 +864,7 @@ html[data-production-system="v8"] #main > .q-page {
   margin: 0 auto !important;
 }
 
-html[data-production-system="v8"] #main :where(.q-panel,.q-card,.q-kpi,.q-record-row,.q-choice-row,.q-context-block,.q-empty-state,[class*="-card"]) {
+html[data-production-system="v8"] #main :where(.q-panel,.q-card,.q-kpi,.q-record-row,.q-choice-row,.q-context-block,.q-empty-state,[class*="-card"]):not(:where(.q-mt5-route *)){
   border-color: var(--q-border) !important;
   background-color: var(--q-surface) !important;
   background-image: none !important;
@@ -883,7 +883,7 @@ html[data-production-system="v8"] body #app #main :where(
   button,.q-button,.q-status,.q-eyebrow,.q-kpi-label,.q-kpi-meta span,
   .q-panel p,.q-card p,.q-record-row small,.q-choice-row small,
   caption,time,kbd,[class*="-meta"],[class*="-eyebrow"],[class*="-kicker"]
-) {
+):not(:where(.q-mt5-route *)){
   font-size: 12px !important;
   line-height: 1.4 !important;
   letter-spacing: .01em !important;

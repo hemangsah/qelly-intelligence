@@ -1,29 +1,50 @@
-.q-mt5-route{display:grid;gap:26px;max-width:1380px;margin:0 auto;color:var(--text,#e7edf4)}
-.q-mt5-route-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(245px,320px);gap:20px;align-items:stretch}
-.q-mt5-route-hero>div,.q-mt5-route-hero aside,.q-mt5-route-upload,.q-mt5-route-primary,.q-mt5-route-empty,.q-mt5-route-pair-help{padding:22px;border:1px solid var(--border,#637487);border-radius:17px;background:var(--surface,#17232e)}
-.q-mt5-route-hero h1{font-size:clamp(25px,3.2vw,43px);line-height:1.15;margin:8px 0 14px}
-.q-mt5-route-hero p,.q-mt5-route-hero small,.q-mt5-route-empty p,.q-mt5-route-pair-help{font-size:14px;line-height:1.65;color:var(--text-muted,#a7b5c2)}
-.q-mt5-route-hero aside strong{display:block;margin-bottom:8px;font-size:18px}.q-mt5-route-hero aside small{display:block}
-.q-mt5-route-links{display:flex;flex-wrap:wrap;gap:15px;margin-top:18px}.q-mt5-route-links a{color:var(--text,#e7edf4);text-underline-offset:4px}
-.q-mt5-route-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-.q-mt5-route-upload-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
-.q-mt5-route-step,.q-mt5-eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.11em;font-weight:750}
-.q-mt5-route-drop{position:relative;display:grid;place-items:center;text-align:center;gap:10px;min-height:170px;padding:22px 15px;border:2px dashed var(--border,#718198);border-radius:14px;cursor:pointer;background:var(--surface-elevated,rgba(255,255,255,.04))}
-.q-mt5-route-drop:hover,.q-mt5-route-drop.is-dragging{border-color:var(--accent,#79a7f3)}
-.q-mt5-route-drop:focus-within{outline:3px solid var(--accent,#79a7f3);outline-offset:4px}
-.q-mt5-route-drop input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
-.q-mt5-route-drop small{max-width:36ch;line-height:1.6;color:var(--text-muted,#a7b5c2)}
-.q-mt5-route-upload-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:11px;background:var(--surface-elevated,rgba(255,255,255,.06));font-size:22px}
-.q-mt5-route-upload [role=status]{margin:16px 0 0;min-height:25px;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
-.q-mt5-route-clear,.q-mt5-route-controls button{min-height:42px;padding:10px 16px;border:1px solid var(--border,#637487);border-radius:10px;background:var(--surface-elevated,rgba(255,255,255,.07));color:var(--text,#e7edf4);font-size:13px;font-weight:650;cursor:pointer}
-.q-mt5-route-clear{margin-top:12px}.q-mt5-route-controls{display:flex;gap:12px;flex-wrap:wrap}
-.q-mt5-route-controls button[disabled]{opacity:.45;cursor:not-allowed}
-.q-mt5-route-share-note{margin:-12px 0 0;color:var(--text-muted,#a7b5c2);font-size:12px;line-height:1.6;max-width:90ch}
-.q-mt5-route-controls [data-mt5-route-chat]{border-color:var(--accent,#79a7f3);font-weight:750}
-.q-mt5-route-clear:focus-visible,.q-mt5-route-controls button:focus-visible,.q-mt5-route-links a:focus-visible{outline:2px solid var(--accent,#79a7f3);outline-offset:3px}
-.q-mt5-route-primary>header h2{font-size:clamp(19px,2.3vw,28px);overflow-wrap:anywhere;margin:4px 0 14px}
-.q-mt5-route-primary .q-mt5-report{padding:0}.q-mt5-route-pair{min-width:0}
-.q-mt5-route footer{font-size:12px;line-height:1.6;color:var(--text-muted,#a7b5c2);padding:12px 0;border-top:1px solid var(--border,#637487)}
-@media(max-width:850px){.q-mt5-route-hero,.q-mt5-route-grid{grid-template-columns:minmax(0,1fr)}}
-@media(max-width:520px){.q-mt5-route{gap:15px}.q-mt5-route-hero>div,.q-mt5-route-hero aside,.q-mt5-route-upload,.q-mt5-route-primary,.q-mt5-route-empty{padding:15px}.q-mt5-route-controls button{width:100%}}
-@media(prefers-reduced-motion:reduce){.q-mt5-route *{animation:none!important;transition:none!important}}
+
+html[data-product-surface="production"] body #app #main .q-mt5-route{display:grid;gap:26px;max-width:1380px;margin:0 auto;color:var(--q-text)}
+html[data-product-surface="production"] body #app #main .q-mt5-route-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(245px,320px);gap:20px;align-items:stretch}
+html[data-product-surface="production"] body #app #main .q-mt5-route-hero>div,html[data-product-surface="production"] body #app #main .q-mt5-route-hero aside,html[data-product-surface="production"] body #app #main .q-mt5-route-upload,html[data-product-surface="production"] body #app #main .q-mt5-route-primary,html[data-product-surface="production"] body #app #main .q-mt5-route-empty,html[data-product-surface="production"] body #app #main .q-mt5-route-pair-help{padding:22px;border:0;border-radius:0;background:transparent}
+html[data-product-surface="production"] body #app #main .q-mt5-route-hero h1{font-size:clamp(25px,3.2vw,43px);line-height:1.15;margin:8px 0 14px}
+html[data-product-surface="production"] body #app #main .q-mt5-route-hero p,html[data-product-surface="production"] body #app #main .q-mt5-route-hero small,html[data-product-surface="production"] body #app #main .q-mt5-route-empty p,html[data-product-surface="production"] body #app #main .q-mt5-route-pair-help{font-size:14px;line-height:1.65;color:var(--q-text-secondary)}
+html[data-product-surface="production"] body #app #main .q-mt5-route-hero aside strong{display:block;margin-bottom:8px;font-size:18px}
+html[data-product-surface="production"] body #app #main .q-mt5-route-hero aside small{display:block}
+html[data-product-surface="production"] body #app #main .q-mt5-route-links{display:flex;flex-wrap:wrap;gap:15px;margin-top:18px}
+html[data-product-surface="production"] body #app #main .q-mt5-route-links a{color:var(--q-text);text-underline-offset:4px}
+html[data-product-surface="production"] body #app #main .q-mt5-route-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+html[data-product-surface="production"] body #app #main .q-mt5-route-upload-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+html[data-product-surface="production"] body #app #main .q-mt5-route-step,html[data-product-surface="production"] body #app #main .q-mt5-eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.11em;font-weight:750}
+html[data-product-surface="production"] body #app #main .q-mt5-route-drop{position:relative;display:grid;place-items:center;text-align:center;gap:10px;min-height:170px;padding:22px 15px;border:0;border-radius:0;cursor:pointer;background:transparent}
+html[data-product-surface="production"] body #app #main .q-mt5-route-drop:hover,html[data-product-surface="production"] body #app #main .q-mt5-route-drop.is-dragging{border-color:var(--q-focus)}
+html[data-product-surface="production"] body #app #main .q-mt5-route-drop:focus-within{outline:3px solid var(--q-focus);outline-offset:4px}
+html[data-product-surface="production"] body #app #main .q-mt5-route-drop input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+html[data-product-surface="production"] body #app #main .q-mt5-route-drop small{max-width:36ch;line-height:1.6;color:var(--q-text-secondary)}
+html[data-product-surface="production"] body #app #main .q-mt5-route-upload-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:0;background:transparent;font-size:22px}
+html[data-product-surface="production"] body #app #main .q-mt5-route-upload [role=status]{margin:16px 0 0;min-height:25px;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+html[data-product-surface="production"] body #app #main .q-mt5-route-clear,html[data-product-surface="production"] body #app #main .q-mt5-route-controls button{min-height:42px;padding:10px 16px;border:0;border-radius:0;background:transparent;color:var(--q-text);font-size:13px;font-weight:650;cursor:pointer}
+html[data-product-surface="production"] body #app #main .q-mt5-route-clear{margin-top:12px}
+html[data-product-surface="production"] body #app #main .q-mt5-route-controls{display:flex;gap:12px;flex-wrap:wrap}
+html[data-product-surface="production"] body #app #main .q-mt5-route-controls button[disabled]{opacity:.45;cursor:not-allowed}
+html[data-product-surface="production"] body #app #main .q-mt5-route-share-note{margin:-12px 0 0;color:var(--q-text-secondary);font-size:12px;line-height:1.6;max-width:90ch}
+html[data-product-surface="production"] body #app #main .q-mt5-route-controls [data-mt5-route-chat]{border-color:var(--q-focus);font-weight:750}
+html[data-product-surface="production"] body #app #main .q-mt5-route-clear:focus-visible,html[data-product-surface="production"] body #app #main .q-mt5-route-controls button:focus-visible,html[data-product-surface="production"] body #app #main .q-mt5-route-links a:focus-visible{outline:2px solid var(--q-focus);outline-offset:3px}
+html[data-product-surface="production"] body #app #main .q-mt5-route-primary>header h2{font-size:clamp(19px,2.3vw,28px);overflow-wrap:anywhere;margin:4px 0 14px}
+html[data-product-surface="production"] body #app #main .q-mt5-route-primary .q-mt5-report{padding:0}
+html[data-product-surface="production"] body #app #main .q-mt5-route-pair{min-width:0}
+html[data-product-surface="production"] body #app #main .q-mt5-route footer{font-size:12px;line-height:1.6;color:var(--q-text-secondary);padding:12px 0;border-top:0}
+@media(max-width:850px){
+html[data-product-surface="production"] body #app #main .q-mt5-route-hero,html[data-product-surface="production"] body #app #main .q-mt5-route-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:520px){
+html[data-product-surface="production"] body #app #main .q-mt5-route{gap:15px}
+html[data-product-surface="production"] body #app #main .q-mt5-route-hero>div,html[data-product-surface="production"] body #app #main .q-mt5-route-hero aside,html[data-product-surface="production"] body #app #main .q-mt5-route-upload,html[data-product-surface="production"] body #app #main .q-mt5-route-primary,html[data-product-surface="production"] body #app #main .q-mt5-route-empty{padding:15px}
+html[data-product-surface="production"] body #app #main .q-mt5-route-controls button{width:100%}}
+@media(prefers-reduced-motion:reduce){
+html[data-product-surface="production"] body #app #main .q-mt5-route *{animation:none!important;transition:none!important}}
+
+html[data-product-surface="production"] body #app #main .q-mt5-route{gap:40px;line-height:1.6}
+html[data-product-surface="production"] body #app #main .q-mt5-route-hero{gap:48px;align-items:start}
+html[data-product-surface="production"] body #app #main .q-mt5-route-hero h1{font-size:clamp(36px,4.5vw,64px);letter-spacing:-.04em}
+html[data-product-surface="production"] body #app #main .q-mt5-route-hero>div,html[data-product-surface="production"] body #app #main .q-mt5-route-hero aside,html[data-product-surface="production"] body #app #main .q-mt5-route-upload,html[data-product-surface="production"] body #app #main .q-mt5-route-primary,html[data-product-surface="production"] body #app #main .q-mt5-route-empty{padding:0;border:0;border-radius:0;box-shadow:none}
+html[data-product-surface="production"] body #app #main .q-mt5-route-hero p:not(.q-mt5-eyebrow),html[data-product-surface="production"] body #app #main .q-mt5-route-empty p{font-size:16px;line-height:1.65}
+html[data-product-surface="production"] body #app #main .q-mt5-route-drop{background:var(--q-surface);font-size:16px;border:0;border-radius:0;box-shadow:none}
+html[data-product-surface="production"] body #app #main .q-mt5-route-controls button,html[data-product-surface="production"] body #app #main .q-mt5-route-clear{min-height:44px;background:var(--q-surface);border:0;border-radius:0;box-shadow:none;transform:none}
+html[data-product-surface="production"] body #app #main .q-mt5-route-links a{display:inline-flex;align-items:center;min-height:44px}
+html[data-product-surface="production"] body #app #main .q-mt5-route :is(button,input,a):focus-visible{outline:2px solid var(--q-focus);outline-offset:4px}
+@media(max-width:620px){html[data-product-surface="production"] body #app #main .q-mt5-route{gap:28px}html[data-product-surface="production"] body #app #main .q-mt5-route-hero{gap:24px}}
