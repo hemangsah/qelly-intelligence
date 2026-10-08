@@ -1,6 +1,6 @@
 /* QELLY Chat owns its layout, typography and semantic appearance on every host. */
 .q-ai-root{position:relative;z-index:320;color:var(--q-text);font:400 16px/1.6 var(--q-font-sans,system-ui,sans-serif)}
-.q-ai-root :is(button,select,textarea){font:inherit;color:inherit;box-sizing:border-box}
+.q-ai-root :where(button,select,textarea){font:inherit;color:inherit;box-sizing:border-box}
 .q-ai-root :is(.q-ai-header,.q-ai-contextbar,.q-ai-thread,.q-ai-composer,.q-ai-dataset-panel,.q-ai-message-tools-used article){border:0;box-shadow:none;border-radius:0}
 .q-ai-root :is(button,a,input,select,textarea,summary):focus-visible{outline:2px solid var(--q-focus);outline-offset:3px}
 .q-ai-root button{cursor:pointer}
@@ -92,10 +92,10 @@
 .q-ai-composer{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px;padding:12px 18px;background:var(--q-surface)}
 .q-ai-composer>label{display:block;min-width:0}
 .q-ai-composer textarea{box-sizing:border-box;width:100%;min-height:52px;max-height:160px;resize:vertical;padding:12px;border:0;border-radius:0;background:var(--q-surface-alt);color:var(--q-text);font:400 16px/1.6 var(--q-font-sans,system-ui,sans-serif)}
-.q-ai-composer>button{width:48px;height:52px;flex-shrink:0;padding:0;border:0;border-radius:0;background:var(--q-accent);color:#fff;font-size:13px}
+.q-ai-composer>button{width:48px;height:52px;flex-shrink:0;padding:0;border:0;border-radius:0;background:var(--q-accent);color:var(--q-accent-text,#fff);font-size:13px}
 .q-ai-composer>button span{display:none}
 .q-ai-composer>button b{font-size:20px}
-.q-ai-composer>[data-q-ai-stop]{background:var(--q-negative);color:var(--q-canvas)}
+.q-ai-composer>[data-q-ai-stop]{background:var(--q-surface-alt);color:var(--q-text)}
 .q-ai-composer>[data-q-ai-stop][hidden],.q-ai-composer>[data-q-ai-send][hidden]{display:none}
 .q-ai-assistant>footer{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 12px;padding:0 18px 12px;font-size:12px;color:var(--q-text-secondary);background:var(--q-surface)}
 .q-ai-assistant>footer>div{display:flex;gap:4px}
