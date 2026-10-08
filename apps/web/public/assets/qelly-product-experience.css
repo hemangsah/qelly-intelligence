@@ -41,7 +41,7 @@ html[data-production-system="v8"] :where(button,a[href],[role="button"],[role="l
   transform:translateY(0) scale(.985)!important;filter:brightness(.98)!important;
 }
 html[data-production-system="v8"] button[aria-label="Dismiss notification"]{
-  min-width:var(--q-target-min)!important;min-height:var(--q-target-min)!important;padding:0!important;display:inline-grid!important;place-items:center!important;
+  min-width:max(48px,var(--q-target-min))!important;min-height:max(48px,var(--q-target-min))!important;padding:0!important;display:inline-grid!important;place-items:center!important;
 }
 
 /* Compact source links remain visually quiet while still being easy to tap. */
