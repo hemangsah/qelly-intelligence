@@ -451,9 +451,9 @@ body {
   padding: 28px !important;
 }
 
-input,
-select,
-textarea {
+input:not(:where(.q-ai-root *)),
+select:not(:where(.q-ai-root *)),
+textarea:not(:where(.q-ai-root *)){
   border-color: var(--q-border) !important;
   background: var(--q-surfacealt) !important;
   color: var(--q-text) !important;
