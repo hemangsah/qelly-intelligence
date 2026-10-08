@@ -31,6 +31,21 @@ try{
           await page.getByRole('button',{name:'Switch to '+appearance+' appearance',exact:true}).click();
         }
         await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
+        await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true'&&document.documentElement.dataset.brandReady==='true');
+        await page.locator('.qelly-opening').waitFor({state:'hidden'});
+        // An isolated page control reproduces the dock hit-test collision without sending a message.
+        const clearanceGeometry=await page.evaluate(()=>{
+          document.dispatchEvent(new CustomEvent('qelly:chat-clearance',{detail:{state:'clear'}}));
+          const launcher=document.querySelector('[data-q-ai-launcher]'),box=launcher.getBoundingClientRect(),bottom=parseFloat(getComputedStyle(launcher).bottom)||0;
+          const control=document.createElement('button');control.id='chat-control-clearance-fixture';control.textContent='Page control under dock';
+          Object.assign(control.style,{position:'fixed',left:((innerWidth-box.width)/2+10)+'px',top:(innerHeight-bottom-box.height+5)+'px',width:'160px',height:'44px',zIndex:'2'});
+          document.querySelector('main#main').append(control);return{left:parseFloat(control.style.left)+20,top:parseFloat(control.style.top)+20};
+        });
+        await page.waitForFunction(()=>document.querySelector('.q-ai-root').dataset.clearance==='interactive');
+        await page.waitForFunction(()=>{const s=getComputedStyle(document.querySelector('[data-q-ai-launcher]'));return Number(s.opacity)===0&&s.pointerEvents==='none';});
+        const clearance=await page.evaluate(({left,top})=>{const launcher=document.querySelector('[data-q-ai-launcher]'),style=getComputedStyle(launcher);return{state:launcher.closest('.q-ai-root').dataset.clearance,opacity:Number(style.opacity),pointerEvents:style.pointerEvents,tabIndex:launcher.tabIndex,ariaHidden:launcher.getAttribute('aria-hidden'),controlHit:document.elementFromPoint(left,top)?.id==='chat-control-clearance-fixture'};},clearanceGeometry);
+        assert.equal(clearance.controlHit,true,'Page control must receive pointer hit-testing when dock is blocked');assert.equal(clearance.tabIndex,-1);assert.equal(clearance.ariaHidden,'true');
+        await page.locator('#chat-control-clearance-fixture').evaluate(node=>node.remove());
         await page.evaluate(()=>{const fixture=document.createElement('button');fixture.id='chat-preexisting-inert-fixture';fixture.inert=true;fixture.textContent='Inert fixture';document.body.append(fixture);});
         await page.evaluate(()=>{const modal=document.createElement('dialog');modal.id='chat-native-modal-fixture';modal.innerHTML='<button>Native modal fixture</button>';document.body.append(modal);modal.showModal();});
         await page.locator('#chat-native-modal-fixture button').focus();
@@ -118,6 +133,13 @@ try{
         assert.ok(containment.threadScrollWidth<=containment.threadWidth+1,'Restored answer must not create horizontal thread scrolling');
         assert.ok(containment.messageScrollWidth<=containment.messageWidth+1,'Restored message content must fit its card');
         assert.equal(containment.controls.length,6);
+        const presentation=await panel.evaluate(node=>{
+          const style=e=>{const s=getComputedStyle(e);return {borders:[s.borderTopWidth,s.borderRightWidth,s.borderBottomWidth,s.borderLeftWidth],fontSize:Number.parseFloat(s.fontSize),shadow:s.boxShadow};};
+          return {message:style(node.querySelector('.q-ai-message--assistant')),copy:style(node.querySelector('.q-ai-message-copy')),composer:style(node.querySelector('textarea')),header:style(node.querySelector('.q-ai-header')),controls:[...node.querySelectorAll('.q-ai-message-tools button')].map(e=>({height:e.getBoundingClientRect().height,...style(e)}))};
+        });
+        for(const item of [presentation.message,presentation.header,...presentation.controls])assert.deepEqual(item.borders,['0px','0px','0px','0px']);
+        assert.equal(presentation.message.shadow,'none');assert.ok(presentation.copy.fontSize>=16);assert.ok(presentation.composer.fontSize>=16);for(const control of presentation.controls)assert.ok(control.height>=44);
+
         for(const control of containment.controls){assert.ok(control.left>=containment.left-1&&control.right<=containment.right+1,control.label+' stays within its message');assert.ok(control.scrollWidth<=control.clientWidth+1,control.label+' text is not clipped');}
         await message.locator('.q-ai-message-sources summary').click();
         const citationText=await message.locator('.q-ai-message-sources').innerText();
@@ -125,7 +147,7 @@ try{
         assert.doesNotMatch(citationText,/2026-10-05T16:00/);
         await page.screenshot({path:`${out}/${route}-${width}-${appearance}-restored-answer.png`,fullPage:true});
         assert.equal(posts,0,'Restored answer acceptance must send no Chat request');
-        results.push({route,width,appearance,status:'passed',posts,composerGeometryStates:geometryStates.length,appearanceControlInitiallyDisabled,messageContainmentChecks:1,referenceDateCases:1,containment});
+        results.push({route,width,appearance,status:'passed',posts,composerGeometryStates:geometryStates.length,appearanceControlInitiallyDisabled,messageContainmentChecks:1,referenceDateCases:1,controlClearance:clearance,containment,presentation});
       }catch(error){
         const diagnostic={route,width,appearance,status:'failed',error:String(error.message),pageErrors,appearanceControlInitiallyDisabled,focus:await page.evaluate(()=>({activeTag:document.activeElement?.tagName,activeLabel:document.activeElement?.getAttribute('aria-label'),appearanceDisabled:document.querySelector('[data-v8-appearance]')?.disabled})),resolvedAppearance:await page.locator('html').getAttribute('data-resolved-appearance')};
         results.push(diagnostic);console.error(JSON.stringify(diagnostic));

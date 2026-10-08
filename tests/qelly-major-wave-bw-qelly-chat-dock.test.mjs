@@ -22,7 +22,9 @@ test('Wave CM supersedes the Wave BW Decision-only dock with one global owner',a
   assert.match(css,/right:0;/);
   assert.match(css,/margin-inline:auto/);
   assert.match(css,/bottom:max\(16px,env\(safe-area-inset-bottom/);
-  assert.match(css,/@keyframes q-ai-dock-border/);
+  assert.doesNotMatch(css,/@keyframes q-ai-dock-border/);
+  assert.match(css,/\.q-ai-assistant\.is-thinking[^{}]*\{animation:q-ai-pulse/);
+  assert.doesNotMatch(css,/\.q-ai-launcher[^{}]*\{[^}]*animation:/);
   assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
 });
 
