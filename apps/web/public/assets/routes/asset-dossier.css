@@ -21,9 +21,11 @@
 .q-dossier .q-chart-toolbar button:hover,.q-dossier-actions button:hover,.q-dossier-evidence button:hover{background:var(--q-surface-elevated);color:var(--q-accent-strong)}
 .q-dossier .q-chart-visual{padding:0}
 .q-dossier .q-chart-visual svg{height:clamp(280px,32vw,430px);min-height:0}
+.q-dossier .q-chart-line{stroke:var(--q-accent-strong)}
+.q-dossier .q-chart-point{fill:var(--q-accent-strong)}
 .q-dossier .q-chart-table{max-height:320px;border:0;border-radius:0;background:transparent;box-shadow:none;overflow:auto}
 .q-dossier .q-chart-table :is(th,td){border:0;padding:10px 12px}
-.q-dossier .q-source-line{display:flex;flex-wrap:wrap;gap:8px 24px;padding:16px 0 0;border:0;line-height:1.6}
+.q-dossier .q-source-line{display:flex;flex-wrap:wrap;gap:8px 24px;padding:16px 0 0;border:0;background:transparent;line-height:1.6}
 .q-dossier-volume{display:grid;gap:14px;min-width:0}
 .q-dossier-volume h2,.q-dossier-evidence h2,.q-dossier-research h2{margin:0 0 8px}
 .q-dossier-volume p,.q-dossier-evidence p,.q-dossier-research p{margin:0;color:var(--q-text-secondary);max-width:78ch}
