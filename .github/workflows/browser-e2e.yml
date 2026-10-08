@@ -20,6 +20,7 @@ jobs:
     timeout-minutes: 120
     env:
       QELLY_SCREEN_EVIDENCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      QELLY_CSS_EXPERIMENT_BASELINE: preview/css-import-baseline
       QELLY_SCREEN_BATCH_SIZE: '10'
       PYTHONUTF8: '1'
       PYTHONIOENCODING: 'utf-8'
@@ -122,6 +123,15 @@ jobs:
         with:
           name: qelly-shell-observer-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/shell-observer-e2e
+          if-no-files-found: warn
+      - name: Compare original CSS imports and consolidated cascade
+        run: node scripts/qelly-css-import-e2e.mjs
+      - name: Upload focused CSS import evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-css-import-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/css-import-e2e
           if-no-files-found: warn
       - name: Verify header pointer travel, keyboard, touch and search geometry
         run: node scripts/qelly-header-pointer-e2e.mjs
