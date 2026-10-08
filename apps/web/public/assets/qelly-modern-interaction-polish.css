@@ -83,7 +83,7 @@ html[data-production-system="v8"] :where(input:not([type="checkbox"]):not([type=
 html[data-production-system="v8"] :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea):hover{border-color:color-mix(in srgb,var(--q-accent) 46%,var(--q-border))!important}
 html[data-production-system="v8"] :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea):focus{border-color:var(--q-accent)!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--q-accent) 18%,transparent)!important;outline:0!important}
 
-html[data-production-system="v8"] :where(button:not(.q-product-brand__mark):not(.q-ai-launcher),a.q-button,[role="button"],[role="tab"]){
+html[data-production-system="v8"] :where(button:not(.q-product-brand__mark):not(.q-ai-launcher),a.q-button,[role="button"],[role="tab"]):not(:where(.q-about-v2-page *)){
   --q-hover-lift:0px;
   --q-press-scale:1;
   min-height:44px;
@@ -95,12 +95,12 @@ html[data-production-system="v8"] :where(button:not(.q-product-brand__mark):not(
 }
 html[data-production-system="v8"] body #app .q-product-header .q-product-search button,
 html[data-production-system="v8"] body #app #main .q-page-actions .q-button{border-radius:999px!important}
-html[data-production-system="v8"] :where(button:not(:disabled):not(.q-ai-launcher),a.q-button,[role="button"],[role="tab"]):hover{
+html[data-production-system="v8"] :where(button:not(:disabled):not(.q-ai-launcher),a.q-button,[role="button"],[role="tab"]):hover:not(:where(.q-about-v2-page *)){
   --q-hover-lift:2px;
   box-shadow:0 12px 28px color-mix(in srgb,#000 24%,transparent),0 0 0 1px color-mix(in srgb,var(--q-accent) 22%,transparent)!important;
 }
-html[data-production-system="v8"] :where(button:not(:disabled):not(.q-ai-launcher),a.q-button,[role="button"],[role="tab"]):active{--q-hover-lift:0px;--q-press-scale:.975;transition-duration:80ms!important}
-html[data-production-system="v8"] :where(.q-button--primary,.q-product-search button,[aria-selected="true"]){background-image:linear-gradient(135deg,color-mix(in srgb,var(--q-accent) 88%,#fff),var(--q-accent-strong,var(--q-accent)))!important}
+html[data-production-system="v8"] :where(button:not(:disabled):not(.q-ai-launcher),a.q-button,[role="button"],[role="tab"]):active:not(:where(.q-about-v2-page *)){--q-hover-lift:0px;--q-press-scale:.975;transition-duration:80ms!important}
+html[data-production-system="v8"] :where(.q-button--primary,.q-product-search button,[aria-selected="true"]):not(:where(.q-about-v2-page *)){background-image:linear-gradient(135deg,color-mix(in srgb,var(--q-accent) 88%,#fff),var(--q-accent-strong,var(--q-accent)))!important}
 
 html[data-production-system="v8"] #main :where(
   .q-panel,.q-auth-card,.q-auth-hero,.q-access-gate,.q-it-hero,.q-it-guide,.q-it-panel,
@@ -169,7 +169,7 @@ html[data-production-system="v8"] body #app #main :where(
 html[data-production-system="v8"] body #app #main :where(.q-it-hero,.q-verify-hero,.q-auth-hero,.q-asset-hero,.q-home-hero){
   border-radius:var(--q-modern-radius-xl)!important;
 }
-html[data-production-system="v8"] body #app #main :where(.q-home-section,.q-about-section,.q-product-directory){
+html[data-production-system="v8"] body #app #main :where(.q-home-section,.q-about-section,.q-product-directory):not(:where(.q-about-v2-page *)){
   border-radius:var(--q-modern-radius-xl)!important;
 }
 
@@ -181,7 +181,7 @@ html[data-production-system="v8"] body #app #main :where(
   .q-v6-portfolio-row,.q-v6-portfolio-analytic,.q-verify-page article,
   .q-about-page article,.q-it-community-grid>form,.q-it-community-grid>aside,
   .q-it-note,.q-it-evidence-grid article,.q-json-evidence
-){
+):not(:where(.q-about-v2-page *)){
   border-radius:var(--q-modern-radius-md)!important;
   transition:transform var(--q-modern-fast) var(--q-modern-ease),box-shadow var(--q-modern-fast) ease,border-color var(--q-modern-fast) ease,background-color var(--q-modern-fast) ease!important;
 }
@@ -229,7 +229,7 @@ html[data-production-system="v8"] body #app #main :where(tbody tr:hover td){back
 html[data-production-system="v8"] body #app #main :where(
   .q-status,.q-badge,.q-chip,.q-tag,.q-capability,.q-mi-pill,
   [class$="-badge"],[class*="-badge "],[class$="-chip"],[class*="-chip "]
-){
+):not(:where(.q-about-v2-page *)){
   border-radius:999px!important;
   min-height:26px;
   display:inline-flex;
@@ -316,7 +316,7 @@ html[data-production-system="v8"] :where(.q-product-nav,.q-context-shelf,.q-it-t
     .q-provider-card,.q-research-card,.q-notification-card,.q-category-card,
     .q-venue-card,.q-dex-card,.q-feature-card,.q-calculator-card,.q-saved-card,
     .q-about-page article,.q-verify-page article
-  ):hover{
+  ):hover:not(:where(.q-about-v2-page *)){
     transform:translateY(-4px)!important;
     border-color:color-mix(in srgb,var(--q-accent) 43%,var(--q-border))!important;
     box-shadow:0 24px 66px color-mix(in srgb,#000 27%,transparent),0 0 0 1px color-mix(in srgb,var(--q-accent) 17%,transparent)!important;
@@ -439,7 +439,7 @@ html[data-production-system="v8"] body #app #main :where(.q-v7-boundary-ribbon,.
   background:linear-gradient(105deg,color-mix(in srgb,var(--q-accent) 10%,var(--q-surface)),color-mix(in srgb,var(--q-surfacealt) 90%,transparent))!important;
   box-shadow:inset 3px 0 0 color-mix(in srgb,var(--q-accent) 68%,transparent),0 10px 30px color-mix(in srgb,#000 14%,transparent)!important;
 }
-html[data-production-system="v8"] body #app #main :where(.q-button--primary,.q-button-primary,[data-variant="primary"]){
+html[data-production-system="v8"] body #app #main :where(.q-button--primary,.q-button-primary,[data-variant="primary"]):not(:where(.q-about-v2-page *)){
   background:linear-gradient(135deg,color-mix(in srgb,var(--q-accent) 86%,#fff),var(--q-accent))!important;
   box-shadow:0 12px 26px color-mix(in srgb,var(--q-accent) 28%,transparent)!important;
 }
@@ -470,10 +470,10 @@ html[data-production-system="v8"] body #app #main :where(.q-button--primary,.q-b
 @media(prefers-reduced-motion:reduce){
   html[data-production-system="v8"]{scroll-behavior:auto!important}
   html[data-production-system="v8"] #main>.q-page{animation:none!important}
-  html[data-production-system="v8"] :where(button,a,input,select,textarea,.q-panel,.q-feature-navigation__group a,.q-it-external){transition:none!important;transform:none!important}
+  html[data-production-system="v8"] :where(button,a,input,select,textarea,.q-panel,.q-feature-navigation__group a,.q-it-external):not(:where(.q-about-v2-page *)){transition:none!important;transform:none!important}
   html[data-production-system="v8"] body>.q-scroll-progress{display:none!important}
 }
 @media(forced-colors:active){
-  html[data-production-system="v8"] :where(button,a.q-button,[role="button"],[role="tab"],input,select,textarea){box-shadow:none!important}
+  html[data-production-system="v8"] :where(button,a.q-button,[role="button"],[role="tab"],input,select,textarea):not(:where(.q-about-v2-page *)){box-shadow:none!important}
   html[data-production-system="v8"] body>.q-scroll-progress{background:Highlight!important;box-shadow:none!important}
 }

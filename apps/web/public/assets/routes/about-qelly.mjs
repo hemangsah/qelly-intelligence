@@ -1,8 +1,9 @@
 import {routeDefinitions} from '../route-registry.mjs';
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 
 const QELLY_SYMBOL=new URL('../brand/qelly-symbol.svg',import.meta.url).href;
-const ABOUT_STYLESHEET=new URL('../about-qelly-v2.css?v=20260829-about1',import.meta.url).href;
-const activateAboutStyles=()=>{if(!document.querySelector('link[data-qelly-about-v2]')){const link=document.createElement('link');link.rel='stylesheet';link.href=ABOUT_STYLESHEET;link.dataset.qellyAboutV2='true';document.head.append(link);}document.documentElement.dataset.qellyAbout='v2';};
+const ABOUT_STYLESHEET=new URL('../about-qelly-v2.css?v=20261008-editorial1',import.meta.url).href;
+const activateAboutStyles=async()=>{await ensureRouteStylesheet(ABOUT_STYLESHEET,{attribute:'data-qelly-about-v2',value:'true'});document.documentElement.dataset.qellyAbout='v2';};
 
 const JOURNEY=Object.freeze([
   {step:'01',name:'Discover',purpose:'Reduce a broad market universe into a researchable question.',use:'Start with themes, rankings, search and verified market context.',route:'discovery-hub',action:'Open Discovery'},
@@ -34,7 +35,7 @@ const availability=(available)=>available?'Available':'Not available';
 // Compatibility guard: the historical contract phrase “demonstration feeds are live market truth” remains searchable for regression tests only; it is never rendered into the customer-facing page. The UI uses “unverified feed” wording.
 
 export async function renderAboutQelly(main,{pageHead,stateBanner,escapeHtml,navigate,state}){
-  activateAboutStyles();
+  await activateAboutStyles();
   const config=state?.config??{};
   const capabilities=config.runtime?.capabilities??{};
   const researchAvailable=config.capabilityTruth?.research===true;
@@ -50,7 +51,7 @@ export async function renderAboutQelly(main,{pageHead,stateBanner,escapeHtml,nav
     ${pageHead('About Qelly Intelligence','About Qelly','A purpose-built market intelligence workspace for markets, research, quantitative tools, India intelligence and evidence-backed decisions—without confusing research with execution.',`<button class="q-button q-button--secondary" data-route-target="feature-universe">Explore all ${visibleFeatures} features</button><button class="q-button q-button--primary" data-route-target="news-research">Ask Qelly</button>`)}
     ${stateBanner()}
     <section class="q-about-v2-hero">
-      <div class="q-about-v2-hero__copy"><p class="q-eyebrow">Purpose before feature count</p><h2>From market signal to an explainable human decision.</h2><p>Qelly gives every task a distinct job: discover the market, understand the asset, challenge the thesis, explain the decision and verify the evidence. Source, time, confidence, coverage and method remain visible throughout.</p><div class="q-about-v2-actions"><button class="q-button q-button--primary" data-route-target="market">Open Market Command</button><button class="q-button q-button--secondary" data-route-target="research-workspace">Build a research dossier</button></div><div class="q-about-v2-promise"><strong>Question</strong><span>→</span><strong>Evidence</strong><span>→</span><strong>Analysis</strong><span>→</span><strong>Decision</strong><span>→</span><strong>Verification</strong></div></div>
+      <div class="q-about-v2-hero__copy"><p class="q-eyebrow">Purpose before feature count</p><h2>From market signal to an explainable human decision.</h2><p>Qelly gives every task a distinct job: discover the market, understand the asset, challenge the thesis, explain the decision and verify the evidence. Source, time, confidence, coverage and method remain visible throughout.</p><div class="q-about-v2-actions"><button class="q-button q-button--primary" data-route-target="market">Open Market Pulse</button><button class="q-button q-button--secondary" data-route-target="research-workspace">Build a research dossier</button></div><div class="q-about-v2-promise"><strong>Question</strong><span>→</span><strong>Evidence</strong><span>→</span><strong>Analysis</strong><span>→</span><strong>Decision</strong><span>→</span><strong>Verification</strong></div></div>
       <aside class="q-about-v2-runtime" aria-label="Current Qelly capabilities"><header><span><img src="${QELLY_SYMBOL}" width="42" height="42" alt=""></span><div><p>Qelly Intelligence</p><h3>Available today</h3></div></header>${runtimeCards.map(([label,available,copy])=>`<article><div><strong>${escapeHtml(label)}</strong><small>${escapeHtml(copy)}</small></div><span class="q-status q-status--${tone(available)}">${label==='Execution'?'Off':availability(available)}</span></article>`).join('')}<footer>Unavailable services remain unavailable rather than being presented as live.</footer></aside>
     </section>
     <div class="q-about-stat-grid"><article><strong>36</strong><span>Public financial calculators</span></article><article><strong>${visibleFeatures}</strong><span>Public research destinations</span></article><article><strong>Read-only</strong><span>Decision support without market execution or custody</span></article><article><strong>0</strong><span>Trade, transfer or wallet-signing routes enabled</span></article></div>

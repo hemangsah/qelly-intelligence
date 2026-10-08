@@ -94,6 +94,15 @@ jobs:
           test -s dist/frontend/assets/routes/notification-triage-v2.css
           test -s dist/frontend/assets/routes/screener-lab-v2.css
           grep -F "renderGovernedTrustCenterV2" dist/frontend/assets/app.js
+      - name: Verify open About presentation and existing capability truth
+        run: node scripts/qelly-about-editorial-e2e.mjs
+      - name: Upload focused About editorial evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-about-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/about-editorial-e2e
+          if-no-files-found: warn
       - name: Verify header pointer travel, keyboard, touch and search geometry
         run: node scripts/qelly-header-pointer-e2e.mjs
       - name: Verify exact deployed header with actual governed responses
