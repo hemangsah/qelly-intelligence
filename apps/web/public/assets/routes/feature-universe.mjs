@@ -39,7 +39,7 @@ export async function renderFeatureUniverse(main,{escapeHtml,navigate}){
  </section>`;
  const root=main.querySelector('.q-feature-index'),form=root.querySelector('form'),groups=[...root.querySelectorAll('[data-directory-group]')],initial=new Map(groups.map(group=>[group,group.open]));
  const update=()=>{const query=form.elements.query.value.trim().toLowerCase(),selected=form.elements.group.value,matched=new Set();for(const group of groups){let count=0;for(const item of group.querySelectorAll('[data-directory-search]')){const visible=(!selected||selected===group.dataset.directoryGroup)&&item.dataset.directorySearch.includes(query);item.hidden=!visible;if(visible){count++;matched.add(item.querySelector('a').dataset.directoryRoute);}}group.hidden=count===0;group.open=query||selected?count>0:initial.get(group);}root.querySelector('[role="status"]').textContent=`${matched.size} ${matched.size===1?'destination':'destinations'} available`;root.querySelector('.q-feature-empty').hidden=matched.size!==0;};
- form.addEventListener('submit',event=>event.preventDefault());form.addEventListener('input',update);form.addEventListener('change',update);form.addEventListener('reset',()=>queueMicrotask(update));
+ form.addEventListener('submit',event=>event.preventDefault());form.addEventListener('input',update);form.addEventListener('change',update);form.addEventListener('reset',event=>{event.preventDefault();form.elements.query.value='';form.elements.group.value='';update();});
  for(const link of root.querySelectorAll('[data-directory-route]'))link.addEventListener('click',event=>{if(event.button||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;event.preventDefault();navigate(link.dataset.directoryRoute);});
  main.removeAttribute('aria-busy');
 }
