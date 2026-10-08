@@ -17,7 +17,7 @@ try{
   await page.locator('.q-about-v2-journey article').first().waitFor();
   assert.equal(await page.getByText('Open Market Command',{exact:true}).count(),0);
   assert.equal(await page.locator('.q-about-v2-journey article').count(),5);assert.equal(await page.locator('.q-about-v2-domains button').count(),6);
-  assert.equal(await page.locator('.q-about-v2-runtime article').filter({hasText:'Execution'}).locator('.q-status').innerText(),'Off');
+  assert.equal(await page.locator('.q-about-v2-runtime article').filter({hasText:'Execution'}).locator('.q-status').textContent(),'Off');
   const layout=await page.locator('.q-about-v2-page').evaluate(root=>({overflow:document.documentElement.scrollWidth>innerWidth+1,bodyText:parseFloat(getComputedStyle(root.querySelector('.q-about-v2-hero__copy>p:not(.q-eyebrow)')).fontSize),journeyColumns:getComputedStyle(root.querySelector('.q-about-v2-journey')).gridTemplateColumns.split(' ').length}));
   assert.equal(layout.overflow,false);assert.ok(layout.bodyText>=16);assert.equal(layout.journeyColumns,width<=620?1:2);
   const surfaces=await page.locator('.q-about-v2-page :is(section,article,aside,header,footer,div,button,blockquote,.q-status)').evaluateAll(nodes=>nodes.filter(n=>{const r=n.getBoundingClientRect();return r.width&&r.height;}).map(n=>{const s=getComputedStyle(n);return {className:n.className,borders:[s.borderTopWidth,s.borderRightWidth,s.borderBottomWidth,s.borderLeftWidth],radius:s.borderRadius,shadow:s.boxShadow};}));
