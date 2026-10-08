@@ -9,7 +9,7 @@ test('final product layer governs focus, target size and compact production cont
   assert.match(css,/--q-target-min:40px/);
   assert.match(css,/--q-focus-ring:/);
   assert.match(css,/:focus-visible\{[\s\S]*outline:3px solid var\(--q-focus-ring\)!important/);
-  assert.match(css,/button\[aria-label="Dismiss notification"\][\s\S]*min-width:var\(--q-target-min\)!important/);
+  assert.match(css,/button\[aria-label="Dismiss notification"\]\{[^}]*min-width:max\(48px,var\(--q-target-min\)\)!important;min-height:max\(48px,var\(--q-target-min\)\)!important/);
   assert.match(css,/\.qelly-tradingview-attribution a,[\s\S]*\.q-v6-runtime-provider>a/);
   assert.match(css,/\.q-grid-resizer\{[\s\S]*width:24px!important/);
   assert.match(css,/@media\(max-width:760px\)\{[\s\S]*--q-target-min:44px/);

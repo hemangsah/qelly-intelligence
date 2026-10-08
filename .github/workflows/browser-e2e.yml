@@ -109,6 +109,22 @@ jobs:
           QELLY_HEADER_PREVIEW: ${{ github.event_name == 'pull_request' }}
           GH_TOKEN: ${{ github.token }}
         run: node scripts/qelly-header-pointer-e2e.mjs
+      - name: Verify DEX research interactions and unavailable data boundaries
+        run: node scripts/qelly-dex-workstation-e2e.mjs
+      - name: Verify exact deployed DEX with actual governed responses
+        env:
+          QELLY_DEX_LIVE: 'true'
+          QELLY_DEX_PREVIEW: ${{ github.event_name == 'pull_request' }}
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/qelly-dex-workstation-e2e.mjs
+      - name: Upload DEX research interaction evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-dex-workstation-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: |
+            preview/dex-workstation-e2e
+            preview/dex-workstation-live-e2e
       - name: Verify global chat keyboard focus and mobile containment
         run: node scripts/qelly-chat-keyboard-e2e.mjs
       - name: Verify signed calculator scenarios and input boundaries

@@ -131,7 +131,7 @@ html[data-preview="static"][data-resolved-appearance="light"] .q-page-head .q-bu
   #main{padding-bottom:calc(var(--q-brand-mobile-clearance) + 18px)!important;overflow-x:clip!important}
   .q-mi-page{padding-bottom:18px!important;min-height:0!important}
   .q-mobile-navigation{height:var(--q-brand-mobile-clearance)!important;min-height:var(--q-brand-mobile-clearance)!important;padding-bottom:env(safe-area-inset-bottom)!important}
-  .q-toast-stack{bottom:calc(var(--q-brand-mobile-clearance) + 10px)!important}
+
   .q-mi-column-menu,.q-mi-filter-sheet>section,.q-mi-drawer>section{padding-bottom:calc(var(--q-brand-mobile-clearance) + 14px)!important}
   .q-mi-chart-tooltip{max-width:calc(100vw - 24px)!important}
   .q-auth-page{grid-template-columns:1fr!important;min-height:0!important;padding:14px!important}
