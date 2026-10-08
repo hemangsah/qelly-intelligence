@@ -154,8 +154,8 @@ html[data-production-system="v8"] .q-product-search{
   background:color-mix(in srgb,var(--q-surfacealt) 88%,transparent)!important;
   box-shadow:var(--q-luxe-inset)!important;
 }
-html[data-production-system="v8"] .q-product-search input:not(:where(.q-cc-page *)){min-height:44px!important;padding-inline:15px!important;border:0!important;background:transparent!important}
-html[data-production-system="v8"] .q-product-search button:not(:where(.q-v7-public-market *)):not(:where(.q-cc-page *)){min-height:44px!important;padding:0 17px!important;border:0!important;border-radius:999px!important;background:linear-gradient(135deg,#a82d5c,#721632)!important}
+html[data-production-system="v8"] .q-product-search input{min-height:44px!important;padding-inline:15px!important;border:0!important;background:transparent!important}
+html[data-production-system="v8"] .q-product-search button:not(:where(.q-v7-public-market *)){min-height:44px!important;padding:0 17px!important;border:0!important;border-radius:999px!important;background:linear-gradient(135deg,#a82d5c,#721632)!important}
 html[data-production-system="v8"] .q-product-system,
 html[data-production-system="v8"] .q-product-account{min-height:44px!important;border:0!important;background:transparent!important;box-shadow:none!important}
 
@@ -274,7 +274,7 @@ html[data-production-system="v8"] body #app #main :where(input,select,textarea):
 
 html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)){border:0!important;border-radius:999px!important}
 html[data-production-system="v8"] body #app #main .q-button--secondary:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)){background:var(--q-surfacealt)!important;box-shadow:var(--q-luxe-inset)!important}
-html[data-production-system="v8"] body #app #main .q-button--primary:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)){background:linear-gradient(135deg,#ad315f,#711632)!important;color:#fff!important;box-shadow:0 12px 30px rgba(113,22,50,.3)!important}
+html[data-production-system="v8"] body #app #main .q-button--primary:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)){background:linear-gradient(135deg,#ad315f,#711632)!important;color:#fff!important;box-shadow:0 12px 30px rgba(113,22,50,.3)!important}
 
 html[data-production-system="v8"] body #app #main :where(.q-grid-scroll,.q-table-wrap,.q-mn-table-wrap,.q-chart-table,.q-audit-table,.q-mi-table-wrap,[class$="-table-wrap"],[class*="-table-wrap "]):not(:where(.q-dossier *)){
   border:0!important;border-radius:18px!important;background:var(--q-luxe-panel)!important;box-shadow:var(--q-luxe-shadow-soft),var(--q-luxe-inset)!important;

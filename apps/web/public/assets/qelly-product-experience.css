@@ -116,7 +116,7 @@ html[data-production-system="v8"] .q-product-search :where(input,button):not(:wh
 html[data-production-system="v8"] .q-product-search input{padding-inline:11px!important;font-size:12px!important}
 html[data-production-system="v8"] .q-product-search button{display:grid!important;place-items:center!important;width:40px!important;min-width:40px!important;padding:0!important}
 html[data-production-system="v8"] .q-product-search button svg{width:17px!important;height:17px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;stroke-linecap:round!important}
-html[data-production-system="v8"] :where(.q-product-menu,.q-product-search button):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-cc-page *)){border-radius:var(--q-radius-control)!important}
+html[data-production-system="v8"] :where(.q-product-menu,.q-product-search button):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)){border-radius:var(--q-radius-control)!important}
 
 /* Market display controls should read as a compact toolbar, not three tall
    settings cards. The selects retain the 44px touch target. */
