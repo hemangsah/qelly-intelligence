@@ -285,17 +285,17 @@ html[data-production-system="v8"] body #app #main tbody tr:hover:not(:where(.q-f
 /* Controls that read as actions must also behave like actions on touch and
    keyboard devices. Checkboxes and radios retain their native geometry while
    their associated labels provide the larger hit area. */
-html[data-production-system="v8"] body #app #main button:not(:where(.q-feature-index,.q-feature-index *)),
-html[data-production-system="v8"] body #app #main a.q-button,
-html[data-production-system="v8"] body #app #main a.q-mn-link,
-html[data-production-system="v8"] body #app #main [role="button"]:not(:where(.q-feature-index,.q-feature-index *)),
-html[data-production-system="v8"] body #app #main select:not(:where(.q-feature-index,.q-feature-index *)),
-html[data-production-system="v8"] body #app #main input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(:where(.q-feature-index,.q-feature-index *)),
+html[data-production-system="v8"] body #app #main button:not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-about-v2-page *)),
+html[data-production-system="v8"] body #app #main a.q-button:not(:where(.q-about-v2-page *)),
+html[data-production-system="v8"] body #app #main a.q-mn-link:not(:where(.q-about-v2-page *)),
+html[data-production-system="v8"] body #app #main [role="button"]:not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-about-v2-page *)),
+html[data-production-system="v8"] body #app #main select:not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-about-v2-page *)),
+html[data-production-system="v8"] body #app #main input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-about-v2-page *)),
 html[data-production-system="v8"] body #app #main textarea:not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-about-v2-page *)){
   min-height:44px!important;
 }
-html[data-production-system="v8"] body #app #main button,
-html[data-production-system="v8"] body #app #main [role="button"]{min-width:44px!important}
+html[data-production-system="v8"] body #app #main button:not(:where(.q-about-v2-page *)),
+html[data-production-system="v8"] body #app #main [role="button"]:not(:where(.q-about-v2-page *)){min-width:44px!important}
 
 
 /* Wide screens keep the product inventory visible as a quiet dock. It can be
