@@ -143,7 +143,7 @@ html[data-v53-family-harmonization="active"] #main :where(.q-eyebrow,.q-status,.
   html[data-v53-family-harmonization="active"] #main :where(a,button,input,select,textarea,summary,[role="button"],[role="tab"]):focus-visible{outline:3px solid color-mix(in srgb,var(--q-v53-family-accent) 78%,white 16%);outline-offset:3px}
   html[data-v53-family-harmonization="active"][data-ui-lock-v53="active"][data-product-surface="production"] #main :where(.q-button,button:not([hidden]),select,input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),textarea):not(:where(.q-about-v2-page *)){font-size:12px!important;line-height:1.25!important}
   html[data-v53-family-harmonization="active"][data-ui-lock-v53="active"][data-product-surface="production"] #main :where(.q-status,.q-chip,.q-badge,.q-eyebrow,.q-kpi-label):not(:where(.q-cv-page *)):not(:where(.q-about-v2-page *)){font-size:12px!important}
-  html[data-v53-family-harmonization="active"] #main .q-page-head::before,
+  html[data-v53-family-harmonization="active"] #main .q-page-head::before:not(:where(.q-about-v2-page *)),
   html[data-v53-family-harmonization="active"] #main .q-page-head::after:not(:where(.q-about-v2-page *)){display:none!important}
 
   /* Route-family detail floors: evidence text must remain legible, not merely present. */
