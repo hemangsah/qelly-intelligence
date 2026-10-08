@@ -93,7 +93,7 @@ html[data-production-system="v8"] :where(button:not(.q-product-brand__mark):not(
   transform:translate3d(var(--magnet-x,0px),calc(var(--magnet-y,0px) - var(--q-hover-lift)),0) scale(var(--q-press-scale))!important;
   transition:transform var(--q-modern-fast) var(--q-modern-ease),box-shadow var(--q-modern-fast) ease,border-color var(--q-modern-fast) ease,background var(--q-modern-fast) ease,color var(--q-modern-fast) ease!important;
 }
-html[data-production-system="v8"] body #app .q-product-header .q-product-search button:not(:where(.q-about-v2-page *)),
+html[data-production-system="v8"] body #app .q-product-header .q-product-search button:not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)),
 html[data-production-system="v8"] body #app #main .q-page-actions .q-button:not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)){border-radius:999px!important}
 html[data-production-system="v8"] :where(button:not(:disabled):not(.q-ai-launcher),a.q-button,[role="button"],[role="tab"]):hover:not(:where(.q-ai-root *)):not(:where(.q-dossier *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)){
   --q-hover-lift:2px;
@@ -269,7 +269,7 @@ html[data-production-system="v8"] body #app #main :where(.q-mn-status,.q-mi-kpi,
 
 /* Market-terminal inner surfaces used a compact utility geometry that did not
    inherit from the card selector. Keep boundary data and display attribution
-   visually distinct:not(:where(.q-feature-index,.q-feature-index *)), but no longer visually dated. */
+   visually distinct:not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-v7-public-market *)), but no longer visually dated. */
 html[data-production-system="v8"] body #app :where(
   .q-v7-boundary-ribbon,.q-v7-chart-stage,.q-v6-market-tradingview,
   .qelly-tradingview-fallback,.q-v6-market-boundary
