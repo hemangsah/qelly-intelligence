@@ -11,9 +11,9 @@ try{
   await context.addInitScript(a=>localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({version:2,appearance:a})),appearance);
   const page=active=await context.newPage();let nonReadRequests=0;const nonReadDetails=[];
   await context.route('**/*',route=>{if(!['GET','HEAD','OPTIONS'].includes(route.request().method())){nonReadRequests++;const u=new URL(route.request().url());nonReadDetails.push({method:route.request().method(),origin:u.origin,path:u.pathname});return route.abort();}return route.continue();});
-  await context.route('**/api/v1/user/layout-preferences',async route=>{const response=await route.fetch();await route.fulfill({response,json:{...await response.json(),appearance}});});
+  await context.route('**/api/v1/preferences/layout',async route=>{if(!['GET','HEAD','OPTIONS'].includes(route.request().method())){nonReadRequests++;return route.abort();}const response=await route.fetch();await route.fulfill({response,json:{...await response.json(),appearance}});});
   await page.goto(`http://127.0.0.1:${server.port}/#/about-qelly`,{waitUntil:'domcontentloaded'});
-  await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true'&&document.documentElement.dataset.brandReady==='true');await page.locator('.qelly-opening').waitFor({state:'hidden'});
+  await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true'&&document.documentElement.dataset.brandReady==='true');await page.locator('.qelly-opening').waitFor({state:'hidden'});await page.waitForFunction(a=>document.documentElement.dataset.resolvedAppearance===a,appearance);
   await page.locator('.q-about-v2-journey article').first().waitFor();
   assert.equal(await page.getByText('Open Market Command',{exact:true}).count(),0);
   assert.equal(await page.locator('.q-about-v2-journey article').count(),5);assert.equal(await page.locator('.q-about-v2-domains button').count(),6);
@@ -26,7 +26,7 @@ try{
   const market=page.getByRole('button',{name:'Open Market Pulse',exact:true});await market.focus();
   const focus=await market.evaluate(n=>({style:getComputedStyle(n).outlineStyle,width:parseFloat(getComputedStyle(n).outlineWidth)}));assert.notEqual(focus.style,'none');assert.ok(focus.width>=2);
   await page.screenshot({path:`${out}/about-${appearance}-${width}.png`,fullPage:true});assert.equal(nonReadRequests,0,'About before navigation: '+JSON.stringify(nonReadDetails));await market.press('Enter');await page.waitForURL('**/#/market');assert.ok(nonReadDetails.every(r=>r.method==='PUT'&&r.origin===`http://127.0.0.1:${server.port}`&&r.path==='/api/v1/preferences/layout'),'Unexpected post-navigation write: '+JSON.stringify(nonReadDetails));
-  results.push({appearance,width,layout,readability,surfaces,capabilityTruthPreserved:true,keyboardNavigation:true,focus,aboutNonReadRequests:0,navigationPreferenceAttempts:nonReadRequests,allNonReadRequestsBlocked:true,nonReadRequests});await context.close();
+  results.push({appearance,resolvedAppearance:appearance,width,layout,readability,surfaces,capabilityTruthPreserved:true,keyboardNavigation:true,focus,aboutNonReadRequests:0,navigationPreferenceAttempts:nonReadRequests,allNonReadRequestsBlocked:true,nonReadRequests});await context.close();
  }
  await writeFile(out+'/report.json',JSON.stringify({status:'passed',sourceSha:process.env.QELLY_SCREEN_EVIDENCE_SHA,results,boundary:'Focused About source presentation and existing route/capability behavior. Full programme acceptance remains separate.'},null,2));
 }catch(error){if(active&&!active.isClosed())await active.screenshot({path:out+'/failure.png',fullPage:true}).catch(()=>{});await writeFile(out+'/report.json',JSON.stringify({status:'failed',sourceSha:process.env.QELLY_SCREEN_EVIDENCE_SHA,error:error.stack,results},null,2));throw error;}
