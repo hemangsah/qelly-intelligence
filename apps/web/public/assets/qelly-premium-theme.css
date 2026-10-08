@@ -274,7 +274,7 @@ html[data-production-system="v8"] body #app #main :where(input,select,textarea):
 
 html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-about-v2-page *)):not(:where(.q-dpg-page *)){border:0!important;border-radius:999px!important}
 html[data-production-system="v8"] body #app #main .q-button--secondary:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-dpg-page *)){background:var(--q-surfacealt)!important;box-shadow:var(--q-luxe-inset)!important}
-html[data-production-system="v8"] body #app #main .q-button--primary:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)){background:linear-gradient(135deg,#ad315f,#711632)!important;color:#fff!important;box-shadow:0 12px 30px rgba(113,22,50,.3)!important}
+html[data-production-system="v8"] body #app #main .q-button--primary:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-dpg-page *)){background:linear-gradient(135deg,#ad315f,#711632)!important;color:#fff!important;box-shadow:0 12px 30px rgba(113,22,50,.3)!important}
 
 html[data-production-system="v8"] body #app #main :where(.q-grid-scroll,.q-table-wrap,.q-mn-table-wrap,.q-chart-table,.q-audit-table,.q-mi-table-wrap,[class$="-table-wrap"],[class*="-table-wrap "]):not(:where(.q-dossier *)){
   border:0!important;border-radius:18px!important;background:var(--q-luxe-panel)!important;box-shadow:var(--q-luxe-shadow-soft),var(--q-luxe-inset)!important;
