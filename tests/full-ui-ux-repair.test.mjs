@@ -152,7 +152,7 @@ test('production exposes the public consumer registry through one responsive fea
   assert.match(convergence, /@media\(prefers-reduced-motion:reduce\)/);
 });
 
-test('legacy production polish remains loaded and motion-safe outside the editorial About route', async () => {
+test('legacy production polish remains loaded and motion-safe outside source-owned routes', async () => {
   const [index, css, motion, worker] = await Promise.all([
     read('apps/web/public/index.html'),
     read('apps/web/public/assets/qelly-modern-interaction-polish.css'),
@@ -163,7 +163,7 @@ test('legacy production polish remains loaded and motion-safe outside the editor
   assert.match(css, /--q-modern-radius-xl:32px/);
   assert.match(css, /header\.q-product-header[\s\S]*border-radius:0 0 var\(--q-modern-radius-lg\)/);
   assert.match(css, /:where\(button:not\(\.q-product-brand__mark\):not\(\.q-ai-launcher\),a\.q-button,\[role="button"\],\[role="tab"\]\)[\s\S]*border-radius:999px!important/);
-  assert.match(css, /#main \.q-page-actions \.q-button:not\(:where\(\.q-about-v2-page \*\)\)\{border-radius:999px!important/);
+  assert.match(css, /#main \.q-page-actions \.q-button:not\(:where\(\.q-v7-public-market \*\)\):not\(:where\(\.q-about-v2-page \*\)\)\{border-radius:999px!important/);
   assert.match(css, /\.q-product-search\{[\s\S]*border-radius:999px!important/);
   assert.match(css, /Designer pass: normalize every surviving legacy route family/);
   assert.match(css, /\.q-mn-card,[\s\S]*\.q-v7-provider-card,[\s\S]*\.q-mi-kpi/);
@@ -178,7 +178,7 @@ test('legacy production polish remains loaded and motion-safe outside the editor
   assert.match(css, /q-v53-lock-contextbar\{[\s\S]*border-radius:var\(--q-modern-radius-md\)!important/);
   assert.match(css, /q-v53-lock-shell-nav a:hover[\s\S]*transform:translateX\(3px\)!important/);
   assert.match(css, /q-v7-boundary-ribbon,[\s\S]*q-v6-market-boundary[\s\S]*border-radius:var\(--q-modern-radius-lg\)!important/);
-  assert.match(css, /\.q-setting,\.q-query-boundary\)\{[\s\S]*border-radius:var\(--q-modern-radius-md\)!important/);
+  assert.match(css, /\.q-setting,\.q-query-boundary\):not\(:where\(\.q-v7-public-market \*\)\)\{[\s\S]*border-radius:var\(--q-modern-radius-md\)!important/);
   assert.match(css, /Modular designer layer:[\s\S]*radial-gradient\(900px 520px/);
   assert.match(css, /q-page-head,.q-it-hero,[\s\S]*border-radius:var\(--q-modern-radius-xl\)!important/);
   assert.match(css, /q-v7-rate-grid,.q-provider-grid,[\s\S]*grid-template-columns:repeat\(auto-fit/);

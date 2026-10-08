@@ -114,7 +114,7 @@ html[data-v53-family-harmonization="active"] [data-v53-cloud-presentation="exist
 }
 
 /* Readability floor for dense evidence metadata on every governed family. */
-html[data-v53-family-harmonization="active"] #main .q-page-head>div>p:not(.q-eyebrow):not(:where(.q-about-v2-page *)){font-size:12px!important;line-height:1.45!important}
+html[data-v53-family-harmonization="active"] #main .q-page-head>div>p:not(.q-eyebrow):not(:where(.q-v7-public-market p:not(.q-eyebrow))):not(:where(.q-about-v2-page *)){font-size:12px!important;line-height:1.45!important}
 html[data-v53-family-harmonization="active"] #main .q-panel-head p{font-size:11px!important;line-height:1.4!important}
 html[data-v53-family-harmonization="active"] #main :where(.q-eyebrow,.q-status,.q-chip,.q-badge,.q-kpi-label):not(:where(.q-about-v2-page *)){font-size:10.5px!important;line-height:1.25!important}
 
