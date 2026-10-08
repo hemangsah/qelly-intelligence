@@ -34,10 +34,10 @@ html[data-production-system="v8"] :where(button,a[href],input,select,textarea,[r
   outline-offset:3px!important;
   box-shadow:0 0 0 5px color-mix(in srgb,var(--q-focus-ring) 18%,transparent)!important;
 }
-html[data-production-system="v8"] :where(button:disabled,[aria-disabled="true"]):not(:where(.q-dossier *)){
+html[data-production-system="v8"] :where(button:disabled,[aria-disabled="true"]):not(:where(.q-about-v2-page *)):not(:where(.q-dossier *)){
   cursor:not-allowed!important;filter:saturate(.55)!important;opacity:.58!important;
 }
-html[data-production-system="v8"] :where(button,a[href],[role="button"],[role="link"],[role="tab"]).is-interacting:not(:where(.q-dossier *)){
+html[data-production-system="v8"] :where(button,a[href],[role="button"],[role="link"],[role="tab"]).is-interacting:not(:where(.q-about-v2-page *)):not(:where(.q-dossier *)){
   transform:translateY(0) scale(.985)!important;filter:brightness(.98)!important;
 }
 html[data-production-system="v8"] button[aria-label="Dismiss notification"]{
@@ -137,16 +137,16 @@ html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-que
 html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-query-boundary>small{font-size:9px!important;line-height:1.25!important}
 
 /* Controls are compact precision objects. Semantic status labels remain pills. */
-html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(.q-status):not(.q-truth-pill):not(:where(.q-dossier *)),
-html[data-production-system="v8"] .q-feature-navigation>header button:not(:where(.q-dossier *)),
-html[data-production-system="v8"] .q-feature-navigation__search input:not(:where(.q-dossier *)){
+html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(.q-status):not(.q-truth-pill):not(:where(.q-about-v2-page *)):not(:where(.q-dossier *)),
+html[data-production-system="v8"] .q-feature-navigation>header button:not(:where(.q-about-v2-page *)):not(:where(.q-dossier *)),
+html[data-production-system="v8"] .q-feature-navigation__search input:not(:where(.q-about-v2-page *)):not(:where(.q-dossier *)){
   border-radius:var(--q-radius-control)!important;
 }
-html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:disabled):not(:where(.q-dossier *)){
+html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:disabled):not(:where(.q-about-v2-page *)):not(:where(.q-dossier *)){
   transition:transform 150ms ease,filter 150ms ease,box-shadow 150ms ease,background-color 150ms ease!important;
 }
-html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:disabled):hover:not(:where(.q-dossier *)){transform:translateY(-1px)!important;filter:brightness(1.06)}
-html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:disabled):active:not(:where(.q-dossier *)){transform:translateY(0)!important}
+html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:disabled):hover:not(:where(.q-about-v2-page *)):not(:where(.q-dossier *)){transform:translateY(-1px)!important;filter:brightness(1.06)}
+html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:disabled):active:not(:where(.q-about-v2-page *)):not(:where(.q-dossier *)){transform:translateY(0)!important}
 
 /* Tonal hierarchy replaces old outlines and oversized rounding. */
 html[data-production-system="v8"] body #app #main :where(
@@ -161,7 +161,7 @@ html[data-production-system="v8"] body #app #main :where(
 ):not(:where(.q-dossier *)){
   border:0!important;border-radius:var(--q-radius-surface)!important;background:var(--q-luxe-panel)!important;box-shadow:var(--q-elevation-rest)!important;
 }
-html[data-production-system="v8"] body #app #main :where(.q-it-hero,.q-verify-hero,.q-auth-hero,.q-asset-hero,.q-home-lead,.q-market-safety,.q-about-hero){
+html[data-production-system="v8"] body #app #main :where(.q-it-hero,.q-verify-hero,.q-auth-hero,.q-asset-hero,.q-home-lead,.q-market-safety,.q-about-hero):not(:where(.q-about-v2-page *)){
   border:0!important;border-radius:var(--q-radius-feature)!important;background:var(--q-luxe-panel-strong)!important;box-shadow:var(--q-elevation-rest)!important;
 }
 html[data-production-system="v8"] body #app #main :where(.q-feature-card,.q-calculator-card,.q-persona-card,.q-saved-card,.q-category-card,.q-venue-card,.q-dex-card){
@@ -198,22 +198,22 @@ html[data-production-system="v8"] #main .q-calculator-card__footer{padding-top:1
 html[data-production-system="v8"] #main .q-calculator-card__footer strong{font-size:11px!important;color:var(--q-accent-strong)!important}
 
 /* Official logo inside the About orbit. */
-html[data-production-system="v8"] #main .q-about-orbit{border:0!important;box-shadow:0 0 0 1px color-mix(in srgb,var(--q-accent) 30%,transparent),0 0 80px color-mix(in srgb,var(--q-accent) 12%,transparent)!important}
+html[data-production-system="v8"] #main .q-about-orbit:not(:where(.q-about-v2-page *)){border:0!important;box-shadow:0 0 0 1px color-mix(in srgb,var(--q-accent) 30%,transparent),0 0 80px color-mix(in srgb,var(--q-accent) 12%,transparent)!important}
 html[data-production-system="v8"] #main .q-orbit-core{overflow:hidden!important;border-radius:22px!important;background:#fff!important;box-shadow:0 20px 52px color-mix(in srgb,var(--q-accent) 30%,transparent)!important}
 html[data-production-system="v8"] #main .q-orbit-core img{width:68%!important;height:68%!important;object-fit:contain!important}
-html[data-production-system="v8"] #main .q-about-orbit>span{border:0!important;border-radius:8px!important;background:var(--q-surface)!important;box-shadow:var(--q-elevation-rest)!important}
+html[data-production-system="v8"] #main .q-about-orbit>span:not(:where(.q-about-v2-page *)){border:0!important;border-radius:8px!important;background:var(--q-surface)!important;box-shadow:var(--q-elevation-rest)!important}
 
 /* Light-theme semantic colors meet readable foreground/background contrast. */
-:root[data-appearance="light"] .q-status--deterministic,
-:root[data-resolved-appearance="light"] .q-status--deterministic{color:#174f78!important;background:#e1eff7!important;border-color:transparent!important}
-:root[data-appearance="light"] :where(.q-status--cached,.q-truth-pill.is-cached),
-:root[data-resolved-appearance="light"] :where(.q-status--cached,.q-truth-pill.is-cached){color:#28506e!important;background:#e5eef4!important;border-color:transparent!important}
-:root[data-appearance="light"] :where(.q-status--live,.q-truth-pill.is-live),
-:root[data-resolved-appearance="light"] :where(.q-status--live,.q-truth-pill.is-live){color:#076241!important;background:#ddf2e9!important;border-color:transparent!important}
-:root[data-appearance="light"] :where(.q-status--warning,.q-status--delayed,.q-truth-pill.is-delayed),
-:root[data-resolved-appearance="light"] :where(.q-status--warning,.q-status--delayed,.q-truth-pill.is-delayed){color:#764900!important;background:#f8ead0!important;border-color:transparent!important}
-:root[data-appearance="light"] :where(.q-status--error,.q-status--unavailable,.q-truth-pill.is-unavailable),
-:root[data-resolved-appearance="light"] :where(.q-status--error,.q-status--unavailable,.q-truth-pill.is-unavailable){color:#8d1c35!important;background:#f7e2e7!important;border-color:transparent!important}
+:root[data-appearance="light"] .q-status--deterministic:not(:where(.q-about-v2-page *)),
+:root[data-resolved-appearance="light"] .q-status--deterministic:not(:where(.q-about-v2-page *)){color:#174f78!important;background:#e1eff7!important;border-color:transparent!important}
+:root[data-appearance="light"] :where(.q-status--cached,.q-truth-pill.is-cached):not(:where(.q-about-v2-page *)),
+:root[data-resolved-appearance="light"] :where(.q-status--cached,.q-truth-pill.is-cached):not(:where(.q-about-v2-page *)){color:#28506e!important;background:#e5eef4!important;border-color:transparent!important}
+:root[data-appearance="light"] :where(.q-status--live,.q-truth-pill.is-live):not(:where(.q-about-v2-page *)),
+:root[data-resolved-appearance="light"] :where(.q-status--live,.q-truth-pill.is-live):not(:where(.q-about-v2-page *)){color:#076241!important;background:#ddf2e9!important;border-color:transparent!important}
+:root[data-appearance="light"] :where(.q-status--warning,.q-status--delayed,.q-truth-pill.is-delayed):not(:where(.q-about-v2-page *)),
+:root[data-resolved-appearance="light"] :where(.q-status--warning,.q-status--delayed,.q-truth-pill.is-delayed):not(:where(.q-about-v2-page *)){color:#764900!important;background:#f8ead0!important;border-color:transparent!important}
+:root[data-appearance="light"] :where(.q-status--error,.q-status--unavailable,.q-truth-pill.is-unavailable):not(:where(.q-about-v2-page *)),
+:root[data-resolved-appearance="light"] :where(.q-status--error,.q-status--unavailable,.q-truth-pill.is-unavailable):not(:where(.q-about-v2-page *)){color:#8d1c35!important;background:#f7e2e7!important;border-color:transparent!important}
 
 /* Light appearance is an owned shell theme, not a late audit patch. */
 html[data-resolved-appearance="light"] body,

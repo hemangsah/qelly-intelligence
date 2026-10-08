@@ -236,13 +236,13 @@ html[data-ui-lock-v53="active"][data-product-surface="production"] .q-page-head 
   line-height:1.05!important;
   letter-spacing:-.02em!important;
 }
-html[data-ui-lock-v53="active"][data-product-surface="production"] .q-page-head p{
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-page-head p:not(:where(.q-about-v2-page *)){
   max-width:900px!important;
   margin:0!important;
   font-size:10px!important;
   line-height:1.35!important;
 }
-html[data-ui-lock-v53="active"][data-product-surface="production"] .q-page-actions .q-button{
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-page-actions .q-button:not(:where(.q-about-v2-page *)){
   min-height:28px!important;
   padding:4px 9px!important;
   border-radius:5px!important;
