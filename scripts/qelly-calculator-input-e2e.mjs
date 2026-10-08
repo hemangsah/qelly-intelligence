@@ -190,11 +190,15 @@ try{
       const title=await page.title(),launcher=page.locator('[data-q-ai-launcher]'),panel=page.locator('[data-q-ai-assistant]');
       await launcher.waitFor({state:'visible'});assert.equal(await launcher.count(),1);assert.equal(await page.locator('.q-cn-global-categories details').count(),5);
       assert.equal(await page.locator('[data-q-ai-launch-meta]').innerText(),surface==='library'?'Financial calculator library':'Kelly Criterion Calculator');
-      const box=await launcher.boundingBox();assert.ok(Math.abs(box.x+box.width/2-width/2)<2);assert.ok(box.y>=0&&box.y+box.height<=900);
+      await page.waitForFunction(()=>Boolean(document.querySelector('.q-ai-root')?.dataset.clearance));
+      const dockState=await launcher.evaluate(node=>{const s=getComputedStyle(node);return{clearance:node.closest('.q-ai-root').dataset.clearance,opacity:Number(s.opacity),pointerEvents:s.pointerEvents,tabIndex:node.tabIndex,ariaHidden:node.getAttribute('aria-hidden')};});
+      const box=await launcher.boundingBox();assert.ok(Math.abs(box.x+box.width/2-width/2)<2);
+      if(dockState.clearance==='clear'){assert.ok(box.y>=0&&box.y+box.height<=900);assert.equal(dockState.ariaHidden,'false');assert.equal(dockState.tabIndex,0);}
+      else{assert.ok(['interactive','chart'].includes(dockState.clearance));assert.equal(dockState.opacity,0);assert.equal(dockState.pointerEvents,'none');assert.equal(dockState.ariaHidden,'true');assert.equal(dockState.tabIndex,-1);}
       await page.locator('.q-cn-global-categories summary').first().click();assert.equal(await page.locator('.q-cn-global-categories details[open]').count(),1);
       await page.locator('.q-cn-global-categories summary').first().press('Escape');assert.equal(await page.locator('.q-cn-global-categories details[open]').count(),0);
       if(surface==='calculator')await page.locator('#calc-winProbability').fill('17.25');
-      await launcher.click();await panel.waitFor({state:'visible'});
+      if(await launcher.getAttribute('aria-hidden')==='true')await page.keyboard.press('Control+/');else await launcher.click();await panel.waitFor({state:'visible'});
       await page.waitForFunction(()=>[...document.querySelectorAll('.q-ai-root img')].every(image=>image.complete&&image.naturalWidth>0));
       const draft=await page.locator('[data-q-ai-form] textarea').inputValue();assert.doesNotMatch(draft,/17\.25|winProbability|averageWin/);
       assert.equal(await page.getByRole('button',{name:'Send question',exact:true}).count(),1);
