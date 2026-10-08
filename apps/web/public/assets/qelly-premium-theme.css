@@ -294,8 +294,8 @@ html[data-production-system="v8"] body #app #main input:not([type="checkbox"]):n
 html[data-production-system="v8"] body #app #main textarea:not(:where(.q-about-v2-page *)){
   min-height:44px!important;
 }
-html[data-production-system="v8"] body #app #main button,
-html[data-production-system="v8"] body #app #main [role="button"]{min-width:44px!important}
+html[data-production-system="v8"] body #app #main button:not(:where(.q-about-v2-page *)),
+html[data-production-system="v8"] body #app #main [role="button"]:not(:where(.q-about-v2-page *)){min-width:44px!important}
 
 
 /* Wide screens keep the product inventory visible as a quiet dock. It can be
