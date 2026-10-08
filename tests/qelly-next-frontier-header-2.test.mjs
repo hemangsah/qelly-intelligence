@@ -66,6 +66,6 @@ test('Header 2.0 action density remains responsive instead of hiding actions',as
   const css=await read('apps/web/public/assets/qelly-decision-proven-graph.css');
   assert.ok(css.includes('.q-dpg-hero__actions{display:grid'));
   assert.ok(css.includes('@media(max-width:1040px){.q-dpg-hero{grid-template-columns:1fr 1.25fr}.q-dpg-hero__actions{grid-column:1/-1;grid-template-columns:repeat(4,minmax(0,1fr))}'));
-  assert.ok(css.includes('@media(max-width:760px){.q-dpg-hero{grid-template-columns:1fr}.q-dpg-hero__view{border:0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:12px 0}.q-dpg-hero__actions{grid-column:auto;grid-template-columns:repeat(2,minmax(0,1fr))}'));
+  assert.ok(css.includes('@media(max-width:760px){.q-dpg-hero{grid-template-columns:1fr}.q-dpg-hero__view{border:0;border-top:0;border-bottom:0;padding:12px 0}.q-dpg-hero__actions{grid-column:auto;grid-template-columns:repeat(2,minmax(0,1fr))}'));
   assert.ok(css.includes('@media(max-width:480px){.q-dpg-hero__selects,.q-dpg-hero__actions,.q-dpg-hero__metrics{grid-template-columns:1fr}'));
 });
