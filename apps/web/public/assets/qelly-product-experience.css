@@ -40,7 +40,7 @@ html[data-production-system="v8"] :where(button:disabled,[aria-disabled="true"])
 html[data-production-system="v8"] :where(button,a[href],[role="button"],[role="link"],[role="tab"]).is-interacting:not(:where(.q-dossier *)){
   transform:translateY(0) scale(.985)!important;filter:brightness(.98)!important;
 }
-html[data-production-system="v8"] button[aria-label="Dismiss notification"]:not(:where(.q-feature-index,.q-feature-index *)){
+html[data-production-system="v8"] button[aria-label="Dismiss notification"]{
   min-width:max(48px,var(--q-target-min))!important;min-height:max(48px,var(--q-target-min))!important;padding:0!important;display:inline-grid!important;place-items:center!important;
 }
 
