@@ -116,7 +116,7 @@ html[data-production-system="v8"] .q-product-search :where(input,button):not(:wh
 html[data-production-system="v8"] .q-product-search input{padding-inline:11px!important;font-size:12px!important}
 html[data-production-system="v8"] .q-product-search button{display:grid!important;place-items:center!important;width:40px!important;min-width:40px!important;padding:0!important}
 html[data-production-system="v8"] .q-product-search button svg{width:17px!important;height:17px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;stroke-linecap:round!important}
-html[data-production-system="v8"] :where(.q-product-menu,.q-product-search button):not(:where(.q-dossier *)){border-radius:var(--q-radius-control)!important}
+html[data-production-system="v8"] :where(.q-product-menu,.q-product-search button):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)){border-radius:var(--q-radius-control)!important}
 
 /* Market display controls should read as a compact toolbar, not three tall
    settings cards. The selects retain the 44px touch target. */
@@ -129,17 +129,17 @@ html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-set
 }
 html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-setting>span{margin:0!important}
 html[data-v53-real-market="active"] body #app #main .q-v6-market-controls select{width:100%!important;height:44px!important;min-height:44px!important;margin:0!important}
-html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-query-boundary{
-  align-self:stretch!important;align-content:center!important;gap:3px!important;padding:6px 10px!important;border-left:1px solid var(--q-divider)!important;
+html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-query-boundary:not(:where(.q-v7-public-market *)){
+  align-self:stretch!important;align-content:center!important;gap:3px!important;padding:6px 10px!important;border:0!important;
 }
 html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-query-boundary>span{font-size:10px!important;line-height:1.25!important}
 html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-query-boundary>strong{font-size:11px!important;line-height:1.25!important}
 html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-query-boundary>small{font-size:9px!important;line-height:1.25!important}
 
 /* Controls are compact precision objects. Semantic status labels remain pills. */
-html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(.q-status):not(.q-truth-pill):not(:where(.q-about-v2-page *)):not(:where(.q-dossier *)),
-html[data-production-system="v8"] .q-feature-navigation>header button:not(:where(.q-about-v2-page *)):not(:where(.q-dossier *)),
-html[data-production-system="v8"] .q-feature-navigation__search input:not(:where(.q-about-v2-page *)):not(:where(.q-dossier *)){
+html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(.q-status):not(.q-truth-pill):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-about-v2-page *)),
+html[data-production-system="v8"] .q-feature-navigation>header button:not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-about-v2-page *)),
+html[data-production-system="v8"] .q-feature-navigation__search input:not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-about-v2-page *)){
   border-radius:var(--q-radius-control)!important;
 }
 html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:disabled):not(:where(.q-about-v2-page *)):not(:where(.q-dossier *)){
@@ -158,7 +158,7 @@ html[data-production-system="v8"] body #app #main :where(
   .q-saved-card,.q-chart-shell,.q-empty-state,.q-truth-callout,.q-result-priority,
   .q-indicator-mini-chart,.q-verify-hero,.q-v53-verify-workbench,
   [class$="-card"],[class*="-card "],[class$="-panel"],[class*="-panel "]
-):not(:where(.q-dossier *)){
+):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)){
   border:0!important;border-radius:var(--q-radius-surface)!important;background:var(--q-luxe-panel)!important;box-shadow:var(--q-elevation-rest)!important;
 }
 html[data-production-system="v8"] body #app #main :where(.q-it-hero,.q-verify-hero,.q-auth-hero,.q-asset-hero,.q-home-lead,.q-market-safety,.q-about-hero):not(:where(.q-about-v2-page *)){
@@ -224,8 +224,8 @@ html[data-appearance="light"] body #app .q-product-header{
   border-bottom:1px solid rgba(82,55,67,.14)!important;
   box-shadow:0 8px 28px rgba(63,34,46,.09)!important;
 }
-html[data-resolved-appearance="light"] :where(.q-panel,.q-mi-intelligence-module,.q-mn-panel,.q-category-card,.q-venue-card),
-html[data-appearance="light"] :where(.q-panel,.q-mi-intelligence-module,.q-mn-panel,.q-category-card,.q-venue-card){
+html[data-resolved-appearance="light"] :where(.q-panel,.q-mi-intelligence-module,.q-mn-panel,.q-category-card,.q-venue-card):not(:where(.q-v7-public-market *)),
+html[data-appearance="light"] :where(.q-panel,.q-mi-intelligence-module,.q-mn-panel,.q-category-card,.q-venue-card):not(:where(.q-v7-public-market *)){
   background:#fff!important;
   border-color:rgba(82,55,67,.15)!important;
   box-shadow:0 8px 24px rgba(63,34,46,.055)!important;
@@ -280,7 +280,7 @@ html[data-product-experience="ready"] #main>section{animation:q-product-enter 32
 
 @media(max-width:720px){
   html[data-v53-real-market="active"] body #app #main .q-v6-market-controls{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-query-boundary{grid-column:1/-1!important;border-left:0!important;border-top:1px solid var(--q-divider)!important}
+  html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-query-boundary:not(:where(.q-v7-public-market *)){grid-column:1/-1!important;border:0!important;border:0!important}
 }
 
 @media(max-width:520px){

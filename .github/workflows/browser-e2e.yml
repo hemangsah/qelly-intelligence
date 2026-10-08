@@ -170,6 +170,15 @@ jobs:
           name: qelly-shell-observer-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/shell-observer-e2e
           if-no-files-found: warn
+      - name: Verify Market borderless surfaces and control continuity
+        run: node scripts/qelly-market-boxless-e2e.mjs
+      - name: Upload focused Market borderless evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-market-boxless-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/market-boxless-e2e
+          if-no-files-found: warn
       - name: Verify header pointer travel, keyboard, touch and search geometry
         run: node scripts/qelly-header-pointer-e2e.mjs
       - name: Verify exact deployed header with actual governed responses
