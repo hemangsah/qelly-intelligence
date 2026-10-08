@@ -137,7 +137,7 @@ try{
           const style=e=>{const s=getComputedStyle(e);return {borders:[s.borderTopWidth,s.borderRightWidth,s.borderBottomWidth,s.borderLeftWidth],fontSize:Number.parseFloat(s.fontSize),shadow:s.boxShadow};};
           return {message:style(node.querySelector('.q-ai-message--assistant')),copy:style(node.querySelector('.q-ai-message-copy')),composer:style(node.querySelector('textarea')),header:style(node.querySelector('.q-ai-header')),controls:[...node.querySelectorAll('.q-ai-message-tools button')].map(e=>({height:e.getBoundingClientRect().height,...style(e)}))};
         });
-        for(const item of [presentation.message,presentation.header,...presentation.controls])assert.deepEqual(item.borders,['0px','0px','0px','0px']);
+        for(const item of [presentation.message,presentation.header,presentation.composer,...presentation.controls])assert.deepEqual(item.borders,['0px','0px','0px','0px']);
         assert.equal(presentation.message.shadow,'none');assert.ok(presentation.copy.fontSize>=16);assert.ok(presentation.composer.fontSize>=16);for(const control of presentation.controls)assert.ok(control.height>=44);
 
         for(const control of containment.controls){assert.ok(control.left>=containment.left-1&&control.right<=containment.right+1,control.label+' stays within its message');assert.ok(control.scrollWidth<=control.clientWidth+1,control.label+' text is not clipped');}
