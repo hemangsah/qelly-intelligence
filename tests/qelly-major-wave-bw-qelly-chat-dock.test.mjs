@@ -22,7 +22,13 @@ test('Wave CM supersedes the Wave BW Decision-only dock with one global owner',a
   assert.match(css,/right:0;/);
   assert.match(css,/margin-inline:auto/);
   assert.match(css,/bottom:max\(16px,env\(safe-area-inset-bottom/);
-  assert.match(css,/@keyframes q-ai-dock-border/);
+  assert.doesNotMatch(css,/@keyframes q-ai-dock-border/);
+  assert.match(css,/\.q-ai-assistant\.is-thinking[^{}]*\{animation:q-ai-pulse/);
+  for(const [,selectors,body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)){
+    if(!selectors.includes('.q-ai-launcher'))continue;
+    const animation=body.match(/(?:^|;)\s*animation:([^;}]+)/);
+    if(animation)assert.match(animation[1],/^none(?:!important)?$/,'Dock can disable animation for reduced motion but must never animate while idle');
+  }
   assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
 });
 
