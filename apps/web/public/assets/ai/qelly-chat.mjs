@@ -222,6 +222,11 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
   document.addEventListener('focusin',scheduleClearance);
   const clearanceObserver=new MutationObserver(scheduleClearance);
   clearanceObserver.observe(document.getElementById('main')||document.body,{childList:true,subtree:true});
+  const readinessObserver=new MutationObserver(scheduleClearance);
+  readinessObserver.observe(document.documentElement,{attributes:true,attributeFilter:['data-app-ready','data-brand-ready','data-resolved-appearance']});
+  const layoutObserver=new ResizeObserver(scheduleClearance);
+  layoutObserver.observe(document.getElementById('main')||document.body);
+  layoutObserver.observe(launcher);
   scheduleClearance();
   renderDockContext();
   const form=root.querySelector('[data-q-ai-form]'),input=form.querySelector('textarea'),send=root.querySelector('[data-q-ai-send]'),stop=root.querySelector('[data-q-ai-stop]');

@@ -17,7 +17,9 @@ try{
   await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true'&&document.documentElement.dataset.brandReady==='true');await page.locator('.qelly-opening').waitFor({state:'hidden'});
   const plot=page.locator('#asset-chart [data-qelly-chat-plot]');await plot.waitFor({state:'visible'});
   assert.ok(await plot.locator('svg polyline').count()>0,'Existing governed candle series must be plotted');
-  await plot.evaluate(node=>node.scrollIntoView({block:'end'}));
+  const initialPlot=await plot.boundingBox();assert.ok(initialPlot);
+  await page.setViewportSize({width,height:Math.max(480,Math.min(900,Math.ceil(initialPlot.y+initialPlot.height)+16))});
+  await plot.evaluate(node=>node.scrollIntoView({block:'end',behavior:'instant'}));
   await page.waitForFunction(()=>document.querySelector('.q-ai-root')?.dataset.clearance==='chart');
   const blocked=await page.locator('[data-q-ai-launcher]').evaluate(node=>{const style=getComputedStyle(node);return {opacity:style.opacity,pointerEvents:style.pointerEvents,tabIndex:node.tabIndex,ariaHidden:node.getAttribute('aria-hidden')};});
   assert.equal(blocked.opacity,'0');assert.equal(blocked.pointerEvents,'none');assert.equal(blocked.tabIndex,-1);assert.equal(blocked.ariaHidden,'true');
@@ -31,8 +33,8 @@ try{
   assert.equal(await page.locator('#asset-chart').getByText('Chart shell · adapter contract',{exact:true}).count(),0);
   await toggle.click();assert.equal(await toggle.getAttribute('aria-expanded'),'false');
   assert.equal(nonReadRequests,0);await page.screenshot({path:`${out}/asset-${appearance}-${width}.png`});
-  results.push({appearance,width,blocked,plotReceivesPointer:hit.insidePlot,keyboardOpen:true,keyboardClose:true,clearanceRestored:true,tableToggle:true,engineeringLabelRemoved:true,nonReadRequests});await context.close();
+  results.push({appearance,width,viewport:page.viewportSize(),blocked,plotReceivesPointer:hit.insidePlot,keyboardOpen:true,keyboardClose:true,clearanceRestored:true,tableToggle:true,engineeringLabelRemoved:true,nonReadRequests});await context.close();
  }
  await writeFile(out+'/report.json',JSON.stringify({status:'passed',sourceSha:process.env.QELLY_SCREEN_EVIDENCE_SHA,results,boundary:'Actual Asset Dossier component and existing governed fixture responses. Plot clearance, keyboard and data-table interaction only; full Asset Dossier visual redesign and actual production acceptance remain pending.'},null,2));
-}catch(error){if(active&&!active.isClosed())await active.screenshot({path:out+'/failure.png'}).catch(()=>{});await writeFile(out+'/report.json',JSON.stringify({status:'failed',sourceSha:process.env.QELLY_SCREEN_EVIDENCE_SHA,error:error.stack,results},null,2));throw error;}
+}catch(error){let geometry=null;if(active&&!active.isClosed()){geometry=await active.evaluate(()=>({width:innerWidth,height:innerHeight,clearance:document.querySelector('.q-ai-root')?.dataset.clearance,plots:[...document.querySelectorAll('[data-qelly-chat-plot]')].map(n=>{const b=n.getBoundingClientRect(),s=getComputedStyle(n);return {left:b.left,right:b.right,top:b.top,bottom:b.bottom,visibility:s.visibility,display:s.display};})})).catch(()=>null);await active.screenshot({path:out+'/failure.png'}).catch(()=>{});}await writeFile(out+'/report.json',JSON.stringify({status:'failed',sourceSha:process.env.QELLY_SCREEN_EVIDENCE_SHA,error:error.stack,geometry,results},null,2));throw error;}
 finally{await browser.close();await new Promise(resolve=>server.server.close(resolve));await new Promise(resolve=>server.evidenceUpstream.server.close(resolve));}
