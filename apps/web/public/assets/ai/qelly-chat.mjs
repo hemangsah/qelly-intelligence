@@ -297,7 +297,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
     thread.innerHTML=messages.length?messages.map(messageMarkup).join(''):`<section class="q-ai-welcome"><span>Qelly flagship intelligence workspace</span><h2>Ask. Ground.<br>Verify. Decide.</h2><p>Qelly can research connected finance observations, call bounded read-only QELLY tools, run registered calculators and hand sourced evidence into Decision Intelligence.</p><div><b>GROUNDED</b> Current claims must map to connected evidence or tool receipts</div><div><b>GOVERNED</b> Missing, delayed and display-only coverage remains explicit</div><div><b>NON-EXECUTING</b> Research support never becomes a trading bot</div></section>`;
     suggestionsNode.hidden=messages.length>0;
     bindActions();
-    requestAnimationFrame(()=>{thread.scrollTop=thread.scrollHeight;});
+    requestAnimationFrame(()=>{thread.scrollTop=messages.length?thread.scrollHeight:0;});
   };
   function renderSuggestions(){
     suggestionsNode.innerHTML=suggestionsFor(mode).map(item=>`<button type="button" data-q-ai-suggestion="${esc(item)}">${esc(item)}</button>`).join('');
