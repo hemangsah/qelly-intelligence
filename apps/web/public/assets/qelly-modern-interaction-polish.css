@@ -150,15 +150,15 @@ html[data-production-system="v8"] body #app #main :where(h1,h2,h3){text-wrap:bal
 html[data-production-system="v8"] body #app #main :where(p,li,dd){text-wrap:pretty}
 
 html[data-production-system="v8"] body #app #main :where(
-  .q-panel,.q-mn-card,.q-mn-panel,.q-v7-chart-panel,.q-v7-reference-panel:not(:where(.q-dossier *)),
-  .q-v7-provider-card,.q-mi-kpi,.q-mi-regime,.q-kpi,.q-metric-card:not(:where(.q-dossier *)),
-  .q-auth-card,.q-auth-hero,.q-access-gate,.q-it-hero,.q-it-guide,.q-it-panel:not(:where(.q-dossier *)),
-  .q-it-provider,.q-category-card,.q-venue-card,.q-dex-card,.q-provider-card:not(:where(.q-dossier *)),
-  .q-research-card,.q-notification-card,.q-article-shell,.q-asset-hero:not(:where(.q-dossier *)),
-  .q-persona-card,.q-market-pulse-card,.q-feature-card,.q-calculator-card:not(:where(.q-dossier *)),
-  .q-saved-card,.q-chart-shell,.q-chart-stage,.q-empty-state,.q-truth-callout:not(:where(.q-dossier *)),
-  .q-result-priority,.q-indicator-mini-chart,.q-verify-hero,.q-v53-verify-workbench:not(:where(.q-dossier *)),
-  [class$="-card"],[class*="-card "],[class$="-panel"],[class*="-panel "]:not(:where(.q-dossier *)),
+  .q-panel,.q-mn-card,.q-mn-panel,.q-v7-chart-panel,.q-v7-reference-panel,
+  .q-v7-provider-card,.q-mi-kpi,.q-mi-regime,.q-kpi,.q-metric-card,
+  .q-auth-card,.q-auth-hero,.q-access-gate,.q-it-hero,.q-it-guide,.q-it-panel,
+  .q-it-provider,.q-category-card,.q-venue-card,.q-dex-card,.q-provider-card,
+  .q-research-card,.q-notification-card,.q-article-shell,.q-asset-hero,
+  .q-persona-card,.q-market-pulse-card,.q-feature-card,.q-calculator-card,
+  .q-saved-card,.q-chart-shell,.q-chart-stage,.q-empty-state,.q-truth-callout,
+  .q-result-priority,.q-indicator-mini-chart,.q-verify-hero,.q-v53-verify-workbench,
+  [class$="-card"],[class*="-card "],[class$="-panel"],[class*="-panel "],
   [class$="-hero"],[class*="-hero "],[class$="-kpi"],[class*="-kpi "]
 ):not(:where(.q-dx-page *)):not(:where(.q-dossier *)){
   border-radius:var(--q-modern-radius-lg)!important;
@@ -194,7 +194,7 @@ html[data-production-system="v8"] body #app #main :where(
   background:linear-gradient(180deg,color-mix(in srgb,var(--q-surfacealt) 54%,transparent),transparent)!important;
 }
 html[data-production-system="v8"] body #app #main :where(
-  .q-chart-toolbar,.q-mn-chart-controls,.q-filter-bar,.q-toolbar,.q-page-actions:not(:where(.q-dossier *)),
+  .q-chart-toolbar,.q-mn-chart-controls,.q-filter-bar,.q-toolbar,.q-page-actions,
   .q-calculator-actions,.q-result-actions,.q-actions,.q-grid-footer
 ):not(:where(.q-dossier *)){
   gap:8px!important;
@@ -203,12 +203,12 @@ html[data-production-system="v8"] body #app #main :where(
   backdrop-filter:blur(16px) saturate(1.12);
 }
 html[data-production-system="v8"] body #app #main :where(
-  .q-chart-toolbar button,.q-mn-chart-controls button,.q-row-actions button:not(:where(.q-dossier *)),
+  .q-chart-toolbar button,.q-mn-chart-controls button,.q-row-actions button,
   .q-mi-chart-controls button,.q-filter-bar button,.q-toolbar button
 ):not(:where(.q-dossier *)){border-radius:999px!important;min-height:38px!important;padding-inline:13px!important}
 
 html[data-production-system="v8"] body #app #main :where(
-  .q-grid-scroll,.q-table-wrap,.q-mn-table-wrap,.q-chart-table,.q-audit-table:not(:where(.q-dossier *)),
+  .q-grid-scroll,.q-table-wrap,.q-mn-table-wrap,.q-chart-table,.q-audit-table,
   .q-mi-table-wrap,[class$="-table-wrap"],[class*="-table-wrap "]
 ):not(:where(.q-dossier *)){
   border:1px solid var(--q-modern-hairline)!important;
