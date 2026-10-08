@@ -270,7 +270,7 @@ html[data-production-system="v8"] body #app #main .q-v7-side-stack{width:auto!im
 html[data-production-system="v8"] body #app #main :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea):not(:where(.q-cv-page *)){
   border:0!important;border-radius:13px!important;background:var(--q-surfacealt)!important;color:var(--q-text)!important;box-shadow:var(--q-luxe-inset)!important;
 }
-html[data-production-system="v8"] body #app #main :where(input,select,textarea):focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--q-accent) 26%,transparent),var(--q-luxe-inset)!important}
+html[data-production-system="v8"] body #app #main :where(input,select,textarea):focus:not(:where(.q-cv-page *)){box-shadow:0 0 0 3px color-mix(in srgb,var(--q-accent) 26%,transparent),var(--q-luxe-inset)!important}
 
 html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:where(.q-dossier *)):not(:where(.q-cv-page *)){border:0!important;border-radius:999px!important}
 html[data-production-system="v8"] body #app #main .q-button--secondary:not(:where(.q-cv-page *)){background:var(--q-surfacealt)!important;box-shadow:var(--q-luxe-inset)!important}

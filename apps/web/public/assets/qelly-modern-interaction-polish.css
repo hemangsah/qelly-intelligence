@@ -81,7 +81,7 @@ html[data-production-system="v8"] :where(input:not([type="checkbox"]):not([type=
   transition:border-color var(--q-modern-fast) ease,box-shadow var(--q-modern-fast) ease,background var(--q-modern-fast) ease!important;
 }
 html[data-production-system="v8"] :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea):hover{border-color:color-mix(in srgb,var(--q-accent) 46%,var(--q-border))!important}
-html[data-production-system="v8"] :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea):focus{border-color:var(--q-accent)!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--q-accent) 18%,transparent)!important;outline:0!important}
+html[data-production-system="v8"] :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea):focus:not(:where(.q-cv-page *)){border-color:var(--q-accent)!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--q-accent) 18%,transparent)!important;outline:0!important}
 
 html[data-production-system="v8"] :where(button:not(.q-product-brand__mark):not(.q-ai-launcher),a.q-button,[role="button"],[role="tab"]):not(:where(.q-dossier *)):not(:where(.q-cv-page *)){
   --q-hover-lift:0px;
