@@ -10,14 +10,15 @@ export function referenceCatalog(network={},fx={},now=Date.now()){
     const symbol=String(row.symbol||'').toUpperCase(),at=Date.parse(row.updatedAt);
     if(symbols.get(symbol)!==1)continue;
     const fresh=Number.isFinite(at)&&now-at>=-60000&&now-at<=30*60000;
-    entries.push({id:'crypto:'+String(row.id),code:symbol,name:String(row.name||symbol),kind:'crypto',usd:usable(source.truthState)&&fresh&&positive(row.priceUsd)?row.priceUsd:null,observed:row.updatedAt||null,provider:'Alternative.me',reason:!usable(source.truthState)?'Source unavailable':!fresh?'Price timestamp is missing, stale or in the future':!positive(row.priceUsd)?'Positive USD price unavailable':null});
+    entries.push({id:'crypto:'+String(row.id),code:symbol,name:String(row.name||symbol),kind:'crypto',usd:usable(source.truthState)&&fresh&&positive(row.priceUsd)?row.priceUsd:null,observed:row.updatedAt||null,provider:'Alternative.me',truthState:source.truthState||'unavailable',reason:!usable(source.truthState)?'Source unavailable':!fresh?'Price timestamp is missing, stale or in the future':!positive(row.priceUsd)?'Positive USD price unavailable':null});
   }
   const date=fx?.observation?.observedDate,at=typeof date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(date)?Date.parse(date+'T00:00:00Z'):NaN;
   const validDate=Number.isFinite(at)&&new Date(at).toISOString().slice(0,10)===date&&now-at>=0&&now-at<=7*86400000;
   const currencies=Array.isArray(fx?.currencies)?fx.currencies:[],usd=currencies.find(x=>x.code==='USD')?.ratePerEur;
   const fxReady=fx.state==='reference-workbench-available'&&usable(fx?.observation?.truthState)&&validDate&&positive(usd);
+  const fxReason=fx.state!=='reference-workbench-available'?'ECB observation unavailable':!usable(fx?.observation?.truthState)?'ECB source status does not qualify: '+String(fx?.observation?.truthState||'unavailable'):!validDate?'ECB reference date is invalid, in the future or older than seven days':!positive(usd)?'ECB USD reference denominator unavailable':null;
   const codes=new Set();
-  for(const row of currencies){if(!/^[A-Z]{3}$/.test(row.code)||codes.has(row.code))continue;codes.add(row.code);entries.push({id:'fiat:'+row.code,code:row.code,name:String(row.label||row.code),kind:'fiat',usd:fxReady&&positive(row.ratePerEur)?usd/row.ratePerEur:null,observed:date||null,provider:'European Central Bank',reason:fxReady?'Positive reference rate unavailable':'ECB reference date, truth state or USD denominator unavailable'});}
+  for(const row of currencies){if(!/^[A-Z]{3}$/.test(row.code)||codes.has(row.code))continue;codes.add(row.code);entries.push({id:'fiat:'+row.code,code:row.code,name:String(row.label||row.code),kind:'fiat',usd:fxReady&&positive(row.ratePerEur)?usd/row.ratePerEur:null,observed:date||null,provider:'European Central Bank',truthState:fx?.observation?.truthState||'unavailable',reason:fxReady&&positive(row.ratePerEur)?null:fxReason||'Positive reference rate unavailable'});}
   if(!entries.some(x=>x.kind==='crypto'&&x.code==='ONDO'))entries.push({id:'unsupported:ONDO',code:'ONDO',name:'Ondo — source coverage unavailable',kind:'crypto',usd:null,observed:null,provider:'No governed observation',reason:'ONDO is not supplied by the current governed feed. No price substituted.'});
   return entries;
 }
