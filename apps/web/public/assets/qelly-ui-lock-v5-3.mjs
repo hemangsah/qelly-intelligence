@@ -166,7 +166,7 @@ function annotateNavLinks(scope=document){
 function annotateEvidence(scope=document){
   scope.querySelectorAll?.('.q-panel,.q-card,.q-research-card,.q-research-evidence-card,.q-research-inspector-block').forEach((panel)=>{
     const hasEvidence=Boolean(panel.querySelector('.q-source-line,[data-evidence],[data-source],[data-provenance],.q-evidence,.q-methodology'))||panel.matches('[data-evidence],[data-source],[data-provenance]');
-    setPresentationAttribute(panel,'data-v53-evidence-adjacent',hasEvidence?'true':'false');
+    const adjacent=hasEvidence?'true':'false';if(panel.dataset.v53EvidenceAdjacent!==adjacent)panel.dataset.v53EvidenceAdjacent=adjacent;
   });
 }
 
