@@ -237,7 +237,7 @@ html[data-production-system="v8"] body #app #main :where(
   padding-inline:9px;
   backdrop-filter:blur(12px);
 }
-html[data-production-system="v8"] body #app #main :where(details):not(:where(.q-dx-page *)):not(:where(.q-dossier *)){
+html[data-production-system="v8"] body #app #main :where(details):not(:where(.q-dx-page *)):not(:where(.q-dossier *)):not(:where(.q-dpg-page *)){
   border-radius:var(--q-modern-radius-md)!important;
   overflow:hidden;
   transition:border-color var(--q-modern-fast) ease,box-shadow var(--q-modern-fast) ease!important;
