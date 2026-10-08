@@ -67,7 +67,7 @@ html[data-production-system="v8"] .q-product-search{
   background:color-mix(in srgb,var(--q-surfacealt) 72%,transparent)!important;
   box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 7%,transparent)!important;
 }
-html[data-production-system="v8"] .q-product-search input:not(:where(.q-feature-index,.q-feature-index *)){
+html[data-production-system="v8"] .q-product-search input{
   min-height:42px!important;
   border:0!important;
   border-radius:999px!important;
@@ -93,21 +93,21 @@ html[data-production-system="v8"] :where(button:not(.q-product-brand__mark):not(
   transform:translate3d(var(--magnet-x,0px),calc(var(--magnet-y,0px) - var(--q-hover-lift)),0) scale(var(--q-press-scale))!important;
   transition:transform var(--q-modern-fast) var(--q-modern-ease),box-shadow var(--q-modern-fast) ease,border-color var(--q-modern-fast) ease,background var(--q-modern-fast) ease,color var(--q-modern-fast) ease!important;
 }
-html[data-production-system="v8"] body #app .q-product-header .q-product-search button:not(:where(.q-feature-index,.q-feature-index *)),
-html[data-production-system="v8"] body #app #main .q-page-actions .q-button:not(:where(.q-feature-index,.q-feature-index *)){border-radius:999px!important}
+html[data-production-system="v8"] body #app .q-product-header .q-product-search button,
+html[data-production-system="v8"] body #app #main .q-page-actions .q-button{border-radius:999px!important}
 html[data-production-system="v8"] :where(button:not(:disabled):not(.q-ai-launcher),a.q-button,[role="button"],[role="tab"]):hover:not(:where(.q-ai-root *)):not(:where(.q-dossier *)):not(:where(.q-feature-index,.q-feature-index *)){
   --q-hover-lift:2px;
   box-shadow:0 12px 28px color-mix(in srgb,#000 24%,transparent),0 0 0 1px color-mix(in srgb,var(--q-accent) 22%,transparent)!important;
 }
 html[data-production-system="v8"] :where(button:not(:disabled):not(.q-ai-launcher),a.q-button,[role="button"],[role="tab"]):active:not(:where(.q-dossier *)){--q-hover-lift:0px;--q-press-scale:.975;transition-duration:80ms!important}
-html[data-production-system="v8"] :where(.q-button--primary,.q-product-search button,[aria-selected="true"]):not(:where(.q-ai-root *)):not(:where(.q-dossier *)):not(:where(.q-feature-index,.q-feature-index *)){background-image:linear-gradient(135deg,color-mix(in srgb,var(--q-accent) 88%,#fff),var(--q-accent-strong,var(--q-accent)))!important}
+html[data-production-system="v8"] :where(.q-button--primary,.q-product-search button,[aria-selected="true"]):not(:where(.q-ai-root *)):not(:where(.q-dossier *)){background-image:linear-gradient(135deg,color-mix(in srgb,var(--q-accent) 88%,#fff),var(--q-accent-strong,var(--q-accent)))!important}
 
 html[data-production-system="v8"] #main :where(
   .q-panel,.q-auth-card,.q-auth-hero,.q-access-gate,.q-it-hero,.q-it-guide,.q-it-panel,
   .q-it-provider,.q-it-news-grid article,.q-category-card,.q-venue-card,.q-dex-card,
   .q-provider-card,.q-research-card,.q-notification-card,.q-article-shell,.q-asset-hero,
   .q-persona-card,.q-market-pulse-card,.q-feature-card,.q-calculator-card,.q-saved-card
-):not(:where(.q-feature-index,.q-feature-index *)){
+){
   border-radius:var(--q-modern-radius-lg)!important;
   transition:transform var(--q-modern-standard) var(--q-modern-ease),box-shadow var(--q-modern-standard) var(--q-modern-ease),border-color var(--q-modern-standard) ease,background var(--q-modern-standard) ease!important;
 }
@@ -115,22 +115,22 @@ html[data-production-system="v8"] #main :where(
   .q-panel,.q-it-provider,.q-it-news-grid article,.q-category-card,.q-venue-card,.q-dex-card,
   .q-provider-card,.q-research-card,.q-notification-card,.q-persona-card,.q-market-pulse-card,
   .q-feature-card,.q-calculator-card,.q-saved-card
-):not(.q-motion-item):hover:not(:where(.q-feature-index,.q-feature-index *)){
+):not(.q-motion-item):hover{
   transform:translateY(-3px);
   border-color:color-mix(in srgb,var(--q-accent) 38%,var(--q-border))!important;
   box-shadow:var(--q-modern-shadow-hover)!important;
 }
-html[data-production-system="v8"] #main :where(.q-panel,.q-it-guide,.q-it-panel,.q-auth-card,.q-access-gate):not(:where(.q-feature-index,.q-feature-index *)){box-shadow:var(--q-modern-shadow)!important}
-html[data-production-system="v8"] #main .q-it-hero:not(:where(.q-feature-index,.q-feature-index *)){border-radius:var(--q-modern-radius-xl)!important;box-shadow:0 34px 90px color-mix(in srgb,#000 38%,transparent),inset 0 1px 0 rgba(255,255,255,.08)!important}
-html[data-production-system="v8"] #main .q-it-tabs:not(:where(.q-feature-index,.q-feature-index *)){border-radius:999px!important;padding:6px!important;box-shadow:0 14px 36px color-mix(in srgb,#000 24%,transparent)!important}
-html[data-production-system="v8"] #main .q-it-provider__mark:not(:where(.q-feature-index,.q-feature-index *)){border-radius:15px!important;transition:transform var(--q-modern-standard) var(--q-modern-ease),box-shadow var(--q-modern-standard) ease!important}
+html[data-production-system="v8"] #main :where(.q-panel,.q-it-guide,.q-it-panel,.q-auth-card,.q-access-gate){box-shadow:var(--q-modern-shadow)!important}
+html[data-production-system="v8"] #main .q-it-hero{border-radius:var(--q-modern-radius-xl)!important;box-shadow:0 34px 90px color-mix(in srgb,#000 38%,transparent),inset 0 1px 0 rgba(255,255,255,.08)!important}
+html[data-production-system="v8"] #main .q-it-tabs{border-radius:999px!important;padding:6px!important;box-shadow:0 14px 36px color-mix(in srgb,#000 24%,transparent)!important}
+html[data-production-system="v8"] #main .q-it-provider__mark{border-radius:15px!important;transition:transform var(--q-modern-standard) var(--q-modern-ease),box-shadow var(--q-modern-standard) ease!important}
 html[data-production-system="v8"] #main .q-it-provider:hover .q-it-provider__mark{transform:rotate(-4deg) scale(1.08);box-shadow:0 12px 28px color-mix(in srgb,var(--provider-accent,var(--q-accent)) 30%,transparent)}
-html[data-production-system="v8"] #main .q-it-external:not(:where(.q-feature-index,.q-feature-index *)){border-radius:999px!important;transition:transform var(--q-modern-fast) var(--q-modern-ease),box-shadow var(--q-modern-fast) ease,border-color var(--q-modern-fast) ease,background var(--q-modern-fast) ease!important}
+html[data-production-system="v8"] #main .q-it-external{border-radius:999px!important;transition:transform var(--q-modern-fast) var(--q-modern-ease),box-shadow var(--q-modern-fast) ease,border-color var(--q-modern-fast) ease,background var(--q-modern-fast) ease!important}
 html[data-production-system="v8"] #main .q-it-external:hover{transform:translateX(4px);box-shadow:0 10px 26px color-mix(in srgb,#000 22%,transparent)}
 
 html[data-production-system="v8"] .q-feature-navigation{border-radius:0 var(--q-modern-radius-lg) var(--q-modern-radius-lg) 0!important;box-shadow:24px 0 70px color-mix(in srgb,#000 34%,transparent)!important}
 html[data-production-system="v8"] .q-feature-navigation>header{border-radius:0 var(--q-modern-radius-lg) 0 0!important}
-html[data-production-system="v8"] .q-feature-navigation__search input:not(:where(.q-feature-index,.q-feature-index *)){border-radius:999px!important}
+html[data-production-system="v8"] .q-feature-navigation__search input{border-radius:999px!important}
 html[data-production-system="v8"] .q-feature-navigation__universe,
 html[data-production-system="v8"] .q-feature-navigation__group a{border-radius:var(--q-modern-radius-sm)!important;transition:transform var(--q-modern-fast) var(--q-modern-ease),background var(--q-modern-fast) ease,border-color var(--q-modern-fast) ease,box-shadow var(--q-modern-fast) ease!important}
 html[data-production-system="v8"] .q-feature-navigation__universe:hover,
@@ -160,16 +160,16 @@ html[data-production-system="v8"] body #app #main :where(
   .q-result-priority,.q-indicator-mini-chart,.q-verify-hero,.q-v53-verify-workbench,
   [class$="-card"],[class*="-card "],[class$="-panel"],[class*="-panel "],
   [class$="-hero"],[class*="-hero "],[class$="-kpi"],[class*="-kpi "]
-):not(:where(.q-dx-page *)):not(:where(.q-dossier *)):not(:where(.q-feature-index,.q-feature-index *)){
+):not(:where(.q-dx-page *)):not(:where(.q-dossier *)){
   border-radius:var(--q-modern-radius-lg)!important;
   border-color:var(--q-modern-hairline)!important;
   box-shadow:0 14px 42px color-mix(in srgb,#000 17%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 5%,transparent)!important;
   transition:transform var(--q-modern-standard) var(--q-modern-ease),box-shadow var(--q-modern-standard) var(--q-modern-ease),border-color var(--q-modern-fast) ease,background-color var(--q-modern-fast) ease!important;
 }
-html[data-production-system="v8"] body #app #main :where(.q-it-hero,.q-verify-hero,.q-auth-hero,.q-asset-hero,.q-home-hero):not(:where(.q-feature-index,.q-feature-index *)){
+html[data-production-system="v8"] body #app #main :where(.q-it-hero,.q-verify-hero,.q-auth-hero,.q-asset-hero,.q-home-hero){
   border-radius:var(--q-modern-radius-xl)!important;
 }
-html[data-production-system="v8"] body #app #main :where(.q-home-section,.q-about-section,.q-product-directory):not(:where(.q-feature-index,.q-feature-index *)){
+html[data-production-system="v8"] body #app #main :where(.q-home-section,.q-about-section,.q-product-directory){
   border-radius:var(--q-modern-radius-xl)!important;
 }
 
@@ -181,14 +181,14 @@ html[data-production-system="v8"] body #app #main :where(
   .q-v6-portfolio-row,.q-v6-portfolio-analytic,.q-verify-page article,
   .q-about-page article,.q-it-community-grid>form,.q-it-community-grid>aside,
   .q-it-note,.q-it-evidence-grid article,.q-json-evidence
-):not(:where(.q-feature-index,.q-feature-index *)){
+){
   border-radius:var(--q-modern-radius-md)!important;
   transition:transform var(--q-modern-fast) var(--q-modern-ease),box-shadow var(--q-modern-fast) ease,border-color var(--q-modern-fast) ease,background-color var(--q-modern-fast) ease!important;
 }
 
 html[data-production-system="v8"] body #app #main :where(
   .q-panel-head,.q-mn-panel-head,.q-chart-header,.q-card-header,.q-section-header
-):not(:where(.q-dossier *)):not(:where(.q-feature-index,.q-feature-index *)){
+):not(:where(.q-dossier *)){
   padding-block:clamp(14px,1.6vw,20px)!important;
   border-bottom-color:color-mix(in srgb,var(--q-border) 74%,transparent)!important;
   background:linear-gradient(180deg,color-mix(in srgb,var(--q-surfacealt) 54%,transparent),transparent)!important;
@@ -196,7 +196,7 @@ html[data-production-system="v8"] body #app #main :where(
 html[data-production-system="v8"] body #app #main :where(
   .q-chart-toolbar,.q-mn-chart-controls,.q-filter-bar,.q-toolbar,.q-page-actions,
   .q-calculator-actions,.q-result-actions,.q-actions,.q-grid-footer
-):not(:where(.q-dossier *)):not(:where(.q-feature-index,.q-feature-index *)){
+):not(:where(.q-dossier *)){
   gap:8px!important;
   border-radius:var(--q-modern-radius-md)!important;
   background:var(--q-modern-soft)!important;
@@ -205,12 +205,12 @@ html[data-production-system="v8"] body #app #main :where(
 html[data-production-system="v8"] body #app #main :where(
   .q-chart-toolbar button,.q-mn-chart-controls button,.q-row-actions button,
   .q-mi-chart-controls button,.q-filter-bar button,.q-toolbar button
-):not(:where(.q-dossier *)):not(:where(.q-feature-index,.q-feature-index *)){border-radius:999px!important;min-height:38px!important;padding-inline:13px!important}
+):not(:where(.q-dossier *)){border-radius:999px!important;min-height:38px!important;padding-inline:13px!important}
 
 html[data-production-system="v8"] body #app #main :where(
   .q-grid-scroll,.q-table-wrap,.q-mn-table-wrap,.q-chart-table,.q-audit-table,
   .q-mi-table-wrap,[class$="-table-wrap"],[class*="-table-wrap "]
-):not(:where(.q-dossier *)):not(:where(.q-feature-index,.q-feature-index *)){
+):not(:where(.q-dossier *)){
   border:1px solid var(--q-modern-hairline)!important;
   border-radius:var(--q-modern-radius-md)!important;
   overflow:auto!important;
@@ -229,7 +229,7 @@ html[data-production-system="v8"] body #app #main :where(tbody tr:hover td):not(
 html[data-production-system="v8"] body #app #main :where(
   .q-status,.q-badge,.q-chip,.q-tag,.q-capability,.q-mi-pill,
   [class$="-badge"],[class*="-badge "],[class$="-chip"],[class*="-chip "]
-):not(.q-dossier *):not(:where(.q-feature-index,.q-feature-index *)){
+):not(.q-dossier *){
   border-radius:999px!important;
   min-height:26px;
   display:inline-flex;
@@ -244,15 +244,15 @@ html[data-production-system="v8"] body #app #main :where(details):not(:where(.q-
 }
 html[data-production-system="v8"] body #app #main :where(details[open]):not(:where(.q-dx-page *)):not(:where(.q-dossier *)):not(:where(.q-feature-index,.q-feature-index *)){border-color:color-mix(in srgb,var(--q-accent) 38%,var(--q-border))!important;box-shadow:0 14px 38px color-mix(in srgb,#000 16%,transparent)!important}
 html[data-production-system="v8"] body #app #main :where(summary):not(:where(.q-dossier *)):not(:where(.q-feature-index,.q-feature-index *)){cursor:pointer;border-radius:var(--q-modern-radius-sm)!important}
-html[data-production-system="v8"] body #app #main :where(pre,.q-json-evidence):not(:where(.q-feature-index,.q-feature-index *)){border-radius:var(--q-modern-radius-md)!important;scrollbar-gutter:stable}
-html[data-production-system="v8"] body #app #main :where(.q-empty-state):not(:where(.q-feature-index,.q-feature-index *)){
+html[data-production-system="v8"] body #app #main :where(pre,.q-json-evidence){border-radius:var(--q-modern-radius-md)!important;scrollbar-gutter:stable}
+html[data-production-system="v8"] body #app #main :where(.q-empty-state){
   border-style:solid!important;
   background:radial-gradient(circle at 50% 8%,color-mix(in srgb,var(--q-accent) 13%,transparent),transparent 44%),var(--q-modern-glass)!important;
 }
 html[data-production-system="v8"] body #app #main :where(.q-empty-state span,.q-access-gate__icon){filter:drop-shadow(0 12px 24px color-mix(in srgb,var(--q-accent) 25%,transparent))}
 
 html[data-production-system="v8"] body #app #main :where(.q-mn-status-grid,.q-kpi-grid,.q-metric-grid,.q-provider-grid,.q-contract-grid,.q-saved-grid){gap:clamp(10px,1.4vw,18px)!important}
-html[data-production-system="v8"] body #app #main :where(.q-mn-status,.q-mi-kpi,.q-kpi,.q-metric-card):not(:where(.q-feature-index,.q-feature-index *)){
+html[data-production-system="v8"] body #app #main :where(.q-mn-status,.q-mi-kpi,.q-kpi,.q-metric-card){
   position:relative;
   overflow:hidden;
   background:linear-gradient(145deg,color-mix(in srgb,var(--q-accent) 5%,var(--q-surface)),var(--q-surfacealt))!important;
@@ -273,15 +273,15 @@ html[data-production-system="v8"] body #app #main :where(.q-mn-status,.q-mi-kpi,
 html[data-production-system="v8"] body #app :where(
   .q-v7-boundary-ribbon,.q-v7-chart-stage,.q-v6-market-tradingview,
   .qelly-tradingview-fallback,.q-v6-market-boundary
-):not(:where(.q-feature-index,.q-feature-index *)){
+){
   border-radius:var(--q-modern-radius-lg)!important;
   overflow:hidden;
 }
-html[data-production-system="v8"] body #app :where(.q-setting,.q-query-boundary):not(:where(.q-feature-index,.q-feature-index *)){
+html[data-production-system="v8"] body #app :where(.q-setting,.q-query-boundary){
   border-radius:var(--q-modern-radius-md)!important;
   transition:transform var(--q-modern-fast) var(--q-modern-ease),border-color var(--q-modern-fast) ease,box-shadow var(--q-modern-fast) ease!important;
 }
-html[data-production-system="v8"] body #app :where(.q-v7-evidence-strip,.q-chart-attribution):not(:where(.q-feature-index,.q-feature-index *)){
+html[data-production-system="v8"] body #app :where(.q-v7-evidence-strip,.q-chart-attribution){
   border-radius:var(--q-modern-radius-sm)!important;
   background:color-mix(in srgb,var(--q-surfacealt) 86%,transparent)!important;
 }
@@ -290,7 +290,7 @@ html[data-production-system="v8"] body #app .q-product-account{
   transition:transform var(--q-modern-fast) var(--q-modern-ease),box-shadow var(--q-modern-fast) ease,background-color var(--q-modern-fast) ease!important;
 }
 @media(hover:hover) and (pointer:fine){
-  html[data-production-system="v8"] body #app :where(.q-setting,.q-query-boundary):hover:not(:where(.q-feature-index,.q-feature-index *)){
+  html[data-production-system="v8"] body #app :where(.q-setting,.q-query-boundary):hover{
     transform:translateY(-2px)!important;
     border-color:color-mix(in srgb,var(--q-accent) 40%,var(--q-border))!important;
     box-shadow:0 14px 32px color-mix(in srgb,#000 18%,transparent)!important;
@@ -316,12 +316,12 @@ html[data-production-system="v8"] :where(.q-product-nav,.q-context-shelf,.q-it-t
     .q-provider-card,.q-research-card,.q-notification-card,.q-category-card,
     .q-venue-card,.q-dex-card,.q-feature-card,.q-calculator-card,.q-saved-card,
     .q-about-page article,.q-verify-page article
-  ):hover:not(:where(.q-feature-index,.q-feature-index *)){
+  ):hover{
     transform:translateY(-4px)!important;
     border-color:color-mix(in srgb,var(--q-accent) 43%,var(--q-border))!important;
     box-shadow:0 24px 66px color-mix(in srgb,#000 27%,transparent),0 0 0 1px color-mix(in srgb,var(--q-accent) 17%,transparent)!important;
   }
-  html[data-production-system="v8"] body #app #main :where(.q-mn-live-row,.q-mn-source,.q-mn-guide,.q-choice-row,.q-record-row):hover:not(:where(.q-feature-index,.q-feature-index *)){
+  html[data-production-system="v8"] body #app #main :where(.q-mn-live-row,.q-mn-source,.q-mn-guide,.q-choice-row,.q-record-row):hover{
     transform:translateX(3px)!important;
     border-color:color-mix(in srgb,var(--q-accent) 38%,var(--q-border))!important;
     box-shadow:0 10px 28px color-mix(in srgb,#000 18%,transparent)!important;
@@ -340,7 +340,7 @@ html[data-production-system="v8"] body>.q-scroll-progress{
   box-shadow:0 0 18px color-mix(in srgb,var(--q-accent) 62%,transparent)!important;
 }
 
-/* The secure workspace shell is injected directly under body, outside #app.
+/* The secure workspace shell is injected directly under body:not(:where(.q-feature-index,.q-feature-index *)), outside #app.
    It needs the same soft geometry as the route content rather than retaining
    the prior small-corner utility bar. */
 html[data-production-system="v8"][data-v53-lock-shell="true"] body>.q-v53-lock-command{
@@ -373,7 +373,7 @@ html[data-production-system="v8"][data-v53-lock-shell="true"] body>.q-v53-lock-s
 /* Modular designer layer: a restrained color field creates depth without
    obscuring evidence-heavy screens. Route modules retain their actual data
    content while receiving a common visual rhythm. */
-html[data-production-system="v8"] body{
+html[data-production-system="v8"] body:not(:where(.q-feature-index,.q-feature-index *)){
   background:
     radial-gradient(900px 520px at -6% -12%,color-mix(in srgb,var(--q-accent) 15%,transparent),transparent 68%),
     radial-gradient(780px 470px at 106% 8%,color-mix(in srgb,#7f9cff 11%,transparent),transparent 68%),
@@ -394,7 +394,7 @@ html[data-production-system="v8"] body #app #main>.q-page::before{
   background:linear-gradient(128deg,color-mix(in srgb,var(--q-accent) 11%,transparent),transparent 56%);
   mask-image:linear-gradient(#000,transparent);
 }
-html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero,.q-auth-hero,.q-verify-hero,.q-asset-hero):not(:where(.q-feature-index,.q-feature-index *)){
+html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero,.q-auth-hero,.q-verify-hero,.q-asset-hero){
   position:relative;
   overflow:hidden;
   border:1px solid color-mix(in srgb,var(--q-accent) 20%,var(--q-border))!important;
@@ -417,34 +417,34 @@ html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero
   box-shadow:0 0 0 32px color-mix(in srgb,var(--q-accent) 5%,transparent),0 0 0 64px color-mix(in srgb,var(--q-accent) 3%,transparent);
   pointer-events:none;
 }
-html[data-production-system="v8"] body #app #main :where(.q-panel,.q-v7-chart-panel,.q-v7-reference-panel,.q-mn-panel,.q-it-panel,.q-auth-card,.q-access-gate):not(:where(.q-feature-index,.q-feature-index *)){
+html[data-production-system="v8"] body #app #main :where(.q-panel,.q-v7-chart-panel,.q-v7-reference-panel,.q-mn-panel,.q-it-panel,.q-auth-card,.q-access-gate){
   background:
     linear-gradient(150deg,color-mix(in srgb,var(--q-surface) 94%,transparent),color-mix(in srgb,var(--q-surfacealt) 88%,transparent))!important;
   box-shadow:0 18px 50px color-mix(in srgb,#000 19%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 9%,transparent)!important;
 }
-html[data-production-system="v8"] body #app #main :where(.q-panel-head,.q-chart-attribution,.q-v7-evidence-strip):not(:where(.q-feature-index,.q-feature-index *)){
+html[data-production-system="v8"] body #app #main :where(.q-panel-head,.q-chart-attribution,.q-v7-evidence-strip){
   background:linear-gradient(90deg,color-mix(in srgb,var(--q-accent) 7%,var(--q-surfacealt)),transparent)!important;
 }
-html[data-production-system="v8"] body #app #main :where(.q-v7-rate-grid,.q-provider-grid,.q-contract-grid,.q-metric-grid,.q-kpi-grid,.q-mn-status-grid):not(:where(.q-feature-index,.q-feature-index *)){
+html[data-production-system="v8"] body #app #main :where(.q-v7-rate-grid,.q-provider-grid,.q-contract-grid,.q-metric-grid,.q-kpi-grid,.q-mn-status-grid){
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));
   gap:clamp(10px,1.25vw,18px)!important;
 }
-html[data-production-system="v8"] body #app #main :where(.q-v7-rate-grid>*,.q-provider-grid>*,.q-contract-grid>*,.q-metric-grid>*,.q-kpi-grid>*,.q-mn-status-grid>*):not(:where(.q-feature-index,.q-feature-index *)){
+html[data-production-system="v8"] body #app #main :where(.q-v7-rate-grid>*,.q-provider-grid>*,.q-contract-grid>*,.q-metric-grid>*,.q-kpi-grid>*,.q-mn-status-grid>*){
   min-width:0;
   border-radius:var(--q-modern-radius-md)!important;
 }
-html[data-production-system="v8"] body #app #main :where(.q-v7-boundary-ribbon,.q-v6-market-boundary,.q-result-priority,.q-truth-callout):not(:where(.q-feature-index,.q-feature-index *)){
+html[data-production-system="v8"] body #app #main :where(.q-v7-boundary-ribbon,.q-v6-market-boundary,.q-result-priority,.q-truth-callout){
   border-color:color-mix(in srgb,var(--q-accent) 27%,var(--q-border))!important;
   background:linear-gradient(105deg,color-mix(in srgb,var(--q-accent) 10%,var(--q-surface)),color-mix(in srgb,var(--q-surfacealt) 90%,transparent))!important;
   box-shadow:inset 3px 0 0 color-mix(in srgb,var(--q-accent) 68%,transparent),0 10px 30px color-mix(in srgb,#000 14%,transparent)!important;
 }
-html[data-production-system="v8"] body #app #main :where(.q-button--primary,.q-button-primary,[data-variant="primary"]):not(:where(.q-dossier *)):not(:where(.q-feature-index,.q-feature-index *)){
+html[data-production-system="v8"] body #app #main :where(.q-button--primary,.q-button-primary,[data-variant="primary"]):not(:where(.q-dossier *)){
   background:linear-gradient(135deg,color-mix(in srgb,var(--q-accent) 86%,#fff),var(--q-accent))!important;
   box-shadow:0 12px 26px color-mix(in srgb,var(--q-accent) 28%,transparent)!important;
 }
 @media(hover:hover) and (pointer:fine){
-  html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero,.q-auth-hero,.q-verify-hero,.q-asset-hero):hover:not(:where(.q-feature-index,.q-feature-index *)){
+  html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero,.q-auth-hero,.q-verify-hero,.q-asset-hero):hover{
     border-color:color-mix(in srgb,var(--q-accent) 38%,var(--q-border))!important;
     box-shadow:0 30px 76px color-mix(in srgb,#000 25%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 16%,transparent)!important;
   }
@@ -461,10 +461,10 @@ html[data-production-system="v8"] body #app #main :where(.q-button--primary,.q-b
 }
 
 @media(max-width:768px){
-  html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero,.q-auth-hero,.q-verify-hero,.q-asset-hero):not(:where(.q-feature-index,.q-feature-index *)){border-radius:var(--q-modern-radius-lg)!important;padding:22px!important}
+  html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero,.q-auth-hero,.q-verify-hero,.q-asset-hero){border-radius:var(--q-modern-radius-lg)!important;padding:22px!important}
   html[data-production-system="v8"] body #app header.q-product-header{border-radius:0 0 var(--q-modern-radius-md) var(--q-modern-radius-md)!important}
-  html[data-production-system="v8"] #main .q-it-tabs:not(:where(.q-feature-index,.q-feature-index *)){border-radius:var(--q-modern-radius-md)!important}
-  html[data-production-system="v8"] #main :where(.q-panel,.q-it-hero,.q-it-guide,.q-it-panel,.q-auth-card,.q-access-gate):not(:where(.q-feature-index,.q-feature-index *)){border-radius:var(--q-modern-radius-md)!important}
+  html[data-production-system="v8"] #main .q-it-tabs{border-radius:var(--q-modern-radius-md)!important}
+  html[data-production-system="v8"] #main :where(.q-panel,.q-it-hero,.q-it-guide,.q-it-panel,.q-auth-card,.q-access-gate){border-radius:var(--q-modern-radius-md)!important}
 }
 
 @media(prefers-reduced-motion:reduce){
