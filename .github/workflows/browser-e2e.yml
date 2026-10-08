@@ -179,6 +179,17 @@ jobs:
           name: qelly-market-boxless-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/market-boxless-e2e
           if-no-files-found: warn
+      - name: Verify governed crypto reference model
+        run: node --test tests/crypto-converter-model.test.mjs
+      - name: Verify crypto converter coverage, failure and responsive states
+        run: node scripts/qelly-crypto-converter-e2e.mjs
+      - name: Upload focused crypto converter evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-crypto-converter-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/crypto-converter-e2e
+          if-no-files-found: warn
       - name: Verify header pointer travel, keyboard, touch and search geometry
         run: node scripts/qelly-header-pointer-e2e.mjs
       - name: Verify exact deployed header with actual governed responses
