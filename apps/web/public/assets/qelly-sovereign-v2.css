@@ -353,7 +353,7 @@ body {
 /* controls */
 .q-setting {padding:17px 0}
 .q-setting label {font:750 12px/1.2 var(--q-font-display)}
-.q-setting select:not(:where(.q-ai-root *)),.q-inline-select:not(:where(.q-ai-root *)),.q-search-input:not(:where(.q-ai-root *)),.q-inline-form input:not(:where(.q-ai-root *)),.q-inline-form select:not(:where(.q-ai-root *)),textarea:not(:where(.q-ai-root *)),input[type="text"]:not(:where(.q-ai-root *)),input[type="number"]:not(:where(.q-ai-root *)),input[type="date"]:not(:where(.q-ai-root *)),input[type="time"]:not(:where(.q-ai-root *)){
+.q-setting select:not(:where(.q-ai-root *)):not(:where(.q-cc-page *)),.q-inline-select:not(:where(.q-ai-root *)):not(:where(.q-cc-page *)),.q-search-input:not(:where(.q-ai-root *)):not(:where(.q-cc-page *)),.q-inline-form input:not(:where(.q-ai-root *)):not(:where(.q-cc-page *)),.q-inline-form select:not(:where(.q-ai-root *)):not(:where(.q-cc-page *)),textarea:not(:where(.q-ai-root *)):not(:where(.q-cc-page *)),input[type="text"]:not(:where(.q-ai-root *)):not(:where(.q-cc-page *)),input[type="number"]:not(:where(.q-ai-root *)):not(:where(.q-cc-page *)),input[type="date"]:not(:where(.q-ai-root *)):not(:where(.q-cc-page *)),input[type="time"]:not(:where(.q-ai-root *)):not(:where(.q-cc-page *)){
   min-height:44px;border-radius:15px 15px 15px 7px!important;padding:10px 13px!important;
   background:color-mix(in srgb,var(--q-surface) 84%,var(--q-surface-alt));border:1px solid var(--q-border)!important;
   transition:border-color var(--q-motion),box-shadow var(--q-motion),transform var(--q-motion),background var(--q-motion);
