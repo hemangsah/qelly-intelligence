@@ -369,8 +369,8 @@ body {
   box-shadow: none !important;
 }
 
-.q-button--primary:not(:where(.q-about-v2-page *)),
-.q-button.is-primary:not(:where(.q-about-v2-page *)){
+.q-button--primary,
+.q-button.is-primary{
   min-height: 44px !important;
   border-color: var(--q-accent) !important;
   background: var(--q-accent) !important;
