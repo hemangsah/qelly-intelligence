@@ -45,14 +45,8 @@ test('production palette seed keeps dark and light body, muted text and elevated
   }
 });
 
-test('global chat uses accessible theme colors and readable fonts outside route content',async()=>{
-  const css=await read('apps/web/public/assets/qelly-semantic-design-system.css');
-  for(const phrase of ['html .q-ai-root .q-ai-assistant','html .q-ai-root .q-ai-message--assistant','html .q-ai-root .q-ai-message--user','--q-ds-dialog:','--q-ds-chat-assistant:','background:var(--q-ds-dialog)','color:var(--text-muted)','font-size:14px','font-size:12px','min-height:44px']){
-    assert.ok(css.includes(phrase),phrase);
-  }
-  assert.match(css,/@media\(max-width:640px\)/);
-  assert.match(css,/font-size:16px; \/\* avoid mobile zoom \*\//);
-  assert.match(css,/env\(safe-area-inset-bottom,0px\)/);
-  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
-  assert.match(css,/outline:2px solid var\(--focus\)/);
+test('global chat owns readable semantic typography without duplicate semantic-layer card decoration',async()=>{
+ const [css,semantic]=await Promise.all([read('apps/web/public/assets/ai/qelly-chat.css'),read('apps/web/public/assets/qelly-semantic-design-system.css')]);
+ assert.doesNotMatch(semantic,/html \.q-ai-root/);
+ for(const phrase of ['color:var(--q-text)','color:var(--q-text-secondary)','font-size:16px','font-size:12px','min-height:44px','border:0','outline:2px solid var(--q-focus)','env(safe-area-inset-bottom,0px)','@media(max-width:640px)','@media(prefers-reduced-motion:reduce)'])assert.ok(css.includes(phrase),phrase);
 });
