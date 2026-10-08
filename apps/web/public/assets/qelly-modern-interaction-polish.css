@@ -67,7 +67,7 @@ html[data-production-system="v8"] .q-product-search{
   background:color-mix(in srgb,var(--q-surfacealt) 72%,transparent)!important;
   box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 7%,transparent)!important;
 }
-html[data-production-system="v8"] .q-product-search input:not(:where(.q-cv-page *)){
+html[data-production-system="v8"] .q-product-search input{
   min-height:42px!important;
   border:0!important;
   border-radius:999px!important;
@@ -94,7 +94,7 @@ html[data-production-system="v8"] :where(button:not(.q-product-brand__mark):not(
   transition:transform var(--q-modern-fast) var(--q-modern-ease),box-shadow var(--q-modern-fast) ease,border-color var(--q-modern-fast) ease,background var(--q-modern-fast) ease,color var(--q-modern-fast) ease!important;
 }
 html[data-production-system="v8"] body #app .q-product-header .q-product-search button,
-html[data-production-system="v8"] body #app #main .q-page-actions .q-button:not(:where(.q-cv-page *)){border-radius:999px!important}
+html[data-production-system="v8"] body #app #main .q-page-actions .q-button{border-radius:999px!important}
 html[data-production-system="v8"] :where(button:not(:disabled):not(.q-ai-launcher),a.q-button,[role="button"],[role="tab"]):hover:not(:where(.q-dossier *)):not(:where(.q-cv-page *)){
   --q-hover-lift:2px;
   box-shadow:0 12px 28px color-mix(in srgb,#000 24%,transparent),0 0 0 1px color-mix(in srgb,var(--q-accent) 22%,transparent)!important;
