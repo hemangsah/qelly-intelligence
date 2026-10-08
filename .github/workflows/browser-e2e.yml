@@ -114,6 +114,17 @@ jobs:
           name: qelly-tooltip-performance-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/tooltip-performance-e2e
           if-no-files-found: warn
+      - name: Measure shell annotation feedback and external-update behavior
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/qelly-shell-observer-e2e.mjs
+      - name: Upload focused shell observer evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-shell-observer-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/shell-observer-e2e
+          if-no-files-found: warn
       - name: Verify header pointer travel, keyboard, touch and search geometry
         run: node scripts/qelly-header-pointer-e2e.mjs
       - name: Verify exact deployed header with actual governed responses
