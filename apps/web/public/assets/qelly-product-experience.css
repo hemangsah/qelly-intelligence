@@ -29,7 +29,7 @@ html[data-production-system="v8"] body{overflow-x:clip!important;overflow-y:visi
 html[data-production-system="v8"] :where(button,a[href],input,select,textarea,[role="button"],[role="link"],[role="tab"]){
   touch-action:manipulation;
 }
-html[data-production-system="v8"] :where(button,a[href],input,select,textarea,[role="button"],[role="link"],[role="tab"]):focus-visible:not(:where(.q-about-v2-page *)){
+html[data-production-system="v8"] :where(button,a[href],input,select,textarea,[role="button"],[role="link"],[role="tab"]):focus-visible{
   outline:3px solid var(--q-focus-ring)!important;
   outline-offset:3px!important;
   box-shadow:0 0 0 5px color-mix(in srgb,var(--q-focus-ring) 18%,transparent)!important;

@@ -380,7 +380,7 @@ body {
 .q-button:hover,
 .q-button:focus-visible { border-color: var(--q-accent) !important; }
 
-:where(button, a, input, select, textarea):focus-visible:not(:where(.q-about-v2-page *)){
+:where(button, a, input, select, textarea):focus-visible{
   outline: 2px solid var(--q-focus) !important;
   outline-offset: 2px !important;
 }
@@ -671,7 +671,7 @@ tr, td, th { border-color: var(--q-border) !important; }
 
 @media (forced-colors: active) {
   .q-product-brand__mark { filter: none; border: 1px solid CanvasText !important; }
-  :where(button, a, input, select, textarea):focus-visible:not(:where(.q-about-v2-page *)){ outline: 2px solid Highlight !important; }
+  :where(button, a, input, select, textarea):focus-visible{ outline: 2px solid Highlight !important; }
 }
 
 /* Specificity firewall against superseded route locks that still ship during
