@@ -27,7 +27,8 @@ try{
   await page.keyboard.press('Control+/');await page.locator('[data-q-ai-assistant]').waitFor({state:'visible'});
   await page.waitForFunction(()=>document.activeElement?.matches('[data-q-ai-form] textarea'));
   await page.keyboard.press('Escape');assert.equal(await page.locator('[data-q-ai-assistant]').evaluate(node=>node.hidden),true);
-  await plot.evaluate(node=>node.scrollIntoView({block:'start'}));
+  // Clear every plotted region, including Asset Dossier's existing-candle volume view.
+  await page.keyboard.press('Control+End');
   await page.waitForFunction(()=>document.querySelector('.q-ai-root')?.dataset.clearance!=='chart');
   const toggle=page.locator('#asset-chart [data-chart="table"]');await toggle.click();assert.equal(await toggle.getAttribute('aria-expanded'),'true');assert.ok(await page.locator('#asset-chart .q-chart-table tbody tr').count()>0);
   assert.equal(await page.locator('#asset-chart').getByText('Chart shell · adapter contract',{exact:true}).count(),0);
