@@ -242,8 +242,8 @@ html[data-production-system="v8"] body #app #main :where(details):not(:where(.q-
   overflow:hidden;
   transition:border-color var(--q-modern-fast) ease,box-shadow var(--q-modern-fast) ease!important;
 }
-html[data-production-system="v8"] body #app #main :where(details[open]):not(:where(.q-dx-page *)):not(:where(.q-dossier *)){border-color:color-mix(in srgb,var(--q-accent) 38%,var(--q-border))!important;box-shadow:0 14px 38px color-mix(in srgb,#000 16%,transparent)!important}
-html[data-production-system="v8"] body #app #main :where(summary):not(:where(.q-dossier *)){cursor:pointer;border-radius:var(--q-modern-radius-sm)!important}
+html[data-production-system="v8"] body #app #main :where(details[open]):not(:where(.q-dx-page *)):not(:where(.q-dossier *)):not(:where(.q-dpg-page *)){border-color:color-mix(in srgb,var(--q-accent) 38%,var(--q-border))!important;box-shadow:0 14px 38px color-mix(in srgb,#000 16%,transparent)!important}
+html[data-production-system="v8"] body #app #main :where(summary):not(:where(.q-dossier *)):not(:where(.q-dpg-page *)){cursor:pointer;border-radius:var(--q-modern-radius-sm)!important}
 html[data-production-system="v8"] body #app #main :where(pre,.q-json-evidence){border-radius:var(--q-modern-radius-md)!important;scrollbar-gutter:stable}
 html[data-production-system="v8"] body #app #main :where(.q-empty-state){
   border-style:solid!important;
