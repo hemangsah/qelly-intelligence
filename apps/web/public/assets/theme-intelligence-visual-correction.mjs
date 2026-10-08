@@ -6,12 +6,8 @@ const esc=(value)=>String(value??'').replace(/[&<>'"]/g,(character)=>({'&':'&amp
 const readHistory=()=>{try{const value=JSON.parse(localStorage.getItem(HISTORY_KEY)??'[]');return Array.isArray(value)?value.slice(0,5):[];}catch{return [];}};
 const writeHistory=(value)=>{try{localStorage.setItem(HISTORY_KEY,JSON.stringify(value.slice(0,5)));}catch{}};
 
-const VISUAL_STYLE_KEYS=Object.freeze(['--q-canvas','--q-surface','--q-panel','--q-raised','--q-overlay','--q-border','--q-divider','--q-accent','--q-accent-text','--q-info','--q-focus','--q-selected','--q-grid','--q-premium-canvas','--q-premium-surface-0','--q-premium-surface-1','--q-premium-surface-2','--q-premium-raised','--q-premium-floating','--q-premium-border','--q-premium-divider','--q-premium-hairline','--q-premium-accent','--q-premium-info','--q-premium-evidence']);
-function releaseVisualStyleTokens(root){for(const key of VISUAL_STYLE_KEYS)root.style.removeProperty(key);}
-
-function syncVisualDatasets({releaseTokens=false}={}){
+function syncVisualDatasets(){
   const root=document.documentElement;
-  if(releaseTokens)releaseVisualStyleTokens(root);
   root.dataset.visualAppearance=root.dataset.resolvedAppearance||root.dataset.appearance||'dark';
   root.dataset.alphaIntensitySlug=slug(root.dataset.alphaIntensity||'Focused Edge');
   root.dataset.alphaPackSlug=slug(root.dataset.alphaPack||'crimson-vector');
@@ -88,7 +84,7 @@ function bindTooltip(stage){
   stage.addEventListener('keydown',()=>{anchor=null;schedule();},true);schedule();
 }
 
-export function enhanceThemeIntelligenceVisuals(root=document){const scope=root instanceof Element||root instanceof Document?root:document;const page=scope.querySelector?.('.q-ti-page')??(scope.matches?.('.q-ti-page')?scope:null);syncVisualDatasets({releaseTokens:Boolean(page)});if(page){enhanceGallery(page);enhanceStudio(page);}scope.querySelectorAll?.('dialog.q-command-dialog').forEach(enhanceCommandPalette);scope.querySelectorAll?.('.q-mi-chart-stage').forEach(bindTooltip);}
+export function enhanceThemeIntelligenceVisuals(root=document){const scope=root instanceof Element||root instanceof Document?root:document;const page=scope.querySelector?.('.q-ti-page')??(scope.matches?.('.q-ti-page')?scope:null);syncVisualDatasets();if(page){enhanceGallery(page);enhanceStudio(page);}scope.querySelectorAll?.('dialog.q-command-dialog').forEach(enhanceCommandPalette);scope.querySelectorAll?.('.q-mi-chart-stage').forEach(bindTooltip);}
 
 let queued=false;const queue=()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;enhanceThemeIntelligenceVisuals(document);});};
 new MutationObserver(queue).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['data-resolved-appearance','data-theme-family','data-alpha-intensity','data-alpha-pack']});
