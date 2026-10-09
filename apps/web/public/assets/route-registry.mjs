@@ -85,7 +85,7 @@ const routes = [
   { section:'Discover', route:'venues', label:'Venues', icon:icon('venue'), meta:'W5', public:true },
   { section:'Discover', route:'dex-discovery', label:'DEX Discovery', icon:icon('dex'), meta:'W5', public:true },
   { section:'Discover', route:'global-charts', label:'Global Charts', icon:icon('chart'), meta:'W5', public:true },
-  { section:'Discover', route:'converter', label:'FX Reference Converter', icon:icon('convert'), meta:'Public', public:true },
+  { section:'Discover', route:'converter', label:'Currency Converter', icon:icon('convert'), meta:'Public', public:true },
   { section:'Discover', route:'news-research', label:'QELLY Chat', icon:icon('news'), meta:'Flagship', public:true },
   { section:'Discover', route:'trust-center', label:'Research Methodology', icon:icon('trust'), meta:'Public', public:true },
   { section:'Intelligence', route:'asset-intelligence', label:'Asset Intelligence', icon:icon('asset'), meta:'Public', public:true },
