@@ -76,14 +76,14 @@ html[data-production-system="v8"] .q-product-search input{
 }
 html[data-production-system="v8"] .q-product-search button{min-height:42px!important;margin:0!important}
 
-html[data-production-system="v8"] :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea):not(:where(.q-ai-root *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)){
+html[data-production-system="v8"] :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea):not(:where(.q-ai-root *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)):not(:where(.q-dx-page,.q-dx-page *)){
   border-radius:var(--q-modern-radius-sm)!important;
   transition:border-color var(--q-modern-fast) ease,box-shadow var(--q-modern-fast) ease,background var(--q-modern-fast) ease!important;
 }
 html[data-production-system="v8"] :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea):hover:not(:where(.q-feature-index,.q-feature-index *)){border-color:color-mix(in srgb,var(--q-accent) 46%,var(--q-border))!important}
 html[data-production-system="v8"] :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea):focus:not(:where(.q-ai-root *)):not(:where(.q-cv-page *)):not(:where(.q-feature-index,.q-feature-index *)){border-color:var(--q-accent)!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--q-accent) 18%,transparent)!important;outline:0!important}
 
-html[data-production-system="v8"] :where(button:not(.q-product-brand__mark):not(.q-ai-launcher),a.q-button,[role="button"],[role="tab"]):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-ai-root *)):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)){
+html[data-production-system="v8"] :where(button:not(.q-product-brand__mark):not(.q-ai-launcher),a.q-button,[role="button"],[role="tab"]):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-ai-root *)):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)):not(:where(.q-dx-page,.q-dx-page *)){
   --q-hover-lift:0px;
   --q-press-scale:1;
   min-height:44px;
@@ -95,7 +95,7 @@ html[data-production-system="v8"] :where(button:not(.q-product-brand__mark):not(
 }
 html[data-production-system="v8"] body #app .q-product-header .q-product-search button:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)),
 html[data-production-system="v8"] body #app #main .q-page-actions .q-button:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-dpg-page *)){border-radius:999px!important}
-html[data-production-system="v8"] :where(button:not(:disabled):not(.q-ai-launcher),a.q-button,[role="button"],[role="tab"]):hover:not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-ai-root *)):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)){
+html[data-production-system="v8"] :where(button:not(:disabled):not(.q-ai-launcher),a.q-button,[role="button"],[role="tab"]):hover:not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-ai-root *)):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)):not(:where(.q-dx-page,.q-dx-page *)){
   --q-hover-lift:2px;
   box-shadow:0 12px 28px color-mix(in srgb,#000 24%,transparent),0 0 0 1px color-mix(in srgb,var(--q-accent) 22%,transparent)!important;
 }
@@ -130,7 +130,7 @@ html[data-production-system="v8"] #main .q-it-external:hover{transform:translate
 
 html[data-production-system="v8"] .q-feature-navigation{border-radius:0 var(--q-modern-radius-lg) var(--q-modern-radius-lg) 0!important;box-shadow:24px 0 70px color-mix(in srgb,#000 34%,transparent)!important}
 html[data-production-system="v8"] .q-feature-navigation>header{border-radius:0 var(--q-modern-radius-lg) 0 0!important}
-html[data-production-system="v8"] .q-feature-navigation__search input:not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)){border-radius:999px!important}
+html[data-production-system="v8"] .q-feature-navigation__search input:not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-dx-page,.q-dx-page *)){border-radius:999px!important}
 html[data-production-system="v8"] .q-feature-navigation__universe,
 html[data-production-system="v8"] .q-feature-navigation__group a{border-radius:var(--q-modern-radius-sm)!important;transition:transform var(--q-modern-fast) var(--q-modern-ease),background var(--q-modern-fast) ease,border-color var(--q-modern-fast) ease,box-shadow var(--q-modern-fast) ease!important}
 html[data-production-system="v8"] .q-feature-navigation__universe:hover,
@@ -205,7 +205,7 @@ html[data-production-system="v8"] body #app #main :where(
 html[data-production-system="v8"] body #app #main :where(
   .q-chart-toolbar button,.q-mn-chart-controls button,.q-row-actions button,
   .q-mi-chart-controls button,.q-filter-bar button,.q-toolbar button
-):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)){border-radius:999px!important;min-height:38px!important;padding-inline:13px!important}
+):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-dx-page,.q-dx-page *)){border-radius:999px!important;min-height:38px!important;padding-inline:13px!important}
 
 html[data-production-system="v8"] body #app #main :where(
   .q-grid-scroll,.q-table-wrap,.q-mn-table-wrap,.q-chart-table,.q-audit-table,
@@ -439,7 +439,7 @@ html[data-production-system="v8"] body #app #main :where(.q-v7-boundary-ribbon,.
   background:linear-gradient(105deg,color-mix(in srgb,var(--q-accent) 10%,var(--q-surface)),color-mix(in srgb,var(--q-surfacealt) 90%,transparent))!important;
   box-shadow:inset 3px 0 0 color-mix(in srgb,var(--q-accent) 68%,transparent),0 10px 30px color-mix(in srgb,#000 14%,transparent)!important;
 }
-html[data-production-system="v8"] body #app #main :where(.q-button--primary,.q-button-primary,[data-variant="primary"]):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-dpg-page *)){
+html[data-production-system="v8"] body #app #main :where(.q-button--primary,.q-button-primary,[data-variant="primary"]):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-dpg-page *)):not(:where(.q-dx-page,.q-dx-page *)){
   background:linear-gradient(135deg,color-mix(in srgb,var(--q-accent) 86%,#fff),var(--q-accent))!important;
   box-shadow:0 12px 26px color-mix(in srgb,var(--q-accent) 28%,transparent)!important;
 }
@@ -474,6 +474,6 @@ html[data-production-system="v8"] body #app #main :where(.q-button--primary,.q-b
   html[data-production-system="v8"] body>.q-scroll-progress{display:none!important}
 }
 @media(forced-colors:active){
-  html[data-production-system="v8"] :where(button,a.q-button,[role="button"],[role="tab"],input,select,textarea):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-ai-root *)):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)){box-shadow:none!important}
+  html[data-production-system="v8"] :where(button,a.q-button,[role="button"],[role="tab"],input,select,textarea):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-ai-root *)):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)):not(:where(.q-dx-page,.q-dx-page *)){box-shadow:none!important}
   html[data-production-system="v8"] body>.q-scroll-progress{background:Highlight!important;box-shadow:none!important}
 }
