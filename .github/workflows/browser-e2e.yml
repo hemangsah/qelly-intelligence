@@ -103,6 +103,15 @@ jobs:
           name: qelly-about-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/about-editorial-e2e
           if-no-files-found: warn
+      - name: Verify Market borderless surfaces and control continuity
+        run: node scripts/qelly-market-boxless-e2e.mjs
+      - name: Upload focused Market borderless evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-market-boxless-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/market-boxless-e2e
+          if-no-files-found: warn
       - name: Verify chart plot clearance and keyboard Chat access
         run: node scripts/qelly-chart-dock-clearance-e2e.mjs
       - name: Upload chart clearance evidence
@@ -170,14 +179,14 @@ jobs:
           name: qelly-shell-observer-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/shell-observer-e2e
           if-no-files-found: warn
-      - name: Verify Market borderless surfaces and control continuity
-        run: node scripts/qelly-market-boxless-e2e.mjs
-      - name: Upload focused Market borderless evidence
+      - name: Verify closed feature drawer paint, focus and responsive state
+        run: node scripts/qelly-feature-drawer-state-e2e.mjs
+      - name: Upload focused feature drawer state evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: qelly-market-boxless-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
-          path: preview/market-boxless-e2e
+          name: qelly-feature-drawer-state-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/feature-drawer-state-e2e
           if-no-files-found: warn
       - name: Verify header pointer travel, keyboard, touch and search geometry
         run: node scripts/qelly-header-pointer-e2e.mjs
