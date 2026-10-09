@@ -50,10 +50,12 @@ test('chart interaction supports a single candle and a dragged move',async()=>{
 
 test('Decision Intelligence hero stays dense and responsive',async()=>{
   const css=await read('apps/web/public/assets/qelly-decision-proven-graph.css');
+  assert.ok(css.includes('.q-dpg-hero__actions .q-button{width:100%;justify-content:center;min-height:44px;font-size:14px;'));
+  assert.doesNotMatch(css,/.q-dpg-hero__actions[^{}]*\{grid-template-columns:1fr\}/);
   assert.match(css,/\.q-dpg-hero\{display:grid;grid-template-columns:minmax\(260px,1\.05fr\)/);
   assert.match(css,/@media\(max-width:1040px\)\{\.q-dpg-hero\{grid-template-columns:1fr 1\.25fr\}/);
   assert.match(css,/@media\(max-width:760px\)\{\.q-dpg-hero\{grid-template-columns:1fr\}/);
-  assert.match(css,/@media\(max-width:480px\)\{\.q-dpg-hero__selects,\.q-dpg-hero__actions,\.q-dpg-hero__metrics\{grid-template-columns:1fr\}/);
+  assert.match(css,/@media\(max-width:480px\)\{\.q-dpg-hero__selects,\.q-dpg-hero__metrics\{grid-template-columns:1fr\}/);
 });
 
 test('Decision Intelligence normalizes compact sourced timestamps before display',async()=>{
