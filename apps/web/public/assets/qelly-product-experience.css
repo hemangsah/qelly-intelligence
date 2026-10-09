@@ -137,7 +137,7 @@ html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-que
 html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-query-boundary>small{font-size:9px!important;line-height:1.25!important}
 
 /* Controls are compact precision objects. Semantic status labels remain pills. */
-html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(.q-status):not(.q-truth-pill):not(:where(.q-dossier *)):not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)),
+html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(.q-status):not(.q-truth-pill):not(:where(.q-dossier *)):not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-dx-page,.q-dx-page *)),
 html[data-production-system="v8"] .q-feature-navigation>header button:not(:where(.q-dossier *)):not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)),
 html[data-production-system="v8"] .q-feature-navigation__search input:not(:where(.q-dossier *)):not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)){
   border-radius:var(--q-radius-control)!important;
