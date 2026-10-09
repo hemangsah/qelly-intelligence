@@ -439,7 +439,7 @@ html[data-production-system="v8"] body #app #main :where(.q-v7-boundary-ribbon,.
   background:linear-gradient(105deg,color-mix(in srgb,var(--q-accent) 10%,var(--q-surface)),color-mix(in srgb,var(--q-surfacealt) 90%,transparent))!important;
   box-shadow:inset 3px 0 0 color-mix(in srgb,var(--q-accent) 68%,transparent),0 10px 30px color-mix(in srgb,#000 14%,transparent)!important;
 }
-html[data-production-system="v8"] body #app #main :where(.q-button--primary,.q-button-primary,[data-variant="primary"]):not(:where(.q-dossier *)):not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)){
+html[data-production-system="v8"] body #app #main :where(.q-button--primary,.q-button-primary,[data-variant="primary"]):not(:where(.q-dossier *)):not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-dx-page,.q-dx-page *)){
   background:linear-gradient(135deg,color-mix(in srgb,var(--q-accent) 86%,#fff),var(--q-accent))!important;
   box-shadow:0 12px 26px color-mix(in srgb,var(--q-accent) 28%,transparent)!important;
 }
