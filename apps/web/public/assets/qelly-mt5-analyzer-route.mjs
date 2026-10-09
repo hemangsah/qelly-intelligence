@@ -1,5 +1,6 @@
 /* Wave CZ: dedicated, browser-local MT5 closing-deal analyzer.
  * Reuses the audited QELLY Verify parser and metrics; does not persist raw files. */
+import {ensureRouteStylesheet} from './route-stylesheet-readiness.mjs';
 import {createLocalMt5Task} from './qelly-mt5-worker-client.mjs';
 import {renderMt5ClosedDealEvidence} from './qelly-mt5-visuals.mjs';
 import {compareMt5ClosedDealReports} from './qelly-mt5-comparison.mjs';
@@ -16,15 +17,8 @@ let loading={A:false,B:false};
 let generation={A:0,B:0};
 const tasks={A:null,B:null};
 const stylePaths=['./qelly-mt5-analyzer.css','./qelly-mt5-visuals.css','./qelly-mt5-comparison.css'];
-function ensureStyles(){
- for(const path of stylePaths){
-  const id=path.split('/').pop();
-  if(document.querySelector('link[data-qelly-mt5-style="'+id+'"]'))continue;
-  const link=document.createElement('link');
-  link.rel='stylesheet';link.href=new URL(path,import.meta.url).href;
-  link.dataset.qellyMt5Style=id;document.head.append(link);
- }
-}
+function ensureStyles(){return Promise.all(stylePaths.map(path=>ensureRouteStylesheet(new URL(path+'?v=20261008-editorial1',import.meta.url).href,{attribute:'data-qelly-mt5-ready-'+path.split('/').pop().replaceAll('.','-'),value:'true'})));}
+
 function download(name,payload){
  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
  const url=URL.createObjectURL(blob);
@@ -153,8 +147,9 @@ export function renderMt5ReportAnalyzer(main){
  if(!main)throw new TypeError('An existing QELLY main region is required');
  if(owner&&owner!==main)resetMt5ReportAnalyzer();
  owner=main;
- ensureStyles();
  window.__qellyMt5AnalyzerCleanup=resetMt5ReportAnalyzer;
- render();
- main.focus({preventScroll:true});
+ return ensureStyles().then(()=>{
+  if(owner!==main||location.hash.split('?')[0]!=='#/mt5-report-analyzer')return;
+  render();main.focus({preventScroll:true});
+ });
 }
