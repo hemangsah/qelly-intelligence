@@ -106,7 +106,8 @@ html[data-production-system="v8"] body #app header.q-product-header{
   box-shadow:0 1px 0 var(--q-border),0 16px 50px rgba(0,0,0,.16)!important;
   backdrop-filter:blur(28px) saturate(145%)!important;
 }
-  html[data-production-system="v8"] .q-product-brand{min-width:44px!important;min-height:44px!important}
+
+html[data-production-system="v8"] .q-product-brand{min-width:156px!important}
 html[data-production-system="v8"] .q-product-brand__mark{
   width:38px!important;height:38px!important;padding:0!important;
   border:0!important;border-radius:13px!important;
@@ -134,21 +135,32 @@ body #app .q-product-header .q-product-menu[data-feature-navigation-owner="true"
 
 html[data-production-system="v8"] .q-product-menu>span:first-child{font-size:0}
 html[data-production-system="v8"] .q-product-menu>span:first-child::before{content:"";display:block;width:15px;height:10px;border-block:1.5px solid currentColor;box-shadow:inset 0 4px 0 -3px currentColor}
-  html[data-production-system="v8"] .q-product-nav{display:none!important}
-  html[data-production-system="v8"] .q-product-nav a{padding-inline:10px!important}
+
+html[data-production-system="v8"] .q-product-nav{
+  width:max-content!important;max-width:100%!important;justify-self:center!important;
+  padding:4px!important;border:0!important;border-radius:999px!important;
+  background:color-mix(in srgb,var(--q-surfacealt) 62%,transparent)!important;
+  box-shadow:var(--q-luxe-inset)!important;
+}
+html[data-production-system="v8"] .q-product-nav a{min-height:44px!important;padding:0 13px!important;border:0!important;border-radius:999px!important}
 html[data-production-system="v8"] .q-product-nav a[aria-current="page"],
 html[data-production-system="v8"] .q-product-nav a[aria-current="true"]{
   color:#fff!important;background:linear-gradient(135deg,#a52b58,#711532)!important;
   box-shadow:0 8px 24px rgba(113,21,50,.3)!important;
 }
-  html[data-production-system="v8"] .q-product-search{display:none!important}
+
+html[data-production-system="v8"] .q-product-search{
+  min-height:44px!important;padding:3px!important;border:0!important;border-radius:999px!important;
+  background:color-mix(in srgb,var(--q-surfacealt) 88%,transparent)!important;
+  box-shadow:var(--q-luxe-inset)!important;
+}
 html[data-production-system="v8"] .q-product-search input{min-height:44px!important;padding-inline:15px!important;border:0!important;background:transparent!important}
 html[data-production-system="v8"] .q-product-search button:not(:where(.q-v7-public-market *)){min-height:44px!important;padding:0 17px!important;border:0!important;border-radius:999px!important;background:linear-gradient(135deg,#a82d5c,#721632)!important}
 html[data-production-system="v8"] .q-product-system,
 html[data-production-system="v8"] .q-product-account{min-height:44px!important;border:0!important;background:transparent!important;box-shadow:none!important}
 
-html[data-production-system="v8"][data-production-access="false"] .q-feature-navigation:not(:where(.q-verify-page,.q-verify-page *)),
-html[data-production-system="v8"] .q-feature-navigation:not(:where(.q-verify-page,.q-verify-page *)){
+html[data-production-system="v8"][data-production-access="false"] .q-feature-navigation,
+html[data-production-system="v8"] .q-feature-navigation{
   top:72px!important;bottom:14px!important;left:14px!important;width:min(372px,calc(100vw - 28px))!important;
   border:0!important;border-radius:24px!important;
   background:color-mix(in srgb,var(--q-chrome) 94%,transparent)!important;
@@ -159,19 +171,19 @@ html[data-production-system="v8"] .q-feature-navigation:not(:where(.q-verify-pag
 html[data-production-system="v8"] body.q-feature-navigation-open .q-feature-navigation{transform:none!important}
 html[data-production-system="v8"][data-production-access="false"] .q-feature-navigation__backdrop,
 html[data-production-system="v8"] .q-feature-navigation__backdrop{display:block!important;inset:72px 0 0!important;background:rgba(0,0,0,.64)!important;backdrop-filter:blur(5px)}
-html[data-production-system="v8"] .q-feature-navigation>header:not(:where(.q-verify-page,.q-verify-page *)){padding:20px 20px 14px!important;border:0!important;border-radius:24px 24px 0 0!important;background:transparent!important}
+html[data-production-system="v8"] .q-feature-navigation>header{padding:20px 20px 14px!important;border:0!important;border-radius:24px 24px 0 0!important;background:transparent!important}
 html[data-production-system="v8"] .q-feature-navigation>header button:not(:where(.q-v7-public-market *)):not(:where(.q-verify-page,.q-verify-page *)){border:0!important;border-radius:999px!important;background:var(--q-surfacealt)!important}
 html[data-production-system="v8"] .q-feature-navigation__search{padding:8px 14px 4px!important;background:transparent!important}
 html[data-production-system="v8"] .q-feature-navigation__search input:not(:where(.q-verify-page,.q-verify-page *)){border:0!important;background:var(--q-surfacealt)!important;box-shadow:var(--q-luxe-inset)!important}
 html[data-production-system="v8"] .q-feature-navigation>nav{padding:5px 10px 22px!important}
-html[data-production-system="v8"] .q-feature-navigation__universe:not(:where(.q-verify-page,.q-verify-page *)),
-html[data-production-system="v8"] .q-feature-navigation__group a:not(:where(.q-verify-page,.q-verify-page *)){border:0!important;border-radius:13px!important;background:transparent!important;box-shadow:none!important}
+html[data-production-system="v8"] .q-feature-navigation__universe,
+html[data-production-system="v8"] .q-feature-navigation__group a{border:0!important;border-radius:13px!important;background:transparent!important;box-shadow:none!important}
 html[data-production-system="v8"] .q-feature-navigation__universe{margin:4px 4px 16px!important;padding:14px!important;background:var(--q-luxe-panel-strong)!important}
 html[data-production-system="v8"] .q-feature-navigation__group a:hover,
 html[data-production-system="v8"] .q-feature-navigation__group a:focus-visible,
 html[data-production-system="v8"] .q-feature-navigation__group a.is-active{background:var(--q-surfacealt)!important;transform:none!important}
-html[data-production-system="v8"] .q-feature-navigation__group a.is-active:not(:where(.q-verify-page,.q-verify-page *)){box-shadow:inset 3px 0 0 var(--q-accent)!important}
-html[data-production-system="v8"] .q-feature-navigation__group a em:not(:where(.q-verify-page,.q-verify-page *)){border:0!important;background:color-mix(in srgb,var(--q-surfacealt) 82%,transparent)!important}
+html[data-production-system="v8"] .q-feature-navigation__group a.is-active{box-shadow:inset 3px 0 0 var(--q-accent)!important}
+html[data-production-system="v8"] .q-feature-navigation__group a em{border:0!important;background:color-mix(in srgb,var(--q-surfacealt) 82%,transparent)!important}
 
 /* Route canvas: use the available viewport and create hierarchy with space,
    tonal surfaces and light instead of boxed outlines. */
@@ -185,7 +197,7 @@ html[data-production-system="v8"] body #app #main>.q-access-gate{
   padding:clamp(28px,3.4vw,60px) clamp(18px,4vw,72px) clamp(88px,7vw,128px)!important;
 }
 
-html[data-production-system="v8"] body #app #main .q-page-head:not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)){
+html[data-production-system="v8"] body #app #main .q-page-head:not(:where(.q-about-v2-page *)){
   position:relative!important;margin:0 0 clamp(26px,3.2vw,48px)!important;
   padding:clamp(8px,1.2vw,18px) 0 clamp(22px,2.6vw,38px)!important;
   border:0!important;background:transparent!important;box-shadow:none!important;
@@ -239,20 +251,20 @@ html[data-production-system="v8"] body #app #main :where(
   .q-v7-boundary-ribbon,.q-v7-evidence-strip,.q-home-principles,.q-control-row,
   .q-chart-toolbar,.q-mn-chart-controls,.q-filter-bar,.q-toolbar,.q-page-actions,
   .q-calculator-actions,.q-result-actions,.q-actions,.q-grid-footer
-):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)){
+):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-about-v2-page *)){
   border:0!important;border-radius:18px!important;
   background:color-mix(in srgb,var(--q-surfacealt) 72%,transparent)!important;
   box-shadow:var(--q-luxe-inset)!important;
 }
 
 html[data-production-system="v8"] body #app #main .q-v7-boundary-ribbon{gap:1px!important;overflow:hidden!important;padding:0!important;background:var(--q-border)!important}
-html[data-production-system="v8"] body #app #main .q-v7-boundary-ribbon>div:not(:where(.q-v7-public-market *)):not(:where(.q-verify-page,.q-verify-page *)){border:0!important;background:var(--q-surface)!important;padding:clamp(17px,2vw,26px)!important}
+html[data-production-system="v8"] body #app #main .q-v7-boundary-ribbon>div:not(:where(.q-v7-public-market *)){border:0!important;background:var(--q-surface)!important;padding:clamp(17px,2vw,26px)!important}
 
 html[data-production-system="v8"] body #app #main .q-v7-market-grid{
   grid-template-columns:minmax(0,1fr) minmax(280px,340px)!important;
   gap:clamp(18px,2.4vw,34px)!important;
 }
-html[data-production-system="v8"] body #app #main .q-v7-chart-stage:not(:where(.q-v7-public-market *)):not(:where(.q-verify-page,.q-verify-page *)){min-height:clamp(430px,55vh,680px)!important;border:0!important;border-radius:18px!important;background:#090a0c!important;overflow:hidden!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.045)!important}
+html[data-production-system="v8"] body #app #main .q-v7-chart-stage:not(:where(.q-v7-public-market *)){min-height:clamp(430px,55vh,680px)!important;border:0!important;border-radius:18px!important;background:#090a0c!important;overflow:hidden!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.045)!important}
 html[data-production-system="v8"] body #app #main .q-v7-side-stack{width:auto!important}
 
 html[data-production-system="v8"] body #app #main :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea):not(:where(.q-verify-page,.q-verify-page *)){
@@ -264,7 +276,7 @@ html[data-production-system="v8"] body #app #main :where(.q-button,button,[role=
 html[data-production-system="v8"] body #app #main .q-button--secondary:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)){background:var(--q-surfacealt)!important;box-shadow:var(--q-luxe-inset)!important}
 html[data-production-system="v8"] body #app #main .q-button--primary:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)){background:linear-gradient(135deg,#ad315f,#711632)!important;color:#fff!important;box-shadow:0 12px 30px rgba(113,22,50,.3)!important}
 
-html[data-production-system="v8"] body #app #main :where(.q-grid-scroll,.q-table-wrap,.q-mn-table-wrap,.q-chart-table,.q-audit-table,.q-mi-table-wrap,[class$="-table-wrap"],[class*="-table-wrap "]):not(:where(.q-dossier *)):not(:where(.q-verify-page,.q-verify-page *)){
+html[data-production-system="v8"] body #app #main :where(.q-grid-scroll,.q-table-wrap,.q-mn-table-wrap,.q-chart-table,.q-audit-table,.q-mi-table-wrap,[class$="-table-wrap"],[class*="-table-wrap "]):not(:where(.q-dossier *)){
   border:0!important;border-radius:18px!important;background:var(--q-luxe-panel)!important;box-shadow:var(--q-luxe-shadow-soft),var(--q-luxe-inset)!important;
 }
 html[data-production-system="v8"] body #app #main :where(table,tr,td,th,thead,tbody){border-color:var(--q-divider)!important}
@@ -306,14 +318,14 @@ html[data-production-system="v8"] body #app #main [role="button"]{min-width:44px
 }
 
 @media(max-width:1240px){
-  html[data-production-system="v8"] body #app header.q-product-header{min-height:64px!important;grid-template-columns:auto auto 1fr auto!important;padding:8px 12px!important}
+  html[data-production-system="v8"] body #app header.q-product-header{grid-template-columns:auto auto minmax(0,1fr) minmax(220px,340px) auto!important}
   html[data-production-system="v8"] .q-product-nav a{padding-inline:10px!important}
 }
 
 @media(max-width:1120px){
-  html[data-production-system="v8"] body #app header.q-product-header{min-height:64px!important;grid-template-columns:auto auto 1fr auto!important;padding:8px 12px!important}
+  html[data-production-system="v8"] body #app header.q-product-header{grid-template-columns:auto auto minmax(0,1fr) auto!important}
   html[data-production-system="v8"] .q-product-nav{display:none!important}
-  html[data-production-system="v8"] .q-product-search{display:none!important}
+  html[data-production-system="v8"] .q-product-search{grid-column:auto!important;grid-row:auto!important;margin:0!important}
   html[data-production-system="v8"] body #app #main .q-v7-market-grid{grid-template-columns:1fr!important}
   html[data-production-system="v8"] body #app #main .q-v7-side-stack{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
 }
@@ -361,7 +373,7 @@ html[data-production-system="v8"] body #app #main .q-v7-provider-card strong{fon
 html[data-production-system="v8"] body #app #main .q-v7-provider-card p{font-size:12px!important;line-height:1.55!important;overflow-wrap:anywhere!important}
 html[data-production-system="v8"] body #app #main .q-v7-provider-card a{font-size:11px!important}
 html[data-production-system="v8"] body #app #main .q-v7-provider-card .q-status:not(:where(.q-about-v2-page *)){max-width:100%!important;white-space:normal!important;text-align:center!important}
-html[data-production-system="v8"] body #app #main :where(.q-governed-unavailable,.q-governed-trust-center,.q-platform-readiness-v6,.q-canonical-rescue) .q-record-row:not(:where(.q-verify-page,.q-verify-page *)){
+html[data-production-system="v8"] body #app #main :where(.q-governed-unavailable,.q-governed-trust-center,.q-platform-readiness-v6,.q-canonical-rescue) .q-record-row{
   border:0!important;border-radius:14px!important;padding:14px!important;background:rgba(255,255,255,.032)!important;box-shadow:inset 0 1px rgba(255,255,255,.05)!important;
 }
 html[data-production-system="v8"] body #app #main :where(.q-governed-unavailable,.q-governed-trust-center,.q-platform-readiness-v6,.q-canonical-rescue) .q-record-row small{font-size:12px!important;line-height:1.55!important;overflow-wrap:anywhere!important}
