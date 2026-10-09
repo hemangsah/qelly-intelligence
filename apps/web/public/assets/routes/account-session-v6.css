@@ -1,11 +1,11 @@
 
 html[data-product-surface="production"] body #app #main .q-v6-account-page{--account-wine:126,28,58;--account-surface:rgba(255,255,255,.035)}
-html[data-product-surface="production"] body #app #main .q-v6-account-page .q-panel{border:0;border-radius:0;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018) 52%,rgba(var(--account-wine),.09));box-shadow:none;overflow:hidden}
+html[data-product-surface="production"] body #app #main .q-v6-account-page .q-panel{border:0;border-radius:0;background:transparent;box-shadow:none;overflow:hidden}
 html[data-product-surface="production"] body #app #main .q-v6-account-hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,.8fr);gap:16px;margin-bottom:16px}
 html[data-product-surface="production"] body #app #main .q-v6-identity-card,html[data-product-surface="production"] body #app #main .q-v6-security-card{padding:24px;min-height:190px}
-html[data-product-surface="production"] body #app #main .q-v6-identity-card{display:flex;flex-direction:column;justify-content:space-between;background:radial-gradient(circle at 10% 10%,rgba(var(--account-wine),.24),transparent 50%),linear-gradient(145deg,rgba(255,255,255,.06),rgba(255,255,255,.018))!important}
+html[data-product-surface="production"] body #app #main .q-v6-identity-card{display:flex;flex-direction:column;justify-content:space-between;background:transparent}
 html[data-product-surface="production"] body #app #main .q-v6-identity-primary{display:flex;align-items:center;gap:18px}
-html[data-product-surface="production"] body #app #main .q-v6-avatar{width:62px;height:62px;border-radius:0;display:grid;place-items:center;background:linear-gradient(145deg,#8d2046,#3b1026);box-shadow:none;font-weight:850;font-size:20px;color:#fff}
+html[data-product-surface="production"] body #app #main .q-v6-avatar{width:62px;height:62px;border-radius:0;display:grid;place-items:center;background:transparent;box-shadow:none;font-weight:850;font-size:20px;color:#fff}
 html[data-product-surface="production"] body #app #main .q-v6-identity-primary h2{margin:2px 0 5px;font-size:clamp(20px,2vw,26px);letter-spacing:-.03em}
 html[data-product-surface="production"] body #app #main .q-v6-identity-primary p:not(.q-eyebrow){margin:0;color:var(--q-text-muted,#a8acb6);font-size:13px}
 html[data-product-surface="production"] body #app #main .q-v6-identity-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
