@@ -107,7 +107,7 @@ html[data-production-system="v8"] #main :where(
   .q-it-provider,.q-it-news-grid article,.q-category-card,.q-venue-card,.q-dex-card,
   .q-provider-card,.q-research-card,.q-notification-card,.q-article-shell,.q-asset-hero,
   .q-persona-card,.q-market-pulse-card,.q-feature-card,.q-calculator-card,.q-saved-card
-):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-cv-page *)){
+):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-cv-page *)):not(:where(.q-v6-account-page,.q-v6-account-page *)){
   border-radius:var(--q-modern-radius-lg)!important;
   transition:transform var(--q-modern-standard) var(--q-modern-ease),box-shadow var(--q-modern-standard) var(--q-modern-ease),border-color var(--q-modern-standard) ease,background var(--q-modern-standard) ease!important;
 }
@@ -120,7 +120,7 @@ html[data-production-system="v8"] #main :where(
   border-color:color-mix(in srgb,var(--q-accent) 38%,var(--q-border))!important;
   box-shadow:var(--q-modern-shadow-hover)!important;
 }
-html[data-production-system="v8"] #main :where(.q-panel,.q-it-guide,.q-it-panel,.q-auth-card,.q-access-gate):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-cv-page *)){box-shadow:var(--q-modern-shadow)!important}
+html[data-production-system="v8"] #main :where(.q-panel,.q-it-guide,.q-it-panel,.q-auth-card,.q-access-gate):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-cv-page *)):not(:where(.q-v6-account-page,.q-v6-account-page *)){box-shadow:var(--q-modern-shadow)!important}
 html[data-production-system="v8"] #main .q-it-hero:not(:where(.q-v6-account-page,.q-v6-account-page *)){border-radius:var(--q-modern-radius-xl)!important;box-shadow:0 34px 90px color-mix(in srgb,#000 38%,transparent),inset 0 1px 0 rgba(255,255,255,.08)!important}
 html[data-production-system="v8"] #main .q-it-tabs{border-radius:999px!important;padding:6px!important;box-shadow:0 14px 36px color-mix(in srgb,#000 24%,transparent)!important}
 html[data-production-system="v8"] #main .q-it-provider__mark{border-radius:15px!important;transition:transform var(--q-modern-standard) var(--q-modern-ease),box-shadow var(--q-modern-standard) ease!important}
@@ -464,7 +464,7 @@ html[data-production-system="v8"] body #app #main :where(.q-button--primary,.q-b
   html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero,.q-auth-hero,.q-verify-hero,.q-asset-hero):not(:where(.q-about-v2-page *)):not(:where(.q-v6-account-page,.q-v6-account-page *)){border-radius:var(--q-modern-radius-lg)!important;padding:22px!important}
   html[data-production-system="v8"] body #app header.q-product-header{border-radius:0 0 var(--q-modern-radius-md) var(--q-modern-radius-md)!important}
   html[data-production-system="v8"] #main .q-it-tabs{border-radius:var(--q-modern-radius-md)!important}
-  html[data-production-system="v8"] #main :where(.q-panel,.q-it-hero,.q-it-guide,.q-it-panel,.q-auth-card,.q-access-gate):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-cv-page *)){border-radius:var(--q-modern-radius-md)!important}
+  html[data-production-system="v8"] #main :where(.q-panel,.q-it-hero,.q-it-guide,.q-it-panel,.q-auth-card,.q-access-gate):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-cv-page *)):not(:where(.q-v6-account-page,.q-v6-account-page *)){border-radius:var(--q-modern-radius-md)!important}
 }
 
 @media(prefers-reduced-motion:reduce){
