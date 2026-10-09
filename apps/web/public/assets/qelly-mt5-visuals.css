@@ -1,36 +1,49 @@
-.q-mt5-report{display:grid;gap:22px;padding-block:20px;color:var(--text,#e7edf4)}
-.q-mt5-report header h3{font-size:clamp(20px,2.5vw,28px);line-height:1.25;margin:6px 0}
-.q-mt5-report header p{font-size:14px;line-height:1.5;color:var(--text-muted,#a7b5c2)}
-.q-mt5-eyebrow{font-size:12px;font-weight:750;letter-spacing:.11em;text-transform:uppercase}
-.q-mt5-disclosure{font-size:14px;line-height:1.65;padding:14px 18px;border-inline-start:4px solid var(--warning,#dca842);background:var(--surface-elevated,rgba(255,255,255,.06))}
-.q-mt5-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
-.q-mt5-kpi{padding:17px;border:1px solid var(--border,#637487);border-radius:13px;background:var(--surface,#17232e)}
-.q-mt5-kpi span,.q-mt5-kpi small{display:block;font-size:12px;line-height:1.5;color:var(--text-muted,#acb8c4)}
-.q-mt5-kpi strong{display:block;margin:7px 0;font-size:clamp(21px,2vw,29px);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-.q-mt5-charts,.q-mt5-breakdowns{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px}
-.q-mt5-chart,.q-mt5-breakdown,.q-mt5-statistical,.q-mt5-notes{min-width:0;padding:17px;border:1px solid var(--border,#637487);border-radius:14px;background:var(--surface,#17232e)}
-.q-mt5-chart{margin:0}.q-mt5-chart svg{display:block;width:100%;height:auto}
-.q-mt5-line{fill:none;stroke:var(--accent,#79a7f3);stroke-width:2;vector-effect:non-scaling-stroke}.q-mt5-line-loss{stroke:var(--negative,#df6972)}.q-mt5-zero-line{stroke:var(--border,#778798);stroke-width:1;stroke-dasharray:5 4}
-.q-mt5-chart figcaption,.q-mt5-limit{font-size:13px;line-height:1.55;color:var(--text-muted,#acb8c4)}
-.q-mt5-breakdown{overflow-x:auto}.q-mt5-breakdown h4,.q-mt5-statistical h4,.q-mt5-notes h4{font-size:16px;margin:0 0 12px}
-.q-mt5-breakdown table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
-.q-mt5-breakdown th,.q-mt5-breakdown td{padding:10px 7px;border-bottom:1px solid var(--border,#778798);text-align:right;white-space:nowrap}
-.q-mt5-breakdown th:first-child{text-align:left}.q-mt5-small-n{color:var(--warning,#dca842);font-size:11px}
-.q-mt5-statistical p,.q-mt5-notes li{font-size:13px;line-height:1.65}.q-mt5-notes ul{padding-inline-start:18px}
-@media(max-width:620px){.q-mt5-charts,.q-mt5-breakdowns{grid-template-columns:minmax(0,1fr)}.q-mt5-chart,.q-mt5-breakdown{padding:12px}}
-@media(prefers-reduced-motion:reduce){.q-mt5-report *{animation:none!important;transition:none!important}}
 
-/* Bounded report-grounded diagnostics; uses existing semantic dark/light tokens. */
-.q-mt5-diagnostics{display:grid;gap:14px;min-width:0;padding:18px;border:1px solid var(--border,#637487);border-radius:14px;background:var(--surface,#17232e)}
-.q-mt5-diagnostics header h4{font-size:clamp(19px,2.1vw,24px);margin:4px 0 8px}
-.q-mt5-diagnostics header p,.q-mt5-diagnostics details,.q-mt5-diagnostic-boundary{color:var(--text-muted,#a7b5c2);font-size:13px;line-height:1.65}
-.q-mt5-diagnostic-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
-.q-mt5-diagnostic-card{min-width:0;padding:16px;border:1px solid var(--border,#637487);border-radius:12px;background:var(--surface-elevated,rgba(255,255,255,.055));overflow-wrap:anywhere}
-.q-mt5-diagnostic-card h5{font-size:15px;line-height:1.4;margin:8px 0}.q-mt5-diagnostic-card p{margin:8px 0;font-size:13px;line-height:1.55}.q-mt5-diagnostic-card small{display:block;font-size:12px;line-height:1.6;color:var(--text-muted,#a7b5c2)}
-.q-mt5-diagnostic-state{display:inline-block;border:1px solid var(--border,#637487);padding:4px 8px;border-radius:999px;font-size:10px;letter-spacing:.05em}
-.q-mt5-diagnostic-value{font-size:clamp(21px,2.5vw,29px)!important;font-weight:700;font-variant-numeric:tabular-nums}
-.q-mt5-diagnostics summary{cursor:pointer;padding:8px 0;font-weight:650;color:var(--text,#e7edf4)}
-.q-mt5-diagnostics summary:focus-visible{outline:2px solid var(--accent,#79a7f3);outline-offset:3px}
-.q-mt5-diagnostics ul{padding-left:20px}.q-mt5-diagnostics li{margin-block:5px}
-.q-mt5-diagnostic-boundary{padding:13px 15px;border-inline-start:3px solid var(--warning,#dca842);background:var(--surface-elevated,rgba(255,255,255,.045))}
-@media(max-width:620px){.q-mt5-diagnostics{padding:12px}.q-mt5-diagnostic-grid{grid-template-columns:minmax(0,1fr)}}
+html[data-product-surface="production"] body #app #main .q-mt5-report{display:grid;gap:22px;padding-block:20px;color:var(--q-text)}
+html[data-product-surface="production"] body #app #main .q-mt5-report header h3{font-size:clamp(20px,2.5vw,28px);line-height:1.25;margin:6px 0}
+html[data-product-surface="production"] body #app #main .q-mt5-report header p{font-size:14px;line-height:1.5;color:var(--q-text-secondary)}
+html[data-product-surface="production"] body #app #main .q-mt5-eyebrow{font-size:12px;font-weight:750;letter-spacing:.11em;text-transform:uppercase}
+html[data-product-surface="production"] body #app #main .q-mt5-disclosure{font-size:14px;line-height:1.65;padding:14px 18px;border-inline-start:0;background:transparent}
+html[data-product-surface="production"] body #app #main .q-mt5-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+html[data-product-surface="production"] body #app #main .q-mt5-kpi{padding:17px;border:0;border-radius:0;background:transparent}
+html[data-product-surface="production"] body #app #main .q-mt5-kpi span,html[data-product-surface="production"] body #app #main .q-mt5-kpi small{display:block;font-size:12px;line-height:1.5;color:var(--q-text-secondary)}
+html[data-product-surface="production"] body #app #main .q-mt5-kpi strong{display:block;margin:7px 0;font-size:clamp(21px,2vw,29px);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+html[data-product-surface="production"] body #app #main .q-mt5-charts,html[data-product-surface="production"] body #app #main .q-mt5-breakdowns{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px}
+html[data-product-surface="production"] body #app #main .q-mt5-chart,html[data-product-surface="production"] body #app #main .q-mt5-breakdown,html[data-product-surface="production"] body #app #main .q-mt5-statistical,html[data-product-surface="production"] body #app #main .q-mt5-notes{min-width:0;padding:17px;border:0;border-radius:0;background:transparent}
+html[data-product-surface="production"] body #app #main .q-mt5-chart{margin:0}
+html[data-product-surface="production"] body #app #main .q-mt5-chart svg{display:block;width:100%;height:auto}
+html[data-product-surface="production"] body #app #main .q-mt5-line{fill:none;stroke:var(--q-focus);stroke-width:2;vector-effect:non-scaling-stroke}
+html[data-product-surface="production"] body #app #main .q-mt5-line-loss{stroke:var(--negative,#df6972)}
+html[data-product-surface="production"] body #app #main .q-mt5-zero-line{stroke:var(--border,#778798);stroke-width:1;stroke-dasharray:5 4}
+html[data-product-surface="production"] body #app #main .q-mt5-chart figcaption,html[data-product-surface="production"] body #app #main .q-mt5-limit{font-size:13px;line-height:1.55;color:var(--q-text-secondary)}
+html[data-product-surface="production"] body #app #main .q-mt5-breakdown{overflow-x:auto}
+html[data-product-surface="production"] body #app #main .q-mt5-breakdown h4,html[data-product-surface="production"] body #app #main .q-mt5-statistical h4,html[data-product-surface="production"] body #app #main .q-mt5-notes h4{font-size:16px;margin:0 0 12px}
+html[data-product-surface="production"] body #app #main .q-mt5-breakdown table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+html[data-product-surface="production"] body #app #main .q-mt5-breakdown th,html[data-product-surface="production"] body #app #main .q-mt5-breakdown td{padding:10px 7px;border-bottom:0;text-align:right;white-space:nowrap}
+html[data-product-surface="production"] body #app #main .q-mt5-breakdown th:first-child{text-align:left}
+html[data-product-surface="production"] body #app #main .q-mt5-small-n{color:var(--warning,#dca842);font-size:12px}
+html[data-product-surface="production"] body #app #main .q-mt5-statistical p,html[data-product-surface="production"] body #app #main .q-mt5-notes li{font-size:13px;line-height:1.65}
+html[data-product-surface="production"] body #app #main .q-mt5-notes ul{padding-inline-start:18px}
+@media(max-width:620px){
+html[data-product-surface="production"] body #app #main .q-mt5-charts,html[data-product-surface="production"] body #app #main .q-mt5-breakdowns{grid-template-columns:minmax(0,1fr)}
+html[data-product-surface="production"] body #app #main .q-mt5-chart,html[data-product-surface="production"] body #app #main .q-mt5-breakdown{padding:12px}}
+@media(prefers-reduced-motion:reduce){
+html[data-product-surface="production"] body #app #main .q-mt5-report *{animation:none!important;transition:none!important}}
+html[data-product-surface="production"] body #app #main .q-mt5-diagnostics{display:grid;gap:14px;min-width:0;padding:18px;border:0;border-radius:0;background:transparent}
+html[data-product-surface="production"] body #app #main .q-mt5-diagnostics header h4{font-size:clamp(19px,2.1vw,24px);margin:4px 0 8px}
+html[data-product-surface="production"] body #app #main .q-mt5-diagnostics header p,html[data-product-surface="production"] body #app #main .q-mt5-diagnostics details,html[data-product-surface="production"] body #app #main .q-mt5-diagnostic-boundary{color:var(--q-text-secondary);font-size:13px;line-height:1.65}
+html[data-product-surface="production"] body #app #main .q-mt5-diagnostic-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
+html[data-product-surface="production"] body #app #main .q-mt5-diagnostic-card{min-width:0;padding:16px;border:0;border-radius:0;background:transparent;overflow-wrap:anywhere}
+html[data-product-surface="production"] body #app #main .q-mt5-diagnostic-card h5{font-size:15px;line-height:1.4;margin:8px 0}
+html[data-product-surface="production"] body #app #main .q-mt5-diagnostic-card p{margin:8px 0;font-size:13px;line-height:1.55}
+html[data-product-surface="production"] body #app #main .q-mt5-diagnostic-card small{display:block;font-size:12px;line-height:1.6;color:var(--q-text-secondary)}
+html[data-product-surface="production"] body #app #main .q-mt5-diagnostic-state{display:inline-block;border:0;padding:4px 8px;border-radius:0;font-size:12px;letter-spacing:.05em}
+html[data-product-surface="production"] body #app #main .q-mt5-diagnostic-value{font-size:clamp(21px,2.5vw,29px)!important;font-weight:700;font-variant-numeric:tabular-nums}
+html[data-product-surface="production"] body #app #main .q-mt5-diagnostics summary{cursor:pointer;padding:8px 0;font-weight:650;color:var(--q-text)}
+html[data-product-surface="production"] body #app #main .q-mt5-diagnostics summary:focus-visible{outline:2px solid var(--q-focus);outline-offset:3px}
+html[data-product-surface="production"] body #app #main .q-mt5-diagnostics ul{padding-left:20px}
+html[data-product-surface="production"] body #app #main .q-mt5-diagnostics li{margin-block:5px}
+html[data-product-surface="production"] body #app #main .q-mt5-diagnostic-boundary{padding:13px 15px;border-inline-start:0;background:transparent}
+@media(max-width:620px){
+html[data-product-surface="production"] body #app #main .q-mt5-diagnostics{padding:12px}
+html[data-product-surface="production"] body #app #main .q-mt5-diagnostic-grid{grid-template-columns:minmax(0,1fr)}}
