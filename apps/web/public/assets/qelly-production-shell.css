@@ -392,7 +392,7 @@ body {
 .q-choice-row:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)),
 .q-context-block:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)),
 .q-empty-state:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)),
-[class*="-card"]:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)){
+[class*="-card"]:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)){
   border-color: var(--q-border) !important;
   background: var(--q-surface) !important;
   background-image: none !important;
@@ -404,7 +404,7 @@ body {
 .q-card:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)),
 .q-kpi:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)),
 .q-empty-state:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)),
-[class*="-card"]:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)){ border-radius: 12px !important; }
+[class*="-card"]:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)){ border-radius: 12px !important; }
 
 .q-panel-head:not(:where(.q-v7-public-market *)):not(:where(.q-verify-page,.q-verify-page *)),
 .q-card > header:not(:where(.q-v7-public-market *)):not(:where(.q-verify-page,.q-verify-page *)),
