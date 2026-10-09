@@ -104,6 +104,8 @@ jobs:
           name: qelly-account-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/account-editorial-e2e
           if-no-files-found: warn
+      - name: Verify Decision selected-range interaction
+        run: node scripts/qelly-decision-range-selection-e2e.mjs
       - name: Verify open About presentation and existing capability truth
         run: node scripts/qelly-about-editorial-e2e.mjs
       - name: Upload focused About editorial evidence
@@ -234,6 +236,15 @@ jobs:
           name: qelly-feature-drawer-state-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/feature-drawer-state-e2e
           if-no-files-found: warn
+      - name: Verify chart-first Decision presentation and expert depth
+        run: node scripts/qelly-decision-editorial-e2e.mjs
+      - name: Upload focused Decision editorial evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-decision-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/decision-editorial-e2e
+          if-no-files-found: warn
       - name: Verify static evidence table clearance and keyboard Chat access
         run: node scripts/qelly-static-evidence-clearance-e2e.mjs
       - name: Upload focused static evidence clearance
@@ -322,8 +333,6 @@ jobs:
           console.log(JSON.stringify({expectedRoutes,expectedRenders,routeCount:manifest.routeCount,renderCount:manifest.renderCount,pngs:pngs.length,accessibilityChecks:accessibility.checks,accessibilityStatus:accessibility.status,archives,archiveSize,status:manifest.status},null,2));
           if(!ok)process.exit(1);
           NODE
-      - name: Verify Decision selected-range interaction
-        run: node scripts/qelly-decision-range-selection-e2e.mjs
       - name: Upload focused header interaction evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

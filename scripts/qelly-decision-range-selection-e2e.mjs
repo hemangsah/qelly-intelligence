@@ -629,11 +629,17 @@ const exerciseInitialLoading=async(width,appearance)=>{
         const luminance=value=>rgb(value).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((total,v,i)=>total+v*[.2126,.7152,.0722][i],0);
         return ['.q-dpg-controls','.q-dpg-view','.q-dpg-setup-finder','.q-dpg-cf-setup','.q-dpg-stage'].map(selector=>{
           const element=document.querySelector(selector),style=getComputedStyle(element);
-          const background=luminance(style.backgroundColor),foreground=luminance(style.color);
-          return {selector,background:style.backgroundColor,gradient:style.backgroundImage,contrast:(Math.max(background,foreground)+.05)/(Math.min(background,foreground)+.05)};
+          // A transparent box exposes its painted ancestors; transparent black is not its visible canvas.
+          const rgba=value=>{const parts=value.match(/[\d.]+/g).map(Number);return [...parts.slice(0,3),parts.length>3?parts[3]:1];};
+          const layers=[];let ancestor=element,visibleGradient=false;
+          while(ancestor){const ancestorStyle=getComputedStyle(ancestor),color=rgba(ancestorStyle.backgroundColor);layers.push(color);if(ancestorStyle.backgroundImage!=='none')visibleGradient=true;if(color[3]===1)break;ancestor=ancestor.parentElement;}
+          let painted=[255,255,255];for(const layer of layers.reverse())painted=painted.map((value,index)=>layer[index]*layer[3]+value*(1-layer[3]));
+          const text=rgba(style.color),paintedText=painted.map((value,index)=>text[index]*text[3]+value*(1-text[3])),effectiveBackground='rgb('+painted.join(',')+')';
+          const background=luminance(effectiveBackground),foreground=luminance('rgb('+paintedText.join(',')+')');
+          return {selector,background:effectiveBackground,directBackground:style.backgroundColor,gradient:style.backgroundImage,visibleGradient,alphaComposited:true,contrast:(Math.max(background,foreground)+.05)/(Math.min(background,foreground)+.05)};
         });
       });
-      if(lightPanelContrast.some(panel=>panel.gradient!=='none'||panel.contrast<4.5))throw new Error('Light Decision evidence panel retains dark background or insufficient text contrast');
+      if(lightPanelContrast.some(panel=>panel.gradient!=='none'||panel.visibleGradient||panel.contrast<4.5))throw new Error('Light Decision evidence panel retains dark background or insufficient text contrast');
       const selectedModeSubtitleReadable=await page.evaluate(()=>{const tab=document.querySelector('.q-dpg-ui-mode[aria-selected="true"]');return getComputedStyle(tab.querySelector('small')).color===getComputedStyle(tab).color;});
       if(!selectedModeSubtitleReadable)throw new Error('Selected Decision mode subtitle does not inherit its readable selected foreground');
       await page.screenshot({path:path.join(outputDir,'light-panels-'+width+'.png'),fullPage:true});

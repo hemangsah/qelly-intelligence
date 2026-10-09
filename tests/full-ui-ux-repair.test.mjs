@@ -117,7 +117,7 @@ test('route fallbacks keep URL ownership truthful and dynamic metadata readable'
   assert.match(runtime, /function applyAccessibilityFloor\(\)/);
   assert.match(runtime, /document\.querySelectorAll\('link\[rel="stylesheet"\]'\)/);
   assert.match(runtime, /size<12\)element\.classList\.add\('q-v8-text-floor'\)/);
-  assert.ok(convergence.includes('.q-v8-text-floor:not(.sr-only):not(:where(.q-v6-account-page .q-page-head p,.q-v6-account-page .q-panel-head p)){font-size:12px!important'));
+  assert.ok(convergence.includes(".q-v8-text-floor:not(.sr-only):not(:where(.q-v6-account-page .q-page-head p,.q-v6-account-page .q-panel-head p)):not(:where(.q-dpg-hero__actions *)){font-size:12px!important"));
   assert.match(convergence, /q-v8-technical-identifiers>summary\{min-height:44px!important/);
   assert.match(convergence, /\.q-filter-chip\{min-width:44px!important/);
   assert.match(convergence, /q-v53-strategy-tools \.q-verify-upload-card code\)\{font-size:12px!important/);
@@ -163,7 +163,7 @@ test('legacy production polish remains loaded and motion-safe outside source-own
   assert.match(css, /--q-modern-radius-xl:32px/);
   assert.match(css, /header\.q-product-header[\s\S]*border-radius:0 0 var\(--q-modern-radius-lg\)/);
   assert.match(css, /:where\(button:not\(\.q-product-brand__mark\):not\(\.q-ai-launcher\),a\.q-button,\[role="button"\],\[role="tab"\]\)[\s\S]*border-radius:999px!important/);
-  assert.ok(css.includes('#main .q-page-actions .q-button:not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)){border-radius:999px!important'));
+  assert.ok(css.includes("#main .q-page-actions .q-button:not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-dpg-page *)){border-radius:999px!important"));
   assert.match(css, /\.q-product-search\{[\s\S]*border-radius:999px!important/);
   assert.match(css, /Designer pass: normalize every surviving legacy route family/);
   assert.match(css, /\.q-mn-card,[\s\S]*\.q-v7-provider-card,[\s\S]*\.q-mi-kpi/);
