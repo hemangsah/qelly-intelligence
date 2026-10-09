@@ -160,13 +160,13 @@ html[data-production-system="v8"] body #app #main :where(
   .q-result-priority,.q-indicator-mini-chart,.q-verify-hero,.q-v53-verify-workbench,
   [class$="-card"],[class*="-card "],[class$="-panel"],[class*="-panel "],
   [class$="-hero"],[class*="-hero "],[class$="-kpi"],[class*="-kpi "]
-):not(:where(.q-dx-page *)):not(:where(.q-dossier *)):not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)){
+):not(:where(.q-dx-page *)):not(:where(.q-dossier *)):not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)){
   border-radius:var(--q-modern-radius-lg)!important;
   border-color:var(--q-modern-hairline)!important;
   box-shadow:0 14px 42px color-mix(in srgb,#000 17%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 5%,transparent)!important;
   transition:transform var(--q-modern-standard) var(--q-modern-ease),box-shadow var(--q-modern-standard) var(--q-modern-ease),border-color var(--q-modern-fast) ease,background-color var(--q-modern-fast) ease!important;
 }
-html[data-production-system="v8"] body #app #main :where(.q-it-hero,.q-verify-hero,.q-auth-hero,.q-asset-hero,.q-home-hero){
+html[data-production-system="v8"] body #app #main :where(.q-it-hero,.q-verify-hero,.q-auth-hero,.q-asset-hero,.q-home-hero):not(:where(.q-v6-account-page,.q-v6-account-page *)){
   border-radius:var(--q-modern-radius-xl)!important;
 }
 html[data-production-system="v8"] body #app #main :where(.q-home-section,.q-about-section,.q-product-directory):not(:where(.q-about-v2-page *)){
@@ -394,7 +394,7 @@ html[data-production-system="v8"] body #app #main>.q-page::before{
   background:linear-gradient(128deg,color-mix(in srgb,var(--q-accent) 11%,transparent),transparent 56%);
   mask-image:linear-gradient(#000,transparent);
 }
-html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero,.q-auth-hero,.q-verify-hero,.q-asset-hero):not(:where(.q-about-v2-page *)){
+html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero,.q-auth-hero,.q-verify-hero,.q-asset-hero):not(:where(.q-about-v2-page *)):not(:where(.q-v6-account-page,.q-v6-account-page *)){
   position:relative;
   overflow:hidden;
   border:1px solid color-mix(in srgb,var(--q-accent) 20%,var(--q-border))!important;
@@ -405,7 +405,7 @@ html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero
     linear-gradient(135deg,color-mix(in srgb,var(--q-surface) 91%,transparent),color-mix(in srgb,var(--q-surfacealt) 86%,transparent))!important;
   box-shadow:0 26px 70px color-mix(in srgb,#000 21%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 13%,transparent)!important;
 }
-html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero,.q-auth-hero,.q-verify-hero,.q-asset-hero)::after{
+html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero,.q-auth-hero,.q-verify-hero,.q-asset-hero):not(:where(.q-v6-account-page,.q-v6-account-page *))::after{
   content:"";
   position:absolute;
   width:180px;
@@ -417,7 +417,7 @@ html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero
   box-shadow:0 0 0 32px color-mix(in srgb,var(--q-accent) 5%,transparent),0 0 0 64px color-mix(in srgb,var(--q-accent) 3%,transparent);
   pointer-events:none;
 }
-html[data-production-system="v8"] body #app #main :where(.q-panel,.q-v7-chart-panel,.q-v7-reference-panel,.q-mn-panel,.q-it-panel,.q-auth-card,.q-access-gate):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)){
+html[data-production-system="v8"] body #app #main :where(.q-panel,.q-v7-chart-panel,.q-v7-reference-panel,.q-mn-panel,.q-it-panel,.q-auth-card,.q-access-gate):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)){
   background:
     linear-gradient(150deg,color-mix(in srgb,var(--q-surface) 94%,transparent),color-mix(in srgb,var(--q-surfacealt) 88%,transparent))!important;
   box-shadow:0 18px 50px color-mix(in srgb,#000 19%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 9%,transparent)!important;
@@ -444,7 +444,7 @@ html[data-production-system="v8"] body #app #main :where(.q-button--primary,.q-b
   box-shadow:0 12px 26px color-mix(in srgb,var(--q-accent) 28%,transparent)!important;
 }
 @media(hover:hover) and (pointer:fine){
-  html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero,.q-auth-hero,.q-verify-hero,.q-asset-hero):hover:not(:where(.q-about-v2-page *)){
+  html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero,.q-auth-hero,.q-verify-hero,.q-asset-hero):hover:not(:where(.q-about-v2-page *)):not(:where(.q-v6-account-page,.q-v6-account-page *)){
     border-color:color-mix(in srgb,var(--q-accent) 38%,var(--q-border))!important;
     box-shadow:0 30px 76px color-mix(in srgb,#000 25%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 16%,transparent)!important;
   }
@@ -461,7 +461,7 @@ html[data-production-system="v8"] body #app #main :where(.q-button--primary,.q-b
 }
 
 @media(max-width:768px){
-  html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero,.q-auth-hero,.q-verify-hero,.q-asset-hero):not(:where(.q-about-v2-page *)){border-radius:var(--q-modern-radius-lg)!important;padding:22px!important}
+  html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero,.q-auth-hero,.q-verify-hero,.q-asset-hero):not(:where(.q-about-v2-page *)):not(:where(.q-v6-account-page,.q-v6-account-page *)){border-radius:var(--q-modern-radius-lg)!important;padding:22px!important}
   html[data-production-system="v8"] body #app header.q-product-header{border-radius:0 0 var(--q-modern-radius-md) var(--q-modern-radius-md)!important}
   html[data-production-system="v8"] #main .q-it-tabs{border-radius:var(--q-modern-radius-md)!important}
   html[data-production-system="v8"] #main :where(.q-panel,.q-it-hero,.q-it-guide,.q-it-panel,.q-auth-card,.q-access-gate):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)){border-radius:var(--q-modern-radius-md)!important}
