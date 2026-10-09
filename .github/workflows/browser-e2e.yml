@@ -104,6 +104,17 @@ jobs:
           name: qelly-account-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/account-editorial-e2e
           if-no-files-found: warn
+      - name: Verify source-owned DEX controls and governed research interactions
+        run: node scripts/qelly-dex-workstation-e2e.mjs
+        env:
+          QELLY_DEX_CONTROL_MATRIX: true
+      - name: Upload focused DEX control evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-dex-controls-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/dex-control-e2e
+          if-no-files-found: warn
       - name: Verify Decision selected-range interaction
         run: node scripts/qelly-decision-range-selection-e2e.mjs
       - name: Verify open About presentation and existing capability truth

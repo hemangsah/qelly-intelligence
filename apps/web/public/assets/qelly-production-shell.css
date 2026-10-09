@@ -354,12 +354,12 @@ body {
 .q-page-actions:not(:where(.q-about-v2-page *)){ gap: 8px !important; }
 
 .q-button,
-#main button:not(.q-universe-node):not(.q-product-menu) {
+#main button:not(.q-universe-node):not(.q-product-menu):not(:where(.q-dx-page,.q-dx-page *)) {
   min-height: 36px;
   border-radius: 8px;
 }
 
-.q-button:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)){
+.q-button:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-dx-page,.q-dx-page *)){
   padding: 0 14px !important;
   border: 1px solid var(--q-border) !important;
   background: var(--q-surface) !important;
