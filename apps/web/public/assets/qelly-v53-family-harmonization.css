@@ -114,7 +114,7 @@ html[data-v53-family-harmonization="active"] [data-v53-cloud-presentation="exist
 }
 
 /* Readability floor for dense evidence metadata on every governed family. */
-html[data-v53-family-harmonization="active"] #main .q-page-head>div>p:not(.q-eyebrow):not(:where(.q-v7-public-market p:not(.q-eyebrow))):not(:where(.q-about-v2-page *)){font-size:12px!important;line-height:1.45!important}
+html[data-v53-family-harmonization="active"] #main .q-page-head>div>p:not(.q-eyebrow):not(:where(.q-v7-public-market p:not(.q-eyebrow))):not(:where(.q-about-v2-page *)):not(:where(.q-v6-account-page,.q-v6-account-page *)){font-size:12px!important;line-height:1.45!important}
 html[data-v53-family-harmonization="active"] #main .q-panel-head p:not(:where(.q-v6-account-page,.q-v6-account-page *)){font-size:11px!important;line-height:1.4!important}
 html[data-v53-family-harmonization="active"] #main :where(.q-eyebrow,.q-status,.q-chip,.q-badge,.q-kpi-label):not(:where(.q-about-v2-page *)){font-size:10.5px!important;line-height:1.25!important}
 
@@ -127,8 +127,8 @@ html[data-v53-family-harmonization="active"] #main :where(.q-eyebrow,.q-status,.
   }
   html[data-v53-family-harmonization="active"] #main{overflow-x:hidden;overflow-x:clip}
   html[data-v53-family-harmonization="active"] #main :where(.q-page,.q-panel,.q-card,.q-kpi,.q-state-banner,.q-empty-state,.q-error-state){min-width:0;max-width:100%}
-  html[data-v53-family-harmonization="active"] #main :where(p,li,dt,dd,td,th,label,small):not(:where(.q-dossier *)):not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market p:not(.q-eyebrow))){font-size:max(12px,1em)!important;line-height:1.45!important}
-  html[data-v53-family-harmonization="active"] #main .q-page-head>div>p:not(.q-eyebrow):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market p:not(.q-eyebrow))){font-size:13px!important;line-height:1.5!important}
+  html[data-v53-family-harmonization="active"] #main :where(p,li,dt,dd,td,th,label,small):not(:where(.q-dossier *)):not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market p:not(.q-eyebrow))):not(:where(.q-v6-account-page,.q-v6-account-page *)){font-size:max(12px,1em)!important;line-height:1.45!important}
+  html[data-v53-family-harmonization="active"] #main .q-page-head>div>p:not(.q-eyebrow):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market p:not(.q-eyebrow))):not(:where(.q-v6-account-page,.q-v6-account-page *)){font-size:13px!important;line-height:1.5!important}
   html[data-v53-family-harmonization="active"] #main .q-panel-head p:not(:where(.q-v6-account-page,.q-v6-account-page *)){font-size:12px!important;line-height:1.45!important}
   html[data-v53-family-harmonization="active"] #main :where(.q-eyebrow,.q-status,.q-chip,.q-badge,.q-kpi-label,.q-truth-pill,.q-worldclass-truth-chip):not(:where(.q-about-v2-page *)){font-size:11px!important;line-height:1.25!important}
   html[data-v53-family-harmonization="active"] #main :where(.q-button,button:not([hidden]),summary,[role="button"],[role="tab"]):not(:where(.q-about-v2-page *)){min-height:44px!important}
