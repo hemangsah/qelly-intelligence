@@ -56,8 +56,8 @@ test('final repair stylesheet is loaded last and restores accessible feature con
   assert.match(style,/color:#fff!important/);
   assert.match(style,/background:#1b1519!important/);
   assert.match(style,/\[hidden\]\{display:none!important\}/);
-  assert.match(route,/qelly-symbol\.svg/);
-  assert.match(route,/Open market overview/);
+  assert.match(route,/Find your next research step/);
+  assert.match(route,/Explore Market Pulse/);
 });
 
 test('authoritative app route renders market recovery without a second global owner',async()=>{

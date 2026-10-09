@@ -1,0 +1,45 @@
+html[data-product-surface="production"] body #app #main .q-feature-index{display:grid;gap:64px;max-width:1440px;margin:0 auto;padding:40px clamp(16px,3vw,44px) 120px;color:var(--q-text);font:400 16px/1.65 var(--q-font-sans)}
+html[data-product-surface="production"] body #app #main .q-feature-index :where(header,section,aside,details,form,dl,dl div,li,a,button,input,select){min-width:0;border:0;border-radius:0;box-shadow:none;background:transparent}
+html[data-product-surface="production"] body #app #main .q-feature-index :where(h1,h2,h3,p,ol,ul,dl,dd){margin:0}
+html[data-product-surface="production"] body #app #main .q-feature-index :where(ol,ul){list-style:none;padding:0}
+html[data-product-surface="production"] body #app #main .q-feature-index [hidden]{display:none}
+html[data-product-surface="production"] body #app #main .q-feature-index h1{font:760 clamp(36px,4.5vw,64px)/1.08 var(--q-font-display);letter-spacing:-.04em;max-width:17ch}
+html[data-product-surface="production"] body #app #main .q-feature-index h2{font:720 clamp(24px,2.5vw,32px)/1.25 var(--q-font-display);letter-spacing:-.02em}
+html[data-product-surface="production"] body #app #main .q-feature-index h3{font:700 20px/1.35 var(--q-font-display)}
+html[data-product-surface="production"] body #app #main .q-feature-index p{color:var(--q-text-secondary);font-size:16px;line-height:1.65;max-width:72ch}
+html[data-product-surface="production"] body #app #main .q-feature-index .q-feature-label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--q-text-secondary)}
+html[data-product-surface="production"] body #app #main .q-feature-intro{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,.6fr);gap:64px}
+html[data-product-surface="production"] body #app #main .q-feature-intro>div,html[data-product-surface="production"] body #app #main .q-feature-intro aside{display:grid;align-content:start;gap:24px}
+html[data-product-surface="production"] body #app #main .q-feature-intro nav{display:flex;flex-wrap:wrap;gap:16px 32px}
+html[data-product-surface="production"] body #app #main .q-feature-index a{color:var(--q-text);text-decoration:none}
+html[data-product-surface="production"] body #app #main .q-feature-intro nav a{display:inline-flex;align-items:center;min-height:44px;text-decoration:underline;text-underline-offset:5px}
+html[data-product-surface="production"] body #app #main .q-feature-index :where(a,button,input,select,summary):focus-visible{outline:2px solid var(--q-focus-ring);outline-offset:3px}
+html[data-product-surface="production"] body #app #main .q-feature-index :where(a,summary):hover{color:var(--q-accent-strong)}
+html[data-product-surface="production"] body #app #main .q-feature-index :where(.q-feature-workflows,.q-feature-directory,.q-feature-principles){display:grid;gap:32px}
+html[data-product-surface="production"] body #app #main .q-feature-index section>header{display:grid;gap:12px}
+html[data-product-surface="production"] body #app #main .q-feature-workflows ol{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px 48px}
+html[data-product-surface="production"] body #app #main .q-feature-workflows li a{display:grid;grid-template-columns:120px minmax(0,1fr) 20px;gap:20px;align-items:start;padding:24px 0;min-height:44px}
+html[data-product-surface="production"] body #app #main .q-feature-workflows li a>span:first-child{font-size:12px;color:var(--q-text-secondary)}
+html[data-product-surface="production"] body #app #main .q-feature-workflows li a>div{display:grid;gap:8px}
+html[data-product-surface="production"] body #app #main .q-feature-directory form{display:grid;grid-template-columns:minmax(0,2fr) minmax(180px,1fr) auto;gap:24px;align-items:end}
+html[data-product-surface="production"] body #app #main .q-feature-directory label{display:grid;gap:8px}
+html[data-product-surface="production"] body #app #main .q-feature-directory label>span{font-size:13px;color:var(--q-text-secondary)}
+html[data-product-surface="production"] body #app #main .q-feature-directory :where(input,select,button){font:inherit;color:var(--q-text);background:var(--q-surface);min-height:44px;width:100%;padding:10px 12px}
+html[data-product-surface="production"] body #app #main .q-feature-directory input::placeholder{color:var(--q-text-secondary);opacity:1}
+html[data-product-surface="production"] body #app #main .q-feature-directory button{cursor:pointer;width:auto}
+html[data-product-surface="production"] body #app #main .q-feature-directory :where(.q-feature-count,.q-feature-empty){font-size:14px}
+html[data-product-surface="production"] body #app #main .q-feature-groups{display:grid;gap:32px}
+html[data-product-surface="production"] body #app #main .q-feature-groups summary{display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:48px;cursor:pointer;font-size:24px;font-weight:700;list-style:none}
+html[data-product-surface="production"] body #app #main .q-feature-groups summary::-webkit-details-marker{display:none}
+html[data-product-surface="production"] body #app #main .q-feature-groups summary>span:last-child{font-size:12px;font-weight:400;color:var(--q-text-secondary)}
+html[data-product-surface="production"] body #app #main .q-feature-groups summary>span:first-child:after{content:' +';color:var(--q-accent-strong)}
+html[data-product-surface="production"] body #app #main .q-feature-groups details[open] summary>span:first-child:after{content:' −'}
+html[data-product-surface="production"] body #app #main .q-feature-groups details>p{margin:12px 0 20px}
+html[data-product-surface="production"] body #app #main .q-feature-groups ul{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 48px}
+html[data-product-surface="production"] body #app #main .q-feature-groups li a{display:flex;justify-content:space-between;gap:24px;min-height:48px;align-items:center;padding:8px 0;font-size:16px}
+html[data-product-surface="production"] body #app #main .q-feature-principles dl{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:32px}
+html[data-product-surface="production"] body #app #main .q-feature-principles dl>div{display:grid;align-content:start;gap:12px}
+html[data-product-surface="production"] body #app #main .q-feature-principles dt{font-weight:700}
+html[data-product-surface="production"] body #app #main .q-feature-principles dd{color:var(--q-text-secondary);font-size:16px}
+@media(max-width:1000px){html[data-product-surface="production"] body #app #main .q-feature-intro{grid-template-columns:minmax(0,1fr);gap:32px}html[data-product-surface="production"] body #app #main .q-feature-workflows li a{grid-template-columns:minmax(0,1fr) 20px}html[data-product-surface="production"] body #app #main .q-feature-workflows li a>span:first-child{grid-column:1/-1}html[data-product-surface="production"] body #app #main .q-feature-principles dl{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+@media(max-width:640px){html[data-product-surface="production"] body #app #main .q-feature-index{gap:48px;padding-top:24px}html[data-product-surface="production"] body #app #main .q-feature-workflows ol,html[data-product-surface="production"] body #app #main .q-feature-directory form,html[data-product-surface="production"] body #app #main .q-feature-groups ul,html[data-product-surface="production"] body #app #main .q-feature-principles dl{grid-template-columns:minmax(0,1fr)}html[data-product-surface="production"] body #app #main .q-feature-intro nav{display:grid;gap:8px}}
