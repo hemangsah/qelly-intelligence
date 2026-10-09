@@ -132,7 +132,7 @@ html[data-product-surface="production"] body #app #main .q-v53-verify-tabs span{
 
 html[data-product-surface="production"] body #app #main .q-verify-page{padding-inline:clamp(16px,4vw,48px);line-height:1.6}
 html[data-product-surface="production"] body #app #main .q-v53-verify-workbench{margin-top:28px;box-shadow:none;border-radius:0;background:transparent}
-html[data-product-surface="production"] body #app #main .q-verify-page :is(header,section,article,aside,details,summary,form,label,dl,dl div,li,a,button,input,select,.q-v53-verify-result,.q-v53-verify-tabs span){border:0;border-radius:0;box-shadow:none}
+html[data-product-surface="production"] body #app #main .q-verify-page *{border:0;border-radius:0;box-shadow:none}
 html[data-product-surface="production"] body #app #main .q-verify-page :is(header,section,article,aside,details,.q-v53-verify-result){background:transparent}
 html[data-product-surface="production"] body #app #main .q-v53-verify-grid{gap:32px;margin-top:24px}
 html[data-product-surface="production"] body #app #main .q-v53-verify-kpis{gap:24px}
