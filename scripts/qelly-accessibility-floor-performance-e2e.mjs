@@ -1,0 +1,27 @@
+import {chromium} from 'playwright';
+import {readFile,mkdir,writeFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import assert from 'node:assert/strict';
+const baselineSha='b2ac88f9ed156c7b77c850427936c7d61a2a6d81',path='apps/web/public/assets/qelly-production-shell.mjs',out='accessibility-floor-evidence';await mkdir(out,{recursive:true});
+const response=await fetch('https://api.github.com/repos/'+process.env.GITHUB_REPOSITORY+'/contents/'+path+'?ref='+baselineSha,{headers:{authorization:'Bearer '+process.env.GH_TOKEN,accept:'application/vnd.github+json'}});assert.equal(response.status,200);const data=await response.json();assert.equal(data.encoding,'base64');
+const source={baseline:Buffer.from(data.content,'base64').toString(),candidate:await readFile(path,'utf8')};
+const extract=s=>{const start=s.indexOf('function applyAccessibilityFloor(){'),end=s.indexOf('\nfunction annotateRoute(){',start);assert.ok(start>=0&&end>start);return s.slice(start,end).trim();};
+const functions=Object.fromEntries(Object.entries(source).map(([k,s])=>[k,extract(s)]));assert.ok(functions.baseline.includes("if(Number.isFinite(size)&&size<12)element.classList.add('q-v8-text-floor')"));assert.ok(functions.candidate.includes('smallText.push(element)'));assert.ok(functions.candidate.includes("for(const element of smallText)element.classList.add('q-v8-text-floor')"));
+const browser=await chromium.launch({headless:true}),results=[];const hash=s=>createHash('sha256').update(JSON.stringify(s)).digest('hex');
+try{for(const width of[1440,390])for(const appearance of['dark','light'])for(let repetition=1;repetition<=3;repetition++){
+ const pairs=[];
+ for(const variant of['baseline','candidate']){
+  const context=await browser.newContext({viewport:{width,height:900},colorScheme:appearance,serviceWorkers:'block'}),page=await context.newPage();let requests=0;await context.route('**/*',r=>{requests++;return r.abort();});
+  const text=Array.from({length:500},(_,i)=>'<div><span data-probe="'+i+'">UI text probe '+i+'</span></div>').join('');
+  await page.setContent('<!doctype html><html><head><title>Accessibility floor performance fixture</title><style>body{margin:0;background:'+(appearance==='dark'?'#0a0709':'#f8f4f2')+';color:'+(appearance==='dark'?'#f8f4f2':'#171015')+';font-family:Arial,sans-serif}#main{padding:16px}span{font-size:11px}.q-v8-text-floor{font-size:12px!important}.normal{font-size:14px}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden}</style></head><body><main id="main">'+text+'<span class="sr-only" data-excluded>Screen reader text</span><section aria-hidden="true"><span data-excluded>Hidden accessibility subtree</span></section><span style="display:none" data-excluded>Hidden text</span><span class="normal" data-excluded>Readable text</span><span data-excluded> </span></main></body></html>');
+  const cdp=await context.newCDPSession(page);await cdp.send('Performance.enable');await page.evaluate(()=>document.body.offsetHeight);
+  const metrics=async()=>Object.fromEntries((await cdp.send('Performance.getMetrics')).metrics.map(m=>[m.name,m.value]));const before=await metrics();
+  await page.evaluate(fn=>{const main=document.querySelector('#main');eval(fn+';applyAccessibilityFloor();');document.body.offsetHeight;},functions[variant]);
+  const after=await metrics(),delta=Object.fromEntries(['LayoutCount','RecalcStyleCount','LayoutDuration','RecalcStyleDuration','ScriptDuration'].map(k=>[k,after[k]-before[k]]));assert.ok(Object.values(delta).every(v=>v>=0));
+  const observed=await page.evaluate(()=>({textFloorCount:document.querySelectorAll('[data-probe].q-v8-text-floor').length,excludedFloorCount:document.querySelectorAll('[data-excluded].q-v8-text-floor').length,geometry:[...document.querySelectorAll('[data-probe]')].map(e=>{const r=e.getBoundingClientRect();return {font:getComputedStyle(e).fontSize,x:r.x,y:r.y,width:r.width,height:r.height};})}));
+  assert.equal(observed.textFloorCount,500);assert.equal(observed.excludedFloorCount,0);assert.ok(observed.geometry.every(e=>e.font==='12px'));assert.equal(requests,0);
+  const row={variant,width,appearance,repetition,delta,textFloorCount:observed.textFloorCount,excludedFloorCount:observed.excludedFloorCount,geometryDigest:hash(observed.geometry),outgoingRequests:requests};pairs.push(row);results.push(row);await context.close();
+ }
+ assert.equal(pairs[0].geometryDigest,pairs[1].geometryDigest,'Final font size and geometry must match the actual baseline');assert.ok(pairs[0].delta.LayoutCount>=100,'Pinned baseline must reproduce interleaved layout work');assert.ok(pairs[1].delta.LayoutCount<=3,'Batched writes must avoid per-leaf layout flushes');assert.ok(pairs[1].delta.RecalcStyleCount<=3,'Batched writes must avoid per-leaf style recalculation');
+}}finally{await browser.close();}
+assert.equal(results.length,24);const receipt={status:'passed',sourceSha:process.env.QELLY_SCREEN_EVIDENCE_SHA,baselineSha,cases:24,pairedContexts:12,geometryParity:true,accessibilityExclusionsPreserved:true,protectedWritesSent:0,boundary:'Isolated actual-function comparison with 500 visible UI text leaves and hidden/readable exclusions. This proves read/write batching avoids fixture layout thrashing while preserving final output. It does not certify terminal-wide interaction latency or full route acceptance.',results};await writeFile(out+'/report.json',JSON.stringify(receipt,null,2));console.log(JSON.stringify({status:'passed',cases:24,pairedContexts:12}));
