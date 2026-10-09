@@ -227,6 +227,15 @@ jobs:
           name: qelly-feature-drawer-state-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/feature-drawer-state-e2e
           if-no-files-found: warn
+      - name: Verify static evidence table clearance and keyboard Chat access
+        run: node scripts/qelly-static-evidence-clearance-e2e.mjs
+      - name: Upload focused static evidence clearance
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-static-evidence-clearance-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/static-evidence-clearance-e2e
+          if-no-files-found: warn
       - name: Verify header pointer travel, keyboard, touch and search geometry
         run: node scripts/qelly-header-pointer-e2e.mjs
       - name: Verify exact deployed header with actual governed responses
