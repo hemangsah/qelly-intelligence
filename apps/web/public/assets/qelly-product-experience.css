@@ -29,7 +29,7 @@ html[data-production-system="v8"] body{overflow-x:clip!important;overflow-y:visi
 html[data-production-system="v8"] :where(button,a[href],input,select,textarea,[role="button"],[role="link"],[role="tab"]):not(:where(.q-dossier *)){
   touch-action:manipulation;
 }
-html[data-production-system="v8"] :where(button,a[href],input,select,textarea,[role="button"],[role="link"],[role="tab"]):focus-visible:not(:where(.q-cv-page *)){
+html[data-production-system="v8"] :where(button,a[href],input,select,textarea,[role="button"],[role="link"],[role="tab"]):focus-visible:not(:where(.q-cv-page *)):not(:where(.q-feature-index,.q-feature-index *)){
   outline:3px solid var(--q-focus-ring)!important;
   outline-offset:3px!important;
   box-shadow:0 0 0 5px color-mix(in srgb,var(--q-focus-ring) 18%,transparent)!important;
@@ -91,7 +91,7 @@ html[data-production-system="v8"] .q-product-brand__mark{
 html[data-production-system="v8"] .q-product-brand__mark img{display:block!important;width:27px!important;height:27px!important}
 
 /* Calm navigation: location is shown by typography and accessible current-page
-   state, without the historical underline artifact. */
+   state:not(:where(.q-feature-index,.q-feature-index *)), without the historical underline artifact. */
 html[data-production-system="v8"] .q-product-nav{
   height:42px!important;min-height:42px!important;align-items:center!important;gap:4px!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow-x:auto!important;overflow-y:hidden!important;overflow-anchor:none!important;scrollbar-width:none!important;
 }
@@ -118,7 +118,7 @@ html[data-production-system="v8"] .q-product-search button{display:grid!importan
 html[data-production-system="v8"] .q-product-search button svg{width:17px!important;height:17px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;stroke-linecap:round!important}
 html[data-production-system="v8"] :where(.q-product-menu,.q-product-search button):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)){border-radius:var(--q-radius-control)!important}
 
-/* Market display controls should read as a compact toolbar, not three tall
+/* Market display controls should read as a compact toolbar:not(:where(.q-feature-index,.q-feature-index *)), not three tall
    settings cards. The selects retain the 44px touch target. */
 html[data-v53-real-market="active"] body #app #main .q-v6-market-controls{
   grid-template-columns:minmax(140px,180px) minmax(140px,180px) minmax(220px,1fr)!important;
@@ -137,7 +137,7 @@ html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-que
 html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-query-boundary>small{font-size:9px!important;line-height:1.25!important}
 
 /* Controls are compact precision objects. Semantic status labels remain pills. */
-html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(.q-status):not(.q-truth-pill):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)),
+html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(.q-status):not(.q-truth-pill):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-feature-index,.q-feature-index *)),
 html[data-production-system="v8"] .q-feature-navigation>header button:not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)),
 html[data-production-system="v8"] .q-feature-navigation__search input:not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)){
   border-radius:var(--q-radius-control)!important;
@@ -145,8 +145,8 @@ html[data-production-system="v8"] .q-feature-navigation__search input:not(:where
 html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:disabled):not(:where(.q-about-v2-page *)):not(:where(.q-dossier *)){
   transition:transform 150ms ease,filter 150ms ease,box-shadow 150ms ease,background-color 150ms ease!important;
 }
-html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:disabled):hover:not(:where(.q-about-v2-page *)):not(:where(.q-dossier *)){transform:translateY(-1px)!important;filter:brightness(1.06)}
-html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:disabled):active:not(:where(.q-about-v2-page *)):not(:where(.q-dossier *)){transform:translateY(0)!important}
+html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:disabled):hover:not(:where(.q-about-v2-page *)):not(:where(.q-dossier *)):not(:where(.q-feature-index,.q-feature-index *)){transform:translateY(-1px)!important;filter:brightness(1.06)}
+html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:disabled):active:not(:where(.q-about-v2-page *)):not(:where(.q-dossier *)):not(:where(.q-feature-index,.q-feature-index *)){transform:translateY(0)!important}
 
 /* Tonal hierarchy replaces old outlines and oversized rounding. */
 html[data-production-system="v8"] body #app #main :where(
@@ -215,8 +215,8 @@ html[data-production-system="v8"] #main .q-about-orbit>span:not(:where(.q-about-
 :root[data-appearance="light"] :where(.q-status--error,.q-status--unavailable,.q-truth-pill.is-unavailable):not(:where(.q-about-v2-page *)),
 :root[data-resolved-appearance="light"] :where(.q-status--error,.q-status--unavailable,.q-truth-pill.is-unavailable):not(:where(.q-about-v2-page *)){color:#8d1c35!important;background:#f7e2e7!important;border-color:transparent!important}
 
-/* Light appearance is an owned shell theme, not a late audit patch. */
-html[data-resolved-appearance="light"] body,
+/* Light appearance is an owned shell theme:not(:where(.q-feature-index,.q-feature-index *)), not a late audit patch. */
+html[data-resolved-appearance="light"] body:not(:where(.q-feature-index,.q-feature-index *)),
 html[data-appearance="light"] body{background:#f4f2f0!important;color:#211c1f!important}
 html[data-resolved-appearance="light"] body #app .q-product-header,
 html[data-appearance="light"] body #app .q-product-header{
