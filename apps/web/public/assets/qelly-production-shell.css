@@ -370,7 +370,7 @@ body {
 }
 
 .q-button--primary,
-.q-button.is-primary{
+.q-button.is-primary {
   min-height: 44px !important;
   border-color: var(--q-accent) !important;
   background: var(--q-accent) !important;
