@@ -42,10 +42,9 @@ function render(host,id){
       <article><span>Formulae</span><strong>${formulaEngineMetadata.definitionCount}</strong><small>Definitions</small></article>
       <article><span>Inputs</span><strong>${inputRows.length}</strong><small>Reference vector</small></article>
       <article><span>Truth state</span><strong>${truthState}</strong><small>Reproducible</small></article>
-      <article><span>Engine</span><strong>${esc(formulaEngineMetadata.engineVersion)}</strong><small>Governed local</small></article>
       <article><span>Provider</span><strong>${esc(providerState)}</strong><small>External dependency</small></article>
-      <article><span>Version</span><strong>${esc(definition.version??'versioned')}</strong><small>${esc(definition.formulaId)}</small></article>
     </div>
+    <details class="q-v53-verify-provenance"><summary>Method provenance</summary><dl><div><dt>Engine</dt><dd>${esc(formulaEngineMetadata.engineVersion)}</dd></div><div><dt>Method version</dt><dd>${esc(definition.version??'versioned')}</dd></div><div><dt>Formula identifier</dt><dd>${esc(definition.formulaId)}</dd></div></dl></details>
     <div class="q-v53-verify-grid">
       <section class="q-panel q-v53-verify-primary" data-v53-verify-primary>
         <div class="q-panel-head"><div><p class="q-eyebrow">Primary analytical workspace</p><h2>Formula validation</h2><p>Inspect the governed method, reference vector, deterministic output and sensitivity before research use.</p></div></div>
