@@ -214,7 +214,7 @@ body {
   background: transparent !important;
 }
 
-.q-product-search input:not(:where(.q-verify-page,.q-verify-page *)){
+.q-product-search input{
   width: 100% !important;
   height: 44px !important;
   padding: 0 12px !important;
@@ -228,9 +228,9 @@ body {
 
 .q-product-search input::placeholder { color: var(--q-muted) !important; }
 
-.q-product-search button:not(:where(.q-verify-page,.q-verify-page *)),
-.q-product-account:not(:where(.q-verify-page,.q-verify-page *)),
-.q-product-system:not(:where(.q-verify-page,.q-verify-page *)){
+.q-product-search button,
+.q-product-account,
+.q-product-system{
   min-height: 44px !important;
   padding: 0 12px !important;
   border: 1px solid var(--q-border) !important;

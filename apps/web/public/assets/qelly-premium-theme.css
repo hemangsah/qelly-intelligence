@@ -154,8 +154,8 @@ html[data-production-system="v8"] .q-product-search{
   background:color-mix(in srgb,var(--q-surfacealt) 88%,transparent)!important;
   box-shadow:var(--q-luxe-inset)!important;
 }
-html[data-production-system="v8"] .q-product-search input:not(:where(.q-verify-page,.q-verify-page *)){min-height:44px!important;padding-inline:15px!important;border:0!important;background:transparent!important}
-html[data-production-system="v8"] .q-product-search button:not(:where(.q-v7-public-market *)):not(:where(.q-verify-page,.q-verify-page *)){min-height:44px!important;padding:0 17px!important;border:0!important;border-radius:999px!important;background:linear-gradient(135deg,#a82d5c,#721632)!important}
+html[data-production-system="v8"] .q-product-search input{min-height:44px!important;padding-inline:15px!important;border:0!important;background:transparent!important}
+html[data-production-system="v8"] .q-product-search button:not(:where(.q-v7-public-market *)){min-height:44px!important;padding:0 17px!important;border:0!important;border-radius:999px!important;background:linear-gradient(135deg,#a82d5c,#721632)!important}
 html[data-production-system="v8"] .q-product-system,
 html[data-production-system="v8"] .q-product-account{min-height:44px!important;border:0!important;background:transparent!important;box-shadow:none!important}
 
