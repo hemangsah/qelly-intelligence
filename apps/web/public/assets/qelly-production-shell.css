@@ -354,7 +354,7 @@ body {
 .q-page-actions:not(:where(.q-about-v2-page *)){ gap: 8px !important; }
 
 .q-button,
-#main button:not(.q-universe-node):not(.q-product-menu) {
+#main button:not(.q-universe-node):not(.q-product-menu):not(:where(.q-dx-page,.q-dx-page *)) {
   min-height: 36px;
   border-radius: 8px;
 }
