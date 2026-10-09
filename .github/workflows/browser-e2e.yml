@@ -182,6 +182,15 @@ jobs:
           name: qelly-shell-observer-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/shell-observer-e2e
           if-no-files-found: warn
+      - name: Verify converter open presentation and preserved cost scenarios
+        run: node scripts/qelly-converter-editorial-e2e.mjs
+      - name: Upload focused converter editorial evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-converter-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/converter-editorial-e2e
+          if-no-files-found: warn
       - name: Verify MT5 open report presentation and stylesheet readiness
         run: node scripts/qelly-mt5-editorial-e2e.mjs
       - name: Upload focused MT5 editorial evidence
