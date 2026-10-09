@@ -3,10 +3,10 @@
  * Scoped to the current production system only.
  */
 html[data-production-system="v8"] #main{--q-control-height:40px;--q-route-gap:14px}
-html[data-production-system="v8"] #main :where(input,select,textarea):not(:where(.q-dpg-page *)):not(:where(.q-cv-page *)){box-sizing:border-box!important;min-width:0!important;border:1px solid var(--q-border)!important;background:var(--q-surfacealt)!important;color:var(--q-text)!important;-webkit-text-fill-color:var(--q-text)!important;box-shadow:none!important}
-html[data-production-system="v8"] #main :where(input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),select):not(:where(.q-dpg-page *)):not(:where(.q-cv-page *)){min-height:var(--q-control-height)!important;height:var(--q-control-height)!important;padding:0 11px!important;border-radius:8px!important}
-html[data-production-system="v8"] #main textarea:not(:where(.q-dpg-page *)){padding:10px 11px!important;border-radius:8px!important}
-html[data-production-system="v8"] #main select option{background:var(--q-surface)!important;color:var(--q-text)!important}
+html[data-production-system="v8"] #main :where(input,select,textarea):not(:where(.q-dpg-page *)):not(:where(.q-cv-page *)):not(:where(.q-feature-index,.q-feature-index *)){box-sizing:border-box!important;min-width:0!important;border:1px solid var(--q-border)!important;background:var(--q-surfacealt)!important;color:var(--q-text)!important;-webkit-text-fill-color:var(--q-text)!important;box-shadow:none!important}
+html[data-production-system="v8"] #main :where(input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),select):not(:where(.q-dpg-page *)):not(:where(.q-cv-page *)):not(:where(.q-feature-index,.q-feature-index *)){min-height:var(--q-control-height)!important;height:var(--q-control-height)!important;padding:0 11px!important;border-radius:8px!important}
+html[data-production-system="v8"] #main textarea:not(:where(.q-dpg-page *)):not(:where(.q-feature-index,.q-feature-index *)){padding:10px 11px!important;border-radius:8px!important}
+html[data-production-system="v8"] #main select option:not(:where(.q-feature-index,.q-feature-index *)){background:var(--q-surface)!important;color:var(--q-text)!important}
 html[data-production-system="v8"][data-resolved-appearance="dark"] #main :where(input,select,textarea),html[data-production-system="v8"][data-appearance="dark"] #main :where(input,select,textarea){color-scheme:dark!important}
 html[data-production-system="v8"][data-resolved-appearance="light"] #main :where(input,select,textarea),html[data-production-system="v8"][data-appearance="light"] #main :where(input,select,textarea){color-scheme:light!important}
 
@@ -34,9 +34,9 @@ html[data-production-system="v8"] #main .q-saved-calculations-page .q-field>span
 html[data-production-system="v8"] #main .q-saved-calculations-page .q-saved-grid{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))!important;align-items:start!important;gap:12px!important}
 html[data-production-system="v8"] #main .q-saved-calculations-page .q-saved-card{min-height:0!important;padding:16px!important}
 html[data-production-system="v8"] #main .q-saved-calculations-page .q-panel-body{min-height:0!important}
-html[data-production-system="v8"] #main[data-production-route="qelly-verify"] :where(select,input,textarea),html[data-production-system="v8"] #main .q-verify-page :where(select,input,textarea){background:var(--q-surfacealt)!important;color:var(--q-text)!important;border-color:var(--q-border)!important}
+html[data-production-system="v8"] #main[data-production-route="qelly-verify"] :where(select,input,textarea):not(:where(.q-feature-index,.q-feature-index *)),html[data-production-system="v8"] #main .q-verify-page :where(select,input,textarea){background:var(--q-surfacealt)!important;color:var(--q-text)!important;border-color:var(--q-border)!important}
 
-/* Research workspace: useful first viewport, no decorative empty-grid void. */
+/* Research workspace: useful first viewport:not(:where(.q-feature-index,.q-feature-index *)), no decorative empty-grid void. */
 html[data-production-system="v8"] #main .q-research-workspace-page{display:grid!important;gap:14px!important}
 html[data-production-system="v8"] #main .q-research-external-sources .q-panel-body{min-height:0!important;padding:12px!important;background:var(--q-surface)!important;background-image:none!important}
 html[data-production-system="v8"] #main .q-research-evidence-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;min-height:0!important}
@@ -45,7 +45,7 @@ html[data-production-system="v8"] #main .q-research-evidence-card__head{display:
 html[data-production-system="v8"] #main .q-research-empty-state{min-height:150px!important;padding:24px!important;background:var(--q-surface)!important;background-image:none!important}
 html[data-production-system="v8"] #main .q-research-kpi-strip{min-height:0!important}
 
-/* Theme personas: operating-mode selector, not a marketing landing page. */
+/* Theme personas: operating-mode selector:not(:where(.q-feature-index,.q-feature-index *)), not a marketing landing page. */
 html[data-production-system="v8"] #main .q-theme-persona-page{display:grid!important;gap:14px!important}
 html[data-production-system="v8"] #main .q-theme-persona-page .q-brand-lock-banner{min-height:0!important;padding:20px 22px!important;margin:0!important;border-radius:14px!important}
 html[data-production-system="v8"] #main .q-theme-persona-page .q-brand-lock-banner h2{margin:5px 0 8px!important;font-size:clamp(24px,2.7vw,36px)!important}
@@ -58,7 +58,7 @@ html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-metrics
 html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-best{margin-bottom:10px!important}
 html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-comparison{margin:0!important}
 
-/* Technical IDs are still available, but only on demand. */
+/* Technical IDs are still available:not(:where(.q-feature-index,.q-feature-index *)), but only on demand. */
 html[data-production-system="v8"] #main .q-v8-technical-identifiers{margin-top:12px!important;border-top:1px solid var(--q-border)!important;padding-top:10px!important}
 html[data-production-system="v8"] #main .q-v8-technical-identifiers>summary{cursor:pointer!important;color:var(--q-muted)!important;font-size:12px!important}
 html[data-production-system="v8"] #main .q-v8-technical-identifiers dl{margin:10px 0 0!important}
@@ -88,7 +88,7 @@ html[data-production-system="v8"] body #app #main .q-calendar-event{border-color
 html[data-production-system="v8"] body #app #main .q-calendar-event strong{color:var(--q-text)!important;-webkit-text-fill-color:var(--q-text)!important}
 html[data-production-system="v8"] body #app #main .q-calendar-event :where(time,small){color:var(--q-muted)!important;-webkit-text-fill-color:var(--q-muted)!important}
 
-html[data-production-system="v8"] body #app #main pre{border-color:var(--q-border)!important;background:var(--q-surfacealt)!important;background-image:none!important;color:var(--q-text-secondary)!important;-webkit-text-fill-color:var(--q-text-secondary)!important;box-shadow:none!important}
+html[data-production-system="v8"] body #app #main pre:not(:where(.q-feature-index,.q-feature-index *)){border-color:var(--q-border)!important;background:var(--q-surfacealt)!important;background-image:none!important;color:var(--q-text-secondary)!important;-webkit-text-fill-color:var(--q-text-secondary)!important;box-shadow:none!important}
 
 /* Legacy data-grid header/footer chrome had a hard-coded light surface in several
    workspace routes. Keep the grid semantic in both appearance modes. */
@@ -152,5 +152,5 @@ html[data-production-system="v8"] body #app #main[data-production-route="researc
    converting inline editorial links into button-shaped elements. */
 @media(max-width:700px){
 html[data-production-system="v8"] #main{--q-control-height:44px}
-html[data-production-system="v8"] #main :where(button,input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea,summary,[role="button"],a.q-button,a[class*="button"]){min-height:44px!important}
+html[data-production-system="v8"] #main :where(button,input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea,summary,[role="button"],a.q-button,a[class*="button"]):not(:where(.q-feature-index,.q-feature-index *)){min-height:44px!important}
 }

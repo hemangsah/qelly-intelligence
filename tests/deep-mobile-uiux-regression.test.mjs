@@ -13,16 +13,13 @@ test('production state banners do not receive a decorative grid-breaking brand c
   assert.match(stateInstaller,/return;/);
 });
 
-test('Feature Universe mobile owner uses one full-width cluster column and readable task rails',async()=>{
-  const [route,css]=await Promise.all([
-    read('apps/web/public/assets/routes/feature-universe.mjs'),
-    read('apps/web/public/assets/qelly-v53-wave7-public.css')
-  ]);
-  assert.match(route,/\.q-universe-clusters'.*'grid-template-columns':'minmax\(0,1fr\)'/);
-  assert.match(route,/\.q-universe-cluster:last-child'.*'grid-column':'auto'/);
-  assert.match(route,/\.q-universe-route-grid button'.*'min-height':'82px'/);
-  assert.match(route,/header p:not\(\.q-eyebrow\)'.*'font-size':'13px'/);
-  assert.match(css,/@media\(max-width:768px\)[\s\S]*\.q-universe-clusters\{grid-template-columns:minmax\(0,1fr\)\}/);
+test('Feature Universe mobile layout uses readable open rows and owned responsive CSS',async()=>{
+ const [route,css]=await Promise.all([read('apps/web/public/assets/routes/feature-universe.mjs'),read('apps/web/public/assets/routes/feature-index.css')]);
+ assert.doesNotMatch(route,/style\.setProperty|MOBILE_PRESENTATION|q-universe-route-grid/);
+ assert.match(css,/@media\(max-width:640px\)[\s\S]*\.q-feature-workflows ol[\s\S]*grid-template-columns:minmax\(0,1fr\)/);
+ assert.match(css,/\.q-feature-groups li a\{[^}]*min-height:48px/);
+ assert.match(css,/font:700 20px\/1\.35/);
+ assert.match(css,/\.q-feature-index p\{[^}]*font-size:16px/);
 });
 
 test('accepted V7 routes render one shell instead of overlapping production and terminal shells',async()=>{
