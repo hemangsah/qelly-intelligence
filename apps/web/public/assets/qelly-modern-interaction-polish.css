@@ -398,7 +398,7 @@ html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero
     linear-gradient(135deg,color-mix(in srgb,var(--q-surface) 91%,transparent),color-mix(in srgb,var(--q-surfacealt) 86%,transparent))!important;
   box-shadow:0 26px 70px color-mix(in srgb,#000 21%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 13%,transparent)!important;
 }
-html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero,.q-auth-hero,.q-verify-hero,.q-asset-hero)::after{
+html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero,.q-auth-hero,.q-asset-hero)::after{
   content:"";
   position:absolute;
   width:180px;
