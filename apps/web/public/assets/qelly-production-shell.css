@@ -294,7 +294,7 @@ body {
 
 #main :where(.q-eyebrow, small, time, kbd, .q-status, .q-nav-meta, .q-kpi-label,
   .q-source-line, .q-panel-head p, .q-card small, .q-record-row small,
-  .q-ti-field span, .q-ti-validation, .q-ti-audit-item span):not(:where(.q-v7-public-market p:not(.q-eyebrow))):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)){
+  .q-ti-field span, .q-ti-validation, .q-ti-audit-item span):not(:where(.q-v7-public-market p:not(.q-eyebrow))):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)){
   font-size: 12px !important;
   line-height: 1.4 !important;
   letter-spacing: .01em !important;
@@ -359,7 +359,7 @@ body {
   border-radius: 8px;
 }
 
-.q-button:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)){
+.q-button:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)){
   padding: 0 14px !important;
   border: 1px solid var(--q-border) !important;
   background: var(--q-surface) !important;
@@ -385,14 +385,14 @@ body {
   outline-offset: 2px !important;
 }
 
-.q-panel:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)),
-.q-card:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)),
-.q-kpi:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)),
-.q-record-row:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)),
-.q-choice-row:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)),
-.q-context-block:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)),
-.q-empty-state:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)),
-[class*="-card"]:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)){
+.q-panel:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)),
+.q-card:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)),
+.q-kpi:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-mt5-route *)),
+.q-record-row:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-mt5-route *)),
+.q-choice-row:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-mt5-route *)),
+.q-context-block:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-mt5-route *)),
+.q-empty-state:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)),
+[class*="-card"]:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)){
   border-color: var(--q-border) !important;
   background: var(--q-surface) !important;
   background-image: none !important;
@@ -400,15 +400,15 @@ body {
   box-shadow: none !important;
 }
 
-.q-panel:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)),
-.q-card:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)),
-.q-kpi:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)),
-.q-empty-state:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)),
-[class*="-card"]:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)){ border-radius: 12px !important; }
+.q-panel:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)),
+.q-card:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)),
+.q-kpi:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-mt5-route *)),
+.q-empty-state:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)),
+[class*="-card"]:not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)){ border-radius: 12px !important; }
 
-.q-panel-head:not(:where(.q-v7-public-market *)):not(:where(.q-verify-page,.q-verify-page *)),
-.q-card > header:not(:where(.q-v7-public-market *)):not(:where(.q-verify-page,.q-verify-page *)),
-.q-panel > header:not(:where(.q-v7-public-market *)):not(:where(.q-verify-page,.q-verify-page *)){
+.q-panel-head:not(:where(.q-v7-public-market *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)),
+.q-card > header:not(:where(.q-v7-public-market *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)),
+.q-panel > header:not(:where(.q-v7-public-market *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)){
   min-height: 0 !important;
   padding: 15px 17px !important;
   border-color: var(--q-border) !important;
@@ -422,7 +422,7 @@ body {
 .q-kpi { min-height: 116px !important; padding: 16px !important; }
 .q-kpi-value { font-size: clamp(22px, 2.1vw, 32px) !important; }
 
-.q-status:not(:where(.q-v7-public-market *)):not(.q-dossier *):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)){
+.q-status:not(:where(.q-v7-public-market *)):not(.q-dossier *):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)){
   min-height: 22px !important;
   padding: 3px 8px !important;
   border-radius: 999px !important;
@@ -451,9 +451,9 @@ body {
   padding: 28px !important;
 }
 
-input:not(:where(.q-ai-root *)):not(:where(.q-verify-page,.q-verify-page *)),
-select:not(:where(.q-ai-root *)):not(:where(.q-verify-page,.q-verify-page *)),
-textarea:not(:where(.q-ai-root *)):not(:where(.q-verify-page,.q-verify-page *)){
+input:not(:where(.q-ai-root *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)),
+select:not(:where(.q-ai-root *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)),
+textarea:not(:where(.q-ai-root *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)){
   border-color: var(--q-border) !important;
   background: var(--q-surfacealt) !important;
   color: var(--q-text) !important;
@@ -864,7 +864,7 @@ html[data-production-system="v8"] #main > .q-page {
   margin: 0 auto !important;
 }
 
-html[data-production-system="v8"] #main :where(.q-panel,.q-card,.q-kpi,.q-record-row,.q-choice-row,.q-context-block,.q-empty-state,[class*="-card"]):not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)){
+html[data-production-system="v8"] #main :where(.q-panel,.q-card,.q-kpi,.q-record-row,.q-choice-row,.q-context-block,.q-empty-state,[class*="-card"]):not(:where(.q-v7-public-market *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)){
   border-color: var(--q-border) !important;
   background-color: var(--q-surface) !important;
   background-image: none !important;
@@ -883,7 +883,7 @@ html[data-production-system="v8"] body #app #main :where(
   button,.q-button,.q-status,.q-eyebrow,.q-kpi-label,.q-kpi-meta span,
   .q-panel p,.q-card p,.q-record-row small,.q-choice-row small,
   caption,time,kbd,[class*="-meta"],[class*="-eyebrow"],[class*="-kicker"]
-):not(:where(.q-v7-public-market p:not(.q-eyebrow))):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)){
+):not(:where(.q-v7-public-market p:not(.q-eyebrow))):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)){
   font-size: 12px !important;
   line-height: 1.4 !important;
   letter-spacing: .01em !important;
