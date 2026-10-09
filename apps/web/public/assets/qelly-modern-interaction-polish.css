@@ -269,11 +269,11 @@ html[data-production-system="v8"] body #app #main :where(.q-mn-status,.q-mi-kpi,
 
 /* Market-terminal inner surfaces used a compact utility geometry that did not
    inherit from the card selector. Keep boundary data and display attribution
-   visually distinct:not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)), but no longer visually dated. */
+   visually distinct:not(:where(.q-v7-public-market *)), but no longer visually dated. */
 html[data-production-system="v8"] body #app :where(
   .q-v7-boundary-ribbon,.q-v7-chart-stage,.q-v6-market-tradingview,
   .qelly-tradingview-fallback,.q-v6-market-boundary
-):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)){
+):not(:where(.q-v7-public-market *)){
   border-radius:var(--q-modern-radius-lg)!important;
   overflow:hidden;
 }

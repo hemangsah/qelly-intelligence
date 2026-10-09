@@ -137,7 +137,7 @@ html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-que
 html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-query-boundary>small:not(:where(.q-v6-account-page,.q-v6-account-page *)){font-size:9px!important;line-height:1.25!important}
 
 /* Controls are compact precision objects. Semantic status labels remain pills. */
-html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(.q-status):not(.q-truth-pill):not(:where(.q-dossier *)):not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)),
+html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(.q-status):not(.q-truth-pill):not(:where(.q-dossier *)):not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)),
 html[data-production-system="v8"] .q-feature-navigation>header button:not(:where(.q-dossier *)):not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)),
 html[data-production-system="v8"] .q-feature-navigation__search input:not(:where(.q-dossier *)):not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)){
   border-radius:var(--q-radius-control)!important;
@@ -158,7 +158,7 @@ html[data-production-system="v8"] body #app #main :where(
   .q-saved-card,.q-chart-shell,.q-empty-state,.q-truth-callout,.q-result-priority,
   .q-indicator-mini-chart,.q-verify-hero,.q-v53-verify-workbench,
   [class$="-card"],[class*="-card "],[class$="-panel"],[class*="-panel "]
-):not(:where(.q-dossier *)):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)){
+):not(:where(.q-dossier *)):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)){
   border:0!important;border-radius:var(--q-radius-surface)!important;background:var(--q-luxe-panel)!important;box-shadow:var(--q-elevation-rest)!important;
 }
 html[data-production-system="v8"] body #app #main :where(.q-it-hero,.q-verify-hero,.q-auth-hero,.q-asset-hero,.q-home-lead,.q-market-safety,.q-about-hero):not(:where(.q-about-v2-page *)):not(:where(.q-v6-account-page,.q-v6-account-page *)){

@@ -362,7 +362,7 @@ html[data-production-system="v8"] body #app #main [role="button"]{min-width:44px
 }
 
 /* Customer-facing data states: soft depth replaces dense outlined registries. */
-html[data-production-system="v8"] body #app #main :where(.q-v7-provider-card,.q-mi-intelligence-module,.q-canonical-rescue .q-panel):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)){
+html[data-production-system="v8"] body #app #main :where(.q-v7-provider-card,.q-mi-intelligence-module,.q-canonical-rescue .q-panel):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)){
   border:0!important;border-radius:18px!important;
   background:linear-gradient(145deg,rgba(255,255,255,.052),rgba(255,255,255,.018) 58%,rgba(126,28,58,.085))!important;
   box-shadow:0 18px 44px rgba(0,0,0,.19),inset 0 1px rgba(255,255,255,.07)!important;
