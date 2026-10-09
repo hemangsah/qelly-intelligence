@@ -301,7 +301,7 @@ html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-page-head p{
 html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-page-actions{
   gap:5px;
 }
-html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-button{
+html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"] .q-button:not(:where(.q-dx-page,.q-dx-page *)){
   min-height:28px;
   border-radius:var(--q-v53a-radius-control);
   padding-inline:9px;
