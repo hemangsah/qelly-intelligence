@@ -189,6 +189,15 @@ jobs:
           name: qelly-css-import-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/css-import-e2e
           if-no-files-found: warn
+      - name: Verify closed feature drawer paint, focus and responsive state
+        run: node scripts/qelly-feature-drawer-state-e2e.mjs
+      - name: Upload focused feature drawer state evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-feature-drawer-state-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/feature-drawer-state-e2e
+          if-no-files-found: warn
       - name: Verify header pointer travel, keyboard, touch and search geometry
         run: node scripts/qelly-header-pointer-e2e.mjs
       - name: Verify exact deployed header with actual governed responses
