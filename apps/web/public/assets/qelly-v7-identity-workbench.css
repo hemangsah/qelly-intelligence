@@ -12,7 +12,7 @@ html[data-product-surface="production"] .q-auth-page{
   padding:10px!important;
   background:transparent!important;
 }
-html[data-product-surface="production"] .q-auth-hero:not(:where(.q-v6-account-page,.q-v6-account-page *)){
+html[data-product-surface="production"] .q-auth-hero{
   min-height:0!important;
   padding:24px!important;
   border:1px solid var(--q-product-line)!important;
@@ -20,7 +20,7 @@ html[data-product-surface="production"] .q-auth-hero:not(:where(.q-v6-account-pa
   background:linear-gradient(145deg,#0b080a 0%,#130d11 66%,color-mix(in srgb,#130d11 86%,var(--q-product-accent) 14%) 100%)!important;
   box-shadow:none!important;
 }
-html[data-product-surface="production"] .q-auth-hero:after:not(:where(.q-v6-account-page,.q-v6-account-page *)){
+html[data-product-surface="production"] .q-auth-hero:after{
   inset:auto -10% -48% 44%!important;
   opacity:.45!important;
   box-shadow:0 0 0 34px rgba(255,255,255,.018),0 0 0 76px rgba(255,255,255,.012)!important;
@@ -86,9 +86,9 @@ html[data-product-surface="production"] .q-auth-form label{
   letter-spacing:.065em!important;
   text-transform:uppercase!important;
 }
-html[data-product-surface="production"] .q-auth-form input:not(:where(.q-v6-account-page,.q-v6-account-page *)),
-html[data-product-surface="production"] .q-auth-form select:not(:where(.q-v6-account-page,.q-v6-account-page *)),
-html[data-product-surface="production"] .q-auth-form textarea:not(:where(.q-v6-account-page,.q-v6-account-page *)){
+html[data-product-surface="production"] .q-auth-form input,
+html[data-product-surface="production"] .q-auth-form select,
+html[data-product-surface="production"] .q-auth-form textarea{
   min-height:40px!important;
   padding:8px 10px!important;
   border-radius:6px!important;
@@ -96,7 +96,7 @@ html[data-product-surface="production"] .q-auth-form textarea:not(:where(.q-v6-a
   font-size:12px!important;
 }
 html[data-product-surface="production"] .q-auth-form textarea{min-height:82px!important}
-html[data-product-surface="production"] .q-auth-form .q-button:not(:where(.q-v6-account-page,.q-v6-account-page *)){min-height:40px!important;border-radius:6px!important;font-size:10px!important}
+html[data-product-surface="production"] .q-auth-form .q-button{min-height:40px!important;border-radius:6px!important;font-size:10px!important}
 html[data-product-surface="production"] .q-password-field{position:relative}
 html[data-product-surface="production"] .q-password-field input{padding-right:64px!important}
 html[data-product-surface="production"] .q-password-toggle{

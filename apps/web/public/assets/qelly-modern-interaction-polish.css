@@ -83,7 +83,7 @@ html[data-production-system="v8"] :where(input:not([type="checkbox"]):not([type=
 html[data-production-system="v8"] :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea):hover{border-color:color-mix(in srgb,var(--q-accent) 46%,var(--q-border))!important}
 html[data-production-system="v8"] :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea):focus:not(:where(.q-ai-root *)){border-color:var(--q-accent)!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--q-accent) 18%,transparent)!important;outline:0!important}
 
-html[data-production-system="v8"] :where(button:not(.q-product-brand__mark):not(.q-ai-launcher),a.q-button,[role="button"],[role="tab"]):not(:where(.q-dossier *)):not(:where(.q-mt5-route *)):not(:where(.q-ai-root *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)){
+html[data-production-system="v8"] :where(button:not(.q-product-brand__mark):not(.q-ai-launcher),a.q-button,[role="button"],[role="tab"]):not(:where(.q-dossier *)):not(:where(.q-mt5-route *)):not(:where(.q-ai-root *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)){
   --q-hover-lift:0px;
   --q-press-scale:1;
   min-height:44px;
@@ -120,7 +120,7 @@ html[data-production-system="v8"] #main :where(
   border-color:color-mix(in srgb,var(--q-accent) 38%,var(--q-border))!important;
   box-shadow:var(--q-modern-shadow-hover)!important;
 }
-html[data-production-system="v8"] #main :where(.q-panel,.q-it-guide,.q-it-panel,.q-auth-card,.q-access-gate):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)){box-shadow:var(--q-modern-shadow)!important}
+html[data-production-system="v8"] #main :where(.q-panel,.q-it-guide,.q-it-panel,.q-auth-card,.q-access-gate):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)){box-shadow:var(--q-modern-shadow)!important}
 html[data-production-system="v8"] #main .q-it-hero:not(:where(.q-v6-account-page,.q-v6-account-page *)){border-radius:var(--q-modern-radius-xl)!important;box-shadow:0 34px 90px color-mix(in srgb,#000 38%,transparent),inset 0 1px 0 rgba(255,255,255,.08)!important}
 html[data-production-system="v8"] #main .q-it-tabs{border-radius:999px!important;padding:6px!important;box-shadow:0 14px 36px color-mix(in srgb,#000 24%,transparent)!important}
 html[data-production-system="v8"] #main .q-it-provider__mark{border-radius:15px!important;transition:transform var(--q-modern-standard) var(--q-modern-ease),box-shadow var(--q-modern-standard) ease!important}
@@ -417,7 +417,7 @@ html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero
   box-shadow:0 0 0 32px color-mix(in srgb,var(--q-accent) 5%,transparent),0 0 0 64px color-mix(in srgb,var(--q-accent) 3%,transparent);
   pointer-events:none;
 }
-html[data-production-system="v8"] body #app #main :where(.q-panel,.q-v7-chart-panel,.q-v7-reference-panel,.q-mn-panel,.q-it-panel,.q-auth-card,.q-access-gate):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)){
+html[data-production-system="v8"] body #app #main :where(.q-panel,.q-v7-chart-panel,.q-v7-reference-panel,.q-mn-panel,.q-it-panel,.q-auth-card,.q-access-gate):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)){
   background:
     linear-gradient(150deg,color-mix(in srgb,var(--q-surface) 94%,transparent),color-mix(in srgb,var(--q-surfacealt) 88%,transparent))!important;
   box-shadow:0 18px 50px color-mix(in srgb,#000 19%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 9%,transparent)!important;
@@ -464,7 +464,7 @@ html[data-production-system="v8"] body #app #main :where(.q-button--primary,.q-b
   html[data-production-system="v8"] body #app #main :where(.q-page-head,.q-it-hero,.q-auth-hero,.q-verify-hero,.q-asset-hero):not(:where(.q-about-v2-page *)){border-radius:var(--q-modern-radius-lg)!important;padding:22px!important}
   html[data-production-system="v8"] body #app header.q-product-header{border-radius:0 0 var(--q-modern-radius-md) var(--q-modern-radius-md)!important}
   html[data-production-system="v8"] #main .q-it-tabs{border-radius:var(--q-modern-radius-md)!important}
-  html[data-production-system="v8"] #main :where(.q-panel,.q-it-hero,.q-it-guide,.q-it-panel,.q-auth-card,.q-access-gate):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)){border-radius:var(--q-modern-radius-md)!important}
+  html[data-production-system="v8"] #main :where(.q-panel,.q-it-hero,.q-it-guide,.q-it-panel,.q-auth-card,.q-access-gate):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)){border-radius:var(--q-modern-radius-md)!important}
 }
 
 @media(prefers-reduced-motion:reduce){
