@@ -1,3 +1,4 @@
+import {applyLegacyAccentPreference} from './qelly-brand-accent-ownership.mjs';
 import { installAccessibility, announce, openDialog, closeDialog } from '../packages/accessibility/accessibility.mjs';
 import { button, toast, commandDialog, dataStateIndicator, escapeHtml, sourceDisclosure } from '../packages/ui-primitives/primitives.mjs';
 import { QellyDataGrid } from '../packages/data-grid/data-grid.mjs';
@@ -219,8 +220,7 @@ function applyPreferences() {
   root.style.setProperty('--q-radius', `${state.prefs.radiusPx}px`);
   const selector=document.getElementById('global-theme-selector');
   if(selector)selector.value=state.prefs.theme;
-  if (state.prefs.customAccent) root.style.setProperty('--q-accent', state.prefs.customAccent);
-  else root.style.removeProperty('--q-accent');
+  applyLegacyAccentPreference(root,state.prefs.customAccent);
 }
 
 async function applyPersona(id,{navigateToDefault=true}={}){
