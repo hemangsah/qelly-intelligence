@@ -19,8 +19,8 @@ html[data-production-system="v8"] #main .q-auth-hero,
 html[data-production-system="v8"] #main .q-auth-card{
   min-width:0!important;
   margin:0!important;
-  border:1px solid var(--q-border)!important;
-  border-radius:16px!important;
+  border:0!important;
+  border-radius:0!important;
   box-shadow:none!important;
 }
 html[data-production-system="v8"] #main .q-auth-hero{
@@ -56,10 +56,10 @@ html[data-production-system="v8"] #main .q-auth-proof-grid article{
   align-items:center!important;
   gap:14px!important;
   padding:14px 16px!important;
-  border:1px solid color-mix(in srgb,var(--q-border) 70%,var(--q-accent))!important;
-  border-radius:10px!important;
+  border:0!important;
+  border-radius:0!important;
   background:color-mix(in srgb,var(--q-surface) 78%,transparent)!important;
-}
+box-shadow:none!important;}
 html[data-production-system="v8"] #main .q-auth-proof-grid strong{font-size:14px!important;color:var(--q-text)!important}
 html[data-production-system="v8"] #main .q-auth-proof-grid span{font-size:12px!important;color:var(--q-text-secondary)!important}
 html[data-production-system="v8"] #main .q-auth-steps{
@@ -76,10 +76,10 @@ html[data-production-system="v8"] #main .q-auth-steps li{
   gap:12px!important;
   min-height:48px!important;
   padding:8px 12px!important;
-  border:1px solid color-mix(in srgb,var(--q-border) 72%,var(--q-accent))!important;
-  border-radius:10px!important;
+  border:0!important;
+  border-radius:0!important;
   background:color-mix(in srgb,var(--q-surface) 78%,transparent)!important;
-}
+box-shadow:none!important;}
 html[data-production-system="v8"] #main .q-auth-steps b{
   width:28px!important;height:28px!important;display:grid!important;place-items:center!important;
   border-radius:50%!important;background:var(--q-accent)!important;color:#fff!important;font-size:12px!important
@@ -98,7 +98,7 @@ html[data-production-system="v8"] #main .q-auth-form{display:grid!important;gap:
 html[data-production-system="v8"] #main .q-auth-form>label:not(.q-auth-consent){display:grid!important;gap:7px!important;color:var(--q-text-secondary)!important;font-size:12px!important;font-weight:620!important}
 html[data-production-system="v8"] #main .q-auth-form input:not([type="checkbox"]),
 html[data-production-system="v8"] #main .q-auth-form select{height:46px!important;min-height:46px!important;padding:0 13px!important;font-size:14px!important;border-radius:9px!important;background:var(--q-surfacealt)!important}
-html[data-production-system="v8"] #main .q-auth-form .q-button--primary{width:100%!important;min-height:44px!important;margin-top:3px!important}
+html[data-production-system="v8"] #main .q-auth-form .q-button--primary{width:100%!important;min-height:44px!important;margin-top:3px!important;border:0!important;border-radius:0!important;box-shadow:none!important}
 html[data-production-system="v8"] #main .q-password-field{position:relative!important}
 html[data-production-system="v8"] #main .q-password-field input{padding-right:70px!important}
 html[data-production-system="v8"] #main .q-password-toggle{
@@ -112,7 +112,7 @@ html[data-production-system="v8"] #main .q-auth-consent{display:grid!important;g
 html[data-production-system="v8"] #main .q-auth-consent input{margin-top:3px!important}
 html[data-production-system="v8"] #main .q-auth-footer{
   display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:8px!important;
-  padding-top:16px!important;border-top:1px solid var(--q-border)!important;color:var(--q-muted)!important;font-size:12px!important
+  padding-top:16px!important;border-top:0!important;color:var(--q-muted)!important;font-size:12px!important
 }
 html[data-production-system="v8"] #main .q-auth-footer .q-button{min-height:44px!important}
 html[data-production-system="v8"] #main .q-form-error:not(:empty){margin:0!important;padding:10px 12px!important;border:1px solid color-mix(in srgb,var(--q-negative) 50%,var(--q-border))!important;border-radius:8px!important;background:color-mix(in srgb,var(--q-negative) 8%,var(--q-surface))!important;color:var(--q-negative)!important;font-size:12px!important}
@@ -252,7 +252,7 @@ html[data-production-system="v8"] #main[data-production-route="formula-detail"]>
   html[data-production-system="v8"] #main .q-auth-hero{padding:24px!important;gap:22px!important}
   html[data-production-system="v8"] #main .q-auth-hero h1{font-size:34px!important}
   html[data-production-system="v8"] #main .q-auth-card{padding:24px!important}
-  html[data-production-system="v8"] #main .q-auth-proof-grid article{grid-template-columns:90px 1fr!important}
+  html[data-production-system="v8"] #main .q-auth-proof-grid article{grid-template-columns:90px 1fr!importantbox-shadow:none!important;}
   html[data-production-system="v8"] #main .q-v6-account-hero,
   html[data-production-system="v8"] #main .q-v6-profile-layout,
   html[data-production-system="v8"] #main .q-v6-account-page>.q-two-column,

@@ -330,7 +330,7 @@ body {
 .q-brand-hero:not(:where(.q-about-v2-page *)):not(:where(.q-v6-account-page,.q-v6-account-page *)),
 .q-mi-page-head:not(:where(.q-about-v2-page *)):not(:where(.q-v6-account-page,.q-v6-account-page *)),
 .q-v7-hero:not(:where(.q-about-v2-page *)):not(:where(.q-v6-account-page,.q-v6-account-page *)),
-[class*="-hero"]:not(:where(.q-about-v2-page *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-feature-index,.q-feature-index *)){
+[class*="-hero"]:not(:where(.q-about-v2-page *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-auth-page,.q-auth-page *)){
   color: var(--q-text) !important;
   border-color: var(--q-border) !important;
   background: transparent !important;
@@ -359,7 +359,7 @@ body {
   border-radius: 8px;
 }
 
-.q-button:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-dx-page,.q-dx-page *)){
+.q-button:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-dx-page,.q-dx-page *)):not(:where(.q-auth-page,.q-auth-page *)){
   padding: 0 14px !important;
   border: 1px solid var(--q-border) !important;
   background: var(--q-surface) !important;
@@ -369,8 +369,8 @@ body {
   box-shadow: none !important;
 }
 
-.q-button--primary,
-.q-button.is-primary {
+.q-button--primary:not(:where(.q-auth-page,.q-auth-page *)),
+.q-button.is-primary:not(:where(.q-auth-page,.q-auth-page *)){
   min-height: 44px !important;
   border-color: var(--q-accent) !important;
   background: var(--q-accent) !important;
@@ -385,14 +385,14 @@ body {
   outline-offset: 2px !important;
 }
 
-.q-panel:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)),
-.q-card:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)),
+.q-panel:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)),
+.q-card:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)),
 .q-kpi:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)),
 .q-record-row:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)),
 .q-choice-row:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)),
 .q-context-block:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)),
 .q-empty-state:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)),
-[class*="-card"]:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)){
+[class*="-card"]:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)){
   border-color: var(--q-border) !important;
   background: var(--q-surface) !important;
   background-image: none !important;
@@ -400,15 +400,15 @@ body {
   box-shadow: none !important;
 }
 
-.q-panel:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)),
-.q-card:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)),
+.q-panel:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)),
+.q-card:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)),
 .q-kpi:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)),
 .q-empty-state:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)),
-[class*="-card"]:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)){ border-radius: 12px !important; }
+[class*="-card"]:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)){ border-radius: 12px !important; }
 
-.q-panel-head:not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)),
-.q-card > header:not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)),
-.q-panel > header:not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)){
+.q-panel-head:not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)),
+.q-card > header:not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)),
+.q-panel > header:not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)){
   min-height: 0 !important;
   padding: 15px 17px !important;
   border-color: var(--q-border) !important;
@@ -451,8 +451,8 @@ body {
   padding: 28px !important;
 }
 
-input:not(:where(.q-mt5-route *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-ai-root *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)),
-select:not(:where(.q-mt5-route *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-ai-root *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)),
+input:not(:where(.q-mt5-route *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-ai-root *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)),
+select:not(:where(.q-mt5-route *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-ai-root *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)),
 textarea:not(:where(.q-mt5-route *)):not(:where(.q-ai-root *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)){
   border-color: var(--q-border) !important;
   background: var(--q-surfacealt) !important;
@@ -462,7 +462,7 @@ textarea:not(:where(.q-mt5-route *)):not(:where(.q-ai-root *)):not(:where(.q-v6-
 
 table,
 .q-table,
-[class*="-table"]:not(:where(.q-feature-index,.q-feature-index *)) {
+[class*="-table"]:not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-auth-page,.q-auth-page *)){
   border-color: var(--q-border) !important;
   color: var(--q-text) !important;
   background: var(--q-surface) !important;
@@ -864,7 +864,7 @@ html[data-production-system="v8"] #main > .q-page {
   margin: 0 auto !important;
 }
 
-html[data-production-system="v8"] #main :where(.q-panel,.q-card,.q-kpi,.q-record-row,.q-choice-row,.q-context-block,.q-empty-state,[class*="-card"]):not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)){
+html[data-production-system="v8"] #main :where(.q-panel,.q-card,.q-kpi,.q-record-row,.q-choice-row,.q-context-block,.q-empty-state,[class*="-card"]):not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)){
   border-color: var(--q-border) !important;
   background-color: var(--q-surface) !important;
   background-image: none !important;
@@ -872,7 +872,7 @@ html[data-production-system="v8"] #main :where(.q-panel,.q-card,.q-kpi,.q-record
   box-shadow: none !important;
 }
 
-html[data-production-system="v8"] #main :where(.q-panel-head,.q-card>header,.q-panel>header,thead,.q-audit-row.is-head,[class*="-row"].is-head) {
+html[data-production-system="v8"] #main :where(.q-panel-head,.q-card>header,.q-panel>header,thead,.q-audit-row.is-head,[class*="-row"].is-head):not(:where(.q-auth-page,.q-auth-page *)){
   border-color: var(--q-border) !important;
   background-color: var(--q-surfacealt) !important;
   background-image: none !important;
