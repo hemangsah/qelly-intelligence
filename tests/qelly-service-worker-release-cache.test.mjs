@@ -45,7 +45,7 @@ test('production release keys require a full SHA while local builds receive a de
 
 test('release-cache finalizer runs after all frontend generators',async()=>{
   const pkg=JSON.parse(await read('package.json'));
-  assert.match(pkg.scripts['build:frontend'],/generate-public-asset-research\.mjs && node scripts\/install-standalone-public-shell\.mjs && node scripts\/finalize-release-cache\.mjs$/);
+  assert.match(pkg.scripts['build:frontend'],/generate-public-asset-research\.mjs && node scripts\/install-standalone-public-shell\.mjs && node scripts\/coalesce-css-imports\.mjs && node scripts\/finalize-release-cache\.mjs$/);
 });
 
 test('HTML and service-worker identity are never served from a stale browser cache',async()=>{
