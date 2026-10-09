@@ -1,5 +1,6 @@
 import {routeDefinitions} from '../route-registry.mjs';
-
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
+/* Existing workflow and curated destination data are inserted by the guarded authoring helper. */
 const WORKFLOWS=[
   {route:'market',eyebrow:'Markets',title:'Market Pulse',copy:'Scan cross-asset conditions, ranked observations and current source freshness.'},
   {route:'decision-provenance',eyebrow:'Decision Intelligence',title:'Explain a market move',copy:'Connect candlesticks, quantitative evidence and relevant news into an evidence-backed research view.'},
@@ -17,112 +18,28 @@ const PRINCIPLES=[
   ['Read-only by design','The public terminal does not execute trades or hold assets.'],
   ['Coverage before claims','A market is displayed only when the required source coverage is available.']
 ];
-
-const officialSymbol=new URL('../brand/qelly-symbol.svg',import.meta.url).href;
 const CLUSTERS=[
   {name:'Discover',copy:'Find markets, rankings, categories, venues, global context and current research.',routes:['discovery-hub','asset-rankings','search','categories','venues','dex-discovery','global-charts','converter','news-research','trust-center']},
   {name:'Analyse',copy:'Move from market context into assets, charts, filings, events, comparisons and Decision Intelligence.',routes:['market','asset','asset-intelligence','advanced-chart','fundamentals-estimates','filing-workspace','event-calendar','comparison-lab','decision-provenance']},
-  {name:'Quant tools',copy:'Screen assets and run transparent formulas, indicators and financial calculations.',routes:['screener-lab','formula-screener','calculator-center','formula-library','indicator-library','india-finance']},
+  {name:'Quant tools',copy:'Screen assets and run transparent formulas, indicators and financial calculations.',routes:['screener-lab','formula-screener','calculator-center','formula-library','indicator-library','india-finance','mt5-report-analyzer']},
   {name:'Research',copy:'Build evidence from news, filings, events and verification tools.',routes:['news-research','filing-workspace','event-calendar','comparison-lab','qelly-verify']},
   {name:'About',copy:'Understand Qelly, its research model and available public capabilities.',routes:['about-qelly','feature-universe']}
 ];
-const FEATURE_UNIVERSE_MODULE_COUNT=CLUSTERS.reduce((total,cluster)=>total+cluster.routes.length,0);
-let featureUniverseDensityMain=null;
-let featureUniverseDensityMedia=null;
-let featureUniverseDensityListenerBound=false;
-
-const MOBILE_PRESENTATION=[
-  ['.q-page-head',{'display':'block','min-height':'0','width':'auto','max-width':'none','margin':'0 0 8px','padding':'8px 2px 10px','overflow':'visible'}],
-  ['.q-page-head h1',{'font-size':'26px','line-height':'1.08','margin':'3px 0 5px'}],
-  ['.q-page-head p',{'font-size':'14px','line-height':'1.5'}],
-  ['.q-universe-hero',{'min-height':'0','margin-bottom':'10px','padding':'14px 0 12px'}],
-  ['.q-universe-core',{'position':'relative','left':'auto','top':'auto','transform':'none','width':'132px','height':'132px','margin':'6px auto 12px'}],
-  ['.q-universe-core img',{'width':'48px','height':'48px'}],
-  ['.q-universe-journey',{'display':'flex','gap':'8px','overflow-x':'auto','overscroll-behavior-inline':'contain','scroll-snap-type':'x proximity','padding':'0 12px 5px'}],
-  ['.q-universe-node',{'position':'relative','left':'auto','top':'auto','transform':'none','flex':'0 0 min(72vw,240px)','width':'auto','min-height':'72px','scroll-snap-align':'start'}],
-  ['.q-universe-clusters',{'display':'grid','grid-template-columns':'minmax(0,1fr)','gap':'10px'}],
-  ['.q-universe-cluster',{'display':'block','padding':'14px'}],
-  ['.q-universe-cluster:last-child',{'grid-column':'auto'}],
-  ['.q-universe-cluster header p:not(.q-eyebrow)',{'margin':'0','font-size':'13px','line-height':'1.5'}],
-  ['.q-universe-route-grid',{'display':'flex','gap':'7px','overflow-x':'auto','overscroll-behavior-inline':'contain','scroll-snap-type':'x proximity','padding-bottom':'3px'}],
-  ['.q-universe-route-grid button',{'flex':'0 0 min(76vw,260px)','min-height':'82px','padding':'12px','scroll-snap-align':'start'}],
-  ['.q-capability-ribbon .q-panel-body',{'display':'flex','gap':'7px','overflow-x':'auto','overscroll-behavior-inline':'contain','scroll-snap-type':'x proximity','padding':'10px'}],
-  ['.q-capability-ribbon .q-panel-body>div',{'flex':'0 0 min(76vw,260px)','min-height':'72px','padding':'12px','scroll-snap-align':'start'}]
-];
-
-function setPresentation(element,styles,active){
-  if(!element)return;
-  for(const [name,value] of Object.entries(styles)){
-    if(active)element.style.setProperty(name,value,'important');
-    else element.style.removeProperty(name);
-  }
-}
-
-function applyFeatureUniverseDensity(main=featureUniverseDensityMain){
-  if(!main)return;
-  featureUniverseDensityMain=main;
-  if(!featureUniverseDensityMedia&&typeof globalThis.matchMedia==='function')featureUniverseDensityMedia=globalThis.matchMedia('(max-width: 768px)');
-  const active=Boolean(featureUniverseDensityMedia?.matches);
-  const page=main.querySelector('.q-feature-universe');
-  if(!page)return;
-  for(const [selector,styles] of MOBILE_PRESENTATION)page.querySelectorAll(selector).forEach((element)=>setPresentation(element,styles,active));
-  page.dataset.mobileDensity=active?'active':'desktop';
-  document.documentElement.dataset.featureUniverseDensity=active?'active':'desktop';
-  if(featureUniverseDensityMedia&&!featureUniverseDensityListenerBound){
-    featureUniverseDensityListenerBound=true;
-    featureUniverseDensityMedia.addEventListener?.('change',()=>applyFeatureUniverseDensity());
-  }
-}
-
-export async function renderFeatureUniverse(main,deps){
-  const {pageHead,escapeHtml,navigate}=deps;
-  main.innerHTML=`<section class="q-page q-feature-universe">
-    ${pageHead('Qelly Intelligence','Your market research workspace','Discover markets, inspect assets, run quantitative tools and verify the evidence behind each result.',`<button class="q-button" data-home-action="verify">Verify a result</button><button class="q-button q-button--primary" data-home-action="market">Explore markets</button>`)}
-
-    <section class="q-home-hero" aria-label="Qelly workspace introduction">
-      <article class="q-home-lead">
-        <span class="q-eyebrow">Evidence-backed market intelligence</span>
-        <h2>Move from market signal to a decision you can explain.</h2>
-        <p>Qelly connects discovery, analysis, calculations and source evidence in a focused workspace. Data availability is stated directly; unavailable or indicative observations are never presented as licensed live data.</p>
-        <div class="q-home-actions">
-          <button class="q-button q-button--primary" data-route-target="market">Open market overview</button>
-          <button class="q-button" data-route-target="calculator-center">Run a calculation</button>
-          <button class="q-button q-button--ghost" data-route-target="about-qelly">How Qelly works</button>
-        </div>
-      </article>
-      <aside class="q-home-status" aria-label="Product availability">
-        <div><span class="q-eyebrow">Workspace status</span><h2>Research mode</h2><p>Source-aware, read-only and evidence-first.</p></div>
-        <div class="q-home-status-row"><span>Market observations</span><strong>Source and freshness shown per observation</strong></div>
-        <div class="q-home-status-row"><span>Calculations</span><strong>Reproducible and versioned</strong></div>
-        <div class="q-home-status-row"><span>Trading and custody</span><strong>Not provided</strong></div>
-        <div class="q-home-status-row"><span>Account</span><strong>Optional for public research</strong></div>
-      </aside>
-    </section>
-
-    <section class="q-home-section" aria-labelledby="q-home-workflows">
-      <header><div><h2 id="q-home-workflows">Start a workflow</h2><p>Focused destinations for markets, tools and evidence.</p></div></header>
-      <div class="q-home-grid">${WORKFLOWS.map((item)=>`<button class="q-home-card" data-route-target="${escapeHtml(item.route)}"><span>${escapeHtml(item.eyebrow)}</span><div><strong>${escapeHtml(item.title)}</strong><p>${escapeHtml(item.copy)}</p></div><small>Open workspace →</small></button>`).join('')}</div>
-    </section>
-
-    <section class="q-home-section" aria-labelledby="q-home-principles">
-      <header><div><h2 id="q-home-principles">Built for explainable research</h2><p>The interface separates product availability, source coverage and analytical evidence.</p></div></header>
-      <div class="q-home-principles">${PRINCIPLES.map(([title,copy])=>`<div><strong>${escapeHtml(title)}</strong><span>${escapeHtml(copy)}</span></div>`).join('')}</div>
-    </section>
-
-    <section class="q-home-section q-product-directory" aria-labelledby="q-product-directory">
-      <header><div><h2 id="q-product-directory">Complete product directory</h2><p>${FEATURE_UNIVERSE_MODULE_COUNT} mapped destinations, grouped by research task.</p></div></header>
-      <section class="q-universe-hero" aria-label="Product directory overview">
-        <div class="q-universe-core"><img src="${officialSymbol}" alt="" width="48" height="48" aria-hidden="true"><strong>${FEATURE_UNIVERSE_MODULE_COUNT}</strong><small>mapped modules</small></div>
-        <div class="q-universe-journey">${CLUSTERS.map((cluster)=>`<button class="q-universe-node" data-cluster="${escapeHtml(cluster.name)}"><strong>${escapeHtml(cluster.name)}</strong><span>${cluster.routes.length} modules</span></button>`).join('')}</div>
-      </section>
-      <div class="q-universe-clusters">${CLUSTERS.map((cluster,index)=>`<section class="q-universe-cluster" id="q-universe-${cluster.name.toLowerCase()}"><header><div><span>${String(index+1).padStart(2,'0')}</span><p class="q-eyebrow">${cluster.routes.length} destinations</p><h2>${escapeHtml(cluster.name)}</h2><p>${escapeHtml(cluster.copy)}</p></div><button class="q-icon-button" data-open-first="${cluster.routes[0]}" aria-label="Open ${escapeHtml(cluster.name)}">↗</button></header><div class="q-universe-route-grid">${cluster.routes.map((route)=>{const label=routeDefinitions.find((item)=>item.route===route)?.label??route.replaceAll('-',' ');return `<button data-route-target="${route}"><strong>${escapeHtml(label)}</strong><small>Open workspace →</small></button>`;}).join('')}</div></section>`).join('')}</div>
-      <section class="q-panel q-capability-ribbon"><div class="q-panel-body"><div><span>DATA</span><strong>Source and freshness visible</strong></div><div><span>CHARTS</span><strong>Cross-asset research views</strong></div><div><span>WORKSPACE</span><strong>Saved and versioned research</strong></div><div><span>SAFETY</span><strong>Read-only; no trading or custody</strong></div></div></section>
-    </section>
-  </section>`;
-  applyFeatureUniverseDensity(main);
-  main.querySelector('[data-home-action="verify"]')?.addEventListener('click',()=>navigate('qelly-verify'));
-  main.querySelector('[data-home-action="market"]')?.addEventListener('click',()=>navigate('market'));
-  main.querySelectorAll('[data-route-target]').forEach((button)=>button.addEventListener('click',()=>navigate(button.dataset.routeTarget)));
-  main.querySelectorAll('[data-open-first]').forEach((button)=>button.addEventListener('click',()=>navigate(button.dataset.openFirst)));
-  main.querySelectorAll('[data-cluster]').forEach((button)=>button.addEventListener('click',()=>main.querySelector(`#q-universe-${button.dataset.cluster.toLowerCase()}`)?.scrollIntoView({behavior:'smooth',block:'start'})));
+const UNIQUE_DESTINATIONS=new Set(CLUSTERS.flatMap(group=>group.routes)).size;
+const stylesheet=new URL('./feature-index.css',import.meta.url).href;
+export async function renderFeatureUniverse(main,{escapeHtml,navigate}){
+ await ensureRouteStylesheet(stylesheet,{attribute:'data-feature-index-style',value:'true'});
+ if(!main.isConnected||!location.hash.startsWith('#/feature-universe'))return;
+ const safe=value=>escapeHtml(String(value??''));
+ main.innerHTML=`<section class="q-feature-index" aria-labelledby="q-feature-title">
+  <header class="q-feature-intro"><div><p class="q-feature-label">QELLY Intelligence</p><h1 id="q-feature-title">Find your next research step.</h1><p>Explore markets, understand an asset, test a calculation or inspect the evidence. Choose the task you have in mind.</p><nav aria-label="Quick start"><a href="#/market" data-directory-route="market">Explore Market Pulse</a><a href="#/calculator-center" data-directory-route="calculator-center">Run a calculation</a><a href="#/about-qelly" data-directory-route="about-qelly">How Qelly works</a></nav></div><aside aria-label="Research boundaries"><h2>Evidence before conclusion.</h2><p>Source availability and freshness stay visible. Public research is read-only; trading and custody are not provided.</p><p>An account is optional for public research.</p></aside></header>
+  <section class="q-feature-workflows" aria-labelledby="q-feature-workflows-title"><header><p class="q-feature-label">Start with a question</p><h2 id="q-feature-workflows-title">A focused workspace for each task.</h2></header><ol>${WORKFLOWS.map(item=>`<li><a href="#/${safe(item.route)}" data-directory-route="${safe(item.route)}"><span>${safe(item.eyebrow)}</span><div><h3>${safe(item.route==='news-research'?'QELLY Chat':item.title)}</h3><p>${safe(item.copy)}</p></div><span aria-hidden="true">→</span></a></li>`).join('')}</ol></section>
+  <section class="q-feature-directory" aria-labelledby="q-feature-directory-title"><header><p class="q-feature-label">Explore by task</p><h2 id="q-feature-directory-title">Your public research directory.</h2><p>Curated destinations grouped by purpose. Account and operational controls stay in their own navigation.</p></header><form role="search" aria-label="Workflow directory"><label><span>Find a Qelly workflow</span><input type="search" name="query" placeholder="Try liquidity, formulas or research" autocomplete="off"></label><label><span>Task group</span><select name="group"><option value="">All tasks</option>${CLUSTERS.map(group=>`<option value="${safe(group.name)}">${safe(group.name)}</option>`).join('')}</select></label><button type="reset">Reset filters</button></form><p class="q-feature-count" role="status" aria-live="polite">${UNIQUE_DESTINATIONS} destinations available</p><p class="q-feature-empty" hidden>No matching destination. Try a broader task or reset the filters.</p><div class="q-feature-groups">${CLUSTERS.map((group,index)=>`<details data-directory-group="${safe(group.name)}" ${index===0?'open':''}><summary><span>${safe(group.name)}</span><span>${group.routes.length} destinations</span></summary><p>${safe(group.copy)}</p><ul>${group.routes.map(route=>{const label=routeDefinitions.find((item)=>item.route===route)?.label??route.replaceAll('-',' ');return `<li data-directory-search="${safe([label,route,group.copy].join(' ').toLowerCase())}"><a href="#/${safe(route)}" data-directory-route="${safe(route)}"><span>${safe(label)}</span><span aria-hidden="true">→</span></a></li>`;}).join('')}</ul></details>`).join('')}</div></section>
+  <section class="q-feature-principles" aria-labelledby="q-feature-principles-title"><h2 id="q-feature-principles-title">Built for explainable research.</h2><dl>${PRINCIPLES.map(([title,copy])=>`<div><dt>${safe(title)}</dt><dd>${safe(copy)}</dd></div>`).join('')}</dl></section>
+ </section>`;
+ const root=main.querySelector('.q-feature-index'),form=root.querySelector('form'),groups=[...root.querySelectorAll('[data-directory-group]')],initial=new Map(groups.map(group=>[group,group.open]));
+ const update=()=>{const query=form.elements.query.value.trim().toLowerCase(),selected=form.elements.group.value,matched=new Set();for(const group of groups){let count=0;for(const item of group.querySelectorAll('[data-directory-search]')){const visible=(!selected||selected===group.dataset.directoryGroup)&&item.dataset.directorySearch.includes(query);item.hidden=!visible;if(visible){count++;matched.add(item.querySelector('a').dataset.directoryRoute);}}group.hidden=count===0;group.open=query||selected?count>0:initial.get(group);}root.querySelector('[role="status"]').textContent=`${matched.size} ${matched.size===1?'destination':'destinations'} available`;root.querySelector('.q-feature-empty').hidden=matched.size!==0;};
+ form.addEventListener('submit',event=>event.preventDefault());form.addEventListener('input',update);form.addEventListener('change',update);form.addEventListener('reset',event=>{event.preventDefault();form.elements.query.value='';form.elements.group.value='';update();});
+ for(const link of root.querySelectorAll('[data-directory-route]'))link.addEventListener('click',event=>{if(event.button||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;event.preventDefault();navigate(link.dataset.directoryRoute);});
+ main.removeAttribute('aria-busy');
 }
