@@ -210,8 +210,10 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
     }).map(node=>node.getBoundingClientRect());
     const plots=[...document.querySelectorAll('#main [data-qelly-chat-plot], #main .q-v6-market-tradingview')].filter(node=>{const style=getComputedStyle(node);return style.visibility!=='hidden'&&style.display!=='none';}).map(node=>node.getBoundingClientRect());
     const plotClearance=chartClearance||dockOverlapsControls(dock,plots);
-    const blocked=plotClearance||dockOverlapsControls(dock,controls);
-    root.dataset.clearance=plotClearance?'chart':blocked?'interactive':'clear';
+    const evidenceTables=[...document.querySelectorAll('#main table, #main [role="table"]')].filter(node=>{const style=getComputedStyle(node);return style.visibility!=='hidden'&&style.display!=='none';}).map(node=>node.getBoundingClientRect());
+    const contentClearance=dockOverlapsControls(dock,evidenceTables);
+    const blocked=plotClearance||contentClearance||dockOverlapsControls(dock,controls);
+    root.dataset.clearance=plotClearance?'chart':contentClearance?'content':blocked?'interactive':'clear';
     launcher.tabIndex=blocked?-1:0;
     launcher.setAttribute('aria-hidden',String(blocked));
   };
