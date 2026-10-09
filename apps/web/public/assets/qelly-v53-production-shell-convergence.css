@@ -116,7 +116,7 @@ html[data-ui-lock-v53="active"][data-product-surface="production"] :where(.q-pro
 }
 
 /* Accepted compact category rail. */
-html[data-ui-lock-v53="active"][data-product-surface="production"] .q-edge-dock{
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-edge-dock:not(:where(.q-verify-page,.q-verify-page *)){
   position:fixed!important;
   inset:0 auto 0 0!important;
   z-index:90!important;
@@ -174,7 +174,7 @@ html[data-ui-lock-v53="active"][data-product-surface="production"] #main{
   min-height:calc(100vh - 64px);
   background:#080609!important;
 }
-html[data-ui-lock-v53="active"][data-product-surface="production"] .q-worldclass-context{
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-worldclass-context:not(:where(.q-verify-page,.q-verify-page *)){
   min-height:30px!important;
   height:30px;
   margin:0 0 8px!important;
@@ -216,7 +216,7 @@ html[data-ui-lock-v53="active"][data-product-surface="production"] .q-worldclass
   display:flex!important;
   gap:5px;
 }
-html[data-ui-lock-v53="active"][data-product-surface="production"] .q-worldclass-truth-chip{
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-worldclass-truth-chip:not(:where(.q-verify-page,.q-verify-page *)){
   min-height:18px!important;
   padding:2px 6px!important;
   border-radius:4px!important;
@@ -251,7 +251,7 @@ html[data-ui-lock-v53="active"][data-product-surface="production"] .q-page-actio
 
 /* Market Command: accepted chart/context/Inspector workstation proportions. */
 html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-market-page>.q-state-banner{display:none!important}
-html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-command-deck{
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-command-deck:not(:where(.q-verify-page,.q-verify-page *)){
   min-height:52px!important;
   margin:0 0 7px!important;
   padding:6px 8px!important;
@@ -274,7 +274,7 @@ html[data-v53-route="live-markets"][data-product-surface="production"] .q-v5-evi
   gap:6px!important;
   margin:0 0 7px!important;
 }
-html[data-v53-route="live-markets"][data-product-surface="production"] :where(.q-v5-market-metric,.q-v5-evidence-cell){
+html[data-v53-route="live-markets"][data-product-surface="production"] :where(.q-v5-market-metric,.q-v5-evidence-cell):not(:where(.q-verify-page,.q-verify-page *)){
   min-height:44px!important;
   padding:6px 8px!important;
   border-radius:6px!important;
@@ -287,7 +287,7 @@ html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-l
   align-items:stretch!important;
   gap:10px!important;
 }
-html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-chart-shell{
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-chart-shell:not(:where(.q-verify-page,.q-verify-page *)){
   min-height:500px!important;
   height:min(56vh,520px)!important;
   border-radius:7px!important;
@@ -313,14 +313,14 @@ html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-s
 html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-side-stack p,
 html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-stat,
 html[data-v53-route="live-markets"][data-product-surface="production"] .q-record-row{font-size:9px!important}
-html[data-v53-route="live-markets"][data-product-surface="production"] .q-market-tape{
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-market-tape:not(:where(.q-verify-page,.q-verify-page *)){
   margin-top:8px!important;
   border-radius:7px!important;
 }
 html[data-v53-route="live-markets"][data-product-surface="production"] .q-market-tape .q-panel-head{min-height:34px!important;padding:5px 8px!important}
 html[data-v53-route="live-markets"][data-product-surface="production"] .q-market-tape .q-panel-body{padding:6px 8px!important}
 html[data-v53-route="live-markets"][data-product-surface="production"] .q-tape-grid{gap:6px!important}
-html[data-v53-route="live-markets"][data-product-surface="production"] .q-tape-card{min-height:42px!important;padding:5px 7px!important;border-radius:5px!important}
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-tape-card:not(:where(.q-verify-page,.q-verify-page *)){min-height:42px!important;padding:5px 7px!important;border-radius:5px!important}
 
 /* Compact panels globally; the accepted lock uses 5–8px curvature. */
 html[data-ui-lock-v53="active"][data-product-surface="production"] #main :where(.q-panel,.q-card,.q-kpi,.q-research-card):not(:where(.q-v7-public-market *)):not(:where(.q-verify-page,.q-verify-page *)){

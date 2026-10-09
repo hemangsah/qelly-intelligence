@@ -3,17 +3,17 @@
  * Scoped to the current production system only.
  */
 html[data-production-system="v8"] #main{--q-control-height:40px;--q-route-gap:14px}
-html[data-production-system="v8"] #main :where(input,select,textarea){box-sizing:border-box!important;min-width:0!important;border:1px solid var(--q-border)!important;background:var(--q-surfacealt)!important;color:var(--q-text)!important;-webkit-text-fill-color:var(--q-text)!important;box-shadow:none!important}
-html[data-production-system="v8"] #main :where(input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),select){min-height:var(--q-control-height)!important;height:var(--q-control-height)!important;padding:0 11px!important;border-radius:8px!important}
-html[data-production-system="v8"] #main textarea{padding:10px 11px!important;border-radius:8px!important}
+html[data-production-system="v8"] #main :where(input,select,textarea):not(:where(.q-verify-page,.q-verify-page *)){box-sizing:border-box!important;min-width:0!important;border:1px solid var(--q-border)!important;background:var(--q-surfacealt)!important;color:var(--q-text)!important;-webkit-text-fill-color:var(--q-text)!important;box-shadow:none!important}
+html[data-production-system="v8"] #main :where(input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),select):not(:where(.q-verify-page,.q-verify-page *)){min-height:var(--q-control-height)!important;height:var(--q-control-height)!important;padding:0 11px!important;border-radius:8px!important}
+html[data-production-system="v8"] #main textarea:not(:where(.q-verify-page,.q-verify-page *)){padding:10px 11px!important;border-radius:8px!important}
 html[data-production-system="v8"] #main select option{background:var(--q-surface)!important;color:var(--q-text)!important}
 html[data-production-system="v8"][data-resolved-appearance="dark"] #main :where(input,select,textarea),html[data-production-system="v8"][data-appearance="dark"] #main :where(input,select,textarea){color-scheme:dark!important}
 html[data-production-system="v8"][data-resolved-appearance="light"] #main :where(input,select,textarea),html[data-production-system="v8"][data-appearance="light"] #main :where(input,select,textarea){color-scheme:light!important}
 
 /* Calculator + indicator evidence strips stay horizontal and readable. */
-html[data-production-system="v8"] #main .q-v6-quant-kpis{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:0!important;width:100%!important;margin:0 0 var(--q-route-gap)!important;overflow:hidden!important;border:1px solid var(--q-border)!important;border-radius:10px!important;background:var(--q-surface)!important}
-html[data-production-system="v8"] #main .q-v6-quant-kpis>div{display:block!important;min-width:0!important;width:auto!important;min-height:84px!important;padding:13px 14px!important;border:0!important;border-right:1px solid var(--q-border)!important;writing-mode:horizontal-tb!important;overflow:hidden!important}
-html[data-production-system="v8"] #main .q-v6-quant-kpis>div:last-child{border-right:0!important}
+html[data-production-system="v8"] #main .q-v6-quant-kpis:not(:where(.q-verify-page,.q-verify-page *)){display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:0!important;width:100%!important;margin:0 0 var(--q-route-gap)!important;overflow:hidden!important;border:1px solid var(--q-border)!important;border-radius:10px!important;background:var(--q-surface)!important}
+html[data-production-system="v8"] #main .q-v6-quant-kpis>div:not(:where(.q-verify-page,.q-verify-page *)){display:block!important;min-width:0!important;width:auto!important;min-height:84px!important;padding:13px 14px!important;border:0!important;border-right:1px solid var(--q-border)!important;writing-mode:horizontal-tb!important;overflow:hidden!important}
+html[data-production-system="v8"] #main .q-v6-quant-kpis>div:last-child:not(:where(.q-verify-page,.q-verify-page *)){border-right:0!important}
 html[data-production-system="v8"] #main .q-v6-quant-kpis>div>*{display:block!important;position:static!important;width:auto!important;max-width:100%!important;writing-mode:horizontal-tb!important;word-break:normal!important;overflow-wrap:normal!important;text-orientation:mixed!important}
 html[data-production-system="v8"] #main .q-v6-quant-kpis strong{margin:5px 0 2px!important;font-size:20px!important;line-height:1.12!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
 html[data-production-system="v8"] #main .q-v6-quant-kpis span,html[data-production-system="v8"] #main .q-v6-quant-kpis small{font-size:12px!important;line-height:1.4!important}
@@ -40,26 +40,26 @@ html[data-production-system="v8"] #main[data-production-route="qelly-verify"] :w
 html[data-production-system="v8"] #main .q-research-workspace-page{display:grid!important;gap:14px!important}
 html[data-production-system="v8"] #main .q-research-external-sources .q-panel-body{min-height:0!important;padding:12px!important;background:var(--q-surface)!important;background-image:none!important}
 html[data-production-system="v8"] #main .q-research-evidence-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;min-height:0!important}
-html[data-production-system="v8"] #main .q-research-evidence-card{min-height:0!important;padding:14px!important;border:1px solid var(--q-border)!important;border-radius:10px!important;background:var(--q-surfacealt)!important;background-image:none!important}
+html[data-production-system="v8"] #main .q-research-evidence-card:not(:where(.q-verify-page,.q-verify-page *)){min-height:0!important;padding:14px!important;border:1px solid var(--q-border)!important;border-radius:10px!important;background:var(--q-surfacealt)!important;background-image:none!important}
 html[data-production-system="v8"] #main .q-research-evidence-card__head{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:8px!important}
 html[data-production-system="v8"] #main .q-research-empty-state{min-height:150px!important;padding:24px!important;background:var(--q-surface)!important;background-image:none!important}
 html[data-production-system="v8"] #main .q-research-kpi-strip{min-height:0!important}
 
 /* Theme personas: operating-mode selector, not a marketing landing page. */
 html[data-production-system="v8"] #main .q-theme-persona-page{display:grid!important;gap:14px!important}
-html[data-production-system="v8"] #main .q-theme-persona-page .q-brand-lock-banner{min-height:0!important;padding:20px 22px!important;margin:0!important;border-radius:14px!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-brand-lock-banner:not(:where(.q-verify-page,.q-verify-page *)){min-height:0!important;padding:20px 22px!important;margin:0!important;border-radius:14px!important}
 html[data-production-system="v8"] #main .q-theme-persona-page .q-brand-lock-banner h2{margin:5px 0 8px!important;font-size:clamp(24px,2.7vw,36px)!important}
 html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;margin:0!important}
-html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-card{min-height:0!important;padding:16px!important;border-radius:12px!important}
-html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-glyph{width:42px!important;height:42px!important;margin-bottom:10px!important;border-radius:10px!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-card:not(:where(.q-verify-page,.q-verify-page *)){min-height:0!important;padding:16px!important;border-radius:12px!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-glyph:not(:where(.q-verify-page,.q-verify-page *)){width:42px!important;height:42px!important;margin-bottom:10px!important;border-radius:10px!important}
 html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-card h2{margin:5px 0!important;font-size:20px!important}
 html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-metrics{display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px!important;margin:11px 0!important}
-html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-metrics span{min-height:54px!important;padding:9px!important;border-radius:8px!important}
+html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-metrics span:not(:where(.q-verify-page,.q-verify-page *)){min-height:54px!important;padding:9px!important;border-radius:8px!important}
 html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-best{margin-bottom:10px!important}
 html[data-production-system="v8"] #main .q-theme-persona-page .q-persona-comparison{margin:0!important}
 
-/* Technical IDs are still available, but only on demand. */
-html[data-production-system="v8"] #main .q-v8-technical-identifiers{margin-top:12px!important;border-top:1px solid var(--q-border)!important;padding-top:10px!important}
+/* Technical IDs are still available:not(:where(.q-verify-page,.q-verify-page *)), but only on demand. */
+html[data-production-system="v8"] #main .q-v8-technical-identifiers:not(:where(.q-verify-page,.q-verify-page *)){margin-top:12px!important;border-top:1px solid var(--q-border)!important;padding-top:10px!important}
 html[data-production-system="v8"] #main .q-v8-technical-identifiers>summary{cursor:pointer!important;color:var(--q-muted)!important;font-size:12px!important}
 html[data-production-system="v8"] #main .q-v8-technical-identifiers dl{margin:10px 0 0!important}
 html[data-production-system="v8"] #main .q-v8-technical-identifiers dd{overflow-wrap:anywhere!important;font-family:ui-monospace,SFMono-Regular,Consolas,monospace!important;font-size:12px!important}
@@ -69,7 +69,7 @@ html[data-production-system="v8"] #main .q-v8-technical-identifiers dd{overflow-
 /* Semantic surface convergence: legacy route locks must never leave light cards
    underneath dark-theme text tokens. These rules are token-driven so light mode
    remains semantically correct as well. */
-html[data-production-system="v8"] body #app #main :where(.q-v53-final-inspector,.q-v53-evidence-inspector,.q-v53-real-inspector){border:1px solid var(--q-border)!important;background:var(--q-surface)!important;background-image:none!important;color:var(--q-text)!important;box-shadow:none!important}
+html[data-production-system="v8"] body #app #main :where(.q-v53-final-inspector,.q-v53-evidence-inspector,.q-v53-real-inspector):not(:where(.q-verify-page,.q-verify-page *)){border:1px solid var(--q-border)!important;background:var(--q-surface)!important;background-image:none!important;color:var(--q-text)!important;box-shadow:none!important}
 html[data-production-system="v8"] body #app #main :where(.q-v53-final-inspector,.q-v53-evidence-inspector,.q-v53-real-inspector)>header{border-color:var(--q-border)!important;background:var(--q-surfacealt)!important;background-image:none!important;color:var(--q-text)!important}
 html[data-production-system="v8"] body #app #main :where(.q-v53-final-row,.q-v53-evidence-row,.q-v53-real-evidence-row){border-color:var(--q-border)!important;background:transparent!important;background-image:none!important;color:var(--q-text)!important}
 html[data-production-system="v8"] body #app #main :where(.q-v53-final-note,.q-v53-evidence-note,.q-v53-real-inspector-note){border-color:var(--q-border)!important;background:var(--q-surfacealt)!important;background-image:none!important;color:var(--q-muted)!important}
@@ -80,15 +80,15 @@ html[data-production-system="v8"] body #app #main .q-context-block{border-color:
 html[data-production-system="v8"] body #app #main .q-context-block dt{color:var(--q-muted)!important;-webkit-text-fill-color:var(--q-muted)!important}
 html[data-production-system="v8"] body #app #main .q-context-block dd{color:var(--q-text)!important;-webkit-text-fill-color:var(--q-text)!important}
 
-html[data-production-system="v8"] body #app #main .q-metric-card,html[data-production-system="v8"] body #app #main .q-gate-grid>article{border:1px solid var(--q-border)!important;background:var(--q-surfacealt)!important;background-image:none!important;color:var(--q-text)!important;box-shadow:none!important}
+html[data-production-system="v8"] body #app #main .q-metric-card:not(:where(.q-verify-page,.q-verify-page *)),html[data-production-system="v8"] body #app #main .q-gate-grid>article:not(:where(.q-verify-page,.q-verify-page *)){border:1px solid var(--q-border)!important;background:var(--q-surfacealt)!important;background-image:none!important;color:var(--q-text)!important;box-shadow:none!important}
 html[data-production-system="v8"] body #app #main .q-metric-card strong,html[data-production-system="v8"] body #app #main .q-gate-grid>article strong{color:var(--q-text)!important;-webkit-text-fill-color:var(--q-text)!important}
 html[data-production-system="v8"] body #app #main .q-metric-card :where(span,small),html[data-production-system="v8"] body #app #main .q-gate-grid>article span{color:var(--q-muted)!important;-webkit-text-fill-color:var(--q-muted)!important}
 
-html[data-production-system="v8"] body #app #main .q-calendar-event{border-color:var(--q-border)!important;background:var(--q-surfacealt)!important;background-image:none!important;color:var(--q-text)!important;box-shadow:none!important}
+html[data-production-system="v8"] body #app #main .q-calendar-event:not(:where(.q-verify-page,.q-verify-page *)){border-color:var(--q-border)!important;background:var(--q-surfacealt)!important;background-image:none!important;color:var(--q-text)!important;box-shadow:none!important}
 html[data-production-system="v8"] body #app #main .q-calendar-event strong{color:var(--q-text)!important;-webkit-text-fill-color:var(--q-text)!important}
 html[data-production-system="v8"] body #app #main .q-calendar-event :where(time,small){color:var(--q-muted)!important;-webkit-text-fill-color:var(--q-muted)!important}
 
-html[data-production-system="v8"] body #app #main pre{border-color:var(--q-border)!important;background:var(--q-surfacealt)!important;background-image:none!important;color:var(--q-text-secondary)!important;-webkit-text-fill-color:var(--q-text-secondary)!important;box-shadow:none!important}
+html[data-production-system="v8"] body #app #main pre:not(:where(.q-verify-page,.q-verify-page *)){border-color:var(--q-border)!important;background:var(--q-surfacealt)!important;background-image:none!important;color:var(--q-text-secondary)!important;-webkit-text-fill-color:var(--q-text-secondary)!important;box-shadow:none!important}
 
 /* Legacy data-grid header/footer chrome had a hard-coded light surface in several
    workspace routes. Keep the grid semantic in both appearance modes. */
@@ -110,7 +110,7 @@ html[data-production-system="v8"] body #app #main[data-production-route="researc
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-context-rail>.q-research-section-label{grid-column:auto!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-context-rail>p{display:block!important;font-size:12px!important;line-height:1.5!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-context-dl{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:0!important;min-width:0!important}
-html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-context-dl>div{display:grid!important;grid-template-columns:1fr!important;gap:3px!important;min-width:0!important;padding:9px 8px!important;border-right:0!important;border-bottom:1px solid var(--q-border)!important}
+html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-context-dl>div:not(:where(.q-verify-page,.q-verify-page *)){display:grid!important;grid-template-columns:1fr!important;gap:3px!important;min-width:0!important;padding:9px 8px!important;border-right:0!important;border-bottom:1px solid var(--q-border)!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-context-dl :where(dt,dd){font-size:12px!important;text-align:left!important;overflow-wrap:anywhere!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-tag-rail{min-width:0!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-context-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;min-width:0!important}
@@ -134,14 +134,14 @@ html[data-production-system="v8"] body #app #main[data-production-route="researc
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-capture-form :where(input,select,.q-button){width:100%!important;min-width:0!important;height:44px!important;min-height:44px!important;font-size:12px!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-capture-form>.q-button{grid-column:auto!important;justify-self:stretch!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-inspector{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:9px!important;overflow:visible!important;padding:12px!important}
-html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-inspector>.q-research-section-label{position:static!important;left:auto!important;z-index:auto!important;display:block!important;grid-column:auto!important;align-self:auto!important;padding:0!important;writing-mode:horizontal-tb!important;border-right:0!important;background:transparent!important}
+html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-inspector>.q-research-section-label:not(:where(.q-verify-page,.q-verify-page *)){position:static!important;left:auto!important;z-index:auto!important;display:block!important;grid-column:auto!important;align-self:auto!important;padding:0!important;writing-mode:horizontal-tb!important;border-right:0!important;background:transparent!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-inspector-block{width:auto!important;min-width:0!important;scroll-snap-align:none!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-inspector-head h3{font-size:12px!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-truth-row,html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-inspector-block>p{font-size:12px!important;line-height:1.5!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-truth-row :where(strong,code){max-width:58%!important;font-size:12px!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-activity-track{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:8px!important;overflow:visible!important}
-html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-activity-item{display:grid!important;flex:none!important;width:auto!important;min-width:0!important;padding:8px 0!important;border-right:0!important;border-bottom:1px solid var(--q-border)!important;font-size:12px!important;scroll-snap-align:none!important}
-html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-activity-item:last-child{border-bottom:0!important}
+html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-activity-item:not(:where(.q-verify-page,.q-verify-page *)){display:grid!important;flex:none!important;width:auto!important;min-width:0!important;padding:8px 0!important;border-right:0!important;border-bottom:1px solid var(--q-border)!important;font-size:12px!important;scroll-snap-align:none!important}
+html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-activity-item:last-child:not(:where(.q-verify-page,.q-verify-page *)){border-bottom:0!important}
 html[data-production-system="v8"] body #app #main[data-production-route="research-workspace"] .q-research-section-label{font-size:12px!important;letter-spacing:.05em!important}
 }
 

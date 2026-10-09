@@ -1,14 +1,14 @@
 /* Final production-only visual boundary. Historical review and validation layers remain available outside product mode. */
-html[data-product-surface="production"] .q-worldclass-context[data-qelly-product-boundary="suppressed"],
-html[data-product-surface="production"] .q-worldclass-context:empty,
-html[data-product-surface="production"] .q-scroll-progress,
-html[data-product-surface="production"] #context-shelf,
-html[data-product-surface="production"] #persona-ribbon,
-html[data-product-surface="production"] #edge-dock,
-html[data-product-surface="production"] #rail,
-html[data-product-surface="production"] #compare-tray,
-html[data-product-surface="production"] #mobile-navigation,
-html[data-product-surface="production"] .q-global-strip {
+html[data-product-surface="production"] .q-worldclass-context[data-qelly-product-boundary="suppressed"]:not(:where(.q-verify-page,.q-verify-page *)),
+html[data-product-surface="production"] .q-worldclass-context:empty:not(:where(.q-verify-page,.q-verify-page *)),
+html[data-product-surface="production"] .q-scroll-progress:not(:where(.q-verify-page,.q-verify-page *)),
+html[data-product-surface="production"] #context-shelf:not(:where(.q-verify-page,.q-verify-page *)),
+html[data-product-surface="production"] #persona-ribbon:not(:where(.q-verify-page,.q-verify-page *)),
+html[data-product-surface="production"] #edge-dock:not(:where(.q-verify-page,.q-verify-page *)),
+html[data-product-surface="production"] #rail:not(:where(.q-verify-page,.q-verify-page *)),
+html[data-product-surface="production"] #compare-tray:not(:where(.q-verify-page,.q-verify-page *)),
+html[data-product-surface="production"] #mobile-navigation:not(:where(.q-verify-page,.q-verify-page *)),
+html[data-product-surface="production"] .q-global-strip:not(:where(.q-verify-page,.q-verify-page *)){
   display: none !important;
   min-height: 0 !important;
   height: 0 !important;
