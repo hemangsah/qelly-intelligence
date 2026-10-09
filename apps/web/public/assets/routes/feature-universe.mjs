@@ -21,7 +21,7 @@ const PRINCIPLES=[
 const CLUSTERS=[
   {name:'Discover',copy:'Find markets, rankings, categories, venues, global context and current research.',routes:['discovery-hub','asset-rankings','search','categories','venues','dex-discovery','global-charts','converter','news-research','trust-center']},
   {name:'Analyse',copy:'Move from market context into assets, charts, filings, events, comparisons and Decision Intelligence.',routes:['market','asset','asset-intelligence','advanced-chart','fundamentals-estimates','filing-workspace','event-calendar','comparison-lab','decision-provenance']},
-  {name:'Quant tools',copy:'Screen assets and run transparent formulas, indicators and financial calculations.',routes:['screener-lab','formula-screener','calculator-center','formula-library','indicator-library','india-finance']},
+  {name:'Quant tools',copy:'Screen assets and run transparent formulas, indicators and financial calculations.',routes:['screener-lab','formula-screener','calculator-center','formula-library','indicator-library','india-finance','mt5-report-analyzer']},
   {name:'Research',copy:'Build evidence from news, filings, events and verification tools.',routes:['news-research','filing-workspace','event-calendar','comparison-lab','qelly-verify']},
   {name:'About',copy:'Understand Qelly, its research model and available public capabilities.',routes:['about-qelly','feature-universe']}
 ];
