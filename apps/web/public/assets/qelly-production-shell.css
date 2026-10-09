@@ -359,7 +359,7 @@ body {
   border-radius: 8px;
 }
 
-.q-button:not(:where(.q-cv-page *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-mt5-route *)){
+.q-button:not(:where(.q-cv-page *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-mt5-route *)):not(:where(.q-dx-page,.q-dx-page *)){
   padding: 0 14px !important;
   border: 1px solid var(--q-border) !important;
   background: var(--q-surface) !important;
