@@ -118,7 +118,7 @@ const routes = [
   { section:'Data Plane', route:'stream-operations', label:'Stream Operations', icon:icon('stream'), meta:'W4' },
   { section:'Operations', route:'observability', label:'Observability Center', icon:icon('activity'), meta:'W4' },
   { section:'Evidence', route:'decision-provenance', label:'Decision Intelligence', icon:icon('evidence'), meta:'Flagship', public:true },
-  { section:'Evidence', route:'qelly-verify', label:'Qelly Verify', icon:icon('check'), meta:'V5.4', public:true },
+  { section:'Evidence', route:'qelly-verify', label:'Qelly Verify', icon:icon('check'), meta:'Verification', public:true },
   { section:'Evidence', route:'security-evidence', label:'Security Evidence', icon:icon('security'), meta:'W2' },
   { section:'Detail', route:'category-detail', label:'Category Detail', icon:icon('categories'), meta:'Public', hidden:true, public:true },
   { section:'Detail', route:'venue-detail', label:'Venue Detail', icon:icon('venue'), meta:'Public', hidden:true, public:true },
