@@ -247,6 +247,14 @@ jobs:
           name: qelly-feature-drawer-state-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/feature-drawer-state-e2e
           if-no-files-found: warn
+      - name: Verify open Verification surfaces and governed interactions
+        run: node scripts/qelly-verify-editorial-e2e.mjs
+      - name: Upload focused Verification editorial evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-verify-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/verify-editorial-e2e
       - name: Verify governed crypto reference model
         run: node --test tests/crypto-converter-model.test.mjs
       - name: Verify crypto converter coverage, failure and responsive states

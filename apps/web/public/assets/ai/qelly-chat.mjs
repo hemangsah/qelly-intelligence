@@ -204,13 +204,13 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
     const box=launcher.getBoundingClientRect();
     const bottom=Number.parseFloat(getComputedStyle(launcher).bottom)||0;
     const dock={left:(innerWidth-box.width)/2,right:(innerWidth+box.width)/2,top:innerHeight-bottom-box.height,bottom:innerHeight-bottom};
-    const controls=[...document.querySelectorAll('#main :is(button,a,input,select,textarea,label),[role="dialog"]')].filter(node=>{
+    const controls=[...document.querySelectorAll('#main :is(button,a,input,select,textarea,label,summary),[role="dialog"]')].filter(node=>{
       const style=getComputedStyle(node);
       return style.visibility!=='hidden'&&style.display!=='none';
     }).map(node=>node.getBoundingClientRect());
     const plots=[...document.querySelectorAll('#main [data-qelly-chat-plot], #main .q-v6-market-tradingview')].filter(node=>{const style=getComputedStyle(node);return style.visibility!=='hidden'&&style.display!=='none';}).map(node=>node.getBoundingClientRect());
     const plotClearance=chartClearance||dockOverlapsControls(dock,plots);
-    const evidenceTables=[...document.querySelectorAll('#main table, #main [role="table"]')].filter(node=>{const style=getComputedStyle(node);return style.visibility!=='hidden'&&style.display!=='none';}).map(node=>node.getBoundingClientRect());
+    const evidenceTables=[...document.querySelectorAll('#main table, #main [role="table"], #main .q-v53-verify-grid dl, #main .q-dx-source, #main .q-dx-gate-map, #main .q-dx-brief, #main .q-dx-method dl')].filter(node=>{const style=getComputedStyle(node);return style.visibility!=='hidden'&&style.display!=='none';}).map(node=>node.getBoundingClientRect());
     const contentClearance=dockOverlapsControls(dock,evidenceTables);
     const blocked=plotClearance||contentClearance||dockOverlapsControls(dock,controls);
     root.dataset.clearance=plotClearance?'chart':contentClearance?'content':blocked?'interactive':'clear';

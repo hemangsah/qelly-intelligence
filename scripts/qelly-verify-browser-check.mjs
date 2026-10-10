@@ -88,12 +88,22 @@ async function inspect({name,viewport,reducedMotion='no-preference'}){
       activityVisible:visible('[data-v53-verify-activity]'),
       formulaSelector:Boolean(document.querySelector('[data-v53-verify-formula]')),
       kpiCount:document.querySelectorAll('.q-v53-verify-kpis article').length,
+      methodProvenanceCount:document.querySelectorAll('.q-v53-verify-provenance dl div').length,
+      methodProvenanceText:document.querySelector('.q-v53-verify-provenance')?.textContent??'',
       evidenceCount:document.querySelectorAll('.q-v53-verify-evidence>div').length,
+      evidenceLabels:[...document.querySelectorAll('.q-v53-verify-evidence dt')].map(e=>e.textContent.trim()),
+      ordinaryTechnicalVersionVisible:/Version|Contract|1\.0\.0/.test(document.querySelector('.q-v53-verify-evidence')?.innerText||''),
+      provenanceInitiallyClosed:document.querySelector('.q-v53-verify-provenance')?.open===false,
       activityEntryCount:document.querySelectorAll('[data-v53-verify-activity] article').length,
       strategySecondary:Boolean(document.querySelector('.q-v53-strategy-tools')),
       horizontalOverflow:document.body.scrollWidth>document.documentElement.clientWidth+1
     };
   });
+
+  await page.locator('.q-v53-verify-provenance>summary').click();
+  canonical.provenanceDisclosureOpened=await page.locator('.q-v53-verify-provenance').evaluate(e=>e.open);
+  canonical.disclosedProvenanceText=await page.locator('.q-v53-verify-provenance').innerText();
+  await page.locator('.q-v53-verify-provenance>summary').click();
 
   /* Preserve and exercise the historical local CSV analyzer as a secondary
      evidence tool. It must not own the primary accepted-lock surface. */
@@ -226,7 +236,7 @@ for(const result of results){
   if(result.canonical.worldclassContextVisible)throw new Error(`${result.name}_legacy_route_context_visible`);
   if(result.canonical.visibleVerifyHeroCount!==1)throw new Error(`${result.name}_verify_primary_surface_count_${result.canonical.visibleVerifyHeroCount}`);
   if(result.canonical.heroTop==null||result.canonical.workbenchTop==null||result.canonical.heroTop>result.canonical.viewportHeight*.4||result.canonical.workbenchTop>result.canonical.viewportHeight*.55)throw new Error(`${result.name}_verify_not_first_view_owner_${JSON.stringify({heroTop:result.canonical.heroTop,workbenchTop:result.canonical.workbenchTop,viewportHeight:result.canonical.viewportHeight})}`);
-  if(!result.canonical.workbenchVisible||!result.canonical.primaryVisible||!result.canonical.contextVisible||!result.canonical.inspectorVisible||!result.canonical.activityVisible||!result.canonical.formulaSelector||result.canonical.kpiCount<6||result.canonical.evidenceCount<6||result.canonical.activityEntryCount<4)throw new Error(`${result.name}_canonical_workbench_incomplete`);
+  if(!result.canonical.workbenchVisible||!result.canonical.primaryVisible||!result.canonical.contextVisible||!result.canonical.inspectorVisible||!result.canonical.activityVisible||!result.canonical.formulaSelector||result.canonical.kpiCount!==4||result.canonical.methodProvenanceCount!==4||!/Engine[\s\S]*Method version[\s\S]*Formula identifier/.test(result.canonical.methodProvenanceText)||result.canonical.evidenceCount!==4||result.canonical.evidenceLabels.join('>')!=='Truth state>Calculation>External provider>Reference'||result.canonical.ordinaryTechnicalVersionVisible||!result.canonical.provenanceInitiallyClosed||!result.canonical.provenanceDisclosureOpened||!/Presentation contract[\s\S]*1\.0\.0/.test(result.canonical.disclosedProvenanceText)||result.canonical.activityEntryCount<4)throw new Error(`${result.name}_canonical_workbench_incomplete`);
   if(!result.canonical.strategySecondary)throw new Error(`${result.name}_secondary_strategy_tools_missing`);
   if(result.canonical.horizontalOverflow)throw new Error(`${result.name}_canonical_horizontal_overflow`);
   if(result.report.flow.join('>')!=='Upload>Validate>Analyze>Decide')throw new Error(`${result.name}_workflow_invalid`);

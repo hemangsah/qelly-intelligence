@@ -14,8 +14,8 @@ html[data-resolved-appearance="light"] body,html[data-resolved-appearance="light
 html[data-visual-appearance="light"] body,html[data-visual-appearance="light"] .q-app,html[data-visual-appearance="light"] .q-shell,html[data-visual-appearance="light"] .q-main,html[data-visual-appearance="light"] .q-page{
   background:var(--q-canvas)!important;background-image:none!important;color:var(--q-text)!important;
 }
-html[data-resolved-appearance="light"] :where(.q-panel,.q-card,.q-kpi,.q-mi-chart-card,.q-mi-table-card,.q-ti-preview-shell,.q-ti-theme-card):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-auth-page,.q-auth-page *)),
-html[data-visual-appearance="light"] :where(.q-panel,.q-card,.q-kpi,.q-mi-chart-card,.q-mi-table-card,.q-ti-preview-shell,.q-ti-theme-card):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-auth-page,.q-auth-page *)){
+html[data-resolved-appearance="light"] :where(.q-panel,.q-card,.q-kpi,.q-mi-chart-card,.q-mi-table-card,.q-ti-preview-shell,.q-ti-theme-card):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-auth-page,.q-auth-page *)):not(:where(.q-verify-page,.q-verify-page *)),
+html[data-visual-appearance="light"] :where(.q-panel,.q-card,.q-kpi,.q-mi-chart-card,.q-mi-table-card,.q-ti-preview-shell,.q-ti-theme-card):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-auth-page,.q-auth-page *)):not(:where(.q-verify-page,.q-verify-page *)){
   background:var(--q-panel)!important;background-image:none!important;box-shadow:0 8px 24px rgba(25,27,28,.055)!important;
 }
 html[data-resolved-appearance="light"] :where(.q-page-head,.q-ti-hero,.q-command-bar,.q-context-shelf,.q-mobile-navigation):not(:where(.q-v6-account-page,.q-v6-account-page *)),

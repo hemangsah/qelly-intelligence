@@ -144,7 +144,7 @@ html[data-ui-lock-v53="active"][data-product-surface="production"] .q-edge-dock:
   font-weight:800;
   letter-spacing:.08em;
 }
-html[data-ui-lock-v53="active"][data-product-surface="production"] .q-edge-dock button:not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)):not(:where(.q-cc-page *)){
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-edge-dock button:not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)):not(:where(.q-cc-page *)):not(:where(.q-verify-page,.q-verify-page *)){
   width:52px!important;
   min-height:43px!important;
   padding:4px 2px!important;
@@ -159,7 +159,7 @@ html[data-ui-lock-v53="active"][data-product-surface="production"] .q-edge-dock 
   font-size:8px!important;
   line-height:1.15!important;
 }
-html[data-ui-lock-v53="active"][data-product-surface="production"] .q-edge-dock button.is-active:not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)):not(:where(.q-cc-page *)){
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-edge-dock button.is-active:not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)):not(:where(.q-cc-page *)):not(:where(.q-verify-page,.q-verify-page *)){
   color:#fff!important;
   background:#6f1838!important;
   border-color:#9c315a!important;
@@ -236,13 +236,13 @@ html[data-ui-lock-v53="active"][data-product-surface="production"] .q-page-head 
   line-height:1.05!important;
   letter-spacing:-.02em!important;
 }
-html[data-ui-lock-v53="active"][data-product-surface="production"] .q-page-head p:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market p:not(.q-eyebrow))):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)){
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-page-head p:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market p:not(.q-eyebrow))):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-verify-page,.q-verify-page *)){
   max-width:900px!important;
   margin:0!important;
   font-size:10px!important;
   line-height:1.35!important;
 }
-html[data-ui-lock-v53="active"][data-product-surface="production"] .q-page-actions .q-button:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-cc-page *)){
+html[data-ui-lock-v53="active"][data-product-surface="production"] .q-page-actions .q-button:not(:where(.q-mt5-route *)):not(:where(.q-about-v2-page *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-cc-page *)):not(:where(.q-verify-page,.q-verify-page *)){
   min-height:28px!important;
   padding:4px 9px!important;
   border-radius:5px!important;
@@ -299,7 +299,7 @@ html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-s
   grid-template-rows:minmax(0,1fr) auto!important;
   gap:10px!important;
 }
-html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-side-stack>.q-panel:not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)):not(:where(.q-cc-page *)){
+html[data-v53-route="live-markets"][data-product-surface="production"] .q-live-side-stack>.q-panel:not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)):not(:where(.q-cc-page *)):not(:where(.q-verify-page,.q-verify-page *)){
   min-height:0!important;
   border-radius:7px!important;
   overflow:hidden;
@@ -323,7 +323,7 @@ html[data-v53-route="live-markets"][data-product-surface="production"] .q-tape-g
 html[data-v53-route="live-markets"][data-product-surface="production"] .q-tape-card{min-height:42px!important;padding:5px 7px!important;border-radius:5px!important}
 
 /* Compact panels globally; the accepted lock uses 5–8px curvature. */
-html[data-ui-lock-v53="active"][data-product-surface="production"] #main :where(.q-panel,.q-card,.q-kpi,.q-research-card):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)):not(:where(.q-cc-page *)){
+html[data-ui-lock-v53="active"][data-product-surface="production"] #main :where(.q-panel,.q-card,.q-kpi,.q-research-card):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)):not(:where(.q-cc-page *)):not(:where(.q-verify-page,.q-verify-page *)){
   border-radius:7px!important;
   box-shadow:none!important;
 }
