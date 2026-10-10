@@ -257,6 +257,17 @@ jobs:
           name: qelly-crypto-converter-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/crypto-converter-e2e
           if-no-files-found: warn
+      - name: Verify compact desktop Decision actions and preserved expert depth
+        run: node scripts/qelly-decision-compact-hero-e2e.mjs
+
+      - name: Upload focused compact Decision hero evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-decision-compact-hero-${{ github.sha }}
+          path: outputs/qelly-decision-compact-hero-${{ github.sha }}
+          if-no-files-found: error
+
       - name: Verify chart-first Decision presentation and expert depth
         run: node scripts/qelly-decision-editorial-e2e.mjs
       - name: Upload focused Decision editorial evidence
