@@ -42,10 +42,9 @@ function render(host,id){
       <article><span>Formulae</span><strong>${formulaEngineMetadata.definitionCount}</strong><small>Definitions</small></article>
       <article><span>Inputs</span><strong>${inputRows.length}</strong><small>Reference vector</small></article>
       <article><span>Truth state</span><strong>${truthState}</strong><small>Reproducible</small></article>
-      <article><span>Engine</span><strong>${esc(formulaEngineMetadata.engineVersion)}</strong><small>Governed local</small></article>
       <article><span>Provider</span><strong>${esc(providerState)}</strong><small>External dependency</small></article>
-      <article><span>Version</span><strong>${esc(definition.version??'versioned')}</strong><small>${esc(definition.formulaId)}</small></article>
     </div>
+    <details class="q-v53-verify-provenance"><summary>Method provenance</summary><dl><div><dt>Engine</dt><dd>${esc(formulaEngineMetadata.engineVersion)}</dd></div><div><dt>Method version</dt><dd>${esc(definition.version??'versioned')}</dd></div><div><dt>Formula identifier</dt><dd>${esc(definition.formulaId)}</dd></div><div><dt>Presentation contract</dt><dd>${esc(formulaEngineMetadata.presentationContractVersion)}</dd></div></dl></details>
     <div class="q-v53-verify-grid">
       <section class="q-panel q-v53-verify-primary" data-v53-verify-primary>
         <div class="q-panel-head"><div><p class="q-eyebrow">Primary analytical workspace</p><h2>Formula validation</h2><p>Inspect the governed method, reference vector, deterministic output and sensitivity before research use.</p></div></div>
@@ -75,7 +74,7 @@ function render(host,id){
       <aside class="q-panel q-v53-verify-inspector" data-v53-verify-inspector aria-label="Qelly Verify Intelligence Inspector">
         <div class="q-panel-head"><div><p class="q-eyebrow">Intelligence Inspector</p><h2>Evidence & reproducibility</h2></div></div>
         <div class="q-panel-body"><div class="q-v53-verify-tabs" aria-label="Evidence coverage"><span>Evidence</span><span>Assumptions</span><span>Contradictions</span></div><dl class="q-v53-verify-evidence">
-          <div><dt>Truth state</dt><dd>${truthState}</dd></div><div><dt>Version</dt><dd>${esc(definition.version??'—')}</dd></div><div><dt>Calculation</dt><dd>${result?.status==='success'?'PASS':'UNAVAILABLE'}</dd></div><div><dt>External provider</dt><dd>${esc(providerState)}</dd></div><div><dt>Reference</dt><dd>${esc(definition.referenceSource??definition.description??'Governed formula definition')}</dd></div><div><dt>Contract</dt><dd>${esc(formulaEngineMetadata.presentationContractVersion)}</dd></div>
+          <div><dt>Truth state</dt><dd>${truthState}</dd></div><div><dt>Calculation</dt><dd>${result?.status==='success'?'PASS':'UNAVAILABLE'}</dd></div><div><dt>External provider</dt><dd>${esc(providerState)}</dd></div><div><dt>Reference</dt><dd>${esc(definition.referenceSource??definition.description??'Governed formula definition')}</dd></div>
         </dl>${stress?`<div class="q-v53-verify-sensitivity"><h3>Sensitivity · ${esc(title(stress.key))} ±5%</h3><div><span>−5%</span><strong>${esc(stress.low)}</strong></div><div><span>Base</span><strong>${esc(stress.base)}</strong></div><div><span>+5%</span><strong>${esc(stress.high)}</strong></div></div>`:'<p class="q-v53-verify-note">No scalar numeric reference input is available for a local sensitivity run.</p>'}<p class="q-v53-verify-note">Observed inputs, outputs and assumptions remain explicitly separated and reproducible from the governed formula definition.</p></div>
       </aside>
     </div>

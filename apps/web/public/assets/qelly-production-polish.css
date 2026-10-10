@@ -38,14 +38,14 @@ html[data-product-surface="production"] #main:focus-visible {
   box-shadow: none !important;
 }
 
-html[data-product-surface="production"] .q-panel:not(:where(.q-v7-public-market *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)){
+html[data-product-surface="production"] .q-panel:not(:where(.q-v7-public-market *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-cc-page *)){
   overflow: hidden;
   border-color: var(--q-product-line) !important;
   background: var(--q-product-surface) !important;
   box-shadow: var(--q-product-shadow) !important;
 }
 
-html[data-product-surface="production"] .q-panel-head:not(:where(.q-v7-public-market *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)){
+html[data-product-surface="production"] .q-panel-head:not(:where(.q-v7-public-market *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-cc-page *)){
   min-height: 76px;
   padding: 18px 20px !important;
   border-bottom: 1px solid var(--q-product-line) !important;
@@ -63,7 +63,7 @@ html[data-product-surface="production"] .q-panel-head h2 {
   line-height: 1.22;
 }
 
-html[data-product-surface="production"] .q-panel-head p:not(.q-eyebrow):not(:where(.q-cc-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)){
+html[data-product-surface="production"] .q-panel-head p:not(.q-eyebrow):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-cc-page *)){
   margin: 5px 0 0;
   color: var(--q-product-muted) !important;
   font-size: 13px !important;
