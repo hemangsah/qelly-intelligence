@@ -1188,6 +1188,7 @@ export async function renderDecisionProvenGraph(main,deps){
   const draw=()=>{
     if(chartGestureActive){chartGestureDeferredDraw=true;return;}
     chartGestureDeferredDraw=false;
+    const focusedFailure=Boolean(main.querySelector('.q-dpg-state--error:focus'));
     const focusedMode=main.querySelector('[data-dpg-ui-mode]:focus')?.dataset.dpgUiMode||null;
     const focusedStableControl=main.querySelector('[data-dpg-asset-picker-toggle]:focus')?'asset-picker':null;
     const educationWasOpen=Boolean(main.querySelector('.q-dpg-education[open]'));
@@ -1203,6 +1204,7 @@ export async function renderDecisionProvenGraph(main,deps){
     if(educationHelp)educationHelp.focus({preventScroll:true});
     else if(focusedMode)main.querySelector('[data-dpg-ui-mode="'+focusedMode+'"]')?.focus();
     else if(focusedStableControl==='asset-picker')main.querySelector('[data-dpg-asset-picker-toggle]')?.focus({preventScroll:true});
+    if(focusedFailure&&state.error)main.querySelector('.q-dpg-state--error')?.focus({preventScroll:true});
     applyPendingFocus();
   };
   let scheduledLoadTimer=0,rangeEvidenceController=null,decisionLoadController=null,decisionLoadRequest=0;
