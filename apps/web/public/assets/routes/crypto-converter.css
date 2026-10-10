@@ -1,0 +1,22 @@
+html[data-product-surface="production"] body #app #main .q-cc-page{max-width:1100px;margin:0 auto;padding:24px 16px 120px;color:var(--q-text);font-size:16px;line-height:1.6}
+html[data-product-surface="production"] body #app #main .q-cc-page :is(header,section,form,details,dl,dl>div,button,input,select,summary){border:0;border-radius:0;box-shadow:none;min-width:0}
+html[data-product-surface="production"] body #app #main .q-cc-page :is(header,section,form,details){background:transparent}
+html[data-product-surface="production"] body #app #main .q-cc-page h1{font-size:clamp(30px,5vw,56px);line-height:1.1;max-width:800px;margin:12px 0 24px}
+html[data-product-surface="production"] body #app #main .q-cc-page h2{font-size:clamp(24px,4vw,44px);overflow-wrap:anywhere;line-height:1.2}
+html[data-product-surface="production"] body #app #main .q-cc-page p{font-size:16px;max-width:75ch}
+html[data-product-surface="production"] body #app #main .q-cc-page .q-eyebrow{font-size:12px;color:var(--q-muted)}
+html[data-product-surface="production"] body #app #main .q-cc-page form{display:grid;gap:18px;margin:32px 0}
+html[data-product-surface="production"] body #app #main .q-cc-page label{display:grid;gap:8px}
+html[data-product-surface="production"] body #app #main .q-cc-page :is(button,input,select,summary){min-height:44px;font:inherit;color:var(--q-text)}
+html[data-product-surface="production"] body #app #main .q-cc-page :is(input,select){width:100%;background:var(--q-surface);padding:12px}
+html[data-product-surface="production"] body #app #main .q-cc-page button{background:var(--q-surface);padding:10px 16px;cursor:pointer}
+html[data-product-surface="production"] body #app #main .q-cc-page :is(button,a,input,select,summary):focus-visible{outline:3px solid var(--q-accent-strong);outline-offset:3px}
+html[data-product-surface="production"] body #app #main .q-cc-directions{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:18px;align-items:end}
+html[data-product-surface="production"] body #app #main .q-cc-actions{display:flex;gap:12px;flex-wrap:wrap}
+html[data-product-surface="production"] body #app #main .q-cc-result{padding:24px 0;min-height:180px;overflow-wrap:anywhere}
+html[data-product-surface="production"] body #app #main .q-cc-page dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+html[data-product-surface="production"] body #app #main .q-cc-page dd{margin:8px 0;overflow-wrap:anywhere}
+html[data-product-surface="production"] body #app #main .q-cc-page summary{cursor:pointer;padding:12px 0}
+@media(max-width:620px){html[data-product-surface="production"] body #app #main .q-cc-directions,html[data-product-surface="production"] body #app #main .q-cc-page dl{grid-template-columns:minmax(0,1fr)}}
+
+html[data-product-surface="production"] body #app #main .q-cc-page a{color:var(--q-accent-strong);text-underline-offset:3px}

@@ -277,7 +277,7 @@
     {
       "index": 35,
       "route": "converter",
-      "label": "FX Reference Converter",
+      "label": "Currency Converter",
       "section": "Discover",
       "public": true,
       "implementation": "runnable-route"
