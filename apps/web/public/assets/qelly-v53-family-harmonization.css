@@ -114,7 +114,7 @@ html[data-v53-family-harmonization="active"] [data-v53-cloud-presentation="exist
 }
 
 /* Readability floor for dense evidence metadata on every governed family. */
-html[data-v53-family-harmonization="active"] #main .q-page-head>div>p:not(.q-eyebrow):not(:where(.q-v7-public-market p:not(.q-eyebrow))):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)){font-size:12px!important;line-height:1.45!important}
+html[data-v53-family-harmonization="active"] #main .q-page-head>div>p:not(.q-eyebrow):not(:where(.q-v7-public-market p:not(.q-eyebrow))):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-verify-page,.q-verify-page *)){font-size:12px!important;line-height:1.45!important}
 html[data-v53-family-harmonization="active"] #main .q-panel-head p{font-size:11px!important;line-height:1.4!important}
 html[data-v53-family-harmonization="active"] #main :where(.q-eyebrow,.q-status,.q-chip,.q-badge,.q-kpi-label):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)){font-size:10.5px!important;line-height:1.25!important}
 
@@ -127,8 +127,8 @@ html[data-v53-family-harmonization="active"] #main :where(.q-eyebrow,.q-status,.
   }
   html[data-v53-family-harmonization="active"] #main{overflow-x:hidden;overflow-x:clip}
   html[data-v53-family-harmonization="active"] #main :where(.q-page,.q-panel,.q-card,.q-kpi,.q-state-banner,.q-empty-state,.q-error-state){min-width:0;max-width:100%}
-  html[data-v53-family-harmonization="active"] #main :where(p,li,dt,dd,td,th,label,small):not(:where(.q-v7-public-market p:not(.q-eyebrow))):not(:where(.q-dossier *)):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)){font-size:max(12px,1em)!important;line-height:1.45!important}
-  html[data-v53-family-harmonization="active"] #main .q-page-head>div>p:not(.q-eyebrow):not(:where(.q-v7-public-market p:not(.q-eyebrow))):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)){font-size:13px!important;line-height:1.5!important}
+  html[data-v53-family-harmonization="active"] #main :where(p,li,dt,dd,td,th,label,small):not(:where(.q-v7-public-market p:not(.q-eyebrow))):not(:where(.q-dossier *)):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-verify-page,.q-verify-page *)){font-size:max(12px,1em)!important;line-height:1.45!important}
+  html[data-v53-family-harmonization="active"] #main .q-page-head>div>p:not(.q-eyebrow):not(:where(.q-v7-public-market p:not(.q-eyebrow))):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-verify-page,.q-verify-page *)){font-size:13px!important;line-height:1.5!important}
   html[data-v53-family-harmonization="active"] #main .q-panel-head p{font-size:12px!important;line-height:1.45!important}
   html[data-v53-family-harmonization="active"] #main :where(.q-eyebrow,.q-status,.q-chip,.q-badge,.q-kpi-label,.q-truth-pill,.q-worldclass-truth-chip):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)){font-size:11px!important;line-height:1.25!important}
   html[data-v53-family-harmonization="active"] #main :where(.q-button,button:not([hidden]),summary,[role="button"],[role="tab"]):not(:where(.q-about-v2-page *)){min-height:44px!important}
@@ -152,15 +152,15 @@ html[data-v53-family-harmonization="active"] #main :where(.q-eyebrow,.q-status,.
   html[data-v53-family-harmonization="active"] #main .q-record-row strong{font-size:12px!important;line-height:1.35!important}
   html[data-v53-family-harmonization="active"] #main .q-mi-intelligence-module>header span{font-size:12px!important;line-height:1.3!important}
   html[data-v53-family-harmonization="active"][data-v53-route="theme-lab"] #main :where(.q-ti-lock span,.q-ti-mobile-preview-head span,.q-ti-mobile-preview-head strong,.q-ti-control-group summary span,.q-ti-mobile-choice strong,.q-ti-validation,.q-ti-preview-truth-banner,.q-ti-preview-top span,.q-ti-metric em,.q-ti-chart-tip strong,.q-ti-chart-tip span,.q-ti-audit-item span){font-size:12px!important;line-height:1.4!important}
-  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-verify-kpis :where(span,strong),
-  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-verify-result>span,
-  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-verify-activity :where(header,time,strong,span),
-  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-strategy-tools>summary{font-size:12px!important;line-height:1.4!important}
+  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-verify-kpis :where(span,strong):not(:where(.q-verify-page,.q-verify-page *)),
+  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-verify-result>span:not(:where(.q-verify-page,.q-verify-page *)),
+  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-verify-activity :where(header,time,strong,span):not(:where(.q-verify-page,.q-verify-page *)),
+  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-strategy-tools>summary:not(:where(.q-verify-page,.q-verify-page *)){font-size:12px!important;line-height:1.4!important}
   html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-panel-head h2{font-size:18px!important;line-height:1.25!important}
-  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-verify-columns h3{font-size:14px!important;line-height:1.3!important}
-  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-verify-workbench code{font-size:12px!important;overflow-wrap:anywhere}
-  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-verify-mobile-nav a{min-height:48px!important;font-size:12px!important}
-  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-verify-mobile-nav :where(span,strong){font-size:12px!important;line-height:1.25!important}
+  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-verify-columns h3:not(:where(.q-verify-page,.q-verify-page *)){font-size:14px!important;line-height:1.3!important}
+  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-verify-workbench code:not(:where(.q-verify-page,.q-verify-page *)){font-size:12px!important;overflow-wrap:anywhere}
+  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-verify-mobile-nav a:not(:where(.q-verify-page,.q-verify-page *)){min-height:48px!important;font-size:12px!important}
+  html[data-v53-family-harmonization="active"][data-v53-route="qelly-verify"] #main .q-v53-verify-mobile-nav :where(span,strong):not(:where(.q-verify-page,.q-verify-page *)){font-size:12px!important;line-height:1.25!important}
 }
 
 /* Required responsive proof modes. Mobile is task-first with evidence as a sheet, not desktop squeezed down. */

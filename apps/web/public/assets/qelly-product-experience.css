@@ -137,9 +137,9 @@ html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-que
 html[data-v53-real-market="active"] body #app #main .q-v6-market-controls>.q-query-boundary>small{font-size:9px!important;line-height:1.25!important}
 
 /* Controls are compact precision objects. Semantic status labels remain pills. */
-html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(.q-status):not(.q-truth-pill):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)):not(:where(.q-dx-page,.q-dx-page *)),
-html[data-production-system="v8"] .q-feature-navigation>header button:not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)),
-html[data-production-system="v8"] .q-feature-navigation__search input:not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)){
+html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(.q-status):not(.q-truth-pill):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)):not(:where(.q-dx-page,.q-dx-page *)):not(:where(.q-cc-page *)),
+html[data-production-system="v8"] .q-feature-navigation>header button:not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-cc-page *)),
+html[data-production-system="v8"] .q-feature-navigation__search input:not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-cc-page *)){
   border-radius:var(--q-radius-control)!important;
 }
 html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:disabled):not(:where(.q-about-v2-page *)):not(:where(.q-dossier *)){
@@ -158,10 +158,10 @@ html[data-production-system="v8"] body #app #main :where(
   .q-saved-card,.q-chart-shell,.q-empty-state,.q-truth-callout,.q-result-priority,
   .q-indicator-mini-chart,.q-verify-hero,.q-v53-verify-workbench,
   [class$="-card"],[class*="-card "],[class$="-panel"],[class*="-panel "]
-):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)){
+):not(:where(.q-v7-public-market *)):not(:where(.q-dossier *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-cc-page *)){
   border:0!important;border-radius:var(--q-radius-surface)!important;background:var(--q-luxe-panel)!important;box-shadow:var(--q-elevation-rest)!important;
 }
-html[data-production-system="v8"] body #app #main :where(.q-it-hero,.q-verify-hero,.q-auth-hero,.q-asset-hero,.q-home-lead,.q-market-safety,.q-about-hero):not(:where(.q-about-v2-page *)){
+html[data-production-system="v8"] body #app #main :where(.q-it-hero,.q-verify-hero,.q-auth-hero,.q-asset-hero,.q-home-lead,.q-market-safety,.q-about-hero):not(:where(.q-about-v2-page *)):not(:where(.q-verify-page,.q-verify-page *)){
   border:0!important;border-radius:var(--q-radius-feature)!important;background:var(--q-luxe-panel-strong)!important;box-shadow:var(--q-elevation-rest)!important;
 }
 html[data-production-system="v8"] body #app #main :where(.q-feature-card,.q-calculator-card,.q-persona-card,.q-saved-card,.q-category-card,.q-venue-card,.q-dex-card){
@@ -224,8 +224,8 @@ html[data-appearance="light"] body #app .q-product-header{
   border-bottom:1px solid rgba(82,55,67,.14)!important;
   box-shadow:0 8px 28px rgba(63,34,46,.09)!important;
 }
-html[data-resolved-appearance="light"] :where(.q-panel,.q-mi-intelligence-module,.q-mn-panel,.q-category-card,.q-venue-card):not(:where(.q-v7-public-market *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)),
-html[data-appearance="light"] :where(.q-panel,.q-mi-intelligence-module,.q-mn-panel,.q-category-card,.q-venue-card):not(:where(.q-v7-public-market *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)){
+html[data-resolved-appearance="light"] :where(.q-panel,.q-mi-intelligence-module,.q-mn-panel,.q-category-card,.q-venue-card):not(:where(.q-v7-public-market *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-cc-page *)),
+html[data-appearance="light"] :where(.q-panel,.q-mi-intelligence-module,.q-mn-panel,.q-category-card,.q-venue-card):not(:where(.q-v7-public-market *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-cc-page *)){
   background:#fff!important;
   border-color:rgba(82,55,67,.15)!important;
   box-shadow:0 8px 24px rgba(63,34,46,.055)!important;
