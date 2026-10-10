@@ -69,7 +69,7 @@ const fixtureDecisionPayload=async(requestUrl)=>{
 };
 
 
-const out='preview/decision-editorial-e2e';await mkdir(out,{recursive:true});const server=await startServer({port:0,host:'127.0.0.1'}),browser=await chromium.launch({headless:true,executablePath:process.env.QELLY_BROWSER_EXECUTABLE||'/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']}),results=[];let active;
+const out='preview/decision-compact-hero-e2e';await mkdir(out,{recursive:true});const server=await startServer({port:0,host:'127.0.0.1'}),browser=await chromium.launch({headless:true,executablePath:process.env.QELLY_BROWSER_EXECUTABLE||'/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']}),results=[];let active;
 try{for(const appearance of['dark','light'])for(const width of[1440,1280,768,390,320]){const context=await browser.newContext({viewport:{width,height:900},colorScheme:appearance,reducedMotion:'reduce',serviceWorkers:'block'});await context.addInitScript(a=>{localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({version:2,appearance:a}));localStorage.removeItem('qelly.decision.ui-mode.v1');},appearance);let writes=0,latest;
 await context.route('**/*',r=>{if(!['GET','HEAD','OPTIONS'].includes(r.request().method())){writes++;return r.abort();}return r.continue();});await context.route('**/api/v1/decision-assets*',r=>r.fulfill({json:decisionAssetCapabilities()}));await context.route('**/api/v1/decision-proven-graph?*',async r=>{latest=await fixtureDecisionPayload(new URL(r.request().url()));return r.fulfill({json:latest});});
 await context.route('**/api/v1/preferences/layout',async r=>{const response=await r.fetch();await r.fulfill({response,json:{...await response.json(),appearance}});});
