@@ -1,7 +1,7 @@
 
 html[data-product-surface="production"] body #app #main .q-verify-page{--qv-surface:var(--q-surface,#151217);--qv-surface-2:var(--q-panel,#1d181e);--qv-line:var(--q-border,rgba(255,255,255,.1));--qv-text:var(--q-text,#f8f3f5);--qv-muted:var(--q-secondary,#b8aeb3);--qv-accent:var(--q-accent,#c6537d);width:min(1560px,100%);margin:0 auto;padding:clamp(28px,4vw,64px) clamp(16px,4vw,64px) 90px;color:var(--qv-text)}
 html[data-product-surface="production"] body #app #main .q-verify-hero{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(300px,.7fr);gap:clamp(24px,5vw,72px);align-items:end;padding:clamp(28px,5vw,72px) 0;border-bottom:0}
-html[data-product-surface="production"] body #app #main .q-verify-kicker{margin:0 0 10px;color:var(--qv-accent);font-size:12px;font-weight:760;letter-spacing:.09em;text-transform:uppercase}
+html[data-product-surface="production"] body #app #main .q-verify-kicker{margin:0 0 10px;color:var(--q-text-muted,var(--qv-muted));font-size:12px;font-weight:760;letter-spacing:.09em;text-transform:uppercase}
 html[data-product-surface="production"] body #app #main .q-verify-hero h1{max-width:900px;margin:0;font-size:clamp(42px,6.4vw,90px);line-height:.96;letter-spacing:-.055em;text-wrap:balance}
 html[data-product-surface="production"] body #app #main .q-verify-hero__copy>p:not(.q-verify-kicker){max-width:780px;margin:24px 0 0;color:var(--qv-muted);font-size:clamp(17px,1.6vw,22px);line-height:1.55}
 html[data-product-surface="production"] body #app #main .q-verify-flow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:28px}
