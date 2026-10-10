@@ -17,7 +17,7 @@
 .q-dossier .q-chart-header{gap:20px;padding:0 0 16px;border:0;background:transparent}
 .q-dossier .q-chart-header h2{margin:4px 0 0}
 .q-dossier .q-chart-toolbar{gap:8px;padding:0 0 16px;border:0;border-radius:0;background:transparent;backdrop-filter:none}
-#main .q-dossier .q-chart-toolbar button,#main .q-dossier .q-dossier-actions button,#main .q-dossier .q-dossier-evidence button{min-height:44px;border:0;border-radius:0;padding:10px 14px;background:var(--q-surface-alt);color:var(--q-text);font:inherit;cursor:pointer;box-shadow:none;transform:none}
+#main .q-dossier .q-chart-toolbar button,#main .q-dossier .q-dossier-actions button,#main .q-dossier .q-dossier-evidence button{min-height:44px;border:0;border-radius:0;padding:10px 14px;background:var(--q-surface-alt);color:var(--q-text);font:inherit;font-size:15px;line-height:1.6;cursor:pointer;box-shadow:none;transform:none}
 .q-dossier .q-chart-toolbar button:hover,.q-dossier-actions button:hover,.q-dossier-evidence button:hover{background:var(--q-surface-elevated);color:var(--q-accent-strong)}
 .q-dossier .q-chart-visual{padding:0}
 .q-dossier .q-chart-visual svg{height:clamp(280px,32vw,430px);min-height:0}
