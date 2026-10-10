@@ -95,6 +95,15 @@ jobs:
           test -s dist/frontend/assets/routes/notification-triage-v2.css
           test -s dist/frontend/assets/routes/screener-lab-v2.css
           grep -F "renderGovernedTrustCenterV2" dist/frontend/assets/app.js
+      - name: Verify borderless Account presentation with isolated identity fixtures
+        run: node scripts/qelly-account-editorial-e2e.mjs
+      - name: Upload focused Account presentation evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-account-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/account-editorial-e2e
+          if-no-files-found: warn
       - name: Verify source-owned DEX controls and governed research interactions
         run: node scripts/qelly-dex-workstation-e2e.mjs
         env:
