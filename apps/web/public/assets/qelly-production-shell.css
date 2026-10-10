@@ -883,7 +883,7 @@ html[data-production-system="v8"] body #app #main :where(
   button,.q-button,.q-status,.q-eyebrow,.q-kpi-label,.q-kpi-meta span,
   .q-panel p,.q-card p,.q-record-row small,.q-choice-row small,
   caption,time,kbd,[class*="-meta"],[class*="-eyebrow"],[class*="-kicker"]
-):not(:where(.q-v7-public-market p:not(.q-eyebrow))):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)){
+):not(:where(.q-v7-public-market p:not(.q-eyebrow))):not(:where(.q-about-v2-page *)):not(:where(.q-cc-page *)):not(:where(.q-mt5-route *)):not(:where(.q-cv-page *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)):not(:where(.q-dossier *)){
   font-size: 12px !important;
   line-height: 1.4 !important;
   letter-spacing: .01em !important;
