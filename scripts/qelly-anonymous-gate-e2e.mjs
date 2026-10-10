@@ -6,6 +6,8 @@ try{
   const context=await browser.newContext({viewport:{width,height:900},colorScheme:appearance,reducedMotion:'reduce',serviceWorkers:'block'});
   await context.addInitScript(a=>localStorage.setItem('qelly.theme-intelligence.v2',JSON.stringify({version:2,appearance:a})),appearance);
   let writes=0;await context.route('**/*',r=>{if(!['GET','HEAD','OPTIONS'].includes(r.request().method())){writes++;return r.abort();}return r.continue();});
+  await context.route('**/api/v1/bootstrap',async r=>{const response=await r.fetch(),data=await response.json();await r.fulfill({response,json:{...data,config:{...data.config,auth:{...data.config?.auth,authenticated:false}},context:null,preferences:null}});});
+  await context.route('**/api/v1/config',async r=>{const response=await r.fetch(),data=await response.json();await r.fulfill({response,json:{...data,auth:{...data.auth,authenticated:false}}});});
   await context.route('**/api/v1/preferences/layout',async r=>{const response=await r.fetch();await r.fulfill({response,json:{...await response.json(),appearance}});});
   const page=active=await context.newPage();await page.goto(`http://127.0.0.1:${server.port}/#/${route}`,{waitUntil:'domcontentloaded'});
   await page.locator('.q-access-gate').waitFor();await page.waitForFunction(a=>document.documentElement.dataset.appReady==='true'&&document.documentElement.dataset.brandReady==='true'&&document.documentElement.dataset.resolvedAppearance===a,appearance);await page.locator('.qelly-opening').waitFor({state:'hidden'});await page.evaluate(()=>document.fonts.ready);
