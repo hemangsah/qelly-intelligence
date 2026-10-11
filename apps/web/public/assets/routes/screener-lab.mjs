@@ -1,15 +1,15 @@
-const STYLE_ID='qelly-screener-lab-v2-style';
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 const LEGACY_EVIDENCE=[['SOURCE','Local governed screener catalog'],['CONFIDENCE','Not supplied']];
-function ensureStyles(){if(document.getElementById(STYLE_ID))return;const link=document.createElement('link');link.id=STYLE_ID;link.rel='stylesheet';link.href='./assets/routes/screener-lab-v2.css?v=20260901-screen2';document.head.append(link);}
+function ensureStyles(signal){return ensureRouteStylesheet(new URL('./screener-lab-v2.css?v=20260901-screen2',import.meta.url).href,{attribute:'data-qelly-screener-lab-v2-ready',value:'active',signal});}
 const status=(value)=>String(value||'blocked').toUpperCase().replaceAll('-',' ');
 const localTime=(value)=>value?String(value).slice(0,16):'';
 
 export async function renderScreenerLab(main,deps){
-  const {api,escapeHtml,navigate,toast}=deps;ensureStyles();
+  const {api,escapeHtml,navigate,toast}=deps;
   const safe=(value)=>escapeHtml(String(value??''));
   const endpoint=(params='')=>`/api/v1/discovery/screener-lab${params?`?${params}`:''}`;
   let data;
-  try{data=await api(endpoint());}catch(error){main.innerHTML=`<section class="q-sc-page"><div class="q-sc-error"><p class="q-eyebrow">Screen contract unavailable</p><h1>The Screener Lab could not be loaded.</h1><p>${safe(error.message)}</p><button data-sc-retry>Retry</button></div></section>`;main.querySelector('[data-sc-retry]')?.addEventListener('click',()=>renderScreenerLab(main,deps));return;}
+  try{[data]=await Promise.all([api(endpoint()),ensureStyles(deps.signal)]);}catch(error){main.innerHTML=`<section class="q-sc-page"><div class="q-sc-error"><p class="q-eyebrow">Screen contract unavailable</p><h1>The Screener Lab could not be loaded.</h1><p>${safe(error.message)}</p><button data-sc-retry>Retry</button></div></section>`;main.querySelector('[data-sc-retry]')?.addEventListener('click',()=>renderScreenerLab(main,deps));return;}
 
   const paint=(model)=>{
     data=model;const {declaration,receipt,readiness,evaluation,coverage}=model;

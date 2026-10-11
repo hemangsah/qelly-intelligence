@@ -1,14 +1,14 @@
-const STYLE_ID='qelly-notification-triage-v2-style';
-function ensureStyles(){if(document.getElementById(STYLE_ID))return;const link=document.createElement('link');link.id=STYLE_ID;link.rel='stylesheet';link.href='./assets/routes/notification-triage-v2.css?v=20260901-notify2';document.head.append(link);}
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
+function ensureStyles(signal){return ensureRouteStylesheet(new URL('./notification-triage-v2.css?v=20260901-notify2',import.meta.url).href,{attribute:'data-qelly-notification-triage-v2-ready',value:'active',signal});}
 const status=(value)=>String(value||'blocked').toUpperCase().replaceAll('-',' ');
 const localTime=(value)=>value?String(value).slice(0,16):'';
 
 export async function renderNotificationCenter(main,deps){
-  const {api,escapeHtml,navigate,toast}=deps;ensureStyles();
+  const {api,escapeHtml,navigate,toast}=deps;
   const safe=(value)=>escapeHtml(String(value??''));
   const endpoint=(params='')=>`/api/v1/discovery/notification-triage${params?`?${params}`:''}`;
   let data;
-  try{data=await api(endpoint());}catch(error){main.innerHTML=`<section class="q-nt-page"><div class="q-nt-error"><p class="q-eyebrow">Triage contract unavailable</p><h1>The notification review workspace could not be loaded.</h1><p>${safe(error.message)}</p><button data-nt-retry>Retry</button></div></section>`;main.querySelector('[data-nt-retry]')?.addEventListener('click',()=>renderNotificationCenter(main,deps));return;}
+  try{[data]=await Promise.all([api(endpoint()),ensureStyles(deps.signal)]);}catch(error){main.innerHTML=`<section class="q-nt-page"><div class="q-nt-error"><p class="q-eyebrow">Triage contract unavailable</p><h1>The notification review workspace could not be loaded.</h1><p>${safe(error.message)}</p><button data-nt-retry>Retry</button></div></section>`;main.querySelector('[data-nt-retry]')?.addEventListener('click',()=>renderNotificationCenter(main,deps));return;}
 
   const paint=(model)=>{
     data=model;const {type,severity,channel,sourceRoute,declaration,triage,receipt,readiness,coverage}=model;
