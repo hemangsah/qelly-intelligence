@@ -30,7 +30,6 @@ export async function renderCalculatorCenter(main,{pageHead,escapeHtml,navigate}
     <div class="q-calculator-card__meta"><span>${escapeHtml(titleCase(domainOf(definition)))}</span><span>${fieldCount(definition)} fields</span></div>
     <h3>${escapeHtml(definition.name)}</h3>
     <p>${escapeHtml(definition.description)}</p>
-    <div class="q-v6-quant-method-strip"><span>${escapeHtml(definition.formulaId)}</span><span>${escapeHtml(String(definition.version||definition.formulaVersion||'versioned'))}</span><span>read-only</span></div>
     <div class="q-calculator-card__footer"><span>${requiredCount(definition)} required · structured inputs</span><strong>Open calculator <span aria-hidden="true">→</span></strong></div>
   </a>`;
   const featured=FEATURED_IDS.map((id)=>definitions.find((item)=>item.formulaId===id)).filter(Boolean);
