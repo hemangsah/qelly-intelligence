@@ -123,6 +123,15 @@
  .q-ai-assistant>footer{display:none}
  .q-ai-welcome>div{grid-template-columns:minmax(0,1fr);gap:4px}
 }
+@media(max-height:560px){
+ .q-ai-header{padding-block:max(6px,env(safe-area-inset-top,0px)) 6px}
+ .q-ai-suggestions{display:none}
+ .q-ai-thread{padding-block:0}
+ .q-ai-dataset-panel{box-sizing:border-box;max-height:min(120px,12dvh);padding-block:8px}
+ .q-ai-assistant>footer{padding-block:0;gap:0 12px}
+ .q-ai-assistant>footer>span{display:none}
+ .q-ai-assistant>footer small{grid-column:1;grid-row:1}
+}
 @media(prefers-reduced-motion:reduce){.q-ai-root :is(.q-ai-launcher,.q-ai-assistant,.q-ai-brand small i){animation:none!important;transition:none!important}}
 
 .q-ai-assistant>:is(header,section,div,form,footer){min-width:0}
