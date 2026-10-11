@@ -42,7 +42,7 @@ test('Wave CM global dock consumes structured Decision context without scraping 
   assert.match(chat,/normalizeDecisionContext\(value\.decisionContext\)/);
   assert.match(chat,/open\(dockContext\.prompt,dockContext\.mode/);
   assert.match(chat,/let dockPrefill=''/);
-  assert.match(chat,/if\(!input\.value\|\|input\.value===dockPrefill\)\{input\.value=next;dockPrefill=next;\}/);
+  assert.match(chat,/if\(!input\.value\|\|input\.value===dockPrefill\)\{input\.value=next;dockPrefill=next;resizeComposer\(\);input\.setSelectionRange\(0,0\);input\.scrollTop=0;\}/);
   assert.match(chat,/input\.addEventListener\('input',[\s\S]{0,120}dockPrefill=''/);
   assert.doesNotMatch(route,/document\.querySelector\([^\n]+\)\?\.(?:textContent|innerText)[^\n]+decisionContext/);
 });

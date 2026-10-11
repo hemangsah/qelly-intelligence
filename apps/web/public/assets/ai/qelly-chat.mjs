@@ -220,7 +220,8 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
   const scheduleClearance=()=>{if(clearanceFrame===null)clearanceFrame=requestAnimationFrame(syncClearance);};
   const syncLauncherRoute=()=>{chartClearance=false;renderDockContext();scheduleClearance();};
   document.addEventListener('scroll',scheduleClearance,{passive:true,capture:true});
-  window.addEventListener('resize',scheduleClearance,{passive:true});
+  window.addEventListener('resize',()=>{scheduleClearance();resizeComposer();},{passive:true});
+  window.visualViewport?.addEventListener('resize',resizeComposer,{passive:true});
   document.addEventListener('focusin',scheduleClearance);
   const clearanceObserver=new MutationObserver(scheduleClearance);
   clearanceObserver.observe(document.getElementById('main')||document.body,{childList:true,subtree:true});
@@ -309,7 +310,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
   const mobileChat=matchMedia('(max-width:640px)');
   const inertedByChat=new Set();
   let returnFocus=null,focusTimer=null;
-  const focusChat=()=>{(input.disabled?closeButton:input).focus();};
+  const focusChat=()=>{resizeComposer();(input.disabled?closeButton:input).focus();};
   const focusable=node=>node?.isConnected&&!node.closest('[inert],[hidden],[aria-hidden="true"]')&&!node.disabled&&node.getClientRects().length>0&&getComputedStyle(node).visibility!=='hidden';
   const syncChatBoundary=()=>{
     const modal=!panel.hidden&&mobileChat.matches;
@@ -353,10 +354,19 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
       target?.focus();returnFocus=null;
     }
   };
+  function resizeComposer(){
+    if(panel.hidden)return;
+    input.style.height='auto';
+    const style=getComputedStyle(input),minimum=Number.parseFloat(style.minHeight)||52,styleMaximum=Number.parseFloat(style.maxHeight)||160;
+    const maximum=Math.max(minimum,Math.min(styleMaximum,Math.floor((window.visualViewport?.height||innerHeight)*.2)));
+    const border=(Number.parseFloat(style.borderTopWidth)||0)+(Number.parseFloat(style.borderBottomWidth)||0);
+    input.style.height=(input.value?Math.min(maximum,Math.max(minimum,input.scrollHeight+border)):minimum)+'px';
+    if(!input.value)input.scrollTop=0;
+  }
   const seedDockPrefill=(prompt='')=>{
     const next=String(prompt||'').slice(0,2400);
     if(!next)return;
-    if(!input.value||input.value===dockPrefill){input.value=next;dockPrefill=next;}
+    if(!input.value||input.value===dockPrefill){input.value=next;dockPrefill=next;resizeComposer();input.setSelectionRange(0,0);input.scrollTop=0;}
   };
   const open=(prompt='',requestedMode='',expand=false,context={})=>{if(panel.hidden&&document.querySelector('dialog[open]'))return;setOpen(true);applyContext({...context,mode:requestedMode||context.mode||mode});seedDockPrefill(prompt);if(expand&&!matchMedia('(max-width:640px)').matches){panel.classList.add('is-expanded');const button=root.querySelector('[data-q-ai-expand]');button?.setAttribute('aria-pressed','true');if(button)button.textContent='Compact';}};
   const close=()=>setOpen(false);
@@ -387,7 +397,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
       calculator={formulaId:ctx.calculatorId,inputs};
     }
     const history=messages.slice(-10).map(({role,content})=>({role,content}));
-    messages.push({role:'user',content:value,mode,asset,timeframe,requestContext:ctx,generatedAt:new Date().toISOString()});persist(messages);render();input.value='';
+    messages.push({role:'user',content:value,mode,asset,timeframe,requestContext:ctx,generatedAt:new Date().toISOString()});persist(messages);render();input.value='';resizeComposer();
     const conversationalAnswer=conversationalReply(value);
     if(conversationalAnswer){
       messages.push({role:'assistant',content:conversationalAnswer,sources:[],tools:[],actions:[],followUps:suggestionsFor('ask'),truthState:'conversational',generatedAt:new Date().toISOString(),mode,asset,timeframe});
@@ -408,13 +418,13 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
   launcher.addEventListener('click',()=>open(dockContext.prompt,dockContext.mode,false,{asset:dockContext.asset||asset,timeframe:dockContext.timeframe||timeframe,calculatorId:dockContext.calculatorId||undefined,decisionContext:dockContext.decisionContext}));closeButton.addEventListener('click',close);
   form.addEventListener('submit',event=>{event.preventDefault();submit(input.value);});
   stop.addEventListener('click',()=>activeController?.abort());
-  input.addEventListener('input',()=>{if(input.value!==dockPrefill)dockPrefill='';});
+  input.addEventListener('input',()=>{if(input.value!==dockPrefill)dockPrefill='';resizeComposer();});
   input.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing&&!event.ctrlKey&&!event.metaKey&&!event.altKey){event.preventDefault();form.requestSubmit();}});
   root.querySelectorAll('[data-q-ai-mode]').forEach(button=>button.addEventListener('click',()=>applyContext({mode:button.dataset.qAiMode})));
   assetSelect.addEventListener('change',()=>{asset=assetSelect.value;});
   timeframeSelect.addEventListener('change',()=>{timeframe=timeframeSelect.value;});
-  root.querySelector('[data-q-ai-new]').addEventListener('click',()=>{activeController?.abort();messages=[];persist(messages);mode='ask';asset='BTC';timeframe='15m';decisionContext=null;applyContext({mode,asset,timeframe,decisionContext:null});render();input.value='';dockPrefill='';input.focus();});
-  root.querySelector('[data-q-ai-expand]').addEventListener('click',event=>{const expanded=panel.classList.toggle('is-expanded');event.currentTarget.setAttribute('aria-pressed',String(expanded));event.currentTarget.textContent=expanded?'Compact':'Expand';});
+  root.querySelector('[data-q-ai-new]').addEventListener('click',()=>{activeController?.abort();messages=[];persist(messages);mode='ask';asset='BTC';timeframe='15m';decisionContext=null;applyContext({mode,asset,timeframe,decisionContext:null});render();input.value='';dockPrefill='';resizeComposer();input.focus();});
+  root.querySelector('[data-q-ai-expand]').addEventListener('click',event=>{const expanded=panel.classList.toggle('is-expanded');event.currentTarget.setAttribute('aria-pressed',String(expanded));event.currentTarget.textContent=expanded?'Compact':'Expand';resizeComposer();});
   root.querySelector('[data-q-ai-export]').addEventListener('click',()=>{const blob=new Blob([JSON.stringify({schemaVersion:'qelly.chat.export/1.1.0',exportedAt:new Date().toISOString(),messages},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const anchor=document.createElement('a');anchor.href=url;anchor.download=`qelly-chat-${new Date().toISOString().slice(0,10)}.json`;anchor.click();setTimeout(()=>URL.revokeObjectURL(url),500);toast?.('Qelly conversation exported',{tone:'success'});});
   root.querySelector('[data-q-ai-clear]').addEventListener('click',()=>{activeController?.abort();messages=[];persist(messages);render();input.focus();});
   datasetButton.addEventListener('click',()=>{const expanded=datasetButton.getAttribute('aria-expanded')!=='true';datasetButton.setAttribute('aria-expanded',String(expanded));datasetPanel.hidden=!expanded;});
