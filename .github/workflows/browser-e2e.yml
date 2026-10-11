@@ -189,6 +189,15 @@ jobs:
           name: qelly-decision-answer-order-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/decision-answer-order-e2e
           if-no-files-found: error
+      - name: Verify workspace stylesheet delay, cache, failure and retry
+        run: node scripts/qelly-workspace-style-readiness-e2e.mjs
+      - name: Upload focused workspace first-paint evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-workspace-style-readiness-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/workspace-style-readiness-e2e
+          if-no-files-found: error
       - name: Verify public workspace light contrast and borderless surfaces
         run: node scripts/qelly-workspace-family-editorial-e2e.mjs
       - name: Upload focused public workspace visual evidence
