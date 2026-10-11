@@ -360,7 +360,7 @@ export function installQellyChat({api,navigate,toast,staticVisualPreview=false}=
     const style=getComputedStyle(input),minimum=Number.parseFloat(style.minHeight)||52,styleMaximum=Number.parseFloat(style.maxHeight)||160;
     const maximum=Math.max(minimum,Math.min(styleMaximum,Math.floor((window.visualViewport?.height||innerHeight)*.2)));
     const border=(Number.parseFloat(style.borderTopWidth)||0)+(Number.parseFloat(style.borderBottomWidth)||0);
-    input.style.height=Math.min(maximum,Math.max(minimum,input.scrollHeight+border))+'px';
+    input.style.height=(input.value?Math.min(maximum,Math.max(minimum,input.scrollHeight+border)):minimum)+'px';
     if(!input.value)input.scrollTop=0;
   }
   const seedDockPrefill=(prompt='')=>{
