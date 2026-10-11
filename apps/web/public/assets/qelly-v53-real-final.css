@@ -93,11 +93,6 @@ html[data-v53-real-final] #main > .q-page .q-v53-final-inspector{
   position:sticky;
   top:52px;
   overflow:hidden;
-  
-  
-}
-
-html[data-v53-real-final] #main > .q-page .q-v53-final-inspector:not(:where(.q-nt-receipt,.q-sc-receipt)){
   border:1px solid var(--q-border-subtle,var(--border-color,#29303a));
   background:var(--q-surface-raised,var(--surface-2,#11161d));
 }
