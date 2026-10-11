@@ -148,7 +148,7 @@ html[data-v53-real-evidence] #main > .q-page .q-v53-evidence-activity{
   flex-wrap:wrap;
   gap:5px;
   padding:7px 9px;
-  border:1px solid var(--q-border-subtle,var(--border-color,#29303a));
+  border:var(--q-governed-content-border,1px solid var(--q-border-subtle,var(--border-color,#29303a)));
   border-radius:6px;
   font-size:9px;
   line-height:1.35;
@@ -156,7 +156,7 @@ html[data-v53-real-evidence] #main > .q-page .q-v53-evidence-activity{
 
 html[data-v53-real-evidence] #main > .q-page .q-v53-evidence-activity span{
   padding:3px 6px;
-  border:1px solid var(--q-border-subtle,var(--border-color,#29303a));
+  border:var(--q-governed-content-border,1px solid var(--q-border-subtle,var(--border-color,#29303a)));
   border-radius:5px;
 }
 

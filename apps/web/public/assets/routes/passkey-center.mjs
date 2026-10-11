@@ -1,5 +1,5 @@
 export async function renderPasskeyCenter(main,{pageHead,navigate}){
-  main.innerHTML=`<section class="q-page">
+  main.innerHTML=`<section class="q-page q-governed-workspace-page">
     ${pageHead('Capability boundary','Passkey Center','Passkeys are not enabled in this production release. Qelly will not register, authenticate, list or revoke WebAuthn credentials until the complete server ceremony is implemented and independently accepted.')}
     <section class="q-panel">
       <div class="q-panel-head"><div><p class="q-eyebrow">Current release state</p><h2>Passkeys are unavailable</h2><p>The previous interface described a WebAuthn capability that was not backed by accepted production API routes. That control has been disabled rather than simulated.</p></div><span class="q-status q-status--warning">Unavailable</span></div>
