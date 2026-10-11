@@ -180,6 +180,15 @@ jobs:
           name: qelly-filing-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/filing-editorial-e2e
           if-no-files-found: error
+      - name: Verify primary Decision answer before controls and help
+        run: node scripts/qelly-decision-answer-order-e2e.mjs
+      - name: Upload focused Decision answer ordering evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-decision-answer-order-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/decision-answer-order-e2e
+          if-no-files-found: error
       - name: Verify public workspace light contrast and borderless surfaces
         run: node scripts/qelly-workspace-family-editorial-e2e.mjs
       - name: Upload focused public workspace visual evidence
