@@ -33,6 +33,12 @@ try{
         await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
         await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true'&&document.documentElement.dataset.brandReady==='true');
         await page.locator('.qelly-opening').waitFor({state:'hidden'});
+        let workspacePresentation=null;
+        if(route==='news-research'){
+          workspacePresentation=await page.locator('.q-chat-workspace').evaluate(root=>({modes:root.querySelectorAll('[data-chat-mode]').length,internalStorageLabel:root.innerText.includes('browser_session_only'),surfaces:[...root.querySelectorAll('.q-chat-hero,.q-chat-mode-grid,.q-chat-mode-card,.q-chat-evidence-panel,.q-chat-dataset-grid article,.q-chat-runtime dl div,.q-chat-handoff')].map(e=>{const s=getComputedStyle(e);return {shadow:s.boxShadow,borders:[s.borderTopWidth,s.borderRightWidth,s.borderBottomWidth,s.borderLeftWidth]};}),overflow:document.documentElement.scrollWidth>innerWidth}));
+          assert.equal(workspacePresentation.modes,8);assert.equal(workspacePresentation.internalStorageLabel,false);assert.equal(workspacePresentation.overflow,false);assert.ok(workspacePresentation.surfaces.length>=12);
+          for(const e of workspacePresentation.surfaces){assert.equal(e.shadow,'none');assert.deepEqual(e.borders,['0px','0px','0px','0px']);}
+        }
         // An isolated page control reproduces the dock hit-test collision without sending a message.
         const clearanceGeometry=await page.evaluate(()=>{
           document.dispatchEvent(new CustomEvent('qelly:chat-clearance',{detail:{state:'clear'}}));
@@ -152,7 +158,7 @@ try{
         assert.equal(posts,0,'Restored answer acceptance must send no Chat request');
         const newConversation=panel.getByRole('button',{name:'New',exact:true});await newConversation.waitFor({state:'visible'});await newConversation.click();assert.equal(await panel.locator('.q-ai-message').count(),0);assert.equal(await panel.locator('.q-ai-welcome').isVisible(),true);await page.waitForFunction(()=>document.querySelector('.q-ai-thread').scrollTop===0);assert.equal(posts,0);
 
-        results.push({route,width,appearance,status:'passed',posts,composerGeometryStates:geometryStates.length,appearanceControlInitiallyDisabled,messageContainmentChecks:1,referenceDateCases:1,controlClearance:clearance,containment,presentation,newConversationAccessible:true,panelFit});
+        results.push({route,width,appearance,status:'passed',posts,composerGeometryStates:geometryStates.length,appearanceControlInitiallyDisabled,workspacePresentation,messageContainmentChecks:1,referenceDateCases:1,controlClearance:clearance,containment,presentation,newConversationAccessible:true,panelFit});
       }catch(error){
         const diagnostic={route,width,appearance,status:'failed',error:String(error.message),pageErrors,appearanceControlInitiallyDisabled,focus:await page.evaluate(()=>({activeTag:document.activeElement?.tagName,activeLabel:document.activeElement?.getAttribute('aria-label'),appearanceDisabled:document.querySelector('[data-v8-appearance]')?.disabled})),resolvedAppearance:await page.locator('html').getAttribute('data-resolved-appearance')};
         results.push(diagnostic);console.error(JSON.stringify(diagnostic));
