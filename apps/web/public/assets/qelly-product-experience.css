@@ -177,7 +177,7 @@ html[data-production-system="v8"] .q-feature-navigation>nav{overscroll-behavior:
 /* Calculator workbench: legible rather than miniaturized. */
 html[data-production-system="v8"] #main .q-calculator-workbench-page{gap:clamp(20px,2.4vw,34px)!important}
 html[data-production-system="v8"] #main .q-v6-deterministic-banner:not(:where(.q-v6-account-page,.q-v6-account-page *)){
-  padding:16px 18px!important;border:0!important;border-radius:var(--q-radius-surface)!important;background:color-mix(in srgb,var(--q-informational) 8%,var(--q-surface))!important;box-shadow:inset 3px 0 0 var(--q-informational)!important;
+  padding:16px 18px!important;border:0!important;border-radius:var(--q-radius-surface)!important;background:var(--q-calculator-row-background,color-mix(in srgb,var(--q-informational) 8%,var(--q-surface)))!important;box-shadow:var(--q-calculator-elevation,inset 3px 0 0 var(--q-informational))!important;
 }
 html[data-production-system="v8"] #main .q-v6-deterministic-banner p:not(:where(.q-v6-account-page,.q-v6-account-page *)){font-size:13px!important;line-height:1.6!important;color:var(--q-text-secondary)!important}
 html[data-production-system="v8"] #main .q-v6-quant-kpis:not(:where(.q-v6-account-page,.q-v6-account-page *)){gap:1px!important;border:0!important;border-radius:var(--q-radius-surface)!important;background:var(--q-divider)!important;box-shadow:var(--q-calculator-elevation,var(--q-elevation-rest))!important}
@@ -205,7 +205,7 @@ html[data-production-system="v8"] #main .q-about-orbit>span:not(:where(.q-about-
 
 /* Light-theme semantic colors meet readable foreground/background contrast. */
 :root[data-appearance="light"] .q-status--deterministic:not(:where(.q-about-v2-page *)),
-:root[data-resolved-appearance="light"] .q-status--deterministic:not(:where(.q-about-v2-page *)){color:#174f78!important;background:#e1eff7!important;border-color:transparent!important}
+:root[data-resolved-appearance="light"] .q-status--deterministic:not(:where(.q-about-v2-page *)){color:var(--q-calculator-status-text,#174f78)!important;background:var(--q-calculator-status-background,#e1eff7)!important;border-color:transparent!important}
 :root[data-appearance="light"] :where(.q-status--cached,.q-truth-pill.is-cached):not(:where(.q-about-v2-page *)),
 :root[data-resolved-appearance="light"] :where(.q-status--cached,.q-truth-pill.is-cached):not(:where(.q-about-v2-page *)){color:#28506e!important;background:#e5eef4!important;border-color:transparent!important}
 :root[data-appearance="light"] :where(.q-status--live,.q-truth-pill.is-live):not(:where(.q-about-v2-page *)),
