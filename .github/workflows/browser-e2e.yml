@@ -162,6 +162,15 @@ jobs:
           name: qelly-market-chart-clearance-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/market-chart-clearance-e2e
           if-no-files-found: warn
+      - name: Verify primary Decision answer before controls and help
+        run: node scripts/qelly-decision-answer-order-e2e.mjs
+      - name: Upload focused Decision answer ordering evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-decision-answer-order-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/decision-answer-order-e2e
+          if-no-files-found: error
       - name: Verify global chat keyboard focus and mobile containment
         run: node scripts/qelly-chat-keyboard-e2e.mjs
       - name: Upload focused Chat editorial evidence
