@@ -5,6 +5,7 @@ on:
     paths:
       - apps/web/public/assets/qelly-production-shell.mjs
       - scripts/qelly-accessibility-floor-performance-e2e.mjs
+      - scripts/qelly-accessibility-floor-warm-e2e.mjs
       - .github/workflows/accessibility-floor-performance.yml
 permissions:
   contents: read
@@ -34,10 +35,21 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/qelly-accessibility-floor-performance-e2e.mjs
+      - name: Compare warm refresh and fresh-content accessibility parity
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/qelly-accessibility-floor-warm-e2e.mjs
       - name: Preserve compact paired evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: qelly-accessibility-floor-${{ github.event.pull_request.head.sha }}
           path: accessibility-floor-evidence/report.json
+          retention-days: 30
+      - name: Preserve warm-refresh paired evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-accessibility-floor-warm-${{ github.event.pull_request.head.sha }}
+          path: accessibility-floor-warm-evidence/report.json
           retention-days: 30
