@@ -91,6 +91,15 @@ try{
         };
         const geometryStates=[];
         geometryStates.push(await composerGeometry('welcome'));
+        const composerInput=panel.locator('[data-q-ai-form] textarea'),minimumHeight=await composerInput.evaluate(e=>e.getBoundingClientRect().height);
+        await composerInput.fill('First research line\nSecond research line\nThird research line\nFourth research line\nFifth research line\nSixth research line');
+        const grown=await composerGeometry('typed multiline');assert.ok(grown.input.height>minimumHeight+40);assert.ok(grown.input.height<=160.5);
+        await composerInput.fill('Long bounded draft '.repeat(120).slice(0,2400));const bounded=await composerGeometry('bounded long draft');assert.ok(bounded.input.height<=160.5);
+        await page.setViewportSize({width,height:420});await page.waitForFunction(()=>document.querySelector('[data-q-ai-form] textarea').getBoundingClientRect().height<=85);
+        const shortViewport=await composerGeometry('short viewport draft');assert.ok(shortViewport.input.height>=52&&shortViewport.input.height<=85);
+        await page.setViewportSize({width,height:900});await composerInput.fill('');const reset=await composerGeometry('empty draft reset');assert.ok(reset.input.height<=52.5);
+        const composerGrowth={typedMultiline:true,longDraftBounded:true,shortViewportBounded:true,emptyReset:true,minimumHeight,grownHeight:grown.input.height,boundedHeight:bounded.input.height,shortHeight:shortViewport.input.height,resetHeight:reset.input.height};
+
         await panel.locator('[data-q-ai-datasets]').click();
         geometryStates.push(await composerGeometry('evidence open'));
         await panel.locator('[data-q-ai-datasets]').click();
@@ -158,7 +167,7 @@ try{
         assert.equal(posts,0,'Restored answer acceptance must send no Chat request');
         const newConversation=panel.getByRole('button',{name:'New',exact:true});await newConversation.waitFor({state:'visible'});await newConversation.click();assert.equal(await panel.locator('.q-ai-message').count(),0);assert.equal(await panel.locator('.q-ai-welcome').isVisible(),true);await page.waitForFunction(()=>document.querySelector('.q-ai-thread').scrollTop===0);assert.equal(posts,0);
 
-        results.push({route,width,appearance,status:'passed',posts,composerGeometryStates:geometryStates.length,appearanceControlInitiallyDisabled,workspacePresentation,messageContainmentChecks:1,referenceDateCases:1,controlClearance:clearance,containment,presentation,newConversationAccessible:true,panelFit});
+        results.push({route,width,appearance,status:'passed',posts,composerGeometryStates:geometryStates.length,appearanceControlInitiallyDisabled,workspacePresentation,composerGrowth,messageContainmentChecks:1,referenceDateCases:1,controlClearance:clearance,containment,presentation,newConversationAccessible:true,panelFit});
       }catch(error){
         const diagnostic={route,width,appearance,status:'failed',error:String(error.message),pageErrors,appearanceControlInitiallyDisabled,focus:await page.evaluate(()=>({activeTag:document.activeElement?.tagName,activeLabel:document.activeElement?.getAttribute('aria-label'),appearanceDisabled:document.querySelector('[data-v8-appearance]')?.disabled})),resolvedAppearance:await page.locator('html').getAttribute('data-resolved-appearance')};
         results.push(diagnostic);console.error(JSON.stringify(diagnostic));
