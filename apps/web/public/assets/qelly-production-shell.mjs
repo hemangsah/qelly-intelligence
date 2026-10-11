@@ -350,6 +350,7 @@ function applyAccessibilityFloor(){
   const smallText=[];
   const textCandidates=main.querySelectorAll('span,strong,small,b,em,code,progress,label,dt,dd,time,p,div,footer,header,summary,button,a');
   for(const element of textCandidates){
+    if(element.classList.contains('q-v8-text-floor'))continue;
     if(element.children.length||element.closest('.sr-only,[aria-hidden="true"],script,style'))continue;
     if(!element.textContent?.trim()||!element.getClientRects().length)continue;
     const size=Number.parseFloat(getComputedStyle(element).fontSize);
