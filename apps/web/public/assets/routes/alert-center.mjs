@@ -1,14 +1,14 @@
-const STYLE_ID='qelly-alert-rules-v2-style';
-function ensureStyles(){if(document.getElementById(STYLE_ID))return;const link=document.createElement('link');link.id=STYLE_ID;link.rel='stylesheet';link.href='./assets/routes/alert-rules-v2.css?v=20260901-alert2';document.head.append(link);}
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
+function ensureStyles(signal){return ensureRouteStylesheet(new URL('./alert-rules-v2.css?v=20260901-alert2',import.meta.url).href,{attribute:'data-qelly-alert-rules-v2-ready',value:'active',signal});}
 const status=(value)=>String(value||'blocked').toUpperCase().replaceAll('-',' ');
 const localTime=(value)=>value?String(value).slice(0,16):'';
 
 export async function renderAlertCenter(main,deps){
-  const {api,escapeHtml,navigate,toast}=deps;ensureStyles();
+  const {api,escapeHtml,navigate,toast}=deps;
   const safe=(value)=>escapeHtml(String(value??''));
   const endpoint=(params='')=>`/api/v1/discovery/alert-rules${params?`?${params}`:''}`;
   let data;
-  try{data=await api(endpoint());}catch(error){main.innerHTML=`<section class="q-ar-page"><div class="q-ar-error"><p class="q-eyebrow">Alert contract unavailable</p><h1>The trigger-design workspace could not be loaded.</h1><p>${safe(error.message)}</p><button data-ar-retry>Retry</button></div></section>`;main.querySelector('[data-ar-retry]')?.addEventListener('click',()=>renderAlertCenter(main,deps));return;}
+  try{[data]=await Promise.all([api(endpoint()),ensureStyles(deps.signal)]);}catch(error){main.innerHTML=`<section class="q-ar-page"><div class="q-ar-error"><p class="q-eyebrow">Alert contract unavailable</p><h1>The trigger-design workspace could not be loaded.</h1><p>${safe(error.message)}</p><button data-ar-retry>Retry</button></div></section>`;main.querySelector('[data-ar-retry]')?.addEventListener('click',()=>renderAlertCenter(main,deps));return;}
 
   const paint=(model)=>{
     data=model;const {selected,metric,operator,severity,cadence,declaration,signal,evaluation,receipt,readiness,coverage}=model;
