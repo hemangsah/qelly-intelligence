@@ -153,6 +153,15 @@ jobs:
           name: qelly-market-chart-clearance-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/market-chart-clearance-e2e
           if-no-files-found: warn
+      - name: Verify Filing light contrast and borderless research surfaces
+        run: node scripts/qelly-filing-editorial-e2e.mjs
+      - name: Upload focused Filing visual evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-filing-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/filing-editorial-e2e
+          if-no-files-found: error
       - name: Verify global chat keyboard focus and mobile containment
         run: node scripts/qelly-chat-keyboard-e2e.mjs
       - name: Upload focused Chat editorial evidence
