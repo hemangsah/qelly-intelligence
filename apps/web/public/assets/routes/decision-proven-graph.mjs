@@ -1183,7 +1183,7 @@ export async function renderDecisionProvenGraph(main,deps){
       const overlapsBottomZone=!assistantOpen&&rect.bottom>window.innerHeight-reserved&&rect.top<window.innerHeight;
       document.dispatchEvent(new CustomEvent('qelly:chat-clearance',{detail:{route:'decision-provenance',state:overlapsBottomZone?'chart':'clear'}}));
     };
-    window.addEventListener('scroll',sync,{passive:true,signal:controller.signal});
+    document.addEventListener('scroll',sync,{passive:true,capture:true,signal:controller.signal});
     window.addEventListener('resize',sync,{passive:true,signal:controller.signal});
     document.addEventListener('qelly:chat-open-state',sync,{signal:controller.signal});
     requestAnimationFrame(sync);

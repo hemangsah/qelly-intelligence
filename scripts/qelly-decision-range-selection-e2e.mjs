@@ -480,7 +480,6 @@ const exercise=async({name,viewport,touch=false})=>{
       await page.mouse.up();
     }
   };
-  await page.evaluate(()=>{window.__qellyRangeClearanceEvents=[];document.addEventListener('qelly:chat-clearance',e=>window.__qellyRangeClearanceEvents.push({route:e.detail?.route,state:e.detail?.state,scrollY}));});
   await performRangeDrag();
   if(!(await summary.isVisible().catch(()=>false))){
     await page.waitForTimeout(250);
@@ -518,11 +517,16 @@ const exercise=async({name,viewport,touch=false})=>{
     const workbench=document.querySelector('.q-dpg-range-workbench');
     if(!workbench)return;
     const rect=workbench.getBoundingClientRect(),expandedReserved=Math.min(440,Math.max(230,innerHeight*.52));
+    const followingControls=document.querySelector('.q-dpg-controls--decision');
+    const followingRect=followingControls?.getBoundingClientRect();
+    if(followingRect&&followingRect.top>=rect.bottom){
+      window.scrollTo(0,Math.max(0,scrollY+followingRect.top-innerHeight-24));
+      return;
+    }
     const delta=Math.max(0,rect.bottom-(innerHeight-expandedReserved)+28);
     if(delta>0)window.scrollBy(0,delta);
   });
-  console.log('QELLY_RANGE_CLEARANCE_PROBE',JSON.stringify(await page.evaluate(()=>{const launcher=document.querySelector('[data-q-ai-launcher]'),box=launcher.getBoundingClientRect(),dockTop=innerHeight-(Number.parseFloat(getComputedStyle(launcher).bottom)||0)-box.height;return{viewport:[innerWidth,innerHeight],scrollY,clearanceEvents:window.__qellyRangeClearanceEvents?.slice(-16),plotRegions:[...document.querySelectorAll('#main [data-qelly-chat-plot],#main .q-v6-market-tradingview')].map(e=>({class:e.className,top:e.getBoundingClientRect().top,bottom:e.getBoundingClientRect().bottom})),clearance:document.querySelector('.q-ai-root')?.dataset.clearance,workbenchRect:(()=>{const r=document.querySelector('.q-dpg-range-workbench').getBoundingClientRect();return{top:r.top,bottom:r.bottom}})(),overlappingControls:[...document.querySelectorAll('#main :is(button,a,input,select,textarea,label,summary)')].filter(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return s.display!=='none'&&s.visibility!=='hidden'&&r.height>0&&r.width>0&&r.bottom>dockTop&&r.top<innerHeight}).slice(0,12).map(e=>({class:e.className,top:e.getBoundingClientRect().top,bottom:e.getBoundingClientRect().bottom}))}})));
-  await page.waitForFunction(()=>document.querySelector('.q-ai-root')?.dataset.clearance==='clear',{timeout:5000});
+  await page.waitForFunction(()=>document.querySelector('.q-ai-root')?.dataset.clearance==='clear',null,{timeout:5000});
   const restoredDockBox=await page.locator('[data-q-ai-launcher]').first().boundingBox();
   const dockRestored=Boolean(restoredDockBox)&&restoredDockBox.y>=0&&restoredDockBox.y+restoredDockBox.height<=viewport.height+1;
   if(!dockRestored)failures.push({type:'qelly-dock-clearance-return',restoredDockBox});
