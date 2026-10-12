@@ -520,6 +520,7 @@ const exercise=async({name,viewport,touch=false})=>{
     const delta=Math.max(0,rect.bottom-(innerHeight-expandedReserved)+28);
     if(delta>0)window.scrollBy(0,delta);
   });
+  console.log('QELLY_RANGE_CLEARANCE_PROBE',JSON.stringify(await page.evaluate(()=>{const launcher=document.querySelector('[data-q-ai-launcher]'),box=launcher.getBoundingClientRect(),dockTop=innerHeight-(Number.parseFloat(getComputedStyle(launcher).bottom)||0)-box.height;return{viewport:[innerWidth,innerHeight],scrollY,clearance:document.querySelector('.q-ai-root')?.dataset.clearance,workbenchRect:(()=>{const r=document.querySelector('.q-dpg-range-workbench').getBoundingClientRect();return{top:r.top,bottom:r.bottom}})(),overlappingControls:[...document.querySelectorAll('#main :is(button,a,input,select,textarea,label,summary)')].filter(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return s.display!=='none'&&s.visibility!=='hidden'&&r.height>0&&r.width>0&&r.bottom>dockTop&&r.top<innerHeight}).slice(0,12).map(e=>({class:e.className,top:e.getBoundingClientRect().top,bottom:e.getBoundingClientRect().bottom}))}})));
   await page.waitForFunction(()=>document.querySelector('.q-ai-root')?.dataset.clearance==='clear',{timeout:5000});
   const restoredDockBox=await page.locator('[data-q-ai-launcher]').first().boundingBox();
   const dockRestored=Boolean(restoredDockBox)&&restoredDockBox.y>=0&&restoredDockBox.y+restoredDockBox.height<=viewport.height+1;
