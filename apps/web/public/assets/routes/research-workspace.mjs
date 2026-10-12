@@ -1,5 +1,6 @@
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 const RESEARCH_STYLESHEET=new URL('../research-workspace-v2.css',import.meta.url).href;
-const activateResearchStyles=()=>{if(!document.querySelector('link[data-qelly-research-v2]')){const link=document.createElement('link');link.rel='stylesheet';link.href=RESEARCH_STYLESHEET;link.dataset.qellyResearchV2='true';document.head.append(link);}document.documentElement.dataset.qellyResearch='v2';};
+const activateResearchStyles=async signal=>{await ensureRouteStylesheet(RESEARCH_STYLESHEET,{attribute:'data-qelly-research-v2',value:'true',signal});document.documentElement.dataset.qellyResearch='v2';};
 const itemTypeLabel=(value)=>String(value??'note').replaceAll('-',' ').replace(/\b\w/g,(character)=>character.toUpperCase());
 const splitLines=(value,max=20)=>String(value??'').split(/\r?\n/).map((item)=>item.trim()).filter(Boolean).slice(0,max);
 const pct=(value)=>Number.isFinite(Number(value))?`${Math.round(Number(value)*100)}%`:'Not assessed';
@@ -52,8 +53,8 @@ function createDialog(){return `<dialog class="q-research-v2-dialog" data-resear
 function emptyResearch(escapeHtml){return `<section class="q-research-v2-empty"><div><p class="q-eyebrow">Research operating system</p><h2>Start with a question that can be disproved</h2><p>Build an auditable project containing a hypothesis, invalidation conditions, supporting evidence, counter-evidence, source references, methods and limitations.</p><div class="q-page-actions"><button class="q-button q-button--primary" data-action="open-create">Create structured research</button><button class="q-button q-button--secondary" data-action="ask-research">Frame with Qelly</button></div></div><ol><li><span>01</span><strong>Frame</strong><small>Question, scope and hypothesis</small></li><li><span>02</span><strong>Challenge</strong><small>Supporting and counter-evidence</small></li><li><span>03</span><strong>Trace</strong><small>References, method and freshness</small></li><li><span>04</span><strong>Decide</strong><small>Human review through provenance</small></li></ol></section>${externalResearch(escapeHtml)}`;}
 
 export async function renderResearchWorkspace(main,deps){
- activateResearchStyles();
- const {api,pageHead,stateBanner,escapeHtml,toast,navigate,renderRoute}=deps;
+ const {api,pageHead,stateBanner,escapeHtml,toast,navigate,renderRoute,signal}=deps;
+ try{await activateResearchStyles(signal);}catch(error){if(error?.name==='AbortError')throw error;main.innerHTML=`<section class="q-page q-governed-workspace-page q-research-style-recovery">${pageHead('Research workspace','The workspace could not open.','The page could not finish loading. Retry to restore your workspace.')}<p role="status">${escapeHtml(error.message)}</p><button class="q-button q-button--primary" type="button" data-research-style-retry>Retry workspace</button></section>`;main.querySelector('[data-research-style-retry]').addEventListener('click',()=>renderRoute?.());return;}
  const listing=await api('/api/v1/research/workspaces');
  const first=listing.items?.[0];
  const workspace=first?await api(`/api/v1/research/workspaces/${encodeURIComponent(first.researchWorkspaceId)}`):null;

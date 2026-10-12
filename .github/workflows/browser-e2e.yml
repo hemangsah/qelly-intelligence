@@ -234,6 +234,15 @@ jobs:
           name: qelly-private-empty-surfaces-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/private-empty-surfaces-e2e
           if-no-files-found: error
+      - name: Verify Research style delay, cache, failure, retry and route cancellation
+        run: node scripts/qelly-research-style-readiness-e2e.mjs
+      - name: Upload isolated Research stylesheet lifecycle evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-research-style-readiness-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/research-style-readiness-e2e
+          if-no-files-found: error
       - name: Verify tools library surfaces, continuity and stylesheet recovery
         run: node scripts/qelly-tools-library-surfaces-e2e.mjs
       - name: Upload focused tools library visual evidence

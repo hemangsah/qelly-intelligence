@@ -493,7 +493,7 @@ async function performRouteRender(request,controller) {
       case 'notification-center': await renderNotificationCenter(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,renderRoute}); break;
       case 'screener-lab': await renderScreenerLab(main,{api,pageHead,stateBanner,escapeHtml,QellyDataGrid,toast,navigate,renderRoute}); break;
       case 'portfolio-analytics': await renderPortfolioAnalytics(main,{api,pageHead,stateBanner,escapeHtml,QellyDataGrid,QellyChartShell,formatCompact,navigate}); break;
-      case 'research-workspace': await renderResearchWorkspace(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,renderRoute}); break;
+      case 'research-workspace': await renderResearchWorkspace(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,renderRoute,signal:controller.signal}); break;
       case 'onboarding': await renderOnboarding(main,{api,pageHead,stateBanner,escapeHtml,toast,renderRoute}); break;
       case 'notification-schedules': await renderNotificationSchedules(main,{api,pageHead,stateBanner,escapeHtml,toast,renderRoute}); break;
       case 'formula-screener': await renderFormulaScreener(main,{api,pageHead,stateBanner,escapeHtml,QellyDataGrid,toast,navigate}); break;
