@@ -26,6 +26,7 @@ try{
   const {context,writes}=await setup(appearance,width),page=await context.newPage();active=page;
   await page.goto(origin+'/#/'+r.route+'/'+r.id,{waitUntil:'domcontentloaded'});await ready(page,r,appearance);
   assert.equal(await page.locator(r.root+' h1').innerText(),r.heading);
+  if(r.route!=='formula-detail')assert.equal(await page.locator(r.root).evaluate(el=>el.classList.contains(el.classList.contains('q-calculator-detail-page')?'q-calculator-workbench-page':'q-indicator-workbench-page')),true);
   const surfaceCount=await surfaces(page,r);
   const summary=page.locator(r.root+' summary').filter({hasText:r.disclosure}).first();await summary.focus();await summary.press('Enter');assert.equal(await summary.evaluate(e=>e.parentElement.open),true);
   if(r.route==='formula-detail'){assert.equal(await page.locator('.q-formula-detail-page .q-calculation-result').count(),8);assert.match(await page.locator('.q-formula-detail-page').innerText(),/Your inputs only/);}
@@ -38,7 +39,7 @@ try{
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.equal(writes.length,0);
   await page.screenshot({path:out+'/'+r.route+'-'+appearance+'-'+width+'.png',fullPage:true});
   await page.goto(origin+'/#/'+r.route,{waitUntil:'domcontentloaded'});await page.locator(r.root).waitFor();assert.match(await page.locator('#main').innerText(),/SELECTION REQUIRED/);assert.equal(new URL(page.url()).hash,'#/'+r.route);await surfaces(page,r);assert.equal(writes.length,0);
-  results.push({route:r.route,appearance,width,surfaceCount,ordinaryBordersRemoved:true,ordinaryShadowsRemoved:true,methodIdentityPreserved:true,keyboardDisclosurePreserved:true,inputFocusPreserved,selectionRequiredPreserved:true,noSilentSubstitution:true,overflow:false,protectedWrites:0,calculationRun:false,saveClicked:false});await context.close();active=null;
+  results.push({route:r.route,appearance,width,surfaceCount,actualProductionEntryPreserved:true,ordinaryBordersRemoved:true,ordinaryShadowsRemoved:true,methodIdentityPreserved:true,keyboardDisclosurePreserved:true,inputFocusPreserved,selectionRequiredPreserved:true,noSilentSubstitution:true,overflow:false,protectedWrites:0,calculationRun:false,saveClicked:false});await context.close();active=null;
  }
  for(const appearance of ['dark','light'])for(const width of [1440,390])for(const r of routes){
   const {context,writes}=await setup(appearance,width),pattern='**/assets/qelly-v6-quant-workbench.css';let release,requested;const hold=new Promise(x=>release=x),seen=new Promise(x=>requested=x);await context.route(pattern,async q=>{requested();await hold;return q.continue();});
