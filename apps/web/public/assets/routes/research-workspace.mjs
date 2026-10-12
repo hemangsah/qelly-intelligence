@@ -1,3 +1,4 @@
+// Research style readiness is reconciled with the preceding private layout release.
 // Keep the existing research presenter behind its bounded stylesheet readiness guard.
 import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 const RESEARCH_STYLESHEET=new URL('../research-workspace-v2.css',import.meta.url).href;
