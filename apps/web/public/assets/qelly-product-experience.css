@@ -231,7 +231,9 @@ html[data-appearance="light"] :where(.q-panel,.q-mi-intelligence-module,.q-mn-pa
   box-shadow:var(--q-calculator-elevation,0 8px 24px rgba(63,34,46,.055))!important;
 }
 
-.q-governed-workspace-page{--q-elevation-rest:none;--q-luxe-shadow-soft:none;--q-governed-content-border:0;--q-governed-empty-inset:none}
+.q-governed-workspace-page{--q-elevation-rest:none;display:block!important;--q-luxe-shadow-soft:none;--q-governed-content-border:0;--q-governed-empty-inset:none}
+html[data-production-system="v8"] body #app #main .q-governed-workspace-page .q-kpi{background:var(--q-surfacealt)!important;background-image:none!important}
+html[data-production-system="v8"] body #app #main .q-governed-workspace-page .q-kpi::before,html[data-production-system="v8"] body #app #main .q-governed-workspace-page .q-kpi::after{content:none!important;display:none!important}
 
 /* Route entry motion is subtle and does not delay interaction. */
 html[data-product-experience="ready"] #main>section{animation:q-product-enter 320ms cubic-bezier(.2,.8,.2,1) both}
