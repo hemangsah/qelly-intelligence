@@ -1,5 +1,5 @@
 export async function renderSecuritySetup(main,{pageHead}){
- main.innerHTML=`<section class="q-page" data-capability-state="UNAVAILABLE" data-capability="mfa">
+ main.innerHTML=`<section class="q-page q-governed-workspace-page" data-capability-state="UNAVAILABLE" data-capability="mfa">
   ${pageHead('Identity assurance boundary','Authenticator MFA','TOTP enrollment and recovery-code management are not enabled in the canonical Cloudflare runtime. Qelly will not present local-only identity controls as production capabilities.')}
   <section class="q-panel" data-provenance="canonical-capability-boundary">
    <div class="q-panel-head"><div><p class="q-eyebrow">Current production state</p><h2>Authenticator MFA is unavailable</h2><p>The previous interface called local-runtime MFA endpoints that Cloudflare does not own. Those controls are retired until the complete enrollment, confirmation, recovery, revocation and audit ceremony is implemented and accepted.</p></div><span class="q-status q-status--unavailable">UNAVAILABLE</span></div>

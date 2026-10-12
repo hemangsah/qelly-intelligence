@@ -225,6 +225,15 @@ jobs:
           name: qelly-decision-retail-hierarchy-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/decision-retail-hierarchy-e2e
           if-no-files-found: error
+      - name: Verify empty private workspace surfaces with isolated read fixtures
+        run: node scripts/qelly-private-empty-surfaces-e2e.mjs
+      - name: Upload isolated private presentation evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-private-empty-surfaces-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/private-empty-surfaces-e2e
+          if-no-files-found: error
       - name: Verify global chat keyboard focus and mobile containment
         run: node scripts/qelly-chat-keyboard-e2e.mjs
       - name: Upload focused Chat editorial evidence

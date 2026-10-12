@@ -70,7 +70,7 @@ html[data-production-system="v8"] #main .q-v8-technical-identifiers dd{overflow-
    underneath dark-theme text tokens. These rules are token-driven so light mode
    remains semantically correct as well. */
 html[data-production-system="v8"] body #app #main :where(.q-v53-final-inspector,.q-v53-evidence-inspector,.q-v53-real-inspector){background-image:none!important;color:var(--q-text)!important;box-shadow:none!important}
-html[data-production-system="v8"] body #app #main :where(.q-v53-final-inspector, .q-v53-evidence-inspector, .q-v53-real-inspector):not(:where(.q-nt-receipt,.q-sc-receipt)){border:1px solid var(--q-border)!important;background:var(--q-surface)!important;}
+html[data-production-system="v8"] body #app #main :where(.q-v53-final-inspector, .q-v53-evidence-inspector, .q-v53-real-inspector):not(:where(.q-nt-receipt,.q-sc-receipt)){border:var(--q-governed-content-border,1px solid var(--q-border))!important;background:var(--q-surface)!important;}
 html[data-production-system="v8"] body #app #main :where(.q-v53-final-inspector,.q-v53-evidence-inspector,.q-v53-real-inspector)>header{border-color:var(--q-border)!important;background:var(--q-surfacealt)!important;background-image:none!important;color:var(--q-text)!important}
 html[data-production-system="v8"] body #app #main :where(.q-v53-final-row,.q-v53-evidence-row,.q-v53-real-evidence-row){border-color:var(--q-border)!important;background:transparent!important;background-image:none!important;color:var(--q-text)!important}
 html[data-production-system="v8"] body #app #main :where(.q-v53-final-note,.q-v53-evidence-note,.q-v53-real-inspector-note){border-color:var(--q-border)!important;background:var(--q-surfacealt)!important;background-image:none!important;color:var(--q-muted)!important}
