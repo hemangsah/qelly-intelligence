@@ -2,7 +2,7 @@
    Presentation only: all formula definitions and solver semantics remain unchanged.
    Scope is owned by the executable route wrapper rather than shell/root data attributes.
    Surfaces intentionally reuse the canonical premium shell token family. */
-.q-formula-center-page{--q-calculator-elevation:none;--q-elevation-rest:none;--q-elevation-hover:none;--q-luxe-shadow-soft:none;--q-tool-kpi-border:0;--q-tool-kpi-divider:0;--q-tool-truth-border:0;--q-tool-truth-background:var(--q-premium-surface-2);--q-tool-card-hover-background:var(--q-premium-surface-3);
+.q-formula-center-page{--q-calculator-elevation:none;--q-tool-notice-border:0;--q-elevation-rest:none;--q-elevation-hover:none;--q-luxe-shadow-soft:none;--q-tool-kpi-border:0;--q-tool-kpi-divider:0;--q-tool-truth-border:0;--q-tool-truth-background:var(--q-premium-surface-2);--q-tool-card-hover-background:var(--q-premium-surface-3);
   display:grid;
   gap:14px;
 }

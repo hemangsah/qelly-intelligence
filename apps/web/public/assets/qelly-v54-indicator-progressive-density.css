@@ -1,7 +1,7 @@
 /* Qelly Intelligence — post-V5.4 Indicator Library progressive density.
    Presentation only: indicator definitions, warm-up rules and calculation semantics are unchanged.
    Scoped to the executable Indicator Library wrapper and canonical premium shell tokens. */
-.q-indicator-workbench-page{--q-calculator-elevation:none;--q-elevation-rest:none;--q-elevation-hover:none;--q-luxe-shadow-soft:none;--q-tool-kpi-border:0;--q-tool-kpi-divider:0;--q-tool-truth-border:0;--q-tool-truth-background:var(--q-premium-surface-2);--q-tool-card-hover-background:var(--q-premium-surface-3);display:grid;gap:14px}
+.q-indicator-workbench-page{--q-calculator-elevation:none;--q-tool-notice-border:0;--q-elevation-rest:none;--q-elevation-hover:none;--q-luxe-shadow-soft:none;--q-tool-kpi-border:0;--q-tool-kpi-divider:0;--q-tool-truth-border:0;--q-tool-truth-background:var(--q-premium-surface-2);--q-tool-card-hover-background:var(--q-premium-surface-3);display:grid;gap:14px}
 .q-indicator-workbench-page .q-calculator-featured{min-width:0}
 .q-indicator-workbench-page .q-calculator-section-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin:0 0 10px}
 .q-indicator-workbench-page .q-calculator-section-head h2{margin:3px 0 4px;color:var(--q-premium-text,#f5f1f3);font-size:clamp(16px,1.7vw,22px)}
