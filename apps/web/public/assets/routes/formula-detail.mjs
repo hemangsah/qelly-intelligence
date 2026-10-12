@@ -1,3 +1,4 @@
+// Existing V6 production entries delegate stylesheet readiness to this guarded presenter.
 import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 import {calculateFormula,getFormulaDefinition} from '../calculation/formula-engine-extended.mjs';
 import {saveCalculation,encodeShareState} from '../calculation/persistence.mjs';
