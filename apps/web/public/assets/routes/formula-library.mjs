@@ -10,11 +10,11 @@ function activateFormulaDensity(signal){
   return ensureRouteStylesheet(FORMULA_DENSITY_STYLESHEET,{attribute:'data-qelly-v54-formula-density',value:'active',signal});
 }
 
-export async function renderFormulaLibrary(main,{pageHead,escapeHtml,navigate,signal}){
+export async function renderFormulaLibrary(main,{pageHead,escapeHtml,navigate,signal,renderRoute}){
   try{await activateFormulaDensity(signal);}catch(error){
     if(error?.name==='AbortError')throw error;
     main.innerHTML=`<section class="q-page q-tools-style-recovery">${pageHead('Tools · temporarily unavailable','Formula library could not open.','The page could not finish loading. Retry or choose another public tool.')}<p role="status">${escapeHtml(error.message)}</p><button class="q-button q-button--primary" type="button" data-tools-style-retry>Retry library</button></section>`;
-    main.querySelector('[data-tools-style-retry]').addEventListener('click',()=>navigate('formula-library'));
+    main.querySelector('[data-tools-style-retry]').addEventListener('click',()=>renderRoute());
     return;
   }
   const formulas=listFormulaDefinitions().sort((a,b)=>a.name.localeCompare(b.name));
