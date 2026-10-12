@@ -205,7 +205,9 @@ test('product experience is the final border-light visual authority and is offli
   assert.match(experience, /single final visual authority/);
   assert.match(experience, /--q-radius-surface:12px/);
   assert.match(experience, /q-product-nav a\[aria-current="page"\][\s\S]*background:transparent!important/);
-  assert.match(experience, /q-calculator-card[\s\S]*min-height:208px!important/);
+  assert.match(experience, /q-calculator-card[\s\S]*min-height:var\(--q-calculator-row-min,208px\)!important/);
+  const calculatorStyle=await read('apps/web/public/assets/qelly-wave-cq-calculator-experience.css');
+  assert.match(calculatorStyle, /\.q-calculator-center-page\{[^}]*--q-calculator-row-min:0px/);
   assert.match(experience, /data-appearance="light"[\s\S]*q-status--deterministic/);
   assert.match(experience, /@media\(prefers-reduced-motion:reduce\)/);
   assert.match(index, /qelly-premium-interactions\.mjs[\s\S]*qelly-product-experience\.mjs/);
