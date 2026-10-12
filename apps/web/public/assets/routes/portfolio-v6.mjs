@@ -26,7 +26,7 @@ export async function renderPortfolioV6(main,deps){
       api('/api/v1/portfolio/attribution')
     ]);
   }catch(error){
-    main.innerHTML=`<section class="q-page q-v6-portfolio-page">${pageHead('Qelly Intelligence · Portfolio','Portfolio','The authenticated portfolio persistence service is unavailable. Qelly will not fabricate holdings, valuation or risk.', '')}${stateBanner()}<section class="q-panel"><div class="q-panel-body"><div class="q-empty-state"><strong>Portfolio service unavailable</strong><p>${escapeHtml(error.message)}</p></div></div></section></section>`;
+    main.innerHTML=`<section class="q-page q-v6-portfolio-page q-governed-workspace-page">${pageHead('Qelly Intelligence · Portfolio','Portfolio','The authenticated portfolio persistence service is unavailable. Qelly will not fabricate holdings, valuation or risk.', '')}${stateBanner()}<section class="q-panel"><div class="q-panel-body"><div class="q-empty-state"><strong>Portfolio service unavailable</strong><p>${escapeHtml(error.message)}</p></div></div></section></section>`;
     return;
   }
 
@@ -51,9 +51,9 @@ export async function renderPortfolioV6(main,deps){
     return `<article class="q-v6-portfolio-row"><div><strong>${escapeHtml(symbol)}</strong><small>${escapeHtml(name)}</small></div><div><span>Quantity</span><strong>${escapeHtml(amount(quantity))}</strong></div><div><span>Cost basis</span><strong>${escapeHtml(money(cost,currency))}</strong></div><div><span>Governed mark</span><strong>${escapeHtml(money(mark,currency))}</strong><small>${escapeHtml(mark==null?'No governed pricing observation attached':date(first(item,['observedAt','priceObservedAt','observed_at'])))}</small></div><div><span>Market value</span><strong>${escapeHtml(money(marketValue,currency))}</strong></div><span class="q-status q-status--${tone(markState)}">${escapeHtml(markState)}</span><small class="q-v6-portfolio-provenance">${escapeHtml(provenance)}</small></article>`;
   }).join('');
 
-  main.innerHTML=`<section class="q-page q-v6-portfolio-page">
+  main.innerHTML=`<section class="q-page q-v6-portfolio-page q-governed-workspace-page">
     ${pageHead('Qelly Intelligence · Governed portfolio','Portfolio','Authenticated portfolio records with strict separation between user-supplied holdings and governed market valuation. Missing pricing coverage stays unavailable rather than being replaced with demo marks.',`<a class="q-button q-button--secondary" href="#/instrument-master">Instrument master</a><a class="q-button q-button--primary" href="#/timeseries-lab">Governed reference data</a>`)}${stateBanner()}
-    <div class="q-v6-deterministic-banner"><span class="q-status q-status--cached">RLS PORTFOLIO</span><p>Portfolio positions may contain user-entered quantity and cost information. A position receives market value, performance, risk or attribution only when a separately governed pricing observation covers the instrument and required period. Qelly does not substitute deterministic fixtures for missing portfolio prices.</p></div>
+    <div class="q-v6-deterministic-banner"><span class="q-status">RLS PORTFOLIO</span><p>Portfolio positions may contain user-entered quantity and cost information. A position receives market value, performance, risk or attribution only when a separately governed pricing observation covers the instrument and required period. Qelly does not substitute deterministic fixtures for missing portfolio prices.</p></div>
     <section class="q-v6-portfolio-kpis">
       <div><span>Portfolio</span><strong>${escapeHtml(portfolioName)}</strong><small>${escapeHtml(currency)} reporting currency</small></div>
       <div><span>Positions</span><strong>${positions.length}</strong><small>${quantityCount} with explicit quantity</small></div>
