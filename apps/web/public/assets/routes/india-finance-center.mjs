@@ -1,3 +1,4 @@
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 import {tradingViewAppearance} from '../market/tradingview-display-widget.mjs';
 import {mountLazyTradingViewWidget} from '../market/lazy-tradingview-widget.mjs';
 import {adSlot,mountAdSlots} from '../qelly-ad-slot.mjs';
@@ -5,7 +6,7 @@ import { calculateFormula, listFormulaDefinitions } from '../calculation/formula
 import { INDIA_RULE_REGISTRY, selectIndiaRule, calculateCustomIndiaCharges } from '../calculation/india-rules.mjs';
 import { saveCalculation, resultToCsv } from '../calculation/persistence.mjs';
 const INDIA_STYLESHEET=new URL('./india-finance-center.css',import.meta.url).href;
-const installIndiaStyles=()=>{if(document.querySelector('link[data-india-finance]'))return;const link=document.createElement('link');link.rel='stylesheet';link.href=INDIA_STYLESHEET;link.dataset.indiaFinance='consumer-v1';document.head.append(link);};
+const installIndiaStyles=(signal)=>ensureRouteStylesheet(INDIA_STYLESHEET,{attribute:'data-india-finance',value:'consumer-v1',signal});
 
 const EXAMPLES={
   'sip-future-value':{monthlyContribution:25000,annualReturnPercent:12,years:15,timing:'end'},
@@ -25,12 +26,17 @@ const fmt=(value)=>typeof value==='number'?new Intl.NumberFormat('en-IN',{maximu
 const rows=(output)=>Object.entries(output??{}).filter(([,value])=>!(Array.isArray(value)||value&&typeof value==='object'));
 const download=(name,content,type)=>{const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(url),0);};
 
-export async function renderIndiaFinanceCenter(main,{pageHead,escapeHtml,toast}){
-  installIndiaStyles();
+export async function renderIndiaFinanceCenter(main,{pageHead,escapeHtml,toast,signal,renderRoute}){
+  try{await installIndiaStyles(signal);}catch(error){
+    if(error?.name==='AbortError')throw error;
+    main.innerHTML=`<section class="q-page q-tools-style-recovery">${pageHead('Tools · temporarily unavailable','India Finance could not open.','The page could not finish loading. Retry or choose another public tool.')}<p role="status">${escapeHtml(error.message)}</p><button class="q-button q-button--primary" type="button" data-tools-style-retry>Retry tools</button></section>`;
+    main.querySelector('[data-tools-style-retry]').addEventListener('click',()=>renderRoute());
+    return;
+  }
   const formulas=listFormulaDefinitions({domain:'india-finance'});
   main.innerHTML=`<section class="q-page q-india-finance-page">
-    ${pageHead('Qelly India finance','India Finance & SIP Center','Plan goals, investments and loans with Indian number formatting, then follow live India market movers and headlines in one public workspace.',`<span class="q-status q-status--live">PUBLIC · NO SIGN-IN</span>`)}
-    <div class="q-state-banner is-simulated"><span class="q-status q-status--simulated">RESEARCH ONLY</span><p>Calculators run privately in this browser. Market panels are live external research displays. QELLY does not invent missing statutory rates or guarantee outcomes.</p></div>
+    ${pageHead('Qelly India finance','India Finance & SIP Center','Plan goals, investments and loans with Indian number formatting, then follow live India market movers and headlines in one public workspace.',`<span class="q-status">PUBLIC · NO SIGN-IN</span>`)}
+    <div class="q-state-banner"><span class="q-status">RESEARCH ONLY</span><p>Calculators run privately in this browser. Market panels are live external research displays. QELLY does not invent missing statutory rates or guarantee outcomes.</p></div>
     <div class="q-india-grid">
       <section class="q-panel">
         <div class="q-panel-head"><div><h2>Investment and loan calculators</h2><p>${formulas.length} goal, return and borrowing tools</p></div></div>
