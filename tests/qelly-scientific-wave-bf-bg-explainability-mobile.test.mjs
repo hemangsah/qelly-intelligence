@@ -52,7 +52,7 @@ test('Decision preserves summary-before-diagnostics in expert view and Simple su
   const chartStart=content.indexOf('q-dpg-stage');
   const disclosureStart=content.indexOf('q-dpg-secondary-view-evidence');
   assert.ok(chartStart>viewStart&&disclosureStart>chartStart);
-  assert.ok(content.includes('<summary>Supporting evidence and confidence method</summary>'+secondaryViewEvidenceMarkup+'</details>'));
+  assert.ok(content.includes("<summary>Supporting evidence and confidence method</summary>'+secondaryViewEvidenceMarkup+'</details>"));
   assert.doesNotMatch(content,/<details class="q-dpg-secondary-view-evidence"[^>]*\sopen/);
 });
 
