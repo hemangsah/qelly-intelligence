@@ -30,7 +30,6 @@ export async function renderCalculatorCenter(main,{pageHead,escapeHtml,navigate}
     <div class="q-calculator-card__meta"><span>${escapeHtml(titleCase(domainOf(definition)))}</span><span>${fieldCount(definition)} fields</span></div>
     <h3>${escapeHtml(definition.name)}</h3>
     <p>${escapeHtml(definition.description)}</p>
-    <div class="q-v6-quant-method-strip"><span>${escapeHtml(definition.formulaId)}</span><span>${escapeHtml(String(definition.version||definition.formulaVersion||'versioned'))}</span><span>read-only</span></div>
     <div class="q-calculator-card__footer"><span>${requiredCount(definition)} required · structured inputs</span><strong>Open calculator <span aria-hidden="true">→</span></strong></div>
   </a>`;
   const featured=FEATURED_IDS.map((id)=>definitions.find((item)=>item.formulaId===id)).filter(Boolean);
@@ -49,7 +48,7 @@ export async function renderCalculatorCenter(main,{pageHead,escapeHtml,navigate}
     </section>
 
     <section class="q-calculator-featured" aria-labelledby="calculator-featured-title">
-      <div class="q-calculator-section-head"><div><p class="q-eyebrow">Priority workflows</p><h2 id="calculator-featured-title">Start with a proven calculation</h2><p>Common risk, return, portfolio and derivative methods with structured inputs and version-aware evidence.</p></div><span class="q-truth-pill is-cached">${featuredLabel}</span></div>
+      <div class="q-calculator-section-head"><div><p class="q-eyebrow">Priority workflows</p><h2 id="calculator-featured-title">Start with a proven calculation</h2><p>Common risk, return, portfolio and derivative methods with structured inputs and version-aware evidence.</p></div><span class="q-calculator-catalogue-count">${featuredLabel}</span></div>
       <div class="q-calculator-card-grid is-featured" data-experience-grid>${featured.map((definition)=>card(definition,{featured:true})).join('')}</div>
     </section>
 
@@ -59,7 +58,7 @@ export async function renderCalculatorCenter(main,{pageHead,escapeHtml,navigate}
         <span class="q-calculator-library-disclosure__action" aria-hidden="true">Open library <span>↓</span></span>
       </summary>
       <section id="calculator-library-panel" class="q-calculator-browser" aria-labelledby="calculator-browser-title">
-        <div class="q-calculator-section-head"><div><p class="q-eyebrow">Complete library</p><h2 id="calculator-browser-title">Find the right method</h2><p class="q-v6-catalog-note">Search by name, purpose, stable formula ID or domain. Opening a calculator does not fetch market data implicitly.</p></div><span id="calculator-result-count" class="q-truth-pill is-cached">${definitions.length} tools</span></div>
+        <div class="q-calculator-section-head"><div><p class="q-eyebrow">Complete library</p><h2 id="calculator-browser-title">Find the right method</h2><p class="q-v6-catalog-note">Search by name, purpose, stable formula ID or domain. Opening a calculator does not fetch market data implicitly.</p></div><span id="calculator-result-count" class="q-calculator-catalogue-count">${definitions.length} tools</span></div>
         <div class="q-calculator-browser__toolbar">
           <label><span>Search calculators</span><input id="calculator-search" type="search" placeholder="Position size, CAGR, options, drawdown…" autocomplete="off"></label>
           <label><span>Category</span><select id="calculator-domain"><option value="">All categories</option>${domains.map((domain)=>`<option value="${escapeHtml(domain)}">${escapeHtml(titleCase(domain))}</option>`).join('')}</select></label>
