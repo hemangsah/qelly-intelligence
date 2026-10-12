@@ -177,7 +177,7 @@ html[data-production-system="v8"] #main .q-v8-technical-identifiers>summary{min-
 /* Formula detail: methodology and worked result share the first viewport cleanly. */
 html[data-production-system="v8"] #main .q-formula-detail-page{display:grid!important;gap:14px!important}
 html[data-production-system="v8"] #main .q-formula-detail-page .q-page-head{margin-bottom:0!important}
-html[data-production-system="v8"] #main .q-formula-detail-page .q-state-banner{min-height:52px!important;margin:0!important;padding:11px 14px!important;display:flex!important;align-items:center!important;gap:10px!important;border-left-width:3px!important}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-state-banner{min-height:52px!important;margin:0!important;padding:11px 14px!important;display:flex!important;align-items:center!important;gap:10px!important;border-left-width:0!important}
 html[data-production-system="v8"] #main .q-formula-detail-page .q-state-banner p{margin:0!important;font-size:12px!important;color:var(--q-text-secondary)!important}
 html[data-production-system="v8"] #main .q-formula-detail-page .q-calculator-layout{
   display:grid!important;grid-template-columns:minmax(0,1.42fr) minmax(350px,.78fr)!important;gap:14px!important;align-items:start!important;margin:0!important
@@ -187,23 +187,23 @@ html[data-production-system="v8"] #main .q-formula-detail-page .q-calculator-lay
 html[data-production-system="v8"] #main .q-formula-detail-page .q-panel-head{padding:18px 20px!important}
 html[data-production-system="v8"] #main .q-formula-detail-page .q-panel-body{padding:20px!important}
 html[data-production-system="v8"] #main .q-formula-detail-page .q-evidence-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;margin:0 0 20px!important}
-html[data-production-system="v8"] #main .q-formula-detail-page .q-evidence-grid>div{min-height:72px!important;padding:12px!important;border:1px solid var(--q-border)!important;border-radius:9px!important;background:var(--q-surfacealt)!important}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-evidence-grid>div{min-height:72px!important;padding:12px!important;border:0!important;border-radius:9px!important;background:var(--q-surfacealt)!important}
 html[data-production-system="v8"] #main .q-formula-detail-page .q-evidence-grid dt{margin:0 0 5px!important;color:var(--q-muted)!important;font-size:10px!important;text-transform:uppercase!important;letter-spacing:.06em!important}
 html[data-production-system="v8"] #main .q-formula-detail-page .q-evidence-grid dd{margin:0!important;color:var(--q-text)!important;font-size:13px!important;font-weight:620!important}
 html[data-production-system="v8"] #main .q-formula-detail-page h3{margin:22px 0 10px!important;font-size:16px!important}
 html[data-production-system="v8"] #main .q-formula-detail-page ul{margin:0 0 20px!important;padding-left:20px!important}
 html[data-production-system="v8"] #main .q-formula-detail-page li{margin:5px 0!important;color:var(--q-text-secondary)!important;font-size:13px!important}
-html[data-production-system="v8"] #main .q-formula-detail-page .q-responsive-table{max-height:360px!important;overflow:auto!important;border:1px solid var(--q-border)!important;border-radius:9px!important}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-responsive-table{max-height:360px!important;overflow:auto!important;border:0!important;border-radius:9px!important}
 html[data-production-system="v8"] #main .q-formula-detail-page table{width:100%!important;border-collapse:collapse!important}
 html[data-production-system="v8"] #main .q-formula-detail-page th,
 html[data-production-system="v8"] #main .q-formula-detail-page td{padding:10px 11px!important;border-bottom:1px solid var(--q-border)!important;text-align:left!important;font-size:12px!important;vertical-align:top!important}
 html[data-production-system="v8"] #main .q-formula-detail-page th{color:var(--q-text-secondary)!important;background:var(--q-surfacealt)!important;font-weight:650!important}
 html[data-production-system="v8"] #main .q-formula-detail-page .q-calculation-result-list{display:grid!important;gap:7px!important}
-html[data-production-system="v8"] #main .q-formula-detail-page .q-calculation-result{min-height:58px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:18px!important;padding:12px 14px!important;border:1px solid var(--q-border)!important;border-radius:9px!important;background:var(--q-surfacealt)!important}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-calculation-result{min-height:58px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:18px!important;padding:12px 14px!important;border:0!important;border-radius:9px!important;background:var(--q-surfacealt)!important}
 html[data-production-system="v8"] #main .q-formula-detail-page .q-calculation-result span{color:var(--q-muted)!important;font-size:12px!important}
-html[data-production-system="v8"] #main .q-formula-detail-page .q-calculation-result strong{max-width:58%!important;overflow:hidden!important;text-overflow:ellipsis!important;color:var(--q-text)!important;font-size:18px!important;line-height:1.1!important;text-align:right!important;font-variant-numeric:tabular-nums!important}
+html[data-production-system="v8"] #main .q-formula-detail-page .q-calculation-result strong{max-width:58%!important;overflow:visible!important;overflow-wrap:anywhere!important;color:var(--q-text)!important;font-size:18px!important;line-height:1.1!important;text-align:right!important;font-variant-numeric:tabular-nums!important}
 html[data-production-system="v8"] #main .q-formula-detail-page .q-actions{display:flex!important;flex-wrap:wrap!important;gap:8px!important;margin-top:14px!important}
-html[data-production-system="v8"] #main .q-formula-detail-page details{margin-top:18px!important;border-top:1px solid var(--q-border)!important;padding-top:12px!important}
+html[data-production-system="v8"] #main .q-formula-detail-page details{margin-top:18px!important;border:0!important;padding-top:12px!important}
 html[data-production-system="v8"] #main .q-formula-detail-page details>summary{cursor:pointer!important;color:var(--q-text-secondary)!important;font-size:12px!important;font-weight:620!important}
 
 /* Customer detail routes use full customer-area spacing rather than legacy workspace chrome. */
