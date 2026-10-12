@@ -35,6 +35,10 @@ test('Indicator density binds to the executable route wrapper and canonical prem
 
 test('Indicator route loads the progressive-density stylesheet exactly once',()=>{
   assert.match(route,/qelly-v54-indicator-progressive-density\.css/);
-  assert.match(route,/data-qelly-v54-indicator-density="active"/);
-  assert.match(route,/activateIndicatorDensity\(\)/);
+  assert.match(route,/import \{ensureRouteStylesheet\} from '\.\.\/route-stylesheet-readiness\.mjs'/);
+  assert.match(route,/attribute:'data-qelly-v54-indicator-density',value:'active',signal/);
+  assert.match(route,/await activateIndicatorDensity\(signal\)/);
+  assert.equal((route.match(/ensureRouteStylesheet\(INDICATOR_DENSITY_STYLESHEET/g)||[]).length,1);
+  const app=fs.readFileSync('apps/web/public/assets/app.js','utf8');
+  assert.match(app,/renderIndicatorLibrary\(main,\{[^}]*signal:controller\.signal\}/);
 });

@@ -1,3 +1,4 @@
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 import {listFormulaDefinitions} from '../calculation/formula-engine-extended.mjs';
 
 const FORMULA_DENSITY_STYLESHEET=new URL('../qelly-v54-formula-progressive-density.css',import.meta.url).href;
@@ -5,17 +6,17 @@ const FEATURED_IDS=['position-size','cagr','black-scholes','portfolio-volatility
 const titleCase=(value)=>String(value||'General').replaceAll('-',' ').replace(/\b\w/g,(letter)=>letter.toUpperCase());
 const fieldCount=(definition)=>Object.keys(definition.inputSchema?.properties??{}).length;
 
-function activateFormulaDensity(){
-  if(document.querySelector('link[data-qelly-v54-formula-density="active"]'))return;
-  const link=document.createElement('link');
-  link.rel='stylesheet';
-  link.href=FORMULA_DENSITY_STYLESHEET;
-  link.dataset.qellyV54FormulaDensity='active';
-  document.head.append(link);
+function activateFormulaDensity(signal){
+  return ensureRouteStylesheet(FORMULA_DENSITY_STYLESHEET,{attribute:'data-qelly-v54-formula-density',value:'active',signal});
 }
 
-export async function renderFormulaLibrary(main,{pageHead,escapeHtml,navigate}){
-  activateFormulaDensity();
+export async function renderFormulaLibrary(main,{pageHead,escapeHtml,navigate,signal,renderRoute}){
+  try{await activateFormulaDensity(signal);}catch(error){
+    if(error?.name==='AbortError')throw error;
+    main.innerHTML=`<section class="q-page q-tools-style-recovery">${pageHead('Tools · temporarily unavailable','Formula library could not open.','The page could not finish loading. Retry or choose another public tool.')}<p role="status">${escapeHtml(error.message)}</p><button class="q-button q-button--primary" type="button" data-tools-style-retry>Retry library</button></section>`;
+    main.querySelector('[data-tools-style-retry]').addEventListener('click',()=>renderRoute());
+    return;
+  }
   const formulas=listFormulaDefinitions().sort((a,b)=>a.name.localeCompare(b.name));
   const domains=[...new Set(formulas.map((item)=>item.domain??item.category??'general'))].sort();
   const card=(definition,{featured=false}={})=>`<a class="q-calculator-card q-formula-card${featured?' is-featured':''}" href="#/formula-detail/${encodeURIComponent(definition.formulaId)}" data-formula-id="${escapeHtml(definition.formulaId)}">
@@ -29,10 +30,10 @@ export async function renderFormulaLibrary(main,{pageHead,escapeHtml,navigate}){
 
   main.innerHTML=`<section class="q-page q-calculator-center-page q-formula-center-page">
     ${pageHead('Quantitative methodology','Formulas','Browse documented risk, return, portfolio, derivatives, fixed-income and personal-finance methods. Each formula explains its assumptions before you open the structured calculator.',`<button class="q-button q-button--primary" data-action="open-calculators">Open calculators</button><button class="q-button q-button--secondary" data-action="open-indicators">Browse indicators</button>`)}
-    <div class="q-state-banner is-simulated"><span class="q-status q-status--simulated">DETERMINISTIC METHODS</span><p>Formula results use the values you provide. They do not place trades, move funds or convert an illustrative output into personalized advice.</p></div>
+    <div class="q-state-banner"><span class="q-status">DETERMINISTIC METHODS</span><p>Formula results use the values you provide. They do not place trades, move funds or convert an illustrative output into personalized advice.</p></div>
 
     <section class="q-calculator-featured" aria-labelledby="formula-featured-title">
-      <div class="q-calculator-section-head"><div><p class="q-eyebrow">Popular methodologies</p><h2 id="formula-featured-title">Understand the method before calculating</h2><p>Start with a governed method, inspect assumptions and units, then move into the structured calculator.</p></div><span class="q-truth-pill is-cached">${featuredLabel}</span></div>
+      <div class="q-calculator-section-head"><div><p class="q-eyebrow">Popular methodologies</p><h2 id="formula-featured-title">Understand the method before calculating</h2><p>Start with a governed method, inspect assumptions and units, then move into the structured calculator.</p></div><span class="q-truth-pill">${featuredLabel}</span></div>
       <div class="q-calculator-card-grid is-featured">${featured.map((definition)=>card(definition,{featured:true})).join('')}</div>
     </section>
 
@@ -42,7 +43,7 @@ export async function renderFormulaLibrary(main,{pageHead,escapeHtml,navigate}){
         <span class="q-formula-library-disclosure__action" aria-hidden="true">Open library <span>↓</span></span>
       </summary>
       <section id="formula-library-panel" class="q-calculator-browser" aria-labelledby="formula-browser-title">
-        <div class="q-calculator-section-head"><div><p class="q-eyebrow">Complete library</p><h2 id="formula-browser-title">Find a formula</h2><p>Search ${formulas.length} methods by name, purpose or financial domain.</p></div><span id="formula-result-count" class="q-truth-pill is-cached">${formulas.length} methods</span></div>
+        <div class="q-calculator-section-head"><div><p class="q-eyebrow">Complete library</p><h2 id="formula-browser-title">Find a formula</h2><p>Search ${formulas.length} methods by name, purpose or financial domain.</p></div><span id="formula-result-count" class="q-truth-pill">${formulas.length} methods</span></div>
         <div class="q-calculator-browser__toolbar">
           <label><span>Search formulas</span><input id="formula-search" type="search" placeholder="Position sizing, CAGR, options, bonds…" autocomplete="off"></label>
           <label><span>Domain</span><select id="formula-domain"><option value="">All domains</option>${domains.map((domain)=>`<option value="${escapeHtml(domain)}">${escapeHtml(titleCase(domain))}</option>`).join('')}</select></label>

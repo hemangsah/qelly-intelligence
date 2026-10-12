@@ -433,8 +433,8 @@ body {
 
 .q-state-banner,
 .q-truth-callout:not(:where(.q-access-gate *)) {
-  border: 1px solid var(--q-border) !important;
-  border-left: 3px solid var(--q-informational) !important;
+  border: var(--q-tool-notice-border,1px solid var(--q-border)) !important;
+  border-left: var(--q-tool-notice-border,3px solid var(--q-informational)) !important;
   border-radius: 9px !important;
   background: var(--q-surface) !important;
   color: var(--q-text) !important;

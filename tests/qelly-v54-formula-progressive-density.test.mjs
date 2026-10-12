@@ -36,6 +36,10 @@ test('Formula density layer binds to the executable route wrapper and canonical 
 
 test('Formula route loads the progressive-density stylesheet exactly once',()=>{
   assert.match(route,/qelly-v54-formula-progressive-density\.css/);
-  assert.match(route,/data-qelly-v54-formula-density="active"/);
-  assert.match(route,/activateFormulaDensity\(\)/);
+  assert.match(route,/import \{ensureRouteStylesheet\} from '\.\.\/route-stylesheet-readiness\.mjs'/);
+  assert.match(route,/attribute:'data-qelly-v54-formula-density',value:'active',signal/);
+  assert.match(route,/await activateFormulaDensity\(signal\)/);
+  assert.equal((route.match(/ensureRouteStylesheet\(FORMULA_DENSITY_STYLESHEET/g)||[]).length,1);
+  const app=fs.readFileSync('apps/web/public/assets/app.js','utf8');
+  assert.match(app,/renderFormulaLibrary\(main,\{[^}]*signal:controller\.signal\}/);
 });
