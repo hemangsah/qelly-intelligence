@@ -517,10 +517,16 @@ const exercise=async({name,viewport,touch=false})=>{
     const workbench=document.querySelector('.q-dpg-range-workbench');
     if(!workbench)return;
     const rect=workbench.getBoundingClientRect(),expandedReserved=Math.min(440,Math.max(230,innerHeight*.52));
+    const followingControls=document.querySelector('.q-dpg-controls--decision');
+    const followingRect=followingControls?.getBoundingClientRect();
+    if(followingRect&&followingRect.top>=rect.bottom){
+      window.scrollTo(0,Math.max(0,scrollY+followingRect.top-innerHeight-24));
+      return;
+    }
     const delta=Math.max(0,rect.bottom-(innerHeight-expandedReserved)+28);
     if(delta>0)window.scrollBy(0,delta);
   });
-  await page.waitForFunction(()=>document.querySelector('.q-ai-root')?.dataset.clearance==='clear',{timeout:5000});
+  await page.waitForFunction(()=>document.querySelector('.q-ai-root')?.dataset.clearance==='clear',null,{timeout:5000});
   const restoredDockBox=await page.locator('[data-q-ai-launcher]').first().boundingBox();
   const dockRestored=Boolean(restoredDockBox)&&restoredDockBox.y>=0&&restoredDockBox.y+restoredDockBox.height<=viewport.height+1;
   if(!dockRestored)failures.push({type:'qelly-dock-clearance-return',restoredDockBox});

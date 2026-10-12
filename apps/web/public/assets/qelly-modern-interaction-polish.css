@@ -144,7 +144,7 @@ html[data-production-system="v8"] body #app #main{
 }
 html[data-production-system="v8"] body #app #main>.q-page,
 html[data-production-system="v8"] body #app #main>.q-verify-page{
-  gap:clamp(14px,1.8vw,24px)!important;
+  gap:var(--q-dpg-simple-page-gap,clamp(14px,1.8vw,24px))!important;
 }
 html[data-production-system="v8"] body #app #main :where(h1,h2,h3){text-wrap:balance}
 html[data-production-system="v8"] body #app #main :where(p,li,dd){text-wrap:pretty}
