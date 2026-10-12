@@ -16,10 +16,10 @@ async function setup(appearance,width){
  return {context,writes};
 }
 async function ready(page,r,appearance){await page.locator(r.root).waitFor();await page.waitForFunction(a=>document.documentElement.dataset.resolvedAppearance===a,appearance);await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true'&&document.documentElement.dataset.brandReady==='true');await page.locator('.qelly-opening').waitFor({state:'hidden'});}
-async function surfaces(page,r){
+async function surfaces(page,r,selectionRequired=false){
  const selectors=['.q-panel','.q-state-banner','.q-evidence-grid>div','.q-calculation-result','.q-method-card','.q-indicator-value-grid>div','.q-indicator-parameters','.q-indicator-limits','.q-indicator-chart','.q-spark-bars','.q-indicator-exact-table','.q-technical-details','.q-result-empty','.q-v6-deterministic-banner','.q-v6-indicator-truth','.q-v6-quant-kpis','.q-v6-cloud-save-note'];
  const measured=await page.locator(selectors.map(s=>r.root+' '+s).join(',')).evaluateAll(ns=>ns.map(e=>({classes:e.className,borders:['Top','Right','Bottom','Left'].map(x=>getComputedStyle(e)['border'+x+'Width']),shadow:getComputedStyle(e).boxShadow})));
- assert.ok(measured.length>=3);for(const row of measured){assert.deepEqual(row.borders,['0px','0px','0px','0px'],JSON.stringify(row));assert.equal(row.shadow,'none',JSON.stringify(row));}return measured.length;
+ if(selectionRequired){assert.equal(measured.length,2);assert.deepEqual(measured.map(x=>x.classes.split(' ')[0]).sort(),['q-panel','q-state-banner']);}else assert.ok(measured.length>=3);for(const row of measured){assert.deepEqual(row.borders,['0px','0px','0px','0px'],JSON.stringify(row));assert.equal(row.shadow,'none',JSON.stringify(row));}return measured.length;
 }
 try{
  for(const appearance of ['dark','light'])for(const width of [1440,768,390,320])for(const r of routes){
@@ -38,7 +38,7 @@ try{
   }
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.equal(writes.length,0);
   await page.screenshot({path:out+'/'+r.route+'-'+appearance+'-'+width+'.png',fullPage:true});
-  await page.goto(origin+'/#/'+r.route,{waitUntil:'domcontentloaded'});await page.getByText('SELECTION REQUIRED',{exact:true}).waitFor();await page.locator(r.root).waitFor();assert.match(await page.locator('#main').innerText(),/SELECTION REQUIRED/);assert.equal(new URL(page.url()).hash,'#/'+r.route);await surfaces(page,r);assert.equal(writes.length,0);
+  await page.goto(origin+'/#/'+r.route,{waitUntil:'domcontentloaded'});await page.getByText('SELECTION REQUIRED',{exact:true}).waitFor();await page.locator(r.root).waitFor();assert.match(await page.locator('#main').innerText(),/SELECTION REQUIRED/);assert.equal(new URL(page.url()).hash,'#/'+r.route);await surfaces(page,r,true);assert.equal(writes.length,0);
   results.push({route:r.route,appearance,width,surfaceCount,actualProductionEntryPreserved:true,ordinaryBordersRemoved:true,ordinaryShadowsRemoved:true,methodIdentityPreserved:true,keyboardDisclosurePreserved:true,inputFocusPreserved,selectionRequiredPreserved:true,noSilentSubstitution:true,overflow:false,protectedWrites:0,calculationRun:false,saveClicked:false});await context.close();active=null;
  }
  for(const appearance of ['dark','light'])for(const width of [1440,390])for(const r of routes){
