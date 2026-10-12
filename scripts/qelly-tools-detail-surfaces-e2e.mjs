@@ -38,7 +38,7 @@ try{
   }
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.equal(writes.length,0);
   await page.screenshot({path:out+'/'+r.route+'-'+appearance+'-'+width+'.png',fullPage:true});
-  await page.goto(origin+'/#/'+r.route,{waitUntil:'domcontentloaded'});await page.locator(r.root).waitFor();assert.match(await page.locator('#main').innerText(),/SELECTION REQUIRED/);assert.equal(new URL(page.url()).hash,'#/'+r.route);await surfaces(page,r);assert.equal(writes.length,0);
+  await page.goto(origin+'/#/'+r.route,{waitUntil:'domcontentloaded'});await page.getByText('SELECTION REQUIRED',{exact:true}).waitFor();await page.locator(r.root).waitFor();assert.match(await page.locator('#main').innerText(),/SELECTION REQUIRED/);assert.equal(new URL(page.url()).hash,'#/'+r.route);await surfaces(page,r);assert.equal(writes.length,0);
   results.push({route:r.route,appearance,width,surfaceCount,actualProductionEntryPreserved:true,ordinaryBordersRemoved:true,ordinaryShadowsRemoved:true,methodIdentityPreserved:true,keyboardDisclosurePreserved:true,inputFocusPreserved,selectionRequiredPreserved:true,noSilentSubstitution:true,overflow:false,protectedWrites:0,calculationRun:false,saveClicked:false});await context.close();active=null;
  }
  for(const appearance of ['dark','light'])for(const width of [1440,390])for(const r of routes){
