@@ -14,7 +14,12 @@ function activateIndicatorDensity(signal){
 }
 
 export async function renderIndicatorLibrary(main,{pageHead,escapeHtml,navigate,signal}){
-  await activateIndicatorDensity(signal);
+  try{await activateIndicatorDensity(signal);}catch(error){
+    if(error?.name==='AbortError')throw error;
+    main.innerHTML=`<section class="q-page q-tools-style-recovery">${pageHead('Tools · temporarily unavailable','Indicator library could not open.','The page could not finish loading. Retry or choose another public tool.')}<p role="status">${escapeHtml(error.message)}</p><button class="q-button q-button--primary" type="button" data-tools-style-retry>Retry library</button></section>`;
+    main.querySelector('[data-tools-style-retry]').addEventListener('click',()=>navigate('indicator-library'));
+    return;
+  }
   const definitions=listIndicatorDefinitions().sort((a,b)=>a.name.localeCompare(b.name));
   const categories=[...new Set(definitions.map((item)=>item.category))].sort();
   const versioned=definitions.filter((definition)=>definition.version||definition.indicatorVersion).length;

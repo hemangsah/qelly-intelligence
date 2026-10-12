@@ -11,7 +11,12 @@ function activateFormulaDensity(signal){
 }
 
 export async function renderFormulaLibrary(main,{pageHead,escapeHtml,navigate,signal}){
-  await activateFormulaDensity(signal);
+  try{await activateFormulaDensity(signal);}catch(error){
+    if(error?.name==='AbortError')throw error;
+    main.innerHTML=`<section class="q-page q-tools-style-recovery">${pageHead('Tools · temporarily unavailable','Formula library could not open.','The page could not finish loading. Retry or choose another public tool.')}<p role="status">${escapeHtml(error.message)}</p><button class="q-button q-button--primary" type="button" data-tools-style-retry>Retry library</button></section>`;
+    main.querySelector('[data-tools-style-retry]').addEventListener('click',()=>navigate('formula-library'));
+    return;
+  }
   const formulas=listFormulaDefinitions().sort((a,b)=>a.name.localeCompare(b.name));
   const domains=[...new Set(formulas.map((item)=>item.domain??item.category??'general'))].sort();
   const card=(definition,{featured=false}={})=>`<a class="q-calculator-card q-formula-card${featured?' is-featured':''}" href="#/formula-detail/${encodeURIComponent(definition.formulaId)}" data-formula-id="${escapeHtml(definition.formulaId)}">
