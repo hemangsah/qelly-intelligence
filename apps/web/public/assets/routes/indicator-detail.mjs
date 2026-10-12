@@ -1,3 +1,4 @@
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 import {calculateIndicator,getIndicatorDefinition} from '../calculation/indicator-engine-extended.mjs';
 import {createIndicatorSampleInputs} from '../calculation/indicator-sample-contracts.mjs';
 import {saveCalculation,encodeShareState,resultToCsv} from '../calculation/persistence.mjs';
@@ -21,7 +22,16 @@ function renderSelectionRequired(main,{pageHead,escapeHtml,navigate,id}){
   main.querySelector('[data-action="library"]').addEventListener('click',()=>navigate('indicator-library'));
 }
 
-export async function renderIndicatorDetail(main,{pageHead,escapeHtml,toast,navigate,id}){
+export async function renderIndicatorDetail(main,{pageHead,escapeHtml,toast,navigate,id,signal,renderRoute}){
+  try{
+    await ensureRouteStylesheet(new URL('../qelly-v6-quant-workbench.css',import.meta.url).href,{attribute:'data-qelly-v6-quant-workbench',value:'active',signal});
+    await ensureRouteStylesheet(new URL('../qelly-route-convergence.css',import.meta.url).href,{attribute:'data-qelly-route-convergence',value:'true',signal});
+  }catch(error){
+    if(error?.name==='AbortError')throw error;
+    main.innerHTML=`<section class="q-page q-tools-style-recovery">${pageHead('Tools · temporarily unavailable','The tool could not open.','The page could not finish loading. Retry or choose another tool.')}<p role="status">${escapeHtml(error.message)}</p><button class="q-button q-button--primary" type="button" data-tools-style-retry>Retry tool</button></section>`;
+    main.querySelector('[data-tools-style-retry]').addEventListener('click',()=>renderRoute?.());
+    return;
+  }
   if(!id){renderSelectionRequired(main,{pageHead,escapeHtml,navigate,id});return;}
   let definition;
   try{definition=getIndicatorDefinition(id);}catch{renderSelectionRequired(main,{pageHead,escapeHtml,navigate,id});return;}

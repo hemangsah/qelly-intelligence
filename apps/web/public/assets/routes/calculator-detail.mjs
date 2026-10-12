@@ -1,3 +1,4 @@
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 import {calculateFormula,getFormulaDefinition} from '../calculation/formula-engine-extended.mjs';
 import {saveCalculation,encodeShareState,decodeShareState,resultToCsv} from '../calculation/persistence.mjs';
 
@@ -42,7 +43,16 @@ function renderSelectionRequired(main,{pageHead,escapeHtml,navigate,id}){
   main.querySelector('[data-action="center"]').addEventListener('click',()=>navigate('calculator-center'));
 }
 
-export async function renderCalculatorDetail(main,{pageHead,escapeHtml,toast,navigate,id,query}){
+export async function renderCalculatorDetail(main,{pageHead,escapeHtml,toast,navigate,id,query,signal,renderRoute}){
+  try{
+    await ensureRouteStylesheet(new URL('../qelly-v6-quant-workbench.css',import.meta.url).href,{attribute:'data-qelly-v6-quant-workbench',value:'active',signal});
+    await ensureRouteStylesheet(new URL('../qelly-route-convergence.css',import.meta.url).href,{attribute:'data-qelly-route-convergence',value:'true',signal});
+  }catch(error){
+    if(error?.name==='AbortError')throw error;
+    main.innerHTML=`<section class="q-page q-tools-style-recovery">${pageHead('Tools · temporarily unavailable','The tool could not open.','The page could not finish loading. Retry or choose another tool.')}<p role="status">${escapeHtml(error.message)}</p><button class="q-button q-button--primary" type="button" data-tools-style-retry>Retry tool</button></section>`;
+    main.querySelector('[data-tools-style-retry]').addEventListener('click',()=>renderRoute?.());
+    return;
+  }
   if(!id){renderSelectionRequired(main,{pageHead,escapeHtml,navigate,id});return;}
   let definition;
   try{definition=getFormulaDefinition(id);}catch{renderSelectionRequired(main,{pageHead,escapeHtml,navigate,id});return;}
@@ -52,7 +62,7 @@ export async function renderCalculatorDetail(main,{pageHead,escapeHtml,toast,nav
   if(encoded){try{const decoded=decodeShareState(encoded);if(decoded?.formulaId!==definition.formulaId)throw new Error('This shared calculation belongs to a different formula.');initialInputs=decoded.inputs??{};sharedState=true;}catch(error){sharedError=error.message;}}
   const fields=fieldDefinitions(definition,initialInputs);
   main.innerHTML=`<section class="q-page q-calculator-detail-page">
-    ${pageHead('Deterministic calculator','Calculator',definition.name,`<button class="q-button q-button--ghost" data-action="method">Methodology</button>`)}
+    ${pageHead('Deterministic calculator',definition.name,'Enter your assumptions and inspect the deterministic result.',`<button class="q-button q-button--ghost" data-action="method">Methodology</button>`)}
     <div class="q-state-banner" data-truth-state="deterministic"><span class="q-status" data-truth-state="deterministic">DETERMINISTIC</span><p>${sharedState?'Shared inputs restored. ':''}Calculations run locally using the documented Qelly formula. No provider, broker or exchange call is made.</p></div>
     <section class="q-structured-calculator">
       <article class="q-panel"><div class="q-panel-head"><div><p class="q-eyebrow">Structured inputs</p><h2>Enter calculation details</h2><p>Fields, units and validation are generated from the formula contract.</p></div></div><div class="q-panel-body">
