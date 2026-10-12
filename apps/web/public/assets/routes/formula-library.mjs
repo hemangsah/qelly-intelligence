@@ -1,3 +1,4 @@
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 import {listFormulaDefinitions} from '../calculation/formula-engine-extended.mjs';
 
 const FORMULA_DENSITY_STYLESHEET=new URL('../qelly-v54-formula-progressive-density.css',import.meta.url).href;
@@ -5,17 +6,12 @@ const FEATURED_IDS=['position-size','cagr','black-scholes','portfolio-volatility
 const titleCase=(value)=>String(value||'General').replaceAll('-',' ').replace(/\b\w/g,(letter)=>letter.toUpperCase());
 const fieldCount=(definition)=>Object.keys(definition.inputSchema?.properties??{}).length;
 
-function activateFormulaDensity(){
-  if(document.querySelector('link[data-qelly-v54-formula-density="active"]'))return;
-  const link=document.createElement('link');
-  link.rel='stylesheet';
-  link.href=FORMULA_DENSITY_STYLESHEET;
-  link.dataset.qellyV54FormulaDensity='active';
-  document.head.append(link);
+function activateFormulaDensity(signal){
+  return ensureRouteStylesheet(FORMULA_DENSITY_STYLESHEET,{attribute:'data-qelly-v54-formula-density',value:'active',signal});
 }
 
-export async function renderFormulaLibrary(main,{pageHead,escapeHtml,navigate}){
-  activateFormulaDensity();
+export async function renderFormulaLibrary(main,{pageHead,escapeHtml,navigate,signal}){
+  await activateFormulaDensity(signal);
   const formulas=listFormulaDefinitions().sort((a,b)=>a.name.localeCompare(b.name));
   const domains=[...new Set(formulas.map((item)=>item.domain??item.category??'general'))].sort();
   const card=(definition,{featured=false}={})=>`<a class="q-calculator-card q-formula-card${featured?' is-featured':''}" href="#/formula-detail/${encodeURIComponent(definition.formulaId)}" data-formula-id="${escapeHtml(definition.formulaId)}">
@@ -32,7 +28,7 @@ export async function renderFormulaLibrary(main,{pageHead,escapeHtml,navigate}){
     <div class="q-state-banner is-simulated"><span class="q-status q-status--simulated">DETERMINISTIC METHODS</span><p>Formula results use the values you provide. They do not place trades, move funds or convert an illustrative output into personalized advice.</p></div>
 
     <section class="q-calculator-featured" aria-labelledby="formula-featured-title">
-      <div class="q-calculator-section-head"><div><p class="q-eyebrow">Popular methodologies</p><h2 id="formula-featured-title">Understand the method before calculating</h2><p>Start with a governed method, inspect assumptions and units, then move into the structured calculator.</p></div><span class="q-truth-pill is-cached">${featuredLabel}</span></div>
+      <div class="q-calculator-section-head"><div><p class="q-eyebrow">Popular methodologies</p><h2 id="formula-featured-title">Understand the method before calculating</h2><p>Start with a governed method, inspect assumptions and units, then move into the structured calculator.</p></div><span class="q-truth-pill">${featuredLabel}</span></div>
       <div class="q-calculator-card-grid is-featured">${featured.map((definition)=>card(definition,{featured:true})).join('')}</div>
     </section>
 
@@ -42,7 +38,7 @@ export async function renderFormulaLibrary(main,{pageHead,escapeHtml,navigate}){
         <span class="q-formula-library-disclosure__action" aria-hidden="true">Open library <span>↓</span></span>
       </summary>
       <section id="formula-library-panel" class="q-calculator-browser" aria-labelledby="formula-browser-title">
-        <div class="q-calculator-section-head"><div><p class="q-eyebrow">Complete library</p><h2 id="formula-browser-title">Find a formula</h2><p>Search ${formulas.length} methods by name, purpose or financial domain.</p></div><span id="formula-result-count" class="q-truth-pill is-cached">${formulas.length} methods</span></div>
+        <div class="q-calculator-section-head"><div><p class="q-eyebrow">Complete library</p><h2 id="formula-browser-title">Find a formula</h2><p>Search ${formulas.length} methods by name, purpose or financial domain.</p></div><span id="formula-result-count" class="q-truth-pill">${formulas.length} methods</span></div>
         <div class="q-calculator-browser__toolbar">
           <label><span>Search formulas</span><input id="formula-search" type="search" placeholder="Position sizing, CAGR, options, bonds…" autocomplete="off"></label>
           <label><span>Domain</span><select id="formula-domain"><option value="">All domains</option>${domains.map((domain)=>`<option value="${escapeHtml(domain)}">${escapeHtml(titleCase(domain))}</option>`).join('')}</select></label>

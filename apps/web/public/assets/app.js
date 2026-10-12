@@ -456,8 +456,8 @@ async function performRouteRender(request,controller) {
       case 'live-markets': await renderLiveMarkets(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
       case 'calculator-center': await renderCalculatorCenter(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
       case 'india-finance': await renderIndiaFinanceCenter(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
-      case 'indicator-library': await renderIndicatorLibrary(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
-      case 'formula-library': await renderFormulaLibrary(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
+      case 'indicator-library': await renderIndicatorLibrary(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,signal:controller.signal}); break;
+      case 'formula-library': await renderFormulaLibrary(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,signal:controller.signal}); break;
       case 'saved-calculations': await renderSavedCalculations(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
       case 'formula-detail': await renderFormulaDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset}); break;
       case 'indicator-detail': await renderIndicatorDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset}); break;

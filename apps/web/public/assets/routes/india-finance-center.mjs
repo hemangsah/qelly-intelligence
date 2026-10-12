@@ -29,7 +29,7 @@ export async function renderIndiaFinanceCenter(main,{pageHead,escapeHtml,toast})
   installIndiaStyles();
   const formulas=listFormulaDefinitions({domain:'india-finance'});
   main.innerHTML=`<section class="q-page q-india-finance-page">
-    ${pageHead('Qelly India finance','India Finance & SIP Center','Plan goals, investments and loans with Indian number formatting, then follow live India market movers and headlines in one public workspace.',`<span class="q-status q-status--live">PUBLIC · NO SIGN-IN</span>`)}
+    ${pageHead('Qelly India finance','India Finance & SIP Center','Plan goals, investments and loans with Indian number formatting, then follow live India market movers and headlines in one public workspace.',`<span class="q-status">PUBLIC · NO SIGN-IN</span>`)}
     <div class="q-state-banner is-simulated"><span class="q-status q-status--simulated">RESEARCH ONLY</span><p>Calculators run privately in this browser. Market panels are live external research displays. QELLY does not invent missing statutory rates or guarantee outcomes.</p></div>
     <div class="q-india-grid">
       <section class="q-panel">
