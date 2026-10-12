@@ -38,15 +38,22 @@ test('Wave BF keeps confidence diagnostics and calibration/analogs/health second
   assert.match(secondary,/healthQualityMarkup\(data,escapeHtml\)/);
 });
 
-test('Wave BF orders primary research summary before detailed confidence diagnostics inside QELLY VIEW',async()=>{
+test('Decision preserves summary-before-diagnostics in expert view and Simple supporting disclosure',async()=>{
   const route=await read('apps/web/public/assets/routes/decision-proven-graph.mjs');
   const contentStart=route.indexOf('const content=(data)=>');
   const contentEnd=route.indexOf('const draw=',contentStart);
   const content=route.slice(contentStart,contentEnd);
+  const evidenceStart=content.indexOf('const secondaryViewEvidenceMarkup=');
+  const summaryIndex=content.indexOf('primaryResearchSummary(data,escapeHtml)',evidenceStart);
+  const auditIndex=content.indexOf('calibration(view,escapeHtml)',evidenceStart);
   const viewStart=content.indexOf('q-dpg-view q-dpg-view--');
-  const summaryIndex=content.indexOf('primaryResearchSummary(data,escapeHtml)',viewStart);
-  const auditIndex=content.indexOf('calibration(view,escapeHtml)',viewStart);
-  assert.ok(viewStart>=0&&summaryIndex>viewStart&&auditIndex>summaryIndex);
+  assert.ok(evidenceStart>=0&&summaryIndex>evidenceStart&&auditIndex>summaryIndex&&viewStart>auditIndex);
+  assert.ok(content.includes("(state.uiMode==='simple'?'':secondaryViewEvidenceMarkup)+'</section>'+"));
+  const chartStart=content.indexOf('q-dpg-stage');
+  const disclosureStart=content.indexOf('q-dpg-secondary-view-evidence');
+  assert.ok(chartStart>viewStart&&disclosureStart>chartStart);
+  assert.ok(content.includes("<summary>Supporting evidence and confidence method</summary>'+secondaryViewEvidenceMarkup+'</details>"));
+  assert.doesNotMatch(content,/<details class="q-dpg-secondary-view-evidence"[^>]*\sopen/);
 });
 
 test('Wave BF hero names evidence confidence honestly rather than implying empirical calibration',async()=>{
