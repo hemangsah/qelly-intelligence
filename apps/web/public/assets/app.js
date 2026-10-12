@@ -459,9 +459,9 @@ async function performRouteRender(request,controller) {
       case 'indicator-library': await renderIndicatorLibrary(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,signal:controller.signal}); break;
       case 'formula-library': await renderFormulaLibrary(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,signal:controller.signal}); break;
       case 'saved-calculations': await renderSavedCalculations(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
-      case 'formula-detail': await renderFormulaDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset}); break;
-      case 'indicator-detail': await renderIndicatorDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset}); break;
-      case 'calculator-detail': await renderCalculatorDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset,query:state.routeQuery}); break;
+      case 'formula-detail': await renderFormulaDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,signal:controller.signal,id:parseHashRoute(location.hash).asset}); break;
+      case 'indicator-detail': await renderIndicatorDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,signal:controller.signal,id:parseHashRoute(location.hash).asset}); break;
+      case 'calculator-detail': await renderCalculatorDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,signal:controller.signal,id:parseHashRoute(location.hash).asset,query:state.routeQuery}); break;
       case 'saved-calculation-detail': await renderSavedCalculationDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset,query:state.routeQuery}); break;
       case 'theme-personas': await renderThemePersonas(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,applyPersona}); break;
       case 'about-qelly': await renderAboutQelly(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;

@@ -1,3 +1,5 @@
+// Existing V6 production entries delegate stylesheet readiness to this guarded presenter.
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 import {calculateFormula,getFormulaDefinition} from '../calculation/formula-engine-extended.mjs';
 import {saveCalculation,encodeShareState} from '../calculation/persistence.mjs';
 
@@ -6,11 +8,20 @@ const humanize=(value)=>String(value??'').replace(/([a-z0-9])([A-Z])/g,'$1 $2').
 const contractRows=(schema={})=>Object.entries(schema.properties||{}).map(([key,value])=>`<tr><th>${humanize(value.title||key)}</th><td>${value.type||'value'}</td><td>${value.unit||value.units||'Formula-specific'}</td><td>${value.description||'Documented input'}</td></tr>`).join('');
 
 const renderSelectionRequired=(main,{pageHead,navigate,reason})=>{
-  main.innerHTML=`<section class="q-page q-formula-detail-page">${pageHead('Quantitative methodology','Formula Detail','Select a formula to inspect its governed methodology, assumptions, inputs, worked example and version evidence.')}<div class="q-state-banner is-empty"><span class="q-status q-status--cached">SELECTION REQUIRED</span><p>${reason}</p></div><section class="q-panel"><div class="q-panel-head"><div><h2>No formula selected</h2><p>Choose a formula from the library to open its deterministic methodology detail.</p></div></div><div class="q-panel-body"><button class="q-button q-button--primary" data-action="library">Open formula library</button></div></section></section>`;
+  main.innerHTML=`<section class="q-page q-formula-detail-page">${pageHead('Quantitative methodology','Formula Detail','Select a formula to inspect its governed methodology, assumptions, inputs, worked example and version evidence.')}<div class="q-state-banner is-empty"><span class="q-status">SELECTION REQUIRED</span><p>${reason}</p></div><section class="q-panel"><div class="q-panel-head"><div><h2>No formula selected</h2><p>Choose a formula from the library to open its deterministic methodology detail.</p></div></div><div class="q-panel-body"><button class="q-button q-button--primary" data-action="library">Open formula library</button></div></section></section>`;
   main.querySelector('[data-action="library"]').addEventListener('click',()=>navigate('formula-library'));
 };
 
-export async function renderFormulaDetail(main,{pageHead,escapeHtml,toast,navigate,id}){
+export async function renderFormulaDetail(main,{pageHead,escapeHtml,toast,navigate,id,signal,renderRoute}){
+  try{
+    await ensureRouteStylesheet(new URL('../qelly-v6-quant-workbench.css',import.meta.url).href,{attribute:'data-qelly-v6-quant-workbench',value:'active',signal});
+    await ensureRouteStylesheet(new URL('../qelly-route-convergence.css',import.meta.url).href,{attribute:'data-qelly-route-convergence',value:'true',signal});
+  }catch(error){
+    if(error?.name==='AbortError')throw error;
+    main.innerHTML=`<section class="q-page q-tools-style-recovery">${pageHead('Tools · temporarily unavailable','The tool could not open.','The page could not finish loading. Retry or choose another tool.')}<p role="status">${escapeHtml(error.message)}</p><button class="q-button q-button--primary" type="button" data-tools-style-retry>Retry tool</button></section>`;
+    main.querySelector('[data-tools-style-retry]').addEventListener('click',()=>renderRoute?.());
+    return;
+  }
   if(!id){
     renderSelectionRequired(main,{pageHead,navigate,reason:'No formula identifier is present in this route. Qelly does not invent a formula selection.'});
     return;
@@ -23,7 +34,7 @@ export async function renderFormulaDetail(main,{pageHead,escapeHtml,toast,naviga
   const reference=definition.referenceVector?.inputs??null;
   const result=reference?calculateFormula(definition.formulaId,reference,{calculatedAt:'2026-07-30T00:00:00.000Z'}):null;
   main.innerHTML=`<section class="q-page q-formula-detail-page">
-    ${pageHead('Quantitative methodology','Formula',definition.name,`<button class="q-button q-button--primary" data-action="calculate">Use calculator</button>`)}
+    ${pageHead('Quantitative methodology',definition.name,'Review the method, assumptions and documented worked example.',`<button class="q-button q-button--primary" data-action="calculate">Use calculator</button>`)}
     <div class="q-state-banner"><span class="q-status q-status--cached">DETERMINISTIC</span><p>This formula runs locally from your inputs. It does not require live market data or execution access.</p></div>
     <section class="q-calculator-layout"><article class="q-panel"><div class="q-panel-head"><div><p class="q-eyebrow">${escapeHtml(humanize(definition.category??definition.domain))}</p><h2>${escapeHtml(definition.name)}</h2><p>${escapeHtml(definition.description)}</p></div></div><div class="q-panel-body">
       <dl class="q-evidence-grid"><div><dt>Method</dt><dd>${escapeHtml(definition.numericalMethod??definition.description)}</dd></div><div><dt>Output units</dt><dd>${escapeHtml(definition.units??'Formula-specific')}</dd></div><div><dt>Data requirement</dt><dd>${definition.externalProviderRequired?'External provider required':'Your inputs only'}</dd></div><div><dt>Calculation type</dt><dd>Deterministic local</dd></div></dl>

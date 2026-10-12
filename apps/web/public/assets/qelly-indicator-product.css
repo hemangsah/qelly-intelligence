@@ -62,7 +62,7 @@ html[data-product-surface="production"] .q-method-card {
   min-width: 0 !important;
   min-height: 150px;
   margin: 0 !important;
-  border: 1px solid var(--q-product-line);
+  border: var(--q-tool-detail-border,1px solid var(--q-product-line));
   border-radius: 14px;
   background: var(--q-product-surface-2);
   padding: 17px;
@@ -118,7 +118,7 @@ html[data-product-surface="production"] .q-indicator-limits {
   width: auto !important;
   margin-top: 28px;
   padding-top: 24px;
-  border-top: 1px solid var(--q-product-line);
+  border-top: var(--q-tool-detail-border,1px solid var(--q-product-line));
 }
 
 html[data-product-surface="production"] .q-indicator-subhead h3 {
@@ -134,7 +134,7 @@ html[data-product-surface="production"] .q-indicator-parameters dl {
   gap: 0;
   width: auto !important;
   margin: 16px 0 0;
-  border: 1px solid var(--q-product-line);
+  border: var(--q-tool-detail-border,1px solid var(--q-product-line));
   border-radius: 12px;
   overflow: hidden;
 }
@@ -150,7 +150,7 @@ html[data-product-surface="production"] .q-indicator-parameters dl>div {
 }
 
 html[data-product-surface="production"] .q-indicator-parameters dl>div+div {
-  border-top: 1px solid var(--q-product-line);
+  border-top: var(--q-tool-detail-border,1px solid var(--q-product-line));
 }
 
 html[data-product-surface="production"] .q-indicator-parameters dt {
@@ -185,7 +185,7 @@ html[data-product-surface="production"] .q-indicator-value-grid {
 html[data-product-surface="production"] .q-indicator-value-grid>div {
   position: static !important;
   min-width: 0;
-  border: 1px solid var(--q-product-line);
+  border: var(--q-tool-detail-border,1px solid var(--q-product-line));
   border-radius: 13px;
   background: var(--q-product-surface-2);
   padding: 16px;
@@ -205,7 +205,7 @@ html[data-product-surface="production"] .q-indicator-chart {
   width: auto !important;
   min-width: 0 !important;
   margin-top: 18px;
-  border: 1px solid var(--q-product-line);
+  border: var(--q-tool-detail-border,1px solid var(--q-product-line));
   border-radius: 15px;
   background: linear-gradient(180deg,var(--q-product-surface-2),var(--q-product-surface));
   padding: 20px;
@@ -219,7 +219,7 @@ html[data-product-surface="production"] .q-indicator-chart .q-spark-bars {
   width: 100% !important;
   min-width: 0 !important;
   height: 190px;
-  border-bottom: 1px solid var(--q-product-line);
+  border-bottom: var(--q-tool-detail-border,1px solid var(--q-product-line));
   padding-top: 10px;
 }
 
@@ -245,7 +245,7 @@ html[data-product-surface="production"] .q-indicator-exact-table {
   margin-top: 18px;
   max-height: 410px;
   overflow: auto;
-  border: 1px solid var(--q-product-line);
+  border: var(--q-tool-detail-border,1px solid var(--q-product-line));
   border-radius: 13px;
   transform: none !important;
 }
@@ -259,7 +259,7 @@ html[data-product-surface="production"] .q-technical-details {
   width: auto !important;
   min-width: 0 !important;
   margin-top: 22px;
-  border: 1px solid var(--q-product-line);
+  border: var(--q-tool-detail-border,1px solid var(--q-product-line));
   border-radius: 12px;
   background: var(--q-product-surface-2);
   overflow: hidden;
@@ -277,7 +277,7 @@ html[data-product-surface="production"] .q-technical-details pre {
   max-height: 340px;
   margin: 0;
   overflow: auto;
-  border-top: 1px solid var(--q-product-line);
+  border-top: var(--q-tool-detail-border,1px solid var(--q-product-line));
   background: var(--q-product-surface);
   color: var(--q-product-muted);
   padding: 16px;
