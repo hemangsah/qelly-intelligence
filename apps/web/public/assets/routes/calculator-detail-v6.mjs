@@ -3,8 +3,6 @@ import {getFormulaDefinition} from '../calculation/formula-engine-extended.mjs';
 import {listSavedCalculations} from '../calculation/persistence.mjs';
 import {syncSavedCalculationIfOptedIn} from '../calculation/connected-save.mjs';
 
-const QUANT_V6_STYLESHEET=new URL('../qelly-v6-quant-workbench.css',import.meta.url).href;
-function ensureStyles(){if(document.querySelector('link[data-qelly-v6-quant-workbench="active"]'))return;const link=document.createElement('link');link.rel='stylesheet';link.href=QUANT_V6_STYLESHEET;link.dataset.qellyV6QuantWorkbench='active';document.head.append(link);}
 const countInputs=(definition)=>Object.keys(definition?.inputSchema?.properties||definition?.referenceVector?.inputs||{}).length;
 
 function enhanceSemantics(main,definition,escapeHtml){
@@ -44,9 +42,8 @@ function installCloudSaveBridge(main,{api,toast}){
 }
 
 export async function renderCalculatorDetailV6(main,deps){
-  ensureStyles();
   await renderLegacyCalculatorDetail(main,deps);
-  if(!deps.id)return;
+  if(!deps.id||!main.querySelector('.q-calculator-detail-page'))return;
   let definition;try{definition=getFormulaDefinition(deps.id);}catch{return;}
   enhanceSemantics(main,definition,deps.escapeHtml);
   installCloudSaveBridge(main,deps);

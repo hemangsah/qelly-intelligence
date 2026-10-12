@@ -42,6 +42,7 @@ const appRouteMigrations=Object.freeze([
   [legacyDataMeshRoute,publicDataMeshRoute],
   [legacyInstrumentRoute,publicInstrumentRoute],
   [legacyTimeSeriesRoute,publicTimeSeriesRoute],
+  ...[[legacyCalculatorDetailRoute,publicCalculatorDetailRoute],[legacyIndicatorDetailRoute,publicIndicatorDetailRoute]].map(pair=>pair.map(route=>route.replace('state,renderRoute,id:','state,renderRoute,signal,id:'))),
   [legacyCalculatorDetailRoute,publicCalculatorDetailRoute],
   [legacyIndicatorDetailRoute,publicIndicatorDetailRoute],
   [legacyPortfolioRoute,publicPortfolioRoute]
@@ -137,8 +138,8 @@ export async function finalizePublicRuntime({environment=effectiveDeploymentEnvi
   if(generatedApp.includes(legacyDataMeshRoute)||!generatedApp.includes(publicDataMeshRoute))throw new Error('Legacy provider fixture renderer remains active in connected public runtime');
   if(generatedApp.includes(legacyInstrumentRoute)||!generatedApp.includes(publicInstrumentRoute))throw new Error('Legacy synthetic instrument renderer remains active in connected public runtime');
   if(generatedApp.includes(legacyTimeSeriesRoute)||!generatedApp.includes(publicTimeSeriesRoute))throw new Error('Legacy synthetic time-series renderer remains active in connected public runtime');
-  if(generatedApp.includes(legacyCalculatorDetailRoute)||!generatedApp.includes(publicCalculatorDetailRoute))throw new Error('Legacy calculator-detail renderer remains active in connected public runtime');
-  if(generatedApp.includes(legacyIndicatorDetailRoute)||!generatedApp.includes(publicIndicatorDetailRoute))throw new Error('Legacy indicator-detail renderer remains active in connected public runtime');
+  if(generatedApp.includes(legacyCalculatorDetailRoute)||generatedApp.includes(legacyCalculatorDetailRoute.replace('state,renderRoute,id:','state,renderRoute,signal,id:'))||(!generatedApp.includes(publicCalculatorDetailRoute)&&!generatedApp.includes(publicCalculatorDetailRoute.replace('state,renderRoute,id:','state,renderRoute,signal,id:'))))throw new Error('Legacy calculator-detail renderer remains active in connected public runtime');
+  if(generatedApp.includes(legacyIndicatorDetailRoute)||generatedApp.includes(legacyIndicatorDetailRoute.replace('state,renderRoute,id:','state,renderRoute,signal,id:'))||(!generatedApp.includes(publicIndicatorDetailRoute)&&!generatedApp.includes(publicIndicatorDetailRoute.replace('state,renderRoute,id:','state,renderRoute,signal,id:'))))throw new Error('Legacy indicator-detail renderer remains active in connected public runtime');
   if(generatedApp.includes(legacyPortfolioRoute)||!generatedApp.includes(publicPortfolioRoute))throw new Error('V6 portfolio renderer is not active in connected public runtime');
   const generatedWorldclass=runtimeChecks.find(([file])=>file==='assets/qelly-worldclass-uiux.mjs')[1].replaceAll('\r\n','\n');
   if(generatedWorldclass.includes(legacyWorldclassEnhance)||!generatedWorldclass.includes(publicWorldclassEnhance))throw new Error('Legacy review layer remains active in connected public runtime');

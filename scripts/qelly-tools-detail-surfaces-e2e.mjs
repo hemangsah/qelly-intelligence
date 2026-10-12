@@ -17,7 +17,7 @@ async function setup(appearance,width){
 }
 async function ready(page,r,appearance){await page.locator(r.root).waitFor();await page.waitForFunction(a=>document.documentElement.dataset.resolvedAppearance===a,appearance);await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true'&&document.documentElement.dataset.brandReady==='true');await page.locator('.qelly-opening').waitFor({state:'hidden'});}
 async function surfaces(page,r){
- const selectors=['.q-panel','.q-state-banner','.q-evidence-grid>div','.q-calculation-result','.q-method-card','.q-indicator-value-grid>div','.q-indicator-parameters','.q-indicator-limits','.q-indicator-chart','.q-spark-bars','.q-indicator-exact-table','.q-technical-details','.q-result-empty'];
+ const selectors=['.q-panel','.q-state-banner','.q-evidence-grid>div','.q-calculation-result','.q-method-card','.q-indicator-value-grid>div','.q-indicator-parameters','.q-indicator-limits','.q-indicator-chart','.q-spark-bars','.q-indicator-exact-table','.q-technical-details','.q-result-empty','.q-v6-deterministic-banner','.q-v6-indicator-truth','.q-v6-quant-kpis','.q-v6-cloud-save-note'];
  const measured=await page.locator(selectors.map(s=>r.root+' '+s).join(',')).evaluateAll(ns=>ns.map(e=>({classes:e.className,borders:['Top','Right','Bottom','Left'].map(x=>getComputedStyle(e)['border'+x+'Width']),shadow:getComputedStyle(e).boxShadow})));
  assert.ok(measured.length>=3);for(const row of measured){assert.deepEqual(row.borders,['0px','0px','0px','0px'],JSON.stringify(row));assert.equal(row.shadow,'none',JSON.stringify(row));}return measured.length;
 }
