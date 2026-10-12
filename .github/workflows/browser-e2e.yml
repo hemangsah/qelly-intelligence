@@ -207,6 +207,15 @@ jobs:
           name: qelly-calculator-discovery-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/calculator-discovery-editorial-e2e
           if-no-files-found: error
+      - name: Verify public workspace light contrast and borderless surfaces
+        run: node scripts/qelly-workspace-family-editorial-e2e.mjs
+      - name: Upload focused public workspace visual evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-workspace-family-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/workspace-family-editorial-e2e
+          if-no-files-found: error
       - name: Verify Decision retail hierarchy and preserved expert evidence
         run: node scripts/qelly-decision-retail-hierarchy-e2e.mjs
       - name: Upload focused Decision retail hierarchy evidence
