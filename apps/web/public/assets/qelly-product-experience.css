@@ -159,7 +159,7 @@ html[data-production-system="v8"] body #app #main :where(
   .q-indicator-mini-chart,.q-verify-hero,.q-v53-verify-workbench,
   [class$="-card"],[class*="-card "],[class$="-panel"],[class*="-panel "]
 ):not(:where(.q-dossier *)):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)):not(:where(.q-cc-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-access-gate,.q-access-gate *)):not(:where(.q-chat-workspace, .q-chat-workspace *)){
-  border:0!important;border-radius:var(--q-radius-surface)!important;background:var(--q-luxe-panel)!important;box-shadow:var(--q-elevation-rest)!important;
+  border:0!important;border-radius:var(--q-radius-surface)!important;background:var(--q-calculator-row-background,var(--q-luxe-panel))!important;box-shadow:var(--q-calculator-elevation,var(--q-elevation-rest))!important;
 }
 html[data-production-system="v8"] body #app #main :where(.q-it-hero,.q-verify-hero,.q-auth-hero,.q-asset-hero,.q-home-lead,.q-market-safety,.q-about-hero):not(:where(.q-about-v2-page *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-auth-page,.q-auth-page *)):not(:where(.q-verify-page,.q-verify-page *)){
   border:0!important;border-radius:var(--q-radius-feature)!important;background:var(--q-luxe-panel-strong)!important;box-shadow:var(--q-elevation-rest)!important;
@@ -177,17 +177,17 @@ html[data-production-system="v8"] .q-feature-navigation>nav{overscroll-behavior:
 /* Calculator workbench: legible rather than miniaturized. */
 html[data-production-system="v8"] #main .q-calculator-workbench-page{gap:clamp(20px,2.4vw,34px)!important}
 html[data-production-system="v8"] #main .q-v6-deterministic-banner:not(:where(.q-v6-account-page,.q-v6-account-page *)){
-  padding:16px 18px!important;border:0!important;border-radius:var(--q-radius-surface)!important;background:color-mix(in srgb,var(--q-informational) 8%,var(--q-surface))!important;box-shadow:inset 3px 0 0 var(--q-informational)!important;
+  padding:16px 18px!important;border:0!important;border-radius:var(--q-radius-surface)!important;background:var(--q-calculator-row-background,color-mix(in srgb,var(--q-informational) 8%,var(--q-surface)))!important;box-shadow:var(--q-calculator-elevation,inset 3px 0 0 var(--q-informational))!important;
 }
 html[data-production-system="v8"] #main .q-v6-deterministic-banner p:not(:where(.q-v6-account-page,.q-v6-account-page *)){font-size:13px!important;line-height:1.6!important;color:var(--q-text-secondary)!important}
-html[data-production-system="v8"] #main .q-v6-quant-kpis:not(:where(.q-v6-account-page,.q-v6-account-page *)){gap:1px!important;border:0!important;border-radius:var(--q-radius-surface)!important;background:var(--q-divider)!important;box-shadow:var(--q-elevation-rest)!important}
+html[data-production-system="v8"] #main .q-v6-quant-kpis:not(:where(.q-v6-account-page,.q-v6-account-page *)){gap:1px!important;border:0!important;border-radius:var(--q-radius-surface)!important;background:var(--q-divider)!important;box-shadow:var(--q-calculator-elevation,var(--q-elevation-rest))!important}
 html[data-production-system="v8"] #main .q-v6-quant-kpis>div:not(:where(.q-v6-account-page,.q-v6-account-page *)){min-height:92px!important;padding:16px!important;border:0!important;background:var(--q-surface)!important}
 html[data-production-system="v8"] #main .q-v6-quant-kpis span:not(:where(.q-v6-account-page,.q-v6-account-page *)),
 html[data-production-system="v8"] #main .q-v6-quant-kpis small:not(:where(.q-v6-account-page,.q-v6-account-page *)){font-size:11px!important;line-height:1.45!important}
 html[data-production-system="v8"] #main .q-v6-quant-kpis strong:not(:where(.q-v6-account-page,.q-v6-account-page *)){font-size:22px!important}
 html[data-production-system="v8"] #main .q-calculator-card-grid{gap:14px!important}
 html[data-production-system="v8"] #main .q-calculator-card{
-  min-height:208px!important;padding:18px!important;gap:11px!important;border:0!important;border-radius:var(--q-radius-surface)!important;background:linear-gradient(145deg,var(--q-surface),color-mix(in srgb,var(--q-accent) 4%,var(--q-surfacealt)))!important;box-shadow:var(--q-elevation-rest)!important;
+  min-height:var(--q-calculator-row-min,208px)!important;padding:var(--q-calculator-row-padding,18px)!important;gap:var(--q-calculator-row-gap,11px)!important;border:0!important;border-radius:var(--q-radius-surface)!important;background:var(--q-calculator-row-background,linear-gradient(145deg,var(--q-surface),color-mix(in srgb,var(--q-accent) 4%,var(--q-surfacealt))))!important;box-shadow:var(--q-calculator-elevation,var(--q-elevation-rest))!important;
 }
 html[data-production-system="v8"] #main .q-calculator-card::before{width:3px!important;background:linear-gradient(180deg,var(--q-accent-strong),transparent 82%)!important}
 html[data-production-system="v8"] #main .q-calculator-card__meta{font-size:11px!important}
@@ -205,7 +205,7 @@ html[data-production-system="v8"] #main .q-about-orbit>span:not(:where(.q-about-
 
 /* Light-theme semantic colors meet readable foreground/background contrast. */
 :root[data-appearance="light"] .q-status--deterministic:not(:where(.q-about-v2-page *)),
-:root[data-resolved-appearance="light"] .q-status--deterministic:not(:where(.q-about-v2-page *)){color:#174f78!important;background:#e1eff7!important;border-color:transparent!important}
+:root[data-resolved-appearance="light"] .q-status--deterministic:not(:where(.q-about-v2-page *)){color:var(--q-calculator-status-text,#174f78)!important;background:var(--q-calculator-status-background,#e1eff7)!important;border-color:transparent!important}
 :root[data-appearance="light"] :where(.q-status--cached,.q-truth-pill.is-cached):not(:where(.q-about-v2-page *)),
 :root[data-resolved-appearance="light"] :where(.q-status--cached,.q-truth-pill.is-cached):not(:where(.q-about-v2-page *)){color:#28506e!important;background:#e5eef4!important;border-color:transparent!important}
 :root[data-appearance="light"] :where(.q-status--live,.q-truth-pill.is-live):not(:where(.q-about-v2-page *)),
@@ -228,7 +228,7 @@ html[data-resolved-appearance="light"] :where(.q-panel,.q-mi-intelligence-module
 html[data-appearance="light"] :where(.q-panel,.q-mi-intelligence-module,.q-mn-panel,.q-category-card,.q-venue-card):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)):not(:where(.q-cc-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-chat-workspace, .q-chat-workspace *)){
   background:#fff!important;
   border-color:rgba(82,55,67,.15)!important;
-  box-shadow:0 8px 24px rgba(63,34,46,.055)!important;
+  box-shadow:var(--q-calculator-elevation,0 8px 24px rgba(63,34,46,.055))!important;
 }
 
 .q-governed-workspace-page{--q-elevation-rest:none;--q-luxe-shadow-soft:none;--q-governed-content-border:0;--q-governed-empty-inset:none}
@@ -263,7 +263,7 @@ html[data-product-experience="ready"] #main>section{animation:q-product-enter 32
   html[data-production-system="v8"] body #app .q-product-header .q-product-actions{justify-self:end!important}
   html[data-production-system="v8"] body #app .q-product-account{max-width:112px!important}
   html[data-production-system="v8"] body #app .q-product-header.is-menu-open .q-product-nav{right:10px!important;left:10px!important;width:auto!important;grid-template-columns:1fr!important}
-  html[data-production-system="v8"] #main .q-calculator-card{min-height:190px!important;padding:16px!important}
+  html[data-production-system="v8"] #main .q-calculator-card{min-height:var(--q-calculator-row-min,190px)!important;padding:var(--q-calculator-row-padding,16px)!important}
   html[data-production-system="v8"] #main .q-v6-quant-kpis>div{min-height:82px!important}
   html[data-production-system="v8"] .q-grid-resizer{right:-14px!important;width:28px!important;min-width:28px!important}
 }
