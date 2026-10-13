@@ -1,7 +1,7 @@
 import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 const STYLE_ID='qelly-asset-intelligence-v2-style';
-const STYLESHEET=new URL('./asset-intelligence-v2.css?v=20260831-asset2',import.meta.url).href;
-async function ensureStyles(signal){const existing=document.getElementById(STYLE_ID);if(existing?.tagName==='LINK'&&existing.rel==='stylesheet')existing.setAttribute('data-qelly-asset-intelligence-style','active');await ensureRouteStylesheet(STYLESHEET,{attribute:'data-qelly-asset-intelligence-style',value:'active',signal});document.querySelector('link[data-qelly-asset-intelligence-style]').id=STYLE_ID;}
+const STYLESHEET=new URL('./asset-intelligence-v2.css?v=20261013-chartstyle1',import.meta.url).href;
+async function ensureStyles(signal){const existing=document.getElementById(STYLE_ID);if(existing?.tagName==='LINK'&&existing.rel==='stylesheet'){if(existing.href!==STYLESHEET)existing.href=STYLESHEET;existing.setAttribute('data-qelly-asset-intelligence-style','active');}await ensureRouteStylesheet(STYLESHEET,{attribute:'data-qelly-asset-intelligence-style',value:'active',signal});document.querySelector('link[data-qelly-asset-intelligence-style]').id=STYLE_ID;}
 const number=(value,digits=2)=>Number.isFinite(Number(value))?new Intl.NumberFormat('en-US',{maximumFractionDigits:digits}).format(Number(value)):'—';
 const money=(value)=>Number.isFinite(Number(value))?new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:Math.abs(Number(value))>=1e6?'compact':'standard',maximumFractionDigits:2}).format(Number(value)):'—';
 const upper=(value)=>String(value||'unavailable').replace(/[-_]+/g,' ').toUpperCase();
