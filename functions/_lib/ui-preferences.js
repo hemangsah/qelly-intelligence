@@ -1,13 +1,14 @@
 import {restRequest} from './runtime.js';
 
 export const DEFAULT_UI_PREFERENCES=Object.freeze({theme:'burgundy-command',density:'comfortable',motion:'full',fontScale:100,radiusPx:14,customAccent:null,route:'market'});
-const ALLOWED_UI_PREFERENCE_KEYS=new Set(['theme','density','motion','fontScale','radiusPx','customAccent','route']);
+const ALLOWED_UI_PREFERENCE_KEYS=new Set(['theme','appearance','density','motion','fontScale','radiusPx','customAccent','route']);
 
 export const cleanUiPreferences=(value={})=>{
   const source=value&&typeof value==='object'&&!Array.isArray(value)?value:{};
   const next={};
   for(const key of ALLOWED_UI_PREFERENCE_KEYS)if(source[key]!==undefined)next[key]=source[key];
   if(next.theme!==undefined)next.theme=String(next.theme).slice(0,80);
+  if(next.appearance!==undefined&&(typeof next.appearance!=='string'||!['dark','light','oled','high-contrast','system','scheduled'].includes(next.appearance)))delete next.appearance;
   if(next.density!==undefined&&!['compact','comfortable','spacious'].includes(String(next.density)))delete next.density;
   if(next.motion!==undefined&&!['full','reduced','none'].includes(String(next.motion)))delete next.motion;
   if(next.fontScale!==undefined)next.fontScale=Math.min(140,Math.max(80,Number(next.fontScale)||100));
