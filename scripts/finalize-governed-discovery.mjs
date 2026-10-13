@@ -7,7 +7,7 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const appPath=path.join(root,'dist/frontend/assets/app.js');
 
 const unavailable=(route)=>`case '${route}': await import('./routes/governed-discovery.mjs').then(({renderGovernedUnavailable})=>renderGovernedUnavailable(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state},'${route}')); break;`;
-const discoveryOverview="case 'discovery-hub': await import('./routes/discovery-overview.mjs').then(({renderDiscoveryOverview})=>renderDiscoveryOverview(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state})); break;";
+const discoveryOverview="case 'discovery-hub': await import('./routes/discovery-overview.mjs').then(({renderDiscoveryOverview})=>renderDiscoveryOverview(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state,signal:controller.signal,renderRoute})); break;";
 const trustCenter="case 'trust-center': await import('./routes/governed-utility-v2.mjs').then(({renderGovernedTrustCenterV2})=>renderGovernedTrustCenterV2(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state})); break;";
 const qellyChatWorkspace="case 'news-research': await renderQellyChatWorkspace(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate}); break;";
 const migrations=Object.freeze([

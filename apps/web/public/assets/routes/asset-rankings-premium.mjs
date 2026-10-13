@@ -1,3 +1,4 @@
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 import {providerAvailability,providerPolicyMessage} from '../customer-copy.mjs';
 
 const STYLE_ID='qelly-asset-rankings-v2-style';
@@ -9,12 +10,8 @@ const FALLBACK_CRITERIA=Object.freeze([
   {id:'coverage',label:'Source coverage',purpose:'Surface candidates with independent midpoint context.'}
 ]);
 
-function ensureStyles(){
-  if(document.getElementById(STYLE_ID))return;
-  const link=document.createElement('link');
-  link.id=STYLE_ID;link.rel='stylesheet';link.href='./assets/routes/asset-rankings-v2.css?v=20260830-rankings2';
-  document.head.append(link);
-}
+const STYLESHEET=new URL('./asset-rankings-v2.css?v=20260830-rankings2',import.meta.url).href;
+async function ensureStyles(signal){const existing=document.getElementById(STYLE_ID);if(existing?.tagName==='LINK'&&existing.rel==='stylesheet')existing.setAttribute('data-qelly-asset-rankings-premium-style','active');await ensureRouteStylesheet(STYLESHEET,{attribute:'data-qelly-asset-rankings-premium-style',value:'active',signal});document.querySelector('link[data-qelly-asset-rankings-premium-style]').id=STYLE_ID;}
 
 const stateTone=(state)=>state==='live'?'live':state==='cached'?'cached':state==='delayed'||state==='reference'?'delayed':'unavailable';
 const stateLabel=(state)=>String(state||'unavailable').replace(/[_-]+/g,' ').toUpperCase();
@@ -59,8 +56,8 @@ function providerBoundary(providers,escapeHtml){
   return relevant.map((provider)=>{const availability=providerAvailability(provider);return `<article><div><strong>${safe(provider.id.toUpperCase())}</strong><span class="q-status q-status--${safe(availability.tone)}">${safe(availability.label.toUpperCase())}</span></div><p>${safe(provider.enabled?'Approved reference source; not a candidate-ranking feed.':providerPolicyMessage(provider))}</p>${provider.termsUrl?`<a href="${safe(provider.termsUrl)}" target="_blank" rel="noopener noreferrer nofollow">Review terms ↗</a>`:''}</article>`;}).join('');
 }
 
-export async function renderAssetRankings(main,{api,escapeHtml,toast}){
-  ensureStyles();
+export async function renderAssetRankings(main,{api,escapeHtml,toast,signal,renderRoute}){
+  try{await ensureStyles(signal);}catch(error){if(error?.name==='AbortError')throw error;main.innerHTML=`<section class="q-page"><header class="q-page-head"><div><p class="q-eyebrow">Asset Rankings</p><h1>The research workspace could not open.</h1><p>Workspace styles could not load. Please retry.</p></div></header><button class="q-button q-button--primary" type="button" data-discovery-style-retry>Retry workspace</button></section>`;main.querySelector('[data-discovery-style-retry]').addEventListener('click',()=>renderRoute?.());return;}
   let network={sources:{}};
   let marketOverview={providers:[]};
   const [networkResult,overviewResult]=await Promise.allSettled([api('/api/v1/market/network'),api('/api/v1/public/markets/overview')]);

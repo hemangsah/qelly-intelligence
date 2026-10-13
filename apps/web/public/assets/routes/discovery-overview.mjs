@@ -1,3 +1,4 @@
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 const cssHref=new URL('./discovery-overview.css?v=20260830-discovery1',import.meta.url).href;
 
 const HORIZONS=Object.freeze({
@@ -14,15 +15,7 @@ const CHECKS=Object.freeze({
   'growth-divergence':['Align country, period and publication method before comparing values.','Keep World Bank history separate from IMF estimates or projections.','Seek a primary release or filing that could confirm or contradict the theme.']
 });
 
-function ensureStyles(){
-  const existing=document.querySelector('link[data-qelly-discovery-overview-style]');
-  if(existing){if(existing.href!==cssHref)existing.href=cssHref;return;}
-  const link=document.createElement('link');
-  link.rel='stylesheet';
-  link.href=cssHref;
-  link.dataset.qellyDiscoveryOverviewStyle='true';
-  document.head.append(link);
-}
+async function ensureStyles(signal){await ensureRouteStylesheet(cssHref,{attribute:'data-qelly-discovery-overview-style',value:'true',signal});}
 
 const safe=(value)=>String(value??'').replace(/[&<>'"]/g,(character)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
 const stateLabel=(value)=>({live:'LIVE',cached:'CACHED',reference:'REFERENCE',delayed:'DELAYED',partial:'PARTIAL',unavailable:'UNAVAILABLE'}[String(value||'').toLowerCase()]||String(value||'UNKNOWN').toUpperCase());
@@ -81,7 +74,7 @@ function questionText(lens,horizon,region,outcome){
 }
 
 export async function renderDiscoveryOverview(main,deps){
-  ensureStyles();
+  const {signal,renderRoute}=deps;try{await ensureStyles(signal);}catch(error){if(error?.name==='AbortError')throw error;main.innerHTML=`<section class="q-page"><header class="q-page-head"><div><p class="q-eyebrow">Discovery Overview</p><h1>The research workspace could not open.</h1><p>Workspace styles could not load. Please retry.</p></div></header><button class="q-button q-button--primary" type="button" data-discovery-style-retry>Retry workspace</button></section>`;main.querySelector('[data-discovery-style-retry]').addEventListener('click',()=>renderRoute?.());return;}
   const {api,pageHead,stateBanner,escapeHtml=safe,toast}=deps;
   main.setAttribute('aria-busy','true');
   let network;

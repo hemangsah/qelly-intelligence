@@ -477,10 +477,10 @@ async function performRouteRender(request,controller) {
       case 'event-calendar': await renderEventCalendar(main,{api,pageHead,stateBanner,escapeHtml,QellyChartShell,QellyDataGrid,formatCompact,toast,navigate,asset:state.asset,openEvidence,renderRoute,signal:controller.signal}); break;
       case 'comparison-lab': await renderComparisonLab(main,{api,pageHead,stateBanner,escapeHtml,QellyChartShell,QellyDataGrid,formatCompact,toast,navigate,asset:state.asset,openEvidence,renderRoute,signal:controller.signal}); break;
       case 'discovery-hub': await renderDiscoveryHub(main); break;
-      case 'asset-rankings': await renderRankings(main); break;
-      case 'categories': await renderCategoriesWorkspace(main,{api,escapeHtml,toast}); break;
+      case 'asset-rankings': await renderRankings(main,{signal:controller.signal,renderRoute}); break;
+      case 'categories': await renderCategoriesWorkspace(main,{api,escapeHtml,toast,renderRoute,signal:controller.signal}); break;
       case 'category-detail': await renderCategoryDetail(main); break;
-      case 'venues': await renderVenuesWorkspace(main,{api,escapeHtml,toast}); break;
+      case 'venues': await renderVenuesWorkspace(main,{api,escapeHtml,toast,renderRoute,signal:controller.signal}); break;
       case 'venue-detail': await renderVenueDetail(main); break;
       case 'dex-discovery': await renderDexWorkspace(main,{api,escapeHtml,toast,signal:controller.signal,renderRoute}); break;
       case 'global-charts': await renderGlobalChartsWorkspace(main,{api,escapeHtml,toast,signal:controller.signal,renderRoute}); break;
@@ -490,7 +490,7 @@ async function performRouteRender(request,controller) {
       case 'trust-center': await renderTrustCenter(main); break;
       case 'market': await renderMarketV6(main,{api,pageHead,stateBanner,escapeHtml}); break;
       case 'rankings': await renderLegacyRankings(main); break;
-      case 'search': await renderUniversalSearch(main,{api,escapeHtml,toast,navigate,state}); break;
+      case 'search': await renderUniversalSearch(main,{api,escapeHtml,toast,navigate,state,renderRoute,signal:controller.signal}); break;
       case 'asset': await renderAsset(main); break;
       case 'watchlist': await renderWorkspaceWatchlist(main,{api,pageHead,stateBanner,escapeHtml,QellyDataGrid,toast,navigate,renderRoute}); break;
       case 'alert-center': await renderAlertCenter(main,{api,pageHead,stateBanner,escapeHtml,QellyDataGrid,toast,navigate,renderRoute}); break;
@@ -650,8 +650,8 @@ function applyRowState(rows=[]) {
   });
 }
 
-async function renderRankings(main){
-  return renderAssetRankingsRescue(main,{api,escapeHtml,navigate,toast,staticVisualPreview});
+async function renderRankings(main,{signal,renderRoute}={}){
+  return renderAssetRankingsRescue(main,{api,escapeHtml,navigate,toast,staticVisualPreview,signal,renderRoute});
 }
 
 async function renderLegacyRankings(main) {
