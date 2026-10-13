@@ -65,7 +65,8 @@ test('public launch frontend exposes market routes without release-only branding
   assert.doesNotMatch(index,/Release A5/i);
   assert.match(index,/READ ONLY/);
   assert.match(app,/case 'market': await renderMarketV6\(main,\{api,pageHead,stateBanner,escapeHtml\}\); break;/);
-  assert.match(app,/case 'asset-rankings': await renderRankings\(main\)/);
+  assert.match(app,/case 'asset-rankings': await renderRankings\(main,\{signal:controller.signal,renderRoute\}\)/);
+  assert.match(app,/return renderAssetRankingsRescue\(main,\{api,escapeHtml,navigate,toast,staticVisualPreview,signal,renderRoute\}\)/);
   assert.doesNotMatch(app,/case 'asset-rankings': await renderAssetRankings\(main\)/);
   assert.match(market,/\/api\/v1\/market\/network/);
   assert.match(market,/\/api\/v1\/providers\/ecb\?capability=fx-reference-rates&symbol=EUR/);
