@@ -1,10 +1,12 @@
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 const STYLE_ID='qelly-fundamentals-estimates-v2-style';
-function ensureStyles(){if(document.getElementById(STYLE_ID))return;const link=document.createElement('link');link.id=STYLE_ID;link.rel='stylesheet';link.href='./assets/routes/fundamentals-estimates-v2.css?v=20260901-fundamentals2';document.head.append(link);}
+const STYLESHEET=new URL('./fundamentals-estimates-v2.css?v=20260901-fundamentals2',import.meta.url).href;
+async function ensureStyles(signal){const existing=document.getElementById(STYLE_ID);if(existing?.tagName==='LINK'&&existing.rel==='stylesheet')existing.setAttribute('data-qelly-fundamentals-estimates-style','active');await ensureRouteStylesheet(STYLESHEET,{attribute:'data-qelly-fundamentals-estimates-style',value:'active',signal});document.querySelector('link[data-qelly-fundamentals-estimates-style]').id=STYLE_ID;}
 const upper=(value)=>String(value||'unavailable').replace(/[-_]+/g,' ').toUpperCase();
 const number=(value,digits=2)=>Number.isFinite(Number(value))?new Intl.NumberFormat('en-US',{maximumFractionDigits:digits}).format(Number(value)):'—';
 
-export async function renderFundamentalsEstimates(main,{api,escapeHtml,toast,navigate,asset}){
-  ensureStyles();const safe=(value)=>escapeHtml(String(value??''));
+export async function renderFundamentalsEstimates(main,{api,escapeHtml,toast,navigate,asset,signal,renderRoute}){
+  try{await ensureStyles(signal);}catch(error){if(error?.name==='AbortError')throw error;main.innerHTML=`<section class="q-page"><header class="q-page-head"><div><p class="q-eyebrow">Fundamentals & Estimates</p><h1>The research workspace could not open.</h1><p>Workspace styles could not load. Please retry.</p></div></header><button class="q-button q-button--primary" type="button" data-specialist-style-retry>Retry workspace</button></section>`;main.querySelector('[data-specialist-style-retry]').addEventListener('click',()=>renderRoute?.());return;}const safe=(value)=>escapeHtml(String(value??''));
   const endpoint=(issuer,params='')=>`/api/v1/discovery/fundamentals-estimates?issuer=${encodeURIComponent(issuer||'QI-EQUITY-AAPL')}${params}`;
   let data;
   try{data=await api(endpoint(asset));}catch(error){main.innerHTML=`<section class="q-fe-page"><div class="q-fe-error"><p class="q-eyebrow">Qelly Intelligence · Fundamentals & Estimates</p><h1>The governed financial model is unavailable.</h1><p>${safe(error.message)} No statement value, estimate, ratio or valuation was substituted.</p><button type="button" data-fe-retry>Retry contract</button></div></section>`;main.querySelector('[data-fe-retry]').addEventListener('click',()=>void renderFundamentalsEstimates(main,{api,escapeHtml,toast,navigate,asset}));main.removeAttribute('aria-busy');return;}
