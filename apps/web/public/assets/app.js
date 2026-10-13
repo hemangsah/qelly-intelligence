@@ -472,10 +472,10 @@ async function performRouteRender(request,controller) {
       case 'feature-universe': await renderFeatureUniverse(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
       case 'asset-intelligence': await renderAssetIntelligence(main,{api,pageHead,stateBanner,escapeHtml,QellyChartShell,QellyDataGrid,formatCompact,toast,navigate,asset:state.asset,openEvidence}); break;
       case 'advanced-chart': await renderAdvancedChart(main,{api,pageHead,stateBanner,escapeHtml,QellyChartShell,QellyDataGrid,formatCompact,toast,navigate,asset:state.asset,openEvidence,renderRoute}); break;
-      case 'fundamentals-estimates': await renderFundamentalsEstimates(main,{api,pageHead,stateBanner,escapeHtml,QellyChartShell,QellyDataGrid,formatCompact,toast,navigate,asset:state.asset,openEvidence,renderRoute}); break;
-      case 'filing-workspace': await renderFilingWorkspace(main,{api,pageHead,stateBanner,escapeHtml,QellyChartShell,QellyDataGrid,formatCompact,toast,navigate,asset:state.asset,openEvidence,renderRoute}); break;
-      case 'event-calendar': await renderEventCalendar(main,{api,pageHead,stateBanner,escapeHtml,QellyChartShell,QellyDataGrid,formatCompact,toast,navigate,asset:state.asset,openEvidence,renderRoute}); break;
-      case 'comparison-lab': await renderComparisonLab(main,{api,pageHead,stateBanner,escapeHtml,QellyChartShell,QellyDataGrid,formatCompact,toast,navigate,asset:state.asset,openEvidence,renderRoute}); break;
+      case 'fundamentals-estimates': await renderFundamentalsEstimates(main,{api,pageHead,stateBanner,escapeHtml,QellyChartShell,QellyDataGrid,formatCompact,toast,navigate,asset:state.asset,openEvidence,renderRoute,signal:controller.signal}); break;
+      case 'filing-workspace': await renderFilingWorkspace(main,{api,pageHead,stateBanner,escapeHtml,QellyChartShell,QellyDataGrid,formatCompact,toast,navigate,asset:state.asset,openEvidence,renderRoute,signal:controller.signal}); break;
+      case 'event-calendar': await renderEventCalendar(main,{api,pageHead,stateBanner,escapeHtml,QellyChartShell,QellyDataGrid,formatCompact,toast,navigate,asset:state.asset,openEvidence,renderRoute,signal:controller.signal}); break;
+      case 'comparison-lab': await renderComparisonLab(main,{api,pageHead,stateBanner,escapeHtml,QellyChartShell,QellyDataGrid,formatCompact,toast,navigate,asset:state.asset,openEvidence,renderRoute,signal:controller.signal}); break;
       case 'discovery-hub': await renderDiscoveryHub(main); break;
       case 'asset-rankings': await renderRankings(main); break;
       case 'categories': await renderCategoriesWorkspace(main,{api,escapeHtml,toast}); break;

@@ -1,11 +1,14 @@
+// Preserve existing research logic behind bounded stylesheet readiness.
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 import {tradingViewAppearance} from '../market/tradingview-display-widget.mjs';
 import {mountLazyTradingViewWidget} from '../market/lazy-tradingview-widget.mjs';
 const STYLE_ID='qelly-event-calendar-v2-style';
-function ensureStyles(){if(document.getElementById(STYLE_ID))return;const link=document.createElement('link');link.id=STYLE_ID;link.rel='stylesheet';link.href='./assets/routes/event-calendar-v2.css?v=20260901-event2';document.head.append(link);}
+const STYLESHEET=new URL('./event-calendar-v2.css?v=20260901-event2',import.meta.url).href;
+async function ensureStyles(signal){const existing=document.getElementById(STYLE_ID);if(existing?.tagName==='LINK'&&existing.rel==='stylesheet')existing.setAttribute('data-qelly-event-calendar-style','active');await ensureRouteStylesheet(STYLESHEET,{attribute:'data-qelly-event-calendar-style',value:'active',signal});document.querySelector('link[data-qelly-event-calendar-style]').id=STYLE_ID;}
 const status=(value)=>String(value||'blocked').toUpperCase().replaceAll('-',' ');
 
 export async function renderEventCalendar(main,deps){
-  const {api,escapeHtml,navigate,asset,toast}=deps;ensureStyles();
+  const {api,escapeHtml,navigate,asset,toast,signal,renderRoute}=deps;try{await ensureStyles(signal);}catch(error){if(error?.name==='AbortError')throw error;main.innerHTML=`<section class="q-page"><header class="q-page-head"><div><p class="q-eyebrow">Event Calendar</p><h1>The research workspace could not open.</h1><p>Workspace styles could not load. Please retry.</p></div></header><button class="q-button q-button--primary" type="button" data-specialist-style-retry>Retry workspace</button></section>`;main.querySelector('[data-specialist-style-retry]').addEventListener('click',()=>renderRoute?.());return;}
   const safe=(value)=>escapeHtml(String(value??''));
   const endpoint=(selected,params='')=>`/api/v1/discovery/event-calendar?asset=${encodeURIComponent(selected||'QI-EQUITY-AAPL')}${params}`;
   let data;
