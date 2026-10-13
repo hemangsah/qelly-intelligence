@@ -1,3 +1,4 @@
+// Existing Market Network research runs after both stylesheet boundaries are ready.
 import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 import {mountTradingViewDisplay,tradingViewAppearance} from '../market/tradingview-display-widget.mjs';
 import {mountLazyTradingViewWidget} from '../market/lazy-tradingview-widget.mjs';
