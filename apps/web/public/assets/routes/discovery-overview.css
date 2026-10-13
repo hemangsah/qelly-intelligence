@@ -71,18 +71,18 @@ html[data-production-system="v8"] body #app #main .q-do-source-section>header p:
 html[data-production-system="v8"] body #app #main .q-do-lenses>div{display:grid;gap:2px;padding:8px}
 html[data-production-system="v8"] body #app #main .q-do-lens{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;min-height:88px;padding:14px;border:0;border-radius:10px;background:transparent;color:var(--q-text);text-align:left;cursor:pointer}
 html[data-production-system="v8"] body #app #main .q-do-lens:hover{background:var(--q-hover)}
-html[data-production-system="v8"] body #app #main .q-do-lens[aria-pressed="true"]{background:var(--do-accent-soft);box-shadow:none}
-html[data-production-system="v8"] body #app #main .q-do-lens>span{color:var(--q-accent-strong);font-size:10px;font-weight:800}
+html[data-production-system="v8"] body #app #main .q-do-lens[aria-pressed="true"]{--do-lens-status-ink:#fff;background:var(--q-accent);color:#fff;box-shadow:none}
+html[data-production-system="v8"] body #app #main .q-do-lens>span{color:inherit;font-size:10px;font-weight:800}
 html[data-production-system="v8"] body #app #main .q-do-lens>div{display:grid;gap:5px}
 html[data-production-system="v8"] body #app #main .q-do-lens strong{font-size:13px}
-html[data-production-system="v8"] body #app #main .q-do-lens small{color:var(--q-text-secondary);font-size:9px;line-height:1.45}
+html[data-production-system="v8"] body #app #main .q-do-lens small{color:var(--do-lens-status-ink,var(--q-text-secondary));font-size:9px;line-height:1.45}
 html[data-production-system="v8"] body #app #main .q-do-lens em,
 html[data-production-system="v8"] body #app #main .q-do-source header>span,
 html[data-production-system="v8"] body #app #main .q-do-lens-map button>span{font-size:8px;font-style:normal;font-weight:800;letter-spacing:.08em}
-html[data-production-system="v8"] body #app #main [data-state="live"]{color:var(--q-positive)}
-html[data-production-system="v8"] body #app #main [data-state="cached"],
-html[data-production-system="v8"] body #app #main [data-state="delayed"]{color:var(--q-warning)}
-html[data-production-system="v8"] body #app #main [data-state="unavailable"]{color:var(--q-danger)}
+html[data-production-system="v8"] body #app #main .q-discovery-overview [data-state="live"]{color:var(--do-lens-status-ink,var(--q-positive))}
+html[data-production-system="v8"] body #app #main .q-discovery-overview [data-state="cached"],
+html[data-production-system="v8"] body #app #main .q-discovery-overview [data-state="delayed"]{color:var(--do-lens-status-ink,var(--q-warning))}
+html[data-production-system="v8"] body #app #main .q-discovery-overview [data-state="unavailable"]{color:var(--do-lens-status-ink,var(--q-negative))}
 
 html[data-production-system="v8"] body #app #main .q-do-stage{overflow:hidden}
 html[data-production-system="v8"] body #app #main .q-do-stage>header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:24px 26px;border-bottom:0}
