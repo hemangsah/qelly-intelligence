@@ -1,3 +1,4 @@
+// Preserve existing research logic behind bounded stylesheet readiness.
 import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 import {tradingViewAppearance} from '../market/tradingview-display-widget.mjs';
 import {mountLazyTradingViewWidget} from '../market/lazy-tradingview-widget.mjs';
