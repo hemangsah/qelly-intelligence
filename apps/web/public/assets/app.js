@@ -1,3 +1,4 @@
+// Tool methods and saved record IDs retain their route context without replacing the selected market instrument.
 import {applyLegacyAccentPreference} from './qelly-brand-accent-ownership.mjs';
 import { installAccessibility, announce, openDialog, closeDialog } from '../packages/accessibility/accessibility.mjs';
 import { button, toast, commandDialog, dataStateIndicator, escapeHtml, sourceDisclosure } from '../packages/ui-primitives/primitives.mjs';
@@ -12,6 +13,9 @@ import { renderShellFoundations } from './shell-foundations.mjs';
 import { storeDecisionContext, storeResearchContext } from './decision-context-bridge.mjs';
 import {installRuntimePerformanceObserver,startRouteMeasure,finishRouteMeasure} from './runtime-performance-observer.mjs';
 installRuntimePerformanceObserver();
+
+// Method and saved-record identifiers do not replace the retained market instrument.
+const toolDetailRoutes=new Set(['formula-detail','indicator-detail','calculator-detail','saved-calculation-detail']);
 
 const lazyRoute=(path,exportName)=>async(...args)=>{
   const module=await import(path);
@@ -366,7 +370,7 @@ function resolveHash() {
   if(!allowed&&route!==state.route)history.replaceState(null,'',`#/${state.route}`);
   state.activeDomain=(allowed?definition:routeDefinitions.find((item)=>item.route===state.route))?.domain??'markets';
   state.routeQuery=query;
-  if (asset) state.asset = asset;
+  if (asset && !toolDetailRoutes.has(route)) state.asset = asset;
   renderNavigation();
   renderRoute();
 }
@@ -380,7 +384,7 @@ function navigate(route, asset = null) {
   state.route = route;
   state.routeQuery = new URLSearchParams();
   toggleSecondaryNavigation(false);
-  if (asset) state.asset = asset;
+  if (asset && !toolDetailRoutes.has(route)) state.asset = asset;
   const hash = `#/${route}${asset ? `/${asset}` : ''}`;
   if (location.hash === hash) renderRoute(); else location.hash = hash;
   if(state.authenticated)persistPreference({ route }).catch(() => {});
@@ -462,7 +466,7 @@ async function performRouteRender(request,controller) {
       case 'formula-detail': await renderFormulaDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,signal:controller.signal,id:parseHashRoute(location.hash).asset}); break;
       case 'indicator-detail': await renderIndicatorDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,signal:controller.signal,id:parseHashRoute(location.hash).asset}); break;
       case 'calculator-detail': await renderCalculatorDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,signal:controller.signal,id:parseHashRoute(location.hash).asset,query:state.routeQuery}); break;
-      case 'saved-calculation-detail': await renderSavedCalculationDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:state.asset,query:state.routeQuery}); break;
+      case 'saved-calculation-detail': await renderSavedCalculationDetail(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,id:parseHashRoute(location.hash).asset,query:state.routeQuery}); break;
       case 'theme-personas': await renderThemePersonas(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,applyPersona}); break;
       case 'about-qelly': await renderAboutQelly(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
       case 'feature-universe': await renderFeatureUniverse(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
