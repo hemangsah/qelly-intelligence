@@ -1,3 +1,4 @@
+// Appearance is an existing UI setting; retain only supported scalar modes without changing identity or persistence ownership.
 import {restRequest} from './runtime.js';
 
 export const DEFAULT_UI_PREFERENCES=Object.freeze({theme:'burgundy-command',density:'comfortable',motion:'full',fontScale:100,radiusPx:14,customAccent:null,route:'market'});
