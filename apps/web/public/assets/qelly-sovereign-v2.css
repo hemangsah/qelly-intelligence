@@ -28,7 +28,7 @@
   --q-canvas: #f8f2f4;
   --q-surface: #fffdfd;
   --q-surface-alt: #f4e9ed;
-  --q-surface-raised: #ffffff;
+  --q-surface-raised:var(--q-surface-alt);
   --q-text: #251218;
   --q-text-secondary: #5b4650;
   --q-muted: #7b6870;
