@@ -1,3 +1,4 @@
+// Existing research behavior runs only after bounded stylesheet readiness.
 import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 const STYLE_ID='qelly-categories-v2-style';
 
