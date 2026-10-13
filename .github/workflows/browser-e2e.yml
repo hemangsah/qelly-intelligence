@@ -243,6 +243,15 @@ jobs:
           name: qelly-dex-style-readiness-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/dex-style-readiness-e2e
           if-no-files-found: error
+      - name: Verify chart research surfaces, keyboard and stylesheet recovery
+        run: node scripts/qelly-chart-style-readiness-e2e.mjs
+      - name: Upload chart research surface and lifecycle evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-chart-style-readiness-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/chart-style-readiness-e2e
+          if-no-files-found: error
       - name: Verify specialist styles, recovery and cancelled research navigation
         run: node scripts/qelly-specialist-style-readiness-e2e.mjs
       - name: Upload specialist stylesheet lifecycle evidence

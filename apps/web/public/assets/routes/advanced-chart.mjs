@@ -1,10 +1,13 @@
+// Research and numerical behavior remain governed behind bounded stylesheet readiness.
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 const STYLE_ID='qelly-advanced-chart-v2-style';
-function ensureStyles(){if(document.getElementById(STYLE_ID))return;const link=document.createElement('link');link.id=STYLE_ID;link.rel='stylesheet';link.href='./assets/routes/advanced-chart-v2.css?v=20260831-chart2';document.head.append(link);}
+const STYLESHEET=new URL('./advanced-chart-v2.css?v=20261013-chartstyle1',import.meta.url).href;
+async function ensureStyles(signal){const existing=document.getElementById(STYLE_ID);if(existing?.tagName==='LINK'&&existing.rel==='stylesheet'){if(existing.href!==STYLESHEET)existing.href=STYLESHEET;existing.setAttribute('data-qelly-advanced-chart-style','active');}await ensureRouteStylesheet(STYLESHEET,{attribute:'data-qelly-advanced-chart-style',value:'active',signal});document.querySelector('link[data-qelly-advanced-chart-style]').id=STYLE_ID;}
 const upper=(value)=>String(value||'unavailable').replace(/[-_]+/g,' ').toUpperCase();
 const money=(value)=>Number.isFinite(Number(value))?new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:Math.abs(Number(value))>=1e6?'compact':'standard',maximumFractionDigits:2}).format(Number(value)):'—';
 
-export async function renderAdvancedChart(main,{api,escapeHtml,toast,navigate,asset}){
-  ensureStyles();const safe=(value)=>escapeHtml(String(value??''));let data;
+export async function renderAdvancedChart(main,{api,escapeHtml,toast,navigate,asset,signal,renderRoute}){
+  try{await ensureStyles(signal);}catch(error){if(error?.name==='AbortError')throw error;main.innerHTML=`<section class="q-page"><header class="q-page-head"><div><p class="q-eyebrow">Advanced Chart Studio</p><h1>The research workspace could not open.</h1><p>Workspace styles could not load. Please retry.</p></div></header><button class="q-button q-button--primary" type="button" data-chart-style-retry>Retry workspace</button></section>`;main.querySelector('[data-chart-style-retry]').addEventListener('click',()=>renderRoute?.());return;}const safe=(value)=>escapeHtml(String(value??''));let data;
   try{data=await api(`/api/v1/discovery/advanced-chart?asset=${encodeURIComponent(asset||'QI-CRYPTO-BTC')}`);}catch(error){main.innerHTML=`<section class="q-ac-page"><div class="q-ac-error"><p class="q-eyebrow">Qelly Intelligence · Advanced Chart Studio</p><h1>The governed study contract is unavailable.</h1><p>${safe(error.message)} No chart, price history, indicator value or interpretation was substituted.</p><button type="button" data-ac-retry>Retry contract</button></div></section>`;main.querySelector('[data-ac-retry]').addEventListener('click',()=>void renderAdvancedChart(main,{api,escapeHtml,toast,navigate,asset}));main.removeAttribute('aria-busy');return;}
   const selected=data.selected;const study=data.selectedStudy;const config=data.configuration;const series=data.historicalSeries;
   const assets=data.assets.map((item)=>`<option value="${safe(item.id)}" ${item.id===selected.id?'selected':''}>${safe(item.symbol)} · ${safe(item.name)}</option>`).join('');
