@@ -1,11 +1,13 @@
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 const STYLE_ID='qelly-asset-intelligence-v2-style';
-function ensureStyles(){if(document.getElementById(STYLE_ID))return;const link=document.createElement('link');link.id=STYLE_ID;link.rel='stylesheet';link.href='./assets/routes/asset-intelligence-v2.css?v=20260831-asset2';document.head.append(link);}
+const STYLESHEET=new URL('./asset-intelligence-v2.css?v=20260831-asset2',import.meta.url).href;
+async function ensureStyles(signal){const existing=document.getElementById(STYLE_ID);if(existing?.tagName==='LINK'&&existing.rel==='stylesheet')existing.setAttribute('data-qelly-asset-intelligence-style','active');await ensureRouteStylesheet(STYLESHEET,{attribute:'data-qelly-asset-intelligence-style',value:'active',signal});document.querySelector('link[data-qelly-asset-intelligence-style]').id=STYLE_ID;}
 const number=(value,digits=2)=>Number.isFinite(Number(value))?new Intl.NumberFormat('en-US',{maximumFractionDigits:digits}).format(Number(value)):'—';
 const money=(value)=>Number.isFinite(Number(value))?new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:Math.abs(Number(value))>=1e6?'compact':'standard',maximumFractionDigits:2}).format(Number(value)):'—';
 const upper=(value)=>String(value||'unavailable').replace(/[-_]+/g,' ').toUpperCase();
 
-export async function renderAssetIntelligence(main,{api,escapeHtml,toast,navigate,asset}){
-  ensureStyles();const safe=(value)=>escapeHtml(String(value??''));let data;
+export async function renderAssetIntelligence(main,{api,escapeHtml,toast,navigate,asset,signal,renderRoute}){
+  try{await ensureStyles(signal);}catch(error){if(error?.name==='AbortError')throw error;main.innerHTML=`<section class="q-page"><header class="q-page-head"><div><p class="q-eyebrow">Asset Intelligence</p><h1>The research workspace could not open.</h1><p>Workspace styles could not load. Please retry.</p></div></header><button class="q-button q-button--primary" type="button" data-chart-style-retry>Retry workspace</button></section>`;main.querySelector('[data-chart-style-retry]').addEventListener('click',()=>renderRoute?.());return;}const safe=(value)=>escapeHtml(String(value??''));let data;
   try{data=await api(`/api/v1/discovery/asset-intelligence?asset=${encodeURIComponent(asset||'QI-CRYPTO-BTC')}`);}catch(error){main.innerHTML=`<section class="q-ai-page"><div class="q-ai-error"><p class="q-eyebrow">Qelly Intelligence · Asset Intelligence</p><h1>The instrument briefing contract is unavailable.</h1><p>${safe(error.message)} No profile, observation, evidence or recommendation was substituted.</p><button type="button" data-ai-retry>Retry contract</button></div></section>`;main.querySelector('[data-ai-retry]').addEventListener('click',()=>void renderAssetIntelligence(main,{api,escapeHtml,toast,navigate,asset}));main.removeAttribute('aria-busy');return;}
   const selected=data.selected;const observation=selected.observation;const context=selected.independentContext;
   const options=data.assets.map((item)=>`<option value="${safe(item.id)}" ${item.id===selected.id?'selected':''}>${safe(item.symbol)} · ${safe(item.name)}</option>`).join('');
