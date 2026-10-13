@@ -1,3 +1,4 @@
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 import {mountTradingViewDisplay,tradingViewAppearance} from '../market/tradingview-display-widget.mjs';
 import {mountLazyTradingViewWidget} from '../market/lazy-tradingview-widget.mjs';
 
@@ -51,24 +52,7 @@ const GUIDES={
   }
 };
 
-function ensureStyles(){
-  const existing=document.querySelector('link[data-qelly-market-network-style]');
-  if(existing){if(existing.href!==cssHref)existing.href=cssHref;}
-  else{
-    const link=document.createElement('link');
-    link.rel='stylesheet';
-    link.href=cssHref;
-    link.dataset.qellyMarketNetworkStyle='true';
-    document.head.append(link);
-  }
-  const v2=document.querySelector('link[data-qelly-market-network-v2-style]');
-  if(v2){if(v2.href!==v2CssHref)v2.href=v2CssHref;return;}
-  const link=document.createElement('link');
-  link.rel='stylesheet';
-  link.href=v2CssHref;
-  link.dataset.qellyMarketNetworkV2Style='true';
-  document.head.append(link);
-}
+async function ensureStyles(signal){await Promise.all([ensureRouteStylesheet(cssHref,{attribute:'data-qelly-market-network-style',value:'true',signal}),ensureRouteStylesheet(v2CssHref,{attribute:'data-qelly-market-network-v2-style',value:'true',signal})]);}
 
 const formatNumber=(value,{digits=2,compact=false}={})=>{
   const number=Number(value);
@@ -189,7 +173,7 @@ const researchCategory=(item)=>{
 };
 
 export async function renderGlobalMarketNetwork(main,deps){
-  ensureStyles();
+  const {signal,renderRoute}=deps;try{await ensureStyles(signal);}catch(error){if(error?.name==='AbortError')throw error;main.innerHTML=`<section class="q-page"><header class="q-page-head"><div><p class="q-eyebrow">Global Market Network</p><h1>The research workspace could not open.</h1><p>Workspace styles could not load. Please retry.</p></div></header><button class="q-button q-button--primary" type="button" data-network-style-retry>Retry workspace</button></section>`;main.querySelector('[data-network-style-retry]').addEventListener('click',()=>renderRoute?.());return;}
   const {api,pageHead,stateBanner,escapeHtml,toast}=deps;
   let network;
   try{network=await api('/api/v1/market/network');}
