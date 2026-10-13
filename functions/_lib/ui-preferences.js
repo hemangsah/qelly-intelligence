@@ -1,3 +1,4 @@
+// Appearance persistence is reconciled with the preceding tool-context release.
 // Appearance is an existing UI setting; retain only supported scalar modes without changing identity or persistence ownership.
 import {restRequest} from './runtime.js';
 
