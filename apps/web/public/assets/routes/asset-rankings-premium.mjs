@@ -10,7 +10,7 @@ const FALLBACK_CRITERIA=Object.freeze([
   {id:'coverage',label:'Source coverage',purpose:'Surface candidates with independent midpoint context.'}
 ]);
 
-const STYLESHEET=new URL('./asset-rankings-v2.css?v=20260830-rankings2',import.meta.url).href;
+const STYLESHEET=new URL('./asset-rankings-v2.css?v=20261014-discovery-surface1',import.meta.url).href;
 async function ensureStyles(signal){const existing=document.getElementById(STYLE_ID);if(existing?.tagName==='LINK'&&existing.rel==='stylesheet')existing.setAttribute('data-qelly-asset-rankings-premium-style','active');await ensureRouteStylesheet(STYLESHEET,{attribute:'data-qelly-asset-rankings-premium-style',value:'active',signal});document.querySelector('link[data-qelly-asset-rankings-premium-style]').id=STYLE_ID;}
 
 const stateTone=(state)=>state==='live'?'live':state==='cached'?'cached':state==='delayed'||state==='reference'?'delayed':'unavailable';
