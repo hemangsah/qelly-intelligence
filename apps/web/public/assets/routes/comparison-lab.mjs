@@ -1,9 +1,11 @@
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 const STYLE_ID='qelly-comparison-lab-v2-style';
-function ensureStyles(){if(document.getElementById(STYLE_ID))return;const link=document.createElement('link');link.id=STYLE_ID;link.rel='stylesheet';link.href='./assets/routes/comparison-lab-v2.css?v=20260901-compare2';document.head.append(link);}
+const STYLESHEET=new URL('./comparison-lab-v2.css?v=20260901-compare2',import.meta.url).href;
+async function ensureStyles(signal){const existing=document.getElementById(STYLE_ID);if(existing?.tagName==='LINK'&&existing.rel==='stylesheet')existing.setAttribute('data-qelly-comparison-lab-style','active');await ensureRouteStylesheet(STYLESHEET,{attribute:'data-qelly-comparison-lab-style',value:'active',signal});document.querySelector('link[data-qelly-comparison-lab-style]').id=STYLE_ID;}
 const status=(value)=>String(value||'blocked').toUpperCase().replaceAll('-',' ');
 
 export async function renderComparisonLab(main,deps){
-  const {api,escapeHtml,navigate,toast,asset:contextAsset}=deps;ensureStyles();
+  const {api,escapeHtml,navigate,toast,asset:contextAsset,signal,renderRoute}=deps;try{await ensureStyles(signal);}catch(error){if(error?.name==='AbortError')throw error;main.innerHTML=`<section class="q-page"><header class="q-page-head"><div><p class="q-eyebrow">Comparison Lab</p><h1>The research workspace could not open.</h1><p>Workspace styles could not load. Please retry.</p></div></header><button class="q-button q-button--primary" type="button" data-specialist-style-retry>Retry workspace</button></section>`;main.querySelector('[data-specialist-style-retry]').addEventListener('click',()=>renderRoute?.());return;}
   const safe=(value)=>escapeHtml(String(value??''));
   const endpoint=(params='')=>`/api/v1/discovery/comparison-lab${params?`?${params}`:''}`;
   const initialParams=new URLSearchParams();if(contextAsset)initialParams.set('candidateA',String(contextAsset));
