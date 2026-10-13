@@ -1,11 +1,8 @@
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 const STYLE_ID='qelly-categories-v2-style';
 
-function ensureStyles(){
-  if(document.getElementById(STYLE_ID))return;
-  const link=document.createElement('link');
-  link.id=STYLE_ID;link.rel='stylesheet';link.href='./assets/routes/categories-v2.css?v=20260830-categories1';
-  document.head.append(link);
-}
+const STYLESHEET=new URL('./categories-v2.css?v=20260830-categories1',import.meta.url).href;
+async function ensureStyles(signal){const existing=document.getElementById(STYLE_ID);if(existing?.tagName==='LINK'&&existing.rel==='stylesheet')existing.setAttribute('data-qelly-categories-style','active');await ensureRouteStylesheet(STYLESHEET,{attribute:'data-qelly-categories-style',value:'active',signal});document.querySelector('link[data-qelly-categories-style]').id=STYLE_ID;}
 
 const number=(value)=>Number.isFinite(Number(value))?Number(value):null;
 const money=(value)=>number(value)==null?'—':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',maximumFractionDigits:2}).format(Number(value));
@@ -54,8 +51,8 @@ function sourceCards(sources,escapeHtml){
   return sources.map((source)=>`<article><header><div><strong>${safe(source.label)}</strong><small>${safe(source.role)}</small></div><span class="q-status q-status--${stateTone(source.truthState)}">${safe(label(source.truthState))}</span></header><dl><div><dt>Observed</dt><dd>${safe(dateLabel(source.observedAt))}</dd></div><div><dt>Fetched</dt><dd>${safe(dateLabel(source.fetchedAt))}</dd></div></dl><p>${safe(source.usage||'Governed source boundary supplied by the runtime.')}</p></article>`).join('');
 }
 
-export async function renderCategories(main,{api,escapeHtml,toast}){
-  ensureStyles();
+export async function renderCategories(main,{api,escapeHtml,toast,signal,renderRoute}){
+  try{await ensureStyles(signal);}catch(error){if(error?.name==='AbortError')throw error;main.innerHTML=`<section class="q-page"><header class="q-page-head"><div><p class="q-eyebrow">Categories</p><h1>The research workspace could not open.</h1><p>Workspace styles could not load. Please retry.</p></div></header><button class="q-button q-button--primary" type="button" data-discovery-style-retry>Retry workspace</button></section>`;main.querySelector('[data-discovery-style-retry]').addEventListener('click',()=>renderRoute?.());return;}
   let data;
   try{data=await api('/api/v1/discovery/categories');}
   catch(error){
