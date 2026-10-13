@@ -243,6 +243,15 @@ jobs:
           name: qelly-dex-style-readiness-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/dex-style-readiness-e2e
           if-no-files-found: error
+      - name: Verify discovery ordinary surfaces and preserved research controls
+        run: node scripts/qelly-discovery-surface-e2e.mjs
+      - name: Upload discovery ordinary surface evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-discovery-surface-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/discovery-surface-e2e
+          if-no-files-found: error
       - name: Verify discovery styles, recovery and cancelled research navigation
         run: node scripts/qelly-discovery-style-readiness-e2e.mjs
       - name: Upload discovery stylesheet lifecycle evidence

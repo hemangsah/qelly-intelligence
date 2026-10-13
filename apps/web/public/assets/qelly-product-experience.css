@@ -161,7 +161,7 @@ html[data-production-system="v8"] body #app #main :where(
   .q-indicator-mini-chart,.q-verify-hero,.q-v53-verify-workbench,
   [class$="-card"],[class*="-card "],[class$="-panel"],[class*="-panel "]
 ):not(:where(.q-dossier *)):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)):not(:where(.q-cc-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-access-gate,.q-access-gate *)):not(:where(.q-chat-workspace, .q-chat-workspace *)){
-  border:0!important;border-radius:var(--q-radius-surface)!important;background:var(--q-calculator-row-background,var(--q-luxe-panel))!important;box-shadow:var(--q-calculator-elevation,var(--q-elevation-rest))!important;
+  border:0!important;border-radius:var(--q-radius-surface)!important;background:var(--q-calculator-row-background,var(--q-luxe-panel))!important;box-shadow:none!important;
 }
 html[data-production-system="v8"] body #app #main :where(.q-it-hero,.q-verify-hero,.q-auth-hero,.q-asset-hero,.q-home-lead,.q-market-safety,.q-about-hero):not(:where(.q-about-v2-page *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-auth-page,.q-auth-page *)):not(:where(.q-verify-page,.q-verify-page *)){
   border:0!important;border-radius:var(--q-radius-feature)!important;background:var(--q-luxe-panel-strong)!important;box-shadow:var(--q-elevation-rest)!important;

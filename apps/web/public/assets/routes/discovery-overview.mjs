@@ -1,5 +1,5 @@
 import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
-const cssHref=new URL('./discovery-overview.css?v=20260830-discovery1',import.meta.url).href;
+const cssHref=new URL('./discovery-overview.css?v=20261014-discovery-surface1',import.meta.url).href;
 
 const HORIZONS=Object.freeze({
   current:'current conditions',

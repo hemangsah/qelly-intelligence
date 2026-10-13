@@ -8,7 +8,7 @@ const TYPES=Object.freeze([
   {id:'indicator',label:'Indicators',job:'Find a governed technical study.'}
 ]);
 
-const STYLESHEET=new URL('./universal-search-v2.css?v=20260830-search2',import.meta.url).href;
+const STYLESHEET=new URL('./universal-search-v2.css?v=20261014-discovery-surface1',import.meta.url).href;
 async function ensureStyles(signal){const existing=document.getElementById(STYLE_ID);if(existing?.tagName==='LINK'&&existing.rel==='stylesheet')existing.setAttribute('data-qelly-universal-search-style','active');await ensureRouteStylesheet(STYLESHEET,{attribute:'data-qelly-universal-search-style',value:'active',signal});document.querySelector('link[data-qelly-universal-search-style]').id=STYLE_ID;}
 
 const tone=(state)=>['live','cached','delayed'].includes(String(state).toLowerCase())?String(state).toLowerCase():String(state).toLowerCase()==='unavailable'?'unavailable':'cached';
