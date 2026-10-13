@@ -1,3 +1,4 @@
+// DEX style recovery is reconciled with the existing appearance persistence correction.
 // Existing DEX research evidence is presented only after its bounded stylesheet readiness guard.
 import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 const STYLE_ID='qelly-dex-v2-style';
