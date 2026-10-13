@@ -482,7 +482,7 @@ async function performRouteRender(request,controller) {
       case 'category-detail': await renderCategoryDetail(main); break;
       case 'venues': await renderVenuesWorkspace(main,{api,escapeHtml,toast}); break;
       case 'venue-detail': await renderVenueDetail(main); break;
-      case 'dex-discovery': await renderDexWorkspace(main,{api,escapeHtml,toast}); break;
+      case 'dex-discovery': await renderDexWorkspace(main,{api,escapeHtml,toast,signal:controller.signal,renderRoute}); break;
       case 'global-charts': await renderGlobalChartsWorkspace(main,{api,escapeHtml,toast}); break;
       case 'converter': await renderConverterWorkspace(main,{api,escapeHtml,toast}); break;
       case 'news-research': await renderQellyChatWorkspace(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate}); break;
