@@ -470,8 +470,8 @@ async function performRouteRender(request,controller) {
       case 'theme-personas': await renderThemePersonas(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,applyPersona}); break;
       case 'about-qelly': await renderAboutQelly(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
       case 'feature-universe': await renderFeatureUniverse(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
-      case 'asset-intelligence': await renderAssetIntelligence(main,{api,pageHead,stateBanner,escapeHtml,QellyChartShell,QellyDataGrid,formatCompact,toast,navigate,asset:state.asset,openEvidence}); break;
-      case 'advanced-chart': await renderAdvancedChart(main,{api,pageHead,stateBanner,escapeHtml,QellyChartShell,QellyDataGrid,formatCompact,toast,navigate,asset:state.asset,openEvidence,renderRoute}); break;
+      case 'asset-intelligence': await renderAssetIntelligence(main,{api,pageHead,stateBanner,escapeHtml,QellyChartShell,QellyDataGrid,formatCompact,toast,navigate,asset:state.asset,openEvidence,signal:controller.signal,renderRoute}); break;
+      case 'advanced-chart': await renderAdvancedChart(main,{api,pageHead,stateBanner,escapeHtml,QellyChartShell,QellyDataGrid,formatCompact,toast,navigate,asset:state.asset,openEvidence,renderRoute,signal:controller.signal}); break;
       case 'fundamentals-estimates': await renderFundamentalsEstimates(main,{api,pageHead,stateBanner,escapeHtml,QellyChartShell,QellyDataGrid,formatCompact,toast,navigate,asset:state.asset,openEvidence,renderRoute,signal:controller.signal}); break;
       case 'filing-workspace': await renderFilingWorkspace(main,{api,pageHead,stateBanner,escapeHtml,QellyChartShell,QellyDataGrid,formatCompact,toast,navigate,asset:state.asset,openEvidence,renderRoute,signal:controller.signal}); break;
       case 'event-calendar': await renderEventCalendar(main,{api,pageHead,stateBanner,escapeHtml,QellyChartShell,QellyDataGrid,formatCompact,toast,navigate,asset:state.asset,openEvidence,renderRoute,signal:controller.signal}); break;
@@ -483,7 +483,7 @@ async function performRouteRender(request,controller) {
       case 'venues': await renderVenuesWorkspace(main,{api,escapeHtml,toast}); break;
       case 'venue-detail': await renderVenueDetail(main); break;
       case 'dex-discovery': await renderDexWorkspace(main,{api,escapeHtml,toast,signal:controller.signal,renderRoute}); break;
-      case 'global-charts': await renderGlobalChartsWorkspace(main,{api,escapeHtml,toast}); break;
+      case 'global-charts': await renderGlobalChartsWorkspace(main,{api,escapeHtml,toast,signal:controller.signal,renderRoute}); break;
       case 'converter': await renderConverterWorkspace(main,{api,escapeHtml,toast}); break;
       case 'news-research': await renderQellyChatWorkspace(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate}); break;
       case 'research-article': await renderResearchArticle(main); break;
