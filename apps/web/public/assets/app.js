@@ -1,3 +1,4 @@
+// Tool methods and saved record IDs retain their route context without replacing the selected market instrument.
 import {applyLegacyAccentPreference} from './qelly-brand-accent-ownership.mjs';
 import { installAccessibility, announce, openDialog, closeDialog } from '../packages/accessibility/accessibility.mjs';
 import { button, toast, commandDialog, dataStateIndicator, escapeHtml, sourceDisclosure } from '../packages/ui-primitives/primitives.mjs';
