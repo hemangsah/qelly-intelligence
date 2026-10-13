@@ -16,7 +16,7 @@
   --q-critical: #8B0000;
   --q-live: #0A7A42;
   --q-delayed: #9A5C00;
-  --q-cached: #375A7F;
+  --q-cached: var(--q-muted);
   --q-stale: #A14B00;
   --q-simulated: #6B4CC2;
   --q-unavailable: #737373;
