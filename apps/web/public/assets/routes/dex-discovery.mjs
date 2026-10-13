@@ -1,3 +1,4 @@
+// Existing DEX research evidence is presented only after its bounded stylesheet readiness guard.
 import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 const STYLE_ID='qelly-dex-v2-style';
 const STYLESHEET=new URL('./dex-discovery-v2.css?v=20261009-research1',import.meta.url).href;
