@@ -1,3 +1,4 @@
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 const STYLE_ID='qelly-universal-search-v2-style';
 const TYPES=Object.freeze([
   {id:'all',label:'Everything',job:'Search the complete public catalog.'},
@@ -7,12 +8,8 @@ const TYPES=Object.freeze([
   {id:'indicator',label:'Indicators',job:'Find a governed technical study.'}
 ]);
 
-function ensureStyles(){
-  if(document.getElementById(STYLE_ID))return;
-  const link=document.createElement('link');
-  link.id=STYLE_ID;link.rel='stylesheet';link.href='./assets/routes/universal-search-v2.css?v=20260830-search2';
-  document.head.append(link);
-}
+const STYLESHEET=new URL('./universal-search-v2.css?v=20260830-search2',import.meta.url).href;
+async function ensureStyles(signal){const existing=document.getElementById(STYLE_ID);if(existing?.tagName==='LINK'&&existing.rel==='stylesheet')existing.setAttribute('data-qelly-universal-search-style','active');await ensureRouteStylesheet(STYLESHEET,{attribute:'data-qelly-universal-search-style',value:'active',signal});document.querySelector('link[data-qelly-universal-search-style]').id=STYLE_ID;}
 
 const tone=(state)=>['live','cached','delayed'].includes(String(state).toLowerCase())?String(state).toLowerCase():String(state).toLowerCase()==='unavailable'?'unavailable':'cached';
 const label=(value)=>String(value??'unknown').replace(/[_-]+/g,' ').toUpperCase();
@@ -42,8 +39,8 @@ function inspectorMarkup(item,escapeHtml){
   return `<p class="q-eyebrow">Result evidence</p><h2>${safe(item.title)}</h2><p>${safe(item.purpose)}</p><section><strong>Use this when</strong><p>${safe(item.useCase)}</p></section><dl><div><dt>Object type</dt><dd>${safe(label(item.type))}</dd></div><div><dt>Access</dt><dd>${safe(label(item.access))}</dd></div><div><dt>Truth state</dt><dd>${safe(label(item.truthState))}</dd></div><div><dt>Search reason</dt><dd>${safe(item.whyMatched)}</dd></div><div><dt>Canonical ID</dt><dd>${safe(item.id)}</dd></div><div><dt>Source</dt><dd>${safe(item.source)}</dd></div>${evidence.map(([key,value])=>`<div><dt>${safe(label(key))}</dt><dd>${safe(typeof value==='number'?String(value):value)}</dd></div>`).join('')}</dl><a class="q-button q-button--primary" href="${safe(routeHref(item.route))}">Open canonical destination</a>`;
 }
 
-export async function renderUniversalSearch(main,{api,escapeHtml,toast,state}){
-  ensureStyles();
+export async function renderUniversalSearch(main,{api,escapeHtml,toast,state,signal,renderRoute}){
+  try{await ensureStyles(signal);}catch(error){if(error?.name==='AbortError')throw error;main.innerHTML=`<section class="q-page"><header class="q-page-head"><div><p class="q-eyebrow">Universal Search</p><h1>The research workspace could not open.</h1><p>Workspace styles could not load. Please retry.</p></div></header><button class="q-button q-button--primary" type="button" data-discovery-style-retry>Retry workspace</button></section>`;main.querySelector('[data-discovery-style-retry]').addEventListener('click',()=>renderRoute?.());return;}
   const initialQuery=state?.routeQuery?.get?.('q')||'';
   main.innerHTML=`<section class="q-us-page" data-universal-search="governed-public-v2" data-search-private-content="excluded">
     <header class="q-us-hero"><div><p class="q-eyebrow">Qelly Intelligence · Universal Search</p><h1>Find the exact Qelly object or task—without knowing where it lives.</h1><p>One governed query across public product capabilities, deterministic formulas, technical indicators, and the current attributed asset sample.</p><form data-search-form role="search"><label for="qelly-universal-query">Search Qelly</label><div><span aria-hidden="true">⌕</span><input id="qelly-universal-query" type="search" value="${escapeHtml(initialQuery)}" autocomplete="off" spellcheck="false" placeholder="Try BTC, decision evidence, position size, or RSI"><kbd>/</kbd><button type="submit">Search</button></div></form><div class="q-us-examples"><span>Start with a purpose</span>${['decision evidence','position size','market research','RSI','BTC'].map((query)=>`<button type="button" data-search-example="${escapeHtml(query)}">${escapeHtml(query)}</button>`).join('')}</div></div><aside><span>Unique job · exact retrieval</span><strong>Search finds. Rankings orders. Discovery frames.</strong><p>Universal Search does not rank the market, synthesize an answer, inspect private workspaces, or recommend an action.</p><div><b>0</b><small>profile signals used</small><b>0</b><small>private records indexed</small></div></aside></header>

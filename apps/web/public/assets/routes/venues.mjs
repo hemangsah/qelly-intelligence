@@ -1,11 +1,8 @@
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 const STYLE_ID='qelly-venues-v2-style';
 
-function ensureStyles(){
-  if(document.getElementById(STYLE_ID))return;
-  const link=document.createElement('link');
-  link.id=STYLE_ID;link.rel='stylesheet';link.href='./assets/routes/venues-v2.css?v=20260831-venues1';
-  document.head.append(link);
-}
+const STYLESHEET=new URL('./venues-v2.css?v=20260831-venues1',import.meta.url).href;
+async function ensureStyles(signal){const existing=document.getElementById(STYLE_ID);if(existing?.tagName==='LINK'&&existing.rel==='stylesheet')existing.setAttribute('data-qelly-venues-style','active');await ensureRouteStylesheet(STYLESHEET,{attribute:'data-qelly-venues-style',value:'active',signal});document.querySelector('link[data-qelly-venues-style]').id=STYLE_ID;}
 
 const label=(value)=>String(value??'unavailable').replace(/[_-]+/g,' ').toUpperCase();
 const tone=(value)=>['live','cached','delayed'].includes(String(value).toLowerCase())?String(value).toLowerCase():'unavailable';
@@ -52,8 +49,8 @@ function permissionMarkup(rows,escapeHtml){
   return rows.map((row)=>`<article><header><div><strong>${safe(row.label)}</strong><small>${safe(row.role)}</small></div><span class="q-status q-status--${tone(row.truthState)}">${safe(label(row.stage))}</span></header><dl><div><dt>Customer display</dt><dd>${row.display?'ENABLED':'BLOCKED'}</dd></div><div><dt>Persistence</dt><dd>${row.persistence?'ENABLED':'DISABLED'}</dd></div><div><dt>Account</dt><dd>${row.account?'ENABLED':'DISABLED'}</dd></div><div><dt>Execution</dt><dd>${row.execution?'ENABLED':'DISABLED'}</dd></div></dl><p>${safe(row.termsState)}</p>${row.termsUrl?`<a href="${safe(row.termsUrl)}" target="_blank" rel="noopener noreferrer nofollow">Review source terms ↗</a>`:''}</article>`).join('');
 }
 
-export async function renderVenues(main,{api,escapeHtml,toast}){
-  ensureStyles();
+export async function renderVenues(main,{api,escapeHtml,toast,signal,renderRoute}){
+  try{await ensureStyles(signal);}catch(error){if(error?.name==='AbortError')throw error;main.innerHTML=`<section class="q-page"><header class="q-page-head"><div><p class="q-eyebrow">Venues</p><h1>The research workspace could not open.</h1><p>Workspace styles could not load. Please retry.</p></div></header><button class="q-button q-button--primary" type="button" data-discovery-style-retry>Retry workspace</button></section>`;main.querySelector('[data-discovery-style-retry]').addEventListener('click',()=>renderRoute?.());return;}
   let data;
   try{data=await api('/api/v1/discovery/venues');}
   catch(error){
