@@ -65,7 +65,7 @@ test('Discovery Overview is container-responsive and offline packaged',async()=>
     read('apps/web/public/qelly-service-worker.js')
   ]);
   assert.match(route,/data-discovery-experience="theme-framing-v1"/);
-  assert.match(route,/discovery-overview\.css\?v=20260830-discovery1/);
+  assert.match(route,/discovery-overview\.css\?v=20261014-discovery-surface1/);
   assert.match(css,/container-type:inline-size/);
   assert.match(css,/@container \(max-width:1000px\)/);
   assert.match(css,/@container \(max-width:680px\)/);

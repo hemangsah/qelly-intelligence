@@ -161,7 +161,7 @@ test('legacy production polish remains loaded and motion-safe outside source-own
     read('apps/web/public/assets/qelly-sovereign-motion.js'),
     read('apps/web/public/qelly-service-worker.js')
   ]);
-  assert.match(index, /qelly-route-convergence\.css[\s\S]*qelly-modern-interaction-polish\.css\?v=20260822-modern7/);
+  assert.match(index, /qelly-route-convergence\.css[\s\S]*qelly-modern-interaction-polish\.css\?v=20261014-discovery-surface1/);
   assert.match(css, /--q-modern-radius-xl:32px/);
   assert.match(css, /header\.q-product-header[\s\S]*border-radius:0 0 var\(--q-modern-radius-lg\)/);
   assert.match(css, /:where\(button:not\(\.q-product-brand__mark\):not\(\.q-ai-launcher\),a\.q-button,\[role="button"\],\[role="tab"\]\)[\s\S]*border-radius:999px!important/);

@@ -68,7 +68,7 @@ test('Categories route, public endpoint and production finalizer are fully wired
 
 test('Categories UI is container-responsive and does not hide content',async()=>{
   const [route,css]=await Promise.all([read('apps/web/public/assets/routes/categories.mjs'),read('apps/web/public/assets/routes/categories-v2.css')]);
-  assert.match(route,/categories-v2\.css\?v=20260830-categories1/);
+  assert.match(route,/categories-v2\.css\?v=20261014-discovery-surface1/);
   assert.match(route,/data-categories-experience="taxonomy-exploration-v2"/);
   assert.match(css,/container-type:inline-size/);
   assert.match(css,/@container \(max-width:1100px\)/);

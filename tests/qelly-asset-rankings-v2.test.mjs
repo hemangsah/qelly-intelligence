@@ -58,7 +58,7 @@ test('Asset Rankings V2 owns candidate ordering, filters, evidence and shortlist
 
 test('Asset Rankings V2 is container-responsive and offline packaged',async()=>{
   const [route,css,worker]=await Promise.all([read('apps/web/public/assets/routes/asset-rankings-premium.mjs'),read('apps/web/public/assets/routes/asset-rankings-v2.css'),read('apps/web/public/qelly-service-worker.js')]);
-  assert.match(route,/asset-rankings-v2\.css\?v=20260830-rankings2/);
+  assert.match(route,/asset-rankings-v2\.css\?v=20261014-discovery-surface1/);
   assert.match(css,/container-type:inline-size/);
   assert.match(css,/@container \(max-width:1100px\)/);
   assert.match(css,/@container \(max-width:760px\)/);
