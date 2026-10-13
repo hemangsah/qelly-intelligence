@@ -1,3 +1,4 @@
+// Research and numerical behavior remain governed behind bounded stylesheet readiness.
 import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 const STYLE_ID='qelly-advanced-chart-v2-style';
 const STYLESHEET=new URL('./advanced-chart-v2.css?v=20261013-chartstyle1',import.meta.url).href;
