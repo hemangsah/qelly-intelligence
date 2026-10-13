@@ -1,3 +1,4 @@
+// Preserve governed research interactions and stylesheet failure recovery.
 // Existing research behavior runs only after bounded stylesheet readiness.
 import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 const STYLE_ID='qelly-categories-v2-style';
