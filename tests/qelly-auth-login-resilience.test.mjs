@@ -38,3 +38,14 @@ test('existing-password sign in is not blocked by the new-password strength poli
   assert.doesNotMatch(login,/autocomplete="current-password"[^>]*minlength=/);
   assert.match(register,/name="password" type="password" required minlength="12" autocomplete="new-password"/);
 });
+
+test('login distinguishes rejected workspace origins from invalid credentials',async()=>{
+  const code=await loginSource();
+  const {runInNewContext}=await import('node:vm');
+  const message=runInNewContext(code.slice(0,code.indexOf('\n\n// Capability'))+'\nsafeMessage',{navigator:{onLine:true}});
+  for(const code of ['cors_origin_forbidden','csrf_origin_forbidden'])assert.equal(message({status:403,code}),'Sign-in is unavailable at this workspace address. Open the production Qelly terminal to continue.');
+  assert.equal(message({status:401,code:'invalid_credentials'}),'Email or password is incorrect.');
+  assert.equal(message({status:429}),'Too many attempts. Wait a moment and try again.');
+  assert.match(message({code:'runtime_configuration_invalid'}),/identity service is not connected/);
+  assert.equal(message(new Error('network failure')),'Qelly could not complete sign-in. Try again, or use the production Qelly terminal.');
+});
