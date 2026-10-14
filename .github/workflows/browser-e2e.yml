@@ -252,6 +252,15 @@ jobs:
           name: qelly-market-network-style-readiness-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/market-network-style-readiness-e2e
           if-no-files-found: error
+      - name: Verify remaining route stylesheet lifecycle in isolated UI contexts
+        run: node scripts/qelly-remaining-style-readiness-e2e.mjs
+      - name: Upload remaining route stylesheet lifecycle evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-remaining-style-readiness-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/remaining-style-readiness-e2e
+          retention-days: 7
       - name: Verify discovery ordinary surfaces and preserved research controls
         run: node scripts/qelly-discovery-surface-e2e.mjs
       - name: Upload discovery ordinary surface evidence

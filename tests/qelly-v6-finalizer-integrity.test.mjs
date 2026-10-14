@@ -38,3 +38,15 @@ test('Cloudflare production finalizer preserves canonical identity and no-transf
   assert.match(source,/public, max-age=0, must-revalidate, no-transform/);
   assert.match(source,/Legacy public origin remains/);
 });
+
+test('Portfolio finalization preserves route cancellation and retry dependencies at the actual V6 entry',async()=>{
+  const {rewritePublicRuntimeAsset}=await import('../scripts/finalize-public-runtime.mjs');
+  const common='pageHead,stateBanner,escapeHtml,QellyDataGrid,QellyChartShell,formatCompact,navigate';
+  for(const forward of ['', 'signal:controller.signal,renderRoute,']){
+    const source="case 'portfolio-analytics': await renderPortfolioAnalytics(main,{api,"+forward+common+"}); break;";
+    const result=rewritePublicRuntimeAsset(source,{file:'assets/app.js'});
+    assert.ok(result.includes("import('./routes/portfolio-v6-entry.mjs')"));
+    assert.ok(result.includes('renderPortfolioV6Entry(main,{api,'+forward+common+'})'));
+    assert.doesNotMatch(result,/await renderPortfolioAnalytics\(main/);
+  }
+});
