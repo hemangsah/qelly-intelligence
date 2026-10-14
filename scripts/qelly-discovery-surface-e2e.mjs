@@ -1,3 +1,4 @@
+// Drain owned public handlers before context disposal; keep write protection through teardown.
 // Ordinary text contrast and selected control foregrounds are source-bound acceptance requirements.
 import{chromium}from'playwright';import assert from'node:assert/strict';import{mkdir,writeFile}from'node:fs/promises';import{startServer}from'./release-a5-evidence-server.mjs';import{contrastRatio}from'../apps/web/public/assets/theme-intelligence-core.mjs';
 const out='preview/discovery-surface-e2e';await mkdir(out,{recursive:true});const server=await startServer({port:0,host:'127.0.0.1'}),origin='http://127.0.0.1:'+server.port,browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage']}),results=[];let active,teardownProbe=null;
