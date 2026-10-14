@@ -20,7 +20,7 @@
     "QELLY_ENABLE_CLOUD_SYNC": "true",
     "QELLY_ENABLE_LIVE_PROVIDERS": "true",
     "QELLY_ENABLE_FEEDBACK_WRITES": "true",
-    "QELLY_ALLOWED_ORIGINS": "https://terminal.qellyintelligence.com,https://qelly-intelligence.pages.dev,https://codex-uiux-remaining-route-s.qelly-intelligence.pages.dev"
+    "QELLY_ALLOWED_ORIGINS": "https://terminal.qellyintelligence.com,https://qelly-intelligence.pages.dev"
   },
   "ai": {
     "binding": "AI"
