@@ -52,6 +52,8 @@ jobs:
       - name: Bind official cloud Chromium to the existing visual runner path
         run: >-
           test -e /usr/bin/chromium || sudo ln -s "$(node --input-type=module -e 'import {chromium} from "playwright"; console.log(chromium.executablePath())')" /usr/bin/chromium
+      - name: Verify actual V6 Portfolio cancellation dependency routing
+        run: node --test tests/qelly-v6-finalizer-integrity.test.mjs
       - name: Build exact production-mode frontend in cloud
         run: |
           test "$(git rev-parse HEAD)" = "$QELLY_SCREEN_EVIDENCE_SHA"
