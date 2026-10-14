@@ -10,11 +10,13 @@ const unavailable=(route)=>`case '${route}': await import('./routes/governed-dis
 const discoveryOverview="case 'discovery-hub': await import('./routes/discovery-overview.mjs').then(({renderDiscoveryOverview})=>renderDiscoveryOverview(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state,signal:controller.signal,renderRoute})); break;";
 const trustCenter="case 'trust-center': await import('./routes/governed-utility-v2.mjs').then(({renderGovernedTrustCenterV2})=>renderGovernedTrustCenterV2(main,{api,pageHead,stateBanner,escapeHtml,navigate,toast,state})); break;";
 const qellyChatWorkspace="case 'news-research': await renderQellyChatWorkspace(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate}); break;";
+const qellyChatStyleWorkspace=qellyChatWorkspace.replace('main,{api,','main,{api,signal:controller.signal,renderRoute,');
 const migrations=Object.freeze([
   ["case 'discovery-hub': await renderDiscoveryHub(main); break;",discoveryOverview],
   ["case 'category-detail': await renderCategoryDetail(main); break;",unavailable('category-detail')],
   ["case 'venue-detail': await renderVenueDetail(main); break;",unavailable('venue-detail')],
-  ["case 'news-research': await renderNewsResearch(main); break;",qellyChatWorkspace],
+  ["case 'news-research': await renderNewsResearch(main); break;",qellyChatStyleWorkspace],
+  [qellyChatWorkspace,qellyChatStyleWorkspace],
   ["case 'research-article': await renderResearchArticle(main); break;",unavailable('research-article')],
   ["case 'rankings': await renderLegacyRankings(main); break;",unavailable('rankings')],
   ["case 'trust-center': await renderTrustCenter(main); break;",trustCenter]

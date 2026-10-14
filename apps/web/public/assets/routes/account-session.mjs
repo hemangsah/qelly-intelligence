@@ -1,3 +1,4 @@
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 import {assuranceLabel,authenticationMethodLabel} from '../customer-copy.mjs';
 import {installPrivateAvatarControls} from '../qelly-profile-avatar.mjs';
 
@@ -5,14 +6,10 @@ const esc=(value,escapeHtml)=>escapeHtml(value??'—');
 const date=(value)=>{const parsed=new Date(value||'');return Number.isNaN(parsed.getTime())?'Not supplied':parsed.toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});};
 const initials=(value)=>String(value||'Q').trim().split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toUpperCase()||'Q';
 
-function ensureStyles(){
-  if(document.querySelector('link[data-qelly-account-v6]'))return;
-  const link=document.createElement('link');
-  link.rel='stylesheet';link.href='/assets/routes/account-session-v6.css';link.dataset.qellyAccountV6='true';document.head.append(link);
-}
+async function ensureStyles(signal){await ensureRouteStylesheet('/assets/routes/account-session-v6.css',{attribute:'data-qelly-account-v6',value:'true',signal});}
 
-export async function renderAccountSession(main,{api,pageHead,escapeHtml,toast,onLoggedOut,onAuthenticated}){
-  ensureStyles();
+export async function renderAccountSession(main,{api,pageHead,escapeHtml,toast,onLoggedOut,onAuthenticated,signal,renderRoute}){
+  try{await ensureStyles(signal);}catch(error){if(error?.name==='AbortError')throw error;main.innerHTML=`<section class="q-page"><header class="q-page-head"><div><p class="q-eyebrow">Your account</p><h1>The workspace could not open.</h1><p>Workspace styles could not load. Please retry.</p></div></header><button class="q-button q-button--primary" type="button" data-account-session-style-retry>Retry workspace</button></section>`;main.querySelector('[data-account-session-style-retry]').addEventListener('click',()=>renderRoute?.());return;}
   const [profile,sessions,mfaStatus]=await Promise.all([
     api('/api/v1/profile'),
     api('/api/v1/sessions').catch(()=>({scope:'current-session-only',items:[]})),
