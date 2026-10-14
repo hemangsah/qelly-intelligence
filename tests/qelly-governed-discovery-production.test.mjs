@@ -90,3 +90,11 @@ test('production discovery finalizer preserves the live Asset Dossier owner',asy
   assert.match(output,/\/api\/v1\/public\/markets\/assets\//);
   assert.doesNotMatch(output,/renderGovernedUnavailable\(main,\{api,pageHead,stateBanner,escapeHtml,navigate,toast,state\},'asset'\)/);
 });
+
+test('governed Chat finalization upgrades existing owners and preserves stylesheet cancellation dependencies',()=>{
+  const old="case 'news-research': await renderQellyChatWorkspace(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate}); break;";
+  const owned=old.replace('main,{api,','main,{api,signal:controller.signal,renderRoute,');
+  for(const source of ["case 'news-research': await renderNewsResearch(main); break;",old,owned]){
+    assert.equal(rewriteGovernedDiscovery(source),owned);
+  }
+});
