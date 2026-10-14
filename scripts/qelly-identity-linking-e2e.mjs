@@ -42,5 +42,30 @@ try{
    await page.screenshot({path:`${out}/${state}-${width}-${appearance}.png`,fullPage:true});results.push({width,appearance,state,passed:true,realIdentityWrites});
   }finally{await context.close();}
  }
- await writeFile(`${out}/report.json`,JSON.stringify({releaseSha:process.env.QELLY_SCREEN_EVIDENCE_SHA,status:'passed',cases:results.length,results,boundary:'Isolated UI fixture only. No real account or provider consent is activated.'},null,2)+'\n');
+
+ const authLoginResults=[];
+ for(const width of [1440,390])for(const appearance of ['dark','light'])for(const failure of [
+  {state:'cors-origin',status:403,code:'cors_origin_forbidden',message:'Sign-in is unavailable at this workspace address. Open the production Qelly terminal to continue.'},
+  {state:'csrf-origin',status:403,code:'csrf_origin_forbidden',message:'Sign-in is unavailable at this workspace address. Open the production Qelly terminal to continue.'},
+  {state:'credentials',status:401,code:'invalid_credentials',message:'Email or password is incorrect.'},
+  {state:'network',message:'Qelly could not complete sign-in. Try again, or use the production Qelly terminal.'}
+ ]){
+  const context=await browser.newContext({viewport:{width,height:900},colorScheme:appearance,serviceWorkers:'block'}),page=await context.newPage();let realAuthenticationWrites=0;
+  page.on('request',request=>{if(!['GET','HEAD','OPTIONS'].includes(request.method())&&new URL(request.url()).pathname.startsWith('/api/v1/auth/'))realAuthenticationWrites++;});
+  await page.route('**/login-feedback-fixture.html',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><html data-resolved-appearance="'+appearance+'" data-appearance="'+appearance+'" data-theme="'+appearance+'"><head>'+styles+'</head><body><main></main><script type="module">'+
+   'import {renderAuthLogin} from "/assets/routes/auth-login.mjs";const failure='+JSON.stringify(failure)+';window.fixtureLoginCalls=0;'+
+   'const api=async(path)=>{if(path==="/api/v1/auth/status")return {authenticated:false};if(path==="/api/v1/auth/oauth/providers")return {providers:[]};if(path==="/api/v1/auth/login"){window.fixtureLoginCalls++;throw Object.assign(new Error("Controlled UI error"),{status:failure.status,code:failure.code});}throw new Error("Unexpected fixture API");};'+
+   'await renderAuthLogin(document.querySelector("main"),{api,toast:()=>{},navigate:()=>{},onAuthenticated:()=>{throw new Error("Authentication must not succeed");},state:{routeQuery:new URLSearchParams(),config:{auth:{emailDeliveryAvailable:false}}}});document.body.dataset.fixtureReady="true";</script></body></html>'}));
+  try{
+   await page.goto('http://127.0.0.1:'+server.port+'/login-feedback-fixture.html',{waitUntil:'domcontentloaded'});await page.locator('body[data-fixture-ready="true"]').waitFor();
+   await page.locator('input[name="email"]').fill('ui-feedback@example.invalid');await page.locator('input[name="password"]').fill('Synthetic-Ui-Only-123!');
+   await page.locator('[data-sign-in]').click();await page.locator('#login-error').filter({hasText:failure.message}).waitFor();
+   assert.equal(await page.locator('#login-error').innerText(),failure.message);assert.equal(await page.locator('[data-sign-in]').isEnabled(),true);
+   assert.equal(await page.locator('input[name="password"]').getAttribute('type'),'password');assert.equal(await page.locator('#login-error').getAttribute('role'),'alert');assert.equal(await page.locator('#login-error').getAttribute('aria-live'),'polite');
+   assert.equal(await page.evaluate(()=>window.fixtureLoginCalls),1);assert.equal(realAuthenticationWrites,0);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
+   await page.screenshot({path:out+'/login-'+failure.state+'-'+width+'-'+appearance+'.png',fullPage:true});
+   authLoginResults.push({state:failure.state,width,appearance,passed:true,realAuthenticationWrites:0,isolatedUiFixture:true,credentialsWereSynthetic:true,retryEnabled:true,passwordRemainsMasked:true,liveError:true,overflow:false});
+  }finally{await context.unrouteAll({behavior:'wait'});await context.close();}
+ }
+ await writeFile(`${out}/report.json`,JSON.stringify({releaseSha:process.env.QELLY_SCREEN_EVIDENCE_SHA,status:'passed',cases:results.length,results,authLoginFeedbackCases:authLoginResults.length,authLoginResults,boundary:'Isolated UI fixture only. No real account or provider consent is activated.'},null,2)+'\n');
 }finally{await browser.close();await new Promise(resolve=>server.server.close(resolve));await new Promise(resolve=>server.evidenceUpstream.server.close(resolve));}

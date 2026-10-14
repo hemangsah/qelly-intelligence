@@ -1,9 +1,10 @@
 const safeMessage=(error)=>{
   if(error?.status===429)return'Too many attempts. Wait a moment and try again.';
+  if(['cors_origin_forbidden','csrf_origin_forbidden'].includes(error?.code))return'Sign-in is unavailable at this workspace address. Open the production Qelly terminal to continue.';
   if(error?.status===401||error?.code==='invalid_credentials'||error?.code==='login_failed')return'Email or password is incorrect.';
   if(error?.code==='runtime_configuration_invalid')return'Qelly sign-in is temporarily unavailable because the identity service is not connected. Try again after the workspace runtime is configured.';
   if(!navigator.onLine)return'You are offline. Reconnect before signing in.';
-  return'Qelly could not sign you in. Check your details and try again.';
+  return'Qelly could not complete sign-in. Try again, or use the production Qelly terminal.';
 };
 
 // Capability boundary retained for release verification: Passkey sign-in unavailable.
