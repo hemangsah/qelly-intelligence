@@ -1,3 +1,4 @@
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 import {humanizeOperationalState,providerPolicyMessage,readinessLabel,truthLabel} from '../customer-copy.mjs';
 
 const statusTone=(status)=>status==='ready'?'live':status==='deferred'?'cached':status==='partial'?'warning':'unavailable';
@@ -37,15 +38,10 @@ export function providerDisplayModel(raw={}){
 }
 
 
-function ensureProviderCoverageStyles(){
- if(document.querySelector('link[data-qelly-provider-coverage]'))return;
- const style=document.createElement('link');
- style.rel='stylesheet';style.href='/assets/routes/platform-readiness-provider-coverage.css';
- style.dataset.qellyProviderCoverage='true';document.head.append(style);
-}
+async function ensureProviderCoverageStyles(signal){await ensureRouteStylesheet('/assets/routes/platform-readiness-provider-coverage.css',{attribute:'data-qelly-provider-coverage',value:'true',signal});}
 
-export async function renderPlatformReadiness(main,{api,pageHead,escapeHtml}){
- ensureProviderCoverageStyles();
+export async function renderPlatformReadiness(main,{api,pageHead,escapeHtml,signal,renderRoute}){
+ try{await ensureProviderCoverageStyles(signal);}catch(error){if(error?.name==='AbortError')throw error;main.innerHTML=`<section class="q-page"><header class="q-page-head"><div><p class="q-eyebrow">Service status</p><h1>The workspace could not open.</h1><p>Workspace styles could not load. Please retry.</p></div></header><button class="q-button q-button--primary" type="button" data-platform-readiness-style-retry>Retry workspace</button></section>`;main.querySelector('[data-platform-readiness-style-retry]').addEventListener('click',()=>renderRoute?.());return;}
  const data=await api('/api/v1/platform/readiness');
  const summary=data.summary||{ready:0,partial:0,deferred:0,blocked:0};
  const gates=Array.isArray(data.gates)?data.gates:[];

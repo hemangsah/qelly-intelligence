@@ -452,11 +452,11 @@ async function performRouteRender(request,controller) {
       case 'account-recovery': await renderAccountRecovery(main,{api,pageHead,toast,escapeHtml,renderRoute}); break;
       case 'secure-import-vault': await renderSecureImportVault(main,{api,pageHead,toast,escapeHtml}); break;
       case 'delivery-operations': await renderDeliveryOperations(main,{api,pageHead,toast,escapeHtml,renderRoute}); break;
-      case 'platform-readiness': await renderPlatformReadiness(main,{api,pageHead,escapeHtml}); break;
+      case 'platform-readiness': await renderPlatformReadiness(main,{api,signal:controller.signal,renderRoute,pageHead,escapeHtml}); break;
       case 'secret-rotation': await renderSecretRotation(main,{api,pageHead,escapeHtml,toast,renderRoute}); break;
       case 'quarantine-review': await renderQuarantineReview(main,{api,pageHead,escapeHtml,toast,renderRoute}); break;
       case 'staging-assurance': await renderStagingAssurance(main,{api,pageHead,escapeHtml,toast,renderRoute}); break;
-      case 'account-session': await renderAccountSession(main,{api,pageHead,escapeHtml,toast,onLoggedOut:()=>reloadApplication('auth-login'),onAuthenticated:reloadApplication}); break;
+      case 'account-session': await renderAccountSession(main,{api,signal:controller.signal,renderRoute,pageHead,escapeHtml,toast,onLoggedOut:()=>reloadApplication('auth-login'),onAuthenticated:reloadApplication}); break;
       case 'live-markets': await renderLiveMarkets(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,signal:controller.signal,renderRoute}); break;
       case 'calculator-center': await renderCalculatorCenter(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute}); break;
       case 'india-finance': await renderIndiaFinanceCenter(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,state,renderRoute,signal:controller.signal}); break;
@@ -485,7 +485,7 @@ async function performRouteRender(request,controller) {
       case 'dex-discovery': await renderDexWorkspace(main,{api,escapeHtml,toast,signal:controller.signal,renderRoute}); break;
       case 'global-charts': await renderGlobalChartsWorkspace(main,{api,escapeHtml,toast,signal:controller.signal,renderRoute}); break;
       case 'converter': await renderConverterWorkspace(main,{api,escapeHtml,toast}); break;
-      case 'news-research': await renderQellyChatWorkspace(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate}); break;
+      case 'news-research': await renderQellyChatWorkspace(main,{api,signal:controller.signal,renderRoute,pageHead,stateBanner,escapeHtml,toast,navigate}); break;
       case 'research-article': await renderResearchArticle(main); break;
       case 'trust-center': await renderTrustCenter(main); break;
       case 'market': await renderMarketV6(main,{api,pageHead,stateBanner,escapeHtml}); break;
@@ -496,7 +496,7 @@ async function performRouteRender(request,controller) {
       case 'alert-center': await renderAlertCenter(main,{api,pageHead,stateBanner,escapeHtml,QellyDataGrid,toast,navigate,renderRoute}); break;
       case 'notification-center': await renderNotificationCenter(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,renderRoute}); break;
       case 'screener-lab': await renderScreenerLab(main,{api,pageHead,stateBanner,escapeHtml,QellyDataGrid,toast,navigate,renderRoute}); break;
-      case 'portfolio-analytics': await renderPortfolioAnalytics(main,{api,pageHead,stateBanner,escapeHtml,QellyDataGrid,QellyChartShell,formatCompact,navigate}); break;
+      case 'portfolio-analytics': await renderPortfolioAnalytics(main,{api,signal:controller.signal,renderRoute,pageHead,stateBanner,escapeHtml,QellyDataGrid,QellyChartShell,formatCompact,navigate}); break;
       case 'research-workspace': await renderResearchWorkspace(main,{api,pageHead,stateBanner,escapeHtml,toast,navigate,renderRoute,signal:controller.signal}); break;
       case 'onboarding': await renderOnboarding(main,{api,pageHead,stateBanner,escapeHtml,toast,renderRoute}); break;
       case 'notification-schedules': await renderNotificationSchedules(main,{api,pageHead,stateBanner,escapeHtml,toast,renderRoute}); break;

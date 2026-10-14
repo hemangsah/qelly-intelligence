@@ -1,3 +1,4 @@
+import {ensureRouteStylesheet} from '../route-stylesheet-readiness.mjs';
 import {adSlot,mountAdSlots} from '../qelly-ad-slot.mjs';
 import {peekResearchContext,storeDecisionContext} from '../decision-context-bridge.mjs';
 const STYLESHEET=new URL('../qelly-chat-workspace.css',import.meta.url).href;
@@ -12,15 +13,12 @@ const MODES=Object.freeze([
   {id:'india',step:'08',title:'India',copy:'Use connected India reference evidence while separating TradingView display-only market coverage.',prompt:'What India Finance evidence can QELLY verify now? Separate delayed reference data from display-only market coverage.'}
 ]);
 
-const activateStyles=()=>{
-  if(document.querySelector('link[data-qelly-chat-workspace]'))return;
-  const link=document.createElement('link');link.rel='stylesheet';link.href=STYLESHEET;link.dataset.qellyChatWorkspace='active';document.head.append(link);
-};
+async function activateStyles(signal){await ensureRouteStylesheet(STYLESHEET,{attribute:'data-qelly-chat-workspace',value:'active',signal});}
 
 const modeCards=(escapeHtml)=>MODES.map((mode)=>`<article class="q-chat-mode-card"><span>${mode.step}</span><h2>${escapeHtml(mode.title)}</h2><p>${escapeHtml(mode.copy)}</p><button class="q-button q-button--secondary" type="button" data-chat-mode="${mode.id}" data-chat-prompt="${escapeHtml(mode.prompt)}">Start ${escapeHtml(mode.title)}</button></article>`).join('');
 
-export async function renderQellyChatWorkspace(main,{api,pageHead,stateBanner,escapeHtml,navigate}){
-  activateStyles();
+export async function renderQellyChatWorkspace(main,{api,pageHead,stateBanner,escapeHtml,navigate,signal,renderRoute}){
+  try{await activateStyles(signal);}catch(error){if(error?.name==='AbortError')throw error;main.innerHTML=`<section class="q-page"><header class="q-page-head"><div><p class="q-eyebrow">QELLY Chat</p><h1>The workspace could not open.</h1><p>Workspace styles could not load. Please retry.</p></div></header><button class="q-button q-button--primary" type="button" data-qelly-chat-workspace-style-retry>Retry workspace</button></section>`;main.querySelector('[data-qelly-chat-workspace-style-retry]').addEventListener('click',()=>renderRoute?.());return;}
   const researchContext=peekResearchContext();
   const contextAsset=researchContext.asset||null;
   const contextTimeframe=researchContext.timeframe||'15m';
