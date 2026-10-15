@@ -42,11 +42,11 @@ function productHeaderMarkup(){
     <nav id="q-product-navigation" class="q-product-nav" aria-label="Primary product categories">${productNav().map(categoryMarkup).join('')}</nav>
     <div class="q-product-context" data-q-product-context aria-live="polite"><small data-q-product-category-label>${escapeHtml(identity?.categoryLabel||'Discover')}</small><strong data-q-product-page-title>${escapeHtml(identity?.shortTitle||'Qelly')}</strong></div>
     <form class="q-product-search" role="search"><label class="q-visually-hidden" for="q-product-search-input">Search Qelly</label><input id="q-product-search-input" name="q" type="search" autocomplete="off" placeholder="Search Qelly"><button type="submit" aria-label="Search Qelly"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg><span class="q-visually-hidden">Search</span></button></form>
-    <div class="q-product-actions"><button class="q-product-system" type="button" data-product-route="status" aria-label="Open system status"><span class="q-product-system__dot"></span><span>Data status</span></button><button class="q-product-system" type="button" data-v8-appearance="true" aria-label="Toggle appearance"><span aria-hidden="true">◐</span><span>Appearance</span></button><a class="q-product-account" href="#/auth-login" aria-label="Sign in to Qelly"><span aria-hidden="true">●</span><span>Sign in</span></a></div>`;
+    <div class="q-product-actions"><button class="q-product-system" type="button" data-product-route="platform-readiness" aria-label="Open system status"><span class="q-product-system__dot"></span><span>Data status</span></button><button class="q-product-system" type="button" data-v8-appearance="true" aria-label="Toggle appearance"><span aria-hidden="true">◐</span><span>Appearance</span></button><a class="q-product-account" href="#/auth-login" aria-label="Sign in to Qelly"><span aria-hidden="true">●</span><span>Sign in</span></a></div>`;
 }
 
 function syncProductHeaderState(header){
-  const status=header.querySelector('.q-product-system[data-product-route="status"]');
+  const status=header.querySelector('.q-product-system[data-product-route="platform-readiness"]');
   const dot=status?.querySelector('.q-product-system__dot');
   if(dot)dot.dataset.state=navigator.onLine?'live':'offline';
   if(status)status.setAttribute('aria-label',navigator.onLine?'Open system status · online':'Open system status · offline');
@@ -201,18 +201,6 @@ async function renderMarketHomepage(){
   rendering=false;
 }
 
-async function renderStatusPage(){
-  if(rendering)return;rendering=true;
-  const main=document.getElementById('main');if(!main){rendering=false;return;}
-  const [health,readiness,providers]=await Promise.all([
-    requestJson('/api/v1/health').catch((error)=>({status:'unavailable',error:error.message})),
-    requestJson('/api/v1/readiness').catch((error)=>({ready:false,error:error.message})),
-    requestJson('/api/v1/providers/status').catch((error)=>({providers:[],error:error.message}))
-  ]);
-  await loadReleaseIdentity();
-  main.innerHTML=`<section class="q-system-page"><div class="q-system-page__head"><p class="q-market-kicker">System status</p><h1>Qelly service and provider status</h1><p>Technical runtime identity is kept here instead of the primary product navigation.</p></div><div class="q-system-grid"><article><span>Application</span><strong>${health.status==='ok'?'Operational':'Unavailable'}</strong><small>Read-only public runtime</small></article><article><span>Readiness</span><strong>${readiness.ready?'Ready':'Degraded'}</strong><small>Supabase, Auth, RLS and providers</small></article><article><span>Network</span><strong>${navigator.onLine?'Online':'Offline'}</strong><small>Current browser connectivity</small></article><article><span>Account</span><strong>${sessionState.authenticated?'Signed in':'Signed out'}</strong><small>${sessionState.authenticated?'Cloud sync available':'Local tools available'}</small></article></div><section class="q-system-details"><h2>Provider capabilities</h2><div>${(providers.providers||[]).map((provider)=>`<article><div><strong>${escapeHtml(provider.name||provider.id)}</strong><small>${escapeHtml(provider.description||provider.capability||'Read-only public data')}</small></div><span class="q-truth-pill is-${stateClass(provider.state||provider.status||'live')}">${escapeHtml(stateLabel(provider.state||provider.status||'Available'))}</span></article>`).join('')||'<p>Provider catalogue is unavailable.</p>'}</div></section><details class="q-system-identity"><summary>Runtime identity</summary><dl><div><dt>Environment</dt><dd>${escapeHtml(releaseIdentity.mode)}</dd></div><div><dt>Release</dt><dd><code>${escapeHtml(releaseIdentity.releaseSha)}</code></dd></div><div><dt>Fallback</dt><dd><code>603cece3091dc59cfb72680914e7056b40058022</code></dd></div><div><dt>Public URL</dt><dd>${escapeHtml(config.publicSiteUrl||location.origin)}</dd></div></dl></details></section>`;
-  document.title='System status · Qelly Intelligence';rendering=false;
-}
 
 function renderAccessGate(route){
   const main=document.getElementById('main');if(!main)return;
@@ -228,7 +216,7 @@ function enhanceCurrentRoute(){
   // Market is owned by the connected market-v6 route. Do not replace it with
   // the legacy beta homepage or call that page's private market contract.
   if(route==='market')return;
-  if(route==='status'){if(!main.querySelector('.q-system-page'))renderStatusPage();return;}
+  if(route==='status'){navigate('platform-readiness');return;}
   const text=main.textContent||'';
   if(/Unable to render this route/i.test(text)&&/Authentication is required|authentication_required|sign in required/i.test(text))renderAccessGate(route);
   document.querySelector('.q-auth-page')?.setAttribute('data-production-auth','true');
@@ -247,6 +235,7 @@ async function registerServiceWorker(){if(!('serviceWorker'in navigator)||locati
 
 function install(){
   if(!initialHash||initialHash==='#/'||initialHash==='#')location.hash='#/market';
+  if(initialHash.replace(/^#\/?/,'').split('?')[0].split('/')[0]==='status')navigate('platform-readiness');
   document.addEventListener('qelly:session-state',(event)=>applySessionState(event.detail));
   const initialSessionState=window.__QELLY_SESSION_STATE__;
   if(initialSessionState)applySessionState(initialSessionState);else buildProductHeader();

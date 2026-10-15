@@ -351,7 +351,11 @@ function bindShell() {
 }
 
 function resolveHash() {
-  const sourceHash=location.hash;
+  let sourceHash=location.hash;
+  if(/^#\/?status(?:[/?]|$)/.test(sourceHash)){
+    sourceHash='#/platform-readiness';
+    history.replaceState(null,'',sourceHash);
+  }
   const {route,asset,query}=parseHashRoute(sourceHash,{fallback:state.prefs?.route||'market'});
   const legacyDecisionMaker=/^#\/market\?[^#]*\bview=decision-maker(?:&|$)/i.test(sourceHash);
   if(legacyDecisionMaker){
@@ -367,6 +371,7 @@ function resolveHash() {
     : Boolean(definition);
   const authenticatedAccessRoute=Boolean(state.authenticated&&definition?.anonymousOnly);
   state.route=authenticatedAccessRoute?'account-session':allowed?route:(staticVisualPreview?'market':state.authenticated?'discovery-hub':'feature-universe');
+  if(authenticatedAccessRoute&&location.hash!=='#/account-session')history.replaceState(null,'','#/account-session');
   if(!allowed&&route!==state.route)history.replaceState(null,'',`#/${state.route}`);
   state.activeDomain=(allowed?definition:routeDefinitions.find((item)=>item.route===state.route))?.domain??'markets';
   state.routeQuery=query;
