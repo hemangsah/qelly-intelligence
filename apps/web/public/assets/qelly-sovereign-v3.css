@@ -135,3 +135,10 @@ html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-perso
   background-image:none!important;
   box-shadow:none!important;
 }
+
+/* The light-mode heading and kicker globals must not lower contrast on the fixed burgundy banner. */
+html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-brand-lock-banner h2{color:#fff!important}
+html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-brand-lock-banner p{color:#f7eaf0!important}
+html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-brand-lock-banner .q-eyebrow{color:#ffd6e6!important}
+/* The legacy primary-action owner declares its decorative shadow important; keyboard focus keeps its own contract. */
+html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-page-actions .q-button--primary:not(:focus-visible){box-shadow:none!important}
