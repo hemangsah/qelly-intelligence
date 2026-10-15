@@ -25,11 +25,13 @@ try{
   const page=active=await context.newPage();
   await page.goto(site+'/#/market',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');
-  const status=page.locator('.q-product-system[data-product-route]');await status.waitFor({state:'visible'});
-  assert.equal(await status.getAttribute('data-product-route'),'platform-readiness');await status.click();
-  await page.waitForURL('**/#/platform-readiness');
-  await page.waitForFunction(()=>document.querySelector('#main')?.dataset.productionRoute==='platform-readiness');
-  results.push({authenticated,appearance,width,journey:'header-status',canonicalRoute:true});
+  const status=page.locator('.q-product-system[data-product-route]');await status.waitFor({state:'attached'});
+  assert.equal(await status.getAttribute('data-product-route'),'platform-readiness');
+  if(width===1440){
+   await status.click();await page.waitForURL('**/#/platform-readiness');
+   await page.waitForFunction(()=>document.querySelector('#main')?.dataset.productionRoute==='platform-readiness');
+  }else assert.equal(await status.isVisible(),false,'Preserve the existing compact-header visibility rule');
+  results.push({authenticated,appearance,width,journey:'header-status',registeredTarget:true,headerClickTested:width===1440,mobileHeaderHiddenAsBefore:width===390});
   for(const route of ['status','auth-login','auth-register','auth-recovery']){
    await page.goto(site+'/#/'+route,{waitUntil:'domcontentloaded'});
    const expected=route==='status'?'platform-readiness':authenticated?'account-session':route;
