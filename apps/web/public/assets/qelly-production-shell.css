@@ -278,7 +278,7 @@ body {
   margin: 0 !important;
 }
 
-#main > .q-page {
+#main > .q-page:not(.q-dpg-page) {
   width: min(100%, 1540px) !important;
   max-width: 1540px !important;
   margin: 0 auto !important;
@@ -310,7 +310,7 @@ body {
   text-wrap: balance;
 }
 
-#main h1:not(:where(.q-about-v2-page *)):not(:where(.q-feature-index,.q-feature-index *)){
+#main h1:not(:where(.q-about-v2-page *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)){
   font-size: clamp(28px, 3vw, 44px) !important;
   line-height: 1.05 !important;
   font-weight: 650 !important;
@@ -625,7 +625,7 @@ tr, td, th { border-color: var(--q-border) !important; }
   .q-product-system { display: none !important; }
   .q-product-account { min-width: 76px !important; justify-content: center; }
   .q-shell, #main:not(:where(.q-feature-index,.q-feature-index *)) { min-height: calc(100vh - 58px) !important; }
-  #main > .q-page { padding: 18px 14px 88px !important; }
+  #main > .q-page:not(.q-dpg-page) { padding: 18px 14px 88px !important; }
   .q-page-head:not(:where(.q-about-v2-page *)){ display: grid !important; align-items: start !important; gap: 14px !important; padding-bottom: 16px !important; }
   .q-page-head h1:not(:where(.q-about-v2-page *)):not(:where(.q-v6-account-page,.q-v6-account-page *)){ font-size: 30px !important; }
   .q-page-actions:not(:where(.q-about-v2-page *)){ justify-content: flex-start !important; }
@@ -657,7 +657,7 @@ tr, td, th { border-color: var(--q-border) !important; }
   .q-product-account span:first-child { display: none; }
   .q-product-account { min-width: 68px !important; padding: 0 9px !important; }
   .q-home-principles { grid-template-columns: 1fr; }
-  #main h1:not(:where(.q-about-v2-page *)):not(:where(.q-feature-index,.q-feature-index *)){ font-size: 28px !important; }
+  #main h1:not(:where(.q-about-v2-page *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dpg-page *)){ font-size: 28px !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -857,7 +857,7 @@ html[data-production-system="v8"] #main:not(:where(.q-feature-index,.q-feature-i
   transform: none !important;
 }
 
-html[data-production-system="v8"] #main > .q-page {
+html[data-production-system="v8"] #main > .q-page:not(.q-dpg-page) {
   width: min(100%,1540px) !important;
   max-width: 1540px !important;
   padding: 28px 30px 64px !important;
@@ -923,7 +923,7 @@ html[data-production-system="v8"][data-resolved-appearance="light"] .q-shell {
   html[data-production-system="v8"] .q-product-header .q-product-search { display:none !important; }
   html[data-production-system="v8"] .q-product-header .q-product-menu { margin:0 !important; }
   html[data-production-system="v8"] .q-product-header .q-product-actions { grid-column:3 !important; }
-  html[data-production-system="v8"] #main > .q-page { padding: 18px 14px 88px !important; }
+  html[data-production-system="v8"] #main > .q-page:not(.q-dpg-page) { padding: 18px 14px 88px !important; }
 }
 
 /* Closed feature navigation must neither paint a shadow nor expose off-screen controls. */
