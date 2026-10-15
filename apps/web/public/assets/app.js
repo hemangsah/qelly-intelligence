@@ -582,16 +582,16 @@ function capabilityBoundaryPage(definition,error){
   const reason=String(error?.message||'The connected production data contract is not available.');
   const code=String(error?.code||`http_${Number(error?.status||0)||'unavailable'}`);
   return `<section class="q-page q-capability-boundary" data-capability-boundary="${escapeHtml(definition?.route??'unavailable')}">
-    ${pageHead(`${domain} · availability`,label,`${label} is not connected to a production data source yet. Your account and the rest of Qelly remain available.`)}
-    <div class="q-kpi-grid">
-      <article class="q-kpi"><div class="q-kpi-label">This feature</div><div class="q-kpi-value q-kpi-value--text">Coming later</div><div class="q-kpi-meta"><span>no placeholder data shown</span><span class="q-status q-status--warning">NOT CONNECTED</span></div></article>
-      <article class="q-kpi"><div class="q-kpi-label">Your account</div><div class="q-kpi-value q-kpi-value--text">Signed in</div><div class="q-kpi-meta"><span>session remains active</span><span class="q-status q-status--live">AVAILABLE</span></div></article>
-      <article class="q-kpi"><div class="q-kpi-label">Displayed data</div><div class="q-kpi-value">None</div><div class="q-kpi-meta"><span>Qelly never invents missing values</span><span class="q-status q-status--cached">TRUTHFUL</span></div></article>
-      <article class="q-kpi"><div class="q-kpi-label">Other tools</div><div class="q-kpi-value q-kpi-value--text">Available</div><div class="q-kpi-meta"><span>continue without interruption</span><span class="q-status q-status--live">READY</span></div></article>
-    </div>
+    ${pageHead(`${domain} · availability`,label,`${label} cannot show its production data right now. Your account and the rest of Qelly remain available.`)}
+    <dl class="q-capability-facts" aria-label="Workspace availability">
+      <div><dt>This feature</dt><dd><strong>Unavailable now</strong><span>No placeholder data shown</span><span class="q-status q-status--warning">NOT CONNECTED</span></dd></div>
+      <div><dt>Your account</dt><dd><strong>Signed in</strong><span>Session remains active</span><span class="q-status q-status--live">AVAILABLE</span></dd></div>
+      <div><dt>Displayed data</dt><dd><strong>None</strong><span>Qelly never invents missing values</span><span class="q-status q-status--cached">TRUTHFUL</span></dd></div>
+      <div><dt>Other tools</dt><dd><strong>Available</strong><span>Continue without interruption</span><span class="q-status q-status--live">READY</span></dd></div>
+    </dl>
     <div class="q-two-column q-capability-boundary__grid">
-      <section class="q-panel"><div class="q-panel-head"><div><h2>Continue in Qelly</h2><p>Your signed-in workspace is safe and the rest of the product remains available.</p></div><span class="q-status q-status--live">ACCOUNT ACTIVE</span></div><div class="q-panel-body"><ul class="q-capability-boundary__list"><li>Open another connected market or research workspace.</li><li>Use deterministic calculators without provider data.</li><li>Return later without reconfiguring this feature.</li></ul></div></section>
-      <section class="q-panel"><div class="q-panel-head"><div><h2>Why this page is empty</h2><p>The required data source is not available, so Qelly does not show invented or stale placeholder values.</p></div><span class="q-status q-status--warning">DATA UNAVAILABLE</span></div><div class="q-panel-body"><p>Try again later or continue to another workspace. Support can use the diagnostic below if this feature should already be active.</p><details><summary>Diagnostic details</summary><code>${escapeHtml(code)} · ${escapeHtml(reason)}</code></details></div></section>
+      <section class="q-capability-surface"><div class="q-capability-heading"><div><h2>Continue in Qelly</h2><p>Your signed-in workspace is safe and the rest of the product remains available.</p></div><span class="q-status q-status--live">ACCOUNT ACTIVE</span></div><div class="q-capability-body"><ul class="q-capability-boundary__list"><li>Open another connected market or research workspace.</li><li>Use deterministic calculators without provider data.</li><li>Return later without reconfiguring this feature.</li></ul></div></section>
+      <section class="q-capability-surface"><div class="q-capability-heading"><div><h2>Why this page is empty</h2><p>The required data source is not available, so Qelly does not show invented or stale placeholder values.</p></div><span class="q-status q-status--warning">DATA UNAVAILABLE</span></div><div class="q-capability-body"><p>Try again later or continue to another workspace. Support can use the diagnostic below if this feature should already be active.</p><details><summary>Diagnostic details</summary><code>${escapeHtml(code)} · ${escapeHtml(reason)}</code></details></div></section>
     </div>
     <div class="q-page-actions"><button class="q-button q-button--primary" type="button" data-retry>Retry connection</button><a class="q-button q-button--secondary" href="#/feature-universe">Browse all features</a><a class="q-button q-button--ghost" href="#/platform-readiness">Platform readiness</a></div>
   </section>`;

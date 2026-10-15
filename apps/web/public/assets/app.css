@@ -137,3 +137,21 @@ html,body{max-width:100%;overflow-x:hidden}
   #formula-grid .q-data-grid :is(th,td):nth-child(9){width:74px!important}
   #formula-grid .q-grid-sort{padding-inline:5px;white-space:normal;line-height:1.15}
 }
+
+/* Owned unavailable-workspace presentation; no legacy generic card membership. */
+.q-capability-boundary .q-capability-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;margin:24px 0 32px}
+.q-capability-boundary .q-capability-facts>div{min-width:0}
+.q-capability-boundary .q-capability-facts dt{color:var(--q-muted);font-size:12px;line-height:1.5;letter-spacing:.04em;text-transform:uppercase}
+.q-capability-boundary .q-capability-facts dd{display:grid;justify-items:start;gap:8px;margin:8px 0 0;min-width:0}
+.q-capability-boundary .q-capability-facts dd strong{font-size:20px;line-height:1.3;font-weight:650;overflow-wrap:anywhere}
+.q-capability-boundary .q-capability-facts dd>span:not(.q-status){font-size:13px;line-height:1.55;color:var(--q-muted)}
+.q-capability-boundary .q-capability-surface{min-width:0;background:var(--q-surface);background-image:none;padding:24px;border:0;border-radius:0;box-shadow:none}
+.q-capability-boundary .q-capability-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.q-capability-boundary .q-capability-heading h2{font-size:20px;line-height:1.35;margin:0 0 6px}
+.q-capability-boundary .q-capability-heading p{color:var(--q-muted);font-size:14px;line-height:1.6;margin:0}
+.q-capability-boundary .q-capability-body{min-width:0;font-size:14px;line-height:1.6}
+.q-capability-boundary .q-capability-body p{color:var(--q-muted)}
+.q-capability-boundary .q-capability-body code{overflow-wrap:anywhere;white-space:normal}
+.q-capability-boundary .q-capability-body summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
+@media(max-width:1000px){.q-capability-boundary .q-capability-facts{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.q-capability-boundary .q-capability-boundary__grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:480px){.q-capability-boundary .q-capability-surface{padding:18px}.q-capability-boundary .q-capability-facts dd strong{font-size:18px}}
