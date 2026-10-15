@@ -16,7 +16,7 @@ try{
    if(path==='/api/v1/config'){
     const response=await r.fetch(),data=await response.json();return r.fulfill({response,json:{...data,auth:{...data.auth,authenticated}}});
    }
-   if(path==='/api/v1/session/context')return r.fulfill({json:{user:{userId:'00000000-0000-4000-8000-000000000001',displayName:'Routing fixture',email:'fixture@example.invalid'},workspace:{workspaceId:'00000000-0000-4000-8000-000000000002',name:'Routing fixture'}}});
+   if(path==='/api/v1/session/context')return r.fulfill({json:{user:{userId:'00000000-0000-4000-8000-000000000001',displayName:'Routing fixture',email:'fixture@example.invalid'},organization:{name:'Routing fixture'},workspace:{workspaceId:'00000000-0000-4000-8000-000000000002',name:'Routing fixture'},session:{assurance:'isolated-fixture'},mode:'isolated-ui-fixture'}});
    if(path==='/api/v1/auth/status')return r.fulfill({json:{authenticated,mode:'isolated-routing-fixture'}});
    if(path==='/api/v1/preferences/layout'){const response=await r.fetch();return r.fulfill({response,json:{...await response.json(),appearance}});}
    if(path==='/api/v1/profile'&&authenticated)return r.fulfill({json:{user:{displayName:'Routing fixture',email:'fixture@example.invalid'},profile:{displayName:'Routing fixture',baseCurrency:'USD',timezone:'UTC'},workspace:{name:'Routing fixture'},session:{},linkedIdentities:[],capabilities:{}}});
@@ -25,6 +25,7 @@ try{
   const page=active=await context.newPage();
   await page.goto(site+'/#/market',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');
+  await page.waitForFunction(expected=>window.__QELLY_SESSION_STATE__?.authenticated===expected,authenticated);
   const status=page.locator('.q-product-system[data-product-route]');await status.waitFor({state:'attached'});
   assert.equal(await status.getAttribute('data-product-route'),'platform-readiness');
   if(width===1440){

@@ -95,6 +95,15 @@ jobs:
           test -s dist/frontend/assets/routes/notification-triage-v2.css
           test -s dist/frontend/assets/routes/screener-lab-v2.css
           grep -F "renderGovernedTrustCenterV2" dist/frontend/assets/app.js
+      - name: Verify status navigation and access-page URL alignment
+        run: node scripts/qelly-header-context-routing-e2e.mjs
+      - name: Upload focused header context routing evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-header-context-routing-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/header-context-routing-e2e
+          retention-days: 7
       - name: Verify structured anonymous workspace boundaries
         run: node scripts/qelly-anonymous-gate-e2e.mjs
       - name: Upload focused anonymous workspace evidence
@@ -252,15 +261,6 @@ jobs:
           name: qelly-market-network-style-readiness-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/market-network-style-readiness-e2e
           if-no-files-found: error
-      - name: Verify status navigation and access-page URL alignment
-        run: node scripts/qelly-header-context-routing-e2e.mjs
-      - name: Upload focused header context routing evidence
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: qelly-header-context-routing-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
-          path: preview/header-context-routing-e2e
-          retention-days: 7
       - name: Verify remaining route stylesheet lifecycle in isolated UI contexts
         run: node scripts/qelly-remaining-style-readiness-e2e.mjs
       - name: Upload remaining route stylesheet lifecycle evidence
