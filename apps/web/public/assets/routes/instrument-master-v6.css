@@ -68,7 +68,7 @@
 .q-reference-instrument-grid{display:grid;gap:5px;max-height:680px;overflow:auto;overscroll-behavior:contain;padding:4px;margin:-4px}
 .q-reference-page .q-reference-instrument-card{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(90px,.7fr) minmax(70px,.6fr);align-items:center;gap:18px;width:100%;min-height:66px;padding:14px 12px;border:0;border-radius:0;background:none;background-image:none;box-shadow:none;color:var(--reference-text);font:inherit;text-align:left;cursor:pointer}
 .q-reference-page .q-reference-instrument-card:hover{background:var(--reference-raised)}
-.q-reference-page .q-reference-instrument-card.is-selected{background:var(--reference-selected)}
+.q-reference-page .q-reference-instrument-card.q-reference-is-selected{background:var(--reference-selected)}
 .q-reference-instrument-card>span{min-width:0}
 .q-reference-instrument-card :is(strong,b){display:block;overflow-wrap:anywhere;font-size:13px;font-weight:650;line-height:1.5;font-variant-numeric:tabular-nums}
 .q-reference-instrument-card small{display:block;margin-top:4px;color:var(--reference-muted);font-size:11px;line-height:1.55;overflow-wrap:anywhere}

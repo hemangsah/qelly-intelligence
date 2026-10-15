@@ -164,13 +164,13 @@ async function verifyInstruments(page,root){
   let evidence=await readEvidence(root.locator('#v6-instrument-evidence'));
   assert.equal(evidence['Canonical key'],instruments[2].canonicalKey);assert.equal(evidence.Symbol,'ASTER');assert.equal(evidence['Latest value'],format(instruments[2].value));
   assert.equal(evidence['Truth state'],'UNAVAILABLE');assert.equal(evidence.Execution,'Disabled');
-  assert.equal(await root.locator('.q-reference-instrument-card.is-selected').count(),1);
+  assert.equal(await root.locator('.q-reference-instrument-card.q-reference-is-selected').count(),1);
   assert.equal(await rows.nth(2).getAttribute('aria-pressed'),'true');
   await rows.first().focus();await rows.first().press('Space');
   evidence=await readEvidence(root.locator('#v6-instrument-evidence'));
   assert.equal(evidence['Canonical key'],instruments[0].canonicalKey);assert.equal(evidence.Name,instruments[0].displayName);assert.equal(evidence['Latest value'],format(instruments[0].value));
   assert.equal(evidence['Truth state'],'DELAYED');assert.equal(evidence['Base / Quote'],'EUR / INR');
-  assert.equal(await rows.first().getAttribute('class'),'q-reference-instrument-card is-selected');
+  assert.equal(await rows.first().getAttribute('class'),'q-reference-instrument-card q-reference-is-selected');
   assert.equal(await rows.first().getAttribute('aria-pressed'),'true');assert.equal(await rows.nth(2).getAttribute('aria-pressed'),'false');
   assert.equal(await root.locator('#v6-instrument-evidence').getAttribute('aria-live'),'polite');
   assert.equal(await root.locator('a[href="#/data-mesh"]').count(),1);assert.equal(await root.locator('a[href="#/timeseries-lab"]').count(),1);
