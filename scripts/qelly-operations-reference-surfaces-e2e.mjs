@@ -61,7 +61,7 @@ const reads={
 };
 const requiredReads=Object.keys(reads);
 const results=[],sessions=[];
-let server,browser,active,activeCase,fatalError;
+let server,browser,active,activeCase,fatalError,screenshotCount=0;
 
 async function focusEvidence(page,control){
   // Establish keyboard modality before programmatic focus so :focus-visible
@@ -89,8 +89,8 @@ async function measurePresentation(page,root){
       rootWidth:root.getBoundingClientRect().width,
       legacyClasses:[...root.querySelectorAll('[class]')].flatMap(node=>[...node.classList]).filter(name=>/^q-(?:panel(?:-|$)|kpi(?:-|$)|v6-(?:runtime|instrument|release|evidence))/.test(name)),
       surfaces:[...root.querySelectorAll('.q-reference-surface')].filter(visible).map(style),
-      ordinary:[...root.querySelectorAll('.q-reference-runtime-kpis>div,.q-reference-series-summary>div,.q-reference-release-strip,.q-reference-runtime-provider,.q-reference-runtime-row,.q-reference-series-row,.q-reference-instrument-card,.q-reference-empty-state,.q-reference-status')].filter(visible).map(style),
-      numeric:[...root.querySelectorAll('.q-reference-runtime-kpis strong,.q-reference-series-summary strong,.q-reference-release-strip strong,.q-reference-series-latest,#v6-series-range strong,.q-reference-instrument-card b')].filter(visible).map(node=>({text:node.textContent.trim(),clientWidth:node.clientWidth,scrollWidth:node.scrollWidth,textOverflow:getComputedStyle(node).textOverflow}))
+      ordinary:[...root.querySelectorAll('.q-reference-runtime-kpis>div,.q-reference-series-summary>div,.q-reference-release-strip,.q-reference-runtime-provider,.q-reference-runtime-row,.q-reference-series-row,.q-reference-instrument-row,.q-reference-empty-state,.q-reference-status')].filter(visible).map(style),
+      numeric:[...root.querySelectorAll('.q-reference-runtime-kpis strong,.q-reference-series-summary strong,.q-reference-release-strip strong,.q-reference-series-latest,#v6-series-range strong,.q-reference-instrument-row b')].filter(visible).map(node=>({text:node.textContent.trim(),clientWidth:node.clientWidth,scrollWidth:node.scrollWidth,textOverflow:getComputedStyle(node).textOverflow}))
     };
   });
   assert.equal(measured.overflow,false,'Document overflow: '+JSON.stringify(measured));
@@ -147,7 +147,7 @@ async function verifyRuntime(root){
   return {providerAvailabilityPreserved:true,incidentFilteringPreserved:true,entitlementDenyPreserved:true,navigationLinksPreserved:true,releaseIdentityReadable:true,rawReleaseHashesOmitted:true,externalLinks};
 }
 async function verifyInstruments(page,root){
-  const query=root.locator('#v6-instrument-filter'),classes=root.locator('#v6-instrument-class'),count=root.locator('#v6-instrument-count'),rows=root.locator('.q-reference-instrument-card');
+  const query=root.locator('#v6-instrument-filter'),classes=root.locator('#v6-instrument-class'),count=root.locator('#v6-instrument-count'),rows=root.locator('.q-reference-instrument-row');
   assert.equal(await rows.count(),3);assert.equal(await count.innerText(),'3 records');
   const focus=await focusEvidence(page,query);await focusEvidence(page,classes);
   await query.fill('  EURO  ');assert.equal(await count.innerText(),'2 records');
@@ -164,13 +164,13 @@ async function verifyInstruments(page,root){
   let evidence=await readEvidence(root.locator('#v6-instrument-evidence'));
   assert.equal(evidence['Canonical key'],instruments[2].canonicalKey);assert.equal(evidence.Symbol,'ASTER');assert.equal(evidence['Latest value'],format(instruments[2].value));
   assert.equal(evidence['Truth state'],'UNAVAILABLE');assert.equal(evidence.Execution,'Disabled');
-  assert.equal(await root.locator('.q-reference-instrument-card.q-reference-is-selected').count(),1);
+  assert.equal(await root.locator('.q-reference-instrument-row.q-reference-is-selected').count(),1);
   assert.equal(await rows.nth(2).getAttribute('aria-pressed'),'true');
   await rows.first().focus();await rows.first().press('Space');
   evidence=await readEvidence(root.locator('#v6-instrument-evidence'));
   assert.equal(evidence['Canonical key'],instruments[0].canonicalKey);assert.equal(evidence.Name,instruments[0].displayName);assert.equal(evidence['Latest value'],format(instruments[0].value));
   assert.equal(evidence['Truth state'],'DELAYED');assert.equal(evidence['Base / Quote'],'EUR / INR');
-  assert.equal(await rows.first().getAttribute('class'),'q-reference-instrument-card q-reference-is-selected');
+  assert.equal(await rows.first().getAttribute('class'),'q-reference-instrument-row q-reference-is-selected');
   assert.equal(await rows.first().getAttribute('aria-pressed'),'true');assert.equal(await rows.nth(2).getAttribute('aria-pressed'),'false');
   assert.equal(await root.locator('#v6-instrument-evidence').getAttribute('aria-live'),'polite');
   assert.equal(await root.locator('a[href="#/data-mesh"]').count(),1);assert.equal(await root.locator('a[href="#/timeseries-lab"]').count(),1);
@@ -273,7 +273,7 @@ try{
       assert.equal(writes.length,0,JSON.stringify(writes));assert.equal(externalRequests.length,0,JSON.stringify(externalRequests));
       await page.evaluate(()=>scrollTo(0,0));
       const screenshot=out+'/'+spec.route+'-populated-'+appearance+'-'+width+'.png';
-      await page.screenshot({path:screenshot,fullPage:true});
+      await page.screenshot({path:screenshot,fullPage:true});screenshotCount++;
       results.push({...activeCase,screenshot,...measured,...behavior,syntheticSession:true,realAuthenticationTested:false,protectedWrites:0});
       activeCase={route:spec.route,state:'unavailable',appearance,width,status:503};
       failurePath=spec.failurePath;
@@ -283,7 +283,7 @@ try{
       await assertEscaping(page,failedRoot,errorReason);
       const failedMeasured=await measurePresentation(page,failedRoot);
       const failedScreenshot=out+'/'+spec.route+'-unavailable-503-'+appearance+'-'+width+'.png';
-      await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:failedScreenshot,fullPage:true});
+      await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:failedScreenshot,fullPage:true});screenshotCount++;
       results.push({...activeCase,screenshot:failedScreenshot,...failedMeasured,failedRead:failurePath,errorEscapingPreserved:true,protectedWrites:0,syntheticSession:true,realAuthenticationTested:false});
     }
     activeCase={route:'timeseries-lab',state:'history-unavailable',appearance,width,status:503};
@@ -295,7 +295,7 @@ try{
     await assertEscaping(page,root,errorReason);
     const measured=await measurePresentation(page,root);
     const screenshot=out+'/timeseries-lab-history-unavailable-503-'+appearance+'-'+width+'.png';
-    await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:screenshot,fullPage:true});
+    await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:screenshot,fullPage:true});screenshotCount++;
     results.push({...activeCase,screenshot,...measured,failedRead:failurePath,errorEscapingPreserved:true,nestedHistoryFailurePreserved:true,protectedWrites:0,syntheticSession:true,realAuthenticationTested:false});
     for(const path of requiredReads)assert.ok(requestLog.some(read=>read.path===path),'Missing integrated source API read '+path);
     assert.ok(requestLog.some(read=>read.path==='/api/v1/instruments/search'&&read.limit==='200'),'Instrument search endpoint contract changed.');
@@ -308,12 +308,14 @@ try{
   assert.equal(results.length,expectedCases);
 }catch(error){
   fatalError={message:error.message,stack:error.stack,activeCase};
-  await active?.screenshot({path:out+'/failure.png',fullPage:true}).catch(()=>{});
+  await active?.screenshot({path:out+'/failure.png',fullPage:true}).then(()=>screenshotCount++).catch(()=>{});
   throw error;
 }finally{
   const passed=!fatalError&&results.length===expectedCases;
-  await writeFile(out+'/report.json',JSON.stringify({sourceSha,status:passed?'passed':'failed',expectedCases,cases:results.length,populatedCases:results.filter(result=>result.state==='populated').length,topLevelFailureCases:results.filter(result=>result.state==='unavailable').length,nestedHistoryFailureCases:results.filter(result=>result.state==='history-unavailable').length,fixtureId,results,sessions,fatalError,fullIntegratedSourceApplication:true,syntheticSessionFixtures:true,syntheticProviderAndSeriesReadFixtures:true,realAuthenticationTested:false,backendCapabilitiesActivated:false,productionRightsAsserted:false,newProvidersEnabled:false,numericalEnginesChanged:false,chartHelperChanged:false,protectedWritesAllowed:false,sourceModulePaths:routes.map(spec=>spec.module),ownedStylesheet:'/assets/routes/instrument-master-v6.css'},null,2)+'\n');
+  const coverage={appearances:[...new Set(results.map(result=>result.appearance))],widths:[...new Set(results.map(result=>result.width))],routes:[...new Set(results.map(result=>result.route))]};
+  const protectedWrites=sessions.reduce((total,session)=>total+session.protectedWrites.length,0);
+  await writeFile(out+'/report.json',JSON.stringify({sourceSha,status:passed?'passed':'failed',expectedCases,cases:results.length,expectedCounts:{populated:30,topLevelFailures:30,nestedHistoryFailures:10},populatedCases:results.filter(result=>result.state==='populated').length,topLevelFailureCases:results.filter(result=>result.state==='unavailable').length,nestedHistoryFailureCases:results.filter(result=>result.state==='history-unavailable').length,screenshotCount,coverage,protectedWrites,fixtureId,results,sessions,fatalError,fullIntegratedSourceApplication:true,syntheticSessionFixtures:true,syntheticProviderAndSeriesReadFixtures:true,realAuthenticationTested:false,backendCapabilitiesActivated:false,productionRightsAsserted:false,newProvidersEnabled:false,numericalEnginesChanged:false,chartHelperChanged:false,protectedWritesAllowed:false,sourceModulePaths:routes.map(spec=>spec.module),ownedStylesheet:'/assets/routes/instrument-master-v6.css'},null,2)+'\n');
   await browser?.close();
   if(server){await new Promise(resolve=>server.server.close(resolve));await new Promise(resolve=>server.evidenceUpstream.server.close(resolve));}
-  console.log(JSON.stringify({status:passed?'passed':'failed',cases:results.length,expectedCases,out,sourceSha,syntheticSession:true,realAuthenticationTested:false}));
+  console.log(JSON.stringify({status:passed?'passed':'failed',cases:results.length,expectedCases,screenshotCount,coverage,protectedWrites,out,sourceSha,syntheticSession:true,realAuthenticationTested:false}));
 }

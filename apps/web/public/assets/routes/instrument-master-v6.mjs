@@ -42,7 +42,7 @@ export async function renderInstrumentMasterV6(main,deps){
     count.textContent=`${filtered.length} records`;
     grid.replaceChildren();
     for(const item of filtered){
-      const button=document.createElement('button');button.type='button';button.className='q-reference-instrument-card';button.setAttribute('aria-pressed','false');
+      const button=document.createElement('button');button.type='button';button.className='q-reference-instrument-row';button.setAttribute('aria-pressed','false');
       button.innerHTML=`<span><strong>${escapeHtml(item.symbol||item.primarySymbol||'—')}</strong><small>${escapeHtml(item.displayName||item.name||'—')}</small></span><span><b>${escapeHtml(format(item.value))}</b><small>${escapeHtml(item.unit||item.currency||'')}</small></span><span class="q-reference-status q-reference-status--${tone(item.truthState)}">${escapeHtml(item.truthState||'UNAVAILABLE')}</span>`;
       button.addEventListener('click',()=>{grid.querySelectorAll('.q-reference-is-selected').forEach((node)=>{node.classList.remove('q-reference-is-selected');node.setAttribute('aria-pressed','false');});button.classList.add('q-reference-is-selected');button.setAttribute('aria-pressed','true');inspect(item);});grid.append(button);
     }
