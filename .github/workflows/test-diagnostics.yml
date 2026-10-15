@@ -2,7 +2,7 @@ name: Focused UI Owner Diagnostics
 on:
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 concurrency:
   group: qelly-focused-owner-${{ github.ref }}
   cancel-in-progress: false
@@ -49,8 +49,14 @@ jobs:
         run: npm run build:frontend
       - name: Run focused owner matrix
         run: node scripts/qelly-focused-owner-diagnostics.mjs
-      - name: Retain compact report and selected PNG
+      - name: Upload focused report and selected PNGs
         if: always()
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: node scripts/qelly-focused-owner-diagnostics.mjs publish
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-boundary-owned-focused-${{ env.QELLY_PRODUCT_SHA }}
+          path: |
+            preview/focused-owner-${{ env.QELLY_DIAGNOSTIC_MODE }}/report.json
+            preview/focused-owner-${{ env.QELLY_DIAGNOSTIC_MODE }}/report-summary.json
+            preview/focused-owner-${{ env.QELLY_DIAGNOSTIC_MODE }}/*.png
+          if-no-files-found: warn
+          retention-days: 2
