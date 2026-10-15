@@ -132,7 +132,7 @@ async function verifyRuntime(root){
   assert.equal(await root.locator('.q-reference-runtime-row').count(),5);
   assert.equal((await root.innerText()).includes('Resolved synthetic incident must stay hidden'),false);
   assert.ok((await root.innerText()).includes('Synthetic schema review <unavailable> & "quoted"'));
-  const entitlement=root.locator('.q-reference-surface').filter({has:root.getByRole('heading',{name:'Entitlement boundary',exact:true})});
+  const entitlement=root.locator('.q-reference-surface').filter({hasText:'Entitlement boundary'});
   const evidence=await readEvidence(entitlement);
   for(const key of ['Execution','Custody','Money movement'])assert.equal(evidence[key],'DENY');
   assert.equal(await root.locator('a[href="#/live-markets"]').count(),1);
