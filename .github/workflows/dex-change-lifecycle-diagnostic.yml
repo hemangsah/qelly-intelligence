@@ -1,0 +1,90 @@
+name: DEX Change Listener Lifecycle Diagnostic
+on:
+  push:
+    branches: [codex/uiux-dex-change-lifecycle]
+    paths: [.github/workflows/dex-change-lifecycle-diagnostic.yml]
+  workflow_dispatch:
+    inputs:
+      candidate_sha:
+        description: Exact candidate source to test without production writes
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  probe-dex-change:
+    if: github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        expected: [red, green]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      QELLY_SCREEN_EVIDENCE_SHA: ${{ matrix.expected == 'red' && 'b5d795ef57114ba0a12dbe9ba692e6fb4ff1dd60' || inputs.candidate_sha }}
+      QELLY_DEX_CHANGE_EXPECT: ${{ matrix.expected }}
+      QELLY_CSS_EXPERIMENT_BASELINE: preview/css-import-baseline
+      QELLY_SCREEN_BATCH_SIZE: '10'
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: 'utf-8'
+      QELLY_REQUIRE_PUBLIC_RUNTIME: 'true'
+      QELLY_PROMPT2C_PUBLIC_BETA: 'true'
+      QELLY_PUBLIC_SITE_URL: https://terminal.qellyintelligence.com
+      QELLY_PUBLIC_SUPABASE_URL: https://ssdgfgqnjlwzkgukzeef.supabase.co
+      QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_shape_only_012345678901234567890123456789
+      QELLY_DEPLOYMENT_ENVIRONMENT: production
+      QELLY_EVIDENCE_CONTEXT: cloudflare-pages-production
+      QELLY_ENABLE_AUTH: 'true'
+      QELLY_ENABLE_AUTH_EMAIL_DELIVERY: 'true'
+      QELLY_ENABLE_CLOUD_SYNC: 'true'
+      QELLY_ENABLE_LIVE_PROVIDERS: 'true'
+      QELLY_ENABLE_FEEDBACK_WRITES: 'true'
+    steps:
+      - name: Validate exact source identifier
+        run: '[[ "$QELLY_SCREEN_EVIDENCE_SHA" =~ ^[a-f0-9]{40}$ ]]'
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ matrix.expected == 'red' && 'b5d795ef57114ba0a12dbe9ba692e6fb4ff1dd60' || inputs.candidate_sha }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          path: .dex-change-lifecycle-runner
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies only in cloud
+        run: npm ci --ignore-scripts
+      - name: Install official cloud Chromium
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Bind official cloud Chromium to the existing visual runner path
+        run: >-
+          test -e /usr/bin/chromium || sudo ln -s "$(node --input-type=module -e 'import {chromium} from "playwright"; console.log(chromium.executablePath())')" /usr/bin/chromium
+      - name: Build exact production-mode frontend in cloud
+        run: |
+          test "$(git rev-parse HEAD)" = "$QELLY_SCREEN_EVIDENCE_SHA"
+          npm run build:frontend
+      - name: Verify paired completed mounts and actual runtime fault mutants
+        run: node .dex-change-lifecycle-runner/scripts/qelly-dex-change-lifecycle-e2e.mjs
+      - name: Preserve existing Retry cancellation and destination ownership
+        run: node scripts/qelly-dex-retry-lifecycle-e2e.mjs
+      - name: Preserve all eight governed DEX control contexts
+        env:
+          QELLY_DEX_CONTROL_MATRIX: 'true'
+        run: node scripts/qelly-dex-workstation-e2e.mjs
+      - name: Preserve existing style delay cache failure Retry and cancellation
+        run: node scripts/qelly-dex-style-readiness-e2e.mjs
+      - name: Retain source-bound diagnostic evidence in cloud
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-accessibility-floor-dex-change-${{ matrix.expected }}-${{ inputs.candidate_sha }}
+          path: |
+            preview/dex-change-lifecycle
+            preview/dex-retry-lifecycle
+            preview/dex-workstation-e2e
+            preview/dex-workstation-controls-e2e
+            preview/dex-style-readiness-e2e
+          retention-days: 7
