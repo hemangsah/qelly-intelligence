@@ -159,3 +159,11 @@ html,body{max-width:100%;overflow-x:hidden}
 @media(max-width:900px){.q-boundary-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){.q-boundary-facts{gap:12px}.q-boundary-fact{min-height:120px;padding:16px}.q-boundary-head{flex-direction:column;padding:18px 18px 10px}.q-boundary-body{padding:10px 18px 18px}.q-boundary-empty{padding:16px}}
 @media(max-width:360px){.q-boundary-facts{grid-template-columns:minmax(0,1fr)}}
+
+/* Default boundary actions: premium-theme.css:250-258/277 and modern-interaction-polish.css:196-204/442-449
+   declare decorative backgrounds/shadows important. This single owned exception leaves focus-visible intact. */
+.q-boundary-page .q-page-actions{--q-boundary-action-background:transparent}
+.q-boundary-page .q-button{--q-boundary-action-background:var(--q-surface)}
+.q-boundary-page .q-button--ghost{--q-boundary-action-background:transparent}
+.q-boundary-page .q-button--primary{--q-boundary-action-background:#711632}
+html[data-production-system="v8"] body #app #main .q-boundary-page :is(.q-page-head,.q-page-actions,.q-button:not(:focus-visible)){background:var(--q-boundary-action-background,transparent)!important;box-shadow:none!important;backdrop-filter:none}

@@ -12,9 +12,9 @@ jobs:
     timeout-minutes: 25
     env:
       QELLY_DIAGNOSTIC_MODE: boundary
-      QELLY_PRODUCT_SHA: 8b8bb3048a8426fdf65c4fedbbdbb0160d4f7c5f
-      QELLY_SCREEN_EVIDENCE_SHA: 8b8bb3048a8426fdf65c4fedbbdbb0160d4f7c5f
-      CF_PAGES_COMMIT_SHA: 8b8bb3048a8426fdf65c4fedbbdbb0160d4f7c5f
+      QELLY_PRODUCT_SHA: e2526a53d472dde88d2063afce4de8cf7b474743
+      QELLY_SCREEN_EVIDENCE_SHA: e2526a53d472dde88d2063afce4de8cf7b474743
+      CF_PAGES_COMMIT_SHA: e2526a53d472dde88d2063afce4de8cf7b474743
       QELLY_REQUIRE_PUBLIC_RUNTIME: 'true'
       QELLY_PROMPT2C_PUBLIC_BETA: 'true'
       QELLY_PUBLIC_SITE_URL: https://terminal.qellyintelligence.com
