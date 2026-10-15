@@ -1,0 +1,68 @@
+name: Unavailable Workspace Surface Diagnostics
+on:
+  push:
+    branches: [codex/uiux-capability-surface-diagnostics]
+    paths: [.github/workflows/capability-surface-diagnostics.yml]
+  workflow_dispatch:
+    inputs:
+      candidate_sha:
+        description: Exact candidate source to test without production writes
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  focused-unavailable-workspace:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      QELLY_SCREEN_EVIDENCE_SHA: ${{ inputs.candidate_sha }}
+      QELLY_CSS_EXPERIMENT_BASELINE: preview/css-import-baseline
+      QELLY_SCREEN_BATCH_SIZE: '10'
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: 'utf-8'
+      QELLY_REQUIRE_PUBLIC_RUNTIME: 'true'
+      QELLY_PROMPT2C_PUBLIC_BETA: 'true'
+      QELLY_PUBLIC_SITE_URL: https://terminal.qellyintelligence.com
+      QELLY_PUBLIC_SUPABASE_URL: https://ssdgfgqnjlwzkgukzeef.supabase.co
+      QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_shape_only_012345678901234567890123456789
+      QELLY_DEPLOYMENT_ENVIRONMENT: production
+      QELLY_EVIDENCE_CONTEXT: cloudflare-pages-production
+      QELLY_ENABLE_AUTH: 'true'
+      QELLY_ENABLE_AUTH_EMAIL_DELIVERY: 'true'
+      QELLY_ENABLE_CLOUD_SYNC: 'true'
+      QELLY_ENABLE_LIVE_PROVIDERS: 'true'
+      QELLY_ENABLE_FEEDBACK_WRITES: 'true'
+    steps:
+      - name: Validate exact source identifier
+        run: '[[ "$QELLY_SCREEN_EVIDENCE_SHA" =~ ^[a-f0-9]{40}$ ]]'
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ inputs.candidate_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies only in cloud
+        run: npm ci --ignore-scripts
+      - name: Install official cloud Chromium
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Bind official cloud Chromium to the existing visual runner path
+        run: >-
+          test -e /usr/bin/chromium || sudo ln -s "$(node --input-type=module -e 'import {chromium} from "playwright"; console.log(chromium.executablePath())')" /usr/bin/chromium
+      - name: Build exact production-mode frontend in cloud
+        run: |
+          test "$(git rev-parse HEAD)" = "$QELLY_SCREEN_EVIDENCE_SHA"
+          npm run build:frontend
+      - name: Verify thirty-six unavailable workspace, diagnostic and retry contexts without writes
+        run: >-
+          node --input-type=module -e 'import {chromium} from "playwright"; process.env.QELLY_BROWSER_EXECUTABLE=chromium.executablePath(); await import("./scripts/qelly-capability-owned-surfaces-e2e.mjs");'
+      - name: Retain source-bound diagnostic evidence in cloud
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-capability-owned-focused-${{ inputs.candidate_sha }}
+          path: preview/capability-owned-surfaces-e2e
+          retention-days: 7
