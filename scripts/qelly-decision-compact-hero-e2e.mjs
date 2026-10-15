@@ -91,6 +91,19 @@ for(const mode of['simple','advanced','research']){await page.locator(`[data-dpg
   assert.equal(firstScreen.drawerOpen.overflow,false);assert.ok(firstScreen.drawerOpen.plotTop<=firstScreen.drawerOpen.dockTop-100,'Open feature navigation must preserve 100px of unobscured plot: '+JSON.stringify(firstScreen.drawerOpen));
   for(const action of firstScreen.drawerOpen.actions){assert.ok(action.height>=44&&action.font>=14);assert.deepEqual(action.brokenWords,[],'Open-drawer action words must remain readable');}
   await navigation.click();
+  // Layout-only stress copy observed on production #622. Never changes an API payload or engine output.
+  const summary=page.locator('.q-dpg-view'),originalSummary=await summary.innerHTML();
+  await summary.evaluate(root=>{root.innerHTML='<div><small class="q-v8-text-floor">QELLY VIEW</small><h2>NO TRADE</h2><p>Independent evidence does not clear the directional research threshold.</p></div><div class="q-dpg-confidence"><span>Evidence confidence</span><strong>79%</strong></div><p class="q-dpg-no-levels">No entry, target or invalidation levels are shown because the evidence threshold is not met.</p>';});
+  firstScreen.liveCopyStress={layoutFixtureOnly:true,sourceProductionSha:'5cee0b5a8f6ca82265001fdf126c22fdce416c63',states:[]};
+  for(const drawerOpen of [false,true]){
+   if((await navigation.getAttribute('aria-expanded')==='true')!==drawerOpen)await navigation.click();
+   const observed=await page.evaluate(()=>({drawerOpen:document.querySelector('#q-feature-navigation').getAttribute('aria-hidden')==='false',plotTop:document.querySelector('svg.q-dpg-chart').getBoundingClientRect().top+scrollY,dockTop:document.querySelector('.q-ai-launcher').getBoundingClientRect().top,overflow:document.documentElement.scrollWidth>innerWidth+1,summaryHeight:document.querySelector('.q-dpg-view').getBoundingClientRect().height}));
+   assert.equal(observed.drawerOpen,drawerOpen);assert.equal(observed.overflow,false);assert.ok(observed.plotTop<=observed.dockTop-100,'Production NO TRADE copy must clear Chat: '+JSON.stringify(observed));firstScreen.liveCopyStress.states.push(observed);
+  }
+  await page.screenshot({path:out+'/'+appearance+'-'+width+'-'+height+'-live-copy.png'});
+  await summary.evaluate((root,original)=>{root.innerHTML=original;},originalSummary);
+  assert.equal(await page.locator('.q-dpg-view h2').first().innerText(),latest.qellyView.action);
+  await navigation.click();
  }
 }await page.locator(`[data-dpg-ui-mode="${mode}"]`).focus();const focus=await page.evaluate(()=>({outline:parseFloat(getComputedStyle(document.activeElement).outlineWidth),height:document.activeElement.getBoundingClientRect().height}));assert.ok(focus.outline>=2&&focus.height>=44);states.push({mode,...snapshot,focus});await page.screenshot({path:`${out}/${appearance}-${width}-${height}-${mode}.png`});}
 assert.equal(writes,0);results.push({appearance,resolvedAppearance:appearance,width,height,states,modelActionPreserved:true,nonReadRequests:writes});await context.close();}}
