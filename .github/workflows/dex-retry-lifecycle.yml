@@ -1,0 +1,89 @@
+name: DEX Retry Lifecycle Diagnostics
+on:
+  push:
+    branches: [codex/dex-retry-lifecycle-diagnostics]
+    paths: [.github/workflows/dex-retry-lifecycle.yml]
+  workflow_dispatch:
+    inputs:
+      candidate_sha:
+        description: Exact source SHA for the bounded DEX lifecycle diagnostic
+        required: true
+        type: string
+      expected:
+        description: red reproduces the baseline; green preserves the destination
+        required: true
+        type: choice
+        options: [red, green]
+permissions:
+  contents: read
+jobs:
+  dex-retry-lifecycle:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      QELLY_SCREEN_EVIDENCE_SHA: ${{ inputs.candidate_sha }}
+      QELLY_DEX_RETRY_EXPECT: ${{ inputs.expected }}
+      QELLY_CSS_EXPERIMENT_BASELINE: preview/css-import-baseline
+      QELLY_SCREEN_BATCH_SIZE: '10'
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: utf-8
+      QELLY_REQUIRE_PUBLIC_RUNTIME: 'true'
+      QELLY_PROMPT2C_PUBLIC_BETA: 'true'
+      QELLY_PUBLIC_SITE_URL: https://terminal.qellyintelligence.com
+      QELLY_PUBLIC_SUPABASE_URL: https://ssdgfgqnjlwzkgukzeef.supabase.co
+      QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_shape_only_012345678901234567890123456789
+      QELLY_DEPLOYMENT_ENVIRONMENT: production
+      QELLY_EVIDENCE_CONTEXT: cloudflare-pages-production
+      QELLY_ENABLE_AUTH: 'true'
+      QELLY_ENABLE_AUTH_EMAIL_DELIVERY: 'true'
+      QELLY_ENABLE_CLOUD_SYNC: 'true'
+      QELLY_ENABLE_LIVE_PROVIDERS: 'true'
+      QELLY_ENABLE_FEEDBACK_WRITES: 'true'
+    steps:
+      - name: Validate exact source and bounded expectation
+        run: '[[ "$QELLY_SCREEN_EVIDENCE_SHA" =~ ^[a-f0-9]{40}$ ]] && [[ "$QELLY_DEX_RETRY_EXPECT" =~ ^(red|green)$ ]]'
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ inputs.candidate_sha }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          path: .dex-retry-lifecycle-runner
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies only in cloud
+        run: npm ci --ignore-scripts
+      - name: Install official cloud Chromium
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Bind official cloud Chromium to existing focused runner path
+        run: >-
+          test -e /usr/bin/chromium || sudo ln -s "$(node --input-type=module -e 'import {chromium} from "playwright"; console.log(chromium.executablePath())')" /usr/bin/chromium
+      - name: Build the exact production-mode frontend in cloud
+        run: |
+          test "$(git rev-parse HEAD)" = "$QELLY_SCREEN_EVIDENCE_SHA"
+          npm run build:frontend
+      - name: Integrated delayed Retry then SPA navigation diagnostic
+        run: node .dex-retry-lifecycle-runner/scripts/dex-retry-lifecycle-runner.mjs
+      - name: Preserve existing DEX controls after lifecycle correction
+        if: inputs.expected == 'green'
+        env:
+          QELLY_DEX_CONTROL_MATRIX: 'true'
+        run: node scripts/qelly-dex-workstation-e2e.mjs
+      - name: Preserve accepted stylesheet lifecycle boundary
+        if: inputs.expected == 'green'
+        run: node scripts/qelly-dex-style-readiness-e2e.mjs
+      - name: Retain only focused evidence in cloud
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: dex-retry-lifecycle-${{ inputs.expected }}-${{ inputs.candidate_sha }}
+          path: |
+            preview/dex-retry-lifecycle
+            preview/dex-control-e2e/report.json
+            preview/dex-style-readiness-e2e/report.json
+          retention-days: 7
