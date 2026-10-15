@@ -34,7 +34,7 @@ export async function renderGovernedUnavailable(main,deps,route){
   const providers=await api('/api/v1/providers/status').catch(()=>null);
   const providerItems=Array.isArray(providers?.providers)?providers.providers:[];
   const ecb=providerItems.find((provider)=>provider.id==='ecb');
-  main.innerHTML=`<section class="q-page q-governed-unavailable" data-governed-capability="${escapeHtml(route)}">
+  const boundaryMarkup=`<section class="q-page q-governed-unavailable" data-governed-capability="${escapeHtml(route)}">
     ${pageHead(copy.eyebrow,copy.title,'This coverage is being connected to approved sources. You can keep researching with the available Qelly tools and verified external references.',`<a class="q-button q-button--secondary" href="#/calculators">Use calculators</a><a class="q-button q-button--primary" href="#/research-workspace">Open research workspace</a>`)}${stateBanner()}
     <section class="q-v7-boundary-ribbon" aria-label="Capability truth boundary">
       <div><span>Coverage</span><strong>IN PROGRESS</strong><small>Approved sources only</small></div>
@@ -48,6 +48,9 @@ export async function renderGovernedUnavailable(main,deps,route){
     </div>
     ${sourceBoundary()}
   </section>`;
+  main.innerHTML=['category-detail','venue-detail','research-article'].includes(route)
+    ? boundaryMarkup.replace('class="q-page q-governed-unavailable"','class="q-page q-boundary-page q-governed-unavailable"').replace(/\bq-panel-head\b/g,'q-boundary-head').replace(/\bq-panel-body\b/g,'q-boundary-body').replace(/\bq-panel\b/g,'q-boundary-surface').replace(/\bq-empty-state\b/g,'q-boundary-empty')
+    : boundaryMarkup;
 }
 
 export async function renderGovernedConverter(main,deps){
