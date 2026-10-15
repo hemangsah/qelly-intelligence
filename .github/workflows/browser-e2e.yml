@@ -95,6 +95,15 @@ jobs:
           test -s dist/frontend/assets/routes/notification-triage-v2.css
           test -s dist/frontend/assets/routes/screener-lab-v2.css
           grep -F "renderGovernedTrustCenterV2" dist/frontend/assets/app.js
+      - name: Verify owned Service Readiness surfaces and customer provenance
+        run: node scripts/qelly-readiness-visual-e2e.mjs
+      - name: Upload focused Service Readiness visual evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-readiness-visual-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/readiness-visual-e2e
+          retention-days: 7
       - name: Verify status navigation and access-page URL alignment
         run: node scripts/qelly-header-context-routing-e2e.mjs
       - name: Upload focused header context routing evidence
@@ -122,6 +131,16 @@ jobs:
           name: qelly-account-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/account-editorial-e2e
           if-no-files-found: warn
+      - name: Verify DEX Retry cancellation and destination route ownership
+        run: node scripts/qelly-dex-retry-lifecycle-e2e.mjs
+      - name: Upload focused DEX Retry lifecycle evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: dex-retry-lifecycle-green-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/dex-retry-lifecycle
+          if-no-files-found: error
+          retention-days: 7
       - name: Verify source-owned DEX controls and governed research interactions
         run: node scripts/qelly-dex-workstation-e2e.mjs
         env:
