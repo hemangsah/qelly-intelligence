@@ -152,6 +152,7 @@ html,body{max-width:100%;overflow-x:hidden}
 .q-capability-boundary .q-capability-body{min-width:0;font-size:14px;line-height:1.6}
 .q-capability-boundary .q-capability-body p{color:var(--q-muted)}
 .q-capability-boundary .q-capability-body code{overflow-wrap:anywhere;white-space:normal}
+.q-capability-boundary details.q-capability-diagnostic{border:0;border-radius:0;box-shadow:none;background:none;padding:0;margin:16px 0 0}
 .q-capability-boundary .q-capability-body summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
 @media(max-width:1000px){.q-capability-boundary .q-capability-facts{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.q-capability-boundary .q-capability-boundary__grid{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:480px){.q-capability-boundary .q-capability-surface{padding:18px}.q-capability-boundary .q-capability-facts dd strong{font-size:18px}}
