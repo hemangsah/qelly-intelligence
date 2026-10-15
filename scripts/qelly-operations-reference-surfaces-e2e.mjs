@@ -67,8 +67,8 @@ async function focusEvidence(page,control){
   // Establish keyboard modality before programmatic focus so :focus-visible
   // is measured as the user reaches the native control with a keyboard.
   await page.keyboard.press('Tab');await control.focus();
-  const measured=await control.evaluate(node=>({outlineWidth:parseFloat(getComputedStyle(node).outlineWidth),outlineStyle:getComputedStyle(node).outlineStyle,height:node.getBoundingClientRect().height,width:node.getBoundingClientRect().width}));
-  assert.ok(measured.outlineWidth>=2&&measured.outlineStyle!=='none',JSON.stringify(measured));
+  const measured=await control.evaluate(node=>({outlineWidth:parseFloat(getComputedStyle(node).outlineWidth),outlineStyle:getComputedStyle(node).outlineStyle,boxShadow:getComputedStyle(node).boxShadow,focusVisible:node.matches(':focus-visible'),height:node.getBoundingClientRect().height,width:node.getBoundingClientRect().width}));
+  assert.ok(measured.outlineWidth>=3&&measured.outlineStyle!=='none'&&measured.focusVisible,JSON.stringify(measured));
   assert.ok(measured.height>=44,JSON.stringify(measured));
   return measured;
 }
@@ -81,6 +81,9 @@ async function assertEscaping(page,root,reason){
   if(reason)assert.equal(await root.locator('.q-reference-empty-state p').innerText(),reason);
 }
 async function measurePresentation(page,root){
+  // Focus rings and the application-wide keyboard halo are functional states.
+  // Measure resting surfaces separately, after verifying keyboard focus above.
+  await page.evaluate(()=>{if(document.activeElement instanceof HTMLElement)document.activeElement.blur();});
   const measured=await root.evaluate(root=>{
     const visible=node=>{const rect=node.getBoundingClientRect();return rect.width>0&&rect.height>0;};
     const style=node=>{const computed=getComputedStyle(node);return {class:node.className,borders:[computed.borderTopWidth,computed.borderRightWidth,computed.borderBottomWidth,computed.borderLeftWidth],radius:computed.borderRadius,shadow:computed.boxShadow,backgroundImage:computed.backgroundImage};};
