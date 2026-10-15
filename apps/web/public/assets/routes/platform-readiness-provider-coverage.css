@@ -1,11 +1,30 @@
+/* Platform Readiness owns its structured, borderless surfaces. Legacy generic card effects do not apply. */
+.q-platform-readiness-v6 .q-readiness-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-block:24px}
+.q-platform-readiness-v6 :is(.q-readiness-metric,.q-readiness-surface){min-width:0;border:0;border-radius:0;box-shadow:none;background:var(--q-surface);background-image:none}
+.q-platform-readiness-v6 .q-readiness-metric{display:grid;align-content:start;gap:10px;padding:20px}
+.q-platform-readiness-v6 .q-readiness-label{font-size:12px;line-height:1.5;color:var(--q-muted);letter-spacing:.06em;text-transform:uppercase}
+.q-platform-readiness-v6 .q-readiness-value{font-size:30px;line-height:1.1;font-weight:700;font-variant-numeric:tabular-nums}
+.q-platform-readiness-v6 .q-readiness-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px;line-height:1.5;color:var(--q-muted)}
+.q-platform-readiness-v6 .q-readiness-surface{margin-block:18px;padding:24px}
+.q-platform-readiness-v6 .q-readiness-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.q-platform-readiness-v6 .q-readiness-heading h2{font-size:20px;line-height:1.35;margin:0 0 6px}
+.q-platform-readiness-v6 .q-readiness-heading p{color:var(--q-muted);line-height:1.55;margin:0}
+.q-platform-readiness-v6 .q-readiness-body{min-width:0}
+.q-platform-readiness-v6 .q-readiness-record{display:flex;align-items:center;justify-content:space-between;gap:20px;min-width:0;padding:16px 0;border:0;box-shadow:none;background:none}
+.q-platform-readiness-v6 .q-readiness-record>span:first-child{min-width:0;flex:1}
+.q-platform-readiness-v6 .q-readiness-record strong{display:block;font-size:14px;line-height:1.5}
+.q-platform-readiness-v6 .q-readiness-record small{display:block;color:var(--q-muted);font-size:13px;line-height:1.6;overflow-wrap:anywhere}
+.q-platform-readiness-v6 .q-readiness-record>span:last-child{min-width:0;max-width:55%;overflow-wrap:anywhere}
+@media(max-width:1000px){.q-platform-readiness-v6 .q-readiness-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.q-platform-readiness-v6 .q-readiness-metrics{gap:10px}.q-platform-readiness-v6 .q-readiness-metric{padding:16px}.q-platform-readiness-v6 .q-readiness-surface{padding:18px}.q-platform-readiness-v6 .q-readiness-record{align-items:flex-start;flex-direction:column;gap:10px}.q-platform-readiness-v6 .q-readiness-record>span:last-child{max-width:100%}}
 /* Governed provider evidence: deliberate readable density across desktop/mobile. */
-.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-record-row{align-items:flex-start;gap:20px;border-radius:14px;padding:16px}
-.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-record-row>span:first-child{flex:1 1 420px;display:grid;gap:7px;min-width:0}
-.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-record-row strong{font-size:15px;line-height:1.4}
-.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-record-row small{display:block;font-size:12px;line-height:1.6;overflow-wrap:anywhere;max-width:85ch}
-.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-record-row>span:last-child{display:flex;align-items:flex-start;justify-content:flex-end;flex-wrap:wrap;gap:8px;min-width:155px;max-width:260px}
+.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-readiness-record{align-items:flex-start;gap:20px;border-radius:0;padding:16px 0}
+.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-readiness-record>span:first-child{flex:1 1 420px;display:grid;gap:7px;min-width:0}
+.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-readiness-record strong{font-size:15px;line-height:1.4}
+.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-readiness-record small{display:block;font-size:12px;line-height:1.6;overflow-wrap:anywhere;max-width:85ch}
+.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-readiness-record>span:last-child{display:flex;align-items:flex-start;justify-content:flex-end;flex-wrap:wrap;gap:8px;min-width:155px;max-width:260px}
 .q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-status{font-size:10px;line-height:1.3;white-space:normal;overflow-wrap:anywhere}
-.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-panel-head p{font-size:12px;line-height:1.5;max-width:82ch}
+.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-readiness-heading p{font-size:12px;line-height:1.5;max-width:82ch}
 .q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-muted-copy{font-size:12px;line-height:1.55}
-@media(max-width:650px){.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-record-row{flex-direction:column;gap:12px}.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-record-row>span:first-child{flex:auto;width:100%}.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-record-row>span:last-child{min-width:0;max-width:100%;width:100%;justify-content:flex-start}}
+@media(max-width:650px){.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-readiness-record{flex-direction:column;gap:12px}.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-readiness-record>span:first-child{flex:auto;width:100%}.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] .q-readiness-record>span:last-child{min-width:0;max-width:100%;width:100%;justify-content:flex-start}}
 @media(prefers-reduced-motion:reduce){.q-platform-readiness-v6 [data-provenance="governed-provider-coverage"] *{animation:none!important;transition:none!important}}

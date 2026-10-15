@@ -48,27 +48,27 @@ export async function renderPlatformReadiness(main,{api,pageHead,escapeHtml,sign
  const providers=Array.isArray(data.providers)?data.providers.slice(0,20).map(providerDisplayModel):[];
  main.innerHTML=`<section class="q-page q-platform-readiness-v6" data-v6-readiness="evidence-first">
   ${pageHead('Qelly Intelligence · Service status','Platform Readiness','A customer-readable view of account services, private workspace protection and data freshness.')}
-  <section class="q-kpi-grid" aria-label="Readiness gate summary">
-   <article class="q-kpi"><div class="q-kpi-label">Ready</div><div class="q-kpi-value">${Number(summary.ready)||0}</div><div class="q-kpi-meta"><span>Evidence proven</span><span class="q-status q-status--live">READY</span></div></article>
-   <article class="q-kpi"><div class="q-kpi-label">Partial</div><div class="q-kpi-value">${Number(summary.partial)||0}</div><div class="q-kpi-meta"><span>Capability degraded</span><span class="q-status q-status--warning">PARTIAL</span></div></article>
-   <article class="q-kpi"><div class="q-kpi-label">Planned</div><div class="q-kpi-value">${Number(summary.deferred)||0}</div><div class="q-kpi-meta"><span>Coverage in progress</span><span class="q-status q-status--cached">PLANNED</span></div></article>
-   <article class="q-kpi"><div class="q-kpi-label">Needs attention</div><div class="q-kpi-value">${Number(summary.blocked)||0}</div><div class="q-kpi-meta"><span>Required check pending</span><span class="q-status q-status--warning">REVIEW</span></div></article>
+  <section class="q-readiness-metrics" aria-label="Readiness gate summary">
+   <article class="q-readiness-metric"><div class="q-readiness-label">Ready</div><div class="q-readiness-value">${Number(summary.ready)||0}</div><div class="q-readiness-meta"><span>Evidence proven</span><span class="q-status q-status--live">READY</span></div></article>
+   <article class="q-readiness-metric"><div class="q-readiness-label">Partial</div><div class="q-readiness-value">${Number(summary.partial)||0}</div><div class="q-readiness-meta"><span>Capability degraded</span><span class="q-status q-status--warning">PARTIAL</span></div></article>
+   <article class="q-readiness-metric"><div class="q-readiness-label">Planned</div><div class="q-readiness-value">${Number(summary.deferred)||0}</div><div class="q-readiness-meta"><span>Coverage in progress</span><span class="q-status q-status--cached">PLANNED</span></div></article>
+   <article class="q-readiness-metric"><div class="q-readiness-label">Needs attention</div><div class="q-readiness-value">${Number(summary.blocked)||0}</div><div class="q-readiness-meta"><span>Required check pending</span><span class="q-status q-status--warning">REVIEW</span></div></article>
   </section>
-  <section class="q-panel" data-provenance="platform-runtime">
-   <div class="q-panel-head"><div><h2>Qelly service status</h2><p>Live checks from the running production application.</p></div><span class="q-status q-status--${data.ready?'live':'warning'}">${data.ready?'All core services ready':'Review in progress'}</span></div>
-   <div class="q-panel-body q-stack">
-    <div class="q-record-row"><span><strong>Production app</strong><small>The official Qelly web experience</small></span><span>${escapeHtml(data.canonicalSite||'Checking')}</span></div>
-    <div class="q-record-row"><span><strong>Core service check</strong><small>${data.ready?'Required account and data checks passed.':'One or more required checks are still in progress.'}</small></span><span class="q-status q-status--${data.ready?'live':'warning'}">${data.ready?'Verified':'Review'}</span></div>
+  <section class="q-readiness-surface" data-provenance="platform-runtime">
+   <div class="q-readiness-heading"><div><h2>Qelly service status</h2><p>Live checks from the running production application.</p></div><span class="q-status q-status--${data.ready?'live':'warning'}">${data.ready?'All core services ready':'Review in progress'}</span></div>
+   <div class="q-readiness-body q-stack">
+    <div class="q-readiness-record"><span><strong>Production app</strong><small>The official Qelly web experience</small></span><span>${escapeHtml(data.canonicalSite||'Checking')}</span></div>
+    <div class="q-readiness-record"><span><strong>Core service check</strong><small>${data.ready?'Required account and data checks passed.':'One or more required checks are still in progress.'}</small></span><span class="q-status q-status--${data.ready?'live':'warning'}">${data.ready?'Verified':'Review'}</span></div>
    </div>
   </section>
-  <section class="q-panel" data-provenance="dependency-gates">
-   <div class="q-panel-head"><div><h2>Service checks</h2><p>Account, privacy and data freshness are checked independently.</p></div></div>
-   <div class="q-panel-body q-stack">${gates.map((item)=>`<div class="q-record-row" data-gate="${escapeHtml(item.id)}"><span><strong>${escapeHtml(item.label)}</strong><small>${escapeHtml(humanizeOperationalState(item.detail,{fallback:'Service status checked.'}))}${item.observedAt?` · checked ${escapeHtml(safeDate(item.observedAt))}`:''}</small></span><span><span class="q-status q-status--${truthTone(item.truthState)}">${escapeHtml(truthLabel(item.truthState))}</span> <span class="q-status q-status--${statusTone(item.status)}">${escapeHtml(readinessLabel(item.status))}</span></span></div>`).join('')}</div>
+  <section class="q-readiness-surface" data-provenance="dependency-gates">
+   <div class="q-readiness-heading"><div><h2>Service checks</h2><p>Account, privacy and data freshness are checked independently.</p></div></div>
+   <div class="q-readiness-body q-stack">${gates.map((item)=>`<div class="q-readiness-record" data-gate="${escapeHtml(item.id)}"><span><strong>${escapeHtml(item.label)}</strong><small>${escapeHtml(item.id==='cloudflare-runtime'?'Production web runtime.':humanizeOperationalState(item.detail,{fallback:'Service status checked.'}))}${item.observedAt?` · checked ${escapeHtml(safeDate(item.observedAt))}`:''}</small></span><span><span class="q-status q-status--${truthTone(item.truthState)}">${escapeHtml(truthLabel(item.truthState))}</span> <span class="q-status q-status--${statusTone(item.status)}">${escapeHtml(readinessLabel(item.status))}</span></span></div>`).join('')}</div>
   </section>
-  <section class="q-panel" data-provenance="governed-provider-coverage" aria-labelledby="q-provider-coverage-title">
-   <div class="q-panel-head"><div><h2 id="q-provider-coverage-title">Provider coverage and freshness</h2><p>Reported provider policy, source observation and data availability. Restricted market feeds are not sampled or displayed as live.</p></div></div>
-   <div class="q-panel-body q-stack" role="list" aria-label="Governed data provider status">
-    ${providers.length?providers.map(provider=>`<div class="q-record-row" role="listitem" data-provider="${escapeHtml(provider.id)}">
+  <section class="q-readiness-surface" data-provenance="governed-provider-coverage" aria-labelledby="q-provider-coverage-title">
+   <div class="q-readiness-heading"><div><h2 id="q-provider-coverage-title">Provider coverage and freshness</h2><p>Reported provider policy, source observation and data availability. Restricted market feeds are not sampled or displayed as live.</p></div></div>
+   <div class="q-readiness-body q-stack" role="list" aria-label="Governed data provider status">
+    ${providers.length?providers.map(provider=>`<div class="q-readiness-record" role="listitem" data-provider="${escapeHtml(provider.id)}">
       <span><strong>${escapeHtml(provider.name)}</strong>
       <small>${escapeHtml(provider.policy)}</small>
       <small>Coverage: ${escapeHtml(provider.capabilities.length?provider.capabilities.join(', '):'Not verified')}</small>
@@ -78,7 +78,7 @@ export async function renderPlatformReadiness(main,{api,pageHead,escapeHtml,sign
       <span class="q-status q-status--${provider.enabled?'live':'cached'}">${escapeHtml(provider.approval)}</span></span>
      </div>`).join(''):'<p class="q-muted-copy">Provider policy and observation details are unavailable. No market coverage has been inferred.</p>'}
    </div>
-   <div class="q-panel-body"><p class="q-muted-copy">This view does not claim measured uptime, request latency, error counts or remaining quota. Reference observations are not executable live trading quotes.</p></div>
+   <div class="q-readiness-body"><p class="q-muted-copy">This view does not claim measured uptime, request latency, error counts or remaining quota. Reference observations are not executable live trading quotes.</p></div>
   </section>
  </section>`;
 }
