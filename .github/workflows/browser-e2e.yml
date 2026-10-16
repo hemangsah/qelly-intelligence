@@ -104,6 +104,256 @@ jobs:
           name: qelly-readiness-visual-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/readiness-visual-e2e
           retention-days: 7
+      - name: Verify Theme Studio and Persona owned surfaces and readable identity
+        env:
+          QELLY_DIAGNOSTIC_MODE: theme
+          QELLY_PRODUCT_SHA: ${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          QELLY_CHROMIUM_EXECUTABLE_PATH: /usr/bin/chromium
+        run: node scripts/qelly-focused-owner-diagnostics.mjs
+      - name: Independently validate theme focused report before upload
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile,writeFile} from 'node:fs/promises';
+          import {createHash} from 'node:crypto';
+          function validateFocusedOwnerReport(report, mode, expectedSha) {
+            const require = (condition, message) => { if (!condition) throw new Error(`Focused owner report: ${message}`); };
+            const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+            const finite = value => typeof value === 'number' && Number.isFinite(value);
+            const integer = value => Number.isInteger(value) && value >= 0;
+            const nonempty = value => typeof value === 'string' && value.trim().length > 0;
+            const equal = (actual, expected, name) => require(actual === expected, `${name} must equal ${JSON.stringify(expected)}`);
+            const array = (value, name) => { require(Array.isArray(value), `${name} must be an array`); return value; };
+            const color = value => {
+              require(nonempty(value), 'computed color missing');
+              const text = value.trim().toLowerCase();
+              if (text === 'transparent') return [0, 0, 0, 0];
+              let match = text.match(/^rgba?\((.*)\)$/), normalized = false;
+              if (!match) { match = text.match(/^color\(srgb\s+(.+)\)$/); normalized = true; }
+              require(match, `unsupported computed color ${value}`);
+              const channels = match[1].replace(/,/g, ' ').replace(/\//g, ' ').trim().split(/\s+/);
+              require(channels.length === 3 || channels.length === 4, `invalid computed color ${value}`);
+              const values = channels.map((channel, index) => {
+                const numeric = Number.parseFloat(channel);
+                require(Number.isFinite(numeric), `invalid computed color channel ${value}`);
+                return channel.endsWith('%') ? numeric / 100 : (index < 3 && !normalized ? numeric / 255 : numeric);
+              });
+              if (values.length === 3) values.push(1);
+              require(values.every(value => value >= 0 && value <= 1), `computed color out of range ${text}`);
+              return values;
+            };
+            const contrast = (foreground, background) => {
+              const front = color(foreground), back = color(background);
+              require(back[3] === 1, 'banner background must be opaque');
+              const luminance = channels => channels.slice(0, 3).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4)
+                .reduce((sum, value, index) => sum + value * [0.2126, 0.7152, 0.0722][index], 0);
+              const combined = front.slice(0, 3).map((value, index) => value * front[3] + back[index] * (1 - front[3]));
+              const first = luminance(combined), second = luminance(back);
+              return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+            };
+            const focusRing = shadow => {
+              if (!nonempty(shadow) || shadow === 'none') return false;
+              return (shadow.match(/(?:rgba?\([^)]*\)|color\([^)]*\)|#[a-f0-9]+)[^,]*/gi) || []).some(part => {
+                if (/\binset\b/i.test(part)) return false;
+                const computed = part.match(/^(rgba?\([^)]*\)|color\([^)]*\))/i)?.[1];
+                if (!computed || color(computed)[3] <= 0) return false;
+                const lengths = part.slice(computed.length).match(/-?(?:\d*\.)?\d+px/g)?.map(Number.parseFloat) || [];
+                return lengths.length === 4 && lengths[0] === 0 && lengths[1] === 0 && lengths[2] === 0 && lengths[3] >= 3;
+              });
+            };
+            const zeroBorders = (value, name) => require(array(value, name).length === 4 && value.every(edge => /^0(?:px)?$/.test(edge)), `${name} must have four zero borders`);
+            const solid = (value, name, borders = false) => {
+              require(object(value), `${name} missing`);
+              equal(value.image, 'none', `${name}.image`);
+              equal(value.shadow, 'none', `${name}.shadow`);
+              if (value.backdrop !== undefined) equal(value.backdrop, 'none', `${name}.backdrop`);
+              color(value.background);
+              if (borders) zeroBorders(value.border, `${name}.border`);
+            };
+            const spec = {
+              'theme-lab': ['.q-ti-page', 'Theme Studio'],
+              'theme-personas': ['.q-theme-persona-page', 'Choose how Qelly prioritises intelligence'],
+              'account-recovery': ['.q-boundary-page', 'Account Recovery Controls'],
+              'portfolio-attribution': ['.q-boundary-page', 'Performance Attribution'],
+              'research-history': ['.q-boundary-page', 'Research Version History'],
+              'formula-detail': ['.q-formula-detail-page.q-boundary-page', 'Formula Detail'],
+              'indicator-detail': ['.q-indicator-detail-page.q-boundary-page', 'Indicator Detail'],
+              'calculator-detail': ['.q-calculator-detail-page.q-boundary-page', 'Calculator Detail'],
+              'saved-calculation-detail': ['.q-saved-detail-page.q-boundary-page', 'Saved Calculation Detail'],
+              'category-detail': ['.q-governed-unavailable.q-boundary-page', 'Category dossier'],
+              'venue-detail': ['.q-governed-unavailable.q-boundary-page', 'Venue dossier'],
+              'research-article': ['.q-governed-unavailable.q-boundary-page', 'Research article'],
+            };
+            require(mode === 'theme' || mode === 'boundary', 'mode must be theme or boundary');
+            require(typeof expectedSha === 'string' && /^[a-f0-9]{40}$/.test(expectedSha), 'expected checkout SHA must be a full lowercase SHA');
+            require(object(report), 'report must be an object');
+            equal(report.mode, mode, 'mode');
+            equal(report.status, 'passed', 'status');
+            equal(report.sourceSha, expectedSha, 'sourceSha');
+            equal(report.productSha, expectedSha, 'productSha');
+            require(typeof report.runnerSha === 'string' && /^[a-f0-9]{40}$/.test(report.runnerSha), 'runnerSha must be a full SHA');
+            for (const name of ['actualBuiltRuntime', 'productionFinalizersConfirmed', 'syntheticGetFixtures', 'rootVisualReviewRequired']) equal(report[name], true, name);
+            for (const name of ['manualPresenterInjection', 'realAuthenticationTested', 'preferencesActivated', 'settingsApplied', 'formsSubmitted', 'providersEnabled', 'numericalEnginesChanged']) equal(report[name], false, name);
+            for (const name of ['nativePrivateFullWaveAccepted', 'fullBrowserSuiteAccepted', 'nativeAcceptance', 'realAuthAccepted']) require(report[name] === undefined || report[name] === false, `${name} exceeds focused evidence scope`);
+            equal(report.scope, 'focused only; no full Browser suite', 'scope');
+            equal(report.writeAttempts, 0, 'writeAttempts');
+            for (const name of ['failures', 'invalidFailures']) equal(array(report[name], name).length, 0, `${name}.length`);
+            const routes = mode === 'theme' ? ['theme-lab', 'theme-personas'] : Object.keys(spec).slice(2);
+            const invalidRoutes = mode === 'boundary' ? ['formula-detail', 'indicator-detail', 'calculator-detail', 'saved-calculation-detail'] : [];
+            const widths = [1440, 1280, 768, 390, 320], appearances = ['dark', 'light'];
+            const defaults = routes.length * widths.length * appearances.length, invalids = invalidRoutes.length * widths.length * appearances.length;
+            for (const name of ['expectedDefaultContexts', 'completedDefaultContexts', 'passedDefaultContexts']) equal(report[name], defaults, name);
+            for (const name of ['invalidMethodContexts', 'invalidMethodPassed']) equal(report[name], invalids, name);
+            const results = array(report.results, 'results'), invalidResults = array(report.invalidResults, 'invalidResults');
+            const matrix = (rows, expectedRoutes, name) => {
+              equal(rows.length, expectedRoutes.length * widths.length * appearances.length, `${name}.length`);
+              const expected = new Set(expectedRoutes.flatMap(route => appearances.flatMap(appearance => widths.map(width => `${route}|${appearance}|${width}`))));
+              for (const row of rows) {
+                require(object(row), `${name} case must be an object`);
+                const key = `${row.route}|${row.appearance}|${row.width}`;
+                require(expected.delete(key), `${name} duplicate or unexpected case ${key}`);
+              }
+              equal(expected.size, 0, `${name} missing cases`);
+            };
+            matrix(results, routes, 'results');
+            matrix(invalidResults, invalidRoutes, 'invalidResults');
+            const bannerRatios = [], mobileCases = [], ownerCases = [];
+            const checkCase = (row, invalid) => {
+              const name = `${invalid ? 'invalid ' : ''}${row.route}/${row.appearance}/${row.width}`;
+              equal(row.status, 'passed', `${name}.status`);
+              equal(row.root, spec[row.route][0], `${name}.root`);
+              equal(row.heading, spec[row.route][1], `${name}.heading`);
+              for (const key of ['restAndHoverSolid', 'preferencesUnchanged', 'actualBuiltRoute']) equal(row[key], true, `${name}.${key}`);
+              for (const key of ['frames', 'shadows', 'images', 'writeAttempts']) equal(row[key], 0, `${name}.${key}`);
+              equal(row.overflow, false, `${name}.overflow`);
+              require(integer(row.ordinarySurfaces) && row.ordinarySurfaces > 0, `${name} must inspect ordinary surfaces`);
+              require(integer(row.controls), `${name}.controls must be a nonnegative integer`);
+              require(object(row.focus) && row.focus.visible === true && finite(row.focus.outline), `${name} visible focus evidence missing`);
+              require(row.focus.outline >= 3 || focusRing(row.focus.shadow), `${name} requires a 3px outline or functional focus ring`);
+              if (row.controls > 0) {
+                require(finite(row.minControlHeight) && row.minControlHeight >= 44, `${name} control target below 44px`);
+                equal(row.controlScope, 'owned-route', `${name}.controlScope`);
+                equal(row.readOnlyInspection, false, `${name}.readOnlyInspection`);
+              } else {
+                require(mode === 'boundary' && ['account-recovery', 'portfolio-attribution', 'research-history'].includes(row.route), `${name} unexpectedly has no enabled route controls`);
+                equal(row.minControlHeight, null, `${name}.minControlHeight`);
+                equal(row.controlScope, 'existing-shell-navigation', `${name}.controlScope`);
+                equal(row.readOnlyInspection, true, `${name}.readOnlyInspection`);
+              }
+              if (mode === 'boundary') {
+                const action = row.boundaryActions;
+                require(object(action), `${name}.boundaryActions missing`);
+                equal(action.restAndHover, true, `${name}.boundaryActions.restAndHover`);
+                equal(action.focusRetested, true, `${name}.boundaryActions.focusRetested`);
+                require(integer(action.nodes) && action.nodes > 0 && integer(action.buttons), `${name} action counts invalid`);
+                equal(action.hovered, action.nodes, `${name} hovered action count`);
+                const rest = array(action.rest, `${name} action rest`);
+                equal(rest.length, action.nodes, `${name} action rest count`);
+                equal(rest.filter(node => node.button === true).length, action.buttons, `${name} action button count`);
+                require(rest.some(node => node.classes?.split(/\s+/).includes('q-page-head')), `${name} action page head missing`);
+                for (const [index, node] of rest.entries()) {
+                  solid(node, `${name} action ${index}`, true);
+                  require(typeof node.button === 'boolean' && typeof node.disabled === 'boolean' && typeof node.primary === 'boolean', `${name} action type missing`);
+                  if (!node.button) require(color(node.background)[3] === 0, `${name} action header or bar must stay transparent`);
+                  if (node.primary) require(node.button && color(node.background)[3] === 1, `${name} primary action must have an opaque button fill`);
+                }
+                if (invalid) { equal(row.selectionRequired, true, `${name}.selectionRequired`); equal(row.noSilentSubstitution, true, `${name}.noSilentSubstitution`); }
+                return;
+              }
+              const visual = row.visualEvidence;
+              require(object(visual), `${name}.visualEvidence missing`);
+              if (row.route === 'theme-personas') {
+                const banner = visual.banner;
+                require(object(banner), `${name}.banner missing`);
+                equal(banner.opaque, true, `${name}.banner.opaque`);
+                require(color(banner.background)[3] === 1, `${name} banner background is translucent`);
+                equal(array(banner.text, `${name} banner text`).length, 3, `${name} banner text count`);
+                for (const text of banner.text) {
+                  require(nonempty(text.text) && finite(text.contrast), `${name} banner text evidence missing`);
+                  const measured = contrast(text.foreground, banner.background);
+                  require(measured >= 4.5 && text.contrast >= 4.5 && Math.abs(measured - text.contrast) <= 0.000001, `${name} banner contrast mismatch or below 4.5`);
+                  bannerRatios.push(measured);
+                }
+                require(object(visual.primaryAction), `${name}.primaryAction missing`);
+                equal(visual.primaryAction.restShadow, 'none', `${name} primary action rest shadow`);
+                equal(visual.primaryAction.hoverShadow, 'none', `${name} primary action hover shadow`);
+                equal(visual.primaryAction.focusVisibleRuleUntouched, true, `${name} primary action focus preserved`);
+                return;
+              }
+              const mobile = row.width <= 620;
+              equal(visual.mobile, mobile, `${name}.mobile`);
+              const geometry = visual.geometry;
+              require(object(geometry) && object(geometry.nav), `${name} tab geometry missing`);
+              const rect = (value, label) => { require(object(value) && ['left', 'right', 'top', 'bottom', 'width', 'height'].every(key => finite(value[key])) && value.width > 0 && value.height > 0 && value.right > value.left && value.bottom > value.top, `${name} invalid ${label} rectangle`); };
+              rect(geometry.nav, 'nav');
+              require(geometry.nav.left >= -1 && geometry.nav.right <= row.width + 1, `${name} nav outside viewport`);
+              require(finite(geometry.clientWidth) && finite(geometry.scrollWidth) && geometry.clientWidth > 0 && geometry.scrollWidth <= geometry.clientWidth + 1, `${name} tab rail overflows`);
+              const buttons = array(geometry.buttons, `${name} tabs`);
+              equal(buttons.length, 3, `${name} tab count`);
+              for (const [index, button] of buttons.entries()) {
+                rect(button, 'tab'); equal(button.label, ['Studio', 'Gallery', 'Compare'][index], `${name} tab label`);
+                require(button.height >= 44 && button.left >= geometry.nav.left - 1 && button.right <= geometry.nav.right + 1, `${name} tab clipped or too short`);
+              }
+              rect(geometry.badge, 'appearance badge');
+              if (mobile) {
+                require(geometry.badge.left >= geometry.nav.left - 1 && geometry.badge.right <= geometry.nav.right + 1 && geometry.badge.top >= Math.max(...buttons.map(button => button.bottom)) - 1, `${name} badge overlaps or clips tabs`);
+                require(finite(geometry.badge.clientWidth) && finite(geometry.badge.scrollWidth) && geometry.badge.clientWidth > 0 && geometry.badge.scrollWidth <= geometry.badge.clientWidth + 1, `${name} badge text clips`);
+                mobileCases.push(row);
+              }
+              const wrappers = array(visual.wrappers, `${name} wrappers`);
+              equal(wrappers.length, 2, `${name} wrapper count`);
+              for (const classes of ['q-ti-metrics', 'q-ti-audit']) {
+                const wrapper = wrappers.find(value => value.classes === classes);
+                require(object(wrapper) && finite(wrapper.gap) && wrapper.gap >= 8 && finite(wrapper.columnGap) && wrapper.columnGap >= 8, `${name} ${classes} gap missing`);
+                require(color(wrapper.background)[3] === 0, `${name} ${classes} cosmetic background remains`);
+                equal(wrapper.border, 0, `${name} ${classes} border`); equal(wrapper.shadow, 'none', `${name} ${classes} shadow`);
+              }
+              const samples = array(visual.computedOwnerSamples, `${name} computed owners`);
+              if (row.width === 390 || row.width === 1280) {
+                const selectors = ['.q-ti-metrics', '.q-ti-audit', '.q-ti-mobile-preview-head', '.q-ti-chart', '.q-ti-swatch', '.q-ti-table td'];
+                equal(samples.length, selectors.length, `${name} computed owner count`);
+                for (const selector of selectors) {
+                  const matches = samples.filter(value => value.selector === selector);
+                  equal(matches.length, 1, `${name} ${selector} owner count`);
+                  const sample = matches[0], functional = selectors.indexOf(selector) >= 3;
+                  solid(sample, `${name} ${selector}`, !functional);
+                  equal(sample.functionalPreview, functional, `${name} ${selector} classification`);
+                  if (functional) require(array(sample.border, `${name} functional border`).length === 4 && sample.border.some(edge => Number.parseFloat(edge) > 0), `${name} functional preview frame removed`);
+                  require(array(sample.matchedOwners, `${name} matched owners`).length > 0, `${name} CSS owner evidence missing`);
+                }
+                ownerCases.push(row);
+              } else equal(samples.length, 0, `${name} unexpected computed owner samples`);
+            };
+            results.forEach(row => checkCase(row, false));
+            invalidResults.forEach(row => checkCase(row, true));
+            const expectedScreenshots = mode === 'theme' ? ['theme-lab-dark-390.png', 'theme-personas-light-1280.png'] : ['account-recovery-dark-390.png', 'category-detail-light-1280.png'];
+            require(JSON.stringify(array(report.screenshots, 'screenshots').slice().sort()) === JSON.stringify(expectedScreenshots.slice().sort()), 'selected screenshot inventory differs');
+            if (mode === 'theme') {
+              equal(mobileCases.length, 4, 'mobile geometry derived count'); equal(report.mobileRailGeometryCases, 4, 'mobileRailGeometryCases');
+              require(finite(report.bannerContrastMinimum) && Math.abs(report.bannerContrastMinimum - Math.min(...bannerRatios)) <= 0.000001, 'bannerContrastMinimum disagrees with case evidence');
+              equal(ownerCases.length, 4, 'computed owner derived count');
+            } else { equal(report.boundaryActionDefaultCases, 100, 'boundaryActionDefaultCases'); equal(report.boundaryActionInvalidCases, 40, 'boundaryActionInvalidCases'); }
+            return { valid: true, mode, sourceSha: expectedSha, productSha: expectedSha, runnerSha: report.runnerSha, defaultCases: defaults, invalidCases: invalids, inspectedCases: defaults + invalids, focusScope: 'focused only', realAuthenticationTested: false, fullBrowserSuiteAccepted: false, nativePrivateFullWaveAccepted: false };
+          }
+          const mode="theme",root=process.env.QELLY_FOCUSED_REPORT_ROOT||"preview/focused-owner-theme",expected=process.env.QELLY_SCREEN_EVIDENCE_SHA;
+          const bytes=await readFile(root+'/report.json'),report=JSON.parse(bytes);
+          const validation=validateFocusedOwnerReport(report,mode,expected);
+          const digest=value=>createHash('sha256').update(value).digest('hex');
+          const wanted=mode==='theme'?['theme-lab-dark-390.png','theme-personas-light-1280.png']:['account-recovery-dark-390.png','category-detail-light-1280.png'];
+          assert.deepEqual([...report.screenshots].sort(),[...wanted].sort());
+          const screenshots=[];for(const file of wanted){const png=await readFile(root+"/"+file);assert.ok(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));const width=png.readUInt32BE(16),height=png.readUInt32BE(20);assert.equal(width,file.includes("1280")?1280:390);assert.ok(height>=900);screenshots.push({file,bytes:png.length,sha256:digest(png),width,height});}
+          const receipt={...validation,sourceSha:expected,mode,reportSha256:digest(bytes),screenshots};
+          const output=root+'/independent-gate-receipt.json';
+          await writeFile(output,JSON.stringify(receipt)+'\n');console.log(JSON.stringify(receipt));
+          NODE
+      - name: Upload theme owned focused evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-theme-owned-focused-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/focused-owner-theme
+          if-no-files-found: error
+          retention-days: 7
       - name: Verify status navigation and access-page URL alignment
         run: node scripts/qelly-header-context-routing-e2e.mjs
       - name: Upload focused header context routing evidence
@@ -638,6 +888,258 @@ jobs:
           name: qelly-complete-all-screens-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: ${{ runner.temp }}/qelly-published-browser-evidence
           digest-mismatch: error
+      - name: Download published theme focused evidence to hosted runner only
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: qelly-theme-owned-focused-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: ${{ runner.temp }}/qelly-theme-owned-focused
+          digest-mismatch: error
+      - name: Independently verify published theme context and checksum evidence
+        env:
+          QELLY_FOCUSED_REPORT_ROOT: ${{ runner.temp }}/qelly-theme-owned-focused
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile,writeFile} from 'node:fs/promises';
+          import {createHash} from 'node:crypto';
+          function validateFocusedOwnerReport(report, mode, expectedSha) {
+            const require = (condition, message) => { if (!condition) throw new Error(`Focused owner report: ${message}`); };
+            const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+            const finite = value => typeof value === 'number' && Number.isFinite(value);
+            const integer = value => Number.isInteger(value) && value >= 0;
+            const nonempty = value => typeof value === 'string' && value.trim().length > 0;
+            const equal = (actual, expected, name) => require(actual === expected, `${name} must equal ${JSON.stringify(expected)}`);
+            const array = (value, name) => { require(Array.isArray(value), `${name} must be an array`); return value; };
+            const color = value => {
+              require(nonempty(value), 'computed color missing');
+              const text = value.trim().toLowerCase();
+              if (text === 'transparent') return [0, 0, 0, 0];
+              let match = text.match(/^rgba?\((.*)\)$/), normalized = false;
+              if (!match) { match = text.match(/^color\(srgb\s+(.+)\)$/); normalized = true; }
+              require(match, `unsupported computed color ${value}`);
+              const channels = match[1].replace(/,/g, ' ').replace(/\//g, ' ').trim().split(/\s+/);
+              require(channels.length === 3 || channels.length === 4, `invalid computed color ${value}`);
+              const values = channels.map((channel, index) => {
+                const numeric = Number.parseFloat(channel);
+                require(Number.isFinite(numeric), `invalid computed color channel ${value}`);
+                return channel.endsWith('%') ? numeric / 100 : (index < 3 && !normalized ? numeric / 255 : numeric);
+              });
+              if (values.length === 3) values.push(1);
+              require(values.every(value => value >= 0 && value <= 1), `computed color out of range ${text}`);
+              return values;
+            };
+            const contrast = (foreground, background) => {
+              const front = color(foreground), back = color(background);
+              require(back[3] === 1, 'banner background must be opaque');
+              const luminance = channels => channels.slice(0, 3).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4)
+                .reduce((sum, value, index) => sum + value * [0.2126, 0.7152, 0.0722][index], 0);
+              const combined = front.slice(0, 3).map((value, index) => value * front[3] + back[index] * (1 - front[3]));
+              const first = luminance(combined), second = luminance(back);
+              return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+            };
+            const focusRing = shadow => {
+              if (!nonempty(shadow) || shadow === 'none') return false;
+              return (shadow.match(/(?:rgba?\([^)]*\)|color\([^)]*\)|#[a-f0-9]+)[^,]*/gi) || []).some(part => {
+                if (/\binset\b/i.test(part)) return false;
+                const computed = part.match(/^(rgba?\([^)]*\)|color\([^)]*\))/i)?.[1];
+                if (!computed || color(computed)[3] <= 0) return false;
+                const lengths = part.slice(computed.length).match(/-?(?:\d*\.)?\d+px/g)?.map(Number.parseFloat) || [];
+                return lengths.length === 4 && lengths[0] === 0 && lengths[1] === 0 && lengths[2] === 0 && lengths[3] >= 3;
+              });
+            };
+            const zeroBorders = (value, name) => require(array(value, name).length === 4 && value.every(edge => /^0(?:px)?$/.test(edge)), `${name} must have four zero borders`);
+            const solid = (value, name, borders = false) => {
+              require(object(value), `${name} missing`);
+              equal(value.image, 'none', `${name}.image`);
+              equal(value.shadow, 'none', `${name}.shadow`);
+              if (value.backdrop !== undefined) equal(value.backdrop, 'none', `${name}.backdrop`);
+              color(value.background);
+              if (borders) zeroBorders(value.border, `${name}.border`);
+            };
+            const spec = {
+              'theme-lab': ['.q-ti-page', 'Theme Studio'],
+              'theme-personas': ['.q-theme-persona-page', 'Choose how Qelly prioritises intelligence'],
+              'account-recovery': ['.q-boundary-page', 'Account Recovery Controls'],
+              'portfolio-attribution': ['.q-boundary-page', 'Performance Attribution'],
+              'research-history': ['.q-boundary-page', 'Research Version History'],
+              'formula-detail': ['.q-formula-detail-page.q-boundary-page', 'Formula Detail'],
+              'indicator-detail': ['.q-indicator-detail-page.q-boundary-page', 'Indicator Detail'],
+              'calculator-detail': ['.q-calculator-detail-page.q-boundary-page', 'Calculator Detail'],
+              'saved-calculation-detail': ['.q-saved-detail-page.q-boundary-page', 'Saved Calculation Detail'],
+              'category-detail': ['.q-governed-unavailable.q-boundary-page', 'Category dossier'],
+              'venue-detail': ['.q-governed-unavailable.q-boundary-page', 'Venue dossier'],
+              'research-article': ['.q-governed-unavailable.q-boundary-page', 'Research article'],
+            };
+            require(mode === 'theme' || mode === 'boundary', 'mode must be theme or boundary');
+            require(typeof expectedSha === 'string' && /^[a-f0-9]{40}$/.test(expectedSha), 'expected checkout SHA must be a full lowercase SHA');
+            require(object(report), 'report must be an object');
+            equal(report.mode, mode, 'mode');
+            equal(report.status, 'passed', 'status');
+            equal(report.sourceSha, expectedSha, 'sourceSha');
+            equal(report.productSha, expectedSha, 'productSha');
+            require(typeof report.runnerSha === 'string' && /^[a-f0-9]{40}$/.test(report.runnerSha), 'runnerSha must be a full SHA');
+            for (const name of ['actualBuiltRuntime', 'productionFinalizersConfirmed', 'syntheticGetFixtures', 'rootVisualReviewRequired']) equal(report[name], true, name);
+            for (const name of ['manualPresenterInjection', 'realAuthenticationTested', 'preferencesActivated', 'settingsApplied', 'formsSubmitted', 'providersEnabled', 'numericalEnginesChanged']) equal(report[name], false, name);
+            for (const name of ['nativePrivateFullWaveAccepted', 'fullBrowserSuiteAccepted', 'nativeAcceptance', 'realAuthAccepted']) require(report[name] === undefined || report[name] === false, `${name} exceeds focused evidence scope`);
+            equal(report.scope, 'focused only; no full Browser suite', 'scope');
+            equal(report.writeAttempts, 0, 'writeAttempts');
+            for (const name of ['failures', 'invalidFailures']) equal(array(report[name], name).length, 0, `${name}.length`);
+            const routes = mode === 'theme' ? ['theme-lab', 'theme-personas'] : Object.keys(spec).slice(2);
+            const invalidRoutes = mode === 'boundary' ? ['formula-detail', 'indicator-detail', 'calculator-detail', 'saved-calculation-detail'] : [];
+            const widths = [1440, 1280, 768, 390, 320], appearances = ['dark', 'light'];
+            const defaults = routes.length * widths.length * appearances.length, invalids = invalidRoutes.length * widths.length * appearances.length;
+            for (const name of ['expectedDefaultContexts', 'completedDefaultContexts', 'passedDefaultContexts']) equal(report[name], defaults, name);
+            for (const name of ['invalidMethodContexts', 'invalidMethodPassed']) equal(report[name], invalids, name);
+            const results = array(report.results, 'results'), invalidResults = array(report.invalidResults, 'invalidResults');
+            const matrix = (rows, expectedRoutes, name) => {
+              equal(rows.length, expectedRoutes.length * widths.length * appearances.length, `${name}.length`);
+              const expected = new Set(expectedRoutes.flatMap(route => appearances.flatMap(appearance => widths.map(width => `${route}|${appearance}|${width}`))));
+              for (const row of rows) {
+                require(object(row), `${name} case must be an object`);
+                const key = `${row.route}|${row.appearance}|${row.width}`;
+                require(expected.delete(key), `${name} duplicate or unexpected case ${key}`);
+              }
+              equal(expected.size, 0, `${name} missing cases`);
+            };
+            matrix(results, routes, 'results');
+            matrix(invalidResults, invalidRoutes, 'invalidResults');
+            const bannerRatios = [], mobileCases = [], ownerCases = [];
+            const checkCase = (row, invalid) => {
+              const name = `${invalid ? 'invalid ' : ''}${row.route}/${row.appearance}/${row.width}`;
+              equal(row.status, 'passed', `${name}.status`);
+              equal(row.root, spec[row.route][0], `${name}.root`);
+              equal(row.heading, spec[row.route][1], `${name}.heading`);
+              for (const key of ['restAndHoverSolid', 'preferencesUnchanged', 'actualBuiltRoute']) equal(row[key], true, `${name}.${key}`);
+              for (const key of ['frames', 'shadows', 'images', 'writeAttempts']) equal(row[key], 0, `${name}.${key}`);
+              equal(row.overflow, false, `${name}.overflow`);
+              require(integer(row.ordinarySurfaces) && row.ordinarySurfaces > 0, `${name} must inspect ordinary surfaces`);
+              require(integer(row.controls), `${name}.controls must be a nonnegative integer`);
+              require(object(row.focus) && row.focus.visible === true && finite(row.focus.outline), `${name} visible focus evidence missing`);
+              require(row.focus.outline >= 3 || focusRing(row.focus.shadow), `${name} requires a 3px outline or functional focus ring`);
+              if (row.controls > 0) {
+                require(finite(row.minControlHeight) && row.minControlHeight >= 44, `${name} control target below 44px`);
+                equal(row.controlScope, 'owned-route', `${name}.controlScope`);
+                equal(row.readOnlyInspection, false, `${name}.readOnlyInspection`);
+              } else {
+                require(mode === 'boundary' && ['account-recovery', 'portfolio-attribution', 'research-history'].includes(row.route), `${name} unexpectedly has no enabled route controls`);
+                equal(row.minControlHeight, null, `${name}.minControlHeight`);
+                equal(row.controlScope, 'existing-shell-navigation', `${name}.controlScope`);
+                equal(row.readOnlyInspection, true, `${name}.readOnlyInspection`);
+              }
+              if (mode === 'boundary') {
+                const action = row.boundaryActions;
+                require(object(action), `${name}.boundaryActions missing`);
+                equal(action.restAndHover, true, `${name}.boundaryActions.restAndHover`);
+                equal(action.focusRetested, true, `${name}.boundaryActions.focusRetested`);
+                require(integer(action.nodes) && action.nodes > 0 && integer(action.buttons), `${name} action counts invalid`);
+                equal(action.hovered, action.nodes, `${name} hovered action count`);
+                const rest = array(action.rest, `${name} action rest`);
+                equal(rest.length, action.nodes, `${name} action rest count`);
+                equal(rest.filter(node => node.button === true).length, action.buttons, `${name} action button count`);
+                require(rest.some(node => node.classes?.split(/\s+/).includes('q-page-head')), `${name} action page head missing`);
+                for (const [index, node] of rest.entries()) {
+                  solid(node, `${name} action ${index}`, true);
+                  require(typeof node.button === 'boolean' && typeof node.disabled === 'boolean' && typeof node.primary === 'boolean', `${name} action type missing`);
+                  if (!node.button) require(color(node.background)[3] === 0, `${name} action header or bar must stay transparent`);
+                  if (node.primary) require(node.button && color(node.background)[3] === 1, `${name} primary action must have an opaque button fill`);
+                }
+                if (invalid) { equal(row.selectionRequired, true, `${name}.selectionRequired`); equal(row.noSilentSubstitution, true, `${name}.noSilentSubstitution`); }
+                return;
+              }
+              const visual = row.visualEvidence;
+              require(object(visual), `${name}.visualEvidence missing`);
+              if (row.route === 'theme-personas') {
+                const banner = visual.banner;
+                require(object(banner), `${name}.banner missing`);
+                equal(banner.opaque, true, `${name}.banner.opaque`);
+                require(color(banner.background)[3] === 1, `${name} banner background is translucent`);
+                equal(array(banner.text, `${name} banner text`).length, 3, `${name} banner text count`);
+                for (const text of banner.text) {
+                  require(nonempty(text.text) && finite(text.contrast), `${name} banner text evidence missing`);
+                  const measured = contrast(text.foreground, banner.background);
+                  require(measured >= 4.5 && text.contrast >= 4.5 && Math.abs(measured - text.contrast) <= 0.000001, `${name} banner contrast mismatch or below 4.5`);
+                  bannerRatios.push(measured);
+                }
+                require(object(visual.primaryAction), `${name}.primaryAction missing`);
+                equal(visual.primaryAction.restShadow, 'none', `${name} primary action rest shadow`);
+                equal(visual.primaryAction.hoverShadow, 'none', `${name} primary action hover shadow`);
+                equal(visual.primaryAction.focusVisibleRuleUntouched, true, `${name} primary action focus preserved`);
+                return;
+              }
+              const mobile = row.width <= 620;
+              equal(visual.mobile, mobile, `${name}.mobile`);
+              const geometry = visual.geometry;
+              require(object(geometry) && object(geometry.nav), `${name} tab geometry missing`);
+              const rect = (value, label) => { require(object(value) && ['left', 'right', 'top', 'bottom', 'width', 'height'].every(key => finite(value[key])) && value.width > 0 && value.height > 0 && value.right > value.left && value.bottom > value.top, `${name} invalid ${label} rectangle`); };
+              rect(geometry.nav, 'nav');
+              require(geometry.nav.left >= -1 && geometry.nav.right <= row.width + 1, `${name} nav outside viewport`);
+              require(finite(geometry.clientWidth) && finite(geometry.scrollWidth) && geometry.clientWidth > 0 && geometry.scrollWidth <= geometry.clientWidth + 1, `${name} tab rail overflows`);
+              const buttons = array(geometry.buttons, `${name} tabs`);
+              equal(buttons.length, 3, `${name} tab count`);
+              for (const [index, button] of buttons.entries()) {
+                rect(button, 'tab'); equal(button.label, ['Studio', 'Gallery', 'Compare'][index], `${name} tab label`);
+                require(button.height >= 44 && button.left >= geometry.nav.left - 1 && button.right <= geometry.nav.right + 1, `${name} tab clipped or too short`);
+              }
+              rect(geometry.badge, 'appearance badge');
+              if (mobile) {
+                require(geometry.badge.left >= geometry.nav.left - 1 && geometry.badge.right <= geometry.nav.right + 1 && geometry.badge.top >= Math.max(...buttons.map(button => button.bottom)) - 1, `${name} badge overlaps or clips tabs`);
+                require(finite(geometry.badge.clientWidth) && finite(geometry.badge.scrollWidth) && geometry.badge.clientWidth > 0 && geometry.badge.scrollWidth <= geometry.badge.clientWidth + 1, `${name} badge text clips`);
+                mobileCases.push(row);
+              }
+              const wrappers = array(visual.wrappers, `${name} wrappers`);
+              equal(wrappers.length, 2, `${name} wrapper count`);
+              for (const classes of ['q-ti-metrics', 'q-ti-audit']) {
+                const wrapper = wrappers.find(value => value.classes === classes);
+                require(object(wrapper) && finite(wrapper.gap) && wrapper.gap >= 8 && finite(wrapper.columnGap) && wrapper.columnGap >= 8, `${name} ${classes} gap missing`);
+                require(color(wrapper.background)[3] === 0, `${name} ${classes} cosmetic background remains`);
+                equal(wrapper.border, 0, `${name} ${classes} border`); equal(wrapper.shadow, 'none', `${name} ${classes} shadow`);
+              }
+              const samples = array(visual.computedOwnerSamples, `${name} computed owners`);
+              if (row.width === 390 || row.width === 1280) {
+                const selectors = ['.q-ti-metrics', '.q-ti-audit', '.q-ti-mobile-preview-head', '.q-ti-chart', '.q-ti-swatch', '.q-ti-table td'];
+                equal(samples.length, selectors.length, `${name} computed owner count`);
+                for (const selector of selectors) {
+                  const matches = samples.filter(value => value.selector === selector);
+                  equal(matches.length, 1, `${name} ${selector} owner count`);
+                  const sample = matches[0], functional = selectors.indexOf(selector) >= 3;
+                  solid(sample, `${name} ${selector}`, !functional);
+                  equal(sample.functionalPreview, functional, `${name} ${selector} classification`);
+                  if (functional) require(array(sample.border, `${name} functional border`).length === 4 && sample.border.some(edge => Number.parseFloat(edge) > 0), `${name} functional preview frame removed`);
+                  require(array(sample.matchedOwners, `${name} matched owners`).length > 0, `${name} CSS owner evidence missing`);
+                }
+                ownerCases.push(row);
+              } else equal(samples.length, 0, `${name} unexpected computed owner samples`);
+            };
+            results.forEach(row => checkCase(row, false));
+            invalidResults.forEach(row => checkCase(row, true));
+            const expectedScreenshots = mode === 'theme' ? ['theme-lab-dark-390.png', 'theme-personas-light-1280.png'] : ['account-recovery-dark-390.png', 'category-detail-light-1280.png'];
+            require(JSON.stringify(array(report.screenshots, 'screenshots').slice().sort()) === JSON.stringify(expectedScreenshots.slice().sort()), 'selected screenshot inventory differs');
+            if (mode === 'theme') {
+              equal(mobileCases.length, 4, 'mobile geometry derived count'); equal(report.mobileRailGeometryCases, 4, 'mobileRailGeometryCases');
+              require(finite(report.bannerContrastMinimum) && Math.abs(report.bannerContrastMinimum - Math.min(...bannerRatios)) <= 0.000001, 'bannerContrastMinimum disagrees with case evidence');
+              equal(ownerCases.length, 4, 'computed owner derived count');
+            } else { equal(report.boundaryActionDefaultCases, 100, 'boundaryActionDefaultCases'); equal(report.boundaryActionInvalidCases, 40, 'boundaryActionInvalidCases'); }
+            return { valid: true, mode, sourceSha: expectedSha, productSha: expectedSha, runnerSha: report.runnerSha, defaultCases: defaults, invalidCases: invalids, inspectedCases: defaults + invalids, focusScope: 'focused only', realAuthenticationTested: false, fullBrowserSuiteAccepted: false, nativePrivateFullWaveAccepted: false };
+          }
+          const mode="theme",root=process.env.QELLY_FOCUSED_REPORT_ROOT||"preview/focused-owner-theme",expected=process.env.QELLY_SCREEN_EVIDENCE_SHA;
+          const bytes=await readFile(root+'/report.json'),report=JSON.parse(bytes);
+          const validation=validateFocusedOwnerReport(report,mode,expected);
+          const digest=value=>createHash('sha256').update(value).digest('hex');
+          const wanted=mode==='theme'?['theme-lab-dark-390.png','theme-personas-light-1280.png']:['account-recovery-dark-390.png','category-detail-light-1280.png'];
+          assert.deepEqual([...report.screenshots].sort(),[...wanted].sort());
+          const screenshots=[];for(const file of wanted){const png=await readFile(root+"/"+file);assert.ok(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));const width=png.readUInt32BE(16),height=png.readUInt32BE(20);assert.equal(width,file.includes("1280")?1280:390);assert.ok(height>=900);screenshots.push({file,bytes:png.length,sha256:digest(png),width,height});}
+          const receipt={...validation,sourceSha:expected,mode,reportSha256:digest(bytes),screenshots};
+          assert.deepEqual(JSON.parse(await readFile(root+'/independent-gate-receipt.json','utf8')),receipt);
+          const output=process.env.RUNNER_TEMP+'/qelly-theme-focused-independent-receipt.json';
+          await writeFile(output,JSON.stringify(receipt)+'\n');console.log(JSON.stringify(receipt));
+          NODE
+      - name: Retain compact published theme verification receipt
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-theme-owned-focused-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: ${{ runner.temp }}/qelly-theme-focused-independent-receipt.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Verify all checksums and inherited acceptance contracts
         shell: bash
         run: |
