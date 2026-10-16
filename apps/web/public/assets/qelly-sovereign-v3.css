@@ -97,3 +97,48 @@ h1,h2,h3,h4,.q-kpi-value,.q-brand-mark,.q-workspace-switcher strong{font-family:
 .q-theme-preview{height:58px!important;border-radius:17px 17px 17px 6px!important}
 .q-live-chart-attribution{font-size:9px;color:var(--q-muted);display:flex;gap:6px;align-items:center}.q-live-chart-attribution:before{content:"TV";display:grid;place-items:center;width:22px;height:22px;border-radius:8px;background:var(--q-brand-gradient);color:#fff;font-size:8px;font-weight:850}
 @keyframes q-ripple{0%{transform:scale(0);opacity:.72}100%{transform:scale(1);opacity:0}}
+
+/* Persona chooser ordinary surface owner. Preference actions and focus retain their existing contracts. */
+html[data-production-system="v8"] body #app #main .q-theme-persona-page :where(.q-brand-lock-banner,.q-persona-card,.q-persona-comparison){
+  border:0!important;
+  background:var(--q-surface)!important;
+  background-image:none!important;
+  box-shadow:none!important;
+}
+html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-brand-lock-banner{
+  grid-template-columns:minmax(0,1fr)!important;
+  background:var(--q-burgundy-core,#6b1839)!important;
+  color:#fff!important;
+}
+html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-gradient-orbit{display:none!important}
+html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-persona-card,
+html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-persona-card:is(:hover,.is-selected){
+  transform:none!important;
+  box-shadow:none!important;
+}
+html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-persona-card.is-selected{
+  background:var(--q-surfacealt,var(--q-surface))!important;
+}
+html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-persona-card::before{content:none!important}
+html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-persona-glyph{
+  background:var(--q-burgundy-core,#6b1839)!important;
+  background-image:none!important;
+  box-shadow:none!important;
+}
+html[data-production-system="v8"] body #app #main .q-theme-persona-page :where(.q-persona-metrics span,.q-persona-best span){
+  border:0!important;
+  box-shadow:none!important;
+}
+html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-persona-comparison .q-panel-head{
+  border:0!important;
+  background:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+}
+
+/* The light-mode heading and kicker globals must not lower contrast on the fixed burgundy banner. */
+html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-brand-lock-banner h2{color:#fff!important}
+html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-brand-lock-banner p{color:#f7eaf0!important}
+html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-brand-lock-banner .q-eyebrow{color:#ffd6e6!important}
+/* The legacy primary-action owner declares its decorative shadow important; keyboard focus keeps its own contract. */
+html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-page-actions .q-button--primary:not(:focus-visible){box-shadow:none!important}
