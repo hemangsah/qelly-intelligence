@@ -393,6 +393,34 @@ jobs:
           name: qelly-account-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/account-editorial-e2e
           if-no-files-found: warn
+      - name: Measure bounded assistant formatter work without model execution
+        run: node scripts/qelly-chat-rich-content-performance.mjs
+      - name: Verify safe structured assistant responses without model execution
+        run: node scripts/qelly-chat-rich-content-e2e.mjs
+      - name: Validate complete structured-response presentation evidence
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          import assert from 'node:assert/strict';
+          const r=JSON.parse(readFileSync('preview/chat-rich-focused-e2e/report.json','utf8'));
+          assert.equal(r.releaseSha,process.env.QELLY_SCREEN_EVIDENCE_SHA);
+          assert.equal(r.status,'passed');assert.equal(r.cases,10);assert.equal(r.results.length,10);
+          assert.equal(r.amplificationExpectedCases,2);assert.equal(r.amplificationResults.length,2);assert.equal(r.parserLimits.elements,4096);
+          assert.deepEqual(r.results.map(x=>x.appearance+'-'+x.width).sort(),['dark','light'].flatMap(a=>[1440,1280,768,390,320].map(w=>a+'-'+w)).sort());
+          for(const x of [...r.results,...r.amplificationResults]){assert.equal(x.status,'passed');assert.equal(x.network.chatPosts,0);assert.equal(x.network.forwardedNonreads,0);assert.equal(x.network.forwardedExternal,0);assert.equal(x.pageErrorCount,0);assert.equal(x.runtimeServedFromBuild,true);}
+          assert.deepEqual(r.amplificationResults.map(x=>x.appearance).sort(),['dark','light']);
+          for(const x of r.amplificationResults){assert.equal(x.width,320);assert.equal(x.amplificationEvidence.elements,1);assert.equal(x.amplificationEvidence.plainFallback,true);assert.equal(x.originalLimitCharacters,60096);assert.equal(x.amplificationEvidence.textCharacters,x.originalLimitCharacters);}
+          const p=JSON.parse(readFileSync('preview/chat-rich-focused-e2e/performance.json','utf8'));
+          assert.equal(p.sourceSha,process.env.QELLY_SCREEN_EVIDENCE_SHA);assert.equal(p.cases,8);assert.equal(p.actualRendererImported,true);assert.equal(p.terminalINPMeasured,false);
+          const dense=p.results.find(x=>x.name==='dense-inline-63999');assert.equal(dense.generatedOpeningTags,1);assert.equal(dense.plainFallback,true);
+          NODE
+      - name: Preserve structured-response presentation evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-chat-rich-content-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/chat-rich-focused-e2e
+          retention-days: 30
       - name: Verify Theme Studio with the current overview contract
         run: node scripts/qelly-theme-route-crash-e2e.mjs
       - name: Preserve Theme route crash regression evidence
