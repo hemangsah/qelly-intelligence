@@ -41,7 +41,8 @@ test('unordered lists and limited emphasis do not allow raw HTML',()=>{
 });
 test('Markdown links and images remain inert literal text',()=>{
   const html=render('[click](javascript:attack())\n![image](https://example.com/tracker)\n<svg onload=attack()>');
-  for(const tag of ['<a ','<img','<svg','<iframe','<style','<script'])assert.ok(!html.includes(tag));assert.ok(html.includes('javascript:attack()'));assert.ok(html.includes('https://example.com/tracker'));
+  for(const tag of ['<a ','<img','<svg','<iframe','<style','<script'])assert.ok(!html.includes(tag));
+  assert.equal(html,'<p>[click](javascript:attack())<br>![image](https://example.com/tracker)<br>&lt;svg onload=attack()&gt;</p>');
 });
 test('hostile markup is escaped in headings and table cells',()=>{
   const html=render('# <img src=x>\n\n| <script> | <a href=x> |\n| --- | --- |\n| <iframe> | </td><script> |');
