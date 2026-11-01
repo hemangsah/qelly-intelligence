@@ -202,7 +202,7 @@ export function renderChatResponseContent(value){
         if(closing.length>=length&&[...closing].every(ch=>ch===character)){index++;break;}
         code.push(lines[index++]);
       }
-      output.push(`<pre tabindex="0" aria-label="Response code block"><code>${escapeText(code.join('\n'))}</code></pre>`);continue;
+      output.push(`<div class="q-ai-rich-code" role="region" tabindex="0" aria-label="Response code block"><pre><code>${escapeText(code.join('\n'))}</code></pre></div>`);continue;
     }
     const table=tableAt(lines,index);
     if(table){

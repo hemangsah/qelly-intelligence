@@ -14,10 +14,10 @@ test('long heading whitespace uses the bounded linear heading path',()=>{
 test('fenced code stays inert and preserves exact literal content',()=>{
   const code='<script>attack()</script>\n<img src=x onerror=attack()>\nconst x = "a|b";';
   const html=render('```javascript\n'+code+'\n```');
-  assert.ok(html.startsWith('<pre tabindex="0" aria-label="Response code block"><code>'));assert.ok(html.includes('&lt;script&gt;attack()&lt;/script&gt;'));assert.ok(html.includes('&lt;img src=x onerror=attack()&gt;'));assert.ok(!html.includes('<script'));assert.ok(!html.includes('<img'));
+  assert.ok(html.startsWith('<div class="q-ai-rich-code" role="region" tabindex="0" aria-label="Response code block"><pre><code>'));assert.ok(html.includes('&lt;script&gt;attack()&lt;/script&gt;'));assert.ok(html.includes('&lt;img src=x onerror=attack()&gt;'));assert.ok(!html.includes('<script'));assert.ok(!html.includes('<img'));
 });
 test('unclosed code fence retains every following line as escaped code',()=>{
-  assert.equal(render('~~~\n0\n<tail>'),'<pre tabindex="0" aria-label="Response code block"><code>0\n&lt;tail&gt;</code></pre>');
+  assert.equal(render('~~~\n0\n<tail>'),'<div class="q-ai-rich-code" role="region" tabindex="0" aria-label="Response code block"><pre><code>0\n&lt;tail&gt;</code></pre></div>');
 });
 test('table has explicit column headers and a keyboard scroll region',()=>{
   const html=render('| Measure | Example |\n| --- | ---: |\n| Realized | -12.50 |\n| Equity | 0 |');

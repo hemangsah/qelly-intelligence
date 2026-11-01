@@ -236,7 +236,7 @@ try {
 
       failureStage = 'keyboard table and code access';
       const table = body.locator('.q-ai-rich-table');
-      const pre = body.locator('pre');
+      const pre = body.locator('.q-ai-rich-code');
       // The timeframe select is the last real control before the restored thread.
       await panel.locator('[data-q-ai-timeframe]').focus();
       await page.keyboard.press('Tab');
