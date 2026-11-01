@@ -59,4 +59,5 @@ jobs:
           name: qelly-theme-route-crash-${{ github.sha }}
           path: |
             preview/theme-route-crash
+            preview/theme-module-navigation
           retention-days: 7
