@@ -132,11 +132,110 @@ function evidenceMarkup(message){
   return `<div class="q-ai-message-evidence"><span>${used} evidence item${used===1?'':'s'}</span><span>${esc(message.mode||'ask')} mode</span><span>${esc(message.asset||'BTC')} · ${esc(message.timeframe||'15m')}</span><span>${esc(time)}</span></div>`;
 }
 
+// Deliberately small presentation grammar. Model text never supplies HTML,
+// links, images, attributes, styles, executable code or evidence receipts.
+const escapeText=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+
+function inline(text){
+  const pattern=/(`[^`\n]+`|\*\*[^*\n]+\*\*)/g;
+  let output='',start=0;
+  for(const match of text.matchAll(pattern)){
+    output+=escapeText(text.slice(start,match.index));
+    const code=match[0][0]==='`',offset=code?1:2,tag=code?'code':'strong';
+    output+=`<${tag}>${escapeText(match[0].slice(offset,-offset))}</${tag}>`;
+    start=match.index+match[0].length;
+  }
+  return output+escapeText(text.slice(start));
+}
+
+function cells(line){
+  let value=line.trim();
+  if(value.startsWith('|'))value=value.slice(1);
+  if(value.endsWith('|')&&!value.endsWith('\\|'))value=value.slice(0,-1);
+  const result=[];let cell='',ticks=0;
+  for(let i=0;i<value.length;i++){
+    const ch=value[i];
+    if(ch==='\\'&&value[i+1]==='|'&&!ticks){cell+='|';i++;continue;}
+    if(ch==='`'){
+      let length=1;while(value[i+length]==='`')length++;
+      if(!ticks)ticks=length;else if(ticks===length)ticks=0;
+      cell+='`'.repeat(length);i+=length-1;continue;
+    }
+    if(ch==='|'&&!ticks){result.push(cell.trim());cell='';}else cell+=ch;
+  }
+  result.push(cell.trim());return result;
+}
+
+function tableAt(lines,index){
+  if(index+1>=lines.length||!lines[index].includes('|'))return null;
+  const heading=cells(lines[index]),separator=cells(lines[index+1]);
+  if(heading.length<2||heading.length!==separator.length||!separator.every(cell=>/^:?-{3,}:?$/.test(cell)))return null;
+  return {heading,columns:heading.length,tooWide:heading.length>16};
+}
+
+const openingFence=line=>line.match(/^ {0,3}(`{3,}|~{3,})([a-zA-Z0-9_-]{0,32})\s*$/);
+const listItem=line=>line.match(/^ {0,3}([-+*]|\d{1,6}[.)])\s+(.+)$/);
+function headingLine(line){
+  const prefix=line.match(/^ {0,3}#{1,6}[ \t]+/);if(!prefix)return null;
+  let value=line.slice(prefix[0].length).trimEnd(),end=value.length;
+  while(end>0&&value[end-1]==='#')end--;
+  // Markdown closing markers need a separating space. Preserve names such as C#.
+  if(end<value.length&&end>0&&/[ \t]/.test(value[end-1]))value=value.slice(0,end).trimEnd();
+  return value?[null,value]:null;
+}
+
+export function renderChatResponseContent(value){
+  const original=String(value??'');
+  // Large answers retain all text using the previous plain-text behavior;
+  // bounded parsing limits DOM amplification without truncating evidence.
+  if(original.length>64000)return `<p class="q-ai-rich-plain">${escapeText(original)}</p>`;
+  const text=original.replace(/\r\n?/g,'\n'),lines=text.split('\n');
+  if(lines.length>800)return `<p class="q-ai-rich-plain">${escapeText(text)}</p>`;
+  const output=[];let index=0;
+  while(index<lines.length){
+    if(!lines[index].trim()){index++;continue;}
+    const fence=openingFence(lines[index]);
+    if(fence){
+      const code=[],character=fence[1][0],length=fence[1].length;index++;
+      while(index<lines.length){
+        const closing=lines[index].trim();
+        if(closing.length>=length&&[...closing].every(ch=>ch===character)){index++;break;}
+        code.push(lines[index++]);
+      }
+      output.push(`<pre tabindex="0" aria-label="Response code block"><code>${escapeText(code.join('\n'))}</code></pre>`);continue;
+    }
+    const table=tableAt(lines,index);
+    if(table){
+      if(table.tooWide)return `<p class="q-ai-rich-plain">${escapeText(text)}</p>`;
+      index+=2;const rows=[];
+      while(index<lines.length&&lines[index].trim()&&rows.length<100){
+        const row=cells(lines[index]);if(row.length!==table.columns)break;
+        rows.push(`<tr>${row.map(cell=>`<td>${inline(cell)}</td>`).join('')}</tr>`);index++;
+      }
+      if(rows.length===100&&index<lines.length&&cells(lines[index]).length===table.columns)return `<p class="q-ai-rich-plain">${escapeText(text)}</p>`;
+      output.push(`<div class="q-ai-rich-table" role="region" aria-label="Response table" tabindex="0"><table><thead><tr>${table.heading.map(cell=>`<th scope="col">${inline(cell)}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`);continue;
+    }
+    const heading=headingLine(lines[index]);
+    if(heading){output.push(`<h3>${inline(heading[1])}</h3>`);index++;continue;}
+    const item=listItem(lines[index]);
+    if(item){
+      const ordered=/^\d/.test(item[1]),tag=ordered?'ol':'ul',items=[];
+      const start=ordered?` start="${Number.parseInt(item[1],10)}"`:'';
+      while(index<lines.length){const next=listItem(lines[index]);if(!next||/^\d/.test(next[1])!==ordered)break;items.push(`<li${ordered?` value="${Number.parseInt(next[1],10)}"`:''}>${inline(next[2])}</li>`);index++;}
+      output.push(`<${tag}${start}>${items.join('')}</${tag}>`);continue;
+    }
+    const paragraph=[lines[index++]];
+    while(index<lines.length&&lines[index].trim()&&!openingFence(lines[index])&&!tableAt(lines,index)&&!headingLine(lines[index])&&!listItem(lines[index]))paragraph.push(lines[index++]);
+    output.push(`<p>${paragraph.map(inline).join('<br>')}</p>`);
+  }
+  return output.join('');
+}
+
 function messageMarkup(message,index){
   const assistant=message.role==='assistant';
   return `<article class="q-ai-message q-ai-message--${assistant?'assistant':'user'}" data-q-ai-message-role="${message.role}" data-q-ai-message-index="${index}">
     <header><span>${assistant?'Qelly Intelligence':'You'}</span>${assistant&&message.truthState?`<em>${esc(truthLabel(message.truthState))}</em>`:''}</header>
-    <div class="q-ai-message-copy">${esc(message.content)}</div>
+    <div class="q-ai-message-copy${assistant?' q-ai-message-copy--rich':''}">${assistant?renderChatResponseContent(message.content):esc(message.content)}</div>
     ${assistant?evidenceMarkup(message):''}${assistant?toolList(message.tools):''}${assistant?sourceList(message.sources):''}${assistant?actionList(message.actions,index):''}${assistant?followUpList(message.followUps):''}
     ${assistant?`<div class="q-ai-message-tools"><button type="button" data-q-ai-copy="${index}">Copy</button>${message.sources?.some(source=>safeUrl(source.url)!=='#')?`<button type="button" data-q-ai-copy-sources="${index}">Copy citations</button>`:''}<button type="button" data-q-ai-compact="${index}">Compact</button><button type="button" data-q-ai-verify="${index}">Verify evidence</button><button type="button" data-q-ai-decision="${index}">Build decision</button>${message.retryable?`<button type="button" data-q-ai-retry="${index}">Retry</button>`:''}</div>`:''}
   </article>`;
