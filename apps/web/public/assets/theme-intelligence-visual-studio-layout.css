@@ -22,7 +22,7 @@ html[data-production-system="v8"] body #app #main .q-ti-page :where(.q-ti-metric
 }
 
 /* Separate ordinary preview facts tonally; retain the chart, table and color-swatch preview primitives. */
-html[data-production-system="v8"] body #app #main .q-ti-page :where(.q-ti-metrics,.q-ti-audit){gap:10px;border:0!important;background:transparent!important;box-shadow:none!important}
+html[data-production-system="v8"] body #app #main .q-ti-page :where(.q-ti-metrics,.q-ti-audit){gap:10px!important;border:0!important;background:transparent!important;box-shadow:none!important}
 html[data-production-system="v8"] body #app #main .q-ti-page .q-ti-mobile-preview-head{border:0!important;background:var(--q-surface)!important;box-shadow:none!important}
 @media(max-width:620px){
   html[data-production-system="v8"] body #app #main .q-ti-page .q-ti-tabs{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;overflow:visible;margin-inline:0;padding-inline:0}
