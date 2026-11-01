@@ -280,6 +280,18 @@ jobs:
                 equal(visual.primaryAction.focusVisibleRuleUntouched, true, `${name} primary action focus preserved`);
                 return;
               }
+              const tabContrast = visual.tabContrast;
+              require(object(tabContrast), `${name} tab contrast missing`);
+              for (const state of ['rest', 'hover']) {
+                const samples = array(tabContrast[state], `${name} ${state} tab contrast`);
+                equal(samples.length, 3, `${name} ${state} tab contrast count`);
+                samples.forEach((sample,index) => {
+                  equal(sample.label, ['Studio','Gallery','Compare'][index], `${name} contrast tab label`);
+                  equal(sample.active, index === 0, `${name} active tab identity`);
+                  const measured = contrast(sample.foreground, sample.background);
+                  require(finite(sample.contrast) && measured >= 4.5 && sample.contrast >= 4.5 && Math.abs(measured-sample.contrast) <= 0.000001, `${name} tab contrast mismatch or below4.5`);
+                });
+              }
               const mobile = row.width <= 620;
               equal(visual.mobile, mobile, `${name}.mobile`);
               const geometry = visual.geometry;
@@ -1083,6 +1095,18 @@ jobs:
                 equal(visual.primaryAction.hoverShadow, 'none', `${name} primary action hover shadow`);
                 equal(visual.primaryAction.focusVisibleRuleUntouched, true, `${name} primary action focus preserved`);
                 return;
+              }
+              const tabContrast = visual.tabContrast;
+              require(object(tabContrast), `${name} tab contrast missing`);
+              for (const state of ['rest', 'hover']) {
+                const samples = array(tabContrast[state], `${name} ${state} tab contrast`);
+                equal(samples.length, 3, `${name} ${state} tab contrast count`);
+                samples.forEach((sample,index) => {
+                  equal(sample.label, ['Studio','Gallery','Compare'][index], `${name} contrast tab label`);
+                  equal(sample.active, index === 0, `${name} active tab identity`);
+                  const measured = contrast(sample.foreground, sample.background);
+                  require(finite(sample.contrast) && measured >= 4.5 && sample.contrast >= 4.5 && Math.abs(measured-sample.contrast) <= 0.000001, `${name} tab contrast mismatch or below4.5`);
+                });
               }
               const mobile = row.width <= 620;
               equal(visual.mobile, mobile, `${name}.mobile`);

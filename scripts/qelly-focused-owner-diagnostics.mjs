@@ -40,6 +40,21 @@ async function visualEvidence(page,spec,width){
  return{mobile:width<=620,geometry,wrappers,computedOwnerSamples};},{width});
  for(const row of evidence.computedOwnerSamples)assert.ok(row.matchedOwners.length>0,"Matched CSS owner absent "+row.selector);assert.equal(evidence.geometry.buttons.length,3);for(const row of evidence.wrappers){assert.ok(row.columnGap>=8,'Cosmetic divider gap retained '+JSON.stringify(row));assert.equal(row.background,'rgba(0, 0, 0, 0)');assert.equal(row.border,0);assert.equal(row.shadow,'none');}
  if(evidence.mobile){const g=evidence.geometry;assert.ok(g.scrollWidth<=g.clientWidth+1,'Mobile tab rail scroll clipping');for(const b of g.buttons){assert.ok(b.left>=g.nav.left-1&&b.right<=g.nav.right+1,'Mobile tab outside rail '+JSON.stringify(b));assert.ok(b.height>=43.5,'Mobile tab target below44px');}assert.ok(g.badge,'Mobile appearance badge missing');assert.ok(g.badge.top>=Math.max(...g.buttons.map(b=>b.bottom))-1,'Mobile badge overlaps tabs');assert.ok(g.badge.left>=g.nav.left-1&&g.badge.right<=g.nav.right+1,'Mobile badge outside rail');assert.ok(g.badge.scrollWidth<=g.badge.clientWidth+1,'Mobile badge text clips');}
+ // BEGIN owned Theme tab contrast evidence
+ const tabSample=async locator=>locator.evaluate(node=>{
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=1;const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  const rgba=value=>{ctx.clearRect(0,0,1,1);ctx.fillStyle=value;ctx.fillRect(0,0,1,1);const c=[...ctx.getImageData(0,0,1,1).data];return[c[0],c[1],c[2],c[3]/255];};
+  let composed=[0,0,0,0];for(let ancestor=node;ancestor&&composed[3]<1;ancestor=ancestor.parentElement){const back=rgba(getComputedStyle(ancestor).backgroundColor),alpha=composed[3]+back[3]*(1-composed[3]);if(alpha>0)composed=[...composed.slice(0,3).map((v,i)=>(v*composed[3]+back[i]*back[3]*(1-composed[3]))/alpha),alpha];}
+  if(composed[3]<1)throw Error('Opaque tab backdrop not observed');const foreground=getComputedStyle(node).color,fg=rgba(foreground),background='rgb('+composed.slice(0,3).join(', ')+')';
+  const luminance=rgb=>rgb.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0),a=luminance(fg.slice(0,3).map((v,i)=>v*fg[3]+composed[i]*(1-fg[3]))),b=luminance(composed.slice(0,3));
+  return{label:node.textContent.trim(),active:node.classList.contains('is-active'),foreground,background,contrast:(Math.max(a,b)+.05)/(Math.min(a,b)+.05)};
+ });
+ const tabs=page.locator('.q-ti-tabs>button'),tabContrast={rest:[],hover:[]};await page.mouse.move(0,0);
+ for(let index=0;index<3;index++)tabContrast.rest.push(await tabSample(tabs.nth(index)));
+ for(let index=0;index<3;index++){await tabs.nth(index).hover();tabContrast.hover.push(await tabSample(tabs.nth(index)));}
+ for(const sample of [...tabContrast.rest,...tabContrast.hover])assert.ok(sample.contrast>=4.5,'Theme tab contrast below4.5 '+JSON.stringify(sample));
+ evidence.tabContrast=tabContrast;
+ // END owned Theme tab contrast evidence
  return evidence;
 }
 async function check(page,spec,appearance,width,writes){await ready(page,spec,appearance);const heading=await page.locator(spec.root+' h1').innerText();assert.equal(heading,spec.heading);const before=await preferenceSnapshot(page),selector=surfaceSelector(spec),ordinary=page.locator(selector),rest=await probe(ordinary);validateSurfaces(rest);await page.evaluate(()=>window.__focusedOwnerProgress={ordinaryRestPassed:true,ordinaryHoverPassed:false});let chartBefore=null;if(spec.route==='theme-lab'){assert.equal(await page.locator('.q-ti-controls details.q-ti-control-group').count(),5);assert.ok(await page.evaluate(()=>Boolean(window.QellyThemeStudio?.snapshot)));chartBefore=await page.locator('.q-ti-chart').evaluate(n=>JSON.stringify({svg:n.querySelector('svg').outerHTML,swatches:[...document.querySelectorAll('.q-ti-swatch')].map(x=>x.getAttribute('style'))}));assert.equal(await page.locator('.q-ti-swatch').count(),4);}if(spec.route==='theme-personas'){assert.equal(await page.locator('.q-persona-card').count(),6);assert.equal(await page.locator('[data-apply-persona]').count(),6);assert.match(await page.locator(spec.root).innerText(),/Active operating mode/);assert.equal(await page.locator('.q-persona-matrix-scroll[tabindex="0"]').count(),1);}
