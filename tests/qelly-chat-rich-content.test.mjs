@@ -68,3 +68,15 @@ test('CRLF is normalized without changing values',()=>{
 test('empty answers do not invent response content',()=>{
   assert.equal(render(''),'');assert.equal(render(null),'');assert.equal(render('\n \n'),'');
 });
+
+test('dense inline answers retain complete source in bounded plain mode',()=>{
+  const text=('`x` '.repeat(15000)).trim()+'\nDENSITY_END_PRESERVED';
+  assert.ok(text.length<64000);
+  assert.equal(render(text),'<p class="q-ai-rich-plain">'+text+'</p>');
+});
+test('a complete 100-row sixteen-column table stays structured within the element budget',()=>{
+  const headers=Array.from({length:16},(_,i)=>'Column '+(i+1));
+  const lines=[headers,headers.map(()=> '---'),...Array.from({length:100},(_,row)=>headers.map((_,column)=>'row-'+(row+1)+'-col-'+(column+1)))];
+  const html=render(lines.map(cells=>'| '+cells.join(' | ')+' |').join('\n'));
+  assert.ok(!html.includes('q-ai-rich-plain'));assert.equal((html.match(/<th scope="col">/g)||[]).length,16);assert.equal((html.match(/<td>/g)||[]).length,1600);assert.ok(html.includes('row-100-col-16'));
+});

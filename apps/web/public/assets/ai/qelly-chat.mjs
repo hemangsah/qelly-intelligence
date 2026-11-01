@@ -228,7 +228,11 @@ export function renderChatResponseContent(value){
     while(index<lines.length&&lines[index].trim()&&!openingFence(lines[index])&&!tableAt(lines,index)&&!headingLine(lines[index])&&!listItem(lines[index]))paragraph.push(lines[index++]);
     output.push(`<p>${paragraph.map(inline).join('<br>')}</p>`);
   }
-  return output.join('');
+  const html=output.join('');
+  // Dense inline formatting can amplify a bounded answer into thousands of DOM
+  // elements. Preserve the whole answer in the existing plain mode instead.
+  if((html.match(/<[a-z][^>]*>/gi)||[]).length>4096)return `<p class="q-ai-rich-plain">${escapeText(text)}</p>`;
+  return html;
 }
 
 function messageMarkup(message,index){

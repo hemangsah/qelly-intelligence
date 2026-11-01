@@ -367,8 +367,8 @@ try {
     releaseSha: process.env.QELLY_SCREEN_EVIDENCE_SHA || process.env.GITHUB_SHA || null,
     fixture: label, evidenceBoundary: 'synthetic restored UI fixtures in actual built application; no model execution or production acceptance',
     expectedCases: 10, cases: results.length, route: routeName, screenshots,
-    parserLimits: {characters: 64000, lines: 800, columns: 16, rows: 100},
-    checks: ['actual built runtime and authenticated app session', 'two user/assistant pairs restored before app load', 'semantic headings/lists/16-column table/code', 'C# and escaped/literal code pipes', 'complete long text and four whole-answer plain fallbacks', '100-row accepted boundary', 'inert HTML/images/links', 'keyboard table/code focus and horizontal scrolling', '3px focus outline and 3px offset', 'plain user messages', 'UI Copy original Markdown through ephemeral clipboard recorder', 'no document/message overflow', 'borderless shadowless ordinary surfaces', 'block/count every nonread and external browser request', 'zero Chat POSTs'],
+    parserLimits: {characters: 64000, lines: 800, columns: 16, rows: 100, elements: 4096},
+    checks: ['actual built runtime and authenticated app session', 'two user/assistant pairs restored before app load', 'semantic headings/lists/16-column table/code', 'C# and escaped/literal code pipes', 'complete long text and four whole-answer plain fallbacks', '100-row accepted boundary', 'inert HTML/images/links', 'keyboard table/code focus and horizontal scrolling', 'visible unclipped keyboard outlines and keyboard scrolling', 'plain user messages', 'UI Copy original Markdown through ephemeral clipboard recorder', 'no document/message overflow', 'borderless shadowless ordinary surfaces', 'block/count every nonread and external browser request', 'zero Chat POSTs'],
     amplificationExpectedCases:2, amplificationResults,
     results,
   }, null, 2) + '\n');
