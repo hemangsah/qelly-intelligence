@@ -93,6 +93,7 @@ function messagesFor(limit) {
 }
 
 const results = [];
+const amplificationResults = [];
 const screenshots = [];
 let server;
 let browser;
@@ -115,8 +116,12 @@ try {
   const origin = `http://127.0.0.1:${server.port}`;
   browser = await chromium.launch({headless: true, executablePath: process.env.QELLY_BROWSER_EXECUTABLE || '/usr/bin/chromium', args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu']});
 
-  for (const appearance of ['dark', 'light']) for (const width of widths) {
-    const limit = limitFixture(width);
+  const variants=[...widths.map(width=>({width,amplification:false})),{width:320,amplification:true}];
+  for (const appearance of ['dark', 'light']) for (const variant of variants) {
+    const {width}=variant;
+    const limit = variant.amplification?{kind:'rendered-element-budget',plain:true,text:label+'\n\n'+('`x` '.repeat(15000)).trim()+'\nDENSITY_END_PRESERVED'}:limitFixture(width);
+    const targetResults=variant.amplification?amplificationResults:results;
+    let amplificationEvidence=null;
     const context = await browser.newContext({viewport: {width, height: 900}, colorScheme: appearance, reducedMotion: 'reduce', serviceWorkers: 'block'});
     const network = {readRequests: 0, blockedNonreads: 0, blockedExternal: 0, chatPosts: 0, forwardedNonreads: 0, forwardedExternal: 0, protectedWriteAttempts: 0};
     let pageErrorCount = 0;
@@ -217,6 +222,7 @@ try {
 
       failureStage = 'complete limit fallback';
       const limitBody = panel.locator('.q-ai-message--assistant').nth(1).locator('.q-ai-message-copy--rich');
+      if(variant.amplification)amplificationEvidence=await limitBody.evaluate(node=>({elements:node.querySelectorAll('*').length,plainFallback:!!node.querySelector('.q-ai-rich-plain'),textCharacters:node.textContent.length}));
       if (limit.plain) {
         assert.equal(await limitBody.locator(':scope > .q-ai-rich-plain').count(), 1);
         assert.equal(await limitBody.locator('*').count(), 1, 'Oversize fallback must have exactly one escaped plain element.');
@@ -342,10 +348,10 @@ try {
         await page.screenshot({path: screenshot, fullPage: false, animations: 'disabled'});
         screenshots.push(screenshot);
       }
-      results.push({width, appearance, status: 'passed', limitKind: limit.kind, syntheticMessages: 4, originalRichCharacters: rich.length, originalLimitCharacters: limit.text.length, copyOriginalMarkdownChecks: 2, runtimeServedFromBuild, authenticatedSession: authenticated, inert, keyboard, layout, network, websocketAttempts, pageErrorCount, selectedScreenshot});
+      targetResults.push({width, appearance, status: 'passed', limitKind: limit.kind, syntheticMessages: 4, originalRichCharacters: rich.length, originalLimitCharacters: limit.text.length, amplificationEvidence, copyOriginalMarkdownChecks: 2, runtimeServedFromBuild, authenticatedSession: authenticated, inert, keyboard, layout, network, websocketAttempts, pageErrorCount, selectedScreenshot});
     } catch (error) {
-      results.push({width, appearance, status: 'failed', failureStage, error: String(error?.message || error).slice(0, 1800), network, websocketAttempts, pageErrorCount, runtimeServedFromBuild});
-      throw error;
+      targetResults.push({width, appearance, status: 'failed', failureStage, amplificationEvidence, error: String(error?.message || error).slice(0, 1800), network, websocketAttempts, pageErrorCount, runtimeServedFromBuild});
+      if(!variant.amplification)throw error;
     } finally {
       await context.close();
     }
@@ -354,7 +360,7 @@ try {
 } catch (error) {
   fatal = error;
 } finally {
-  const status = !fatal && results.length === 10 && results.every(result => result.status === 'passed') ? 'passed' : 'failed';
+  const status = !fatal && results.length === 10 && results.every(result => result.status === 'passed') && amplificationResults.length===2 && amplificationResults.every(result=>result.status==='passed'&&result.amplificationEvidence?.elements===1) ? 'passed' : 'failed';
   await writeFile(`${out}/report.json`, JSON.stringify({
     schema: 'qelly.chat.rich-focused-e2e/1.0', status,
     releaseSha: process.env.QELLY_SCREEN_EVIDENCE_SHA || process.env.GITHUB_SHA || null,
@@ -362,6 +368,7 @@ try {
     expectedCases: 10, cases: results.length, route: routeName, screenshots,
     parserLimits: {characters: 64000, lines: 800, columns: 16, rows: 100},
     checks: ['actual built runtime and authenticated app session', 'two user/assistant pairs restored before app load', 'semantic headings/lists/16-column table/code', 'C# and escaped/literal code pipes', 'complete long text and four whole-answer plain fallbacks', '100-row accepted boundary', 'inert HTML/images/links', 'keyboard table/code focus and horizontal scrolling', '3px focus outline and 3px offset', 'plain user messages', 'UI Copy original Markdown through ephemeral clipboard recorder', 'no document/message overflow', 'borderless shadowless ordinary surfaces', 'block/count every nonread and external browser request', 'zero Chat POSTs'],
+    amplificationExpectedCases:2, amplificationResults,
     results,
   }, null, 2) + '\n');
   console.log(JSON.stringify({chatRichFocusedCases: results.length, expectedCases: 10, status, screenshots: screenshots.length, report: `${out}/report.json`, fixture: 'synthetic UI fixture; model unchanged'}));
