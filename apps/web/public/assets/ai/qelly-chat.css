@@ -151,6 +151,6 @@
 .q-ai-message-copy--rich>.q-ai-rich-plain{white-space:pre-wrap}
 .q-ai-message-copy--rich>.q-ai-rich-table{max-width:100%;min-height:44px;overflow:auto;overscroll-behavior:contain;margin:12px 0;border:0;box-shadow:none}
 .q-ai-message-copy--rich .q-ai-rich-table table{display:table;min-width:32rem;width:100%;border-collapse:collapse;white-space:normal;background:transparent;font-size:14px;line-height:1.6}
-.q-ai-message-copy--rich .q-ai-rich-table :is(th,td){padding:12px 14px;text-align:start;vertical-align:top;border:0;border-bottom:1px solid var(--q-border);color:var(--q-text);background:transparent;overflow-wrap:anywhere}
+.q-ai-message-copy--rich .q-ai-rich-table :is(th,td){min-width:8rem;padding:12px 14px;text-align:start;vertical-align:top;border:0;border-bottom:1px solid var(--q-border);color:var(--q-text);background:transparent;overflow-wrap:anywhere}
 .q-ai-message-copy--rich .q-ai-rich-table th{font-weight:650;background:var(--q-surface-alt)}
 .q-ai-message-copy--rich :is(.q-ai-rich-code,.q-ai-rich-table):focus-visible{outline:3px solid var(--q-focus);outline-offset:3px}

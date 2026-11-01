@@ -234,6 +234,8 @@ try {
       }));
       assert.deepEqual(inert, {activeElements: 0, eventAttributes: 0, executed: 0}, 'Model content must never create active HTML, links or images.');
 
+      const columnWidths=await body.locator('.q-ai-rich-table th').evaluateAll(nodes=>nodes.map(n=>n.getBoundingClientRect().width));
+      assert.ok(columnWidths.every(width=>width>=120),'Dense response tables must retain readable columns and scroll horizontally');
       failureStage = 'keyboard table and code access';
       const table = body.locator('.q-ai-rich-table');
       const pre = body.locator('.q-ai-rich-code');
