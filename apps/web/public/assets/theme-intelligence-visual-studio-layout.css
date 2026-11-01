@@ -10,23 +10,23 @@
 
 /* Theme Studio ordinary surface owner. Chart, swatch, control, selection and focus primitives retain their existing contracts. */
 html[data-production-system="v8"] body #app #main .q-ti-page :where(.q-ti-hero,.q-ti-controls,.q-ti-control-group,.q-ti-preview-shell,.q-ti-metric,.q-ti-alpha-signal,.q-ti-semantic-card,.q-ti-audit-item,.q-ti-table-wrap){
-  border:0;
-  background-image:none;
-  box-shadow:none;
+  border:0!important;
+  background-image:none!important;
+  box-shadow:none!important;
 }
 html[data-production-system="v8"] body #app #main .q-ti-page :where(.q-ti-hero,.q-ti-control-group,.q-ti-preview-shell){
-  background:var(--q-surface);
+  background:var(--q-surface)!important;
 }
 html[data-production-system="v8"] body #app #main .q-ti-page :where(.q-ti-metric,.q-ti-alpha-signal,.q-ti-semantic-card,.q-ti-audit-item){
-  background:var(--q-panel);
+  background:var(--q-panel)!important;
 }
 
 /* Separate ordinary preview facts tonally; retain the chart, table and color-swatch preview primitives. */
-html[data-production-system="v8"] body #app #main .q-ti-page :where(.q-ti-metrics,.q-ti-audit){gap:10px;border:0;background:transparent;box-shadow:none}
-html[data-production-system="v8"] body #app #main .q-ti-page .q-ti-mobile-preview-head{border:0;background:var(--q-surface);box-shadow:none}
+html[data-production-system="v8"] body #app #main .q-ti-page :where(.q-ti-metrics,.q-ti-audit){gap:10px;border:0!important;background:transparent!important;box-shadow:none!important}
+html[data-production-system="v8"] body #app #main .q-ti-page .q-ti-mobile-preview-head{border:0!important;background:var(--q-surface)!important;box-shadow:none!important}
 @media(max-width:620px){
-  html[data-production-system="v8"] body #app #main .q-ti-page .q-ti-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;overflow:visible;margin-inline:0;padding-inline:0}
+  html[data-production-system="v8"] body #app #main .q-ti-page .q-ti-tabs{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;overflow:visible;margin-inline:0;padding-inline:0}
   html[data-production-system="v8"] body #app #main .q-ti-page .q-ti-tabs>button{min-width:0;padding-inline:8px;white-space:normal}
-  html[data-production-system="v8"] body #app #main .q-ti-page .q-ti-tabs>.q-status{display:inline-flex;grid-column:1/-1;justify-self:start;max-width:100%;margin:0;white-space:normal;overflow-wrap:anywhere;line-height:1.45}
+  html[data-production-system="v8"] body #app #main .q-ti-page .q-ti-tabs>.q-status{display:inline-flex!important;grid-column:1/-1;justify-self:start;max-width:100%;margin:0;white-space:normal;overflow-wrap:anywhere;line-height:1.45}
   html[data-production-system="v8"] body #app #main .q-ti-page .q-ti-mobile-preview-head{top:96px}
 }
