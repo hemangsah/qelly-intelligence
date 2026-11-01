@@ -231,6 +231,14 @@ async function assertSeries(page,root,id,limit){
   assert.equal(evidence['Truth state'],'DELAYED');assert.equal(evidence.Provider,'Isolated synthetic ECB-shaped fixture');assert.equal(evidence.Rights,'fixture-only / not redistributed');assert.equal(evidence.Execution,'Disabled');
   return {id,limit,points:points.length,range:expectedRange,chartCoordinates:coordinates.length,latest:format(last.value),chartEndpoint:chart.last};
 }
+async function verifySeriesChatClearance(page,root){
+  await page.locator('[data-q-ai-launcher]').waitFor({state:'attached'});
+  await root.locator('#v6-series-chart').evaluate(node=>{const launcher=document.querySelector('[data-q-ai-launcher]'),r=node.getBoundingClientRect(),box=launcher.getBoundingClientRect(),bottom=Number.parseFloat(getComputedStyle(launcher).bottom)||0,dockCenter=innerHeight-bottom-box.height/2;scrollTo(0,Math.max(0,scrollY+r.top+r.height/2-dockCenter));});
+  await page.waitForFunction(()=>document.querySelector('.q-ai-root')?.dataset.clearance==='chart',null,{timeout:5000}).catch(()=>{});
+  const evidence=await root.locator('#v6-series-chart').evaluate(node=>{const launcher=document.querySelector('[data-q-ai-launcher]'),r=node.getBoundingClientRect(),s=getComputedStyle(launcher),b=launcher.getBoundingClientRect(),bottom=Number.parseFloat(s.bottom)||0,dock={left:(innerWidth-b.width)/2,right:(innerWidth+b.width)/2,top:innerHeight-bottom-b.height,bottom:innerHeight-bottom};return{overlap:r.left<dock.right&&r.right>dock.left&&r.top<dock.bottom&&r.bottom>dock.top,clearance:document.querySelector('.q-ai-root').dataset.clearance,opacity:s.opacity,pointerEvents:s.pointerEvents,tabIndex:launcher.tabIndex,ariaHidden:launcher.getAttribute('aria-hidden'),explicitPlotMarker:node.hasAttribute('data-qelly-chat-plot')};});
+  assert.equal(evidence.overlap,true,'Probe must place the real chart under the dock');assert.equal(evidence.clearance,'chart','Actual plot must own Chat clearance: '+JSON.stringify(evidence));assert.equal(evidence.opacity,'0');assert.equal(evidence.pointerEvents,'none');assert.equal(evidence.tabIndex,-1);assert.equal(evidence.ariaHidden,'true');
+  await page.keyboard.press('Control+/');await page.locator('[data-q-ai-assistant]').waitFor({state:'visible'});evidence.keyboardChatAccessible=true;await page.keyboard.press('Escape');await page.locator('[data-q-ai-assistant]').waitFor({state:'hidden'});await page.evaluate(()=>scrollTo(0,0));await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));return evidence;
+}
 async function verifySeries(page,root,requestLog){
   const symbol=root.locator('#v6-series-symbol'),history=root.locator('#v6-series-limit');
   assert.deepEqual(await symbol.locator('option').evaluateAll(nodes=>nodes.map(node=>node.value)),['FIXTURE-FX-EURINR','FIXTURE-FX-EURUSD']);
@@ -243,7 +251,8 @@ async function verifySeries(page,root,requestLog){
   await symbol.selectOption('FIXTURE-FX-EURINR');states.push(await assertSeries(page,root,'FIXTURE-FX-EURINR',65));
   const requests=requestLog.filter(read=>read.path.startsWith('/api/v1/timeseries/'));
   for(const limit of ['30','65','90'])assert.ok(requests.some(read=>read.limit===limit&&read.interval==='1d'));
-  return {historySelectorPreserved:true,seriesSelectorPreserved:true,fxOnlySelectorPreserved:true,rangeMathPreserved:true,svgGeometryPreserved:true,reverseLatestTablePreserved:true,states,focus};
+  const chartChatClearance=await verifySeriesChatClearance(page,root);
+  return {historySelectorPreserved:true,seriesSelectorPreserved:true,fxOnlySelectorPreserved:true,rangeMathPreserved:true,svgGeometryPreserved:true,reverseLatestTablePreserved:true,states,focus,chartChatClearance};
 }
 
 await mkdir(out,{recursive:true});
