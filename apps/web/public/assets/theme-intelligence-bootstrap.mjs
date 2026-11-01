@@ -80,7 +80,9 @@ async function mountRoute(){
   mounted=true;
   observer?.disconnect();
   const [renderThemeIntelligenceStudio,enhanceThemeIntelligenceVisuals]=await Promise.all([loadStudioRenderer(),loadVisualEnhancer()]);
+  if(!studioRoute()||main()!==target)return;
   await renderThemeIntelligenceStudio(target,{toast,navigate,state:localState,persistPreference,renderRoute:mountRoute});
+  if(!studioRoute()||main()!==target)return;
   enhanceThemeIntelligenceVisuals(target);
   observer?.observe(target,{childList:true});
 }
