@@ -361,6 +361,7 @@ try {
   fatal = error;
 } finally {
   const status = !fatal && results.length === 10 && results.every(result => result.status === 'passed') && amplificationResults.length===2 && amplificationResults.every(result=>result.status==='passed'&&result.amplificationEvidence?.elements===1) ? 'passed' : 'failed';
+  if(status!=='passed')process.exitCode=1;
   await writeFile(`${out}/report.json`, JSON.stringify({
     schema: 'qelly.chat.rich-focused-e2e/1.0', status,
     releaseSha: process.env.QELLY_SCREEN_EVIDENCE_SHA || process.env.GITHUB_SHA || null,

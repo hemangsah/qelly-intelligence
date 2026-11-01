@@ -58,6 +58,15 @@ jobs:
           npm run build:frontend
       - name: Verify assistant presentation without a Chat request
         run: node scripts/qelly-chat-rich-content-e2e.mjs
+      - name: Independently validate baseline and adversarial Chat evidence
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';import assert from 'node:assert/strict';
+          const r=JSON.parse(readFileSync('preview/chat-rich-focused-e2e/report.json','utf8'));
+          assert.equal(r.releaseSha,process.env.QELLY_SCREEN_EVIDENCE_SHA);assert.equal(r.status,'passed');assert.equal(r.results.length,10);assert.equal(r.amplificationResults.length,2);
+          for(const x of [...r.results,...r.amplificationResults]){assert.equal(x.status,'passed');assert.equal(x.network.chatPosts,0);assert.equal(x.network.forwardedNonreads,0);assert.equal(x.network.forwardedExternal,0);}
+          for(const x of r.amplificationResults){assert.equal(x.amplificationEvidence.elements,1);assert.equal(x.amplificationEvidence.plainFallback,true);assert.equal(x.amplificationEvidence.textCharacters,x.originalLimitCharacters);}
+          NODE
       - name: Preserve exact-source results in cloud
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
