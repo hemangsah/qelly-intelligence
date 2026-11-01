@@ -257,7 +257,8 @@ try {
         assert.equal(geometry.focusVisible, true);
         if(geometry.outlineWidth!=='3px'||geometry.outlineOffset!=='3px')console.log('CHAT_RICH_FOCUS_OWNER '+JSON.stringify(await element.evaluate(node=>{const rules=[];const walk=(list,href)=>{for(const rule of list){if(rule.selectorText&&rule.style){try{if(node.matches(rule.selectorText)&&['outline','outline-width','outline-color','outline-style','box-shadow'].some(k=>rule.style.getPropertyValue(k)))rules.push({href,selector:rule.selectorText,css:rule.style.cssText});}catch{}}if(rule.cssRules)walk(rule.cssRules,href);}};for(const sheet of document.styleSheets){try{walk(sheet.cssRules,sheet.href);}catch{}}return {tag:node.tagName,classes:node.className,focus:getComputedStyle(node).getPropertyValue('--q-focus'),rules};})));
         assert.equal(geometry.outlineWidth, '3px',JSON.stringify({name,geometry}));
-        assert.equal(geometry.outlineOffset, '3px');
+        if(geometry.outlineOffset!=='3px')console.log('CHAT_RICH_OFFSET_OWNER '+JSON.stringify(await element.evaluate(node=>{const rules=[];const walk=(list,href)=>{for(const rule of list){if(rule.selectorText&&rule.style){try{if(node.matches(rule.selectorText)&&rule.style.getPropertyValue('outline-offset'))rules.push({href,selector:rule.selectorText,css:rule.style.cssText});}catch{}}if(rule.cssRules)walk(rule.cssRules,href);}};for(const sheet of document.styleSheets){try{walk(sheet.cssRules,sheet.href);}catch{}}return {inline:node.style.cssText,tag:node.tagName,rules};})));
+        assert.equal(geometry.outlineOffset, '3px',JSON.stringify({name,geometry}));
         assert.equal(geometry.outlineStyle, 'solid');
         assert.ok(['auto', 'scroll'].includes(geometry.overflowX));
         assert.ok(geometry.clientHeight >= 44);
