@@ -747,18 +747,26 @@ async function renderWatchlist(main) {
 }
 
 async function renderThemeLab(main) {
-  // Use the supported appearance workspace directly. Market overview contracts
-  // do not supply the legacy laboratory's kpis/rows presentation arrays.
-  const [{renderThemeIntelligenceStudio},{enhanceThemeIntelligenceVisuals}]=await Promise.all([
-    import('./routes/theme-intelligence-studio.mjs'),
-    import('./theme-intelligence-visual-correction.mjs')
-  ]);
+  // Let the router leave immediately while non-cancellable module imports settle.
+  const signal=activeRouteController?.signal;
+  if(signal?.aborted)return;
+  let onAbort,loaded;
+  const cancelled=new Promise(resolve=>{onAbort=()=>resolve(null);signal?.addEventListener('abort',onAbort,{once:true});});
+  try{
+    loaded=await Promise.race([Promise.all([
+      import('./routes/theme-intelligence-studio.mjs'),
+      import('./theme-intelligence-visual-correction.mjs')
+    ]),cancelled]);
+  }finally{signal?.removeEventListener('abort',onAbort);}
+  if(!loaded||signal?.aborted||!/^#\/theme-lab(?:\/|$)/.test(location.hash))return;
+  const [{renderThemeIntelligenceStudio},{enhanceThemeIntelligenceVisuals}]=loaded;
   const navigateStudio=(route,child='')=>{
     const next='#/'+route+(child?'/'+child:'');
     if(location.hash===next){void renderRoute();return;}
     location.hash=next;
   };
   await renderThemeIntelligenceStudio(main,{state,toast,persistPreference,navigate:navigateStudio,renderRoute});
+  if(signal?.aborted||!/^#\/theme-lab(?:\/|$)/.test(location.hash))return;
   enhanceThemeIntelligenceVisuals(main);
 }
 
