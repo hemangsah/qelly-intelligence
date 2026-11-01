@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
-      QELLY_SCREEN_EVIDENCE_SHA: '2870d4648f9ee38f9401be33f67ce702f0c2fea8'
+      QELLY_SCREEN_EVIDENCE_SHA: 'bae3d5490898d2debd6aa84f926dc4bccfad3d8d'
       QELLY_REQUIRE_PUBLIC_RUNTIME: 'true'
       QELLY_PROMPT2C_PUBLIC_BETA: 'true'
       QELLY_PUBLIC_SITE_URL: https://terminal.qellyintelligence.com
@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: 2870d4648f9ee38f9401be33f67ce702f0c2fea8
+          ref: bae3d5490898d2debd6aa84f926dc4bccfad3d8d
           persist-credentials: false
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
