@@ -106,20 +106,20 @@ html[data-production-system="v8"] body #app #main .q-theme-persona-page :where(.
   box-shadow:none!important;
 }
 html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-brand-lock-banner{
-  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-columns:minmax(0,1fr);
   background:var(--q-burgundy-core,#6b1839)!important;
   color:#fff!important;
 }
 html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-gradient-orbit{display:none!important}
 html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-persona-card,
 html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-persona-card:is(:hover,.is-selected){
-  transform:none!important;
+  transform:none;
   box-shadow:none!important;
 }
 html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-persona-card.is-selected{
   background:var(--q-surfacealt,var(--q-surface))!important;
 }
-html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-persona-card::before{content:none!important}
+html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-persona-card::before{content:none}
 html[data-production-system="v8"] body #app #main .q-theme-persona-page .q-persona-glyph{
   background:var(--q-burgundy-core,#6b1839)!important;
   background-image:none!important;
