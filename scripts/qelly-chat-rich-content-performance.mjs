@@ -1,0 +1,10 @@
+import {renderChatResponseContent as render} from '../apps/web/public/assets/ai/qelly-chat.mjs';
+import {mkdir,writeFile} from 'node:fs/promises';import {performance} from 'node:perf_hooks';import assert from 'node:assert/strict';
+assert.equal(process.env.GITHUB_ACTIONS,'true','Cloud-only performance observation');const sourceSha=process.env.QELLY_SCREEN_EVIDENCE_SHA||process.env.GITHUB_SHA;assert.match(sourceSha||'',/^[a-f0-9]{40}$/);
+const row='|'+Array(16).fill('v').join('|')+'|',separator='|'+Array(16).fill('---').join('|')+'|',cases=[
+ ['plain-16000','a'.repeat(16000)],['plain-64000','a'.repeat(64000)],['escaped-64000','<&>"'.repeat(16000)],
+ ['dense-inline-63999',('`x` '.repeat(16000)).trim()],['code-63984','```text\n'+'x'.repeat(63972)+'\n```'],
+ ['table-100x16',row+'\n'+separator+'\n'+Array(100).fill(row).join('\n')],['list-800-lines',Array(800).fill('- item').join('\n')],['heading-long-spaces','# a'+' '.repeat(32000)+'b'],
+],results=[];
+for(const [name,text]of cases){for(let n=0;n<3;n++)render(text);const samples=[];let html='';for(let n=0;n<10;n++){const start=performance.now();html=render(text);samples.push(performance.now()-start);}const ordered=[...samples].sort((a,b)=>a-b);results.push({name,inputCharacters:text.length,outputCharacters:html.length,generatedOpeningTags:(html.match(/<[a-z][^>]*>/gi)||[]).length,samples:10,medianMilliseconds:(ordered[4]+ordered[5])/2,p95Milliseconds:ordered[9],plainFallback:html.includes('q-ai-rich-plain')});}
+await mkdir('preview/chat-rich-focused-e2e',{recursive:true});const report={schema:'qelly.chat.parser-performance/1',sourceSha,status:'measured',cases:results.length,results,actualRendererImported:true,syntheticTextOnly:true,networkRequests:0,modelExecuted:false,browserDOMMeasured:false,terminalINPMeasured:false,runtimeSpeedupClaimed:false,timingBudgetEnforced:false,evidenceBoundary:'Pure formatter CPU observations in a hosted Node runner. Opening-tag counts describe generated markup, not browser DOM or interaction latency.'};await writeFile('preview/chat-rich-focused-e2e/performance.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));

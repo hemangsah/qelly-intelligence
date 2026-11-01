@@ -8,6 +8,7 @@ on:
       - apps/web/public/assets/ai/qelly-chat.css
       - tests/qelly-chat-rich-content.test.mjs
       - scripts/qelly-chat-rich-content-e2e.mjs
+      - scripts/qelly-chat-rich-content-performance.mjs
 permissions:
   contents: read
 jobs:
@@ -44,6 +45,8 @@ jobs:
           mkdir -p preview/chat-rich-content
           set -o pipefail
           node --test --test-reporter=tap tests/qelly-chat-rich-content.test.mjs | tee preview/chat-rich-content/unit.tap
+      - name: Measure actual formatter CPU and generated markup without model execution
+        run: node scripts/qelly-chat-rich-content-performance.mjs
       - name: Install official cloud Chromium
         run: npx --no-install playwright install --with-deps chromium
       - name: Bind Chromium to existing runner path
