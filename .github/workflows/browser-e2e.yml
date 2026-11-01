@@ -381,6 +381,24 @@ jobs:
           name: qelly-account-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/account-editorial-e2e
           if-no-files-found: warn
+      - name: Verify Theme Studio with the current overview contract
+        run: node scripts/qelly-theme-route-crash-e2e.mjs
+      - name: Preserve Theme route crash regression evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-theme-route-crash-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/theme-route-crash
+          retention-days: 30
+      - name: Verify delayed Theme modules preserve destination ownership
+        run: node scripts/qelly-theme-module-navigation-e2e.mjs
+      - name: Preserve Theme module cancellation evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-accessibility-floor-theme-module-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/theme-module-navigation
+          retention-days: 30
       - name: Verify DEX Retry cancellation and destination route ownership
         run: node scripts/qelly-dex-retry-lifecycle-e2e.mjs
       - name: Upload focused DEX Retry lifecycle evidence

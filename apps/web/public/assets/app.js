@@ -747,28 +747,27 @@ async function renderWatchlist(main) {
 }
 
 async function renderThemeLab(main) {
-  const themes=state.tokens.themes;
-  const themeProfiles={
-    'burgundy-command':{name:'Scalper Velocity',tagline:'Fast-decoding, high-motion command mode',fit:'Intraday scanning · live tape · alerts'},
-    'porcelain-burgundy':{name:'Investor Compound',tagline:'Calm, spacious and long-horizon analytical mode',fit:'Fundamentals · portfolios · reports'},
-    'burgundy-night':{name:'Aggressive Alpha',tagline:'Low-glare, high-energy opportunity mode',fit:'Momentum · catalysts · volatile markets'},
-    'graphite-terminal':{name:'Quant Operator',tagline:'Dense, precise and keyboard-first terminal mode',fit:'Screeners · data grids · operations'},
-    'midnight-research':{name:'Research Oracle',tagline:'Deep-focus narrative and evidence mode',fit:'Filings · research · comparisons'},
-    'high-contrast':{name:'Signal Access',tagline:'Maximum legibility and reduced-motion clarity',fit:'Accessibility · critical monitoring'}
+  // Let the router leave immediately while non-cancellable module imports settle.
+  const signal=activeRouteController?.signal;
+  if(signal?.aborted)return;
+  let onAbort,loaded;
+  const cancelled=new Promise(resolve=>{onAbort=()=>resolve(null);signal?.addEventListener('abort',onAbort,{once:true});});
+  try{
+    loaded=await Promise.race([Promise.all([
+      import('./routes/theme-intelligence-studio.mjs'),
+      import('./theme-intelligence-visual-correction.mjs')
+    ]),cancelled]);
+  }finally{signal?.removeEventListener('abort',onAbort);}
+  if(!loaded||signal?.aborted||!/^#\/theme-lab(?:\/|$)/.test(location.hash))return;
+  const [{renderThemeIntelligenceStudio},{enhanceThemeIntelligenceVisuals}]=loaded;
+  const navigateStudio=(route,child='')=>{
+    const next='#/'+route+(child?'/'+child:'');
+    if(location.hash===next){void renderRoute();return;}
+    location.hash=next;
   };
-  main.innerHTML=`<section class="q-page">${pageHead('Qelly Intelligence · Design OS','Persona Theme Laboratory','Six interest-led market personas, one permanently locked burgundy signature, guarded typography, density, motion and semantic color rules.',`<button class="q-button q-button--secondary" data-action="reset-theme">Reset</button><button class="q-button q-button--secondary" data-action="export-theme">Export JSON</button><button class="q-button q-button--primary" data-action="save-theme">Save profile</button>`)}${stateBanner()}<div class="q-theme-layout"><aside class="q-panel"><div class="q-panel-head"><div><h2>Appearance controls</h2><p>Validated before persistence</p></div></div><div class="q-panel-body"><div class="q-theme-grid">${Object.entries(themes).map(([key,value])=>`<button class="q-theme-choice ${state.prefs.theme===key?'is-active':''}" data-theme="${key}" style="--swatch-chrome:${value.chrome};--swatch-canvas:${value.canvas}"><span class="q-theme-preview"></span><strong>${escapeHtml(themeProfiles[key]?.name||key.replaceAll('-',' '))}</strong><small>${escapeHtml(themeProfiles[key]?.tagline||'')}</small></button>`).join('')}</div><div class="q-setting"><label for="custom-accent">Custom accent <span id="accent-status">${state.prefs.customAccent??'preset'}</span></label><input id="custom-accent" type="color" value="${state.prefs.customAccent??themes[state.prefs.theme].accent}"><div id="contrast-result" style="font-size:9px;color:var(--q-muted);margin-top:6px"></div></div><div class="q-setting"><label for="density-select">Density <span>${state.prefs.density}</span></label><select id="density-select"><option value="comfortable">Comfortable</option><option value="compact">Compact</option><option value="terminal">Terminal</option></select></div><div class="q-setting"><label for="motion-select">Motion <span>${state.prefs.motion}</span></label><select id="motion-select"><option value="full">Full</option><option value="subtle">Subtle</option><option value="reduced">Reduced</option></select></div><div class="q-setting"><label for="font-select">Font scale <span>${state.prefs.fontScale}%</span></label><select id="font-select"><option value="90">90%</option><option value="100">100%</option><option value="110">110%</option><option value="120">120%</option></select></div><div class="q-setting"><label for="radius-range">Radius <span id="radius-value">${state.prefs.radiusPx}px</span></label><input id="radius-range" type="range" min="0" max="20" step="1" value="${state.prefs.radiusPx}"></div><div class="q-setting"><label>Protected semantics <span>locked</span></label><div class="q-semantic-swatches"><div class="q-semantic-swatch is-positive">Positive</div><div class="q-semantic-swatch is-negative">Negative</div><div class="q-semantic-swatch" style="color:var(--q-warning)">Warning</div><div class="q-semantic-swatch" style="color:var(--q-simulated)">Simulated</div></div></div></div></aside><div class="q-theme-stage"><p class="q-eyebrow">Live workspace preview</p><h2 style="margin:4px 0 0">${escapeHtml(themeProfiles[state.prefs.theme]?.name||'Sovereign Burgundy')} analytical surface</h2><div class="q-theme-safety"><span class="q-status q-status--live">guarded</span><span>The burgundy gradient, positive/negative meaning, focus visibility and light/dark text polarity are permanently protected. Persona settings tune density and motion without changing the Qelly identity.</span></div><div class="q-kpi-grid">${state.overview.kpis.map((item)=>kpiCard(item.label,item.value)).join('')}</div><div id="theme-grid-preview" class="q-panel"></div></div></div></section>`;
-  const previewRows=applyRowState(state.overview.rows.slice(0,5));
-  new QellyDataGrid(document.getElementById('theme-grid-preview'),{columns:marketColumns().slice(0,5),rows:previewRows,caption:'Theme preview market grid',density:state.prefs.density,selectable:false});
-  document.getElementById('density-select').value=state.prefs.density;document.getElementById('motion-select').value=state.prefs.motion;document.getElementById('font-select').value=String(state.prefs.fontScale);
-  main.querySelectorAll('[data-theme]').forEach((element)=>element.addEventListener('click',()=>{state.prefs.theme=element.dataset.theme;state.prefs.customAccent=null;applyPreferences();renderThemeLab(main);}));
-  document.getElementById('custom-accent').addEventListener('input',(event)=>{const accent=event.target.value;const surface=themes[state.prefs.theme].surface;const ratio=contrastRatio(accent,surface);document.getElementById('contrast-result').textContent=`Contrast against surface: ${ratio.toFixed(2)}:1 ${ratio>=4.5?'· passes normal text':'· accent limited to non-text emphasis'}`;document.getElementById('accent-status').textContent=accent;state.prefs.customAccent=accent;applyPreferences();});
-  document.getElementById('density-select').addEventListener('change',(event)=>{state.prefs.density=event.target.value;applyPreferences();renderThemeLab(main);});
-  document.getElementById('motion-select').addEventListener('change',(event)=>{state.prefs.motion=event.target.value;applyPreferences();});
-  document.getElementById('font-select').addEventListener('change',(event)=>{state.prefs.fontScale=Number(event.target.value);applyPreferences();});
-  document.getElementById('radius-range').addEventListener('input',(event)=>{state.prefs.radiusPx=Number(event.target.value);document.getElementById('radius-value').textContent=`${state.prefs.radiusPx}px`;applyPreferences();});
-  main.querySelector('[data-action="save-theme"]').addEventListener('click',async()=>{await persistPreference(state.prefs);toast('Validated theme and layout profile saved',{tone:'success'});});
-  main.querySelector('[data-action="reset-theme"]').addEventListener('click',async()=>{state.prefs={...state.prefs,theme:'burgundy-command',density:'comfortable',motion:'full',fontScale:100,radiusPx:10,customAccent:null};applyPreferences();await persistPreference(state.prefs);renderThemeLab(main);toast('Theme profile reset',{tone:'success'});});
-  main.querySelector('[data-action="export-theme"]').addEventListener('click',()=>downloadJson('qelly-theme-profile.json',{version:1,baseTheme:state.prefs.theme,density:state.prefs.density,motion:state.prefs.motion,fontScale:state.prefs.fontScale/100,radiusPx:state.prefs.radiusPx,customAccent:state.prefs.customAccent,protectedSemanticsLocked:true}));
+  await renderThemeIntelligenceStudio(main,{state,toast,persistPreference,navigate:navigateStudio,renderRoute});
+  if(signal?.aborted||!/^#\/theme-lab(?:\/|$)/.test(location.hash))return;
+  enhanceThemeIntelligenceVisuals(main);
 }
 
 async function renderIdentityAccess(main) {
