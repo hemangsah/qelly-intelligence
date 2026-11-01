@@ -366,6 +366,48 @@ jobs:
           path: preview/focused-owner-theme
           if-no-files-found: error
           retention-days: 7
+      - name: Verify governed operations surfaces and preserved evidence interactions
+        env:
+          QELLY_BROWSER_EXECUTABLE: /usr/bin/chromium
+        run: node scripts/qelly-operations-reference-surfaces-e2e.mjs
+      - name: Independently validate operations contexts and seventy screenshots
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile,writeFile,readdir} from 'node:fs/promises';
+          import {createHash} from 'node:crypto';
+          function validateOperationsReferenceReport(r,sha){
+           assert.equal(r.sourceSha,sha);assert.equal(r.status,'passed');assert.equal(r.expectedCases,70);assert.equal(r.cases,70);assert.equal(r.results.length,70);assert.equal(r.screenshotCount,70);assert.equal(r.populatedCases,30);assert.equal(r.topLevelFailureCases,30);assert.equal(r.nestedHistoryFailureCases,10);assert.equal(r.protectedWrites,0);
+           for(const key of ['fullIntegratedSourceApplication','syntheticSessionFixtures','syntheticProviderAndSeriesReadFixtures'])assert.equal(r[key],true);
+           for(const key of ['realAuthenticationTested','backendCapabilitiesActivated','productionRightsAsserted','newProvidersEnabled','numericalEnginesChanged','chartHelperChanged','protectedWritesAllowed'])assert.equal(r[key],false);
+           const expected=['dark','light'].flatMap(a=>[1440,1280,768,390,320].flatMap(w=>['data-mesh','instrument-master','timeseries-lab'].flatMap(route=>(route==='timeseries-lab'?['populated','unavailable','history-unavailable']:['populated','unavailable']).map(state=>[route,state,a,w].join('/')))));
+           assert.deepEqual(r.results.map(x=>[x.route,x.state,x.appearance,x.width].join('/')).sort(),expected.sort());
+           let contrastSamples=0,minimum=Infinity,chartChatClearanceCases=0;
+           for(const x of r.results){assert.equal(x.overflow,false);assert.equal(x.protectedWrites,0);assert.equal(x.syntheticSession,true);assert.equal(x.realAuthenticationTested,false);assert.deepEqual(x.legacyClasses,[]);assert.ok(x.surfaces.length>0);for(const surface of [...x.surfaces,...x.ordinary]){assert.deepEqual(surface.borders,['0px','0px','0px','0px']);assert.equal(surface.shadow,'none');assert.equal(surface.backgroundImage,'none');}for(const n of x.numeric){assert.ok(n.scrollWidth<=n.clientWidth+1);if(/^[A-Za-z]+$/.test(n.text)){assert.equal(n.singleWord,true);assert.equal(n.lineTops.length,1);}}
+            if(x.state!=='populated'){assert.equal(x.status,503);assert.equal(x.errorEscapingPreserved,true);if(x.state==='history-unavailable')assert.equal(x.nestedHistoryFailurePreserved,true);continue;}
+            const flags=x.route==='data-mesh'?['providerAvailabilityPreserved','incidentFilteringPreserved','entitlementDenyPreserved','entitlementLabelNotFragmented','navigationLinksPreserved','releaseIdentityReadable','rawReleaseHashesOmitted']:x.route==='instrument-master'?['searchCaseAndWhitespacePreserved','canonicalKeySearchPreserved','assetClassIntersectionPreserved','emptyFilterPreserved','keyboardEnterAndSpaceInspection','selectedTextContrastPreserved']:['historySelectorPreserved','seriesSelectorPreserved','fxOnlySelectorPreserved','rangeMathPreserved','svgGeometryPreserved','reverseLatestTablePreserved'];for(const key of flags)assert.equal(x[key],true);
+            if(x.route!=='data-mesh'){assert.equal(x.focus.focusVisible,true);assert.ok(x.focus.outlineWidth>=2);assert.ok(x.focus.height>=44);}
+            if(x.route==='instrument-master'){for(const state of Object.values(x.selectedRowContrast))for(const sample of [...state.focused,...state.resting]){assert.ok(sample.contrast>=4.5);minimum=Math.min(minimum,sample.contrast);contrastSamples++;}assert.equal(x.evidence.Execution,'Disabled');}
+            if(x.route==='timeseries-lab'){assert.equal(x.states.length,6);for(const state of x.states){assert.equal(state.points,state.limit);assert.equal(state.chartCoordinates,state.points);assert.equal(state.latest,state.range[1]);}const c=x.chartChatClearance;assert.equal(c.overlap,true);assert.equal(c.clearance,'chart');assert.equal(c.opacity,'0');assert.equal(c.pointerEvents,'none');assert.equal(c.tabIndex,-1);assert.equal(c.ariaHidden,'true');assert.equal(c.explicitPlotMarker,true);assert.equal(c.keyboardChatAccessible,true);chartChatClearanceCases++;}
+           }
+           assert.equal(contrastSamples,200);assert.equal(r.visualAssertions.selectedTextContrastSamples,200);assert.equal(r.visualAssertions.minimumObservedContrast,minimum);assert.ok(minimum>=4.5);assert.equal(r.sessions.length,10);
+           for(const x of r.sessions){assert.deepEqual(x.protectedWrites,[]);assert.deepEqual(x.pageErrors,[]);assert.equal(x.sourceAssets.length,4);assert.ok(x.sourceAssets.every(a=>a.status===200));}
+           assert.equal(chartChatClearanceCases,10);return{valid:true,sourceSha:sha,contexts:70,populated:30,topLevelFailures:30,nestedFailures:10,contrastSamples,minimumContrast:minimum,chartChatClearanceCases,protectedWrites:0};
+          }
+          const root=process.env.QELLY_OPERATIONS_REPORT_ROOT||'artifacts/uiux-operations-reference',sha=process.env.QELLY_SCREEN_EVIDENCE_SHA,bytes=await readFile(root+'/report.json'),r=JSON.parse(bytes),validation=validateOperationsReferenceReport(r,sha);
+          const digest=b=>createHash('sha256').update(b).digest('hex'),names=r.results.map(x=>x.screenshot.split('/').at(-1));assert.equal(new Set(names).size,70);assert.deepEqual((await readdir(root)).filter(x=>x.endsWith('.png')).sort(),[...names].sort());
+          const images=[];for(const row of [...r.results].sort((a,b)=>a.screenshot.localeCompare(b.screenshot))){const file=row.screenshot.split('/').at(-1),png=await readFile(root+'/'+file);assert.ok(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));const width=png.readUInt32BE(16),height=png.readUInt32BE(20);assert.equal(width,row.width);assert.ok(height>=500&&height<30000);images.push({file,sha256:digest(png),width,height});}
+          const receipt={...validation,reportSha256:digest(bytes),screenshots:images};
+          await writeFile(root+'/independent-gate-receipt.json',JSON.stringify(receipt)+'\n');console.log(JSON.stringify(receipt));
+          NODE
+      - name: Upload governed operations focused evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-operations-reference-focused-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: artifacts/uiux-operations-reference
+          if-no-files-found: error
+          retention-days: 7
       - name: Verify status navigation and access-page URL alignment
         run: node scripts/qelly-header-context-routing-e2e.mjs
       - name: Upload focused header context routing evidence
@@ -1208,6 +1250,52 @@ jobs:
         with:
           name: qelly-theme-owned-focused-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: ${{ runner.temp }}/qelly-theme-focused-independent-receipt.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Download published operations evidence to hosted runner only
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: qelly-operations-reference-focused-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: ${{ runner.temp }}/qelly-operations-reference-focused
+          digest-mismatch: error
+      - name: Verify published operations report and image checksums
+        env:
+          QELLY_OPERATIONS_REPORT_ROOT: ${{ runner.temp }}/qelly-operations-reference-focused
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile,writeFile,readdir} from 'node:fs/promises';
+          import {createHash} from 'node:crypto';
+          function validateOperationsReferenceReport(r,sha){
+           assert.equal(r.sourceSha,sha);assert.equal(r.status,'passed');assert.equal(r.expectedCases,70);assert.equal(r.cases,70);assert.equal(r.results.length,70);assert.equal(r.screenshotCount,70);assert.equal(r.populatedCases,30);assert.equal(r.topLevelFailureCases,30);assert.equal(r.nestedHistoryFailureCases,10);assert.equal(r.protectedWrites,0);
+           for(const key of ['fullIntegratedSourceApplication','syntheticSessionFixtures','syntheticProviderAndSeriesReadFixtures'])assert.equal(r[key],true);
+           for(const key of ['realAuthenticationTested','backendCapabilitiesActivated','productionRightsAsserted','newProvidersEnabled','numericalEnginesChanged','chartHelperChanged','protectedWritesAllowed'])assert.equal(r[key],false);
+           const expected=['dark','light'].flatMap(a=>[1440,1280,768,390,320].flatMap(w=>['data-mesh','instrument-master','timeseries-lab'].flatMap(route=>(route==='timeseries-lab'?['populated','unavailable','history-unavailable']:['populated','unavailable']).map(state=>[route,state,a,w].join('/')))));
+           assert.deepEqual(r.results.map(x=>[x.route,x.state,x.appearance,x.width].join('/')).sort(),expected.sort());
+           let contrastSamples=0,minimum=Infinity,chartChatClearanceCases=0;
+           for(const x of r.results){assert.equal(x.overflow,false);assert.equal(x.protectedWrites,0);assert.equal(x.syntheticSession,true);assert.equal(x.realAuthenticationTested,false);assert.deepEqual(x.legacyClasses,[]);assert.ok(x.surfaces.length>0);for(const surface of [...x.surfaces,...x.ordinary]){assert.deepEqual(surface.borders,['0px','0px','0px','0px']);assert.equal(surface.shadow,'none');assert.equal(surface.backgroundImage,'none');}for(const n of x.numeric){assert.ok(n.scrollWidth<=n.clientWidth+1);if(/^[A-Za-z]+$/.test(n.text)){assert.equal(n.singleWord,true);assert.equal(n.lineTops.length,1);}}
+            if(x.state!=='populated'){assert.equal(x.status,503);assert.equal(x.errorEscapingPreserved,true);if(x.state==='history-unavailable')assert.equal(x.nestedHistoryFailurePreserved,true);continue;}
+            const flags=x.route==='data-mesh'?['providerAvailabilityPreserved','incidentFilteringPreserved','entitlementDenyPreserved','entitlementLabelNotFragmented','navigationLinksPreserved','releaseIdentityReadable','rawReleaseHashesOmitted']:x.route==='instrument-master'?['searchCaseAndWhitespacePreserved','canonicalKeySearchPreserved','assetClassIntersectionPreserved','emptyFilterPreserved','keyboardEnterAndSpaceInspection','selectedTextContrastPreserved']:['historySelectorPreserved','seriesSelectorPreserved','fxOnlySelectorPreserved','rangeMathPreserved','svgGeometryPreserved','reverseLatestTablePreserved'];for(const key of flags)assert.equal(x[key],true);
+            if(x.route!=='data-mesh'){assert.equal(x.focus.focusVisible,true);assert.ok(x.focus.outlineWidth>=2);assert.ok(x.focus.height>=44);}
+            if(x.route==='instrument-master'){for(const state of Object.values(x.selectedRowContrast))for(const sample of [...state.focused,...state.resting]){assert.ok(sample.contrast>=4.5);minimum=Math.min(minimum,sample.contrast);contrastSamples++;}assert.equal(x.evidence.Execution,'Disabled');}
+            if(x.route==='timeseries-lab'){assert.equal(x.states.length,6);for(const state of x.states){assert.equal(state.points,state.limit);assert.equal(state.chartCoordinates,state.points);assert.equal(state.latest,state.range[1]);}const c=x.chartChatClearance;assert.equal(c.overlap,true);assert.equal(c.clearance,'chart');assert.equal(c.opacity,'0');assert.equal(c.pointerEvents,'none');assert.equal(c.tabIndex,-1);assert.equal(c.ariaHidden,'true');assert.equal(c.explicitPlotMarker,true);assert.equal(c.keyboardChatAccessible,true);chartChatClearanceCases++;}
+           }
+           assert.equal(contrastSamples,200);assert.equal(r.visualAssertions.selectedTextContrastSamples,200);assert.equal(r.visualAssertions.minimumObservedContrast,minimum);assert.ok(minimum>=4.5);assert.equal(r.sessions.length,10);
+           for(const x of r.sessions){assert.deepEqual(x.protectedWrites,[]);assert.deepEqual(x.pageErrors,[]);assert.equal(x.sourceAssets.length,4);assert.ok(x.sourceAssets.every(a=>a.status===200));}
+           assert.equal(chartChatClearanceCases,10);return{valid:true,sourceSha:sha,contexts:70,populated:30,topLevelFailures:30,nestedFailures:10,contrastSamples,minimumContrast:minimum,chartChatClearanceCases,protectedWrites:0};
+          }
+          const root=process.env.QELLY_OPERATIONS_REPORT_ROOT||'artifacts/uiux-operations-reference',sha=process.env.QELLY_SCREEN_EVIDENCE_SHA,bytes=await readFile(root+'/report.json'),r=JSON.parse(bytes),validation=validateOperationsReferenceReport(r,sha);
+          const digest=b=>createHash('sha256').update(b).digest('hex'),names=r.results.map(x=>x.screenshot.split('/').at(-1));assert.equal(new Set(names).size,70);assert.deepEqual((await readdir(root)).filter(x=>x.endsWith('.png')).sort(),[...names].sort());
+          const images=[];for(const row of [...r.results].sort((a,b)=>a.screenshot.localeCompare(b.screenshot))){const file=row.screenshot.split('/').at(-1),png=await readFile(root+'/'+file);assert.ok(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));const width=png.readUInt32BE(16),height=png.readUInt32BE(20);assert.equal(width,row.width);assert.ok(height>=500&&height<30000);images.push({file,sha256:digest(png),width,height});}
+          const receipt={...validation,reportSha256:digest(bytes),screenshots:images};
+          assert.deepEqual(JSON.parse(await readFile(root+'/independent-gate-receipt.json','utf8')),receipt);
+          await writeFile(process.env.RUNNER_TEMP+'/qelly-operations-independent-receipt.json',JSON.stringify(receipt)+'\n');console.log(JSON.stringify(receipt));
+          NODE
+      - name: Retain compact independent operations receipt
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-operations-reference-focused-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: ${{ runner.temp }}/qelly-operations-independent-receipt.json
           if-no-files-found: error
           retention-days: 7
       - name: Verify all checksums and inherited acceptance contracts
