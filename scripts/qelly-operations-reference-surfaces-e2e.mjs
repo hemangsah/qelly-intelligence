@@ -112,7 +112,7 @@ async function measurePresentation(page,root){
       legacyClasses:[...root.querySelectorAll('[class]')].flatMap(node=>[...node.classList]).filter(name=>/^q-(?:panel(?:-|$)|kpi(?:-|$)|v6-(?:runtime|instrument|release|evidence))/.test(name)),
       surfaces:[...root.querySelectorAll('.q-reference-surface')].filter(visible).map(style),
       ordinary:[...root.querySelectorAll('.q-reference-runtime-kpis>div,.q-reference-series-summary>div,.q-reference-release-strip,.q-reference-runtime-provider,.q-reference-runtime-row,.q-reference-series-row,.q-reference-instrument-row,.q-reference-empty-state,.q-reference-status')].filter(visible).map(style),
-      numeric:[...root.querySelectorAll('.q-reference-runtime-kpis strong,.q-reference-series-summary strong,.q-reference-release-strip strong,.q-reference-series-latest,#v6-series-range strong,.q-reference-instrument-row b')].filter(visible).map(node=>({text:node.textContent.trim(),clientWidth:node.clientWidth,scrollWidth:node.scrollWidth,textOverflow:getComputedStyle(node).textOverflow}))
+      numeric:[...root.querySelectorAll('.q-reference-runtime-kpis strong,.q-reference-series-summary strong,.q-reference-release-strip strong,.q-reference-series-latest,#v6-series-range strong,.q-reference-instrument-row b')].filter(visible).map(node=>{const text=node.textContent.trim(),range=document.createRange();range.selectNodeContents(node);const lineTops=[...new Set([...range.getClientRects()].filter(r=>r.width>0&&r.height>0).map(r=>Math.round(r.top*2)/2))];return{text,clientWidth:node.clientWidth,scrollWidth:node.scrollWidth,textOverflow:getComputedStyle(node).textOverflow,singleWord:/^[A-Za-z]+$/.test(text),lineTops};})
     };
   });
   assert.equal(measured.overflow,false,'Document overflow: '+JSON.stringify(measured));
@@ -128,7 +128,7 @@ async function measurePresentation(page,root){
     assert.ok(item.borders.some(value=>value==='0px'),item.class);
     assert.equal(item.radius,'0px',item.class);assert.equal(item.shadow,'none',item.class);assert.equal(item.backgroundImage,'none',item.class);
   }
-  for(const number of measured.numeric){assert.ok(number.scrollWidth<=number.clientWidth+1,JSON.stringify(number));assert.notEqual(number.textOverflow,'ellipsis',JSON.stringify(number));}
+  for(const number of measured.numeric){assert.ok(number.scrollWidth<=number.clientWidth+1,JSON.stringify(number));assert.notEqual(number.textOverflow,'ellipsis',JSON.stringify(number));if(number.singleWord)assert.equal(number.lineTops.length,1,'Summary truth word must not fragment: '+JSON.stringify(number));}
   return measured;
 }
 async function navigate(page,site,spec,appearance){
