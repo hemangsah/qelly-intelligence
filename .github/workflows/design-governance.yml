@@ -18,10 +18,10 @@ jobs:
     timeout-minutes: 75
     steps:
       - name: Check out exact design head
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with: {ref: "${{ env.QELLY_REVIEW_HEAD }}", fetch-depth: 0, persist-credentials: false}
       - name: Check out accepted baseline
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with: {ref: checkpoint/prompt2b-pre-worldclass-uiux-07598e9, path: baseline-src, fetch-depth: 1, persist-credentials: false}
       - name: Guard exact heads
         run: |
@@ -99,7 +99,7 @@ jobs:
       QELLY_CAPTURE_SHARD_COUNT: 9
       QELLY_CAPTURE_OUTPUT: .qelly-worldclass-capture/shard-${{ matrix.shard }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with: {ref: "${{ env.QELLY_REVIEW_HEAD }}", fetch-depth: 1, persist-credentials: false}
       - name: Guard immutable design head
         run: |
@@ -135,7 +135,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 240
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with: {ref: "${{ env.QELLY_REVIEW_HEAD }}", fetch-depth: 1, persist-credentials: false}
       - name: Guard immutable design head
         run: |
