@@ -408,6 +408,37 @@ jobs:
           path: artifacts/uiux-operations-reference
           if-no-files-found: error
           retention-days: 7
+      - name: Verify shared unavailable capability surfaces and retry boundaries
+        env:
+          QELLY_BROWSER_EXECUTABLE: /usr/bin/chromium
+        run: node scripts/qelly-capability-owned-surfaces-e2e.mjs
+      - name: Independently validate capability contexts and fifty-six screenshots
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile,writeFile,readdir} from 'node:fs/promises';
+          import {createHash} from 'node:crypto';
+          function validateCapabilityReferenceReport(r,sha){
+           assert.equal(r.sourceSha,sha);assert.equal(r.status,'passed');assert.equal(r.results.length,56);assert.equal(r.isolatedUiSessionFixtures,true);for(const k of ['realAuthenticationTested','backendCapabilitiesActivated','errorClassificationChanged','newProvidersEnabled','numericalEnginesChanged'])assert.equal(r[k],false);
+           const routes=['secure-import-vault','delivery-operations','quarantine-review','staging-assurance','migration-center','identity-access','stream-operations','observability','secret-rotation','onboarding','notification-schedules','import-center','security-evidence'];
+           const expected=['dark','light'].flatMap(a=>[1440,390].flatMap(w=>[...routes.map(route=>[route,404,a,w].join('/')),['secure-import-vault',503,a,w].join('/')]));assert.deepEqual(r.results.map(x=>[x.route,x.status,x.appearance,x.width].join('/')).sort(),expected.sort());
+           for(const x of r.results){assert.equal(x.overflow,false);assert.equal(x.protectedWrites,0);assert.equal(x.realAuthenticationTested,false);assert.deepEqual(x.factValues,['Unavailable now','Signed in','None','Available']);for(const k of ['diagnosticKeyboardPreserved','errorEscapingPreserved','retryRereads','navigationLinksPreserved'])assert.equal(x[k],true);assert.ok(x.retryFocus.outline>=2&&x.retryFocus.height>=44);assert.equal(x.surfaces.length,8);for(const s of x.surfaces){assert.equal(s.border,'0px');assert.equal(s.shadow,'none');assert.equal(s.background,'none');assert.ok(['none','normal'].includes(s.before));assert.ok(['none','normal'].includes(s.after));}for(const [key,open] of [['closedDiagnostic',false],['openDiagnostic',true]]){const d=x[key];assert.equal(d.open,open);assert.equal(d.background,'rgba(0, 0, 0, 0)');assert.equal(d.radius,'0px');assert.equal(d.summaryBackground,'rgba(0, 0, 0, 0)');assert.equal(d.summaryRadius,'0px');assert.equal(d.summaryDisplay,'list-item');}}
+           return{valid:true,sourceSha:sha,contexts:56,routeDefinitions:13,unavailable503Cases:4,protectedWrites:0,closedAndOpenDisclosureVerified:true};
+          }
+          const root=process.env.QELLY_CAPABILITY_REPORT_ROOT||'preview/capability-owned-surfaces-e2e',sha=process.env.QELLY_SCREEN_EVIDENCE_SHA,bytes=await readFile(root+'/report.json'),r=JSON.parse(bytes),validation=validateCapabilityReferenceReport(r,sha);
+          const digest=b=>createHash('sha256').update(b).digest('hex'),names=r.results.map(x=>[x.route,x.status,x.appearance,x.width].join('-')+'.png');assert.equal(new Set(names).size,56);assert.deepEqual((await readdir(root)).filter(x=>x.endsWith('.png')).sort(),[...names].sort());
+          const images=[];for(const row of [...r.results].sort((a,b)=>[a.route,a.status,a.appearance,a.width].join('-').localeCompare([b.route,b.status,b.appearance,b.width].join('-')))){const file=[row.route,row.status,row.appearance,row.width].join('-')+'.png',png=await readFile(root+'/'+file);assert.ok(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));const width=png.readUInt32BE(16),height=png.readUInt32BE(20);assert.equal(width,row.width);assert.ok(height>=500&&height<30000);images.push({file,sha256:digest(png),width,height});}
+          const receipt={...validation,reportSha256:digest(bytes),screenshots:images};
+          await writeFile(root+'/independent-gate-receipt.json',JSON.stringify(receipt)+'\n');console.log(JSON.stringify(receipt));
+          NODE
+      - name: Upload capability owned focused evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-capability-owned-focused-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/capability-owned-surfaces-e2e
+          if-no-files-found: error
+          retention-days: 7
       - name: Verify status navigation and access-page URL alignment
         run: node scripts/qelly-header-context-routing-e2e.mjs
       - name: Upload focused header context routing evidence
@@ -1296,6 +1327,41 @@ jobs:
         with:
           name: qelly-operations-reference-focused-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: ${{ runner.temp }}/qelly-operations-independent-receipt.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Download published capability evidence to hosted runner only
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: qelly-capability-owned-focused-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: ${{ runner.temp }}/qelly-capability-owned-focused
+          digest-mismatch: error
+      - name: Verify published capability report and image checksums
+        env:
+          QELLY_CAPABILITY_REPORT_ROOT: ${{ runner.temp }}/qelly-capability-owned-focused
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile,writeFile,readdir} from 'node:fs/promises';
+          import {createHash} from 'node:crypto';
+          function validateCapabilityReferenceReport(r,sha){
+           assert.equal(r.sourceSha,sha);assert.equal(r.status,'passed');assert.equal(r.results.length,56);assert.equal(r.isolatedUiSessionFixtures,true);for(const k of ['realAuthenticationTested','backendCapabilitiesActivated','errorClassificationChanged','newProvidersEnabled','numericalEnginesChanged'])assert.equal(r[k],false);
+           const routes=['secure-import-vault','delivery-operations','quarantine-review','staging-assurance','migration-center','identity-access','stream-operations','observability','secret-rotation','onboarding','notification-schedules','import-center','security-evidence'];
+           const expected=['dark','light'].flatMap(a=>[1440,390].flatMap(w=>[...routes.map(route=>[route,404,a,w].join('/')),['secure-import-vault',503,a,w].join('/')]));assert.deepEqual(r.results.map(x=>[x.route,x.status,x.appearance,x.width].join('/')).sort(),expected.sort());
+           for(const x of r.results){assert.equal(x.overflow,false);assert.equal(x.protectedWrites,0);assert.equal(x.realAuthenticationTested,false);assert.deepEqual(x.factValues,['Unavailable now','Signed in','None','Available']);for(const k of ['diagnosticKeyboardPreserved','errorEscapingPreserved','retryRereads','navigationLinksPreserved'])assert.equal(x[k],true);assert.ok(x.retryFocus.outline>=2&&x.retryFocus.height>=44);assert.equal(x.surfaces.length,8);for(const s of x.surfaces){assert.equal(s.border,'0px');assert.equal(s.shadow,'none');assert.equal(s.background,'none');assert.ok(['none','normal'].includes(s.before));assert.ok(['none','normal'].includes(s.after));}for(const [key,open] of [['closedDiagnostic',false],['openDiagnostic',true]]){const d=x[key];assert.equal(d.open,open);assert.equal(d.background,'rgba(0, 0, 0, 0)');assert.equal(d.radius,'0px');assert.equal(d.summaryBackground,'rgba(0, 0, 0, 0)');assert.equal(d.summaryRadius,'0px');assert.equal(d.summaryDisplay,'list-item');}}
+           return{valid:true,sourceSha:sha,contexts:56,routeDefinitions:13,unavailable503Cases:4,protectedWrites:0,closedAndOpenDisclosureVerified:true};
+          }
+          const root=process.env.QELLY_CAPABILITY_REPORT_ROOT||'preview/capability-owned-surfaces-e2e',sha=process.env.QELLY_SCREEN_EVIDENCE_SHA,bytes=await readFile(root+'/report.json'),r=JSON.parse(bytes),validation=validateCapabilityReferenceReport(r,sha);
+          const digest=b=>createHash('sha256').update(b).digest('hex'),names=r.results.map(x=>[x.route,x.status,x.appearance,x.width].join('-')+'.png');assert.equal(new Set(names).size,56);assert.deepEqual((await readdir(root)).filter(x=>x.endsWith('.png')).sort(),[...names].sort());
+          const images=[];for(const row of [...r.results].sort((a,b)=>[a.route,a.status,a.appearance,a.width].join('-').localeCompare([b.route,b.status,b.appearance,b.width].join('-')))){const file=[row.route,row.status,row.appearance,row.width].join('-')+'.png',png=await readFile(root+'/'+file);assert.ok(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));const width=png.readUInt32BE(16),height=png.readUInt32BE(20);assert.equal(width,row.width);assert.ok(height>=500&&height<30000);images.push({file,sha256:digest(png),width,height});}
+          const receipt={...validation,reportSha256:digest(bytes),screenshots:images};
+          assert.deepEqual(JSON.parse(await readFile(root+'/independent-gate-receipt.json','utf8')),receipt);
+          await writeFile(process.env.RUNNER_TEMP+'/qelly-capability-independent-receipt.json',JSON.stringify(receipt)+'\n');console.log(JSON.stringify(receipt));
+          NODE
+      - name: Retain compact independent capability receipt
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-capability-owned-focused-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: ${{ runner.temp }}/qelly-capability-independent-receipt.json
           if-no-files-found: error
           retention-days: 7
       - name: Verify all checksums and inherited acceptance contracts

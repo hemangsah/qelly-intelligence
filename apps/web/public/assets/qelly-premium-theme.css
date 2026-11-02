@@ -243,7 +243,7 @@ html[data-production-system="v8"] body #app #main :where(.q-panel-body,.q-mn-pan
 
 html[data-production-system="v8"] body #app #main .q-capability-boundary__grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:clamp(16px,2vw,28px)!important}
 html[data-production-system="v8"] body #app #main .q-capability-boundary__list{display:grid!important;gap:12px!important;margin:0!important;padding-left:20px!important;color:var(--q-text-secondary)!important}
-html[data-production-system="v8"] body #app #main .q-capability-boundary details:not(:where(.q-verify-page,.q-verify-page *)){margin-top:18px!important;padding:14px 16px!important;border:0!important;border-radius:14px!important;background:var(--q-surfacealt)!important}
+html[data-production-system="v8"] body #app #main .q-capability-boundary details:not(:where(.q-capability-diagnostic)):not(:where(.q-verify-page,.q-verify-page *)){margin-top:18px!important;padding:14px 16px!important;border:0!important;border-radius:14px!important;background:var(--q-surfacealt)!important}
 html[data-production-system="v8"] body #app #main .q-capability-boundary summary{cursor:pointer!important;font-weight:650!important}
 html[data-production-system="v8"] body #app #main .q-capability-boundary code{display:block!important;margin-top:10px!important;color:var(--q-muted)!important;overflow-wrap:anywhere!important}
 
