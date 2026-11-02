@@ -520,6 +520,8 @@ async function performRouteRender(request,controller) {
       case 'decision-provenance': await renderDecisionProvenance(main,{api,pageHead,stateBanner,escapeHtml,toast,renderRoute,navigate,signal:controller.signal}); break;
       case 'mt5-report-analyzer': await renderMt5ReportAnalyzer(main); break;
       case 'qelly-verify':
+        await ensureRouteStylesheet(new URL('./qelly-v53-verify-convergence.css',import.meta.url).href,{attribute:'data-qelly-v53-verify',value:'accepted-lock',signal:controller.signal});
+        if(controller.signal.aborted||request!==routeRenderRequest)break;
         if(state.routeQuery?.get?.('view')==='methodology')await renderQellyVerifyMethodology();
         else await renderQellyVerify();
         break;
