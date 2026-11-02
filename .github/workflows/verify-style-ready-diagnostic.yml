@@ -6,6 +6,7 @@ on:
       - .github/workflows/verify-style-ready-diagnostic.yml
       - apps/web/public/assets/ai/qelly-chat.mjs
       - apps/web/public/assets/ai/qelly-chat.css
+      - apps/web/public/assets/qelly-verify-evidence.css
       - tests/qelly-chat-rich-content.test.mjs
       - scripts/qelly-verify-style-ready-e2e.mjs
       - scripts/qelly-chat-rich-content-performance.mjs
