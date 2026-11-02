@@ -763,6 +763,49 @@ jobs:
           path: preview/dex-change-lifecycle
           if-no-files-found: error
           retention-days: 7
+      - name: Verify source-owned Decision typography and lifecycle label clearance
+        env:
+          QELLY_FONT_EXPECT: green
+        run: node scripts/qelly-decision-owned-font-e2e.mjs
+      - name: Independently validate Decision font source and48 image checksums
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile,writeFile} from 'node:fs/promises';
+          import {createHash} from 'node:crypto';
+          function validateDecisionOwnedFontReport(r,sha){
+           assert.equal(r.schema,'qelly.decision.font-owner/1.0');assert.equal(r.sourceSha,sha);assert.equal(r.status,'passed');assert.equal(r.expected,'green');
+           assert.equal(r.cssSha256,'303600e6fe9b00eed7b74fe056e02258911307b42d561c8f499267034460eec4');
+           assert.equal(r.shellSha256,'a4548e535a59fda0d20095ce0867ee812f4d0e2b1a284faf81c5096cb2c8153f');
+           assert.equal(r.sourceShellInstrumentedWithExactReversal,true);assert.equal(r.runtimeSafetyFloorRemoved,false);assert.equal(r.newProductObservers,0);
+           for(const k of ['numericalEnginesChanged','newProvidersEnabled','realCanonicalServiceAvailabilityClaimed','latencyOrHeapClaimed'])assert.equal(r[k],false);
+           for(const k of ['isolatedUiFixtures','existingDecisionFixtureReused','fixtureClockFrozenInBothArms'])assert.equal(r[k],true);
+           assert.equal(r.fixtureNow,Date.parse('2026-11-02T15:00:00Z'));assert.equal(r.results.length,12);assert.equal(r.screenshots.length,12);assert.equal(new Set(r.screenshots).size,12);
+           let classWrites=0,fontReads=0,calls=0;
+           for(const appearance of ['dark','light'])for(const width of [1280,390])for(const mode of ['simple','advanced','research']){
+            const rows=r.results.filter(x=>x.appearance===appearance&&x.width===width&&x.mode===mode);assert.equal(rows.length,1);const x=rows[0],o=x.observation;
+            assert.equal(x.actualBuiltRoute,true);assert.equal(x.protectedWrites,0);assert.deepEqual(x.pageErrors,[]);assert.equal(o.appearance,appearance);assert.equal(o.width,width);assert.equal(o.overflow,false);assert.equal(o.heading,'Decision Intelligence');assert.equal(o.below12px.length,0);
+            assert.equal(o.scenarioCards.length,4);for(const card of o.scenarioCards){assert.ok(card.text.length>10);for(const text of card.text)assert.ok(text.leftWithin&&text.rightWithin);}assert.equal(o.lifecycleLabels.length,12);for(const cell of o.lifecycleLabels){assert.ok(cell.width>=96);assert.equal(cell.labels.length,2);for(const label of cell.labels)assert.ok(label.leftWithin&&label.rightWithin&&label.contentFits);}assert.ok(o.text.length>300);assert.ok(o.mainHeight>1000);assert.ok(o.probe.calls>0);assert.ok(o.probe.fontReads>1000);assert.ok(o.probe.classWrites>=0);assert.ok(o.probe.classWrites<200);
+            for(const t of o.text)assert.ok(Number.parseFloat(t.size)>=12,'Undersized measured HTML leaf');
+            assert.match(x.chartSha256,/^[a-f0-9]{64}$/);assert.match(x.textSha256,/^[a-f0-9]{64}$/);assert.ok(o.chartSvg.includes('PROJECTED'));assert.ok(o.sourceDisclosureCount>0);assert.ok(o.methodPanelCount>0);
+            assert.ok(r.screenshots.includes('green-'+appearance+'-'+width+'-'+mode+'.png'));
+            if(mode==='research'){classWrites+=o.probe.classWrites;fontReads+=o.probe.fontReads;calls+=o.probe.calls;}
+           }
+           assert.ok(classWrites<500);return{sourceSha:sha,inspectedContexts:12,observedTinyHtmlLeafs:0,finalCumulativeClassWrites:classWrites,finalCumulativeFontReads:fontReads,finalCumulativeCalls:calls,newRules:0,newProductObservers:0,numericalEnginesChanged:false,latencyOrHeapClaimed:false};
+          }
+          const root=process.env.QELLY_DECISION_FONT_ROOT||'preview/decision-font-owner-pair',sha=process.env.QELLY_SCREEN_EVIDENCE_SHA,bytes=await readFile(root+'/report.json'),report=JSON.parse(bytes),validation=validateDecisionOwnedFontReport(report,sha),files=[...report.screenshots];
+          for(const appearance of ['dark','light'])for(const width of [1280,390])for(const mode of ['simple','advanced','research']){const prefix='green-'+appearance+'-'+width+'-'+mode;files.push(prefix+'-top.png');for(const label of mode==='simple'?['chart','watch','setup','scenarios']:mode==='advanced'?['weighting']:['slo'])files.push(prefix+'-'+label+'.png');}
+          assert.equal(files.length,48);assert.equal(new Set(files).size,48);const screenshots=[];for(const file of files){const image=await readFile(root+'/'+file);assert.ok(image.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));screenshots.push({file,sha256:createHash('sha256').update(image).digest('hex'),width:image.readUInt32BE(16),height:image.readUInt32BE(20)});}const receipt={...validation,reportSha256:createHash('sha256').update(bytes).digest('hex'),screenshots};
+          await writeFile(root+'/independent-gate-receipt.json',JSON.stringify(receipt)+'\n');console.log(JSON.stringify(receipt));
+          NODE
+      - name: Upload Decision owned typography evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-accessibility-floor-decision-owned-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/decision-font-owner-pair
+          if-no-files-found: error
+          retention-days: 7
       - name: Verify status navigation and access-page URL alignment
         run: node scripts/qelly-header-context-routing-e2e.mjs
       - name: Upload focused header context routing evidence
@@ -2019,6 +2062,53 @@ jobs:
         with:
           name: qelly-dex-change-lifecycle-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: ${{ runner.temp }}/qelly-dex-change-independent-receipt.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Download published Decision typography evidence in cloud
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: qelly-accessibility-floor-decision-owned-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: ${{ runner.temp }}/qelly-decision-owned-font
+          digest-mismatch: error
+      - name: Independently recheck Decision typography and all48 published images
+        env:
+          QELLY_DECISION_FONT_ROOT: ${{ runner.temp }}/qelly-decision-owned-font
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile,writeFile} from 'node:fs/promises';
+          import {createHash} from 'node:crypto';
+          function validateDecisionOwnedFontReport(r,sha){
+           assert.equal(r.schema,'qelly.decision.font-owner/1.0');assert.equal(r.sourceSha,sha);assert.equal(r.status,'passed');assert.equal(r.expected,'green');
+           assert.equal(r.cssSha256,'303600e6fe9b00eed7b74fe056e02258911307b42d561c8f499267034460eec4');
+           assert.equal(r.shellSha256,'a4548e535a59fda0d20095ce0867ee812f4d0e2b1a284faf81c5096cb2c8153f');
+           assert.equal(r.sourceShellInstrumentedWithExactReversal,true);assert.equal(r.runtimeSafetyFloorRemoved,false);assert.equal(r.newProductObservers,0);
+           for(const k of ['numericalEnginesChanged','newProvidersEnabled','realCanonicalServiceAvailabilityClaimed','latencyOrHeapClaimed'])assert.equal(r[k],false);
+           for(const k of ['isolatedUiFixtures','existingDecisionFixtureReused','fixtureClockFrozenInBothArms'])assert.equal(r[k],true);
+           assert.equal(r.fixtureNow,Date.parse('2026-11-02T15:00:00Z'));assert.equal(r.results.length,12);assert.equal(r.screenshots.length,12);assert.equal(new Set(r.screenshots).size,12);
+           let classWrites=0,fontReads=0,calls=0;
+           for(const appearance of ['dark','light'])for(const width of [1280,390])for(const mode of ['simple','advanced','research']){
+            const rows=r.results.filter(x=>x.appearance===appearance&&x.width===width&&x.mode===mode);assert.equal(rows.length,1);const x=rows[0],o=x.observation;
+            assert.equal(x.actualBuiltRoute,true);assert.equal(x.protectedWrites,0);assert.deepEqual(x.pageErrors,[]);assert.equal(o.appearance,appearance);assert.equal(o.width,width);assert.equal(o.overflow,false);assert.equal(o.heading,'Decision Intelligence');assert.equal(o.below12px.length,0);
+            assert.equal(o.scenarioCards.length,4);for(const card of o.scenarioCards){assert.ok(card.text.length>10);for(const text of card.text)assert.ok(text.leftWithin&&text.rightWithin);}assert.equal(o.lifecycleLabels.length,12);for(const cell of o.lifecycleLabels){assert.ok(cell.width>=96);assert.equal(cell.labels.length,2);for(const label of cell.labels)assert.ok(label.leftWithin&&label.rightWithin&&label.contentFits);}assert.ok(o.text.length>300);assert.ok(o.mainHeight>1000);assert.ok(o.probe.calls>0);assert.ok(o.probe.fontReads>1000);assert.ok(o.probe.classWrites>=0);assert.ok(o.probe.classWrites<200);
+            for(const t of o.text)assert.ok(Number.parseFloat(t.size)>=12,'Undersized measured HTML leaf');
+            assert.match(x.chartSha256,/^[a-f0-9]{64}$/);assert.match(x.textSha256,/^[a-f0-9]{64}$/);assert.ok(o.chartSvg.includes('PROJECTED'));assert.ok(o.sourceDisclosureCount>0);assert.ok(o.methodPanelCount>0);
+            assert.ok(r.screenshots.includes('green-'+appearance+'-'+width+'-'+mode+'.png'));
+            if(mode==='research'){classWrites+=o.probe.classWrites;fontReads+=o.probe.fontReads;calls+=o.probe.calls;}
+           }
+           assert.ok(classWrites<500);return{sourceSha:sha,inspectedContexts:12,observedTinyHtmlLeafs:0,finalCumulativeClassWrites:classWrites,finalCumulativeFontReads:fontReads,finalCumulativeCalls:calls,newRules:0,newProductObservers:0,numericalEnginesChanged:false,latencyOrHeapClaimed:false};
+          }
+          const root=process.env.QELLY_DECISION_FONT_ROOT||'preview/decision-font-owner-pair',sha=process.env.QELLY_SCREEN_EVIDENCE_SHA,bytes=await readFile(root+'/report.json'),report=JSON.parse(bytes),validation=validateDecisionOwnedFontReport(report,sha),files=[...report.screenshots];
+          for(const appearance of ['dark','light'])for(const width of [1280,390])for(const mode of ['simple','advanced','research']){const prefix='green-'+appearance+'-'+width+'-'+mode;files.push(prefix+'-top.png');for(const label of mode==='simple'?['chart','watch','setup','scenarios']:mode==='advanced'?['weighting']:['slo'])files.push(prefix+'-'+label+'.png');}
+          assert.equal(files.length,48);assert.equal(new Set(files).size,48);const screenshots=[];for(const file of files){const image=await readFile(root+'/'+file);assert.ok(image.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));screenshots.push({file,sha256:createHash('sha256').update(image).digest('hex'),width:image.readUInt32BE(16),height:image.readUInt32BE(20)});}const receipt={...validation,reportSha256:createHash('sha256').update(bytes).digest('hex'),screenshots};
+          assert.deepEqual(JSON.parse(await readFile(root+'/independent-gate-receipt.json','utf8')),receipt);
+          await writeFile(process.env.RUNNER_TEMP+'/qelly-decision-font-independent-receipt.json',JSON.stringify(receipt)+'\n');console.log(JSON.stringify(receipt));
+          NODE
+      - name: Retain compact Decision typography publication receipt
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-accessibility-floor-decision-owned-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: ${{ runner.temp }}/qelly-decision-font-independent-receipt.json
           if-no-files-found: error
           retention-days: 7
       - name: Verify all checksums and inherited acceptance contracts
