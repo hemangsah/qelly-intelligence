@@ -1,7 +1,7 @@
-name: DEX Change Listener Lifecycle Diagnostic
+name: DEX Resolved Appearance Lifecycle Diagnostic
 on:
   push:
-    branches: [codex/uiux-dex-change-lifecycle]
+    branches: [codex/uiux-dex-appearance-evidence-nov02]
     paths: [.github/workflows/dex-change-lifecycle-diagnostic.yml]
   workflow_dispatch:
     inputs:
@@ -80,7 +80,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: qelly-accessibility-floor-dex-change-${{ matrix.expected }}-${{ inputs.candidate_sha }}
+          name: qelly-accessibility-floor-dex-appearance-${{ matrix.expected }}-${{ inputs.candidate_sha }}
           path: |
             preview/dex-change-lifecycle
             preview/dex-retry-lifecycle
