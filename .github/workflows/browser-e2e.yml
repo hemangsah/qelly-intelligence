@@ -725,6 +725,44 @@ jobs:
           path: preview/focused-owner-boundary
           if-no-files-found: error
           retention-days: 7
+      - name: Verify DEX evidence listener ownership across48 completed visits
+        env:
+          QELLY_DEX_CHANGE_EXPECT: green
+          QELLY_BROWSER_EXECUTABLE: /usr/bin/chromium
+        run: node scripts/qelly-dex-change-lifecycle-e2e.mjs
+      - name: Independently validate DEX lifecycle source and fault evidence
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile,writeFile} from 'node:fs/promises';
+          import {createHash} from 'node:crypto';
+          function validateDexChangeReport(r,sha){
+           assert.equal(r.schema,'qelly.dex.change-lifecycle/1.0');assert.equal(r.sourceSha,sha);assert.equal(r.status,'passed');assert.equal(r.expected,'green');assert.equal(r.moduleSha256,'48c487dea9c806b7fd125741fbc698674cdcbd60158450b9f11a5f21f04b5d81');assert.equal(r.actualModuleServedUnchanged,true);assert.equal(r.productSourceFilesChanged,1);for(const key of ['sharedRouterChanged','latencyMeasured','heapRetentionMeasured'])assert.equal(r[key],false);assert.equal(r.newMutationObservers,0);assert.equal(r.protectedWrites,0);assert.equal(r.results.length,4);assert.deepEqual(r.results.map(x=>x.appearance+'/'+x.width).sort(),['dark/1280','dark/390','light/1280','light/390']);
+           let visits=0,callbacks=0,progressWrites=0;
+           for(const row of r.results){assert.equal(row.sourceSha,sha);assert.equal(row.expected,'green');assert.equal(row.variant,'actual');assert.equal(row.visits.length,12);assert.equal(row.protectedWrites,0);assert.equal(row.externalReads,0);assert.deepEqual(row.pageErrors,[]);
+            const state=(s,on)=>{assert.equal(s.mainIdentityPreserved,true);assert.equal(s.documentIdentityPreserved,true);assert.equal(s.ownedObserverRegistrations,0);assert.equal(s.measurement.ownedObserverCallbacks,0);assert.equal(s.measurement.ownedObserverMutationRecords,0);for(const k of ['activeCallbacks','activeCompletionHooks','activeForwardAbortHooks'])assert.equal(s[k],on?1:0);assert.equal(s.nativeMainChanges-row.baselineMain,on?1:0);assert.equal(s.nativeCompletionHooks-row.baselineCompletion,on?1:0);if(!on)for(const k of ['signalRemovals','completionSignalRemovals','forwardExplicitRemovals'])assert.equal(s[k],s.registrations);};
+            for(const[i,v]of row.visits.entries()){assert.equal(v.visit,i+1);state(v.afterCheckbox,true);state(v.afterAbout,false);assert.equal(v.afterCheckbox.progress,'1 / 12 evidence items checked');for(const k of ['uniqueChangeEvents','callbackInvocations','evidenceInvocations','progressWrites'])assert.equal(v.afterCheckbox.measurement[k],1);visits++;callbacks+=v.afterCheckbox.measurement.callbackInvocations;progressWrites+=v.afterCheckbox.measurement.progressWrites;}
+            assert.equal(row.briefUpdate.checkedEvidencePreserved,true);assert.equal(row.briefUpdate.ownerStillMounted,true);assert.equal(row.briefUpdate.unrelatedSignalsIgnored,true);assert.equal(row.nonmatchingControl.measurement.progressWrites,0);assert.equal(row.sameRouteRerender.actualHashRouter,true);assert.equal(row.sameRouteRerender.rendererCalledDirectly,false);state(row.sameRouteRerender.mounted,true);state(row.sameRouteRerender.after,false);assert.equal(row.sameRouteRerender.mounted.measurement.progressWrites,1);
+           }
+           const stages={'cleanup-disabled':'completed-route-teardown','outer-signal-only':'completed-route-teardown','missing-target-guard':'nonmatching-control','wrong-progress':'checkbox-behavior'};assert.equal(r.runtimeMutants.length,4);assert.deepEqual(r.runtimeMutants.map(x=>x.variant).sort(),Object.keys(stages).sort());for(const x of r.runtimeMutants){assert.equal(x.rejected,true);assert.equal(x.stage,stages[x.variant]);if(x.stage==='completed-route-teardown'){assert.equal(x.observed.activeCallbacks,1);assert.equal(x.observed.nativeMainChanges,1);}if(x.variant==='missing-target-guard')assert.equal(x.observed.progressWrites,1);if(x.variant==='wrong-progress')assert.equal(x.observed.progress,'2 / 12 evidence items checked');}
+           assert.equal(r.validator.acceptedActual,true);assert.deepEqual(r.validator.rejectedReportMutants.slice().sort(),['missing-context','duplicate-context','missing-visit','native-disagreement','wrong-progress','missing-teardown','new-observer-work','protected-write'].sort());assert.equal(visits,48);assert.equal(callbacks,48);assert.equal(progressWrites,48);return{valid:true,sourceSha:sha,contexts:4,visits,callbacks,progressWrites,runtimeMutants:4,rejectedReportMutants:8,protectedWrites:0,externalReads:0,latencyMeasured:false,heapRetentionMeasured:false};
+          }
+          function validateDexAppearanceReport(report,sha){
+           assert.equal(report.actualResolvedAppearanceChecked,true);assert.equal(report.validator.rejectedReportMutants.length,9);assert.equal(report.validator.rejectedReportMutants.filter(x=>x==='wrong-actual-appearance').length,1);let actualAppearanceSnapshots=0;for(const row of report.results){const states=[...row.visits.flatMap(v=>[v.afterCheckbox,v.afterAbout]),row.briefUpdate.state,row.nonmatchingControl,row.sameRouteRerender.mounted,row.sameRouteRerender.after];assert.equal(states.length,28);for(const state of states){assert.equal(state.resolvedAppearance,row.appearance);actualAppearanceSnapshots++;}}assert.equal(actualAppearanceSnapshots,112);
+           // Preserve every historical ownership/fault invariant; remove only the new independently checked report-mutant name when calling the version-one validator.
+           const historical=structuredClone(report);historical.validator.rejectedReportMutants=historical.validator.rejectedReportMutants.filter(x=>x!=='wrong-actual-appearance');return{...validateDexChangeReport(historical,sha),actualResolvedAppearanceChecked:true,actualAppearanceSnapshots,rejectedReportMutants:9};
+          }
+          const root=process.env.QELLY_DEX_CHANGE_ROOT||'preview/dex-change-lifecycle',sha=process.env.QELLY_SCREEN_EVIDENCE_SHA,bytes=await readFile(root+'/report.json'),report=JSON.parse(bytes),validation=validateDexAppearanceReport(report,sha),receipt={...validation,reportSha256:createHash('sha256').update(bytes).digest('hex')};
+          await writeFile(root+'/independent-gate-receipt.json',JSON.stringify(receipt)+'\n');console.log(JSON.stringify(receipt));
+          NODE
+      - name: Upload DEX change lifecycle evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-dex-change-lifecycle-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/dex-change-lifecycle
+          if-no-files-found: error
+          retention-days: 7
       - name: Verify status navigation and access-page URL alignment
         run: node scripts/qelly-header-context-routing-e2e.mjs
       - name: Upload focused header context routing evidence
@@ -1940,6 +1978,47 @@ jobs:
         with:
           name: qelly-boundary-owned-focused-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: ${{ runner.temp }}/qelly-boundary-focused-independent-receipt.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Download published DEX lifecycle evidence in cloud
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: qelly-dex-change-lifecycle-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: ${{ runner.temp }}/qelly-dex-change-lifecycle
+          digest-mismatch: error
+      - name: Independently recheck published DEX lifecycle evidence
+        env:
+          QELLY_DEX_CHANGE_ROOT: ${{ runner.temp }}/qelly-dex-change-lifecycle
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile,writeFile} from 'node:fs/promises';
+          import {createHash} from 'node:crypto';
+          function validateDexChangeReport(r,sha){
+           assert.equal(r.schema,'qelly.dex.change-lifecycle/1.0');assert.equal(r.sourceSha,sha);assert.equal(r.status,'passed');assert.equal(r.expected,'green');assert.equal(r.moduleSha256,'48c487dea9c806b7fd125741fbc698674cdcbd60158450b9f11a5f21f04b5d81');assert.equal(r.actualModuleServedUnchanged,true);assert.equal(r.productSourceFilesChanged,1);for(const key of ['sharedRouterChanged','latencyMeasured','heapRetentionMeasured'])assert.equal(r[key],false);assert.equal(r.newMutationObservers,0);assert.equal(r.protectedWrites,0);assert.equal(r.results.length,4);assert.deepEqual(r.results.map(x=>x.appearance+'/'+x.width).sort(),['dark/1280','dark/390','light/1280','light/390']);
+           let visits=0,callbacks=0,progressWrites=0;
+           for(const row of r.results){assert.equal(row.sourceSha,sha);assert.equal(row.expected,'green');assert.equal(row.variant,'actual');assert.equal(row.visits.length,12);assert.equal(row.protectedWrites,0);assert.equal(row.externalReads,0);assert.deepEqual(row.pageErrors,[]);
+            const state=(s,on)=>{assert.equal(s.mainIdentityPreserved,true);assert.equal(s.documentIdentityPreserved,true);assert.equal(s.ownedObserverRegistrations,0);assert.equal(s.measurement.ownedObserverCallbacks,0);assert.equal(s.measurement.ownedObserverMutationRecords,0);for(const k of ['activeCallbacks','activeCompletionHooks','activeForwardAbortHooks'])assert.equal(s[k],on?1:0);assert.equal(s.nativeMainChanges-row.baselineMain,on?1:0);assert.equal(s.nativeCompletionHooks-row.baselineCompletion,on?1:0);if(!on)for(const k of ['signalRemovals','completionSignalRemovals','forwardExplicitRemovals'])assert.equal(s[k],s.registrations);};
+            for(const[i,v]of row.visits.entries()){assert.equal(v.visit,i+1);state(v.afterCheckbox,true);state(v.afterAbout,false);assert.equal(v.afterCheckbox.progress,'1 / 12 evidence items checked');for(const k of ['uniqueChangeEvents','callbackInvocations','evidenceInvocations','progressWrites'])assert.equal(v.afterCheckbox.measurement[k],1);visits++;callbacks+=v.afterCheckbox.measurement.callbackInvocations;progressWrites+=v.afterCheckbox.measurement.progressWrites;}
+            assert.equal(row.briefUpdate.checkedEvidencePreserved,true);assert.equal(row.briefUpdate.ownerStillMounted,true);assert.equal(row.briefUpdate.unrelatedSignalsIgnored,true);assert.equal(row.nonmatchingControl.measurement.progressWrites,0);assert.equal(row.sameRouteRerender.actualHashRouter,true);assert.equal(row.sameRouteRerender.rendererCalledDirectly,false);state(row.sameRouteRerender.mounted,true);state(row.sameRouteRerender.after,false);assert.equal(row.sameRouteRerender.mounted.measurement.progressWrites,1);
+           }
+           const stages={'cleanup-disabled':'completed-route-teardown','outer-signal-only':'completed-route-teardown','missing-target-guard':'nonmatching-control','wrong-progress':'checkbox-behavior'};assert.equal(r.runtimeMutants.length,4);assert.deepEqual(r.runtimeMutants.map(x=>x.variant).sort(),Object.keys(stages).sort());for(const x of r.runtimeMutants){assert.equal(x.rejected,true);assert.equal(x.stage,stages[x.variant]);if(x.stage==='completed-route-teardown'){assert.equal(x.observed.activeCallbacks,1);assert.equal(x.observed.nativeMainChanges,1);}if(x.variant==='missing-target-guard')assert.equal(x.observed.progressWrites,1);if(x.variant==='wrong-progress')assert.equal(x.observed.progress,'2 / 12 evidence items checked');}
+           assert.equal(r.validator.acceptedActual,true);assert.deepEqual(r.validator.rejectedReportMutants.slice().sort(),['missing-context','duplicate-context','missing-visit','native-disagreement','wrong-progress','missing-teardown','new-observer-work','protected-write'].sort());assert.equal(visits,48);assert.equal(callbacks,48);assert.equal(progressWrites,48);return{valid:true,sourceSha:sha,contexts:4,visits,callbacks,progressWrites,runtimeMutants:4,rejectedReportMutants:8,protectedWrites:0,externalReads:0,latencyMeasured:false,heapRetentionMeasured:false};
+          }
+          function validateDexAppearanceReport(report,sha){
+           assert.equal(report.actualResolvedAppearanceChecked,true);assert.equal(report.validator.rejectedReportMutants.length,9);assert.equal(report.validator.rejectedReportMutants.filter(x=>x==='wrong-actual-appearance').length,1);let actualAppearanceSnapshots=0;for(const row of report.results){const states=[...row.visits.flatMap(v=>[v.afterCheckbox,v.afterAbout]),row.briefUpdate.state,row.nonmatchingControl,row.sameRouteRerender.mounted,row.sameRouteRerender.after];assert.equal(states.length,28);for(const state of states){assert.equal(state.resolvedAppearance,row.appearance);actualAppearanceSnapshots++;}}assert.equal(actualAppearanceSnapshots,112);
+           // Preserve every historical ownership/fault invariant; remove only the new independently checked report-mutant name when calling the version-one validator.
+           const historical=structuredClone(report);historical.validator.rejectedReportMutants=historical.validator.rejectedReportMutants.filter(x=>x!=='wrong-actual-appearance');return{...validateDexChangeReport(historical,sha),actualResolvedAppearanceChecked:true,actualAppearanceSnapshots,rejectedReportMutants:9};
+          }
+          const root=process.env.QELLY_DEX_CHANGE_ROOT||'preview/dex-change-lifecycle',sha=process.env.QELLY_SCREEN_EVIDENCE_SHA,bytes=await readFile(root+'/report.json'),report=JSON.parse(bytes),validation=validateDexAppearanceReport(report,sha),receipt={...validation,reportSha256:createHash('sha256').update(bytes).digest('hex')};
+          assert.deepEqual(JSON.parse(await readFile(root+'/independent-gate-receipt.json','utf8')),receipt);
+          await writeFile(process.env.RUNNER_TEMP+'/qelly-dex-change-independent-receipt.json',JSON.stringify(receipt)+'\n');console.log(JSON.stringify(receipt));
+          NODE
+      - name: Retain compact DEX lifecycle publication receipt
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-dex-change-lifecycle-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: ${{ runner.temp }}/qelly-dex-change-independent-receipt.json
           if-no-files-found: error
           retention-days: 7
       - name: Verify all checksums and inherited acceptance contracts
