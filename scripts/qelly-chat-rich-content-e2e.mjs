@@ -255,6 +255,7 @@ try {
           await page.keyboard.press('Tab');
           assert.equal(await element.evaluate(node => node === document.activeElement), true, 'Tab must reach the code block.');
         }
+        await element.evaluate(node => {node.scrollLeft=32;});
         const geometry = await element.evaluate(node => {
           const style = getComputedStyle(node);
           return {tabIndex: node.tabIndex, role: node.getAttribute('role'), label: node.getAttribute('aria-label'), focusVisible: node.matches(':focus-visible'), outlineWidth: style.outlineWidth, outlineOffset: style.outlineOffset, outlineStyle: style.outlineStyle, overflowX: style.overflowX, client: node.clientWidth, scroll: node.scrollWidth, initialLeft: node.scrollLeft, initialTop: node.scrollTop, clientHeight: node.clientHeight, scrollHeight: node.scrollHeight};
@@ -275,15 +276,20 @@ try {
         assert.equal(geometry.outlineStyle, 'solid');
         assert.ok(['auto', 'scroll'].includes(geometry.overflowX));
         assert.ok(geometry.clientHeight >= 44);
+        console.log('CHAT_SCROLL_START '+JSON.stringify({name,width,appearance,initialLeft:geometry.initialLeft}));
         const horizontal = geometry.scroll > geometry.client + 1;
         if (name === 'code' || width <= 390) assert.equal(horizontal, true, `${name}: long content must scroll inside its own region.`);
         if (horizontal) {
           await page.keyboard.press('ArrowRight');
-          await element.evaluate(node => new Promise(resolve => {
+          await element.evaluate((node, initialLeft) => new Promise((resolve, reject) => {
             const deadline = performance.now() + 2500;
-            const check = () => node.scrollLeft > 0 || performance.now() > deadline ? resolve() : requestAnimationFrame(check);
+            const check = () => {
+              if (node.scrollLeft > initialLeft) return resolve();
+              if (performance.now() > deadline) return reject(new Error(JSON.stringify({kind:'keyboard-scroll-timeout',initialLeft,finalLeft:node.scrollLeft,focused:node===document.activeElement})));
+              requestAnimationFrame(check);
+            };
             check();
-          }));
+          }), geometry.initialLeft);
           assert.ok(await element.evaluate(node => node.scrollLeft) > geometry.initialLeft, `${name}: ArrowRight must scroll the focused content.`);
         }
         if (name === 'code' && geometry.scrollHeight > geometry.clientHeight + 1) {
