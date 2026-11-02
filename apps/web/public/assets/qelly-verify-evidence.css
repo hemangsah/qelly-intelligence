@@ -25,7 +25,7 @@ html[data-product-surface="production"] body #app #main .q-verify-state{display:
 html[data-product-surface="production"] body #app #main .q-verify-state.is-computed{border-color:color-mix(in srgb,#42b883 55%,var(--qv-line));color:var(--q-positive,#42b883)}
 html[data-product-surface="production"] body #app #main .q-verify-state.is-heuristic{border-color:color-mix(in srgb,#d3a53a 55%,var(--qv-line));color:var(--q-warning,#d3a53a)}
 html[data-product-surface="production"] body #app #main .q-verify-state.is-not-assessed,html[data-product-surface="production"] body #app #main .q-verify-state.is-not-assessed{color:var(--qv-muted)}
-html[data-product-surface="production"] body #app #main .q-verify-state.is-boundary{border-color:color-mix(in srgb,var(--qv-accent) 60%,var(--qv-line));color:var(--qv-accent)}
+html[data-product-surface="production"] body #app #main .q-verify-state.is-boundary{border-color:color-mix(in srgb,var(--qv-accent) 60%,var(--qv-line));color:var(--q-text)}
 html[data-product-surface="production"] body #app #main .q-verify-provenance{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(230px,.65fr);gap:20px;margin-top:22px}
 html[data-product-surface="production"] body #app #main .q-verify-provenance dl{display:grid;gap:9px;margin:18px 0 0}
 html[data-product-surface="production"] body #app #main .q-verify-provenance dl div{display:grid;grid-template-columns:minmax(120px,.35fr) minmax(0,.65fr);gap:16px;border-top:0;padding-top:9px}
