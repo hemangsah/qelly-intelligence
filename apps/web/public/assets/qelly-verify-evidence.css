@@ -39,7 +39,7 @@ html[data-product-surface="production"] body #app #main .q-methodology-principle
 html[data-product-surface="production"] body #app #main .q-methodology-principles h2,html[data-product-surface="production"] body #app #main .q-methodology-not-assessed h2,html[data-product-surface="production"] body #app #main .q-methodology-scores h2{margin:0;font-size:clamp(28px,4vw,48px);letter-spacing:-.04em}
 html[data-product-surface="production"] body #app #main .q-methodology-principles ol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:22px 0 0;padding:0;counter-reset:principle;list-style:none}
 html[data-product-surface="production"] body #app #main .q-methodology-principles li{counter-increment:principle;border:0;border-radius:0;padding:18px;color:var(--qv-muted)}
-html[data-product-surface="production"] body #app #main .q-methodology-principles li:before{content:counter(principle,decimal-leading-zero);display:block;margin-bottom:18px;color:var(--qv-accent);font-weight:800}
+html[data-product-surface="production"] body #app #main .q-methodology-principles li:before{content:counter(principle,decimal-leading-zero);display:block;margin-bottom:18px;color:var(--q-secondary);font-weight:800}
 html[data-product-surface="production"] body #app #main .q-methodology-classes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 html[data-product-surface="production"] body #app #main .q-methodology-classes article{border:0;border-radius:0;background:var(--qv-surface);padding:18px}
 html[data-product-surface="production"] body #app #main .q-methodology-classes p{margin:14px 0 0;color:var(--qv-muted);font-size:13px}
