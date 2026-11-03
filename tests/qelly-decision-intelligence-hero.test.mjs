@@ -59,7 +59,8 @@ test('Decision Intelligence hero stays dense and responsive',async()=>{
   assert.match(css,/\.q-dpg-hero\{display:grid;grid-template-columns:minmax\(260px,1\.05fr\)/);
   assert.match(css,/@media\(max-width:1040px\)\{\.q-dpg-hero\{grid-template-columns:1fr 1\.25fr\}/);
   assert.match(css,/@media\(max-width:760px\)\{\.q-dpg-hero\{grid-template-columns:1fr\}/);
-  assert.match(css,/@media\(max-width:480px\)\{\.q-dpg-hero__selects,\.q-dpg-hero__metrics\{grid-template-columns:1fr\}/);
+  assert.match(css,/@media\(max-width:480px\)\{\.q-dpg-hero__selects,\.q-dpg-hero__metrics\{grid-template-columns:var\(--q-dpg-mobile-selector-columns,1fr\)\}/);
+  assert.match(css,/--q-dpg-mobile-selector-columns:repeat\(2,minmax\(0,1fr\)\)/);
 });
 
 test('Decision Intelligence normalizes compact sourced timestamps before display',async()=>{
