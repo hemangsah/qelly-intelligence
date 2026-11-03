@@ -1272,6 +1272,19 @@ export async function renderDecisionProvenGraph(main,deps){
   }
 
   const wire=()=>{
+    const openResearchSection=(mode,selector)=>{
+      let target=main.querySelector(selector);
+      if(!target&&state.uiMode!==mode){
+        state.uiMode=mode;
+        emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'research_depth',action:'select',state:mode});
+        draw();target=main.querySelector(selector);
+      }
+      if(!target)return;
+      target.setAttribute('tabindex','-1');
+      target.scrollIntoView({behavior:motionBehavior(),block:'start'});
+      target.focus({preventScroll:true});
+    };
+
     const commitRangeSelection=async(targetSelector=null)=>{
       if(!state.draft)return false;
       state.selection=state.draft;state.rangeReplayIndex=0;
@@ -1378,7 +1391,7 @@ export async function renderDecisionProvenGraph(main,deps){
     main.querySelectorAll('[data-dpg-scan-asset]').forEach(button=>button.addEventListener('click',()=>{const symbol=String(button.dataset.dpgScanAsset||'').toUpperCase(),candidateInterval=String(button.dataset.dpgScanInterval||state.interval);if(!Array.isArray(state.assetCatalog?.selectableSymbols)||!state.assetCatalog.selectableSymbols.includes(symbol)||!INTERVAL_MS[candidateInterval])return;cancelRangeEvidenceRequest();state.asset=symbol;state.interval=candidateInterval;state.horizon=normalizeHorizon(state.interval,state.horizon);state.assetRecent=recordDecisionAssetRecent(state.assetRecent,symbol);saveDecisionAssetPreferences({favorites:state.assetFavorites,recent:state.assetRecent});state.draft=null;state.selection=null;void load();}));
     main.querySelector('[data-dpg-explain-header]')?.addEventListener('click',()=>{if(state.draft)void commitRangeSelection('.q-dpg-move');});
     main.querySelector('[data-dpg-explain-candle]')?.addEventListener('click',()=>{const candles=state.data?.market?.candles||[],intervalMs=INTERVAL_MS[state.interval],selected=state.draft&&state.draft.end-state.draft.start<intervalMs?state.draft:null,last=candles.at?.(-1);if(selected){void commitRangeSelection('.q-dpg-move');return;}if(last&&intervalMs){state.draft={start:last.time,end:last.time+intervalMs-1};void commitRangeSelection('.q-dpg-move');}});
-    main.querySelector('[data-dpg-mtf-jump]')?.addEventListener('click',()=>main.querySelector('#qelly-decision-mtf')?.scrollIntoView({behavior:motionBehavior(),block:'start'}));
+    main.querySelector('[data-dpg-mtf-jump]')?.addEventListener('click',()=>openResearchSection('advanced','#qelly-decision-mtf'));
     main.querySelector('[data-dpg-compare-asset]')?.addEventListener('click',()=>{const assetId=canonicalDecisionAsset(state.asset);if(!assetId||typeof navigate!=='function'){toast?.('Asset comparison is unavailable for this Decision context.',{tone:'danger'});return;}navigate('comparison-lab',assetId);});
     main.querySelector('[data-dpg-formula-evidence]')?.addEventListener('click',()=>{
       if(!storeResearchContext({asset:state.asset,timeframe:state.interval,source:'decision-intelligence'})){toast?.('Formula handoff is unavailable for this Decision context.',{tone:'danger'});return;}
@@ -1395,7 +1408,7 @@ export async function renderDecisionProvenGraph(main,deps){
       emitProductEvent('qelly_view_interaction',{route:'decision-provenance',feature:'research_note',action:'export',state:telemetryToken(state.data?.qellyView?.action||'no_trade')});
       toast?.('Decision research note exported',{tone:'success'});
     });
-    main.querySelector('[data-dpg-methodology-jump]')?.addEventListener('click',()=>main.querySelector('#qelly-decision-methodology')?.scrollIntoView({behavior:motionBehavior(),block:'start'}));
+    main.querySelector('[data-dpg-methodology-jump]')?.addEventListener('click',()=>openResearchSection('research','#qelly-decision-methodology'));
     main.querySelectorAll('[data-dpg-refresh]').forEach(button=>button.addEventListener('click',load));main.querySelector('[data-dpg-export]')?.addEventListener('click',()=>{download(state.data);toast('Research package exported',{tone:'success'});});
     main.querySelector('[data-dpg-explain]')?.addEventListener('click',()=>{void commitRangeSelection('.q-dpg-move');});
     main.querySelector('[data-dpg-clear]')?.addEventListener('click',()=>{cancelRangeEvidenceRequest();state.rangeReplayIndex=0;state.draft=null;state.selection=null;void load();});
