@@ -48,7 +48,9 @@ test('Decision preserves summary-before-diagnostics in expert view and Simple su
   const auditIndex=content.indexOf('calibration(view,escapeHtml)',evidenceStart);
   const viewStart=content.indexOf('q-dpg-view q-dpg-view--');
   assert.ok(evidenceStart>=0&&summaryIndex>evidenceStart&&auditIndex>summaryIndex&&viewStart>auditIndex);
-  assert.ok(content.includes("(state.uiMode==='simple'?'':secondaryViewEvidenceMarkup)+'</section>'+"));
+  assert.ok(content.includes("(state.uiMode==='simple'?cfSetupSummaryMarkup(data,{primary:true})+(!view.levels?levels(view):''):levels(view)+secondaryViewEvidenceMarkup)+'</section>'+"));
+  const simpleSetup=content.indexOf("cfSetupSummaryMarkup(data,{primary:true})",viewStart);
+  assert.ok(simpleSetup>viewStart&&simpleSetup<content.indexOf('q-dpg-stage'));
   const chartStart=content.indexOf('q-dpg-stage');
   const disclosureStart=content.indexOf('q-dpg-secondary-view-evidence');
   assert.ok(chartStart>viewStart&&disclosureStart>chartStart);

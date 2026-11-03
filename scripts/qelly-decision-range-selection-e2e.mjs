@@ -513,20 +513,11 @@ const exercise=async({name,viewport,touch=false})=>{
     return {clearance:node.dataset.clearance||'unset',opacity:style?.opacity||'',pointerEvents:style?.pointerEvents||'',zoneOverlap};
   });
   if(clearanceProbe.zoneOverlap&&(clearanceProbe.clearance!=='chart'||clearanceProbe.pointerEvents!=='none'))failures.push({type:'qelly-dock-chart-clearance',...clearanceProbe});
-  await page.evaluate(()=>{
-    const workbench=document.querySelector('.q-dpg-range-workbench');
-    if(!workbench)return;
-    const rect=workbench.getBoundingClientRect(),expandedReserved=Math.min(440,Math.max(230,innerHeight*.52));
-    const followingControls=document.querySelector('.q-dpg-controls--decision');
-    const followingRect=followingControls?.getBoundingClientRect();
-    if(followingRect&&followingRect.top>=rect.bottom){
-      window.scrollTo(0,Math.max(0,scrollY+followingRect.top-innerHeight-24));
-      return;
-    }
-    const delta=Math.max(0,rect.bottom-(innerHeight-expandedReserved)+28);
-    if(delta>0)window.scrollBy(0,delta);
-  });
+  // Leave the entire protected chart/action area before requiring the context dock to return.
+  await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
   await page.waitForFunction(()=>document.querySelector('.q-ai-root')?.dataset.clearance==='clear',null,{timeout:5000});
+  const restoredDockFree=await page.evaluate(()=>{const d=document.querySelector('[data-q-ai-launcher]'),r=d.getBoundingClientRect(),bottom=parseFloat(getComputedStyle(d).bottom)||0,box={left:(innerWidth-r.width)/2,right:(innerWidth+r.width)/2,top:innerHeight-bottom-r.height,bottom:innerHeight-bottom};return ![...document.querySelectorAll('#main [data-qelly-chat-plot],#main :is(button,a,input,select,textarea,label,summary)')].filter(n=>{const s=getComputedStyle(n);return s.display!=='none'&&s.visibility!=='hidden';}).some(n=>{const b=n.getBoundingClientRect();return b.left<box.right&&b.right>box.left&&b.top<box.bottom&&b.bottom>box.top;});});
+  if(!restoredDockFree)failures.push({type:'qelly-dock-return-still-overlaps-protected-content'});
   const restoredDockBox=await page.locator('[data-q-ai-launcher]').first().boundingBox();
   const dockRestored=Boolean(restoredDockBox)&&restoredDockBox.y>=0&&restoredDockBox.y+restoredDockBox.height<=viewport.height+1;
   if(!dockRestored)failures.push({type:'qelly-dock-clearance-return',restoredDockBox});
@@ -590,7 +581,7 @@ const exercise=async({name,viewport,touch=false})=>{
   }
   const similarSetupBridge=similarSetupVisible&&lastScanRequest?.mode==='validated'&&lastScanRequest?.assets==='BTC'&&lastScanRequest?.ranking==='highest_quality'&&lastScanRequest?.direction==='any';
   if(!similarSetupBridge)failures.push({type:'range-similar-current-setup-bridge',similarSetupVisible,lastScanRequest});
-  const result={name,viewport,touch,retailScenarioSummaryPassed,retailScenarioText,timeframeCoverage,educationHelp:educationRequired&&tooltipCount>=7,similarSetupBridge,nextMove:{projectedState,nextMoveRequired,probabilitySafe,activeThree},waveCf:{setup:cfSetupRequired,lifecycleCurrent:cfLifecycleCurrent,watchCount:cfWatchCount,scenarioCards:cfScenarioCards,highProbabilitySafe:cfHighProbabilitySafe,rrCards:cfRrCards,rrInteractive:cfRrTwoActive===1&&cfRrAutoActive===1},assetPicker:{fitsViewport:pickerFitsViewport,required:pickerRequired,selectableCount,favoriteEth},setupFinder:{required:setupFinderRequired,aggressiveRequest:setupRequestOk,closestCandidate:closestCandidateRequired,closestInterval},decisionModes:{simpleDefault:true,advanced:advancedRequired,research:researchRequired},qellyDock:{centered:dockCentered,composer:dockComposerRequired,rangeAware:rangeAwareDock},persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,rangeCrossAsset:rangeCrossAssetRequired&&!forbiddenCrossAssetCausality,rangeCrossAssetClassification,rangeCrossAssetText,rangeTimeline:timelineRequired,rangeTimelineText:timelineText,rangeReplay:replayRequired&&replayScrubs,rangeReplayText:replayText,rangeSimilarMoves:similarRequired,rangeSimilarMovesText:similarText,rangeFlow:flowRequired,rangeFlowText:flowText,failures};
+  const result={name,viewport,touch,retailScenarioSummaryPassed,retailScenarioText,timeframeCoverage,educationHelp:educationRequired&&tooltipCount>=7,similarSetupBridge,nextMove:{projectedState,nextMoveRequired,probabilitySafe,activeThree},waveCf:{setup:cfSetupRequired,lifecycleCurrent:cfLifecycleCurrent,watchCount:cfWatchCount,scenarioCards:cfScenarioCards,highProbabilitySafe:cfHighProbabilitySafe,rrCards:cfRrCards,rrInteractive:cfRrTwoActive===1&&cfRrAutoActive===1},assetPicker:{fitsViewport:pickerFitsViewport,required:pickerRequired,selectableCount,favoriteEth},setupFinder:{required:setupFinderRequired,aggressiveRequest:setupRequestOk,closestCandidate:closestCandidateRequired,closestInterval},decisionModes:{simpleDefault:true,advanced:advancedRequired,research:researchRequired},qellyDock:{centered:dockCentered,composer:dockComposerRequired,rangeAware:rangeAwareDock,restoredAfterLeavingProtectedContent:restoredDockFree},persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,rangeCrossAsset:rangeCrossAssetRequired&&!forbiddenCrossAssetCausality,rangeCrossAssetClassification,rangeCrossAssetText,rangeTimeline:timelineRequired,rangeTimelineText:timelineText,rangeReplay:replayRequired&&replayScrubs,rangeReplayText:replayText,rangeSimilarMoves:similarRequired,rangeSimilarMovesText:similarText,rangeFlow:flowRequired,rangeFlowText:flowText,failures};
   results.push(result);
   await context.close();
 };
