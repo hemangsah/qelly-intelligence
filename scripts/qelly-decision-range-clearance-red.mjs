@@ -1,0 +1,701 @@
+import {mkdir,writeFile} from 'node:fs/promises';
+import path from 'node:path';
+import {chromium} from 'playwright';
+import {startServer} from './release-a5-evidence-server.mjs';
+import {buildDecisionRangeEvidence} from '../functions/_lib/decision-range-evidence.js';
+import {buildDecisionHistoricalNewsTimeline} from '../functions/_lib/decision-range-timeline.js';
+import {buildDecisionRangeFlowParticipation} from '../functions/_lib/decision-range-flow.js';
+import {buildDecisionNextMoveResearch} from '../functions/_lib/decision-next-move.js';
+import {decisionAssetCapabilities} from '../functions/_lib/decision-asset-capabilities.js';
+import {buildDecisionRangeReplay,buildSelectedRangeSimilarMoves} from '../functions/_lib/decision-range-history.js';
+import {buildSelectedRangeCrossAssetAnalysis} from '../functions/_lib/decision-selected-cross-asset.js';
+import {buildDecisionIntelligence} from '../functions/api/v1/decision-proven-graph.js';
+import {buildDecisionScenarioUx} from '../apps/web/public/assets/decision-scenario-ux.mjs';
+
+const outputDir=path.resolve('preview/decision-range-e2e');
+await mkdir(outputDir,{recursive:true});
+const server=await startServer({port:0,host:'127.0.0.1'});
+const localOrigin=`http://127.0.0.1:${server.port}`;
+const executablePath=process.env.QELLY_BROWSER_EXECUTABLE||'/usr/bin/chromium';
+const browser=await chromium.launch({headless:true,executablePath,args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
+const results=[];
+const initialLoadingResults=[];
+let latestSelectedPayload=null,lastScanRequest=null,latestDecisionFixture=null;
+const FIXTURE_INTERVAL_MS=Object.freeze({'1m':60_000,'3m':180_000,'5m':300_000,'15m':900_000,'30m':1_800_000,'1h':3_600_000,'2h':7_200_000,'4h':14_400_000,'8h':28_800_000,'12h':43_200_000,'1d':86_400_000});
+const FIXTURE_ASSETS=Object.freeze(['BTC','ETH','SOL','HYPE','XRP','DOGE']);
+const FIXTURE_BASE=Object.freeze({BTC:84_000,ETH:3_100,SOL:145,HYPE:42,XRP:2.6,DOGE:.22});
+const fixtureNow=Date.now()-1_000;
+const fixtureReferenceDate=new Date(fixtureNow).toISOString().slice(0,10);
+const fixtureCandlesFor=(asset='BTC',interval='15m',endTime=fixtureNow,points=500)=>{
+  const symbol=FIXTURE_ASSETS.includes(String(asset).toUpperCase())?String(asset).toUpperCase():'BTC';
+  const step=FIXTURE_INTERVAL_MS[interval]||FIXTURE_INTERVAL_MS['15m'];
+  const count=Math.max(180,Math.min(500,Number(points)||500));
+  const base=FIXTURE_BASE[symbol]||100;
+  return Array.from({length:count},(_,index)=>{
+    const drift=(index-count*.55)*.0007;
+    const wave=Math.sin(index/7)*.012+Math.sin(index/19)*.008;
+    const close=base*(1+drift+wave);
+    const open=close*(1-Math.sin(index/5)*.0018);
+    const high=Math.max(open,close)*(1.0045+Math.abs(Math.sin(index/11))*.002);
+    const low=Math.min(open,close)*(1-.0045-Math.abs(Math.cos(index/13))*.002);
+    return {t:Number(endTime)-(count-1-index)*step,o:String(open),h:String(high),l:String(low),c:String(close),v:String(800+index*3),n:40+index};
+  });
+};
+const fixtureProviderFetch=async(url,options={})=>{
+  let target;
+  try{target=new URL(String(url));}catch{return new Response(JSON.stringify({}),{status:400,headers:{'content-type':'application/json'}});}
+  if(target.protocol==='https:'&&target.hostname==='www.ecb.europa.eu'&&target.pathname==='/stats/eurofxref/eurofxref-daily.xml')return new Response('<Cube time="'+fixtureReferenceDate+'"><Cube currency="USD" rate="1.1"/><Cube currency="INR" rate="90"/><Cube currency="GBP" rate="0.85"/><Cube currency="JPY" rate="160"/><Cube currency="CHF" rate="0.95"/></Cube>',{status:200,headers:{'content-type':'application/xml'}});
+  if(target.protocol==='https:'&&target.hostname==='api.hyperliquid.xyz'){
+    let body={};
+    try{body=JSON.parse(options?.body||'{}');}catch{}
+    if(body.type==='candleSnapshot'){
+      const req=body.req||{},interval=String(req.interval||'15m'),endTime=Number(req.endTime)||fixtureNow,step=FIXTURE_INTERVAL_MS[interval]||FIXTURE_INTERVAL_MS['15m'];
+      const requested=Math.ceil(Math.max(step,(endTime-(Number(req.startTime)||endTime-step*500)))/step);
+      return new Response(JSON.stringify(fixtureCandlesFor(req.coin,interval,endTime,requested)),{status:200,headers:{'content-type':'application/json'}});
+    }
+    if(body.type==='metaAndAssetCtxs'){
+      const universe=FIXTURE_ASSETS.map(name=>({name}));
+      const contexts=FIXTURE_ASSETS.map((name,index)=>{
+        const mark=FIXTURE_BASE[name]*(1+index*.001);
+        return {funding:String(.00005+index*.00001),openInterest:String(900+index*120),markPx:String(mark),oraclePx:String(mark*.9995),dayNtlVlm:String(80_000_000+index*7_500_000),premium:String(.0001+index*.00002),prevDayPx:String(mark*.992)};
+      });
+      return new Response(JSON.stringify([{universe},contexts]),{status:200,headers:{'content-type':'application/json'}});
+    }
+    if(body.type==='l2Book'){
+      const base=FIXTURE_BASE[String(body.coin||'BTC').toUpperCase()]||100;
+      const bids=Array.from({length:20},(_,i)=>({px:String(base*(1-.0003*(i+1))),sz:String(3+i*.2),n:8+i}));
+      const asks=Array.from({length:20},(_,i)=>({px:String(base*(1+.0003*(i+1))),sz:String(2.8+i*.18),n:7+i}));
+      return new Response(JSON.stringify({time:fixtureNow,levels:[bids,asks]}),{status:200,headers:{'content-type':'application/json'}});
+    }
+    if(body.type==='fundingHistory'){
+      const start=Number(body.startTime)||fixtureNow-72*3_600_000,end=Number(body.endTime)||fixtureNow;
+      const rows=Array.from({length:12},(_,i)=>({time:start+(end-start)*(i+1)/12,fundingRate:.00004+i*.000002,premium:.00008+i*.000003}));
+      return new Response(JSON.stringify(rows),{status:200,headers:{'content-type':'application/json'}});
+    }
+    return new Response(JSON.stringify({}),{status:200,headers:{'content-type':'application/json'}});
+  }
+  if(target.protocol==='https:'&&target.hostname==='api.gdeltproject.org')return new Response(JSON.stringify({articles:[]}),{status:200,headers:{'content-type':'application/json'}});
+  return new Response(JSON.stringify({}),{status:200,headers:{'content-type':'application/json'}});
+};
+const fixtureDecisionPayload=async(requestUrl)=>{
+  const asset=String(requestUrl.searchParams.get('asset')||'BTC').toUpperCase();
+  const interval=requestUrl.searchParams.get('interval')||'15m';
+  const horizon=requestUrl.searchParams.get('horizon')||'4h';
+  const requestedRr=requestUrl.searchParams.get('rr')||'auto';
+  const customRr=requestUrl.searchParams.get('customRr');
+  const nextBars=requestUrl.searchParams.get('nextBars');
+  const selection=requestUrl.searchParams.has('selectionStart')||requestUrl.searchParams.has('selectionEnd')
+    ?{start:Number(requestUrl.searchParams.get('selectionStart')),end:Number(requestUrl.searchParams.get('selectionEnd'))}
+    :null;
+  return buildDecisionIntelligence({__fetch:fixtureProviderFetch},{asset,interval,horizon,requestedRr,customRr,nextBars,selection,now:fixtureNow});
+};
+
+const fixtureEpochMs=(value)=>{
+  if(value==null||value==='')return null;
+  const numeric=Number(value);
+  if(Number.isFinite(numeric))return Math.abs(numeric)<100_000_000_000?numeric*1000:numeric;
+  const parsed=Date.parse(String(value));
+  return Number.isFinite(parsed)?parsed:null;
+};
+
+const proxyDecision=async(route)=>{
+  const requestUrl=new URL(route.request().url());
+  if(requestUrl.pathname.includes('/api/v1/decision-assets')){
+    const body=JSON.stringify({...decisionAssetCapabilities(),generatedAt:new Date().toISOString()});
+    await route.fulfill({status:200,contentType:'application/json; charset=utf-8',body});
+    return;
+  }
+  if(requestUrl.pathname.includes('/api/v1/decision-scan')){
+    lastScanRequest=Object.fromEntries(requestUrl.searchParams.entries());
+    const interval=requestUrl.searchParams.get('interval')||'15m';
+    const mode=requestUrl.searchParams.get('mode')||'validated';
+    const ranking=requestUrl.searchParams.get('ranking')||'highest_quality';
+    const asset=(requestUrl.searchParams.get('assets')||'BTC').split(',')[0].toUpperCase();
+    const candidateInterval=mode==='aggressive'&&interval==='15m'?'30m':interval;
+    const closest={
+      label:'CLOSEST CANDIDATE — NOT YET VALIDATED',validated:false,asset,interval:candidateInterval,direction:'SELL',
+      possibleTrigger:'Wait for the independent calibration gate to pass while the verified entry structure remains intact.',
+      missingConditions:['calibration_gate_not_passed'],
+      whatMustHappen:['The independent calibration gate must pass; probability cannot be fabricated.'],
+      probabilityState:'UNCALIBRATED',calibratedProbability:null,
+      contradiction:'Independent probability calibration is not yet eligible.',
+      eventRisk:{state:'unavailable',level:'UNAVAILABLE'},researchPriority:68.4,
+      boundary:'This is a research candidate only. It is not a valid setup, trade recommendation, target guarantee or substitute for missing evidence.'
+    };
+    const candidate={
+      asset,interval:candidateInterval,horizon:requestUrl.searchParams.get('horizon')||'4h',truthState:'LIVE',action:'SELL',state:'NO_ELIGIBLE_SETUP',
+      eligible:false,conditional:false,filterFailures:['calibration_gate_not_passed'],validationFailures:['calibration_gate_not_passed'],preferenceFailures:[],relaxedPreferences:[],
+      discoveryMode:mode,researchPriority:68.4,
+      evidence:{qualityScore:.76,calibrationGatedEvidenceConfidence:null,calibrationState:'UNCALIBRATED',calibrationEligible:false,timeframeAgreement:.75,timeframeDirection:'SELL'},
+      market:{lastPrice:84000,regime:'trending',volatilityRegime:'NORMAL',structure:'LH_LL',liquidityState:'live',spreadState:'TIGHT',spreadBps:2},
+      eventRisk:{state:'unavailable',level:'UNAVAILABLE'},
+      trade:{status:'NO_TRADE',sourceStatus:'NO_TRADE',setupType:'PULLBACK',rr:'1:2',rrRelaxed:false,feasibility:'FEASIBLE',entry:84000,stop:84600,target:82800},
+      contradictions:['Independent probability calibration is not yet eligible.']
+    };
+    const body=JSON.stringify({
+      schemaVersion:'qelly.decision-scan/3.0.0',generatedAt:new Date().toISOString(),state:'NO_ELIGIBLE_SETUP',mode,ranking,
+      universe:[asset],governedUniverse:['BTC','ETH','SOL','HYPE','XRP','DOGE'],interval,horizon:requestUrl.searchParams.get('horizon')||'4h',
+      riskReward:{mode:requestUrl.searchParams.get('rr')||'auto'},filters:{direction:requestUrl.searchParams.get('direction')||'any'},
+      searchPlan:{scope:requestUrl.searchParams.has('assets')?'CURRENT_ASSET':'ALL_SUPPORTED_MARKETS',assets:[asset],intervals:mode==='aggressive'?[interval,candidateInterval]:[interval],directions:[(requestUrl.searchParams.get('direction')||'any').toUpperCase()],riskRewards:['1:1','1:2','1:3','1:4'],setupTypes:['PULLBACK'],boundedVariantCount:mode==='aggressive'?2:1,aggressiveBroadening:mode==='aggressive',boundary:'Aggressive Discovery broadens supported assets, adjacent supported timeframes and existing R:R/setup possibilities. It never fabricates direction, provider evidence, calibration, structural validity or event safety.'},
+      validatedSetup:null,closestCandidate:closest,candidates:[candidate],eligibleCount:0,conditionalCount:0,availableCount:1,unavailableCount:0,failures:[],
+      performance:{totalMs:25,assetDecisionMs:{[asset+':'+candidateInterval]:20},concurrency:1},
+      eventRisk:{state:'unavailable',connectedFeed:false,reason:'No approved production event feed is connected. Strict event-risk filters fail closed.'},
+      boundaries:{researchOnly:true,execution:false,fabricatedFallback:false,aggressiveCanFabricateValidSetup:false,aggressiveBypassesCalibration:false,aggressiveBypassesFreshness:false,aggressiveBypassesProviderFailure:false,aggressiveBypassesCriticalEventRisk:false,closestCandidateIsValidated:false,noTradeFirstClass:true}
+    });
+    await route.fulfill({status:200,contentType:'application/json; charset=utf-8',body});
+    return;
+  }
+  if(requestUrl.pathname.includes('/api/v1/decision-range-evidence')&&latestSelectedPayload?.selection){
+    const payload=structuredClone(latestSelectedPayload);
+    const start=Number(requestUrl.searchParams.get('rangeStart')),end=Number(requestUrl.searchParams.get('rangeEnd')),duration=Math.max(60_000,end-start);
+    const article=(title,offset,source,url)=>({title,source,publishedAt:new Date(offset).toISOString(),url});
+    const newsBuckets={
+      before:{state:'live',coverageState:'COMPLETE',exactWindow:true,window:{start:new Date(start-duration).toISOString(),end:new Date(start).toISOString()},articles:[article('Bitcoin policy context before selected move',start-Math.min(duration/2,3_600_000),'fixture-before.example','https://fixture-before.example/a')]},
+      during:{state:'live',coverageState:'COMPLETE',exactWindow:true,window:{start:new Date(start).toISOString(),end:new Date(end).toISOString()},articles:[article('Bitcoin <img src=x onerror=alert(1)> ETF inflow update during selected move',start+duration/2,'fixture-during.example','https://fixture-during.example/b')]},
+      after:{state:'live',coverageState:'COMPLETE',exactWindow:true,window:{start:new Date(end).toISOString(),end:new Date(end+duration).toISOString()},articles:[article('Bitcoin market context after selected move',end+Math.min(duration/2,3_600_000),'fixture-after.example','https://fixture-after.example/c')]}
+    };
+    const fixtureCandles=payload.market?.candles||[];
+    const fixtureBenchmark=fixtureCandles.map((item,index)=>({
+      ...item,
+      open:Number(item.open??item.o)*(1+index*.00001),
+      high:Number(item.high??item.h)*(1+index*.00001),
+      low:Number(item.low??item.l)*(1+index*.00001),
+      close:Number(item.close??item.c)*(1+index*.00001)
+    }));
+    const selectedRangeCrossAsset=buildSelectedRangeCrossAssetAnalysis(fixtureCandles,fixtureBenchmark,{selection:payload.selection,asset:payload.asset,benchmark:payload.asset==='BTC'?'ETH':'BTC',assetClass:'crypto'});
+    payload.evidence={...payload.evidence,selectedCrossAssetAnalysis:selectedRangeCrossAsset};
+    const rangeEvidenceBase=buildDecisionRangeEvidence({graph:payload,evidence:payload.evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:'UTC'});
+    const flowParticipation=buildDecisionRangeFlowParticipation({graph:payload,evidence:payload.evidence});
+    const timeline=buildDecisionHistoricalNewsTimeline({asset:payload.asset,rangeEvidence:rangeEvidenceBase,newsBuckets});
+    const rangeEvidence={...rangeEvidenceBase,timeline,flowParticipation};
+    const rangeReplay=buildDecisionRangeReplay({
+      candles:fixtureCandles,
+      selection:payload.selection,
+      interval:payload.interval,
+      newsArticles:[...newsBuckets.before.articles,...newsBuckets.during.articles,...newsBuckets.after.articles],
+      fundingRows:[],
+      benchmarkCandles:fixtureBenchmark,
+      benchmark:payload.asset==='BTC'?'ETH':'BTC'
+    });
+    const selectedRangeSimilarMoves=buildSelectedRangeSimilarMoves(fixtureCandles,{selection:payload.selection,interval:payload.interval,limit:5});
+    const body=JSON.stringify({schemaVersion:'qelly.decision-range-evidence-response/1.4.0',asset:payload.asset,interval:payload.interval,horizon:payload.horizon,selectedMove:payload.selection,rangeEvidence,timeline,flowParticipation,selectedRangeCrossAsset,rangeReplay,selectedRangeSimilarMoves});
+    await route.fulfill({status:200,contentType:'application/json; charset=utf-8',body});
+    return;
+  }
+  let responseStatus=200,body='{}';
+  if(requestUrl.pathname.includes('/api/v1/decision-news-context')){
+    body=JSON.stringify({state:'live',provider:'fixture-governed-test',articles:[],observedAt:new Date(fixtureNow).toISOString(),boundary:'Deterministic browser-test news context only; production news truth is validated by separate live-runtime gates.'});
+  }else if(requestUrl.pathname.includes('/api/v1/decision-proven-graph')){
+    try{
+      const payload=await fixtureDecisionPayload(requestUrl),customBars=requestUrl.searchParams.has('nextBars')?Number(requestUrl.searchParams.get('nextBars')):null;
+      payload.nextMoveResearch=buildDecisionNextMoveResearch(payload.market?.candles||[],{asset:payload.asset,interval:payload.interval,customBars,paths:128});
+      latestDecisionFixture=payload;
+      if(requestUrl.searchParams.has('selectionStart')){
+        const selectedStart=fixtureEpochMs(payload.selection?.start),selectedEnd=fixtureEpochMs(payload.selection?.end);
+        if(!Number.isFinite(selectedStart)||!Number.isFinite(selectedEnd)||!(selectedStart<selectedEnd))throw new Error('CE browser fixture received invalid selected-range bounds');
+        const selectedDuration=Math.max(60_000,selectedEnd-selectedStart),selectedCandles=payload.market?.candles||[];
+        const fixtureNews=[
+          {title:'Replay evidence available early',source:'fixture-replay.example',publishedAt:new Date(selectedStart+Math.min(selectedDuration*.2,3_600_000)).toISOString(),url:'https://fixture-replay.example/early'},
+          {title:'Replay evidence available later',source:'fixture-replay.example',publishedAt:new Date(selectedStart+Math.min(selectedDuration*.75,8*3_600_000)).toISOString(),url:'https://fixture-replay.example/late'}
+        ];
+        const fixtureFunding=[
+          {time:selectedStart+Math.min(selectedDuration*.3,4*3_600_000),fundingRate:.0001,premium:.0002},
+          {time:selectedStart+Math.min(selectedDuration*.85,10*3_600_000),fundingRate:.00015,premium:.00025}
+        ];
+        const fixtureBenchmark=selectedCandles.map((item,index)=>({
+          ...item,
+          o:Number(item.o??item.open)*(1+index*.00001),
+          h:Number(item.h??item.high)*(1+index*.00001),
+          l:Number(item.l??item.low)*(1+index*.00001),
+          c:Number(item.c??item.close)*(1+index*.00001)
+        }));
+        const selectedRangeCrossAsset=buildSelectedRangeCrossAssetAnalysis(selectedCandles,fixtureBenchmark,{selection:payload.selection,asset:payload.asset,benchmark:payload.asset==='BTC'?'ETH':'BTC',assetClass:'crypto'});
+        payload.evidence={...payload.evidence,selectedCrossAssetAnalysis:selectedRangeCrossAsset};
+        payload.selectedRangeCrossAsset=selectedRangeCrossAsset;
+        payload.rangeEvidence=buildDecisionRangeEvidence({graph:payload,evidence:payload.evidence,assetClass:'crypto',venue:'Hyperliquid',timezone:'UTC'});
+        payload.rangeReplay=buildDecisionRangeReplay({candles:selectedCandles,selection:payload.selection,interval:payload.interval,newsArticles:fixtureNews,fundingRows:fixtureFunding,benchmarkCandles:fixtureBenchmark,benchmark:payload.asset==='BTC'?'ETH':'BTC'});
+        payload.selectedRangeSimilarMoves=buildSelectedRangeSimilarMoves(selectedCandles,{selection:payload.selection,interval:payload.interval,limit:5});
+        if(payload.rangeReplay?.state!=='AVAILABLE')throw new Error('CE browser fixture failed to construct an available no-hindsight replay');
+        latestSelectedPayload=payload;
+      }
+      body=JSON.stringify(payload);
+    }catch(error){
+      responseStatus=503;
+      body=JSON.stringify({error:{code:'fixture_decision_build_failed',message:String(error?.message||error)}});
+    }
+  }
+  await route.fulfill({status:responseStatus,contentType:'application/json; charset=utf-8',body});
+};
+
+const exercise=async({name,viewport,touch=false})=>{
+  latestDecisionFixture=null;
+  const context=await browser.newContext({viewport,serviceWorkers:'block',reducedMotion:'reduce',hasTouch:touch,isMobile:touch});
+  const page=await context.newPage();
+  const failures=[];
+  page.on('pageerror',error=>failures.push({type:'pageerror',message:error.message}));
+  page.on('console',message=>{if(message.type()==='error'&&!message.text().includes('Failed to load resource'))failures.push({type:'console',message:message.text()});});
+  await page.route('**/api/v1/decision-assets**',proxyDecision);
+  await page.route('**/api/v1/decision-scan**',proxyDecision);
+  await page.route('**/api/v1/decision-proven-graph**',proxyDecision);
+  await page.route('**/api/v1/decision-news-context**',proxyDecision);
+  await page.route('**/api/v1/decision-range-evidence**',proxyDecision);
+  await page.goto(localOrigin+'/#/decision-provenance',{waitUntil:'domcontentloaded',timeout:45_000});
+  const chart=page.locator('[data-dpg-chart]').first();
+  await chart.waitFor({state:'visible',timeout:45_000});
+  const ciMotion=await page.evaluate(()=>{
+    const dock=document.querySelector('[data-q-ai-launcher]'),mode=document.querySelector('[data-dpg-chart-mode]');
+    const dockStyle=dock?getComputedStyle(dock):null,modeStyle=mode?getComputedStyle(mode):null;
+    return {dockAnimation:dockStyle?.animationName||'',dockTransition:dockStyle?.transitionDuration||'',modeTransition:modeStyle?.transitionDuration||''};
+  });
+  if(ciMotion.dockAnimation!=='none'||(ciMotion.modeTransition&&ciMotion.modeTransition!=='0s'))failures.push({type:'ci-reduced-motion',...ciMotion});
+  const ciTouchTargets=await page.evaluate(()=>{
+    const selectors=['[data-dpg-chart-mode]','[data-dpg-asset-picker-toggle]','[data-q-ai-launcher]'];
+    return selectors.map(selector=>{const node=document.querySelector(selector),rect=node?.getBoundingClientRect();return {selector,width:rect?.width||0,height:rect?.height||0};});
+  });
+  if(ciTouchTargets.some(item=>item.height<44||item.width<44))failures.push({type:'ci-touch-targets',targets:ciTouchTargets});
+  const projectedRange=page.locator('[data-dpg-projected-range]').first();
+  await projectedRange.waitFor({state:'visible',timeout:10_000});
+  const projectedState=await projectedRange.getAttribute('data-projection-state');
+  const projectedObservedClass=await projectedRange.locator('[data-candle-index]').count();
+  const projectedLabel=String(await projectedRange.locator('.q-dpg-projected-range__label').textContent()||'').trim();
+  if(projectedState!=='PROJECTED'||projectedObservedClass!==0||projectedLabel!=='PROJECTED')failures.push({type:'next-move-projection-boundary',projectedState,projectedObservedClass,projectedLabel});
+  const nextMove=page.locator('[data-dpg-next-move]').first();
+  await nextMove.waitFor({state:'visible',timeout:10_000});
+  const nextMoveText=(await nextMove.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  const nextMoveRequired=['next move research','projected','bullish','neutral / small range','bearish','expected range','likely high / low band','expected volatility','calibration','projection invalidation','probability governance'].every(label=>nextMoveText.includes(label));
+  const probabilityCards=await nextMove.locator('.q-dpg-next-move__probabilities strong').allTextContents();
+  const probabilitySafe=probabilityCards.length===3&&probabilityCards.every(value=>value==='UNCALIBRATED'||/^\d+(?:\.\d+)?%$/.test(value));
+  if(!nextMoveRequired||!probabilitySafe)failures.push({type:'next-move-research',nextMoveRequired,probabilitySafe,probabilityCards,text:nextMoveText});
+  await nextMove.locator('[data-dpg-next-bars="3"]').click();
+  await page.waitForTimeout(80);
+  const activeThree=await page.locator('[data-dpg-next-move]').first().getAttribute('data-active-bars');
+  if(activeThree!=='3')failures.push({type:'next-move-horizon',activeThree});
+  await page.locator('[data-dpg-next-bars="1"]').first().click();
+
+  const cfSetup=page.locator('[data-dpg-cf-setup]').first();
+  await cfSetup.waitFor({state:'visible',timeout:10_000});
+  const cfSetupText=(await cfSetup.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  const cfSetupRequired=['current setup','direction','entry','stop','invalidation','selected r:r','setup probability','calibration','expiry','event risk','t1 / t2 / t3 / t4','lifecycle','r:r visual ladder'].every(label=>cfSetupText.includes(label));
+  const cfLifecycleCurrent=await cfSetup.locator('.q-dpg-cf-lifecycle .is-current').count();
+  const cfLifecycleIcons=await cfSetup.locator('.q-dpg-cf-lifecycle b').count();
+  const cfTargetCards=await cfSetup.locator('.q-dpg-cf-targets span').count();
+  const cfRrCards=await cfSetup.locator('[data-dpg-cf-rr-card]').count();
+  const cfRrIds=await cfSetup.locator('[data-dpg-cf-rr]').evaluateAll(nodes=>nodes.map(node=>node.getAttribute('data-dpg-cf-rr')));
+  const cfProbabilityText=String(await cfSetup.locator('.q-dpg-cf-setup__facts').innerText()).toUpperCase();
+  const expectedUx=buildDecisionScenarioUx(latestDecisionFixture);
+  const setupProbability=await cfSetup.locator('.q-dpg-cf-setup__facts > span').filter({has:page.locator('em',{hasText:'Setup probability'})}).locator('strong').innerText();
+  if(expectedUx.setup.probability===null&&setupProbability!=='UNCALIBRATED')failures.push({type:'missing-setup-probability-must-not-be-zero',setupProbability});
+  const stopDisplay=await cfSetup.locator('.q-dpg-cf-setup__facts > span').filter({has:page.locator('em',{hasText:'Stop'})}).locator('strong').innerText();
+  if(expectedUx.setup.stop===null&&stopDisplay!=='Unavailable')failures.push({type:'missing-stop-must-not-be-zero',stopDisplay});
+  if(!cfSetupRequired||cfLifecycleCurrent!==1||cfLifecycleIcons<10||cfTargetCards!==4||cfRrCards!==6||JSON.stringify(cfRrIds)!==JSON.stringify(['1','2','3','4','auto','custom'])||(!cfProbabilityText.includes('UNCALIBRATED')&&!/%/.test(cfProbabilityText)))failures.push({type:'cf-setup-summary',cfSetupRequired,cfLifecycleCurrent,cfLifecycleIcons,cfTargetCards,cfRrCards,cfRrIds,cfProbabilityText,text:cfSetupText});
+
+  const cfWatch=page.locator('[data-dpg-cf-watch]').first();
+  await cfWatch.waitFor({state:'visible',timeout:10_000});
+  const cfWatchText=(await cfWatch.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  const cfWatchCount=await cfWatch.locator('li').count();
+  if(cfWatchCount<3||cfWatchCount>5||!cfWatchText.includes('what should i watch?')||!cfWatchText.includes('evidence triggers'))failures.push({type:'cf-watch-next',cfWatchCount,text:cfWatchText});
+
+  const cfScenarios=page.locator('[data-dpg-cf-scenarios]').first();
+  await cfScenarios.waitFor({state:'visible',timeout:10_000});
+  const cfScenarioText=(await cfScenarios.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  const cfScenarioCards=await cfScenarios.locator('[data-dpg-cf-scenario]').count();
+  const withheldScenarios=expectedUx.scenarios.filter(item=>item.publishedProbability===null);
+  if(!withheldScenarios.length)failures.push({type:'missing-probability-fixture-not-exercised'});
+  for(const scenario of withheldScenarios){
+    const displayed=await cfScenarios.locator('[data-dpg-cf-scenario="'+scenario.id+'"]').locator('h3').innerText();
+    if(displayed!=='UNCALIBRATED')failures.push({type:'withheld-scenario-must-not-be-zero',scenario:scenario.id,displayed});
+  }
+  const cfScenarioRequired=['scenario map','bull','base','bear','target zone','what must happen','invalidation','calibration','research only'].every(label=>cfScenarioText.includes(label));
+  const cfHighProbabilitySafe=await cfScenarios.locator('[data-dpg-cf-scenario]').evaluateAll(nodes=>nodes.every(node=>{
+    const value=String(node.querySelector('h3')?.textContent||'').trim();
+    const numeric=value.endsWith('%')?Number(value.slice(0,-1)):null;
+    if(!Number.isFinite(numeric)||numeric<80)return true;
+    const state=String(node.querySelector('header > span')?.textContent||'').toUpperCase();
+    return state.includes('STRICT CALIBRATION');
+  }));
+  if(cfScenarioCards<3||cfScenarioCards>4||!cfScenarioRequired||!cfHighProbabilitySafe)failures.push({type:'cf-scenario-map',cfScenarioCards,cfScenarioRequired,cfHighProbabilitySafe,text:cfScenarioText});
+
+  await page.locator('[data-dpg-cf-rr="2"]').first().click();
+  await page.waitForFunction(()=>document.querySelector('[data-dpg-rr]')?.value==='2',null,{timeout:10_000});
+  await page.waitForFunction(()=>document.querySelector('[data-dpg-cf-rr-card="2"]')?.classList.contains('is-active')===true,null,{timeout:10_000});
+  const cfRrTwoActive=await page.locator('[data-dpg-cf-rr-card="2"].is-active').count();
+  await page.locator('[data-dpg-cf-rr="auto"]').first().click();
+  await page.waitForFunction(()=>document.querySelector('[data-dpg-rr]')?.value==='auto',null,{timeout:10_000});
+  const cfRrAutoActive=await page.locator('[data-dpg-cf-rr-card="auto"].is-active').count();
+  if(cfRrTwoActive!==1||cfRrAutoActive!==1)failures.push({type:'cf-rr-interaction',cfRrTwoActive,cfRrAutoActive});
+
+  const assetPickerToggle=page.locator('[data-dpg-asset-picker-toggle]').first();
+  await assetPickerToggle.waitFor({state:'visible',timeout:10_000});
+  await assetPickerToggle.click();
+  const assetPicker=page.locator('[data-dpg-asset-picker-panel]').first();
+  await assetPicker.waitFor({state:'visible',timeout:10_000});
+  const pickerBox=await assetPicker.boundingBox();
+  const pickerFitsViewport=Boolean(pickerBox)&&pickerBox.x>=0&&pickerBox.y>=0&&pickerBox.x+pickerBox.width<=viewport.width+1&&pickerBox.y+Math.min(pickerBox.height,viewport.height)<=viewport.height+1;
+  const pickerText=(await assetPicker.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  const pickerRequired=['provider-capability universe','crypto','forex','indian indices','indian stocks','global stocks','metals','commodities','global indices','rates / bonds','etfs','reference only','unavailable'].every(label=>pickerText.includes(label));
+  const selectableCount=await assetPicker.locator('[data-dpg-asset-select]').count();
+  const unavailableSelectableCount=await assetPicker.locator('.is-unavailable [data-dpg-asset-select]').count();
+  if(!pickerFitsViewport||!pickerRequired||selectableCount!==6||unavailableSelectableCount!==0)failures.push({type:'asset-picker-capability',pickerFitsViewport,pickerRequired,selectableCount,unavailableSelectableCount,text:pickerText});
+  const search=assetPicker.locator('[data-dpg-asset-search]').first();
+  await search.fill('ETH');
+  await page.waitForTimeout(80);
+  const visibleAssetRows=await assetPicker.locator('[data-dpg-asset-row]:visible').count();
+  const visibleEth=await assetPicker.locator('[data-dpg-asset-select="ETH"]:visible').count();
+  if(visibleAssetRows!==1||visibleEth!==1)failures.push({type:'asset-picker-search',visibleAssetRows,visibleEth});
+  await assetPicker.locator('[data-dpg-asset-favorite="ETH"]').first().click();
+  const favoritesFilter=page.locator('[data-dpg-asset-filter="favorites"]').first();
+  let favoritesActionable=true;
+  try{
+    await favoritesFilter.waitFor({state:'visible',timeout:5000});
+    await favoritesFilter.click({trial:true,timeout:5000});
+  }catch(error){favoritesActionable=false;failures.push({type:'asset-picker-filter-actionability',reason:String(error?.message||error).slice(0,240)});}
+  if(favoritesActionable)await favoritesFilter.click({timeout:5000});
+  await page.waitForTimeout(60);
+  const favoriteEth=await page.locator('[data-dpg-asset-select="ETH"]:visible').count();
+  if(favoriteEth!==1)failures.push({type:'asset-picker-favorite',favoriteEth});
+  await page.locator('[data-dpg-asset-search]').first().focus();
+  await page.keyboard.press('Escape');
+  await assetPicker.waitFor({state:'hidden',timeout:5000});
+  const assetPickerFocusReturned=await page.evaluate(()=>document.activeElement?.matches?.('[data-dpg-asset-picker-toggle]')===true);
+  if(!assetPickerFocusReturned)failures.push({type:'ci-asset-picker-focus-return'});
+  const timeframeSelect=page.locator('[data-dpg-interval]').first();
+  const timeframeValues=await timeframeSelect.locator('option').evaluateAll(nodes=>nodes.map(node=>node.value));
+  const timeframeGroups=await timeframeSelect.locator('optgroup').evaluateAll(nodes=>nodes.map(node=>node.label));
+  const timeframeCoverage=['1m','3m','5m','15m','30m','1h','2h','4h','1d'].every(value=>timeframeValues.includes(value))&&['SCALP','INTRADAY','SWING'].every(label=>timeframeGroups.includes(label));
+  if(!timeframeCoverage)failures.push({type:'timeframe-picker-coverage',timeframeValues,timeframeGroups});
+  const education=page.locator('.q-dpg-education').first();
+  await education.locator('summary').click();
+  const educationText=(await education.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  const educationRequired=['decision terms & help','r:r','invalidation','funding','oi','calibration','no trade','selected-range evidence'].every(label=>educationText.includes(label));
+  const tooltipCount=await education.locator('[role="tooltip"]').count();
+  const firstHelp=education.locator('.q-dpg-help').first();
+  await firstHelp.focus();
+  const firstTooltip=firstHelp.locator('[role="tooltip"]').first();
+  let firstTooltipVisible=true;
+  try{
+    await firstTooltip.waitFor({state:'attached',timeout:1000});
+    await page.waitForFunction(
+      (tooltipId)=>{
+        const node=document.getElementById(tooltipId);
+        return Boolean(node)&&getComputedStyle(node).opacity==='1';
+      },
+      await firstTooltip.getAttribute('id'),
+      {timeout:1000,polling:25}
+    );
+  }catch{firstTooltipVisible=false;}
+  const firstHelpFocused=await firstHelp.evaluate(node=>document.activeElement===node);
+  if(!educationRequired||tooltipCount<7||!firstHelpFocused||!firstTooltipVisible)failures.push({type:'decision-education-help',educationRequired,tooltipCount,firstHelpFocused,firstTooltipVisible,text:educationText});
+  const setupFinder=page.locator('[data-dpg-setup-finder]').first();
+  await setupFinder.waitFor({state:'visible',timeout:10_000});
+  const setupFinderText=(await setupFinder.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  const setupFinderRequired=['find setup now','validated setup','aggressive discovery','all markets','current asset','long + short','long','short','highest quality','lowest event risk','closest candidate'].every(label=>setupFinderText.includes(label));
+  if(!setupFinderRequired)failures.push({type:'setup-finder-controls',text:setupFinderText});
+  lastScanRequest=null;
+  await page.locator('[data-dpg-scan-mode="aggressive"]').first().click();
+  await page.locator('[data-dpg-scan-universe="current"]').first().click();
+  await page.locator('[data-dpg-scan-direction="short"]').first().click();
+  await page.locator('[data-dpg-scan-ranking]').first().selectOption('lowest_event_risk');
+  await page.locator('[data-dpg-setup-finder] [data-dpg-scan]').first().click();
+  const closestCandidate=page.locator('[data-dpg-closest-candidate]').first();
+  await closestCandidate.waitFor({state:'visible',timeout:10_000});
+  const closestText=(await closestCandidate.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  const closestCandidateRequired=['closest candidate','not yet validated','uncalibrated','missing conditions','calibration gate'].every(label=>closestText.includes(label));
+  const setupRequestOk=lastScanRequest?.mode==='aggressive'&&lastScanRequest?.ranking==='lowest_event_risk'&&lastScanRequest?.assets==='BTC'&&lastScanRequest?.direction==='short'&&lastScanRequest?.rr==='auto';
+  const closestInterval=await closestCandidate.locator('[data-dpg-scan-interval]').first().getAttribute('data-dpg-scan-interval');
+  if(!closestCandidateRequired||!setupRequestOk||closestInterval!=='30m')failures.push({type:'setup-finder-aggressive',closestCandidateRequired,setupRequestOk,lastScanRequest,closestInterval,text:closestText});
+  const chatDock=page.locator('[data-q-ai-launcher]').first();
+  await chatDock.waitFor({state:'visible',timeout:10_000});
+  const dockBox=await chatDock.boundingBox();
+  const dockCentered=Boolean(dockBox)&&Math.abs((dockBox.x+dockBox.width/2)-viewport.width/2)<=6&&dockBox.x>=0&&dockBox.x+dockBox.width<=viewport.width+1;
+  const legacyDecisionChatControls=await page.locator('[data-dpg-chat-dock],[data-dpg-chat-dock-toggle],[data-dpg-chat-quick],.q-dpg-hero__actions [data-dpg-open-chat],[data-dpg-range-action="chat"]').count();
+  const dockContextType=await chatDock.getAttribute('data-context-type');
+  const dockText=(await chatDock.innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  if(!dockCentered||legacyDecisionChatControls||dockContextType!=='decision'||!dockText.includes('btc'))failures.push({type:'qelly-dock-shell',dockCentered,legacyDecisionChatControls,dockContextType,dockText,dockBox});
+  await chatDock.focus();
+  await page.keyboard.press('Enter');
+  const globalAssistant=page.locator('[data-q-ai-assistant]').first();
+  await globalAssistant.waitFor({state:'visible',timeout:10_000});
+  const assistantAsset=await page.locator('[data-q-ai-asset]').first().inputValue();
+  const assistantTimeframe=await page.locator('[data-q-ai-timeframe]').first().inputValue();
+  const dockComposerRequired=await page.locator('[data-q-ai-form] textarea').first().isVisible().catch(()=>false);
+  if(assistantAsset!=='BTC'||!assistantTimeframe||!dockComposerRequired)failures.push({type:'qelly-dock-handoff',assistantAsset,assistantTimeframe,dockComposerRequired});
+  await page.locator('[data-q-ai-close]').first().click();
+  await globalAssistant.waitFor({state:'hidden',timeout:10_000});
+  const simpleTab=page.locator('[data-dpg-ui-mode="simple"]').first(),advancedTab=page.locator('[data-dpg-ui-mode="advanced"]').first(),researchTab=page.locator('[data-dpg-ui-mode="research"]').first();
+  if(await simpleTab.getAttribute('aria-selected')!=='true')failures.push({type:'decision-mode-default',message:'Simple Mode is not the default'});
+  const retailScenarioText=(await page.locator('[data-dpg-leading-scenario]').innerText()).replace(/\s+/g,' ').trim();
+  const scenarioScores=Object.entries(latestDecisionFixture?.qellyView?.scenario||{}).filter(([id,value])=>['bull','base','bear'].includes(id)&&value!==null&&value!==''&&Number.isFinite(Number(value))).sort((a,b)=>Number(b[1])-Number(a[1]));
+  const expectedScenarioShare=scenarioScores.length?scenarioScores[0][0][0].toUpperCase()+scenarioScores[0][0].slice(1)+' · '+Math.round(Number(scenarioScores[0][1])*100)+'% share':'Unavailable';
+  const retailScenarioSummaryPassed=retailScenarioText.toLowerCase().includes('leading model scenario')&&retailScenarioText.includes(expectedScenarioShare)&&retailScenarioText.includes('Research model share, not a calibrated probability.');
+  if(!retailScenarioSummaryPassed)failures.push({type:'retail-scenario-probability-boundary',retailScenarioText,expectedScenarioShare});
+  if(await page.locator('[data-dpg-mode-panel="advanced"]').count())failures.push({type:'decision-mode-simple-leak',message:'Advanced panel rendered in Simple Mode'});
+  if(await page.locator('[data-dpg-mode-panel="research"]').count())failures.push({type:'decision-mode-simple-leak',message:'Research panel rendered in Simple Mode'});
+  const simpleControls=await simpleTab.getAttribute('aria-controls'),simplePanelRole=await page.locator('#qelly-decision-panel-simple').getAttribute('role');
+  if(simpleControls!=='qelly-decision-panel-simple'||simplePanelRole!=='tabpanel')failures.push({type:'ci-mode-semantics',simpleControls,simplePanelRole});
+  await simpleTab.focus();
+  await page.keyboard.press('ArrowRight');
+  await page.waitForFunction(()=>document.querySelector('[data-dpg-ui-mode="advanced"]')?.getAttribute('aria-selected')==='true',{timeout:5000});
+  const advancedKeyboardFocus=await page.evaluate(()=>document.activeElement?.matches?.('[data-dpg-ui-mode="advanced"]')===true);
+  if(!advancedKeyboardFocus)failures.push({type:'ci-mode-keyboard-focus'});
+  await page.keyboard.press('ArrowLeft');
+  await page.waitForFunction(()=>document.querySelector('[data-dpg-ui-mode="simple"]')?.getAttribute('aria-selected')==='true',{timeout:5000});
+  await advancedTab.click();
+  await page.locator('[data-dpg-mode-panel="advanced"]').first().waitFor({state:'visible',timeout:10_000});
+  const advancedText=(await page.locator('[data-dpg-mode-panel="advanced"]').first().innerText()).replace(/\s+/g,' ').toLowerCase();
+  const advancedRequired=['advanced mode','practitioner evidence','market structure','derivatives','macro'].every(label=>advancedText.includes(label));
+  if(!advancedRequired)failures.push({type:'decision-mode-advanced',text:advancedText});
+  await researchTab.click();
+  await page.locator('[data-dpg-mode-panel="research"]').first().waitFor({state:'visible',timeout:10_000});
+  const researchText=(await page.locator('[data-dpg-mode-panel="research"]').first().innerText()).replace(/\s+/g,' ').toLowerCase();
+  const researchRequired=['research lab','calibration','model trace','methodology and sources'].every(label=>researchText.includes(label));
+  if(!researchRequired)failures.push({type:'decision-mode-research',text:researchText});
+  await simpleTab.click();
+  await page.locator('[data-dpg-mode-panel="simple"]').first().waitFor({state:'visible',timeout:10_000});
+  const summary=page.locator('.q-dpg-range-summary').first();
+  const performRangeDrag=async()=>{
+    const liveChart=page.locator('[data-dpg-chart]').first();
+    await liveChart.waitFor({state:'visible',timeout:10_000});
+    await liveChart.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(120);
+    const box=await liveChart.boundingBox();
+    if(!box)throw new Error(name+': chart bounding box unavailable');
+    const start={x:box.x+box.width*.24,y:box.y+box.height*.54};
+    const end={x:box.x+box.width*.53,y:box.y+box.height*.54};
+    if(touch){
+      const cdp=await context.newCDPSession(page);
+      try{
+        await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:start.x,y:start.y,radiusX:2,radiusY:2,force:1}]});
+        for(let step=1;step<=8;step++){
+          const point={x:start.x+(end.x-start.x)*step/8,y:start.y};
+          await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:point.x,y:point.y,radiusX:2,radiusY:2,force:1}]});
+        }
+        await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+      }finally{
+        await cdp.detach();
+      }
+    }else{
+      await page.mouse.move(start.x,start.y);
+      await page.mouse.down();
+      await page.mouse.move(end.x,end.y,{steps:12});
+      await page.mouse.up();
+    }
+  };
+  await performRangeDrag();
+  if(!(await summary.isVisible().catch(()=>false))){
+    await page.waitForTimeout(250);
+    await performRangeDrag();
+  }
+  await summary.waitFor({state:'visible',timeout:10_000});
+  const spokenRange=String(await page.locator('[data-dpg-range-announcement]').first().textContent()||'').toLowerCase();
+  const spokenRangeComplete=['selected range from','candles','move','high','low'].every(label=>spokenRange.includes(label));
+  const sliderValueText=await page.locator('[data-dpg-range-start]').first().getAttribute('aria-valuetext');
+  if(!spokenRangeComplete||!sliderValueText||sliderValueText.toLowerCase().includes('unavailable'))failures.push({type:'ci-screen-reader-range',spokenRange,sliderValueText});
+  const overlay=page.locator('[data-dpg-selection]').first();
+  const hidden=await overlay.getAttribute('hidden');
+  const candles=await page.locator('.q-dpg-candle.is-selected').count();
+  const boundaries=await page.locator('.q-dpg-selection__boundary').count();
+  const handles=await page.locator('.q-dpg-selection__handle').count();
+  const text=(await summary.innerText()).replace(/\s+/g,' ').trim();
+  const normalizedSummary=text.toLowerCase();
+  const persistent=hidden===null&&candles>1&&boundaries===2&&handles===2;
+  const required=['start','end','duration','candles','move','high','low'].every(label=>normalizedSummary.includes(label));
+  const timestampsAvailable=!normalizedSummary.includes('time unavailable');
+  if(!persistent)failures.push({type:'range-overlay',hidden,candles,boundaries,handles});
+  if(!required||!timestampsAvailable)failures.push({type:'range-summary',text,required,timestampsAvailable});
+  const rangeDockText=(await page.locator('[data-q-ai-launcher]').first().innerText()).replace(/\s+/g,' ').trim().toLowerCase();
+  const rangeAwareDock=rangeDockText.includes('selected range');
+  if(!rangeAwareDock)failures.push({type:'qelly-dock-range-context',text:rangeDockText});
+  await page.evaluate(()=>window.scrollBy(0,1));
+  await page.waitForTimeout(80);
+  const clearanceProbe=await page.locator('.q-ai-root').first().evaluate((node)=>{
+    const workbench=document.querySelector('.q-dpg-range-workbench'),rect=workbench?.getBoundingClientRect(),launcher=document.querySelector('[data-q-ai-launcher]'),style=launcher?getComputedStyle(launcher):null;
+    const reserved=112,zoneOverlap=Boolean(rect&&rect.bottom>innerHeight-reserved&&rect.top<innerHeight);
+    return {clearance:node.dataset.clearance||'unset',opacity:style?.opacity||'',pointerEvents:style?.pointerEvents||'',zoneOverlap};
+  });
+  if(clearanceProbe.zoneOverlap&&(clearanceProbe.clearance!=='chart'||clearanceProbe.pointerEvents!=='none'))failures.push({type:'qelly-dock-chart-clearance',...clearanceProbe});
+  await page.evaluate(()=>{
+    const workbench=document.querySelector('.q-dpg-range-workbench');
+    if(!workbench)return;
+    const rect=workbench.getBoundingClientRect(),expandedReserved=Math.min(440,Math.max(230,innerHeight*.52));
+    const followingControls=document.querySelector('.q-dpg-controls--decision');
+    const followingRect=followingControls?.getBoundingClientRect();
+    if(followingRect&&followingRect.top>=rect.bottom){
+      window.scrollTo(0,Math.max(0,scrollY+followingRect.top-innerHeight-24));
+      return;
+    }
+    const delta=Math.max(0,rect.bottom-(innerHeight-expandedReserved)+28);
+    if(delta>0)window.scrollBy(0,delta);
+  });
+  const clearancePositionProbe=async(label)=>{const p=await page.evaluate(()=>{const launcher=document.querySelector('[data-q-ai-launcher]'),r=launcher.getBoundingClientRect(),bottom=parseFloat(getComputedStyle(launcher).bottom)||0,dock={left:(innerWidth-r.width)/2,right:(innerWidth+r.width)/2,top:innerHeight-bottom-r.height,bottom:innerHeight-bottom};const overlaps=s=>[...document.querySelectorAll(s)].filter(n=>getComputedStyle(n).display!=='none'&&getComputedStyle(n).visibility!=='hidden').map(n=>{const b=n.getBoundingClientRect();return{tag:n.tagName,class:n.className?.baseVal??n.className,text:n.textContent?.trim().slice(0,120),top:b.top,bottom:b.bottom,left:b.left,right:b.right};}).filter(b=>b.left<dock.right&&b.right>dock.left&&b.top<dock.bottom&&b.bottom>dock.top);return{clearance:document.querySelector('.q-ai-root')?.dataset.clearance,scrollY,width:innerWidth,height:innerHeight,dock,plots:overlaps('#main [data-qelly-chat-plot]'),controls:overlaps('#main :is(button,a,input,select,textarea,label,summary)'),selectedCandles:document.querySelector('[data-dpg-range-summary]')?.textContent?.slice(0,300)};});await writeFile(path.join(outputDir,label+'-'+name+'.json'),JSON.stringify(p,null,2));console.log('CLEARANCE_POSITION '+label+' '+name+' '+JSON.stringify(p));return p;};
+  await clearancePositionProbe('original-position');
+  await page.waitForFunction(()=>document.querySelector('.q-ai-root')?.dataset.clearance==='clear',null,{timeout:5000});
+  const restoredDockBox=await page.locator('[data-q-ai-launcher]').first().boundingBox();
+  const dockRestored=Boolean(restoredDockBox)&&restoredDockBox.y>=0&&restoredDockBox.y+restoredDockBox.height<=viewport.height+1;
+  if(!dockRestored)failures.push({type:'qelly-dock-clearance-return',restoredDockBox});
+  await page.locator('[data-q-ai-launcher]').first().click();
+  await page.locator('[data-q-ai-assistant]').first().waitFor({state:'visible',timeout:5000});
+  const selectedComposerValue=await page.locator('[data-q-ai-form] textarea').first().inputValue();
+  if(!selectedComposerValue.toLowerCase().includes('selected historical'))failures.push({type:'qelly-dock-range-action',selectedComposerValue});
+  await page.locator('[data-q-ai-close]').first().click();
+  await page.locator('[data-dpg-explain]').first().click();
+  const intelligence=page.locator('[data-dpg-range-intelligence]').first();
+  await intelligence.waitFor({state:'visible',timeout:45_000});
+  const intelligenceText=(await intelligence.innerText()).replace(/\s+/g,' ').trim();
+  const normalizedIntelligence=intelligenceText.toLowerCase();
+  const intelligenceRequired=['selected move intelligence','exact range','evidence coverage','current context','association, not proof of causation','before','during','after'].every(label=>normalizedIntelligence.includes(label));
+  if(!intelligenceRequired)failures.push({type:'range-intelligence',text:intelligenceText});
+  const rangeCrossAsset=page.locator('[data-dpg-range-cross-asset]').first();
+  await rangeCrossAsset.waitFor({state:'visible',timeout:20_000});
+  const rangeCrossAssetText=(await rangeCrossAsset.innerText()).replace(/\s+/g,' ').trim(),normalizedRangeCrossAsset=rangeCrossAssetText.toLowerCase();
+  const rangeCrossAssetRequired=['cross-asset','selected range','relative strength','correlation','beta','before','during','after','pairwise','descriptive only'].every(label=>normalizedRangeCrossAsset.includes(label));
+  const rangeCrossAssetClassification=await rangeCrossAsset.getAttribute('data-classification');
+  const forbiddenCrossAssetCausality=['btc caused','benchmark caused','caused by btc','broad risk move confirmed'].some(label=>normalizedRangeCrossAsset.includes(label));
+  if(!rangeCrossAssetRequired||rangeCrossAssetClassification==='UNAVAILABLE'||forbiddenCrossAssetCausality)failures.push({type:'range-cross-asset',rangeCrossAssetRequired,rangeCrossAssetClassification,forbiddenCrossAssetCausality,text:rangeCrossAssetText});
+  const timeline=page.locator('[data-dpg-range-timeline]').first();
+  await timeline.waitFor({state:'visible',timeout:20_000});
+  const timelineText=(await timeline.innerText()).replace(/\s+/g,' ').trim(),normalizedTimeline=timelineText.toLowerCase();
+  const timelineRequired=['what caused this move?','historical news / event timeline','before','during','after','association only','direct'].every(label=>normalizedTimeline.includes(label));
+  const injectedImageCount=await timeline.locator('img[src="x"]').count();
+  if(!timelineRequired||injectedImageCount)failures.push({type:'range-timeline',text:timelineText,timelineRequired,injectedImageCount});
+  const replayPanel=page.locator('[data-dpg-range-replay]').first();
+  await replayPanel.waitFor({state:'visible',timeout:20_000});
+  const replayText=(await replayPanel.innerText()).replace(/\s+/g,' ').trim(),normalizedReplay=replayText.toLowerCase();
+  const replayRequired=['range replay','no hindsight','available as of','future evidence'].every(label=>normalizedReplay.includes(label));
+  const replaySlider=page.locator('[data-dpg-replay-slider]').first();
+  const replayMax=Number(await replaySlider.getAttribute('max'));
+  const replayBefore=(await replayPanel.locator('header h3').innerText()).trim();
+  if(replayMax>0){
+    await replaySlider.fill(String(replayMax));
+    await page.waitForTimeout(80);
+  }
+  const replayAfter=(await page.locator('[data-dpg-range-replay] header h3').first().innerText()).trim();
+  const replayScrubs=replayMax===0||replayBefore!==replayAfter;
+  if(!replayRequired||!replayScrubs)failures.push({type:'range-replay',replayRequired,replayScrubs,replayMax,replayBefore,replayAfter,text:replayText});
+  const similarPanel=page.locator('[data-dpg-similar-moves]').first();
+  await similarPanel.waitFor({state:'visible',timeout:20_000});
+  const similarText=(await similarPanel.innerText()).replace(/\s+/g,' ').trim(),normalizedSimilar=similarText.toLowerCase();
+  const similarRequired=['find similar moves','selected range','descriptive only','not calibration','leakage'].every(label=>normalizedSimilar.includes(label));
+  if(!similarRequired)failures.push({type:'range-similar-moves',similarRequired,text:similarText});
+  const flowPanel=page.locator('[data-dpg-range-flow]').first();
+  await flowPanel.waitFor({state:'visible',timeout:20_000});
+  const flowText=(await flowPanel.innerText()).replace(/\s+/g,' ').trim(),normalizedFlow=flowText.toLowerCase();
+  const flowRequired=['flow / participation evidence','known named flows','observed order flow','public institutional data','unknown actor activity','actor identity unavailable','true order flow unavailable'].every(label=>normalizedFlow.includes(label));
+  const forbiddenFlowClaims=['identified whale','confirmed institution bought','confirmed institution sold'].some(label=>normalizedFlow.includes(label));
+  if(!flowRequired||forbiddenFlowClaims)failures.push({type:'range-flow',text:flowText,flowRequired,forbiddenFlowClaims});
+  await page.screenshot({path:path.join(outputDir,`decision-range-selected-${name}.png`),fullPage:true});
+  lastScanRequest=null;
+  const similarSetupButton=page.locator('[data-dpg-range-action="similar-setup"]').first();
+  const similarSetupVisible=await similarSetupButton.isVisible().catch(()=>false);
+  if(similarSetupVisible){
+    await similarSetupButton.click();
+    for(let attempt=0;attempt<80&&!lastScanRequest;attempt+=1)await page.waitForTimeout(100);
+  }
+  const similarSetupBridge=similarSetupVisible&&lastScanRequest?.mode==='validated'&&lastScanRequest?.assets==='BTC'&&lastScanRequest?.ranking==='highest_quality'&&lastScanRequest?.direction==='any';
+  if(!similarSetupBridge)failures.push({type:'range-similar-current-setup-bridge',similarSetupVisible,lastScanRequest});
+  const result={name,viewport,touch,retailScenarioSummaryPassed,retailScenarioText,timeframeCoverage,educationHelp:educationRequired&&tooltipCount>=7,similarSetupBridge,nextMove:{projectedState,nextMoveRequired,probabilitySafe,activeThree},waveCf:{setup:cfSetupRequired,lifecycleCurrent:cfLifecycleCurrent,watchCount:cfWatchCount,scenarioCards:cfScenarioCards,highProbabilitySafe:cfHighProbabilitySafe,rrCards:cfRrCards,rrInteractive:cfRrTwoActive===1&&cfRrAutoActive===1},assetPicker:{fitsViewport:pickerFitsViewport,required:pickerRequired,selectableCount,favoriteEth},setupFinder:{required:setupFinderRequired,aggressiveRequest:setupRequestOk,closestCandidate:closestCandidateRequired,closestInterval},decisionModes:{simpleDefault:true,advanced:advancedRequired,research:researchRequired},qellyDock:{centered:dockCentered,composer:dockComposerRequired,rangeAware:rangeAwareDock},persistent,candles,boundaries,handles,summary:text,rangeIntelligence:intelligenceRequired,rangeIntelligenceText:intelligenceText,rangeCrossAsset:rangeCrossAssetRequired&&!forbiddenCrossAssetCausality,rangeCrossAssetClassification,rangeCrossAssetText,rangeTimeline:timelineRequired,rangeTimelineText:timelineText,rangeReplay:replayRequired&&replayScrubs,rangeReplayText:replayText,rangeSimilarMoves:similarRequired,rangeSimilarMovesText:similarText,rangeFlow:flowRequired,rangeFlowText:flowText,failures};
+  results.push(result);
+  await context.close();
+};
+
+const exerciseInitialLoading=async(width,appearance)=>{
+  const context=await browser.newContext({viewport:{width,height:844},colorScheme:appearance,serviceWorkers:'block',reducedMotion:'reduce'});
+  const page=await context.newPage();let releaseCatalog,markRequested,decisionRequests=0,releaseStyles,markStyleRequested;
+  const stylesGate=new Promise(resolve=>{releaseStyles=resolve;}),stylesRequested=new Promise(resolve=>{markStyleRequested=resolve;});
+  await page.route('**/assets/qelly-decision-proven-graph.css',async route=>{markStyleRequested();await stylesGate;await route.continue();});
+  const gate=new Promise(resolve=>{releaseCatalog=resolve;}),requested=new Promise(resolve=>{markRequested=resolve;});
+  await context.route('**/api/v1/user/layout-preferences',async route=>{if(route.request().method()!=='GET')return route.continue();const response=await route.fetch();await route.fulfill({response,json:{...await response.json(),appearance}});});
+  await page.route('**/api/v1/decision-assets**',async route=>{markRequested();await gate;await proxyDecision(route);});
+  await page.route('**/api/v1/decision-proven-graph**',async route=>{decisionRequests++;await proxyDecision(route);});
+  await page.route('**/api/v1/decision-news-context**',proxyDecision);
+  try{
+    await page.goto(localOrigin+'/#/decision-provenance',{waitUntil:'domcontentloaded',timeout:45000});
+    await Promise.race([stylesRequested,new Promise((_,reject)=>setTimeout(()=>reject(new Error('Decision style request did not start')),10000))]);
+    await page.waitForTimeout(150);
+    const resourceHints=await page.locator('link[data-qelly-decision-preload]').evaluateAll(nodes=>nodes.map(node=>({rel:node.rel,as:node.as,path:new URL(node.href).pathname})));
+    if(resourceHints.length!==2||!resourceHints.some(h=>h.rel==='preload'&&h.as==='style'&&h.path==='/assets/qelly-decision-proven-graph.css')||!resourceHints.some(h=>h.rel==='modulepreload'&&h.path==='/assets/routes/decision-provenance.mjs'))throw new Error('Decision prepaint resource hints are missing or point to the wrong asset');
+    if(await page.locator('.q-dpg-page').count()!==0||decisionRequests!==0)throw new Error('Decision content was exposed before its layout stylesheet loaded');
+    if(!await page.locator('.q-product-header').isVisible())throw new Error('Header disappeared while route styling was pending');
+    await page.screenshot({path:path.join(outputDir,'stylesheet-pending-'+width+'-'+appearance+'.png'),fullPage:false});
+    releaseStyles();
+    await Promise.race([requested,new Promise((_,reject)=>setTimeout(()=>reject(new Error('Capability request did not start')),10000))]);
+    const closeFeatures=page.getByRole('button',{name:'Hide all Qelly features',exact:true});
+    if(await closeFeatures.count())await closeFeatures.click();
+    await page.getByRole('heading',{name:'Weighing fresh evidence',exact:true}).waitFor({state:'visible',timeout:5000});
+    if(await page.locator('html').getAttribute('data-app-ready')!=='true'||await page.locator('main').getAttribute('aria-busy')!=='true')throw new Error('Pending feedback must reveal startup while retaining busy semantics');
+    await page.locator('[data-v8-appearance]').waitFor({state:'visible'});
+    if(await page.locator('html').getAttribute('data-resolved-appearance')!==appearance)await page.getByRole('button',{name:'Switch to '+appearance+' appearance',exact:true}).click();
+    await page.waitForFunction(value=>document.documentElement.dataset.resolvedAppearance===value,appearance);
+    if(decisionRequests!==0||await page.locator('[data-dpg-chart]').count()!==0)throw new Error('Decision evidence appeared before capability validation');
+    if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1))throw new Error('Loading state overflows viewport');
+    await page.screenshot({path:path.join(outputDir,'initial-loading-'+width+'-'+appearance+'.png'),fullPage:true});
+    releaseCatalog();await page.locator('[data-dpg-chart]').first().waitFor({state:'visible',timeout:45000});
+    if(!decisionRequests||await page.getByRole('heading',{name:'Weighing fresh evidence',exact:true}).count())throw new Error('Loading state did not resolve to validated evidence');
+    let lightPanelContrast=null;
+    if(appearance==='light'){
+      lightPanelContrast=await page.evaluate(()=>{
+        const rgb=value=>value.match(/[\d.]+/g).slice(0,3).map(Number);
+        const luminance=value=>rgb(value).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((total,v,i)=>total+v*[.2126,.7152,.0722][i],0);
+        return ['.q-dpg-controls','.q-dpg-view','.q-dpg-setup-finder','.q-dpg-cf-setup','.q-dpg-stage'].map(selector=>{
+          const element=document.querySelector(selector),style=getComputedStyle(element);
+          // A transparent box exposes its painted ancestors; transparent black is not its visible canvas.
+          const rgba=value=>{const parts=value.match(/[\d.]+/g).map(Number);return [...parts.slice(0,3),parts.length>3?parts[3]:1];};
+          const layers=[];let ancestor=element,visibleGradient=false;
+          while(ancestor){const ancestorStyle=getComputedStyle(ancestor),color=rgba(ancestorStyle.backgroundColor);layers.push(color);if(ancestorStyle.backgroundImage!=='none')visibleGradient=true;if(color[3]===1)break;ancestor=ancestor.parentElement;}
+          let painted=[255,255,255];for(const layer of layers.reverse())painted=painted.map((value,index)=>layer[index]*layer[3]+value*(1-layer[3]));
+          const text=rgba(style.color),paintedText=painted.map((value,index)=>text[index]*text[3]+value*(1-text[3])),effectiveBackground='rgb('+painted.join(',')+')';
+          const background=luminance(effectiveBackground),foreground=luminance('rgb('+paintedText.join(',')+')');
+          return {selector,background:effectiveBackground,directBackground:style.backgroundColor,gradient:style.backgroundImage,visibleGradient,alphaComposited:true,contrast:(Math.max(background,foreground)+.05)/(Math.min(background,foreground)+.05)};
+        });
+      });
+      if(lightPanelContrast.some(panel=>panel.gradient!=='none'||panel.visibleGradient||panel.contrast<4.5))throw new Error('Light Decision evidence panel retains dark background or insufficient text contrast');
+      const selectedModeSubtitleReadable=await page.evaluate(()=>{const tab=document.querySelector('.q-dpg-ui-mode[aria-selected="true"]');return getComputedStyle(tab.querySelector('small')).color===getComputedStyle(tab).color;});
+      if(!selectedModeSubtitleReadable)throw new Error('Selected Decision mode subtitle does not inherit its readable selected foreground');
+      await page.screenshot({path:path.join(outputDir,'light-panels-'+width+'.png'),fullPage:true});
+    }
+    await page.getByRole('tab',{name:/Advanced/}).click();
+    const macroDateCard=page.locator('.q-dpg-macro__grid > article').filter({hasText:'Reference date'});
+    const macroReferenceDate={date:await macroDateCard.locator('strong').innerText(),boundary:await macroDateCard.locator('small').innerText(),fixtureReferenceDate};
+    if(macroReferenceDate.date!==fixtureReferenceDate||!macroReferenceDate.boundary.includes('exact publication time unavailable'))throw new Error('Decision macro reference date was lost or a publication clock was fabricated');
+    await macroDateCard.scrollIntoViewIfNeeded();
+    await page.screenshot({path:path.join(outputDir,'macro-reference-date-'+width+'-'+appearance+'.png'),fullPage:false});
+    await page.getByRole('tab',{name:/Research Lab/}).click();
+    await page.locator('.q-dpg-slo summary').click();
+    const scannerSlo=page.locator('.q-dpg-slo .q-dpg-reliability-bins > span').filter({hasText:'scannerLatencyP95Ms'});
+    const unobservedScannerSlo={state:await scannerSlo.locator('strong').innerText(),valueText:await scannerSlo.locator('small').innerText()};
+    if(unobservedScannerSlo.state!=='UNAVAILABLE'||!unobservedScannerSlo.valueText.startsWith('value unavailable')||!unobservedScannerSlo.valueText.includes('n=0/20'))throw new Error('An unobserved scanner latency became a numeric measurement or SLO pass');
+    const sloCardReadability=await page.locator('.q-dpg-slo .q-dpg-reliability-bins > span').evaluateAll(cards=>cards.map(card=>{
+      const box=card.getBoundingClientRect();
+      const textRects=[...card.querySelectorAll('em,strong,small')].flatMap(label=>{
+        const range=document.createRange();range.selectNodeContents(label);
+        return [...range.getClientRects()].map(rect=>({left:rect.left,right:rect.right}));
+      });
+      return {name:card.querySelector('em')?.textContent,width:box.width,contentFits:card.scrollWidth<=card.clientWidth+1,textContained:textRects.every(rect=>rect.left>=box.left+8&&rect.right<=box.right-8)};
+    }));
+    if(!sloCardReadability.length||sloCardReadability.some(card=>!card.contentFits||!card.textContained))throw new Error('SLO diagnostic text overlaps or escapes its card: '+JSON.stringify(sloCardReadability));
+    await page.screenshot({path:path.join(outputDir,'unobserved-slo-'+width+'-'+appearance+'.png'),fullPage:false});
+    initialLoadingResults.push({width,appearance,status:'passed',resourceHints,stylesheetReadyBeforeContent:true,catalogHeldBeforeDecision:true,lightPanelContrast,unobservedScannerSlo,sloCardReadability,macroReferenceDate,fixture:'synthetic governed provider'});
+  }catch(error){
+    await page.screenshot({path:path.join(outputDir,'initial-loading-'+width+'-'+appearance+'-failed.png'),fullPage:true}).catch(()=>{});
+    await writeFile(path.join(outputDir,'initial-loading-'+width+'-'+appearance+'-failure.json'),JSON.stringify({message:error.message,decisionRequests,mainText:await page.locator('main').innerText().catch(()=>''),fixture:'synthetic governed provider'},null,2));
+    throw error;
+  }finally{releaseStyles();releaseCatalog();await context.close();}
+};
+
+try{
+  for(const width of [1440,390])for(const appearance of ['dark','light'])await exerciseInitialLoading(width,appearance);
+  await exercise({name:'desktop',viewport:{width:1440,height:1000}});
+  await exercise({name:'mobile',viewport:{width:390,height:844},touch:true});
+}finally{
+  await browser.close();
+  await new Promise(resolve=>server.server.close(resolve));
+  await server.evidenceUpstream?.server?.close?.();
+}
+
+const report={status:results.every(item=>item.failures.length===0)&&initialLoadingResults.length===4?'passed':'failed',initialLoadingCases:initialLoadingResults.length,unobservedScannerSloCases:initialLoadingResults.filter(row=>row.unobservedScannerSlo?.state==='UNAVAILABLE').length,initialLoadingResults,evidenceBackend:'deterministic-governed-provider-fixture',liveProductionTruthValidatedSeparately:true,frontendHead:process.env.QELLY_SCREEN_EVIDENCE_SHA||process.env.GITHUB_SHA||null,results};
+report.sloCardReadabilityCases=initialLoadingResults.filter(row=>row.sloCardReadability?.length&&row.sloCardReadability.every(card=>card.contentFits&&card.textContained)).length;
+report.stylesheetReadinessCases=initialLoadingResults.filter(row=>row.stylesheetReadyBeforeContent).length;
+report.resourceHintCases=initialLoadingResults.filter(row=>row.resourceHints?.length===2).length;
+report.macroReferenceDateCases=initialLoadingResults.filter(row=>row.macroReferenceDate?.date===fixtureReferenceDate&&row.macroReferenceDate?.boundary.includes('exact publication time unavailable')).length;
+await writeFile(path.join(outputDir,'report.json'),JSON.stringify(report,null,2));
+console.log(JSON.stringify(report,null,2));
+if(report.status!=='passed')process.exitCode=1;

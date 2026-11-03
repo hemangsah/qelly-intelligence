@@ -1,4 +1,4 @@
-name: Decision Primary Setup Pair
+name: Decision Range Clearance Position Pair
 on:
   workflow_dispatch:
     inputs:
@@ -17,8 +17,8 @@ jobs:
       matrix:
         expected: [red, green]
     env:
-      QELLY_SCREEN_EVIDENCE_SHA: ${{ matrix.expected == 'red' && inputs.production_sha || github.sha }}
-      QELLY_PRIMARY_EXPECT: ${{ matrix.expected }}
+      QELLY_SCREEN_EVIDENCE_SHA: ${{ inputs.production_sha }}
+      QELLY_RANGE_EXPECT: ${{ matrix.expected }}
       QELLY_CSS_EXPERIMENT_BASELINE: preview/css-import-baseline
       QELLY_SCREEN_BATCH_SIZE: '10'
       PYTHONUTF8: '1'
@@ -38,12 +38,12 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ matrix.expected == 'red' && inputs.production_sha || github.sha }}
+          ref: ${{ inputs.production_sha }}
           persist-credentials: false
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ github.sha }}
-          path: .decision-primary-runner
+          path: .range-clearance-runner
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
@@ -60,30 +60,31 @@ jobs:
         run: |
           test "$(git rev-parse HEAD)" = "$QELLY_SCREEN_EVIDENCE_SHA"
           npm run build:frontend
-      - name: Compare essential setup ordering and preserved action access
-        run: node .decision-primary-runner/scripts/qelly-decision-primary-setup-pair.mjs
-      - name: Verify all preserved Decision presentation journeys with the new master hierarchy
-        if: matrix.expected == 'green'
+      - name: Exercise the unchanged selected-range assertions with paired clearance positioning
         run: |
-          node scripts/qelly-decision-compact-hero-e2e.mjs
-          node scripts/qelly-decision-answer-order-e2e.mjs
-          node scripts/qelly-decision-editorial-e2e.mjs
-      - name: Preserve Decision compatibility and long-copy evidence
-        if: always() && matrix.expected == 'green'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: qelly-decision-primary-compatibility-${{ github.sha }}
-          path: |
-            preview/decision-compact-hero-e2e
-            preview/decision-answer-order-e2e
-            preview/decision-editorial-e2e
-          if-no-files-found: error
-          retention-days: 7
+          cp .range-clearance-runner/scripts/qelly-decision-range-clearance-$QELLY_RANGE_EXPECT.mjs scripts/qelly-decision-range-clearance-pair-runner.mjs
+          set +e
+          node scripts/qelly-decision-range-clearance-pair-runner.mjs
+          result=$?
+          set -e
+          if [ "$QELLY_RANGE_EXPECT" = red ]; then
+            test "$result" -ne 0
+            node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
+          const p=JSON.parse(await readFile('preview/decision-range-e2e/original-position-desktop.json','utf8'));assert.notEqual(p.clearance,'clear');assert.ok(p.plots.length+p.controls.length>0);console.log({expected:'red',oldPositionStillProtected:true,clearance:p.clearance});
+          NODE
+          else
+            test "$result" -eq 0
+            node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
+          const r=JSON.parse(await readFile('preview/decision-range-e2e/report.json','utf8'));assert.equal(r.status,'passed');assert.equal(r.results.length,2);assert.equal(r.initialLoadingCases,4);for(const name of ['desktop','mobile']){const p=JSON.parse(await readFile('preview/decision-range-e2e/after-leaving-all-protected-content-'+name+'.json','utf8'));assert.equal(p.clearance,'clear');assert.equal(p.plots.length,0);assert.equal(p.controls.length,0);}console.log({expected:'green',allOriginalSelectedRangeAssertionsPassed:true,contexts:2,initialLoadingCases:4});
+          NODE
+          fi
       - name: Preserve paired source-bound evidence in cloud
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: qelly-decision-primary-setup-${{ matrix.expected }}-${{ github.sha }}
-          path: preview/decision-primary-setup-pair
+          name: qelly-decision-range-clearance-${{ matrix.expected }}-${{ github.sha }}
+          path: preview/decision-range-e2e
           if-no-files-found: error
           retention-days: 7
