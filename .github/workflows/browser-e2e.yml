@@ -806,6 +806,37 @@ jobs:
           path: preview/decision-font-owner-pair
           if-no-files-found: error
           retention-days: 7
+      - name: Verify canonical public recovery names and keyboard Retry
+        env:
+          QELLY_FONT_EXPECT: green
+        run: node --test tests/qelly-public-recovery-brand-retry.test.mjs && node scripts/qelly-public-recovery-brand-retry-e2e.mjs
+      - name: Independently validate public recovery visual contract and32 images
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile,writeFile} from 'node:fs/promises';
+          import {createHash} from 'node:crypto';
+          function validatePublicRecoveryVisualReport(r,sha){
+           assert.equal(r.schema,'qelly.public-recovery.brand-retry/1.0');assert.equal(r.sourceSha,sha);assert.equal(r.status,'passed');assert.equal(r.expected,'green');assert.equal(r.contexts,16);assert.equal(r.results.length,16);assert.equal(r.screenshots.length,32);assert.equal(new Set(r.screenshots).size,32);assert.equal(r.isolatedExistingFixtures,true);for(const k of ['presenterInjected','actualPrivateAccountUsed','numericalEnginesChanged','newProvidersEnabled','authConfigurationChanged'])assert.equal(r[k],false);
+           let samples=0,minContrast=Infinity;for(const route of ['decision-provenance','asset'])for(const appearance of ['dark','light'])for(const width of [1280,768,390,320]){
+            const rows=r.results.filter(x=>x.route===route&&x.appearance===appearance&&x.width===width);assert.equal(rows.length,1);const x=rows[0];assert.equal(x.actualBuiltRoute,true);assert.equal(x.presenterInjected,false);assert.equal(x.protectedWrites,0);assert.deepEqual(x.pageErrors,[]);assert.ok(x.failedStyleRequests>=1);assert.ok(x.styleResponses.includes(500)&&x.styleResponses.includes(200));
+            const a=x.before,b=x.recovered;assert.equal(a.appearance,appearance);assert.equal(a.width,width);assert.equal(a.overflow,false);assert.equal(a.heading,route==='asset'?'Asset Dossier':'Decision Intelligence');assert.equal(a.retry,1);assert.ok(!/Decision Provenance|Market Command/.test(a.text));assert.ok(a.text.includes('No substitute records generated'));assert.ok(a.surfaces.length>=2);for(const s of a.surfaces){assert.equal(s.border,'0px');assert.equal(s.radius,'0px');assert.equal(s.shadow,'none');assert.equal(s.backgroundImage,'none');}
+            assert.ok(a.contrastSamples.length>=8);for(const s of a.contrastSamples){assert.equal(s.supported,true);assert.ok(s.ratio>=4.5);minContrast=Math.min(minContrast,s.ratio);samples++;}assert.equal(x.routeContextPreserved,true);assert.equal(b.hash,a.hash);assert.equal(b.appearance,appearance);assert.equal(b.width,width);assert.equal(b.overflow,false);assert.equal(b.recovery,false);assert.ok(b.heading);assert.equal(x.recoveryFocus.keyboardTarget,true);assert.notEqual(x.recoveryFocus.outlineStyle,'none');assert.ok(Number.parseFloat(x.recoveryFocus.outlineWidth)>=2);assert.ok(x.recoveryFocus.height>=44);
+            for(const suffix of ['failure','recovered'])assert.ok(r.screenshots.includes('green-'+route+'-'+appearance+'-'+width+'-'+suffix+'.png'));
+           }
+           return{sourceSha:sha,inspectedContexts:16,publicRoutesBuilt:2,contrastSamples:samples,minimumContrast:minContrast,screenshots:32,ordinaryFrames:0,ordinaryShadows:0,keyboardRetryJourneys:16,protectedWrites:0};
+          }
+          const root=process.env.QELLY_PUBLIC_RECOVERY_ROOT||'preview/public-recovery-brand-retry',sha=process.env.QELLY_SCREEN_EVIDENCE_SHA,bytes=await readFile(root+'/report.json'),report=JSON.parse(bytes),validation=validatePublicRecoveryVisualReport(report,sha);const screenshots=[];for(const file of report.screenshots){const b=await readFile(root+'/'+file);assert.ok(b.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));screenshots.push({file,sha256:createHash('sha256').update(b).digest('hex'),width:b.readUInt32BE(16),height:b.readUInt32BE(20)});}const receipt={...validation,reportSha256:createHash('sha256').update(bytes).digest('hex'),screenshots};
+          await writeFile(root+'/independent-gate-receipt.json',JSON.stringify(receipt)+'\n');console.log(JSON.stringify(receipt));
+          NODE
+      - name: Upload owned public recovery evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-readiness-visual-focused-public-recovery-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/public-recovery-brand-retry
+          if-no-files-found: error
+          retention-days: 7
       - name: Verify status navigation and access-page URL alignment
         run: node scripts/qelly-header-context-routing-e2e.mjs
       - name: Upload focused header context routing evidence
@@ -2109,6 +2140,41 @@ jobs:
         with:
           name: qelly-accessibility-floor-decision-owned-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: ${{ runner.temp }}/qelly-decision-font-independent-receipt.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Download published public recovery evidence in cloud
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: qelly-readiness-visual-focused-public-recovery-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: ${{ runner.temp }}/qelly-public-recovery
+          digest-mismatch: error
+      - name: Independently recheck published recovery visual evidence and32 images
+        env:
+          QELLY_PUBLIC_RECOVERY_ROOT: ${{ runner.temp }}/qelly-public-recovery
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile,writeFile} from 'node:fs/promises';
+          import {createHash} from 'node:crypto';
+          function validatePublicRecoveryVisualReport(r,sha){
+           assert.equal(r.schema,'qelly.public-recovery.brand-retry/1.0');assert.equal(r.sourceSha,sha);assert.equal(r.status,'passed');assert.equal(r.expected,'green');assert.equal(r.contexts,16);assert.equal(r.results.length,16);assert.equal(r.screenshots.length,32);assert.equal(new Set(r.screenshots).size,32);assert.equal(r.isolatedExistingFixtures,true);for(const k of ['presenterInjected','actualPrivateAccountUsed','numericalEnginesChanged','newProvidersEnabled','authConfigurationChanged'])assert.equal(r[k],false);
+           let samples=0,minContrast=Infinity;for(const route of ['decision-provenance','asset'])for(const appearance of ['dark','light'])for(const width of [1280,768,390,320]){
+            const rows=r.results.filter(x=>x.route===route&&x.appearance===appearance&&x.width===width);assert.equal(rows.length,1);const x=rows[0];assert.equal(x.actualBuiltRoute,true);assert.equal(x.presenterInjected,false);assert.equal(x.protectedWrites,0);assert.deepEqual(x.pageErrors,[]);assert.ok(x.failedStyleRequests>=1);assert.ok(x.styleResponses.includes(500)&&x.styleResponses.includes(200));
+            const a=x.before,b=x.recovered;assert.equal(a.appearance,appearance);assert.equal(a.width,width);assert.equal(a.overflow,false);assert.equal(a.heading,route==='asset'?'Asset Dossier':'Decision Intelligence');assert.equal(a.retry,1);assert.ok(!/Decision Provenance|Market Command/.test(a.text));assert.ok(a.text.includes('No substitute records generated'));assert.ok(a.surfaces.length>=2);for(const s of a.surfaces){assert.equal(s.border,'0px');assert.equal(s.radius,'0px');assert.equal(s.shadow,'none');assert.equal(s.backgroundImage,'none');}
+            assert.ok(a.contrastSamples.length>=8);for(const s of a.contrastSamples){assert.equal(s.supported,true);assert.ok(s.ratio>=4.5);minContrast=Math.min(minContrast,s.ratio);samples++;}assert.equal(x.routeContextPreserved,true);assert.equal(b.hash,a.hash);assert.equal(b.appearance,appearance);assert.equal(b.width,width);assert.equal(b.overflow,false);assert.equal(b.recovery,false);assert.ok(b.heading);assert.equal(x.recoveryFocus.keyboardTarget,true);assert.notEqual(x.recoveryFocus.outlineStyle,'none');assert.ok(Number.parseFloat(x.recoveryFocus.outlineWidth)>=2);assert.ok(x.recoveryFocus.height>=44);
+            for(const suffix of ['failure','recovered'])assert.ok(r.screenshots.includes('green-'+route+'-'+appearance+'-'+width+'-'+suffix+'.png'));
+           }
+           return{sourceSha:sha,inspectedContexts:16,publicRoutesBuilt:2,contrastSamples:samples,minimumContrast:minContrast,screenshots:32,ordinaryFrames:0,ordinaryShadows:0,keyboardRetryJourneys:16,protectedWrites:0};
+          }
+          const root=process.env.QELLY_PUBLIC_RECOVERY_ROOT||'preview/public-recovery-brand-retry',sha=process.env.QELLY_SCREEN_EVIDENCE_SHA,bytes=await readFile(root+'/report.json'),report=JSON.parse(bytes),validation=validatePublicRecoveryVisualReport(report,sha);const screenshots=[];for(const file of report.screenshots){const b=await readFile(root+'/'+file);assert.ok(b.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));screenshots.push({file,sha256:createHash('sha256').update(b).digest('hex'),width:b.readUInt32BE(16),height:b.readUInt32BE(20)});}const receipt={...validation,reportSha256:createHash('sha256').update(bytes).digest('hex'),screenshots};
+          assert.deepEqual(JSON.parse(await readFile(root+'/independent-gate-receipt.json','utf8')),receipt);
+          await writeFile(process.env.RUNNER_TEMP+'/qelly-public-recovery-independent-receipt.json',JSON.stringify(receipt)+'\n');console.log(JSON.stringify(receipt));
+          NODE
+      - name: Retain compact public recovery publication receipt
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-readiness-visual-focused-public-recovery-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: ${{ runner.temp }}/qelly-public-recovery-independent-receipt.json
           if-no-files-found: error
           retention-days: 7
       - name: Verify all checksums and inherited acceptance contracts
