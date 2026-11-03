@@ -775,7 +775,7 @@ jobs:
           import {createHash} from 'node:crypto';
           function validateDecisionOwnedFontReport(r,sha){
            assert.equal(r.schema,'qelly.decision.font-owner/1.0');assert.equal(r.sourceSha,sha);assert.equal(r.status,'passed');assert.equal(r.expected,'green');
-           assert.equal(r.cssSha256,'303600e6fe9b00eed7b74fe056e02258911307b42d561c8f499267034460eec4');
+           assert.equal(r.cssSha256,'33fa9d2077d8db440b884eb4b1d658e83c3f86bca97335fb5c219ce1a78604fa');
            assert.equal(r.shellSha256,'a4548e535a59fda0d20095ce0867ee812f4d0e2b1a284faf81c5096cb2c8153f');
            assert.equal(r.sourceShellInstrumentedWithExactReversal,true);assert.equal(r.runtimeSafetyFloorRemoved,false);assert.equal(r.newProductObservers,0);
            for(const k of ['numericalEnginesChanged','newProvidersEnabled','realCanonicalServiceAvailabilityClaimed','latencyOrHeapClaimed'])assert.equal(r[k],false);
@@ -791,7 +791,7 @@ jobs:
             assert.ok(r.screenshots.includes('green-'+appearance+'-'+width+'-'+mode+'.png'));
             if(mode==='research'){classWrites+=o.probe.classWrites;fontReads+=o.probe.fontReads;calls+=o.probe.calls;}
            }
-           assert.ok(classWrites<500);return{sourceSha:sha,inspectedContexts:12,observedTinyHtmlLeafs:0,finalCumulativeClassWrites:classWrites,finalCumulativeFontReads:fontReads,finalCumulativeCalls:calls,newRules:0,newProductObservers:0,numericalEnginesChanged:false,latencyOrHeapClaimed:false};
+           assert.ok(classWrites<500);return{sourceSha:sha,inspectedContexts:12,observedTinyHtmlLeafs:0,finalCumulativeClassWrites:classWrites,finalCumulativeFontReads:fontReads,finalCumulativeCalls:calls,newRules:13,newProductObservers:0,numericalEnginesChanged:false,latencyOrHeapClaimed:false};
           }
           const root=process.env.QELLY_DECISION_FONT_ROOT||'preview/decision-font-owner-pair',sha=process.env.QELLY_SCREEN_EVIDENCE_SHA,bytes=await readFile(root+'/report.json'),report=JSON.parse(bytes),validation=validateDecisionOwnedFontReport(report,sha),files=[...report.screenshots];
           for(const appearance of ['dark','light'])for(const width of [1280,390])for(const mode of ['simple','advanced','research']){const prefix='green-'+appearance+'-'+width+'-'+mode;files.push(prefix+'-top.png');for(const label of mode==='simple'?['chart','watch','setup','scenarios']:mode==='advanced'?['weighting']:['slo'])files.push(prefix+'-'+label+'.png');}
@@ -835,6 +835,54 @@ jobs:
         with:
           name: qelly-readiness-visual-focused-public-recovery-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/public-recovery-brand-retry
+          if-no-files-found: error
+          retention-days: 7
+      - name: Verify primary Decision setup hierarchy, expert navigation and actual plot clearance
+        env:
+          QELLY_PRIMARY_EXPECT: green
+        run: node scripts/qelly-decision-primary-setup-e2e.mjs
+      - name: Independently validate primary setup research parity and30 image checksums
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile,writeFile} from 'node:fs/promises';
+          import {createHash} from 'node:crypto';
+          function validateDecisionPrimarySetupReport(report,sha,{cssSha,routeSha}){
+           assert.match(sha,/^[a-f0-9]{40}$/);assert.equal(report.sourceSha,sha);assert.equal(report.expected,'green');assert.equal(report.status,'passed');assert.equal(report.failure,undefined);
+           assert.equal(report.cssSha256,cssSha);assert.equal(report.routeSha256,routeSha);assert.equal(report.fixtureOnly,true);assert.equal(report.newProviders,false);assert.equal(report.numericalEnginesChanged,false);assert.equal(report.productionAccepted,false);
+           const volatile=['macro.ingestionTime','evidence.macro.ingestionTime','pastPresentFuture.present.macro.ingestionTime','performance.totalMs',...['news','candleFetch','macro','derivatives','liquidity','fundingHistory','crossAssetBenchmark','multiTimeframe','derivativesCompute','crossAssetCompute','quantCalibrationAnalogs','nextMoveCompute','riskRewardResearch','contextAndEvidenceGraph','rangeEvidence'].map(k=>'performance.components.'+k+'.ms')];
+           assert.deepEqual(report.volatileFixturePaths,volatile);const payload=JSON.parse(JSON.stringify(report.firstPayload));
+           for(const path of volatile){const keys=path.split('.'),key=keys.pop();let owner=payload;for(const part of keys)owner=owner[part];assert.ok(Object.hasOwn(owner,key));assert.ok(path.endsWith('.ingestionTime')?Number.isFinite(Date.parse(owner[key])):Number.isFinite(owner[key])&&owner[key]>=0);delete owner[key];}
+           const expectedResearchHash='0c383dfa045bd1d2f24d2dd6fac59be3ec134acaedff28bdefe28954e1e84aa2';assert.equal(createHash('sha256').update(JSON.stringify(payload)).digest('hex'),expectedResearchHash);
+           assert.equal(report.results.length,10);const contexts=new Set(),images=[];
+           for(const r of report.results){
+             const id=r.appearance+'/'+r.width+'/'+r.height;assert.ok(!contexts.has(id));contexts.add(id);assert.ok(['dark','light'].includes(r.appearance));assert.ok([[1280,720],[1280,900],[768,900],[390,900],[320,900]].some(([w,h])=>w===r.width&&h===r.height));
+             const b=r.before;assert.equal(b.appearance,r.appearance);assert.equal(b.width,r.width);assert.equal(b.height,r.height);assert.equal(b.overflow,false);assert.equal(b.essentialBeforeChart,true);assert.ok(b.essential.bottom<b.chart.top);assert.ok(b.answerHeading.bottom<=r.height-120);if(r.width>=390)assert.ok(b.essential.bottom<=r.height);assert.ok(b.pagePaddingBottom>=118);
+             assert.equal(b.plotClearance.present,true);assert.equal(b.plotClearance.registered,true);assert.equal(b.plotClearance.visibleOverlap,false);if(b.plotClearance.naturalOverlap){assert.equal(b.plotClearance.clearance,'chart');assert.equal(b.plotClearance.ariaHidden,'true');}
+             assert.equal(b.facts.length,7);assert.deepEqual(b.facts.map(x=>x.label),['Setup','Entry','Invalidation','Targets','Risk / reward','Setup probability','Event risk']);
+             assert.equal(b.more.open,false);assert.ok(b.more.summary.height>=44);assert.ok(b.more.summary.top>=b.chart.bottom);assert.equal(b.actions.length,8);assert.equal(b.actions.filter(x=>x.visible).length,2);
+             assert.ok(b.ordinary.length>=8);for(const s of b.ordinary){assert.deepEqual(s.border,['0px','0px','0px','0px']);assert.equal(s.shadow,'none');}
+             assert.equal(r.opened.more.open,true);assert.equal(r.opened.actions.length,8);assert.equal(r.opened.actions.filter(x=>x.visible).length,8);for(const a of r.opened.actions){assert.ok(a.height>=44);assert.ok(a.font>=14);}
+             assert.deepEqual(r.expert,[{mode:'advanced',fullSetup:1,actions:8},{mode:'research',fullSetup:1,actions:8}]);assert.deepEqual(r.navigation,[{mode:'advanced',focused:'qelly-decision-mtf'},{mode:'research',focused:'qelly-decision-methodology'}]);assert.equal(r.researchPayloadHash,expectedResearchHash);assert.deepEqual(r.protectedWrites,[]);assert.deepEqual(r.pageErrors,[]);
+             for(const suffix of ['top','actions','chart'])images.push('green-'+r.appearance+'-'+r.width+'-'+r.height+'-'+suffix+'.png');
+           }
+           assert.equal(contexts.size,10);assert.equal(report.screenshots.length,30);assert.deepEqual([...report.screenshots].sort(),images.sort());
+           return{passed:true,sourceSha:sha,contexts:10,navigationJourneys:20,images:30,researchPayloadHash:expectedResearchHash,allResearchPayloadsPreserved:true,numericalEngineFilesChanged:false,fullDecisionWaveAccepted:false};
+          }
+          const sha=process.env.QELLY_SCREEN_EVIDENCE_SHA,root=process.env.QELLY_PRIMARY_SETUP_ROOT||'preview/decision-primary-setup-pair',bytes=await readFile(root+'/report.json'),report=JSON.parse(bytes),expected={"cssSha":"33fa9d2077d8db440b884eb4b1d658e83c3f86bca97335fb5c219ce1a78604fa","routeSha":"887c7b396d5b92686aa1e97561905eb6c478bced1c45a76dbdc5f291c43856d2"},validation=validateDecisionPrimarySetupReport(report,sha,expected),rejected=[];
+          const mutations=[['source',x=>x.sourceSha='0'.repeat(40)],['CSS source',x=>x.cssSha256='0'.repeat(64)],['renderer source',x=>x.routeSha256='0'.repeat(64)],['failed result',x=>x.status='failed'],['actual theme',x=>x.results[0].before.appearance='wrong'],['actual width',x=>x.results[0].before.width=1],['overflow',x=>x.results[0].before.overflow=true],['missing context',x=>x.results.pop()],['duplicate context',x=>x.results[1]=x.results[0]],['fact ordering',x=>x.results[0].before.facts.reverse()],['missing fact',x=>x.results[0].before.facts.pop()],['chart before facts',x=>x.results[0].before.essentialBeforeChart=false],['facts below first screen',x=>x.results[0].before.essential.bottom=5000],['answer below fold',x=>x.results[0].before.answerHeading.bottom=5000],['secondary actions visible initially',x=>x.results[0].before.actions[2].visible=true],['small action target',x=>x.results[0].opened.actions[0].height=40],['small action font',x=>x.results[0].opened.actions[0].font=11],['wrong navigation focus',x=>x.results[0].navigation[0].focused='missing'],['wrong navigation mode',x=>x.results[0].navigation[1].mode='simple'],['removed expert content',x=>x.results[0].expert.pop()],['protected write',x=>x.results[0].protectedWrites=['write']],['page error',x=>x.results[0].pageErrors=['failure']],['ordinary border',x=>x.results[0].before.ordinary[0].border[0]='1px'],['ordinary shadow',x=>x.results[0].before.ordinary[0].shadow='0 0 5px black'],['missing image',x=>x.screenshots.pop()],['changed research payload',x=>x.firstPayload.qellyView.confidence=.123456],['new provider',x=>x.newProviders=true],['numerical change',x=>x.numericalEnginesChanged=true],['broader exclusion',x=>x.volatileFixturePaths.push('qellyView.confidence')],['wrong context research hash',x=>x.results[0].researchPayloadHash='0'.repeat(64)]];
+          mutations.push(['unregistered plot',x=>x.results[0].before.plotClearance.registered=false],['visible chart overlap',x=>x.results[0].before.plotClearance.visibleOverlap=true],['ignored plot intersection',x=>{x.results[0].before.plotClearance.naturalOverlap=true;x.results[0].before.plotClearance.clearance='clear';}]);
+          for(const [name,mutate] of mutations){const x=structuredClone(report);mutate(x);assert.throws(()=>validateDecisionPrimarySetupReport(x,sha,expected),name);rejected.push(name);}
+          
+          assert.equal(rejected.length,33);const screenshots=[];for(const file of report.screenshots){const image=await readFile(root+'/'+file);assert.ok(image.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));const match=file.match(/^green-(dark|light)-(1280|768|390|320)-(720|900)-(top|actions|chart)\.png$/);assert.ok(match);assert.equal(image.readUInt32BE(16),Number(match[2]));assert.equal(image.readUInt32BE(20),Number(match[3]));screenshots.push({file,sha256:createHash('sha256').update(image).digest('hex'),width:image.readUInt32BE(16),height:image.readUInt32BE(20)});}assert.equal(screenshots.length,30);const receipt={...validation,negativeVariants:rejected,reportSha256:createHash('sha256').update(bytes).digest('hex'),screenshots};
+          await writeFile(root+'/independent-gate-receipt.json',JSON.stringify(receipt)+'\n');console.log(JSON.stringify({source:sha,contexts:10,images:30,invalidReportsRejected:33}));
+          NODE
+      - name: Upload primary Decision setup evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-decision-primary-setup-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/decision-primary-setup-pair
           if-no-files-found: error
           retention-days: 7
       - name: Verify status navigation and access-page URL alignment
@@ -2111,7 +2159,7 @@ jobs:
           import {createHash} from 'node:crypto';
           function validateDecisionOwnedFontReport(r,sha){
            assert.equal(r.schema,'qelly.decision.font-owner/1.0');assert.equal(r.sourceSha,sha);assert.equal(r.status,'passed');assert.equal(r.expected,'green');
-           assert.equal(r.cssSha256,'303600e6fe9b00eed7b74fe056e02258911307b42d561c8f499267034460eec4');
+           assert.equal(r.cssSha256,'33fa9d2077d8db440b884eb4b1d658e83c3f86bca97335fb5c219ce1a78604fa');
            assert.equal(r.shellSha256,'a4548e535a59fda0d20095ce0867ee812f4d0e2b1a284faf81c5096cb2c8153f');
            assert.equal(r.sourceShellInstrumentedWithExactReversal,true);assert.equal(r.runtimeSafetyFloorRemoved,false);assert.equal(r.newProductObservers,0);
            for(const k of ['numericalEnginesChanged','newProvidersEnabled','realCanonicalServiceAvailabilityClaimed','latencyOrHeapClaimed'])assert.equal(r[k],false);
@@ -2127,7 +2175,7 @@ jobs:
             assert.ok(r.screenshots.includes('green-'+appearance+'-'+width+'-'+mode+'.png'));
             if(mode==='research'){classWrites+=o.probe.classWrites;fontReads+=o.probe.fontReads;calls+=o.probe.calls;}
            }
-           assert.ok(classWrites<500);return{sourceSha:sha,inspectedContexts:12,observedTinyHtmlLeafs:0,finalCumulativeClassWrites:classWrites,finalCumulativeFontReads:fontReads,finalCumulativeCalls:calls,newRules:0,newProductObservers:0,numericalEnginesChanged:false,latencyOrHeapClaimed:false};
+           assert.ok(classWrites<500);return{sourceSha:sha,inspectedContexts:12,observedTinyHtmlLeafs:0,finalCumulativeClassWrites:classWrites,finalCumulativeFontReads:fontReads,finalCumulativeCalls:calls,newRules:13,newProductObservers:0,numericalEnginesChanged:false,latencyOrHeapClaimed:false};
           }
           const root=process.env.QELLY_DECISION_FONT_ROOT||'preview/decision-font-owner-pair',sha=process.env.QELLY_SCREEN_EVIDENCE_SHA,bytes=await readFile(root+'/report.json'),report=JSON.parse(bytes),validation=validateDecisionOwnedFontReport(report,sha),files=[...report.screenshots];
           for(const appearance of ['dark','light'])for(const width of [1280,390])for(const mode of ['simple','advanced','research']){const prefix='green-'+appearance+'-'+width+'-'+mode;files.push(prefix+'-top.png');for(const label of mode==='simple'?['chart','watch','setup','scenarios']:mode==='advanced'?['weighting']:['slo'])files.push(prefix+'-'+label+'.png');}
@@ -2175,6 +2223,58 @@ jobs:
         with:
           name: qelly-readiness-visual-focused-public-recovery-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: ${{ runner.temp }}/qelly-public-recovery-independent-receipt.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Download published primary Decision setup evidence in cloud
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: qelly-decision-primary-setup-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: ${{ runner.temp }}/qelly-decision-primary-setup
+          digest-mismatch: error
+      - name: Independently recheck primary setup and all30 published images
+        env:
+          QELLY_PRIMARY_SETUP_ROOT: ${{ runner.temp }}/qelly-decision-primary-setup
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile,writeFile} from 'node:fs/promises';
+          import {createHash} from 'node:crypto';
+          function validateDecisionPrimarySetupReport(report,sha,{cssSha,routeSha}){
+           assert.match(sha,/^[a-f0-9]{40}$/);assert.equal(report.sourceSha,sha);assert.equal(report.expected,'green');assert.equal(report.status,'passed');assert.equal(report.failure,undefined);
+           assert.equal(report.cssSha256,cssSha);assert.equal(report.routeSha256,routeSha);assert.equal(report.fixtureOnly,true);assert.equal(report.newProviders,false);assert.equal(report.numericalEnginesChanged,false);assert.equal(report.productionAccepted,false);
+           const volatile=['macro.ingestionTime','evidence.macro.ingestionTime','pastPresentFuture.present.macro.ingestionTime','performance.totalMs',...['news','candleFetch','macro','derivatives','liquidity','fundingHistory','crossAssetBenchmark','multiTimeframe','derivativesCompute','crossAssetCompute','quantCalibrationAnalogs','nextMoveCompute','riskRewardResearch','contextAndEvidenceGraph','rangeEvidence'].map(k=>'performance.components.'+k+'.ms')];
+           assert.deepEqual(report.volatileFixturePaths,volatile);const payload=JSON.parse(JSON.stringify(report.firstPayload));
+           for(const path of volatile){const keys=path.split('.'),key=keys.pop();let owner=payload;for(const part of keys)owner=owner[part];assert.ok(Object.hasOwn(owner,key));assert.ok(path.endsWith('.ingestionTime')?Number.isFinite(Date.parse(owner[key])):Number.isFinite(owner[key])&&owner[key]>=0);delete owner[key];}
+           const expectedResearchHash='0c383dfa045bd1d2f24d2dd6fac59be3ec134acaedff28bdefe28954e1e84aa2';assert.equal(createHash('sha256').update(JSON.stringify(payload)).digest('hex'),expectedResearchHash);
+           assert.equal(report.results.length,10);const contexts=new Set(),images=[];
+           for(const r of report.results){
+             const id=r.appearance+'/'+r.width+'/'+r.height;assert.ok(!contexts.has(id));contexts.add(id);assert.ok(['dark','light'].includes(r.appearance));assert.ok([[1280,720],[1280,900],[768,900],[390,900],[320,900]].some(([w,h])=>w===r.width&&h===r.height));
+             const b=r.before;assert.equal(b.appearance,r.appearance);assert.equal(b.width,r.width);assert.equal(b.height,r.height);assert.equal(b.overflow,false);assert.equal(b.essentialBeforeChart,true);assert.ok(b.essential.bottom<b.chart.top);assert.ok(b.answerHeading.bottom<=r.height-120);if(r.width>=390)assert.ok(b.essential.bottom<=r.height);assert.ok(b.pagePaddingBottom>=118);
+             assert.equal(b.plotClearance.present,true);assert.equal(b.plotClearance.registered,true);assert.equal(b.plotClearance.visibleOverlap,false);if(b.plotClearance.naturalOverlap){assert.equal(b.plotClearance.clearance,'chart');assert.equal(b.plotClearance.ariaHidden,'true');}
+             assert.equal(b.facts.length,7);assert.deepEqual(b.facts.map(x=>x.label),['Setup','Entry','Invalidation','Targets','Risk / reward','Setup probability','Event risk']);
+             assert.equal(b.more.open,false);assert.ok(b.more.summary.height>=44);assert.ok(b.more.summary.top>=b.chart.bottom);assert.equal(b.actions.length,8);assert.equal(b.actions.filter(x=>x.visible).length,2);
+             assert.ok(b.ordinary.length>=8);for(const s of b.ordinary){assert.deepEqual(s.border,['0px','0px','0px','0px']);assert.equal(s.shadow,'none');}
+             assert.equal(r.opened.more.open,true);assert.equal(r.opened.actions.length,8);assert.equal(r.opened.actions.filter(x=>x.visible).length,8);for(const a of r.opened.actions){assert.ok(a.height>=44);assert.ok(a.font>=14);}
+             assert.deepEqual(r.expert,[{mode:'advanced',fullSetup:1,actions:8},{mode:'research',fullSetup:1,actions:8}]);assert.deepEqual(r.navigation,[{mode:'advanced',focused:'qelly-decision-mtf'},{mode:'research',focused:'qelly-decision-methodology'}]);assert.equal(r.researchPayloadHash,expectedResearchHash);assert.deepEqual(r.protectedWrites,[]);assert.deepEqual(r.pageErrors,[]);
+             for(const suffix of ['top','actions','chart'])images.push('green-'+r.appearance+'-'+r.width+'-'+r.height+'-'+suffix+'.png');
+           }
+           assert.equal(contexts.size,10);assert.equal(report.screenshots.length,30);assert.deepEqual([...report.screenshots].sort(),images.sort());
+           return{passed:true,sourceSha:sha,contexts:10,navigationJourneys:20,images:30,researchPayloadHash:expectedResearchHash,allResearchPayloadsPreserved:true,numericalEngineFilesChanged:false,fullDecisionWaveAccepted:false};
+          }
+          const sha=process.env.QELLY_SCREEN_EVIDENCE_SHA,root=process.env.QELLY_PRIMARY_SETUP_ROOT||'preview/decision-primary-setup-pair',bytes=await readFile(root+'/report.json'),report=JSON.parse(bytes),expected={"cssSha":"33fa9d2077d8db440b884eb4b1d658e83c3f86bca97335fb5c219ce1a78604fa","routeSha":"887c7b396d5b92686aa1e97561905eb6c478bced1c45a76dbdc5f291c43856d2"},validation=validateDecisionPrimarySetupReport(report,sha,expected),rejected=[];
+          const mutations=[['source',x=>x.sourceSha='0'.repeat(40)],['CSS source',x=>x.cssSha256='0'.repeat(64)],['renderer source',x=>x.routeSha256='0'.repeat(64)],['failed result',x=>x.status='failed'],['actual theme',x=>x.results[0].before.appearance='wrong'],['actual width',x=>x.results[0].before.width=1],['overflow',x=>x.results[0].before.overflow=true],['missing context',x=>x.results.pop()],['duplicate context',x=>x.results[1]=x.results[0]],['fact ordering',x=>x.results[0].before.facts.reverse()],['missing fact',x=>x.results[0].before.facts.pop()],['chart before facts',x=>x.results[0].before.essentialBeforeChart=false],['facts below first screen',x=>x.results[0].before.essential.bottom=5000],['answer below fold',x=>x.results[0].before.answerHeading.bottom=5000],['secondary actions visible initially',x=>x.results[0].before.actions[2].visible=true],['small action target',x=>x.results[0].opened.actions[0].height=40],['small action font',x=>x.results[0].opened.actions[0].font=11],['wrong navigation focus',x=>x.results[0].navigation[0].focused='missing'],['wrong navigation mode',x=>x.results[0].navigation[1].mode='simple'],['removed expert content',x=>x.results[0].expert.pop()],['protected write',x=>x.results[0].protectedWrites=['write']],['page error',x=>x.results[0].pageErrors=['failure']],['ordinary border',x=>x.results[0].before.ordinary[0].border[0]='1px'],['ordinary shadow',x=>x.results[0].before.ordinary[0].shadow='0 0 5px black'],['missing image',x=>x.screenshots.pop()],['changed research payload',x=>x.firstPayload.qellyView.confidence=.123456],['new provider',x=>x.newProviders=true],['numerical change',x=>x.numericalEnginesChanged=true],['broader exclusion',x=>x.volatileFixturePaths.push('qellyView.confidence')],['wrong context research hash',x=>x.results[0].researchPayloadHash='0'.repeat(64)]];
+          mutations.push(['unregistered plot',x=>x.results[0].before.plotClearance.registered=false],['visible chart overlap',x=>x.results[0].before.plotClearance.visibleOverlap=true],['ignored plot intersection',x=>{x.results[0].before.plotClearance.naturalOverlap=true;x.results[0].before.plotClearance.clearance='clear';}]);
+          for(const [name,mutate] of mutations){const x=structuredClone(report);mutate(x);assert.throws(()=>validateDecisionPrimarySetupReport(x,sha,expected),name);rejected.push(name);}
+          
+          assert.equal(rejected.length,33);const screenshots=[];for(const file of report.screenshots){const image=await readFile(root+'/'+file);assert.ok(image.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));const match=file.match(/^green-(dark|light)-(1280|768|390|320)-(720|900)-(top|actions|chart)\.png$/);assert.ok(match);assert.equal(image.readUInt32BE(16),Number(match[2]));assert.equal(image.readUInt32BE(20),Number(match[3]));screenshots.push({file,sha256:createHash('sha256').update(image).digest('hex'),width:image.readUInt32BE(16),height:image.readUInt32BE(20)});}assert.equal(screenshots.length,30);const receipt={...validation,negativeVariants:rejected,reportSha256:createHash('sha256').update(bytes).digest('hex'),screenshots};
+          assert.deepEqual(JSON.parse(await readFile(root+'/independent-gate-receipt.json','utf8')),receipt);
+          await writeFile(process.env.RUNNER_TEMP+'/qelly-decision-primary-independent-receipt.json',JSON.stringify(receipt)+'\n');console.log(JSON.stringify({source:sha,contexts:10,images:30,invalidReportsRejected:33}));
+          NODE
+      - name: Retain compact primary Decision setup publication receipt
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-decision-primary-setup-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: ${{ runner.temp }}/qelly-decision-primary-independent-receipt.json
           if-no-files-found: error
           retention-days: 7
       - name: Verify all checksums and inherited acceptance contracts
