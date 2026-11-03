@@ -147,7 +147,7 @@ html[data-production-system="v8"] .q-feature-navigation__search input:not(:where
 html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:disabled):not(:where(.q-about-v2-page *)):not(:where(.q-dossier *)){
   transition:transform 150ms ease,filter 150ms ease,box-shadow 150ms ease,background-color 150ms ease!important;
 }
-html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:disabled):hover:not(:where(.q-about-v2-page *)):not(:where(.q-dossier *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-access-gate,.q-access-gate *)):not(:where(.q-chat-workspace, .q-chat-workspace *)){transform:translateY(-1px)!important;filter:brightness(1.06)}
+html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:disabled):hover:not(:where(.q-about-v2-page *)):not(:where(.q-dossier *)):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-access-gate,.q-access-gate *)):not(:where(.q-chat-workspace, .q-chat-workspace *)):not(:where(.q-dpg-page *)){transform:translateY(-1px)!important;filter:brightness(1.06)}
 html[data-production-system="v8"] body #app #main :where(.q-button,button,[role="button"],[role="tab"]):not(:disabled):active:not(:where(.q-about-v2-page *)):not(:where(.q-dossier *)):not(:where(.q-feature-index,.q-feature-index *)){transform:translateY(0)!important}
 
 /* Tonal hierarchy replaces old outlines and oversized rounding. */
