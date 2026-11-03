@@ -87,5 +87,5 @@ try{for(const appearance of ['dark','light'])for(const [width,height] of [[1280,
   if(mode==='simple'){const file=expected+'-'+appearance+'-'+width+'-'+height+'-chart.png';await page.locator('.q-dpg-chart-wrap').screenshot({path:out+'/'+file});screenshots.push(file);}results.push(snap);
  }
  assert.equal(errors.length,0);assert.equal(writes.filter(x=>!['/api/v1/product-events','/api/v1/analytics'].includes(x.path)).length,0);await context.close();activePage=null;
-}}catch(e){failure=e;if(activePage)await activePage.screenshot({path:out+'/failure.png',fullPage:true}).catch(()=>{});}finally{await browser.close();await server.close();}
+}}catch(e){failure=e;if(activePage)await activePage.screenshot({path:out+'/failure.png',fullPage:true}).catch(()=>{});}finally{await browser.close();await new Promise(r=>server.server.close(r));await new Promise(r=>server.evidenceUpstream.server.close(r));}
 await writeFile(out+'/report.json',JSON.stringify({status:failure?'failed':'passed',sourceSha:source,expected,results,screenshots,volatileMetadataPaths:volatileFixturePaths,numericalEnginesChanged:false,geometryComparedIndependently:false,failure:failure?.message||null},null,2)+'\n');if(failure)throw failure;assert.equal(results.length,30);assert.equal(screenshots.length,10);console.log({status:'passed',source,expected,contexts:30,images:10});
