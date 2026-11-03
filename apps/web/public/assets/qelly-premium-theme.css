@@ -103,7 +103,7 @@ html[data-production-system="v8"] body #app header.q-product-header{
   border:0!important;
   border-radius:0!important;
   background:color-mix(in srgb,var(--q-chrome) 86%,transparent)!important;
-  box-shadow:0 1px 0 var(--q-border),0 16px 50px rgba(0,0,0,.16)!important;
+  box-shadow:none!important;
   backdrop-filter:blur(28px) saturate(145%)!important;
 }
 
