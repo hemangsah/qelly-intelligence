@@ -89,6 +89,7 @@ try{for(const appearance of ['dark','light'])for(const [width,height] of [[1280,
  await page.waitForFunction(a=>document.documentElement.dataset.appReady==='true'&&document.documentElement.dataset.brandReady==='true'&&document.documentElement.dataset.resolvedAppearance===a,appearance);
  await page.locator('.qelly-opening').waitFor({state:'hidden'});await page.locator('[data-dpg-ui-mode="simple"]').click();
  const navigation=page.locator('.q-product-menu');if(await navigation.getAttribute('aria-expanded')==='true')await navigation.click();
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  const snapshot=()=>page.locator('.q-dpg-page').evaluate(root=>{
    const rect=e=>e?{top:e.getBoundingClientRect().top+scrollY,bottom:e.getBoundingClientRect().bottom+scrollY,height:e.getBoundingClientRect().height}:null;
    const essential=root.querySelector('[data-dpg-primary-setup]'),chart=root.querySelector('.q-dpg-stage'),answer=root.querySelector('.q-dpg-view'),more=root.querySelector('.q-dpg-secondary-actions');
@@ -96,9 +97,11 @@ try{for(const appearance of ['dark','light'])for(const [width,height] of [[1280,
  });
  const before=await snapshot();firstPayload??=latest;const observedResearchHash=researchPayloadHash(latest),observedPayloadHash=hash(JSON.stringify(latest));assert.equal(before.appearance,appearance);assert.equal(before.width,width);assert.equal(before.height,height);assert.equal(before.overflow,false);assert.equal(await page.locator('.q-dpg-view h2').innerText(),latest.qellyView.action);assert.equal(before.actions.length,8);
  before.dock=await page.evaluate(()=>[...document.querySelectorAll('.q-ai-launcher,[data-q-ai-assistant]')].map(n=>({tag:n.tagName,class:n.className,hidden:n.hidden,ariaHidden:n.getAttribute('aria-hidden'),tabindex:n.tabIndex,opacity:getComputedStyle(n).opacity,clearance:n.closest('.q-ai-root')?.dataset.clearance,visible:n.checkVisibility({checkOpacity:true}),top:n.getBoundingClientRect().top,bottom:n.getBoundingClientRect().bottom})));
+ before.plotClearance=await page.evaluate(()=>{const p=document.querySelector('svg.q-dpg-chart'),d=document.querySelector('.q-ai-launcher');if(!p||!d)return{present:false};const a=p.getBoundingClientRect(),b=d.getBoundingClientRect(),s=getComputedStyle(d),bottom=parseFloat(s.bottom)||0,natural={left:(innerWidth-b.width)/2,right:(innerWidth+b.width)/2,top:innerHeight-bottom-b.height,bottom:innerHeight-bottom};return{present:true,registered:p.hasAttribute('data-qelly-chat-plot'),naturalOverlap:a.left<natural.right&&a.right>natural.left&&a.top<natural.bottom&&a.bottom>natural.top,visibleOverlap:parseFloat(s.opacity)>0&&a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top,clearance:d.closest('.q-ai-root').dataset.clearance,ariaHidden:d.getAttribute('aria-hidden')};});
  const prefix=expected+'-'+appearance+'-'+width+'-'+height;
  await page.screenshot({path:out+'/'+prefix+'-top.png'});screenshots.push(prefix+'-top.png');
  if(expected==='green'){
+   assert.equal(before.plotClearance.present,true);assert.equal(before.plotClearance.registered,true);assert.equal(before.plotClearance.visibleOverlap,false);if(before.plotClearance.naturalOverlap){assert.equal(before.plotClearance.clearance,'chart');assert.equal(before.plotClearance.ariaHidden,'true');}
    assert.equal(before.essentialBeforeChart,true);assert.equal(before.facts.length,7);assert.deepEqual(before.facts.map(x=>x.label),['Setup','Entry','Invalidation','Targets','Risk / reward','Setup probability','Event risk']);
    assert.equal(before.more.open,false);assert.equal(before.actions.filter(x=>x.visible).length,2);assert.ok(before.more.summary.height>=44);assert.ok(before.answerHeading.bottom<=height-120,'Primary answer must be visible with reading space: '+JSON.stringify(before));
    if(width>=390)assert.ok(before.essential.bottom<=height,'Essential setup facts must fit on the tested first screen: '+JSON.stringify(before));
