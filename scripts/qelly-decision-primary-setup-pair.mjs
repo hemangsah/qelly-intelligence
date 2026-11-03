@@ -110,6 +110,6 @@ try{for(const appearance of ['dark','light'])for(const [width,height] of [[1280,
  assert.deepEqual(writes,[]);assert.deepEqual(errors,[]);await context.close();
 }
 assert.equal(results.length,10);
-}catch(e){failure={message:e.message,stack:e.stack};if(activePage)await activePage.screenshot({path:out+'/failure.png'}).catch(()=>{});}finally{await browser.close();await server.close();}
+}catch(e){failure={message:e.message,stack:e.stack};if(activePage)await activePage.screenshot({path:out+'/failure.png'}).catch(()=>{});}finally{await browser.close();await new Promise(r=>server.server.close(r));await new Promise(r=>server.evidenceUpstream.server.close(r));}
 const report={sourceSha:source,runnerSha:process.env.GITHUB_SHA,expected,status:failure?'failed':'passed',failure,results,screenshots,routeSha256:hash(route),cssSha256:hash(css),fixtureOnly:true,fixtureDate:new Date(fixtureNow).toISOString(),newProviders:false,numericalEnginesChanged:false,productionAccepted:false,recordedAt:new Date().toISOString()};
 await writeFile(out+'/report.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({expected,status:report.status,contexts:results.length,failure:failure?.message}));if(failure)throw new Error(failure.message);
