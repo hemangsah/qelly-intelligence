@@ -1,4 +1,4 @@
-name: Decision Chart Context Pair
+name: Decision Chart Contrast Pair
 on:
   workflow_dispatch:
     inputs:
@@ -62,13 +62,13 @@ jobs:
           npm run build:frontend
       - name: Measure screen-sized chart context and unchanged numerical geometry
         run: |
-          cp .decision-chart-context-runner/scripts/qelly-decision-chart-context-pair.mjs scripts/qelly-decision-chart-context-pair.mjs
-          node scripts/qelly-decision-chart-context-pair.mjs
+          cp .decision-chart-context-runner/scripts/qelly-decision-chart-contrast-pair.mjs scripts/qelly-decision-chart-contrast-pair.mjs
+          node scripts/qelly-decision-chart-contrast-pair.mjs
       - name: Preserve paired source-bound evidence in cloud
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: qelly-decision-primary-chart-context-${{ matrix.expected }}-${{ github.sha }}
-          path: preview/decision-chart-context-pair
+          name: qelly-decision-primary-chart-context-contrast-${{ matrix.expected }}-${{ github.sha }}
+          path: preview/decision-chart-contrast-pair
           if-no-files-found: error
           retention-days: 7
