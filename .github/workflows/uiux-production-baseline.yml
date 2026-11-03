@@ -62,6 +62,23 @@ jobs:
           npm run build:frontend
       - name: Compare essential setup ordering and preserved action access
         run: node .decision-primary-runner/scripts/qelly-decision-primary-setup-pair.mjs
+      - name: Verify all preserved Decision presentation journeys with the new master hierarchy
+        if: matrix.expected == 'green'
+        run: |
+          node scripts/qelly-decision-compact-hero-e2e.mjs
+          node scripts/qelly-decision-answer-order-e2e.mjs
+          node scripts/qelly-decision-editorial-e2e.mjs
+      - name: Preserve Decision compatibility and long-copy evidence
+        if: always() && matrix.expected == 'green'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-decision-primary-compatibility-${{ github.sha }}
+          path: |
+            preview/decision-compact-hero-e2e
+            preview/decision-answer-order-e2e
+            preview/decision-editorial-e2e
+          if-no-files-found: error
+          retention-days: 7
       - name: Preserve paired source-bound evidence in cloud
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
