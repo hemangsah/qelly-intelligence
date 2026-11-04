@@ -54,7 +54,7 @@ jobs:
         run: node scripts/qelly-theme-module-navigation-e2e.mjs
       - name: Preserve exact-source results in cloud
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-theme-route-crash-${{ github.sha }}
           path: |
