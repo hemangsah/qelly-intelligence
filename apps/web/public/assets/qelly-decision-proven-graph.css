@@ -307,7 +307,7 @@
 .q-dpg-candle.is-selected rect{stroke-width:1.6}
 .q-dpg-selection{pointer-events:none;animation:q-dpg-range-breathe 1.8s ease-in-out infinite}
 .q-dpg-selection[hidden]{display:none}
-.q-dpg-selection rect{fill:rgba(226,118,149,.17);stroke:rgba(240,160,184,.92);stroke-width:1.4;vector-effect:non-scaling-stroke}
+.q-dpg-selection rect{fill:rgba(226,118,149,.17);stroke:var(--dpg-plot-contrast,rgba(240,160,184,.92));stroke-width:1.4;vector-effect:non-scaling-stroke}
 .q-dpg-selection__boundary{stroke:var(--dpg-plot-contrast,#f5aec3);stroke-width:1.7;stroke-dasharray:6 4;vector-effect:non-scaling-stroke}
 .q-dpg-selection__handle{fill:#0c0f16;stroke:var(--dpg-plot-contrast,#f5aec3);stroke-width:2;vector-effect:non-scaling-stroke}
 @keyframes q-dpg-range-breathe{0%,100%{opacity:.92}50%{opacity:1}}
