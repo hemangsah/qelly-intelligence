@@ -85,7 +85,7 @@ html[data-production-system="v8"] body #app header.q-product-header>.q-product-m
 html[data-ui-lock-v53="active"][data-v53-active-shell="wave1"][data-product-surface="production"][data-production-system="v8"] body #app header.q-product-header>.q-product-menu[data-feature-navigation-owner="true"]{display:none!important}
 html[data-production-system="v8"] body #app header.q-product-header.is-scrolled{
   background:color-mix(in srgb,var(--q-chrome) 94%,transparent)!important;
-  box-shadow:0 1px 0 var(--q-divider),0 20px 48px rgba(0,0,0,.24)!important;
+  box-shadow:none!important;
 }
 html[data-production-system="v8"] .q-product-brand__mark{
   display:grid!important;place-items:center!important;border-radius:10px!important;background:#fff!important;
@@ -224,7 +224,7 @@ html[data-resolved-appearance="light"] body #app .q-product-header,
 html[data-appearance="light"] body #app .q-product-header{
   background:rgba(255,255,255,.96)!important;
   border-bottom:1px solid rgba(82,55,67,.14)!important;
-  box-shadow:0 8px 28px rgba(63,34,46,.09)!important;
+  box-shadow:none!important;
 }
 html[data-resolved-appearance="light"] :where(.q-panel,.q-mi-intelligence-module,.q-mn-panel,.q-category-card,.q-venue-card):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)):not(:where(.q-cc-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-chat-workspace, .q-chat-workspace *)),
 html[data-appearance="light"] :where(.q-panel,.q-mi-intelligence-module,.q-mn-panel,.q-category-card,.q-venue-card):not(:where(.q-mt5-route *)):not(:where(.q-v7-public-market *)):not(:where(.q-v6-account-page,.q-v6-account-page *)):not(:where(.q-cv-page *)):not(:where(.q-dpg-page *)):not(:where(.q-auth-page,.q-auth-page *)):not(:where(.q-cc-page *)):not(:where(.q-verify-page,.q-verify-page *)):not(:where(.q-chat-workspace, .q-chat-workspace *)){
