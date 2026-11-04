@@ -1,59 +1,117 @@
-name: UIUX Production Baseline
+name: DEX Typography Owner Pair
 on:
-  pull_request:
-    branches: [release/qelly-global-public-beta]
-    paths:
-      - scripts/qelly-uiux-production-audit.mjs
-      - .github/workflows/uiux-production-baseline.yml
   workflow_dispatch:
     inputs:
       production_sha:
-        description: Exact production revision to audit
+        description: Exact baseline source for the isolated comparison
         required: true
         type: string
 permissions:
   contents: read
-concurrency:
-  group: qelly-uiux-baseline-${{ github.ref }}
-  cancel-in-progress: false
 jobs:
-  audit-live-routes:
+  compare:
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        appearance: [dark, light]
-        width: [1440, 390]
+        expected: [red, green]
     env:
-      QELLY_UIUX_BASE_SHA: ${{ inputs.production_sha || '07979b7a3fab5d890e3255e47616c540531e87ae' }}
-      QELLY_UIUX_APPEARANCE: ${{ matrix.appearance }}
-      QELLY_UIUX_WIDTH: ${{ matrix.width }}
+      QELLY_SCREEN_EVIDENCE_SHA: ${{ matrix.expected == 'red' && inputs.production_sha || github.sha }}
+      QELLY_DEX_TYPE_EXPECT: ${{ matrix.expected }}
+      QELLY_DEX_CONTROL_MATRIX: 'true'
+      QELLY_CSS_EXPERIMENT_BASELINE: preview/css-import-baseline
+      QELLY_SCREEN_BATCH_SIZE: '10'
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: 'utf-8'
+      QELLY_REQUIRE_PUBLIC_RUNTIME: 'true'
+      QELLY_PROMPT2C_PUBLIC_BETA: 'true'
+      QELLY_PUBLIC_SITE_URL: https://terminal.qellyintelligence.com
+      QELLY_PUBLIC_SUPABASE_URL: https://ssdgfgqnjlwzkgukzeef.supabase.co
+      QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_shape_only_012345678901234567890123456789
+      QELLY_DEPLOYMENT_ENVIRONMENT: production
+      QELLY_EVIDENCE_CONTEXT: cloudflare-pages-production
+      QELLY_ENABLE_AUTH: 'true'
+      QELLY_ENABLE_AUTH_EMAIL_DELIVERY: 'true'
+      QELLY_ENABLE_CLOUD_SYNC: 'true'
+      QELLY_ENABLE_LIVE_PROVIDERS: 'true'
+      QELLY_ENABLE_FEEDBACK_WRITES: 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ matrix.expected == 'red' && inputs.production_sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          path: .dex-type-runner
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: '22'
           cache: npm
-      - name: Install locked cloud-only audit dependencies
+      - name: Install locked dependencies in cloud
         run: npm ci --ignore-scripts
-      - name: Install cloud Chromium
+      - name: Install official cloud Chromium
         run: npx --no-install playwright install --with-deps chromium
-      - name: Audit actual production routes without protected writes
-        run: node scripts/qelly-uiux-production-audit.mjs
-      - name: Keep baseline screens and measurements in cloud
+      - name: Bind existing visual runner executable path
+        run: >-
+          test -e /usr/bin/chromium || sudo ln -s "$(node --input-type=module -e 'import {chromium} from "playwright"; console.log(chromium.executablePath())')" /usr/bin/chromium
+      - name: Build exact source in production-mode fixture configuration
+        run: |
+          test "$(git rev-parse HEAD)" = "$QELLY_SCREEN_EVIDENCE_SHA"
+          npm run build:frontend
+      - name: Verify existing DEX interactions and typography ownership
+        run: |
+          cp .dex-type-runner/scripts/qelly-dex-typography-owner-pair.mjs scripts/qelly-dex-typography-owner-pair.mjs
+          cp .dex-type-runner/scripts/qelly-dex-typography-owner-report.mjs scripts/qelly-dex-typography-owner-report.mjs
+          cp .dex-type-runner/scripts/qelly-dex-typography-owner-published.mjs scripts/qelly-dex-typography-owner-published.mjs
+          node scripts/qelly-dex-typography-owner-pair.mjs
+          node scripts/qelly-dex-typography-owner-published.mjs preview/dex-typography-owner-pair "$QELLY_DEX_TYPE_EXPECT" "$QELLY_SCREEN_EVIDENCE_SHA"
+      - name: Preserve paired source-bound evidence in cloud
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: qelly-uiux-baseline-${{ env.QELLY_UIUX_BASE_SHA }}-${{ matrix.appearance }}-${{ matrix.width }}
-          path: uiux-audit
-          retention-days: 30
-      - name: Publish compact receipt
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+          name: qelly-dex-controls-typography-${{ matrix.expected }}-${{ github.sha }}
+          path: preview/dex-typography-owner-pair
+          if-no-files-found: error
+          retention-days: 7
+
+  verify-published:
+    needs: compare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          name: qelly-uiux-baseline-receipt-${{ matrix.appearance }}-${{ matrix.width }}
-          path: uiux-audit/receipt.json
-          retention-days: 30
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: qelly-dex-controls-typography-red-${{ github.sha }}
+          path: ${{ runner.temp }}/dex-type-red
+          digest-mismatch: error
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: qelly-dex-controls-typography-green-${{ github.sha }}
+          path: ${{ runner.temp }}/dex-type-green
+          digest-mismatch: error
+      - name: Independently reject malformed reports and verify every published image
+        env:
+          BASE_SHA: ${{ inputs.production_sha }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          node scripts/qelly-dex-typography-owner-published.mjs "$RUNNER_TEMP/dex-type-red" red "$BASE_SHA" --verify
+          node scripts/qelly-dex-typography-owner-published.mjs "$RUNNER_TEMP/dex-type-green" green "$HEAD_SHA" --verify
+          node --input-type=module <<'NODE'
+          import{readFile,writeFile}from'node:fs/promises';import assert from'node:assert/strict';const get=async arm=>JSON.parse(await readFile(process.env.RUNNER_TEMP+'/dex-type-'+arm+'/report.json','utf8')),red=await get('red'),green=await get('green');assert.equal(red.sourceSha,process.env.BASE_SHA);assert.equal(green.sourceSha,process.env.HEAD_SHA);for(const g of green.typographyResults){const r=red.typographyResults.find(x=>x.appearance===g.appearance&&x.width===g.width);assert.ok(r);assert.deepEqual(g.labels.map(x=>x.text),r.labels.map(x=>x.text));const a=red.results.find(x=>x.appearance===g.appearance&&x.width===g.width),b=green.results.find(x=>x.appearance===g.appearance&&x.width===g.width);assert.equal(a.governedDirectoryHash,b.governedDirectoryHash);}await writeFile(process.env.RUNNER_TEMP+'/dex-type-pair-receipt.json',JSON.stringify({baseline:red.sourceSha,head:green.sourceSha,contextsPerArm:8,measuredLabelsPerArm:272,sourceAndCompiledCssOwners:4,originalInteractionContextsPerArm:8,invalidReportsPerArm:27,allMeasuredLabelContentAndGovernedDirectoryHashesEqual:true,newRules:0,newPriorityOverrides:0,newProvidersEnabled:false,numericalEnginesChanged:false,authConfigurationChanged:false,walletExecutionEnabled:false,causalPerformanceImprovementClaimed:false,productionAccepted:false,fullDexWaveAccepted:false})+String.fromCharCode(10));
+          NODE
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-dex-controls-typography-pair-receipt-${{ github.sha }}
+          path: ${{ runner.temp }}/dex-type-pair-receipt.json
+          if-no-files-found: error
+          retention-days: 7
