@@ -44,14 +44,14 @@ jobs:
               output.write('digest=' + hashlib.sha256(data).hexdigest() + '\n')
           PY
       - name: Upload isolated fixture
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: qelly-action-fixture-${{ env.QELLY_COMPATIBILITY_SHA }}
           path: ${{ runner.temp }}/qelly-action-compatibility-cache/fixture.json
           if-no-files-found: error
           retention-days: 1
       - name: Upload second fixture for multi-artifact layout
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: qelly-action-fixture-${{ env.QELLY_COMPATIBILITY_SHA }}-second
           path: ${{ runner.temp }}/qelly-action-compatibility-cache/fixture.json

@@ -106,7 +106,7 @@ jobs:
           NODE
       - name: Preserve Decision chart readability evidence in cloud
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-decision-primary-chart-context-readability-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/decision-chart-readability
@@ -116,7 +116,7 @@ jobs:
         run: node scripts/qelly-readiness-visual-e2e.mjs
       - name: Upload focused Service Readiness visual evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-readiness-visual-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/readiness-visual-e2e
@@ -377,7 +377,7 @@ jobs:
           NODE
       - name: Upload theme owned focused evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-theme-owned-focused-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/focused-owner-theme
@@ -419,7 +419,7 @@ jobs:
           NODE
       - name: Upload governed operations focused evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-operations-reference-focused-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: artifacts/uiux-operations-reference
@@ -450,7 +450,7 @@ jobs:
           NODE
       - name: Upload capability owned focused evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-capability-owned-focused-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/capability-owned-surfaces-e2e
@@ -480,7 +480,7 @@ jobs:
           NODE
       - name: Upload Verification style and readability evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-verify-first-paint-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/verify-first-paint
@@ -736,7 +736,7 @@ jobs:
           NODE
       - name: Upload boundary owned focused evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-boundary-owned-focused-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/focused-owner-boundary
@@ -774,7 +774,7 @@ jobs:
           NODE
       - name: Upload DEX change lifecycle evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-dex-change-lifecycle-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/dex-change-lifecycle
@@ -817,7 +817,7 @@ jobs:
           NODE
       - name: Upload Decision owned typography evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-accessibility-floor-decision-owned-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/decision-font-owner-pair
@@ -848,7 +848,7 @@ jobs:
           NODE
       - name: Upload owned public recovery evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-readiness-visual-focused-public-recovery-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/public-recovery-brand-retry
@@ -898,7 +898,7 @@ jobs:
           NODE
       - name: Upload primary Decision setup evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-decision-primary-setup-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/decision-primary-setup-pair
@@ -908,7 +908,7 @@ jobs:
         run: node scripts/qelly-header-context-routing-e2e.mjs
       - name: Upload focused header context routing evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-header-context-routing-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/header-context-routing-e2e
@@ -917,7 +917,7 @@ jobs:
         run: node scripts/qelly-anonymous-gate-e2e.mjs
       - name: Upload focused anonymous workspace evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-anonymous-gate-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/anonymous-gate-e2e
@@ -926,7 +926,7 @@ jobs:
         run: node scripts/qelly-account-editorial-e2e.mjs
       - name: Upload focused Account presentation evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-account-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/account-editorial-e2e
@@ -954,7 +954,7 @@ jobs:
           NODE
       - name: Preserve structured-response presentation evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-chat-rich-content-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/chat-rich-focused-e2e
@@ -963,7 +963,7 @@ jobs:
         run: node scripts/qelly-theme-route-crash-e2e.mjs
       - name: Preserve Theme route crash regression evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-theme-route-crash-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/theme-route-crash
@@ -972,7 +972,7 @@ jobs:
         run: node scripts/qelly-theme-module-navigation-e2e.mjs
       - name: Preserve Theme module cancellation evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-accessibility-floor-theme-module-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/theme-module-navigation
@@ -981,7 +981,7 @@ jobs:
         run: node scripts/qelly-dex-retry-lifecycle-e2e.mjs
       - name: Upload focused DEX Retry lifecycle evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: dex-retry-lifecycle-green-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/dex-retry-lifecycle
@@ -993,7 +993,7 @@ jobs:
           QELLY_DEX_CONTROL_MATRIX: true
       - name: Upload focused DEX control evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-dex-controls-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/dex-control-e2e
@@ -1004,7 +1004,7 @@ jobs:
         run: node scripts/qelly-about-editorial-e2e.mjs
       - name: Upload focused About editorial evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-about-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/about-editorial-e2e
@@ -1013,7 +1013,7 @@ jobs:
         run: node scripts/qelly-market-boxless-e2e.mjs
       - name: Upload focused Market borderless evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-market-boxless-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/market-boxless-e2e
@@ -1022,7 +1022,7 @@ jobs:
         run: node scripts/qelly-chart-dock-clearance-e2e.mjs
       - name: Upload chart clearance evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-chart-clearance-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/chart-dock-clearance-e2e
@@ -1031,7 +1031,7 @@ jobs:
         run: node scripts/qelly-market-chart-clearance-e2e.mjs
       - name: Upload Market chart clearance evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-market-chart-clearance-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/market-chart-clearance-e2e
@@ -1040,7 +1040,7 @@ jobs:
         run: node scripts/qelly-research-family-editorial-e2e.mjs
       - name: Upload focused research family visual evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-research-family-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/research-family-editorial-e2e
@@ -1049,7 +1049,7 @@ jobs:
         run: node scripts/qelly-filing-editorial-e2e.mjs
       - name: Upload focused Filing visual evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-filing-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/filing-editorial-e2e
@@ -1058,7 +1058,7 @@ jobs:
         run: node scripts/qelly-decision-answer-order-e2e.mjs
       - name: Upload focused Decision answer ordering evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-decision-answer-order-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/decision-answer-order-e2e
@@ -1067,7 +1067,7 @@ jobs:
         run: node scripts/qelly-workspace-style-readiness-e2e.mjs
       - name: Upload focused workspace first-paint evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-workspace-style-readiness-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/workspace-style-readiness-e2e
@@ -1076,7 +1076,7 @@ jobs:
         run: node scripts/qelly-calculator-discovery-editorial-e2e.mjs
       - name: Upload focused calculator discovery visual evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-calculator-discovery-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/calculator-discovery-editorial-e2e
@@ -1085,7 +1085,7 @@ jobs:
         run: node scripts/qelly-workspace-family-editorial-e2e.mjs
       - name: Upload focused public workspace visual evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-workspace-family-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/workspace-family-editorial-e2e
@@ -1094,7 +1094,7 @@ jobs:
         run: node scripts/qelly-decision-retail-hierarchy-e2e.mjs
       - name: Upload focused Decision retail hierarchy evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-decision-retail-hierarchy-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/decision-retail-hierarchy-e2e
@@ -1103,7 +1103,7 @@ jobs:
         run: node scripts/qelly-private-empty-surfaces-e2e.mjs
       - name: Upload isolated private presentation evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-private-empty-surfaces-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/private-empty-surfaces-e2e
@@ -1112,7 +1112,7 @@ jobs:
         run: node scripts/qelly-dex-style-readiness-e2e.mjs
       - name: Upload governed DEX style lifecycle evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-dex-style-readiness-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/dex-style-readiness-e2e
@@ -1121,7 +1121,7 @@ jobs:
         run: node scripts/qelly-market-network-style-readiness-e2e.mjs
       - name: Upload Market Network stylesheet lifecycle evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-market-network-style-readiness-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/market-network-style-readiness-e2e
@@ -1130,7 +1130,7 @@ jobs:
         run: node scripts/qelly-remaining-style-readiness-e2e.mjs
       - name: Upload remaining route stylesheet lifecycle evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-remaining-style-readiness-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/remaining-style-readiness-e2e
@@ -1139,7 +1139,7 @@ jobs:
         run: node scripts/qelly-discovery-surface-e2e.mjs
       - name: Upload discovery ordinary surface evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-discovery-surface-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/discovery-surface-e2e
@@ -1148,7 +1148,7 @@ jobs:
         run: node scripts/qelly-discovery-style-readiness-e2e.mjs
       - name: Upload discovery stylesheet lifecycle evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-discovery-style-readiness-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/discovery-style-readiness-e2e
@@ -1157,7 +1157,7 @@ jobs:
         run: node scripts/qelly-chart-style-readiness-e2e.mjs
       - name: Upload chart research surface and lifecycle evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-chart-style-readiness-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/chart-style-readiness-e2e
@@ -1166,7 +1166,7 @@ jobs:
         run: node scripts/qelly-specialist-style-readiness-e2e.mjs
       - name: Upload specialist stylesheet lifecycle evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-specialist-style-readiness-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/specialist-style-readiness-e2e
@@ -1175,7 +1175,7 @@ jobs:
         run: node scripts/qelly-tool-instrument-context-e2e.mjs
       - name: Upload tool instrument context evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-tool-instrument-context-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/tool-instrument-context-e2e
@@ -1184,7 +1184,7 @@ jobs:
         run: node scripts/qelly-research-style-readiness-e2e.mjs
       - name: Upload isolated Research stylesheet lifecycle evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-research-style-readiness-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/research-style-readiness-e2e
@@ -1193,7 +1193,7 @@ jobs:
         run: node scripts/qelly-tools-library-surfaces-e2e.mjs
       - name: Upload focused tools library visual evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-tools-library-surfaces-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/tools-library-surfaces-e2e
@@ -1202,7 +1202,7 @@ jobs:
         run: node scripts/qelly-tools-detail-surfaces-e2e.mjs
       - name: Upload focused quantitative tool detail evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-tools-detail-surfaces-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/tools-detail-surfaces-e2e
@@ -1211,7 +1211,7 @@ jobs:
         run: node scripts/qelly-chat-keyboard-e2e.mjs
       - name: Upload focused Chat editorial evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-chat-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/chat-keyboard-e2e
@@ -1220,7 +1220,7 @@ jobs:
         run: node scripts/qelly-brand-foundation-e2e.mjs
       - name: Upload focused canonical brand evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-brand-foundation-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/brand-foundation-e2e
@@ -1231,7 +1231,7 @@ jobs:
         run: node scripts/qelly-tooltip-performance-e2e.mjs
       - name: Upload focused tooltip performance evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-tooltip-performance-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/tooltip-performance-e2e
@@ -1240,7 +1240,7 @@ jobs:
         run: node scripts/qelly-asset-dossier-boxless-e2e.mjs
       - name: Upload focused Asset Dossier evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-asset-dossier-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/asset-dossier-boxless-e2e
@@ -1251,7 +1251,7 @@ jobs:
         run: node scripts/qelly-shell-observer-e2e.mjs
       - name: Upload focused shell observer evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-shell-observer-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/shell-observer-e2e
@@ -1260,7 +1260,7 @@ jobs:
         run: node scripts/qelly-feature-index-e2e.mjs
       - name: Upload focused Feature Universe evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-feature-index-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/feature-index-e2e
@@ -1269,7 +1269,7 @@ jobs:
         run: node scripts/qelly-mt5-editorial-e2e.mjs
       - name: Upload focused MT5 editorial evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-mt5-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/mt5-editorial-e2e
@@ -1278,7 +1278,7 @@ jobs:
         run: node scripts/qelly-converter-editorial-e2e.mjs
       - name: Upload focused converter editorial evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-converter-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/converter-editorial-e2e
@@ -1287,7 +1287,7 @@ jobs:
         run: node scripts/qelly-css-import-e2e.mjs
       - name: Upload focused CSS import evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-css-import-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/css-import-e2e
@@ -1296,7 +1296,7 @@ jobs:
         run: node scripts/qelly-feature-drawer-state-e2e.mjs
       - name: Upload focused feature drawer state evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-feature-drawer-state-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/feature-drawer-state-e2e
@@ -1305,7 +1305,7 @@ jobs:
         run: node scripts/qelly-verify-editorial-e2e.mjs
       - name: Upload focused Verification editorial evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-verify-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/verify-editorial-e2e
@@ -1315,7 +1315,7 @@ jobs:
         run: node scripts/qelly-crypto-converter-e2e.mjs
       - name: Upload focused crypto converter evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-crypto-converter-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/crypto-converter-e2e
@@ -1325,7 +1325,7 @@ jobs:
 
       - name: Upload focused compact Decision hero evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-decision-compact-hero-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/decision-compact-hero-e2e
@@ -1335,7 +1335,7 @@ jobs:
         run: node scripts/qelly-decision-editorial-e2e.mjs
       - name: Upload focused Decision editorial evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-decision-editorial-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/decision-editorial-e2e
@@ -1344,7 +1344,7 @@ jobs:
         run: node scripts/qelly-static-evidence-clearance-e2e.mjs
       - name: Upload focused static evidence clearance
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-static-evidence-clearance-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/static-evidence-clearance-e2e
@@ -1380,7 +1380,7 @@ jobs:
 
           NODE
       - name: Preserve owned header shadow evidence in cloud
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-header-pointer-shadow-owned-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: preview/header-shadow-owned
@@ -1396,7 +1396,7 @@ jobs:
         run: node scripts/qelly-dex-workstation-e2e.mjs
       - name: Upload DEX research interaction evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-dex-workstation-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: |
@@ -1452,7 +1452,7 @@ jobs:
           NODE
       - name: Upload focused header interaction evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-header-pointer-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: |
@@ -1461,7 +1461,7 @@ jobs:
             preview/header-zoom-e2e
       - name: Upload complete or diagnostic screen evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: qelly-complete-all-screens-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: |
@@ -1764,7 +1764,7 @@ jobs:
           await writeFile(output,JSON.stringify(receipt)+'\n');console.log(JSON.stringify(receipt));
           NODE
       - name: Retain compact published theme verification receipt
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-theme-owned-focused-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: ${{ runner.temp }}/qelly-theme-focused-independent-receipt.json
@@ -1810,7 +1810,7 @@ jobs:
           await writeFile(process.env.RUNNER_TEMP+'/qelly-operations-independent-receipt.json',JSON.stringify(receipt)+'\n');console.log(JSON.stringify(receipt));
           NODE
       - name: Retain compact independent operations receipt
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-operations-reference-focused-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: ${{ runner.temp }}/qelly-operations-independent-receipt.json
@@ -1845,7 +1845,7 @@ jobs:
           await writeFile(process.env.RUNNER_TEMP+'/qelly-capability-independent-receipt.json',JSON.stringify(receipt)+'\n');console.log(JSON.stringify(receipt));
           NODE
       - name: Retain compact independent capability receipt
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-capability-owned-focused-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: ${{ runner.temp }}/qelly-capability-independent-receipt.json
@@ -1879,7 +1879,7 @@ jobs:
           await writeFile(process.env.RUNNER_TEMP+'/qelly-verify-style-independent-receipt.json',JSON.stringify(receipt)+'\n');console.log(JSON.stringify(receipt));
           NODE
       - name: Retain compact independent Verification receipt
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-verify-first-paint-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: ${{ runner.temp }}/qelly-verify-style-independent-receipt.json
@@ -2137,7 +2137,7 @@ jobs:
           await writeFile(process.env.RUNNER_TEMP+'/qelly-boundary-focused-independent-receipt.json',JSON.stringify(receipt)+'\n');console.log(JSON.stringify(receipt));
           NODE
       - name: Retain compact published boundary verification receipt
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-boundary-owned-focused-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: ${{ runner.temp }}/qelly-boundary-focused-independent-receipt.json
@@ -2178,7 +2178,7 @@ jobs:
           await writeFile(process.env.RUNNER_TEMP+'/qelly-dex-change-independent-receipt.json',JSON.stringify(receipt)+'\n');console.log(JSON.stringify(receipt));
           NODE
       - name: Retain compact DEX lifecycle publication receipt
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-dex-change-lifecycle-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: ${{ runner.temp }}/qelly-dex-change-independent-receipt.json
@@ -2225,7 +2225,7 @@ jobs:
           await writeFile(process.env.RUNNER_TEMP+'/qelly-decision-font-independent-receipt.json',JSON.stringify(receipt)+'\n');console.log(JSON.stringify(receipt));
           NODE
       - name: Retain compact Decision typography publication receipt
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-accessibility-floor-decision-owned-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: ${{ runner.temp }}/qelly-decision-font-independent-receipt.json
@@ -2260,7 +2260,7 @@ jobs:
           await writeFile(process.env.RUNNER_TEMP+'/qelly-public-recovery-independent-receipt.json',JSON.stringify(receipt)+'\n');console.log(JSON.stringify(receipt));
           NODE
       - name: Retain compact public recovery publication receipt
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-readiness-visual-focused-public-recovery-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: ${{ runner.temp }}/qelly-public-recovery-independent-receipt.json
@@ -2314,7 +2314,7 @@ jobs:
           await writeFile(process.env.RUNNER_TEMP+'/qelly-decision-primary-independent-receipt.json',JSON.stringify(receipt)+'\n');console.log(JSON.stringify({source:sha,contexts:10,images:30,invalidReportsRejected:36}));
           NODE
       - name: Retain compact primary Decision setup publication receipt
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-decision-primary-setup-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: ${{ runner.temp }}/qelly-decision-primary-independent-receipt.json
@@ -2342,7 +2342,7 @@ jobs:
 
           NODE
       - name: Retain compact header shadow publication receipt
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-header-pointer-shadow-owned-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: ${{ runner.temp }}/qelly-header-shadow-independent-receipt.json
@@ -2362,7 +2362,7 @@ jobs:
           import assert from 'node:assert/strict';import {readFile,writeFile} from 'node:fs/promises';import {createHash} from 'node:crypto';import {validateDecisionChartReadabilityReport,decisionChartReadabilityInvalidReports} from './scripts/qelly-decision-chart-readability-report.mjs';const sha=process.env.QELLY_SCREEN_EVIDENCE_SHA,root=process.env.QELLY_READABILITY_ROOT||'preview/decision-chart-readability',bytes=await readFile(root+'/report.json'),r=JSON.parse(bytes),expected={"cssSha":"3e448d76f44cae03d1c93090e7fffe31dbcc80c0436605eaaec1e659a0ef1fc7","routeSha":"a41453df7cc3e247d3c7d144b602957eba37ec8eb3c03da4264706d806dc77de","svgHashes":{"dark/1280/720/simple":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","dark/1280/720/advanced":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","dark/1280/720/research":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","dark/1280/900/simple":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","dark/1280/900/advanced":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","dark/1280/900/research":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","dark/768/900/simple":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","dark/768/900/advanced":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","dark/768/900/research":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","dark/390/900/simple":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","dark/390/900/advanced":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","dark/390/900/research":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","dark/320/900/simple":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","dark/320/900/advanced":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","dark/320/900/research":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","light/1280/720/simple":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","light/1280/720/advanced":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","light/1280/720/research":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","light/1280/900/simple":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","light/1280/900/advanced":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","light/1280/900/research":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","light/768/900/simple":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","light/768/900/advanced":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","light/768/900/research":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","light/390/900/simple":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","light/390/900/advanced":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","light/390/900/research":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","light/320/900/simple":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","light/320/900/advanced":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f","light/320/900/research":"6ee3c075de65395e657d2d6f5bfd33adcd75cf9371e46f0b0478d1d3367d240f"},"darkPaints":[{"role":"up wick","foreground":"rgb(79, 212, 164)","opacity":1},{"role":"down wick","foreground":"rgb(242, 119, 140)","opacity":1},{"role":"scenario median","foreground":"rgb(236, 120, 152)","opacity":1},{"role":"latest observation","foreground":"rgb(240, 160, 184)","opacity":1},{"role":"projected outer","foreground":"rgb(240, 160, 184)","opacity":0.88},{"role":"projected inner","foreground":"rgb(240, 160, 184)","opacity":0.88},{"role":"projected median","foreground":"rgb(255, 255, 255)","opacity":0.88}],"darkSelectionPaints":[{"role":"selection rectangle","foreground":"rgba(240, 160, 184, 0.92)","opacity":1},{"role":"start boundary","foreground":"rgb(245, 174, 195)","opacity":1},{"role":"end boundary","foreground":"rgb(245, 174, 195)","opacity":1},{"role":"start handle","foreground":"rgb(245, 174, 195)","opacity":1},{"role":"end handle","foreground":"rgb(245, 174, 195)","opacity":1}],"volatileMetadataPaths":["macro.ingestionTime","evidence.macro.ingestionTime","pastPresentFuture.present.macro.ingestionTime","performance.totalMs","performance.components.news.ms","performance.components.candleFetch.ms","performance.components.macro.ms","performance.components.derivatives.ms","performance.components.liquidity.ms","performance.components.fundingHistory.ms","performance.components.crossAssetBenchmark.ms","performance.components.multiTimeframe.ms","performance.components.derivativesCompute.ms","performance.components.crossAssetCompute.ms","performance.components.quantCalibrationAnalogs.ms","performance.components.nextMoveCompute.ms","performance.components.riskRewardResearch.ms","performance.components.contextAndEvidenceGraph.ms","performance.components.rangeEvidence.ms"]},validation=validateDecisionChartReadabilityReport(r,sha,expected),negativeVariants=[];for(const[name,mutate]of decisionChartReadabilityInvalidReports()){const bad=structuredClone(r);mutate(bad);assert.throws(()=>validateDecisionChartReadabilityReport(bad,sha,expected),name);negativeVariants.push(name);}assert.equal(negativeVariants.length,29);const screenshots=[];for(const file of r.screenshots){const b=await readFile(root+'/'+file),g=r.captureGeometry.find(x=>x.file===file);assert.ok(b.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));assert.ok(Math.abs(b.readUInt32BE(16)-g.clip.width)<=1);assert.ok(Math.abs(b.readUInt32BE(20)-g.clip.height)<=1);screenshots.push({file,sha256:createHash('sha256').update(b).digest('hex'),width:b.readUInt32BE(16),height:b.readUInt32BE(20)});}assert.equal(screenshots.length,14);const receipt={...validation,negativeVariants,reportSha256:createHash('sha256').update(bytes).digest('hex'),screenshots};assert.deepEqual(JSON.parse(await readFile(root+'/independent-gate-receipt.json','utf8')),receipt);await writeFile(process.env.RUNNER_TEMP+'/qelly-decision-readability-independent-receipt.json',JSON.stringify(receipt)+'\n');console.log({source:sha,contexts:30,selections:10,images:14,invalidReportsRejected:29});
           NODE
       - name: Retain compact Decision chart readability publication receipt
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-decision-primary-chart-context-readability-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: ${{ runner.temp }}/qelly-decision-readability-independent-receipt.json
@@ -2374,7 +2374,7 @@ jobs:
           set -euo pipefail
           node scripts/verify-published-browser-evidence.mjs "$QELLY_SCREEN_EVIDENCE_SHA" "$GITHUB_RUN_ID" "$RUNNER_TEMP/qelly-published-browser-evidence" "$RUNNER_TEMP/qelly-cloud-evidence-receipt.json"
       - name: Retain compact cloud verification receipt
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: qelly-cloud-evidence-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
           path: ${{ runner.temp }}/qelly-cloud-evidence-receipt.json
