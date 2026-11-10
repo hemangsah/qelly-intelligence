@@ -17,7 +17,7 @@ jobs:
       QELLY_SITEMAP_DIAGNOSTIC_HEAD: ${{ github.sha }}
       QELLY_SITEMAP_RED_ROOT: ${{ github.workspace }}/red
       QELLY_SITEMAP_GREEN_ROOT: ${{ github.workspace }}/green
-      QELLY_SITEMAP_OUTPUT: ${{ runner.temp }}/qelly-sitemap-pair
+      QELLY_SITEMAP_OUTPUT: ${{ github.workspace }}/qelly-sitemap-pair-evidence
       QELLY_REQUIRE_PUBLIC_RUNTIME: 'true'
       QELLY_PROMPT2C_PUBLIC_BETA: 'true'
       QELLY_PUBLIC_SITE_URL: https://terminal.qellyintelligence.com
@@ -59,7 +59,7 @@ jobs:
         if: always()
         with:
           name: qelly-public-sitemap-pair-${{ github.sha }}
-          path: ${{ runner.temp }}/qelly-sitemap-pair
+          path: ${{ github.workspace }}/qelly-sitemap-pair-evidence
           if-no-files-found: error
           retention-days: 7
   verify-published:
