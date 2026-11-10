@@ -1,59 +1,76 @@
-name: UIUX Production Baseline
+name: Nov04 Exact-source Floor Mechanism
 on:
-  pull_request:
-    branches: [release/qelly-global-public-beta]
-    paths:
-      - scripts/qelly-uiux-production-audit.mjs
-      - .github/workflows/uiux-production-baseline.yml
+  push:
+    branches: [codex/uiux-nov04-floor-mechanism]
+    paths: [.github/workflows/uiux-production-baseline.yml]
   workflow_dispatch:
     inputs:
       production_sha:
-        description: Exact production revision to audit
+        description: Exact production172 source; diagnostic instrumentation only
         required: true
         type: string
+        default: 172eb87d5cd229a11eb751578fb26dfbe344b0db
 permissions:
   contents: read
-concurrency:
-  group: qelly-uiux-baseline-${{ github.ref }}
-  cancel-in-progress: false
 jobs:
-  audit-live-routes:
+  mechanism:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
-    strategy:
-      fail-fast: false
-      matrix:
-        appearance: [dark, light]
-        width: [1440, 390]
+    timeout-minutes: 20
     env:
-      QELLY_UIUX_BASE_SHA: ${{ inputs.production_sha || '07979b7a3fab5d890e3255e47616c540531e87ae' }}
-      QELLY_UIUX_APPEARANCE: ${{ matrix.appearance }}
-      QELLY_UIUX_WIDTH: ${{ matrix.width }}
+      QELLY_SCREEN_EVIDENCE_SHA: ${{ inputs.production_sha }}
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: 'utf-8'
+      QELLY_REQUIRE_PUBLIC_RUNTIME: 'true'
+      QELLY_PROMPT2C_PUBLIC_BETA: 'true'
+      QELLY_PUBLIC_SITE_URL: https://terminal.qellyintelligence.com
+      QELLY_PUBLIC_SUPABASE_URL: https://ssdgfgqnjlwzkgukzeef.supabase.co
+      QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_shape_only_012345678901234567890123456789
+      QELLY_DEPLOYMENT_ENVIRONMENT: production
+      QELLY_EVIDENCE_CONTEXT: cloudflare-pages-production
+      QELLY_ENABLE_AUTH: 'true'
+      QELLY_ENABLE_AUTH_EMAIL_DELIVERY: 'true'
+      QELLY_ENABLE_CLOUD_SYNC: 'true'
+      QELLY_ENABLE_LIVE_PROVIDERS: 'true'
+      QELLY_ENABLE_FEEDBACK_WRITES: 'true'
     steps:
+      - name: Require exact diagnostic source
+        run: test "$QELLY_SCREEN_EVIDENCE_SHA" = 172eb87d5cd229a11eb751578fb26dfbe344b0db
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ inputs.production_sha }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          path: .nov04-floor-mechanism-runner
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: '22'
           cache: npm
-      - name: Install locked cloud-only audit dependencies
+      - name: Install locked dependencies only in cloud
         run: npm ci --ignore-scripts
-      - name: Install cloud Chromium
+      - name: Install official Chromium only in cloud
         run: npx --no-install playwright install --with-deps chromium
-      - name: Audit actual production routes without protected writes
-        run: node scripts/qelly-uiux-production-audit.mjs
-      - name: Keep baseline screens and measurements in cloud
+      - name: Bind existing evidence-server browser path
+        run: >-
+          test -e /usr/bin/chromium || sudo ln -s "$(node --input-type=module -e 'import {chromium} from "playwright"; console.log(chromium.executablePath())')" /usr/bin/chromium
+      - name: Build pinned source only in cloud
+        run: |
+          test "$(git rev-parse HEAD)" = "$QELLY_SCREEN_EVIDENCE_SHA"
+          npm run build:frontend
+      - name: Stage diagnostic helpers beside exact-source scripts
+        run: |
+          cp .nov04-floor-mechanism-runner/work/nov04-floor-mechanism-instrument.mjs scripts/
+          cp .nov04-floor-mechanism-runner/work/nov04-floor-mechanism-fixture.mjs scripts/
+          cp .nov04-floor-mechanism-runner/work/nov04-floor-mechanism-runner.mjs scripts/
+      - name: Measure unchanged scheduling; block all protected browser writes
+        run: node scripts/nov04-floor-mechanism-runner.mjs
+      - name: Retain bounded source-bound evidence only in cloud
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: qelly-uiux-baseline-${{ env.QELLY_UIUX_BASE_SHA }}-${{ matrix.appearance }}-${{ matrix.width }}
-          path: uiux-audit
-          retention-days: 30
-      - name: Publish compact receipt
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: qelly-uiux-baseline-receipt-${{ matrix.appearance }}-${{ matrix.width }}
-          path: uiux-audit/receipt.json
-          retention-days: 30
+          name: qelly-nov04-floor-mechanism-${{ inputs.production_sha }}
+          path: preview/nov04-floor-mechanism
+          retention-days: 7
