@@ -62,10 +62,11 @@ function dexTypographyBrowserSnapshot(options={mode:'primary'}){
   const visible=ancestors.every(a=>a.display!=='none'&&a.visibility==='visible'&&a.contentVisibility!=='hidden')&&effectiveOpacity>0;
   const geometry={rect:bounds,visibleRect:intersection(bounds,clippingAncestors),clippingAncestors,display:style.display,visibility:style.visibility,contentVisibility:style.contentVisibility||'visible',effectiveOpacity,ancestors,visible};
   if(!visible||bounds.width<=0||bounds.height<=0)fail('invisible/nonpositive element '+key);
-  const font=Number.parseFloat(style.fontSize),lineHeight=Number.parseFloat(style.lineHeight);
+  const font=Number.parseFloat(style.fontSize),lineHeightComputed=style.lineHeight,
+   lineHeight=lineHeightComputed==='normal'?'normal':Number.parseFloat(lineHeightComputed);
   if(control){
    const text=element.tagName==='SELECT'?element.selectedOptions[0]?.textContent?.trim():element.value||element.textContent?.trim()||element.getAttribute('placeholder');
-   return{key,role,text:text||key,tag:element.tagName.toLowerCase(),font,lineHeight,...geometry};
+   return{key,role,text:text||key,tag:element.tagName.toLowerCase(),font,lineHeight,lineHeightComputed,...geometry};
   }
   const textNodes=directText?[...element.childNodes].filter(n=>n.nodeType===Node.TEXT_NODE&&n.textContent.trim()):null;
   const text=directText?textNodes.map(n=>n.textContent).join(' ').trim():element.textContent.trim();
@@ -73,7 +74,7 @@ function dexTypographyBrowserSnapshot(options={mode:'primary'}){
   const glyphs=ranges.flatMap(range=>[...range.getClientRects()]).filter(r=>r.width>0&&r.height>0).map(r=>{const box=rect(r);return{...box,visibleRect:intersection(box,clippingAncestors)};});
   if(!background)fail('no opaque measured background for '+key);
   const foreground=parse(style.color),alpha=foreground.alpha*effectiveOpacity,composite=foreground.color.map((v,i)=>v*alpha+background[i]*(1-alpha)),a=lum(composite),b=lum(background);
-  return{key,role,text,font,lineHeight,...geometry,foreground:style.color,background,backgroundLayers,composite,contrast:(Math.max(a,b)+.05)/(Math.min(a,b)+.05),glyphs,floorClass:element.classList.contains('q-v8-text-floor')};
+  return{key,role,text,font,lineHeight,lineHeightComputed,...geometry,foreground:style.color,background,backgroundLayers,composite,contrast:(Math.max(a,b)+.05)/(Math.min(a,b)+.05),glyphs,floorClass:element.classList.contains('q-v8-text-floor')};
  };
  const common={appearance:document.documentElement.dataset.resolvedAppearance,width:innerWidth,height:innerHeight,overflow:document.documentElement.scrollWidth>innerWidth+2};
  if(options.mode==='source'){
