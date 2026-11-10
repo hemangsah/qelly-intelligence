@@ -46,7 +46,9 @@ function dexTypographyBrowserSnapshot(options={mode:'primary'}){
    // Group opacity, masks and filters need paint compositing beyond this bounded probe.
    if(!Number.isFinite(opacity)||opacity!==1)fail('unsupported group opacity for '+key);
    if(s.filter!=='none'||s.clipPath!=='none'||(s.maskImage&&s.maskImage!=='none')||s.mixBlendMode!=='normal')fail('unsupported painted/clipped effect for '+key);
-   if(!background){
+   // Controls below report font/box/visibility only. Their existing action-contrast
+   // assertions remain in the inherited runner; do not infer paint contrast here.
+   if(!control&&!background){
     const c=parse(s.backgroundColor);backgroundLayers.push({color:s.backgroundColor,alpha:c.alpha,image:s.backgroundImage});
     if(s.backgroundImage!=='none'||(c.alpha!==0&&c.alpha!==1))fail('unsupported translucent/image background for '+key);
     if(c.alpha===1)background=c.color;
