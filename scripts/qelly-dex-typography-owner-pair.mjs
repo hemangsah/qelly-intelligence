@@ -54,7 +54,7 @@ function dexTypographyBrowserSnapshot(options={mode:'primary'}){
     if(c.alpha===1)background=c.color;
    }
    // The document viewport is deliberately not a clip boundary: labels span a long page.
-   if(ancestor!==document.documentElement&&ancestor!==document.body){
+   if(ancestor!==document.documentElement&&ancestor!==document.body&&!(control&&ancestor===element)){
     const clipsX=/^(hidden|clip|auto|scroll)$/.test(s.overflowX),clipsY=/^(hidden|clip|auto|scroll)$/.test(s.overflowY);
     if(clipsX||clipsY){const r=ancestor.getBoundingClientRect(),left=r.left+ancestor.clientLeft,top=r.top+ancestor.clientTop;clippingAncestors.push({tag:ancestor.tagName,className:ancestor.className?.toString()||'',overflowX:s.overflowX,overflowY:s.overflowY,clipsX,clipsY,rect:{left,right:left+ancestor.clientWidth,top,bottom:top+ancestor.clientHeight,width:ancestor.clientWidth,height:ancestor.clientHeight}});}
    }
