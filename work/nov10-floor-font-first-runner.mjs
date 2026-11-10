@@ -116,9 +116,11 @@ try{
    assert.ok(probe.floorCalls.length>0);assert.ok(probe.floorCalls.every(call=>Number.isFinite(call.end)&&call.canvasMetricReads===0));
    const fixturePage=await context.newPage();const edge=await runFontFirstEdges(fixturePage,{site,appearance,floorSource:floorParts(injections[arm].instrumented).floor,capture,file:repetition===1?pairId+'-'+arm+'-fixture.png':null});await fixturePage.close();
    const parityValue=states.map(state=>({mode:state.mode,selected:state.selected,panelVisible:state.panelVisible,viewText:state.viewText,plot:state.plot,fontFacts:state.fontFacts})),parityDigest=hash(JSON.stringify(parityValue));
-   if(parity.has(pairId))assert.equal(parityDigest,parity.get(pairId),'Instrumentation/control chart and view parity');else parity.set(pairId,parityDigest);
+   const earlier=results.find(r=>r.pairId===pairId);
    const row={pairId,arm,appearance,width,repetition,order,sourceSha:SOURCE_SHA,initialLoadingObserved,states:states.map(({plot,...state})=>({...state,plotDigest:hash(JSON.stringify(plot))})),resized:{smallText:resized.smallText,overflow:resized.overflow},background,sourceBinding:injections[arm].receipt,reorderSource:reordered.receipt,representative,edge,probe,summary:summarizeIntervals(probe),parityDigest,blockedWriteAttempts:writes,protectedWritesSent:0,blockedExternalRequests:external,pageErrors,readErrors,shellReads,decisionReads};
-   results.push(row);await writeFile(out+'/'+pairId+'-'+arm+'.json',JSON.stringify(row,null,2)+'\n');await context.unrouteAll({behavior:'wait'});await context.close();active=null;
+   results.push(row);await writeFile(out+'/'+pairId+'-'+arm+'.json',JSON.stringify(row,null,2)+'\n');
+   if(earlier){if(parityDigest!==earlier.parityDigest){const differences=[];const compare=(a,b,path='states')=>{if(differences.length>=40||Object.is(a,b))return;if(!a||!b||typeof a!=='object'||typeof b!=='object'){differences.push({path,baseline:a,candidate:b});return;}for(const key of new Set([...Object.keys(a),...Object.keys(b)]))compare(a[key],b[key],path+'.'+key);};compare(earlier.states,row.states);await writeFile(out+'/pair-mismatch.json',JSON.stringify({pairId,baselineArm:earlier.arm,candidateArm:arm,baselineDigest:earlier.parityDigest,candidateDigest:parityDigest,differences,sourceSha:SOURCE_SHA},null,2)+'\n');assert.equal(parityDigest,earlier.parityDigest,'Chart/view/font parity: '+JSON.stringify(differences));}}
+   else parity.set(pairId,parityDigest);await context.unrouteAll({behavior:'wait'});await context.close();active=null;
   }
  }
  assert.equal(results.length,24);assert.equal(images.length,56);
