@@ -1,0 +1,96 @@
+{
+  "schema": "qelly.closed-details.native-safety/1.0",
+  "base": "172eb87d5cd229a11eb751578fb26dfbe344b0db",
+  "sourceBindings": {
+    "apps/web/public/assets/qelly-production-shell.mjs": {
+      "bytes": 23467,
+      "sha256": "a4548e535a59fda0d20095ce0867ee812f4d0e2b1a284faf81c5096cb2c8153f",
+      "blobSha": "87465e2128d206e2acd053a49db42aeda5fd2cdf"
+    },
+    "apps/web/public/assets/routes/decision-proven-graph.mjs": {
+      "bytes": 230923,
+      "sha256": "a41453df7cc3e247d3c7d144b602957eba37ec8eb3c03da4264706d806dc77de",
+      "blobSha": "ec263949fe2873f148b0c46f49657b57f28b80c8"
+    },
+    "apps/web/public/assets/qelly-decision-proven-graph.css": {
+      "bytes": 113527,
+      "sha256": "3e448d76f44cae03d1c93090e7fffe31dbcc80c0436605eaaec1e659a0ef1fc7",
+      "blobSha": "dcd72b3ec207839d74b2b49cc6e02dfe0c36cf2b"
+    },
+    "functions/api/v1/decision-proven-graph.js": {
+      "bytes": 48652,
+      "sha256": "533466d29eca278f9c2955ca3675aa60b570b888f21fa1b0ead565a6b0785a0d",
+      "blobSha": "85e541b8af5740dec9c25a4cf00b9e44ce0ff0d5"
+    },
+    "functions/_lib/decision-asset-capabilities.js": {
+      "bytes": 4713,
+      "sha256": "039783fe850ef17a6d0efcc6b532447be7dbbe6935dc36c621b38832f7e27fba",
+      "blobSha": "9988617ae481d8cef2c0953621c2dc0e7dcf65b6"
+    },
+    "functions/api/v1/decision-news-context.js": {
+      "bytes": 2956,
+      "sha256": "9750673fb8b8f52d7d159e5fd4a26a266b8e1e6f9c952fb5f51008dbe6b39467",
+      "blobSha": "456a57c0f01f7a43165199f4bc963a8d05352de0"
+    },
+    "scripts/release-a5-evidence-server.mjs": {
+      "bytes": 19238,
+      "sha256": "4cda0ee0c8af0579f956c2062cdb127f10b387985b0ead8123e7883d03a67aa3",
+      "blobSha": "39344dc910b49e5951e6f3f65a1b9d024b66de31"
+    }
+  },
+  "candidateSha256": "4e553502f5382573f048ec9e86d039ae48c5aed864a8ca9d12a728fb9460c2b8",
+  "edits": [
+    {
+      "name": "native-closed-body-classifier",
+      "before": "function applyAccessibilityFloor(){",
+      "after": "function isInsideClosedNativeDetailBody(element){\n  if(typeof HTMLDetailsElement!=='function')return false;\n  let closed=element.closest('details:not([open])');\n  while(closed){\n    if(closed instanceof HTMLDetailsElement){\n      let firstSummary=null;\n      for(const child of closed.children){if(child.localName==='summary'){firstSummary=child;break;}}\n      if(!firstSummary||!firstSummary.contains(element))return true;\n    }\n    closed=closed.parentElement?.closest('details:not([open])')||null;\n  }\n  return false;\n}\nfunction applyAccessibilityFloor(){"
+    },
+    {
+      "name": "optional-subtree-scope",
+      "before": "function applyAccessibilityFloor(){",
+      "after": "function applyAccessibilityFloor(scope=main){"
+    },
+    {
+      "name": "scope-guard",
+      "before": "  if(!main||typeof getComputedStyle!=='function')return;",
+      "after": "  if(!main||!scope||typeof scope.querySelectorAll!=='function'||typeof getComputedStyle!=='function')return;"
+    },
+    {
+      "name": "same-selector-on-scope",
+      "before": "  const textCandidates=main.querySelectorAll('span,strong",
+      "after": "  const textCandidates=scope.querySelectorAll('span,strong"
+    },
+    {
+      "name": "skip-only-native-closed-bodies",
+      "before": "    if(!element.textContent?.trim()||!element.getClientRects().length)continue;",
+      "after": "    if(isInsideClosedNativeDetailBody(element))continue;\n    if(!element.textContent?.trim()||!element.getClientRects().length)continue;"
+    },
+    {
+      "name": "native-open-subtree-floor",
+      "before": "if(main)new MutationObserver((records)=>{",
+      "after": "if(main)main.addEventListener('toggle',(event)=>{\n  const detail=event.target;\n  if(typeof HTMLDetailsElement==='function'&&detail instanceof HTMLDetailsElement&&detail.open&&main.contains(detail))applyAccessibilityFloor(detail);\n},true);\nif(main)new MutationObserver((records)=>{"
+    }
+  ],
+  "sourceFragments": {
+    "baselineSha256": "a4548e535a59fda0d20095ce0867ee812f4d0e2b1a284faf81c5096cb2c8153f",
+    "candidateSha256": "4e553502f5382573f048ec9e86d039ae48c5aed864a8ca9d12a728fb9460c2b8",
+    "reverseSha256": "a4548e535a59fda0d20095ce0867ee812f4d0e2b1a284faf81c5096cb2c8153f",
+    "sourceReversalExact": true,
+    "helperSha256": "beb9a7774f7648251c47359cc0bba445c4a5bc573d6c7dd63f14b84a2b34a7eb",
+    "listenerSha256": "17f07a0b9b556867fc65ffbcc111daba491ae9790f6d9d316eef61521ad70a3a"
+  },
+  "instrumentedFloorBindings": {
+    "baseline": {
+      "originalSha256": "c1956547efa930cb9a7ba8ad9a187640077514632490f92cde0c1a47e2c32920",
+      "instrumentedSha256": "7b9d6492cfb62da1a6a3ddb8caad03a0b486a9a88336a750e4fa8b362e0ee4a8",
+      "reversalExact": true
+    },
+    "candidate": {
+      "originalSha256": "3fa843557e98218905baec93bf42876862b73ab57336dd6a71e8a18cad817b65",
+      "instrumentedSha256": "89ec0e86e30cc03e1f9253333292e53723ea2b1ff643d208e691318e0186cb70",
+      "reversalExact": true
+    }
+  },
+  "productionSourceChanged": false,
+  "rendererPhaseMandatoryAfterNativePass": true
+}
