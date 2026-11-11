@@ -1,59 +1,82 @@
-name: UIUX Production Baseline
+name: Drawer Resize Source Comparison
 on:
-  pull_request:
-    branches: [release/qelly-global-public-beta]
-    paths:
-      - scripts/qelly-uiux-production-audit.mjs
-      - .github/workflows/uiux-production-baseline.yml
   workflow_dispatch:
     inputs:
-      production_sha:
-        description: Exact production revision to audit
+      source_sha:
         required: true
         type: string
+        default: 172eb87d5cd229a11eb751578fb26dfbe344b0db
 permissions:
   contents: read
-concurrency:
-  group: qelly-uiux-baseline-${{ github.ref }}
-  cancel-in-progress: false
 jobs:
-  audit-live-routes:
+  compare-drawer:
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        appearance: [dark, light]
-        width: [1440, 390]
+        source:
+          - 172eb87d5cd229a11eb751578fb26dfbe344b0db
+          - 3011438eb4fc891fdac98e249bebe336ee3307be
     env:
-      QELLY_UIUX_BASE_SHA: ${{ inputs.production_sha || '07979b7a3fab5d890e3255e47616c540531e87ae' }}
-      QELLY_UIUX_APPEARANCE: ${{ matrix.appearance }}
-      QELLY_UIUX_WIDTH: ${{ matrix.width }}
+      QELLY_DRAWER_SOURCE_ROOT: ${{ github.workspace }}/source
+      QELLY_DRAWER_SOURCE_SHA: ${{ matrix.source }}
+      QELLY_SCREEN_EVIDENCE_SHA: ${{ matrix.source }}
+      CF_PAGES_COMMIT_SHA: ${{ matrix.source }}
+      QELLY_REQUIRE_PUBLIC_RUNTIME: 'true'
+      QELLY_PROMPT2C_PUBLIC_BETA: 'true'
+      QELLY_PUBLIC_SITE_URL: https://terminal.qellyintelligence.com
+      QELLY_PUBLIC_SUPABASE_URL: https://ssdgfgqnjlwzkgukzeef.supabase.co
+      QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_shape_only_012345678901234567890123456789
+      QELLY_DEPLOYMENT_ENVIRONMENT: production
+      QELLY_EVIDENCE_CONTEXT: cloudflare-pages-production
+      QELLY_ENABLE_AUTH: 'true'
+      QELLY_ENABLE_AUTH_EMAIL_DELIVERY: 'true'
+      QELLY_ENABLE_CLOUD_SYNC: 'true'
+      QELLY_ENABLE_LIVE_PROVIDERS: 'true'
+      QELLY_ENABLE_FEEDBACK_WRITES: 'true'
     steps:
+      - name: Require accepted baseline input
+        run: test '${{ inputs.source_sha }}' = 172eb87d5cd229a11eb751578fb26dfbe344b0db
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ matrix.source }}
+          path: source
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          path: runner
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: '22'
-          cache: npm
-      - name: Install locked cloud-only audit dependencies
+      - name: Install locked dependencies in cloud
+        working-directory: source
         run: npm ci --ignore-scripts
-      - name: Install cloud Chromium
-        run: npx --no-install playwright install --with-deps chromium
-      - name: Audit actual production routes without protected writes
-        run: node scripts/qelly-uiux-production-audit.mjs
-      - name: Keep baseline screens and measurements in cloud
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
-          name: qelly-uiux-baseline-${{ env.QELLY_UIUX_BASE_SHA }}-${{ matrix.appearance }}-${{ matrix.width }}
-          path: uiux-audit
-          retention-days: 30
-      - name: Publish compact receipt
+          python-version: '3.12'
+      - name: Install the actual fullBrowser Chromium158 toolchain
+        run: |
+          python3 -m pip install --disable-pip-version-check playwright==1.65.0
+          python3 -m playwright install --with-deps chromium
+          chromium_path="$(python3 -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')"
+          test -x "$chromium_path"
+          sudo ln -sf "$chromium_path" /usr/bin/chromium
+          /usr/bin/chromium --version
+      - name: Build exact source without changing the product
+        working-directory: source
+        run: |
+          test "$(git rev-parse HEAD)" = "$QELLY_SCREEN_EVIDENCE_SHA"
+          git diff --exit-code
+          npm run build:frontend
+      - name: Record at most three unchanged strict drawer executions
+        run: node runner/work/nov11-drawer-resize-controller.mjs
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: qelly-uiux-baseline-receipt-${{ matrix.appearance }}-${{ matrix.width }}
-          path: uiux-audit/receipt.json
-          retention-days: 30
+          name: qelly-uiux-profile-drawer-resize-${{ matrix.source }}-${{ github.sha }}
+          path: source/preview/pr642-drawer-resize-diagnostic
+          if-no-files-found: error
+          retention-days: 7
