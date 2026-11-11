@@ -33,11 +33,19 @@ test('Wave BP monitors forced-GC heap, DOM, listeners, timers, iframes, network 
     "document.getElementsByTagName('*').length",
     "document.querySelectorAll('iframe').length",
     '__QELLY_CHAOS_TIMERS__',
-    'unexpectedNetwork',
-    "page.on('pageerror'",
-    "message.type()!=='error'"
+    'unexpectedNetwork'
   ])assert.ok(source.includes(contract),contract);
   for(const failure of ['js_heap','dom_nodes','event_listeners','documents','timers','iframes','duplicate_shell','unexpected_first_party_network'])assert.ok(source.includes(failure),failure);
+  const provenance=await read('scripts/first-paint-console-provenance.mjs');
+  assert.match(source,/import \{attachFirstPaintConsoleProvenance\} from '\.\/first-paint-console-provenance\.mjs'/);
+  assert.equal((source.match(/const consoleCollector=await attachFirstPaintConsoleProvenance\(page,context,errors\)/g)||[]).length,3);
+  assert.match(provenance,/page\.on\('pageerror',onPageError\);page\.on\('console',onConsole\)/);
+  assert.match(provenance,/const onPageError=error=>\{[^\n]*errors\.push\(item\.text\)/);
+  assert.match(provenance,/if\(message\.type\(\)!=='error'\)return/);
+  assert.match(provenance,/if\(!item\.resourceErrorHandledByExistingNetworkChecks\)\{errorRecords\.push\(item\);errors\.push\(item\.text\);\}/);
+  assert.match(source,/if\(errors\.length\)failures\.push\('console_or_page_error'\)/);
+  for(const failClosed of ['consoleError.argumentCount!==0',"nativeEntry.source!=='violation'",'nativeEntry.sessionIsMainFrame!==false','owner?.verified!==true','if(entry.consumed)continue;'])assert.ok(provenance.includes(failClosed),failClosed);
+  assert.match(source,/for\(const scenario of report\.scenarios\)if\(scenario\.errors\.length\)\{scenario\.status='failed';report\.status='failed';\}/);
 });
 
 test('Wave BP chaos probe uses deterministic degraded API responses and never injects market evidence',async()=>{
