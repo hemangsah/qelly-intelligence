@@ -102,16 +102,16 @@ test('two separately observed native stacks excuse exactly two errors',()=>{
 
 function collectorFixture(){
   const page=new EventEmitter(),main={url:()=>page.url()},sessions=new Map();
-  let childURL='about:blank';
+  let childURL='about:blank',childDetached=false,failLookup=false;
   const host={id:'v6-market-tradingview',dataset:{externalProvider:null,usage:null},contains:()=>true};
   const node={tagName:'IFRAME',src:'about:blank',closest:()=>host};
-  const child={url:()=>childURL,frameElement:async()=>({evaluate:async fn=>fn(node),dispose:async()=>{}})};
-  page.mainFrame=()=>main;page.url=()=> 'http://127.0.0.1:1234/#/market';page.locator=()=>({evaluateAll:async()=>[]});
+  const child={url:()=>childURL,isDetached:()=>childDetached,frameElement:async()=>{if(failLookup)throw new Error('frame.frameElement: Frame has been detached.');return{evaluate:async fn=>fn(node),dispose:async()=>{}};}};
+  page.frames=()=>[main,child];page.mainFrame=()=>main;page.url=()=> 'http://127.0.0.1:1234/#/market';page.locator=()=>({evaluateAll:async()=>[]});
   const context={newCDPSession:async target=>{const session=new EventEmitter();session.send=async()=>({});session.detach=async()=>{};sessions.set(target,session);return session;}};
   const makeOwned=()=>{childURL=frame;node.src=frame;host.dataset.externalProvider='tradingview';host.dataset.usage='display-only';};
   const emitError=(text=BLOCKED_UNLOAD_MESSAGE,url=bundle)=>page.emit('console',{type:()=> 'error',text:()=>text,args:()=>[],location:()=>({url,lineNumber:9})});
   const emitNative=()=>{const {native}=fixture();sessions.get(child).emit('Log.entryAdded',{entry:{...native,timestamp:Date.now()}});};
-  return {page,context,child,host,sessions,makeOwned,emitError,emitNative};
+  return {page,context,child,host,sessions,makeOwned,emitError,emitNative,failLookup:()=>{failLookup=true;},detachChild:()=>{childDetached=true;page.emit('framedetached',child);}};
 }
 test('collector retains raw evidence and never reuses a native event across flushes',async()=>{
   const f=collectorFixture(),errors=[];const collector=await attachFirstPaintConsoleProvenance(f.page,f.context,errors);
@@ -160,4 +160,78 @@ test('late disposal errors remain fatal and update the retained raw evidence unt
   f.emitError();
   assert.deepEqual(errors,['late disposal error',BLOCKED_UNLOAD_MESSAGE]);assert.equal(evidence.rawConsoleErrors.length,2);assert.equal(evidence.advisories.length,0);
   f.page.emit('close');f.emitError('after page close');assert.equal(errors.length,2);
+});
+
+// Retiring-frame sequence is source-bound to lifecycle run42984854557:
+// live physical owner check -> controlled reload -> native event -> detach ->
+// exact failed owner lookup. No historical owner is reused outside that window.
+const retiringFixture=()=>{
+ const f=fixture();f.native.timestamp=1000;f.native.frameOwner=null;
+ f.native.ownerLookup={owner:null,startedAt:1001,completedAt:1020,detachedBefore:false,detachedAfter:true,error:'frame.frameElement: Frame has been detached.'};
+ f.native.retiringNavigationProof={schema:'qelly.first-paint.retiring-navigation/1.0',operation:'reload',navigationToken:'reload-1',succeeded:true,mainNavigations:1,ownerSnapshot:fixture().native.frameOwner,ownerVerifiedAt:990,navigationStartedAt:995,navigationCompletedAt:1030,pageURLBefore:'http://127.0.0.1:1234/#/market',pageURLAfter:'http://127.0.0.1:1234/#/market',frameToken:'frame-2',frameURL:frame,generationBefore:1,generationAtEvent:1,generationAfter:1,attachedAtEvent:true,frameDetachedAt:1015,mainNavigatedAt:1016};
+ return f;
+};
+test('retiring owned frame retains its null live lookup and a bounded reload proof',()=>{
+ const {error,native}=retiringFixture();assert.equal(isMarketDisplayWidgetUnloadAdvisory(error,native),true);assert.equal(native.frameOwner,null);
+ assert.equal(correlateFirstPaintConsoleErrors([error],[native]).advisories.length,1);
+});
+const retiringNegatives=[
+ ['missing proof',n=>delete n.retiringNavigationProof],['wrong schema',n=>n.retiringNavigationProof.schema='unknown'],
+ ['not a reload',n=>n.retiringNavigationProof.operation='navigate'],['reload failed',n=>n.retiringNavigationProof.succeeded=false],
+ ['no main navigation',n=>n.retiringNavigationProof.mainNavigations=0],['multiple main navigations',n=>n.retiringNavigationProof.mainNavigations=2],
+ ['missing navigation token',n=>delete n.retiringNavigationProof.navigationToken],['changed top URL',n=>n.retiringNavigationProof.pageURLAfter+='-other'],
+ ['missing both page URLs',n=>{delete n.retiringNavigationProof.pageURLBefore;delete n.retiringNavigationProof.pageURLAfter;}],['wrong page route',n=>{n.retiringNavigationProof.pageURLBefore=n.retiringNavigationProof.pageURLAfter='http://127.0.0.1:1234/#/decision-provenance';}],['negative generation',n=>{n.retiringNavigationProof.generationBefore=n.retiringNavigationProof.generationAtEvent=n.retiringNavigationProof.generationAfter=-1;}],['malformed navigation token',n=>n.retiringNavigationProof.navigationToken='not-a-reload'],
+ ['wrong frame token',n=>n.retiringNavigationProof.frameToken='frame-3'],['wrong frame URL',n=>n.retiringNavigationProof.frameURL+='-other'],
+ ['unowned snapshot',n=>n.retiringNavigationProof.ownerSnapshot.verified=false],['unrelated host',n=>n.retiringNavigationProof.ownerSnapshot.hostId='other'],
+ ['wrong usage',n=>n.retiringNavigationProof.ownerSnapshot.usage='execution'],['not attached at event',n=>n.retiringNavigationProof.attachedAtEvent=false],
+ ['child navigated before event',n=>n.retiringNavigationProof.generationAtEvent++],['child navigated after event',n=>n.retiringNavigationProof.generationAfter++],
+ ['missing generation',n=>delete n.retiringNavigationProof.generationBefore],['missing detach time',n=>n.retiringNavigationProof.frameDetachedAt=null],
+ ['stale owner',n=>n.retiringNavigationProof.ownerVerifiedAt=700],['event before reload',n=>n.retiringNavigationProof.navigationStartedAt=1002],
+ ['delayed event',n=>n.retiringNavigationProof.navigationStartedAt=700],['event after detach',n=>n.retiringNavigationProof.frameDetachedAt=1000],
+ ['delayed detach',n=>{n.retiringNavigationProof.frameDetachedAt=1300;n.retiringNavigationProof.navigationCompletedAt=1400;n.ownerLookup.completedAt=1310;}],
+ ['unrelated main navigation',n=>n.retiringNavigationProof.mainNavigatedAt=700],['unfinished reload',n=>n.retiringNavigationProof.navigationCompletedAt=null],
+ ['reload completed before detach',n=>n.retiringNavigationProof.navigationCompletedAt=1010],['different lookup error',n=>n.ownerLookup.error='Owner unavailable'],
+ ['already detached at lookup',n=>n.ownerLookup.detachedBefore=true],['not detached after lookup',n=>n.ownerLookup.detachedAfter=false],
+ ['missing lookup',n=>delete n.ownerLookup],['lookup preceded event',n=>n.ownerLookup.startedAt=999],
+ ['lookup not complete after detach',n=>n.ownerLookup.completedAt=1010],['unbounded lookup',n=>n.ownerLookup.completedAt=1400],
+ ['non-null unowned live lookup',n=>n.frameOwner={verified:false}],['future native timestamp',n=>n.timestamp=1002]
+];
+for(const[name,mutate]of retiringNegatives)test('retiring proof fails closed: '+name,()=>{
+ const {error,native}=retiringFixture();mutate(native);assert.equal(isMarketDisplayWidgetUnloadAdvisory(error,native),false);
+ assert.deepEqual(correlateFirstPaintConsoleErrors([error],[native]).fatal,[error]);
+});
+test('retiring native proof is still consumed exactly once',()=>{
+ const {error,native}=retiringFixture();const result=correlateFirstPaintConsoleErrors([error,{...error}],[native]);
+ assert.equal(result.advisories.length,1);assert.equal(result.fatal.length,1);
+});
+test('collector captures a current physical owner immediately before a controlled reload',async()=>{
+ const f=collectorFixture(),errors=[],collector=await attachFirstPaintConsoleProvenance(f.page,f.context,errors);
+ f.makeOwned();f.page.emit('frameattached',f.child);await collector.flush();
+ await collector.observeReload(async()=>{f.failLookup();f.emitError();f.emitNative();f.detachChild();f.page.emit('framenavigated',f.page.mainFrame());});
+ const evidence=await collector.flush();assert.deepEqual(errors,[]);assert.equal(evidence.advisories.length,1);
+ assert.equal(evidence.nativeEntries[0].frameOwner,null);assert.equal(evidence.nativeEntries[0].retiringNavigationProof.operation,'reload');
+ await collector.dispose();
+});
+test('collector never treats an unobserved detach as an owned reload',async()=>{
+ const f=collectorFixture(),errors=[],collector=await attachFirstPaintConsoleProvenance(f.page,f.context,errors);
+ f.makeOwned();f.page.emit('frameattached',f.child);await collector.flush();f.failLookup();f.emitError();f.emitNative();f.detachChild();
+ const evidence=await collector.flush();assert.deepEqual(errors,[BLOCKED_UNLOAD_MESSAGE]);assert.equal(evidence.advisories.length,0);await collector.dispose();
+});
+test('collector rejects a previously owned frame when its pre-reload owner is unrelated',async()=>{
+ const f=collectorFixture(),errors=[],collector=await attachFirstPaintConsoleProvenance(f.page,f.context,errors);
+ f.makeOwned();f.page.emit('frameattached',f.child);await collector.flush();f.host.id='unrelated-widget';
+ await collector.observeReload(async()=>{f.failLookup();f.emitError();f.emitNative();f.detachChild();f.page.emit('framenavigated',f.page.mainFrame());});
+ const evidence=await collector.flush();assert.deepEqual(errors,[BLOCKED_UNLOAD_MESSAGE]);assert.equal(evidence.advisories.length,0);await collector.dispose();
+});
+test('collector rejects a child navigation inside a controlled reload window',async()=>{
+ const f=collectorFixture(),errors=[],collector=await attachFirstPaintConsoleProvenance(f.page,f.context,errors);
+ f.makeOwned();f.page.emit('frameattached',f.child);await collector.flush();
+ await collector.observeReload(async()=>{f.page.emit('framenavigated',f.child);f.failLookup();f.emitError();f.emitNative();f.detachChild();f.page.emit('framenavigated',f.page.mainFrame());});
+ const evidence=await collector.flush();assert.deepEqual(errors,[BLOCKED_UNLOAD_MESSAGE]);assert.equal(evidence.advisories.length,0);await collector.dispose();
+});
+test('a rejected reload never grants a retiring-frame advisory',async()=>{
+ const f=collectorFixture(),errors=[],collector=await attachFirstPaintConsoleProvenance(f.page,f.context,errors);
+ f.makeOwned();f.page.emit('frameattached',f.child);await collector.flush();
+ await assert.rejects(collector.observeReload(async()=>{f.failLookup();f.emitError();f.emitNative();f.detachChild();f.page.emit('framenavigated',f.page.mainFrame());throw new Error('reload failed');}));
+ const evidence=await collector.flush();assert.deepEqual(errors,[BLOCKED_UNLOAD_MESSAGE]);assert.equal(evidence.advisories.length,0);await collector.dispose();
 });

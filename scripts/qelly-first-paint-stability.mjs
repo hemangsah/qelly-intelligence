@@ -408,7 +408,7 @@ try{
         const consoleEvidenceStart=consoleCollector.checkpoint();
         const started=performance.now();
         if(mode==='cold')await page.goto(base+'/'+hash,{waitUntil:'domcontentloaded',timeout:20000});
-        else await page.reload({waitUntil:'domcontentloaded',timeout:20000});
+        else await consoleCollector.observeReload(()=>page.reload({waitUntil:'domcontentloaded',timeout:20000}));
         const domLoaded=performance.now();
         const frames=[];
         for(const target of samples){

@@ -44,7 +44,7 @@ test('Wave BP monitors forced-GC heap, DOM, listeners, timers, iframes, network 
   assert.match(provenance,/if\(message\.type\(\)!=='error'\)return/);
   assert.match(provenance,/if\(!item\.resourceErrorHandledByExistingNetworkChecks\)\{errorRecords\.push\(item\);errors\.push\(item\.text\);\}/);
   assert.match(source,/if\(errors\.length\)failures\.push\('console_or_page_error'\)/);
-  for(const failClosed of ['consoleError.argumentCount!==0',"nativeEntry.source!=='violation'",'nativeEntry.sessionIsMainFrame!==false','owner?.verified!==true','if(entry.consumed)continue;'])assert.ok(provenance.includes(failClosed),failClosed);
+  for(const failClosed of ['consoleError.argumentCount!==0',"nativeEntry.source!=='violation'",'nativeEntry.sessionIsMainFrame!==false','owner?.verified===true',"owner.hostId==='v6-market-tradingview'","owner.provider==='tradingview'","owner.usage==='display-only'","owner.elementTag==='IFRAME'",'owner.frameURL===url','!hasRetiringNavigationProof(nativeEntry)','entry.frameOwner!==null',"l.error!=='frame.frameElement: Frame has been detached.'",'p.mainNavigations!==1','p.frameToken!==entry.frameToken','p.generationBefore!==p.generationAfter','p.frameDetachedAt-entry.at>250','if(entry.consumed)continue;'])assert.ok(provenance.includes(failClosed),failClosed);
   assert.match(source,/for\(const scenario of report\.scenarios\)if\(scenario\.errors\.length\)\{scenario\.status='failed';report\.status='failed';\}/);
 });
 
