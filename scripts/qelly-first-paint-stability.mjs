@@ -1,4 +1,5 @@
 import {chromium} from 'playwright';
+import {attachFirstPaintConsoleProvenance} from './first-paint-console-provenance.mjs';
 import {createServer} from 'node:http';
 import {readFile,mkdir,mkdtemp,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -88,8 +89,8 @@ async function runRouteCycleStabilityProbe(browser){
   const context=await browser.newContext({viewport:{width:1440,height:1000},device_scale_factor:1,reduced_motion:'reduce'});
   const page=await context.newPage();
   const errors=[];
-  page.on('pageerror',error=>errors.push(String(error)));
-  page.on('console',message=>{if(message.type()==='error'&&!/^Failed to load resource:/i.test(message.text()))errors.push(message.text());});
+  // Native console provenance: route-cycle probe.
+  const consoleCollector=await attachFirstPaintConsoleProvenance(page,context,errors);
   const sequence=['#/market','#/decision-provenance','#/news-research','#/calculator-center'];
   const samples=[];
   let cdp=null;
@@ -118,6 +119,7 @@ async function runRouteCycleStabilityProbe(browser){
         domNodes:await page.locator('*').count()
       });
     }
+    const consoleProvenance=await consoleCollector.flush();
     const heap=samples.map(item=>item.jsHeapUsedBytes);
     const dom=samples.map(item=>item.domNodes);
     const listeners=samples.map(item=>item.eventListeners);
@@ -127,11 +129,12 @@ async function runRouteCycleStabilityProbe(browser){
     if(materialContinuousGrowth(dom,{ratio:1.20,minDelta:800}))failures.push('dom_nodes');
     if(materialContinuousGrowth(listeners,{ratio:1.50,minDelta:150}))failures.push('event_listeners');
     if(materialContinuousGrowth(documents,{ratio:1.50,minDelta:8}))failures.push('documents');
-    return {status:failures.length||errors.length?'failed':'passed',cycles:6,sequence,samples,failures,errors,metricSource:'chromium-cdp-after-forced-gc'};
+    return {status:failures.length||errors.length?'failed':'passed',cycles:6,sequence,samples,failures,errors,consoleProvenance,metricSource:'chromium-cdp-after-forced-gc'};
   }catch(error){
-    return {status:'unavailable',cycles:samples.length,sequence,samples,failures:[],errors:[String(error?.message||error)],metricSource:'chromium-cdp-after-forced-gc'};
+    return {status:'unavailable',cycles:samples.length,sequence,samples,failures:[],errors:[String(error?.message||error)],consoleProvenance:await consoleCollector.flush(),metricSource:'chromium-cdp-after-forced-gc'};
   }finally{
     await cdp?.detach?.().catch(()=>{});
+    await consoleCollector.dispose();
     await context.close();
   }
 }
@@ -164,13 +167,8 @@ async function runDecisionChaosStabilityProbe(browser){
     window.clearInterval=(id)=>{intervals.delete(id);return nativeClearInterval(id);};
     Object.defineProperty(window,'__QELLY_CHAOS_TIMERS__',{configurable:true,value:{snapshot:()=>({timeouts:timeouts.size,intervals:intervals.size,total:timeouts.size+intervals.size})}});
   });
-  page.on('pageerror',error=>errors.push(String(error)));
-  page.on('console',message=>{
-    if(message.type()!=='error')return;
-    const value=message.text();
-    if(/^Failed to load resource:/i.test(value))return;
-    errors.push(value);
-  });
+  // Native console provenance: Decision chaos probe.
+  const consoleCollector=await attachFirstPaintConsoleProvenance(page,context,errors);
   page.on('request',request=>{
     const pathname=new URL(request.url()).pathname;
     if(pathname==='/api/v1/decision-proven-graph')requestCounts.decision+=1;
@@ -272,6 +270,7 @@ async function runDecisionChaosStabilityProbe(browser){
     await page.waitForTimeout(160);
     idleResumed=true;
     const afterResume=await metricSnapshot('resume',8);
+    const consoleProvenance=await consoleCollector.flush();
 
     const failures=[];
     const heap=samples.map(item=>item.jsHeapUsedBytes);
@@ -295,7 +294,7 @@ async function runDecisionChaosStabilityProbe(browser){
     if(unexpectedNetwork.length)failures.push('unexpected_first_party_network');
     return {
       status:failures.length?'failed':'passed',
-      cycles:6,refreshes,controlChanges,idleResumed,requestCounts,samples,failures,errors,unexpectedNetwork,
+      cycles:6,refreshes,controlChanges,idleResumed,requestCounts,samples,failures,errors,unexpectedNetwork,consoleProvenance,
       injectedFailureBoundary:'Decision/scanner API calls are deterministically returned as 503 so lifecycle stability is measured without external-provider variance or fake market evidence.',
       metricSource:'chromium-cdp-after-forced-gc-plus-in-page-timer-and-iframe-counters',
       idleWindowMs:2200,
@@ -310,18 +309,20 @@ async function runDecisionChaosStabilityProbe(browser){
   }catch(error){
     return {
       status:'unavailable',cycles:samples.length,refreshes,controlChanges,idleResumed,requestCounts,samples,
-      failures:['probe_unavailable'],errors:[String(error?.message||error)],unexpectedNetwork,
+      failures:['probe_unavailable'],errors:[String(error?.message||error)],unexpectedNetwork,consoleProvenance:await consoleCollector.flush(),
       injectedFailureBoundary:'Decision/scanner API calls are deterministically returned as 503; no market evidence is synthesized.',
       metricSource:'chromium-cdp-after-forced-gc-plus-in-page-timer-and-iframe-counters'
     };
   }finally{
     await cdp?.detach?.().catch(()=>{});
+    await consoleCollector.dispose();
     await context.close();
   }
 }
 
 
 const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
+report.browserVersion=browser.version();
 try{
   for(const [viewportName,viewport] of viewports){
     for(const [routeName,hash] of routes){
@@ -394,13 +395,8 @@ try{
       });
       const errors=[];
       const networkFailures=[];
-      page.on('pageerror',error=>errors.push(String(error)));
-      page.on('console',msg=>{
-        if(msg.type()!=='error')return;
-        const value=msg.text();
-        if(/^Failed to load resource:/i.test(value))return;
-        errors.push(value);
-      });
+      // Native console provenance: full cold/warm route matrix.
+      const consoleCollector=await attachFirstPaintConsoleProvenance(page,context,errors);
       page.on('response',response=>{
         const status=response.status();
         if(status<400)return;
@@ -409,9 +405,10 @@ try{
         networkFailures.push({status,url:url.pathname+url.search,expectedAuthBoundary});
       });
       for(const mode of ['cold','warm']){
+        const consoleEvidenceStart=consoleCollector.checkpoint();
         const started=performance.now();
         if(mode==='cold')await page.goto(base+'/'+hash,{waitUntil:'domcontentloaded',timeout:20000});
-        else await page.reload({waitUntil:'domcontentloaded',timeout:20000});
+        else await consoleCollector.observeReload(()=>page.reload({waitUntil:'domcontentloaded',timeout:20000}));
         const domLoaded=performance.now();
         const frames=[];
         for(const target of samples){
@@ -468,10 +465,12 @@ try{
         if(Number(vitals.cls)>0.25)vitalRegressions.push('cls');
         if(representativeInteraction&&Number(vitals.inpMs)>500)vitalRegressions.push('inp');
         const repeatedFirstPartyLongTaskViolation=firstPartyLongTasksOver500.length>=2;
+        const consoleProvenance=await consoleCollector.flush(consoleEvidenceStart);
         const passed=obsolete.length===0&&structural.length===0&&last.appReady==='true'&&last.mainChildren>0&&errors.length===0&&unexpectedNetwork.length===0&&criticalStalls.length===0&&!repeatedFirstPartyLongTaskViolation&&runtimeMeasured&&vitalsMeasured&&vitalRegressions.length===0;
-        report.scenarios.push({route:routeName,hash,viewport:viewportName,mode,navigationToDomContentLoadedMs:Math.round(domLoaded-started),frames,obsolete,structural,errors,unexpectedNetwork,authBoundary401,performanceSignals:{...performanceSignals,criticalStalls,firstPartyLongTasksOver500,repeatedFirstPartyLongTaskViolation,runtimeMeasured,vitalRegressions,maxLongTaskMs:performanceSignals.longTasks.reduce((max,item)=>Math.max(max,Number(item.duration)||0),0),longTasksOver500:performanceSignals.longTasks.filter((item)=>Number(item.duration)>500).length,maxRouteTransitionMs:Array.isArray(runtimePerformance?.routes)?runtimePerformance.routes.reduce((max,item)=>Math.max(max,Number(item.durationMs)||0),0):0},status:passed?'passed':'failed'});
+        report.scenarios.push({consoleProvenance,route:routeName,hash,viewport:viewportName,mode,navigationToDomContentLoadedMs:Math.round(domLoaded-started),frames,obsolete,structural,errors,unexpectedNetwork,authBoundary401,performanceSignals:{...performanceSignals,criticalStalls,firstPartyLongTasksOver500,repeatedFirstPartyLongTaskViolation,runtimeMeasured,vitalRegressions,maxLongTaskMs:performanceSignals.longTasks.reduce((max,item)=>Math.max(max,Number(item.duration)||0),0),longTasksOver500:performanceSignals.longTasks.filter((item)=>Number(item.duration)>500).length,maxRouteTransitionMs:Array.isArray(runtimePerformance?.routes)?runtimePerformance.routes.reduce((max,item)=>Math.max(max,Number(item.durationMs)||0),0):0},status:passed?'passed':'failed'});
         if(!passed)report.status='failed';
       }
+      await consoleCollector.dispose();
       await context.close();
     }
   }
@@ -485,6 +484,9 @@ try{
   await new Promise(resolve=>api.server.close(resolve));
   await rm(runtime,{recursive:true,force:true});
 }
+// Retain failures emitted after the last sample or while contexts close.
+for(const scenario of report.scenarios)if(scenario.errors.length){scenario.status='failed';report.status='failed';}
+for(const probe of [report.routeCycleStability,report.decisionChaosStability])if(probe?.errors?.length){probe.status='failed';report.status='failed';}
 await writeFile(path.join(out,'first-paint-stability.json'),JSON.stringify(report,null,2)+'\n');
 const summary={
   status:report.status,
