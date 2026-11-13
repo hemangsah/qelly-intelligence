@@ -1,4 +1,4 @@
-name: DEX Governed Source Comparison Isolated Diagnostic
+name: Integrated DEX Typography and Source Comparison Diagnostic
 on:
   workflow_dispatch:
     inputs:
@@ -20,6 +20,8 @@ jobs:
       QELLY_SCREEN_EVIDENCE_SHA: ${{ matrix.expected == 'baseline' && inputs.production_sha || github.sha }}
       QELLY_DEX_SOURCE_COMPARISON_EXPECT: ${{ matrix.expected }}
       QELLY_DEX_CONTROL_MATRIX: 'true'
+      QELLY_DEX_TYPE_EXPECT: 'green'
+      QELLY_DEX_LIVE: 'false'
       QELLY_CSS_EXPERIMENT_BASELINE: preview/css-import-baseline
       QELLY_SCREEN_BATCH_SIZE: '10'
       PYTHONUTF8: '1'
@@ -76,13 +78,24 @@ jobs:
           /usr/bin/chromium --version
       - name: Build exact source using inherited production-mode fixture configuration
         run: npm run build:frontend
+      - name: Verify preserved core typography and native source disclosures in each exact arm
+        run: |
+          node scripts/qelly-dex-typography-owner-pair.mjs
+          node scripts/qelly-dex-typography-owner-published.mjs preview/dex-typography-owner-pair green "$QELLY_SCREEN_EVIDENCE_SHA"
+      - name: Preserve source-bound typography evidence without product acceptance
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-dex-controls-integrated-typography-${{ matrix.expected }}-${{ github.sha }}
+          path: preview/dex-typography-owner-pair
+          if-no-files-found: error
+          retention-days: 7
       - name: Verify original DEX journeys and governed source comparison
         run: |
           cp .dex-source-runner/scripts/qelly-dex-source-comparison-pair.mjs scripts/qelly-dex-source-comparison-pair.mjs
           cp .dex-source-runner/scripts/qelly-dex-source-comparison-report.mjs scripts/qelly-dex-source-comparison-report.mjs
           cp .dex-source-runner/scripts/qelly-dex-source-comparison-bindings.mjs scripts/qelly-dex-source-comparison-bindings.mjs
           cp .dex-source-runner/scripts/qelly-dex-source-comparison-published.mjs scripts/qelly-dex-source-comparison-published.mjs
-          cp .dex-source-runner/scripts/qelly-dex-source-comparison-png.mjs scripts/qelly-dex-source-comparison-png.mjs
           node scripts/qelly-dex-source-comparison-pair.mjs
           node scripts/qelly-dex-source-comparison-published.mjs "preview/dex-source-comparison-$QELLY_DEX_SOURCE_COMPARISON_EXPECT" "$QELLY_DEX_SOURCE_COMPARISON_EXPECT" "$QELLY_SCREEN_EVIDENCE_SHA"
       - name: Preserve source-bound diagnostic evidence in cloud
@@ -102,6 +115,11 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ inputs.production_sha }}
+          path: .typography-baseline
+          persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: '22'
@@ -115,6 +133,16 @@ jobs:
           name: qelly-dex-controls-source-comparison-candidate-${{ github.sha }}
           path: ${{ runner.temp }}/dex-source-comparison/candidate
           digest-mismatch: error
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: qelly-dex-controls-integrated-typography-baseline-${{ github.sha }}
+          path: ${{ runner.temp }}/dex-source-comparison/typography-baseline
+          digest-mismatch: error
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: qelly-dex-controls-integrated-typography-candidate-${{ github.sha }}
+          path: ${{ runner.temp }}/dex-source-comparison/typography-candidate
+          digest-mismatch: error
       - name: Independently validate reports and every decoded PNG before pairing exact governed metadata
         env:
           BASE_SHA: ${{ inputs.production_sha }}
@@ -123,9 +151,24 @@ jobs:
           node scripts/qelly-dex-source-comparison-published.mjs "$RUNNER_TEMP/dex-source-comparison/baseline" baseline "$BASE_SHA" --verify
           node scripts/qelly-dex-source-comparison-published.mjs "$RUNNER_TEMP/dex-source-comparison/candidate" candidate "$HEAD_SHA" --verify
           node scripts/qelly-dex-source-comparison-published.mjs "$RUNNER_TEMP/dex-source-comparison" pair "$HEAD_SHA"
+          node .typography-baseline/scripts/qelly-dex-typography-owner-published.mjs "$RUNNER_TEMP/dex-source-comparison/typography-baseline" green "$BASE_SHA" --verify
+          node scripts/qelly-dex-typography-owner-published.mjs "$RUNNER_TEMP/dex-source-comparison/typography-candidate" green "$HEAD_SHA" --verify
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';import {readFile,writeFile} from 'node:fs/promises';import {createHash} from 'node:crypto';
+          const root=process.env.RUNNER_TEMP+'/dex-source-comparison',read=async p=>JSON.parse(await readFile(root+'/'+p)),a=await read('typography-baseline/independent-gate-receipt.json'),b=await read('typography-candidate/independent-gate-receipt.json'),comparison=await read('pair-receipt.json');
+          for(const[r,source,negatives]of[[a,process.env.BASE_SHA,66],[b,process.env.HEAD_SHA,69]]){assert.equal(r.sourceSha,source);assert.equal(r.arm,'green');assert.equal(r.contexts,8);assert.equal(r.measuredLabels,288);assert.equal(r.controlMeasurements,88);assert.equal(r.sourceDisclosureCases,104);assert.equal(r.disclosureTextMeasurements,832);assert.equal(r.screenshots.length,64);assert.ok(r.screenshots.every(i=>i.pixelsDecoded&&i.chunksCrcVerified));assert.equal(r.negativeVariants.length,negatives);assert.equal(r.imageNegativeVariants.length,7);assert.ok(r.minimumFont>=14);assert.equal(r.labelsBelow14,0);assert.equal(r.controlsBelow14,0);assert.equal(r.disclosureLabelsBelow14,0);assert.equal(r.productionAccepted,false);}
+          assert.equal(b.comparisonInitialControlStates,8);assert.equal(comparison.baseline,process.env.BASE_SHA);assert.equal(comparison.head,process.env.HEAD_SHA);assert.equal(comparison.contextsPerArm,8);assert.equal(comparison.negativePairs.length,4);
+          const sha=bytes=>createHash('sha256').update(bytes).digest('hex'),receipt={schema:'qelly.dex.integrated-diagnostic/1.0',baseline:process.env.BASE_SHA,head:process.env.HEAD_SHA,contextsPerArm:8,typographyImages:128,comparisonImages:112,totalDecodedImages:240,typographyReportNegatives:{baseline:66,candidate:69},comparisonReportNegatives:{baseline:26,candidate:47},originalCoreControlMeasurementsPerArm:88,originalSourceDisclosureCasesPerArm:104,originalPrimaryLabelsPerArm:288,originalDisclosureTextPerArm:832,separatelyGovernedInitialComparisonControls:8,baselineTypographyReceiptSha256:sha(await readFile(root+'/typography-baseline/independent-gate-receipt.json')),candidateTypographyReceiptSha256:sha(await readFile(root+'/typography-candidate/independent-gate-receipt.json')),comparisonPairReceiptSha256:sha(await readFile(root+'/pair-receipt.json')),canonicalPngValidatorReused:true,allChecksPassed:true,productionAccepted:false,fullDexWaveAccepted:false};await writeFile(root+'/integrated-receipt.json',JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt));
+          NODE
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: qelly-dex-controls-source-comparison-pair-receipt-${{ github.sha }}
           path: ${{ runner.temp }}/dex-source-comparison/pair-receipt.json
+          if-no-files-found: error
+          retention-days: 7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-dex-controls-integrated-receipt-${{ github.sha }}
+          path: ${{ runner.temp }}/dex-source-comparison/integrated-receipt.json
           if-no-files-found: error
           retention-days: 7

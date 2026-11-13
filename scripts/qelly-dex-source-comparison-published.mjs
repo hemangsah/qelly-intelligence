@@ -2,7 +2,7 @@ import {readFile,writeFile,readdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 import {validateComparisonReport,comparisonExpectedImages,comparisonInvalidReports,validateComparisonPair} from './qelly-dex-source-comparison-report.mjs';
-import {validateDexTypographyPng} from './qelly-dex-source-comparison-png.mjs';
+import {validateDexTypographyPng} from './qelly-dex-typography-png.mjs';
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const [root,expected,source]=process.argv.slice(2);
 if(expected==='pair'){
