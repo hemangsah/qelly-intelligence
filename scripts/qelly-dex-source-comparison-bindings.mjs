@@ -24,7 +24,7 @@ export const comparisonSourceBindings={
   "candidate": [
     {
       "path": "apps/web/public/assets/routes/dex-discovery.mjs",
-      "sha256": "4a448f9d22fb78b65a370aeb19d0eb67c9807051aa626a141121381982d6401d"
+      "sha256": "ad62c48c1a7bd304e1cecdc86cbcbbba9bb620b886c75a9ab4cc35886ef2b709"
     },
     {
       "path": "apps/web/public/assets/routes/dex-discovery-v2.css",

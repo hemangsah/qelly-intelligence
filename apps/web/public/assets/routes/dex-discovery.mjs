@@ -96,7 +96,7 @@ export async function renderDexDiscovery(main,{api,escapeHtml,toast,signal,rende
     if(view&&grid.contains(view)){
       event.preventDefault();const id=view.dataset.dexCompareView;
       if(!sourceById.has(id)||!comparisonIds.has(id)){syncComparisonChoices();announceComparison('Select this research source before viewing its comparison.');return;}
-      comparison.open=true;comparison.querySelector('summary').focus();announceComparison('Research-source comparison. '+comparisonIds.size+' of 2 sources selected.');
+      comparison.open=true;const summary=comparison.querySelector('summary');summary.focus({preventScroll:true});summary.scrollIntoView({block:'center',behavior:'instant'});announceComparison('Research-source comparison. '+comparisonIds.size+' of 2 sources selected.');
     }else if(remove&&comparison.contains(remove)){
       const id=remove.dataset.dexCompareRemove,source=sourceById.get(id);
       comparisonIds.delete(id);renderComparison();
