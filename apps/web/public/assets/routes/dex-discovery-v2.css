@@ -11,3 +11,22 @@ html body .q-dx-page{box-sizing:border-box;container-type:inline-size;max-width:
 @container (max-width:820px){.q-dx-gate-map dl{grid-template-columns:1fr 1fr}.q-dx-builder-grid,.q-dx-method{grid-template-columns:1fr}.q-dx-workflow ol{grid-template-columns:1fr 1fr}.q-dx-builder>header{flex-direction:column;align-items:stretch}}
 @container (max-width:620px){.q-dx-gate-map dl{grid-template-columns:1fr}.q-dx-hero h1{font-size:2.8rem}.q-dx-navigation{gap:4px}.q-dx-navigation button{margin-left:0}.q-dx-source,.q-dx-workflow ol,.q-dx-brief>dl,.q-dx-brief ol,.q-dx-directory>header>div:last-child,.q-dx-method dl{grid-template-columns:1fr}.q-dx-capability-table [role=row]{grid-template-columns:1fr;gap:6px}.q-dx-hero aside{padding-left:0}.q-dx-source>a{grid-column:auto}}
 @media(prefers-reduced-motion:reduce){.q-dx-page *{scroll-behavior:auto;transition:none}}
+
+/* Research-source comparison uses existing governed metadata, never pool rankings. */
+.q-dx-comparison{margin-block:18px;padding:16px;background:var(--q-surface);border:0;border-radius:0;box-shadow:none}
+.q-dx-comparison>summary{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:44px;line-height:1.5}
+.q-dx-comparison>summary>span,.q-dx-comparison-actions>span{font-size:max(14px,.85rem);color:var(--q-text-secondary)}
+.q-dx-comparison-body{display:grid;gap:16px;padding-top:16px}
+.q-dx-comparison-body>p,.q-dx-comparison-body>div>p{font-size:max(14px,.9rem);line-height:1.6;color:var(--q-text-secondary)}
+.q-dx-comparison-table{width:100%;table-layout:fixed;border-collapse:collapse;border:0;background:transparent}
+.q-dx-comparison-table caption{text-align:left;padding-bottom:16px;font-size:max(14px,.85rem);line-height:1.5;color:var(--q-text-secondary)}
+.q-dx-comparison-table :where(th,td){padding:12px 8px;border:0;text-align:left;vertical-align:top;font-size:max(14px,.9rem);line-height:1.5;overflow-wrap:anywhere;background:transparent}
+.q-dx-comparison-table th:first-child{width:28%}
+.q-dx-comparison-table thead th{font-weight:650}
+.q-dx-comparison-table tbody th{font-weight:500;color:var(--q-text-secondary)}
+.q-dx-comparison-table tbody tr:nth-child(2n){background:var(--q-canvas)}
+.q-dx-comparison-table [data-dex-compare-remove]{display:block;width:100%;margin-top:8px}
+.q-dx-comparison-actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.q-dx-source .q-dx-compare-choice{display:inline-flex;align-items:center;gap:10px;justify-self:start;min-height:44px;font-size:max(14px,.9rem);line-height:1.5;color:var(--q-text)}
+.q-dx-source .q-dx-compare-choice input{width:24px;height:24px;min-height:24px;padding:0;accent-color:var(--q-accent);flex-shrink:0}
+@container(max-width:620px){.q-dx-comparison{padding:12px}.q-dx-comparison-table :where(th,td){padding:12px 5px}.q-dx-comparison>summary{align-items:flex-start;flex-direction:column;gap:4px}}

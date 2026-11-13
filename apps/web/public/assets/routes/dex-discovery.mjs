@@ -5,11 +5,11 @@ const STYLE_ID='qelly-dex-v2-style';
 const STYLESHEET=new URL('./dex-discovery-v2.css?v=20261009-research1',import.meta.url).href;
 async function ensureStyles(signal){const existing=document.getElementById(STYLE_ID);if(existing?.tagName==='LINK'&&existing.rel==='stylesheet')existing.setAttribute('data-qelly-dex-v2','active');await ensureRouteStylesheet(STYLESHEET,{attribute:'data-qelly-dex-v2',value:'active',signal});document.querySelector('link[data-qelly-dex-v2]').id=STYLE_ID;}
 const upper=(value)=>String(value??'unavailable').replace(/[_-]+/g,' ').toUpperCase();
-const sourceCard=(item,safe)=>`<article class="q-dx-source" data-dex-source="${safe(item.id)}" data-stage="${safe(item.stage.id)}"><header><div><h3>${safe(item.name)}</h3><p>${safe(item.role)}</p></div><span>${safe(item.stage.label)}</span></header><details><summary>Source rights and research boundary</summary><p>${safe(item.note)}</p><dl><div><dt>Customer display</dt><dd>BLOCKED</dd></div><div><dt>Wallet access</dt><dd>DISABLED</dd></div><div><dt>Execution</dt><dd>DISABLED</dd></div></dl><p><b>Next gate</b> ${safe(item.nextAction)}</p></details>${item.officialUrl?`<a href="${safe(item.officialUrl)}" target="_blank" rel="noopener noreferrer nofollow">Official source ↗</a>`:''}</article>`;
+const sourceCard=(item,safe)=>`<article class="q-dx-source" data-dex-source="${safe(item.id)}" data-stage="${safe(item.stage.id)}"><header><div><h3>${safe(item.name)}</h3><p>${safe(item.role)}</p></div><span>${safe(item.stage.label)}</span><label class="q-dx-compare-choice"><input type="checkbox" data-dex-compare-source="${safe(item.id)}" aria-label="Compare ${safe(item.name)} as a research source" aria-describedby="dex-source-comparison-help"><span>Compare source</span></label></header><details><summary>Source rights and research boundary</summary><p>${safe(item.note)}</p><dl><div><dt>Customer display</dt><dd>BLOCKED</dd></div><div><dt>Wallet access</dt><dd>DISABLED</dd></div><div><dt>Execution</dt><dd>DISABLED</dd></div></dl><p><b>Next gate</b> ${safe(item.nextAction)}</p></details>${item.officialUrl?`<a href="${safe(item.officialUrl)}" target="_blank" rel="noopener noreferrer nofollow" aria-label="Open official research source ${safe(item.name)}">Official source ↗</a>`:''}</article>`;
 
 const briefMarkup=(values,fields,safe)=>{
   const supplied=[values.chain,values.protocol,values.market,values.hypothesis].filter(Boolean).length;
-  return `<div class="q-dx-brief-head"><div><p class="q-eyebrow">Research brief · ${supplied}/4 context fields</p><h3>${safe(values.protocol||'Untitled DEX investigation')}</h3></div><span>${supplied===4?'READY TO COLLECT':'CONTEXT INCOMPLETE'}</span></div><dl><div><dt>Chain / network</dt><dd>${safe(values.chain||'Not supplied')}</dd></div><div><dt>Protocol</dt><dd>${safe(values.protocol||'Not supplied')}</dd></div><div><dt>Pool / market / contract</dt><dd>${safe(values.market||'Not supplied')}</dd></div><div><dt>Question or hypothesis</dt><dd>${safe(values.hypothesis||'Not supplied')}</dd></div></dl><section><strong>Required evidence package</strong><ol>${fields.map((field,index)=>`<li><span>${String(index+1).padStart(2,'0')}</span><label><input type="checkbox" data-dex-evidence="${index}"><b>${safe(field)}</b></label></li>`).join('')}</ol></section><footer><span data-dex-progress>0 / ${fields.length} evidence items checked</span><p>Checkboxes are a temporary review aid. They do not claim that evidence exists or persist a research result.</p></footer>`;
+  return `<div class="q-dx-brief-head"><div><p class="q-eyebrow">Research brief · ${supplied}/4 context fields</p><h3>${safe(values.protocol||'Untitled DEX investigation')}</h3></div><span>${supplied===4?'READY TO COLLECT':'CONTEXT INCOMPLETE'}</span></div><dl><div><dt>Chain / network</dt><dd>${safe(values.chain||'Not supplied')}</dd></div><div><dt>Protocol</dt><dd>${safe(values.protocol||'Not supplied')}</dd></div><div><dt>Pool / market / contract</dt><dd>${safe(values.market||'Not supplied')}</dd></div><div><dt>Question or hypothesis</dt><dd>${safe(values.hypothesis||'Not supplied')}</dd></div></dl><section><strong>Required evidence package</strong><ol>${fields.map((field,index)=>`<li><span>${String(index+1).padStart(2,'0')}</span><label><input type="checkbox" data-dex-evidence="${index}"><b>${safe(field)}</b></label></li>`).join('')}</ol></section><footer><span data-dex-progress role="status" aria-live="polite" aria-atomic="true">0 / ${fields.length} evidence items checked</span><p>Checkboxes are a temporary review aid. They do not claim that evidence exists or persist a research result.</p></footer>`;
 };
 
 
@@ -20,6 +20,22 @@ const sourceGateMarkup=(data,safe)=>{
   if(!valid)return '<section class="q-dx-gate-map" aria-label="Research source integration gates"><h3>Research source integration gates</h3><p>Source gate counts are unavailable. The source directory remains available; no distribution was substituted.</p></section>';
   return `<section class="q-dx-gate-map" aria-label="Research source integration gates"><h3>Research source integration gates</h3><p>Directory sources by their current integration gate. These counts do not measure protocol quality, liquidity, safety or market activity.</p><dl>${gates.map(([id,label],i)=>`<div data-dex-gate="${safe(id)}"><dt>${safe(label)}</dt><dd><span data-dex-gate-count>${counts[i]} / ${total} sources</span><span class="q-dx-gate-track" aria-hidden="true"><i style="width:${counts[i]/total*100}%"></i></span></dd></div>`).join('')}</dl></section>`;
 };
+
+const sourceComparisonShell=()=>`<details class="q-dx-comparison" data-dex-comparison><summary><strong>Compare research sources</strong><span data-dex-compare-count>0 of 2 selected</span></summary><div class="q-dx-comparison-body"><p id="dex-source-comparison-help">Compare the current research permissions and next steps of up to two directory sources. This is not a comparison of pools, protocol quality, safety, liquidity or yield.</p><div data-dex-compare-content><p>Choose sources below to compare their research readiness.</p></div><div class="q-dx-comparison-actions"><button type="button" data-dex-compare-clear disabled>Clear comparison</button><span>Selections stay only in this page view.</span></div></div><span class="sr-only" data-dex-compare-status role="status" aria-live="polite" aria-atomic="true"></span></details>`;
+
+const sourceComparisonFields=[
+  {key:'role',label:'Research role',value:source=>source.role||'Unavailable'},
+  {key:'gate',label:'Integration gate',value:source=>source.stage?.label||'Unavailable'},
+  {key:'nextAction',label:'Next source gate',value:source=>source.nextAction||'Unavailable'},
+  {key:'customerDisplay',label:'Customer display',capability:true},
+  {key:'walletConnection',label:'Wallet connection',capability:true},
+  {key:'transactionSubmission',label:'Transaction submission',capability:true},
+  {key:'execution',label:'Execution',capability:true},
+  {key:'officialUrl',label:'Official destination',link:true},
+];
+
+const sourceCapabilityText=value=>value===true?'Enabled in source record':value===false?'Not enabled':'Unavailable';
+const sourceComparisonTable=(selected,safe)=>selected.length?`<table class="q-dx-comparison-table"><caption>Current source permissions and research steps. No pool or protocol ranking.</caption><thead><tr><th scope="col">Research field</th>${selected.map(source=>`<th scope="col" data-dex-compare-source-id="${safe(source.id)}"><span data-dex-compare-name>${safe(source.name)}</span><button type="button" data-dex-compare-remove="${safe(source.id)}" aria-label="Remove ${safe(source.name)} from research-source comparison">Remove source</button></th>`).join('')}</tr></thead><tbody>${sourceComparisonFields.map(field=>`<tr><th scope="row">${field.label}</th>${selected.map(source=>`<td data-dex-compare-field="${field.key}" data-dex-compare-source-id="${safe(source.id)}">${field.link?(source.officialUrl?`<a href="${safe(source.officialUrl)}" target="_blank" rel="noopener noreferrer nofollow" aria-label="Open official research source ${safe(source.name)}">Official source ↗</a>`:'Not provided'):safe(field.capability?sourceCapabilityText(source.capabilities?.[field.key]):field.value(source))}</td>`).join('')}</tr>`).join('')}</tbody></table>`:'<p>Choose sources below to compare their research readiness.</p>';
 
 export async function renderDexDiscovery(main,{api,escapeHtml,toast,signal,renderRoute}){
   try{await ensureStyles(signal);}catch(error){if(error?.name==='AbortError')throw error;main.innerHTML=`<section class="q-page"><header class="q-page-head"><div><p class="q-eyebrow">DEX Discovery</p><h1>The research workspace could not open.</h1><p>Workspace styles could not load. Please retry.</p></div></header><button class="q-button q-button--primary" type="button" data-dex-style-retry>Retry DEX workspace</button></section>`;main.querySelector('[data-dex-style-retry]').addEventListener('click',()=>renderRoute?.());return;}let data;
@@ -32,7 +48,7 @@ export async function renderDexDiscovery(main,{api,escapeHtml,toast,signal,rende
   <section class="q-dx-truth"><span></span><strong>No wallet · no transaction · no fabricated metrics</strong><p>${safe(data.summary.total)} governed research sources · 0 display-enabled feeds · TVL, volume, APR and safety unassessed</p></section>
   <section class="q-dx-metrics"><article><span>Research sources</span><strong>${safe(data.summary.total)}</strong><small>governed directory</small></article><article><span>Rights review</span><strong>${safe(data.summary.byStage['rights-review']||0)}</strong><small>terms approval required</small></article><article><span>Configuration</span><strong>${safe(data.summary.byStage['configuration-required']||0)}</strong><small>server-side key required</small></article><article><span>External research</span><strong>${safe(data.summary.byStage['external-research']||0)}</strong><small>manual citation boundary</small></article><article><span>Display feeds</span><strong>0</strong><small>no measurement claims</small></article><article><span>Executable</span><strong>0</strong><small>research-only product</small></article></section>
   <section class="q-dx-workflow" id="dex-evidence"><header><p class="q-eyebrow">Step 02 · follow the evidence sequence</p><h2>Six gates from identity to decision boundary.</h2></header><ol>${(data.workflow||[]).map((step,index)=>`<li><span>0${index+1}</span><div><strong>${safe(step.label)}</strong><p>${safe(step.purpose)}</p></div></li>`).join('')}</ol></section>
-  <section class="q-dx-directory" id="dex-sources"><header><div><p class="q-eyebrow">Step 03 · choose a governed research source</p><h2>Provider readiness—not protocol ranking.</h2><p>Every source has a different permission or configuration gate. Qelly does not scrape external dashboards or convert directory inclusion into endorsement.</p></div><div><label><span>Find source</span><input type="search" data-dex-search placeholder="Provider or research role"></label><label><span>Integration gate</span><select data-dex-stage><option value="all">All gates</option><option value="rights-review">Rights review</option><option value="configuration-required">Configuration required</option><option value="contract-required">Contract required</option><option value="external-research">External research</option></select></label></div></header>${sourceGateMarkup(data,safe)}<div class="q-dx-source-head"><strong><b data-dex-count>${sources.length}</b> sources match</strong><button type="button" data-dex-reset>Reset filters</button></div><div class="q-dx-sources" data-dex-sources></div></section>
+  <section class="q-dx-directory" id="dex-sources"><header><div><p class="q-eyebrow">Step 03 · choose a governed research source</p><h2>Provider readiness—not protocol ranking.</h2><p>Every source has a different permission or configuration gate. Qelly does not scrape external dashboards or convert directory inclusion into endorsement.</p></div><div><label><span>Find source</span><input type="search" data-dex-search placeholder="Provider or research role"></label><label><span>Integration gate</span><select data-dex-stage><option value="all">All gates</option><option value="rights-review">Rights review</option><option value="configuration-required">Configuration required</option><option value="contract-required">Contract required</option><option value="external-research">External research</option></select></label></div></header>${sourceGateMarkup(data,safe)}<div class="q-dx-source-head"><strong role="status" aria-live="polite" aria-atomic="true"><b data-dex-count>${sources.length}</b> sources match</strong><button type="button" data-dex-reset>Reset filters</button></div>${sourceComparisonShell()}<div class="q-dx-sources" data-dex-sources></div></section>
   <section class="q-dx-method" id="dex-contract-context"><div><p class="q-eyebrow">Method and non-claims</p><h2>Missing on-chain evidence stays visible.</h2><p>${safe(data.methodology.measurement)}</p></div><dl><div><dt>Ranking</dt><dd>NONE</dd></div><div><dt>TVL / volume / APR</dt><dd>UNASSESSED</dd></div><div><dt>Wallet connection</dt><dd>DISABLED</dd></div><div><dt>Transaction submission</dt><dd>DISABLED</dd></div><div><dt>Execution / custody</dt><dd>DISABLED</dd></div><div><dt>Fabricated fallback</dt><dd>OFF</dd></div></dl><footer><strong>Public research methodology</strong><p>${safe(data.methodology.comparison)}</p></footer></section></section>`;
   main.removeAttribute('aria-busy');
   main.querySelectorAll('[data-dex-section]').forEach(link=>link.addEventListener('click',event=>{event.preventDefault();const section=main.querySelector('#'+link.dataset.dexSection);section?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});section?.setAttribute('tabindex','-1');section?.focus({preventScroll:true});}));
@@ -44,8 +60,50 @@ export async function renderDexDiscovery(main,{api,escapeHtml,toast,signal,rende
     document.dispatchEvent(new CustomEvent('qelly:open-ai',{detail:{mode:'research',prompt,expand:true}}));
   });
   let query='';let stage='all';const grid=main.querySelector('[data-dex-sources]');
-  const renderSources=()=>{const rows=sources.filter((item)=>(stage==='all'||item.stage.id===stage)&&(!query||`${item.name} ${item.role} ${item.integration}`.toLowerCase().includes(query)));main.querySelector('[data-dex-count]').textContent=String(rows.length);grid.innerHTML=rows.length?rows.map((item)=>sourceCard(item,safe)).join(''):'<div class="q-dx-empty"><strong>No governed source matches.</strong><p>Change the name or integration gate; no substitute source was invented.</p></div>';};
-  const checkedEvidence=new Set();const values=()=>Object.fromEntries(new FormData(main.querySelector('[data-dex-form]')).entries());const renderBrief=()=>{main.querySelector('[data-dex-brief]').innerHTML=briefMarkup(values(),fields,safe);main.querySelectorAll('[data-dex-evidence]').forEach(input=>{input.checked=checkedEvidence.has(input.dataset.dexEvidence);});const progress=main.querySelector('[data-dex-progress]');progress.textContent=checkedEvidence.size+' / '+fields.length+' evidence items checked';};renderSources();renderBrief();
+  // This state contains only existing governed directory IDs and remains local to this mount.
+  const comparisonIds=new Set(),sourceById=new Map(sources.map(source=>[String(source.id),source]));
+  const comparison=main.querySelector('[data-dex-comparison]'),comparisonContent=main.querySelector('[data-dex-compare-content]'),comparisonStatus=main.querySelector('[data-dex-compare-status]');
+  const announceComparison=message=>{comparisonStatus.textContent=message;};
+  const syncComparisonChoices=()=>{
+    for(const input of grid.querySelectorAll('[data-dex-compare-source]')){
+      const selected=comparisonIds.has(input.dataset.dexCompareSource);
+      input.checked=selected;input.disabled=!selected&&comparisonIds.size>=2;
+    }
+  };
+  const renderComparison=()=>{
+    const selected=[...comparisonIds].map(id=>sourceById.get(id)).filter(Boolean);
+    comparisonContent.innerHTML=sourceComparisonTable(selected,safe);
+    main.querySelector('[data-dex-compare-count]').textContent=selected.length+' of 2 selected';
+    main.querySelector('[data-dex-compare-clear]').disabled=selected.length===0;
+    syncComparisonChoices();
+  };
+  const handleComparisonSelection=event=>{
+    const input=event.target;if(!input.matches('[data-dex-compare-source]'))return;
+    const id=input.dataset.dexCompareSource;
+    if(!sourceById.has(id)){syncComparisonChoices();return;}
+    if(input.checked){
+      if(!comparisonIds.has(id)&&comparisonIds.size>=2){input.checked=false;announceComparison('Choose at most two research sources. Remove a selected source to choose another.');return;}
+      comparisonIds.add(id);
+    }else comparisonIds.delete(id);
+    renderComparison();comparison.open=true;
+    announceComparison(comparisonIds.size+' of 2 research sources selected. Research-source comparison updated above.');
+  };
+  const handleComparisonActions=event=>{
+    const remove=event.target.closest('[data-dex-compare-remove]'),clear=event.target.closest('[data-dex-compare-clear]');
+    if(remove&&comparison.contains(remove)){
+      const id=remove.dataset.dexCompareRemove,source=sourceById.get(id);
+      comparisonIds.delete(id);renderComparison();
+      (comparison.querySelector('[data-dex-compare-remove]')||comparison.querySelector('summary')).focus();
+      announceComparison((source?.name||'Source')+' removed. '+comparisonIds.size+' of 2 research sources selected.');
+    }else if(clear&&comparison.contains(clear)){
+      comparisonIds.clear();renderComparison();comparison.querySelector('summary').focus();
+      announceComparison('Research-source comparison cleared. No sources selected.');
+    }
+  };
+
+  const renderSourcesBase=()=>{const rows=sources.filter((item)=>(stage==='all'||item.stage.id===stage)&&(!query||`${item.name} ${item.role} ${item.integration}`.toLowerCase().includes(query)));main.querySelector('[data-dex-count]').textContent=String(rows.length);grid.innerHTML=rows.length?rows.map((item)=>sourceCard(item,safe)).join(''):'<div class="q-dx-empty"><strong>No governed source matches.</strong><p>Change the name or integration gate; no substitute source was invented.</p></div>';};
+  const renderSources=()=>{renderSourcesBase();syncComparisonChoices();};
+  const checkedEvidence=new Set();const values=()=>Object.fromEntries(new FormData(main.querySelector('[data-dex-form]')).entries());const renderBrief=()=>{main.querySelector('[data-dex-brief]').innerHTML=briefMarkup(values(),fields,safe);main.querySelectorAll('[data-dex-evidence]').forEach(input=>{input.checked=checkedEvidence.has(input.dataset.dexEvidence);});const progress=main.querySelector('[data-dex-progress]');progress.textContent=checkedEvidence.size+' / '+fields.length+' evidence items checked';};renderSources();renderBrief();renderComparison();
   main.querySelector('[data-dex-form]').addEventListener('input',renderBrief);main.querySelector('[data-dex-search]').addEventListener('input',(event)=>{query=event.target.value.trim().toLowerCase();renderSources();});main.querySelector('[data-dex-stage]').addEventListener('change',(event)=>{stage=event.target.value;renderSources();});
   main.querySelector('[data-dex-reset]').addEventListener('click',()=>{query='';stage='all';main.querySelector('[data-dex-search]').value='';main.querySelector('[data-dex-stage]').value='all';renderSources();});main.querySelector('[data-dex-clear]').addEventListener('click',()=>{main.querySelector('[data-dex-form]').reset();checkedEvidence.clear();renderBrief();toast?.('DEX research brief cleared.');});
   const evidenceOwner=main.querySelector('.q-dx-page'),evidenceController=new AbortController();
@@ -54,5 +112,7 @@ export async function renderDexDiscovery(main,{api,escapeHtml,toast,signal,rende
   evidenceController.signal.addEventListener('abort',()=>signal?.removeEventListener('abort',releaseEvidence),{once:true});
   signal?.addEventListener('abort',releaseEvidence,{once:true});
   if(signal?.aborted||evidenceOwner.parentNode!==main)releaseEvidence();
+  grid.addEventListener('change',handleComparisonSelection,{signal:evidenceController.signal});
+  comparison.addEventListener('click',handleComparisonActions,{signal:evidenceController.signal});
   main.addEventListener('change',(event)=>{if(!event.target.matches('[data-dex-evidence]'))return;if(event.target.checked)checkedEvidence.add(event.target.dataset.dexEvidence);else checkedEvidence.delete(event.target.dataset.dexEvidence);const checked=main.querySelectorAll('[data-dex-evidence]:checked').length;main.querySelector('[data-dex-progress]').textContent=`${checked} / ${fields.length} evidence items checked`;},{signal:evidenceController.signal});
 }
