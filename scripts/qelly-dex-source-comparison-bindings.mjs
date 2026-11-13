@@ -36,7 +36,7 @@ export const comparisonSourceBindings={
     },
     {
       "path": "apps/web/public/assets/qelly-production-shell.css",
-      "sha256": "46a725cc678426dc48e0f08fe92ba2849f64b629720f3b5e7627f320eb989393"
+      "sha256": "b48f4cca4bc0dae14702b356e9433d612c01d58cc830833f39878cdfaf4259e5"
     },
     {
       "path": "apps/web/public/assets/qelly-v53-family-harmonization.css",

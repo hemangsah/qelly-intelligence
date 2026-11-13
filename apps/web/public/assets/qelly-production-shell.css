@@ -475,7 +475,7 @@ thead,
   background: var(--q-surfacealt) !important;
 }
 
-th {
+th:not(:where(.q-dx-page *)) {
   min-height: 38px;
   color: var(--q-text-secondary) !important;
   font-size: 12px !important;
@@ -483,7 +483,7 @@ th {
   letter-spacing: .01em !important;
 }
 
-td { color: var(--q-text) !important; font-size: 13px !important; }
+td:not(:where(.q-dx-page *)) { color: var(--q-text) !important; font-size: 13px !important; }
 tr, td, th { border-color: var(--q-border) !important; }
 
 /* Customer home replaces the module-inventory wall. */
