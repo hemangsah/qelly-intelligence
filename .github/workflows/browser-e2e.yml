@@ -1410,6 +1410,50 @@ jobs:
         run: node scripts/qelly-market-ecb-date-e2e.mjs
       - name: Validate cold and warm first-paint stability
         run: node scripts/qelly-first-paint-stability.mjs
+      # BEGIN owned DEX typography production evidence
+      - name: Verify governed DEX typography and all inherited interactions
+        env:
+          QELLY_DEX_TYPE_EXPECT: 'green'
+          QELLY_DEX_CONTROL_MATRIX: 'true'
+          QELLY_DEX_LIVE: 'false'
+          QELLY_DEX_TYPE_RECEIPT: preview/dex-typography-owner-pair/independent-gate-receipt.json
+        run: |
+          node scripts/qelly-dex-typography-owner-pair.mjs
+          node scripts/qelly-dex-typography-owner-published.mjs preview/dex-typography-owner-pair green "$QELLY_SCREEN_EVIDENCE_SHA"
+          node --input-type=module <<'NODE'
+          import{readFile}from'node:fs/promises';import assert from'node:assert/strict';const r=JSON.parse(await readFile(process.env.QELLY_DEX_TYPE_RECEIPT,'utf8'));assert.equal(r.sourceSha,process.env.QELLY_SCREEN_EVIDENCE_SHA);assert.equal(r.arm,'green');assert.equal(r.contexts,8);assert.equal(r.comparisonInitialControlStates,8);assert.equal(r.measuredLabels,288);assert.equal(r.controlMeasurements,88);assert.equal(r.sourceDisclosureCases,104);assert.equal(r.disclosureTextMeasurements,832);assert.equal(r.screenshots.length,64);assert.equal(r.negativeVariants.length,69);assert.equal(r.imageNegativeVariants.length,7);assert.ok(r.minimumFont>=14);assert.equal(r.labelsBelow14,0);assert.equal(r.controlsBelow14,0);assert.equal(r.disclosureLabelsBelow14,0);assert.equal(r.fullDexWaveAccepted,false);assert.equal(r.productionAccepted,false);
+          NODE
+      - name: Preserve source-bound DEX typography evidence in cloud
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-dex-controls-typography-green-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/dex-typography-owner-pair
+          if-no-files-found: error
+          retention-days: 7
+      # END owned DEX typography production evidence
+      # BEGIN owned DEX comparison production evidence
+      - name: Verify governed source comparison, mobile access and draft context
+        env:
+          QELLY_DEX_SOURCE_COMPARISON_EXPECT: candidate
+          QELLY_DEX_CONTROL_MATRIX: 'true'
+          QELLY_DEX_LIVE: 'false'
+          QELLY_DEX_COMPARISON_RECEIPT: preview/dex-source-comparison-candidate/independent-gate-receipt.json
+        run: |
+          node scripts/qelly-dex-source-comparison-pair.mjs
+          node scripts/qelly-dex-source-comparison-published.mjs preview/dex-source-comparison-candidate candidate "$QELLY_SCREEN_EVIDENCE_SHA"
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';import{readFile}from'node:fs/promises';const r=JSON.parse(await readFile(process.env.QELLY_DEX_COMPARISON_RECEIPT,'utf8'));assert.equal(r.source,process.env.QELLY_SCREEN_EVIDENCE_SHA);assert.equal(r.expected,'candidate');assert.equal(r.contexts,8);assert.equal(r.originalInteractionContexts,8);assert.equal(r.newFeatureContexts,8);assert.equal(r.governedSources,13);assert.equal(r.approvedDisplayFeeds,0);assert.equal(r.images,72);assert.equal(r.screenshots.length,72);assert.equal(r.negativeVariants.length,52);assert.equal(r.imageNegativeVariants.length,7);assert.equal(r.productionAccepted,false);assert.equal(r.fullDexWaveAccepted,false);
+          NODE
+      - name: Preserve governed DEX comparison evidence in cloud
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-dex-controls-comparison-candidate-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: preview/dex-source-comparison-candidate
+          if-no-files-found: error
+          retention-days: 7
+      # END owned DEX comparison production evidence
       - name: Capture every registered route in both themes at desktop and mobile widths
         run: npm run browser:all
       - name: Verify local MT5 HTML and XLSX upload interactions
@@ -2368,6 +2412,54 @@ jobs:
           path: ${{ runner.temp }}/qelly-decision-readability-independent-receipt.json
           if-no-files-found: error
           retention-days: 7
+      # BEGIN owned DEX typography independent publication
+      - name: Download source-bound DEX typography evidence in cloud
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: qelly-dex-controls-typography-green-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: ${{ runner.temp }}/qelly-dex-typography-green
+          digest-mismatch: error
+      - name: Independently verify64 DEX typography images and69 malformed-report variants
+        env:
+          QELLY_DEX_TYPE_RECEIPT: ${{ runner.temp }}/qelly-dex-typography-green/independent-gate-receipt.json
+        run: |
+          node scripts/qelly-dex-typography-owner-published.mjs "$RUNNER_TEMP/qelly-dex-typography-green" green "$QELLY_SCREEN_EVIDENCE_SHA" --verify
+          node --input-type=module <<'NODE'
+          import{readFile}from'node:fs/promises';import assert from'node:assert/strict';const r=JSON.parse(await readFile(process.env.QELLY_DEX_TYPE_RECEIPT,'utf8'));assert.equal(r.sourceSha,process.env.QELLY_SCREEN_EVIDENCE_SHA);assert.equal(r.arm,'green');assert.equal(r.contexts,8);assert.equal(r.comparisonInitialControlStates,8);assert.equal(r.measuredLabels,288);assert.equal(r.controlMeasurements,88);assert.equal(r.sourceDisclosureCases,104);assert.equal(r.disclosureTextMeasurements,832);assert.equal(r.screenshots.length,64);assert.equal(r.negativeVariants.length,69);assert.equal(r.imageNegativeVariants.length,7);assert.ok(r.minimumFont>=14);assert.equal(r.labelsBelow14,0);assert.equal(r.controlsBelow14,0);assert.equal(r.disclosureLabelsBelow14,0);assert.equal(r.fullDexWaveAccepted,false);assert.equal(r.productionAccepted,false);
+          NODE
+          cp "$RUNNER_TEMP/qelly-dex-typography-green/independent-gate-receipt.json" "$RUNNER_TEMP/qelly-dex-typography-independent-receipt.json"
+      - name: Retain compact DEX typography publication receipt
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-dex-controls-typography-green-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: ${{ runner.temp }}/qelly-dex-typography-independent-receipt.json
+          if-no-files-found: error
+          retention-days: 7
+      # END owned DEX typography independent publication
+      # BEGIN owned DEX comparison independent publication
+      - name: Download published governed DEX comparison evidence
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: qelly-dex-controls-comparison-candidate-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: ${{ runner.temp }}/qelly-dex-comparison-candidate
+          digest-mismatch: error
+      - name: Independently decode72 comparison images and reject52 invalid reports
+        env:
+          QELLY_DEX_COMPARISON_RECEIPT: ${{ runner.temp }}/qelly-dex-comparison-candidate/independent-gate-receipt.json
+        run: |
+          node scripts/qelly-dex-source-comparison-published.mjs "$RUNNER_TEMP/qelly-dex-comparison-candidate" candidate "$QELLY_SCREEN_EVIDENCE_SHA" --verify
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';import{readFile}from'node:fs/promises';const r=JSON.parse(await readFile(process.env.QELLY_DEX_COMPARISON_RECEIPT,'utf8'));assert.equal(r.source,process.env.QELLY_SCREEN_EVIDENCE_SHA);assert.equal(r.expected,'candidate');assert.equal(r.contexts,8);assert.equal(r.originalInteractionContexts,8);assert.equal(r.newFeatureContexts,8);assert.equal(r.governedSources,13);assert.equal(r.approvedDisplayFeeds,0);assert.equal(r.images,72);assert.equal(r.screenshots.length,72);assert.equal(r.negativeVariants.length,52);assert.equal(r.imageNegativeVariants.length,7);assert.equal(r.productionAccepted,false);assert.equal(r.fullDexWaveAccepted,false);
+          NODE
+          cp "$RUNNER_TEMP/qelly-dex-comparison-candidate/independent-gate-receipt.json" "$RUNNER_TEMP/qelly-dex-comparison-independent-receipt.json"
+      - name: Retain compact governed DEX comparison publication receipt
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qelly-dex-controls-comparison-candidate-receipt-${{ env.QELLY_SCREEN_EVIDENCE_SHA }}
+          path: ${{ runner.temp }}/qelly-dex-comparison-independent-receipt.json
+          if-no-files-found: error
+          retention-days: 7
+      # END owned DEX comparison independent publication
       - name: Verify all checksums and inherited acceptance contracts
         shell: bash
         run: |
