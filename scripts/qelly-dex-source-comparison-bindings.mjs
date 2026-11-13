@@ -24,11 +24,11 @@ export const comparisonSourceBindings={
   "candidate": [
     {
       "path": "apps/web/public/assets/routes/dex-discovery.mjs",
-      "sha256": "ba5adb126fb88651b18d8edcf98a82466c9d582139abb4922a6f0b9f91c5f5c4"
+      "sha256": "4a448f9d22fb78b65a370aeb19d0eb67c9807051aa626a141121381982d6401d"
     },
     {
       "path": "apps/web/public/assets/routes/dex-discovery-v2.css",
-      "sha256": "432647b6d33076651d5be5a1143a313cfa925928bafda708cd9ddcccb21400fc"
+      "sha256": "0b8f5a56f08461ca59ad867cd546e9e61cb136bf05734b89f2ebb93440577952"
     },
     {
       "path": "apps/web/public/assets/app.css",
