@@ -98,8 +98,8 @@ export async function generatePublicCalculatorNetwork({output=defaultOutput,envi
   for(const [index,item] of rows.entries()){const directory=path.join(calculatorRoot,item.slug);await mkdir(directory,{recursive:true});await writeFile(path.join(directory,'index.html'),page(item,index,base));}
   const sitemapPath=path.join(output,'sitemap.xml');let sitemap=await readFile(sitemapPath,'utf8');
   const locations=[`${base}/calculators/`,...rows.map(item=>`${base}/calculators/${item.slug}/`)];
-  const entries=locations.map(location=>`  <url><loc>${location}</loc><lastmod>2026-09-21</lastmod></url>`).join('\\n');
-  sitemap=sitemap.replace('</urlset>',`${entries}\\n</urlset>`);await writeFile(sitemapPath,sitemap);
+  const entries=locations.map(location=>`  <url><loc>${location}</loc><lastmod>2026-09-21</lastmod></url>`).join('\n');
+  sitemap=sitemap.replace('</urlset>',`${entries}\n</urlset>`);await writeFile(sitemapPath,sitemap);
   return{status:'public-calculator-network-generated',calculators:rows.length,indexable:true,directory:true,sitemapEntries:locations.length};
 }
 export const PUBLIC_CALCULATORS=Object.freeze(rows);
