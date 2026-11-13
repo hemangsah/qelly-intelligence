@@ -74,7 +74,8 @@ export async function renderDexDiscovery(main,{api,escapeHtml,toast,signal,rende
     const selected=[...comparisonIds].map(id=>sourceById.get(id)).filter(Boolean);
     comparisonContent.innerHTML=sourceComparisonTable(selected,safe);
     main.querySelector('[data-dex-compare-count]').textContent=selected.length+' of 2 selected';
-    main.querySelector('[data-dex-compare-clear]').disabled=selected.length===0;
+    const clearControl=main.querySelector('[data-dex-compare-clear]'),empty=selected.length===0;
+    clearControl.disabled=empty;clearControl.setAttribute('aria-disabled',String(empty));
     syncComparisonChoices();
   };
   const handleComparisonSelection=event=>{
