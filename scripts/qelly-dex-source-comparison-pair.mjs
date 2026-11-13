@@ -54,14 +54,20 @@ async function captureComparisonImage(page,out,file,{element=null,fullPage=false
 
 async function measureComparisonTableLabels(panel){
  return panel.locator('caption,th,td,summary,button').evaluateAll(nodes=>{
-  const rgb=value=>{const match=value.match(/^rgba?\(([^)]+)\)$/);if(!match)throw Error('Unsupported computed table colour '+value);const parts=match[1].split(/[\s,/]+/).filter(Boolean).map(Number);if(parts.length<3||parts.length>4||parts.some(value=>!Number.isFinite(value)))throw Error('Invalid table colour');return{channels:parts.slice(0,3),alpha:parts[3]??1};};
+  const rgb=value=>{
+   const srgb=value.match(/^color\(srgb\s+([^)]*)\)$/),legacy=value.match(/^rgba?\(([^)]+)\)$/);if(!srgb&&!legacy)throw Error('Unsupported computed table colour '+value);
+   const tokens=(srgb?.[1]||legacy[1]).split(/[\s,/]+/).filter(Boolean);if(tokens.length<3||tokens.length>4)throw Error('Invalid table colour');
+   const channels=tokens.slice(0,3).map(token=>token.endsWith('%')?Number(token.slice(0,-1))/100*255:Number(token)*(srgb?255:1)),alpha=tokens[3]===undefined?1:tokens[3].endsWith('%')?Number(tokens[3].slice(0,-1))/100:Number(tokens[3]);
+   if(channels.some(channel=>!Number.isFinite(channel)||channel<0||channel>255)||!Number.isFinite(alpha)||alpha<0||alpha>1)throw Error('Out-of-range table colour');return{channels,alpha};
+  };
+  const composite=layers=>{if(!layers.length||layers.at(-1).alpha!==1)throw Error('No opaque table background found');let result=layers.at(-1).channels;for(const layer of layers.slice(0,-1).toReversed())result=layer.channels.map((value,index)=>value*layer.alpha+result[index]*(1-layer.alpha));return result;};
   const luminance=channels=>channels.map(channel=>{const n=channel/255;return n<=.04045?n/12.92:((n+.055)/1.055)**2.4;}).reduce((sum,value,index)=>sum+value*[.2126,.7152,.0722][index],0);
   return nodes.map(node=>{
    const r=node.getBoundingClientRect(),s=getComputedStyle(node),foreground=rgb(s.color);if(foreground.alpha!==1)throw Error('Translucent table foreground cannot be independently qualified');
    for(let ancestor=node;ancestor;ancestor=ancestor.parentElement){const c=getComputedStyle(ancestor);if(Number(c.opacity)!==1||c.filter!=='none'||c.mixBlendMode!=='normal')throw Error('Unsupported table group paint');}
-   let background=null;for(let ancestor=node;ancestor;ancestor=ancestor.parentElement){const c=getComputedStyle(ancestor);if(c.backgroundImage!=='none')throw Error('Image-backed table paint cannot be independently qualified');const colour=rgb(c.backgroundColor);if(colour.alpha===1){background=colour.channels;break;}if(colour.alpha!==0)throw Error('Translucent table background cannot be independently qualified');}
-   if(!background)throw Error('No opaque table background found');const a=luminance(foreground.channels),b=luminance(background),contrast=(Math.max(a,b)+.05)/(Math.min(a,b)+.05);
-   return{tag:node.tagName,text:node.textContent.replace(/\s+/g,' ').trim(),font:parseFloat(s.fontSize),width:r.width,height:r.height,visible:node.checkVisibility({checkVisibilityCSS:true,checkOpacity:true}),foreground:foreground.channels,background,contrast};
+   const backgroundLayers=[];for(let ancestor=node;ancestor;ancestor=ancestor.parentElement){const c=getComputedStyle(ancestor);if(c.backgroundImage!=='none')throw Error('Image-backed table paint cannot be independently qualified');const colour=rgb(c.backgroundColor);backgroundLayers.push(colour);if(colour.alpha===1)break;}
+   const background=composite(backgroundLayers),a=luminance(foreground.channels),b=luminance(background),contrast=(Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+   return{tag:node.tagName,text:node.textContent.replace(/\s+/g,' ').trim(),font:parseFloat(s.fontSize),width:r.width,height:r.height,visible:node.checkVisibility({checkVisibilityCSS:true,checkOpacity:true}),foreground:foreground.channels,backgroundLayers,background,contrast};
   });
  });
 }
