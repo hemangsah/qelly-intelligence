@@ -42,13 +42,17 @@ async function captureComparisonInitialSnapshot(page,site,appearance,width){
 // Capture geometry immediately before each actual screenshot. This metadata
 // qualifies the diagnostic images only; it does not replace typography gates.
 async function captureComparisonImage(page,out,file,{element=null,fullPage=false}={}){
+ await page.evaluate(()=>document.fonts.ready);
+ if(element)await element.scrollIntoViewIfNeeded();
  const observed=element?await element.evaluate(node=>{const r=node.getBoundingClientRect();return{kind:'element',rect:{x:r.x,y:r.y,width:r.width,height:r.height},width:r.width,height:r.height,scrollX,scrollY,viewportWidth:innerWidth,viewportHeight:innerHeight,devicePixelRatio,appearance:document.documentElement.dataset.resolvedAppearance};}):await page.evaluate(full=>({kind:full?'full-page':'viewport',width:full?Math.max(innerWidth,document.documentElement.scrollWidth,document.body.scrollWidth):innerWidth,height:full?Math.max(innerHeight,document.documentElement.scrollHeight,document.body.scrollHeight):innerHeight,scrollX,scrollY,viewportWidth:innerWidth,viewportHeight:innerHeight,devicePixelRatio,appearance:document.documentElement.dataset.resolvedAppearance}),fullPage);
  assert.equal(observed.devicePixelRatio,1);assert.ok(observed.width>0&&observed.height>0);
  // No layout reads or asynchronous interactions intervene before capture.
  if(element)await element.screenshot({path:out+'/'+file});else await page.screenshot({path:out+'/'+file,fullPage});
  const bytes=await readFile(out+'/'+file),widthPx=bytes.readUInt32BE(16),heightPx=bytes.readUInt32BE(20);assert.deepEqual([...bytes.subarray(0,8)],[137,80,78,71,13,10,26,10]);
  // Only element images can round a fractional layout edge to a device pixel.
- if(element){assert.ok(Math.abs(widthPx-observed.width)<=1);assert.ok(Math.abs(heightPx-observed.height)<=1);}else{assert.equal(widthPx,observed.width);assert.equal(heightPx,observed.height);}
+ if(element){
+  if(Math.abs(widthPx-observed.width)>1||Math.abs(heightPx-observed.height)>1){const after=await element.evaluate(node=>{const r=node.getBoundingClientRect();return{width:r.width,height:r.height,fontStatus:document.fonts.status,open:node.open};}),failure={file,observed,image:{widthPx,heightPx},after};await writeFile(out+'/capture-failure.json',JSON.stringify(failure,null,2));assert.fail('Element capture geometry mismatch '+JSON.stringify(failure));}
+ }else{assert.equal(widthPx,observed.width);assert.equal(heightPx,observed.height);}
  const row={file,...observed,widthPx,heightPx,bytes:bytes.length,sha256:hash(bytes),geometryCapturedImmediatelyBeforeScreenshot:true};captures.push(row);return row;
 }
 
