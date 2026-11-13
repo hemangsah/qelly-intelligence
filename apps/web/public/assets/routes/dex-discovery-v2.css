@@ -30,3 +30,4 @@ html body .q-dx-page{box-sizing:border-box;container-type:inline-size;max-width:
 .q-dx-source .q-dx-compare-choice{display:inline-flex;align-items:center;gap:10px;justify-self:start;min-height:44px;font-size:max(14px,.9rem);line-height:1.5;color:var(--q-text)}
 .q-dx-source .q-dx-compare-choice input{width:24px;height:24px;min-height:24px;padding:0;accent-color:var(--q-accent);flex-shrink:0}
 @container(max-width:620px){.q-dx-comparison{padding:12px}.q-dx-comparison-table :where(th,td){padding:12px 5px}.q-dx-comparison>summary{align-items:flex-start;flex-direction:column;gap:4px}}
+.q-dx-comparison-table a{color:var(--q-text);text-decoration-color:var(--q-accent);text-underline-offset:.2em}
