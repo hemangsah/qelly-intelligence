@@ -52,7 +52,13 @@ async function captureComparisonImage(page,out,file,{element=null,fullPage=false
  const row={file,...observed,widthPx,heightPx,bytes:bytes.length,sha256:hash(bytes),geometryCapturedImmediatelyBeforeScreenshot:true};captures.push(row);return row;
 }
 
-async function measureComparisonTableLabels(panel){
+async function measureComparisonTableLabels(panel,page){
+ await page.mouse.move(0,0);
+ await page.waitForFunction(()=>{
+  const root=document.querySelector('[data-dex-comparison]');if(!root?.open)return false;
+  for(const node of root.querySelectorAll('caption,th,td,summary,button'))for(let ancestor=node;ancestor;ancestor=ancestor.parentElement){const c=getComputedStyle(ancestor);if(Number(c.opacity)!==1||c.filter!=='none'||c.mixBlendMode!=='normal')return false;}
+  return true;
+ },null,{timeout:3000});
  return panel.locator('caption,th,td,summary,button').evaluateAll(nodes=>{
   const rgb=value=>{
    const srgb=value.match(/^color\(srgb\s+([^)]*)\)$/),legacy=value.match(/^rgba?\(([^)]+)\)$/);if(!srgb&&!legacy)throw Error('Unsupported computed table colour '+value);
@@ -64,7 +70,7 @@ async function measureComparisonTableLabels(panel){
   const luminance=channels=>channels.map(channel=>{const n=channel/255;return n<=.04045?n/12.92:((n+.055)/1.055)**2.4;}).reduce((sum,value,index)=>sum+value*[.2126,.7152,.0722][index],0);
   return nodes.map(node=>{
    const r=node.getBoundingClientRect(),s=getComputedStyle(node),foreground=rgb(s.color);if(foreground.alpha!==1)throw Error('Translucent table foreground cannot be independently qualified');
-   for(let ancestor=node;ancestor;ancestor=ancestor.parentElement){const c=getComputedStyle(ancestor);if(Number(c.opacity)!==1||c.filter!=='none'||c.mixBlendMode!=='normal')throw Error('Unsupported table group paint');}
+   for(let ancestor=node;ancestor;ancestor=ancestor.parentElement){const c=getComputedStyle(ancestor);if(Number(c.opacity)!==1||c.filter!=='none'||c.mixBlendMode!=='normal')throw Error('Unsupported table group paint '+JSON.stringify({node:node.tagName,text:node.textContent.trim().slice(0,80),ancestor:ancestor.tagName,ancestorClass:ancestor.className,opacity:c.opacity,filter:c.filter,mixBlendMode:c.mixBlendMode}));}
    const backgroundLayers=[];for(let ancestor=node;ancestor;ancestor=ancestor.parentElement){const c=getComputedStyle(ancestor);if(c.backgroundImage!=='none')throw Error('Image-backed table paint cannot be independently qualified');const colour=rgb(c.backgroundColor);backgroundLayers.push(colour);if(colour.alpha===1)break;}
    const background=composite(backgroundLayers),a=luminance(foreground.channels),b=luminance(background),contrast=(Math.max(a,b)+.05)/(Math.min(a,b)+.05);
    return{tag:node.tagName,text:node.textContent.replace(/\s+/g,' ').trim(),font:parseFloat(s.fontSize),width:r.width,height:r.height,visible:node.checkVisibility({checkVisibilityCSS:true,checkOpacity:true}),foreground:foreground.channels,backgroundLayers,background,contrast};
@@ -109,7 +115,7 @@ async function verifySourceComparison(page,out,site,appearance,width){
   assert.equal(await panel.locator('tbody tr').count(),8);assert.equal(await panel.locator('tbody td').count(),expectedIds.length*8);return snapshot;
  };
  await select(firstId);assert.deepEqual(await selectedIds(),[firstId]);assert.ok((await page.locator('[data-dex-compare-status]').innerText()).startsWith('1 of 2 research sources selected.'));await assertClearState(false);assert.equal(await page.locator('[data-dex-compare-count]').innerText(),'1 of 2 selected');
- await select(secondId,{touch:width===390});const observed=await exactSnapshot([firstId,secondId]);assert.ok((await page.locator('[data-dex-compare-status]').innerText()).startsWith('2 of 2 research sources selected.'));const tableLabels=await measureComparisonTableLabels(panel);assert.ok(tableLabels.length>=30);assert.ok(tableLabels.every(row=>row.font>=14&&row.width>0&&row.height>0&&row.visible&&row.contrast>=4.5));await assertClearState(false);
+ await select(secondId,{touch:width===390});const observed=await exactSnapshot([firstId,secondId]);assert.ok((await page.locator('[data-dex-compare-status]').innerText()).startsWith('2 of 2 research sources selected.'));const tableLabels=await measureComparisonTableLabels(panel,page);assert.ok(tableLabels.length>=30);assert.ok(tableLabels.every(row=>row.font>=14&&row.width>0&&row.height>0&&row.visible&&row.contrast>=4.5));await assertClearState(false);
  assert.equal(await page.locator('[data-dex-compare-count]').innerText(),'2 of 2 selected');assert.equal(await page.locator('[data-dex-compare-source]:disabled').count(),11);
  // The bounded Set must reject repeated change deliveries and a forced third choice.
  await page.locator('[data-dex-compare-source="'+firstId+'"]').evaluate(input=>{input.checked=true;input.dispatchEvent(new Event('change',{bubbles:true}));});assert.deepEqual(await selectedIds(),[firstId,secondId]);
