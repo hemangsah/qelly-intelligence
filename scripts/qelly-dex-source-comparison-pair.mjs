@@ -43,6 +43,13 @@ async function captureComparisonInitialSnapshot(page,site,appearance,width){
 // qualifies the diagnostic images only; it does not replace typography gates.
 async function captureComparisonImage(page,out,file,{element=null,fullPage=false}={}){
  await page.evaluate(()=>document.fonts.ready);
+ // A screenshot must compare the same pointer state. Preserve real hover paint
+ // before moving the pointer, then let existing CSS transitions finish normally.
+ const hoverBefore=await page.evaluate(()=>[...document.querySelectorAll('.q-dx-comparison-table tbody tr:hover')].map(n=>({field:n.querySelector('th')?.textContent,background:getComputedStyle(n).backgroundColor})));
+ await page.mouse.move(0,0);
+ await page.evaluate(async()=>{await new Promise(requestAnimationFrame);const table=document.querySelector('.q-dx-comparison-table');if(!table)return;table.getBoundingClientRect();await Promise.all(table.getAnimations({subtree:true}).filter(a=>a.constructor.name==='CSSTransition'&&a.playState==='running').map(a=>a.finished.catch(()=>{})));await new Promise(requestAnimationFrame);});
+ const neutralPointer=await page.evaluate(()=>({tableHovered:!!document.querySelector('.q-dx-comparison-table:hover'),rowHovered:!!document.querySelector('.q-dx-comparison-table tbody tr:hover')}));assert.equal(neutralPointer.tableHovered,false);assert.equal(neutralPointer.rowHovered,false);
+
  if(element)await element.scrollIntoViewIfNeeded();
  const observed=element?await element.evaluate(node=>{const r=node.getBoundingClientRect();return{kind:'element',rect:{x:r.x,y:r.y,width:r.width,height:r.height},width:r.width,height:r.height,scrollX,scrollY,viewportWidth:innerWidth,viewportHeight:innerHeight,devicePixelRatio,appearance:document.documentElement.dataset.resolvedAppearance};}):await page.evaluate(full=>({kind:full?'full-page':'viewport',width:full?Math.max(innerWidth,document.documentElement.scrollWidth,document.body.scrollWidth):innerWidth,height:full?Math.max(innerHeight,document.documentElement.scrollHeight,document.body.scrollHeight):innerHeight,scrollX,scrollY,viewportWidth:innerWidth,viewportHeight:innerHeight,devicePixelRatio,appearance:document.documentElement.dataset.resolvedAppearance}),fullPage);
  if(element){const r=observed.rect;observed.pixelBounds={left:Math.floor(r.x+observed.scrollX),top:Math.floor(r.y+observed.scrollY),right:Math.ceil(r.x+observed.scrollX+r.width),bottom:Math.ceil(r.y+observed.scrollY+r.height)};}
@@ -54,7 +61,7 @@ async function captureComparisonImage(page,out,file,{element=null,fullPage=false
  if(element){
   if(widthPx!==observed.pixelBounds.right-observed.pixelBounds.left||heightPx!==observed.pixelBounds.bottom-observed.pixelBounds.top){const after=await element.evaluate(node=>{const r=node.getBoundingClientRect();return{width:r.width,height:r.height,fontStatus:document.fonts.status,open:node.open};}),failure={file,observed,image:{widthPx,heightPx},after};await writeFile(out+'/capture-failure.json',JSON.stringify(failure,null,2));assert.fail('Element capture geometry mismatch '+JSON.stringify(failure));}
  }else{assert.equal(widthPx,observed.width);assert.equal(heightPx,observed.height);}
- const row={file,...observed,widthPx,heightPx,bytes:bytes.length,sha256:hash(bytes),geometryCapturedImmediatelyBeforeScreenshot:true};captures.push(row);return row;
+ const row={file,...observed,widthPx,heightPx,bytes:bytes.length,sha256:hash(bytes),geometryCapturedImmediatelyBeforeScreenshot:true,hoverBefore,neutralPointer};captures.push(row);return row;
 }
 
 async function measureComparisonTableLabels(panel,page,{selector='caption,th,td,summary,button,a,[data-dex-compare-name],summary>strong,summary>span'}={}){
