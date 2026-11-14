@@ -1,59 +1,97 @@
-name: UIUX Production Baseline
+name: DEX Narrow Comparison Reading Diagnostic
 on:
-  pull_request:
-    branches: [release/qelly-global-public-beta]
-    paths:
-      - scripts/qelly-uiux-production-audit.mjs
-      - .github/workflows/uiux-production-baseline.yml
   workflow_dispatch:
     inputs:
       production_sha:
-        description: Exact production revision to audit
+        description: Exact isolated typography baseline 18487a955ce6cc2c7798d906cff17389ef6a46d2
         required: true
         type: string
 permissions:
   contents: read
-concurrency:
-  group: qelly-uiux-baseline-${{ github.ref }}
-  cancel-in-progress: false
 jobs:
-  audit-live-routes:
+  compare:
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        appearance: [dark, light]
-        width: [1440, 390]
+        expected: [baseline, candidate]
     env:
-      QELLY_UIUX_BASE_SHA: ${{ inputs.production_sha || '07979b7a3fab5d890e3255e47616c540531e87ae' }}
-      QELLY_UIUX_APPEARANCE: ${{ matrix.appearance }}
-      QELLY_UIUX_WIDTH: ${{ matrix.width }}
+      QELLY_SCREEN_EVIDENCE_SHA: ${{ matrix.expected == 'baseline' && inputs.production_sha || github.sha }}
+      QELLY_DEX_SOURCE_COMPARISON_EXPECT: 'candidate'
+      QELLY_DEX_MOBILE_ARM: ${{ matrix.expected }}
+      QELLY_DEX_CONTROL_MATRIX: 'true'
+      QELLY_DEX_TYPE_EXPECT: 'green'
+      QELLY_DEX_LIVE: 'false'
+      QELLY_CSS_EXPERIMENT_BASELINE: preview/css-import-baseline
+      QELLY_SCREEN_BATCH_SIZE: '10'
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: 'utf-8'
+      QELLY_REQUIRE_PUBLIC_RUNTIME: 'true'
+      QELLY_PROMPT2C_PUBLIC_BETA: 'true'
+      QELLY_PUBLIC_SITE_URL: https://terminal.qellyintelligence.com
+      QELLY_PUBLIC_SUPABASE_URL: https://ssdgfgqnjlwzkgukzeef.supabase.co
+      QELLY_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_shape_only_012345678901234567890123456789
+      QELLY_DEPLOYMENT_ENVIRONMENT: production
+      QELLY_EVIDENCE_CONTEXT: cloudflare-pages-production
+      QELLY_ENABLE_AUTH: 'true'
+      QELLY_ENABLE_AUTH_EMAIL_DELIVERY: 'true'
+      QELLY_ENABLE_CLOUD_SYNC: 'true'
+      QELLY_ENABLE_LIVE_PROVIDERS: 'true'
+      QELLY_ENABLE_FEEDBACK_WRITES: 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ matrix.expected == 'baseline' && inputs.production_sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          path: .dex-source-runner
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: '22'
           cache: npm
-      - name: Install locked cloud-only audit dependencies
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Guard exact baseline and source identity
+        run: |
+          test '${{ inputs.production_sha }}' = '18487a955ce6cc2c7798d906cff17389ef6a46d2'
+          test "$(git rev-parse HEAD)" = "$QELLY_SCREEN_EVIDENCE_SHA"
+      - name: Install locked dependencies only in cloud
         run: npm ci --ignore-scripts
-      - name: Install cloud Chromium
-        run: npx --no-install playwright install --with-deps chromium
-      - name: Audit actual production routes without protected writes
-        run: node scripts/qelly-uiux-production-audit.mjs
-      - name: Keep baseline screens and measurements in cloud
+      - name: Install the current matched official Chromium without changing product dependencies
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.65.0
+          timeout 5m python -m playwright install chromium
+          chromium_path="$(python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as playwright:
+              print(playwright.chromium.executable_path)
+          PY
+          )"
+          test -x "$chromium_path"
+          ldd "$chromium_path" > "$RUNNER_TEMP/qelly-browser-libraries.txt"
+          if grep -F "not found" "$RUNNER_TEMP/qelly-browser-libraries.txt"; then exit 1; fi
+          sudo ln -sf "$chromium_path" /usr/bin/chromium
+          /usr/bin/chromium --version
+      - name: Build exact source using inherited production-mode fixture configuration
+        run: npm run build:frontend
+      - name: Verify original DEX journeys and governed source comparison
+        run: |
+          cp .dex-source-runner/scripts/qelly-dex-source-comparison-pair.mjs scripts/qelly-dex-source-comparison-pair.mjs
+          cp .dex-source-runner/scripts/qelly-dex-source-comparison-report.mjs scripts/qelly-dex-source-comparison-report.mjs
+          cp .dex-source-runner/scripts/qelly-dex-source-comparison-bindings.mjs scripts/qelly-dex-source-comparison-bindings.mjs
+          cp .dex-source-runner/scripts/qelly-dex-source-comparison-published.mjs scripts/qelly-dex-source-comparison-published.mjs
+          node scripts/qelly-dex-source-comparison-pair.mjs
+          node scripts/qelly-dex-source-comparison-published.mjs "preview/dex-source-comparison-candidate" candidate "$QELLY_SCREEN_EVIDENCE_SHA"
+      - name: Preserve source-bound diagnostic evidence in cloud
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: qelly-uiux-baseline-${{ env.QELLY_UIUX_BASE_SHA }}-${{ matrix.appearance }}-${{ matrix.width }}
-          path: uiux-audit
-          retention-days: 30
-      - name: Publish compact receipt
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: qelly-uiux-baseline-receipt-${{ matrix.appearance }}-${{ matrix.width }}
-          path: uiux-audit/receipt.json
-          retention-days: 30
+          name: qelly-dex-controls-source-comparison-${{ matrix.expected }}-${{ github.sha }}
+          path: preview/dex-source-comparison-candidate
+          if-no-files-found: error
+          retention-days: 7
