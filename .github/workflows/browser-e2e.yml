@@ -58,7 +58,7 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Install isolated visual evidence runtime
         run: |
-          python -m pip install --disable-pip-version-check playwright pillow
+          python -m pip install --disable-pip-version-check playwright==1.65.0 pillow
           timeout 5m python -m playwright install chromium
           chromium_path="$(python - <<'PY'
           from playwright.sync_api import sync_playwright
@@ -69,6 +69,7 @@ jobs:
           test -x "$chromium_path"
           sudo ln -sf "$chromium_path" /usr/bin/chromium
           /usr/bin/chromium --version
+          /usr/bin/chromium --version | grep -E '(^| )158\.'
       - name: Validate exact production artifact before browser capture
         run: |
           npm run env:check
