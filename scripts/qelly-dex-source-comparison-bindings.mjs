@@ -28,7 +28,7 @@ export const comparisonSourceBindings={
     },
     {
       "path": "apps/web/public/assets/routes/dex-discovery-v2.css",
-      "sha256": "0b8f5a56f08461ca59ad867cd546e9e61cb136bf05734b89f2ebb93440577952"
+      "sha256": "f4d9a2fddecb33ddf526e7a846c457beed14f4f6927d8a9cb354fd54db0bfbac"
     },
     {
       "path": "apps/web/public/assets/app.css",
@@ -41,6 +41,14 @@ export const comparisonSourceBindings={
     {
       "path": "apps/web/public/assets/qelly-v53-family-harmonization.css",
       "sha256": "64cc9a2ad4a40875bb8c829563cd2a83fd487d18d6cd7c431c0fc6e9e0c798a6"
+    },
+    {
+      "path": "apps/web/public/assets/qelly-premium-theme.css",
+      "sha256": "625d3532d657308052b85db12cdf8c8802140d5d0017f6e757a4a50782314173"
+    },
+    {
+      "path": "apps/web/public/assets/qelly-modern-interaction-polish.css",
+      "sha256": "9d3ee55a76e53cc96d694b2d9f3d03c84fce65af00c340a36339dcbaf3e8f0c4"
     }
   ]
 };

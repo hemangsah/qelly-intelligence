@@ -223,8 +223,8 @@ html[data-production-system="v8"] body #app #main :where(th):not(:where(.q-featu
   background:color-mix(in srgb,var(--q-surfacealt) 92%,transparent)!important;
   backdrop-filter:blur(18px) saturate(1.08);
 }
-html[data-production-system="v8"] body #app #main :where(td,th){transition:background-color var(--q-modern-fast) ease,color var(--q-modern-fast) ease!important}
-html[data-production-system="v8"] body #app #main :where(tbody tr:hover td):not(:where(.q-feature-index,.q-feature-index *)){background:color-mix(in srgb,var(--q-accent) 8%,var(--q-surface))!important}
+html[data-production-system="v8"] body #app #main :where(td,th):not(:where(.q-dx-page,.q-dx-page *)){transition:background-color var(--q-modern-fast) ease,color var(--q-modern-fast) ease!important}
+html[data-production-system="v8"] body #app #main :where(tbody tr:hover td):not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dx-page,.q-dx-page *)){background:color-mix(in srgb,var(--q-accent) 8%,var(--q-surface))!important}
 
 html[data-production-system="v8"] body #app #main :where(
   .q-status,.q-badge,.q-chip,.q-tag,.q-capability,.q-mi-pill,

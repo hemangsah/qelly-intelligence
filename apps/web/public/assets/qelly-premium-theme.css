@@ -280,7 +280,7 @@ html[data-production-system="v8"] body #app #main :where(.q-grid-scroll,.q-table
   border:0!important;border-radius:18px!important;background:var(--q-luxe-panel)!important;box-shadow:var(--q-luxe-shadow-soft),var(--q-luxe-inset)!important;
 }
 html[data-production-system="v8"] body #app #main :where(table,tr,td,th,thead,tbody):not(:where(.q-feature-index,.q-feature-index *)){border-color:var(--q-divider)!important}
-html[data-production-system="v8"] body #app #main tbody tr:hover:not(:where(.q-feature-index,.q-feature-index *)){background:color-mix(in srgb,var(--q-accent) 7%,transparent)!important}
+html[data-production-system="v8"] body #app #main tbody tr:hover:not(:where(.q-feature-index,.q-feature-index *)):not(:where(.q-dx-page,.q-dx-page *)){background:color-mix(in srgb,var(--q-accent) 7%,transparent)!important}
 
 /* Controls that read as actions must also behave like actions on touch and
    keyboard devices. Checkboxes and radios retain their native geometry while
