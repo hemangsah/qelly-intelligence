@@ -1,32 +1,27 @@
-name: UIUX Production Baseline
+name: Current Production UI Performance Profile
 on:
-  pull_request:
-    branches: [release/qelly-global-public-beta]
-    paths:
-      - scripts/qelly-uiux-production-audit.mjs
-      - .github/workflows/uiux-production-baseline.yml
   workflow_dispatch:
     inputs:
       production_sha:
-        description: Exact production revision to audit
+        description: Exact production revision to profile
         required: true
         type: string
 permissions:
   contents: read
 concurrency:
-  group: qelly-uiux-baseline-${{ github.ref }}
+  group: qelly-uiux-profile-${{ github.ref }}
   cancel-in-progress: false
 jobs:
-  audit-live-routes:
+  profile-live-ui:
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
+    timeout-minutes: 35
     strategy:
       fail-fast: false
       matrix:
         appearance: [dark, light]
         width: [1440, 390]
     env:
-      QELLY_UIUX_BASE_SHA: ${{ inputs.production_sha || '07979b7a3fab5d890e3255e47616c540531e87ae' }}
+      QELLY_UIUX_BASE_SHA: ${{ inputs.production_sha }}
       QELLY_UIUX_APPEARANCE: ${{ matrix.appearance }}
       QELLY_UIUX_WIDTH: ${{ matrix.width }}
     steps:
@@ -37,23 +32,43 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - name: Install locked cloud-only audit dependencies
+      - name: Install locked cloud-only profiling dependencies
         run: npm ci --ignore-scripts
-      - name: Install cloud Chromium
-        run: npx --no-install playwright install --with-deps chromium
-      - name: Audit actual production routes without protected writes
-        run: node scripts/qelly-uiux-production-audit.mjs
-      - name: Keep baseline screens and measurements in cloud
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Install the current matched official Chromium without changing product dependencies
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.65.0
+          timeout 5m python -m playwright install chromium
+          chromium_path="$(python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as playwright:
+              print(playwright.chromium.executable_path)
+          PY
+          )"
+          test -x "$chromium_path"
+          ldd "$chromium_path" > "$RUNNER_TEMP/qelly-browser-libraries.txt"
+          if grep -F "not found" "$RUNNER_TEMP/qelly-browser-libraries.txt"; then exit 1; fi
+          sudo ln -sf "$chromium_path" /usr/bin/chromium
+          /usr/bin/chromium --version
+      - name: Guard exact deployed production before profiling
+        run: |
+          test '${{ inputs.production_sha }}' = '1e8fabe7274a83c69b9c0d8f3306d0570f13f300'
+          node -e "fetch('https://terminal.qellyintelligence.com/qelly-release.json',{cache:'no-store'}).then(r=>r.json()).then(r=>{if(r.releaseSha!==process.env.QELLY_UIUX_BASE_SHA)throw Error('Production advanced')})"
+      - name: Measure actual production without protected writes
+        run: node scripts/qelly-uiux-production-profile.mjs
+      - name: Keep raw CPU profiles in cloud
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: qelly-uiux-baseline-${{ env.QELLY_UIUX_BASE_SHA }}-${{ matrix.appearance }}-${{ matrix.width }}
-          path: uiux-audit
-          retention-days: 30
-      - name: Publish compact receipt
+          name: qelly-uiux-profile-${{ env.QELLY_UIUX_BASE_SHA }}-${{ matrix.appearance }}-${{ matrix.width }}
+          path: uiux-profile
+          retention-days: 14
+      - name: Publish compact profiling receipt
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: qelly-uiux-baseline-receipt-${{ matrix.appearance }}-${{ matrix.width }}
-          path: uiux-audit/receipt.json
-          retention-days: 30
+          name: qelly-uiux-profile-receipt-${{ matrix.appearance }}-${{ matrix.width }}
+          path: uiux-profile/receipt.json
+          retention-days: 14
