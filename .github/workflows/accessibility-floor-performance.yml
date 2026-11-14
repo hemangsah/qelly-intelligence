@@ -41,14 +41,14 @@ jobs:
         run: node scripts/qelly-accessibility-floor-warm-e2e.mjs
       - name: Preserve compact paired evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-accessibility-floor-${{ github.event.pull_request.head.sha }}
           path: accessibility-floor-evidence/report.json
           retention-days: 30
       - name: Preserve warm-refresh paired evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-accessibility-floor-warm-${{ github.event.pull_request.head.sha }}
           path: accessibility-floor-warm-evidence/report.json

@@ -108,7 +108,7 @@ jobs:
             if(pageErrors.length||criticalRequestFailures.length||criticalConsoleErrors.length||failingResponses.length)throw new Error(`critical_browser_errors_${JSON.stringify({pageErrors,criticalRequestFailures,criticalConsoleErrors,failingResponses})}`);
           })().catch(e=>{console.error(e);process.exit(1)});
           NODE
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: qelly-live-production-verification-${{ github.sha }}

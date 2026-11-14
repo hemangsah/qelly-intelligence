@@ -45,14 +45,14 @@ jobs:
         run: node scripts/qelly-uiux-production-audit.mjs
       - name: Keep baseline screens and measurements in cloud
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-uiux-baseline-${{ env.QELLY_UIUX_BASE_SHA }}-${{ matrix.appearance }}-${{ matrix.width }}
           path: uiux-audit
           retention-days: 30
       - name: Publish compact receipt
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qelly-uiux-baseline-receipt-${{ matrix.appearance }}-${{ matrix.width }}
           path: uiux-audit/receipt.json
